@@ -16,7 +16,6 @@
 
 import os
 import types
-from types import FunctionType
 
 import networkx
 from absl import app
@@ -24,7 +23,6 @@ from absl import flags
 from tensorflow_docs.api_generator import doc_controls
 from tensorflow_docs.api_generator import generate_lib
 from tensorflow_docs.api_generator import public_api
-from tensorflow_docs.api_generator.doc_controls import do_not_doc_inheritable
 
 import cirq
 from cirq import _doc
@@ -83,9 +81,8 @@ def main(unused_argv):
         },
         extra_docs=_doc.RECORDED_CONST_DOCS,
     )
-    doc_controls.decorate_all_class_attributes(do_not_doc_inheritable,
-                                               networkx.DiGraph,
-                                               skip=[])
+    doc_controls.decorate_all_class_attributes(
+        doc_controls.do_not_doc_inheritable, networkx.DiGraph, skip=[])
     doc_generator.build(output_dir=FLAGS.output_dir)
 
 
