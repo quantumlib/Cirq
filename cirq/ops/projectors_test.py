@@ -264,3 +264,31 @@ def test_expectation_from_density_matrix_basis_states_single_qubits():
     np.testing.assert_allclose(
         d.expectation_from_density_matrix(np.array([[0.0, 0.0], [0.0, 1.0]]),
                                           {q0: 0}), 0.0)
+
+
+def test_internal_consistency():
+    q0 = cirq.NamedQid('q0', dimension=2)
+    q1 = cirq.NamedQid('q1', dimension=3)
+
+    phi0 = np.asarray([1.0, -3.0j])
+    phi1 = np.asarray([-0.5j, 1.0 + 2.0j, 1.2])
+
+    state_vector = np.asarray([1.0, 2.0j, -3.0, -4.0j, -5.0j, 0.0])
+
+    phi0 = phi0 / np.linalg.norm(phi0)
+    phi1 = phi1 / np.linalg.norm(phi1)
+    state_vector = state_vector / np.linalg.norm(state_vector)
+    state = np.einsum('i,j->ij', state_vector, state_vector.T.conj())
+
+    d = cirq.Projector({q0: [phi0], q1: [phi1]})
+    P = d.matrix(proj_keys=[q1, q0])
+
+    projected_state = np.matmul(P, state_vector)
+    actual0 = np.linalg.norm(projected_state, ord=2) ** 2
+
+    actual1 = d.expectation_from_state_vector(state_vector, qubit_map={q1:0, q0:1})
+
+    actual2 = d.expectation_from_density_matrix(state, qubit_map={q1:0, q0:1})
+
+    np.testing.assert_allclose(actual0, actual1, atol=1e-6)
+    np.testing.assert_allclose(actual0, actual2, atol=1e-6)

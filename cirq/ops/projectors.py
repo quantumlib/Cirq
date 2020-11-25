@@ -125,7 +125,7 @@ class Projector():
             state_vector = np.moveaxis(state_vector, 0, i)
 
         state_vector = np.reshape(state_vector, np.prod(dims))
-        return np.dot(state_vector, state_vector)
+        return np.dot(state_vector, state_vector.conj())
 
     def expectation_from_density_matrix(self,
                                         state: np.ndarray,
