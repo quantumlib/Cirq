@@ -230,6 +230,32 @@ def test_resolve_unknown_type():
     assert r.value_of(cirq.X) == cirq.X
 
 
+def test_compose():
+    """
+    Calling cirq.resolve_paramters on a ParamResolver composes that resolver
+    with the provided resolver.
+    """
+    a = sympy.Symbol('a')
+    b = sympy.Symbol('b')
+    c = sympy.Symbol('c')
+    d = sympy.Symbol('d')
+    r1 = cirq.ParamResolver({a: b})
+    r2 = cirq.ParamResolver({b: c + d})
+    r3 = cirq.ParamResolver({c: 12})
+
+    r12 = cirq.resolve_parameters(r1, r2)
+    assert r12.value_of('a') == c + d
+
+    r23 = cirq.resolve_parameters(r2, r3)
+    assert r23.value_of('b') == 12 + d
+
+    r123 = cirq.resolve_parameters(r12, r3)
+    assert r123.value_of('a') == 12 + d
+
+    r13 = cirq.resolve_parameters(r1, r3)
+    assert r13.value_of('a') == b
+
+
 def test_equals():
     et = cirq.testing.EqualsTester()
     et.add_equality_group(
