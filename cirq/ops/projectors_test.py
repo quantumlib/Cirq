@@ -1,3 +1,4 @@
+from itertools import permutations
 import math
 
 import numpy as np
@@ -213,28 +214,36 @@ def test_expectation_from_state_vector_basis_states_three_qubits():
 
 
 def test_expectation_higher_dims():
+    dims = [2, 3, 5]
+
     q0 = cirq.NamedQid('q0', dimension=2)
     q1 = cirq.NamedQid('q1', dimension=3)
     q2 = cirq.NamedQid('q2', dimension=5)
     d = cirq.Projector({q2: [[0.0, 0.0, 0.0, 1.0, 0.0]], q1: [[0.0, 1.0, 0.0]]})
 
-    state_vector = np.kron([1.0, 0.0],
-                           np.kron([0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0, 0.0]))
-    state = np.einsum('i,j->ij', state_vector, state_vector.T.conj())
+    phis = [[1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0, 0.0]]
 
-    np.testing.assert_allclose(
-        d.expectation_from_state_vector(state_vector, {
-            q0: 0,
-            q1: 1,
-            q2: 2,
-        }), 1.0)
+    for perm in permutations([0, 1, 2]):
+        inv_perm = [-1] * len(perm)
+        for i, j in enumerate(perm):
+            inv_perm[j] = i
 
-    np.testing.assert_allclose(
-        d.expectation_from_density_matrix(state, {
-            q0: 0,
-            q1: 1,
-            q2: 2,
-        }), 1.0)
+        state_vector = np.kron(phis[perm[0]], np.kron(phis[perm[1]], phis[perm[2]]))
+        state = np.einsum('i,j->ij', state_vector, state_vector.T.conj())
+
+        np.testing.assert_allclose(
+            d.expectation_from_state_vector(state_vector, {
+                q0: inv_perm[0],
+                q1: inv_perm[1],
+                q2: inv_perm[2]
+            }), 1.0)
+
+        np.testing.assert_allclose(
+            d.expectation_from_density_matrix(state, {
+                q0: inv_perm[0],
+                q1: inv_perm[1],
+                q2: inv_perm[2]
+            }), 1.0)
 
 
 def test_expectation_from_density_matrix_basis_states_empty():

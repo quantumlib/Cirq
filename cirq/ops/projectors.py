@@ -15,11 +15,16 @@ if TYPE_CHECKING:
 ProjKey = TypeVar('ProjKey', bound=Union[raw_types.Qid, Tuple[raw_types.Qid]])
 
 
-def qid_shape_from_proj_key(proj_key):
+def qid_shape_from_proj_key(proj_key: ProjKey):
     if isinstance(proj_key, tuple):
         return [qubit.dimension for qubit in proj_key]
     else:
         return [proj_key.dimension]
+
+
+def get_dims_from_qubit_map(qubit_map: Mapping[ProjKey, int]):
+    dims = sorted([(i, np.prod(qid_shape_from_proj_key(proj_key))) for proj_key, i in qubit_map.items()])
+    return [x[1] for x in dims]
 
 
 @value.value_equality
@@ -101,10 +106,7 @@ class Projector():
                                       atol: float = 1e-7,
                                       check_preconditions: bool = True
                                      ) -> float:
-        dims = [
-            np.prod(qid_shape_from_proj_key(proj_key))
-            for proj_key in qubit_map.keys()
-        ]
+        dims = get_dims_from_qubit_map(qubit_map)
         state_vector = state_vector.reshape(dims)
 
         for proj_key, i in qubit_map.items():
@@ -131,10 +133,7 @@ class Projector():
                                         atol: float = 1e-7,
                                         check_preconditions: bool = True
                                        ) -> float:
-        dims = [
-            np.prod(qid_shape_from_proj_key(proj_key))
-            for proj_key in qubit_map.keys()
-        ]
+        dims = get_dims_from_qubit_map(qubit_map)
         state = state.reshape(dims * 2)
 
         for proj_key, i in qubit_map.items():
