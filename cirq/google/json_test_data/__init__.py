@@ -16,16 +16,5 @@
 # serialization of public objects. It is used by
 # cirq/protocols/json_serialization_test.py which checks for coverage of
 # public classes and tests the correctness of repr and json results
-import pathlib
 
-import cirq
-
-from cirq.testing.json_serialization_test_spec import JsonSerializationTestSpec
-
-TestSpec = JsonSerializationTestSpec(
-    module=cirq.google,
-    test_file_path=pathlib.Path(__file__).parent,
-    excluded_class_names=[
-        'Engine', 'EngineJob', 'EngineProcessor', 'EngineProgram',
-        'EngineTimeSlot', 'QuantumEngineSampler', 'NAMED_GATESETS'
-    ])
+from cirq.google.json_test_data.spec import TestSpec

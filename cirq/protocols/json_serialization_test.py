@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import inspect
-
 import io
 import json
 import os
@@ -20,21 +19,39 @@ import pathlib
 import textwrap
 from typing import Tuple, Iterator, Type, List, Set, Any
 
-import pytest
-
 import numpy as np
 import pandas as pd
+import pytest
 import sympy
 
 import cirq
 from cirq._compat import proper_repr, proper_eq
 from cirq.testing import assert_json_roundtrip_works
-from cirq.protocols.json_serialization import RESOLVER_CACHE
+from cirq.testing.json_serialization_test_spec import JsonSerializationTestSpec
 
-TEST_DATA_PATH = pathlib.Path(__file__).parent / 'json_test_data'
+CIRQ_TEST_DATA_PATH = pathlib.Path(__file__).parent / 'json_test_data'
 TEST_DATA_REL = 'cirq/protocols/json_test_data'
+TESTED_MODULES = ['cirq.protocols']
 
-SEPARATE_MODULES = ['cirq.google']
+
+def _get_testspecs_for_modules():
+    modules = []
+    for m in TESTED_MODULES:
+        import importlib.util
+        if importlib.util.find_spec(m) is not None:
+            test_module_name = f"{m}.json_test_data"
+            if importlib.util.find_spec(test_module_name) is None:
+                raise ValueError(f"{m} module is missing json_test_data "
+                                 f"package, please set it up.")
+            test_module = importlib.import_module(test_module_name)
+            if not hasattr(test_module, "TestSpec"):
+                raise ValueError(f"{test_module_name} module is missing "
+                                 f"TestSpec, please set it up.")
+            modules.append(test_module.TestSpec)
+    return modules
+
+
+MODULE_TEST_SPECS = _get_testspecs_for_modules()
 
 
 def test_line_qubit_roundtrip():
@@ -112,275 +129,84 @@ Q0, Q1, Q2, Q3, Q4 = QUBITS
 #   cirq.Circuit(cirq.rx(sympy.Symbol('theta')).on(Q0)),
 
 
-def _get_testspec_for_modules():
-    modules = []
-    for m in SEPARATE_MODULES:
-        import importlib.util
-        if importlib.util.find_spec(m) is not None:
-            test_module_name = f"{m}.json_test_data"
-            if importlib.util.find_spec(test_module_name) is None:
-                raise ValueError(f"{m} module is missing json_test_data "
-                                 f"package, please set it up.")
-            test_module = importlib.import_module(test_module_name)
-            if not hasattr(test_module, "TestSpec"):
-                raise ValueError(f"{test_module_name} module is missing "
-                                 f"TestSpec, please set it up.")
-            modules.append(test_module.TestSpec)
-    return modules
+def _get_all_public_classes(module_test_spec: JsonSerializationTestSpec
+                           ) -> Iterator[Tuple[str, Type]]:
+    for module in module_test_spec.modules:
+        for name, obj in inspect.getmembers(module):
+            if inspect.isfunction(obj) or inspect.ismodule(obj):
+                continue
+
+            if name in module_test_spec.shouldnt_be_serialized:
+                continue
+
+            if not inspect.isclass(obj):
+                # singletons, for instance
+                obj = obj.__class__
+
+            if name.startswith('_'):
+                continue
+
+            if inspect.isclass(obj) and inspect.isabstract(obj):
+                continue
+
+            # assert name != 'XPowGate'
+            yield name, obj
 
 
-def _get_excluded_classes_from_modules():
-    excluded_class_names = set()
-    for m in _get_testspec_for_modules():
-        excluded_class_names = excluded_class_names.union(
-            m.excluded_class_names)
-    return list(excluded_class_names)
-
-
-SHOULDNT_BE_SERIALIZED = [
-    # Intermediate states with work buffers and unknown external prng guts.
-    'ActOnCliffordTableauArgs',
-    'ActOnStabilizerCHFormArgs',
-    'ActOnStateVectorArgs',
-    'ApplyChannelArgs',
-    'ApplyMixtureArgs',
-    'ApplyUnitaryArgs',
-
-    # Circuit optimizers are function-like. Only attributes
-    # are ignore_failures, tolerance, and other feature flags
-    'ConvertToCzAndSingleGates',
-    'ConvertToIonGates',
-    'ConvertToNeutralAtomGates',
-    'ConvertToSqrtIswapGates',
-    'ConvertToSycamoreGates',
-    'ConvertToXmonGates',
-    'DropEmptyMoments',
-    'DropNegligible',
-    'EjectPhasedPaulis',
-    'EjectZ',
-    'ExpandComposite',
-    'MergeInteractions',
-    'MergeSingleQubitGates',
-    'PointOptimizer',
-    'SynchronizeTerminalMeasurements',
-
-    # global objects
-    'CONTROL_TAG',
-    'PAULI_BASIS',
-    'PAULI_STATES',
-
-    # abstract, but not inspect.isabstract():
-    'Device',
-    'InterchangeableQubitsGate',
-    'Pauli',
-    'SingleQubitGate',
-    'ThreeQubitGate',
-    'TwoQubitGate',
-    'ABCMetaImplementAnyOneOf',
-
-    # protocols:
-    'SupportsActOn',
-    'SupportsApplyChannel',
-    'SupportsApplyMixture',
-    'SupportsApproximateEquality',
-    'SupportsChannel',
-    'SupportsCircuitDiagramInfo',
-    'SupportsCommutes',
-    'SupportsConsistentApplyUnitary',
-    'SupportsDecompose',
-    'SupportsDecomposeWithQubits',
-    'SupportsEqualUpToGlobalPhase',
-    'SupportsExplicitHasUnitary',
-    'SupportsExplicitNumQubits',
-    'SupportsExplicitQidShape',
-    'SupportsJSON',
-    'SupportsMeasurementKey',
-    'SupportsMixture',
-    'SupportsParameterization',
-    'SupportsPauliExpansion',
-    'SupportsPhase',
-    'SupportsQasm',
-    'SupportsQasmWithArgs',
-    'SupportsQasmWithArgsAndQubits',
-    'SupportsTraceDistanceBound',
-    'SupportsUnitary',
-
-    # mypy types:
-    'CIRCUIT_LIKE',
-    'DURATION_LIKE',
-    'JsonResolver',
-    'NOISE_MODEL_LIKE',
-    'OP_TREE',
-    'PAULI_GATE_LIKE',
-    'PAULI_STRING_LIKE',
-    'ParamResolverOrSimilarType',
-    'PauliSumLike',
-    'QubitOrderOrList',
-    'RANDOM_STATE_OR_SEED_LIKE',
-    'STATE_VECTOR_LIKE',
-    'Sweepable',
-    'TParamKey',
-    'TParamVal',
-    'ParamDictType',
-
-    # utility:
-    'AnnealSequenceSearchStrategy',
-    'CliffordSimulator',
-    'DeserializingArg',
-    'GateOpDeserializer',
-    'GateOpSerializer',
-    'GreedySequenceSearchStrategy',
-    'SerializingArg',
-    'Simulator',
-    'StabilizerSampler',
-    'Unique',
-    'DEFAULT_RESOLVERS',
-
-    # enums
-    'ProtoVersion'
-] + _get_excluded_classes_from_modules()
-
-
-def _get_all_public_classes(module) -> Iterator[Tuple[str, Type]]:
-    for name, obj in inspect.getmembers(module):
-        if inspect.isfunction(obj) or inspect.ismodule(obj):
-            continue
-
-        if name in SHOULDNT_BE_SERIALIZED:
-            continue
-
-        if not inspect.isclass(obj):
-            # singletons, for instance
-            obj = obj.__class__
-
-        if name.startswith('_'):
-            continue
-
-        if inspect.isclass(obj) and inspect.isabstract(obj):
-            continue
-
-        # assert name != 'XPowGate'
-        yield name, obj
-
-
-def _get_all_names() -> Iterator[str]:
+def _get_all_names(module_spec: JsonSerializationTestSpec) -> Iterator[str]:
 
     def not_module_or_function(x):
         return not (inspect.ismodule(x) or inspect.isfunction(x))
 
-    for name, _ in inspect.getmembers(cirq, not_module_or_function):
-        yield name
-    for name, _ in inspect.getmembers(cirq.google, not_module_or_function):
-        yield name
+    for m in module_spec.modules:
+        for name, _ in inspect.getmembers(m, not_module_or_function):
+            yield name
 
 
-def test_shouldnt_be_serialized_no_superfluous():
+@pytest.mark.parametrize('module_spec', MODULE_TEST_SPECS)
+def test_shouldnt_be_serialized_no_superfluous(
+        module_spec: JsonSerializationTestSpec):
     # everything in the list should be ignored for a reason
-    names = set(_get_all_names())
-    for name in SHOULDNT_BE_SERIALIZED:
-        assert name in names
+    names = set(_get_all_names(module_spec))
+    missing_names = set(module_spec.shouldnt_be_serialized).difference(names)
+    assert len(missing_names) == 0, (f"Defined as \"should't be serialized\", "
+                                     f"but missing from {module_spec}: \n"
+                                     f"{missing_names}")
 
 
-def test_not_yet_serializable_no_superfluous():
+@pytest.mark.parametrize('module_spec', MODULE_TEST_SPECS)
+def test_not_yet_serializable_no_superfluous(
+        module_spec: JsonSerializationTestSpec):
     # everything in the list should be ignored for a reason
-    names = set(_get_all_names())
-    for name in NOT_YET_SERIALIZABLE:
-        assert name in names
+    names = set(_get_all_names(module_spec))
+    missing_names = set(module_spec.not_yet_serializable).difference(names)
+    assert len(missing_names) == 0, (f"Defined as Not yet serializable, "
+                                     f"but missing from {module_spec}: \n"
+                                     f"{missing_names}")
 
 
-def test_mutually_exclusive_blacklist():
-    assert len(set(SHOULDNT_BE_SERIALIZED) & set(NOT_YET_SERIALIZABLE)) == 0
+@pytest.mark.parametrize('module_spec', MODULE_TEST_SPECS)
+def test_mutually_exclusive_blacklist(module_spec: JsonSerializationTestSpec):
+    num_common = len(
+        set(module_spec.shouldnt_be_serialized) &
+        set(module_spec.not_yet_serializable))
+    assert num_common == 0
 
 
-NOT_YET_SERIALIZABLE = [
-    'AsymmetricDepolarizingChannel',
-    'AxisAngleDecomposition',
-    'Calibration',
-    'CalibrationLayer',
-    'CalibrationResult',
-    'CircuitDag',
-    'CircuitDiagramInfo',
-    'CircuitDiagramInfoArgs',
-    'CircuitSampleJob',
-    'CliffordSimulatorStepResult',
-    'CliffordState',
-    'CliffordTrialResult',
-    'ConstantQubitNoiseModel',
-    'DensityMatrixSimulator',
-    'DensityMatrixSimulatorState',
-    'DensityMatrixStepResult',
-    'DensityMatrixTrialResult',
-    'ExpressionMap',
-    'FSIM_GATESET',
-    'Heatmap',
-    'InsertStrategy',
-    'IonDevice',
-    'KakDecomposition',
-    'LinearCombinationOfGates',
-    'LinearCombinationOfOperations',
-    'Linspace',
-    'ListSweep',
-    'NeutralAtomDevice',
-    'ParallelGateOperation',
-    'PauliInteractionGate',
-    'PauliStringPhasor',
-    'PauliSum',
-    'PauliSumCollector',
-    'PauliTransform',
-    'PeriodicValue',
-    'PointOptimizationSummary',
-    'Points',
-    'Product',
-    'QasmArgs',
-    'QasmOutput',
-    'QubitOrder',
-    'QubitPermutationGate',
-    'QuilFormatter',
-    'QuilOutput',
-    'SerializableDevice',
-    'SerializableGateSet',
-    'SimulationTrialResult',
-    'SingleQubitCliffordGate',
-    'SparseSimulatorStep',
-    'SQRT_ISWAP_GATESET',
-    'StateVectorMixin',
-    'SYC_GATESET',
-    'Sycamore',
-    'Sycamore23',
-    'TextDiagramDrawer',
-    'ThreeQubitDiagonalGate',
-    'Timestamp',
-    'TwoQubitDiagonalGate',
-    'UnitSweep',
-    'StateVectorSimulatorState',
-    'StateVectorTrialResult',
-    'WaveFunctionSimulatorState',
-    'WaveFunctionTrialResult',
-    'XmonDevice',
-    'XMON',
-    'ZerosSampler',
-    'Zip',
-]
+def _find_classes_that_should_serialize(module_spec: JsonSerializationTestSpec)\
+        -> Set[Tuple[str, Type]]:
+    result: Set[Tuple[str, Type]] = set()
 
+    result.update({
+        (name, obj) for name, obj in _get_all_public_classes(module_spec)
+    })
 
-def _find_classes_that_should_serialize(
-) -> Set[Tuple[pathlib.Path, str, Type]]:
-    result: Set[Tuple[pathlib.Path, str, Type]] = set()
-    result.update({(TEST_DATA_PATH, name, obj)
-                   for name, obj in _get_all_public_classes(cirq)})
-    result.update({(TEST_DATA_PATH, name, obj)
-                   for name, obj in _get_all_public_classes(cirq.work)})
-
-    ## TODO: figure out how to connect the test-data-path with the resolver cache
-    for k, v in RESOLVER_CACHE.cirq_class_resolver_dictionary.items():
+    # TODO: figure out how we can get the resolver cache for each module
+    # this currently refers to the main resolver cache for cirq which is
+    # too much
+    for k, v in module_spec.resolver_cache.items():
         t = v if isinstance(v, type) else None
-        result.add((TEST_DATA_PATH, k, t))
-
-    for m in _get_testspec_for_modules():
-        result.update({(m.test_file_path, name, obj)
-                       for name, obj in _get_all_public_classes(m.module)})
-        result.update({(m.test_file_path, name, obj)
-                       for name, obj in _get_all_public_classes(m.module)})
+        result.add((k, t))
 
     return result
 
@@ -463,8 +289,8 @@ def test_sympy():
 def _write_test_data(key: str, *test_instances: Any):
     """Helper method for creating initial test data."""
     # coverage: ignore
-    cirq.to_json(test_instances, TEST_DATA_PATH / f'{key}.json')
-    with open(TEST_DATA_PATH / f'{key}.repr', 'w') as f:
+    cirq.to_json(test_instances, CIRQ_TEST_DATA_PATH / f'{key}.json')
+    with open(CIRQ_TEST_DATA_PATH / f'{key}.repr', 'w') as f:
         f.write('[\n')
         for e in test_instances:
             f.write(proper_repr(e))
@@ -472,13 +298,17 @@ def _write_test_data(key: str, *test_instances: Any):
         f.write(']')
 
 
-@pytest.mark.parametrize('test_data_path,cirq_obj_name,cls',
-                         _find_classes_that_should_serialize())
-def test_json_test_data_coverage(test_data_path: pathlib.Path,
+@pytest.mark.parametrize(
+    'module_spec,cirq_obj_name,cls',
+    [(module_spec, o, n)
+     for module_spec in MODULE_TEST_SPECS
+     for (o, n) in _find_classes_that_should_serialize(module_spec)])
+def test_json_test_data_coverage(module_spec: JsonSerializationTestSpec,
                                  cirq_obj_name: str, cls):
-    if cirq_obj_name in NOT_YET_SERIALIZABLE:
+    if cirq_obj_name in module_spec.not_yet_serializable:
         return pytest.xfail(reason="Not serializable (yet)")
 
+    test_data_path = module_spec.test_file_path
     json_path = test_data_path / f'{cirq_obj_name}.json'
     json_path2 = test_data_path / f'{cirq_obj_name}.json_inward'
 
@@ -529,13 +359,13 @@ def test_json_test_data_coverage(test_data_path: pathlib.Path,
 
         for obj in objs:
             assert type(obj) == cls, (
-                f"Value in {TEST_DATA_REL}/{cirq_obj_name}.repr must be of "
+                f"Value in {test_data_path}/{cirq_obj_name}.repr must be of "
                 f"exact type {cls}, or a list of instances of that type. But "
                 f"the value (or one of the list entries) had type "
                 f"{type(obj)}.\n"
                 f"\n"
                 f"If using a value of the wrong type is intended, move the "
-                f"value to {TEST_DATA_REL}/{cirq_obj_name}.repr_inward\n"
+                f"value to {test_data_path}/{cirq_obj_name}.repr_inward\n"
                 f"\n"
                 f"Value with wrong type:\n{obj!r}.")
 
@@ -615,24 +445,25 @@ def assert_repr_and_json_test_data_agree(repr_path: pathlib.Path,
 
 def all_test_data_keys() -> List[str]:
     seen = set()
-    for file in TEST_DATA_PATH.iterdir():
-        name = file.name
+
+    for file in CIRQ_TEST_DATA_PATH.iterdir():
+        name = file.absolute().name
         if name.endswith('.json') or name.endswith('.repr'):
             seen.add(file.name[:-len('.json')])
         elif name.endswith('.json_inward') or name.endswith('.repr_inward'):
             seen.add(file.name[:-len('.json_inward')])
+
     return sorted(seen)
 
 
 @pytest.mark.parametrize('key', all_test_data_keys())
 def test_json_and_repr_data(key: str):
+    assert_repr_and_json_test_data_agree(repr_path=pathlib.Path(f'{key}.repr'),
+                                         json_path=pathlib.Path(f'{key}.json'),
+                                         inward_only=False)
     assert_repr_and_json_test_data_agree(
-        repr_path=TEST_DATA_PATH / f'{key}.repr',
-        json_path=TEST_DATA_PATH / f'{key}.json',
-        inward_only=False)
-    assert_repr_and_json_test_data_agree(
-        repr_path=TEST_DATA_PATH / f'{key}.repr_inward',
-        json_path=TEST_DATA_PATH / f'{key}.json_inward',
+        repr_path=pathlib.Path(f'{key}.repr_inward'),
+        json_path=pathlib.Path(f'{key}.json_inward'),
         inward_only=True)
 
 

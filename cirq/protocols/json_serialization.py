@@ -50,6 +50,9 @@ class _ResolverCache:
     def __init__(self):
         self._crd = None
 
+    def __call__(self, cirq_type: str) -> Optional[Type]:
+        return self.cirq_class_resolver_dictionary.get(cirq_type, None)
+
     @property
     def cirq_class_resolver_dictionary(self) -> Dict[str, Type]:
         if self._crd is None:
@@ -160,6 +163,7 @@ class _ResolverCache:
                 'StabilizerStateChForm': cirq.StabilizerStateChForm,
                 'SwapPowGate': cirq.SwapPowGate,
                 'TaggedOperation': cirq.TaggedOperation,
+                'ThreeDQubit': cirq.pasqal.ThreeDQubit,
                 'Result': cirq.Result,
                 'TrialResult': cirq.TrialResult,
                 'TwoDQubit': cirq.pasqal.TwoDQubit,
@@ -190,12 +194,6 @@ class _ResolverCache:
                 'sympy.Rational': sympy.Rational,
                 'complex': complex,
             }
-
-        try:
-            import cirq.google
-            self._crd.update(cirq.google._json_serialization_cache())
-        except:
-            pass
         return self._crd
 
 
@@ -209,13 +207,7 @@ class JsonResolver(Protocol):
         ...
 
 
-def _cirq_class_resolver(cirq_type: str) -> Optional[Type]:
-    return RESOLVER_CACHE.cirq_class_resolver_dictionary.get(cirq_type, None)
-
-
-DEFAULT_RESOLVERS: List[JsonResolver] = [
-    _cirq_class_resolver,
-]
+DEFAULT_RESOLVERS: List[JsonResolver] = [RESOLVER_CACHE]
 """A default list of 'JsonResolver' functions for use in read_json.
 
 For more information about cirq_type resolution during deserialization
@@ -233,6 +225,12 @@ prepended to this list:
             resolvers = MY_DEFAULT_RESOLVERS
         return cirq.read_json(file_or_fn, resolvers=resolvers)
 """
+
+try:
+    import cirq.google.json_resolver_cache
+    DEFAULT_RESOLVERS.append(cirq.google.json_resolver_cache.RESOLVER_CACHE)
+except:
+    pass
 
 
 class SupportsJSON(Protocol):
