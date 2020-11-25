@@ -93,3 +93,11 @@ def test_determine_ignored_lines():
         b = 2 # coverage: definitely
         b = 3 # lint: ignore
     """) == {2, 3, 4, 5, 6, 7, 8}
+
+    assert f("""
+        if TYPE_CHECKING:
+            import cirq
+            import foo
+        def bar(a: 'cirq.Circuit'):
+            pass
+    """) == {2, 3, 4}
