@@ -25,13 +25,13 @@ import cirq.google as cg
 import cirq.google.common_serializers as cgc
 from cirq.google.api import v2
 
-SINGLE_QUBIT_GATE_SET = cg.SerializableGateSet(
+SINGLE_QUBIT_GATE_SET = cg.serializable_gate_set.SerializableGateSet(
     gate_set_name='test_half_pi',
     serializers=([cgc.MEASUREMENT_SERIALIZER] + cgc.SINGLE_QUBIT_SERIALIZERS),
     deserializers=([cgc.MEASUREMENT_DESERIALIZER] +
                    cgc.SINGLE_QUBIT_DESERIALIZERS))
 
-HALF_PI_GATE_SET = cg.SerializableGateSet(
+HALF_PI_GATE_SET = cg.serializable_gate_set.SerializableGateSet(
     gate_set_name='test_half_pi',
     serializers=([cgc.MEASUREMENT_SERIALIZER] +
                  cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS),

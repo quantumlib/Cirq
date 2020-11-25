@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import io
 import json
 import os
@@ -112,7 +113,6 @@ def test_fail_to_resolve():
 
 QUBITS = cirq.LineQubit.range(5)
 Q0, Q1, Q2, Q3, Q4 = QUBITS
-
 
 # TODO: Include cirq.rx in the Circuit test case file.
 # Github issue: https://github.com/quantumlib/Cirq/issues/2014

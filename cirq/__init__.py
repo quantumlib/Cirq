@@ -25,7 +25,6 @@ from cirq import (
     _doc,
     type_workarounds,
 )
-
 with _import.delay_import('cirq.protocols'):
     from cirq import (
         # Core
@@ -557,7 +556,6 @@ from cirq import (
     ionq,
     pasqal,
     testing,
-    json_resolver_cache,
 )
 
 

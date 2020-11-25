@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from dataclasses import dataclass
+
 from typing import Any, Callable, List, Optional
 
 from contextlib import contextmanager
@@ -161,8 +161,3 @@ def delay_import(module_name: str):
     delay = False
     for module in execute_list:
         module.__loader__.exec_module(module)  # Calls back into wrap_func
-
-
-@dataclass
-class ModuleSerializationInfo:
-    excluded_classes: List[str]

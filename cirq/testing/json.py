@@ -1,3 +1,17 @@
+# Copyright 2020 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import inspect
 import io
 import pathlib
@@ -12,12 +26,16 @@ from cirq._import import ModuleType
 
 # This is the testing framework for json serialization
 # The actual tests live in cirq.protocols.json_serialization_test.py.
-# When registering a new module, say "cirq.mod", it has to come with the
-# following setup:
-#  - a new package, cirq.mod.json_test_data
-#  - cirq.mod.json_test_data should export a TestSpec of type
-#       ModuleJsonTestSpec
-#  - a resolver cache for the exposed types
+#
+# When registering a new module, it has to come with the following setup:
+#  - test data: a new package to contain the test data, see for example
+#       cirq/google/json_test_data
+#  - test spec: cirq.mod.json_test_data should export an object named
+#       TestSpec, which should be of type ModuleJsonTestSpec, see for example
+#       cirq/google/json_test_data/spec.py
+#  - resolver cache: a resolver cache for the exposed types - see for example
+#       cirq/json_resolver_cache.py or cirq/google/json_resolver_cache.py
+
 from cirq.protocols.json_serialization import ObjectFactory
 
 

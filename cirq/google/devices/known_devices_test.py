@@ -291,7 +291,7 @@ valid_targets {
 
 
 def test_multiple_gate_sets():
-    halfPiGateSet = cg.SerializableGateSet(
+    halfPiGateSet = cg.serializable_gate_set.SerializableGateSet(
         gate_set_name='half_pi_gateset',
         serializers=[
             *cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS, cgc.MEASUREMENT_SERIALIZER
@@ -487,7 +487,7 @@ def test_sycamore_grid_layout():
 
 
 def test_proto_with_waitgate():
-    wait_gateset = cg.SerializableGateSet(
+    wait_gateset = cg.serializable_gate_set.SerializableGateSet(
         gate_set_name='wait_gateset',
         serializers=[cgc.WAIT_GATE_SERIALIZER],
         deserializers=[cgc.WAIT_GATE_DESERIALIZER],
@@ -546,7 +546,7 @@ valid_targets {
 
 
 def test_adding_gates_multiple_times():
-    waiting_for_godot = cg.SerializableGateSet(
+    waiting_for_godot = cg.serializable_gate_set.SerializableGateSet(
         gate_set_name='wait_gateset',
         serializers=[
             cgc.WAIT_GATE_SERIALIZER, cgc.WAIT_GATE_SERIALIZER,
