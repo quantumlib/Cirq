@@ -228,7 +228,8 @@ def test_expectation_higher_dims():
         for i, j in enumerate(perm):
             inv_perm[j] = i
 
-        state_vector = np.kron(phis[perm[0]], np.kron(phis[perm[1]], phis[perm[2]]))
+        state_vector = np.kron(phis[perm[0]],
+                               np.kron(phis[perm[1]], phis[perm[2]]))
         state = np.einsum('i,j->ij', state_vector, state_vector.T.conj())
 
         np.testing.assert_allclose(

@@ -23,7 +23,8 @@ def qid_shape_from_proj_key(proj_key: ProjKey):
 
 
 def get_dims_from_qubit_map(qubit_map: Mapping[ProjKey, int]):
-    dims = sorted([(i, np.prod(qid_shape_from_proj_key(proj_key))) for proj_key, i in qubit_map.items()])
+    dims = sorted([(i, np.prod(qid_shape_from_proj_key(proj_key)))
+                   for proj_key, i in qubit_map.items()])
     return [x[1] for x in dims]
 
 
