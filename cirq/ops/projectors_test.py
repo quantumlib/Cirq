@@ -218,22 +218,23 @@ def test_expectation_higher_dims():
     q2 = cirq.NamedQid('q2', dimension=5)
     d = cirq.Projector({q2: [[0.0, 0.0, 0.0, 1.0, 0.0]], q1: [[0.0, 1.0, 0.0]]})
 
-    state_vector = np.kron([1.0, 0.0], np.kron([0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0, 0.0]))
+    state_vector = np.kron([1.0, 0.0],
+                           np.kron([0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0, 0.0]))
     state = np.einsum('i,j->ij', state_vector, state_vector.T.conj())
 
     np.testing.assert_allclose(
         d.expectation_from_state_vector(state_vector, {
-                q0: 0,
-                q1: 1,
-                q2: 2,
-            }), 1.0)
+            q0: 0,
+            q1: 1,
+            q2: 2,
+        }), 1.0)
 
     np.testing.assert_allclose(
         d.expectation_from_density_matrix(state, {
-                q0: 0,
-                q1: 1,
-                q2: 2,
-            }), 1.0)
+            q0: 0,
+            q1: 1,
+            q2: 2,
+        }), 1.0)
 
 
 def test_expectation_from_density_matrix_basis_states_empty():
