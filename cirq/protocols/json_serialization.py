@@ -40,7 +40,12 @@ from cirq.type_workarounds import NotImplementedType
 
 ObjectFactory = Union[Type, Callable[..., Any]]
 
-JsonResolver = Callable[[str], Optional[ObjectFactory]]
+
+class JsonResolver(Protocol):
+    """Protocol for json resolver functions passed to read_json."""
+
+    def __call__(self, cirq_type: str) -> Optional[ObjectFactory]:
+        ...
 
 
 def _lazy_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]

@@ -13,10 +13,9 @@
 # limitations under the License.
 
 import functools
-from collections import defaultdict
-from typing import Dict, TYPE_CHECKING, Optional
+from typing import Dict, TYPE_CHECKING
 
-from cirq.protocols.json_serialization import ObjectFactory, register_resolver
+from cirq.protocols.json_serialization import ObjectFactory
 
 if TYPE_CHECKING:
     import cirq.ops.pauli_gates
@@ -24,7 +23,7 @@ if TYPE_CHECKING:
 
 
 @functools.lru_cache(maxsize=1)
-def _class_resolver_dictionary() -> Dict[str, Optional[ObjectFactory]]:
+def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     import cirq
     from cirq.ops import raw_types
     import pandas as pd
@@ -50,8 +49,7 @@ def _class_resolver_dictionary() -> Dict[str, Optional[ObjectFactory]]:
         return cirq.MatrixGate(matrix, qid_shape=(2, 2))
 
     import sympy
-    d = defaultdict(lambda: None)
-    d.update({
+    return {
         'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
         'AsymmetricDepolarizingChannel': cirq.AsymmetricDepolarizingChannel,
         'BitFlipChannel': cirq.BitFlipChannel,
@@ -160,5 +158,4 @@ def _class_resolver_dictionary() -> Dict[str, Optional[ObjectFactory]]:
         'sympy.Integer': sympy.Integer,
         'sympy.Rational': sympy.Rational,
         'complex': complex,
-    })
-    return d
+    }
