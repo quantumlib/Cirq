@@ -17,14 +17,14 @@ ProjKey = TypeVar('ProjKey', bound=Union[raw_types.Qid, Tuple[raw_types.Qid]])
 
 def qid_shape_from_proj_key(proj_key: ProjKey):
     if isinstance(proj_key, tuple):
-        return [qubit.dimension for qubit in proj_key]
+        return [qid.dimension for qid in proj_key]
     else:
         return [proj_key.dimension]
 
 
-def get_dims_from_qubit_map(qubit_map: Mapping[ProjKey, int]):
+def get_dims_from_qid_map(qid_map: Mapping[ProjKey, int]):
     dims = sorted([(i, np.prod(qid_shape_from_proj_key(proj_key)))
-                   for proj_key, i in qubit_map.items()])
+                   for proj_key, i in qid_map.items()])
     return [x[1] for x in dims]
 
 
@@ -59,8 +59,8 @@ class Projector():
             ValueError: If the basis vector is empty.
         """
         self._projection_bases = {}
-        for qubits, projection_basis in projection_bases.items():
-            qid_shape = qid_shape_from_proj_key(qubits)
+        for qids, projection_basis in projection_bases.items():
+            qid_shape = qid_shape_from_proj_key(qids)
             projection_array = np.vstack([
                 states.to_valid_state_vector(x, qid_shape=qid_shape)
                 for x in projection_basis
@@ -77,7 +77,7 @@ class Projector():
                 raise ValueError(
                     'Vectors in basis must be linearly independent')
 
-            self._projection_bases[qubits] = projection_array
+            self._projection_bases[qids] = projection_array
 
     def _projection_bases_(self) -> np.ndarray:
         return self._projection_bases
@@ -102,20 +102,21 @@ class Projector():
 
     def expectation_from_state_vector(self,
                                       state_vector: np.ndarray,
-                                      qubit_map: Mapping[ProjKey, int],
+                                      qid_map: Mapping[ProjKey, int],
                                       *,
                                       atol: float = 1e-7,
                                       check_preconditions: bool = True
                                      ) -> float:
-        dims = get_dims_from_qubit_map(qubit_map)
+        dims = get_dims_from_qid_map(qid_map)
         state_vector = state_vector.reshape(dims)
 
-        for proj_key, i in qubit_map.items():
-            if proj_key not in self._projection_bases:
-                continue
+        for proj_key, projection_basis in self._projection_bases.items():
+            if proj_key not in qid_map:
+                raise ValueError(f"Missing qid: {proj_key}")
+            i = qid_map[proj_key]
 
             # Make rows into columns
-            A = self._projection_bases[proj_key].T
+            A = projection_basis.T
             # Left pseudo-inverse
             pseudoinverse = np.linalg.pinv(A)
             # Projector to the range (column space) of A
@@ -129,20 +130,21 @@ class Projector():
 
     def expectation_from_density_matrix(self,
                                         state: np.ndarray,
-                                        qubit_map: Mapping[ProjKey, int],
+                                        qid_map: Mapping[raw_types.Qid, int],
                                         *,
                                         atol: float = 1e-7,
                                         check_preconditions: bool = True
                                        ) -> float:
-        dims = get_dims_from_qubit_map(qubit_map)
+        dims = get_dims_from_qid_map(qid_map)
         state = state.reshape(dims * 2)
 
-        for proj_key, i in qubit_map.items():
-            if proj_key not in self._projection_bases:
-                continue
+        for proj_key, projection_basis in self._projection_bases.items():
+            if proj_key not in qid_map:
+                raise ValueError(f"Missing qid: {proj_key}")
+            i = qid_map[proj_key]
 
             # Make rows into columns
-            A = self._projection_bases[proj_key].T
+            A = projection_basis.T
             # Left pseudo-inverse
             pseudoinverse = np.linalg.pinv(A)
             # Projector to the range (column space) of A

@@ -7,7 +7,7 @@ import pytest
 import cirq
 
 
-def test_projector_qubit():
+def test_projector_qid():
     q0 = cirq.NamedQubit('q0')
 
     zero_projector = cirq.Projector({q0: [[1.0, 0.0]]})
@@ -80,7 +80,7 @@ def test_projector_non_orthonormal_basis():
             enforce_orthonormal_basis=True)
 
 
-def test_projector_missing_qubit():
+def test_projector_matrix_missing_qid():
     q0, q1 = cirq.LineQubit.range(2)
     proj = cirq.Projector({q0: [[1.0, 0.0]]})
 
@@ -92,6 +92,19 @@ def test_projector_missing_qubit():
                                np.diag([1.0, 1.0, 0.0, 0.0]))
     np.testing.assert_allclose(proj.matrix([q1, q0]),
                                np.diag([1.0, 0.0, 1.0, 0.0]))
+
+
+def test_projector_from_state_missing_qid():
+    q0 = cirq.NamedQubit('q0')
+    q1 = cirq.NamedQubit('q1')
+
+    d = cirq.Projector({q0: [[1.0, 0.0]]})
+
+    with pytest.raises(ValueError, match="Missing qid: q0"):
+        d.expectation_from_state_vector(np.array([[0.0, 0.0]]), qid_map={q1: 0})
+
+    with pytest.raises(ValueError, match="Missing qid: q0"):
+        d.expectation_from_density_matrix(np.array([[0.0, 0.0], [0.0, 0.0]]), qid_map={q1: 0})
 
 
 def test_equality():
@@ -287,12 +300,12 @@ def test_internal_consistency():
     actual0 = np.linalg.norm(projected_state, ord=2)**2
 
     actual1 = d.expectation_from_state_vector(state_vector,
-                                              qubit_map={
+                                              qid_map={
                                                   q1: 0,
                                                   q0: 1
                                               })
 
-    actual2 = d.expectation_from_density_matrix(state, qubit_map={q1: 0, q0: 1})
+    actual2 = d.expectation_from_density_matrix(state, qid_map={q1: 0, q0: 1})
 
     np.testing.assert_allclose(actual0, actual1, atol=1e-6)
     np.testing.assert_allclose(actual0, actual2, atol=1e-6)
