@@ -214,8 +214,6 @@ def test_expectation_from_state_vector_basis_states_three_qubits():
 
 
 def test_expectation_higher_dims():
-    dims = [2, 3, 5]
-
     q0 = cirq.NamedQid('q0', dimension=2)
     q1 = cirq.NamedQid('q1', dimension=3)
     q2 = cirq.NamedQid('q2', dimension=5)
