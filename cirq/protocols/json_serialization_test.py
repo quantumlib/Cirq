@@ -357,12 +357,16 @@ def assert_repr_and_json_test_data_agree(mod_spec: ModuleJsonTestSpec,
     try:
         json_from_file = json_path.read_text()
         json_obj = cirq.read_json(json_text=json_from_file)
-    except ValueError as ex:  # coverage: ignore
+    except ValueError as ex:
+        # coverage: ignore
         if "Could not resolve type" in str(ex):
+            # coverage: ignore
             raise ValueError(
                 f"{rel_json_path} can't be parsed to JSON"
                 f". Maybe an entry is missing from the ResolverCache "
                 f"for {mod_spec.name}?") from ex
+        else:
+            raise ValueError
     except Exception as ex:  # coverage: ignore
         # coverage: ignore
         raise IOError(
