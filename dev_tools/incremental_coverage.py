@@ -27,6 +27,9 @@ IGNORED_FILE_PATTERNS = [
     r'^cirq/google/engine/client/.+.py$',  # Generated gRPC client code.
     r'^cirq/google/api/v1/.+.py$',  # deprecated API code
 ]
+IGNORED_BLOCK_PATTERNS = [
+    r'^\s*if TYPE_CHECKING:$',  # imports needed only while type-checking.
+]
 IGNORED_LINE_PATTERNS = [
     # Imports often uncovered due to version checks and type checking blocks.
     r'^import .+$',
@@ -55,7 +58,7 @@ EXPLICIT_OPT_OUT_COMMENT = '#coverage:ignore'
 
 
 def diff_to_new_interesting_lines(unified_diff_lines: List[str]
-                                  ) -> Dict[int, str]:
+                                 ) -> Dict[int, str]:
     """
     Extracts a set of 'interesting' lines out of a GNU unified diff format.
 
@@ -121,10 +124,9 @@ def fix_line_from_coverage_file(line):
     return line
 
 
-def get_incremental_uncovered_lines(abs_path: str,
-                                    base_commit: str,
+def get_incremental_uncovered_lines(abs_path: str, base_commit: str,
                                     actual_commit: Optional[str]
-                                    ) -> List[Tuple[int, str, str]]:
+                                   ) -> List[Tuple[int, str, str]]:
     """
     Uses git diff and the annotation files created by
     `pytest --cov-report annotate` to find touched but uncovered lines in the
@@ -144,17 +146,12 @@ def get_incremental_uncovered_lines(abs_path: str,
     if not os.path.isfile(abs_path):
         return []
 
-    unified_diff_lines_str = shell_tools.output_of(
-        'git',
-        'diff',
-        '--unified=0',
-        base_commit,
-        actual_commit,
-        '--',
-        abs_path)
-    unified_diff_lines = [e
-                          for e in unified_diff_lines_str.split('\n')
-                          if e.strip()]
+    unified_diff_lines_str = shell_tools.output_of('git', 'diff', '--unified=0',
+                                                   base_commit, actual_commit,
+                                                   '--', abs_path)
+    unified_diff_lines = [
+        e for e in unified_diff_lines_str.split('\n') if e.strip()
+    ]
 
     touched_lines = diff_to_new_interesting_lines(unified_diff_lines)
 
@@ -199,10 +196,16 @@ def determine_ignored_lines(content: str) -> Set[int]:
 
     i = 0
     while i < len(lines):
-        # Drop spacing, including internal spacing within the comment.
-        joined_line = re.sub(r'\s+', '', lines[i])
+        line = lines[i]
 
-        if joined_line == EXPLICIT_OPT_OUT_COMMENT:
+        # Drop spacing, including internal spacing within the comment.
+        joined_line = re.sub(r'\s+', '', line)
+
+        if any(re.match(pat, line) for pat in IGNORED_BLOCK_PATTERNS):
+            end = naive_find_end_of_scope(lines, i + 1)
+            result.extend(range(i, end))
+            i = end
+        elif joined_line == EXPLICIT_OPT_OUT_COMMENT:
             # Ignore the rest of a block.
             end = naive_find_end_of_scope(lines, i)
             result.extend(range(i, end))
@@ -276,8 +279,8 @@ def is_applicable_python_file(rel_path: str) -> bool:
     Returns:
         Whether to include the file.
     """
-    return (rel_path.endswith('.py') and
-            not any(re.search(pat, rel_path) for pat in IGNORED_FILE_PATTERNS))
+    return rel_path.endswith('.py') and not any(
+        re.search(pat, rel_path) for pat in IGNORED_FILE_PATTERNS)
 
 
 def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
@@ -292,33 +295,36 @@ def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
 
         base_path = cast(str, env.destination_directory)
         uncovered_lines = get_incremental_uncovered_lines(
-            os.path.join(base_path, changed_file),
-            env.compare_commit_id,
+            os.path.join(base_path, changed_file), env.compare_commit_id,
             env.actual_commit_id)
 
         if uncovered_lines:
             uncovered_count += len(uncovered_lines)
-            print(shell_tools.highlight(
-                '************* {} ({} uncovered)'.format(
-                    changed_file,
-                    len(uncovered_lines)),
-                color_code=shell_tools.RED))
+            print(
+                shell_tools.highlight(
+                    '************* {} ({} uncovered)'.format(
+                        changed_file, len(uncovered_lines)),
+                    color_code=shell_tools.RED,
+                ))
         for index, line, reason in uncovered_lines:
             print('Line {} {} but not covered: {}'.format(
                 shell_tools.highlight(str(index).rjust(4),
                                       color_code=shell_tools.BOLD),
                 reason,
-                shell_tools.highlight(line,
-                                      color_code=shell_tools.YELLOW)))
+                shell_tools.highlight(line, color_code=shell_tools.YELLOW),
+            ))
 
     # Inform of aggregate result.
     print()
     if uncovered_count:
-        print(shell_tools.highlight(
-            'Found {} uncovered touched lines.'.format(uncovered_count),
-            color_code=shell_tools.RED))
+        print(
+            shell_tools.highlight(
+                'Found {} uncovered touched lines.'.format(uncovered_count),
+                color_code=shell_tools.RED,
+            ))
     else:
-        print(shell_tools.highlight('All touched lines covered',
-                                    color_code=shell_tools.GREEN))
+        print(
+            shell_tools.highlight('All touched lines covered',
+                                  color_code=shell_tools.GREEN))
     print()
     return uncovered_count
