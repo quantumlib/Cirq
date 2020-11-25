@@ -119,6 +119,14 @@ def test_to_proto():
         invalid_value.to_proto()
 
 
+def test_calibrations_with_string_key():
+    calibration = cg.Calibration(metrics={'metric1': {('alpha',): [0.1]}})
+    assert calibration == cg.Calibration(calibration.to_proto())
+
+    with pytest.raises(ValueError, match='was not a qubit'):
+        calibration.key_to_qubit('alpha')
+
+
 def test_calibration_heatmap():
     calibration = cg.Calibration(_CALIBRATION_DATA)
 

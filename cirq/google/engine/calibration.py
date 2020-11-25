@@ -16,7 +16,8 @@
 from collections import abc, defaultdict
 import datetime
 
-from typing import Any, Dict, Iterator, Optional, Tuple, TYPE_CHECKING
+from typing import (Any, Dict, Iterator, List, Optional, SupportsFloat, Tuple,
+                    TYPE_CHECKING, Union)
 
 import google.protobuf.json_format as json_format
 from cirq import devices, vis
@@ -24,6 +25,13 @@ from cirq.google.api import v2
 
 if TYPE_CHECKING:
     import cirq
+
+
+# Calibration Metric types
+METRIC_KEY = Tuple[Union[devices.GridQubit, str], ...]
+METRIC_VALUE = List[Union[str, int, float]]
+METRIC_DICT = Dict[METRIC_KEY, METRIC_VALUE]
+ALL_METRICS = Dict[str, METRIC_DICT]
 
 
 class Calibration(abc.Mapping):
@@ -57,20 +65,16 @@ class Calibration(abc.Mapping):
     def __init__(self,
                  calibration: v2.metrics_pb2.MetricsSnapshot = v2.metrics_pb2.
                  MetricsSnapshot(),
-                 metrics: Optional[
-                     Dict[str, Dict[Tuple['cirq.GridQubit', ...], Any]]] = None
-                ) -> None:
+                 metrics: Optional[ALL_METRICS] = None) -> None:
         self.timestamp = calibration.timestamp_ms
         if metrics is None:
             self._metric_dict = self._compute_metric_dict(calibration.metrics)
         else:
             self._metric_dict = metrics
 
-    def _compute_metric_dict(
-            self, metrics: v2.metrics_pb2.MetricsSnapshot
-    ) -> Dict[str, Dict[Tuple['cirq.GridQubit', ...], Any]]:
-        results: Dict[str, Dict[Tuple[devices.
-                                      GridQubit, ...], Any]] = defaultdict(dict)
+    def _compute_metric_dict(self, metrics: v2.metrics_pb2.MetricsSnapshot
+                            ) -> ALL_METRICS:
+        results: ALL_METRICS = defaultdict(dict)
         for metric in metrics:
             name = metric.name
             # Flatten the values to a list, removing keys containing type names
@@ -79,8 +83,7 @@ class Calibration(abc.Mapping):
                 getattr(v, v.WhichOneof('val')) for v in metric.values
             ]
             if metric.targets:
-                qubits = tuple(
-                    v2.grid_qubit_from_proto_id(t) for t in metric.targets)
+                qubits = tuple(self.str_to_key(t) for t in metric.targets)
                 results[name][qubits] = flat_values
             else:
                 assert len(results[name]) == 0, (
@@ -89,7 +92,7 @@ class Calibration(abc.Mapping):
                 results[name][()] = flat_values
         return results
 
-    def __getitem__(self, key: str) -> Dict[Tuple['cirq.GridQubit', ...], Any]:
+    def __getitem__(self, key: str) -> METRIC_DICT:
         """Supports getting calibrations by index.
 
         Calibration may be accessed by key:
@@ -125,11 +128,15 @@ class Calibration(abc.Mapping):
         """Reconstruct the protobuf message represented by this class."""
         proto = v2.metrics_pb2.MetricsSnapshot()
         for key in self._metric_dict:
-            for target, value_list in self._metric_dict[key].items():
+            for targets, value_list in self._metric_dict[key].items():
                 current_metric = proto.metrics.add()
                 current_metric.name = key
-                current_metric.targets.extend(
-                    [v2.qubit_to_proto_id(q) for q in target])
+                for target in targets:
+                    if isinstance(target, str):
+                        current_metric.targets.append(target)
+                    else:
+                        current_metric.targets.append(
+                            v2.qubit_to_proto_id(target))
                 for value in value_list:
                     current_value = current_metric.values.add()
                     if isinstance(value, float):
@@ -174,6 +181,30 @@ class Calibration(abc.Mapping):
         dt += datetime.timedelta(microseconds=self.timestamp % 1000000)
         return dt.isoformat(sep=' ', timespec=timespec)
 
+    def str_to_key(self, target: str) -> Union[devices.GridQubit, str]:
+        """Turns a string into a calibration key.
+
+        Attempts to parse it as a GridQubit.  If this fails,
+        returns the string itself.
+        """
+        try:
+            return v2.grid_qubit_from_proto_id(target)
+        except:
+            return target
+
+    def key_to_qubit(self, target: METRIC_KEY) -> devices.GridQubit:
+        """Returns a single qubit from a metric key.
+
+        If the metric key is multiple qubits, return the first one.
+
+        Raises:
+           ValueError if the metric key is a tuple of strings.
+        """
+        if (isinstance(target, tuple) and
+                isinstance(target[0], devices.GridQubit)):
+            return target[0]
+        raise ValueError(f'The metric target {target} was not a qubit.')
+
     def heatmap(self, key: str) -> vis.Heatmap:
         """Return a heatmap for metrics that target single qubits.
 
@@ -194,5 +225,8 @@ class Calibration(abc.Mapping):
         assert all(len(k) == 1 for k in metrics.values()), (
             'Heatmaps are only supported if all the values in a metric'
             ' are single metric values.')
-        value_map = {qubit: value for (qubit,), (value,) in metrics.items()}
+        value_map: Dict['cirq.GridQubit', SupportsFloat] = {
+            self.key_to_qubit(target): float(value)
+            for target, (value,) in metrics.items()
+        }
         return vis.Heatmap(value_map)
