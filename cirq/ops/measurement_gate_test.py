@@ -135,8 +135,8 @@ def test_measurement_gate_diagram():
                                     known_qubit_count=3,
                                     use_unicode_characters=True,
                                     precision=None,
-                                    qubit_map=None)) == cirq.CircuitDiagramInfo(
-                                        ("M('')", 'M', 'M'))
+                                    qubit_map=None),
+    ) == cirq.CircuitDiagramInfo(("M('')", 'M', 'M'))
 
     # Shows invert mask.
     assert cirq.circuit_diagram_info(
