@@ -587,4 +587,5 @@ WAIT_GATE_DESERIALIZER = op_deserializer.GateOpDeserializer(
             constructor_arg_name='duration',
             value_func=lambda nanos: value.Duration(nanos=cast(
                 Union[int, float, sympy.Basic], nanos)))
-    ])
+    ],
+    num_qubits_param='num_qubits')

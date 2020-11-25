@@ -655,6 +655,31 @@ def test_wait_gate():
     assert gate_set.deserialize_op(proto) == op
 
 
+def test_wait_gate_multi_qubit():
+    gate_set = cg.SerializableGateSet('test', [cgc.WAIT_GATE_SERIALIZER],
+                                      [cgc.WAIT_GATE_DESERIALIZER])
+    proto = op_proto({
+        'gate': {
+            'id': 'wait'
+        },
+        'args': {
+            'nanos': {
+                'arg_value': {
+                    'float_value': 20.0
+                }
+            }
+        },
+        'qubits': [{
+            'id': '1_2'
+        }, {
+            'id': '3_4'
+        }],
+    })
+    op = cirq.wait(cirq.GridQubit(1, 2), cirq.GridQubit(3, 4), nanos=20)
+    assert gate_set.serialize_op(op) == proto
+    assert gate_set.deserialize_op(proto) == op
+
+
 @pytest.mark.parametrize(('gate', 'theta', 'phi'), [
     (cirq.ISWAP**0.5, -np.pi / 4, 0),
     (cirq.ISWAP**-0.5, np.pi / 4, 0),
