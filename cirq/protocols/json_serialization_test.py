@@ -201,9 +201,6 @@ def _find_classes_that_should_serialize(module_spec: JsonSerializationTestSpec)\
         (name, obj) for name, obj in _get_all_public_classes(module_spec)
     })
 
-    # TODO: figure out how we can get the resolver cache for each module
-    # this currently refers to the main resolver cache for cirq which is
-    # too much
     for k, v in module_spec.resolver_cache.items():
         t = v if isinstance(v, type) else None
         result.add((k, t))
