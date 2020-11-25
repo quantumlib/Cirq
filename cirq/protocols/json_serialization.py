@@ -81,7 +81,7 @@ prepended to this list:
 
 
 def register_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]):
-    """ Register a resolver based on a dict factory for lazy initialization.
+    """Register a resolver based on a dict factory for lazy initialization.
 
     Modules that expose JSON serializable objects should register themselves
     here to be supported by the protocol. See for example cirq/__init__.py or
