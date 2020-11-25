@@ -18,7 +18,7 @@ import json
 import os
 import pathlib
 import textwrap
-from typing import Tuple, Iterator, Type, List, Set, Any
+from typing import Any, Iterator, List, Optional, Set, Tuple, Type
 
 import pytest
 
@@ -28,8 +28,8 @@ import sympy
 
 import cirq
 from cirq._compat import proper_repr, proper_eq
+from cirq.protocols import json_serialization
 from cirq.testing import assert_json_roundtrip_works
-from cirq.protocols.json_serialization import RESOLVER_CACHE
 
 TEST_DATA_PATH = pathlib.Path(__file__).parent / 'json_test_data'
 TEST_DATA_REL = 'cirq/protocols/json_test_data'
@@ -343,13 +343,13 @@ NOT_YET_SERIALIZABLE = [
 ]
 
 
-def _find_classes_that_should_serialize() -> Set[Tuple[str, Type]]:
-    result: Set[Tuple[str, Type]] = set()
+def _find_classes_that_should_serialize() -> Set[Tuple[str, Optional[type]]]:
+    result: Set[Tuple[str, Optional[type]]] = set()
     result.update(_get_all_public_classes(cirq))
     result.update(_get_all_public_classes(cirq.google))
     result.update(_get_all_public_classes(cirq.work))
 
-    for k, v in RESOLVER_CACHE.cirq_class_resolver_dictionary.items():
+    for k, v in json_serialization._cirq_class_resolver_dictionary().items():
         t = v if isinstance(v, type) else None
         result.add((k, t))
     return result
@@ -444,7 +444,7 @@ def _write_test_data(key: str, *test_instances: Any):
 
 @pytest.mark.parametrize('cirq_obj_name,cls',
                          _find_classes_that_should_serialize())
-def test_json_test_data_coverage(cirq_obj_name: str, cls):
+def test_json_test_data_coverage(cirq_obj_name: str, cls: Optional[type]):
     if cirq_obj_name in NOT_YET_SERIALIZABLE:
         return pytest.xfail(reason="Not serializable (yet)")
 
