@@ -556,4 +556,5 @@ from cirq import (
     ionq,
     pasqal,
     testing,
+    json_resolver_cache,
 )

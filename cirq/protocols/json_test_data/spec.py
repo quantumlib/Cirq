@@ -1,25 +1,22 @@
 import pathlib
 
 import cirq
-from cirq.protocols.json_serialization import RESOLVER_CACHE
-from cirq.testing.json_serialization_test_spec import JsonSerializationTestSpec
+from cirq.json_resolver_cache import RESOLVER_CACHE
+from cirq.testing.json import ModuleJsonTestSpec
 
-TestSpec = JsonSerializationTestSpec(
+TestSpec = ModuleJsonTestSpec(
     name="cirq",
-    modules=[cirq, cirq.work],
-    test_file_path=pathlib.Path(__file__).parent,
+    packages=[cirq, cirq.work],
+    test_data_path=pathlib.Path(__file__).parent,
     resolver_cache=RESOLVER_CACHE.cirq_class_resolver_dictionary,
     not_yet_serializable=[
-        'AsymmetricDepolarizingChannel',
         'AxisAngleDecomposition',
         'CircuitDag',
         'CircuitDiagramInfo',
         'CircuitDiagramInfoArgs',
         'CircuitSampleJob',
         'CliffordSimulatorStepResult',
-        'CliffordState',
         'CliffordTrialResult',
-        'ConstantQubitNoiseModel',
         'DensityMatrixSimulator',
         'DensityMatrixSimulatorState',
         'DensityMatrixStepResult',
@@ -66,7 +63,7 @@ TestSpec = JsonSerializationTestSpec(
         'ZerosSampler',
         'Zip',
     ],
-    shouldnt_be_serialized=[
+    should_not_be_serialized=[
         # Intermediate states with work buffers and unknown external prng guts.
         'ActOnCliffordTableauArgs',
         'ActOnStabilizerCHFormArgs',

@@ -20,8 +20,6 @@ class _ResolverCache:
             'SycamoreGate': cirq.google.SycamoreGate,
             'GateTabulation': cirq.google.GateTabulation,
             'PhysicalZTag': cirq.google.PhysicalZTag,
-            'CalibrationLayer': cirq.google.CalibrationLayer,
-            'CalibrationResult': cirq.google.CalibrationResult,
             'CalibrationTag': cirq.google.CalibrationTag,
         }
         return self._crd
