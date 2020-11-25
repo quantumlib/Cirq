@@ -30,7 +30,7 @@ from cirq._import import ModuleType
 # When registering a new module, it has to come with the following setup:
 #  - test data: a new package to contain the test data, see for example
 #       cirq/google/json_test_data
-#  - test spec: cirq.mod.json_test_data should export an object named
+#  - test spec: the json_test_data package should export an object named
 #       TestSpec, which should be of type ModuleJsonTestSpec, see for example
 #       cirq/google/json_test_data/spec.py
 #  - resolver cache: a resolver cache for the exposed types - see for example
