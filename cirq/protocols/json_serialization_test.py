@@ -16,7 +16,6 @@ import json
 import os
 import pathlib
 import textwrap
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -29,7 +28,7 @@ from cirq.testing import assert_json_roundtrip_works
 from cirq.testing.json import ModuleJsonTestSpec, spec_for
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent.parent
-TESTED_MODULES = ['cirq.google', 'cirq.protocols']
+TESTED_MODULES = ['cirq.google', 'cirq.protocols', 'non_ex']
 
 
 def _get_testspecs_for_modules():
@@ -37,7 +36,7 @@ def _get_testspecs_for_modules():
     for m in TESTED_MODULES:
         try:
             modules.append(spec_for(m))
-        except ImportError:
+        except ModuleNotFoundError as ex:
             # for optional modules it is okay to skip
             pass
     return modules

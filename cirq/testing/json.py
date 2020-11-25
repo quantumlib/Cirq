@@ -104,7 +104,7 @@ class ModuleJsonTestSpec:
 def spec_for(module_name: str) -> ModuleJsonTestSpec:
     import importlib.util
     if importlib.util.find_spec(module_name) is None:
-        raise ImportError(f"{module_name} not found")
+        raise ModuleNotFoundError(f"{module_name} not found")
 
     test_module_name = f"{module_name}.json_test_data"
     if importlib.util.find_spec(test_module_name) is None:

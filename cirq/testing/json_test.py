@@ -14,5 +14,5 @@ def test_module_missing_testspec():
 
 
 def test_missing_module():
-    with pytest.raises(ImportError):
+    with pytest.raises(ModuleNotFoundError):
         spec_for('non_existent')

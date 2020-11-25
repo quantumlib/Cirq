@@ -1,14 +1,14 @@
 import pathlib
 
 import cirq
-from cirq.json_resolver_cache import _cirq_class_resolver_dictionary
+from cirq.json_resolver_cache import _class_resolver_dictionary
 from cirq.testing.json import ModuleJsonTestSpec
 
 TestSpec = ModuleJsonTestSpec(
     name="cirq",
     packages=[cirq, cirq.work],
     test_data_path=pathlib.Path(__file__).parent,
-    resolver_cache=_cirq_class_resolver_dictionary(),
+    resolver_cache=_class_resolver_dictionary(),
     not_yet_serializable=[
         'AxisAngleDecomposition',
         'CircuitDag',

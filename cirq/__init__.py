@@ -25,6 +25,7 @@ from cirq import (
     _doc,
     type_workarounds,
 )
+
 with _import.delay_import('cirq.protocols'):
     from cirq import (
         # Core
@@ -558,3 +559,12 @@ from cirq import (
     testing,
     json_resolver_cache,
 )
+
+
+def _register_resolver():
+    from cirq.protocols.json_serialization import register_resolver
+    from cirq.json_resolver_cache import _class_resolver_dictionary
+    register_resolver(_class_resolver_dictionary)
+
+
+_register_resolver()

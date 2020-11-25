@@ -36,7 +36,6 @@ import sympy
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
-from cirq.json_resolver_cache import _cirq_class_resolver_dictionary
 from cirq.type_workarounds import NotImplementedType
 
 ObjectFactory = Union[Type, Callable[..., Any]]
@@ -44,8 +43,8 @@ ObjectFactory = Union[Type, Callable[..., Any]]
 JsonResolver = Callable[[str], Optional[ObjectFactory]]
 
 
-def lazy_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]
-                 ) -> JsonResolver:
+def _lazy_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]
+                  ) -> JsonResolver:
     """A lazy JsonResolver based on a dict_factory.
 
       It only calls dict_factory when the first key is accessed.
@@ -61,9 +60,7 @@ def lazy_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]
     return json_resolver
 
 
-DEFAULT_RESOLVERS: List[JsonResolver] = [
-    lazy_resolver(_cirq_class_resolver_dictionary),
-]
+DEFAULT_RESOLVERS: List[JsonResolver] = []
 """A default list of 'JsonResolver' functions for use in read_json.
 
 For more information about cirq_type resolution during deserialization
@@ -81,6 +78,13 @@ prepended to this list:
             resolvers = MY_DEFAULT_RESOLVERS
         return cirq.read_json(file_or_fn, resolvers=resolvers)
 """
+
+
+def register_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]):
+    """ Register a resolver based on a dict factory for lazy initialization.
+
+    """
+    DEFAULT_RESOLVERS.append(_lazy_resolver(dict_factory))
 
 
 class SupportsJSON(Protocol):

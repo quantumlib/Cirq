@@ -9,11 +9,11 @@ TestSpec = ModuleJsonTestSpec(name="cirq.google",
                               packages=[cirq.google],
                               test_data_path=pathlib.Path(__file__).parent,
                               not_yet_serializable=[
-                                  'Calibration', 'CalibrationResult',
-                                  'CalibrationLayer', 'FSIM_GATESET',
-                                  'SYC_GATESET', 'Sycamore', 'Sycamore23',
-                                  'SerializableDevice', 'SerializableGateSet',
-                                  'SQRT_ISWAP_GATESET', 'XmonDevice', 'XMON'
+                                  'CalibrationResult', 'CalibrationLayer',
+                                  'FSIM_GATESET', 'SYC_GATESET', 'Sycamore',
+                                  'Sycamore23', 'SerializableDevice',
+                                  'SerializableGateSet', 'SQRT_ISWAP_GATESET',
+                                  'XmonDevice', 'XMON'
                               ],
                               should_not_be_serialized=[
                                   'Engine',

@@ -2,7 +2,7 @@ import functools
 from collections import defaultdict
 from typing import Dict, TYPE_CHECKING, Optional
 
-from cirq.protocols.json_serialization import ObjectFactory
+from cirq.protocols.json_serialization import ObjectFactory, register_resolver
 
 if TYPE_CHECKING:
     import cirq.ops.pauli_gates
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 @functools.lru_cache(maxsize=1)
-def _cirq_class_resolver_dictionary() -> Dict[str, Optional[ObjectFactory]]:
+def _class_resolver_dictionary() -> Dict[str, Optional[ObjectFactory]]:
     import cirq
     from cirq.ops import raw_types
     import pandas as pd
