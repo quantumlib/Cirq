@@ -13,6 +13,7 @@
 # limitations under the License.
 import inspect
 
+import datetime
 import io
 import json
 import os
@@ -277,7 +278,6 @@ NOT_YET_SERIALIZABLE = [
     'AsymmetricDepolarizingChannel',
     'AxisAngleDecomposition',
     'CalibrationLayer',
-    'CalibrationResult',
     'CircuitDag',
     'CircuitDiagramInfo',
     'CircuitDiagramInfoArgs',
@@ -525,6 +525,7 @@ def test_to_from_strings():
 def _eval_repr_data_file(path: pathlib.Path):
     return eval(path.read_text(), {
         'cirq': cirq,
+        'datetime': datetime,
         'pd': pd,
         'sympy': sympy,
         'np': np,
