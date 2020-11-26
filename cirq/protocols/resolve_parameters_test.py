@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sympy
+import pytest, sympy
 
 import cirq
 from cirq.study import ParamResolver
@@ -93,6 +93,22 @@ def test_resolve_parameters():
     assert cirq.parameter_names(1) == set()
     assert cirq.parameter_names(1.1) == set()
     assert cirq.parameter_names(1j) == set()
+
+
+def test_resolve_once():
+    a, b, c = [sympy.Symbol(l) for l in 'abc']
+    resolver = cirq.ParamResolver({a: b + 3, b: c + 2, c: 1})
+    assert cirq.resolve_parameters_once(a, resolver) == b + 3
+    assert cirq.resolve_parameters(a, resolver) == 6
+    assert cirq.resolve_parameters_once(b, resolver) == c + 2
+    assert cirq.resolve_parameters(b, resolver) == 3
+    assert cirq.resolve_parameters_once(c, resolver) == 1
+    assert cirq.resolve_parameters(c, resolver) == 1
+
+    resolver = cirq.ParamResolver({a: b, b: a})
+    assert cirq.resolve_parameters_once(a, resolver) == b
+    with pytest.raises(RecursionError):
+        _ = cirq.resolve_parameters(a, resolver)
 
 
 def test_skips_empty_resolution():

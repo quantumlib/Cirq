@@ -488,6 +488,7 @@ from cirq.protocols import (
     QuilFormatter,
     read_json,
     resolve_parameters,
+    resolve_parameters_once,
     SupportsActOn,
     SupportsApplyChannel,
     SupportsApplyMixture,

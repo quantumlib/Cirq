@@ -43,7 +43,7 @@ class ParamResolver:
     A ParamResolver is an object that can be used to assign values for these
     variables.
 
-    ParamResolvers are hashable.
+    ParamResolvers are hashable; their param_dict must not be mutated.
 
     Attributes:
         param_dict: A dictionary from the ParameterValue key (str) to its
@@ -63,9 +63,11 @@ class ParamResolver:
         self._param_hash: Optional[int] = None
         self.param_dict = cast(ParamDictType,
                                {} if param_dict is None else param_dict)
+        self._deep_eval_map: ParamDictType = {}
 
     def value_of(self,
-                 value: Union['cirq.TParamKey', float]) -> 'cirq.TParamVal':
+                 value: Union['cirq.TParamKey', float],
+                 recursive: bool = True) -> 'cirq.TParamVal':
         """Attempt to resolve a parameter to its assigned value.
 
         Floats are returned without modification.  Strings are resolved via
@@ -86,9 +88,15 @@ class ParamResolver:
 
         Args:
             value: The parameter to try to resolve.
+            recursive: Whether to recursively evaluate formulas. If this is
+                set to True, the evaluation tree will be memoized in
+                self._deep_eval_map.
 
         Returns:
             The value of the parameter as resolved by this resolver.
+
+        Raises:
+            RecursionError if the ParamResolver detects a loop in resolution.
         """
 
         # Input is a pass through type, no resolution needed: return early
@@ -111,7 +119,7 @@ class ParamResolver:
         if isinstance(value, str):
             # If the string is in the param_dict as a value, return it.
             # Otherwise, try using the symbol instead.
-            return self.value_of(sympy.Symbol(value))
+            return self.value_of(sympy.Symbol(value), recursive)
 
         # Input is a symbol (sympy.Symbol('a')) and its string maps to a number
         # in the dictionary ({'a': 1.0}).  Return it.
@@ -125,25 +133,31 @@ class ParamResolver:
         # If sympy did its job and wasn't slower than molasses,
         # we wouldn't need the following block.
         if isinstance(value, sympy.Add):
-            summation = self.value_of(value.args[0])
+            summation = self.value_of(value.args[0], recursive)
             for addend in value.args[1:]:
-                summation += self.value_of(addend)
+                summation += self.value_of(addend, recursive)
             return summation
         if isinstance(value, sympy.Mul):
-            product = self.value_of(value.args[0])
+            product = self.value_of(value.args[0], recursive)
             for factor in value.args[1:]:
-                product *= self.value_of(factor)
+                product *= self.value_of(factor, recursive)
             return product
         if isinstance(value, sympy.Pow) and len(value.args) == 2:
-            return np.power(self.value_of(value.args[0]),
-                            self.value_of(value.args[1]))
+            return np.power(self.value_of(value.args[0], recursive),
+                            self.value_of(value.args[1], recursive))
+
+        if not isinstance(value, sympy.Basic):
+            # No known way to resolve this variable, return unchanged.
+            return value
 
         # Input is either a sympy formula or the dictionary maps to a
         # formula.  Use sympy to resolve the value.
         # Note that sympy.subs() is slow, so we want to avoid this and
         # only use it for cases that require complicated resolution.
-        if isinstance(value, sympy.Basic):
-            v = value.subs(self.param_dict)
+        if not recursive:
+            # Resolves one step at a time. For example:
+            # a.subs({a: b, b: c}) == b
+            v = value.subs(self.param_dict, simultaneous=True)
             if v.free_symbols:
                 return v
             elif sympy.im(v):
@@ -151,8 +165,35 @@ class ParamResolver:
             else:
                 return float(v)
 
-        # No known way to resolve this variable, return unchanged.
-        return value
+        # Recursive parameter resolution.
+        if not value.is_Symbol:
+            for sym in value.free_symbols:
+                self._deep_eval_map[sym] = self.value_of(sym, recursive)
+            v = value.subs(self._deep_eval_map, simultaneous=True)
+            if v.free_symbols:
+                return v
+            elif sympy.im(v):
+                return complex(v)
+            else:
+                return float(v)
+
+        try:
+            v = self._deep_eval_map[value]
+            if v is not None:
+                return v
+            raise RecursionError(
+                'Evaluation of {value} indirectly contains itself.')
+        except KeyError:
+            # There isn't a full evaluation for 'value' yet. Until it's ready,
+            # map value to None to identify loops in component evaluation.
+            self._deep_eval_map[value] = None
+
+        v = self.value_of(value, recursive=False)
+        if v == value:
+            self._deep_eval_map[value] = v
+        else:
+            self._deep_eval_map[value] = self.value_of(v, recursive)
+        return self._deep_eval_map[value]
 
     def __iter__(self) -> Iterator[Union[str, sympy.Symbol]]:
         return iter(self.param_dict)

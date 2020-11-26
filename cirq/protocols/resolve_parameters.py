@@ -136,19 +136,61 @@ def resolve_parameters(
 
     Returns:
         a gate or operation of the same type, but with all Symbols
-        replaced with floats according to the given ParamResolver.
-        If `val` has no `_resolve_parameters_` method or if it returns
-        NotImplemented, `val` itself is returned.
+        replaced with floats or terminal symbols according to the
+        given ParamResolver. If `val` has no `_resolve_parameters_`
+        method or if it returns NotImplemented, `val` itself is returned.
+
+    Raises:
+        RecursionError if the ParamResolver detects a loop in resolution.
     """
     if not param_resolver:
         return val
 
-    # Ensure its a dictionary wrapped in a ParamResolver.
+    # Ensure it is a dictionary wrapped in a ParamResolver.
     param_resolver = study.ParamResolver(param_resolver)
     if isinstance(val, sympy.Basic):
         return param_resolver.value_of(val)
     if isinstance(val, (list, tuple)):
         return type(val)(resolve_parameters(e, param_resolver) for e in val)
+
+    getter = getattr(val, '_resolve_parameters_', None)
+    result = NotImplemented if getter is None else getter(param_resolver)
+
+    if result is not NotImplemented:
+        return result
+    else:
+        return val
+
+
+def resolve_parameters_once(val: Any,
+                            param_resolver: 'cirq.ParamResolverOrSimilarType'
+                           ) -> Any:
+    """As resolve_parameters, but only performs one resolution step.
+
+    This function will use the `_resolve_parameters_` magic method
+    of `val` to resolve any Symbols with concrete values using a single
+    step of the given parameter resolver.
+
+    Args:
+        val: The object to resolve (e.g. the gate, operation, etc)
+        param_resolver: the object to use for resolving all symbols
+
+    Returns:
+        a gate or operation of the same type, but with all Symbols
+        replaced with floats or terminal symbols according to the
+        given ParamResolver. If `val` has no `_resolve_parameters_`
+        method or if it returns NotImplemented, `val` itself is returned.
+    """
+    if not param_resolver:
+        return val
+
+    # Ensure it is a dictionary wrapped in a ParamResolver.
+    param_resolver = study.ParamResolver(param_resolver)
+    if isinstance(val, sympy.Basic):
+        return param_resolver.value_of(val, recursive=False)
+    if isinstance(val, (list, tuple)):
+        return type(val)(
+            resolve_parameters_once(e, param_resolver) for e in val)
 
     getter = getattr(val, '_resolve_parameters_', None)
     result = NotImplemented if getter is None else getter(param_resolver)
