@@ -46,7 +46,8 @@ landing_page:
 
     - heading: GitHub
       description: See more examples on the <a href="https://github.com/quantumlib/Cirq/tree/master/examples">Cirq GitHub</a>.
-      list:
+
+    - heading: Beginner
       - heading: Hello Qubit
         description: Simple first program showing how to create a quantum circuit.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/hello_qubit.py
@@ -96,6 +97,7 @@ landing_page:
         icon:
           path: /site-assets/images/cards/github-card-16x9.png
 
+    - heading: Intermediate
       - heading: Arithmetic
         description: Algorithms for adding and multiplying numbers represented by quantum states.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/basic_arithmetic.py
@@ -128,6 +130,7 @@ landing_page:
         icon:
           path: /site-assets/images/cards/github-card-16x9.png
 
+    - heading: Advanced
       - heading: Direct Fidelity
         description: Direct fidelity estimation to distinguish a desired state fromt he actual state using few Pauli measurements.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/direct_fidelity_estimation.py
