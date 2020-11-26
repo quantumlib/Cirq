@@ -44,3 +44,8 @@ There are two main ways of running quantum algorithms using Cirq:
     - [Google Quantum Computing Service](tutorials/google/start.ipynb)
     - [Alpine Quantum Technologies](tutorials/aqt/getting_started.ipynb)
     - [Pasqal](tutorials/pasqal/getting_started.ipynb) 
+
+# Next steps
+
+- Learn about the [Basics](tutorials/basics.ipynb) of Cirq, like the Circuit, Qubit and Simulator classes and how to use them
+- 
