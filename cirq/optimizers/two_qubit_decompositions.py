@@ -91,31 +91,27 @@ def two_qubit_matrix_to_diagonal_and_operations(
         tuple(ops,D): operations `ops`, and the diagonal `D`
     """
     if predicates.is_diagonal(mat, atol=atol):
-        rest = []
-        d = mat
-    elif num_cnots_required(mat) == 3:
+        return mat, []
+
+    if num_cnots_required(mat) == 3:
         right_diag = extract_right_diag(mat)
         two_cnot_unitary = mat @ right_diag
         # note that this implies that two_cnot_unitary @ d = mat
-        d = right_diag.conj().T
-        rest = two_qubit_matrix_to_operations(
+        return right_diag.conj().T, two_qubit_matrix_to_operations(
             q0,
             q1,
             two_cnot_unitary,
             allow_partial_czs=allow_partial_czs,
             atol=atol,
             clean_operations=clean_operations)
-    else:
-        d = np.eye(4)
-        rest = two_qubit_matrix_to_operations(
-            q0,
-            q1,
-            mat,
-            allow_partial_czs=allow_partial_czs,
-            atol=atol,
-            clean_operations=clean_operations)
 
-    return d, rest
+    return np.eye(4), two_qubit_matrix_to_operations(
+        q0,
+        q1,
+        mat,
+        allow_partial_czs=allow_partial_czs,
+        atol=atol,
+        clean_operations=clean_operations)
 
 
 def _xx_interaction_via_full_czs(q0: 'cirq.Qid', q1: 'cirq.Qid', x: float):
