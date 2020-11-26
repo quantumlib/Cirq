@@ -15,15 +15,14 @@
 
 """Utility methods for breaking matrices into useful pieces."""
 
+import cmath
+import math
 from typing import (Any, Callable, Iterable, List, Optional, Sequence, Set,
                     Tuple, TYPE_CHECKING, TypeVar, Union)
 
-import math
-import cmath
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import scipy
-from scipy.linalg.special_matrices import block_diag
 
 from cirq import value, protocols
 from cirq._compat import proper_repr
@@ -1048,7 +1047,7 @@ def _gamma(u: np.ndarray) -> np.ndarray:
     return u @ YY @ u.T @ YY
 
 
-def extract_right_diag(u: np.ndarray, atol=1e-15) -> np.ndarray:
+def extract_right_diag(u: np.ndarray) -> np.ndarray:
     """Extract a diagonal unitary from a 3-CNOT two-qubit unitary.
 
     Returns a 2-CNOT unitary D that is diagonal, so that U @ D needs only
@@ -1059,7 +1058,6 @@ def extract_right_diag(u: np.ndarray, atol=1e-15) -> np.ndarray:
 
     Args:
         u: three-CNOT two-qubit unitary
-        atol: the absolute tolerance for avoiding division by zero
     Returns:
         diagonal extracted from U
     """
