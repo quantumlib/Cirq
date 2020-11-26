@@ -47,9 +47,9 @@ class ModuleJsonTestSpec:
     packages: List[ModuleType]
     # the path for the folder containing the test files
     test_data_path: pathlib.Path
-    # these public class names are exposed but
+    # these public class names are planned to be serializable but not yet
     not_yet_serializable: List[str]
-    # these public class names are exposed but do not need to be serialized
+    # these public class names do not need to be serialized ever
     should_not_be_serialized: List[str]
     # points to the resolver cache's dict for this module
     resolver_cache: Dict[str, ObjectFactory]
