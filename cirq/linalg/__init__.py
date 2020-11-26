@@ -29,6 +29,7 @@ from cirq.linalg.decompositions import (
     axis_angle,
     AxisAngleDecomposition,
     deconstruct_single_qubit_matrix_into_angles,
+    extract_right_diag,
     kak_canonicalize_vector,
     kak_decomposition,
     kak_vector,

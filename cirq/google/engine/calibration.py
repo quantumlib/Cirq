@@ -18,6 +18,7 @@ import datetime
 
 from typing import Any, Dict, Iterator, Optional, Tuple, TYPE_CHECKING
 
+import google.protobuf.json_format as json_format
 from cirq import devices, vis
 from cirq.google.api import v2
 
@@ -45,14 +46,25 @@ class Calibration(abc.Mapping):
 
         `calibration['t1']`
 
+    This class can be instantiated either from a `MetricsSnapshot` proto
+    or from a dictionary of metric values.
+
     Attributes:
         timestamp: The time that this calibration was run, in milliseconds since
             the epoch.
     """
 
-    def __init__(self, calibration: v2.metrics_pb2.MetricsSnapshot) -> None:
+    def __init__(self,
+                 calibration: v2.metrics_pb2.MetricsSnapshot = v2.metrics_pb2.
+                 MetricsSnapshot(),
+                 metrics: Optional[
+                     Dict[str, Dict[Tuple['cirq.GridQubit', ...], Any]]] = None
+                ) -> None:
         self.timestamp = calibration.timestamp_ms
-        self._metric_dict = self._compute_metric_dict(calibration.metrics)
+        if metrics is None:
+            self._metric_dict = self._compute_metric_dict(calibration.metrics)
+        else:
+            self._metric_dict = metrics
 
     def _compute_metric_dict(
             self, metrics: v2.metrics_pb2.MetricsSnapshot
@@ -103,8 +115,47 @@ class Calibration(abc.Mapping):
         return len(self._metric_dict)
 
     def __str__(self) -> str:
+        return f'Calibration(keys={list(sorted(self.keys()))})'
 
-        return 'Calibration(keys={})'.format(list(sorted(self.keys())))
+    def __repr__(self) -> str:
+        return ('cirq.google.Calibration(metrics='
+                f'{repr(dict(self._metric_dict))})')
+
+    def to_proto(self) -> v2.metrics_pb2.MetricsSnapshot:
+        """Reconstruct the protobuf message represented by this class."""
+        proto = v2.metrics_pb2.MetricsSnapshot()
+        for key in self._metric_dict:
+            for target, value_list in self._metric_dict[key].items():
+                current_metric = proto.metrics.add()
+                current_metric.name = key
+                current_metric.targets.extend(
+                    [v2.qubit_to_proto_id(q) for q in target])
+                for value in value_list:
+                    current_value = current_metric.values.add()
+                    if isinstance(value, float):
+                        current_value.double_val = value
+                    elif isinstance(value, int):
+                        current_value.int64_val = value
+                    elif isinstance(value, str):
+                        current_value.str_val = value
+                    else:
+                        raise ValueError(f'Unsupported metric value {value}. '
+                                         'Must be int, float, or str to '
+                                         'convert to proto.')
+        return proto
+
+    @classmethod
+    def _from_json_dict_(cls, metrics: str, **kwargs) -> 'Calibration':
+        """Magic method for the JSON serialization protocol."""
+        metric_proto = v2.metrics_pb2.MetricsSnapshot()
+        return cls(json_format.ParseDict(metrics, metric_proto))
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        """Magic method for the JSON serialization protocol."""
+        return {
+            'cirq_type': 'Calibration',
+            'metrics': json_format.MessageToDict(self.to_proto())
+        }
 
     def timestamp_str(self,
                       tz: Optional[datetime.tzinfo] = None,

@@ -94,6 +94,11 @@ def test_calibration_str():
                                 "'xeb'])")
 
 
+def test_calibration_repr():
+    calibration = cg.Calibration(_CALIBRATION_DATA)
+    cirq.testing.assert_equivalent_repr(calibration)
+
+
 def test_calibration_timestamp_str():
     calibration = cg.Calibration(_CALIBRATION_DATA)
     assert (calibration.timestamp_str(
@@ -101,6 +106,17 @@ def test_calibration_timestamp_str():
     assert (calibration.timestamp_str(
         tz=datetime.timezone(datetime.timedelta(
             hours=1))) == '2019-07-08 01:00:00.021021+01:00')
+
+
+def test_to_proto():
+    calibration = cg.Calibration(_CALIBRATION_DATA)
+    assert calibration == cg.Calibration(calibration.to_proto())
+    invalid_value = cg.Calibration(
+        metrics={'metric': {
+            (cirq.GridQubit(1, 1),): [1.1, {}]
+        }})
+    with pytest.raises(ValueError, match='Unsupported metric value'):
+        invalid_value.to_proto()
 
 
 def test_calibration_heatmap():
