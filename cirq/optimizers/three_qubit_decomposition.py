@@ -15,7 +15,6 @@
 from typing import List, Union
 
 import numpy as np
-from scipy.linalg import cossin
 
 import cirq
 from cirq import optimizers as opt
@@ -43,6 +42,14 @@ def three_qubit_unitary_to_operations(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid,
     assert np.shape(u) == (8, 8)
     assert cirq.is_unitary(u)
 
+    try:
+        from scipy.linalg import cossin
+    except ImportError:  # coverage: ignore
+        # coverage: ignore
+        raise ImportError("cirq.three_qubit_unitary_to_operations requires "
+                          "SciPy 1.5.0+, as it uses the cossin function. Please"
+                          " upgrade scipy in your environment to use this "
+                          "function!")
     (u1, u2), theta, (v1h, v2h) = cossin(u, 4, 4, separate=True)
 
     cs_ops = _cs_to_ops(q0, q1, q2, theta)
