@@ -33,7 +33,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
                                   GridInteractionLayer)
     from cirq.experiments.grid_parallel_two_qubit_xeb import (
         GridParallelXEBMetadata)
-    from cirq.google.devices.known_devices import (_NamedConstantXmonDevice)
 
     def _identity_operation_from_dict(qubits, **kwargs):
         return cirq.identity_each(*qubits)
@@ -99,7 +98,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         '_XEigenState': cirq.value.product_state._XEigenState,  # type: ignore
         '_YEigenState': cirq.value.product_state._YEigenState,  # type: ignore
         '_ZEigenState': cirq.value.product_state._ZEigenState,  # type: ignore
-        '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
         '_NoNoiseModel': _NoNoiseModel,
         'NamedQubit': cirq.NamedQubit,
         'NamedQid': cirq.NamedQid,

@@ -21,7 +21,10 @@ from cirq.protocols.json_serialization import ObjectFactory
 @functools.lru_cache(maxsize=1)
 def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     import cirq.google
+    from cirq.google.devices.known_devices import (_NamedConstantXmonDevice)
+
     return {
+        '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
         'Calibration': cirq.google.Calibration,
         'CalibrationTag': cirq.google.CalibrationTag,
         'SycamoreGate': cirq.google.SycamoreGate,
