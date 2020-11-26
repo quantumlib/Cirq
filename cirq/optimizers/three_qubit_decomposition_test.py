@@ -29,19 +29,19 @@ from cirq.optimizers.three_qubit_decomposition import (
 )
 
 
-@pytest.mark.parametrize("U", [
+@pytest.mark.parametrize("u", [
     cirq.testing.random_unitary(8),
     np.eye(8),
     cirq.ControlledGate(cirq.ISWAP)._unitary_(),
     cirq.CCX._unitary_()
 ])
-def test_three_qubit_unitary_to_operations(U):
+def test_three_qubit_unitary_to_operations(u):
     a, b, c = cirq.LineQubit.range(3)
-    operations = cirq.three_qubit_unitary_to_operations(a, b, c, U)
+    operations = cirq.three_qubit_unitary_to_operations(a, b, c, u)
     final_circuit = cirq.Circuit(operations)
     final_unitary = final_circuit.unitary(
         qubits_that_should_be_present=[a, b, c])
-    cirq.testing.assert_allclose_up_to_global_phase(U, final_unitary, atol=1e-9)
+    cirq.testing.assert_allclose_up_to_global_phase(u, final_unitary, atol=1e-9)
 
 
 @pytest.mark.parametrize(["theta", "num_czs"], [
@@ -55,19 +55,19 @@ def test_three_qubit_unitary_to_operations(U):
 ])
 def test_cs_to_ops(theta, num_czs):
     a, b, c = cirq.LineQubit.range(3)
-    CS = _theta_to_CS(theta)
-    circuit_CS = cirq.Circuit(_cs_to_ops(a, b, c, theta))
+    cs = _theta_to_cs(theta)
+    circuit_cs = cirq.Circuit(_cs_to_ops(a, b, c, theta))
 
     assert_almost_equal(
-        circuit_CS.unitary(qubits_that_should_be_present=[a, b, c]), CS, 10)
+        circuit_cs.unitary(qubits_that_should_be_present=[a, b, c]), cs, 10)
 
-    assert (len([cz for cz in list(circuit_CS.all_operations())
+    assert (len([cz for cz in list(circuit_cs.all_operations())
                  if isinstance(cz.gate, cirq.CZPowGate)]) == num_czs), \
-        "expected {} CZs got \n {} \n {}".format(num_czs, circuit_CS,
-                                                 circuit_CS.unitary())
+        "expected {} CZs got \n {} \n {}".format(num_czs, circuit_cs,
+                                                 circuit_cs.unitary())
 
 
-def _theta_to_CS(theta: np.ndarray) -> np.ndarray:
+def _theta_to_cs(theta: np.ndarray) -> np.ndarray:
     """Returns the CS matrix from the cosine sine decomposition.
     
     Args:
@@ -75,9 +75,9 @@ def _theta_to_CS(theta: np.ndarray) -> np.ndarray:
     Returns: 
         the CS matrix
     """
-    C = np.diag(np.cos(theta))
-    S = np.diag(np.sin(theta))
-    return np.block([[C, -S], [S, C]])
+    c = np.diag(np.cos(theta))
+    s = np.diag(np.sin(theta))
+    return np.block([[c, -s], [s, c]])
 
 
 def test_multiplexed_angles():
@@ -161,8 +161,8 @@ def test_middle_multiplexor(angles, num_cnots):
                                                    circuit_u1u2_mid.unitary())
 
 
-@pytest.mark.parametrize("shiftLeft", [True, False])
-def test_two_qubit_multiplexor_to_circuit(shiftLeft):
+@pytest.mark.parametrize("shift_left", [True, False])
+def test_two_qubit_multiplexor_to_circuit(shift_left):
     a, b, c = cirq.LineQubit.range(3)
     u1 = cirq.testing.random_unitary(4)
     u2 = cirq.testing.random_unitary(4)
@@ -171,7 +171,7 @@ def test_two_qubit_multiplexor_to_circuit(shiftLeft):
                                                    c,
                                                    u1,
                                                    u2,
-                                                   shiftLeft=shiftLeft)
+                                                   shift_left=shift_left)
     expected = block_diag(u1, u2)
     actual = c_ud.unitary(qubits_that_should_be_present=[a, b, c]) @ np.kron(
         np.eye(2), d_ud)
