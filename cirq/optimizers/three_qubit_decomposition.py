@@ -21,8 +21,11 @@ from cirq import optimizers as opt
 from cirq import ops
 
 
-def three_qubit_unitary_to_operations(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid,
-                                      u: np.ndarray) -> List[ops.Operation]:
+def three_qubit_matrix_to_operations(q0: ops.Qid,
+                                     q1: ops.Qid,
+                                     q2: ops.Qid,
+                                     u: np.ndarray,
+                                     atol: float = 1e-8) -> List[ops.Operation]:
     """Returns operations for a 3 qubit unitary.
 
     The algorithm is described in Shende et al.:
@@ -34,6 +37,8 @@ def three_qubit_unitary_to_operations(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid,
         q1: second qubit
         q2: third qubit
         u: unitary matrix
+        atol: A limit on the amount of absolute error introduced by the
+            construction.
 
     Returns:
         The resulting operations will have only known two-qubit and one-qubit
@@ -69,7 +74,8 @@ def three_qubit_unitary_to_operations(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid,
                                                    q2,
                                                    u1,
                                                    u2,
-                                                   shift_left=True)
+                                                   shift_left=True,
+                                                   atol=atol)
 
     _, c_vdh = _two_qubit_multiplexor_to_circuit(q0,
                                                  q1,
@@ -77,7 +83,8 @@ def three_qubit_unitary_to_operations(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid,
                                                  v1h,
                                                  v2h,
                                                  shift_left=False,
-                                                 diagonal=d_ud)
+                                                 diagonal=d_ud,
+                                                 atol=atol)
 
     return list(cirq.Circuit([c_vdh, cs_ops, c_ud]).all_operations())
 
@@ -155,24 +162,28 @@ def _two_qubit_multiplexor_to_circuit(q0: ops.Qid,
                                       u1: np.ndarray,
                                       u2: np.ndarray,
                                       shift_left: bool = True,
-                                      diagonal: np.ndarray = np.eye(4)):
-    """Converts a two qubit double multiplexor to circuit.
+                                      diagonal: np.ndarray = np.eye(4),
+                                      atol: float = 1e-8):
+    r"""Converts a two qubit double multiplexor to circuit.
     Input: u1 ⊕ u2, with select qubit a (i.e. a = |0> => u1(b,c),
     a = |1> => u2(b,c).
 
     We want this:
-
-        u1 ⊕ u2 = v ⊕ v @ D ⊕ D^{adj} @ W ⊕ W
-
+        $$
+        u1 ⊕ u2 = v ⊕ v @ D ⊕ D^{\dagger} @ W ⊕ W
+        $$
     We can get it via:
-
+        $$
         u1 = v @ D @ W       (1)
-        u2 = v @ D^{adj} @ W (2)
+        u2 = v @ D^{\dagger} @ W (2)
+        $$
 
     We can derive
-        u1u2^{adj}= v @ D^2 @ v^{adj}, (3)
+        $$
+        u1u2^{adj}= v @ D^2 @ v^{\dagger}, (3)
+        $$
 
-    i.e the eigendecomposition of u1u2^{adj} will give us D and v.
+    i.e the eigendecomposition of $u1u2^{\dagger}$ will give us D and v.
     W is easy to derive from (2).
 
     This function, after calculating v, D and W, also returns the circuit that
@@ -205,22 +216,19 @@ def _two_qubit_multiplexor_to_circuit(q0: ops.Qid,
     v = diagonal @ v
 
     d_v, circuit_u1u2_r = opt.two_qubit_matrix_to_diagonal_and_operations(
-        q1, q2, v)
+        q1, q2, v, atol=atol)
 
     w = d_v @ w
 
     # if it's interesting to extract the diagonal then let's do it
     if shift_left:
         d_w, circuit_u1u2_l = opt.two_qubit_matrix_to_diagonal_and_operations(
-            q1, q2, w)
+            q1, q2, w, atol=atol)
     # if we are at the end of the circuit, then just fall back to KAK
     else:
         d_w = np.eye(4)
-        circuit_u1u2_l = cirq.Circuit(
-            opt.two_qubit_matrix_to_operations(q1,
-                                               q2,
-                                               w,
-                                               allow_partial_czs=False))
+        circuit_u1u2_l = opt.two_qubit_matrix_to_operations(
+            q1, q2, w, allow_partial_czs=False, atol=atol)
 
     return d_w, cirq.Circuit([circuit_u1u2_l, circuit_u1u2_mid, circuit_u1u2_r])
 

@@ -37,7 +37,7 @@ from cirq.optimizers.three_qubit_decomposition import (
 ])
 def test_three_qubit_unitary_to_operations(u):
     a, b, c = cirq.LineQubit.range(3)
-    operations = cirq.three_qubit_unitary_to_operations(a, b, c, u)
+    operations = cirq.three_qubit_matrix_to_operations(a, b, c, u)
     final_circuit = cirq.Circuit(operations)
     final_unitary = final_circuit.unitary(
         qubits_that_should_be_present=[a, b, c])
@@ -69,10 +69,10 @@ def test_cs_to_ops(theta, num_czs):
 
 def _theta_to_cs(theta: np.ndarray) -> np.ndarray:
     """Returns the CS matrix from the cosine sine decomposition.
-    
+
     Args:
         theta: the 4 angles that result from the CS decomposition
-    Returns: 
+    Returns:
         the CS matrix
     """
     c = np.diag(np.cos(theta))
