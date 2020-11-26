@@ -1,5 +1,5 @@
-from typing import (Any, cast, Dict, Iterable, Mapping, Sequence, List,
-                    Optional, Tuple, TYPE_CHECKING, TypeVar, Union)
+from typing import (Any, Dict, Iterable, Mapping, Sequence, List, Optional,
+                    Tuple, TYPE_CHECKING, TypeVar, Union)
 
 import numpy as np
 
@@ -29,13 +29,17 @@ def get_dims_from_qid_map(qid_map: Mapping[raw_types.Qid, int]):
 
 def get_qid_indices(qid_map: Mapping[raw_types.Qid, int], proj_key: ProjKey):
     if isinstance(proj_key, raw_types.Qid):
-        proj_key = (cast(raw_types.Qid, proj_key),)
-    idx = []
-    for qid in proj_key:
+        qid = proj_key
         if qid not in qid_map:
             raise ValueError(f"Missing qid: {qid}")
-        idx.append(qid_map[qid])
-    return idx
+        return [qid_map[qid]]
+    else:
+        idx = []
+        for qid in proj_key:
+            if qid not in qid_map:
+                raise ValueError(f"Missing qid: {qid}")
+            idx.append(qid_map[qid])
+        return idx
 
 
 @value.value_equality
