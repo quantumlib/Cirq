@@ -1,3 +1,17 @@
+# Copyright 2020 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from random import random
 
 import numpy as np
@@ -7,10 +21,27 @@ from numpy.testing import assert_almost_equal
 from scipy.linalg import block_diag
 
 import cirq
-from cirq.contrib.three_qubit.qsd_opt import _multiplexed_angles, \
-    _cs_to_ops, _middle_multiplexor_to_ops, \
-    _two_qubit_multiplexor_to_circuit, \
-    three_qubit_unitary_to_operations
+from cirq.optimizers.three_qubit_decomposition import (
+    _multiplexed_angles,
+    _cs_to_ops,
+    _middle_multiplexor_to_ops,
+    _two_qubit_multiplexor_to_circuit,
+)
+
+
+@pytest.mark.parametrize("U", [
+    cirq.testing.random_unitary(8),
+    np.eye(8),
+    cirq.ControlledGate(cirq.ISWAP)._unitary_(),
+    cirq.CCX._unitary_()
+])
+def test_three_qubit_unitary_to_operations(U):
+    a, b, c = cirq.LineQubit.range(3)
+    operations = cirq.three_qubit_unitary_to_operations(a, b, c, U)
+    final_circuit = cirq.Circuit(operations)
+    final_unitary = final_circuit.unitary(
+        qubits_that_should_be_present=[a, b, c])
+    cirq.testing.assert_allclose_up_to_global_phase(U, final_unitary, atol=1e-9)
 
 
 @pytest.mark.parametrize(["theta", "num_czs"], [
@@ -36,7 +67,14 @@ def test_cs_to_ops(theta, num_czs):
                                                  circuit_CS.unitary())
 
 
-def _theta_to_CS(theta):
+def _theta_to_CS(theta: np.ndarray) -> np.ndarray:
+    """Returns the CS matrix from the cosine sine decomposition.
+    
+    Args:
+        theta: the 4 angles that result from the CS decomposition
+    Returns: 
+        the CS matrix
+    """
     C = np.diag(np.cos(theta))
     S = np.diag(np.sin(theta))
     return np.block([[C, -S], [S, C]])
@@ -128,27 +166,13 @@ def test_two_qubit_multiplexor_to_circuit(shiftLeft):
     a, b, c = cirq.LineQubit.range(3)
     u1 = cirq.testing.random_unitary(4)
     u2 = cirq.testing.random_unitary(4)
-    dUD, c_UD = _two_qubit_multiplexor_to_circuit(a,
-                                                  b,
-                                                  c,
-                                                  u1,
-                                                  u2,
-                                                  shiftLeft=shiftLeft)
+    d_ud, c_ud = _two_qubit_multiplexor_to_circuit(a,
+                                                   b,
+                                                   c,
+                                                   u1,
+                                                   u2,
+                                                   shiftLeft=shiftLeft)
     expected = block_diag(u1, u2)
-    actual = c_UD.unitary(qubits_that_should_be_present=[a, b, c]) @ np.kron(
-        np.eye(2), dUD)
+    actual = c_ud.unitary(qubits_that_should_be_present=[a, b, c]) @ np.kron(
+        np.eye(2), d_ud)
     cirq.testing.assert_allclose_up_to_global_phase(expected, actual, atol=1e-8)
-
-
-@pytest.mark.parametrize("U", [
-    cirq.testing.random_unitary(8),
-    np.eye(8),
-    cirq.ControlledGate(cirq.ISWAP)._unitary_(),
-    cirq.CCX._unitary_()
-])
-def test_three_qubit_unitary_to_operations(U):
-    a, b, c = cirq.LineQubit.range(3)
-    final_circuit = cirq.Circuit(three_qubit_unitary_to_operations(a, b, c, U))
-    final_unitary = final_circuit.unitary(
-        qubits_that_should_be_present=[a, b, c])
-    cirq.testing.assert_allclose_up_to_global_phase(U, final_unitary, atol=1e-9)

@@ -63,6 +63,9 @@ from cirq.optimizers.stratify import (
 from cirq.optimizers.synchronize_terminal_measurements import (
     SynchronizeTerminalMeasurements,)
 
+from cirq.optimizers.three_qubit_decomposition import (
+    three_qubit_unitary_to_operations,)
+
 from cirq.optimizers.two_qubit_decompositions import (
     two_qubit_matrix_to_operations,
     two_qubit_matrix_to_diagonal_and_operations,
