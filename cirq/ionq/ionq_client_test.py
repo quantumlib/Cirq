@@ -317,3 +317,140 @@ def test_ionq_client_get_job_retry(mock_get):
                                           default_target='simulator')
     _ = client.get_job('job_id')
     assert mock_get.call_count == 2
+
+
+@mock.patch('requests.put')
+def test_ionq_client_cancel_job(mock_put):
+    mock_put.return_value.ok = True
+    mock_put.return_value.json.return_value = {'foo': 'bar'}
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
+                                          api_key='to_my_heart')
+    response = client.cancel_job(job_id='job_id')
+    assert response == {'foo': 'bar'}
+
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json'
+    }
+    mock_put.assert_called_with(
+        'http://example.com/v0.1/jobs/job_id/status/cancel',
+        headers=expected_headers)
+
+
+@mock.patch('requests.put')
+def test_ionq_client_cancel_job_unauthorized(mock_put):
+    mock_put.return_value.ok = False
+    mock_put.return_value.status_code = requests.codes.unauthorized
+
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
+                                          api_key='to_my_heart',
+                                          default_target='simulator')
+    with pytest.raises(ionq.IonQException, match='Not authorized'):
+        client.cancel_job('job_id')
+
+
+@mock.patch('requests.put')
+def test_ionq_client_cancel_job_not_found(mock_put):
+    (mock_put.return_value).ok = False
+    (mock_put.return_value).status_code = requests.codes.not_found
+
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
+                                          api_key='to_my_heart',
+                                          default_target='simulator')
+    with pytest.raises(ionq.IonQNotFoundException, match='not find'):
+        client.cancel_job('job_id')
+
+
+@mock.patch('requests.put')
+def test_ionq_client_cancel_job_not_retriable(mock_get):
+    mock_get.return_value.ok = False
+    mock_get.return_value.status_code = requests.codes.not_implemented
+
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
+                                          api_key='to_my_heart',
+                                          default_target='simulator')
+    with pytest.raises(ionq.IonQException, match='Status: 501'):
+        client.cancel_job('job_id')
+
+
+@mock.patch('requests.put')
+def test_ionq_client_cancel_job_retry(mock_put):
+    response1 = mock.MagicMock()
+    response2 = mock.MagicMock()
+    mock_put.side_effect = [response1, response2]
+    response1.ok = False
+    response1.status_code = requests.codes.service_unavailable
+    response2.ok = True
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
+                                          api_key='to_my_heart',
+                                          default_target='simulator')
+    client.cancel_job('job_id')
+    assert mock_put.call_count == 2
+
+
+@mock.patch('requests.delete')
+def test_ionq_client_delete_job(mock_delete):
+    mock_delete.return_value.ok = True
+    mock_delete.return_value.json.return_value = {'foo': 'bar'}
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
+                                          api_key='to_my_heart')
+    response = client.delete_job(job_id='job_id')
+    assert response == {'foo': 'bar'}
+
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json'
+    }
+    mock_delete.assert_called_with('http://example.com/v0.1/jobs/job_id',
+                                   headers=expected_headers)
+
+
+@mock.patch('requests.delete')
+def test_ionq_client_delete_job_unauthorized(mock_delete):
+    mock_delete.return_value.ok = False
+    mock_delete.return_value.status_code = requests.codes.unauthorized
+
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
+                                          api_key='to_my_heart',
+                                          default_target='simulator')
+    with pytest.raises(ionq.IonQException, match='Not authorized'):
+        client.delete_job('job_id')
+
+
+@mock.patch('requests.delete')
+def test_ionq_client_delete_job_not_found(mock_put):
+    (mock_put.return_value).ok = False
+    (mock_put.return_value).status_code = requests.codes.not_found
+
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
+                                          api_key='to_my_heart',
+                                          default_target='simulator')
+    with pytest.raises(ionq.IonQNotFoundException, match='not find'):
+        client.delete_job('job_id')
+
+
+@mock.patch('requests.delete')
+def test_ionq_client_delete_job_not_retriable(mock_delete):
+    mock_delete.return_value.ok = False
+    mock_delete.return_value.status_code = requests.codes.not_implemented
+
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
+                                          api_key='to_my_heart',
+                                          default_target='simulator')
+    with pytest.raises(ionq.IonQException, match='Status: 501'):
+        client.delete_job('job_id')
+
+
+@mock.patch('requests.delete')
+def test_ionq_client_delete_job_retry(mock_put):
+    response1 = mock.MagicMock()
+    response2 = mock.MagicMock()
+    mock_put.side_effect = [response1, response2]
+    response1.ok = False
+    response1.status_code = requests.codes.service_unavailable
+    response2.ok = True
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
+                                          api_key='to_my_heart',
+                                          default_target='simulator')
+    client.delete_job('job_id')
+    assert mock_put.call_count == 2
