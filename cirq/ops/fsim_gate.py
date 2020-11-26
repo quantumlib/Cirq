@@ -34,6 +34,15 @@ from cirq._compat import proper_repr
 from cirq.ops import gate_features
 
 
+def _canonicalize(value: Union[float, sympy.Basic]
+                 ) -> Union[float, sympy.Basic]:
+    """Assumes value is 2π-periodic and shifts it into [-π, π]."""
+    if protocols.is_parameterized(value):
+        return value
+    period = 2 * np.pi
+    return value - period * np.round(value / period)
+
+
 def _zero_mod_pi(param: Union[float, sympy.Basic]) -> bool:
     """Returns True iff param, assumed to be in [-pi, pi], is 0 (mod pi)."""
     return param in (-np.pi, 0.0, np.pi, -sympy.pi, sympy.pi)
@@ -82,8 +91,8 @@ class FSimGate(gate_features.TwoQubitGate,
                 ``|11⟩`` state is phased. Note: uses opposite sign convention to
                 the CZPowGate. Maximum strength (full cz) is at pi/2.
         """
-        self.theta = theta
-        self.phi = phi
+        self.theta = _canonicalize(theta)
+        self.phi = _canonicalize(phi)
 
     def _value_equality_values_(self) -> Any:
         return self.theta, self.phi
@@ -256,20 +265,11 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
             phi: Controlled phase angle, in radians. See class docstring
                 above for details.
         """
-
-        def canonicalize(value: Union[float, sympy.Basic]
-                        ) -> Union[float, sympy.Basic]:
-            """Assumes value is 2π-periodic and shifts it into [-π, π]."""
-            if protocols.is_parameterized(value):
-                return value
-            period = 2 * np.pi
-            return value - period * np.round(value / period)
-
-        self.theta = canonicalize(theta)
-        self.zeta = canonicalize(zeta)
-        self.chi = canonicalize(chi)
-        self.gamma = canonicalize(gamma)
-        self.phi = canonicalize(phi)
+        self.theta = _canonicalize(theta)
+        self.zeta = _canonicalize(zeta)
+        self.chi = _canonicalize(chi)
+        self.gamma = _canonicalize(gamma)
+        self.phi = _canonicalize(phi)
 
     @staticmethod
     def from_fsim_rz(
