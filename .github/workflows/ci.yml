@@ -115,6 +115,7 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
+          pip install codeowners # linux only package
       - name: Pytest check
         run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
   build_docs:
