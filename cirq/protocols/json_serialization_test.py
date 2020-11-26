@@ -37,7 +37,7 @@ def _get_testspecs_for_modules():
     for m in TESTED_MODULES:
         try:
             modules.append(spec_for(m))
-        except ModuleNotFoundError as ex:
+        except ModuleNotFoundError:
             # for optional modules it is okay to skip
             pass
     return modules
