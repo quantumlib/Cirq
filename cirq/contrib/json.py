@@ -2,11 +2,12 @@
 classes in Contrib.
 
 """
+from typing import Dict
 
-from cirq.protocols.json_serialization import DEFAULT_RESOLVERS
+from cirq.protocols.json_serialization import register_resolver, ObjectFactory
 
 
-def contrib_class_resolver(cirq_type: str):
+def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     """Extend cirq's JSON API with resolvers for cirq contrib classes."""
     from cirq.contrib.quantum_volume import QuantumVolumeResult
     from cirq.contrib.acquaintance import SwapPermutationGate
@@ -14,8 +15,8 @@ def contrib_class_resolver(cirq_type: str):
         QuantumVolumeResult,
         SwapPermutationGate,
     ]
-    d = {cls.__name__: cls for cls in classes}
-    return d.get(cirq_type, None)
+    return {cls.__name__: cls for cls in classes}
 
 
-DEFAULT_CONTRIB_RESOLVERS = [contrib_class_resolver] + DEFAULT_RESOLVERS
+# TODO: contrib should be properly tested
+register_resolver(_class_resolver_dictionary)
