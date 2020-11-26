@@ -48,4 +48,6 @@ There are two main ways of running quantum algorithms using Cirq:
 # Next steps
 
 - Learn about the [Basics](tutorials/basics.ipynb) of Cirq, like the Circuit, Qubit and Simulator classes and how to use them
-- 
+- Explore all the numerous [Tutorials and examples](tutorials/)
+- Check out the [API docs](https://quantumai.google/reference/python/cirq)
+- Learn more about the Cirq concepts in-depth in our guides 
