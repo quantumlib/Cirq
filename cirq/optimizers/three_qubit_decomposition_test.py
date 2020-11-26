@@ -35,7 +35,7 @@ from cirq.optimizers.three_qubit_decomposition import (
     cirq.ControlledGate(cirq.ISWAP)._unitary_(),
     cirq.CCX._unitary_()
 ])
-def test_three_qubit_unitary_to_operations(u):
+def test_three_qubit_matrix_to_operations(u):
     a, b, c = cirq.LineQubit.range(3)
     operations = cirq.three_qubit_matrix_to_operations(a, b, c, u)
     final_circuit = cirq.Circuit(operations)
