@@ -1,5 +1,5 @@
-from typing import (Any, Dict, Iterable, Mapping, Sequence, List, Optional,
-                    Tuple, TYPE_CHECKING, TypeVar, Union)
+from typing import (Any, cast, Dict, Iterable, Mapping, Sequence, List,
+                    Optional, Tuple, TYPE_CHECKING, TypeVar, Union)
 
 import numpy as np
 
@@ -29,7 +29,7 @@ def get_dims_from_qid_map(qid_map: Mapping[raw_types.Qid, int]):
 
 def get_qid_indices(qid_map: Mapping[raw_types.Qid, int], proj_key: ProjKey):
     if isinstance(proj_key, raw_types.Qid):
-        proj_key = (proj_key,)
+        proj_key = (cast(raw_types.Qid, proj_key),)
     idx = []
     for qid in proj_key:
         if qid not in qid_map:
@@ -134,7 +134,9 @@ class Projector():
 
             P = np.reshape(P, proj_dims * 2)
 
-            state_vector = np.tensordot(P, state_vector, axes=(range(nr, 2*nr), idx))
+            state_vector = np.tensordot(P,
+                                        state_vector,
+                                        axes=(range(nr, 2 * nr), idx))
             state_vector = np.moveaxis(state_vector, range(nr), idx)
 
         state_vector = np.reshape(state_vector, np.prod(dims))
@@ -164,10 +166,13 @@ class Projector():
 
             P = np.reshape(P, proj_dims * 2)
 
-            state = np.tensordot(P, state, axes=(range(nr, 2*nr), idx))
+            state = np.tensordot(P, state, axes=(range(nr, 2 * nr), idx))
             state = np.moveaxis(state, range(nr), idx)
-            state = np.tensordot(state, P.T.conj(), axes=([len(dims) + i for i in idx], range(nr)))
-            state = np.moveaxis(state, range(-nr, 0), [len(dims) + i for i in idx])
+            state = np.tensordot(state,
+                                 P.T.conj(),
+                                 axes=([len(dims) + i for i in idx], range(nr)))
+            state = np.moveaxis(state, range(-nr, 0),
+                                [len(dims) + i for i in idx])
 
         state = np.reshape(state, [np.prod(dims)] * 2)
         return np.trace(state)
