@@ -748,7 +748,7 @@ def test_kak_decompose(unitary: np.ndarray):
 def test_num_two_qubit_gates_required():
     for i in range(4):
         assert cirq.num_cnots_required(
-            _two_qubit_circuit_with_cnots(i).unitary()) == i
+            cirq.testing.random_two_qubit_circuit_with_czs(i).unitary()) == i
 
     assert cirq.num_cnots_required(np.eye(4)) == 0
 
@@ -758,23 +758,19 @@ def test_num_two_qubit_gates_required_invalid():
         cirq.num_cnots_required(np.array([[1]]))
 
 
-def _two_qubit_circuit_with_cnots(num_cnots=3, a=None, b=None):
-    random.seed(32123)
-    if a is None or b is None:
-        a, b = cirq.LineQubit.range(2)
-
-    def random_one_qubit_gate():
-        return cirq.PhasedXPowGate(phase_exponent=random.random(),
-                                   exponent=random.random())
-
-    def one_cz():
-        return [
-            cirq.CZ.on(a, b),
-            random_one_qubit_gate().on(a),
-            random_one_qubit_gate().on(b),
-        ]
-
-    return cirq.Circuit([
-        random_one_qubit_gate().on(a),
-        random_one_qubit_gate().on(b), [one_cz() for _ in range(num_cnots)]
+@pytest.mark.parametrize(
+    "U",
+    [
+        cirq.testing.random_two_qubit_circuit_with_czs(3).unitary(),
+        # an example where gamma(special(u))=I, so the denominator becomes 0
+        1 / np.sqrt(2) * np.array(
+            [[(1 - 1j) * 2 / np.sqrt(5), 0, 0,
+              (1 - 1j) * 1 / np.sqrt(5)], [0, 0, 1 - 1j, 0], [0, 1 - 1j, 0, 0],
+             [-(1 - 1j) * 1 / np.sqrt(5), 0, 0, (1 - 1j) * 2 / np.sqrt(5)]],
+            dtype=np.complex128)
     ])
+def test_extract_right_diag(U):
+    assert cirq.num_cnots_required(U) == 3
+    diag = cirq.linalg.extract_right_diag(U)
+    assert cirq.is_diagonal(diag)
+    assert cirq.num_cnots_required(U @ diag) == 2
