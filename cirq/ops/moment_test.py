@@ -199,6 +199,20 @@ def test_without_operations_touching():
                         ]).without_operations_touching([a, c]) == cirq.Moment())
 
 
+def test_with_measurement_keys():
+    a, b = cirq.LineQubit.range(2)
+    m = cirq.Moment(cirq.measure(a, key='m1'), cirq.measure(b, key='m2'))
+
+    new_moment = cirq.with_measurement_key_mapping(m, {
+        'm1': 'p1',
+        'm2': 'p2',
+        'x': 'z',
+    })
+
+    assert new_moment.operations[0] == cirq.measure(a, key='p1')
+    assert new_moment.operations[1] == cirq.measure(b, key='p2')
+
+
 def test_copy():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -458,3 +472,24 @@ aa │
 0 │ Empty
   │
     """)
+
+
+def test_commutes():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+    d = cirq.NamedQubit('d')
+
+    moment = cirq.Moment([cirq.X(a), cirq.Y(b), cirq.H(c)])
+
+    assert NotImplemented == cirq.commutes(moment, a, default=NotImplemented)
+
+    assert cirq.commutes(moment, cirq.X(a))
+    assert cirq.commutes(moment, cirq.Y(b))
+    assert cirq.commutes(moment, cirq.H(c))
+    assert cirq.commutes(moment, cirq.H(d))
+
+    # X and H do not commute
+    assert not cirq.commutes(moment, cirq.H(a))
+    assert not cirq.commutes(moment, cirq.H(b))
+    assert not cirq.commutes(moment, cirq.X(c))

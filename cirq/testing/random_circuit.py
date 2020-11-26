@@ -15,6 +15,7 @@
 from typing import List, Union, Sequence, Dict, Optional, TYPE_CHECKING
 
 from cirq import ops, value
+from cirq.ops import Qid
 from cirq.circuits import Circuit
 from cirq._doc import document
 
@@ -122,11 +123,11 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
 
 
 def random_two_qubit_circuit_with_czs(
-        num_czs=3,
-        q0=None,
-        q1=None,
-        random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
-    """Creates a random two circuit with the given number of CNOTs.
+        num_czs: int = 3,
+        q0: Qid = None,
+        q1: Qid = None,
+        random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> Circuit:
+    """Creates a random two qubit circuit with the given number of CNOTs.
 
     The resulting circuit will have `num_cnots` number of CNOTs that will be
     surrounded by random `PhasedXPowGate` instances on both qubits.
@@ -140,10 +141,8 @@ def random_two_qubit_circuit_with_czs(
          the random two qubit circuit
     """
     prng = value.parse_random_state(random_state)
-    if q0 is None:
-        q0 = ops.NamedQubit('q0')
-    if q1 is None:
-        q1 = ops.NamedQubit('q1')
+    q0 = ops.NamedQubit('q0') if q0 is None else q0
+    q1 = ops.NamedQubit('q1') if q1 is None else q1
 
     def random_one_qubit_gate():
         return ops.PhasedXPowGate(phase_exponent=prng.random(),

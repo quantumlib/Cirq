@@ -10,6 +10,3 @@ autoray
 
 # quil import
 pyquil~=2.21.0
-
-# for 3 qubit decomposition
-scipy>=1.5.0

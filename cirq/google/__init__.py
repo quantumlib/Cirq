@@ -28,6 +28,8 @@ from cirq.google.devices import (
 
 from cirq.google.engine import (
     Calibration,
+    CalibrationLayer,
+    CalibrationResult,
     Engine,
     engine_from_environment,
     EngineJob,

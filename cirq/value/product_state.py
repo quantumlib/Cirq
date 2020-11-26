@@ -244,7 +244,7 @@ class _ZEigenState(_PauliEigenState):
 KET_PLUS = _XEigenState(eigenvalue=+1)
 document(
     KET_PLUS, """The |+⟩ State
-    
+
     This is the state such that X|+⟩ = +1 |+⟩
 
     Vector:
@@ -255,7 +255,7 @@ document(
 KET_MINUS = _XEigenState(eigenvalue=-1)
 document(
     KET_MINUS, """The |-⟩ State
-    
+
     This is the state such that X|-⟩ = -1 |-⟩
 
     Vector:
@@ -266,7 +266,7 @@ document(
 KET_IMAG = _YEigenState(eigenvalue=+1)
 document(
     KET_IMAG, """The |i⟩ State
-    
+
     This is the state such that Y|i⟩ = +1 |i⟩
 
     Vector:

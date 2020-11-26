@@ -15,15 +15,14 @@
 
 """Utility methods for breaking matrices into useful pieces."""
 
+import cmath
+import math
 from typing import (Any, Callable, Iterable, List, Optional, Sequence, Set,
                     Tuple, TYPE_CHECKING, TypeVar, Union)
 
-import math
-import cmath
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import scipy
-from scipy.linalg.special_matrices import block_diag
 
 from cirq import value, protocols
 from cirq._compat import proper_repr
@@ -45,8 +44,6 @@ YY = np.array([[0, 0, 0, -1],
                [0, 0, 1, 0],
                [0, 1, 0, 0],
                [-1, 0, 0, 0]])
-
-
 # yapf: enable
 
 
@@ -1050,7 +1047,7 @@ def _gamma(u: np.ndarray) -> np.ndarray:
     return u @ YY @ u.T @ YY
 
 
-def extract_right_diag(u: np.ndarray, atol=1e-15):
+def extract_right_diag(u: np.ndarray) -> np.ndarray:
     """Extract a diagonal unitary from a 3-CNOT two-qubit unitary.
 
     Returns a 2-CNOT unitary D that is diagonal, so that U @ D needs only
@@ -1061,21 +1058,11 @@ def extract_right_diag(u: np.ndarray, atol=1e-15):
 
     Args:
         u: three-CNOT two-qubit unitary
-        atol: the absolute tolerance for avoiding division by zero
     Returns:
         diagonal extracted from U
     """
-    t = _gamma(transformations.to_special(u).T).T.diagonal()
+    t = _gamma(transformations.to_special(u).T).diagonal()
     k = np.real(t[0] + t[3] - t[1] - t[2])
-    if np.abs(k) < atol:
-        # in the end we have to pick a psi that makes sure that
-        # exp(-i*psi) (t[0]+t[3]) + exp(i*psi) (t[1]+t[2]) is real
-        # both pi/2 or 3pi/2 can work
-        psi = np.pi / 2
-    else:
-        psi = np.arctan(np.imag(np.sum(t)) / k)
-
-    cnot = block_diag(np.eye(2), np.array([[0, 1], [1, 0]]))
-    rz = np.diag([1, np.exp(1j * psi)])
-
-    return cnot @ combinators.kron(np.eye(2), rz) @ cnot
+    psi = np.arctan2(np.imag(np.sum(t)), k)
+    f = np.exp(1j * psi)
+    return np.diag([1, f, f, 1])

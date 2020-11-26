@@ -1663,6 +1663,7 @@ def test_deprecated():
         }).expectation_from_state_vector(state=state_vector, qubit_map={a: 0})
 
 
+# pylint: disable=line-too-long
 def test_circuit_diagram_info():
     a, b, c = cirq.LineQubit.range(3)
 
@@ -1676,13 +1677,18 @@ def test_circuit_diagram_info():
             1j * cirq.X(a) * cirq.Y(b),
             -1j * cirq.Y(b),
             1j**0.5 * cirq.X(a) * cirq.Y(b),
-        ), """
+        ),
+        """
 0: ───PauliString(+X)───PauliString(-X)───PauliString(+X)───PauliString(iX)──────────────────────PauliString((0.707+0.707i)*X)───
                                           │                 │                                    │
 1: ───────────────────────────────────────┼─────────────────Y─────────────────PauliString(-iY)───Y───────────────────────────────
                                           │
 2: ───────────────────────────────────────Z──────────────────────────────────────────────────────────────────────────────────────
-        """)
+        """,
+    )
+
+
+# pylint: enable=line-too-long
 
 
 def test_mutable_pauli_string_equality():

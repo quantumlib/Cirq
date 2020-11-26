@@ -11,6 +11,9 @@ import examples.basic_arithmetic
 import examples.quantum_teleportation
 import examples.superdense_coding
 
+# Standard test runs do not include performance benchmarks.
+# coverage: ignore
+
 
 def test_example_runs_bernstein_vazirani_perf(benchmark):
     benchmark(examples.bernstein_vazirani.main, qubit_count=3)

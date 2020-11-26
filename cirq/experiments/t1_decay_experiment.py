@@ -18,16 +18,16 @@ import pandas as pd
 import sympy
 from matplotlib import pyplot as plt
 
-from cirq import circuits, devices, ops, study, value, work
+from cirq import circuits, ops, study, value
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
     import cirq
 
 
-def t1_decay(sampler: work.Sampler,
+def t1_decay(sampler: 'cirq.Sampler',
              *,
-             qubit: devices.GridQubit,
+             qubit: 'cirq.Qid',
              num_points: int,
              max_delay: 'cirq.DURATION_LIKE',
              min_delay: 'cirq.DURATION_LIKE' = None,
@@ -67,7 +67,7 @@ def t1_decay(sampler: work.Sampler,
 
     circuit = circuits.Circuit(
         ops.X(qubit),
-        ops.WaitGate(value.Duration(nanos=var)).on(qubit),
+        ops.wait(qubit, nanos=var),
         ops.measure(qubit, key='output'),
     )
 
