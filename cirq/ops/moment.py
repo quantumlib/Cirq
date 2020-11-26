@@ -16,9 +16,10 @@
 
 from typing import (Any, Callable, Dict, FrozenSet, Iterable, Iterator,
                     overload, Optional, Tuple, TYPE_CHECKING, TypeVar, Union)
-from cirq import protocols
+from cirq import protocols, ops
 from cirq._compat import deprecated_parameter
 from cirq.ops import raw_types
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -195,6 +196,11 @@ class Moment:
                 return op
         raise KeyError("Moment doesn't act on given qubit")
 
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+        return Moment(
+            protocols.with_measurement_key_mapping(op, key_map) if protocols.
+            is_measurement(op) else op for op in self.operations)
+
     def __copy__(self):
         return type(self)(self.operations)
 
@@ -280,7 +286,7 @@ class Moment:
 
     def __add__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
         from cirq.circuits import circuit
-        if isinstance(other, circuit.Circuit):
+        if isinstance(other, circuit.AbstractCircuit):
             return NotImplemented  # Delegate to Circuit.__radd__.
         return self.with_operations(other)
 
@@ -408,6 +414,43 @@ class Moment:
                         diagram.vertical_line(x2, y1, y2)
 
         return diagram.render()
+
+    def _commutes_(self, other: Any, *, atol: Union[int, float] = 1e-8
+                  ) -> Union[bool, NotImplementedType]:
+        """Determines whether Moment commutes with the Operation.
+
+        Args:
+            other: An Operation object. Other types are not implemented yet.
+                In case a different type is specified, NotImplemented is
+                returned.
+            atol: Absolute error tolerance. If all entries in v1@v2 - v2@v1
+                have a magnitude less than this tolerance, v1 and v2 can be
+                reported as commuting. Defaults to 1e-8.
+
+        Returns:
+            True: The Moment and Operation commute OR they don't have shared
+            quibits.
+            False: The two values do not commute.
+            NotImplemented: In case we don't know how to check this, e.g.
+                the parameter type is not supported yet.
+        """
+        if not isinstance(other, ops.Operation):
+            return NotImplemented
+
+        other_qubits = set(other.qubits)
+        for op in self.operations:
+            if not other_qubits.intersection(set(op.qubits)):
+                continue
+
+            commutes = protocols.commutes(op,
+                                          other,
+                                          atol=atol,
+                                          default=NotImplemented)
+
+            if not commutes or commutes is NotImplemented:
+                return commutes
+
+        return True
 
 
 class _SortByValFallbackToType:

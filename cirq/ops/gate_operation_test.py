@@ -33,6 +33,17 @@ def test_invalid_gate_operation():
         cirq.GateOperation(three_qubit_gate, single_qubit)
 
 
+def test_immutable():
+    a, b = cirq.LineQubit.range(2)
+    op = cirq.X(a)
+
+    with pytest.raises(AttributeError, match="can't set attribute"):
+        op.gate = cirq.Y
+
+    with pytest.raises(AttributeError, match="can't set attribute"):
+        op.qubits = [b]
+
+
 def test_gate_operation_eq():
     g1 = cirq.SingleQubitGate()
     g2 = cirq.SingleQubitGate()
@@ -370,6 +381,22 @@ def test_with_gate():
     g2 = cirq.GateOperation(cirq.Y, cirq.LineQubit.range(1))
     assert g1.with_gate(cirq.X) is g1
     assert g1.with_gate(cirq.Y) == g2
+
+
+def test_with_measurement_key_mapping():
+    a = cirq.LineQubit(0)
+    op = cirq.measure(a, key='m')
+
+    remap_op = cirq.with_measurement_key_mapping(op, {'m': 'k'})
+    assert cirq.measurement_keys(remap_op) == {'k'}
+    assert cirq.with_measurement_key_mapping(op, {'x': 'k'}) is op
+
+
+def test_cannot_remap_non_measurement_gate():
+    a = cirq.LineQubit(0)
+    op = cirq.X(a)
+
+    assert cirq.with_measurement_key_mapping(op, {'m': 'k'}) is NotImplemented
 
 
 def test_is_parameterized():
