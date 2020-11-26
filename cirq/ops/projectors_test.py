@@ -310,3 +310,19 @@ def test_internal_consistency():
 
     np.testing.assert_allclose(actual0, actual1, atol=1e-6)
     np.testing.assert_allclose(actual0, actual2, atol=1e-6)
+
+
+def test_projector_split_qubits():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    d = cirq.Projector({(q0, q2): [[1.0 / math.sqrt(2), 0.0, 0.0, 1.0 / math.sqrt(2)]]})
+
+    qid_map={q0: 0, q1: 1, q2: 2}
+
+    state_vector = np.asarray([0.5, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.5])
+    state = np.einsum('i,j->ij', state_vector, state_vector.T.conj())
+
+    actual1 = d.expectation_from_state_vector(state_vector, qid_map=qid_map)
+    actual2 = d.expectation_from_density_matrix(state, qid_map=qid_map)
+
+    np.testing.assert_allclose(actual1, 0.25, atol=1e-6)
+    np.testing.assert_allclose(actual2, 0.25, atol=1e-6)

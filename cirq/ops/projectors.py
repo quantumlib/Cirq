@@ -28,6 +28,17 @@ def get_dims_from_qid_map(qid_map: Mapping[ProjKey, int]):
     return [x[1] for x in dims]
 
 
+def get_qid_indices(qid_map: Mapping[raw_types.Qid, int], proj_key: ProjKey):
+    if isinstance(proj_key, raw_types.Qid):
+        proj_key = (proj_key,)
+    idx = []
+    for qid in proj_key:
+        if qid not in qid_map:
+            raise ValueError(f"Missing qid: {qid}")
+        idx.append(qid_map[qid])
+    return idx
+
+
 @value.value_equality
 class Projector():
     """A projection matrix where you can specify the basis.
@@ -102,7 +113,7 @@ class Projector():
 
     def expectation_from_state_vector(self,
                                       state_vector: np.ndarray,
-                                      qid_map: Mapping[ProjKey, int],
+                                      qid_map: Mapping[raw_types.Qid, int],
                                       *,
                                       atol: float = 1e-7,
                                       check_preconditions: bool = True
@@ -111,9 +122,9 @@ class Projector():
         state_vector = state_vector.reshape(dims)
 
         for proj_key, projection_basis in self._projection_bases.items():
-            if proj_key not in qid_map:
-                raise ValueError(f"Missing qid: {proj_key}")
-            i = qid_map[proj_key]
+            idx = get_qid_indices(qid_map, proj_key)
+            proj_dims = qid_shape_from_proj_key(proj_key)
+            nr = len(idx)
 
             # Make rows into columns
             A = projection_basis.T
@@ -122,15 +133,17 @@ class Projector():
             # Projector to the range (column space) of A
             P = A @ pseudoinverse
 
-            state_vector = np.tensordot(P, state_vector, axes=(1, i))
-            state_vector = np.moveaxis(state_vector, 0, i)
+            P = np.reshape(P, proj_dims * 2)
+
+            state_vector = np.tensordot(P, state_vector, axes=(range(nr, 2*nr), idx))
+            state_vector = np.moveaxis(state_vector, range(len(idx)), idx)
 
         state_vector = np.reshape(state_vector, np.prod(dims))
         return np.dot(state_vector, state_vector.conj())
 
     def expectation_from_density_matrix(self,
                                         state: np.ndarray,
-                                        qid_map: Mapping[ProjKey, int],
+                                        qid_map: Mapping[raw_types.Qid, int],
                                         *,
                                         atol: float = 1e-7,
                                         check_preconditions: bool = True
@@ -139,9 +152,9 @@ class Projector():
         state = state.reshape(dims * 2)
 
         for proj_key, projection_basis in self._projection_bases.items():
-            if proj_key not in qid_map:
-                raise ValueError(f"Missing qid: {proj_key}")
-            i = qid_map[proj_key]
+            idx = get_qid_indices(qid_map, proj_key)
+            proj_dims = qid_shape_from_proj_key(proj_key)
+            nr = len(idx)
 
             # Make rows into columns
             A = projection_basis.T
@@ -150,10 +163,12 @@ class Projector():
             # Projector to the range (column space) of A
             P = A @ pseudoinverse
 
-            state = np.tensordot(P, state, axes=(1, i))
-            state = np.moveaxis(state, 0, i)
-            state = np.tensordot(state, P.T.conj(), axes=(len(dims) + i, 0))
-            state = np.moveaxis(state, -1, len(dims) + i)
+            P = np.reshape(P, proj_dims * 2)
+
+            state = np.tensordot(P, state, axes=(range(nr, 2*nr), idx))
+            state = np.moveaxis(state, range(len(idx)), idx)
+            state = np.tensordot(state, P.T.conj(), axes=([len(dims) + i for i in idx], range(nr)))
+            state = np.moveaxis(state, range(-nr, 0), [len(dims) + i for i in idx])
 
         state = np.reshape(state, [np.prod(dims)] * 2)
         return np.trace(state)
