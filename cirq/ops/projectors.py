@@ -22,9 +22,8 @@ def qid_shape_from_proj_key(proj_key: ProjKey):
         return [proj_key.dimension]
 
 
-def get_dims_from_qid_map(qid_map: Mapping[ProjKey, int]):
-    dims = sorted([(i, np.prod(qid_shape_from_proj_key(proj_key)))
-                   for proj_key, i in qid_map.items()])
+def get_dims_from_qid_map(qid_map: Mapping[raw_types.Qid, int]):
+    dims = sorted([(i, qid.dimension) for qid, i in qid_map.items()])
     return [x[1] for x in dims]
 
 
@@ -136,7 +135,7 @@ class Projector():
             P = np.reshape(P, proj_dims * 2)
 
             state_vector = np.tensordot(P, state_vector, axes=(range(nr, 2*nr), idx))
-            state_vector = np.moveaxis(state_vector, range(len(idx)), idx)
+            state_vector = np.moveaxis(state_vector, range(nr), idx)
 
         state_vector = np.reshape(state_vector, np.prod(dims))
         return np.dot(state_vector, state_vector.conj())
@@ -166,7 +165,7 @@ class Projector():
             P = np.reshape(P, proj_dims * 2)
 
             state = np.tensordot(P, state, axes=(range(nr, 2*nr), idx))
-            state = np.moveaxis(state, range(len(idx)), idx)
+            state = np.moveaxis(state, range(nr), idx)
             state = np.tensordot(state, P.T.conj(), axes=([len(dims) + i for i in idx], range(nr)))
             state = np.moveaxis(state, range(-nr, 0), [len(dims) + i for i in idx])
 
