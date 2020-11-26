@@ -88,9 +88,17 @@ prepended to this list:
 def register_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]):
     """Register a resolver based on a dict factory for lazy initialization.
 
-    Modules that expose JSON serializable objects should register themselves
-    here to be supported by the protocol. See for example cirq/__init__.py or
-    cirq/google/__init__.py.
+    Cirq modules are the ones referred in cirq/__init__.py. If a Cirq module
+    wants to expose JSON serializable objects, it should register itself using
+    this method to be supported by the protocol. See for example
+    cirq/__init__.py or cirq/google/__init__.py.
+
+    As Cirq modules are imported by cirq/__init__.py, they are different from
+    3rd party packages, and as such SHOULD NEVER rely on storing a
+    separate resolver based on DEAFULT_RESOLVERS because that will cause a
+    partial DEFAULT_RESOLVER to be used by that module. What it contains will
+    depend on where in cirq/__init__.py the module is imported first, as some
+    modules might not had the chance to register themselves yet.
 
     Args:
         dict_factory: the callable that returns the actual dict for type names
