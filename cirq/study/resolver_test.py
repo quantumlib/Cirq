@@ -221,6 +221,13 @@ def test_unbound_recursion_halted():
         _ = r.value_of(a)
 
 
+def test_resolve_unknown_type():
+    a = sympy.Symbol('a')
+    b = sympy.Symbol('b')
+    r = cirq.ParamResolver({a: b})
+    assert r.value_of(cirq.X) == cirq.X
+
+
 def test_equals():
     et = cirq.testing.EqualsTester()
     et.add_equality_group(cirq.ParamResolver(),

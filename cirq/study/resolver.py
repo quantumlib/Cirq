@@ -165,18 +165,8 @@ class ParamResolver:
             else:
                 return float(v)
 
-        # Recursive parameter resolution.
-        if not value.is_Symbol:
-            for sym in value.free_symbols:
-                self._deep_eval_map[sym] = self.value_of(sym, recursive)
-            v = value.subs(self._deep_eval_map, simultaneous=True)
-            if v.free_symbols:
-                return v
-            elif sympy.im(v):
-                return complex(v)
-            else:
-                return float(v)
-
+        # Recursive parameter resolution. We can safely assume that value is a
+        # single symbol, since combinations are handled earlier in the method.
         try:
             v = self._deep_eval_map[value]
             if v is not None:

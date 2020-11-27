@@ -47,7 +47,8 @@ class SupportsParameterization(Protocol):
         """
 
     @doc_private
-    def _resolve_parameters_(self: Any, param_resolver: 'cirq.ParamResolver'):
+    def _resolve_parameters_(self: Any, param_resolver: 'cirq.ParamResolver',
+                             recursive: bool):
         """Resolve the parameters in the effect."""
 
 
@@ -154,7 +155,8 @@ def resolve_parameters(
         return type(val)(resolve_parameters(e, param_resolver) for e in val)
 
     getter = getattr(val, '_resolve_parameters_', None)
-    result = NotImplemented if getter is None else getter(param_resolver)
+    result = (NotImplemented if getter is None else getter(param_resolver,
+                                                           recursive=True))
 
     if result is not NotImplemented:
         return result
@@ -192,8 +194,10 @@ def resolve_parameters_once(val: Any,
         return type(val)(
             resolve_parameters_once(e, param_resolver) for e in val)
 
+    # TODO: untested and likely misbehaving
     getter = getattr(val, '_resolve_parameters_', None)
-    result = NotImplemented if getter is None else getter(param_resolver)
+    result = (NotImplemented if getter is None else getter(param_resolver,
+                                                           recursive=False))
 
     if result is not NotImplemented:
         return result
