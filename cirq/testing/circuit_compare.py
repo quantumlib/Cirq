@@ -91,8 +91,7 @@ def _measurement_subspaces(
 
 
 def assert_circuits_with_terminal_measurements_are_equivalent(
-        actual: circuits.Circuit,
-        reference: circuits.Circuit,
+        actual: circuits.AbstractCircuit, reference: circuits.AbstractCircuit,
         atol: float) -> None:
     """Determines if two circuits have equivalent effects.
 
@@ -177,9 +176,10 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
                         '{}\n'.format(actual, reference))
 
 
-def assert_same_circuits(actual: circuits.Circuit,
-                         expected: circuits.Circuit,
-                         ) -> None:
+def assert_same_circuits(
+        actual: circuits.AbstractCircuit,
+        expected: circuits.AbstractCircuit,
+) -> None:
     """Asserts that two circuits are identical, with a descriptive error.
 
     Args:
@@ -209,15 +209,16 @@ def assert_same_circuits(actual: circuits.Circuit,
                          expected)
 
 
-def _first_differing_moment_index(circuit1: circuits.Circuit,
-                                  circuit2: circuits.Circuit) -> Optional[int]:
+def _first_differing_moment_index(circuit1: circuits.AbstractCircuit,
+                                  circuit2: circuits.AbstractCircuit
+                                 ) -> Optional[int]:
     for i, (m1, m2) in enumerate(itertools.zip_longest(circuit1, circuit2)):
         if m1 != m2:
             return i
     return None  # coverage: ignore
 
 
-def assert_has_diagram(actual: Union[circuits.Circuit, ops.Moment],
+def assert_has_diagram(actual: Union[circuits.AbstractCircuit, ops.Moment],
                        desired: str, **kwargs) -> None:
     """Determines if a given circuit has the desired text diagram.
 

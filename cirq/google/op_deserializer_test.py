@@ -389,3 +389,72 @@ def test_defaults():
     g = GateWithAttribute(1.0)
     g.not_req = 'hello'
     assert deserializer.from_proto(serialized) == g(cirq.GridQubit(1, 2))
+
+
+def test_token():
+    deserializer = cg.GateOpDeserializer(serialized_gate_id='my_gate',
+                                         gate_constructor=GateWithAttribute,
+                                         args=[
+                                             cg.DeserializingArg(
+                                                 serialized_name='my_val',
+                                                 constructor_arg_name='val'),
+                                         ])
+    serialized = op_proto({
+        'gate': {
+            'id': 'my_gate'
+        },
+        'args': {
+            'my_val': {
+                'arg_value': {
+                    'float_value': 1.25
+                }
+            }
+        },
+        'qubits': [{
+            'id': '1_2'
+        }],
+        'token_value': 'abc123'
+    })
+    op = GateWithAttribute(1.25)(cirq.GridQubit(1, 2))
+    op = op.with_tags(cg.CalibrationTag('abc123'))
+    assert deserializer.from_proto(serialized) == op
+
+
+def test_token_with_references():
+    deserializer = cg.GateOpDeserializer(serialized_gate_id='my_gate',
+                                         gate_constructor=GateWithAttribute,
+                                         args=[
+                                             cg.DeserializingArg(
+                                                 serialized_name='my_val',
+                                                 constructor_arg_name='val'),
+                                         ])
+    serialized = op_proto({
+        'gate': {
+            'id': 'my_gate'
+        },
+        'args': {
+            'my_val': {
+                'arg_value': {
+                    'float_value': 1.25
+                }
+            }
+        },
+        'qubits': [{
+            'id': '1_2'
+        }],
+        'token_constant_index': 1
+    })
+    op = GateWithAttribute(1.25)(cirq.GridQubit(1, 2))
+    op = op.with_tags(cg.CalibrationTag('abc123'))
+    constants = []
+    constant = v2.program_pb2.Constant()
+    constant.string_value = 'my_token'
+    constants.append(constant)
+    constant = v2.program_pb2.Constant()
+    constant.string_value = 'abc123'
+    constants.append(constant)
+    assert deserializer.from_proto(serialized, constants=constants) == op
+
+    with pytest.raises(ValueError,
+                       match='Proto has references to constants table'):
+        deserializer.from_proto(serialized)

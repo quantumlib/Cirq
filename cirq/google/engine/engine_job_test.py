@@ -437,6 +437,27 @@ results: [{
 }]
 """, v2.batch_pb2.BatchResult())))
 
+CALIBRATION_RESULT = qtypes.QuantumResult(result=_to_any(
+    Merge(
+        """
+results: [{
+    code: ERROR_CALIBRATION_FAILED
+    error_message: 'uh oh'
+    token: 'abc'
+    valid_until_ms: 1234567891000
+    metrics: {
+        timestamp_ms: 1234567890000,
+        metrics: [{
+            name: 'theta',
+            targets: ['0_0', '0_1'],
+            values: [{
+                double_val: .9999
+            }]
+        }]
+    }
+}]
+""", v2.calibration_pb2.FocusedCalibrationResult())))
+
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')
 def test_results(get_job_results):
@@ -511,6 +532,53 @@ def test_batched_results_not_a_batch(get_job_results):
     job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
     with pytest.raises(ValueError, match='batched_results'):
         job.batched_results()
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')
+def test_calibration_results(get_job_results):
+    qjob = qtypes.QuantumJob(execution_status=qtypes.ExecutionStatus(
+        state=qtypes.ExecutionStatus.State.SUCCESS))
+    get_job_results.return_value = CALIBRATION_RESULT
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    data = job.calibration_results()
+    get_job_results.assert_called_once_with('a', 'b', 'steve')
+    assert len(data) == 1
+    assert data[0].code == v2.calibration_pb2.ERROR_CALIBRATION_FAILED
+    assert data[0].error_message == 'uh oh'
+    assert data[0].token == 'abc'
+    assert data[0].valid_until.timestamp() == 1234567891
+    assert len(data[0].metrics)
+    assert data[0].metrics['theta'] == {
+        (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)): [0.9999]
+    }
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')
+def test_calibration_defaults(get_job_results):
+    qjob = qtypes.QuantumJob(execution_status=qtypes.ExecutionStatus(
+        state=qtypes.ExecutionStatus.State.SUCCESS))
+    result = v2.calibration_pb2.FocusedCalibrationResult()
+    result.results.add()
+    get_job_results.return_value = qtypes.QuantumResult(result=_to_any(result))
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    data = job.calibration_results()
+    get_job_results.assert_called_once_with('a', 'b', 'steve')
+    assert len(data) == 1
+    assert data[0].code == v2.calibration_pb2.CALIBRATION_RESULT_UNSPECIFIED
+    assert data[0].error_message is None
+    assert data[0].token is None
+    assert data[0].valid_until is None
+    assert len(data[0].metrics) == 0
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')
+def test_calibration_results_not_a_calibration(get_job_results):
+    qjob = qtypes.QuantumJob(execution_status=qtypes.ExecutionStatus(
+        state=qtypes.ExecutionStatus.State.SUCCESS))
+    get_job_results.return_value = RESULTS
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    with pytest.raises(ValueError, match='calibration results'):
+        job.calibration_results()
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')

@@ -81,7 +81,9 @@ from cirq.ops.fourier_transform import (
 )
 
 from cirq.ops.fsim_gate import (
-    FSimGate,)
+    FSimGate,
+    PhasedFSimGate,
+)
 
 from cirq.ops.gate_features import (
     InterchangeableQubitsGate,
@@ -235,4 +237,6 @@ from cirq.ops.two_qubit_diagonal_gate import (
     TwoQubitDiagonalGate,)
 
 from cirq.ops.wait_gate import (
-    WaitGate,)
+    wait,
+    WaitGate,
+)
