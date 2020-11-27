@@ -194,7 +194,6 @@ def resolve_parameters_once(val: Any,
         return type(val)(
             resolve_parameters_once(e, param_resolver) for e in val)
 
-    # TODO: untested and likely misbehaving
     getter = getattr(val, '_resolve_parameters_', None)
     result = (NotImplemented if getter is None else getter(param_resolver,
                                                            recursive=False))
