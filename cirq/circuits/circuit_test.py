@@ -2592,7 +2592,9 @@ def test_apply_unitary_effect_to_state(circuit_cls):
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_is_parameterized(circuit_cls):
+@pytest.mark.parametrize(
+    'resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_is_parameterized(circuit_cls, resolve_fn):
     a, b = cirq.LineQubit.range(2)
     circuit = circuit_cls(
         cirq.CZ(a, b)**sympy.Symbol('u'),
@@ -2601,26 +2603,29 @@ def test_is_parameterized(circuit_cls):
     )
     assert cirq.is_parameterized(circuit)
 
-    circuit = cirq.resolve_parameters(circuit,
-                                      cirq.ParamResolver({'u': 0.1, 'v': 0.3}))
+    circuit = resolve_fn(circuit, cirq.ParamResolver({'u': 0.1, 'v': 0.3}))
     assert cirq.is_parameterized(circuit)
 
-    circuit = cirq.resolve_parameters(circuit,
-                                      cirq.ParamResolver({'w': 0.2}))
+    circuit = resolve_fn(circuit, cirq.ParamResolver({'w': 0.2}))
     assert not cirq.is_parameterized(circuit)
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_resolve_parameters(circuit_cls):
+@pytest.mark.parametrize(
+    'resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_parameters(circuit_cls, resolve_fn):
     a, b = cirq.LineQubit.range(2)
     circuit = circuit_cls(
         cirq.CZ(a, b)**sympy.Symbol('u'),
         cirq.X(a)**sympy.Symbol('v'),
         cirq.Y(b)**sympy.Symbol('w'),
     )
-    resolved_circuit = cirq.resolve_parameters(
-        circuit,
-        cirq.ParamResolver({'u': 0.1, 'v': 0.3, 'w': 0.2}))
+    resolved_circuit = resolve_fn(
+        circuit, cirq.ParamResolver({
+            'u': 0.1,
+            'v': 0.3,
+            'w': 0.2
+        }))
     cirq.testing.assert_has_diagram(resolved_circuit, """
 0: ───@───────X^0.3───
       │
@@ -2629,31 +2634,29 @@ def test_resolve_parameters(circuit_cls):
     q = cirq.NamedQubit('q')
     # no-op parameter resolution
     circuit = circuit_cls([cirq.Moment(), cirq.Moment([cirq.X(q)])])
-    resolved_circuit = cirq.resolve_parameters(
-        circuit,
-        cirq.ParamResolver({}))
+    resolved_circuit = resolve_fn(circuit, cirq.ParamResolver({}))
     cirq.testing.assert_same_circuits(circuit, resolved_circuit)
     # actually resolve something
     circuit = circuit_cls(
         [cirq.Moment(),
          cirq.Moment([cirq.X(q)**sympy.Symbol('x')])])
-    resolved_circuit = cirq.resolve_parameters(
-        circuit,
-        cirq.ParamResolver({'x': 0.2}))
+    resolved_circuit = resolve_fn(circuit, cirq.ParamResolver({'x': 0.2}))
     expected_circuit = circuit_cls(
         [cirq.Moment(), cirq.Moment([cirq.X(q)**0.2])])
     cirq.testing.assert_same_circuits(expected_circuit, resolved_circuit)
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_parameter_names(circuit_cls):
+@pytest.mark.parametrize(
+    'resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameter_names(circuit_cls, resolve_fn):
     a, b = cirq.LineQubit.range(2)
     circuit = circuit_cls(
         cirq.CZ(a, b)**sympy.Symbol('u'),
         cirq.X(a)**sympy.Symbol('v'),
         cirq.Y(b)**sympy.Symbol('w'),
     )
-    resolved_circuit = cirq.resolve_parameters(
+    resolved_circuit = resolve_fn(
         circuit, cirq.ParamResolver({
             'u': 0.1,
             'v': 0.3,

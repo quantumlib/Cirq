@@ -1963,13 +1963,12 @@ class Circuit(AbstractCircuit):
                 self._moments[k] = self._moments[k].without_operations_touching(
                     qubits)
 
-    def _resolve_parameters_(self,
-                             param_resolver: 'cirq.ParamResolver') -> 'Circuit':
+    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver',
+                             recursive: bool) -> 'Circuit':
         resolved_moments = []
         for moment in self:
-            resolved_operations = _resolve_operations(
-                moment.operations,
-                param_resolver)
+            resolved_operations = _resolve_operations(moment.operations,
+                                                      param_resolver, recursive)
             new_moment = ops.Moment(resolved_operations)
             resolved_moments.append(new_moment)
         resolved_circuit = Circuit(resolved_moments, device=self.device)
@@ -2001,12 +2000,17 @@ class Circuit(AbstractCircuit):
 
 
 def _resolve_operations(operations: Iterable['cirq.Operation'],
-                        param_resolver: 'cirq.ParamResolver'
-                       ) -> List['cirq.Operation']:
+                        param_resolver: 'cirq.ParamResolver',
+                        recursive: bool) -> List['cirq.Operation']:
     resolved_operations = []  # type: List['cirq.Operation']
-    for op in operations:
-        resolved_operations.append(protocols.resolve_parameters(
-            op, param_resolver))
+    if recursive:
+        for op in operations:
+            resolved_operations.append(
+                protocols.resolve_parameters(op, param_resolver))
+    else:
+        for op in operations:
+            resolved_operations.append(
+                protocols.resolve_parameters_once(op, param_resolver))
     return resolved_operations
 
 

@@ -32,8 +32,8 @@ class GoodPhaser:
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return GoodPhaser(self.e + phase_turns*4)
 
-    def _resolve_parameters_(self, param_resolver):
-        return GoodPhaser(param_resolver.value_of(self.e))
+    def _resolve_parameters_(self, param_resolver, recursive):
+        return GoodPhaser(param_resolver.value_of(self.e, recursive))
 
 
 class GoodQuditPhaser:
@@ -54,8 +54,8 @@ class GoodQuditPhaser:
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return GoodQuditPhaser(self.e + phase_turns * 4)
 
-    def _resolve_parameters_(self, param_resolver):
-        return GoodQuditPhaser(param_resolver.value_of(self.e))
+    def _resolve_parameters_(self, param_resolver, recursive):
+        return GoodQuditPhaser(param_resolver.value_of(self.e, recursive))
 
 
 class BadPhaser:
@@ -71,8 +71,8 @@ class BadPhaser:
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return BadPhaser(self.e + phase_turns * 4)
 
-    def _resolve_parameters_(self, param_resolver):
-        return BadPhaser(param_resolver.value_of(self.e))
+    def _resolve_parameters_(self, param_resolver, recursive):
+        return BadPhaser(param_resolver.value_of(self.e, recursive))
 
 
 class NotPhaser:
@@ -100,8 +100,9 @@ class SemiBadPhaser:
         r[qubit_index] += phase_turns*4
         return SemiBadPhaser(r)
 
-    def _resolve_parameters_(self, param_resolver):
-        return SemiBadPhaser([param_resolver.value_of(val) for val in self.e])
+    def _resolve_parameters_(self, param_resolver, recursive):
+        return SemiBadPhaser(
+            [param_resolver.value_of(val, recursive) for val in self.e])
 
 
 def test_assert_phase_by_is_consistent_with_unitary():

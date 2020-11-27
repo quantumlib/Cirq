@@ -97,9 +97,14 @@ class PeriodicValue:
         from cirq.protocols import parameter_names
         return parameter_names(self.value) | parameter_names(self.period)
 
-    def _resolve_parameters_(self, resolver: 'cirq.ParamResolverOrSimilarType'
-                            ) -> 'PeriodicValue':
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolverOrSimilarType',
+                             recursive: bool) -> 'PeriodicValue':
         # HACK: Avoids circular dependencies.
-        from cirq.protocols import resolve_parameters
-        return PeriodicValue(value=resolve_parameters(self.value, resolver),
-                             period=resolve_parameters(self.period, resolver))
+        from cirq.protocols import resolve_parameters, resolve_parameters_once
+        if recursive:
+            return PeriodicValue(value=resolve_parameters(self.value, resolver),
+                                 period=resolve_parameters(
+                                     self.period, resolver))
+        return PeriodicValue(
+            value=resolve_parameters_once(self.value, resolver),
+            period=resolve_parameters_once(self.period, resolver))

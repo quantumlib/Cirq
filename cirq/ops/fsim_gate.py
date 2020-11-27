@@ -126,11 +126,15 @@ class FSimGate(gate_features.TwoQubitGate,
             'YY': b / 2,
         })
 
-    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver'
-                            ) -> 'cirq.FSimGate':
+    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver',
+                             recursive: bool) -> 'cirq.FSimGate':
+        if recursive:
+            return FSimGate(
+                protocols.resolve_parameters(self.theta, param_resolver),
+                protocols.resolve_parameters(self.phi, param_resolver))
         return FSimGate(
-            protocols.resolve_parameters(self.theta, param_resolver),
-            protocols.resolve_parameters(self.phi, param_resolver))
+            protocols.resolve_parameters_once(self.theta, param_resolver),
+            protocols.resolve_parameters_once(self.phi, param_resolver))
 
     def _apply_unitary_(self,
                         args: 'cirq.ApplyUnitaryArgs') -> Optional[np.ndarray]:
@@ -364,14 +368,15 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
             [0, 0, 0, f5 * c],
         ])
 
-    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver'
-                            ) -> 'cirq.PhasedFSimGate':
-        return PhasedFSimGate(
-            protocols.resolve_parameters(self.theta, param_resolver),
-            protocols.resolve_parameters(self.zeta, param_resolver),
-            protocols.resolve_parameters(self.chi, param_resolver),
-            protocols.resolve_parameters(self.gamma, param_resolver),
-            protocols.resolve_parameters(self.phi, param_resolver))
+    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver',
+                             recursive: bool) -> 'cirq.PhasedFSimGate':
+        resolve_fn = (protocols.resolve_parameters
+                      if recursive else protocols.resolve_parameters_once)
+        return PhasedFSimGate(resolve_fn(self.theta, param_resolver),
+                              resolve_fn(self.zeta, param_resolver),
+                              resolve_fn(self.chi, param_resolver),
+                              resolve_fn(self.gamma, param_resolver),
+                              resolve_fn(self.phi, param_resolver))
 
     def _apply_unitary_(self,
                         args: 'cirq.ApplyUnitaryArgs') -> Optional[np.ndarray]:

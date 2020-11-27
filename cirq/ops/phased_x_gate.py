@@ -140,11 +140,13 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         return (protocols.parameter_names(self._exponent) |
                 protocols.parameter_names(self._phase_exponent))
 
-    def _resolve_parameters_(self, param_resolver) -> 'PhasedXPowGate':
+    def _resolve_parameters_(self, param_resolver,
+                             recursive) -> 'PhasedXPowGate':
         """See `cirq.SupportsParameterization`."""
         return PhasedXPowGate(
-            phase_exponent=param_resolver.value_of(self._phase_exponent),
-            exponent=param_resolver.value_of(self._exponent),
+            phase_exponent=param_resolver.value_of(self._phase_exponent,
+                                                   recursive),
+            exponent=param_resolver.value_of(self._exponent, recursive),
             global_shift=self._global_shift)
 
     def _phase_by_(self, phase_turns, qubit_index):
