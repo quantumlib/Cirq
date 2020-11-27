@@ -45,7 +45,9 @@ if TYPE_CHECKING:
     import cirq.ops.pauli_gates
     import cirq.devices.unconstrained_device
 
+
 ObjectFactory = Union[Type, Callable[..., Any]]
+
 
 @functools.lru_cache(maxsize=1)
 def _cirq_class_resolver_dictionary() -> Dict[str, ObjectFactory]:
