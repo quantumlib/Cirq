@@ -325,9 +325,11 @@ class Engine:
                 of the format 'job-################YYMMDD' will be generated,
                 where # is alphanumeric and YYMMDD is the current year, month,
                 and day.
-            params_list: Parameter sweeps to use with the circuits.  The number
+            params_list: Parameter sweeps to use with the circuits. The number
                 of sweeps should match the number of circuits and will be
-                paired in order with the circuits.
+                paired in order with the circuits. If this is None, it is
+                assumed that the circuits are not parameterized and do not
+                require sweeps.
             repetitions: Number of circuit repetitions to run.  Each sweep value
                 of each circuit in the batch will run with the same repetitions.
             processor_ids: The engine processors that should be candidates
@@ -347,7 +349,9 @@ class Engine:
             for a circuit are listed in the order imposed by the associated
             parameter sweep.
         """
-        if not params_list or len(programs) != len(params_list):
+        if params_list is None:
+            params_list = [None] * len(programs)
+        elif len(programs) != len(params_list):
             raise ValueError('Number of circuits and sweeps must match')
         if not processor_ids:
             raise ValueError('Processor id must be specified.')
