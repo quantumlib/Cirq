@@ -17,7 +17,6 @@ import numpy as np
 import scipy
 import scipy.stats
 
-from cirq.circuits import circuit
 from cirq.linalg.operator_sum_utils import compute_kraus_operations
 
 
@@ -74,8 +73,7 @@ def von_neumann_entropy(density_matrix: np.ndarray) -> float:
     return scipy.stats.entropy(abs(eigenvalues), base=2)
 
 
-def process_fidelity(clean_circuit: circuit.Circuit,
-                     noisy_circuit: circuit.Circuit, qubits) -> float:
+def process_fidelity(clean_circuit, noisy_circuit, qubits) -> float:
     """Calculates the average fidelity of a noisy circuit.
 
     The code uses the Kraus representation for open circuits, when decomposing
