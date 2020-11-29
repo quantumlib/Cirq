@@ -142,10 +142,11 @@ def test_process_fidelity_one_qubit():
     noisy_circuit = cirq.Circuit(
         noise_model.noisy_moments(clean_circuit.moments, [qubit]))
 
-    assert np.isclose(cirq.process_fidelity(clean_circuit, clean_circuit, [qubit]),
-                      1.0)
-    assert np.isclose(cirq.process_fidelity(clean_circuit, noisy_circuit, [qubit]),
-                      (2 + (1 + math.sqrt(0.5))**2) / (2 * 3))
+    assert np.isclose(
+        cirq.process_fidelity(clean_circuit, clean_circuit, [qubit]), 1.0)
+    assert np.isclose(
+        cirq.process_fidelity(clean_circuit, noisy_circuit, [qubit]),
+        (2 + (1 + math.sqrt(0.5))**2) / (2 * 3))
 
 
 def test_process_fidelity_two_qubits():

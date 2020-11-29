@@ -13,8 +13,6 @@
 # limitations under the License.
 """Utils for the computation of operator sum (Kraus operators)."""
 
-from typing import Sequence
-
 import numpy as np
 
 from cirq.linalg.transformations import targeted_left_multiply
