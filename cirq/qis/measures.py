@@ -13,8 +13,6 @@
 # limitations under the License.
 """Measures on and between quantum states and operations."""
 
-from typing import Sequence
-
 import numpy as np
 import scipy
 import scipy.stats
