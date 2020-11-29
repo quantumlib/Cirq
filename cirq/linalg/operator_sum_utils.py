@@ -19,7 +19,8 @@ from cirq.linalg.transformations import targeted_left_multiply
 from cirq import protocols
 
 
-def compute_kraus_operations(initial_density_matrix: np.ndarray, noisy_circuit, qubits):
+def compute_kraus_operations(initial_density_matrix: np.ndarray, noisy_circuit,
+                             qubits):
     """Computes all the density (Kraus) operators from a channel
 
     Note that this does not modify the density_matrix.

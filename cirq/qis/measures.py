@@ -76,7 +76,8 @@ def von_neumann_entropy(density_matrix: np.ndarray) -> float:
     return scipy.stats.entropy(abs(eigenvalues), base=2)
 
 
-def process_fidelity(clean_circuit: circuit.Circuit, noisy_circuit: circuit.Circuit, qubits) -> float:
+def process_fidelity(clean_circuit: circuit.Circuit,
+                     noisy_circuit: circuit.Circuit, qubits) -> float:
     """Calculates the average fidelity of a noisy circuit.
 
     The code uses the Kraus representation for open circuits, when decomposing
