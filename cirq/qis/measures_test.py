@@ -133,18 +133,18 @@ def test_von_neumann_entropy():
 
 
 def test_process_fidelity_one_qubit():
-    q = cirq.LineQubit(0)
+    qubit, = cirq.LineQubit.range(1)
 
-    clean_circuit = cirq.Circuit(cirq.X(q)**0.123)
+    clean_circuit = cirq.Circuit(cirq.X(qubit)**0.123)
 
     noise_model = cirq.ConstantQubitNoiseModel(
         cirq.AmplitudeDampingChannel(0.5))
     noisy_circuit = cirq.Circuit(
-        noise_model.noisy_moments(clean_circuit.moments, [q]))
+        noise_model.noisy_moments(clean_circuit.moments, [qubit]))
 
-    assert np.isclose(cirq.process_fidelity(clean_circuit, clean_circuit, [q]),
+    assert np.isclose(cirq.process_fidelity(clean_circuit, clean_circuit, [qubit]),
                       1.0)
-    assert np.isclose(cirq.process_fidelity(clean_circuit, noisy_circuit, [q]),
+    assert np.isclose(cirq.process_fidelity(clean_circuit, noisy_circuit, [qubit]),
                       (2 + (1 + math.sqrt(0.5))**2) / (2 * 3))
 
 

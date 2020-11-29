@@ -13,6 +13,8 @@
 # limitations under the License.
 """Measures on and between quantum states and operations."""
 
+from typing import Sequence
+
 import numpy as np
 import scipy
 import scipy.stats
@@ -73,19 +75,19 @@ def von_neumann_entropy(density_matrix: np.ndarray) -> float:
     return scipy.stats.entropy(abs(eigenvalues), base=2)
 
 
-def process_fidelity(clean_circuit, noisy_circuit, qubits) -> float:
+def process_fidelity(clean_circuit: cirq.Circuit, noisy_circuit: cirq.Circuit, qubits: Sequence[raw_types.Qid]) -> float:
     """Calculates the average fidelity of a noisy circuit.
 
     The code uses the Kraus representation for open circuits, when decomposing
     into noisy channels. The formula for process fidelity can be found at
     equation (2) of "Quantum Gate Fidelity in Terms of Choi Matrices" by
     Nathaniel Johnston and David W. Kribs which can be found at:
-    https://arxiv.org/pdf/1102.0948.pdf
+    https://arxiv.org/abs/1102.0948
 
     Another useful reference is "A simple formula for the average gate fidelity
     of a quantum dynamical operation" by Michael A. Nielsen which can be found
     at:
-    https://arxiv.org/pdf/quant-ph/0205035.pdf
+    https://arxiv.org/abs/quant-ph/0205035
 
     Args:
         clean_circuit: The perfect circuit (no noise, closed).
@@ -100,8 +102,8 @@ def process_fidelity(clean_circuit, noisy_circuit, qubits) -> float:
     kraus_operations = compute_kraus_operations(
         clean_circuit.unitary().reshape([2] * (2 * n)), noisy_circuit, qubits)
 
-    EiT = [x.reshape(d, d) for x in kraus_operations]
+    eit = [x.reshape(d, d) for x in kraus_operations]
 
-    sum_traces = sum([abs(np.trace(x))**2 for x in EiT])
+    sum_traces = sum([abs(np.trace(x))**2 for x in eit])
 
     return (d + sum_traces) / (d * (d + 1))

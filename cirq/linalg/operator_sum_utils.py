@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,13 +13,16 @@
 # limitations under the License.
 """Utils for the computation of operator sum (Kraus operators)."""
 
+from typing import Sequence
+
 import numpy as np
 
 from cirq.linalg.transformations import targeted_left_multiply
+from cirq.ops import raw_types
 from cirq import protocols
 
 
-def compute_kraus_operations(initial_density_matrix, noisy_circuit, qubits):
+def compute_kraus_operations(initial_density_matrix: np.ndarray, noisy_circuit: cirq.Circuit, qubits: Sequence[raw_types.Qid]):
     """Computes all the density (Kraus) operators from a channel
 
     Note that this does not modify the density_matrix.
