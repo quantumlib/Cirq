@@ -29,7 +29,8 @@ class _IonQClient:
     """
 
     RETRIABLE_STATUS_CODES = {
-        requests.codes.internal_server_error, requests.codes.service_unavailable
+        requests.codes.internal_server_error,
+        requests.codes.service_unavailable,
     }
     SUPPORTED_TARGETS = {'qpu', 'simulator'}
     SUPPORTED_VERSIONS = {
@@ -37,13 +38,14 @@ class _IonQClient:
     }
 
     def __init__(
-            self,
-            remote_host: str,
-            api_key: str,
-            default_target: Optional[str] = None,
-            api_version: str = 'v0.1',
-            max_retry_seconds: int = 3600,  # 1 hour
-            verbose: bool = False):
+        self,
+        remote_host: str,
+        api_key: str,
+        default_target: Optional[str] = None,
+        api_version: str = 'v0.1',
+        max_retry_seconds: int = 3600,  # 1 hour
+        verbose: bool = False,
+    ):
         """Creates the IonQClient.
 
         Users should use `cirq.ionq.Service` instead of this class directly.
@@ -70,22 +72,18 @@ class _IonQClient:
         url = urllib.parse.urlparse(remote_host)
         assert url.scheme and url.netloc, (
             f'Specified remote_host {remote_host} is not a valid url, '
-            'for example http://example.com')
-        assert api_version in self.SUPPORTED_VERSIONS, (
-            f'Only api v0.1 is accepted but was {api_version}')
+            'for example http://example.com'
+        )
         assert (
-            default_target is None or
-            default_target in self.SUPPORTED_TARGETS), (
-                f'Target can only be one of {self.SUPPORTED_TARGETS} but was '
-                f'{default_target}.')
-        assert max_retry_seconds >= 0, (
-            'Negative retry not possible without time machine.')
+            api_version in self.SUPPORTED_VERSIONS
+        ), f'Only api v0.1 is accepted but was {api_version}'
+        assert default_target is None or default_target in self.SUPPORTED_TARGETS, (
+            f'Target can only be one of {self.SUPPORTED_TARGETS} but was ' f'{default_target}.'
+        )
+        assert max_retry_seconds >= 0, 'Negative retry not possible without time machine.'
 
         self.url = f'{url.scheme}://{url.netloc}/{api_version}'
-        self.headers = {
-            'Authorization': f'apiKey {api_key}',
-            'Content-Type': 'application/json'
-        }
+        self.headers = {'Authorization': f'apiKey {api_key}', 'Content-Type': 'application/json'}
         self.default_target = default_target
         self.max_retry_seconds = max_retry_seconds
         self.verbose = verbose
@@ -98,12 +96,12 @@ class _IonQClient:
         """
         assert target is not None or self.default_target is not None, (
             'One must specify a target on this call, or a default_target on '
-            'the service/client, but neither were set.')
+            'the service/client, but neither were set.'
+        )
         return cast(str, target or self.default_target)
 
-    def _make_request(self, request: Callable[[], requests.Response]
-                     ) -> requests.Response:
-        """"Make a request to the API, retrying if necessary.
+    def _make_request(self, request: Callable[[], requests.Response]) -> requests.Response:
+        """ "Make a request to the API, retrying if necessary.
 
         Args:
             request: A function that returns a `requests.Response`.
@@ -128,15 +126,19 @@ class _IonQClient:
                     raise ionq_exceptions.IonQException(
                         '"Not authorized" returned by IonQ API. Check to '
                         'ensure you have supplied the correct API key.',
-                        response.status_code)
+                        response.status_code,
+                    )
                 if response.status_code == requests.codes.not_found:
                     raise ionq_exceptions.IonQNotFoundException(
-                        'IonQ could not find requested resource.')
-                if (response.status_code not in self.RETRIABLE_STATUS_CODES):
+                        'IonQ could not find requested resource.'
+                    )
+                if response.status_code not in self.RETRIABLE_STATUS_CODES:
                     raise ionq_exceptions.IonQException(
                         'Non-retry-able error making request to IonQ API. '
                         f'Status: {response.status_code} '
-                        f'Error :{response.reason}', response.status_code)
+                        f'Error :{response.reason}',
+                        response.status_code,
+                    )
                 message = response.reason
                 # Fallthrough should retry.
             except requests.RequestException as e:
@@ -144,8 +146,7 @@ class _IonQClient:
                 # Retry these.
                 message = f'RequestException of type {type(e)}.'
             if delay_seconds > self.max_retry_seconds:
-                raise TimeoutError(
-                    f'Reached maximum number of retries. Last error: {message}')
+                raise TimeoutError(f'Reached maximum number of retries. Last error: {message}')
             if self.verbose:
                 print(message, file=sys.stderr)
                 print(f'Waiting {delay_seconds} seconds before retrying.')
@@ -153,11 +154,11 @@ class _IonQClient:
             delay_seconds *= 2
 
     def create_job(
-            self,
-            circuit_dict: dict,
-            repetitions: Optional[int] = None,
-            target: Optional[str] = None,
-            name: Optional[str] = None,
+        self,
+        circuit_dict: dict,
+        repetitions: Optional[int] = None,
+        target: Optional[str] = None,
+        name: Optional[str] = None,
     ) -> dict:
         """Create a job.
 
@@ -180,11 +181,13 @@ class _IonQClient:
             An IonQ exception if the request fails.
         """
         actual_target = self._target(target)
-        assert actual_target != 'qpu' or repetitions is not None, (
-            'If the target is qpu, repetitions must be specified.')
+        assert (
+            actual_target != 'qpu' or repetitions is not None
+        ), 'If the target is qpu, repetitions must be specified.'
         assert actual_target != 'simulator' or repetitions is None, (
             'If the target is simulator, repetitions should not be specified '
-            'as the simulator is a full wavefunction simulator.')
+            'as the simulator is a full wavefunction simulator.'
+        )
         json = {
             'target': actual_target,
             'body': circuit_dict,
@@ -198,9 +201,7 @@ class _IonQClient:
             json['metadata'] = {'shots': str(repetitions)}
 
         def request():
-            return requests.post(f'{self.url}/jobs',
-                                 json=json,
-                                 headers=self.headers)
+            return requests.post(f'{self.url}/jobs', json=json, headers=self.headers)
 
         return self._make_request(request).json()
 
@@ -220,8 +221,7 @@ class _IonQClient:
         """
 
         def request():
-            return requests.get(f'{self.url}/jobs/{job_id}',
-                                headers=self.headers)
+            return requests.get(f'{self.url}/jobs/{job_id}', headers=self.headers)
 
         return self._make_request(request).json()
 
@@ -239,8 +239,7 @@ class _IonQClient:
         """
 
         def request():
-            return requests.put(f'{self.url}/jobs/{job_id}/status/cancel',
-                                headers=self.headers)
+            return requests.put(f'{self.url}/jobs/{job_id}/status/cancel', headers=self.headers)
 
         return self._make_request(request).json()
 
@@ -255,7 +254,6 @@ class _IonQClient:
         """
 
         def request():
-            return requests.delete(f'{self.url}/jobs/{job_id}',
-                                   headers=self.headers)
+            return requests.delete(f'{self.url}/jobs/{job_id}', headers=self.headers)
 
         return self._make_request(request).json()

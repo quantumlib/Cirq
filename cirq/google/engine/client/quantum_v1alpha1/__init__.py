@@ -21,19 +21,18 @@ import warnings
 
 from cirq.google.engine.client.quantum_v1alpha1 import types
 from cirq.google.engine.client.quantum_v1alpha1.gapic import enums
-from cirq.google.engine.client.quantum_v1alpha1.gapic import (
-    quantum_engine_service_client)
+from cirq.google.engine.client.quantum_v1alpha1.gapic import quantum_engine_service_client
 
 if sys.version_info[:2] == (2, 7):
     message = (
         'A future version of this library will drop support for Python 2.7.'
         'More details about Python 2 support for Google Cloud Client Libraries'
-        'can be found at https://cloud.google.com/python/docs/python2-sunset/')
+        'can be found at https://cloud.google.com/python/docs/python2-sunset/'
+    )
     warnings.warn(message, DeprecationWarning)
 
 
-class QuantumEngineServiceClient(
-        quantum_engine_service_client.QuantumEngineServiceClient):
+class QuantumEngineServiceClient(quantum_engine_service_client.QuantumEngineServiceClient):
     __doc__ = quantum_engine_service_client.QuantumEngineServiceClient.__doc__
     enums = enums
 

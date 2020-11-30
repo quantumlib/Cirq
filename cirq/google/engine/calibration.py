@@ -54,12 +54,11 @@ class Calibration(abc.Mapping):
             the epoch.
     """
 
-    def __init__(self,
-                 calibration: v2.metrics_pb2.MetricsSnapshot = v2.metrics_pb2.
-                 MetricsSnapshot(),
-                 metrics: Optional[
-                     Dict[str, Dict[Tuple['cirq.GridQubit', ...], Any]]] = None
-                ) -> None:
+    def __init__(
+        self,
+        calibration: v2.metrics_pb2.MetricsSnapshot = v2.metrics_pb2.MetricsSnapshot(),
+        metrics: Optional[Dict[str, Dict[Tuple['cirq.GridQubit', ...], Any]]] = None,
+    ) -> None:
         self.timestamp = calibration.timestamp_ms
         if metrics is None:
             self._metric_dict = self._compute_metric_dict(calibration.metrics)
@@ -67,25 +66,22 @@ class Calibration(abc.Mapping):
             self._metric_dict = metrics
 
     def _compute_metric_dict(
-            self, metrics: v2.metrics_pb2.MetricsSnapshot
+        self, metrics: v2.metrics_pb2.MetricsSnapshot
     ) -> Dict[str, Dict[Tuple['cirq.GridQubit', ...], Any]]:
-        results: Dict[str, Dict[Tuple[devices.
-                                      GridQubit, ...], Any]] = defaultdict(dict)
+        results: Dict[str, Dict[Tuple[devices.GridQubit, ...], Any]] = defaultdict(dict)
         for metric in metrics:
             name = metric.name
             # Flatten the values to a list, removing keys containing type names
             # (e.g. proto version of each value is {<type>: value}).
-            flat_values = [
-                getattr(v, v.WhichOneof('val')) for v in metric.values
-            ]
+            flat_values = [getattr(v, v.WhichOneof('val')) for v in metric.values]
             if metric.targets:
-                qubits = tuple(
-                    v2.grid_qubit_from_proto_id(t) for t in metric.targets)
+                qubits = tuple(v2.grid_qubit_from_proto_id(t) for t in metric.targets)
                 results[name][qubits] = flat_values
             else:
                 assert len(results[name]) == 0, (
                     'Only one metric of a given name can have no targets. '
-                    'Found multiple for key {}'.format(name))
+                    'Found multiple for key {}'.format(name)
+                )
                 results[name][()] = flat_values
         return results
 
@@ -101,9 +97,7 @@ class Calibration(abc.Mapping):
         be an empty tuple.
         """
         if not isinstance(key, str):
-            raise TypeError(
-                'Calibration metrics only have string keys. Key was {}'.format(
-                    key))
+            raise TypeError('Calibration metrics only have string keys. Key was {}'.format(key))
         if key not in self._metric_dict:
             raise KeyError('Metric named {} not in calibration'.format(key))
         return self._metric_dict[key]
@@ -118,8 +112,7 @@ class Calibration(abc.Mapping):
         return f'Calibration(keys={list(sorted(self.keys()))})'
 
     def __repr__(self) -> str:
-        return ('cirq.google.Calibration(metrics='
-                f'{repr(dict(self._metric_dict))})')
+        return 'cirq.google.Calibration(metrics=' f'{repr(dict(self._metric_dict))})'
 
     def to_proto(self) -> v2.metrics_pb2.MetricsSnapshot:
         """Reconstruct the protobuf message represented by this class."""
@@ -128,8 +121,7 @@ class Calibration(abc.Mapping):
             for target, value_list in self._metric_dict[key].items():
                 current_metric = proto.metrics.add()
                 current_metric.name = key
-                current_metric.targets.extend(
-                    [v2.qubit_to_proto_id(q) for q in target])
+                current_metric.targets.extend([v2.qubit_to_proto_id(q) for q in target])
                 for value in value_list:
                     current_value = current_metric.values.add()
                     if isinstance(value, float):
@@ -139,9 +131,11 @@ class Calibration(abc.Mapping):
                     elif isinstance(value, str):
                         current_value.str_val = value
                     else:
-                        raise ValueError(f'Unsupported metric value {value}. '
-                                         'Must be int, float, or str to '
-                                         'convert to proto.')
+                        raise ValueError(
+                            f'Unsupported metric value {value}. '
+                            'Must be int, float, or str to '
+                            'convert to proto.'
+                        )
         return proto
 
     @classmethod
@@ -152,14 +146,9 @@ class Calibration(abc.Mapping):
 
     def _json_dict_(self) -> Dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
-        return {
-            'cirq_type': 'Calibration',
-            'metrics': json_format.MessageToDict(self.to_proto())
-        }
+        return {'cirq_type': 'Calibration', 'metrics': json_format.MessageToDict(self.to_proto())}
 
-    def timestamp_str(self,
-                      tz: Optional[datetime.tzinfo] = None,
-                      timespec: str = 'auto') -> str:
+    def timestamp_str(self, tz: Optional[datetime.tzinfo] = None, timespec: str = 'auto') -> str:
         """Return a string for the calibration timestamp.
 
         Args:
@@ -189,10 +178,10 @@ class Calibration(abc.Mapping):
         """
         metrics = self[key]
         assert all(len(k) == 1 for k in metrics.keys()), (
-            'Heatmaps are only supported if all the targets in a metric'
-            ' are single qubits.')
+            'Heatmaps are only supported if all the targets in a metric' ' are single qubits.'
+        )
         assert all(len(k) == 1 for k in metrics.values()), (
-            'Heatmaps are only supported if all the values in a metric'
-            ' are single metric values.')
+            'Heatmaps are only supported if all the values in a metric' ' are single metric values.'
+        )
         value_map = {qubit: value for (qubit,), (value,) in metrics.items()}
         return vis.Heatmap(value_map)

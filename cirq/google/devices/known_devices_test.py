@@ -29,7 +29,9 @@ def test_foxtail_qubits():
 
 
 def test_foxtail_device_proto():
-    assert str(known_devices.FOXTAIL_PROTO) == """\
+    assert (
+        str(known_devices.FOXTAIL_PROTO)
+        == """\
 valid_gate_sets {
   name: "xmon"
   valid_gates {
@@ -252,6 +254,7 @@ valid_targets {
   }
 }
 """
+    )
 
 
 def test_create_device_proto_for_irregular_grid():
@@ -262,7 +265,9 @@ def test_create_device_proto_for_irregular_grid():
         (cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)),
     ]
     proto = known_devices.create_device_proto_for_qubits(qubits, pairs)
-    assert str(proto) == """\
+    assert (
+        str(proto)
+        == """\
 valid_qubits: "0_0"
 valid_qubits: "0_1"
 valid_qubits: "1_0"
@@ -288,29 +293,28 @@ valid_targets {
   }
 }
 """
+    )
 
 
 def test_multiple_gate_sets():
     halfPiGateSet = cg.serializable_gate_set.SerializableGateSet(
         gate_set_name='half_pi_gateset',
-        serializers=[
-            *cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS, cgc.MEASUREMENT_SERIALIZER
-        ],
-        deserializers=[
-            *cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
-            cgc.MEASUREMENT_DESERIALIZER
-        ],
+        serializers=[*cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS, cgc.MEASUREMENT_SERIALIZER],
+        deserializers=[*cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS, cgc.MEASUREMENT_DESERIALIZER],
     )
     durations_dict = {
         'xy_pi': 20_000,
         'xy_half_pi': 10_000,
         'xy': 53_000,
         'cz': 11_000,
-        'meas': 14_141
+        'meas': 14_141,
     }
     test_proto = known_devices.create_device_proto_from_diagram(
-        "aa\naa", [cg.gate_sets.XMON, halfPiGateSet], durations_dict)
-    assert str(test_proto) == """\
+        "aa\naa", [cg.gate_sets.XMON, halfPiGateSet], durations_dict
+    )
+    assert (
+        str(test_proto)
+        == """\
 valid_gate_sets {
   name: "xmon"
   valid_gates {
@@ -441,6 +445,7 @@ valid_targets {
   }
 }
 """
+    )
 
 
 def test_json_dict():
@@ -455,8 +460,7 @@ def test_json_dict():
     }
 
     with pytest.raises(ValueError, match='xmon device name'):
-        known_devices._NamedConstantXmonDevice._from_json_dict_(
-            'the_unknown_fiddler')
+        known_devices._NamedConstantXmonDevice._from_json_dict_('the_unknown_fiddler')
 
 
 @pytest.mark.parametrize('device', [cg.Sycamore, cg.Sycamore23])
@@ -496,13 +500,14 @@ def test_proto_with_waitgate():
         "aa\naa",
         [wait_gateset],
     )
-    wait_device = cg.SerializableDevice.from_proto(proto=wait_proto,
-                                                   gate_sets=[wait_gateset])
+    wait_device = cg.SerializableDevice.from_proto(proto=wait_proto, gate_sets=[wait_gateset])
     q0 = cirq.GridQubit(1, 1)
     wait_op = cirq.wait(q0, nanos=25)
     wait_device.validate_operation(wait_op)
 
-    assert str(wait_proto) == """\
+    assert (
+        str(wait_proto)
+        == """\
 valid_gate_sets {
   name: "wait_gateset"
   valid_gates {
@@ -543,31 +548,31 @@ valid_targets {
   }
 }
 """
+    )
 
 
 def test_adding_gates_multiple_times():
     waiting_for_godot = cg.serializable_gate_set.SerializableGateSet(
         gate_set_name='wait_gateset',
-        serializers=[
-            cgc.WAIT_GATE_SERIALIZER, cgc.WAIT_GATE_SERIALIZER,
-            cgc.WAIT_GATE_SERIALIZER
-        ],
+        serializers=[cgc.WAIT_GATE_SERIALIZER, cgc.WAIT_GATE_SERIALIZER, cgc.WAIT_GATE_SERIALIZER],
         deserializers=[
-            cgc.WAIT_GATE_DESERIALIZER, cgc.WAIT_GATE_DESERIALIZER,
-            cgc.WAIT_GATE_DESERIALIZER
+            cgc.WAIT_GATE_DESERIALIZER,
+            cgc.WAIT_GATE_DESERIALIZER,
+            cgc.WAIT_GATE_DESERIALIZER,
         ],
     )
     wait_proto = cg.devices.known_devices.create_device_proto_from_diagram(
         "aa",
         [waiting_for_godot],
     )
-    wait_device = cg.SerializableDevice.from_proto(
-        proto=wait_proto, gate_sets=[waiting_for_godot])
+    wait_device = cg.SerializableDevice.from_proto(proto=wait_proto, gate_sets=[waiting_for_godot])
     q0 = cirq.GridQubit(0, 0)
     wait_op = cirq.wait(q0, nanos=25)
     wait_device.validate_operation(wait_op)
 
-    assert str(wait_proto) == """\
+    assert (
+        str(wait_proto)
+        == """\
 valid_gate_sets {
   name: "wait_gateset"
   valid_gates {
@@ -594,3 +599,4 @@ valid_targets {
   }
 }
 """
+    )

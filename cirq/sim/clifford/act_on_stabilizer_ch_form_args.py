@@ -48,8 +48,7 @@ class ActOnStabilizerCHFormArgs:
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
         strats = []
         if allow_decompose:
-            strats.append(
-                _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose)
+            strats.append(_strat_act_on_stabilizer_ch_form_from_single_qubit_decompose)
         for strat in strats:
             result = strat(action, self)
             if result is True:
@@ -60,7 +59,8 @@ class ActOnStabilizerCHFormArgs:
 
 
 def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
-        val: Any, args: 'cirq.ActOnStabilizerCHFormArgs') -> bool:
+    val: Any, args: 'cirq.ActOnStabilizerCHFormArgs'
+) -> bool:
     if num_qubits(val) == 1:
         if not has_unitary(val):
             return NotImplemented

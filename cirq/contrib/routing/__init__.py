@@ -20,7 +20,7 @@ from cirq.contrib.routing.device import (
     gridqubits_to_graph_device,
     nx_qubit_layout,
 )
-from cirq.contrib.routing.router import (route_circuit, ROUTERS)
+from cirq.contrib.routing.router import route_circuit, ROUTERS
 from cirq.contrib.routing.swap_network import SwapNetwork
 from cirq.contrib.routing.utils import (
     get_circuit_connectivity,
