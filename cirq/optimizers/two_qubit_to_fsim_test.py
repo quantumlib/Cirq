@@ -8,12 +8,14 @@ import pytest
 import cirq
 from cirq.optimizers.two_qubit_to_fsim import (
     _decompose_two_qubit_interaction_into_two_b_gates,
-    _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops, _sticky_0_to_1,
-    _B)
+    _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops,
+    _sticky_0_to_1,
+    _B,
+)
 
 UNITARY_OBJS = [
     cirq.IdentityGate(2),
-    cirq.XX**0.25,
+    cirq.XX ** 0.25,
     cirq.CNOT,
     cirq.CNOT(*cirq.LineQubit.range(2)),
     cirq.CNOT(*cirq.LineQubit.range(2)[::-1]),
@@ -40,16 +42,19 @@ FEASIBLE_FSIM_GATES = [
     cirq.FSimGate(np.pi * 3 / 8, +np.pi / 4),
     cirq.FSimGate(np.pi * 5 / 8, +np.pi / 4),
 ] + [
-    cirq.FSimGate(theta=random.uniform(np.pi * 3 / 8, np.pi * 5 / 8),
-                  phi=random.uniform(-np.pi / 4, np.pi / 4)) for _ in range(5)
+    cirq.FSimGate(
+        theta=random.uniform(np.pi * 3 / 8, np.pi * 5 / 8),
+        phi=random.uniform(-np.pi / 4, np.pi / 4),
+    )
+    for _ in range(5)
 ]
 
 
 @pytest.mark.parametrize('obj', UNITARY_OBJS)
 def test_decompose_two_qubit_interaction_into_two_b_gates(obj: Any):
     circuit = cirq.Circuit(
-        _decompose_two_qubit_interaction_into_two_b_gates(
-            obj, qubits=cirq.LineQubit.range(2)))
+        _decompose_two_qubit_interaction_into_two_b_gates(obj, qubits=cirq.LineQubit.range(2))
+    )
     desired_unitary = obj if isinstance(obj, np.ndarray) else cirq.unitary(obj)
     for operation in circuit.all_operations():
         assert len(operation.qubits) < 2 or operation.gate == _B
@@ -61,73 +66,71 @@ def test_decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops_fail():
         qubits=cirq.LineQubit.range(2),
         fsim_gate=cirq.FSimGate(theta=np.pi / 2, phi=0),
         canonical_x_kak_coefficient=np.pi / 4,
-        canonical_y_kak_coefficient=np.pi / 8)
+        canonical_y_kak_coefficient=np.pi / 8,
+    )
     np.testing.assert_allclose(
-        cirq.kak_decomposition(cirq.Circuit(c)).interaction_coefficients,
-        [np.pi / 4, np.pi / 8, 0])
+        cirq.kak_decomposition(cirq.Circuit(c)).interaction_coefficients, [np.pi / 4, np.pi / 8, 0]
+    )
 
     with pytest.raises(ValueError, match='Failed to synthesize'):
         _ = _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops(
             qubits=cirq.LineQubit.range(2),
             fsim_gate=cirq.FSimGate(theta=np.pi / 5, phi=0),
             canonical_x_kak_coefficient=np.pi / 4,
-            canonical_y_kak_coefficient=np.pi / 8)
+            canonical_y_kak_coefficient=np.pi / 8,
+        )
 
 
-@pytest.mark.parametrize('obj,fsim_gate',
-                         itertools.product(UNITARY_OBJS, FEASIBLE_FSIM_GATES))
-def test_decompose_two_qubit_interaction_into_four_fsim_gates(
-        obj: Any, fsim_gate: cirq.FSimGate):
-    qubits = (obj.qubits
-              if isinstance(obj, cirq.Operation) else cirq.LineQubit.range(2))
-    circuit = cirq.decompose_two_qubit_interaction_into_four_fsim_gates(
-        obj, fsim_gate=fsim_gate)
+@pytest.mark.parametrize('obj,fsim_gate', itertools.product(UNITARY_OBJS, FEASIBLE_FSIM_GATES))
+def test_decompose_two_qubit_interaction_into_four_fsim_gates(obj: Any, fsim_gate: cirq.FSimGate):
+    qubits = obj.qubits if isinstance(obj, cirq.Operation) else cirq.LineQubit.range(2)
+    circuit = cirq.decompose_two_qubit_interaction_into_four_fsim_gates(obj, fsim_gate=fsim_gate)
     desired_unitary = obj if isinstance(obj, np.ndarray) else cirq.unitary(obj)
     for operation in circuit.all_operations():
         assert len(operation.qubits) < 2 or operation.gate == fsim_gate
     assert len(circuit) <= 4 * 3 + 5
-    assert cirq.approx_eq(circuit.unitary(qubit_order=qubits),
-                          desired_unitary,
-                          atol=1e-6)
+    assert cirq.approx_eq(circuit.unitary(qubit_order=qubits), desired_unitary, atol=1e-6)
 
 
 def test_decompose_two_qubit_interaction_into_four_fsim_gates_via_b_validate():
     iswap = cirq.FSimGate(theta=np.pi / 2, phi=0)
     with pytest.raises(ValueError, match='fsim_gate.theta'):
         cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
-            np.eye(4), fsim_gate=cirq.FSimGate(theta=np.pi / 10, phi=0))
+            np.eye(4), fsim_gate=cirq.FSimGate(theta=np.pi / 10, phi=0)
+        )
     with pytest.raises(ValueError, match='fsim_gate.phi'):
         cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
-            np.eye(4), fsim_gate=cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 3))
+            np.eye(4), fsim_gate=cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 3)
+        )
     with pytest.raises(ValueError, match='pair of qubits'):
         cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
-            np.eye(4), fsim_gate=iswap, qubits=cirq.LineQubit.range(3))
+            np.eye(4), fsim_gate=iswap, qubits=cirq.LineQubit.range(3)
+        )
 
 
 def test_decompose_two_qubit_interaction_into_four_fsim_gates_via_b_qubits():
     iswap = cirq.FSimGate(theta=np.pi / 2, phi=0)
 
     # Defaults to line qubits.
-    c = cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
-        np.eye(4), fsim_gate=iswap)
+    c = cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b(np.eye(4), fsim_gate=iswap)
     assert set(c.all_qubits()) == set(cirq.LineQubit.range(2))
 
     # Infers from operation but not gate.
-    c = cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
-        cirq.CZ, fsim_gate=iswap)
+    c = cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b(cirq.CZ, fsim_gate=iswap)
     assert set(c.all_qubits()) == set(cirq.LineQubit.range(2))
     c = cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
-        cirq.CZ(*cirq.LineQubit.range(20, 22)), fsim_gate=iswap)
+        cirq.CZ(*cirq.LineQubit.range(20, 22)), fsim_gate=iswap
+    )
     assert set(c.all_qubits()) == set(cirq.LineQubit.range(20, 22))
 
     # Can override.
     c = cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
-        np.eye(4), fsim_gate=iswap, qubits=cirq.LineQubit.range(10, 12))
+        np.eye(4), fsim_gate=iswap, qubits=cirq.LineQubit.range(10, 12)
+    )
     assert set(c.all_qubits()) == set(cirq.LineQubit.range(10, 12))
     c = cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
-        cirq.CZ(*cirq.LineQubit.range(20, 22)),
-        fsim_gate=iswap,
-        qubits=cirq.LineQubit.range(10, 12))
+        cirq.CZ(*cirq.LineQubit.range(20, 22)), fsim_gate=iswap, qubits=cirq.LineQubit.range(10, 12)
+    )
     assert set(c.all_qubits()) == set(cirq.LineQubit.range(10, 12))
 
 
@@ -156,7 +159,8 @@ def test_sticky_0_to_1():
 def test_deprecated():
     iswap = cirq.FSimGate(theta=np.pi / 2, phi=0)
     with cirq.testing.assert_logs(
-            'decompose_two_qubit_interaction_into_four_fsim_gates_via_b',
-            'deprecated'):
+        'decompose_two_qubit_interaction_into_four_fsim_gates_via_b', 'deprecated'
+    ):
         _ = cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
-            np.eye(4), fsim_gate=iswap)
+            np.eye(4), fsim_gate=iswap
+        )

@@ -21,11 +21,13 @@ import cirq
 import cirq.experiments.qubit_characterizations as ceqc
 from cirq import GridQubit
 from cirq import circuits, ops, sim
-from cirq.experiments import (rabi_oscillations,
-                              single_qubit_randomized_benchmarking,
-                              two_qubit_randomized_benchmarking,
-                              single_qubit_state_tomography,
-                              two_qubit_state_tomography)
+from cirq.experiments import (
+    rabi_oscillations,
+    single_qubit_randomized_benchmarking,
+    two_qubit_randomized_benchmarking,
+    single_qubit_state_tomography,
+    two_qubit_state_tomography,
+)
 
 
 def test_rabi_oscillations():
@@ -78,8 +80,7 @@ def test_single_qubit_cliffords():
 
     # Check that each decomposition gives the same set of unitaries.
     for Uxy in xy_unitaries:
-        assert any(
-            cirq.allclose_up_to_global_phase(Uxy, Uxz) for Uxz in xz_unitaries)
+        assert any(cirq.allclose_up_to_global_phase(Uxy, Uxz) for Uxz in xz_unitaries)
 
     # Check that each unitary fixes the Pauli group.
     for u in xy_unitaries:
@@ -100,10 +101,9 @@ def test_single_qubit_randomized_benchmarking():
     simulator = sim.Simulator()
     qubit = GridQubit(0, 0)
     num_cfds = range(5, 20, 5)
-    results = single_qubit_randomized_benchmarking(simulator,
-                                                   qubit,
-                                                   num_clifford_range=num_cfds,
-                                                   repetitions=100)
+    results = single_qubit_randomized_benchmarking(
+        simulator, qubit, num_clifford_range=num_cfds, repetitions=100
+    )
     g_pops = np.asarray(results.data)[:, 1]
     assert np.isclose(np.mean(g_pops), 1.0)
 
@@ -115,12 +115,9 @@ def test_two_qubit_randomized_benchmarking():
     q_0 = GridQubit(0, 0)
     q_1 = GridQubit(0, 1)
     num_cfds = [5, 10]
-    results = two_qubit_randomized_benchmarking(simulator,
-                                                q_0,
-                                                q_1,
-                                                num_clifford_range=num_cfds,
-                                                num_circuits=10,
-                                                repetitions=100)
+    results = two_qubit_randomized_benchmarking(
+        simulator, q_0, q_1, num_clifford_range=num_cfds, num_circuits=10, repetitions=100
+    )
     g_pops = np.asarray(results.data)[:, 1]
     assert np.isclose(np.mean(g_pops), 1.0)
 
@@ -131,16 +128,13 @@ def test_single_qubit_state_tomography():
     simulator = sim.Simulator()
     qubit = GridQubit(0, 0)
 
-    circuit_1 = circuits.Circuit(ops.X(qubit)**0.5)
-    circuit_2 = circuits.Circuit(ops.Y(qubit)**0.5)
+    circuit_1 = circuits.Circuit(ops.X(qubit) ** 0.5)
+    circuit_2 = circuits.Circuit(ops.Y(qubit) ** 0.5)
     circuit_3 = circuits.Circuit(ops.H(qubit), ops.Y(qubit))
 
-    act_rho_1 = single_qubit_state_tomography(simulator, qubit, circuit_1,
-                                              1000).data
-    act_rho_2 = single_qubit_state_tomography(simulator, qubit, circuit_2,
-                                              1000).data
-    act_rho_3 = single_qubit_state_tomography(simulator, qubit, circuit_3,
-                                              1000).data
+    act_rho_1 = single_qubit_state_tomography(simulator, qubit, circuit_1, 1000).data
+    act_rho_2 = single_qubit_state_tomography(simulator, qubit, circuit_2, 1000).data
+    act_rho_3 = single_qubit_state_tomography(simulator, qubit, circuit_3, 1000).data
 
     tar_rho_1 = np.array([[0.5, 0.5j], [-0.5j, 0.5]])
     tar_rho_2 = np.array([[0.5, 0.5], [0.5, 0.5]])
@@ -164,26 +158,18 @@ def test_two_qubit_state_tomography():
     circuit_00 = circuits.Circuit(ops.H(q_0), ops.CNOT(q_0, q_1))
     circuit_01 = circuits.Circuit(ops.X(q_1), ops.H(q_0), ops.CNOT(q_0, q_1))
     circuit_10 = circuits.Circuit(ops.X(q_0), ops.H(q_0), ops.CNOT(q_0, q_1))
-    circuit_11 = circuits.Circuit(ops.X(q_0), ops.X(q_1), ops.H(q_0),
-                                  ops.CNOT(q_0, q_1))
+    circuit_11 = circuits.Circuit(ops.X(q_0), ops.X(q_1), ops.H(q_0), ops.CNOT(q_0, q_1))
     circuit_hh = circuits.Circuit(ops.H(q_0), ops.H(q_1))
-    circuit_xy = circuits.Circuit(ops.X(q_0)**0.5, ops.Y(q_1)**0.5)
-    circuit_yx = circuits.Circuit(ops.Y(q_0)**0.5, ops.X(q_1)**0.5)
+    circuit_xy = circuits.Circuit(ops.X(q_0) ** 0.5, ops.Y(q_1) ** 0.5)
+    circuit_yx = circuits.Circuit(ops.Y(q_0) ** 0.5, ops.X(q_1) ** 0.5)
 
-    act_rho_00 = two_qubit_state_tomography(simulator, q_0, q_1, circuit_00,
-                                            1000).data
-    act_rho_01 = two_qubit_state_tomography(simulator, q_0, q_1, circuit_01,
-                                            1000).data
-    act_rho_10 = two_qubit_state_tomography(simulator, q_0, q_1, circuit_10,
-                                            1000).data
-    act_rho_11 = two_qubit_state_tomography(simulator, q_0, q_1, circuit_11,
-                                            1000).data
-    act_rho_hh = two_qubit_state_tomography(simulator, q_0, q_1, circuit_hh,
-                                            1000).data
-    act_rho_xy = two_qubit_state_tomography(simulator, q_0, q_1, circuit_xy,
-                                            1000).data
-    act_rho_yx = two_qubit_state_tomography(simulator, q_0, q_1, circuit_yx,
-                                            1000).data
+    act_rho_00 = two_qubit_state_tomography(simulator, q_0, q_1, circuit_00, 1000).data
+    act_rho_01 = two_qubit_state_tomography(simulator, q_0, q_1, circuit_01, 1000).data
+    act_rho_10 = two_qubit_state_tomography(simulator, q_0, q_1, circuit_10, 1000).data
+    act_rho_11 = two_qubit_state_tomography(simulator, q_0, q_1, circuit_11, 1000).data
+    act_rho_hh = two_qubit_state_tomography(simulator, q_0, q_1, circuit_hh, 1000).data
+    act_rho_xy = two_qubit_state_tomography(simulator, q_0, q_1, circuit_xy, 1000).data
+    act_rho_yx = two_qubit_state_tomography(simulator, q_0, q_1, circuit_yx, 1000).data
 
     tar_rho_00 = np.outer([1.0, 0, 0, 1.0], [1.0, 0, 0, 1.0]) * 0.5
     tar_rho_01 = np.outer([0, 1.0, 1.0, 0], [0, 1.0, 1.0, 0]) * 0.5
@@ -205,7 +191,7 @@ def test_two_qubit_state_tomography():
 def test_tomography_plot_raises_for_incorrect_number_of_axes():
     simulator = sim.Simulator()
     qubit = GridQubit(0, 0)
-    circuit = circuits.Circuit(ops.X(qubit)**0.5)
+    circuit = circuits.Circuit(ops.X(qubit) ** 0.5)
     result = single_qubit_state_tomography(simulator, qubit, circuit, 1000)
     with pytest.raises(TypeError):  # ax is not a List[plt.Axes]
         ax = plt.subplot()

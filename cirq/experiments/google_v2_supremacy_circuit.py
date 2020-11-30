@@ -20,8 +20,8 @@ from cirq import circuits, devices, google, ops
 
 
 def generate_boixo_2018_supremacy_circuits_v2(
-        qubits: Iterable[devices.GridQubit], cz_depth: int,
-        seed: int) -> circuits.Circuit:
+    qubits: Iterable[devices.GridQubit], cz_depth: int, seed: int
+) -> circuits.Circuit:
     """
     Generates Google Random Circuits v2 as in github.com/sboixo/GRCS cz_v2.
     See also https://arxiv.org/abs/1807.10749
@@ -39,7 +39,7 @@ def generate_boixo_2018_supremacy_circuits_v2(
     (as in the QASM mapping)
     """
 
-    non_diagonal_gates = [ops.pauli_gates.X**(1/2), ops.pauli_gates.Y**(1/2)]
+    non_diagonal_gates = [ops.pauli_gates.X ** (1 / 2), ops.pauli_gates.Y ** (1 / 2)]
     rand_gen = random.Random(seed).random
 
     circuit = circuits.Circuit()
@@ -53,37 +53,37 @@ def generate_boixo_2018_supremacy_circuits_v2(
         # In the first moment, add T gates when possible
         for qubit in qubits:
             if not circuit.operation_at(qubit, 1):
-                circuit.append(ops.common_gates.T(qubit),
-                               strategy=InsertStrategy.EARLIEST)
+                circuit.append(ops.common_gates.T(qubit), strategy=InsertStrategy.EARLIEST)
 
-    for moment_index in range(2, cz_depth+1):
+    for moment_index in range(2, cz_depth + 1):
         layer_index = _add_cz_layer(layer_index, circuit)
         # Add single qubit gates in the same moment
         for qubit in qubits:
             if not circuit.operation_at(qubit, moment_index):
-                last_op = circuit.operation_at(qubit, moment_index-1)
+                last_op = circuit.operation_at(qubit, moment_index - 1)
                 if last_op:
                     gate = cast(ops.GateOperation, last_op).gate
                     # Add a random non diagonal gate after a CZ
                     if gate == ops.CZ:
-                        circuit.append(_choice(rand_gen,
-                                               non_diagonal_gates).on(qubit),
-                                       strategy=InsertStrategy.EARLIEST)
+                        circuit.append(
+                            _choice(rand_gen, non_diagonal_gates).on(qubit),
+                            strategy=InsertStrategy.EARLIEST,
+                        )
                     # Add a T gate after a non diagonal gate
                     elif not gate == ops.T:
-                        circuit.append(ops.common_gates.T(qubit),
-                                       strategy=InsertStrategy.EARLIEST)
+                        circuit.append(ops.common_gates.T(qubit), strategy=InsertStrategy.EARLIEST)
 
     # Add a final moment of Hadamards
-    circuit.append([ops.common_gates.H(qubit) for qubit in qubits],
-                   strategy=InsertStrategy.NEW_THEN_INLINE)
+    circuit.append(
+        [ops.common_gates.H(qubit) for qubit in qubits], strategy=InsertStrategy.NEW_THEN_INLINE
+    )
 
     return circuit
 
 
-def generate_boixo_2018_supremacy_circuits_v2_grid(n_rows: int, n_cols: int,
-                                                   cz_depth: int, seed: int
-                                                  ) -> circuits.Circuit:
+def generate_boixo_2018_supremacy_circuits_v2_grid(
+    n_rows: int, n_cols: int, cz_depth: int, seed: int
+) -> circuits.Circuit:
     """
     Generates Google Random Circuits v2 as in github.com/sboixo/GRCS cz_v2.
     See also https://arxiv.org/abs/1807.10749
@@ -101,13 +101,13 @@ def generate_boixo_2018_supremacy_circuits_v2_grid(n_rows: int, n_cols: int,
     The mapping of qubits is cirq.GridQubit(j,k) -> q[j*n_cols+k]
     (as in the QASM mapping)
     """
-    qubits = [devices.GridQubit(i, j) for i in range(n_rows)
-              for j in range(n_cols)]
+    qubits = [devices.GridQubit(i, j) for i in range(n_rows) for j in range(n_cols)]
     return generate_boixo_2018_supremacy_circuits_v2(qubits, cz_depth, seed)
 
 
 def generate_boixo_2018_supremacy_circuits_v2_bristlecone(
-        n_rows: int, cz_depth: int, seed: int) -> circuits.Circuit:
+    n_rows: int, cz_depth: int, seed: int
+) -> circuits.Circuit:
     """
     Generates Google Random Circuits v2 in Bristlecone.
     See also https://arxiv.org/abs/1807.10749
@@ -121,6 +121,7 @@ def generate_boixo_2018_supremacy_circuits_v2_bristlecone(
     Returns:
         A circuit with given size and seed.
     """
+
     def get_qubits(n_rows):
         def count_neighbors(qubits, qubit):
             """Counts the qubits that the given qubit can interact with."""
@@ -129,7 +130,7 @@ def generate_boixo_2018_supremacy_circuits_v2_bristlecone(
                 devices.GridQubit(qubit.row - 1, qubit.col),
                 devices.GridQubit(qubit.row, qubit.col + 1),
                 devices.GridQubit(qubit.row, qubit.col - 1),
-                ]
+            ]
             return len(list(e for e in possibles if e in qubits))
 
         assert 2 <= n_rows <= 11
@@ -138,9 +139,11 @@ def generate_boixo_2018_supremacy_circuits_v2_bristlecone(
         # we need a consistent order of qubits
         qubits = list(dev.qubits)
         qubits.sort()
-        qubits = [q for q in qubits
-                      if  q.row <= max_row and  q.row + q.col < n_rows + 6
-                      and q.row - q.col < n_rows - 5]
+        qubits = [
+            q
+            for q in qubits
+            if q.row <= max_row and q.row + q.col < n_rows + 6 and q.row - q.col < n_rows - 5
+        ]
         qubits = [q for q in qubits if count_neighbors(qubits, q) > 1]
         return qubits
 
@@ -170,8 +173,9 @@ def _add_cz_layer(layer_index: int, circuit: circuits.Circuit) -> int:
     return layer_index
 
 
-def _make_cz_layer(qubits: Iterable[devices.GridQubit], layer_index: int
-                   ) -> Iterable[ops.Operation]:
+def _make_cz_layer(
+    qubits: Iterable[devices.GridQubit], layer_index: int
+) -> Iterable[ops.Operation]:
     """
     Each layer index corresponds to a shift/transpose of this CZ pattern:
 

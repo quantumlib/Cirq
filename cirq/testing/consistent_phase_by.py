@@ -28,13 +28,11 @@ def assert_phase_by_is_consistent_with_unitary(val: Any):
     if original is None:
         # If there's no unitary, it's vacuously consistent.
         return
-    qid_shape = protocols.qid_shape(val,
-                                    default=(2,) *
-                                    (len(original).bit_length() - 1))
+    qid_shape = protocols.qid_shape(val, default=(2,) * (len(original).bit_length() - 1))
     original = original.reshape(qid_shape * 2)
 
     for t in [0.125, -0.25, 1, sympy.Symbol('a'), sympy.Symbol('a') + 1]:
-        p = 1j**(t*4)
+        p = 1j ** (t * 4)
         p = protocols.resolve_parameters(p, {'a': -0.125})
         for i in range(len(qid_shape)):
             phased = protocols.phase_by(val, t, i, default=None)
@@ -55,4 +53,5 @@ def assert_phase_by_is_consistent_with_unitary(val: Any):
                 actual,
                 expected,
                 atol=1e-8,
-                err_msg='Phased unitary was incorrect for index #{}'.format(i))
+                err_msg='Phased unitary was incorrect for index #{}'.format(i),
+            )

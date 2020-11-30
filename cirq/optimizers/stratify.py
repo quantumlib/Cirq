@@ -24,12 +24,14 @@ if TYPE_CHECKING:
 Classifier = Callable[['cirq.Operation'], bool]
 
 # Any of the possible operation categories that we can stratify on.
-Category = Union['cirq.Gate', 'cirq.Operation', Type['cirq.Gate'],
-                 Type['cirq.Operation'], Classifier]
+Category = Union[
+    'cirq.Gate', 'cirq.Operation', Type['cirq.Gate'], Type['cirq.Operation'], Classifier
+]
 
 
-def stratified_circuit(circuit: 'cirq.Circuit', *,
-                       categories: Iterable[Category]) -> 'cirq.Circuit':
+def stratified_circuit(
+    circuit: 'cirq.Circuit', *, categories: Iterable[Category]
+) -> 'cirq.Circuit':
     """Repacks avoiding simultaneous operations with different classes.
 
     Sometimes, certain operations should not be done at the same time. For
@@ -63,13 +65,11 @@ def stratified_circuit(circuit: 'cirq.Circuit', *,
     # Normalize categories into classifier functions.
     classifiers = [_category_to_classifier(category) for category in categories]
     # Make the classifiers exhaustive by adding an "everything else" bucket.
-    and_the_rest = lambda op: all(
-        not classifier(op) for classifier in classifiers)
+    and_the_rest = lambda op: all(not classifier(op) for classifier in classifiers)
     classifiers_and_the_rest = [*classifiers, and_the_rest]
 
     # Try the algorithm with each permutation of the classifiers.
-    classifiers_permutations = list(
-        itertools.permutations(classifiers_and_the_rest))
+    classifiers_permutations = list(itertools.permutations(classifiers_and_the_rest))
     reversed_circuit = circuit[::-1]
     solutions = []
     for c in classifiers_permutations:
@@ -83,8 +83,7 @@ def stratified_circuit(circuit: 'cirq.Circuit', *,
     return min(solutions, key=lambda c: len(c))
 
 
-def stratify_circuit(classifiers: Iterable[Classifier],
-                     circuit: circuits.Circuit):
+def stratify_circuit(classifiers: Iterable[Classifier], circuit: circuits.Circuit):
     """Performs the stratification by iterating through the operations in the
     circuit and using the given classifiers to align them.
 
@@ -111,8 +110,7 @@ def stratify_circuit(classifiers: Iterable[Classifier],
                     else:
                         # Ensure that all the qubits for this operation are
                         # still available.
-                        if not any(
-                                qubit in blocked_qubits for qubit in op.qubits):
+                        if not any(qubit in blocked_qubits for qubit in op.qubits):
                             # Add the operation to the current moment and
                             # remove it from the circuit.
                             current_moment = current_moment.with_operation(op)
@@ -144,8 +142,10 @@ def _category_to_classifier(category) -> Classifier:
     elif callable(category):
         return lambda op: category(op)
     else:
-        raise TypeError(f'Unrecognized classifier type '
-                        f'{type(category)} ({category!r}).\n'
-                        f'Expected a cirq.Gate, cirq.Operation, '
-                        f'Type[cirq.Gate], Type[cirq.Operation], '
-                        f'or Callable[[cirq.Operation], bool].')
+        raise TypeError(
+            f'Unrecognized classifier type '
+            f'{type(category)} ({category!r}).\n'
+            f'Expected a cirq.Gate, cirq.Operation, '
+            f'Type[cirq.Gate], Type[cirq.Operation], '
+            f'or Callable[[cirq.Operation], bool].'
+        )

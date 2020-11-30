@@ -15,8 +15,7 @@
 from typing import Iterable
 
 from cirq.devices import GridQubit
-from cirq.google.line.placement.chip import \
-    chip_as_adjacency_list, above, below, right_of, left_of
+from cirq.google.line.placement.chip import chip_as_adjacency_list, above, below, right_of, left_of
 from cirq.google import XmonDevice
 from cirq.value import Duration
 
@@ -46,8 +45,7 @@ def test_qubit_not_mutated():
 
 
 def _create_device(qubits: Iterable[GridQubit]) -> XmonDevice:
-    return XmonDevice(Duration(nanos=0), Duration(nanos=0), Duration(nanos=0),
-                      qubits)
+    return XmonDevice(Duration(nanos=0), Duration(nanos=0), Duration(nanos=0), qubits)
 
 
 def test_empty():
@@ -62,15 +60,13 @@ def test_single_qubit():
 def test_two_close_qubits():
     q00 = GridQubit(0, 0)
     q01 = GridQubit(0, 1)
-    assert chip_as_adjacency_list(_create_device([q00, q01])) == {q00: [q01],
-                                                                  q01: [q00]}
+    assert chip_as_adjacency_list(_create_device([q00, q01])) == {q00: [q01], q01: [q00]}
 
 
 def test_two_qubits_apart():
     q00 = GridQubit(0, 0)
     q11 = GridQubit(1, 1)
-    assert chip_as_adjacency_list(_create_device([q00, q11])) == {q00: [],
-                                                                  q11: []}
+    assert chip_as_adjacency_list(_create_device([q00, q11])) == {q00: [], q11: []}
 
 
 def test_three_qubits_in_row():
@@ -78,7 +74,10 @@ def test_three_qubits_in_row():
     q01 = GridQubit(0, 1)
     q02 = GridQubit(0, 2)
     assert chip_as_adjacency_list(_create_device([q00, q01, q02])) == {
-        q00: [q01], q01: [q00, q02], q02: [q01]}
+        q00: [q01],
+        q01: [q00, q02],
+        q02: [q01],
+    }
 
 
 def test_square_of_four():
@@ -87,4 +86,8 @@ def test_square_of_four():
     q10 = GridQubit(1, 0)
     q11 = GridQubit(1, 1)
     assert chip_as_adjacency_list(_create_device([q00, q01, q10, q11])) == {
-        q00: [q01, q10], q01: [q00, q11], q10: [q00, q11], q11: [q10, q01]}
+        q00: [q01, q10],
+        q01: [q00, q11],
+        q10: [q00, q11],
+        q11: [q10, q01],
+    }
