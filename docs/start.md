@@ -34,12 +34,12 @@ Example output:
 
 # Learn more about quantum computing
 
-In case you would like to learn more about Quantum Computing, check out our [education page](https://quantumai.google/education). 
+In case you would like to learn more about Quantum Computing, check out our [education page](/education). 
 
 # Hardware vs simulation
 
 There are two main ways of running quantum algorithms using Cirq:
- - [Simulation](simulation.ipynb) is available on any computer
+ - [Simulation](simulation.ipynb) is available on any computer.
  - Quantum processors are provided by different Quantum Service Providers: 
     - [Google Quantum Computing Service](tutorials/google/start.ipynb)
     - [Alpine Quantum Technologies](tutorials/aqt/getting_started.ipynb)
@@ -47,7 +47,7 @@ There are two main ways of running quantum algorithms using Cirq:
 
 # Next steps
 
-- Learn about the [Basics](tutorials/basics.ipynb) of Cirq, like the Circuit, Qubit and Simulator classes and how to use them
-- Explore all the numerous [Tutorials and examples](tutorials/)
-- Check out the [API docs](https://quantumai.google/reference/python/cirq)
-- Learn more about the Cirq concepts in-depth in our guides 
+- Learn about the [Basics](tutorials/basics.ipynb) of Cirq, like the Circuit, Qubit and Simulator classes and how to use them.
+- Explore all the numerous [Tutorials and examples](tutorials).
+- Check out the [API docs](/reference/python/cirq).
+- Learn more about the Cirq concepts in-depth in our guides.
