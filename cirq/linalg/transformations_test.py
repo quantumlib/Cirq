@@ -29,11 +29,8 @@ def test_reflection_matrix_pow_consistent_results():
     np.testing.assert_allclose(np.dot(sqrt_ix, sqrt_ix), ix, atol=1e-10)
 
     h = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
-    cube_root_h = cirq.reflection_matrix_pow(h, 1/3)
-    np.testing.assert_allclose(
-        np.dot(np.dot(cube_root_h, cube_root_h), cube_root_h),
-        h,
-        atol=1e-8)
+    cube_root_h = cirq.reflection_matrix_pow(h, 1 / 3)
+    np.testing.assert_allclose(np.dot(np.dot(cube_root_h, cube_root_h), cube_root_h), h, atol=1e-8)
 
     y = np.array([[0, -1j], [1j, 0]])
     h = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5j)
@@ -45,15 +42,13 @@ def test_reflection_matrix_pow_consistent_results():
 def test_reflection_matrix_sign_preference_under_perturbation():
     x = np.array([[0, 1], [1, 0]])
     sqrt_x = np.array([[1, -1j], [-1j, 1]]) * (1 + 1j) / 2
-    np.testing.assert_allclose(cirq.reflection_matrix_pow(x, 0.5),
-                               sqrt_x,
-                               atol=1e-8)
+    np.testing.assert_allclose(cirq.reflection_matrix_pow(x, 0.5), sqrt_x, atol=1e-8)
 
     # Sqrt should behave well when phased by less than 90 degrees.
     # (When rotating by more it's ambiguous. For example, 181 = 91*2 = -89*2.)
     for perturbation in [0, 0.1, -0.1, 0.3, -0.3, 0.49, -0.49]:
-        px = x * complex(-1)**perturbation
-        expected_sqrt_px = sqrt_x * complex(-1)**(perturbation / 2)
+        px = x * complex(-1) ** perturbation
+        expected_sqrt_px = sqrt_x * complex(-1) ** (perturbation / 2)
         sqrt_px = cirq.reflection_matrix_pow(px, 0.5)
         np.testing.assert_allclose(np.dot(sqrt_px, sqrt_px), px, atol=1e-10)
         np.testing.assert_allclose(sqrt_px, expected_sqrt_px, atol=1e-10)
@@ -125,71 +120,95 @@ def test_targeted_left_multiply_matches_kron_then_dot():
     i = np.eye(2)
 
     np.testing.assert_allclose(
-        cirq.targeted_left_multiply(left_matrix=m,
-                                    right_target=t.reshape((2, 2, 2)),
-                                    target_axes=[0]),
+        cirq.targeted_left_multiply(
+            left_matrix=m, right_target=t.reshape((2, 2, 2)), target_axes=[0]
+        ),
         np.dot(cirq.kron(m, i, i), t).reshape((2, 2, 2)),
-        atol=1e-8)
+        atol=1e-8,
+    )
 
     np.testing.assert_allclose(
-        cirq.targeted_left_multiply(left_matrix=m,
-                                    right_target=t.reshape((2, 2, 2)),
-                                    target_axes=[1]),
+        cirq.targeted_left_multiply(
+            left_matrix=m, right_target=t.reshape((2, 2, 2)), target_axes=[1]
+        ),
         np.dot(cirq.kron(i, m, i), t).reshape((2, 2, 2)),
-        atol=1e-8)
+        atol=1e-8,
+    )
 
     np.testing.assert_allclose(
-        cirq.targeted_left_multiply(left_matrix=m,
-                                    right_target=t.reshape((2, 2, 2)),
-                                    target_axes=[2]),
+        cirq.targeted_left_multiply(
+            left_matrix=m, right_target=t.reshape((2, 2, 2)), target_axes=[2]
+        ),
         np.dot(cirq.kron(i, i, m), t).reshape((2, 2, 2)),
-        atol=1e-8)
+        atol=1e-8,
+    )
 
-    np.testing.assert_allclose(cirq.targeted_left_multiply(
-        left_matrix=m, right_target=t.reshape((2, 2, 2)), target_axes=[2]),
-                               np.dot(cirq.kron(i, i, m), t).reshape((2, 2, 2)),
-                               atol=1e-8)
+    np.testing.assert_allclose(
+        cirq.targeted_left_multiply(
+            left_matrix=m, right_target=t.reshape((2, 2, 2)), target_axes=[2]
+        ),
+        np.dot(cirq.kron(i, i, m), t).reshape((2, 2, 2)),
+        atol=1e-8,
+    )
 
     common = t.reshape((2, 2, 2))
     with pytest.raises(ValueError, match="out is"):
-        cirq.targeted_left_multiply(left_matrix=m,
-                                    right_target=common,
-                                    out=common,
-                                    target_axes=[2])
+        cirq.targeted_left_multiply(left_matrix=m, right_target=common, out=common, target_axes=[2])
     with pytest.raises(ValueError, match="out is"):
-        cirq.targeted_left_multiply(left_matrix=m,
-                                    right_target=common,
-                                    out=m,
-                                    target_axes=[2])
+        cirq.targeted_left_multiply(left_matrix=m, right_target=common, out=m, target_axes=[2])
 
 
 def test_targeted_left_multiply_reorders_matrices():
     t = np.eye(4).reshape((2, 2, 2, 2))
-    m = np.array([
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 0, 1,
-        0, 0, 1, 0,
-    ]).reshape((2, 2, 2, 2))
+    m = np.array(
+        [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+        ]
+    ).reshape((2, 2, 2, 2))
 
     np.testing.assert_allclose(
-        cirq.targeted_left_multiply(left_matrix=m,
-                                    right_target=t,
-                                    target_axes=[0, 1]),
-        m,
-        atol=1e-8)
+        cirq.targeted_left_multiply(left_matrix=m, right_target=t, target_axes=[0, 1]), m, atol=1e-8
+    )
 
     np.testing.assert_allclose(
-        cirq.targeted_left_multiply(left_matrix=m,
-                                    right_target=t,
-                                    target_axes=[1, 0]),
-        np.array([
-            1, 0, 0, 0,
-            0, 0, 0, 1,
-            0, 0, 1, 0,
-            0, 1, 0, 0,
-        ]).reshape((2, 2, 2, 2)),
-        atol=1e-8)
+        cirq.targeted_left_multiply(left_matrix=m, right_target=t, target_axes=[1, 0]),
+        np.array(
+            [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                1,
+                0,
+                0,
+                1,
+                0,
+                0,
+            ]
+        ).reshape((2, 2, 2, 2)),
+        atol=1e-8,
+    )
 
 
 def test_targeted_left_multiply_out():
@@ -197,15 +216,11 @@ def test_targeted_left_multiply_out():
     right = np.array([1, -1])
     out = np.zeros(2)
 
-    result = cirq.targeted_left_multiply(left_matrix=left,
-                                         right_target=right,
-                                         target_axes=[0],
-                                         out=out)
+    result = cirq.targeted_left_multiply(
+        left_matrix=left, right_target=right, target_axes=[0], out=out
+    )
     assert result is out
-    np.testing.assert_allclose(
-        result,
-        np.array([-1, -2]),
-        atol=1e-8)
+    np.testing.assert_allclose(result, np.array([-1, -2]), atol=1e-8)
 
 
 def test_targeted_conjugate_simple():
@@ -236,13 +251,11 @@ def test_targeted_conjugate():
     a = np.reshape([0, 1, 2j, 3j], (2, 2))
     b = np.reshape(np.arange(16), (2,) * 4)
     result = cirq.targeted_conjugate_about(a, b, [0])
-    expected = np.einsum('ij,jklm,ln->iknm', a, b,
-                         np.transpose(np.conjugate(a)))
+    expected = np.einsum('ij,jklm,ln->iknm', a, b, np.transpose(np.conjugate(a)))
     np.testing.assert_almost_equal(result, expected)
 
     result = cirq.targeted_conjugate_about(a, b, [1])
-    expected = np.einsum('ij,kjlm,mn->kiln', a, b,
-                         np.transpose(np.conjugate(a)))
+    expected = np.einsum('ij,kjlm,mn->kiln', a, b, np.transpose(np.conjugate(a)))
     np.testing.assert_almost_equal(result, expected)
 
 
@@ -250,8 +263,7 @@ def test_targeted_conjugate_multiple_indices():
     a = np.reshape(np.arange(16) + 1j, (2, 2, 2, 2))
     b = np.reshape(np.arange(16), (2,) * 4)
     result = cirq.targeted_conjugate_about(a, b, [0, 1])
-    expected = np.einsum('ijkl,klmn,mnop->ijop', a, b,
-                         np.transpose(np.conjugate(a), (2, 3, 0, 1)))
+    expected = np.einsum('ijkl,klmn,mnop->ijop', a, b, np.transpose(np.conjugate(a), (2, 3, 0, 1)))
     np.testing.assert_almost_equal(result, expected)
 
 
@@ -259,8 +271,7 @@ def test_targeted_conjugate_multiple_indices_flip_order():
     a = np.reshape(np.arange(16) + 1j, (2, 2, 2, 2))
     b = np.reshape(np.arange(16), (2,) * 4)
     result = cirq.targeted_conjugate_about(a, b, [1, 0], [3, 2])
-    expected = np.einsum('ijkl,lknm,mnop->jipo', a, b,
-                         np.transpose(np.conjugate(a), (2, 3, 0, 1)))
+    expected = np.einsum('ijkl,lknm,mnop->jipo', a, b, np.transpose(np.conjugate(a), (2, 3, 0, 1)))
     np.testing.assert_almost_equal(result, expected)
 
 
@@ -271,8 +282,7 @@ def test_targeted_conjugate_out():
     out = np.empty((2,) * 4, dtype=a.dtype)
     result = cirq.targeted_conjugate_about(a, b, [0], buffer=buffer, out=out)
     assert result is out
-    expected = np.einsum('ij,jklm,ln->iknm', a, b,
-                         np.transpose(np.conjugate(a)))
+    expected = np.einsum('ij,jklm,ln->iknm', a, b, np.transpose(np.conjugate(a)))
     np.testing.assert_almost_equal(result, expected)
 
 
@@ -280,77 +290,52 @@ def test_apply_matrix_to_slices():
     # Output is input.
     with pytest.raises(ValueError, match='out'):
         target = np.eye(2)
-        _ = cirq.apply_matrix_to_slices(
-            target=target,
-            matrix=np.eye(2),
-            out=target,
-            slices=[0, 1])
+        _ = cirq.apply_matrix_to_slices(target=target, matrix=np.eye(2), out=target, slices=[0, 1])
 
     # Wrong matrix size.
     with pytest.raises(ValueError, match='shape'):
         target = np.eye(2)
-        _ = cirq.apply_matrix_to_slices(
-            target=target,
-            matrix=np.eye(3),
-            slices=[0, 1])
+        _ = cirq.apply_matrix_to_slices(target=target, matrix=np.eye(3), slices=[0, 1])
 
     # Empty case.
     np.testing.assert_allclose(
-        cirq.apply_matrix_to_slices(
-            target=np.array(range(5)),
-            matrix=np.eye(0),
-            slices=[]),
-        np.array(range(5)))
+        cirq.apply_matrix_to_slices(target=np.array(range(5)), matrix=np.eye(0), slices=[]),
+        np.array(range(5)),
+    )
 
     # Middle 2x2 of 4x4 case.
     np.testing.assert_allclose(
         cirq.apply_matrix_to_slices(
-            target=np.eye(4),
-            matrix=np.array([[2, 3], [5, 7]]),
-            slices=[1, 2]),
-        np.array([
-            [1, 0, 0, 0],
-            [0, 2, 3, 0],
-            [0, 5, 7, 0],
-            [0, 0, 0, 1]
-        ]))
+            target=np.eye(4), matrix=np.array([[2, 3], [5, 7]]), slices=[1, 2]
+        ),
+        np.array([[1, 0, 0, 0], [0, 2, 3, 0], [0, 5, 7, 0], [0, 0, 0, 1]]),
+    )
 
     # Middle 2x2 of 4x4 with opposite order case.
     np.testing.assert_allclose(
         cirq.apply_matrix_to_slices(
-            target=np.eye(4),
-            matrix=np.array([[2, 3], [5, 7]]),
-            slices=[2, 1]),
-        np.array([
-            [1, 0, 0, 0],
-            [0, 7, 5, 0],
-            [0, 3, 2, 0],
-            [0, 0, 0, 1]
-        ]))
+            target=np.eye(4), matrix=np.array([[2, 3], [5, 7]]), slices=[2, 1]
+        ),
+        np.array([[1, 0, 0, 0], [0, 7, 5, 0], [0, 3, 2, 0], [0, 0, 0, 1]]),
+    )
 
     # Complicated slices of tensor case.
     np.testing.assert_allclose(
         cirq.apply_matrix_to_slices(
             target=np.array(range(8)).reshape((2, 2, 2)),
             matrix=np.array([[0, 1], [1, 0]]),
-            slices=[
-                (0, slice(None), 0),
-                (1, slice(None), 0)
-            ]
+            slices=[(0, slice(None), 0), (1, slice(None), 0)],
         ).reshape((8,)),
-        [4, 1, 6, 3, 0, 5, 2, 7])
+        [4, 1, 6, 3, 0, 5, 2, 7],
+    )
 
     # Specified output case.
     out = np.zeros(shape=(4,))
     actual = cirq.apply_matrix_to_slices(
-        target=np.array([1, 2, 3, 4]),
-        matrix=np.array([[2, 3], [5, 7]]),
-        slices=[1, 2],
-        out=out)
+        target=np.array([1, 2, 3, 4]), matrix=np.array([[2, 3], [5, 7]]), slices=[1, 2], out=out
+    )
     assert actual is out
-    np.testing.assert_allclose(
-        actual,
-        np.array([1, 13, 31, 4]))
+    np.testing.assert_allclose(actual, np.array([1, 13, 31, 4]))
 
 
 def test_partial_trace():
@@ -362,56 +347,43 @@ def test_partial_trace():
     tr_c = np.trace(c)
     tensor = np.reshape(np.kron(a, np.kron(b, c)), (2, 3, 4, 2, 3, 4))
 
+    np.testing.assert_almost_equal(cirq.partial_trace(tensor, []), tr_a * tr_b * tr_c)
+    np.testing.assert_almost_equal(cirq.partial_trace(tensor, [0]), a * tr_b * tr_c)
+    np.testing.assert_almost_equal(cirq.partial_trace(tensor, [1]), b * tr_a * tr_c)
+    np.testing.assert_almost_equal(cirq.partial_trace(tensor, [2]), c * tr_a * tr_b)
     np.testing.assert_almost_equal(
-        cirq.partial_trace(tensor, []),
-        tr_a * tr_b * tr_c)
+        cirq.partial_trace(tensor, [0, 1]), np.reshape(np.kron(a, b), (2, 3, 2, 3)) * tr_c
+    )
     np.testing.assert_almost_equal(
-        cirq.partial_trace(tensor, [0]),
-        a * tr_b * tr_c)
+        cirq.partial_trace(tensor, [1, 2]), np.reshape(np.kron(b, c), (3, 4, 3, 4)) * tr_a
+    )
     np.testing.assert_almost_equal(
-        cirq.partial_trace(tensor, [1]),
-        b * tr_a * tr_c)
-    np.testing.assert_almost_equal(
-        cirq.partial_trace(tensor, [2]),
-        c * tr_a * tr_b)
-    np.testing.assert_almost_equal(
-        cirq.partial_trace(tensor, [0, 1]),
-        np.reshape(np.kron(a, b), (2, 3, 2, 3)) * tr_c)
-    np.testing.assert_almost_equal(
-        cirq.partial_trace(tensor, [1, 2]),
-        np.reshape(np.kron(b, c), (3, 4, 3, 4)) * tr_a)
-    np.testing.assert_almost_equal(
-        cirq.partial_trace(tensor, [0, 2]),
-        np.reshape(np.kron(a, c), (2, 4, 2, 4)) * tr_b)
-    np.testing.assert_almost_equal(
-        cirq.partial_trace(tensor, [0, 1, 2]),
-        tensor)
+        cirq.partial_trace(tensor, [0, 2]), np.reshape(np.kron(a, c), (2, 4, 2, 4)) * tr_b
+    )
+    np.testing.assert_almost_equal(cirq.partial_trace(tensor, [0, 1, 2]), tensor)
 
     # permutes indices
     np.testing.assert_almost_equal(
-        cirq.partial_trace(tensor, [1, 0]),
-        np.reshape(np.kron(b, a), (3, 2, 3, 2)) * tr_c)
+        cirq.partial_trace(tensor, [1, 0]), np.reshape(np.kron(b, a), (3, 2, 3, 2)) * tr_c
+    )
     np.testing.assert_almost_equal(
         cirq.partial_trace(tensor, [2, 0, 1]),
-        np.reshape(np.kron(c, np.kron(a, b)), (4, 2, 3, 4, 2, 3)))
+        np.reshape(np.kron(c, np.kron(a, b)), (4, 2, 3, 4, 2, 3)),
+    )
 
 
 def test_partial_trace_non_kron():
     tensor = np.zeros((2, 2, 2, 2))
     tensor[0, 0, 0, 0] = 1
     tensor[1, 1, 1, 1] = 4
-    np.testing.assert_almost_equal(
-        cirq.partial_trace(tensor, [0]),
-        np.array([[1, 0], [0, 4]]))
+    np.testing.assert_almost_equal(cirq.partial_trace(tensor, [0]), np.array([[1, 0], [0, 4]]))
 
 
 def test_partial_trace_invalid_inputs():
     with pytest.raises(ValueError, match='2, 3, 2, 2'):
-        cirq.partial_trace(
-            np.reshape(np.arange(2 * 3 * 2 * 2), (2, 3, 2, 2)), [1])
+        cirq.partial_trace(np.reshape(np.arange(2 * 3 * 2 * 2), (2, 3, 2, 2)), [1])
     with pytest.raises(ValueError, match='2'):
-        cirq.partial_trace(
-            np.reshape(np.arange(2 * 2 * 2 * 2), (2,) * 4), [2])
+        cirq.partial_trace(np.reshape(np.arange(2 * 2 * 2 * 2), (2,) * 4), [2])
 
 
 def test_sub_state_vector():
@@ -420,42 +392,40 @@ def test_sub_state_vector():
     c = (np.arange(16) + 1) / np.linalg.norm(np.arange(16) + 1)
     state = np.kron(np.kron(a, b), c).reshape(2, 2, 2, 2, 2, 2, 2, 2, 2)
 
-    assert cirq.equal_up_to_global_phase(
-        cirq.sub_state_vector(a, [0, 1], atol=1e-8), a)
-    assert cirq.equal_up_to_global_phase(
-        cirq.sub_state_vector(b, [0, 1, 2], atol=1e-8), b)
-    assert cirq.equal_up_to_global_phase(
-        cirq.sub_state_vector(c, [0, 1, 2, 3], atol=1e-8), c)
+    assert cirq.equal_up_to_global_phase(cirq.sub_state_vector(a, [0, 1], atol=1e-8), a)
+    assert cirq.equal_up_to_global_phase(cirq.sub_state_vector(b, [0, 1, 2], atol=1e-8), b)
+    assert cirq.equal_up_to_global_phase(cirq.sub_state_vector(c, [0, 1, 2, 3], atol=1e-8), c)
 
     assert cirq.equal_up_to_global_phase(
-        cirq.sub_state_vector(state, [0, 1], atol=1e-15), a.reshape(2, 2))
+        cirq.sub_state_vector(state, [0, 1], atol=1e-15), a.reshape(2, 2)
+    )
     assert cirq.equal_up_to_global_phase(
-        cirq.sub_state_vector(state, [2, 3, 4], atol=1e-15), b.reshape(2, 2, 2))
+        cirq.sub_state_vector(state, [2, 3, 4], atol=1e-15), b.reshape(2, 2, 2)
+    )
     assert cirq.equal_up_to_global_phase(
-        cirq.sub_state_vector(state, [5, 6, 7, 8], atol=1e-15),
-        c.reshape(2, 2, 2, 2))
+        cirq.sub_state_vector(state, [5, 6, 7, 8], atol=1e-15), c.reshape(2, 2, 2, 2)
+    )
 
     # Output state vector conforms to the shape of the input state vector.
     reshaped_state = state.reshape(-1)
     assert cirq.equal_up_to_global_phase(
-        cirq.sub_state_vector(reshaped_state, [0, 1], atol=1e-15), a)
+        cirq.sub_state_vector(reshaped_state, [0, 1], atol=1e-15), a
+    )
     assert cirq.equal_up_to_global_phase(
-        cirq.sub_state_vector(reshaped_state, [2, 3, 4], atol=1e-15), b)
+        cirq.sub_state_vector(reshaped_state, [2, 3, 4], atol=1e-15), b
+    )
     assert cirq.equal_up_to_global_phase(
-        cirq.sub_state_vector(reshaped_state, [5, 6, 7, 8], atol=1e-15), c)
+        cirq.sub_state_vector(reshaped_state, [5, 6, 7, 8], atol=1e-15), c
+    )
 
     # Reject factoring for very tight tolerance.
-    assert cirq.sub_state_vector(state, [0, 1], default=None,
-                                 atol=1e-16) is None
-    assert cirq.sub_state_vector(state, [2, 3, 4], default=None,
-                                 atol=1e-16) is None
-    assert cirq.sub_state_vector(state, [5, 6, 7, 8], default=None,
-                                 atol=1e-16) is None
+    assert cirq.sub_state_vector(state, [0, 1], default=None, atol=1e-16) is None
+    assert cirq.sub_state_vector(state, [2, 3, 4], default=None, atol=1e-16) is None
+    assert cirq.sub_state_vector(state, [5, 6, 7, 8], default=None, atol=1e-16) is None
 
     # Permit invalid factoring for loose tolerance.
     for q1 in range(9):
-        assert cirq.sub_state_vector(state, [q1], default=None,
-                                     atol=1) is not None
+        assert cirq.sub_state_vector(state, [q1], default=None, atol=1) is not None
 
 
 def test_sub_state_vector_bad_subset():
@@ -464,18 +434,14 @@ def test_sub_state_vector_bad_subset():
     state = np.kron(a, b).reshape((2, 2, 2, 2, 2))
 
     for q1 in range(5):
-        assert cirq.sub_state_vector(state, [q1], default=None,
-                                     atol=1e-8) is None
+        assert cirq.sub_state_vector(state, [q1], default=None, atol=1e-8) is None
     for q1 in range(2):
         for q2 in range(2, 5):
-            assert cirq.sub_state_vector(
-                state, [q1, q2], default=None, atol=1e-8) is None
+            assert cirq.sub_state_vector(state, [q1, q2], default=None, atol=1e-8) is None
     for q3 in range(2, 5):
-        assert cirq.sub_state_vector(state, [0, 1, q3], default=None,
-                                     atol=1e-8) is None
+        assert cirq.sub_state_vector(state, [0, 1, q3], default=None, atol=1e-8) is None
     for q4 in range(2):
-        assert cirq.sub_state_vector(
-            state, [2, 3, 4, q4], default=None, atol=1e-8) is None
+        assert cirq.sub_state_vector(state, [2, 3, 4, q4], default=None, atol=1e-8) is None
 
 
 def test_sub_state_vector_non_kron():
@@ -484,18 +450,14 @@ def test_sub_state_vector_non_kron():
     state = np.kron(a, b).reshape((2, 2, 2, 2))
 
     for q1 in [0, 1, 2]:
-        assert cirq.sub_state_vector(state, [q1], default=None,
-                                     atol=1e-8) is None
+        assert cirq.sub_state_vector(state, [q1], default=None, atol=1e-8) is None
     for q1 in [0, 1, 2]:
-        assert cirq.sub_state_vector(state, [q1, 3], default=None,
-                                     atol=1e-8) is None
+        assert cirq.sub_state_vector(state, [q1, 3], default=None, atol=1e-8) is None
 
     with pytest.raises(ValueError, match='factored'):
         _ = cirq.sub_state_vector(a, [0], atol=1e-8)
 
-    assert cirq.equal_up_to_global_phase(cirq.sub_state_vector(state, [3]),
-                                         b,
-                                         atol=1e-8)
+    assert cirq.equal_up_to_global_phase(cirq.sub_state_vector(state, [3]), b, atol=1e-8)
 
 
 def test_sub_state_vector_invalid_inputs():
@@ -506,8 +468,7 @@ def test_sub_state_vector_invalid_inputs():
 
     # State shape does not conform to input requirements.
     with pytest.raises(ValueError, match='shaped'):
-        cirq.sub_state_vector(np.arange(16).reshape((2, 4, 2)), [1, 2],
-                              atol=1e-8)
+        cirq.sub_state_vector(np.arange(16).reshape((2, 4, 2)), [1, 2], atol=1e-8)
     with pytest.raises(ValueError, match='shaped'):
         cirq.sub_state_vector(np.arange(16).reshape((16, 1)), [1, 2], atol=1e-8)
 
@@ -529,8 +490,7 @@ def test_sub_state_vector_invalid_inputs():
 def test_partial_trace_of_state_vector_as_mixture_invalid_input():
 
     with pytest.raises(ValueError, match='7'):
-        cirq.partial_trace_of_state_vector_as_mixture(np.arange(7), [1, 2],
-                                                      atol=1e-8)
+        cirq.partial_trace_of_state_vector_as_mixture(np.arange(7), [1, 2], atol=1e-8)
 
     bad_shape = np.arange(16).reshape((2, 4, 2))
     with pytest.raises(ValueError, match='shaped'):
@@ -540,26 +500,24 @@ def test_partial_trace_of_state_vector_as_mixture_invalid_input():
         cirq.partial_trace_of_state_vector_as_mixture(bad_shape, [1], atol=1e-8)
 
     with pytest.raises(ValueError, match='normalized'):
-        cirq.partial_trace_of_state_vector_as_mixture(np.arange(8), [1],
-                                                      atol=1e-8)
+        cirq.partial_trace_of_state_vector_as_mixture(np.arange(8), [1], atol=1e-8)
 
     state = np.arange(8) / np.linalg.norm(np.arange(8))
     with pytest.raises(ValueError, match='2, 2'):
-        cirq.partial_trace_of_state_vector_as_mixture(state, [1, 2, 2],
-                                                      atol=1e-8)
+        cirq.partial_trace_of_state_vector_as_mixture(state, [1, 2, 2], atol=1e-8)
 
     state = np.array([1, 0, 0, 0]).reshape((2, 2))
     with pytest.raises(ValueError, match='invalid'):
         cirq.partial_trace_of_state_vector_as_mixture(state, [5], atol=1e-8)
     with pytest.raises(ValueError, match='invalid'):
-        cirq.partial_trace_of_state_vector_as_mixture(state, [0, 1, 2],
-                                                      atol=1e-8)
+        cirq.partial_trace_of_state_vector_as_mixture(state, [0, 1, 2], atol=1e-8)
 
 
 def mixtures_equal(m1, m2, atol=1e-7):
     for (p1, v1), (p2, v2) in zip(m1, m2):
-        if not (cirq.approx_eq(p1, p2, atol=atol) and
-                cirq.equal_up_to_global_phase(v1, v2, atol=atol)):
+        if not (
+            cirq.approx_eq(p1, p2, atol=atol) and cirq.equal_up_to_global_phase(v1, v2, atol=atol)
+        ):
             return False
     return True
 
@@ -572,105 +530,99 @@ def test_partial_trace_of_state_vector_as_mixture_pure_result():
 
     assert mixtures_equal(
         cirq.partial_trace_of_state_vector_as_mixture(state, [0, 1], atol=1e-8),
-        ((1.0, a.reshape(2, 2)),))
+        ((1.0, a.reshape(2, 2)),),
+    )
     assert mixtures_equal(
-        cirq.partial_trace_of_state_vector_as_mixture(state, [2, 3, 4],
-                                                      atol=1e-8),
-        ((1.0, b.reshape(2, 2, 2)),))
+        cirq.partial_trace_of_state_vector_as_mixture(state, [2, 3, 4], atol=1e-8),
+        ((1.0, b.reshape(2, 2, 2)),),
+    )
     assert mixtures_equal(
-        cirq.partial_trace_of_state_vector_as_mixture(state, [5, 6, 7, 8],
-                                                      atol=1e-8),
-        ((1.0, c.reshape(2, 2, 2, 2)),))
+        cirq.partial_trace_of_state_vector_as_mixture(state, [5, 6, 7, 8], atol=1e-8),
+        ((1.0, c.reshape(2, 2, 2, 2)),),
+    )
     assert mixtures_equal(
-        cirq.partial_trace_of_state_vector_as_mixture(state, [0, 1, 2, 3, 4],
-                                                      atol=1e-8),
-        ((1.0, np.kron(a, b).reshape((2, 2, 2, 2, 2))),))
+        cirq.partial_trace_of_state_vector_as_mixture(state, [0, 1, 2, 3, 4], atol=1e-8),
+        ((1.0, np.kron(a, b).reshape((2, 2, 2, 2, 2))),),
+    )
     assert mixtures_equal(
-        cirq.partial_trace_of_state_vector_as_mixture(state, [0, 1, 5, 6, 7, 8],
-                                                      atol=1e-8),
-        ((1.0, np.kron(a, c).reshape((2, 2, 2, 2, 2, 2))),))
+        cirq.partial_trace_of_state_vector_as_mixture(state, [0, 1, 5, 6, 7, 8], atol=1e-8),
+        ((1.0, np.kron(a, c).reshape((2, 2, 2, 2, 2, 2))),),
+    )
     assert mixtures_equal(
-        cirq.partial_trace_of_state_vector_as_mixture(state,
-                                                      [2, 3, 4, 5, 6, 7, 8],
-                                                      atol=1e-8),
-        ((1.0, np.kron(b, c).reshape((2, 2, 2, 2, 2, 2, 2))),))
+        cirq.partial_trace_of_state_vector_as_mixture(state, [2, 3, 4, 5, 6, 7, 8], atol=1e-8),
+        ((1.0, np.kron(b, c).reshape((2, 2, 2, 2, 2, 2, 2))),),
+    )
 
     # Shapes of states in the output mixture conform to the input's shape.
-    state = state.reshape(2**9)
+    state = state.reshape(2 ** 9)
     assert mixtures_equal(
-        cirq.partial_trace_of_state_vector_as_mixture(state, [0, 1], atol=1e-8),
-        ((1.0, a),))
+        cirq.partial_trace_of_state_vector_as_mixture(state, [0, 1], atol=1e-8), ((1.0, a),)
+    )
     assert mixtures_equal(
-        cirq.partial_trace_of_state_vector_as_mixture(state, [2, 3, 4],
-                                                      atol=1e-8), ((1.0, b),))
+        cirq.partial_trace_of_state_vector_as_mixture(state, [2, 3, 4], atol=1e-8), ((1.0, b),)
+    )
     assert mixtures_equal(
-        cirq.partial_trace_of_state_vector_as_mixture(state, [5, 6, 7, 8],
-                                                      atol=1e-8), ((1.0, c),))
+        cirq.partial_trace_of_state_vector_as_mixture(state, [5, 6, 7, 8], atol=1e-8), ((1.0, c),)
+    )
 
     # Return mixture will defer to numpy.linalg.eigh's builtin tolerance.
     state = np.array([1, 0, 0, 1]) / np.sqrt(2)
     truth = ((0.5, np.array([1, 0])), (0.5, np.array([0, 1])))
-    assert mixtures_equal(cirq.partial_trace_of_state_vector_as_mixture(
-        state, [1], atol=1e-20),
-                          truth,
-                          atol=1e-15)
-    assert not mixtures_equal(cirq.partial_trace_of_state_vector_as_mixture(
-        state, [1], atol=1e-20),
-                              truth,
-                              atol=1e-16)
+    assert mixtures_equal(
+        cirq.partial_trace_of_state_vector_as_mixture(state, [1], atol=1e-20), truth, atol=1e-15
+    )
+    assert not mixtures_equal(
+        cirq.partial_trace_of_state_vector_as_mixture(state, [1], atol=1e-20), truth, atol=1e-16
+    )
 
 
 def test_partial_trace_of_state_vector_as_mixture_mixed_result():
     state = np.array([1, 0, 0, 1]) / np.sqrt(2)
     truth = ((0.5, np.array([1, 0])), (0.5, np.array([0, 1])))
     for q1 in [0, 1]:
-        mixture = cirq.partial_trace_of_state_vector_as_mixture(state, [q1],
-                                                                atol=1e-8)
+        mixture = cirq.partial_trace_of_state_vector_as_mixture(state, [q1], atol=1e-8)
         assert mixtures_equal(mixture, truth)
 
     state = np.array([0, 1, 1, 0, 1, 0, 0, 0]).reshape((2, 2, 2)) / np.sqrt(3)
     truth = ((1 / 3, np.array([0.0, 1.0])), (2 / 3, np.array([1.0, 0.0])))
     for q1 in [0, 1, 2]:
-        mixture = cirq.partial_trace_of_state_vector_as_mixture(state, [q1],
-                                                                atol=1e-8)
+        mixture = cirq.partial_trace_of_state_vector_as_mixture(state, [q1], atol=1e-8)
         assert mixtures_equal(mixture, truth)
 
     state = np.array([1, 0, 0, 0, 0, 0, 0, 1]).reshape((2, 2, 2)) / np.sqrt(2)
     truth = ((0.5, np.array([1, 0])), (0.5, np.array([0, 1])))
     for q1 in [0, 1, 2]:
-        mixture = cirq.partial_trace_of_state_vector_as_mixture(state, [q1],
-                                                                atol=1e-8)
+        mixture = cirq.partial_trace_of_state_vector_as_mixture(state, [q1], atol=1e-8)
         assert mixtures_equal(mixture, truth)
 
-    truth = ((0.5, np.array([1, 0, 0, 0]).reshape(
-        (2, 2))), (0.5, np.array([0, 0, 0, 1]).reshape((2, 2))))
+    truth = (
+        (0.5, np.array([1, 0, 0, 0]).reshape((2, 2))),
+        (0.5, np.array([0, 0, 0, 1]).reshape((2, 2))),
+    )
     for (q1, q2) in [(0, 1), (0, 2), (1, 2)]:
-        mixture = cirq.partial_trace_of_state_vector_as_mixture(state, [q1, q2],
-                                                                atol=1e-8)
+        mixture = cirq.partial_trace_of_state_vector_as_mixture(state, [q1, q2], atol=1e-8)
         assert mixtures_equal(mixture, truth)
 
 
 def test_deprecated():
     a = np.arange(4) / np.linalg.norm(np.arange(4))
-    with cirq.testing.assert_logs('subwavefunction', 'sub_state_vector',
-                                  'deprecated'):
+    with cirq.testing.assert_logs('subwavefunction', 'sub_state_vector', 'deprecated'):
         _ = cirq.subwavefunction(a, [0, 1], atol=1e-8)
 
     with cirq.testing.assert_logs('wavefunction', 'state_vector', 'deprecated'):
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
-        _ = cirq.sub_state_vector(wavefunction=a,
-                                  keep_indices=[0, 1],
-                                  atol=1e-8)
+        _ = cirq.sub_state_vector(wavefunction=a, keep_indices=[0, 1], atol=1e-8)
 
-    with cirq.testing.assert_logs('wavefunction_partial_trace_as_mixture',
-                                  'partial_trace_of_state_vector_as_mixture',
-                                  'deprecated'):
+    with cirq.testing.assert_logs(
+        'wavefunction_partial_trace_as_mixture',
+        'partial_trace_of_state_vector_as_mixture',
+        'deprecated',
+    ):
         _ = cirq.wavefunction_partial_trace_as_mixture(a, [0])
 
     with cirq.testing.assert_logs('wavefunction', 'state_vector', 'deprecated'):
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
-        _ = cirq.partial_trace_of_state_vector_as_mixture(wavefunction=a,
-                                                          keep_indices=[0])
+        _ = cirq.partial_trace_of_state_vector_as_mixture(wavefunction=a, keep_indices=[0])
 
 
 def test_to_special():

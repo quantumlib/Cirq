@@ -70,13 +70,15 @@ class ApplyMixtureArgs:
             otherwise it will be assumed `target_tensor` is a state vector.
     """
 
-    def __init__(self,
-                 target_tensor: np.ndarray,
-                 out_buffer: np.ndarray,
-                 auxiliary_buffer0: np.ndarray,
-                 auxiliary_buffer1: np.ndarray,
-                 left_axes: Iterable[int],
-                 right_axes: Optional[Iterable[int]] = None):
+    def __init__(
+        self,
+        target_tensor: np.ndarray,
+        out_buffer: np.ndarray,
+        auxiliary_buffer0: np.ndarray,
+        auxiliary_buffer1: np.ndarray,
+        left_axes: Iterable[int],
+        right_axes: Optional[Iterable[int]] = None,
+    ):
         """Args for apply mixture.
 
         Args:
@@ -114,8 +116,9 @@ class SupportsApplyMixture(Protocol):
     """An object that can efficiently implement a mixture."""
 
     @doc_private
-    def _apply_mixture_(self, args: ApplyMixtureArgs
-                       ) -> Union[np.ndarray, None, NotImplementedType]:
+    def _apply_mixture_(
+        self, args: ApplyMixtureArgs
+    ) -> Union[np.ndarray, None, NotImplementedType]:
         """Efficiently applies a mixture.
 
         This method is given both the target tensor and workspace of the same
@@ -154,11 +157,9 @@ class SupportsApplyMixture(Protocol):
         """
 
 
-def apply_mixture(val: Any,
-                  args: ApplyMixtureArgs,
-                  *,
-                  default: TDefault = RaiseTypeErrorIfNotProvided
-                 ) -> Union[np.ndarray, TDefault]:
+def apply_mixture(
+    val: Any, args: ApplyMixtureArgs, *, default: TDefault = RaiseTypeErrorIfNotProvided
+) -> Union[np.ndarray, TDefault]:
     """High performance evolution under a mixture of unitaries evolution.
 
     Follows the steps below to attempt to apply a mixture:
@@ -244,10 +245,11 @@ def apply_mixture(val: Any,
         if result is not NotImplemented and result is not None:
 
             def err_str(buf_num_str):
-                return ("Object of type '{}' returned a result object equal to "
-                        "auxiliary_buffer{}. This type violates the contract "
-                        "that appears in apply_mixture's documentation.".format(
-                            type(val), buf_num_str))
+                return (
+                    "Object of type '{}' returned a result object equal to "
+                    "auxiliary_buffer{}. This type violates the contract "
+                    "that appears in apply_mixture's documentation.".format(type(val), buf_num_str)
+                )
 
             assert result is not args.auxiliary_buffer0, err_str('0')
             assert result is not args.auxiliary_buffer1, err_str('1')
@@ -271,49 +273,51 @@ def apply_mixture(val: Any,
     raise TypeError(
         "object of type '{}' has no _apply_mixture_, _apply_unitary_, "
         "_unitary_, or _mixture_ methods (or they returned None or "
-        "NotImplemented).".format(type(val)))
+        "NotImplemented).".format(type(val))
+    )
 
 
-def _validate_input(val: Any, args: 'ApplyMixtureArgs'
-                   ) -> Tuple[Any, 'ApplyMixtureArgs', bool]:
+def _validate_input(val: Any, args: 'ApplyMixtureArgs') -> Tuple[Any, 'ApplyMixtureArgs', bool]:
     """Validate args input and determine if we are operating on a
     density matrix or a state vector.
     """
 
     is_density_matrix = False
-    val_qid_shape = qid_shape_protocol.qid_shape(val,
-                                                 (2,) * len(args.left_axes))
+    val_qid_shape = qid_shape_protocol.qid_shape(val, (2,) * len(args.left_axes))
     left_shape = tuple(args.target_tensor.shape[i] for i in args.left_axes)
     if val_qid_shape != left_shape:
-        raise ValueError('Invalid mixture qid shape is not equal to the '
-                         'selected left and right shape of target_tensor. '
-                         'Got {!r} but expected {!r}.'.format(
-                             val_qid_shape, left_shape))
+        raise ValueError(
+            'Invalid mixture qid shape is not equal to the '
+            'selected left and right shape of target_tensor. '
+            'Got {!r} but expected {!r}.'.format(val_qid_shape, left_shape)
+        )
 
     if args.right_axes is not None:
         is_density_matrix = True
 
-        right_shape = tuple(
-            args.target_tensor.shape[i] for i in args.right_axes)
+        right_shape = tuple(args.target_tensor.shape[i] for i in args.right_axes)
         if left_shape != right_shape:
             raise ValueError(
                 'Invalid target_tensor shape or selected axes. '
                 'The selected left and right shape of '
-                'target_tensor are not equal. Got {!r} and {!r}.'.format(
-                    left_shape, right_shape))
+                'target_tensor are not equal. Got {!r} and {!r}.'.format(left_shape, right_shape)
+            )
 
     return val, args, is_density_matrix
 
 
-def _apply_unitary_strat(val: Any, args: 'ApplyMixtureArgs',
-                         is_density_matrix: bool) -> Optional[np.ndarray]:
+def _apply_unitary_strat(
+    val: Any, args: 'ApplyMixtureArgs', is_density_matrix: bool
+) -> Optional[np.ndarray]:
     """Attempt to use `apply_unitary` and return the result.
 
     If `val` does not support `apply_unitary` returns None.
     """
-    left_args = ApplyUnitaryArgs(target_tensor=args.target_tensor,
-                                 available_buffer=args.auxiliary_buffer0,
-                                 axes=args.left_axes)
+    left_args = ApplyUnitaryArgs(
+        target_tensor=args.target_tensor,
+        available_buffer=args.auxiliary_buffer0,
+        axes=args.left_axes,
+    )
     left_result = apply_unitary(val, left_args, None)
     if left_result is None:
         return None
@@ -322,42 +326,45 @@ def _apply_unitary_strat(val: Any, args: 'ApplyMixtureArgs',
         return left_result
 
     # cast is ok, is_density_matrix being false tells us right_axes isn't None.
-    right_args = ApplyUnitaryArgs(target_tensor=np.conjugate(left_result),
-                                  available_buffer=args.auxiliary_buffer0,
-                                  axes=cast(Tuple[int], args.right_axes))
+    right_args = ApplyUnitaryArgs(
+        target_tensor=np.conjugate(left_result),
+        available_buffer=args.auxiliary_buffer0,
+        axes=cast(Tuple[int], args.right_axes),
+    )
     right_result = apply_unitary(val, right_args)
     np.conjugate(right_result, out=right_result)
     return right_result
 
 
-def _apply_unitary_from_matrix_strat(val: np.ndarray, args: 'ApplyMixtureArgs',
-                                     is_density_matrix: bool
-                                    ) -> Optional[np.ndarray]:
+def _apply_unitary_from_matrix_strat(
+    val: np.ndarray, args: 'ApplyMixtureArgs', is_density_matrix: bool
+) -> Optional[np.ndarray]:
     """Used to enact mixture tuples that are given as (probability, np.ndarray)
 
     If `val` does not support `apply_unitary` returns None.
     """
     qid_shape = tuple(args.target_tensor.shape[i] for i in args.left_axes)
-    matrix_tensor = np.reshape(val.astype(args.target_tensor.dtype),
-                               qid_shape * 2)
-    linalg.targeted_left_multiply(matrix_tensor,
-                                  args.target_tensor,
-                                  args.left_axes,
-                                  out=args.auxiliary_buffer0)
+    matrix_tensor = np.reshape(val.astype(args.target_tensor.dtype), qid_shape * 2)
+    linalg.targeted_left_multiply(
+        matrix_tensor, args.target_tensor, args.left_axes, out=args.auxiliary_buffer0
+    )
 
     if not is_density_matrix:
         return args.auxiliary_buffer0
     # No need to transpose as we are acting on the tensor
     # representation of matrix, so transpose is done for us.
-    linalg.targeted_left_multiply(np.conjugate(matrix_tensor),
-                                  args.auxiliary_buffer0,
-                                  cast(Tuple[int], args.right_axes),
-                                  out=args.target_tensor)
+    linalg.targeted_left_multiply(
+        np.conjugate(matrix_tensor),
+        args.auxiliary_buffer0,
+        cast(Tuple[int], args.right_axes),
+        out=args.target_tensor,
+    )
     return args.target_tensor
 
 
-def _mixture_strat(val: Any, args: 'ApplyMixtureArgs',
-                   is_density_matrix: bool) -> Optional[np.ndarray]:
+def _mixture_strat(
+    val: Any, args: 'ApplyMixtureArgs', is_density_matrix: bool
+) -> Optional[np.ndarray]:
     """Attempt to use unitary matrices in _mixture_ and return the result."""
     args.out_buffer[:] = 0
     np.copyto(dst=args.auxiliary_buffer1, src=args.target_tensor)
@@ -365,8 +372,7 @@ def _mixture_strat(val: Any, args: 'ApplyMixtureArgs',
         np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer1)
         right_result = _apply_unitary_strat(op, args, is_density_matrix)
         if right_result is None:
-            right_result = _apply_unitary_from_matrix_strat(
-                op, args, is_density_matrix)
+            right_result = _apply_unitary_from_matrix_strat(op, args, is_density_matrix)
 
         args.out_buffer += prob * right_result
 

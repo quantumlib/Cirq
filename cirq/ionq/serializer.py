@@ -63,34 +63,34 @@ class Serializer:
             raise ValueError('Cannot serialize empty circuit.')
         all_qubits = circuit.all_qubits()
         if any(not isinstance(q, line_qubit.LineQubit) for q in all_qubits):
-            raise ValueError('All qubits must be cirq.LineQubits but were '
-                             f'{set(type(q) for q in all_qubits)}')
+            raise ValueError(
+                'All qubits must be cirq.LineQubits but were ' f'{set(type(q) for q in all_qubits)}'
+            )
         num_qubits = cast(line_qubit.LineQubit, max(all_qubits)).x + 1
-        return {
-            'qubits': num_qubits,
-            'circuit': self._serialize_circuit(circuit, num_qubits)
-        }
+        return {'qubits': num_qubits, 'circuit': self._serialize_circuit(circuit, num_qubits)}
 
-    def _serialize_circuit(self, circuit: 'cirq.Circuit',
-                           num_qubits: int) -> list:
+    def _serialize_circuit(self, circuit: 'cirq.Circuit', num_qubits: int) -> list:
         return [self._serialize_op(op) for moment in circuit for op in moment]
 
     def _serialize_op(self, op: 'cirq.Operation') -> dict:
         if not isinstance(op, gate_operation.GateOperation):
             raise ValueError(
                 'Attempt to serialize circuit with an operation which is '
-                f'not a cirq.GateOperation. Type: {type(op)} Op: {op}.')
+                f'not a cirq.GateOperation. Type: {type(op)} Op: {op}.'
+            )
         gate_op = cast(gate_operation.GateOperation, op)
         targets = [cast(line_qubit.LineQubit, q).x for q in gate_op.qubits]
         if any(x < 0 for x in targets):
             raise ValueError(
                 'IonQ API must use LineQubits from 0 to number of qubits - 1. '
-                f'Instead found line qubits with indices {targets}.')
+                f'Instead found line qubits with indices {targets}.'
+            )
         gate = gate_op.gate
         if protocols.is_parameterized(gate):
             raise ValueError(
                 f'IonQ API does not support parameterized gates. Gate {gate} '
-                'was parameterized. Consider resolving before sending')
+                'was parameterized. Consider resolving before sending'
+            )
         gate_type = type(gate)
         # Check all superclasses.
         for gate_mro_type in gate_type.mro():
@@ -98,38 +98,26 @@ class Serializer:
                 serialized_op = self._dispatch[gate_mro_type](gate, targets)
                 if serialized_op:
                     return serialized_op
-        raise ValueError(f'Gate {gate} acting on {targets} cannot be '
-                         'serialized by IonQ API.')
+        raise ValueError(f'Gate {gate} acting on {targets} cannot be ' 'serialized by IonQ API.')
 
-    def _serialize_x_pow_gate(self, gate: 'cirq.XPowGate',
-                              targets: Sequence[int]) -> dict:
+    def _serialize_x_pow_gate(self, gate: 'cirq.XPowGate', targets: Sequence[int]) -> dict:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {'gate': 'x', 'targets': targets}
         elif self._near_mod_n(gate.exponent, 0.5, 2):
             return {'gate': 'v', 'targets': targets}
         elif self._near_mod_n(gate.exponent, -0.5, 2):
             return {'gate': 'vi', 'targets': targets}
-        return {
-            'gate': 'rx',
-            'targets': targets,
-            'rotation': gate.exponent * np.pi
-        }
+        return {'gate': 'rx', 'targets': targets, 'rotation': gate.exponent * np.pi}
 
-    def _serialize_y_pow_gate(self, gate: 'cirq.YPowGate',
-                              targets: Sequence[int]) -> dict:
+    def _serialize_y_pow_gate(self, gate: 'cirq.YPowGate', targets: Sequence[int]) -> dict:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {
                 'gate': 'y',
                 'targets': targets,
             }
-        return {
-            'gate': 'ry',
-            'targets': targets,
-            'rotation': gate.exponent * np.pi
-        }
+        return {'gate': 'ry', 'targets': targets, 'rotation': gate.exponent * np.pi}
 
-    def _serialize_z_pow_gate(self, gate: 'cirq.ZPowGate',
-                              targets: Sequence[int]) -> dict:
+    def _serialize_z_pow_gate(self, gate: 'cirq.ZPowGate', targets: Sequence[int]) -> dict:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {
                 'gate': 'z',
@@ -149,34 +137,25 @@ class Serializer:
                 'gate': 'ti',
                 'targets': targets,
             }
-        return {
-            'gate': 'rz',
-            'targets': targets,
-            'rotation': gate.exponent * np.pi
-        }
+        return {'gate': 'rz', 'targets': targets, 'rotation': gate.exponent * np.pi}
 
-    def _serialize_xx_pow_gate(self, gate: 'cirq.XXPowGate',
-                               targets: Sequence[int]) -> dict:
+    def _serialize_xx_pow_gate(self, gate: 'cirq.XXPowGate', targets: Sequence[int]) -> dict:
         return self._serialize_parity_pow_gate(gate, targets, 'xx')
 
-    def _serialize_yy_pow_gate(self, gate: 'cirq.YYPowGate',
-                               targets: Sequence[int]) -> dict:
+    def _serialize_yy_pow_gate(self, gate: 'cirq.YYPowGate', targets: Sequence[int]) -> dict:
         return self._serialize_parity_pow_gate(gate, targets, 'yy')
 
-    def _serialize_zz_pow_gate(self, gate: 'cirq.ZZPowGate',
-                               targets: Sequence[int]) -> dict:
+    def _serialize_zz_pow_gate(self, gate: 'cirq.ZZPowGate', targets: Sequence[int]) -> dict:
         return self._serialize_parity_pow_gate(gate, targets, 'zz')
 
-    def _serialize_parity_pow_gate(self, gate: 'cirq.EigenGate',
-                                   targets: Sequence[int], name: str) -> dict:
-        return {
-            'gate': name,
-            'targets': targets,
-            'rotation': gate.exponent * np.pi
-        }
+    def _serialize_parity_pow_gate(
+        self, gate: 'cirq.EigenGate', targets: Sequence[int], name: str
+    ) -> dict:
+        return {'gate': name, 'targets': targets, 'rotation': gate.exponent * np.pi}
 
-    def _serialize_swap_gate(self, gate: 'cirq.SwapPowGate',
-                             targets: Sequence[int]) -> Optional[dict]:
+    def _serialize_swap_gate(
+        self, gate: 'cirq.SwapPowGate', targets: Sequence[int]
+    ) -> Optional[dict]:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {
                 'gate': 'swap',
@@ -184,8 +163,9 @@ class Serializer:
             }
         return None
 
-    def _serialize_h_pow_gate(self, gate: 'cirq.HPowGate',
-                              targets: Sequence[int]) -> Optional[dict]:
+    def _serialize_h_pow_gate(
+        self, gate: 'cirq.HPowGate', targets: Sequence[int]
+    ) -> Optional[dict]:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {
                 'gate': 'h',
@@ -193,8 +173,9 @@ class Serializer:
             }
         return None
 
-    def _serialize_cnot_pow_gate(self, gate: 'cirq.CNotPowGate',
-                                 targets: Sequence[int]) -> Optional[dict]:
+    def _serialize_cnot_pow_gate(
+        self, gate: 'cirq.CNotPowGate', targets: Sequence[int]
+    ) -> Optional[dict]:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {'gate': 'cnot', 'control': targets[0], 'target': targets[1]}
         return None
