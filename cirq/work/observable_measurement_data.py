@@ -63,7 +63,9 @@ def _stats_from_measurements(bitstrings: np.ndarray,
 
     # Terminology: This isn't technically the variance. It's the
     # standard error of the mean, but squared.
-    obs_err = np.var(obs_vals) / len(obs_vals)
+    # Wikipedia uses the term "variance of the sampling distribution
+    # of the sample mean"
+    obs_err = np.var(obs_vals, ddof=1) / len(obs_vals)
     return obs_mean.item(), obs_err.item()
 
 
@@ -297,19 +299,24 @@ class BitstringAccumulator:
 
         return True
 
-    def summary(self, setting: InitObsSetting):
-        return f'{setting}: {self.mean(setting)} +- {self.stddev(setting)}'
+    def summary_string(self, setting: InitObsSetting, number_fmt='.3f'):
+        return f'{setting}: {self.mean(setting):{number_fmt}} +- {self.stderr(setting):{number_fmt}}'
 
     def __repr__(self):
         return repr(list(self.records))
 
     def __str__(self):
         s = f'Accumulator {self.max_setting}; {self.n_repetitions} repetitions\n'
-        s += '\n'.join('  ' + self.summary(setting) for setting in self._simul_settings)
+        s += '\n'.join('  ' + self.summary_string(setting)
+                       for setting in self._simul_settings)
         return s
 
     def covariance(self) -> np.ndarray:
-        """Compute the covariance matrix for all settings.
+        """Compute the covariance matrix for the estimators of all settings.
+
+        Like `variance`, this is the covariance of the sampling distribution
+        of the sample mean. Practically, it is the 'normal' covariance
+        divided by the number of observations (bitstrings).
         """
         if len(self.bitstrings) == 0:
             raise ValueError("No measurements")
@@ -323,10 +330,10 @@ class BitstringAccumulator:
 
         # https://github.com/numpy/numpy/issues/11502
         if all_obs_vals.shape[0] == 1:
-            cov = np.array([[np.var(all_obs_vals[0])]])
+            cov = np.array([[np.var(all_obs_vals[0], ddof=1)]])
             return cov
 
-        cov = np.cov(all_obs_vals, ddof=1)
+        cov = np.cov(all_obs_vals, ddof=1) / all_obs_vals.shape[1]
         return cov
 
     def _validate_setting(self, setting: InitObsSetting, what: str):
@@ -340,11 +347,21 @@ class BitstringAccumulator:
                 f"with this BitstringAccumulator's meas_spec.")
 
     def variance(self, setting: InitObsSetting):
+        """Compute the variance of the estimators of the given setting.
+
+        This is the normal variance divided by the number of samples to estimate
+        the certainty of our estimate of the mean. It is the standard error
+        of the mean, squared.
+
+        This uses `ddof=1` during the call to `np.var` for an unbiased estimator
+        of the variance in a hypothetical infinite population for consistency
+        with `BitstringAccumulator.covariance()` but differs from the default
+        for `np.var`.
+        """
         if len(self.bitstrings) == 0:
             raise ValueError("No measurements")
         self._validate_setting(setting, what='variance')
 
-        # TODO: include contribution from covariance?
         mean, var = _stats_from_measurements(
             bitstrings=self.bitstrings,
             qubit_to_index=self._qubit_to_index,
@@ -367,14 +384,17 @@ class BitstringAccumulator:
 
         return var
 
-    def stddev(self, setting: InitObsSetting):
+    def stderr(self, setting: InitObsSetting):
+        """The standard error of the estimators for `setting`."""
         return np.sqrt(self.variance(setting))
 
     def means(self) -> np.ndarray:
+        """Estimates of the means of the settings in this accumulator."""
         return np.asarray(
             [self.mean(setting) for setting in self.simul_settings])
 
     def mean(self, setting: InitObsSetting):
+        """Estimates of the mean of `setting`."""
         if len(self.bitstrings) == 0:
             raise ValueError("No measurements")
         self._validate_setting(setting, what='mean')

@@ -14,6 +14,7 @@ from cirq.work.observable_grouping import (
 from cirq.work.observable_measurement_data import (
     ObservableMeasuredResult,
     BitstringAccumulator,
+    flatten_grouped_results,
 )
 from cirq.work.sampler import (
     Sampler,)
