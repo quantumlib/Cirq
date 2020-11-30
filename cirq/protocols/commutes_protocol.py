@@ -18,9 +18,8 @@ from typing import Any, TypeVar, Union
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq import linalg, ops
+from cirq import linalg
 from cirq._doc import doc_private
-from cirq.protocols import qid_shape_protocol, unitary_protocol
 from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the unitary method to determine
