@@ -182,12 +182,21 @@ class ParamResolver:
             self._deep_eval_map[value] = self.value_of(v, recursive)
         return self._deep_eval_map[value]
 
-    def _resolve_parameters_(self, param_resolver: 'ParamResolver'
-                            ) -> 'ParamResolver':
-        return ParamResolver({
-            k: protocols.resolve_parameters(v, param_resolver)
-            for k, v in self.param_dict.items()
+    def flatten(self) -> 'ParamResolver':
+        """Returns a resolver with all keys mapped to their final output."""
+        return ParamResolver()._resolve_parameters_(self, recursive=True)
+
+    def _resolve_parameters_(self, param_resolver: 'ParamResolver',
+                             recursive: bool) -> 'ParamResolver':
+        new_dict = {k: k for k in param_resolver}
+        new_dict.update({k: self.value_of(k, recursive) for k in self})
+        new_dict.update({
+            k: param_resolver.value_of(v, recursive)
+            for k, v in new_dict.items()
         })
+        if recursive and self.param_dict:
+            return ParamResolver(new_dict).flatten()
+        return ParamResolver(new_dict)
 
     def __iter__(self) -> Iterator[Union[str, sympy.Symbol]]:
         return iter(self.param_dict)
