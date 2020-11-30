@@ -32,6 +32,7 @@ class CalibrationResult:
     https://developers.google.com/protocol-buffers/docs/proto3#default
     These defaults will converted to `None` by the API client.
     """
+
     code: 'calibration_pb2.CalibrationLayerCode'
     error_message: Optional[str]
     token: Optional[str]

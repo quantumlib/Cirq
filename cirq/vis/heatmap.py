@@ -17,8 +17,7 @@ See examples/bristlecone_heatmap_example.py for an example usage in
 an interactive session.
 """
 
-from typing import (Any, Dict, List, Mapping, Optional, SupportsFloat, Tuple,
-                    Union)
+from typing import Any, Dict, List, Mapping, Optional, SupportsFloat, Tuple, Union
 
 import numpy as np
 import matplotlib as mpl
@@ -32,8 +31,7 @@ from cirq.devices import grid_qubit
 QubitCoordinate = Union[Tuple[int, int], grid_qubit.GridQubit]
 
 # The value map is qubit coordinate -> a type that supports float conversion.
-ValueMap = Union[Dict[grid_qubit.GridQubit, SupportsFloat],
-                 Dict[Tuple[int, int], SupportsFloat]]
+ValueMap = Union[Dict[grid_qubit.GridQubit, SupportsFloat], Dict[Tuple[int, int], SupportsFloat]]
 
 
 def _get_qubit_row_col(qubit: QubitCoordinate) -> Tuple[int, int]:
@@ -55,8 +53,8 @@ def relative_luminance(color: np.ndarray) -> float:
         relative luminance of color in [0, 1].
     """
     rgb = color[:3]
-    rgb = np.where(rgb <= .03928, rgb / 12.92, ((rgb + .055) / 1.055)**2.4)
-    return rgb.dot([.2126, .7152, .0722])
+    rgb = np.where(rgb <= 0.03928, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
+    return rgb.dot([0.2126, 0.7152, 0.0722])
 
 
 class Heatmap:
@@ -81,13 +79,12 @@ class Heatmap:
         """
         # Fail fast if float() fails.
         # Keep the original value object for annotation.
-        self.value_map = {
-            qubit: (float(value), value) for qubit, value in value_map.items()
-        }
+        self.value_map = {qubit: (float(value), value) for qubit, value in value_map.items()}
         return self
 
-    def set_annotation_map(self, annot_map: Mapping[QubitCoordinate, str],
-                           **text_options: str) -> 'Heatmap':
+    def set_annotation_map(
+        self, annot_map: Mapping[QubitCoordinate, str], **text_options: str
+    ) -> 'Heatmap':
         """Sets the annotation text for each qubit.
 
         Note that set_annotation_map() and set_annotation_format()
@@ -98,15 +95,11 @@ class Heatmap:
             text_options: keyword arguments passed to matplotlib.text.Text()
                 when drawing the annotation texts.
         """
-        self.annot_map = {
-            _get_qubit_row_col(qubit): value
-            for qubit, value in annot_map.items()
-        }
+        self.annot_map = {_get_qubit_row_col(qubit): value for qubit, value in annot_map.items()}
         self.annot_kwargs = text_options
         return self
 
-    def set_annotation_format(self, annot_format: str,
-                              **text_options: str) -> 'Heatmap':
+    def set_annotation_format(self, annot_format: str, **text_options: str) -> 'Heatmap':
         """Sets a format string to format values for each qubit.
 
         Args:
@@ -127,10 +120,7 @@ class Heatmap:
 
     def set_url_map(self, url_map: Mapping[QubitCoordinate, str]) -> 'Heatmap':
         """Sets the URLs for each cell."""
-        self.url_map = {
-            _get_qubit_row_col(qubit): value
-            for qubit, value in url_map.items()
-        }
+        self.url_map = {_get_qubit_row_col(qubit): value for qubit, value in url_map.items()}
         return self
 
     def unset_url_map(self) -> 'Heatmap':
@@ -138,11 +128,9 @@ class Heatmap:
         self.url_map = {}
         return self
 
-    def set_colorbar(self,
-                     position: str = 'right',
-                     size: str = '5%',
-                     pad: str = '2%',
-                     **colorbar_options: Any) -> 'Heatmap':
+    def set_colorbar(
+        self, position: str = 'right', size: str = '5%', pad: str = '2%', **colorbar_options: Any
+    ) -> 'Heatmap':
         """Sets location and style of colorbar.
 
         Args:
@@ -155,11 +143,7 @@ class Heatmap:
                 matplotlib.Figure.colorbar().
         """
         self.plot_colorbar = True
-        self.colorbar_location_options = {
-            'position': position,
-            'size': size,
-            'pad': pad
-        }
+        self.colorbar_location_options = {'position': position, 'size': size, 'pad': pad}
         self.colorbar_options = colorbar_options
         return self
 
@@ -168,10 +152,12 @@ class Heatmap:
         self.plot_colorbar = False
         return self
 
-    def set_colormap(self,
-                     colormap: Union[str, mpl.colors.Colormap] = 'viridis',
-                     vmin: Optional[float] = None,
-                     vmax: Optional[float] = None) -> 'Heatmap':
+    def set_colormap(
+        self,
+        colormap: Union[str, mpl.colors.Colormap] = 'viridis',
+        vmin: Optional[float] = None,
+        vmax: Optional[float] = None,
+    ) -> 'Heatmap':
         """Sets the colormap.
 
         Args:
@@ -186,8 +172,9 @@ class Heatmap:
         self.vmax = vmax
         return self
 
-    def plot(self, ax: Optional[plt.Axes] = None, **pcolor_options: Any
-            ) -> Tuple[plt.Axes, mpl_collections.Collection, pd.DataFrame]:
+    def plot(
+        self, ax: Optional[plt.Axes] = None, **pcolor_options: Any
+    ) -> Tuple[plt.Axes, mpl_collections.Collection, pd.DataFrame]:
         """Plots the heatmap on the given Axes.
 
         Args:
@@ -205,9 +192,7 @@ class Heatmap:
         if not ax:
             fig, ax = plt.subplots(figsize=(8, 8))
         # Find the boundary and size of the heatmap.
-        coordinate_list = [
-            _get_qubit_row_col(qubit) for qubit in self.value_map.keys()
-        ]
+        coordinate_list = [_get_qubit_row_col(qubit) for qubit in self.value_map.keys()]
         rows = [row for row, _ in coordinate_list]
         cols = [col for _, col in coordinate_list]
         min_row, max_row = min(rows), max(rows)
@@ -215,35 +200,32 @@ class Heatmap:
         height, width = max_row - min_row + 1, max_col - min_col + 1
         # Construct the (height x width) table of values. Cells with no values
         # are filled with np.nan.
-        value_table = pd.DataFrame(np.nan,
-                                   index=range(min_row, max_row + 1),
-                                   columns=range(min_col, max_col + 1))
+        value_table = pd.DataFrame(
+            np.nan, index=range(min_row, max_row + 1), columns=range(min_col, max_col + 1)
+        )
         for qubit, (float_value, _) in self.value_map.items():
             row, col = _get_qubit_row_col(qubit)
             value_table[col][row] = float_value
         # Construct the (height + 1) x (width + 1) cell boundary tables.
-        x_table = np.array([np.arange(min_col - 0.5, max_col + 1.5)] *
-                           (height + 1))
-        y_table = np.array([np.arange(min_row - 0.5, max_row + 1.5)] *
-                           (width + 1)).transpose()
+        x_table = np.array([np.arange(min_col - 0.5, max_col + 1.5)] * (height + 1))
+        y_table = np.array([np.arange(min_row - 0.5, max_row + 1.5)] * (width + 1)).transpose()
 
         # Construct the URL array as an ordered list of URLs for non-nan cells.
         url_array: List[str] = []
         if self.url_map:
-            url_array = [
-                self.url_map.get((row, col), '')
-                for row, col in value_table.stack().index
-            ]
+            url_array = [self.url_map.get((row, col), '') for row, col in value_table.stack().index]
 
         # Plot the heatmap.
-        mesh = ax.pcolor(x_table,
-                         y_table,
-                         value_table,
-                         vmin=self.vmin,
-                         vmax=self.vmax,
-                         cmap=self.colormap,
-                         urls=url_array,
-                         **pcolor_options)
+        mesh = ax.pcolor(
+            x_table,
+            y_table,
+            value_table,
+            vmin=self.vmin,
+            vmax=self.vmax,
+            cmap=self.colormap,
+            urls=url_array,
+            **pcolor_options,
+        )
         mesh.update_scalarmappable()
         ax.set(xlabel='column', ylabel='row')
         ax.xaxis.set_ticks(np.arange(min_col, max_col + 1))
@@ -261,23 +243,22 @@ class Heatmap:
 
         return ax, mesh, value_table
 
-    def _plot_colorbar(self, mappable: mpl.cm.ScalarMappable,
-                       ax: plt.Axes) -> mpl.colorbar.Colorbar:
+    def _plot_colorbar(
+        self, mappable: mpl.cm.ScalarMappable, ax: plt.Axes
+    ) -> mpl.colorbar.Colorbar:
         """Plots the colorbar. Internal."""
         colorbar_ax = axes_grid1.make_axes_locatable(ax).append_axes(
-            **self.colorbar_location_options)
+            **self.colorbar_location_options
+        )
         position = self.colorbar_location_options.get('position', 'right')
         orien = 'vertical' if position in ('left', 'right') else 'horizontal'
-        colorbar = ax.figure.colorbar(mappable,
-                                      colorbar_ax,
-                                      ax,
-                                      orientation=orien,
-                                      **self.colorbar_options)
+        colorbar = ax.figure.colorbar(
+            mappable, colorbar_ax, ax, orientation=orien, **self.colorbar_options
+        )
         colorbar_ax.tick_params(axis='y', direction='out')
         return colorbar
 
-    def _write_annotations(self, mesh: mpl_collections.Collection,
-                           ax: plt.Axes) -> None:
+    def _write_annotations(self, mesh: mpl_collections.Collection, ax: plt.Axes) -> None:
         """Writes annotations to the center of cells. Internal."""
         for path, facecolor in zip(mesh.get_paths(), mesh.get_facecolors()):
             # Calculate the center of the cell, assuming that it is a square

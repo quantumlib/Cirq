@@ -29,10 +29,11 @@ def get_center(graph: nx.Graph) -> Hashable:
     return max(centralities, key=centralities.get)
 
 
-def get_initial_mapping(logical_graph: nx.Graph,
-                        device_graph: nx.Graph,
-                        random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-                       ) -> Dict[ops.Qid, ops.Qid]:
+def get_initial_mapping(
+    logical_graph: nx.Graph,
+    device_graph: nx.Graph,
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+) -> Dict[ops.Qid, ops.Qid]:
     """Gets an initial mapping of logical to physical qubits for routing.
 
     Args:
@@ -66,18 +67,13 @@ def get_initial_mapping(logical_graph: nx.Graph,
     while unplaced_vertices:
         placed_vertices = set(mapping.values())
         placed_neighbors = {
-            v: placed_vertices.intersection(logical_graph[v])
-            for v in unplaced_vertices
+            v: placed_vertices.intersection(logical_graph[v]) for v in unplaced_vertices
         }
         nums_placed_neighbors = {v: len(N) for v, N in placed_neighbors.items()}
         max_num_placed_neighbors = max(nums_placed_neighbors.values())
-        candidates = [
-            v for v, n in nums_placed_neighbors.items()
-            if n == max_num_placed_neighbors
-        ]
+        candidates = [v for v, n in nums_placed_neighbors.items() if n == max_num_placed_neighbors]
 
-        border = SortedSet().union(*(device_graph[v]
-                                     for v in mapping)).difference(mapping)
+        border = SortedSet().union(*(device_graph[v] for v in mapping)).difference(mapping)
         total_distances = SortedDict()
         for l, p in itertools.product(candidates, border):
             total_distance = 0
@@ -86,9 +82,7 @@ def get_initial_mapping(logical_graph: nx.Graph,
                     total_distance += physical_distances[p, pp]
             total_distances[l, p] = total_distance
         min_total_distance = min(total_distances.values())
-        best_candidates = [
-            lp for lp, d in total_distances.items() if d == min_total_distance
-        ]
+        best_candidates = [lp for lp, d in total_distances.items() if d == min_total_distance]
         choice = prng.choice(len(best_candidates))
         l, p = best_candidates[choice]
         assert p not in mapping

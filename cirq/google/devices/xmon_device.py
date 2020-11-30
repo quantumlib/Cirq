@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, cast, Iterable, List, Optional, Set, TYPE_CHECKING,
-                    FrozenSet)
+from typing import Any, cast, Iterable, List, Optional, Set, TYPE_CHECKING, FrozenSet
 
 from cirq import circuits, devices, ops, protocols, value
 from cirq.google.optimizers import convert_to_xmon_gates
@@ -25,13 +24,15 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class XmonDevice(devices.Device):
-    """A device with qubits placed in a grid. Neighboring qubits can interact.
-    """
+    """A device with qubits placed in a grid. Neighboring qubits can interact."""
 
-    def __init__(self, measurement_duration: 'cirq.DURATION_LIKE',
-                 exp_w_duration: 'cirq.DURATION_LIKE',
-                 exp_11_duration: 'cirq.DURATION_LIKE',
-                 qubits: Iterable[GridQubit]) -> None:
+    def __init__(
+        self,
+        measurement_duration: 'cirq.DURATION_LIKE',
+        exp_w_duration: 'cirq.DURATION_LIKE',
+        exp_11_duration: 'cirq.DURATION_LIKE',
+        qubits: Iterable[GridQubit],
+    ) -> None:
         """Initializes the description of an xmon device.
 
         Args:
@@ -48,8 +49,7 @@ class XmonDevice(devices.Device):
     def qubit_set(self) -> FrozenSet['cirq.GridQubit']:
         return self.qubits
 
-    def decompose_operation(self,
-                            operation: 'cirq.Operation') -> 'cirq.OP_TREE':
+    def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         return convert_to_xmon_gates.ConvertToXmonGates().convert(operation)
 
     def neighbors_of(self, qubit: GridQubit):
@@ -67,8 +67,7 @@ class XmonDevice(devices.Device):
             return self._exp_z_duration
         if isinstance(operation.gate, ops.MeasurementGate):
             return self._measurement_duration
-        if isinstance(operation.gate,
-                      (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate)):
+        if isinstance(operation.gate, (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate)):
             return self._exp_w_duration
         if isinstance(operation.gate, ops.ZPowGate):
             # Z gates are performed in the control software.
@@ -77,11 +76,18 @@ class XmonDevice(devices.Device):
 
     @classmethod
     def is_supported_gate(cls, gate: 'cirq.Gate'):
-        """Returns true if the gate is allowed.
-        """
+        """Returns true if the gate is allowed."""
         return isinstance(
-            gate, (ops.CZPowGate, ops.XPowGate, ops.YPowGate,
-                   ops.PhasedXPowGate, ops.MeasurementGate, ops.ZPowGate))
+            gate,
+            (
+                ops.CZPowGate,
+                ops.XPowGate,
+                ops.YPowGate,
+                ops.PhasedXPowGate,
+                ops.MeasurementGate,
+                ops.ZPowGate,
+            ),
+        )
 
     def validate_gate(self, gate: 'cirq.Gate'):
         """Raises an error if the given gate isn't allowed.
@@ -104,33 +110,30 @@ class XmonDevice(devices.Device):
             if q not in self.qubits:
                 raise ValueError('Qubit not on device: {!r}'.format(q))
 
-        if (len(operation.qubits) == 2 and
-                not isinstance(operation.gate, ops.MeasurementGate)):
+        if len(operation.qubits) == 2 and not isinstance(operation.gate, ops.MeasurementGate):
             p, q = operation.qubits
             if not cast(GridQubit, p).is_adjacent(q):
-                raise ValueError(
-                    'Non-local interaction: {!r}.'.format(operation))
+                raise ValueError('Non-local interaction: {!r}.'.format(operation))
 
     def _check_if_exp11_operation_interacts_with_any(
-            self, exp11_op: 'cirq.GateOperation',
-            others: Iterable['cirq.GateOperation']) -> bool:
-        return any(
-            self._check_if_exp11_operation_interacts(exp11_op, op)
-            for op in others)
+        self, exp11_op: 'cirq.GateOperation', others: Iterable['cirq.GateOperation']
+    ) -> bool:
+        return any(self._check_if_exp11_operation_interacts(exp11_op, op) for op in others)
 
-    def _check_if_exp11_operation_interacts(self,
-                                            exp11_op: 'cirq.GateOperation',
-                                            other_op: 'cirq.GateOperation'
-                                           ) -> bool:
-        if isinstance(other_op.gate,
-                      (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate,
-                       ops.MeasurementGate, ops.ZPowGate)):
+    def _check_if_exp11_operation_interacts(
+        self, exp11_op: 'cirq.GateOperation', other_op: 'cirq.GateOperation'
+    ) -> bool:
+        if isinstance(
+            other_op.gate,
+            (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate, ops.MeasurementGate, ops.ZPowGate),
+        ):
             return False
 
         return any(
             cast(GridQubit, q).is_adjacent(cast(GridQubit, p))
             for q in exp11_op.qubits
-            for p in other_op.qubits)
+            for p in other_op.qubits
+        )
 
     def validate_circuit(self, circuit: 'cirq.Circuit'):
         super().validate_circuit(circuit)
@@ -141,15 +144,14 @@ class XmonDevice(devices.Device):
         for op in moment.operations:
             if isinstance(op.gate, ops.CZPowGate):
                 for other in moment.operations:
-                    if (other is not op and
-                            self._check_if_exp11_operation_interacts(
-                                cast(ops.GateOperation, op),
-                                cast(ops.GateOperation, other))):
-                        raise ValueError(
-                            'Adjacent Exp11 operations: {}.'.format(moment))
+                    if other is not op and self._check_if_exp11_operation_interacts(
+                        cast(ops.GateOperation, op), cast(ops.GateOperation, other)
+                    ):
+                        raise ValueError('Adjacent Exp11 operations: {}.'.format(moment))
 
-    def can_add_operation_into_moment(self, operation: 'cirq.Operation',
-                                      moment: 'cirq.Moment') -> bool:
+    def can_add_operation_into_moment(
+        self, operation: 'cirq.Operation', moment: 'cirq.Moment'
+    ) -> bool:
         self.validate_moment(moment)
 
         if not super().can_add_operation_into_moment(operation, moment):
@@ -157,12 +159,12 @@ class XmonDevice(devices.Device):
         if isinstance(operation.gate, ops.CZPowGate):
             return not self._check_if_exp11_operation_interacts_with_any(
                 cast(ops.GateOperation, operation),
-                cast(Iterable['cirq.GateOperation'], moment.operations))
+                cast(Iterable['cirq.GateOperation'], moment.operations),
+            )
         return True
 
     def at(self, row: int, col: int) -> Optional[GridQubit]:
-        """Returns the qubit at the given position, if there is one, else None.
-        """
+        """Returns the qubit at the given position, if there is one, else None."""
         q = GridQubit(row, col)
         return q if q in self.qubits else None
 
@@ -175,11 +177,13 @@ class XmonDevice(devices.Device):
         return sorted(q for q in self.qubits if q.col == col)
 
     def __repr__(self) -> str:
-        return ('XmonDevice('
-                f'measurement_duration={self._measurement_duration!r}, '
-                f'exp_w_duration={self._exp_w_duration!r}, '
-                f'exp_11_duration={self._exp_z_duration!r} '
-                f'qubits={sorted(self.qubits)!r})')
+        return (
+            'XmonDevice('
+            f'measurement_duration={self._measurement_duration!r}, '
+            f'exp_w_duration={self._exp_w_duration!r}, '
+            f'exp_11_duration={self._exp_z_duration!r} '
+            f'qubits={sorted(self.qubits)!r})'
+        )
 
     def __str__(self) -> str:
         diagram = circuits.TextDiagramDrawer()
@@ -189,13 +193,10 @@ class XmonDevice(devices.Device):
             for q2 in self.neighbors_of(q):
                 diagram.grid_line(q.col, q.row, q2.col, q2.row)
 
-        return diagram.render(horizontal_spacing=3,
-                              vertical_spacing=2,
-                              use_unicode_characters=True)
+        return diagram.render(horizontal_spacing=3, vertical_spacing=2, use_unicode_characters=True)
 
     def _value_equality_values_(self) -> Any:
-        return (self._measurement_duration, self._exp_w_duration,
-                self._exp_z_duration, self.qubits)
+        return (self._measurement_duration, self._exp_w_duration, self._exp_z_duration, self.qubits)
 
 
 def _verify_unique_measurement_keys(operations: Iterable['cirq.Operation']):

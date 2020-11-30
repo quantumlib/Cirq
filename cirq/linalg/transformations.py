@@ -44,8 +44,7 @@ def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
     """
 
     # The eigenvalues are x and -x for some complex unit x. Determine x.
-    squared_phase = np.dot(reflection_matrix[:, 0],
-                           reflection_matrix[0, :])
+    squared_phase = np.dot(reflection_matrix[:, 0], reflection_matrix[0, :])
     phase = complex(np.sqrt(squared_phase))
 
     # Extract +x and -x eigencomponents of the matrix.
@@ -54,16 +53,14 @@ def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
     neg_part = (i - reflection_matrix) * 0.5
 
     # Raise the matrix to a power by raising its eigencomponents to that power.
-    pos_factor = phase**(exponent - 1)
-    neg_factor = pos_factor * complex(-1)**exponent
+    pos_factor = phase ** (exponent - 1)
+    neg_factor = pos_factor * complex(-1) ** exponent
     pos_part_raised = pos_factor * pos_part
     neg_part_raised = neg_part * neg_factor
     return pos_part_raised + neg_part_raised
 
 
-def match_global_phase(a: np.ndarray,
-                       b: np.ndarray
-                       ) -> Tuple[np.ndarray, np.ndarray]:
+def match_global_phase(a: np.ndarray, b: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """Phases the given matrices so that they agree on the phase of one entry.
 
     To maximize precision, the position with the largest entry from one of the
@@ -101,11 +98,12 @@ def match_global_phase(a: np.ndarray,
     return a * dephase(a[k]), b * dephase(b[k])
 
 
-def targeted_left_multiply(left_matrix: np.ndarray,
-                           right_target: np.ndarray,
-                           target_axes: Sequence[int],
-                           out: Optional[np.ndarray] = None
-                           ) -> np.ndarray:
+def targeted_left_multiply(
+    left_matrix: np.ndarray,
+    right_target: np.ndarray,
+    target_axes: Sequence[int],
+    out: Optional[np.ndarray] = None,
+) -> np.ndarray:
     """Left-multiplies the given axes of the target tensor by the given matrix.
 
     Note that the matrix must have a compatible tensor structure.
@@ -153,24 +151,30 @@ def targeted_left_multiply(left_matrix: np.ndarray,
 
     all_indices = set(input_indices + data_indices + tuple(output_indices))
 
-    return np.einsum(left_matrix, input_indices,
-                     right_target, data_indices,
-                     output_indices,
-                     # We would prefer to omit 'optimize=' (it's faster),
-                     # but this is a workaround for a bug in numpy:
-                     #     https://github.com/numpy/numpy/issues/10926
-                     optimize=len(all_indices) >= 26,
-                     # And this is workaround for *another* bug!
-                     # Supposed to be able to just say 'old=old'.
-                     **({'out': out} if out is not None else {}))
+    return np.einsum(
+        left_matrix,
+        input_indices,
+        right_target,
+        data_indices,
+        output_indices,
+        # We would prefer to omit 'optimize=' (it's faster),
+        # but this is a workaround for a bug in numpy:
+        #     https://github.com/numpy/numpy/issues/10926
+        optimize=len(all_indices) >= 26,
+        # And this is workaround for *another* bug!
+        # Supposed to be able to just say 'old=old'.
+        **({'out': out} if out is not None else {}),
+    )
 
 
-def targeted_conjugate_about(tensor: np.ndarray,
-                             target: np.ndarray,
-                             indices: Sequence[int],
-                             conj_indices: Sequence[int] = None,
-                             buffer: Optional[np.ndarray] = None,
-                             out: Optional[np.ndarray] = None) -> np.ndarray:
+def targeted_conjugate_about(
+    tensor: np.ndarray,
+    target: np.ndarray,
+    indices: Sequence[int],
+    conj_indices: Sequence[int] = None,
+    buffer: Optional[np.ndarray] = None,
+    out: Optional[np.ndarray] = None,
+) -> np.ndarray:
     r"""Conjugates the given tensor about the target tensor.
 
     This method computes a target tensor conjugated by another tensor.
@@ -212,21 +216,20 @@ def targeted_conjugate_about(tensor: np.ndarray,
     """
     conj_indices = conj_indices or [i + target.ndim // 2 for i in indices]
     first_multiply = targeted_left_multiply(tensor, target, indices, out=buffer)
-    return targeted_left_multiply(np.conjugate(tensor),
-                                  first_multiply,
-                                  conj_indices,
-                                  out=out)
+    return targeted_left_multiply(np.conjugate(tensor), first_multiply, conj_indices, out=out)
 
 
 _TSliceAtom = Union[int, slice, 'ellipsis']
 _TSlice = Union[_TSliceAtom, Sequence[_TSliceAtom]]
 
 
-def apply_matrix_to_slices(target: np.ndarray,
-                           matrix: np.ndarray,
-                           slices: Sequence[_TSlice],
-                           *,
-                           out: Optional[np.ndarray] = None) -> np.ndarray:
+def apply_matrix_to_slices(
+    target: np.ndarray,
+    matrix: np.ndarray,
+    slices: Sequence[_TSlice],
+    *,
+    out: Optional[np.ndarray] = None,
+) -> np.ndarray:
     """Left-multiplies an NxN matrix onto N slices of a numpy array.
 
     Example:
@@ -287,8 +290,7 @@ def apply_matrix_to_slices(target: np.ndarray,
     return out
 
 
-def partial_trace(tensor: np.ndarray,
-                  keep_indices: List[int]) -> np.ndarray:
+def partial_trace(tensor: np.ndarray, keep_indices: List[int]) -> np.ndarray:
     """Takes the partial trace of a given tensor.
 
     The input tensor must have shape `(d_0, ..., d_{k-1}, d_0, ..., d_{k-1})`.
@@ -309,12 +311,15 @@ def partial_trace(tensor: np.ndarray,
     """
     ndim = tensor.ndim // 2
     if not all(tensor.shape[i] == tensor.shape[i + ndim] for i in range(ndim)):
-        raise ValueError('Tensors must have shape (d_0,...,d_{{k-1}},d_0,...,'
-                         'd_{{k-1}}) but had shape ({}).'.format(tensor.shape))
+        raise ValueError(
+            'Tensors must have shape (d_0,...,d_{{k-1}},d_0,...,'
+            'd_{{k-1}}) but had shape ({}).'.format(tensor.shape)
+        )
     if not all(i < ndim for i in keep_indices):
-        raise ValueError('keep_indices were {} but must be in first half, '
-                         'i.e. have index less that {}.'.format(keep_indices,
-                                                                ndim))
+        raise ValueError(
+            'keep_indices were {} but must be in first half, '
+            'i.e. have index less that {}.'.format(keep_indices, ndim)
+        )
     keep_set = set(keep_indices)
     keep_map = dict(zip(keep_indices, sorted(keep_indices)))
     left_indices = [keep_map[i] if i in keep_set else i for i in range(ndim)]
@@ -322,18 +327,19 @@ def partial_trace(tensor: np.ndarray,
     return np.einsum(tensor, left_indices + right_indices)
 
 
-@deprecated_parameter(deadline='v0.10.0',
-                      fix='Use state_vector instead.',
-                      parameter_desc='wavefunction',
-                      match=lambda args, kwargs: 'wavefunction' in kwargs,
-                      rewrite=lambda args, kwargs:
-                      (args, {('state_vector' if k == 'wavefunction' else k): v
-                              for k, v in kwargs.items()}))
+@deprecated_parameter(
+    deadline='v0.10.0',
+    fix='Use state_vector instead.',
+    parameter_desc='wavefunction',
+    match=lambda args, kwargs: 'wavefunction' in kwargs,
+    rewrite=lambda args, kwargs: (
+        args,
+        {('state_vector' if k == 'wavefunction' else k): v for k, v in kwargs.items()},
+    ),
+)
 def partial_trace_of_state_vector_as_mixture(
-        state_vector: np.ndarray,
-        keep_indices: List[int],
-        *,
-        atol: Union[int, float] = 1e-8) -> Tuple[Tuple[float, np.ndarray], ...]:
+    state_vector: np.ndarray, keep_indices: List[int], *, atol: Union[int, float] = 1e-8
+) -> Tuple[Tuple[float, np.ndarray], ...]:
     """Returns a mixture representing a state vector with only some qubits kept.
 
     The input state vector must have shape `(2,) * n` or `(2 ** n)` where
@@ -362,10 +368,7 @@ def partial_trace_of_state_vector_as_mixture(
     """
 
     # Attempt to do efficient state factoring.
-    state = sub_state_vector(state_vector,
-                             keep_indices,
-                             default=None,
-                             atol=atol)
+    state = sub_state_vector(state_vector, keep_indices, default=None, atol=atol)
     if state is not None:
         return ((1.0, state),)
 
@@ -377,36 +380,37 @@ def partial_trace_of_state_vector_as_mixture(
     elif all(e == 2 for e in state_vector.shape):
         ret_shape = tuple(2 for _ in range(len(keep_indices)))
 
-    rho = np.kron(
-        np.conj(state_vector.reshape(-1, 1)).T,
-        state_vector.reshape(-1, 1)).reshape(
-            (2, 2) * int(np.log2(state_vector.size)))
+    rho = np.kron(np.conj(state_vector.reshape(-1, 1)).T, state_vector.reshape(-1, 1)).reshape(
+        (2, 2) * int(np.log2(state_vector.size))
+    )
     keep_rho = partial_trace(rho, keep_indices).reshape((keep_dims,) * 2)
     eigvals, eigvecs = np.linalg.eigh(keep_rho)
     mixture = tuple(zip(eigvals, [vec.reshape(ret_shape) for vec in eigvecs.T]))
-    return tuple([(float(p[0]), p[1])
-                  for p in mixture
-                  if not protocols.approx_eq(p[0], 0.0)])
+    return tuple([(float(p[0]), p[1]) for p in mixture if not protocols.approx_eq(p[0], 0.0)])
 
 
-@deprecated(deadline='v0.10.0',
-            fix='Use `cirq.partial_trace_of_state_vector_as_mixture` instead.')
+@deprecated(deadline='v0.10.0', fix='Use `cirq.partial_trace_of_state_vector_as_mixture` instead.')
 def wavefunction_partial_trace_as_mixture(*args, **kwargs):
     return partial_trace_of_state_vector_as_mixture(*args, **kwargs)
 
 
-@deprecated_parameter(deadline='v0.10.0',
-                      fix='Use state_vector instead.',
-                      parameter_desc='wavefunction',
-                      match=lambda args, kwargs: 'wavefunction' in kwargs,
-                      rewrite=lambda args, kwargs:
-                      (args, {('state_vector' if k == 'wavefunction' else k): v
-                              for k, v in kwargs.items()}))
-def sub_state_vector(state_vector: np.ndarray,
-                     keep_indices: List[int],
-                     *,
-                     default: TDefault = RaiseValueErrorIfNotProvided,
-                     atol: Union[int, float] = 1e-8) -> np.ndarray:
+@deprecated_parameter(
+    deadline='v0.10.0',
+    fix='Use state_vector instead.',
+    parameter_desc='wavefunction',
+    match=lambda args, kwargs: 'wavefunction' in kwargs,
+    rewrite=lambda args, kwargs: (
+        args,
+        {('state_vector' if k == 'wavefunction' else k): v for k, v in kwargs.items()},
+    ),
+)
+def sub_state_vector(
+    state_vector: np.ndarray,
+    keep_indices: List[int],
+    *,
+    default: TDefault = RaiseValueErrorIfNotProvided,
+    atol: Union[int, float] = 1e-8,
+) -> np.ndarray:
     r"""Attempts to factor a state vector into two parts and return one of them.
 
     The input `state_vector` must have shape ``(2,) * n`` or ``(2 ** n)`` where
@@ -451,8 +455,10 @@ def sub_state_vector(state_vector: np.ndarray,
     """
 
     if not np.log2(state_vector.size).is_integer():
-        raise ValueError("Input state_vector of size {} does not represent a "
-                         "state over qubits.".format(state_vector.size))
+        raise ValueError(
+            "Input state_vector of size {} does not represent a "
+            "state over qubits.".format(state_vector.size)
+        )
 
     n_qubits = int(np.log2(state_vector.size))
     keep_dims = 1 << len(keep_indices)
@@ -463,35 +469,29 @@ def sub_state_vector(state_vector: np.ndarray,
     elif state_vector.shape == (2,) * n_qubits:
         ret_shape = tuple(2 for _ in range(len(keep_indices)))
     else:
-        raise ValueError(
-            "Input state_vector must be shaped like (2 ** n,) or (2,) * n")
+        raise ValueError("Input state_vector must be shaped like (2 ** n,) or (2,) * n")
 
     keep_dims = 1 << len(keep_indices)
     if not np.isclose(np.linalg.norm(state_vector), 1):
         raise ValueError("Input state must be normalized.")
     if len(set(keep_indices)) != len(keep_indices):
-        raise ValueError(
-            "keep_indices were {} but must be unique.".format(keep_indices))
+        raise ValueError("keep_indices were {} but must be unique.".format(keep_indices))
     if any([ind >= n_qubits for ind in keep_indices]):
-        raise ValueError(
-            "keep_indices {} are an invalid subset of the input state vector.")
+        raise ValueError("keep_indices {} are an invalid subset of the input state vector.")
 
     other_qubits = sorted(set(range(n_qubits)) - set(keep_indices))
     candidates = [
-        state_vector[predicates.slice_for_qubits_equal_to(other_qubits,
-                                                          k)].reshape(keep_dims)
+        state_vector[predicates.slice_for_qubits_equal_to(other_qubits, k)].reshape(keep_dims)
         for k in range(1 << len(other_qubits))
     ]
     # The coherence measure is computed using unnormalized candidates.
     best_candidate = max(candidates, key=lambda c: np.linalg.norm(c, 2))
     best_candidate = best_candidate / np.linalg.norm(best_candidate)
     left = np.conj(best_candidate.reshape((keep_dims,))).T
-    coherence_measure = sum(
-        [abs(np.dot(left, c.reshape((keep_dims,))))**2 for c in candidates])
+    coherence_measure = sum([abs(np.dot(left, c.reshape((keep_dims,)))) ** 2 for c in candidates])
 
     if protocols.approx_eq(coherence_measure, 1, atol=atol):
-        return np.exp(
-            2j * np.pi * np.random.random()) * best_candidate.reshape(ret_shape)
+        return np.exp(2j * np.pi * np.random.random()) * best_candidate.reshape(ret_shape)
 
     # Method did not yield a pure state. Fall back to `default` argument.
     if default is not RaiseValueErrorIfNotProvided:
@@ -499,7 +499,8 @@ def sub_state_vector(state_vector: np.ndarray,
 
     raise ValueError(
         "Input state vector could not be factored into pure state over "
-        "indices {}".format(keep_indices))
+        "indices {}".format(keep_indices)
+    )
 
 
 @deprecated(deadline='v0.10.0', fix='Use `cirq.sub_state_vector` instead.')
@@ -521,4 +522,4 @@ def to_special(u: np.ndarray) -> np.ndarray:
     Returns:
         the special unitary matrix
     """
-    return u * (np.linalg.det(u)**(-1 / len(u)))
+    return u * (np.linalg.det(u) ** (-1 / len(u)))

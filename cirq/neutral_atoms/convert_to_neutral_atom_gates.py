@@ -55,11 +55,8 @@ class ConvertToNeutralAtomGates(PointOptimizer):
             return [g.on(op.qubits[0]) for g in gates]
         if mat is not None and len(op.qubits) == 2:
             return optimizers.two_qubit_matrix_to_operations(
-                op.qubits[0],
-                op.qubits[1],
-                mat,
-                allow_partial_czs=False,
-                clean_operations=True)
+                op.qubits[0], op.qubits[1], mat, allow_partial_czs=False, clean_operations=True
+            )
 
         return NotImplemented
 
@@ -69,47 +66,49 @@ class ConvertToNeutralAtomGates(PointOptimizer):
                 "Don't know how to work with {!r}. "
                 "It isn't a native atom operation, "
                 "a 1 or 2 qubit gate with a known unitary, "
-                "or composite.".format(bad))
+                "or composite.".format(bad)
+            )
 
         return protocols.decompose(
             op,
             keep=is_native_neutral_atom_op,
             intercepting_decomposer=self._convert_one,
-            on_stuck_raise=None if self.ignore_failures else on_stuck_raise)
+            on_stuck_raise=None if self.ignore_failures else on_stuck_raise,
+        )
 
     def optimization_at(self, circuit, index, op):
         converted = self.convert(op)
         if len(converted) == 1 and converted[0] is op:
             return None
         return PointOptimizationSummary(
-            clear_span=1,
-            new_operations=converted,
-            clear_qubits=op.qubits)
+            clear_span=1, new_operations=converted, clear_qubits=op.qubits
+        )
 
 
 def is_native_neutral_atom_op(operation: ops.Operation) -> bool:
-    if isinstance(operation, (ops.GateOperation,
-                              ops.ParallelGateOperation)):
+    if isinstance(operation, (ops.GateOperation, ops.ParallelGateOperation)):
         return is_native_neutral_atom_gate(operation.gate)
     return False
 
 
 def is_native_neutral_atom_gate(gate: ops.Gate) -> bool:
-    if not isinstance(gate, (ops.CCXPowGate,
-                             ops.CCZPowGate,
-                             ops.CZPowGate,
-                             ops.CNotPowGate,
-                             ops.XPowGate,
-                             ops.YPowGate,
-                             ops.PhasedXPowGate,
-                             ops.MeasurementGate,
-                             ops.ZPowGate,
-                             ops.IdentityGate)):
+    if not isinstance(
+        gate,
+        (
+            ops.CCXPowGate,
+            ops.CCZPowGate,
+            ops.CZPowGate,
+            ops.CNotPowGate,
+            ops.XPowGate,
+            ops.YPowGate,
+            ops.PhasedXPowGate,
+            ops.MeasurementGate,
+            ops.ZPowGate,
+            ops.IdentityGate,
+        ),
+    ):
         return False
-    if isinstance(gate, (ops.CNotPowGate,
-                         ops.CZPowGate,
-                         ops.CCXPowGate,
-                         ops.CCZPowGate)):
+    if isinstance(gate, (ops.CNotPowGate, ops.CZPowGate, ops.CCXPowGate, ops.CCZPowGate)):
         if not gate.exponent.is_integer():
             return False
     return True

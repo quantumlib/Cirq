@@ -36,9 +36,13 @@ class ActOnCliffordTableauArgs:
     2. Call `record_measurement_result(key, val)` to log a measurement result.
     """
 
-    def __init__(self, tableau: CliffordTableau, axes: Iterable[int],
-                 prng: np.random.RandomState,
-                 log_of_measurement_results: Dict[str, Any]):
+    def __init__(
+        self,
+        tableau: CliffordTableau,
+        axes: Iterable[int],
+        prng: np.random.RandomState,
+        log_of_measurement_results: Dict[str, Any],
+    ):
         """
         Args:
             tableau: The CliffordTableau to act on. Operations are expected to
@@ -71,8 +75,7 @@ class ActOnCliffordTableauArgs:
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
         strats = []
         if allow_decompose:
-            strats.append(
-                _strat_act_on_clifford_tableau_from_single_qubit_decompose)
+            strats.append(_strat_act_on_clifford_tableau_from_single_qubit_decompose)
         for strat in strats:
             result = strat(action, self)
             if result is False:
@@ -85,7 +88,8 @@ class ActOnCliffordTableauArgs:
 
 
 def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
-        val: Any, args: 'cirq.ActOnCliffordTableauArgs') -> bool:
+    val: Any, args: 'cirq.ActOnCliffordTableauArgs'
+) -> bool:
     if num_qubits(val) == 1:
         if not has_unitary(val):
             return NotImplemented
@@ -94,15 +98,12 @@ def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
         if clifford_gate is not None:
             for axis, quarter_turns in clifford_gate.decompose_rotation():
                 if axis == pauli_gates.X:
-                    common_gates.XPowGate(exponent=quarter_turns /
-                                          2)._act_on_(args)
+                    common_gates.XPowGate(exponent=quarter_turns / 2)._act_on_(args)
                 elif axis == pauli_gates.Y:
-                    common_gates.YPowGate(exponent=quarter_turns /
-                                          2)._act_on_(args)
+                    common_gates.YPowGate(exponent=quarter_turns / 2)._act_on_(args)
                 else:
                     assert axis == pauli_gates.Z
-                    common_gates.ZPowGate(exponent=quarter_turns /
-                                          2)._act_on_(args)
+                    common_gates.ZPowGate(exponent=quarter_turns / 2)._act_on_(args)
             return True
 
     return NotImplemented

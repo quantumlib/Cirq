@@ -16,16 +16,13 @@ import pytest
 
 CIRQ_MAINTAINERS = ('TEAM', "@quantumlib/cirq-maintainers")
 
-BASE_MAINTAINERS = {
-    CIRQ_MAINTAINERS, ('USERNAME', "@vtomole"), ('USERNAME', "@cduck")
-}
+BASE_MAINTAINERS = {CIRQ_MAINTAINERS, ('USERNAME', "@vtomole"), ('USERNAME', "@cduck")}
 
 GOOGLE_TEAM = {('USERNAME', "@wcourtney")}
 
 GOOGLE_MAINTAINERS = BASE_MAINTAINERS.union(GOOGLE_TEAM)
 
-IONQ_TEAM = {('USERNAME', u)
-             for u in ["@dabacon", "@ColemanCollins", "@nakardo", "@gmauricio"]}
+IONQ_TEAM = {('USERNAME', u) for u in ["@dabacon", "@ColemanCollins", "@nakardo", "@gmauricio"]}
 IONQ_MAINTAINERS = BASE_MAINTAINERS.union(IONQ_TEAM)
 
 PASQAL_TEAM = {('USERNAME', u) for u in ["@HGSilveri"]}
@@ -47,15 +44,18 @@ def _vendor_module_testcases(mod_name, expected_group):
     ]
 
 
-@pytest.mark.parametrize("pattern,expected", [
-    ("any_file", BASE_MAINTAINERS),
-    ("in/any/dir/any_file.py", BASE_MAINTAINERS),
-    ("cirq/contrib/bla.py", BASE_MAINTAINERS),
-    *_vendor_module_testcases("aqt", AQT_MAINTAINERS),
-    *_vendor_module_testcases("ionq", IONQ_MAINTAINERS),
-    *_vendor_module_testcases("google", GOOGLE_MAINTAINERS),
-    *_vendor_module_testcases("pasqal", PASQAL_MAINTAINERS),
-])
+@pytest.mark.parametrize(
+    "pattern,expected",
+    [
+        ("any_file", BASE_MAINTAINERS),
+        ("in/any/dir/any_file.py", BASE_MAINTAINERS),
+        ("cirq/contrib/bla.py", BASE_MAINTAINERS),
+        *_vendor_module_testcases("aqt", AQT_MAINTAINERS),
+        *_vendor_module_testcases("ionq", IONQ_MAINTAINERS),
+        *_vendor_module_testcases("google", GOOGLE_MAINTAINERS),
+        *_vendor_module_testcases("pasqal", PASQAL_MAINTAINERS),
+    ],
+)
 def test_codeowners(pattern, expected):
     # for some reason the codeowners library does not publish all the wheels
     # for Mac and Windows. Eventually we could write our own codeowners parser,

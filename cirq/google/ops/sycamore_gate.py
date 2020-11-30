@@ -72,4 +72,5 @@ document(
            is close to the gates that were used to demonstrate quantum
            supremacy used in this paper:
            https://www.nature.com/articles/s41586-019-1666-5
-           """)
+           """,
+)

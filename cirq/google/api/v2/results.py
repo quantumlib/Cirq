@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (cast, Dict, Iterable, Iterator, List, NamedTuple, Optional,
-                    Set, TYPE_CHECKING)
+from typing import cast, Dict, Iterable, Iterator, List, NamedTuple, Optional, Set, TYPE_CHECKING
 
 from collections import OrderedDict
 import numpy as np
@@ -30,12 +29,16 @@ if TYPE_CHECKING:
 
 
 class MeasureInfo(
-        NamedTuple('MeasureInfo', [
+    NamedTuple(
+        'MeasureInfo',
+        [
             ('key', str),
             ('qubits', List['cirq.GridQubit']),
             ('slot', int),
             ('invert_mask', List[bool]),
-        ])):
+        ],
+    )
+):
     """Extra info about a single measurement within a circuit.
 
     Attributes:
@@ -78,10 +81,12 @@ def _circuit_measurements(circuit: 'cirq.Circuit') -> Iterator[MeasureInfo]:
     for i, moment in enumerate(circuit):
         for op in moment:
             if isinstance(op.gate, ops.MeasurementGate):
-                yield MeasureInfo(key=op.gate.key,
-                                  qubits=_grid_qubits(op),
-                                  slot=i,
-                                  invert_mask=list(op.gate.full_invert_mask()))
+                yield MeasureInfo(
+                    key=op.gate.key,
+                    qubits=_grid_qubits(op),
+                    slot=i,
+                    invert_mask=list(op.gate.full_invert_mask()),
+                )
 
 
 def _grid_qubits(op: 'cirq.Operation') -> List['cirq.GridQubit']:
@@ -112,10 +117,10 @@ def unpack_bits(data: bytes, repetitions: int) -> np.ndarray:
 
 
 def results_to_proto(
-        trial_sweeps: Iterable[Iterable[study.Result]],
-        measurements: List[MeasureInfo],
-        *,
-        out: Optional[result_pb2.Result] = None,
+    trial_sweeps: Iterable[Iterable[study.Result]],
+    measurements: List[MeasureInfo],
+    *,
+    out: Optional[result_pb2.Result] = None,
 ) -> result_pb2.Result:
     """Converts trial results from multiple sweeps to v2 protobuf message.
 
@@ -133,8 +138,7 @@ def results_to_proto(
             if i == 0:
                 sweep_result.repetitions = trial_result.repetitions
             elif trial_result.repetitions != sweep_result.repetitions:
-                raise ValueError(
-                    'different numbers of repetitions in one sweep')
+                raise ValueError('different numbers of repetitions in one sweep')
             pr = sweep_result.parameterized_results.add()
             pr.params.assignments.update(trial_result.params.param_dict)
             for m in measurements:
@@ -147,9 +151,10 @@ def results_to_proto(
                     qmr.results = pack_bits(m_data[:, i])
     return out
 
+
 def results_from_proto(
-        msg: result_pb2.Result,
-        measurements: List[MeasureInfo] = None,
+    msg: result_pb2.Result,
+    measurements: List[MeasureInfo] = None,
 ) -> List[List[study.Result]]:
     """Converts a v2 result proto into List of list of trial results.
 
@@ -166,14 +171,13 @@ def results_from_proto(
 
     measure_map = {m.key: m for m in measurements} if measurements else None
     return [
-        _trial_sweep_from_proto(sweep_result, measure_map)
-        for sweep_result in msg.sweep_results
+        _trial_sweep_from_proto(sweep_result, measure_map) for sweep_result in msg.sweep_results
     ]
 
 
 def _trial_sweep_from_proto(
-        msg: result_pb2.SweepResult,
-        measure_map: Dict[str, MeasureInfo] = None,
+    msg: result_pb2.SweepResult,
+    measure_map: Dict[str, MeasureInfo] = None,
 ) -> List[study.Result]:
     """Converts a SweepResult proto into List of list of trial results.
 
@@ -192,17 +196,14 @@ def _trial_sweep_from_proto(
     for pr in msg.parameterized_results:
         m_data: Dict[str, np.ndarray] = {}
         for mr in pr.measurement_results:
-            qubit_results: OrderedDict[devices.GridQubit, np.
-                                       ndarray] = OrderedDict()
+            qubit_results: OrderedDict[devices.GridQubit, np.ndarray] = OrderedDict()
             for qmr in mr.qubit_measurement_results:
                 qubit = v2.grid_qubit_from_proto_id(qmr.qubit.id)
                 if qubit in qubit_results:
                     raise ValueError('qubit already exists: {}'.format(qubit))
                 qubit_results[qubit] = unpack_bits(qmr.results, msg.repetitions)
             if measure_map:
-                ordered_results = [
-                    qubit_results[qubit] for qubit in measure_map[mr.key].qubits
-                ]
+                ordered_results = [qubit_results[qubit] for qubit in measure_map[mr.key].qubits]
             else:
                 ordered_results = list(qubit_results.values())
             m_data[mr.key] = np.array(ordered_results).transpose()
@@ -210,5 +211,6 @@ def _trial_sweep_from_proto(
             study.Result.from_single_parameter_set(
                 params=study.ParamResolver(dict(pr.params.assignments)),
                 measurements=m_data,
-            ))
+            )
+        )
     return trial_sweep

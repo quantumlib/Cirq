@@ -26,8 +26,8 @@ def test_add_equality_group_correct():
     eq.add_equality_group(fractions.Fraction(1, 2), fractions.Fraction(2, 4))
 
     eq.add_equality_group(
-        fractions.Fraction(2, 3),
-        fractions.Fraction(12, 18), fractions.Fraction(14, 21))
+        fractions.Fraction(2, 3), fractions.Fraction(12, 18), fractions.Fraction(14, 21)
+    )
 
     eq.add_equality_group(2, 2.0, fractions.Fraction(2, 1))
 
@@ -239,12 +239,10 @@ def test_fails_when_not_commutative():
             return not self == other
 
     with pytest.raises(AssertionError, match="can't be in the same"):
-        eq.add_equality_group(NotCommutativeImplementation(0),
-                              NotCommutativeImplementation(1))
+        eq.add_equality_group(NotCommutativeImplementation(0), NotCommutativeImplementation(1))
 
     with pytest.raises(AssertionError, match="can't be in the same"):
-        eq.add_equality_group(NotCommutativeImplementation(1),
-                              NotCommutativeImplementation(0))
+        eq.add_equality_group(NotCommutativeImplementation(1), NotCommutativeImplementation(0))
 
 
 def test_works_on_types():

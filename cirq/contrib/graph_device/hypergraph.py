@@ -14,19 +14,18 @@
 
 import itertools
 import random
-from typing import (Any, Dict, FrozenSet, Hashable, Iterable, Mapping, Optional,
-                    Set, Tuple, Union)
+from typing import Any, Dict, FrozenSet, Hashable, Iterable, Mapping, Optional, Set, Tuple, Union
 
 AdjacencyList = Set[FrozenSet[Hashable]]
 
 
 class UndirectedHypergraph:
-
-    def __init__(self,
-                 *,
-                 vertices: Optional[Iterable[Hashable]] = None,
-                 labelled_edges: Optional[Dict[Iterable[Hashable], Any]] = None
-                ) -> None:
+    def __init__(
+        self,
+        *,
+        vertices: Optional[Iterable[Hashable]] = None,
+        labelled_edges: Optional[Dict[Iterable[Hashable], Any]] = None,
+    ) -> None:
         """A labelled, undirected hypergraph.
 
         Args:
@@ -75,9 +74,9 @@ class UndirectedHypergraph:
             self.remove_vertex(vertex)
 
     def add_edge(
-            self,
-            vertices: Iterable[Hashable],
-            label: Any = None,
+        self,
+        vertices: Iterable[Hashable],
+        label: Any = None,
     ) -> None:
         vertices = frozenset(vertices)
         self.add_vertices(vertices)
@@ -90,8 +89,7 @@ class UndirectedHypergraph:
             self.add_edge(vertices, label)
 
     def __eq__(self, other):
-        return (self.vertices == other.vertices and
-                self.labelled_edges == other.labelled_edges)
+        return self.vertices == other.vertices and self.labelled_edges == other.labelled_edges
 
     def __iadd__(self, other):
         self.add_vertices(other.vertices)
@@ -99,8 +97,7 @@ class UndirectedHypergraph:
         return self
 
     def __copy__(self):
-        return UndirectedHypergraph(vertices=self.vertices,
-                                    labelled_edges=self.labelled_edges)
+        return UndirectedHypergraph(vertices=self.vertices, labelled_edges=self.labelled_edges)
 
     def __add__(self, other):
         sum_hypergraph = self.__copy__()
@@ -108,8 +105,9 @@ class UndirectedHypergraph:
         return sum_hypergraph
 
     @classmethod
-    def random(cls, vertices: Union[int, Iterable],
-               edge_probs: Mapping[int, float]) -> 'UndirectedHypergraph':
+    def random(
+        cls, vertices: Union[int, Iterable], edge_probs: Mapping[int, float]
+    ) -> 'UndirectedHypergraph':
         """A random hypergraph.
 
         Every possible edge is included with probability edge_prob[len(edge)].
@@ -131,6 +129,5 @@ class UndirectedHypergraph:
             for potential_edge in itertools.combinations(vertices, edge_size):
                 if random.random() < edge_prob:
                     edges.append(potential_edge)
-        labelled_edges = {edge: None for edge in edges
-                         }  # type: Dict[Iterable[Hashable], Any]
+        labelled_edges = {edge: None for edge in edges}  # type: Dict[Iterable[Hashable], Any]
         return cls(vertices=vertices, labelled_edges=labelled_edges)

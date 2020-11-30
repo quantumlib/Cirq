@@ -19,26 +19,27 @@ if TYPE_CHECKING:
     import cirq
 
 
-@deprecated(deadline='v0.10',
-            fix='Use cirq.decompose_two_qubit_interaction_into_four_fsim_gates.'
-           )
+@deprecated(deadline='v0.10', fix='Use cirq.decompose_two_qubit_interaction_into_four_fsim_gates.')
 def decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
-        interaction: Union['cirq.Operation', 'cirq.Gate', np.ndarray, Any],
-        *,
-        fsim_gate: Union['cirq.FSimGate', 'cirq.ISwapPowGate'],
-        qubits: Sequence['cirq.Qid'] = None) -> 'cirq.Circuit':
+    interaction: Union['cirq.Operation', 'cirq.Gate', np.ndarray, Any],
+    *,
+    fsim_gate: Union['cirq.FSimGate', 'cirq.ISwapPowGate'],
+    qubits: Sequence['cirq.Qid'] = None,
+) -> 'cirq.Circuit':
     circuit = decompose_two_qubit_interaction_into_four_fsim_gates(
-        interaction, fsim_gate=fsim_gate, qubits=qubits)
+        interaction, fsim_gate=fsim_gate, qubits=qubits
+    )
     merge_single_qubit_gates.MergeSingleQubitGates().optimize_circuit(circuit)
     drop_empty_moments.DropEmptyMoments().optimize_circuit(circuit)
     return circuit
 
 
 def decompose_two_qubit_interaction_into_four_fsim_gates(
-        interaction: Union['cirq.Operation', 'cirq.Gate', np.ndarray, Any],
-        *,
-        fsim_gate: Union['cirq.FSimGate', 'cirq.ISwapPowGate'],
-        qubits: Sequence['cirq.Qid'] = None) -> 'cirq.Circuit':
+    interaction: Union['cirq.Operation', 'cirq.Gate', np.ndarray, Any],
+    *,
+    fsim_gate: Union['cirq.FSimGate', 'cirq.ISwapPowGate'],
+    qubits: Sequence['cirq.Qid'] = None,
+) -> 'cirq.Circuit':
     """Decomposes operations into an FSimGate near theta=pi/2, phi=0.
 
     This decomposition is guaranteed to use exactly four of the given FSim
@@ -83,14 +84,11 @@ def decompose_two_qubit_interaction_into_four_fsim_gates(
         raise ValueError(f'Expected a pair of qubits, but got {qubits!r}.')
     kak = linalg.kak_decomposition(interaction)
 
-    result_using_b_gates = _decompose_two_qubit_interaction_into_two_b_gates(
-        kak, qubits=qubits)
+    result_using_b_gates = _decompose_two_qubit_interaction_into_two_b_gates(kak, qubits=qubits)
 
-    b_decomposition = _decompose_b_gate_into_two_fsims(fsim_gate=mapped_gate,
-                                                       qubits=qubits)
+    b_decomposition = _decompose_b_gate_into_two_fsims(fsim_gate=mapped_gate, qubits=qubits)
     b_decomposition = [
-        fsim_gate(*op.qubits) if op.gate == mapped_gate else op
-        for op in b_decomposition
+        fsim_gate(*op.qubits) if op.gate == mapped_gate else op for op in b_decomposition
     ]
 
     result = circuits.Circuit()
@@ -113,22 +111,23 @@ def _sticky_0_to_1(v: float, *, atol: float) -> Optional[float]:
 
 
 def _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops(
-        *,
-        qubits: Sequence['cirq.Qid'],
-        fsim_gate: 'cirq.FSimGate',
-        canonical_x_kak_coefficient: float,
-        canonical_y_kak_coefficient: float,
-        atol: float = 1e-8) -> List['cirq.Operation']:
+    *,
+    qubits: Sequence['cirq.Qid'],
+    fsim_gate: 'cirq.FSimGate',
+    canonical_x_kak_coefficient: float,
+    canonical_y_kak_coefficient: float,
+    atol: float = 1e-8,
+) -> List['cirq.Operation']:
     x = canonical_x_kak_coefficient
     y = canonical_y_kak_coefficient
     assert 0 <= y <= x <= np.pi / 4
 
-    eta = np.sin(x)**2 * np.cos(y)**2 + np.cos(x)**2 * np.sin(y)**2
+    eta = np.sin(x) ** 2 * np.cos(y) ** 2 + np.cos(x) ** 2 * np.sin(y) ** 2
     xi = abs(np.sin(2 * x) * np.sin(2 * y))
 
     t = fsim_gate.phi / 2
-    kappa = np.sin(fsim_gate.theta)**2 - np.sin(t)**2
-    s_sum = (eta - np.sin(t)**2) / kappa
+    kappa = np.sin(fsim_gate.theta) ** 2 - np.sin(t) ** 2
+    s_sum = (eta - np.sin(t) ** 2) / kappa
     s_dif = 0.5 * xi / kappa
 
     a_dif = _sticky_0_to_1(s_sum + s_dif, atol=atol)
@@ -136,7 +135,8 @@ def _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops(
     if a_dif is None or a_sum is None:
         raise ValueError(
             f'Failed to synthesize XX^{x/np.pi}·YY^{y/np.pi} from two '
-            f'{fsim_gate!r} separated by single qubit operations.')
+            f'{fsim_gate!r} separated by single qubit operations.'
+        )
 
     x_dif = np.arcsin(np.sqrt(a_dif))
     x_sum = np.arcsin(np.sqrt(a_sum))
@@ -169,8 +169,8 @@ class _BGate(ops.Gate):
     def _decompose_(self, qubits):
         a, b = qubits
         return [
-            ops.XX(a, b)**-0.5,
-            ops.YY(a, b)**-0.25,
+            ops.XX(a, b) ** -0.5,
+            ops.YY(a, b) ** -0.25,
         ]
 
 
@@ -178,39 +178,44 @@ _B = _BGate()
 
 
 def _decompose_two_qubit_interaction_into_two_b_gates(
-        interaction: Union['cirq.Operation', 'cirq.Gate', np.ndarray, Any], *,
-        qubits: Sequence['cirq.Qid']) -> List['cirq.Operation']:
+    interaction: Union['cirq.Operation', 'cirq.Gate', np.ndarray, Any],
+    *,
+    qubits: Sequence['cirq.Qid'],
+) -> List['cirq.Operation']:
     kak = linalg.kak_decomposition(interaction)
 
     result = _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
-        qubits, kak.interaction_coefficients)
+        qubits, kak.interaction_coefficients
+    )
 
     return list(
-        _fix_single_qubit_gates_around_kak_interaction(desired=kak,
-                                                       qubits=qubits,
-                                                       operations=result))
+        _fix_single_qubit_gates_around_kak_interaction(
+            desired=kak, qubits=qubits, operations=result
+        )
+    )
 
 
-def _decompose_b_gate_into_two_fsims(*, fsim_gate: 'cirq.FSimGate',
-                                     qubits: Sequence['cirq.Qid']
-                                    ) -> List['cirq.Operation']:
+def _decompose_b_gate_into_two_fsims(
+    *, fsim_gate: 'cirq.FSimGate', qubits: Sequence['cirq.Qid']
+) -> List['cirq.Operation']:
     kak = linalg.kak_decomposition(_B)
 
     result = _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops(
         qubits=qubits,
         fsim_gate=fsim_gate,
         canonical_x_kak_coefficient=kak.interaction_coefficients[0],
-        canonical_y_kak_coefficient=kak.interaction_coefficients[1])
+        canonical_y_kak_coefficient=kak.interaction_coefficients[1],
+    )
 
     return list(
-        _fix_single_qubit_gates_around_kak_interaction(desired=kak,
-                                                       qubits=qubits,
-                                                       operations=result))
+        _fix_single_qubit_gates_around_kak_interaction(
+            desired=kak, qubits=qubits, operations=result
+        )
+    )
 
 
 def _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
-        qubits: Sequence['cirq.Qid'],
-        kak_interaction_coefficients: Iterable[float]
+    qubits: Sequence['cirq.Qid'], kak_interaction_coefficients: Iterable[float]
 ) -> List['cirq.Operation']:
     """
     References:
@@ -219,7 +224,7 @@ def _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
     """
     a, b = qubits
     x, y, z = kak_interaction_coefficients
-    r = (np.sin(y) * np.cos(z))**2
+    r = (np.sin(y) * np.cos(z)) ** 2
     r = max(0.0, r)  # Clamp out-of-range floating point error.
     if r > 0.499999999999:
         rb = [
@@ -245,10 +250,10 @@ def _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
 
 
 def _fix_single_qubit_gates_around_kak_interaction(
-        *,
-        desired: 'cirq.KakDecomposition',
-        operations: List['cirq.Operation'],
-        qubits: Sequence['cirq.Qid'],
+    *,
+    desired: 'cirq.KakDecomposition',
+    operations: List['cirq.Operation'],
+    qubits: Sequence['cirq.Qid'],
 ) -> Iterator['cirq.Operation']:
     """Adds single qubit operations to complete a desired interaction.
 
@@ -263,8 +268,7 @@ def _fix_single_qubit_gates_around_kak_interaction(
         A list of operations whose kak decomposition approximately equals the
         desired kak decomposition.
     """
-    actual = linalg.kak_decomposition(
-        circuits.Circuit(operations).unitary(qubit_order=qubits))
+    actual = linalg.kak_decomposition(circuits.Circuit(operations).unitary(qubit_order=qubits))
 
     def dag(a: np.ndarray) -> np.ndarray:
         return np.transpose(np.conjugate(a))
@@ -272,11 +276,13 @@ def _fix_single_qubit_gates_around_kak_interaction(
     for k in range(2):
         g = ops.MatrixGate(
             dag(actual.single_qubit_operations_before[k])
-            @ desired.single_qubit_operations_before[k])
+            @ desired.single_qubit_operations_before[k]
+        )
         yield g(qubits[k])
     yield from operations
     for k in range(2):
-        g = ops.MatrixGate(desired.single_qubit_operations_after[k] @ dag(
-            actual.single_qubit_operations_after[k]))
+        g = ops.MatrixGate(
+            desired.single_qubit_operations_after[k] @ dag(actual.single_qubit_operations_after[k])
+        )
         yield g(qubits[k])
     yield ops.GlobalPhaseOperation(desired.global_phase / actual.global_phase)
