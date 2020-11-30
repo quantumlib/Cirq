@@ -18,17 +18,17 @@ landing_page:
     - heading: Intermediate
       description: Use Cirq for intermediate-level subroutines and algorithms.
       items:
-      - heading: Quantum Variational Algorithm
+      - heading: Quantum variational algorithm
         description: Use the variational quantum eigensolver to find the ground state of the Ising model.
         path: /cirq/tutorials/variational_algorithm
         icon:
           name: menu_book
-      - heading: Approximate Optimization
+      - heading: Approximate optimization
         description: Use a quantum computer to find approximately optimal cuts in a graph.
         path: /cirq/tutorials/qaoa
         icon:
           name: menu_book
-      - heading: Quantum Walks
+      - heading: Quantum walks
         description: Demonstration of classical and quantum random walks on a graph.
         path: /cirq/tutorials/quantum_walks
         icon:
@@ -38,17 +38,17 @@ landing_page:
     - heading: Advanced
       description: Utilize Cirq features to implement advanced quantum algorithms.
       items:
-      - heading: Hidden Linear Function
+      - heading: Hidden linear function problem
         description: Find a hidden vector with a constant depth quantum circuit.
         path: /cirq/tutorials/hidden_linear_function
         icon:
           name: menu_book
-      - heading: Rabi Oscillation
+      - heading: Rabi oscillation experiment
         description: Example of using sweeps and symbols to show rotation of a qubit by different angles.
         path: /cirq/tutorials/rabi_oscillations
         icon:
           name: menu_book
-      - heading: Shor's Algorithm
+      - heading: Shor's algorithm
         description: Factor numbers using a quantum computer.
         path: /cirq/tutorials/shor
         icon:
@@ -59,24 +59,24 @@ landing_page:
 
     - heading: Beginner
       items:
-      - heading: Hello Qubit
+      - heading: Hello qubit
         description: Simple first program showing how to create a quantum circuit.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/hello_qubit.py
         icon:
           name: code
 
-      - heading: Deutsch's Algorithm
+      - heading: Deutsch's algorithm
         description: Textbook example of the simplest quantum advantage.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/deutsch.py
         icon:
           name: code
-      - heading: Bernstein-Vazirani Algorithm
+      - heading: Bernstein-Vazirani algorithm
         description: Textbook algorithm determining a global property of a function with surprisingly few calls to it.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/bernstein_vazirani.py
         icon:
           name: code
 
-      - heading: Bell Inequality
+      - heading: Bell inequality
         description: Demonstration of a Bell inequality which shows impossibility of local hidden variable theories.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/bell_inequality.py
         icon:
@@ -86,24 +86,24 @@ landing_page:
         path: https://github.com/quantumlib/Cirq/blob/master/examples/bb84.py
         icon:
           name: code
-      - heading: Noisy Simulation
+      - heading: Noisy simulation
         description: How to use a noisy simulator to execute quantum circuits.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/noisy_simulation_example.py
         icon:
           name: code
 
-      - heading: Qubit Placement
+      - heading: Qubit placement
         description: How to find a line of adjacent qubits on a device.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/place_on_bristlecone.py
         icon:
           name: code
-      - heading: Quantum Teleportation
+      - heading: Quantum teleportation
         description: A demonstration of using 2 classical bits to transport a quantum state from one
           qubit to another.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/quantum_teleportation.py
         icon:
           name: code
-      - heading: Superdense Coding
+      - heading: Superdense coding
         description: Transmit 2 classical bits using one quantum bit.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/superdense_coding.py
         icon:
@@ -116,28 +116,28 @@ landing_page:
         path: https://github.com/quantumlib/Cirq/blob/master/examples/basic_arithmetic.py
         icon:
           name: code
-      - heading: Grover's Algorithm
+      - heading: Grover's algorithm
         description: Use a quantum computer to find a needle in a haystack.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/grover.py
         icon:
           name: code
 
-      - heading: Shor's Code
+      - heading: Shor's code
         description: Quantum error correction with Shor's nine-qubit code.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/shors_code.py
         icon:
           name: code
-      - heading: Quantum Fourier Transform
+      - heading: Quantum Fourier transform
         description: Change from the computational basis to the frequency basis and vice versa.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/quantum_fourier_transform.py
         icon:
           name: code
-      - heading: Phase Estimation
+      - heading: Phase estimation
         description: Find the eigenvalues of a unitary operator.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/phase_estimator.py
         icon:
           name: code
-      - heading: Swap Networks
+      - heading: Swap networks
         description: Algorithm for efficiently emulating full connectivity on a limited connectivity grid of qubits.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/swap_networks.py
         icon:
@@ -145,7 +145,7 @@ landing_page:
 
     - heading: Advanced
       items:
-      - heading: Direct Fidelity
+      - heading: Direct fidelity estimation
         description: Direct fidelity estimation to distinguish a desired state fromt he actual state using few Pauli measurements.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/direct_fidelity_estimation.py
         icon:
