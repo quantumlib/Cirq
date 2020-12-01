@@ -290,9 +290,7 @@ class _ParamFlattener(resolver.ParamResolver):
         if self.get_param_name == self.default_get_param_name:
             return f'_ParamFlattener({self.param_dict!r})'
         else:
-            return (
-                f'_ParamFlattener({self.param_dict!r}, ' f'get_param_name={self.get_param_name!r})'
-            )
+            return f'_ParamFlattener({self.param_dict!r}, get_param_name={self.get_param_name!r})'
 
     def flatten(self, val: Any) -> Any:
         """Returns a copy of `val` with any symbols or expressions replaced with

@@ -112,7 +112,7 @@ class Calibration(abc.Mapping):
         return f'Calibration(keys={list(sorted(self.keys()))})'
 
     def __repr__(self) -> str:
-        return 'cirq.google.Calibration(metrics=' f'{repr(dict(self._metric_dict))})'
+        return f'cirq.google.Calibration(metrics={dict(self._metric_dict)!r})'
 
     def to_proto(self) -> v2.metrics_pb2.MetricsSnapshot:
         """Reconstruct the protobuf message represented by this class."""
@@ -177,11 +177,11 @@ class Calibration(abc.Mapping):
             values are not single floats.
         """
         metrics = self[key]
-        assert all(len(k) == 1 for k in metrics.keys()), (
-            'Heatmaps are only supported if all the targets in a metric' ' are single qubits.'
-        )
-        assert all(len(k) == 1 for k in metrics.values()), (
-            'Heatmaps are only supported if all the values in a metric' ' are single metric values.'
-        )
+        assert all(
+            len(k) == 1 for k in metrics.keys()
+        ), 'Heatmaps are only supported if all the targets in a metric are single qubits.'
+        assert all(
+            len(k) == 1 for k in metrics.values()
+        ), 'Heatmaps are only supported if all the values in a metric are single metric values.'
         value_map = {qubit: value for (qubit,), (value,) in metrics.items()}
         return vis.Heatmap(value_map)

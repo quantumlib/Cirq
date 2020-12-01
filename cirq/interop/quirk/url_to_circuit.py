@@ -300,14 +300,10 @@ def _parse_cols_into_composite_cell(
 
 def _register_custom_gate(gate_json: Any, registry: Dict[str, CellMaker]):
     if not isinstance(gate_json, Dict):
-        raise ValueError(
-            f'Custom gate json must be a dictionary.\n' f'Custom gate json={gate_json!r}.'
-        )
+        raise ValueError(f'Custom gate json must be a dictionary.\nCustom gate json={gate_json!r}.')
 
     if 'id' not in gate_json:
-        raise ValueError(
-            f'Custom gate json must have an id key.\n' f'Custom gate json={gate_json!r}.'
-        )
+        raise ValueError(f'Custom gate json must have an id key.\nCustom gate json={gate_json!r}.')
     identifier = gate_json['id']
     if identifier in registry:
         raise ValueError(f'Custom gate with duplicate identifier: {identifier!r}')
@@ -321,7 +317,7 @@ def _register_custom_gate(gate_json: Any, registry: Dict[str, CellMaker]):
     if 'matrix' in gate_json:
         if not isinstance(gate_json['matrix'], str):
             raise ValueError(
-                f'Custom gate matrix json must be a string.\n' f'Custom gate json={gate_json!r}.'
+                f'Custom gate matrix json must be a string.\nCustom gate json={gate_json!r}.'
             )
         gate = ops.MatrixGate(parse_matrix(gate_json['matrix']))
         registry[identifier] = CellMaker(

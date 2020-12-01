@@ -136,7 +136,7 @@ class QuantumEngineServiceClient(object):
 
         if channel:
             warnings.warn(
-                'The `channel` argument is deprecated; use ' '`transport` instead.',
+                'The `channel` argument is deprecated; use `transport` instead.',
                 PendingDeprecationWarning,
                 stacklevel=2,
             )

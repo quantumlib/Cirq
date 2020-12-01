@@ -41,9 +41,7 @@ def proper_repr(value: Any) -> str:
         return 'np.array({!r}, dtype=np.{})'.format(value.tolist(), value.dtype)
 
     if isinstance(value, pd.MultiIndex):
-        return (
-            f'pd.MultiIndex.from_tuples({repr(list(value))}, ' f'names={repr(list(value.names))})'
-        )
+        return f'pd.MultiIndex.from_tuples({repr(list(value))}, names={repr(list(value.names))})'
 
     if isinstance(value, pd.Index):
         return (

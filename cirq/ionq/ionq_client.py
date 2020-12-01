@@ -77,9 +77,9 @@ class _IonQClient:
         assert (
             api_version in self.SUPPORTED_VERSIONS
         ), f'Only api v0.1 is accepted but was {api_version}'
-        assert default_target is None or default_target in self.SUPPORTED_TARGETS, (
-            f'Target can only be one of {self.SUPPORTED_TARGETS} but was ' f'{default_target}.'
-        )
+        assert (
+            default_target is None or default_target in self.SUPPORTED_TARGETS
+        ), f'Target can only be one of {self.SUPPORTED_TARGETS} but was {default_target}.'
         assert max_retry_seconds >= 0, 'Negative retry not possible without time machine.'
 
         self.url = f'{url.scheme}://{url.netloc}/{api_version}'
@@ -101,7 +101,7 @@ class _IonQClient:
         return cast(str, target or self.default_target)
 
     def _make_request(self, request: Callable[[], requests.Response]) -> requests.Response:
-        """ "Make a request to the API, retrying if necessary.
+        """Make a request to the API, retrying if necessary.
 
         Args:
             request: A function that returns a `requests.Response`.

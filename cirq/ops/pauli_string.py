@@ -530,7 +530,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         # FIXME: Avoid enforce specific complex type. This is necessary to
         # prevent an `apply_unitary` bug (Issue #2041).
         if state_vector.dtype.kind != 'c':
-            raise TypeError("Input state dtype must be np.complex64 or " "np.complex128")
+            raise TypeError("Input state dtype must be np.complex64 or np.complex128")
 
         size = state_vector.size
         num_qubits = size.bit_length() - 1
@@ -632,7 +632,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         # FIXME: Avoid enforcing specific complex type. This is necessary to
         # prevent an `apply_unitary` bug (Issue #2041).
         if state.dtype.kind != 'c':
-            raise TypeError("Input state dtype must be np.complex64 or " "np.complex128")
+            raise TypeError("Input state dtype must be np.complex64 or np.complex128")
 
         size = state.size
         num_qubits = int(np.sqrt(size)).bit_length() - 1
@@ -1038,9 +1038,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             quarter_kickback += merge_and_kickback(
                 qubit0, pauli_map.get(qubit0), gate.pauli0, gate.invert0
             )
-        assert quarter_kickback % 2 == 0, (
-            'Impossible condition.  ' 'quarter_kickback is either incremented twice or never.'
-        )
+        assert (
+            quarter_kickback % 2 == 0
+        ), 'Impossible condition.  quarter_kickback is either incremented twice or never.'
         return quarter_kickback % 4 == 2
 
 
@@ -1062,12 +1062,12 @@ def _validate_qubit_mapping(
         isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()
     ):
         raise TypeError(
-            "Input qubit map must be a valid mapping from " "Qubit ID's to integer indices."
+            "Input qubit map must be a valid mapping from Qubit ID's to integer indices."
         )
 
     if not set(qubit_map.keys()) >= set(pauli_qubits):
         raise ValueError(
-            "Input qubit map must be a complete mapping over all " " of this PauliString's qubits."
+            "Input qubit map must be a complete mapping over all of this PauliString's qubits."
         )
 
     used_inds = [qubit_map[q] for q in pauli_qubits]
@@ -1075,7 +1075,7 @@ def _validate_qubit_mapping(
         sorted(used_inds)
     ):
         raise ValueError(
-            'Input qubit map indices must be valid for a state ' f'over {num_state_qubits} qubits.'
+            f'Input qubit map indices must be valid for a state over {num_state_qubits} qubits.'
         )
 
 
@@ -1474,7 +1474,7 @@ def _decompose_into_cliffords(op: 'cirq.Operation') -> List['cirq.Operation']:
         return [out for sub_op in decomposed for out in _decompose_into_cliffords(sub_op)]
 
     raise TypeError(
-        f'Operation is not a known Clifford and did not decompose ' f'into known Cliffords: {op!r}'
+        f'Operation is not a known Clifford and did not decompose into known Cliffords: {op!r}'
     )
 
 

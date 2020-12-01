@@ -72,7 +72,7 @@ class _BaseLineQid(ops.Qid):
                 )
             return self._with_x(x=self.x + other.x)
         if not isinstance(other, int):
-            raise TypeError(f"Can only add ints and {type(self).__name__}. " f"Instead was {other}")
+            raise TypeError(f"Can only add ints and {type(self).__name__}. Instead was {other}")
         return self._with_x(self.x + other)
 
     def __sub__(self: TSelf, other: int) -> TSelf:
@@ -85,7 +85,7 @@ class _BaseLineQid(ops.Qid):
             return self._with_x(x=self.x - other.x)
         if not isinstance(other, int):
             raise TypeError(
-                f"Can only subtract ints and {type(self).__name__}. " f"Instead was {other}"
+                f"Can only subtract ints and {type(self).__name__}. Instead was {other}"
             )
         return self._with_x(self.x - other)
 
