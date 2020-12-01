@@ -97,13 +97,14 @@ def process_fidelity(clean_circuit, noisy_circuit, qubits) -> float:
         A scalar that is the average (process) entropy
     """
     n = len(qubits)
-    d = 2**n
+    d = 2 ** n
 
     kraus_operations = compute_kraus_operations(
-        clean_circuit.unitary().reshape([2] * (2 * n)), noisy_circuit, qubits)
+        clean_circuit.unitary().reshape([2] * (2 * n)), noisy_circuit, qubits
+    )
 
     eit = [x.reshape(d, d) for x in kraus_operations]
 
-    sum_traces = sum([abs(np.trace(x))**2 for x in eit])
+    sum_traces = sum([abs(np.trace(x)) ** 2 for x in eit])
 
     return (d + sum_traces) / (d * (d + 1))
