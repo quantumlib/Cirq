@@ -254,61 +254,29 @@ def test_compose():
     assert r13.value_of('a') == b
 
 
-@pytest.mark.parametrize('resolve_fn', [
-    cirq.resolve_parameters,
-    cirq.resolve_parameters_once,
+@pytest.mark.parametrize('p1, p2, p3', [
+    ({'a': 1}, {}, {}),
+    ({}, {'a': 1}, {}),
+    ({}, {}, {'a': 1}),
+    ({'a': 'b'}, {}, {'b': 'c'}),
+    ({'a': 'b'}, {'c': 'd'}, {'b': 'c'}),
+    ({'a': 'b'}, {'c': 'a'}, {'b': 'd'}),
+    ({'a': 'b'}, {'c': 'd', 'd': 1}, {'d': 2}),
+    ({'a': 'b'}, {'c': 'd', 'd': 'a'}, {'b': 2}),
 ])
-def test_compose_associative_small(resolve_fn):
-    a = sympy.Symbol('a')
-    b = sympy.Symbol('b')
-    c = sympy.Symbol('c')
-    d = sympy.Symbol('d')
-    r1 = cirq.ParamResolver({a: b})
-    r2 = cirq.ParamResolver({c: d, d: 1})
-    r3 = cirq.ParamResolver({d: 2})
-
-    r12 = resolve_fn(r1, r2)
-    r23 = resolve_fn(r2, r3)
-    r12_3 = resolve_fn(r12, r3)
-    r1_23 = resolve_fn(r1, r23)
-    assert r12_3 == r1_23
-
-
-@pytest.mark.parametrize('resolve_fn', [
-    cirq.resolve_parameters,
-    cirq.resolve_parameters_once,
-])
-def test_compose_associative(resolve_fn):
-    a = sympy.Symbol('a')
-    b = sympy.Symbol('b')
-    c = sympy.Symbol('c')
-    e = sympy.Symbol('e')
-    x = sympy.Symbol('x')
-    y = sympy.Symbol('y')
-    z = sympy.Symbol('z')
-    r1 = cirq.ParamResolver({a: b + c})
-    r2 = cirq.ParamResolver({x: y, c: z})
-    r3 = cirq.ParamResolver({b: z, z: x})
-    r4 = cirq.ParamResolver({y: e})
-
-    r12 = resolve_fn(r1, r2)
-    r12_3 = resolve_fn(r12, r3)
-    r23 = resolve_fn(r2, r3)
-    r1_23 = resolve_fn(r1, r23)
-    r23_4 = resolve_fn(r23, r4)
-    r34 = resolve_fn(r3, r4)
-    r2_34 = resolve_fn(r2, r34)
-
-    rABC = resolve_fn(r12_3, r4)
-    rBAC = resolve_fn(r1_23, r4)
-    rBCA = resolve_fn(r1, r23_4)
-    rCBA = resolve_fn(r1, r2_34)
-    rACB = resolve_fn(r12, r34)  # rCAB is identical.
-
-    assert sympy.Eq(rABC.param_dict, rBAC.param_dict)
-    assert sympy.Eq(rABC.param_dict, rBCA.param_dict)
-    assert sympy.Eq(rABC.param_dict, rCBA.param_dict)
-    assert sympy.Eq(rABC.param_dict, rACB.param_dict)
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_compose_associative(p1, p2, p3, resolve_fn):
+    r1, r2, r3 = [
+        cirq.ParamResolver({
+            sympy.Symbol(k): (sympy.Symbol(v) if isinstance(v, str) else v)
+            for k, v in pd.items()
+        })
+        for pd in [p1, p2, p3]
+    ]
+    assert sympy.Eq(
+        resolve_fn(r1, resolve_fn(r2, r3)).param_dict,
+        resolve_fn(resolve_fn(r1, r2), r3).param_dict
+    )
 
 
 def test_equals():
