@@ -26,8 +26,7 @@ if TYPE_CHECKING:
 
 
 class UndirectedGraphDeviceEdge(metaclass=abc.ABCMeta):
-    """An edge of an undirected graph device.
-    """
+    """An edge of an undirected graph device."""
 
     @abc.abstractmethod
     def duration_of(self, operation: ops.Operation) -> value.Duration:
@@ -69,8 +68,7 @@ class _UnconstrainedUndirectedGraphDeviceEdge(UndirectedGraphDeviceEdge):
         return self.__class__ == other.__class__
 
 
-UnconstrainedUndirectedGraphDeviceEdge = (
-    _UnconstrainedUndirectedGraphDeviceEdge())
+UnconstrainedUndirectedGraphDeviceEdge = _UnconstrainedUndirectedGraphDeviceEdge()
 
 
 def is_undirected_device_graph(graph: UndirectedHypergraph) -> bool:
@@ -122,10 +120,11 @@ class UndirectedGraphDevice(devices.Device):
         * duration_of does not check that operation is valid.
     """
 
-    def __init__(self,
-                 device_graph: Optional[UndirectedHypergraph] = None,
-                 crosstalk_graph: Optional[UndirectedHypergraph] = None
-                ) -> None:
+    def __init__(
+        self,
+        device_graph: Optional[UndirectedHypergraph] = None,
+        crosstalk_graph: Optional[UndirectedHypergraph] = None,
+    ) -> None:
         """
 
         Args:
@@ -151,8 +150,7 @@ class UndirectedGraphDevice(devices.Device):
 
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
-        return cast(Tuple['cirq.Qid', ...],
-                    tuple(sorted(self.device_graph.vertices)))
+        return cast(Tuple['cirq.Qid', ...], tuple(sorted(self.device_graph.vertices)))
 
     def qubit_set(self) -> FrozenSet['cirq.Qid']:
         return frozenset(self.qubits)
@@ -165,8 +163,7 @@ class UndirectedGraphDevice(devices.Device):
     def labelled_edges(self):
         return self.device_graph.labelled_edges
 
-    def get_device_edge_from_op(self, operation: ops.Operation
-                               ) -> UndirectedGraphDeviceEdge:
+    def get_device_edge_from_op(self, operation: ops.Operation) -> UndirectedGraphDeviceEdge:
         return self.device_graph.labelled_edges[frozenset(operation.qubits)]
 
     def duration_of(self, operation: ops.Operation) -> value.Duration:
@@ -177,35 +174,37 @@ class UndirectedGraphDevice(devices.Device):
             device_edge = self.get_device_edge_from_op(operation)
         except Exception as error:
             if frozenset(operation.qubits) not in self.device_graph.edges:
-                error = ValueError('{} not in device graph edges'.format(
-                    operation.qubits))
+                error = ValueError('{} not in device graph edges'.format(operation.qubits))
             raise error
         device_edge.validate_operation(operation)
 
-    def validate_crosstalk(self, operation: ops.Operation,
-                           other_operations: Iterable[ops.Operation]) -> None:
+    def validate_crosstalk(
+        self, operation: ops.Operation, other_operations: Iterable[ops.Operation]
+    ) -> None:
         adjacent_crosstalk_edges = frozenset(
-            self.crosstalk_graph._adjacency_lists.get(
-                frozenset(operation.qubits), ()))
+            self.crosstalk_graph._adjacency_lists.get(frozenset(operation.qubits), ())
+        )
         for crosstalk_edge in adjacent_crosstalk_edges:
             label = self.crosstalk_graph.labelled_edges[crosstalk_edge]
-            validator = (raise_crosstalk_error(operation, *other_operations) if
-                         (label is None) else label)
+            validator = (
+                raise_crosstalk_error(operation, *other_operations) if (label is None) else label
+            )
             for crosstalk_operations in itertools.combinations(
-                    other_operations,
-                    len(crosstalk_edge) - 1):
+                other_operations, len(crosstalk_edge) - 1
+            ):
                 validator(operation, *crosstalk_operations)
 
     def validate_moment(self, moment: ops.Moment):
         super().validate_moment(moment)
         ops = moment.operations
         for i, op in enumerate(ops):
-            other_ops = ops[:i] + ops[i + 1:]
+            other_ops = ops[:i] + ops[i + 1 :]
             self.validate_crosstalk(op, other_ops)
 
     def __eq__(self, other):
-        return ((self.device_graph == other.device_graph) and
-                (self.crosstalk_graph == other.crosstalk_graph))
+        return (self.device_graph == other.device_graph) and (
+            self.crosstalk_graph == other.crosstalk_graph
+        )
 
     def __iadd__(self, other):
         self.device_graph += other.device_graph
@@ -213,8 +212,10 @@ class UndirectedGraphDevice(devices.Device):
         return self
 
     def __copy__(self):
-        return self.__class__(device_graph=self.device_graph.__copy__(),
-                              crosstalk_graph=self.crosstalk_graph.__copy__())
+        return self.__class__(
+            device_graph=self.device_graph.__copy__(),
+            crosstalk_graph=self.crosstalk_graph.__copy__(),
+        )
 
     def __add__(self, other):
         device_sum = self.__copy__()

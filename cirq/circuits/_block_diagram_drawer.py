@@ -16,14 +16,12 @@ from typing import List, Optional
 
 import collections
 
-from cirq.circuits._box_drawing_character_data import (
-    box_draw_character,
-    BoxDrawCharacterSet
-)
+from cirq.circuits._box_drawing_character_data import box_draw_character, BoxDrawCharacterSet
 
 
 class Block:
     """The mutable building block that block diagrams are made of."""
+
     def __init__(self):
         self.left = ''
         self.right = ''
@@ -39,7 +37,7 @@ class Block:
         return max(
             max(len(e) for e in self.content.split('\n')),
             # Only horizontal lines can cross 0 width blocks.
-            int(any([self.top, self.bottom]))
+            int(any([self.top, self.bottom])),
         )
 
     def min_height(self) -> int:
@@ -47,17 +45,19 @@ class Block:
         return max(
             len(self.content.split('\n')) if self.content else 0,
             # Only vertical lines can cross 0 height blocks.
-            int(any([self.left, self.right]))
+            int(any([self.left, self.right])),
         )
 
-    def draw_curve(self,
-                   grid_characters: BoxDrawCharacterSet,
-                   *,
-                   top: bool = False,
-                   left: bool = False,
-                   right: bool = False,
-                   bottom: bool = False,
-                   crossing_char: Optional[str] = None):
+    def draw_curve(
+        self,
+        grid_characters: BoxDrawCharacterSet,
+        *,
+        top: bool = False,
+        left: bool = False,
+        right: bool = False,
+        bottom: bool = False,
+        crossing_char: Optional[str] = None,
+    ):
         """Draws lines in the box using the given character set.
 
         Supports merging the new lines with the lines from a previous call to
@@ -93,15 +93,15 @@ class Block:
             self.right = grid_characters.left_right
 
         # Fill center.
-        if not all([crossing_char,
-                    self.top, self.bottom, self.left, self.right]):
+        if not all([crossing_char, self.top, self.bottom, self.left, self.right]):
             crossing_char = box_draw_character(
                 self._prev_curve_grid_chars,
                 grid_characters,
                 top=sign_top,
                 bottom=sign_bottom,
                 left=sign_left,
-                right=sign_right)
+                right=sign_right,
+            )
         self.center = crossing_char or ''
 
         self._prev_curve_grid_chars = grid_characters
@@ -128,7 +128,7 @@ class Block:
 
         # Horizontal line legs.
         if self.left:
-            out_chars[mid_y][:mid_x + 1] = self.left * (mid_x + 1)
+            out_chars[mid_y][: mid_x + 1] = self.left * (mid_x + 1)
         if self.right:
             out_chars[mid_y][mid_x:] = self.right * (width - mid_x)
 
@@ -158,12 +158,9 @@ class BlockDiagramDrawer:
     """Aligns text and curve data placed onto an abstract 2d grid of blocks."""
 
     def __init__(self):
-        self._blocks = collections.defaultdict(
-            Block)  # type: Dict[Tuple[int, int], Block]
-        self._min_widths = collections.defaultdict(
-            lambda: 0)  # type: Dict[int, int]
-        self._min_heights = collections.defaultdict(
-            lambda: 0)  # type: Dict[int, int]
+        self._blocks = collections.defaultdict(Block)  # type: Dict[Tuple[int, int], Block]
+        self._min_widths = collections.defaultdict(lambda: 0)  # type: Dict[int, int]
+        self._min_heights = collections.defaultdict(lambda: 0)  # type: Dict[int, int]
 
         # Populate the origin.
         _ = self._blocks[(0, 0)]
@@ -188,12 +185,14 @@ class BlockDiagramDrawer:
             raise IndexError('y < 0')
         self._min_heights[y] = min_height
 
-    def render(self,
-               *,
-               block_span_x: Optional[int] = None,
-               block_span_y: Optional[int] = None,
-               min_block_width: int = 0,
-               min_block_height: int = 0) -> str:
+    def render(
+        self,
+        *,
+        block_span_x: Optional[int] = None,
+        block_span_y: Optional[int] = None,
+        min_block_width: int = 0,
+        min_block_height: int = 0,
+    ) -> str:
         """Outputs text containing the diagram.
 
         Args:
@@ -224,6 +223,7 @@ class BlockDiagramDrawer:
 
         # Method for accessing blocks without creating new entries.
         empty = Block()
+
         def block(x: int, y: int) -> Block:
             return self._blocks.get((x, y), empty)
 

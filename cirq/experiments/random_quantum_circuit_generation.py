@@ -13,8 +13,18 @@
 # limitations under the License.
 """Code for generating random quantum circuits."""
 
-from typing import (Any, Callable, Container, Dict, Iterable, List, Sequence,
-                    TYPE_CHECKING, Tuple, Union)
+from typing import (
+    Any,
+    Callable,
+    Container,
+    Dict,
+    Iterable,
+    List,
+    Sequence,
+    TYPE_CHECKING,
+    Tuple,
+    Union,
+)
 
 import dataclasses
 
@@ -27,8 +37,7 @@ if TYPE_CHECKING:
 
 
 @dataclasses.dataclass(frozen=True)
-class GridInteractionLayer(
-        Container[Tuple[devices.GridQubit, devices.GridQubit]]):
+class GridInteractionLayer(Container[Tuple[devices.GridQubit, devices.GridQubit]]):
     """A layer of aligned or staggered two-qubit interactions on a grid.
 
     Layers of this type have two different basic structures,
@@ -75,6 +84,7 @@ class GridInteractionLayer(
             horizontally.
         stagger: Whether to stagger gates in neighboring rows.
     """
+
     col_offset: int = 0
     vertical: bool = False
     stagger: bool = False
@@ -84,8 +94,7 @@ class GridInteractionLayer(
         if self.vertical:
             # Transpose row, col coords for vertical orientation.
             a, b = pair
-            pair = devices.GridQubit(a.col,
-                                     a.row), devices.GridQubit(b.col, b.row)
+            pair = devices.GridQubit(a.col, a.row), devices.GridQubit(b.col, b.row)
 
         a, b = sorted(pair)
 
@@ -98,14 +107,15 @@ class GridInteractionLayer(
         return pos == (0, 0) or pos == (1, self.stagger)
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(
-            self, ['col_offset', 'vertical', 'stagger'])
+        return protocols.obj_to_dict_helper(self, ['col_offset', 'vertical', 'stagger'])
 
     def __repr__(self) -> str:
-        return ('cirq.experiments.GridInteractionLayer('
-                f'col_offset={self.col_offset}, '
-                f'vertical={self.vertical}, '
-                f'stagger={self.stagger})')
+        return (
+            'cirq.experiments.GridInteractionLayer('
+            f'col_offset={self.col_offset}, '
+            f'vertical={self.vertical}, '
+            f'stagger={self.stagger})'
+        )
 
 
 GRID_STAGGERED_PATTERN = (
@@ -125,7 +135,8 @@ document(
     This pattern of gates was used in the paper
     https://www.nature.com/articles/s41586-019-1666-5
     to demonstrate quantum supremacy.
-    """)
+    """,
+)
 
 GRID_ALIGNED_PATTERN = (
     GridInteractionLayer(col_offset=0, vertical=False, stagger=False),  # E
@@ -140,23 +151,25 @@ document(
     This pattern of gates was used in the paper
     https://www.nature.com/articles/s41586-019-1666-5
     to evaluate the performance of a quantum computer.
-    """)
+    """,
+)
 
 
 def random_rotations_between_grid_interaction_layers_circuit(
-        qubits: Iterable['cirq.GridQubit'],
-        depth: int,
-        *,  # forces keyword arguments
-        two_qubit_op_factory: Callable[[
-            'cirq.GridQubit', 'cirq.GridQubit', 'np.random.RandomState'
-        ], 'cirq.OP_TREE'] = lambda a, b, _: google.SYC(a, b),
-        pattern: Sequence[GridInteractionLayer] = GRID_STAGGERED_PATTERN,
-        single_qubit_gates: Sequence['cirq.Gate'] = (ops.X**0.5, ops.Y**0.5,
-                                                     ops.PhasedXPowGate(
-                                                         phase_exponent=0.25,
-                                                         exponent=0.5)),
-        add_final_single_qubit_layer: bool = True,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    qubits: Iterable['cirq.GridQubit'],
+    depth: int,
+    *,  # forces keyword arguments
+    two_qubit_op_factory: Callable[
+        ['cirq.GridQubit', 'cirq.GridQubit', 'np.random.RandomState'], 'cirq.OP_TREE'
+    ] = lambda a, b, _: google.SYC(a, b),
+    pattern: Sequence[GridInteractionLayer] = GRID_STAGGERED_PATTERN,
+    single_qubit_gates: Sequence['cirq.Gate'] = (
+        ops.X ** 0.5,
+        ops.Y ** 0.5,
+        ops.PhasedXPowGate(phase_exponent=0.25, exponent=0.5),
+    ),
+    add_final_single_qubit_layer: bool = True,
+    seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> 'cirq.Circuit':
     """Generate a random quantum circuit.
 
@@ -205,36 +218,39 @@ def random_rotations_between_grid_interaction_layers_circuit(
     circuit = circuits.Circuit()
     previous_single_qubit_layer = {}  # type: Dict[cirq.GridQubit, cirq.Gate]
     if len(set(single_qubit_gates)) == 1:
-        single_qubit_layer_factory = _FixedSingleQubitLayerFactory({
-            q: single_qubit_gates[0] for q in qubits
-        })  # type: _SingleQubitLayerFactory
+        single_qubit_layer_factory = _FixedSingleQubitLayerFactory(
+            {q: single_qubit_gates[0] for q in qubits}
+        )  # type: _SingleQubitLayerFactory
 
     else:
         single_qubit_layer_factory = _RandomSingleQubitLayerFactory(
-            qubits, single_qubit_gates, prng)
+            qubits, single_qubit_gates, prng
+        )
     for i in range(depth):
-        single_qubit_layer = single_qubit_layer_factory.new_layer(
-            previous_single_qubit_layer)
-        two_qubit_layer = _two_qubit_layer(coupled_qubit_pairs,
-                                           two_qubit_op_factory,
-                                           pattern[i % len(pattern)], prng)
-        circuit.append([g.on(q) for q, g in single_qubit_layer.items()],
-                       strategy=circuits.InsertStrategy.NEW_THEN_INLINE)
-        circuit.append(two_qubit_layer,
-                       strategy=circuits.InsertStrategy.EARLIEST)
+        single_qubit_layer = single_qubit_layer_factory.new_layer(previous_single_qubit_layer)
+        two_qubit_layer = _two_qubit_layer(
+            coupled_qubit_pairs, two_qubit_op_factory, pattern[i % len(pattern)], prng
+        )
+        circuit.append(
+            [g.on(q) for q, g in single_qubit_layer.items()],
+            strategy=circuits.InsertStrategy.NEW_THEN_INLINE,
+        )
+        circuit.append(two_qubit_layer, strategy=circuits.InsertStrategy.EARLIEST)
         previous_single_qubit_layer = single_qubit_layer
 
     if add_final_single_qubit_layer:
-        final_single_qubit_layer = single_qubit_layer_factory.new_layer(
-            previous_single_qubit_layer)
-        circuit.append([g.on(q) for q, g in final_single_qubit_layer.items()],
-                       strategy=circuits.InsertStrategy.NEW_THEN_INLINE)
+        final_single_qubit_layer = single_qubit_layer_factory.new_layer(previous_single_qubit_layer)
+        circuit.append(
+            [g.on(q) for q, g in final_single_qubit_layer.items()],
+            strategy=circuits.InsertStrategy.NEW_THEN_INLINE,
+        )
 
     return circuit
 
 
-def _coupled_qubit_pairs(qubits: List['cirq.GridQubit'],
-                        ) -> List[Tuple['cirq.GridQubit', 'cirq.GridQubit']]:
+def _coupled_qubit_pairs(
+    qubits: List['cirq.GridQubit'],
+) -> List[Tuple['cirq.GridQubit', 'cirq.GridQubit']]:
     pairs = []
     qubit_set = set(qubits)
     for qubit in qubits:
@@ -250,55 +266,50 @@ def _coupled_qubit_pairs(qubits: List['cirq.GridQubit'],
 
 
 class _RandomSingleQubitLayerFactory:
-
-    def __init__(self, qubits: List['cirq.GridQubit'],
-                 single_qubit_gates: Sequence['cirq.Gate'],
-                 prng: 'np.random.RandomState') -> None:
+    def __init__(
+        self,
+        qubits: List['cirq.GridQubit'],
+        single_qubit_gates: Sequence['cirq.Gate'],
+        prng: 'np.random.RandomState',
+    ) -> None:
         self.qubits = qubits
         self.single_qubit_gates = single_qubit_gates
         self.prng = prng
 
     def new_layer(
-            self,
-            previous_single_qubit_layer: Dict['cirq.GridQubit', 'cirq.Gate']
+        self, previous_single_qubit_layer: Dict['cirq.GridQubit', 'cirq.Gate']
     ) -> Dict['cirq.GridQubit', 'cirq.Gate']:
-
         def random_gate(qubit: 'cirq.GridQubit') -> 'cirq.Gate':
             excluded_gate = previous_single_qubit_layer.get(qubit, None)
-            g = self.single_qubit_gates[self.prng.randint(
-                0, len(self.single_qubit_gates))]
+            g = self.single_qubit_gates[self.prng.randint(0, len(self.single_qubit_gates))]
             while g == excluded_gate:
-                g = self.single_qubit_gates[self.prng.randint(
-                    0, len(self.single_qubit_gates))]
+                g = self.single_qubit_gates[self.prng.randint(0, len(self.single_qubit_gates))]
             return g
 
         return {q: random_gate(q) for q in self.qubits}
 
 
 class _FixedSingleQubitLayerFactory:
-
-    def __init__(self,
-                 fixed_single_qubit_layer: Dict['cirq.GridQubit', 'cirq.Gate']
-                ) -> None:
+    def __init__(self, fixed_single_qubit_layer: Dict['cirq.GridQubit', 'cirq.Gate']) -> None:
         self.fixed_single_qubit_layer = fixed_single_qubit_layer
 
     def new_layer(
-            self,
-            previous_single_qubit_layer: Dict['cirq.GridQubit', 'cirq.Gate']
+        self, previous_single_qubit_layer: Dict['cirq.GridQubit', 'cirq.Gate']
     ) -> Dict['cirq.GridQubit', 'cirq.Gate']:
         return self.fixed_single_qubit_layer
 
 
-_SingleQubitLayerFactory = Union[_FixedSingleQubitLayerFactory,
-                                 _RandomSingleQubitLayerFactory]
+_SingleQubitLayerFactory = Union[_FixedSingleQubitLayerFactory, _RandomSingleQubitLayerFactory]
 
 
 def _two_qubit_layer(
-        coupled_qubit_pairs: List[Tuple['cirq.GridQubit', 'cirq.GridQubit']],
-        two_qubit_op_factory: Callable[[
-            'cirq.GridQubit', 'cirq.GridQubit', 'np.random.RandomState'
-        ], 'cirq.OP_TREE'], layer: GridInteractionLayer,
-        prng: 'np.random.RandomState') -> 'cirq.OP_TREE':
+    coupled_qubit_pairs: List[Tuple['cirq.GridQubit', 'cirq.GridQubit']],
+    two_qubit_op_factory: Callable[
+        ['cirq.GridQubit', 'cirq.GridQubit', 'np.random.RandomState'], 'cirq.OP_TREE'
+    ],
+    layer: GridInteractionLayer,
+    prng: 'np.random.RandomState',
+) -> 'cirq.OP_TREE':
     for a, b in coupled_qubit_pairs:
         if (a, b) in layer:
             yield two_qubit_op_factory(a, b, prng)

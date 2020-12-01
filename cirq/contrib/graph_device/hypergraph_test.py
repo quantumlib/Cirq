@@ -32,8 +32,7 @@ def test_hypergraph():
     assert graph.vertices == tuple(vertices)
 
     edges = [(0, 1), (2, 3)]
-    graph = ccgd.UndirectedHypergraph(
-        labelled_edges={edge: str(edge) for edge in edges})
+    graph = ccgd.UndirectedHypergraph(labelled_edges={edge: str(edge) for edge in edges})
     assert graph.vertices == tuple(vertices)
     graph.remove_vertex(0)
     assert graph.vertices == (1, 2, 3)
@@ -44,14 +43,18 @@ def test_hypergraph():
 
 
 @pytest.mark.parametrize(
-    'vertices,edges', [(tuple(x for x in range(10) if random.randint(0, 1)), {
-        tuple(random.sample(range(10), random.randint(1, 3))):
-        None for _ in range(6)
-    }) for _ in range(10)])
+    'vertices,edges',
+    [
+        (
+            tuple(x for x in range(10) if random.randint(0, 1)),
+            {tuple(random.sample(range(10), random.randint(1, 3))): None for _ in range(6)},
+        )
+        for _ in range(10)
+    ],
+)
 def test_eq(vertices, edges):
     vertices = set(vertices).union(*edges)
-    graph_initialized = ccgd.UndirectedHypergraph(vertices=vertices,
-                                                  labelled_edges=edges)
+    graph_initialized = ccgd.UndirectedHypergraph(vertices=vertices, labelled_edges=edges)
     graph_added_parallel = ccgd.UndirectedHypergraph()
     graph_added_parallel.add_vertices(vertices)
     graph_added_parallel.add_edges(edges)
@@ -60,12 +63,12 @@ def test_eq(vertices, edges):
         graph_added_sequential.add_vertex(vertex)
     for edge, label in edges.items():
         graph_added_sequential.add_edge(edge, label)
-    assert (graph_initialized == graph_added_parallel == graph_added_sequential)
+    assert graph_initialized == graph_added_parallel == graph_added_sequential
 
 
 def test_random_hypergraph():
     n_vertices = 4
-    graph = ccgd.UndirectedHypergraph.random(n_vertices, {1: 1.})
+    graph = ccgd.UndirectedHypergraph.random(n_vertices, {1: 1.0})
     assert sorted(graph.vertices) == sorted(range(n_vertices))
     assert set(graph.labelled_edges.values()) == set((None,))
     assert tuple(len(edge) for edge in graph.edges) == (1,) * n_vertices

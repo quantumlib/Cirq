@@ -21,9 +21,7 @@ import cirq
 
 
 def test_unitary_fallback():
-
     class UnitaryXGate(cirq.Gate):
-
         def _num_qubits_(self) -> int:
             return 1
 
@@ -31,7 +29,6 @@ def test_unitary_fallback():
             return np.array([[0, 1], [1, 0]])
 
     class UnitaryYGate(cirq.Gate):
-
         def _qid_shape_(self) -> Tuple[int, ...]:
             return (2,)
 
@@ -39,30 +36,34 @@ def test_unitary_fallback():
             return np.array([[0, -1j], [1j, 0]])
 
     original_tableau = cirq.CliffordTableau(num_qubits=3)
-    args = cirq.ActOnCliffordTableauArgs(tableau=original_tableau.copy(),
-                                         axes=[1],
-                                         prng=np.random.RandomState(),
-                                         log_of_measurement_results={})
+    args = cirq.ActOnCliffordTableauArgs(
+        tableau=original_tableau.copy(),
+        axes=[1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
 
     cirq.act_on(UnitaryXGate(), args)
     assert args.tableau == cirq.CliffordTableau(num_qubits=3, initial_state=2)
 
-    args = cirq.ActOnCliffordTableauArgs(tableau=original_tableau.copy(),
-                                         axes=[1],
-                                         prng=np.random.RandomState(),
-                                         log_of_measurement_results={})
+    args = cirq.ActOnCliffordTableauArgs(
+        tableau=original_tableau.copy(),
+        axes=[1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
     cirq.act_on(UnitaryYGate(), args)
     expected_args = cirq.ActOnCliffordTableauArgs(
         tableau=original_tableau.copy(),
         axes=[1],
         prng=np.random.RandomState(),
-        log_of_measurement_results={})
+        log_of_measurement_results={},
+    )
     cirq.act_on(cirq.Y, expected_args)
     assert args.tableau == expected_args.tableau
 
 
 def test_cannot_act():
-
     class NoDetails:
         pass
 
@@ -73,7 +74,8 @@ def test_cannot_act():
         tableau=cirq.CliffordTableau(num_qubits=3),
         axes=[1],
         prng=np.random.RandomState(),
-        log_of_measurement_results={})
+        log_of_measurement_results={},
+    )
 
     with pytest.raises(TypeError, match="no _num_qubits_ or _qid_shape_"):
         cirq.act_on(NoDetails(), args)

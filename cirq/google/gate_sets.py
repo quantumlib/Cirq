@@ -50,8 +50,7 @@ SYC_GATESET = serializable_gate_set.SerializableGateSet(
         WAIT_GATE_DESERIALIZER,
     ],
 )
-document(SYC_GATESET,
-         """Gate set with fsim(pi/2, pi/6) as the core 2 qubit interaction.""")
+document(SYC_GATESET, """Gate set with fsim(pi/2, pi/6) as the core 2 qubit interaction.""")
 
 SQRT_ISWAP_GATESET = serializable_gate_set.SerializableGateSet(
     gate_set_name='sqrt_iswap',
@@ -66,9 +65,9 @@ SQRT_ISWAP_GATESET = serializable_gate_set.SerializableGateSet(
         *SINGLE_QUBIT_DESERIALIZERS,
         MEASUREMENT_DESERIALIZER,
         WAIT_GATE_DESERIALIZER,
-    ])
-document(SQRT_ISWAP_GATESET,
-         """Gate set with sqrt(iswap) as the core 2 qubit interaction.""")
+    ],
+)
+document(SQRT_ISWAP_GATESET, """Gate set with sqrt(iswap) as the core 2 qubit interaction.""")
 
 
 FSIM_GATESET = serializable_gate_set.SerializableGateSet(
@@ -84,9 +83,9 @@ FSIM_GATESET = serializable_gate_set.SerializableGateSet(
         *SINGLE_QUBIT_DESERIALIZERS,
         MEASUREMENT_DESERIALIZER,
         WAIT_GATE_DESERIALIZER,
-    ])
-document(FSIM_GATESET,
-         """Gate set that combines sqrt(iswap) and syc as one fsim id.""")
+    ],
+)
+document(FSIM_GATESET, """Gate set that combines sqrt(iswap) and syc as one fsim id.""")
 
 # The xmon gate set.
 XMON = serializable_gate_set.SerializableGateSet(
@@ -110,8 +109,7 @@ NAMED_GATESETS = {
     'fsim': FSIM_GATESET,
 }
 
-document(NAMED_GATESETS,
-         """A convenience mapping from gateset names to gatesets""")
+document(NAMED_GATESETS, """A convenience mapping from gateset names to gatesets""")
 
 GOOGLE_GATESETS = [
     SYC_GATESET,

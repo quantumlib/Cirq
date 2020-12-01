@@ -13,8 +13,7 @@
 # limitations under the License.
 
 from dataclasses import dataclass
-from typing import (Any, Callable, List, Optional, Type, TypeVar, Union,
-                    TYPE_CHECKING)
+from typing import Any, Callable, List, Optional, Type, TypeVar, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -48,6 +47,7 @@ class SerializingArg:
         default: default value.  avoid serializing if this is the value.
             Note that the DeserializingArg must also have this as default.
     """
+
     serialized_name: str
     serialized_type: Type[arg_func_langs.ARG_LIKE]
     op_getter: Union[str, Callable[['cirq.Operation'], arg_func_langs.ARG_LIKE]]
@@ -65,14 +65,15 @@ class GateOpSerializer:
             on the Operation proto.  Defaults to True.
     """
 
-    def __init__(self,
-                 *,
-                 gate_type: Type[Gate],
-                 serialized_gate_id: str,
-                 args: List[SerializingArg],
-                 can_serialize_predicate: Callable[['cirq.Operation'], bool] =
-                 lambda x: True,
-                 serialize_tokens: Optional[bool] = True):
+    def __init__(
+        self,
+        *,
+        gate_type: Type[Gate],
+        serialized_gate_id: str,
+        args: List[SerializingArg],
+        can_serialize_predicate: Callable[['cirq.Operation'], bool] = lambda x: True,
+        serialize_tokens: Optional[bool] = True,
+    ):
         """Construct the serializer.
 
         Args:
@@ -103,13 +104,14 @@ class GateOpSerializer:
         supported_gate_type = self.gate_type in type(op.gate).mro()
         return supported_gate_type and self.can_serialize_predicate(op)
 
-    def to_proto(self,
-                 op: 'cirq.Operation',
-                 msg: Optional[v2.program_pb2.Operation] = None,
-                 *,
-                 arg_function_language: Optional[str] = '',
-                 constants: List[v2.program_pb2.Constant] = None
-                ) -> Optional[v2.program_pb2.Operation]:
+    def to_proto(
+        self,
+        op: 'cirq.Operation',
+        msg: Optional[v2.program_pb2.Operation] = None,
+        *,
+        arg_function_language: Optional[str] = '',
+        constants: List[v2.program_pb2.Constant] = None,
+    ) -> Optional[v2.program_pb2.Operation]:
         """Returns the cirq.google.api.v2.Operation message as a proto dict.
 
         Note that this function may modify the constant list if it adds
@@ -119,8 +121,8 @@ class GateOpSerializer:
         gate = op.gate
         if not isinstance(gate, self.gate_type):
             raise ValueError(
-                'Gate of type {} but serializer expected type {}'.format(
-                    type(gate), self.gate_type))
+                'Gate of type {} but serializer expected type {}'.format(type(gate), self.gate_type)
+            )
 
         if not self.can_serialize_predicate(op):
             return None
@@ -134,9 +136,11 @@ class GateOpSerializer:
         for arg in self.args:
             value = self._value_from_gate(op, arg)
             if value is not None and (not arg.default or value != arg.default):
-                arg_to_proto(value,
-                             out=msg.args[arg.serialized_name],
-                             arg_function_language=arg_function_language)
+                arg_to_proto(
+                    value,
+                    out=msg.args[arg.serialized_name],
+                    arg_function_language=arg_function_language,
+                )
         if self.serialize_tokens:
             for tag in op.tags:
                 if isinstance(tag, CalibrationTag):
@@ -153,8 +157,9 @@ class GateOpSerializer:
                         msg.token_value = tag.token
         return msg
 
-    def _value_from_gate(self, op: 'cirq.Operation', arg: SerializingArg
-                        ) -> Optional[arg_func_langs.ARG_LIKE]:
+    def _value_from_gate(
+        self, op: 'cirq.Operation', arg: SerializingArg
+    ) -> Optional[arg_func_langs.ARG_LIKE]:
         value = None
         op_getter = arg.op_getter
         if isinstance(op_getter, str):
@@ -162,15 +167,17 @@ class GateOpSerializer:
             value = getattr(gate, op_getter, None)
             if value is None and arg.required:
                 raise ValueError(
-                    'Gate {!r} does not have attribute or property {}'.format(
-                        gate, op_getter))
+                    'Gate {!r} does not have attribute or property {}'.format(gate, op_getter)
+                )
         elif callable(op_getter):
             value = op_getter(op)
 
         if arg.required and value is None:
             raise ValueError(
-                'Argument {} is required, but could not get from op {!r}'.
-                format(arg.serialized_name, op))
+                'Argument {} is required, but could not get from op {!r}'.format(
+                    arg.serialized_name, op
+                )
+            )
 
         if isinstance(value, arg_func_langs.SUPPORTED_SYMPY_OPS):
             return value
@@ -180,19 +187,20 @@ class GateOpSerializer:
 
         return value
 
-    def _check_type(self, value: arg_func_langs.ARG_LIKE,
-                    arg: SerializingArg) -> None:
+    def _check_type(self, value: arg_func_langs.ARG_LIKE, arg: SerializingArg) -> None:
         if arg.serialized_type == float:
             if not isinstance(value, (float, int)):
                 raise ValueError(
-                    'Expected type convertible to float but was {}'.format(
-                        type(value)))
+                    'Expected type convertible to float but was {}'.format(type(value))
+                )
         elif arg.serialized_type == List[bool]:
-            if (not isinstance(value, (list, tuple, np.ndarray)) or
-                    not all(isinstance(x, (bool, np.bool_)) for x in value)):
-                raise ValueError('Expected type List[bool] but was {}'.format(
-                    type(value)))
+            if not isinstance(value, (list, tuple, np.ndarray)) or not all(
+                isinstance(x, (bool, np.bool_)) for x in value
+            ):
+                raise ValueError('Expected type List[bool] but was {}'.format(type(value)))
         elif value is not None and not isinstance(value, arg.serialized_type):
             raise ValueError(
                 'Argument {} had type {} but gate returned type {}'.format(
-                    arg.serialized_name, arg.serialized_type, type(value)))
+                    arg.serialized_name, arg.serialized_type, type(value)
+                )
+            )

@@ -37,7 +37,7 @@ def _signed_mod_1(x: float) -> float:
 
 
 def single_qubit_matrix_to_pauli_rotations(
-        mat: np.ndarray, atol: float = 0
+    mat: np.ndarray, atol: float = 0
 ) -> List[Tuple[ops.Pauli, float]]:
     """Implements a single-qubit operation with few rotations.
 
@@ -58,20 +58,16 @@ def single_qubit_matrix_to_pauli_rotations(
         return round(2 * half_turns) % 4
 
     def is_quarter_turn(half_turns):
-        return (is_clifford_rotation(half_turns) and
-                to_quarter_turns(half_turns) % 2 == 1)
+        return is_clifford_rotation(half_turns) and to_quarter_turns(half_turns) % 2 == 1
 
     def is_half_turn(half_turns):
-        return (is_clifford_rotation(half_turns) and
-                to_quarter_turns(half_turns) == 2)
+        return is_clifford_rotation(half_turns) and to_quarter_turns(half_turns) == 2
 
     def is_no_turn(half_turns):
-        return (is_clifford_rotation(half_turns) and
-                to_quarter_turns(half_turns) == 0)
+        return is_clifford_rotation(half_turns) and to_quarter_turns(half_turns) == 0
 
     # Decompose matrix
-    z_rad_before, y_rad, z_rad_after = (
-        linalg.deconstruct_single_qubit_matrix_into_angles(mat))
+    z_rad_before, y_rad, z_rad_after = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
     z_ht_before = z_rad_before / np.pi - 0.5
     m_ht = y_rad / np.pi
     m_pauli = ops.X  # type: ops.Pauli
@@ -79,8 +75,9 @@ def single_qubit_matrix_to_pauli_rotations(
 
     # Clean up angles
     if is_clifford_rotation(z_ht_before):
-        if ((is_quarter_turn(z_ht_before) or is_quarter_turn(z_ht_after)) ^
-            (is_half_turn(m_ht) and is_no_turn(z_ht_before-z_ht_after))):
+        if (is_quarter_turn(z_ht_before) or is_quarter_turn(z_ht_after)) ^ (
+            is_half_turn(m_ht) and is_no_turn(z_ht_before - z_ht_after)
+        ):
             z_ht_before += 0.5
             z_ht_after -= 0.5
             m_pauli = ops.Y
@@ -101,7 +98,7 @@ def single_qubit_matrix_to_pauli_rotations(
 
 
 def single_qubit_matrix_to_gates(
-        mat: np.ndarray, tolerance: float = 0
+    mat: np.ndarray, tolerance: float = 0
 ) -> List[ops.SingleQubitGate]:
     """Implements a single-qubit operation with few gates.
 
@@ -115,11 +112,10 @@ def single_qubit_matrix_to_gates(
             operation.
     """
     rotations = single_qubit_matrix_to_pauli_rotations(mat, tolerance)
-    return [cast(ops.SingleQubitGate, pauli)**ht for pauli, ht in rotations]
+    return [cast(ops.SingleQubitGate, pauli) ** ht for pauli, ht in rotations]
 
 
-def single_qubit_op_to_framed_phase_form(
-        mat: np.ndarray) -> Tuple[np.ndarray, complex, complex]:
+def single_qubit_op_to_framed_phase_form(mat: np.ndarray) -> Tuple[np.ndarray, complex, complex]:
     """Decomposes a 2x2 unitary M into U^-1 * diag(1, r) * U * diag(g, g).
 
     U translates the rotation axis of M to the Z axis.
@@ -146,8 +142,7 @@ def single_qubit_op_to_framed_phase_form(
     return u, r, g
 
 
-def _deconstruct_single_qubit_matrix_into_gate_turns(
-        mat: np.ndarray) -> Tuple[float, float, float]:
+def _deconstruct_single_qubit_matrix_into_gate_turns(mat: np.ndarray) -> Tuple[float, float, float]:
     """Breaks down a 2x2 unitary into gate parameters.
 
     Args:
@@ -159,8 +154,7 @@ def _deconstruct_single_qubit_matrix_into_gate_turns(
        fractions of a whole turn, with values canonicalized into the range
        [-0.5, 0.5).
     """
-    pre_phase, rotation, post_phase = (
-        linalg.deconstruct_single_qubit_matrix_into_angles(mat))
+    pre_phase, rotation, post_phase = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
 
     # Figure out parameters of the actual gates we will do.
     tau = 2 * np.pi
@@ -169,13 +163,11 @@ def _deconstruct_single_qubit_matrix_into_gate_turns(
     total_z_turn = (post_phase + pre_phase) / tau
 
     # Normalize turns into the range [-0.5, 0.5).
-    return (_signed_mod_1(xy_turn), _signed_mod_1(xy_phase_turn),
-            _signed_mod_1(total_z_turn))
+    return (_signed_mod_1(xy_turn), _signed_mod_1(xy_phase_turn), _signed_mod_1(total_z_turn))
 
 
 def single_qubit_matrix_to_phased_x_z(
-        mat: np.ndarray,
-        atol: float = 0
+    mat: np.ndarray, atol: float = 0
 ) -> List[ops.SingleQubitGate]:
     """Implements a single-qubit operation with a PhasedX and Z gate.
 
@@ -191,32 +183,25 @@ def single_qubit_matrix_to_phased_x_z(
             operation.
     """
 
-    xy_turn, xy_phase_turn, total_z_turn = (
-        _deconstruct_single_qubit_matrix_into_gate_turns(mat))
+    xy_turn, xy_phase_turn, total_z_turn = _deconstruct_single_qubit_matrix_into_gate_turns(mat)
 
     # Build the intended operation out of non-negligible XY and Z rotations.
     result = [
-        ops.PhasedXPowGate(exponent=2 * xy_turn,
-                           phase_exponent=2 * xy_phase_turn),
-        ops.Z**(2 * total_z_turn)
+        ops.PhasedXPowGate(exponent=2 * xy_turn, phase_exponent=2 * xy_phase_turn),
+        ops.Z ** (2 * total_z_turn),
     ]
-    result = [
-        g for g in result
-        if protocols.trace_distance_bound(g) > atol
-    ]
+    result = [g for g in result if protocols.trace_distance_bound(g) > atol]
 
     # Special case: XY half-turns can absorb Z rotations.
     if len(result) == 2 and math.isclose(abs(xy_turn), 0.5, abs_tol=atol):
-        return [
-            ops.PhasedXPowGate(phase_exponent=2 * xy_phase_turn + total_z_turn)
-        ]
+        return [ops.PhasedXPowGate(phase_exponent=2 * xy_phase_turn + total_z_turn)]
 
     return result
 
 
 def single_qubit_matrix_to_phxz(
-        mat: np.ndarray,
-        atol: float = 0,
+    mat: np.ndarray,
+    atol: float = 0,
 ) -> Optional[ops.PhasedXZGate]:
     """Implements a single-qubit operation with a PhasedXZ gate.
 
@@ -235,8 +220,7 @@ def single_qubit_matrix_to_phxz(
         close to identity (trace distance <= atol).
     """
 
-    xy_turn, xy_phase_turn, total_z_turn = (
-        _deconstruct_single_qubit_matrix_into_gate_turns(mat))
+    xy_turn, xy_phase_turn, total_z_turn = _deconstruct_single_qubit_matrix_into_gate_turns(mat)
 
     # Build the intended operation out of non-negligible XY and Z rotations.
     g = ops.PhasedXZGate(
