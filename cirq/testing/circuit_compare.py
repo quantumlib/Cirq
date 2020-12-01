@@ -27,17 +27,20 @@ from cirq.testing import lin_alg_utils
 def highlight_text_differences(actual: str, expected: str) -> str:
     diff = ""
     for actual_line, desired_line in itertools.zip_longest(
-            actual.splitlines(), expected.splitlines(),
-            fillvalue=""):
-        diff += "".join(a if a == b else "█"
-                        for a, b in itertools.zip_longest(
-                            actual_line, desired_line, fillvalue="")) + "\n"
+        actual.splitlines(), expected.splitlines(), fillvalue=""
+    ):
+        diff += (
+            "".join(
+                a if a == b else "█"
+                for a, b in itertools.zip_longest(actual_line, desired_line, fillvalue="")
+            )
+            + "\n"
+        )
     return diff
 
 
 def _measurement_subspaces(
-        measured_qubits: Iterable[ops.Qid],
-        n_qubits: int
+    measured_qubits: Iterable[ops.Qid], n_qubits: int
 ) -> Sequence[Sequence[int]]:
     """Computes subspaces associated with projective measurement.
 
@@ -91,8 +94,8 @@ def _measurement_subspaces(
 
 
 def assert_circuits_with_terminal_measurements_are_equivalent(
-        actual: circuits.AbstractCircuit, reference: circuits.AbstractCircuit,
-        atol: float) -> None:
+    actual: circuits.AbstractCircuit, reference: circuits.AbstractCircuit, atol: float
+) -> None:
     """Determines if two circuits have equivalent effects.
 
     The circuits can contain measurements, but the measurements must be at the
@@ -116,14 +119,18 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
     __tracebackhide__ = True
     # pylint: enable=unused-variable
 
-    measured_qubits_actual = {qubit
-                              for op in actual.all_operations()
-                              if protocols.is_measurement(op)
-                              for qubit in op.qubits}
-    measured_qubits_reference = {qubit
-                                 for op in reference.all_operations()
-                                 if protocols.is_measurement(op)
-                                 for qubit in op.qubits}
+    measured_qubits_actual = {
+        qubit
+        for op in actual.all_operations()
+        if protocols.is_measurement(op)
+        for qubit in op.qubits
+    }
+    measured_qubits_reference = {
+        qubit
+        for op in reference.all_operations()
+        if protocols.is_measurement(op)
+        for qubit in op.qubits
+    }
     assert actual.are_all_measurements_terminal()
     assert reference.are_all_measurements_terminal()
     assert measured_qubits_actual == measured_qubits_reference
@@ -131,8 +138,7 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
     all_qubits = actual.all_qubits().union(reference.all_qubits())
 
     matrix_actual = actual.unitary(qubits_that_should_be_present=all_qubits)
-    matrix_reference = reference.unitary(
-        qubits_that_should_be_present=all_qubits)
+    matrix_reference = reference.unitary(qubits_that_should_be_present=all_qubits)
 
     n_qubits = len(all_qubits)
     n = matrix_actual.shape[0]
@@ -165,20 +171,20 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
     for subspace in subspaces:
         block_actual = matrix_actual[subspace, :]
         block_reference = matrix_reference[subspace, :]
-        assert linalg.allclose_up_to_global_phase(
-                block_actual, block_reference, atol=atol), (
-                        "Circuit's effect differs from the reference circuit.\n"
-                        '\n'
-                        'Diagram of actual circuit:\n'
-                        '{}\n'
-                        '\n'
-                        'Diagram of reference circuit with desired function:\n'
-                        '{}\n'.format(actual, reference))
+        assert linalg.allclose_up_to_global_phase(block_actual, block_reference, atol=atol), (
+            "Circuit's effect differs from the reference circuit.\n"
+            '\n'
+            'Diagram of actual circuit:\n'
+            '{}\n'
+            '\n'
+            'Diagram of reference circuit with desired function:\n'
+            '{}\n'.format(actual, reference)
+        )
 
 
 def assert_same_circuits(
-        actual: circuits.AbstractCircuit,
-        expected: circuits.AbstractCircuit,
+    actual: circuits.AbstractCircuit,
+    expected: circuits.AbstractCircuit,
 ) -> None:
     """Asserts that two circuits are identical, with a descriptive error.
 
@@ -202,24 +208,22 @@ def assert_same_circuits(
         "{!r}\n"
         "\n"
         "Full repr of expected circuit:\n"
-        "{!r}\n").format(actual,
-                         expected,
-                         _first_differing_moment_index(actual, expected),
-                         actual,
-                         expected)
+        "{!r}\n"
+    ).format(actual, expected, _first_differing_moment_index(actual, expected), actual, expected)
 
 
-def _first_differing_moment_index(circuit1: circuits.AbstractCircuit,
-                                  circuit2: circuits.AbstractCircuit
-                                 ) -> Optional[int]:
+def _first_differing_moment_index(
+    circuit1: circuits.AbstractCircuit, circuit2: circuits.AbstractCircuit
+) -> Optional[int]:
     for i, (m1, m2) in enumerate(itertools.zip_longest(circuit1, circuit2)):
         if m1 != m2:
             return i
     return None  # coverage: ignore
 
 
-def assert_has_diagram(actual: Union[circuits.AbstractCircuit, ops.Moment],
-                       desired: str, **kwargs) -> None:
+def assert_has_diagram(
+    actual: Union[circuits.AbstractCircuit, ops.Moment], desired: str, **kwargs
+) -> None:
     """Determines if a given circuit has the desired text diagram.
 
     Args:
@@ -240,14 +244,15 @@ def assert_has_diagram(actual: Union[circuits.AbstractCircuit, ops.Moment],
         '{}\n'
         '\n'
         'Highlighted differences:\n'
-        '{}\n'.format(actual_diagram, desired_diagram,
-                      highlight_text_differences(actual_diagram,
-                                                 desired_diagram))
+        '{}\n'.format(
+            actual_diagram,
+            desired_diagram,
+            highlight_text_differences(actual_diagram, desired_diagram),
+        )
     )
 
 
-def assert_has_consistent_apply_unitary(val: Any, *,
-                                        atol: float = 1e-8) -> None:
+def assert_has_consistent_apply_unitary(val: Any, *, atol: float = 1e-8) -> None:
     """Tests whether a value's _apply_unitary_ is correct.
 
     Contrasts the effects of the value's `_apply_unitary_` with the
@@ -270,12 +275,13 @@ def assert_has_consistent_apply_unitary(val: Any, *,
     eye = qis.eye_tensor((2,) + qid_shape, dtype=np.complex128)
     actual = protocols.apply_unitary(
         unitary_value=val,
-        args=protocols.ApplyUnitaryArgs(target_tensor=eye,
-                                        available_buffer=np.ones_like(eye) *
-                                        float('nan'),
-                                        axes=list(range(1,
-                                                        len(qid_shape) + 1))),
-        default=None)
+        args=protocols.ApplyUnitaryArgs(
+            target_tensor=eye,
+            available_buffer=np.ones_like(eye) * float('nan'),
+            axes=list(range(1, len(qid_shape) + 1)),
+        ),
+        default=None,
+    )
 
     # If you don't have a unitary, you shouldn't be able to apply a unitary.
     if expected is None:
@@ -285,16 +291,12 @@ def assert_has_consistent_apply_unitary(val: Any, *,
 
     # If you applied a unitary, it should match the one you say you have.
     if actual is not None:
-        np.testing.assert_allclose(actual.reshape((np.prod(
-            (2,) + qid_shape, dtype=int),) * 2),
-                                   expected,
-                                   atol=atol)
+        np.testing.assert_allclose(
+            actual.reshape((np.prod((2,) + qid_shape, dtype=int),) * 2), expected, atol=atol
+        )
 
 
-def _assert_apply_unitary_works_when_axes_transposed(val: Any,
-                                                     *,
-                                                     atol: float = 1e-8
-                                                    ) -> None:
+def _assert_apply_unitary_works_when_axes_transposed(val: Any, *, atol: float = 1e-8) -> None:
     """Tests whether a value's _apply_unitary_ handles out-of-order axes.
 
     A common mistake to make when implementing `_apply_unitary_` is to assume
@@ -327,8 +329,7 @@ def _assert_apply_unitary_works_when_axes_transposed(val: Any,
         transposed_shape[permutation[i]] = padded_shape[i]
 
     # Prepare input states.
-    in_order_input = lin_alg_utils.random_superposition(size).reshape(
-        padded_shape)
+    in_order_input = lin_alg_utils.random_superposition(size).reshape(padded_shape)
     out_of_order_input = np.empty(shape=transposed_shape, dtype=np.complex128)
     out_of_order_input.transpose(permutation)[...] = in_order_input
 
@@ -338,13 +339,17 @@ def _assert_apply_unitary_works_when_axes_transposed(val: Any,
         protocols.ApplyUnitaryArgs(
             target_tensor=in_order_input,
             available_buffer=np.empty_like(in_order_input),
-            axes=range(n)))
+            axes=range(n),
+        ),
+    )
     out_of_order_output = protocols.apply_unitary(
         val,
         protocols.ApplyUnitaryArgs(
             target_tensor=out_of_order_input,
             available_buffer=np.empty_like(out_of_order_input),
-            axes=permutation[:n]))
+            axes=permutation[:n],
+        ),
+    )
 
     # Put the out of order output back into order, to enable comparison.
     reordered_output = out_of_order_output.transpose(permutation)
@@ -355,12 +360,13 @@ def _assert_apply_unitary_works_when_axes_transposed(val: Any,
             f'The _apply_unitary_ method of {repr(val)} acted differently on '
             f'out-of-order axes than on in-order axes.\n'
             f'\n'
-            f'The failing axis order: {repr(permutation[:n])}')
+            f'The failing axis order: {repr(permutation[:n])}'
+        )
 
 
 def assert_has_consistent_apply_unitary_for_various_exponents(
-        val: Any, *,
-        exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s'))) -> None:
+    val: Any, *, exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s'))
+) -> None:
     """Tests whether a value's _apply_unitary_ is correct.
 
     Contrasts the effects of the value's `_apply_unitary_` with the
@@ -401,13 +407,12 @@ def assert_has_consistent_qid_shape(val: Any) -> None:
     num_qubits = protocols.num_qubits(val, default)
     if qid_shape is default or num_qubits is default:
         return  # Nothing to check
-    assert all(d >= 1 for d in qid_shape), (
-        f'Not all entries in qid_shape are positive: {qid_shape}')
-    assert len(qid_shape) == num_qubits, (
-        f'Length of qid_shape and num_qubits disagree: {qid_shape}, '
-        f'{num_qubits}')
+    assert all(d >= 1 for d in qid_shape), f'Not all entries in qid_shape are positive: {qid_shape}'
+    assert (
+        len(qid_shape) == num_qubits
+    ), f'Length of qid_shape and num_qubits disagree: {qid_shape}, {num_qubits}'
 
     if isinstance(val, ops.Operation):
-        assert num_qubits == len(val.qubits), (
-            f'Length of num_qubits and val.qubits disagrees: {num_qubits}, '
-            f'{len(val.qubits)}')
+        assert num_qubits == len(
+            val.qubits
+        ), f'Length of num_qubits and val.qubits disagrees: {num_qubits}, {len(val.qubits)}'

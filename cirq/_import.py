@@ -25,9 +25,13 @@ ModuleType = Any
 class InstrumentedFinder(importlib.abc.MetaPathFinder):
     """A module finder used to hook the python import statement."""
 
-    def __init__(self, finder: Any, module_name: str,
-                 wrap_module: Callable[[ModuleType], Optional[ModuleType]],
-                 after_exec: Callable[[ModuleType], None]):
+    def __init__(
+        self,
+        finder: Any,
+        module_name: str,
+        wrap_module: Callable[[ModuleType], Optional[ModuleType]],
+        after_exec: Callable[[ModuleType], None],
+    ):
         """A module finder that uses an existing module finder to find a python
         module spec and intercept the execution of matching modules.
 
@@ -56,28 +60,29 @@ class InstrumentedFinder(importlib.abc.MetaPathFinder):
         self.wrap_module = wrap_module
         self.after_exec = after_exec
 
-    def find_spec(self, fullname: str, path: Any = None,
-                  target: Any = None) -> Any:
+    def find_spec(self, fullname: str, path: Any = None, target: Any = None) -> Any:
         components = fullname.split('.')
         spec = self.finder.find_spec(fullname, path=path, target=target)
         if spec is None:
             return None
-        if components[:len(self.match_components)] == self.match_components:
+        if components[: len(self.match_components)] == self.match_components:
             spec = self.wrap_spec(spec)
         return spec
 
     def wrap_spec(self, spec: Any) -> Any:
-        spec.loader = InstrumentedLoader(spec.loader, self.wrap_module,
-                                         self.after_exec)
+        spec.loader = InstrumentedLoader(spec.loader, self.wrap_module, self.after_exec)
         return spec
 
 
 class InstrumentedLoader(importlib.abc.Loader):
     """A module loader used to hook the python import statement."""
 
-    def __init__(self, loader: Any,
-                 wrap_module: Callable[[ModuleType], Optional[ModuleType]],
-                 after_exec: Callable[[ModuleType], None]):
+    def __init__(
+        self,
+        loader: Any,
+        wrap_module: Callable[[ModuleType], Optional[ModuleType]],
+        after_exec: Callable[[ModuleType], None],
+    ):
         """A module loader that uses an existing module loader and intercepts
         the execution of a module.
 
@@ -113,9 +118,10 @@ class InstrumentedLoader(importlib.abc.Loader):
 
 @contextmanager
 def wrap_module_executions(
-        module_name: str,
-        wrap_func: Callable[[ModuleType], Optional[ModuleType]],
-        after_exec: Callable[[ModuleType], None] = lambda m: None):
+    module_name: str,
+    wrap_func: Callable[[ModuleType], Optional[ModuleType]],
+    after_exec: Callable[[ModuleType], None] = lambda m: None,
+):
     """A context manager that hooks python's import machinery within the
     context.
 

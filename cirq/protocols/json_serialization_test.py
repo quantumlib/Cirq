@@ -104,7 +104,7 @@ def test_fail_to_resolve():
 
     with pytest.raises(ValueError) as e:
         cirq.read_json(buffer)
-    assert e.match("Could not resolve type 'MyCustomClass' " "during deserialization")
+    assert e.match("Could not resolve type 'MyCustomClass' during deserialization")
 
 
 QUBITS = cirq.LineQubit.range(5)

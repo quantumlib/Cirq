@@ -36,20 +36,19 @@ def pow(val: 'cirq.Operation', exponent: Any) -> 'cirq.Operation':
 
 
 @overload
-def pow(val: 'cirq.Gate', exponent: Any,
-        default: TDefault) -> Union[TDefault, 'cirq.Gate']:
+def pow(val: 'cirq.Gate', exponent: Any, default: TDefault) -> Union[TDefault, 'cirq.Gate']:
     pass
 
 
 @overload
-def pow(val: 'cirq.Operation', exponent: Any,
-        default: TDefault) -> Union[TDefault, 'cirq.Operation']:
+def pow(
+    val: 'cirq.Operation', exponent: Any, default: TDefault
+) -> Union[TDefault, 'cirq.Operation']:
     pass
 
 
 @overload
-def pow(val: 'cirq.Circuit', exponent: int,
-        default: TDefault) -> Union[TDefault, 'cirq.Circuit']:
+def pow(val: 'cirq.Circuit', exponent: int, default: TDefault) -> Union[TDefault, 'cirq.Circuit']:
     pass
 
 
@@ -58,8 +57,7 @@ def pow(val: Any, exponent: Any, default: TDefault) -> Any:
     pass
 
 
-def pow(val: Any, exponent: Any,
-        default: Any = RaiseTypeErrorIfNotProvided) -> Any:
+def pow(val: Any, exponent: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     """Returns `val**factor` of the given value, if defined.
 
     Values define an extrapolation by defining a __pow__(self, exponent) method.
@@ -91,10 +89,11 @@ def pow(val: Any, exponent: Any,
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     if raiser is None:
-        raise TypeError("object of type '{}' "
-                        "has no __pow__ method.".format(type(val)))
-    raise TypeError("object of type '{}' does have a __pow__ method, "
-                    "but it returned NotImplemented.".format(type(val)))
+        raise TypeError("object of type '{}' has no __pow__ method.".format(type(val)))
+    raise TypeError(
+        "object of type '{}' does have a __pow__ method, "
+        "but it returned NotImplemented.".format(type(val))
+    )
 
 
 # pylint: enable=function-redefined, redefined-builtin

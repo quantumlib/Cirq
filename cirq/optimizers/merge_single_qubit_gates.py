@@ -28,12 +28,12 @@ if TYPE_CHECKING:
 class MergeSingleQubitGates(circuits.PointOptimizer):
     """Optimizes runs of adjacent unitary 1-qubit operations."""
 
-    def __init__(self,
-                 *,
-                 rewriter: Optional[Callable[[List[ops.Operation]],
-                                             Optional[ops.OP_TREE]]] = None,
-                 synthesizer: Optional[Callable[[ops.Qid, np.ndarray],
-                                                Optional[ops.OP_TREE]]] = None):
+    def __init__(
+        self,
+        *,
+        rewriter: Optional[Callable[[List[ops.Operation]], Optional[ops.OP_TREE]]] = None,
+        synthesizer: Optional[Callable[[ops.Qid, np.ndarray], Optional[ops.OP_TREE]]] = None,
+    ):
         """
         Args:
             rewriter: Specifies how to merge runs of single-qubit operations
@@ -55,8 +55,7 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
         self._rewriter = rewriter
         self._synthesizer = synthesizer
 
-    def _rewrite(self, operations: List[ops.Operation]
-                 ) -> Optional[ops.OP_TREE]:
+    def _rewrite(self, operations: List[ops.Operation]) -> Optional[ops.OP_TREE]:
         if not operations:
             return None
         q = operations[0].qubits[0]
@@ -65,8 +64,7 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
         if self._rewriter is not None:
             return self._rewriter(operations)
 
-        unitary = linalg.dot(*(protocols.unitary(op)
-                               for op in operations[::-1]))
+        unitary = linalg.dot(*(protocols.unitary(op) for op in operations[::-1]))
 
         # Custom synthesizer?
         if self._synthesizer is not None:
@@ -75,35 +73,31 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
         # Just use the default.
         return ops.MatrixGate(unitary).on(q)
 
-    def optimization_at(self,
-                        circuit: circuits.Circuit,
-                        index: int,
-                        op: ops.Operation
-                        ) -> Optional[circuits.PointOptimizationSummary]:
+    def optimization_at(
+        self, circuit: circuits.Circuit, index: int, op: ops.Operation
+    ) -> Optional[circuits.PointOptimizationSummary]:
         if len(op.qubits) != 1:
             return None
         start = {op.qubits[0]: index}
 
         op_list = circuit.findall_operations_until_blocked(
             start,
-            is_blocker=lambda next_op: len(
-                next_op.qubits) != 1 or not protocols.has_unitary(next_op))
-        operations = [op for idx,op in op_list]
-        indices = [idx for idx,op in op_list]
+            is_blocker=lambda next_op: len(next_op.qubits) != 1
+            or not protocols.has_unitary(next_op),
+        )
+        operations = [op for idx, op in op_list]
+        indices = [idx for idx, op in op_list]
 
         rewritten = self._rewrite(operations)
 
         if rewritten is None:
             return None
         return circuits.PointOptimizationSummary(
-            clear_span=max(indices) + 1 - index,
-            clear_qubits=op.qubits,
-            new_operations=rewritten)
+            clear_span=max(indices) + 1 - index, clear_qubits=op.qubits, new_operations=rewritten
+        )
 
 
-def merge_single_qubit_gates_into_phased_x_z(
-        circuit: circuits.Circuit,
-        atol: float = 1e-8) -> None:
+def merge_single_qubit_gates_into_phased_x_z(circuit: circuits.Circuit, atol: float = 1e-8) -> None:
     """Canonicalizes runs of single-qubit rotations in a circuit.
 
     Specifically, any run of non-parameterized single-qubit gates will be
@@ -117,16 +111,15 @@ def merge_single_qubit_gates_into_phased_x_z(
     """
 
     def synth(qubit: 'cirq.Qid', matrix: np.ndarray) -> List[ops.Operation]:
-        out_gates = decompositions.single_qubit_matrix_to_phased_x_z(
-            matrix, atol)
+        out_gates = decompositions.single_qubit_matrix_to_phased_x_z(matrix, atol)
         return [gate(qubit) for gate in out_gates]
 
     MergeSingleQubitGates(synthesizer=synth).optimize_circuit(circuit)
 
 
 def merge_single_qubit_gates_into_phxz(
-        circuit: circuits.Circuit,
-        atol: float = 1e-8,
+    circuit: circuits.Circuit,
+    atol: float = 1e-8,
 ) -> None:
     """Canonicalizes runs of single-qubit rotations in a circuit.
 

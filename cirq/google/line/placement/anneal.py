@@ -24,10 +24,7 @@ from cirq.google.line.placement.chip import (
     chip_as_adjacency_list,
     EDGE,
 )
-from cirq.google.line.placement.sequence import (
-    GridQubitLineTuple,
-    LineSequence
-)
+from cirq.google.line.placement.sequence import GridQubitLineTuple, LineSequence
 
 if TYPE_CHECKING:
     import cirq.google
@@ -50,10 +47,8 @@ class AnnealSequenceSearch:
         self._rand = np.random.RandomState(seed)
 
     def search(
-            self,
-            trace_func: Callable[
-                [List[LineSequence], float, float, float, bool],
-                None] = None) -> List[LineSequence]:
+        self, trace_func: Callable[[List[LineSequence], float, float, float, bool], None] = None
+    ) -> List[LineSequence]:
         """Issues new linear sequence search.
 
         Each call to this method starts new search.
@@ -69,8 +64,9 @@ class AnnealSequenceSearch:
           List of linear sequences on the chip found by this method.
         """
 
-        def search_trace(state: _STATE, temp: float,
-                         cost: float, probability: float, accepted: bool):
+        def search_trace(
+            state: _STATE, temp: float, cost: float, probability: float, accepted: bool
+        ):
             if trace_func:
                 trace_seqs, _ = state
                 trace_func(trace_seqs, temp, cost, probability, accepted)
@@ -80,7 +76,8 @@ class AnnealSequenceSearch:
             self._quadratic_sum_cost,
             self._force_edges_active_move,
             self._rand.random_sample,
-            trace_func=search_trace)
+            trace_func=search_trace,
+        )
         return seqs
 
     def _quadratic_sum_cost(self, state: _STATE) -> float:
@@ -143,15 +140,11 @@ class AnnealSequenceSearch:
         if not edge:
             return seqs, edges
 
-        return (
-            self._force_edge_active(seqs,
-                                    edge,
-                                    lambda: bool(self._rand.randint(2))),
-            edges)
+        return (self._force_edge_active(seqs, edge, lambda: bool(self._rand.randint(2))), edges)
 
-    def _force_edge_active(self, seqs: List[List[GridQubit]], edge: EDGE,
-                           sample_bool: Callable[[], bool]
-                           ) -> List[List[GridQubit]]:
+    def _force_edge_active(
+        self, seqs: List[List[GridQubit]], edge: EDGE, sample_bool: Callable[[], bool]
+    ) -> List[List[GridQubit]]:
         """Move which forces given edge to appear on some sequence.
 
         Args:
@@ -182,7 +175,7 @@ class AnnealSequenceSearch:
 
             # Split s0 and s1 in two parts: s0 in parts before n0, and after n0
             # (without n0); s1 in parts before n1, and after n1 (without n1).
-            part = [s0[:j0], s0[j0 + 1:]], [s1[:j1], s1[j1 + 1:]]
+            part = [s0[:j0], s0[j0 + 1 :]], [s1[:j1], s1[j1 + 1 :]]
 
             # Remove both sequences from original list.
             del seqs[max(i0, i1)]
@@ -190,15 +183,13 @@ class AnnealSequenceSearch:
 
             # Choose part of s0 which will be attached to n0, and make sure it
             # can be attached in the end.
-            c0 = 0 if not part[0][1] else 1 if not part[0][
-                0] else sample_bool()
+            c0 = 0 if not part[0][1] else 1 if not part[0][0] else sample_bool()
             if c0:
                 part[0][c0].reverse()
 
             # Choose part of s1 which will be attached to n1, and make sure it
             # can be attached in the beginning.
-            c1 = 0 if not part[1][1] else 1 if not part[1][
-                0] else sample_bool()
+            c1 = 0 if not part[1][1] else 1 if not part[1][0] else sample_bool()
             if not c1:
                 part[1][c1].reverse()
 
@@ -219,8 +210,8 @@ class AnnealSequenceSearch:
             # head might end with n0, inner might begin with n0 and end with
             # n1, tail might begin with n1.
             head = s0[:j0]
-            inner = s0[j0 + 1:j1]
-            tail = s0[j1 + 1:]
+            inner = s0[j0 + 1 : j1]
+            tail = s0[j1 + 1 :]
 
             # Remove original sequence from sequences list.
             del seqs[i0]
@@ -332,6 +323,7 @@ class AnnealSequenceSearch:
                 index -= 1
         return None
 
+
 class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """Linearized sequence search using simulated annealing method.
 
@@ -340,13 +332,11 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     Github issue: https://github.com/quantumlib/Cirq/issues/2217
     """
 
-    def __init__(self,
-                 trace_func: Callable[[List[LineSequence],
-                                       float,
-                                       float,
-                                       float,
-                                       bool], None] = None,
-                 seed: int = None) -> None:
+    def __init__(
+        self,
+        trace_func: Callable[[List[LineSequence], float, float, float, bool], None] = None,
+        seed: int = None,
+    ) -> None:
         """Linearized sequence search using simulated annealing method.
 
         Args:
@@ -365,9 +355,7 @@ class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
         self.trace_func = trace_func
         self.seed = seed
 
-    def place_line(self,
-                   device: 'cirq.google.XmonDevice',
-                   length: int) -> GridQubitLineTuple:
+    def place_line(self, device: 'cirq.google.XmonDevice', length: int) -> GridQubitLineTuple:
         """Runs line sequence search.
 
         Args:

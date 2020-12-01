@@ -42,33 +42,23 @@ def test_find_measurements_simple_circuit():
 def test_find_measurements_invert_mask():
     circuit = cirq.Circuit()
     circuit.append(
-        cirq.measure(q(0, 0),
-                     q(0, 1),
-                     q(0, 2),
-                     key='k',
-                     invert_mask=[False, True, True]))
+        cirq.measure(q(0, 0), q(0, 1), q(0, 2), key='k', invert_mask=[False, True, True])
+    )
     measurements = v2.find_measurements(circuit)
 
     assert len(measurements) == 1
     m = measurements[0]
-    _check_measurement(m, 'k', [q(0, 0), q(0, 1), q(0, 2)], 0,
-                       [False, True, True])
+    _check_measurement(m, 'k', [q(0, 0), q(0, 1), q(0, 2)], 0, [False, True, True])
 
 
 def test_find_measurements_fill_mask():
     circuit = cirq.Circuit()
-    circuit.append(
-        cirq.measure(q(0, 0),
-                     q(0, 1),
-                     q(0, 2),
-                     key='k',
-                     invert_mask=[False, True]))
+    circuit.append(cirq.measure(q(0, 0), q(0, 1), q(0, 2), key='k', invert_mask=[False, True]))
     measurements = v2.find_measurements(circuit)
 
     assert len(measurements) == 1
     m = measurements[0]
-    _check_measurement(m, 'k', [q(0, 0), q(0, 1), q(0, 2)], 0,
-                       [False, True, False])
+    _check_measurement(m, 'k', [q(0, 0), q(0, 1), q(0, 2)], 0, [False, True, False])
 
 
 def test_find_measurements_duplicate_keys():
@@ -100,14 +90,15 @@ def test_multiple_measurements_different_slots():
 
 def test_multiple_measurements_shared_slots():
     circuit = cirq.Circuit()
-    circuit.append([
-        cirq.measure(q(0, 0), q(0, 1), key='k0'),
-        cirq.measure(q(0, 2), q(1, 1), key='k1')
-    ])
-    circuit.append([
-        cirq.measure(q(1, 0), q(0, 0), q(0, 1), key='k2'),
-        cirq.measure(q(1, 1), q(0, 2), key='k3')
-    ])
+    circuit.append(
+        [cirq.measure(q(0, 0), q(0, 1), key='k0'), cirq.measure(q(0, 2), q(1, 1), key='k1')]
+    )
+    circuit.append(
+        [
+            cirq.measure(q(1, 0), q(0, 0), q(0, 1), key='k2'),
+            cirq.measure(q(1, 1), q(0, 2), key='k3'),
+        ]
+    )
     measurements = v2.find_measurements(circuit)
 
     assert len(measurements) == 4
@@ -119,21 +110,21 @@ def test_multiple_measurements_shared_slots():
 
 
 def test_results_to_proto():
-    measurements = [
-        v2.MeasureInfo('foo', [q(0, 0)], slot=0, invert_mask=[False])
-    ]
+    measurements = [v2.MeasureInfo('foo', [q(0, 0)], slot=0, invert_mask=[False])]
     trial_results = [
         [
             cirq.Result.from_single_parameter_set(
                 params=cirq.ParamResolver({'i': 0}),
                 measurements={
                     'foo': np.array([[0], [1], [0], [1]], dtype=bool),
-                }),
+                },
+            ),
             cirq.Result.from_single_parameter_set(
                 params=cirq.ParamResolver({'i': 1}),
                 measurements={
                     'foo': np.array([[0], [1], [1], [0]], dtype=bool),
-                }),
+                },
+            ),
         ],
         [
             cirq.Result.from_single_parameter_set(
@@ -146,7 +137,8 @@ def test_results_to_proto():
                 params=cirq.ParamResolver({'i': 1}),
                 measurements={
                     'foo': np.array([[0], [1], [1], [0]], dtype=bool),
-                }),
+                },
+            ),
         ],
     ]
     proto = v2.results_to_proto(trial_results, measurements)
@@ -160,38 +152,37 @@ def test_results_to_proto():
             assert trial_result.params == expected_trial_result.params
             assert trial_result.repetitions == expected_trial_result.repetitions
             np.testing.assert_array_equal(
-                trial_result.measurements['foo'],
-                expected_trial_result.measurements['foo'])
+                trial_result.measurements['foo'], expected_trial_result.measurements['foo']
+            )
 
 
 def test_results_to_proto_sweep_repetitions():
-    measurements = [
-        v2.MeasureInfo('foo', [q(0, 0)], slot=0, invert_mask=[False])
+    measurements = [v2.MeasureInfo('foo', [q(0, 0)], slot=0, invert_mask=[False])]
+    trial_results = [
+        [
+            cirq.Result.from_single_parameter_set(
+                params=cirq.ParamResolver({'i': 0}),
+                measurements={
+                    'foo': np.array([[0]], dtype=bool),
+                },
+            ),
+            cirq.Result.from_single_parameter_set(
+                params=cirq.ParamResolver({'i': 1}),
+                measurements={
+                    'foo': np.array([[0], [1]], dtype=bool),
+                },
+            ),
+        ]
     ]
-    trial_results = [[
-        cirq.Result.from_single_parameter_set(params=cirq.ParamResolver(
-            {'i': 0}),
-                                              measurements={
-                                                  'foo':
-                                                  np.array([[0]], dtype=bool),
-                                              }),
-        cirq.Result.from_single_parameter_set(params=cirq.ParamResolver(
-            {'i': 1}),
-                                              measurements={
-                                                  'foo':
-                                                  np.array([[0], [1]],
-                                                           dtype=bool),
-                                              }),
-    ]]
     with pytest.raises(ValueError, match='different numbers of repetitions'):
         v2.results_to_proto(trial_results, measurements)
 
 
 def test_results_from_proto_qubit_ordering():
     measurements = [
-        v2.MeasureInfo('foo', [q(0, 0), q(0, 1), q(1, 1)],
-                       slot=0,
-                       invert_mask=[False, False, False])
+        v2.MeasureInfo(
+            'foo', [q(0, 0), q(0, 1), q(1, 1)], slot=0, invert_mask=[False, False, False]
+        )
     ]
     proto = v2.result_pb2.Result()
     sr = proto.sweep_results.add()
@@ -215,24 +206,27 @@ def test_results_from_proto_qubit_ordering():
     assert trial.repetitions == 8
     np.testing.assert_array_equal(
         trial.measurements['foo'],
-        np.array([
-            [0, 0, 0],
-            [0, 0, 1],
-            [0, 1, 0],
-            [0, 1, 1],
-            [1, 0, 0],
-            [1, 0, 1],
-            [1, 1, 0],
-            [1, 1, 1],
-        ],
-                 dtype=bool))
+        np.array(
+            [
+                [0, 0, 0],
+                [0, 0, 1],
+                [0, 1, 0],
+                [0, 1, 1],
+                [1, 0, 0],
+                [1, 0, 1],
+                [1, 1, 0],
+                [1, 1, 1],
+            ],
+            dtype=bool,
+        ),
+    )
 
 
 def test_results_from_proto_duplicate_qubit():
     measurements = [
-        v2.MeasureInfo('foo', [q(0, 0), q(0, 1), q(1, 1)],
-                       slot=0,
-                       invert_mask=[False, False, False])
+        v2.MeasureInfo(
+            'foo', [q(0, 0), q(0, 1), q(1, 1)], slot=0, invert_mask=[False, False, False]
+        )
     ]
     proto = v2.result_pb2.Result()
     sr = proto.sweep_results.add()
@@ -276,14 +270,17 @@ def test_results_from_proto_default_ordering():
     assert trial.repetitions == 8
     np.testing.assert_array_equal(
         trial.measurements['foo'],
-        np.array([
-            [0, 0, 0],
-            [0, 1, 0],
-            [1, 0, 0],
-            [1, 1, 0],
-            [0, 0, 1],
-            [0, 1, 1],
-            [1, 0, 1],
-            [1, 1, 1],
-        ],
-                 dtype=bool))
+        np.array(
+            [
+                [0, 0, 0],
+                [0, 1, 0],
+                [1, 0, 0],
+                [1, 1, 0],
+                [0, 0, 1],
+                [0, 1, 1],
+                [1, 0, 1],
+                [1, 1, 1],
+            ],
+            dtype=bool,
+        ),
+    )

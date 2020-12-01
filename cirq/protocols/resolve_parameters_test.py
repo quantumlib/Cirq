@@ -19,7 +19,6 @@ from cirq.study import ParamResolver
 
 
 def test_resolve_parameters():
-
     class NoMethod:
         pass
 
