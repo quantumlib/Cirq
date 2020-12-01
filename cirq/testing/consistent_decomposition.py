@@ -20,9 +20,7 @@ from cirq import devices, protocols, ops, circuits
 from cirq.testing import lin_alg_utils
 
 
-def assert_decompose_is_consistent_with_unitary(
-        val: Any,
-        ignoring_global_phase: bool=False):
+def assert_decompose_is_consistent_with_unitary(val: Any, ignoring_global_phase: bool = False):
     """Uses `val._unitary_` to check `val._phase_by_`'s behavior."""
     # pylint: disable=unused-variable
     __tracebackhide__ = True
@@ -45,9 +43,7 @@ def assert_decompose_is_consistent_with_unitary(
     actual = circuits.Circuit(dec).unitary(qubit_order=qubits)
 
     if ignoring_global_phase:
-        lin_alg_utils.assert_allclose_up_to_global_phase(actual,
-                                                         expected,
-                                                         atol=1e-8)
+        lin_alg_utils.assert_allclose_up_to_global_phase(actual, expected, atol=1e-8)
     else:
         # coverage: ignore
         np.testing.assert_allclose(actual, expected, atol=1e-8)

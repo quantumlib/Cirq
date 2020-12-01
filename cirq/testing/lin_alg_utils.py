@@ -23,10 +23,9 @@ if TYPE_CHECKING:
     import cirq
 
 
-def random_superposition(dim: int,
-                         *,
-                         random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-                        ) -> np.ndarray:
+def random_superposition(
+    dim: int, *, random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+) -> np.ndarray:
     """Returns a random unit-length vector from the uniform distribution.
 
     Args:
@@ -46,10 +45,9 @@ def random_superposition(dim: int,
     return state_vector
 
 
-def random_density_matrix(dim: int,
-                          *,
-                          random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-                         ) -> np.ndarray:
+def random_density_matrix(
+    dim: int, *, random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+) -> np.ndarray:
     """Returns a random density matrix distributed with Hilbert-Schmidt measure.
 
     Args:
@@ -70,10 +68,9 @@ def random_density_matrix(dim: int,
     return mat / np.trace(mat)
 
 
-def random_unitary(dim: int,
-                   *,
-                   random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-                  ) -> np.ndarray:
+def random_unitary(
+    dim: int, *, random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+) -> np.ndarray:
     """Returns a random unitary matrix distributed with Haar measure.
 
     Args:
@@ -89,16 +86,15 @@ def random_unitary(dim: int,
     """
     random_state = value.parse_random_state(random_state)
 
-    z = (random_state.randn(dim, dim) + 1j * random_state.randn(dim, dim))
+    z = random_state.randn(dim, dim) + 1j * random_state.randn(dim, dim)
     q, r = np.linalg.qr(z)
     d = np.diag(r)
     return q * (d / abs(d))
 
 
-def random_orthogonal(dim: int,
-                      *,
-                      random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-                     ) -> np.ndarray:
+def random_orthogonal(
+    dim: int, *, random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+) -> np.ndarray:
     """Returns a random orthogonal matrix distributed with Haar measure.
 
     Args:
@@ -122,10 +118,9 @@ def random_orthogonal(dim: int,
     return q * (d / abs(d))
 
 
-def random_special_unitary(dim: int,
-                           *,
-                           random_state: Optional[np.random.RandomState] = None
-                          ) -> np.ndarray:
+def random_special_unitary(
+    dim: int, *, random_state: Optional[np.random.RandomState] = None
+) -> np.ndarray:
     """Returns a random special unitary distributed with Haar measure.
 
     Args:
@@ -143,8 +138,8 @@ def random_special_unitary(dim: int,
 
 
 def random_special_orthogonal(
-        dim: int, *,
-        random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
+    dim: int, *, random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+) -> np.ndarray:
     """Returns a random special orthogonal matrix distributed with Haar measure.
 
     Args:
@@ -163,14 +158,15 @@ def random_special_orthogonal(
 
 
 def assert_allclose_up_to_global_phase(
-        actual: np.ndarray,
-        desired: np.ndarray,
-        *,  # Forces keyword args.
-        rtol: float = 1e-7,
-        atol: float,  # Require atol to be specified
-        equal_nan: bool = True,
-        err_msg: Optional[str] = '',
-        verbose: bool = True) -> None:
+    actual: np.ndarray,
+    desired: np.ndarray,
+    *,  # Forces keyword args.
+    rtol: float = 1e-7,
+    atol: float,  # Require atol to be specified
+    equal_nan: bool = True,
+    err_msg: Optional[str] = '',
+    verbose: bool = True,
+) -> None:
     """Checks if a ~= b * exp(i t) for some t.
 
     Args:
@@ -192,10 +188,12 @@ def assert_allclose_up_to_global_phase(
     # pylint: enable=unused-variable
 
     actual, desired = linalg.match_global_phase(actual, desired)
-    np.testing.assert_allclose(actual=actual,
-                               desired=desired,
-                               rtol=rtol,
-                               atol=atol,
-                               equal_nan=equal_nan,
-                               err_msg=err_msg,
-                               verbose=verbose)
+    np.testing.assert_allclose(
+        actual=actual,
+        desired=desired,
+        rtol=rtol,
+        atol=atol,
+        equal_nan=equal_nan,
+        err_msg=err_msg,
+        verbose=verbose,
+    )

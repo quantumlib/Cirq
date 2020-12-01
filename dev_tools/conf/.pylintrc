@@ -1,5 +1,5 @@
 [MASTER]
-max-line-length=80
+max-line-length=100
 disable=all
 ignore-patterns=.*_pb2\.py,quantum_engine_service_client.py,engine_pb2_grpc.py
 output-format=colorized

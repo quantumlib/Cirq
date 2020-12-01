@@ -24,9 +24,9 @@ class Timestamp:
 
     Supports affine operations against Duration."""
 
-    def __init__(self, *,  # Forces keyword args.
-                 picos: Union[int, float] = 0,
-                 nanos: Union[int, float] = 0) -> None:
+    def __init__(
+        self, *, picos: Union[int, float] = 0, nanos: Union[int, float] = 0  # Forces keyword args.
+    ) -> None:
         """Initializes a Timestamp with a time specified in ns and/or ps.
 
         The time is relative to some unspecified "time zero". If both picos and
@@ -49,7 +49,7 @@ class Timestamp:
 
     def __add__(self, other) -> 'Timestamp':
         if isinstance(other, timedelta):
-            return Timestamp(picos=self._picos + other.total_seconds() * 10**12)
+            return Timestamp(picos=self._picos + other.total_seconds() * 10 ** 12)
         if not isinstance(other, Duration):
             return NotImplemented
         return Timestamp(picos=self._picos + other.total_picos())
@@ -70,10 +70,11 @@ class Timestamp:
         if isinstance(other, Duration):
             return Timestamp(picos=self._picos - other.total_picos())
         if isinstance(other, timedelta):
-            return Timestamp(picos=self._picos - other.total_seconds() * 10**12)
+            return Timestamp(picos=self._picos - other.total_seconds() * 10 ** 12)
         if isinstance(other, type(self)):
             return Duration(picos=self._picos - other._picos)
         return NotImplemented
+
     # pylint: enable=function-redefined
 
     def __eq__(self, other):

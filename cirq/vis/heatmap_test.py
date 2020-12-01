@@ -54,15 +54,16 @@ def test_cells_positions(ax, test_GridQubit):
 # Test colormaps are the first one in each category in
 # https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html.
 @pytest.mark.parametrize(
-    'colormap_name',
-    ['viridis', 'Greys', 'binary', 'PiYG', 'twilight', 'Pastel1', 'flag'])
+    'colormap_name', ['viridis', 'Greys', 'binary', 'PiYG', 'twilight', 'Pastel1', 'flag']
+)
 def test_cell_colors(ax, colormap_name):
     qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     values = 1.0 + 2.0 * np.random.random(len(qubits))  # [1, 3)
     test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
     vmin, vmax = 1.5, 2.5
-    random_heatmap = (heatmap.Heatmap(test_value_map).set_colormap(
-        colormap_name, vmin=vmin, vmax=vmax))
+    random_heatmap = heatmap.Heatmap(test_value_map).set_colormap(
+        colormap_name, vmin=vmin, vmax=vmax
+    )
     _, mesh, _ = random_heatmap.plot(ax)
 
     colormap = mpl.cm.get_cmap(colormap_name)
@@ -93,8 +94,9 @@ def test_default_annotation(ax):
             col, row = artist.get_position()
             text = artist.get_text()
             actual_texts.add(((row, col), text))
-    expected_texts = set((qubit, format(float(value), '.2g'))
-                         for qubit, value in test_value_map.items())
+    expected_texts = set(
+        (qubit, format(float(value), '.2g')) for qubit, value in test_value_map.items()
+    )
     assert expected_texts.issubset(actual_texts)
 
 
@@ -103,8 +105,7 @@ def test_annotation_position_and_content(ax, format_string):
     qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     values = np.random.random(len(qubits))
     test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
-    random_heatmap = (
-        heatmap.Heatmap(test_value_map).set_annotation_format(format_string))
+    random_heatmap = heatmap.Heatmap(test_value_map).set_annotation_format(format_string)
     random_heatmap.plot(ax)
     actual_texts = set()
     for artist in ax.get_children():
@@ -112,8 +113,9 @@ def test_annotation_position_and_content(ax, format_string):
             col, row = artist.get_position()
             text = artist.get_text()
             actual_texts.add(((row, col), text))
-    expected_texts = set((qubit, format(value, format_string))
-                         for qubit, value in test_value_map.items())
+    expected_texts = set(
+        (qubit, format(value, format_string)) for qubit, value in test_value_map.items()
+    )
     assert expected_texts.issubset(actual_texts)
 
 
@@ -132,8 +134,7 @@ def test_annotation_map(ax, test_GridQubit):
         for qubit, row_col, anno in zip(qubits, row_col_list, annos)
         if row_col != (1, 6)
     }
-    random_heatmap = (
-        heatmap.Heatmap(test_value_map).set_annotation_map(test_anno_map))
+    random_heatmap = heatmap.Heatmap(test_value_map).set_annotation_map(test_anno_map)
     random_heatmap.plot(ax)
     actual_texts = set()
     for artist in ax.get_children():
@@ -141,17 +142,15 @@ def test_annotation_map(ax, test_GridQubit):
             col, row = artist.get_position()
             assert (row, col) != (1, 6)
             actual_texts.add(((row, col), artist.get_text()))
-    expected_texts = set((row_col, anno)
-                         for row_col, anno in zip(row_col_list, annos)
-                         if row_col != (1, 6))
+    expected_texts = set(
+        (row_col, anno) for row_col, anno in zip(row_col_list, annos) if row_col != (1, 6)
+    )
     assert expected_texts.issubset(actual_texts)
 
 
 @pytest.mark.parametrize('format_string', ['.3e', '.2f', '.4g', 's'])
 def test_non_float_values(ax, format_string):
-
     class Foo:
-
         def __init__(self, value: float, unit: str):
             self.value = value
             self.unit = unit
@@ -169,14 +168,15 @@ def test_non_float_values(ax, format_string):
     values = np.random.random(len(qubits))
     units = np.random.choice([c for c in string.ascii_letters], len(qubits))
     test_value_map = {
-        qubit: Foo(float(value), unit)
-        for qubit, value, unit in zip(qubits, values, units)
+        qubit: Foo(float(value), unit) for qubit, value, unit in zip(qubits, values, units)
     }
     colormap_name = 'viridis'
     vmin, vmax = 0.0, 1.0
-    random_heatmap = (heatmap.Heatmap(test_value_map).set_colormap(
-        colormap_name, vmin=vmin,
-        vmax=vmax).set_annotation_format(format_string))
+    random_heatmap = (
+        heatmap.Heatmap(test_value_map)
+        .set_colormap(colormap_name, vmin=vmin, vmax=vmax)
+        .set_annotation_format(format_string)
+    )
     _, mesh, _ = random_heatmap.plot(ax)
 
     colormap = mpl.cm.get_cmap(colormap_name)
@@ -221,8 +221,7 @@ def test_urls(ax, test_GridQubit):
     my_heatmap = heatmap.Heatmap(test_value_map).set_url_map(test_url_map)
     _, mesh, _ = my_heatmap.plot(ax)
     expected_urls = [
-        test_url_map.get(qubit, '')
-        for row_col, qubit in sorted(zip(row_col_list, qubits))
+        test_url_map.get(qubit, '') for row_col, qubit in sorted(zip(row_col_list, qubits))
     ]
     assert mesh.get_urls() == expected_urls
 

@@ -109,10 +109,7 @@ def main(repetitions=1000, maxiter=50):
 
     # Optimize f
     print('Optimizing objective function ...')
-    scipy.optimize.minimize(f,
-                            x0,
-                            method='Nelder-Mead',
-                            options={'maxiter': maxiter})
+    scipy.optimize.minimize(f, x0, method='Nelder-Mead', options={'maxiter': maxiter})
 
     # Compute best possible cut value via brute force search
     all_bitstrings = np.array(list(itertools.product(range(2), repeat=n)))
@@ -122,8 +119,7 @@ def main(repetitions=1000, maxiter=50):
     # Print the results
     print('The largest cut value found was {}.'.format(largest_cut_value_found))
     print('The largest possible cut has size {}.'.format(max_cut_value))
-    print('The approximation ratio achieved is {}.'.format(
-        largest_cut_value_found / max_cut_value))
+    print('The approximation ratio achieved is {}.'.format(largest_cut_value_found / max_cut_value))
 
 
 def rzz(rads):
@@ -131,28 +127,26 @@ def rzz(rads):
     return cirq.ZZPowGate(exponent=2 * rads / np.pi, global_shift=-0.5)
 
 
-def qaoa_max_cut_unitary(qubits, betas, gammas,
-                         graph):  # Nodes should be integers
+def qaoa_max_cut_unitary(qubits, betas, gammas, graph):  # Nodes should be integers
     for beta, gamma in zip(betas, gammas):
-        yield (
-            rzz(-0.5 * gamma).on(qubits[i], qubits[j]) for i, j in graph.edges)
+        yield (rzz(-0.5 * gamma).on(qubits[i], qubits[j]) for i, j in graph.edges)
         yield cirq.rx(2 * beta).on_each(*qubits)
 
 
-def qaoa_max_cut_circuit(qubits, betas, gammas,
-                         graph):  # Nodes should be integers
+def qaoa_max_cut_circuit(qubits, betas, gammas, graph):  # Nodes should be integers
     return cirq.Circuit(
         # Prepare uniform superposition
         cirq.H.on_each(*qubits),
         # Apply QAOA unitary
         qaoa_max_cut_unitary(qubits, betas, gammas, graph),
         # Measure
-        cirq.measure(*qubits, key='m'))
+        cirq.measure(*qubits, key='m'),
+    )
 
 
 def cut_values(bitstrings, graph):
     mat = networkx.adjacency_matrix(graph, nodelist=sorted(graph.nodes))
-    vecs = (-1)**bitstrings
+    vecs = (-1) ** bitstrings
     vals = 0.5 * np.sum(vecs * (mat @ vecs.T).T, axis=-1)
     vals = 0.5 * (graph.size() - vals)
     return vals
