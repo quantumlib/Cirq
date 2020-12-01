@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import numbers
-from typing import AbstractSet, Any, TypeVar, TYPE_CHECKING
+from typing import AbstractSet, Any, TYPE_CHECKING
 
 import sympy
 from typing_extensions import Protocol
