@@ -27,12 +27,12 @@ U = cirq.testing.random_unitary(N)
 
 
 def test_fidelity_symmetric():
-    np.testing.assert_allclose(cirq.fidelity(VEC1, VEC2),
-                               cirq.fidelity(VEC2, VEC1))
-    np.testing.assert_allclose(cirq.fidelity(VEC1, MAT1),
-                               cirq.fidelity(MAT1, VEC1))
-    np.testing.assert_allclose(cirq.fidelity(cirq.density_matrix(MAT1), MAT2),
-                               cirq.fidelity(cirq.density_matrix(MAT2), MAT1))
+    np.testing.assert_allclose(cirq.fidelity(VEC1, VEC2), cirq.fidelity(VEC2, VEC1))
+    np.testing.assert_allclose(cirq.fidelity(VEC1, MAT1), cirq.fidelity(MAT1, VEC1))
+    np.testing.assert_allclose(
+        cirq.fidelity(cirq.density_matrix(MAT1), MAT2),
+        cirq.fidelity(cirq.density_matrix(MAT2), MAT1),
+    )
 
 
 def test_fidelity_between_zero_and_one():
@@ -44,8 +44,8 @@ def test_fidelity_between_zero_and_one():
 def test_fidelity_invariant_under_unitary_transformation():
     np.testing.assert_allclose(
         cirq.fidelity(cirq.density_matrix(MAT1), MAT2),
-        cirq.fidelity(cirq.density_matrix(U @ MAT1 @ U.T.conj()),
-                      U @ MAT2 @ U.T.conj()))
+        cirq.fidelity(cirq.density_matrix(U @ MAT1 @ U.T.conj()), U @ MAT2 @ U.T.conj()),
+    )
 
 
 def test_fidelity_commuting_matrices():
@@ -56,8 +56,7 @@ def test_fidelity_commuting_matrices():
     mat1 = cirq.density_matrix(U @ np.diag(d1) @ U.T.conj())
     mat2 = U @ np.diag(d2) @ U.T.conj()
 
-    np.testing.assert_allclose(cirq.fidelity(mat1, mat2),
-                               np.sum(np.sqrt(d1 * d2))**2)
+    np.testing.assert_allclose(cirq.fidelity(mat1, mat2), np.sum(np.sqrt(d1 * d2)) ** 2)
 
 
 def test_fidelity_known_values():
@@ -99,8 +98,7 @@ def test_fidelity_numpy_arrays():
     np.testing.assert_allclose(cirq.fidelity(tensor1, vec1), 1)
     np.testing.assert_allclose(cirq.fidelity(vec1, mat1), 1)
     np.testing.assert_allclose(cirq.fidelity(tensor1, mat1), 1)
-    np.testing.assert_allclose(
-        cirq.fidelity(tensor2, tensor2, qid_shape=(2, 2)), 1)
+    np.testing.assert_allclose(cirq.fidelity(tensor2, tensor2, qid_shape=(2, 2)), 1)
     np.testing.assert_allclose(cirq.fidelity(mat1, mat1, qid_shape=(8,)), 1)
 
     with pytest.raises(ValueError, match='dimension'):
@@ -130,54 +128,51 @@ def test_fidelity_product_states():
     a, b = cirq.LineQubit.range(2)
 
     np.testing.assert_allclose(
-        cirq.fidelity(
-            cirq.KET_ZERO(a) * cirq.KET_ZERO(b),
-            cirq.KET_ZERO(a) * cirq.KET_ZERO(b)), 1.0)
-    np.testing.assert_allclose(cirq.fidelity(
-        cirq.KET_ZERO(a) * cirq.KET_ZERO(b),
-        cirq.KET_ZERO(a) * cirq.KET_ONE(b)),
-                               0.0,
-                               atol=1e-7)
+        cirq.fidelity(cirq.KET_ZERO(a) * cirq.KET_ZERO(b), cirq.KET_ZERO(a) * cirq.KET_ZERO(b)), 1.0
+    )
     np.testing.assert_allclose(
-        cirq.fidelity(
-            cirq.KET_ZERO(a) * cirq.KET_ZERO(b),
-            cirq.KET_ZERO(a) * cirq.KET_PLUS(b)), 0.5)
+        cirq.fidelity(cirq.KET_ZERO(a) * cirq.KET_ZERO(b), cirq.KET_ZERO(a) * cirq.KET_ONE(b)),
+        0.0,
+        atol=1e-7,
+    )
     np.testing.assert_allclose(
-        cirq.fidelity(
-            cirq.KET_ONE(a) * cirq.KET_ONE(b),
-            cirq.KET_MINUS(a) * cirq.KET_PLUS(b)), 0.25)
+        cirq.fidelity(cirq.KET_ZERO(a) * cirq.KET_ZERO(b), cirq.KET_ZERO(a) * cirq.KET_PLUS(b)), 0.5
+    )
     np.testing.assert_allclose(
-        cirq.fidelity(
-            cirq.KET_MINUS(a) * cirq.KET_PLUS(b),
-            cirq.KET_MINUS(a) * cirq.KET_PLUS(b)), 1.0)
-    np.testing.assert_allclose(cirq.fidelity(
-        cirq.KET_MINUS(a) * cirq.KET_PLUS(b),
-        cirq.KET_PLUS(a) * cirq.KET_MINUS(b)),
-                               0.0,
-                               atol=1e-7)
+        cirq.fidelity(cirq.KET_ONE(a) * cirq.KET_ONE(b), cirq.KET_MINUS(a) * cirq.KET_PLUS(b)), 0.25
+    )
+    np.testing.assert_allclose(
+        cirq.fidelity(cirq.KET_MINUS(a) * cirq.KET_PLUS(b), cirq.KET_MINUS(a) * cirq.KET_PLUS(b)),
+        1.0,
+    )
+    np.testing.assert_allclose(
+        cirq.fidelity(cirq.KET_MINUS(a) * cirq.KET_PLUS(b), cirq.KET_PLUS(a) * cirq.KET_MINUS(b)),
+        0.0,
+        atol=1e-7,
+    )
 
     with pytest.raises(ValueError, match='Mismatched'):
-        _ = cirq.fidelity(cirq.KET_MINUS(a),
-                          cirq.KET_PLUS(a) * cirq.KET_MINUS(b))
+        _ = cirq.fidelity(cirq.KET_MINUS(a), cirq.KET_PLUS(a) * cirq.KET_MINUS(b))
     with pytest.raises(ValueError, match='qid shape'):
-        _ = cirq.fidelity(cirq.KET_MINUS(a) * cirq.KET_PLUS(b),
-                          cirq.KET_PLUS(a) * cirq.KET_MINUS(b),
-                          qid_shape=(4,))
+        _ = cirq.fidelity(
+            cirq.KET_MINUS(a) * cirq.KET_PLUS(b),
+            cirq.KET_PLUS(a) * cirq.KET_MINUS(b),
+            qid_shape=(4,),
+        )
 
 
 def test_fidelity_bad_shape():
     with pytest.raises(ValueError, match='Invalid quantum state'):
-        _ = cirq.fidelity(np.array([[[1.0]]]),
-                          np.array([[[1.0]]]),
-                          qid_shape=(1,))
+        _ = cirq.fidelity(np.array([[[1.0]]]), np.array([[[1.0]]]), qid_shape=(1,))
 
 
 def test_von_neumann_entropy():
     # 1x1 matrix
     assert cirq.von_neumann_entropy(np.array([[1]])) == 0
     # An EPR pair state (|00> + |11>)(<00| + <11|)
-    assert cirq.von_neumann_entropy(
-        0.5 * np.array([1, 0, 0, 1] * np.array([[1], [0], [0], [1]]))) == 0
+    assert (
+        cirq.von_neumann_entropy(0.5 * np.array([1, 0, 0, 1] * np.array([[1], [0], [0], [1]]))) == 0
+    )
     # Maximally mixed state
     # yapf: disable
     assert cirq.von_neumann_entropy(np.array(
@@ -190,29 +185,30 @@ def test_von_neumann_entropy():
     first_column = res[:, 0]
     first_density_matrix = 0.1 * np.outer(first_column, np.conj(first_column))
     second_column = res[:, 1]
-    second_density_matrix = 0.9 * np.outer(second_column,
-                                           np.conj(second_column))
-    assert np.isclose(cirq.von_neumann_entropy(first_density_matrix +
-                                               second_density_matrix),
-                      0.4689,
-                      atol=1e-04)
+    second_density_matrix = 0.9 * np.outer(second_column, np.conj(second_column))
+    assert np.isclose(
+        cirq.von_neumann_entropy(first_density_matrix + second_density_matrix), 0.4689, atol=1e-04
+    )
 
-    assert np.isclose(cirq.von_neumann_entropy(
-        np.diag([0, 0, 0.1, 0, 0.2, 0.3, 0.4, 0])),
-                      1.8464,
-                      atol=1e-04)
+    assert np.isclose(
+        cirq.von_neumann_entropy(np.diag([0, 0, 0.1, 0, 0.2, 0.3, 0.4, 0])), 1.8464, atol=1e-04
+    )
     # Random NxN matrix
     probs = np.random.exponential(size=N)
     probs /= np.sum(probs)
     mat = U @ (probs * U).T.conj()
-    np.testing.assert_allclose(cirq.von_neumann_entropy(mat),
-                               scipy.stats.entropy(probs, base=2))
+    np.testing.assert_allclose(cirq.von_neumann_entropy(mat), scipy.stats.entropy(probs, base=2))
     # QuantumState object
-    assert cirq.von_neumann_entropy(
-        cirq.quantum_state(np.array([[0.5, 0], [0, 0.5]]), qid_shape=(2,))) == 1
-    assert cirq.von_neumann_entropy(
-        cirq.quantum_state(np.array([[0.5, 0.5], [0.5, 0.5]]),
-                           qid_shape=(2, 2))) == 0
+    assert (
+        cirq.von_neumann_entropy(cirq.quantum_state(np.array([[0.5, 0], [0, 0.5]]), qid_shape=(2,)))
+        == 1
+    )
+    assert (
+        cirq.von_neumann_entropy(
+            cirq.quantum_state(np.array([[0.5, 0.5], [0.5, 0.5]]), qid_shape=(2, 2))
+        )
+        == 0
+    )
 
 
 def test_deprecated():
