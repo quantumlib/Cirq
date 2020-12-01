@@ -318,6 +318,7 @@ from cirq.optimizers import (
     stratified_circuit,
     SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
+    two_qubit_matrix_to_diagonal_and_operations,
 )
 
 from cirq.qis import (
