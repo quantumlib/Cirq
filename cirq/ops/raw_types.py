@@ -498,8 +498,9 @@ class Operation(metaclass=abc.ABCMeta):
         """
         _validate_qid_shape(self, qubits)
 
-    def _commutes_(self, other: Any, *, atol: Union[int, float] = 1e-8
-                  ) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(
+        self, other: Any, *, atol: Union[int, float] = 1e-8
+    ) -> Union[bool, NotImplementedType, None]:
         """Determine if this Operation commutes with the object"""
         if isinstance(other, str):
             return NotImplemented
@@ -507,17 +508,18 @@ class Operation(metaclass=abc.ABCMeta):
         if isinstance(other, ops.MatrixGate):
             return NotImplemented
 
-        if hasattr(other, 'qubits') and set(self.qubits).isdisjoint(
-                other.qubits):
+        if (hasattr(other, 'qubits') and
+            set(self.qubits).isdisjoint(other.qubits)):
             return True
 
         from cirq import circuits
+
         circuit12 = circuits.Circuit(self, other)
         circuit21 = circuits.Circuit(other, self)
 
         # Don't create gigantic matrices.
-        if np.product(
-                protocols.qid_shape_protocol.qid_shape(circuit12)) > 2**10:
+        shape = protocols.qid_shape_protocol.qid_shape(circuit12)
+        if np.product(shape) > 2**10:
             return NotImplemented  # coverage: ignore
 
         m12 = protocols.unitary_protocol.unitary(circuit12, default=None)
