@@ -13,19 +13,25 @@
 # limitations under the License.
 
 from cirq.google.line.placement.anneal import (
-    AnnealSequenceSearchStrategy,)
+    AnnealSequenceSearchStrategy,
+)
 
 from cirq.google.line.placement.greedy import (
-    GreedySequenceSearchStrategy,)
+    GreedySequenceSearchStrategy,
+)
 
 from cirq.google.line.placement.place_strategy import (
-    LinePlacementStrategy,)
+    LinePlacementStrategy,
+)
 
 from cirq.google.line.placement.sequence import (
-    GridQubitLineTuple,)
+    GridQubitLineTuple,
+)
 
 from cirq.google.line.placement.line import (
-    line_on_device,)
+    line_on_device,
+)
 
 from cirq.google.line.placement.optimization import (
-    anneal_minimize,)
+    anneal_minimize,
+)

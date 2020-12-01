@@ -47,14 +47,15 @@ def test_big_endian_digits_to_int():
     assert cirq.big_endian_digits_to_int([1, 2, 3, 4], base=10) == 1234
 
     # Use-once digit and base iterators.
-    assert cirq.big_endian_digits_to_int((e for e in [1, 2, 3, 4]),
-                                         base=(e for e in [2, 3, 5, 7])) == 200
+    assert (
+        cirq.big_endian_digits_to_int((e for e in [1, 2, 3, 4]), base=(e for e in [2, 3, 5, 7]))
+        == 200
+    )
 
 
 def test_big_endian_int_to_bits():
     assert cirq.big_endian_int_to_bits(2, bit_count=4) == [0, 0, 1, 0]
-    assert cirq.big_endian_int_to_bits(18,
-                                       bit_count=8) == [0, 0, 0, 1, 0, 0, 1, 0]
+    assert cirq.big_endian_int_to_bits(18, bit_count=8) == [0, 0, 0, 1, 0, 0, 1, 0]
     assert cirq.big_endian_int_to_bits(18, bit_count=4) == [0, 0, 1, 0]
     assert cirq.big_endian_int_to_bits(-3, bit_count=4) == [1, 1, 0, 1]
 
@@ -69,20 +70,18 @@ def test_big_endian_int_to_digits():
     with pytest.raises(ValueError, match='Out of range'):
         assert cirq.big_endian_int_to_digits(101, base=[], digit_count=0) == []
     with pytest.raises(ValueError, match='Out of range'):
-        _ = cirq.big_endian_int_to_digits(10**100, base=[2, 3, 4, 5, 6])
+        _ = cirq.big_endian_int_to_digits(10 ** 100, base=[2, 3, 4, 5, 6])
 
     assert cirq.big_endian_int_to_digits(0, base=[], digit_count=0) == []
     assert cirq.big_endian_int_to_digits(0, base=[]) == []
-    assert cirq.big_endian_int_to_digits(11, base=3,
-                                         digit_count=4) == [0, 1, 0, 2]
-    assert cirq.big_endian_int_to_digits(11, base=[3, 3, 3, 3],
-                                         digit_count=4) == [0, 1, 0, 2]
-    assert cirq.big_endian_int_to_digits(11, base=[2, 3, 4],
-                                         digit_count=3) == [0, 2, 3]
+    assert cirq.big_endian_int_to_digits(11, base=3, digit_count=4) == [0, 1, 0, 2]
+    assert cirq.big_endian_int_to_digits(11, base=[3, 3, 3, 3], digit_count=4) == [0, 1, 0, 2]
+    assert cirq.big_endian_int_to_digits(11, base=[2, 3, 4], digit_count=3) == [0, 2, 3]
 
     # Use-once base iterators.
-    assert cirq.big_endian_int_to_digits(11,
-                                         base=(e for e in [2, 3, 4]),
-                                         digit_count=3) == [0, 2, 3]
-    assert cirq.big_endian_int_to_digits(
-        11, base=(e for e in [2, 3, 4])) == [0, 2, 3]
+    assert cirq.big_endian_int_to_digits(11, base=(e for e in [2, 3, 4]), digit_count=3) == [
+        0,
+        2,
+        3,
+    ]
+    assert cirq.big_endian_int_to_digits(11, base=(e for e in [2, 3, 4])) == [0, 2, 3]

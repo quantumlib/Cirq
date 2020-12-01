@@ -71,8 +71,9 @@ def right_of(qubit: GridQubit) -> GridQubit:
     return GridQubit(qubit.row + 1, qubit.col)
 
 
-def chip_as_adjacency_list(device: 'cirq.google.XmonDevice',
-                           ) -> Dict[GridQubit, List[GridQubit]]:
+def chip_as_adjacency_list(
+    device: 'cirq.google.XmonDevice',
+) -> Dict[GridQubit, List[GridQubit]]:
     """Gives adjacency list representation of a chip.
 
     The adjacency list is constructed in order of above, left_of, below and
@@ -86,7 +87,7 @@ def chip_as_adjacency_list(device: 'cirq.google.XmonDevice',
         given qubit.
     """
     c_set = set(device.qubits)
-    c_adj = {} # type: Dict[GridQubit, List[GridQubit]]
+    c_adj = {}  # type: Dict[GridQubit, List[GridQubit]]
     for n in device.qubits:
         c_adj[n] = []
         for m in [above(n), left_of(n), below(n), right_of(n)]:

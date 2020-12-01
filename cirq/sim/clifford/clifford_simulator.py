@@ -44,8 +44,7 @@ from cirq.sim import clifford, simulator
 from cirq._compat import deprecated, deprecated_parameter
 
 
-class CliffordSimulator(simulator.SimulatesSamples,
-                        simulator.SimulatesIntermediateState):
+class CliffordSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
     """An efficient simulator for Clifford circuits."""
 
     def __init__(self, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
@@ -61,18 +60,21 @@ class CliffordSimulator(simulator.SimulatesSamples,
     def is_supported_operation(op: 'cirq.Operation') -> bool:
         """Checks whether given operation can be simulated by this simulator."""
         # TODO: support more general Pauli measurements
-        if isinstance(op.gate, cirq.MeasurementGate): return True
-        if isinstance(op, GlobalPhaseOperation): return True
-        if not protocols.has_unitary(op): return False
+        if isinstance(op.gate, cirq.MeasurementGate):
+            return True
+        if isinstance(op, GlobalPhaseOperation):
+            return True
+        if not protocols.has_unitary(op):
+            return False
         if len(op.qubits) == 1:
             u = unitary(op)
             return SingleQubitCliffordGate.from_unitary(u) is not None
         else:
             return op.gate in [cirq.CNOT, cirq.CZ]
 
-    def _base_iterator(self, circuit: circuits.Circuit,
-                       qubit_order: ops.QubitOrderOrList, initial_state: int
-                      ) -> Iterator['cirq.CliffordSimulatorStepResult']:
+    def _base_iterator(
+        self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
+    ) -> Iterator['cirq.CliffordSimulatorStepResult']:
         """Iterator over CliffordSimulatorStepResult from Moments of a Circuit
 
         Args:
@@ -87,43 +89,38 @@ class CliffordSimulator(simulator.SimulatesSamples,
         Yields:
             CliffordStepResult from simulating a Moment of the Circuit.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            circuit.all_qubits())
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
 
         qubit_map = {q: i for i, q in enumerate(qubits)}
 
         if len(circuit) == 0:
-            yield CliffordSimulatorStepResult(measurements={},
-                                              state=CliffordState(
-                                                  qubit_map,
-                                                  initial_state=initial_state))
+            yield CliffordSimulatorStepResult(
+                measurements={}, state=CliffordState(qubit_map, initial_state=initial_state)
+            )
             return
 
         state = CliffordState(qubit_map, initial_state=initial_state)
 
         for moment in circuit:
-            measurements: Dict[str, List[np.ndarray]] = collections.defaultdict(
-                list)
+            measurements: Dict[str, List[np.ndarray]] = collections.defaultdict(list)
 
             for op in moment:
                 if isinstance(op.gate, ops.MeasurementGate):
                     key = protocols.measurement_key(op)
-                    measurements[key].extend(
-                        state.perform_measurement(op.qubits, self._prng))
+                    measurements[key].extend(state.perform_measurement(op.qubits, self._prng))
                 elif protocols.has_unitary(op):
                     state.apply_unitary(op)
                 else:
                     raise NotImplementedError(f"Unrecognized operation: {op!r}")
 
-            yield CliffordSimulatorStepResult(measurements=measurements,
-                                              state=state)
+            yield CliffordSimulatorStepResult(measurements=measurements, state=state)
 
     def _simulator_iterator(
-            self,
-            circuit: circuits.Circuit,
-            param_resolver: study.ParamResolver,
-            qubit_order: ops.QubitOrderOrList,
-            initial_state: int,
+        self,
+        circuit: circuits.Circuit,
+        param_resolver: study.ParamResolver,
+        qubit_order: ops.QubitOrderOrList,
+        initial_state: int,
     ) -> Iterator:
         """See definition in `cirq.SimulatesIntermediateState`.
 
@@ -136,20 +133,22 @@ class CliffordSimulator(simulator.SimulatesSamples,
         self._check_all_resolved(resolved_circuit)
         actual_initial_state = 0 if initial_state is None else initial_state
 
-        return self._base_iterator(resolved_circuit, qubit_order,
-                                   actual_initial_state)
+        return self._base_iterator(resolved_circuit, qubit_order, actual_initial_state)
 
-    def _create_simulator_trial_result(self, params: study.ParamResolver,
-                                       measurements: Dict[str, np.ndarray],
-                                       final_simulator_state):
+    def _create_simulator_trial_result(
+        self,
+        params: study.ParamResolver,
+        measurements: Dict[str, np.ndarray],
+        final_simulator_state,
+    ):
 
-        return CliffordTrialResult(params=params,
-                                   measurements=measurements,
-                                   final_simulator_state=final_simulator_state)
+        return CliffordTrialResult(
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+        )
 
-    def _run(self, circuit: circuits.Circuit,
-             param_resolver: study.ParamResolver,
-             repetitions: int) -> Dict[str, List[np.ndarray]]:
+    def _run(
+        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
+    ) -> Dict[str, List[np.ndarray]]:
 
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
@@ -157,15 +156,13 @@ class CliffordSimulator(simulator.SimulatesSamples,
 
         measurements = {}  # type: Dict[str, List[np.ndarray]]
         if repetitions == 0:
-            for _, op, _ in resolved_circuit.findall_operations_with_gate_type(
-                    ops.MeasurementGate):
+            for _, op, _ in resolved_circuit.findall_operations_with_gate_type(ops.MeasurementGate):
                 measurements[protocols.measurement_key(op)] = np.empty([0, 1])
 
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
-                resolved_circuit,
-                qubit_order=ops.QubitOrder.DEFAULT,
-                initial_state=0)
+                resolved_circuit, qubit_order=ops.QubitOrder.DEFAULT, initial_state=0
+            )
 
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
@@ -179,22 +176,24 @@ class CliffordSimulator(simulator.SimulatesSamples,
         """Raises if the circuit contains unresolved symbols."""
         if protocols.is_parameterized(circuit):
             unresolved = [
-                op for moment in circuit for op in moment
-                if protocols.is_parameterized(op)
+                op for moment in circuit for op in moment if protocols.is_parameterized(op)
             ]
             raise ValueError(
                 'Circuit contains ops whose symbols were not specified in '
-                'parameter sweep. Ops: {}'.format(unresolved))
+                'parameter sweep. Ops: {}'.format(unresolved)
+            )
 
 
 class CliffordTrialResult(simulator.SimulationTrialResult):
-
-    def __init__(self, params: study.ParamResolver,
-                 measurements: Dict[str, np.ndarray],
-                 final_simulator_state: 'CliffordState') -> None:
-        super().__init__(params=params,
-                         measurements=measurements,
-                         final_simulator_state=final_simulator_state)
+    def __init__(
+        self,
+        params: study.ParamResolver,
+        measurements: Dict[str, np.ndarray],
+        final_simulator_state: 'CliffordState',
+    ) -> None:
+        super().__init__(
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+        )
 
         self.final_state = final_simulator_state
 
@@ -222,19 +221,15 @@ class CliffordSimulatorStepResult(simulator.StepResult):
         self.state = state
 
     def __str__(self) -> str:
-
         def bitstring(vals):
             return ''.join('1' if v else '0' for v in vals)
 
-        results = sorted([
-            (key, bitstring(val)) for key, val in self.measurements.items()
-        ])
+        results = sorted([(key, bitstring(val)) for key, val in self.measurements.items()])
 
         if len(results) == 0:
             measurements = ''
         else:
-            measurements = ' '.join([f'{key}={val}' for key, val in results
-                                    ]) + '\n'
+            measurements = ' '.join([f'{key}={val}' for key, val in results]) + '\n'
 
         final = self.state
 
@@ -243,24 +238,27 @@ class CliffordSimulatorStepResult(simulator.StepResult):
     def _simulator_state(self):
         return self.state
 
-    def sample(self,
-               qubits: List[ops.Qid],
-               repetitions: int = 1,
-               seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
+    def sample(
+        self,
+        qubits: List[ops.Qid],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
 
         measurements = []
 
         for _ in range(repetitions):
             measurements.append(
-                self.state.perform_measurement(qubits,
-                                               value.parse_random_state(seed),
-                                               collapse_state_vector=False))
+                self.state.perform_measurement(
+                    qubits, value.parse_random_state(seed), collapse_state_vector=False
+                )
+            )
 
         return np.array(measurements, dtype=bool)
 
 
 @value.value_equality
-class CliffordState():
+class CliffordState:
     """A state of the Clifford simulation.
 
     The state is stored using two complementary representations:
@@ -316,7 +314,7 @@ class CliffordState():
 
     def stabilizers(self) -> List[DensePauliString]:
         """Returns the stabilizer generators of the state. These
-        are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi> """
+        are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi>"""
         return self.tableau.stabilizers()
 
     def destabilizers(self) -> List[DensePauliString]:
@@ -334,16 +332,18 @@ class CliffordState():
 
     def apply_unitary(self, op: 'cirq.Operation'):
         tableau_args = clifford.ActOnCliffordTableauArgs(
-            self.tableau, [self.qubit_map[i] for i in op.qubits],
-            np.random.RandomState(), {})
+            self.tableau, [self.qubit_map[i] for i in op.qubits], np.random.RandomState(), {}
+        )
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
-            self.ch_form, [self.qubit_map[i] for i in op.qubits])
+            self.ch_form, [self.qubit_map[i] for i in op.qubits]
+        )
         try:
             act_on(op, tableau_args)
             act_on(op, ch_form_args)
         except TypeError:
-            raise ValueError('%s cannot be run with Clifford simulator.' %
-                             str(op.gate))  # type: ignore
+            raise ValueError(
+                '%s cannot be run with Clifford simulator.' % str(op.gate)
+            )  # type: ignore
         return
 
     @deprecated_parameter(
@@ -351,13 +351,17 @@ class CliffordState():
         fix='Use collapse_state_vector instead.',
         parameter_desc='collapse_wavefunction',
         match=lambda args, kwargs: 'collapse_wavefunction' in kwargs,
-        rewrite=lambda args, kwargs: (args, {('collapse_state_vector' if k ==
-                                              'collapse_wavefunction' else k): v
-                                             for k, v in kwargs.items()}))
-    def perform_measurement(self,
-                            qubits: Sequence[ops.Qid],
-                            prng: np.random.RandomState,
-                            collapse_state_vector=True):
+        rewrite=lambda args, kwargs: (
+            args,
+            {
+                ('collapse_state_vector' if k == 'collapse_wavefunction' else k): v
+                for k, v in kwargs.items()
+            },
+        ),
+    )
+    def perform_measurement(
+        self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
+    ):
         results = []
 
         if collapse_state_vector:

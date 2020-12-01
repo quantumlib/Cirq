@@ -8,8 +8,8 @@ import cirq
 
 def _operations_to_matrix(operations, qubits):
     return cirq.Circuit(operations).unitary(
-        qubit_order=cirq.QubitOrder.explicit(qubits),
-        qubits_that_should_be_present=qubits)
+        qubit_order=cirq.QubitOrder.explicit(qubits), qubits_that_should_be_present=qubits
+    )
 
 
 def _random_single_MS_effect():
@@ -17,14 +17,10 @@ def _random_single_MS_effect():
     s = np.sin(t)
     c = np.cos(t)
     return cirq.dot(
-        cirq.kron(cirq.testing.random_unitary(2),
-                  cirq.testing.random_unitary(2)),
-        np.array([[c, 0, 0, -1j*s],
-                  [0, c, -1j*s, 0],
-                  [0, -1j*s, c, 0],
-                  [-1j*s, 0, 0, c]]),
-        cirq.kron(cirq.testing.random_unitary(2),
-                  cirq.testing.random_unitary(2)))
+        cirq.kron(cirq.testing.random_unitary(2), cirq.testing.random_unitary(2)),
+        np.array([[c, 0, 0, -1j * s], [0, c, -1j * s, 0], [0, -1j * s, c, 0], [-1j * s, 0, 0, c]]),
+        cirq.kron(cirq.testing.random_unitary(2), cirq.testing.random_unitary(2)),
+    )
 
 
 def _random_double_MS_effect():
@@ -36,27 +32,21 @@ def _random_double_MS_effect():
     s2 = np.sin(t2)
     c2 = np.cos(t2)
     return cirq.dot(
-        cirq.kron(cirq.testing.random_unitary(2),
-                  cirq.testing.random_unitary(2)),
-        np.array([[c1, 0, 0, -1j * s1],
-                  [0, c1, -1j * s1, 0],
-                  [0, -1j * s1, c1, 0],
-                  [-1j * s1, 0, 0, c1]]),
-        cirq.kron(cirq.testing.random_unitary(2),
-                  cirq.testing.random_unitary(2)),
-        np.array([[c2, 0, 0, -1j * s2],
-                  [0, c2, -1j * s2, 0],
-                  [0, -1j * s2, c2, 0],
-                  [-1j * s2, 0, 0, c2]]),
-        cirq.kron(cirq.testing.random_unitary(2),
-                  cirq.testing.random_unitary(2)))
+        cirq.kron(cirq.testing.random_unitary(2), cirq.testing.random_unitary(2)),
+        np.array(
+            [[c1, 0, 0, -1j * s1], [0, c1, -1j * s1, 0], [0, -1j * s1, c1, 0], [-1j * s1, 0, 0, c1]]
+        ),
+        cirq.kron(cirq.testing.random_unitary(2), cirq.testing.random_unitary(2)),
+        np.array(
+            [[c2, 0, 0, -1j * s2], [0, c2, -1j * s2, 0], [0, -1j * s2, c2, 0], [-1j * s2, 0, 0, c2]]
+        ),
+        cirq.kron(cirq.testing.random_unitary(2), cirq.testing.random_unitary(2)),
+    )
 
 
-def assert_ops_implement_unitary(q0, q1, operations, intended_effect,
-                                 atol=0.01):
+def assert_ops_implement_unitary(q0, q1, operations, intended_effect, atol=0.01):
     actual_effect = _operations_to_matrix(operations, (q0, q1))
-    assert cirq.allclose_up_to_global_phase(actual_effect, intended_effect,
-                                            atol=atol)
+    assert cirq.allclose_up_to_global_phase(actual_effect, intended_effect, atol=atol)
 
 
 def assert_ms_depth_below(operations, threshold):
@@ -126,13 +116,10 @@ def assert_ms_depth_below(operations, threshold):
     (2, _random_double_MS_effect()) for _ in range(10)
 ])
 # yapf: enable
-def test_two_to_ops(
-        max_ms_depth: int,
-        effect: np.array):
+def test_two_to_ops(max_ms_depth: int, effect: np.array):
     q0 = cirq.NamedQubit('q0')
     q1 = cirq.NamedQubit('q1')
 
-    operations = cirq.two_qubit_matrix_to_ion_operations(
-        q0, q1, effect)
+    operations = cirq.two_qubit_matrix_to_ion_operations(q0, q1, effect)
     assert_ops_implement_unitary(q0, q1, operations, effect)
     assert_ms_depth_below(operations, max_ms_depth)

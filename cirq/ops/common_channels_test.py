@@ -20,26 +20,32 @@ import pytest
 import cirq
 
 X = np.array([[0, 1], [1, 0]])
-Y = np.array( [[0, -1j], [1j, 0]])
-Z = np.array( [[1, 0], [0, -1]])
+Y = np.array([[0, -1j], [1j, 0]])
+Z = np.array([[1, 0], [0, -1]])
 
-no_precision = cirq.CircuitDiagramInfoArgs(known_qubits=None,
-                                           known_qubit_count=None,
-                                           use_unicode_characters=True,
-                                           precision=None,
-                                           qubit_map=None)
+no_precision = cirq.CircuitDiagramInfoArgs(
+    known_qubits=None,
+    known_qubit_count=None,
+    use_unicode_characters=True,
+    precision=None,
+    qubit_map=None,
+)
 
-round_to_6_prec = cirq.CircuitDiagramInfoArgs(known_qubits=None,
-                                              known_qubit_count=None,
-                                              use_unicode_characters=True,
-                                              precision=6,
-                                              qubit_map=None)
+round_to_6_prec = cirq.CircuitDiagramInfoArgs(
+    known_qubits=None,
+    known_qubit_count=None,
+    use_unicode_characters=True,
+    precision=6,
+    qubit_map=None,
+)
 
-round_to_2_prec = cirq.CircuitDiagramInfoArgs(known_qubits=None,
-                                              known_qubit_count=None,
-                                              use_unicode_characters=True,
-                                              precision=2,
-                                              qubit_map=None)
+round_to_2_prec = cirq.CircuitDiagramInfoArgs(
+    known_qubits=None,
+    known_qubit_count=None,
+    use_unicode_characters=True,
+    precision=2,
+    qubit_map=None,
+)
 
 
 def assert_mixtures_equal(actual, expected):
@@ -51,34 +57,29 @@ def assert_mixtures_equal(actual, expected):
 
 def test_asymmetric_depolarizing_channel():
     d = cirq.asymmetric_depolarize(0.1, 0.2, 0.3)
-    np.testing.assert_almost_equal(cirq.channel(d),
-                                   (np.sqrt(0.4) * np.eye(2),
-                                    np.sqrt(0.1) * X,
-                                    np.sqrt(0.2) * Y,
-                                    np.sqrt(0.3) * Z))
+    np.testing.assert_almost_equal(
+        cirq.channel(d),
+        (np.sqrt(0.4) * np.eye(2), np.sqrt(0.1) * X, np.sqrt(0.2) * Y, np.sqrt(0.3) * Z),
+    )
     assert cirq.has_channel(d)
 
 
 def test_asymmetric_depolarizing_mixture():
     d = cirq.asymmetric_depolarize(0.1, 0.2, 0.3)
-    assert_mixtures_equal(cirq.mixture(d),
-                          ((0.4, np.eye(2)),
-                           (0.1, X),
-                           (0.2, Y),
-                           (0.3, Z)))
+    assert_mixtures_equal(cirq.mixture(d), ((0.4, np.eye(2)), (0.1, X), (0.2, Y), (0.3, Z)))
     assert cirq.has_mixture(d)
 
 
 def test_asymmetric_depolarizing_channel_repr():
-    cirq.testing.assert_equivalent_repr(
-        cirq.AsymmetricDepolarizingChannel(0.1, 0.2, 0.3))
+    cirq.testing.assert_equivalent_repr(cirq.AsymmetricDepolarizingChannel(0.1, 0.2, 0.3))
 
 
 def test_asymmetric_depolarizing_channel_str():
     assert (
-        str(cirq.asymmetric_depolarize(0.1, 0.2, 0.3)) ==
-        "asymmetric_depolarize(error_probabilities={'I': 0.3999999999999999, " +
-        "'X': 0.1, 'Y': 0.2, 'Z': 0.3})")
+        str(cirq.asymmetric_depolarize(0.1, 0.2, 0.3))
+        == "asymmetric_depolarize(error_probabilities={'I': 0.3999999999999999, "
+        + "'X': 0.1, 'Y': 0.2, 'Z': 0.3})"
+    )
 
 
 def test_asymmetric_depolarizing_channel_eq():
@@ -95,21 +96,17 @@ def test_asymmetric_depolarizing_channel_eq():
     et.add_equality_group(cirq.asymmetric_depolarize(0.0, 0.0, 1.0))
 
 
-@pytest.mark.parametrize('p_x,p_y,p_z', (
-    (-0.1, 0.0, 0.0),
-    (0.0, -0.1, 0.0),
-    (0.0, 0.0, -0.1),
-    (0.1, -0.1, 0.1)))
+@pytest.mark.parametrize(
+    'p_x,p_y,p_z', ((-0.1, 0.0, 0.0), (0.0, -0.1, 0.0), (0.0, 0.0, -0.1), (0.1, -0.1, 0.1))
+)
 def test_asymmetric_depolarizing_channel_negative_probability(p_x, p_y, p_z):
     with pytest.raises(ValueError, match='was less than 0'):
         cirq.asymmetric_depolarize(p_x, p_y, p_z)
 
 
-@pytest.mark.parametrize('p_x,p_y,p_z', (
-    (1.1, 0.0, 0.0),
-    (0.0, 1.1, 0.0),
-    (0.0, 0.0, 1.1),
-    (0.1, 0.9, 0.1)))
+@pytest.mark.parametrize(
+    'p_x,p_y,p_z', ((1.1, 0.0, 0.0), (0.0, 1.1, 0.0), (0.0, 0.0, 1.1), (0.1, 0.9, 0.1))
+)
 def test_asymmetric_depolarizing_channel_bigly_probability(p_x, p_y, p_z):
     with pytest.raises(ValueError, match='was greater than 1'):
         cirq.asymmetric_depolarize(p_x, p_y, p_z)
@@ -117,70 +114,86 @@ def test_asymmetric_depolarizing_channel_bigly_probability(p_x, p_y, p_z):
 
 def test_asymmetric_depolarizing_channel_text_diagram():
     a = cirq.asymmetric_depolarize(1 / 9, 2 / 9, 3 / 9)
-    assert (cirq.circuit_diagram_info(
-        a, args=no_precision) == cirq.CircuitDiagramInfo(
-            wire_symbols=('A(0.1111111111111111,0.2222222222222222,' +
-                          '0.3333333333333333)',)))
-    assert (cirq.circuit_diagram_info(
-        a, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('A(0.111111,0.222222,0.333333)',)))
-    assert (cirq.circuit_diagram_info(
-        a, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('A(0.11,0.22,0.33)',)))
+    assert cirq.circuit_diagram_info(a, args=no_precision) == cirq.CircuitDiagramInfo(
+        wire_symbols=('A(0.1111111111111111,0.2222222222222222,' + '0.3333333333333333)',)
+    )
+    assert cirq.circuit_diagram_info(a, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('A(0.111111,0.222222,0.333333)',)
+    )
+    assert cirq.circuit_diagram_info(a, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('A(0.11,0.22,0.33)',)
+    )
 
 
 def test_depolarizing_channel():
     d = cirq.depolarize(0.3)
-    np.testing.assert_almost_equal(cirq.channel(d), (
-        np.sqrt(0.7) * np.eye(2),
-        np.sqrt(0.1) * X,
-        np.sqrt(0.1) * Y,
-        np.sqrt(0.1) * Z,
-    ))
+    np.testing.assert_almost_equal(
+        cirq.channel(d),
+        (
+            np.sqrt(0.7) * np.eye(2),
+            np.sqrt(0.1) * X,
+            np.sqrt(0.1) * Y,
+            np.sqrt(0.1) * Z,
+        ),
+    )
     assert cirq.has_channel(d)
 
 
 def test_depolarizing_channel_two_qubits():
     d = cirq.depolarize(0.15, n_qubits=2)
-    np.testing.assert_almost_equal(cirq.channel(d), (
-        np.sqrt(0.85) * np.eye(4),
-        np.sqrt(0.01) * np.kron(np.eye(2), X),
-        np.sqrt(0.01) * np.kron(np.eye(2), Y),
-        np.sqrt(0.01) * np.kron(np.eye(2), Z),
-        np.sqrt(0.01) * np.kron(X, np.eye(2)),
-        np.sqrt(0.01) * np.kron(X, X),
-        np.sqrt(0.01) * np.kron(X, Y),
-        np.sqrt(0.01) * np.kron(X, Z),
-        np.sqrt(0.01) * np.kron(Y, np.eye(2)),
-        np.sqrt(0.01) * np.kron(Y, X),
-        np.sqrt(0.01) * np.kron(Y, Y),
-        np.sqrt(0.01) * np.kron(Y, Z),
-        np.sqrt(0.01) * np.kron(Z, np.eye(2)),
-        np.sqrt(0.01) * np.kron(Z, X),
-        np.sqrt(0.01) * np.kron(Z, Y),
-        np.sqrt(0.01) * np.kron(Z, Z),
-    ))
+    np.testing.assert_almost_equal(
+        cirq.channel(d),
+        (
+            np.sqrt(0.85) * np.eye(4),
+            np.sqrt(0.01) * np.kron(np.eye(2), X),
+            np.sqrt(0.01) * np.kron(np.eye(2), Y),
+            np.sqrt(0.01) * np.kron(np.eye(2), Z),
+            np.sqrt(0.01) * np.kron(X, np.eye(2)),
+            np.sqrt(0.01) * np.kron(X, X),
+            np.sqrt(0.01) * np.kron(X, Y),
+            np.sqrt(0.01) * np.kron(X, Z),
+            np.sqrt(0.01) * np.kron(Y, np.eye(2)),
+            np.sqrt(0.01) * np.kron(Y, X),
+            np.sqrt(0.01) * np.kron(Y, Y),
+            np.sqrt(0.01) * np.kron(Y, Z),
+            np.sqrt(0.01) * np.kron(Z, np.eye(2)),
+            np.sqrt(0.01) * np.kron(Z, X),
+            np.sqrt(0.01) * np.kron(Z, Y),
+            np.sqrt(0.01) * np.kron(Z, Z),
+        ),
+    )
     assert cirq.has_channel(d)
+
 
 def test_depolarizing_mixture():
     d = cirq.depolarize(0.3)
-    assert_mixtures_equal(cirq.mixture(d),
-                          ((0.7, np.eye(2)), (0.1, X), (0.1, Y), (0.1, Z)))
+    assert_mixtures_equal(cirq.mixture(d), ((0.7, np.eye(2)), (0.1, X), (0.1, Y), (0.1, Z)))
     assert cirq.has_mixture(d)
 
 
 def test_depolarizing_mixture_two_qubits():
     d = cirq.depolarize(0.15, n_qubits=2)
-    assert_mixtures_equal(cirq.mixture(d),
-                          ((0.85, np.eye(4)), (0.01, np.kron(np.eye(2), X)),
-                           (0.01, np.kron(np.eye(2), Y)),
-                           (0.01, np.kron(np.eye(2), Z)),
-                           (0.01, np.kron(X, np.eye(2))), (0.01, np.kron(X, X)),
-                           (0.01, np.kron(X, Y)), (0.01, np.kron(X, Z)),
-                           (0.01, np.kron(Y, np.eye(2))), (0.01, np.kron(Y, X)),
-                           (0.01, np.kron(Y, Y)), (0.01, np.kron(Y, Z)),
-                           (0.01, np.kron(Z, np.eye(2))), (0.01, np.kron(Z, X)),
-                           (0.01, np.kron(Z, Y)), (0.01, np.kron(Z, Z))))
+    assert_mixtures_equal(
+        cirq.mixture(d),
+        (
+            (0.85, np.eye(4)),
+            (0.01, np.kron(np.eye(2), X)),
+            (0.01, np.kron(np.eye(2), Y)),
+            (0.01, np.kron(np.eye(2), Z)),
+            (0.01, np.kron(X, np.eye(2))),
+            (0.01, np.kron(X, X)),
+            (0.01, np.kron(X, Y)),
+            (0.01, np.kron(X, Z)),
+            (0.01, np.kron(Y, np.eye(2))),
+            (0.01, np.kron(Y, X)),
+            (0.01, np.kron(Y, Y)),
+            (0.01, np.kron(Y, Z)),
+            (0.01, np.kron(Z, np.eye(2))),
+            (0.01, np.kron(Z, X)),
+            (0.01, np.kron(Z, Y)),
+            (0.01, np.kron(Z, Z)),
+        ),
+    )
     assert cirq.has_mixture(d)
 
 
@@ -189,8 +202,7 @@ def test_depolarizing_channel_repr():
 
 
 def test_depolarizing_channel_repr_two_qubits():
-    cirq.testing.assert_equivalent_repr(
-        cirq.DepolarizingChannel(0.3, n_qubits=2))
+    cirq.testing.assert_equivalent_repr(cirq.DepolarizingChannel(0.3, n_qubits=2))
 
 
 def test_depolarizing_channel_str():
@@ -198,8 +210,7 @@ def test_depolarizing_channel_str():
 
 
 def test_depolarizing_channel_str_two_qubits():
-    assert str(cirq.depolarize(0.3,
-                               n_qubits=2)) == 'depolarize(p=0.3,n_qubits=2)'
+    assert str(cirq.depolarize(0.3, n_qubits=2)) == 'depolarize(p=0.3,n_qubits=2)'
 
 
 def test_depolarizing_channel_eq():
@@ -220,48 +231,54 @@ def test_depolarizing_channel_invalid_probability():
 
 def test_depolarizing_channel_text_diagram():
     d = cirq.depolarize(0.1234567)
-    assert (cirq.circuit_diagram_info(
-        d, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('D(0.123457)',)))
-    assert (cirq.circuit_diagram_info(
-        d, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('D(0.12)',)))
-    assert (cirq.circuit_diagram_info(
-        d, args=no_precision) == cirq.CircuitDiagramInfo(
-            wire_symbols=('D(0.1234567)',)))
+    assert cirq.circuit_diagram_info(d, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('D(0.123457)',)
+    )
+    assert cirq.circuit_diagram_info(d, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('D(0.12)',)
+    )
+    assert cirq.circuit_diagram_info(d, args=no_precision) == cirq.CircuitDiagramInfo(
+        wire_symbols=('D(0.1234567)',)
+    )
 
 
 def test_depolarizing_channel_text_diagram_two_qubits():
     d = cirq.depolarize(0.1234567, n_qubits=2)
-    assert (cirq.circuit_diagram_info(
-        d, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('D(0.123457)',)))
-    assert (cirq.circuit_diagram_info(
-        d, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('D(0.12)',)))
-    assert (cirq.circuit_diagram_info(
-        d, args=no_precision) == cirq.CircuitDiagramInfo(
-            wire_symbols=('D(0.1234567)',)))
+    assert cirq.circuit_diagram_info(d, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('D(0.123457)',)
+    )
+    assert cirq.circuit_diagram_info(d, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('D(0.12)',)
+    )
+    assert cirq.circuit_diagram_info(d, args=no_precision) == cirq.CircuitDiagramInfo(
+        wire_symbols=('D(0.1234567)',)
+    )
 
 
 def test_generalized_amplitude_damping_channel():
     d = cirq.generalized_amplitude_damp(0.1, 0.3)
-    np.testing.assert_almost_equal(cirq.channel(d),
-              (np.sqrt(0.1) * np.array([[1., 0.], [0., np.sqrt(1.-0.3)]]),
-               np.sqrt(0.1) * np.array([[0., np.sqrt(0.3)], [0., 0.]]),
-               np.sqrt(0.9) * np.array([[np.sqrt(1. - 0.3), 0.], [0., 1.]]),
-               np.sqrt(0.9) * np.array([[0., 0.], [np.sqrt(0.3), 0.]])))
+    np.testing.assert_almost_equal(
+        cirq.channel(d),
+        (
+            np.sqrt(0.1) * np.array([[1.0, 0.0], [0.0, np.sqrt(1.0 - 0.3)]]),
+            np.sqrt(0.1) * np.array([[0.0, np.sqrt(0.3)], [0.0, 0.0]]),
+            np.sqrt(0.9) * np.array([[np.sqrt(1.0 - 0.3), 0.0], [0.0, 1.0]]),
+            np.sqrt(0.9) * np.array([[0.0, 0.0], [np.sqrt(0.3), 0.0]]),
+        ),
+    )
     assert cirq.has_channel(d)
     assert not cirq.has_mixture(d)
 
 
 def test_generalized_amplitude_damping_repr():
-    cirq.testing.assert_equivalent_repr(
-        cirq.GeneralizedAmplitudeDampingChannel(0.1, 0.3))
+    cirq.testing.assert_equivalent_repr(cirq.GeneralizedAmplitudeDampingChannel(0.1, 0.3))
+
 
 def test_generalized_amplitude_damping_str():
-    assert (str(cirq.generalized_amplitude_damp(0.1, 0.3))
-            == 'generalized_amplitude_damp(p=0.1,gamma=0.3)')
+    assert (
+        str(cirq.generalized_amplitude_damp(0.1, 0.3))
+        == 'generalized_amplitude_damp(p=0.1,gamma=0.3)'
+    )
 
 
 def test_generalized_amplitude_damping_channel_eq():
@@ -274,53 +291,47 @@ def test_generalized_amplitude_damping_channel_eq():
     et.add_equality_group(cirq.generalized_amplitude_damp(0.8, 0.2))
 
 
-@pytest.mark.parametrize('p, gamma', (
-    (-0.1, 0.0),
-    (0.0, -0.1),
-    (0.1, -0.1),
-    (-0.1, 0.1)))
+@pytest.mark.parametrize('p, gamma', ((-0.1, 0.0), (0.0, -0.1), (0.1, -0.1), (-0.1, 0.1)))
 def test_generalized_amplitude_damping_channel_negative_probability(p, gamma):
     with pytest.raises(ValueError, match='was less than 0'):
         cirq.generalized_amplitude_damp(p, gamma)
 
 
-@pytest.mark.parametrize('p,gamma', (
-    (1.1, 0.0),
-    (0.0, 1.1),
-    (1.1, 1.1)))
+@pytest.mark.parametrize('p,gamma', ((1.1, 0.0), (0.0, 1.1), (1.1, 1.1)))
 def test_generalized_amplitude_damping_channel_bigly_probability(p, gamma):
     with pytest.raises(ValueError, match='was greater than 1'):
         cirq.generalized_amplitude_damp(p, gamma)
 
 
-
 def test_generalized_amplitude_damping_channel_text_diagram():
     a = cirq.generalized_amplitude_damp(0.1, 0.39558391)
-    assert (cirq.circuit_diagram_info(
-        a, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('GAD(0.1,0.395584)',)))
-    assert (cirq.circuit_diagram_info(
-        a, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('GAD(0.1,0.4)',)))
+    assert cirq.circuit_diagram_info(a, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('GAD(0.1,0.395584)',)
+    )
+    assert cirq.circuit_diagram_info(a, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('GAD(0.1,0.4)',)
+    )
 
 
 def test_amplitude_damping_channel():
     d = cirq.amplitude_damp(0.3)
-    np.testing.assert_almost_equal(cirq.channel(d),
-                              (np.array([[1., 0.], [0., np.sqrt(1. - 0.3)]]),
-                               np.array([[0., np.sqrt(0.3)], [0., 0.]])))
+    np.testing.assert_almost_equal(
+        cirq.channel(d),
+        (
+            np.array([[1.0, 0.0], [0.0, np.sqrt(1.0 - 0.3)]]),
+            np.array([[0.0, np.sqrt(0.3)], [0.0, 0.0]]),
+        ),
+    )
     assert cirq.has_channel(d)
     assert not cirq.has_mixture(d)
 
 
 def test_amplitude_damping_channel_repr():
-    cirq.testing.assert_equivalent_repr(
-        cirq.AmplitudeDampingChannel(0.3))
+    cirq.testing.assert_equivalent_repr(cirq.AmplitudeDampingChannel(0.3))
 
 
 def test_amplitude_damping_channel_str():
-    assert (str(cirq.amplitude_damp(0.3))
-            == 'amplitude_damp(gamma=0.3)')
+    assert str(cirq.amplitude_damp(0.3)) == 'amplitude_damp(gamma=0.3)'
 
 
 def test_amplitude_damping_channel_eq():
@@ -332,6 +343,7 @@ def test_amplitude_damping_channel_eq():
     et.add_equality_group(cirq.amplitude_damp(0.6))
     et.add_equality_group(cirq.amplitude_damp(0.8))
 
+
 def test_amplitude_damping_channel_invalid_probability():
     with pytest.raises(ValueError, match='was less than 0'):
         cirq.amplitude_damp(-0.1)
@@ -341,19 +353,19 @@ def test_amplitude_damping_channel_invalid_probability():
 
 def test_amplitude_damping_channel_text_diagram():
     ad = cirq.amplitude_damp(0.38059322)
-    assert (cirq.circuit_diagram_info(
-        ad, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('AD(0.380593)',)))
-    assert (cirq.circuit_diagram_info(
-        ad, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('AD(0.38)',)))
+    assert cirq.circuit_diagram_info(ad, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('AD(0.380593)',)
+    )
+    assert cirq.circuit_diagram_info(ad, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('AD(0.38)',)
+    )
 
 
 def test_reset_channel():
     r = cirq.reset(cirq.LineQubit(0))
     np.testing.assert_almost_equal(
-        cirq.channel(r),
-        (np.array([[1., 0.], [0., 0]]), np.array([[0., 1.], [0., 0.]])))
+        cirq.channel(r), (np.array([[1.0, 0.0], [0.0, 0]]), np.array([[0.0, 1.0], [0.0, 0.0]]))
+    )
     assert cirq.has_channel(r)
     assert not cirq.has_mixture(r)
     assert cirq.qid_shape(r) == (2,)
@@ -361,9 +373,12 @@ def test_reset_channel():
     r = cirq.reset(cirq.LineQid(0, dimension=3))
     np.testing.assert_almost_equal(
         cirq.channel(r),
-        (np.array([[1, 0, 0], [0, 0, 0], [0, 0, 0]]),
-         np.array([[0, 1, 0], [0, 0, 0], [0, 0, 0]]),
-         np.array([[0, 0, 1], [0, 0, 0], [0, 0, 0]])))  # yapf: disable
+        (
+            np.array([[1, 0, 0], [0, 0, 0], [0, 0, 0]]),
+            np.array([[0, 1, 0], [0, 0, 0], [0, 0, 0]]),
+            np.array([[0, 0, 1], [0, 0, 0], [0, 0, 0]]),
+        ),
+    )  # yapf: disable
     assert cirq.has_channel(r)
     assert not cirq.has_mixture(r)
     assert cirq.qid_shape(r) == (3,)
@@ -385,10 +400,12 @@ def test_reset_channel_str():
 
 
 def test_reset_channel_text_diagram():
-    assert (cirq.circuit_diagram_info(
-        cirq.ResetChannel()) == cirq.CircuitDiagramInfo(wire_symbols=('R',)))
-    assert (cirq.circuit_diagram_info(
-        cirq.ResetChannel(3)) == cirq.CircuitDiagramInfo(wire_symbols=('R',)))
+    assert cirq.circuit_diagram_info(cirq.ResetChannel()) == cirq.CircuitDiagramInfo(
+        wire_symbols=('R',)
+    )
+    assert cirq.circuit_diagram_info(cirq.ResetChannel(3)) == cirq.CircuitDiagramInfo(
+        wire_symbols=('R',)
+    )
 
 
 def test_reset_act_on():
@@ -396,9 +413,9 @@ def test_reset_act_on():
         cirq.act_on(cirq.ResetChannel(), object())
 
     args = cirq.ActOnStateVectorArgs(
-        target_tensor=cirq.one_hot(index=(1, 1, 1, 1, 1),
-                                   shape=(2, 2, 2, 2, 2),
-                                   dtype=np.complex64),
+        target_tensor=cirq.one_hot(
+            index=(1, 1, 1, 1, 1), shape=(2, 2, 2, 2, 2), dtype=np.complex64
+        ),
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
         axes=[1],
         prng=np.random.RandomState(),
@@ -409,36 +426,36 @@ def test_reset_act_on():
     assert args.log_of_measurement_results == {}
     np.testing.assert_allclose(
         args.target_tensor,
-        cirq.one_hot(index=(1, 0, 1, 1, 1),
-                     shape=(2, 2, 2, 2, 2),
-                     dtype=np.complex64))
+        cirq.one_hot(index=(1, 0, 1, 1, 1), shape=(2, 2, 2, 2, 2), dtype=np.complex64),
+    )
 
     cirq.act_on(cirq.ResetChannel(), args)
     assert args.log_of_measurement_results == {}
     np.testing.assert_allclose(
         args.target_tensor,
-        cirq.one_hot(index=(1, 0, 1, 1, 1),
-                     shape=(2, 2, 2, 2, 2),
-                     dtype=np.complex64))
+        cirq.one_hot(index=(1, 0, 1, 1, 1), shape=(2, 2, 2, 2, 2), dtype=np.complex64),
+    )
 
 
 def test_phase_damping_channel():
     d = cirq.phase_damp(0.3)
-    np.testing.assert_almost_equal(cirq.channel(d),
-                              (np.array([[1.0, 0.], [0., np.sqrt(1 - 0.3)]]),
-                               np.array([[0., 0.], [0., np.sqrt(0.3)]])))
+    np.testing.assert_almost_equal(
+        cirq.channel(d),
+        (
+            np.array([[1.0, 0.0], [0.0, np.sqrt(1 - 0.3)]]),
+            np.array([[0.0, 0.0], [0.0, np.sqrt(0.3)]]),
+        ),
+    )
     assert cirq.has_channel(d)
     assert not cirq.has_mixture(d)
 
 
 def test_phase_damping_channel_repr():
-    cirq.testing.assert_equivalent_repr(
-        cirq.PhaseDampingChannel(0.3))
+    cirq.testing.assert_equivalent_repr(cirq.PhaseDampingChannel(0.3))
 
 
 def test_phase_damping_channel_str():
-    assert (str(cirq.phase_damp(0.3))
-            == 'phase_damp(gamma=0.3)')
+    assert str(cirq.phase_damp(0.3)) == 'phase_damp(gamma=0.3)'
 
 
 def test_phase_damping_channel_eq():
@@ -460,18 +477,19 @@ def test_phase_damping_channel_invalid_probability():
 
 def test_phase_damping_channel_text_diagram():
     pd = cirq.phase_damp(0.1000009)
-    assert (cirq.circuit_diagram_info(
-        pd, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('PD(0.100001)',)))
-    assert (cirq.circuit_diagram_info(
-        pd, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('PD(0.1)',)))
+    assert cirq.circuit_diagram_info(pd, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('PD(0.100001)',)
+    )
+    assert cirq.circuit_diagram_info(pd, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('PD(0.1)',)
+    )
 
 
 def test_phase_flip_channel():
     d = cirq.phase_flip(0.3)
     np.testing.assert_almost_equal(
-        cirq.channel(d), (np.sqrt(1. - 0.3) * np.eye(2), np.sqrt(0.3) * Z))
+        cirq.channel(d), (np.sqrt(1.0 - 0.3) * np.eye(2), np.sqrt(0.3) * Z)
+    )
     assert cirq.has_channel(d)
 
 
@@ -487,14 +505,13 @@ def test_phase_flip_overload():
     assert str(d) == 'Z'
     assert str(d2) == 'phase_flip(p=0.3)'
 
+
 def test_phase_flip_channel_repr():
-    cirq.testing.assert_equivalent_repr(
-        cirq.PhaseFlipChannel(0.3))
+    cirq.testing.assert_equivalent_repr(cirq.PhaseFlipChannel(0.3))
 
 
 def test_phase_flip_channel_str():
-    assert (str(cirq.phase_flip(0.3))
-            == 'phase_flip(p=0.3)')
+    assert str(cirq.phase_flip(0.3)) == 'phase_flip(p=0.3)'
 
 
 def test_phase_flip_channel_eq():
@@ -507,7 +524,6 @@ def test_phase_flip_channel_eq():
     et.add_equality_group(cirq.phase_flip(0.8))
 
 
-
 def test_phase_flip_channel_invalid_probability():
     with pytest.raises(ValueError, match='was less than 0'):
         cirq.phase_flip(-0.1)
@@ -517,18 +533,19 @@ def test_phase_flip_channel_invalid_probability():
 
 def test_phase_flip_channel_text_diagram():
     pf = cirq.phase_flip(0.987654)
-    assert (cirq.circuit_diagram_info(
-        pf, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('PF(0.987654)',)))
-    assert (cirq.circuit_diagram_info(
-        pf, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('PF(0.99)',)))
+    assert cirq.circuit_diagram_info(pf, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('PF(0.987654)',)
+    )
+    assert cirq.circuit_diagram_info(pf, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('PF(0.99)',)
+    )
 
 
 def test_bit_flip_channel():
     d = cirq.bit_flip(0.3)
     np.testing.assert_almost_equal(
-        cirq.channel(d), (np.sqrt(1.0 - 0.3) * np.eye(2), np.sqrt(.3) * X))
+        cirq.channel(d), (np.sqrt(1.0 - 0.3) * np.eye(2), np.sqrt(0.3) * X)
+    )
     assert cirq.has_channel(d)
 
 
@@ -546,13 +563,11 @@ def test_bit_flip_overload():
 
 
 def test_bit_flip_channel_repr():
-    cirq.testing.assert_equivalent_repr(
-        cirq.BitFlipChannel(0.3))
+    cirq.testing.assert_equivalent_repr(cirq.BitFlipChannel(0.3))
 
 
 def test_bit_flip_channel_str():
-    assert (str(cirq.bit_flip(0.3))
-            == 'bit_flip(p=0.3)')
+    assert str(cirq.bit_flip(0.3)) == 'bit_flip(p=0.3)'
 
 
 def test_bit_flip_channel_eq():
@@ -564,6 +579,7 @@ def test_bit_flip_channel_eq():
     et.add_equality_group(cirq.bit_flip(0.6))
     et.add_equality_group(cirq.bit_flip(0.8))
 
+
 def test_bit_flip_channel_invalid_probability():
     with pytest.raises(ValueError, match='was less than 0'):
         cirq.bit_flip(-0.1)
@@ -573,12 +589,12 @@ def test_bit_flip_channel_invalid_probability():
 
 def test_bit_flip_channel_text_diagram():
     bf = cirq.bit_flip(0.1234567)
-    assert (cirq.circuit_diagram_info(
-        bf, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('BF(0.123457)',)))
-    assert (cirq.circuit_diagram_info(
-        bf, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('BF(0.12)',)))
+    assert cirq.circuit_diagram_info(bf, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('BF(0.123457)',)
+    )
+    assert cirq.circuit_diagram_info(bf, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('BF(0.12)',)
+    )
 
 
 def test_stabilizer_supports_depolarize():
@@ -601,8 +617,7 @@ def test_default_asymmetric_depolarizing_channel():
 
 
 def test_bad_error_probabilities_gate():
-    with pytest.raises(ValueError,
-                       match='AB is not made solely of I, X, Y, Z.'):
+    with pytest.raises(ValueError, match='AB is not made solely of I, X, Y, Z.'):
         cirq.asymmetric_depolarize(error_probabilities={'AB': 1.0})
     with pytest.raises(ValueError, match='Y must have 2 Pauli gates.'):
         cirq.asymmetric_depolarize(error_probabilities={'IX': 0.8, 'Y': 0.2})
@@ -611,8 +626,7 @@ def test_bad_error_probabilities_gate():
 def test_bad_probs():
     with pytest.raises(ValueError, match=re.escape('p(X) was greater than 1.')):
         cirq.asymmetric_depolarize(error_probabilities={'X': 1.1, 'Y': -0.1})
-    with pytest.raises(ValueError,
-                       match=re.escape('Probabilities do not add up to 1')):
+    with pytest.raises(ValueError, match=re.escape('Probabilities do not add up to 1')):
         cirq.asymmetric_depolarize(error_probabilities={'X': 0.7, 'Y': 0.6})
 
 
@@ -626,8 +640,8 @@ def test_missing_prob_mass():
 def test_multi_asymmetric_depolarizing_channel():
     d = cirq.asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})
     np.testing.assert_almost_equal(
-        cirq.channel(d),
-        (np.sqrt(0.8) * np.eye(4), np.sqrt(0.2) * np.kron(X, X)))
+        cirq.channel(d), (np.sqrt(0.8) * np.eye(4), np.sqrt(0.2) * np.kron(X, X))
+    )
     assert cirq.has_channel(d)
     np.testing.assert_equal(d._num_qubits_(), 2)
     with pytest.raises(ValueError, match="num_qubits should be 1"):
@@ -640,40 +654,31 @@ def test_multi_asymmetric_depolarizing_channel():
 
 def test_multi_asymmetric_depolarizing_mixture():
     d = cirq.asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})
-    assert_mixtures_equal(cirq.mixture(d),
-                          ((0.8, np.eye(4)), (0.2, np.kron(X, X))))
+    assert_mixtures_equal(cirq.mixture(d), ((0.8, np.eye(4)), (0.2, np.kron(X, X))))
     assert cirq.has_mixture(d)
     np.testing.assert_equal(d._num_qubits_(), 2)
 
 
 def test_multi_asymmetric_depolarizing_channel_repr():
     cirq.testing.assert_equivalent_repr(
-        cirq.AsymmetricDepolarizingChannel(error_probabilities={
-            'II': 0.8,
-            'XX': 0.2
-        }))
+        cirq.AsymmetricDepolarizingChannel(error_probabilities={'II': 0.8, 'XX': 0.2})
+    )
 
 
 def test_multi_asymmetric_depolarizing_channel_str():
-    assert (str(
-        cirq.asymmetric_depolarize(error_probabilities={
-            'II': 0.8,
-            'XX': 0.2
-        })
-    ) == ("asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})"))
+    assert str(cirq.asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})) == (
+        "asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})"
+    )
 
 
 def test_multi_asymmetric_depolarizing_channel_text_diagram():
-    a = cirq.asymmetric_depolarize(error_probabilities={
-        'II': 2 / 3,
-        'XX': 1 / 3
-    })
-    assert (cirq.circuit_diagram_info(
-        a, args=no_precision) == cirq.CircuitDiagramInfo(
-            wire_symbols=('A(II:0.6666666666666666, XX:0.3333333333333333)',)))
-    assert (cirq.circuit_diagram_info(
-        a, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('A(II:0.666667, XX:0.333333)',)))
-    assert (cirq.circuit_diagram_info(
-        a, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
-            wire_symbols=('A(II:0.67, XX:0.33)',)))
+    a = cirq.asymmetric_depolarize(error_probabilities={'II': 2 / 3, 'XX': 1 / 3})
+    assert cirq.circuit_diagram_info(a, args=no_precision) == cirq.CircuitDiagramInfo(
+        wire_symbols=('A(II:0.6666666666666666, XX:0.3333333333333333)',)
+    )
+    assert cirq.circuit_diagram_info(a, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('A(II:0.666667, XX:0.333333)',)
+    )
+    assert cirq.circuit_diagram_info(a, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
+        wire_symbols=('A(II:0.67, XX:0.33)',)
+    )

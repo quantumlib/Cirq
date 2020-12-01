@@ -26,7 +26,8 @@ if TYPE_CHECKING:
 
 def _little_endian_to_big(value: int, bit_count: int) -> int:
     return digits.big_endian_bits_to_int(
-        digits.big_endian_int_to_bits(value, bit_count=bit_count)[::-1])
+        digits.big_endian_int_to_bits(value, bit_count=bit_count)[::-1]
+    )
 
 
 class Job:
@@ -44,12 +45,13 @@ class Job:
         TERMINAL_STATES,
         'States of the IonQ API job from which the job cannot transition. '
         'Note that deleted can only exist in a return call from a delete '
-        '(subsequent calls will return not found).')
+        '(subsequent calls will return not found).',
+    )
 
     NON_TERMINAL_STATES = ('ready', 'submitted', 'running')
     document(
-        NON_TERMINAL_STATES,
-        'States of the IonQ API job which can transition to other states.')
+        NON_TERMINAL_STATES, 'States of the IonQ API job which can transition to other states.'
+    )
 
     ALL_STATES = TERMINAL_STATES + NON_TERMINAL_STATES
     document(ALL_STATES, 'All states that an IonQ API job can exist in.')
@@ -58,10 +60,10 @@ class Job:
     document(
         UNSUCCESSFUL_STATES,
         'States of the IonQ API job when it was not successful and so does '
-        'not have any data associated with it beyond an id and a status.')
+        'not have any data associated with it beyond an id and a status.',
+    )
 
-    def __init__(self, client: 'cirq.ionq.ionq_client._IonQClient',
-                 job_dict: dict):
+    def __init__(self, client: 'cirq.ionq.ionq_client._IonQClient', job_dict: dict):
         """Construct an IonQJob.
 
         Users should not call this themselves. If you only know the `job_id`,
@@ -76,15 +78,13 @@ class Job:
         self._job = job_dict
 
     def _refresh_job(self):
-        """If the last fetched job is not terminal, gets the job from the API.
-        """
+        """If the last fetched job is not terminal, gets the job from the API."""
         if self._job['status'] not in self.TERMINAL_STATES:
             self._job = self._client.get_job(self.job_id())
 
     def _check_if_unsuccessful(self):
         if self.status() in self.UNSUCCESSFUL_STATES:
-            raise ionq_exceptions.IonQUnsuccessfulJobException(
-                self.job_id(), self.status())
+            raise ionq_exceptions.IonQUnsuccessfulJobException(self.job_id(), self.status())
 
     def job_id(self) -> str:
         """Returns the job id (UID) for the job.
@@ -123,7 +123,6 @@ class Job:
         """
         self._check_if_unsuccessful()
         return self._job['target']
-
 
     def name(self) -> str:
         """Returns the name of the job which was supplied during job creation.
@@ -164,8 +163,9 @@ class Job:
             return int(self._job['metadata']['shots'])
         return None
 
-    def results(self, timeout_seconds: int = 7200, polling_seconds: int = 1
-               ) -> Union[results.QPUResult, results.SimulatorResult]:
+    def results(
+        self, timeout_seconds: int = 7200, polling_seconds: int = 1
+    ) -> Union[results.QPUResult, results.SimulatorResult]:
         """Polls the IonQ api for results.
 
         Args:
@@ -190,27 +190,27 @@ class Job:
             time.sleep(polling_seconds)
             time_waited_seconds += polling_seconds
         if self.status() != 'completed':
-            raise RuntimeError('Job was not completed successful. Instead had'
-                               f' status: {self.status()}')
+            raise RuntimeError(
+                'Job was not completed successful. Instead had' f' status: {self.status()}'
+            )
         # IonQ returns results in little endian, Cirq prefers to use big endian,
         # so we convert.
         if self.target() == 'qpu':
             repetitions = self.repetitions()
             assert repetitions is not None
             counts = {
-                _little_endian_to_big(int(k), self.num_qubits()):
-                int(repetitions * float(v))
+                _little_endian_to_big(int(k), self.num_qubits()): int(repetitions * float(v))
                 for k, v in self._job['data']['histogram'].items()
             }
-            return results.QPUResult(counts=counts,
-                                     num_qubits=self.num_qubits())
+            return results.QPUResult(counts=counts, num_qubits=self.num_qubits())
         else:
             probabilities = {
                 _little_endian_to_big(int(k), self.num_qubits()): float(v)
                 for k, v in self._job['data']['histogram'].items()
             }
-            return results.SimulatorResult(probabilities=probabilities,
-                                           num_qubits=self.num_qubits())
+            return results.SimulatorResult(
+                probabilities=probabilities, num_qubits=self.num_qubits()
+            )
 
     def cancel(self):
         """Cancel the given job.

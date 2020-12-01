@@ -32,15 +32,13 @@ def test_engine_from_environment(build):
 
         # Nothing present.
         with mock.patch.dict(os.environ, {}, clear=True):
-            with pytest.raises(EnvironmentError,
-                               match='CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID'):
+            with pytest.raises(EnvironmentError, match='CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID'):
                 _ = cirq.google.engine_from_environment()
 
 
 @mock.patch('cirq.google.engine.client.quantum.QuantumEngineServiceClient')
 def test_deprecation(build):
-    with cirq.testing.assert_logs('engine_from_environment', 'get_engine',
-                                  'deprecated'):
+    with cirq.testing.assert_logs('engine_from_environment', 'get_engine', 'deprecated'):
         env_dict = {'CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID': 'project!'}
         with mock.patch.dict(os.environ, env_dict, clear=True):
             _ = cirq.google.engine_from_environment()
