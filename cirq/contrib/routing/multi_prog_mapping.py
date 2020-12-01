@@ -48,8 +48,8 @@ class HierarchyTree:
         two_er: a dictionary that shows operation error of two-qubits gates
     """
 
-    def __init__(self, device_graph: nx.Graph, single_er: Dict[Tuple[ops.Qid,],
-                                                               List[float]],
+    def __init__(self, device_graph: nx.Graph,
+                 single_er: Dict[Tuple[ops.Qid,], List[float]],
                  two_er: Dict[Tuple[ops.Qid, ops.Qid], List[float]]):
         self.device_graph = device_graph
         self.single_er = single_er
@@ -187,8 +187,8 @@ class QubitsPartitioning:
     def __init__(self, tree: nx.DiGraph(),
                  program_circuits: List[circuits.Circuit],
                  single_er: Dict[Tuple[ops.Qid,], List[float]],
-                 two_er: Dict[Tuple[ops.Qid, ops.Qid],
-                              List[float]], twoQ_gate_type: ops.Operation):
+                 two_er: Dict[Tuple[ops.Qid, ops.Qid], List[float]],
+                 twoQ_gate_type: ops.Operation):
         self.tree = tree
         self.program_circuits = program_circuits
         self.single_er = single_er
@@ -200,9 +200,9 @@ class QubitsPartitioning:
         for circuit in self.program_circuits:
             density = len(
                 list(
-                    circuit.findall_operations(
-                        lambda op: op.gate == self.twoQ_gate_type))) / float(
-                            len(circuit.all_qubits()))
+                    circuit.findall_operations(lambda op: op.gate == self.
+                                               twoQ_gate_type))) / float(
+                                                   len(circuit.all_qubits()))
             cnot_density.append(density)
         # Computing indices regarding descending order of cnot densities
         idxs = np.argsort(cnot_density)
@@ -218,8 +218,8 @@ class QubitsPartitioning:
                      cir: circuits.Circuit) -> float:
         twoQ_gs = len(
             list(
-                cir.findall_operations(
-                    lambda op: op.gate == self.twoQ_gate_type)))
+                cir.findall_operations(lambda op: op.gate == self.twoQ_gate_type
+                                      )))
         oneQ_gs = len(list(cir.all_operations())) - twoQ_gs
         qubits = len(cir.all_qubits())
 
@@ -259,9 +259,8 @@ class QubitsPartitioning:
 
         return best_cand
 
-    def qubits_allocation(
-            self,
-            desc_prog_circuits: List[circuits.Circuit]) -> List[List[ops.Qid]]:
+    def qubits_allocation(self, desc_prog_circuits: List[circuits.Circuit]
+                         ) -> List[List[ops.Qid]]:
 
         partition = []
 
@@ -343,8 +342,8 @@ class XSWAP:
 
         return cir_dags
 
-    def generate_2qGates_front_layers(
-            self, cir_dags: List[cirq.CircuitDag]) -> List[List[ops.Operation]]:
+    def generate_2qGates_front_layers(self, cir_dags: List[cirq.CircuitDag]
+                                     ) -> List[List[ops.Operation]]:
         flayers = []
         for dag in cir_dags:
             fl = []
@@ -357,8 +356,8 @@ class XSWAP:
 
         return flayers
 
-    def generate_front_layers(
-            self, cir_dags: cirq.CircuitDag) -> List[List[ops.Operation]]:
+    def generate_front_layers(self, cir_dags: cirq.CircuitDag
+                             ) -> List[List[ops.Operation]]:
         # Check all dags are empty
         counter = 0
         for dag in cir_dags:
@@ -444,10 +443,9 @@ class XSWAP:
                 swaps.append(self.phy_to_log_edge((phy_qs[1], ne)))
         return swaps
 
-    def update_mapping(
-        self, swap: SWAPTypeLogical
-    ) -> Tuple[Dict[Tuple[ops.Qid, int], ops.Qid], Dict[ops.Qid, Tuple[ops.Qid,
-                                                                       int]]]:
+    def update_mapping(self, swap: SWAPTypeLogical
+                      ) -> Tuple[Dict[Tuple[ops.Qid, int], ops.
+                                      Qid], Dict[ops.Qid, Tuple[ops.Qid, int]]]:
         new_ph_l = self.ph_to_l.copy()
         new_l_ph = self.l_to_ph.copy()
 
@@ -617,8 +615,8 @@ class XSWAP:
 ############################################################
 
 
-def multi_prog_map(device_graph: nx.Graph, single_er: Dict[Tuple[ops.Qid,],
-                                                           List[float]],
+def multi_prog_map(device_graph: nx.Graph,
+                   single_er: Dict[Tuple[ops.Qid,], List[float]],
                    two_er: Dict[Tuple[ops.Qid, ops.Qid], List[float]],
                    prog_circuits: List[circuits.Circuit]) -> None:
     twoQ_gate_type = cirq.CZ
