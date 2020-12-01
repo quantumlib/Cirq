@@ -55,8 +55,8 @@ class HierarchyTree:
         self.single_er = single_er
         self.two_er = two_er
 
-    def compute_F(self, com1: List[ops.Qid], com2: List[ops.Qid], Q1: float,
-                  Q2: float, fidelity: float) -> (float, float):
+    def compute_F(self, com1: List[ops.Qid], com2: List[ops.Qid], q1: float,
+                  q2: float, fidelity: float) -> (float, float):
         """
         Computes the reward function F, F = Qmerged - Qorigin + (omega)*E*V
         Qorigin, Qmerged denote the modularity of the original partition and the new partition after merging the two communities.
@@ -67,8 +67,8 @@ class HierarchyTree:
         Args:
             com1: first community
             com2: second community
-            Q1: original value of Q for first community
-            Q2: original value of Q for second community
+            q1: original value of Qorigin for first community
+            q2: original value of Qorigin for second community
             fidelity: total value of E*V
         """
 
@@ -98,12 +98,12 @@ class HierarchyTree:
         # Compute outside edges
         outside_edges = total_edges - 2 * inside_edges
 
-        Qmerged = float(inside_edges / edges_count) - pow(
+        q_merged = float(inside_edges / edges_count) - pow(
             float(outside_edges / edges_count), 2)
-        deltaQ = Qmerged - Q1 - Q2
-        F_value = deltaQ + omega * fidelity
+        delta_q = q_merged - q1 - q2
+        F_value = delta_q + omega * fidelity
 
-        return F_value, Qmerged
+        return F_value, q_merged
 
     def find_edge_among_coms(self, com1: List[ops.Qid],
                              com2: List[ops.Qid]) -> float:
@@ -132,10 +132,10 @@ class HierarchyTree:
         return fidelity
 
     def compute_new_node(self, communities: List[List[ops.Qid]],
-                         Qvalues: List[float]) -> (int, int, float):
+                         q_values: List[float]) -> (int, int, float):
         idx1 = 0
         idx2 = 1
-        Qmerged = 0.0
+        q_merged = 0.0
         Fmax = -np.inf
 
         for i in range(len(communities) - 1):
@@ -143,19 +143,19 @@ class HierarchyTree:
                 fidelity = self.find_edge_among_coms(communities[i],
                                                      communities[j])
                 if fidelity != 0.0:
-                    F, qmerged = self.compute_F(communities[i], communities[j],
-                                                Qvalues[i], Qvalues[j],
+                    F, q_merged_temp = self.compute_F(communities[i], communities[j],
+                                                q_values[i], q_values[j],
                                                 fidelity)
                     if F > Fmax:
                         Fmax = F
                         idx1 = i
                         idx2 = j
-                        Qmerged = qmerged
+                        q_merged = q_merged_temp
 
         if idx1 > idx2:
-            return idx1, idx2, Qmerged
+            return idx1, idx2, q_merged
         else:
-            return idx2, idx1, Qmerged
+            return idx2, idx1, q_merged
 
     def tree_construction(self) -> nx.DiGraph():
         tree = nx.DiGraph()
@@ -163,10 +163,10 @@ class HierarchyTree:
         communities = []
 
         communities = [[i] for i in list(self.device_graph.nodes)]
-        Qvalues = [0.0] * len(communities)
+        q_values = [0.0] * len(communities)
 
         while len(communities) > 1:
-            idx1, idx2, Qmerged = self.compute_new_node(communities, Qvalues)
+            idx1, idx2, q_merged = self.compute_new_node(communities, q_values)
             new_node_list = communities[idx1] + communities[idx2]
             new_node = tuple(new_node_list)
             tree.add_edge(new_node, tuple(communities[idx1]))
@@ -174,10 +174,10 @@ class HierarchyTree:
 
             communities.pop(idx1)
             communities.pop(idx2)
-            Qvalues.pop(idx1)
-            Qvalues.pop(idx2)
+            q_values.pop(idx1)
+            q_values.pop(idx2)
             communities.append(new_node_list)
-            Qvalues.append(Qmerged)
+            q_values.append(q_merged)
 
         return tree
 
@@ -620,16 +620,16 @@ def multi_prog_map(device_graph: nx.Graph,
                    two_er: Dict[Tuple[ops.Qid, ops.Qid], List[float]],
                    prog_circuits: List[circuits.Circuit]) -> None:
     twoQ_gate_type = cirq.CZ
-    treeObj = HierarchyTree(device_graph, single_er, two_er)
-    tree = treeObj.tree_construction()
+    tree_obj = HierarchyTree(device_graph, single_er, two_er)
+    tree = tree_obj.tree_construction()
     print("tree")
     print(tree.nodes)
 
-    parObj = QubitsPartitioning(tree, prog_circuits, single_er, two_er,
+    par_obj = QubitsPartitioning(tree, prog_circuits, single_er, two_er,
                                 twoQ_gate_type)
-    desc_cirs = parObj.circuits_descending()
+    desc_cirs = par_obj.circuits_descending()
 
-    partitions = parObj.qubits_allocation(desc_cirs)
+    partitions = par_obj.qubits_allocation(desc_cirs)
 
     print("partitions:")
     print(partitions)
