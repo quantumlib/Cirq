@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 This module implements a multi-program mapping algorithm that is introduced in https://arxiv.org/abs/2004.12854.
 To improve overall throughput and resource utilization, we can map muliple programs to a specific quantum chip at the same time. 
