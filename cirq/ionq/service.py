@@ -23,13 +23,15 @@ if TYPE_CHECKING:
 class Service:
     """A class to access IonQ's API."""
 
-    def __init__(self,
-                 remote_host: str,
-                 api_key: str,
-                 default_target: str = None,
-                 api_version='v0.1',
-                 max_retry_seconds: int = 3600,
-                 verbose=False):
+    def __init__(
+        self,
+        remote_host: str,
+        api_key: str,
+        default_target: str = None,
+        api_version='v0.1',
+        max_retry_seconds: int = 3600,
+        verbose=False,
+    ):
         """Creates the Service to access IonQ's API.
 
         Args:
@@ -50,13 +52,16 @@ class Service:
             default_target=default_target,
             api_version=api_version,
             max_retry_seconds=max_retry_seconds,
-            verbose=verbose)
+            verbose=verbose,
+        )
 
-    def create_job(self,
-                   circuit: 'cirq.Circuit',
-                   repetitions: int = None,
-                   name: Optional[str] = None,
-                   target: Optional[str] = None) -> job.Job:
+    def create_job(
+        self,
+        circuit: 'cirq.Circuit',
+        repetitions: int = None,
+        name: Optional[str] = None,
+        target: Optional[str] = None,
+    ) -> job.Job:
         """Create a new job to run the given circuit.
 
         Args:
@@ -74,10 +79,9 @@ class Service:
             IonQException: If there was an error accessing the API.
         """
         serialized_circuit = serializer.Serializer().serialize(circuit)
-        result = self._client.create_job(circuit_dict=serialized_circuit,
-                                         repetitions=repetitions,
-                                         target=target,
-                                         name=name)
+        result = self._client.create_job(
+            circuit_dict=serialized_circuit, repetitions=repetitions, target=target, name=name
+        )
         # The returned job does not have fully populated fields, so make
         # a second call and return the results of the fully filled out job.
         return self.get_job(result['id'])

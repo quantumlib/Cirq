@@ -37,10 +37,7 @@ def test_service_create_job():
     service._client = mock_client
 
     circuit = cirq.Circuit(cirq.X(cirq.LineQubit(0)))
-    job = service.create_job(circuit=circuit,
-                             repetitions=100,
-                             target='qpu',
-                             name='bacon')
+    job = service.create_job(circuit=circuit, repetitions=100, target='qpu', name='bacon')
     assert job.status() == 'completed'
     create_job_kwargs = mock_client.create_job.call_args[1]
     # Serialization induces a float, so we don't validate full circuit.

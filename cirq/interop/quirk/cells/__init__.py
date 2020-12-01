@@ -14,7 +14,8 @@
 """This module defines building blocks for parsing Quirk circuits."""
 
 from cirq.interop.quirk.cells.all_cells import (
-    generate_all_quirk_cell_makers,)
+    generate_all_quirk_cell_makers,
+)
 
 from cirq.interop.quirk.cells.cell import (
     Cell,
@@ -24,16 +25,20 @@ from cirq.interop.quirk.cells.cell import (
 )
 
 from cirq.interop.quirk.cells.composite_cell import (
-    CompositeCell,)
+    CompositeCell,
+)
 
 from cirq.interop.quirk.cells.qubit_permutation_cells import (
-    QuirkQubitPermutationGate,)
+    QuirkQubitPermutationGate,
+)
 
 from cirq.interop.quirk.cells.arithmetic_cells import (
-    QuirkArithmeticOperation,)
+    QuirkArithmeticOperation,
+)
 
 from cirq.interop.quirk.cells.input_rotation_cells import (
-    QuirkInputRotationOperation,)
+    QuirkInputRotationOperation,
+)
 
 import cirq.interop.quirk.cells.swap_cell
 import cirq.interop.quirk.cells.control_cells

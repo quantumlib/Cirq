@@ -121,9 +121,7 @@ def parameter_symbols(val: Any) -> AbstractSet[sympy.Symbol]:
     return {sympy.Symbol(name) for name in parameter_names(val)}
 
 
-def resolve_parameters(
-        val: Any,
-        param_resolver: 'cirq.ParamResolverOrSimilarType') -> Any:
+def resolve_parameters(val: Any, param_resolver: 'cirq.ParamResolverOrSimilarType') -> Any:
     """Resolves symbol parameters in the effect using the param resolver.
 
     This function will use the `_resolve_parameters_` magic method

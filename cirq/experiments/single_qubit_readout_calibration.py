@@ -38,6 +38,7 @@ class SingleQubitReadoutCalibrationResult:
             probabilities.
         timestamp: The time the data was taken, in seconds since the epoch.
     """
+
     zero_state_errors: Dict['cirq.Qid', float]
     one_state_errors: Dict['cirq.Qid', float]
     repetitions: int
@@ -49,30 +50,33 @@ class SingleQubitReadoutCalibrationResult:
             'zero_state_errors': list(self.zero_state_errors.items()),
             'one_state_errors': list(self.one_state_errors.items()),
             'repetitions': self.repetitions,
-            'timestamp': self.timestamp
+            'timestamp': self.timestamp,
         }
 
     @classmethod
-    def _from_json_dict_(cls, zero_state_errors, one_state_errors, repetitions,
-                         timestamp, **kwargs):
-        return cls(zero_state_errors=dict(zero_state_errors),
-                   one_state_errors=dict(one_state_errors),
-                   repetitions=repetitions,
-                   timestamp=timestamp)
+    def _from_json_dict_(
+        cls, zero_state_errors, one_state_errors, repetitions, timestamp, **kwargs
+    ):
+        return cls(
+            zero_state_errors=dict(zero_state_errors),
+            one_state_errors=dict(one_state_errors),
+            repetitions=repetitions,
+            timestamp=timestamp,
+        )
 
     def __repr__(self) -> str:
-        return ('cirq.experiments.SingleQubitReadoutCalibrationResult('
-                f'zero_state_errors={self.zero_state_errors!r}, '
-                f'one_state_errors={self.one_state_errors!r}, '
-                f'repetitions={self.repetitions!r}, '
-                f'timestamp={self.timestamp!r})')
+        return (
+            'cirq.experiments.SingleQubitReadoutCalibrationResult('
+            f'zero_state_errors={self.zero_state_errors!r}, '
+            f'one_state_errors={self.one_state_errors!r}, '
+            f'repetitions={self.repetitions!r}, '
+            f'timestamp={self.timestamp!r})'
+        )
 
 
 def estimate_single_qubit_readout_errors(
-        sampler: 'cirq.Sampler',
-        *,
-        qubits: Iterable['cirq.Qid'],
-        repetitions: int = 1000) -> SingleQubitReadoutCalibrationResult:
+    sampler: 'cirq.Sampler', *, qubits: Iterable['cirq.Qid'], repetitions: int = 1000
+) -> SingleQubitReadoutCalibrationResult:
     """Estimate single-qubit readout error.
 
     For each qubit, prepare the |0⟩ state and measure. Calculate how often a 1
@@ -95,22 +99,20 @@ def estimate_single_qubit_readout_errors(
     qubits = list(qubits)
 
     zeros_circuit = circuits.Circuit(ops.measure_each(*qubits, key_func=repr))
-    ones_circuit = circuits.Circuit(ops.X.on_each(*qubits),
-                                    ops.measure_each(*qubits, key_func=repr))
+    ones_circuit = circuits.Circuit(
+        ops.X.on_each(*qubits), ops.measure_each(*qubits, key_func=repr)
+    )
 
     zeros_result = sampler.run(zeros_circuit, repetitions=repetitions)
     ones_result = sampler.run(ones_circuit, repetitions=repetitions)
     timestamp = time.time()
 
-    zero_state_errors = {
-        q: np.mean(zeros_result.measurements[repr(q)]) for q in qubits
-    }
-    one_state_errors = {
-        q: 1 - np.mean(ones_result.measurements[repr(q)]) for q in qubits
-    }
+    zero_state_errors = {q: np.mean(zeros_result.measurements[repr(q)]) for q in qubits}
+    one_state_errors = {q: 1 - np.mean(ones_result.measurements[repr(q)]) for q in qubits}
 
     return SingleQubitReadoutCalibrationResult(
         zero_state_errors=zero_state_errors,
         one_state_errors=one_state_errors,
         repetitions=repetitions,
-        timestamp=timestamp)
+        timestamp=timestamp,
+    )

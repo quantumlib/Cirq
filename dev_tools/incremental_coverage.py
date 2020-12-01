@@ -57,8 +57,7 @@ IGNORED_LINE_PATTERNS = [
 EXPLICIT_OPT_OUT_COMMENT = '#coverage:ignore'
 
 
-def diff_to_new_interesting_lines(unified_diff_lines: List[str]
-                                 ) -> Dict[int, str]:
+def diff_to_new_interesting_lines(unified_diff_lines: List[str]) -> Dict[int, str]:
     """
     Extracts a set of 'interesting' lines out of a GNU unified diff format.
 
@@ -102,7 +101,7 @@ def diff_to_new_interesting_lines(unified_diff_lines: List[str]
         # Parse the 'new file' range parts of the unified diff.
         if not diff_line.startswith('@@ '):
             continue
-        change = diff_line[3:diff_line.index(' @@', 3)]
+        change = diff_line[3 : diff_line.index(' @@', 3)]
         new = change.split(' ')[1]
         start = int(new.split(',')[0])
         count = 1 if ',' not in new else int(new.split(',')[1])
@@ -124,9 +123,9 @@ def fix_line_from_coverage_file(line):
     return line
 
 
-def get_incremental_uncovered_lines(abs_path: str, base_commit: str,
-                                    actual_commit: Optional[str]
-                                   ) -> List[Tuple[int, str, str]]:
+def get_incremental_uncovered_lines(
+    abs_path: str, base_commit: str, actual_commit: Optional[str]
+) -> List[Tuple[int, str, str]]:
     """
     Uses git diff and the annotation files created by
     `pytest --cov-report annotate` to find touched but uncovered lines in the
@@ -146,12 +145,10 @@ def get_incremental_uncovered_lines(abs_path: str, base_commit: str,
     if not os.path.isfile(abs_path):
         return []
 
-    unified_diff_lines_str = shell_tools.output_of('git', 'diff', '--unified=0',
-                                                   base_commit, actual_commit,
-                                                   '--', abs_path)
-    unified_diff_lines = [
-        e for e in unified_diff_lines_str.split('\n') if e.strip()
-    ]
+    unified_diff_lines_str = shell_tools.output_of(
+        'git', 'diff', '--unified=0', base_commit, actual_commit, '--', abs_path
+    )
+    unified_diff_lines = [e for e in unified_diff_lines_str.split('\n') if e.strip()]
 
     touched_lines = diff_to_new_interesting_lines(unified_diff_lines)
 
@@ -162,10 +159,12 @@ def get_incremental_uncovered_lines(abs_path: str, base_commit: str,
     has_cover_file = os.path.isfile(cover_path)
     content_file = cover_path if has_cover_file else abs_path
     with open(content_file, 'r') as annotated_coverage_file:
-        return [(i, fix_line_from_coverage_file(line), touched_lines[i])
-                for i, line in enumerate(annotated_coverage_file, start=1)
-                if i in touched_lines and i not in ignored_lines
-                if line_counts_as_uncovered(line, has_cover_file)]
+        return [
+            (i, fix_line_from_coverage_file(line), touched_lines[i])
+            for i, line in enumerate(annotated_coverage_file, start=1)
+            if i in touched_lines and i not in ignored_lines
+            if line_counts_as_uncovered(line, has_cover_file)
+        ]
 
 
 def line_content_counts_as_uncovered_manual(content: str) -> bool:
@@ -226,15 +225,13 @@ def naive_find_end_of_scope(lines: List[str], i: int) -> int:
     # TODO: deal with line continuations, which may be less indented.
     # Github issue: https://github.com/quantumlib/Cirq/issues/2968
     line = lines[i]
-    indent = line[:len(line) - len(line.lstrip())]
-    while i < len(lines) and (not lines[i].strip() or
-                              lines[i].startswith(indent)):
+    indent = line[: len(line) - len(line.lstrip())]
+    while i < len(lines) and (not lines[i].strip() or lines[i].startswith(indent)):
         i += 1
     return i
 
 
-def line_counts_as_uncovered(line: str,
-                             is_from_cover_annotation_file: bool) -> bool:
+def line_counts_as_uncovered(line: str, is_from_cover_annotation_file: bool) -> bool:
     """
     Args:
         line: The line of code (including coverage annotation).
@@ -260,14 +257,13 @@ def line_counts_as_uncovered(line: str,
     # TODO: avoid # in strings, etc.
     # Github issue: https://github.com/quantumlib/Cirq/issues/2968
     if '#' in content:
-        content = content[:content.index('#')].strip()
+        content = content[: content.index('#')].strip()
 
     # Ignored line pattern?
     if any(re.search(pat, content) for pat in IGNORED_LINE_PATTERNS):
         return False
 
-    return (is_from_cover_annotation_file or
-            line_content_counts_as_uncovered_manual(content))
+    return is_from_cover_annotation_file or line_content_counts_as_uncovered_manual(content)
 
 
 def is_applicable_python_file(rel_path: str) -> bool:
@@ -280,7 +276,8 @@ def is_applicable_python_file(rel_path: str) -> bool:
         Whether to include the file.
     """
     return rel_path.endswith('.py') and not any(
-        re.search(pat, rel_path) for pat in IGNORED_FILE_PATTERNS)
+        re.search(pat, rel_path) for pat in IGNORED_FILE_PATTERNS
+    )
 
 
 def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
@@ -295,24 +292,25 @@ def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
 
         base_path = cast(str, env.destination_directory)
         uncovered_lines = get_incremental_uncovered_lines(
-            os.path.join(base_path, changed_file), env.compare_commit_id,
-            env.actual_commit_id)
+            os.path.join(base_path, changed_file), env.compare_commit_id, env.actual_commit_id
+        )
 
         if uncovered_lines:
             uncovered_count += len(uncovered_lines)
             print(
                 shell_tools.highlight(
-                    '************* {} ({} uncovered)'.format(
-                        changed_file, len(uncovered_lines)),
+                    '************* {} ({} uncovered)'.format(changed_file, len(uncovered_lines)),
                     color_code=shell_tools.RED,
-                ))
+                )
+            )
         for index, line, reason in uncovered_lines:
-            print('Line {} {} but not covered: {}'.format(
-                shell_tools.highlight(str(index).rjust(4),
-                                      color_code=shell_tools.BOLD),
-                reason,
-                shell_tools.highlight(line, color_code=shell_tools.YELLOW),
-            ))
+            print(
+                'Line {} {} but not covered: {}'.format(
+                    shell_tools.highlight(str(index).rjust(4), color_code=shell_tools.BOLD),
+                    reason,
+                    shell_tools.highlight(line, color_code=shell_tools.YELLOW),
+                )
+            )
 
     # Inform of aggregate result.
     print()
@@ -321,10 +319,9 @@ def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
             shell_tools.highlight(
                 'Found {} uncovered touched lines.'.format(uncovered_count),
                 color_code=shell_tools.RED,
-            ))
+            )
+        )
     else:
-        print(
-            shell_tools.highlight('All touched lines covered',
-                                  color_code=shell_tools.GREEN))
+        print(shell_tools.highlight('All touched lines covered', color_code=shell_tools.GREEN))
     print()
     return uncovered_count

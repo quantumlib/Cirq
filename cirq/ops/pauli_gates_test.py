@@ -60,12 +60,9 @@ def test_isinstance():
 
 def test_by_index():
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(
-            cirq.X, *[cirq.Pauli.by_index(i) for i in (-3, 0, 3, 6)])
-    eq.add_equality_group(
-            cirq.Y, *[cirq.Pauli.by_index(i) for i in (-2, 1, 4, 7)])
-    eq.add_equality_group(
-            cirq.Z, *[cirq.Pauli.by_index(i) for i in (-1, 2, 5, 8)])
+    eq.add_equality_group(cirq.X, *[cirq.Pauli.by_index(i) for i in (-3, 0, 3, 6)])
+    eq.add_equality_group(cirq.Y, *[cirq.Pauli.by_index(i) for i in (-2, 1, 4, 7)])
+    eq.add_equality_group(cirq.Z, *[cirq.Pauli.by_index(i) for i in (-1, 2, 5, 8)])
 
 
 def test_relative_index():
@@ -127,7 +124,6 @@ def test_gt():
     assert not cirq.Z > cirq.Z
 
 
-
 def test_gt_other_type():
     with pytest.raises(TypeError):
         _ = cirq.X > object()
@@ -143,7 +139,6 @@ def test_lt():
     assert cirq.Z < cirq.X
     assert not cirq.Z < cirq.Y
     assert not cirq.Z < cirq.Z
-
 
 
 def test_lt_other_type():
@@ -215,9 +210,9 @@ def test_powers():
     assert isinstance(cirq.X, cirq.Pauli)
     assert isinstance(cirq.Y, cirq.Pauli)
     assert isinstance(cirq.Z, cirq.Pauli)
-    assert not isinstance(cirq.X**-0.5, cirq.Pauli)
-    assert not isinstance(cirq.Y**0.2, cirq.Pauli)
-    assert not isinstance(cirq.Z**0.5, cirq.Pauli)
-    assert isinstance(cirq.X**-0.5, cirq.XPowGate)
-    assert isinstance(cirq.Y**0.2, cirq.YPowGate)
-    assert isinstance(cirq.Z**0.5, cirq.ZPowGate)
+    assert not isinstance(cirq.X ** -0.5, cirq.Pauli)
+    assert not isinstance(cirq.Y ** 0.2, cirq.Pauli)
+    assert not isinstance(cirq.Z ** 0.5, cirq.Pauli)
+    assert isinstance(cirq.X ** -0.5, cirq.XPowGate)
+    assert isinstance(cirq.Y ** 0.2, cirq.YPowGate)
+    assert isinstance(cirq.Z ** 0.5, cirq.ZPowGate)

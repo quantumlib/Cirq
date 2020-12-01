@@ -37,8 +37,7 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     def _num_qubits_(self) -> int:
         return 1
 
-    def on_each(self, *targets: Union[raw_types.Qid, Iterable[Any]]
-               ) -> List[raw_types.Operation]:
+    def on_each(self, *targets: Union[raw_types.Qid, Iterable[Any]]) -> List[raw_types.Operation]:
         """Returns a list of operations applying the gate to all targets.
 
         Args:
@@ -58,8 +57,8 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
                 operations.extend(self.on_each(*target))
             else:
                 raise ValueError(
-                    'Gate was called with type different than Qid. Type: {}'.
-                    format(type(target)))
+                    'Gate was called with type different than Qid. Type: {}'.format(type(target))
+                )
         return operations
 
 

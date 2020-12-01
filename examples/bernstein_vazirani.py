@@ -43,7 +43,7 @@ import random
 import cirq
 
 
-def main(qubit_count = 8):
+def main(qubit_count=8):
     circuit_sample_count = 3
 
     # Choose qubits to use.
@@ -53,17 +53,15 @@ def main(qubit_count = 8):
     # Pick coefficients for the oracle and create a circuit to query it.
     secret_bias_bit = random.randint(0, 1)
     secret_factor_bits = [random.randint(0, 1) for _ in range(qubit_count)]
-    oracle = make_oracle(input_qubits,
-                         output_qubit,
-                         secret_factor_bits,
-                         secret_bias_bit)
-    print('Secret function:\nf(a) = a·<{}> + {} (mod 2)'.format(
-        ', '.join(str(e) for e in secret_factor_bits),
-        secret_bias_bit))
+    oracle = make_oracle(input_qubits, output_qubit, secret_factor_bits, secret_bias_bit)
+    print(
+        'Secret function:\nf(a) = a·<{}> + {} (mod 2)'.format(
+            ', '.join(str(e) for e in secret_factor_bits), secret_bias_bit
+        )
+    )
 
     # Embed the oracle into a special quantum circuit querying it exactly once.
-    circuit = make_bernstein_vazirani_circuit(
-        input_qubits, output_qubit, oracle)
+    circuit = make_bernstein_vazirani_circuit(input_qubits, output_qubit, oracle)
     print('Circuit:')
     print(circuit)
 
@@ -75,14 +73,14 @@ def main(qubit_count = 8):
 
     # Check if we actually found the secret value.
     most_common_bitstring = frequencies.most_common(1)[0][0]
-    print('Most common matches secret factors:\n{}'.format(
-        most_common_bitstring == bitstring(secret_factor_bits)))
+    print(
+        'Most common matches secret factors:\n{}'.format(
+            most_common_bitstring == bitstring(secret_factor_bits)
+        )
+    )
 
 
-def make_oracle(input_qubits,
-                output_qubit,
-                secret_factor_bits,
-                secret_bias_bit):
+def make_oracle(input_qubits, output_qubit, secret_factor_bits, secret_bias_bit):
     """Gates implementing the function f(a) = a·factors + bias (mod 2)."""
 
     if secret_bias_bit:
@@ -99,20 +97,19 @@ def make_bernstein_vazirani_circuit(input_qubits, output_qubit, oracle):
     c = cirq.Circuit()
 
     # Initialize qubits.
-    c.append([
-        cirq.X(output_qubit),
-        cirq.H(output_qubit),
-        cirq.H.on_each(*input_qubits),
-    ])
+    c.append(
+        [
+            cirq.X(output_qubit),
+            cirq.H(output_qubit),
+            cirq.H.on_each(*input_qubits),
+        ]
+    )
 
     # Query oracle.
     c.append(oracle)
 
     # Measure in X basis.
-    c.append([
-        cirq.H.on_each(*input_qubits),
-        cirq.measure(*input_qubits, key='result')
-    ])
+    c.append([cirq.H.on_each(*input_qubits), cirq.measure(*input_qubits, key='result')])
 
     return c
 
