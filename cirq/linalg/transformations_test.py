@@ -225,22 +225,8 @@ def test_targeted_left_multiply_out():
 
 def test_targeted_conjugate_simple():
     a = np.array([[0, 1j], [0, 0]])
-    # yapf: disable
-    b = np.reshape(
-        np.array([1, 2, 3, 4,
-                  5, 6, 7, 8,
-                  9, 10, 11, 12,
-                  13, 14, 15, 16]),
-        (2,) * 4
-    )
-    expected = np.reshape(
-        np.array([11, 12, 0, 0,
-                  15, 16, 0, 0,
-                  0, 0, 0, 0,
-                  0, 0, 0, 0]),
-        (2,) * 4
-    )
-    # yapf: enable
+    b = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]).reshape((2,) * 4)
+    expected = np.array([11, 12, 0, 0, 15, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]).reshape((2,) * 4)
     result = cirq.targeted_conjugate_about(a, b, [0])
     # Should move lower right block to upper right.
     # Conjugation should result in multiplication by 1 (since 1j * -1j == 1).

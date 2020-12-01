@@ -67,18 +67,30 @@ class SwapPowGate(
         yield common_gates.CNOT(a, b)
 
     def _eigen_components(self):
-        # yapf: disable
         return [
-            (0, np.array([[1, 0,   0,   0],
-                          [0, 0.5, 0.5, 0],
-                          [0, 0.5, 0.5, 0],
-                          [0, 0,   0,   1]])),
-            (1, np.array([[0,  0,    0,   0],
-                          [0,  0.5, -0.5, 0],
-                          [0, -0.5,  0.5, 0],
-                          [0,  0,    0,   0]])),
+            (
+                0,
+                np.array(
+                    [
+                        [1, 0, 0, 0],
+                        [0, 0.5, 0.5, 0],
+                        [0, 0.5, 0.5, 0],
+                        [0, 0, 0, 1],
+                    ]
+                ),
+            ),
+            (
+                1,
+                np.array(
+                    [
+                        [0, 0, 0, 0],
+                        [0, 0.5, -0.5, 0],
+                        [0, -0.5, 0.5, 0],
+                        [0, 0, 0, 0],
+                    ]
+                ),
+            ),
         ]
-        # yapf: enable
 
     def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
@@ -185,19 +197,31 @@ class ISwapPowGate(
     """
 
     def _eigen_components(self):
-        # yapf: disable
         return [
             (0, np.diag([1, 0, 0, 1])),
-            (+0.5, np.array([[0, 0, 0, 0],
-                             [0, 0.5, 0.5, 0],
-                             [0, 0.5, 0.5, 0],
-                             [0, 0, 0, 0]])),
-            (-0.5, np.array([[0, 0, 0, 0],
-                             [0, 0.5, -0.5, 0],
-                             [0, -0.5, 0.5, 0],
-                             [0, 0, 0, 0]])),
+            (
+                +0.5,
+                np.array(
+                    [
+                        [0, 0, 0, 0],
+                        [0, 0.5, 0.5, 0],
+                        [0, 0.5, 0.5, 0],
+                        [0, 0, 0, 0],
+                    ]
+                ),
+            ),
+            (
+                -0.5,
+                np.array(
+                    [
+                        [0, 0, 0, 0],
+                        [0, 0.5, -0.5, 0],
+                        [0, -0.5, 0.5, 0],
+                        [0, 0, 0, 0],
+                    ]
+                ),
+            ),
         ]
-        # yapf: enable
 
     def _decompose_(self, qubits):
         a, b = qubits

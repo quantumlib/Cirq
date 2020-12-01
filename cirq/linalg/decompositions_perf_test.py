@@ -4,17 +4,23 @@ import pytest
 import cirq
 
 
-# yapf: disable
-SWAP = np.array([[1, 0, 0, 0],
-                 [0, 0, 1, 0],
-                 [0, 1, 0, 0],
-                 [0, 0, 0, 1]])
-CNOT = np.array([[1, 0, 0, 0],
-                 [0, 1, 0, 0],
-                 [0, 0, 0, 1],
-                 [0, 0, 1, 0]])
+SWAP = np.array(
+    [
+        [1, 0, 0, 0],
+        [0, 0, 1, 0],
+        [0, 1, 0, 0],
+        [0, 0, 0, 1],
+    ]
+)
+CNOT = np.array(
+    [
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 0, 1],
+        [0, 0, 1, 0],
+    ]
+)
 CZ = np.diag([1, 1, 1, -1])
-# yapf: enable
 
 
 @pytest.mark.parametrize(

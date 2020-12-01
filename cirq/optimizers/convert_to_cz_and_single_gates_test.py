@@ -139,13 +139,18 @@ def test_allow_partial_czs():
 
     assert circuit == c_orig
 
-    # yapf: disable
     circuit2 = cirq.Circuit(
-        cirq.MatrixGate((np.array([[1, 0, 0, 0],
-                                           [0, 1, 0, 0],
-                                           [0, 0, 1, 0],
-                                           [0, 0, 0, 1j]]))).on(q0, q1))
-    # yapf: enable
+        cirq.MatrixGate(
+            np.array(
+                [
+                    [1, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 0, 1j],
+                ]
+            )
+        ).on(q0, q1)
+    )
     cirq.ConvertToCzAndSingleGates(allow_partial_czs=True).optimize_circuit(circuit2)
     two_qubit_ops = list(circuit2.findall_operations(lambda e: len(e.qubits) == 2))
     assert len(two_qubit_ops) == 1

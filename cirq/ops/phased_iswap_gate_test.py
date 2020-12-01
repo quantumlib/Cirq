@@ -48,12 +48,14 @@ def test_phased_iswap_unitary():
     c = np.cos(np.pi * t / 2)
     s = np.sin(np.pi * t / 2) * 1j
     f = np.exp(2j * np.pi * p)
-    # yapf: disable
-    expected = np.array([[1, 0, 0, 0],
-                         [0, c, s * f, 0],
-                         [0, s * f.conjugate(), c, 0],
-                         [0, 0, 0, 1]])
-    # yapf: enable
+    expected = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, c, s * f, 0],
+            [0, s * f.conjugate(), c, 0],
+            [0, 0, 0, 1],
+        ]
+    )
     assert np.allclose(actual, expected)
 
 
@@ -149,12 +151,14 @@ def test_givens_rotation_unitary(angle_rads):
     actual = cirq.unitary(cirq.givens(angle_rads))
     c = np.cos(angle_rads)
     s = np.sin(angle_rads)
-    # yapf: disable
-    expected = np.array([[1, 0, 0, 0],
-                         [0, c, -s, 0],
-                         [0, s, c, 0],
-                         [0, 0, 0, 1]])
-    # yapf: enable
+    expected = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, c, -s, 0],
+            [0, s, c, 0],
+            [0, 0, 0, 1],
+        ]
+    )
     assert np.allclose(actual, expected)
 
 

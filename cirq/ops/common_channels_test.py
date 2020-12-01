@@ -378,7 +378,7 @@ def test_reset_channel():
             np.array([[0, 1, 0], [0, 0, 0], [0, 0, 0]]),
             np.array([[0, 0, 1], [0, 0, 0], [0, 0, 0]]),
         ),
-    )  # yapf: disable
+    )
     assert cirq.has_channel(r)
     assert not cirq.has_mixture(r)
     assert cirq.qid_shape(r) == (3,)

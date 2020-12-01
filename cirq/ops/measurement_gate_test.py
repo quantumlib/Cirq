@@ -194,34 +194,54 @@ def test_measurement_channel():
         cirq.channel(cirq.MeasurementGate(1)),
         (np.array([[1, 0], [0, 0]]), np.array([[0, 0], [0, 1]])),
     )
-    # yapf: disable
     np.testing.assert_allclose(
-            cirq.channel(cirq.MeasurementGate(2)),
-            (np.array([[1, 0, 0, 0],
-                       [0, 0, 0, 0],
-                       [0, 0, 0, 0],
-                       [0, 0, 0, 0]]),
-             np.array([[0, 0, 0, 0],
-                       [0, 1, 0, 0],
-                       [0, 0, 0, 0],
-                       [0, 0, 0, 0]]),
-             np.array([[0, 0, 0, 0],
-                       [0, 0, 0, 0],
-                       [0, 0, 1, 0],
-                       [0, 0, 0, 0]]),
-             np.array([[0, 0, 0, 0],
-                       [0, 0, 0, 0],
-                       [0, 0, 0, 0],
-                       [0, 0, 0, 1]])))
+        cirq.channel(cirq.MeasurementGate(2)),
+        (
+            np.array(
+                [
+                    [1, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 0, 0],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 1],
+                ]
+            ),
+        ),
+    )
     np.testing.assert_allclose(
-            cirq.channel(cirq.MeasurementGate(2, qid_shape=(2, 3))),
-            (np.diag([1, 0, 0, 0, 0, 0]),
-             np.diag([0, 1, 0, 0, 0, 0]),
-             np.diag([0, 0, 1, 0, 0, 0]),
-             np.diag([0, 0, 0, 1, 0, 0]),
-             np.diag([0, 0, 0, 0, 1, 0]),
-             np.diag([0, 0, 0, 0, 0, 1])))
-    # yapf: enable
+        cirq.channel(cirq.MeasurementGate(2, qid_shape=(2, 3))),
+        (
+            np.diag([1, 0, 0, 0, 0, 0]),
+            np.diag([0, 1, 0, 0, 0, 0]),
+            np.diag([0, 0, 1, 0, 0, 0]),
+            np.diag([0, 0, 0, 1, 0, 0]),
+            np.diag([0, 0, 0, 0, 1, 0]),
+            np.diag([0, 0, 0, 0, 0, 1]),
+        ),
+    )
 
 
 def test_measurement_qubit_count_vs_mask_length():

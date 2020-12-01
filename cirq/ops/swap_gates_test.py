@@ -76,30 +76,34 @@ b: ---Swap---iSwap^-1---
 
 
 def test_swap_unitary():
-    # yapf: disable
     np.testing.assert_almost_equal(
-        cirq.unitary(cirq.SWAP**0.5),
-        np.array([
-            [1, 0, 0, 0],
-            [0, 0.5 + 0.5j, 0.5 - 0.5j, 0],
-            [0, 0.5 - 0.5j, 0.5 + 0.5j, 0],
-            [0, 0, 0, 1]
-        ]))
-    # yapf: enable
+        cirq.unitary(cirq.SWAP ** 0.5),
+        np.array(
+            [
+                [1, 0, 0, 0],
+                [0, 0.5 + 0.5j, 0.5 - 0.5j, 0],
+                [0, 0.5 - 0.5j, 0.5 + 0.5j, 0],
+                [0, 0, 0, 1],
+            ]
+        ),
+    )
 
 
 def test_iswap_unitary():
-    # yapf: disable
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(cirq.ISWAP),
         # Reference for the iswap gate's matrix using +i instead of -i:
         # https://quantumcomputing.stackexchange.com/questions/2594/
-        np.array([[1, 0, 0, 0],
-                   [0, 0, 1j, 0],
-                   [0, 1j, 0, 0],
-                   [0, 0, 0, 1]]),
-        atol=1e-8)
-    # yapf: enable
+        np.array(
+            [
+                [1, 0, 0, 0],
+                [0, 0, 1j, 0],
+                [0, 1j, 0, 0],
+                [0, 0, 0, 1],
+            ]
+        ),
+        atol=1e-8,
+    )
 
 
 def test_repr():
@@ -156,12 +160,14 @@ def test_riswap_unitary(angle_rads):
     actual = cirq.unitary(cirq.riswap(angle_rads))
     c = np.cos(angle_rads)
     s = 1j * np.sin(angle_rads)
-    # yapf: disable
-    expected = np.array([[1, 0, 0, 0],
-                         [0, c, s, 0],
-                         [0, s, c, 0],
-                         [0, 0, 0, 1]])
-    # yapf: enable
+    expected = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, c, s, 0],
+            [0, s, c, 0],
+            [0, 0, 0, 1],
+        ]
+    )
     assert np.allclose(actual, expected)
 
 

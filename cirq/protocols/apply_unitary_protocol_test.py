@@ -199,13 +199,11 @@ def test_apply_unitary_args_tensor_manipulation():
 
     class CreateNewBuffer:
         def _apply_unitary_(self, args):
-            u = (
-                np.array(
-                    [[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]],
-                    dtype=args.target_tensor.dtype,
-                )
-                * 1j
-            )  # yapf: disable
+            u = 1j * np.array(
+                [[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]],
+                dtype=args.target_tensor.dtype,
+            )
+
             # Flatten last two axes and add a dummy index to the end of
             # target_tensor so np.matmul treats it like an array of two-qubit
             # column vectors.
@@ -368,16 +366,14 @@ def test_apply_unitaries_mixed_qid_shapes():
             return (3,)
 
         def _unitary_(self):
-            return np.array([[0, 0, 1], [1, 0, 0], [0, 1, 0]])  # yapf: disable
+            return np.array([[0, 0, 1], [1, 0, 0], [0, 1, 0]])
 
     class PlusOneMod4Gate(cirq.SingleQubitGate):
         def _qid_shape_(self):
             return (4,)
 
         def _unitary_(self):
-            return np.array(
-                [[0, 0, 0, 1], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]]
-            )  # yapf: disable
+            return np.array([[0, 0, 0, 1], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]])
 
     a, b = cirq.LineQid.for_qid_shape((3, 4))
 

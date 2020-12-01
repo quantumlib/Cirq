@@ -85,28 +85,46 @@ def test_von_neumann_entropy():
     # An EPR pair state (|00> + |11>)(<00| + <11|)
     assert cirq.von_neumann_entropy(np.array([1, 0, 0, 1] * np.array([[1], [0], [0], [1]]))) == 0
     # Maximally mixed state
-    # yapf: disable
-    assert cirq.von_neumann_entropy(np.array(
-        [[0.5, 0],
-        [0, 0.5]])) == 1
+    assert (
+        cirq.von_neumann_entropy(
+            np.array(
+                [
+                    [0.5, 0],
+                    [0, 0.5],
+                ]
+            )
+        )
+        == 1
+    )
     # 3x3 state
-    assert np.isclose(cirq.von_neumann_entropy(
-        np.array(
-            [[0.5, 0.5j, 1],
-            [-0.5j, 0.5, 0],
-            [0.7, 0.4, 0.6]])),
-                      1.37,
-                      atol=1e-01)
+    assert np.isclose(
+        cirq.von_neumann_entropy(
+            np.array(
+                [
+                    [0.5, 0.5j, 1],
+                    [-0.5j, 0.5, 0],
+                    [0.7, 0.4, 0.6],
+                ]
+            )
+        ),
+        1.37,
+        atol=1e-01,
+    )
     # 4X4 state
-    assert np.isclose(cirq.von_neumann_entropy(
-        np.array(
-            [[0.5, 0.5j, 1, 3],
-            [-0.5j, 0.5, 0, 4],
-            [0.7, 0.4, 0.6, 5],
-            [6, 7, 8, 9]])),
-                      1.12,
-                      atol=1e-01)
-    # yapf: enable
+    assert np.isclose(
+        cirq.von_neumann_entropy(
+            np.array(
+                [
+                    [0.5, 0.5j, 1, 3],
+                    [-0.5j, 0.5, 0, 4],
+                    [0.7, 0.4, 0.6, 5],
+                    [6, 7, 8, 9],
+                ]
+            )
+        ),
+        1.12,
+        atol=1e-01,
+    )
     # 2x2 random unitary, each column as a ket, each ket as a density matrix,
     # linear combination of the two with coefficients 0.1 and 0.9
     res = cirq.testing.random_unitary(2)

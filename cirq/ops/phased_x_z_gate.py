@@ -206,7 +206,7 @@ class PhasedXZGate(gate_features.SingleQubitGate):
                 'Y': -1j * phase * sx * np.sin(z_angle + axis_angle),
                 'Z': -1j * phase * cx * np.sin(z_angle),
             }
-        )  # yapf: disable
+        )
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> str:
         """See `cirq.SupportsCircuitDiagramInfo`."""

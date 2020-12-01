@@ -47,12 +47,14 @@ MAGIC = np.array([[1, 0, 0, 1j], [0, 1j, 1, 0], [0, 1j, -1, 0], [1, 0, 0, -1j]])
 
 MAGIC_CONJ_T = np.conj(MAGIC.T)
 
-# yapf: disable
-YY = np.array([[0, 0, 0, -1],
-               [0, 0, 1, 0],
-               [0, 1, 0, 0],
-               [-1, 0, 0, 0]])
-# yapf: enable
+YY = np.array(
+    [
+        [0, 0, 0, -1],
+        [0, 0, 1, 0],
+        [0, 1, 0, 0],
+        [-1, 0, 0, 0],
+    ]
+)
 
 
 def _phase_matrix(angle: float) -> np.ndarray:
@@ -775,20 +777,24 @@ def kak_canonicalize_vector(x: float, y: float, z: float, atol: float = 1e-9) ->
     )
 
 
-# yapf: disable
-KAK_MAGIC = np.array([[1, 0, 0, 1j],
-                      [0, 1j, 1, 0],
-                      [0, 1j, -1, 0],
-                      [1, 0, 0, -1j]]) * np.sqrt(0.5)
+KAK_MAGIC = np.sqrt(0.5) * np.array(
+    [
+        [1, 0, 0, 1j],
+        [0, 1j, 1, 0],
+        [0, 1j, -1, 0],
+        [1, 0, 0, -1j],
+    ]
+)
 
 KAK_MAGIC_DAG = np.conjugate(np.transpose(KAK_MAGIC))
-KAK_GAMMA = np.array([[1, 1, 1, 1],
-                      [1, 1, -1, -1],
-                      [-1, 1, -1, 1],
-                      [1, -1, -1, 1]]) * 0.25
-
-
-# yapf: enable
+KAK_GAMMA = 0.25 * np.array(
+    [
+        [1, 1, 1, 1],
+        [1, 1, -1, -1],
+        [-1, 1, -1, 1],
+        [1, -1, -1, 1],
+    ]
+)
 
 
 def kak_decomposition(
