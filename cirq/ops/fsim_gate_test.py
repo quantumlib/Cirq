@@ -28,6 +28,10 @@ def test_fsim_init():
     assert f2.theta == 1
     assert f2.phi == 2
 
+    f3 = cirq.FSimGate(theta=4, phi=-5)
+    assert f3.theta == 4 - 2 * np.pi
+    assert f3.phi == -5 + 2 * np.pi
+
 
 def test_fsim_eq():
     eq = cirq.testing.EqualsTester()

@@ -50,7 +50,7 @@ def run(
         'pylint',
         'pytest',
         'mypy',
-        'yapf',
+        'black',
         *additional_intercepts,
     ]
     assert script_lines[0] == '#!/usr/bin/env bash\n'
@@ -63,7 +63,7 @@ def run(
     cmd = r"""
 dir=$(git rev-parse --show-toplevel)
 cd {}
-git init --quiet
+git init --quiet --initial-branch master
 git config --local user.name 'Me'
 git config --local user.email '<>'
 git commit -m init --allow-empty --quiet --no-gpg-sign
@@ -417,9 +417,8 @@ def test_incremental_format_branch_selection(tmpdir_factory):
                  tmpdir_factory=tmpdir_factory,
                  arg='HEAD')
     assert result.exit_code == 0
-    assert result.out == (
-        '\x1b[32mNo formatting needed on changed lines\x1b[0m.\n')
-    assert result.err == "Comparing against revision 'HEAD'.\n"
+    assert "No files to format" in result.out
+    assert "Comparing against revision 'HEAD'." in result.err
 
     result = run(script_file='check/format-incremental',
                  tmpdir_factory=tmpdir_factory,
@@ -431,33 +430,29 @@ def test_incremental_format_branch_selection(tmpdir_factory):
     result = run(script_file='check/format-incremental',
                  tmpdir_factory=tmpdir_factory)
     assert result.exit_code == 0
-    assert result.out == (
-        '\x1b[32mNo formatting needed on changed lines\x1b[0m.\n')
-    assert result.err == "Comparing against revision 'master'.\n"
+    assert "No files to format" in result.out
+    assert "Comparing against revision 'master'." in result.err
 
     result = run(script_file='check/format-incremental',
                  tmpdir_factory=tmpdir_factory,
                  setup='git branch origin/master')
     assert result.exit_code == 0
-    assert result.out == (
-        '\x1b[32mNo formatting needed on changed lines\x1b[0m.\n')
-    assert result.err == "Comparing against revision 'origin/master'.\n"
+    assert "No files to format" in result.out
+    assert "Comparing against revision 'origin/master'." in result.err
 
     result = run(script_file='check/format-incremental',
                  tmpdir_factory=tmpdir_factory,
                  setup='git branch upstream/master')
     assert result.exit_code == 0
-    assert result.out == (
-        '\x1b[32mNo formatting needed on changed lines\x1b[0m.\n')
-    assert result.err == "Comparing against revision 'upstream/master'.\n"
+    assert "No files to format" in result.out
+    assert "Comparing against revision 'upstream/master'." in result.err
 
     result = run(script_file='check/format-incremental',
                  tmpdir_factory=tmpdir_factory,
                  setup='git branch upstream/master; git branch origin/master')
     assert result.exit_code == 0
-    assert result.out == (
-        '\x1b[32mNo formatting needed on changed lines\x1b[0m.\n')
-    assert result.err == "Comparing against revision 'upstream/master'.\n"
+    assert "No files to format" in result.out
+    assert "Comparing against revision 'upstream/master'." in result.err
 
     result = run(script_file='check/format-incremental',
                  tmpdir_factory=tmpdir_factory,
@@ -475,9 +470,8 @@ def test_incremental_format_branch_selection(tmpdir_factory):
                  'git add -A\n'
                  'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
-    assert result.out == (
-        '\x1b[32mNo formatting needed on changed lines\x1b[0m.\n')
-    assert result.err == "Comparing against revision 'HEAD'.\n"
+    assert "No files to format" in result.out
+    assert "Comparing against revision 'HEAD'." in result.err
 
     result = run(script_file='check/format-incremental',
                  tmpdir_factory=tmpdir_factory,
@@ -485,9 +479,8 @@ def test_incremental_format_branch_selection(tmpdir_factory):
                  'git add -A\n'
                  'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
-    assert result.out == (
-        '\x1b[32mNo formatting needed on changed lines\x1b[0m.\n')
-    assert result.err == "Comparing against revision 'master'.\n"
+    assert "No files to format" in result.out
+    assert "Comparing against revision 'master'." in result.err
 
     result = run(script_file='check/format-incremental',
                  tmpdir_factory=tmpdir_factory,
@@ -499,15 +492,11 @@ def test_incremental_format_branch_selection(tmpdir_factory):
                  'git add -A\n'
                  'git commit -q -m test2 --no-gpg-sign\n'
                  'git checkout -q alt\n'
-                 'touch alt.py\n'
+                 'echo " print(1)" > alt.py\n'
                  'git add -A\n'
                  'git commit -q -m test3 --no-gpg-sign\n')
-    assert result.exit_code == 1
-    assert result.out == (
-        '\n'
-        '\x1b[31mChanges in alt.py require formatting:\x1b[0m\n'
-        'INTERCEPTED yapf --style=google --diff alt.py\n'
-        '\x1b[31mSome formatting needed on changed lines\x1b[0m.\n')
+    assert result.exit_code == 0
+    assert 'INTERCEPTED black --color --check --diff alt.py' in result.out
     assert result.err.startswith(
         "Comparing against revision 'master' (merge base ")
 
@@ -577,7 +566,6 @@ def test_pylint_changed_files_file_selection(tmpdir_factory):
                  'touch ignore/ignore.py\n'
                  'git add -A\n'
                  'git commit -m test --quiet --no-gpg-sign\n')
-    print(result)
     assert result.exit_code == 0
     assert result.out == intercepted_prefix + ('cirq/file.py dev_tools/file.py '
                                                'examples/file.py\n')
