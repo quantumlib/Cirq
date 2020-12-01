@@ -40,11 +40,8 @@ def assert_consistent_resolve_parameters(val: Any):
 
         # Try single-step resolution of parameters to names that map to zero.
         # All names should be preserved.
-        param_dict: Dict[str, Any] = {
-            name: name + '_CONSISTENCY_TEST' for name in names
-        }
+        param_dict: Dict[str, Any] = {name: name + '_CONSISTENCY_TEST' for name in names}
         param_dict.update({name + '_CONSISTENCY_TEST': 0 for name in names})
         resolver = cirq.ParamResolver(param_dict)
         resolved = cirq.resolve_parameters_once(val, resolver)
-        assert cirq.parameter_names(resolved) == set(
-            name + '_CONSISTENCY_TEST' for name in names)
+        assert cirq.parameter_names(resolved) == set(name + '_CONSISTENCY_TEST' for name in names)

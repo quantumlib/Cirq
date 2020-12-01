@@ -26,14 +26,13 @@ if TYPE_CHECKING:
 
 
 ParamDictType = Dict['cirq.TParamKey', 'cirq.TParamVal']
-document(
-    ParamDictType,  # type: ignore
-    """Dictionary from symbols to values.""")
+document(ParamDictType, """Dictionary from symbols to values.""")  # type: ignore
 
 ParamResolverOrSimilarType = Union['cirq.ParamResolver', ParamDictType, None]
 document(
     ParamResolverOrSimilarType,  # type: ignore
-    """Something that can be used to turn parameters into values.""")
+    """Something that can be used to turn parameters into values.""",
+)
 
 
 class ParamResolver:
@@ -55,19 +54,17 @@ class ParamResolver:
             return param_dict
         return super().__new__(cls)
 
-    def __init__(self,
-                 param_dict: 'cirq.ParamResolverOrSimilarType' = None) -> None:
+    def __init__(self, param_dict: 'cirq.ParamResolverOrSimilarType' = None) -> None:
         if hasattr(self, 'param_dict'):
             return  # Already initialized. Got wrapped as part of the __new__.
 
         self._param_hash: Optional[int] = None
-        self.param_dict = cast(ParamDictType,
-                               {} if param_dict is None else param_dict)
+        self.param_dict = cast(ParamDictType, {} if param_dict is None else param_dict)
         self._deep_eval_map: ParamDictType = {}
 
-    def value_of(self,
-                 value: Union['cirq.TParamKey', float],
-                 recursive: bool = True) -> 'cirq.TParamVal':
+    def value_of(
+        self, value: Union['cirq.TParamKey', float], recursive: bool = True
+    ) -> 'cirq.TParamVal':
         """Attempt to resolve a parameter to its assigned value.
 
         Floats are returned without modification.  Strings are resolved via
@@ -143,8 +140,9 @@ class ParamResolver:
                 product *= self.value_of(factor, recursive)
             return product
         if isinstance(value, sympy.Pow) and len(value.args) == 2:
-            return np.power(self.value_of(value.args[0], recursive),
-                            self.value_of(value.args[1], recursive))
+            return np.power(
+                self.value_of(value.args[0], recursive), self.value_of(value.args[1], recursive)
+            )
 
         if not isinstance(value, sympy.Basic):
             # No known way to resolve this variable, return unchanged.
@@ -171,8 +169,7 @@ class ParamResolver:
             v = self._deep_eval_map[value]
             if v is not None:
                 return v
-            raise RecursionError(
-                'Evaluation of {value} indirectly contains itself.')
+            raise RecursionError('Evaluation of {value} indirectly contains itself.')
         except KeyError:
             # There isn't a full evaluation for 'value' yet. Until it's ready,
             # map value to None to identify loops in component evaluation.
@@ -191,8 +188,7 @@ class ParamResolver:
     def __bool__(self) -> bool:
         return bool(self.param_dict)
 
-    def __getitem__(self,
-                    key: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':
+    def __getitem__(self, key: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':
         return self.value_of(key)
 
     def __hash__(self) -> int:
@@ -209,17 +205,18 @@ class ParamResolver:
         return not self == other
 
     def __repr__(self) -> str:
-        param_dict_repr = ('{' + ', '.join([
-            f'{proper_repr(k)}: {proper_repr(v)}'
-            for k, v in self.param_dict.items()
-        ]) + '}')
+        param_dict_repr = (
+            '{'
+            + ', '.join([f'{proper_repr(k)}: {proper_repr(v)}' for k, v in self.param_dict.items()])
+            + '}'
+        )
         return f'cirq.ParamResolver({param_dict_repr})'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             # JSON requires mappings to have keys of basic types.
-            'param_dict': list(self.param_dict.items())
+            'param_dict': list(self.param_dict.items()),
         }
 
     @classmethod

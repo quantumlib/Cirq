@@ -45,8 +45,7 @@ class SupportsParameterization(Protocol):
         """
 
     @doc_private
-    def _resolve_parameters_(self: Any, param_resolver: 'cirq.ParamResolver',
-                             recursive: bool):
+    def _resolve_parameters_(self: Any, param_resolver: 'cirq.ParamResolver', recursive: bool):
         """Resolve the parameters in the effect."""
 
 
@@ -120,9 +119,9 @@ def parameter_symbols(val: Any) -> AbstractSet[sympy.Symbol]:
     return {sympy.Symbol(name) for name in parameter_names(val)}
 
 
-def resolve_parameters(val: Any,
-                       param_resolver: 'cirq.ParamResolverOrSimilarType',
-                       recursive: bool = True):
+def resolve_parameters(
+    val: Any, param_resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool = True
+):
     """Resolves symbol parameters in the effect using the param resolver.
 
     This function will use the `_resolve_parameters_` magic method
@@ -150,12 +149,10 @@ def resolve_parameters(val: Any,
     if isinstance(val, sympy.Basic):
         return param_resolver.value_of(val, recursive)
     if isinstance(val, (list, tuple)):
-        return type(val)(
-            resolve_parameters(e, param_resolver, recursive) for e in val)
+        return type(val)(resolve_parameters(e, param_resolver, recursive) for e in val)
 
     getter = getattr(val, '_resolve_parameters_', None)
-    result = (NotImplemented if getter is None else getter(
-        param_resolver, recursive))
+    result = NotImplemented if getter is None else getter(param_resolver, recursive)
 
     if result is not NotImplemented:
         return result
@@ -163,6 +160,5 @@ def resolve_parameters(val: Any,
         return val
 
 
-def resolve_parameters_once(val: Any,
-                            param_resolver: 'cirq.ParamResolverOrSimilarType'):
+def resolve_parameters_once(val: Any, param_resolver: 'cirq.ParamResolverOrSimilarType'):
     return resolve_parameters(val, param_resolver, False)
