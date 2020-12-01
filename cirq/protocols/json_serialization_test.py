@@ -29,9 +29,7 @@ from cirq.testing import assert_json_roundtrip_works
 from cirq.testing.json import ModuleJsonTestSpec, spec_for
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent.parent
-TESTED_MODULES = [
-    'cirq.google', 'cirq.protocols', 'non_existent_should_be_fine'
-]
+TESTED_MODULES = ['cirq.google', 'cirq.protocols', 'non_existent_should_be_fine']
 
 
 def _get_testspecs_for_modules():
@@ -50,28 +48,33 @@ MODULE_TEST_SPECS = _get_testspecs_for_modules()
 
 def test_line_qubit_roundtrip():
     q1 = cirq.LineQubit(12)
-    assert_json_roundtrip_works(q1,
-                                text_should_be="""{
+    assert_json_roundtrip_works(
+        q1,
+        text_should_be="""{
   "cirq_type": "LineQubit",
   "x": 12
-}""")
+}""",
+    )
 
 
 def test_gridqubit_roundtrip():
     q = cirq.GridQubit(15, 18)
-    assert_json_roundtrip_works(q,
-                                text_should_be="""{
+    assert_json_roundtrip_works(
+        q,
+        text_should_be="""{
   "cirq_type": "GridQubit",
   "row": 15,
   "col": 18
-}""")
+}""",
+    )
 
 
 def test_op_roundtrip():
     q = cirq.LineQubit(5)
-    op1 = cirq.rx(.123).on(q)
-    assert_json_roundtrip_works(op1,
-                                text_should_be="""{
+    op1 = cirq.rx(0.123).on(q)
+    assert_json_roundtrip_works(
+        op1,
+        text_should_be="""{
   "cirq_type": "GateOperation",
   "gate": {
     "cirq_type": "XPowGate",
@@ -84,13 +87,14 @@ def test_op_roundtrip():
       "x": 5
     }
   ]
-}""")
+}""",
+    )
 
 
 def test_op_roundtrip_filename(tmpdir):
     filename = f'{tmpdir}/op.json'
     q = cirq.LineQubit(5)
-    op1 = cirq.rx(.123).on(q)
+    op1 = cirq.rx(0.123).on(q)
     cirq.to_json(op1, filename)
     assert os.path.exists(filename)
     op2 = cirq.read_json(filename)
@@ -99,18 +103,19 @@ def test_op_roundtrip_filename(tmpdir):
 
 def test_fail_to_resolve():
     buffer = io.StringIO()
-    buffer.write("""
+    buffer.write(
+        """
     {
       "cirq_type": "MyCustomClass",
       "data": [1, 2, 3]
     }
-    """)
+    """
+    )
     buffer.seek(0)
 
     with pytest.raises(ValueError) as e:
         cirq.read_json(buffer)
-    assert e.match("Could not resolve type 'MyCustomClass' "
-                   "during deserialization")
+    assert e.match("Could not resolve type 'MyCustomClass' " "during deserialization")
 
 
 QUBITS = cirq.LineQubit.range(5)
@@ -130,9 +135,11 @@ def test_shouldnt_be_serialized_no_superfluous(mod_spec: ModuleJsonTestSpec):
     # everything in the list should be ignored for a reason
     names = set(mod_spec.get_all_names())
     missing_names = set(mod_spec.should_not_be_serialized).difference(names)
-    assert len(missing_names) == 0, (f"Defined as \"should't be serialized\", "
-                                     f"but missing from {mod_spec}: \n"
-                                     f"{missing_names}")
+    assert len(missing_names) == 0, (
+        f"Defined as \"should't be serialized\", "
+        f"but missing from {mod_spec}: \n"
+        f"{missing_names}"
+    )
 
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS)
@@ -140,52 +147,55 @@ def test_not_yet_serializable_no_superfluous(mod_spec: ModuleJsonTestSpec):
     # everything in the list should be ignored for a reason
     names = set(mod_spec.get_all_names())
     missing_names = set(mod_spec.not_yet_serializable).difference(names)
-    assert len(missing_names) == 0, (f"Defined as Not yet serializable, "
-                                     f"but missing from {mod_spec}: \n"
-                                     f"{missing_names}")
+    assert len(missing_names) == 0, (
+        f"Defined as Not yet serializable, " f"but missing from {mod_spec}: \n" f"{missing_names}"
+    )
 
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS)
 def test_mutually_exclusive_blacklist(mod_spec: ModuleJsonTestSpec):
-    common = set(mod_spec.should_not_be_serialized) & set(
-        mod_spec.not_yet_serializable)
+    common = set(mod_spec.should_not_be_serialized) & set(mod_spec.not_yet_serializable)
     assert len(common) == 0, (
         f"Defined in both {mod_spec.name} 'Not yet serializable' "
-        f" and 'Should not be serialized' lists: {common}")
+        f" and 'Should not be serialized' lists: {common}"
+    )
 
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS)
 def test_resolver_cache_vs_should_not_serialize(mod_spec: ModuleJsonTestSpec):
-    resolver_cache_types = set(
-        [n for (n, _) in mod_spec.get_resolver_cache_types()])
+    resolver_cache_types = set([n for (n, _) in mod_spec.get_resolver_cache_types()])
     common = set(mod_spec.should_not_be_serialized) & resolver_cache_types
 
-    assert len(common) == 0, (f"Defined in both {mod_spec.name} Resolver "
-                              f"Cache and should not be serialized:"
-                              f"{common}")
+    assert len(common) == 0, (
+        f"Defined in both {mod_spec.name} Resolver "
+        f"Cache and should not be serialized:"
+        f"{common}"
+    )
 
 
 @pytest.mark.parametrize('mod_spec', MODULE_TEST_SPECS)
 def test_resolver_cache_vs_not_yet_serializable(mod_spec: ModuleJsonTestSpec):
-    resolver_cache_types = set(
-        [n for (n, _) in mod_spec.get_resolver_cache_types()])
+    resolver_cache_types = set([n for (n, _) in mod_spec.get_resolver_cache_types()])
     common = set(mod_spec.not_yet_serializable) & resolver_cache_types
 
     assert len(common) == 0, (
         f"Defined in both {mod_spec.name} Resolver "
-        f"Cache and 'Not yet serializable' list: {common}")
+        f"Cache and 'Not yet serializable' list: {common}"
+    )
 
 
 def test_builtins():
     assert_json_roundtrip_works(True)
     assert_json_roundtrip_works(1)
     assert_json_roundtrip_works(1 + 2j)
-    assert_json_roundtrip_works({
-        'test': [123, 5.5],
-        'key2': 'asdf',
-        '3': None,
-        '0.0': [],
-    })
+    assert_json_roundtrip_works(
+        {
+            'test': [123, 5.5],
+            'key2': 'asdf',
+            '3': None,
+            '0.0': [],
+        }
+    )
 
 
 def test_numpy():
@@ -211,23 +221,27 @@ def test_numpy():
 
 def test_pandas():
     assert_json_roundtrip_works(
-        pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]],
-                     columns=['x', 'y', 'z'],
-                     index=[2, 5]))
+        pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]], columns=['x', 'y', 'z'], index=[2, 5])
+    )
     assert_json_roundtrip_works(pd.Index([1, 2, 3], name='test'))
     assert_json_roundtrip_works(
-        pd.MultiIndex.from_tuples([(1, 2), (3, 4), (5, 6)],
-                                  names=['alice', 'bob']))
+        pd.MultiIndex.from_tuples([(1, 2), (3, 4), (5, 6)], names=['alice', 'bob'])
+    )
 
     assert_json_roundtrip_works(
-        pd.DataFrame(index=pd.Index([1, 2, 3], name='test'),
-                     data=[[11, 21.0], [12, 22.0], [13, 23.0]],
-                     columns=['a', 'b']))
+        pd.DataFrame(
+            index=pd.Index([1, 2, 3], name='test'),
+            data=[[11, 21.0], [12, 22.0], [13, 23.0]],
+            columns=['a', 'b'],
+        )
+    )
     assert_json_roundtrip_works(
-        pd.DataFrame(index=pd.MultiIndex.from_tuples([(1, 2), (2, 3), (3, 4)],
-                                                     names=['x', 'y']),
-                     data=[[11, 21.0], [12, 22.0], [13, 23.0]],
-                     columns=pd.Index(['a', 'b'], name='c')))
+        pd.DataFrame(
+            index=pd.MultiIndex.from_tuples([(1, 2), (2, 3), (3, 4)], names=['x', 'y']),
+            data=[[11, 21.0], [12, 22.0], [13, 23.0]],
+            columns=pd.Index(['a', 'b'], name='c'),
+        )
+    )
 
 
 def test_sympy():
@@ -244,7 +258,7 @@ def test_sympy():
     assert_json_roundtrip_works(t * s)
     assert_json_roundtrip_works(t / s)
     assert_json_roundtrip_works(t - s)
-    assert_json_roundtrip_works(t**s)
+    assert_json_roundtrip_works(t ** s)
 
     # Linear combinations.
     assert_json_roundtrip_works(t * 2)
@@ -253,11 +267,13 @@ def test_sympy():
 
 @pytest.mark.parametrize(
     'mod_spec,cirq_obj_name,cls',
-    [(mod_spec, o, n)
-     for mod_spec in MODULE_TEST_SPECS
-     for (o, n) in mod_spec.find_classes_that_should_serialize()])
-def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec,
-                                 cirq_obj_name: str, cls):
+    [
+        (mod_spec, o, n)
+        for mod_spec in MODULE_TEST_SPECS
+        for (o, n) in mod_spec.find_classes_that_should_serialize()
+    ],
+)
+def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls):
     if cirq_obj_name in mod_spec.not_yet_serializable:
         return pytest.xfail(reason="Not serializable (yet)")
 
@@ -302,7 +318,9 @@ def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec,
                 f"docstring for protocols.SupportsJSON. If this object or "
                 f"class is not appropriate for serialization, add its name to "
                 f"the SHOULDNT_BE_SERIALIZED list in the "
-                f"cirq/protocols/json_serialization_test.py source file."))
+                f"cirq/protocols/json_serialization_test.py source file."
+            )
+        )
 
     repr_file = test_data_path / f'{cirq_obj_name}.repr'
     if repr_file.exists() and cls is not None:
@@ -320,7 +338,8 @@ def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec,
                 f"If using a value of the wrong type is intended, move the "
                 f"value to {test_data_path}/{cirq_obj_name}.repr_inward\n"
                 f"\n"
-                f"Value with wrong type:\n{obj!r}.")
+                f"Value with wrong type:\n{obj!r}."
+            )
 
 
 def test_to_from_strings():
@@ -337,18 +356,24 @@ def test_to_from_strings():
 
 
 def _eval_repr_data_file(path: pathlib.Path):
-    return eval(path.read_text(), {
-        'cirq': cirq,
-        'pd': pd,
-        'sympy': sympy,
-        'np': np,
-    }, {})
+    return eval(
+        path.read_text(),
+        {
+            'cirq': cirq,
+            'pd': pd,
+            'sympy': sympy,
+            'np': np,
+        },
+        {},
+    )
 
 
-def assert_repr_and_json_test_data_agree(mod_spec: ModuleJsonTestSpec,
-                                         repr_path: pathlib.Path,
-                                         json_path: pathlib.Path,
-                                         inward_only: bool):
+def assert_repr_and_json_test_data_agree(
+    mod_spec: ModuleJsonTestSpec,
+    repr_path: pathlib.Path,
+    json_path: pathlib.Path,
+    inward_only: bool,
+):
     if not repr_path.exists() and not json_path.exists():
         return
 
@@ -365,27 +390,27 @@ def assert_repr_and_json_test_data_agree(mod_spec: ModuleJsonTestSpec,
             raise ValueError(
                 f"{rel_json_path} can't be parsed to JSON"
                 f". Maybe an entry is missing from the ResolverCache "
-                f"for {mod_spec.name}?") from ex
+                f"for {mod_spec.name}?"
+            ) from ex
         else:
             raise ValueError
     except Exception as ex:  # coverage: ignore
         # coverage: ignore
-        raise IOError(
-            f'Failed to parse test json data from {rel_json_path}.') from ex
+        raise IOError(f'Failed to parse test json data from {rel_json_path}.') from ex
 
     try:
         repr_obj = _eval_repr_data_file(repr_path)
     except Exception as ex:  # coverage: ignore
         # coverage: ignore
-        raise IOError(
-            f'Failed to parse test repr data from {rel_repr_path}.') from ex
+        raise IOError(f'Failed to parse test repr data from {rel_repr_path}.') from ex
 
     assert proper_eq(json_obj, repr_obj), (
         f'The json data from {rel_json_path} did not parse '
         f'into an object equivalent to the repr data from {rel_repr_path}.\n'
         f'\n'
         f'json object: {json_obj!r}\n'
-        f'repr object: {repr_obj!r}\n')
+        f'repr object: {repr_obj!r}\n'
+    )
 
     if not inward_only:
         json_from_cirq = cirq.to_json(repr_obj)
@@ -404,22 +429,26 @@ def assert_repr_and_json_test_data_agree(mod_spec: ModuleJsonTestSpec,
             f'{json_from_file}\n'
             f'\n'
             f'cirq produced json:\n'
-            f'{json_from_cirq}\n')
+            f'{json_from_cirq}\n'
+        )
 
 
 @pytest.mark.parametrize(
-    'mod_spec, key',
-    [(m, key) for m in MODULE_TEST_SPECS for key in m.all_test_data_keys()])
+    'mod_spec, key', [(m, key) for m in MODULE_TEST_SPECS for key in m.all_test_data_keys()]
+)
 def test_json_and_repr_data(mod_spec: ModuleJsonTestSpec, key: str):
-    assert_repr_and_json_test_data_agree(mod_spec=mod_spec,
-                                         repr_path=pathlib.Path(f'{key}.repr'),
-                                         json_path=pathlib.Path(f'{key}.json'),
-                                         inward_only=False)
+    assert_repr_and_json_test_data_agree(
+        mod_spec=mod_spec,
+        repr_path=pathlib.Path(f'{key}.repr'),
+        json_path=pathlib.Path(f'{key}.json'),
+        inward_only=False,
+    )
     assert_repr_and_json_test_data_agree(
         mod_spec=mod_spec,
         repr_path=pathlib.Path(f'{key}.repr_inward'),
         json_path=pathlib.Path(f'{key}.json_inward'),
-        inward_only=True)
+        inward_only=True,
+    )
 
 
 def test_pathlib_paths(tmpdir):
@@ -429,7 +458,6 @@ def test_pathlib_paths(tmpdir):
 
 
 def test_json_serializable_dataclass():
-
     @cirq.json_serializable_dataclass
     class MyDC:
         q: cirq.LineQubit
@@ -441,23 +469,25 @@ def test_json_serializable_dataclass():
         if name == 'MyDC':
             return MyDC
 
-    assert_json_roundtrip_works(my_dc,
-                                text_should_be="\n".join([
-                                    '{',
-                                    '  "cirq_type": "MyDC",',
-                                    '  "q": {',
-                                    '    "cirq_type": "LineQubit",',
-                                    '    "x": 4',
-                                    '  },',
-                                    '  "desc": "hi mom"',
-                                    '}',
-                                ]),
-                                resolvers=[custom_resolver] +
-                                cirq.DEFAULT_RESOLVERS)
+    assert_json_roundtrip_works(
+        my_dc,
+        text_should_be="\n".join(
+            [
+                '{',
+                '  "cirq_type": "MyDC",',
+                '  "q": {',
+                '    "cirq_type": "LineQubit",',
+                '    "x": 4',
+                '  },',
+                '  "desc": "hi mom"',
+                '}',
+            ]
+        ),
+        resolvers=[custom_resolver] + cirq.DEFAULT_RESOLVERS,
+    )
 
 
 def test_json_serializable_dataclass_parenthesis():
-
     @cirq.json_serializable_dataclass()
     class MyDC:
         q: cirq.LineQubit
@@ -469,13 +499,10 @@ def test_json_serializable_dataclass_parenthesis():
 
     my_dc = MyDC(cirq.LineQubit(4), 'hi mom')
 
-    assert_json_roundtrip_works(my_dc,
-                                resolvers=[custom_resolver] +
-                                cirq.DEFAULT_RESOLVERS)
+    assert_json_roundtrip_works(my_dc, resolvers=[custom_resolver] + cirq.DEFAULT_RESOLVERS)
 
 
 def test_json_serializable_dataclass_namespace():
-
     @cirq.json_serializable_dataclass(namespace='cirq.experiments')
     class QuantumVolumeParams:
         width: int
@@ -488,6 +515,4 @@ def test_json_serializable_dataclass_namespace():
         if name == 'cirq.experiments.QuantumVolumeParams':
             return QuantumVolumeParams
 
-    assert_json_roundtrip_works(qvp,
-                                resolvers=[custom_resolver] +
-                                cirq.DEFAULT_RESOLVERS)
+    assert_json_roundtrip_works(qvp, resolvers=[custom_resolver] + cirq.DEFAULT_RESOLVERS)

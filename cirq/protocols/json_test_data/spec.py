@@ -85,7 +85,6 @@ TestSpec = ModuleJsonTestSpec(
         'ApplyChannelArgs',
         'ApplyMixtureArgs',
         'ApplyUnitaryArgs',
-
         # Circuit optimizers are function-like. Only attributes
         # are ignore_failures, tolerance, and other feature flags
         'ConvertToCzAndSingleGates',
@@ -100,12 +99,10 @@ TestSpec = ModuleJsonTestSpec(
         'MergeSingleQubitGates',
         'PointOptimizer',
         'SynchronizeTerminalMeasurements',
-
         # global objects
         'CONTROL_TAG',
         'PAULI_BASIS',
         'PAULI_STATES',
-
         # abstract, but not inspect.isabstract():
         'Device',
         'InterchangeableQubitsGate',
@@ -114,7 +111,6 @@ TestSpec = ModuleJsonTestSpec(
         'ThreeQubitGate',
         'TwoQubitGate',
         'ABCMetaImplementAnyOneOf',
-
         # protocols:
         'SupportsActOn',
         'SupportsApplyChannel',
@@ -141,7 +137,6 @@ TestSpec = ModuleJsonTestSpec(
         'SupportsQasmWithArgsAndQubits',
         'SupportsTraceDistanceBound',
         'SupportsUnitary',
-
         # mypy types:
         'CIRCUIT_LIKE',
         'DURATION_LIKE',
@@ -159,11 +154,11 @@ TestSpec = ModuleJsonTestSpec(
         'TParamKey',
         'TParamVal',
         'ParamDictType',
-
         # utility:
         'CliffordSimulator',
         'Simulator',
         'StabilizerSampler',
         'Unique',
         'DEFAULT_RESOLVERS',
-    ])
+    ],
+)

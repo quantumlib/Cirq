@@ -11,6 +11,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     """Extend cirq's JSON API with resolvers for cirq contrib classes."""
     from cirq.contrib.quantum_volume import QuantumVolumeResult
     from cirq.contrib.acquaintance import SwapPermutationGate
+
     classes = [
         QuantumVolumeResult,
         SwapPermutationGate,

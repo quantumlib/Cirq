@@ -25,6 +25,7 @@ from cirq import (
     _doc,
     type_workarounds,
 )
+
 with _import.delay_import('cirq.protocols'):
     from cirq import (
         # Core
@@ -55,6 +56,7 @@ from cirq import (
     testing,
     contrib,
 )
+
 # End dependency order list of sub-modules
 
 from cirq._version import (
@@ -537,7 +539,8 @@ from cirq.neutral_atoms import (
 )
 
 from cirq.vis import (
-    Heatmap,)
+    Heatmap,
+)
 
 from cirq.work import (
     CircuitSampleJob,
@@ -563,6 +566,7 @@ from cirq import (
 def _register_resolver():
     from cirq.protocols.json_serialization import register_resolver
     from cirq.json_resolver_cache import _class_resolver_dictionary
+
     register_resolver(_class_resolver_dictionary)
 
 

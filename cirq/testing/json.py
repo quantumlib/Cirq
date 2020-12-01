@@ -82,9 +82,7 @@ class ModuleJsonTestSpec:
     def find_classes_that_should_serialize(self) -> Set[Tuple[str, Type]]:
         result: Set[Tuple[str, Type]] = set()
 
-        result.update({
-            (name, obj) for name, obj in self._get_all_public_classes()
-        })
+        result.update({(name, obj) for name, obj in self._get_all_public_classes()})
 
         result.update(self.get_resolver_cache_types())
 
@@ -98,7 +96,6 @@ class ModuleJsonTestSpec:
         return result
 
     def get_all_names(self) -> Iterator[str]:
-
         def not_module_or_function(x):
             return not (inspect.ismodule(x) or inspect.isfunction(x))
 
@@ -112,27 +109,28 @@ class ModuleJsonTestSpec:
         for file in self.test_data_path.iterdir():
             name = str(file.absolute())
             if name.endswith('.json') or name.endswith('.repr'):
-                seen.add(name[:-len('.json')])
+                seen.add(name[: -len('.json')])
             elif name.endswith('.json_inward') or name.endswith('.repr_inward'):
-                seen.add(name[:-len('.json_inward')])
+                seen.add(name[: -len('.json_inward')])
 
         return sorted(seen)
 
 
 def spec_for(module_name: str) -> ModuleJsonTestSpec:
     import importlib.util
+
     if importlib.util.find_spec(module_name) is None:
         raise ModuleNotFoundError(f"{module_name} not found")
 
     test_module_name = f"{module_name}.json_test_data"
     if importlib.util.find_spec(test_module_name) is None:
-        raise ValueError(f"{module_name} module is missing json_test_data "
-                         f"package, please set it up.")
+        raise ValueError(
+            f"{module_name} module is missing json_test_data " f"package, please set it up."
+        )
     test_module = importlib.import_module(test_module_name)
 
     if not hasattr(test_module, "TestSpec"):
-        raise ValueError(f"{test_module_name} module is missing "
-                         f"TestSpec, please set it up.")
+        raise ValueError(f"{test_module_name} module is missing " f"TestSpec, please set it up.")
 
     return getattr(test_module, "TestSpec")
 

@@ -29,10 +29,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     import pandas as pd
     import numpy as np
     from cirq.devices.noise_model import _NoNoiseModel
-    from cirq.experiments import (CrossEntropyResult, CrossEntropyResultDict,
-                                  GridInteractionLayer)
-    from cirq.experiments.grid_parallel_two_qubit_xeb import (
-        GridParallelXEBMetadata)
+    from cirq.experiments import CrossEntropyResult, CrossEntropyResultDict, GridInteractionLayer
+    from cirq.experiments.grid_parallel_two_qubit_xeb import GridParallelXEBMetadata
 
     def _identity_operation_from_dict(qubits, **kwargs):
         return cirq.identity_each(*qubits)
@@ -48,6 +46,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         return cirq.MatrixGate(matrix, qid_shape=(2, 2))
 
     import sympy
+
     return {
         'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
         'AsymmetricDepolarizingChannel': cirq.AsymmetricDepolarizingChannel,
@@ -76,8 +75,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'MutableDensePauliString': cirq.MutableDensePauliString,
         'MutablePauliString': cirq.MutablePauliString,
         'GateOperation': cirq.GateOperation,
-        'GeneralizedAmplitudeDampingChannel':
-        cirq.GeneralizedAmplitudeDampingChannel,
+        'GeneralizedAmplitudeDampingChannel': cirq.GeneralizedAmplitudeDampingChannel,
         'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
         'GridInteractionLayer': GridInteractionLayer,
         'GridParallelXEBMetadata': GridParallelXEBMetadata,
@@ -120,10 +118,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
         'ResetChannel': cirq.ResetChannel,
         'SingleQubitMatrixGate': single_qubit_matrix_gate,
-        'SingleQubitPauliStringGateOperation':
-        cirq.SingleQubitPauliStringGateOperation,
-        'SingleQubitReadoutCalibrationResult':
-        cirq.experiments.SingleQubitReadoutCalibrationResult,
+        'SingleQubitPauliStringGateOperation': cirq.SingleQubitPauliStringGateOperation,
+        'SingleQubitReadoutCalibrationResult': cirq.experiments.SingleQubitReadoutCalibrationResult,
         'StabilizerStateChForm': cirq.StabilizerStateChForm,
         'SwapPowGate': cirq.SwapPowGate,
         'TaggedOperation': cirq.TaggedOperation,
@@ -132,8 +128,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'TrialResult': cirq.TrialResult,
         'TwoDQubit': cirq.pasqal.TwoDQubit,
         'TwoQubitMatrixGate': two_qubit_matrix_gate,
-        '_UnconstrainedDevice':
-        cirq.devices.unconstrained_device._UnconstrainedDevice,
+        '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
         'VirtualTag': cirq.VirtualTag,
         'WaitGate': cirq.WaitGate,
         '_QubitAsQid': raw_types._QubitAsQid,
@@ -143,7 +138,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'YYPowGate': cirq.YYPowGate,
         'ZPowGate': cirq.ZPowGate,
         'ZZPowGate': cirq.ZZPowGate,
-
         # not a cirq class, but treated as one:
         'pandas.DataFrame': pd.DataFrame,
         'pandas.Index': pd.Index,

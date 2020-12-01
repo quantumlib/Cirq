@@ -48,16 +48,15 @@ class JsonResolver(Protocol):
         ...
 
 
-def _lazy_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]
-                  ) -> JsonResolver:
+def _lazy_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> JsonResolver:
     """A lazy JsonResolver based on a dict_factory.
 
-      It only calls dict_factory when the first key is accessed.
+    It only calls dict_factory when the first key is accessed.
 
-      Args:
-          dict_factory: a callable that generates an instance of the
-            class resolution map - it is assumed to be cached
-      """
+    Args:
+        dict_factory: a callable that generates an instance of the
+          class resolution map - it is assumed to be cached
+    """
 
     def json_resolver(cirq_type: str) -> Optional[ObjectFactory]:
         return dict_factory().get(cirq_type, None)
@@ -126,9 +125,9 @@ class SupportsJSON(Protocol):
         pass
 
 
-def obj_to_dict_helper(obj: Any,
-                       attribute_names: Iterable[str],
-                       namespace: Optional[str] = None) -> Dict[str, Any]:
+def obj_to_dict_helper(
+    obj: Any, attribute_names: Iterable[str], namespace: Optional[str] = None
+) -> Dict[str, Any]:
     """Construct a dictionary containing attributes from obj
 
     This is useful as a helper function in objects implementing the
@@ -159,15 +158,17 @@ def obj_to_dict_helper(obj: Any,
 
 # Copying the Python API, whose usage of `repr` annoys pylint.
 # pylint: disable=redefined-builtin
-def json_serializable_dataclass(_cls: Optional[Type] = None,
-                                *,
-                                namespace: Optional[str] = None,
-                                init: bool = True,
-                                repr: bool = True,
-                                eq: bool = True,
-                                order: bool = False,
-                                unsafe_hash: bool = False,
-                                frozen: bool = False):
+def json_serializable_dataclass(
+    _cls: Optional[Type] = None,
+    *,
+    namespace: Optional[str] = None,
+    init: bool = True,
+    repr: bool = True,
+    eq: bool = True,
+    order: bool = False,
+    unsafe_hash: bool = False,
+    frozen: bool = False,
+):
     """
     Create a dataclass that supports JSON serialization
 
@@ -184,16 +185,13 @@ def json_serializable_dataclass(_cls: Optional[Type] = None,
     """
 
     def wrap(cls):
-        cls = dataclasses.dataclass(cls,
-                                    init=init,
-                                    repr=repr,
-                                    eq=eq,
-                                    order=order,
-                                    unsafe_hash=unsafe_hash,
-                                    frozen=frozen)
+        cls = dataclasses.dataclass(
+            cls, init=init, repr=repr, eq=eq, order=order, unsafe_hash=unsafe_hash, frozen=frozen
+        )
 
         cls._json_dict_ = lambda obj: obj_to_dict_helper(
-            obj, [f.name for f in dataclasses.fields(cls)], namespace=namespace)
+            obj, [f.name for f in dataclasses.fields(cls)], namespace=namespace
+        )
 
         return cls
 
@@ -307,8 +305,9 @@ def _cirq_object_hook(d, resolvers: Sequence[JsonResolver]):
         if cls is not None:
             break
     else:
-        raise ValueError("Could not resolve type '{}' "
-                         "during deserialization".format(d['cirq_type']))
+        raise ValueError(
+            "Could not resolve type '{}' " "during deserialization".format(d['cirq_type'])
+        )
 
     from_json_dict = getattr(cls, '_from_json_dict_', None)
     if from_json_dict is not None:
@@ -320,25 +319,24 @@ def _cirq_object_hook(d, resolvers: Sequence[JsonResolver]):
 
 # pylint: disable=function-redefined
 @overload
-def to_json(obj: Any,
-            file_or_fn: Union[IO, pathlib.Path, str],
-            *,
-            indent=2,
-            cls=CirqEncoder) -> None:
+def to_json(
+    obj: Any, file_or_fn: Union[IO, pathlib.Path, str], *, indent=2, cls=CirqEncoder
+) -> None:
     pass
 
 
 @overload
-def to_json(obj: Any, file_or_fn: None = None, *, indent=2,
-            cls=CirqEncoder) -> str:
+def to_json(obj: Any, file_or_fn: None = None, *, indent=2, cls=CirqEncoder) -> str:
     pass
 
 
-def to_json(obj: Any,
-            file_or_fn: Union[None, IO, pathlib.Path, str] = None,
-            *,
-            indent: int = 2,
-            cls: Type[json.JSONEncoder] = CirqEncoder) -> Optional[str]:
+def to_json(
+    obj: Any,
+    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    *,
+    indent: int = 2,
+    cls: Type[json.JSONEncoder] = CirqEncoder,
+) -> Optional[str]:
     """Write a JSON file containing a representation of obj.
 
     The object may be a cirq object or have data members that are cirq
@@ -373,10 +371,12 @@ def to_json(obj: Any,
 # pylint: enable=function-redefined
 
 
-def read_json(file_or_fn: Union[None, IO, pathlib.Path, str] = None,
-              *,
-              json_text: Optional[str] = None,
-              resolvers: Optional[Sequence[JsonResolver]] = None):
+def read_json(
+    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    *,
+    json_text: Optional[str] = None,
+    resolvers: Optional[Sequence[JsonResolver]] = None,
+):
     """Read a JSON file that optionally contains cirq objects.
 
     Args:
