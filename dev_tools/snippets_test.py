@@ -85,8 +85,7 @@ def find_docs_code_snippets_paths() -> Iterator[str]:
 @pytest.mark.parametrize('path', find_docs_code_snippets_paths())
 def test_can_run_docs_code_snippets(path):
     docs_folder = os.path.dirname(__file__)
-    assert_file_has_working_code_snippets(os.path.join(docs_folder, path),
-                                          assume_import=True)
+    assert_file_has_working_code_snippets(os.path.join(docs_folder, path), assume_import=True)
 
 
 def find_code_snippets(pattern: str, content: str) -> List[Tuple[str, int]]:
@@ -108,8 +107,7 @@ def find_markdown_code_snippets(content: str) -> List[Tuple[str, int]]:
 
 
 def find_markdown_test_overrides(content: str) -> List[Tuple[Pattern, str]]:
-    test_sub_text = find_code_snippets("<!---test_substitution\n(.*?)--->",
-                                       content)
+    test_sub_text = find_code_snippets("<!---test_substitution\n(.*?)--->", content)
     substitutions = [line.split('\n')[:-1] for line, _ in test_sub_text]
     return [(re.compile(match), sub) for match, sub in substitutions]
 
@@ -141,22 +139,21 @@ def deindent_snippet(snippet: str) -> str:
 
 def find_rst_code_snippets(content: str) -> List[Tuple[str, int]]:
     snippets = find_code_snippets(
-        r'\n.. code-block:: python\n(?:\s+:.*?\n)*\n(.*?)(?:\n\S|\Z)', content)
-    return [(deindent_snippet(content), line_number)
-            for content, line_number in snippets]
+        r'\n.. code-block:: python\n(?:\s+:.*?\n)*\n(.*?)(?:\n\S|\Z)', content
+    )
+    return [(deindent_snippet(content), line_number) for content, line_number in snippets]
 
 
 def find_rst_test_overrides(content: str) -> List[Tuple[Pattern, str]]:
     # Find ".. test-substitution::"
-    test_sub_text = find_code_snippets(
-        r'.. test-substitution::\n(([^\n]*\n){2})', content)
+    test_sub_text = find_code_snippets(r'.. test-substitution::\n(([^\n]*\n){2})', content)
     substitutions = [line.split('\n')[:-1] for line, _ in test_sub_text]
-    return [(re.compile(match.lstrip()), sub.lstrip())
-            for match, sub in substitutions]
+    return [(re.compile(match.lstrip()), sub.lstrip()) for match, sub in substitutions]
 
 
 def test_find_rst_code_snippets():
-    snippets = find_rst_code_snippets("""
+    snippets = find_rst_code_snippets(
+        """
 A 3 by 3 grid of qubits using
 
 .. code-block:: python
@@ -178,18 +175,19 @@ More text.
 .. code-block:: python
 
     print("last line")
-""")
+"""
+    )
 
     assert snippets == [
         ('print("hello world")\n', 4),
-        ('print("hello 1")\n\nfor i in range(10):\n    print(f"hello {i}")\n',
-         10),
+        ('print("hello 1")\n\nfor i in range(10):\n    print(f"hello {i}")\n', 10),
         ('print("last line")\n', 20),
     ]
 
 
 def test_find_rst_overrides():
-    overrides = find_rst_test_overrides("""
+    overrides = find_rst_test_overrides(
+        """
 A 3 by 3 grid of qubits using
 
 .. code-block:: python
@@ -204,7 +202,8 @@ A 3 by 3 grid of qubits using
 .. test-substitution::
     golden
     yellow
-""")
+"""
+    )
     assert len(overrides) == 2
     assert overrides[0][0].match('hello world')
     assert overrides[1][0].match('golden')
@@ -213,7 +212,7 @@ A 3 by 3 grid of qubits using
 
 
 def test_apply_rst_overrides():
-    content = ("""
+    content = """
 A 3 by 3 grid of qubits using
 
 .. code-block:: python
@@ -228,10 +227,12 @@ A 3 by 3 grid of qubits using
 .. test-substitution::
     golden
     yellow
-""")
+"""
     overrides = find_rst_test_overrides(content)
     print(overrides)
-    assert apply_overrides(content, overrides) == """
+    assert (
+        apply_overrides(content, overrides)
+        == """
 A 3 by 3 grid of qubits using
 
 .. code-block:: python
@@ -247,10 +248,12 @@ A 3 by 3 grid of qubits using
     yellow
     yellow
 """
+    )
 
 
 def test_find_markdown_code_snippets():
-    snippets = find_markdown_code_snippets("""
+    snippets = find_markdown_code_snippets(
+        """
 A 3 by 3 grid of qubits using
 
 ```python
@@ -271,18 +274,19 @@ More text.
 ```python
 print("last line")
 ```
-""")
+"""
+    )
 
     assert snippets == [
         ('\nprint("hello world")', 4),
-        ('\nprint("hello 1")\n\nfor i in range(10):\n    print(f"hello {i}")',
-         10),
+        ('\nprint("hello 1")\n\nfor i in range(10):\n    print(f"hello {i}")', 10),
         ('\nprint("last line")', 19),
     ]
 
 
 def test_find_markdown_test_overrides():
-    overrides = find_markdown_test_overrides("""
+    overrides = find_markdown_test_overrides(
+        """
 A 3 by 3 grid of qubits using
 
 ```python
@@ -296,7 +300,8 @@ goodbye
 world
 universe
 --->
-""")
+"""
+    )
 
     assert len(overrides) == 2
     assert overrides[0][0].match('hello')
@@ -306,7 +311,7 @@ universe
 
 
 def test_apply_overrides_markdown():
-    content = ("""
+    content = """
 A 3 by 3 grid of qubits using
 
 ```python
@@ -320,9 +325,11 @@ goodbye
 world
 universe
 --->
-""")
+"""
     overrides = find_markdown_test_overrides(content)
-    assert apply_overrides(content, overrides) == """
+    assert (
+        apply_overrides(content, overrides)
+        == """
 A 3 by 3 grid of qubits using
 
 ```python
@@ -337,6 +344,7 @@ universe
 universe
 --->
 """
+    )
 
 
 def assert_file_has_working_code_snippets(path: str, assume_import: bool):
@@ -357,8 +365,7 @@ def assert_file_has_working_code_snippets(path: str, assume_import: bool):
     assert_code_snippets_run_in_sequence(snippets, assume_import)
 
 
-def assert_code_snippets_run_in_sequence(snippets: List[Tuple[str, int]],
-                                         assume_import: bool):
+def assert_code_snippets_run_in_sequence(snippets: List[Tuple[str, int]], assume_import: bool):
     """Checks that a sequence of code snippets actually run.
 
     State is kept between snippets. Imports and variables defined in one
@@ -440,30 +447,22 @@ def canonicalize_printed_line(line: str) -> str:
 
 def test_canonicalize_printed_line():
     x = 'first [-0.5-0.j   0. -0.5j] then [-0.  0.]'
-    assert canonicalize_printed_line(x) == (
-        'first [-0.5+0.j 0. -0.5j] then [0. 0.]')
+    assert canonicalize_printed_line(x) == ('first [-0.5+0.j 0. -0.5j] then [0. 0.]')
 
     a = '[-0.5-0.j   0. -0.5j  0. -0.5j -0.5+0.j ]'
     b = '[-0.5-0. j  0. -0.5j  0. -0.5j -0.5+0. j]'
     assert canonicalize_printed_line(a) == canonicalize_printed_line(b)
 
-    assert len({
-        canonicalize_printed_line(e) for e in ['[2.2]', '[+2.2]', '[ 2.2]']
-    }) == 1
+    assert len({canonicalize_printed_line(e) for e in ['[2.2]', '[+2.2]', '[ 2.2]']}) == 1
 
-    assert len({
-        canonicalize_printed_line(e)
-        for e in ['[-0.]', '[+0.]', '[ 0.]', '[0.]']
-    }) == 1
+    assert len({canonicalize_printed_line(e) for e in ['[-0.]', '[+0.]', '[ 0.]', '[0.]']}) == 1
 
     a = '[[ 0.+0.j 1.+0.j]'
     b = '[[0.+0.j 1.+0.j]'
     assert canonicalize_printed_line(a) == canonicalize_printed_line(b)
 
 
-def assert_code_snippet_executes_correctly(snippet: str,
-                                           state: Dict,
-                                           line_number: int = None):
+def assert_code_snippet_executes_correctly(snippet: str, state: Dict, line_number: int = None):
     """Executes a snippet and compares output / errors to annotations."""
 
     raises_annotation = re.search(r"# raises\s*(\S*)", snippet)
@@ -472,8 +471,8 @@ def assert_code_snippet_executes_correctly(snippet: str,
         after = None
         expected_failure = None
     else:
-        before = snippet[:raises_annotation.start()]
-        after = snippet[raises_annotation.start():]
+        before = snippet[: raises_annotation.start()]
+        after = snippet[raises_annotation.start() :]
         expected_failure = raises_annotation.group(1)
         if not expected_failure:
             raise AssertionError('No error type specified for # raises line.')
@@ -484,9 +483,9 @@ def assert_code_snippet_executes_correctly(snippet: str,
         assert_code_snippet_fails(after, state, expected_failure)
 
 
-def assert_code_snippet_runs_and_prints_expected(snippet: str,
-                                                 state: Dict,
-                                                 line_number: int = None):
+def assert_code_snippet_runs_and_prints_expected(
+    snippet: str, state: Dict, line_number: int = None
+):
     """Executes a snippet and compares captured output to annotated output."""
     output_lines = []  # type: List[str]
     expected_outputs = find_expected_outputs(snippet)
@@ -501,14 +500,13 @@ def assert_code_snippet_runs_and_prints_expected(snippet: str,
         assert_expected_lines_present_in_order(expected_outputs, output_lines)
     except AssertionError as ex:
         new_msg = ex.args[0] + '\n\nIn snippet{}:\n{}'.format(
-            "" if line_number == None else " (line {})".format(line_number),
-            _indent([snippet]))
+            "" if line_number == None else " (line {})".format(line_number), _indent([snippet])
+        )
         ex.args = (new_msg,) + tuple(ex.args[1:])
         raise
 
 
-def assert_code_snippet_fails(snippet: str, state: Dict,
-                              expected_failure_type: str):
+def assert_code_snippet_fails(snippet: str, state: Dict, expected_failure_type: str):
     try:
         exec(snippet, state)
     except Exception as ex:
@@ -516,14 +514,15 @@ def assert_code_snippet_fails(snippet: str, state: Dict,
         if expected_failure_type not in actual_failure_types:
             raise AssertionError(
                 'Expected snippet to raise a {}, but it raised a {}.'.format(
-                    expected_failure_type, ' -> '.join(actual_failure_types)))
+                    expected_failure_type, ' -> '.join(actual_failure_types)
+                )
+            )
         return
 
     raise AssertionError('Expected snippet to fail, but it ran to completion.')
 
 
-def assert_expected_lines_present_in_order(expected_lines: List[str],
-                                           actual_lines: List[str]):
+def assert_expected_lines_present_in_order(expected_lines: List[str], actual_lines: List[str]):
     """Checks that all expected lines are present.
 
     It is permitted for there to be extra actual lines between expected lines.
@@ -548,11 +547,18 @@ def assert_expected_lines_present_in_order(expected_lines: List[str],
             'Highlighted Differences:\n'
             '{}\n'
             ''.format(
-                expected, _indent(actual_lines), _indent(expected_lines),
-                _indent([
-                    cirq.testing.highlight_text_differences(
-                        '\n'.join(actual_lines), '\n'.join(expected_lines))
-                ])))
+                expected,
+                _indent(actual_lines),
+                _indent(expected_lines),
+                _indent(
+                    [
+                        cirq.testing.highlight_text_differences(
+                            '\n'.join(actual_lines), '\n'.join(expected_lines)
+                        )
+                    ]
+                ),
+            )
+        )
         i += 1
 
 
@@ -575,7 +581,7 @@ def find_expected_outputs(snippet: str) -> List[str]:
     for line in snippet.split('\n'):
         if printing:
             if line.startswith(continue_key) or line == continue_key.strip():
-                rest = line[len(continue_key):]
+                rest = line[len(continue_key) :]
                 expected.append(rest)
             else:
                 printing = False
@@ -591,49 +597,81 @@ def _indent(lines: List[str]) -> str:
 
 
 def test_find_expected_outputs():
-    assert find_expected_outputs("""
+    assert (
+        find_expected_outputs(
+            """
 # print
 # abc
 
 # def
-    """) == ['abc']
+    """
+        )
+        == ['abc']
+    )
 
-    assert find_expected_outputs("""
+    assert (
+        find_expected_outputs(
+            """
 # prints
 # abc
 
 # def
-    """) == ['abc']
+    """
+        )
+        == ['abc']
+    )
 
-    assert find_expected_outputs("""
+    assert (
+        find_expected_outputs(
+            """
 # print:
 # abc
 
 # def
-    """) == ['abc']
+    """
+        )
+        == ['abc']
+    )
 
-    assert find_expected_outputs("""
+    assert (
+        find_expected_outputs(
+            """
 #print:
 # abc
 
 # def
-    """) == ['abc']
+    """
+        )
+        == ['abc']
+    )
 
-    assert find_expected_outputs("""
+    assert (
+        find_expected_outputs(
+            """
 # prints:
 # abc
 
 # def
-    """) == ['abc']
+    """
+        )
+        == ['abc']
+    )
 
-    assert find_expected_outputs("""
+    assert (
+        find_expected_outputs(
+            """
 # prints:
 # abc
 
 # def
-    """) == ['abc']
+    """
+        )
+        == ['abc']
+    )
 
-    assert find_expected_outputs("""
+    assert (
+        find_expected_outputs(
+            """
 lorem ipsum
 
 # prints
@@ -644,9 +682,14 @@ a wondrous collection
 # prints
 # def
 # ghi
-    """) == ['  abc', 'def', 'ghi']
+    """
+        )
+        == ['  abc', 'def', 'ghi']
+    )
 
-    assert find_expected_outputs("""
+    assert (
+        find_expected_outputs(
+            """
 a wandering adventurer
 
 # prints something like
@@ -654,38 +697,38 @@ a wandering adventurer
 #prints
 # pants
 # trance
-    """) == []
+    """
+        )
+        == []
+    )
 
 
 def test_assert_expected_lines_present_in_order():
     assert_expected_lines_present_in_order(expected_lines=[], actual_lines=[])
 
-    assert_expected_lines_present_in_order(expected_lines=[],
-                                           actual_lines=['abc'])
+    assert_expected_lines_present_in_order(expected_lines=[], actual_lines=['abc'])
 
-    assert_expected_lines_present_in_order(expected_lines=['abc'],
-                                           actual_lines=['abc'])
+    assert_expected_lines_present_in_order(expected_lines=['abc'], actual_lines=['abc'])
 
     with pytest.raises(AssertionError):
-        assert_expected_lines_present_in_order(expected_lines=['abc'],
-                                               actual_lines=[])
-
-    assert_expected_lines_present_in_order(expected_lines=['abc', 'def'],
-                                           actual_lines=['abc', 'def'])
+        assert_expected_lines_present_in_order(expected_lines=['abc'], actual_lines=[])
 
     assert_expected_lines_present_in_order(
-        expected_lines=['abc', 'def'],
-        actual_lines=['abc', 'interruption', 'def'])
+        expected_lines=['abc', 'def'], actual_lines=['abc', 'def']
+    )
+
+    assert_expected_lines_present_in_order(
+        expected_lines=['abc', 'def'], actual_lines=['abc', 'interruption', 'def']
+    )
 
     with pytest.raises(AssertionError):
-        assert_expected_lines_present_in_order(expected_lines=['abc', 'def'],
-                                               actual_lines=['def', 'abc'])
+        assert_expected_lines_present_in_order(
+            expected_lines=['abc', 'def'], actual_lines=['def', 'abc']
+        )
 
-    assert_expected_lines_present_in_order(expected_lines=['abc    '],
-                                           actual_lines=['abc'])
+    assert_expected_lines_present_in_order(expected_lines=['abc    '], actual_lines=['abc'])
 
-    assert_expected_lines_present_in_order(expected_lines=['abc'],
-                                           actual_lines=['abc      '])
+    assert_expected_lines_present_in_order(expected_lines=['abc'], actual_lines=['abc      '])
 
 
 def test_assert_code_snippet_executes_correctly():
@@ -707,7 +750,9 @@ def test_assert_code_snippet_executes_correctly():
 print("abc")
 # prints
 # abc
-        """, {})
+        """,
+        {},
+    )
 
     if sys.version_info[0] >= 3:  # Our print capture only works in python 3.
         with pytest.raises(AssertionError):
@@ -716,19 +761,25 @@ print("abc")
 print("abc")
 # prints
 # def
-                """, {})
+                """,
+                {},
+            )
 
     assert_code_snippet_executes_correctly(
         """
 # raises ZeroDivisionError
 a = 1 / 0
-    """, {})
+    """,
+        {},
+    )
 
     assert_code_snippet_executes_correctly(
         """
 # raises ArithmeticError
 a = 1 / 0
-        """, {})
+        """,
+        {},
+    )
 
     assert_code_snippet_executes_correctly(
         """
@@ -737,18 +788,24 @@ print("123")
 
 # raises SyntaxError
 print "abc")
-        """, {})
+        """,
+        {},
+    )
 
     with pytest.raises(AssertionError):
         assert_code_snippet_executes_correctly(
             """
 # raises ValueError
 a = 1 / 0
-            """, {})
+            """,
+            {},
+        )
 
     with pytest.raises(AssertionError):
         assert_code_snippet_executes_correctly(
             """
 # raises
 a = 1
-            """, {})
+            """,
+            {},
+        )

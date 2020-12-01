@@ -19,8 +19,14 @@ import pandas as pd
 import sympy
 
 import cirq.testing
-from cirq._compat import (proper_repr, deprecated, deprecated_parameter,
-                          proper_eq, wrap_module, deprecated_class)
+from cirq._compat import (
+    proper_repr,
+    deprecated,
+    deprecated_parameter,
+    proper_eq,
+    wrap_module,
+    deprecated_class,
+)
 
 
 def test_proper_repr():
@@ -35,24 +41,27 @@ def test_proper_repr():
 
 
 def test_proper_repr_data_frame():
-    df = pd.DataFrame(index=[1, 2, 3],
-                      data=[[11, 21.0], [12, 22.0], [13, 23.0]],
-                      columns=['a', 'b'])
+    df = pd.DataFrame(
+        index=[1, 2, 3], data=[[11, 21.0], [12, 22.0], [13, 23.0]], columns=['a', 'b']
+    )
     df2 = eval(proper_repr(df))
     assert df2['a'].dtype == np.int64
     assert df2['b'].dtype == np.float
     pd.testing.assert_frame_equal(df2, df)
 
-    df = pd.DataFrame(index=pd.Index([1, 2, 3], name='test'),
-                      data=[[11, 21.0], [12, 22.0], [13, 23.0]],
-                      columns=['a', 'b'])
+    df = pd.DataFrame(
+        index=pd.Index([1, 2, 3], name='test'),
+        data=[[11, 21.0], [12, 22.0], [13, 23.0]],
+        columns=['a', 'b'],
+    )
     df2 = eval(proper_repr(df))
     pd.testing.assert_frame_equal(df2, df)
 
-    df = pd.DataFrame(index=pd.MultiIndex.from_tuples([(1, 2), (2, 3), (3, 4)],
-                                                      names=['x', 'y']),
-                      data=[[11, 21.0], [12, 22.0], [13, 23.0]],
-                      columns=pd.Index(['a', 'b'], name='c'))
+    df = pd.DataFrame(
+        index=pd.MultiIndex.from_tuples([(1, 2), (2, 3), (3, 4)], names=['x', 'y']),
+        data=[[11, 21.0], [12, 22.0], [13, 23.0]],
+        columns=pd.Index(['a', 'b'], name='c'),
+    )
     df2 = eval(proper_repr(df))
     pd.testing.assert_frame_equal(df2, df)
 
@@ -72,19 +81,17 @@ def test_proper_eq():
 
 
 def test_deprecated_with_name():
-
     @deprecated(deadline='vNever', fix='Roll some dice.', name='test_func')
     def f(a, b):
         return a + b
 
-    with cirq.testing.assert_logs('test_func was used',
-                                  'will be removed in cirq vNever',
-                                  'Roll some dice.'):
+    with cirq.testing.assert_logs(
+        'test_func was used', 'will be removed in cirq vNever', 'Roll some dice.'
+    ):
         assert f(1, 2) == 3
 
 
 def test_deprecated():
-
     def new_func(a, b):
         return a + b
 
@@ -92,23 +99,21 @@ def test_deprecated():
     def old_func(*args, **kwargs):
         return new_func(*args, **kwargs)
 
-    with cirq.testing.assert_logs('old_func was used',
-                                  'will be removed in cirq vNever',
-                                  'Roll some dice.'):
+    with cirq.testing.assert_logs(
+        'old_func was used', 'will be removed in cirq vNever', 'Roll some dice.'
+    ):
         assert old_func(1, 2) == 3
 
 
 def test_deprecated_parameter():
-
     @deprecated_parameter(
         deadline='vAlready',
         fix='Double it yourself.',
         func_name='test_func',
         parameter_desc='double_count',
         match=lambda args, kwargs: 'double_count' in kwargs,
-        rewrite=lambda args, kwargs: (args, {
-            'new_count': kwargs['double_count'] * 2
-        }))
+        rewrite=lambda args, kwargs: (args, {'new_count': kwargs['double_count'] * 2}),
+    )
     def f(new_count):
         return new_count
 
@@ -118,8 +123,10 @@ def test_deprecated_parameter():
         assert f(new_count=1) == 1
 
     with cirq.testing.assert_logs(
-            'double_count parameter of test_func was used',
-            'will be removed in cirq vAlready', 'Double it yourself.'):
+        'double_count parameter of test_func was used',
+        'will be removed in cirq vAlready',
+        'Double it yourself.',
+    ):
         # pylint: disable=unexpected-keyword-arg
         # pylint: disable=no-value-for-parameter
         assert f(double_count=1) == 2
@@ -145,9 +152,9 @@ def test_wrap_module():
     assert 'zoo' not in wrapped.__dict__
 
     # Deprecation capability.
-    with cirq.testing.assert_logs('foo was used but is deprecated.',
-                                  'will be removed in cirq 0.6.0',
-                                  'use bar instead'):
+    with cirq.testing.assert_logs(
+        'foo was used but is deprecated.', 'will be removed in cirq 0.6.0', 'use bar instead'
+    ):
         _ = wrapped.foo
 
     with cirq.testing.assert_logs(count=0):
@@ -155,9 +162,7 @@ def test_wrap_module():
 
 
 def test_deprecated_class():
-
     class NewClass:
-
         def __init__(self, a):
             self._a = a
 
@@ -179,8 +184,9 @@ def test_deprecated_class():
     assert OldClass.__doc__.startswith("THIS CLASS IS DEPRECATED")
     assert "OldClass docs" in OldClass.__doc__
 
-    with cirq.testing.assert_logs('foo was used but is deprecated',
-                                  'will be removed in cirq deadline', 'theFix'):
+    with cirq.testing.assert_logs(
+        'foo was used but is deprecated', 'will be removed in cirq deadline', 'theFix'
+    ):
         old_obj = OldClass("1")
         assert repr(old_obj) == "NewClass: 1"
         assert "OldClass" in old_obj.hello()

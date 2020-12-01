@@ -18,10 +18,11 @@ from cirq import value
 from cirq.google.api.v2 import run_context_pb2
 from cirq.study import sweeps
 
+
 def sweep_to_proto(
-        sweep: sweeps.Sweep,
-        *,
-        out: Optional[run_context_pb2.Sweep] = None,
+    sweep: sweeps.Sweep,
+    *,
+    out: Optional[run_context_pb2.Sweep] = None,
 ) -> run_context_pb2.Sweep:
     """Converts a Sweep to v2 protobuf message.
 
@@ -62,8 +63,7 @@ def sweep_to_proto(
                 sweep_dict[key].append(param_resolver.value_of(key))
         out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
         for key in sweep_dict:
-            sweep_to_proto(sweeps.Points(key, sweep_dict[key]),
-                           out=out.sweep_function.sweeps.add())
+            sweep_to_proto(sweeps.Points(key, sweep_dict[key]), out=out.sweep_function.sweeps.add())
     else:
         raise ValueError('cannot convert to v2 Sweep proto: {}'.format(sweep))
     return out

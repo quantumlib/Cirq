@@ -19,7 +19,8 @@ import numpy as np
 
 from cirq import linalg, protocols
 from cirq.protocols.decompose_protocol import (
-    _try_decompose_into_operations_and_qubits,)
+    _try_decompose_into_operations_and_qubits,
+)
 
 if TYPE_CHECKING:
     import cirq
@@ -37,9 +38,14 @@ class ActOnStateVectorArgs:
     3. Call `record_measurement_result(key, val)` to log a measurement result.
     """
 
-    def __init__(self, target_tensor: np.ndarray, available_buffer: np.ndarray,
-                 axes: Iterable[int], prng: np.random.RandomState,
-                 log_of_measurement_results: Dict[str, Any]):
+    def __init__(
+        self,
+        target_tensor: np.ndarray,
+        available_buffer: np.ndarray,
+        axes: Iterable[int],
+        prng: np.random.RandomState,
+        log_of_measurement_results: Dict[str, Any],
+    ):
         """
         Args:
             target_tensor: The state vector to act on, stored as a numpy array
@@ -91,11 +97,9 @@ class ActOnStateVectorArgs:
             raise ValueError(f"Measurement already logged to key {key!r}")
         self.log_of_measurement_results[key] = value
 
-    def subspace_index(self,
-                       little_endian_bits_int: int = 0,
-                       *,
-                       big_endian_bits_int: int = 0
-                      ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
+    def subspace_index(
+        self, little_endian_bits_int: int = 0, *, big_endian_bits_int: int = 0
+    ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
         """An index for the subspace where the target axes equal a value.
 
         Args:
@@ -143,7 +147,8 @@ class ActOnStateVectorArgs:
             self.axes,
             little_endian_qureg_value=little_endian_bits_int,
             big_endian_qureg_value=big_endian_bits_int,
-            qid_shape=self.target_tensor.shape)
+            qid_shape=self.target_tensor.shape,
+        )
 
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
         strats = [
@@ -167,8 +172,8 @@ class ActOnStateVectorArgs:
 
 
 def _strat_act_on_state_vector_from_apply_unitary(
-        unitary_value: Any,
-        args: 'cirq.ActOnStateVectorArgs',
+    unitary_value: Any,
+    args: 'cirq.ActOnStateVectorArgs',
 ) -> bool:
     new_target_tensor = protocols.apply_unitary(
         unitary_value,
@@ -178,7 +183,8 @@ def _strat_act_on_state_vector_from_apply_unitary(
             axes=args.axes,
         ),
         allow_decompose=False,
-        default=NotImplemented)
+        default=NotImplemented,
+    )
     if new_target_tensor is NotImplemented:
         return NotImplemented
     args.swap_target_tensor_for(new_target_tensor)
@@ -186,8 +192,8 @@ def _strat_act_on_state_vector_from_apply_unitary(
 
 
 def _strat_act_on_state_vector_from_apply_decompose(
-        val: Any,
-        args: ActOnStateVectorArgs,
+    val: Any,
+    args: ActOnStateVectorArgs,
 ) -> bool:
     operations, qubits, _ = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
@@ -195,9 +201,9 @@ def _strat_act_on_state_vector_from_apply_decompose(
     return _act_all_on_state_vector(operations, qubits, args)
 
 
-def _act_all_on_state_vector(actions: Iterable[Any],
-                             qubits: Sequence['cirq.Qid'],
-                             args: 'cirq.ActOnStateVectorArgs'):
+def _act_all_on_state_vector(
+    actions: Iterable[Any], qubits: Sequence['cirq.Qid'], args: 'cirq.ActOnStateVectorArgs'
+):
     assert len(qubits) == len(args.axes)
     qubit_map = {q: args.axes[i] for i, q in enumerate(qubits)}
 
@@ -211,9 +217,7 @@ def _act_all_on_state_vector(actions: Iterable[Any],
     return True
 
 
-def _strat_act_on_state_vector_from_mixture(action: Any,
-                                            args: 'cirq.ActOnStateVectorArgs'
-                                           ) -> bool:
+def _strat_act_on_state_vector_from_mixture(action: Any, args: 'cirq.ActOnStateVectorArgs') -> bool:
     mixture = protocols.mixture(action, default=None)
     if mixture is None:
         return NotImplemented
@@ -222,17 +226,12 @@ def _strat_act_on_state_vector_from_mixture(action: Any,
     index = args.prng.choice(range(len(unitaries)), p=probabilities)
     shape = protocols.qid_shape(action) * 2
     unitary = unitaries[index].astype(args.target_tensor.dtype).reshape(shape)
-    linalg.targeted_left_multiply(unitary,
-                                  args.target_tensor,
-                                  args.axes,
-                                  out=args.available_buffer)
+    linalg.targeted_left_multiply(unitary, args.target_tensor, args.axes, out=args.available_buffer)
     args.swap_target_tensor_for(args.available_buffer)
     return True
 
 
-def _strat_act_on_state_vector_from_channel(action: Any,
-                                            args: 'cirq.ActOnStateVectorArgs'
-                                           ) -> bool:
+def _strat_act_on_state_vector_from_channel(action: Any, args: 'cirq.ActOnStateVectorArgs') -> bool:
     kraus_operators = protocols.channel(action, default=None)
     if kraus_operators is None:
         return NotImplemented
@@ -246,17 +245,14 @@ def _strat_act_on_state_vector_from_channel(action: Any,
         )
 
     shape = protocols.qid_shape(action)
-    kraus_tensors = [
-        e.reshape(shape * 2).astype(args.target_tensor.dtype)
-        for e in kraus_operators
-    ]
+    kraus_tensors = [e.reshape(shape * 2).astype(args.target_tensor.dtype) for e in kraus_operators]
     p = args.prng.random()
     weight = None
     fallback_weight = 0
     fallback_weight_i = 0
     for i in range(len(kraus_tensors)):
         prepare_into_buffer(i)
-        weight = np.linalg.norm(args.available_buffer)**2
+        weight = np.linalg.norm(args.available_buffer) ** 2
 
         if weight > fallback_weight:
             fallback_weight_i = i

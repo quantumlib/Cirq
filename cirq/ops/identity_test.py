@@ -35,22 +35,14 @@ def test_identity_init(num_qubits):
 def test_identity_on_each():
     q0, q1, q2 = cirq.LineQubit.range(3)
     assert cirq.I.on_each(q0, q1, q2) == [cirq.I(q0), cirq.I(q1), cirq.I(q2)]
-    assert cirq.I.on_each([q0, [q1],
-                           q2]) == [cirq.I(q0),
-                                    cirq.I(q1),
-                                    cirq.I(q2)]
-    assert cirq.I.on_each(iter([q0, [q1],
-                                q2])) == [cirq.I(q0),
-                                          cirq.I(q1),
-                                          cirq.I(q2)]
+    assert cirq.I.on_each([q0, [q1], q2]) == [cirq.I(q0), cirq.I(q1), cirq.I(q2)]
+    assert cirq.I.on_each(iter([q0, [q1], q2])) == [cirq.I(q0), cirq.I(q1), cirq.I(q2)]
     with pytest.raises(ValueError, match='str'):
         cirq.I.on_each('abc')
 
 
 def test_identity_on_each_iter_second():
-
     class Q(cirq.Qid):
-
         @property
         def dimension(self) -> int:
             return 2
@@ -81,9 +73,9 @@ def test_identity_on_each_only_single_qubit():
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
 def test_identity_unitary(num_qubits):
     i = cirq.IdentityGate(num_qubits)
-    assert np.allclose(cirq.unitary(i), np.identity(2**num_qubits))
+    assert np.allclose(cirq.unitary(i), np.identity(2 ** num_qubits))
     i3 = cirq.IdentityGate(num_qubits, (3,) * num_qubits)
-    assert np.allclose(cirq.unitary(i3), np.identity(3**num_qubits))
+    assert np.allclose(cirq.unitary(i3), np.identity(3 ** num_qubits))
 
 
 def test_identity_str():
@@ -97,20 +89,18 @@ def test_identity_str():
 def test_identity_repr():
     assert repr(cirq.I) == 'cirq.I'
     assert repr(cirq.IdentityGate(5)) == 'cirq.IdentityGate(5)'
-    assert repr(cirq.IdentityGate(
-        qid_shape=(2, 3))) == 'cirq.IdentityGate(qid_shape=(2, 3))'
+    assert repr(cirq.IdentityGate(qid_shape=(2, 3))) == 'cirq.IdentityGate(qid_shape=(2, 3))'
 
 
 def test_identity_apply_unitary():
     v = np.array([1, 0])
-    result = cirq.apply_unitary(
-        cirq.I, cirq.ApplyUnitaryArgs(v, np.array([0, 1]), (0,)))
+    result = cirq.apply_unitary(cirq.I, cirq.ApplyUnitaryArgs(v, np.array([0, 1]), (0,)))
     assert result is v
 
     v = np.array([1, 0, 0])
     result = cirq.apply_unitary(
-        cirq.IdentityGate(1, (3,)),
-        cirq.ApplyUnitaryArgs(v, np.array([0, 1, 2]), (0,)))
+        cirq.IdentityGate(1, (3,)), cirq.ApplyUnitaryArgs(v, np.array([0, 1, 2]), (0,))
+    )
     assert result is v
 
 
@@ -121,8 +111,7 @@ def test_identity_eq():
         lambda: cirq.IdentityGate(1),
         lambda: cirq.IdentityGate(1, (2,)),
     )
-    equals_tester.add_equality_group(cirq.IdentityGate(2),
-                                     cirq.IdentityGate(2, (2, 2)))
+    equals_tester.add_equality_group(cirq.IdentityGate(2), cirq.IdentityGate(2, (2, 2)))
     equals_tester.add_equality_group(cirq.IdentityGate(4))
     equals_tester.add_equality_group(cirq.IdentityGate(1, (3,)))
     equals_tester.add_equality_group(cirq.IdentityGate(4, (1, 2, 3, 4)))
@@ -137,46 +126,42 @@ def test_identity_pow():
     I = cirq.I
     q = cirq.NamedQubit('q')
 
-    assert I(q)**0.5 == I(q)
-    assert I(q)**2 == I(q)
-    assert I(q)**(1 + 1j) == I(q)
-    assert I(q)**sympy.Symbol('x') == I(q)
+    assert I(q) ** 0.5 == I(q)
+    assert I(q) ** 2 == I(q)
+    assert I(q) ** (1 + 1j) == I(q)
+    assert I(q) ** sympy.Symbol('x') == I(q)
     with pytest.raises(TypeError):
-        _ = (I**q)(q)
+        _ = (I ** q)(q)
     with pytest.raises(TypeError):
-        _ = I(q)**q
+        _ = I(q) ** q
 
 
 def test_pauli_expansion_notimplemented():
     assert cirq.IdentityGate(1, (3,))._pauli_expansion_() == NotImplemented
 
 
-@pytest.mark.parametrize('gate_type, num_qubits',
-                         itertools.product((cirq.IdentityGate,), range(1, 5)))
+@pytest.mark.parametrize(
+    'gate_type, num_qubits', itertools.product((cirq.IdentityGate,), range(1, 5))
+)
 def test_consistent_protocols(gate_type, num_qubits):
     gate = gate_type(num_qubits=num_qubits)
-    cirq.testing.assert_implements_consistent_protocols(gate,
-                                                        qubit_count=num_qubits)
+    cirq.testing.assert_implements_consistent_protocols(gate, qubit_count=num_qubits)
 
 
 def test_identity_global():
     qubits = cirq.LineQubit.range(3)
     assert cirq.identity_each(*qubits) == cirq.IdentityGate(3).on(*qubits)
     qids = cirq.LineQid.for_qid_shape((1, 2, 3))
-    assert cirq.identity_each(*qids) == cirq.IdentityGate(3,
-                                                          (1, 2, 3)).on(*qids)
+    assert cirq.identity_each(*qids) == cirq.IdentityGate(3, (1, 2, 3)).on(*qids)
     with pytest.raises(ValueError, match='Not a cirq.Qid'):
-        cirq.identity_each(
-            qubits)  # The user forgot to expand the list for example.
+        cirq.identity_each(qubits)  # The user forgot to expand the list for example.
 
 
 def test_identity_mul():
-
     class UnknownGate(cirq.SingleQubitGate):
         pass
 
     class UnknownOperation(cirq.Operation):
-
         @property
         def qubits(self):
             raise NotImplementedError()

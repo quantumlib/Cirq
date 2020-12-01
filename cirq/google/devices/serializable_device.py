@@ -13,8 +13,20 @@
 # limitations under the License.
 """Device object for converting from device specification protos"""
 
-from typing import (Any, Callable, cast, Dict, Iterable, Optional, List, Set,
-                    Tuple, Type, TYPE_CHECKING, FrozenSet)
+from typing import (
+    Any,
+    Callable,
+    cast,
+    Dict,
+    Iterable,
+    Optional,
+    List,
+    Set,
+    Tuple,
+    Type,
+    TYPE_CHECKING,
+    FrozenSet,
+)
 
 from cirq import circuits, devices
 from cirq.google import serializable_gate_set
@@ -29,13 +41,12 @@ class _GateDefinition:
     """Class for keeping track of gate definitions within SerializableDevice"""
 
     def __init__(
-            self,
-            duration: 'cirq.DURATION_LIKE',
-            target_set: Set[Tuple['cirq.Qid', ...]],
-            number_of_qubits: int,
-            is_permutation: bool,
-            can_serialize_predicate: Callable[['cirq.Operation'], bool] = lambda
-            x: True,
+        self,
+        duration: 'cirq.DURATION_LIKE',
+        target_set: Set[Tuple['cirq.Qid', ...]],
+        number_of_qubits: int,
+        is_permutation: bool,
+        can_serialize_predicate: Callable[['cirq.Operation'], bool] = lambda x: True,
     ):
         self.duration = Duration(duration)
         self.target_set = target_set
@@ -44,12 +55,10 @@ class _GateDefinition:
         self.can_serialize_predicate = can_serialize_predicate
 
         # Compute the set of all qubits in all target sets.
-        self.flattened_qubits = {
-            q for qubit_tuple in target_set for q in qubit_tuple
-        }
+        self.flattened_qubits = {q for qubit_tuple in target_set for q in qubit_tuple}
 
     def with_can_serialize_predicate(
-            self, can_serialize_predicate: Callable[['cirq.Operation'], bool]
+        self, can_serialize_predicate: Callable[['cirq.Operation'], bool]
     ) -> '_GateDefinition':
         """Creates a new _GateDefinition as a copy of the existing definition
         but with a new with_can_serialize_predicate.  This is useful if multiple
@@ -88,8 +97,10 @@ class SerializableDevice(devices.Device):
     """
 
     def __init__(
-            self, qubits: List['cirq.Qid'],
-            gate_definitions: Dict[Type['cirq.Gate'], List[_GateDefinition]]):
+        self,
+        qubits: List['cirq.Qid'],
+        gate_definitions: Dict[Type['cirq.Gate'], List[_GateDefinition]],
+    ):
         """Constructor for SerializableDevice using python objects.
 
         Note that the preferred method of constructing this object is through
@@ -108,8 +119,9 @@ class SerializableDevice(devices.Device):
 
     @classmethod
     def from_proto(
-            cls, proto: v2.device_pb2.DeviceSpecification,
-            gate_sets: Iterable[serializable_gate_set.SerializableGateSet]
+        cls,
+        proto: v2.device_pb2.DeviceSpecification,
+        gate_sets: Iterable[serializable_gate_set.SerializableGateSet],
     ) -> 'SerializableDevice':
         """
 
@@ -134,24 +146,25 @@ class SerializableDevice(devices.Device):
             for gate_def in gs.valid_gates:
                 # Combine all valid targets in the gate's listed target sets
                 gate_target_set = {
-                    target for ts_name in gate_def.valid_targets
+                    target
+                    for ts_name in gate_def.valid_targets
                     for target in allowed_targets[ts_name]
                 }
-                which_are_permutations = [
-                    t in permutation_ids for t in gate_def.valid_targets
-                ]
+                which_are_permutations = [t in permutation_ids for t in gate_def.valid_targets]
                 is_permutation = any(which_are_permutations)
                 if is_permutation:
                     if not all(which_are_permutations):
                         raise NotImplementedError(
                             f'Id {gate_def.id} in {gs.name} mixes '
                             'SUBSET_PERMUTATION with other types which is not '
-                            'currently allowed.')
+                            'currently allowed.'
+                        )
                 gate_definitions[gate_def.id] = _GateDefinition(
                     duration=Duration(picos=gate_def.gate_duration_picos),
                     target_set=gate_target_set,
                     is_permutation=is_permutation,
-                    number_of_qubits=gate_def.number_of_qubits)
+                    number_of_qubits=gate_def.number_of_qubits,
+                )
 
         # Loop through serializers and map gate_definitions to type
         gates_by_type: Dict[Type['cirq.Gate'], List[_GateDefinition]] = {}
@@ -162,12 +175,13 @@ class SerializableDevice(devices.Device):
                     if gate_id not in gate_definitions:
                         raise ValueError(
                             f'Serializer has {gate_id} which is not supported '
-                            'by the device specification')
+                            'by the device specification'
+                        )
                     if gate_type not in gates_by_type:
                         gates_by_type[gate_type] = []
-                    gate_def = gate_definitions[
-                        gate_id].with_can_serialize_predicate(
-                            serializer.can_serialize_predicate)
+                    gate_def = gate_definitions[gate_id].with_can_serialize_predicate(
+                        serializer.can_serialize_predicate
+                    )
                     gates_by_type[gate_type].append(gate_def)
 
         return SerializableDevice(
@@ -188,8 +202,7 @@ class SerializableDevice(devices.Device):
             return v2.named_qubit_from_proto_id(id_str)
 
     @classmethod
-    def _create_target_set(cls, ts: v2.device_pb2.TargetSet
-                          ) -> Set[Tuple['cirq.Qid', ...]]:
+    def _create_target_set(cls, ts: v2.device_pb2.TargetSet) -> Set[Tuple['cirq.Qid', ...]]:
         """Transform a TargetSet proto into a set of qubit tuples"""
         target_set = set()
         for target in ts.targets:
@@ -218,20 +231,23 @@ class SerializableDevice(devices.Device):
             pairs = {
                 cast(Pair, pair)
                 for gate_defs in self.gate_definitions.values()
-                for gate_def in gate_defs if gate_def.number_of_qubits == 2
-                for pair in gate_def.target_set if len(pair) == 2
+                for gate_def in gate_defs
+                if gate_def.number_of_qubits == 2
+                for pair in gate_def.target_set
+                if len(pair) == 2
             }
 
             # Draw lines between connected pairs. Limit to horizontal/vertical
             # lines since that is all the diagram drawer can handle.
             for q1, q2 in sorted(pairs):
                 if q1.row == q2.row or q1.col == q2.col:
-                    diagram.grid_line(q1.col - min_col, q1.row - min_row,
-                                      q2.col - min_col, q2.row - min_row)
+                    diagram.grid_line(
+                        q1.col - min_col, q1.row - min_row, q2.col - min_col, q2.row - min_row
+                    )
 
-            return diagram.render(horizontal_spacing=3,
-                                  vertical_spacing=2,
-                                  use_unicode_characters=True)
+            return diagram.render(
+                horizontal_spacing=3, vertical_spacing=2, use_unicode_characters=True
+            )
 
         return super().__str__()
 
@@ -240,8 +256,7 @@ class SerializableDevice(devices.Device):
         # There should never be a cycle, but just in case use the default repr.
         p.text(repr(self) if cycle else str(self))
 
-    def _find_operation_type(self,
-                             op: 'cirq.Operation') -> Optional[_GateDefinition]:
+    def _find_operation_type(self, op: 'cirq.Operation') -> Optional[_GateDefinition]:
         """Finds the type (or a compatible type) of an operation from within
         a dictionary with keys of Gate type.
 
@@ -258,8 +273,7 @@ class SerializableDevice(devices.Device):
     def duration_of(self, operation: 'cirq.Operation') -> Duration:
         gate_def = self._find_operation_type(operation)
         if gate_def is None:
-            raise ValueError(
-                f'Operation {operation} does not have a known duration')
+            raise ValueError(f'Operation {operation} does not have a known duration')
         return gate_def.duration
 
     def validate_operation(self, operation: 'cirq.Operation') -> None:
@@ -274,8 +288,10 @@ class SerializableDevice(devices.Device):
         req_num_qubits = gate_def.number_of_qubits
         if req_num_qubits > 0:
             if len(operation.qubits) != req_num_qubits:
-                raise ValueError(f'{operation} has {len(operation.qubits)} '
-                                 f'qubits but expected {req_num_qubits}')
+                raise ValueError(
+                    f'{operation} has {len(operation.qubits)} '
+                    f'qubits but expected {req_num_qubits}'
+                )
 
         if gate_def.is_permutation:
             # A permutation gate can have any combination of qubits
@@ -284,10 +300,8 @@ class SerializableDevice(devices.Device):
                 # All qubits are valid
                 return
 
-            if not all(
-                    q in gate_def.flattened_qubits for q in operation.qubits):
-                raise ValueError(
-                    'Operation does not use valid qubits: {operation}.')
+            if not all(q in gate_def.flattened_qubits for q in operation.qubits):
+                raise ValueError('Operation does not use valid qubits: {operation}.')
 
             return
 
@@ -303,5 +317,4 @@ class SerializableDevice(devices.Device):
 
             if qubit_tuple not in gate_def.target_set:
                 # Target is not within the target sets specified by the gate.
-                raise ValueError(
-                    f'Operation does not use valid qubit target: {operation}.')
+                raise ValueError(f'Operation does not use valid qubit target: {operation}.')

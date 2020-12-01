@@ -67,9 +67,7 @@ def trace_distance_bound(val: Any) -> float:
         produces a result greater than 1.0
 
     """
-    strats = [
-        _strat_from_trace_distance_bound_method, _strat_distance_from_unitary
-    ]
+    strats = [_strat_from_trace_distance_bound_method, _strat_distance_from_unitary]
 
     for strat in strats:
         result = strat(val)
@@ -103,10 +101,10 @@ def _strat_distance_from_unitary(val: Any) -> Optional[float]:
         return NotImplemented
 
     if u.shape == (2, 2):
-        squared = 1 - (0.5 * abs(u[0][0] + u[1][1]))**2
+        squared = 1 - (0.5 * abs(u[0][0] + u[1][1])) ** 2
         if squared <= 0:
             return 0.0
-        return squared**0.5
+        return squared ** 0.5
 
     return trace_distance_from_angle_list(np.angle(np.linalg.eigvals(u)))
 

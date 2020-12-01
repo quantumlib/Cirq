@@ -20,8 +20,7 @@ from typing_extensions import Protocol
 
 from cirq._compat import deprecated
 from cirq._doc import doc_private
-from cirq.protocols.decompose_protocol import \
-    _try_decompose_into_operations_and_qubits
+from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.protocols.has_unitary_protocol import has_unitary
 from cirq.type_workarounds import NotImplementedType
 
@@ -31,12 +30,10 @@ RaiseTypeErrorIfNotProvided = ((0.0, []),)  # type: Sequence[Tuple[float, Any]]
 
 
 class SupportsMixture(Protocol):
-    """An object that decomposes into a probability distribution of unitaries.
-    """
+    """An object that decomposes into a probability distribution of unitaries."""
 
     @doc_private
-    def _mixture_(self
-                 ) -> Union[Sequence[Tuple[float, Any]], NotImplementedType]:
+    def _mixture_(self) -> Union[Sequence[Tuple[float, Any]], NotImplementedType]:
         """Decompose into a probability distribution of unitaries.
 
         This method is used by the global `cirq.mixture` method.
@@ -65,8 +62,9 @@ class SupportsMixture(Protocol):
         """
 
 
-def mixture(val: Any, default: Any = RaiseTypeErrorIfNotProvided
-           ) -> Sequence[Tuple[float, np.ndarray]]:
+def mixture(
+    val: Any, default: Any = RaiseTypeErrorIfNotProvided
+) -> Sequence[Tuple[float, np.ndarray]]:
     """Return a sequence of tuples representing a probabilistic unitary.
 
     A mixture is described by an iterable of tuples of the form
@@ -101,11 +99,13 @@ def mixture(val: Any, default: Any = RaiseTypeErrorIfNotProvided
 
     if mixture_getter is None and unitary_getter is None:
         raise TypeError(
-            "object of type '{}' has no _mixture_ or _unitary_ method.".format(
-                type(val)))
+            "object of type '{}' has no _mixture_ or _unitary_ method.".format(type(val))
+        )
 
-    raise TypeError("object of type '{}' does have a _mixture_ or _unitary_ "
-                    "method, but it returned NotImplemented.".format(type(val)))
+    raise TypeError(
+        "object of type '{}' does have a _mixture_ or _unitary_ "
+        "method, but it returned NotImplemented.".format(type(val))
+    )
 
 
 def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
@@ -144,18 +144,15 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
     return mixture(val, None) is not None
 
 
-@deprecated(deadline='v0.10.0',
-            fix='Use "cirq.mixture" instead.',
-            name='mixture_channel')
+@deprecated(deadline='v0.10.0', fix='Use "cirq.mixture" instead.', name='mixture_channel')
 @functools.wraps(mixture)
-def mixture_channel(val: Any, default: Any = RaiseTypeErrorIfNotProvided
-                   ) -> Sequence[Tuple[float, np.ndarray]]:
+def mixture_channel(
+    val: Any, default: Any = RaiseTypeErrorIfNotProvided
+) -> Sequence[Tuple[float, np.ndarray]]:
     return mixture(val, default)
 
 
-@deprecated(deadline='v0.10.0',
-            fix='Use "cirq.has_mixture" instead.',
-            name='has_mixture_channel')
+@deprecated(deadline='v0.10.0', fix='Use "cirq.has_mixture" instead.', name='has_mixture_channel')
 @functools.wraps(has_mixture)
 def has_mixture_channel(val: Any) -> bool:
     return has_mixture(val)
@@ -165,8 +162,7 @@ def validate_mixture(supports_mixture: SupportsMixture):
     """Validates that the mixture's tuple are valid probabilities."""
     mixture_tuple = mixture(supports_mixture, None)
     if mixture_tuple is None:
-        raise TypeError('{}_mixture did not have a _mixture_ method'.format(
-            supports_mixture))
+        raise TypeError('{}_mixture did not have a _mixture_ method'.format(supports_mixture))
 
     def validate_probability(p, p_str):
         if p < 0:

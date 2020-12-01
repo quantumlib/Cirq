@@ -28,10 +28,13 @@ class IonDevice(devices.Device):
     Qubits have all-to-all connectivity.
     """
 
-    def __init__(self, measurement_duration: 'cirq.DURATION_LIKE',
-                 twoq_gates_duration: 'cirq.DURATION_LIKE',
-                 oneq_gates_duration: 'cirq.DURATION_LIKE',
-                 qubits: Iterable[devices.LineQubit]) -> None:
+    def __init__(
+        self,
+        measurement_duration: 'cirq.DURATION_LIKE',
+        twoq_gates_duration: 'cirq.DURATION_LIKE',
+        oneq_gates_duration: 'cirq.DURATION_LIKE',
+        qubits: Iterable[devices.LineQubit],
+    ) -> None:
         """Initializes the description of an ion trap device.
 
         Args:
@@ -59,8 +62,8 @@ class IonDevice(devices.Device):
         if isinstance(operation.gate, ops.XXPowGate):
             return self._twoq_gates_duration
         if isinstance(
-                operation.gate,
-            (ops.XPowGate, ops.YPowGate, ops.ZPowGate, ops.PhasedXPowGate)):
+            operation.gate, (ops.XPowGate, ops.YPowGate, ops.ZPowGate, ops.PhasedXPowGate)
+        ):
             return self._oneq_gates_duration
         if isinstance(operation.gate, ops.MeasurementGate):
             return self._measurement_duration
@@ -68,8 +71,16 @@ class IonDevice(devices.Device):
 
     def validate_gate(self, gate: ops.Gate):
         if not isinstance(
-                gate, (ops.XPowGate, ops.YPowGate, ops.ZPowGate,
-                       ops.PhasedXPowGate, ops.XXPowGate, ops.MeasurementGate)):
+            gate,
+            (
+                ops.XPowGate,
+                ops.YPowGate,
+                ops.ZPowGate,
+                ops.PhasedXPowGate,
+                ops.XXPowGate,
+                ops.MeasurementGate,
+            ),
+        ):
             raise ValueError('Unsupported gate type: {!r}'.format(gate))
 
     def validate_operation(self, operation):
@@ -85,51 +96,42 @@ class IonDevice(devices.Device):
                 raise ValueError('Qubit not on device: {!r}'.format(q))
 
     def _check_if_XXPow_operation_interacts_with_any(
-            self,
-            XXPow_op: ops.GateOperation,
-            others: Iterable[ops.GateOperation]) -> bool:
-        return any(self._check_if_XXPow_operation_interacts(XXPow_op, op)
-                   for op in others)
+        self, XXPow_op: ops.GateOperation, others: Iterable[ops.GateOperation]
+    ) -> bool:
+        return any(self._check_if_XXPow_operation_interacts(XXPow_op, op) for op in others)
 
     def _check_if_XXPow_operation_interacts(
-            self,
-            XXPow_op: ops.GateOperation,
-            other_op: ops.GateOperation) -> bool:
-        if isinstance(other_op.gate, (ops.XPowGate,
-                                      ops.YPowGate,
-                                      ops.PhasedXPowGate,
-                                      ops.MeasurementGate,
-                                      ops.ZPowGate)):
+        self, XXPow_op: ops.GateOperation, other_op: ops.GateOperation
+    ) -> bool:
+        if isinstance(
+            other_op.gate,
+            (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate, ops.MeasurementGate, ops.ZPowGate),
+        ):
             return False
 
-        return any(q == p
-                   for q in XXPow_op.qubits
-                   for p in other_op.qubits)
+        return any(q == p for q in XXPow_op.qubits for p in other_op.qubits)
 
     def validate_circuit(self, circuit: circuits.Circuit):
         super().validate_circuit(circuit)
         _verify_unique_measurement_keys(circuit.all_operations())
 
-    def can_add_operation_into_moment(self,
-                                      operation: ops.Operation,
-                                      moment: ops.Moment) -> bool:
+    def can_add_operation_into_moment(self, operation: ops.Operation, moment: ops.Moment) -> bool:
 
         if not super().can_add_operation_into_moment(operation, moment):
             return False
         if isinstance(operation.gate, ops.XXPowGate):
             return not self._check_if_XXPow_operation_interacts_with_any(
                 cast(ops.GateOperation, operation),
-                cast(Iterable[ops.GateOperation], moment.operations))
+                cast(Iterable[ops.GateOperation], moment.operations),
+            )
         return True
 
     def at(self, position: int) -> Optional[devices.LineQubit]:
-        """Returns the qubit at the given position, if there is one, else None.
-        """
+        """Returns the qubit at the given position, if there is one, else None."""
         q = devices.LineQubit(position)
         return q if q in self.qubits else None
 
-    def neighbors_of(self,
-                     qubit: devices.LineQubit) -> Iterable[devices.LineQubit]:
+    def neighbors_of(self, qubit: devices.LineQubit) -> Iterable[devices.LineQubit]:
         """Returns the qubits that the given qubit can interact with."""
         possibles = [
             devices.LineQubit(qubit.x + 1),
@@ -142,7 +144,8 @@ class IonDevice(devices.Device):
             f'IonDevice(measurement_duration={self._measurement_duration!r}, '
             f'twoq_gates_duration={self._twoq_gates_duration!r}, '
             f'oneq_gates_duration={self._oneq_gates_duration!r} '
-            f'qubits={sorted(self.qubits)!r})')
+            f'qubits={sorted(self.qubits)!r})'
+        )
 
     def __str__(self) -> str:
         diagram = circuits.TextDiagramDrawer()
@@ -152,16 +155,15 @@ class IonDevice(devices.Device):
             for q2 in self.neighbors_of(q):
                 diagram.grid_line(q.x, 0, q2.x, 0)
 
-        return diagram.render(
-            horizontal_spacing=3,
-            vertical_spacing=2,
-            use_unicode_characters=True)
+        return diagram.render(horizontal_spacing=3, vertical_spacing=2, use_unicode_characters=True)
 
     def _value_equality_values_(self) -> Any:
-        return (self._measurement_duration,
-                self._twoq_gates_duration,
-                self._oneq_gates_duration,
-                self.qubits)
+        return (
+            self._measurement_duration,
+            self._twoq_gates_duration,
+            self._oneq_gates_duration,
+            self.qubits,
+        )
 
 
 def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
