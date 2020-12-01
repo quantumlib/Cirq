@@ -563,11 +563,12 @@ from cirq import (
 )
 
 
-def _register_resolver():
-    from cirq.protocols.json_serialization import register_resolver
+def _register_resolver() -> None:
+    """Registers the cirq module's public classes for JSON serialization."""
+    from cirq.protocols.json_serialization import _internal_register_resolver
     from cirq.json_resolver_cache import _class_resolver_dictionary
 
-    register_resolver(_class_resolver_dictionary)
+    _internal_register_resolver(_class_resolver_dictionary)
 
 
 _register_resolver()

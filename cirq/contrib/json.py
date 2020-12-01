@@ -4,7 +4,7 @@ classes in Contrib.
 """
 from typing import Dict
 
-from cirq.protocols.json_serialization import register_resolver, ObjectFactory
+from cirq.protocols.json_serialization import _internal_register_resolver, ObjectFactory
 
 
 def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
@@ -19,5 +19,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
     return {cls.__name__: cls for cls in classes}
 
 
-# TODO: contrib should be properly tested
-register_resolver(_class_resolver_dictionary)
+# TODO(https://github.com/quantumlib/Cirq/issues/3555): contrib should be
+#  properly tested
+_internal_register_resolver(_class_resolver_dictionary)
