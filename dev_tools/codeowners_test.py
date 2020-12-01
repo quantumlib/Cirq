@@ -29,7 +29,7 @@ PASQAL_TEAM = {('USERNAME', u) for u in ["@HGSilveri"]}
 
 PASQAL_MAINTAINERS = BASE_MAINTAINERS.union(PASQAL_TEAM)
 
-AQT_TEAM = {('USERNAME', u) for u in ["@ma5x", "@pschindler"]}
+AQT_TEAM = {('USERNAME', u) for u in ["@ma5x", "@pschindler", "@alfrisch"]}
 
 AQT_MAINTAINERS = BASE_MAINTAINERS.union(AQT_TEAM)
 
