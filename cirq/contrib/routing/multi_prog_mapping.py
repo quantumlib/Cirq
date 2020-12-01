@@ -105,10 +105,11 @@ class HierarchyTree:
 
         return F_value, q_merged
 
-    def find_edge_among_communities(self, community1: List[ops.Qid],
+    def compute_fidelity_of2merged_communities(self, community1: List[ops.Qid],
                              community2: List[ops.Qid]) -> float:
         """
-        Computes fidelity of merging two communities.
+        Computes fidelity of two communities after merging.
+        This is due to check merging these communities is a good choice or not.
 
         Args:
             community1: first community
@@ -140,7 +141,7 @@ class HierarchyTree:
 
         for i in range(len(communities) - 1):
             for j in range(i + 1, len(communities), 1):
-                fidelity = self.find_edge_among_communities(communities[i],
+                fidelity = self.compute_fidelity_of2merged_communities(communities[i],
                                                      communities[j])
                 if fidelity != 0.0:
                     F, q_merged_temp = self.compute_F(communities[i], communities[j],
