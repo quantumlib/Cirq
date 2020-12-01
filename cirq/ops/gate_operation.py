@@ -165,7 +165,7 @@ class GateOperation(raw_types.Operation):
         getter = getattr(super(), '_commutes_', None)
         if getter is not None:
             return super()._commutes_(other, atol=atol)
-        return NotImplemented
+        return NotImplemented   # coverage: ignore
 
     def _has_mixture_(self) -> bool:
         getter = getattr(self.gate, '_has_mixture_', None)

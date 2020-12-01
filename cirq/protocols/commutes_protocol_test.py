@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import numpy as np
 import pytest
 import sympy
-import copy
 
 import cirq
 
@@ -86,8 +86,6 @@ def test_commutes_on_gates_and_gate_operations():
     with pytest.raises(TypeError):
         assert cirq.commutes(XGate(a), 'Gate')
     assert cirq.commutes(XGate(a), 'Gate', default='default') == 'default'
-    
-    assert cirq.commutes(XGate, XGate(a), default=NotImplemented) == NotImplemented
 
 
 def test_operation_commutes_using_overlap_and_unitary():
