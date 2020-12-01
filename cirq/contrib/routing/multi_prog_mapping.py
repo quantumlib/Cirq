@@ -55,7 +55,7 @@ class HierarchyTree:
         self.single_er = single_er
         self.two_er = two_er
 
-    def compute_F(self, com1: List[ops.Qid], com2: List[ops.Qid], q1: float,
+    def compute_F(self, community1: List[ops.Qid], community2: List[ops.Qid], q1: float,
                   q2: float, fidelity: float) -> (float, float):
         """
         Computes the reward function F, F = Qmerged - Qorigin + (omega)*E*V
@@ -65,8 +65,8 @@ class HierarchyTree:
         V denotes the average fidelity of readout operations on the qubits connecting the two communities.
 
         Args:
-            com1: first community
-            com2: second community
+            community1: first community
+            community2: second community
             q1: original value of Qorigin for first community
             q2: original value of Qorigin for second community
             fidelity: total value of E*V
@@ -78,22 +78,22 @@ class HierarchyTree:
         outside_edges = 0
         total_edges = 0
         # Compute inside edges
-        for c1 in com1:
-            for c2 in com2:
+        for c1 in community1:
+            for c2 in community2:
                 if self.device_graph.has_edge(c1, c2):
                     inside_edges += 1
-        for i in range(len(com1) - 1):
-            for j in range(i + 1, len(com1), 1):
-                if self.device_graph.has_edge(com1[i], com1[j]):
+        for i in range(len(community1) - 1):
+            for j in range(i + 1, len(community1), 1):
+                if self.device_graph.has_edge(community1[i], community1[j]):
                     inside_edges += 1
-        for i in range(len(com2) - 1):
-            for j in range(i + 1, len(com2), 1):
-                if self.device_graph.has_edge(com2[i], com2[j]):
+        for i in range(len(community2) - 1):
+            for j in range(i + 1, len(community2), 1):
+                if self.device_graph.has_edge(community2[i], community2[j]):
                     inside_edges += 1
         # Compute total edges
-        for c1 in com1:
+        for c1 in community1:
             total_edges += len(c1.neighbors())
-        for c2 in com2:
+        for c2 in community2:
             total_edges += len(c2.neighbors())
         # Compute outside edges
         outside_edges = total_edges - 2 * inside_edges
@@ -105,19 +105,19 @@ class HierarchyTree:
 
         return F_value, q_merged
 
-    def find_edge_among_coms(self, com1: List[ops.Qid],
-                             com2: List[ops.Qid]) -> float:
+    def find_edge_among_communities(self, community1: List[ops.Qid],
+                             community2: List[ops.Qid]) -> float:
         """
         Computes fidelity of merging two communities.
 
         Args:
-            com1: first community
-            com2: second community
+            community1: first community
+            community2: second community
         """
 
         fidelity = 0.0
-        for c1 in com1:
-            for c2 in com2:
+        for c1 in community1:
+            for c2 in community2:
                 if (c1, c2) in self.two_er:
                     fidelity_two = 1 - self.two_er[(c1, c2)][0]
                     fidelity_single = 0.5 * (1 - self.single_er[(c1,)][0] + 1 -
@@ -140,7 +140,7 @@ class HierarchyTree:
 
         for i in range(len(communities) - 1):
             for j in range(i + 1, len(communities), 1):
-                fidelity = self.find_edge_among_coms(communities[i],
+                fidelity = self.find_edge_among_communities(communities[i],
                                                      communities[j])
                 if fidelity != 0.0:
                     F, q_merged_temp = self.compute_F(communities[i], communities[j],
