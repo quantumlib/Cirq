@@ -117,11 +117,8 @@ class ParallelGateOperation(raw_types.Operation):
         return protocols.parameter_names(self.gate)
 
     def _resolve_parameters_(self, resolver, recursive):
-        if recursive:
-            resolved_gate = protocols.resolve_parameters(self.gate, resolver)
-        else:
-            resolved_gate = protocols.resolve_parameters_once(
-                self.gate, resolver)
+        resolved_gate = protocols.resolve_parameters(self.gate, resolver,
+                                                     recursive)
         return self.with_gate(resolved_gate)
 
     def _trace_distance_bound_(self) -> Optional[float]:

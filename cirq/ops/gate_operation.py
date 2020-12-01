@@ -215,11 +215,8 @@ class GateOperation(raw_types.Operation):
         return NotImplemented
 
     def _resolve_parameters_(self, resolver, recursive):
-        if recursive:
-            resolved_gate = protocols.resolve_parameters(self.gate, resolver)
-        else:
-            resolved_gate = protocols.resolve_parameters_once(
-                self.gate, resolver)
+        resolved_gate = protocols.resolve_parameters(self.gate, resolver,
+                                                     recursive)
         return self.with_gate(resolved_gate)
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'

@@ -64,11 +64,9 @@ class WaitGate(raw_types.Gate):
         return protocols.parameter_names(self.duration)
 
     def _resolve_parameters_(self, param_resolver, recursive):
-        if recursive:
-            return WaitGate(
-                protocols.resolve_parameters(self.duration, param_resolver))
         return WaitGate(
-            protocols.resolve_parameters_once(self.duration, param_resolver))
+            protocols.resolve_parameters(self.duration, param_resolver,
+                                         recursive))
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape

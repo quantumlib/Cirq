@@ -2003,14 +2003,9 @@ def _resolve_operations(operations: Iterable['cirq.Operation'],
                         param_resolver: 'cirq.ParamResolver',
                         recursive: bool) -> List['cirq.Operation']:
     resolved_operations = []  # type: List['cirq.Operation']
-    if recursive:
-        for op in operations:
-            resolved_operations.append(
-                protocols.resolve_parameters(op, param_resolver))
-    else:
-        for op in operations:
-            resolved_operations.append(
-                protocols.resolve_parameters_once(op, param_resolver))
+    for op in operations:
+        resolved_operations.append(
+            protocols.resolve_parameters(op, param_resolver, recursive))
     return resolved_operations
 
 

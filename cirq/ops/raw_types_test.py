@@ -684,11 +684,8 @@ class ParameterizableTag:
         return cirq.parameter_names(self.value)
 
     def _resolve_parameters_(self, resolver, recursive) -> 'ParameterizableTag':
-        if recursive:
-            return ParameterizableTag(
-                cirq.resolve_parameters(self.value, resolver))
         return ParameterizableTag(
-            cirq.resolve_parameters_once(self.value, resolver))
+            cirq.resolve_parameters(self.value, resolver, recursive))
 
 
 @pytest.mark.parametrize(

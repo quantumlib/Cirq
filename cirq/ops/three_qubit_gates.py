@@ -197,13 +197,8 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
 
     def _resolve_parameters_(self, resolver: 'cirq.ParamResolverOrSimilarType',
                              recursive: bool) -> 'ThreeQubitDiagonalGate':
-        if recursive:
-            return self.__class__([
-                protocols.resolve_parameters(angle, resolver)
-                for angle in self._diag_angles_radians
-            ])
         return self.__class__([
-            protocols.resolve_parameters_once(angle, resolver)
+            protocols.resolve_parameters(angle, resolver, recursive)
             for angle in self._diag_angles_radians
         ])
 

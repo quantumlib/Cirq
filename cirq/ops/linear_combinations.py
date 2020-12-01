@@ -149,13 +149,8 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
 
     def _resolve_parameters_(self, resolver: 'cirq.ParamResolverOrSimilarType',
                              recursive: bool) -> 'LinearCombinationOfGates':
-        if recursive:
-            return self.__class__({
-                protocols.resolve_parameters(gate, resolver): coeff
-                for gate, coeff in self.items()
-            })
         return self.__class__({
-            protocols.resolve_parameters_once(gate, resolver): coeff
+            protocols.resolve_parameters(gate, resolver, recursive): coeff
             for gate, coeff in self.items()
         })
 
@@ -271,13 +266,8 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
     def _resolve_parameters_(self, resolver: 'cirq.ParamResolverOrSimilarType',
                              recursive: bool
                             ) -> 'LinearCombinationOfOperations':
-        if recursive:
-            return self.__class__({
-                protocols.resolve_parameters(op, resolver): coeff
-                for op, coeff in self.items()
-            })
         return self.__class__({
-            protocols.resolve_parameters_once(op, resolver): coeff
+            protocols.resolve_parameters(op, resolver, recursive): coeff
             for op, coeff in self.items()
         })
 

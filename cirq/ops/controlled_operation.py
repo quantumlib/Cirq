@@ -185,12 +185,8 @@ class ControlledOperation(raw_types.Operation):
 
     def _resolve_parameters_(self, resolver,
                              recursive) -> 'ControlledOperation':
-        if recursive:
-            new_sub_op = protocols.resolve_parameters(self.sub_operation,
-                                                      resolver)
-        else:
-            new_sub_op = protocols.resolve_parameters_once(
-                self.sub_operation, resolver)
+        new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver,
+                                                  recursive)
         return ControlledOperation(self.controls, new_sub_op,
                                    self.control_values)
 
