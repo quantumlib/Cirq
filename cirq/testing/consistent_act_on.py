@@ -112,9 +112,9 @@ def assert_all_implemented_act_on_effects_match_unitary(
 
     tableau = _final_clifford_tableau(circuit, qubit_map)
     if tableau is None:
-        assert not assert_tableau_implemented, (
-            "Failed to generate final " "tableau for the test circuit." "\n\nval: {!r}".format(val)
-        )
+        assert (
+            not assert_tableau_implemented
+        ), "Failed to generate final tableau for the test circuit.\n\nval: {!r}".format(val)
     else:
         assert all(
             state_vector_has_stabilizer(state_vector, stab) for stab in tableau.stabilizers()

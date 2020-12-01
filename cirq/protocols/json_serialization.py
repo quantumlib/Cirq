@@ -418,7 +418,7 @@ def _cirq_object_hook(d, resolvers: Sequence[JsonResolver]):
             break
     else:
         raise ValueError(
-            "Could not resolve type '{}' " "during deserialization".format(d['cirq_type'])
+            "Could not resolve type '{}' during deserialization".format(d['cirq_type'])
         )
 
     from_json_dict = getattr(cls, '_from_json_dict_', None)

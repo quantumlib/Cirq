@@ -94,7 +94,7 @@ class DiagonalGate(cirq.Gate):
             np.absolute(diagonal), np.ones(dimension)
         ):
             raise ValueError(
-                'Diagonal must be an (2**num_qubits)-dimensional ' 'vector with unit-norm entries.'
+                'Diagonal must be an (2**num_qubits)-dimensional vector with unit-norm entries.'
             )
         self._num_qubits = num_qubits
         self.diagonal = diagonal

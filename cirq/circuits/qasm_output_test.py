@@ -27,7 +27,7 @@ def _make_qubits(n):
 
 def test_u_gate_repr():
     gate = QasmUGate(0.1, 0.2, 0.3)
-    assert repr(gate) == ('cirq.circuits.qasm_output.QasmUGate(' 'theta=0.1, phi=0.2, lmda=0.3)')
+    assert repr(gate) == 'cirq.circuits.qasm_output.QasmUGate(theta=0.1, phi=0.2, lmda=0.3)'
 
 
 def test_u_gate_eq():

@@ -158,7 +158,7 @@ class CCZPowGate(
             if self._exponent == 1:
                 return 'cirq.CCZ'
             return '(cirq.CCZ**{})'.format(proper_repr(self._exponent))
-        return ('cirq.CCZPowGate(exponent={}, ' 'global_shift={!r})').format(
+        return 'cirq.CCZPowGate(exponent={}, global_shift={!r})'.format(
             proper_repr(self._exponent), self._global_shift
         )
 
@@ -412,7 +412,7 @@ class CCXPowGate(
             if self._exponent == 1:
                 return 'cirq.TOFFOLI'
             return '(cirq.TOFFOLI**{})'.format(proper_repr(self._exponent))
-        return ('cirq.CCXPowGate(exponent={}, ' 'global_shift={!r})').format(
+        return 'cirq.CCXPowGate(exponent={}, global_shift={!r})'.format(
             proper_repr(self._exponent), self._global_shift
         )
 

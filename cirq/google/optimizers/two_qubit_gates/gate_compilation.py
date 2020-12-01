@@ -130,8 +130,7 @@ class GateTabulation:
         numpy_single_qubit_gates = []
         for single_qubit_gate in self.single_qubit_gates:
             gate_repr = [
-                f"({proper_repr(pair[0])}, " f"{proper_repr(pair[1])})"
-                for pair in single_qubit_gate
+                f"({proper_repr(pair[0])}, {proper_repr(pair[1])})" for pair in single_qubit_gate
             ]
             numpy_single_qubit_gates.append(f"[{','.join(gate_repr)}]")
 
@@ -464,7 +463,7 @@ def gate_product_tabulation(
 
             kak_vecs.append(linalg.kak_vector(base_gate @ actual, check_preconditions=False))
         elif not allow_missed_points:
-            raise ValueError(f'Failed to tabulate a KAK vector near ' f'{missing_vec}')
+            raise ValueError(f'Failed to tabulate a KAK vector near {missing_vec}')
         else:
             missed_points.append(missing_vec)
 
