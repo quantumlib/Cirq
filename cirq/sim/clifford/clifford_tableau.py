@@ -21,8 +21,8 @@ from cirq.ops.dense_pauli_string import DensePauliString
 from cirq.value import big_endian_int_to_digits
 
 
-class CliffordTableau():
-    """ Tableau representation of a stabilizer state
+class CliffordTableau:
+    """Tableau representation of a stabilizer state
     (based on Aaronson and Gottesman 2006).
 
     The tableau stores the stabilizer generators of
@@ -38,15 +38,14 @@ class CliffordTableau():
             num_qubits: The number of qubits in the system.
             initial_state: The computational basis representation of the
                 state as a big endian int.
-            """
+        """
         self.n = num_qubits
 
         self.rs = np.zeros(2 * self.n + 1, dtype=bool)
 
         for (i, val) in enumerate(
-                big_endian_int_to_digits(initial_state,
-                                         digit_count=num_qubits,
-                                         base=2)):
+            big_endian_int_to_digits(initial_state, digit_count=num_qubits, base=2)
+        ):
             self.rs[self.n + i] = bool(val)
 
         self.xs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
@@ -71,9 +70,12 @@ class CliffordTableau():
         if not isinstance(other, type(self)):
             # coverage: ignore
             return NotImplemented
-        return (self.n == other.n and np.array_equal(self.rs, other.rs) and
-                np.array_equal(self.xs, other.xs) and
-                np.array_equal(self.zs, other.zs))
+        return (
+            self.n == other.n
+            and np.array_equal(self.rs, other.rs)
+            and np.array_equal(self.xs, other.xs)
+            and np.array_equal(self.zs, other.zs)
+        )
 
     def copy(self) -> 'CliffordTableau':
         state = CliffordTableau(self.n)
@@ -112,8 +114,7 @@ class CliffordTableau():
 
         string += 'stable' + ' ' * max(self.n * 2 - 3, 1)
         string += '| destable\n'
-        string += '-' * max(7, self.n * 2 + 3) + '+' + '-' * max(
-            10, self.n * 2 + 4) + '\n'
+        string += '-' * max(7, self.n * 2 + 3) + '+' + '-' * max(10, self.n * 2 + 4) + '\n'
 
         for j in range(self.n):
             for i in [j + self.n, j]:
@@ -153,8 +154,7 @@ class CliffordTableau():
 
         r = 2 * int(self.rs[q1]) + 2 * int(self.rs[q2])
         for j in range(self.n):
-            r += g(self.xs[q2, j], self.zs[q2, j], self.xs[q1, j],
-                   self.zs[q1, j])
+            r += g(self.xs[q2, j], self.zs[q2, j], self.xs[q1, j], self.zs[q1, j])
 
         r %= 4
 
@@ -189,7 +189,7 @@ class CliffordTableau():
 
     def stabilizers(self) -> List[DensePauliString]:
         """Returns the stabilizer generators of the state. These
-        are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi> """
+        are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi>"""
         return [self._row_to_dense_pauli(i) for i in range(self.n, 2 * self.n)]
 
     def destabilizers(self) -> List[DensePauliString]:
@@ -199,7 +199,7 @@ class CliffordTableau():
         return [self._row_to_dense_pauli(i) for i in range(0, self.n)]
 
     def _measure(self, q, prng: np.random.RandomState):
-        """ Performs a projective measurement on the q'th qubit.
+        """Performs a projective measurement on the q'th qubit.
 
         Returns: the result (0 or 1) of the measurement.
         """

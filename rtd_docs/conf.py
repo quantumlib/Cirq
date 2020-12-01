@@ -40,6 +40,7 @@ def setup(app):
     app.connect('autodoc-process-docstring', autodoc_process)
     app.connect('autodoc-skip-member', autodoc_skip_member)
     app.connect('source-read', source_read)
+    app.connect('missing-reference', on_missing_reference)
 
 
 def convert_markdown_mathjax_for_rst(lines: List[str]) -> List[str]:
@@ -80,15 +81,14 @@ def convert_markdown_mathjax_for_rst(lines: List[str]) -> List[str]:
 
 
 def autodoc_skip_member(
-        app,
-        what: str,
-        name: str,
-        obj: Any,
-        skip: bool,
-        options,
+    app,
+    what: str,
+    name: str,
+    obj: Any,
+    skip: bool,
+    options,
 ) -> bool:
-    """Public members already kept. Also include members marked as documented.
-    """
+    """Public members already kept. Also include members marked as documented."""
     # Never skip if explicitly whitelisted.
     if id(obj) in _doc.RECORDED_CONST_DOCS:
         return False
@@ -99,8 +99,7 @@ def autodoc_skip_member(
     return skip
 
 
-def autodoc_process(app, what: str, name: str, obj: Any, options,
-                    lines: List[str]) -> None:
+def autodoc_process(app, what: str, name: str, obj: Any, options, lines: List[str]) -> None:
     # Try to lookup in documented dictionary.
     doc_string = _doc.RECORDED_CONST_DOCS.get(id(obj))
     if name.startswith('cirq') and doc_string is not None:
@@ -132,18 +131,12 @@ def autodoc_process(app, what: str, name: str, obj: Any, options,
 
 
 def source_read(app, docname, source):
-    source[0] = re.sub(r'"##### (Copyright 20\d\d The Cirq Developers)"', r'""',
-                       source[0])
+    source[0] = re.sub(r'"##### (Copyright 20\d\d The Cirq Developers)"', r'""', source[0])
     source[0] = re.sub(
-        r'(\{\s*?"cell_type": "code".*?"#@title.*License.".*?\},)',
-        r'',
-        source[0],
-        flags=re.S)
+        r'(\{\s*?"cell_type": "code".*?"#@title.*License.".*?\},)', r'', source[0], flags=re.S
+    )
 
-    source[0] = re.sub(r'"<table.*tfo-notebook-buttons.*"</table>"',
-                       r'""',
-                       source[0],
-                       flags=re.S)
+    source[0] = re.sub(r'"<table.*tfo-notebook-buttons.*"</table>"', r'""', source[0], flags=re.S)
 
 
 # -- Project information -----------------------------------------------------
@@ -207,8 +200,11 @@ language = None
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path .
 exclude_patterns = [
-    '_build', 'Thumbs.db', '.DS_Store', 'docs/citation.md',
-    'docs/tutorials/educators/*'
+    '_build',
+    'Thumbs.db',
+    '.DS_Store',
+    'docs/citation.md',
+    'docs/tutorials/educators/*',
 ]
 
 # The name of the Pygments (syntax highlighting) style to use.
@@ -248,13 +244,10 @@ htmlhelp_basename = 'Cirqdoc'
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     'papersize': 'letterpaper',
-
     # The font size ('10pt', '11pt' or '12pt').
     # 'pointsize': '10pt',
-
     # Additional stuff for the LaTeX preamble.
     # 'preamble': '',
-
     # Latex figure (float) alignment
     # 'figure_align': 'htbp',
 }
@@ -263,8 +256,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'Cirq.tex', 'Cirq Documentation', 'The Cirq Developers',
-     'manual'),
+    (master_doc, 'Cirq.tex', 'Cirq Documentation', 'The Cirq Developers', 'manual'),
 ]
 
 # -- Options for manual page output --------------------------------------
@@ -279,8 +271,15 @@ man_pages = [(master_doc, 'cirq', 'Cirq Documentation', [author], 1)]
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'Cirq', 'Cirq Documentation', author, 'Cirq',
-     'A python library for NISQ circuits.', 'Miscellaneous'),
+    (
+        master_doc,
+        'Cirq',
+        'Cirq Documentation',
+        author,
+        'Cirq',
+        'A python library for NISQ circuits.',
+        'Miscellaneous',
+    ),
 ]
 
 # -- Extension configuration -------------------------------------------------
@@ -297,3 +296,12 @@ myst_update_mathjax = False
 # To allow for google.colab temporarily in notebooks
 # TODO: after https://github.com/quantumlib/Cirq/issues/3368 turn this back off
 nbsphinx_allow_errors = True
+
+devsite_only_links = ["tutorials", "/education", "/reference/python/cirq"]
+
+
+def on_missing_reference(app, env, node, contnode):
+    if node['reftarget'] in devsite_only_links:
+        return contnode
+    else:
+        return None

@@ -22,8 +22,7 @@ import numpy as np
 from cirq._doc import document
 
 
-def kron(*factors: Union[np.ndarray, complex, float],
-         shape_len: int = 2) -> np.ndarray:
+def kron(*factors: Union[np.ndarray, complex, float], shape_len: int = 2) -> np.ndarray:
     """Computes the kronecker product of a sequence of values.
 
     A *args version of lambda args: functools.reduce(np.kron, args).
@@ -45,15 +44,16 @@ def kron(*factors: Union[np.ndarray, complex, float],
 
 CONTROL_TAG = np.array([[float('nan'), 0], [0, 1]])
 document(
-    CONTROL_TAG, """A special indicator value for `cirq.kron_with_controls`.
+    CONTROL_TAG,
+    """A special indicator value for `cirq.kron_with_controls`.
 
     This value is a stand-in for "control operations on the other qubits based
     on the value of this qubit", which otherwise doesn't have a proper matrix.
-    """)
+    """,
+)
 
 
-def kron_with_controls(*factors: Union[np.ndarray, complex, float]
-                      ) -> np.ndarray:
+def kron_with_controls(*factors: Union[np.ndarray, complex, float]) -> np.ndarray:
     """Computes the kronecker product of a sequence of values and control tags.
 
     Use `cirq.CONTROL_TAG` to represent controls. Any entry of the output
@@ -104,8 +104,7 @@ def kron_with_controls(*factors: Union[np.ndarray, complex, float]
     return product
 
 
-def dot(*values: Union[float, complex, np.ndarray]
-       ) -> Union[float, complex, np.ndarray]:
+def dot(*values: Union[float, complex, np.ndarray]) -> Union[float, complex, np.ndarray]:
     """Computes the dot/matrix product of a sequence of values.
 
     Performs the computation in serial order without regard to the matrix
@@ -131,8 +130,7 @@ def dot(*values: Union[float, complex, np.ndarray]
     return result
 
 
-def _merge_dtypes(dtype1: Type[np.number], dtype2: Type[np.number]
-                  ) -> Type[np.number]:
+def _merge_dtypes(dtype1: Type[np.number], dtype2: Type[np.number]) -> Type[np.number]:
     return (np.zeros(0, dtype1) + np.zeros(0, dtype2)).dtype
 
 

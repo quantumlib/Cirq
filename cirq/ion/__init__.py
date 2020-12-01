@@ -16,22 +16,29 @@
 """
 
 from cirq.ion.ion_gates import (
-    ms,)
+    ms,
+)
 
 from cirq.ion.ion_decomposition import (
-    two_qubit_matrix_to_ion_operations,)
+    two_qubit_matrix_to_ion_operations,
+)
 
 from cirq.ion.ion_device import (
-    IonDevice,)
+    IonDevice,
+)
 
 from cirq.ion.convert_to_ion_gates import (
-    ConvertToIonGates,)
+    ConvertToIonGates,
+)
 
 from cirq.ion.ion_decomposition import (
-    two_qubit_matrix_to_ion_operations,)
+    two_qubit_matrix_to_ion_operations,
+)
 
 from cirq.ion.ion_device import (
-    IonDevice,)
+    IonDevice,
+)
 
 from cirq.ion.convert_to_ion_gates import (
-    ConvertToIonGates,)
+    ConvertToIonGates,
+)
