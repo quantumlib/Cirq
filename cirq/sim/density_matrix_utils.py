@@ -286,6 +286,6 @@ def _indices_shape(qid_shape: Tuple[int, ...], indices: List[int]) -> Tuple[int,
         raise IndexError('Negative index in indices: {}'.format(indices))
     if any(index >= len(qid_shape) for index in indices):
         raise IndexError(
-            'Out of range indices, must be less than number of ' 'qubits but was {}'.format(indices)
+            'Out of range indices, must be less than number of qubits but was {}'.format(indices)
         )
     return tuple(qid_shape[i] for i in indices)

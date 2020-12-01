@@ -89,7 +89,7 @@ def pow(val: Any, exponent: Any, default: Any = RaiseTypeErrorIfNotProvided) -> 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     if raiser is None:
-        raise TypeError("object of type '{}' " "has no __pow__ method.".format(type(val)))
+        raise TypeError("object of type '{}' has no __pow__ method.".format(type(val)))
     raise TypeError(
         "object of type '{}' does have a __pow__ method, "
         "but it returned NotImplemented.".format(type(val))
