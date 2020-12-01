@@ -67,12 +67,12 @@ def test_comments():
     parser = QasmParser()
 
     parsed_qasm = parser.parse("""
-    //this is the format 
+    //this is the format
     OPENQASM 2.0;
     // this is some other comment
     include "qelib1.inc";
     // and something at the end of the file
-    // multiline 
+    // multiline
     """)
 
     assert parsed_qasm.supportedFormat

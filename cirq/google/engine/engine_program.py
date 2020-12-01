@@ -53,7 +53,7 @@ class EngineProgram:
             program_id: Unique ID of the program within the parent project.
             context: Engine configuration and context to use.
             _program: The optional current program state.
-            result_type: Whether the program was created using a BatchProgram.
+            result_type: The type of program that was created.
         """
         self.project_id = project_id
         self.program_id = program_id
@@ -135,7 +135,9 @@ class EngineProgram:
                 where # is alphanumeric and YYMMDD is the current year, month,
                 and day.
             params_list: Parameter sweeps to run with the program.  There must
-                be one Sweepable object for each circuit in the batch.
+                be one Sweepable object for each circuit in the batch. If this
+                is None, it is assumed that the circuits are not parameterized
+                and do not require sweeps.
             repetitions: The number of circuit repetitions to run.
             processor_ids: The engine processors that should be candidates
                 to run the program. Only one of these will be scheduled for
@@ -149,16 +151,20 @@ class EngineProgram:
             first, then the TrialResults for the second, etc. The TrialResults
             for a circuit are listed in the order imposed by the associated
             parameter sweep.
+
+        Raises:
+            ValueError: if the program was not a batch program or no processors
+                were supplied.
         """
         import cirq.google.engine.engine as engine_base
         if self.result_type != ResultType.Batch:
             raise ValueError('Can only use run_batch() in batch mode.')
+        if params_list is None:
+            params_list = [None] * self.batch_size()
         if not job_id:
             job_id = engine_base._make_random_id('job-')
         if not processor_ids:
             raise ValueError('No processors specified')
-        if not params_list:
-            raise ValueError('No parameter list specified')
 
         # Pack the run contexts into batches
         batch = v2.batch_pb2.BatchRunContext()
@@ -463,6 +469,27 @@ class EngineProgram:
             self._program = self.context.client.get_program(
                 self.project_id, self.program_id, True)
         return self._deserialize_program(self._program.code, program_num)
+
+    def batch_size(self) -> int:
+        """Returns the number of programs in a batch program.
+
+        Raises:
+            ValueError: if the program created was not a batch program.
+        """
+        if self.result_type != ResultType.Batch:
+            raise ValueError('Program was not a batch program but instead '
+                             f'was of type {self.result_type}.')
+        import cirq.google.engine.engine as engine_base
+        if not self._program or not self._program.HasField('code'):
+            self._program = self.context.client.get_program(
+                self.project_id, self.program_id, True)
+        code = self._program.code
+        code_type = code.type_url[len(engine_base.TYPE_PREFIX):]
+        if code_type == 'cirq.google.api.v2.BatchProgram':
+            batch = v2.batch_pb2.BatchProgram.FromString(code.value)
+            return len(batch.programs)
+        raise ValueError('Program was not a batch program but instead was of '
+                         f'type {code_type}.')
 
     @staticmethod
     def _deserialize_program(code: qtypes.any_pb2.Any,
