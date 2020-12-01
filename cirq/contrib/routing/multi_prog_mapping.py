@@ -70,6 +70,11 @@ class HierarchyTree:
             q1: original value of Qorigin for first community
             q2: original value of Qorigin for second community
             fidelity: total value of E*V
+
+        Return:
+            F_value: the value of reward function
+            q_merged: the modularity value of 2 combined communities
+
         """
 
         edges_count = len(self.device_graph.edges)
@@ -114,6 +119,9 @@ class HierarchyTree:
         Args:
             community1: first community
             community2: second community
+        
+        Return:
+            fidelity: the value of computed fidelity.
         """
 
         fidelity = 0.0
@@ -134,7 +142,20 @@ class HierarchyTree:
 
     def compute_new_node(self, communities: List[List[ops.Qid]],
                          q_values: List[float]) -> (int, int, float):
-        idx1 = 0
+        """
+        Find the best 2 communities (high fidelity) to merge and create new node.
+
+        Args:
+            communities: list of all communities
+            q_values: list of modularity values correspond to communities
+
+        Return:
+            idx1: index of the first selected community
+            idx2: index of the second selected community
+            q_merged: the modularity value (Qorigin) of 2 selected communities after merge
+        """
+
+        idx1 = 0 
         idx2 = 1
         q_merged = 0.0
         Fmax = -np.inf
@@ -159,6 +180,16 @@ class HierarchyTree:
             return idx2, idx1, q_merged
 
     def tree_construction(self) -> nx.DiGraph():
+        """
+        Construct a dendrogram tree of physical qubits. 
+        This function uses device graph and calibration data togeteher 
+        to specify wich physical qubits can be in same community to assign 
+        them to programs (qunatum circuits).
+
+        Return:
+            tree: constructed dendrogram tree
+        """
+
         tree = nx.DiGraph()
         label = 0
         communities = []
@@ -184,6 +215,9 @@ class HierarchyTree:
 
 
 class QubitsPartitioning:
+    """
+
+    """
 
     def __init__(self, tree: nx.DiGraph(),
                  program_circuits: List[circuits.Circuit],
