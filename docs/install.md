@@ -1,4 +1,4 @@
-# Installing Cirq
+# Install
 
 Choose your operating system:
 

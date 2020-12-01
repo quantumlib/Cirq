@@ -13,7 +13,8 @@
 # limitations under the License.
 
 from cirq.devices.device import (
-    Device,)
+    Device,
+)
 
 from cirq.devices.grid_qubit import (
     GridQid,
@@ -26,7 +27,8 @@ from cirq.devices.line_qubit import (
 )
 
 from cirq.devices.unconstrained_device import (
-    UNCONSTRAINED_DEVICE,)
+    UNCONSTRAINED_DEVICE,
+)
 
 from cirq.devices.noise_model import (
     NO_NOISE,

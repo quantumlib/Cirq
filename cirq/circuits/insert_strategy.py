@@ -39,14 +39,16 @@ InsertStrategy.NEW = InsertStrategy(
     """
     Always creates a new moment at the desired insert location, and adds the
     operation to insert into that moment.
-    """)
+    """,
+)
 
 InsertStrategy.NEW_THEN_INLINE = InsertStrategy(
     'NEW_THEN_INLINE',
     """
     Creates a new moment at the desired insert location for the first
     operation, but then switches to inserting operations inline.
-    """)
+    """,
+)
 
 InsertStrategy.INLINE = InsertStrategy(
     'INLINE',
@@ -60,7 +62,8 @@ InsertStrategy.INLINE = InsertStrategy(
     treated like it would be 0.
     For too big indices it attempts to insert the operation into the last
     moment of the circuit.
-    """)
+    """,
+)
 
 InsertStrategy.EARLIEST = InsertStrategy(
     'EARLIEST',
@@ -76,4 +79,5 @@ InsertStrategy.EARLIEST = InsertStrategy(
     If the moment just before the insert location has conflicting operations,
     or the insert index is 0, then the operation is inserted into a new moment
     at the desired location.
-    """)
+    """,
+)

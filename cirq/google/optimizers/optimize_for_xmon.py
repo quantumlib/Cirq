@@ -22,19 +22,16 @@ if TYPE_CHECKING:
 
 
 def optimized_for_xmon(
-        circuit: 'cirq.Circuit',
-        new_device: Optional['cirq.google.XmonDevice'] = None,
-        qubit_map: Callable[['cirq.Qid'], devices.GridQubit] = lambda e: cast(
-            devices.GridQubit, e),
-        allow_partial_czs: bool = False,
+    circuit: 'cirq.Circuit',
+    new_device: Optional['cirq.google.XmonDevice'] = None,
+    qubit_map: Callable[['cirq.Qid'], devices.GridQubit] = lambda e: cast(devices.GridQubit, e),
+    allow_partial_czs: bool = False,
 ) -> 'cirq.Circuit':
     if allow_partial_czs:
-        return optimized_for_sycamore(circuit,
-                                      new_device=new_device,
-                                      qubit_map=qubit_map,
-                                      optimizer_type='xmon_partial_cz')
+        return optimized_for_sycamore(
+            circuit, new_device=new_device, qubit_map=qubit_map, optimizer_type='xmon_partial_cz'
+        )
     else:
-        return optimized_for_sycamore(circuit,
-                                      new_device=new_device,
-                                      qubit_map=qubit_map,
-                                      optimizer_type='xmon')
+        return optimized_for_sycamore(
+            circuit, new_device=new_device, qubit_map=qubit_map, optimizer_type='xmon'
+        )

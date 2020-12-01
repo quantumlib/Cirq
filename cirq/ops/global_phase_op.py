@@ -25,7 +25,6 @@ if TYPE_CHECKING:
 
 @value.value_equality(approximate=True)
 class GlobalPhaseOperation(raw_types.Operation):
-
     def __init__(self, coefficient: value.Scalar, atol: float = 1e-8) -> None:
         if abs(1 - abs(coefficient)) > atol:
             raise ValueError(f'Coefficient is not unitary: {coefficient!r}')
@@ -37,8 +36,7 @@ class GlobalPhaseOperation(raw_types.Operation):
 
     def with_qubits(self, *new_qubits) -> 'GlobalPhaseOperation':
         if new_qubits:
-            raise ValueError(
-                f'{self!r} applies to 0 qubits but new_qubits={new_qubits!r}.')
+            raise ValueError(f'{self!r} applies to 0 qubits but new_qubits={new_qubits!r}.')
         return self
 
     def _value_equality_values_(self) -> Any:
@@ -49,7 +47,7 @@ class GlobalPhaseOperation(raw_types.Operation):
 
     def __pow__(self, power):
         if isinstance(power, (int, float)):
-            return GlobalPhaseOperation(self.coefficient**power)
+            return GlobalPhaseOperation(self.coefficient ** power)
         return NotImplemented
 
     def _unitary_(self) -> np.ndarray:
@@ -61,6 +59,7 @@ class GlobalPhaseOperation(raw_types.Operation):
 
     def _act_on_(self, args: Any):
         from cirq.sim import clifford
+
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
             # Since CliffordTableau does not keep track of the global phase,
             # it's safe to just ignore it here.

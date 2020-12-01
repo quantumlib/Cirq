@@ -40,15 +40,13 @@ def get_time_slices(dag: circuits.CircuitDag) -> List[nx.Graph]:
     second slice correspond to the nodes of the DAG whose only predecessors are
     in the first time slice, and so on.
     """
-    circuit = circuits.Circuit(
-        op for op in dag.all_operations() if len(op.qubits) > 1)
-    return [
-        nx.Graph(op.qubits for op in moment.operations) for moment in circuit
-    ]
+    circuit = circuits.Circuit(op for op in dag.all_operations() if len(op.qubits) > 1)
+    return [nx.Graph(op.qubits for op in moment.operations) for moment in circuit]
 
 
-def ops_are_consistent_with_device_graph(ops: Iterable[ops.Operation],
-                                         device_graph: nx.Graph) -> bool:
+def ops_are_consistent_with_device_graph(
+    ops: Iterable[ops.Operation], device_graph: nx.Graph
+) -> bool:
     for op in ops:
         if not set(op.qubits).issubset(device_graph):
             return False
@@ -58,11 +56,11 @@ def ops_are_consistent_with_device_graph(ops: Iterable[ops.Operation],
 
 
 def is_valid_routing(
-        circuit: circuits.Circuit,
-        swap_network: SwapNetwork,
-        *,
-        equals: BINARY_OP_PREDICATE = operator.eq,
-        can_reorder: BINARY_OP_PREDICATE = circuits.circuit_dag._disjoint_qubits
+    circuit: circuits.Circuit,
+    swap_network: SwapNetwork,
+    *,
+    equals: BINARY_OP_PREDICATE = operator.eq,
+    can_reorder: BINARY_OP_PREDICATE = circuits.circuit_dag._disjoint_qubits,
 ) -> bool:
     """Determines whether a swap network is consistent with a given circuit.
 
@@ -74,12 +72,10 @@ def is_valid_routing(
         can_reorder: A predicate that determines if two operations may be
             reordered.
     """
-    circuit_dag = circuits.CircuitDag.from_circuit(circuit,
-                                                   can_reorder=can_reorder)
+    circuit_dag = circuits.CircuitDag.from_circuit(circuit, can_reorder=can_reorder)
     logical_operations = swap_network.get_logical_operations()
     try:
-        return cca.is_topologically_sorted(circuit_dag, logical_operations,
-                                           equals)
+        return cca.is_topologically_sorted(circuit_dag, logical_operations, equals)
     except ValueError as err:
         if re.match(r'Operation .* acts on unmapped qubit .*\.', str(err)):
             return False
@@ -97,8 +93,10 @@ def get_circuit_connectivity(circuit: 'cirq.Circuit') -> nx.Graph:
         n_qubits = len(op.qubits)
         if n_qubits > 2:
             # coverage: ignore
-            raise ValueError(f"Cannot build a graph out of a circuit that "
-                             f"contains {n_qubits}-qubit operations")
+            raise ValueError(
+                f"Cannot build a graph out of a circuit that "
+                f"contains {n_qubits}-qubit operations"
+            )
         if n_qubits == 2:
             g.add_edge(*op.qubits)
     return g

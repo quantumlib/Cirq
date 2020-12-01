@@ -19,9 +19,7 @@ from cirq import ABCMetaImplementAnyOneOf, alternative
 
 
 def test_regular_abstract():
-
     class RegularAbc(metaclass=ABCMetaImplementAnyOneOf):
-
         @abc.abstractmethod
         def my_method(self):
             """Docstring."""
@@ -31,9 +29,7 @@ def test_regular_abstract():
 
 
 def test_single_alternative():
-
     class SingleAlternative(metaclass=ABCMetaImplementAnyOneOf):
-
         def _default_impl(self, arg, kw=99):
             return f'default({arg}, {kw}) ' + self.alt()
 
@@ -46,12 +42,10 @@ def test_single_alternative():
             pass
 
     class SingleAlternativeChild(SingleAlternative):
-
         def alt(self):
             return 'alt'
 
     class SingleAlternativeOverride(SingleAlternative):
-
         def my_method(self, arg, kw=99):
             """my_method override."""
             return 'override'
@@ -60,12 +54,10 @@ def test_single_alternative():
             """Unneeded alternative method."""
 
     class SingleAlternativeGrandchild(SingleAlternativeChild):
-
         def alt(self):
             return 'alt2'
 
     class SingleAlternativeGrandchildOverride(SingleAlternativeChild):
-
         def my_method(self, arg, kw=99):
             """my_method override."""
             return 'override2'
@@ -78,16 +70,12 @@ def test_single_alternative():
     assert SingleAlternativeChild().my_method(1) == 'default(1, 99) alt'
     assert SingleAlternativeChild().my_method(2, kw=3) == 'default(2, 3) alt'
     assert SingleAlternativeOverride().my_method(4, kw=5) == 'override'
-    assert (SingleAlternativeGrandchild().my_method(
-        6, kw=7) == 'default(6, 7) alt2')
-    assert (SingleAlternativeGrandchildOverride().my_method(
-        8, kw=9) == 'override2')
+    assert SingleAlternativeGrandchild().my_method(6, kw=7) == 'default(6, 7) alt2'
+    assert SingleAlternativeGrandchildOverride().my_method(8, kw=9) == 'override2'
 
 
 def test_doc_string():
-
     class SingleAlternative(metaclass=ABCMetaImplementAnyOneOf):
-
         def _default_impl(self, arg, kw=99):
             """Default implementation."""
 
@@ -100,12 +88,10 @@ def test_doc_string():
             pass
 
     class SingleAlternativeChild(SingleAlternative):
-
         def alt(self):
             """Alternative method."""
 
     class SingleAlternativeOverride(SingleAlternative):
-
         def my_method(self, arg, kw=99):
             """my_method override."""
 
@@ -116,17 +102,14 @@ def test_doc_string():
     assert SingleAlternativeChild.my_method.__doc__ == 'my_method doc.'
     assert SingleAlternativeChild().my_method.__doc__ == 'my_method doc.'
     assert SingleAlternativeOverride.my_method.__doc__ == 'my_method override.'
-    assert (
-        SingleAlternativeOverride().my_method.__doc__ == 'my_method override.')
+    assert SingleAlternativeOverride().my_method.__doc__ == 'my_method override.'
 
 
 def test_bad_alternative():
     with pytest.raises(TypeError, match='not exist'):
 
         class _(metaclass=ABCMetaImplementAnyOneOf):
-
-            @alternative(requires='missing_alt',
-                         implementation=lambda self: None)
+            @alternative(requires='missing_alt', implementation=lambda self: None)
             def my_method(self, arg, kw=99):
                 """my_method doc."""
 
@@ -153,16 +136,13 @@ def test_classcell_in_namespace():
 
     # Test that the class is created without wrongly raising a TypeError
     class _(metaclass=ABCMetaImplementAnyOneOf):
-
         def other_method(self):
             # Triggers __classcell__ to be added to the class namespace
             super()  # coverage: ignore
 
 
 def test_two_alternatives():
-
     class TwoAlternatives(metaclass=ABCMetaImplementAnyOneOf):
-
         def _default_impl1(self, arg, kw=99):
             return f'default1({arg}, {kw}) ' + self.alt1()
 
@@ -183,7 +163,6 @@ def test_two_alternatives():
             pass
 
     class TwoAlternativesChild(TwoAlternatives):
-
         def alt1(self):
             return 'alt1'
 
@@ -191,7 +170,6 @@ def test_two_alternatives():
             raise RuntimeError  # coverage: ignore
 
     class TwoAlternativesOverride(TwoAlternatives):
-
         def my_method(self, arg, kw=99):
             return 'override'
 
@@ -202,12 +180,10 @@ def test_two_alternatives():
             raise RuntimeError  # coverage: ignore
 
     class TwoAlternativesForceSecond(TwoAlternatives):
-
         def _do_alt1_with_my_method(self):
             return 'reverse ' + self.my_method(0, kw=0)
 
-        @alternative(requires='my_method',
-                     implementation=_do_alt1_with_my_method)
+        @alternative(requires='my_method', implementation=_do_alt1_with_my_method)
         def alt1(self):
             """alt1 doc."""
 
@@ -219,15 +195,13 @@ def test_two_alternatives():
     assert TwoAlternativesChild().my_method(1) == 'default1(1, 99) alt1'
     assert TwoAlternativesChild().my_method(2, kw=3) == 'default1(2, 3) alt1'
     assert TwoAlternativesOverride().my_method(4, kw=5) == 'override'
-    assert (TwoAlternativesForceSecond().my_method(
-        6, kw=7) == 'default2(6, 7) alt2')
+    assert TwoAlternativesForceSecond().my_method(6, kw=7) == 'default2(6, 7) alt2'
     assert TwoAlternativesForceSecond().alt1() == 'reverse default2(0, 0) alt2'
 
 
 def test_implement_any_one():
     # Creates circular alternative dependencies
     class AnyOneAbc(metaclass=ABCMetaImplementAnyOneOf):
-
         def _method1_with_2(self):
             return '1-2 ' + self.method2()
 
@@ -262,19 +236,16 @@ def test_implement_any_one():
             """Method3."""
 
     class Implement1(AnyOneAbc):
-
         def method1(self):
             """Method1 child."""
             return 'child1'
 
     class Implement2(AnyOneAbc):
-
         def method2(self):
             """Method2 child."""
             return 'child2'
 
     class Implement3(AnyOneAbc):
-
         def method3(self):
             """Method3 child."""
             return 'child3'

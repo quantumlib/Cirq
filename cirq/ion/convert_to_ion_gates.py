@@ -19,8 +19,7 @@ from cirq.ion import ms, two_qubit_matrix_to_ion_operations
 
 
 class ConvertToIonGates:
-    """Attempts to convert non-native gates into IonGates.
-    """
+    """Attempts to convert non-native gates into IonGates."""
 
     def __init__(self, ignore_failures: bool = False) -> None:
         """
@@ -50,10 +49,7 @@ class ConvertToIonGates:
             return [op]
         # one choice of known Hadamard gate decomposition
         if isinstance(op.gate, ops.HPowGate) and op.gate.exponent == 1:
-            return [
-                ops.rx(np.pi).on(op.qubits[0]),
-                ops.ry(-1 * np.pi / 2).on(op.qubits[0])
-            ]
+            return [ops.rx(np.pi).on(op.qubits[0]), ops.ry(-1 * np.pi / 2).on(op.qubits[0])]
         # one choice of known CNOT gate decomposition
         if isinstance(op.gate, ops.CNotPowGate) and op.gate.exponent == 1:
             return [
@@ -61,25 +57,25 @@ class ConvertToIonGates:
                 ms(np.pi / 4).on(op.qubits[0], op.qubits[1]),
                 ops.rx(-1 * np.pi / 2).on(op.qubits[0]),
                 ops.rx(-1 * np.pi / 2).on(op.qubits[1]),
-                ops.ry(-1 * np.pi / 2).on(op.qubits[0])
+                ops.ry(-1 * np.pi / 2).on(op.qubits[0]),
             ]
         # Known matrix
-        mat = protocols.unitary(op, None) if len(
-            op.qubits) <= 2 else None
+        mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
         if mat is not None and len(op.qubits) == 1:
             gates = optimizers.single_qubit_matrix_to_phased_x_z(mat)
             return [g.on(op.qubits[0]) for g in gates]
         if mat is not None and len(op.qubits) == 2:
-            return two_qubit_matrix_to_ion_operations(
-                op.qubits[0], op.qubits[1], mat)
+            return two_qubit_matrix_to_ion_operations(op.qubits[0], op.qubits[1], mat)
 
         if self.ignore_failures:
             return [op]
 
-        raise TypeError("Don't know how to work with {!r}. "
-                        "It isn't a native Ion Trap operation, "
-                        "a 1 or 2 qubit gate with a known unitary, "
-                        "or composite.".format(op.gate))
+        raise TypeError(
+            "Don't know how to work with {!r}. "
+            "It isn't a native Ion Trap operation, "
+            "a 1 or 2 qubit gate with a known unitary, "
+            "or composite.".format(op.gate)
+        )
 
     def convert_circuit(self, circuit: circuits.Circuit) -> circuits.Circuit:
         new_circuit = circuits.Circuit()
@@ -100,5 +96,14 @@ def is_native_ion_gate(gate: ops.Gate) -> bool:
     Returns:
         True if the gate is native to the ion, false otherwise.
     """
-    return isinstance(gate, (ops.XXPowGate, ops.MeasurementGate, ops.XPowGate,
-                             ops.YPowGate, ops.ZPowGate, ops.PhasedXPowGate))
+    return isinstance(
+        gate,
+        (
+            ops.XXPowGate,
+            ops.MeasurementGate,
+            ops.XPowGate,
+            ops.YPowGate,
+            ops.ZPowGate,
+            ops.PhasedXPowGate,
+        ),
+    )

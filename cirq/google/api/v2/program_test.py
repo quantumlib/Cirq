@@ -29,9 +29,7 @@ def test_qubit_to_proto_id():
 
 
 def test_to_proto_id_unsupport_qid():
-
     class ValidQubit(cirq.Qid):
-
         def __init__(self, name):
             self._name = name
 
