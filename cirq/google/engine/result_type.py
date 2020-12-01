@@ -26,6 +26,7 @@ class ResultType(enum.Enum):
     Batch: A list of circuits with a list of TrialResults in a BatchResult.
     Calibration: List of CalibrationLayers returning a list of CalibrationResult
     """
+
     Program = 1
     Batch = 2
     Calibration = 3

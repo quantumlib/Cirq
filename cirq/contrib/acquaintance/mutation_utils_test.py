@@ -43,8 +43,9 @@ d: ───█───
     assert actual_text_diagram == expected_text_diagram
     assert cca.get_acquaintance_size(trivial_strategy) == 1
 
-    is_shift_or_lin_perm = lambda op: isinstance(op.gate,
-            (cca.CircularShiftGate, cca.LinearPermutationGate))
+    is_shift_or_lin_perm = lambda op: isinstance(
+        op.gate, (cca.CircularShiftGate, cca.LinearPermutationGate)
+    )
     expand = cirq.ExpandComposite(no_decomp=is_shift_or_lin_perm)
 
     quadratic_strategy = cca.complete_acquaintance_strategy(qubits[:8], 2)
@@ -70,50 +71,50 @@ h: ───×(7,0)───
     assert cca.get_acquaintance_size(quadratic_strategy) == 2
 
     expand(quadratic_strategy)
-    actual_text_diagram = quadratic_strategy.to_text_diagram(
-            transpose=True).strip()
-    expected_text_diagram = '\n'.join((
-        "a   b   c   d   e   f   g   h        ".strip(),
-        "│   │   │   │   │   │   │   │        ".strip(),
-        "█───█   █───█   █───█   █───█        ".strip(),
-        "│   │   │   │   │   │   │   │        ".strip(),
-        "╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲      ".strip(),
-        "│   │   │   │   │   │   │   │        ".strip(),
-        "│   █───█   █───█   █───█   │        ".strip(),
-        "│   │   │   │   │   │   │   │        ".strip(),
-        "│   ╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲ │        ".strip(),
-        "│   │   │   │   │   │   │   │        ".strip(),
-        "█───█   █───█   █───█   █───█        ".strip(),
-        "│   │   │   │   │   │   │   │        ".strip(),
-        "╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲      ".strip(),
-        "│   │   │   │   │   │   │   │        ".strip(),
-        "│   █───█   █───█   █───█   │        ".strip(),
-        "│   │   │   │   │   │   │   │        ".strip(),
-        "│   ╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲ │        ".strip(),
-        "│   │   │   │   │   │   │   │        ".strip(),
-        "█───█   █───█   █───█   █───█        ".strip(),
-        "│   │   │   │   │   │   │   │        ".strip(),
-        "╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲      ".strip(),
-        "│   │   │   │   │   │   │   │        ".strip(),
-        "│   █───█   █───█   █───█   │        ".strip(),
-        "│   │   │   │   │   │   │   │        ".strip(),
-        "│   ╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲ │        ".strip(),
-        "│   │   │   │   │   │   │   │        ".strip(),
-        "█───█   █───█   █───█   █───█        ".strip(),
-        "│   │   │   │   │   │   │   │        ".strip(),
-        "╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲      ".strip(),
-        "│   │   │   │   │   │   │   │        ".strip(),
-        "│   █───█   █───█   █───█   │        ".strip(),
-        "│   │   │   │   │   │   │   │        ".strip(),
-        "│   ╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲ │        ".strip(),
-        "│   │   │   │   │   │   │   │        ".strip()
-        ))
+    actual_text_diagram = quadratic_strategy.to_text_diagram(transpose=True).strip()
+    expected_text_diagram = '\n'.join(
+        (
+            "a   b   c   d   e   f   g   h        ".strip(),
+            "│   │   │   │   │   │   │   │        ".strip(),
+            "█───█   █───█   █───█   █───█        ".strip(),
+            "│   │   │   │   │   │   │   │        ".strip(),
+            "╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲      ".strip(),
+            "│   │   │   │   │   │   │   │        ".strip(),
+            "│   █───█   █───█   █───█   │        ".strip(),
+            "│   │   │   │   │   │   │   │        ".strip(),
+            "│   ╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲ │        ".strip(),
+            "│   │   │   │   │   │   │   │        ".strip(),
+            "█───█   █───█   █───█   █───█        ".strip(),
+            "│   │   │   │   │   │   │   │        ".strip(),
+            "╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲      ".strip(),
+            "│   │   │   │   │   │   │   │        ".strip(),
+            "│   █───█   █───█   █───█   │        ".strip(),
+            "│   │   │   │   │   │   │   │        ".strip(),
+            "│   ╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲ │        ".strip(),
+            "│   │   │   │   │   │   │   │        ".strip(),
+            "█───█   █───█   █───█   █───█        ".strip(),
+            "│   │   │   │   │   │   │   │        ".strip(),
+            "╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲      ".strip(),
+            "│   │   │   │   │   │   │   │        ".strip(),
+            "│   █───█   █───█   █───█   │        ".strip(),
+            "│   │   │   │   │   │   │   │        ".strip(),
+            "│   ╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲ │        ".strip(),
+            "│   │   │   │   │   │   │   │        ".strip(),
+            "█───█   █───█   █───█   █───█        ".strip(),
+            "│   │   │   │   │   │   │   │        ".strip(),
+            "╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲      ".strip(),
+            "│   │   │   │   │   │   │   │        ".strip(),
+            "│   █───█   █───█   █───█   │        ".strip(),
+            "│   │   │   │   │   │   │   │        ".strip(),
+            "│   ╲0╱─╱1╲ ╲0╱─╱1╲ ╲0╱─╱1╲ │        ".strip(),
+            "│   │   │   │   │   │   │   │        ".strip(),
+        )
+    )
     assert actual_text_diagram == expected_text_diagram
     assert cca.get_acquaintance_size(quadratic_strategy) == 2
 
     cubic_strategy = cca.complete_acquaintance_strategy(qubits[:4], 3)
-    actual_text_diagram = cubic_strategy.to_text_diagram(
-            transpose=True).strip()
+    actual_text_diagram = cubic_strategy.to_text_diagram(transpose=True).strip()
     expected_text_diagram = """
 a      b      c      d
 │      │      │      │
@@ -137,6 +138,7 @@ a      b      c      d
     assert actual_text_diagram == expected_text_diagram
     assert cca.get_acquaintance_size(cubic_strategy) == 3
 
+
 def test_rectification():
     qubits = cirq.LineQubit.range(4)
 
@@ -145,12 +147,13 @@ def test_rectification():
 
     perm_gate = cca.SwapPermutationGate()
     operations = [
-        perm_gate(*qubits[:2]), cca.acquaint(*qubits[2:]),
-        cca.acquaint(*qubits[:2]), perm_gate(*qubits[2:])
-        ]
+        perm_gate(*qubits[:2]),
+        cca.acquaint(*qubits[2:]),
+        cca.acquaint(*qubits[:2]),
+        perm_gate(*qubits[2:]),
+    ]
 
-    strategy = cirq.Circuit(operations,
-                            device=cca.UnconstrainedAcquaintanceDevice)
+    strategy = cirq.Circuit(operations, device=cca.UnconstrainedAcquaintanceDevice)
     cca.rectify_acquaintance_strategy(strategy)
     actual_text_diagram = strategy.to_text_diagram().strip()
     expected_text_diagram = """
@@ -164,8 +167,7 @@ def test_rectification():
     """.strip()
     assert actual_text_diagram == expected_text_diagram
 
-    strategy = cirq.Circuit(operations,
-                            device=cca.UnconstrainedAcquaintanceDevice)
+    strategy = cirq.Circuit(operations, device=cca.UnconstrainedAcquaintanceDevice)
     cca.rectify_acquaintance_strategy(strategy, False)
     actual_text_diagram = strategy.to_text_diagram()
     expected_text_diagram = """
@@ -178,6 +180,7 @@ def test_rectification():
 3: ─────────█───────1↦0───
     """.strip()
     assert actual_text_diagram == expected_text_diagram
+
 
 def test_replace_acquaintance_with_swap_network():
     with pytest.raises(TypeError):

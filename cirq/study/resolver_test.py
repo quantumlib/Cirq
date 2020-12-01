@@ -22,27 +22,30 @@ import sympy
 import cirq
 
 
-@pytest.mark.parametrize('val', [
-    3.2,
-    np.float32(3.2),
-    int(1),
-    np.int(3),
-    np.int32(45),
-    np.float64(6.3),
-    np.int32(2),
-    np.complex64(1j),
-    np.complex128(2j),
-    np.complex(1j),
-    fractions.Fraction(3, 2),
-])
+@pytest.mark.parametrize(
+    'val',
+    [
+        3.2,
+        np.float32(3.2),
+        int(1),
+        np.int(3),
+        np.int32(45),
+        np.float64(6.3),
+        np.int32(2),
+        np.complex64(1j),
+        np.complex128(2j),
+        np.complex(1j),
+        fractions.Fraction(3, 2),
+    ],
+)
 def test_value_of_pass_through_types(val):
     _assert_consistent_resolution(val, val)
 
 
-@pytest.mark.parametrize('val,resolved', [(sympy.pi, np.pi),
-                                          (sympy.S.NegativeOne, -1),
-                                          (sympy.S.Half, 0.5),
-                                          (sympy.S.One, 1)])
+@pytest.mark.parametrize(
+    'val,resolved',
+    [(sympy.pi, np.pi), (sympy.S.NegativeOne, -1), (sympy.S.Half, 0.5), (sympy.S.One, 1)],
+)
 def test_value_of_transformed_types(val, resolved):
     _assert_consistent_resolution(val, resolved)
 
@@ -88,28 +91,25 @@ def _assert_consistent_resolution(v, resolved, subs_called=False):
 
     # symbol based resolution
     s = SubsAwareSymbol('a')
-    assert r.value_of(s) == resolved, (f"expected {resolved}, "
-                                       f"got {r.value_of(s)}")
+    assert r.value_of(s) == resolved, f"expected {resolved}, " f"got {r.value_of(s)}"
     assert subs_called == s.called, (
-        f"For pass-through type "
-        f"{type(v)} sympy.subs shouldn't have been called.")
-    assert isinstance(r.value_of(s),
-                      type(resolved)), (f"expected {type(resolved)} "
-                                        f"got {type(r.value_of(s))}")
+        f"For pass-through type " f"{type(v)} sympy.subs shouldn't have been called."
+    )
+    assert isinstance(r.value_of(s), type(resolved)), (
+        f"expected {type(resolved)} " f"got {type(r.value_of(s))}"
+    )
 
     # string based resolution (which in turn uses symbol based resolution)
-    assert r.value_of('a') == resolved, (f"expected {resolved}, "
-                                         f"got {r.value_of('a')}")
-    assert isinstance(r.value_of('a'),
-                      type(resolved)), (f"expected {type(resolved)} "
-                                        f"got {type(r.value_of('a'))}")
+    assert r.value_of('a') == resolved, f"expected {resolved}, " f"got {r.value_of('a')}"
+    assert isinstance(r.value_of('a'), type(resolved)), (
+        f"expected {type(resolved)} " f"got {type(r.value_of('a'))}"
+    )
 
     # value based resolution
-    assert r.value_of(v) == resolved, (f"expected {resolved}, "
-                                       f"got {r.value_of(v)}")
-    assert isinstance(r.value_of(v),
-                      type(resolved)), (f"expected {type(resolved)} "
-                                        f"got {type(r.value_of(v))}")
+    assert r.value_of(v) == resolved, f"expected {resolved}, " f"got {r.value_of(v)}"
+    assert isinstance(r.value_of(v), type(resolved)), (
+        f"expected {type(resolved)} " f"got {type(r.value_of(v))}"
+    )
 
 
 def test_value_of_strings():
@@ -123,7 +123,7 @@ def test_value_of_calculations():
     assert bool(r)
 
     assert r.value_of(2 * sympy.pi) == 2 * np.pi
-    assert r.value_of(4**sympy.Symbol('a') + sympy.Symbol('b') * 10) == 3
+    assert r.value_of(4 ** sympy.Symbol('a') + sympy.Symbol('b') * 10) == 3
     assert r.value_of(sympy.I * sympy.pi) == np.pi * 1j
     assert r.value_of(sympy.Symbol('a') * 3) == 1.5
     assert r.value_of(sympy.Symbol('b') / 0.1 - sympy.Symbol('a')) == 0.5
@@ -168,10 +168,12 @@ def test_formulas_in_param_dict():
 
 def test_equals():
     et = cirq.testing.EqualsTester()
-    et.add_equality_group(cirq.ParamResolver(),
-                          cirq.ParamResolver(None),
-                          cirq.ParamResolver({}),
-                          cirq.ParamResolver(cirq.ParamResolver({})))
+    et.add_equality_group(
+        cirq.ParamResolver(),
+        cirq.ParamResolver(None),
+        cirq.ParamResolver({}),
+        cirq.ParamResolver(cirq.ParamResolver({})),
+    )
     et.make_equality_group(lambda: cirq.ParamResolver({'a': 0.0}))
     et.add_equality_group(cirq.ParamResolver({'a': 0.1}))
     et.add_equality_group(cirq.ParamResolver({'a': 0.0, 'b': 0.1}))
@@ -183,7 +185,7 @@ def test_equals():
 def test_repr():
     cirq.testing.assert_equivalent_repr(cirq.ParamResolver())
     cirq.testing.assert_equivalent_repr(cirq.ParamResolver({'a': 2.0}))
+    cirq.testing.assert_equivalent_repr(cirq.ParamResolver({'a': sympy.Symbol('a')}))
     cirq.testing.assert_equivalent_repr(
-        cirq.ParamResolver({'a': sympy.Symbol('a')}))
-    cirq.testing.assert_equivalent_repr(
-        cirq.ParamResolver({sympy.Symbol('a'): sympy.Symbol('b') + 1}))
+        cirq.ParamResolver({sympy.Symbol('a'): sympy.Symbol('b') + 1})
+    )

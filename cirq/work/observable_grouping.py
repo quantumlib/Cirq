@@ -15,15 +15,15 @@
 from typing import Iterable, Dict, List, TYPE_CHECKING, cast
 
 from cirq import ops, value
-from cirq.work.observable_settings import (InitObsSetting, _max_weight_state,
-                                           _max_weight_observable)
+from cirq.work.observable_settings import InitObsSetting, _max_weight_state, _max_weight_observable
 
 if TYPE_CHECKING:
     pass
 
 
-def group_settings_greedy(settings: Iterable[InitObsSetting]) \
-        -> Dict[InitObsSetting, List[InitObsSetting]]:
+def group_settings_greedy(
+    settings: Iterable[InitObsSetting],
+) -> Dict[InitObsSetting, List[InitObsSetting]]:
     """Greedily group settings which can be simultaneously measured.
 
     We construct a dictionary keyed by `max_setting` (see docstrings
@@ -49,19 +49,19 @@ def group_settings_greedy(settings: Iterable[InitObsSetting]) \
         for max_setting, simul_settings in grouped_settings.items():
             trial_grouped_settings = simul_settings + [setting]
             new_max_weight_state = _max_weight_state(
-                stg.init_state for stg in trial_grouped_settings)
+                stg.init_state for stg in trial_grouped_settings
+            )
             new_max_weight_obs = _max_weight_observable(
-                stg.observable for stg in trial_grouped_settings)
+                stg.observable for stg in trial_grouped_settings
+            )
             compatible_init_state = new_max_weight_state is not None
             compatible_observable = new_max_weight_obs is not None
-            can_be_inserted = (compatible_init_state and compatible_observable)
+            can_be_inserted = compatible_init_state and compatible_observable
             if can_be_inserted:
-                new_max_weight_state = cast(value.ProductState,
-                                            new_max_weight_state)
+                new_max_weight_state = cast(value.ProductState, new_max_weight_state)
                 new_max_weight_obs = cast(ops.PauliString, new_max_weight_obs)
                 del grouped_settings[max_setting]
-                new_max_setting = InitObsSetting(new_max_weight_state,
-                                                 new_max_weight_obs)
+                new_max_setting = InitObsSetting(new_max_weight_state, new_max_weight_obs)
                 grouped_settings[new_max_setting] = trial_grouped_settings
                 break
 
@@ -70,8 +70,7 @@ def group_settings_greedy(settings: Iterable[InitObsSetting]) \
             # thus a new group needs to be created
             # Strip coefficients before using as key
             new_max_weight_obs = setting.observable.with_coefficient(1.0)
-            new_max_setting = InitObsSetting(setting.init_state,
-                                             new_max_weight_obs)
+            new_max_setting = InitObsSetting(setting.init_state, new_max_weight_obs)
             grouped_settings[new_max_setting] = [setting]
 
     return grouped_settings

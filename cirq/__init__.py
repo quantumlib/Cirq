@@ -25,6 +25,7 @@ from cirq import (
     _doc,
     type_workarounds,
 )
+
 with _import.delay_import('cirq.protocols'):
     from cirq import (
         # Core
@@ -55,6 +56,7 @@ from cirq import (
     testing,
     contrib,
 )
+
 # End dependency order list of sub-modules
 
 from cirq._version import (
@@ -64,6 +66,7 @@ from cirq._version import (
 # Flattened sub-modules.
 
 from cirq.circuits import (
+    AbstractCircuit,
     Circuit,
     CircuitDag,
     FrozenCircuit,
@@ -241,6 +244,7 @@ from cirq.ops import (
     phase_flip,
     PhaseDampingChannel,
     PhaseGradientGate,
+    PhasedFSimGate,
     PhasedISwapPowGate,
     PhasedXPowGate,
     PhasedXZGate,
@@ -274,6 +278,7 @@ from cirq.ops import (
     TwoQubitDiagonalGate,
     TwoQubitGate,
     VirtualTag,
+    wait,
     WaitGate,
     X,
     XPowGate,
@@ -315,6 +320,7 @@ from cirq.optimizers import (
     stratified_circuit,
     SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
+    two_qubit_matrix_to_diagonal_and_operations,
 )
 
 from cirq.qis import (
@@ -533,7 +539,8 @@ from cirq.neutral_atoms import (
 )
 
 from cirq.vis import (
-    Heatmap,)
+    Heatmap,
+)
 
 from cirq.work import (
     CircuitSampleJob,
@@ -550,6 +557,7 @@ from cirq.work import (
 from cirq import (
     contrib,
     google,
+    ionq,
     pasqal,
     testing,
 )

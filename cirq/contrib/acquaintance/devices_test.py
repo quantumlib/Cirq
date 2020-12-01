@@ -26,10 +26,8 @@ def test_acquaintance_device():
 
     qubits = cirq.LineQubit.range(4)
     swap_network = cca.SwapNetworkGate((1, 2, 1))
-    cca.UnconstrainedAcquaintanceDevice.validate_operation(
-        cca.acquaint(*qubits[:2]))
-    cca.UnconstrainedAcquaintanceDevice.validate_operation(
-        swap_network(*qubits))
+    cca.UnconstrainedAcquaintanceDevice.validate_operation(cca.acquaint(*qubits[:2]))
+    cca.UnconstrainedAcquaintanceDevice.validate_operation(swap_network(*qubits))
 
 
 def test_get_acquaintance_size():

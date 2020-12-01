@@ -22,12 +22,12 @@ from cirq.ops import pauli_string as ps, raw_types
 if TYPE_CHECKING:
     import cirq
 
-TSelf_PauliStringGateOperation = TypeVar('TSelf_PauliStringGateOperation',
-                                         bound='PauliStringGateOperation')
+TSelf_PauliStringGateOperation = TypeVar(
+    'TSelf_PauliStringGateOperation', bound='PauliStringGateOperation'
+)
 
 
 class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
-
     def __init__(self, pauli_string: ps.PauliString) -> None:
         self.pauli_string = pauli_string
 
@@ -35,15 +35,16 @@ class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
         if len(qubits) != len(self.pauli_string):
             raise ValueError('Incorrect number of qubits for gate')
 
-    def with_qubits(self: TSelf_PauliStringGateOperation,
-                    *new_qubits: 'cirq.Qid') -> TSelf_PauliStringGateOperation:
+    def with_qubits(
+        self: TSelf_PauliStringGateOperation, *new_qubits: 'cirq.Qid'
+    ) -> TSelf_PauliStringGateOperation:
         self.validate_args(new_qubits)
         return self.map_qubits(dict(zip(self.pauli_string.qubits, new_qubits)))
 
     @abc.abstractmethod
-    def map_qubits(self: TSelf_PauliStringGateOperation,
-                   qubit_map: Dict[raw_types.Qid, raw_types.Qid]
-                  ) -> TSelf_PauliStringGateOperation:
+    def map_qubits(
+        self: TSelf_PauliStringGateOperation, qubit_map: Dict[raw_types.Qid, raw_types.Qid]
+    ) -> TSelf_PauliStringGateOperation:
         """Return an equivalent operation on new qubits with its Pauli string
         mapped to new qubits.
 
@@ -55,12 +56,10 @@ class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
         return tuple(self.pauli_string)
 
     def _pauli_string_diagram_info(
-            self,
-            args: 'protocols.CircuitDiagramInfoArgs',
-            exponent: Any = 1,
+        self,
+        args: 'protocols.CircuitDiagramInfoArgs',
+        exponent: Any = 1,
     ) -> 'cirq.CircuitDiagramInfo':
         qubits = self.qubits if args.known_qubits is None else args.known_qubits
-        syms = tuple(
-            '[{}]'.format(self.pauli_string[qubit]) for qubit in qubits)
-        return protocols.CircuitDiagramInfo(wire_symbols=syms,
-                                            exponent=exponent)
+        syms = tuple('[{}]'.format(self.pauli_string[qubit]) for qubit in qubits)
+        return protocols.CircuitDiagramInfo(wire_symbols=syms, exponent=exponent)

@@ -20,74 +20,116 @@ def test_stratified_circuit_classifier_types():
     a, b, c, d = cirq.LineQubit.range(4)
 
     circuit = cirq.Circuit(
-        cirq.Moment([
-            cirq.X(a),
-            cirq.Y(b),
-            cirq.X(c)**0.5,
-            cirq.X(d),
-        ]),)
+        cirq.Moment(
+            [
+                cirq.X(a),
+                cirq.Y(b),
+                cirq.X(c) ** 0.5,
+                cirq.X(d),
+            ]
+        ),
+    )
 
-    gate_result = cirq.stratified_circuit(circuit, categories=[
-        cirq.X,
-    ])
+    gate_result = cirq.stratified_circuit(
+        circuit,
+        categories=[
+            cirq.X,
+        ],
+    )
     assert gate_result == cirq.Circuit(
-        cirq.Moment([
-            cirq.X(a),
-            cirq.X(d),
-        ]), cirq.Moment([
-            cirq.Y(b),
-            cirq.X(c)**0.5,
-        ]))
+        cirq.Moment(
+            [
+                cirq.X(a),
+                cirq.X(d),
+            ]
+        ),
+        cirq.Moment(
+            [
+                cirq.Y(b),
+                cirq.X(c) ** 0.5,
+            ]
+        ),
+    )
 
-    gate_type_result = cirq.stratified_circuit(circuit,
-                                               categories=[
-                                                   cirq.XPowGate,
-                                               ])
+    gate_type_result = cirq.stratified_circuit(
+        circuit,
+        categories=[
+            cirq.XPowGate,
+        ],
+    )
     assert gate_type_result == cirq.Circuit(
-        cirq.Moment([
-            cirq.X(a),
-            cirq.X(c)**0.5,
-            cirq.X(d),
-        ]), cirq.Moment([
-            cirq.Y(b),
-        ]))
+        cirq.Moment(
+            [
+                cirq.X(a),
+                cirq.X(c) ** 0.5,
+                cirq.X(d),
+            ]
+        ),
+        cirq.Moment(
+            [
+                cirq.Y(b),
+            ]
+        ),
+    )
 
-    operation_result = cirq.stratified_circuit(circuit, categories=[
-        cirq.X(a),
-    ])
+    operation_result = cirq.stratified_circuit(
+        circuit,
+        categories=[
+            cirq.X(a),
+        ],
+    )
     assert operation_result == cirq.Circuit(
-        cirq.Moment([
-            cirq.X(a),
-        ]), cirq.Moment([
-            cirq.Y(b),
-            cirq.X(c)**0.5,
-            cirq.X(d),
-        ]))
+        cirq.Moment(
+            [
+                cirq.X(a),
+            ]
+        ),
+        cirq.Moment(
+            [
+                cirq.Y(b),
+                cirq.X(c) ** 0.5,
+                cirq.X(d),
+            ]
+        ),
+    )
 
-    operation_type_result = cirq.stratified_circuit(circuit,
-                                                    categories=[
-                                                        cirq.GateOperation,
-                                                    ])
+    operation_type_result = cirq.stratified_circuit(
+        circuit,
+        categories=[
+            cirq.GateOperation,
+        ],
+    )
     assert operation_type_result == cirq.Circuit(
-        cirq.Moment([
-            cirq.X(a),
-            cirq.Y(b),
-            cirq.X(c)**0.5,
-            cirq.X(d),
-        ]))
+        cirq.Moment(
+            [
+                cirq.X(a),
+                cirq.Y(b),
+                cirq.X(c) ** 0.5,
+                cirq.X(d),
+            ]
+        )
+    )
 
-    predicate_result = cirq.stratified_circuit(circuit,
-                                               categories=[
-                                                   lambda op: op.qubits == (b,),
-                                               ])
+    predicate_result = cirq.stratified_circuit(
+        circuit,
+        categories=[
+            lambda op: op.qubits == (b,),
+        ],
+    )
     assert predicate_result == cirq.Circuit(
-        cirq.Moment([
-            cirq.Y(b),
-        ]), cirq.Moment([
-            cirq.X(a),
-            cirq.X(d),
-            cirq.X(c)**0.5,
-        ]))
+        cirq.Moment(
+            [
+                cirq.Y(b),
+            ]
+        ),
+        cirq.Moment(
+            [
+                cirq.X(a),
+                cirq.X(d),
+                cirq.X(c) ** 0.5,
+            ]
+        ),
+    )
 
     with pytest.raises(TypeError, match='Unrecognized'):
         _ = cirq.stratified_circuit(circuit, categories=['unknown'])
@@ -96,78 +138,97 @@ def test_stratified_circuit_classifier_types():
 def test_overlapping_categories():
     a, b, c, d = cirq.LineQubit.range(4)
 
-    result = cirq.stratified_circuit(cirq.Circuit(
-        cirq.Moment([
-            cirq.X(a),
-            cirq.Y(b),
-            cirq.Z(c),
-        ]),
-        cirq.Moment([
-            cirq.CNOT(a, b),
-        ]),
-        cirq.Moment([
-            cirq.CNOT(c, d),
-        ]),
-        cirq.Moment([
-            cirq.X(a),
-            cirq.Y(b),
-            cirq.Z(c),
-        ]),
-    ),
-                                     categories=[
-                                         lambda op: len(op.qubits) == 1 and
-                                         not isinstance(op.gate, cirq.XPowGate),
-                                         lambda op: len(op.qubits) == 1 and
-                                         not isinstance(op.gate, cirq.ZPowGate),
-                                     ])
+    result = cirq.stratified_circuit(
+        cirq.Circuit(
+            cirq.Moment(
+                [
+                    cirq.X(a),
+                    cirq.Y(b),
+                    cirq.Z(c),
+                ]
+            ),
+            cirq.Moment(
+                [
+                    cirq.CNOT(a, b),
+                ]
+            ),
+            cirq.Moment(
+                [
+                    cirq.CNOT(c, d),
+                ]
+            ),
+            cirq.Moment(
+                [
+                    cirq.X(a),
+                    cirq.Y(b),
+                    cirq.Z(c),
+                ]
+            ),
+        ),
+        categories=[
+            lambda op: len(op.qubits) == 1 and not isinstance(op.gate, cirq.XPowGate),
+            lambda op: len(op.qubits) == 1 and not isinstance(op.gate, cirq.ZPowGate),
+        ],
+    )
 
     assert result == cirq.Circuit(
-        cirq.Moment([
-            cirq.Y(b),
-            cirq.Z(c),
-        ]),
-        cirq.Moment([
-            cirq.X(a),
-        ]),
-        cirq.Moment([
-            cirq.CNOT(a, b),
-            cirq.CNOT(c, d),
-        ]),
-        cirq.Moment([
-            cirq.Y(b),
-            cirq.Z(c),
-        ]),
-        cirq.Moment([
-            cirq.X(a),
-        ]),
+        cirq.Moment(
+            [
+                cirq.Y(b),
+                cirq.Z(c),
+            ]
+        ),
+        cirq.Moment(
+            [
+                cirq.X(a),
+            ]
+        ),
+        cirq.Moment(
+            [
+                cirq.CNOT(a, b),
+                cirq.CNOT(c, d),
+            ]
+        ),
+        cirq.Moment(
+            [
+                cirq.Y(b),
+                cirq.Z(c),
+            ]
+        ),
+        cirq.Moment(
+            [
+                cirq.X(a),
+            ]
+        ),
     )
 
 
 def test_empty():
     a = cirq.LineQubit(0)
-    assert cirq.stratified_circuit(cirq.Circuit(),
-                                   categories=[]) == cirq.Circuit()
-    assert cirq.stratified_circuit(cirq.Circuit(),
-                                   categories=[cirq.X]) == cirq.Circuit()
-    assert cirq.stratified_circuit(cirq.Circuit(cirq.X(a)),
-                                   categories=[]) == cirq.Circuit(cirq.X(a))
+    assert cirq.stratified_circuit(cirq.Circuit(), categories=[]) == cirq.Circuit()
+    assert cirq.stratified_circuit(cirq.Circuit(), categories=[cirq.X]) == cirq.Circuit()
+    assert cirq.stratified_circuit(cirq.Circuit(cirq.X(a)), categories=[]) == cirq.Circuit(
+        cirq.X(a)
+    )
 
 
 def test_greedy_merging():
     """Tests a tricky situation where the algorithm of "Merge single-qubit
     gates, greedily align single-qubit then 2-qubit operations" doesn't work.
-    Our algorithm succeeds because we also run it in reverse order. """
+    Our algorithm succeeds because we also run it in reverse order."""
     q1, q2, q3, q4 = cirq.LineQubit.range(4)
     input_circuit = cirq.Circuit(
         cirq.Moment([cirq.X(q1)]),
         cirq.Moment([cirq.SWAP(q1, q2), cirq.SWAP(q3, q4)]),
-        cirq.Moment([cirq.X(q3)]), cirq.Moment([cirq.SWAP(q3, q4)]))
-    expected = cirq.Circuit(cirq.Moment([cirq.SWAP(q3, q4)]),
-                            cirq.Moment([cirq.X(q1), cirq.X(q3)]),
-                            cirq.Moment([cirq.SWAP(q1, q2),
-                                         cirq.SWAP(q3, q4)]))
-    assert cirq.stratified_circuit(input_circuit,
-                                   categories=[cirq.X]) == expected
+        cirq.Moment([cirq.X(q3)]),
+        cirq.Moment([cirq.SWAP(q3, q4)]),
+    )
+    expected = cirq.Circuit(
+        cirq.Moment([cirq.SWAP(q3, q4)]),
+        cirq.Moment([cirq.X(q1), cirq.X(q3)]),
+        cirq.Moment([cirq.SWAP(q1, q2), cirq.SWAP(q3, q4)]),
+    )
+    assert cirq.stratified_circuit(input_circuit, categories=[cirq.X]) == expected
 
 
 def test_greedy_merging_reverse():
@@ -175,72 +236,64 @@ def test_greedy_merging_reverse():
     q1, q2, q3, q4 = cirq.LineQubit.range(4)
     input_circuit = cirq.Circuit(
         cirq.Moment([cirq.SWAP(q1, q2), cirq.SWAP(q3, q4)]),
-        cirq.Moment([cirq.X(q4)]), cirq.Moment([cirq.SWAP(q3, q4)]),
-        cirq.Moment([cirq.X(q1)]))
-    expected = cirq.Circuit(cirq.Moment([cirq.SWAP(q1, q2),
-                                         cirq.SWAP(q3, q4)]),
-                            cirq.Moment([cirq.X(q1), cirq.X(q4)]),
-                            cirq.Moment([cirq.SWAP(q3, q4)]))
-    assert cirq.stratified_circuit(input_circuit,
-                                   categories=[cirq.X]) == expected
+        cirq.Moment([cirq.X(q4)]),
+        cirq.Moment([cirq.SWAP(q3, q4)]),
+        cirq.Moment([cirq.X(q1)]),
+    )
+    expected = cirq.Circuit(
+        cirq.Moment([cirq.SWAP(q1, q2), cirq.SWAP(q3, q4)]),
+        cirq.Moment([cirq.X(q1), cirq.X(q4)]),
+        cirq.Moment([cirq.SWAP(q3, q4)]),
+    )
+    assert cirq.stratified_circuit(input_circuit, categories=[cirq.X]) == expected
 
 
 def test_complex_circuit():
     """Tests that a complex circuit is correctly optimized."""
     q1, q2, q3, q4, q5 = cirq.LineQubit.range(5)
     input_circuit = cirq.Circuit(
-        cirq.Moment([cirq.X(q1), cirq.ISWAP(q2, q3),
-                     cirq.Z(q5)]), cirq.Moment([cirq.X(q1),
-                                                cirq.ISWAP(q4, q5)]),
-        cirq.Moment([cirq.ISWAP(q1, q2), cirq.X(q4)]))
+        cirq.Moment([cirq.X(q1), cirq.ISWAP(q2, q3), cirq.Z(q5)]),
+        cirq.Moment([cirq.X(q1), cirq.ISWAP(q4, q5)]),
+        cirq.Moment([cirq.ISWAP(q1, q2), cirq.X(q4)]),
+    )
     expected = cirq.Circuit(
-        cirq.Moment([cirq.X(q1)]), cirq.Moment([cirq.Z(q5)]),
+        cirq.Moment([cirq.X(q1)]),
+        cirq.Moment([cirq.Z(q5)]),
         cirq.Moment([cirq.ISWAP(q2, q3), cirq.ISWAP(q4, q5)]),
-        cirq.Moment([cirq.X(q1), cirq.X(q4)]), cirq.Moment([cirq.ISWAP(q1,
-                                                                       q2)]))
-    assert cirq.stratified_circuit(input_circuit,
-                                   categories=[cirq.X, cirq.Z]) == expected
+        cirq.Moment([cirq.X(q1), cirq.X(q4)]),
+        cirq.Moment([cirq.ISWAP(q1, q2)]),
+    )
+    assert cirq.stratified_circuit(input_circuit, categories=[cirq.X, cirq.Z]) == expected
 
 
 def test_heterogeneous_circuit():
     """Tests that a circuit that is very heterogeneous is correctly optimized"""
     q1, q2, q3, q4, q5, q6 = cirq.LineQubit.range(6)
     input_circuit = cirq.Circuit(
-        cirq.Moment(
-            [cirq.X(q1),
-             cirq.X(q2),
-             cirq.ISWAP(q3, q4),
-             cirq.ISWAP(q5, q6)]),
-        cirq.Moment(
-            [cirq.ISWAP(q1, q2),
-             cirq.ISWAP(q3, q4),
-             cirq.X(q5),
-             cirq.X(q6)]),
-        cirq.Moment([
-            cirq.X(q1),
-            cirq.Z(q2),
-            cirq.X(q3),
-            cirq.Z(q4),
-            cirq.X(q5),
-            cirq.Z(q6)
-        ]))
+        cirq.Moment([cirq.X(q1), cirq.X(q2), cirq.ISWAP(q3, q4), cirq.ISWAP(q5, q6)]),
+        cirq.Moment([cirq.ISWAP(q1, q2), cirq.ISWAP(q3, q4), cirq.X(q5), cirq.X(q6)]),
+        cirq.Moment([cirq.X(q1), cirq.Z(q2), cirq.X(q3), cirq.Z(q4), cirq.X(q5), cirq.Z(q6)]),
+    )
     expected = cirq.Circuit(
         cirq.Moment([cirq.ISWAP(q3, q4), cirq.ISWAP(q5, q6)]),
-        cirq.Moment([cirq.X(q1), cirq.X(q2),
-                     cirq.X(q5), cirq.X(q6)]),
-        cirq.Moment([
-            cirq.ISWAP(q1, q2),
-            cirq.ISWAP(q3, q4),
-        ]), cirq.Moment([cirq.Z(q2), cirq.Z(q4),
-                         cirq.Z(q6)]),
-        cirq.Moment([
-            cirq.X(q1),
-            cirq.X(q3),
-            cirq.X(q5),
-        ]))
+        cirq.Moment([cirq.X(q1), cirq.X(q2), cirq.X(q5), cirq.X(q6)]),
+        cirq.Moment(
+            [
+                cirq.ISWAP(q1, q2),
+                cirq.ISWAP(q3, q4),
+            ]
+        ),
+        cirq.Moment([cirq.Z(q2), cirq.Z(q4), cirq.Z(q6)]),
+        cirq.Moment(
+            [
+                cirq.X(q1),
+                cirq.X(q3),
+                cirq.X(q5),
+            ]
+        ),
+    )
 
-    assert cirq.stratified_circuit(input_circuit,
-                                   categories=[cirq.X, cirq.Z]) == expected
+    assert cirq.stratified_circuit(input_circuit, categories=[cirq.X, cirq.Z]) == expected
 
 
 def test_surface_code_cycle_stratifies_without_growing():
