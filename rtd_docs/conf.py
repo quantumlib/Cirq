@@ -40,6 +40,7 @@ def setup(app):
     app.connect('autodoc-process-docstring', autodoc_process)
     app.connect('autodoc-skip-member', autodoc_skip_member)
     app.connect('source-read', source_read)
+    app.connect('missing-reference', on_missing_reference)
 
 
 def convert_markdown_mathjax_for_rst(lines: List[str]) -> List[str]:
@@ -295,3 +296,12 @@ myst_update_mathjax = False
 # To allow for google.colab temporarily in notebooks
 # TODO: after https://github.com/quantumlib/Cirq/issues/3368 turn this back off
 nbsphinx_allow_errors = True
+
+devsite_only_links = ["tutorials", "/education", "/reference/python/cirq"]
+
+
+def on_missing_reference(app, env, node, contnode):
+    if node['reftarget'] in devsite_only_links:
+        return contnode
+    else:
+        return None
