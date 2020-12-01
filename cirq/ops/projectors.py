@@ -1,5 +1,16 @@
-from typing import (Any, Dict, Iterable, Mapping, Sequence, List, Optional,
-                    Tuple, TYPE_CHECKING, TypeVar, Union)
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Mapping,
+    Sequence,
+    List,
+    Optional,
+    Tuple,
+    TYPE_CHECKING,
+    TypeVar,
+    Union,
+)
 
 import numpy as np
 
@@ -43,7 +54,7 @@ def get_qid_indices(qid_map: Mapping[raw_types.Qid, int], proj_key: ProjKey):
 
 
 @value.value_equality
-class Projector():
+class Projector:
     """A projection matrix where you can specify the basis.
 
     The input is a matrix representing the basis of the space we project onto.
@@ -56,9 +67,11 @@ class Projector():
     provide the basis [[0, 0, 1, 0], [0, 0, 0, 1]].
     """
 
-    def __init__(self,
-                 projection_bases: Dict[ProjKey, Sequence[STATE_VECTOR_LIKE]],
-                 enforce_orthonormal_basis: bool = False):
+    def __init__(
+        self,
+        projection_bases: Dict[ProjKey, Sequence[STATE_VECTOR_LIKE]],
+        enforce_orthonormal_basis: bool = False,
+    ):
         """
         Args:
             projection_bases: a dictionary of Qdit tuples to a
@@ -75,31 +88,25 @@ class Projector():
         self._projection_bases = {}
         for qids, projection_basis in projection_bases.items():
             qid_shape = qid_shape_from_proj_key(qids)
-            projection_array = np.vstack([
-                states.to_valid_state_vector(x, qid_shape=qid_shape)
-                for x in projection_basis
-            ])
+            projection_array = np.vstack(
+                [states.to_valid_state_vector(x, qid_shape=qid_shape) for x in projection_basis]
+            )
 
             if enforce_orthonormal_basis:
                 B = projection_array @ projection_array.T.conj()
-                if not np.allclose(
-                        B, np.eye(projection_array.shape[0]), atol=1e-6):
+                if not np.allclose(B, np.eye(projection_array.shape[0]), atol=1e-6):
                     raise ValueError('The basis must be orthonormal')
 
-            if np.linalg.matrix_rank(
-                    projection_array) < projection_array.shape[0]:
-                raise ValueError(
-                    'Vectors in basis must be linearly independent')
+            if np.linalg.matrix_rank(projection_array) < projection_array.shape[0]:
+                raise ValueError('Vectors in basis must be linearly independent')
 
             self._projection_bases[qids] = projection_array
 
     def _projection_bases_(self) -> np.ndarray:
         return self._projection_bases
 
-    def matrix(self, proj_keys: Optional[Iterable[ProjKey]] = None
-              ) -> Iterable[np.ndarray]:
-        proj_keys = self._projection_bases.keys(
-        ) if proj_keys is None else proj_keys
+    def matrix(self, proj_keys: Optional[Iterable[ProjKey]] = None) -> Iterable[np.ndarray]:
+        proj_keys = self._projection_bases.keys() if proj_keys is None else proj_keys
         factors = []
         for proj_key in proj_keys:
             if proj_key not in self._projection_bases:
@@ -114,13 +121,14 @@ class Projector():
                 factors.append(A @ pseudoinverse)
         return linalg.kron(*factors)
 
-    def expectation_from_state_vector(self,
-                                      state_vector: np.ndarray,
-                                      qid_map: Mapping[raw_types.Qid, int],
-                                      *,
-                                      atol: float = 1e-7,
-                                      check_preconditions: bool = True
-                                     ) -> float:
+    def expectation_from_state_vector(
+        self,
+        state_vector: np.ndarray,
+        qid_map: Mapping[raw_types.Qid, int],
+        *,
+        atol: float = 1e-7,
+        check_preconditions: bool = True,
+    ) -> float:
         dims = get_dims_from_qid_map(qid_map)
         state_vector = state_vector.reshape(dims)
 
@@ -138,21 +146,20 @@ class Projector():
 
             P = np.reshape(P, proj_dims * 2)
 
-            state_vector = np.tensordot(P,
-                                        state_vector,
-                                        axes=(range(nr, 2 * nr), idx))
+            state_vector = np.tensordot(P, state_vector, axes=(range(nr, 2 * nr), idx))
             state_vector = np.moveaxis(state_vector, range(nr), idx)
 
         state_vector = np.reshape(state_vector, np.prod(dims))
         return np.dot(state_vector, state_vector.conj())
 
-    def expectation_from_density_matrix(self,
-                                        state: np.ndarray,
-                                        qid_map: Mapping[raw_types.Qid, int],
-                                        *,
-                                        atol: float = 1e-7,
-                                        check_preconditions: bool = True
-                                       ) -> float:
+    def expectation_from_density_matrix(
+        self,
+        state: np.ndarray,
+        qid_map: Mapping[raw_types.Qid, int],
+        *,
+        atol: float = 1e-7,
+        check_preconditions: bool = True,
+    ) -> float:
         dims = get_dims_from_qid_map(qid_map)
         state = state.reshape(dims * 2)
 
@@ -172,11 +179,8 @@ class Projector():
 
             state = np.tensordot(P, state, axes=(range(nr, 2 * nr), idx))
             state = np.moveaxis(state, range(nr), idx)
-            state = np.tensordot(state,
-                                 P.T.conj(),
-                                 axes=([len(dims) + i for i in idx], range(nr)))
-            state = np.moveaxis(state, range(-nr, 0),
-                                [len(dims) + i for i in idx])
+            state = np.tensordot(state, P.T.conj(), axes=([len(dims) + i for i in idx], range(nr)))
+            state = np.moveaxis(state, range(-nr, 0), [len(dims) + i for i in idx])
 
         state = np.reshape(state, [np.prod(dims)] * 2)
         return np.trace(state)
@@ -188,7 +192,7 @@ class Projector():
         return {
             'cirq_type': self.__class__.__name__,
             # JSON requires mappings to have string keys.
-            'projection_bases': list(self._projection_bases.items())
+            'projection_bases': list(self._projection_bases.items()),
         }
 
     @classmethod
