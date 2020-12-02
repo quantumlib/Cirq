@@ -15,7 +15,8 @@
 """Utilities for testing code."""
 
 from cirq.testing.asynchronous import (
-    asyncio_pending,)
+    asyncio_pending,
+)
 
 from cirq.testing.circuit_compare import (
     assert_circuits_with_terminal_measurements_are_equivalent,
@@ -28,16 +29,20 @@ from cirq.testing.circuit_compare import (
 )
 
 from cirq.testing.consistent_act_on import (
-    assert_all_implemented_act_on_effects_match_unitary,)
+    assert_all_implemented_act_on_effects_match_unitary,
+)
 
 from cirq.testing.consistent_phase_by import (
-    assert_phase_by_is_consistent_with_unitary,)
+    assert_phase_by_is_consistent_with_unitary,
+)
 
 from cirq.testing.consistent_decomposition import (
-    assert_decompose_is_consistent_with_unitary,)
+    assert_decompose_is_consistent_with_unitary,
+)
 
 from cirq.testing.consistent_pauli_expansion import (
-    assert_pauli_expansion_is_consistent_with_unitary,)
+    assert_pauli_expansion_is_consistent_with_unitary,
+)
 
 from cirq.testing.consistent_protocols import (
     assert_eigengate_implements_consistent_protocols,
@@ -47,25 +52,30 @@ from cirq.testing.consistent_protocols import (
 )
 
 from cirq.testing.consistent_qasm import (
-    assert_qasm_is_consistent_with_unitary,)
+    assert_qasm_is_consistent_with_unitary,
+)
 
 from cirq.testing.consistent_resolve_parameters import (
-    assert_consistent_resolve_parameters,)
+    assert_consistent_resolve_parameters,
+)
 
 from cirq.testing.consistent_specified_has_unitary import (
-    assert_specifies_has_unitary_if_unitary,)
+    assert_specifies_has_unitary_if_unitary,
+)
 
 from cirq.testing.equals_tester import (
-    EqualsTester,)
+    EqualsTester,
+)
 
 from cirq.testing.equivalent_repr_eval import (
-    assert_equivalent_repr,)
+    assert_equivalent_repr,
+)
 
-from cirq.testing.equivalent_basis_map import (
-    assert_equivalent_computational_basis_map)
+from cirq.testing.equivalent_basis_map import assert_equivalent_computational_basis_map
 
 from cirq.testing.json import (
-    assert_json_roundtrip_works,)
+    assert_json_roundtrip_works,
+)
 
 from cirq.testing.lin_alg_utils import (
     assert_allclose_up_to_global_phase,
@@ -78,18 +88,23 @@ from cirq.testing.lin_alg_utils import (
 )
 
 from cirq.testing.logs import (
-    assert_logs,)
+    assert_logs,
+)
 
 from cirq.testing.no_identifier_qubit import (
-    NoIdentifierQubit,)
+    NoIdentifierQubit,
+)
 
 from cirq.testing.order_tester import (
-    OrderTester,)
+    OrderTester,
+)
 
 from cirq.testing.random_circuit import (
     DEFAULT_GATE_DOMAIN,
     random_circuit,
+    random_two_qubit_circuit_with_czs,
 )
 
 from cirq.testing.sample_circuits import (
-    nonoptimal_toffoli_circuit,)
+    nonoptimal_toffoli_circuit,
+)

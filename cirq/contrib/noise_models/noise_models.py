@@ -31,8 +31,7 @@ def _homogeneous_moment_is_measurements(moment: 'cirq.Moment') -> bool:
     """
     cases = {protocols.is_measurement(gate) for gate in moment}
     if len(cases) == 2:
-        raise ValueError("Moment must be homogeneous: all measurements "
-                         "or all operations.")
+        raise ValueError("Moment must be homogeneous: all measurements or all operations.")
     return True in cases
 
 
@@ -53,18 +52,14 @@ class DepolarizingNoiseModel(devices.NoiseModel):
         value.validate_probability(depol_prob, 'depol prob')
         self.qubit_noise_gate = ops.DepolarizingChannel(depol_prob)
 
-    def noisy_moment(self, moment: 'cirq.Moment',
-                     system_qubits: Sequence['cirq.Qid']):
-        if (_homogeneous_moment_is_measurements(moment) or
-                self.is_virtual_moment(moment)):
+    def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
+        if _homogeneous_moment_is_measurements(moment) or self.is_virtual_moment(moment):
             # coverage: ignore
             return moment
 
         return [
             moment,
-            ops.Moment(
-                self.qubit_noise_gate(q).with_tags(ops.VirtualTag())
-                for q in system_qubits)
+            ops.Moment(self.qubit_noise_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits),
         ]
 
 
@@ -89,15 +84,15 @@ class ReadoutNoiseModel(devices.NoiseModel):
         value.validate_probability(bitflip_prob, 'bitflip prob')
         self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
 
-    def noisy_moment(self, moment: 'cirq.Moment',
-                     system_qubits: Sequence['cirq.Qid']):
+    def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
         if self.is_virtual_moment(moment):
             return moment
         if _homogeneous_moment_is_measurements(moment):
             return [
                 ops.Moment(
-                    self.readout_noise_gate(q).with_tags(ops.VirtualTag())
-                    for q in system_qubits), moment
+                    self.readout_noise_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits
+                ),
+                moment,
             ]
         return moment
 
@@ -123,15 +118,15 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
         value.validate_probability(decay_prob, 'decay_prob')
         self.readout_decay_gate = ops.AmplitudeDampingChannel(decay_prob)
 
-    def noisy_moment(self, moment: 'cirq.Moment',
-                     system_qubits: Sequence['cirq.Qid']):
+    def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
         if self.is_virtual_moment(moment):
             return moment
         if _homogeneous_moment_is_measurements(moment):
             return [
                 ops.Moment(
-                    self.readout_decay_gate(q).with_tags(ops.VirtualTag())
-                    for q in system_qubits), moment
+                    self.readout_decay_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits
+                ),
+                moment,
             ]
         return moment
 
@@ -155,8 +150,7 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
         self.qubit_noise_gate = ops.DepolarizingChannel(depol_prob)
         self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
 
-    def noisy_moment(self, moment: 'cirq.Moment',
-                     system_qubits: Sequence['cirq.Qid']):
+    def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
         if _homogeneous_moment_is_measurements(moment):
             return [
                 ops.Moment(self.readout_noise_gate(q) for q in system_qubits),
@@ -178,10 +172,10 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
     """
 
     def __init__(
-            self,
-            depol_prob: float,
-            bitflip_prob: float,
-            decay_prob: float,
+        self,
+        depol_prob: float,
+        bitflip_prob: float,
+        decay_prob: float,
     ):
         """A depolarizing noise model with damped readout error.
         Args:
@@ -197,19 +191,15 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
         self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
         self.readout_decay_gate = ops.AmplitudeDampingChannel(decay_prob)
 
-    def noisy_moment(self, moment: 'cirq.Moment',
-                     system_qubits: Sequence['cirq.Qid']):
+    def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
         if _homogeneous_moment_is_measurements(moment):
             return [
                 ops.Moment(self.readout_decay_gate(q) for q in system_qubits),
                 ops.Moment(self.readout_noise_gate(q) for q in system_qubits),
-                moment
+                moment,
             ]
         else:
-            return [
-                moment,
-                ops.Moment(self.qubit_noise_gate(q) for q in system_qubits)
-            ]
+            return [moment, ops.Moment(self.qubit_noise_gate(q) for q in system_qubits)]
 
 
 # TODO: move this to cirq.google with simple_noise_from_calibration_metrics.
@@ -226,10 +216,10 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
     """
 
     def __init__(
-            self,
-            depol_probs: Dict['cirq.Qid', float] = None,
-            bitflip_probs: Dict['cirq.Qid', float] = None,
-            decay_probs: Dict['cirq.Qid', float] = None,
+        self,
+        depol_probs: Dict['cirq.Qid', float] = None,
+        bitflip_probs: Dict['cirq.Qid', float] = None,
+        decay_probs: Dict['cirq.Qid', float] = None,
     ):
         """A depolarizing noise model with damped readout error.
 
@@ -243,9 +233,11 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
             decay_probs: Dict of T1 decay probabilities during measurement.
                 Bitflip noise is applied first, then amplitude decay.
         """
-        for probs, desc in [(depol_probs, "depolarization prob"),
-                            (bitflip_probs, "readout error prob"),
-                            (decay_probs, "readout decay prob")]:
+        for probs, desc in [
+            (depol_probs, "depolarization prob"),
+            (bitflip_probs, "readout error prob"),
+            (decay_probs, "readout decay prob"),
+        ]:
             if probs:
                 for qubit, prob in probs.items():
                     value.validate_probability(prob, f'{desc} of {qubit}')
@@ -253,8 +245,9 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
         self.bitflip_probs = bitflip_probs
         self.decay_probs = decay_probs
 
-    def noisy_moment(self, moment: 'cirq.Moment',
-                     system_qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def noisy_moment(
+        self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
+    ) -> 'cirq.OP_TREE':
         if self.is_virtual_moment(moment):
             return moment
         moments = []
@@ -262,38 +255,37 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
             if self.decay_probs:
                 moments.append(
                     ops.Moment(
-                        ops.AmplitudeDampingChannel(self.decay_probs[q])(q)
-                        for q in system_qubits))
+                        ops.AmplitudeDampingChannel(self.decay_probs[q])(q) for q in system_qubits
+                    )
+                )
             if self.bitflip_probs:
                 moments.append(
-                    ops.Moment(
-                        ops.BitFlipChannel(self.bitflip_probs[q])(q)
-                        for q in system_qubits))
+                    ops.Moment(ops.BitFlipChannel(self.bitflip_probs[q])(q) for q in system_qubits)
+                )
             moments.append(moment)
             return moments
         else:
             moments.append(moment)
             if self.depol_probs:
-                gated_qubits = [
-                    q for q in system_qubits
-                    if moment.operates_on_single_qubit(q)
-                ]
+                gated_qubits = [q for q in system_qubits if moment.operates_on_single_qubit(q)]
                 if gated_qubits:
                     moments.append(
                         ops.Moment(
-                            ops.DepolarizingChannel(self.depol_probs[q])(q)
-                            for q in gated_qubits))
+                            ops.DepolarizingChannel(self.depol_probs[q])(q) for q in gated_qubits
+                        )
+                    )
             return moments
 
 
 # TODO: move this to cirq.google since it's Google-specific code.
 # Related issue: https://github.com/quantumlib/Cirq/issues/2832
-def simple_noise_from_calibration_metrics(calibration: engine.Calibration,
-                                          depol_noise: bool = False,
-                                          damping_noise: bool = False,
-                                          readout_decay_noise: bool = False,
-                                          readout_error_noise: bool = False
-                                         ) -> devices.NoiseModel:
+def simple_noise_from_calibration_metrics(
+    calibration: engine.Calibration,
+    depol_noise: bool = False,
+    damping_noise: bool = False,
+    readout_decay_noise: bool = False,
+    readout_error_noise: bool = False,
+) -> devices.NoiseModel:
     """Creates a reasonable PerQubitDepolarizingWithDampedReadoutNoiseModel
     using the provided calibration data.
 
@@ -312,8 +304,7 @@ def simple_noise_from_calibration_metrics(calibration: engine.Calibration,
         A PerQubitDepolarizingWithDampedReadoutNoiseModel with error
             probabilities generated from the provided calibration data.
     """
-    if not any(
-        [depol_noise, damping_noise, readout_decay_noise, readout_error_noise]):
+    if not any([depol_noise, damping_noise, readout_decay_noise, readout_error_noise]):
         raise ValueError('At least one error type must be specified.')
     assert calibration is not None
     depol_probs: Dict['cirq.Qid', float] = {}
@@ -324,8 +315,8 @@ def simple_noise_from_calibration_metrics(calibration: engine.Calibration,
         # In the single-qubit case, Pauli error and the depolarization fidelity
         # differ by a factor of 4/3.
         depol_probs = {
-            qubit[0]: pauli_err[0] * 4 / 3 for qubit, pauli_err in
-            calibration['single_qubit_rb_pauli_error_per_gate'].items()
+            calibration.key_to_qubit(qubit): calibration.value_to_float(pauli_err) * 4 / 3
+            for qubit, pauli_err in calibration['single_qubit_rb_pauli_error_per_gate'].items()
         }
     if damping_noise:
         # TODO: implement per-gate amplitude damping noise.
@@ -338,15 +329,15 @@ def simple_noise_from_calibration_metrics(calibration: engine.Calibration,
         # Github issue: https://github.com/quantumlib/Cirq/issues/2832
         readout_micros = 1
         readout_decay_probs = {
-            qubit[0]: 1 - exp(-1 * readout_micros / t1[0])
+            calibration.key_to_qubit(qubit): 1
+            - exp(-1 * readout_micros / calibration.value_to_float(t1))
             for qubit, t1 in calibration['single_qubit_idle_t1_micros'].items()
         }
     if readout_error_noise:
         readout_error_probs = {
-            qubit[0]: err[0] for qubit, err in
-            calibration['single_qubit_readout_separation_error'].items()
+            calibration.key_to_qubit(qubit): calibration.value_to_float(err)
+            for qubit, err in calibration['single_qubit_readout_separation_error'].items()
         }
     return PerQubitDepolarizingWithDampedReadoutNoiseModel(
-        depol_probs=depol_probs,
-        decay_probs=readout_decay_probs,
-        bitflip_probs=readout_error_probs)
+        depol_probs=depol_probs, decay_probs=readout_decay_probs, bitflip_probs=readout_error_probs
+    )

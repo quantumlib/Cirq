@@ -23,8 +23,7 @@ from cirq.protocols import qid_shape_protocol, unitary_protocol
 
 TDefault = TypeVar('TDefault')
 
-RaiseTypeErrorIfNotProvided = (value.LinearDict({})
-                              )  # type: value.LinearDict[str]
+RaiseTypeErrorIfNotProvided = value.LinearDict({})  # type: value.LinearDict[str]
 
 
 class SupportsPauliExpansion(Protocol):
@@ -43,11 +42,11 @@ class SupportsPauliExpansion(Protocol):
 
 
 def pauli_expansion(
-        val: Any,
-        *,
-        default: Union[value.
-                       LinearDict[str], TDefault] = RaiseTypeErrorIfNotProvided,
-        atol: float = 1e-9) -> Union[value.LinearDict[str], TDefault]:
+    val: Any,
+    *,
+    default: Union[value.LinearDict[str], TDefault] = RaiseTypeErrorIfNotProvided,
+    atol: float = 1e-9,
+) -> Union[value.LinearDict[str], TDefault]:
     """Returns coefficients of the expansion of val in the Pauli basis.
 
     Args:
@@ -77,22 +76,17 @@ def pauli_expansion(
     # Don't attempt to derive the pauli expansion if this is a qudit gate
     if not all(d == 2 for d in qid_shape_protocol.qid_shape(val, default=())):
         if default is RaiseTypeErrorIfNotProvided:
-            raise TypeError(
-                'No Pauli expansion for object {} of type {}'.format(
-                    val, type(val)))
+            raise TypeError('No Pauli expansion for object {} of type {}'.format(val, type(val)))
         return default
 
     matrix = unitary_protocol.unitary(val, default=None)
     if matrix is None:
         if default is RaiseTypeErrorIfNotProvided:
-            raise TypeError(
-                'No Pauli expansion for object {} of type {}'.format(
-                    val, type(val)))
+            raise TypeError('No Pauli expansion for object {} of type {}'.format(val, type(val)))
         return default
 
     num_qubits = matrix.shape[0].bit_length() - 1
-    basis = operator_spaces.kron_bases(operator_spaces.PAULI_BASIS,
-                                       repeat=num_qubits)
+    basis = operator_spaces.kron_bases(operator_spaces.PAULI_BASIS, repeat=num_qubits)
 
     expansion = operator_spaces.expand_matrix_in_orthogonal_basis(matrix, basis)
     return expansion.clean(atol=atol)

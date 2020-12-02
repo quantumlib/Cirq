@@ -24,17 +24,17 @@ def test_decompose_x():
         qubits = cirq.LineQubit.range(total_qubits_count)
         for controls_count in range(0, total_qubits_count):
             gates = cirq.decompose_multi_controlled_x(
-                qubits[:controls_count], qubits[controls_count],
-                qubits[controls_count + 1:])
+                qubits[:controls_count], qubits[controls_count], qubits[controls_count + 1 :]
+            )
 
             circuit1 = cirq.Circuit([cirq.I.on(q) for q in qubits])
             circuit1.append(gates)
             result_matrix = circuit1.unitary()
 
             circuit2 = cirq.Circuit([cirq.I.on(q) for q in qubits])
-            circuit2 += cirq.ControlledGate(
-                cirq.X,
-                num_controls=controls_count).on(*qubits[0:controls_count + 1])
+            circuit2 += cirq.ControlledGate(cirq.X, num_controls=controls_count).on(
+                *qubits[0 : controls_count + 1]
+            )
             expected_matrix = circuit2.unitary()
             assert np.allclose(expected_matrix, result_matrix)
 
@@ -70,14 +70,13 @@ def _count_operations(operations):
 
 def _test_decompose(matrix, controls_count):
     qubits = cirq.LineQubit.range(controls_count + 1)
-    operations = cirq.decompose_multi_controlled_rotation(
-        matrix, qubits[:-1], qubits[-1])
+    operations = cirq.decompose_multi_controlled_rotation(matrix, qubits[:-1], qubits[-1])
     _count_operations(operations)
     result_matrix = cirq.Circuit(operations).unitary()
 
-    expected_matrix = cirq.Circuit([
-        cirq.MatrixGate(matrix).on(qubits[-1]).controlled_by(*qubits[:-1])
-    ]).unitary()
+    expected_matrix = cirq.Circuit(
+        [cirq.MatrixGate(matrix).on(qubits[-1]).controlled_by(*qubits[:-1])]
+    ).unitary()
 
     assert np.allclose(expected_matrix, result_matrix)
 
@@ -108,8 +107,7 @@ def test_decompose_random_special_unitary():
 
 def _decomposition_size(U, controls_count):
     qubits = cirq.LineQubit.range(controls_count + 1)
-    operations = cirq.decompose_multi_controlled_rotation(
-        U, qubits[:controls_count], qubits[-1])
+    operations = cirq.decompose_multi_controlled_rotation(U, qubits[:controls_count], qubits[-1])
     return _count_operations(operations)
 
 

@@ -23,10 +23,8 @@ import cirq.testing
 
 
 def test_deprecated():
-    with cirq.testing.assert_logs('wave_function', 'state_vector',
-                                  'deprecated'):
-        _ = cirq.StabilizerStateChForm(initial_state=0,
-                                       num_qubits=1).wave_function()
+    with cirq.testing.assert_logs('wave_function', 'state_vector', 'deprecated'):
+        _ = cirq.StabilizerStateChForm(initial_state=0, num_qubits=1).wave_function()
 
 
 def test_initial_state():

@@ -79,9 +79,15 @@ class ApplyChannelArgs:
         right_axes: Which axes to multiply the right action of the channel upon.
     """
 
-    def __init__(self, target_tensor: np.ndarray, out_buffer: np.ndarray,
-                 auxiliary_buffer0: np.ndarray, auxiliary_buffer1: np.ndarray,
-                 left_axes: Iterable[int], right_axes: Iterable[int]):
+    def __init__(
+        self,
+        target_tensor: np.ndarray,
+        out_buffer: np.ndarray,
+        auxiliary_buffer0: np.ndarray,
+        auxiliary_buffer1: np.ndarray,
+        left_axes: Iterable[int],
+        right_axes: Iterable[int],
+    ):
         """Args for apply channel.
 
         Args:
@@ -117,8 +123,9 @@ class SupportsApplyChannel(Protocol):
     """An object that can efficiently implement a channel."""
 
     @doc_private
-    def _apply_channel_(self, args: ApplyChannelArgs
-                       ) -> Union[np.ndarray, None, NotImplementedType]:
+    def _apply_channel_(
+        self, args: ApplyChannelArgs
+    ) -> Union[np.ndarray, None, NotImplementedType]:
         """Efficiently applies a channel.
 
         This method is given both the target tensor and workspace of the same
@@ -157,10 +164,9 @@ class SupportsApplyChannel(Protocol):
         """
 
 
-def apply_channel(val: Any,
-                  args: ApplyChannelArgs,
-                  default: TDefault = RaiseTypeErrorIfNotProvided
-                 ) -> Union[np.ndarray, TDefault]:
+def apply_channel(
+    val: Any, args: ApplyChannelArgs, default: TDefault = RaiseTypeErrorIfNotProvided
+) -> Union[np.ndarray, TDefault]:
     """High performance evolution under a channel evolution.
 
     If `val` defines an `_apply_channel_` method, that method will be
@@ -212,20 +218,21 @@ def apply_channel(val: Any,
     """
     # Verify that val has the same qid shape as the selected axes of the density
     # matrix tensor.
-    val_qid_shape = qid_shape_protocol.qid_shape(val,
-                                                 (2,) * len(args.left_axes))
+    val_qid_shape = qid_shape_protocol.qid_shape(val, (2,) * len(args.left_axes))
     left_shape = tuple(args.target_tensor.shape[i] for i in args.left_axes)
     right_shape = tuple(args.target_tensor.shape[i] for i in args.right_axes)
     if left_shape != right_shape:
-        raise ValueError('Invalid target_tensor shape or selected axes. '
-                         'The selected left and right shape of target_tensor '
-                         'are not equal. Got {!r} and {!r}.'.format(
-                             left_shape, right_shape))
+        raise ValueError(
+            'Invalid target_tensor shape or selected axes. '
+            'The selected left and right shape of target_tensor '
+            'are not equal. Got {!r} and {!r}.'.format(left_shape, right_shape)
+        )
     if val_qid_shape != left_shape:
-        raise ValueError('Invalid channel qid shape is not equal to the '
-                         'selected left and right shape of target_tensor. '
-                         'Got {!r} but expected {!r}.'.format(
-                             val_qid_shape, left_shape))
+        raise ValueError(
+            'Invalid channel qid shape is not equal to the '
+            'selected left and right shape of target_tensor. '
+            'Got {!r} but expected {!r}.'.format(val_qid_shape, left_shape)
+        )
 
     # Check if the specialized method is present.
     func = getattr(val, '_apply_channel_', None)
@@ -234,10 +241,11 @@ def apply_channel(val: Any,
         if result is not NotImplemented and result is not None:
 
             def err_str(buf_num_str):
-                return ("Object of type '{}' returned a result object equal to "
-                        "auxiliary_buffer{}. This type violates the contract "
-                        "that appears in apply_channel's documentation.".format(
-                            type(val), buf_num_str))
+                return (
+                    "Object of type '{}' returned a result object equal to "
+                    "auxiliary_buffer{}. This type violates the contract "
+                    "that appears in apply_channel's documentation.".format(type(val), buf_num_str)
+                )
 
             assert result is not args.auxiliary_buffer0, err_str('0')
             assert result is not args.auxiliary_buffer1, err_str('1')
@@ -259,7 +267,8 @@ def apply_channel(val: Any,
     raise TypeError(
         "object of type '{}' has no _apply_channel_, _apply_unitary_, "
         "_unitary_, or _channel_ methods (or they returned None or "
-        "NotImplemented).".format(type(val)))
+        "NotImplemented).".format(type(val))
+    )
 
 
 def _apply_unitary(val: Any, args: 'ApplyChannelArgs') -> Optional[np.ndarray]:
@@ -267,22 +276,27 @@ def _apply_unitary(val: Any, args: 'ApplyChannelArgs') -> Optional[np.ndarray]:
 
     If `val` does not support `apply_unitary` returns None.
     """
-    left_args = ApplyUnitaryArgs(target_tensor=args.target_tensor,
-                                 available_buffer=args.auxiliary_buffer0,
-                                 axes=args.left_axes)
+    left_args = ApplyUnitaryArgs(
+        target_tensor=args.target_tensor,
+        available_buffer=args.auxiliary_buffer0,
+        axes=args.left_axes,
+    )
     left_result = apply_unitary(val, left_args, None)
     if left_result is None:
         return None
-    right_args = ApplyUnitaryArgs(target_tensor=np.conjugate(left_result),
-                                  available_buffer=args.out_buffer,
-                                  axes=args.right_axes)
+    right_args = ApplyUnitaryArgs(
+        target_tensor=np.conjugate(left_result),
+        available_buffer=args.out_buffer,
+        axes=args.right_axes,
+    )
     right_result = apply_unitary(val, right_args)
     np.conjugate(right_result, out=right_result)
     return right_result
 
 
-def _apply_kraus(kraus: Union[Tuple[np.ndarray], Sequence[Any]],
-                 args: 'ApplyChannelArgs') -> np.ndarray:
+def _apply_kraus(
+    kraus: Union[Tuple[np.ndarray], Sequence[Any]], args: 'ApplyChannelArgs'
+) -> np.ndarray:
     """Directly apply the kraus operators to the target tensor."""
     # Initialize output.
     args.out_buffer[:] = 0
@@ -296,8 +310,9 @@ def _apply_kraus(kraus: Union[Tuple[np.ndarray], Sequence[Any]],
     return _apply_kraus_multi_qubit(kraus, args)
 
 
-def _apply_kraus_single_qubit(kraus: Union[Tuple[Any], Sequence[Any]],
-                              args: 'ApplyChannelArgs') -> np.ndarray:
+def _apply_kraus_single_qubit(
+    kraus: Union[Tuple[Any], Sequence[Any]], args: 'ApplyChannelArgs'
+) -> np.ndarray:
     """Use slicing to apply single qubit channel.  Only for two-level qubits."""
     zero_left = linalg.slice_for_qubits_equal_to(args.left_axes, 0)
     one_left = linalg.slice_for_qubits_equal_to(args.left_axes, 1)
@@ -305,36 +320,39 @@ def _apply_kraus_single_qubit(kraus: Union[Tuple[Any], Sequence[Any]],
     one_right = linalg.slice_for_qubits_equal_to(args.right_axes, 1)
     for kraus_op in kraus:
         np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer0)
-        linalg.apply_matrix_to_slices(args.target_tensor,
-                                      kraus_op, [zero_left, one_left],
-                                      out=args.auxiliary_buffer1)
+        linalg.apply_matrix_to_slices(
+            args.target_tensor, kraus_op, [zero_left, one_left], out=args.auxiliary_buffer1
+        )
         # No need to transpose as we are acting on the tensor
         # representation of matrix, so transpose is done for us.
-        linalg.apply_matrix_to_slices(args.auxiliary_buffer1,
-                                      np.conjugate(kraus_op),
-                                      [zero_right, one_right],
-                                      out=args.target_tensor)
+        linalg.apply_matrix_to_slices(
+            args.auxiliary_buffer1,
+            np.conjugate(kraus_op),
+            [zero_right, one_right],
+            out=args.target_tensor,
+        )
         args.out_buffer += args.target_tensor
     return args.out_buffer
 
 
-def _apply_kraus_multi_qubit(kraus: Union[Tuple[Any], Sequence[Any]],
-                             args: 'ApplyChannelArgs') -> np.ndarray:
+def _apply_kraus_multi_qubit(
+    kraus: Union[Tuple[Any], Sequence[Any]], args: 'ApplyChannelArgs'
+) -> np.ndarray:
     """Use numpy's einsum to apply a multi-qubit channel."""
     qid_shape = tuple(args.target_tensor.shape[i] for i in args.left_axes)
     for kraus_op in kraus:
         np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer0)
-        kraus_tensor = np.reshape(kraus_op.astype(args.target_tensor.dtype),
-                                  qid_shape * 2)
-        linalg.targeted_left_multiply(kraus_tensor,
-                                      args.target_tensor,
-                                      args.left_axes,
-                                      out=args.auxiliary_buffer1)
+        kraus_tensor = np.reshape(kraus_op.astype(args.target_tensor.dtype), qid_shape * 2)
+        linalg.targeted_left_multiply(
+            kraus_tensor, args.target_tensor, args.left_axes, out=args.auxiliary_buffer1
+        )
         # No need to transpose as we are acting on the tensor
         # representation of matrix, so transpose is done for us.
-        linalg.targeted_left_multiply(np.conjugate(kraus_tensor),
-                                      args.auxiliary_buffer1,
-                                      args.right_axes,
-                                      out=args.target_tensor)
+        linalg.targeted_left_multiply(
+            np.conjugate(kraus_tensor),
+            args.auxiliary_buffer1,
+            args.right_axes,
+            out=args.target_tensor,
+        )
         args.out_buffer += args.target_tensor
     return args.out_buffer

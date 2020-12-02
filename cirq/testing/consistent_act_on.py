@@ -22,13 +22,15 @@ from cirq.ops import common_gates
 from cirq.ops.dense_pauli_string import DensePauliString
 from cirq import protocols
 from cirq.sim import act_on_state_vector_args, final_state_vector
-from cirq.sim.clifford import (act_on_clifford_tableau_args, clifford_tableau,
-                               stabilizer_state_ch_form,
-                               act_on_stabilizer_ch_form_args)
+from cirq.sim.clifford import (
+    act_on_clifford_tableau_args,
+    clifford_tableau,
+    stabilizer_state_ch_form,
+    act_on_stabilizer_ch_form_args,
+)
 
 
-def state_vector_has_stabilizer(state_vector: np.ndarray,
-                                stabilizer: DensePauliString) -> bool:
+def state_vector_has_stabilizer(state_vector: np.ndarray, stabilizer: DensePauliString) -> bool:
     """Checks that the state_vector is stabilized by the given stabilizer.
 
     The stabilizer should not modify the value of the state_vector, up to the
@@ -48,15 +50,15 @@ def state_vector_has_stabilizer(state_vector: np.ndarray,
         available_buffer=np.empty_like(state_vector),
         axes=range(protocols.num_qubits(stabilizer)),
         prng=np.random.RandomState(),
-        log_of_measurement_results={})
+        log_of_measurement_results={},
+    )
     protocols.act_on(stabilizer, args)
     return np.allclose(args.target_tensor, state_vector)
 
 
 def assert_all_implemented_act_on_effects_match_unitary(
-        val: Any,
-        assert_tableau_implemented: bool = False,
-        assert_ch_form_implemented: bool = False) -> None:
+    val: Any, assert_tableau_implemented: bool = False, assert_ch_form_implemented: bool = False
+) -> None:
     """Uses val's effect on final_state_vector to check act_on(val)'s behavior.
 
     Checks that act_on with CliffordTableau or StabilizerStateCHForm behaves
@@ -79,13 +81,18 @@ def assert_all_implemented_act_on_effects_match_unitary(
 
     num_qubits_val = protocols.num_qubits(val)
 
-    if protocols.is_parameterized(val) or not protocols.has_unitary(
-            val) or protocols.qid_shape(val) != (2,) * num_qubits_val:
+    if (
+        protocols.is_parameterized(val)
+        or not protocols.has_unitary(val)
+        or protocols.qid_shape(val) != (2,) * num_qubits_val
+    ):
         if assert_tableau_implemented or assert_ch_form_implemented:
-            assert False, ("Could not assert if any act_on methods were "
-                           "implemented. Operating on qudits or with a "
-                           "non-unitary or parameterized operation is "
-                           "unsupported.\n\nval: {!r}".format(val))
+            assert False, (
+                "Could not assert if any act_on methods were "
+                "implemented. Operating on qudits or with a "
+                "non-unitary or parameterized operation is "
+                "unsupported.\n\nval: {!r}".format(val)
+            )
         return None
 
     qubits = LineQubit.range(protocols.num_qubits(val) * 2)
@@ -93,45 +100,48 @@ def assert_all_implemented_act_on_effects_match_unitary(
 
     circuit = Circuit()
     for i in range(num_qubits_val):
-        circuit.append([
-            common_gates.H(qubits[i]),
-            common_gates.CNOT(qubits[i], qubits[-i - 1])
-        ])
+        circuit.append([common_gates.H(qubits[i]), common_gates.CNOT(qubits[i], qubits[-i - 1])])
     if hasattr(val, "on"):
         circuit.append(val.on(*qubits[:num_qubits_val]))
     else:
         circuit.append(val.with_qubits(*qubits[:num_qubits_val]))
 
-    state_vector = np.reshape(final_state_vector(circuit, qubit_order=qubits),
-                              protocols.qid_shape(qubits))
+    state_vector = np.reshape(
+        final_state_vector(circuit, qubit_order=qubits), protocols.qid_shape(qubits)
+    )
 
     tableau = _final_clifford_tableau(circuit, qubit_map)
     if tableau is None:
-        assert not assert_tableau_implemented, ("Failed to generate final "
-                                                "tableau for the test circuit."
-                                                "\n\nval: {!r}".format(val))
+        assert (
+            not assert_tableau_implemented
+        ), "Failed to generate final tableau for the test circuit.\n\nval: {!r}".format(val)
     else:
         assert all(
-            state_vector_has_stabilizer(state_vector, stab)
-            for stab in tableau.stabilizers()), (
-                "act_on clifford tableau is not consistent with "
-                "final_state_vector simulation.\n\nval: {!r}".format(val))
+            state_vector_has_stabilizer(state_vector, stab) for stab in tableau.stabilizers()
+        ), (
+            "act_on clifford tableau is not consistent with "
+            "final_state_vector simulation.\n\nval: {!r}".format(val)
+        )
 
     stabilizer_ch_form = _final_stabilizer_state_ch_form(circuit, qubit_map)
     if stabilizer_ch_form is None:
-        assert not assert_ch_form_implemented, ("Failed to generate final "
-                                                "stabilizer state CH form "
-                                                "for the test circuit."
-                                                "\n\nval: {!r}".format(val))
+        assert not assert_ch_form_implemented, (
+            "Failed to generate final "
+            "stabilizer state CH form "
+            "for the test circuit."
+            "\n\nval: {!r}".format(val)
+        )
     else:
-        np.testing.assert_allclose(np.reshape(stabilizer_ch_form.state_vector(),
-                                              protocols.qid_shape(qubits)),
-                                   state_vector,
-                                   atol=1e-07)
+        np.testing.assert_allclose(
+            np.reshape(stabilizer_ch_form.state_vector(), protocols.qid_shape(qubits)),
+            state_vector,
+            atol=1e-07,
+        )
 
 
-def _final_clifford_tableau(circuit: Circuit, qubit_map
-                           ) -> Optional[clifford_tableau.CliffordTableau]:
+def _final_clifford_tableau(
+    circuit: Circuit, qubit_map
+) -> Optional[clifford_tableau.CliffordTableau]:
     """Evolves a default CliffordTableau through the input circuit.
 
     Initializes a CliffordTableau with default args for the given qubits and
@@ -161,8 +171,8 @@ def _final_clifford_tableau(circuit: Circuit, qubit_map
 
 
 def _final_stabilizer_state_ch_form(
-        circuit: Circuit,
-        qubit_map) -> Optional[stabilizer_state_ch_form.StabilizerStateChForm]:
+    circuit: Circuit, qubit_map
+) -> Optional[stabilizer_state_ch_form.StabilizerStateChForm]:
     """Evolves a default StabilizerStateChForm through the input circuit.
 
     Initializes a StabilizerStateChForm with default args for the given qubits
@@ -176,13 +186,12 @@ def _final_stabilizer_state_ch_form(
         None if any of the operations can not act on a StabilizerStateChForm,
         returns the StabilizerStateChForm otherwise."""
 
-    stabilizer_ch_form = stabilizer_state_ch_form.StabilizerStateChForm(
-        len(qubit_map))
+    stabilizer_ch_form = stabilizer_state_ch_form.StabilizerStateChForm(len(qubit_map))
     for op in circuit.all_operations():
         try:
             args = act_on_stabilizer_ch_form_args.ActOnStabilizerCHFormArgs(
-                state=stabilizer_ch_form,
-                axes=[qubit_map[qid] for qid in op.qubits])
+                state=stabilizer_ch_form, axes=[qubit_map[qid] for qid in op.qubits]
+            )
             protocols.act_on(op, args, allow_decompose=True)
         except TypeError:
             return None

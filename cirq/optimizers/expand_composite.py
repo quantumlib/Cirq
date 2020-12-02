@@ -31,9 +31,7 @@ class ExpandComposite(PointOptimizer):
     with its decomposition using a fixed insertion strategy.
     """
 
-    def __init__(self,
-                 no_decomp: Callable[[ops.Operation], bool]=(lambda _: False)
-                 ) -> None:
+    def __init__(self, no_decomp: Callable[[ops.Operation], bool] = (lambda _: False)) -> None:
         """Construct the optimization pass.
 
         Args:
@@ -44,13 +42,10 @@ class ExpandComposite(PointOptimizer):
         self.no_decomp = no_decomp
 
     def optimization_at(self, circuit, index, op):
-        decomposition = protocols.decompose(op,
-                                            keep=self.no_decomp,
-                                            on_stuck_raise=None)
+        decomposition = protocols.decompose(op, keep=self.no_decomp, on_stuck_raise=None)
         if decomposition == [op]:
             return None
 
         return PointOptimizationSummary(
-            clear_span=1,
-            clear_qubits=op.qubits,
-            new_operations=decomposition)
+            clear_span=1, clear_qubits=op.qubits, new_operations=decomposition
+        )

@@ -40,10 +40,9 @@ def get_unhidden_ungenerated_python_files(directory: str) -> Iterable[str]:
                 yield os.path.join(dirpath, filename)
 
 
-def create_virtual_env(venv_path: str,
-                       requirements_paths: Iterable[str],
-                       python_path: str,
-                       verbose: bool) -> None:
+def create_virtual_env(
+    venv_path: str, requirements_paths: Iterable[str], python_path: str, verbose: bool
+) -> None:
     """Creates a new virtual environment and then installs dependencies.
 
     Args:
@@ -52,30 +51,24 @@ def create_virtual_env(venv_path: str,
         python_path: The python binary to use.
         verbose: When set, more progress output is produced.
     """
-    shell_tools.run_cmd('virtualenv',
-                        None if verbose else '--quiet',
-                        '-p',
-                        python_path,
-                        venv_path,
-                        out=sys.stderr)
+    shell_tools.run_cmd(
+        'virtualenv', None if verbose else '--quiet', '-p', python_path, venv_path, out=sys.stderr
+    )
     pip_path = os.path.join(venv_path, 'bin', 'pip')
     for req_path in requirements_paths:
-        shell_tools.run_cmd(pip_path,
-                            'install',
-                            None if verbose else '--quiet',
-                            '-r',
-                            req_path,
-                            out=sys.stderr)
+        shell_tools.run_cmd(
+            pip_path, 'install', None if verbose else '--quiet', '-r', req_path, out=sys.stderr
+        )
 
 
 def prepare_temporary_test_environment(
-        destination_directory: str,
-        repository: GithubRepository,
-        pull_request_number: Optional[int],
-        verbose: bool,
-        env_name: str = '.test_virtualenv',
-        python_path: str = sys.executable,
-        commit_ids_known_callback: Callable[[PreparedEnv], None] = None
+    destination_directory: str,
+    repository: GithubRepository,
+    pull_request_number: Optional[int],
+    verbose: bool,
+    env_name: str = '.test_virtualenv',
+    python_path: str = sys.executable,
+    commit_ids_known_callback: Callable[[PreparedEnv], None] = None,
 ) -> PreparedEnv:
     """Prepares a temporary test environment at the (existing empty) directory.
 
@@ -103,11 +96,12 @@ def prepare_temporary_test_environment(
             destination_directory=destination_directory,
             repository=repository,
             pull_request_number=pull_request_number,
-            verbose=verbose)
+            verbose=verbose,
+        )
     else:
         env = git_env_tools.fetch_local_files(
-            destination_directory=destination_directory,
-            verbose=verbose)
+            destination_directory=destination_directory, verbose=verbose
+        )
 
     if commit_ids_known_callback is not None:
         commit_ids_known_callback(env)
@@ -116,22 +110,17 @@ def prepare_temporary_test_environment(
     base_path = cast(str, env.destination_directory)
     env_path = os.path.join(base_path, env_name)
     req_path = os.path.join(base_path, 'requirements.txt')
-    dev_req_path = os.path.join(base_path,
-                                'dev_tools',
-                                'conf',
-                                'pip-list-dev-tools.txt')
-    contrib_req_path = os.path.join(base_path,
-                                    'cirq',
-                                    'contrib',
-                                    'contrib-requirements.txt')
+    dev_req_path = os.path.join(base_path, 'dev_tools', 'conf', 'pip-list-dev-tools.txt')
+    contrib_req_path = os.path.join(base_path, 'cirq', 'contrib', 'contrib-requirements.txt')
     rev_paths = [req_path, dev_req_path, contrib_req_path]
-    create_virtual_env(venv_path=env_path,
-                       python_path=python_path,
-                       requirements_paths=rev_paths,
-                       verbose=verbose)
+    create_virtual_env(
+        venv_path=env_path, python_path=python_path, requirements_paths=rev_paths, verbose=verbose
+    )
 
-    return PreparedEnv(github_repo=env.repository,
-                       actual_commit_id=env.actual_commit_id,
-                       compare_commit_id=env.compare_commit_id,
-                       destination_directory=env.destination_directory,
-                       virtual_env_path=env_path)
+    return PreparedEnv(
+        github_repo=env.repository,
+        actual_commit_id=env.actual_commit_id,
+        compare_commit_id=env.compare_commit_id,
+        destination_directory=env.destination_directory,
+        virtual_env_path=env_path,
+    )

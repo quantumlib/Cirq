@@ -23,17 +23,18 @@ if TYPE_CHECKING:
 def generate_all_measurement_cell_makers() -> Iterator[CellMaker]:
     yield _measurement("Measure")
     yield _measurement("ZDetector")
-    yield _measurement("YDetector", basis_change=ops.X**-0.5)
-    yield _measurement("XDetector", basis_change=ops.Y**0.5)
+    yield _measurement("YDetector", basis_change=ops.X ** -0.5)
+    yield _measurement("XDetector", basis_change=ops.Y ** 0.5)
 
 
-def _measurement(identifier: str,
-                 basis_change: Optional['cirq.Gate'] = None) -> CellMaker:
+def _measurement(identifier: str, basis_change: Optional['cirq.Gate'] = None) -> CellMaker:
     return CellMaker(
         identifier=identifier,
         size=1,
         maker=lambda args: ExplicitOperationsCell(
             [ops.measure(*args.qubits, key=f'row={args.row},col={args.col}')],
-            basis_change=cast(Iterable['cirq.Operation'], [
-                basis_change.on(*args.qubits)
-            ] if basis_change else ())))
+            basis_change=cast(
+                Iterable['cirq.Operation'], [basis_change.on(*args.qubits)] if basis_change else ()
+            ),
+        ),
+    )

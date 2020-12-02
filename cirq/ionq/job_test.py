@@ -26,9 +26,7 @@ def test_job_fields():
         'name': 'bacon',
         'qubits': '5',
         'status': 'completed',
-        'metadata': {
-            'shots': 1000
-        }
+        'metadata': {'shots': 1000},
     }
     job = ionq.Job(None, job_dict)
     assert job.job_id() == 'my_id'
@@ -52,10 +50,7 @@ def test_job_fields_simulator_repetitions():
 def test_job_status_refresh():
     for status in ionq.Job.NON_TERMINAL_STATES:
         mock_client = mock.MagicMock()
-        mock_client.get_job.return_value = {
-            'id': 'my_id',
-            'status': 'completed'
-        }
+        mock_client.get_job.return_value = {'id': 'my_id', 'status': 'completed'}
         job = ionq.Job(mock_client, {'id': 'my_id', 'status': status})
         assert job.status() == 'completed'
         mock_client.get_job.assert_called_with('my_id')
@@ -77,15 +72,8 @@ def test_job_results_qpu():
         'status': 'completed',
         'qubits': '1',
         'target': 'qpu',
-        'metadata': {
-            'shots': 1000
-        },
-        'data': {
-            'histogram': {
-                '0': '0.6',
-                '1': '0.4'
-            }
-        }
+        'metadata': {'shots': 1000},
+        'data': {'histogram': {'0': '0.6', '1': '0.4'}},
     }
     job = ionq.Job(None, job_dict)
     results = job.results()
@@ -98,15 +86,8 @@ def test_job_results_qpu_endianness():
         'status': 'completed',
         'qubits': '2',
         'target': 'qpu',
-        'metadata': {
-            'shots': 1000
-        },
-        'data': {
-            'histogram': {
-                '0': '0.6',
-                '1': '0.4'
-            }
-        }
+        'metadata': {'shots': 1000},
+        'data': {'histogram': {'0': '0.6', '1': '0.4'}},
     }
     job = ionq.Job(None, job_dict)
     results = job.results()
@@ -124,15 +105,8 @@ def test_job_results_poll(mock_sleep):
         'status': 'completed',
         'qubits': '1',
         'target': 'qpu',
-        'metadata': {
-            'shots': 1000
-        },
-        'data': {
-            'histogram': {
-                '0': '0.6',
-                '1': '0.4'
-            }
-        }
+        'metadata': {'shots': 1000},
+        'data': {'histogram': {'0': '0.6', '1': '0.4'}},
     }
     mock_client = mock.MagicMock()
     mock_client.get_job.side_effect = [ready_job, completed_job]
@@ -162,12 +136,7 @@ def test_job_results_simulator():
         'status': 'completed',
         'qubits': '1',
         'target': 'simulator',
-        'data': {
-            'histogram': {
-                '0': '0.6',
-                '1': '0.4'
-            }
-        }
+        'data': {'histogram': {'0': '0.6', '1': '0.4'}},
     }
     job = ionq.Job(None, job_dict)
     results = job.results()
@@ -180,12 +149,7 @@ def test_job_results_simulator_endianness():
         'status': 'completed',
         'qubits': '2',
         'target': 'simulator',
-        'data': {
-            'histogram': {
-                '0': '0.6',
-                '1': '0.4'
-            }
-        }
+        'data': {'histogram': {'0': '0.6', '1': '0.4'}},
     }
     job = ionq.Job(None, job_dict)
     results = job.results()
@@ -227,9 +191,7 @@ def test_job_fields_unsuccessful():
         'name': 'bacon',
         'qubits': '5',
         'status': 'deleted',
-        'metadata': {
-            'shots': 1000
-        }
+        'metadata': {'shots': 1000},
     }
     job = ionq.Job(None, job_dict)
     with pytest.raises(ionq.IonQUnsuccessfulJobException, match='deleted'):
@@ -249,9 +211,7 @@ def test_job_fields_cannot_get_status():
         'name': 'bacon',
         'qubits': '5',
         'status': 'running',
-        'metadata': {
-            'shots': 1000
-        }
+        'metadata': {'shots': 1000},
     }
     mock_client = mock.MagicMock()
     mock_client.get_job.side_effect = ionq.IonQException('bad')
@@ -273,9 +233,7 @@ def test_job_fields_update_status():
         'name': 'bacon',
         'qubits': '5',
         'status': 'running',
-        'metadata': {
-            'shots': 1000
-        }
+        'metadata': {'shots': 1000},
     }
     mock_client = mock.MagicMock()
     mock_client.get_job.return_value = job_dict

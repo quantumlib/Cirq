@@ -33,21 +33,18 @@ def test_ms_crosstalk_n_noise():
     noise_mod = AQTNoiseModel()
     device, qubits = get_aqt_device(num_qubits)
     circuit = Circuit(device=device)
-    circuit.append(XX(qubits[1], qubits[2])**0.5)
+    circuit.append(XX(qubits[1], qubits[2]) ** 0.5)
     for moment in circuit.moments:
         noisy_moment = noise_mod.noisy_moment(moment, qubits)
-    assert noisy_moment == [(cirq.XX**0.5).on(cirq.LineQubit(1),
-                                              cirq.LineQubit(2)),
-                            cirq.depolarize(p=0.01).on(cirq.LineQubit(1)),
-                            cirq.depolarize(p=0.01).on(cirq.LineQubit(2)),
-                            (cirq.XX**0.015).on(cirq.LineQubit(1),
-                                                cirq.LineQubit(0)),
-                            (cirq.XX**0.015).on(cirq.LineQubit(1),
-                                                cirq.LineQubit(3)),
-                            (cirq.XX**0.015).on(cirq.LineQubit(2),
-                                                cirq.LineQubit(0)),
-                            (cirq.XX**0.015).on(cirq.LineQubit(2),
-                                                cirq.LineQubit(3))]
+    assert noisy_moment == [
+        (cirq.XX ** 0.5).on(cirq.LineQubit(1), cirq.LineQubit(2)),
+        cirq.depolarize(p=0.01).on(cirq.LineQubit(1)),
+        cirq.depolarize(p=0.01).on(cirq.LineQubit(2)),
+        (cirq.XX ** 0.015).on(cirq.LineQubit(1), cirq.LineQubit(0)),
+        (cirq.XX ** 0.015).on(cirq.LineQubit(1), cirq.LineQubit(3)),
+        (cirq.XX ** 0.015).on(cirq.LineQubit(2), cirq.LineQubit(0)),
+        (cirq.XX ** 0.015).on(cirq.LineQubit(2), cirq.LineQubit(3)),
+    ]
 
 
 def test_x_crosstalk_n_noise():
@@ -55,12 +52,14 @@ def test_x_crosstalk_n_noise():
     noise_mod = AQTNoiseModel()
     device, qubits = get_aqt_device(num_qubits)
     circuit = Circuit(device=device)
-    circuit.append(Y(qubits[1])**0.5)
-    circuit.append(Z(qubits[1])**0.5)
-    circuit.append(X(qubits[1])**0.5)
+    circuit.append(Y(qubits[1]) ** 0.5)
+    circuit.append(Z(qubits[1]) ** 0.5)
+    circuit.append(X(qubits[1]) ** 0.5)
     for moment in circuit.moments:
         noisy_moment = noise_mod.noisy_moment(moment, qubits)
-    assert noisy_moment == [(cirq.X**0.5).on(cirq.LineQubit(1)),
-                            cirq.depolarize(p=0.001).on(cirq.LineQubit(1)),
-                            (cirq.X**0.015).on(cirq.LineQubit(0)),
-                            (cirq.X**0.015).on(cirq.LineQubit(2))]
+    assert noisy_moment == [
+        (cirq.X ** 0.5).on(cirq.LineQubit(1)),
+        cirq.depolarize(p=0.001).on(cirq.LineQubit(1)),
+        (cirq.X ** 0.015).on(cirq.LineQubit(0)),
+        (cirq.X ** 0.015).on(cirq.LineQubit(2)),
+    ]

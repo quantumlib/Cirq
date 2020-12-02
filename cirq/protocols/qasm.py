@@ -13,8 +13,7 @@
 # limitations under the License.
 
 import string
-from typing import TYPE_CHECKING, Union, Any, Tuple, TypeVar, Optional, Dict, \
-    Iterable
+from typing import TYPE_CHECKING, Union, Any, Tuple, TypeVar, Optional, Dict, Iterable
 
 from typing_extensions import Protocol
 
@@ -31,12 +30,13 @@ RaiseTypeErrorIfNotProvided = ([],)  # type: Any
 
 
 class QasmArgs(string.Formatter):
-    def __init__(self,
-                 precision: int = 10,
-                 version: str = '2.0',
-                 qubit_id_map: Dict['cirq.Qid', str] = None,
-                 meas_key_id_map: Dict[str, str] = None,
-                 ) -> None:
+    def __init__(
+        self,
+        precision: int = 10,
+        version: str = '2.0',
+        qubit_id_map: Dict['cirq.Qid', str] = None,
+        meas_key_id_map: Dict[str, str] = None,
+    ) -> None:
         """
         Args:
             precision: The number of digits after the decimal to show for
@@ -50,8 +50,7 @@ class QasmArgs(string.Formatter):
         self.precision = precision
         self.version = version
         self.qubit_id_map = {} if qubit_id_map is None else qubit_id_map
-        self.meas_key_id_map = ({} if meas_key_id_map is None
-                                else meas_key_id_map)
+        self.meas_key_id_map = {} if meas_key_id_map is None else meas_key_id_map
 
     def format_field(self, value: Any, spec: str) -> str:
         """Method of string.Formatter that specifies the output of format()."""
@@ -70,8 +69,7 @@ class QasmArgs(string.Formatter):
 
     def validate_version(self, *supported_versions: str) -> None:
         if self.version not in supported_versions:
-            raise ValueError('QASM version {} output is not supported.'.format(
-                                self.version))
+            raise ValueError('QASM version {} output is not supported.'.format(self.version))
 
 
 class SupportsQasm(Protocol):
@@ -96,8 +94,7 @@ class SupportsQasmWithArgs(Protocol):
     """
 
     @doc_private
-    def _qasm_(self,
-               args: QasmArgs) -> Union[None, NotImplementedType, str]:
+    def _qasm_(self, args: QasmArgs) -> Union[None, NotImplementedType, str]:
         pass
 
 
@@ -110,19 +107,20 @@ class SupportsQasmWithArgsAndQubits(Protocol):
     """
 
     @doc_private
-    def _qasm_(self,
-               qubits: Tuple['cirq.Qid'],
-               args: QasmArgs) -> Union[None, NotImplementedType, str]:
+    def _qasm_(
+        self, qubits: Tuple['cirq.Qid'], args: QasmArgs
+    ) -> Union[None, NotImplementedType, str]:
         pass
 
 
 # pylint: disable=function-redefined
-def qasm(val: Any,
-         *,
-         args: Optional[QasmArgs] = None,
-         qubits: Optional[Iterable['cirq.Qid']] = None,
-         default: TDefault = RaiseTypeErrorIfNotProvided
-         ) -> Union[str, TDefault]:
+def qasm(
+    val: Any,
+    *,
+    args: Optional[QasmArgs] = None,
+    qubits: Optional[Iterable['cirq.Qid']] = None,
+    default: TDefault = RaiseTypeErrorIfNotProvided,
+) -> Union[str, TDefault]:
     """Returns QASM code for the given value, if possible.
 
     Different values require different sets of arguments. The general rule of
@@ -167,8 +165,11 @@ def qasm(val: Any,
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     if method is None:
-        raise TypeError("object of type '{}' "
-                        "has no _qasm_ method.".format(type(val)))
-    raise TypeError("object of type '{}' does have a _qasm_ method, "
-                    "but it returned NotImplemented or None.".format(type(val)))
+        raise TypeError("object of type '{}' has no _qasm_ method.".format(type(val)))
+    raise TypeError(
+        "object of type '{}' does have a _qasm_ method, "
+        "but it returned NotImplemented or None.".format(type(val))
+    )
+
+
 # pylint: enable=function-redefined

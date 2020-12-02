@@ -9,8 +9,12 @@ from cirq._compat import proper_repr, proper_eq
 
 from cirq import linalg, value
 from cirq.google.optimizers.two_qubit_gates.math_utils import (
-    kak_vector_infidelity, vector_kron, weyl_chamber_mesh, random_qubit_unitary,
-    kak_vector_to_unitary)
+    kak_vector_infidelity,
+    vector_kron,
+    weyl_chamber_mesh,
+    random_qubit_unitary,
+    kak_vector_to_unitary,
+)
 
 if TYPE_CHECKING:
     import cirq
@@ -48,9 +52,8 @@ class TwoQubitGateCompilation(NamedTuple):
 
 @dataclass
 class GateTabulation:
-    """A 2-qubit gate compiler based on precomputing/tabulating gate products.
+    """A 2-qubit gate compiler based on precomputing/tabulating gate products."""
 
-    """
     base_gate: np.ndarray  # Base two qubit gate. (4x4 unitary)
     # Sequence of KAK vectors, ideally "dense" in the Weyl chamber. Shape (N,3).
     kak_vecs: np.ndarray
@@ -65,8 +68,7 @@ class GateTabulation:
     # max_expected_infidelity) using 2 or 3 base gates.
     missed_points: Tuple[np.ndarray, ...]
 
-    def compile_two_qubit_gate(self,
-                               unitary: np.ndarray) -> TwoQubitGateCompilation:
+    def compile_two_qubit_gate(self, unitary: np.ndarray) -> TwoQubitGateCompilation:
         r"""Compute single qubit gates required to compile a desired unitary.
 
         Given a desired unitary U, this computes the sequence of 1-local gates
@@ -85,9 +87,7 @@ class GateTabulation:
         """
         unitary = np.asarray(unitary)
         kak_vec = linalg.kak_vector(unitary, check_preconditions=False)
-        infidelities = kak_vector_infidelity(kak_vec,
-                                             self.kak_vecs,
-                                             ignore_equivalent_vectors=True)
+        infidelities = kak_vector_infidelity(kak_vec, self.kak_vecs, ignore_equivalent_vectors=True)
         nearest_ind = infidelities.argmin()
 
         success = infidelities[nearest_ind] < self.max_expected_infidelity
@@ -97,24 +97,20 @@ class GateTabulation:
 
         if inner_gates.size == 0:  # Only need base gate
             kR, kL, actual = _outer_locals_for_unitary(unitary, self.base_gate)
-            return TwoQubitGateCompilation(self.base_gate, unitary, (kR, kL),
-                                           actual, success)
+            return TwoQubitGateCompilation(self.base_gate, unitary, (kR, kL), actual, success)
 
         # reshape to operators on 2 qubits, (n,4,4)
-        inner_gates = vector_kron(inner_gates[..., 0, :, :],
-                                  inner_gates[..., 1, :, :])
+        inner_gates = vector_kron(inner_gates[..., 0, :, :], inner_gates[..., 1, :, :])
 
         assert inner_gates.ndim == 3
-        inner_product = reduce(lambda a, b: self.base_gate @ b @ a, inner_gates,
-                               self.base_gate)
+        inner_product = reduce(lambda a, b: self.base_gate @ b @ a, inner_gates, self.base_gate)
         kR, kL, actual = _outer_locals_for_unitary(unitary, inner_product)
 
         out = [kR]
         out.extend(self.single_qubit_gates[nearest_ind])
         out.append(kL)
 
-        return TwoQubitGateCompilation(self.base_gate, unitary, tuple(out),
-                                       actual, success)
+        return TwoQubitGateCompilation(self.base_gate, unitary, tuple(out), actual, success)
 
     def _json_dict_(self):
         return {
@@ -133,33 +129,44 @@ class GateTabulation:
         # proper_repr.
         numpy_single_qubit_gates = []
         for single_qubit_gate in self.single_qubit_gates:
-            gate_repr = [f"({proper_repr(pair[0])}, " \
-                         f"{proper_repr(pair[1])})" for pair in
-                         single_qubit_gate]
+            gate_repr = [
+                f"({proper_repr(pair[0])}, {proper_repr(pair[1])})" for pair in single_qubit_gate
+            ]
             numpy_single_qubit_gates.append(f"[{','.join(gate_repr)}]")
 
-        return f'cirq.google.optimizers.two_qubit_gates.gate_compilation' \
-               f'.GateTabulation({proper_repr(self.base_gate)}, ' \
-               f'{proper_repr(self.kak_vecs)}, ' \
-               f'[{",".join(numpy_single_qubit_gates)}], ' \
-               f' {proper_repr(self.max_expected_infidelity)}, ' \
-               f'{proper_repr(self.summary)}, ' \
-               f'{proper_repr(self.missed_points)})'
+        return (
+            f'cirq.google.optimizers.two_qubit_gates.gate_compilation'
+            f'.GateTabulation({proper_repr(self.base_gate)}, '
+            f'{proper_repr(self.kak_vecs)}, '
+            f'[{",".join(numpy_single_qubit_gates)}], '
+            f' {proper_repr(self.max_expected_infidelity)}, '
+            f'{proper_repr(self.summary)}, '
+            f'{proper_repr(self.missed_points)})'
+        )
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return (np.array_equal(self.base_gate, other.base_gate) and
-                np.array_equal(self.kak_vecs, other.kak_vecs) and
-                proper_eq(self.single_qubit_gates, other.single_qubit_gates) and
-                self.max_expected_infidelity == other.max_expected_infidelity
-                and self.summary == other.summary and
-                np.array_equal(self.missed_points, other.missed_points))
+        return (
+            np.array_equal(self.base_gate, other.base_gate)
+            and np.array_equal(self.kak_vecs, other.kak_vecs)
+            and proper_eq(self.single_qubit_gates, other.single_qubit_gates)
+            and self.max_expected_infidelity == other.max_expected_infidelity
+            and self.summary == other.summary
+            and np.array_equal(self.missed_points, other.missed_points)
+        )
 
     @classmethod
-    def _from_json_dict_(cls, base_gate, kak_vecs, single_qubit_gates,
-                         max_expected_infidelity, summary, missed_points,
-                         **kwargs):
+    def _from_json_dict_(
+        cls,
+        base_gate,
+        kak_vecs,
+        single_qubit_gates,
+        max_expected_infidelity,
+        summary,
+        missed_points,
+        **kwargs,
+    ):
         numpy_single_qubit_gates = []
         for single_qubit_gate in single_qubit_gates:
             numpy_single_qubit_gate = []
@@ -168,16 +175,18 @@ class GateTabulation:
                 numpy_single_qubit_gate.append(numpy_tuple)
             numpy_single_qubit_gates.append(numpy_single_qubit_gate)
 
-        return cls(base_gate=np.array(base_gate),
-                   kak_vecs=np.array(kak_vecs),
-                   single_qubit_gates=numpy_single_qubit_gates,
-                   max_expected_infidelity=max_expected_infidelity,
-                   summary=summary,
-                   missed_points=missed_points)
+        return cls(
+            base_gate=np.array(base_gate),
+            kak_vecs=np.array(kak_vecs),
+            single_qubit_gates=numpy_single_qubit_gates,
+            max_expected_infidelity=max_expected_infidelity,
+            summary=summary,
+            missed_points=missed_points,
+        )
 
 
 def _outer_locals_for_unitary(
-        target: np.ndarray, base: np.ndarray
+    target: np.ndarray, base: np.ndarray
 ) -> Tuple[_SingleQubitGatePair, _SingleQubitGatePair, np.ndarray]:
     """Local unitaries mapping between locally equivalent 2-local unitaries.
 
@@ -230,12 +239,12 @@ class _TabulationStepResult(NamedTuple):
 
 
 def _tabulate_kak_vectors(
-        *,
-        already_tabulated: np.ndarray,
-        base_gate: np.ndarray,
-        max_dist: float,
-        kak_mesh: np.ndarray,
-        local_unitary_pairs: Sequence[_SingleQubitGatePair],
+    *,
+    already_tabulated: np.ndarray,
+    base_gate: np.ndarray,
+    max_dist: float,
+    kak_mesh: np.ndarray,
+    local_unitary_pairs: Sequence[_SingleQubitGatePair],
 ) -> _TabulationStepResult:
     """Tabulate KAK vectors from products of local unitaries with a base gate.
 
@@ -261,8 +270,7 @@ def _tabulate_kak_vectors(
     assert len(shapes.pop()) == 3
 
     # Generate products
-    local_cycles = np.array(
-        [vector_kron(*pairs) for pairs in local_unitary_pairs])
+    local_cycles = np.array([vector_kron(*pairs) for pairs in local_unitary_pairs])
 
     prods = np.einsum('ab,...bc,cd', base_gate, local_cycles[0], base_gate)
     for local_cycle in local_cycles[1:]:
@@ -276,11 +284,10 @@ def _tabulate_kak_vectors(
     for ind, vec in enumerate(kak_vectors):
         # The L2 distance is an upper bound to the locally invariant distance,
         # but it's much faster to compute.
-        dists = np.sqrt(np.sum((kak_mesh - vec)**2, axis=-1))
+        dists = np.sqrt(np.sum((kak_mesh - vec) ** 2, axis=-1))
         close = (dists < max_dist).nonzero()[0]
         assert close.shape[0] in (0, 1), f'close.shape: {close.shape}'
-        cycles_for_gate = tuple(
-            (k_0[ind], k_1[ind]) for k_0, k_1 in local_unitary_pairs)
+        cycles_for_gate = tuple((k_0[ind], k_1[ind]) for k_0, k_1 in local_unitary_pairs)
 
         # Add the vector and its cycles to the tabulation if it's not already
         # tabulated.
@@ -293,12 +300,12 @@ def _tabulate_kak_vectors(
 
 
 def gate_product_tabulation(
-        base_gate: np.ndarray,
-        max_infidelity: float,
-        *,
-        sample_scaling: int = 50,
-        allow_missed_points: bool = True,
-        random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+    base_gate: np.ndarray,
+    max_infidelity: float,
+    *,
+    sample_scaling: int = 50,
+    allow_missed_points: bool = True,
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> GateTabulation:
     r"""Generate a GateTabulation for a base two qubit unitary.
 
@@ -345,11 +352,13 @@ def gate_product_tabulation(
     tabulated_kak_inds = np.zeros((num_mesh_points,), dtype=bool)
 
     tabulation_cutoff = 0.5 * spacing
-    out = _tabulate_kak_vectors(already_tabulated=tabulated_kak_inds,
-                                base_gate=base_gate,
-                                max_dist=tabulation_cutoff,
-                                kak_mesh=mesh_points,
-                                local_unitary_pairs=[(u_locals_0, u_locals_1)])
+    out = _tabulate_kak_vectors(
+        already_tabulated=tabulated_kak_inds,
+        base_gate=base_gate,
+        max_dist=tabulation_cutoff,
+        kak_mesh=mesh_points,
+        local_unitary_pairs=[(u_locals_0, u_locals_1)],
+    )
     kak_vecs.extend(out.kept_kaks)
     sq_cycles.extend(out.kept_cycles)
 
@@ -357,32 +366,36 @@ def gate_product_tabulation(
     kak_vecs_single = np.array(kak_vecs)
     sq_cycles_single = list(sq_cycles)
 
-    summary = (f'Fraction of Weyl chamber reached with 2 gates'
-               f': {tabulated_kak_inds.sum() / num_mesh_points :.3f}')
+    summary = (
+        f'Fraction of Weyl chamber reached with 2 gates'
+        f': {tabulated_kak_inds.sum() / num_mesh_points :.3f}'
+    )
 
     # repeat for double products
     # Multiply by the same local unitary in the gate product
-    out = _tabulate_kak_vectors(already_tabulated=tabulated_kak_inds,
-                                base_gate=base_gate,
-                                max_dist=tabulation_cutoff,
-                                kak_mesh=mesh_points,
-                                local_unitary_pairs=[(u_locals_0, u_locals_1)] *
-                                2)
+    out = _tabulate_kak_vectors(
+        already_tabulated=tabulated_kak_inds,
+        base_gate=base_gate,
+        max_dist=tabulation_cutoff,
+        kak_mesh=mesh_points,
+        local_unitary_pairs=[(u_locals_0, u_locals_1)] * 2,
+    )
 
     kak_vecs.extend(out.kept_kaks)
     sq_cycles.extend(out.kept_cycles)
 
-    summary += (f'\nFraction of Weyl chamber reached with 2 gates and 3 gates'
-                f'(same single qubit): '
-                f'{tabulated_kak_inds.sum() / num_mesh_points :.3f}')
+    summary += (
+        f'\nFraction of Weyl chamber reached with 2 gates and 3 gates'
+        f'(same single qubit): '
+        f'{tabulated_kak_inds.sum() / num_mesh_points :.3f}'
+    )
 
     # If all KAK vectors in the mesh have been tabulated, return.
     missing_vec_inds = np.logical_not(tabulated_kak_inds).nonzero()[0]
 
     if not np.any(missing_vec_inds):
         # coverage: ignore
-        return GateTabulation(base_gate, np.array(kak_vecs), sq_cycles,
-                              max_infidelity, summary, ())
+        return GateTabulation(base_gate, np.array(kak_vecs), sq_cycles, max_infidelity, summary, ())
 
     # Run through remaining KAK vectors that don't have products and try to
     # correct them
@@ -411,15 +424,14 @@ def gate_product_tabulation(
         missing_unitary = kak_vector_to_unitary(missing_vec)
 
         # Products of the from base_gate^\dagger k A
-        products = np.einsum('ab,...bc,cd', base_gate_dag, u_locals,
-                             missing_unitary)
+        products = np.einsum('ab,...bc,cd', base_gate_dag, u_locals, missing_unitary)
         # KAK vectors for these products
         kaks = linalg.kak_vector(products, check_preconditions=False)
         kaks = kaks[..., np.newaxis, :]
 
         # Check if any of the product KAK vectors are close to a previously
         # tabulated KAK vector
-        dists2 = np.sum((kaks - kak_vecs_single)**2, axis=-1)
+        dists2 = np.sum((kaks - kak_vecs_single) ** 2, axis=-1)
         min_dist_inds = np.unravel_index(dists2.argmin(), dists2.shape)
         min_dist = np.sqrt(dists2[min_dist_inds])
         if min_dist < tabulation_cutoff:
@@ -437,8 +449,7 @@ def gate_product_tabulation(
             if old_ind == 0:
                 assert not sq_cycles_single[old_ind]
                 base_product = base_gate
-                _, kL, actual = _outer_locals_for_unitary(
-                    new_product, base_product)
+                _, kL, actual = _outer_locals_for_unitary(new_product, base_product)
                 # Add to the enumeration
                 sq_cycles.append((kL,))
             else:  # typical case mentioned above
@@ -446,24 +457,23 @@ def gate_product_tabulation(
                 old_sq_cycle = sq_cycles_single[old_ind][0]
                 old_k = np.kron(*old_sq_cycle)
                 base_product = base_gate @ old_k @ base_gate
-                _, kL, actual = _outer_locals_for_unitary(
-                    new_product, base_product)
+                _, kL, actual = _outer_locals_for_unitary(new_product, base_product)
                 # Add to the enumeration
                 sq_cycles.append((old_sq_cycle, kL))
 
-            kak_vecs.append(
-                linalg.kak_vector(base_gate @ actual,
-                                  check_preconditions=False))
+            kak_vecs.append(linalg.kak_vector(base_gate @ actual, check_preconditions=False))
         elif not allow_missed_points:
-            raise ValueError(f'Failed to tabulate a KAK vector near '
-                             f'{missing_vec}')
+            raise ValueError(f'Failed to tabulate a KAK vector near {missing_vec}')
         else:
             missed_points.append(missing_vec)
 
     kak_vecs = np.array(kak_vecs)
-    summary += (f'\nFraction of Weyl chamber reached with 2 gates and 3 gates '
-                f'(after patchup)'
-                f': {(len(kak_vecs) - 1) / num_mesh_points :.3f}')
+    summary += (
+        f'\nFraction of Weyl chamber reached with 2 gates and 3 gates '
+        f'(after patchup)'
+        f': {(len(kak_vecs) - 1) / num_mesh_points :.3f}'
+    )
 
-    return GateTabulation(base_gate, kak_vecs, sq_cycles, max_infidelity,
-                          summary, tuple(missed_points))
+    return GateTabulation(
+        base_gate, kak_vecs, sq_cycles, max_infidelity, summary, tuple(missed_points)
+    )

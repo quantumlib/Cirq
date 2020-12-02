@@ -39,8 +39,7 @@ SUPPORTED_FUNCTIONS_FOR_LANGUAGE: Dict[Optional[str], FrozenSet[str]] = {
 SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul, sympy.Pow)
 
 # Argument types for gates.
-ARG_LIKE = Union[int, float, List[bool], str, sympy.Symbol, sympy.Add, sympy.
-                 Mul]
+ARG_LIKE = Union[int, float, List[bool], str, sympy.Symbol, sympy.Add, sympy.Mul]
 
 # Supported function languages in order from least to most flexible.
 # Clients should use the least flexible language they can, to make it easier
@@ -58,20 +57,22 @@ def _max_lang(langs: Iterable[str]) -> str:
 
 
 def _infer_function_language_from_circuit(value: v2.program_pb2.Circuit) -> str:
-    return _max_lang({
-        e for moment in value.moments for op in moment.operations
-        for e in _function_languages_from_operation(op)
-    })
+    return _max_lang(
+        {
+            e
+            for moment in value.moments
+            for op in moment.operations
+            for e in _function_languages_from_operation(op)
+        }
+    )
 
 
-def _function_languages_from_operation(value: v2.program_pb2.Operation
-                                      ) -> Iterator[str]:
+def _function_languages_from_operation(value: v2.program_pb2.Operation) -> Iterator[str]:
     for arg in value.args.values():
         yield from _function_languages_from_arg(arg)
 
 
-def _function_languages_from_arg(arg_proto: v2.program_pb2.Arg
-                                ) -> Iterator[str]:
+def _function_languages_from_arg(arg_proto: v2.program_pb2.Arg) -> Iterator[str]:
 
     which = arg_proto.WhichOneof('arg')
     if which == 'func':
@@ -85,11 +86,12 @@ def _function_languages_from_arg(arg_proto: v2.program_pb2.Arg
                 yield from _function_languages_from_arg(a)
 
 
-def arg_to_proto(value: ARG_LIKE,
-                 *,
-                 arg_function_language: Optional[str] = None,
-                 out: Optional[v2.program_pb2.Arg] = None
-                ) -> v2.program_pb2.Arg:
+def arg_to_proto(
+    value: ARG_LIKE,
+    *,
+    arg_function_language: Optional[str] = None,
+    out: Optional[v2.program_pb2.Arg] = None,
+) -> v2.program_pb2.Arg:
     """Writes an argument value into an Arg proto.
 
     Args:
@@ -105,27 +107,28 @@ def arg_to_proto(value: ARG_LIKE,
     """
 
     if arg_function_language not in SUPPORTED_FUNCTIONS_FOR_LANGUAGE:
-        raise ValueError(f'Unrecognized arg_function_language: '
-                         f'{arg_function_language!r}')
+        raise ValueError(f'Unrecognized arg_function_language: {arg_function_language!r}')
     supported = SUPPORTED_FUNCTIONS_FOR_LANGUAGE[arg_function_language]
 
     msg = v2.program_pb2.Arg() if out is None else out
 
     def check_support(func_type: str) -> str:
         if func_type not in supported:
-            lang = (repr(arg_function_language)
-                    if arg_function_language is not None else '[any]')
-            raise ValueError(f'Function type {func_type!r} not supported by '
-                             f'arg_function_language {lang}')
+            lang = repr(arg_function_language) if arg_function_language is not None else '[any]'
+            raise ValueError(
+                f'Function type {func_type!r} not supported by arg_function_language {lang}'
+            )
         return func_type
 
-    if isinstance(value, (float, int, sympy.Integer, sympy.Float,
-                          sympy.Rational, sympy.NumberSymbol)):
+    if isinstance(
+        value, (float, int, sympy.Integer, sympy.Float, sympy.Rational, sympy.NumberSymbol)
+    ):
         msg.arg_value.float_value = float(value)
     elif isinstance(value, str):
         msg.arg_value.string_value = value
-    elif (isinstance(value, (list, tuple, np.ndarray)) and
-          all(isinstance(x, (bool, np.bool_)) for x in value)):
+    elif isinstance(value, (list, tuple, np.ndarray)) and all(
+        isinstance(x, (bool, np.bool_)) for x in value
+    ):
         # Some protobuf / numpy combinations do not support np.bool_, so cast.
         msg.arg_value.bool_values.values.extend([bool(x) for x in value])
     elif isinstance(value, sympy.Symbol):
@@ -133,21 +136,15 @@ def arg_to_proto(value: ARG_LIKE,
     elif isinstance(value, sympy.Add):
         msg.func.type = check_support('add')
         for arg in value.args:
-            arg_to_proto(arg,
-                         arg_function_language=arg_function_language,
-                         out=msg.func.args.add())
+            arg_to_proto(arg, arg_function_language=arg_function_language, out=msg.func.args.add())
     elif isinstance(value, sympy.Mul):
         msg.func.type = check_support('mul')
         for arg in value.args:
-            arg_to_proto(arg,
-                         arg_function_language=arg_function_language,
-                         out=msg.func.args.add())
+            arg_to_proto(arg, arg_function_language=arg_function_language, out=msg.func.args.add())
     elif isinstance(value, sympy.Pow):
         msg.func.type = check_support('pow')
         for arg in value.args:
-            arg_to_proto(arg,
-                         arg_function_language=arg_function_language,
-                         out=msg.func.args.add())
+            arg_to_proto(arg, arg_function_language=arg_function_language, out=msg.func.args.add())
     else:
         raise ValueError(f'Unrecognized arg type: {type(value)}')
 
@@ -155,10 +152,10 @@ def arg_to_proto(value: ARG_LIKE,
 
 
 def arg_from_proto(
-        arg_proto: v2.program_pb2.Arg,
-        *,
-        arg_function_language: str,
-        required_arg_name: Optional[str] = None,
+    arg_proto: v2.program_pb2.Arg,
+    *,
+    arg_function_language: str,
+    required_arg_name: Optional[str] = None,
 ) -> Optional[ARG_LIKE]:
     """Extracts a python value from an argument value proto.
 
@@ -177,8 +174,7 @@ def arg_from_proto(
     """
     supported = SUPPORTED_FUNCTIONS_FOR_LANGUAGE.get(arg_function_language)
     if supported is None:
-        raise ValueError(f'Unrecognized arg_function_language: '
-                         f'{arg_function_language!r}')
+        raise ValueError(f'Unrecognized arg_function_language: {arg_function_language!r}')
 
     which = arg_proto.WhichOneof('arg')
     if which == 'arg_value':
@@ -207,35 +203,49 @@ def arg_from_proto(
         if func.type not in cast(Set[str], supported):
             raise ValueError(
                 f'Unrecognized function type {func.type!r} '
-                f'for arg_function_language={arg_function_language!r}')
+                f'for arg_function_language={arg_function_language!r}'
+            )
 
         if func.type == 'add':
-            return sympy.Add(*[
-                arg_from_proto(a,
-                               arg_function_language=arg_function_language,
-                               required_arg_name='An addition argument')
-                for a in func.args
-            ])
+            return sympy.Add(
+                *[
+                    arg_from_proto(
+                        a,
+                        arg_function_language=arg_function_language,
+                        required_arg_name='An addition argument',
+                    )
+                    for a in func.args
+                ]
+            )
 
         if func.type == 'mul':
-            return sympy.Mul(*[
-                arg_from_proto(a,
-                               arg_function_language=arg_function_language,
-                               required_arg_name='A multiplication argument')
-                for a in func.args
-            ])
+            return sympy.Mul(
+                *[
+                    arg_from_proto(
+                        a,
+                        arg_function_language=arg_function_language,
+                        required_arg_name='A multiplication argument',
+                    )
+                    for a in func.args
+                ]
+            )
 
         if func.type == 'pow':
-            return sympy.Pow(*[
-                arg_from_proto(a,
-                               arg_function_language=arg_function_language,
-                               required_arg_name='A power argument')
-                for a in func.args
-            ])
+            return sympy.Pow(
+                *[
+                    arg_from_proto(
+                        a,
+                        arg_function_language=arg_function_language,
+                        required_arg_name='A power argument',
+                    )
+                    for a in func.args
+                ]
+            )
 
     if required_arg_name is not None:
         raise ValueError(
             f'{required_arg_name} is missing or has an unrecognized '
-            f'argument type (WhichOneof("arg")={which!r}).')
+            f'argument type (WhichOneof("arg")={which!r}).'
+        )
 
     return None
