@@ -119,6 +119,17 @@ def test_to_proto():
         invalid_value.to_proto()
 
 
+def test_value_to_float():
+    assert cg.Calibration.value_to_float([1.1]) == 1.1
+    assert cg.Calibration.value_to_float([0.7, 0.5]) == 0.7
+    assert cg.Calibration.value_to_float([7]) == 7
+
+    with pytest.raises(ValueError, match='was empty'):
+        cg.Calibration.value_to_float([])
+    with pytest.raises(ValueError, match='could not convert string to float'):
+        cg.Calibration.value_to_float(['went for a walk'])
+
+
 def test_calibrations_with_string_key():
     calibration = cg.Calibration(metrics={'metric1': {('alpha',): [0.1]}})
     expected_proto = Merge(

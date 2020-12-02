@@ -191,7 +191,8 @@ class Calibration(abc.Mapping):
         except ValueError:
             return target
 
-    def key_to_qubit(self, target: METRIC_KEY) -> devices.GridQubit:
+    @staticmethod
+    def key_to_qubit(target: METRIC_KEY) -> devices.GridQubit:
         """Returns a single qubit from a metric key.
 
         If the metric key is multiple qubits, return the first one.
@@ -203,6 +204,22 @@ class Calibration(abc.Mapping):
                 isinstance(target[0], devices.GridQubit)):
             return target[0]
         raise ValueError(f'The metric target {target} was not a qubit.')
+
+    @staticmethod
+    def value_to_float(value: METRIC_VALUE) -> float:
+        """Returns a single float from a metric value.
+
+        Metric values can be a list of strings, ints, or floats.
+        However, the typical case is that they are a single float.
+        This converts the metric value to a single float.
+
+        If the metric value has multiple values, only the first will be
+        returned.  If the value is empty or a string that cannot be converted,
+        this function will raise a ValueError.
+        """
+        if not value:
+            raise ValueError('Metric Value was empty')
+        return float(value[0])
 
     def heatmap(self, key: str) -> vis.Heatmap:
         """Return a heatmap for metrics that target single qubits.
