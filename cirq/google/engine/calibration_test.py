@@ -121,6 +121,16 @@ def test_to_proto():
 
 def test_calibrations_with_string_key():
     calibration = cg.Calibration(metrics={'metric1': {('alpha',): [0.1]}})
+    expected_proto = Merge(
+        """
+        metrics: [{
+          name: 'metric1'
+          targets: ['alpha']
+          values: [{double_val: 0.1}]
+        }]
+    """, v2.metrics_pb2.MetricsSnapshot())
+    assert expected_proto == calibration.to_proto()
+    assert calibration == cg.Calibration(expected_proto)
     assert calibration == cg.Calibration(calibration.to_proto())
 
     with pytest.raises(ValueError, match='was not a qubit'):

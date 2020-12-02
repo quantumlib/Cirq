@@ -131,12 +131,11 @@ class Calibration(abc.Mapping):
             for targets, value_list in self._metric_dict[key].items():
                 current_metric = proto.metrics.add()
                 current_metric.name = key
-                for target in targets:
-                    if isinstance(target, str):
-                        current_metric.targets.append(target)
-                    else:
-                        current_metric.targets.append(
-                            v2.qubit_to_proto_id(target))
+                current_metric.targets.extend([
+                    target
+                    if isinstance(target, str) else v2.qubit_to_proto_id(target)
+                    for target in targets
+                ])
                 for value in value_list:
                     current_value = current_metric.values.add()
                     if isinstance(value, float):
@@ -189,7 +188,7 @@ class Calibration(abc.Mapping):
         """
         try:
             return v2.grid_qubit_from_proto_id(target)
-        except:
+        except ValueError:
             return target
 
     def key_to_qubit(self, target: METRIC_KEY) -> devices.GridQubit:
@@ -200,7 +199,7 @@ class Calibration(abc.Mapping):
         Raises:
            ValueError if the metric key is a tuple of strings.
         """
-        if (isinstance(target, tuple) and
+        if (target and isinstance(target, tuple) and
                 isinstance(target[0], devices.GridQubit)):
             return target[0]
         raise ValueError(f'The metric target {target} was not a qubit.')
