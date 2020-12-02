@@ -24,20 +24,21 @@ from cirq.contrib.paulistring import (
 def test_optimize():
     q0, q1 = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(
-        cirq.X(q1)**0.5,
+        cirq.X(q1) ** 0.5,
         cirq.CZ(q0, q1),
-        cirq.Z(q0)**0.25,
-        cirq.X(q1)**0.25,
+        cirq.Z(q0) ** 0.25,
+        cirq.X(q1) ** 0.25,
         cirq.CZ(q0, q1),
-        cirq.X(q1)**-0.5,
+        cirq.X(q1) ** -0.5,
     )
     c_expected = converted_gate_set(
         cirq.Circuit(
             cirq.CZ(q0, q1),
-            cirq.Z(q0)**0.25,
-            cirq.X(q1)**0.25,
+            cirq.Z(q0) ** 0.25,
+            cirq.X(q1) ** 0.25,
             cirq.CZ(q0, q1),
-        ))
+        )
+    )
 
     c_opt = clifford_optimized_circuit(c_orig)
 
@@ -49,21 +50,28 @@ def test_optimize():
 
     assert c_opt == c_expected
 
-    cirq.testing.assert_has_diagram(c_opt, """
+    cirq.testing.assert_has_diagram(
+        c_opt,
+        """
 0: ───@───[Z]^0.25───@───
       │              │
 1: ───@───[X]^0.25───@───
-""")
+""",
+    )
 
 
 def test_remove_czs():
     q0, q1 = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(
         cirq.CZ(q0, q1),
-        cirq.Z(q0)**0.5,
+        cirq.Z(q0) ** 0.5,
         cirq.CZ(q0, q1),
     )
-    c_expected = converted_gate_set(cirq.Circuit(cirq.Z(q0)**0.5,))
+    c_expected = converted_gate_set(
+        cirq.Circuit(
+            cirq.Z(q0) ** 0.5,
+        )
+    )
 
     c_opt = clifford_optimized_circuit(c_orig)
 
@@ -75,9 +83,12 @@ def test_remove_czs():
 
     assert c_opt == c_expected
 
-    cirq.testing.assert_has_diagram(c_opt, """
+    cirq.testing.assert_has_diagram(
+        c_opt,
+        """
 0: ───Z^0.5───
-""")
+""",
+    )
 
 
 def test_remove_staggered_czs():
@@ -87,7 +98,11 @@ def test_remove_staggered_czs():
         cirq.CZ(q1, q2),
         cirq.CZ(q0, q1),
     )
-    c_expected = converted_gate_set(cirq.Circuit(cirq.CZ(q1, q2),))
+    c_expected = converted_gate_set(
+        cirq.Circuit(
+            cirq.CZ(q1, q2),
+        )
+    )
 
     c_opt = clifford_optimized_circuit(c_orig)
 
@@ -99,11 +114,14 @@ def test_remove_staggered_czs():
 
     assert c_opt == c_expected
 
-    cirq.testing.assert_has_diagram(c_opt, """
+    cirq.testing.assert_has_diagram(
+        c_opt,
+        """
 1: ───@───
       │
 2: ───@───
-""")
+""",
+    )
 
 
 def test_with_measurements():
@@ -119,7 +137,8 @@ def test_with_measurements():
             cirq.X(q0),
             cirq.Z(q1),
             cirq.measure(q0, q1, key='m'),
-        ))
+        )
+    )
 
     c_opt = clifford_optimized_circuit(c_orig)
 
@@ -131,11 +150,14 @@ def test_with_measurements():
 
     assert c_opt == c_expected
 
-    cirq.testing.assert_has_diagram(c_opt, """
+    cirq.testing.assert_has_diagram(
+        c_opt,
+        """
 0: ───@───X───M('m')───
       │       │
 1: ───@───Z───M────────
-""")
+""",
+    )
 
 
 def test_optimize_large_circuit():

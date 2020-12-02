@@ -18,8 +18,7 @@ from typing import AbstractSet, Any, Dict, Iterable
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
-from cirq.protocols.decompose_protocol import \
-    _try_decompose_into_operations_and_qubits
+from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
@@ -99,8 +98,7 @@ def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
         return next(iter(result))
 
     if len(result) > 1:
-        raise ValueError(f'Got multiple measurement keys ({result!r}) '
-                         f'from {val!r}.')
+        raise ValueError(f'Got multiple measurement keys ({result!r}) from {val!r}.')
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
@@ -108,8 +106,7 @@ def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
     raise TypeError(f"Object of type '{type(val)}' had no measurement keys.")
 
 
-def measurement_keys(val: Any, *,
-                     allow_decompose: bool = True) -> AbstractSet[str]:
+def measurement_keys(val: Any, *, allow_decompose: bool = True) -> AbstractSet[str]:
     """Gets the measurement keys of measurements within the given value.
 
     Args:

@@ -20,28 +20,37 @@ from cirq.optimizers.cphase_to_fsim import (
 )
 
 from cirq.optimizers.controlled_gate_decomposition import (
-    decompose_multi_controlled_x, decompose_multi_controlled_rotation)
+    decompose_multi_controlled_x,
+    decompose_multi_controlled_rotation,
+)
 
 from cirq.optimizers.drop_empty_moments import (
-    DropEmptyMoments,)
+    DropEmptyMoments,
+)
 
 from cirq.optimizers.drop_negligible import (
-    DropNegligible,)
+    DropNegligible,
+)
 
 from cirq.optimizers.convert_to_cz_and_single_gates import (
-    ConvertToCzAndSingleGates,)
+    ConvertToCzAndSingleGates,
+)
 
 from cirq.optimizers.eject_phased_paulis import (
-    EjectPhasedPaulis,)
+    EjectPhasedPaulis,
+)
 
 from cirq.optimizers.eject_z import (
-    EjectZ,)
+    EjectZ,
+)
 
 from cirq.optimizers.expand_composite import (
-    ExpandComposite,)
+    ExpandComposite,
+)
 
 from cirq.optimizers.merge_interactions import (
-    MergeInteractions,)
+    MergeInteractions,
+)
 
 from cirq.optimizers.merge_single_qubit_gates import (
     merge_single_qubit_gates_into_phased_x_z,
@@ -59,12 +68,16 @@ from cirq.optimizers.decompositions import (
 )
 
 from cirq.optimizers.stratify import (
-    stratified_circuit,)
+    stratified_circuit,
+)
 from cirq.optimizers.synchronize_terminal_measurements import (
-    SynchronizeTerminalMeasurements,)
+    SynchronizeTerminalMeasurements,
+)
 
 from cirq.optimizers.two_qubit_decompositions import (
-    two_qubit_matrix_to_operations,)
+    two_qubit_matrix_to_operations,
+    two_qubit_matrix_to_diagonal_and_operations,
+)
 
 from cirq.optimizers.two_qubit_to_fsim import (
     decompose_two_qubit_interaction_into_four_fsim_gates,

@@ -22,8 +22,11 @@ from cirq.type_workarounds import NotImplementedType
 if TYPE_CHECKING:
     import cirq
     from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation
-    from cirq.value.product_state import (_XEigenState, _YEigenState,
-                                          _ZEigenState)  # coverage: ignore
+    from cirq.value.product_state import (
+        _XEigenState,
+        _YEigenState,
+        _ZEigenState,
+    )  # coverage: ignore
 
 
 class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
@@ -32,6 +35,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     This is an abstract class with no public subclasses. The only instances
     of private subclasses are the X, Y, or Z Pauli gates defined below.
     """
+
     _XYZ = None  # type: Tuple[Pauli, Pauli, Pauli]
 
     @staticmethod
@@ -49,8 +53,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     def num_qubits(self):
         return 1
 
-    def _commutes_(self, other: Any,
-                   atol: float) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType, None]:
         if not isinstance(other, Pauli):
             return NotImplemented
         return self is other
@@ -63,14 +66,13 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
         return (self._index - second._index + 1) % 3 - 1
 
     def phased_pauli_product(
-            self, other: Union['cirq.Pauli', 'identity.IdentityGate']
+        self, other: Union['cirq.Pauli', 'identity.IdentityGate']
     ) -> Tuple[complex, Union['cirq.Pauli', 'identity.IdentityGate']]:
         if self == other:
             return 1, identity.I
         if other is identity.I:
             return 1, self
-        return 1j**cast(Pauli, other).relative_index(self), self.third(
-            cast(Pauli, other))
+        return 1j ** cast(Pauli, other).relative_index(self), self.third(cast(Pauli, other))
 
     def __gt__(self, other):
         if not isinstance(other, Pauli):
@@ -89,9 +91,9 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
             *qubits: The collection of qubits to potentially apply the gate to.
         """
         if len(qubits) != 1:
-            raise ValueError(
-                'Expected a single qubit, got <{!r}>.'.format(qubits))
+            raise ValueError('Expected a single qubit, got <{!r}>.'.format(qubits))
         from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation
+
         return SingleQubitPauliStringGateOperation(self, qubits[0])
 
     @property
@@ -99,18 +101,16 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
         """Overrides EigenGate._canonical_exponent in subclasses."""
         return 1
 
-class _PauliX(Pauli, common_gates.XPowGate):
 
+class _PauliX(Pauli, common_gates.XPowGate):
     def __init__(self):
         Pauli.__init__(self, index=0, name='X')
         common_gates.XPowGate.__init__(self, exponent=1.0)
 
-    def __pow__(self: '_PauliX',
-                exponent: 'cirq.TParamVal') -> common_gates.XPowGate:
+    def __pow__(self: '_PauliX', exponent: 'cirq.TParamVal') -> common_gates.XPowGate:
         return common_gates.XPowGate(exponent=exponent)
 
-    def _with_exponent(self: '_PauliX',
-                       exponent: 'cirq.TParamVal') -> common_gates.XPowGate:
+    def _with_exponent(self: '_PauliX', exponent: 'cirq.TParamVal') -> common_gates.XPowGate:
         return self.__pow__(exponent)
 
     @classmethod
@@ -122,6 +122,7 @@ class _PauliX(Pauli, common_gates.XPowGate):
     @property
     def basis(self: '_PauliX') -> Dict[int, '_XEigenState']:
         from cirq.value.product_state import _XEigenState
+
         return {
             +1: _XEigenState(+1),
             -1: _XEigenState(-1),
@@ -129,17 +130,14 @@ class _PauliX(Pauli, common_gates.XPowGate):
 
 
 class _PauliY(Pauli, common_gates.YPowGate):
-
     def __init__(self):
         Pauli.__init__(self, index=1, name='Y')
         common_gates.YPowGate.__init__(self, exponent=1.0)
 
-    def __pow__(self: '_PauliY',
-                exponent: 'cirq.TParamVal') -> common_gates.YPowGate:
+    def __pow__(self: '_PauliY', exponent: 'cirq.TParamVal') -> common_gates.YPowGate:
         return common_gates.YPowGate(exponent=exponent)
 
-    def _with_exponent(self: '_PauliY',
-                       exponent: 'cirq.TParamVal') -> common_gates.YPowGate:
+    def _with_exponent(self: '_PauliY', exponent: 'cirq.TParamVal') -> common_gates.YPowGate:
         return self.__pow__(exponent)
 
     @classmethod
@@ -151,6 +149,7 @@ class _PauliY(Pauli, common_gates.YPowGate):
     @property
     def basis(self: '_PauliY') -> Dict[int, '_YEigenState']:
         from cirq.value.product_state import _YEigenState
+
         return {
             +1: _YEigenState(+1),
             -1: _YEigenState(-1),
@@ -158,17 +157,14 @@ class _PauliY(Pauli, common_gates.YPowGate):
 
 
 class _PauliZ(Pauli, common_gates.ZPowGate):
-
     def __init__(self):
         Pauli.__init__(self, index=2, name='Z')
         common_gates.ZPowGate.__init__(self, exponent=1.0)
 
-    def __pow__(self: '_PauliZ',
-                exponent: 'cirq.TParamVal') -> common_gates.ZPowGate:
+    def __pow__(self: '_PauliZ', exponent: 'cirq.TParamVal') -> common_gates.ZPowGate:
         return common_gates.ZPowGate(exponent=exponent)
 
-    def _with_exponent(self: '_PauliZ',
-                       exponent: 'cirq.TParamVal') -> common_gates.ZPowGate:
+    def _with_exponent(self: '_PauliZ', exponent: 'cirq.TParamVal') -> common_gates.ZPowGate:
         return self.__pow__(exponent)
 
     @classmethod
@@ -180,6 +176,7 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
     @property
     def basis(self: '_PauliZ') -> Dict[int, '_ZEigenState']:
         from cirq.value.product_state import _ZEigenState
+
         return {
             +1: _ZEigenState(+1),
             -1: _ZEigenState(-1),
@@ -188,32 +185,38 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
 
 X = _PauliX()
 document(
-    X, """The Pauli X gate.
+    X,
+    """The Pauli X gate.
 
     Matrix:
 
         [[0, 1],
          [1, 0]]
-    """)
+    """,
+)
 
 Y = _PauliY()
 document(
-    Y, """The Pauli Y gate.
+    Y,
+    """The Pauli Y gate.
 
     Matrix:
 
         [[0, -i],
          [i, 0]]
-    """)
+    """,
+)
 
 Z = _PauliZ()
 document(
-    Z, """The Pauli Z gate.
+    Z,
+    """The Pauli Z gate.
 
     Matrix:
 
         [[1, 0],
          [0, -1]]
-    """)
+    """,
+)
 
 Pauli._XYZ = (X, Y, Z)

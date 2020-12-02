@@ -38,29 +38,33 @@ def test_sample():
             cirq.measure(q, key='drop'),
             cirq.X(q),
             cirq.measure(q),
-        ))
+        )
+    )
     assert results.histogram(key='drop') == collections.Counter({0: 1})
     assert results.histogram(key=q) == collections.Counter({1: 1})
 
     # Overdamped everywhere.
-    results = cirq.sample(cirq.Circuit(
-        cirq.measure(q, key='drop'),
-        cirq.X(q),
-        cirq.measure(q),
-    ),
-                          noise=cirq.ConstantQubitNoiseModel(
-                              cirq.amplitude_damp(1)))
+    results = cirq.sample(
+        cirq.Circuit(
+            cirq.measure(q, key='drop'),
+            cirq.X(q),
+            cirq.measure(q),
+        ),
+        noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(1)),
+    )
     assert results.histogram(key='drop') == collections.Counter({0: 1})
     assert results.histogram(key=q) == collections.Counter({0: 1})
 
 
 def test_sample_seed_unitary():
     q = cirq.NamedQubit('q')
-    circuit = cirq.Circuit(cirq.X(q)**0.2, cirq.measure(q))
+    circuit = cirq.Circuit(cirq.X(q) ** 0.2, cirq.measure(q))
     result = cirq.sample(circuit, repetitions=10, seed=1234)
     measurements = result.measurements['q']
-    assert np.all(measurements == [[False], [False], [False], [False], [False],
-                                   [False], [False], [False], [True], [False]])
+    assert np.all(
+        measurements
+        == [[False], [False], [False], [False], [False], [False], [False], [False], [True], [False]]
+    )
 
 
 def test_sample_seed_non_unitary():
@@ -68,13 +72,14 @@ def test_sample_seed_non_unitary():
     circuit = cirq.Circuit(cirq.depolarize(0.5).on(q), cirq.measure(q))
     result = cirq.sample(circuit, repetitions=10, seed=1234)
     assert np.all(
-        result.measurements['q'] == [[False], [False], [False], [True], [True],
-                                     [False], [False], [True], [True], [True]])
+        result.measurements['q']
+        == [[False], [False], [False], [True], [True], [False], [False], [True], [True], [True]]
+    )
 
 
 def test_sample_sweep():
     q = cirq.NamedQubit('q')
-    c = cirq.Circuit(cirq.X(q), cirq.Y(q)**sympy.Symbol('t'), cirq.measure(q))
+    c = cirq.Circuit(cirq.X(q), cirq.Y(q) ** sympy.Symbol('t'), cirq.measure(q))
 
     # Unitary.
     results = cirq.sample_sweep(c, cirq.Linspace('t', 0, 1, 2), repetitions=3)
@@ -83,24 +88,22 @@ def test_sample_sweep():
     assert results[1].histogram(key=q) == collections.Counter({0: 3})
 
     # Overdamped.
-    c = cirq.Circuit(cirq.X(q),
-                     cirq.amplitude_damp(1).on(q),
-                     cirq.Y(q)**sympy.Symbol('t'), cirq.measure(q))
-    results = cirq.sample_sweep(
-        c,
-        cirq.Linspace('t', 0, 1, 2),
-        repetitions=3)
+    c = cirq.Circuit(
+        cirq.X(q), cirq.amplitude_damp(1).on(q), cirq.Y(q) ** sympy.Symbol('t'), cirq.measure(q)
+    )
+    results = cirq.sample_sweep(c, cirq.Linspace('t', 0, 1, 2), repetitions=3)
     assert len(results) == 2
     assert results[0].histogram(key=q) == collections.Counter({0: 3})
     assert results[1].histogram(key=q) == collections.Counter({1: 3})
 
     # Overdamped everywhere.
-    c = cirq.Circuit(cirq.X(q), cirq.Y(q)**sympy.Symbol('t'), cirq.measure(q))
-    results = cirq.sample_sweep(c,
-                                cirq.Linspace('t', 0, 1, 2),
-                                noise=cirq.ConstantQubitNoiseModel(
-                                    cirq.amplitude_damp(1)),
-                                repetitions=3)
+    c = cirq.Circuit(cirq.X(q), cirq.Y(q) ** sympy.Symbol('t'), cirq.measure(q))
+    results = cirq.sample_sweep(
+        c,
+        cirq.Linspace('t', 0, 1, 2),
+        noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(1)),
+        repetitions=3,
+    )
     assert len(results) == 2
     assert results[0].histogram(key=q) == collections.Counter({0: 3})
     assert results[1].histogram(key=q) == collections.Counter({0: 3})
@@ -108,18 +111,21 @@ def test_sample_sweep():
 
 def test_sample_sweep_seed():
     q = cirq.NamedQubit('q')
-    circuit = cirq.Circuit(cirq.X(q)**sympy.Symbol('t'), cirq.measure(q))
+    circuit = cirq.Circuit(cirq.X(q) ** sympy.Symbol('t'), cirq.measure(q))
 
-    results = cirq.sample_sweep(circuit, [cirq.ParamResolver({'t': 0.5})] * 3,
-                                repetitions=2,
-                                seed=1234)
+    results = cirq.sample_sweep(
+        circuit, [cirq.ParamResolver({'t': 0.5})] * 3, repetitions=2, seed=1234
+    )
     assert np.all(results[0].measurements['q'] == [[False], [True]])
     assert np.all(results[1].measurements['q'] == [[False], [True]])
     assert np.all(results[2].measurements['q'] == [[True], [False]])
 
-    results = cirq.sample_sweep(circuit, [cirq.ParamResolver({'t': 0.5})] * 3,
-                                repetitions=2,
-                                seed=np.random.RandomState(1234))
+    results = cirq.sample_sweep(
+        circuit,
+        [cirq.ParamResolver({'t': 0.5})] * 3,
+        repetitions=2,
+        seed=np.random.RandomState(1234),
+    )
     assert np.all(results[0].measurements['q'] == [[False], [True]])
     assert np.all(results[1].measurements['q'] == [[False], [True]])
     assert np.all(results[2].measurements['q'] == [[True], [False]])
@@ -128,99 +134,102 @@ def test_sample_sweep_seed():
 def test_final_state_vector_different_program_types():
     a, b = cirq.LineQubit.range(2)
 
-    np.testing.assert_allclose(cirq.final_state_vector(cirq.X), [0, 1],
-                               atol=1e-8)
+    np.testing.assert_allclose(cirq.final_state_vector(cirq.X), [0, 1], atol=1e-8)
 
     ops = [cirq.H(a), cirq.CNOT(a, b)]
 
     np.testing.assert_allclose(
-        cirq.final_state_vector(ops),
-        [np.sqrt(0.5), 0, 0, np.sqrt(0.5)],
-        atol=1e-8)
+        cirq.final_state_vector(ops), [np.sqrt(0.5), 0, 0, np.sqrt(0.5)], atol=1e-8
+    )
 
     np.testing.assert_allclose(
-        cirq.final_state_vector(cirq.Circuit(ops)),
-        [np.sqrt(0.5), 0, 0, np.sqrt(0.5)],
-        atol=1e-8)
+        cirq.final_state_vector(cirq.Circuit(ops)), [np.sqrt(0.5), 0, 0, np.sqrt(0.5)], atol=1e-8
+    )
 
 
 def test_final_state_vector_initial_state():
-    np.testing.assert_allclose(cirq.final_state_vector(cirq.X, initial_state=0),
-                               [0, 1],
-                               atol=1e-8)
+    np.testing.assert_allclose(cirq.final_state_vector(cirq.X, initial_state=0), [0, 1], atol=1e-8)
 
-    np.testing.assert_allclose(cirq.final_state_vector(cirq.X, initial_state=1),
-                               [1, 0],
-                               atol=1e-8)
+    np.testing.assert_allclose(cirq.final_state_vector(cirq.X, initial_state=1), [1, 0], atol=1e-8)
 
     np.testing.assert_allclose(
-        cirq.final_state_vector(cirq.X,
-                                initial_state=[np.sqrt(0.5),
-                                               1j * np.sqrt(0.5)]),
+        cirq.final_state_vector(cirq.X, initial_state=[np.sqrt(0.5), 1j * np.sqrt(0.5)]),
         [1j * np.sqrt(0.5), np.sqrt(0.5)],
-        atol=1e-8)
+        atol=1e-8,
+    )
 
 
 def test_final_state_vector_dtype_insensitive_to_initial_state():
-    assert cirq.final_state_vector(cirq.X,).dtype == np.complex64
+    assert (
+        cirq.final_state_vector(
+            cirq.X,
+        ).dtype
+        == np.complex64
+    )
 
-    assert cirq.final_state_vector(cirq.X,
-                                   initial_state=0).dtype == np.complex64
+    assert cirq.final_state_vector(cirq.X, initial_state=0).dtype == np.complex64
 
-    assert cirq.final_state_vector(cirq.X,
-                                   initial_state=[np.sqrt(0.5),
-                                                  np.sqrt(0.5)
-                                                 ]).dtype == np.complex64
+    assert (
+        cirq.final_state_vector(cirq.X, initial_state=[np.sqrt(0.5), np.sqrt(0.5)]).dtype
+        == np.complex64
+    )
 
-    assert cirq.final_state_vector(cirq.X,
-                                   initial_state=np.array(
-                                       [np.sqrt(0.5),
-                                        np.sqrt(0.5)])).dtype == np.complex64
+    assert (
+        cirq.final_state_vector(cirq.X, initial_state=np.array([np.sqrt(0.5), np.sqrt(0.5)])).dtype
+        == np.complex64
+    )
 
     for t in [np.int32, np.float32, np.float64, np.complex64]:
-        assert cirq.final_state_vector(
-            cirq.X, initial_state=np.array([1, 0],
-                                           dtype=t)).dtype == np.complex64
+        assert (
+            cirq.final_state_vector(cirq.X, initial_state=np.array([1, 0], dtype=t)).dtype
+            == np.complex64
+        )
 
-        assert cirq.final_state_vector(
-            cirq.X,
-            initial_state=np.array([1, 0], dtype=t),
-            dtype=np.complex128).dtype == np.complex128
+        assert (
+            cirq.final_state_vector(
+                cirq.X, initial_state=np.array([1, 0], dtype=t), dtype=np.complex128
+            ).dtype
+            == np.complex128
+        )
 
 
 def test_final_state_vector_param_resolver():
     s = sympy.Symbol('s')
 
     with pytest.raises(ValueError, match='not unitary'):
-        _ = cirq.final_state_vector(cirq.X**s)
+        _ = cirq.final_state_vector(cirq.X ** s)
 
     np.testing.assert_allclose(
-        cirq.final_state_vector(cirq.X**s, param_resolver={s: 0.5}),
-        [0.5 + 0.5j, 0.5 - 0.5j])
+        cirq.final_state_vector(cirq.X ** s, param_resolver={s: 0.5}), [0.5 + 0.5j, 0.5 - 0.5j]
+    )
 
 
 def test_final_state_vector_qubit_order():
     a, b = cirq.LineQubit.range(2)
 
     np.testing.assert_allclose(
-        cirq.final_state_vector([cirq.X(a), cirq.X(b)**0.5], qubit_order=[a,
-                                                                          b]),
-        [0, 0, 0.5 + 0.5j, 0.5 - 0.5j])
+        cirq.final_state_vector([cirq.X(a), cirq.X(b) ** 0.5], qubit_order=[a, b]),
+        [0, 0, 0.5 + 0.5j, 0.5 - 0.5j],
+    )
 
     np.testing.assert_allclose(
-        cirq.final_state_vector([cirq.X(a), cirq.X(b)**0.5], qubit_order=[b,
-                                                                          a]),
-        [0, 0.5 + 0.5j, 0, 0.5 - 0.5j])
+        cirq.final_state_vector([cirq.X(a), cirq.X(b) ** 0.5], qubit_order=[b, a]),
+        [0, 0.5 + 0.5j, 0, 0.5 - 0.5j],
+    )
 
 
 def test_final_state_vector_seed():
     a = cirq.LineQubit(0)
-    np.testing.assert_allclose(cirq.final_state_vector(
-        [cirq.X(a)**0.5, cirq.measure(a)], seed=123), [0, 0.707107 - 0.707107j],
-                               atol=1e-4)
-    np.testing.assert_allclose(cirq.final_state_vector(
-        [cirq.X(a)**0.5, cirq.measure(a)], seed=124), [0.707107 + 0.707107j, 0],
-                               atol=1e-4)
+    np.testing.assert_allclose(
+        cirq.final_state_vector([cirq.X(a) ** 0.5, cirq.measure(a)], seed=123),
+        [0, 0.707107 - 0.707107j],
+        atol=1e-4,
+    )
+    np.testing.assert_allclose(
+        cirq.final_state_vector([cirq.X(a) ** 0.5, cirq.measure(a)], seed=124),
+        [0.707107 + 0.707107j, 0],
+        atol=1e-4,
+    )
 
 
 @pytest.mark.parametrize('repetitions', (0, 1, 100))
@@ -236,138 +245,156 @@ def test_repetitions(repetitions):
 def test_final_density_matrix_different_program_types():
     a, b = cirq.LineQubit.range(2)
 
-    np.testing.assert_allclose(cirq.final_density_matrix(cirq.X),
-                               [[0, 0], [0, 1]],
-                               atol=1e-8)
+    np.testing.assert_allclose(cirq.final_density_matrix(cirq.X), [[0, 0], [0, 1]], atol=1e-8)
 
     ops = [cirq.H(a), cirq.CNOT(a, b)]
 
     np.testing.assert_allclose(
         cirq.final_density_matrix(cirq.Circuit(ops)),
         [[0.5, 0, 0, 0.5], [0, 0, 0, 0], [0, 0, 0, 0], [0.5, 0, 0, 0.5]],
-        atol=1e-8)
+        atol=1e-8,
+    )
 
 
 def test_final_density_matrix_initial_state():
-    np.testing.assert_allclose(cirq.final_density_matrix(cirq.X,
-                                                         initial_state=0),
-                               [[0, 0], [0, 1]],
-                               atol=1e-8)
+    np.testing.assert_allclose(
+        cirq.final_density_matrix(cirq.X, initial_state=0), [[0, 0], [0, 1]], atol=1e-8
+    )
 
-    np.testing.assert_allclose(cirq.final_density_matrix(cirq.X,
-                                                         initial_state=1),
-                               [[1, 0], [0, 0]],
-                               atol=1e-8)
+    np.testing.assert_allclose(
+        cirq.final_density_matrix(cirq.X, initial_state=1), [[1, 0], [0, 0]], atol=1e-8
+    )
 
-    np.testing.assert_allclose(cirq.final_density_matrix(
-        cirq.X, initial_state=[np.sqrt(0.5), 1j * np.sqrt(0.5)]),
-                               [[0.5, 0.5j], [-0.5j, 0.5]],
-                               atol=1e-8)
+    np.testing.assert_allclose(
+        cirq.final_density_matrix(cirq.X, initial_state=[np.sqrt(0.5), 1j * np.sqrt(0.5)]),
+        [[0.5, 0.5j], [-0.5j, 0.5]],
+        atol=1e-8,
+    )
 
 
 def test_final_density_matrix_dtype_insensitive_to_initial_state():
-    assert cirq.final_density_matrix(cirq.X,).dtype == np.complex64
+    assert (
+        cirq.final_density_matrix(
+            cirq.X,
+        ).dtype
+        == np.complex64
+    )
 
-    assert cirq.final_density_matrix(cirq.X,
-                                     initial_state=0).dtype == np.complex64
+    assert cirq.final_density_matrix(cirq.X, initial_state=0).dtype == np.complex64
 
-    assert cirq.final_density_matrix(cirq.X,
-                                     initial_state=[np.sqrt(0.5),
-                                                    np.sqrt(0.5)
-                                                   ]).dtype == np.complex64
+    assert (
+        cirq.final_density_matrix(cirq.X, initial_state=[np.sqrt(0.5), np.sqrt(0.5)]).dtype
+        == np.complex64
+    )
 
-    assert cirq.final_density_matrix(cirq.X,
-                                     initial_state=np.array(
-                                         [np.sqrt(0.5),
-                                          np.sqrt(0.5)])).dtype == np.complex64
+    assert (
+        cirq.final_density_matrix(
+            cirq.X, initial_state=np.array([np.sqrt(0.5), np.sqrt(0.5)])
+        ).dtype
+        == np.complex64
+    )
 
     for t in [np.int32, np.float32, np.float64, np.complex64]:
-        assert cirq.final_density_matrix(
-            cirq.X, initial_state=np.array([1, 0],
-                                           dtype=t)).dtype == np.complex64
+        assert (
+            cirq.final_density_matrix(cirq.X, initial_state=np.array([1, 0], dtype=t)).dtype
+            == np.complex64
+        )
 
-        assert cirq.final_density_matrix(
-            cirq.X,
-            initial_state=np.array([1, 0], dtype=t),
-            dtype=np.complex128).dtype == np.complex128
+        assert (
+            cirq.final_density_matrix(
+                cirq.X, initial_state=np.array([1, 0], dtype=t), dtype=np.complex128
+            ).dtype
+            == np.complex128
+        )
 
 
 def test_final_density_matrix_param_resolver():
     s = sympy.Symbol('s')
 
     with pytest.raises(ValueError, match='not specified in parameter sweep'):
-        _ = cirq.final_density_matrix(cirq.X**s)
+        _ = cirq.final_density_matrix(cirq.X ** s)
 
     np.testing.assert_allclose(
-        cirq.final_density_matrix(cirq.X**s, param_resolver={s: 0.5}),
-        [[0.5 - 0.j, 0. + 0.5j], [0. - 0.5j, 0.5 - 0.j]])
+        cirq.final_density_matrix(cirq.X ** s, param_resolver={s: 0.5}),
+        [[0.5 - 0.0j, 0.0 + 0.5j], [0.0 - 0.5j, 0.5 - 0.0j]],
+    )
 
 
 def test_final_density_matrix_qubit_order():
     a, b = cirq.LineQubit.range(2)
 
     np.testing.assert_allclose(
-        cirq.final_density_matrix([cirq.X(a), cirq.X(b)**0.5],
-                                  qubit_order=[a, b]),
-        [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0.5, 0.5j], [0, 0, -0.5j, 0.5]])
+        cirq.final_density_matrix([cirq.X(a), cirq.X(b) ** 0.5], qubit_order=[a, b]),
+        [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0.5, 0.5j], [0, 0, -0.5j, 0.5]],
+    )
 
     np.testing.assert_allclose(
-        cirq.final_density_matrix([cirq.X(a), cirq.X(b)**0.5],
-                                  qubit_order=[b, a]),
-        [[0, 0, 0, 0], [0, 0.5, 0, 0.5j], [0, 0, 0, 0], [0, -0.5j, 0, 0.5]])
+        cirq.final_density_matrix([cirq.X(a), cirq.X(b) ** 0.5], qubit_order=[b, a]),
+        [[0, 0, 0, 0], [0, 0.5, 0, 0.5j], [0, 0, 0, 0], [0, -0.5j, 0, 0.5]],
+    )
 
     np.testing.assert_allclose(
-        cirq.final_density_matrix([cirq.X(a), cirq.X(b)**0.5],
-                                  qubit_order=[b, a],
-                                  noise=cirq.ConstantQubitNoiseModel(
-                                      cirq.amplitude_damp(1.0))),
-        [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+        cirq.final_density_matrix(
+            [cirq.X(a), cirq.X(b) ** 0.5],
+            qubit_order=[b, a],
+            noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(1.0)),
+        ),
+        [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+    )
 
 
 def test_final_density_matrix_seed_with_dephasing():
     a = cirq.LineQubit(0)
-    np.testing.assert_allclose(cirq.final_density_matrix(
-        [cirq.X(a)**0.5, cirq.measure(a)], seed=123),
-                               [[0.5 + 0.j, 0. + 0.j], [0. + 0.j, 0.5 + 0.j]],
-                               atol=1e-4)
-    np.testing.assert_allclose(cirq.final_density_matrix(
-        [cirq.X(a)**0.5, cirq.measure(a)], seed=124),
-                               [[0.5 + 0.j, 0. + 0.j], [0. + 0.j, 0.5 + 0.j]],
-                               atol=1e-4)
+    np.testing.assert_allclose(
+        cirq.final_density_matrix([cirq.X(a) ** 0.5, cirq.measure(a)], seed=123),
+        [[0.5 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 0.5 + 0.0j]],
+        atol=1e-4,
+    )
+    np.testing.assert_allclose(
+        cirq.final_density_matrix([cirq.X(a) ** 0.5, cirq.measure(a)], seed=124),
+        [[0.5 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 0.5 + 0.0j]],
+        atol=1e-4,
+    )
 
 
 def test_final_density_matrix_seed_with_collapsing():
     a = cirq.LineQubit(0)
-    np.testing.assert_allclose(cirq.final_density_matrix(
-        [cirq.X(a)**0.5, cirq.measure(a)],
-        seed=123,
-        ignore_measurement_results=False), [[0, 0], [0, 1]],
-                               atol=1e-4)
-    np.testing.assert_allclose(cirq.final_density_matrix(
-        [cirq.X(a)**0.5, cirq.measure(a)],
-        seed=124,
-        ignore_measurement_results=False), [[1, 0], [0, 0]],
-                               atol=1e-4)
+    np.testing.assert_allclose(
+        cirq.final_density_matrix(
+            [cirq.X(a) ** 0.5, cirq.measure(a)], seed=123, ignore_measurement_results=False
+        ),
+        [[0, 0], [0, 1]],
+        atol=1e-4,
+    )
+    np.testing.assert_allclose(
+        cirq.final_density_matrix(
+            [cirq.X(a) ** 0.5, cirq.measure(a)], seed=124, ignore_measurement_results=False
+        ),
+        [[1, 0], [0, 0]],
+        atol=1e-4,
+    )
 
 
 def test_final_density_matrix_noise():
     a = cirq.LineQubit(0)
-    np.testing.assert_allclose(cirq.final_density_matrix(
-        [cirq.H(a), cirq.Z(a), cirq.H(a),
-         cirq.measure(a)]), [[0, 0], [0, 1]],
-                               atol=1e-4)
-    np.testing.assert_allclose(cirq.final_density_matrix(
-        [cirq.H(a), cirq.Z(a), cirq.H(a),
-         cirq.measure(a)],
-        noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(1.0))),
-                               [[1, 0], [0, 0]],
-                               atol=1e-4)
+    np.testing.assert_allclose(
+        cirq.final_density_matrix([cirq.H(a), cirq.Z(a), cirq.H(a), cirq.measure(a)]),
+        [[0, 0], [0, 1]],
+        atol=1e-4,
+    )
+    np.testing.assert_allclose(
+        cirq.final_density_matrix(
+            [cirq.H(a), cirq.Z(a), cirq.H(a), cirq.measure(a)],
+            noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(1.0)),
+        ),
+        [[1, 0], [0, 0]],
+        atol=1e-4,
+    )
 
 
 def test_deprecated():
     a = cirq.LineQubit(0)
-    with cirq.testing.assert_logs('final_wavefunction', 'final_state_vector',
-                                  'deprecated'):
+    with cirq.testing.assert_logs('final_wavefunction', 'final_state_vector', 'deprecated'):
         _ = cirq.final_wavefunction([cirq.H(a)])
 
 
@@ -378,13 +405,13 @@ def test_ps_initial_state_wfn():
 
     np.testing.assert_allclose(
         cirq.final_state_vector(cirq.Circuit(cirq.I.on_each(q0, q1))),
-        cirq.final_state_vector(cirq.Circuit(cirq.I.on_each(q0, q1)),
-                                initial_state=s00))
+        cirq.final_state_vector(cirq.Circuit(cirq.I.on_each(q0, q1)), initial_state=s00),
+    )
 
     np.testing.assert_allclose(
         cirq.final_state_vector(cirq.Circuit(cirq.H(q0), cirq.I(q1))),
-        cirq.final_state_vector(cirq.Circuit(cirq.I.on_each(q0, q1)),
-                                initial_state=sp0))
+        cirq.final_state_vector(cirq.Circuit(cirq.I.on_each(q0, q1)), initial_state=sp0),
+    )
 
 
 def test_ps_initial_state_dmat():
@@ -394,10 +421,10 @@ def test_ps_initial_state_dmat():
 
     np.testing.assert_allclose(
         cirq.final_density_matrix(cirq.Circuit(cirq.I.on_each(q0, q1))),
-        cirq.final_density_matrix(cirq.Circuit(cirq.I.on_each(q0, q1)),
-                                  initial_state=s00))
+        cirq.final_density_matrix(cirq.Circuit(cirq.I.on_each(q0, q1)), initial_state=s00),
+    )
 
     np.testing.assert_allclose(
         cirq.final_density_matrix(cirq.Circuit(cirq.H(q0), cirq.I(q1))),
-        cirq.final_density_matrix(cirq.Circuit(cirq.I.on_each(q0, q1)),
-                                  initial_state=sp0))
+        cirq.final_density_matrix(cirq.Circuit(cirq.I.on_each(q0, q1)), initial_state=sp0),
+    )
