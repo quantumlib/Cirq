@@ -17,6 +17,12 @@ import pytest
 import cirq
 
 
+def test_num_qubits_for_classes():
+    assert cirq.num_qubits(cirq.XPowGate) == 1
+    assert cirq.num_qubits(cirq.H) == 1
+    assert cirq.num_qubits(cirq.CNOT) == 2
+
+
 def test_qid_shape():
     class ShapeObj:
         def _qid_shape_(self):
