@@ -21,12 +21,9 @@ import numpy as np
 from cirq.linalg import combinators, predicates, tolerance
 
 
-def diagonalize_real_symmetric_matrix(matrix: np.ndarray,
-                                      *,
-                                      rtol: float = 1e-5,
-                                      atol: float = 1e-8,
-                                      check_preconditions: bool = True
-                                     ) -> np.ndarray:
+def diagonalize_real_symmetric_matrix(
+    matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8, check_preconditions: bool = True
+) -> np.ndarray:
     """Returns an orthogonal matrix that diagonalizes the given matrix.
 
     Args:
@@ -44,8 +41,8 @@ def diagonalize_real_symmetric_matrix(matrix: np.ndarray,
     """
 
     if check_preconditions and (
-            np.any(np.imag(matrix) != 0) or
-            not predicates.is_hermitian(matrix, rtol=rtol, atol=atol)):
+        np.any(np.imag(matrix) != 0) or not predicates.is_hermitian(matrix, rtol=rtol, atol=atol)
+    ):
         raise ValueError('Input must be real and symmetric.')
 
     _, result = np.linalg.eigh(matrix)
@@ -54,8 +51,7 @@ def diagonalize_real_symmetric_matrix(matrix: np.ndarray,
 
 
 def _contiguous_groups(
-        length: int,
-        comparator: Callable[[int, int], bool]
+    length: int, comparator: Callable[[int, int], bool]
 ) -> List[Tuple[int, int]]:
     """Splits range(length) into approximate equivalence classes.
 
@@ -79,12 +75,13 @@ def _contiguous_groups(
 
 
 def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
-        symmetric_matrix: np.ndarray,
-        diagonal_matrix: np.ndarray,
-        *,
-        rtol: float = 1e-5,
-        atol: float = 1e-8,
-        check_preconditions: bool = True) -> np.ndarray:
+    symmetric_matrix: np.ndarray,
+    diagonal_matrix: np.ndarray,
+    *,
+    rtol: float = 1e-5,
+    atol: float = 1e-8,
+    check_preconditions: bool = True,
+) -> np.ndarray:
     """Returns an orthogonal matrix that diagonalizes both given matrices.
 
     The given matrices must commute.
@@ -110,23 +107,21 @@ def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
 
     # Verify preconditions.
     if check_preconditions:
-        if (np.any(np.imag(symmetric_matrix)) or
-                not predicates.is_hermitian(symmetric_matrix,
-                                            rtol=rtol,
-                                            atol=atol)):
+        if np.any(np.imag(symmetric_matrix)) or not predicates.is_hermitian(
+            symmetric_matrix, rtol=rtol, atol=atol
+        ):
             raise ValueError('symmetric_matrix must be real symmetric.')
-        if (not predicates.is_diagonal(diagonal_matrix, atol=atol) or
-                np.any(np.imag(diagonal_matrix)) or
-                np.any(diagonal_matrix[:-1, :-1] < diagonal_matrix[1:, 1:])):
-            raise ValueError(
-                'diagonal_matrix must be real diagonal descending.')
-        if not predicates.matrix_commutes(
-                diagonal_matrix, symmetric_matrix, rtol=rtol, atol=atol):
+        if (
+            not predicates.is_diagonal(diagonal_matrix, atol=atol)
+            or np.any(np.imag(diagonal_matrix))
+            or np.any(diagonal_matrix[:-1, :-1] < diagonal_matrix[1:, 1:])
+        ):
+            raise ValueError('diagonal_matrix must be real diagonal descending.')
+        if not predicates.matrix_commutes(diagonal_matrix, symmetric_matrix, rtol=rtol, atol=atol):
             raise ValueError('Given matrices must commute.')
 
     def similar_singular(i, j):
-        return np.allclose(diagonal_matrix[i, i],
-                            diagonal_matrix[j, j], rtol=rtol)
+        return np.allclose(diagonal_matrix[i, i], diagonal_matrix[j, j], rtol=rtol)
 
     # Because the symmetric matrix commutes with the diagonal singulars matrix,
     # the symmetric matrix should be block-diagonal with a block boundary
@@ -139,7 +134,8 @@ def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
     for start, end in ranges:
         block = symmetric_matrix[start:end, start:end]
         p[start:end, start:end] = diagonalize_real_symmetric_matrix(
-            block, rtol=rtol, atol=atol, check_preconditions=False)
+            block, rtol=rtol, atol=atol, check_preconditions=False
+        )
 
     return p
 
@@ -153,12 +149,13 @@ def _svd_handling_empty(mat):
 
 
 def bidiagonalize_real_matrix_pair_with_symmetric_products(
-        mat1: np.ndarray,
-        mat2: np.ndarray,
-        *,
-        rtol: float = 1e-5,
-        atol: float = 1e-8,
-        check_preconditions: bool = True) -> Tuple[np.ndarray, np.ndarray]:
+    mat1: np.ndarray,
+    mat2: np.ndarray,
+    *,
+    rtol: float = 1e-5,
+    atol: float = 1e-8,
+    check_preconditions: bool = True,
+) -> Tuple[np.ndarray, np.ndarray]:
     """Finds orthogonal matrices that diagonalize both mat1 and mat2.
 
     Requires mat1 and mat2 to be real.
@@ -198,8 +195,7 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
     # Determine where we switch between diagonalization-fixup strategies.
     dim = base_diag.shape[0]
     rank = dim
-    while rank > 0 and tolerance.all_near_zero(base_diag[rank - 1, rank - 1],
-                                               atol=atol):
+    while rank > 0 and tolerance.all_near_zero(base_diag[rank - 1, rank - 1], atol=atol):
         rank -= 1
     base_diag = base_diag[:rank, :rank]
 
@@ -211,11 +207,8 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
     # by performing simultaneous diagonalization.
     overlap = semi_corrected[:rank, :rank]
     overlap_adjust = diagonalize_real_symmetric_and_sorted_diagonal_matrices(
-        overlap,
-        base_diag,
-        rtol=rtol,
-        atol=atol,
-        check_preconditions=check_preconditions)
+        overlap, base_diag, rtol=rtol, atol=atol, check_preconditions=check_preconditions
+    )
 
     # Fix up the part of the second matrix's diagonalization that's matched
     # against zeros in the first matrix's diagonalization by performing an SVD.
@@ -224,8 +217,7 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
 
     # Merge the fixup factors into the initial diagonalization.
     left_adjust = combinators.block_diag(overlap_adjust, extra_left_adjust)
-    right_adjust = combinators.block_diag(overlap_adjust.T,
-                                          extra_right_adjust)
+    right_adjust = combinators.block_diag(overlap_adjust.T, extra_right_adjust)
     left = left_adjust.T.dot(base_left.T)
     right = base_right.T.dot(right_adjust.T)
 
@@ -233,11 +225,7 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
 
 
 def bidiagonalize_unitary_with_special_orthogonals(
-        mat: np.ndarray,
-        *,
-        rtol: float = 1e-5,
-        atol: float = 1e-8,
-        check_preconditions: bool = True
+    mat: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8, check_preconditions: bool = True
 ) -> Tuple[np.ndarray, np.array, np.ndarray]:
     """Finds orthogonal matrices L, R such that L @ matrix @ R is diagonal.
 
@@ -263,11 +251,8 @@ def bidiagonalize_unitary_with_special_orthogonals(
     # Note: Because mat is unitary, setting A = real(mat) and B = imag(mat)
     # guarantees that both A @ B.T and A.T @ B are Hermitian.
     left, right = bidiagonalize_real_matrix_pair_with_symmetric_products(
-        np.real(mat),
-        np.imag(mat),
-        rtol=rtol,
-        atol=atol,
-        check_preconditions=check_preconditions)
+        np.real(mat), np.imag(mat), rtol=rtol, atol=atol, check_preconditions=check_preconditions
+    )
 
     # Convert to special orthogonal w/o breaking diagonalization.
     if np.linalg.det(left) < 0:

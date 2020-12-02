@@ -25,9 +25,7 @@ def _all_public() -> Set[str]:
                 old_full_name, old_obj = by_name[name]
                 if obj is not old_obj:
                     # coverage: ignore
-                    raise ValueError(f'Ambiguous name:\n'
-                                     f'{old_full_name}\n'
-                                     f'{full_name}\n')
+                    raise ValueError(f'Ambiguous name:\n{old_full_name}\n{full_name}\n')
                 if len(full_name) > len(old_full_name):
                     continue
 
@@ -49,9 +47,12 @@ def _api_rst_fullnames_per_section() -> List[List[str]]:
                 if section:
                     result.append(section)
                     section = []
-            elif ('    cirq.' in line or '    .. autoclass:: cirq.' in line or
-                  '    .. autofunction:: cirq.' in line):
-                fullname = line[line.find('cirq'):].strip()
+            elif (
+                '    cirq.' in line
+                or '    .. autoclass:: cirq.' in line
+                or '    .. autofunction:: cirq.' in line
+            ):
+                fullname = line[line.find('cirq') :].strip()
                 if fullname in seen:
                     # coverage: ignore
                     raise ValueError(f'{fullname} appears twice in api.rst')
@@ -65,27 +66,29 @@ def _api_rst_fullnames_per_section() -> List[List[str]]:
 def test_public_values_equals_documented_values():
     in_actual_api = _all_public()
     in_api_reference = {
-        fullname for section in _api_rst_fullnames_per_section()
-        for fullname in section
+        fullname for section in _api_rst_fullnames_per_section() for fullname in section
     }
     unlisted = in_actual_api - in_api_reference
     hidden = {
-        fullname for fullname in in_api_reference - in_actual_api
+        fullname
+        for fullname in in_api_reference - in_actual_api
         if not fullname.startswith('cirq.contrib.')
     }
-    assert not unlisted, (
-        'Public class/method/value not listed in rtd_docs/api.rst:'
-        '\n    ' + '\n    '.join(sorted(unlisted)))
+    assert (
+        not unlisted
+    ), 'Public class/method/value not listed in rtd_docs/api.rst:\n    ' + '\n    '.join(
+        sorted(unlisted)
+    )
     assert not hidden, (
         'Private or non-existent class/method/value listed in rtd_docs/api.rst:'
-        '\n    ' + '\n    '.join(sorted(hidden)))
+        '\n    ' + '\n    '.join(sorted(hidden))
+    )
 
 
 def test_api_rst_sorted():
-
     def order(fullname: str) -> Any:
         name = fullname.split('.')[-1]
-        start = fullname[:-len(name)]
+        start = fullname[: -len(name)]
         return (
             # First sort by package.
             start,
@@ -95,10 +98,11 @@ def test_api_rst_sorted():
             name != name.upper(),
             name != name.lower(),
             # Then by name.
-            fullname)
+            fullname,
+        )
 
     for section in _api_rst_fullnames_per_section():
         sorted_section = sorted(section, key=order)
-        assert section == sorted_section, (
-            f"A section in api.rst is not sorted. Should be:\n    " +
-            '\n    '.join(sorted_section))
+        assert (
+            section == sorted_section
+        ), f"A section in api.rst is not sorted. Should be:\n    " + '\n    '.join(sorted_section)

@@ -144,10 +144,10 @@ def main():
     # Number of fermions
     n_fermi = 4
     # Hopping strength between neighboring sites
-    t = 1.
+    t = 1.0
     # On-site interaction strength. It has to be negative (attractive) for the
     # BCS theory to work.
-    u = -4.
+    u = -4.0
     # Calculate the superconducting gap and the angles for BCS
     delta, bog_theta = bcs_parameters(n_site, n_fermi, u, t)
     # Initializing the qubits on a ladder
@@ -162,30 +162,26 @@ def main():
     print('Superconducting gap = ', delta, '\n')
 
     bog_circuit = cirq.Circuit(
-        bogoliubov_trans(upper_qubits[i], lower_qubits[i], bog_theta[i])
-        for i in range(n_site))
+        bogoliubov_trans(upper_qubits[i], lower_qubits[i], bog_theta[i]) for i in range(n_site)
+    )
     bog_circuit = cirq.google.optimized_for_xmon(bog_circuit)
     print('Circuit for the Bogoliubov transformation:')
     print(bog_circuit.to_text_diagram(transpose=True), '\n')
 
     # The inverse fermionic Fourier transformation on the spin-up states
-    print(('Circuit for the inverse fermionic Fourier transformation on the '
-           'spin-up states:'))
+    print(('Circuit for the inverse fermionic Fourier transformation on the spin-up states:'))
     fourier_circuit_spin_up = cirq.Circuit(
-        fermi_fourier_trans_inverse_4(upper_qubits),
-        strategy=cirq.InsertStrategy.EARLIEST)
-    fourier_circuit_spin_up = cirq.google.optimized_for_xmon(
-        fourier_circuit_spin_up)
+        fermi_fourier_trans_inverse_4(upper_qubits), strategy=cirq.InsertStrategy.EARLIEST
+    )
+    fourier_circuit_spin_up = cirq.google.optimized_for_xmon(fourier_circuit_spin_up)
     print(fourier_circuit_spin_up.to_text_diagram(transpose=True), '\n')
 
     # The inverse fermionic Fourier transformation on the spin-down states
-    print(('Circuit for the inverse fermionic Fourier transformation on the '
-           'spin-down states:'))
+    print(('Circuit for the inverse fermionic Fourier transformation on the spin-down states:'))
     fourier_circuit_spin_down = cirq.Circuit(
-        fermi_fourier_trans_inverse_conjugate_4(lower_qubits),
-        strategy=cirq.InsertStrategy.EARLIEST)
-    fourier_circuit_spin_down = cirq.google.optimized_for_xmon(
-        fourier_circuit_spin_down)
+        fermi_fourier_trans_inverse_conjugate_4(lower_qubits), strategy=cirq.InsertStrategy.EARLIEST
+    )
+    fourier_circuit_spin_down = cirq.google.optimized_for_xmon(fourier_circuit_spin_down)
     print(fourier_circuit_spin_down.to_text_diagram(transpose=True))
 
 
@@ -222,7 +218,7 @@ def bogoliubov_trans(p, q, theta):
 
     yield cirq.X(p)
     yield cirq.S(p)
-    yield cirq.ISWAP(p, q)**expo
+    yield cirq.ISWAP(p, q) ** expo
     yield cirq.S(p) ** 1.5
     yield cirq.X(p)
 
@@ -247,9 +243,9 @@ def fermi_fourier_trans_2(p, q):
         q: the second qubit
     """
 
-    yield cirq.Z(p)**1.5
-    yield cirq.ISWAP(q, p)**0.5
-    yield cirq.Z(p)**1.5
+    yield cirq.Z(p) ** 1.5
+    yield cirq.ISWAP(q, p) ** 0.5
+    yield cirq.Z(p) ** 1.5
 
 
 def fermi_fourier_trans_inverse_4(qubits):
@@ -293,7 +289,7 @@ def fermi_fourier_trans_inverse_conjugate_4(qubits):
     yield fswap(qubits[1], qubits[2])
 
 
-def bcs_parameters(n_site, n_fermi, u, t) :
+def bcs_parameters(n_site, n_fermi, u, t):
     """Generate the parameters for the BCS ground state, i.e., the
     superconducting gap and the rotational angles in the Bogoliubov
     transformation.
@@ -324,13 +320,13 @@ def bcs_parameters(n_site, n_fermi, u, t) :
             x: the superconducting gap
         """
 
-        s = 0.
+        s = 0.0
         for i in range(n_site):
-            s += 1. / np.sqrt(hop_erg[i] ** 2 + x ** 2)
+            s += 1.0 / np.sqrt(hop_erg[i] ** 2 + x ** 2)
         return 1 + s * u / (2 * n_site)
 
     # Superconducting gap
-    delta = scipy.optimize.bisect(_bcs_gap, 0.01, 10000. * abs(u))
+    delta = scipy.optimize.bisect(_bcs_gap, 0.01, 10000.0 * abs(u))
     # The amplitude of the double excitation state
     bcs_v = np.sqrt(0.5 * (1 - hop_erg / np.sqrt(hop_erg ** 2 + delta ** 2)))
     # The rotational angle in the Bogoliubov transformation.

@@ -72,6 +72,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.identity_each
     cirq.qft
     cirq.riswap
+    cirq.wait
     .. autoclass:: cirq.CCNotPowGate
     cirq.CCXPowGate
     cirq.CCZPowGate
@@ -91,6 +92,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.MatrixGate
     cirq.Operation
     cirq.PhaseGradientGate
+    cirq.PhasedFSimGate
     cirq.PhasedISwapPowGate
     cirq.PhasedXPowGate
     cirq.PhasedXZGate
@@ -190,8 +192,10 @@ Circuits, Operations, and Moments.
     cirq.flatten_op_tree
     cirq.freeze_op_tree
     cirq.transform_op_tree
+    cirq.AbstractCircuit
     cirq.Circuit
     cirq.CircuitDag
+    cirq.FrozenCircuit
     cirq.GateOperation
     cirq.InsertStrategy
     cirq.Moment
@@ -364,6 +368,7 @@ the magic methods that can be implemented.
     cirq.trace_distance_bound
     cirq.trace_distance_from_angle_list
     cirq.unitary
+    cirq.with_measurement_key_mapping
     cirq.ApplyChannelArgs
     cirq.ApplyMixtureArgs
     cirq.ApplyUnitaryArgs
@@ -420,6 +425,7 @@ Classes and methods for rewriting circuits.
     cirq.single_qubit_matrix_to_phxz
     cirq.single_qubit_op_to_framed_phase_form
     cirq.stratified_circuit
+    cirq.two_qubit_matrix_to_diagonal_and_operations
     cirq.two_qubit_matrix_to_operations
     cirq.ConvertToCzAndSingleGates
     cirq.DropEmptyMoments
@@ -515,6 +521,7 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.SYC
     cirq.google.SYC_GATESET
     cirq.google.XMON
+    cirq.google.arg_from_proto
     cirq.google.get_engine
     cirq.google.get_engine_calibration
     cirq.google.get_engine_device
@@ -525,6 +532,8 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.AnnealSequenceSearchStrategy
     cirq.google.Bristlecone
     cirq.google.Calibration
+    cirq.google.CalibrationLayer
+    cirq.google.CalibrationResult
     cirq.google.CalibrationTag
     cirq.google.ConvertToSqrtIswapGates
     cirq.google.ConvertToSycamoreGates
@@ -593,7 +602,7 @@ operation.
     cirq.LinearDict
     cirq.PeriodicValue
     cirq.testing.DEFAULT_GATE_DOMAIN
-    cirq.testing.assert_act_on_clifford_tableau_effect_matches_unitary
+    cirq.testing.assert_all_implemented_act_on_effects_match_unitary
     cirq.testing.assert_allclose_up_to_global_phase
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent
     cirq.testing.assert_commutes_magic_method_consistent_with_unitaries
@@ -624,6 +633,7 @@ operation.
     cirq.testing.random_special_orthogonal
     cirq.testing.random_special_unitary
     cirq.testing.random_superposition
+    cirq.testing.random_two_qubit_circuit_with_czs
     cirq.testing.random_unitary
     cirq.testing.EqualsTester
     cirq.testing.NoIdentifierQubit
@@ -715,6 +725,7 @@ Quantum Information Science
     cirq.one_hot
     cirq.to_valid_density_matrix
     cirq.to_valid_state_vector
+    cirq.validate_density_matrix
     cirq.validate_indices
     cirq.validate_normalized_state_vector
     cirq.validate_qid_shape

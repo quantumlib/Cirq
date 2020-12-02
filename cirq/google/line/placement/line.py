@@ -22,9 +22,9 @@ if TYPE_CHECKING:
 
 
 def line_on_device(
-        device: 'cirq.google.XmonDevice',
-        length: int,
-        method: LinePlacementStrategy = greedy.GreedySequenceSearchStrategy()
+    device: 'cirq.google.XmonDevice',
+    length: int,
+    method: LinePlacementStrategy = greedy.GreedySequenceSearchStrategy(),
 ) -> GridQubitLineTuple:
     """Searches for linear sequence of qubits on device.
 

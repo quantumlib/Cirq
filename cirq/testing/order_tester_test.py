@@ -24,7 +24,7 @@ CMP_OPS = [
     lambda a, b: a < b,
     lambda a, b: a > b,
     lambda a, b: a <= b,
-    lambda a, b: a >= b
+    lambda a, b: a >= b,
 ]
 
 
@@ -66,8 +66,7 @@ def test_add_ordering_group_correct():
     ot = cirq.testing.OrderTester()
     ot.add_ascending(-4, 0)
     ot.add_ascending(1, 2)
-    ot.add_ascending_equivalence_group(fractions.Fraction(6, 2),
-                                       fractions.Fraction(12, 4), 3, 3.0)
+    ot.add_ascending_equivalence_group(fractions.Fraction(6, 2), fractions.Fraction(12, 4), 3, 3.0)
     ot.add_ascending_equivalence_group(float('inf'), float('inf'))
 
 
@@ -124,15 +123,13 @@ def test_add_ascending_equivalence_group():
     ot.add_ascending_equivalence_group(2)
     ot.add_ascending_equivalence_group(4)
 
-    with pytest.raises(AssertionError,
-                       match='Expected X=4 to be less than Y=3'):
+    with pytest.raises(AssertionError, match='Expected X=4 to be less than Y=3'):
         ot.add_ascending_equivalence_group(3)
 
     ot.add_ascending_equivalence_group(5)
 
 
 def test_fails_to_return_not_implemented_vs_unknown():
-
     def make_impls(bad_index: int, bad_result: bool):
         def make_impl(i, op):
             def impl(x, y):
@@ -141,6 +138,7 @@ def test_fails_to_return_not_implemented_vs_unknown():
                 if bad_index == i:
                     return bad_result
                 return NotImplemented
+
             return impl
 
         return [make_impl(i, op) for i, op in enumerate(CMP_OPS)]
@@ -166,8 +164,7 @@ def test_fails_on_inconsistent_hashes():
     ot.add_ascending((1, 0), (1, 1))
     ot.add_ascending(ModifiedHash((1, 2)), ModifiedHash((2, 0)))
     ot.add_ascending_equivalence_group((2, 2), (2, 2))
-    ot.add_ascending_equivalence_group(ModifiedHash((3, 3)),
-                                       ModifiedHash((3, 3)))
+    ot.add_ascending_equivalence_group(ModifiedHash((3, 3)), ModifiedHash((3, 3)))
 
     with pytest.raises(AssertionError, match='different hashes'):
         ot.add_ascending_equivalence_group((4, 4), ModifiedHash((4, 4)))

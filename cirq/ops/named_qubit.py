@@ -96,10 +96,8 @@ class NamedQid(_BaseNamedQid):
                 the number of quantum levels.
         Returns:
             A list of ``NamedQid``\\s.
-            """
-        return [
-            NamedQid(prefix + str(i), dimension=dimension) for i in range(*args)
-        ]
+        """
+        return [NamedQid(prefix + str(i), dimension=dimension) for i in range(*args)]
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['name', 'dimension'])

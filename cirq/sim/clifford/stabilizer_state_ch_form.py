@@ -17,12 +17,14 @@ import numpy as np
 
 import cirq
 from cirq import protocols, value
+from cirq.ops import pauli_gates
+from cirq.sim import clifford
 from cirq.value import big_endian_int_to_digits
 from cirq._compat import deprecated
 
 
 @value.value_equality
-class StabilizerStateChForm():
+class StabilizerStateChForm:
     r"""A representation of stabilizer states using the CH form,
 
         $|\psi> = \omega U_C U_H |s>$
@@ -38,7 +40,7 @@ class StabilizerStateChForm():
             num_qubits: The number of qubits in the system.
             initial_state: The computational basis representation of the
                 state as a big endian int.
-            """
+        """
         self.n = num_qubits
 
         # The state is represented by a set of binary matrices and vectors.
@@ -52,19 +54,17 @@ class StabilizerStateChForm():
         self.v = np.zeros(self.n, dtype=bool)
         self.s = np.zeros(self.n, dtype=bool)
 
-        self.omega = 1
+        self.omega = 1  # type: complex
 
         # Apply X for every non-zero element of initial_state
         for (i, val) in enumerate(
-                big_endian_int_to_digits(initial_state,
-                                         digit_count=num_qubits,
-                                         base=2)):
+            big_endian_int_to_digits(initial_state, digit_count=num_qubits, base=2)
+        ):
             if val:
-                self._X(i)
+                protocols.act_on(pauli_gates.X, clifford.ActOnStabilizerCHFormArgs(self, [i]))
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(
-            self, ['n', 'G', 'F', 'M', 'gamma', 'v', 's', 'omega'])
+        return protocols.obj_to_dict_helper(self, ['n', 'G', 'F', 'M', 'gamma', 'v', 's', 'omega'])
 
     @classmethod
     def _from_json_dict_(cls, n, G, F, M, gamma, v, s, omega, **kwargs):
@@ -81,8 +81,7 @@ class StabilizerStateChForm():
         return copy
 
     def _value_equality_values_(self) -> Any:
-        return (self.n, self.G, self.F, self.M, self.gamma, self.v, self.v,
-                self.s, self.omega)
+        return (self.n, self.G, self.F, self.M, self.gamma, self.v, self.v, self.s, self.omega)
 
     def copy(self) -> 'cirq.StabilizerStateChForm':
         copy = StabilizerStateChForm(self.n)
@@ -106,8 +105,8 @@ class StabilizerStateChForm():
         return f'StabilizerStateChForm(num_qubits={self.n!r})'
 
     def inner_product_of_state_and_x(self, x: int) -> Union[float, complex]:
-        """ Returns the amplitude of x'th element of
-         the state vector, i.e. <x|psi> """
+        """Returns the amplitude of x'th element of
+        the state vector, i.e. <x|psi>"""
         if type(x) == int:
             y = cirq.big_endian_int_to_bits(x, bit_count=self.n)
 
@@ -118,13 +117,18 @@ class StabilizerStateChForm():
             if y[p]:
                 u ^= self.F[p, :]
                 mu += 2 * (sum(self.M[p, :] & u) % 2)
-        return (self.omega * 2**(-sum(self.v) / 2) * 1j**mu *
-                (-1)**sum(self.v & u & self.s) * np.all(self.v | (u == self.s)))
+        return (
+            self.omega
+            * 2 ** (-sum(self.v) / 2)
+            * 1j ** mu
+            * (-1) ** sum(self.v & u & self.s)
+            * np.all(self.v | (u == self.s))
+        )
 
     def state_vector(self) -> np.ndarray:
-        wf = np.zeros(2**self.n, dtype=complex)
+        wf = np.zeros(2 ** self.n, dtype=complex)
 
-        for x in range(2**self.n):
+        for x in range(2 ** self.n):
             wf[x] = self.inner_product_of_state_and_x(x)
 
         return wf
@@ -133,32 +137,10 @@ class StabilizerStateChForm():
     def wave_function(self) -> np.ndarray:
         return self.state_vector()
 
-    def _S(self, q):
-        self.M[q, :] ^= self.G[q, :]
-        self.gamma[q] = (self.gamma[q] - 1) % 4
-
     def _S_right(self, q):
         r"""Right multiplication version of S gate."""
         self.M[:, q] ^= self.F[:, q]
         self.gamma[:] = (self.gamma[:] - self.F[:, q]) % 4
-
-    def _Z(self, q):
-        self._S(q)
-        self._S(q)
-
-    def _X(self, q):
-        self._H(q)
-        self._Z(q)
-        self._H(q)
-
-    def _Y(self, q):
-        self._Z(q)
-        self._X(q)
-        self.omega *= 1j
-
-    def _CZ(self, q, r):
-        self.M[q, :] ^= self.G[r, :]
-        self.M[r, :] ^= self.G[q, :]
 
     def _CZ_right(self, q, r):
         r"""Right multiplication version of CZ gate."""
@@ -166,41 +148,20 @@ class StabilizerStateChForm():
         self.M[:, r] ^= self.F[:, q]
         self.gamma[:] = (self.gamma[:] + 2 * self.F[:, q] * self.F[:, r]) % 4
 
-    def _CNOT(self, q, r):
-        self.gamma[q] = (self.gamma[q] + self.gamma[r] + 2 *
-                         (sum(self.M[q, :] & self.F[r, :]) % 2)) % 4
-        self.G[r, :] ^= self.G[q, :]
-        self.F[q, :] ^= self.F[r, :]
-        self.M[q, :] ^= self.M[r, :]
-
     def _CNOT_right(self, q, r):
         r"""Right multiplication version of CNOT gate."""
         self.G[:, q] ^= self.G[:, r]
         self.F[:, r] ^= self.F[:, q]
         self.M[:, q] ^= self.M[:, r]
 
-    def _H(self, p):
-        t = self.s ^ (self.G[p, :] & self.v)
-        u = self.s ^ (self.F[p, :] & (~self.v)) ^ (self.M[p, :] & self.v)
-
-        alpha = sum(self.G[p, :] & (~self.v) & self.s) % 2
-        beta = sum(self.M[p, :] & (~self.v) & self.s)
-        beta += sum(self.F[p, :] & self.v & self.M[p, :])
-        beta += sum(self.F[p, :] & self.v & self.s)
-        beta %= 2
-
-        delta = (self.gamma[p] + 2 * (alpha + beta)) % 4
-
-        self.update_sum(t, u, delta=delta, alpha=alpha)
-
     def update_sum(self, t, u, delta=0, alpha=0):
-        """ Implements the transformation (Proposition 4 in Bravyi et al)
+        """Implements the transformation (Proposition 4 in Bravyi et al)
 
-                ``i^alpha U_H (|t> + i^delta |u>) = omega W_C W_H |s'>``
+        ``i^alpha U_H (|t> + i^delta |u>) = omega W_C W_H |s'>``
         """
         if np.all(t == u):
             self.s = t
-            self.omega *= 1 / np.sqrt(2) * (-1)**alpha * (1 + 1j**delta)
+            self.omega *= 1 / np.sqrt(2) * (-1) ** alpha * (1 + 1j ** delta)
             return
         set0 = np.where((~self.v) & (t ^ u))[0]
         set1 = np.where(self.v & (t ^ u))[0]
@@ -233,14 +194,14 @@ class StabilizerStateChForm():
 
         self.s = y
         self.s[q] = c
-        self.omega *= (-1)**alpha * omega
+        self.omega *= (-1) ** alpha * omega
 
         if a:
             self._S_right(q)
         self.v[q] ^= b ^ self.v[q]
 
     def _H_decompose(self, v, y, z, delta):
-        """ Determines the transformation
+        """Determines the transformation
 
                 H^v (|y> + i^delta |z>) = omega S^a H^b |c>
 
@@ -249,14 +210,14 @@ class StabilizerStateChForm():
         Input: v,y,z are boolean; delta is an integer (mod 4)
         Outputs: a,b,c are boolean; omega is a complex number
 
-        Precondition: y != z """
+        Precondition: y != z"""
         if y == z:
             raise ValueError('|y> is equal to |z>')
 
         if not v:
-            omega = (1j)**(delta * int(y))
+            omega = (1j) ** (delta * int(y))
 
-            delta2 = ((-1)**y * delta) % 4
+            delta2 = ((-1) ** y * delta) % 4
             c = bool((delta2 >> 1))
             a = bool(delta2 & 1)
             b = True
@@ -265,9 +226,9 @@ class StabilizerStateChForm():
                 a = False
                 b = False
                 c = bool(delta >> 1)
-                omega = (-1)**(c & y)
+                omega = (-1) ** (c & y)
             else:
-                omega = 1 / np.sqrt(2) * (1 + 1j**delta)
+                omega = 1 / np.sqrt(2) * (1 + 1j ** delta)
                 b = True
                 a = True
                 c = not ((delta >> 1) ^ y)
@@ -275,7 +236,7 @@ class StabilizerStateChForm():
         return omega, a, b, c
 
     def to_state_vector(self) -> np.ndarray:
-        arr = np.zeros(2**self.n, dtype=complex)
+        arr = np.zeros(2 ** self.n, dtype=complex)
 
         for x in range(len(arr)):
             arr[x] = self.inner_product_of_state_and_x(x)
@@ -283,7 +244,7 @@ class StabilizerStateChForm():
         return arr
 
     def project_Z(self, q, z):
-        """ Applies a Z projector on the q'th qubit.
+        """Applies a Z projector on the q'th qubit.
 
         Returns: a normalized state with Z_q |psi> = z |psi>
         """

@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.linalg.tolerance import all_near_zero, all_near_zero_mod, \
-    near_zero, near_zero_mod
+from cirq.linalg.tolerance import all_near_zero, all_near_zero_mod, near_zero, near_zero_mod
 
 
 def test_all_zero():

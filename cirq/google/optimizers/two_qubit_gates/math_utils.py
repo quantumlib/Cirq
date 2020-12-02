@@ -6,8 +6,9 @@ import numpy as np
 _RealArraylike = Union[np.ndarray, float]
 
 
-def _single_qubit_unitary(theta: _RealArraylike, phi_d: _RealArraylike,
-                          phi_o: _RealArraylike) -> np.ndarray:
+def _single_qubit_unitary(
+    theta: _RealArraylike, phi_d: _RealArraylike, phi_o: _RealArraylike
+) -> np.ndarray:
     """Single qubit unitary matrix.
 
     Args:
@@ -31,19 +32,18 @@ def _single_qubit_unitary(theta: _RealArraylike, phi_d: _RealArraylike,
 
     # This implementation is agnostic to the shapes of the angles, as long
     # as they can be broadcast together.
-    Udiag = np.array([[U00, np.zeros_like(U00)],
-                      [np.zeros_like(U00), U00.conj()]])
+    Udiag = np.array([[U00, np.zeros_like(U00)], [np.zeros_like(U00), U00.conj()]])
     Udiag = np.moveaxis(Udiag, [0, 1], [-2, -1])
-    Uoff = np.array([[np.zeros_like(U10), -U10.conj()],
-                     [U10, np.zeros_like(U10)]])
+    Uoff = np.array([[np.zeros_like(U10), -U10.conj()], [U10, np.zeros_like(U10)]])
     Uoff = np.moveaxis(Uoff, [0, 1], [-2, -1])
     return Udiag + Uoff
 
 
-def random_qubit_unitary(shape: Sequence[int] = (),
-                         randomize_global_phase: bool = False,
-                         rng: Optional[np.random.RandomState] = None
-                        ) -> np.ndarray:
+def random_qubit_unitary(
+    shape: Sequence[int] = (),
+    randomize_global_phase: bool = False,
+    rng: Optional[np.random.RandomState] = None,
+) -> np.ndarray:
     """Random qubit unitary distributed over the Haar measure.
 
     The implementation is vectorized for speed.
@@ -130,10 +130,9 @@ def _kak_equivalent_vectors(kak_vec) -> np.ndarray:
     return np.reshape(out, out.shape[:-4] + (192, 3))
 
 
-def kak_vector_infidelity(k_vec_a: np.ndarray,
-                          k_vec_b: np.ndarray,
-                          ignore_equivalent_vectors: bool = False
-                         ) -> np.ndarray:
+def kak_vector_infidelity(
+    k_vec_a: np.ndarray, k_vec_b: np.ndarray, ignore_equivalent_vectors: bool = False
+) -> np.ndarray:
     r"""The locally invariant infidelity between two KAK vectors.
 
     This is the quantity
@@ -163,8 +162,8 @@ def kak_vector_infidelity(k_vec_a: np.ndarray,
 
     if ignore_equivalent_vectors:
         k_diff = k_vec_a - k_vec_b
-        out = 1 - np.product(np.cos(k_diff), axis=-1)**2
-        out -= np.product(np.sin(k_diff), axis=-1)**2
+        out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
+        out -= np.product(np.sin(k_diff), axis=-1) ** 2
         return out
 
     # We must take the minimum infidelity over all possible locally equivalent
@@ -180,8 +179,8 @@ def kak_vector_infidelity(k_vec_a: np.ndarray,
 
     k_diff = k_vec_a - k_vec_b
 
-    out = 1 - np.product(np.cos(k_diff), axis=-1)**2
-    out -= np.product(np.sin(k_diff), axis=-1)**2  # (...,192)
+    out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
+    out -= np.product(np.sin(k_diff), axis=-1) ** 2  # (...,192)
 
     return out.min(axis=-1)
 
@@ -198,8 +197,7 @@ def in_weyl_chamber(kak_vec: np.ndarray) -> np.ndarray:
         are in the Weyl chamber.
     """
     kak_vec = np.asarray(kak_vec)
-    assert kak_vec.shape[-1] == 3, (
-        'Last index of input must represent a 3-vector.')
+    assert kak_vec.shape[-1] == 3, 'Last index of input must represent a 3-vector.'
     # For convenience
     xp, yp, zp = kak_vec[..., 0], kak_vec[..., 1], kak_vec[..., 2]
 
@@ -226,13 +224,11 @@ def weyl_chamber_mesh(spacing: float) -> np.ndarray:
         chamber.
     """
     if spacing < 1e-3:  # memory required ~ 1 GB
-        raise ValueError(f'Generating a mesh with '
-                         f'spacing {spacing} may cause system to crash.')
+        raise ValueError(f'Generating a mesh with spacing {spacing} may cause system to crash.')
 
     # Uniform mesh
     disps = np.arange(-np.pi / 4, np.pi / 4, step=spacing)
-    mesh_points = np.array(
-        [a.ravel() for a in np.array(np.meshgrid(*(disps,) * 3))])
+    mesh_points = np.array([a.ravel() for a in np.array(np.meshgrid(*(disps,) * 3))])
     mesh_points = np.moveaxis(mesh_points, 0, -1)
 
     # Reduce to points within Weyl chamber
@@ -262,12 +258,10 @@ def kak_vector_to_unitary(vector: np.ndarray) -> np.ndarray:
     gens = np.einsum('...a,abc->...bc', vector, _kak_gens)
     evals, evecs = np.linalg.eigh(gens)
 
-    return np.einsum('...ab,...b,...cb', evecs, np.exp(1j * evals),
-                     evecs.conj())
+    return np.einsum('...ab,...b,...cb', evecs, np.exp(1j * evals), evecs.conj())
 
 
-def unitary_entanglement_fidelity(U_actual: np.ndarray,
-                                  U_ideal: np.ndarray) -> np.ndarray:
+def unitary_entanglement_fidelity(U_actual: np.ndarray, U_ideal: np.ndarray) -> np.ndarray:
     r"""Entanglement fidelity between two unitaries.
 
     For unitary matrices, this is related to the average unitary fidelity F
@@ -292,11 +286,12 @@ def unitary_entanglement_fidelity(U_actual: np.ndarray,
     """
     U_actual = np.asarray(U_actual)
     U_ideal = np.asarray(U_ideal)
-    assert U_actual.shape[-1] == U_actual.shape[-2], (
-        "Inputs' trailing dimensions must be equal (square).")
+    assert (
+        U_actual.shape[-1] == U_actual.shape[-2]
+    ), "Inputs' trailing dimensions must be equal (square)."
 
     dim = U_ideal.shape[-1]
 
     prod_trace = np.einsum('...ba,...ba->...', U_actual.conj(), U_ideal)
 
-    return np.real((np.abs(prod_trace)) / dim)**2
+    return np.real((np.abs(prod_trace)) / dim) ** 2

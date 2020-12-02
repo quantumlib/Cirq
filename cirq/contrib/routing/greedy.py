@@ -13,8 +13,18 @@
 # limitations under the License.
 
 import itertools
-from typing import (Callable, cast, Dict, Iterable, List, Optional, Sequence,
-                    Set, Tuple, TYPE_CHECKING)
+from typing import (
+    Callable,
+    cast,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    TYPE_CHECKING,
+)
 
 import numpy as np
 import networkx as nx
@@ -23,8 +33,7 @@ from cirq import circuits, ops, value
 import cirq.contrib.acquaintance as cca
 from cirq.contrib.routing.initialization import get_initial_mapping
 from cirq.contrib.routing.swap_network import SwapNetwork
-from cirq.contrib.routing.utils import (get_time_slices,
-                                        ops_are_consistent_with_device_graph)
+from cirq.contrib.routing.utils import get_time_slices, ops_are_consistent_with_device_graph
 
 if TYPE_CHECKING:
     import cirq
@@ -33,8 +42,9 @@ SWAP = cca.SwapPermutationGate()
 QidPair = Tuple[ops.Qid, ops.Qid]
 
 
-def route_circuit_greedily(circuit: circuits.Circuit, device_graph: nx.Graph,
-                           **kwargs) -> SwapNetwork:
+def route_circuit_greedily(
+    circuit: circuits.Circuit, device_graph: nx.Graph, **kwargs
+) -> SwapNetwork:
     """Greedily routes a circuit on a given device.
 
     Alternates between heuristically picking a few SWAPs to change the mapping
@@ -79,7 +89,8 @@ def route_circuit_greedily(circuit: circuits.Circuit, device_graph: nx.Graph,
 
     swap_network = router.swap_network
     swap_network.circuit = circuits.Circuit(
-        swap_network.circuit.all_operations(), device=swap_network.device)
+        swap_network.circuit.all_operations(), device=swap_network.device
+    )
     return swap_network
 
 
@@ -87,16 +98,18 @@ class _GreedyRouter:
     """Keeps track of the state of a greedy circuit routing procedure."""
 
     def __init__(
-            self,
-            circuit,
-            device_graph: nx.Graph,
-            *,
-            max_search_radius: int = 1,
-            max_num_empty_steps: int = 5,
-            initial_mapping: Optional[Dict[ops.Qid, ops.Qid]] = None,
-            can_reorder: Callable[[ops.Operation, ops.Operation],
-                                  bool] = circuits.circuit_dag._disjoint_qubits,
-            random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+        self,
+        circuit,
+        device_graph: nx.Graph,
+        *,
+        max_search_radius: int = 1,
+        max_num_empty_steps: int = 5,
+        initial_mapping: Optional[Dict[ops.Qid, ops.Qid]] = None,
+        can_reorder: Callable[
+            [ops.Operation, ops.Operation], bool
+        ] = circuits.circuit_dag._disjoint_qubits,
+        random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ):
 
         self.prng = value.parse_random_state(random_state)
 
@@ -107,8 +120,7 @@ class _GreedyRouter:
             for b, d in neighbor_distances.items()
         }
 
-        self.remaining_dag = circuits.CircuitDag.from_circuit(
-            circuit, can_reorder=can_reorder)
+        self.remaining_dag = circuits.CircuitDag.from_circuit(circuit, can_reorder=can_reorder)
         self.logical_qubits = list(self.remaining_dag.all_qubits())
         self.physical_qubits = list(self.device_graph.nodes)
         self.edge_sets: Dict[int, List[Sequence[QidPair]]] = {}
@@ -129,11 +141,9 @@ class _GreedyRouter:
         """Returns matchings of the device graph of a given size."""
         if edge_set_size not in self.edge_sets:
             self.edge_sets[edge_set_size] = [
-                cast(Sequence[QidPair],
-                     edge_set) for edge_set in itertools.combinations(
-                         self.device_graph.edges, edge_set_size) if all(
-                             set(e).isdisjoint(f)
-                             for e, f in itertools.combinations(edge_set, 2))
+                cast(Sequence[QidPair], edge_set)
+                for edge_set in itertools.combinations(self.device_graph.edges, edge_set_size)
+                if all(set(e).isdisjoint(f) for e, f in itertools.combinations(edge_set, 2))
             ]
         return self.edge_sets[edge_set_size]
 
@@ -163,8 +173,7 @@ class _GreedyRouter:
                 if l is not None:
                     self._log_to_phys[l] = p
 
-    def set_initial_mapping(
-            self, initial_mapping: Optional[Dict[ops.Qid, ops.Qid]] = None):
+    def set_initial_mapping(self, initial_mapping: Optional[Dict[ops.Qid, ops.Qid]] = None):
         """Sets the internal state according to an initial mapping.
 
         Args:
@@ -175,21 +184,14 @@ class _GreedyRouter:
         if initial_mapping is None:
             time_slices = get_time_slices(self.remaining_dag)
             if not time_slices:
-                initial_mapping = dict(
-                    zip(self.device_graph, self.logical_qubits))
+                initial_mapping = dict(zip(self.device_graph, self.logical_qubits))
             else:
                 logical_graph = time_slices[0]
                 logical_graph.add_nodes_from(self.logical_qubits)
-                initial_mapping = get_initial_mapping(logical_graph,
-                                                      self.device_graph,
-                                                      self.prng)
+                initial_mapping = get_initial_mapping(logical_graph, self.device_graph, self.prng)
         self.initial_mapping = initial_mapping
-        self._phys_to_log = {
-            q: initial_mapping.get(q) for q in self.physical_qubits
-        }
-        self._log_to_phys = {
-            l: p for p, l in self._phys_to_log.items() if l is not None
-        }
+        self._phys_to_log = {q: initial_mapping.get(q) for q in self.physical_qubits}
+        self._log_to_phys = {l: p for p, l in self._phys_to_log.items() if l is not None}
         self._assert_mapping_consistency()
 
     def _assert_mapping_consistency(self):
@@ -201,50 +203,41 @@ class _GreedyRouter:
     def acts_on_nonadjacent_qubits(self, op: ops.Operation) -> bool:
         if len(op.qubits) == 1:
             return False
-        return tuple(
-            self.log_to_phys(*op.qubits)) not in self.device_graph.edges
+        return tuple(self.log_to_phys(*op.qubits)) not in self.device_graph.edges
 
     def apply_possible_ops(self) -> int:
         """Applies all logical operations possible given the current mapping."""
         nodes = list(
-            self.remaining_dag.findall_nodes_until_blocked(
-                self.acts_on_nonadjacent_qubits))
+            self.remaining_dag.findall_nodes_until_blocked(self.acts_on_nonadjacent_qubits)
+        )
         assert not any(
-            self.remaining_dag.has_edge(b, a)
-            for a, b in itertools.combinations(nodes, 2))
-        assert not any(
-            self.acts_on_nonadjacent_qubits(node.val) for node in nodes)
-        remaining_nodes = [
-            node for node in self.remaining_dag.ordered_nodes()
-            if node not in nodes
-        ]
+            self.remaining_dag.has_edge(b, a) for a, b in itertools.combinations(nodes, 2)
+        )
+        assert not any(self.acts_on_nonadjacent_qubits(node.val) for node in nodes)
+        remaining_nodes = [node for node in self.remaining_dag.ordered_nodes() if node not in nodes]
         for node, remaining_node in itertools.product(nodes, remaining_nodes):
             assert not self.remaining_dag.has_edge(remaining_node, node)
         for node in nodes:
             self.remaining_dag.remove_node(node)
             logical_op = node.val
-            physical_op = logical_op.with_qubits(
-                *self.log_to_phys(*logical_op.qubits))
-            assert len(physical_op.qubits
-                      ) < 2 or physical_op.qubits in self.device_graph.edges
+            physical_op = logical_op.with_qubits(*self.log_to_phys(*logical_op.qubits))
+            assert len(physical_op.qubits) < 2 or physical_op.qubits in self.device_graph.edges
             self.physical_ops.append(physical_op)
         return len(nodes)
 
     @property
     def swap_network(self) -> SwapNetwork:
-        return SwapNetwork(circuits.Circuit(self.physical_ops),
-                           self.initial_mapping)
+        return SwapNetwork(circuits.Circuit(self.physical_ops), self.initial_mapping)
 
     def distance(self, edge: QidPair) -> int:
         """The distance between the physical qubits mapped to by a pair of
         logical qubits."""
-        return self.physical_distances[cast(QidPair,
-                                            tuple(self.log_to_phys(*edge)))]
+        return self.physical_distances[cast(QidPair, tuple(self.log_to_phys(*edge)))]
 
     def swap_along_path(self, path: Tuple[ops.Qid]):
         """Adds SWAPs to move a logical qubit along a specified path."""
         for i in range(len(path) - 1):
-            self.apply_swap(cast(QidPair, path[i:i + 2]))
+            self.apply_swap(cast(QidPair, path[i : i + 2]))
 
     def bring_farthest_pair_together(self, pairs: Sequence[QidPair]):
         """Adds SWAPs to bring the farthest-apart pair of logical qubits
@@ -252,9 +245,7 @@ class _GreedyRouter:
         distances = [self.distance(pair) for pair in pairs]
         assert distances
         max_distance = min(distances)
-        farthest_pairs = [
-            pair for pair, d in zip(pairs, distances) if d == max_distance
-        ]
+        farthest_pairs = [pair for pair, d in zip(pairs, distances) if d == max_distance]
         choice = self.prng.choice(len(farthest_pairs))
         farthest_pair = farthest_pairs[choice]
         edge = self.log_to_phys(*farthest_pair)
@@ -264,8 +255,7 @@ class _GreedyRouter:
         self.swap_along_path(shortest_path[:midpoint])
         self.swap_along_path(shortest_path[midpoint:])
 
-    def get_distance_vector(self, logical_edges: Iterable[QidPair],
-                            swaps: Sequence[QidPair]):
+    def get_distance_vector(self, logical_edges: Iterable[QidPair], swaps: Sequence[QidPair]):
         """Gets distances between physical qubits mapped to by given logical
         edges, after specified SWAPs are applied."""
         self.update_mapping(*swaps)
@@ -292,18 +282,19 @@ class _GreedyRouter:
             for time_slice in time_slices:
                 edges = sorted(time_slice.edges)
                 distance_vectors = list(
-                    self.get_distance_vector(edges, swap_set)
-                    for swap_set in candidate_swap_sets)
+                    self.get_distance_vector(edges, swap_set) for swap_set in candidate_swap_sets
+                )
                 dominated_indices = _get_dominated_indices(distance_vectors)
                 candidate_swap_sets = [
-                    S for i, S in enumerate(candidate_swap_sets)
-                    if i not in dominated_indices
+                    S for i, S in enumerate(candidate_swap_sets) if i not in dominated_indices
                 ]
                 if len(candidate_swap_sets) == 1:
                     self.apply_swap(*candidate_swap_sets[0])
                     if list(
-                            self.remaining_dag.findall_nodes_until_blocked(
-                                self.acts_on_nonadjacent_qubits)):
+                        self.remaining_dag.findall_nodes_until_blocked(
+                            self.acts_on_nonadjacent_qubits
+                        )
+                    ):
                         return
                     else:
                         break
@@ -320,8 +311,7 @@ class _GreedyRouter:
                 empty_steps_remaining = self.max_num_empty_steps
             else:
                 empty_steps_remaining -= 1
-        assert ops_are_consistent_with_device_graph(self.physical_ops,
-                                                    self.device_graph)
+        assert ops_are_consistent_with_device_graph(self.physical_ops, self.device_graph)
 
 
 def _get_dominated_indices(vectors: List[np.ndarray]) -> Set[int]:
@@ -330,7 +320,7 @@ def _get_dominated_indices(vectors: List[np.ndarray]) -> Set[int]:
     """
     dominated_indices = set()
     for i, v in enumerate(vectors):
-        for w in vectors[:i] + vectors[i + 1:]:
+        for w in vectors[:i] + vectors[i + 1 :]:
             if all(v >= w):
                 dominated_indices.add(i)
                 break

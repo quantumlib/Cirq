@@ -17,7 +17,7 @@ from typing import List, Set, Tuple, cast
 from cirq import circuits, ops, protocols
 
 
-class SynchronizeTerminalMeasurements():
+class SynchronizeTerminalMeasurements:
     """Move measurements to the end of the circuit.
 
     Move all measurements in a circuit to the final moment if it can accommodate

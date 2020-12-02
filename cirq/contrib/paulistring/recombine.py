@@ -12,21 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, Callable, Iterable, Sequence, Tuple, Union, cast, List)
+from typing import Any, Callable, Iterable, Sequence, Tuple, Union, cast, List
 
 from cirq import circuits, ops, protocols
 
 from cirq.contrib.paulistring.pauli_string_dag import (
     pauli_string_reorder_pred,
-    pauli_string_dag_from_circuit)
+    pauli_string_dag_from_circuit,
+)
 
 
 def _sorted_best_string_placements(
-        possible_nodes: Iterable[Any],
-        output_ops: Sequence[ops.Operation],
-        key: Callable[[Any], ops.PauliStringPhasor] = lambda node: node.val,
-) -> List[Tuple[ops.PauliStringPhasor, int, circuits.
-                Unique[ops.PauliStringPhasor]]]:
+    possible_nodes: Iterable[Any],
+    output_ops: Sequence[ops.Operation],
+    key: Callable[[Any], ops.PauliStringPhasor] = lambda node: node.val,
+) -> List[Tuple[ops.PauliStringPhasor, int, circuits.Unique[ops.PauliStringPhasor]]]:
 
     sort_key = lambda placement: (-len(placement[0].pauli_string), placement[1])
 
@@ -40,19 +40,21 @@ def _sorted_best_string_placements(
             if not set(out_op.qubits) & set(string_op.qubits):
                 # Skip if operations don't share qubits
                 continue
-            if (isinstance(out_op, ops.PauliStringPhasor) and
-                    protocols.commutes(out_op.pauli_string,
-                                       string_op.pauli_string)):
+            if isinstance(out_op, ops.PauliStringPhasor) and protocols.commutes(
+                out_op.pauli_string, string_op.pauli_string
+            ):
                 # Pass through another Pauli string if they commute
                 continue
-            if not (isinstance(out_op, ops.GateOperation) and
-                    isinstance(out_op.gate, (ops.SingleQubitCliffordGate,
-                                             ops.PauliInteractionGate,
-                                             ops.CZPowGate))):
+            if not (
+                isinstance(out_op, ops.GateOperation)
+                and isinstance(
+                    out_op.gate,
+                    (ops.SingleQubitCliffordGate, ops.PauliInteractionGate, ops.CZPowGate),
+                )
+            ):
                 # This is as far through as this Pauli string can move
                 break
-            string_op = string_op.pass_operations_over([out_op],
-                                                       after_to_before=True)
+            string_op = string_op.pass_operations_over([out_op], after_to_before=True)
             curr = (string_op, i + 1, possible_node)
             if sort_key(curr) > sort_key(node_max):
                 node_max = curr
@@ -62,20 +64,16 @@ def _sorted_best_string_placements(
     return sorted(node_maxes, key=sort_key, reverse=True)
 
 
-def move_pauli_strings_into_circuit(circuit_left: Union[circuits.Circuit,
-                                                        circuits.CircuitDag],
-                                    circuit_right: circuits.Circuit
-                                    ) -> circuits.Circuit:
+def move_pauli_strings_into_circuit(
+    circuit_left: Union[circuits.Circuit, circuits.CircuitDag], circuit_right: circuits.Circuit
+) -> circuits.Circuit:
     if isinstance(circuit_left, circuits.CircuitDag):
-        string_dag = circuits.CircuitDag(pauli_string_reorder_pred,
-                                         circuit_left)
+        string_dag = circuits.CircuitDag(pauli_string_reorder_pred, circuit_left)
     else:
-        string_dag = pauli_string_dag_from_circuit(
-                        cast(circuits.Circuit, circuit_left))
+        string_dag = pauli_string_dag_from_circuit(cast(circuits.Circuit, circuit_left))
     output_ops = list(circuit_right.all_operations())
 
-    rightmost_nodes = (set(string_dag.nodes())
-                       - set(before for before, _ in string_dag.edges()))
+    rightmost_nodes = set(string_dag.nodes()) - set(before for before, _ in string_dag.edges())
 
     while rightmost_nodes:
         # Sort the pauli string placements based on paulistring length and
@@ -87,22 +85,25 @@ def move_pauli_strings_into_circuit(circuit_left: Union[circuits.Circuit,
         # the Clifford circuit
         for best_string_op, best_index, best_node in placements:
 
-            assert best_index <= last_index, (
-                "Unexpected insertion index order,"
-                " {} >= {}, len: {}".format(best_index, last_index,
-                                            len(output_ops)))
+            assert (
+                best_index <= last_index
+            ), "Unexpected insertion index order, {} >= {}, len: {}".format(
+                best_index, last_index, len(output_ops)
+            )
 
             last_index = best_index
             output_ops.insert(best_index, best_string_op)
             # Remove the best one from the dag and update rightmost_nodes
             rightmost_nodes.remove(best_node)
             rightmost_nodes.update(
-                pred_node for pred_node in string_dag.predecessors(best_node)
-                if len(string_dag.succ[pred_node]) <= 1)
+                pred_node
+                for pred_node in string_dag.predecessors(best_node)
+                if len(string_dag.succ[pred_node]) <= 1
+            )
             string_dag.remove_node(best_node)
 
     assert not string_dag.nodes(), 'There was a cycle in the CircuitDag'
 
-    return circuits.Circuit(output_ops,
-                            strategy=circuits.InsertStrategy.EARLIEST,
-                            device=circuit_right.device)
+    return circuits.Circuit(
+        output_ops, strategy=circuits.InsertStrategy.EARLIEST, device=circuit_right.device
+    )

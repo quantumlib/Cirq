@@ -14,12 +14,12 @@
 
 import numbers
 from typing import AbstractSet, Any, TypeVar, TYPE_CHECKING
-from typing_extensions import Protocol
 
 import sympy
+from typing_extensions import Protocol
 
 from cirq import study
-from cirq._doc import document
+from cirq._doc import doc_private
 
 if TYPE_CHECKING:
     import cirq
@@ -31,13 +31,13 @@ class SupportsParameterization(Protocol):
     """An object that can be parameterized by Symbols and resolved
     via a ParamResolver"""
 
-    @document
+    @doc_private
     def _is_parameterized_(self: Any) -> bool:
         """Whether the object is parameterized by any Symbols that require
         resolution. Returns True if the object has any unresolved Symbols
         and False otherwise."""
 
-    @document
+    @doc_private
     def _parameter_names_(self: Any) -> AbstractSet[str]:
         """Returns a collection of string names of parameters that require
         resolution. If _is_parameterized_ is False, the collection is empty.
@@ -46,7 +46,7 @@ class SupportsParameterization(Protocol):
         need to be evaluated, but no free symbols.
         """
 
-    @document
+    @doc_private
     def _resolve_parameters_(self: Any, param_resolver: 'cirq.ParamResolver'):
         """Resolve the parameters in the effect."""
 
@@ -121,9 +121,7 @@ def parameter_symbols(val: Any) -> AbstractSet[sympy.Symbol]:
     return {sympy.Symbol(name) for name in parameter_names(val)}
 
 
-def resolve_parameters(
-        val: Any,
-        param_resolver: 'cirq.ParamResolverOrSimilarType') -> Any:
+def resolve_parameters(val: Any, param_resolver: 'cirq.ParamResolverOrSimilarType') -> Any:
     """Resolves symbol parameters in the effect using the param resolver.
 
     This function will use the `_resolve_parameters_` magic method

@@ -27,23 +27,23 @@ def test_parse_simple_cases():
 
     assert quirk_url_to_circuit('http://algassert.com/quirk') == cirq.Circuit()
     assert quirk_url_to_circuit('https://algassert.com/quirk') == cirq.Circuit()
-    assert quirk_url_to_circuit(
-        'https://algassert.com/quirk#') == cirq.Circuit()
-    assert quirk_url_to_circuit(
-        'http://algassert.com/quirk#circuit={"cols":[]}') == cirq.Circuit()
+    assert quirk_url_to_circuit('https://algassert.com/quirk#') == cirq.Circuit()
+    assert quirk_url_to_circuit('http://algassert.com/quirk#circuit={"cols":[]}') == cirq.Circuit()
 
     assert quirk_url_to_circuit(
         'https://algassert.com/quirk#circuit={'
         '%22cols%22:[[%22H%22],[%22%E2%80%A2%22,%22X%22]]'
-        '}') == cirq.Circuit(cirq.H(a),
-                             cirq.X(b).controlled_by(a))
+        '}'
+    ) == cirq.Circuit(cirq.H(a), cirq.X(b).controlled_by(a))
 
 
-@pytest.mark.parametrize('url,error_cls,msg', [
-    ('http://algassert.com/quirk#bad', ValueError,
-     'must start with "circuit="'),
-    ('http://algassert.com/quirk#circuit=', json.JSONDecodeError, None),
-])
+@pytest.mark.parametrize(
+    'url,error_cls,msg',
+    [
+        ('http://algassert.com/quirk#bad', ValueError, 'must start with "circuit="'),
+        ('http://algassert.com/quirk#circuit=', json.JSONDecodeError, None),
+    ],
+)
 def test_parse_url_failures(url, error_cls, msg):
     with pytest.raises(error_cls, match=msg):
         _ = quirk_url_to_circuit(url)
@@ -51,19 +51,25 @@ def test_parse_url_failures(url, error_cls, msg):
 
 @pytest.mark.parametrize(
     'url,msg',
-    [('http://algassert.com/quirk#circuit=[]', 'top-level dictionary'),
-     ('http://algassert.com/quirk#circuit={}', '"cols" entry'),
-     ('http://algassert.com/quirk#circuit={"cols": 1}', 'cols must be a list'),
-     ('http://algassert.com/quirk#circuit={"cols": [0]}', 'col must be a list'),
-     ('http://algassert.com/quirk#circuit={"cols": [[0]]}',
-      'Unrecognized column entry: 0'),
-     ('http://algassert.com/quirk#circuit={"cols": [["not a real"]]}',
-      'Unrecognized column entry: '),
-     ('http://algassert.com/quirk#circuit={"cols": [[]], "other": 1}',
-      'Unrecognized Circuit JSON keys')])
+    [
+        ('http://algassert.com/quirk#circuit=[]', 'top-level dictionary'),
+        ('http://algassert.com/quirk#circuit={}', '"cols" entry'),
+        ('http://algassert.com/quirk#circuit={"cols": 1}', 'cols must be a list'),
+        ('http://algassert.com/quirk#circuit={"cols": [0]}', 'col must be a list'),
+        ('http://algassert.com/quirk#circuit={"cols": [[0]]}', 'Unrecognized column entry: 0'),
+        (
+            'http://algassert.com/quirk#circuit={"cols": [["not a real"]]}',
+            'Unrecognized column entry: ',
+        ),
+        (
+            'http://algassert.com/quirk#circuit={"cols": [[]], "other": 1}',
+            'Unrecognized Circuit JSON keys',
+        ),
+    ],
+)
 def test_parse_failures(url, msg):
     parsed_url = urllib.parse.urlparse(url)
-    data = json.loads(parsed_url.fragment[len('circuit='):])
+    data = json.loads(parsed_url.fragment[len('circuit=') :])
 
     with pytest.raises(ValueError, match=msg):
         _ = quirk_url_to_circuit(url)
@@ -77,158 +83,159 @@ def test_parse_with_qubits():
     b = cirq.GridQubit(0, 1)
     c = cirq.GridQubit(0, 2)
 
-    assert quirk_url_to_circuit(
-        'http://algassert.com/quirk#circuit={"cols":[["H"],["•","X"]]}',
-        qubits=cirq.GridQubit.rect(4, 4)) == cirq.Circuit(
-            cirq.H(a),
-            cirq.X(b).controlled_by(a))
+    assert (
+        quirk_url_to_circuit(
+            'http://algassert.com/quirk#circuit={"cols":[["H"],["•","X"]]}',
+            qubits=cirq.GridQubit.rect(4, 4),
+        )
+        == cirq.Circuit(cirq.H(a), cirq.X(b).controlled_by(a))
+    )
 
-    assert quirk_url_to_circuit(
-        'http://algassert.com/quirk#circuit={"cols":[["H"],["•",1,"X"]]}',
-        qubits=cirq.GridQubit.rect(4, 4)) == cirq.Circuit(
-            cirq.H(a),
-            cirq.X(c).controlled_by(a))
+    assert (
+        quirk_url_to_circuit(
+            'http://algassert.com/quirk#circuit={"cols":[["H"],["•",1,"X"]]}',
+            qubits=cirq.GridQubit.rect(4, 4),
+        )
+        == cirq.Circuit(cirq.H(a), cirq.X(c).controlled_by(a))
+    )
 
     with pytest.raises(IndexError, match="qubits specified"):
         _ = quirk_url_to_circuit(
             'http://algassert.com/quirk#circuit={"cols":[["H"],["•","X"]]}',
-            qubits=[cirq.GridQubit(0, 0)])
+            qubits=[cirq.GridQubit(0, 0)],
+        )
 
 
 def test_extra_cell_makers():
-    assert cirq.quirk_url_to_circuit(
-        'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
-        extra_cell_makers=[
-            cirq.interop.quirk.cells.CellMaker(
-                identifier='iswap',
-                size=2,
-                maker=lambda args: cirq.ISWAP(*args.qubits))
-        ]) == cirq.Circuit(cirq.ISWAP(*cirq.LineQubit.range(2)))
+    assert (
+        cirq.quirk_url_to_circuit(
+            'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
+            extra_cell_makers=[
+                cirq.interop.quirk.cells.CellMaker(
+                    identifier='iswap', size=2, maker=lambda args: cirq.ISWAP(*args.qubits)
+                )
+            ],
+        )
+        == cirq.Circuit(cirq.ISWAP(*cirq.LineQubit.range(2)))
+    )
 
-    assert cirq.quirk_url_to_circuit(
-        'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
-        extra_cell_makers={'iswap': cirq.ISWAP}) == cirq.Circuit(
-            cirq.ISWAP(*cirq.LineQubit.range(2)))
-
-    assert cirq.quirk_url_to_circuit(
-        'http://algassert.com/quirk#circuit={"cols":[["iswap"], ["toffoli"]]}',
-        extra_cell_makers=[
-            cirq.interop.quirk.cells.CellMaker(
-                identifier='iswap',
-                size=2,
-                maker=lambda args: cirq.ISWAP(*args.qubits)),
-            cirq.interop.quirk.cells.CellMaker(
-                identifier='toffoli',
-                size=3,
-                maker=lambda args: cirq.TOFFOLI(*args.qubits))
-        ]) == cirq.Circuit([
-            cirq.ISWAP(*cirq.LineQubit.range(2)),
-            cirq.TOFFOLI(*cirq.LineQubit.range(3))
-        ])
+    assert (
+        cirq.quirk_url_to_circuit(
+            'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
+            extra_cell_makers={'iswap': cirq.ISWAP},
+        )
+        == cirq.Circuit(cirq.ISWAP(*cirq.LineQubit.range(2)))
+    )
 
     assert cirq.quirk_url_to_circuit(
         'http://algassert.com/quirk#circuit={"cols":[["iswap"], ["toffoli"]]}',
-        extra_cell_makers={
-            'iswap': cirq.ISWAP,
-            'toffoli': cirq.TOFFOLI
-        }) == cirq.Circuit([
-            cirq.ISWAP(*cirq.LineQubit.range(2)),
-            cirq.TOFFOLI(*cirq.LineQubit.range(3))
-        ])
+        extra_cell_makers=[
+            cirq.interop.quirk.cells.CellMaker(
+                identifier='iswap', size=2, maker=lambda args: cirq.ISWAP(*args.qubits)
+            ),
+            cirq.interop.quirk.cells.CellMaker(
+                identifier='toffoli', size=3, maker=lambda args: cirq.TOFFOLI(*args.qubits)
+            ),
+        ],
+    ) == cirq.Circuit(
+        [cirq.ISWAP(*cirq.LineQubit.range(2)), cirq.TOFFOLI(*cirq.LineQubit.range(3))]
+    )
+
+    assert cirq.quirk_url_to_circuit(
+        'http://algassert.com/quirk#circuit={"cols":[["iswap"], ["toffoli"]]}',
+        extra_cell_makers={'iswap': cirq.ISWAP, 'toffoli': cirq.TOFFOLI},
+    ) == cirq.Circuit(
+        [cirq.ISWAP(*cirq.LineQubit.range(2)), cirq.TOFFOLI(*cirq.LineQubit.range(3))]
+    )
 
 
 def test_init():
     b, c, d, e, f = cirq.LineQubit.range(1, 6)
     assert_url_to_circuit_returns(
         '{"cols":[],"init":[0,1,"+","-","i","-i"]}',
-        cirq.Circuit(cirq.X(b),
-                     cirq.ry(np.pi / 2).on(c),
-                     cirq.ry(-np.pi / 2).on(d),
-                     cirq.rx(-np.pi / 2).on(e),
-                     cirq.rx(np.pi / 2).on(f)))
+        cirq.Circuit(
+            cirq.X(b),
+            cirq.ry(np.pi / 2).on(c),
+            cirq.ry(-np.pi / 2).on(d),
+            cirq.rx(-np.pi / 2).on(e),
+            cirq.rx(np.pi / 2).on(f),
+        ),
+    )
 
-    assert_url_to_circuit_returns('{"cols":[],"init":["+"]}',
-                                  output_amplitudes_from_quirk=[{
-                                      "r": 0.7071067690849304,
-                                      "i": 0
-                                  }, {
-                                      "r": 0.7071067690849304,
-                                      "i": 0
-                                  }])
+    assert_url_to_circuit_returns(
+        '{"cols":[],"init":["+"]}',
+        output_amplitudes_from_quirk=[
+            {"r": 0.7071067690849304, "i": 0},
+            {"r": 0.7071067690849304, "i": 0},
+        ],
+    )
 
-    assert_url_to_circuit_returns('{"cols":[],"init":["i"]}',
-                                  output_amplitudes_from_quirk=[{
-                                      "r": 0.7071067690849304,
-                                      "i": 0
-                                  }, {
-                                      "r":
-                                      0,
-                                      "i":
-                                      0.7071067690849304
-                                  }])
+    assert_url_to_circuit_returns(
+        '{"cols":[],"init":["i"]}',
+        output_amplitudes_from_quirk=[
+            {"r": 0.7071067690849304, "i": 0},
+            {"r": 0, "i": 0.7071067690849304},
+        ],
+    )
 
     with pytest.raises(ValueError, match="init must be a list"):
-        _ = cirq.quirk_url_to_circuit(
-            'http://algassert.com/quirk#circuit={"cols":[],"init":0}')
+        _ = cirq.quirk_url_to_circuit('http://algassert.com/quirk#circuit={"cols":[],"init":0}')
 
     with pytest.raises(ValueError, match="Unrecognized init state"):
-        _ = cirq.quirk_url_to_circuit(
-            'http://algassert.com/quirk#circuit={"cols":[],"init":[2]}')
+        _ = cirq.quirk_url_to_circuit('http://algassert.com/quirk#circuit={"cols":[],"init":[2]}')
 
 
 def test_custom_gate_parse_failures():
     with pytest.raises(ValueError, match='must be a list'):
-        _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":[],'
-            '"gates":5}')
+        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":[],"gates":5}')
 
     with pytest.raises(ValueError, match='gate json must be a dict'):
-        _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":[],'
-            '"gates":[5]}')
+        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":[],"gates":[5]}')
 
     with pytest.raises(ValueError, match='Circuit JSON must be a dict'):
         _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":[],'
-            '"gates":[{"id":"~a","circuit":5}]}')
+            'https://algassert.com/quirk#circuit={"cols":[],"gates":[{"id":"~a","circuit":5}]}'
+        )
 
     with pytest.raises(ValueError, match='matrix json must be a string'):
         _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":[],'
-            '"gates":[{"id":"~a","matrix":5}]}')
+            'https://algassert.com/quirk#circuit={"cols":[],"gates":[{"id":"~a","matrix":5}]}'
+        )
 
     with pytest.raises(ValueError, match='Not surrounded by {{}}'):
         _ = quirk_url_to_circuit(
             'https://algassert.com/quirk#circuit={"cols":[],'
-            '"gates":[{"id":"~a","matrix":"abc"}]}')
+            '"gates":[{"id":"~a","matrix":"abc"}]}'
+        )
 
     with pytest.raises(ValueError, match='must have an id'):
         _ = quirk_url_to_circuit(
             'https://algassert.com/quirk#circuit={"cols":[],'
             '"gates":['
             '{"matrix":"{{1,0},{0,1}}"}'
-            ']}')
+            ']}'
+        )
 
     with pytest.raises(ValueError, match='both a matrix and a circuit'):
         _ = quirk_url_to_circuit(
             'https://algassert.com/quirk#circuit={"cols":[],'
             '"gates":['
             '{"id":"~a","circuit":{"cols":[]},"matrix":"{{1,0},{0,1}}"}'
-            ']}')
+            ']}'
+        )
 
     with pytest.raises(ValueError, match='matrix or a circuit'):
         _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":[],'
-            '"gates":['
-            '{"id":"~a"}'
-            ']}')
+            'https://algassert.com/quirk#circuit={"cols":[],"gates":[{"id":"~a"}]}'
+        )
 
     with pytest.raises(ValueError, match='duplicate identifier'):
         _ = quirk_url_to_circuit(
             'https://algassert.com/quirk#circuit={"cols":[],'
             '"gates":['
             '{"id":"~a","matrix":"{{1,0},{0,1}}"},'
-            '{"id":"~a","matrix":"{{1,0},{0,1}}"}]}')
+            '{"id":"~a","matrix":"{{1,0},{0,1}}"}]}'
+        )
 
 
 def test_custom_matrix_gate():
@@ -236,21 +243,33 @@ def test_custom_matrix_gate():
 
     # Without name.
     assert_url_to_circuit_returns(
-        '{"cols":[["~cv0d"]],'
-        '"gates":[{"id":"~cv0d","matrix":"{{0,1},{1,0}}"}]}',
-        cirq.Circuit(cirq.MatrixGate(np.array([
-            [0, 1],
-            [1, 0],
-        ])).on(a),))
+        '{"cols":[["~cv0d"]],"gates":[{"id":"~cv0d","matrix":"{{0,1},{1,0}}"}]}',
+        cirq.Circuit(
+            cirq.MatrixGate(
+                np.array(
+                    [
+                        [0, 1],
+                        [1, 0],
+                    ]
+                )
+            ).on(a),
+        ),
+    )
 
     # With name.
     assert_url_to_circuit_returns(
-        '{"cols":[["~cv0d"]],'
-        '"gates":[{"id":"~cv0d","name":"test","matrix":"{{0,i},{1,0}}"}]}',
-        cirq.Circuit(cirq.MatrixGate(np.array([
-            [0, 1j],
-            [1, 0],
-        ])).on(a),))
+        '{"cols":[["~cv0d"]],"gates":[{"id":"~cv0d","name":"test","matrix":"{{0,i},{1,0}}"}]}',
+        cirq.Circuit(
+            cirq.MatrixGate(
+                np.array(
+                    [
+                        [0, 1j],
+                        [1, 0],
+                    ]
+                )
+            ).on(a),
+        ),
+    )
 
     # Multi-qubit. Reversed qubit order to account for endian-ness difference.
     assert_url_to_circuit_returns(
@@ -261,19 +280,13 @@ def test_custom_matrix_gate():
             cirq.X(a),
             cirq.MatrixGate(np.diag([-1, 1j, 1, -1j])).on(b, a),
         ),
-        output_amplitudes_from_quirk=[{
-            "r": 0,
-            "i": 0
-        }, {
-            "r": 0,
-            "i": 1
-        }, {
-            "r": 0,
-            "i": 0
-        }, {
-            "r": 0,
-            "i": 0
-        }])
+        output_amplitudes_from_quirk=[
+            {"r": 0, "i": 0},
+            {"r": 0, "i": 1},
+            {"r": 0, "i": 0},
+            {"r": 0, "i": 0},
+        ],
+    )
 
 
 def test_survives_a_billion_laughs():
@@ -314,7 +327,8 @@ def test_survives_a_billion_laughs():
             '{"id":"~y","circuit":{"cols":[["~x"],["~x"],["~x"],["~x"]]}},'
             '{"id":"~z","circuit":{"cols":[["~y"],["~y"],["~y"],["~y"]]}}'
             ']}',
-            max_operation_count=10**6)
+            max_operation_count=10 ** 6,
+        )
 
 
 def test_completes_weight_zero_billion_laughs():
@@ -350,7 +364,8 @@ def test_completes_weight_zero_billion_laughs():
         '{"id":"~y","circuit":{"cols":[["~x"],["~x"],["~x"],["~x"]]}},'
         '{"id":"~z","circuit":{"cols":[["~y"],["~y"],["~y"],["~y"]]}}'
         ']}',
-        max_operation_count=0)
+        max_operation_count=0,
+    )
     assert circuit == cirq.Circuit()
 
 
@@ -396,7 +411,8 @@ def test_example_qft_circuit():
         '["Z^⅟₆₄","Z^⅟₃₂","Z^⅟₁₆","Z^⅛","Z^¼","Z^½","•"],'
         '[1,1,1,1,1,1,"H"],'
         '["Z^⅟₁₂₈","Z^⅟₆₄","Z^⅟₃₂","Z^⅟₁₆","Z^⅛","Z^¼","Z^½","•"],'
-        '[1,1,1,1,1,1,1,"H"]]}')
+        '[1,1,1,1,1,1,1,"H"]]}'
+    )
     qft_example_json_uri_escaped = (
         '{%22cols%22:['
         # '[%22Counting8%22],'
@@ -431,7 +447,7 @@ def test_example_qft_circuit():
         '%22Z^%E2%85%9F%E2%82%83%E2%82%82%22,'
         '%22Z^%E2%85%9F%E2%82%81%E2%82%86%22,%22Z^%E2%85%9B%22,%22Z^%C2%BC%22,'
         '%22Z^%C2%BD%22,%22%E2%80%A2%22],'
-        '[1,1,1,1,1,1,1,%22H%22]]}')
+        '[1,1,1,1,1,1,1,%22H%22]]}'
+    )
     assert_url_to_circuit_returns(qft_example_json, diagram=qft_example_diagram)
-    assert_url_to_circuit_returns(qft_example_json_uri_escaped,
-                                  diagram=qft_example_diagram)
+    assert_url_to_circuit_returns(qft_example_json_uri_escaped, diagram=qft_example_diagram)

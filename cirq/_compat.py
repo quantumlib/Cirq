@@ -31,10 +31,7 @@ def proper_repr(value: Any) -> str:
 
         # HACK: work around https://github.com/sympy/sympy/issues/16074
         # (only handles a few cases)
-        fixed_tokens = [
-            'Symbol', 'pi', 'Mul', 'Pow', 'Add', 'Mod', 'Integer', 'Float',
-            'Rational'
-        ]
+        fixed_tokens = ['Symbol', 'pi', 'Mul', 'Pow', 'Add', 'Mod', 'Integer', 'Float', 'Rational']
         for token in fixed_tokens:
             result = result.replace(token, 'sympy.' + token)
 
@@ -44,22 +41,25 @@ def proper_repr(value: Any) -> str:
         return 'np.array({!r}, dtype=np.{})'.format(value.tolist(), value.dtype)
 
     if isinstance(value, pd.MultiIndex):
-        return (f'pd.MultiIndex.from_tuples({repr(list(value))}, '
-                f'names={repr(list(value.names))})')
+        return f'pd.MultiIndex.from_tuples({repr(list(value))}, names={repr(list(value.names))})'
 
     if isinstance(value, pd.Index):
-        return (f'pd.Index({repr(list(value))}, '
-                f'name={repr(value.name)}, '
-                f'dtype={repr(str(value.dtype))})')
+        return (
+            f'pd.Index({repr(list(value))}, '
+            f'name={repr(value.name)}, '
+            f'dtype={repr(str(value.dtype))})'
+        )
 
     if isinstance(value, pd.DataFrame):
         cols = [value[col].tolist() for col in value.columns]
         rows = list(zip(*cols))
-        return (f'pd.DataFrame('
-                f'\n    columns={proper_repr(value.columns)}, '
-                f'\n    index={proper_repr(value.index)}, '
-                f'\n    data={repr(rows)}'
-                f'\n)')
+        return (
+            f'pd.DataFrame('
+            f'\n    columns={proper_repr(value.columns)}, '
+            f'\n    index={proper_repr(value.index)}, '
+            f'\n    data={repr(rows)}'
+            f'\n)'
+        )
 
     return repr(value)
 
@@ -77,13 +77,13 @@ def proper_eq(a: Any, b: Any) -> bool:
         if isinstance(a, (pd.DataFrame, pd.Index, pd.MultiIndex)):
             return a.equals(b)
         if isinstance(a, (tuple, list)):
-            return len(a) == len(b) and all(
-                proper_eq(x, y) for x, y in zip(a, b))
+            return len(a) == len(b) and all(proper_eq(x, y) for x, y in zip(a, b))
     return a == b
 
 
-def deprecated(*, deadline: str, fix: str,
-               name: Optional[str] = None) -> Callable[[Callable], Callable]:
+def deprecated(
+    *, deadline: str, fix: str, name: Optional[str] = None
+) -> Callable[[Callable], Callable]:
     """Marks a function as deprecated.
 
     Args:
@@ -98,16 +98,16 @@ def deprecated(*, deadline: str, fix: str,
     """
 
     def decorator(func: Callable) -> Callable:
-
         @functools.wraps(func)
         def decorated_func(*args, **kwargs) -> Any:
-            qualname = (func.__qualname__ if name is None else name)
+            qualname = func.__qualname__ if name is None else name
             warnings.warn(
                 f'{qualname} was used but is deprecated.\n'
                 f'It will be removed in cirq {deadline}.\n'
                 f'{fix}\n',
                 DeprecationWarning,
-                stacklevel=2)
+                stacklevel=2,
+            )
 
             return func(*args, **kwargs)
 
@@ -115,15 +115,17 @@ def deprecated(*, deadline: str, fix: str,
             f'THIS FUNCTION IS DEPRECATED.\n\n'
             f'IT WILL BE REMOVED IN `cirq {deadline}`.\n\n'
             f'{fix}\n\n'
-            f'{decorated_func.__doc__ or ""}')
+            f'{decorated_func.__doc__ or ""}'
+        )
 
         return decorated_func
 
     return decorator
 
 
-def deprecated_class(*, deadline: str, fix: str,
-                     name: Optional[str] = None) -> Callable[[Type], Type]:
+def deprecated_class(
+    *, deadline: str, fix: str, name: Optional[str] = None
+) -> Callable[[Type], Type]:
     """Marks a class as deprecated.
 
     Args:
@@ -141,21 +143,24 @@ def deprecated_class(*, deadline: str, fix: str,
         clazz_new = clazz.__new__
 
         def patched_new(cls, *args, **kwargs):
-            qualname = (clazz.__qualname__ if name is None else name)
+            qualname = clazz.__qualname__ if name is None else name
             warnings.warn(
                 f'{qualname} was used but is deprecated.\n'
                 f'It will be removed in cirq {deadline}.\n'
                 f'{fix}\n',
                 DeprecationWarning,
-                stacklevel=2)
+                stacklevel=2,
+            )
 
             return clazz_new(cls)
 
         setattr(clazz, '__new__', patched_new)
-        clazz.__doc__ = (f'THIS CLASS IS DEPRECATED.\n\n'
-                         f'IT WILL BE REMOVED IN `cirq {deadline}`.\n\n'
-                         f'{fix}\n\n'
-                         f'{clazz.__doc__ or ""}')
+        clazz.__doc__ = (
+            f'THIS CLASS IS DEPRECATED.\n\n'
+            f'IT WILL BE REMOVED IN `cirq {deadline}`.\n\n'
+            f'{fix}\n\n'
+            f'{clazz.__doc__ or ""}'
+        )
 
         return clazz
 
@@ -163,15 +168,15 @@ def deprecated_class(*, deadline: str, fix: str,
 
 
 def deprecated_parameter(
-        *,
-        deadline: str,
-        fix: str,
-        func_name: Optional[str] = None,
-        parameter_desc: str,
-        match: Callable[[Tuple[Any, ...], Dict[str, Any]], bool],
-        rewrite: Optional[
-            Callable[[Tuple[Any, ...], Dict[str, Any]],
-                     Tuple[Tuple[Any, ...], Dict[str, Any]]]] = None,
+    *,
+    deadline: str,
+    fix: str,
+    func_name: Optional[str] = None,
+    parameter_desc: str,
+    match: Callable[[Tuple[Any, ...], Dict[str, Any]], bool],
+    rewrite: Optional[
+        Callable[[Tuple[Any, ...], Dict[str, Any]], Tuple[Tuple[Any, ...], Dict[str, Any]]]
+    ] = None,
 ) -> Callable[[Callable], Callable]:
     """Marks a function parameter as deprecated.
 
@@ -199,22 +204,21 @@ def deprecated_parameter(
     """
 
     def decorator(func: Callable) -> Callable:
-
         @functools.wraps(func)
         def decorated_func(*args, **kwargs) -> Any:
             if match(args, kwargs):
                 if rewrite is not None:
                     args, kwargs = rewrite(args, kwargs)
 
-                qualname = (func.__qualname__
-                            if func_name is None else func_name)
+                qualname = func.__qualname__ if func_name is None else func_name
                 warnings.warn(
                     f'The {parameter_desc} parameter of {qualname} was '
                     f'used but is deprecated.\n'
                     f'It will be removed in cirq {deadline}.\n'
                     f'{fix}\n',
                     DeprecationWarning,
-                    stacklevel=2)
+                    stacklevel=2,
+                )
 
             return func(*args, **kwargs)
 
@@ -223,8 +227,7 @@ def deprecated_parameter(
     return decorator
 
 
-def wrap_module(module: ModuleType,
-                deprecated_attributes: Dict[str, Tuple[str, str]]):
+def wrap_module(module: ModuleType, deprecated_attributes: Dict[str, Tuple[str, str]]):
     """Wrap a module with deprecated attributes that give warnings.
 
     Args:
@@ -251,7 +254,8 @@ def wrap_module(module: ModuleType,
                     f'It will be removed in cirq {deadline}.\n'
                     f'{fix}\n',
                     DeprecationWarning,
-                    stacklevel=2)
+                    stacklevel=2,
+                )
             return getattr(module, name)
 
     return Wrapped(module.__name__, module.__doc__)

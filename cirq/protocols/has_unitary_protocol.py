@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from typing import (
-    TYPE_CHECKING,
     Any,
     TypeVar,
     Optional,
@@ -22,15 +21,13 @@ from typing import (
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq._doc import document
+from cirq import qis
+from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import ApplyUnitaryArgs
 from cirq.protocols.decompose_protocol import (
-    _try_decompose_into_operations_and_qubits,)
-from cirq import qis
-
-if TYPE_CHECKING:
-    import cirq
+    _try_decompose_into_operations_and_qubits,
+)
 
 TDefault = TypeVar('TDefault')
 
@@ -38,7 +35,7 @@ TDefault = TypeVar('TDefault')
 class SupportsExplicitHasUnitary(Protocol):
     """An object that explicitly specifies whether it has a unitary effect."""
 
-    @document
+    @doc_private
     def _has_unitary_(self) -> bool:
         """Determines whether the receiver has a unitary effect.
 
@@ -101,8 +98,10 @@ def has_unitary(val: Any, *, allow_decompose: bool = True) -> bool:
         Whether or not `val` has a unitary effect.
     """
     strats = [
-        _strat_has_unitary_from_has_unitary, _strat_has_unitary_from_decompose,
-        _strat_has_unitary_from_apply_unitary, _strat_has_unitary_from_unitary
+        _strat_has_unitary_from_has_unitary,
+        _strat_has_unitary_from_decompose,
+        _strat_has_unitary_from_apply_unitary,
+        _strat_has_unitary_from_unitary,
     ]
     if not allow_decompose:
         strats.remove(_strat_has_unitary_from_decompose)
@@ -143,8 +142,7 @@ def _strat_has_unitary_from_decompose(val: Any) -> Optional[bool]:
 
 
 def _strat_has_unitary_from_apply_unitary(val: Any) -> Optional[bool]:
-    """Attempts to infer a value's unitary-ness via its _apply_unitary_ method.
-    """
+    """Attempts to infer a value's unitary-ness via its _apply_unitary_ method."""
     method = getattr(val, '_apply_unitary_', None)
     if method is None:
         return None

@@ -14,6 +14,10 @@
 
 from cirq.google import api
 
+from cirq.google.arg_func_langs import (
+    arg_from_proto,
+)
+
 from cirq.google.devices import (
     Bristlecone,
     Foxtail,
@@ -25,6 +29,8 @@ from cirq.google.devices import (
 
 from cirq.google.engine import (
     Calibration,
+    CalibrationLayer,
+    CalibrationResult,
     Engine,
     engine_from_environment,
     EngineJob,
@@ -81,4 +87,5 @@ from cirq.google.op_serializer import (
 )
 
 from cirq.google.serializable_gate_set import (
-    SerializableGateSet,)
+    SerializableGateSet,
+)

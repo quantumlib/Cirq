@@ -13,11 +13,11 @@
 # limitations under the License.
 """A protocol that wouldn't exist if python had __rimul__."""
 
-from typing import (Any, TYPE_CHECKING, Union)
+from typing import Any, TYPE_CHECKING, Union
 
 from typing_extensions import Protocol
 
-from cirq._doc import document
+from cirq._doc import doc_private
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 class SupportsActOn(Protocol):
     """An object that explicitly specifies how to act on simulator states."""
 
-    @document
+    @doc_private
     def _act_on_(self, args: Any) -> Union[NotImplementedType, bool]:
         """Applies an action to the given argument, if it is a supported type.
 
@@ -59,10 +59,10 @@ class SupportsActOn(Protocol):
 
 
 def act_on(
-        action: Any,
-        args: Any,
-        *,
-        allow_decompose: bool = True,
+    action: Any,
+    args: Any,
+    *,
+    allow_decompose: bool = True,
 ):
     """Applies an action to a state argument.
 
@@ -101,7 +101,8 @@ def act_on(
         if result is not NotImplemented:
             raise ValueError(
                 f'_act_on_ must return True or NotImplemented but got '
-                f'{result!r} from {action!r}._act_on_')
+                f'{result!r} from {action!r}._act_on_'
+            )
 
     arg_fallback = getattr(args, '_act_on_fallback_', None)
     if arg_fallback is not None:
@@ -111,11 +112,14 @@ def act_on(
         if result is not NotImplemented:
             raise ValueError(
                 f'_act_on_fallback_ must return True or NotImplemented but got '
-                f'{result!r} from {type(args)}._act_on_fallback_')
+                f'{result!r} from {type(args)}._act_on_fallback_'
+            )
 
-    raise TypeError("Failed to act action on state argument.\n"
-                    "Tried both action._act_on_ and args._act_on_fallback_.\n"
-                    "\n"
-                    f"State argument type: {type(args)}\n"
-                    f"Action type: {type(action)}\n"
-                    f"Action repr: {action!r}\n")
+    raise TypeError(
+        "Failed to act action on state argument.\n"
+        "Tried both action._act_on_ and args._act_on_fallback_.\n"
+        "\n"
+        f"State argument type: {type(args)}\n"
+        f"Action type: {type(action)}\n"
+        f"Action repr: {action!r}\n"
+    )

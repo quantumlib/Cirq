@@ -18,7 +18,7 @@ from cirq.circuits.circuit import Circuit
 from cirq.circuits import circuit as _circuit
 
 
-class DropEmptyMoments():
+class DropEmptyMoments:
     """Removes empty moments from a circuit."""
 
     def __call__(self, circuit: _circuit.Circuit):

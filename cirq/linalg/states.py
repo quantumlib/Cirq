@@ -21,11 +21,13 @@ from cirq._compat import deprecated
 
 
 @deprecated(deadline='v0.9', fix='Use cirq.one_hot instead.')
-def one_hot(*,
-            index: Union[None, int, Sequence[int]] = None,
-            shape: Union[int, Sequence[int]],
-            value: Any = 1,
-            dtype: Type[np.number]) -> np.ndarray:
+def one_hot(
+    *,
+    index: Union[None, int, Sequence[int]] = None,
+    shape: Union[int, Sequence[int]],
+    value: Any = 1,
+    dtype: Type[np.number],
+) -> np.ndarray:
     """Returns a numpy array with all 0s and a single non-zero entry(default 1).
 
     Args:
@@ -47,9 +49,8 @@ def one_hot(*,
 
 @deprecated(deadline='v0.9', fix='Use cirq.eye_tensor instead.')
 def eye_tensor(
-        half_shape: Tuple[int, ...],
-        *,  # Force keyword args
-        dtype: Type[np.number]) -> np.array:
+    half_shape: Tuple[int, ...], *, dtype: Type[np.number]  # Force keyword args
+) -> np.array:
     """Returns an identity matrix reshaped into a tensor.
 
     Args:
