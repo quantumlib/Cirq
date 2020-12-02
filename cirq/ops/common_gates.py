@@ -24,7 +24,8 @@ This module creates Gate instances for the following gates:
 Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
 """
-from typing import Any, cast, Collection, Optional, Sequence, Tuple, Union
+from typing import (Any, cast, Collection, Optional, Sequence, Tuple,
+                    TYPE_CHECKING, Union)
 
 import numpy as np
 import sympy
@@ -40,10 +41,19 @@ from cirq.type_workarounds import NotImplementedType
 from cirq.ops.swap_gates import ISWAP, SWAP, ISwapPowGate, SwapPowGate
 from cirq.ops.measurement_gate import MeasurementGate
 
+if TYPE_CHECKING:
+    import cirq
+
 assert all([ISWAP, SWAP, ISwapPowGate, SwapPowGate, MeasurementGate]), """
 Included for compatibility. Please continue to use top-level cirq.{thing}
 imports.
 """
+
+
+def _act_with_gates(args, *gates: 'cirq.SupportsActOn') -> None:
+    """Act on the given args with the given gates in order."""
+    for gate in gates:
+        assert gate._act_on_(args)
 
 
 @value.value_equality
@@ -106,9 +116,7 @@ class XPowGate(eigen_gate.EigenGate,
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
             if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
                 return NotImplemented
-            assert all(
-                gate._act_on_(args) for gate in  # type: ignore
-                [H, ZPowGate(exponent=self._exponent), H])
+            _act_with_gates(args, H, ZPowGate(exponent=self._exponent), H)
             # Adjust the global phase based on the global_shift parameter.
             args.state.omega *= np.exp(1j * np.pi * self.global_shift *
                                        self.exponent)
@@ -338,20 +346,15 @@ class YPowGate(eigen_gate.EigenGate,
                 return NotImplemented
             effective_exponent = self._exponent % 2
             state = args.state
+            Z = ZPowGate()
             if effective_exponent == 0.5:
-                assert all(
-                    gate._act_on_(args)  # type: ignore
-                    for gate in [ZPowGate(), H])
+                _act_with_gates(args, Z, H)
                 state.omega *= (1 + 1j) / (2**0.5)
             elif effective_exponent == 1:
-                assert all(
-                    gate._act_on_(args) for gate in  # type: ignore
-                    [ZPowGate(), H, ZPowGate(), H])
+                _act_with_gates(args, Z, H, Z, H)
                 state.omega *= 1j
             elif effective_exponent == 1.5:
-                assert all(
-                    gate._act_on_(args)  # type: ignore
-                    for gate in [H, ZPowGate()])
+                _act_with_gates(args, H, Z)
                 state.omega *= (1 - 1j) / (2**0.5)
             # Adjust the global phase based on the global_shift parameter.
             args.state.omega *= np.exp(1j * np.pi * self.global_shift *
