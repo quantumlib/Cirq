@@ -12,32 +12,47 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Support for serializing gates supported by IonQ's API."""
-from typing import Callable, cast, Dict, Optional, Sequence, Type, TYPE_CHECKING
+import dataclasses
+
+from typing import Callable, cast, Collection, Dict, Optional, Sequence, Type, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import protocols
-from cirq.ops import common_gates, gate_operation, parity_gates
+from cirq.ops import common_gates, parity_gates
 from cirq.devices import line_qubit
 
 if TYPE_CHECKING:
     import cirq
 
 
+@dataclasses.dataclass
+class SerializedProgram:
+    """A container for the serialized portions of a `cirq.Circuit`.
+
+    Attributes:
+        body: A dictionary which containts the number of qubits and the serialized circuit
+            minus the measurements.
+        metadata: A dictionary whose keys store information about the measurements in the circuit.
+    """
+
+    body: dict
+    metadata: dict
+
+
 class Serializer:
     """Takes gates supported by IonQ's API and converts them to IonQ json form.
 
-    Note that this does only serialization, it does not do any decomposition
-    into the supported gate set.
+    Note that this does only serialization, it does not do any decomposition into the supported
+    gate set.
     """
 
     def __init__(self, atol: float = 1e-8):
         """Create the Serializer.
 
         Args:
-            atol: Absolute tolerance used in determining whether a gate with
-                a float parameter should be serialized as a gate rounded
-                to that parameter. Defaults to 1e-8.
+            atol: Absolute tolerance used in determining whether a gate with a float parameter
+                should be serialized as a gate rounded to that parameter. Defaults to 1e-8.
         """
         self.atol = atol
         self._dispatch: Dict[Type['cirq.Gate'], Callable] = {
@@ -50,46 +65,84 @@ class Serializer:
             common_gates.CNotPowGate: self._serialize_cnot_pow_gate,
             common_gates.HPowGate: self._serialize_h_pow_gate,
             common_gates.SwapPowGate: self._serialize_swap_gate,
+            common_gates.MeasurementGate: self._serialize_measurement_gate,
         }
 
-    def serialize(self, circuit: 'cirq.Circuit') -> dict:
+    def serialize(self, circuit: 'cirq.Circuit') -> SerializedProgram:
         """Serialize the given circuit.
 
         Raises:
-            ValueError: if the circuit has gates that are not supported or
-                is otherwise invalid.
+            ValueError: if the circuit has gates that are not supported or is otherwise invalid.
         """
+        self._validate_circuit(circuit)
+        num_qubits = self._validate_qubits(circuit.all_qubits())
+
+        serialized_ops = self._serialize_circuit(circuit)
+
+        # IonQ API does not support measurements, so we pass the measurement keys through
+        # the metadata field.  Here we split these out of the serialized ops.
+        body = {
+            'qubits': num_qubits,
+            'circuit': [op for op in serialized_ops if op['gate'] != 'meas'],
+        }
+        metadata = {op['key']: op['targets'] for op in serialized_ops if op['gate'] == 'meas'}
+        self._validate_metadata(metadata)
+        return SerializedProgram(body=body, metadata=metadata)
+
+    def _validate_circuit(self, circuit: 'cirq.Circuit'):
         if len(circuit) == 0:
             raise ValueError('Cannot serialize empty circuit.')
-        all_qubits = circuit.all_qubits()
+        if not circuit.are_all_measurements_terminal():
+            raise ValueError('All measurements in circuit must be at end of circuit.')
+
+    def _validate_qubits(self, all_qubits: Collection['cirq.Qid']) -> int:
+        """Returns the number of qubits while validating qubit types and values."""
         if any(not isinstance(q, line_qubit.LineQubit) for q in all_qubits):
             raise ValueError(
                 'All qubits must be cirq.LineQubits but were ' f'{set(type(q) for q in all_qubits)}'
             )
+        if any(cast(line_qubit.LineQubit, q).x < 0 for q in all_qubits):
+            raise ValueError(
+                'IonQ API must use LineQubits from 0 to number of qubits - 1. Instead found line '
+                f'qubits with indices {all_qubits}.'
+            )
         num_qubits = cast(line_qubit.LineQubit, max(all_qubits)).x + 1
-        return {'qubits': num_qubits, 'circuit': self._serialize_circuit(circuit, num_qubits)}
+        return num_qubits
 
-    def _serialize_circuit(self, circuit: 'cirq.Circuit', num_qubits: int) -> list:
+    def _validate_metadata(self, metadata: dict):
+        if len(metadata) > 9:
+            # API supports 10 keys, but we reserve one for storing repetitions.
+            raise ValueError(
+                'IonQ API only supports at most 9 measurement keys per circuit, '
+                f'but had {len(metadata)}.'
+            )
+        for key, value in metadata.items():
+            if len(key) > 10:
+                raise ValueError(
+                    'IonQ API only supports measurement keys of length at most 10, but had key'
+                    f'{key} of length {len(key)}.'
+                )
+            if len(value) > 40:
+                raise ValueError(
+                    'IonQ API only supports measurements whose targets, when written as a comma '
+                    f'separated value is at most 40. Target string was {value}.'
+                )
+
+    def _serialize_circuit(self, circuit: 'cirq.Circuit') -> list:
         return [self._serialize_op(op) for moment in circuit for op in moment]
 
     def _serialize_op(self, op: 'cirq.Operation') -> dict:
-        if not isinstance(op, gate_operation.GateOperation):
+        if op.gate is None:
             raise ValueError(
-                'Attempt to serialize circuit with an operation which is '
-                f'not a cirq.GateOperation. Type: {type(op)} Op: {op}.'
+                'Attempt to serialize circuit with an operation which does not have a gate. '
+                f'Type: {type(op)} Op: {op}.'
             )
-        gate_op = cast(gate_operation.GateOperation, op)
-        targets = [cast(line_qubit.LineQubit, q).x for q in gate_op.qubits]
-        if any(x < 0 for x in targets):
-            raise ValueError(
-                'IonQ API must use LineQubits from 0 to number of qubits - 1. '
-                f'Instead found line qubits with indices {targets}.'
-            )
-        gate = gate_op.gate
+        targets = [cast(line_qubit.LineQubit, q).x for q in op.qubits]
+        gate = op.gate
         if protocols.is_parameterized(gate):
             raise ValueError(
-                f'IonQ API does not support parameterized gates. Gate {gate} '
-                'was parameterized. Consider resolving before sending'
+                f'IonQ API does not support parameterized gates. Gate {gate} was parameterized. '
+                'Consider resolving before sending.'
             )
         gate_type = type(gate)
         # Check all superclasses.
@@ -98,7 +151,7 @@ class Serializer:
                 serialized_op = self._dispatch[gate_mro_type](gate, targets)
                 if serialized_op:
                     return serialized_op
-        raise ValueError(f'Gate {gate} acting on {targets} cannot be ' 'serialized by IonQ API.')
+        raise ValueError(f'Gate {gate} acting on {targets} cannot be serialized by IonQ API.')
 
     def _serialize_x_pow_gate(self, gate: 'cirq.XPowGate', targets: Sequence[int]) -> dict:
         if self._near_mod_n(gate.exponent, 1, 2):
@@ -179,6 +232,14 @@ class Serializer:
         if self._near_mod_n(gate.exponent, 1, 2):
             return {'gate': 'cnot', 'control': targets[0], 'target': targets[1]}
         return None
+
+    def _serialize_measurement_gate(
+        self, gate: 'cirq.MeasurementGate', targets: Sequence[int]
+    ) -> dict:
+        key = protocols.measurement_key(gate)
+        if key == 'shots':
+            raise ValueError('Measurement gates for IonQ API cannot have a key named "shots".')
+        return {'gate': 'meas', 'key': key, 'targets': ','.join(str(t) for t in targets)}
 
     def _near_mod_n(self, e: float, t: float, n: float) -> bool:
         """Returns whether a value, e, translated by t, is equal to 0 mod n."""
