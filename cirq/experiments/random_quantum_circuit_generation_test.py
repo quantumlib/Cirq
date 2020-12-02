@@ -144,7 +144,7 @@ def test_random_rotations_between_grid_interaction_layers(
 def test_grid_interaction_layer_repr():
     layer = GridInteractionLayer(col_offset=0, vertical=True, stagger=False)
     assert repr(layer) == (
-        'cirq.experiments.GridInteractionLayer(' 'col_offset=0, vertical=True, stagger=False)'
+        'cirq.experiments.GridInteractionLayer(col_offset=0, vertical=True, stagger=False)'
     )
 
 

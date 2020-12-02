@@ -98,7 +98,7 @@ def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
         return next(iter(result))
 
     if len(result) > 1:
-        raise ValueError(f'Got multiple measurement keys ({result!r}) ' f'from {val!r}.')
+        raise ValueError(f'Got multiple measurement keys ({result!r}) from {val!r}.')
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default

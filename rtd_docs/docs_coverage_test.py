@@ -25,7 +25,7 @@ def _all_public() -> Set[str]:
                 old_full_name, old_obj = by_name[name]
                 if obj is not old_obj:
                     # coverage: ignore
-                    raise ValueError(f'Ambiguous name:\n' f'{old_full_name}\n' f'{full_name}\n')
+                    raise ValueError(f'Ambiguous name:\n{old_full_name}\n{full_name}\n')
                 if len(full_name) > len(old_full_name):
                     continue
 
@@ -76,7 +76,7 @@ def test_public_values_equals_documented_values():
     }
     assert (
         not unlisted
-    ), 'Public class/method/value not listed in rtd_docs/api.rst:' '\n    ' + '\n    '.join(
+    ), 'Public class/method/value not listed in rtd_docs/api.rst:\n    ' + '\n    '.join(
         sorted(unlisted)
     )
     assert not hidden, (
