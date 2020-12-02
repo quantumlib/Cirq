@@ -120,7 +120,6 @@ def test_ionq_client_create_job_default_target(mock_post):
         remote_host='http://example.com', api_key='to_my_heart', default_target='simulator'
     )
     _ = client.create_job(ionq.SerializedProgram(body={'job': 'mine'}, metadata={}))
-    print(mock_post.call_args[1])
     assert mock_post.call_args[1]['json']['target'] == 'simulator'
 
 
