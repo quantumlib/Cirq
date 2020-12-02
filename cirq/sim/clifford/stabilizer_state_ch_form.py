@@ -244,7 +244,7 @@ class StabilizerStateChForm:
         return arr
 
     def _measure(self, q, prng: np.random.RandomState) -> int:
-        """ Measures the q'th qubit.
+        """Measures the q'th qubit.
 
         Reference: Section 4.1 "Simulating measurements"
 
