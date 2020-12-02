@@ -242,6 +242,13 @@ class StabilizerStateChForm():
 
         return arr
 
+    def _measure(self, q, prng: np.random.RandomState):
+        w = self.s.copy()
+        for i, vi in enumerate(self.v):
+            if vi == 1:
+                w[i] = bool(prng.randint(2))
+        return sum(w & self.G[q, :]) % 2
+
     def project_Z(self, q, z):
         """ Applies a Z projector on the q'th qubit.
 

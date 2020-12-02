@@ -366,7 +366,7 @@ class CliffordState():
             state = self.copy()
 
         for qubit in qubits:
-            result = state.tableau._measure(self.qubit_map[qubit], prng)
+            result = state.ch_form._measure(self.qubit_map[qubit], prng)
             state.ch_form.project_Z(self.qubit_map[qubit], result)
             results.append(result)
 
