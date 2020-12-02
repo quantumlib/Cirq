@@ -228,10 +228,10 @@ class Calibration(abc.Mapping):
         """
         metrics = self[key]
         assert all(len(k) == 1 for k in metrics.keys()), (
-            'Heatmaps are only supported if all the targets in a metric' ' are single qubits.'
+            'Heatmaps are only supported if all the targets in a metric are single qubits.'
         )
         assert all(len(k) == 1 for k in metrics.values()), (
-            'Heatmaps are only supported if all the values in a metric' ' are single metric values.'
+            'Heatmaps are only supported if all the values in a metric are single metric values.'
         )
         value_map: Dict['cirq.GridQubit', SupportsFloat] = {
             self.key_to_qubit(target): float(value) for target, (value,) in metrics.items()
