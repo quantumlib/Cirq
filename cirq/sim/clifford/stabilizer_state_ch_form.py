@@ -242,10 +242,16 @@ class StabilizerStateChForm():
 
         return arr
 
-    def _measure(self, q, prng: np.random.RandomState):
+    def _measure(self, q, prng: np.random.RandomState) -> int:
+        """ Measures the q'th qubit.
+
+        Reference: Section 4.1 "Simulating measurements"
+
+        Returns: Computational basis measurement as 0 or 1.
+        """
         w = self.s.copy()
-        for i, vi in enumerate(self.v):
-            if vi == 1:
+        for i, v_i in enumerate(self.v):
+            if v_i == 1:
                 w[i] = bool(prng.randint(2))
         return sum(w & self.G[q, :]) % 2
 
