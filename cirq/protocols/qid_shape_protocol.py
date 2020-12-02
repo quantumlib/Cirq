@@ -166,7 +166,14 @@ def num_qubits(
     def call_getter(opt_getter_func):
         if opt_getter_func is None:
             return NotImplemented
-        return opt_getter_func(None) if isclass(val) else opt_getter_func()
+
+        if not isclass(val): 
+            return opt_getter_func()
+        
+        try: 
+            return opt_getter_func(None)
+        except AttributeError: 
+            return NotImplemented
 
     num_getter = getattr(val, '_num_qubits_', None)
     num_qubits = call_getter(num_getter)

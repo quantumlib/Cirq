@@ -21,6 +21,9 @@ def test_num_qubits_for_classes():
     assert cirq.num_qubits(cirq.XPowGate) == 1
     assert cirq.num_qubits(cirq.H) == 1
     assert cirq.num_qubits(cirq.CNOT) == 2
+    assert cirq.num_qubits(cirq.MeasurementGate(num_qubits=3)) == 3
+    with pytest.raises(TypeError): 
+        cirq.num_qubits(cirq.MeasurementGate)
 
 
 def test_qid_shape():
