@@ -13,8 +13,19 @@
 # limitations under the License.
 """Defines trial results."""
 
-from typing import (Any, Callable, Dict, Iterable, Optional, Sequence,
-                    TYPE_CHECKING, Tuple, TypeVar, Union, cast)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Optional,
+    Sequence,
+    TYPE_CHECKING,
+    Tuple,
+    TypeVar,
+    Union,
+    cast,
+)
 
 import collections
 import io
@@ -83,10 +94,11 @@ class Result:
     """
 
     def __init__(
-            self,
-            *,  # Forces keyword args.
-            params: resolver.ParamResolver,
-            measurements: Dict[str, np.ndarray]) -> None:
+        self,
+        *,  # Forces keyword args.
+        params: resolver.ParamResolver,
+        measurements: Dict[str, np.ndarray],
+    ) -> None:
         """
         Args:
             params: A ParamResolver of settings used for this result.
@@ -107,9 +119,7 @@ class Result:
             # repetitions and a big endian integer for individual measurements.
             converted_dict = {}
             for key, val in self._measurements.items():
-                converted_dict[key] = [
-                    value.big_endian_bits_to_int(m_vals) for m_vals in val
-                ]
+                converted_dict[key] = [value.big_endian_bits_to_int(m_vals) for m_vals in val]
             # Note that when a numpy array is produced from this data frame,
             # Pandas will try to use np.int64 as dtype, but will upgrade to
             # object if any value is too large to fit.
@@ -118,9 +128,10 @@ class Result:
 
     @staticmethod
     def from_single_parameter_set(
-            *,  # Forces keyword args.
-            params: resolver.ParamResolver,
-            measurements: Dict[str, np.ndarray]) -> 'Result':
+        *,  # Forces keyword args.
+        params: resolver.ParamResolver,
+        measurements: Dict[str, np.ndarray],
+    ) -> 'Result':
         """Packages runs of a single parameterized circuit into a Result.
 
         Args:
@@ -143,11 +154,10 @@ class Result:
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def multi_measurement_histogram(  # type: ignore
-            self,
-            *,  # Forces keyword args.
-            keys: Iterable[TMeasurementKey],
-            fold_func: Callable[[Tuple], T] = cast(Callable[[Tuple], T],
-                                                   _tuple_of_big_endian_int)
+        self,
+        *,  # Forces keyword args.
+        keys: Iterable[TMeasurementKey],
+        fold_func: Callable[[Tuple], T] = cast(Callable[[Tuple], T], _tuple_of_big_endian_int),
     ) -> collections.Counter:
         """Counts the number of times combined measurement results occurred.
 
@@ -194,8 +204,9 @@ class Result:
             results.
         """
         fixed_keys = tuple(_key_to_str(key) for key in keys)
-        samples = zip(*(self.measurements[sub_key]
-                        for sub_key in fixed_keys))  # type: Iterable[Any]
+        samples = zip(
+            *(self.measurements[sub_key] for sub_key in fixed_keys)
+        )  # type: Iterable[Any]
         if len(fixed_keys) == 0:
             samples = [()] * self.repetitions
         c = collections.Counter()  # type: collections.Counter
@@ -205,11 +216,10 @@ class Result:
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def histogram(  # type: ignore
-            self,
-            *,  # Forces keyword args.
-            key: TMeasurementKey,
-            fold_func: Callable[[Tuple], T] = cast(Callable[[Tuple], T],
-                                                   value.big_endian_bits_to_int)
+        self,
+        *,  # Forces keyword args.
+        key: TMeasurementKey,
+        fold_func: Callable[[Tuple], T] = cast(Callable[[Tuple], T], value.big_endian_bits_to_int),
     ) -> collections.Counter:
         """Counts the number of times a measurement result occurred.
 
@@ -247,21 +257,18 @@ class Result:
             A counter indicating how often a measurement sampled various
             results.
         """
-        return self.multi_measurement_histogram(
-            keys=[key], fold_func=lambda e: fold_func(e[0]))
+        return self.multi_measurement_histogram(keys=[key], fold_func=lambda e: fold_func(e[0]))
 
     def __repr__(self) -> str:
-
         def item_repr(entry):
             key, val = entry
             return '{!r}: {}'.format(key, proper_repr(val))
 
         measurement_dict_repr = (
-            '{' + ', '.join([item_repr(e) for e in self.measurements.items()]) +
-            '}')
+            '{' + ', '.join([item_repr(e) for e in self.measurements.items()]) + '}'
+        )
 
-        return (f'cirq.Result(params={self.params!r}, '
-                f'measurements={measurement_dict_repr})')
+        return f'cirq.Result(params={self.params!r}, measurements={measurement_dict_repr})'
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Output to show in ipython and Jupyter notebooks."""
@@ -280,9 +287,7 @@ class Result:
         return self.data.equals(other.data) and self.params == other.params
 
     def _measurement_shape(self):
-        return self.params, {
-            k: v.shape[1] for k, v in self.measurements.items()
-        }
+        return self.params, {k: v.shape[1] for k, v in self.measurements.items()}
 
     def __add__(self, other: 'cirq.Result') -> 'cirq.Result':
         if not isinstance(other, type(self)):
@@ -290,12 +295,13 @@ class Result:
         if self._measurement_shape() != other._measurement_shape():
             raise ValueError(
                 'TrialResults do not have the same parameters or do '
-                'not have the same measurement keys.')
+                'not have the same measurement keys.'
+            )
         all_measurements: Dict[str, np.ndarray] = {}
         for key in other.measurements:
-            all_measurements[key] = np.append(self.measurements[key],
-                                              other.measurements[key],
-                                              axis=0)
+            all_measurements[key] = np.append(
+                self.measurements[key], other.measurements[key], axis=0
+            )
         return Result(params=self.params, measurements=all_measurements)
 
     def _json_dict_(self):
@@ -306,26 +312,23 @@ class Result:
                 'packed_digits': packed_digits,
                 'binary': binary,
                 'dtype': digits.dtype.name,
-                'shape': digits.shape
+                'shape': digits.shape,
             }
         return {
             'cirq_type': self.__class__.__name__,
             'params': self.params,
-            'measurements': packed_measurements
+            'measurements': packed_measurements,
         }
 
     @classmethod
     def _from_json_dict_(cls, params, measurements, **kwargs):
         return cls(
             params=params,
-            measurements={
-                key: _unpack_digits(**val) for key, val in measurements.items()
-            })
+            measurements={key: _unpack_digits(**val) for key, val in measurements.items()},
+        )
 
 
-@deprecated_class(deadline='v0.11',
-                  fix='Use cirq.Result instead.',
-                  name="cirq.TrialResult")
+@deprecated_class(deadline='v0.11', fix='Use cirq.Result instead.', name="cirq.TrialResult")
 class TrialResult(Result):
     pass
 
@@ -348,8 +351,9 @@ def _pack_bits(bits: np.ndarray) -> str:
     return np.packbits(bits).tobytes().hex()
 
 
-def _unpack_digits(packed_digits: str, binary: bool, dtype: str,
-                   shape: Sequence[int]) -> np.ndarray:
+def _unpack_digits(
+    packed_digits: str, binary: bool, dtype: str, shape: Sequence[int]
+) -> np.ndarray:
     if binary:
         return _unpack_bits(packed_digits, dtype, shape)
     buffer = io.BytesIO()
@@ -360,8 +364,7 @@ def _unpack_digits(packed_digits: str, binary: bool, dtype: str,
     return digits
 
 
-def _unpack_bits(packed_bits: str, dtype: str,
-                 shape: Sequence[int]) -> np.ndarray:
+def _unpack_bits(packed_bits: str, dtype: str, shape: Sequence[int]) -> np.ndarray:
     bits_bytes = bytes.fromhex(packed_bits)
     bits = np.unpackbits(np.frombuffer(bits_bytes, dtype=np.uint8))
-    return bits[:np.prod(shape)].reshape(shape).astype(dtype)
+    return bits[: np.prod(shape)].reshape(shape).astype(dtype)

@@ -16,26 +16,28 @@ import itertools
 from typing import Iterable, Sequence, Tuple, TypeVar, TYPE_CHECKING
 
 from cirq import circuits, ops
-from cirq.contrib.acquaintance.devices import(
-    UnconstrainedAcquaintanceDevice)
+from cirq.contrib.acquaintance.devices import UnconstrainedAcquaintanceDevice
 from cirq.contrib.acquaintance.gates import acquaint
-from cirq.contrib.acquaintance.permutation import (
-    LinearPermutationGate, SwapPermutationGate)
+from cirq.contrib.acquaintance.permutation import LinearPermutationGate, SwapPermutationGate
 
 if TYPE_CHECKING:
     import cirq
 
 TItem = TypeVar('TItem')
+
+
 def skip_and_wrap_around(items: Sequence[TItem]) -> Tuple[TItem, ...]:
     n_items = len(items)
-    positions = {p: i for i, p in enumerate(itertools.chain(
-        range(0, n_items, 2), reversed(range(1, n_items, 2))))}
+    positions = {
+        p: i
+        for i, p in enumerate(itertools.chain(range(0, n_items, 2), reversed(range(1, n_items, 2))))
+    }
     return tuple(items[positions[i]] for i in range(n_items))
 
 
-def cubic_acquaintance_strategy(qubits: Iterable['cirq.Qid'],
-                                swap_gate: 'cirq.Gate' = ops.SWAP
-                               ) -> 'cirq.Circuit':
+def cubic_acquaintance_strategy(
+    qubits: Iterable['cirq.Qid'], swap_gate: 'cirq.Gate' = ops.SWAP
+) -> 'cirq.Circuit':
     """Acquaints every triple of qubits.
 
     Exploits the fact that in a simple linear swap network every pair of
@@ -56,23 +58,23 @@ def cubic_acquaintance_strategy(qubits: Iterable['cirq.Qid'],
     index_order = tuple(range(n_qubits))
     max_separation = max(((n_qubits - 1) // 2) + 1, 2)
     for separation in range(1, max_separation):
-        stepped_indices_concatenated = tuple(itertools.chain(*(
-                range(offset, n_qubits, separation)
-                for offset in range(separation))))
+        stepped_indices_concatenated = tuple(
+            itertools.chain(*(range(offset, n_qubits, separation) for offset in range(separation)))
+        )
         new_index_order = skip_and_wrap_around(stepped_indices_concatenated)
-        permutation = {i: new_index_order.index(j)
-            for i, j in enumerate(index_order)}
-        permutation_gate = LinearPermutationGate(
-                n_qubits, permutation, swap_gate)
+        permutation = {i: new_index_order.index(j) for i, j in enumerate(index_order)}
+        permutation_gate = LinearPermutationGate(n_qubits, permutation, swap_gate)
         moments.append(ops.Moment([permutation_gate(*qubits)]))
         for i in range(n_qubits + 1):
             for offset in range(3):
-                moment = ops.Moment(acquaint(*qubits[j:j+3])
-                        for j in range(offset, n_qubits - 2, 3))
+                moment = ops.Moment(
+                    acquaint(*qubits[j : j + 3]) for j in range(offset, n_qubits - 2, 3)
+                )
                 moments.append(moment)
             if i < n_qubits:
-                moment = ops.Moment(swap_gate(*qubits[j:j+2])
-                        for j in range(i % 2, n_qubits - 1, 2))
+                moment = ops.Moment(
+                    swap_gate(*qubits[j : j + 2]) for j in range(i % 2, n_qubits - 1, 2)
+                )
                 moments.append(moment)
         index_order = new_index_order[::-1]
     return circuits.Circuit(moments, device=UnconstrainedAcquaintanceDevice)

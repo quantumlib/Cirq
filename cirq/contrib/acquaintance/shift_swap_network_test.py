@@ -20,27 +20,25 @@ import pytest
 import cirq
 import cirq.contrib.acquaintance as cca
 
-def random_part_lens(max_n_parts, max_part_size):
-    return tuple(random.randint(1, max_part_size)
-            for _ in range(random.randint(1, max_n_parts)))
 
-@pytest.mark.parametrize('left_part_lens,right_part_lens', [
-    tuple(random_part_lens(7, 2)
-          for _ in ('left', 'right'))
-    for _ in range(5)])
-def test_shift_swap_network_gate_acquaintance_opps(
-        left_part_lens, right_part_lens):
+def random_part_lens(max_n_parts, max_part_size):
+    return tuple(random.randint(1, max_part_size) for _ in range(random.randint(1, max_n_parts)))
+
+
+@pytest.mark.parametrize(
+    'left_part_lens,right_part_lens',
+    [tuple(random_part_lens(7, 2) for _ in ('left', 'right')) for _ in range(5)],
+)
+def test_shift_swap_network_gate_acquaintance_opps(left_part_lens, right_part_lens):
 
     gate = cca.ShiftSwapNetworkGate(left_part_lens, right_part_lens)
     n_qubits = gate.qubit_count()
     qubits = cirq.LineQubit.range(n_qubits)
-    strategy = cirq.Circuit(gate(*qubits),
-                            device=cca.UnconstrainedAcquaintanceDevice)
+    strategy = cirq.Circuit(gate(*qubits), device=cca.UnconstrainedAcquaintanceDevice)
 
     # actual_opps
     initial_mapping = {q: i for i, q in enumerate(qubits)}
-    actual_opps = cca.get_logical_acquaintance_opportunities(
-        strategy, initial_mapping)
+    actual_opps = cca.get_logical_acquaintance_opportunities(strategy, initial_mapping)
 
     # expected opps
     i = 0
@@ -52,12 +50,18 @@ def test_shift_swap_network_gate_acquaintance_opps(
             i += part_len
 
     expected_opps = set(
-            frozenset(left_part | right_part) for left_part, right_part in
-            itertools.product(parts['left'], parts['right']))
+        frozenset(left_part | right_part)
+        for left_part, right_part in itertools.product(parts['left'], parts['right'])
+    )
     assert actual_opps == expected_opps
 
+
 circuit_diagrams = {
-    ('undecomposed', (1,) * 3, (1,) * 3): """
+    (
+        'undecomposed',
+        (1,) * 3,
+        (1,) * 3,
+    ): """
 0: ───(0, 0, 0)↦(1, 0, 0)───
       │
 1: ───(0, 1, 0)↦(1, 1, 0)───
@@ -70,7 +74,11 @@ circuit_diagrams = {
       │
 5: ───(1, 2, 0)↦(0, 2, 0)───
     """,
-    ('decomposed', (1,) * 3, (1,) * 3): """
+    (
+        'decomposed',
+        (1,) * 3,
+        (1,) * 3,
+    ): """
 0: ───────────────────────█───╲0╱───────────────────────
                           │   │
 1: ─────────────█───╲0╱───█───╱1╲───█───╲0╱─────────────
@@ -83,7 +91,11 @@ circuit_diagrams = {
                           │   │
 5: ───────────────────────█───╱1╲───────────────────────
     """,
-    ('undecomposed', (2,) * 3, (2,) * 3): """
+    (
+        'undecomposed',
+        (2,) * 3,
+        (2,) * 3,
+    ): """
 0: ────(0, 0, 0)↦(1, 0, 0)───
        │
 1: ────(0, 0, 1)↦(1, 0, 1)───
@@ -108,7 +120,11 @@ circuit_diagrams = {
        │
 11: ───(1, 2, 1)↦(0, 2, 1)───
     """,
-    ('decomposed', (2,) * 3, (2,) * 3): """
+    (
+        'decomposed',
+        (2,) * 3,
+        (2,) * 3,
+    ): """
 0: ────────────────────────█───╲0╱───────────────────────
                            │   │
 1: ────────────────────────█───╲1╱───────────────────────
@@ -133,7 +149,11 @@ circuit_diagrams = {
                            │   │
 11: ───────────────────────█───╱3╲───────────────────────
     """,
-    ('undecomposed', (1, 2, 2), (2, 1, 2)): """
+    (
+        'undecomposed',
+        (1, 2, 2),
+        (2, 1, 2),
+    ): """
 0: ───(0, 0, 0)↦(1, 0, 0)───
       │
 1: ───(0, 1, 0)↦(1, 1, 0)───
@@ -154,7 +174,11 @@ circuit_diagrams = {
       │
 9: ───(1, 2, 1)↦(0, 2, 1)───
     """,
-    ('decomposed', (1, 2, 2), (2, 1, 2)): """
+    (
+        'decomposed',
+        (1, 2, 2),
+        (2, 1, 2),
+    ): """
 0: ───────────────────────█───╲0╱───────────────────────
                           │   │
 1: ─────────────█───╲0╱───█───╱1╲───────────────────────
@@ -174,12 +198,12 @@ circuit_diagrams = {
 8: ───────────────────────█───╱2╲───────────────────────
                           │   │
 9: ───────────────────────█───╱3╲───────────────────────
-    """
-    }
-@pytest.mark.parametrize('left_part_lens,right_part_lens',
-    set(key[1:] for key in circuit_diagrams))
-def test_shift_swap_network_gate_diagrams(
-        left_part_lens, right_part_lens):
+    """,
+}
+
+
+@pytest.mark.parametrize('left_part_lens,right_part_lens', set(key[1:] for key in circuit_diagrams))
+def test_shift_swap_network_gate_diagrams(left_part_lens, right_part_lens):
 
     gate = cca.ShiftSwapNetworkGate(left_part_lens, right_part_lens)
     n_qubits = gate.qubit_count()
@@ -205,10 +229,10 @@ def test_shift_swap_network_gate_bad_part_lens():
         cca.ShiftSwapNetworkGate((1, 1), (2, -3))
 
 
-@pytest.mark.parametrize('left_part_lens,right_part_lens', [
-    tuple(random_part_lens(2, 2)
-          for _ in ('left', 'right'))
-    for _ in range(5)])
+@pytest.mark.parametrize(
+    'left_part_lens,right_part_lens',
+    [tuple(random_part_lens(2, 2) for _ in ('left', 'right')) for _ in range(5)],
+)
 def test_shift_swap_network_gate_repr(left_part_lens, right_part_lens):
     gate = cca.ShiftSwapNetworkGate(left_part_lens, right_part_lens)
     cirq.testing.assert_equivalent_repr(gate)
@@ -217,12 +241,11 @@ def test_shift_swap_network_gate_repr(left_part_lens, right_part_lens):
     cirq.testing.assert_equivalent_repr(gate)
 
 
-@pytest.mark.parametrize('left_part_lens,right_part_lens', [
-    tuple(random_part_lens(2, 2)
-          for _ in ('left', 'right'))
-    for _ in range(5)])
-def test_shift_swap_network_gate_permutation(
-        left_part_lens, right_part_lens):
+@pytest.mark.parametrize(
+    'left_part_lens,right_part_lens',
+    [tuple(random_part_lens(2, 2) for _ in ('left', 'right')) for _ in range(5)],
+)
+def test_shift_swap_network_gate_permutation(left_part_lens, right_part_lens):
     gate = cca.ShiftSwapNetworkGate(left_part_lens, right_part_lens)
     n_qubits = gate.qubit_count()
     cca.testing.assert_permutation_decomposition_equivalence(gate, n_qubits)

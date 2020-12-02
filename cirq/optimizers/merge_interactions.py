@@ -14,8 +14,7 @@
 
 """An optimization pass that combines adjacent single-qubit rotations."""
 
-from typing import Callable, List, Optional, Sequence, Tuple, cast, \
-    TYPE_CHECKING
+from typing import Callable, List, Optional, Sequence, Tuple, cast, TYPE_CHECKING
 
 import numpy as np
 
@@ -30,56 +29,54 @@ class MergeInteractions(circuits.PointOptimizer):
     """Combines series of adjacent one and two-qubit gates operating on a pair
     of qubits."""
 
-    def __init__(self,
-                 tolerance: float = 1e-8,
-                 allow_partial_czs: bool = True,
-                 post_clean_up: Callable[
-                     [Sequence[ops.Operation]], ops.OP_TREE
-                 ] = lambda op_list: op_list) -> None:
+    def __init__(
+        self,
+        tolerance: float = 1e-8,
+        allow_partial_czs: bool = True,
+        post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE] = lambda op_list: op_list,
+    ) -> None:
         super().__init__(post_clean_up=post_clean_up)
         self.tolerance = tolerance
         self.allow_partial_czs = allow_partial_czs
 
-    def optimization_at(self,
-                        circuit: circuits.Circuit,
-                        index: int,
-                        op: ops.Operation
+    def optimization_at(
+        self, circuit: circuits.Circuit, index: int, op: ops.Operation
     ) -> Optional[circuits.PointOptimizationSummary]:
         if len(op.qubits) != 2:
             return None
 
-        old_operations, indices, matrix = (
-            self._scan_two_qubit_ops_into_matrix(circuit, index, op.qubits))
+        old_operations, indices, matrix = self._scan_two_qubit_ops_into_matrix(
+            circuit, index, op.qubits
+        )
 
-        old_interaction_count = len([old_op for old_op in old_operations
-                                     if len(old_op.qubits) == 2])
+        old_interaction_count = len(
+            [old_op for old_op in old_operations if len(old_op.qubits) == 2]
+        )
 
         switch_to_new = False
         switch_to_new |= any(
-            len(old_op.qubits) == 2 and
-            not isinstance(old_op.gate, ops.CZPowGate)
-            for old_op in old_operations)
+            len(old_op.qubits) == 2 and not isinstance(old_op.gate, ops.CZPowGate)
+            for old_op in old_operations
+        )
         if not self.allow_partial_czs:
-            switch_to_new |= any(isinstance(old_op, ops.GateOperation) and
-                                 isinstance(old_op.gate, ops.CZPowGate)
-                                 and old_op.gate.exponent != 1
-                                 for old_op in old_operations)
+            switch_to_new |= any(
+                isinstance(old_op, ops.GateOperation)
+                and isinstance(old_op.gate, ops.CZPowGate)
+                and old_op.gate.exponent != 1
+                for old_op in old_operations
+            )
 
         # This point cannot be optimized using this method
         if not switch_to_new and old_interaction_count <= 1:
             return None
 
         # Find a max-3-cz construction.
-        new_operations = (
-            two_qubit_decompositions.two_qubit_matrix_to_operations(
-                op.qubits[0],
-                op.qubits[1],
-                matrix,
-                self.allow_partial_czs,
-                self.tolerance,
-                False))
-        new_interaction_count = len([new_op for new_op in new_operations
-                                     if len(new_op.qubits) == 2])
+        new_operations = two_qubit_decompositions.two_qubit_matrix_to_operations(
+            op.qubits[0], op.qubits[1], matrix, self.allow_partial_czs, self.tolerance, False
+        )
+        new_interaction_count = len(
+            [new_op for new_op in new_operations if len(new_op.qubits) == 2]
+        )
 
         switch_to_new |= new_interaction_count < old_interaction_count
 
@@ -89,10 +86,12 @@ class MergeInteractions(circuits.PointOptimizer):
         return circuits.PointOptimizationSummary(
             clear_span=max(indices) + 1 - index,
             clear_qubits=op.qubits,
-            new_operations=new_operations)
+            new_operations=new_operations,
+        )
 
-    def _op_to_matrix(self, op: ops.Operation,
-                      qubits: Tuple['cirq.Qid', ...]) -> Optional[np.ndarray]:
+    def _op_to_matrix(
+        self, op: ops.Operation, qubits: Tuple['cirq.Qid', ...]
+    ) -> Optional[np.ndarray]:
         """Determines the effect of an operation on the given qubits.
 
         If the operation is a 1-qubit operation on one of the given qubits,
@@ -130,8 +129,7 @@ class MergeInteractions(circuits.PointOptimizer):
         return None
 
     def _scan_two_qubit_ops_into_matrix(
-            self, circuit: circuits.Circuit, index: Optional[int],
-            qubits: Tuple['cirq.Qid', ...]
+        self, circuit: circuits.Circuit, index: Optional[int], qubits: Tuple['cirq.Qid', ...]
     ) -> Tuple[List[ops.Operation], List[int], np.ndarray]:
         """Accumulates operations affecting the given pair of qubits.
 
@@ -157,11 +155,7 @@ class MergeInteractions(circuits.PointOptimizer):
 
         while index is not None:
             operations = list({circuit.operation_at(q, index) for q in qubits})
-            op_data = [
-                self._op_to_matrix(op, qubits)
-                for op in operations
-                if op is not None
-            ]
+            op_data = [self._op_to_matrix(op, qubits) for op in operations if op is not None]
 
             # Stop at any non-constant or non-local interaction.
             if any(e is None for e in op_data):

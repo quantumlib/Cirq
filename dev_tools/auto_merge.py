@@ -40,24 +40,23 @@ class PullRequestDetails:
         self.repo = repo
 
     @staticmethod
-    def from_github(repo: GithubRepository,
-                    pull_id: int) -> 'PullRequestDetails':
+    def from_github(repo: GithubRepository, pull_id: int) -> 'PullRequestDetails':
         """
         References:
             https://developer.github.com/v3/pulls/#get-a-single-pull-request
         """
-        url = ("https://api.github.com/repos/{}/{}/pulls/{}"
-               "?access_token={}".format(repo.organization,
-                                         repo.name,
-                                         pull_id,
-                                         repo.access_token))
+        url = "https://api.github.com/repos/{}/{}/pulls/{}?access_token={}".format(
+            repo.organization, repo.name, pull_id, repo.access_token
+        )
 
         response = requests.get(url)
 
         if response.status_code != 200:
             raise RuntimeError(
                 'Pull check failed. Code: {}. Content: {!r}.'.format(
-                    response.status_code, response.content))
+                    response.status_code, response.content
+                )
+            )
 
         payload = json.JSONDecoder().decode(response.content.decode())
         return PullRequestDetails(payload, repo)
@@ -67,28 +66,20 @@ class PullRequestDetails:
         return GithubRepository(
             organization=self.payload['head']['repo']['owner']['login'],
             name=self.payload['head']['repo']['name'],
-            access_token=self.repo.access_token)
+            access_token=self.repo.access_token,
+        )
 
     def is_on_fork(self) -> bool:
-        local = (
-            self.repo.organization.lower(),
-            self.repo.name.lower()
-        )
-        remote = (
-            self.remote_repo.organization.lower(),
-            self.remote_repo.name.lower()
-        )
+        local = (self.repo.organization.lower(), self.repo.name.lower())
+        remote = (self.remote_repo.organization.lower(), self.remote_repo.name.lower())
         return local != remote
 
     def has_label(self, desired_label: str) -> bool:
-        return any(label['name'] == desired_label
-                   for label in self.payload['labels'])
+        return any(label['name'] == desired_label for label in self.payload['labels'])
 
     @property
     def last_updated(self) -> datetime.datetime:
-        return datetime.datetime.strptime(
-            self.payload['updated_at'],
-            '%Y-%m-%dT%H:%M:%SZ')
+        return datetime.datetime.strptime(self.payload['updated_at'], '%Y-%m-%dT%H:%M:%SZ')
 
     @property
     def modified_recently(self) -> bool:
@@ -123,29 +114,30 @@ class PullRequestDetails:
         return self.payload['body']
 
 
-def check_collaborator_has_write(repo: GithubRepository, username: str
-                                 ) -> Optional[CannotAutomergeError]:
+def check_collaborator_has_write(
+    repo: GithubRepository, username: str
+) -> Optional[CannotAutomergeError]:
     """
     References:
         https://developer.github.com/v3/issues/events/#list-events-for-an-issue
     """
-    url = ("https://api.github.com/repos/{}/{}/collaborators/{}/permission"
-           "?access_token={}".format(repo.organization,
-                                     repo.name,
-                                     username,
-                                     repo.access_token))
+    url = (
+        "https://api.github.com/repos/{}/{}/collaborators/{}/permission"
+        "?access_token={}".format(repo.organization, repo.name, username, repo.access_token)
+    )
 
     response = requests.get(url)
 
     if response.status_code != 200:
         raise RuntimeError(
             'Collaborator check failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content))
+                response.status_code, response.content
+            )
+        )
 
     payload = json.JSONDecoder().decode(response.content.decode())
     if payload['permission'] not in ['admin', 'write']:
-        return CannotAutomergeError(
-            'Only collaborators with write permission can use automerge.')
+        return CannotAutomergeError('Only collaborators with write permission can use automerge.')
 
     return None
 
@@ -161,30 +153,36 @@ def get_all(url_func: Callable[[int], str]) -> List[Any]:
         if response.status_code != 200:
             raise RuntimeError(
                 f'Request failed to {url}. Code: {response.status_code}.'
-                f' Content: {response.content!r}.')
+                f' Content: {response.content!r}.'
+            )
 
         payload = json.JSONDecoder().decode(response.content.decode())
         results += payload
-        has_next = ('link' in response.headers and
-                    'rel="next"' in response.headers['link'])
+        has_next = 'link' in response.headers and 'rel="next"' in response.headers['link']
         page += 1
     return results
 
 
-def check_auto_merge_labeler(repo: GithubRepository, pull_id: int
-                             ) -> Optional[CannotAutomergeError]:
+def check_auto_merge_labeler(
+    repo: GithubRepository, pull_id: int
+) -> Optional[CannotAutomergeError]:
     """
     References:
         https://developer.github.com/v3/issues/events/#list-events-for-an-issue
     """
-    events = get_all(lambda page: (
-        "https://api.github.com/repos/{}/{}/issues/{}/events"
-        "?access_token={}&per_page=100&page={}".format(
-            repo.organization, repo.name, pull_id, repo.access_token, page)))
+    events = get_all(
+        lambda page: (
+            "https://api.github.com/repos/{}/{}/issues/{}/events"
+            "?access_token={}&per_page=100&page={}".format(
+                repo.organization, repo.name, pull_id, repo.access_token, page
+            )
+        )
+    )
 
     relevant = [
-        event for event in events if event['event'] == 'labeled' and
-        event['label']['name'] in AUTO_MERGE_LABELS
+        event
+        for event in events
+        if event['event'] == 'labeled' and event['label']['name'] in AUTO_MERGE_LABELS
     ]
     if not relevant:
         return CannotAutomergeError('"automerge" label was never added.')
@@ -197,20 +195,18 @@ def add_comment(repo: GithubRepository, pull_id: int, text: str) -> None:
     References:
         https://developer.github.com/v3/issues/comments/#create-a-comment
     """
-    url = ("https://api.github.com/repos/{}/{}/issues/{}/comments"
-           "?access_token={}".format(repo.organization,
-                                     repo.name,
-                                     pull_id,
-                                     repo.access_token))
-    data = {
-        'body': text
-    }
+    url = "https://api.github.com/repos/{}/{}/issues/{}/comments?access_token={}".format(
+        repo.organization, repo.name, pull_id, repo.access_token
+    )
+    data = {'body': text}
     response = requests.post(url, json=data)
 
     if response.status_code != 201:
         raise RuntimeError(
             'Add comment failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content))
+                response.status_code, response.content
+            )
+        )
 
 
 def edit_comment(repo: GithubRepository, text: str, comment_id: int) -> None:
@@ -218,20 +214,18 @@ def edit_comment(repo: GithubRepository, text: str, comment_id: int) -> None:
     References:
         https://developer.github.com/v3/issues/comments/#edit-a-comment
     """
-    url = ("https://api.github.com/repos/{}/{}/issues/comments/{}"
-           "?access_token={}".format(repo.organization,
-                                     repo.name,
-                                     comment_id,
-                                     repo.access_token))
-    data = {
-        'body': text
-    }
+    url = "https://api.github.com/repos/{}/{}/issues/comments/{}?access_token={}".format(
+        repo.organization, repo.name, comment_id, repo.access_token
+    )
+    data = {'body': text}
     response = requests.patch(url, json=data)
 
     if response.status_code != 200:
         raise RuntimeError(
             'Edit comment failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content))
+                response.status_code, response.content
+            )
+        )
 
 
 def get_branch_details(repo: GithubRepository, branch: str) -> Any:
@@ -239,17 +233,17 @@ def get_branch_details(repo: GithubRepository, branch: str) -> Any:
     References:
         https://developer.github.com/v3/repos/branches/#get-branch
     """
-    url = ("https://api.github.com/repos/{}/{}/branches/{}"
-           "?access_token={}".format(repo.organization,
-                                     repo.name,
-                                     branch,
-                                     repo.access_token))
+    url = "https://api.github.com/repos/{}/{}/branches/{}?access_token={}".format(
+        repo.organization, repo.name, branch, repo.access_token
+    )
     response = requests.get(url)
 
     if response.status_code != 200:
         raise RuntimeError(
             'Failed to get branch details. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content))
+                response.status_code, response.content
+            )
+        )
 
     return json.JSONDecoder().decode(response.content.decode())
 
@@ -260,17 +254,17 @@ def get_pr_statuses(pr: PullRequestDetails) -> List[Dict[str, Any]]:
         https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref
     """
 
-    url = ("https://api.github.com/repos/{}/{}/commits/{}/statuses"
-           "?access_token={}".format(pr.repo.organization,
-                                     pr.repo.name,
-                                     pr.branch_sha,
-                                     pr.repo.access_token))
+    url = "https://api.github.com/repos/{}/{}/commits/{}/statuses?access_token={}".format(
+        pr.repo.organization, pr.repo.name, pr.branch_sha, pr.repo.access_token
+    )
     response = requests.get(url)
 
     if response.status_code != 200:
         raise RuntimeError(
             'Get statuses failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content))
+                response.status_code, response.content
+            )
+        )
 
     return json.JSONDecoder().decode(response.content.decode())
 
@@ -281,16 +275,17 @@ def get_pr_check_status(pr: PullRequestDetails) -> Any:
         https://developer.github.com/v3/repos/statuses/#get-the-combined-status-for-a-specific-ref
     """
 
-    url = ("https://api.github.com/repos/{}/{}/commits/{}/status"
-           "?access_token={}".format(pr.repo.organization,
-                                     pr.repo.name,
-                                     pr.branch_sha,
-                                     pr.repo.access_token))
+    url = "https://api.github.com/repos/{}/{}/commits/{}/status?access_token={}".format(
+        pr.repo.organization, pr.repo.name, pr.branch_sha, pr.repo.access_token
+    )
     response = requests.get(url)
 
     if response.status_code != 200:
-        raise RuntimeError('Get status failed. Code: {}. Content: {!r}.'.format(
-            response.status_code, response.content))
+        raise RuntimeError(
+            'Get status failed. Code: {}. Content: {!r}.'.format(
+                response.status_code, response.content
+            )
+        )
 
     return json.JSONDecoder().decode(response.content.decode())
 
@@ -341,14 +336,19 @@ def get_pr_review_status(pr: PullRequestDetails, per_page: int = 100) -> Any:
     References:
         https://developer.github.com/v3/pulls/reviews/#list-reviews-on-a-pull-request
     """
-    url = (f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
-           f"/pulls/{pr.pull_id}/reviews"
-           f"?per_page={per_page}&access_token={pr.repo.access_token}")
+    url = (
+        f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
+        f"/pulls/{pr.pull_id}/reviews"
+        f"?per_page={per_page}&access_token={pr.repo.access_token}"
+    )
     response = requests.get(url)
 
     if response.status_code != 200:
-        raise RuntimeError('Get review failed. Code: {}. Content: {!r}.'.format(
-            response.status_code, response.content))
+        raise RuntimeError(
+            'Get review failed. Code: {}. Content: {!r}.'.format(
+                response.status_code, response.content
+            )
+        )
 
     return json.JSONDecoder().decode(response.content.decode())
 
@@ -358,19 +358,17 @@ def get_pr_checks(pr: PullRequestDetails) -> Dict[str, Any]:
     References:
         https://developer.github.com/v3/checks/runs/#list-check-runs-for-a-specific-ref
     """
-    url = ("https://api.github.com/repos/{}/{}/commits/{}/check-runs"
-           "?access_token={}".format(pr.repo.organization,
-                                     pr.repo.name,
-                                     pr.branch_sha,
-                                     pr.repo.access_token))
-    response = requests.get(
-        url,
-        headers={'Accept': 'application/vnd.github.antiope-preview+json'})
+    url = "https://api.github.com/repos/{}/{}/commits/{}/check-runs?access_token={}".format(
+        pr.repo.organization, pr.repo.name, pr.branch_sha, pr.repo.access_token
+    )
+    response = requests.get(url, headers={'Accept': 'application/vnd.github.antiope-preview+json'})
 
     if response.status_code != 200:
         raise RuntimeError(
             'Get check-runs failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content))
+                response.status_code, response.content
+            )
+        )
 
     return json.JSONDecoder().decode(response.content.decode())
 
@@ -399,8 +397,7 @@ def wait_for_polling_period():
     time.sleep(POLLING_PERIOD.total_seconds())
 
 
-def absent_status_checks(pr: PullRequestDetails,
-                         master_data: Optional[Any] = None) -> Set[str]:
+def absent_status_checks(pr: PullRequestDetails, master_data: Optional[Any] = None) -> Set[str]:
     if pr.base_branch_name == 'master' and master_data is not None:
         branch_data = master_data
     else:
@@ -420,15 +417,16 @@ def get_repo_ref(repo: GithubRepository, ref: str) -> Dict[str, Any]:
         https://developer.github.com/v3/git/refs/#get-a-reference
     """
 
-    url = ("https://api.github.com/repos/{}/{}/git/refs/{}"
-           "?access_token={}".format(repo.organization,
-                                     repo.name,
-                                     ref,
-                                     repo.access_token))
+    url = "https://api.github.com/repos/{}/{}/git/refs/{}?access_token={}".format(
+        repo.organization, repo.name, ref, repo.access_token
+    )
     response = requests.get(url)
     if response.status_code != 200:
-        raise RuntimeError('Refs get failed. Code: {}. Content: {!r}.'.format(
-            response.status_code, response.content))
+        raise RuntimeError(
+            'Refs get failed. Code: {}. Content: {!r}.'.format(
+                response.status_code, response.content
+            )
+        )
     payload = json.JSONDecoder().decode(response.content.decode())
     return payload
 
@@ -438,22 +436,21 @@ def get_master_sha(repo: GithubRepository) -> str:
     return ref['object']['sha']
 
 
-def list_pr_comments(repo: GithubRepository, pull_id: int
-                     ) -> List[Dict[str, Any]]:
+def list_pr_comments(repo: GithubRepository, pull_id: int) -> List[Dict[str, Any]]:
     """
     References:
         https://developer.github.com/v3/issues/comments/#list-comments-on-an-issue
     """
-    url = ("https://api.github.com/repos/{}/{}/issues/{}/comments"
-           "?access_token={}".format(repo.organization,
-                                     repo.name,
-                                     pull_id,
-                                     repo.access_token))
+    url = "https://api.github.com/repos/{}/{}/issues/{}/comments?access_token={}".format(
+        repo.organization, repo.name, pull_id, repo.access_token
+    )
     response = requests.get(url)
     if response.status_code != 200:
         raise RuntimeError(
             'Comments get failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content))
+                response.status_code, response.content
+            )
+        )
     payload = json.JSONDecoder().decode(response.content.decode())
     return payload
 
@@ -463,16 +460,16 @@ def delete_comment(repo: GithubRepository, comment_id: int) -> None:
     References:
         https://developer.github.com/v3/issues/comments/#delete-a-comment
     """
-    url = ("https://api.github.com/repos/{}/{}/issues/comments/{}"
-           "?access_token={}".format(repo.organization,
-                                     repo.name,
-                                     comment_id,
-                                     repo.access_token))
+    url = "https://api.github.com/repos/{}/{}/issues/comments/{}?access_token={}".format(
+        repo.organization, repo.name, comment_id, repo.access_token
+    )
     response = requests.delete(url)
     if response.status_code != 204:
         raise RuntimeError(
             'Comment delete failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content))
+                response.status_code, response.content
+            )
+        )
 
 
 def update_branch(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
@@ -485,9 +482,11 @@ def update_branch(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
     References:
         https://developer.github.com/v3/pulls/#update-a-pull-request-branch
     """
-    url = (f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
-           f"/pulls/{pr.pull_id}/update-branch"
-           f"?access_token={pr.repo.access_token}")
+    url = (
+        f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
+        f"/pulls/{pr.pull_id}/update-branch"
+        f"?access_token={pr.repo.access_token}"
+    )
     data = {
         'expected_head_sha': pr.branch_sha,
     }
@@ -511,22 +510,20 @@ def update_branch(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
     return True
 
 
-def attempt_sync_with_master(pr: PullRequestDetails
-                             ) -> Union[bool, CannotAutomergeError]:
+def attempt_sync_with_master(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
     """
     References:
         https://developer.github.com/v3/repos/merging/#perform-a-merge
     """
     master_sha = get_master_sha(pr.repo)
     remote = pr.remote_repo
-    url = ("https://api.github.com/repos/{}/{}/merges"
-           "?access_token={}".format(remote.organization,
-                                     remote.name,
-                                     remote.access_token))
+    url = "https://api.github.com/repos/{}/{}/merges?access_token={}".format(
+        remote.organization, remote.name, remote.access_token
+    )
     data = {
         'base': pr.branch_name,
         'head': master_sha,
-        'commit_message': 'Update branch (automerge)'
+        'commit_message': 'Update branch (automerge)',
     }
     response = requests.post(url, json=data)
 
@@ -548,38 +545,34 @@ def attempt_sync_with_master(pr: PullRequestDetails
         return CannotAutomergeError(
             "Spurious failure. Github API requires me to be an admin on the "
             "fork repository to merge master into the PR branch. Hit "
-            "'Update Branch' for me before trying again.")
+            "'Update Branch' for me before trying again."
+        )
 
-    raise RuntimeError('Sync with master failed for unknown reason. '
-                       'Code: {}. Content: {!r}.'.format(
-                           response.status_code, response.content))
+    raise RuntimeError(
+        'Sync with master failed for unknown reason. '
+        'Code: {}. Content: {!r}.'.format(response.status_code, response.content)
+    )
 
 
-def attempt_squash_merge(pr: PullRequestDetails
-                         ) -> Union[bool, CannotAutomergeError]:
+def attempt_squash_merge(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
     """
     References:
         https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button
     """
-    url = ("https://api.github.com/repos/{}/{}/pulls/{}/merge"
-           "?access_token={}".format(pr.repo.organization,
-                                     pr.repo.name,
-                                     pr.pull_id,
-                                     pr.repo.access_token))
+    url = "https://api.github.com/repos/{}/{}/pulls/{}/merge?access_token={}".format(
+        pr.repo.organization, pr.repo.name, pr.pull_id, pr.repo.access_token
+    )
     data = {
         'commit_title': '{} (#{})'.format(pr.title, pr.pull_id),
         'commit_message': pr.body,
         'sha': pr.branch_sha,
-        'merge_method': 'squash'
+        'merge_method': 'squash',
     }
     response = requests.put(url, json=data)
 
     if response.status_code == 200:
         # Merge succeeded.
-        log('Merged PR#{} ({!r}):\n{}\n'.format(
-            pr.pull_id,
-            pr.title,
-            indent(pr.body)))
+        log('Merged PR#{} ({!r}):\n{}\n'.format(pr.pull_id, pr.title, indent(pr.body)))
         return True
 
     if response.status_code == 405:
@@ -589,8 +582,9 @@ def attempt_squash_merge(pr: PullRequestDetails
         # Need to sync.
         return False
 
-    raise RuntimeError('Merge failed. Code: {}. Content: {!r}.'.format(
-        response.status_code, response.content))
+    raise RuntimeError(
+        'Merge failed. Code: {}. Content: {!r}.'.format(response.status_code, response.content)
+    )
 
 
 def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
@@ -601,23 +595,21 @@ def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
 
     open_pulls = list_open_pull_requests(pr.repo, base_branch=pr.branch_name)
     if any(open_pulls):
-        log('Not deleting branch {!r}. It is used elsewhere.'.format(
-            pr.branch_name))
+        log('Not deleting branch {!r}. It is used elsewhere.'.format(pr.branch_name))
         return False
 
     remote = pr.remote_repo
     if pr.is_on_fork():
-        log('Not deleting branch {!r}. It belongs to a fork ({}/{}).'.format(
-            pr.branch_name,
-            pr.remote_repo.organization,
-            pr.remote_repo.name))
+        log(
+            'Not deleting branch {!r}. It belongs to a fork ({}/{}).'.format(
+                pr.branch_name, pr.remote_repo.organization, pr.remote_repo.name
+            )
+        )
         return False
 
-    url = ("https://api.github.com/repos/{}/{}/git/refs/heads/{}"
-           "?access_token={}".format(remote.organization,
-                                     remote.name,
-                                     pr.branch_name,
-                                     remote.access_token))
+    url = "https://api.github.com/repos/{}/{}/git/refs/heads/{}?access_token={}".format(
+        remote.organization, remote.name, pr.branch_name, remote.access_token
+    )
     response = requests.delete(url)
 
     if response.status_code == 204:
@@ -625,51 +617,45 @@ def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
         log('Deleted branch {!r}.'.format(pr.branch_name))
         return True
 
-    log('Delete failed. Code: {}. Content: {!r}.'.format(
-        response.status_code, response.content))
+    log('Delete failed. Code: {}. Content: {!r}.'.format(response.status_code, response.content))
     return False
 
 
 def branch_data_modified_recently(payload: Any) -> bool:
     modified_date = datetime.datetime.strptime(
-        payload['commit']['commit']['committer']['date'],
-        '%Y-%m-%dT%H:%M:%SZ')
+        payload['commit']['commit']['committer']['date'], '%Y-%m-%dT%H:%M:%SZ'
+    )
     return is_recent_date(modified_date)
 
 
-def add_labels_to_pr(repo: GithubRepository,
-                     pull_id: int,
-                     *labels: str,
-                     override_token: str = None) -> None:
+def add_labels_to_pr(
+    repo: GithubRepository, pull_id: int, *labels: str, override_token: str = None
+) -> None:
     """
     References:
         https://developer.github.com/v3/issues/labels/#add-labels-to-an-issue
     """
-    url = ("https://api.github.com/repos/{}/{}/issues/{}/labels"
-           "?access_token={}".format(repo.organization,
-                                     repo.name,
-                                     pull_id,
-                                     override_token or repo.access_token))
+    url = "https://api.github.com/repos/{}/{}/issues/{}/labels?access_token={}".format(
+        repo.organization, repo.name, pull_id, override_token or repo.access_token
+    )
     response = requests.post(url, json=list(labels))
 
     if response.status_code != 200:
-        raise RuntimeError('Add labels failed. Code: {}. Content: {!r}.'.format(
-            response.status_code, response.content))
+        raise RuntimeError(
+            'Add labels failed. Code: {}. Content: {!r}.'.format(
+                response.status_code, response.content
+            )
+        )
 
 
-def remove_label_from_pr(repo: GithubRepository,
-                         pull_id: int,
-                         label: str) -> bool:
+def remove_label_from_pr(repo: GithubRepository, pull_id: int, label: str) -> bool:
     """
     References:
         https://developer.github.com/v3/issues/labels/#remove-a-label-from-an-issue
     """
-    url = ("https://api.github.com/repos/{}/{}/issues/{}/labels/{}"
-           "?access_token={}".format(repo.organization,
-                                     repo.name,
-                                     pull_id,
-                                     label,
-                                     repo.access_token))
+    url = "https://api.github.com/repos/{}/{}/issues/{}/labels/{}?access_token={}".format(
+        repo.organization, repo.name, pull_id, label, repo.access_token
+    )
     response = requests.delete(url)
 
     if response.status_code == 404:
@@ -681,15 +667,20 @@ def remove_label_from_pr(repo: GithubRepository,
         # Removed the label.
         return True
 
-    raise RuntimeError('Label remove failed. Code: {}. Content: {!r}.'.format(
-        response.status_code, response.content))
+    raise RuntimeError(
+        'Label remove failed. Code: {}. Content: {!r}.'.format(
+            response.status_code, response.content
+        )
+    )
 
 
-def list_open_pull_requests(repo: GithubRepository,
-                            base_branch: Optional[str] = None,
-                            per_page: int = 100) -> List[PullRequestDetails]:
-    url = (f"https://api.github.com/repos/{repo.organization}/{repo.name}/pulls"
-           f"?per_page={per_page};access_token={repo.access_token}")
+def list_open_pull_requests(
+    repo: GithubRepository, base_branch: Optional[str] = None, per_page: int = 100
+) -> List[PullRequestDetails]:
+    url = (
+        f"https://api.github.com/repos/{repo.organization}/{repo.name}/pulls"
+        f"?per_page={per_page};access_token={repo.access_token}"
+    )
     data = {
         'state': 'open',
     }
@@ -698,16 +689,18 @@ def list_open_pull_requests(repo: GithubRepository,
     response = requests.get(url, json=data)
 
     if response.status_code != 200:
-        raise RuntimeError('List pulls failed. Code: {}. Content: {!r}.'.format(
-            response.status_code, response.content))
+        raise RuntimeError(
+            'List pulls failed. Code: {}. Content: {!r}.'.format(
+                response.status_code, response.content
+            )
+        )
 
     pulls = json.JSONDecoder().decode(response.content.decode())
     results = [PullRequestDetails(pull, repo) for pull in pulls]
 
     # Filtering via the API doesn't seem to work, so we do it ourselves.
     if base_branch is not None:
-        results = [result for result in results
-                   if result.base_branch_name == base_branch]
+        results = [result for result in results if result.base_branch_name == base_branch]
     return results
 
 
@@ -718,8 +711,8 @@ def find_auto_mergeable_prs(repo: GithubRepository) -> List[int]:
 
 
 def find_problem_with_automergeability_of_pr(
-        pr: PullRequestDetails,
-        master_branch_data: Any) -> Optional[CannotAutomergeError]:
+    pr: PullRequestDetails, master_branch_data: Any
+) -> Optional[CannotAutomergeError]:
     # Sanity.
     if pr.payload['state'] != 'open':
         return CannotAutomergeError('Not an open pull request.')
@@ -729,11 +722,10 @@ def find_problem_with_automergeability_of_pr(
         return CannotAutomergeError('There are merge conflicts.')
 
     # If a user removes the automerge label, remove the head label for them.
-    if (pr.has_label(HEAD_AUTO_MERGE_LABEL) and
-            not pr.has_label(USER_AUTO_MERGE_LABEL)):
+    if pr.has_label(HEAD_AUTO_MERGE_LABEL) and not pr.has_label(USER_AUTO_MERGE_LABEL):
         return CannotAutomergeError(
-            f'The {USER_AUTO_MERGE_LABEL} label was removed.',
-            may_be_temporary=True)
+            f'The {USER_AUTO_MERGE_LABEL} label was removed.', may_be_temporary=True
+        )
 
     # Only collaborators with write access can use the automerge labels.
     label_problem = check_auto_merge_labeler(pr.repo, pr.pull_id)
@@ -744,8 +736,7 @@ def find_problem_with_automergeability_of_pr(
     review_status = get_pr_review_status(pr)
     if not any(review['state'] == 'APPROVED' for review in review_status):
         return CannotAutomergeError('No approved review.')
-    if any(review['state'] == 'REQUEST_CHANGES'
-           for review in review_status):
+    if any(review['state'] == 'REQUEST_CHANGES' for review in review_status):
         return CannotAutomergeError('A review is requesting changes.')
 
     # Any failing status checks?
@@ -760,42 +751,39 @@ def find_problem_with_automergeability_of_pr(
         if missing_statuses:
             return CannotAutomergeError(
                 'A required status check is not present.\n\n'
-                'Missing statuses: {!r}'.format(sorted(missing_statuses)))
+                'Missing statuses: {!r}'.format(sorted(missing_statuses))
+            )
 
         # Can't figure out how to make it merge.
         if pr.payload['mergeable_state'] == 'blocked':
             if status_check_state is True:
                 return CannotAutomergeError(
-                    "Merging is blocked (I don't understand why).",
-                    may_be_temporary=True)
+                    "Merging is blocked (I don't understand why).", may_be_temporary=True
+                )
         if pr.payload['mergeable'] is False:
             return CannotAutomergeError(
-                "PR isn't classified as mergeable (I don't understand why).",
-                may_be_temporary=True)
+                "PR isn't classified as mergeable (I don't understand why).", may_be_temporary=True
+            )
 
     return None
 
 
 def cannot_merge_pr(pr: PullRequestDetails, reason: CannotAutomergeError):
-    log('Cancelled automerge of PR#{} ({!r}): {}'.format(
-        pr.pull_id,
-        pr.title,
-        reason.args[0]))
+    log('Cancelled automerge of PR#{} ({!r}): {}'.format(pr.pull_id, pr.title, reason.args[0]))
 
-    add_comment(pr.repo,
-                pr.pull_id,
-                'Automerge cancelled: {}'.format(reason))
+    add_comment(pr.repo, pr.pull_id, 'Automerge cancelled: {}'.format(reason))
 
     for label in AUTO_MERGE_LABELS:
         if pr.has_label(label):
             remove_label_from_pr(pr.repo, pr.pull_id, label)
 
 
-def drop_temporary(pr: PullRequestDetails,
-                   problem: Optional[CannotAutomergeError],
-                   prev_seen_times: Dict[int, datetime.datetime],
-                   next_seen_times: Dict[int, datetime.datetime],
-                   ) -> Optional[CannotAutomergeError]:
+def drop_temporary(
+    pr: PullRequestDetails,
+    problem: Optional[CannotAutomergeError],
+    prev_seen_times: Dict[int, datetime.datetime],
+    next_seen_times: Dict[int, datetime.datetime],
+) -> Optional[CannotAutomergeError]:
     """Filters out problems that may be temporary."""
 
     if problem is not None and problem.may_be_temporary:
@@ -808,8 +796,7 @@ def drop_temporary(pr: PullRequestDetails,
 
 
 def gather_auto_mergeable_prs(
-        repo: GithubRepository,
-        problem_seen_times: Dict[int, datetime.datetime]
+    repo: GithubRepository, problem_seen_times: Dict[int, datetime.datetime]
 ) -> List[PullRequestDetails]:
     result = []
     raw_prs = list_open_pull_requests(repo)
@@ -825,15 +812,13 @@ def gather_auto_mergeable_prs(
 
         # Looking up a single PR gives more data, e.g. the 'mergeable' entry.
         pr = PullRequestDetails.from_github(repo, raw_pr.pull_id)
-        problem = find_problem_with_automergeability_of_pr(pr,
-                                                           master_branch_data)
+        problem = find_problem_with_automergeability_of_pr(pr, master_branch_data)
         if problem is None:
             result.append(pr)
 
-        persistent_problem = drop_temporary(pr,
-                                            problem,
-                                            prev_seen_times=prev_seen_times,
-                                            next_seen_times=problem_seen_times)
+        persistent_problem = drop_temporary(
+            pr, problem, prev_seen_times=prev_seen_times, next_seen_times=problem_seen_times
+        )
         if persistent_problem is not None:
             cannot_merge_pr(pr, persistent_problem)
 
@@ -881,8 +866,7 @@ def merge_desirability(pr: PullRequestDetails) -> Any:
     return rank, -pr.pull_id
 
 
-def pick_head_pr(active_prs: List[PullRequestDetails]
-                 ) -> Optional[PullRequestDetails]:
+def pick_head_pr(active_prs: List[PullRequestDetails]) -> Optional[PullRequestDetails]:
     if not active_prs:
         return None
 
@@ -896,10 +880,8 @@ def pick_head_pr(active_prs: List[PullRequestDetails]
     return promoted
 
 
-def duty_cycle(repo: GithubRepository,
-               persistent_temporary_problems: Dict[int, datetime.datetime]):
-    active_prs = gather_auto_mergeable_prs(repo,
-                                           persistent_temporary_problems)
+def duty_cycle(repo: GithubRepository, persistent_temporary_problems: Dict[int, datetime.datetime]):
+    active_prs = gather_auto_mergeable_prs(repo, persistent_temporary_problems)
     head_pr = pick_head_pr(active_prs)
     if head_pr is None:
         return
@@ -929,19 +911,17 @@ def main():
     access_token = os.getenv(ACCESS_TOKEN_ENV_VARIABLE)
     if not access_token:
         project_id = 'cirq-infra'
-        print('{} not set. Trying secret manager.'.format(
-            ACCESS_TOKEN_ENV_VARIABLE),
-              file=sys.stderr)
+        print(
+            '{} not set. Trying secret manager.'.format(ACCESS_TOKEN_ENV_VARIABLE), file=sys.stderr
+        )
         client = secretmanager_v1beta1.SecretManagerServiceClient()
-        secret_name = (f'projects/{project_id}/'
-                       f'secrets/cirq-bot-api-key/versions/1')
+        secret_name = f'projects/{project_id}/secrets/cirq-bot-api-key/versions/1'
         response = client.access_secret_version(name=secret_name)
         access_token = response.payload.data.decode('UTF-8')
 
     repo = GithubRepository(
-        organization=GITHUB_REPO_ORGANIZATION,
-        name=GITHUB_REPO_NAME,
-        access_token=access_token)
+        organization=GITHUB_REPO_ORGANIZATION, name=GITHUB_REPO_NAME, access_token=access_token
+    )
 
     log('Watching for automergeable PRs.')
     problem_seen_times = {}  # type: Dict[int, datetime.datetime]

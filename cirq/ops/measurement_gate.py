@@ -31,11 +31,13 @@ class MeasurementGate(raw_types.Gate):
     of measurements.
     """
 
-    def __init__(self,
-                 num_qubits: Optional[int] = None,
-                 key: str = '',
-                 invert_mask: Tuple[bool, ...] = (),
-                 qid_shape: Tuple[int, ...] = None) -> None:
+    def __init__(
+        self,
+        num_qubits: Optional[int] = None,
+        key: str = '',
+        invert_mask: Tuple[bool, ...] = (),
+        qid_shape: Tuple[int, ...] = None,
+    ) -> None:
         """
         Args:
             num_qubits: The number of qubits to act upon.
@@ -53,8 +55,7 @@ class MeasurementGate(raw_types.Gate):
         """
         if qid_shape is None:
             if num_qubits is None:
-                raise ValueError(
-                    'Specify either the num_qubits or qid_shape argument.')
+                raise ValueError('Specify either the num_qubits or qid_shape argument.')
             qid_shape = (2,) * num_qubits
         elif num_qubits is None:
             num_qubits = len(qid_shape)
@@ -65,8 +66,7 @@ class MeasurementGate(raw_types.Gate):
             raise ValueError('len(qid_shape) != num_qubits')
         self.key = key
         self.invert_mask = invert_mask or ()
-        if (self.invert_mask is not None and
-                len(self.invert_mask) > self.num_qubits()):
+        if self.invert_mask is not None and len(self.invert_mask) > self.num_qubits():
             raise ValueError('len(invert_mask) > num_qubits')
 
     def _qid_shape_(self) -> Tuple[int, ...]:
@@ -74,10 +74,9 @@ class MeasurementGate(raw_types.Gate):
 
     def with_key(self, key: str) -> 'MeasurementGate':
         """Creates a measurement gate with a new key but otherwise identical."""
-        return MeasurementGate(self.num_qubits(),
-                               key=key,
-                               invert_mask=self.invert_mask,
-                               qid_shape=self._qid_shape)
+        return MeasurementGate(
+            self.num_qubits(), key=key, invert_mask=self.invert_mask, qid_shape=self._qid_shape
+        )
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         if self.key not in key_map:
@@ -91,10 +90,9 @@ class MeasurementGate(raw_types.Gate):
         new_mask = [k < len(old_mask) and old_mask[k] for k in range(n)]
         for b in bit_positions:
             new_mask[b] = not new_mask[b]
-        return MeasurementGate(self.num_qubits(),
-                               key=self.key,
-                               invert_mask=tuple(new_mask),
-                               qid_shape=self._qid_shape)
+        return MeasurementGate(
+            self.num_qubits(), key=self.key, invert_mask=tuple(new_mask), qid_shape=self._qid_shape
+        )
 
     def full_invert_mask(self):
         """Returns the invert mask for all qubits.
@@ -126,8 +124,9 @@ class MeasurementGate(raw_types.Gate):
     def _has_channel_(self):
         return True
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                              ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
         symbols = ['M'] * self.num_qubits()
 
         # Show which output bits are negated.
@@ -137,49 +136,40 @@ class MeasurementGate(raw_types.Gate):
                     symbols[i] = '!M'
 
         # Mention the measurement key.
-        if (not args.known_qubits or
-                self.key != _default_measurement_key(args.known_qubits)):
+        if not args.known_qubits or self.key != _default_measurement_key(args.known_qubits):
             symbols[0] += "('{}')".format(self.key)
 
         return protocols.CircuitDiagramInfo(tuple(symbols))
 
-    def _qasm_(self, args: 'cirq.QasmArgs',
-               qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if not all(d == 2 for d in self._qid_shape):
             return NotImplemented
         args.validate_version('2.0')
         invert_mask = self.invert_mask
         if len(invert_mask) < len(qubits):
-            invert_mask = (invert_mask + (False,) *
-                           (len(qubits) - len(invert_mask)))
+            invert_mask = invert_mask + (False,) * (len(qubits) - len(invert_mask))
         lines = []
         for i, (qubit, inv) in enumerate(zip(qubits, invert_mask)):
             if inv:
-                lines.append(
-                    args.format('x {0};  // Invert the following measurement\n',
-                                qubit))
-            lines.append(
-                args.format('measure {0} -> {1:meas}[{2}];\n', qubit, self.key,
-                            i))
+                lines.append(args.format('x {0};  // Invert the following measurement\n', qubit))
+            lines.append(args.format('measure {0} -> {1:meas}[{2}];\n', qubit, self.key, i))
         return ''.join(lines)
 
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
-               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+    def _quil_(
+        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
+    ) -> Optional[str]:
         if not all(d == 2 for d in self._qid_shape):
             return NotImplemented
         invert_mask = self.invert_mask
         if len(invert_mask) < len(qubits):
-            invert_mask = (invert_mask + (False,) *
-                           (len(qubits) - len(invert_mask)))
+            invert_mask = invert_mask + (False,) * (len(qubits) - len(invert_mask))
         lines = []
         for i, (qubit, inv) in enumerate(zip(qubits, invert_mask)):
             if inv:
                 lines.append(
-                    formatter.format(
-                        'X {0} # Inverting for following measurement\n', qubit))
-            lines.append(
-                formatter.format('MEASURE {0} {1:meas}[{2}]\n', qubit, self.key,
-                                 i))
+                    formatter.format('X {0} # Inverting for following measurement\n', qubit)
+                )
+            lines.append(formatter.format('MEASURE {0} {1:meas}[{2}]\n', qubit, self.key, i))
         return ''.join(lines)
 
     def _op_repr_(self, qubits: Sequence['cirq.Qid']) -> str:
@@ -195,11 +185,13 @@ class MeasurementGate(raw_types.Gate):
         qid_shape_arg = ''
         if any(d != 2 for d in self._qid_shape):
             qid_shape_arg = f', {self._qid_shape!r}'
-        return (f'cirq.MeasurementGate('
-                f'{self.num_qubits()!r}, '
-                f'{self.key!r}, '
-                f'{self.invert_mask}'
-                f'{qid_shape_arg})')
+        return (
+            f'cirq.MeasurementGate('
+            f'{self.num_qubits()!r}, '
+            f'{self.key!r}, '
+            f'{self.invert_mask}'
+            f'{qid_shape_arg})'
+        )
 
     def _value_equality_values_(self) -> Any:
         return self.key, self.invert_mask, self._qid_shape
@@ -217,16 +209,13 @@ class MeasurementGate(raw_types.Gate):
         }
 
     @classmethod
-    def _from_json_dict_(cls,
-                         num_qubits,
-                         key,
-                         invert_mask,
-                         qid_shape=None,
-                         **kwargs):
-        return cls(num_qubits=num_qubits,
-                   key=key,
-                   invert_mask=tuple(invert_mask),
-                   qid_shape=None if qid_shape is None else tuple(qid_shape))
+    def _from_json_dict_(cls, num_qubits, key, invert_mask, qid_shape=None, **kwargs):
+        return cls(
+            num_qubits=num_qubits,
+            key=key,
+            invert_mask=tuple(invert_mask),
+            qid_shape=None if qid_shape is None else tuple(qid_shape),
+        )
 
     def _act_on_(self, args: Any) -> bool:
         from cirq import sim
@@ -239,11 +228,9 @@ class MeasurementGate(raw_types.Gate):
                 args.axes,
                 out=args.target_tensor,
                 qid_shape=args.target_tensor.shape,
-                seed=args.prng)
-            corrected = [
-                bit ^ (bit < 2 and mask)
-                for bit, mask in zip(bits, invert_mask)
-            ]
+                seed=args.prng,
+            )
+            corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
             args.record_measurement_result(self.key, corrected)
 
             return True
@@ -251,10 +238,7 @@ class MeasurementGate(raw_types.Gate):
         if isinstance(args, sim.clifford.ActOnCliffordTableauArgs):
             invert_mask = self.full_invert_mask()
             bits = [args.tableau._measure(q, args.prng) for q in args.axes]
-            corrected = [
-                bit ^ (bit < 2 and mask)
-                for bit, mask in zip(bits, invert_mask)
-            ]
+            corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
             args.record_measurement_result(self.key, corrected)
             return True
 

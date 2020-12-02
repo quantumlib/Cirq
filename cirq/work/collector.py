@@ -29,11 +29,7 @@ if TYPE_CHECKING:
 class CircuitSampleJob:
     """Describes a sampling task."""
 
-    def __init__(self,
-                 circuit: circuits.Circuit,
-                 *,
-                 repetitions: int,
-                 tag: Any = None):
+    def __init__(self, circuit: circuits.Circuit, *, repetitions: int, tag: Any = None):
         """
         Args:
             circuit: The circuit to sample from.
@@ -53,8 +49,10 @@ class CircuitSampleJob:
         return self.circuit, self.repetitions, self.tag
 
     def __repr__(self) -> str:
-        return (f'cirq.CircuitSampleJob(tag={self.tag!r}, '
-                f'repetitions={self.repetitions!r}, circuit={self.circuit!r})')
+        return (
+            f'cirq.CircuitSampleJob(tag={self.tag!r}, '
+            f'repetitions={self.repetitions!r}, circuit={self.circuit!r})'
+        )
 
 
 CIRCUIT_SAMPLE_JOB_TREE = Union[CircuitSampleJob, Iterable[Any]]
@@ -91,8 +89,7 @@ class Collector(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def on_job_result(self, job: CircuitSampleJob,
-                      result: study.Result) -> None:
+    def on_job_result(self, job: CircuitSampleJob, result: study.Result) -> None:
         """Incorporates sampled results.
 
         This method is called by driving code when sample results have become
@@ -101,11 +98,13 @@ class Collector(metaclass=abc.ABCMeta):
         The results should be incorporated into the collector's state.
         """
 
-    def collect(self,
-                sampler: 'cirq.Sampler',
-                *,
-                concurrency: int = 2,
-                max_total_samples: Optional[int] = None) -> None:
+    def collect(
+        self,
+        sampler: 'cirq.Sampler',
+        *,
+        concurrency: int = 2,
+        max_total_samples: Optional[int] = None,
+    ) -> None:
         """Collects needed samples from a sampler.
 
         Examples:
@@ -132,15 +131,18 @@ class Collector(metaclass=abc.ABCMeta):
             https://docs.python.org/3/library/asyncio-task.html
         """
         return asyncio.get_event_loop().run_until_complete(
-            self.collect_async(sampler,
-                               concurrency=concurrency,
-                               max_total_samples=max_total_samples))
+            self.collect_async(
+                sampler, concurrency=concurrency, max_total_samples=max_total_samples
+            )
+        )
 
-    async def collect_async(self,
-                            sampler: 'cirq.Sampler',
-                            *,
-                            concurrency: int = 2,
-                            max_total_samples: Optional[int] = None) -> None:
+    async def collect_async(
+        self,
+        sampler: 'cirq.Sampler',
+        *,
+        concurrency: int = 2,
+        max_total_samples: Optional[int] = None,
+    ) -> None:
         """Asynchronously collects needed samples from a sampler.
 
         Examples:
@@ -168,12 +170,10 @@ class Collector(metaclass=abc.ABCMeta):
         """
         pool = work_pool.CompletionOrderedAsyncWorkPool()
         queued_jobs: List[CircuitSampleJob] = []
-        remaining_samples = (np.infty if max_total_samples is None else
-                             max_total_samples)
+        remaining_samples = np.infty if max_total_samples is None else max_total_samples
 
         async def _start_async_job(job):
-            return job, await sampler.run_async(job.circuit,
-                                                repetitions=job.repetitions)
+            return job, await sampler.run_async(job.circuit, repetitions=job.repetitions)
 
         # Keep dispatching and processing work.
         while True:
@@ -200,16 +200,14 @@ class Collector(metaclass=abc.ABCMeta):
             self.on_job_result(done_job, done_val)
 
 
-def _flatten_jobs(given: Optional[CIRCUIT_SAMPLE_JOB_TREE]
-                 ) -> List[CircuitSampleJob]:
+def _flatten_jobs(given: Optional[CIRCUIT_SAMPLE_JOB_TREE]) -> List[CircuitSampleJob]:
     out: List[CircuitSampleJob] = []
     if given is not None:
         _flatten_jobs_helper(given, out=out)
     return out
 
 
-def _flatten_jobs_helper(given: CIRCUIT_SAMPLE_JOB_TREE, *,
-                         out: List[CircuitSampleJob]) -> None:
+def _flatten_jobs_helper(given: CIRCUIT_SAMPLE_JOB_TREE, *, out: List[CircuitSampleJob]) -> None:
     if isinstance(given, CircuitSampleJob):
         out.append(given)
     elif given is not None:

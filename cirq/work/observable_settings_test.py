@@ -15,22 +15,20 @@
 import pytest
 
 import cirq
-from cirq.work.observable_settings import (_max_weight_state,
-                                           _max_weight_observable,
-                                           _hashable_param)
+from cirq.work.observable_settings import _max_weight_state, _max_weight_observable, _hashable_param
 from cirq.work import InitObsSetting, observables_to_settings, _MeasurementSpec
 
 
 def test_init_obs_setting():
     q0, q1 = cirq.LineQubit.range(2)
-    setting = InitObsSetting(init_state=cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1),
-                             observable=cirq.X(q0) * cirq.Y(q1))
+    setting = InitObsSetting(
+        init_state=cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1), observable=cirq.X(q0) * cirq.Y(q1)
+    )
     assert str(setting) == '+Z(0) * +Z(1) → X(0)*Y(1)'
     assert eval(repr(setting)) == setting
 
     with pytest.raises(ValueError):
-        setting = InitObsSetting(init_state=cirq.KET_ZERO(q0),
-                                 observable=cirq.X(q0) * cirq.Y(q1))
+        setting = InitObsSetting(init_state=cirq.KET_ZERO(q0), observable=cirq.X(q0) * cirq.Y(q1))
 
 
 def test_max_weight_observable():
@@ -66,9 +64,7 @@ def test_observable_to_setting():
         InitObsSetting(zero_state, observables[0]),
         InitObsSetting(zero_state, observables[1]),
     ]
-    assert list(observables_to_settings(observables,
-                                        qubits=[q0, q1,
-                                                q2])) == settings_should_be
+    assert list(observables_to_settings(observables, qubits=[q0, q1, q2])) == settings_should_be
 
 
 def test_param_hash():
@@ -94,17 +90,22 @@ def test_param_hash():
 
 def test_measurement_spec():
     q0, q1 = cirq.LineQubit.range(2)
-    setting = InitObsSetting(init_state=cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1),
-                             observable=cirq.X(q0) * cirq.Y(q1))
-    meas_spec = _MeasurementSpec(max_setting=setting,
-                                 circuit_params={
-                                     'beta': 0.123,
-                                     'gamma': 0.456,
-                                 })
-    meas_spec2 = _MeasurementSpec(max_setting=setting,
-                                  circuit_params={
-                                      'beta': 0.123,
-                                      'gamma': 0.456,
-                                  })
+    setting = InitObsSetting(
+        init_state=cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1), observable=cirq.X(q0) * cirq.Y(q1)
+    )
+    meas_spec = _MeasurementSpec(
+        max_setting=setting,
+        circuit_params={
+            'beta': 0.123,
+            'gamma': 0.456,
+        },
+    )
+    meas_spec2 = _MeasurementSpec(
+        max_setting=setting,
+        circuit_params={
+            'beta': 0.123,
+            'gamma': 0.456,
+        },
+    )
     assert hash(meas_spec) == hash(meas_spec2)
     cirq.testing.assert_equivalent_repr(meas_spec)

@@ -20,11 +20,7 @@ import cirq
 
 
 class NoisySingleQubitReadoutSampler(cirq.Sampler):
-
-    def __init__(self,
-                 p0: float,
-                 p1: float,
-                 seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+    def __init__(self, p0: float, p1: float, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
         """Sampler that flips some bits upon readout.
 
         Args:
@@ -38,10 +34,10 @@ class NoisySingleQubitReadoutSampler(cirq.Sampler):
         self.simulator = cirq.Simulator(seed=self.prng)
 
     def run_sweep(
-            self,
-            program: 'cirq.Circuit',
-            params: cirq.Sweepable,
-            repetitions: int = 1,
+        self,
+        program: 'cirq.Circuit',
+        params: cirq.Sweepable,
+        repetitions: int = 1,
     ) -> List[cirq.Result]:
         results = self.simulator.run_sweep(program, params, repetitions)
         for result in results:
@@ -59,9 +55,9 @@ def test_estimate_single_qubit_readout_errors_no_noise():
     qubits = cirq.LineQubit.range(10)
     sampler = cirq.Simulator()
     repetitions = 1000
-    result = cirq.estimate_single_qubit_readout_errors(sampler,
-                                                       qubits=qubits,
-                                                       repetitions=repetitions)
+    result = cirq.estimate_single_qubit_readout_errors(
+        sampler, qubits=qubits, repetitions=repetitions
+    )
     assert result.zero_state_errors == {q: 0 for q in qubits}
     assert result.one_state_errors == {q: 0 for q in qubits}
     assert result.repetitions == repetitions
@@ -72,9 +68,9 @@ def test_estimate_single_qubit_readout_errors_with_noise():
     qubits = cirq.LineQubit.range(5)
     sampler = NoisySingleQubitReadoutSampler(p0=0.1, p1=0.2, seed=1234)
     repetitions = 1000
-    result = cirq.estimate_single_qubit_readout_errors(sampler,
-                                                       qubits=qubits,
-                                                       repetitions=repetitions)
+    result = cirq.estimate_single_qubit_readout_errors(
+        sampler, qubits=qubits, repetitions=repetitions
+    )
     for error in result.zero_state_errors.values():
         assert 0.08 < error < 0.12
     for error in result.one_state_errors.values():
@@ -88,5 +84,6 @@ def test_single_qubit_readout_calibration_result_repr():
         zero_state_errors={cirq.LineQubit(0): 0.1},
         one_state_errors={cirq.LineQubit(0): 0.2},
         repetitions=1000,
-        timestamp=0.3)
+        timestamp=0.3,
+    )
     cirq.testing.assert_equivalent_repr(result)

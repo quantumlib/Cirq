@@ -21,7 +21,6 @@ import cirq
 
 
 class MockGet:
-
     def __init__(self, json):
         self.counter = 0
         self.json = json
@@ -38,20 +37,19 @@ class MockGet:
 
 def _make_sampler() -> cirq.pasqal.PasqalSampler:
 
-    sampler = cirq.pasqal.PasqalSampler(remote_host='http://00.00.00/',
-                                        access_token='N/A')
+    sampler = cirq.pasqal.PasqalSampler(remote_host='http://00.00.00/', access_token='N/A')
     return sampler
 
 
 def test_pasqal_circuit_init():
     qs = cirq.NamedQubit.range(3, prefix='q')
     ex_circuit = cirq.Circuit()
-    ex_circuit.append([[cirq.CZ(qs[i], qs[i + 1]),
-                        cirq.X(qs[i + 1])] for i in range(len(qs) - 1)])
+    ex_circuit.append([[cirq.CZ(qs[i], qs[i + 1]), cirq.X(qs[i + 1])] for i in range(len(qs) - 1)])
     device = cirq.pasqal.PasqalDevice(qubits=qs)
     test_circuit = cirq.Circuit(device=device)
-    test_circuit.append([[cirq.CZ(qs[i], qs[i + 1]),
-                          cirq.X(qs[i + 1])] for i in range(len(qs) - 1)])
+    test_circuit.append(
+        [[cirq.CZ(qs[i], qs[i + 1]), cirq.X(qs[i + 1])] for i in range(len(qs) - 1)]
+    )
 
     for moment1, moment2 in zip(test_circuit, ex_circuit):
         assert moment1 == moment2
@@ -70,7 +68,7 @@ def test_run_sweep(mock_post, mock_get):
     par = sympy.Symbol('par')
     sweep = cirq.Linspace(key='par', start=0.0, stop=1.0, length=2)
 
-    num = np.random.randint(0, 2**9)
+    num = np.random.randint(0, 2 ** 9)
     binary = bin(num)[2:].zfill(9)
 
     device = cirq.pasqal.PasqalVirtualDevice(control_radius=1, qubits=qs)
@@ -78,8 +76,7 @@ def test_run_sweep(mock_post, mock_get):
 
     for i, b in enumerate(binary[:-1]):
         if b == '1':
-            ex_circuit.append(cirq.X(qs[-i - 1]),
-                              strategy=cirq.InsertStrategy.NEW)
+            ex_circuit.append(cirq.X(qs[-i - 1]), strategy=cirq.InsertStrategy.NEW)
 
     ex_circuit_odd = copy.deepcopy(ex_circuit)
     ex_circuit_odd.append(cirq.X(qs[0]))

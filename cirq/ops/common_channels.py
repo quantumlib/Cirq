@@ -15,14 +15,12 @@
 """Quantum channels that are commonly used in the literature."""
 
 import itertools
-from typing import (Any, Dict, Iterable, Optional, Sequence, Tuple, Union,
-                    TYPE_CHECKING)
+from typing import Any, Dict, Iterable, Optional, Sequence, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import (raw_types, common_gates, pauli_gates, gate_features,
-                      identity)
+from cirq.ops import raw_types, common_gates, pauli_gates, gate_features, identity
 
 if TYPE_CHECKING:
     import cirq
@@ -32,12 +30,14 @@ if TYPE_CHECKING:
 class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
     """A channel that depolarizes asymmetrically along different directions."""
 
-    def __init__(self,
-                 p_x: Optional[float] = None,
-                 p_y: Optional[float] = None,
-                 p_z: Optional[float] = None,
-                 error_probabilities: Optional[Dict[str, float]] = None,
-                 tol: float = 1e-8) -> None:
+    def __init__(
+        self,
+        p_x: Optional[float] = None,
+        p_y: Optional[float] = None,
+        p_z: Optional[float] = None,
+        error_probabilities: Optional[Dict[str, float]] = None,
+        tol: float = 1e-8,
+    ) -> None:
         r"""The asymmetric depolarizing channel.
 
         This channel applies one of 4**n disjoint possibilities: nothing (the
@@ -86,8 +86,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
             if sum_probs < 1.0 - tol and identity not in error_probabilities:
                 error_probabilities[identity] = 1.0 - sum_probs
             elif abs(sum_probs - 1.0) > tol:
-                raise ValueError(
-                    f"Probabilities do not add up to 1 but to {sum_probs}")
+                raise ValueError(f"Probabilities do not add up to 1 but to {sum_probs}")
             self._num_qubits = num_qubits
             self._error_probabilities = error_probabilities
         else:
@@ -98,8 +97,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
             p_x = value.validate_probability(p_x, 'p_x')
             p_y = value.validate_probability(p_y, 'p_y')
             p_z = value.validate_probability(p_z, 'p_z')
-            p_i = 1 - value.validate_probability(p_x + p_y + p_z,
-                                                 'p_x + p_y + p_z')
+            p_i = 1 - value.validate_probability(p_x + p_y + p_z, 'p_x + p_y + p_z')
 
             self._num_qubits = 1
             self._error_probabilities = {'I': p_i, 'X': p_x, 'Y': p_y, 'Z': p_z}
@@ -127,35 +125,29 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         return True
 
     def _value_equality_values_(self):
-        return self._num_qubits, hash(
-            tuple(sorted(self._error_probabilities.items())))
+        return self._num_qubits, hash(tuple(sorted(self._error_probabilities.items())))
 
     def __repr__(self) -> str:
-        return ('cirq.asymmetric_depolarize(' +
-                f"error_probabilities={self._error_probabilities})")
+        return 'cirq.asymmetric_depolarize(' + f"error_probabilities={self._error_probabilities})"
 
     def __str__(self) -> str:
-        return ('asymmetric_depolarize(' +
-                f"error_probabilities={self._error_probabilities})")
+        return 'asymmetric_depolarize(' + f"error_probabilities={self._error_probabilities})"
 
-    def _circuit_diagram_info_(self,
-                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if self._num_qubits == 1:
             if args.precision is not None:
-                return (f"A({self.p_x:.{args.precision}g}," +
-                        f"{self.p_y:.{args.precision}g}," +
-                        f"{self.p_z:.{args.precision}g})")
+                return (
+                    f"A({self.p_x:.{args.precision}g},"
+                    + f"{self.p_y:.{args.precision}g},"
+                    + f"{self.p_z:.{args.precision}g})"
+                )
             return f"A({self.p_x},{self.p_y},{self.p_z})"
         if args.precision is not None:
             error_probabilities = [
-                f"{pauli}:{p:.{args.precision}g}"
-                for pauli, p in self._error_probabilities.items()
+                f"{pauli}:{p:.{args.precision}g}" for pauli, p in self._error_probabilities.items()
             ]
         else:
-            error_probabilities = [
-                f"{pauli}:{p}"
-                for pauli, p in self._error_probabilities.items()
-            ]
+            error_probabilities = [f"{pauli}:{p}" for pauli, p in self._error_probabilities.items()]
         return f"A({', '.join(error_probabilities)})"
 
     @property
@@ -194,11 +186,12 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
 
 
 def asymmetric_depolarize(
-        p_x: Optional[float] = None,
-        p_y: Optional[float] = None,
-        p_z: Optional[float] = None,
-        error_probabilities: Optional[Dict[str, float]] = None,
-        tol: float = 1e-8) -> AsymmetricDepolarizingChannel:
+    p_x: Optional[float] = None,
+    p_y: Optional[float] = None,
+    p_z: Optional[float] = None,
+    error_probabilities: Optional[Dict[str, float]] = None,
+    tol: float = 1e-8,
+) -> AsymmetricDepolarizingChannel:
     r"""Returns a AsymmetricDepolarizingChannel with given parameter.
 
         This channel applies one of 4**n disjoint possibilities: nothing (the
@@ -233,8 +226,7 @@ def asymmetric_depolarize(
     Raises:
         ValueError: if the args or the sum of the args are not probabilities.
     """
-    return AsymmetricDepolarizingChannel(p_x, p_y, p_z, error_probabilities,
-                                         tol)
+    return AsymmetricDepolarizingChannel(p_x, p_y, p_z, error_probabilities, tol)
 
 
 @value.value_equality
@@ -272,10 +264,9 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
 
         error_probabilities = {}
 
-        p_depol = p / (4**n_qubits - 1)
+        p_depol = p / (4 ** n_qubits - 1)
         p_identity = 1.0 - p
-        for pauli_tuple in itertools.product(['I', 'X', 'Y', 'Z'],
-                                             repeat=n_qubits):
+        for pauli_tuple in itertools.product(['I', 'X', 'Y', 'Z'], repeat=n_qubits):
             pauli_string = ''.join(pauli_tuple)
             if pauli_string == 'I' * n_qubits:
                 error_probabilities[pauli_string] = p_identity
@@ -285,8 +276,7 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
         self._p = p
         self._n_qubits = n_qubits
 
-        self._delegate = AsymmetricDepolarizingChannel(
-            error_probabilities=error_probabilities)
+        self._delegate = AsymmetricDepolarizingChannel(error_probabilities=error_probabilities)
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
         return self._delegate._mixture_()
@@ -309,16 +299,15 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
 
     def _act_on_(self, args: Any) -> bool:
         from cirq.sim import clifford
+
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
             if args.prng.random() < self._p:
-                gate = args.prng.choice(
-                    [pauli_gates.X, pauli_gates.Y, pauli_gates.Z])
+                gate = args.prng.choice([pauli_gates.X, pauli_gates.Y, pauli_gates.Z])
                 protocols.act_on(gate, args)
             return True
         return NotImplemented
 
-    def _circuit_diagram_info_(self,
-                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if args.precision is not None:
             return f"D({self._p:.{args.precision}g})"
         return f"D({self._p})"
@@ -440,14 +429,14 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
 
     def _channel_(self) -> Iterable[np.ndarray]:
         p0 = np.sqrt(self._p)
-        p1 = np.sqrt(1. - self._p)
+        p1 = np.sqrt(1.0 - self._p)
         sqrt_g = np.sqrt(self._gamma)
-        sqrt_g1 = np.sqrt(1. - self._gamma)
+        sqrt_g1 = np.sqrt(1.0 - self._gamma)
         return (
-            p0 * np.array([[1., 0.], [0., sqrt_g1]]),
-            p0 * np.array([[0., sqrt_g], [0., 0.]]),
-            p1 * np.array([[sqrt_g1, 0.], [0., 1.]]),
-            p1 * np.array([[0., 0.], [sqrt_g, 0.]]),
+            p0 * np.array([[1.0, 0.0], [0.0, sqrt_g1]]),
+            p0 * np.array([[0.0, sqrt_g], [0.0, 0.0]]),
+            p1 * np.array([[sqrt_g1, 0.0], [0.0, 1.0]]),
+            p1 * np.array([[0.0, 0.0], [sqrt_g, 0.0]]),
         )
 
     def _has_channel_(self) -> bool:
@@ -457,15 +446,12 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
         return self._p, self._gamma
 
     def __repr__(self) -> str:
-        return 'cirq.generalized_amplitude_damp(p={!r},gamma={!r})'.format(
-            self._p, self._gamma)
+        return 'cirq.generalized_amplitude_damp(p={!r},gamma={!r})'.format(self._p, self._gamma)
 
     def __str__(self) -> str:
-        return 'generalized_amplitude_damp(p={!r},gamma={!r})'.format(
-            self._p, self._gamma)
+        return 'generalized_amplitude_damp(p={!r},gamma={!r})'.format(self._p, self._gamma)
 
-    def _circuit_diagram_info_(self,
-                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
             return 'GAD({},{})'.format(f, f).format(self._p, self._gamma)
@@ -485,8 +471,7 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['p', 'gamma'])
 
 
-def generalized_amplitude_damp(p: float, gamma: float
-                              ) -> GeneralizedAmplitudeDampingChannel:
+def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDampingChannel:
     r"""
     Returns a GeneralizedAmplitudeDampingChannel with the given
     probabilities gamma and p.
@@ -596,8 +581,7 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'amplitude_damp(gamma={!r})'.format(self._gamma)
 
-    def _circuit_diagram_info_(self,
-                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
             return 'AD({})'.format(f).format(self._gamma)
@@ -702,7 +686,8 @@ class ResetChannel(gate_features.SingleQubitGate):
                 args.target_tensor,
                 args.axes,
                 out=args.target_tensor,
-                qid_shape=args.target_tensor.shape)
+                qid_shape=args.target_tensor.shape,
+            )
             result = measurements[0]
 
             # Use measurement result to zero the qid.
@@ -737,8 +722,7 @@ class ResetChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'reset'
 
-    def _circuit_diagram_info_(self,
-                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'R'
 
     @property
@@ -751,8 +735,7 @@ class ResetChannel(gate_features.SingleQubitGate):
 
 
 def reset(qubit: 'cirq.Qid') -> raw_types.Operation:
-    """Returns a `ResetChannel` on the given qubit.
-    """
+    """Returns a `ResetChannel` on the given qubit."""
     return ResetChannel(qubit.dimension).on(qubit)
 
 
@@ -801,8 +784,8 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
 
     def _channel_(self) -> Iterable[np.ndarray]:
         return (
-            np.array([[1., 0.], [0., np.sqrt(1. - self._gamma)]]),
-            np.array([[0., 0.], [0., np.sqrt(self._gamma)]]),
+            np.array([[1.0, 0.0], [0.0, np.sqrt(1.0 - self._gamma)]]),
+            np.array([[0.0, 0.0], [0.0, np.sqrt(self._gamma)]]),
         )
 
     def _has_channel_(self) -> bool:
@@ -817,8 +800,7 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'phase_damp(gamma={!r})'.format(self._gamma)
 
-    def _circuit_diagram_info_(self,
-                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
             return 'PD({})'.format(f).format(self._gamma)
@@ -906,7 +888,7 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
             ValueError: if p is not a valid probability.
         """
         self._p = value.validate_probability(p, 'p')
-        self._delegate = AsymmetricDepolarizingChannel(0., 0., p)
+        self._delegate = AsymmetricDepolarizingChannel(0.0, 0.0, p)
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
         mixture = self._delegate._mixture_()
@@ -925,8 +907,7 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'phase_flip(p={!r})'.format(self._p)
 
-    def _circuit_diagram_info_(self,
-                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
             return 'PF({})'.format(f).format(self._p)
@@ -983,9 +964,7 @@ def _phase_flip(p: float) -> PhaseFlipChannel:
     return PhaseFlipChannel(p)
 
 
-def phase_flip(
-    p: Optional[float] = None
-) -> Union[common_gates.ZPowGate, PhaseFlipChannel]:
+def phase_flip(p: Optional[float] = None) -> Union[common_gates.ZPowGate, PhaseFlipChannel]:
     r"""
     Returns a PhaseFlipChannel that flips a qubit's phase with probability p
     if p is None, return a guaranteed phase flip in the form of a Z operation.
@@ -1062,7 +1041,7 @@ class BitFlipChannel(gate_features.SingleQubitGate):
             ValueError: if p is not a valid probability.
         """
         self._p = value.validate_probability(p, 'p')
-        self._delegate = AsymmetricDepolarizingChannel(p, 0., 0.)
+        self._delegate = AsymmetricDepolarizingChannel(p, 0.0, 0.0)
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
         mixture = self._delegate._mixture_()
@@ -1081,8 +1060,7 @@ class BitFlipChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'bit_flip(p={!r})'.format(self._p)
 
-    def _circuit_diagram_info_(self,
-                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
             return 'BF({})'.format(f).format(self._p)
@@ -1133,8 +1111,7 @@ def _bit_flip(p: float) -> BitFlipChannel:
     return BitFlipChannel(p)
 
 
-def bit_flip(p: Optional[float] = None
-            ) -> Union[common_gates.XPowGate, BitFlipChannel]:
+def bit_flip(p: Optional[float] = None) -> Union[common_gates.XPowGate, BitFlipChannel]:
     r"""
     Construct a BitFlipChannel that flips a qubit state
     with probability of a flip given by p. If p is None, return

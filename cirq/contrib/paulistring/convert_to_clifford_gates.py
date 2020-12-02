@@ -39,9 +39,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
     Second, attempts to `cirq.decompose` to the operation.
     """
 
-    def __init__(self,
-                 ignore_failures: bool = False,
-                 atol: float = 0) -> None:
+    def __init__(self, ignore_failures: bool = False, atol: float = 0) -> None:
         """
         Args:
             ignore_failures: If set, gates that fail to convert are forwarded
@@ -54,27 +52,27 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
         self.ignore_failures = ignore_failures
         self.atol = atol
 
-    def _rotation_to_clifford_gate(self, pauli: ops.Pauli, half_turns: float
-                                   ) -> ops.SingleQubitCliffordGate:
+    def _rotation_to_clifford_gate(
+        self, pauli: ops.Pauli, half_turns: float
+    ) -> ops.SingleQubitCliffordGate:
         quarter_turns = round(half_turns * 2) % 4
         if quarter_turns == 1:
             return ops.SingleQubitCliffordGate.from_pauli(pauli, True)
         if quarter_turns == 2:
             return ops.SingleQubitCliffordGate.from_pauli(pauli)
         if quarter_turns == 3:
-            return ops.SingleQubitCliffordGate.from_pauli(pauli, True)**-1
+            return ops.SingleQubitCliffordGate.from_pauli(pauli, True) ** -1
 
         return ops.SingleQubitCliffordGate.I
 
-    def _matrix_to_clifford_op(self, mat: np.ndarray,
-                               qubit: 'cirq.Qid') -> Optional[ops.Operation]:
-        rotations = optimizers.single_qubit_matrix_to_pauli_rotations(
-            mat, self.atol)
+    def _matrix_to_clifford_op(self, mat: np.ndarray, qubit: 'cirq.Qid') -> Optional[ops.Operation]:
+        rotations = optimizers.single_qubit_matrix_to_pauli_rotations(mat, self.atol)
         clifford_gate = ops.SingleQubitCliffordGate.I
         for pauli, half_turns in rotations:
             if linalg.all_near_zero_mod(half_turns, 0.5):
                 clifford_gate = clifford_gate.merged_with(
-                    self._rotation_to_clifford_gate(pauli, half_turns))
+                    self._rotation_to_clifford_gate(pauli, half_turns)
+                )
             else:
                 return None
         return clifford_gate(qubit)
@@ -96,27 +94,29 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
 
     def _on_stuck_raise(self, op: ops.Operation):
         if len(op.qubits) == 1 and protocols.has_unitary(op):
-            raise ValueError('Single qubit operation is not in the '
-                              'Clifford group: {!r}'.format(op))
+            raise ValueError('Single qubit operation is not in the Clifford group: {!r}'.format(op))
 
-        raise TypeError("Don't know how to work with {!r}. "
-                        "It isn't composite or a 1-qubit operation "
-                        "with a known unitary effect.".format(op))
+        raise TypeError(
+            "Don't know how to work with {!r}. "
+            "It isn't composite or a 1-qubit operation "
+            "with a known unitary effect.".format(op)
+        )
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:
-        return protocols.decompose(op,
-                                   intercepting_decomposer=self._convert_one,
-                                   keep=self._keep,
-                                   on_stuck_raise=(None if self.ignore_failures
-                                                   else self._on_stuck_raise))
+        return protocols.decompose(
+            op,
+            intercepting_decomposer=self._convert_one,
+            keep=self._keep,
+            on_stuck_raise=(None if self.ignore_failures else self._on_stuck_raise),
+        )
 
-    def optimization_at(self, circuit: Circuit, index: int, op: ops.Operation
-                        ) -> Optional[PointOptimizationSummary]:
+    def optimization_at(
+        self, circuit: Circuit, index: int, op: ops.Operation
+    ) -> Optional[PointOptimizationSummary]:
         converted = self.convert(op)
         if converted is op:
             return None
 
         return PointOptimizationSummary(
-            clear_span=1,
-            new_operations=converted,
-            clear_qubits=op.qubits)
+            clear_span=1, new_operations=converted, clear_qubits=op.qubits
+        )

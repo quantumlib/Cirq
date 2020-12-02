@@ -35,8 +35,7 @@ def test_sample_density_matrix_big_endian():
         matrix = cirq.to_valid_density_matrix(x, 3)
         sample = cirq.sample_density_matrix(matrix, [2, 1, 0])
         results.append(sample)
-    expecteds = [[list(reversed(x))] for x in
-                 list(itertools.product([False, True], repeat=3))]
+    expecteds = [[list(reversed(x))] for x in list(itertools.product([False, True], repeat=3))]
     for result, expected in zip(results, expecteds):
         np.testing.assert_equal(result, expected)
 
@@ -45,15 +44,16 @@ def test_sample_density_matrix_partial_indices():
     for index in range(3):
         for x in range(8):
             matrix = cirq.to_valid_density_matrix(x, 3)
-            np.testing.assert_equal(cirq.sample_density_matrix(matrix, [index]),
-                                    [[bool(1 & (x >> (2 - index)))]])
+            np.testing.assert_equal(
+                cirq.sample_density_matrix(matrix, [index]), [[bool(1 & (x >> (2 - index)))]]
+            )
+
 
 def test_sample_density_matrix_partial_indices_oder():
     for x in range(8):
         matrix = cirq.to_valid_density_matrix(x, 3)
         expected = [[bool(1 & (x >> 0)), bool(1 & (x >> 1))]]
-        np.testing.assert_equal(cirq.sample_density_matrix(matrix, [2, 1]),
-                                expected)
+        np.testing.assert_equal(cirq.sample_density_matrix(matrix, [2, 1]), expected)
 
 
 def test_sample_density_matrix_partial_indices_all_orders():
@@ -61,8 +61,7 @@ def test_sample_density_matrix_partial_indices_all_orders():
         for x in range(8):
             matrix = cirq.to_valid_density_matrix(x, 3)
             expected = [[bool(1 & (x >> (2 - p))) for p in perm]]
-            np.testing.assert_equal(cirq.sample_density_matrix(matrix, perm),
-                                    expected)
+            np.testing.assert_equal(cirq.sample_density_matrix(matrix, perm), expected)
 
 
 def test_sample_density_matrix():
@@ -72,30 +71,31 @@ def test_sample_density_matrix():
     matrix = cirq.to_valid_density_matrix(state, num_qubits=3)
     for _ in range(10):
         sample = cirq.sample_density_matrix(matrix, [2, 1, 0])
-        assert (np.array_equal(sample, [[False, False, False]])
-                or np.array_equal(sample, [[False, True, False]]))
+        assert np.array_equal(sample, [[False, False, False]]) or np.array_equal(
+            sample, [[False, True, False]]
+        )
     # Partial sample is correct.
     for _ in range(10):
-        np.testing.assert_equal(cirq.sample_density_matrix(matrix, [2]),
-                                [[False]])
-        np.testing.assert_equal(cirq.sample_density_matrix(matrix, [0]),
-                                [[False]])
+        np.testing.assert_equal(cirq.sample_density_matrix(matrix, [2]), [[False]])
+        np.testing.assert_equal(cirq.sample_density_matrix(matrix, [0]), [[False]])
 
 
 def test_sample_density_matrix_seed():
     density_matrix = 0.5 * np.eye(2)
 
-    samples = cirq.sample_density_matrix(density_matrix, [0],
-                                         repetitions=10,
-                                         seed=1234)
-    assert np.array_equal(samples, [[False], [True], [False], [True], [True],
-                                    [False], [False], [True], [True], [True]])
+    samples = cirq.sample_density_matrix(density_matrix, [0], repetitions=10, seed=1234)
+    assert np.array_equal(
+        samples,
+        [[False], [True], [False], [True], [True], [False], [False], [True], [True], [True]],
+    )
 
-    samples = cirq.sample_density_matrix(density_matrix, [0],
-                                         repetitions=10,
-                                         seed=np.random.RandomState(1234))
-    assert np.array_equal(samples, [[False], [True], [False], [True], [True],
-                                    [False], [False], [True], [True], [True]])
+    samples = cirq.sample_density_matrix(
+        density_matrix, [0], repetitions=10, seed=np.random.RandomState(1234)
+    )
+    assert np.array_equal(
+        samples,
+        [[False], [True], [False], [True], [True], [False], [False], [True], [True], [True]],
+    )
 
 
 def test_sample_empty_density_matrix():
@@ -106,11 +106,11 @@ def test_sample_empty_density_matrix():
 def test_sample_density_matrix_no_repetitions():
     matrix = cirq.to_valid_density_matrix(0, 3)
     np.testing.assert_almost_equal(
-        cirq.sample_density_matrix(matrix, [1], repetitions=0),
-        np.zeros(shape=(0, 1)))
+        cirq.sample_density_matrix(matrix, [1], repetitions=0), np.zeros(shape=(0, 1))
+    )
     np.testing.assert_almost_equal(
-        cirq.sample_density_matrix(matrix, [0, 1], repetitions=0),
-        np.zeros(shape=(0, 2)))
+        cirq.sample_density_matrix(matrix, [0, 1], repetitions=0), np.zeros(shape=(0, 2))
+    )
 
 
 def test_sample_density_matrix_repetitions():
@@ -163,13 +163,11 @@ def test_sample_density_matrix_no_indices():
 def test_sample_density_matrix_validate_qid_shape():
     matrix = cirq.to_valid_density_matrix(0, 3)
     cirq.sample_density_matrix(matrix, [], qid_shape=(2, 2, 2))
-    with pytest.raises(ValueError,
-                       match='Matrix size does not match qid shape'):
+    with pytest.raises(ValueError, match='Matrix size does not match qid shape'):
         cirq.sample_density_matrix(matrix, [], qid_shape=(2, 2, 1))
     matrix2 = cirq.to_valid_density_matrix(0, qid_shape=(1, 2, 3))
     cirq.sample_density_matrix(matrix2, [], qid_shape=(1, 2, 3))
-    with pytest.raises(ValueError,
-                       match='Matrix size does not match qid shape'):
+    with pytest.raises(ValueError, match='Matrix size does not match qid shape'):
         cirq.sample_density_matrix(matrix2, [], qid_shape=(2, 2, 2))
 
 
@@ -180,8 +178,7 @@ def test_measure_density_matrix_computational_basis():
         bits, out_matrix = cirq.measure_density_matrix(matrix, [2, 1, 0])
         results.append(bits)
         np.testing.assert_almost_equal(out_matrix, matrix)
-    expected = [list(reversed(x)) for x in
-                list(itertools.product([False, True], repeat=3))]
+    expected = [list(reversed(x)) for x in list(itertools.product([False, True], repeat=3))]
     assert results == expected
 
 
@@ -192,8 +189,7 @@ def test_measure_density_matrix_computational_basis_reversed():
         bits, out_matrix = cirq.measure_density_matrix(matrix, [0, 1, 2])
         results.append(bits)
         np.testing.assert_almost_equal(out_matrix, matrix)
-    expected = [list(x) for x in
-                list(itertools.product([False, True], repeat=3))]
+    expected = [list(x) for x in list(itertools.product([False, True], repeat=3))]
     assert results == expected
 
 
@@ -204,8 +200,7 @@ def test_measure_density_matrix_computational_basis_reshaped():
         bits, out_matrix = cirq.measure_density_matrix(matrix, [2, 1, 0])
         results.append(bits)
         np.testing.assert_almost_equal(out_matrix, matrix)
-    expected = [list(reversed(x)) for x in
-                list(itertools.product([False, True], repeat=3))]
+    expected = [list(reversed(x)) for x in list(itertools.product([False, True], repeat=3))]
     assert results == expected
 
 
@@ -261,13 +256,14 @@ def test_measure_density_matrix_collapse():
 
 def test_measure_density_matrix_seed():
     n = 5
-    matrix = np.eye(2**n) / 2**n
+    matrix = np.eye(2 ** n) / 2 ** n
 
     bits, out_matrix1 = cirq.measure_density_matrix(matrix, range(n), seed=1234)
     assert bits == [False, False, True, True, False]
 
     bits, out_matrix2 = cirq.measure_density_matrix(
-        matrix, range(n), seed=np.random.RandomState(1234))
+        matrix, range(n), seed=np.random.RandomState(1234)
+    )
     assert bits == [False, False, True, True, False]
 
     np.testing.assert_allclose(out_matrix1, out_matrix2)
@@ -275,8 +271,7 @@ def test_measure_density_matrix_seed():
 
 def test_measure_density_matrix_out_is_matrix():
     matrix = matrix_000_plus_010()
-    bits, out_matrix = cirq.measure_density_matrix(matrix, [2, 1, 0],
-                                                   out=matrix)
+    bits, out_matrix = cirq.measure_density_matrix(matrix, [2, 1, 0], out=matrix)
     expected_state = np.zeros(8, dtype=np.complex64)
     expected_state[2 if bits[1] else 0] = 1.0
     expected_matrix = np.outer(np.conj(expected_state), expected_state)
@@ -296,9 +291,9 @@ def test_measure_density_matrix_not_square():
     with pytest.raises(ValueError, match='not square'):
         cirq.measure_density_matrix(np.array([1, 0, 0]), [1])
     with pytest.raises(ValueError, match='not square'):
-        cirq.measure_density_matrix(np.array([1, 0, 0, 0]).reshape((2, 1, 2)),
-                                    [1],
-                                    qid_shape=(2, 1))
+        cirq.measure_density_matrix(
+            np.array([1, 0, 0, 0]).reshape((2, 1, 2)), [1], qid_shape=(2, 1)
+        )
 
 
 def test_measure_density_matrix_not_power_of_two():
@@ -315,9 +310,9 @@ def test_measure_density_matrix_higher_powers_of_two():
 
 def test_measure_density_matrix_tensor_different_left_right_shape():
     with pytest.raises(ValueError, match='not equal'):
-        cirq.measure_density_matrix(np.array([1, 0, 0, 0]).reshape(
-            (2, 2, 1, 1)), [1],
-                                    qid_shape=(2, 1))
+        cirq.measure_density_matrix(
+            np.array([1, 0, 0, 0]).reshape((2, 2, 1, 1)), [1], qid_shape=(2, 1)
+        )
 
 
 def test_measure_density_matrix_out_of_range():
@@ -333,7 +328,6 @@ def test_measure_state_no_indices():
     bits, out_matrix = cirq.measure_density_matrix(matrix, [])
     assert [] == bits
     np.testing.assert_almost_equal(out_matrix, matrix)
-
 
 
 def test_measure_state_no_indices_out_is_matrix():
@@ -363,10 +357,7 @@ def test_measure_state_empty_density_matrix():
 
 @pytest.mark.parametrize('seed', [17, 35, 48])
 def test_to_valid_density_matrix_on_simulator_output(seed):
-    circuit = cirq.testing.random_circuit(qubits=5,
-                                          n_moments=20,
-                                          op_density=0.9,
-                                          random_state=seed)
+    circuit = cirq.testing.random_circuit(qubits=5, n_moments=20, op_density=0.9, random_state=seed)
     simulator = cirq.DensityMatrixSimulator()
     result = simulator.simulate(circuit)
     _ = cirq.to_valid_density_matrix(result.final_density_matrix, num_qubits=5)

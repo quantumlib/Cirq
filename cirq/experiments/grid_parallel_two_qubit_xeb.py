@@ -20,8 +20,7 @@ to connected pairs of grid qubits. The qubit pairs are benchmarked in parallel
 by executing circuits that act on many pairs simultaneously.
 """
 
-from typing import (Any, Iterable, List, Optional, Sequence, TYPE_CHECKING,
-                    Tuple, cast)
+from typing import Any, Iterable, List, Optional, Sequence, TYPE_CHECKING, Tuple, cast
 import collections
 from concurrent.futures import ThreadPoolExecutor
 import dataclasses
@@ -33,23 +32,26 @@ import os
 import numpy as np
 
 from cirq import devices, ops, protocols, sim, value
-from cirq.experiments.cross_entropy_benchmarking import (CrossEntropyResult,
-                                                         CrossEntropyResultDict,
-                                                         CrossEntropyPair,
-                                                         SpecklePurityPair)
-from cirq.experiments.fidelity_estimation import (
-    least_squares_xeb_fidelity_from_probabilities)
+from cirq.experiments.cross_entropy_benchmarking import (
+    CrossEntropyResult,
+    CrossEntropyResultDict,
+    CrossEntropyPair,
+    SpecklePurityPair,
+)
+from cirq.experiments.fidelity_estimation import least_squares_xeb_fidelity_from_probabilities
 from cirq.experiments.purity_estimation import purity_from_probabilities
 from cirq.experiments.random_quantum_circuit_generation import (
     GridInteractionLayer,
-    random_rotations_between_grid_interaction_layers_circuit)
+    random_rotations_between_grid_interaction_layers_circuit,
+)
 
 if TYPE_CHECKING:
     from typing import Dict
     import cirq
 
 DEFAULT_BASE_DIR = os.path.expanduser(
-    os.path.join('~', 'cirq-results', 'grid-parallel-two-qubit-xeb'))
+    os.path.join('~', 'cirq-results', 'grid-parallel-two-qubit-xeb')
+)
 
 LAYER_A = GridInteractionLayer(col_offset=0, vertical=True, stagger=True)
 LAYER_B = GridInteractionLayer(col_offset=1, vertical=True, stagger=True)
@@ -106,6 +108,7 @@ class GridParallelXEBMetadata:
     Attributes:
         data_collection_id: The data collection ID of the experiment.
     """
+
     qubits: List['cirq.Qid']
     two_qubit_gate: 'cirq.Gate'
     num_circuits: int
@@ -115,15 +118,17 @@ class GridParallelXEBMetadata:
     seed: Optional[int]
 
     def __repr__(self) -> str:
-        return ('cirq.experiments.grid_parallel_two_qubit_xeb.'
-                'GridParallelXEBMetadata('
-                f'qubits={self.qubits!r}, '
-                f'two_qubit_gate={self.two_qubit_gate!r}, '
-                f'num_circuits={self.num_circuits!r}, '
-                f'repetitions={self.repetitions!r}, '
-                f'cycles={self.cycles!r}, '
-                f'layers={self.layers!r}, '
-                f'seed={self.seed!r})')
+        return (
+            'cirq.experiments.grid_parallel_two_qubit_xeb.'
+            'GridParallelXEBMetadata('
+            f'qubits={self.qubits!r}, '
+            f'two_qubit_gate={self.two_qubit_gate!r}, '
+            f'num_circuits={self.num_circuits!r}, '
+            f'repetitions={self.repetitions!r}, '
+            f'cycles={self.cycles!r}, '
+            f'layers={self.layers!r}, '
+            f'seed={self.seed!r})'
+        )
 
 
 @dataclasses.dataclass
@@ -133,6 +138,7 @@ class GridParallelXEBMetadataParameters:
     Attributes:
         data_collection_id: The data collection ID of the experiment.
     """
+
     data_collection_id: str
 
     @property
@@ -150,15 +156,19 @@ class GridParallelXEBCircuitParameters:
             in a layer of two-qubit gates.
         circuit_index: The index of the circuit.
     """
+
     data_collection_id: str
     layer: GridInteractionLayer
     circuit_index: int
 
     @property
     def filename(self) -> str:
-        return os.path.join(self.data_collection_id, 'circuits',
-                            f'{self.layer}',
-                            f'circuit-{self.circuit_index}.json')
+        return os.path.join(
+            self.data_collection_id,
+            'circuits',
+            f'{self.layer}',
+            f'circuit-{self.circuit_index}.json',
+        )
 
 
 @dataclasses.dataclass
@@ -175,6 +185,7 @@ class GridParallelXEBTrialResultParameters:
         circuit_index: The index of the circuit from which the executed cycles
             are taken.
     """
+
     data_collection_id: str
     layer: GridInteractionLayer
     depth: int
@@ -182,9 +193,13 @@ class GridParallelXEBTrialResultParameters:
 
     @property
     def filename(self) -> str:
-        return os.path.join(self.data_collection_id, 'data', f'{self.layer}',
-                            f'circuit-{self.circuit_index}',
-                            f'depth-{self.depth}.json')
+        return os.path.join(
+            self.data_collection_id,
+            'data',
+            f'{self.layer}',
+            f'circuit-{self.circuit_index}',
+            f'depth-{self.depth}.json',
+        )
 
 
 @dataclasses.dataclass
@@ -194,6 +209,7 @@ class GridParallelXEBResultsParameters:
     Attributes:
         data_collection_id: The data collection ID of the experiment.
     """
+
     data_collection_id: str
 
     @property
@@ -202,19 +218,19 @@ class GridParallelXEBResultsParameters:
 
 
 def collect_grid_parallel_two_qubit_xeb_data(
-        sampler: 'cirq.Sampler',
-        qubits: Iterable['cirq.GridQubit'],
-        two_qubit_gate: 'cirq.Gate',
-        *,
-        num_circuits: int = 50,
-        repetitions: int = 10_000,
-        cycles: Iterable[int] = range(3, 204, 10),
-        layers: Sequence[GridInteractionLayer] = (LAYER_A, LAYER_B, LAYER_C,
-                                                  LAYER_D),
-        seed: 'cirq.value.RANDOM_STATE_OR_SEED_LIKE' = None,
-        data_collection_id: Optional[str] = None,
-        num_workers: int = 4,
-        base_dir: str = DEFAULT_BASE_DIR) -> str:
+    sampler: 'cirq.Sampler',
+    qubits: Iterable['cirq.GridQubit'],
+    two_qubit_gate: 'cirq.Gate',
+    *,
+    num_circuits: int = 50,
+    repetitions: int = 10_000,
+    cycles: Iterable[int] = range(3, 204, 10),
+    layers: Sequence[GridInteractionLayer] = (LAYER_A, LAYER_B, LAYER_C, LAYER_D),
+    seed: 'cirq.value.RANDOM_STATE_OR_SEED_LIKE' = None,
+    data_collection_id: Optional[str] = None,
+    num_workers: int = 4,
+    base_dir: str = DEFAULT_BASE_DIR,
+) -> str:
     """Collect data for a grid parallel two-qubit XEB experiment.
 
     For each grid interaction layer in `layers`, `num_circuits` random circuits
@@ -288,15 +304,13 @@ def collect_grid_parallel_two_qubit_xeb_data(
         Saves data to filesystem in the directory structure described above.
     """
     if data_collection_id is None:
-        data_collection_id = datetime.datetime.now().isoformat().replace(
-            ':', '')
+        data_collection_id = datetime.datetime.now().isoformat().replace(':', '')
     qubits = list(qubits)
     cycles = list(cycles)
     prng = value.parse_random_state(seed)
 
     # Save metadata
-    metadata_params = GridParallelXEBMetadataParameters(
-        data_collection_id=data_collection_id)
+    metadata_params = GridParallelXEBMetadataParameters(data_collection_id=data_collection_id)
     metadata = GridParallelXEBMetadata(  # type: ignore
         qubits=qubits,
         two_qubit_gate=two_qubit_gate,
@@ -304,13 +318,15 @@ def collect_grid_parallel_two_qubit_xeb_data(
         repetitions=repetitions,
         cycles=cycles,
         layers=list(layers),
-        seed=seed if isinstance(seed, int) else None)
+        seed=seed if isinstance(seed, int) else None,
+    )
     save(metadata_params, metadata, base_dir=base_dir)
 
     # Generate and save all circuits
     max_cycles = max(cycles)
     circuits_ = collections.defaultdict(
-        list)  # type: Dict[GridInteractionLayer, List[cirq.Circuit]]
+        list
+    )  # type: Dict[GridInteractionLayer, List[cirq.Circuit]]
     for layer in layers:
         for i in range(num_circuits):
             circuit = random_rotations_between_grid_interaction_layers_circuit(
@@ -320,18 +336,21 @@ def collect_grid_parallel_two_qubit_xeb_data(
                 pattern=[layer],
                 single_qubit_gates=SINGLE_QUBIT_GATES,
                 add_final_single_qubit_layer=False,
-                seed=prng)
+                seed=prng,
+            )
             circuits_[layer].append(circuit)
             circuit_params = GridParallelXEBCircuitParameters(
-                data_collection_id=data_collection_id,
-                layer=layer,
-                circuit_index=i)
+                data_collection_id=data_collection_id, layer=layer, circuit_index=i
+            )
             save(circuit_params, circuit, base_dir=base_dir)
 
     # Collect data
-    def run_truncated_circuit(truncated_circuit: 'cirq.Circuit',
-                              layer: GridInteractionLayer, depth: int,
-                              circuit_index: int) -> None:
+    def run_truncated_circuit(
+        truncated_circuit: 'cirq.Circuit',
+        layer: GridInteractionLayer,
+        depth: int,
+        circuit_index: int,
+    ) -> None:
         print(f'\tSampling from circuit {circuit_index} of layer {layer}.')
         truncated_circuit.append(ops.measure(*qubits, key='m'))
         trial_result = sampler.run(truncated_circuit, repetitions=repetitions)
@@ -339,27 +358,24 @@ def collect_grid_parallel_two_qubit_xeb_data(
             data_collection_id=cast(str, data_collection_id),
             layer=layer,
             depth=depth,
-            circuit_index=circuit_index)
+            circuit_index=circuit_index,
+        )
         save(trial_result_params, trial_result, base_dir=base_dir)
 
     for depth in cycles:
         print(f'Executing circuits at depth {depth}.')
         with ThreadPoolExecutor(max_workers=num_workers) as executor:
             for layer in layers:
-                truncated_circuits = [
-                    circuit[:2 * depth] for circuit in circuits_[layer]
-                ]
+                truncated_circuits = [circuit[: 2 * depth] for circuit in circuits_[layer]]
                 for i, truncated_circuit in enumerate(truncated_circuits):
-                    executor.submit(run_truncated_circuit, truncated_circuit,
-                                    layer, depth, i)
+                    executor.submit(run_truncated_circuit, truncated_circuit, layer, depth, i)
 
     return data_collection_id
 
 
-def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
-                                                num_processors: int = 1,
-                                                base_dir: str = DEFAULT_BASE_DIR
-                                               ) -> CrossEntropyResultDict:
+def compute_grid_parallel_two_qubit_xeb_results(
+    data_collection_id: str, num_processors: int = 1, base_dir: str = DEFAULT_BASE_DIR
+) -> CrossEntropyResultDict:
     """Compute grid parallel two-qubit XEB results from experimental data.
 
     XEB fidelities are calculated using the least squares XEB fidelity estimator
@@ -386,8 +402,7 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
         Saves the returned CrossEntropyResultDict to the file
         {base_dir}/{data_collection_id}/results.json.
     """
-    metadata_params = GridParallelXEBMetadataParameters(
-        data_collection_id=data_collection_id)
+    metadata_params = GridParallelXEBMetadataParameters(data_collection_id=data_collection_id)
     metadata = load(metadata_params, base_dir=base_dir)
     qubits = metadata.qubits
     num_circuits = metadata.num_circuits
@@ -406,23 +421,18 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
         list
     )  # type: Dict[GridQubitPair, List[Tuple[cirq.Circuit, List[np.ndarray]]]]
     for layer in layers:
-        active_qubit_pairs = [
-            pair for pair in coupled_qubit_pairs if pair in layer
-        ]
+        active_qubit_pairs = [pair for pair in coupled_qubit_pairs if pair in layer]
         all_active_qubit_pairs.extend(active_qubit_pairs)
         for i in range(num_circuits):
             circuit_params = GridParallelXEBCircuitParameters(
-                data_collection_id=data_collection_id,
-                layer=layer,
-                circuit_index=i)
+                data_collection_id=data_collection_id, layer=layer, circuit_index=i
+            )
             circuit = load(circuit_params, base_dir=base_dir)
             trial_results = []
             for depth in cycles:
                 trial_result_params = GridParallelXEBTrialResultParameters(
-                    data_collection_id=data_collection_id,
-                    layer=layer,
-                    depth=depth,
-                    circuit_index=i)
+                    data_collection_id=data_collection_id, layer=layer, depth=depth, circuit_index=i
+                )
                 trial_result = load(trial_result_params, base_dir=base_dir)
                 trial_results.append(trial_result)
             for qubit_pair in active_qubit_pairs:
@@ -432,95 +442,95 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
                 restricted_measurement_results = []
                 for trial_result in trial_results:
                     # Get the measurements of this qubit pair
-                    restricted_measurements = trial_result.measurements[
-                        'm'][:, indices]
+                    restricted_measurements = trial_result.measurements['m'][:, indices]
                     # Convert length-2 bitstrings to integers
                     restricted_measurements = (
-                        2 * restricted_measurements[:, 0] +
-                        restricted_measurements[:, 1])
-                    restricted_measurement_results.append(
-                        restricted_measurements)
-                data[qubit_pair].append(
-                    (circuit[:, qubit_pair], restricted_measurement_results))
+                        2 * restricted_measurements[:, 0] + restricted_measurements[:, 1]
+                    )
+                    restricted_measurement_results.append(restricted_measurements)
+                data[qubit_pair].append((circuit[:, qubit_pair], restricted_measurement_results))
 
     # Compute the XEB results
     arguments = []
     for qubit_pair in all_active_qubit_pairs:
         circuits, measurement_results = zip(*data[qubit_pair])
-        arguments.append((qubit_pair, circuits, measurement_results,
-                          num_circuits, repetitions, cycles))
+        arguments.append(
+            (qubit_pair, circuits, measurement_results, num_circuits, repetitions, cycles)
+        )
     num_processors = min(num_processors, len(arguments))
     with multiprocessing.Pool(num_processors) as pool:
         xeb_result_list = pool.starmap(_get_xeb_result, arguments)
     xeb_results = {
-        qubit_pair: result
-        for qubit_pair, result in zip(all_active_qubit_pairs, xeb_result_list)
+        qubit_pair: result for qubit_pair, result in zip(all_active_qubit_pairs, xeb_result_list)
     }
 
     # Save results and return
     result_dict = CrossEntropyResultDict(results=xeb_results)  # type: ignore
-    result_params = GridParallelXEBResultsParameters(
-        data_collection_id=data_collection_id)
+    result_params = GridParallelXEBResultsParameters(data_collection_id=data_collection_id)
     save(result_params, result_dict, base_dir=base_dir)
 
     return result_dict
 
 
-def _get_xeb_result(qubit_pair: GridQubitPair, circuits: List['cirq.Circuit'],
-                    measurement_results: Sequence[List[np.ndarray]],
-                    num_circuits: int, repetitions: int,
-                    cycles: List[int]) -> CrossEntropyResult:
+def _get_xeb_result(
+    qubit_pair: GridQubitPair,
+    circuits: List['cirq.Circuit'],
+    measurement_results: Sequence[List[np.ndarray]],
+    num_circuits: int,
+    repetitions: int,
+    cycles: List[int],
+) -> CrossEntropyResult:
     # pytest-cov is unable to detect that this function is called by a
     # multiprocessing Pool
     # coverage: ignore
     simulator = sim.Simulator()
     # Simulate circuits to get bitstring probabilities
     all_and_observed_probabilities = collections.defaultdict(
-        list)  # type: Dict[int, List[Tuple[np.ndarray, np.ndarray]]]
-    empirical_probabilities = collections.defaultdict(
-        list)  # type: Dict[int, List[np.ndarray]]
+        list
+    )  # type: Dict[int, List[Tuple[np.ndarray, np.ndarray]]]
+    empirical_probabilities = collections.defaultdict(list)  # type: Dict[int, List[np.ndarray]]
     for i, circuit in enumerate(circuits):
-        step_results = simulator.simulate_moment_steps(circuit,
-                                                       qubit_order=qubit_pair)
+        step_results = simulator.simulate_moment_steps(circuit, qubit_order=qubit_pair)
         moment_index = 0
         for depth, measurements in zip(cycles, measurement_results[i]):
             while moment_index < 2 * depth:
                 step_result = next(step_results)
                 moment_index += 1
             amplitudes = step_result.state_vector()
-            probabilities = np.abs(amplitudes)**2
+            probabilities = np.abs(amplitudes) ** 2
             _, counts = np.unique(measurements, return_counts=True)
             empirical_probs = counts / len(measurements)
-            empirical_probs = np.pad(empirical_probs,
-                                     (0, 4 - len(empirical_probs)),
-                                     mode='constant')
+            empirical_probs = np.pad(
+                empirical_probs, (0, 4 - len(empirical_probs)), mode='constant'
+            )
             all_and_observed_probabilities[depth].append(
-                (probabilities, probabilities[measurements]))
+                (probabilities, probabilities[measurements])
+            )
             empirical_probabilities[depth].append(empirical_probs)
     # Compute XEB result
     data = []
     purity_data = []
     for depth in cycles:
-        all_probabilities, observed_probabilities = zip(
-            *all_and_observed_probabilities[depth])
+        all_probabilities, observed_probabilities = zip(*all_and_observed_probabilities[depth])
         empirical_probs = np.asarray(empirical_probabilities[depth]).flatten()
         fidelity, _ = least_squares_xeb_fidelity_from_probabilities(
             hilbert_space_dimension=4,
             observed_probabilities=observed_probabilities,
             all_probabilities=all_probabilities,
             observable_from_probability=None,
-            normalize_probabilities=True)
+            normalize_probabilities=True,
+        )
         purity = purity_from_probabilities(4, empirical_probs)
         data.append(CrossEntropyPair(depth, fidelity))
         purity_data.append(SpecklePurityPair(depth, purity))
     return CrossEntropyResult(  # type: ignore
-        data=data,
-        repetitions=repetitions,
-        purity_data=purity_data)
+        data=data, repetitions=repetitions, purity_data=purity_data
+    )
 
 
-def _coupled_qubit_pairs(qubits: List['cirq.GridQubit'],
-                        ) -> List[GridQubitPair]:
+def _coupled_qubit_pairs(
+    qubits: List['cirq.GridQubit'],
+) -> List[GridQubitPair]:
     """Get pairs of GridQubits that are neighbors."""
     pairs = []
     qubit_set = set(qubits)

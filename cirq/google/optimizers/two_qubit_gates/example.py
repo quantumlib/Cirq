@@ -23,10 +23,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from cirq import FSimGate, unitary
-from cirq.google.optimizers.two_qubit_gates.gate_compilation import (
-    gate_product_tabulation)
-from cirq.google.optimizers.two_qubit_gates.math_utils import (
-    unitary_entanglement_fidelity)
+from cirq.google.optimizers.two_qubit_gates.gate_compilation import gate_product_tabulation
+from cirq.google.optimizers.two_qubit_gates.math_utils import unitary_entanglement_fidelity
 from cirq.testing import random_special_unitary
 
 
@@ -71,34 +69,27 @@ def main(samples: int = 1000, max_infidelity: float = 0.01):
         # result.local_unitaries stores the local unitaries required to
         # compile the target unitary from the base unitary.
         result = tabulation.compile_two_qubit_gate(target)
-        infidelity = 1 - unitary_entanglement_fidelity(target,
-                                                       result.actual_gate)
+        infidelity = 1 - unitary_entanglement_fidelity(target, result.actual_gate)
         if result.success:
             infidelities.append(infidelity)
         else:
             failed_infidelities.append(infidelity)  # coverage: ignore
     t_comp = time() - start
 
-    print(f'Gate compilation time : {t_comp:.3f} seconds '
-          f'({t_comp / samples:.4f} s per gate)')
+    print(f'Gate compilation time : {t_comp:.3f} seconds ({t_comp / samples:.4f} s per gate)')
 
     infidelities = np.array(infidelities)
     failed_infidelities = np.array(failed_infidelities)
 
     if np.size(failed_infidelities):
         # coverage: ignore
-        print(f'Number of "failed" compilations:'
-              f' {np.size(failed_infidelities)}.')
-        print(f'Maximum infidelity of "failed" compilation: '
-              f'{np.max(failed_infidelities)}')
+        print(f'Number of "failed" compilations: {np.size(failed_infidelities)}.')
+        print(f'Maximum infidelity of "failed" compilation: {np.max(failed_infidelities)}')
 
     plt.figure()
     plt.hist(infidelities, bins=25, range=[0, max_infidelity * 1.1])
     ylim = plt.ylim()
-    plt.plot([max_infidelity] * 2,
-             ylim,
-             '--',
-             label='Maximum tabulation infidelity')
+    plt.plot([max_infidelity] * 2, ylim, '--', label='Maximum tabulation infidelity')
     plt.xlabel('Compiled gate infidelity vs target')
     plt.ylabel('Counts')
     plt.legend()
