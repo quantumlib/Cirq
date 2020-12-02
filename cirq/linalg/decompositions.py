@@ -140,7 +140,7 @@ def unitary_eig(
          V: the unitary matrix with the eigenvectors as columns
     """
     if check_preconditions and not predicates.is_normal(matrix, atol=atol):
-        raise ValueError('Input must correspond to a normal matrix ' f'.Received input:\n{matrix}')
+        raise ValueError(f'Input must correspond to a normal matrix .Received input:\n{matrix}')
     R, V = scipy.linalg.schur(matrix, output="complex")
     return R.diagonal(), V
 
@@ -834,7 +834,7 @@ def kak_decomposition(
         mat.shape != (4, 4) or not predicates.is_unitary(mat, rtol=rtol, atol=atol)
     ):
         raise ValueError(
-            'Input must correspond to a 4x4 unitary matrix. ' 'Received matrix:\n' + str(mat)
+            'Input must correspond to a 4x4 unitary matrix. Received matrix:\n' + str(mat)
         )
 
     # Diagonalize in magic basis.
@@ -922,7 +922,7 @@ def kak_vector(
 
     if unitary.ndim < 2 or unitary.shape[-2:] != (4, 4):
         raise ValueError(
-            f'Expected input unitary to have shape (...,4,4), but' f'got {unitary.shape}.'
+            f'Expected input unitary to have shape (...,4,4), but got {unitary.shape}.'
         )
 
     if atol < 0:
@@ -1024,7 +1024,7 @@ def num_cnots_required(u: np.ndarray, atol: float = 1e-8) -> int:
         the number of CNOT or CZ gates required to implement the unitary
     """
     if u.shape != (4, 4):
-        raise ValueError(f"Expected unitary of shape (4,4), instead " f"got {u.shape}")
+        raise ValueError(f"Expected unitary of shape (4,4), instead got {u.shape}")
     g = _gamma(transformations.to_special(u))
     # see Fadeev-LeVerrier formula
     a3 = -np.trace(g)

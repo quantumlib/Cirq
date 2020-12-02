@@ -99,7 +99,7 @@ class Serializer:
         """Returns the number of qubits while validating qubit types and values."""
         if any(not isinstance(q, line_qubit.LineQubit) for q in all_qubits):
             raise ValueError(
-                'All qubits must be cirq.LineQubits but were ' f'{set(type(q) for q in all_qubits)}'
+                f'All qubits must be cirq.LineQubits but were {set(type(q) for q in all_qubits)}'
             )
         if any(cast(line_qubit.LineQubit, q).x < 0 for q in all_qubits):
             raise ValueError(
