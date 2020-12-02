@@ -144,7 +144,6 @@ def test_to_sweep_single_resolver(r_gen):
 def test_to_sweep_resolver_list(r_list_gen):
     sweep = cirq.to_sweep(r_list_gen())
     assert isinstance(sweep, cirq.Sweep)
-    print(list(sweep))
     assert list(sweep) == [cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 1.5})]
 
 

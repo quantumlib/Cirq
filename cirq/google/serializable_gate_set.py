@@ -201,7 +201,7 @@ class SerializableGateSet:
             return circuit if device is None else circuit.with_device(device)
         if which == 'schedule':
             if device is None:
-                raise ValueError('Deserializing schedule requires a device but None was ' 'given.')
+                raise ValueError('Deserializing schedule requires a device but None was given.')
             return self._deserialize_schedule(
                 proto.schedule, device, arg_function_language=proto.language.arg_function_language
             )

@@ -483,7 +483,7 @@ class PauliSum:
         # prevent an `apply_unitary` bug.
         # Github issue: https://github.com/quantumlib/Cirq/issues/2041
         if state_vector.dtype.kind != 'c':
-            raise TypeError("Input state dtype must be np.complex64 or " "np.complex128")
+            raise TypeError("Input state dtype must be np.complex64 or np.complex128")
 
         size = state_vector.size
         num_qubits = size.bit_length() - 1
@@ -538,7 +538,7 @@ class PauliSum:
         # FIXME: Avoid enforce specific complex type. This is necessary to
         # prevent an `apply_unitary` bug (Issue #2041).
         if state.dtype.kind != 'c':
-            raise TypeError("Input state dtype must be np.complex64 or " "np.complex128")
+            raise TypeError("Input state dtype must be np.complex64 or np.complex128")
 
         size = state.size
         num_qubits = int(np.sqrt(size)).bit_length() - 1

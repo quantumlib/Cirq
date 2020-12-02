@@ -52,7 +52,7 @@ OpDecomposer = Callable[['cirq.Operation'], DecomposeResult]
 
 def _value_error_describing_bad_operation(op: 'cirq.Operation') -> ValueError:
     return ValueError(
-        "Operation doesn't satisfy the given `keep` " "but can't be decomposed: {!r}".format(op)
+        "Operation doesn't satisfy the given `keep` but can't be decomposed: {!r}".format(op)
     )
 
 
@@ -303,7 +303,7 @@ def decompose_once(val: Any, default=RaiseTypeErrorIfNotProvided, *args, **kwarg
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     if method is None:
-        raise TypeError("object of type '{}' " "has no _decompose_ method.".format(type(val)))
+        raise TypeError("object of type '{}' has no _decompose_ method.".format(type(val)))
     raise TypeError(
         "object of type '{}' does have a _decompose_ method, "
         "but it returned NotImplemented or None.".format(type(val))

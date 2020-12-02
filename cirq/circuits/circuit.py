@@ -1713,7 +1713,7 @@ class Circuit(AbstractCircuit):
         with operations already in the moment or even each other.
         """
         if len(operations) != len(insertion_indices):
-            raise ValueError('operations and insertion_indices must have the' 'same length.')
+            raise ValueError('operations and insertion_indices must have the same length.')
         self._moments += [ops.Moment() for _ in range(1 + max(insertion_indices) - len(self))]
         moment_to_ops = defaultdict(list)  # type: Dict[int, List['cirq.Operation']]
         for op_index, moment_index in enumerate(insertion_indices):
@@ -1786,7 +1786,7 @@ class Circuit(AbstractCircuit):
                 result.append(cirq.Moment(c[k] for c in circuits if k < len(c)))
             except ValueError as ex:
                 raise ValueError(
-                    f"Overlapping operations between zipped circuits " f"at moment index {k}.\n{ex}"
+                    f"Overlapping operations between zipped circuits at moment index {k}.\n{ex}"
                 ) from ex
         return result
 
