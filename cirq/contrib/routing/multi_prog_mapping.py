@@ -216,7 +216,15 @@ class HierarchyTree:
 
 class QubitsPartitioning:
     """
+    Partition physical qubits to some groups using constrcuted heirarcical tree 
+    and assign them to different programs.
 
+    Args:
+        tree: constrcuted heirarchical tree of physical qubits
+        program_circuits: a list of multiple program to run at the same time
+        single_er: readout error corresponding to each physical qubit
+        two_er: gate error on connected link between 2 physical qubits
+        twoQ_gate_type: type of 2-qubits gate (CZ or CNOT)
     """
 
     def __init__(self, tree: nx.DiGraph(),
@@ -231,6 +239,13 @@ class QubitsPartitioning:
         self.twoQ_gate_type = twoQ_gate_type
 
     def circuits_descending(self) -> List[circuits.Circuit]:
+        """
+        Sort programs with their density (#CNOTs/#qubits)
+
+        Return:
+            circuits_desc: list of circuits in descending order
+        """
+
         cnot_density = []
         for circuit in self.program_circuits:
             density = len(
@@ -243,11 +258,11 @@ class QubitsPartitioning:
         idxs = np.argsort(cnot_density)
         idxs_descending = np.flip(idxs)
         # Reorder list of program_circuits
-        circuits_temp = []  #copy.deepcopy(self.program_circuits)
+        circuits_desc = []  
         for id in idxs_descending:
-            circuits_temp.append(self.program_circuits[id])
+            circuits_desc.append(self.program_circuits[id])
 
-        return circuits_temp
+        return circuits_desc
 
     def compute_EPST(self, partition: List[ops.Qid],
                      cir: circuits.Circuit) -> float:
