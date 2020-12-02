@@ -266,6 +266,19 @@ class QubitsPartitioning:
 
     def compute_EPST(self, partition: List[ops.Qid],
                      cir: circuits.Circuit) -> float:
+        """
+        Compute Estimated Probability of a Successful Trial (EPST). 
+        EPST estimates the fidelity of the executtion of a quantum program on a specific quantum chip.
+        EPST = (f_2q^#CNOTs) * (f_1q^#1q_gates) * (f_ro^#qubits)
+        f_2q: the average fidelity of CNOTs
+        f_1q: the average fidelity of 1-qubit gates
+        f_ro: the average fidelity of readout operations
+
+        Args:
+            partition: a group of physical qubits
+            cir: program circuit
+        """
+
         twoQ_gs = len(
             list(
                 cir.findall_operations(lambda op: op.gate == self.twoQ_gate_type
@@ -290,14 +303,20 @@ class QubitsPartitioning:
         avgF_2 = 1 - float(err_2 / count_2)
         avgF_1 = 1 - float(err_1 / len(partition))
         # to do : readout error
+        epst = pow(avgF_2, twoQ_gs) * pow(avgF_1, oneQ_gs) * pow(avgF_1, qubits)
 
-        return pow(avgF_2, twoQ_gs) * pow(avgF_1, oneQ_gs) * pow(avgF_1, qubits)
+        return epst
 
-    def find_best_candidate(self, cands: List[List[ops.Qid]],
+    def find_best_partition(self, cands: List[List[ops.Qid]],
                             cir: circuits.Circuit) -> List[ops.Qid]:
         """ 
-        find best candidate based on average fidelity
+        Find best partition for current circuit based on average fidelity.
+
+        Args:
+            cands: list of diifferent partitions
+            cir: program circuit
         """
+
         best_cand = cands[0]
         max_f = -np.inf
 
@@ -311,8 +330,17 @@ class QubitsPartitioning:
 
     def qubits_allocation(self, desc_prog_circuits: List[circuits.Circuit]
                          ) -> List[List[ops.Qid]]:
+        """
+        Allocate different groups of physical qubits to different programs.
 
-        partition = []
+        Args:
+            desc_prog_circuits: list of different programs 
+
+        Return:
+            partitions: list of different partitions corresponding to programs
+        """
+
+        partitions = []
 
         for cir in desc_prog_circuits:
             candidates = []
@@ -341,8 +369,8 @@ class QubitsPartitioning:
             if len(candidates) == 0:
                 print("fail -- run programs seperately")
 
-            best_cand = self.find_best_candidate(candidates, cir)
-            partition.append(best_cand)
+            best_cand = self.find_best_partition(candidates, cir)
+            partitions.append(best_cand)
             # Remove nodes from tree & relabel remaining nodes
             successors = list(self.tree.successors(best_cand))
             self.tree.remove_nodes_from(successors)
@@ -353,10 +381,23 @@ class QubitsPartitioning:
 
             nx.relabel_nodes(self.tree, label_mapping)
 
-        return partition
+        return partitions
 
 
 class XSWAP:
+    """
+    This class apply XSWAP algorithm to generate the final schedule 
+    for running multiple programs at the same time. 
+    XSWAP uses both inter-program and intra-program swaps to satisfy hardware constraints.
+
+    Args:
+        device_graph: physical coupling graph
+        desc_program_circuits: list of different programs in descending order based on CNOT density
+        partitions: groups of physical qubits corresponding to programs
+        twoQ_gate_type: type of 2-qubits gate (CZ or CNOT)
+        l_to_ph: mapping logical qubits and their program id to physical qubits
+        ph_to_l: mapping physical qubits to logical qubits and their program id
+    """
 
     def __init__(self,
                  device_graph: nx.Graph,
@@ -373,6 +414,13 @@ class XSWAP:
         self.ph_to_l = ph_to_l
 
     def generate_2qGates_dags(self) -> cirq.CircuitDag:
+        """
+        Generate the dag representation of program circuits only for 2-qubits gates.
+
+        Return:
+            cir_dags: list of generated dags         
+        """
+
         cir_dags = []
         for c in self.desc_prog_circuits:
             # Remove single qubit gates before creating dag
@@ -385,6 +433,13 @@ class XSWAP:
         return cir_dags
 
     def generate_dags(self) -> cirq.CircuitDag:
+        """
+        Generate the dag representation of program circuits consisting of all gate types.
+
+        Return:
+            cir_dags: list of generated dags         
+        """
+
         cir_dags = []
         for c in self.desc_program_circuits:
             # Create dag
@@ -394,6 +449,16 @@ class XSWAP:
 
     def generate_2qGates_front_layers(self, cir_dags: List[cirq.CircuitDag]
                                      ) -> List[List[ops.Operation]]:
+        """
+        Generate front layers for all programs by considering only 2-qubits gates. Front layer is consisting of all gates 
+        that could run and doesn't have any predecessors.
+
+        Args:
+            cir_dags: dag representation of all programs
+        Return:
+            flayers: list of front layers corresponding to programs
+        """
+
         flayers = []
         for dag in cir_dags:
             fl = []
@@ -408,6 +473,16 @@ class XSWAP:
 
     def generate_front_layers(self, cir_dags: cirq.CircuitDag
                              ) -> List[List[ops.Operation]]:
+        """
+        Generate front layers for all programs. Front layer is consisting of all gates 
+        that could run and doesn't have any predecessors.
+
+        Args:
+            cir_dags: dag representation of all programs
+        Return:
+            flayers: list of front layers corresponding to programs
+        """
+
         # Check all dags are empty
         counter = 0
         for dag in cir_dags:
@@ -444,7 +519,10 @@ class XSWAP:
         return secondl
 
     def initial_mapping(self) -> None:
-        """ initialize 2 dictionaries l_to_ph and ph_to_l in order """
+        """ 
+        Initialize 2 mapping dictionaries l_to_ph and ph_to_l.
+        """
+
         total_l_qubits = 0
         total_ph_qubits = len(self.device_graph.nodes)
         for i in range(len(self.desc_program_circuits)):
@@ -470,17 +548,52 @@ class XSWAP:
 
     def log_to_phy_edge(self, log_edge: (ops.Qid, ops.Qid),
                         pid: int) -> (ops.Qid, ops.Qid):
+        """
+        Map logical qubits and their program id of an edge to physical qubits and return it as an edge.
+
+        Args:
+            log_edge: 2 logical qubits connected by a link
+            pid: program id
+
+        Return:
+            phy_edge: 2 physical qubits corresponding to logical edge
+        """
+
         phy0 = self.l_to_ph[(log_edge[0], pid)]
         phy1 = self.l_to_ph[(log_edge[1], pid)]
-        return (phy0, phy1)
+        phy_edge = (phy0, phy1)
+
+        return phy_edge
 
     def phy_to_log_edge(self, phy_edge: (ops.Qid, ops.Qid)) -> SWAPTypeLogical:
+        """
+        Map physical qubits of an edge to logical qubits and their program id and return it as an edge.
+
+        Args:
+            phy_edge: 2 physical qubits connected by a link
+
+        Return:
+            log_edge: 2 logical qubits and their program id corresponding to physical edge
+        """
+
         log_pid0 = self.ph_to_l[phy_edge[0]]
         log_pid1 = self.ph_to_l[phy_edge[1]]
-        return (log_pid0, log_pid1)
+        log_edge = (log_pid0, log_pid1)
+
+        return log_edge
 
     def obtain_swaps(self, node_gates: cirq.CircuitDag.nodes,
                      pid: int) -> List[SWAPTypeLogical]:
+        """
+        Find SWAPs to enable gate execution.
+
+        Args:
+            node_gates: nodes of circuit dag
+            pid: program id
+        Returns:
+            swaps: all possible SWAPs of gates corresponding to dag nodes for all programs 
+        """
+
         swaps = []
         for n in node_gates:
             g = n.val
@@ -496,6 +609,17 @@ class XSWAP:
     def update_mapping(self, swap: SWAPTypeLogical
                       ) -> Tuple[Dict[Tuple[ops.Qid, int], ops.
                                       Qid], Dict[ops.Qid, Tuple[ops.Qid, int]]]:
+        """
+        Update 2 mapping dictionaries after applying a SWAP.
+
+        Args:
+            swap: swaping of 2 logical qubits
+
+        Returns:
+            new_l_ph: mapping dictionary from logical to physical qubits
+            new_ph_l: mapping dictionary from physical to logical qubits
+        """
+
         new_ph_l = self.ph_to_l.copy()
         new_l_ph = self.l_to_ph.copy()
 
@@ -511,6 +635,19 @@ class XSWAP:
     def compute_H(self, flayers: List[List[ops.Operation]],
                   new_l_ph: Dict[Tuple[ops.Qid, int], ops.Qid],
                   new_ph_l: Dict[ops.Qid, Tuple[ops.Qid, int]]) -> float:
+        """
+        Compute heuristic cost after inserting SWAP based on Nearest Neighbor Cost (NNC).
+        Comes from https://arxiv.org/pdf/1809.02573.pdf
+
+        Args:
+            flayers: front layers
+            new_l_ph: mapping dictionary from logical to physical qubits after applying SWAP
+            new_ph_l: mapping dictionary from physical to logical qubits after applying SWAP
+
+        Return:
+            H_cost: cost value
+        """
+
         H_cost = 0
         for i in range(len(flayers)):
             if len(flayers[i]) == 0:
@@ -525,15 +662,26 @@ class XSWAP:
                                               phy_edge[1]))[0])
         return H_cost - 1
 
-    def compute_path_in_sameP(self, edge: (ops.Qid, ops.Qid), pidx: int) -> int:
+    def compute_path_distance_in_sameP(self, edge: (ops.Qid, ops.Qid), pid: int) -> int:
+        """
+        Compute path distance of two qubits by considering qubits only in same program.
+
+        Args:
+            edge: 2 physical qubits that we need to be connected
+            pid: program id
+
+        Return:
+            distance: distance value in device graph
+        """
+
         paths = list(
             nx.all_simple_paths(self.device_graph,
                                 edge[0],
                                 edge[1],
-                                cutoff=len(self.partitions[pidx])))
+                                cutoff=len(self.partitions[pid])))
         distance = np.inf
         for p in paths:
-            if self.partitions[pidx] in p:
+            if self.partitions[pid] in p:
                 if len(p) < distance:
                     distance = len(p)
         return distance
@@ -542,6 +690,19 @@ class XSWAP:
                          new_l_ph: Dict[Tuple[ops.Qid, int], ops.Qid],
                          new_ph_l: Dict[ops.Qid, Tuple[ops.Qid, int]],
                          swap: SWAPTypeLogical) -> float:
+        """
+        Compute Gain cost. It shows that inter-program SWAPs outperform intra-program SWAPs or not.
+
+        Args:
+            flayers: front layers
+            new_l_ph: mapping dictionary from logical to physical qubits after applying SWAP
+            new_ph_l: mapping dictionary from physical to logical qubits after applying SWAP
+            swap: considered swap gate
+        
+        Return:
+            gain_cost: gain cost value
+        """
+
         gain_cost = 0
 
         for i in range(len(flayers)):
@@ -566,13 +727,24 @@ class XSWAP:
                 if new_path_len < path_len:
                     in_path = 1
                 D_allp = new_path_len
-                D_singlep = self.compute_path_in_sameP(phy_edge, i)
+                D_singlep = self.compute_path_distance_in_sameP(phy_edge, i)
                 cost_i = cost_i + (D_allp - D_singlep) * in_path
             gain_cost = gain_cost + float(1 / len(flayers[i])) * cost_i
         return gain_cost
 
     def find_best_swap(self, swap_candidate_lists: List[List[SWAPTypeLogical]],
                        flayers: List[List[ops.Operation]]) -> SWAPTypeLogical:
+        """
+        Find best SWAP among candidates.
+
+        Args:
+            swap_candidate_lists: SWAP candidates
+            flayers: front layers
+
+        Return:
+            best_swap: best SWAP gate
+        """
+
         min_cost = np.inf
         best_swap = None
         for swaps in swap_candidate_lists:
@@ -589,6 +761,13 @@ class XSWAP:
         return best_swap
 
     def insert_SWAP_and_generate_schedule(self) -> circuits.Circuit:
+        """
+        Insert the required SWAP gates and generate the final schedule on physical qubits for all program at the same time.
+
+        Return:
+            schedule: final quantum circuit consisting of all programs
+        """
+
         schedule = cirq.Circuit()
         dags = self.generate_dags()
         self.initial_mapping()
@@ -669,6 +848,16 @@ def multi_prog_map(device_graph: nx.Graph,
                    single_er: Dict[Tuple[ops.Qid,], List[float]],
                    two_er: Dict[Tuple[ops.Qid, ops.Qid], List[float]],
                    prog_circuits: List[circuits.Circuit]) -> None:
+    """
+    Initialize and run the procedure of mapping multiple programs to a same physical device step by step.
+
+    Args:
+        device_graph: graph of physical device
+        single_er: a dictionary that shows operation error of single-qubit gates
+        two_er: a dictionary that shows operation error of two-qubits gates
+        prog_circuits: circuits of all programs
+    """
+    
     twoQ_gate_type = cirq.CZ
     tree_obj = HierarchyTree(device_graph, single_er, two_er)
     tree = tree_obj.tree_construction()
