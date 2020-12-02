@@ -137,7 +137,9 @@ def test_calibrations_with_string_key():
           targets: ['alpha']
           values: [{double_val: 0.1}]
         }]
-    """, v2.metrics_pb2.MetricsSnapshot())
+    """,
+        v2.metrics_pb2.MetricsSnapshot(),
+    )
     assert expected_proto == calibration.to_proto()
     assert calibration == cg.Calibration(expected_proto)
     assert calibration == cg.Calibration(calibration.to_proto())

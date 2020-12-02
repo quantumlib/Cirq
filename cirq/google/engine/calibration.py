@@ -16,8 +16,7 @@
 from collections import abc, defaultdict
 import datetime
 
-from typing import (Any, Dict, Iterator, List, Optional, SupportsFloat, Tuple,
-                    TYPE_CHECKING, Union)
+from typing import Any, Dict, Iterator, List, Optional, SupportsFloat, Tuple, TYPE_CHECKING, Union
 
 import google.protobuf.json_format as json_format
 from cirq import devices, vis
@@ -62,18 +61,18 @@ class Calibration(abc.Mapping):
             the epoch.
     """
 
-    def __init__(self,
-                 calibration: v2.metrics_pb2.MetricsSnapshot = v2.metrics_pb2.
-                 MetricsSnapshot(),
-                 metrics: Optional[ALL_METRICS] = None) -> None:
+    def __init__(
+        self,
+        calibration: v2.metrics_pb2.MetricsSnapshot = v2.metrics_pb2.MetricsSnapshot(),
+        metrics: Optional[ALL_METRICS] = None,
+    ) -> None:
         self.timestamp = calibration.timestamp_ms
         if metrics is None:
             self._metric_dict = self._compute_metric_dict(calibration.metrics)
         else:
             self._metric_dict = metrics
 
-    def _compute_metric_dict(self, metrics: v2.metrics_pb2.MetricsSnapshot
-                            ) -> ALL_METRICS:
+    def _compute_metric_dict(self, metrics: v2.metrics_pb2.MetricsSnapshot) -> ALL_METRICS:
         results: ALL_METRICS = defaultdict(dict)
         for metric in metrics:
             name = metric.name
@@ -127,11 +126,12 @@ class Calibration(abc.Mapping):
             for targets, value_list in self._metric_dict[key].items():
                 current_metric = proto.metrics.add()
                 current_metric.name = key
-                current_metric.targets.extend([
-                    target
-                    if isinstance(target, str) else v2.qubit_to_proto_id(target)
-                    for target in targets
-                ])
+                current_metric.targets.extend(
+                    [
+                        target if isinstance(target, str) else v2.qubit_to_proto_id(target)
+                        for target in targets
+                    ]
+                )
                 for value in value_list:
                     current_value = current_metric.values.add()
                     if isinstance(value, float):
@@ -193,8 +193,7 @@ class Calibration(abc.Mapping):
         Raises:
            ValueError if the metric key is a tuple of strings.
         """
-        if (target and isinstance(target, tuple) and
-                isinstance(target[0], devices.GridQubit)):
+        if target and isinstance(target, tuple) and isinstance(target[0], devices.GridQubit):
             return target[0]
         raise ValueError(f'The metric target {target} was not a qubit.')
 
@@ -229,13 +228,12 @@ class Calibration(abc.Mapping):
         """
         metrics = self[key]
         assert all(len(k) == 1 for k in metrics.keys()), (
-            'Heatmaps are only supported if all the targets in a metric'
-            ' are single qubits.')
+            'Heatmaps are only supported if all the targets in a metric' ' are single qubits.'
+        )
         assert all(len(k) == 1 for k in metrics.values()), (
-            'Heatmaps are only supported if all the values in a metric'
-            ' are single metric values.')
+            'Heatmaps are only supported if all the values in a metric' ' are single metric values.'
+        )
         value_map: Dict['cirq.GridQubit', SupportsFloat] = {
-            self.key_to_qubit(target): float(value)
-            for target, (value,) in metrics.items()
+            self.key_to_qubit(target): float(value) for target, (value,) in metrics.items()
         }
         return vis.Heatmap(value_map)
