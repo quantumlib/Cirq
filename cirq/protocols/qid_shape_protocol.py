@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from inspect import isclass
+
 from typing import Any, Sequence, Tuple, TypeVar, Union
 
 from typing_extensions import Protocol
@@ -160,14 +162,20 @@ def num_qubits(
             method (or they returned NotImplemented) and also no default value
             was specified.
     """
+    # Helper to call a optional getter function when val is either a Class or an instance
+    def call_getter(opt_getter_func):
+        if opt_getter_func is None:
+            return NotImplemented
+        return opt_getter_func(None) if isclass(val) else opt_getter_func()
+
     num_getter = getattr(val, '_num_qubits_', None)
-    num_qubits = NotImplemented if num_getter is None else num_getter()
+    num_qubits = call_getter(num_getter)
     if num_qubits is not NotImplemented:
         return num_qubits
 
     # Fallback to _qid_shape_
     getter = getattr(val, '_qid_shape_', None)
-    shape = NotImplemented if getter is None else getter()
+    shape = call_getter(getter)
     if shape is not NotImplemented:
         return len(shape)
 
