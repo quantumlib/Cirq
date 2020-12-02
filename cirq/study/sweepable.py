@@ -63,7 +63,7 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
             for item in sweepable
             for sweep in to_sweeps(cast(Union[Dict[str, float], ParamResolver, Sweep], item))
         ]
-    raise TypeError(f'Unrecognized sweepable type: {type(sweepable)}.\n' f'sweepable: {sweepable}')
+    raise TypeError(f'Unrecognized sweepable type: {type(sweepable)}.\nsweepable: {sweepable}')
 
 
 def to_sweep(

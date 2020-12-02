@@ -31,7 +31,7 @@ def _homogeneous_moment_is_measurements(moment: 'cirq.Moment') -> bool:
     """
     cases = {protocols.is_measurement(gate) for gate in moment}
     if len(cases) == 2:
-        raise ValueError("Moment must be homogeneous: all measurements " "or all operations.")
+        raise ValueError("Moment must be homogeneous: all measurements or all operations.")
     return True in cases
 
 

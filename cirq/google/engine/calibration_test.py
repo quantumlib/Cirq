@@ -92,7 +92,7 @@ def test_calibration_metrics_dictionary():
 
 def test_calibration_str():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    assert str(calibration) == ("Calibration(keys=['globalMetric', 't1', " "'xeb'])")
+    assert str(calibration) == "Calibration(keys=['globalMetric', 't1', 'xeb'])"
 
 
 def test_calibration_repr():

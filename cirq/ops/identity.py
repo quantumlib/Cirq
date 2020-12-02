@@ -80,7 +80,7 @@ class IdentityGate(raw_types.Gate):
             gate.
         """
         if len(self._qid_shape) != 1:
-            raise ValueError('IdentityGate only supports on_each when it is a one qubit ' 'gate.')
+            raise ValueError('IdentityGate only supports on_each when it is a one qubit gate.')
         operations: List['cirq.Operation'] = []
         for target in targets:
             if isinstance(target, raw_types.Qid):
