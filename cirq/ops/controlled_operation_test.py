@@ -309,7 +309,8 @@ def test_controlled_operation_is_consistent(gate: cirq.GateOperation):
     cirq.testing.assert_implements_consistent_protocols(cgate)
 
 
-def test_parameterizable():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameterizable(resolve_fn):
     a = sympy.Symbol('a')
     qubits = cirq.LineQubit.range(3)
 
@@ -317,7 +318,7 @@ def test_parameterizable():
     cza = cirq.ControlledOperation(qubits[:1], cirq.ZPowGate(exponent=a)(qubits[1]))
     assert cirq.is_parameterized(cza)
     assert not cirq.is_parameterized(cz)
-    assert cirq.resolve_parameters(cza, cirq.ParamResolver({'a': 1})) == cz
+    assert resolve_fn(cza, cirq.ParamResolver({'a': 1})) == cz
 
 
 def test_bounded_effect():

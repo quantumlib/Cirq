@@ -147,8 +147,8 @@ class PhaseGradientGate(raw_types.Gate):
     def _parameter_names_(self) -> AbstractSet[str]:
         return cirq.parameter_names(self.exponent)
 
-    def _resolve_parameters_(self, resolver):
-        new_exponent = cirq.resolve_parameters(self.exponent, resolver)
+    def _resolve_parameters_(self, resolver, recursive):
+        new_exponent = cirq.resolve_parameters(self.exponent, resolver, recursive)
         if new_exponent is self.exponent:
             return self
         return PhaseGradientGate(num_qubits=self._num_qubits, exponent=new_exponent)
