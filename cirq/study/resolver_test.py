@@ -159,11 +159,75 @@ def test_formulas_in_param_dict():
     c = sympy.Symbol('c')
     e = sympy.Symbol('e')
     r = cirq.ParamResolver({a: b + 1, b: 2, b + c: 101, 'd': 2 * e})
-    assert r.value_of('a') == 3
-    assert r.value_of('b') == 2
-    assert r.value_of(b + c) == 101
+    assert r.value_of('a') == 3.0
+    assert r.value_of('b') == 2.0
+    assert r.value_of(b + c) == 101.0
     assert r.value_of('c') == c
-    assert r.value_of('d') == 2 * e
+    assert r.value_of('d') == 2.0 * e
+
+
+def test_recursive_evaluation():
+    a = sympy.Symbol('a')
+    b = sympy.Symbol('b')
+    c = sympy.Symbol('c')
+    d = sympy.Symbol('d')
+    e = sympy.Symbol('e')
+    r = cirq.ParamResolver(
+        {
+            a: a,
+            b: e + 2,
+            c: b + d,
+            d: a + 3,
+            e: 0,
+        }
+    )
+
+    # sympy.Basic.subs evaluates in alphabetical order.
+    assert c.subs(r.param_dict) == b + a + 3
+
+    assert r.value_of(a) == a
+    assert r.value_of(b) == 2.0
+    assert r.value_of(c) == a + 5.0
+    assert r.value_of(d) == a + 3.0
+    assert r.value_of(e) == 0.0
+
+
+def test_unbound_recursion_halted():
+    a = sympy.Symbol('a')
+    b = sympy.Symbol('b')
+    c = sympy.Symbol('c')
+
+    # Non-recursive resolution ignores loops
+    r = cirq.ParamResolver({a: b, b: a})
+    assert r.value_of(a, recursive=False) == b
+    assert r.value_of(r.value_of(a, recursive=False), recursive=False) == a
+
+    # Self-definition is OK (this is a terminal symbol)
+    r = cirq.ParamResolver({a: a})
+    assert r.value_of(a) == a
+
+    r = cirq.ParamResolver({a: a + 1})
+    with pytest.raises(RecursionError):
+        _ = r.value_of(a)
+
+    r = cirq.ParamResolver({a: b, b: a})
+    with pytest.raises(RecursionError):
+        _ = r.value_of(a)
+
+    r = cirq.ParamResolver({a: b, b: c, c: b})
+    with pytest.raises(RecursionError):
+        _ = r.value_of(a)
+
+    r = cirq.ParamResolver({a: b + c, b: 1, c: a})
+    with pytest.raises(RecursionError):
+        _ = r.value_of(a)
+
+
+def test_resolve_unknown_type():
+    a = sympy.Symbol('a')
+    b = sympy.Symbol('b')
+    r = cirq.ParamResolver({a: b})
+    assert r.value_of(cirq.X) == cirq.X
 
 
 def test_equals():
