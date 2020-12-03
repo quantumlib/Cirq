@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq.ionq.calibration import Calibration
+
 from cirq.ionq.ionq_exceptions import (
     IonQException,
     IonQNotFoundException,

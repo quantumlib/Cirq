@@ -45,3 +45,15 @@ def test_service_create_job():
     assert create_job_kwargs['repetitions'] == 100
     assert create_job_kwargs['target'] == 'qpu'
     assert create_job_kwargs['name'] == 'bacon'
+
+
+def test_service_get_current_calibration():
+    service = ionq.Service(remote_host='http://example.com', api_key='key')
+    mock_client = mock.MagicMock()
+    calibration_dict = {'qubits': 11}
+    mock_client.get_current_calibration.return_value = calibration_dict
+    service._client = mock_client
+
+    cal = service.get_current_calibration()
+    assert cal.num_qubits() == 11
+    mock_client.get_current_calibration.assert_called_once()
