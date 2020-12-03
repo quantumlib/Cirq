@@ -131,6 +131,8 @@ def resolve_parameters(
     Args:
         val: The object to resolve (e.g. the gate, operation, etc)
         param_resolver: the object to use for resolving all symbols
+        recursive: if True, resolves parameters recursively over the
+            resolver; otherwise performs a single resolution step.
 
     Returns:
         a gate or operation of the same type, but with all Symbols
@@ -161,4 +163,5 @@ def resolve_parameters(
 
 
 def resolve_parameters_once(val: Any, param_resolver: 'cirq.ParamResolverOrSimilarType'):
+    """Performs a single parameter resolution step using the param resolver."""
     return resolve_parameters(val, param_resolver, False)

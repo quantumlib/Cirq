@@ -126,7 +126,7 @@ def test_skips_empty_resolution(resolve_fn):
     assert resolve_fn(t, {'x': 2}) == 5
 
 
-def test_resolve_loops():
+def test_recursive_resolve():
     a, b, c = [sympy.Symbol(l) for l in 'abc']
     resolver = cirq.ParamResolver({a: b + 3, b: c + 2, c: 1})
     assert cirq.resolve_parameters_once(a, resolver) == b + 3

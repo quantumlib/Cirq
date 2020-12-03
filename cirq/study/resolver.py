@@ -85,15 +85,14 @@ class ParamResolver:
 
         Args:
             value: The parameter to try to resolve.
-            recursive: Whether to recursively evaluate formulas. If this is
-                set to True, the evaluation tree will be memoized in
-                self._deep_eval_map.
+            recursive: Whether to recursively evaluate formulas.
 
         Returns:
             The value of the parameter as resolved by this resolver.
 
         Raises:
-            RecursionError if the ParamResolver detects a loop in resolution.
+            RecursionError if the ParamResolver detects a loop in recursive
+                resolution.
         """
 
         # Input is a pass through type, no resolution needed: return early
@@ -165,15 +164,15 @@ class ParamResolver:
 
         # Recursive parameter resolution. We can safely assume that value is a
         # single symbol, since combinations are handled earlier in the method.
-        try:
+        if value in self._deep_eval_map:
             v = self._deep_eval_map[value]
             if v is not None:
                 return v
             raise RecursionError('Evaluation of {value} indirectly contains itself.')
-        except KeyError:
-            # There isn't a full evaluation for 'value' yet. Until it's ready,
-            # map value to None to identify loops in component evaluation.
-            self._deep_eval_map[value] = None
+
+        # There isn't a full evaluation for 'value' yet. Until it's ready,
+        # map value to None to identify loops in component evaluation.
+        self._deep_eval_map[value] = None
 
         v = self.value_of(value, recursive=False)
         if v == value:
