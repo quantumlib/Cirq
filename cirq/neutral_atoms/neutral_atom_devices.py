@@ -168,13 +168,13 @@ class NeutralAtomDevice(devices.Device):
         if isinstance(operation, ops.GateOperation):
             if len(operation.qubits) > self._max_parallel_c:
                 raise ValueError(
-                    "Too many qubits acted on in parallel by a " "controlled gate operation"
+                    "Too many qubits acted on in parallel by a controlled gate operation"
                 )
             if len(operation.qubits) > 1:
                 for p in operation.qubits:
                     for q in operation.qubits:
                         if self.distance(p, q) > self._control_radius:
-                            raise ValueError("Qubits {!r}, {!r} are too " "far away".format(p, q))
+                            raise ValueError("Qubits {!r}, {!r} are too far away".format(p, q))
             return
 
         # Verify that a valid number of Z gates are applied in parallel
@@ -238,7 +238,7 @@ class NeutralAtomDevice(devices.Device):
             raise ValueError("Too many qubits acted on by controlled gates")
         if controlled_qubits_lists and (num_parallel_xy or num_parallel_z):
             raise ValueError(
-                "Can't perform non-controlled operations at" " same time as controlled operations"
+                "Can't perform non-controlled operations at same time as controlled operations"
             )
         if self._are_qubit_lists_too_close(*controlled_qubits_lists):
             raise ValueError("Interacting controlled operations")
@@ -251,7 +251,7 @@ class NeutralAtomDevice(devices.Device):
 
         if has_measurement:
             if controlled_qubits_lists or num_parallel_z or num_parallel_xy:
-                raise ValueError("Measurements can't be simultaneous with other" " operations")
+                raise ValueError("Measurements can't be simultaneous with other operations")
 
     def _are_qubit_lists_too_close(self, *qubit_lists: Iterable[raw_types.Qid]) -> bool:
         if len(qubit_lists) < 2:

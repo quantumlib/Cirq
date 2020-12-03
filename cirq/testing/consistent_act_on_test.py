@@ -63,7 +63,7 @@ def test_assert_act_on_clifford_tableau_effect_matches_unitary():
     )
     with pytest.raises(
         AssertionError,
-        match='act_on clifford tableau is not consistent with ' 'final_state_vector simulation.',
+        match='act_on clifford tableau is not consistent with final_state_vector simulation.',
     ):
         cirq.testing.assert_all_implemented_act_on_effects_match_unitary(BadGate())
 

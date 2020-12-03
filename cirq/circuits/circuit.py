@@ -1713,7 +1713,7 @@ class Circuit(AbstractCircuit):
         with operations already in the moment or even each other.
         """
         if len(operations) != len(insertion_indices):
-            raise ValueError('operations and insertion_indices must have the' 'same length.')
+            raise ValueError('operations and insertion_indices must have the same length.')
         self._moments += [ops.Moment() for _ in range(1 + max(insertion_indices) - len(self))]
         moment_to_ops = defaultdict(list)  # type: Dict[int, List['cirq.Operation']]
         for op_index, moment_index in enumerate(insertion_indices):
@@ -1786,7 +1786,7 @@ class Circuit(AbstractCircuit):
                 result.append(cirq.Moment(c[k] for c in circuits if k < len(c)))
             except ValueError as ex:
                 raise ValueError(
-                    f"Overlapping operations between zipped circuits " f"at moment index {k}.\n{ex}"
+                    f"Overlapping operations between zipped circuits at moment index {k}.\n{ex}"
                 ) from ex
         return result
 
@@ -1962,10 +1962,12 @@ class Circuit(AbstractCircuit):
             if 0 <= k < len(self._moments):
                 self._moments[k] = self._moments[k].without_operations_touching(qubits)
 
-    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver') -> 'Circuit':
+    def _resolve_parameters_(
+        self, param_resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'Circuit':
         resolved_moments = []
         for moment in self:
-            resolved_operations = _resolve_operations(moment.operations, param_resolver)
+            resolved_operations = _resolve_operations(moment.operations, param_resolver, recursive)
             new_moment = ops.Moment(resolved_operations)
             resolved_moments.append(new_moment)
         resolved_circuit = Circuit(resolved_moments, device=self.device)
@@ -1997,11 +1999,11 @@ class Circuit(AbstractCircuit):
 
 
 def _resolve_operations(
-    operations: Iterable['cirq.Operation'], param_resolver: 'cirq.ParamResolver'
+    operations: Iterable['cirq.Operation'], param_resolver: 'cirq.ParamResolver', recursive: bool
 ) -> List['cirq.Operation']:
     resolved_operations = []  # type: List['cirq.Operation']
     for op in operations:
-        resolved_operations.append(protocols.resolve_parameters(op, param_resolver))
+        resolved_operations.append(protocols.resolve_parameters(op, param_resolver, recursive))
     return resolved_operations
 
 

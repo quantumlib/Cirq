@@ -71,7 +71,7 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
             if isinstance(input_register, int):
                 continue
             if set(self.target) & set(input_register):
-                raise ValueError(f'Overlapping registers: ' f'{self.target} {self.inputs}')
+                raise ValueError(f'Overlapping registers: {self.target} {self.inputs}')
 
         if self.operation.is_modular:
             r = inputs[-1]
@@ -80,9 +80,7 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
             else:
                 over = len(cast(Sequence, r)) > len(target)
             if over:
-                raise ValueError(
-                    'Target too small for modulus.\n' f'Target: {target}\n' f'Modulus: {r}'
-                )
+                raise ValueError(f'Target too small for modulus.\nTarget: {target}\nModulus: {r}')
 
     @property
     def operation(self) -> '_QuirkArithmeticCallable':

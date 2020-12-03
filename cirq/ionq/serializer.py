@@ -64,7 +64,7 @@ class Serializer:
         all_qubits = circuit.all_qubits()
         if any(not isinstance(q, line_qubit.LineQubit) for q in all_qubits):
             raise ValueError(
-                'All qubits must be cirq.LineQubits but were ' f'{set(type(q) for q in all_qubits)}'
+                f'All qubits must be cirq.LineQubits but were {set(type(q) for q in all_qubits)}'
             )
         num_qubits = cast(line_qubit.LineQubit, max(all_qubits)).x + 1
         return {'qubits': num_qubits, 'circuit': self._serialize_circuit(circuit, num_qubits)}
@@ -98,7 +98,7 @@ class Serializer:
                 serialized_op = self._dispatch[gate_mro_type](gate, targets)
                 if serialized_op:
                     return serialized_op
-        raise ValueError(f'Gate {gate} acting on {targets} cannot be ' 'serialized by IonQ API.')
+        raise ValueError(f'Gate {gate} acting on {targets} cannot be serialized by IonQ API.')
 
     def _serialize_x_pow_gate(self, gate: 'cirq.XPowGate', targets: Sequence[int]) -> dict:
         if self._near_mod_n(gate.exponent, 1, 2):

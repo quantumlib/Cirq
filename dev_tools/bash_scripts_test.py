@@ -89,14 +89,14 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
         script_file='check/pytest-changed-files',
         tmpdir_factory=tmpdir_factory,
         arg='HEAD~1',
-        setup='touch file.py\n' 'git add -A\n' 'git commit -m test --quiet --no-gpg-sign\n',
+        setup='touch file.py\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.exit_code == 0
     assert result.out == ''
     assert (
         result.err.split()
         == (
-            "Comparing against revision 'HEAD~1'.\n" "Found 0 test files associated with changes.\n"
+            "Comparing against revision 'HEAD~1'.\nFound 0 test files associated with changes.\n"
         ).split()
     )
 
@@ -104,14 +104,14 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
         script_file='check/pytest-changed-files',
         tmpdir_factory=tmpdir_factory,
         arg='HEAD~1',
-        setup='touch file_test.py\n' 'git add -A\n' 'git commit -m test --quiet --no-gpg-sign\n',
+        setup='touch file_test.py\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.exit_code == 0
     assert result.out == 'INTERCEPTED pytest file_test.py\n'
     assert (
         result.err.split()
         == (
-            "Comparing against revision 'HEAD~1'.\n" "Found 1 test files associated with changes.\n"
+            "Comparing against revision 'HEAD~1'.\nFound 1 test files associated with changes.\n"
         ).split()
     )
 
@@ -128,7 +128,7 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
     assert (
         result.err.split()
         == (
-            "Comparing against revision 'HEAD~1'.\n" "Found 1 test files associated with changes.\n"
+            "Comparing against revision 'HEAD~1'.\nFound 1 test files associated with changes.\n"
         ).split()
     )
 
@@ -146,7 +146,7 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
     assert (
         result.err.split()
         == (
-            "Comparing against revision 'HEAD'.\n" "Found 1 test files associated with changes.\n"
+            "Comparing against revision 'HEAD'.\nFound 1 test files associated with changes.\n"
         ).split()
     )
 
@@ -164,7 +164,7 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
     assert (
         result.err.split()
         == (
-            "Comparing against revision 'HEAD'.\n" "Found 1 test files associated with changes.\n"
+            "Comparing against revision 'HEAD'.\nFound 1 test files associated with changes.\n"
         ).split()
     )
 
@@ -185,7 +185,7 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
     assert (
         result.err.split()
         == (
-            "Comparing against revision 'HEAD'.\n" "Found 2 test files associated with changes.\n"
+            "Comparing against revision 'HEAD'.\nFound 2 test files associated with changes.\n"
         ).split()
     )
 
@@ -201,7 +201,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     assert (
         result.err.split()
         == (
-            "Comparing against revision 'HEAD'.\n" "Found 0 test files associated with changes.\n"
+            "Comparing against revision 'HEAD'.\nFound 0 test files associated with changes.\n"
         ).split()
     )
 
@@ -218,7 +218,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     assert (
         result.err.split()
         == (
-            "Comparing against revision 'master'.\n" "Found 0 test files associated with changes.\n"
+            "Comparing against revision 'master'.\nFound 0 test files associated with changes.\n"
         ).split()
     )
 
@@ -271,7 +271,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
         script_file='check/pytest-changed-files',
         tmpdir_factory=tmpdir_factory,
         arg='file',
-        setup='git checkout -b other --quiet\n' 'git branch -D master --quiet\n',
+        setup='git checkout -b other --quiet\ngit branch -D master --quiet\n',
     )
     assert result.exit_code == 1
     assert result.out == ''
@@ -282,7 +282,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
         script_file='check/pytest-changed-files',
         tmpdir_factory=tmpdir_factory,
         arg='file',
-        setup='touch file\n' 'git add -A\n' 'git commit -m test --quiet --no-gpg-sign\n',
+        setup='touch file\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.exit_code == 1
     assert result.out == ''
@@ -293,28 +293,28 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
         script_file='check/pytest-changed-files',
         tmpdir_factory=tmpdir_factory,
         arg='HEAD',
-        setup='touch HEAD\n' 'git add -A\n' 'git commit -m test --quiet --no-gpg-sign\n',
+        setup='touch HEAD\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.exit_code == 0
     assert result.out == ''
     assert (
         result.err.split()
         == (
-            "Comparing against revision 'HEAD'.\n" "Found 0 test files associated with changes.\n"
+            "Comparing against revision 'HEAD'.\nFound 0 test files associated with changes.\n"
         ).split()
     )
 
     result = run(
         script_file='check/pytest-changed-files',
         tmpdir_factory=tmpdir_factory,
-        setup='touch master\n' 'git add -A\n' 'git commit -m test --quiet --no-gpg-sign\n',
+        setup='touch master\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.exit_code == 0
     assert result.out == ''
     assert (
         result.err.split()
         == (
-            "Comparing against revision 'master'.\n" "Found 0 test files associated with changes.\n"
+            "Comparing against revision 'master'.\nFound 0 test files associated with changes.\n"
         ).split()
     )
 
@@ -324,7 +324,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
         tmpdir_factory=tmpdir_factory,
         setup='mkdir alt\n'
         'cd alt\n'
-        'git init --quiet\n'
+        'git init --quiet --initial-branch master\n'
         'git config --local user.name \'Me\'\n'
         'git config --local user.email \'<>\'\n'
         'git commit -m tes --quiet --allow-empty --no-gpg-sign\n'
@@ -436,7 +436,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     result = run(
         script_file='check/pytest-and-incremental-coverage',
         tmpdir_factory=tmpdir_factory,
-        setup='git checkout -b other --quiet\n' 'git branch -D master --quiet\n',
+        setup='git checkout -b other --quiet\ngit branch -D master --quiet\n',
         additional_intercepts=['check/pytest'],
     )
     assert result.exit_code == 1
@@ -448,7 +448,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
         script_file='check/pytest-and-incremental-coverage',
         tmpdir_factory=tmpdir_factory,
         arg='HEAD',
-        setup='touch HEAD\n' 'git add -A\n' 'git commit -m test --quiet --no-gpg-sign\n',
+        setup='touch HEAD\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
         additional_intercepts=['check/pytest'],
     )
     assert result.exit_code == 0
@@ -464,7 +464,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     result = run(
         script_file='check/pytest-and-incremental-coverage',
         tmpdir_factory=tmpdir_factory,
-        setup='touch master\n' 'git add -A\n' 'git commit -m test --quiet --no-gpg-sign\n',
+        setup='touch master\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
         additional_intercepts=['check/pytest'],
     )
     assert result.exit_code == 0
@@ -550,7 +550,7 @@ def test_incremental_format_branch_selection(tmpdir_factory):
     result = run(
         script_file='check/format-incremental',
         tmpdir_factory=tmpdir_factory,
-        setup='git checkout -b other --quiet\n' 'git branch -D master --quiet\n',
+        setup='git checkout -b other --quiet\ngit branch -D master --quiet\n',
     )
     assert result.exit_code == 1
     assert result.out == ''
@@ -561,7 +561,7 @@ def test_incremental_format_branch_selection(tmpdir_factory):
         script_file='check/format-incremental',
         tmpdir_factory=tmpdir_factory,
         arg='HEAD',
-        setup='touch HEAD.py\n' 'git add -A\n' 'git commit -m test --quiet --no-gpg-sign\n',
+        setup='touch HEAD.py\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.exit_code == 0
     assert "No files to format" in result.out
@@ -570,7 +570,7 @@ def test_incremental_format_branch_selection(tmpdir_factory):
     result = run(
         script_file='check/format-incremental',
         tmpdir_factory=tmpdir_factory,
-        setup='touch master.py\n' 'git add -A\n' 'git commit -m test --quiet --no-gpg-sign\n',
+        setup='touch master.py\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.exit_code == 0
     assert "No files to format" in result.out
@@ -603,7 +603,7 @@ def test_pylint_changed_files_file_selection(tmpdir_factory):
         script_file='check/pylint-changed-files',
         tmpdir_factory=tmpdir_factory,
         arg='HEAD~1',
-        setup='touch file.py\n' 'git add -A\n' 'git commit -m test --quiet --no-gpg-sign\n',
+        setup='touch file.py\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.exit_code == 0
     assert result.out == ''
@@ -686,9 +686,7 @@ def test_pylint_changed_files_file_selection(tmpdir_factory):
         'git commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.exit_code == 0
-    assert result.out == intercepted_prefix + (
-        'cirq/file.py dev_tools/file.py ' 'examples/file.py\n'
-    )
+    assert result.out == intercepted_prefix + ('cirq/file.py dev_tools/file.py examples/file.py\n')
     assert (
         result.err.split()
         == (

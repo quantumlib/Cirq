@@ -132,7 +132,7 @@ def qid_shape(
             "but it returned NotImplemented.".format(type(val))
         )
     raise TypeError(
-        "object of type '{}' has no _num_qubits_ or _qid_shape_ " "methods.".format(type(val))
+        "object of type '{}' has no _num_qubits_ or _qid_shape_ methods.".format(type(val))
     )
 
 
@@ -189,5 +189,5 @@ def num_qubits(
             "but it returned NotImplemented.".format(type(val))
         )
     raise TypeError(
-        "object of type '{}' has no _num_qubits_ or _qid_shape_ " "methods.".format(type(val))
+        "object of type '{}' has no _num_qubits_ or _qid_shape_ methods.".format(type(val))
     )

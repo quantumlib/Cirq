@@ -191,7 +191,7 @@ class Job:
             time_waited_seconds += polling_seconds
         if self.status() != 'completed':
             raise RuntimeError(
-                'Job was not completed successful. Instead had' f' status: {self.status()}'
+                f'Job was not completed successful. Instead had status: {self.status()}'
             )
         # IonQ returns results in little endian, Cirq prefers to use big endian,
         # so we convert.

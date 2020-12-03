@@ -196,7 +196,7 @@ def value_equality(
         )
 
     if distinct_child_types and manual_cls:
-        raise ValueError("'distinct_child_types' is " "incompatible with 'manual_cls")
+        raise ValueError("'distinct_child_types' is incompatible with 'manual_cls")
 
     values_getter = getattr(cls, '_value_equality_values_', None)
     if values_getter is None:

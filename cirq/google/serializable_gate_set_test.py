@@ -200,7 +200,7 @@ def test_deserialize_bad_operation_id():
         ),
     )
     with pytest.raises(
-        ValueError, match='problem in moment 1 handling an ' 'operation with the following'
+        ValueError, match='problem in moment 1 handling an operation with the following'
     ):
         MY_GATE_SET.deserialize(proto)
 

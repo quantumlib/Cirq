@@ -121,13 +121,14 @@ def test_diagram():
     )
 
 
-def test_parameterized():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameterized(resolve_fn):
     op = cirq.X.with_probability(sympy.Symbol('x'))
     assert cirq.is_parameterized(op)
     assert not cirq.has_channel(op)
     assert not cirq.has_mixture(op)
 
-    op2 = cirq.resolve_parameters(op, {'x': 0.5})
+    op2 = resolve_fn(op, {'x': 0.5})
     assert op2 == cirq.X.with_probability(0.5)
     assert not cirq.is_parameterized(op2)
     assert cirq.has_channel(op2)

@@ -364,9 +364,9 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
                 (pauli_gates.X, 1 if z_rot.flip else -1),
             ]
         # coverage: ignore
-        assert False, (
-            'Impossible condition where this gate only rotates one' ' Pauli to a different Pauli.'
-        )
+        assert (
+            False
+        ), 'Impossible condition where this gate only rotates one Pauli to a different Pauli.'
 
     def equivalent_gate_before(self, after: 'SingleQubitCliffordGate') -> 'SingleQubitCliffordGate':
         """Returns a SingleQubitCliffordGate such that the circuits
