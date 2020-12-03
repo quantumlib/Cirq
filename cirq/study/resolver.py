@@ -181,10 +181,6 @@ class ParamResolver:
             self._deep_eval_map[value] = self.value_of(v, recursive)
         return self._deep_eval_map[value]
 
-    def resolved_to_single_step(self) -> 'ParamResolver':
-        """Returns a copy of this resolver with all keys mapped to their final output."""
-        return ParamResolver()._resolve_parameters_(self, recursive=True)
-
     def _resolve_parameters_(
         self, param_resolver: 'ParamResolver', recursive: bool
     ) -> 'ParamResolver':
@@ -192,7 +188,9 @@ class ParamResolver:
         new_dict.update({k: self.value_of(k, recursive) for k in self})
         new_dict.update({k: param_resolver.value_of(v, recursive) for k, v in new_dict.items()})
         if recursive and self.param_dict:
-            return ParamResolver(new_dict).resolved_to_single_step()
+            new_resolver = ParamResolver(new_dict)
+            # Resolve down to single-step mappings.
+            return ParamResolver()._resolve_parameters_(new_resolver, recursive=True)
         return ParamResolver(new_dict)
 
     def __iter__(self) -> Iterator[Union[str, sympy.Symbol]]:
