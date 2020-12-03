@@ -118,9 +118,11 @@ def test_same_pauli_traces_clifford():
         )
         act_on(gate, tableau_args)
 
+    stabilizer_basis: List[cirq.DensePauliString] = clifford_tableau.stabilizers()
+
     # Run both algos
     pauli_traces_clifford = dfe._estimate_pauli_traces_clifford(
-        n_qubits, clifford_tableau, n_measured_operators=None
+        n_qubits, stabilizer_basis, n_measured_operators=None
     )
     pauli_traces_general = dfe._estimate_pauli_traces_general(
         qubits, circuit, n_measured_operators=None
