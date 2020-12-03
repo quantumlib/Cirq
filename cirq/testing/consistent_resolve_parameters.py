@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any
+from typing import Any, Dict
 
 import cirq
 
@@ -37,3 +37,11 @@ def assert_consistent_resolve_parameters(val: Any):
         else:
             assert not cirq.parameter_names(resolved)
             assert not cirq.parameter_symbols(resolved)
+
+        # Try single-step resolution of parameters to names that map to zero.
+        # All names should be preserved.
+        param_dict: Dict[str, Any] = {name: name + '_CONSISTENCY_TEST' for name in names}
+        param_dict.update({name + '_CONSISTENCY_TEST': 0 for name in names})
+        resolver = cirq.ParamResolver(param_dict)
+        resolved = cirq.resolve_parameters_once(val, resolver)
+        assert cirq.parameter_names(resolved) == set(name + '_CONSISTENCY_TEST' for name in names)

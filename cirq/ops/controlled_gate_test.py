@@ -389,13 +389,14 @@ class UnphaseableGate(cirq.SingleQubitGate):
     pass
 
 
-def test_parameterizable():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameterizable(resolve_fn):
     a = sympy.Symbol('a')
     cy = cirq.ControlledGate(cirq.Y)
     cya = cirq.ControlledGate(cirq.YPowGate(exponent=a))
     assert cirq.is_parameterized(cya)
     assert not cirq.is_parameterized(cy)
-    assert cirq.resolve_parameters(cya, cirq.ParamResolver({'a': 1})) == cy
+    assert resolve_fn(cya, cirq.ParamResolver({'a': 1})) == cy
 
 
 def test_circuit_diagram_info():
