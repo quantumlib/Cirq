@@ -21,5 +21,23 @@
         ]
       ]
     ]
+  ],
+  "projection_matrices": [
+    [
+      {
+        "cirq_type": "NamedQubit",
+        "name": "q1"
+      },
+    [
+      [
+        1.0,
+        2.0
+      ],
+      [
+        3.0,
+        4.0
+      ]
+      ]
+    ]
   ]
 }
