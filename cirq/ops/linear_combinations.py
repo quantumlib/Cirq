@@ -152,10 +152,13 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         return {name for gate in self.keys() for name in protocols.parameter_names(gate)}
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolverOrSimilarType'
+        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
     ) -> 'LinearCombinationOfGates':
         return self.__class__(
-            {protocols.resolve_parameters(gate, resolver): coeff for gate, coeff in self.items()}
+            {
+                protocols.resolve_parameters(gate, resolver, recursive): coeff
+                for gate, coeff in self.items()
+            }
         )
 
     def matrix(self) -> np.ndarray:
@@ -264,10 +267,13 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         return {name for op in self.keys() for name in protocols.parameter_names(op)}
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolverOrSimilarType'
+        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
     ) -> 'LinearCombinationOfOperations':
         return self.__class__(
-            {protocols.resolve_parameters(op, resolver): coeff for op, coeff in self.items()}
+            {
+                protocols.resolve_parameters(op, resolver, recursive): coeff
+                for op, coeff in self.items()
+            }
         )
 
     def matrix(self) -> np.ndarray:
