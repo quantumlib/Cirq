@@ -108,15 +108,16 @@ def test_fsim_circuit():
     )
 
 
-def test_fsim_resolve():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_fsim_resolve(resolve_fn):
     f = cirq.FSimGate(sympy.Symbol('a'), sympy.Symbol('b'))
     assert cirq.is_parameterized(f)
 
-    f = cirq.resolve_parameters(f, {'a': 2})
+    f = resolve_fn(f, {'a': 2})
     assert f == cirq.FSimGate(2, sympy.Symbol('b'))
     assert cirq.is_parameterized(f)
 
-    f = cirq.resolve_parameters(f, {'b': 1})
+    f = resolve_fn(f, {'b': 1})
     assert f == cirq.FSimGate(2, 1)
     assert not cirq.is_parameterized(f)
 
@@ -523,7 +524,8 @@ def test_phased_fsim_circuit():
     )
 
 
-def test_phased_fsim_resolve():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_phased_fsim_resolve(resolve_fn):
     f = cirq.PhasedFSimGate(
         sympy.Symbol('a'),
         sympy.Symbol('b'),
@@ -533,25 +535,25 @@ def test_phased_fsim_resolve():
     )
     assert cirq.is_parameterized(f)
 
-    f = cirq.resolve_parameters(f, {'a': 1})
+    f = resolve_fn(f, {'a': 1})
     assert f == cirq.PhasedFSimGate(
         1, sympy.Symbol('b'), sympy.Symbol('c'), sympy.Symbol('d'), sympy.Symbol('e')
     )
     assert cirq.is_parameterized(f)
 
-    f = cirq.resolve_parameters(f, {'b': 2})
+    f = resolve_fn(f, {'b': 2})
     assert f == cirq.PhasedFSimGate(1, 2, sympy.Symbol('c'), sympy.Symbol('d'), sympy.Symbol('e'))
     assert cirq.is_parameterized(f)
 
-    f = cirq.resolve_parameters(f, {'c': 3})
+    f = resolve_fn(f, {'c': 3})
     assert f == cirq.PhasedFSimGate(1, 2, 3, sympy.Symbol('d'), sympy.Symbol('e'))
     assert cirq.is_parameterized(f)
 
-    f = cirq.resolve_parameters(f, {'d': 4})
+    f = resolve_fn(f, {'d': 4})
     assert f == cirq.PhasedFSimGate(1, 2, 3, 4, sympy.Symbol('e'))
     assert cirq.is_parameterized(f)
 
-    f = cirq.resolve_parameters(f, {'e': 5})
+    f = resolve_fn(f, {'e': 5})
     assert f == cirq.PhasedFSimGate(1, 2, 3, 4, 5)
     assert not cirq.is_parameterized(f)
 

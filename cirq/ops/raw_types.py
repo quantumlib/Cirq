@@ -632,9 +632,11 @@ class TaggedOperation(Operation):
         tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
         return protocols.parameter_names(self.sub_operation) | tag_params
 
-    def _resolve_parameters_(self, resolver):
-        resolved_op = protocols.resolve_parameters(self.sub_operation, resolver)
-        resolved_tags = (protocols.resolve_parameters(tag, resolver) for tag in self._tags)
+    def _resolve_parameters_(self, resolver, recursive):
+        resolved_op = protocols.resolve_parameters(self.sub_operation, resolver, recursive)
+        resolved_tags = (
+            protocols.resolve_parameters(tag, resolver, recursive) for tag in self._tags
+        )
         return TaggedOperation(resolved_op, *resolved_tags)
 
     def _circuit_diagram_info_(
