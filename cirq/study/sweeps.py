@@ -11,8 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import (Any, cast, Dict, Iterable, Iterator, List, overload,
-                    Sequence, TYPE_CHECKING, Tuple, Union)
+from typing import (
+    Any,
+    cast,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    overload,
+    Sequence,
+    TYPE_CHECKING,
+    Tuple,
+    Union,
+)
 
 import abc
 import collections
@@ -26,8 +37,7 @@ if TYPE_CHECKING:
     import cirq
 
 Params = Iterable[Tuple['cirq.TParamKey', 'cirq.TParamVal']]
-ProductOrZipSweepLike = Dict[
-    'cirq.TParamKey', Union['cirq.TParamVal', Sequence['cirq.TParamVal']]]
+ProductOrZipSweepLike = Dict['cirq.TParamKey', Union['cirq.TParamVal', Sequence['cirq.TParamVal']]]
 
 
 def _check_duplicate_keys(sweeps):
@@ -125,8 +135,7 @@ class Sweep(metaclass=abc.ABCMeta):
                 val += n
             return next(itertools.islice(self, val, val + 1))
         if not isinstance(val, slice):
-            raise TypeError(
-                f'Sweep indices must be either int or slices, not {type(val)}')
+            raise TypeError(f'Sweep indices must be either int or slices, not {type(val)}')
 
         inds_map: Dict[int, int] = {
             sweep_i: slice_i for slice_i, sweep_i in enumerate(range(n)[val])
@@ -154,14 +163,12 @@ class Sweep(metaclass=abc.ABCMeta):
             beginning_len = max_show
         end_len = max_show - beginning_len
         lines = ['Sweep:']
-        lines.extend(
-            str(dict(r.param_dict))
-            for r in itertools.islice(self, beginning_len))
+        lines.extend(str(dict(r.param_dict)) for r in itertools.islice(self, beginning_len))
         if end_len > 0:
             lines.append('...')
             lines.extend(
-                str(dict(r.param_dict))
-                for r in itertools.islice(self, length - end_len, length))
+                str(dict(r.param_dict)) for r in itertools.islice(self, length - end_len, length)
+            )
         return '\n'.join(lines)
 
 
@@ -298,8 +305,7 @@ class Zip(Sweep):
     def __str__(self) -> str:
         if not self.sweeps:
             return 'Zip()'
-        return ' + '.join(
-            str(s) if isinstance(s, Product) else repr(s) for s in self.sweeps)
+        return ' + '.join(str(s) if isinstance(s, Product) else repr(s) for s in self.sweeps)
 
 
 class SingleSweep(Sweep):
@@ -338,8 +344,7 @@ class SingleSweep(Sweep):
 class Points(SingleSweep):
     """A simple sweep with explicitly supplied values."""
 
-    def __init__(self, key: 'cirq.TParamKey',
-                 points: Sequence['cirq.TParamVal']) -> None:
+    def __init__(self, key: 'cirq.TParamKey', points: Sequence['cirq.TParamVal']) -> None:
         super(Points, self).__init__(key)
         self.points = points
 
@@ -359,8 +364,7 @@ class Points(SingleSweep):
 class Linspace(SingleSweep):
     """A simple sweep over linearly-spaced values."""
 
-    def __init__(self, key: 'cirq.TParamKey', start: float, stop: float,
-                 length: int) -> None:
+    def __init__(self, key: 'cirq.TParamKey', start: float, stop: float, length: int) -> None:
         """Creates a linear-spaced sweep for a given key.
 
         For the given args, assigns to the list of values
@@ -386,15 +390,16 @@ class Linspace(SingleSweep):
                 yield self.start * (1 - p) + self.stop * p
 
     def __repr__(self) -> str:
-        return (f'cirq.Linspace({self.key!r}, start={self.start!r}, '
-                f'stop={self.stop!r}, length={self.length!r})')
+        return (
+            f'cirq.Linspace({self.key!r}, start={self.start!r}, '
+            f'stop={self.stop!r}, length={self.length!r})'
+        )
 
 
 class ListSweep(Sweep):
     """A wrapper around a list of `ParamResolver`s."""
 
-    def __init__(self,
-                 resolver_list: Iterable[resolver.ParamResolverOrSimilarType]):
+    def __init__(self, resolver_list: Iterable[resolver.ParamResolverOrSimilarType]):
         """Creates a `Sweep` over a list of `ParamResolver`s.
 
         Args:
@@ -452,8 +457,9 @@ def dict_to_product_sweep(factor_dict: ProductOrZipSweepLike) -> Product:
     Returns:
         Cartesian product of the sweeps.
     """
-    return Product(*(Points(k, v if isinstance(v, Sequence) else [v])
-                     for k, v in factor_dict.items()))
+    return Product(
+        *(Points(k, v if isinstance(v, Sequence) else [v]) for k, v in factor_dict.items())
+    )
 
 
 def dict_to_zip_sweep(factor_dict: ProductOrZipSweepLike) -> Zip:
@@ -469,5 +475,4 @@ def dict_to_zip_sweep(factor_dict: ProductOrZipSweepLike) -> Zip:
     Returns:
         Zip product of the sweeps.
     """
-    return Zip(*(Points(k, v if isinstance(v, Sequence) else [v])
-                 for k, v in factor_dict.items()))
+    return Zip(*(Points(k, v if isinstance(v, Sequence) else [v]) for k, v in factor_dict.items()))

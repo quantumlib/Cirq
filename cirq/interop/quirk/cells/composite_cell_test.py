@@ -82,7 +82,8 @@ def test_custom_circuit_gate():
             cirq.H(a),
             cirq.X(b).controlled_by(a),
             cirq.Y(a),
-        ))
+        ),
+    )
 
     # With name.
     assert_url_to_circuit_returns(
@@ -93,34 +94,29 @@ def test_custom_circuit_gate():
             cirq.H(a),
             cirq.X(b).controlled_by(a),
             cirq.Y(a),
-        ))
+        ),
+    )
 
     # With internal input.
     assert_url_to_circuit_returns(
-        '{"cols":[["~a5ls"]],"gates":[{"id":"~a5ls",'
-        '"circuit":{"cols":[["inputA1","+=A1"]]}}]}',
-        cirq.Circuit(
-            cirq.interop.quirk.QuirkArithmeticOperation('+=A1',
-                                                        target=[b],
-                                                        inputs=[[a]])))
+        '{"cols":[["~a5ls"]],"gates":[{"id":"~a5ls","circuit":{"cols":[["inputA1","+=A1"]]}}]}',
+        cirq.Circuit(cirq.interop.quirk.QuirkArithmeticOperation('+=A1', target=[b], inputs=[[a]])),
+    )
 
     # With external input.
     assert_url_to_circuit_returns(
-        '{"cols":[["inputA1","~r79k"]],"gates":[{"id":"~r79k",'
-        '"circuit":{"cols":[["+=A1"]]}}]}',
-        cirq.Circuit(
-            cirq.interop.quirk.QuirkArithmeticOperation('+=A1',
-                                                        target=[b],
-                                                        inputs=[[a]])))
+        '{"cols":[["inputA1","~r79k"]],"gates":[{"id":"~r79k","circuit":{"cols":[["+=A1"]]}}]}',
+        cirq.Circuit(cirq.interop.quirk.QuirkArithmeticOperation('+=A1', target=[b], inputs=[[a]])),
+    )
 
     # With external control.
     assert_url_to_circuit_returns(
         '{"cols":[["•",1,"~r79k"]],"gates":[{"id":"~r79k",'
         '"circuit":{"cols":[["X"],["Y","Z"]]}}]}',
         cirq.Circuit(
-            cirq.X(c).controlled_by(a),
-            cirq.Y(c).controlled_by(a),
-            cirq.Z(d).controlled_by(a)))
+            cirq.X(c).controlled_by(a), cirq.Y(c).controlled_by(a), cirq.Z(d).controlled_by(a)
+        ),
+    )
 
     # With external and internal control.
     assert_url_to_circuit_returns(
@@ -128,49 +124,39 @@ def test_custom_circuit_gate():
         '"circuit":{"cols":[["X"],["⊕","Z"]]}}]}',
         cirq.Circuit(
             cirq.X(c).controlled_by(a),
-            cirq.Y(c)**0.5,
+            cirq.Y(c) ** 0.5,
             cirq.Z(d).controlled_by(a, c),
-            cirq.Y(c)**-0.5))
+            cirq.Y(c) ** -0.5,
+        ),
+    )
 
     # Broadcast input.
     assert_url_to_circuit_returns(
         '{"cols":[["~q1fh",1,1,"inputA2"]],"gates":[{"id":"~q1fh",'
         '"circuit":{"cols":[["+=A2"],[1,"+=A2"],[1,"+=A2"]]}}]}',
         cirq.Circuit(
-            cirq.interop.quirk.QuirkArithmeticOperation('+=A2',
-                                                        target=[a, b],
-                                                        inputs=[[d, e]]),
-            cirq.interop.quirk.QuirkArithmeticOperation('+=A2',
-                                                        target=[b, c],
-                                                        inputs=[[d, e]]),
-            cirq.interop.quirk.QuirkArithmeticOperation('+=A2',
-                                                        target=[b, c],
-                                                        inputs=[[d, e]]),
-        ))
+            cirq.interop.quirk.QuirkArithmeticOperation('+=A2', target=[a, b], inputs=[[d, e]]),
+            cirq.interop.quirk.QuirkArithmeticOperation('+=A2', target=[b, c], inputs=[[d, e]]),
+            cirq.interop.quirk.QuirkArithmeticOperation('+=A2', target=[b, c], inputs=[[d, e]]),
+        ),
+    )
 
     # Nested custom gate.
     assert_url_to_circuit_returns(
         '{"cols":[["~gtnd"]],"gates":[{"id":"~ct36",'
         '"circuit":{"cols":[["X"],["X"]]}},{"id":"~gtnd",'
         '"circuit":{"cols":[["~ct36"],["~ct36"]]}}]}',
-        cirq.Circuit(cirq.X(a)) * 4)
+        cirq.Circuit(cirq.X(a)) * 4,
+    )
 
     # Nested custom gate wrong order.
     with pytest.raises(ValueError, match='Unrecognized column entry'):
-        _ = quirk_json_to_circuit({
-            "cols": [["~gtnd"]],
-            "gates": [
-                {
-                    "id": "~gtnd",
-                    "circuit": {
-                        "cols": [["~ct36"], ["~ct36"]]
-                    }
-                },
-                {
-                    "id": "~ct36",
-                    "circuit": {
-                        "cols": [["X"], ["X"]]
-                    }
-                },
-            ]
-        })
+        _ = quirk_json_to_circuit(
+            {
+                "cols": [["~gtnd"]],
+                "gates": [
+                    {"id": "~gtnd", "circuit": {"cols": [["~ct36"], ["~ct36"]]}},
+                    {"id": "~ct36", "circuit": {"cols": [["X"], ["X"]]}},
+                ],
+            }
+        )

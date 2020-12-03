@@ -12,14 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sympy
+import pytest, sympy
 
 import cirq
 from cirq.study import ParamResolver
 
 
-def test_resolve_parameters():
-
+@pytest.mark.parametrize(
+    'resolve_fn',
+    [
+        cirq.resolve_parameters,
+        cirq.resolve_parameters_once,
+    ],
+)
+def test_resolve_parameters(resolve_fn):
     class NoMethod:
         pass
 
@@ -27,7 +33,7 @@ def test_resolve_parameters():
         def _is_parameterized_(self):
             return NotImplemented
 
-        def _resolve_parameters_(self, resolver):
+        def _resolve_parameters_(self, resolver, recursive):
             return NotImplemented
 
     class SimpleParameterSwitch:
@@ -37,8 +43,8 @@ def test_resolve_parameters():
         def _is_parameterized_(self) -> bool:
             return self.parameter == 0
 
-        def _resolve_parameters_(self, resolver: ParamResolver):
-            self.parameter = resolver.value_of(self.parameter)
+        def _resolve_parameters_(self, resolver: ParamResolver, recursive: bool):
+            self.parameter = resolver.value_of(self.parameter, recursive)
             return self
 
     assert not cirq.is_parameterized(NoMethod())
@@ -50,28 +56,32 @@ def test_resolve_parameters():
     d = {'a': 0}
     r = cirq.ParamResolver(d)
     no = NoMethod()
-    assert cirq.resolve_parameters(no, r) == no
-    assert cirq.resolve_parameters(no, d) == no
-    assert cirq.resolve_parameters(ni, r) == ni
-    assert cirq.resolve_parameters(SimpleParameterSwitch(0), r).parameter == 0
-    assert cirq.resolve_parameters(SimpleParameterSwitch('a'), r).parameter == 0
-    assert cirq.resolve_parameters(SimpleParameterSwitch('a'), d).parameter == 0
-    assert cirq.resolve_parameters(sympy.Symbol('a'), r) == 0
+    assert resolve_fn(no, r) == no
+    assert resolve_fn(no, d) == no
+    assert resolve_fn(ni, r) == ni
+    assert resolve_fn(SimpleParameterSwitch(0), r).parameter == 0
+    assert resolve_fn(SimpleParameterSwitch('a'), r).parameter == 0
+    assert resolve_fn(SimpleParameterSwitch('a'), d).parameter == 0
+    assert resolve_fn(sympy.Symbol('a'), r) == 0
 
     a, b, c = tuple(sympy.Symbol(l) for l in 'abc')
     x, y, z = 0, 4, 7
     resolver = {a: x, b: y, c: z}
 
-    assert cirq.resolve_parameters((a, b, c), resolver) == (x, y, z)
-    assert cirq.resolve_parameters([a, b, c], resolver) == [x, y, z]
-    assert cirq.resolve_parameters((x, y, z), resolver) == (x, y, z)
-    assert cirq.resolve_parameters([x, y, z], resolver) == [x, y, z]
-    assert cirq.resolve_parameters((), resolver) == ()
-    assert cirq.resolve_parameters([], resolver) == []
-    assert cirq.resolve_parameters(1, resolver) == 1
-    assert cirq.resolve_parameters(1.1, resolver) == 1.1
-    assert cirq.resolve_parameters(1j, resolver) == 1j
+    assert resolve_fn((a, b, c), resolver) == (x, y, z)
+    assert resolve_fn([a, b, c], resolver) == [x, y, z]
+    assert resolve_fn((x, y, z), resolver) == (x, y, z)
+    assert resolve_fn([x, y, z], resolver) == [x, y, z]
+    assert resolve_fn((), resolver) == ()
+    assert resolve_fn([], resolver) == []
+    assert resolve_fn(1, resolver) == 1
+    assert resolve_fn(1.1, resolver) == 1.1
+    assert resolve_fn(1j, resolver) == 1j
 
+
+def test_is_parameterized():
+    a, b = tuple(sympy.Symbol(l) for l in 'ab')
+    x, y = 0, 4
     assert not cirq.is_parameterized((x, y))
     assert not cirq.is_parameterized([x, y])
     assert cirq.is_parameterized([a, b])
@@ -84,6 +94,10 @@ def test_resolve_parameters():
     assert not cirq.is_parameterized(1.1)
     assert not cirq.is_parameterized(1j)
 
+
+def test_parameter_names():
+    a, b, c = tuple(sympy.Symbol(l) for l in 'abc')
+    x, y, z = 0, 4, 7
     assert cirq.parameter_names((a, b, c)) == {'a', 'b', 'c'}
     assert cirq.parameter_names([a, b, c]) == {'a', 'b', 'c'}
     assert cirq.parameter_names((x, y, z)) == set()
@@ -95,11 +109,37 @@ def test_resolve_parameters():
     assert cirq.parameter_names(1j) == set()
 
 
-def test_skips_empty_resolution():
+@pytest.mark.parametrize(
+    'resolve_fn',
+    [
+        cirq.resolve_parameters,
+        cirq.resolve_parameters_once,
+    ],
+)
+def test_skips_empty_resolution(resolve_fn):
     class Tester:
-        def _resolve_parameters_(self, param_resolver):
+        def _resolve_parameters_(self, param_resolver, recursive):
             return 5
 
     t = Tester()
-    assert cirq.resolve_parameters(t, {}) is t
-    assert cirq.resolve_parameters(t, {'x': 2}) == 5
+    assert resolve_fn(t, {}) is t
+    assert resolve_fn(t, {'x': 2}) == 5
+
+
+def test_recursive_resolve():
+    a, b, c = [sympy.Symbol(l) for l in 'abc']
+    resolver = cirq.ParamResolver({a: b + 3, b: c + 2, c: 1})
+    assert cirq.resolve_parameters_once(a, resolver) == b + 3
+    assert cirq.resolve_parameters(a, resolver) == 6
+    assert cirq.resolve_parameters_once(b, resolver) == c + 2
+    assert cirq.resolve_parameters(b, resolver) == 3
+    assert cirq.resolve_parameters_once(c, resolver) == 1
+    assert cirq.resolve_parameters(c, resolver) == 1
+
+    assert cirq.resolve_parameters_once([a, b], {a: b, b: c}) == [b, c]
+    assert cirq.resolve_parameters_once(a, {}) == a
+
+    resolver = cirq.ParamResolver({a: b, b: a})
+    assert cirq.resolve_parameters_once(a, resolver) == b
+    with pytest.raises(RecursionError):
+        _ = cirq.resolve_parameters(a, resolver)

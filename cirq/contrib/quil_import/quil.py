@@ -152,13 +152,15 @@ def pswap(phi: float) -> MatrixGate:
     Returns:
         A MatrixGate equivalent to a PSWAP gate of given angle.
     """
-    pswap_matrix = np.array([
-        [1, 0, 0, 0],
-        [0, 0, np.exp(1j * phi), 0],
-        [0, np.exp(1j * phi), 0, 0],
-        [0, 0, 0, 1],
-    ],
-                            dtype=complex)
+    pswap_matrix = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, 0, np.exp(1j * phi), 0],
+            [0, np.exp(1j * phi), 0, 0],
+            [0, 0, 0, 1],
+        ],
+        dtype=complex,
+    )
     return MatrixGate(pswap_matrix)
 
 
@@ -235,7 +237,8 @@ def circuit_from_quil(quil: str) -> Circuit:
         if isinstance(inst, DefGate):
             if inst.parameters:
                 raise UnsupportedQuilInstruction(
-                    "Parameterized DEFGATEs are currently unsupported.")
+                    "Parameterized DEFGATEs are currently unsupported."
+                )
             defined_gates[inst.name] = MatrixGate(inst.matrix)
 
         # Pass when encountering a DECLARE.
@@ -248,8 +251,7 @@ def circuit_from_quil(quil: str) -> Circuit:
             quil_gate_params = inst.params
             line_qubits = list(LineQubit(q.index) for q in inst.qubits)
             if quil_gate_name not in defined_gates:
-                raise UndefinedQuilGate(
-                    f"Quil gate {quil_gate_name} not supported in Cirq.")
+                raise UndefinedQuilGate(f"Quil gate {quil_gate_name} not supported in Cirq.")
             cirq_gate_fn = defined_gates[quil_gate_name]
             if quil_gate_params:
                 circuit += cirq_gate_fn(*quil_gate_params)(*line_qubits)
@@ -273,7 +275,7 @@ def circuit_from_quil(quil: str) -> Circuit:
         # Raise a general error when encountering an unconsidered type.
         else:
             raise UnsupportedQuilInstruction(
-                f"Quil instruction {inst} of type {type(inst)}"
-                " not currently supported in Cirq.")
+                f"Quil instruction {inst} of type {type(inst)} not currently supported in Cirq."
+            )
 
     return circuit

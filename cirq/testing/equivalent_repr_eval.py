@@ -15,14 +15,13 @@
 from typing import Any, Dict, Optional
 
 
-def assert_equivalent_repr(value: Any,
-                           *,
-                           setup_code: str = ('import cirq\n'
-                                              'import numpy as np\n'
-                                              'import sympy\n'
-                                              'import pandas as pd\n'),
-                           global_vals: Optional[Dict[str, Any]] = None,
-                           local_vals: Optional[Dict[str, Any]] = None) -> None:
+def assert_equivalent_repr(
+    value: Any,
+    *,
+    setup_code: str = 'import cirq\nimport numpy as np\nimport sympy\nimport pandas as pd\n',
+    global_vals: Optional[Dict[str, Any]] = None,
+    local_vals: Optional[Dict[str, Any]] = None,
+) -> None:
     """Checks that eval(repr(v)) == v.
 
     Args:
@@ -53,7 +52,8 @@ def assert_equivalent_repr(value: Any,
             'setup_code={}\n'
             'type(value): {}\n'
             'value={!r}\n'
-            'error={!r}'.format(setup_code, type(value), value, ex))
+            'error={!r}'.format(setup_code, type(value), value, ex)
+        )
 
     assert eval_repr_value == value, (
         "The repr of a value of type {} didn't evaluate to something equal "
@@ -69,14 +69,16 @@ def assert_equivalent_repr(value: Any,
         'type(eval(repr(value))): {!r}\n'
         '\n'
         'setup_code:\n{}\n'
-    ).format(type(value),
-             value,
-             repr(value),
-             eval_repr_value,
-             repr(eval_repr_value),
-             type(value),
-             type(eval_repr_value),
-             '    ' + setup_code.replace('\n', '\n    '))
+    ).format(
+        type(value),
+        value,
+        repr(value),
+        eval_repr_value,
+        repr(eval_repr_value),
+        type(value),
+        type(eval_repr_value),
+        '    ' + setup_code.replace('\n', '\n    '),
+    )
 
     try:
         a = eval('{!r}.__class__'.format(value), global_vals, local_vals)
@@ -84,11 +86,12 @@ def assert_equivalent_repr(value: Any,
         raise AssertionError(
             "The repr of a value of type {} wasn't 'dottable'.\n"
             "{!r}.XXX must be equivalent to ({!r}).XXX, "
-            "but it raised an error instead.".format(
-                type(value), value, value))
+            "but it raised an error instead.".format(type(value), value, value)
+        )
 
     b = eval('({!r}).__class__'.format(value), global_vals, local_vals)
     assert a == b, (
         "The repr of a value of type {} wasn't 'dottable'.\n"
         "{!r}.XXX must be equivalent to ({!r}).XXX, "
-        "but it wasn't.".format(type(value), value, value))
+        "but it wasn't.".format(type(value), value, value)
+    )

@@ -42,8 +42,7 @@ def has_stabilizer_effect(val: Any) -> bool:
     return False
 
 
-def _strat_has_stabilizer_effect_from_has_stabilizer_effect(val: Any
-                                                           ) -> Optional[bool]:
+def _strat_has_stabilizer_effect_from_has_stabilizer_effect(val: Any) -> Optional[bool]:
     """
     Attempts to infer whether val has stabilizer effect via its
     _has_stabilizer_effect_ method.

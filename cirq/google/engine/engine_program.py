@@ -13,8 +13,7 @@
 # limitations under the License.
 
 import datetime
-from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, \
-    Union
+from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 
 from cirq import study
 from cirq.google.engine.client import quantum
@@ -40,12 +39,14 @@ class EngineProgram:
         program_id: Unique ID of the program within the parent project.
     """
 
-    def __init__(self,
-                 project_id: str,
-                 program_id: str,
-                 context: 'engine_base.EngineContext',
-                 _program: Optional[qtypes.QuantumProgram] = None,
-                 result_type: ResultType = ResultType.Program) -> None:
+    def __init__(
+        self,
+        project_id: str,
+        program_id: str,
+        context: 'engine_base.EngineContext',
+        _program: Optional[qtypes.QuantumProgram] = None,
+        result_type: ResultType = ResultType.Program,
+    ) -> None:
         """A job submitted to the engine.
 
         Args:
@@ -53,7 +54,7 @@ class EngineProgram:
             program_id: Unique ID of the program within the parent project.
             context: Engine configuration and context to use.
             _program: The optional current program state.
-            result_type: Whether the program was created using a BatchProgram.
+            result_type: The type of program that was created.
         """
         self.project_id = project_id
         self.program_id = program_id
@@ -62,13 +63,13 @@ class EngineProgram:
         self.result_type = result_type
 
     def run_sweep(
-            self,
-            job_id: Optional[str] = None,
-            params: study.Sweepable = None,
-            repetitions: int = 1,
-            processor_ids: Sequence[str] = ('xmonsim',),
-            description: Optional[str] = None,
-            labels: Optional[Dict[str, str]] = None,
+        self,
+        job_id: Optional[str] = None,
+        params: study.Sweepable = None,
+        repetitions: int = 1,
+        processor_ids: Sequence[str] = ('xmonsim',),
+        description: Optional[str] = None,
+        labels: Optional[Dict[str, str]] = None,
     ) -> engine_job.EngineJob:
         """Runs the program on the QuantumEngine.
 
@@ -93,6 +94,7 @@ class EngineProgram:
             TrialResults, one for each parameter sweep.
         """
         import cirq.google.engine.engine as engine_base
+
         if self.result_type != ResultType.Program:
             raise ValueError('Please use run_batch() for batch mode.')
         if not job_id:
@@ -107,18 +109,20 @@ class EngineProgram:
             processor_ids=processor_ids,
             run_context=run_context,
             description=description,
-            labels=labels)
-        return engine_job.EngineJob(self.project_id, self.program_id,
-                                    created_job_id, self.context, job)
+            labels=labels,
+        )
+        return engine_job.EngineJob(
+            self.project_id, self.program_id, created_job_id, self.context, job
+        )
 
     def run_batch(
-            self,
-            job_id: Optional[str] = None,
-            params_list: List[study.Sweepable] = None,
-            repetitions: int = 1,
-            processor_ids: Sequence[str] = (),
-            description: Optional[str] = None,
-            labels: Optional[Dict[str, str]] = None,
+        self,
+        job_id: Optional[str] = None,
+        params_list: List[study.Sweepable] = None,
+        repetitions: int = 1,
+        processor_ids: Sequence[str] = (),
+        description: Optional[str] = None,
+        labels: Optional[Dict[str, str]] = None,
     ) -> engine_job.EngineJob:
         """Runs a batch of circuits on the QuantumEngine.
 
@@ -135,7 +139,9 @@ class EngineProgram:
                 where # is alphanumeric and YYMMDD is the current year, month,
                 and day.
             params_list: Parameter sweeps to run with the program.  There must
-                be one Sweepable object for each circuit in the batch.
+                be one Sweepable object for each circuit in the batch. If this
+                is None, it is assumed that the circuits are not parameterized
+                and do not require sweeps.
             repetitions: The number of circuit repetitions to run.
             processor_ids: The engine processors that should be candidates
                 to run the program. Only one of these will be scheduled for
@@ -149,16 +155,21 @@ class EngineProgram:
             first, then the TrialResults for the second, etc. The TrialResults
             for a circuit are listed in the order imposed by the associated
             parameter sweep.
+
+        Raises:
+            ValueError: if the program was not a batch program or no processors
+                were supplied.
         """
         import cirq.google.engine.engine as engine_base
+
         if self.result_type != ResultType.Batch:
             raise ValueError('Can only use run_batch() in batch mode.')
+        if params_list is None:
+            params_list = [None] * self.batch_size()
         if not job_id:
             job_id = engine_base._make_random_id('job-')
         if not processor_ids:
             raise ValueError('No processors specified')
-        if not params_list:
-            raise ValueError('No parameter list specified')
 
         # Pack the run contexts into batches
         batch = v2.batch_pb2.BatchRunContext()
@@ -179,20 +190,23 @@ class EngineProgram:
             processor_ids=processor_ids,
             run_context=batch_context,
             description=description,
-            labels=labels)
-        return engine_job.EngineJob(self.project_id,
-                                    self.program_id,
-                                    created_job_id,
-                                    self.context,
-                                    job,
-                                    result_type=ResultType.Batch)
+            labels=labels,
+        )
+        return engine_job.EngineJob(
+            self.project_id,
+            self.program_id,
+            created_job_id,
+            self.context,
+            job,
+            result_type=ResultType.Batch,
+        )
 
     def run_calibration(
-            self,
-            job_id: Optional[str] = None,
-            processor_ids: Sequence[str] = (),
-            description: Optional[str] = None,
-            labels: Optional[Dict[str, str]] = None,
+        self,
+        job_id: Optional[str] = None,
+        processor_ids: Sequence[str] = (),
+        description: Optional[str] = None,
+        labels: Optional[Dict[str, str]] = None,
     ) -> engine_job.EngineJob:
         """Runs layers of calibration routines on the Quantum Engine.
 
@@ -217,6 +231,7 @@ class EngineProgram:
             An EngineJob.  Results can be accessed with calibration_results().
         """
         import cirq.google.engine.engine as engine_base
+
         if not job_id:
             job_id = engine_base._make_random_id('calibration-')
         if not processor_ids:
@@ -238,22 +253,25 @@ class EngineProgram:
             processor_ids=processor_ids,
             run_context=any_context,
             description=description,
-            labels=labels)
-        return engine_job.EngineJob(self.project_id,
-                                    self.program_id,
-                                    created_job_id,
-                                    self.context,
-                                    job,
-                                    result_type=ResultType.Batch)
+            labels=labels,
+        )
+        return engine_job.EngineJob(
+            self.project_id,
+            self.program_id,
+            created_job_id,
+            self.context,
+            job,
+            result_type=ResultType.Batch,
+        )
 
     def run(
-            self,
-            job_id: Optional[str] = None,
-            param_resolver: study.ParamResolver = study.ParamResolver({}),
-            repetitions: int = 1,
-            processor_ids: Sequence[str] = ('xmonsim',),
-            description: Optional[str] = None,
-            labels: Optional[Dict[str, str]] = None,
+        self,
+        job_id: Optional[str] = None,
+        param_resolver: study.ParamResolver = study.ParamResolver({}),
+        repetitions: int = 1,
+        processor_ids: Sequence[str] = ('xmonsim',),
+        description: Optional[str] = None,
+        labels: Optional[Dict[str, str]] = None,
     ) -> study.Result:
         """Runs the supplied Circuit via Quantum Engine.
 
@@ -274,19 +292,23 @@ class EngineProgram:
             A single Result for this run.
         """
         return list(
-            self.run_sweep(job_id=job_id,
-                           params=[param_resolver],
-                           repetitions=repetitions,
-                           processor_ids=processor_ids,
-                           description=description,
-                           labels=labels))[0]
+            self.run_sweep(
+                job_id=job_id,
+                params=[param_resolver],
+                repetitions=repetitions,
+                processor_ids=processor_ids,
+                description=description,
+                labels=labels,
+            )
+        )[0]
 
     def _serialize_run_context(
-            self,
-            sweeps: List[study.Sweep],
-            repetitions: int,
+        self,
+        sweeps: List[study.Sweep],
+        repetitions: int,
     ) -> qtypes.any_pb2.Any:
         import cirq.google.engine.engine as engine_base
+
         context = qtypes.any_pb2.Any()
         proto_version = self.context.proto_version
         if proto_version == engine_base.ProtoVersion.V2:
@@ -298,8 +320,7 @@ class EngineProgram:
 
             context.Pack(run_context)
         else:
-            raise ValueError(
-                'invalid run context proto version: {}'.format(proto_version))
+            raise ValueError('invalid run context proto version: {}'.format(proto_version))
         return context
 
     def engine(self) -> 'engine_base.Engine':
@@ -309,6 +330,7 @@ class EngineProgram:
             The program's parent Engine.
         """
         import cirq.google.engine.engine as engine_base
+
         return engine_base.Engine(self.project_id, context=self.context)
 
     def get_job(self, job_id: str) -> engine_job.EngineJob:
@@ -320,17 +342,15 @@ class EngineProgram:
         Returns:
             A EngineJob for the job.
         """
-        return engine_job.EngineJob(self.project_id, self.program_id, job_id,
-                                    self.context)
+        return engine_job.EngineJob(self.project_id, self.program_id, job_id, self.context)
 
-    def list_jobs(self,
-                  created_before: Optional[
-                      Union[datetime.datetime, datetime.date]] = None,
-                  created_after: Optional[
-                      Union[datetime.datetime, datetime.date]] = None,
-                  has_labels: Optional[Dict[str, str]] = None,
-                  execution_states: Optional[Set[
-                      quantum.enums.ExecutionStatus.State]] = None):
+    def list_jobs(
+        self,
+        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
+        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
+        has_labels: Optional[Dict[str, str]] = None,
+        execution_states: Optional[Set[quantum.enums.ExecutionStatus.State]] = None,
+    ):
         """Returns the list of jobs for this program.
 
         Args:
@@ -353,12 +373,14 @@ class EngineProgram:
                 `quantum.enums.ExecutionStatus.State` enum for accepted values.
         """
         client = self.context.client
-        response = client.list_jobs(self.project_id,
-                                    self.program_id,
-                                    created_before=created_before,
-                                    created_after=created_after,
-                                    has_labels=has_labels,
-                                    execution_states=execution_states)
+        response = client.list_jobs(
+            self.project_id,
+            self.program_id,
+            created_before=created_before,
+            created_after=created_after,
+            has_labels=has_labels,
+            execution_states=execution_states,
+        )
         return [
             engine_job.EngineJob(
                 project_id=client._ids_from_job_name(j.name)[0],
@@ -366,13 +388,13 @@ class EngineProgram:
                 job_id=client._ids_from_job_name(j.name)[2],
                 context=self.context,
                 _job=j,
-            ) for j in response
+            )
+            for j in response
         ]
 
     def _inner_program(self) -> qtypes.QuantumProgram:
         if not self._program:
-            self._program = self.context.client.get_program(
-                self.project_id, self.program_id, False)
+            self._program = self.context.client.get_program(self.project_id, self.program_id, False)
         return self._program
 
     def create_time(self) -> 'datetime.datetime':
@@ -381,8 +403,7 @@ class EngineProgram:
 
     def update_time(self) -> 'datetime.datetime':
         """Returns when the program was last updated."""
-        self._program = self.context.client.get_program(self.project_id,
-                                                        self.program_id, False)
+        self._program = self.context.client.get_program(self.project_id, self.program_id, False)
         return self._program.update_time.ToDatetime()
 
     def description(self) -> str:
@@ -399,7 +420,8 @@ class EngineProgram:
              This EngineProgram.
         """
         self._program = self.context.client.set_program_description(
-            self.project_id, self.program_id, description)
+            self.project_id, self.program_id, description
+        )
         return self
 
     def labels(self) -> Dict[str, str]:
@@ -417,7 +439,8 @@ class EngineProgram:
              This EngineProgram.
         """
         self._program = self.context.client.set_program_labels(
-            self.project_id, self.program_id, labels)
+            self.project_id, self.program_id, labels
+        )
         return self
 
     def add_labels(self, labels: Dict[str, str]) -> 'EngineProgram':
@@ -430,7 +453,8 @@ class EngineProgram:
              This EngineProgram.
         """
         self._program = self.context.client.add_program_labels(
-            self.project_id, self.program_id, labels)
+            self.project_id, self.program_id, labels
+        )
         return self
 
     def remove_labels(self, keys: List[str]) -> 'EngineProgram':
@@ -444,7 +468,8 @@ class EngineProgram:
              This EngineProgram.
         """
         self._program = self.context.client.remove_program_labels(
-            self.project_id, self.program_id, keys)
+            self.project_id, self.program_id, keys
+        )
         return self
 
     def get_circuit(self, program_num: Optional[int] = None) -> 'Circuit':
@@ -460,42 +485,63 @@ class EngineProgram:
             The program's cirq Circuit.
         """
         if not self._program or not self._program.HasField('code'):
-            self._program = self.context.client.get_program(
-                self.project_id, self.program_id, True)
+            self._program = self.context.client.get_program(self.project_id, self.program_id, True)
         return self._deserialize_program(self._program.code, program_num)
 
-    @staticmethod
-    def _deserialize_program(code: qtypes.any_pb2.Any,
-                             program_num: Optional[int] = None) -> 'Circuit':
+    def batch_size(self) -> int:
+        """Returns the number of programs in a batch program.
+
+        Raises:
+            ValueError: if the program created was not a batch program.
+        """
+        if self.result_type != ResultType.Batch:
+            raise ValueError(
+                f'Program was not a batch program but instead was of type {self.result_type}.'
+            )
         import cirq.google.engine.engine as engine_base
-        code_type = code.type_url[len(engine_base.TYPE_PREFIX):]
+
+        if not self._program or not self._program.HasField('code'):
+            self._program = self.context.client.get_program(self.project_id, self.program_id, True)
+        code = self._program.code
+        code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]
+        if code_type == 'cirq.google.api.v2.BatchProgram':
+            batch = v2.batch_pb2.BatchProgram.FromString(code.value)
+            return len(batch.programs)
+        raise ValueError(f'Program was not a batch program but instead was of type {code_type}.')
+
+    @staticmethod
+    def _deserialize_program(
+        code: qtypes.any_pb2.Any, program_num: Optional[int] = None
+    ) -> 'Circuit':
+        import cirq.google.engine.engine as engine_base
+
+        code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]
         program = None
-        if (code_type == 'cirq.google.api.v1.Program' or
-                code_type == 'cirq.api.google.v1.Program'):
+        if code_type == 'cirq.google.api.v1.Program' or code_type == 'cirq.api.google.v1.Program':
             raise ValueError('deserializing a v1 Program is not supported')
-        elif (code_type == 'cirq.google.api.v2.Program' or
-              code_type == 'cirq.api.google.v2.Program'):
+        elif code_type == 'cirq.google.api.v2.Program' or code_type == 'cirq.api.google.v2.Program':
             program = v2.program_pb2.Program.FromString(code.value)
         elif code_type == 'cirq.google.api.v2.BatchProgram':
             if program_num is None:
-                raise ValueError('A program number must be specified when '
-                                 'deserializing a Batch Program')
+                raise ValueError(
+                    'A program number must be specified when deserializing a Batch Program'
+                )
             batch = v2.batch_pb2.BatchProgram.FromString(code.value)
             if abs(program_num) >= len(batch.programs):
-                raise ValueError(f'Only {len(batch.programs)} in the batch but '
-                                 f'index {program_num} was specified')
+                raise ValueError(
+                    f'Only {len(batch.programs)} in the batch but '
+                    f'index {program_num} was specified'
+                )
 
             program = batch.programs[program_num]
         if program:
-            gate_set_map = {
-                g.gate_set_name: g for g in gate_sets.GOOGLE_GATESETS
-            }
-            try:
-                return gate_set_map[program.language.gate_set].deserialize(
-                    program)
-            except KeyError:
-                raise ValueError('unsupported gateset: {}'.format(
-                    program.language.gate_set))
+            gate_set_map = {g.gate_set_name: g for g in gate_sets.GOOGLE_GATESETS}
+            if program.language.gate_set not in gate_set_map:
+                raise ValueError(
+                    f'Unknown gateset {program.language.gate_set}. '
+                    f'Supported gatesets: {list(gate_set_map.keys())}.'
+                )
+            return gate_set_map[program.language.gate_set].deserialize(program)
 
         raise ValueError('unsupported program type: {}'.format(code_type))
 
@@ -506,10 +552,9 @@ class EngineProgram:
             delete_jobs: If True will delete all the program's jobs, other this
                 will fail if the program contains any jobs.
         """
-        self.context.client.delete_program(self.project_id,
-                                           self.program_id,
-                                           delete_jobs=delete_jobs)
+        self.context.client.delete_program(
+            self.project_id, self.program_id, delete_jobs=delete_jobs
+        )
 
     def __str__(self) -> str:
-        return (f'EngineProgram(project_id=\'{self.project_id}\', '
-                f'program_id=\'{self.program_id}\')')
+        return f'EngineProgram(project_id=\'{self.project_id}\', program_id=\'{self.program_id}\')'

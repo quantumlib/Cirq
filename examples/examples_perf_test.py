@@ -11,16 +11,17 @@ import examples.basic_arithmetic
 import examples.quantum_teleportation
 import examples.superdense_coding
 
+# Standard test runs do not include performance benchmarks.
+# coverage: ignore
+
 
 def test_example_runs_bernstein_vazirani_perf(benchmark):
     benchmark(examples.bernstein_vazirani.main, qubit_count=3)
 
     # Check empty oracle case. Cover both biases.
     a = cirq.NamedQubit('a')
-    assert list(examples.bernstein_vazirani.make_oracle(
-        [], a, [], False)) == []
-    assert list(examples.bernstein_vazirani.make_oracle(
-        [], a, [], True)) == [cirq.X(a)]
+    assert list(examples.bernstein_vazirani.make_oracle([], a, [], False)) == []
+    assert list(examples.bernstein_vazirani.make_oracle([], a, [], True)) == [cirq.X(a)]
 
 
 def test_example_runs_hello_line_perf(benchmark):

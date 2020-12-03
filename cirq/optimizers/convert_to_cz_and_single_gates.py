@@ -32,9 +32,7 @@ class ConvertToCzAndSingleGates(circuits.PointOptimizer):
         Otherwise raises a TypeError.
     """
 
-    def __init__(self,
-                 ignore_failures: bool = False,
-                 allow_partial_czs: bool = False) -> None:
+    def __init__(self, ignore_failures: bool = False, allow_partial_czs: bool = False) -> None:
         """
         Args:
             ignore_failures: If set, gates that fail to convert are forwarded
@@ -49,9 +47,9 @@ class ConvertToCzAndSingleGates(circuits.PointOptimizer):
     def _keep(self, op: ops.Operation) -> bool:
         # Check if this is a CZ
         # Only keep partial CZ gates if allow_partial_czs
-        if (isinstance(op.gate, ops.CZPowGate) and
-            (self.allow_partial_czs or
-             value.canonicalize_half_turns(op.gate.exponent) == 1)):
+        if isinstance(op.gate, ops.CZPowGate) and (
+            self.allow_partial_czs or value.canonicalize_half_turns(op.gate.exponent) == 1
+        ):
             return True
 
         # Measurement in Z basis?
@@ -69,33 +67,29 @@ class ConvertToCzAndSingleGates(circuits.PointOptimizer):
             mat = protocols.unitary(op, None)
             if mat is not None:
                 return two_qubit_decompositions.two_qubit_matrix_to_operations(
-                    op.qubits[0],
-                    op.qubits[1],
-                    mat,
-                    allow_partial_czs=self.allow_partial_czs)
+                    op.qubits[0], op.qubits[1], mat, allow_partial_czs=self.allow_partial_czs
+                )
         return NotImplemented
 
     def _on_stuck_raise(self, op: ops.Operation):
-        raise TypeError("Don't know how to work with {!r}. "
-                        "It isn't composite or an operation with a "
-                        "known unitary effect on 1 or 2 qubits.".format(op))
+        raise TypeError(
+            "Don't know how to work with {!r}. "
+            "It isn't composite or an operation with a "
+            "known unitary effect on 1 or 2 qubits.".format(op)
+        )
 
-    def optimization_at(self,
-                        circuit: circuits.Circuit,
-                        index: int,
-                        op: ops.Operation
-                        ) -> Optional[circuits.PointOptimizationSummary]:
+    def optimization_at(
+        self, circuit: circuits.Circuit, index: int, op: ops.Operation
+    ) -> Optional[circuits.PointOptimizationSummary]:
         converted = protocols.decompose(
             op,
             intercepting_decomposer=self._decompose_two_qubit_unitaries,
             keep=self._keep,
-            on_stuck_raise=(None
-                            if self.ignore_failures
-                            else self._on_stuck_raise))
+            on_stuck_raise=(None if self.ignore_failures else self._on_stuck_raise),
+        )
         if converted == [op]:
             return None
 
         return circuits.PointOptimizationSummary(
-            clear_span=1,
-            new_operations=converted,
-            clear_qubits=op.qubits)
+            clear_span=1, new_operations=converted, clear_qubits=op.qubits
+        )

@@ -19,10 +19,10 @@ from cirq.value import type_alias
 
 
 def chosen_angle_to_half_turns(
-        half_turns: Optional[type_alias.TParamVal] = None,
-        rads: Optional[float] = None,
-        degs: Optional[float] = None,
-        default: float = 1.0,
+    half_turns: Optional[type_alias.TParamVal] = None,
+    rads: Optional[float] = None,
+    degs: Optional[float] = None,
+    default: float = 1.0,
 ) -> type_alias.TParamVal:
     """Returns a half_turns value based on the given arguments.
 
@@ -40,8 +40,7 @@ def chosen_angle_to_half_turns(
     """
 
     if len([1 for e in [half_turns, rads, degs] if e is not None]) > 1:
-        raise ValueError('Redundant angle specification. '
-                         'Use ONE of half_turns, rads, or degs.')
+        raise ValueError('Redundant angle specification. Use ONE of half_turns, rads, or degs.')
 
     if rads is not None:
         return rads / np.pi
@@ -56,10 +55,10 @@ def chosen_angle_to_half_turns(
 
 
 def chosen_angle_to_canonical_half_turns(
-        half_turns: Optional[type_alias.TParamVal] = None,
-        rads: Optional[float] = None,
-        degs: Optional[float] = None,
-        default: float = 1.0,
+    half_turns: Optional[type_alias.TParamVal] = None,
+    rads: Optional[float] = None,
+    degs: Optional[float] = None,
+    default: float = 1.0,
 ) -> type_alias.TParamVal:
     """Returns a canonicalized half_turns based on the given arguments.
 
@@ -76,11 +75,8 @@ def chosen_angle_to_canonical_half_turns(
         A number of half turns.
     """
     return canonicalize_half_turns(
-            chosen_angle_to_half_turns(
-                half_turns=half_turns,
-                rads=rads,
-                degs=degs,
-                default=default))
+        chosen_angle_to_half_turns(half_turns=half_turns, rads=rads, degs=degs, default=default)
+    )
 
 
 # pylint: disable=function-redefined
@@ -94,8 +90,7 @@ def canonicalize_half_turns(half_turns: sympy.Basic) -> sympy.Basic:
     pass
 
 
-def canonicalize_half_turns(half_turns: type_alias.TParamVal
-                           ) -> type_alias.TParamVal:
+def canonicalize_half_turns(half_turns: type_alias.TParamVal) -> type_alias.TParamVal:
     """Wraps the input into the range (-1, +1]."""
     if isinstance(half_turns, sympy.Basic):
         if not half_turns.is_constant():
@@ -105,4 +100,6 @@ def canonicalize_half_turns(half_turns: type_alias.TParamVal
     if half_turns > 1:
         half_turns -= 2
     return half_turns
+
+
 # pylint: enable=function-redefined

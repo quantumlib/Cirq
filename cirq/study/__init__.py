@@ -52,4 +52,5 @@ from cirq.study.result import (
 )
 
 from cirq.study.visualize import (
-    plot_state_histogram,)
+    plot_state_histogram,
+)

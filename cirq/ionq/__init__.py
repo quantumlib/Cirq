@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.ionq.ionq_client import (
+from cirq.ionq.ionq_exceptions import (
     IonQException,
     IonQNotFoundException,
+    IonQUnsuccessfulJobException,
 )
 
 from cirq.ionq.job import (
-    Job,)
+    Job,
+)
 
 from cirq.ionq.results import (
     QPUResult,
@@ -26,7 +28,9 @@ from cirq.ionq.results import (
 )
 
 from cirq.ionq.serializer import (
-    Serializer,)
+    Serializer,
+)
 
 from cirq.ionq.service import (
-    Service,)
+    Service,
+)

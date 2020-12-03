@@ -25,8 +25,8 @@ jobs:
         with:
           python-version: '3.7'
           architecture: 'x64'
-      - name: Install yapf
-        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep yapf | xargs pip install
+      - name: Install black
+        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep black | xargs pip install
       - name: Format
         run: check/format-incremental
   mypy:
@@ -103,7 +103,7 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        python-version: ['3.6', '3.7', '3.8']
+        python-version: ['3.7', '3.8']
     runs-on: ubuntu-16.04
     steps:
       - uses: actions/checkout@v2
@@ -115,6 +115,7 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
+          pip install codeowners # linux only package
       - name: Pytest check
         run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
   build_docs:
@@ -174,7 +175,7 @@ jobs:
     name: Pytest Windows
     strategy:
       matrix:
-        python-version: [ '3.6', '3.7', '3.8' ]
+        python-version: [ '3.7', '3.8' ]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -193,7 +194,7 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: [ '3.6', '3.7', '3.8' ]
+        python-version: [ '3.7', '3.8' ]
     runs-on: macos-10.15
     steps:
       - uses: actions/checkout@v2

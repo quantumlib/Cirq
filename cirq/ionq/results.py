@@ -21,14 +21,12 @@ def _pretty_str_dict(value: dict, bit_count: int) -> str:
     """Pretty prints a dict, converting int dict values to bit strings."""
     strs = []
     for k, v in value.items():
-        bits = ''.join(
-            str(b)
-            for b in digits.big_endian_int_to_bits(k, bit_count=bit_count))
+        bits = ''.join(str(b) for b in digits.big_endian_int_to_bits(k, bit_count=bit_count))
         strs.append(f'{bits}: {v}')
     return '\n'.join(strs)
 
 
-class QPUResult():
+class QPUResult:
     """The results of running on an IonQ QPU."""
 
     def __init__(self, counts: dict, num_qubits: int):
@@ -63,8 +61,7 @@ class QPUResult():
     def __eq__(self, other):
         if not isinstance(other, QPUResult):
             return NotImplemented
-        return (self._counts == other._counts and
-                self._num_qubits == other._num_qubits)
+        return self._counts == other._counts and self._num_qubits == other._num_qubits
 
     def __str__(self) -> str:
         return _pretty_str_dict(self._counts, self._num_qubits)
@@ -75,7 +72,7 @@ class QPUResult():
 
 # TODO: Implement the sampler interface.
 # https://github.com/quantumlib/Cirq/issues/3479
-class SimulatorResult():
+class SimulatorResult:
     """The results of running on an IonQ simulator.
 
     The IonQ simulator returns the probabilities of the different outcomes,
@@ -108,8 +105,7 @@ class SimulatorResult():
     def __eq__(self, other):
         if not isinstance(other, SimulatorResult):
             return NotImplemented
-        return (self._probabilities == other._probabilities and
-                self._num_qubits == other._num_qubits)
+        return self._probabilities == other._probabilities and self._num_qubits == other._num_qubits
 
     def __str__(self) -> str:
         return _pretty_str_dict(self._probabilities, self._num_qubits)

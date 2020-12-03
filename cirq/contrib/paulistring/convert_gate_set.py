@@ -14,14 +14,14 @@
 
 from cirq import circuits, optimizers
 
-from cirq.contrib.paulistring.convert_to_pauli_string_phasors import (
-    ConvertToPauliStringPhasors)
+from cirq.contrib.paulistring.convert_to_pauli_string_phasors import ConvertToPauliStringPhasors
 
 
-def converted_gate_set(circuit: circuits.Circuit,
-                       no_clifford_gates: bool = False,
-                       atol: float = 1e-8,
-                       ) -> circuits.Circuit:
+def converted_gate_set(
+    circuit: circuits.Circuit,
+    no_clifford_gates: bool = False,
+    atol: float = 1e-8,
+) -> circuits.Circuit:
     """Returns a new, equivalent circuit using the gate set
     {SingleQubitCliffordGate,
     CZ/PauliInteractionGate, PauliStringPhasor}.
@@ -29,9 +29,10 @@ def converted_gate_set(circuit: circuits.Circuit,
     conv_circuit = circuits.Circuit(circuit)
     optimizers.ConvertToCzAndSingleGates().optimize_circuit(conv_circuit)
     optimizers.MergeSingleQubitGates().optimize_circuit(conv_circuit)
-    ConvertToPauliStringPhasors(ignore_failures=True,
-                                keep_clifford=not no_clifford_gates,
-                                atol=atol,
-                                ).optimize_circuit(conv_circuit)
+    ConvertToPauliStringPhasors(
+        ignore_failures=True,
+        keep_clifford=not no_clifford_gates,
+        atol=atol,
+    ).optimize_circuit(conv_circuit)
     optimizers.DropEmptyMoments().optimize_circuit(conv_circuit)
     return conv_circuit

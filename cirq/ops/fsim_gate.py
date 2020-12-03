@@ -34,9 +34,26 @@ from cirq._compat import proper_repr
 from cirq.ops import gate_features
 
 
+def _canonicalize(value: Union[float, sympy.Basic]) -> Union[float, sympy.Basic]:
+    """Assumes value is 2π-periodic and shifts it into [-π, π]."""
+    if protocols.is_parameterized(value):
+        return value
+    period = 2 * np.pi
+    return value - period * np.round(value / period)
+
+
+def _zero_mod_pi(param: Union[float, sympy.Basic]) -> bool:
+    """Returns True iff param, assumed to be in [-pi, pi], is 0 (mod pi)."""
+    return param in (-np.pi, 0.0, np.pi, -sympy.pi, sympy.pi)
+
+
+def _half_pi_mod_pi(param: Union[float, sympy.Basic]) -> bool:
+    """Returns True iff param, assumed to be in [-pi, pi], is pi/2 (mod pi)."""
+    return param in (-np.pi / 2, np.pi / 2, -sympy.pi / 2, sympy.pi / 2)
+
+
 @value.value_equality(approximate=True)
-class FSimGate(gate_features.TwoQubitGate,
-               gate_features.InterchangeableQubitsGate):
+class FSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGate):
     """Fermionic simulation gate family.
 
     Contains all two qubit interactions that preserve excitations, up to
@@ -72,15 +89,14 @@ class FSimGate(gate_features.TwoQubitGate,
                 ``|11⟩`` state is phased. Note: uses opposite sign convention to
                 the CZPowGate. Maximum strength (full cz) is at pi/2.
         """
-        self.theta = theta
-        self.phi = phi
+        self.theta = _canonicalize(theta)
+        self.phi = _canonicalize(phi)
 
     def _value_equality_values_(self) -> Any:
         return self.theta, self.phi
 
     def _is_parameterized_(self) -> bool:
-        return cirq.is_parameterized(self.theta) or cirq.is_parameterized(
-            self.phi)
+        return cirq.is_parameterized(self.theta) or cirq.is_parameterized(self.phi)
 
     def _parameter_names_(self) -> AbstractSet[str]:
         return cirq.parameter_names(self.theta) | cirq.parameter_names(self.phi)
@@ -94,12 +110,14 @@ class FSimGate(gate_features.TwoQubitGate,
         a = math.cos(self.theta)
         b = -1j * math.sin(self.theta)
         c = cmath.exp(-1j * self.phi)
-        return np.array([
-            [1, 0, 0, 0],
-            [0, a, b, 0],
-            [0, b, a, 0],
-            [0, 0, 0, c],
-        ])
+        return np.array(
+            [
+                [1, 0, 0, 0],
+                [0, a, b, 0],
+                [0, b, a, 0],
+                [0, 0, 0, c],
+            ]
+        )
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
@@ -107,33 +125,35 @@ class FSimGate(gate_features.TwoQubitGate,
         a = math.cos(self.theta)
         b = -1j * math.sin(self.theta)
         c = cmath.exp(-1j * self.phi)
-        return value.LinearDict({
-            'II': (1 + c) / 4 + a / 2,
-            'IZ': (1 - c) / 4,
-            'ZI': (1 - c) / 4,
-            'ZZ': (1 + c) / 4 - a / 2,
-            'XX': b / 2,
-            'YY': b / 2,
-        })
+        return value.LinearDict(
+            {
+                'II': (1 + c) / 4 + a / 2,
+                'IZ': (1 - c) / 4,
+                'ZI': (1 - c) / 4,
+                'ZZ': (1 + c) / 4 - a / 2,
+                'XX': b / 2,
+                'YY': b / 2,
+            }
+        )
 
-    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver'
-                            ) -> 'cirq.FSimGate':
+    def _resolve_parameters_(
+        self, param_resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'cirq.FSimGate':
         return FSimGate(
-            protocols.resolve_parameters(self.theta, param_resolver),
-            protocols.resolve_parameters(self.phi, param_resolver))
+            protocols.resolve_parameters(self.theta, param_resolver, recursive),
+            protocols.resolve_parameters(self.phi, param_resolver, recursive),
+        )
 
-    def _apply_unitary_(self,
-                        args: 'cirq.ApplyUnitaryArgs') -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if cirq.is_parameterized(self):
             return None
         if self.theta != 0:
             inner_matrix = protocols.unitary(cirq.rx(2 * self.theta))
             oi = args.subspace_index(0b01)
             io = args.subspace_index(0b10)
-            out = cirq.apply_matrix_to_slices(args.target_tensor,
-                                              inner_matrix,
-                                              slices=[oi, io],
-                                              out=args.available_buffer)
+            out = cirq.apply_matrix_to_slices(
+                args.target_tensor, inner_matrix, slices=[oi, io], out=args.available_buffer
+            )
         else:
             out = args.target_tensor
         if self.phi != 0:
@@ -147,10 +167,9 @@ class FSimGate(gate_features.TwoQubitGate,
         yy = cirq.YYPowGate(exponent=self.theta / np.pi, global_shift=-0.5)
         yield xx(a, b)
         yield yy(a, b)
-        yield cirq.CZ(a, b)**(-self.phi / np.pi)
+        yield cirq.CZ(a, b) ** (-self.phi / np.pi)
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                              ) -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
         t = args.format_radians(self.theta)
         p = args.format_radians(self.phi)
         return f'FSim({t}, {p})', f'FSim({t}, {p})'
@@ -168,8 +187,7 @@ class FSimGate(gate_features.TwoQubitGate,
 
 
 @value.value_equality(approximate=True)
-class PhasedFSimGate(gate_features.TwoQubitGate,
-                     gate_features.InterchangeableQubitsGate):
+class PhasedFSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGate):
     """General excitation-preserving two-qubit gate.
 
     The unitary matrix of PhasedFSimGate(θ, ζ, χ, γ, φ) is:
@@ -218,15 +236,20 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
     character of the second parametrization is the fact that the properties
     rz_angles_before and rz_angles_after may return different Rz angles
     than the ones used in the call to from_fsim_rz.
+
+    This gate is generally not symmetric under exchange of qubits. It becomes
+    symmetric if both of the following conditions are satisfied:
+     * ζ = kπ or θ = π/2 + lπ for k and l integers,
+     * χ = kπ or θ = lπ for k and l integers.
     """
 
     def __init__(
-            self,
-            theta: Union[float, sympy.Basic],
-            zeta: Union[float, sympy.Basic] = 0.0,
-            chi: Union[float, sympy.Basic] = 0.0,
-            gamma: Union[float, sympy.Basic] = 0.0,
-            phi: Union[float, sympy.Basic] = 0.0,
+        self,
+        theta: Union[float, sympy.Basic],
+        zeta: Union[float, sympy.Basic] = 0.0,
+        chi: Union[float, sympy.Basic] = 0.0,
+        gamma: Union[float, sympy.Basic] = 0.0,
+        phi: Union[float, sympy.Basic] = 0.0,
     ) -> None:
         """
         Args:
@@ -241,28 +264,18 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
             phi: Controlled phase angle, in radians. See class docstring
                 above for details.
         """
-
-        def canonicalize(value: Union[float, sympy.Basic]
-                        ) -> Union[float, sympy.Basic]:
-            """Assumes value is 2π-periodic and shifts it into [-π, π]."""
-            if protocols.is_parameterized(value):
-                return value
-            period = 2 * np.pi
-            return value - period * np.round(value / period)
-
-        self.theta = canonicalize(theta)
-        self.zeta = canonicalize(zeta)
-        self.chi = canonicalize(chi)
-        self.gamma = canonicalize(gamma)
-        self.phi = canonicalize(phi)
+        self.theta = _canonicalize(theta)
+        self.zeta = _canonicalize(zeta)
+        self.chi = _canonicalize(chi)
+        self.gamma = _canonicalize(gamma)
+        self.phi = _canonicalize(phi)
 
     @staticmethod
     def from_fsim_rz(
-            theta: Union[float, sympy.Basic], phi: Union[float, sympy.Basic],
-            rz_angles_before: Tuple[Union[float, sympy.
-                                          Basic], Union[float, sympy.Basic]],
-            rz_angles_after: Tuple[Union[float, sympy.
-                                         Basic], Union[float, sympy.Basic]]
+        theta: Union[float, sympy.Basic],
+        phi: Union[float, sympy.Basic],
+        rz_angles_before: Tuple[Union[float, sympy.Basic], Union[float, sympy.Basic]],
+        rz_angles_after: Tuple[Union[float, sympy.Basic], Union[float, sympy.Basic]],
     ) -> 'PhasedFSimGate':
         """Creates PhasedFSimGate using an alternate parametrization.
 
@@ -284,32 +297,48 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
         return PhasedFSimGate(theta, zeta, chi, gamma, phi)
 
     @property
-    def rz_angles_before(
-            self
-    ) -> Tuple[Union[float, sympy.Basic], Union[float, sympy.Basic]]:
+    def rz_angles_before(self) -> Tuple[Union[float, sympy.Basic], Union[float, sympy.Basic]]:
         """Returns 2-tuple of phase angles applied to qubits before FSimGate."""
         b0 = (-self.gamma + self.zeta + self.chi) / 2.0
         b1 = (-self.gamma - self.zeta - self.chi) / 2.0
         return b0, b1
 
     @property
-    def rz_angles_after(
-            self
-    ) -> Tuple[Union[float, sympy.Basic], Union[float, sympy.Basic]]:
+    def rz_angles_after(self) -> Tuple[Union[float, sympy.Basic], Union[float, sympy.Basic]]:
         """Returns 2-tuple of phase angles applied to qubits after FSimGate."""
         a0 = (-self.gamma + self.zeta - self.chi) / 2.0
         a1 = (-self.gamma - self.zeta + self.chi) / 2.0
         return a0, a1
 
+    def _zeta_insensitive(self) -> bool:
+        return _half_pi_mod_pi(self.theta)
+
+    def _chi_insensitive(self) -> bool:
+        return _zero_mod_pi(self.theta)
+
+    def qubit_index_to_equivalence_group_key(self, index: int) -> int:
+        """Returns a key that differs between non-interchangeable qubits."""
+        if (_zero_mod_pi(self.zeta) or self._zeta_insensitive()) and (
+            _zero_mod_pi(self.chi) or self._chi_insensitive()
+        ):
+            return 0
+        return index
+
     def _value_equality_values_(self) -> Any:
+        if self._zeta_insensitive():
+            return (self.theta, 0.0, self.chi, self.gamma, self.phi)
+        if self._chi_insensitive():
+            return (self.theta, self.zeta, 0.0, self.gamma, self.phi)
         return (self.theta, self.zeta, self.chi, self.gamma, self.phi)
 
     def _is_parameterized_(self) -> bool:
-        return (cirq.is_parameterized(self.theta) or
-                cirq.is_parameterized(self.zeta) or
-                cirq.is_parameterized(self.chi) or
-                cirq.is_parameterized(self.gamma) or
-                cirq.is_parameterized(self.phi))
+        return (
+            cirq.is_parameterized(self.theta)
+            or cirq.is_parameterized(self.zeta)
+            or cirq.is_parameterized(self.chi)
+            or cirq.is_parameterized(self.gamma)
+            or cirq.is_parameterized(self.phi)
+        )
 
     def _has_unitary_(self):
         return not self._is_parameterized_()
@@ -325,24 +354,27 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
         f3 = cmath.exp(-1j * self.gamma - 1j * self.chi)
         f4 = cmath.exp(-1j * self.gamma + 1j * self.zeta)
         f5 = cmath.exp(-2j * self.gamma)
-        return np.array([
-            [1, 0, 0, 0],
-            [0, f1 * a, f2 * b, 0],
-            [0, f3 * b, f4 * a, 0],
-            [0, 0, 0, f5 * c],
-        ])
+        return np.array(
+            [
+                [1, 0, 0, 0],
+                [0, f1 * a, f2 * b, 0],
+                [0, f3 * b, f4 * a, 0],
+                [0, 0, 0, f5 * c],
+            ]
+        )
 
-    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver'
-                            ) -> 'cirq.PhasedFSimGate':
+    def _resolve_parameters_(
+        self, param_resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'cirq.PhasedFSimGate':
         return PhasedFSimGate(
-            protocols.resolve_parameters(self.theta, param_resolver),
-            protocols.resolve_parameters(self.zeta, param_resolver),
-            protocols.resolve_parameters(self.chi, param_resolver),
-            protocols.resolve_parameters(self.gamma, param_resolver),
-            protocols.resolve_parameters(self.phi, param_resolver))
+            protocols.resolve_parameters(self.theta, param_resolver, recursive),
+            protocols.resolve_parameters(self.zeta, param_resolver, recursive),
+            protocols.resolve_parameters(self.chi, param_resolver, recursive),
+            protocols.resolve_parameters(self.gamma, param_resolver, recursive),
+            protocols.resolve_parameters(self.phi, param_resolver, recursive),
+        )
 
-    def _apply_unitary_(self,
-                        args: 'cirq.ApplyUnitaryArgs') -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if cirq.is_parameterized(self):
             return None
         oi = args.subspace_index(0b01)
@@ -353,10 +385,9 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
             rz1 = protocols.unitary(cirq.rz(-self.zeta + self.chi))
             rz2 = protocols.unitary(cirq.rz(-self.zeta - self.chi))
             inner_matrix = rz1 @ rx @ rz2
-            out = cirq.apply_matrix_to_slices(args.target_tensor,
-                                              inner_matrix,
-                                              slices=[oi, io],
-                                              out=args.available_buffer)
+            out = cirq.apply_matrix_to_slices(
+                args.target_tensor, inner_matrix, slices=[oi, io], out=args.available_buffer
+            )
         else:
             out = args.target_tensor
         if self.phi != 0:
@@ -377,8 +408,7 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
         makes the top left element of the matrix equal to 1.
         """
 
-        def to_exponent(angle_rads: Union[float, sympy.Basic]
-                       ) -> Union[float, sympy.Basic]:
+        def to_exponent(angle_rads: Union[float, sympy.Basic]) -> Union[float, sympy.Basic]:
             """Divides angle_rads by symbolic or numerical pi."""
             pi = sympy.pi if protocols.is_parameterized(angle_rads) else np.pi
             return angle_rads / pi
@@ -386,21 +416,22 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
         q0, q1 = qubits
         before = self.rz_angles_before
         after = self.rz_angles_after
-        yield cirq.Z(q0)**to_exponent(before[0])
-        yield cirq.Z(q1)**to_exponent(before[1])
+        yield cirq.Z(q0) ** to_exponent(before[0])
+        yield cirq.Z(q1) ** to_exponent(before[1])
         yield FSimGate(self.theta, self.phi).on(q0, q1)
-        yield cirq.Z(q0)**to_exponent(after[0])
-        yield cirq.Z(q1)**to_exponent(after[1])
+        yield cirq.Z(q0) ** to_exponent(after[0])
+        yield cirq.Z(q1) ** to_exponent(after[1])
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                              ) -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
         theta = args.format_radians(self.theta)
         zeta = args.format_radians(self.zeta)
         chi = args.format_radians(self.chi)
         gamma = args.format_radians(self.gamma)
         phi = args.format_radians(self.phi)
-        return (f'PhFSim({theta}, {zeta}, {chi}, {gamma}, {phi})',
-                f'PhFSim({theta}, {zeta}, {chi}, {gamma}, {phi})')
+        return (
+            f'PhFSim({theta}, {zeta}, {chi}, {gamma}, {phi})',
+            f'PhFSim({theta}, {zeta}, {chi}, {gamma}, {phi})',
+        )
 
     def __repr__(self) -> str:
         theta = proper_repr(self.theta)
@@ -408,9 +439,10 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
         chi = proper_repr(self.chi)
         gamma = proper_repr(self.gamma)
         phi = proper_repr(self.phi)
-        return (f'cirq.PhasedFSimGate(theta={theta}, zeta={zeta}, chi={chi}, '
-                f'gamma={gamma}, phi={phi})')
+        return (
+            f'cirq.PhasedFSimGate(theta={theta}, zeta={zeta}, chi={chi}, '
+            f'gamma={gamma}, phi={phi})'
+        )
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(
-            self, ['theta', 'zeta', 'chi', 'gamma', 'phi'])
+        return protocols.obj_to_dict_helper(self, ['theta', 'zeta', 'chi', 'gamma', 'phi'])
