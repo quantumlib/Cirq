@@ -19,7 +19,7 @@ import pytest
 import pandas as pd
 
 import cirq
-from cirq.study.trial_result import _pack_digits
+from cirq.study.result import _pack_digits
 
 
 def test_repr():

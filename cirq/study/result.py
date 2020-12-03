@@ -330,7 +330,7 @@ class TrialResult(Result):
     pass
 
 
-def _pack_digits(digits: np.ndarray, pack_bits='auto') -> Tuple[str, bool]:
+def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool]:
     """Returns a string of packed digits and a boolean indicating whether the
     digits were packed as binary values.
 
@@ -366,10 +366,28 @@ def _pack_bits(bits: np.ndarray) -> str:
     return np.packbits(bits).tobytes().hex()
 
 
-def _unpack_digits(packed_digits: str, binary: bool, dtype: str,
-                   shape: Sequence[int]) -> np.ndarray:
+def _unpack_digits(
+        packed_digits: str, binary: bool, dtype: Union[None, str],
+        shape: Union[None, Sequence[int]]) -> np.ndarray:
+    """The opposite of `_pack_digits`.
+
+    Args:
+        packed_digits: The hex-encoded string representing a numpy array of
+            digits. This is the first return value of `_pack_digits`.
+        binary: Whether the digits have been packed as binary. This is the
+            second return value of `_pack_digits`.
+        dtype: If `binary` is True, you must also provide the datatype of the
+            array. Otherwise, dtype information is contained within the hex
+            string.
+        shape: If `binary` is True, you must also provide the shape of the
+            array. Otherwise, shape information is contained within the hex
+            string.
+    """
     if binary:
+        dtype = cast(str, dtype)
+        shape = cast(Sequence[int], shape)
         return _unpack_bits(packed_digits, dtype, shape)
+
     # TODO: `dtype` and `shape` are unused if `binary` is False.
     buffer = io.BytesIO()
     buffer.write(bytes.fromhex(packed_digits))
