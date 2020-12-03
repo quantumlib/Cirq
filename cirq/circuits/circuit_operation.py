@@ -205,26 +205,30 @@ class CircuitOperation(ops.Operation):
         return f'{header}\n{circuit_msg}({", ".join(args)})'
 
     def _json_dict_(self):
-        return protocols.obj_to_dict_helper(
-            self,
-            [
-                'circuit',
-                'repetitions',
-                'qubit_map',
-                'measurement_key_map',
-                'param_resolver',
-            ],
-        )
+        return {
+            'cirq_type': 'CircuitOperation',
+            'circuit': self.circuit,
+            'repetitions': self.repetitions,
+            # JSON requires mappings to have keys of basic types.
+            # Pairs must be sorted to ensure consistent serialization.
+            'qubit_map': sorted(self.qubit_map.items()),
+            'measurement_key_map': self.measurement_key_map,
+            'param_resolver': self.param_resolver,
+        }
 
     @classmethod
-    def _from_json_dict_(cls, circuit, repetitions, qubit_map, key_map, param_resolver, **kwargs):
-        return (
+    def _from_json_dict_(
+        cls, circuit, repetitions, qubit_map, measurement_key_map, param_resolver, **kwargs
+    ):
+        result = (
             cls(circuit)
-            .repeat(repetitions)
-            .with_qubit_mapping(qubit_map)
-            .with_measurement_key_mapping(key_map)
+            .with_qubit_mapping(dict(qubit_map))
+            .with_measurement_key_mapping(measurement_key_map)
             .with_params(param_resolver)
         )
+        if repetitions != 1:
+            return result.repeat(repetitions)
+        return result
 
     # Methods for constructing a similar object with one field modified.
 
