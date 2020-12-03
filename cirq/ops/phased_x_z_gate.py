@@ -172,12 +172,12 @@ class PhasedXZGate(gate_features.SingleQubitGate):
             | protocols.parameter_names(self._axis_phase_exponent)
         )
 
-    def _resolve_parameters_(self, param_resolver) -> 'cirq.PhasedXZGate':
+    def _resolve_parameters_(self, param_resolver, recursive) -> 'cirq.PhasedXZGate':
         """See `cirq.SupportsParameterization`."""
         return PhasedXZGate(
-            z_exponent=param_resolver.value_of(self._z_exponent),
-            x_exponent=param_resolver.value_of(self._x_exponent),
-            axis_phase_exponent=param_resolver.value_of(self._axis_phase_exponent),
+            z_exponent=param_resolver.value_of(self._z_exponent, recursive),
+            x_exponent=param_resolver.value_of(self._x_exponent, recursive),
+            axis_phase_exponent=param_resolver.value_of(self._axis_phase_exponent, recursive),
         )
 
     def _phase_by_(self, phase_turns, qubit_index) -> 'cirq.PhasedXZGate':

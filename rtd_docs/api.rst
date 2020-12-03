@@ -363,6 +363,7 @@ the magic methods that can be implemented.
     cirq.quil
     cirq.read_json
     cirq.resolve_parameters
+    cirq.resolve_parameters_once
     cirq.to_json
     cirq.trace_distance_bound
     cirq.trace_distance_from_angle_list

@@ -113,8 +113,8 @@ class ParallelGateOperation(raw_types.Operation):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self.gate)
 
-    def _resolve_parameters_(self, resolver):
-        resolved_gate = protocols.resolve_parameters(self.gate, resolver)
+    def _resolve_parameters_(self, resolver, recursive):
+        resolved_gate = protocols.resolve_parameters(self.gate, resolver, recursive)
         return self.with_gate(resolved_gate)
 
     def _trace_distance_bound_(self) -> Optional[float]:

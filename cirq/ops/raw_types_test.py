@@ -594,6 +594,9 @@ def test_tagged_operation_forwards_protocols():
     assert cirq.resolve_parameters(parameterized_op, resolver) == cirq.XPowGate(exponent=0.25)(
         q1
     ).with_tags(tag)
+    assert cirq.resolve_parameters_once(parameterized_op, resolver) == cirq.XPowGate(exponent=0.25)(
+        q1
+    ).with_tags(tag)
 
     y = cirq.Y(q1)
     tagged_y = cirq.Y(q1).with_tags(tag)
@@ -655,11 +658,12 @@ class ParameterizableTag:
     def _parameter_names_(self) -> AbstractSet[str]:
         return cirq.parameter_names(self.value)
 
-    def _resolve_parameters_(self, resolver) -> 'ParameterizableTag':
-        return ParameterizableTag(cirq.resolve_parameters(self.value, resolver))
+    def _resolve_parameters_(self, resolver, recursive) -> 'ParameterizableTag':
+        return ParameterizableTag(cirq.resolve_parameters(self.value, resolver, recursive))
 
 
-def test_tagged_operation_resolves_parameterized_tags():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_tagged_operation_resolves_parameterized_tags(resolve_fn):
     q = cirq.GridQubit(0, 0)
     tag = ParameterizableTag(sympy.Symbol('t'))
     assert cirq.is_parameterized(tag)
@@ -667,7 +671,7 @@ def test_tagged_operation_resolves_parameterized_tags():
     op = cirq.Z(q).with_tags(tag)
     assert cirq.is_parameterized(op)
     assert cirq.parameter_names(op) == {'t'}
-    resolved_op = cirq.resolve_parameters(op, {'t': 10})
+    resolved_op = resolve_fn(op, {'t': 10})
     assert resolved_op == cirq.Z(q).with_tags(ParameterizableTag(10))
     assert not cirq.is_parameterized(resolved_op)
     assert cirq.parameter_names(resolved_op) == set()
