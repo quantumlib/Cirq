@@ -299,7 +299,7 @@ def test_json_dict():
         'cirq_type': 'CircuitOperation',
         'circuit': circuit,
         'repetitions': 1,
-        'qubit_map': [(k, v) for k, v in op.qubit_map.items()],
+        'qubit_map': sorted([(k, v) for k, v in op.qubit_map.items()]),
         'measurement_key_map': op.measurement_key_map,
         'param_resolver': op.param_resolver,
     }
