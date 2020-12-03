@@ -80,15 +80,21 @@ def _stats_from_measurements(
 class ObservableMeasuredResult:
     """The result of an observable measurement.
 
-    Please see `flatten_grouped_results` or
-    `BitstringAccumulator.results` for information on how to get these
-    from `measure_observables` return values.
+    Please see `flatten_grouped_results` or `BitstringAccumulator.results` for information on how
+    to get these from `measure_observables` return values.
 
-    This is a flattened form of the contents of a `BitstringAccumulator`
-    which may group many simultaneously-observable settings into one object.
-    As such, `BitstringAccumulator` has more advanced support for covariances
-    between simultaneously-measured observables which is dropped when you
-    flatten into these objects.
+    This is a flattened form of the contents of a `BitstringAccumulator` which may group many
+    simultaneously-observable settings into one object. As such, `BitstringAccumulator` has more
+    advanced support for covariances between simultaneously-measured observables which is dropped
+    when you flatten into these objects.
+
+    Args:
+        setting: The setting for which this object contains results
+        mean: The mean of the observable specified by `setting`.
+        variance: The variance of the obserable specified by `setting`.
+        repetitions: The number of circuit repetitions used to estimate `setting`.
+        circuit_params: The parameters used to resolve the circuit used to prepare the state that
+            is being measured.
     """
 
     setting: InitObsSetting
