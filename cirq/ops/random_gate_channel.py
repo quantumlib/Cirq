@@ -144,5 +144,5 @@ class RandomGateChannel(raw_types.Gate):
 
     def __repr__(self):
         if self.probability == 1:
-            return f'cirq.RandomGateChannel(' f'sub_gate={self.sub_gate!r}, ' f'probability=1)'
-        return f'{self.sub_gate!r}.with_probability(' f'{proper_repr(self.probability)})'
+            return f'cirq.RandomGateChannel(sub_gate={self.sub_gate!r}, probability=1)'
+        return f'{self.sub_gate!r}.with_probability({proper_repr(self.probability)})'

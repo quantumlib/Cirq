@@ -194,7 +194,7 @@ class GoodEigenGate(cirq.EigenGate, cirq.SingleQubitGate):
         ]
 
     def __repr__(self):
-        return 'GoodEigenGate' '(exponent={}, global_shift={!r})'.format(
+        return 'GoodEigenGate(exponent={}, global_shift={!r})'.format(
             proper_repr(self._exponent), self._global_shift
         )
 
@@ -204,7 +204,7 @@ class BadEigenGate(GoodEigenGate):
         return [0, 0]
 
     def __repr__(self):
-        return 'BadEigenGate' '(exponent={}, global_shift={!r})'.format(
+        return 'BadEigenGate(exponent={}, global_shift={!r})'.format(
             proper_repr(self._exponent), self._global_shift
         )
 
