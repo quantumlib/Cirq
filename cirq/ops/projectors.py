@@ -69,7 +69,7 @@ class Projector:
 
     def __init__(
         self,
-        projection_bases: Optional[Dict[ProjKey, Sequence[STATE_VECTOR_LIKE]]],
+        projection_bases: Dict[ProjKey, Sequence[STATE_VECTOR_LIKE]],
         enforce_orthonormal_basis: bool = False,
     ):
         """
