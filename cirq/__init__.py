@@ -69,6 +69,7 @@ from cirq.circuits import (
     AbstractCircuit,
     Circuit,
     CircuitDag,
+    CircuitOperation,
     FrozenCircuit,
     InsertStrategy,
     PointOptimizationSummary,

@@ -50,6 +50,7 @@ class FrozenCircuit(AbstractCircuit):
         *contents: 'cirq.OP_TREE',
         strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
         device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE,
+        name: Optional[str] = None,
     ) -> None:
         """Initializes a frozen circuit.
 
@@ -63,8 +64,10 @@ class FrozenCircuit(AbstractCircuit):
                 from `contents`, this determines how the operations are packed
                 together.
             device: Hardware that the circuit should be able to run on.
+            name: (Optional) A name for this circuit.
         """
         base = Circuit(contents, strategy=strategy, device=device)
+        self._name = name
         self._moments = tuple(base.moments)
         self._device = base.device
 
@@ -86,8 +89,18 @@ class FrozenCircuit(AbstractCircuit):
     def device(self) -> devices.Device:
         return self._device
 
+    @property
+    def name(self) -> Optional[str]:
+        return self._name
+
     def __hash__(self):
         return hash((self.moments, self.device))
+
+    def serialization_key(self):
+        if self.name is None:
+            # In the absence of a name, use a unique ID.
+            return f'Circuit_{hash(self) % int(1e6):06d}:'
+        return f'{self.name}:'
 
     # Memoized methods for commonly-retrieved properties.
 

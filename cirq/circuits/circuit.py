@@ -108,6 +108,10 @@ class AbstractCircuit(abc.ABC):
     def device(self) -> devices.Device:
         pass
 
+    @property
+    def name(self) -> Optional[str]:
+        return None
+
     def freeze(self) -> 'cirq.FrozenCircuit':
         """Creates a FrozenCircuit from this circuit.
 
@@ -215,17 +219,14 @@ class AbstractCircuit(abc.ABC):
 
     def __repr__(self) -> str:
         cls_name = self.__class__.__name__
-        if not self.moments and self.device == devices.UNCONSTRAINED_DEVICE:
-            return f'cirq.{cls_name}()'
-
-        if not self.moments:
-            return f'cirq.{cls_name}(device={self.device!r})'
-
-        moment_repr = _list_repr_with_indented_item_lines(self.moments)
-        if self.device == devices.UNCONSTRAINED_DEVICE:
-            return f'cirq.{cls_name}({moment_repr})'
-
-        return f'cirq.{cls_name}({moment_repr}, device={self.device!r})'
+        args = []
+        if self.moments:
+            args.append(_list_repr_with_indented_item_lines(self.moments))
+        if self.device != devices.UNCONSTRAINED_DEVICE:
+            args.append(f'device={self.device!r}')
+        if self.name != None:
+            args.append(f'name={self.name!r}')
+        return f'cirq.{cls_name}({", ".join(args)})'
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Print ASCII diagram in Jupyter."""
@@ -762,12 +763,42 @@ class AbstractCircuit(abc.ABC):
 
         Returns:
             Whether or not all `Operation` s in a circuit that satisfy the
-            given predicate are terminal.
+            given predicate are terminal. Also checks within any CircuitGates
+            the circuit may contain.
         """
-        return all(
+        from cirq.circuits import CircuitOperation
+
+        # TaggedOperations can wrap CircuitOperations.
+        def is_circuit_op(op):
+            if isinstance(op, CircuitOperation):
+                return True
+            if isinstance(op, ops.TaggedOperation):
+                return is_circuit_op(op.sub_operation)
+            return False
+
+        if not all(
             self.next_moment_operating_on(op.qubits, i + 1) is None
             for (i, op) in self.findall_operations(predicate)
-        )
+            # TODO: this misbehaves with tagged CircuitOperations.
+            if not is_circuit_op(op)
+        ):
+            return False
+
+        for index, op in self.findall_operations(lambda op: is_circuit_op(op)):
+            while isinstance(op, ops.TaggedOperation):
+                op = op.sub_operation
+            assert isinstance(
+                op, CircuitOperation
+            ), f'is_circuit_op captured a non-circuit operation: {op}'
+            if not op.circuit.are_all_matches_terminal(predicate):
+                return False
+            if index < len(self.moments) - 1 and not all(
+                self.next_moment_operating_on(op.qubits, index + 1) is None
+                for _, op in op.circuit.findall_operations(predicate)
+            ):
+                return False
+
+        return True
 
     def _has_op_at(self, moment_index: int, qubits: Iterable['cirq.Qid']) -> bool:
         return 0 <= moment_index < len(self.moments) and self.moments[moment_index].operates_on(
