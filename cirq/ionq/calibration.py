@@ -53,7 +53,7 @@ class Calibration:
         """Returns the gate, measurement, and reseting timings."""
         return self._calibration_dict['timing']
 
-    def connectivity(self) -> Tuple[Tuple[int, int]]:
+    def connectivity(self) -> Tuple[Tuple[int, int], ...]:
         """Returns which qubits and can interact with which.
 
         Note that this only returns one of (q0, q1) and (q1, q0) if q0 and q1 can interact.
