@@ -279,11 +279,11 @@ class QubitsPartitioning:
             cir: program circuit
         """
 
-        twoQ_gs = len(
+        twoQ_gates = len(
             list(
                 cir.findall_operations(lambda op: op.gate == self.twoQ_gate_type
                                       )))
-        oneQ_gs = len(list(cir.all_operations())) - twoQ_gs
+        twoQ_gates = len(list(cir.all_operations())) - twoQ_gates
         qubits = len(cir.all_qubits())
 
         err_2 = 0
@@ -303,7 +303,7 @@ class QubitsPartitioning:
         avgF_2 = 1 - float(err_2 / count_2)
         avgF_1 = 1 - float(err_1 / len(partition))
         # to do : readout error
-        epst = pow(avgF_2, twoQ_gs) * pow(avgF_1, oneQ_gs) * pow(avgF_1, qubits)
+        epst = pow(avgF_2, twoQ_gates) * pow(avgF_1, twoQ_gates) * pow(avgF_1, qubits)
 
         return epst
 
@@ -857,7 +857,7 @@ def multi_prog_map(device_graph: nx.Graph,
         two_er: a dictionary that shows operation error of two-qubits gates
         prog_circuits: circuits of all programs
     """
-    
+
     twoQ_gate_type = cirq.CZ
     tree_obj = HierarchyTree(device_graph, single_er, two_er)
     tree = tree_obj.tree_construction()
