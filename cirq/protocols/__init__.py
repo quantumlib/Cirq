@@ -130,6 +130,7 @@ from cirq.protocols.resolve_parameters import (
     parameter_names,
     parameter_symbols,
     resolve_parameters,
+    resolve_parameters_once,
     SupportsParameterization,
 )
 from cirq.protocols.phase_protocol import (

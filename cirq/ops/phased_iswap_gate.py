@@ -98,11 +98,11 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         )
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolverOrSimilarType'
+        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
     ) -> 'PhasedISwapPowGate':
         return self.__class__(
-            phase_exponent=protocols.resolve_parameters(self.phase_exponent, resolver),
-            exponent=protocols.resolve_parameters(self.exponent, resolver),
+            phase_exponent=protocols.resolve_parameters(self.phase_exponent, resolver, recursive),
+            exponent=protocols.resolve_parameters(self.exponent, resolver, recursive),
         )
 
     def _with_exponent(self, exponent: value.type_alias.TParamVal) -> 'PhasedISwapPowGate':
