@@ -20,10 +20,8 @@ def test_example_runs_bernstein_vazirani_perf(benchmark):
 
     # Check empty oracle case. Cover both biases.
     a = cirq.NamedQubit('a')
-    assert list(examples.bernstein_vazirani.make_oracle(
-        [], a, [], False)) == []
-    assert list(examples.bernstein_vazirani.make_oracle(
-        [], a, [], True)) == [cirq.X(a)]
+    assert list(examples.bernstein_vazirani.make_oracle([], a, [], False)) == []
+    assert list(examples.bernstein_vazirani.make_oracle([], a, [], True)) == [cirq.X(a)]
 
 
 def test_example_runs_hello_line_perf(benchmark):

@@ -44,8 +44,10 @@ def test_assert_logs_valid_single_logs():
 
 
 def test_assert_logs_invalid_single_logs():
-    match = ('^dog expected to appear in log messages but it was not found. '
-             'Logs messages: \\[\'orange apple fruit\'\\].$')
+    match = (
+        '^dog expected to appear in log messages but it was not found. '
+        'Logs messages: \\[\'orange apple fruit\'\\].$'
+    )
     with pytest.raises(AssertionError, match=match):
         with cirq.testing.assert_logs('dog'):
             logging.error('orange apple fruit')
@@ -84,21 +86,21 @@ def test_assert_logs_valid_multiple_logs():
 
 def test_assert_logs_invalid_multiple_logs():
     match = '^Expected 1 log message but got 2.$'
-    with pytest.raises(AssertionError,
-                       match='^Expected 1 log message but got 2.$'):
+    with pytest.raises(AssertionError, match='^Expected 1 log message but got 2.$'):
         with cirq.testing.assert_logs('dog'):
             logging.error('orange apple fruit')
             logging.error('dog')
 
-    with pytest.raises(AssertionError,
-                       match='^Expected 2 log message but got 3.$'):
+    with pytest.raises(AssertionError, match='^Expected 2 log message but got 3.$'):
         with cirq.testing.assert_logs('dog', count=2):
             logging.error('orange apple fruit')
             logging.error('other')
             logging.error('dog')
 
-    match = ('^dog expected to appear in log messages but it was not found. '
-             'Logs messages: \\[\'orange\', \'other\', \'whatever\'\\].$')
+    match = (
+        '^dog expected to appear in log messages but it was not found. '
+        'Logs messages: \\[\'orange\', \'other\', \'whatever\'\\].$'
+    )
     with pytest.raises(AssertionError, match=match):
         with cirq.testing.assert_logs('dog', count=3):
             logging.error('orange')
@@ -138,7 +140,6 @@ def test_assert_logs_warnings():
             logging.error('orange apple fruit')
             warnings.warn('warn')
 
-        with pytest.raises(AssertionError,
-                           match='^Expected 1 log message but got 0.$'):
+        with pytest.raises(AssertionError, match='^Expected 1 log message but got 0.$'):
             with cirq.testing.assert_logs('apple', capture_warnings=False):
                 warnings.warn('orange apple fruit')

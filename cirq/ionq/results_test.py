@@ -30,23 +30,10 @@ def test_qpu_result_str():
 def test_qpu_result_eq():
     equals_tester = cirq.testing.EqualsTester()
     equals_tester.add_equality_group(
-        ionq.QPUResult({
-            0: 10,
-            1: 10
-        }, num_qubits=1), ionq.QPUResult({
-            0: 10,
-            1: 10
-        }, num_qubits=1))
-    equals_tester.add_equality_group(
-        ionq.QPUResult({
-            0: 10,
-            1: 20
-        }, num_qubits=1))
-    equals_tester.add_equality_group(
-        ionq.QPUResult({
-            0: 10,
-            1: 20
-        }, num_qubits=2))
+        ionq.QPUResult({0: 10, 1: 10}, num_qubits=1), ionq.QPUResult({0: 10, 1: 10}, num_qubits=1)
+    )
+    equals_tester.add_equality_group(ionq.QPUResult({0: 10, 1: 20}, num_qubits=1))
+    equals_tester.add_equality_group(ionq.QPUResult({0: 10, 1: 20}, num_qubits=2))
 
 
 def test_simulator_result_fields():
@@ -63,20 +50,8 @@ def test_simulator_result_str():
 def test_simulator_result_eq():
     equals_tester = cirq.testing.EqualsTester()
     equals_tester.add_equality_group(
-        ionq.SimulatorResult({
-            0: 0.5,
-            1: 0.5
-        }, num_qubits=1), ionq.SimulatorResult({
-            0: 0.5,
-            1: 0.5
-        }, num_qubits=1))
-    equals_tester.add_equality_group(
-        ionq.SimulatorResult({
-            0: 0.4,
-            1: 0.6
-        }, num_qubits=1))
-    equals_tester.add_equality_group(
-        ionq.SimulatorResult({
-            0: 0.4,
-            1: 0.6
-        }, num_qubits=2))
+        ionq.SimulatorResult({0: 0.5, 1: 0.5}, num_qubits=1),
+        ionq.SimulatorResult({0: 0.5, 1: 0.5}, num_qubits=1),
+    )
+    equals_tester.add_equality_group(ionq.SimulatorResult({0: 0.4, 1: 0.6}, num_qubits=1))
+    equals_tester.add_equality_group(ionq.SimulatorResult({0: 0.4, 1: 0.6}, num_qubits=2))

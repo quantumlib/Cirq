@@ -83,7 +83,11 @@ _CALIBRATION = qtypes.QuantumCalibration(
             int32_val: 12300
         }]
     }]
-""", v2.metrics_pb2.MetricsSnapshot())))
+""",
+            v2.metrics_pb2.MetricsSnapshot(),
+        )
+    ),
+)
 
 _DEVICE_SPEC = _to_any(
     Merge(
@@ -105,28 +109,26 @@ valid_targets: [{
         ids: ['0_0']
     }]
 }]
-""", v2.device_pb2.DeviceSpecification()))
+""",
+        v2.device_pb2.DeviceSpecification(),
+    )
+)
 
 
 _GATE_SET = cg.SerializableGateSet(
     gate_set_name='x_gate_set',
-    serializers=[
-        cg.GateOpSerializer(gate_type=cirq.XPowGate,
-                            serialized_gate_id='x',
-                            args=[])
-    ],
+    serializers=[cg.GateOpSerializer(gate_type=cirq.XPowGate, serialized_gate_id='x', args=[])],
     deserializers=[
-        cg.GateOpDeserializer(serialized_gate_id='x',
-                              gate_constructor=cirq.XPowGate,
-                              args=[])
+        cg.GateOpDeserializer(serialized_gate_id='x', gate_constructor=cirq.XPowGate, args=[])
     ],
 )
 
 
 @pytest.fixture(scope='session', autouse=True)
 def mock_grpc_client():
-    with mock.patch('cirq.google.engine.engine_client'
-                    '.quantum.QuantumEngineServiceClient') as _fixture:
+    with mock.patch(
+        'cirq.google.engine.engine_client.quantum.QuantumEngineServiceClient'
+    ) as _fixture:
         yield _fixture
 
 
@@ -137,70 +139,59 @@ def test_engine():
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.get_processor')
 def test_health(get_processor):
-    get_processor.return_value = qtypes.QuantumProcessor(
-        health=qtypes.QuantumProcessor.Health.OK)
+    get_processor.return_value = qtypes.QuantumProcessor(health=qtypes.QuantumProcessor.Health.OK)
     processor = cg.EngineProcessor(
         'a',
         'p',
         EngineContext(),
-        _processor=qtypes.QuantumProcessor(
-            health=qtypes.QuantumProcessor.Health.DOWN))
+        _processor=qtypes.QuantumProcessor(health=qtypes.QuantumProcessor.Health.DOWN),
+    )
     assert processor.health() == 'OK'
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.get_processor')
 def test_expected_down_time(get_processor):
-    processor = cg.EngineProcessor('a',
-                                   'p',
-                                   EngineContext(),
-                                   _processor=qtypes.QuantumProcessor())
+    processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor())
     assert not processor.expected_down_time()
 
     get_processor.return_value = qtypes.QuantumProcessor(
-        expected_down_time=qtypes.timestamp_pb2.Timestamp(seconds=1581515101))
+        expected_down_time=qtypes.timestamp_pb2.Timestamp(seconds=1581515101)
+    )
 
-    assert cg.EngineProcessor(
-        'a', 'p', EngineContext()).expected_down_time() == datetime.datetime(
-            2020, 2, 12, 13, 45, 1)
+    assert cg.EngineProcessor('a', 'p', EngineContext()).expected_down_time() == datetime.datetime(
+        2020, 2, 12, 13, 45, 1
+    )
     get_processor.assert_called_once()
 
 
 def test_expected_recovery_time():
-    processor = cg.EngineProcessor('a',
-                                   'p',
-                                   EngineContext(),
-                                   _processor=qtypes.QuantumProcessor())
+    processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor())
     assert not processor.expected_recovery_time()
     processor = cg.EngineProcessor(
         'a',
         'p',
         EngineContext(),
         _processor=qtypes.QuantumProcessor(
-            expected_recovery_time=qtypes.timestamp_pb2.Timestamp(
-                seconds=1581515101)))
-    assert processor.expected_recovery_time() == datetime.datetime(
-        2020, 2, 12, 13, 45, 1)
+            expected_recovery_time=qtypes.timestamp_pb2.Timestamp(seconds=1581515101)
+        ),
+    )
+    assert processor.expected_recovery_time() == datetime.datetime(2020, 2, 12, 13, 45, 1)
 
 
 def test_supported_languages():
-    processor = cg.EngineProcessor('a',
-                                   'p',
-                                   EngineContext(),
-                                   _processor=qtypes.QuantumProcessor())
+    processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor())
     assert processor.supported_languages() == []
-    processor = cg.EngineProcessor('a',
-                                   'p',
-                                   EngineContext(),
-                                   _processor=qtypes.QuantumProcessor(
-                                       supported_languages=['lang1', 'lang2']))
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=qtypes.QuantumProcessor(supported_languages=['lang1', 'lang2']),
+    )
     assert processor.supported_languages() == ['lang1', 'lang2']
 
 
 def test_get_device_specification():
-    processor = cg.EngineProcessor('a',
-                                   'p',
-                                   EngineContext(),
-                                   _processor=qtypes.QuantumProcessor())
+    processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor())
     assert not processor.get_device_specification()
 
     # Construct expected device proto based on example
@@ -220,19 +211,15 @@ def test_get_device_specification():
     new_target.ids.extend(['0_0'])
 
     processor = cg.EngineProcessor(
-        'a',
-        'p',
-        EngineContext(),
-        _processor=qtypes.QuantumProcessor(device_spec=_DEVICE_SPEC))
+        'a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor(device_spec=_DEVICE_SPEC)
+    )
     assert processor.get_device_specification() == expected
 
 
 def test_get_device():
     processor = cg.EngineProcessor(
-        'a',
-        'p',
-        EngineContext(),
-        _processor=qtypes.QuantumProcessor(device_spec=_DEVICE_SPEC))
+        'a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor(device_spec=_DEVICE_SPEC)
+    )
     device = processor.get_device(gate_sets=[_GATE_SET])
     assert device.qubits == [cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)]
     device.validate_operation(cirq.X(cirq.GridQubit(0, 0)))
@@ -243,10 +230,7 @@ def test_get_device():
 
 
 def test_get_missing_device():
-    processor = cg.EngineProcessor('a',
-                                   'p',
-                                   EngineContext(),
-                                   _processor=qtypes.QuantumProcessor())
+    processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor())
     with pytest.raises(ValueError, match='device specification'):
         _ = processor.get_device(gate_sets=[_GATE_SET])
 
@@ -255,23 +239,20 @@ def test_get_missing_device():
 def test_list_calibrations(list_calibrations):
     list_calibrations.return_value = [_CALIBRATION]
     processor = cg.EngineProcessor('a', 'p', EngineContext())
-    assert [c.timestamp for c in processor.list_calibrations()
-           ] == [1562544000021]
+    assert [c.timestamp for c in processor.list_calibrations()] == [1562544000021]
     list_calibrations.assert_called_with('a', 'p', '')
-    assert [c.timestamp for c in processor.list_calibrations(1562500000000)
-           ] == [1562544000021]
+    assert [c.timestamp for c in processor.list_calibrations(1562500000000)] == [1562544000021]
     list_calibrations.assert_called_with('a', 'p', 'timestamp >= 1562500000000')
     assert [
-        c.timestamp for c in processor.list_calibrations(
-            latest_timestamp_seconds=1562600000000)
+        c.timestamp for c in processor.list_calibrations(latest_timestamp_seconds=1562600000000)
     ] == [1562544000021]
     list_calibrations.assert_called_with('a', 'p', 'timestamp <= 1562600000000')
-    assert [
-        c.timestamp
-        for c in processor.list_calibrations(1562500000000, 1562600000000)
-    ] == [1562544000021]
+    assert [c.timestamp for c in processor.list_calibrations(1562500000000, 1562600000000)] == [
+        1562544000021
+    ]
     list_calibrations.assert_called_with(
-        'a', 'p', 'timestamp >= 1562500000000 AND timestamp <= 1562600000000')
+        'a', 'p', 'timestamp >= 1562500000000 AND timestamp <= 1562600000000'
+    )
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.get_calibration')
@@ -284,8 +265,7 @@ def test_get_calibration(get_calibration):
     get_calibration.assert_called_once_with('a', 'p', 1562544000021)
 
 
-@mock.patch(
-    'cirq.google.engine.engine_client.EngineClient.get_current_calibration')
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_current_calibration')
 def test_current_calibration(get_current_calibration):
     get_current_calibration.return_value = _CALIBRATION
     processor = cg.EngineProcessor('a', 'p', EngineContext())
@@ -295,8 +275,7 @@ def test_current_calibration(get_current_calibration):
     get_current_calibration.assert_called_once_with('a', 'p')
 
 
-@mock.patch(
-    'cirq.google.engine.engine_client.EngineClient.get_current_calibration')
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_current_calibration')
 def test_missing_latest_calibration(get_current_calibration):
     get_current_calibration.return_value = None
     processor = cg.EngineProcessor('a', 'p', EngineContext())
@@ -317,10 +296,16 @@ def test_create_reservation(create_reservation):
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
     assert processor.create_reservation(
         datetime.datetime.fromtimestamp(1000000000),
-        datetime.datetime.fromtimestamp(1000003600), ['dstrain@google.com'])
+        datetime.datetime.fromtimestamp(1000003600),
+        ['dstrain@google.com'],
+    )
     create_reservation.assert_called_once_with(
-        'proj', 'p0', datetime.datetime.fromtimestamp(1000000000),
-        datetime.datetime.fromtimestamp(1000003600), ['dstrain@google.com'])
+        'proj',
+        'p0',
+        datetime.datetime.fromtimestamp(1000000000),
+        datetime.datetime.fromtimestamp(1000003600),
+        ['dstrain@google.com'],
+    )
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.delete_reservation')
@@ -367,8 +352,11 @@ def test_remove_reservation_delete(delete_reservation, get_reservation):
     get_reservation.return_value = result
     delete_reservation.return_value = result
     processor = cg.EngineProcessor(
-        'proj', 'p0', EngineContext(),
-        qtypes.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)))
+        'proj',
+        'p0',
+        EngineContext(),
+        qtypes.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)),
+    )
     assert processor.remove_reservation('rid') == result
     delete_reservation.assert_called_once_with('proj', 'p0', 'rid')
 
@@ -387,8 +375,11 @@ def test_remove_reservation_cancel(cancel_reservation, get_reservation):
     get_reservation.return_value = result
     cancel_reservation.return_value = result
     processor = cg.EngineProcessor(
-        'proj', 'p0', EngineContext(),
-        qtypes.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)))
+        'proj',
+        'p0',
+        EngineContext(),
+        qtypes.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)),
+    )
     assert processor.remove_reservation('rid') == result
     cancel_reservation.assert_called_once_with('proj', 'p0', 'rid')
 
@@ -397,8 +388,11 @@ def test_remove_reservation_cancel(cancel_reservation, get_reservation):
 def test_remove_reservation_not_found(get_reservation):
     get_reservation.return_value = None
     processor = cg.EngineProcessor(
-        'proj', 'p0', EngineContext(),
-        qtypes.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)))
+        'proj',
+        'p0',
+        EngineContext(),
+        qtypes.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)),
+    )
     with pytest.raises(ValueError):
         processor.remove_reservation('rid')
 
@@ -423,8 +417,7 @@ def test_remove_reservation_failures(get_reservation, get_processor):
         processor.remove_reservation('rid')
 
     # No freeze period defined
-    processor = cg.EngineProcessor('proj', 'p0', EngineContext(),
-                                   qtypes.QuantumProcessor())
+    processor = cg.EngineProcessor('proj', 'p0', EngineContext(), qtypes.QuantumProcessor())
     with pytest.raises(ValueError):
         processor.remove_reservation('rid')
 
@@ -457,15 +450,10 @@ def test_update_reservation(update_reservation):
     end = datetime.datetime.fromtimestamp(1000003600)
     update_reservation.return_value = result
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
-    assert processor.update_reservation('rid', start, end,
-                                        ['dstrain@google.com']) == result
+    assert processor.update_reservation('rid', start, end, ['dstrain@google.com']) == result
     update_reservation.assert_called_once_with(
-        'proj',
-        'p0',
-        'rid',
-        start=start,
-        end=end,
-        whitelisted_users=['dstrain@google.com'])
+        'proj', 'p0', 'rid', start=start, end=end, whitelisted_users=['dstrain@google.com']
+    )
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.list_reservations')
@@ -487,11 +475,15 @@ def test_list_reservation(list_reservations):
     ]
     list_reservations.return_value = results
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
-    assert processor.list_reservations(
-        datetime.datetime.fromtimestamp(1000000000),
-        datetime.datetime.fromtimestamp(1000010000)) == results
+    assert (
+        processor.list_reservations(
+            datetime.datetime.fromtimestamp(1000000000), datetime.datetime.fromtimestamp(1000010000)
+        )
+        == results
+    )
     list_reservations.assert_called_once_with(
-        'proj', 'p0', 'start_time < 1000010000 AND end_time > 1000000000')
+        'proj', 'p0', 'start_time < 1000010000 AND end_time > 1000000000'
+    )
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.list_time_slots')
@@ -513,16 +505,21 @@ def test_get_schedule(list_time_slots):
             end_time=Timestamp(seconds=1000020000),
             slot_type=qenums.QuantumTimeSlot.TimeSlotType.RESERVATION,
             reservation_config=qtypes.QuantumTimeSlot.ReservationConfig(
-                project_id='super_secret_quantum'),
-        )
+                project_id='super_secret_quantum'
+            ),
+        ),
     ]
     list_time_slots.return_value = results
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
-    assert processor.get_schedule(
-        datetime.datetime.fromtimestamp(1000000000),
-        datetime.datetime.fromtimestamp(1000050000)) == results
+    assert (
+        processor.get_schedule(
+            datetime.datetime.fromtimestamp(1000000000), datetime.datetime.fromtimestamp(1000050000)
+        )
+        == results
+    )
     list_time_slots.assert_called_once_with(
-        'proj', 'p0', 'start_time < 1000050000 AND end_time > 1000000000')
+        'proj', 'p0', 'start_time < 1000050000 AND end_time > 1000000000'
+    )
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.list_time_slots')
@@ -542,13 +539,19 @@ def test_get_schedule_filter_by_time_slot(list_time_slots):
     list_time_slots.return_value = results
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
 
-    assert processor.get_schedule(
-        datetime.datetime.fromtimestamp(1000000000),
-        datetime.datetime.fromtimestamp(1000050000),
-        qenums.QuantumTimeSlot.TimeSlotType.MAINTENANCE) == results
+    assert (
+        processor.get_schedule(
+            datetime.datetime.fromtimestamp(1000000000),
+            datetime.datetime.fromtimestamp(1000050000),
+            qenums.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
+        )
+        == results
+    )
     list_time_slots.assert_called_once_with(
-        'proj', 'p0', 'start_time < 1000050000 AND end_time > 1000000000 AND ' +
-        'time_slot_type = MAINTENANCE')
+        'proj',
+        'p0',
+        'start_time < 1000050000 AND end_time > 1000000000 AND ' + 'time_slot_type = MAINTENANCE',
+    )
 
 
 @freezegun.freeze_time()
@@ -558,11 +561,11 @@ def test_get_schedule_time_filter_behavior(list_time_slots):
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
 
     now = int(datetime.datetime.now().timestamp())
-    in_two_weeks = int(
-        (datetime.datetime.now() + datetime.timedelta(weeks=2)).timestamp())
+    in_two_weeks = int((datetime.datetime.now() + datetime.timedelta(weeks=2)).timestamp())
     processor.get_schedule()
     list_time_slots.assert_called_with(
-        'proj', 'p0', f'start_time < {in_two_weeks} AND end_time > {now}')
+        'proj', 'p0', f'start_time < {in_two_weeks} AND end_time > {now}'
+    )
 
     with pytest.raises(ValueError, match='from_time of type'):
         processor.get_schedule(from_time=object())
@@ -576,8 +579,7 @@ def test_get_schedule_time_filter_behavior(list_time_slots):
     processor.get_schedule(from_time=datetime.timedelta(0), to_time=None)
     list_time_slots.assert_called_with('proj', 'p0', f'end_time > {now}')
 
-    processor.get_schedule(from_time=datetime.timedelta(seconds=200),
-                           to_time=None)
+    processor.get_schedule(from_time=datetime.timedelta(seconds=200), to_time=None)
     list_time_slots.assert_called_with('proj', 'p0', f'end_time > {now + 200}')
 
     test_timestamp = datetime.datetime.utcfromtimestamp(52)
@@ -588,10 +590,8 @@ def test_get_schedule_time_filter_behavior(list_time_slots):
     processor.get_schedule(from_time=None, to_time=datetime.timedelta(0))
     list_time_slots.assert_called_with('proj', 'p0', f'start_time < {now}')
 
-    processor.get_schedule(from_time=None,
-                           to_time=datetime.timedelta(seconds=200))
-    list_time_slots.assert_called_with('proj', 'p0',
-                                       f'start_time < {now + 200}')
+    processor.get_schedule(from_time=None, to_time=datetime.timedelta(seconds=200))
+    list_time_slots.assert_called_with('proj', 'p0', f'start_time < {now + 200}')
 
     processor.get_schedule(from_time=None, to_time=test_timestamp)
     list_time_slots.assert_called_with('proj', 'p0', f'start_time < {utc_ts}')
@@ -604,11 +604,11 @@ def test_list_reservations_time_filter_behavior(list_reservations):
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
 
     now = int(datetime.datetime.now().timestamp())
-    in_two_weeks = int(
-        (datetime.datetime.now() + datetime.timedelta(weeks=2)).timestamp())
+    in_two_weeks = int((datetime.datetime.now() + datetime.timedelta(weeks=2)).timestamp())
     processor.list_reservations()
     list_reservations.assert_called_with(
-        'proj', 'p0', f'start_time < {in_two_weeks} AND end_time > {now}')
+        'proj', 'p0', f'start_time < {in_two_weeks} AND end_time > {now}'
+    )
 
     with pytest.raises(ValueError, match='from_time of type'):
         processor.list_reservations(from_time=object())
@@ -622,10 +622,8 @@ def test_list_reservations_time_filter_behavior(list_reservations):
     processor.list_reservations(from_time=datetime.timedelta(0), to_time=None)
     list_reservations.assert_called_with('proj', 'p0', f'end_time > {now}')
 
-    processor.list_reservations(from_time=datetime.timedelta(seconds=200),
-                                to_time=None)
-    list_reservations.assert_called_with('proj', 'p0',
-                                         f'end_time > {now + 200}')
+    processor.list_reservations(from_time=datetime.timedelta(seconds=200), to_time=None)
+    list_reservations.assert_called_with('proj', 'p0', f'end_time > {now + 200}')
 
     test_timestamp = datetime.datetime.utcfromtimestamp(52)
     utc_ts = int(test_timestamp.timestamp())
@@ -635,10 +633,8 @@ def test_list_reservations_time_filter_behavior(list_reservations):
     processor.list_reservations(from_time=None, to_time=datetime.timedelta(0))
     list_reservations.assert_called_with('proj', 'p0', f'start_time < {now}')
 
-    processor.list_reservations(from_time=None,
-                                to_time=datetime.timedelta(seconds=200))
-    list_reservations.assert_called_with('proj', 'p0',
-                                         f'start_time < {now + 200}')
+    processor.list_reservations(from_time=None, to_time=datetime.timedelta(seconds=200))
+    list_reservations.assert_called_with('proj', 'p0', f'start_time < {now + 200}')
 
     processor.list_reservations(from_time=None, to_time=test_timestamp)
     list_reservations.assert_called_with('proj', 'p0', f'start_time < {utc_ts}')
@@ -646,5 +642,4 @@ def test_list_reservations_time_filter_behavior(list_reservations):
 
 def test_str():
     processor = cg.EngineProcessor('a', 'p', EngineContext())
-    assert str(
-        processor) == 'EngineProcessor(project_id=\'a\', processor_id=\'p\')'
+    assert str(processor) == 'EngineProcessor(project_id=\'a\', processor_id=\'p\')'

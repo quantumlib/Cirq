@@ -27,28 +27,25 @@ SKIP_NOTEBOOKS = [
     "**/google/*.ipynb",
     "**/pasqal/*.ipynb",
     "**/aqt/*.ipynb",
-
     # skipping quantum volume notebooks as they have issues
     # see https://github.com/quantumlib/Cirq/issues/3501
     "examples/advanced/*.ipynb",
-
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
-    "examples/*fidelity*"
+    "examples/*fidelity*",
 ]
 
 
 def _tested_notebooks():
     all_notebooks = set(glob.glob("**/*.ipynb", recursive=True))
     skipped_notebooks = functools.reduce(
-        lambda a, b: a.union(b),
-        list(set(glob.glob(g, recursive=True)) for g in SKIP_NOTEBOOKS))
+        lambda a, b: a.union(b), list(set(glob.glob(g, recursive=True)) for g in SKIP_NOTEBOOKS)
+    )
 
     # sorted is important otherwise pytest-xdist will complain that
     # the workers have differnent parametrization:
     # https://github.com/pytest-dev/pytest-xdist/issues/432
-    return sorted(
-        os.path.abspath(n) for n in all_notebooks.difference(skipped_notebooks))
+    return sorted(os.path.abspath(n) for n in all_notebooks.difference(skipped_notebooks))
 
 
 TESTED_NOTEBOOKS = _tested_notebooks()
@@ -72,8 +69,10 @@ def base_env(tmp_path_factory, worker_id):
     with FileLock(str(proto_dir) + ".lock"):
         if proto_dir.is_dir():
             print(f"{worker_id} returning as {proto_dir} is a dir!")
-            print(f"If all the notebooks are failing, the test framework might "
-                  f"have left this directory around. Try 'rm -rf {proto_dir}'")
+            print(
+                f"If all the notebooks are failing, the test framework might "
+                f"have left this directory around. Try 'rm -rf {proto_dir}'"
+            )
         else:
             print(f"{worker_id} creating stuff...")
             create_base_env(proto_dir)
@@ -102,11 +101,13 @@ def test_notebooks(notebook_path, base_env):
 cd {notebook_env}
 . ./bin/activate
 papermill {notebook_path}"""
-    stdout, stderr, status = shell_tools.run_shell(cmd=cmd,
-                                                   log_run_to_stderr=False,
-                                                   raise_on_fail=False,
-                                                   out=shell_tools.TeeCapture(),
-                                                   err=shell_tools.TeeCapture())
+    stdout, stderr, status = shell_tools.run_shell(
+        cmd=cmd,
+        log_run_to_stderr=False,
+        raise_on_fail=False,
+        out=shell_tools.TeeCapture(),
+        err=shell_tools.TeeCapture(),
+    )
 
     if status != 0:
         print(stdout)

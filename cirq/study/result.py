@@ -268,7 +268,7 @@ class Result:
             '{' + ', '.join([item_repr(e) for e in self.measurements.items()]) + '}'
         )
 
-        return f'cirq.Result(params={self.params!r}, ' f'measurements={measurement_dict_repr})'
+        return f'cirq.Result(params={self.params!r}, measurements={measurement_dict_repr})'
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Output to show in ipython and Jupyter notebooks."""

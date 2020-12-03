@@ -49,5 +49,4 @@ class _UnconstrainedDevice(device.Device):
 
 
 UNCONSTRAINED_DEVICE: device.Device = _UnconstrainedDevice()
-document(UNCONSTRAINED_DEVICE,
-         """A device with no constraints on operations or qubits.""")
+document(UNCONSTRAINED_DEVICE, """A device with no constraints on operations or qubits.""")

@@ -18,8 +18,14 @@ import sympy
 
 from cirq import value, protocols
 from cirq._compat import proper_repr
-from cirq.ops import (raw_types, common_gates, pauli_string as ps, pauli_gates,
-                      op_tree, pauli_string_raw_types)
+from cirq.ops import (
+    raw_types,
+    common_gates,
+    pauli_string as ps,
+    pauli_gates,
+    op_tree,
+    pauli_string_raw_types,
+)
 
 if TYPE_CHECKING:
     import cirq
@@ -34,11 +40,13 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
     their amplitude multiplied by e^(i pi exponent_pos).
     """
 
-    def __init__(self,
-                 pauli_string: ps.PauliString,
-                 *,
-                 exponent_neg: Union[int, float, sympy.Basic] = 1,
-                 exponent_pos: Union[int, float, sympy.Basic] = 0) -> None:
+    def __init__(
+        self,
+        pauli_string: ps.PauliString,
+        *,
+        exponent_neg: Union[int, float, sympy.Basic] = 1,
+        exponent_pos: Union[int, float, sympy.Basic] = 0,
+    ) -> None:
         """Initializes the operation.
 
         Args:
@@ -56,7 +64,8 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
         if pauli_string.coefficient != 1:
             raise ValueError(
                 "Given PauliString doesn't have +1 and -1 eigenvalues. "
-                "pauli_string.coefficient must be 1 or -1.")
+                "pauli_string.coefficient must be 1 or -1."
+            )
 
         super().__init__(pauli_string)
         self.exponent_neg = value.canonicalize_half_turns(exponent_neg)
@@ -64,8 +73,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
 
     @property
     def exponent_relative(self) -> Union[int, float, sympy.Basic]:
-        return value.canonicalize_half_turns(self.exponent_neg -
-                                             self.exponent_pos)
+        return value.canonicalize_half_turns(self.exponent_neg - self.exponent_pos)
 
     def _value_equality_values_(self):
         return (
@@ -82,19 +90,18 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
         return False
 
     def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]):
-        return PauliStringPhasor(self.pauli_string.map_qubits(qubit_map),
-                                 exponent_neg=self.exponent_neg,
-                                 exponent_pos=self.exponent_pos)
+        return PauliStringPhasor(
+            self.pauli_string.map_qubits(qubit_map),
+            exponent_neg=self.exponent_neg,
+            exponent_pos=self.exponent_pos,
+        )
 
-    def __pow__(self,
-                exponent: Union[float, sympy.Symbol]) -> 'PauliStringPhasor':
+    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'PauliStringPhasor':
         pn = protocols.mul(self.exponent_neg, exponent, None)
         pp = protocols.mul(self.exponent_pos, exponent, None)
         if pn is None or pp is None:
             return NotImplemented
-        return PauliStringPhasor(self.pauli_string,
-                                 exponent_neg=pn,
-                                 exponent_pos=pp)
+        return PauliStringPhasor(self.pauli_string, exponent_neg=pn, exponent_pos=pp)
 
     def can_merge_with(self, op: 'PauliStringPhasor') -> bool:
         return self.pauli_string.equal_up_to_coefficient(op.pauli_string)
@@ -104,9 +111,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
             raise ValueError(f'Cannot merge operations: {self}, {op}')
         pp = self.exponent_pos + op.exponent_pos
         pn = self.exponent_neg + op.exponent_neg
-        return PauliStringPhasor(self.pauli_string,
-                                 exponent_pos=pp,
-                                 exponent_neg=pn)
+        return PauliStringPhasor(self.pauli_string, exponent_pos=pp, exponent_neg=pn)
 
     def _has_unitary_(self):
         return not self._is_parameterized_()
@@ -122,56 +127,56 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
         yield xor_decomp
 
         if self.exponent_neg:
-            yield pauli_gates.Z(any_qubit)**self.exponent_neg
+            yield pauli_gates.Z(any_qubit) ** self.exponent_neg
         if self.exponent_pos:
             yield pauli_gates.X(any_qubit)
-            yield pauli_gates.Z(any_qubit)**self.exponent_pos
+            yield pauli_gates.Z(any_qubit) ** self.exponent_pos
             yield pauli_gates.X(any_qubit)
 
         yield protocols.inverse(xor_decomp)
         yield protocols.inverse(to_z_ops)
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                              ) -> 'cirq.CircuitDiagramInfo':
-        return self._pauli_string_diagram_info(args,
-                                               exponent=self.exponent_relative)
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        return self._pauli_string_diagram_info(args, exponent=self.exponent_relative)
 
     def _trace_distance_bound_(self) -> float:
         if len(self.qubits) == 0:
             return 0.0
-        return protocols.trace_distance_bound(
-            pauli_gates.Z**self.exponent_relative)
+        return protocols.trace_distance_bound(pauli_gates.Z ** self.exponent_relative)
 
     def _is_parameterized_(self) -> bool:
-        return (protocols.is_parameterized(self.exponent_neg) or
-                protocols.is_parameterized(self.exponent_pos))
+        return protocols.is_parameterized(self.exponent_neg) or protocols.is_parameterized(
+            self.exponent_pos
+        )
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        return (protocols.parameter_names(self.exponent_neg) |
-                protocols.parameter_names(self.exponent_pos))
+        return protocols.parameter_names(self.exponent_neg) | protocols.parameter_names(
+            self.exponent_pos
+        )
 
-    def _resolve_parameters_(self, param_resolver) -> 'PauliStringPhasor':
+    def _resolve_parameters_(self, param_resolver, recursive) -> 'PauliStringPhasor':
         return PauliStringPhasor(
             self.pauli_string,
-            exponent_neg=param_resolver.value_of(self.exponent_neg),
-            exponent_pos=param_resolver.value_of(self.exponent_pos))
+            exponent_neg=param_resolver.value_of(self.exponent_neg, recursive),
+            exponent_pos=param_resolver.value_of(self.exponent_pos, recursive),
+        )
 
-    def pass_operations_over(self,
-                             ops: Iterable[raw_types.Operation],
-                             after_to_before: bool = False
-                            ) -> 'PauliStringPhasor':
-        new_pauli_string = self.pauli_string.pass_operations_over(
-            ops, after_to_before)
+    def pass_operations_over(
+        self, ops: Iterable[raw_types.Operation], after_to_before: bool = False
+    ) -> 'PauliStringPhasor':
+        new_pauli_string = self.pauli_string.pass_operations_over(ops, after_to_before)
         pp = self.exponent_pos
         pn = self.exponent_neg
-        return PauliStringPhasor(new_pauli_string,
-                                 exponent_pos=pp,
-                                 exponent_neg=pn)
+        return PauliStringPhasor(new_pauli_string, exponent_pos=pp, exponent_neg=pn)
 
     def __repr__(self) -> str:
-        return (f'cirq.PauliStringPhasor({self.pauli_string!r}, '
-                f'exponent_neg={proper_repr(self.exponent_neg)}, '
-                f'exponent_pos={proper_repr(self.exponent_pos)})')
+        return (
+            f'cirq.PauliStringPhasor({self.pauli_string!r}, '
+            f'exponent_neg={proper_repr(self.exponent_neg)}, '
+            f'exponent_pos={proper_repr(self.exponent_pos)})'
+        )
 
     def __str__(self) -> str:
         if self.exponent_pos == -self.exponent_neg:
@@ -181,9 +186,9 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
         return f'({self.pauli_string})**{self.exponent_relative}'
 
 
-def xor_nonlocal_decompose(qubits: Iterable[raw_types.Qid],
-                           onto_qubit: 'cirq.Qid'
-                          ) -> Iterable[raw_types.Operation]:
+def xor_nonlocal_decompose(
+    qubits: Iterable[raw_types.Qid], onto_qubit: 'cirq.Qid'
+) -> Iterable[raw_types.Operation]:
     """Decomposition ignores connectivity."""
     for qubit in qubits:
         if qubit != onto_qubit:

@@ -17,7 +17,6 @@ import cirq
 
 
 def test_trace_distance_bound():
-
     class NoMethod:
         pass
 
@@ -38,14 +37,11 @@ def test_trace_distance_bound():
 
     x = cirq.MatrixGate(cirq.unitary(cirq.X))
     cx = cirq.MatrixGate(cirq.unitary(cirq.CX))
-    cxh = cirq.MatrixGate(cirq.unitary(cirq.CX**0.5))
+    cxh = cirq.MatrixGate(cirq.unitary(cirq.CX ** 0.5))
 
-    assert np.isclose(cirq.trace_distance_bound(x),
-                      cirq.trace_distance_bound(cirq.X))
-    assert np.isclose(cirq.trace_distance_bound(cx),
-                      cirq.trace_distance_bound(cirq.CX))
-    assert np.isclose(cirq.trace_distance_bound(cxh),
-                      cirq.trace_distance_bound(cirq.CX**0.5))
+    assert np.isclose(cirq.trace_distance_bound(x), cirq.trace_distance_bound(cirq.X))
+    assert np.isclose(cirq.trace_distance_bound(cx), cirq.trace_distance_bound(cirq.CX))
+    assert np.isclose(cirq.trace_distance_bound(cxh), cirq.trace_distance_bound(cirq.CX ** 0.5))
     assert cirq.trace_distance_bound(NoMethod()) == 1.0
     assert cirq.trace_distance_bound(ReturnsNotImplemented()) == 1.0
     assert cirq.trace_distance_bound(ReturnsTwo()) == 1.0
