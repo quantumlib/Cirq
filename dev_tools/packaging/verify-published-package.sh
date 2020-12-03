@@ -16,8 +16,8 @@
 
 ################################################################################
 # Downloads and tests cirq wheels from the pypi package repository.
-# Can verify prod, test, or unstable versions.
-#   --unstable: cirq-unstable from prod pypi
+# Can verify prod, test, or pre-release versions.
+#   --pre: pre-release cirq from prod pypi
 #   --test: cirq from test pypi
 #   --prod: cirq from prod pypi
 #
@@ -27,7 +27,7 @@
 # dependencies disagree, the tests can spuriously fail.
 #
 # Usage:
-#     dev_tools/packaging/verify-published-package.sh PACKAGE_VERSION --test|--prod|--unstable
+#     dev_tools/packaging/verify-published-package.sh PACKAGE_VERSION --test|--prod|--pre
 ################################################################################
 
 set -e
@@ -44,19 +44,19 @@ if [ -z "${PROJECT_VERSION}" ]; then
 fi
 
 if [ "${PROD_SWITCH}" = "--test" ]; then
-    PYPI_REPOSITORY_FLAG="--index-url=https://test.pypi.org/simple/"
+    PIP_FLAGS="--index-url=https://test.pypi.org/simple/"
     PYPI_REPO_NAME="TEST"
     PYPI_PROJECT_NAME="cirq"
 elif [ "${PROD_SWITCH}" = "--prod" ]; then
-    PYPI_REPOSITORY_FLAG=''
+    PIP_FLAGS=''
     PYPI_REPO_NAME="PROD"
     PYPI_PROJECT_NAME="cirq"
-elif [ "${PROD_SWITCH}" = "--unstable" ]; then
-    PYPI_REPOSITORY_FLAG=''
+elif [ "${PROD_SWITCH}" = "--pre" ]; then
+    PIP_FLAGS='--pre'
     PYPI_REPO_NAME="PROD"
-    PYPI_PROJECT_NAME="cirq-unstable"
+    PYPI_PROJECT_NAME="cirq"
 else
-    echo -e "\033[31mSecond argument must be '--prod' or '--test' or '--unstable'.\033[0m"
+    echo -e "\033[31mSecond argument must be '--prod' or '--test' or '--pre'.\033[0m"
     exit 1
 fi
 
@@ -85,7 +85,7 @@ for PYTHON_VERSION in python3; do
         "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet -r "${RUNTIME_DEPS_FILE}"
     fi
     echo Installing "${PYPI_PROJECT_NAME}==${PROJECT_VERSION} from ${PYPI_REPO_NAME} pypi"
-    "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet ${PYPI_REPOSITORY_FLAG} "${PYPI_PROJECT_NAME}==${PROJECT_VERSION}"
+    "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet ${PIP_FLAGS} "${PYPI_PROJECT_NAME}==${PROJECT_VERSION}"
 
     # Check that code runs without dev deps.
     echo Checking that code executes

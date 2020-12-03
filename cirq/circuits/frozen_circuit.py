@@ -164,5 +164,7 @@ class FrozenCircuit(AbstractCircuit):
     ) -> 'FrozenCircuit':
         return self.unfreeze().with_device(new_device, qubit_mapping).freeze()
 
-    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver') -> 'FrozenCircuit':
-        return self.unfreeze()._resolve_parameters_(param_resolver).freeze()
+    def _resolve_parameters_(
+        self, param_resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'FrozenCircuit':
+        return self.unfreeze()._resolve_parameters_(param_resolver, recursive).freeze()
