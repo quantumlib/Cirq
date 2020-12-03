@@ -78,8 +78,8 @@ if (( only_changed == 1 )); then
     fi
 
     # Get the modified and added python files. Lines in git diff --name-status look like this:
-    #M       cirq/__init__.py
-    #A       cirq/added.py
+    # M       cirq/__init__.py
+    # A       cirq/added.py
     modified_files=$(git diff --name-status ${rev} -- | grep '\.py$' | grep -v '_pb2\.py$' | grep '^[MA].*$' | awk '{print $2}')
 
     # Get the moved python files. Lines in git diff --name-status look like this:
