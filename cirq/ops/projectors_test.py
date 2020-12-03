@@ -18,14 +18,6 @@ def test_projector_qid():
     np.testing.assert_allclose(one_projector.matrix(), [[0.0, 0.0], [0.0, 1.0]])
 
 
-def test_explicit_matrix():
-    q0 = cirq.NamedQubit('q0')
-
-    d = cirq.Projector(projection_matrices={q0: np.asarray([[1.0, 2.0], [3.0, 4.0]])})
-
-    np.testing.assert_allclose(d.matrix(), [[1.0, 2.0], [3.0, 4.0]])
-
-
 def test_projector_from_np_array():
     q0 = cirq.NamedQubit('q0')
 

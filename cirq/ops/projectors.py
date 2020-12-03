@@ -69,8 +69,7 @@ class Projector:
 
     def __init__(
         self,
-        projection_bases: Optional[Dict[ProjKey, Sequence[STATE_VECTOR_LIKE]]] = None,
-        projection_matrices: Optional[Dict[ProjKey, np.ndarray]] = None,
+        projection_bases: Optional[Dict[ProjKey, Sequence[STATE_VECTOR_LIKE]]],
         enforce_orthonormal_basis: bool = False,
     ):
         """
@@ -86,9 +85,6 @@ class Projector:
         Raises:
             ValueError: If the basis vector is empty.
         """
-        projection_bases = projection_bases if projection_bases else {}
-        projection_matrices = projection_matrices if projection_matrices else {}
-
         self._projection_bases = {}
         for qids, projection_basis in projection_bases.items():
             qid_shape = qid_shape_from_proj_key(qids)
@@ -105,33 +101,26 @@ class Projector:
                 raise ValueError('Vectors in basis must be linearly independent')
 
             self._projection_bases[qids] = projection_array
-        self._projection_matrices = projection_matrices
 
     def _projection_bases_(self) -> np.ndarray:
         return self._projection_bases
 
     def _proj_matrix(self, proj_key: ProjKey) -> np.ndarray:
-        if proj_key in self._projection_bases:
-            projection_basis = self._projection_bases[proj_key]
+        projection_basis = self._projection_bases[proj_key]
 
-            # Make rows into columns
-            A = projection_basis.T
-            # Left pseudo-inverse
-            pseudoinverse = np.linalg.pinv(A)
-            # Projector to the range (column space) of A
-            P = A @ pseudoinverse
-            return P
-        else:
-            return self._projection_matrices[proj_key]
-
-    def _all_proj_keys(self):
-        return list(self._projection_bases.keys()) + list(self._projection_matrices.keys())
+        # Make rows into columns
+        A = projection_basis.T
+        # Left pseudo-inverse
+        pseudoinverse = np.linalg.pinv(A)
+        # Projector to the range (column space) of A
+        P = A @ pseudoinverse
+        return P
 
     def matrix(self, proj_keys: Optional[Iterable[ProjKey]] = None) -> Iterable[np.ndarray]:
-        proj_keys = self._all_proj_keys() if proj_keys is None else proj_keys
+        proj_keys = self._projection_bases.keys() if proj_keys is None else proj_keys
         factors = []
         for proj_key in proj_keys:
-            if proj_key not in self._all_proj_keys():
+            if proj_key not in self._projection_bases.keys():
                 qid_shape = qid_shape_from_proj_key(proj_key)
                 factors.append(np.eye(np.prod(qid_shape)))
             else:
@@ -149,7 +138,7 @@ class Projector:
         dims = get_dims_from_qid_map(qid_map)
         state_vector = state_vector.reshape(dims)
 
-        for proj_key in self._all_proj_keys():
+        for proj_key in self._projection_bases.keys():
             idx = get_qid_indices(qid_map, proj_key)
             proj_dims = qid_shape_from_proj_key(proj_key)
             nr = len(idx)
@@ -174,7 +163,7 @@ class Projector:
         dims = get_dims_from_qid_map(qid_map)
         state = state.reshape(dims * 2)
 
-        for proj_key in self._all_proj_keys():
+        for proj_key in self._projection_bases.keys():
             idx = get_qid_indices(qid_map, proj_key)
             proj_dims = qid_shape_from_proj_key(proj_key)
             nr = len(idx)
@@ -198,7 +187,6 @@ class Projector:
             'cirq_type': self.__class__.__name__,
             # JSON requires mappings to have string keys.
             'projection_bases': list(self._projection_bases.items()),
-            'projection_matrices': list(self._projection_matrices.items()),
         }
 
     @classmethod
