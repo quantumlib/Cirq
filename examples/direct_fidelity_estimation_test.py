@@ -2,6 +2,8 @@ import numpy as np
 import pytest
 import cirq
 import cirq.google as cg
+from cirq.protocols import act_on
+from cirq.sim import clifford
 import examples.direct_fidelity_estimation as dfe
 
 
@@ -108,13 +110,17 @@ def test_same_pauli_traces_clifford():
         cirq.CNOT(qubits[0], qubits[2]),
     )
 
-    clifford_state = cirq.CliffordState(qubit_map={qubits[i]: i for i in range(len(qubits))})
+    qubit_map = {qubits[i]: i for i in range(n_qubits)}
+    clifford_tableau = cirq.CliffordTableau(n_qubits)
     for gate in circuit.all_operations():
-        clifford_state.apply_unitary(gate)
+        tableau_args = clifford.ActOnCliffordTableauArgs(
+            clifford_tableau, [qubit_map[i] for i in gate.qubits], np.random.RandomState(), {}
+        )
+        act_on(gate, tableau_args)
 
     # Run both algos
     pauli_traces_clifford = dfe._estimate_pauli_traces_clifford(
-        n_qubits, clifford_state, n_measured_operators=None
+        n_qubits, clifford_tableau, n_measured_operators=None
     )
     pauli_traces_general = dfe._estimate_pauli_traces_general(
         qubits, circuit, n_measured_operators=None
@@ -141,7 +147,7 @@ def test_direct_fidelity_estimation_intermediate_results():
     )
     # We only test a few fields to be sure that they are set properly. In
     # particular, some of them are random, and so we don't test them.
-    np.testing.assert_allclose(intermediate_result.clifford_state.ch_form.gamma, [0])
+    assert str(intermediate_result.clifford_tableau) == "+ Z "
 
     np.testing.assert_equal(len(intermediate_result.pauli_traces), 1)
     assert np.isclose(intermediate_result.pauli_traces[0].rho_i, 1.0)
