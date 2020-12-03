@@ -19,7 +19,7 @@ import pytest
 import cirq
 import cirq.work as cw
 from cirq.work.observable_measurement_data import (
-    _get_real_coef,
+    _check_and_get_real_coef,
     _obs_vals_from_measurements,
     _stats_from_measurements,
 )
@@ -28,10 +28,10 @@ from cirq.work.observable_settings import _MeasurementSpec
 
 def test_get_real_coef():
     q0 = cirq.LineQubit(0)
-    assert _get_real_coef(cirq.Z(q0) * 2) == 2
-    assert _get_real_coef(cirq.Z(q0) * complex(2.0)) == 2
+    assert _check_and_get_real_coef(cirq.Z(q0) * 2, atol=1e-8) == 2
+    assert _check_and_get_real_coef(cirq.Z(q0) * complex(2.0), atol=1e-8) == 2
     with pytest.raises(ValueError):
-        _get_real_coef(cirq.Z(q0) * 2.0j)
+        _check_and_get_real_coef(cirq.Z(q0) * 2.0j, atol=1e-8)
 
 
 def test_obs_vals_from_measurements():
@@ -47,7 +47,7 @@ def test_obs_vals_from_measurements():
     b = cirq.NamedQubit('b')
     qubit_to_index = {a: 0, b: 1}
     obs = cirq.Z(a) * cirq.Z(b) * 10
-    vals = _obs_vals_from_measurements(bitstrings, qubit_to_index, obs)
+    vals = _obs_vals_from_measurements(bitstrings, qubit_to_index, obs, atol=1e-8)
     should_be = [10, -10, -10, 10]
     np.testing.assert_equal(vals, should_be)
 
@@ -65,7 +65,7 @@ def test_stats_from_measurements():
     b = cirq.NamedQubit('b')
     qubit_to_index = {a: 0, b: 1}
     obs = cirq.Z(a) * cirq.Z(b) * 10
-    mean, err = _stats_from_measurements(bitstrings, qubit_to_index, obs)
+    mean, err = _stats_from_measurements(bitstrings, qubit_to_index, obs, atol=1e-8)
 
     # The mean is zero since our bitstrings have balanced even- and odd-
     # partiy cases.

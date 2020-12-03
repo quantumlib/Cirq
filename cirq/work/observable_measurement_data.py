@@ -31,16 +31,19 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _get_real_coef(observable: 'cirq.PauliString'):
+def _check_and_get_real_coef(observable: 'cirq.PauliString', atol: float):
     """Assert that a PauliString has a real coefficient and return it."""
     coef = observable.coefficient
-    if not np.isclose(coef.imag, 0):
+    if not np.isclose(coef.imag, 0, atol=atol):
         raise ValueError(f"{observable} has a complex coefficient.")
     return coef.real
 
 
 def _obs_vals_from_measurements(
-    bitstrings: np.ndarray, qubit_to_index: Dict['cirq.Qid', int], observable: 'cirq.PauliString'
+    bitstrings: np.ndarray,
+    qubit_to_index: Dict['cirq.Qid', int],
+    observable: 'cirq.PauliString',
+    atol: float,
 ):
     """Multiply together bitstrings to get observed values of operators."""
     idxs = [qubit_to_index[q] for q in observable.keys()]
@@ -49,7 +52,7 @@ def _obs_vals_from_measurements(
     selected_bitstrings = np.asarray(bitstrings[:, idxs], dtype=np.int8)
     # Transform bits to eigenvalues; ie (+1, -1)
     selected_obsstrings = 1 - 2 * selected_bitstrings
-    coeff = _get_real_coef(observable)
+    coeff = _check_and_get_real_coef(observable, atol=atol)
     obs_vals = coeff * np.prod(selected_obsstrings, axis=1)
     return obs_vals
 
@@ -58,10 +61,11 @@ def _stats_from_measurements(
     bitstrings: np.ndarray,
     qubit_to_index: Dict['cirq.Qid', int],
     observable: 'cirq.PauliString',
+    atol: float,
 ) -> Tuple[float, float]:
     """Return the mean and squared standard error of the mean for the given
     observable according to the measurements in `bitstrings`."""
-    obs_vals = _obs_vals_from_measurements(bitstrings, qubit_to_index, observable)
+    obs_vals = _obs_vals_from_measurements(bitstrings, qubit_to_index, observable, atol=atol)
     obs_mean = np.mean(obs_vals)
 
     # Terminology: This isn't technically the variance. It's the
@@ -330,12 +334,15 @@ class BitstringAccumulator:
         s += '\n'.join('  ' + self.summary_string(setting) for setting in self._simul_settings)
         return s
 
-    def covariance(self) -> np.ndarray:
+    def covariance(self, *, atol=1e-8) -> np.ndarray:
         """Compute the covariance matrix for the estimators of all settings.
 
         Like `variance`, this is the covariance of the sampling distribution
         of the sample mean. Practically, it is the 'normal' covariance
         divided by the number of observations (bitstrings).
+
+        Args:
+            atol: The absolute tolerance for asserting coefficients are real.
         """
         if len(self.bitstrings) == 0:
             raise ValueError("No measurements")
@@ -346,6 +353,7 @@ class BitstringAccumulator:
                     bitstrings=self.bitstrings,
                     qubit_to_index=self._qubit_to_index,
                     observable=setting.observable,
+                    atol=atol,
                 )
                 for setting in self._simul_settings
             ]
@@ -368,7 +376,7 @@ class BitstringAccumulator:
                 f"with this BitstringAccumulator's meas_spec."
             )
 
-    def variance(self, setting: InitObsSetting):
+    def variance(self, setting: InitObsSetting, *, atol: float = 1e-8):
         """Compute the variance of the estimators of the given setting.
 
         This is the normal variance divided by the number of samples to estimate
@@ -379,6 +387,10 @@ class BitstringAccumulator:
         of the variance in a hypothetical infinite population for consistency
         with `BitstringAccumulator.covariance()` but differs from the default
         for `np.var`.
+
+        Args:
+            setting: The setting
+            atol: The absolute tolerance for asserting coefficients are real.
         """
         if len(self.bitstrings) == 0:
             raise ValueError("No measurements")
@@ -388,6 +400,7 @@ class BitstringAccumulator:
             bitstrings=self.bitstrings,
             qubit_to_index=self._qubit_to_index,
             observable=setting.observable,
+            atol=atol,
         )
 
         if self._readout_calibration is not None:
@@ -406,15 +419,15 @@ class BitstringAccumulator:
 
         return var
 
-    def stderr(self, setting: InitObsSetting):
+    def stderr(self, setting: InitObsSetting, *, atol: float = 1e-8):
         """The standard error of the estimators for `setting`."""
-        return np.sqrt(self.variance(setting))
+        return np.sqrt(self.variance(setting, atol=atol))
 
-    def means(self) -> np.ndarray:
+    def means(self, *, atol: float = 1e-8) -> np.ndarray:
         """Estimates of the means of the settings in this accumulator."""
-        return np.asarray([self.mean(setting) for setting in self.simul_settings])
+        return np.asarray([self.mean(setting, atol=atol) for setting in self.simul_settings])
 
-    def mean(self, setting: InitObsSetting):
+    def mean(self, setting: InitObsSetting, *, atol: float = 1e-8):
         """Estimates of the mean of `setting`."""
         if len(self.bitstrings) == 0:
             raise ValueError("No measurements")
@@ -424,10 +437,11 @@ class BitstringAccumulator:
             bitstrings=self.bitstrings,
             qubit_to_index=self._qubit_to_index,
             observable=setting.observable,
+            atol=atol,
         )
 
         if self._readout_calibration is not None:
-            return mean / self._readout_calibration.mean(setting)
+            return mean / self._readout_calibration.mean(setting, atol=atol)
 
         return mean
 
