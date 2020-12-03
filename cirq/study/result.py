@@ -390,7 +390,6 @@ def _unpack_digits(
         shape = cast(Sequence[int], shape)
         return _unpack_bits(packed_digits, dtype, shape)
 
-    # TODO: `dtype` and `shape` are unused if `binary` is False.
     buffer = io.BytesIO()
     buffer.write(bytes.fromhex(packed_digits))
     buffer.seek(0)
