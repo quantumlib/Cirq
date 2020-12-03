@@ -15,14 +15,17 @@
 import dataclasses
 import datetime
 import itertools
-from typing import Dict, List, Tuple, \
-    TYPE_CHECKING
+from typing import Dict, List, Tuple, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import protocols
-from cirq.work.observable_settings import InitObsSetting, _max_weight_observable, _max_weight_state, \
-    _MeasurementSpec
+from cirq.work.observable_settings import (
+    InitObsSetting,
+    _max_weight_observable,
+    _max_weight_state,
+    _MeasurementSpec,
+)
 
 if TYPE_CHECKING:
     import cirq
@@ -36,9 +39,9 @@ def _get_real_coef(observable: 'cirq.PauliString'):
     return coef.real
 
 
-def _obs_vals_from_measurements(bitstrings: np.ndarray,
-                                qubit_to_index: Dict['cirq.Qid', int],
-                                observable: 'cirq.PauliString'):
+def _obs_vals_from_measurements(
+    bitstrings: np.ndarray, qubit_to_index: Dict['cirq.Qid', int], observable: 'cirq.PauliString'
+):
     """Multiply together bitstrings to get observed values of operators."""
     idxs = [qubit_to_index[q] for q in observable.keys()]
     # Make sure any unit8's coming in get a sign. eigenvalues will be +- 1.
@@ -51,14 +54,14 @@ def _obs_vals_from_measurements(bitstrings: np.ndarray,
     return obs_vals
 
 
-def _stats_from_measurements(bitstrings: np.ndarray,
-                             qubit_to_index: Dict['cirq.Qid', int],
-                             observable: 'cirq.PauliString',
-                             ) -> Tuple[float, float]:
+def _stats_from_measurements(
+    bitstrings: np.ndarray,
+    qubit_to_index: Dict['cirq.Qid', int],
+    observable: 'cirq.PauliString',
+) -> Tuple[float, float]:
     """Return the mean and squared standard error of the mean for the given
     observable according to the measurements in `bitstrings`."""
-    obs_vals = _obs_vals_from_measurements(
-        bitstrings, qubit_to_index, observable)
+    obs_vals = _obs_vals_from_measurements(bitstrings, qubit_to_index, observable)
     obs_mean = np.mean(obs_vals)
 
     # Terminology: This isn't technically the variance. It's the
@@ -83,6 +86,7 @@ class ObservableMeasuredResult:
     between simultaneously-measured observables which is dropped when you
     flatten into these objects.
     """
+
     setting: InitObsSetting
     mean: float
     variance: float
@@ -143,15 +147,16 @@ class BitstringAccumulator:
             calibrated value to correct the requested quantity.
     """
 
-    def __init__(self,
-                 meas_spec: _MeasurementSpec,
-                 simul_settings: List[InitObsSetting],
-                 qubit_to_index: Dict['cirq.Qid', int],
-                 bitstrings: np.ndarray = None,
-                 chunksizes: np.ndarray = None,
-                 timestamps: np.ndarray = None,
-                 readout_calibration: 'BitstringAccumulator' = None,
-                 ):
+    def __init__(
+        self,
+        meas_spec: _MeasurementSpec,
+        simul_settings: List[InitObsSetting],
+        qubit_to_index: Dict['cirq.Qid', int],
+        bitstrings: np.ndarray = None,
+        chunksizes: np.ndarray = None,
+        timestamps: np.ndarray = None,
+        readout_calibration: 'BitstringAccumulator' = None,
+    ):
         self._meas_spec = meas_spec
         self._simul_settings = simul_settings
         self._qubit_to_index = qubit_to_index
@@ -176,12 +181,14 @@ class BitstringAccumulator:
         if len(self.chunksizes) != len(self.timestamps):
             raise ValueError(
                 "Invalid BitstringAccumulator state. "
-                "`chunksizes` and `timestamps` must have the same length.")
+                "`chunksizes` and `timestamps` must have the same length."
+            )
 
         if np.sum(self.chunksizes) != len(self.bitstrings):
             raise ValueError(
                 "Invalid BitstringAccumulator state. "
-                "`chunksizes` must sum to the number of bitstrings.")
+                "`chunksizes` must sum to the number of bitstrings."
+            )
 
     @property
     def meas_spec(self):
@@ -210,12 +217,9 @@ class BitstringAccumulator:
         to `meas_spec` (how could we?) so please be careful. Consider
         using `measure_observables` rather than calling this method yourself.
         """
-        self.bitstrings = np.append(
-            self.bitstrings, bitstrings, axis=0)
-        self.chunksizes = np.append(
-            self.chunksizes, [len(bitstrings)], axis=0)
-        self.timestamps = np.append(
-            self.timestamps, [np.datetime64(datetime.datetime.now())])
+        self.bitstrings = np.append(self.bitstrings, bitstrings, axis=0)
+        self.chunksizes = np.append(self.chunksizes, [len(bitstrings)], axis=0)
+        self.timestamps = np.append(self.timestamps, [np.datetime64(datetime.datetime.now())])
 
     @property
     def n_repetitions(self):
@@ -231,7 +235,7 @@ class BitstringAccumulator:
                 mean=self.mean(setting),
                 variance=self.variance(setting),
                 repetitions=len(self.bitstrings),
-                circuit_params=self._meas_spec.circuit_params
+                circuit_params=self._meas_spec.circuit_params,
             )
 
     @property
@@ -249,6 +253,7 @@ class BitstringAccumulator:
 
     def _json_dict_(self):
         from cirq.study.result import _pack_digits
+
         def ndarray_to_hex_str(a):
             return _pack_digits(a, pack_bits='never')[0]
 
@@ -263,29 +268,42 @@ class BitstringAccumulator:
         }
 
     @classmethod
-    def _from_json_dict_(cls, *, meas_spec, simul_settings,
-                         qubit_to_index, bitstrings, chunksizes,
-                         timestamps, **kwargs):
+    def _from_json_dict_(
+        cls,
+        *,
+        meas_spec,
+        simul_settings,
+        qubit_to_index,
+        bitstrings,
+        chunksizes,
+        timestamps,
+        **kwargs,
+    ):
         from cirq.study.result import _unpack_digits
+
         def hex_str_to_ndarray(hexstr):
             # When binary=False, the other arguments are not needed.
             return _unpack_digits(hexstr, binary=False, dtype=None, shape=None)
 
-        return cls(meas_spec=meas_spec,
-                   simul_settings=simul_settings,
-                   qubit_to_index=dict(qubit_to_index),
-                   bitstrings=hex_str_to_ndarray(bitstrings),
-                   chunksizes=hex_str_to_ndarray(chunksizes),
-                   timestamps=hex_str_to_ndarray(timestamps))
+        return cls(
+            meas_spec=meas_spec,
+            simul_settings=simul_settings,
+            qubit_to_index=dict(qubit_to_index),
+            bitstrings=hex_str_to_ndarray(bitstrings),
+            chunksizes=hex_str_to_ndarray(chunksizes),
+            timestamps=hex_str_to_ndarray(timestamps),
+        )
 
     def __eq__(self, other):
         if not isinstance(other, BitstringAccumulator):
             return False
 
-        if (self.max_setting != other.max_setting
-                or self.simul_settings != other.simul_settings
-                or self.circuit_params != other.circuit_params
-                or self.qubit_to_index != other.qubit_to_index):
+        if (
+            self.max_setting != other.max_setting
+            or self.simul_settings != other.simul_settings
+            or self.circuit_params != other.circuit_params
+            or self.qubit_to_index != other.qubit_to_index
+        ):
             return False
 
         if not np.array_equal(self.bitstrings, other.bitstrings):
@@ -300,15 +318,16 @@ class BitstringAccumulator:
         return True
 
     def summary_string(self, setting: InitObsSetting, number_fmt='.3f'):
-        return f'{setting}: {self.mean(setting):{number_fmt}} +- {self.stderr(setting):{number_fmt}}'
+        return (
+            f'{setting}: {self.mean(setting):{number_fmt}} +- {self.stderr(setting):{number_fmt}}'
+        )
 
     def __repr__(self):
         return repr(list(self.records))
 
     def __str__(self):
         s = f'Accumulator {self.max_setting}; {self.n_repetitions} repetitions\n'
-        s += '\n'.join('  ' + self.summary_string(setting)
-                       for setting in self._simul_settings)
+        s += '\n'.join('  ' + self.summary_string(setting) for setting in self._simul_settings)
         return s
 
     def covariance(self) -> np.ndarray:
@@ -321,12 +340,16 @@ class BitstringAccumulator:
         if len(self.bitstrings) == 0:
             raise ValueError("No measurements")
 
-        all_obs_vals = np.array([
-            _obs_vals_from_measurements(bitstrings=self.bitstrings,
-                                        qubit_to_index=self._qubit_to_index,
-                                        observable=setting.observable)
-            for setting in self._simul_settings
-        ])
+        all_obs_vals = np.array(
+            [
+                _obs_vals_from_measurements(
+                    bitstrings=self.bitstrings,
+                    qubit_to_index=self._qubit_to_index,
+                    observable=setting.observable,
+                )
+                for setting in self._simul_settings
+            ]
+        )
 
         # https://github.com/numpy/numpy/issues/11502
         if all_obs_vals.shape[0] == 1:
@@ -337,14 +360,13 @@ class BitstringAccumulator:
         return cov
 
     def _validate_setting(self, setting: InitObsSetting, what: str):
-        mws = _max_weight_state(
-            [self.max_setting.init_state, setting.init_state])
-        mwo = _max_weight_observable(
-            [self.max_setting.observable, setting.observable])
+        mws = _max_weight_state([self.max_setting.init_state, setting.init_state])
+        mwo = _max_weight_observable([self.max_setting.observable, setting.observable])
         if mws is None or mwo is None:
             raise ValueError(
                 f"You requested the {what} for a setting that is not compatible "
-                f"with this BitstringAccumulator's meas_spec.")
+                f"with this BitstringAccumulator's meas_spec."
+            )
 
     def variance(self, setting: InitObsSetting):
         """Compute the variance of the estimators of the given setting.
@@ -390,8 +412,7 @@ class BitstringAccumulator:
 
     def means(self) -> np.ndarray:
         """Estimates of the means of the settings in this accumulator."""
-        return np.asarray(
-            [self.mean(setting) for setting in self.simul_settings])
+        return np.asarray([self.mean(setting) for setting in self.simul_settings])
 
     def mean(self, setting: InitObsSetting):
         """Estimates of the mean of `setting`."""
@@ -411,8 +432,9 @@ class BitstringAccumulator:
         return mean
 
 
-def flatten_grouped_results(grouped_results: List[BitstringAccumulator]) \
-        -> List[ObservableMeasuredResult]:
+def flatten_grouped_results(
+    grouped_results: List[BitstringAccumulator],
+) -> List[ObservableMeasuredResult]:
     """Flatten results from a collection of BitstringAccumulators into a list
     of ObservableMeasuredResult.
 
@@ -426,5 +448,4 @@ def flatten_grouped_results(grouped_results: List[BitstringAccumulator]) \
         grouped_results: A list of BitstringAccumulators, probably returned
             from `measure_observables` or `measure_grouped_settings`.
     """
-    return list(itertools.chain.from_iterable(
-        acc.results for acc in grouped_results))
+    return list(itertools.chain.from_iterable(acc.results for acc in grouped_results))

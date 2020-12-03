@@ -18,8 +18,11 @@ import pytest
 
 import cirq
 import cirq.work as cw
-from cirq.work.observable_measurement_data import _get_real_coef, _obs_vals_from_measurements, \
-    _stats_from_measurements
+from cirq.work.observable_measurement_data import (
+    _get_real_coef,
+    _obs_vals_from_measurements,
+    _stats_from_measurements,
+)
 from cirq.work.observable_settings import _MeasurementSpec
 
 
@@ -28,16 +31,18 @@ def test_get_real_coef():
     assert _get_real_coef(cirq.Z(q0) * 2) == 2
     assert _get_real_coef(cirq.Z(q0) * complex(2.0)) == 2
     with pytest.raises(ValueError):
-        _get_real_coef(cirq.Z(q0) * 2.j)
+        _get_real_coef(cirq.Z(q0) * 2.0j)
 
 
 def test_obs_vals_from_measurements():
-    bitstrings = np.array([
-        [0, 0],
-        [0, 1],
-        [1, 0],
-        [1, 1],
-    ])
+    bitstrings = np.array(
+        [
+            [0, 0],
+            [0, 1],
+            [1, 0],
+            [1, 1],
+        ]
+    )
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     qubit_to_index = {a: 0, b: 1}
@@ -48,12 +53,14 @@ def test_obs_vals_from_measurements():
 
 
 def test_stats_from_measurements():
-    bitstrings = np.array([
-        [0, 0],
-        [0, 1],
-        [1, 0],
-        [1, 1],
-    ])
+    bitstrings = np.array(
+        [
+            [0, 0],
+            [0, 1],
+            [1, 0],
+            [1, 1],
+        ]
+    )
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     qubit_to_index = {a: 0, b: 1}
@@ -82,7 +89,7 @@ def test_observable_measured_result():
         mean=0,
         variance=5 ** 2,
         repetitions=4,
-        circuit_params={}
+        circuit_params={},
     )
     assert omr.stddev == 5
     assert omr.observable == cirq.Y(a) * cirq.Y(b)
@@ -93,14 +100,16 @@ def test_observable_measured_result():
 def example_bsa() -> 'cw.BitstringAccumulator':
     """Test fixture to create an (empty) example BitstringAccumulator"""
     q0, q1 = cirq.LineQubit.range(2)
-    setting = cw.InitObsSetting(init_state=cirq.KET_ZERO(q0) *
-                                           cirq.KET_ZERO(q1),
-                                observable=cirq.X(q0) * cirq.Y(q1))
-    meas_spec = _MeasurementSpec(max_setting=setting,
-                                 circuit_params={
-                                     'beta': 0.123,
-                                     'gamma': 0.456,
-                                 })
+    setting = cw.InitObsSetting(
+        init_state=cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1), observable=cirq.X(q0) * cirq.Y(q1)
+    )
+    meas_spec = _MeasurementSpec(
+        max_setting=setting,
+        circuit_params={
+            'beta': 0.123,
+            'gamma': 0.456,
+        },
+    )
     bsa = cw.BitstringAccumulator(
         meas_spec=meas_spec,
         simul_settings=[
@@ -120,12 +129,14 @@ def test_bitstring_accumulator(example_bsa):
     assert example_bsa.timestamps.shape == (0,)
 
     # test consume_results
-    bitstrings = np.array([
-        [0, 0],
-        [0, 1],
-        [1, 0],
-        [1, 1],
-    ])
+    bitstrings = np.array(
+        [
+            [0, 0],
+            [0, 1],
+            [1, 0],
+            [1, 1],
+        ]
+    )
     example_bsa.consume_results(bitstrings)
     assert example_bsa.bitstrings.shape == (4, 2)
     assert example_bsa.chunksizes.shape == (1,)
@@ -146,20 +157,25 @@ def test_bitstring_accumulator(example_bsa):
 
 
 def test_bitstring_accumulator_strings(example_bsa):
-    bitstrings = np.array([
-        [0, 0],
-        [0, 1],
-        [1, 0],
-        [1, 1],
-    ])
+    bitstrings = np.array(
+        [
+            [0, 0],
+            [0, 1],
+            [1, 0],
+            [1, 1],
+        ]
+    )
     example_bsa.consume_results(bitstrings)
 
     q0, q1 = cirq.LineQubit.range(2)
-    settings = cw.observables_to_settings([
-        cirq.X(q0),
-        cirq.Y(q1),
-        cirq.X(q0) * cirq.Y(q1),
-    ], qubits=[q0, q1])
+    settings = cw.observables_to_settings(
+        [
+            cirq.X(q0),
+            cirq.Y(q1),
+            cirq.X(q0) * cirq.Y(q1),
+        ],
+        qubits=[q0, q1],
+    )
 
     strings_should_be = [
         '+Z(0) * +Z(1) → X(0): 0.000 +- 0.577',
@@ -169,19 +185,24 @@ def test_bitstring_accumulator_strings(example_bsa):
     for setting, ssb in zip(settings, strings_should_be):
         assert example_bsa.summary_string(setting) == ssb, ssb
 
-    assert str(example_bsa) == """Accumulator +Z(0) * +Z(1) → X(0)*Y(1); 4 repetitions
+    assert (
+        str(example_bsa)
+        == """Accumulator +Z(0) * +Z(1) → X(0)*Y(1); 4 repetitions
   +Z(0) * +Z(1) → X(0)*Y(1): 0.000 +- 0.577
   +Z(0) * +Z(1) → X(0): 0.000 +- 0.577
   +Z(0) * +Z(1) → Y(1): 0.000 +- 0.577"""
+    )
 
 
 def test_bitstring_accumulator_equality():
-    bitstrings = np.array([
-        [0, 0],
-        [0, 1],
-        [1, 0],
-        [1, 1],
-    ])
+    bitstrings = np.array(
+        [
+            [0, 0],
+            [0, 1],
+            [1, 0],
+            [1, 1],
+        ]
+    )
     chunksizes = np.asarray([4])
     timestamps = np.asarray([datetime.datetime.now()])
     a = cirq.NamedQubit('a')
@@ -223,22 +244,24 @@ def test_bitstring_accumulator_equality():
 
 
 def test_bitstring_accumulator_stats():
-    bitstrings = np.array([
-        [0, 0],
-        [0, 1],
-        [1, 0],
-        [1, 1],
-    ])
+    bitstrings = np.array(
+        [
+            [0, 0],
+            [0, 1],
+            [1, 0],
+            [1, 1],
+        ]
+    )
     chunksizes = np.asarray([4])
     timestamps = np.asarray([datetime.datetime.now()])
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     qubit_to_index = {a: 0, b: 1}
-    settings = list(cw.observables_to_settings([
-        cirq.Z(a) * cirq.Z(b) * 7,
-        cirq.Z(a) * 5,
-        cirq.Z(b) * 3
-    ], qubits=[a, b]))
+    settings = list(
+        cw.observables_to_settings(
+            [cirq.Z(a) * cirq.Z(b) * 7, cirq.Z(a) * 5, cirq.Z(b) * 3], qubits=[a, b]
+        )
+    )
     meas_spec = _MeasurementSpec(settings[0], {})
 
     bsa = cw.BitstringAccumulator(
@@ -261,11 +284,13 @@ def test_bitstring_accumulator_stats():
     # value is +-1, so (x-xbar)(y-bar) is +-1 (neglecting observable coefficients)
     # For off-diagonal elements, there are two +1 and two -1 terms for each entry
     # so the total contribution is zero, and the matrix is diagonal
-    should_be = np.array([
-        [4 * 7 ** 2, 0, 0],
-        [0, 4 * 5 ** 2, 0],
-        [0, 0, 4 * 3 ** 2],
-    ])
+    should_be = np.array(
+        [
+            [4 * 7 ** 2, 0, 0],
+            [0, 4 * 5 ** 2, 0],
+            [0, 0, 4 * 3 ** 2],
+        ]
+    )
     should_be = should_be / (4 - 1)  # covariance formula
     should_be = should_be / 4  # cov of the distribution of sample mean
     np.testing.assert_allclose(should_be, bsa.covariance())
@@ -277,21 +302,20 @@ def test_bitstring_accumulator_stats():
 
 
 def test_bitstring_accumulator_stats_2():
-    bitstrings = np.array([
-        [0, 0],
-        [0, 0],
-        [1, 1],
-        [1, 1],
-    ])
+    bitstrings = np.array(
+        [
+            [0, 0],
+            [0, 0],
+            [1, 1],
+            [1, 1],
+        ]
+    )
     chunksizes = np.asarray([4])
     timestamps = np.asarray([datetime.datetime.now()])
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     qubit_to_index = {a: 0, b: 1}
-    settings = list(cw.observables_to_settings([
-        cirq.Z(a) * 5,
-        cirq.Z(b) * 3
-    ], qubits=[a, b]))
+    settings = list(cw.observables_to_settings([cirq.Z(a) * 5, cirq.Z(b) * 3], qubits=[a, b]))
     meas_spec = _MeasurementSpec(settings[0], {})
 
     bsa = cw.BitstringAccumulator(
@@ -312,10 +336,12 @@ def test_bitstring_accumulator_stats_2():
     # where xbar and ybar are 0, per above. Each individual observed
     # value is +-1, so (x-xbar)(y-bar) is +-1 (neglecting observable coefficients)
     # In this case, the measurements are perfectly correlated.
-    should_be = 4 * np.array([
-        [5 * 5, 5 * 3],
-        [3 * 5, 3 * 3],
-    ])
+    should_be = 4 * np.array(
+        [
+            [5 * 5, 5 * 3],
+            [3 * 5, 3 * 3],
+        ]
+    )
     should_be = should_be / (4 - 1)  # covariance formula
     should_be = should_be / 4  # cov of the distribution of sample mean
     np.testing.assert_allclose(should_be, bsa.covariance())
@@ -328,25 +354,32 @@ def test_bitstring_accumulator_stats_2():
 
 def test_flatten_grouped_results():
     q0, q1 = cirq.LineQubit.range(2)
-    settings = cw.observables_to_settings([
-        cirq.X(q0),
-        cirq.Y(q0),
-        cirq.Z(q0),
-        cirq.Z(q0) * cirq.Z(q1),
-    ], qubits=[q0, q1])
+    settings = cw.observables_to_settings(
+        [
+            cirq.X(q0),
+            cirq.Y(q0),
+            cirq.Z(q0),
+            cirq.Z(q0) * cirq.Z(q1),
+        ],
+        qubits=[q0, q1],
+    )
     grouped_settings = cw.group_settings_greedy(settings)
     bsas = []
     for max_setting, simul_settings in grouped_settings.items():
         bsa = cw.BitstringAccumulator(
             meas_spec=_MeasurementSpec(max_setting, {}),
             simul_settings=simul_settings,
-            qubit_to_index={q0: 0, q1: 1}
+            qubit_to_index={q0: 0, q1: 1},
         )
-        bsa.consume_results(np.array([
-            [0, 0],
-            [0, 0],
-            [0, 0],
-        ]))
+        bsa.consume_results(
+            np.array(
+                [
+                    [0, 0],
+                    [0, 0],
+                    [0, 0],
+                ]
+            )
+        )
         bsas.append(bsa)
 
     results = cw.flatten_grouped_results(bsas)
