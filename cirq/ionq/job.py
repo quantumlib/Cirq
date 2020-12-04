@@ -160,10 +160,15 @@ class Job:
         """Returns a dictionary of measurement keys to target qubit index."""
         measurement_dict: Dict[str, Sequence[int]] = {}
         if 'metadata' in self._job:
-            for key, value in self._job['metadata'].items():
-                # If we had to pass shots, ignore, it cannot be a measurement key.
-                if key == 'shots':
-                    continue
+            full_str = ''.join(
+                value
+                for key, value in self._job['metadata'].items()
+                if key.startswith('measurement')
+            )
+            if full_str == '':
+                return measurement_dict
+            for key_value in full_str.split(chr(30)):
+                key, value = key_value.split(chr(31))
                 measurement_dict[key] = [int(t) for t in value.split(',')]
         return measurement_dict
 

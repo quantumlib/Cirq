@@ -85,8 +85,7 @@ class Serializer:
             'qubits': num_qubits,
             'circuit': [op for op in serialized_ops if op['gate'] != 'meas'],
         }
-        metadata = {op['key']: op['targets'] for op in serialized_ops if op['gate'] == 'meas'}
-        self._validate_metadata(metadata)
+        metadata = self._serialize_measurements(op for op in serialized_ops if op['gate'] == 'meas')
         return SerializedProgram(body=body, metadata=metadata)
 
     def _validate_circuit(self, circuit: 'cirq.Circuit'):
@@ -108,25 +107,6 @@ class Serializer:
             )
         num_qubits = cast(line_qubit.LineQubit, max(all_qubits)).x + 1
         return num_qubits
-
-    def _validate_metadata(self, metadata: dict):
-        if len(metadata) > 9:
-            # API supports 10 keys, but we reserve one for storing repetitions.
-            raise ValueError(
-                'IonQ API only supports at most 9 measurement keys per circuit, '
-                f'but had {len(metadata)}.'
-            )
-        for key, value in metadata.items():
-            if len(key) > 10:
-                raise ValueError(
-                    'IonQ API only supports measurement keys of length at most 10, but had key'
-                    f'{key} of length {len(key)}.'
-                )
-            if len(value) > 40:
-                raise ValueError(
-                    'IonQ API only supports measurements whose targets, when written as a comma '
-                    f'separated value is at most 40. Target string was {value}.'
-                )
 
     def _serialize_circuit(self, circuit: 'cirq.Circuit') -> list:
         return [self._serialize_op(op) for moment in circuit for op in moment]
@@ -237,10 +217,41 @@ class Serializer:
         self, gate: 'cirq.MeasurementGate', targets: Sequence[int]
     ) -> dict:
         key = protocols.measurement_key(gate)
-        if key == 'shots':
-            raise ValueError('Measurement gates for IonQ API cannot have a key named "shots".')
+        if chr(31) in key or chr(30) in key:
+            raise ValueError(
+                'Measurement gates for IonQ API cannot have a key with a ascii unit'
+                f'or record separator in it. Key was {key}'
+            )
         return {'gate': 'meas', 'key': key, 'targets': ','.join(str(t) for t in targets)}
 
     def _near_mod_n(self, e: float, t: float, n: float) -> bool:
         """Returns whether a value, e, translated by t, is equal to 0 mod n."""
         return abs((e - t + 1) % n - 1) <= self.atol
+
+    def _serialize_measurements(self, meas_ops: list) -> Dict[str, str]:
+        """Serializes measurement ops into a form suitable to be passed via metadata.
+
+        IonQ API does not contain measurement gates, so we serialize measurement gate keys
+        and targets into a form that is suitable for passing through IonQ's metadata field
+        for a job.
+
+        Each key and targets are serialized into a string of the form `key` + the ASCII unit
+        separator (chr(31)) + targets as a comma separated value.  These are then combined
+        into a string with a seperator character of the ASCII record separator (chr(30)).
+        Finally this full string is serialized as the values in the metadata dict with keys
+        given by `measurementX` for X = 0,1, .. 9 and X large enough to contain the entire
+        string.
+        """
+        key_values = [f'{op["key"]}{chr(31)}{op["targets"]}' for op in meas_ops]
+        full_str = chr(30).join(key_values)
+        # IonQ maximum value size for metadata.
+        max_value_size = 40
+        split_strs = [
+            full_str[i : i + max_value_size] for i in range(0, len(full_str), max_value_size)
+        ]
+        if len(split_strs) > 9:
+            raise ValueError(
+                'Measurement keys plus target strings too long for IonQ API. Please use '
+                'smaller keys.'
+            )
+        return {f'measurement{i}': x for i, x in enumerate(split_strs)}

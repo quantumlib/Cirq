@@ -26,7 +26,7 @@ def test_job_fields():
         'name': 'bacon',
         'qubits': '5',
         'status': 'completed',
-        'metadata': {'shots': 1000, 'a': '0,1'},
+        'metadata': {'shots': 1000, 'measurement0': f'a{chr(31)}0,1'},
     }
     job = ionq.Job(None, job_dict)
     assert job.job_id() == 'my_id'
@@ -73,7 +73,7 @@ def test_job_results_qpu():
         'status': 'completed',
         'qubits': '2',
         'target': 'qpu',
-        'metadata': {'shots': 1000, 'a': '0,1'},
+        'metadata': {'shots': 1000, 'measurement0': f'a{chr(31)}0,1'},
         'data': {'histogram': {'0': '0.6', '2': '0.4'}},
     }
     job = ionq.Job(None, job_dict)

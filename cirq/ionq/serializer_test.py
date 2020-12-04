@@ -59,41 +59,6 @@ def test_serialize_implicit_num_qubits():
     assert result.body['qubits'] == 3
 
 
-def test_serialize_too_many_measurement_keys():
-    qubits = cirq.LineQubit.range(10)
-    circuit = cirq.Circuit([cirq.measure(q) for q in qubits])
-    serializer = ionq.Serializer()
-    with pytest.raises(ValueError, match='10'):
-        _ = serializer.serialize(circuit)
-
-
-def test_serialize_measurement_key_too_long():
-    q0 = cirq.LineQubit(0)
-    circuit = cirq.Circuit(cirq.measure(q0, key='0123456789a'))
-    serializer = ionq.Serializer()
-    with pytest.raises(ValueError, match='0123456789a'):
-        _ = serializer.serialize(circuit)
-
-
-def test_serialize_measurement_too_many_qubits():
-    qubits = cirq.LineQubit.range(18)
-    # Here we see that a comma value separates list of numbers from 0 to 17 is longer than
-    # the IonQ maximum of 18.
-    assert len(','.join(str(x) for x in range(18))) == 43
-    circuit = cirq.Circuit(cirq.measure(*qubits, key='x'))
-    serializer = ionq.Serializer()
-    with pytest.raises(ValueError, match='40'):
-        _ = serializer.serialize(circuit)
-
-
-def test_serialize_measurement_key_cannot_be_shots():
-    q0 = cirq.LineQubit(0)
-    circuit = cirq.Circuit(cirq.measure(q0, key='shots'))
-    serializer = ionq.Serializer()
-    with pytest.raises(ValueError, match='shots'):
-        _ = serializer.serialize(circuit)
-
-
 def test_serialize_non_gate_op_invalid():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.X(q0), cirq.GlobalPhaseOperation(1j))
@@ -246,7 +211,7 @@ def test_serialize_measurement_gate():
     serializer = ionq.Serializer()
     result = serializer.serialize(circuit)
     assert result == ionq.SerializedProgram(
-        body={'qubits': 1, 'circuit': []}, metadata={'tomyheart': '0'}
+        body={'qubits': 1, 'circuit': []}, metadata={'measurement0': f'tomyheart{chr(31)}0'}
     )
 
 
@@ -256,8 +221,55 @@ def test_serialize_measurement_gate_target_order():
     serializer = ionq.Serializer()
     result = serializer.serialize(circuit)
     assert result == ionq.SerializedProgram(
-        body={'qubits': 3, 'circuit': []}, metadata={'tomyheart': '2,0'}
+        body={'qubits': 3, 'circuit': []},
+        metadata={'measurement0': f'tomyheart{chr(31)}2,0'},
     )
+
+
+def test_serialize_measurement_gate_split_across_dict():
+    q0 = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.measure(q0, key='a' * 60))
+    serializer = ionq.Serializer()
+    result = serializer.serialize(circuit)
+    assert result.metadata['measurement0'] == 'a' * 40
+    assert result.metadata['measurement1'] == 'a' * 20 + f'{chr(31)}0'
+
+
+def test_serialize_measurement_gate_multiple_keys():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.measure(q0, key='a'), cirq.measure(q1, key='b'))
+    serializer = ionq.Serializer()
+    result = serializer.serialize(circuit)
+    assert result == ionq.SerializedProgram(
+        body={'qubits': 2, 'circuit': []},
+        metadata={'measurement0': f'a{chr(31)}0{chr(30)}b{chr(31)}1'},
+    )
+
+
+def test_serialize_measurement_string_too_long():
+    q = cirq.LineQubit(0)
+    # Max limit for metadata is 9 keys of length 40.  Here we create a key of length
+    # 40 * 9 - 1. When combined with one qubit for the qubit, 0, and the deliminator this
+    # is just too big to fix.
+    circuit = cirq.Circuit(cirq.measure(q, key='x' * (40 * 9 - 1)))
+    serializer = ionq.Serializer()
+    with pytest.raises(ValueError, match='too long'):
+        _ = serializer.serialize(circuit)
+    # Check that one fewer character is fine.
+    circuit = cirq.Circuit(cirq.measure(q, key='x' * (40 * 9 - 2)))
+    serializer = ionq.Serializer()
+    _ = serializer.serialize(circuit)
+
+
+def test_serialize_measurement_key_cannot_be_deliminator():
+    q0 = cirq.LineQubit(0)
+    serializer = ionq.Serializer()
+    circuit = cirq.Circuit(cirq.measure(q0, key=f'ab{chr(30)}'))
+    with pytest.raises(ValueError, match=f'ab{chr(30)}'):
+        _ = serializer.serialize(circuit)
+    circuit = cirq.Circuit(cirq.measure(q0, key=f'ab{chr(31)}'))
+    with pytest.raises(ValueError, match=f'ab{chr(31)}'):
+        _ = serializer.serialize(circuit)
 
 
 def test_serialize_not_serializable():

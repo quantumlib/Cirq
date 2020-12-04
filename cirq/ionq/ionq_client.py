@@ -93,7 +93,7 @@ class _IonQClient:
             AssertionError: if both `target` and `default_target` are not set.
         """
         assert target is not None or self.default_target is not None, (
-            'One must specify a target on this call, or a default_target on he service/client, '
+            'One must specify a target on this call, or a default_target on the service/client, '
             'but neither were set.'
         )
         return cast(str, target or self.default_target)
@@ -163,7 +163,7 @@ class _IonQClient:
             serialized_program: The `cirq.ionq.SerializedProgram` containing the serialized
                 information about the circuit to run.
             repetitions: The number of times to repeat the circuit. Only can be set if the target
-                is `qpu`. If not specified and target is `qpu`
+                is `qpu`. If not specified and target is `qpu`, number of repetitions is 100.
             target: If supplied the target to run on. Supports one of `qpu` or `simulator`. If not
                 set, uses `default_target`.
             name: An optional name of the job. Different than the `job_id` of the job.
