@@ -214,11 +214,11 @@ def _estimate_pauli_traces_clifford(
 
     pauli_traces: List[PauliTrace] = []
     for dense_pauli_string in dense_pauli_strings:
-        # The code below is equivalent to calling
-        # clifford_tableau.state_vector() and then calling
-        # compute_characteristic_function() on the results (albeit with a
-        # wave function instead of a density matrix). It is, however,
-        # unnecessary to do so. Instead we directly obtain the scalar rho_i.
+        # The code below is equivalent to getting the state vectors from the
+        # Clifford tableau and then calling compute_characteristic_function()
+        # on the results (albeit with a  wave function instead of a density
+        # matrix). It is, however, unnecessary to do so. Instead we directly
+        # obtain the scalar rho_i.
         rho_i = dense_pauli_string.coefficient
 
         assert np.isclose(rho_i.imag, 0.0, atol=1e-6)
@@ -464,7 +464,7 @@ def direct_fidelity_estimation(
         std_dev_estimate, std_dev_bound = None, None
 
     dfe_intermediate_result = DFEIntermediateResult(
-        clifford_tableau=clifford_tableau,
+        clifford_tableau=clifford_tableau if clifford_circuit else None,
         pauli_traces=pauli_traces,
         trial_results=trial_results,
         std_dev_estimate=std_dev_estimate,
