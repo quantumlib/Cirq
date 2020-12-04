@@ -194,10 +194,13 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         }
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolverOrSimilarType'
+        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
     ) -> 'ThreeQubitDiagonalGate':
         return self.__class__(
-            [protocols.resolve_parameters(angle, resolver) for angle in self._diag_angles_radians]
+            [
+                protocols.resolve_parameters(angle, resolver, recursive)
+                for angle in self._diag_angles_radians
+            ]
         )
 
     def _has_unitary_(self) -> bool:

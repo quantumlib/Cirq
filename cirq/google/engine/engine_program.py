@@ -536,10 +536,12 @@ class EngineProgram:
             program = batch.programs[program_num]
         if program:
             gate_set_map = {g.gate_set_name: g for g in gate_sets.GOOGLE_GATESETS}
-            try:
-                return gate_set_map[program.language.gate_set].deserialize(program)
-            except KeyError:
-                raise ValueError('unsupported gateset: {}'.format(program.language.gate_set))
+            if program.language.gate_set not in gate_set_map:
+                raise ValueError(
+                    f'Unknown gateset {program.language.gate_set}. '
+                    f'Supported gatesets: {list(gate_set_map.keys())}.'
+                )
+            return gate_set_map[program.language.gate_set].deserialize(program)
 
         raise ValueError('unsupported program type: {}'.format(code_type))
 

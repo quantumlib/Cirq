@@ -248,7 +248,9 @@ class _ParamFlattener(resolver.ParamResolver):
             symbol = sympy.Symbol('{}_{}'.format(name, collision))
         return symbol
 
-    def value_of(self, value: Union[sympy.Basic, float, str]) -> Union[sympy.Basic, float]:
+    def value_of(
+        self, value: Union[sympy.Basic, float, str], recursive: bool = False
+    ) -> Union[sympy.Basic, float]:
         """Resolves a symbol or expression to a new symbol unique to that value.
 
         - If value is a float, returns it.
@@ -260,6 +262,7 @@ class _ParamFlattener(resolver.ParamResolver):
         Args:
             value: The sympy.Symbol, sympy expression, name, or float to resolve
                 to a unique symbol or float.
+            recursive: Unused argument from ParamResolver.
 
         Returns:
             The unique symbol or value of the parameter as resolved by this

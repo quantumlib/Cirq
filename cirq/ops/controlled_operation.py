@@ -194,8 +194,8 @@ class ControlledOperation(raw_types.Operation):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self.sub_operation)
 
-    def _resolve_parameters_(self, resolver) -> 'ControlledOperation':
-        new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver)
+    def _resolve_parameters_(self, resolver, recursive) -> 'ControlledOperation':
+        new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver, recursive)
         return ControlledOperation(self.controls, new_sub_op, self.control_values)
 
     def _trace_distance_bound_(self) -> Optional[float]:
