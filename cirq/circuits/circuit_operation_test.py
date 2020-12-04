@@ -33,6 +33,8 @@ def test_properties():
     assert op.measurement_key_map == {'m': 'm'}
     assert op.param_resolver == cirq.ParamResolver({sympy.Symbol('exp'): sympy.Symbol('exp')})
     assert op.repetitions == 1
+    # Despite having the same decomposition, these objects are not equal.
+    assert op != circuit
 
 
 def test_with_qubits():
@@ -114,6 +116,9 @@ def test_repetition():
 
     with pytest.raises(ValueError):
         _ = op_base.repeat(-5, modulus=4, validate_modulus=True)
+
+    with pytest.raises(TypeError):
+        _ = op_base.repeat(1.3)
 
     op_with_reps = op_base.repeat(-5, modulus=8, validate_modulus=True)
     assert op_with_reps.repetitions == 3
