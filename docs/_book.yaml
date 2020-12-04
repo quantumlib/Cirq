@@ -147,8 +147,6 @@ upper_tabs:
       - heading: "Google hardware"
       - title: "Getting started with QCS"
         path: /cirq/tutorials/google/start
-      - title: "Reservations"
-        path: /cirq/tutorials/google/reservations
 
       ####  AQT HARDWARE  ####
       - heading: "AQT hardware"
