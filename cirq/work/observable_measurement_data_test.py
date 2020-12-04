@@ -135,7 +135,8 @@ def test_bitstring_accumulator(example_bsa):
             [0, 1],
             [1, 0],
             [1, 1],
-        ]
+        ],
+        dtype=np.uint8,
     )
     example_bsa.consume_results(bitstrings)
     assert example_bsa.bitstrings.shape == (4, 2)
@@ -163,7 +164,8 @@ def test_bitstring_accumulator_strings(example_bsa):
             [0, 1],
             [1, 0],
             [1, 1],
-        ]
+        ],
+        dtype=np.uint8,
     )
     example_bsa.consume_results(bitstrings)
 
@@ -201,7 +203,8 @@ def test_bitstring_accumulator_equality():
             [0, 1],
             [1, 0],
             [1, 1],
-        ]
+        ],
+        dtype=np.uint8,
     )
     chunksizes = np.asarray([4])
     timestamps = np.asarray([datetime.datetime.now()])
@@ -250,7 +253,8 @@ def test_bitstring_accumulator_stats():
             [0, 1],
             [1, 0],
             [1, 1],
-        ]
+        ],
+        dtype=np.uint8,
     )
     chunksizes = np.asarray([4])
     timestamps = np.asarray([datetime.datetime.now()])
@@ -308,7 +312,8 @@ def test_bitstring_accumulator_stats_2():
             [0, 0],
             [1, 1],
             [1, 1],
-        ]
+        ],
+        np.uint8,
     )
     chunksizes = np.asarray([4])
     timestamps = np.asarray([datetime.datetime.now()])
@@ -377,7 +382,8 @@ def test_flatten_grouped_results():
                     [0, 0],
                     [0, 0],
                     [0, 0],
-                ]
+                ],
+                dtype=np.uint8,
             )
         )
         bsas.append(bsa)

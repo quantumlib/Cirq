@@ -20,6 +20,7 @@ from typing import Dict, List, Tuple, TYPE_CHECKING
 import numpy as np
 
 from cirq import protocols
+from cirq._compat import proper_repr
 from cirq.work.observable_settings import (
     InitObsSetting,
     _max_weight_observable,
@@ -102,6 +103,18 @@ class ObservableMeasuredResult:
     variance: float
     repetitions: int
     circuit_params: Dict[str, float]
+
+    def __repr__(self):
+        # I wish we could use the default dataclass __repr__ but
+        # we need to prefix our class name with `cirq.work.`A
+        return (
+            f'cirq.work.ObservableMeasuredResult('
+            f'setting={self.setting!r}, '
+            f'mean={self.mean!r}, '
+            f'variance={self.variance!r}, '
+            f'repetitions={self.repetitions!r}, '
+            f'circuit_params={self.circuit_params!r})'
+        )
 
     @property
     def init_state(self):
@@ -227,6 +240,9 @@ class BitstringAccumulator:
         to `meas_spec` (how could we?) so please be careful. Consider
         using `measure_observables` rather than calling this method yourself.
         """
+        if bitstrings.dtype != np.uint8:
+            raise ValueError("`bitstrings` should be of type np.uint8")
+
         self.bitstrings = np.append(self.bitstrings, bitstrings, axis=0)
         self.chunksizes = np.append(self.chunksizes, [len(bitstrings)], axis=0)
         self.timestamps = np.append(self.timestamps, [np.datetime64(datetime.datetime.now())])
@@ -333,7 +349,16 @@ class BitstringAccumulator:
         )
 
     def __repr__(self):
-        return repr(list(self.records))
+        return (
+            f'cirq.work.BitstringAccumulator('
+            f'meas_spec={self.meas_spec!r}, '
+            f'simul_settings={self.simul_settings!r}, '
+            f'qubit_to_index={self.qubit_to_index!r}, '
+            f'bitstrings={proper_repr(self.bitstrings)}, '
+            f'chunksizes={proper_repr(self.chunksizes)}, '
+            f'timestamps={proper_repr(self.timestamps)}, '
+            f'readout_calibration={self._readout_calibration!r})'
+        )
 
     def __str__(self):
         s = f'Accumulator {self.max_setting}; {self.n_repetitions} repetitions\n'
