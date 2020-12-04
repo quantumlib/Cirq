@@ -109,8 +109,6 @@ def test_same_pauli_traces_clifford():
                 self.qubit_noise_gate = cirq.amplitude_damp(1.0)
 
             def noisy_moment(self, moment, system_qubits):
-                if self.is_virtual_moment(moment):
-                    return moment
                 return [
                     moment,
                     cirq.ops.Moment(
