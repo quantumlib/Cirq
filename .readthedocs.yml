@@ -3,5 +3,7 @@ build:
   image: latest
 python:
   version: 3.8
+  install:
+      - requirements: rtd_docs/requirements.txt
 sphinx:
   configuration: rtd_docs/conf.py
