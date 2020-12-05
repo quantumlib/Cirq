@@ -2,3 +2,4 @@
 myst-parser
 Sphinx~=3.2.0
 sphinx_rtd_theme
+sphinx-notfound-page

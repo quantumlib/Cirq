@@ -41,6 +41,7 @@ version = ""  # '.'.join(release.split('.')[:2])
 # ones.
 extensions = [
     'myst_parser',
+    'notfound.extension',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
