@@ -377,7 +377,7 @@ def direct_fidelity_estimation(
 
     clifford_circuit = True
     qubit_map = {qubits[i]: i for i in range(n_qubits)}
-    clifford_tableau: cirq.CliffordTableau = cirq.CliffordTableau(n_qubits)
+    clifford_tableau = cirq.CliffordTableau(n_qubits)
     try:
         for gate in circuit.all_operations():
             tableau_args = clifford.ActOnCliffordTableauArgs(
