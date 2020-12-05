@@ -15,15 +15,9 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import inspect
-import re
-from typing import List, Any
 
 import os
 import sys
-import shutil
-
-import pypandoc
 
 cirq_root_path = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, cirq_root_path)

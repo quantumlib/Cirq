@@ -24,7 +24,6 @@ pyquil~=2.21.0
 qiskit~=0.20.0
 
 # For generating documentation.
-pypandoc
 myst-parser
 Sphinx~=3.2.0
 
