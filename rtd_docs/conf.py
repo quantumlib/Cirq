@@ -94,5 +94,5 @@ html_favicon = 'favicon.ico'
 #
 # html_sidebars = {}
 
-html_logo = 'docs/images/Cirq_logo_notext.png'
+html_logo = 'Cirq_logo_notext.png'
 html_css_files = ['tweak-style.css']

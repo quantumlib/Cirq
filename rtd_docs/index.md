@@ -1,3 +1,7 @@
-.. image:: ../docs/images/Cirq_logo_color.png
-    :alt: Cirq
+![](./Cirq_logo_color.png)
 
+# Cirq
+
+We moved to a new site: [https://quantumai.google](https://quantumai.google).
+
+You will be automatically redirected shortly...
