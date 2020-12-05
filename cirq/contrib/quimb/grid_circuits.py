@@ -5,8 +5,9 @@ import networkx as nx
 import cirq
 
 
-def get_grid_moments(problem_graph: nx.Graph,
-                     two_qubit_gate=cirq.ZZPowGate) -> Iterator[cirq.Moment]:
+def get_grid_moments(
+    problem_graph: nx.Graph, two_qubit_gate=cirq.ZZPowGate
+) -> Iterator[cirq.Moment]:
     """Yield moments on a grid.
 
     The moments will contain `two_qubit_gate` on the edges of the provided
@@ -27,17 +28,17 @@ def get_grid_moments(problem_graph: nx.Graph,
     col_start = min(c for r, c in problem_graph.nodes)
     col_end = max(c for r, c in problem_graph.nodes) + 1
 
-    def _interaction(row_start_offset=0,
-                     row_end_offset=0,
-                     row_step=1,
-                     col_start_offset=0,
-                     col_end_offset=0,
-                     col_step=1,
-                     get_neighbor=lambda row, col: (row, col)):
-        for row in range(row_start + row_start_offset, row_end + row_end_offset,
-                         row_step):
-            for col in range(col_start + col_start_offset,
-                             col_end + col_end_offset, col_step):
+    def _interaction(
+        row_start_offset=0,
+        row_end_offset=0,
+        row_step=1,
+        col_start_offset=0,
+        col_end_offset=0,
+        col_step=1,
+        get_neighbor=lambda row, col: (row, col),
+    ):
+        for row in range(row_start + row_start_offset, row_end + row_end_offset, row_step):
+            for col in range(col_start + col_start_offset, col_end + col_end_offset, col_step):
                 node1 = (row, col)
                 if node1 not in problem_graph.nodes:
                     continue  # coverage: ignore
@@ -48,53 +49,67 @@ def get_grid_moments(problem_graph: nx.Graph,
                     continue  # coverage: ignore
 
                 weight = problem_graph.edges[node1, node2].get('weight', 1)
-                yield two_qubit_gate(exponent=weight, global_shift=-0.5) \
-                    .on(cirq.GridQubit(*node1), cirq.GridQubit(*node2))
+                yield two_qubit_gate(exponent=weight, global_shift=-0.5).on(
+                    cirq.GridQubit(*node1), cirq.GridQubit(*node2)
+                )
 
     # Horizontal
     yield cirq.Moment(
-        _interaction(col_start_offset=0,
-                     col_end_offset=-1,
-                     col_step=2,
-                     get_neighbor=lambda row, col: (row, col + 1)))
+        _interaction(
+            col_start_offset=0,
+            col_end_offset=-1,
+            col_step=2,
+            get_neighbor=lambda row, col: (row, col + 1),
+        )
+    )
     yield cirq.Moment(
-        _interaction(col_start_offset=1,
-                     col_end_offset=-1,
-                     col_step=2,
-                     get_neighbor=lambda row, col: (row, col + 1)))
+        _interaction(
+            col_start_offset=1,
+            col_end_offset=-1,
+            col_step=2,
+            get_neighbor=lambda row, col: (row, col + 1),
+        )
+    )
     # Vertical
     yield cirq.Moment(
-        _interaction(row_start_offset=0,
-                     row_end_offset=-1,
-                     row_step=2,
-                     get_neighbor=lambda row, col: (row + 1, col)))
+        _interaction(
+            row_start_offset=0,
+            row_end_offset=-1,
+            row_step=2,
+            get_neighbor=lambda row, col: (row + 1, col),
+        )
+    )
     yield cirq.Moment(
-        _interaction(row_start_offset=1,
-                     row_end_offset=-1,
-                     row_step=2,
-                     get_neighbor=lambda row, col: (row + 1, col)))
+        _interaction(
+            row_start_offset=1,
+            row_end_offset=-1,
+            row_step=2,
+            get_neighbor=lambda row, col: (row + 1, col),
+        )
+    )
 
 
 class MergeNQubitGates(cirq.PointOptimizer):
     """Optimizes runs of adjacent unitary n-qubit operations."""
 
     def __init__(
-            self,
-            *,
-            n_qubits: int,
+        self,
+        *,
+        n_qubits: int,
     ):
         super().__init__()
         self.n_qubits = n_qubits
 
-    def optimization_at(self, circuit: cirq.Circuit, index: int,
-                        op: cirq.Operation
-                       ) -> Optional[cirq.PointOptimizationSummary]:
+    def optimization_at(
+        self, circuit: cirq.Circuit, index: int, op: cirq.Operation
+    ) -> Optional[cirq.PointOptimizationSummary]:
         if len(op.qubits) != self.n_qubits:
             return None
 
         frontier = {q: index for q in op.qubits}
         op_list = circuit.findall_operations_until_blocked(
-            frontier, is_blocker=lambda next_op: next_op.qubits != op.qubits)
+            frontier, is_blocker=lambda next_op: next_op.qubits != op.qubits
+        )
         if len(op_list) <= 1:
             return None
         operations = [op for idx, op in op_list]
@@ -104,7 +119,8 @@ class MergeNQubitGates(cirq.PointOptimizer):
         return cirq.PointOptimizationSummary(
             clear_span=max(indices) + 1 - index,
             clear_qubits=op.qubits,
-            new_operations=[cirq.MatrixGate(matrix).on(*op.qubits)])
+            new_operations=[cirq.MatrixGate(matrix).on(*op.qubits)],
+        )
 
 
 def simplify_expectation_value_circuit(circuit_sand: cirq.Circuit):

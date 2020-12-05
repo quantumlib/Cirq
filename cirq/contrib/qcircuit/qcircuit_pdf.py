@@ -20,16 +20,17 @@ import os
 from pylatex import Document, NoEscape, Package
 
 from cirq import circuits
-from cirq.contrib.qcircuit.qcircuit_diagram import (
-        circuit_to_latex_using_qcircuit)
+from cirq.contrib.qcircuit.qcircuit_diagram import circuit_to_latex_using_qcircuit
 
 
-def circuit_to_pdf_using_qcircuit_via_tex(circuit: circuits.Circuit,
-                                          filepath: str,
-                                          pdf_kwargs=None,
-                                          qcircuit_kwargs=None,
-                                          clean_ext=('dvi', 'ps'),
-                                          documentclass='article'):
+def circuit_to_pdf_using_qcircuit_via_tex(
+    circuit: circuits.Circuit,
+    filepath: str,
+    pdf_kwargs=None,
+    qcircuit_kwargs=None,
+    clean_ext=('dvi', 'ps'),
+    documentclass='article',
+):
     """Compiles the QCircuit-based latex diagram of the given circuit.
 
     Args:
@@ -43,8 +44,11 @@ def circuit_to_pdf_using_qcircuit_via_tex(circuit: circuits.Circuit,
             intermediary dvi and ps files.
         documentclass: The documentclass of the latex file.
     """
-    pdf_kwargs = {'compiler': 'latexmk', 'compiler_args': ['-pdfps'],
-                  **({} if pdf_kwargs is None else pdf_kwargs)}
+    pdf_kwargs = {
+        'compiler': 'latexmk',
+        'compiler_args': ['-pdfps'],
+        **({} if pdf_kwargs is None else pdf_kwargs),
+    }
     qcircuit_kwargs = {} if qcircuit_kwargs is None else qcircuit_kwargs
     tex = circuit_to_latex_using_qcircuit(circuit, **qcircuit_kwargs)
     doc = Document(documentclass=documentclass, document_options='dvips')

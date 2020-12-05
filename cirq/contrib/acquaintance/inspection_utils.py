@@ -16,24 +16,18 @@ from typing import FrozenSet, Sequence, Set, TYPE_CHECKING
 
 from cirq import circuits, devices
 
-from cirq.contrib.acquaintance.executor import (
-        AcquaintanceOperation, ExecutionStrategy)
-from cirq.contrib.acquaintance.mutation_utils import (
-        expose_acquaintance_gates)
-from cirq.contrib.acquaintance.permutation import (
-        LogicalIndex, LogicalMapping)
+from cirq.contrib.acquaintance.executor import AcquaintanceOperation, ExecutionStrategy
+from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
+from cirq.contrib.acquaintance.permutation import LogicalIndex, LogicalMapping
 
 if TYPE_CHECKING:
     import cirq
 
 
 class LogicalAnnotator(ExecutionStrategy):
-    """Realizes acquaintance opportunities.
-    """
+    """Realizes acquaintance opportunities."""
 
-    def __init__(self,
-                 initial_mapping: LogicalMapping
-                 ) -> None:
+    def __init__(self, initial_mapping: LogicalMapping) -> None:
         """
         Args:
             initial_mapping: The initial mapping of qubits to logical indices.
@@ -48,26 +42,28 @@ class LogicalAnnotator(ExecutionStrategy):
     def device(self) -> 'cirq.Device':
         return devices.UNCONSTRAINED_DEVICE
 
-    def get_operations(self, indices: Sequence[LogicalIndex],
-                       qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def get_operations(
+        self, indices: Sequence[LogicalIndex], qubits: Sequence['cirq.Qid']
+    ) -> 'cirq.OP_TREE':
         yield AcquaintanceOperation(qubits, indices)
 
 
-def get_acquaintance_dag(strategy: 'cirq.Circuit',
-                         initial_mapping: LogicalMapping):
+def get_acquaintance_dag(strategy: 'cirq.Circuit', initial_mapping: LogicalMapping):
     strategy = strategy.copy()
     expose_acquaintance_gates(strategy)
     LogicalAnnotator(initial_mapping)(strategy)
-    acquaintance_ops = (op for moment in strategy._moments
-                        for op in moment.operations
-                        if isinstance(op, AcquaintanceOperation))
-    return circuits.CircuitDag.from_ops(
-            acquaintance_ops, device=strategy.device)
+    acquaintance_ops = (
+        op
+        for moment in strategy._moments
+        for op in moment.operations
+        if isinstance(op, AcquaintanceOperation)
+    )
+    return circuits.CircuitDag.from_ops(acquaintance_ops, device=strategy.device)
 
 
-def get_logical_acquaintance_opportunities(strategy: 'cirq.Circuit',
-                                           initial_mapping: LogicalMapping
-                                          ) -> Set[FrozenSet[LogicalIndex]]:
+def get_logical_acquaintance_opportunities(
+    strategy: 'cirq.Circuit', initial_mapping: LogicalMapping
+) -> Set[FrozenSet[LogicalIndex]]:
     acquaintance_dag = get_acquaintance_dag(strategy, initial_mapping)
     logical_acquaintance_opportunities = set()
     for op in acquaintance_dag.all_operations():

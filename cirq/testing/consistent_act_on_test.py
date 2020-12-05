@@ -22,7 +22,6 @@ import cirq
 
 
 class GoodGate(cirq.SingleQubitGate):
-
     def _unitary_(self):
         return np.array([[0, 1], [1, 0]])
 
@@ -36,7 +35,6 @@ class GoodGate(cirq.SingleQubitGate):
 
 
 class BadGate(cirq.SingleQubitGate):
-
     def _unitary_(self):
         return np.array([[0, 1j], [1, 0]])
 
@@ -54,42 +52,41 @@ class UnimplementedGate(cirq.TwoQubitGate):
 
 
 class UnimplementedUnitaryGate(cirq.TwoQubitGate):
-
     def _unitary_(self):
-        return np.array([[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0,
-                                                                    0]])
+        return np.array([[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]])
 
 
 def test_assert_act_on_clifford_tableau_effect_matches_unitary():
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(GoodGate())
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(
-        GoodGate().on(cirq.LineQubit(1)))
-    with pytest.raises(AssertionError,
-                       match='act_on clifford tableau is not consistent with '
-                       'final_state_vector simulation.'):
-        cirq.testing.assert_all_implemented_act_on_effects_match_unitary(
-            BadGate())
-
-    cirq.testing.assert_all_implemented_act_on_effects_match_unitary(
-        UnimplementedGate())
+        GoodGate().on(cirq.LineQubit(1))
+    )
     with pytest.raises(
-            AssertionError,
-            match='Could not assert if any act_on methods were implemented'):
-        cirq.testing.assert_all_implemented_act_on_effects_match_unitary(
-            UnimplementedGate(), assert_tableau_implemented=True)
-    with pytest.raises(
-            AssertionError,
-            match='Could not assert if any act_on methods were implemented'):
-        cirq.testing.assert_all_implemented_act_on_effects_match_unitary(
-            UnimplementedGate(), assert_ch_form_implemented=True)
+        AssertionError,
+        match='act_on clifford tableau is not consistent with final_state_vector simulation.',
+    ):
+        cirq.testing.assert_all_implemented_act_on_effects_match_unitary(BadGate())
 
-    cirq.testing.assert_all_implemented_act_on_effects_match_unitary(
-        UnimplementedUnitaryGate())
-    with pytest.raises(AssertionError,
-                       match='Failed to generate final tableau'):
+    cirq.testing.assert_all_implemented_act_on_effects_match_unitary(UnimplementedGate())
+    with pytest.raises(
+        AssertionError, match='Could not assert if any act_on methods were implemented'
+    ):
         cirq.testing.assert_all_implemented_act_on_effects_match_unitary(
-            UnimplementedUnitaryGate(), assert_tableau_implemented=True)
-    with pytest.raises(AssertionError,
-                       match='Failed to generate final stabilizer state'):
+            UnimplementedGate(), assert_tableau_implemented=True
+        )
+    with pytest.raises(
+        AssertionError, match='Could not assert if any act_on methods were implemented'
+    ):
         cirq.testing.assert_all_implemented_act_on_effects_match_unitary(
-            UnimplementedUnitaryGate(), assert_ch_form_implemented=True)
+            UnimplementedGate(), assert_ch_form_implemented=True
+        )
+
+    cirq.testing.assert_all_implemented_act_on_effects_match_unitary(UnimplementedUnitaryGate())
+    with pytest.raises(AssertionError, match='Failed to generate final tableau'):
+        cirq.testing.assert_all_implemented_act_on_effects_match_unitary(
+            UnimplementedUnitaryGate(), assert_tableau_implemented=True
+        )
+    with pytest.raises(AssertionError, match='Failed to generate final stabilizer state'):
+        cirq.testing.assert_all_implemented_act_on_effects_match_unitary(
+            UnimplementedUnitaryGate(), assert_ch_form_implemented=True
+        )

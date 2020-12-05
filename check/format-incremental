@@ -1,22 +1,23 @@
 #!/usr/bin/env bash
 
 ################################################################################
-# Formats lines of python code that have been modified.
+# Formats python files that have been modified.
 #
 # Usage:
-#     check/format-incremental [BASE_REVISION] [--apply]
+#     check/format-incremental [BASE_REVISION] [--apply] [--all]
 #
-# Without '--apply', the diff that would be applied is printed and the exit
-# status is 1 if there are any changes or else 0 if no changes are needed.
+# By default, the script analyzes python files that have changed relative to the
+# base revision and determines whether they need to be formatted. If any changes
+# are needed, it prints the diff and exits with code 1, otherwise it exits with
+# code 0.
 #
-# With '--apply', the exit status is 0 and the changed files are actually
-# reformated.
+# With '--apply', reformats the files instead of printing the diff and exits
+# with code 0.
 #
-# Note that sometimes yapf will format unchanged lines. In particular, it
-# completely ignores the changed line ranges when fixing indentation.
+# With '--all', analyzes all python files, instead of only changed files.
 #
 # You can specify a base git revision to compare against (i.e. to use when
-# determining whether or not a line is considered to have "changed"). For
+# determining whether or not a file is considered to have "changed"). For
 # example, you can compare against 'origin/master' or 'HEAD~1'.
 #
 # If you don't specify a base revision, the following defaults will be tried, in
@@ -35,10 +36,13 @@ cd "$(git rev-parse --show-toplevel)"
 
 # Parse arguments.
 only_print=1
+only_changed=1
 rev=""
 for arg in $@; do
     if [[ "${arg}" == "--apply" ]]; then
         only_print=0
+    elif [[ "${arg}" == "--all" ]]; then
+        only_changed=0
     elif [ -z "${rev}" ]; then
         if [ "$(git cat-file -t ${arg} 2> /dev/null)" != "commit" ]; then
             echo -e "\033[31mNo revision '${arg}'.\033[0m" >&2
@@ -46,66 +50,73 @@ for arg in $@; do
         fi
         rev="${arg}"
     else
-        echo -e "\033[31mToo many arguments. Expected [revision] [--apply].\033[0m" >&2
+        echo -e "\033[31mToo many arguments. Expected [revision] [--apply] [--all].\033[0m" >&2
         exit 1
     fi
 done
 
-# Figure out which branch to compare against.
-if [ -z "${rev}" ]; then
-    if [ "$(git cat-file -t upstream/master 2> /dev/null)" == "commit" ]; then
-        rev=upstream/master
-    elif [ "$(git cat-file -t origin/master 2> /dev/null)" == "commit" ]; then
-        rev=origin/master
-    elif [ "$(git cat-file -t master 2> /dev/null)" == "commit" ]; then
-        rev=master
-    else
-        echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\033[0m" >&2
-        exit 1
-    fi
-fi
-base="$(git merge-base ${rev} HEAD)"
-if [ "$(git rev-parse ${rev})" == "${base}" ]; then
-    echo -e "Comparing against revision '${rev}'." >&2
-else
-    echo -e "Comparing against revision '${rev}' (merge base ${base})." >&2
-    rev="${base}"
-fi
-
-# Get the _test version of changed python files.
-needed_changes=0
-changed_files=$(git diff --name-only ${rev} -- | grep "\.py$" | grep -v "_pb2\.py$")
-esc=$(printf '\033')
-for changed_file in ${changed_files}; do
-    # Extract changed line ranges from diff output.
-    changed_line_ranges=$( \
-        git diff --unified=0 "${rev}" -- "${changed_file}" \
-        | perl -ne 'chomp(); if (/@@ -\d+(,\d+)? \+(\d+)(,)?(\d+)? @@/) {$end=$2+($4 or 1)-1; print "--lines=$2-$end "}' \
-    )
-
-    if [[ "${changed_line_ranges}" != "--lines=0-0 " ]]; then
-        # Do the formatting.
-        results=$(yapf --style=google --diff "${changed_file}" ${changed_line_ranges})
-
-        # Print colorized error messages.
-        if [ ! -z "${results}" ]; then
-            needed_changes=1
-            if (( only_print == 0 )); then
-                $(yapf --style=google --in-place "${changed_file}" ${changed_line_ranges})
-            else
-                echo -e "\n\033[31mChanges in ${changed_file} require formatting:\033[0m\n${results}" \
-                    | sed "s/^\(+ .*\)$/${esc}[32m\\1${esc}[0m/" \
-                    | sed "s/^\(- .*\)$/${esc}[31m\\1${esc}[0m/"
-            fi
+if (( only_changed == 1 )); then
+    # Figure out which branch to compare against.
+    if [ -z "${rev}" ]; then
+        if [ "$(git cat-file -t upstream/master 2> /dev/null)" == "commit" ]; then
+            rev=upstream/master
+        elif [ "$(git cat-file -t origin/master 2> /dev/null)" == "commit" ]; then
+            rev=origin/master
+        elif [ "$(git cat-file -t master 2> /dev/null)" == "commit" ]; then
+            rev=master
+        else
+            echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\033[0m" >&2
+            exit 1
         fi
-     fi
+    fi
+    base="$(git merge-base ${rev} HEAD)"
+    if [ "$(git rev-parse ${rev})" == "${base}" ]; then
+        echo -e "Comparing against revision '${rev}'." >&2
+    else
+        echo -e "Comparing against revision '${rev}' (merge base ${base})." >&2
+        rev="${base}"
+    fi
+
+    # Get the modified and added python files. Lines in git diff --name-status look like this:
+    # M       cirq/__init__.py
+    # A       cirq/added.py
+    modified_files=$(git diff --name-status ${rev} -- | grep '\.py$' | grep -v '_pb2\.py$' | grep '^[MA].*$' | awk '{print $2}')
+
+    # Get the moved python files. Lines in git diff --name-status look like this:
+    # R100    cirq/_doc.py    cirq/_doc2.py
+    moved_files=$(git diff --name-status ${rev} -- | grep '\.py$' | grep -v '_pb2\.py$' | grep '^R.*$' | awk '{print $3}')
+
+    format_files="$modified_files $moved_files"
+
+else
+    echo -e "Formatting all python files." >&2
+    format_files=$(find . -name "*.py" | grep -v "_pb2\.py$")
+fi
+
+any_files=0
+for format_file in ${format_files}; do
+  any_files=1
 done
 
-if (( needed_changes == 0 )); then
-    echo -e "\033[32mNo formatting needed on changed lines\033[0m."
-elif (( only_print == 1 )); then
-    echo -e "\033[31mSome formatting needed on changed lines\033[0m."
-    exit 1
-else
-    echo -e "\033[33mReformatted changed lines\033[0m."
+if (( any_files == 0 )); then
+    echo -e "\033[32mNo files to format\033[0m."
+    exit 0
 fi
+
+
+args=("--color")
+if (( only_print == 1 )); then
+    args+=("--check" "--diff")
+fi
+
+# Warn users about bug in black: https://github.com/psf/black/issues/1629
+# Once that is fixed upstream, we can just do:
+# black "${args[@]}" ${format_files}
+# exit $?
+LOGS="$(black "${args[@]}" ${format_files} 2>&1)"
+STATUS=$?
+echo "${LOGS}"
+if [[ "$STATUS" == "123" && "$LOGS" =~ ^.*"INTERNAL ERROR: Black produced different code on the second pass of the formatter.".*$ ]]; then
+  echo -e "\033[31mWarning, it seems we ran into https://github.com/psf/black/issues/1629. Typically, this can be fixed by adding a trailing comma. If you get stuck, please file a cirq issue on github.\033[0m"
+fi
+exit $STATUS

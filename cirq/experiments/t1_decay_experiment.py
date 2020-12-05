@@ -25,13 +25,15 @@ if TYPE_CHECKING:
     import cirq
 
 
-def t1_decay(sampler: 'cirq.Sampler',
-             *,
-             qubit: 'cirq.Qid',
-             num_points: int,
-             max_delay: 'cirq.DURATION_LIKE',
-             min_delay: 'cirq.DURATION_LIKE' = None,
-             repetitions: int = 1000) -> 'cirq.experiments.T1DecayResult':
+def t1_decay(
+    sampler: 'cirq.Sampler',
+    *,
+    qubit: 'cirq.Qid',
+    num_points: int,
+    max_delay: 'cirq.DURATION_LIKE',
+    min_delay: 'cirq.DURATION_LIKE' = None,
+    repetitions: int = 1000,
+) -> 'cirq.experiments.T1DecayResult':
     """Runs a t1 decay experiment.
 
     Initializes a qubit into the |1⟩ state, waits for a variable amount of time,
@@ -60,10 +62,9 @@ def t1_decay(sampler: 'cirq.Sampler',
         raise ValueError('min_delay < 0')
     var = sympy.Symbol('delay_ns')
 
-    sweep = study.Linspace(var,
-                           start=min_delay_dur.total_nanos(),
-                           stop=max_delay_dur.total_nanos(),
-                           length=num_points)
+    sweep = study.Linspace(
+        var, start=min_delay_dur.total_nanos(), stop=max_delay_dur.total_nanos(), length=num_points
+    )
 
     circuit = circuits.Circuit(
         ops.X(qubit),
@@ -101,8 +102,7 @@ class T1DecayResult:
         """A data frame with delay_ns, false_count, true_count columns."""
         return self._data
 
-    def plot(self, ax: Optional[plt.Axes] = None,
-             **plot_kwargs: Any) -> plt.Axes:
+    def plot(self, ax: Optional[plt.Axes] = None, **plot_kwargs: Any) -> plt.Axes:
         """Plots the excited state probability vs the amount of delay.
 
         Args:
@@ -124,8 +124,7 @@ class T1DecayResult:
         fs = self._data['false_count']
 
         ax.plot(xs, ts / (fs + ts), 'ro-', **plot_kwargs)
-        ax.set_xlabel(
-            r"Delay between initialization and measurement (nanoseconds)")
+        ax.set_xlabel(r"Delay between initialization and measurement (nanoseconds)")
         ax.set_ylabel('Excited State Probability')
         ax.set_title('T1 Decay Experiment Data')
         if show_plot:

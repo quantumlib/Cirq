@@ -15,8 +15,21 @@
 """Basic types defining qubits, gates, and operations."""
 
 import re
-from typing import (AbstractSet, Any, cast, Dict, FrozenSet, Iterable, List,
-                    Optional, Sequence, Tuple, TypeVar, TYPE_CHECKING, Union)
+from typing import (
+    AbstractSet,
+    Any,
+    cast,
+    Dict,
+    FrozenSet,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    TypeVar,
+    TYPE_CHECKING,
+    Union,
+)
 
 import numpy as np
 
@@ -92,8 +105,7 @@ class GateOperation(raw_types.Operation):
         if self == self.gate.on(*self.qubits):
             return f'{gate_repr}.on({qubit_args_repr})'
 
-        return (f'cirq.GateOperation(gate={self.gate!r}, '
-                f'qubits=[{qubit_args_repr}])')
+        return f'cirq.GateOperation(gate={self.gate!r}, qubits=[{qubit_args_repr}])'
 
     def __str__(self) -> str:
         qubits = ', '.join(str(e) for e in self.qubits)
@@ -103,7 +115,7 @@ class GateOperation(raw_types.Operation):
         return protocols.obj_to_dict_helper(self, ['gate', 'qubits'])
 
     def _group_interchangeable_qubits(
-            self
+        self,
     ) -> Tuple[Union['cirq.Qid', Tuple[int, FrozenSet['cirq.Qid']]], ...]:
 
         if not isinstance(self.gate, gate_features.InterchangeableQubitsGate):
@@ -127,9 +139,7 @@ class GateOperation(raw_types.Operation):
         return len(self._qubits)
 
     def _decompose_(self) -> 'cirq.OP_TREE':
-        return protocols.decompose_once_with_qubits(self.gate,
-                                                    self.qubits,
-                                                    NotImplemented)
+        return protocols.decompose_once_with_qubits(self.gate, self.qubits, NotImplemented)
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         getter = getattr(self.gate, '_pauli_expansion_', None)
@@ -137,8 +147,9 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
-                       ) -> Union[np.ndarray, None, NotImplementedType]:
+    def _apply_unitary_(
+        self, args: 'protocols.ApplyUnitaryArgs'
+    ) -> Union[np.ndarray, None, NotImplementedType]:
         getter = getattr(self.gate, '_apply_unitary_', None)
         if getter is not None:
             return getter(args)
@@ -156,8 +167,7 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _commutes_(self, other: Any,
-                   atol: float) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType, None]:
         return self.gate._commutes_on_qids_(self.qubits, other, atol=atol)
 
     def _has_mixture_(self) -> bool:
@@ -214,15 +224,14 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _resolve_parameters_(self, resolver):
-        resolved_gate = protocols.resolve_parameters(self.gate, resolver)
+    def _resolve_parameters_(self, resolver, recursive):
+        resolved_gate = protocols.resolve_parameters(self.gate, resolver, recursive)
         return self.with_gate(resolved_gate)
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                              ) -> 'cirq.CircuitDiagramInfo':
-        return protocols.circuit_diagram_info(self.gate,
-                                              args,
-                                              NotImplemented)
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        return protocols.circuit_diagram_info(self.gate, args, NotImplemented)
 
     def _decompose_into_clifford_(self):
         sub = getattr(self.gate, '_decompose_into_clifford_with_qubits_', None)
@@ -236,12 +245,8 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _phase_by_(self, phase_turns: float,
-                   qubit_index: int) -> 'GateOperation':
-        phased_gate = protocols.phase_by(self.gate,
-                                         phase_turns,
-                                         qubit_index,
-                                         default=None)
+    def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'GateOperation':
+        phased_gate = protocols.phase_by(self.gate, phase_turns, qubit_index, default=None)
         if phased_gate is None:
             return NotImplemented
         return GateOperation(phased_gate, self._qubits)
@@ -260,9 +265,7 @@ class GateOperation(raw_types.Operation):
         Returns:
             A new operation on the same qubits with the scaled gate.
         """
-        new_gate = protocols.pow(self.gate,
-                                 exponent,
-                                 NotImplemented)
+        new_gate = protocols.pow(self.gate, exponent, NotImplemented)
         if new_gate is NotImplemented:
             return NotImplemented
         return self.with_gate(new_gate)
@@ -280,27 +283,19 @@ class GateOperation(raw_types.Operation):
         return self.gate._rmul_with_qubits(self._qubits, other)
 
     def _qasm_(self, args: 'protocols.QasmArgs') -> Optional[str]:
-        return protocols.qasm(self.gate,
-                              args=args,
-                              qubits=self.qubits,
-                              default=None)
+        return protocols.qasm(self.gate, args=args, qubits=self.qubits, default=None)
 
     def _quil_(self, formatter: 'protocols.QuilFormatter') -> Optional[str]:
-        return protocols.quil(self.gate,
-                              qubits=self.qubits,
-                              formatter=formatter)
+        return protocols.quil(self.gate, qubits=self.qubits, formatter=formatter)
 
-    def _equal_up_to_global_phase_(self,
-                                   other: Any,
-                                   atol: Union[int, float] = 1e-8
-                                  ) -> Union[NotImplementedType, bool]:
+    def _equal_up_to_global_phase_(
+        self, other: Any, atol: Union[int, float] = 1e-8
+    ) -> Union[NotImplementedType, bool]:
         if not isinstance(other, type(self)):
             return NotImplemented
         if self.qubits != other.qubits:
             return False
-        return protocols.equal_up_to_global_phase(self.gate,
-                                                  other.gate,
-                                                  atol=atol)
+        return protocols.equal_up_to_global_phase(self.gate, other.gate, atol=atol)
 
 
 TV = TypeVar('TV', bound=raw_types.Gate)

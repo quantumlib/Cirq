@@ -22,25 +22,21 @@ class No:
 
 
 class No1:
-
     def _has_stabilizer_effect_(self):
         return NotImplemented
 
 
 class No2:
-
     def _has_stabilizer_effect_(self):
         return None
 
 
 class No3:
-
     def _has_stabilizer_effect_(self):
         return False
 
 
 class Yes:
-
     def _has_stabilizer_effect_(self):
         return True
 
@@ -59,42 +55,36 @@ class EmptyOp(cirq.Operation):
 
 
 class NoOp(EmptyOp):
-
     @property
     def gate(self):
         return No()
 
 
 class NoOp1(EmptyOp):
-
     @property
     def gate(self):
         return No1()
 
 
 class NoOp2(EmptyOp):
-
     @property
     def gate(self):
         return No2()
 
 
 class NoOp3(EmptyOp):
-
     @property
     def gate(self):
         return No3()
 
 
 class YesOp(EmptyOp):
-
     @property
     def gate(self):
         return Yes()
 
 
 class OpWithUnitary(EmptyOp):
-
     def __init__(self, unitary):
         self.unitary = unitary
 

@@ -13,10 +13,12 @@
 # limitations under the License.
 
 from cirq.google.ops.calibration_tag import (
-    CalibrationTag,)
+    CalibrationTag,
+)
 
 from cirq.google.ops.physical_z_tag import (
-    PhysicalZTag,)
+    PhysicalZTag,
+)
 
 from cirq.google.ops.sycamore_gate import (
     SycamoreGate,

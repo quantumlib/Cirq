@@ -70,16 +70,16 @@ def main():
     circuit = cirq.Circuit(
         cirq.SWAP(cirq.LineQubit(j), cirq.LineQubit(j + 1))
         for i in range(depth)
-        for j in range(i % 2, n - 1, 2))
+        for j in range(i % 2, n - 1, 2)
+    )
     circuit.append(cirq.measure(*cirq.LineQubit.range(n), key='all'))
     print(circuit)
 
     print()
     print("Xmon circuit:")
     translated = cirq.google.optimized_for_xmon(
-        circuit=circuit,
-        new_device=cirq.google.Bristlecone,
-        qubit_map=lambda q: line[q.x])
+        circuit=circuit, new_device=cirq.google.Bristlecone, qubit_map=lambda q: line[q.x]
+    )
     print(translated)
 
 

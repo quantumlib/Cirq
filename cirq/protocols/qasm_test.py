@@ -51,6 +51,4 @@ def test_qasm():
         _ = cirq.qasm(ReturnsNotImplemented())
 
     assert cirq.qasm(ExpectsArgs(), args=cirq.QasmArgs()) == 'text'
-    assert cirq.qasm(ExpectsArgsQubits(),
-                     args=cirq.QasmArgs(),
-                     qubits=()) == 'text'
+    assert cirq.qasm(ExpectsArgsQubits(), args=cirq.QasmArgs(), qubits=()) == 'text'

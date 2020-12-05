@@ -15,13 +15,16 @@
 """Types and methods related to building and optimizing sequenced circuits."""
 
 from cirq.circuits.text_diagram_drawer import (
-    TextDiagramDrawer,)
+    TextDiagramDrawer,
+)
 
 from cirq.circuits.qasm_output import (
-    QasmOutput,)
+    QasmOutput,
+)
 
 from cirq.circuits.quil_output import (
-    QuilOutput,)
+    QuilOutput,
+)
 
 from cirq.circuits.circuit import (
     AbstractCircuit,
@@ -32,9 +35,11 @@ from cirq.circuits.circuit_dag import (
     Unique,
 )
 from cirq.circuits.frozen_circuit import (
-    FrozenCircuit,)
+    FrozenCircuit,
+)
 from cirq.circuits.insert_strategy import (
-    InsertStrategy,)
+    InsertStrategy,
+)
 
 from cirq.circuits.optimization_pass import (
     PointOptimizer,

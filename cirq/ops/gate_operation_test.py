@@ -59,8 +59,7 @@ def test_gate_operation_eq():
     eq.make_equality_group(lambda: cirq.GateOperation(g1, r2))
     eq.make_equality_group(lambda: cirq.GateOperation(g3, r12))
     eq.make_equality_group(lambda: cirq.GateOperation(g3, r21))
-    eq.add_equality_group(cirq.GateOperation(cirq.CZ, r21),
-                          cirq.GateOperation(cirq.CZ, r12))
+    eq.add_equality_group(cirq.GateOperation(cirq.CZ, r21), cirq.GateOperation(cirq.CZ, r12))
 
     @cirq.value_equality
     class PairGate(cirq.Gate, cirq.InterchangeableQubitsGate):
@@ -76,10 +75,11 @@ def test_gate_operation_eq():
             return index // 2
 
         def _value_equality_values_(self):
-            return self.num_qubits(),
+            return (self.num_qubits(),)
 
     def p(*q):
         return PairGate(len(q)).on(*q)
+
     a0, a1, b0, b1, c0 = cirq.LineQubit.range(5)
     eq.add_equality_group(p(a0, a1, b0, b1), p(a1, a0, b1, b0))
     eq.add_equality_group(p(b0, b1, a0, a1))
@@ -93,25 +93,30 @@ def test_gate_operation_approx_eq():
     a = [cirq.NamedQubit('r1')]
     b = [cirq.NamedQubit('r2')]
 
-    assert cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(), a),
-                          cirq.GateOperation(cirq.XPowGate(), a))
-    assert not cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(), a),
-                              cirq.GateOperation(cirq.XPowGate(), b))
+    assert cirq.approx_eq(
+        cirq.GateOperation(cirq.XPowGate(), a), cirq.GateOperation(cirq.XPowGate(), a)
+    )
+    assert not cirq.approx_eq(
+        cirq.GateOperation(cirq.XPowGate(), a), cirq.GateOperation(cirq.XPowGate(), b)
+    )
 
-    assert cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(exponent=0), a),
-                          cirq.GateOperation(cirq.XPowGate(exponent=1e-9), a))
-    assert not cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(exponent=0), a),
-                              cirq.GateOperation(cirq.XPowGate(exponent=1e-7),
-                                                 a))
-    assert cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(exponent=0), a),
-                          cirq.GateOperation(cirq.XPowGate(exponent=1e-7), a),
-                          atol=1e-6)
+    assert cirq.approx_eq(
+        cirq.GateOperation(cirq.XPowGate(exponent=0), a),
+        cirq.GateOperation(cirq.XPowGate(exponent=1e-9), a),
+    )
+    assert not cirq.approx_eq(
+        cirq.GateOperation(cirq.XPowGate(exponent=0), a),
+        cirq.GateOperation(cirq.XPowGate(exponent=1e-7), a),
+    )
+    assert cirq.approx_eq(
+        cirq.GateOperation(cirq.XPowGate(exponent=0), a),
+        cirq.GateOperation(cirq.XPowGate(exponent=1e-7), a),
+        atol=1e-6,
+    )
 
 
 def test_gate_operation_qid_shape():
-
     class ShapeGate(cirq.Gate):
-
         def _qid_shape_(self):
             return (1, 2, 3, 4)
 
@@ -121,9 +126,7 @@ def test_gate_operation_qid_shape():
 
 
 def test_gate_operation_num_qubits():
-
     class NumQubitsGate(cirq.Gate):
-
         def _num_qubits_(self):
             return 4
 
@@ -141,12 +144,12 @@ def test_gate_operation_pow():
 def test_with_qubits_and_transform_qubits():
     g = cirq.ThreeQubitGate()
     op = cirq.GateOperation(g, cirq.LineQubit.range(3))
-    assert op.with_qubits(*cirq.LineQubit.range(3, 0, -1)) \
-           == cirq.GateOperation(g, cirq.LineQubit.range(3, 0, -1))
-    assert op.transform_qubits(lambda e: cirq.LineQubit(-e.x)
-                               ) == cirq.GateOperation(g, [cirq.LineQubit(0),
-                                                           cirq.LineQubit(-1),
-                                                           cirq.LineQubit(-2)])
+    assert op.with_qubits(*cirq.LineQubit.range(3, 0, -1)) == cirq.GateOperation(
+        g, cirq.LineQubit.range(3, 0, -1)
+    )
+    assert op.transform_qubits(lambda e: cirq.LineQubit(-e.x)) == cirq.GateOperation(
+        g, [cirq.LineQubit(0), cirq.LineQubit(-1), cirq.LineQubit(-2)]
+    )
 
 
 def test_extrapolate():
@@ -155,11 +158,11 @@ def test_extrapolate():
     # If the gate isn't extrapolatable, you get a type error.
     op0 = cirq.GateOperation(cirq.SingleQubitGate(), [q])
     with pytest.raises(TypeError):
-        _ = op0**0.5
+        _ = op0 ** 0.5
 
     op1 = cirq.GateOperation(cirq.Y, [q])
-    assert op1**0.5 == cirq.GateOperation(cirq.Y**0.5, [q])
-    assert (cirq.Y**0.5).on(q) == cirq.Y(q)**0.5
+    assert op1 ** 0.5 == cirq.GateOperation(cirq.Y ** 0.5, [q])
+    assert (cirq.Y ** 0.5).on(q) == cirq.Y(q) ** 0.5
 
 
 def test_inverse():
@@ -170,7 +173,7 @@ def test_inverse():
     assert cirq.inverse(op0, None) is None
 
     op1 = cirq.GateOperation(cirq.S, [q])
-    assert cirq.inverse(op1) == op1**-1 == cirq.GateOperation(cirq.S**-1, [q])
+    assert cirq.inverse(op1) == op1 ** -1 == cirq.GateOperation(cirq.S ** -1, [q])
     assert cirq.inverse(cirq.S).on(q) == cirq.inverse(cirq.S.on(q))
 
 
@@ -194,18 +197,19 @@ def test_bounded_effect():
     # If the gate isn't bounded, you get a type error.
     op0 = cirq.GateOperation(cirq.SingleQubitGate(), [q])
     assert cirq.trace_distance_bound(op0) >= 1
-    op1 = cirq.GateOperation(cirq.Z**0.000001, [q])
+    op1 = cirq.GateOperation(cirq.Z ** 0.000001, [q])
     op1_bound = cirq.trace_distance_bound(op1)
-    assert op1_bound == cirq.trace_distance_bound(cirq.Z**0.000001)
+    assert op1_bound == cirq.trace_distance_bound(cirq.Z ** 0.000001)
 
 
-def test_parameterizable_effect():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameterizable_effect(resolve_fn):
     q = cirq.NamedQubit('q')
     r = cirq.ParamResolver({'a': 0.5})
 
-    op1 = cirq.GateOperation(cirq.Z**sympy.Symbol('a'), [q])
+    op1 = cirq.GateOperation(cirq.Z ** sympy.Symbol('a'), [q])
     assert cirq.is_parameterized(op1)
-    op2 = cirq.resolve_parameters(op1, r)
+    op2 = resolve_fn(op1, r)
     assert not cirq.is_parameterized(op2)
     assert op2 == cirq.S.on(q)
 
@@ -215,16 +219,13 @@ def test_pauli_expansion():
     b = cirq.NamedQubit('b')
 
     assert cirq.pauli_expansion(cirq.X(a)) == cirq.LinearDict({'X': 1})
-    assert (cirq.pauli_expansion(cirq.CNOT(a, b)) == cirq.pauli_expansion(
-        cirq.CNOT))
+    assert cirq.pauli_expansion(cirq.CNOT(a, b)) == cirq.pauli_expansion(cirq.CNOT)
 
     class No(cirq.Gate):
-
         def num_qubits(self) -> int:
             return 1
 
     class Yes(cirq.Gate):
-
         def num_qubits(self) -> int:
             return 1
 
@@ -241,12 +242,8 @@ def test_unitary():
 
     assert not cirq.has_unitary(cirq.measure(a))
     assert cirq.unitary(cirq.measure(a), None) is None
-    np.testing.assert_allclose(cirq.unitary(cirq.X(a)),
-                               np.array([[0, 1], [1, 0]]),
-                               atol=1e-8)
-    np.testing.assert_allclose(cirq.unitary(cirq.CNOT(a, b)),
-                               cirq.unitary(cirq.CNOT),
-                               atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(cirq.X(a)), np.array([[0, 1], [1, 0]]), atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(cirq.CNOT(a, b)), cirq.unitary(cirq.CNOT), atol=1e-8)
 
 
 def test_channel():
@@ -286,8 +283,9 @@ def test_mixture():
 
 def test_repr():
     a, b = cirq.LineQubit.range(2)
-    assert repr(cirq.GateOperation(
-        cirq.CZ, (a, b))) == 'cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1))'
+    assert (
+        repr(cirq.GateOperation(cirq.CZ, (a, b))) == 'cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1))'
+    )
 
     class Inconsistent(cirq.SingleQubitGate):
         def __repr__(self):
@@ -296,23 +294,28 @@ def test_repr():
         def on(self, *qubits):
             return cirq.GateOperation(Inconsistent(), qubits)
 
-    assert (repr(cirq.GateOperation(Inconsistent(), [a])) ==
-            'cirq.GateOperation(gate=Inconsistent, qubits=[cirq.LineQubit(0)])')
+    assert (
+        repr(cirq.GateOperation(Inconsistent(), [a]))
+        == 'cirq.GateOperation(gate=Inconsistent, qubits=[cirq.LineQubit(0)])'
+    )
 
 
-@pytest.mark.parametrize('gate1,gate2,eq_up_to_global_phase', [
-    (cirq.rz(0.3 * np.pi), cirq.Z**0.3, True),
-    (cirq.rz(0.3), cirq.Z**0.3, False),
-    (cirq.ZZPowGate(global_shift=0.5), cirq.ZZ, True),
-    (cirq.ZPowGate(global_shift=0.5)**sympy.Symbol('e'), cirq.Z, False),
-    (cirq.Z**sympy.Symbol('e'), cirq.Z**sympy.Symbol('f'), False),
-])
+@pytest.mark.parametrize(
+    'gate1,gate2,eq_up_to_global_phase',
+    [
+        (cirq.rz(0.3 * np.pi), cirq.Z ** 0.3, True),
+        (cirq.rz(0.3), cirq.Z ** 0.3, False),
+        (cirq.ZZPowGate(global_shift=0.5), cirq.ZZ, True),
+        (cirq.ZPowGate(global_shift=0.5) ** sympy.Symbol('e'), cirq.Z, False),
+        (cirq.Z ** sympy.Symbol('e'), cirq.Z ** sympy.Symbol('f'), False),
+    ],
+)
 def test_equal_up_to_global_phase_on_gates(gate1, gate2, eq_up_to_global_phase):
     num_qubits1, num_qubits2 = (cirq.num_qubits(g) for g in (gate1, gate2))
     qubits = cirq.LineQubit.range(max(num_qubits1, num_qubits2) + 1)
     op1, op2 = gate1(*qubits[:num_qubits1]), gate2(*qubits[:num_qubits2])
     assert cirq.equal_up_to_global_phase(op1, op2) == eq_up_to_global_phase
-    op2_on_diff_qubits = gate2(*qubits[1:num_qubits2 + 1])
+    op2_on_diff_qubits = gate2(*qubits[1 : num_qubits2 + 1])
     assert not cirq.equal_up_to_global_phase(op1, op2_on_diff_qubits)
 
 
@@ -331,30 +334,25 @@ def test_gate_on_operation_besides_gate_operation():
 
 
 def test_mul():
-
     class GateRMul(cirq.Gate):
-
         def num_qubits(self) -> int:
             return 1
 
         def _rmul_with_qubits(self, qubits, other):
             if other == 2:
                 return 3
-            if (isinstance(other, cirq.Operation) and
-                    isinstance(other.gate, GateRMul)):
+            if isinstance(other, cirq.Operation) and isinstance(other.gate, GateRMul):
                 return 4
             raise NotImplementedError()
 
     class GateMul(cirq.Gate):
-
         def num_qubits(self) -> int:
             return 1
 
         def _mul_with_qubits(self, qubits, other):
             if other == 2:
                 return 5
-            if (isinstance(other, cirq.Operation) and
-                    isinstance(other.gate, GateMul)):
+            if isinstance(other, cirq.Operation) and isinstance(other.gate, GateMul):
                 return 6
             raise NotImplementedError()
 
@@ -400,14 +398,11 @@ def test_cannot_remap_non_measurement_gate():
 
 
 def test_is_parameterized():
-
     class No1(cirq.Gate):
-
         def num_qubits(self) -> int:
             return 1
 
     class No2(cirq.Gate):
-
         def num_qubits(self) -> int:
             return 1
 
@@ -415,7 +410,6 @@ def test_is_parameterized():
             return False
 
     class Yes(cirq.Gate):
-
         def num_qubits(self) -> int:
             return 1
 

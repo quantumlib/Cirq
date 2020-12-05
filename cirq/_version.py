@@ -26,6 +26,7 @@ if sys.version_info < (3, 6, 0):
         'A) Update to python 3.6 or later.\n'
         '- OR -\n'
         'B) Explicitly install an older deprecated-but-compatible version '
-        'of cirq (e.g. "python -m pip install cirq==0.5.*")')
+        'of cirq (e.g. "python -m pip install cirq==0.5.*")'
+    )
 
 __version__ = "0.10.0.dev"

@@ -13,8 +13,7 @@
 # limitations under the License.
 
 """An `XPowGate` conjugated by `ZPowGate`s."""
-from typing import (AbstractSet, Any, cast, Dict, Optional, Sequence, Tuple,
-                    Union)
+from typing import AbstractSet, Any, cast, Dict, Optional, Sequence, Tuple, Union
 
 import math
 import numpy as np
@@ -31,11 +30,13 @@ from cirq.type_workarounds import NotImplementedType
 class PhasedXPowGate(gate_features.SingleQubitGate):
     """A gate equivalent to the circuit ───Z^-p───X^t───Z^p───."""
 
-    def __init__(self,
-                 *,
-                 phase_exponent: Union[float, sympy.Symbol],
-                 exponent: Union[float, sympy.Symbol] = 1.0,
-                 global_shift: float = 0.0) -> None:
+    def __init__(
+        self,
+        *,
+        phase_exponent: Union[float, sympy.Symbol],
+        exponent: Union[float, sympy.Symbol] = 1.0,
+        global_shift: float = 0.0,
+    ) -> None:
         """
         Args:
             phase_exponent: The exponent on the Z gates conjugating the X gate.
@@ -47,8 +48,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         self._exponent = exponent
         self._global_shift = global_shift
 
-    def _qasm_(self, args: 'cirq.QasmArgs',
-               qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if cirq.is_parameterized(self):
             return None
 
@@ -56,28 +56,34 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
 
         e = cast(float, value.canonicalize_half_turns(self._exponent))
         p = cast(float, self.phase_exponent)
-        epsilon = 10**-args.precision
+        epsilon = 10 ** -args.precision
 
         if abs(e + 0.5) <= epsilon:
-            return args.format('u2({0:half_turns}, {1:half_turns}) {2};\n',
-                               p + 0.5, -p - 0.5, qubits[0])
+            return args.format(
+                'u2({0:half_turns}, {1:half_turns}) {2};\n', p + 0.5, -p - 0.5, qubits[0]
+            )
 
         if abs(e - 0.5) <= epsilon:
-            return args.format('u2({0:half_turns}, {1:half_turns}) {2};\n',
-                               p - 0.5, -p + 0.5, qubits[0])
+            return args.format(
+                'u2({0:half_turns}, {1:half_turns}) {2};\n', p - 0.5, -p + 0.5, qubits[0]
+            )
 
         return args.format(
             'u3({0:half_turns}, {1:half_turns}, {2:half_turns}) {3};\n',
-            -e, p + 0.5, -p - 0.5, qubits[0])
+            -e,
+            p + 0.5,
+            -p - 0.5,
+            qubits[0],
+        )
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         assert len(qubits) == 1
         q = qubits[0]
-        z = cirq.Z(q)**self._phase_exponent
-        x = cirq.X(q)**self._exponent
+        z = cirq.Z(q) ** self._phase_exponent
+        x = cirq.X(q) ** self._exponent
         if protocols.is_parameterized(z):
             return NotImplemented
-        return z**-1, x, z
+        return z ** -1, x, z
 
     @property
     def exponent(self) -> Union[float, sympy.Symbol]:
@@ -97,9 +103,11 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented
-        return PhasedXPowGate(phase_exponent=self._phase_exponent,
-                              exponent=new_exponent,
-                              global_shift=self._global_shift)
+        return PhasedXPowGate(
+            phase_exponent=self._phase_exponent,
+            exponent=new_exponent,
+            global_shift=self._global_shift,
+        )
 
     def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
@@ -113,8 +121,8 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         """See `cirq.SupportsUnitary`."""
         if self._is_parameterized_():
             return None
-        z = protocols.unitary(cirq.Z**self._phase_exponent)
-        x = protocols.unitary(cirq.X**self._exponent)
+        z = protocols.unitary(cirq.Z ** self._phase_exponent)
+        x = protocols.unitary(cirq.X ** self._exponent)
         p = np.exp(1j * np.pi * self._global_shift * self._exponent)
         return np.dot(np.dot(z, x), np.conj(z)) * p
 
@@ -123,29 +131,34 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             return NotImplemented
         phase_angle = np.pi * self._phase_exponent / 2
         angle = np.pi * self._exponent / 2
-        phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
-        return value.LinearDict({
-            'I': phase * np.cos(angle),
-            'X': -1j * phase * np.sin(angle) * np.cos(2 * phase_angle),
-            'Y': -1j * phase * np.sin(angle) * np.sin(2 * phase_angle),
-        })
+        phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
+        return value.LinearDict(
+            {
+                'I': phase * np.cos(angle),
+                'X': -1j * phase * np.sin(angle) * np.cos(2 * phase_angle),
+                'Y': -1j * phase * np.sin(angle) * np.sin(2 * phase_angle),
+            }
+        )
 
     def _is_parameterized_(self) -> bool:
         """See `cirq.SupportsParameterization`."""
-        return (protocols.is_parameterized(self._exponent) or
-                protocols.is_parameterized(self._phase_exponent))
+        return protocols.is_parameterized(self._exponent) or protocols.is_parameterized(
+            self._phase_exponent
+        )
 
     def _parameter_names_(self) -> AbstractSet[str]:
         """See `cirq.SupportsParameterization`."""
-        return (protocols.parameter_names(self._exponent) |
-                protocols.parameter_names(self._phase_exponent))
+        return protocols.parameter_names(self._exponent) | protocols.parameter_names(
+            self._phase_exponent
+        )
 
-    def _resolve_parameters_(self, param_resolver) -> 'PhasedXPowGate':
+    def _resolve_parameters_(self, param_resolver, recursive) -> 'PhasedXPowGate':
         """See `cirq.SupportsParameterization`."""
         return PhasedXPowGate(
-            phase_exponent=param_resolver.value_of(self._phase_exponent),
-            exponent=param_resolver.value_of(self._exponent),
-            global_shift=self._global_shift)
+            phase_exponent=param_resolver.value_of(self._phase_exponent, recursive),
+            exponent=param_resolver.value_of(self._exponent, recursive),
+            global_shift=self._global_shift,
+        )
 
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
@@ -153,15 +166,18 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         return PhasedXPowGate(
             exponent=self._exponent,
             phase_exponent=self._phase_exponent + phase_turns * 2,
-            global_shift=self._global_shift)
+            global_shift=self._global_shift,
+        )
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                              ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
         """See `cirq.SupportsCircuitDiagramInfo`."""
 
         return protocols.CircuitDiagramInfo(
             wire_symbols=(f'PhX({args.format_real(self.phase_exponent)})',),
-            exponent=value.canonicalize_half_turns(self._exponent))
+            exponent=value.canonicalize_half_turns(self._exponent),
+        )
 
     def __str__(self) -> str:
         info = protocols.circuit_diagram_info(self)
@@ -180,7 +196,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
 
     def _period(self):
         exponents = [self._global_shift, 1 + self._global_shift]
-        real_periods = [abs(2/e) for e in exponents if e != 0]
+        real_periods = [abs(2 / e) for e in exponents if e != 0]
         int_periods = [int(np.round(e)) for e in real_periods]
         if any(i != r for i, r in zip(real_periods, int_periods)):
             return None
@@ -206,14 +222,13 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
     def _value_equality_values_(self):
         if self.phase_exponent == 0:
             return common_gates.XPowGate(
-                exponent=self._exponent,
-                global_shift=self._global_shift)._value_equality_values_()
+                exponent=self._exponent, global_shift=self._global_shift
+            )._value_equality_values_()
         if self.phase_exponent == 0.5:
             return common_gates.YPowGate(
-                exponent=self._exponent,
-                global_shift=self._global_shift)._value_equality_values_()
+                exponent=self._exponent, global_shift=self._global_shift
+            )._value_equality_values_()
         return self.phase_exponent, self._canonical_exponent, self._global_shift
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(
-            self, ['phase_exponent', 'exponent', 'global_shift'])
+        return protocols.obj_to_dict_helper(self, ['phase_exponent', 'exponent', 'global_shift'])

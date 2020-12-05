@@ -24,10 +24,7 @@ class GoodGateDecompose(cirq.SingleQubitGate):
         return cirq.X(qubits[0])
 
     def _unitary_(self):
-        return np.array([
-            [0, 1],
-            [1, 0]
-        ])
+        return np.array([[0, 1], [1, 0]])
 
 
 class BadGateDecompose(cirq.SingleQubitGate):
@@ -35,23 +32,20 @@ class BadGateDecompose(cirq.SingleQubitGate):
         return cirq.Y(qubits[0])
 
     def _unitary_(self):
-        return np.array([
-            [0, 1],
-            [1, 0]
-        ])
+        return np.array([[0, 1], [1, 0]])
 
 
 def test_assert_decompose_is_consistent_with_unitary():
-    cirq.testing.assert_decompose_is_consistent_with_unitary(
-        GoodGateDecompose())
+    cirq.testing.assert_decompose_is_consistent_with_unitary(GoodGateDecompose())
 
     cirq.testing.assert_decompose_is_consistent_with_unitary(
-        GoodGateDecompose().on(cirq.NamedQubit('q')))
+        GoodGateDecompose().on(cirq.NamedQubit('q'))
+    )
+
+    with pytest.raises(AssertionError):
+        cirq.testing.assert_decompose_is_consistent_with_unitary(BadGateDecompose())
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_decompose_is_consistent_with_unitary(
-            BadGateDecompose())
-
-    with pytest.raises(AssertionError):
-        cirq.testing.assert_decompose_is_consistent_with_unitary(
-            BadGateDecompose().on(cirq.NamedQubit('q')))
+            BadGateDecompose().on(cirq.NamedQubit('q'))
+        )
