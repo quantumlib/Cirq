@@ -146,7 +146,7 @@ class QasmTwoQubitGate(ops.TwoQubitGate):
 
 
 class QasmOutput:
-  """Representation of a circuit in QASM (quantum assembly) format.
+    """Representation of a circuit in QASM (quantum assembly) format.
 
     Please note that the QASM importer is in an experimental state and
     currently only supports a subset of the full OpenQASM spec.
@@ -156,6 +156,7 @@ class QasmOutput:
 
     QASM output can be saved to a file using the save method.
     """
+
     valid_id_re = re.compile(r'[a-z][a-zA-Z0-9_]*\Z')
 
     def __init__(
