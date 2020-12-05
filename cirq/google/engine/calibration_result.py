@@ -40,21 +40,30 @@ class CalibrationResult:
     metrics: 'cirq.google.Calibration'
 
     @classmethod
-    def _from_json_dict_(cls, code: 'calibration_pb2.CalibrationLayerCode',
-                         error_message: Optional[str], token: Optional[str],
-                         utc_valid_until: float,
-                         metrics: 'cirq.google.Calibration',
-                         **kwargs) -> 'CalibrationResult':
+    def _from_json_dict_(
+        cls,
+        code: 'calibration_pb2.CalibrationLayerCode',
+        error_message: Optional[str],
+        token: Optional[str],
+        utc_valid_until: float,
+        metrics: 'cirq.google.Calibration',
+        **kwargs,
+    ) -> 'CalibrationResult':
         """Magic method for the JSON serialization protocol."""
-        valid_until = (datetime.datetime.utcfromtimestamp(utc_valid_until)
-                       if utc_valid_until is not None else None)
+        valid_until = (
+            datetime.datetime.utcfromtimestamp(utc_valid_until)
+            if utc_valid_until is not None
+            else None
+        )
         return cls(code, error_message, token, valid_until, metrics)
 
     def _json_dict_(self) -> Dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
-        utc_valid_until = (self.valid_until.replace(
-            tzinfo=datetime.timezone.utc).timestamp()
-                           if self.valid_until is not None else None)
+        utc_valid_until = (
+            self.valid_until.replace(tzinfo=datetime.timezone.utc).timestamp()
+            if self.valid_until is not None
+            else None
+        )
         return {
             'cirq_type': 'CalibrationResult',
             'code': self.code,
