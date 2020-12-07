@@ -28,7 +28,6 @@ from typing import (Callable, cast, Dict, Iterable, List, Optional, Sequence,
 
 import networkx as nx
 import numpy as np
-#import math
 
 import cirq
 import cirq.contrib.routing as ccr
@@ -661,7 +660,7 @@ class XSWAP:
             for n in flayers[i]:
                 lq = n.val.qubits
                 phy_edge = (new_l_ph[(lq[0], i)], new_l_ph[(lq[1], i)]
-                           )  #self.log_to_phy_edge(n.val.qubits, maps)
+                           )  
                 H_cost = H_cost + len(
                     list(
                         nx.all_shortest_paths(self.device_graph, phy_edge[0],
@@ -843,7 +842,6 @@ class XSWAP:
                 self.l_to_ph[best_swap[1]] = ph0
                 self.ph_to_l[ph0] = self.ph_to_l[ph1]
                 self.ph_to_l[ph1] = self.ph_to_l[ph0]
-                #mappings = self.update_mapping(best_swap)
 
             flayers = self.generate_front_layers(dags)
 
@@ -889,8 +887,8 @@ def multi_prog_map(device_graph: nx.Graph, single_er: Dict[Tuple[ops.Qid,],
 
 
 def prepare_couplingGraph_errorValues(device_graph):
-    #single_er = load_calibrations()['single_qubit_p00_error'] # to do ??
-    #two_er = load_calibrations()['two_qubit_sycamore_gate_xeb_cycle_purity_error'] # to do ??
+    # single_er = load_calibrations()['single_qubit_p00_error'] # to do ??
+    # two_er = load_calibrations()['two_qubit_sycamore_gate_xeb_cycle_purity_error'] # to do ??
 
     single_er = {
         (cirq.GridQubit(1, 0),): [0.028600441075128205],
@@ -912,7 +910,7 @@ def prepare_couplingGraph_errorValues(device_graph):
     # coupling graph
     dgraph = nx.Graph()
 
-    for q0, q1 in two_er:  # .items()
+    for q0, q1 in two_er:  
         dgraph.add_edge(q0, q1)
 
     # list of program circuits
@@ -934,9 +932,9 @@ def prepare_couplingGraph_errorValues(device_graph):
 
 
 if __name__ == "__main__":
-    #print( load_calibrations()['single_qubit_p00_error'] )
+    # print( load_calibrations()['single_qubit_p00_error'] )
     device_graph1 = ccr.get_grid_device_graph(3, 2)
     device_graph = cirq.google.Sycamore
     prepare_couplingGraph_errorValues(device_graph)
 
-    #multi_prog_map(device_graph)
+    # multi_prog_map(device_graph)
