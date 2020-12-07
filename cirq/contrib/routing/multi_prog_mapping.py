@@ -452,7 +452,7 @@ class XSWAP:
         return cir_dags
 
     def generate_2qGates_front_layers(
-            self, cir_dags: List[cirq.CircuitDag]) -> List[List[ops.Gate]]:
+            self, cir_dags: List[cirq.CircuitDag]) -> List[List[ops.Operation]]:
         """
         Generate front layers for all programs by considering only 2-qubits gates. Front layer is consisting of all gates 
         that could run and doesn't have any predecessors.
@@ -476,7 +476,7 @@ class XSWAP:
         return flayers
 
     def generate_front_layers(
-            self, cir_dags: cirq.CircuitDag) -> List[List[ops.Gate]]:
+            self, cir_dags: List[cirq.CircuitDag]) -> List[List[ops.Gate]]:
         """
         Generate front layers for all programs. Front layer is consisting of all gates 
         that could run and doesn't have any predecessors.
@@ -667,7 +667,7 @@ class XSWAP:
                                               phy_edge[1]))[0])
         return H_cost - 1
 
-    def compute_path_distance_in_sameP(self, edge: (ops.Qid, ops.Qid),
+    def compute_path_distance_in_sameP(self, edge: Tuple[ops.Qid, ops.Qid],
                                        pid: int) -> int:
         """
         Compute path distance of two qubits by considering qubits only in same program.
@@ -819,7 +819,7 @@ class XSWAP:
                             require_swap = 1
             # Solve hardware-incompliant gates by inserting SWAPs
             if require_swap:
-                swap_candidate_lists = []
+                swap_candidate_lists: List[List[SWAPTypeLogical]] = []
                 for i in range(len(flayers)):
                     if len(flayers[i]) == 0:
                         swap_candidate_lists.append([])
