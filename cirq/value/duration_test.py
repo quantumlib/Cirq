@@ -91,15 +91,16 @@ def test_eq():
     assert Duration(picos=1) != 0
 
 
-def test_parameterized():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameterized(resolve_fn):
     t = sympy.Symbol('t')
     assert not cirq.is_parameterized(Duration())
     assert not cirq.is_parameterized(Duration(nanos=500))
     assert cirq.is_parameterized(Duration(nanos=500 * t))
 
-    assert cirq.resolve_parameters(Duration(), {'t': 2}) == Duration()
-    assert cirq.resolve_parameters(Duration(nanos=500), {'t': 2}) == Duration(nanos=500)
-    assert cirq.resolve_parameters(Duration(nanos=500 * t), {'t': 2}) == Duration(nanos=1000)
+    assert resolve_fn(Duration(), {'t': 2}) == Duration()
+    assert resolve_fn(Duration(nanos=500), {'t': 2}) == Duration(nanos=500)
+    assert resolve_fn(Duration(nanos=500 * t), {'t': 2}) == Duration(nanos=1000)
 
 
 def test_cmp():

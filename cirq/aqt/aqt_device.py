@@ -85,10 +85,9 @@ class AQTNoiseModel(devices.NoiseModel):
         noise_list = []
         for op in moment.operations:
             op_str = get_op_string(op)
-            try:
-                noise_op = self.noise_op_dict[op_str]
-            except KeyError:
+            if op_str not in self.noise_op_dict:
                 break
+            noise_op = self.noise_op_dict[op_str]
             for qubit in op.qubits:
                 noise_list.append(noise_op.on(qubit))
             noise_list += self.get_crosstalk_operation(op, system_qubits)

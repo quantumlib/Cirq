@@ -291,12 +291,13 @@ def test_is_parameterized():
     assert cirq.is_parameterized(CExpZinGate(sympy.Symbol('a')))
 
 
-def test_resolve_parameters():
-    assert cirq.resolve_parameters(
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_parameters(resolve_fn):
+    assert resolve_fn(
         CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': 0.5})
     ) == CExpZinGate(0.5)
 
-    assert cirq.resolve_parameters(CExpZinGate(0.25), cirq.ParamResolver({})) == CExpZinGate(0.25)
+    assert resolve_fn(CExpZinGate(0.25), cirq.ParamResolver({})) == CExpZinGate(0.25)
 
 
 def test_diagram_period():

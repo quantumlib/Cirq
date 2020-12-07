@@ -170,8 +170,10 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self.coefficient)
 
-    def _resolve_parameters_(self, resolver):
-        return self.copy(coefficient=protocols.resolve_parameters(self.coefficient, resolver))
+    def _resolve_parameters_(self, resolver, recursive):
+        return self.copy(
+            coefficient=protocols.resolve_parameters(self.coefficient, resolver, recursive)
+        )
 
     def __pos__(self):
         return self

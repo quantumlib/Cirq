@@ -307,11 +307,14 @@ def test_linear_combinations_of_gates_invalid_powers(terms, exponent):
         ({cirq.X ** sympy.Symbol('t'): 1}, True, {'t'}),
     ],
 )
-def test_parameterized_linear_combination_of_gates(terms, is_parameterized, parameter_names):
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameterized_linear_combination_of_gates(
+    terms, is_parameterized, parameter_names, resolve_fn
+):
     gate = cirq.LinearCombinationOfGates(terms)
     assert cirq.is_parameterized(gate) == is_parameterized
     assert cirq.parameter_names(gate) == parameter_names
-    resolved = cirq.resolve_parameters(gate, {p: 1 for p in parameter_names})
+    resolved = resolve_fn(gate, {p: 1 for p in parameter_names})
     assert not cirq.is_parameterized(resolved)
 
 
@@ -900,11 +903,14 @@ def test_linear_combinations_of_operations_invalid_powers(terms, exponent):
         ({cirq.X(cirq.LineQubit(0)) ** sympy.Symbol('t'): 1}, True, {'t'}),
     ],
 )
-def test_parameterized_linear_combination_of_ops(terms, is_parameterized, parameter_names):
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameterized_linear_combination_of_ops(
+    terms, is_parameterized, parameter_names, resolve_fn
+):
     op = cirq.LinearCombinationOfOperations(terms)
     assert cirq.is_parameterized(op) == is_parameterized
     assert cirq.parameter_names(op) == parameter_names
-    resolved = cirq.resolve_parameters(op, {p: 1 for p in parameter_names})
+    resolved = resolve_fn(op, {p: 1 for p in parameter_names})
     assert not cirq.is_parameterized(resolved)
 
 
