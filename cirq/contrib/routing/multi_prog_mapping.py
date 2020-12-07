@@ -347,7 +347,7 @@ class QubitsPartitioning:
         partitions = []
 
         for cir in desc_prog_circuits:
-            candidates: List[ops.Qid] = []
+            candidates: List[List[ops.Qid]] = []
             leaves = [
                 x for x in self.tree.nodes()
                 if self.tree.out_degree(x) == 0 and self.tree.in_degree(x) == 1
@@ -360,7 +360,7 @@ class QubitsPartitioning:
                             if c == leaf:
                                 exist = 1
                                 break
-                            elif set(c).issubset(leaf):
+                            elif set( list(c) ).issubset(leaf):
                                 # Keep independent candidates
                                 exist = 1
                                 break
@@ -896,7 +896,7 @@ def prepare_couplingGraph_errorValues(device_graph):
         (cirq.GridQubit(1, 1),): [0.05313138858345922],
         (cirq.GridQubit(0, 1),): [0.0005880214404983153],
         (cirq.GridQubit(1, 2),): [0.0018232495924263727],
-        (cirq.GridQubit(0, 2),): [0.039571298178797366]
+        (cirq.GridQubit(0, 2),): [0.039571298178797366],
     }
     two_er = {
         (cirq.GridQubit(1, 0), cirq.GridQubit(0, 0)): [0.018600441075128205],
@@ -904,7 +904,7 @@ def prepare_couplingGraph_errorValues(device_graph):
         (cirq.GridQubit(1, 1), cirq.GridQubit(0, 1)): [0.01313138858345922],
         (cirq.GridQubit(0, 1), cirq.GridQubit(0, 2)): [0.005880214404983153],
         (cirq.GridQubit(1, 1), cirq.GridQubit(1, 2)): [0.008232495924263727],
-        (cirq.GridQubit(0, 2), cirq.GridQubit(1, 2)): [0.03571298178797366]
+        (cirq.GridQubit(0, 2), cirq.GridQubit(1, 2)): [0.03571298178797366],
     }
 
     # coupling graph
