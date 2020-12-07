@@ -360,7 +360,7 @@ class QubitsPartitioning:
                             if c == leaf:
                                 exist = 1
                                 break
-                            elif set( list(c) ).issubset(leaf):
+                            elif set(list(c)).issubset(leaf):
                                 # Keep independent candidates
                                 exist = 1
                                 break
@@ -569,7 +569,8 @@ class XSWAP:
 
         return phy_edge
 
-    def phy_to_log_edge(self, phy_edge: Tuple[ops.Qid, ops.Qid]) -> SWAPTypeLogical:
+    def phy_to_log_edge(self, phy_edge: Tuple[ops.Qid,
+                                              ops.Qid]) -> SWAPTypeLogical:
         """
         Map physical qubits of an edge to logical qubits and their program id and return it as an edge.
 
@@ -659,8 +660,7 @@ class XSWAP:
                 continue
             for n in flayers[i]:
                 lq = n.val.qubits
-                phy_edge = (new_l_ph[(lq[0], i)], new_l_ph[(lq[1], i)]
-                           )  
+                phy_edge = (new_l_ph[(lq[0], i)], new_l_ph[(lq[1], i)])
                 H_cost = H_cost + len(
                     list(
                         nx.all_shortest_paths(self.device_graph, phy_edge[0],
@@ -910,7 +910,7 @@ def prepare_couplingGraph_errorValues(device_graph):
     # coupling graph
     dgraph = nx.Graph()
 
-    for q0, q1 in two_er:  
+    for q0, q1 in two_er:
         dgraph.add_edge(q0, q1)
 
     # list of program circuits
