@@ -13,6 +13,7 @@
 # limitations under the License.
 import inspect
 
+import datetime
 import io
 import json
 import os
@@ -274,8 +275,6 @@ def test_mutually_exclusive_blacklist():
 NOT_YET_SERIALIZABLE = [
     'AsymmetricDepolarizingChannel',
     'AxisAngleDecomposition',
-    'CalibrationLayer',
-    'CalibrationResult',
     'CircuitDag',
     'CircuitDiagramInfo',
     'CircuitDiagramInfoArgs',
@@ -533,6 +532,7 @@ def _eval_repr_data_file(path: pathlib.Path):
         path.read_text(),
         {
             'cirq': cirq,
+            'datetime': datetime,
             'pd': pd,
             'sympy': sympy,
             'np': np,
