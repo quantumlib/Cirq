@@ -56,7 +56,7 @@ class HierarchyTree:
         self.two_er = two_er
 
     def compute_F(self, community1: List[ops.Qid], community2: List[ops.Qid],
-                  q1: float, q2: float, fidelity: float) -> (float, float):
+                  q1: float, q2: float, fidelity: float) -> Tuple[float, float]:
         """
         Computes the reward function F, F = Qmerged - Qorigin + (omega)*E*V
         Qorigin, Qmerged denote the modularity of the original partition and the new partition after merging the two communities.
@@ -97,6 +97,7 @@ class HierarchyTree:
                     inside_edges += 1
         # Compute total edges
         for c1 in community1:
+            print(f"community: {type(c1)}")
             total_edges += len(c1.neighbors())
         for c2 in community2:
             total_edges += len(c2.neighbors())
@@ -142,7 +143,7 @@ class HierarchyTree:
         return fidelity
 
     def compute_new_node(self, communities: List[List[ops.Qid]],
-                         q_values: List[float]) -> (int, int, float):
+                         q_values: List[float]) -> Tuple[int, int, float]:
         """
         Find the best 2 communities (high fidelity) to merge and create new node.
 
@@ -181,7 +182,7 @@ class HierarchyTree:
         else:
             return idx2, idx1, q_merged
 
-    def tree_construction(self) -> nx.DiGraph():
+    def tree_construction(self) -> nx.DiGraph:
         """
         Construct a dendrogram tree of physical qubits. 
         This function uses device graph and calibration data togeteher 
@@ -229,7 +230,7 @@ class QubitsPartitioning:
         twoQ_gate_type: type of 2-qubits gate (CZ or CNOT)
     """
 
-    def __init__(self, tree: nx.DiGraph(),
+    def __init__(self, tree: nx.DiGraph,
                  program_circuits: List[circuits.Circuit],
                  single_er: Dict[Tuple[ops.Qid,], List[float]],
                  two_er: Dict[Tuple[ops.Qid, ops.Qid],
@@ -288,9 +289,9 @@ class QubitsPartitioning:
         twoQ_gates = len(list(cir.all_operations())) - twoQ_gates
         qubits = len(cir.all_qubits())
 
-        err_2 = 0
+        err_2 = 0.0
         count_2 = 0
-        err_1 = 0
+        err_1 = 0.0
         for i in range(len(partition) - 1):
             for j in range(i + 1, len(partition)):
                 if (partition[i], partition[j]) in self.two_er:
@@ -417,7 +418,7 @@ class XSWAP:
         self.l_to_ph = l_to_ph
         self.ph_to_l = ph_to_l
 
-    def generate_2qGates_dags(self) -> cirq.CircuitDag:
+    def generate_2qGates_dags(self) -> List[cirq.CircuitDag]:
         """
         Generate the dag representation of program circuits only for 2-qubits gates.
 
@@ -426,7 +427,7 @@ class XSWAP:
         """
 
         cir_dags = []
-        for c in self.desc_prog_circuits:
+        for c in self.desc_program_circuits:
             # Remove single qubit gates before creating dag
             singleq_gates = list(
                 c.findall_operations_with_gate_type(self.twoQ_gate_type))
@@ -436,7 +437,7 @@ class XSWAP:
 
         return cir_dags
 
-    def generate_dags(self) -> cirq.CircuitDag:
+    def generate_dags(self) -> List[cirq.CircuitDag]:
         """
         Generate the dag representation of program circuits consisting of all gate types.
 
@@ -550,8 +551,8 @@ class XSWAP:
 
         return
 
-    def log_to_phy_edge(self, log_edge: (ops.Qid, ops.Qid),
-                        pid: int) -> (ops.Qid, ops.Qid):
+    def log_to_phy_edge(self, log_edge: Tuple[ops.Qid, ops.Qid],
+                        pid: int) -> Tuple[ops.Qid, ops.Qid]:
         """
         Map logical qubits and their program id of an edge to physical qubits and return it as an edge.
 
@@ -569,7 +570,7 @@ class XSWAP:
 
         return phy_edge
 
-    def phy_to_log_edge(self, phy_edge: (ops.Qid, ops.Qid)) -> SWAPTypeLogical:
+    def phy_to_log_edge(self, phy_edge: Tuple[ops.Qid, ops.Qid]) -> SWAPTypeLogical:
         """
         Map physical qubits of an edge to logical qubits and their program id and return it as an edge.
 
@@ -709,12 +710,12 @@ class XSWAP:
             gain_cost: gain cost value
         """
 
-        gain_cost = 0
+        gain_cost = 0.0
 
         for i in range(len(flayers)):
             if len(flayers[i]) == 0:
                 continue
-            cost_i = 0
+            cost_i = 0.0
             for n in flayers[i]:
                 lq = n.val.qubits
                 new_phy_edge = (new_l_ph[(lq[0], i)], new_l_ph[(lq[1], i)])
@@ -760,10 +761,12 @@ class XSWAP:
                 gain_cost = self.compute_gainCost(flayers, new_l_ph, new_ph_l,
                                                   s)
                 cost = H_cost + gain_cost
-
+                print(f"H cost: {H_cost}")
+                print(f"gain cost: {gain_cost}")
                 if cost < min_cost:
                     min_cost = cost
                     best_swap = s
+
         return best_swap
 
     def insert_SWAP_and_generate_schedule(self) -> circuits.Circuit:
