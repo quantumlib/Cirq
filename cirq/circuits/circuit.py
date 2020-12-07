@@ -73,29 +73,30 @@ class AbstractCircuit(abc.ABC):
 
     These methods return information about the circuit, and can be called on
     either Circuit or FrozenCircuit objects:
-        next_moment_operating_on
-        prev_moment_operating_on
-        next_moments_operating_on
-        operation_at
-        all_qubits
-        all_operations
-        findall_operations
-        findall_operations_between
-        findall_operations_until_blocked
-        findall_operations_with_gate_type
-        reachable_frontier_from
-        has_measurements
-        are_all_matches_terminal
-        are_all_measurements_terminal
-        unitary
-        final_state_vector
-        to_text_diagram
-        to_text_diagram_drawer
-        qid_shape
-        all_measurement_keys
-        to_quil
-        to_qasm
-        save_qasm
+
+    *   next_moment_operating_on
+    *   prev_moment_operating_on
+    *   next_moments_operating_on
+    *   operation_at
+    *   all_qubits
+    *   all_operations
+    *   findall_operations
+    *   findall_operations_between
+    *   findall_operations_until_blocked
+    *   findall_operations_with_gate_type
+    *   reachable_frontier_from
+    *   has_measurements
+    *   are_all_matches_terminal
+    *   are_all_measurements_terminal
+    *   unitary
+    *   final_state_vector
+    *   to_text_diagram
+    *   to_text_diagram_drawer
+    *   qid_shape
+    *   all_measurement_keys
+    *   to_quil
+    *   to_qasm
+    *   save_qasm
     """
 
     @property
@@ -1209,61 +1210,73 @@ class Circuit(AbstractCircuit):
 
     Methods returning information about the circuit (inherited from
     AbstractCircuit):
-        next_moment_operating_on
-        prev_moment_operating_on
-        next_moments_operating_on
-        operation_at
-        all_qubits
-        all_operations
-        findall_operations
-        findall_operations_between
-        findall_operations_until_blocked
-        findall_operations_with_gate_type
-        reachable_frontier_from
-        has_measurements
-        are_all_matches_terminal
-        are_all_measurements_terminal
-        unitary
-        final_state_vector
-        to_text_diagram
-        to_text_diagram_drawer
-        qid_shape
-        all_measurement_keys
-        to_quil
-        to_qasm
-        save_qasm
+
+    *   next_moment_operating_on
+    *   prev_moment_operating_on
+    *   next_moments_operating_on
+    *   operation_at
+    *   all_qubits
+    *   all_operations
+    *   findall_operations
+    *   findall_operations_between
+    *   findall_operations_until_blocked
+    *   findall_operations_with_gate_type
+    *   reachable_frontier_from
+    *   has_measurements
+    *   are_all_matches_terminal
+    *   are_all_measurements_terminal
+    *   unitary
+    *   final_state_vector
+    *   to_text_diagram
+    *   to_text_diagram_drawer
+    *   qid_shape
+    *   all_measurement_keys
+    *   to_quil
+    *   to_qasm
+    *   save_qasm
 
     Methods for mutation:
-        insert
-        append
-        insert_into_range
-        clear_operations_touching
-        batch_insert
-        batch_remove
-        batch_insert_into
-        insert_at_frontier
+
+    *   insert
+    *   append
+    *   insert_into_range
+    *   clear_operations_touching
+    *   batch_insert
+    *   batch_remove
+    *   batch_insert_into
+    *   insert_at_frontier
 
     Circuits can also be iterated over,
+
+    ```
         for moment in circuit:
             ...
+    ```
+
     and sliced,
-        circuit[1:3] is a new Circuit made up of two moments, the first being
-            circuit[1] and the second being circuit[2];
-        circuit[:, qubit] is a new Circuit with the same moments, but with only
-            those operations which act on the given Qubit;
-        circuit[:, qubits], where 'qubits' is list of Qubits, is a new Circuit
+
+    *   `circuit[1:3]` is a new Circuit made up of two moments, the first being
+            `circuit[1]` and the second being `circuit[2]`;
+    *   `circuit[:, qubit]` is a new Circuit with the same moments, but with
+            only those operations which act on the given Qubit;
+    *   `circuit[:, qubits]`, where 'qubits' is list of Qubits, is a new Circuit
             with the same moments, but only with those operations which touch
             any of the given qubits;
-        circuit[1:3, qubit] is equivalent to circuit[1:3][:, qubit];
-        circuit[1:3, qubits] is equivalent to circuit[1:3][:, qubits];
+    *   `circuit[1:3, qubit]` is equivalent to `circuit[1:3][:, qubit]`;
+    *   `circuit[1:3, qubits]` is equivalent to `circuit[1:3][:, qubits]`;
+
     and concatenated,
-        circuit1 + circuit2 is a new Circuit made up of the moments in circuit1
-            followed by the moments in circuit2;
+
+    *    `circuit1 + circuit2` is a new Circuit made up of the moments in
+            circuit1 followed by the moments in circuit2;
+
     and multiplied by an integer,
-        circuit * k is a new Circuit made up of the moments in circuit repeated
+
+    *    `circuit * k` is a new Circuit made up of the moments in circuit repeated
             k times.
+
     and mutated,
-        circuit[1:7] = [Moment(...)]
+    *    `circuit[1:7] = [Moment(...)]`
     """
 
     def __init__(
