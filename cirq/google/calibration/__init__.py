@@ -1,3 +1,9 @@
 from cirq.google.calibration.phased_fsim import (
-    PhasedFSimParameters
+    FloquetPhasedFSimCalibrationOptions,
+    FloquetPhasedFSimCalibrationRequest,
+    FloquetPhasedFSimCalibrationResult,
+    PhasedFSimParameters,
+    PhasedFsimCalibrationRequest,
+    PhasedFSimCalibrationResult,
+    run_calibrations
 )
