@@ -233,7 +233,7 @@ class QubitsPartitioning:
                  program_circuits: List[circuits.Circuit],
                  single_er: Dict[Tuple[ops.Qid,], List[float]],
                  two_er: Dict[Tuple[ops.Qid, ops.Qid],
-                              List[float]], twoQ_gate_type: ops.Operation):
+                              List[float]], twoQ_gate_type: ops.Gate):
         self.tree = tree
         self.program_circuits = program_circuits
         self.single_er = single_er
@@ -347,7 +347,7 @@ class QubitsPartitioning:
         partitions = []
 
         for cir in desc_prog_circuits:
-            candidates = []
+            candidates: List[ops.Qid] = []
             leaves = [
                 x for x in self.tree.nodes()
                 if self.tree.out_degree(x) == 0 and self.tree.in_degree(x) == 1
@@ -407,7 +407,7 @@ class XSWAP:
                  device_graph: nx.Graph,
                  desc_program_circuits: List[circuits.Circuit],
                  partitions: List[List[ops.Qid]],
-                 twoQ_gate_type: ops.Operation,
+                 twoQ_gate_type: ops.Gate,
                  l_to_ph={},
                  ph_to_l={}):
         self.device_graph = device_graph
@@ -452,7 +452,7 @@ class XSWAP:
         return cir_dags
 
     def generate_2qGates_front_layers(
-            self, cir_dags: List[cirq.CircuitDag]) -> List[List[ops.Operation]]:
+            self, cir_dags: List[cirq.CircuitDag]) -> List[List[ops.Gate]]:
         """
         Generate front layers for all programs by considering only 2-qubits gates. Front layer is consisting of all gates 
         that could run and doesn't have any predecessors.
@@ -476,7 +476,7 @@ class XSWAP:
         return flayers
 
     def generate_front_layers(
-            self, cir_dags: cirq.CircuitDag) -> List[List[ops.Operation]]:
+            self, cir_dags: cirq.CircuitDag) -> List[List[ops.Gate]]:
         """
         Generate front layers for all programs. Front layer is consisting of all gates 
         that could run and doesn't have any predecessors.
@@ -637,7 +637,7 @@ class XSWAP:
 
         return new_l_ph, new_ph_l
 
-    def compute_H(self, flayers: List[List[ops.Operation]],
+    def compute_H(self, flayers: List[List[ops.Gate]],
                   new_l_ph: Dict[Tuple[ops.Qid, int], ops.Qid],
                   new_ph_l: Dict[ops.Qid, Tuple[ops.Qid, int]]) -> float:
         """
@@ -692,7 +692,7 @@ class XSWAP:
                     distance = len(p)
         return distance
 
-    def compute_gainCost(self, flayers: List[List[ops.Operation]],
+    def compute_gainCost(self, flayers: List[List[ops.Gate]],
                          new_l_ph: Dict[Tuple[ops.Qid, int], ops.Qid],
                          new_ph_l: Dict[ops.Qid, Tuple[ops.Qid, int]],
                          swap: SWAPTypeLogical) -> float:
@@ -739,7 +739,7 @@ class XSWAP:
         return gain_cost
 
     def find_best_swap(self, swap_candidate_lists: List[List[SWAPTypeLogical]],
-                       flayers: List[List[ops.Operation]]) -> SWAPTypeLogical:
+                       flayers: List[List[ops.Gate]]) -> SWAPTypeLogical:
         """
         Find best SWAP among candidates.
 
