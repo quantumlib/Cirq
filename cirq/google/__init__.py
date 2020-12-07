@@ -20,6 +20,10 @@ from cirq.google.arg_func_langs import (
     arg_from_proto,
 )
 
+from cirq.google.calibration import (
+    PhasedFSimParameters
+)
+
 from cirq.google.devices import (
     Bristlecone,
     Foxtail,
