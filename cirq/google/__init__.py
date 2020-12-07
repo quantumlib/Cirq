@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Classes for compiling, serializing, and using Google's Quantum Engine API."""
+"""Classes for working with Google's Quantum Engine API."""
 
 from cirq.google import api
 

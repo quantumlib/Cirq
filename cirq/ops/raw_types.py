@@ -510,11 +510,11 @@ class Operation(metaclass=abc.ABCMeta):
 
 @value.value_equality
 class TaggedOperation(Operation):
-    """A specific operation instance that has identified with a set of Tags.
+    """Operation annotated with a set of Tags.
 
     These Tags can be used for special processing.  TaggedOperations
     can be initialized with using Operation.with_tags(tag)
-    or by iusing TaggedOperation(op, tag).
+    or by using TaggedOperation(op, tag).
 
     Tags added can be of any type, but they should be Hashable in order
     to allow equality checking.  If you wish to serialize operations into
