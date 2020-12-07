@@ -108,10 +108,6 @@ class AbstractCircuit(abc.ABC):
     def device(self) -> devices.Device:
         pass
 
-    @property
-    def name(self) -> Optional[str]:
-        return None
-
     def freeze(self) -> 'cirq.FrozenCircuit':
         """Creates a FrozenCircuit from this circuit.
 
@@ -224,8 +220,6 @@ class AbstractCircuit(abc.ABC):
             args.append(_list_repr_with_indented_item_lines(self.moments))
         if self.device != devices.UNCONSTRAINED_DEVICE:
             args.append(f'device={self.device!r}')
-        if self.name != None:
-            args.append(f'name={self.name!r}')
         return f'cirq.{cls_name}({", ".join(args)})'
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:

@@ -24,5 +24,5 @@ cirq.CircuitOperation(
         cirq.Moment(
             (cirq.X**sympy.Symbol('theta')).on(cirq.LineQubit(0)),
         ),
-    ], name='xpow'),
+    ]),
 ).with_params({sympy.Symbol('theta'): 1.5})]

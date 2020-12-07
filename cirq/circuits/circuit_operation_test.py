@@ -229,15 +229,15 @@ cirq.CircuitOperation(cirq.FrozenCircuit([
 ]))"""
     )
 
-    fc2 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, x), name='new_gate')
+    fc2 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, x))
     op2 = cirq.CircuitOperation(fc2).with_qubits(x, z).repeat(3)
     assert (
         str(op2)
-        == """\
-new_gate:
+        == f"""\
+Circuit_{hash(op2.circuit) % int(1e6):06d}:
 [ 0: ───X───X─── ]
 [           │    ]
-[ 1: ───H───@─── ](qubit_map={0: 0, 1: 2}, loops=3)"""
+[ 1: ───H───@─── ](qubit_map={{0: 0, 1: 2}}, loops=3)"""
     )
     assert (
         repr(op2)
@@ -250,7 +250,7 @@ cirq.CircuitOperation(cirq.FrozenCircuit([
     cirq.Moment(
         cirq.CNOT(cirq.LineQubit(1), cirq.LineQubit(0)),
     ),
-], name='new_gate')).with_qubit_mapping({
+])).with_qubit_mapping({
     cirq.LineQubit(0): cirq.LineQubit(0),
     cirq.LineQubit(1): cirq.LineQubit(2),
 }).repeat(3)"""
