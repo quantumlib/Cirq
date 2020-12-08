@@ -33,7 +33,7 @@ class FloquetPhasedFSimCalibrationOptions:
     estimate_phi: bool
 
 
-class PhasedFsimCalibrationRequest(abc.ABC):
+class PhasedFSimCalibrationRequest(abc.ABC):
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
     gate_set: SerializableGateSet
     qubits: Tuple[Tuple[Qid, Qid]]
@@ -50,7 +50,7 @@ class PhasedFSimCalibrationResult(abc.ABC):
 
 
 @json_serializable_dataclass
-class FloquetPhasedFSimCalibrationRequest(PhasedFsimCalibrationRequest):
+class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     options: FloquetPhasedFSimCalibrationOptions
 
     def to_calibration_layer(self) -> CalibrationLayer:
@@ -63,7 +63,7 @@ class FloquetPhasedFSimCalibrationResult(PhasedFSimCalibrationResult):
 
 
 def run_calibrations(engine: Union[Engine, 'PhasedFSimEngineSimulator'],
-                     calibrations: List[PhasedFsimCalibrationRequest]
+                     calibrations: List[PhasedFSimCalibrationRequest]
                      ) -> List[PhasedFSimCalibrationResult]:
     return NotImplemented
 
