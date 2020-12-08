@@ -11,9 +11,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple, Optional
-
 import datetime
+
+from typing import Optional, Set, Tuple
+
+from cirq import devices
 
 
 class Calibration:
@@ -37,7 +39,7 @@ class Calibration:
             tz: The timezone for the string. If None, the method uses the platform's local timezone.
 
         Returns:
-            A `datetime` class with the time.
+            A `datetime` object with the time.
         """
         # Python datetime only like microseconds, not milliseconds, and does not like 'Z'.
         first, second = self._calibration_dict['date'].split('.')
@@ -46,16 +48,23 @@ class Calibration:
         return dt.replace(tzinfo=datetime.timezone.utc).astimezone(tz=tz)
 
     def fidelities(self) -> dict:
-        """"Returns the metrics (fidelities)."""
+        """Returns the metrics (fidelities)."""
         return self._calibration_dict['fidelity']
 
     def timings(self) -> dict:
         """Returns the gate, measurement, and reseting timings."""
         return self._calibration_dict['timing']
 
-    def connectivity(self) -> Tuple[Tuple[int, int], ...]:
+    def connectivity(self) -> Set[Tuple[devices.LineQubit, devices.LineQubit]]:
         """Returns which qubits and can interact with which.
 
-        Note that this only returns one of (q0, q1) and (q1, q0) if q0 and q1 can interact.
+        Returns:
+            A set of the possible qubits that can interact as tuples. This contains both
+            ordered pairs. If `(cirq.LineQubit(x), cirq.LineQubit(y))` is in the set, then
+            `(cirq.LineQubit(y), cirq.LineQubit(x))` is in the set.
         """
-        return tuple((int(x), int(y)) for x, y in self._calibration_dict['connectivity'])
+        connections = self._calibration_dict['connectivity']
+        to_qubit = lambda x: devices.LineQubit(int(x))
+        return set((to_qubit(x), to_qubit(y)) for x, y in connections).union(
+            set((to_qubit(y), to_qubit(x)) for x, y in connections)
+        )

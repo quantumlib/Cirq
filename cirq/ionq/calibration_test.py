@@ -13,6 +13,7 @@
 
 import datetime
 
+import cirq
 from cirq import ionq
 
 
@@ -35,7 +36,14 @@ def test_calibration_fields():
         'date': '2020-08-07T12:47:22.337Z',
     }
     cal = ionq.Calibration(calibration_dict=calibration_dict)
-    assert cal.connectivity() == ((0, 1), (0, 2), (1, 2))
+    assert cal.connectivity() == {
+        (cirq.LineQubit(0), cirq.LineQubit(1)),
+        (cirq.LineQubit(1), cirq.LineQubit(0)),
+        (cirq.LineQubit(0), cirq.LineQubit(2)),
+        (cirq.LineQubit(2), cirq.LineQubit(0)),
+        (cirq.LineQubit(1), cirq.LineQubit(2)),
+        (cirq.LineQubit(2), cirq.LineQubit(1)),
+    }
     assert cal.target() == 'ionq.qpu'
     assert cal.num_qubits() == 3
     assert cal.fidelities() == {'1q': {'mean': 0.999}, '2q': {'mean': 0.999}}
