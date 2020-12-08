@@ -176,16 +176,20 @@ def test_with_operation():
 
     assert cirq.Moment([cirq.X(a)]).with_operation(cirq.X(b)) == cirq.Moment([cirq.X(a), cirq.X(b)])
 
+    # One-qubit operation case.
     with pytest.raises(ValueError):
-        # One-qubit operation case.
         _ = cirq.Moment([cirq.X(a)]).with_operation(cirq.X(a))
 
-        # Two-qubit operation case.
+    # Two-qubit operation case.
+    with pytest.raises(ValueError):
         _ = cirq.Moment([cirq.CZ(a, b)]).with_operation(cirq.X(a))
+    with pytest.raises(ValueError):
         _ = cirq.Moment([cirq.CZ(a, b)]).with_operation(cirq.X(b))
 
-        # Multiple operations case.
+    # Multiple operations case.
+    with pytest.raises(ValueError):
         _ = cirq.Moment([cirq.X(a), cirq.X(b)]).with_operation(cirq.X(a))
+    with pytest.raises(ValueError):
         _ = cirq.Moment([cirq.X(a), cirq.X(b)]).with_operation(cirq.X(b))
 
 
@@ -206,16 +210,20 @@ def test_with_operations():
         [cirq.X(a), cirq.X(b), cirq.X(c)]
     )
 
+    # One-qubit operation case.
     with pytest.raises(ValueError):
-        # One-qubit operation case.
         _ = cirq.Moment([cirq.X(a)]).with_operations(cirq.X(a))
 
-        # Two-qubit operation case.
+    # Two-qubit operation case.
+    with pytest.raises(ValueError):
         _ = cirq.Moment([cirq.CZ(a, b)]).with_operations(cirq.X(a))
+    with pytest.raises(ValueError):
         _ = cirq.Moment([cirq.CZ(a, b)]).with_operations(cirq.X(b))
 
-        # Multiple operations case.
+    # Multiple operations case.
+    with pytest.raises(ValueError):
         _ = cirq.Moment([cirq.X(a), cirq.X(b)]).with_operations(cirq.X(a))
+    with pytest.raises(ValueError):
         _ = cirq.Moment([cirq.X(a), cirq.X(b)]).with_operations(cirq.X(b))
 
 
