@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import (Any, Iterator, Tuple, Union, TYPE_CHECKING)
+from typing import Any, Iterator, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -23,39 +23,46 @@ if TYPE_CHECKING:
     import cirq
 
 
+def _all_pauli_strings_commute(pauli_sum: 'cirq.PauliSum') -> bool:
+    for x in pauli_sum:
+        for y in pauli_sum:
+            if not protocols.commutes(x, y):
+                return False
+    return True
+
+
 @value.value_equality(approximate=True)
 class PauliSumExponential:
-    """Represents operator defined by exponential of a PauliSum.
+    """Represents an operator defined by the exponential of a PauliSum.
 
     Given a hermitian/anti-hermitian PauliSum PS_1 + PS_2 + ... + PS_N, this
     class returns an operation which is equivalent to
     exp(j * exponent * (PS_1 + PS_2 + ... + PS_N)).
 
-    This class currently supports only exponential of commuting Pauli Terms.
+    This class only supports commuting Pauli terms.
     """
 
-    def __init__(self,
-                 pauli_sum_like: 'cirq.PauliSumLike',
-                 exponent: Union[int, float, sympy.Basic] = 1,
-                 *,
-                 is_anti_hermitian=False):
+    def __init__(
+        self, pauli_sum_like: 'cirq.PauliSumLike', exponent: Union[int, float, sympy.Basic] = 1
+    ):
         pauli_sum = linear_combinations.PauliSum.wrap(pauli_sum_like)
-        if not PauliSumExponential._all_pauli_strings_commute_(pauli_sum):
-            raise ValueError(
-                "PauliSumExponential defined only for commuting pauli sums.")
-        self._exponent = exponent
-        self._is_anti_hermitian = is_anti_hermitian
-        if is_anti_hermitian:
-            self._multiplier = -1j
-        else:
-            self._multiplier = 1
+        if not _all_pauli_strings_commute(pauli_sum):
+            raise ValueError("PauliSumExponential defined only for commuting pauli sums.")
+        self._multiplier = None
         for pauli_string in pauli_sum:
-            normalised_coeff = complex(pauli_string.coefficient *
-                                       self._multiplier)
-            if normalised_coeff.imag != 0:
+            coeff = pauli_string.coefficient
+            curr_multiplier = -1j if abs(coeff.imag) > 1e-8 else 1.0
+            if not self._multiplier:
+                self._multiplier = curr_multiplier
+            if (
+                abs(coeff.real) > 1e-8 and abs(coeff.imag) > 1e-8
+            ) or curr_multiplier != self._multiplier:
                 raise ValueError(
-                    pauli_string,
-                    "PauliSum should be either hermitian or anti-hermitian.")
+                    pauli_sum, "PauliSum should be either hermitian or anti-hermitian."
+                )
+        if not self._multiplier:
+            self._multiplier = 1.0
+        self._exponent = exponent
         self._pauli_sum = pauli_sum
 
     @property
@@ -66,25 +73,15 @@ class PauliSumExponential:
         return (self._pauli_sum, self._exponent)
 
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'PauliSumExponential':
-        return PauliSumExponential(self._pauli_sum.with_qubits(*new_qubits),
-                                   self._exponent,
-                                   is_anti_hermitian=self._is_anti_hermitian)
+        return PauliSumExponential(self._pauli_sum.with_qubits(*new_qubits), self._exponent)
 
-    def _resolve_parameters_(self,
-                             param_resolver: 'cirq.ParamResolverOrSimilarType'
-                            ) -> 'PauliSumExponential':
-        return PauliSumExponential(self._pauli_sum,
-                                   exponent=protocols.resolve_parameters(
-                                       self._exponent, param_resolver),
-                                   is_anti_hermitian=self._is_anti_hermitian)
-
-    @staticmethod
-    def _all_pauli_strings_commute_(pauli_sum: 'cirq.PauliSum') -> bool:
-        for x in pauli_sum:
-            for y in pauli_sum:
-                if not protocols.commutes(x, y):
-                    return False
-        return True
+    def _resolve_parameters_(
+        self, param_resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
+    ) -> 'PauliSumExponential':
+        return PauliSumExponential(
+            self._pauli_sum,
+            exponent=protocols.resolve_parameters(self._exponent, param_resolver, recursive),
+        )
 
     def __iter__(self) -> Iterator['cirq.PauliStringPhasor']:
         for pauli_string in self._pauli_sum:
@@ -93,9 +90,8 @@ class PauliSumExponential:
             if isinstance(theta, complex):
                 theta = theta.real
             yield pauli_string_phasor.PauliStringPhasor(
-                pauli_string.with_coefficient(1.0),
-                exponent_neg=-theta,
-                exponent_pos=theta)
+                pauli_string.with_coefficient(1.0), exponent_neg=-theta, exponent_pos=theta
+            )
 
     def matrix(self) -> np.ndarray:
         """Reconstructs matrix of self from underlying Pauli sum exponentials.
@@ -117,15 +113,14 @@ class PauliSumExponential:
         return self.matrix()
 
     def __pow__(self, exponent: int) -> 'PauliSumExponential':
-        return PauliSumExponential(self._pauli_sum,
-                                   self._exponent * exponent,
-                                   is_anti_hermitian=self._is_anti_hermitian)
+        return PauliSumExponential(self._pauli_sum, self._exponent * exponent)
 
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
-        return f'cirq.{class_name}({self._pauli_sum!r}, {self._exponent!r}, '\
-               f'is_anti_hermitian={self._is_anti_hermitian!r})'
+        return f'cirq.{class_name}({self._pauli_sum!r}, {self._exponent!r})'
 
     def __str__(self) -> str:
-        coeff = '1.0' if self._multiplier != 1 else 'j'
-        return f'exp({(coeff)!s} * {self._exponent!s} * ({self._pauli_sum!s}))'
+        if self._multiplier == 1:
+            return f'exp(j * {self._exponent!s} * ({self._pauli_sum!s}))'
+        else:
+            return f'exp({self._exponent!s} * ({self._pauli_sum!s}))'

@@ -117,7 +117,8 @@ from cirq.ops.linear_combinations import (
 )
 
 from cirq.ops.pauli_sum_exponential import (
-    PauliSumExponential,)
+    PauliSumExponential,
+)
 
 from cirq.ops.parallel_gate_operation import (
     ParallelGateOperation,
