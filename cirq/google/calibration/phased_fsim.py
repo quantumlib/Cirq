@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Callable, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
 import abc
 from cirq.circuits import Circuit
@@ -7,6 +7,8 @@ from cirq.google.engine import CalibrationLayer, Engine
 from cirq.google.serializable_gate_set import SerializableGateSet
 
 if TYPE_CHECKING:
+    from cirq.google.calibration.engine_simulator import PhasedFSimEngineSimulator
+
     # Workaround for mypy custom dataclasses
     from dataclasses import dataclass as json_serializable_dataclass
 else:
@@ -60,7 +62,7 @@ class FloquetPhasedFSimCalibrationResult(PhasedFSimCalibrationResult):
     options: FloquetPhasedFSimCalibrationOptions
 
 
-def run_calibrations(engine: Engine,
+def run_calibrations(engine: Union[Engine, 'PhasedFSimEngineSimulator'],
                      calibrations: List[PhasedFsimCalibrationRequest]
                      ) -> List[PhasedFSimCalibrationResult]:
     return NotImplemented
@@ -99,7 +101,7 @@ def floquet_calibration_for_circuit(
 
 
 def run_floquet_calibration_for_circuit(
-        engine: Engine,
+        engine: Union[Engine, 'cirq.google.PhasedFSimEngineSimulator'],
         circuit: Circuit,
         options_generator: Callable[
             [Gate], FloquetPhasedFSimCalibrationOptions
