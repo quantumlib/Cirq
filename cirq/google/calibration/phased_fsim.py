@@ -1,7 +1,8 @@
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Callable, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 import abc
-from cirq.ops import Gate, Qid
+from cirq.circuits import Circuit
+from cirq.ops import Gate, Moment, Qid
 from cirq.google.engine import CalibrationLayer, Engine
 from cirq.google.serializable_gate_set import SerializableGateSet
 
@@ -62,4 +63,47 @@ class FloquetPhasedFSimCalibrationResult(PhasedFSimCalibrationResult):
 def run_calibrations(engine: Engine,
                      calibrations: List[PhasedFsimCalibrationRequest]
                      ) -> List[PhasedFSimCalibrationResult]:
+    return NotImplemented
+
+
+def default_fsim_floquet_options(
+        gate: Gate) -> Optional[FloquetPhasedFSimCalibrationOptions]:
+    return NotImplemented
+
+
+def floquet_calibration_for_moment(
+        moment: Moment,
+        options_generator: Callable[
+            [Gate], Optional[FloquetPhasedFSimCalibrationOptions]
+        ] = default_fsim_floquet_options
+) -> FloquetPhasedFSimCalibrationRequest:
+    return NotImplemented
+
+
+def floquet_calibration_for_circuit(
+        circuit: Circuit,
+        options_generator: Callable[
+            [Gate], FloquetPhasedFSimCalibrationOptions
+        ] = default_fsim_floquet_options,
+        merge_sub_sets: bool = True
+) -> Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]:
+    """
+    Returns:
+        Tuple of:
+          - list of calibration requests,
+          - list of indices of the generated calibration requests for each
+            moment in the supplied circuit. If None occurs at certain position,
+            it means that the related moment was not recognized for calibration.
+    """
+    return NotImplemented
+
+
+def run_floquet_calibration_for_circuit(
+        engine: Engine,
+        circuit: Circuit,
+        options_generator: Callable[
+            [Gate], FloquetPhasedFSimCalibrationOptions
+        ] = default_fsim_floquet_options,
+        merge_sub_sets: bool = True
+) -> List[FloquetPhasedFSimCalibrationResult]:
     return NotImplemented
