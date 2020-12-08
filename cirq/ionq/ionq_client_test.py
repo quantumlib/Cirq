@@ -451,3 +451,60 @@ def test_ionq_client_delete_job_retry(mock_put):
     )
     client.delete_job('job_id')
     assert mock_put.call_count == 2
+
+
+@mock.patch('requests.get')
+def test_ionq_client_get_current_calibrations(mock_get):
+    mock_get.return_value.ok = True
+    mock_get.return_value.json.return_value = {'foo': 'bar'}
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    response = client.get_current_calibration()
+    assert response == {'foo': 'bar'}
+
+    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    mock_get.assert_called_with(
+        'http://example.com/v0.1/calibrations/current', headers=expected_headers
+    )
+
+
+@mock.patch('requests.get')
+def test_ionq_client_get_current_calibration_unauthorized(mock_get):
+    mock_get.return_value.ok = False
+    mock_get.return_value.status_code = requests.codes.unauthorized
+
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    with pytest.raises(ionq.IonQException, match='Not authorized'):
+        _ = client.get_current_calibration()
+
+
+@mock.patch('requests.get')
+def test_ionq_client_get_current_calibration_not_found(mock_get):
+    (mock_get.return_value).ok = False
+    (mock_get.return_value).status_code = requests.codes.not_found
+
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    with pytest.raises(ionq.IonQNotFoundException, match='not find'):
+        _ = client.get_current_calibration()
+
+
+@mock.patch('requests.get')
+def test_ionq_client_get_current_calibration_not_retriable(mock_get):
+    mock_get.return_value.ok = False
+    mock_get.return_value.status_code = requests.codes.not_implemented
+
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    with pytest.raises(ionq.IonQException, match='Status: 501'):
+        _ = client.get_current_calibration()
+
+
+@mock.patch('requests.get')
+def test_ionq_client_get_calibration_retry(mock_get):
+    response1 = mock.MagicMock()
+    response2 = mock.MagicMock()
+    mock_get.side_effect = [response1, response2]
+    response1.ok = False
+    response1.status_code = requests.codes.service_unavailable
+    response2.ok = True
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    _ = client.get_current_calibration()
+    assert mock_get.call_count == 2

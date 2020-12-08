@@ -203,7 +203,7 @@ class _IonQClient:
 
         return self._make_request(request).json()
 
-    def get_job(self, job_id: str):
+    def get_job(self, job_id: str) -> dict:
         """Get the job from the IonQ API.
 
         Args:
@@ -222,7 +222,7 @@ class _IonQClient:
 
         return self._make_request(request).json()
 
-    def cancel_job(self, job_id: str):
+    def cancel_job(self, job_id: str) -> dict:
         """Cancel a job on the IonQ API.
 
         Args:
@@ -240,7 +240,7 @@ class _IonQClient:
 
         return self._make_request(request).json()
 
-    def delete_job(self, job_id: str):
+    def delete_job(self, job_id: str) -> dict:
         """Permanently delete the job on the IonQ API.
 
         Args:
@@ -252,5 +252,16 @@ class _IonQClient:
 
         def request():
             return requests.delete(f'{self.url}/jobs/{job_id}', headers=self.headers)
+
+        return self._make_request(request).json()
+
+    def get_current_calibration(self) -> dict:
+        """Returns the current calibration as an `cirq.ionq.Calibration` object.
+
+        Currently returns the current calibration for the only target `qpu`.
+        """
+
+        def request():
+            return requests.get(f'{self.url}/calibrations/current', headers=self.headers)
 
         return self._make_request(request).json()
