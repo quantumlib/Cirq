@@ -228,7 +228,7 @@ class Serializer:
         """Returns whether a value, e, translated by t, is equal to 0 mod n."""
         return abs((e - t + 1) % n - 1) <= self.atol
 
-    def _serialize_measurements(self, meas_ops: list) -> Dict[str, str]:
+    def _serialize_measurements(self, meas_ops: Sequence) -> Dict[str, str]:
         """Serializes measurement ops into a form suitable to be passed via metadata.
 
         IonQ API does not contain measurement gates, so we serialize measurement gate keys
@@ -241,6 +241,15 @@ class Serializer:
         Finally this full string is serialized as the values in the metadata dict with keys
         given by `measurementX` for X = 0,1, .. 9 and X large enough to contain the entire
         string.
+
+        Args:
+            A list of the result of serializing the measurement (not supported by the API).
+
+        Returns:
+            The metadata dict that can be passed to the API.
+
+        Raises:
+            ValueError: if the
         """
         key_values = [f'{op["key"]}{chr(31)}{op["targets"]}' for op in meas_ops]
         full_str = chr(30).join(key_values)
