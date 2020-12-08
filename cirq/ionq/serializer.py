@@ -14,7 +14,17 @@
 """Support for serializing gates supported by IonQ's API."""
 import dataclasses
 
-from typing import Callable, cast, Collection, Dict, Optional, Sequence, Type, TYPE_CHECKING
+from typing import (
+    Callable,
+    cast,
+    Collection,
+    Dict,
+    Iterator,
+    Optional,
+    Sequence,
+    Type,
+    TYPE_CHECKING,
+)
 
 import numpy as np
 
@@ -228,7 +238,7 @@ class Serializer:
         """Returns whether a value, e, translated by t, is equal to 0 mod n."""
         return abs((e - t + 1) % n - 1) <= self.atol
 
-    def _serialize_measurements(self, meas_ops: Sequence) -> Dict[str, str]:
+    def _serialize_measurements(self, meas_ops: Iterator) -> Dict[str, str]:
         """Serializes measurement ops into a form suitable to be passed via metadata.
 
         IonQ API does not contain measurement gates, so we serialize measurement gate keys
