@@ -3,7 +3,7 @@ from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationRequest,
     FloquetPhasedFSimCalibrationResult,
     PhasedFSimParameters,
-    PhasedFsimCalibrationRequest,
+    PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     run_calibrations
 )

@@ -25,7 +25,7 @@ from cirq.google.calibration import (
     FloquetPhasedFSimCalibrationRequest,
     FloquetPhasedFSimCalibrationResult,
     PhasedFSimParameters,
-    PhasedFsimCalibrationRequest,
+    PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     run_calibrations
 )
