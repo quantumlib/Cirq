@@ -14,7 +14,7 @@
 """Represents a job created via the IonQ API."""
 
 import time
-from typing import Optional, Union, TYPE_CHECKING
+from typing import Dict, Optional, Sequence, TYPE_CHECKING, Union
 
 from cirq.ionq import ionq_exceptions, results
 from cirq.value import digits
@@ -59,20 +59,19 @@ class Job:
     UNSUCCESSFUL_STATES = ('canceled', 'failed', 'deleted')
     document(
         UNSUCCESSFUL_STATES,
-        'States of the IonQ API job when it was not successful and so does '
-        'not have any data associated with it beyond an id and a status.',
+        'States of the IonQ API job when it was not successful and so does not have any '
+        'data associated with it beyond an id and a status.',
     )
 
     def __init__(self, client: 'cirq.ionq.ionq_client._IonQClient', job_dict: dict):
         """Construct an IonQJob.
 
-        Users should not call this themselves. If you only know the `job_id`,
-        use `get_job` on `cirq.ionq.Service`.
+        Users should not call this themselves. If you only know the `job_id`, use `get_job`
+        on `cirq.ionq.Service`.
 
         Args:
             client: The client used for calling the API.
-            job: A dict representing the response from a call to get_job on the
-                client.
+            job: A dict representing the response from a call to get_job on the client.
         """
         self._client = client
         self._job = job_dict
@@ -96,9 +95,8 @@ class Job:
     def status(self) -> str:
         """Gets the current status of the job.
 
-        This will get a new job if the status of the job previously was
-        determined to not be in a terminal state. A full list of states is
-        given in  `cirq.ionq.IonQJob.ALL_STATES`.
+        This will get a new job if the status of the job previously was determined to not be in
+        a terminal state. A full list of states is given in `cirq.ionq.IonQJob.ALL_STATES`.
 
         Raises:
             IonQException: If the API is not able to get the status of the job.
@@ -113,12 +111,10 @@ class Job:
         """Returns the target where the job is to be run, or was run.
 
         Returns:
-            'qpu' or 'simulator' depending on where the job was run or is
-            running.
+            'qpu' or 'simulator' depending on where the job was run or is running.
 
         Raises:
-            IonQUnsuccessfulJob: If the job has failed, been canceled, or
-                deleted.
+            IonQUnsuccessfulJob: If the job has failed, been canceled, or deleted.
             IonQException: If unable to get the status of the job from the API.
         """
         self._check_if_unsuccessful()
@@ -130,8 +126,7 @@ class Job:
         This is different than the `job_id`.
 
         Raises:
-            IonQUnsuccessfulJob: If the job has failed, been canceled, or
-                deleted.
+            IonQUnsuccessfulJob: If the job has failed, been canceled, or deleted.
             IonQException: If unable to get the status of the job from the API.
         """
         self._check_if_unsuccessful()
@@ -141,8 +136,7 @@ class Job:
         """Returns the number of qubits for the job.
 
         Raises:
-            IonQUnsuccessfulJob: If the job has failed, been canceled, or
-                deleted.
+            IonQUnsuccessfulJob: If the job has failed, been canceled, or deleted.
             IonQException: If unable to get the status of the job from the API.
         """
         self._check_if_unsuccessful()
@@ -154,14 +148,29 @@ class Job:
         If run on the simulator this will return None.
 
         Raises:
-            IonQUnsuccessfulJob: If the job has failed, been canceled, or
-                deleted.
+            IonQUnsuccessfulJob: If the job has failed, been canceled, or deleted.
             IonQException: If unable to get the status of the job from the API.
         """
         self._check_if_unsuccessful()
         if 'metadata' in self._job and 'shots' in self._job['metadata']:
             return int(self._job['metadata']['shots'])
         return None
+
+    def measurement_dict(self) -> Dict[str, Sequence[int]]:
+        """Returns a dictionary of measurement keys to target qubit index."""
+        measurement_dict: Dict[str, Sequence[int]] = {}
+        if 'metadata' in self._job:
+            full_str = ''.join(
+                value
+                for key, value in self._job['metadata'].items()
+                if key.startswith('measurement')
+            )
+            if full_str == '':
+                return measurement_dict
+            for key_value in full_str.split(chr(30)):
+                key, value = key_value.split(chr(31))
+                measurement_dict[key] = [int(t) for t in value.split(',')]
+        return measurement_dict
 
     def results(
         self, timeout_seconds: int = 7200, polling_seconds: int = 1
@@ -173,13 +182,11 @@ class Job:
             polling_seconds: The interval with which to poll.
 
         Returns:
-            Either a `cirq.ionq.QPUResults` or `cirq.ionq.SimulatorResults`
-            depending on whether the job was running on an actual quantum
-            processor or a simulator.
+            Either a `cirq.ionq.QPUResults` or `cirq.ionq.SimulatorResults` depending on whether
+            the job was running on an actual quantum processor or a simulator.
 
         Raises:
-            IonQUnsuccessfulJob: If the job has failed, been canceled, or
-                deleted.
+            IonQUnsuccessfulJob: If the job has failed, been canceled, or deleted.
             IonQException: If unable to get the results from the API.
         """
         time_waited_seconds = 0
@@ -193,8 +200,7 @@ class Job:
             raise RuntimeError(
                 f'Job was not completed successful. Instead had status: {self.status()}'
             )
-        # IonQ returns results in little endian, Cirq prefers to use big endian,
-        # so we convert.
+        # IonQ returns results in little endian, Cirq prefers to use big endian, so we convert.
         if self.target() == 'qpu':
             repetitions = self.repetitions()
             assert repetitions is not None
@@ -202,14 +208,20 @@ class Job:
                 _little_endian_to_big(int(k), self.num_qubits()): int(repetitions * float(v))
                 for k, v in self._job['data']['histogram'].items()
             }
-            return results.QPUResult(counts=counts, num_qubits=self.num_qubits())
+            return results.QPUResult(
+                counts=counts,
+                num_qubits=self.num_qubits(),
+                measurement_dict=self.measurement_dict(),
+            )
         else:
             probabilities = {
                 _little_endian_to_big(int(k), self.num_qubits()): float(v)
                 for k, v in self._job['data']['histogram'].items()
             }
             return results.SimulatorResult(
-                probabilities=probabilities, num_qubits=self.num_qubits()
+                probabilities=probabilities,
+                num_qubits=self.num_qubits(),
+                measurement_dict=self.measurement_dict(),
             )
 
     def cancel(self):
@@ -222,9 +234,8 @@ class Job:
     def delete(self):
         """Delete the given job.
 
-        This mutates the job to only have a job id and status `deleted`.
-        Subsequence attempts to get the job with this job id will return
-        not found.
+        This mutates the job to only have a job id and status `deleted`. Subsequence attempts to
+        get the job with this job id will return not found.
         """
         self._job = self._client.delete_job(job_id=self.job_id())
 
