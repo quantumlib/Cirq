@@ -37,13 +37,12 @@ class Service:
         Args:
             remote_host: The location of the api in the form of an url.
             api_key: A string key which allows access to the api.
-            default_target: Which target to default to using. If set to None, no
-                default is set and target must always be specified in calls.
-                If set, then this default is used, unless a target is specified
-                for a given call. Supports either 'qpu' or 'simulator'.
+            default_target: Which target to default to using. If set to None, no default is set
+                and target must always be specified in calls. If set, then this default is used,
+                unless a target is specified for a given call. Supports either 'qpu' or
+                'simulator'.
             api_version: Version of the api. Defaults to 'v0.1'.
-            max_retry_seconds: The number of seconds to retry calls for.
-                Defaults to one hour.
+            max_retry_seconds: The number of seconds to retry calls for. Defaults to one hour.
             verbose: Whether to print to stdio and stderr on retriable errors.
         """
         self._client = ionq_client._IonQClient(
@@ -66,10 +65,9 @@ class Service:
 
         Args:
             circuit: The circuit to run.
-            repetitions: The number of times to repeat the circuit. Should
-                only be set if the target is `qpu`.
-            name: An optional name for the created job. Different from the
-                `job_id`.
+            repetitions: The number of times to repeat the circuit. Should only be set if the
+                target is `qpu`.
+            name: An optional name for the created job. Different from the `job_id`.
             target: Where to run the job. Can be 'qpu' or 'simulator'.
 
         Returns:
@@ -78,9 +76,9 @@ class Service:
         Raises:
             IonQException: If there was an error accessing the API.
         """
-        serialized_circuit = serializer.Serializer().serialize(circuit)
+        serialized_program = serializer.Serializer().serialize(circuit)
         result = self._client.create_job(
-            circuit_dict=serialized_circuit, repetitions=repetitions, target=target, name=name
+            serialized_program=serialized_program, repetitions=repetitions, target=target, name=name
         )
         # The returned job does not have fully populated fields, so make
         # a second call and return the results of the fully filled out job.
@@ -90,8 +88,8 @@ class Service:
         """Gets a job that has been created on via the API.
 
         Args:
-            job_id: The UUID of the job. Jobs are assigned these numbers by
-                the server during the creation of the job.
+            job_id: The UUID of the job. Jobs are assigned these numbers by the server during the
+            creation of the job.
 
         Returns:
             A `cirq.ionq.IonQJob` which can be queried for status or results.

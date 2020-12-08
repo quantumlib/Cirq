@@ -77,8 +77,17 @@ if (( only_changed == 1 )); then
         rev="${base}"
     fi
 
-    # Get the _test version of changed python files.
-    format_files=$(git diff --name-only ${rev} -- | grep "\.py$" | grep -v "_pb2\.py$")
+    # Get the modified and added python files. Lines in git diff --name-status look like this:
+    # M       cirq/__init__.py
+    # A       cirq/added.py
+    modified_files=$(git diff --name-status ${rev} -- | grep '\.py$' | grep -v '_pb2\.py$' | grep '^[MA].*$' | awk '{print $2}')
+
+    # Get the moved python files. Lines in git diff --name-status look like this:
+    # R100    cirq/_doc.py    cirq/_doc2.py
+    moved_files=$(git diff --name-status ${rev} -- | grep '\.py$' | grep -v '_pb2\.py$' | grep '^R.*$' | awk '{print $3}')
+
+    format_files="$modified_files $moved_files"
+
 else
     echo -e "Formatting all python files." >&2
     format_files=$(find . -name "*.py" | grep -v "_pb2\.py$")
