@@ -21,7 +21,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples):
              ) -> Dict[str, np.ndarray]:
         return self._simulator._run(circuit, param_resolver, repetitions)
 
-    def run_calibrations(self,
+    def get_calibrations(self,
                          requests: List[FloquetPhasedFSimCalibrationRequest]
                          ) -> List[PhasedFSimCalibrationResult]:
         return NotImplemented
