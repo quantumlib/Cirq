@@ -29,6 +29,7 @@ from cirq.ionq.results import (
 
 from cirq.ionq.serializer import (
     Serializer,
+    SerializedProgram,
 )
 
 from cirq.ionq.service import (
