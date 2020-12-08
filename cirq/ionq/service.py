@@ -14,7 +14,7 @@
 
 from typing import Optional, TYPE_CHECKING
 
-from cirq.ionq import ionq_client, job, serializer
+from cirq.ionq import calibration, ionq_client, job, serializer
 
 if TYPE_CHECKING:
     import cirq
@@ -100,3 +100,18 @@ class Service:
         """
         job_dict = self._client.get_job(job_id=job_id)
         return job.Job(client=self._client, job_dict=job_dict)
+
+    def get_current_calibration(self) -> calibration.Calibration:
+        """Gets the most recent calbration via the API.
+
+        Note that currently there is only one target, so this returns the calibration of that
+        target.
+
+        The calibration include device specification (number of qubits, connectivity), as well
+        as fidelities and timings of gates.
+
+        Returns:
+            A `cirq.ionq.Calibration` containing the device specification and calibrations.
+        """
+        calibration_dict = self._client.get_current_calibration()
+        return calibration.Calibration(calibration_dict=calibration_dict)
