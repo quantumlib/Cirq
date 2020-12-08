@@ -87,19 +87,16 @@ class Moment:
 
         self._operations = tuple(op_tree.flatten_to_ops(contents))
 
-        affected_qubits = []
         # An internal dictionary to support efficient operation access by qubit.
         self._qubit_to_op = {}
         for op in self.operations:
             for q in op.qubits:
-                affected_qubits.append(q)
+                # Check that operations don't overlap.
+                if q in self._qubit_to_op:
+                    raise ValueError('Overlapping operations: {}'.format(self.operations))
                 self._qubit_to_op[q] = op
 
-        self._qubits = frozenset(affected_qubits)
-
-        # Check that operations don't overlap.
-        if len(affected_qubits) != len(self._qubits):
-            raise ValueError('Overlapping operations: {}'.format(self.operations))
+        self._qubits = frozenset(self._qubit_to_op.keys())
 
     @property
     def operations(self) -> Tuple['cirq.Operation', ...]:
