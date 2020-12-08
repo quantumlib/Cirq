@@ -88,7 +88,7 @@ class Moment:
         self._operations = tuple(op_tree.flatten_to_ops(contents))
 
         # An internal dictionary to support efficient operation access by qubit.
-        self._qubit_to_op = {}
+        self._qubit_to_op: Dict['cirq.Qid', 'cirq.Operation'] = {}
         for op in self.operations:
             for q in op.qubits:
                 # Check that operations don't overlap.
