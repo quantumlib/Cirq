@@ -83,7 +83,7 @@ def floquet_calibration_for_moment(
 def floquet_calibration_for_circuit(
         circuit: Circuit,
         options_generator: Callable[
-            [Gate], FloquetPhasedFSimCalibrationOptions
+            [Gate], Optional[FloquetPhasedFSimCalibrationOptions]
         ] = default_fsim_floquet_options,
         merge_sub_sets: bool = True
 ) -> Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]:
@@ -102,7 +102,7 @@ def run_floquet_calibration_for_circuit(
         engine: Engine,
         circuit: Circuit,
         options_generator: Callable[
-            [Gate], FloquetPhasedFSimCalibrationOptions
+            [Gate], Optional[FloquetPhasedFSimCalibrationOptions]
         ] = default_fsim_floquet_options,
         merge_sub_sets: bool = True
 ) -> List[FloquetPhasedFSimCalibrationResult]:
