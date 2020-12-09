@@ -192,9 +192,9 @@ class BitstringAccumulator:
             self.bitstrings = np.asarray(bitstrings, dtype=np.uint8)
 
         if chunksizes is None:
-            self.chunksizes = np.zeros((0,), dtype=np.int)
+            self.chunksizes = np.zeros((0,), dtype=np.int64)
         else:
-            self.chunksizes = np.asarray(chunksizes, dtype=np.int)
+            self.chunksizes = np.asarray(chunksizes, dtype=np.int64)
 
         if timestamps is None:
             self.timestamps = np.zeros((0,), dtype='datetime64[us]')
