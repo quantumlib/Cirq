@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import datetime
+import time
 
 import numpy as np
 import pytest
@@ -239,6 +240,7 @@ def test_bitstring_accumulator_equality():
     )
     assert bsa == bsa2
 
+    time.sleep(1)
     timestamps = np.asarray([datetime.datetime.now()])
     bsa3 = cw.BitstringAccumulator(
         meas_spec=meas_spec,
