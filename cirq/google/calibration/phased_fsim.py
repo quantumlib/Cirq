@@ -137,12 +137,17 @@ def run_calibrations(calibrations: List[PhasedFSimCalibrationRequest],
     if not all(gate_set == other for other in gate_sets):
         raise ValueError('All calibrations that run together must be defined for a shared gate set')
 
-    requests = [calibration.to_calibration_layer(handler_name) for calibration in calibrations]
-    job = engine.run_calibration(requests,
-                                 processor_id=processor_id,
-                                 gate_set=gate_set)
-    return [calibration.parse_result(result)
-            for calibration, result in zip(calibrations, job.calibration_results())]
+    if isinstance(engine, Engine):
+        requests = [calibration.to_calibration_layer(handler_name) for calibration in calibrations]
+        job = engine.run_calibration(requests,
+                                     processor_id=processor_id,
+                                     gate_set=gate_set)
+        return [calibration.parse_result(result)
+                for calibration, result in zip(calibrations, job.calibration_results())]
+    elif type(engine) == 'cirq.google.calibration.engine_simulator.PhasedFSimEngineSimulator':
+        return NotImplemented
+    else:
+        raise ValueError(f'Unsupported engine type {type(engine)}')
 
 
 def default_phased_fsim_floquet_options(gate: Gate
