@@ -103,7 +103,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
         decoded = collections.defaultdict(lambda: {})
-        for keys, values in result.metrics['angles']:
+        for keys, values in result.metrics['angles'].items():
             for key, value in zip(keys, values):
                 match = re.match(r'(\d+)_(.+)', key)
                 if not match:
@@ -114,8 +114,8 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
         parsed = {}
         for data in decoded.values():
-            a = v2.qubit_from_proto_id(data['0'])
-            b = v2.qubit_from_proto_id(data['1'])
+            a = v2.qubit_from_proto_id(data['qubit_a'])
+            b = v2.qubit_from_proto_id(data['qubit_b'])
             parsed[(a, b)] = PhasedFSimParameters(
                 theta=data.get('theta_est', None),
                 zeta=data.get('zeta_est', None),
