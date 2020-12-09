@@ -332,7 +332,7 @@ class BitstringAccumulator:
             return False  # coverage: ignore
 
         if not np.array_equal(self.chunksizes, other.chunksizes):
-            return False  # covergae: ignore
+            return False  # coverage: ignore
 
         if not np.array_equal(self.timestamps, other.timestamps):
             return False  # coverage: ignore
@@ -388,6 +388,7 @@ class BitstringAccumulator:
 
         # https://github.com/numpy/numpy/issues/11502
         if all_obs_vals.shape[0] == 1:
+            # coverage: ignore
             cov = np.array([[np.var(all_obs_vals[0], ddof=1)]])
             return cov
 
@@ -420,6 +421,7 @@ class BitstringAccumulator:
             atol: The absolute tolerance for asserting coefficients are real.
         """
         if len(self.bitstrings) == 0:
+            # coverage: ignore
             raise ValueError("No measurements")
         self._validate_setting(setting, what='variance')
 
@@ -443,6 +445,7 @@ class BitstringAccumulator:
     def mean(self, setting: InitObsSetting, *, atol: float = 1e-8):
         """Estimates of the mean of `setting`."""
         if len(self.bitstrings) == 0:
+            # coverage: ignore
             raise ValueError("No measurements")
         self._validate_setting(setting, what='mean')
 
