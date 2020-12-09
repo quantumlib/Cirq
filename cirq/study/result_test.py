@@ -306,6 +306,20 @@ def test_json_bit_packing_error():
         _pack_digits(np.ones(10), pack_bits='hi mom')
 
 
+def test_json_bit_packing_force():
+    assert _pack_digits(np.ones(10, dtype=int), pack_bits='force') == _pack_digits(
+        np.ones(10), pack_bits='auto'
+    )
+
+    assert _pack_digits(2 * np.ones(10, dtype=int), pack_bits='force') != _pack_digits(
+        2 * np.ones(10, dtype=int), pack_bits='auto'
+    )
+    # These are the `np.packbits` semantics; not sure I agree with them:
+    assert _pack_digits(2 * np.ones(10, dtype=int), pack_bits='force') == _pack_digits(
+        np.ones(10), pack_bits='auto'
+    )
+
+
 def test_deprecation_log():
     with cirq.testing.assert_logs('TrialResult was used but is deprecated'):
         cirq.TrialResult(params=cirq.ParamResolver({}), measurements={})

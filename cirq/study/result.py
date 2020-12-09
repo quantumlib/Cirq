@@ -354,7 +354,7 @@ def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool
         # for both "auto" and "never".
 
     if pack_bits == 'auto' and np.array_equal(digits, digits.astype(np.bool)):
-        return _pack_bits(digits), True
+        return _pack_bits(digits.astype(np.bool)), True
 
     buffer = io.BytesIO()
     np.save(buffer, digits, allow_pickle=False)
