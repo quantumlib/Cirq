@@ -164,10 +164,6 @@ class BitstringAccumulator:
             arise. The total number of repetitions is the sum of this 1d array.
         timestamps: We record a timestamp for each request/chunk. This
             1d array will have the same length as `chunksizes`.
-        readout_calibration:
-            The result of `calibrate_readout_error`. When requesting
-            means and variances, if this is not None, we will use the
-            calibrated value to correct the requested quantity.
     """
 
     def __init__(
@@ -178,12 +174,10 @@ class BitstringAccumulator:
         bitstrings: np.ndarray = None,
         chunksizes: np.ndarray = None,
         timestamps: np.ndarray = None,
-        readout_calibration: 'BitstringAccumulator' = None,
     ):
         self._meas_spec = meas_spec
         self._simul_settings = simul_settings
         self._qubit_to_index = qubit_to_index
-        self._readout_calibration = readout_calibration
 
         if bitstrings is None:
             n_bits = len(qubit_to_index)
@@ -358,8 +352,7 @@ class BitstringAccumulator:
             f'qubit_to_index={self.qubit_to_index!r}, '
             f'bitstrings={proper_repr(self.bitstrings)}, '
             f'chunksizes={proper_repr(self.chunksizes)}, '
-            f'timestamps={proper_repr(self.timestamps)}, '
-            f'readout_calibration={self._readout_calibration!r})'
+            f'timestamps={proper_repr(self.timestamps)})'
         )
 
     def __str__(self):
@@ -437,20 +430,6 @@ class BitstringAccumulator:
             atol=atol,
         )
 
-        if self._readout_calibration is not None:
-            a = mean
-            if np.isclose(a, 0):
-                return np.inf
-            var_a = var
-            b = self._readout_calibration.mean(setting)
-            if np.isclose(b, 0):
-                return np.inf
-            var_b = self._readout_calibration.variance(setting)
-            f = a / b
-
-            # assume cov(a,b) = 0, otherwise there would be another term.
-            var = f ** 2 * (var_a / (a ** 2) + var_b / (b ** 2))
-
         return var
 
     def stderr(self, setting: InitObsSetting, *, atol: float = 1e-8):
@@ -473,9 +452,6 @@ class BitstringAccumulator:
             observable=setting.observable,
             atol=atol,
         )
-
-        if self._readout_calibration is not None:
-            return mean / self._readout_calibration.mean(setting, atol=atol)
 
         return mean
 
