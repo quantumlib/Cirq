@@ -92,9 +92,9 @@ def test_ionq_client_create_job(mock_post):
     mock_post.return_value.json.return_value = {'foo': 'bar'}
 
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
-    circuit_dict = {'job': 'mine'}
+    program = ionq.SerializedProgram(body={'job': 'mine'}, metadata={'a': '0,1'})
     response = client.create_job(
-        circuit_dict=circuit_dict, repetitions=200, target='qpu', name='bacon'
+        serialized_program=program, repetitions=200, target='qpu', name='bacon'
     )
     assert response == {'foo': 'bar'}
 
@@ -103,7 +103,7 @@ def test_ionq_client_create_job(mock_post):
         'body': {'job': 'mine'},
         'lang': 'json',
         'name': 'bacon',
-        'metadata': {'shots': '200'},
+        'metadata': {'shots': '200', 'a': '0,1'},
     }
     expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
     mock_post.assert_called_with(
@@ -119,8 +119,7 @@ def test_ionq_client_create_job_default_target(mock_post):
     client = ionq.ionq_client._IonQClient(
         remote_host='http://example.com', api_key='to_my_heart', default_target='simulator'
     )
-    _ = client.create_job(circuit_dict={'job': 'mine'})
-    print(mock_post.call_args[1])
+    _ = client.create_job(ionq.SerializedProgram(body={'job': 'mine'}, metadata={}))
     assert mock_post.call_args[1]['json']['target'] == 'simulator'
 
 
@@ -132,26 +131,39 @@ def test_ionq_client_create_job_target_overrides_default_target(mock_post):
     client = ionq.ionq_client._IonQClient(
         remote_host='http://example.com', api_key='to_my_heart', default_target='simulator'
     )
-    _ = client.create_job(circuit_dict={'job': 'mine'}, target='qpu', repetitions=1)
+    _ = client.create_job(
+        serialized_program=ionq.SerializedProgram(body={'job': 'mine'}, metadata={}),
+        target='qpu',
+        repetitions=1,
+    )
     assert mock_post.call_args[1]['json']['target'] == 'qpu'
 
 
 def test_ionq_client_create_job_no_targets():
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
     with pytest.raises(AssertionError, match='neither were set'):
-        _ = client.create_job(circuit_dict={'job': 'mine'})
+        _ = client.create_job(
+            serialized_program=ionq.SerializedProgram(body={'job': 'mine'}, metadata={})
+        )
 
 
 def test_ionq_client_create_job_qpu_but_no_repetitions():
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
     with pytest.raises(AssertionError, match='qpu'):
-        _ = client.create_job(circuit_dict={'job': 'mine'}, target='qpu')
+        _ = client.create_job(
+            serialized_program=ionq.SerializedProgram(body={'job': 'mine'}, metadata={}),
+            target='qpu',
+        )
 
 
 def test_ionq_client_create_job_simulator_but_repetitions():
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
     with pytest.raises(AssertionError, match='simulator'):
-        _ = client.create_job(circuit_dict={'job': 'mine'}, target='simulator', repetitions=10)
+        _ = client.create_job(
+            serialized_program=ionq.SerializedProgram(body={'job': 'mine'}, metadata={}),
+            target='simulator',
+            repetitions=10,
+        )
 
 
 @mock.patch('requests.post')
@@ -163,7 +175,9 @@ def test_ionq_client_create_job_unauthorized(mock_post):
         remote_host='http://example.com', api_key='to_my_heart', default_target='simulator'
     )
     with pytest.raises(ionq.IonQException, match='Not authorized'):
-        _ = client.create_job(circuit_dict={'job': 'mine'})
+        _ = client.create_job(
+            serialized_program=ionq.SerializedProgram(body={'job': 'mine'}, metadata={})
+        )
 
 
 @mock.patch('requests.post')
@@ -175,7 +189,9 @@ def test_ionq_client_create_job_not_found(mock_post):
         remote_host='http://example.com', api_key='to_my_heart', default_target='simulator'
     )
     with pytest.raises(ionq.IonQNotFoundException, match='not find'):
-        _ = client.create_job(circuit_dict={'job': 'mine'})
+        _ = client.create_job(
+            serialized_program=ionq.SerializedProgram(body={'job': 'mine'}, metadata={})
+        )
 
 
 @mock.patch('requests.post')
@@ -187,7 +203,9 @@ def test_ionq_client_create_job_not_retriable(mock_post):
         remote_host='http://example.com', api_key='to_my_heart', default_target='simulator'
     )
     with pytest.raises(ionq.IonQException, match='Status: 501'):
-        _ = client.create_job(circuit_dict={'job': 'mine'})
+        _ = client.create_job(
+            serialized_program=ionq.SerializedProgram(body={'job': 'mine'}, metadata={})
+        )
 
 
 @mock.patch('requests.post')
@@ -206,7 +224,9 @@ def test_ionq_client_create_job_retry(mock_post):
     )
     test_stdout = io.StringIO()
     with contextlib.redirect_stdout(test_stdout):
-        _ = client.create_job(circuit_dict={'job': 'mine'})
+        _ = client.create_job(
+            serialized_program=ionq.SerializedProgram(body={'job': 'mine'}, metadata={})
+        )
     assert test_stdout.getvalue().strip() == 'Waiting 0.1 seconds before retrying.'
     assert mock_post.call_count == 2
 
@@ -219,7 +239,9 @@ def test_ionq_client_create_job_retry_request_error(mock_post):
     client = ionq.ionq_client._IonQClient(
         remote_host='http://example.com', api_key='to_my_heart', default_target='simulator'
     )
-    _ = client.create_job(circuit_dict={'job': 'mine'})
+    _ = client.create_job(
+        serialized_program=ionq.SerializedProgram(body={'job': 'mine'}, metadata={})
+    )
     assert mock_post.call_count == 2
 
 
@@ -235,7 +257,9 @@ def test_ionq_client_create_job_timeout(mock_post):
         max_retry_seconds=0.2,
     )
     with pytest.raises(TimeoutError):
-        _ = client.create_job(circuit_dict={'job': 'mine'})
+        _ = client.create_job(
+            serialized_program=ionq.SerializedProgram(body={'job': 'mine'}, metadata={})
+        )
 
 
 @mock.patch('requests.get')
@@ -427,3 +451,60 @@ def test_ionq_client_delete_job_retry(mock_put):
     )
     client.delete_job('job_id')
     assert mock_put.call_count == 2
+
+
+@mock.patch('requests.get')
+def test_ionq_client_get_current_calibrations(mock_get):
+    mock_get.return_value.ok = True
+    mock_get.return_value.json.return_value = {'foo': 'bar'}
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    response = client.get_current_calibration()
+    assert response == {'foo': 'bar'}
+
+    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    mock_get.assert_called_with(
+        'http://example.com/v0.1/calibrations/current', headers=expected_headers
+    )
+
+
+@mock.patch('requests.get')
+def test_ionq_client_get_current_calibration_unauthorized(mock_get):
+    mock_get.return_value.ok = False
+    mock_get.return_value.status_code = requests.codes.unauthorized
+
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    with pytest.raises(ionq.IonQException, match='Not authorized'):
+        _ = client.get_current_calibration()
+
+
+@mock.patch('requests.get')
+def test_ionq_client_get_current_calibration_not_found(mock_get):
+    (mock_get.return_value).ok = False
+    (mock_get.return_value).status_code = requests.codes.not_found
+
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    with pytest.raises(ionq.IonQNotFoundException, match='not find'):
+        _ = client.get_current_calibration()
+
+
+@mock.patch('requests.get')
+def test_ionq_client_get_current_calibration_not_retriable(mock_get):
+    mock_get.return_value.ok = False
+    mock_get.return_value.status_code = requests.codes.not_implemented
+
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    with pytest.raises(ionq.IonQException, match='Status: 501'):
+        _ = client.get_current_calibration()
+
+
+@mock.patch('requests.get')
+def test_ionq_client_get_calibration_retry(mock_get):
+    response1 = mock.MagicMock()
+    response2 = mock.MagicMock()
+    mock_get.side_effect = [response1, response2]
+    response1.ok = False
+    response1.status_code = requests.codes.service_unavailable
+    response2.ok = True
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    _ = client.get_current_calibration()
+    assert mock_get.call_count == 2

@@ -159,11 +159,11 @@ def test_formulas_in_param_dict():
     c = sympy.Symbol('c')
     e = sympy.Symbol('e')
     r = cirq.ParamResolver({a: b + 1, b: 2, b + c: 101, 'd': 2 * e})
-    assert r.value_of('a') == 3.0
-    assert r.value_of('b') == 2.0
-    assert r.value_of(b + c) == 101.0
-    assert r.value_of('c') == c
-    assert r.value_of('d') == 2.0 * e
+    assert sympy.Eq(r.value_of('a'), 3)
+    assert sympy.Eq(r.value_of('b'), 2)
+    assert sympy.Eq(r.value_of(b + c), 101)
+    assert sympy.Eq(r.value_of('c'), c)
+    assert sympy.Eq(r.value_of('d'), 2 * e)
 
 
 def test_recursive_evaluation():
@@ -186,10 +186,10 @@ def test_recursive_evaluation():
     assert c.subs(r.param_dict) == b + a + 3
 
     assert r.value_of(a) == a
-    assert r.value_of(b) == 2.0
-    assert r.value_of(c) == a + 5.0
-    assert r.value_of(d) == a + 3.0
-    assert r.value_of(e) == 0.0
+    assert sympy.Eq(r.value_of(b), 2)
+    assert sympy.Eq(r.value_of(c), a + 5)
+    assert sympy.Eq(r.value_of(d), a + 3)
+    assert sympy.Eq(r.value_of(e), 0)
 
 
 def test_unbound_recursion_halted():
@@ -228,6 +228,58 @@ def test_resolve_unknown_type():
     b = sympy.Symbol('b')
     r = cirq.ParamResolver({a: b})
     assert r.value_of(cirq.X) == cirq.X
+
+
+def test_compose():
+    """
+    Calling cirq.resolve_paramters on a ParamResolver composes that resolver
+    with the provided resolver.
+    """
+    a = sympy.Symbol('a')
+    b = sympy.Symbol('b')
+    c = sympy.Symbol('c')
+    d = sympy.Symbol('d')
+    r1 = cirq.ParamResolver({a: b})
+    r2 = cirq.ParamResolver({b: c + d})
+    r3 = cirq.ParamResolver({c: 12})
+
+    r12 = cirq.resolve_parameters(r1, r2)
+    assert r12.value_of('a') == c + d
+
+    r23 = cirq.resolve_parameters(r2, r3)
+    assert sympy.Eq(r23.value_of('b'), 12 + d)
+
+    r123 = cirq.resolve_parameters(r12, r3)
+    assert sympy.Eq(r123.value_of('a'), 12 + d)
+
+    r13 = cirq.resolve_parameters(r1, r3)
+    assert r13.value_of('a') == b
+
+
+@pytest.mark.parametrize(
+    'p1, p2, p3',
+    [
+        ({'a': 1}, {}, {}),
+        ({}, {'a': 1}, {}),
+        ({}, {}, {'a': 1}),
+        ({'a': 'b'}, {}, {'b': 'c'}),
+        ({'a': 'b'}, {'c': 'd'}, {'b': 'c'}),
+        ({'a': 'b'}, {'c': 'a'}, {'b': 'd'}),
+        ({'a': 'b'}, {'c': 'd', 'd': 1}, {'d': 2}),
+        ({'a': 'b'}, {'c': 'd', 'd': 'a'}, {'b': 2}),
+    ],
+)
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_compose_associative(p1, p2, p3, resolve_fn):
+    r1, r2, r3 = [
+        cirq.ParamResolver(
+            {sympy.Symbol(k): (sympy.Symbol(v) if isinstance(v, str) else v) for k, v in pd.items()}
+        )
+        for pd in [p1, p2, p3]
+    ]
+    assert sympy.Eq(
+        resolve_fn(r1, resolve_fn(r2, r3)).param_dict, resolve_fn(resolve_fn(r1, r2), r3).param_dict
+    )
 
 
 def test_equals():
