@@ -2,12 +2,23 @@ from typing import Callable, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
 import abc
 import collections
+import numpy as np
+import re
+
 from cirq.circuits import Circuit
-from cirq.ops import Gate, Moment, Qid
+from cirq.ops import (
+    FSimGate,
+    Gate,
+    GateOperation,
+    ISwapPowGate,
+    Moment,
+    PhasedFSimGate,
+    PhasedISwapPowGate,
+    Qid
+)
 import cirq.google.api.v2 as v2
 from cirq.google.engine import CalibrationLayer, CalibrationResult, Engine
 from cirq.google.serializable_gate_set import SerializableGateSet
-import re
 
 if TYPE_CHECKING:
     # Workaround for mypy custom dataclasses
@@ -132,17 +143,64 @@ def run_calibrations(calibrations: List[PhasedFSimCalibrationRequest],
             for calibration, result in zip(calibrations, job.calibration_results())]
 
 
-def default_fsim_floquet_options(
-        gate: Gate) -> Optional[FloquetPhasedFSimCalibrationOptions]:
-    return NotImplemented
+def default_phased_fsim_floquet_options(gate: Gate
+                                        ) -> Optional[FloquetPhasedFSimCalibrationOptions]:
+    return FloquetPhasedFSimCalibrationOptions(
+        estimate_theta=True,
+        estimate_zeta=True,
+        estimate_chi=False,
+        estimate_gamma=True,
+        estimate_phi=True
+    )
+
+
+def sqrt_iswap_gates_translator(gate: Gate) -> Optional[Gate]:
+    if isinstance(gate, FSimGate):
+        if not np.isclose(gate.phi, 0.0):
+            return None
+        angle = gate.theta
+    elif isinstance(gate, ISwapPowGate):
+        angle = -gate.exponent * np.pi / 2
+    elif isinstance(gate, PhasedFSimGate):
+        if (not np.isclose(gate.zeta, 0.0) or
+                not np.isclose(gate.chi, 0.0) or
+                not np.isclose(gate.gamma, 0.0) or
+                not np.isclose(gate.phi, 0.0)):
+            pass
+        angle = gate.theta
+    elif isinstance(gate, PhasedISwapPowGate):
+        if not np.isclose(-gate.phase_exponent - 0.5, 0.0):
+            return None
+        angle = gate.exponent * np.pi / 2
+    else:
+        return None
+
+    if np.isclose(angle, np.pi / 4):
+        return FSimGate(theta=np.pi / 4, phi=0.0)
+
+    return None
+
+
+class IncompatibleMomentError(Exception):
+    pass
 
 
 def floquet_calibration_for_moment(
         moment: Moment,
+        gate_set: SerializableGateSet,
+        gates_translator: Callable[[Gate], Optional[Gate]] = sqrt_iswap_gates_translator,
         options_generator: Callable[
             [Gate], Optional[FloquetPhasedFSimCalibrationOptions]
-        ] = default_fsim_floquet_options
+        ] = default_phased_fsim_floquet_options
 ) -> FloquetPhasedFSimCalibrationRequest:
+
+    for op in moment:
+        if not isinstance(op, GateOperation):
+            raise IncompatibleMomentError(
+                'Moment contains operations different thatn GateOperation')
+
+        gate = op.gate
+
     return NotImplemented
 
 
@@ -150,7 +208,7 @@ def floquet_calibration_for_circuit(
         circuit: Circuit,
         options_generator: Callable[
             [Gate], Optional[FloquetPhasedFSimCalibrationOptions]
-        ] = default_fsim_floquet_options,
+        ] = default_phased_fsim_floquet_options,
         merge_sub_sets: bool = True
 ) -> Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]:
     """
@@ -165,11 +223,15 @@ def floquet_calibration_for_circuit(
 
 
 def run_floquet_calibration_for_circuit(
-        engine: Engine,
         circuit: Circuit,
+        engine: Engine,
+        processor_id: str,
+        handler_name: str,
         options_generator: Callable[
             [Gate], Optional[FloquetPhasedFSimCalibrationOptions]
-        ] = default_fsim_floquet_options,
+        ] = default_phased_fsim_floquet_options,
         merge_sub_sets: bool = True
-) -> List[FloquetPhasedFSimCalibrationResult]:
-    return NotImplemented
+) -> List[PhasedFSimCalibrationResult]:
+    requests, mapping = floquet_calibration_for_circuit(circuit, options_generator, merge_sub_sets)
+    results = run_calibrations(requests, engine, processor_id, handler_name)
+    return [results[index] for index in mapping]
