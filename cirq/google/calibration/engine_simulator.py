@@ -7,7 +7,7 @@ from cirq.sim import SimulatesSamples
 from cirq.study import ParamResolver
 
 from cirq.google.calibration.phased_fsim import (
-    FloquetPhasedFSimCalibrationRequest,
+    PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult
 )
 
@@ -22,6 +22,6 @@ class PhasedFSimEngineSimulator(SimulatesSamples):
         return self._simulator._run(circuit, param_resolver, repetitions)
 
     def get_calibrations(self,
-                         requests: List[FloquetPhasedFSimCalibrationRequest]
+                         requests: List[PhasedFSimCalibrationRequest]
                          ) -> List[PhasedFSimCalibrationResult]:
         return NotImplemented
