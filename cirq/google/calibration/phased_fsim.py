@@ -12,8 +12,7 @@ from cirq.ops import (
     ISwapPowGate,
     PhasedFSimGate,
     PhasedISwapPowGate,
-    Qid,
-    TwoQubitGate
+    Qid
 )
 import cirq.google.api.v2 as v2
 from cirq.google.engine import CalibrationLayer, CalibrationResult
@@ -133,7 +132,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         )
 
 
-def sqrt_iswap_gates_translator(gate: Gate) -> Optional[TwoQubitGate]:
+def sqrt_iswap_gates_translator(gate: Gate) -> Optional[FSimGate]:
     if isinstance(gate, FSimGate):
         if not np.isclose(gate.phi, 0.0):
             return None

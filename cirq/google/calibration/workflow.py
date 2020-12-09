@@ -2,13 +2,13 @@ from typing import Callable, List, Optional, Tuple, Union, cast
 
 from cirq.circuits import Circuit
 from cirq.ops import (
+    FSimGate,
     Gate,
     GateOperation,
     MeasurementGate,
     Moment,
     Qid,
-    SingleQubitGate,
-    TwoQubitGate
+    SingleQubitGate
 )
 from cirq.google.calibration.engine_simulator import (
     PhasedFSimEngineSimulator
@@ -32,14 +32,14 @@ def floquet_calibration_for_moment(
         moment: Moment,
         options: FloquetPhasedFSimCalibrationOptions,
         gate_set: SerializableGateSet,
-        gates_translator: Callable[[Gate], Optional[TwoQubitGate]] = sqrt_iswap_gates_translator,
+        gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
         pairs_in_canonical_order: bool = False,
         pairs_sorted: bool = False
 ) -> Optional[FloquetPhasedFSimCalibrationRequest]:
 
     measurement = False
     single_qubit = False
-    gate: Optional[TwoQubitGate] = None
+    gate: Optional[FSimGate] = None
     pairs = []
 
     for op in moment:
@@ -85,7 +85,7 @@ def floquet_calibration_for_circuit(
         circuit: Circuit,
         options: FloquetPhasedFSimCalibrationOptions,
         gate_set: SerializableGateSet,
-        gates_translator: Callable[[Gate], Optional[TwoQubitGate]] = sqrt_iswap_gates_translator,
+        gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
         merge_sub_sets: bool = True
 ) -> Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]:
     """
@@ -174,7 +174,7 @@ def run_floquet_calibration_for_circuit(
         handler_name: str,
         options: FloquetPhasedFSimCalibrationOptions,
         gate_set: SerializableGateSet,
-        gates_translator: Callable[[Gate], Optional[TwoQubitGate]] = sqrt_iswap_gates_translator,
+        gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
         merge_sub_sets: bool = True
 ) -> List[PhasedFSimCalibrationResult]:
     requests, mapping = floquet_calibration_for_circuit(
