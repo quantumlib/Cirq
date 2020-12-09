@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional, Tuple, TYPE_CHECKING, cast
+from typing import Callable, Dict, List, Optional, Tuple, TYPE_CHECKING, Union, cast
 
 import abc
 import collections
@@ -220,7 +220,7 @@ def floquet_calibration_for_moment(
         else:
             translated_gate = gates_translator(op.gate)
             if translated_gate is None:
-                raise IncompatibleMomentError(f'Moment contain non-single qubit operation {op} '
+                raise IncompatibleMomentError(f'Moment contains non-single qubit operation {op} '
                                               f'with gate that is not equal to cirq.ISWAP ** -0.5')
             elif gate is not None and gate != translated_gate:
                 raise IncompatibleMomentError(f'Moment contains operations resolved to two '
