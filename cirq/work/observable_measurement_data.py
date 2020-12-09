@@ -467,7 +467,7 @@ class BitstringAccumulator:
             raise ValueError("No measurements")
         self._validate_setting(setting, what='mean')
 
-        mean, var = _stats_from_measurements(
+        mean, _ = _stats_from_measurements(
             bitstrings=self.bitstrings,
             qubit_to_index=self._qubit_to_index,
             observable=setting.observable,
