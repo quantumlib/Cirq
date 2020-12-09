@@ -27,7 +27,6 @@ from cirq.google.calibration import (
     PhasedFSimParameters,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
-    default_fsim_floquet_options,
     floquet_calibration_for_circuit,
     floquet_calibration_for_moment,
     run_calibrations,
