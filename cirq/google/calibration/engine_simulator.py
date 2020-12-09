@@ -27,6 +27,23 @@ class PhasedFSimEngineSimulator(SimulatesSamples):
             gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator
     ) -> None:
         self._simulator = simulator
+        self._drift_generator = drift_generator
+        self._gates_translator = gates_translator
+
+    @staticmethod
+    def create_with_ideal_sqrt_iswap() -> 'PhasedFSimEngineSimulator':
+        return NotImplemented
+
+    @staticmethod
+    def create_with_random_gaussian(
+            reference: PhasedFSimGate,
+            sigma_theta: float = 0.02,
+            sigma_zeta: float = 0.05,
+            sigma_chi: float = 0.05,
+            sigma_gamma: float = 0.05,
+            sigma_phi: float = 0.02
+    ) -> 'PhasedFSimEngineSimulator':
+        return NotImplemented
 
     def _run(self, circuit: Circuit, param_resolver: ParamResolver, repetitions: int
              ) -> Dict[str, np.ndarray]:
