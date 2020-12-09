@@ -95,6 +95,8 @@ def test_observable_measured_result():
     assert omr.observable == cirq.Y(a) * cirq.Y(b)
     assert omr.init_state == cirq.Z(a) * cirq.Z(b)
 
+    cirq.testing.assert_equivalent_repr(omr)
+
 
 @pytest.fixture()
 def example_bsa() -> 'cw.BitstringAccumulator':
@@ -143,6 +145,9 @@ def test_bitstring_accumulator(example_bsa):
     assert example_bsa.chunksizes.shape == (1,)
     assert example_bsa.timestamps.shape == (1,)
     assert example_bsa.n_repetitions == 4
+
+    with pytest.raises(ValueError):
+        example_bsa.consume_results(bitstrings.astype(int))
 
     # test results
     results = list(example_bsa.results)
@@ -244,6 +249,8 @@ def test_bitstring_accumulator_equality():
         timestamps=timestamps,
     )
     assert bsa != bsa3
+
+    cirq.testing.assert_equivalent_repr(bsa)
 
 
 def test_bitstring_accumulator_stats():

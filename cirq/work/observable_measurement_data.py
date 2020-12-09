@@ -202,12 +202,14 @@ class BitstringAccumulator:
             self.timestamps = np.asarray(timestamps, dtype='datetime64[us]')
 
         if len(self.chunksizes) != len(self.timestamps):
+            # coverage: ignore
             raise ValueError(
                 "Invalid BitstringAccumulator state. "
                 "`chunksizes` and `timestamps` must have the same length."
             )
 
         if np.sum(self.chunksizes) != len(self.bitstrings):
+            # coverage: ignore
             raise ValueError(
                 "Invalid BitstringAccumulator state. "
                 "`chunksizes` must sum to the number of bitstrings."
@@ -322,7 +324,7 @@ class BitstringAccumulator:
 
     def __eq__(self, other):
         if not isinstance(other, BitstringAccumulator):
-            return False
+            return False  # coverage: ignore
 
         if (
             self.max_setting != other.max_setting
@@ -330,16 +332,16 @@ class BitstringAccumulator:
             or self.circuit_params != other.circuit_params
             or self.qubit_to_index != other.qubit_to_index
         ):
-            return False
+            return False  # coverage: ignore
 
         if not np.array_equal(self.bitstrings, other.bitstrings):
-            return False
+            return False  # coverage: ignore
 
         if not np.array_equal(self.chunksizes, other.chunksizes):
-            return False
+            return False  # covergae: ignore
 
         if not np.array_equal(self.timestamps, other.timestamps):
-            return False
+            return False  # coverage: ignore
 
         return True
 
@@ -376,6 +378,7 @@ class BitstringAccumulator:
             atol: The absolute tolerance for asserting coefficients are real.
         """
         if len(self.bitstrings) == 0:
+            # coverage: ignore
             raise ValueError("No measurements")
 
         all_obs_vals = np.array(
