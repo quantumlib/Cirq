@@ -211,7 +211,7 @@ class CircuitDag(networkx.DiGraph):
             yield node
 
     def findall_nodes_from_set(
-        self, input: Iterable[Unique[ops.Operation]]
+        self, input_set: Iterable[Unique[ops.Operation]]
     ) -> Iterator[ops.Operation]:
         """Finds all nodes from the given set.
 
@@ -219,7 +219,7 @@ class CircuitDag(networkx.DiGraph):
             input: The input set of Operation nodes.
         """
         for node in self.ordered_nodes():
-            if node in input:
+            if node in input_set:
                 yield node.val
 
     def factorize(self) -> Iterator['cirq.CircuitDag']:
