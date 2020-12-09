@@ -264,3 +264,83 @@ def test_findall_nodes_until_blocked(circuit, is_blocker):
     blocked_nodes = blocking_nodes.union(*(dag.succ[node] for node in blocking_nodes))
     expected_nodes = set(all_nodes) - blocked_nodes
     assert sorted(found_nodes) == sorted(expected_nodes)
+
+
+def test_factorize_simple_circuit_one_factor():
+    circuit = cirq.Circuit()
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit.append([cirq.CZ(q0, q1), cirq.H(q2), cirq.H(q0), cirq.CZ(q1, q2)])
+    dag = cirq.CircuitDag.from_circuit(circuit)
+    factors = list(dag.factorize())
+    assert len(factors) == 1
+    desired = """
+0: ───@───H───
+      │
+1: ───@───@───
+          │
+2: ───H───@───
+"""
+    cirq.testing.assert_has_diagram(factors[0].to_circuit(), desired)
+
+
+def test_factorize_simple_circuit_two_factors():
+    circuit = cirq.Circuit()
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit.append([cirq.H(q1), cirq.CZ(q0, q1), cirq.H(q2), cirq.H(q0), cirq.H(q0)])
+    dag = cirq.CircuitDag.from_circuit(circuit)
+    factors = list(dag.factorize())
+    assert len(factors) == 2
+    desired = [
+        """
+0: ───────@───H───H───
+          │
+1: ───H───@───────────
+""",
+        """
+2: ───H───
+""",
+    ]
+    for f, d in zip(factors, desired):
+        cirq.testing.assert_has_diagram(f.to_circuit(), d)
+
+
+def test_large_circuit():
+    circuit = cirq.Circuit()
+    qubits = cirq.GridQubit.rect(3, 3)
+    circuit.append(cirq.X(q) for q in qubits)
+    pairs = [(0, 2), (1, 2), (4, 6), (4, 8)]
+    circuit.append(cirq.CZ(qubits[a], qubits[b]) for (a, b) in pairs)
+    circuit.append(cirq.Y(q) for q in qubits)
+    # expect 5 factors
+    dag = cirq.CircuitDag.from_circuit(circuit)
+    factors = list(dag.factorize())
+    desired = [
+        """
+(0, 0): ───X───@───Y───────
+               │
+(0, 1): ───X───┼───@───Y───
+               │   │
+(0, 2): ───X───@───@───Y───
+""",
+        """
+(1, 0): ───X───Y───
+""",
+        """
+                   ┌──┐
+(1, 1): ───X───@────@─────Y───
+               │    │
+(2, 0): ───X───@────┼Y────────
+                    │
+(2, 2): ───X────────@─────Y───
+                   └──┘
+""",
+        """
+(1, 2): ───X───Y───
+""",
+        """
+(2, 1): ───X───Y───
+    """,
+    ]
+    assert len(factors) == 5
+    for f, d in zip(factors, desired):
+        cirq.testing.assert_has_diagram(f.to_circuit(), d)
