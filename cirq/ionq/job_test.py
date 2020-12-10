@@ -37,17 +37,6 @@ def test_job_fields():
     assert job.measurement_dict() == {'a': [0, 1]}
 
 
-def test_job_fields_simulator_repetitions():
-    job_dict = {
-        'id': 'my_id',
-        'target': 'simulator',
-        'qubits': '5',
-        'status': 'completed',
-    }
-    job = ionq.Job(None, job_dict)
-    assert job.repetitions() is None
-
-
 def test_job_status_refresh():
     for status in ionq.Job.NON_TERMINAL_STATES:
         mock_client = mock.MagicMock()
@@ -139,10 +128,11 @@ def test_job_results_simulator():
         'qubits': '1',
         'target': 'simulator',
         'data': {'histogram': {'0': '0.6', '1': '0.4'}},
+        'metadata': {'shots': '100'},
     }
     job = ionq.Job(None, job_dict)
     results = job.results()
-    assert results == ionq.SimulatorResult({0: 0.6, 1: 0.4}, 1, {})
+    assert results == ionq.SimulatorResult({0: 0.6, 1: 0.4}, 1, {}, 100)
 
 
 def test_job_results_simulator_endianness():
@@ -152,10 +142,11 @@ def test_job_results_simulator_endianness():
         'qubits': '2',
         'target': 'simulator',
         'data': {'histogram': {'0': '0.6', '1': '0.4'}},
+        'metadata': {'shots': '100'},
     }
     job = ionq.Job(None, job_dict)
     results = job.results()
-    assert results == ionq.SimulatorResult({0: 0.6, 2: 0.4}, 2, {})
+    assert results == ionq.SimulatorResult({0: 0.6, 2: 0.4}, 2, {}, 100)
 
 
 def test_job_cancel():

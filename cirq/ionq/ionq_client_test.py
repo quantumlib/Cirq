@@ -103,6 +103,7 @@ def test_ionq_client_create_job(mock_post):
         'body': {'job': 'mine'},
         'lang': 'json',
         'name': 'bacon',
+        'shots': '200',
         'metadata': {'shots': '200', 'a': '0,1'},
     }
     expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
@@ -144,25 +145,6 @@ def test_ionq_client_create_job_no_targets():
     with pytest.raises(AssertionError, match='neither were set'):
         _ = client.create_job(
             serialized_program=ionq.SerializedProgram(body={'job': 'mine'}, metadata={})
-        )
-
-
-def test_ionq_client_create_job_qpu_but_no_repetitions():
-    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
-    with pytest.raises(AssertionError, match='qpu'):
-        _ = client.create_job(
-            serialized_program=ionq.SerializedProgram(body={'job': 'mine'}, metadata={}),
-            target='qpu',
-        )
-
-
-def test_ionq_client_create_job_simulator_but_repetitions():
-    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
-    with pytest.raises(AssertionError, match='simulator'):
-        _ = client.create_job(
-            serialized_program=ionq.SerializedProgram(body={'job': 'mine'}, metadata={}),
-            target='simulator',
-            repetitions=10,
         )
 
 
