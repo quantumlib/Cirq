@@ -64,6 +64,16 @@ class FloquetPhasedFSimCalibrationOptions:
     estimate_phi: bool
 
     @staticmethod
+    def all_options() -> 'FloquetPhasedFSimCalibrationOptions':
+        return FloquetPhasedFSimCalibrationOptions(
+            estimate_theta=True,
+            estimate_zeta=True,
+            estimate_chi=True,
+            estimate_gamma=True,
+            estimate_phi=True
+        )
+
+    @staticmethod
     def all_except_for_chi_options() -> 'FloquetPhasedFSimCalibrationOptions':
         return FloquetPhasedFSimCalibrationOptions(
             estimate_theta=True,
@@ -171,7 +181,7 @@ def sqrt_iswap_gates_translator(gate: Gate) -> Optional[FSimGate]:
                 not np.isclose(gate.chi, 0.0) or
                 not np.isclose(gate.gamma, 0.0) or
                 not np.isclose(gate.phi, 0.0)):
-            pass
+            return None
         angle = gate.theta
     elif isinstance(gate, PhasedISwapPowGate):
         if not np.isclose(-gate.phase_exponent - 0.5, 0.0):

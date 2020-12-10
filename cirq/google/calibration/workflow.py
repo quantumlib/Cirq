@@ -144,8 +144,14 @@ def floquet_calibration_for_circuit(
 def run_calibrations(calibrations: List[PhasedFSimCalibrationRequest],
                      engine: Union[Engine, PhasedFSimEngineSimulator],
                      processor_id: str,
-                     handler_name: str
+                     handler_name: str,
+                     max_layers_per_request: int = 1,
+                     progress_func: Optional[Callable[[int], None]] = None
                      ) -> List[PhasedFSimCalibrationResult]:
+    if max_layers_per_request < 1:
+        raise ValueError(f'Miaximum number of layers pere request must be at least 1, '
+                         f'{max_layers_per_request} given')
+
     if not calibrations:
         return []
 
@@ -155,16 +161,33 @@ def run_calibrations(calibrations: List[PhasedFSimCalibrationRequest],
         raise ValueError('All calibrations that run together must be defined for a shared gate set')
 
     if isinstance(engine, Engine):
-        requests = [calibration.to_calibration_layer(handler_name) for calibration in calibrations]
-        job = engine.run_calibration(requests,
-                                     processor_id=processor_id,
-                                     gate_set=gate_set)
-        return [calibration.parse_result(result)
-                for calibration, result in zip(calibrations, job.calibration_results())]
+        results = []
+
+        if progress_func:
+            progress_func(len(results))
+
+        requests = [
+            [calibration.to_calibration_layer(handler_name)
+             for calibration in calibrations[offset:offset + max_layers_per_request]]
+            for offset in range(0, len(calibrations), max_layers_per_request)
+        ]
+
+        for request in requests:
+            job = engine.run_calibration(request,
+                                         processor_id=processor_id,
+                                         gate_set=gate_set)
+            request_results = job.calibration_results()
+            results += [calibration.parse_result(result)
+                        for calibration, result in zip(calibrations, request_results)]
+            if progress_func:
+                progress_func(len(results))
+
     elif isinstance(engine, PhasedFSimEngineSimulator):
-        return engine.get_calibrations(calibrations)
+        results = engine.get_calibrations(calibrations)
     else:
         raise ValueError(f'Unsupported engine type {type(engine)}')
+
+    return results
 
 
 def run_floquet_calibration_for_circuit(
@@ -175,9 +198,13 @@ def run_floquet_calibration_for_circuit(
         options: FloquetPhasedFSimCalibrationOptions,
         gate_set: SerializableGateSet,
         gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
-        merge_sub_sets: bool = True
+        merge_sub_sets: bool = True,
+        max_layers_per_request: int = 1,
+        progress_func: Optional[Callable[[int], None]] = None
 ) -> List[PhasedFSimCalibrationResult]:
     requests, mapping = floquet_calibration_for_circuit(
         circuit, options, gate_set, gates_translator, merge_sub_sets=merge_sub_sets)
-    results = run_calibrations(requests, engine, processor_id, handler_name)
+    results = run_calibrations(requests, engine, processor_id, handler_name,
+                               max_layers_per_request=max_layers_per_request,
+                               progress_func=progress_func)
     return [results[index] for index in mapping]
