@@ -539,11 +539,11 @@ def test_internal_serializer_types():
 
     context_json = test_context._json_dict_()
     with pytest.raises(TypeError, match='_from_json_dict_'):
-        _ = json_serialization._SerializedKey._from_json_dict_(**context_json)
+        _ = json_serialization._SerializedContext._from_json_dict_(**context_json)
 
     serialization_json = test_serialization._json_dict_()
     with pytest.raises(TypeError, match='_from_json_dict_'):
-        _ = json_serialization._SerializedKey._from_json_dict_(**serialization_json)
+        _ = json_serialization._ContextualSerialization._from_json_dict_(**serialization_json)
 
 
 def _write_test_data(key: str, *test_instances: Any):
