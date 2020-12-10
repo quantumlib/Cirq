@@ -447,11 +447,16 @@ def _cirq_object_hook(d, resolvers: Sequence[JsonResolver], context_map: Dict[st
 
 
 class SerializableByKey(SupportsJSON):
-    """Interface for objects that can be serialized to a key + context."""
+    """Protocol for objects that can be serialized to a key + context."""
 
     @doc_private
-    def _serialization_key_(self):
-        pass
+    def _serialization_key_(self) -> str:
+        """Returns a unique string identifier for this object.
+
+        This should only return the same value for two objects if they are
+        equal; otherwise, an error will occur if both are serialized into the
+        same JSON string.
+        """
 
 
 class _SerializedKey(SupportsJSON):
