@@ -90,10 +90,10 @@ class QPUResult:
         """Returns a `cirq.Result` for these results.
 
         `cirq.Result` contains a less dense representation of results than that returned by
-        the IonQ API.  Technically these results are also ordered by when they were run, though
-        that contract is implicit.  Because the IonQ API loses that ordering information, the
-        order of these `cirq.Result` objects should *not* be interpetted as representing the
-        order in which the circuit was run.
+        the IonQ API.  Typically these results are also ordered by when they were run, though
+        that contract is implicit.  Because the IonQ API does not retain that ordering information,
+        the order of these `cirq.Result` objects should *not* be interpetted as representing the
+        order in which the circuit was repeated.
 
         Args:
             params: The `cirq.ParamResolver` used to generate these results.
@@ -161,8 +161,8 @@ class SimulatorResult:
     def repetitions(self) -> int:
         """Returns the number of times the circuit was run.
 
-        For IonQ API simulations this is used when generating `cirq.Result`s, where a different
-        number of repetitions can also be specified.
+        For IonQ API simulations this is used when generating `cirq.Result`s from `to_cirq_result`.
+        The sampling is not done on the IonQ API but is done in `to_cirq_result`.
         """
         return self._repetitions
 
@@ -218,9 +218,9 @@ class SimulatorResult:
 
         The IonQ simulator returns the probabilities of different bitstrings. This converts such
         a representation to a randomly generated sample from the simulator. Note that it does this
-        on every subsequent call of this method, so repeated calls to not produce the same
+        on every subsequent call of this method, so repeated calls do not produce the same
         `cirq.Result`s. When a job was created by the IonQ API, it had a number of repetitions and
-        this is used, unless `repetitions` is set here.
+        this is used, unless `override_repetitions` is set here.
 
         Args:
             params: Any parameters which were used to generated this result.

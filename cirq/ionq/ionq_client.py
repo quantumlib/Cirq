@@ -162,8 +162,9 @@ class _IonQClient:
         Args:
             serialized_program: The `cirq.ionq.SerializedProgram` containing the serialized
                 information about the circuit to run.
-            repetitions: The number of times to repeat the circuit. For simulation these
-                repetitions are not done on the server.
+            repetitions: The number of times to repeat the circuit. For simulation the repeated
+                sampling is not done on the server, but is passed as metadata to be recovered
+                from the returned job.
             target: If supplied the target to run on. Supports one of `qpu` or `simulator`. If not
                 set, uses `default_target`.
             name: An optional name of the job. Different than the `job_id` of the job.
