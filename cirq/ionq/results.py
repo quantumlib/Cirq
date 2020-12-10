@@ -112,12 +112,9 @@ class QPUResult:
             )
         measurements = {}
         for key, targets in self.measurement_dict().items():
-            simulated_results = list(self.counts(key).elements())
+            qpu_results = list(self.counts(key).elements())
             measurements[key] = np.array(
-                list(
-                    digits.big_endian_int_to_bits(x, bit_count=len(targets))
-                    for x in simulated_results
-                )
+                list(digits.big_endian_int_to_bits(x, bit_count=len(targets)) for x in qpu_results)
             )
         return study.Result(params=params or study.ParamResolver({}), measurements=measurements)
 
@@ -228,7 +225,7 @@ class SimulatorResult:
                 If an integer, `np.random.RandomState(seed) is used. Otherwise if another
                 randomness generator is used, it will be used.
             override_repetitions: Repetitions were supplied when the IonQ API ran the simulation,
-                but different repetitions can be supplied here.
+                but different repetitions can be supplied here and will override.
 
         Returns:
             A `cirq.Result` corresponding to a sample from the probability distribution returned
