@@ -608,6 +608,7 @@ def to_json(
             to your classes rather than overriding this default.
     """
     if cls == CirqEncoder and has_serializable_by_keys(obj):
+
         class ContextualEncoder(CirqEncoder):
             """An encoder with a context list for concise serialization."""
 
@@ -678,6 +679,7 @@ def read_json(
         resolvers = DEFAULT_RESOLVERS
 
     context_map: Dict[str, 'SerializableByKey'] = {}
+
     def obj_hook(x):
         return _cirq_object_hook(x, resolvers, context_map)
 
