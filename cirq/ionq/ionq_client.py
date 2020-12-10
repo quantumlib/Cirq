@@ -162,8 +162,9 @@ class _IonQClient:
         Args:
             serialized_program: The `cirq.ionq.SerializedProgram` containing the serialized
                 information about the circuit to run.
-            repetitions: The number of times to repeat the circuit. Only can be set if the target
-                is `qpu`. If not specified and target is `qpu`, number of repetitions is 100.
+            repetitions: The number of times to repeat the circuit. For simulation the repeated
+                sampling is not done on the server, but is passed as metadata to be recovered
+                from the returned job.
             target: If supplied the target to run on. Supports one of `qpu` or `simulator`. If not
                 set, uses `default_target`.
             name: An optional name of the job. Different than the `job_id` of the job.
@@ -176,13 +177,6 @@ class _IonQClient:
             An IonQException if the request fails.
         """
         actual_target = self._target(target)
-        assert (
-            actual_target != 'qpu' or repetitions is not None
-        ), 'If the target is qpu, repetitions must be specified.'
-        assert actual_target != 'simulator' or repetitions is None, (
-            'If the target is simulator, repetitions should not be specified as the simulator is '
-            'a full wavefunction simulator.'
-        )
 
         json: Dict[str, Any] = {
             'target': actual_target,
@@ -193,10 +187,11 @@ class _IonQClient:
             json['name'] = name
         # We have to pass measurement keys through the metadata.
         json['metadata'] = serialized_program.metadata
-        if repetitions:
-            # API does not return number of shots, only histogram of
-            # percentages, so we set it as metadata.
-            json['metadata']['shots'] = str(repetitions)
+
+        # Shots are ignored by simulator, but pass them anyway.
+        json['shots'] = str(repetitions)
+        # API does not return number of shots so pass this through as metadata.
+        json['metadata']['shots'] = str(repetitions)
 
         def request():
             return requests.post(f'{self.url}/jobs', json=json, headers=self.headers)
