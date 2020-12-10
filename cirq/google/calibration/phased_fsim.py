@@ -62,6 +62,16 @@ class FloquetPhasedFSimCalibrationOptions:
     estimate_phi: bool
 
     @staticmethod
+    def all_options() -> 'FloquetPhasedFSimCalibrationOptions':
+        return FloquetPhasedFSimCalibrationOptions(
+            estimate_theta=True,
+            estimate_zeta=True,
+            estimate_chi=True,
+            estimate_gamma=True,
+            estimate_phi=True
+        )
+
+    @staticmethod
     def all_except_for_chi_options() -> 'FloquetPhasedFSimCalibrationOptions':
         return FloquetPhasedFSimCalibrationOptions(
             estimate_theta=True,
