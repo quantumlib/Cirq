@@ -23,16 +23,7 @@ pyquil~=2.21.0
 # For verifying behavior of qasm output.
 qiskit~=0.20.0
 
-# For generating documentation.
-pypandoc
-myst-parser
-Sphinx~=3.2.0
-
-sphinx_rtd_theme
-sphinx-markdown-tables
-
 # For generating notebooks in documentation
-nbsphinx
 ipython
 ipykernel
 
