@@ -19,7 +19,7 @@ import json
 import os
 import pathlib
 import textwrap
-from typing import Any, Iterator, List, Optional, Set, Tuple, Type
+from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Type
 
 import pytest
 
@@ -340,6 +340,14 @@ NOT_YET_SERIALIZABLE = [
 ]
 
 
+# These types are internal-only and should not be serialized directly.
+INTERNAL_SERIALIZATION_TYPES = [
+    '_ContextualSerialization',
+    '_SerializedContext',
+    '_SerializedKey',
+]
+
+
 def _find_classes_that_should_serialize() -> Set[Tuple[str, Optional[type]]]:
     result: Set[Tuple[str, Optional[type]]] = set()
     result.update(_get_all_public_classes(cirq))
@@ -347,6 +355,8 @@ def _find_classes_that_should_serialize() -> Set[Tuple[str, Optional[type]]]:
     result.update(_get_all_public_classes(cirq.work))
 
     for k, v in json_serialization._cirq_class_resolver_dictionary().items():
+        if k in INTERNAL_SERIALIZATION_TYPES:
+            continue
         t = v if isinstance(v, type) else None
         result.add((k, t))
     return result
@@ -431,6 +441,86 @@ def test_sympy():
     # Linear combinations.
     assert_json_roundtrip_works(t * 2)
     assert_json_roundtrip_works(4 * t + 3 * s + 2)
+
+
+def test_context_serialization():
+    class SBKImpl:
+        def __init__(
+            self,
+            name: str,
+            data_list: Optional[List] = None,
+            data_tuple: Optional[Tuple] = None,
+            data_dict: Optional[Dict] = None,
+        ):
+            self.name = name
+            self.data_list = data_list or []
+            self.data_tuple = data_tuple or ()
+            self.data_dict = data_dict or {}
+
+        def __eq__(self, other):
+            if not isinstance(other, SBKImpl):
+                return False
+            return (
+                self.name == other.name
+                and self.data_list == other.data_list
+                and self.data_tuple == other.data_tuple
+                and self.data_dict == other.data_dict
+            )
+
+        def __repr__(self):
+            # For debugging.
+            return f'SBKImpl({self._json_dict_()})'
+
+        def _json_dict_(self):
+            return {
+                "cirq_type": "SBKImpl",
+                "name": self.name,
+                "data_list": self.data_list,
+                "data_tuple": self.data_tuple,
+                "data_dict": self.data_dict,
+            }
+
+        def _serialization_key_(self):
+            return self.name
+
+        @classmethod
+        def _from_json_dict_(cls, name, data_list, data_tuple, data_dict, **kwargs):
+            return cls(name, data_list, tuple(data_tuple), data_dict)
+
+    def custom_resolver(name):
+        if name == 'SBKImpl':
+            return SBKImpl
+
+    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+
+    sbki_empty = SBKImpl('sbki_empty')
+    assert_json_roundtrip_works(sbki_empty, resolvers=test_resolvers)
+
+    sbki_list = SBKImpl('sbki_list', data_list=[sbki_empty, sbki_empty])
+    assert_json_roundtrip_works(sbki_list, resolvers=test_resolvers)
+
+    sbki_tuple = SBKImpl('sbki_tuple', data_tuple=(sbki_list, sbki_list))
+    assert_json_roundtrip_works(sbki_tuple, resolvers=test_resolvers)
+
+    sbki_dict = SBKImpl('sbki_dict', data_dict={'a': sbki_tuple, 'b': sbki_tuple})
+    assert_json_roundtrip_works(sbki_dict, resolvers=test_resolvers)
+
+    sbki_json = str(cirq.to_json(sbki_dict))
+    # There should be exactly one context item for each previous SBKImpl.
+    assert sbki_json.count('"cirq_type": "_SerializedContext"') == 4
+    # There should be exactly two key items for each of sbki_(empty|list|tuple),
+    # plus one for the top-level sbki_dict.
+    assert sbki_json.count('"cirq_type": "_SerializedKey"') == 7
+    # The final object should be a _SerializedKey for sbki_dict.
+    final_obj_idx = sbki_json.rfind('{')
+    final_obj = sbki_json[final_obj_idx : sbki_json.find('}', final_obj_idx) + 1]
+    assert (
+        final_obj
+        == """{
+      "cirq_type": "_SerializedKey",
+      "key": "sbki_dict"
+    }"""
+    )
 
 
 def _write_test_data(key: str, *test_instances: Any):
