@@ -35,6 +35,25 @@ class PhasedFSimParameters:
     gamma: Optional[float] = None
     phi: Optional[float] = None
 
+    def for_qubits_swapped(self) -> 'PhasedFSimParameters':
+        """Parameters for the gate with qubits swapped between each other.
+
+        The angles theta, gamma and phi are kept unchanged. The angles zeta and chi are negated for
+        the gate with qubits swapped.
+
+        Returns:
+            New instance with angles adjusted for swapped qubits.
+        """
+        chi = -self.chi if self.chi is not None else None
+        zeta = -self.zeta if self.zeta is not None else None
+        return PhasedFSimParameters(
+            theta=self.theta,
+            zeta=zeta,
+            chi=chi,
+            gamma=self.gamma,
+            phi=self.phi
+        )
+
 
 @json_serializable_dataclass
 class FloquetPhasedFSimCalibrationOptions:
@@ -60,6 +79,14 @@ class PhasedFSimCalibrationResult(abc.ABC):
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimParameters]
     gate: Gate
     gate_set: SerializableGateSet
+
+    def get_parameters(self, a: Qid, b: Qid) -> Optional['PhasedFSimParameters']:
+        if (a, b) in self.parameters:
+            return self.parameters[(a, b)]
+        elif (b, a) in self.parameters:
+            return self.parameters[(b, a)].for_qubits_swapped()
+        else:
+            return None
 
 
 @json_serializable_dataclass
