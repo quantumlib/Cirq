@@ -191,10 +191,10 @@ def run_floquet_calibration_for_circuit(
         merge_sub_sets: bool = True,
         max_layers_per_request: int = 1,
         progress_func: Optional[Callable[[int], None]] = None
-) -> List[PhasedFSimCalibrationResult]:
+) -> List[Optional[PhasedFSimCalibrationResult]]:
     requests, mapping = floquet_calibration_for_circuit(
         circuit, options, gate_set, gates_translator, merge_sub_sets=merge_sub_sets)
     results = run_calibrations(requests, engine, processor_id, handler_name,
                                max_layers_per_request=max_layers_per_request,
                                progress_func=progress_func)
-    return [results[index] for index in mapping]
+    return [results[index] if index is not None else None for index in mapping]
