@@ -90,6 +90,9 @@ class PhasedFSimCalibrationResult(abc.ABC):
     gate: Gate
     gate_set: SerializableGateSet
 
+    def override(self, parameters: PhasedFSimParameters) -> 'PhasedFSimCalibrationResult':
+        return NotImplemented
+
     def get_parameters(self, a: Qid, b: Qid) -> Optional['PhasedFSimParameters']:
         if (a, b) in self.parameters:
             return self.parameters[(a, b)]
