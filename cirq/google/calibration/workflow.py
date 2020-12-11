@@ -196,6 +196,15 @@ def run_characterizations(calibrations: List[PhasedFSimCalibrationRequest],
     return results
 
 
+def phased_calibration_for_circuit(
+        circuit: Circuit,
+        characterizations: List[PhasedFSimCalibrationResult],
+        moments_mapping: List[Optional[int]],
+        gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator
+) -> Tuple[Circuit, List[PhasedFSimCalibrationResult], List[Optional[int]]]:
+    return NotImplemented
+
+
 def run_floquet_characterization_for_circuit(
         circuit: Circuit,
         engine: Union[Engine, PhasedFSimEngineSimulator],
@@ -214,3 +223,24 @@ def run_floquet_characterization_for_circuit(
                                     max_layers_per_request=max_layers_per_request,
                                     progress_func=progress_func)
     return [results[index] if index is not None else None for index in mapping]
+
+
+def run_phased_floquet_calibration_for_circuit(
+        circuit: Circuit,
+        engine: Union[Engine, PhasedFSimEngineSimulator],
+        processor_id: str,
+        handler_name: str,
+        gate_set: SerializableGateSet,
+        gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
+        options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions(
+            estimate_theta=False,
+            estimate_zeta=True,
+            estimate_chi=False,
+            estimate_gamma=True,
+            estimate_phi=False
+        ),
+        merge_sub_sets: bool = True,
+        max_layers_per_request: int = 1,
+        progress_func: Optional[Callable[[int, int], None]] = None
+) -> Tuple[Circuit, List[PhasedFSimCalibrationResult], List[Optional[int]]]:
+    return NotImplemented
