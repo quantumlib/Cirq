@@ -158,7 +158,7 @@ def run_calibrations(calibrations: List[PhasedFSimCalibrationRequest],
     gate_sets = [calibration.gate_set for calibration in calibrations]
     gate_set = gate_sets[0]
     if not all(gate_set == other for other in gate_sets):
-        raise ValueError('All calibrations that run together must be defined for a shared gate set')
+        raise ValueError('All calibrations that run together must be defined for a single gate set')
 
     if isinstance(engine, Engine):
         results = []

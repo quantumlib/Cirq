@@ -14,6 +14,7 @@ from cirq.study import ParamResolver
 from cirq.google.calibration.phased_fsim import (
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
+    PhasedFSimParameters,
     sqrt_iswap_gates_translator
 )
 
@@ -36,12 +37,15 @@ class PhasedFSimEngineSimulator(SimulatesSamples):
 
     @staticmethod
     def create_with_random_gaussian(
-            reference: PhasedFSimGate,
-            sigma_theta: float = 0.02,
-            sigma_zeta: float = 0.05,
-            sigma_chi: float = 0.05,
-            sigma_gamma: float = 0.05,
-            sigma_phi: float = 0.02
+            mean: PhasedFSimParameters,
+            sigma: PhasedFSimParameters = PhasedFSimParameters(
+                theta=0.02,
+                zeta=0.05,
+                chi=0.05,
+                gamma=0.05,
+                phi=0.02
+            ),
+            gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator
     ) -> 'PhasedFSimEngineSimulator':
         return NotImplemented
 
