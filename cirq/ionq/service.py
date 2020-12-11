@@ -12,9 +12,11 @@
 # limitations under the License.
 """Service to access IonQs API."""
 
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, Sequence, TYPE_CHECKING
 
-from cirq.ionq import calibration, ionq_client, job, serializer
+from cirq import protocols, study
+
+from cirq.ionq import calibration, ionq_client, job, results, serializer
 
 if TYPE_CHECKING:
     import cirq
@@ -54,10 +56,41 @@ class Service:
             verbose=verbose,
         )
 
+    def run(
+        self,
+        circuit: 'cirq.Circuit',
+        repetitions: int,
+        name: Optional[str] = None,
+        target: Optional[str] = None,
+        param_resolver: study.ParamResolverOrSimilarType = study.ParamResolver({}),
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> study.Result:
+        """Run the given circuit on the IonQ API.
+
+        Args:
+            circuit: The circuit to run.
+            repetitions: The number of times to run the circuit.
+            name: An optional name for the created job. Different from the `job_id`.
+            target: Where to run the job. Can be 'qpu' or 'simulator'.
+            param_resolver: A `cirq.ParamResolver` to resolve parameters in  `circuit`.
+            seed: If the target is `simulation` the seed for generating results. If None, this
+                will be `np.random`, if an int, will be `np.random.RandomState(int)`, otherwise
+                must be a modulate similar to `np.random`.
+
+        Returns:
+            A `cirq.Result` for running the circuit.
+        """
+        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        result = self.create_job(resolved_circuit, repetitions, name, target).results()
+        if isinstance(result, results.QPUResult):
+            return result.to_cirq_result(params=study.ParamResolver(param_resolver))
+        else:
+            return result.to_cirq_result(params=study.ParamResolver(param_resolver), seed=seed)
+
     def create_job(
         self,
         circuit: 'cirq.Circuit',
-        repetitions: int = None,
+        repetitions: int = 100,
         name: Optional[str] = None,
         target: Optional[str] = None,
     ) -> job.Job:
@@ -65,8 +98,7 @@ class Service:
 
         Args:
             circuit: The circuit to run.
-            repetitions: The number of times to repeat the circuit. Should only be set if the
-                target is `qpu`.
+            repetitions: The number of times to repeat the circuit. Defaults to 100.
             name: An optional name for the created job. Different from the `job_id`.
             target: Where to run the job. Can be 'qpu' or 'simulator'.
 
@@ -85,7 +117,7 @@ class Service:
         return self.get_job(result['id'])
 
     def get_job(self, job_id: str) -> job.Job:
-        """Gets a job that has been created on via the API.
+        """Gets a job that has been created on the IonQ API.
 
         Args:
             job_id: The UUID of the job. Jobs are assigned these numbers by the server during the
@@ -101,6 +133,25 @@ class Service:
         job_dict = self._client.get_job(job_id=job_id)
         return job.Job(client=self._client, job_dict=job_dict)
 
+    def list_jobs(
+        self, status: Optional[str] = None, limit: int = 100, batch_size: int = 1000
+    ) -> Sequence[job.Job]:
+        """Lists jobs that have been created on the IonQ API.
+
+        Args:
+            status: If supplied will filter to only jobs with this status.
+            limit: The maximum number of jobs to return.
+            batch_size: The size of the batches requested per http GET call.
+
+        Returns:
+            A sequence of jobs.
+
+        Raises:
+            IonQException: If there was an error accessing the API.
+        """
+        job_dicts = self._client.list_jobs(status=status, limit=limit, batch_size=batch_size)
+        return tuple(job.Job(client=self._client, job_dict=job_dict) for job_dict in job_dicts)
+
     def get_current_calibration(self) -> calibration.Calibration:
         """Gets the most recent calbration via the API.
 
@@ -112,6 +163,9 @@ class Service:
 
         Returns:
             A `cirq.ionq.Calibration` containing the device specification and calibrations.
+
+        Raises:
+            IonQException: If there was an error accessing the API.
         """
         calibration_dict = self._client.get_current_calibration()
         return calibration.Calibration(calibration_dict=calibration_dict)
