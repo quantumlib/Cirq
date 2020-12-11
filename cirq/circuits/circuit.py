@@ -773,7 +773,6 @@ class AbstractCircuit(abc.ABC):
         if not all(
             self.next_moment_operating_on(op.qubits, i + 1) is None
             for (i, op) in self.findall_operations(predicate)
-            # TODO: this misbehaves with tagged CircuitOperations.
             if not is_circuit_op(op)
         ):
             return False

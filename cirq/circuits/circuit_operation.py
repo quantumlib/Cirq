@@ -235,7 +235,16 @@ class CircuitOperation(ops.Operation):
     def with_circuit(self, new_circuit: 'cirq.AbstractCircuit') -> 'CircuitOperation':
         """Returns a copy of this operation with the provided circuit.
 
-        Key mappings, parameter values, and repetitions are preserved.
+        Args:
+            new_circuit: The circuit to pack into a copy of this operation.
+                Key mappings, parameter values, and repetitions are preserved.
+
+        Returns:
+            A copy of this operation wrapping the provided circuit.
+
+        Raises:
+            NotImplementedError: The new circuit contains measurements, but
+                this operation has repetitions.
         """
         if protocols.is_measurement(new_circuit) and self._repetitions != 1:
             raise NotImplementedError('Measurements cannot be added to looped circuits.')
@@ -252,10 +261,28 @@ class CircuitOperation(ops.Operation):
     ) -> 'CircuitOperation':
         """Returns a copy of this operation repeated 'repetitions' times.
 
-        If "modulus" is specified, overall repetitions will be mapped to the
-        range (-modulus/2, modulus/2] if "allow_invert" is true; otherwise,
-        it will map to [0, modulus). If "validate_modulus" is also true, this
-        will also check that the provided modulus is valid for this circuit.
+        Args:
+            repetitions: Number of times this operation should repeat. This
+                is multiplied with any pre-existing repetitions.
+            modulus: If this is specified, the final repetition count will be
+                mapped to the range [0, modulus), or (-modulus/2, modulus/2]
+                if `allow_invert` is True.
+            allow_invert: For use with `modulus`. If this is True, repetitions
+                will map to the range (-modulus/2, modulus/2]. This is useful
+                for minimizing the total number of operations in a circuit.
+            validate_modulus: For use with `modulus`. If this is True, the
+                function will raise an error if the provided modulus does not
+                match the actual modulus of this operation.
+
+        Returns:
+            A copy of this operation repeated 'repetitions' times.
+
+        Raises:
+            TypeError: `repetitions` is not an integer value.
+            NotImplementedError: The operation contains measurements and
+                cannot have repetitions.
+            ValueError: `validate_modulus` was set to True, but raising this
+                operation to `modulus` does not produce the identity.
         """
         if not isinstance(repetitions, int):
             raise TypeError('Only integer repetitions are allowed.')
@@ -267,8 +294,7 @@ class CircuitOperation(ops.Operation):
             if validate_modulus and not linalg.allclose_up_to_global_phase(
                 protocols.unitary(self.circuit * modulus), np.eye(np.prod(self.circuit.qid_shape()))
             ):
-                raise ValueError('Raising the circuit to "modulus" ' 'must produce the identity.')
-            # Map repetitions to (-exp_modulus / 2, exp_modulus / 2]
+                raise ValueError('Raising the circuit to "modulus" must produce the identity.')
             new_op._repetitions %= modulus
             if allow_invert and new_op._repetitions > modulus // 2:
                 new_op._repetitions -= modulus
@@ -280,16 +306,32 @@ class CircuitOperation(ops.Operation):
     def with_qubit_mapping(self, qubit_map: Dict['cirq.Qid', 'cirq.Qid']) -> 'CircuitOperation':
         """Returns a copy of this operation with an updated qubit mapping.
 
-        The provided key_map is composed with the existing map, so calling this
-        function with qubit_map={GridQubit(0, 1): GridQubit(0, 2)} on a
-        CircuitOperation with qubit map {GridQubit(1, 1): GridQubit(0, 1)} will
-        result in a final map of {GridQubit(1, 1): GridQubit(0, 2)}.
+        Args:
+            qubit_map: A mapping of old qubits to new qubits. This map will be
+                composed with any existing qubit mapping.
+
+        Returns:
+            A copy of this operation targeting qubits as indicated by qubit_map.
         """
         new_op = self.copy()
         new_op._qubit_map = {k: qubit_map.get(v, v) for k, v in new_op.qubit_map.items()}
         return new_op
 
     def with_qubits(self, *new_qubits: 'cirq.Qid'):
+        """Returns a copy of this operation with an updated qubit mapping.
+
+        Args:
+            new_qubits: A list of qubits to target. Qubits in this list are
+                matched to qubits in the circuit following default qubit order,
+                ignoring any existing qubit map.
+
+        Returns:
+            A copy of this operation targeting `new_qubits`.
+
+        Raises:
+            ValueError: `new_qubits` has a different number of qubits than
+                this operation.
+        """
         if len(new_qubits) != protocols.num_qubits(self.circuit):
             expected = protocols.num_qubits(self.circuit)
             raise ValueError(f'Expected {expected} qubits, got {len(new_qubits)}.')
@@ -298,9 +340,13 @@ class CircuitOperation(ops.Operation):
     def with_measurement_key_mapping(self, key_map: Dict[str, str]) -> 'CircuitOperation':
         """Returns a copy of this operation with an updated key mapping.
 
-        The provided key_map is composed with the existing map, so calling this
-        function with key_map={'b': 'c'} on a CircuitOperation with key map
-        {'a': 'b'} will result in a final map of {'a': 'c'}.
+        Args:
+            key_map: A mapping of old measurement keys to new measurement keys.
+                This map will be composed with any existing key mapping.
+
+        Returns:
+            A copy of this operation with measurement keys updated as specified
+                by key_map.
         """
         new_op = self.copy()
         new_op._measurement_key_map = {
@@ -314,11 +360,16 @@ class CircuitOperation(ops.Operation):
     def with_params(
         self, param_values: study.ParamResolverOrSimilarType, recursive: bool = False
     ) -> 'CircuitOperation':
-        """Returns a copy of this operation with updated param values.
+        """Returns a copy of this operation with an updated ParamResolver.
 
-        The provided param_values are composed with the existing values, so
-        calling this function with param_values={'b': 1} on a CircuitOperation
-        with map {'a': 'b'} will result in a final map of {'a': 1}.
+        Args:
+            param_values: A map or ParamResolver able to convert old param
+                values to new param values. This map will be composed with any
+                existing ParamResolver.
+
+        Returns:
+            A copy of this operation with its ParamResolver updated as specified
+                by param_values.
         """
         new_op = self.copy()
         resolver = study.ParamResolver(param_values)
