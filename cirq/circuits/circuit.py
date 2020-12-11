@@ -704,10 +704,7 @@ class AbstractCircuit(abc.ABC):
         """
         if not 0 <= moment_index < len(self.moments):
             return None
-        for op in self.moments[moment_index].operations:
-            if qubit in op.qubits:
-                return op
-        return None
+        return self.moments[moment_index].operation_at(qubit)
 
     def findall_operations(
         self, predicate: Callable[['cirq.Operation'], bool]
