@@ -80,9 +80,10 @@ def floquet_characterization_for_moment(
 
 def floquet_characterization_for_circuit(
         circuit: Circuit,
-        options: FloquetPhasedFSimCalibrationOptions,
         gate_set: SerializableGateSet,
         gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
+        options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.
+            all_except_for_chi_options(),
         merge_sub_sets: bool = True,
         initial: Optional[
             Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]] = None
@@ -191,15 +192,16 @@ def run_floquet_characterization_for_circuit(
         engine: Engine,
         processor_id: str,
         handler_name: str,
-        options: FloquetPhasedFSimCalibrationOptions,
         gate_set: SerializableGateSet,
         gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
+        options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.
+            all_except_for_chi_options(),
         merge_sub_sets: bool = True,
         max_layers_per_request: int = 1,
         progress_func: Optional[Callable[[int, int], None]] = None
 ) -> List[Optional[PhasedFSimCalibrationResult]]:
     requests, mapping = floquet_characterization_for_circuit(
-        circuit, options, gate_set, gates_translator, merge_sub_sets=merge_sub_sets)
+        circuit, gate_set, gates_translator, options, merge_sub_sets=merge_sub_sets)
     results = run_characterizations(requests, engine, processor_id, handler_name,
                                     max_layers_per_request=max_layers_per_request,
                                     progress_func=progress_func)
