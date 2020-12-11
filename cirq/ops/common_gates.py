@@ -1359,8 +1359,10 @@ document(
     The `exponent=1` instance of `cirq.HPowGate`.
 
     Matrix:
+    ```
         [[s, s],
          [s, -s]]
+    ```
         where s = sqrt(0.5).
     """,
 )
@@ -1373,8 +1375,10 @@ document(
     The `exponent=0.5` instance of `cirq.ZPowGate`.
 
     Matrix:
+    ```
         [[1, 0],
          [0, i]]
+    ```
     """,
 )
 
@@ -1386,8 +1390,10 @@ document(
     The `exponent=0.25` instance of `cirq.ZPowGate`.
 
     Matrix:
+    ```
         [[1, 0]
          [0, exp(i pi / 4)]]
+    ```
     """,
 )
 
@@ -1399,11 +1405,12 @@ document(
     The `exponent=1` instance of `cirq.CZPowGate`.
 
     Matrix:
-
+    ```
         [[1 . . .],
          [. 1 . .],
          [. . 1 .],
          [. . . -1]]
+    ```
     """,
 )
 
@@ -1416,10 +1423,11 @@ document(
     The `exponent=1` instance of `cirq.CXPowGate`.
 
     Matrix:
-
+    ```
         [[1 . . .],
          [. 1 . .],
          [. . . 1],
          [. . 1 .]]
+    ```
     """,
 )

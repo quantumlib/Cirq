@@ -163,7 +163,7 @@ class Calibration(abc.Mapping):
 
         Args:
             tz: The timezone for the string. If None, the method uses the
-                platform's local date and time.
+                platform's local timezone.
             timespec: See datetime.isoformat for valid values.
 
         Returns:
