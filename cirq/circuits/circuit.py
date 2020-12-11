@@ -63,6 +63,7 @@ if TYPE_CHECKING:
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='AbstractCircuit')
+INT_TYPE = Union[int, np.integer]
 
 
 class AbstractCircuit(abc.ABC):
@@ -1380,21 +1381,24 @@ class Circuit(AbstractCircuit):
         result._device.validate_circuit(result)
         return result
 
-    def __imul__(self, repetitions: int):
-        if not isinstance(repetitions, int):
+    # Needed for numpy to handle multiplication by np.int64 correctly.
+    __array_priority__ = 10000
+
+    def __imul__(self, repetitions: INT_TYPE):
+        if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
-        self._moments *= repetitions
+        self._moments *= int(repetitions)
         return self
 
-    def __mul__(self, repetitions: int):
-        if not isinstance(repetitions, int):
+    def __mul__(self, repetitions: INT_TYPE):
+        if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
-        return Circuit(self._moments * repetitions, device=self._device)
+        return Circuit(self._moments * int(repetitions), device=self._device)
 
-    def __rmul__(self, repetitions: int):
-        if not isinstance(repetitions, int):
+    def __rmul__(self, repetitions: INT_TYPE):
+        if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
-        return self * repetitions
+        return self * int(repetitions)
 
     def __pow__(self, exponent: int) -> 'Circuit':
         """A circuit raised to a power, only valid for exponent -1, the inverse.
