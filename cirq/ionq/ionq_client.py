@@ -315,7 +315,20 @@ class _IonQClient:
 
     def _list(
         self, resource_path: str, params: dict, response_key: str, limit: int, batch_size: int
-    ):
+    ) -> List[Dict]:
+        """Helper method for list calls.
+
+        Args:
+            resource_path: The resource path for the object being listed. Follows the base url
+                and version. No leading slash.
+            params: The params to pass with the list call.
+            response_key: The key to get the list of objects that have been listed.
+            limit: The maximum number of objects to return.
+            batch_size: The size of the batches requested per http GET call.
+
+        Returns:
+            A sequence of dictionaries corresponding to the objects listed.
+        """
         json = {'limit': batch_size}
         token: Optional[str] = None
         results: List[Dict[str, Any]] = []
