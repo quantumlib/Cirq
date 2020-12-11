@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Classes for working with Google's Quantum Engine API."""
+
 from cirq.google import api
 
 from cirq.google.arg_func_langs import (

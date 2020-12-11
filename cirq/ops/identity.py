@@ -177,9 +177,10 @@ document(
     """The one qubit identity gate.
 
     Matrix:
-
+    ```
         [[1, 0],
          [0, 1]]
+    ```
     """,
 )
 
