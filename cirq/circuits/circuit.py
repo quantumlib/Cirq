@@ -63,7 +63,7 @@ if TYPE_CHECKING:
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='AbstractCircuit')
-INT_TYPE = Union[int, np.int32, np.int64]
+INT_TYPE = Union[int, np.integer]
 
 
 class AbstractCircuit(abc.ABC):
@@ -1375,18 +1375,18 @@ class Circuit(AbstractCircuit):
     __array_priority__ = 10000
 
     def __imul__(self, repetitions: INT_TYPE):
-        if not isinstance(repetitions, (int, np.int32, np.int64)):
+        if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
         self._moments *= int(repetitions)
         return self
 
     def __mul__(self, repetitions: INT_TYPE):
-        if not isinstance(repetitions, (int, np.int32, np.int64)):
+        if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
         return Circuit(self._moments * int(repetitions), device=self._device)
 
     def __rmul__(self, repetitions: INT_TYPE):
-        if not isinstance(repetitions, (int, np.int32, np.int64)):
+        if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
         return self * int(repetitions)
 
