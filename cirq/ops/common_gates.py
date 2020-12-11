@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Quantum gates that are commonly used in the literature.
 
 This module creates Gate instances for the following gates:
@@ -888,7 +887,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'H'
-        return f'H^{self._exponent}'
+        return f'H**{self._exponent}'
 
     def __repr__(self) -> str:
         if self._global_shift == 0:
