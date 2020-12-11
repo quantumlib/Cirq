@@ -14,7 +14,7 @@
 """Represents a job created via the IonQ API."""
 
 import time
-from typing import Dict, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Dict, Sequence, TYPE_CHECKING, Union
 
 from cirq.ionq import ionq_exceptions, results
 from cirq.value import digits
@@ -142,19 +142,15 @@ class Job:
         self._check_if_unsuccessful()
         return int(self._job['qubits'])
 
-    def repetitions(self) -> Optional[int]:
+    def repetitions(self) -> int:
         """Returns the number of repetitions for the job.
-
-        If run on the simulator this will return None.
 
         Raises:
             IonQUnsuccessfulJob: If the job has failed, been canceled, or deleted.
             IonQException: If unable to get the status of the job from the API.
         """
         self._check_if_unsuccessful()
-        if 'metadata' in self._job and 'shots' in self._job['metadata']:
-            return int(self._job['metadata']['shots'])
-        return None
+        return int(self._job['metadata']['shots'])
 
     def measurement_dict(self) -> Dict[str, Sequence[int]]:
         """Returns a dictionary of measurement keys to target qubit index."""
@@ -203,7 +199,6 @@ class Job:
         # IonQ returns results in little endian, Cirq prefers to use big endian, so we convert.
         if self.target() == 'qpu':
             repetitions = self.repetitions()
-            assert repetitions is not None
             counts = {
                 _little_endian_to_big(int(k), self.num_qubits()): int(repetitions * float(v))
                 for k, v in self._job['data']['histogram'].items()
@@ -222,6 +217,7 @@ class Job:
                 probabilities=probabilities,
                 num_qubits=self.num_qubits(),
                 measurement_dict=self.measurement_dict(),
+                repetitions=self.repetitions(),
             )
 
     def cancel(self):
