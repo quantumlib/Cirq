@@ -25,7 +25,7 @@ class IncompatibleMomentError(Exception):
     pass
 
 
-def floquet_calibration_for_moment(
+def floquet_characterization_for_moment(
         moment: Moment,
         options: FloquetPhasedFSimCalibrationOptions,
         gate_set: SerializableGateSet,
@@ -78,12 +78,14 @@ def floquet_calibration_for_moment(
     )
 
 
-def floquet_calibration_for_circuit(
+def floquet_characterization_for_circuit(
         circuit: Circuit,
         options: FloquetPhasedFSimCalibrationOptions,
         gate_set: SerializableGateSet,
         gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
-        merge_sub_sets: bool = True
+        merge_sub_sets: bool = True,
+        initial: Optional[
+            Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]] = None
 ) -> Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]:
     """
     Returns:
@@ -117,14 +119,18 @@ def floquet_calibration_for_circuit(
         pairs_map[calibration.pairs] = index
         return index
 
-    calibrations = []
-    moments_map = []
+    if initial is None:
+        calibrations = []
+        moments_map = []
+    else:
+        calibrations, moments_map = initial
+
     pairs_map = {}
 
     for moment in circuit:
-        calibration = floquet_calibration_for_moment(moment, options, gate_set, gates_translator,
-                                                     pairs_in_canonical_order=True,
-                                                     pairs_sorted=True)
+        calibration = floquet_characterization_for_moment(moment, options, gate_set, gates_translator,
+                                                          pairs_in_canonical_order=True,
+                                                          pairs_sorted=True)
 
         if calibration is not None:
             if merge_sub_sets:
@@ -138,13 +144,13 @@ def floquet_calibration_for_circuit(
     return calibrations, moments_map
 
 
-def run_calibrations(calibrations: List[PhasedFSimCalibrationRequest],
-                     engine: Engine,
-                     processor_id: str,
-                     handler_name: str,
-                     max_layers_per_request: int = 1,
-                     progress_func: Optional[Callable[[int], None]] = None
-                     ) -> List[PhasedFSimCalibrationResult]:
+def run_characterizations(calibrations: List[PhasedFSimCalibrationRequest],
+                          engine: Engine,
+                          processor_id: str,
+                          handler_name: str,
+                          max_layers_per_request: int = 1,
+                          progress_func: Optional[Callable[[int, int], None]] = None
+                          ) -> List[PhasedFSimCalibrationResult]:
     if max_layers_per_request < 1:
         raise ValueError(f'Miaximum number of layers pere request must be at least 1, '
                          f'{max_layers_per_request} given')
@@ -166,7 +172,7 @@ def run_calibrations(calibrations: List[PhasedFSimCalibrationRequest],
     results = []
 
     if progress_func:
-        progress_func(len(results))
+        progress_func(len(results), len(calibrations))
 
     for request in requests:
         job = engine.run_calibration(request,
@@ -175,12 +181,12 @@ def run_calibrations(calibrations: List[PhasedFSimCalibrationRequest],
         results += [calibration.parse_result(result)
                     for calibration, result in zip(calibrations, job.calibration_results())]
         if progress_func:
-            progress_func(len(results))
+            progress_func(len(results), len(calibrations))
 
     return results
 
 
-def run_floquet_calibration_for_circuit(
+def run_floquet_characterization_for_circuit(
         circuit: Circuit,
         engine: Engine,
         processor_id: str,
@@ -190,11 +196,11 @@ def run_floquet_calibration_for_circuit(
         gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
         merge_sub_sets: bool = True,
         max_layers_per_request: int = 1,
-        progress_func: Optional[Callable[[int], None]] = None
+        progress_func: Optional[Callable[[int, int], None]] = None
 ) -> List[Optional[PhasedFSimCalibrationResult]]:
-    requests, mapping = floquet_calibration_for_circuit(
+    requests, mapping = floquet_characterization_for_circuit(
         circuit, options, gate_set, gates_translator, merge_sub_sets=merge_sub_sets)
-    results = run_calibrations(requests, engine, processor_id, handler_name,
-                               max_layers_per_request=max_layers_per_request,
-                               progress_func=progress_func)
+    results = run_characterizations(requests, engine, processor_id, handler_name,
+                                    max_layers_per_request=max_layers_per_request,
+                                    progress_func=progress_func)
     return [results[index] if index is not None else None for index in mapping]
