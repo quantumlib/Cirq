@@ -68,17 +68,12 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             )
 
         return args.format(
-<<<<<<< HEAD
-            'u3({0:half_turns}, {1:half_turns}, {2:half_turns}) {3};\n', -e,
-            p + 0.5, -p - 0.5, qubits[0])
-=======
             'u3({0:half_turns}, {1:half_turns}, {2:half_turns}) {3};\n',
             -e,
             p + 0.5,
             -p - 0.5,
             qubits[0],
         )
->>>>>>> master
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         assert len(qubits) == 1
@@ -135,17 +130,6 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             return NotImplemented
         phase_angle = np.pi * self._phase_exponent / 2
         angle = np.pi * self._exponent / 2
-<<<<<<< HEAD
-        phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
-        return value.LinearDict({
-            'I':
-            phase * np.cos(angle),
-            'X':
-            -1j * phase * np.sin(angle) * np.cos(2 * phase_angle),
-            'Y':
-            -1j * phase * np.sin(angle) * np.sin(2 * phase_angle),
-        })
-=======
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
         return value.LinearDict(
             {
@@ -154,7 +138,6 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                 'Y': -1j * phase * np.sin(angle) * np.sin(2 * phase_angle),
             }
         )
->>>>>>> master
 
     def _is_parameterized_(self) -> bool:
         """See `cirq.SupportsParameterization`."""
@@ -170,34 +153,20 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
 
     def _resolve_parameters_(self, param_resolver, recursive) -> 'PhasedXPowGate':
         """See `cirq.SupportsParameterization`."""
-<<<<<<< HEAD
-        return PhasedXPowGate(phase_exponent=param_resolver.value_of(
-            self._phase_exponent),
-                              exponent=param_resolver.value_of(self._exponent),
-                              global_shift=self._global_shift)
-=======
         return PhasedXPowGate(
             phase_exponent=param_resolver.value_of(self._phase_exponent, recursive),
             exponent=param_resolver.value_of(self._exponent, recursive),
             global_shift=self._global_shift,
         )
->>>>>>> master
 
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
         assert qubit_index == 0
-<<<<<<< HEAD
-        return PhasedXPowGate(exponent=self._exponent,
-                              phase_exponent=self._phase_exponent +
-                              phase_turns * 2,
-                              global_shift=self._global_shift)
-=======
         return PhasedXPowGate(
             exponent=self._exponent,
             phase_exponent=self._phase_exponent + phase_turns * 2,
             global_shift=self._global_shift,
         )
->>>>>>> master
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
