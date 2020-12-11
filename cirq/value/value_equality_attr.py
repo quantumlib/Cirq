@@ -70,8 +70,7 @@ class _SupportsValueEquality(Protocol):
         """
 
 
-def _value_equality_eq(self: _SupportsValueEquality,
-                       other: _SupportsValueEquality) -> bool:
+def _value_equality_eq(self: _SupportsValueEquality, other: _SupportsValueEquality) -> bool:
     cls_self = self._value_equality_values_cls_()
     get_cls_other = getattr(other, '_value_equality_values_cls_', None)
     if get_cls_other is None:
@@ -82,19 +81,17 @@ def _value_equality_eq(self: _SupportsValueEquality,
     return self._value_equality_values_() == other._value_equality_values_()
 
 
-def _value_equality_ne(self: _SupportsValueEquality,
-                       other: _SupportsValueEquality) -> bool:
+def _value_equality_ne(self: _SupportsValueEquality, other: _SupportsValueEquality) -> bool:
     return not self == other
 
 
 def _value_equality_hash(self: _SupportsValueEquality) -> int:
-    return hash(
-        (self._value_equality_values_cls_(), self._value_equality_values_()))
+    return hash((self._value_equality_values_cls_(), self._value_equality_values_()))
 
 
-def _value_equality_approx_eq(self: _SupportsValueEquality,
-                              other: _SupportsValueEquality,
-                              atol: float) -> bool:
+def _value_equality_approx_eq(
+    self: _SupportsValueEquality, other: _SupportsValueEquality, atol: float
+) -> bool:
 
     # Preserve regular equality type-comparison logic.
     cls_self = self._value_equality_values_cls_()
@@ -105,38 +102,45 @@ def _value_equality_approx_eq(self: _SupportsValueEquality,
         return False
 
     # Delegate to cirq.approx_eq for approximate equality comparison.
-    return protocols.approx_eq(self._value_equality_approximate_values_(),
-                               other._value_equality_approximate_values_(),
-                               atol=atol)
+    return protocols.approx_eq(
+        self._value_equality_approximate_values_(),
+        other._value_equality_approximate_values_(),
+        atol=atol,
+    )
 
 
 # pylint: disable=function-redefined
 @overload
-def value_equality(cls: type,
-                   *,
-                   unhashable: bool = False,
-                   distinct_child_types: bool = False,
-                   manual_cls: bool = False,
-                   approximate: bool = False) -> type:
+def value_equality(
+    cls: type,
+    *,
+    unhashable: bool = False,
+    distinct_child_types: bool = False,
+    manual_cls: bool = False,
+    approximate: bool = False,
+) -> type:
     pass
 
 
 @overload
-def value_equality(*,
-                   unhashable: bool = False,
-                   distinct_child_types: bool = False,
-                   manual_cls: bool = False,
-                   approximate: bool = False) -> Callable[[type], type]:
+def value_equality(
+    *,
+    unhashable: bool = False,
+    distinct_child_types: bool = False,
+    manual_cls: bool = False,
+    approximate: bool = False,
+) -> Callable[[type], type]:
     pass
 
 
-def value_equality(cls: type = None,
-                   *,
-                   unhashable: bool = False,
-                   distinct_child_types: bool = False,
-                   manual_cls: bool = False,
-                   approximate: bool = False
-                  ) -> Union[Callable[[type], type], type]:
+def value_equality(
+    cls: type = None,
+    *,
+    unhashable: bool = False,
+    distinct_child_types: bool = False,
+    manual_cls: bool = False,
+    approximate: bool = False,
+) -> Union[Callable[[type], type], type]:
     """Implements __eq__/__ne__/__hash__ via a _value_equality_values_ method.
 
     _value_equality_values_ is a method that the decorated class must implement.
@@ -183,30 +187,34 @@ def value_equality(cls: type = None,
     # If keyword arguments were specified, python invokes the decorator method
     # without a `cls` argument, then passes `cls` into the result.
     if cls is None:
-        return lambda deferred_cls: value_equality(deferred_cls,
-                                                   unhashable=unhashable,
-                                                   manual_cls=manual_cls,
-                                                   distinct_child_types=
-                                                   distinct_child_types,
-                                                   approximate=approximate)
+        return lambda deferred_cls: value_equality(
+            deferred_cls,
+            unhashable=unhashable,
+            manual_cls=manual_cls,
+            distinct_child_types=distinct_child_types,
+            approximate=approximate,
+        )
 
     if distinct_child_types and manual_cls:
-        raise ValueError("'distinct_child_types' is "
-                         "incompatible with 'manual_cls")
+        raise ValueError("'distinct_child_types' is incompatible with 'manual_cls")
 
     values_getter = getattr(cls, '_value_equality_values_', None)
     if values_getter is None:
-        raise TypeError('The @cirq.value_equality decorator requires a '
-                        '_value_equality_values_ method to be defined.')
+        raise TypeError(
+            'The @cirq.value_equality decorator requires a '
+            '_value_equality_values_ method to be defined.'
+        )
 
     if distinct_child_types:
         setattr(cls, '_value_equality_values_cls_', lambda self: type(self))
     elif manual_cls:
         cls_getter = getattr(cls, '_value_equality_values_cls_', None)
         if cls_getter is None:
-            raise TypeError('The @cirq.value_equality decorator requires a '
-                            '_value_equality_values_cls_ method to be defined '
-                            'when "manual_cls" is set.')
+            raise TypeError(
+                'The @cirq.value_equality decorator requires a '
+                '_value_equality_values_cls_ method to be defined '
+                'when "manual_cls" is set.'
+            )
     else:
         setattr(cls, '_value_equality_values_cls_', lambda self: cls)
     setattr(cls, '__hash__', None if unhashable else _value_equality_hash)

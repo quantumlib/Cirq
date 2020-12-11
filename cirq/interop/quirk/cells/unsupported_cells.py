@@ -29,24 +29,24 @@ def generate_all_unsupported_cell_makers() -> Iterator[CellMaker]:
         "|X⟩⟨X|",
         "|/⟩⟨/|",
         "0",
-        reason='postselection is not implemented in Cirq')
+        reason='postselection is not implemented in Cirq',
+    )
 
     # Non-physical operations.
-    yield from _unsupported_gates("__error__",
-                                  "__unstable__UniversalNot",
-                                  reason="unphysical operation.")
+    yield from _unsupported_gates(
+        "__error__", "__unstable__UniversalNot", reason="unphysical operation."
+    )
 
     # Measurement.
     yield from _unsupported_gates(
         "XDetectControlReset",
         "YDetectControlReset",
         "ZDetectControlReset",
-        reason="classical feedback is not implemented in Cirq.")
+        reason="classical feedback is not implemented in Cirq.",
+    )
 
     # Dynamic gates with discretized actions.
-    yield from _unsupported_gates("X^⌈t⌉",
-                                  "X^⌈t-¼⌉",
-                                  reason="discrete parameter")
+    yield from _unsupported_gates("X^⌈t⌉", "X^⌈t-¼⌉", reason="discrete parameter")
     yield from _unsupported_family("Counting", reason="discrete parameter")
     yield from _unsupported_family("Uncounting", reason="discrete parameter")
     yield from _unsupported_family(">>t", reason="discrete parameter")
@@ -55,18 +55,15 @@ def generate_all_unsupported_cell_makers() -> Iterator[CellMaker]:
     # Gates that are no longer in the toolbox and have dominant replacements.
     yield from _unsupported_family("add", reason="deprecated; use +=A instead")
     yield from _unsupported_family("sub", reason="deprecated; use -=A instead")
-    yield from _unsupported_family("c+=ab",
-                                   reason="deprecated; use +=AB instead")
-    yield from _unsupported_family("c-=ab",
-                                   reason="deprecated; use -=AB instead")
+    yield from _unsupported_family("c+=ab", reason="deprecated; use +=AB instead")
+    yield from _unsupported_family("c-=ab", reason="deprecated; use -=AB instead")
 
 
 def _unsupported_gate(identifier: str, reason: str) -> CellMaker:
-
     def fail(_):
         raise NotImplementedError(
-            f'Converting the Quirk gate {identifier} is not implemented yet. '
-            f'Reason: {reason}')
+            f'Converting the Quirk gate {identifier} is not implemented yet. Reason: {reason}'
+        )
 
     return CellMaker(identifier, 0, fail)
 
@@ -76,7 +73,6 @@ def _unsupported_gates(*identifiers: str, reason: str) -> Iterator[CellMaker]:
         yield _unsupported_gate(identifier, reason)
 
 
-def _unsupported_family(identifier_prefix: str,
-                        reason: str) -> Iterator[CellMaker]:
+def _unsupported_family(identifier_prefix: str, reason: str) -> Iterator[CellMaker]:
     for i in CELL_SIZES:
         yield _unsupported_gate(identifier_prefix + str(i), reason)

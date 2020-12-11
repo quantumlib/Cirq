@@ -13,8 +13,7 @@
 # limitations under the License.
 
 import numbers
-from typing import (AbstractSet, Tuple, TYPE_CHECKING, Dict, Any, cast,
-                    SupportsFloat, Optional)
+from typing import AbstractSet, Tuple, TYPE_CHECKING, Dict, Any, cast, SupportsFloat, Optional
 
 import numpy as np
 
@@ -31,8 +30,10 @@ class RandomGateChannel(raw_types.Gate):
     """Applies a sub gate with some probability."""
 
     def __init__(self, *, sub_gate: 'cirq.Gate', probability: value.TParamVal):
-        if isinstance(probability, numbers.Number) and not 0 <= float(
-                cast(SupportsFloat, probability)) <= 1:
+        if (
+            isinstance(probability, numbers.Number)
+            and not 0 <= float(cast(SupportsFloat, probability)) <= 1
+        ):
             raise ValueError("not 0 <= probability <= 1")
 
         self.sub_gate = sub_gate
@@ -53,26 +54,25 @@ class RandomGateChannel(raw_types.Gate):
         return False
 
     def _has_mixture_(self):
-        return not self._is_parameterized_() and protocols.has_mixture(
-            self.sub_gate)
+        return not self._is_parameterized_() and protocols.has_mixture(self.sub_gate)
 
     def _has_channel_(self):
-        return not self._is_parameterized_() and protocols.has_channel(
-            self.sub_gate)
+        return not self._is_parameterized_() and protocols.has_channel(self.sub_gate)
 
     def _is_parameterized_(self) -> bool:
-        return (protocols.is_parameterized(self.probability) or
-                protocols.is_parameterized(self.sub_gate))
+        return protocols.is_parameterized(self.probability) or protocols.is_parameterized(
+            self.sub_gate
+        )
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        return protocols.parameter_names(
-            self.probability) | protocols.parameter_names(self.sub_gate)
+        return protocols.parameter_names(self.probability) | protocols.parameter_names(
+            self.sub_gate
+        )
 
-    def _resolve_parameters_(self, resolver):
+    def _resolve_parameters_(self, resolver, recursive):
         return RandomGateChannel(
-            sub_gate=protocols.resolve_parameters(self.sub_gate, resolver),
-            probability=protocols.resolve_parameters(self.probability,
-                                                     resolver),
+            sub_gate=protocols.resolve_parameters(self.sub_gate, resolver, recursive),
+            probability=protocols.resolve_parameters(self.probability, resolver, recursive),
         )
 
     def _mixture_(self):
@@ -83,8 +83,7 @@ class RandomGateChannel(raw_types.Gate):
         if mixture is None:
             return None
 
-        do_nothing = np.eye(np.product(protocols.qid_shape(self.sub_gate)),
-                            dtype=np.float64)
+        do_nothing = np.eye(np.product(protocols.qid_shape(self.sub_gate)), dtype=np.float64)
         result = [(p * float(self.probability), m) for p, m in mixture]
         result.append((1 - float(self.probability), do_nothing))
         return result
@@ -97,8 +96,7 @@ class RandomGateChannel(raw_types.Gate):
         if channel is None:
             return NotImplemented
 
-        do_nothing = np.eye(np.product(protocols.qid_shape(self.sub_gate)),
-                            dtype=np.float64)
+        do_nothing = np.eye(np.product(protocols.qid_shape(self.sub_gate)), dtype=np.float64)
         result = [e * np.sqrt(self.probability) for e in channel]
         result.append(np.sqrt(1 - float(self.probability)) * do_nothing)
         return result
@@ -111,6 +109,7 @@ class RandomGateChannel(raw_types.Gate):
 
     def _act_on_(self, args):
         from cirq.sim import clifford
+
         if self._is_parameterized_():
             return NotImplemented
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
@@ -129,8 +128,9 @@ class RandomGateChannel(raw_types.Gate):
     def _from_json_dict_(cls, sub_gate, probability, **kwargs):
         return cls(sub_gate=sub_gate, probability=probability)
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                              ) -> Optional['cirq.CircuitDiagramInfo']:
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> Optional['cirq.CircuitDiagramInfo']:
         result = protocols.circuit_diagram_info(self.sub_gate, args, None)
         if result is None:
             return None
@@ -144,8 +144,5 @@ class RandomGateChannel(raw_types.Gate):
 
     def __repr__(self):
         if self.probability == 1:
-            return (f'cirq.RandomGateChannel('
-                    f'sub_gate={self.sub_gate!r}, '
-                    f'probability=1)')
-        return (f'{self.sub_gate!r}.with_probability('
-                f'{proper_repr(self.probability)})')
+            return f'cirq.RandomGateChannel(sub_gate={self.sub_gate!r}, probability=1)'
+        return f'{self.sub_gate!r}.with_probability({proper_repr(self.probability)})'

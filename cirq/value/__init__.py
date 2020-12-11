@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Value conversion utilities and types for time and quantum states."""
 from cirq.value.abc_alt import (
     ABCMetaImplementAnyOneOf,
     alternative,
@@ -41,7 +42,8 @@ from cirq.value.linear_dict import (
 )
 
 from cirq.value.probability import (
-    validate_probability,)
+    validate_probability,
+)
 
 from cirq.value.product_state import (
     ProductState,
@@ -55,7 +57,8 @@ from cirq.value.product_state import (
 )
 
 from cirq.value.periodic_value import (
-    PeriodicValue,)
+    PeriodicValue,
+)
 
 from cirq.value.random_state import (
     parse_random_state,
@@ -63,7 +66,8 @@ from cirq.value.random_state import (
 )
 
 from cirq.value.timestamp import (
-    Timestamp,)
+    Timestamp,
+)
 
 from cirq.value.type_alias import (
     TParamKey,
@@ -71,4 +75,5 @@ from cirq.value.type_alias import (
 )
 
 from cirq.value.value_equality_attr import (
-    value_equality,)
+    value_equality,
+)

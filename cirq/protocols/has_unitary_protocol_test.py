@@ -18,7 +18,6 @@ import cirq
 
 
 def test_inconclusive():
-
     class No:
         pass
 
@@ -28,19 +27,15 @@ def test_inconclusive():
 
 
 def test_via_unitary():
-
     class No1:
-
         def _unitary_(self):
             return NotImplemented
 
     class No2:
-
         def _unitary_(self):
             return None
 
     class Yes:
-
         def _unitary_(self):
             return np.array([[1]])
 
@@ -51,34 +46,27 @@ def test_via_unitary():
 
 
 def test_via_apply_unitary():
-
     class No1(EmptyOp):
-
         def _apply_unitary_(self, args):
             return None
 
     class No2(EmptyOp):
-
         def _apply_unitary_(self, args):
             return NotImplemented
 
     class No3(cirq.SingleQubitGate):
-
         def _apply_unitary_(self, args):
             return NotImplemented
 
     class No4:  # A non-operation non-gate.
-
         def _apply_unitary_(self, args):
             assert False  # Because has_unitary doesn't understand how to call.
 
     class Yes1(EmptyOp):
-
         def _apply_unitary_(self, args):
             return args.target_tensor
 
     class Yes2(cirq.SingleQubitGate):
-
         def _apply_unitary_(self, args):
             return args.target_tensor
 
@@ -92,29 +80,23 @@ def test_via_apply_unitary():
 
 
 def test_via_decompose():
-
     class Yes1:
-
         def _decompose_(self):
             return []
 
     class Yes2:
-
         def _decompose_(self):
             return [cirq.X(cirq.LineQubit(0))]
 
     class No1:
-
         def _decompose_(self):
             return [cirq.depolarize(0.5).on(cirq.LineQubit(0))]
 
     class No2:
-
         def _decompose_(self):
             return None
 
     class No3:
-
         def _decompose_(self):
             return NotImplemented
 
@@ -130,19 +112,15 @@ def test_via_decompose():
 
 
 def test_via_has_unitary():
-
     class No1:
-
         def _has_unitary_(self):
             return NotImplemented
 
     class No2:
-
         def _has_unitary_(self):
             return False
 
     class Yes:
-
         def _has_unitary_(self):
             return True
 
@@ -152,9 +130,7 @@ def test_via_has_unitary():
 
 
 def test_order():
-
     class Yes1(EmptyOp):
-
         def _has_unitary_(self):
             return True
 
@@ -168,7 +144,6 @@ def test_order():
             assert False
 
     class Yes2(EmptyOp):
-
         def _has_unitary_(self):
             return NotImplemented
 
@@ -182,7 +157,6 @@ def test_order():
             assert False
 
     class Yes3(EmptyOp):
-
         def _has_unitary_(self):
             return NotImplemented
 
@@ -196,7 +170,6 @@ def test_order():
             assert False
 
     class Yes4(EmptyOp):
-
         def _has_unitary_(self):
             return NotImplemented
 

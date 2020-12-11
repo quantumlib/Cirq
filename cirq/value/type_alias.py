@@ -16,15 +16,14 @@ from typing import Union
 import sympy
 
 from cirq._doc import document
+
 """Supply aliases for commonly used types.
 """
 
 TParamKey = Union[str, sympy.Basic]
-document(
-    TParamKey,  # type: ignore
-    """A parameter that a parameter resolver may map to a value.""")
+document(TParamKey, """A parameter that a parameter resolver may map to a value.""")  # type: ignore
 
 TParamVal = Union[float, sympy.Basic]
 document(
-    TParamVal,  # type: ignore
-    """A value that a parameter resolver may return for a parameter.""")
+    TParamVal, """A value that a parameter resolver may return for a parameter."""  # type: ignore
+)

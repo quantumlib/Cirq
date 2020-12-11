@@ -35,18 +35,18 @@ class ExperimentType(enum.Enum):
 _T2_COLUMNS = ['delay_ns', 0, 1]
 
 
-def t2_decay(sampler: 'cirq.Sampler',
-             *,
-             qubit: 'cirq.Qid',
-             experiment_type: 'ExperimentType' = ExperimentType.RAMSEY,
-             num_points: int,
-             max_delay: 'cirq.DURATION_LIKE',
-             min_delay: 'cirq.DURATION_LIKE' = None,
-             repetitions: int = 1000,
-             delay_sweep: Optional[study.Sweep] = None,
-             num_pulses: List[int] = None
-            ) -> Union['cirq.experiments.T2DecayResult',
-                       List['cirq.experiments.T2DecayResult']]:
+def t2_decay(
+    sampler: 'cirq.Sampler',
+    *,
+    qubit: 'cirq.Qid',
+    experiment_type: 'ExperimentType' = ExperimentType.RAMSEY,
+    num_points: int,
+    max_delay: 'cirq.DURATION_LIKE',
+    min_delay: 'cirq.DURATION_LIKE' = None,
+    repetitions: int = 1000,
+    delay_sweep: Optional[study.Sweep] = None,
+    num_pulses: List[int] = None,
+) -> Union['cirq.experiments.T2DecayResult', List['cirq.experiments.T2DecayResult']]:
     """Runs a t2 transverse relaxation experiment.
 
     Initializes a qubit into a superposition state, evolves the system using
@@ -144,13 +144,14 @@ def t2_decay(sampler: 'cirq.Sampler',
     max_pulses = max(num_pulses) if num_pulses else 0
 
     if not delay_sweep:
-        delay_sweep = study.Linspace(delay_var,
-                                     start=min_delay_dur.total_nanos(),
-                                     stop=max_delay_dur.total_nanos(),
-                                     length=num_points)
+        delay_sweep = study.Linspace(
+            delay_var,
+            start=min_delay_dur.total_nanos(),
+            stop=max_delay_dur.total_nanos(),
+            length=num_points,
+        )
     if delay_sweep.keys != ['delay_ns']:
-        raise ValueError('delay_sweep must be a SingleSweep '
-                         'with delay_ns parameter')
+        raise ValueError('delay_sweep must be a SingleSweep with delay_ns parameter')
 
     if experiment_type == ExperimentType.RAMSEY:
         # Ramsey T2* experiment
@@ -159,7 +160,7 @@ def t2_decay(sampler: 'cirq.Sampler',
         # Then measure the state in both X and Y bases.
 
         circuit = circuits.Circuit(
-            ops.Y(qubit)**0.5,
+            ops.Y(qubit) ** 0.5,
             ops.wait(qubit, nanos=delay_var),
         )
     else:
@@ -181,13 +182,12 @@ def t2_decay(sampler: 'cirq.Sampler',
         # where N sweeps over the values of num_pulses
         #
         if not num_pulses:
-            raise ValueError('At least one value must be given '
-                             'for num_pulses in a CPMG experiment')
+            raise ValueError('At least one value must be given for num_pulses in a CPMG experiment')
         circuit = _cpmg_circuit(qubit, delay_var, max_pulses)
 
     # Add simple state tomography
-    circuit.append(ops.X(qubit)**inv_x_var)
-    circuit.append(ops.Y(qubit)**inv_y_var)
+    circuit.append(ops.X(qubit) ** inv_x_var)
+    circuit.append(ops.Y(qubit) ** inv_y_var)
     circuit.append(ops.measure(qubit, key='output'))
     tomography_sweep = study.Zip(
         study.Points('inv_x', [0.0, 0.5]),
@@ -208,10 +208,8 @@ def t2_decay(sampler: 'cirq.Sampler',
 
     if num_pulses and len(num_pulses) > 1:
         cols = tuple(f'pulse_{t}' for t in range(max_pulses))
-        x_basis_measurements[
-            'num_pulses'] = x_basis_measurements.loc[:, cols].sum(axis=1)
-        y_basis_measurements[
-            'num_pulses'] = y_basis_measurements.loc[:, cols].sum(axis=1)
+        x_basis_measurements['num_pulses'] = x_basis_measurements.loc[:, cols].sum(axis=1)
+        y_basis_measurements['num_pulses'] = y_basis_measurements.loc[:, cols].sum(axis=1)
 
     x_basis_tabulation = _create_tabulation(x_basis_measurements)
     y_basis_tabulation = _create_tabulation(y_basis_measurements)
@@ -221,8 +219,7 @@ def t2_decay(sampler: 'cirq.Sampler',
 
 
 def _create_tabulation(measurements: pd.DataFrame) -> pd.DataFrame:
-    """Returns a sum of 0 and 1 results per index from a list of measurements.
-    """
+    """Returns a sum of 0 and 1 results per index from a list of measurements."""
     if 'num_pulses' in measurements.columns:
         cols = [measurements.delay_ns, measurements.num_pulses]
     else:
@@ -235,8 +232,7 @@ def _create_tabulation(measurements: pd.DataFrame) -> pd.DataFrame:
     return tabulation
 
 
-def _cpmg_circuit(qubit: 'cirq.Qid', delay_var: sympy.Symbol,
-                  max_pulses: int) -> 'cirq.Circuit':
+def _cpmg_circuit(qubit: 'cirq.Qid', delay_var: sympy.Symbol, max_pulses: int) -> 'cirq.Circuit':
     """Creates a CPMG circuit for a given qubit.
 
     The circuit will look like:
@@ -249,12 +245,11 @@ def _cpmg_circuit(qubit: 'cirq.Qid', delay_var: sympy.Symbol,
     turned on and off.  This is done to combine circuits with different pulses
     into the same paramterized circuit.
     """
-    circuit = circuits.Circuit(
-        ops.Y(qubit)**0.5, ops.wait(qubit, nanos=delay_var), ops.X(qubit))
+    circuit = circuits.Circuit(ops.Y(qubit) ** 0.5, ops.wait(qubit, nanos=delay_var), ops.X(qubit))
     for n in range(max_pulses):
         pulse_n_on = sympy.Symbol(f'pulse_{n}')
         circuit.append(ops.wait(qubit, nanos=2 * delay_var * pulse_n_on))
-        circuit.append(ops.X(qubit)**pulse_n_on)
+        circuit.append(ops.X(qubit) ** pulse_n_on)
     circuit.append(ops.wait(qubit, nanos=delay_var))
     return circuit
 
@@ -269,19 +264,18 @@ def _cpmg_sweep(num_pulses: List[int]):
     """
     pulse_points = []
     for n in range(max(num_pulses)):
-        pulse_points.append(
-            study.Points(f'pulse_{n}', [1 if p > n else 0 for p in num_pulses]))
+        pulse_points.append(study.Points(f'pulse_{n}', [1 if p > n else 0 for p in num_pulses]))
     return study.Zip(*pulse_points)
 
 
 class T2DecayResult:
     """Results from a T2 decay experiment.
 
-     This object is a container for the measurement results in each basis
-     for each amount of delay.  These can be used to calculate Pauli
-     expectation values, length of the Bloch vector, and various fittings of
-     the data to calculate estimated T2 phase decay times.
-     """
+    This object is a container for the measurement results in each basis
+    for each amount of delay.  These can be used to calculate Pauli
+    expectation values, length of the Bloch vector, and various fittings of
+    the data to calculate estimated T2 phase decay times.
+    """
 
     def __init__(self, x_basis_data: pd.DataFrame, y_basis_data: pd.DataFrame):
         """
@@ -292,11 +286,15 @@ class T2DecayResult:
         x_cols = list(x_basis_data.columns)
         y_cols = list(y_basis_data.columns)
         if any(col not in x_cols for col in _T2_COLUMNS):
-            raise ValueError(f'x_basis_data must have columns {_T2_COLUMNS} '
-                             f'but had {list(x_basis_data.columns)}')
+            raise ValueError(
+                f'x_basis_data must have columns {_T2_COLUMNS} '
+                f'but had {list(x_basis_data.columns)}'
+            )
         if any(col not in y_cols for col in _T2_COLUMNS):
-            raise ValueError(f'y_basis_data must have columns {_T2_COLUMNS} '
-                             f'but had {list(y_basis_data.columns)}')
+            raise ValueError(
+                f'y_basis_data must have columns {_T2_COLUMNS} '
+                f'but had {list(y_basis_data.columns)}'
+            )
         self._x_basis_data = x_basis_data
         self._y_basis_data = y_basis_data
         self._expectation_pauli_x = self._expectation(x_basis_data)
@@ -319,11 +317,9 @@ class T2DecayResult:
         zeros = data[0]
         pauli_expectation = (2 * (ones / (ones + zeros))) - 1.0
         if 'num_pulses' in data.columns:
-            return pd.DataFrame({
-                'delay_ns': delay,
-                'num_pulses': data['num_pulses'],
-                'value': pauli_expectation
-            })
+            return pd.DataFrame(
+                {'delay_ns': delay, 'num_pulses': data['num_pulses'], 'value': pauli_expectation}
+            )
         return pd.DataFrame({'delay_ns': delay, 'value': pauli_expectation})
 
     @property
@@ -344,9 +340,7 @@ class T2DecayResult:
         """
         return self._expectation_pauli_y
 
-    def plot_expectations(self,
-                          ax: Optional[plt.Axes] = None,
-                          **plot_kwargs: Any) -> plt.Axes:
+    def plot_expectations(self, ax: Optional[plt.Axes] = None, **plot_kwargs: Any) -> plt.Axes:
         """Plots the expectation values of Pauli operators versus delay time.
 
         Args:
@@ -364,19 +358,22 @@ class T2DecayResult:
         ax.set_ylim(ymin=-2, ymax=2)
 
         # Plot different expectation values in different colors.
-        ax.plot(self._expectation_pauli_x['delay_ns'],
-                self._expectation_pauli_x['value'],
-                'bo-',
-                label='<X>',
-                **plot_kwargs)
-        ax.plot(self._expectation_pauli_y['delay_ns'],
-                self._expectation_pauli_y['value'],
-                'go-',
-                label='<Y>',
-                **plot_kwargs)
+        ax.plot(
+            self._expectation_pauli_x['delay_ns'],
+            self._expectation_pauli_x['value'],
+            'bo-',
+            label='<X>',
+            **plot_kwargs,
+        )
+        ax.plot(
+            self._expectation_pauli_y['delay_ns'],
+            self._expectation_pauli_y['value'],
+            'go-',
+            label='<Y>',
+            **plot_kwargs,
+        )
 
-        ax.set_xlabel(
-            r"Delay between initialization and measurement (nanoseconds)")
+        ax.set_xlabel(r"Delay between initialization and measurement (nanoseconds)")
         ax.set_ylabel('Pauli Operator Expectation')
         ax.set_title('T2 Decay Pauli Expectations')
         ax.legend()
@@ -384,9 +381,7 @@ class T2DecayResult:
             fig.show()
         return ax
 
-    def plot_bloch_vector(self,
-                          ax: Optional[plt.Axes] = None,
-                          **plot_kwargs: Any) -> plt.Axes:
+    def plot_bloch_vector(self, ax: Optional[plt.Axes] = None, **plot_kwargs: Any) -> plt.Axes:
         """Plots the estimated length of the Bloch vector versus time.
 
         This plot estimates the Bloch Vector by squaring the Pauli expectation
@@ -404,7 +399,7 @@ class T2DecayResult:
 
         Returns:
             The plt.Axes containing the plot.
-         """
+        """
         show_plot = not ax
         if show_plot:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
@@ -413,13 +408,10 @@ class T2DecayResult:
 
         # Estimate length of Bloch vector (projected to xy plane)
         # by squaring <X> and <Y> expectation values
-        bloch_vector = (self._expectation_pauli_x**2 +
-                        self._expectation_pauli_y**2)
+        bloch_vector = self._expectation_pauli_x ** 2 + self._expectation_pauli_y ** 2
 
-        ax.plot(self._expectation_pauli_x['delay_ns'], bloch_vector, 'r+-',
-                **plot_kwargs)
-        ax.set_xlabel(
-            r"Delay between initialization and measurement (nanoseconds)")
+        ax.plot(self._expectation_pauli_x['delay_ns'], bloch_vector, 'r+-', **plot_kwargs)
+        ax.set_xlabel(r"Delay between initialization and measurement (nanoseconds)")
         ax.set_ylabel('Bloch Vector X-Y Projection Squared')
         ax.set_title('T2 Decay Experiment Data')
         if show_plot:
@@ -427,19 +419,21 @@ class T2DecayResult:
         return ax
 
     def __str__(self):
-        return (f'T2DecayResult with data:\n'
-                f'<X>\n{self._x_basis_data}\n<Y>\n{self._y_basis_data}')
+        return f'T2DecayResult with data:\n<X>\n{self._x_basis_data}\n<Y>\n{self._y_basis_data}'
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return (self._expectation_pauli_x.equals(other._expectation_pauli_x) and
-                self._expectation_pauli_y.equals(other._expectation_pauli_y))
+        return self._expectation_pauli_x.equals(
+            other._expectation_pauli_x
+        ) and self._expectation_pauli_y.equals(other._expectation_pauli_y)
 
     def __repr__(self):
-        return (f'cirq.experiments.T2DecayResult('
-                f'x_basis_data={proper_repr(self._x_basis_data)}, '
-                f'y_basis_data={proper_repr(self._y_basis_data)})')
+        return (
+            f'cirq.experiments.T2DecayResult('
+            f'x_basis_data={proper_repr(self._x_basis_data)}, '
+            f'y_basis_data={proper_repr(self._y_basis_data)})'
+        )
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Text output in Jupyter."""

@@ -108,12 +108,13 @@ def test_is_supported_operation_can_serialize_predicate():
                 op_getter='exponent',
             )
         ],
-        can_serialize_predicate=lambda x: x.gate.exponent == 1.0)
-    gate_set = cg.SerializableGateSet(gate_set_name='my_gate_set',
-                                      serializers=[serializer],
-                                      deserializers=[X_DESERIALIZER])
+        can_serialize_predicate=lambda x: x.gate.exponent == 1.0,
+    )
+    gate_set = cg.SerializableGateSet(
+        gate_set_name='my_gate_set', serializers=[serializer], deserializers=[X_DESERIALIZER]
+    )
     assert gate_set.is_supported_operation(cirq.XPowGate()(q))
-    assert not gate_set.is_supported_operation(cirq.XPowGate()(q)**0.5)
+    assert not gate_set.is_supported_operation(cirq.XPowGate()(q) ** 0.5)
     assert gate_set.is_supported_operation(cirq.X(q))
 
 
@@ -123,18 +124,20 @@ def test_serialize_deserialize_circuit():
     circuit = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.X(q0))
 
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='',
-                                         gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
-                v2.program_pb2.Moment(operations=[
-                    X_SERIALIZER.to_proto(cirq.X(q0)),
-                    X_SERIALIZER.to_proto(cirq.X(q1))
-                ]),
                 v2.program_pb2.Moment(
-                    operations=[X_SERIALIZER.to_proto(cirq.X(q0))]),
-            ]))
+                    operations=[
+                        X_SERIALIZER.to_proto(cirq.X(q0)),
+                        X_SERIALIZER.to_proto(cirq.X(q1)),
+                    ]
+                ),
+                v2.program_pb2.Moment(operations=[X_SERIALIZER.to_proto(cirq.X(q0))]),
+            ],
+        ),
+    )
     assert proto == MY_GATE_SET.serialize(circuit)
     assert MY_GATE_SET.deserialize(proto) == circuit
 
@@ -144,9 +147,7 @@ def test_serialize_deserialize_circuit_with_tokens():
     q1 = cirq.GridQubit(1, 2)
     tag1 = cg.CalibrationTag('abc123')
     tag2 = cg.CalibrationTag('def456')
-    circuit = cirq.Circuit(
-        cirq.X(q0).with_tags(tag1),
-        cirq.X(q1).with_tags(tag2), cirq.X(q0))
+    circuit = cirq.Circuit(cirq.X(q0).with_tags(tag1), cirq.X(q1).with_tags(tag2), cirq.X(q0))
     op1 = v2.program_pb2.Operation()
     op1.gate.id = 'x_pow'
     op1.args['half_turns'].arg_value.float_value = 1.0
@@ -158,47 +159,49 @@ def test_serialize_deserialize_circuit_with_tokens():
     op2.qubits.add().id = '1_2'
     op2.token_constant_index = 1
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='',
-                                         gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
                 v2.program_pb2.Moment(operations=[op1, op2]),
-                v2.program_pb2.Moment(
-                    operations=[X_SERIALIZER.to_proto(cirq.X(q0))]),
+                v2.program_pb2.Moment(operations=[X_SERIALIZER.to_proto(cirq.X(q0))]),
             ],
         ),
         constants=[
             v2.program_pb2.Constant(string_value='abc123'),
-            v2.program_pb2.Constant(string_value='def456')
-        ])
+            v2.program_pb2.Constant(string_value='def456'),
+        ],
+    )
     assert proto == MY_GATE_SET.serialize(circuit)
     assert MY_GATE_SET.deserialize(proto) == circuit
 
 
 def test_deserialize_bad_operation_id():
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='',
-                                         gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
                 v2.program_pb2.Moment(operations=[]),
-                v2.program_pb2.Moment(operations=[
-                    v2.program_pb2.Operation(
-                        gate=v2.program_pb2.Gate(id='UNKNOWN_GATE'),
-                        args={
-                            'half_turns':
-                            v2.program_pb2.Arg(
-                                arg_value=v2.program_pb2.ArgValue(
-                                    float_value=1.0))
-                        },
-                        qubits=[v2.program_pb2.Qubit(id='1_1')])
-                ]),
-            ]))
-    with pytest.raises(ValueError,
-                       match='problem in moment 1 handling an '
-                       'operation with the following'):
+                v2.program_pb2.Moment(
+                    operations=[
+                        v2.program_pb2.Operation(
+                            gate=v2.program_pb2.Gate(id='UNKNOWN_GATE'),
+                            args={
+                                'half_turns': v2.program_pb2.Arg(
+                                    arg_value=v2.program_pb2.ArgValue(float_value=1.0)
+                                )
+                            },
+                            qubits=[v2.program_pb2.Qubit(id='1_1')],
+                        )
+                    ]
+                ),
+            ],
+        ),
+    )
+    with pytest.raises(
+        ValueError, match='problem in moment 1 handling an operation with the following'
+    ):
         MY_GATE_SET.deserialize(proto)
 
 
@@ -206,11 +209,11 @@ def test_serialize_deserialize_empty_circuit():
     circuit = cirq.Circuit()
 
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='',
-                                         gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
-            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-            moments=[]))
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moments=[]
+        ),
+    )
     assert proto == MY_GATE_SET.serialize(circuit)
     assert MY_GATE_SET.deserialize(proto) == circuit
 
@@ -219,13 +222,14 @@ def test_deserialize_empty_moment():
     circuit = cirq.Circuit([cirq.Moment()])
 
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='',
-                                         gate_set='my_gate_set'),
+        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
                 v2.program_pb2.Moment(),
-            ]))
+            ],
+        ),
+    )
     assert MY_GATE_SET.deserialize(proto) == circuit
 
 
@@ -238,89 +242,70 @@ def test_serialize_deserialize_schedule_no_device():
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)
     proto = v2.program_pb2.Program(
-        language=v2.program_pb2.Language(arg_function_language='',
-                                         gate_set='my_gate_set'),
-        schedule=v2.program_pb2.Schedule(scheduled_operations=[
-            v2.program_pb2.ScheduledOperation(operation=X_SERIALIZER.to_proto(
-                cirq.X(q0)),
-                                              start_time_picos=0),
-            v2.program_pb2.ScheduledOperation(operation=X_SERIALIZER.to_proto(
-                cirq.X(q1)),
-                                              start_time_picos=200000),
-            v2.program_pb2.ScheduledOperation(operation=X_SERIALIZER.to_proto(
-                cirq.X(q0)),
-                                              start_time_picos=400000)
-        ]))
+        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
+        schedule=v2.program_pb2.Schedule(
+            scheduled_operations=[
+                v2.program_pb2.ScheduledOperation(
+                    operation=X_SERIALIZER.to_proto(cirq.X(q0)), start_time_picos=0
+                ),
+                v2.program_pb2.ScheduledOperation(
+                    operation=X_SERIALIZER.to_proto(cirq.X(q1)), start_time_picos=200000
+                ),
+                v2.program_pb2.ScheduledOperation(
+                    operation=X_SERIALIZER.to_proto(cirq.X(q0)), start_time_picos=400000
+                ),
+            ]
+        ),
+    )
     with pytest.raises(ValueError):
         MY_GATE_SET.deserialize(proto)
 
 
 def test_serialize_deserialize_op():
     q0 = cirq.GridQubit(1, 1)
-    proto = op_proto({
-        'gate': {
-            'id': 'x_pow'
-        },
-        'args': {
-            'half_turns': {
-                'arg_value': {
-                    'float_value': 0.125
-                }
+    proto = op_proto(
+        {
+            'gate': {'id': 'x_pow'},
+            'args': {
+                'half_turns': {'arg_value': {'float_value': 0.125}},
             },
-        },
-        'qubits': [{
-            'id': '1_1'
-        }]
-    })
+            'qubits': [{'id': '1_1'}],
+        }
+    )
     assert proto == MY_GATE_SET.serialize_op(cirq.XPowGate(exponent=0.125)(q0))
-    assert MY_GATE_SET.deserialize_op(proto) == cirq.XPowGate(
-        exponent=0.125)(q0)
+    assert MY_GATE_SET.deserialize_op(proto) == cirq.XPowGate(exponent=0.125)(q0)
 
 
 def test_serialize_deserialize_op_with_token():
     q0 = cirq.GridQubit(1, 1)
-    proto = op_proto({
-        'gate': {
-            'id': 'x_pow'
-        },
-        'args': {
-            'half_turns': {
-                'arg_value': {
-                    'float_value': 0.125
-                }
+    proto = op_proto(
+        {
+            'gate': {'id': 'x_pow'},
+            'args': {
+                'half_turns': {'arg_value': {'float_value': 0.125}},
             },
-        },
-        'qubits': [{
-            'id': '1_1'
-        }],
-        'token_value': 'abc123'
-    })
-    op = cirq.XPowGate(exponent=0.125)(q0).with_tags(
-        cg.CalibrationTag('abc123'))
+            'qubits': [{'id': '1_1'}],
+            'token_value': 'abc123',
+        }
+    )
+    op = cirq.XPowGate(exponent=0.125)(q0).with_tags(cg.CalibrationTag('abc123'))
     assert proto == MY_GATE_SET.serialize_op(op)
     assert MY_GATE_SET.deserialize_op(proto) == op
 
 
 def test_serialize_deserialize_op_with_constants():
     q0 = cirq.GridQubit(1, 1)
-    proto = op_proto({
-        'gate': {
-            'id': 'x_pow'
-        },
-        'args': {
-            'half_turns': {
-                'arg_value': {
-                    'float_value': 0.125
-                }
+    proto = op_proto(
+        {
+            'gate': {'id': 'x_pow'},
+            'args': {
+                'half_turns': {'arg_value': {'float_value': 0.125}},
             },
-        },
-        'qubits': [{
-            'id': '1_1'
-        }],
-        'token_constant_index': 0
-    })
-    op = cirq.XPowGate(exponent=0.125)(q0).with_tags(
-        cg.CalibrationTag('abc123'))
+            'qubits': [{'id': '1_1'}],
+            'token_constant_index': 0,
+        }
+    )
+    op = cirq.XPowGate(exponent=0.125)(q0).with_tags(cg.CalibrationTag('abc123'))
     assert proto == MY_GATE_SET.serialize_op(op, constants=[])
     constant = v2.program_pb2.Constant()
     constant.string_value = 'abc123'
@@ -329,21 +314,15 @@ def test_serialize_deserialize_op_with_constants():
 
 def test_serialize_deserialize_op_subclass():
     q0 = cirq.GridQubit(1, 1)
-    proto = op_proto({
-        'gate': {
-            'id': 'x_pow'
-        },
-        'args': {
-            'half_turns': {
-                'arg_value': {
-                    'float_value': 1.0
-                }
+    proto = op_proto(
+        {
+            'gate': {'id': 'x_pow'},
+            'args': {
+                'half_turns': {'arg_value': {'float_value': 1.0}},
             },
-        },
-        'qubits': [{
-            'id': '1_1'
-        }]
-    })
+            'qubits': [{'id': '1_1'}],
+        }
+    )
     # cirq.X is a subclass of XPowGate.
     assert proto == MY_GATE_SET.serialize_op(cirq.X(q0))
     assert MY_GATE_SET.deserialize_op(proto) == cirq.X(q0)
@@ -354,26 +333,28 @@ def test_multiple_serializers():
         gate_type=cirq.XPowGate,
         serialized_gate_id='x_pow',
         args=[
-            cg.SerializingArg(serialized_name='half_turns',
-                              serialized_type=float,
-                              op_getter='exponent')
+            cg.SerializingArg(
+                serialized_name='half_turns', serialized_type=float, op_getter='exponent'
+            )
         ],
-        can_serialize_predicate=lambda x: x.gate.exponent != 1)
+        can_serialize_predicate=lambda x: x.gate.exponent != 1,
+    )
     serializer2 = cg.GateOpSerializer(
         gate_type=cirq.XPowGate,
         serialized_gate_id='x',
         args=[
-            cg.SerializingArg(serialized_name='half_turns',
-                              serialized_type=float,
-                              op_getter='exponent')
+            cg.SerializingArg(
+                serialized_name='half_turns', serialized_type=float, op_getter='exponent'
+            )
         ],
-        can_serialize_predicate=lambda x: x.gate.exponent == 1)
-    gate_set = cg.SerializableGateSet(gate_set_name='my_gate_set',
-                                      serializers=[serializer1, serializer2],
-                                      deserializers=[])
+        can_serialize_predicate=lambda x: x.gate.exponent == 1,
+    )
+    gate_set = cg.SerializableGateSet(
+        gate_set_name='my_gate_set', serializers=[serializer1, serializer2], deserializers=[]
+    )
     q0 = cirq.GridQubit(1, 1)
     assert gate_set.serialize_op(cirq.X(q0)).gate.id == 'x'
-    assert gate_set.serialize_op(cirq.X(q0)**0.5).gate.id == 'x_pow'
+    assert gate_set.serialize_op(cirq.X(q0) ** 0.5).gate.id == 'x_pow'
 
 
 def test_gateset_with_added_gates():
@@ -396,21 +377,15 @@ def test_gateset_with_added_gates():
     assert xy_gateset.is_supported_operation(cirq.Y(q))
 
     # test serialization and deserialization
-    proto = op_proto({
-        'gate': {
-            'id': 'y_pow'
-        },
-        'args': {
-            'half_turns': {
-                'arg_value': {
-                    'float_value': 0.125
-                }
+    proto = op_proto(
+        {
+            'gate': {'id': 'y_pow'},
+            'args': {
+                'half_turns': {'arg_value': {'float_value': 0.125}},
             },
-        },
-        'qubits': [{
-            'id': '1_1'
-        }]
-    })
+            'qubits': [{'id': '1_1'}],
+        }
+    )
 
     expected_gate = cirq.YPowGate(exponent=0.125)(cirq.GridQubit(1, 1))
     assert xy_gateset.serialize_op(expected_gate) == proto
@@ -436,21 +411,15 @@ def test_gateset_with_added_gates_again():
     assert not xx_gateset.is_supported_operation(cirq.Y(q))
 
     # test serialization and deserialization
-    proto = op_proto({
-        'gate': {
-            'id': 'x_pow'
-        },
-        'args': {
-            'half_turns': {
-                'arg_value': {
-                    'float_value': 0.125
-                }
+    proto = op_proto(
+        {
+            'gate': {'id': 'x_pow'},
+            'args': {
+                'half_turns': {'arg_value': {'float_value': 0.125}},
             },
-        },
-        'qubits': [{
-            'id': '1_1'
-        }]
-    })
+            'qubits': [{'id': '1_1'}],
+        }
+    )
 
     expected_gate = cirq.XPowGate(exponent=0.125)(cirq.GridQubit(1, 1))
     assert xx_gateset.serialize_op(expected_gate) == proto
@@ -458,54 +427,40 @@ def test_gateset_with_added_gates_again():
 
 
 def test_deserialize_op_invalid_gate():
-    proto = op_proto({
-        'gate': {},
-        'args': {
-            'half_turns': {
-                'arg_value': {
-                    'float_value': 0.125
-                }
+    proto = op_proto(
+        {
+            'gate': {},
+            'args': {
+                'half_turns': {'arg_value': {'float_value': 0.125}},
             },
-        },
-        'qubits': [{
-            'id': '1_1'
-        }]
-    })
+            'qubits': [{'id': '1_1'}],
+        }
+    )
     with pytest.raises(ValueError, match='does not have a gate'):
         MY_GATE_SET.deserialize_op(proto)
 
-    proto = op_proto({
-        'args': {
-            'half_turns': {
-                'arg_value': {
-                    'float_value': 0.125
-                }
+    proto = op_proto(
+        {
+            'args': {
+                'half_turns': {'arg_value': {'float_value': 0.125}},
             },
-        },
-        'qubits': [{
-            'id': '1_1'
-        }]
-    })
+            'qubits': [{'id': '1_1'}],
+        }
+    )
     with pytest.raises(ValueError, match='does not have a gate'):
         MY_GATE_SET.deserialize_op(proto)
 
 
 def test_deserialize_unsupported_gate_type():
-    proto = op_proto({
-        'gate': {
-            'id': 'no_pow'
-        },
-        'args': {
-            'half_turns': {
-                'arg_value': {
-                    'float_value': 0.125
-                }
+    proto = op_proto(
+        {
+            'gate': {'id': 'no_pow'},
+            'args': {
+                'half_turns': {'arg_value': {'float_value': 0.125}},
             },
-        },
-        'qubits': [{
-            'id': '1_1'
-        }]
-    })
+            'qubits': [{'id': '1_1'}],
+        }
+    )
     with pytest.raises(ValueError, match='no_pow'):
         MY_GATE_SET.deserialize_op(proto)
 
@@ -520,8 +475,9 @@ def test_deserialize_invalid_gate_set():
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(gate_set='not_my_gate_set'),
         circuit=v2.program_pb2.Circuit(
-            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-            moments=[]))
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moments=[]
+        ),
+    )
     with pytest.raises(ValueError, match='not_my_gate_set'):
         MY_GATE_SET.deserialize(proto)
 
@@ -529,9 +485,11 @@ def test_deserialize_invalid_gate_set():
     with pytest.raises(ValueError, match='Missing gate set'):
         MY_GATE_SET.deserialize(proto)
 
-    proto = v2.program_pb2.Program(circuit=v2.program_pb2.Circuit(
-        scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
-        moments=[]))
+    proto = v2.program_pb2.Program(
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT, moments=[]
+        )
+    )
     with pytest.raises(ValueError, match='Missing gate set'):
         MY_GATE_SET.deserialize(proto)
 
@@ -539,7 +497,8 @@ def test_deserialize_invalid_gate_set():
 def test_deserialize_schedule_missing_device():
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(gate_set='my_gate_set'),
-        schedule=v2.program_pb2.Schedule(scheduled_operations=[]))
+        schedule=v2.program_pb2.Schedule(scheduled_operations=[]),
+    )
     with pytest.raises(ValueError, match='device'):
         MY_GATE_SET.deserialize(proto)
 
@@ -547,8 +506,9 @@ def test_deserialize_schedule_missing_device():
 def test_deserialize_no_operation():
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(gate_set='my_gate_set'),
-        schedule=v2.program_pb2.Schedule(scheduled_operations=[
-            v2.program_pb2.ScheduledOperation(start_time_picos=0)
-        ]))
+        schedule=v2.program_pb2.Schedule(
+            scheduled_operations=[v2.program_pb2.ScheduledOperation(start_time_picos=0)]
+        ),
+    )
     with pytest.raises(ValueError, match='operation'):
         MY_GATE_SET.deserialize(proto, cirq.google.Bristlecone)

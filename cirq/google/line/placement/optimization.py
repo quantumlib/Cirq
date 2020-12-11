@@ -19,8 +19,7 @@ from typing import Callable, Tuple, TypeVar
 T = TypeVar('T')
 
 
-def _accept(random_sample: float, cost_diff: float,
-            temp: float) -> Tuple[bool, float]:
+def _accept(random_sample: float, cost_diff: float, temp: float) -> Tuple[bool, float]:
     """Calculates probability and draws if solution should be accepted.
 
     Based on exp(-Delta*E/T) formula.
@@ -44,16 +43,16 @@ def _accept(random_sample: float, cost_diff: float,
 
 
 def anneal_minimize(
-        initial: T,
-        cost_func: Callable[[T], float],
-        move_func: Callable[[T], T],
-        random_sample: Callable[[], float],
-        temp_initial: float = 1.0e-2,
-        temp_final: float = 1e-6,
-        cooling_factor: float = 0.99,
-        repeat: int = 100,
-        trace_func: Callable[
-            [T, float, float, float, bool], None] = None) -> T:
+    initial: T,
+    cost_func: Callable[[T], float],
+    move_func: Callable[[T], T],
+    random_sample: Callable[[], float],
+    temp_initial: float = 1.0e-2,
+    temp_final: float = 1e-6,
+    cooling_factor: float = 0.99,
+    repeat: int = 100,
+    trace_func: Callable[[T, float, float, float, bool], None] = None,
+) -> T:
     """Minimize solution using Simulated Annealing meta-heuristic.
 
     Args:
@@ -113,9 +112,7 @@ def anneal_minimize(
                 best = cand
                 best_cost = cand_cost
 
-            accepted, probability = _accept(random_sample(),
-                                            cand_cost - sol_cost,
-                                            temp)
+            accepted, probability = _accept(random_sample(), cand_cost - sol_cost, temp)
             if accepted:
                 sol = cand
                 sol_cost = cand_cost

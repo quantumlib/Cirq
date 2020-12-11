@@ -105,9 +105,9 @@ def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
     return val_flat, expr_map
 
 
-def flatten_with_sweep(val: Any,
-                       sweep: Union[sweeps.Sweep, List[resolver.ParamResolver]]
-                      ) -> Tuple[Any, sweeps.Sweep]:
+def flatten_with_sweep(
+    val: Any, sweep: Union[sweeps.Sweep, List[resolver.ParamResolver]]
+) -> Tuple[Any, sweeps.Sweep]:
     """Creates a copy of `val` with any symbols or expressions replaced with
     new symbols.  `val` can be a `Circuit`, `Gate`, `Operation`, or other
     type.  Also transforms a sweep over the symbols in `val` to a sweep over the
@@ -139,8 +139,9 @@ def flatten_with_sweep(val: Any,
     return val_flat, new_sweep
 
 
-def flatten_with_params(val: Any, params: resolver.ParamResolverOrSimilarType
-                       ) -> Tuple[Any, resolver.ParamDictType]:
+def flatten_with_params(
+    val: Any, params: resolver.ParamResolverOrSimilarType
+) -> Tuple[Any, resolver.ParamDictType]:
     """Creates a copy of `val` with any symbols or expressions replaced with
     new symbols.  `val` can be a `Circuit`, `Gate`, `Operation`, or other
     type.  Also transforms a dictionary of symbol values for `val` to an
@@ -191,12 +192,16 @@ class _ParamFlattener(resolver.ParamResolver):
         return super().__new__(cls)
 
     def __init__(
-            self,
-            param_dict: Optional[resolver.ParamResolverOrSimilarType] = None,
-            *,  # Force keyword args
-            get_param_name: Callable[[
+        self,
+        param_dict: Optional[resolver.ParamResolverOrSimilarType] = None,
+        *,  # Force keyword args
+        get_param_name: Callable[
+            [
                 sympy.Basic,
-            ], str] = None):
+            ],
+            str,
+        ] = None,
+    ):
         """Initializes a new _ParamFlattener.
 
         Args:
@@ -219,8 +224,7 @@ class _ParamFlattener(resolver.ParamResolver):
         else:
             params = param_dict if param_dict else {}
         symbol_params = {
-            _ensure_not_str(param): _ensure_not_str(val)
-            for param, val in params.items()
+            _ensure_not_str(param): _ensure_not_str(val) for param, val in params.items()
         }
         super().__init__(symbol_params)
         if get_param_name is None:
@@ -244,8 +248,9 @@ class _ParamFlattener(resolver.ParamResolver):
             symbol = sympy.Symbol('{}_{}'.format(name, collision))
         return symbol
 
-    def value_of(self, value: Union[sympy.Basic, float, str]
-                ) -> Union[sympy.Basic, float]:
+    def value_of(
+        self, value: Union[sympy.Basic, float, str], recursive: bool = False
+    ) -> Union[sympy.Basic, float]:
         """Resolves a symbol or expression to a new symbol unique to that value.
 
         - If value is a float, returns it.
@@ -257,6 +262,7 @@ class _ParamFlattener(resolver.ParamResolver):
         Args:
             value: The sympy.Symbol, sympy expression, name, or float to resolve
                 to a unique symbol or float.
+            recursive: Unused argument from ParamResolver.
 
         Returns:
             The unique symbol or value of the parameter as resolved by this
@@ -287,8 +293,7 @@ class _ParamFlattener(resolver.ParamResolver):
         if self.get_param_name == self.default_get_param_name:
             return f'_ParamFlattener({self.param_dict!r})'
         else:
-            return (f'_ParamFlattener({self.param_dict!r}, '
-                    f'get_param_name={self.get_param_name!r})')
+            return f'_ParamFlattener({self.param_dict!r}, get_param_name={self.get_param_name!r})'
 
     def flatten(self, val: Any) -> Any:
         """Returns a copy of `val` with any symbols or expressions replaced with
@@ -320,9 +325,9 @@ class ExpressionMap(dict):
         """
         super().__init__(*args, **kwargs)
 
-    def transform_sweep(self,
-                        sweep: Union[sweeps.Sweep, List[resolver.ParamResolver]]
-                       ) -> sweeps.Sweep:
+    def transform_sweep(
+        self, sweep: Union[sweeps.Sweep, List[resolver.ParamResolver]]
+    ) -> sweeps.Sweep:
         """Returns a sweep to use with a circuit flattened earlier with
         `cirq.flatten`.
 
@@ -342,13 +347,13 @@ class ExpressionMap(dict):
             param_dict = {}
             for formula, sym in self.items():
                 if isinstance(sym, (sympy.Symbol, str)):
-                    param_dict[str(sym)] = protocols.resolve_parameters(
-                        formula, r)
+                    param_dict[str(sym)] = protocols.resolve_parameters(formula, r)
             param_list.append(param_dict)
         return sweeps.ListSweep(param_list)
 
-    def transform_params(self, params: resolver.ParamResolverOrSimilarType
-                        ) -> resolver.ParamDictType:
+    def transform_params(
+        self, params: resolver.ParamResolverOrSimilarType
+    ) -> resolver.ParamDictType:
         """Returns a `ParamResolver` to use with a circuit flattened earlier
         with `cirq.flatten`.
 

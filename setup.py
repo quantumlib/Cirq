@@ -22,22 +22,26 @@ exec(open('cirq/_version.py').read())
 
 name = 'cirq'
 
-description = ('A framework for creating, editing, and invoking '
-               'Noisy Intermediate Scale Quantum (NISQ) circuits.')
+description = (
+    'A framework for creating, editing, and invoking '
+    'Noisy Intermediate Scale Quantum (NISQ) circuits.'
+)
 
 # README file as long_description.
 long_description = io.open('README.rst', encoding='utf-8').read()
 
-# If CIRQ_UNSTABLE_VERSION is set then we use cirq-unstable as the name of the package
-# and update the version to this value.
-if 'CIRQ_UNSTABLE_VERSION' in os.environ:
-    name = 'cirq-unstable'
-    __version__ = os.environ['CIRQ_UNSTABLE_VERSION']
+# If CIRQ_PRE_RELEASE_VERSION is set then we update the version to this value.
+# It is assumed that it ends with one of `.devN`, `.aN`, `.bN`, `.rcN` and hence
+# it will be a pre-release version on PyPi. See
+# https://packaging.python.org/guides/distributing-packages-using-setuptools/#pre-release-versioning
+# for more details.
+if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
+    __version__ = os.environ['CIRQ_PRE_RELEASE_VERSION']
     long_description = (
         "**This is a development version of Cirq and may be "
         "unstable.**\n\n**For the latest stable release of Cirq "
-        "see**\n`here <https://pypi.org/project/cirq>`__.\n\n" +
-        long_description)
+        "see**\n`here <https://pypi.org/project/cirq>`__.\n\n" + long_description
+    )
 
 # Read in requirements
 requirements = open('requirements.txt').readlines()
@@ -47,31 +51,31 @@ contrib_requirements = [r.strip() for r in contrib_requirements]
 dev_requirements = open('dev_tools/conf/pip-list-dev-tools.txt').readlines()
 dev_requirements = [r.strip() for r in dev_requirements]
 
-cirq_packages = ['cirq'] + [
-    'cirq.' + package for package in find_packages(where='cirq')
-]
+cirq_packages = ['cirq'] + ['cirq.' + package for package in find_packages(where='cirq')]
 
 # Sanity check
 assert __version__, 'Version string cannot be empty'
 
-setup(name=name,
-      version=__version__,
-      url='http://github.com/quantumlib/cirq',
-      author='The Cirq Developers',
-      author_email='cirq@googlegroups.com',
-      python_requires=('>=3.6.0'),
-      install_requires=requirements,
-      extras_require={
-          'contrib': contrib_requirements,
-          'dev_env': dev_requirements + contrib_requirements,
-      },
-      license='Apache 2',
-      description=description,
-      long_description=long_description,
-      packages=cirq_packages,
-      package_data={
-          'cirq': ['py.typed'],
-          'cirq.google.api.v1': ['*.proto', '*.pyi'],
-          'cirq.google.api.v2': ['*.proto', '*.pyi'],
-          'cirq.protocols.json_test_data': ['*'],
-      })
+setup(
+    name=name,
+    version=__version__,
+    url='http://github.com/quantumlib/cirq',
+    author='The Cirq Developers',
+    author_email='cirq@googlegroups.com',
+    python_requires=('>=3.7.0'),
+    install_requires=requirements,
+    extras_require={
+        'contrib': contrib_requirements,
+        'dev_env': dev_requirements + contrib_requirements,
+    },
+    license='Apache 2',
+    description=description,
+    long_description=long_description,
+    packages=cirq_packages,
+    package_data={
+        'cirq': ['py.typed'],
+        'cirq.google.api.v1': ['*.proto', '*.pyi'],
+        'cirq.google.api.v2': ['*.proto', '*.pyi'],
+        'cirq.protocols.json_test_data': ['*'],
+    },
+)

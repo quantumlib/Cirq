@@ -48,7 +48,6 @@ class NoMethod:
 
 
 class ReturnsNotImplemented(cirq.Gate):
-
     def _has_unitary_(self):
         return NotImplemented
 
@@ -60,7 +59,6 @@ class ReturnsNotImplemented(cirq.Gate):
 
 
 class ReturnsMatrix(cirq.Gate):
-
     def _unitary_(self) -> np.ndarray:
         return m1
 
@@ -69,7 +67,6 @@ class ReturnsMatrix(cirq.Gate):
 
 
 class FullyImplemented(cirq.Gate):
-
     def __init__(self, unitary_value):
         self.unitary_value = unitary_value
 
@@ -86,7 +83,6 @@ class FullyImplemented(cirq.Gate):
 
 
 class DecomposableGate(cirq.Gate):
-
     def __init__(self, unitary_value):
         self.unitary_value = unitary_value
 
@@ -146,13 +142,11 @@ class DummyOperation(cirq.Operation):
 
 
 class DummyComposite:
-
     def _decompose_(self):
         return ()
 
 
 class OtherComposite:
-
     def _decompose_(self):
         yield cirq.X(cirq.LineQubit(0))
         yield cirq.X(cirq.LineQubit(3))
@@ -170,8 +164,7 @@ def test_unitary():
     assert cirq.unitary(ReturnsMatrix(), None) is m1
 
     assert cirq.unitary(NoMethod(), NotImplemented) is NotImplemented
-    assert cirq.unitary(ReturnsNotImplemented(),
-                        NotImplemented) is NotImplemented
+    assert cirq.unitary(ReturnsNotImplemented(), NotImplemented) is NotImplemented
     assert cirq.unitary(ReturnsMatrix(), NotImplemented) is m1
 
     assert cirq.unitary(NoMethod(), 1) == 1
@@ -197,20 +190,16 @@ def test_has_unitary():
 
 def test_decompose_and_get_unitary():
     from cirq.protocols.unitary_protocol import _strat_unitary_from_decompose
+
+    np.testing.assert_allclose(_strat_unitary_from_decompose(DecomposableOperation((a,), True)), m1)
     np.testing.assert_allclose(
-        _strat_unitary_from_decompose(DecomposableOperation((a,), True)), m1)
-    np.testing.assert_allclose(
-        _strat_unitary_from_decompose(DecomposableOperation((a, b), True)), m2)
-    np.testing.assert_allclose(
-        _strat_unitary_from_decompose(DecomposableOrder((a, b, c))), m3)
-    np.testing.assert_allclose(
-        _strat_unitary_from_decompose(DummyOperation((a,))), np.eye(2))
-    np.testing.assert_allclose(
-        _strat_unitary_from_decompose(DummyOperation((a, b))), np.eye(4))
-    np.testing.assert_allclose(_strat_unitary_from_decompose(DummyComposite()),
-                               np.eye(1))
-    np.testing.assert_allclose(_strat_unitary_from_decompose(OtherComposite()),
-                               m2)
+        _strat_unitary_from_decompose(DecomposableOperation((a, b), True)), m2
+    )
+    np.testing.assert_allclose(_strat_unitary_from_decompose(DecomposableOrder((a, b, c))), m3)
+    np.testing.assert_allclose(_strat_unitary_from_decompose(DummyOperation((a,))), np.eye(2))
+    np.testing.assert_allclose(_strat_unitary_from_decompose(DummyOperation((a, b))), np.eye(4))
+    np.testing.assert_allclose(_strat_unitary_from_decompose(DummyComposite()), np.eye(1))
+    np.testing.assert_allclose(_strat_unitary_from_decompose(OtherComposite()), m2)
 
 
 def test_decomposed_has_unitary():
@@ -240,10 +229,8 @@ def test_decomposed_unitary():
     np.testing.assert_allclose(cirq.unitary(DecomposableGate(True).on(a)), m1)
 
     # Operations
-    np.testing.assert_allclose(cirq.unitary(DecomposableOperation((a,), True)),
-                               m1)
-    np.testing.assert_allclose(
-        cirq.unitary(DecomposableOperation((a, b), True)), m2)
+    np.testing.assert_allclose(cirq.unitary(DecomposableOperation((a,), True)), m1)
+    np.testing.assert_allclose(cirq.unitary(DecomposableOperation((a, b), True)), m2)
     np.testing.assert_allclose(cirq.unitary(DecomposableOrder((a, b, c))), m3)
     np.testing.assert_allclose(cirq.unitary(DummyOperation((a,))), np.eye(2))
     np.testing.assert_allclose(cirq.unitary(DummyOperation((a, b))), np.eye(4))
@@ -255,22 +242,18 @@ def test_decomposed_unitary():
 
 
 def test_unitary_from_apply_unitary():
-
     class ApplyGate(cirq.Gate):
-
         def num_qubits(self):
             return 1
 
         def _apply_unitary_(self, args):
             return cirq.apply_unitary(cirq.X(cirq.LineQubit(0)), args)
 
-    class UnknownType():
-
+    class UnknownType:
         def _apply_unitary_(self, args):
             assert False
 
     class ApplyGateNotUnitary(cirq.Gate):
-
         def num_qubits(self):
             return 1
 
@@ -278,13 +261,12 @@ def test_unitary_from_apply_unitary():
             return None
 
     class ApplyOp(cirq.Operation):
-
         def __init__(self, q):
             self.q = q
 
         @property
         def qubits(self):
-            return self.q,
+            return (self.q,)
 
         def with_qubits(self, *new_qubits):
             # coverage: ignore
@@ -298,9 +280,7 @@ def test_unitary_from_apply_unitary():
     assert not cirq.has_unitary(ApplyGateNotUnitary())
     assert not cirq.has_unitary(UnknownType())
 
-    np.testing.assert_allclose(cirq.unitary(ApplyGate()),
-                               np.array([[0, 1], [1, 0]]))
-    np.testing.assert_allclose(cirq.unitary(ApplyOp(cirq.LineQubit(0))),
-                               np.array([[0, 1], [1, 0]]))
+    np.testing.assert_allclose(cirq.unitary(ApplyGate()), np.array([[0, 1], [1, 0]]))
+    np.testing.assert_allclose(cirq.unitary(ApplyOp(cirq.LineQubit(0))), np.array([[0, 1], [1, 0]]))
     assert cirq.unitary(ApplyGateNotUnitary(), default=None) is None
     assert cirq.unitary(UnknownType(), default=None) is None

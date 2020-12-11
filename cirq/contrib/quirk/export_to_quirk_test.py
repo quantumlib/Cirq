@@ -31,13 +31,17 @@ def test_x_z_same_col():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     circuit = cirq.Circuit(cirq.X(a), cirq.Z(b))
-    assert_links_to(circuit, """
-        http://algassert.com/quirk#circuit={"cols":[["X","Z"]]}
-    """, escape_url=False)
     assert_links_to(
         circuit,
-        'http://algassert.com/quirk#circuit='
-        '%7B%22cols%22%3A%5B%5B%22X%22%2C%22Z%22%5D%5D%7D')
+        """
+        http://algassert.com/quirk#circuit={"cols":[["X","Z"]]}
+    """,
+        escape_url=False,
+    )
+    assert_links_to(
+        circuit,
+        'http://algassert.com/quirk#circuit=%7B%22cols%22%3A%5B%5B%22X%22%2C%22Z%22%5D%5D%7D',
+    )
 
 
 def test_x_cnot_split_cols():
@@ -45,9 +49,13 @@ def test_x_cnot_split_cols():
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
     circuit = cirq.Circuit(cirq.CNOT(a, b), cirq.X(c))
-    assert_links_to(circuit, """
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[["•","X"],[1,1,"X"]]}
-    """, escape_url=False)
+    """,
+        escape_url=False,
+    )
 
 
 def test_cz_cnot_split_cols():
@@ -55,9 +63,13 @@ def test_cz_cnot_split_cols():
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
     circuit = cirq.Circuit(cirq.CNOT(a, b), cirq.CZ(b, c))
-    assert_links_to(circuit, """
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[["•","X"],[1,"•","Z"]]}
-    """, escape_url=False)
+    """,
+        escape_url=False,
+    )
 
 
 def test_various_known_gate_types():
@@ -65,13 +77,13 @@ def test_various_known_gate_types():
     b = cirq.NamedQubit('b')
     circuit = cirq.Circuit(
         cirq.X(a),
-        cirq.X(a)**0.25,
-        cirq.X(a)**-0.5,
+        cirq.X(a) ** 0.25,
+        cirq.X(a) ** -0.5,
         cirq.Z(a),
-        cirq.Z(a)**0.5,
+        cirq.Z(a) ** 0.5,
         cirq.Y(a),
-        cirq.Y(a)**-0.25,
-        cirq.Y(a)**sympy.Symbol('t'),
+        cirq.Y(a) ** -0.25,
+        cirq.Y(a) ** sympy.Symbol('t'),
         cirq.H(a),
         cirq.measure(a),
         cirq.measure(a, b, key='not-relevant'),
@@ -80,7 +92,9 @@ def test_various_known_gate_types():
         cirq.CNOT(b, a),
         cirq.CZ(a, b),
     )
-    assert_links_to(circuit, """
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[
             ["X"],
             ["X^¼"],
@@ -97,7 +111,9 @@ def test_various_known_gate_types():
             ["•","X"],
             ["X","•"],
             ["•","Z"]]}
-    """, escape_url=False)
+    """,
+        escape_url=False,
+    )
 
 
 def test_parameterized_gates():
@@ -105,40 +121,48 @@ def test_parameterized_gates():
     s = sympy.Symbol('s')
     t = sympy.Symbol('t')
 
-    assert_links_to(cirq.Circuit(cirq.X(a)**t),
-                    """
+    assert_links_to(
+        cirq.Circuit(cirq.X(a) ** t),
+        """
         http://algassert.com/quirk#circuit={"cols":[
             ["X^t"]
         ]}
     """,
-                    escape_url=False)
+        escape_url=False,
+    )
 
-    assert_links_to(cirq.Circuit(cirq.Y(a)**t),
-                    """
+    assert_links_to(
+        cirq.Circuit(cirq.Y(a) ** t),
+        """
         http://algassert.com/quirk#circuit={"cols":[
             ["Y^t"]
         ]}
     """,
-                    escape_url=False)
+        escape_url=False,
+    )
 
-    assert_links_to(cirq.Circuit(cirq.Z(a)**t),
-                    """
+    assert_links_to(
+        cirq.Circuit(cirq.Z(a) ** t),
+        """
         http://algassert.com/quirk#circuit={"cols":[
             ["Z^t"]
         ]}
     """,
-                    escape_url=False)
+        escape_url=False,
+    )
 
-    assert_links_to(cirq.Circuit(cirq.Z(a)**(2 * t)),
-                    """
+    assert_links_to(
+        cirq.Circuit(cirq.Z(a) ** (2 * t)),
+        """
         http://algassert.com/quirk#circuit={"cols":[
             [{"arg":"2*t","id":"Z^ft"}]
         ]}
     """,
-                    escape_url=False)
+        escape_url=False,
+    )
 
     with pytest.raises(ValueError, match='Symbol other than "t"'):
-        _ = circuit_to_quirk_url(cirq.Circuit(cirq.X(a)**s))
+        _ = circuit_to_quirk_url(cirq.Circuit(cirq.X(a) ** s))
 
 
 class MysteryOperation(cirq.Operation):
@@ -162,19 +186,20 @@ def test_various_unknown_gate_types():
     b = cirq.NamedQubit('b')
     circuit = cirq.Circuit(
         MysteryOperation(b),
-        cirq.SWAP(a, b)**0.5,
-        cirq.H(a)**0.5,
-        cirq.SingleQubitCliffordGate.X_sqrt.merged_with(
-            cirq.SingleQubitCliffordGate.Z_sqrt).on(a),
-        cirq.X(a)**(1 / 5),
-        cirq.Y(a)**(1 / 5),
-        cirq.Z(a)**(1 / 5),
-        cirq.CZ(a, b)**(1 / 5),
+        cirq.SWAP(a, b) ** 0.5,
+        cirq.H(a) ** 0.5,
+        cirq.SingleQubitCliffordGate.X_sqrt.merged_with(cirq.SingleQubitCliffordGate.Z_sqrt).on(a),
+        cirq.X(a) ** (1 / 5),
+        cirq.Y(a) ** (1 / 5),
+        cirq.Z(a) ** (1 / 5),
+        cirq.CZ(a, b) ** (1 / 5),
         cirq.PhasedXPowGate(phase_exponent=0.25)(a),
         cirq.PhasedXPowGate(exponent=1, phase_exponent=sympy.Symbol('r'))(a),
-        cirq.PhasedXPowGate(exponent=0.001, phase_exponent=0.1)(a))
-    assert_links_to(circuit,
-                    """
+        cirq.PhasedXPowGate(exponent=0.001, phase_exponent=0.1)(a),
+    )
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[
             [1,"UNKNOWN"],
             ["UNKNOWN", "UNKNOWN"],
@@ -194,97 +219,120 @@ def test_various_unknown_gate_types():
                          {-0.000483-0.001495i,0.999998+0.001571i}}"}]
         ]}
     """,
-                    escape_url=False,
-                    prefer_unknown_gate_to_failure=True)
+        escape_url=False,
+        prefer_unknown_gate_to_failure=True,
+    )
 
 
 def test_formulaic_exponent_export():
     a = cirq.LineQubit(0)
     t = sympy.Symbol('t')
-    assert_links_to(cirq.Circuit(
-        cirq.X(a)**t,
-        cirq.Y(a)**-t,
-        cirq.Z(a)**(t * 2 + 1)),
-                    """
+    assert_links_to(
+        cirq.Circuit(cirq.X(a) ** t, cirq.Y(a) ** -t, cirq.Z(a) ** (t * 2 + 1)),
+        """
         http://algassert.com/quirk#circuit={"cols":[
             ["X^t"],
             ["Y^-t"],
             [{"arg":"2*t+1","id":"Z^ft"}]
         ]}
     """,
-                    escape_url=False)
+        escape_url=False,
+    )
 
 
 def test_formulaic_rotation_xyz_export():
     a = cirq.LineQubit(0)
     t = sympy.Symbol('t')
-    assert_links_to(cirq.Circuit(
-        cirq.rx(sympy.pi / 2).on(a),
-        cirq.ry(sympy.pi * t).on(a),
-        cirq.rz(-sympy.pi * t).on(a),
-    ),
-                    """
+    assert_links_to(
+        cirq.Circuit(
+            cirq.rx(sympy.pi / 2).on(a),
+            cirq.ry(sympy.pi * t).on(a),
+            cirq.rz(-sympy.pi * t).on(a),
+        ),
+        """
         http://algassert.com/quirk#circuit={"cols":[
             [{"arg":"(1/2)pi","id":"Rxft"}],
             [{"arg":"(t)pi","id":"Ryft"}],
             [{"arg":"(-t)pi","id":"Rzft"}]
         ]}
     """,
-                    escape_url=False)
+        escape_url=False,
+    )
 
     with pytest.raises(ValueError, match='unsupported'):
-        _ = circuit_to_quirk_url(
-            cirq.Circuit(cirq.rx(sympy.FallingFactorial(t, t)).on(a)))
+        _ = circuit_to_quirk_url(cirq.Circuit(cirq.rx(sympy.FallingFactorial(t, t)).on(a)))
 
 
 def test_unrecognized_single_qubit_gate_with_matrix():
     a = cirq.NamedQubit('a')
-    circuit = cirq.Circuit(cirq.PhasedXPowGate(phase_exponent=0).on(a)**0.2731)
-    assert_links_to(circuit, """
+    circuit = cirq.Circuit(cirq.PhasedXPowGate(phase_exponent=0).on(a) ** 0.2731)
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[[{
             "id":"?",
             "matrix":"{
                 {0.826988+0.378258i, 0.173012-0.378258i},
                 {0.173012-0.378258i, 0.826988+0.378258i}
             }"}]]}
-    """, escape_url=False)
+    """,
+        escape_url=False,
+    )
 
 
 def test_unknown_gate():
     class UnknownGate(cirq.SingleQubitGate):
         pass
+
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(UnknownGate()(a))
     with pytest.raises(TypeError):
         _ = circuit_to_quirk_url(circuit)
     with pytest.raises(TypeError):
         _ = circuit_to_quirk_url(circuit, escape_url=False)
-    assert_links_to(circuit, """
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[["UNKNOWN"]]}
-    """, prefer_unknown_gate_to_failure=True, escape_url=False)
+    """,
+        prefer_unknown_gate_to_failure=True,
+        escape_url=False,
+    )
 
 
 def test_controlled_gate():
     a, b, c, d = cirq.LineQubit.range(4)
-    circuit = cirq.Circuit(
-        cirq.ControlledGate(cirq.ControlledGate(cirq.CZ)).on(a, d, c, b))
-    assert_links_to(circuit, """
+    circuit = cirq.Circuit(cirq.ControlledGate(cirq.ControlledGate(cirq.CZ)).on(a, d, c, b))
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[["•","Z","•", "•"]]}
-    """, escape_url=False)
+    """,
+        escape_url=False,
+    )
 
     # Doesn't merge.
     circuit = cirq.Circuit(
-        cirq.ControlledGate(cirq.X).on(a, b),
-        cirq.ControlledGate(cirq.Z).on(c, d))
-    assert_links_to(circuit, """
+        cirq.ControlledGate(cirq.X).on(a, b), cirq.ControlledGate(cirq.Z).on(c, d)
+    )
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[["•","X"],[1,1,"•", "Z"]]}
-    """, escape_url=False)
+    """,
+        escape_url=False,
+    )
 
     # Unknown sub-gate.
     circuit = cirq.Circuit(cirq.ControlledGate(MysteryGate()).on(a, b))
-    assert_links_to(circuit, """
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[["UNKNOWN","UNKNOWN"]]}
-    """, escape_url=False, prefer_unknown_gate_to_failure=True)
+    """,
+        escape_url=False,
+        prefer_unknown_gate_to_failure=True,
+    )
 
 
 def test_toffoli():
@@ -292,42 +340,63 @@ def test_toffoli():
 
     # Raw.
     circuit = cirq.Circuit(cirq.TOFFOLI(a, b, c))
-    assert_links_to(circuit, """
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[["•","•","X"]]}
-    """, escape_url=False)
+    """,
+        escape_url=False,
+    )
 
     # With exponent. Doesn't merge with other operation.
-    circuit = cirq.Circuit(cirq.CCX(a, b, c)**0.5, cirq.H(d))
-    assert_links_to(circuit, """
+    circuit = cirq.Circuit(cirq.CCX(a, b, c) ** 0.5, cirq.H(d))
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[
             ["•","•","X^½"],[1,1,1,"H"]]}
-    """, escape_url=False)
+    """,
+        escape_url=False,
+    )
 
     # Unknown exponent.
-    circuit = cirq.Circuit(cirq.CCX(a, b, c)**0.01)
-    assert_links_to(circuit, """
+    circuit = cirq.Circuit(cirq.CCX(a, b, c) ** 0.01)
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[
             ["UNKNOWN","UNKNOWN","UNKNOWN"]
         ]}
-    """, escape_url=False, prefer_unknown_gate_to_failure=True)
+    """,
+        escape_url=False,
+        prefer_unknown_gate_to_failure=True,
+    )
 
 
 def test_fredkin():
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.FREDKIN(a, b, c))
-    assert_links_to(circuit, """
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[["•","Swap","Swap"]]}
-    """, escape_url=False)
+    """,
+        escape_url=False,
+    )
 
     # Doesn't merge.
     x, y, z = cirq.LineQubit.range(3, 6)
     circuit = cirq.Circuit(cirq.CSWAP(a, b, c), cirq.CSWAP(x, y, z))
-    assert_links_to(circuit, """
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[
             ["•","Swap","Swap"],
             [1,1,1,"•","Swap","Swap"]
         ]}
-    """, escape_url=False)
+    """,
+        escape_url=False,
+    )
 
 
 def test_ccz():
@@ -335,27 +404,44 @@ def test_ccz():
 
     # Raw.
     circuit = cirq.Circuit(cirq.CCZ(a, b, c))
-    assert_links_to(circuit, """
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[["•","•","Z"]]}
-    """, escape_url=False)
+    """,
+        escape_url=False,
+    )
 
     # Symbolic exponent.
-    circuit = cirq.Circuit(cirq.CCZ(a, b, c)**sympy.Symbol('t'))
-    assert_links_to(circuit, """
+    circuit = cirq.Circuit(cirq.CCZ(a, b, c) ** sympy.Symbol('t'))
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[["•","•","Z^t"]]}
-    """, escape_url=False)
+    """,
+        escape_url=False,
+    )
 
     # Unknown exponent.
-    circuit = cirq.Circuit(cirq.CCZ(a, b, c)**0.01)
-    assert_links_to(circuit, """
+    circuit = cirq.Circuit(cirq.CCZ(a, b, c) ** 0.01)
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[
             ["UNKNOWN","UNKNOWN","UNKNOWN"]
         ]}
-    """, escape_url=False, prefer_unknown_gate_to_failure=True)
+    """,
+        escape_url=False,
+        prefer_unknown_gate_to_failure=True,
+    )
 
     # With exponent. Doesn't merge with other operation.
-    circuit = cirq.Circuit(cirq.CCZ(a, b, c)**0.5, cirq.H(d))
-    assert_links_to(circuit, """
+    circuit = cirq.Circuit(cirq.CCZ(a, b, c) ** 0.5, cirq.H(d))
+    assert_links_to(
+        circuit,
+        """
         http://algassert.com/quirk#circuit={"cols":[
             ["•","•","Z^½"],[1,1,1,"H"]]}
-    """, escape_url=False)
+    """,
+        escape_url=False,
+    )

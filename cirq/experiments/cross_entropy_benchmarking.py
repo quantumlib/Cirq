@@ -12,8 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, Dict, Iterable, List, Mapping, NamedTuple, Optional,
-                    Sequence, Set, TYPE_CHECKING, Tuple, Union)
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    NamedTuple,
+    Optional,
+    Sequence,
+    Set,
+    TYPE_CHECKING,
+    Tuple,
+    Union,
+)
 import dataclasses
 import numpy as np
 import scipy
@@ -23,10 +35,8 @@ from cirq import circuits, devices, ops, protocols, sim, work
 if TYPE_CHECKING:
     import cirq
 
-CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int),
-                                                   ('xeb_fidelity', float)])
-SpecklePurityPair = NamedTuple('SpecklePurityPair', [('num_cycle', int),
-                                                     ('purity', float)])
+CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int), ('xeb_fidelity', float)])
+SpecklePurityPair = NamedTuple('SpecklePurityPair', [('num_cycle', int), ('purity', float)])
 
 
 @dataclasses.dataclass
@@ -62,6 +72,7 @@ class CrossEntropyDepolarizingModel:
         covariance: The estimated covariance in the estimation of
             `spam_depolarization` and `cycle_depolarization`, in that order.
     """
+
     spam_depolarization: float
     cycle_depolarization: float
     covariance: Optional[np.ndarray] = None
@@ -83,7 +94,7 @@ class SpecklePurityDepolarizingModel(CrossEntropyDepolarizingModel):
     @property
     def purity(self) -> float:
         """The purity. Equal to p**2, where p is the cycle depolarization."""
-        return self.cycle_depolarization**2
+        return self.cycle_depolarization ** 2
 
 
 @protocols.json_serializable_dataclass(frozen=True)
@@ -107,12 +118,12 @@ class CrossEntropyResult:
             by a layer of two-qubit gates.
             purity: the purity after the given cycle number.
     """
+
     data: List[CrossEntropyPair]
     repetitions: int
     purity_data: Optional[List[SpecklePurityPair]] = None
 
-    def plot(self, ax: Optional[plt.Axes] = None,
-             **plot_kwargs: Any) -> plt.Axes:
+    def plot(self, ax: Optional[plt.Axes] = None, **plot_kwargs: Any) -> plt.Axes:
         """Plots the average XEB fidelity vs the number of cycles.
 
         Args:
@@ -151,9 +162,9 @@ class CrossEntropyResult:
         """
         depths, fidelities = zip(*self.data)
         params, covariance = _fit_exponential_decay(depths, fidelities)
-        return CrossEntropyDepolarizingModel(spam_depolarization=params[0],
-                                             cycle_depolarization=params[1],
-                                             covariance=covariance)
+        return CrossEntropyDepolarizingModel(
+            spam_depolarization=params[0], cycle_depolarization=params[1], covariance=covariance
+        )
 
     def purity_depolarizing_model(self) -> CrossEntropyDepolarizingModel:
         """Fit a depolarizing error model for a cycle to purity data.
@@ -171,34 +182,36 @@ class CrossEntropyResult:
             p**2.
         """
         if self.purity_data is None:
-            raise ValueError('This CrossEntropyResult does not contain data '
-                             'from speckle purity benchmarking, so the '
-                             'purity depolarizing model cannot be computed.')
+            raise ValueError(
+                'This CrossEntropyResult does not contain data '
+                'from speckle purity benchmarking, so the '
+                'purity depolarizing model cannot be computed.'
+            )
         depths, purities = zip(*self.purity_data)
         params, covariance = _fit_exponential_decay(depths, np.sqrt(purities))
-        return SpecklePurityDepolarizingModel(spam_depolarization=params[0],
-                                              cycle_depolarization=params[1],
-                                              covariance=covariance)
+        return SpecklePurityDepolarizingModel(
+            spam_depolarization=params[0], cycle_depolarization=params[1], covariance=covariance
+        )
 
     @classmethod
     def _from_json_dict_(cls, data, repetitions, **kwargs):
         purity_data = kwargs.get('purity_data', None)
         if purity_data is not None:
             purity_data = [SpecklePurityPair(d, f) for d, f in purity_data]
-        return cls(data=[CrossEntropyPair(d, f) for d, f in data],
-                   repetitions=repetitions,
-                   purity_data=purity_data)
+        return cls(
+            data=[CrossEntropyPair(d, f) for d, f in data],
+            repetitions=repetitions,
+            purity_data=purity_data,
+        )
 
     def __repr__(self) -> str:
-        args = (f'data={[tuple(p) for p in self.data]!r}, '
-                f'repetitions={self.repetitions!r}')
+        args = f'data={[tuple(p) for p in self.data]!r}, repetitions={self.repetitions!r}'
         if self.purity_data is not None:
             args += f', purity_data={[tuple(p) for p in self.purity_data]!r}'
         return f'cirq.experiments.CrossEntropyResult({args})'
 
 
-def _fit_exponential_decay(x: Sequence[int],
-                           y: Sequence[float]) -> Tuple[np.ndarray, np.ndarray]:
+def _fit_exponential_decay(x: Sequence[int], y: Sequence[float]) -> Tuple[np.ndarray, np.ndarray]:
     """Fit an exponential model y = S * p**x using nonlinear least squares.
 
     Args:
@@ -218,20 +231,20 @@ def _fit_exponential_decay(x: Sequence[int],
 
     # Perform nonlinear least squares
     def f(a, S, p):
-        return S * p**a
+        return S * p ** a
 
     return scipy.optimize.curve_fit(f, x, y, p0=p0)
 
 
 @dataclasses.dataclass
-class CrossEntropyResultDict(Mapping[Tuple['cirq.Qid', ...], CrossEntropyResult]
-                            ):
+class CrossEntropyResultDict(Mapping[Tuple['cirq.Qid', ...], CrossEntropyResult]):
     """Per-qubit-tuple results from cross-entropy benchmarking.
 
     Attributes:
         results: Dictionary from qubit tuple to cross-entropy benchmarking
             result for that tuple.
     """
+
     results: Dict[Tuple['cirq.Qid', ...], CrossEntropyResult]
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -242,14 +255,12 @@ class CrossEntropyResultDict(Mapping[Tuple['cirq.Qid', ...], CrossEntropyResult]
 
     @classmethod
     def _from_json_dict_(
-            cls, results: List[Tuple[List['cirq.Qid'], CrossEntropyResult]],
-            **kwargs) -> 'CrossEntropyResultDict':
-        return cls(
-            results={tuple(qubits): result for qubits, result in results})
+        cls, results: List[Tuple[List['cirq.Qid'], CrossEntropyResult]], **kwargs
+    ) -> 'CrossEntropyResultDict':
+        return cls(results={tuple(qubits): result for qubits, result in results})
 
     def __repr__(self) -> str:
-        return ('cirq.experiments.CrossEntropyResultDict('
-                f'results={self.results!r})')
+        return f'cirq.experiments.CrossEntropyResultDict(results={self.results!r})'
 
     def __getitem__(self, key: Tuple['cirq.Qid', ...]) -> CrossEntropyResult:
         return self.results[key]
@@ -262,15 +273,15 @@ class CrossEntropyResultDict(Mapping[Tuple['cirq.Qid', ...], CrossEntropyResult]
 
 
 def cross_entropy_benchmarking(
-        sampler: work.Sampler,
-        qubits: Sequence[ops.Qid],
-        *,
-        benchmark_ops: Sequence[ops.Moment] = None,
-        num_circuits: int = 20,
-        repetitions: int = 1000,
-        cycles: Union[int, Iterable[int]] = range(2, 103, 10),
-        scrambling_gates_per_cycle: List[List[ops.SingleQubitGate]] = None,
-        simulator: sim.Simulator = None,
+    sampler: work.Sampler,
+    qubits: Sequence[ops.Qid],
+    *,
+    benchmark_ops: Sequence[ops.Moment] = None,
+    num_circuits: int = 20,
+    repetitions: int = 1000,
+    cycles: Union[int, Iterable[int]] = range(2, 103, 10),
+    scrambling_gates_per_cycle: List[List[ops.SingleQubitGate]] = None,
+    simulator: sim.Simulator = None,
 ) -> CrossEntropyResult:
     r"""Cross-entropy benchmarking (XEB) of multiple qubits.
 
@@ -368,12 +379,8 @@ def cross_entropy_benchmarking(
     # all trials in two dictionaries. The keys of the dictionaries are the
     # numbers of cycles. The values are 2D arrays with each row being the
     # probabilities obtained from a single trial.
-    probs_meas = {
-        n: np.zeros((num_circuits, 2**num_qubits)) for n in cycle_range
-    }
-    probs_exp = {
-        n: np.zeros((num_circuits, 2**num_qubits)) for n in cycle_range
-    }
+    probs_meas = {n: np.zeros((num_circuits, 2 ** num_qubits)) for n in cycle_range}
+    probs_exp = {n: np.zeros((num_circuits, 2 ** num_qubits)) for n in cycle_range}
 
     for k in range(num_circuits):
 
@@ -381,14 +388,13 @@ def cross_entropy_benchmarking(
         # Then the first n cycles of the circuit are taken to generate
         # shorter circuits with n cycles (n taken from cycles). All of these
         # circuits are stored in circuits_k.
-        circuits_k = _build_xeb_circuits(qubits, cycle_range,
-                                         scrambling_gates_per_cycle,
-                                         benchmark_ops)
+        circuits_k = _build_xeb_circuits(
+            qubits, cycle_range, scrambling_gates_per_cycle, benchmark_ops
+        )
 
         # Run each circuit with the sampler to obtain a collection of
         # bit-strings, from which the bit-string probabilities are estimated.
-        probs_meas_k = _measure_prob_distribution(sampler, repetitions, qubits,
-                                                  circuits_k)
+        probs_meas_k = _measure_prob_distribution(sampler, repetitions, qubits, circuits_k)
 
         # Simulate each circuit with the Cirq simulator to obtain the
         # state vector at the end of each circuit, from which the
@@ -396,8 +402,7 @@ def cross_entropy_benchmarking(
         probs_exp_k = []  # type: List[np.ndarray]
         for circ_k in circuits_k:
             res = simulator.simulate(circ_k, qubit_order=qubits)
-            state_probs = np.abs(np.asarray(
-                res.final_state_vector))**2  # type: ignore
+            state_probs = np.abs(np.asarray(res.final_state_vector)) ** 2  # type: ignore
             probs_exp_k.append(state_probs)
 
         for i, num_cycle in enumerate(cycle_range):
@@ -405,16 +410,13 @@ def cross_entropy_benchmarking(
             probs_meas[num_cycle][k, :] = probs_meas_k[i]
 
     fidelity_vals = _xeb_fidelities(probs_exp, probs_meas)
-    xeb_data = [
-        CrossEntropyPair(c, k) for (c, k) in zip(cycle_range, fidelity_vals)
-    ]
-    return CrossEntropyResult(  # type: ignore
-        data=xeb_data, repetitions=repetitions)
+    xeb_data = [CrossEntropyPair(c, k) for (c, k) in zip(cycle_range, fidelity_vals)]
+    return CrossEntropyResult(data=xeb_data, repetitions=repetitions)  # type: ignore
 
 
-def build_entangling_layers(qubits: Sequence[devices.GridQubit],
-                            two_qubit_gate: ops.TwoQubitGate
-                           ) -> List[ops.Moment]:
+def build_entangling_layers(
+    qubits: Sequence[devices.GridQubit], two_qubit_gate: ops.TwoQubitGate
+) -> List[ops.Moment]:
     """Builds a sequence of gates that entangle all pairs of qubits on a grid.
 
     The qubits are restricted to be physically on a square grid with distinct
@@ -463,17 +465,16 @@ def build_entangling_layers(qubits: Sequence[devices.GridQubit],
     """
     interaction_sequence = _default_interaction_sequence(qubits)
     return [
-        ops.Moment([two_qubit_gate(q_a, q_b)
-                    for (q_a, q_b) in pairs])
+        ops.Moment([two_qubit_gate(q_a, q_b) for (q_a, q_b) in pairs])
         for pairs in interaction_sequence
     ]
 
 
 def _build_xeb_circuits(
-        qubits: Sequence[ops.Qid],
-        cycles: Sequence[int],
-        single_qubit_gates: List[List[ops.SingleQubitGate]] = None,
-        benchmark_ops: Sequence[ops.Moment] = None,
+    qubits: Sequence[ops.Qid],
+    cycles: Sequence[int],
+    single_qubit_gates: List[List[ops.SingleQubitGate]] = None,
+    benchmark_ops: Sequence[ops.Moment] = None,
 ) -> List[circuits.Circuit]:
     if benchmark_ops is not None:
         num_d = len(benchmark_ops)
@@ -497,12 +498,14 @@ def _build_xeb_circuits(
     return all_circuits
 
 
-def _measure_prob_distribution(sampler: work.Sampler, repetitions: int,
-                               qubits: Sequence[ops.Qid],
-                               circuit_list: List[circuits.Circuit]
-                              ) -> List[np.ndarray]:
+def _measure_prob_distribution(
+    sampler: work.Sampler,
+    repetitions: int,
+    qubits: Sequence[ops.Qid],
+    circuit_list: List[circuits.Circuit],
+) -> List[np.ndarray]:
     all_probs = []  # type: List[np.ndarray]
-    num_states = 2**len(qubits)
+    num_states = 2 ** len(qubits)
     for circuit in circuit_list:
         trial_circuit = circuit.copy()
         trial_circuit.append(ops.measure(*qubits, key='z'))
@@ -515,41 +518,35 @@ def _measure_prob_distribution(sampler: work.Sampler, repetitions: int,
     return all_probs
 
 
-def _xeb_fidelities(ideal_probs: Dict[int, np.ndarray],
-                    actual_probs: Dict[int, np.ndarray]) -> List[float]:
+def _xeb_fidelities(
+    ideal_probs: Dict[int, np.ndarray], actual_probs: Dict[int, np.ndarray]
+) -> List[float]:
     num_cycles = sorted(list(ideal_probs.keys()))
-    return [
-        _compute_fidelity(ideal_probs[n], actual_probs[n]) for n in num_cycles
-    ]
+    return [_compute_fidelity(ideal_probs[n], actual_probs[n]) for n in num_cycles]
 
 
 def _compute_fidelity(probs_exp: np.ndarray, probs_meas: np.ndarray) -> float:
     _, num_states = probs_exp.shape
     pp_cross = probs_exp * probs_meas
-    pp_exp = probs_exp**2
+    pp_exp = probs_exp ** 2
     f_meas = np.mean(num_states * np.sum(pp_cross, axis=1) - 1.0)
     f_exp = np.mean(num_states * np.sum(pp_exp, axis=1) - 1.0)
     return float(f_meas / f_exp)
 
 
-def _random_half_rotations(qubits: Sequence[ops.Qid],
-                           num_layers: int) -> List[List[ops.OP_TREE]]:
-    rot_ops = [
-        ops.X**0.5, ops.Y**0.5,
-        ops.PhasedXPowGate(phase_exponent=0.25, exponent=0.5)
-    ]
+def _random_half_rotations(qubits: Sequence[ops.Qid], num_layers: int) -> List[List[ops.OP_TREE]]:
+    rot_ops = [ops.X ** 0.5, ops.Y ** 0.5, ops.PhasedXPowGate(phase_exponent=0.25, exponent=0.5)]
     num_qubits = len(qubits)
     rand_nums = np.random.choice(3, (num_qubits, num_layers))
     single_q_layers = []  # type: List[List[ops.OP_TREE]]
     for i in range(num_layers):
-        single_q_layers.append(
-            [rot_ops[rand_nums[j, i]](qubits[j]) for j in range(num_qubits)])
+        single_q_layers.append([rot_ops[rand_nums[j, i]](qubits[j]) for j in range(num_qubits)])
     return single_q_layers
 
 
-def _random_any_gates(qubits: Sequence[ops.Qid],
-                      op_list: List[List[ops.SingleQubitGate]],
-                      num_layers: int) -> List[List[ops.OP_TREE]]:
+def _random_any_gates(
+    qubits: Sequence[ops.Qid], op_list: List[List[ops.SingleQubitGate]], num_layers: int
+) -> List[List[ops.OP_TREE]]:
     num_ops = len(op_list)
     num_qubits = len(qubits)
     rand_nums = np.random.choice(num_ops, (num_qubits, num_layers))
@@ -563,15 +560,14 @@ def _random_any_gates(qubits: Sequence[ops.Qid],
 
 
 def _default_interaction_sequence(
-        qubits: Sequence[devices.GridQubit]
+    qubits: Sequence[devices.GridQubit],
 ) -> List[Set[Tuple[devices.GridQubit, devices.GridQubit]]]:
     qubit_dict = {(qubit.row, qubit.col): qubit for qubit in qubits}
     qubit_locs = set(qubit_dict)
     num_rows = max([q.row for q in qubits]) + 1
     num_cols = max([q.col for q in qubits]) + 1
 
-    l_s = [set() for _ in range(4)
-          ]  # type: List[Set[Tuple[devices.GridQubit, devices.GridQubit]]]
+    l_s = [set() for _ in range(4)]  # type: List[Set[Tuple[devices.GridQubit, devices.GridQubit]]]
     for i in range(num_rows):
         for j in range(num_cols - 1):
             if (i, j) in qubit_locs and (i, j + 1) in qubit_locs:
@@ -580,8 +576,7 @@ def _default_interaction_sequence(
     for i in range(num_rows - 1):
         for j in range(num_cols):
             if (i, j) in qubit_locs and (i + 1, j) in qubit_locs:
-                l_s[i % 2 * 2 + 1].add(
-                    (qubit_dict[(i, j)], qubit_dict[(i + 1, j)]))
+                l_s[i % 2 * 2 + 1].add((qubit_dict[(i, j)], qubit_dict[(i + 1, j)]))
 
     l_final = []  # type: List[Set[Tuple[devices.GridQubit, devices.GridQubit]]]
     for gate_set in l_s:

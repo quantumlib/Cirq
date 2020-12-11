@@ -14,8 +14,7 @@
 
 """Utility classes for representing QASM."""
 
-from typing import (Callable, Dict, Optional, Sequence, Set, Tuple, Union,
-                    TYPE_CHECKING)
+from typing import Callable, Dict, Optional, Sequence, Set, Tuple, Union, TYPE_CHECKING
 
 import re
 import numpy as np
@@ -28,7 +27,6 @@ if TYPE_CHECKING:
 
 @value.value_equality(approximate=True)
 class QasmUGate(ops.SingleQubitGate):
-
     def __init__(self, theta, phi, lmda) -> None:
         """A QASM gate representing any single qubit unitary with a series of
         three rotations, Z, Y, and Z.
@@ -46,8 +44,7 @@ class QasmUGate(ops.SingleQubitGate):
 
     @staticmethod
     def from_matrix(mat: np.array) -> 'QasmUGate':
-        pre_phase, rotation, post_phase = (
-            linalg.deconstruct_single_qubit_matrix_into_angles(mat))
+        pre_phase, rotation, post_phase = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
         return QasmUGate(
             rotation / np.pi,
             post_phase / np.pi,
@@ -57,18 +54,23 @@ class QasmUGate(ops.SingleQubitGate):
     def _has_unitary_(self):
         return True
 
-    def _qasm_(self, qubits: Tuple['cirq.Qid', ...],
-               args: 'cirq.QasmArgs') -> str:
+    def _qasm_(self, qubits: Tuple['cirq.Qid', ...], args: 'cirq.QasmArgs') -> str:
         args.validate_version('2.0')
         return args.format(
             'u3({0:half_turns},{1:half_turns},{2:half_turns}) {3};\n',
-            self.theta, self.phi, self.lmda, qubits[0])
+            self.theta,
+            self.phi,
+            self.lmda,
+            qubits[0],
+        )
 
     def __repr__(self) -> str:
-        return (f'cirq.circuits.qasm_output.QasmUGate('
-                f'theta={self.theta!r}, '
-                f'phi={self.phi!r}, '
-                f'lmda={self.lmda})')
+        return (
+            f'cirq.circuits.qasm_output.QasmUGate('
+            f'theta={self.theta!r}, '
+            f'phi={self.phi!r}, '
+            f'lmda={self.lmda})'
+        )
 
     def _decompose_(self, qubits):
         q = qubits[0]
@@ -126,13 +128,13 @@ class QasmTwoQubitGate(ops.TwoQubitGate):
         yield QasmUGate.from_matrix(b0).on(q0)
         yield QasmUGate.from_matrix(b1).on(q1)
 
-        yield ops.X(q0)**0.5
+        yield ops.X(q0) ** 0.5
         yield ops.CNOT(q0, q1)
-        yield ops.X(q0)**a
-        yield ops.Y(q1)**b
+        yield ops.X(q0) ** a
+        yield ops.Y(q1) ** b
         yield ops.CNOT(q1, q0)
-        yield ops.X(q1)**-0.5
-        yield ops.Z(q1)**c
+        yield ops.X(q1) ** -0.5
+        yield ops.Z(q1) ** c
         yield ops.CNOT(q0, q1)
 
         a0, a1 = self.kak.single_qubit_operations_after
@@ -140,24 +142,37 @@ class QasmTwoQubitGate(ops.TwoQubitGate):
         yield QasmUGate.from_matrix(a1).on(q1)
 
     def __repr__(self) -> str:
-        return 'cirq.circuits.qasm_output.QasmTwoQubitGate({!r})'.format(
-            self.kak)
+        return 'cirq.circuits.qasm_output.QasmTwoQubitGate({!r})'.format(self.kak)
 
 
 class QasmOutput:
+    """Representation of a circuit in QASM (quantum assembly) format.
+
+    Please note that the QASM importer is in an experimental state and
+    currently only supports a subset of the full OpenQASM spec.
+    Amongst others, classical control, arbitrary gate definitions,
+    and even some of the gates that don't have a one-to-one representation
+    in Cirq, are not yet supported.
+
+    QASM output can be saved to a file using the save method.
+    """
+
     valid_id_re = re.compile(r'[a-z][a-zA-Z0-9_]*\Z')
 
-    def __init__(self,
-                 operations: 'cirq.OP_TREE',
-                 qubits: Tuple['cirq.Qid', ...],
-                 header: str = '',
-                 precision: int = 10,
-                 version: str = '2.0') -> None:
+    def __init__(
+        self,
+        operations: 'cirq.OP_TREE',
+        qubits: Tuple['cirq.Qid', ...],
+        header: str = '',
+        precision: int = 10,
+        version: str = '2.0',
+    ) -> None:
         self.operations = tuple(ops.flatten_to_ops(operations))
         self.qubits = qubits
         self.header = header
-        self.measurements = tuple(op for op in self.operations
-                                  if isinstance(op.gate, ops.MeasurementGate))
+        self.measurements = tuple(
+            op for op in self.operations if isinstance(op.gate, ops.MeasurementGate)
+        )
         meas_key_id_map, meas_comments = self._generate_measurement_ids()
         self.meas_comments = meas_comments
         qubit_id_map = self._generate_qubit_ids()
@@ -165,11 +180,10 @@ class QasmOutput:
             precision=precision,
             version=version,
             qubit_id_map=qubit_id_map,
-            meas_key_id_map=meas_key_id_map)
+            meas_key_id_map=meas_key_id_map,
+        )
 
-    def _generate_measurement_ids(self
-                                  ) -> Tuple[Dict[str, str],
-                                             Dict[str, Optional[str]]]:
+    def _generate_measurement_ids(self) -> Tuple[Dict[str, str], Dict[str, Optional[str]]]:
         # Pick an id for the creg that will store each measurement
         meas_key_id_map = {}  # type: Dict[str, str]
         meas_comments = {}  # type: Dict[str, Optional[str]]
@@ -198,6 +212,7 @@ class QasmOutput:
     def save(self, path: Union[str, bytes, int]) -> None:
         """Write QASM output to a file specified by path."""
         with open(path, 'w') as f:
+
             def write(s: str) -> None:
                 f.write(s)
 
@@ -256,17 +271,20 @@ class QasmOutput:
             if comment is None:
                 output('creg {}[{}];\n'.format(meas_id, len(meas.qubits)))
             else:
-                output('creg {}[{}];  // Measurement: {}\n'.format(
-                    meas_id, len(meas.qubits), comment))
+                output(
+                    'creg {}[{}];  // Measurement: {}\n'.format(meas_id, len(meas.qubits), comment)
+                )
         output_line_gap(2)
 
         # Operations
         self._write_operations(self.operations, output, output_line_gap)
 
-    def _write_operations(self, op_tree: 'cirq.OP_TREE',
-                          output: Callable[[str], None],
-                          output_line_gap: Callable[[int], None]) -> None:
-
+    def _write_operations(
+        self,
+        op_tree: 'cirq.OP_TREE',
+        output: Callable[[str], None],
+        output_line_gap: Callable[[int], None],
+    ) -> None:
         def keep(op: 'cirq.Operation') -> bool:
             return protocols.qasm(op, args=self.args, default=None) is not None
 
@@ -283,15 +301,12 @@ class QasmOutput:
             return QasmTwoQubitGate.from_matrix(mat).on(*op.qubits)
 
         def on_stuck(bad_op):
-            return ValueError(
-                'Cannot output operation as QASM: {!r}'.format(bad_op))
+            return ValueError('Cannot output operation as QASM: {!r}'.format(bad_op))
 
         for main_op in ops.flatten_op_tree(op_tree):
             decomposed = protocols.decompose(
-                main_op,
-                keep=keep,
-                fallback_decomposer=fallback,
-                on_stuck_raise=on_stuck)
+                main_op, keep=keep, fallback_decomposer=fallback, on_stuck_raise=on_stuck
+            )
 
             should_annotate = decomposed != [main_op]
             if should_annotate:

@@ -34,6 +34,7 @@ class InitObsSetting:
     InitObsSettings to vary the initial state preparation and output
     observable.
     """
+
     init_state: value.ProductState
     observable: ops.PauliString
 
@@ -45,20 +46,21 @@ class InitObsSetting:
             raise ValueError(
                 "`observable`'s qubits should be a subset of those "
                 "found in `init_state`. "
-                "observable qubits: {}. init_state qubits: {}".format(
-                    obs_qs, init_qs))
+                "observable qubits: {}. init_state qubits: {}".format(obs_qs, init_qs)
+            )
 
     def __str__(self):
         return f'{self.init_state} → {self.observable}'
 
     def __repr__(self):
-        return (f'cirq.work.InitObsSetting('
-                f'init_state={self.init_state!r}, '
-                f'observable={self.observable!r})')
+        return (
+            f'cirq.work.InitObsSetting('
+            f'init_state={self.init_state!r}, '
+            f'observable={self.observable!r})'
+        )
 
 
-def _max_weight_observable(observables: Iterable[ops.PauliString]) \
-        -> Union[None, ops.PauliString]:
+def _max_weight_observable(observables: Iterable[ops.PauliString]) -> Union[None, ops.PauliString]:
     """Create a new observable that is compatible with all input observables
     and has the maximum non-identity elements.
 
@@ -85,8 +87,7 @@ def _max_weight_observable(observables: Iterable[ops.PauliString]) \
     return ops.PauliString(qubit_pauli_map)
 
 
-def _max_weight_state(states: Iterable[value.ProductState]) \
-        -> Union[None, value.ProductState]:
+def _max_weight_state(states: Iterable[value.ProductState]) -> Union[None, value.ProductState]:
     """Create a new state that is compatible with all input states
     and has the maximum weight.
 
@@ -115,15 +116,14 @@ def zeros_state(qubits: Iterable['cirq.Qid']):
     return value.ProductState({q: value.KET_ZERO for q in qubits})
 
 
-def observables_to_settings(observables: Iterable['cirq.PauliString'],
-                            qubits: Iterable['cirq.Qid']
-                           ) -> Iterable[InitObsSetting]:
+def observables_to_settings(
+    observables: Iterable['cirq.PauliString'], qubits: Iterable['cirq.Qid']
+) -> Iterable[InitObsSetting]:
     """Transform an observable to an InitObsSetting initialized in the
     all-zeros state.
     """
     for observable in observables:
-        yield InitObsSetting(init_state=zeros_state(qubits),
-                             observable=observable)
+        yield InitObsSetting(init_state=zeros_state(qubits), observable=observable)
 
 
 def _fix_precision(val: float, precision) -> int:
@@ -153,13 +153,15 @@ class _MeasurementSpec:
     observables being measured if they are consistent with `max_setting`) and
     a set of circuit parameters if the circuit is parameterized.
     """
+
     max_setting: InitObsSetting
     circuit_params: Dict[str, float]
 
     def __hash__(self):
-        return hash(
-            (self.max_setting, _hashable_param(self.circuit_params.items())))
+        return hash((self.max_setting, _hashable_param(self.circuit_params.items())))
 
     def __repr__(self):
-        return (f'cirq.work._MeasurementSpec(max_setting={self.max_setting!r}, '
-                f'circuit_params={self.circuit_params!r})')
+        return (
+            f'cirq.work._MeasurementSpec(max_setting={self.max_setting!r}, '
+            f'circuit_params={self.circuit_params!r})'
+        )

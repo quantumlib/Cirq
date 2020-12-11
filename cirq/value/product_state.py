@@ -55,6 +55,7 @@ class ProductState:
     The |+⟩ state is a length-1 tensor product state and can be constructed
     with `cirq.KET_PLUS(q0)`.
     """
+
     states: Dict['cirq.Qid', _NamedOneQubitState]
 
     def __init__(self, states=None):
@@ -70,15 +71,14 @@ class ProductState:
 
     def __mul__(self, other: 'cirq.ProductState') -> 'cirq.ProductState':
         if not isinstance(other, ProductState):
-            raise ValueError("Multiplication is only supported "
-                             "with other TensorProductStates.")
+            raise ValueError("Multiplication is only supported with other TensorProductStates.")
 
         dupe_qubits = set(other.states.keys()) & set(self.states.keys())
         if len(dupe_qubits) != 0:
             raise ValueError(
                 "You tried to tensor two states, "
-                "but both contain factors for these qubits: {}".format(
-                    sorted(dupe_qubits)))
+                "but both contain factors for these qubits: {}".format(sorted(dupe_qubits))
+            )
 
         new_states = self.states
         new_states.update(other.states)
@@ -89,7 +89,8 @@ class ProductState:
 
     def __repr__(self) -> str:
         states_dict_repr = ', '.join(
-            f'{repr(key)}: {repr(val)}' for key, val in self.states.items())
+            f'{repr(key)}: {repr(val)}' for key, val in self.states.items()
+        )
         return 'cirq.ProductState({%s})' % states_dict_repr
 
     def __getitem__(self, qubit: 'cirq.Qid') -> _NamedOneQubitState:
@@ -124,12 +125,13 @@ class ProductState:
     def state_vector(self, qubit_order: 'cirq.QubitOrder' = None) -> np.ndarray:
         """The state-vector representation of this state."""
         from cirq import ops
+
         if qubit_order is None:
             qubit_order = ops.QubitOrder.DEFAULT
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qubits = qubit_order.order_for(self.qubits)
 
-        mat = 1.0 + 0.j
+        mat = 1.0 + 0.0j
         for qubit in qubits:
             oneq_state = self[qubit]
             state_vector = oneq_state.state_vector()
@@ -143,12 +145,13 @@ class ProductState:
         This is |s⟩⟨s| where |s⟩ is this state.
         """
         from cirq import ops
+
         if qubit_order is None:
             qubit_order = ops.QubitOrder.DEFAULT
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qubits = qubit_order.order_for(self.qubits)
 
-        mat = 1.0 + 0.j
+        mat = 1.0 + 0.0j
         for qubit in qubits:
             oneq_state = self[qubit]
             oneq_proj = oneq_state.projector()
@@ -157,7 +160,6 @@ class ProductState:
 
 
 class _PauliEigenState(_NamedOneQubitState):
-
     def __init__(self, eigenvalue: int):
         self.eigenvalue = eigenvalue
         self._eigen_index = (1 - eigenvalue) / 2
@@ -206,6 +208,7 @@ class _XEigenState(_PauliEigenState):
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
         # Prevent circular import from `value.value_equality`
         from cirq import ops
+
         return self.eigenvalue, ops.X
 
 
@@ -222,6 +225,7 @@ class _YEigenState(_PauliEigenState):
 
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
         from cirq import ops
+
         return self.eigenvalue, ops.Y
 
 
@@ -238,74 +242,87 @@ class _ZEigenState(_PauliEigenState):
 
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
         from cirq import ops
+
         return self.eigenvalue, ops.Z
 
 
 KET_PLUS = _XEigenState(eigenvalue=+1)
 document(
-    KET_PLUS, """The |+⟩ State
-    
+    KET_PLUS,
+    """The |+⟩ State
+
     This is the state such that X|+⟩ = +1 |+⟩
 
     Vector:
 
         [1, 1] / sqrt(2)
-    """)
+    """,
+)
 
 KET_MINUS = _XEigenState(eigenvalue=-1)
 document(
-    KET_MINUS, """The |-⟩ State
-    
+    KET_MINUS,
+    """The |-⟩ State
+
     This is the state such that X|-⟩ = -1 |-⟩
 
     Vector:
 
         [1, -1] / sqrt(2)
-    """)
+    """,
+)
 
 KET_IMAG = _YEigenState(eigenvalue=+1)
 document(
-    KET_IMAG, """The |i⟩ State
-    
+    KET_IMAG,
+    """The |i⟩ State
+
     This is the state such that Y|i⟩ = +1 |i⟩
 
     Vector:
 
         [1, i] / sqrt(2)
-    """)
+    """,
+)
 
 KET_MINUS_IMAG = _YEigenState(eigenvalue=-1)
 document(
-    KET_MINUS_IMAG, """The |-i⟩ State
+    KET_MINUS_IMAG,
+    """The |-i⟩ State
 
     This is the state such that Y|-i⟩ = -1 |-i⟩
 
     Vector:
 
         [1, -i] / sqrt(2)
-    """)
+    """,
+)
 
 KET_ZERO = _ZEigenState(eigenvalue=+1)
 document(
-    KET_ZERO, """The |0⟩ State
+    KET_ZERO,
+    """The |0⟩ State
 
     This is the state such that Z|0⟩ = +1 |0⟩
 
     Vector:
 
         [1, 0]
-    """)
+    """,
+)
 
 KET_ONE = _ZEigenState(eigenvalue=-1)
 document(
-    KET_ONE, """The |1⟩ State
+    KET_ONE,
+    """The |1⟩ State
 
     This is the state such that Z|1⟩ = -1 |1⟩
 
     Vector:
 
         [0, 1]
-    """)
+    """,
+)
 
 PAULI_STATES = [
     KET_PLUS,
@@ -315,5 +332,4 @@ PAULI_STATES = [
     KET_ZERO,
     KET_ONE,
 ]
-document(PAULI_STATES,
-         """All one-qubit states stabalized by the pauli operators.""")
+document(PAULI_STATES, """All one-qubit states stabalized by the pauli operators.""")

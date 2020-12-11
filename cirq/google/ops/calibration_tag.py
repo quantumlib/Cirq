@@ -39,4 +39,4 @@ class CalibrationTag:
         return protocols.obj_to_dict_helper(self, ['token'])
 
     def __eq__(self, other) -> bool:
-        return (isinstance(other, CalibrationTag) and self.token == other.token)
+        return isinstance(other, CalibrationTag) and self.token == other.token

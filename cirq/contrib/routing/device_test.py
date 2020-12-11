@@ -45,10 +45,12 @@ def test_nx_qubit_layout():
 
 
 def test_nx_qubit_layout_2():
-    g = nx.from_edgelist([
-        (cirq.LineQubit(0), cirq.LineQubit(1)),
-        (cirq.LineQubit(1), cirq.LineQubit(2)),
-    ])
+    g = nx.from_edgelist(
+        [
+            (cirq.LineQubit(0), cirq.LineQubit(1)),
+            (cirq.LineQubit(1), cirq.LineQubit(2)),
+        ]
+    )
     pos = ccr.nx_qubit_layout(g)
     for k, (x, y) in pos.items():
         assert x == k.x
@@ -56,10 +58,12 @@ def test_nx_qubit_layout_2():
 
 
 def test_nx_qubit_layout_3():
-    g = nx.from_edgelist([
-        (cirq.NamedQubit('a'), cirq.NamedQubit('b')),
-        (cirq.NamedQubit('b'), cirq.NamedQubit('c')),
-    ])
+    g = nx.from_edgelist(
+        [
+            (cirq.NamedQubit('a'), cirq.NamedQubit('b')),
+            (cirq.NamedQubit('b'), cirq.NamedQubit('c')),
+        ]
+    )
     node_to_i = {
         cirq.NamedQubit('a'): 0,
         cirq.NamedQubit('b'): 1,
