@@ -102,7 +102,7 @@ class Service:
         return job.Job(client=self._client, job_dict=job_dict)
 
     def list_jobs(
-        self, status: Optional[str] = None, limit: int = 100, batch_size=1000
+        self, status: Optional[str] = None, limit: int = 100, batch_size: int = 1000
     ) -> Sequence[job.Job]:
         """Lists jobs that have been created on the IonQ API.
 
@@ -117,7 +117,7 @@ class Service:
         Raises:
             IonQException: If there was an error accessing the API.
         """
-        job_dicts = self._client.list_jobs(status=status, limit=limit, batch_size=1000)
+        job_dicts = self._client.list_jobs(status=status, limit=limit, batch_size=batch_size)
         return tuple(job.Job(client=self._client, job_dict=job_dict) for job_dict in job_dicts)
 
     def get_current_calibration(self) -> calibration.Calibration:

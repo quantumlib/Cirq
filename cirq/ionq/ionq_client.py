@@ -239,8 +239,8 @@ class _IonQClient:
             IonQException: If the API call fails.
         """
         json = {'limit': batch_size}
-        token: str = None
-        jobs = []
+        token: Optional[str] = None
+        jobs: List[Dict[str, Any]] = []
         while True and len(jobs) < limit:
             params = {}
             if status:
