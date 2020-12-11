@@ -28,10 +28,10 @@ from cirq.google.calibration import (
     PhasedFSimCalibrationResult,
     PhasedFSimEngineSimulator,
     PhasedFSimParameters,
-    floquet_calibration_for_circuit,
-    floquet_calibration_for_moment,
-    run_calibrations,
-    run_floquet_calibration_for_circuit
+    floquet_characterization_for_circuit,
+    floquet_characterization_for_moment,
+    run_characterizations,
+    run_floquet_characterization_for_circuit
 )
 
 from cirq.google.devices import (
