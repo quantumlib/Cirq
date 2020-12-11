@@ -15,7 +15,7 @@
 import sys
 import time
 import urllib
-from typing import Any, Callable, cast, Dict, Optional, TYPE_CHECKING
+from typing import Any, Callable, cast, Dict, List, Optional, TYPE_CHECKING
 import requests
 
 from cirq.ionq import ionq_exceptions
@@ -216,6 +216,44 @@ class _IonQClient:
             return requests.get(f'{self.url}/jobs/{job_id}', headers=self.headers)
 
         return self._make_request(request).json()
+
+    def list_jobs(
+        self, status: Optional[str] = None, limit: int = 100, batch_size: int = 1000
+    ) -> List[Dict[str, Any]]:
+        """Lists jos from the IonQ API.
+
+        Args:
+            status: If not None, filter to jobs with this status.
+            limit: The maximum number of jobs to return.
+            batch_size: The size of the batches requested per http GET call.
+
+        Returns:
+            A list of the json bodies of the job dicts.
+
+        Raises:
+            IonQException: If the API call fails.
+        """
+        json = {'limit': batch_size}
+        token: Optional[str] = None
+        jobs: List[Dict[str, Any]] = []
+        while True and len(jobs) < limit:
+            params = {}
+            if status:
+                params['status'] = status
+            if token:
+                params['next'] = token
+
+            def request():
+                return requests.get(
+                    f'{self.url}/jobs', headers=self.headers, json=json, params=params
+                )
+
+            response = self._make_request(request).json()
+            jobs.extend(response['jobs'])
+            if 'next' not in response:
+                break
+            token = response['next']
+        return jobs[:limit]
 
     def cancel_job(self, job_id: str) -> dict:
         """Cancel a job on the IonQ API.

@@ -94,6 +94,19 @@ def test_service_create_job():
     assert create_job_kwargs['name'] == 'bacon'
 
 
+def test_service_list_jobs():
+    service = ionq.Service(remote_host='http://example.com', api_key='key')
+    mock_client = mock.MagicMock()
+    jobs = [{'id': '1'}, {'id': '2'}]
+    mock_client.list_jobs.return_value = jobs
+    service._client = mock_client
+
+    listed_jobs = service.list_jobs(status='completed', limit=10, batch_size=2)
+    assert listed_jobs[0].job_id() == '1'
+    assert listed_jobs[1].job_id() == '2'
+    mock_client.list_jobs.assert_called_with(status='completed', limit=10, batch_size=2)
+
+
 def test_service_get_current_calibration():
     service = ionq.Service(remote_host='http://example.com', api_key='key')
     mock_client = mock.MagicMock()
