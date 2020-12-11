@@ -176,8 +176,8 @@ class Service:
         self,
         start: datetime.datetime = None,
         end: datetime.datetime = None,
-        limit=100,
-        batch_size=1000,
+        limit: int = 100,
+        batch_size: int = 1000,
     ) -> Sequence[calibration.Calibration]:
         """List calibrations via the API.
 
@@ -188,7 +188,7 @@ class Service:
             batch_size: The size of the batches requested per http GET call.
 
         Returns:
-            A sequence of Calibrations.
+            A sequence of calibrations.
 
         Raises:
             IonQException: If there was an error accessing the API.
