@@ -141,7 +141,7 @@ def test_serialize_h_gate():
         body={'qubits': 1, 'circuit': [{'gate': 'h', 'targets': [0]}]}, metadata={}
     )
 
-    with pytest.raises(ValueError, match=r'H\^0.5'):
+    with pytest.raises(ValueError, match=r'H\*\*0.5'):
         circuit = cirq.Circuit(cirq.H(q0) ** 0.5)
         _ = serializer.serialize(circuit)
 
