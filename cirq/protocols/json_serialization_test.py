@@ -340,14 +340,6 @@ NOT_YET_SERIALIZABLE = [
 ]
 
 
-# These types are internal-only and should not be serialized directly.
-INTERNAL_SERIALIZATION_TYPES = [
-    '_ContextualSerialization',
-    '_SerializedContext',
-    '_SerializedKey',
-]
-
-
 def _find_classes_that_should_serialize() -> Set[Tuple[str, Optional[type]]]:
     result: Set[Tuple[str, Optional[type]]] = set()
     result.update(_get_all_public_classes(cirq))
@@ -355,8 +347,6 @@ def _find_classes_that_should_serialize() -> Set[Tuple[str, Optional[type]]]:
     result.update(_get_all_public_classes(cirq.work))
 
     for k, v in json_serialization._cirq_class_resolver_dictionary().items():
-        if k in INTERNAL_SERIALIZATION_TYPES:
-            continue
         t = v if isinstance(v, type) else None
         result.add((k, t))
     return result
@@ -520,6 +510,12 @@ def test_context_serialization():
       "key": "sbki_dict"
     }"""
     )
+
+    list_sbki = [sbki_dict]
+    assert_json_roundtrip_works(list_sbki, resolvers=test_resolvers)
+
+    dict_sbki = {'a': sbki_dict}
+    assert_json_roundtrip_works(dict_sbki, resolvers=test_resolvers)
 
     assert sbki_list != json_serialization._SerializedKey(sbki_list)
     sbki_other_list = SBKImpl('sbki_list', data_list=[sbki_list])

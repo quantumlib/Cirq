@@ -170,10 +170,6 @@ def _cirq_class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'YYPowGate': cirq.YYPowGate,
         'ZPowGate': cirq.ZPowGate,
         'ZZPowGate': cirq.ZZPowGate,
-        # internal contextual-serialization types
-        '_ContextualSerialization': _ContextualSerialization,
-        '_SerializedContext': _SerializedContext,
-        '_SerializedKey': _SerializedKey,
         # not a cirq class, but treated as one:
         'pandas.DataFrame': pd.DataFrame,
         'pandas.Index': pd.Index,
@@ -416,6 +412,16 @@ def _cirq_object_hook(d, resolvers: Sequence[JsonResolver], context_map: Dict[st
     if 'cirq_type' not in d:
         return d
 
+    if d['cirq_type'] == '_SerializedKey':
+        return _SerializedKey.read_from_context(context_map, **d)
+
+    if d['cirq_type'] == '_SerializedContext':
+        _SerializedContext.update_context(context_map, **d)
+        return None
+
+    if d['cirq_type'] == '_ContextualSerialization':
+        return _ContextualSerialization.deserialize_with_context(**d)
+
     for resolver in resolvers:
         cls = resolver(d['cirq_type'])
         if cls is not None:
@@ -424,19 +430,6 @@ def _cirq_object_hook(d, resolvers: Sequence[JsonResolver], context_map: Dict[st
         raise ValueError(
             "Could not resolve type '{}' during deserialization".format(d['cirq_type'])
         )
-
-    if cls == _SerializedKey:
-        read_from_context = getattr(cls, 'read_from_context', lambda x, y: None)
-        return read_from_context(context_map, **d)
-
-    if cls == _SerializedContext:
-        update_context = getattr(cls, 'update_context', lambda x, y: None)
-        update_context(context_map, **d)
-        return None
-
-    if cls == _ContextualSerialization:
-        deserialize_with_context = getattr(cls, 'deserialize_with_context', lambda x: None)
-        return deserialize_with_context(**d)
 
     from_json_dict = getattr(cls, '_from_json_dict_', None)
     if from_json_dict is not None:
@@ -518,25 +511,28 @@ class _ContextualSerialization(SupportsJSON):
     """
 
     def __init__(self, obj: Any):
-        self.context_list = []
+        # Context information and the wrapped object are stored together in
+        # `object_dag` to ensure consistent serialization ordering.
+        self.object_dag = []
         context_keys = set()
         for sbk in get_serializable_by_keys(obj):
             new_sc = _SerializedContext(sbk)
             if new_sc.key not in context_keys:
-                self.context_list.append(new_sc)
+                self.object_dag.append(new_sc)
                 context_keys.add(new_sc.key)
-        self.context_list += [obj]
+        self.object_dag += [obj]
 
     def _json_dict_(self):
-        return obj_to_dict_helper(self, ['context_list'])
+        return obj_to_dict_helper(self, ['object_dag'])
 
     @classmethod
     def _from_json_dict_(cls, **kwargs):
         raise TypeError(f'Internal error: {cls} should never deserialize with _from_json_dict_.')
 
     @classmethod
-    def deserialize_with_context(cls, context_list, **kwargs):
-        return context_list[-1]
+    def deserialize_with_context(cls, object_dag, **kwargs):
+        # The last element of object_dag is the object to be deserialized.
+        return object_dag[-1]
 
 
 def has_serializable_by_keys(obj: Any) -> bool:
@@ -546,6 +542,12 @@ def has_serializable_by_keys(obj: Any) -> bool:
     json_dict = getattr(obj, '_json_dict_', lambda: None)()
     if isinstance(json_dict, Dict):
         return any(has_serializable_by_keys(v) for v in json_dict.values())
+
+    # Handle primitive container types.
+    if isinstance(obj, Dict):
+        return any(has_serializable_by_keys(elem) for pair in obj.items() for elem in pair)
+    if hasattr(obj, '__iter__') and not isinstance(obj, str):
+        return any(has_serializable_by_keys(elem) for elem in obj)
     return False
 
 
@@ -553,7 +555,7 @@ def get_serializable_by_keys(obj: Any) -> List[SerializableByKey]:
     """Returns all SerializableByKeys contained by obj.
 
     Objects are ordered such that nested objects appear before the object they
-    are nested inside. This is required for hooks in json.load().
+    are nested inside. This is required to ensure
     """
     result = []
     if hasattr(obj, '_serialization_key_'):
@@ -612,10 +614,10 @@ def to_json(
             party classes, prefer adding the _json_dict_ magic method
             to your classes rather than overriding this default.
     """
-    if cls == CirqEncoder and has_serializable_by_keys(obj):
+    if has_serializable_by_keys(obj):
 
-        class ContextualEncoder(CirqEncoder):
-            """An encoder with a context list for concise serialization."""
+        class ContextualEncoder(cls):  # type: ignore
+            """An encoder with a context map for concise serialization."""
 
             # This map is populated gradually during serialization. An object
             # with components defined in this map will represent those
