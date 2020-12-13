@@ -371,7 +371,6 @@ class CliffordState:
 
         for qubit in qubits:
             result = state.ch_form._measure(self.qubit_map[qubit], prng)
-            state.ch_form.project_Z(self.qubit_map[qubit], result)
             results.append(result)
 
         return results

@@ -254,7 +254,9 @@ class StabilizerStateChForm:
         for i, v_i in enumerate(self.v):
             if v_i == 1:
                 w[i] = bool(prng.randint(2))
-        return sum(w & self.G[q, :]) % 2
+        x_i = sum(w & self.G[q, :]) % 2
+        self.project_Z(q, x_i)
+        return x_i
 
     def project_Z(self, q, z):
         """Applies a Z projector on the q'th qubit.
