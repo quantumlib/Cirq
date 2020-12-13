@@ -131,12 +131,10 @@ def get_engine_sampler(
          EnvironmentError: If no project_id is specified and the environment
             variable GOOGLE_CLOUD_PROJECT is not set.
     """
-    try:
-        gate_set = gate_sets.NAMED_GATESETS[gate_set_name]
-    except KeyError:
+    if gate_set_name not in gate_sets.NAMED_GATESETS:
         raise ValueError(
-            f"Please use one of the following gateset names: "
-            f"{sorted(gate_sets.NAMED_GATESETS.keys())}"
+            f"Unknown gateset {gate_set_name}. Please use one of: "
+            f"{sorted(gate_sets.NAMED_GATESETS.keys())}."
         )
-
+    gate_set = gate_sets.NAMED_GATESETS[gate_set_name]
     return engine.get_engine(project_id).sampler(processor_id=processor_id, gate_set=gate_set)

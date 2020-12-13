@@ -17,7 +17,6 @@ from typing import (
     TYPE_CHECKING,
     AbstractSet,
     Callable,
-    Dict,
     FrozenSet,
     Iterator,
     Optional,
@@ -139,6 +138,9 @@ class FrozenCircuit(AbstractCircuit):
     def __radd__(self, other) -> 'FrozenCircuit':
         return (other + self.unfreeze()).freeze()
 
+    # Needed for numpy to handle multiplication by np.int64 correctly.
+    __array_priority__ = 10000
+
     # TODO: handle multiplication / powers differently?
     def __mul__(self, other) -> 'FrozenCircuit':
         return (self.unfreeze() * other).freeze()
@@ -164,5 +166,7 @@ class FrozenCircuit(AbstractCircuit):
     ) -> 'FrozenCircuit':
         return self.unfreeze().with_device(new_device, qubit_mapping).freeze()
 
-    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver') -> 'FrozenCircuit':
-        return self.unfreeze()._resolve_parameters_(param_resolver).freeze()
+    def _resolve_parameters_(
+        self, param_resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'FrozenCircuit':
+        return self.unfreeze()._resolve_parameters_(param_resolver, recursive).freeze()
