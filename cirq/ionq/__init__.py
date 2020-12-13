@@ -29,6 +29,8 @@ from cirq.ionq.results import (
     SimulatorResult,
 )
 
+from cirq.ionq.sampler import Sampler
+
 from cirq.ionq.serializer import (
     Serializer,
     SerializedProgram,
