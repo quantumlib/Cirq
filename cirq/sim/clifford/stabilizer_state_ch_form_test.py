@@ -67,7 +67,7 @@ def test_run():
         cirq.measure(q1),
         strategy=cirq.InsertStrategy.NEW,
     )
-    # Cliffordsimulator uses StabilizerStateChForm internally
+    # CliffordSimulator uses StabilizerStateChForm internally.
     simulator = cirq.CliffordSimulator()
     result = simulator.run(circuit, repetitions=10)
     assert all(result.measurements['1'] == 1)
