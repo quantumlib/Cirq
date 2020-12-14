@@ -30,7 +30,8 @@ from cirq.protocols.apply_unitary_protocol import (
     apply_unitaries,
 )
 from cirq.protocols.decompose_protocol import (
-    _try_decompose_into_operations_and_qubits,)
+    _try_decompose_into_operations_and_qubits,
+)
 from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the unitary method to determine
@@ -85,8 +86,9 @@ class SupportsUnitary(Protocol):
         """
 
 
-def unitary(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
-           ) -> Union[np.ndarray, TDefault]:
+def unitary(
+    val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
+) -> Union[np.ndarray, TDefault]:
     """Returns a unitary matrix describing the given value.
 
     The matrix is determined by any one of the following techniques:
@@ -119,8 +121,9 @@ def unitary(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
             specified.
     """
     strats = [
-        _strat_unitary_from_unitary, _strat_unitary_from_apply_unitary,
-        _strat_unitary_from_decompose
+        _strat_unitary_from_unitary,
+        _strat_unitary_from_apply_unitary,
+        _strat_unitary_from_decompose,
     ]
     for strat in strats:
         result = strat(val)
@@ -144,7 +147,8 @@ def unitary(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
         "- A `_decompose_(self)` method that returned a "
         "list of unitary operations.\n"
         "- An `_apply_unitary_(self, args) method that returned a value "
-        "besides None or NotImplemented.".format(type(val), val))
+        "besides None or NotImplemented.".format(type(val), val)
+    )
 
 
 def _strat_unitary_from_unitary(val: Any) -> Optional[np.ndarray]:
@@ -181,8 +185,7 @@ def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
 def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
     """Attempts to compute a value's unitary via its _decompose_ method."""
     # Check if there's a decomposition.
-    operations, qubits, val_qid_shape = (
-        _try_decompose_into_operations_and_qubits(val))
+    operations, qubits, val_qid_shape = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
         return NotImplemented
 
@@ -190,8 +193,8 @@ def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
     state = qis.eye_tensor(val_qid_shape, dtype=np.complex128)
     buffer = np.empty_like(state)
     result = apply_unitaries(
-        operations, qubits,
-        ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape))), None)
+        operations, qubits, ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape))), None
+    )
 
     # Package result.
     if result is None:

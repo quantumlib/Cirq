@@ -36,8 +36,10 @@ def test_init():
     assert Duration(timedelta(0, 0, 5)) == Duration(micros=5)
     assert Duration(0) == Duration()
     assert Duration(None) == Duration()
-    assert Duration(timedelta(0, 5), millis=4, micros=3, nanos=2,
-                    picos=1).total_picos() == 5004003002001
+    assert (
+        Duration(timedelta(0, 5), millis=4, micros=3, nanos=2, picos=1).total_picos()
+        == 5004003002001
+    )
 
     with pytest.raises(TypeError):
         _ = Duration(object())
@@ -45,14 +47,14 @@ def test_init():
 
 def test_init_timedelta():
     assert Duration(timedelta(microseconds=0)).total_picos() == 0
-    assert Duration(timedelta(microseconds=513)).total_picos() == 513 * 10**6
-    assert Duration(timedelta(microseconds=-5)).total_picos() == -5 * 10**6
-    assert Duration(timedelta(microseconds=211)).total_picos() == 211 * 10**6
+    assert Duration(timedelta(microseconds=513)).total_picos() == 513 * 10 ** 6
+    assert Duration(timedelta(microseconds=-5)).total_picos() == -5 * 10 ** 6
+    assert Duration(timedelta(microseconds=211)).total_picos() == 211 * 10 ** 6
 
-    assert Duration(timedelta(seconds=3)).total_picos() == 3 * 10**12
-    assert Duration(timedelta(seconds=-5)).total_picos() == -5 * 10**12
-    assert Duration(timedelta(seconds=3)).total_nanos() == 3 * 10**9
-    assert Duration(timedelta(seconds=-5)).total_nanos() == -5 * 10**9
+    assert Duration(timedelta(seconds=3)).total_picos() == 3 * 10 ** 12
+    assert Duration(timedelta(seconds=-5)).total_picos() == -5 * 10 ** 12
+    assert Duration(timedelta(seconds=3)).total_nanos() == 3 * 10 ** 9
+    assert Duration(timedelta(seconds=-5)).total_nanos() == -5 * 10 ** 9
 
 
 def test_total():
@@ -74,50 +76,43 @@ def test_repr():
     cirq.testing.assert_equivalent_repr(Duration(picos=5000))
     cirq.testing.assert_equivalent_repr(Duration(nanos=1.0))
     cirq.testing.assert_equivalent_repr(Duration(micros=sympy.Symbol('t')))
-    cirq.testing.assert_equivalent_repr(Duration(micros=1.5 *
-                                                 sympy.Symbol('t')))
+    cirq.testing.assert_equivalent_repr(Duration(micros=1.5 * sympy.Symbol('t')))
 
 
 def test_eq():
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(Duration(), Duration(picos=0), Duration(nanos=0.0),
-                          timedelta(0))
+    eq.add_equality_group(Duration(), Duration(picos=0), Duration(nanos=0.0), timedelta(0))
     eq.add_equality_group(Duration(picos=1000), Duration(nanos=1))
     eq.make_equality_group(lambda: Duration(picos=-1))
-    eq.add_equality_group(Duration(micros=5.0), Duration(micros=5),
-                          timedelta(0, 0, 5))
+    eq.add_equality_group(Duration(micros=5.0), Duration(micros=5), timedelta(0, 0, 5))
 
     # Can't hash match 0, but no-duration is equal to 0.
     assert Duration() == 0
     assert Duration(picos=1) != 0
 
 
-def test_parameterized():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameterized(resolve_fn):
     t = sympy.Symbol('t')
     assert not cirq.is_parameterized(Duration())
     assert not cirq.is_parameterized(Duration(nanos=500))
     assert cirq.is_parameterized(Duration(nanos=500 * t))
 
-    assert cirq.resolve_parameters(Duration(), {'t': 2}) == Duration()
-    assert cirq.resolve_parameters(Duration(nanos=500),
-                                   {'t': 2}) == Duration(nanos=500)
-    assert cirq.resolve_parameters(Duration(nanos=500 * t),
-                                   {'t': 2}) == Duration(nanos=1000)
+    assert resolve_fn(Duration(), {'t': 2}) == Duration()
+    assert resolve_fn(Duration(nanos=500), {'t': 2}) == Duration(nanos=500)
+    assert resolve_fn(Duration(nanos=500 * t), {'t': 2}) == Duration(nanos=1000)
 
 
 def test_cmp():
     order = cirq.testing.OrderTester()
 
-    order.add_ascending_equivalence_group(Duration(picos=-1),
-                                          Duration(picos=-1.0))
+    order.add_ascending_equivalence_group(Duration(picos=-1), Duration(picos=-1.0))
     order.add_ascending_equivalence_group(Duration(), timedelta(0))
     order.add_ascending_equivalence_group(Duration(picos=1))
     order.add_ascending_equivalence_group(Duration(nanos=1))
     order.add_ascending_equivalence_group(Duration(micros=1))
-    order.add_ascending_equivalence_group(Duration(micros=5),
-                                          timedelta(0, 0, 5))
-    order.add_ascending_equivalence_group(Duration(micros=6),
-                                          timedelta(0, 0, 6))
+    order.add_ascending_equivalence_group(Duration(micros=5), timedelta(0, 0, 5))
+    order.add_ascending_equivalence_group(Duration(micros=6), timedelta(0, 0, 6))
     order.add_ascending_equivalence_group(Duration(millis=1))
 
     assert Duration(picos=-1) < 0 < Duration(picos=+1)
@@ -129,10 +124,8 @@ def test_add():
     assert Duration() + Duration() == Duration()
     assert Duration(picos=1) + Duration(picos=2) == Duration(picos=3)
 
-    assert Duration(picos=1) + timedelta(microseconds=2) == Duration(
-        picos=2000001)
-    assert timedelta(microseconds=1) + Duration(picos=2) == Duration(
-        picos=1000002)
+    assert Duration(picos=1) + timedelta(microseconds=2) == Duration(picos=2000001)
+    assert timedelta(microseconds=1) + Duration(picos=2) == Duration(picos=1000002)
 
     t = sympy.Symbol('t')
     assert Duration(picos=3) + Duration(picos=t) == Duration(picos=3 + t)
@@ -152,10 +145,8 @@ def test_sub():
     assert Duration() - Duration() == Duration()
     assert Duration(picos=1) - Duration(picos=2) == Duration(picos=-1)
 
-    assert Duration(picos=1) - timedelta(microseconds=2) == Duration(
-        picos=-1999999)
-    assert timedelta(microseconds=1) - Duration(picos=2) == Duration(
-        picos=999998)
+    assert Duration(picos=1) - timedelta(microseconds=2) == Duration(picos=-1999999)
+    assert timedelta(microseconds=1) - Duration(picos=2) == Duration(picos=999998)
 
     t = sympy.Symbol('t')
     assert Duration(picos=3) - Duration(picos=t) == Duration(picos=3 - t)
@@ -207,13 +198,12 @@ def test_repr_preserves_type_information():
     assert repr(cirq.Duration(micros=1500.0)) == 'cirq.Duration(micros=1500.0)'
     assert repr(cirq.Duration(millis=1.5)) == 'cirq.Duration(micros=1500.0)'
 
-    assert repr(cirq.Duration(
-        micros=1500 *
-        t)) == ("cirq.Duration(micros=sympy.Mul(sympy.Integer(1500), "
-                "sympy.Symbol('t')))")
+    assert repr(cirq.Duration(micros=1500 * t)) == (
+        "cirq.Duration(micros=sympy.Mul(sympy.Integer(1500), sympy.Symbol('t')))"
+    )
     assert repr(cirq.Duration(micros=1500.0 * t)) == (
-        "cirq.Duration(micros=sympy.Mul(sympy.Float('1500.0', precision=53), "
-        "sympy.Symbol('t')))")
+        "cirq.Duration(micros=sympy.Mul(sympy.Float('1500.0', precision=53), sympy.Symbol('t')))"
+    )
     assert repr(cirq.Duration(millis=1.5 * t)) == (
-        "cirq.Duration(micros=sympy.Mul(sympy.Float('1500.0', precision=53), "
-        "sympy.Symbol('t')))")
+        "cirq.Duration(micros=sympy.Mul(sympy.Float('1500.0', precision=53), sympy.Symbol('t')))"
+    )

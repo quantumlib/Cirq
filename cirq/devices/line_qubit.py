@@ -13,8 +13,7 @@
 # limitations under the License.
 
 import functools
-from typing import (Any, Dict, Iterable, List, Optional, Sequence, Set, TypeVar,
-                    TYPE_CHECKING)
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, TypeVar, TYPE_CHECKING
 
 import abc
 
@@ -48,8 +47,7 @@ class _BaseLineQid(ops.Qid):
         """Determines if two qubits are adjacent line qubits."""
         return isinstance(other, _BaseLineQid) and abs(self.x - other.x) == 1
 
-    def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None
-                 ) -> Set['_BaseLineQid']:
+    def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set['_BaseLineQid']:
         """Returns qubits that are potential neighbors to this LineQubit
 
         Args:
@@ -70,11 +68,11 @@ class _BaseLineQid(ops.Qid):
             if self.dimension != other.dimension:
                 raise TypeError(
                     "Can only add LineQids with identical dimension. "
-                    f"Got {self.dimension} and {other.dimension}")
+                    f"Got {self.dimension} and {other.dimension}"
+                )
             return self._with_x(x=self.x + other.x)
         if not isinstance(other, int):
-            raise TypeError(f"Can only add ints and {type(self).__name__}. "
-                            f"Instead was {other}")
+            raise TypeError(f"Can only add ints and {type(self).__name__}. Instead was {other}")
         return self._with_x(self.x + other)
 
     def __sub__(self: TSelf, other: int) -> TSelf:
@@ -82,12 +80,13 @@ class _BaseLineQid(ops.Qid):
             if self.dimension != other.dimension:
                 raise TypeError(
                     "Can only subtract LineQids with identical dimension. "
-                    f"Got {self.dimension} and {other.dimension}")
+                    f"Got {self.dimension} and {other.dimension}"
+                )
             return self._with_x(x=self.x - other.x)
         if not isinstance(other, int):
             raise TypeError(
-                f"Can only subtract ints and {type(self).__name__}. "
-                f"Instead was {other}")
+                f"Can only subtract ints and {type(self).__name__}. Instead was {other}"
+            )
         return self._with_x(self.x - other)
 
     def __radd__(self: TSelf, other: int) -> TSelf:
@@ -159,8 +158,7 @@ class LineQid(_BaseLineQid):
         return [LineQid(i, dimension=dimension) for i in range(*range_args)]
 
     @staticmethod
-    def for_qid_shape(qid_shape: Sequence[int], start: int = 0,
-                      step: int = 1) -> List['LineQid']:
+    def for_qid_shape(qid_shape: Sequence[int], start: int = 0, step: int = 1) -> List['LineQid']:
         """Returns a range of line qids for each entry in `qid_shape` with
         matching dimension.
 
@@ -170,8 +168,7 @@ class LineQid(_BaseLineQid):
             step: The amount to increment each x coordinate.
         """
         return [
-            LineQid(start + step * i, dimension=dimension)
-            for i, dimension in enumerate(qid_shape)
+            LineQid(start + step * i, dimension=dimension) for i, dimension in enumerate(qid_shape)
         ]
 
     @staticmethod
@@ -186,6 +183,7 @@ class LineQid(_BaseLineQid):
         """
         # Avoids circular import.
         from cirq.protocols.qid_shape_protocol import qid_shape
+
         return LineQid.for_qid_shape(qid_shape(val), start=start, step=step)
 
     def __repr__(self) -> str:

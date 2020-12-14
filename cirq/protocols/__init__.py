@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Methods and classes that define cirq's protocols."""
 
 from cirq.protocols.act_on_protocol import (
     act_on,
@@ -65,13 +66,15 @@ from cirq.protocols.equal_up_to_global_phase_protocol import (
     SupportsEqualUpToGlobalPhase,
 )
 from cirq.protocols.has_stabilizer_effect_protocol import (
-    has_stabilizer_effect,)
+    has_stabilizer_effect,
+)
 from cirq.protocols.has_unitary_protocol import (
     has_unitary,
     SupportsExplicitHasUnitary,
 )
 from cirq.protocols.inverse_protocol import (
-    inverse,)
+    inverse,
+)
 from cirq.protocols.json_serialization import (
     DEFAULT_RESOLVERS,
     JsonResolver,
@@ -97,14 +100,18 @@ from cirq.protocols.mixture_protocol import (
     validate_mixture,
 )
 from cirq.protocols.mul_protocol import (
-    mul,)
+    mul,
+)
 from cirq.protocols.pauli_expansion_protocol import (
     pauli_expansion,
     SupportsPauliExpansion,
 )
+
 # pylint: disable=redefined-builtin
 from cirq.protocols.pow_protocol import (
-    pow,)
+    pow,
+)
+
 # pylint: enable=redefined-builtin
 from cirq.protocols.qasm import (
     qasm,
@@ -113,7 +120,7 @@ from cirq.protocols.qasm import (
     SupportsQasmWithArgs,
     SupportsQasmWithArgsAndQubits,
 )
-from cirq.protocols.quil import (quil, QuilFormatter)
+from cirq.protocols.quil import quil, QuilFormatter
 from cirq.protocols.trace_distance_bound import (
     SupportsTraceDistanceBound,
     trace_distance_bound,
@@ -124,6 +131,7 @@ from cirq.protocols.resolve_parameters import (
     parameter_names,
     parameter_symbols,
     resolve_parameters,
+    resolve_parameters_once,
     SupportsParameterization,
 )
 from cirq.protocols.phase_protocol import (

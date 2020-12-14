@@ -47,10 +47,9 @@ class SupportsPhase(Protocol):
         """
 
 
-def phase_by(val: Any,
-             phase_turns: float,
-             qubit_index: int,
-             default: TDefault = RaiseTypeErrorIfNotProvided):
+def phase_by(
+    val: Any, phase_turns: float, qubit_index: int, default: TDefault = RaiseTypeErrorIfNotProvided
+):
     """Returns a phased version of the effect.
 
     For example, an X gate phased by 90 degrees would be a Y gate.
@@ -79,8 +78,7 @@ def phase_by(val: Any,
             NotImplemented) and no `default` was specified.
     """
     getter = getattr(val, '_phase_by_', None)
-    result = NotImplemented if getter is None else getter(
-        phase_turns, qubit_index)
+    result = NotImplemented if getter is None else getter(phase_turns, qubit_index)
 
     if result is not NotImplemented:
         return result
@@ -88,7 +86,8 @@ def phase_by(val: Any,
         return default
 
     if getter is None:
-        raise TypeError("object of type '{}' "
-                        "has no _phase_by_ method.".format(type(val)))
-    raise TypeError("object of type '{}' does have a _phase_by_ method, "
-                    "but it returned NotImplemented.".format(type(val)))
+        raise TypeError("object of type '{}' has no _phase_by_ method.".format(type(val)))
+    raise TypeError(
+        "object of type '{}' does have a _phase_by_ method, "
+        "but it returned NotImplemented.".format(type(val))
+    )

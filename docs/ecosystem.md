@@ -40,9 +40,9 @@ The following document provides an ecosystem overview of how the various tools c
 
 |Company|Description|
 |--- |--- |
-|[Google QCS](https://cirq.readthedocs.io/en/stable/docs/google/concepts.html)|A quantum computing service based on superconducting qubits|
-|[Alpine Quantum Technologies](https://cirq.readthedocs.io/en/latest/docs/tutorials/aqt/getting_started.html)|A quantum computing service based on ion traps|
-|[Pasqal](https://cirq.readthedocs.io/en/stable/docs/pasqal/getting_started.html)|A quantum cloud service based on neutral atoms|
+|[Google QCS](https://quantumai.google/cirq/tutorials/google/start)|A quantum computing service based on superconducting qubits|
+|[Alpine Quantum Technologies](https://quantumai.google/cirq/tutorials/aqt/start)|A quantum computing service based on ion traps|
+|[Pasqal](https://quantumai.google/cirq/tutorials/pasqal/start)|A quantum cloud service based on neutral atoms|
 
 
 

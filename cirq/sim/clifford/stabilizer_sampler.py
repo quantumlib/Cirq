@@ -18,8 +18,7 @@ import numpy as np
 
 import cirq
 from cirq import circuits, protocols, value
-from cirq.sim.clifford.act_on_clifford_tableau_args import \
-    ActOnCliffordTableauArgs
+from cirq.sim.clifford.act_on_clifford_tableau_args import ActOnCliffordTableauArgs
 from cirq.sim.clifford.clifford_tableau import CliffordTableau
 from cirq.work import sampler
 
@@ -36,10 +35,10 @@ class StabilizerSampler(sampler.Sampler):
         self._prng = value.parse_random_state(seed)
 
     def run_sweep(
-            self,
-            program: 'cirq.Circuit',
-            params: 'cirq.Sweepable',
-            repetitions: int = 1,
+        self,
+        program: 'cirq.Circuit',
+        params: 'cirq.Sweepable',
+        repetitions: int = 1,
     ) -> List['cirq.Result']:
         results: List[cirq.Result] = []
         for param_resolver in cirq.to_resolvers(params):
@@ -48,12 +47,10 @@ class StabilizerSampler(sampler.Sampler):
                 resolved_circuit,
                 repetitions=repetitions,
             )
-            results.append(
-                cirq.Result(params=param_resolver, measurements=measurements))
+            results.append(cirq.Result(params=param_resolver, measurements=measurements))
         return results
 
-    def _run(self, circuit: circuits.Circuit,
-             repetitions: int) -> Dict[str, np.ndarray]:
+    def _run(self, circuit: circuits.Circuit, repetitions: int) -> Dict[str, np.ndarray]:
 
         measurements: Dict[str, List[int]] = {
             key: [] for key in protocols.measurement_keys(circuit)

@@ -13,8 +13,7 @@
 # limitations under the License.
 
 
-from typing import (AbstractSet, Sequence, Tuple, Union, Any, Optional,
-                    TYPE_CHECKING)
+from typing import AbstractSet, Sequence, Tuple, Union, Any, Optional, TYPE_CHECKING
 
 import numpy as np
 
@@ -30,8 +29,7 @@ if TYPE_CHECKING:
 class ParallelGateOperation(raw_types.Operation):
     """An application of several copies of a gate to a group of qubits."""
 
-    def __init__(self, gate: 'cirq.Gate',
-                 qubits: Sequence[raw_types.Qid]) -> None:
+    def __init__(self, gate: 'cirq.Gate', qubits: Sequence[raw_types.Qid]) -> None:
         """
         Args:
             gate: the gate to apply.
@@ -65,8 +63,7 @@ class ParallelGateOperation(raw_types.Operation):
         return ParallelGateOperation(new_gate, self.qubits)
 
     def __repr__(self) -> str:
-        return ('cirq.ParallelGateOperation('
-                f'gate={self.gate!r}, qubits={list(self.qubits)!r})')
+        return f'cirq.ParallelGateOperation(gate={self.gate!r}, qubits={list(self.qubits)!r})'
 
     def __str__(self) -> str:
         qubits = ', '.join(str(e) for e in self.qubits)
@@ -77,19 +74,19 @@ class ParallelGateOperation(raw_types.Operation):
 
     def _decompose_(self) -> 'cirq.OP_TREE':
         """List of gate operations that correspond to applying the single qubit
-           gate to each of the target qubits individually
+        gate to each of the target qubits individually
         """
         return [self.gate.on(qubit) for qubit in self.qubits]
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
-                       ) -> Union[np.ndarray, None, NotImplementedType]:
+    def _apply_unitary_(
+        self, args: 'protocols.ApplyUnitaryArgs'
+    ) -> Union[np.ndarray, None, NotImplementedType]:
         """Replicates the logic the simulators use to apply the equivalent
-           sequence of GateOperations
+        sequence of GateOperations
         """
         if not protocols.has_unitary(self.gate):
             return NotImplemented
-        return protocols.apply_unitaries((self.gate.on(q) for q in self.qubits),
-                                         self.qubits, args)
+        return protocols.apply_unitaries((self.gate.on(q) for q in self.qubits), self.qubits, args)
 
     def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.gate)
@@ -116,22 +113,20 @@ class ParallelGateOperation(raw_types.Operation):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self.gate)
 
-    def _resolve_parameters_(self, resolver):
-        resolved_gate = protocols.resolve_parameters(self.gate, resolver)
+    def _resolve_parameters_(self, resolver, recursive):
+        resolved_gate = protocols.resolve_parameters(self.gate, resolver, recursive)
         return self.with_gate(resolved_gate)
 
     def _trace_distance_bound_(self) -> Optional[float]:
-        angle = (len(self.qubits) *
-                 np.arcsin(protocols.trace_distance_bound(self._gate)))
+        angle = len(self.qubits) * np.arcsin(protocols.trace_distance_bound(self._gate))
         if angle >= np.pi * 0.5:
             return 1.0
         return np.sin(angle)
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                              ) -> 'cirq.CircuitDiagramInfo':
-        diagram_info = protocols.circuit_diagram_info(self.gate,
-                                                      args,
-                                                      NotImplemented)
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
+        diagram_info = protocols.circuit_diagram_info(self.gate, args, NotImplemented)
         if diagram_info == NotImplemented:
             return diagram_info
 
@@ -139,9 +134,9 @@ class ParallelGateOperation(raw_types.Operation):
         symbol = diagram_info.wire_symbols[0]
         wire_symbols = (symbol,) * len(self.qubits)
 
-        return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols,
-                                            exponent=diagram_info.exponent,
-                                            connected=False)
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=wire_symbols, exponent=diagram_info.exponent, connected=False
+        )
 
     def __pow__(self, exponent: Any) -> 'ParallelGateOperation':
         """Raise gate to a power, then reapply to the same qubits.
@@ -158,9 +153,7 @@ class ParallelGateOperation(raw_types.Operation):
         Returns:
             A new operation on the same qubits with the scaled gate.
         """
-        new_gate = protocols.pow(self.gate,
-                                 exponent,
-                                 NotImplemented)
+        new_gate = protocols.pow(self.gate, exponent, NotImplemented)
         if new_gate is NotImplemented:
             return NotImplemented
         return self.with_gate(new_gate)

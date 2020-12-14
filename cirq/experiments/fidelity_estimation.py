@@ -23,8 +23,8 @@ from cirq.sim import final_state_vector
 
 
 def linear_xeb_fidelity_from_probabilities(
-        hilbert_space_dimension: int,
-        probabilities: Sequence[float],
+    hilbert_space_dimension: int,
+    probabilities: Sequence[float],
 ) -> float:
     """Linear XEB fidelity estimator.
 
@@ -65,8 +65,8 @@ def linear_xeb_fidelity_from_probabilities(
 
 
 def log_xeb_fidelity_from_probabilities(
-        hilbert_space_dimension: int,
-        probabilities: Sequence[float],
+    hilbert_space_dimension: int,
+    probabilities: Sequence[float],
 ) -> float:
     """Logarithmic XEB fidelity estimator.
 
@@ -95,13 +95,12 @@ def log_xeb_fidelity_from_probabilities(
         Estimate of fidelity associated with an experimental realization
         of a quantum circuit.
     """
-    return (np.log(hilbert_space_dimension) + np.euler_gamma +
-            np.mean(np.log(probabilities)))
+    return np.log(hilbert_space_dimension) + np.euler_gamma + np.mean(np.log(probabilities))
 
 
 def hog_score_xeb_fidelity_from_probabilities(
-        hilbert_space_dimension: int,
-        probabilities: Sequence[float],
+    hilbert_space_dimension: int,
+    probabilities: Sequence[float],
 ) -> float:
     """XEB fidelity estimator based on normalized HOG score.
 
@@ -136,12 +135,11 @@ def hog_score_xeb_fidelity_from_probabilities(
 
 
 def xeb_fidelity(
-        circuit: Circuit,
-        bitstrings: Sequence[int],
-        qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-        amplitudes: Optional[Mapping[int, complex]] = None,
-        estimator: Callable[[int, Sequence[float]],
-                            float] = linear_xeb_fidelity_from_probabilities,
+    circuit: Circuit,
+    bitstrings: Sequence[int],
+    qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+    amplitudes: Optional[Mapping[int, complex]] = None,
+    estimator: Callable[[int, Sequence[float]], float] = linear_xeb_fidelity_from_probabilities,
 ) -> float:
     """Estimates XEB fidelity from one circuit using user-supplied estimator.
 
@@ -189,50 +187,51 @@ def xeb_fidelity(
         if not 0 <= bitstring < dim:
             raise ValueError(
                 f'Bitstring {bitstring} could not have been observed '
-                f'on {len(circuit.qid_shape())} qubits.')
+                f'on {len(circuit.qid_shape())} qubits.'
+            )
 
     if amplitudes is None:
         output_state = final_state_vector(circuit, qubit_order=qubit_order)
-        output_probabilities = np.abs(output_state)**2
+        output_probabilities = np.abs(output_state) ** 2
         bitstring_probabilities = output_probabilities[bitstrings]
     else:
-        bitstring_probabilities = np.abs(
-            [amplitudes[bitstring] for bitstring in bitstrings])**2
+        bitstring_probabilities = np.abs([amplitudes[bitstring] for bitstring in bitstrings]) ** 2
     return estimator(dim, bitstring_probabilities)
 
 
 def linear_xeb_fidelity(
-        circuit: Circuit,
-        bitstrings: Sequence[int],
-        qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-        amplitudes: Optional[Mapping[int, complex]] = None,
+    circuit: Circuit,
+    bitstrings: Sequence[int],
+    qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+    amplitudes: Optional[Mapping[int, complex]] = None,
 ) -> float:
     """Estimates XEB fidelity from one circuit using linear estimator."""
-    return xeb_fidelity(circuit,
-                        bitstrings,
-                        qubit_order,
-                        amplitudes,
-                        estimator=linear_xeb_fidelity_from_probabilities)
+    return xeb_fidelity(
+        circuit,
+        bitstrings,
+        qubit_order,
+        amplitudes,
+        estimator=linear_xeb_fidelity_from_probabilities,
+    )
 
 
 def log_xeb_fidelity(
-        circuit: Circuit,
-        bitstrings: Sequence[int],
-        qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-        amplitudes: Optional[Mapping[int, complex]] = None,
+    circuit: Circuit,
+    bitstrings: Sequence[int],
+    qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+    amplitudes: Optional[Mapping[int, complex]] = None,
 ) -> float:
     """Estimates XEB fidelity from one circuit using logarithmic estimator."""
-    return xeb_fidelity(circuit,
-                        bitstrings,
-                        qubit_order,
-                        amplitudes,
-                        estimator=log_xeb_fidelity_from_probabilities)
+    return xeb_fidelity(
+        circuit, bitstrings, qubit_order, amplitudes, estimator=log_xeb_fidelity_from_probabilities
+    )
 
 
 def least_squares_xeb_fidelity_from_expectations(
-        measured_expectations: Sequence[float],
-        exact_expectations: Sequence[float],
-        uniform_expectations: Sequence[float]) -> Tuple[float, List[float]]:
+    measured_expectations: Sequence[float],
+    exact_expectations: Sequence[float],
+    uniform_expectations: Sequence[float],
+) -> Tuple[float, List[float]]:
     """Least squares fidelity estimator.
 
     An XEB experiment collects data from the execution of random circuits
@@ -285,34 +284,35 @@ def least_squares_xeb_fidelity_from_expectations(
     Raises:
         ValueError: The lengths of the input sequences are not all the same.
     """
-    if not (len(measured_expectations) == len(exact_expectations) ==
-            len(uniform_expectations)):
-        raise ValueError('The lengths of measured_expectations, '
-                         'exact_expectations, and uniform_expectations must '
-                         'all be the same. Got lengths '
-                         f'{len(measured_expectations)}, '
-                         f'{len(exact_expectations)}, and '
-                         f'{len(uniform_expectations)}.')
+    if not (len(measured_expectations) == len(exact_expectations) == len(uniform_expectations)):
+        raise ValueError(
+            'The lengths of measured_expectations, '
+            'exact_expectations, and uniform_expectations must '
+            'all be the same. Got lengths '
+            f'{len(measured_expectations)}, '
+            f'{len(exact_expectations)}, and '
+            f'{len(uniform_expectations)}.'
+        )
     numerator = 0.0
     denominator = 0.0
-    for m, e, u in zip(measured_expectations, exact_expectations,
-                       uniform_expectations):
+    for m, e, u in zip(measured_expectations, exact_expectations, uniform_expectations):
         numerator += (m - u) * (e - u)
-        denominator += (e - u)**2
+        denominator += (e - u) ** 2
     fidelity = numerator / denominator
     residuals = [
-        fidelity * (e - u) - (m - u) for m, e, u in zip(
-            measured_expectations, exact_expectations, uniform_expectations)
+        fidelity * (e - u) - (m - u)
+        for m, e, u in zip(measured_expectations, exact_expectations, uniform_expectations)
     ]
     return fidelity, residuals
 
 
 def least_squares_xeb_fidelity_from_probabilities(
-        hilbert_space_dimension: int,
-        observed_probabilities: Sequence[Sequence[float]],
-        all_probabilities: Sequence[Sequence[float]],
-        observable_from_probability: Optional[Callable[[float], float]] = None,
-        normalize_probabilities: bool = True) -> Tuple[float, List[float]]:
+    hilbert_space_dimension: int,
+    observed_probabilities: Sequence[Sequence[float]],
+    all_probabilities: Sequence[Sequence[float]],
+    observable_from_probability: Optional[Callable[[float], float]] = None,
+    normalize_probabilities: bool = True,
+) -> Tuple[float, List[float]]:
     """Least squares fidelity estimator with observable based on probabilities.
 
     Using the notation from the docstring of
@@ -354,26 +354,21 @@ def least_squares_xeb_fidelity_from_probabilities(
         if observable_from_probability is None:
             observable_from_probability = lambda p: p
         else:
-            observable_from_probability = np.frompyfunc(
-                observable_from_probability, 1, 1)
+            observable_from_probability = np.frompyfunc(observable_from_probability, 1, 1)
     observable_from_probability = cast(Callable, observable_from_probability)
     measured_expectations = []
     exact_expectations = []
     uniform_expectations = []
     prefactor = hilbert_space_dimension if normalize_probabilities else 1.0
-    for observed_probs, all_probs in zip(observed_probabilities,
-                                         all_probabilities):
+    for observed_probs, all_probs in zip(observed_probabilities, all_probabilities):
         observed_probs = np.array(observed_probs)
         all_probs = np.array(all_probs)
-        observable = observable_from_probability(prefactor *
-                                                 cast(np.ndarray, all_probs))
+        observable = observable_from_probability(prefactor * cast(np.ndarray, all_probs))
         measured_expectations.append(
-            np.mean(
-                observable_from_probability(prefactor *
-                                            cast(np.ndarray, observed_probs))))
+            np.mean(observable_from_probability(prefactor * cast(np.ndarray, observed_probs)))
+        )
         exact_expectations.append(np.sum(all_probs * observable))
-        uniform_expectations.append(
-            np.sum(observable) / hilbert_space_dimension)
-    return least_squares_xeb_fidelity_from_expectations(measured_expectations,
-                                                        exact_expectations,
-                                                        uniform_expectations)
+        uniform_expectations.append(np.sum(observable) / hilbert_space_dimension)
+    return least_squares_xeb_fidelity_from_expectations(
+        measured_expectations, exact_expectations, uniform_expectations
+    )

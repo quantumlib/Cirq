@@ -15,8 +15,7 @@
 """A simulator that uses numpy's einsum for sparse matrix operations."""
 
 import collections
-from typing import Dict, Iterator, List, Type, TYPE_CHECKING, DefaultDict, \
-    Tuple, cast, Set
+from typing import Dict, Iterator, List, Type, TYPE_CHECKING, DefaultDict, Tuple, cast, Set
 
 import numpy as np
 
@@ -32,8 +31,9 @@ if TYPE_CHECKING:
     import cirq
 
 
-class Simulator(simulator.SimulatesSamples,
-                state_vector_simulator.SimulatesIntermediateStateVector):
+class Simulator(
+    simulator.SimulatesSamples, state_vector_simulator.SimulatesIntermediateStateVector
+):
     """A sparse matrix state vector simulator that uses numpy.
 
     This simulator can be applied on circuits that are made up of operations
@@ -111,10 +111,12 @@ class Simulator(simulator.SimulatesSamples,
     See `Simulator` for the definitions of the supported methods.
     """
 
-    def __init__(self,
-                 *,
-                 dtype: Type[np.number] = np.complex64,
-                 seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+    def __init__(
+        self,
+        *,
+        dtype: Type[np.number] = np.complex64,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ):
         """A sparse matrix simulator.
 
         Args:
@@ -123,14 +125,13 @@ class Simulator(simulator.SimulatesSamples,
             seed: The random seed to use for this simulator.
         """
         if np.dtype(dtype).kind != 'c':
-            raise ValueError(
-                'dtype must be a complex type but was {}'.format(dtype))
+            raise ValueError('dtype must be a complex type but was {}'.format(dtype))
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
 
-    def _run(self, circuit: circuits.Circuit,
-             param_resolver: study.ParamResolver,
-             repetitions: int) -> Dict[str, np.ndarray]:
+    def _run(
+        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
+    ) -> Dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
@@ -139,13 +140,14 @@ class Simulator(simulator.SimulatesSamples,
 
         # Simulate as many unitary operations as possible before having to
         # repeat work for each sample.
-        unitary_prefix, general_suffix = _split_into_unitary_then_general(
-            resolved_circuit)
+        unitary_prefix, general_suffix = _split_into_unitary_then_general(resolved_circuit)
         step_result = None
-        for step_result in self._base_iterator(circuit=unitary_prefix,
-                                               qubit_order=qubit_order,
-                                               initial_state=0,
-                                               perform_measurements=False):
+        for step_result in self._base_iterator(
+            circuit=unitary_prefix,
+            qubit_order=qubit_order,
+            initial_state=0,
+            perform_measurements=False,
+        ):
             pass
         assert step_result is not None
 
@@ -153,35 +155,37 @@ class Simulator(simulator.SimulatesSamples,
         # basis measurements, we can sample the results more efficiently.
         general_ops = list(general_suffix.all_operations())
         if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
-            return step_result.sample_measurement_ops(measurement_ops=cast(
-                List[ops.GateOperation], general_ops),
-                                                      repetitions=repetitions,
-                                                      seed=self._prng)
+            return step_result.sample_measurement_ops(
+                measurement_ops=cast(List[ops.GateOperation], general_ops),
+                repetitions=repetitions,
+                seed=self._prng,
+            )
 
         qid_shape = protocols.qid_shape(qubit_order)
         intermediate_state = step_result.state_vector().reshape(qid_shape)
-        return self._brute_force_samples(initial_state=intermediate_state,
-                                         circuit=general_suffix,
-                                         repetitions=repetitions,
-                                         qubit_order=qubit_order)
+        return self._brute_force_samples(
+            initial_state=intermediate_state,
+            circuit=general_suffix,
+            repetitions=repetitions,
+            qubit_order=qubit_order,
+        )
 
-    def _brute_force_samples(self, initial_state: np.ndarray,
-                             circuit: circuits.Circuit,
-                             qubit_order: 'cirq.QubitOrderOrList',
-                             repetitions: int) -> Dict[str, np.ndarray]:
+    def _brute_force_samples(
+        self,
+        initial_state: np.ndarray,
+        circuit: circuits.Circuit,
+        qubit_order: 'cirq.QubitOrderOrList',
+        repetitions: int,
+    ) -> Dict[str, np.ndarray]:
         """Repeatedly simulate a circuit in order to produce samples."""
         if repetitions == 0:
-            return {
-                key: np.empty(shape=[0, 1])
-                for key in protocols.measurement_keys(circuit)
-            }
+            return {key: np.empty(shape=[0, 1]) for key in protocols.measurement_keys(circuit)}
 
-        measurements: DefaultDict[str, List[
-            np.ndarray]] = collections.defaultdict(list)
+        measurements: DefaultDict[str, List[np.ndarray]] = collections.defaultdict(list)
         for _ in range(repetitions):
-            all_step_results = self._base_iterator(circuit,
-                                                   initial_state=initial_state,
-                                                   qubit_order=qubit_order)
+            all_step_results = self._base_iterator(
+                circuit, initial_state=initial_state, qubit_order=qubit_order
+            )
 
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
@@ -189,11 +193,11 @@ class Simulator(simulator.SimulatesSamples,
         return {k: np.array(v) for k, v in measurements.items()}
 
     def _simulator_iterator(
-            self,
-            circuit: circuits.Circuit,
-            param_resolver: study.ParamResolver,
-            qubit_order: ops.QubitOrderOrList,
-            initial_state: 'cirq.STATE_VECTOR_LIKE',
+        self,
+        circuit: circuits.Circuit,
+        param_resolver: study.ParamResolver,
+        qubit_order: ops.QubitOrderOrList,
+        initial_state: 'cirq.STATE_VECTOR_LIKE',
     ) -> Iterator:
         """See definition in `cirq.SimulatesIntermediateState`.
 
@@ -207,27 +211,24 @@ class Simulator(simulator.SimulatesSamples,
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         self._check_all_resolved(resolved_circuit)
         actual_initial_state = 0 if initial_state is None else initial_state
-        return self._base_iterator(resolved_circuit,
-                                   qubit_order,
-                                   actual_initial_state,
-                                   perform_measurements=True)
+        return self._base_iterator(
+            resolved_circuit, qubit_order, actual_initial_state, perform_measurements=True
+        )
 
     def _base_iterator(
-            self,
-            circuit: circuits.Circuit,
-            qubit_order: ops.QubitOrderOrList,
-            initial_state: 'cirq.STATE_VECTOR_LIKE',
-            perform_measurements: bool = True,
+        self,
+        circuit: circuits.Circuit,
+        qubit_order: ops.QubitOrderOrList,
+        initial_state: 'cirq.STATE_VECTOR_LIKE',
+        perform_measurements: bool = True,
     ) -> Iterator['SparseSimulatorStep']:
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-                circuit.all_qubits())
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         num_qubits = len(qubits)
         qid_shape = protocols.qid_shape(qubits)
         qubit_map = {q: i for i, q in enumerate(qubits)}
-        state = qis.to_valid_state_vector(initial_state,
-                                          num_qubits,
-                                          qid_shape=qid_shape,
-                                          dtype=self._dtype)
+        state = qis.to_valid_state_vector(
+            initial_state, num_qubits, qid_shape=qid_shape, dtype=self._dtype
+        )
         if len(circuit) == 0:
             yield SparseSimulatorStep(state, {}, qubit_map, self._dtype)
 
@@ -236,37 +237,38 @@ class Simulator(simulator.SimulatesSamples,
             available_buffer=np.empty(qid_shape, dtype=self._dtype),
             axes=[],
             prng=self._prng,
-            log_of_measurement_results={})
+            log_of_measurement_results={},
+        )
 
         for moment in circuit:
             for op in moment:
-                if perform_measurements or not isinstance(
-                        op.gate, ops.MeasurementGate):
-                    sim_state.axes = tuple(
-                        qubit_map[qubit] for qubit in op.qubits)
+                if perform_measurements or not isinstance(op.gate, ops.MeasurementGate):
+                    sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
                     protocols.act_on(op, sim_state)
 
-            yield SparseSimulatorStep(state_vector=sim_state.target_tensor,
-                                      measurements=dict(
-                                          sim_state.log_of_measurement_results),
-                                      qubit_map=qubit_map,
-                                      dtype=self._dtype)
+            yield SparseSimulatorStep(
+                state_vector=sim_state.target_tensor,
+                measurements=dict(sim_state.log_of_measurement_results),
+                qubit_map=qubit_map,
+                dtype=self._dtype,
+            )
             sim_state.log_of_measurement_results.clear()
 
     def _check_all_resolved(self, circuit):
         """Raises if the circuit contains unresolved symbols."""
         if protocols.is_parameterized(circuit):
             unresolved = [
-                op for moment in circuit for op in moment
-                if protocols.is_parameterized(op)
+                op for moment in circuit for op in moment if protocols.is_parameterized(op)
             ]
             raise ValueError(
                 'Circuit contains ops whose symbols were not specified in '
-                'parameter sweep. Ops: {}'.format(unresolved))
+                'parameter sweep. Ops: {}'.format(unresolved)
+            )
 
 
-class SparseSimulatorStep(state_vector.StateVectorMixin,
-                          state_vector_simulator.StateVectorStepResult):
+class SparseSimulatorStep(
+    state_vector.StateVectorMixin, state_vector_simulator.StateVectorStepResult
+):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
     def __init__(self, state_vector, measurements, qubit_map, dtype):
@@ -285,10 +287,10 @@ class SparseSimulatorStep(state_vector.StateVectorMixin,
         size = np.prod(protocols.qid_shape(self), dtype=int)
         self._state_vector = np.reshape(state_vector, size)
 
-    def _simulator_state(self
-                        ) -> state_vector_simulator.StateVectorSimulatorState:
+    def _simulator_state(self) -> state_vector_simulator.StateVectorSimulatorState:
         return state_vector_simulator.StateVectorSimulatorState(
-            qubit_map=self.qubit_map, state_vector=self._state_vector)
+            qubit_map=self.qubit_map, state_vector=self._state_vector
+        )
 
     def state_vector(self, copy: bool = True):
         """Return the state vector at this point in the computation.
@@ -327,28 +329,30 @@ class SparseSimulatorStep(state_vector.StateVectorMixin,
         return vector.copy() if copy else vector
 
     def set_state_vector(self, state: 'cirq.STATE_VECTOR_LIKE'):
-        update_state = qis.to_valid_state_vector(state,
-                                                 len(self.qubit_map),
-                                                 qid_shape=protocols.qid_shape(
-                                                     self, None),
-                                                 dtype=self._dtype)
+        update_state = qis.to_valid_state_vector(
+            state, len(self.qubit_map), qid_shape=protocols.qid_shape(self, None), dtype=self._dtype
+        )
         np.copyto(self._state_vector, update_state)
 
-    def sample(self,
-               qubits: List[ops.Qid],
-               repetitions: int = 1,
-               seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
+    def sample(
+        self,
+        qubits: List[ops.Qid],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
         indices = [self.qubit_map[qubit] for qubit in qubits]
-        return state_vector.sample_state_vector(self._state_vector,
-                                                indices,
-                                                qid_shape=protocols.qid_shape(
-                                                    self, None),
-                                                repetitions=repetitions,
-                                                seed=seed)
+        return state_vector.sample_state_vector(
+            self._state_vector,
+            indices,
+            qid_shape=protocols.qid_shape(self, None),
+            repetitions=repetitions,
+            seed=seed,
+        )
 
 
-def _split_into_unitary_then_general(circuit: 'cirq.Circuit'
-                                    ) -> Tuple['cirq.Circuit', 'cirq.Circuit']:
+def _split_into_unitary_then_general(
+    circuit: 'cirq.Circuit',
+) -> Tuple['cirq.Circuit', 'cirq.Circuit']:
     """Splits the circuit into a unitary prefix and non-unitary suffix.
 
     The splitting happens in a per-qubit fashion. A non-unitary operation on
@@ -365,8 +369,7 @@ def _split_into_unitary_then_general(circuit: 'cirq.Circuit'
         general_part = []
         for op in moment:
             qs = set(op.qubits)
-            if (not protocols.has_unitary(op) or
-                    not qs.isdisjoint(blocked_qubits)):
+            if not protocols.has_unitary(op) or not qs.isdisjoint(blocked_qubits):
                 blocked_qubits |= qs
 
             if qs.isdisjoint(blocked_qubits):

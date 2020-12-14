@@ -15,14 +15,12 @@
 from typing import Any, Dict, Hashable, Iterable, Mapping, Optional
 
 from cirq import devices, ops
-from cirq.contrib.graph_device.graph_device import (UndirectedGraphDevice,
-                                                    UndirectedGraphDeviceEdge)
+from cirq.contrib.graph_device.graph_device import UndirectedGraphDevice, UndirectedGraphDeviceEdge
 from cirq.contrib.graph_device.hypergraph import UndirectedHypergraph
 
 
 def uniform_undirected_graph_device(
-        edges: Iterable[Iterable[ops.Qid]],
-        edge_label: Optional[UndirectedGraphDeviceEdge] = None
+    edges: Iterable[Iterable[ops.Qid]], edge_label: Optional[UndirectedGraphDeviceEdge] = None
 ) -> UndirectedGraphDevice:
     """An undirected graph device all of whose edges are the same.
 
@@ -31,16 +29,13 @@ def uniform_undirected_graph_device(
         edge_label: The label to apply to all edges. Defaults to None.
     """
 
-    labelled_edges: Dict[Iterable[Hashable], Any] = {
-        frozenset(edge): edge_label for edge in edges
-    }
+    labelled_edges: Dict[Iterable[Hashable], Any] = {frozenset(edge): edge_label for edge in edges}
     device_graph = UndirectedHypergraph(labelled_edges=labelled_edges)
     return UndirectedGraphDevice(device_graph=device_graph)
 
 
 def uniform_undirected_linear_device(
-        n_qubits: int,
-        edge_labels: Mapping[int, Optional[UndirectedGraphDeviceEdge]]
+    n_qubits: int, edge_labels: Mapping[int, Optional[UndirectedGraphDeviceEdge]]
 ) -> UndirectedGraphDevice:
     """A uniform , undirected graph device whose qubits are arranged
     on a line.
@@ -57,12 +52,10 @@ def uniform_undirected_linear_device(
     """
 
     if edge_labels and (min(edge_labels) < 1):
-        raise ValueError('edge sizes {} must be at least 1.'.format(
-            tuple(edge_labels.keys())))
+        raise ValueError('edge sizes {} must be at least 1.'.format(tuple(edge_labels.keys())))
 
     device = UndirectedGraphDevice()
     for arity, label in edge_labels.items():
-        edges = (devices.LineQubit.range(i, i + arity)
-                 for i in range(n_qubits - arity + 1))
+        edges = (devices.LineQubit.range(i, i + arity) for i in range(n_qubits - arity + 1))
         device += uniform_undirected_graph_device(edges, label)
     return device

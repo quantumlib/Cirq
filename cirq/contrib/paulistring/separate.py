@@ -19,10 +19,11 @@ from cirq import ops, circuits
 from cirq.contrib.paulistring.convert_gate_set import converted_gate_set
 
 
-def convert_and_separate_circuit(circuit: circuits.Circuit,
-                                 leave_cliffords: bool = True,
-                                 atol: float = 1e-8,
-                                 ) -> Tuple[circuits.Circuit, circuits.Circuit]:
+def convert_and_separate_circuit(
+    circuit: circuits.Circuit,
+    leave_cliffords: bool = True,
+    atol: float = 1e-8,
+) -> Tuple[circuits.Circuit, circuits.Circuit]:
     """Converts any circuit into two circuits where (circuit_left+circuit_right)
     is equivalent to the given circuit.
 
@@ -41,9 +42,7 @@ def convert_and_separate_circuit(circuit: circuits.Circuit,
         It also contains MeasurementGates if the
         given circuit contains measurements.
     """
-    circuit = converted_gate_set(circuit,
-                                 no_clifford_gates=not leave_cliffords,
-                                 atol=atol)
+    circuit = converted_gate_set(circuit, no_clifford_gates=not leave_cliffords, atol=atol)
     return pauli_string_half(circuit), regular_half(circuit)
 
 
@@ -61,10 +60,9 @@ def regular_half(circuit: circuits.Circuit) -> circuits.Circuit:
         circuit contains measurements.
     """
     return circuits.Circuit(
-        ops.Moment(op
-                   for op in moment.operations
-                   if not isinstance(op, ops.PauliStringPhasor))
-        for moment in circuit)
+        ops.Moment(op for op in moment.operations if not isinstance(op, ops.PauliStringPhasor))
+        for moment in circuit
+    )
 
 
 def pauli_string_half(circuit: circuits.Circuit) -> circuits.Circuit:
@@ -78,8 +76,9 @@ def pauli_string_half(circuit: circuits.Circuit) -> circuits.Circuit:
     Returns:
         A Circuit with only PauliStringPhasor operations.
     """
-    return circuits.Circuit(_pull_non_clifford_before(circuit),
-                            strategy=circuits.InsertStrategy.EARLIEST)
+    return circuits.Circuit(
+        _pull_non_clifford_before(circuit), strategy=circuits.InsertStrategy.EARLIEST
+    )
 
 
 def _pull_non_clifford_before(circuit: circuits.Circuit) -> ops.OP_TREE:

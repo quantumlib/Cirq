@@ -22,12 +22,11 @@ from cirq.contrib.quirk.quirk_gate import (
     known_quirk_op_for_operation,
     QuirkOp,
     UNKNOWN_GATE,
-    single_qubit_matrix_gate)
+    single_qubit_matrix_gate,
+)
 
 
-def _try_convert_to_quirk_gate(op: ops.Operation,
-                               prefer_unknown_gate_to_failure: bool
-                               ) -> QuirkOp:
+def _try_convert_to_quirk_gate(op: ops.Operation, prefer_unknown_gate_to_failure: bool) -> QuirkOp:
     quirk_gate = known_quirk_op_for_operation(op)
     if quirk_gate is not None:
         return quirk_gate
@@ -39,9 +38,9 @@ def _try_convert_to_quirk_gate(op: ops.Operation,
     raise TypeError('Unrecognized operation: {!r}'.format(op))
 
 
-def _to_quirk_cols(op: ops.Operation,
-                   prefer_unknown_gate_to_failure: bool
-                   ) -> Iterable[Tuple[List[Any], bool]]:
+def _to_quirk_cols(
+    op: ops.Operation, prefer_unknown_gate_to_failure: bool
+) -> Iterable[Tuple[List[Any], bool]]:
     gate = _try_convert_to_quirk_gate(op, prefer_unknown_gate_to_failure)
     qubits = cast(Iterable[devices.LineQubit], op.qubits)
 
@@ -52,9 +51,9 @@ def _to_quirk_cols(op: ops.Operation,
     yield col, gate.can_merge
 
 
-def circuit_to_quirk_url(circuit: circuits.Circuit,
-                         prefer_unknown_gate_to_failure: bool=False,
-                         escape_url=True) -> str:
+def circuit_to_quirk_url(
+    circuit: circuits.Circuit, prefer_unknown_gate_to_failure: bool = False, escape_url=True
+) -> str:
     """Returns a Quirk URL for the given circuit.
 
     Args:
@@ -81,9 +80,7 @@ def circuit_to_quirk_url(circuit: circuits.Circuit,
     for moment in circuit:
         can_merges = []
         for op in moment.operations:
-            for col, can_merge in _to_quirk_cols(
-                    op,
-                    prefer_unknown_gate_to_failure):
+            for col, can_merge in _to_quirk_cols(op, prefer_unknown_gate_to_failure):
                 if can_merge:
                     can_merges.append(col)
                 else:
@@ -96,9 +93,9 @@ def circuit_to_quirk_url(circuit: circuits.Circuit,
                         merged_col[i] = col[i]
             cols.append(merged_col)
 
-    circuit_json = json.JSONEncoder(ensure_ascii=False,
-                                    separators=(',', ':'),
-                                    sort_keys=True).encode({'cols': cols})
+    circuit_json = json.JSONEncoder(
+        ensure_ascii=False, separators=(',', ':'), sort_keys=True
+    ).encode({'cols': cols})
     if escape_url:
         suffix = urllib.parse.quote(circuit_json)
     else:

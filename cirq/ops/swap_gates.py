@@ -35,8 +35,9 @@ if TYPE_CHECKING:
     import cirq
 
 
-class SwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
-                  gate_features.InterchangeableQubitsGate):
+class SwapPowGate(
+    eigen_gate.EigenGate, gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGate
+):
     """The SWAP gate, possibly raised to a power. Exchanges qubits.
 
     SwapPowGate()**t = SwapPowGate(exponent=t) and acts on two qubits in the
@@ -60,8 +61,9 @@ class SwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
         """See base class."""
         a, b = qubits
         yield common_gates.CNOT(a, b)
-        yield common_gates.CNotPowGate(exponent=self._exponent,
-                                       global_shift=self.global_shift).on(b, a)
+        yield common_gates.CNotPowGate(exponent=self._exponent, global_shift=self.global_shift).on(
+            b, a
+        )
         yield common_gates.CNOT(a, b)
 
     def _eigen_components(self):
@@ -83,8 +85,7 @@ class SwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
-                       ) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if self._exponent != 1:
             return NotImplemented
 
@@ -93,7 +94,7 @@ class SwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
         args.available_buffer[zo] = args.target_tensor[zo]
         args.target_tensor[zo] = args.target_tensor[oz]
         args.target_tensor[oz] = args.available_buffer[zo]
-        p = 1j**(2 * self._exponent * self._global_shift)
+        p = 1j ** (2 * self._exponent * self._global_shift)
         if p != 1:
             args.target_tensor *= p
         return args.target_tensor
@@ -101,38 +102,43 @@ class SwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
-        global_phase = 1j**(2 * self._exponent * self._global_shift)
-        swap_phase = 1j**self._exponent
+        global_phase = 1j ** (2 * self._exponent * self._global_shift)
+        swap_phase = 1j ** self._exponent
         c = -1j * swap_phase * np.sin(np.pi * self._exponent / 2) / 2
-        return value.LinearDict({
-            'II': global_phase * (1 - c),
-            'XX': global_phase * c,
-            'YY': global_phase * c,
-            'ZZ': global_phase * c,
-        })
+        return value.LinearDict(
+            {
+                'II': global_phase * (1 - c),
+                'XX': global_phase * c,
+                'YY': global_phase * c,
+                'ZZ': global_phase * c,
+            }
+        )
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                              ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
         if not args.use_unicode_characters:
             return protocols.CircuitDiagramInfo(
-                wire_symbols=('Swap', 'Swap'),
-                exponent=self._diagram_exponent(args))
+                wire_symbols=('Swap', 'Swap'), exponent=self._diagram_exponent(args)
+            )
         return protocols.CircuitDiagramInfo(
-            wire_symbols=('×', '×'), exponent=self._diagram_exponent(args))
+            wire_symbols=('×', '×'), exponent=self._diagram_exponent(args)
+        )
 
-    def _qasm_(self, args: 'cirq.QasmArgs',
-               qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
         return args.format('swap {0},{1};\n', qubits[0], qubits[1])
 
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
-               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+    def _quil_(
+        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
+    ) -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('SWAP {0} {1}\n', qubits[0], qubits[1])
-        return formatter.format('PSWAP({0}) {1} {2}\n', self._exponent * np.pi,
-                                qubits[0], qubits[1])
+        return formatter.format(
+            'PSWAP({0}) {1} {2}\n', self._exponent * np.pi, qubits[0], qubits[1]
+        )
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -145,13 +151,12 @@ class SwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
             if self._exponent == 1:
                 return 'cirq.SWAP'
             return f'(cirq.SWAP**{e})'
-        return (f'cirq.SwapPowGate(exponent={e}, '
-                f'global_shift={self._global_shift!r})')
+        return f'cirq.SwapPowGate(exponent={e}, global_shift={self._global_shift!r})'
 
 
-class ISwapPowGate(eigen_gate.EigenGate,
-                   gate_features.InterchangeableQubitsGate,
-                   gate_features.TwoQubitGate):
+class ISwapPowGate(
+    eigen_gate.EigenGate, gate_features.InterchangeableQubitsGate, gate_features.TwoQubitGate
+):
     """Rotates the |01⟩ vs |10⟩ subspace of two qubits around its Bloch X-axis.
 
     When exponent=1, swaps the two qubits and phases |01⟩ and |10⟩ by i. More
@@ -200,16 +205,17 @@ class ISwapPowGate(eigen_gate.EigenGate,
         yield common_gates.CNOT(a, b)
         yield common_gates.H(a)
         yield common_gates.CNOT(b, a)
-        yield common_gates.ZPowGate(exponent=self._exponent / 2,
-                                    global_shift=self.global_shift).on(a)
+        yield common_gates.ZPowGate(exponent=self._exponent / 2, global_shift=self.global_shift).on(
+            a
+        )
         yield common_gates.CNOT(b, a)
-        yield common_gates.ZPowGate(exponent=-self._exponent / 2,
-                                    global_shift=-self.global_shift).on(a)
+        yield common_gates.ZPowGate(
+            exponent=-self._exponent / 2, global_shift=-self.global_shift
+        ).on(a)
         yield common_gates.H(a)
         yield common_gates.CNOT(a, b)
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
-                       ) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if self._exponent != 1:
             return NotImplemented
 
@@ -220,7 +226,7 @@ class ISwapPowGate(eigen_gate.EigenGate,
         args.target_tensor[oz] = args.available_buffer[zo]
         args.target_tensor[zo] *= 1j
         args.target_tensor[oz] *= 1j
-        p = 1j**(2 * self._exponent * self._global_shift)
+        p = 1j ** (2 * self._exponent * self._global_shift)
         if p != 1:
             args.target_tensor *= p
         return args.target_tensor
@@ -228,21 +234,24 @@ class ISwapPowGate(eigen_gate.EigenGate,
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
-        global_phase = 1j**(2 * self._exponent * self._global_shift)
+        global_phase = 1j ** (2 * self._exponent * self._global_shift)
         angle = np.pi * self._exponent / 4
         c, s = np.cos(angle), np.sin(angle)
-        return value.LinearDict({
-            'II': global_phase * c * c,
-            'XX': global_phase * c * s * 1j,
-            'YY': global_phase * s * c * 1j,
-            'ZZ': global_phase * s * s,
-        })
+        return value.LinearDict(
+            {
+                'II': global_phase * c * c,
+                'XX': global_phase * c * s * 1j,
+                'YY': global_phase * s * c * 1j,
+                'ZZ': global_phase * s * s,
+            }
+        )
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                              ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
-            wire_symbols=('iSwap', 'iSwap'),
-            exponent=self._diagram_exponent(args))
+            wire_symbols=('iSwap', 'iSwap'), exponent=self._diagram_exponent(args)
+        )
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -255,43 +264,47 @@ class ISwapPowGate(eigen_gate.EigenGate,
             if self._exponent == 1:
                 return 'cirq.ISWAP'
             return f'(cirq.ISWAP**{e})'
-        return (f'cirq.ISwapPowGate(exponent={e}, '
-                f'global_shift={self._global_shift!r})')
+        return f'cirq.ISwapPowGate(exponent={e}, global_shift={self._global_shift!r})'
 
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
-               formatter: 'cirq.QuilFormatter') -> str:
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter') -> str:
         if self._exponent == 1:
             return formatter.format('ISWAP {0} {1}\n', qubits[0], qubits[1])
-        return formatter.format('XY({0}) {1} {2}\n', self._exponent * np.pi,
-                                qubits[0], qubits[1])
+        return formatter.format('XY({0}) {1} {2}\n', self._exponent * np.pi, qubits[0], qubits[1])
 
 
 def riswap(rads: value.TParamVal) -> ISwapPowGate:
     """Returns gate with matrix exp(+i angle_rads (X⊗X + Y⊗Y) / 2)."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
-    return ISwapPowGate()**(2 * rads / pi)
+    return ISwapPowGate() ** (2 * rads / pi)
 
 
 SWAP = SwapPowGate()
 document(
-    SWAP, """The swap gate.
+    SWAP,
+    """The swap gate.
 
     Matrix:
 
+    ```
         [[1, 0, 0, 0],
          [0, 0, 1, 0],
          [0, 1, 0, 0],
          [0, 0, 0, 1]]
-    """)
+    ```
+    """,
+)
 
 ISWAP = ISwapPowGate()
 document(
-    ISWAP, """The iswap gate.
+    ISWAP,
+    """The iswap gate.
 
     Matrix:
-
+    ```
         [[1, 0, 0, 0],
          [0, 0, i, 0],
          [0, i, 0, 0],
          [0, 0, 0, 1]]
-    """)
+    ```
+    """,
+)
