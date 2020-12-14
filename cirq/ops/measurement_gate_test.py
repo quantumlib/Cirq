@@ -344,6 +344,47 @@ def test_act_on_clifford_tableau():
         cirq.act_on(m, args)
 
 
+def test_act_on_stabilizer_ch_form():
+    a, b = cirq.LineQubit.range(2)
+    m = cirq.measure(a, b, key='out', invert_mask=(True,))
+    # The below assertion does not fail since it ignores non-unitary operations
+    cirq.testing.assert_all_implemented_act_on_effects_match_unitary(m)
+
+    with pytest.raises(TypeError, match="Failed to act"):
+        cirq.act_on(m, object())
+
+    args = cirq.ActOnStabilizerCHFormArgs(
+        state=cirq.StabilizerStateChForm(num_qubits=5, initial_state=0),
+        axes=[3, 1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [1, 0]}
+
+    args = cirq.ActOnStabilizerCHFormArgs(
+        state=cirq.StabilizerStateChForm(num_qubits=5, initial_state=8),
+        axes=[3, 1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [1, 1]}
+
+    args = cirq.ActOnStabilizerCHFormArgs(
+        state=cirq.StabilizerStateChForm(num_qubits=5, initial_state=10),
+        axes=[3, 1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [0, 1]}
+
+    with pytest.raises(ValueError, match="already logged to key"):
+        cirq.act_on(m, args)
+
+
 def test_act_on_qutrit():
     a, b = cirq.LineQid.range(2, dimension=3)
     m = cirq.measure(a, b, key='out', invert_mask=(True,))

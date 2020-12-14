@@ -61,7 +61,10 @@ class StabilizerStateChForm:
             big_endian_int_to_digits(initial_state, digit_count=num_qubits, base=2)
         ):
             if val:
-                protocols.act_on(pauli_gates.X, clifford.ActOnStabilizerCHFormArgs(self, [i]))
+                protocols.act_on(
+                    pauli_gates.X,
+                    clifford.ActOnStabilizerCHFormArgs(self, [i], np.random.RandomState(), {}),
+                )
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['n', 'G', 'F', 'M', 'gamma', 'v', 's', 'omega'])
