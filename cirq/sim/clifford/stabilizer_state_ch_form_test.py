@@ -68,6 +68,8 @@ def test_run():
         strategy=cirq.InsertStrategy.NEW,
     )
     # CliffordSimulator uses StabilizerStateChForm internally.
+    # TODO: Use StabilizerStateChForm directly through `act_on` once
+    #  MeasurementGate is updated to use `_measure` from StabilizerStateChForm.
     simulator = cirq.CliffordSimulator()
     result = simulator.run(circuit, repetitions=10)
     assert all(result.measurements['1'] == 1)
