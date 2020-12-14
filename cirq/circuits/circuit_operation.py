@@ -48,11 +48,9 @@ class CircuitOperation(ops.Operation):
         """
         self._circuit: 'cirq.FrozenCircuit' = circuit
         self._repetitions: int = 1
-        self._qubit_map: Dict['cirq.Qid', 'cirq.Qid'] = {q: q for q in circuit.all_qubits()}
-        self._measurement_key_map: Dict[str, str] = {k: k for k in circuit.all_measurement_keys()}
-        self._param_resolver = study.ParamResolver(
-            {p: p for p in protocols.parameter_symbols(circuit)}
-        )
+        self._qubit_map: Dict['cirq.Qid', 'cirq.Qid'] = {}
+        self._measurement_key_map: Dict[str, str] = {}
+        self._param_resolver = study.ParamResolver()
 
     def base_operation(self) -> 'CircuitOperation':
         """Returns a copy of this operation with only the wrapped circuit.
@@ -147,7 +145,7 @@ class CircuitOperation(ops.Operation):
 
     def _decompose_(self) -> 'cirq.OP_TREE':
         result = self.circuit.unfreeze()
-        result = result.transform_qubits(lambda q: self.qubit_map[q])
+        result = result.transform_qubits(lambda q: self.qubit_map.get(q, q))
         if self.repetitions < 0:
             result = result ** -1
         result = protocols.with_measurement_key_mapping(result, self.measurement_key_map)
@@ -159,17 +157,16 @@ class CircuitOperation(ops.Operation):
 
     def __repr__(self):
         result = f'cirq.CircuitOperation({self.circuit!r})'
-        base_op = self.base_operation()
 
         def dict_repr(d: Dict) -> str:
             pairs = [f'    {proper_repr(k)}: {proper_repr(v)},' for k, v in sorted(d.items())]
             return '\n'.join(['{', *pairs, '}'])
 
-        if self.qubit_map != base_op.qubit_map:
+        if self.qubit_map:
             result += f'.with_qubit_mapping({dict_repr(self.qubit_map)})'
-        if self.measurement_key_map != base_op.measurement_key_map:
+        if self.measurement_key_map:
             result += f'.with_measurement_key_mapping({dict_repr(self.measurement_key_map)})'
-        if self.param_resolver != base_op.param_resolver:
+        if self.param_resolver:
             result += f'.with_params({proper_repr(self.param_resolver)})'
         if self.repetitions != 1:
             result += f'.repeat({self.repetitions})'
@@ -184,17 +181,16 @@ class CircuitOperation(ops.Operation):
             ['[ {line:<{width}} ]'.format(line=line, width=msg_width) for line in msg_lines]
         )
         args = []
-        base_op = self.base_operation()
 
         def dict_str(d: Dict) -> str:
             pairs = [f'{k}: {v}' for k, v in sorted(d.items())]
             return '{' + ', '.join(pairs) + '}'
 
-        if self.qubit_map != base_op.qubit_map:
+        if self.qubit_map:
             args.append(f'qubit_map={dict_str(self.qubit_map)}')
-        if self.measurement_key_map != base_op.measurement_key_map:
+        if self.measurement_key_map:
             args.append(f'key_map={dict_str(self.measurement_key_map)}')
-        if self.param_resolver != base_op.param_resolver:
+        if self.param_resolver:
             args.append(f'params={self.param_resolver.param_dict}')
         if self.repetitions != 1:
             args.append(f'loops={self.repetitions}')
@@ -313,7 +309,16 @@ class CircuitOperation(ops.Operation):
             A copy of this operation targeting qubits as indicated by qubit_map.
         """
         new_op = self.copy()
-        new_op._qubit_map = {k: qubit_map.get(v, v) for k, v in new_op.qubit_map.items()}
+        base_map = {q: q for q in self.circuit.all_qubits()}
+        base_map.update(new_op.qubit_map)
+        new_op._qubit_map = {
+            k: qubit_map.get(v, v) for k, v in base_map.items() if k != qubit_map.get(v, v)
+        }
+        if len(set(new_op.qubits)) != len(set(self.qubits)):
+            raise ValueError(
+                f'Collision in qubit map composition. Original map:\n{self.qubit_map}'
+                f'\nApplied changes: {qubit_map}'
+            )
         return new_op
 
     def with_qubits(self, *new_qubits: 'cirq.Qid'):
@@ -348,9 +353,16 @@ class CircuitOperation(ops.Operation):
                 by key_map.
         """
         new_op = self.copy()
+        base_map = {m: m for m in self.circuit.all_measurement_keys()}
+        base_map.update(new_op.measurement_key_map)
         new_op._measurement_key_map = {
-            k: key_map.get(v, v) for k, v in new_op._measurement_key_map.items()
+            k: key_map.get(v, v) for k, v in base_map.items() if k != key_map.get(v, v)
         }
+        if len(new_op._measurement_keys_()) != len(self._measurement_keys_()):
+            raise ValueError(
+                f'Collision in measurement key map composition. Original map:\n'
+                f'{self.measurement_key_map}\nApplied changes: {key_map}'
+            )
         return new_op
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'CircuitOperation':

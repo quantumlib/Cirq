@@ -121,58 +121,7 @@
       }
     },
     "repetitions": 1,
-    "qubit_map": [
-      [
-        {
-          "cirq_type": "LineQubit",
-          "x": 0
-        },
-        {
-          "cirq_type": "LineQubit",
-          "x": 0
-        }
-      ],
-      [
-        {
-          "cirq_type": "LineQubit",
-          "x": 1
-        },
-        {
-          "cirq_type": "LineQubit",
-          "x": 1
-        }
-      ],
-      [
-        {
-          "cirq_type": "LineQubit",
-          "x": 2
-        },
-        {
-          "cirq_type": "LineQubit",
-          "x": 2
-        }
-      ],
-      [
-        {
-          "cirq_type": "LineQubit",
-          "x": 3
-        },
-        {
-          "cirq_type": "LineQubit",
-          "x": 3
-        }
-      ],
-      [
-        {
-          "cirq_type": "LineQubit",
-          "x": 4
-        },
-        {
-          "cirq_type": "LineQubit",
-          "x": 4
-        }
-      ]
-    ],
+    "qubit_map": [],
     "measurement_key_map": {
       "0,1,2,3,4": "mixed_state"
     },
@@ -262,18 +211,7 @@
       }
     },
     "repetitions": 1,
-    "qubit_map": [
-      [
-        {
-          "cirq_type": "LineQubit",
-          "x": 0
-        },
-        {
-          "cirq_type": "LineQubit",
-          "x": 0
-        }
-      ]
-    ],
+    "qubit_map": [],
     "measurement_key_map": {},
     "param_resolver": {
       "cirq_type": "ParamResolver",

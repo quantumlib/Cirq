@@ -29,9 +29,9 @@ def test_properties():
     op = cirq.CircuitOperation(circuit)
     assert op.circuit is circuit
     assert op.qubits == (a, b, c)
-    assert op.qubit_map == {a: a, b: b, c: c}
-    assert op.measurement_key_map == {'m': 'm'}
-    assert op.param_resolver == cirq.ParamResolver({sympy.Symbol('exp'): sympy.Symbol('exp')})
+    assert op.qubit_map == {}
+    assert op.measurement_key_map == {}
+    assert op.param_resolver == cirq.ParamResolver()
     assert op.repetitions == 1
     # Despite having the same decomposition, these objects are not equal.
     assert op != circuit
@@ -48,8 +48,14 @@ def test_with_qubits():
     assert op_with_qubits.qubit_map == {a: d, b: c}
 
     assert op_base.with_qubit_mapping({a: d, b: c, d: a}) == op_with_qubits
+
+    # with_qubits must receive the same number of qubits as the circuit contains.
     with pytest.raises(ValueError):
         _ = op_base.with_qubits(c, d, b)
+
+    # Two qubits cannot be mapped onto the same target qubit.
+    with pytest.raises(ValueError):
+        _ = op_base.with_qubit_mapping({a: b})
 
 
 def test_with_measurement_keys():
@@ -63,10 +69,14 @@ def test_with_measurement_keys():
 
     op_with_keys = op_base.with_measurement_key_mapping({'ma': 'pa', 'x': 'z'})
     assert op_with_keys.base_operation() == op_base
-    assert op_with_keys.measurement_key_map == {'ma': 'pa', 'mb': 'mb'}
+    assert op_with_keys.measurement_key_map == {'ma': 'pa'}
     assert cirq.measurement_keys(op_with_keys) == {'pa', 'mb'}
 
     assert cirq.with_measurement_key_mapping(op_base, {'ma': 'pa'}) == op_with_keys
+
+    # Two measurement keys cannot be mapped onto the same target string.
+    with pytest.raises(ValueError):
+        _ = op_base.with_measurement_key_mapping({'ma': 'mb'})
 
 
 def test_with_params():
@@ -89,7 +99,6 @@ def test_with_params():
         {
             z_exp: 2,
             x_exp: theta,
-            delta: delta,
             sympy.Symbol('k'): sympy.Symbol('phi'),
         }
     )
@@ -237,7 +246,7 @@ cirq.CircuitOperation(cirq.FrozenCircuit([
 {op2.circuit.serialization_key()}:
 [ 0: ───X───X───          ]
 [           │             ]
-[ 1: ───H───@───          ](qubit_map={{0: 0, 1: 2}}, loops=3)"""
+[ 1: ───H───@───          ](qubit_map={{1: 2}}, loops=3)"""
     )
     assert (
         repr(op2)
@@ -251,7 +260,6 @@ cirq.CircuitOperation(cirq.FrozenCircuit([
         cirq.CNOT(cirq.LineQubit(1), cirq.LineQubit(0)),
     ),
 ])).with_qubit_mapping({
-    cirq.LineQubit(0): cirq.LineQubit(0),
     cirq.LineQubit(1): cirq.LineQubit(2),
 }).repeat(3)"""
     )
