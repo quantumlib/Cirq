@@ -18,7 +18,7 @@ applied as part of a larger circuit, a CircuitOperation will execute all
 component operations in order, including any nested CircuitOperations.
 """
 
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING, AbstractSet, Dict, List, Tuple, Union
 
 import numpy as np
 
@@ -27,6 +27,9 @@ from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
     import cirq
+
+
+INT_TYPE = Union[int, np.integer]
 
 
 class CircuitOperation(ops.Operation):
@@ -72,9 +75,6 @@ class CircuitOperation(ops.Operation):
         """The FrozenCircuit wrapped by this operation."""
         return self._circuit
 
-    def _num_qubits_(self) -> int:
-        return len(self.circuit.all_qubits())
-
     @property
     def repetitions(self) -> int:
         """The number of times this operation will repeat its circuit.
@@ -111,7 +111,7 @@ class CircuitOperation(ops.Operation):
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, type(self)):
-            return False
+            return NotImplemented
         return (
             self.circuit == other.circuit
             and self.qubit_map == other.qubit_map
@@ -131,12 +131,12 @@ class CircuitOperation(ops.Operation):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return tuple(q.dimension for q in self.qubits)
 
-    def _measurement_keys_(self):
+    def _measurement_keys_(self) -> AbstractSet[str]:
         return {
             self.measurement_key_map.get(key, key) for key in self.circuit.all_measurement_keys()
         }
 
-    def _parameter_names_(self):
+    def _parameter_names_(self) -> AbstractSet[str]:
         return {
             name
             for symbol in protocols.parameter_symbols(self.circuit)
@@ -158,28 +158,26 @@ class CircuitOperation(ops.Operation):
     # Methods for string representation of the operation.
 
     def __repr__(self):
-        base_repr = f'cirq.CircuitOperation({self.circuit!r})'
+        result = f'cirq.CircuitOperation({self.circuit!r})'
         base_op = self.base_operation()
 
         def dict_repr(d: Dict) -> str:
             pairs = [f'    {proper_repr(k)}: {proper_repr(v)},' for k, v in sorted(d.items())]
-            return '\n'.join(['{'] + pairs + ['}'])
+            return '\n'.join(['{', *pairs, '}'])
 
         if self.qubit_map != base_op.qubit_map:
-            base_repr += f'.with_qubit_mapping({dict_repr(self.qubit_map)})'
+            result += f'.with_qubit_mapping({dict_repr(self.qubit_map)})'
         if self.measurement_key_map != base_op.measurement_key_map:
-            base_repr += (
-                '.with_measurement_key_mapping(' + f'{dict_repr(self.measurement_key_map)})'
-            )
+            result += f'.with_measurement_key_mapping({dict_repr(self.measurement_key_map)})'
         if self.param_resolver != base_op.param_resolver:
-            base_repr += f'.with_params({proper_repr(self.param_resolver)})'
+            result += f'.with_params({proper_repr(self.param_resolver)})'
         if self.repetitions != 1:
-            base_repr += f'.repeat({self.repetitions})'
-        return base_repr
+            result += f'.repeat({self.repetitions})'
+        return result
 
     def __str__(self):
         # TODO: support out-of-line subcircuit definition in string format.
-        header = self.circuit.serialization_key()
+        header = self.circuit.serialization_key() + ':'
         msg_lines = str(self.circuit).split('\n')
         msg_width = max([len(header) - 4] + [len(line) for line in msg_lines])
         circuit_msg = '\n'.join(
@@ -254,8 +252,8 @@ class CircuitOperation(ops.Operation):
 
     def repeat(
         self,
-        repetitions: int,
-        modulus: int = 0,
+        repetitions: INT_TYPE,
+        modulus: INT_TYPE = 0,
         allow_invert: bool = False,
         validate_modulus: bool = False,
     ) -> 'CircuitOperation':
@@ -284,8 +282,9 @@ class CircuitOperation(ops.Operation):
             ValueError: `validate_modulus` was set to True, but raising this
                 operation to `modulus` does not produce the identity.
         """
-        if not isinstance(repetitions, int):
+        if not isinstance(repetitions, (int, np.integer)):
             raise TypeError('Only integer repetitions are allowed.')
+        repetitions = int(repetitions)
         if protocols.is_measurement(self.circuit):
             raise NotImplementedError('Loops over measurements are not supported.')
         new_op = self.copy()
@@ -372,9 +371,8 @@ class CircuitOperation(ops.Operation):
                 by param_values.
         """
         new_op = self.copy()
-        resolver = study.ParamResolver(param_values)
         new_op._param_resolver = protocols.resolve_parameters(
-            self.param_resolver, resolver, recursive
+            self.param_resolver, param_values, recursive
         )
         return new_op
 

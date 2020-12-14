@@ -90,7 +90,10 @@ class FrozenCircuit(AbstractCircuit):
 
     def serialization_key(self):
         # TODO: use this key in serialization and support user-specified keys.
-        return f'Circuit_{hash(self) % int(1e6):06d}:'
+        key = hash(self)
+        if key < 0:
+            key += 1 << 64
+        return f'Circuit_0x{key:016x}'
 
     # Memoized methods for commonly-retrieved properties.
 

@@ -196,8 +196,8 @@ def test_string_format():
     assert (
         str(op0)
         == f"""\
-Circuit_{hash(op0.circuit) % int(1e6):06d}:
-[             ]"""
+{op0.circuit.serialization_key()}:
+[                         ]"""
     )
 
     fc1 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, z), cirq.measure(x, y, z, key='m'))
@@ -205,7 +205,7 @@ Circuit_{hash(op0.circuit) % int(1e6):06d}:
     assert (
         str(op1)
         == f"""\
-Circuit_{hash(op1.circuit) % int(1e6):06d}:
+{op1.circuit.serialization_key()}:
 [ 0: ───X───────M('m')─── ]
 [               │         ]
 [ 1: ───H───@───M──────── ]
@@ -234,10 +234,10 @@ cirq.CircuitOperation(cirq.FrozenCircuit([
     assert (
         str(op2)
         == f"""\
-Circuit_{hash(op2.circuit) % int(1e6):06d}:
-[ 0: ───X───X─── ]
-[           │    ]
-[ 1: ───H───@─── ](qubit_map={{0: 0, 1: 2}}, loops=3)"""
+{op2.circuit.serialization_key()}:
+[ 0: ───X───X───          ]
+[           │             ]
+[ 1: ───H───@───          ](qubit_map={{0: 0, 1: 2}}, loops=3)"""
     )
     assert (
         repr(op2)
@@ -269,8 +269,8 @@ cirq.CircuitOperation(cirq.FrozenCircuit([
     assert (
         str(op3)
         == f"""\
-Circuit_{hash(op3.circuit) % int(1e6):06d}:
-[ 0: ───X^b───M('m')─── ](qubit_map={{0: 1}}, \
+{op3.circuit.serialization_key()}:
+[ 0: ───X^b───M('m')───   ](qubit_map={{0: 1}}, \
 key_map={{m: p}}, params={{b: 2}})"""
     )
     assert (
