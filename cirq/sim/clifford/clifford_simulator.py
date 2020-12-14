@@ -248,10 +248,12 @@ class CliffordSimulatorStepResult(simulator.StepResult):
         measurements = {}  # type: Dict[str, List[np.ndarray]]
 
         for i in range(repetitions):
-            self.state.apply_measurement(cirq.measure(*qubits, key=str(i)),
-                                         measurements,
-                                         value.parse_random_state(seed),
-                                         collapse_state_vector=False)
+            self.state.apply_measurement(
+                cirq.measure(*qubits, key=str(i)),
+                measurements,
+                value.parse_random_state(seed),
+                collapse_state_vector=False,
+            )
 
         return np.array(list(measurements.values()), dtype=bool)
 
@@ -345,11 +347,13 @@ class CliffordState:
             )  # type: ignore
         return
 
-    def apply_measurement(self,
-                          op: 'cirq.Operation',
-                          measurements: Dict[str, List[np.ndarray]],
-                          prng: np.random.RandomState,
-                          collapse_state_vector=True):
+    def apply_measurement(
+        self,
+        op: 'cirq.Operation',
+        measurements: Dict[str, List[np.ndarray]],
+        prng: np.random.RandomState,
+        collapse_state_vector=True,
+    ):
         if collapse_state_vector:
             state = self
         else:
@@ -358,8 +362,7 @@ class CliffordState:
         key = cirq.measurement_key(op)
         qids = [self.qubit_map[i] for i in op.qubits]
 
-        args = clifford.ActOnCliffordTableauArgs(state.tableau, qids, prng,
-                                                 measurements)
+        args = clifford.ActOnCliffordTableauArgs(state.tableau, qids, prng, measurements)
         act_on(op, args)
 
         for i, qid in enumerate(qids):
