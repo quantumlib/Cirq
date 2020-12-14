@@ -255,6 +255,7 @@ class StabilizerStateChForm:
             if v_i == 1:
                 w[i] = bool(prng.randint(2))
         x_i = sum(w & self.G[q, :]) % 2
+        # Project the state to the above measurement outcome.
         self.project_Z(q, x_i)
         return x_i
 
