@@ -35,6 +35,20 @@ class PhasedFSimParameters:
     gamma: Optional[float] = None
     phi: Optional[float] = None
 
+    def all_none(self) -> bool:
+        return (self.theta is None and
+                self.zeta is None and
+                self.chi is None and
+                self.gamma is None and
+                self.phi is None)
+
+    def any_none(self) -> bool:
+        return (self.theta is None or
+                self.zeta is None or
+                self.chi is None or
+                self.gamma is None or
+                self.phi is None)
+
     def for_qubits_swapped(self) -> 'PhasedFSimParameters':
         """Parameters for the gate with qubits swapped between each other.
 

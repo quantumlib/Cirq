@@ -90,7 +90,11 @@ class PhasedFSimEngineSimulator(SimulatesSamples):
                 phi=rand.gauss(mean.phi, sigma.phi)
             )
 
-        # TODO: Check if all values of mean and sigma are filled-in.
+        if mean.any_none():
+            raise ValueError(f'All mean values must be provided, got {mean=}')
+
+        if sigma.any_none():
+            raise ValueError(f'All sigma values must be provided, got {sigma=}')
 
         if rand is not None:
             if isinstance(rand, int):
