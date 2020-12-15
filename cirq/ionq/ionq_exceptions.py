@@ -19,8 +19,7 @@ class IonQException(Exception):
     """An exception for errors coming from IonQ's API.
 
     Attributes:
-        status_code: A http status code, if coming from an http response
-            with a failing status.
+        status_code: A http status code, if coming from an http response with a failing status.
     """
 
     def __init__(self, message, status_code: int = None):
@@ -38,8 +37,9 @@ class IonQNotFoundException(IonQException):
 class IonQUnsuccessfulJobException(IonQException):
     """An exception for attempting to get info about an unsuccessful job.
 
-    This exception occurs when a job has been canceled, deleted, or failed,
-    and information about this job is attempted to be accessed."""
+    This exception occurs when a job has been canceled, deleted, or failed, and information about
+    this job is attempted to be accessed.
+    """
 
     def __init__(self, job_id: str, status: str):
         super().__init__(f'Job {job_id} was {status}.')
