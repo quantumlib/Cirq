@@ -113,7 +113,7 @@ fi
 # Once that is fixed upstream, we can just do:
 # black "${args[@]}" ${format_files}
 # exit $?
-LOGS="$(black "${args[@]}" ${format_files} 2>&1)"
+LOGS="$(python3 -m black "${args[@]}" ${format_files} 2>&1)"
 STATUS=$?
 echo "${LOGS}"
 if [[ "$STATUS" == "123" && "$LOGS" =~ ^.*"INTERNAL ERROR: Black produced different code on the second pass of the formatter.".*$ ]]; then
