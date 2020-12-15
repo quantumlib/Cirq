@@ -56,7 +56,10 @@ def test_with_qubits():
             return c
         return qubit
 
-    assert op_base.with_qubit_mapping(transform=map_fn) == op_with_qubits
+    fn_op = op_base.with_qubit_mapping(transform=map_fn)
+    assert fn_op == op_with_qubits
+    # map_fn does not affect qubits c and d.
+    assert fn_op.with_qubit_mapping(transform=map_fn) == op_with_qubits
 
     # with_qubits must receive the same number of qubits as the circuit contains.
     with pytest.raises(ValueError, match='Expected 2 qubits, got 3'):
