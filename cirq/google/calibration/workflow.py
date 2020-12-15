@@ -16,16 +16,13 @@ from cirq.google.calibration.engine_simulator import (
 from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
+    IncompatibleMomentError,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     sqrt_iswap_gates_translator
 )
 from cirq.google.engine import Engine
 from cirq.google.serializable_gate_set import SerializableGateSet
-
-
-class IncompatibleMomentError(Exception):
-    pass
 
 
 def floquet_characterization_for_moment(
