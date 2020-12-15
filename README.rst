@@ -30,7 +30,7 @@ Documentation for the latest **stable** version of cirq (what you get if you ``p
 
 - `Installation <https://quantumai.google/cirq/install>`_
 - `Documentation <https://quantumai.google/cirq>`_
-- `Tutorials <https://https://quantumai.google/cirq/tutorials>`_
+- `Tutorials <https://quantumai.google/cirq/tutorials>`_
 
 For the latest news regarding Cirq, sign up to the `Cirq-announce email list <https://groups.google.com/forum/#!forum/cirq-announce>`__!
 
