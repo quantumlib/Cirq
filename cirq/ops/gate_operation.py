@@ -170,15 +170,12 @@ class GateOperation(raw_types.Operation):
     def _commutes_(
         self, other: Any, atol: Union[int, float] = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
-
+        
         commutes = self.gate._commutes_on_qids_(self.qubits, other, atol=atol)
         if commutes is not NotImplemented:
             return commutes
 
-        getter = getattr(super(), '_commutes_', None)
-        if getter is not None:
-            return super()._commutes_(other, atol=atol)
-        return NotImplemented  # coverage: ignore
+        return super()._commutes_(other, atol=atol)
 
     def _has_mixture_(self) -> bool:
         getter = getattr(self.gate, '_has_mixture_', None)
