@@ -169,6 +169,10 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         )
 
 
+class IncompatibleMomentError(Exception):
+    pass
+
+
 def sqrt_iswap_gates_translator(gate: Gate) -> Optional[FSimGate]:
     if isinstance(gate, FSimGate):
         if not np.isclose(gate.phi, 0.0):
