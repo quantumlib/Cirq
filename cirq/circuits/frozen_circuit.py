@@ -174,3 +174,8 @@ class FrozenCircuit(AbstractCircuit):
         self, param_resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'FrozenCircuit':
         return self.unfreeze()._resolve_parameters_(param_resolver, recursive).freeze()
+
+    def to_op(self):
+        """Creates a CircuitOperation wrapping this circuit."""
+        from cirq.circuits import CircuitOperation
+        return CircuitOperation(self)
