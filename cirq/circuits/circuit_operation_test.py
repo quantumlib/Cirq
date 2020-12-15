@@ -133,38 +133,6 @@ def test_repetition():
     assert op_with_reps.repetitions == 3
 
 
-def test_with_circuit():
-    a, b, c, d = cirq.LineQubit.range(4)
-    exp = sympy.Symbol('exp')
-    theta = sympy.Symbol('theta')
-    base_circuit = cirq.FrozenCircuit(
-        cirq.X(a),
-        cirq.Y(b),
-        cirq.H(c),
-        cirq.CX(a, b) ** exp,
-        cirq.measure(a, b, c, key='m'),
-    )
-    op_base = (
-        cirq.CircuitOperation(base_circuit)
-        .with_qubits(d, a, c)
-        .with_measurement_key_mapping({'m': 'p'})
-        .with_params({exp: theta})
-    )
-
-    new_circuit = cirq.FrozenCircuit(
-        cirq.H(a),
-        cirq.H(b),
-        cirq.H(c),
-        cirq.CCZ(a, b, c) ** exp,
-        cirq.measure(c, key='m'),
-    )
-    new_op = op_base.with_circuit(new_circuit)
-    assert new_op.qubit_map == op_base.qubit_map
-    assert new_op.measurement_key_map == op_base.measurement_key_map
-    assert new_op.param_resolver == op_base.param_resolver
-    assert new_op.repetitions == op_base.repetitions
-
-
 def test_repeat_measurement_fails():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.FrozenCircuit(
@@ -175,11 +143,6 @@ def test_repeat_measurement_fails():
     op = cirq.CircuitOperation(circuit)
     with pytest.raises(NotImplementedError):
         _ = op.repeat(3)
-
-    rep_circuit = cirq.FrozenCircuit(cirq.H(a), cirq.CX(a, b))
-    rep_op = cirq.CircuitOperation(rep_circuit).repeat(3)
-    with pytest.raises(NotImplementedError):
-        _ = rep_op.with_circuit(circuit)
 
 
 def test_qid_shape():
@@ -210,7 +173,7 @@ def test_string_format():
     )
 
     fc1 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, z), cirq.measure(x, y, z, key='m'))
-    op1 = cirq.CircuitOperation(fc1).with_qubits(x, y, z)
+    op1 = cirq.CircuitOperation(fc1)
     assert (
         str(op1)
         == f"""\
@@ -224,7 +187,7 @@ def test_string_format():
     assert (
         repr(op1)
         == f"""\
-cirq.CircuitOperation(cirq.FrozenCircuit([
+cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
     cirq.Moment(
         cirq.X(cirq.LineQubit(0)),
         cirq.H(cirq.LineQubit(1)),
@@ -239,7 +202,7 @@ cirq.CircuitOperation(cirq.FrozenCircuit([
     )
 
     fc2 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, x))
-    op2 = cirq.CircuitOperation(fc2).with_qubits(x, z).repeat(3)
+    op2 = cirq.CircuitOperation(circuit=fc2, qubit_map=({y: z}), repetitions=3)
     assert (
         str(op2)
         == f"""\
@@ -251,7 +214,7 @@ cirq.CircuitOperation(cirq.FrozenCircuit([
     assert (
         repr(op2)
         == """\
-cirq.CircuitOperation(cirq.FrozenCircuit([
+cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
     cirq.Moment(
         cirq.X(cirq.LineQubit(0)),
         cirq.H(cirq.LineQubit(1)),
@@ -259,20 +222,20 @@ cirq.CircuitOperation(cirq.FrozenCircuit([
     cirq.Moment(
         cirq.CNOT(cirq.LineQubit(1), cirq.LineQubit(0)),
     ),
-])).with_qubit_mapping({
-    cirq.LineQubit(1): cirq.LineQubit(2),
-}).repeat(3)"""
+]),
+repetitions=3,
+qubit_map={cirq.LineQubit(1): cirq.LineQubit(2)})"""
     )
 
     fc3 = cirq.FrozenCircuit(
         cirq.X(x) ** sympy.Symbol('b'),
         cirq.measure(x, key='m'),
     )
-    op3 = (
-        cirq.CircuitOperation(fc3)
-        .with_qubits(y)
-        .with_measurement_key_mapping({'m': 'p'})
-        .with_params({sympy.Symbol('b'): 2})
+    op3 = cirq.CircuitOperation(
+        circuit=fc3,
+        qubit_map={x: y},
+        measurement_key_map={'m': 'p'},
+        param_resolver={sympy.Symbol('b'): 2},
     )
     assert (
         str(op3)
@@ -284,11 +247,10 @@ key_map={{m: p}}, params={{b: 2}})"""
     assert (
         repr(op3)
         == f"""\
-cirq.CircuitOperation({fc3!r}).with_qubit_mapping({{
-    cirq.LineQubit(0): cirq.LineQubit(1),
-}}).with_measurement_key_mapping({{
-    'm': 'p',
-}}).with_params(cirq.ParamResolver({{sympy.Symbol('b'): 2}}))"""
+cirq.CircuitOperation(circuit={fc3!r},
+qubit_map={{cirq.LineQubit(0): cirq.LineQubit(1)}},
+measurement_key_map={{'m': 'p'}},
+param_resolver=cirq.ParamResolver({{sympy.Symbol('b'): 2}}))"""
     )
 
 
@@ -301,11 +263,11 @@ def test_json_dict():
         cirq.CX(a, b) ** sympy.Symbol('exp'),
         cirq.measure(a, b, c, key='m'),
     )
-    op = (
-        cirq.CircuitOperation(circuit)
-        .with_qubit_mapping({c: b, b: c})
-        .with_measurement_key_mapping({'m': 'p'})
-        .with_params({'exp': 'theta'})
+    op = cirq.CircuitOperation(
+        circuit=circuit,
+        qubit_map={c: b, b: c},
+        measurement_key_map={'m': 'p'},
+        param_resolver={'exp': 'theta'},
     )
 
     assert op._json_dict_() == {
@@ -380,15 +342,15 @@ def test_decompose_applies_maps():
         cirq.CX(a, b) ** exp,
         cirq.measure(a, b, c, key='m'),
     )
-    op = cirq.CircuitOperation(circuit)
-    op = op.with_qubit_mapping(
-        {
+    op = cirq.CircuitOperation(
+        circuit=circuit,
+        qubit_map={
             c: b,
             b: c,
-        }
+        },
+        measurement_key_map={'m': 'p'},
+        param_resolver={exp: theta},
     )
-    op = op.with_measurement_key_mapping({'m': 'p'})
-    op = op.with_params({exp: theta})
 
     expected_circuit = cirq.Circuit(
         cirq.X(a),

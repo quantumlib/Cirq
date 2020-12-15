@@ -18,8 +18,9 @@ applied as part of a larger circuit, a CircuitOperation will execute all
 component operations in order, including any nested CircuitOperations.
 """
 
-from typing import TYPE_CHECKING, AbstractSet, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, AbstractSet, Dict, List, Optional, Tuple, Union
 
+import dataclasses
 import numpy as np
 
 from cirq import linalg, ops, protocols, study
@@ -32,6 +33,7 @@ if TYPE_CHECKING:
 INT_TYPE = Union[int, np.integer]
 
 
+@dataclasses.dataclass(frozen=True)
 class CircuitOperation(ops.Operation):
     """An operation that encapsulates a circuit.
 
@@ -40,72 +42,42 @@ class CircuitOperation(ops.Operation):
     GateOperation, this type is immutable.
     """
 
-    def __init__(self, circuit: 'cirq.FrozenCircuit') -> None:
-        """Constructs a gate that wraps a circuit.
+    circuit: 'cirq.FrozenCircuit'
+    repetitions: int = 1
+    qubit_map: Dict['cirq.Qid', 'cirq.Qid'] = dataclasses.field(default_factory=dict)
+    measurement_key_map: Dict[str, str] = dataclasses.field(default_factory=dict)
+    param_resolver: study.ParamResolver = study.ParamResolver()
 
-        Args:
-            circuit: The FrozenCircuit encapsulated by this operation.
-        """
-        self._circuit: 'cirq.FrozenCircuit' = circuit
-        self._repetitions: int = 1
-        self._qubit_map: Dict['cirq.Qid', 'cirq.Qid'] = {}
-        self._measurement_key_map: Dict[str, str] = {}
-        self._param_resolver = study.ParamResolver()
+    def __post_init__(self):
+        # Ensure that param_resolver is converted to an actual ParamResolver.
+        object.__setattr__(self, 'param_resolver', study.ParamResolver(self.param_resolver))
 
     def base_operation(self) -> 'CircuitOperation':
         """Returns a copy of this operation with only the wrapped circuit.
 
         Key mappings, parameter values, and repetitions are not copied.
         """
-        return CircuitOperation(self._circuit)
+        return CircuitOperation(self.circuit)
 
-    def copy(self) -> 'CircuitOperation':
-        """Returns a copy of this operation with the same circuit object."""
-        new_op = self.base_operation()
-        new_op._qubit_map = self.qubit_map.copy()
-        new_op._measurement_key_map = self.measurement_key_map.copy()
-        new_op._param_resolver = self.param_resolver
-        new_op._repetitions = self.repetitions
-        return new_op
-
-    @property
-    def circuit(self) -> 'cirq.FrozenCircuit':
-        """The FrozenCircuit wrapped by this operation."""
-        return self._circuit
-
-    @property
-    def repetitions(self) -> int:
-        """The number of times this operation will repeat its circuit.
-
-        May be negative if the circuit should be inverted.
-        """
-        return self._repetitions
-
-    @property
-    def qubit_map(self) -> Dict['cirq.Qid', 'cirq.Qid']:
-        """The deferred qubit mapping for this operation's circuit."""
-        return self._qubit_map
-
-    @property
-    def measurement_key_map(self) -> Dict[str, str]:
-        """The deferred measurement key mapping for this operation's circuit.
-
-        The keys of this map correspond to measurement keys as they are defined
-        in the "inner" circuit (self.circuit) while the values are the keys
-        reported to the "outer" circuit (the circuit containing this operation).
-        """
-        return self._measurement_key_map
-
-    @property
-    def param_resolver(self) -> study.ParamResolver:
-        """The deferred parameter values for this operation's circuit.
-
-        The keys of this map correspond to parameters as they are defined in
-        the "inner" circuit (self.circuit) while the values are parameters
-        (or values) used when applying this operation as part of a larger
-        circuit.
-        """
-        return self._param_resolver
+    def updated_copy(
+        self,
+        *,
+        circuit: Optional['cirq.FrozenCircuit'] = None,
+        repetitions: Optional[int] = None,
+        qubit_map: Optional[Dict['cirq.Qid', 'cirq.Qid']] = None,
+        measurement_key_map: Optional[Dict[str, str]] = None,
+        param_resolver: Optional[study.ParamResolver] = None,
+    ):
+        """Returns a copy of this operation with the specified fields updated."""
+        return CircuitOperation(
+            circuit=self.circuit if circuit is None else circuit,
+            repetitions=self.repetitions if repetitions is None else repetitions,
+            qubit_map=self.qubit_map if qubit_map is None else qubit_map,
+            measurement_key_map=self.measurement_key_map
+            if measurement_key_map is None
+            else measurement_key_map,
+            param_resolver=self.param_resolver if param_resolver is None else param_resolver,
+        )
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, type(self)):
@@ -124,7 +96,7 @@ class CircuitOperation(ops.Operation):
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         """Returns the qubits operated on by this object."""
         ordered_qubits = ops.QubitOrder.DEFAULT.order_for(self.circuit.all_qubits())
-        return tuple(self._qubit_map.get(q, q) for q in ordered_qubits)
+        return tuple(self.qubit_map.get(q, q) for q in ordered_qubits)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return tuple(q.dimension for q in self.qubits)
@@ -156,21 +128,17 @@ class CircuitOperation(ops.Operation):
     # Methods for string representation of the operation.
 
     def __repr__(self):
-        result = f'cirq.CircuitOperation({self.circuit!r})'
-
-        def dict_repr(d: Dict) -> str:
-            pairs = [f'    {proper_repr(k)}: {proper_repr(v)},' for k, v in sorted(d.items())]
-            return '\n'.join(['{', *pairs, '}'])
-
-        if self.qubit_map:
-            result += f'.with_qubit_mapping({dict_repr(self.qubit_map)})'
-        if self.measurement_key_map:
-            result += f'.with_measurement_key_mapping({dict_repr(self.measurement_key_map)})'
-        if self.param_resolver:
-            result += f'.with_params({proper_repr(self.param_resolver)})'
+        args = [f'circuit={self.circuit!r}']
         if self.repetitions != 1:
-            result += f'.repeat({self.repetitions})'
-        return result
+            args.append(f'repetitions={self.repetitions}')
+        if self.qubit_map:
+            args.append(f'qubit_map={proper_repr(self.qubit_map)}')
+        if self.measurement_key_map:
+            args.append(f'measurement_key_map={proper_repr(self.measurement_key_map)}')
+        if self.param_resolver:
+            args.append(f'param_resolver={proper_repr(self.param_resolver)}')
+        argstr = ",\n".join(args)  # no backslashes allowed in fstring braces
+        return f'cirq.CircuitOperation({argstr})'
 
     def __str__(self):
         # TODO: support out-of-line subcircuit definition in string format.
@@ -226,26 +194,6 @@ class CircuitOperation(ops.Operation):
 
     # Methods for constructing a similar object with one field modified.
 
-    def with_circuit(self, new_circuit: 'cirq.AbstractCircuit') -> 'CircuitOperation':
-        """Returns a copy of this operation with the provided circuit.
-
-        Args:
-            new_circuit: The circuit to pack into a copy of this operation.
-                Key mappings, parameter values, and repetitions are preserved.
-
-        Returns:
-            A copy of this operation wrapping the provided circuit.
-
-        Raises:
-            NotImplementedError: The new circuit contains measurements, but
-                this operation has repetitions.
-        """
-        if protocols.is_measurement(new_circuit) and self._repetitions != 1:
-            raise NotImplementedError('Measurements cannot be added to looped circuits.')
-        new_op = self.copy()
-        new_op._circuit = new_circuit.freeze()
-        return new_op
-
     def repeat(
         self,
         repetitions: INT_TYPE,
@@ -283,17 +231,16 @@ class CircuitOperation(ops.Operation):
         repetitions = int(repetitions)
         if protocols.is_measurement(self.circuit):
             raise NotImplementedError('Loops over measurements are not supported.')
-        new_op = self.copy()
-        new_op._repetitions *= repetitions
+        new_reps = self.repetitions * repetitions
         if modulus:
             if validate_modulus and not linalg.allclose_up_to_global_phase(
                 protocols.unitary(self.circuit * modulus), np.eye(np.prod(self.circuit.qid_shape()))
             ):
                 raise ValueError('Raising the circuit to "modulus" must produce the identity.')
-            new_op._repetitions %= modulus
-            if allow_invert and new_op._repetitions > modulus // 2:
-                new_op._repetitions -= modulus
-        return new_op
+            new_reps %= modulus
+            if allow_invert and new_reps > modulus // 2:
+                new_reps -= modulus
+        return self.updated_copy(repetitions=new_reps)
 
     def __pow__(self, power: int) -> 'CircuitOperation':
         return self.repeat(power)
@@ -308,12 +255,10 @@ class CircuitOperation(ops.Operation):
         Returns:
             A copy of this operation targeting qubits as indicated by qubit_map.
         """
-        new_op = self.copy()
         base_map = {q: q for q in self.circuit.all_qubits()}
-        base_map.update(new_op.qubit_map)
-        new_op._qubit_map = {
-            k: qubit_map.get(v, v) for k, v in base_map.items() if k != qubit_map.get(v, v)
-        }
+        base_map.update(self.qubit_map)
+        new_map = {k: qubit_map.get(v, v) for k, v in base_map.items() if k != qubit_map.get(v, v)}
+        new_op = self.updated_copy(qubit_map=new_map)
         if len(set(new_op.qubits)) != len(set(self.qubits)):
             raise ValueError(
                 f'Collision in qubit map composition. Original map:\n{self.qubit_map}'
@@ -336,8 +281,8 @@ class CircuitOperation(ops.Operation):
             ValueError: `new_qubits` has a different number of qubits than
                 this operation.
         """
-        if len(new_qubits) != protocols.num_qubits(self.circuit):
-            expected = protocols.num_qubits(self.circuit)
+        expected = protocols.num_qubits(self.circuit)
+        if len(new_qubits) != expected:
             raise ValueError(f'Expected {expected} qubits, got {len(new_qubits)}.')
         return self.with_qubit_mapping(dict(zip(self.qubits, new_qubits)))
 
@@ -352,12 +297,10 @@ class CircuitOperation(ops.Operation):
             A copy of this operation with measurement keys updated as specified
                 by key_map.
         """
-        new_op = self.copy()
         base_map = {m: m for m in self.circuit.all_measurement_keys()}
-        base_map.update(new_op.measurement_key_map)
-        new_op._measurement_key_map = {
-            k: key_map.get(v, v) for k, v in base_map.items() if k != key_map.get(v, v)
-        }
+        base_map.update(self.measurement_key_map)
+        new_map = {k: key_map.get(v, v) for k, v in base_map.items() if k != key_map.get(v, v)}
+        new_op = self.updated_copy(measurement_key_map=new_map)
         if len(new_op._measurement_keys_()) != len(self._measurement_keys_()):
             raise ValueError(
                 f'Collision in measurement key map composition. Original map:\n'
@@ -382,11 +325,8 @@ class CircuitOperation(ops.Operation):
             A copy of this operation with its ParamResolver updated as specified
                 by param_values.
         """
-        new_op = self.copy()
-        new_op._param_resolver = protocols.resolve_parameters(
-            self.param_resolver, param_values, recursive
-        )
-        return new_op
+        new_resolver = protocols.resolve_parameters(self.param_resolver, param_values, recursive)
+        return self.updated_copy(param_resolver=new_resolver)
 
     def _resolve_parameters_(
         self, param_resolver: 'cirq.ParamResolver', recursive: bool
