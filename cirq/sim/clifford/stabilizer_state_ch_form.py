@@ -243,6 +243,22 @@ class StabilizerStateChForm:
 
         return arr
 
+    def _measure(self, q, prng: np.random.RandomState) -> int:
+        """Measures the q'th qubit.
+
+        Reference: Section 4.1 "Simulating measurements"
+
+        Returns: Computational basis measurement as 0 or 1.
+        """
+        w = self.s.copy()
+        for i, v_i in enumerate(self.v):
+            if v_i == 1:
+                w[i] = bool(prng.randint(2))
+        x_i = sum(w & self.G[q, :]) % 2
+        # Project the state to the above measurement outcome.
+        self.project_Z(q, x_i)
+        return x_i
+
     def project_Z(self, q, z):
         """Applies a Z projector on the q'th qubit.
 
