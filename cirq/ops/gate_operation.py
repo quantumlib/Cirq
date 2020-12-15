@@ -170,7 +170,6 @@ class GateOperation(raw_types.Operation):
     def _commutes_(
         self, other: Any, atol: Union[int, float] = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
-
         commutes = self.gate._commutes_on_qids_(self.qubits, other, atol=atol)
         if commutes is not NotImplemented:
             return commutes
