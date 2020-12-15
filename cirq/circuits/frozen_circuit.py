@@ -178,4 +178,5 @@ class FrozenCircuit(AbstractCircuit):
     def to_op(self):
         """Creates a CircuitOperation wrapping this circuit."""
         from cirq.circuits import CircuitOperation
+
         return CircuitOperation(self)
