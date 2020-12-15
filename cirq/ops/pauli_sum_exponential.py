@@ -43,7 +43,10 @@ class PauliSumExponential:
     """
 
     def __init__(
-        self, pauli_sum_like: 'cirq.PauliSumLike', exponent: Union[int, float, sympy.Basic] = 1
+        self,
+        pauli_sum_like: 'cirq.PauliSumLike',
+        exponent: Union[int, float, sympy.Basic] = 1,
+        atol: float = 1e-8,
     ):
         pauli_sum = linear_combinations.PauliSum.wrap(pauli_sum_like)
         if not _all_pauli_strings_commute(pauli_sum):
@@ -51,11 +54,11 @@ class PauliSumExponential:
         self._multiplier = None
         for pauli_string in pauli_sum:
             coeff = pauli_string.coefficient
-            curr_multiplier = -1j if abs(coeff.imag) > 1e-8 else 1.0
+            curr_multiplier = -1j if abs(coeff.imag) > atol else 1.0
             if not self._multiplier:
                 self._multiplier = curr_multiplier
             if (
-                abs(coeff.real) > 1e-8 and abs(coeff.imag) > 1e-8
+                abs(coeff.real) > atol and abs(coeff.imag) > atol
             ) or curr_multiplier != self._multiplier:
                 raise ValueError(
                     pauli_sum, "PauliSum should be either hermitian or anti-hermitian."
