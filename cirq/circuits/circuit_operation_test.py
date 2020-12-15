@@ -49,13 +49,31 @@ def test_with_qubits():
 
     assert op_base.with_qubit_mapping({a: d, b: c, d: a}) == op_with_qubits
 
+    def map_fn(qubit: 'cirq.Qid') -> 'cirq.Qid':
+        if qubit == a:
+            return d
+        if qubit == b:
+            return c
+        return qubit
+
+    assert op_base.with_qubit_mapping(transform=map_fn) == op_with_qubits
+
     # with_qubits must receive the same number of qubits as the circuit contains.
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='Expected 2 qubits, got 3'):
         _ = op_base.with_qubits(c, d, b)
 
     # Two qubits cannot be mapped onto the same target qubit.
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='Collision in qubit map'):
         _ = op_base.with_qubit_mapping({a: b})
+
+    # Two qubits cannot be transformed into the same target qubit.
+    with pytest.raises(ValueError, match='Collision in qubit map'):
+        _ = op_base.with_qubit_mapping(transform=lambda q: b)
+    # with_qubit_mapping requires exactly one argument.
+    with pytest.raises(ValueError, match='with_qubit_mapping requires one'):
+        _ = op_base.with_qubit_mapping()
+    with pytest.raises(ValueError, match='with_qubit_mapping received both'):
+        _ = op_base.with_qubit_mapping({a: b}, map_fn)
 
 
 def test_with_measurement_keys():

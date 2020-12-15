@@ -18,7 +18,7 @@ applied as part of a larger circuit, a CircuitOperation will execute all
 component operations in order, including any nested CircuitOperations.
 """
 
-from typing import TYPE_CHECKING, AbstractSet, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, AbstractSet, Callable, Dict, List, Optional, Tuple, Union
 
 import dataclasses
 import numpy as np
@@ -40,6 +40,13 @@ class CircuitOperation(ops.Operation):
     This class captures modifications to the contained circuit, such as tags
     and loops, to support more condensed serialization. Similar to
     GateOperation, this type is immutable.
+
+    Args:
+        circuit: The FrozenCircuit wrapped by this operation.
+        repetitions: How many times the circuit should be repeated.
+        qubit_map: Remappings for qubits in the circuit.
+        measurement_key_map: Remappings for measurement keys in the circuit.
+        param_resolver: Resolved values for parameters in the circuit.
     """
 
     circuit: 'cirq.FrozenCircuit'
@@ -55,7 +62,7 @@ class CircuitOperation(ops.Operation):
     def base_operation(self) -> 'CircuitOperation':
         """Returns a copy of this operation with only the wrapped circuit.
 
-        Key mappings, parameter values, and repetitions are not copied.
+        Key and qubit mappings, parameter values, and repetitions are not copied.
         """
         return CircuitOperation(self.circuit)
 
@@ -245,24 +252,48 @@ class CircuitOperation(ops.Operation):
     def __pow__(self, power: int) -> 'CircuitOperation':
         return self.repeat(power)
 
-    def with_qubit_mapping(self, qubit_map: Dict['cirq.Qid', 'cirq.Qid']) -> 'CircuitOperation':
+    def with_qubit_mapping(
+        self,
+        qubit_map: Optional[Dict['cirq.Qid', 'cirq.Qid']] = None,
+        transform: Optional[Callable[['cirq.Qid'], 'cirq.Qid']] = None,
+    ) -> 'CircuitOperation':
         """Returns a copy of this operation with an updated qubit mapping.
+
+        Users should pass either 'qubit_map' or 'transform' to this method.
 
         Args:
             qubit_map: A mapping of old qubits to new qubits. This map will be
                 composed with any existing qubit mapping.
+            transform: A function mapping old qubits to new qubits. This
+                function will be composed with any existing qubit mapping.
 
         Returns:
             A copy of this operation targeting qubits as indicated by qubit_map.
+
+        Raises:
+            ValueError: The new operation has a different number of qubits than
+                this operation, or the wrong number of arguments were provided
+                (should be exactly one).
         """
+        if transform is None:
+            if qubit_map is None:
+                raise ValueError('with_qubit_mapping requires one of {qubit_map, transform}.')
+            else:
+                transform = lambda q: qubit_map.get(q, q)  # type: ignore
+        elif qubit_map is not None:
+            raise ValueError('with_qubit_mapping received both of {qubit_map, transform}.')
         base_map = {q: q for q in self.circuit.all_qubits()}
         base_map.update(self.qubit_map)
-        new_map = {k: qubit_map.get(v, v) for k, v in base_map.items() if k != qubit_map.get(v, v)}
+        new_map = {}
+        for k, v in base_map.items():
+            new_v = transform(v)
+            if k != new_v:
+                new_map[k] = new_v
         new_op = self.updated_copy(qubit_map=new_map)
         if len(set(new_op.qubits)) != len(set(self.qubits)):
             raise ValueError(
                 f'Collision in qubit map composition. Original map:\n{self.qubit_map}'
-                f'\nApplied changes: {qubit_map}'
+                f'\nMap after changes: {new_op.qubit_map}'
             )
         return new_op
 
@@ -296,6 +327,10 @@ class CircuitOperation(ops.Operation):
         Returns:
             A copy of this operation with measurement keys updated as specified
                 by key_map.
+
+        Raises:
+            ValueError: The new operation has a different number of measurement
+                keys than this operation.
         """
         base_map = {m: m for m in self.circuit.all_measurement_keys()}
         base_map.update(self.measurement_key_map)
