@@ -408,9 +408,19 @@ class CirqEncoder(json.JSONEncoder):
         return super().default(o)  # coverage: ignore
 
 
-def _cirq_object_hook(d, resolvers: Sequence[JsonResolver]):
+def _cirq_object_hook(d, resolvers: Sequence[JsonResolver], context_map: Dict[str, Any]):
     if 'cirq_type' not in d:
         return d
+
+    if d['cirq_type'] == '_SerializedKey':
+        return _SerializedKey.read_from_context(context_map, **d)
+
+    if d['cirq_type'] == '_SerializedContext':
+        _SerializedContext.update_context(context_map, **d)
+        return None
+
+    if d['cirq_type'] == '_ContextualSerialization':
+        return _ContextualSerialization.deserialize_with_context(**d)
 
     for resolver in resolvers:
         cls = resolver(d['cirq_type'])
@@ -427,6 +437,142 @@ def _cirq_object_hook(d, resolvers: Sequence[JsonResolver]):
 
     del d['cirq_type']
     return cls(**d)
+
+
+class SerializableByKey(SupportsJSON):
+    """Protocol for objects that can be serialized to a key + context."""
+
+    @doc_private
+    def _serialization_key_(self) -> str:
+        """Returns a unique string identifier for this object.
+
+        This should only return the same value for two objects if they are
+        equal; otherwise, an error will occur if both are serialized into the
+        same JSON string.
+        """
+
+
+class _SerializedKey(SupportsJSON):
+    """Internal object for holding a SerializableByKey key.
+
+    This is a private type used in contextual serialization. Its deserialization
+    is context-dependent, and is not expected to match the original; in other
+    words, `cls._from_json_dict_(obj._json_dict_())` does not return
+    the original `obj` for this type.
+    """
+
+    def __init__(self, obj: SerializableByKey):
+        self.key = obj._serialization_key_()
+
+    def _json_dict_(self):
+        return obj_to_dict_helper(self, ['key'])
+
+    @classmethod
+    def _from_json_dict_(cls, **kwargs):
+        raise TypeError(f'Internal error: {cls} should never deserialize with _from_json_dict_.')
+
+    @classmethod
+    def read_from_context(cls, context_map, key, **kwargs):
+        return context_map[key]
+
+
+class _SerializedContext(SupportsJSON):
+    """Internal object for a single SerializableByKey key-to-object mapping.
+
+    This is a private type used in contextual serialization. Its deserialization
+    is context-dependent, and is not expected to match the original; in other
+    words, `cls._from_json_dict_(obj._json_dict_())` does not return
+    the original `obj` for this type.
+    """
+
+    def __init__(self, obj: SerializableByKey):
+        self.key = obj._serialization_key_()
+        self.obj = obj
+
+    def _json_dict_(self):
+        return obj_to_dict_helper(self, ['key', 'obj'])
+
+    @classmethod
+    def _from_json_dict_(cls, **kwargs):
+        raise TypeError(f'Internal error: {cls} should never deserialize with _from_json_dict_.')
+
+    @classmethod
+    def update_context(cls, context_map, key, obj, **kwargs):
+        context_map.update({key: obj})
+
+
+class _ContextualSerialization(SupportsJSON):
+    """Internal object for serializing an object with its context.
+
+    This is a private type used in contextual serialization. Its deserialization
+    is context-dependent, and is not expected to match the original; in other
+    words, `cls._from_json_dict_(obj._json_dict_())` does not return
+    the original `obj` for this type.
+    """
+
+    def __init__(self, obj: Any):
+        # Context information and the wrapped object are stored together in
+        # `object_dag` to ensure consistent serialization ordering.
+        self.object_dag = []
+        context_keys = set()
+        for sbk in get_serializable_by_keys(obj):
+            new_sc = _SerializedContext(sbk)
+            if new_sc.key not in context_keys:
+                self.object_dag.append(new_sc)
+                context_keys.add(new_sc.key)
+        self.object_dag += [obj]
+
+    def _json_dict_(self):
+        return obj_to_dict_helper(self, ['object_dag'])
+
+    @classmethod
+    def _from_json_dict_(cls, **kwargs):
+        raise TypeError(f'Internal error: {cls} should never deserialize with _from_json_dict_.')
+
+    @classmethod
+    def deserialize_with_context(cls, object_dag, **kwargs):
+        # The last element of object_dag is the object to be deserialized.
+        return object_dag[-1]
+
+
+def has_serializable_by_keys(obj: Any) -> bool:
+    """Returns true if obj contains one or more SerializableByKey objects."""
+    if hasattr(obj, '_serialization_key_'):
+        return True
+    json_dict = getattr(obj, '_json_dict_', lambda: None)()
+    if isinstance(json_dict, Dict):
+        return any(has_serializable_by_keys(v) for v in json_dict.values())
+
+    # Handle primitive container types.
+    if isinstance(obj, Dict):
+        return any(has_serializable_by_keys(elem) for pair in obj.items() for elem in pair)
+    if hasattr(obj, '__iter__') and not isinstance(obj, str):
+        return any(has_serializable_by_keys(elem) for elem in obj)
+    return False
+
+
+def get_serializable_by_keys(obj: Any) -> List[SerializableByKey]:
+    """Returns all SerializableByKeys contained by obj.
+
+    Objects are ordered such that nested objects appear before the object they
+    are nested inside. This is required to ensure
+    """
+    result = []
+    if hasattr(obj, '_serialization_key_'):
+        result.append(obj)
+    json_dict = getattr(obj, '_json_dict_', lambda: None)()
+    if isinstance(json_dict, Dict):
+        for v in json_dict.values():
+            result = get_serializable_by_keys(v) + result
+    if result:
+        return result
+
+    # Handle primitive container types.
+    if isinstance(obj, Dict):
+        return [sbk for pair in obj.items() for sbk in get_serializable_by_keys(pair)]
+    if hasattr(obj, '__iter__') and not isinstance(obj, str):
+        return [sbk for v in obj for sbk in get_serializable_by_keys(v)]
+    return []
 
 
 # pylint: disable=function-redefined
@@ -468,6 +614,32 @@ def to_json(
             party classes, prefer adding the _json_dict_ magic method
             to your classes rather than overriding this default.
     """
+    if has_serializable_by_keys(obj):
+
+        class ContextualEncoder(cls):  # type: ignore
+            """An encoder with a context map for concise serialization."""
+
+            # This map is populated gradually during serialization. An object
+            # with components defined in this map will represent those
+            # components using their keys instead of inline definition.
+            context_map: Dict[str, 'SerializableByKey'] = {}
+
+            def default(self, o):
+                skey = getattr(o, '_serialization_key_', lambda: None)()
+                if skey in ContextualEncoder.context_map:
+                    if ContextualEncoder.context_map[skey] == o._json_dict_():
+                        return _SerializedKey(o)._json_dict_()
+                    raise ValueError(
+                        'Found different objects with the same serialization key:'
+                        f'\n{ContextualEncoder.context_map[skey]}\n{o}'
+                    )
+                if skey is not None:
+                    ContextualEncoder.context_map[skey] = o._json_dict_()
+                return super().default(o)
+
+        obj = _ContextualSerialization(obj)
+        cls = ContextualEncoder
+
     if file_or_fn is None:
         return json.dumps(obj, indent=indent, cls=cls)
 
@@ -513,8 +685,10 @@ def read_json(
     if resolvers is None:
         resolvers = DEFAULT_RESOLVERS
 
+    context_map: Dict[str, 'SerializableByKey'] = {}
+
     def obj_hook(x):
-        return _cirq_object_hook(x, resolvers)
+        return _cirq_object_hook(x, resolvers, context_map)
 
     if json_text is not None:
         return json.loads(json_text, object_hook=obj_hook)

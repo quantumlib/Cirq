@@ -14,9 +14,15 @@
 
 import collections
 
-from typing import Dict, Counter, Optional, Sequence
+from typing import Dict, Counter, Optional, Sequence, TYPE_CHECKING
 
+import numpy as np
+
+from cirq import study, value
 from cirq.value import digits
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class QPUResult:
@@ -28,6 +34,7 @@ class QPUResult:
         self._counts = counts
         self._num_qubits = num_qubits
         self._measurement_dict = measurement_dict
+        self._repetitions = sum(self._counts.values())
 
     def num_qubits(self) -> int:
         """Returns the number of qubits the circuit was run on."""
@@ -35,7 +42,7 @@ class QPUResult:
 
     def repetitions(self) -> int:
         """Returns the number of times the circuit was run."""
-        return sum(self._counts.values())
+        return self._repetitions
 
     def counts(self, key: Optional[str] = None) -> Counter[int]:
         """Returns the raw counts of the measurement results.
@@ -76,6 +83,41 @@ class QPUResult:
         """Returns a map from measurement keys to target qubit indices for this measurement."""
         return self._measurement_dict
 
+    def to_cirq_result(
+        self,
+        params: Optional[study.ParamResolver] = None,
+    ) -> study.Result:
+        """Returns a `cirq.Result` for these results.
+
+        `cirq.Result` contains a less dense representation of results than that returned by
+        the IonQ API.  Typically these results are also ordered by when they were run, though
+        that contract is implicit.  Because the IonQ API does not retain that ordering information,
+        the order of these `cirq.Result` objects should *not* be interpetted as representing the
+        order in which the circuit was repeated.
+
+        Args:
+            params: The `cirq.ParamResolver` used to generate these results.
+
+        Returns:
+            The `cirq.Result` for these results.
+
+        Raises:
+            ValueError: If the circuit used to produce this result had no measurement gates
+                (and hence no measurement keys).
+        """
+        if len(self.measurement_dict()) == 0:
+            raise ValueError(
+                'Can convert to cirq results only if the circuit had measurement gates '
+                'with measurement keys.'
+            )
+        measurements = {}
+        for key, targets in self.measurement_dict().items():
+            qpu_results = list(self.counts(key).elements())
+            measurements[key] = np.array(
+                list(digits.big_endian_int_to_bits(x, bit_count=len(targets)) for x in qpu_results)
+            )
+        return study.Result(params=params or study.ParamResolver({}), measurements=measurements)
+
     def __eq__(self, other):
         if not isinstance(other, QPUResult):
             return NotImplemented
@@ -83,17 +125,13 @@ class QPUResult:
             self._counts == other._counts
             and self._num_qubits == other._num_qubits
             and self._measurement_dict == other._measurement_dict
+            and self._repetitions == other._repetitions
         )
 
     def __str__(self) -> str:
         return _pretty_str_dict(self._counts, self._num_qubits)
 
-    # TODO: Convert his to cirq result objects.
-    # https://github.com/quantumlib/Cirq/issues/3479
 
-
-# TODO: Implement the sampler interface.
-# https://github.com/quantumlib/Cirq/issues/3479
 class SimulatorResult:
     """The results of running on an IonQ simulator.
 
@@ -106,14 +144,24 @@ class SimulatorResult:
         probabilities: Dict[int, float],
         num_qubits: int,
         measurement_dict: Dict[str, Sequence[int]],
+        repetitions: int,
     ):
         self._probabilities = probabilities
         self._num_qubits = num_qubits
         self._measurement_dict = measurement_dict
+        self._repetitions = repetitions
 
     def num_qubits(self) -> int:
         """Returns the number of qubits the circuit was run on."""
         return self._num_qubits
+
+    def repetitions(self) -> int:
+        """Returns the number of times the circuit was run.
+
+        For IonQ API simulations this is used when generating `cirq.Result`s from `to_cirq_result`.
+        The sampling is not done on the IonQ API but is done in `to_cirq_result`.
+        """
+        return self._repetitions
 
     def probabilities(self, key: Optional[str] = None) -> Dict[int, float]:
         """Returns the probabilities of the measurement results.
@@ -157,6 +205,56 @@ class SimulatorResult:
         """Returns a map from measurement keys to target qubit indices for this measurement."""
         return self._measurement_dict
 
+    def to_cirq_result(
+        self,
+        params: study.ParamResolver = None,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        override_repetitions=None,
+    ) -> study.Result:
+        """Samples from the simulation probability result, producing a `cirq.Result`.
+
+        The IonQ simulator returns the probabilities of different bitstrings. This converts such
+        a representation to a randomly generated sample from the simulator. Note that it does this
+        on every subsequent call of this method, so repeated calls do not produce the same
+        `cirq.Result`s. When a job was created by the IonQ API, it had a number of repetitions and
+        this is used, unless `override_repetitions` is set here.
+
+        Args:
+            params: Any parameters which were used to generated this result.
+            seed: What to use for generating the randomness. If None, then `np.random` is used.
+                If an integer, `np.random.RandomState(seed) is used. Otherwise if another
+                randomness generator is used, it will be used.
+            override_repetitions: Repetitions were supplied when the IonQ API ran the simulation,
+                but different repetitions can be supplied here and will override.
+
+        Returns:
+            A `cirq.Result` corresponding to a sample from the probability distribution returned
+            from the simulator.
+
+        Raises:
+            ValueError: If the circuit used to produce this result had no measurement gates
+                (and hence no measurement keys).
+        """
+        if len(self.measurement_dict()) == 0:
+            raise ValueError(
+                'Can convert to cirq results only if the circuit had measurement gates '
+                'with measurement keys.'
+            )
+        rand = value.parse_random_state(seed)
+        measurements = {}
+        values, weights = zip(*list(self.probabilities().items()))
+        indices = rand.choice(
+            range(len(values)), p=weights, size=override_repetitions or self.repetitions()
+        )
+        rand_values = np.array(values)[indices]
+        for key, targets in self.measurement_dict().items():
+            bits = [
+                [(value >> (self.num_qubits() - target - 1)) & 1 for target in targets]
+                for value in rand_values
+            ]
+            measurements[key] = bits
+        return study.Result(params=params or study.ParamResolver({}), measurements=measurements)
+
     def __eq__(self, other):
         if not isinstance(other, SimulatorResult):
             return NotImplemented
@@ -164,6 +262,7 @@ class SimulatorResult:
             self._probabilities == other._probabilities
             and self._num_qubits == other._num_qubits
             and self._measurement_dict == other._measurement_dict
+            and self._repetitions == other._repetitions
         )
 
     def __str__(self) -> str:

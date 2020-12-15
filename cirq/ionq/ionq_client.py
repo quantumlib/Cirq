@@ -15,7 +15,7 @@
 import sys
 import time
 import urllib
-from typing import Any, Callable, cast, Dict, Optional, TYPE_CHECKING
+from typing import Any, Callable, cast, Dict, List, Optional, TYPE_CHECKING
 import requests
 
 from cirq.ionq import ionq_exceptions
@@ -162,8 +162,9 @@ class _IonQClient:
         Args:
             serialized_program: The `cirq.ionq.SerializedProgram` containing the serialized
                 information about the circuit to run.
-            repetitions: The number of times to repeat the circuit. Only can be set if the target
-                is `qpu`. If not specified and target is `qpu`, number of repetitions is 100.
+            repetitions: The number of times to repeat the circuit. For simulation the repeated
+                sampling is not done on the server, but is passed as metadata to be recovered
+                from the returned job.
             target: If supplied the target to run on. Supports one of `qpu` or `simulator`. If not
                 set, uses `default_target`.
             name: An optional name of the job. Different than the `job_id` of the job.
@@ -176,13 +177,6 @@ class _IonQClient:
             An IonQException if the request fails.
         """
         actual_target = self._target(target)
-        assert (
-            actual_target != 'qpu' or repetitions is not None
-        ), 'If the target is qpu, repetitions must be specified.'
-        assert actual_target != 'simulator' or repetitions is None, (
-            'If the target is simulator, repetitions should not be specified as the simulator is '
-            'a full wavefunction simulator.'
-        )
 
         json: Dict[str, Any] = {
             'target': actual_target,
@@ -193,17 +187,18 @@ class _IonQClient:
             json['name'] = name
         # We have to pass measurement keys through the metadata.
         json['metadata'] = serialized_program.metadata
-        if repetitions:
-            # API does not return number of shots, only histogram of
-            # percentages, so we set it as metadata.
-            json['metadata']['shots'] = str(repetitions)
+
+        # Shots are ignored by simulator, but pass them anyway.
+        json['shots'] = str(repetitions)
+        # API does not return number of shots so pass this through as metadata.
+        json['metadata']['shots'] = str(repetitions)
 
         def request():
             return requests.post(f'{self.url}/jobs', json=json, headers=self.headers)
 
         return self._make_request(request).json()
 
-    def get_job(self, job_id: str):
+    def get_job(self, job_id: str) -> dict:
         """Get the job from the IonQ API.
 
         Args:
@@ -222,7 +217,45 @@ class _IonQClient:
 
         return self._make_request(request).json()
 
-    def cancel_job(self, job_id: str):
+    def list_jobs(
+        self, status: Optional[str] = None, limit: int = 100, batch_size: int = 1000
+    ) -> List[Dict[str, Any]]:
+        """Lists jos from the IonQ API.
+
+        Args:
+            status: If not None, filter to jobs with this status.
+            limit: The maximum number of jobs to return.
+            batch_size: The size of the batches requested per http GET call.
+
+        Returns:
+            A list of the json bodies of the job dicts.
+
+        Raises:
+            IonQException: If the API call fails.
+        """
+        json = {'limit': batch_size}
+        token: Optional[str] = None
+        jobs: List[Dict[str, Any]] = []
+        while True and len(jobs) < limit:
+            params = {}
+            if status:
+                params['status'] = status
+            if token:
+                params['next'] = token
+
+            def request():
+                return requests.get(
+                    f'{self.url}/jobs', headers=self.headers, json=json, params=params
+                )
+
+            response = self._make_request(request).json()
+            jobs.extend(response['jobs'])
+            if 'next' not in response:
+                break
+            token = response['next']
+        return jobs[:limit]
+
+    def cancel_job(self, job_id: str) -> dict:
         """Cancel a job on the IonQ API.
 
         Args:
@@ -240,7 +273,7 @@ class _IonQClient:
 
         return self._make_request(request).json()
 
-    def delete_job(self, job_id: str):
+    def delete_job(self, job_id: str) -> dict:
         """Permanently delete the job on the IonQ API.
 
         Args:
@@ -252,5 +285,16 @@ class _IonQClient:
 
         def request():
             return requests.delete(f'{self.url}/jobs/{job_id}', headers=self.headers)
+
+        return self._make_request(request).json()
+
+    def get_current_calibration(self) -> dict:
+        """Returns the current calibration as an `cirq.ionq.Calibration` object.
+
+        Currently returns the current calibration for the only target `qpu`.
+        """
+
+        def request():
+            return requests.get(f'{self.url}/calibrations/current', headers=self.headers)
 
         return self._make_request(request).json()

@@ -160,7 +160,7 @@ def test_approx_eq():
 
 def test_str_repr():
     assert str(cirq.PhasedXPowGate(phase_exponent=0.25)) == 'PhX(0.25)'
-    assert str(cirq.PhasedXPowGate(phase_exponent=0.25, exponent=0.5)) == 'PhX(0.25)^0.5'
+    assert str(cirq.PhasedXPowGate(phase_exponent=0.25, exponent=0.5)) == 'PhX(0.25)**0.5'
     assert repr(
         cirq.PhasedXPowGate(phase_exponent=0.25, exponent=4, global_shift=0.125)
         == 'cirq.PhasedXPowGate(phase_exponent=0.25, '
