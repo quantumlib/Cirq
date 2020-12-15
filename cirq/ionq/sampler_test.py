@@ -72,7 +72,6 @@ def test_sampler_simulator():
 
 def test_sampler_multiple_jobs():
     mock_service = mock.MagicMock()
-    mock_client = mock.MagicMock()
     job_dict0 = {
         'id': '1',
         'status': 'completed',
