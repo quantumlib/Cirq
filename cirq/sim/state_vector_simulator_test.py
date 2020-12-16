@@ -142,7 +142,7 @@ def test_str_big():
         {},
         cirq.StateVectorSimulatorState(np.array([1] * 2 ** 10), {q: q.x for q in qs}),
     )
-    assert str(result).startswith('measurements: (no measurements)\n' 'output vector: [1 1 1 ..')
+    assert str(result).startswith('measurements: (no measurements)\noutput vector: [1 1 1 ..')
 
 
 def test_pretty_print():

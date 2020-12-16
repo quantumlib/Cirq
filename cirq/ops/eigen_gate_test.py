@@ -123,7 +123,7 @@ def test_approx_eq():
     assert not cirq.approx_eq(CExpZinGate(1.5), ZGateDef(exponent=1.5), atol=0.1)
     with pytest.raises(
         TypeError,
-        match=re.escape("unsupported operand type(s) for" " -: 'Symbol' and 'PeriodicValue'"),
+        match=re.escape("unsupported operand type(s) for -: 'Symbol' and 'PeriodicValue'"),
     ):
         cirq.approx_eq(ZGateDef(exponent=1.5), ZGateDef(exponent=sympy.Symbol('a')), atol=0.1)
     assert cirq.approx_eq(CExpZinGate(sympy.Symbol('a')), CExpZinGate(sympy.Symbol('a')), atol=0.1)
@@ -291,12 +291,13 @@ def test_is_parameterized():
     assert cirq.is_parameterized(CExpZinGate(sympy.Symbol('a')))
 
 
-def test_resolve_parameters():
-    assert cirq.resolve_parameters(
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve_parameters(resolve_fn):
+    assert resolve_fn(
         CExpZinGate(sympy.Symbol('a')), cirq.ParamResolver({'a': 0.5})
     ) == CExpZinGate(0.5)
 
-    assert cirq.resolve_parameters(CExpZinGate(0.25), cirq.ParamResolver({})) == CExpZinGate(0.25)
+    assert resolve_fn(CExpZinGate(0.25), cirq.ParamResolver({})) == CExpZinGate(0.25)
 
 
 def test_diagram_period():

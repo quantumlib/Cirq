@@ -27,10 +27,10 @@ def test_swap():
     )
 
     with pytest.raises(ValueError, match='number of swap gates'):
-        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":[[' '"Swap"]]}')
+        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":[["Swap"]]}')
     with pytest.raises(ValueError, match='number of swap gates'):
         _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":[[' '"Swap","Swap","Swap"]]}'
+            'https://algassert.com/quirk#circuit={"cols":[["Swap","Swap","Swap"]]}'
         )
 
 

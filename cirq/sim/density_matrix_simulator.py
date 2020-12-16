@@ -555,7 +555,7 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
 
     def __str__(self) -> str:
         samples = super().__str__()
-        return f'measurements: {samples}\n' f'final density matrix:\n{self.final_density_matrix}'
+        return f'measurements: {samples}\nfinal density matrix:\n{self.final_density_matrix}'
 
     def __repr__(self) -> str:
         return (

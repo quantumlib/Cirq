@@ -67,7 +67,7 @@ def circuit_to_tensors(
         # no input tensors, return a network representing the unitary
         pass
     else:
-        raise ValueError("Right now, only |0> or `None` " "initial states are supported.")
+        raise ValueError("Right now, only |0> or `None` initial states are supported.")
 
     for moment in circuit.moments:
         for op in moment.operations:
@@ -171,7 +171,7 @@ def tensor_expectation_value(
     ram_gb = path_info.largest_intermediate * 128 / 8 / 1024 / 1024 / 1024
     if ram_gb > max_ram_gb:
         raise MemoryError(
-            "We estimate that this contraction " "will take too much RAM! {} GB".format(ram_gb)
+            "We estimate that this contraction will take too much RAM! {} GB".format(ram_gb)
         )
     e_val = tn.contract(inplace=True)
     assert e_val.imag < tol

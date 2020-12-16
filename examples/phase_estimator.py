@@ -74,7 +74,7 @@ def experiment(qnum, repetitions=100):
         result = run_estimate(example_gate(target), qnum, repetitions)
         mode = result.data['phase'].mode()[0]
         guess = mode / 2 ** qnum
-        print(f'target={target:0.4f}, ' f'estimate={guess:0.4f}={mode}/{2**qnum}')
+        print(f'target={target:0.4f}, estimate={guess:0.4f}={mode}/{2**qnum}')
         errors.append((target - guess) ** 2)
     rms = np.sqrt(sum(errors) / len(errors))
     print(f'RMS Error: {rms:0.4f}\n')

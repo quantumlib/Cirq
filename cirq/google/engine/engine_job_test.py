@@ -34,7 +34,7 @@ def _to_any(proto):
 @pytest.fixture(scope='session', autouse=True)
 def mock_grpc_client():
     with mock.patch(
-        'cirq.google.engine.engine_client' '.quantum.QuantumEngineServiceClient'
+        'cirq.google.engine.engine_client.quantum.QuantumEngineServiceClient'
     ) as _fixture:
         yield _fixture
 

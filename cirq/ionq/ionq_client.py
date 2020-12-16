@@ -15,17 +15,19 @@
 import sys
 import time
 import urllib
-from typing import Callable, cast, Optional
+from typing import Any, Callable, cast, Dict, List, Optional, TYPE_CHECKING
 import requests
 
 from cirq.ionq import ionq_exceptions
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class _IonQClient:
     """Handles calls to IonQ's API.
 
-    Users should not instantiate this themselves, but instead should use
-    `cirq.ionq.Service`.
+    Users should not instantiate this themselves, but instead should use `cirq.ionq.Service`.
     """
 
     RETRIABLE_STATUS_CODES = {
@@ -50,36 +52,32 @@ class _IonQClient:
 
         Users should use `cirq.ionq.Service` instead of this class directly.
 
-        The IonQClient handles making requests to the IonQClient, returning
-        dictionary results. It handles retry and authentication.
+        The IonQClient handles making requests to the IonQClient, returning dictionary results.
+        It handles retry and authentication.
 
         Args:
-            remote_host: The url of the server exposing the IonQ API.
-                This will strip anything besides the base scheme and netloc,
-                i.e. it only takes the part of the host of the form
-                `http://example.com` of `http://example.com/test`.
+            remote_host: The url of the server exposing the IonQ API. This will strip anything
+                besides the base scheme and netloc, i.e. it only takes the part of the host of
+                the form `http://example.com` of `http://example.com/test`.
             api_key: The key used for authenticating against the IonQ API.
-            default_target: The default target to run against. Supports
-                one of 'qpu' and 'simulator'. Can be overridden by calls with
-                target in their signature.
-            api_version: Which version fo the api to use. Currently accepts
-                'v0.1' only, which is the default.
-            max_retry_seconds: The time to continue retriable responses.
-                Defaults to 3600.
-            verbose: Whether to print to stderr and stdio any retriable errors
-                that are encountered.
+            default_target: The default target to run against. Supports one of 'qpu' and
+                'simulator'. Can be overridden by calls with target in their signature.
+            api_version: Which version fo the api to use. As of Dec, 2020, accepts 'v0.1' only,
+                which is the default.
+            max_retry_seconds: The time to continue retriable responses. Defaults to 3600.
+            verbose: Whether to print to stderr and stdio any retriable errors that are encountered.
         """
         url = urllib.parse.urlparse(remote_host)
         assert url.scheme and url.netloc, (
-            f'Specified remote_host {remote_host} is not a valid url, '
-            'for example http://example.com'
+            f'Specified remote_host {remote_host} is not a valid url, for example '
+            'http://example.com'
         )
         assert (
             api_version in self.SUPPORTED_VERSIONS
         ), f'Only api v0.1 is accepted but was {api_version}'
-        assert default_target is None or default_target in self.SUPPORTED_TARGETS, (
-            f'Target can only be one of {self.SUPPORTED_TARGETS} but was ' f'{default_target}.'
-        )
+        assert (
+            default_target is None or default_target in self.SUPPORTED_TARGETS
+        ), f'Target can only be one of {self.SUPPORTED_TARGETS} but was {default_target}.'
         assert max_retry_seconds >= 0, 'Negative retry not possible without time machine.'
 
         self.url = f'{url.scheme}://{url.netloc}/{api_version}'
@@ -95,21 +93,20 @@ class _IonQClient:
             AssertionError: if both `target` and `default_target` are not set.
         """
         assert target is not None or self.default_target is not None, (
-            'One must specify a target on this call, or a default_target on '
-            'the service/client, but neither were set.'
+            'One must specify a target on this call, or a default_target on the service/client, '
+            'but neither were set.'
         )
         return cast(str, target or self.default_target)
 
     def _make_request(self, request: Callable[[], requests.Response]) -> requests.Response:
-        """ "Make a request to the API, retrying if necessary.
+        """Make a request to the API, retrying if necessary.
 
         Args:
             request: A function that returns a `requests.Response`.
 
         Raises:
             IonQException: If there was a not-retriable error from the API.
-            TimeoutError: If the requests retried for more than
-                `max_retry_seconds`.
+            TimeoutError: If the requests retried for more than `max_retry_seconds`.
 
         Returns:
             The request.Response from the final successful request call.
@@ -124,8 +121,8 @@ class _IonQClient:
                     return response
                 if response.status_code == requests.codes.unauthorized:
                     raise ionq_exceptions.IonQException(
-                        '"Not authorized" returned by IonQ API. Check to '
-                        'ensure you have supplied the correct API key.',
+                        '"Not authorized" returned by IonQ API. Check to ensure you have supplied '
+                        'the correct API key.',
                         response.status_code,
                     )
                 if response.status_code == requests.codes.not_found:
@@ -155,7 +152,7 @@ class _IonQClient:
 
     def create_job(
         self,
-        circuit_dict: dict,
+        serialized_program: 'cirq.ionq.SerializedProgram',
         repetitions: Optional[int] = None,
         target: Optional[str] = None,
         name: Optional[str] = None,
@@ -163,49 +160,45 @@ class _IonQClient:
         """Create a job.
 
         Args:
-            circuit_dict: A dict corresponding to the json encoding of the
-                circuit for the IonQ API.
-            repetitions: The number of times to repeat the circuit. Only can
-                be set if the target is `qpu`. If not specified and target is
-                `qpu`
-            target: If supplied the target to run on. Supports one of `qpu` or
-                `simulator`. If not set, uses `default_target`.
-            name: An optional name of the job. Different than the `job_id` of
-                the job.
+            serialized_program: The `cirq.ionq.SerializedProgram` containing the serialized
+                information about the circuit to run.
+            repetitions: The number of times to repeat the circuit. For simulation the repeated
+                sampling is not done on the server, but is passed as metadata to be recovered
+                from the returned job.
+            target: If supplied the target to run on. Supports one of `qpu` or `simulator`. If not
+                set, uses `default_target`.
+            name: An optional name of the job. Different than the `job_id` of the job.
 
         Returns:
-            The json body of the response as a dict. This does not contain
-            populated information about the job, but does contain the job id.
+            The json body of the response as a dict. This does not contain populated information
+            about the job, but does contain the job id.
 
         Raises:
-            An IonQ exception if the request fails.
+            An IonQException if the request fails.
         """
         actual_target = self._target(target)
-        assert (
-            actual_target != 'qpu' or repetitions is not None
-        ), 'If the target is qpu, repetitions must be specified.'
-        assert actual_target != 'simulator' or repetitions is None, (
-            'If the target is simulator, repetitions should not be specified '
-            'as the simulator is a full wavefunction simulator.'
-        )
-        json = {
+
+        json: Dict[str, Any] = {
             'target': actual_target,
-            'body': circuit_dict,
+            'body': serialized_program.body,
             'lang': 'json',
         }
         if name:
             json['name'] = name
-        if repetitions:
-            # API does not return number of shots, only histogram of
-            # percentages, so we set it as metadata.
-            json['metadata'] = {'shots': str(repetitions)}
+        # We have to pass measurement keys through the metadata.
+        json['metadata'] = serialized_program.metadata
+
+        # Shots are ignored by simulator, but pass them anyway.
+        json['shots'] = str(repetitions)
+        # API does not return number of shots so pass this through as metadata.
+        json['metadata']['shots'] = str(repetitions)
 
         def request():
             return requests.post(f'{self.url}/jobs', json=json, headers=self.headers)
 
         return self._make_request(request).json()
 
-    def get_job(self, job_id: str):
+    def get_job(self, job_id: str) -> dict:
         """Get the job from the IonQ API.
 
         Args:
@@ -215,8 +208,7 @@ class _IonQClient:
             The json body of the response as a dict.
 
         Raises:
-            IonQNotFoundException: If a job with the given job_id does not
-                exist.
+            IonQNotFoundException: If a job with the given job_id does not exist.
             IonQException: For other API call failures.
         """
 
@@ -225,14 +217,52 @@ class _IonQClient:
 
         return self._make_request(request).json()
 
-    def cancel_job(self, job_id: str):
+    def list_jobs(
+        self, status: Optional[str] = None, limit: int = 100, batch_size: int = 1000
+    ) -> List[Dict[str, Any]]:
+        """Lists jos from the IonQ API.
+
+        Args:
+            status: If not None, filter to jobs with this status.
+            limit: The maximum number of jobs to return.
+            batch_size: The size of the batches requested per http GET call.
+
+        Returns:
+            A list of the json bodies of the job dicts.
+
+        Raises:
+            IonQException: If the API call fails.
+        """
+        json = {'limit': batch_size}
+        token: Optional[str] = None
+        jobs: List[Dict[str, Any]] = []
+        while True and len(jobs) < limit:
+            params = {}
+            if status:
+                params['status'] = status
+            if token:
+                params['next'] = token
+
+            def request():
+                return requests.get(
+                    f'{self.url}/jobs', headers=self.headers, json=json, params=params
+                )
+
+            response = self._make_request(request).json()
+            jobs.extend(response['jobs'])
+            if 'next' not in response:
+                break
+            token = response['next']
+        return jobs[:limit]
+
+    def cancel_job(self, job_id: str) -> dict:
         """Cancel a job on the IonQ API.
 
         Args:
             job_id: The UUID of the job (returned when the job was created).
 
-        Note that the IonQ API v0.1 can cancel a completed job, which updates
-        its status to canceled.
+        Note that the IonQ API v0.1 can cancel a completed job, which updates its status to
+        canceled.
 
         Returns:
             The json body of the response as a dict.
@@ -243,7 +273,7 @@ class _IonQClient:
 
         return self._make_request(request).json()
 
-    def delete_job(self, job_id: str):
+    def delete_job(self, job_id: str) -> dict:
         """Permanently delete the job on the IonQ API.
 
         Args:
@@ -255,5 +285,16 @@ class _IonQClient:
 
         def request():
             return requests.delete(f'{self.url}/jobs/{job_id}', headers=self.headers)
+
+        return self._make_request(request).json()
+
+    def get_current_calibration(self) -> dict:
+        """Returns the current calibration as an `cirq.ionq.Calibration` object.
+
+        Currently returns the current calibration for the only target `qpu`.
+        """
+
+        def request():
+            return requests.get(f'{self.url}/calibrations/current', headers=self.headers)
 
         return self._make_request(request).json()

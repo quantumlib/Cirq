@@ -496,7 +496,7 @@ class EngineProgram:
         """
         if self.result_type != ResultType.Batch:
             raise ValueError(
-                'Program was not a batch program but instead ' f'was of type {self.result_type}.'
+                f'Program was not a batch program but instead was of type {self.result_type}.'
             )
         import cirq.google.engine.engine as engine_base
 
@@ -507,7 +507,7 @@ class EngineProgram:
         if code_type == 'cirq.google.api.v2.BatchProgram':
             batch = v2.batch_pb2.BatchProgram.FromString(code.value)
             return len(batch.programs)
-        raise ValueError('Program was not a batch program but instead was of ' f'type {code_type}.')
+        raise ValueError(f'Program was not a batch program but instead was of type {code_type}.')
 
     @staticmethod
     def _deserialize_program(
@@ -524,7 +524,7 @@ class EngineProgram:
         elif code_type == 'cirq.google.api.v2.BatchProgram':
             if program_num is None:
                 raise ValueError(
-                    'A program number must be specified when ' 'deserializing a Batch Program'
+                    'A program number must be specified when deserializing a Batch Program'
                 )
             batch = v2.batch_pb2.BatchProgram.FromString(code.value)
             if abs(program_num) >= len(batch.programs):
@@ -536,10 +536,12 @@ class EngineProgram:
             program = batch.programs[program_num]
         if program:
             gate_set_map = {g.gate_set_name: g for g in gate_sets.GOOGLE_GATESETS}
-            try:
-                return gate_set_map[program.language.gate_set].deserialize(program)
-            except KeyError:
-                raise ValueError('unsupported gateset: {}'.format(program.language.gate_set))
+            if program.language.gate_set not in gate_set_map:
+                raise ValueError(
+                    f'Unknown gateset {program.language.gate_set}. '
+                    f'Supported gatesets: {list(gate_set_map.keys())}.'
+                )
+            return gate_set_map[program.language.gate_set].deserialize(program)
 
         raise ValueError('unsupported program type: {}'.format(code_type))
 
@@ -555,6 +557,4 @@ class EngineProgram:
         )
 
     def __str__(self) -> str:
-        return (
-            f'EngineProgram(project_id=\'{self.project_id}\', ' f'program_id=\'{self.program_id}\')'
-        )
+        return f'EngineProgram(project_id=\'{self.project_id}\', program_id=\'{self.program_id}\')'

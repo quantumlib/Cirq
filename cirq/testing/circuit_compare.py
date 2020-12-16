@@ -408,11 +408,11 @@ def assert_has_consistent_qid_shape(val: Any) -> None:
     if qid_shape is default or num_qubits is default:
         return  # Nothing to check
     assert all(d >= 1 for d in qid_shape), f'Not all entries in qid_shape are positive: {qid_shape}'
-    assert len(qid_shape) == num_qubits, (
-        f'Length of qid_shape and num_qubits disagree: {qid_shape}, ' f'{num_qubits}'
-    )
+    assert (
+        len(qid_shape) == num_qubits
+    ), f'Length of qid_shape and num_qubits disagree: {qid_shape}, {num_qubits}'
 
     if isinstance(val, ops.Operation):
-        assert num_qubits == len(val.qubits), (
-            f'Length of num_qubits and val.qubits disagrees: {num_qubits}, ' f'{len(val.qubits)}'
-        )
+        assert num_qubits == len(
+            val.qubits
+        ), f'Length of num_qubits and val.qubits disagrees: {num_qubits}, {len(val.qubits)}'

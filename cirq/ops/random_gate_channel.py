@@ -69,10 +69,10 @@ class RandomGateChannel(raw_types.Gate):
             self.sub_gate
         )
 
-    def _resolve_parameters_(self, resolver):
+    def _resolve_parameters_(self, resolver, recursive):
         return RandomGateChannel(
-            sub_gate=protocols.resolve_parameters(self.sub_gate, resolver),
-            probability=protocols.resolve_parameters(self.probability, resolver),
+            sub_gate=protocols.resolve_parameters(self.sub_gate, resolver, recursive),
+            probability=protocols.resolve_parameters(self.probability, resolver, recursive),
         )
 
     def _mixture_(self):
@@ -144,5 +144,5 @@ class RandomGateChannel(raw_types.Gate):
 
     def __repr__(self):
         if self.probability == 1:
-            return f'cirq.RandomGateChannel(' f'sub_gate={self.sub_gate!r}, ' f'probability=1)'
-        return f'{self.sub_gate!r}.with_probability(' f'{proper_repr(self.probability)})'
+            return f'cirq.RandomGateChannel(sub_gate={self.sub_gate!r}, probability=1)'
+        return f'{self.sub_gate!r}.with_probability({proper_repr(self.probability)})'
