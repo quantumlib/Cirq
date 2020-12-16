@@ -19,6 +19,7 @@ from cirq.google.calibration.phased_fsim import (
     IncompatibleMomentError,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
+    PhasedFSimParameters,
     sqrt_iswap_gates_translator
 )
 from cirq.google.engine import Engine
@@ -244,7 +245,7 @@ def run_floquet_phased_calibration_for_circuit(
         merge_sub_sets: bool = True,
         max_layers_per_request: int = 1,
         progress_func: Optional[Callable[[int, int], None]] = None
-) -> Tuple[Circuit, List[PhasedFSimCalibrationResult], List[Optional[int]]]:
+) -> Tuple[Circuit, List[PhasedFSimCalibrationResult], List[Optional[int]], PhasedFSimParameters]:
     requests, mapping = floquet_characterization_for_circuit(
         circuit, options, gate_set, gates_translator, merge_sub_sets=merge_sub_sets)
     characterizations = run_characterizations(
@@ -261,4 +262,9 @@ def run_floquet_phased_calibration_for_circuit(
         mapping,
         gates_translator
     )
-    return calibrated_circuit, characterizations, calibrated_mapping
+    override = PhasedFSimParameters(
+        zeta=0.0 if options.estimate_zeta else None,
+        chi=0.0 if options.estimate_chi else None,
+        gamma=0.0 if options.estimate_gamma else None
+    )
+    return calibrated_circuit, characterizations, calibrated_mapping, override
