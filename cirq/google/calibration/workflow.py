@@ -198,7 +198,7 @@ def phased_calibration_for_circuit(
         characterizations: List[PhasedFSimCalibrationResult],
         moments_mapping: List[Optional[int]],
         gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator
-) -> Tuple[Circuit, List[PhasedFSimCalibrationResult], List[Optional[int]]]:
+) -> Tuple[Circuit, List[Optional[int]]]:
     return NotImplemented
 
 
@@ -216,13 +216,18 @@ def run_floquet_characterization_for_circuit(
 ) -> List[Optional[PhasedFSimCalibrationResult]]:
     requests, mapping = floquet_characterization_for_circuit(
         circuit, options, gate_set, gates_translator, merge_sub_sets=merge_sub_sets)
-    results = run_characterizations(requests, engine, processor_id, handler_name,
-                                    max_layers_per_request=max_layers_per_request,
-                                    progress_func=progress_func)
+    results = run_characterizations(
+        requests,
+        engine,
+        processor_id,
+        handler_name,
+        max_layers_per_request=max_layers_per_request,
+        progress_func=progress_func
+    )
     return [results[index] if index is not None else None for index in mapping]
 
 
-def run_phased_floquet_calibration_for_circuit(
+def run_floquet_phased_calibration_for_circuit(
         circuit: Circuit,
         engine: Union[Engine, PhasedFSimEngineSimulator],
         processor_id: str,
@@ -240,4 +245,20 @@ def run_phased_floquet_calibration_for_circuit(
         max_layers_per_request: int = 1,
         progress_func: Optional[Callable[[int, int], None]] = None
 ) -> Tuple[Circuit, List[PhasedFSimCalibrationResult], List[Optional[int]]]:
-    return NotImplemented
+    requests, mapping = floquet_characterization_for_circuit(
+        circuit, options, gate_set, gates_translator, merge_sub_sets=merge_sub_sets)
+    characterizations = run_characterizations(
+        requests,
+        engine,
+        processor_id,
+        handler_name,
+        max_layers_per_request=max_layers_per_request,
+        progress_func=progress_func
+    )
+    calibrated_circuit, calibrated_mapping = phased_calibration_for_circuit(
+        circuit,
+        characterizations,
+        mapping,
+        gates_translator
+    )
+    return calibrated_circuit, characterizations, calibrated_mapping
