@@ -2,6 +2,7 @@ from typing import Dict, Optional, Tuple, TYPE_CHECKING
 
 import abc
 import collections
+import dataclasses
 import numpy as np
 import re
 
@@ -35,6 +36,25 @@ class PhasedFSimParameters:
     gamma: Optional[float] = None
     phi: Optional[float] = None
 
+    def asdict(self) -> Dict[str, float]:
+        """Converts parameters to a dictionary that maps angles name to values.
+        """
+        return dataclasses.asdict(self)
+
+    def all_none(self) -> bool:
+        return (self.theta is None and
+                self.zeta is None and
+                self.chi is None and
+                self.gamma is None and
+                self.phi is None)
+
+    def any_none(self) -> bool:
+        return (self.theta is None or
+                self.zeta is None or
+                self.chi is None or
+                self.gamma is None or
+                self.phi is None)
+
     def for_qubits_swapped(self) -> 'PhasedFSimParameters':
         """Parameters for the gate with qubits swapped between each other.
 
@@ -52,6 +72,15 @@ class PhasedFSimParameters:
             chi=chi,
             gamma=self.gamma,
             phi=self.phi
+        )
+
+    def other_when_none(self, other: 'PhasedFSimParameters') -> 'PhasedFSimParameters':
+        return PhasedFSimParameters(
+            theta=other.theta if self.theta is None else self.theta,
+            zeta=other.zeta if self.zeta is None else self.zeta,
+            chi=other.chi if self.chi is None else self.chi,
+            gamma=other.gamma if self.gamma is None else self.gamma,
+            phi=other.phi if self.phi is None else self.phi,
         )
 
 
@@ -85,7 +114,7 @@ class FloquetPhasedFSimCalibrationOptions:
 
 
 @json_serializable_dataclass
-class PhasedFSimCalibrationResult(abc.ABC):
+class PhasedFSimCalibrationResult:
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimParameters]
     gate: Gate
     gate_set: SerializableGateSet
@@ -103,7 +132,7 @@ class PhasedFSimCalibrationResult(abc.ABC):
 class PhasedFSimCalibrationRequest(abc.ABC):
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
     gate_set: SerializableGateSet
-    pairs: Tuple[Tuple[Qid, Qid]]
+    pairs: Tuple[Tuple[Qid, Qid], ...]
 
     @abc.abstractmethod
     def to_calibration_layer(self, handler_name: str) -> CalibrationLayer:
