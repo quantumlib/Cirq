@@ -511,10 +511,7 @@ class Operation(metaclass=abc.ABCMeta):
         self, other: Any, *, atol: Union[int, float] = 1e-8
     ) -> Union[bool, NotImplementedType, None]:
         """Determine if this Operation commutes with the object"""
-        if isinstance(other, str):
-            return NotImplemented
-
-        if isinstance(other, ops.MatrixGate):
+        if not isinstance(other, Operation):
             return NotImplemented
 
         if hasattr(other, 'qubits') and set(self.qubits).isdisjoint(other.qubits):
