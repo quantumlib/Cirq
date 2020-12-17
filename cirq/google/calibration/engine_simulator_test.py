@@ -24,7 +24,6 @@ def test_floquet_get_calibrations() -> None:
 
     a, b, c, d = cirq.LineQubit.range(4)
     engine_simulator = PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
-        cirq.Simulator(),
         parameters={
             (a, b): parameters_ab,
             (b, c): parameters_bc,
@@ -78,7 +77,6 @@ def test_ideal_sqrt_iswap_simulates_correctly() -> None:
 
 def test_with_random_gaussian_sqrt_iswap_simulates_correctly() -> None:
     engine_simulator = PhasedFSimEngineSimulator.create_with_random_gaussian_sqrt_iswap(
-        cirq.Simulator(),
         mean=SQRT_ISWAP_PARAMETERS
     )
 
@@ -133,7 +131,6 @@ def test_from_dictionary_sqrt_iswap_simulates_correctly() -> None:
     ])
 
     engine_simulator = PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
-        cirq.Simulator(),
         parameters={
             (a, b): parameters_ab,
             (b, c): parameters_bc,
@@ -175,7 +172,6 @@ def test_from_characterizations_sqrt_iswap_simulates_correctly() -> None:
     ])
 
     engine_simulator = PhasedFSimEngineSimulator.create_from_characterizations_sqrt_iswap(
-        cirq.Simulator(),
         characterizations=[
             cirq.google.PhasedFSimCalibrationResult(
                 gate=cirq.FSimGate(np.pi / 4, 0.0),
