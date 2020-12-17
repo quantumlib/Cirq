@@ -163,6 +163,11 @@ class DensityMatrixSimulator(simulator.SimulatesSamples, simulator.SimulatesInte
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
     ) -> Dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
+        if self._ignore_measurement_results:
+            raise ValueError(
+                "run() is not supported when ignore_measurement_results = True"
+            )
+
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         self._check_all_resolved(resolved_circuit)
