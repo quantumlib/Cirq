@@ -60,7 +60,8 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         self._drifted_gates: Dict[Tuple[Qid, Qid, FSimGate], PhasedFSimGate] = {}
 
     @staticmethod
-    def create_with_ideal_sqrt_iswap(simulator: Simulator) -> 'PhasedFSimEngineSimulator':
+    def create_with_ideal_sqrt_iswap(simulator: Optional[Simulator] = None
+                                     ) -> 'PhasedFSimEngineSimulator':
 
         def sample_gate(_1: Qid, _2: Qid, gate: FSimGate) -> PhasedFSimGate:
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(gate.phi, 0.0), (
@@ -74,6 +75,9 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                 phi=0.0
             )
 
+        if simulator is None:
+            simulator = Simulator()
+
         return PhasedFSimEngineSimulator(
             simulator,
             drift_generator=sample_gate,
@@ -82,8 +86,9 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
     @staticmethod
     def create_with_random_gaussian_sqrt_iswap(
-            simulator: Simulator, *,
             mean: PhasedFSimParameters,
+            *,
+            simulator: Optional[Simulator] = None,
             sigma: PhasedFSimParameters = PhasedFSimParameters(
                 theta=0.02,
                 zeta=0.05,
@@ -125,6 +130,9 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         else:
             rand = random.Random(rand)
 
+        if simulator is None:
+            simulator = Simulator()
+
         return PhasedFSimEngineSimulator(
             simulator,
             drift_generator=sample_gate,
@@ -133,8 +141,9 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
     @staticmethod
     def create_from_dictionary_sqrt_iswap(
-            simulator: Simulator, *,
             parameters: Dict[Tuple[Qid, Qid], Union[Dict[str, float], PhasedFSimParameters]],
+            *,
+            simulator: Optional[Simulator] = None,
             ideal_when_missing_gate: bool = False,
             ideal_when_missing_parameter: bool = False
     ) -> 'PhasedFSimEngineSimulator':
@@ -169,6 +178,9 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                     f'All qubit pairs must be given in canonical order where the first qubit is '
                     f'less than the second, got {a} > {b}')
 
+        if simulator is None:
+            simulator = Simulator()
+
         return PhasedFSimEngineSimulator(
             simulator,
             drift_generator=sample_gate,
@@ -177,8 +189,9 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
     @staticmethod
     def create_from_characterizations_sqrt_iswap(
-            simulator: Simulator, *,
             characterizations: Iterable[PhasedFSimCalibrationResult],
+            *,
+            simulator: Optional[Simulator] = None,
             ideal_when_missing_gate: bool = False,
             ideal_when_missing_parameter: bool = False
     ) -> 'PhasedFSimEngineSimulator':
@@ -201,9 +214,12 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                                      f'simulation is not supported.')
                 parameters[(a, b)] = pair_parameters
 
+        if simulator is None:
+            simulator = Simulator()
+
         return PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
-            simulator,
-            parameters=parameters,
+            parameters,
+            simulator=simulator,
             ideal_when_missing_gate=ideal_when_missing_gate,
             ideal_when_missing_parameter=ideal_when_missing_parameter
         )
