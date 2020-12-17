@@ -46,6 +46,14 @@ def test_three_qubit_matrix_to_operations(u):
     cirq.testing.assert_allclose_up_to_global_phase(u, final_unitary, atol=1e-9)
 
 
+def test_three_qubit_matrix_to_operations_errors():
+    a, b, c = cirq.LineQubit.range(3)
+    with pytest.raises(ValueError, match="(8,8)"):
+        cirq.three_qubit_matrix_to_operations(a, b, c, np.eye(2))
+    with pytest.raises(ValueError, match="not unitary"):
+        cirq.three_qubit_matrix_to_operations(a, b, c, cirq.unitary(cirq.CCX) * 2)
+
+
 @pytest.mark.parametrize(
     ["theta", "num_czs"],
     [
