@@ -148,7 +148,7 @@ def test_with_params():
 
 def test_repetition():
     a, b = cirq.LineQubit.range(2)
-    # The correct modulus for this circuit is 8.
+    # This circuit has a modulus of 8.
     circuit = cirq.FrozenCircuit(cirq.H(a), cirq.CX(a, b))
     op_base = cirq.CircuitOperation(circuit)
 
@@ -156,20 +156,8 @@ def test_repetition():
     assert op_with_reps.repetitions == -5
     assert op_base ** -5 == op_with_reps
 
-    op_with_reps = op_base.repeat(-5, modulus=4)
-    assert op_with_reps.repetitions == 3
-
-    op_with_reps = op_base.repeat(-5, modulus=4, allow_invert=True)
-    assert op_with_reps.repetitions == -1
-
-    with pytest.raises(ValueError):
-        _ = op_base.repeat(-5, modulus=4, validate_modulus=True)
-
     with pytest.raises(TypeError):
         _ = op_base.repeat(1.3)
-
-    op_with_reps = op_base.repeat(-5, modulus=8, validate_modulus=True)
-    assert op_with_reps.repetitions == 3
 
 
 def test_repeat_measurement_fails():

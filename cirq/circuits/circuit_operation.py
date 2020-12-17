@@ -204,24 +204,12 @@ class CircuitOperation(ops.Operation):
     def repeat(
         self,
         repetitions: INT_TYPE,
-        modulus: INT_TYPE = 0,
-        allow_invert: bool = False,
-        validate_modulus: bool = False,
     ) -> 'CircuitOperation':
         """Returns a copy of this operation repeated 'repetitions' times.
 
         Args:
             repetitions: Number of times this operation should repeat. This
                 is multiplied with any pre-existing repetitions.
-            modulus: If this is specified, the final repetition count will be
-                mapped to the range [0, modulus), or (-modulus/2, modulus/2]
-                if `allow_invert` is True.
-            allow_invert: For use with `modulus`. If this is True, repetitions
-                will map to the range (-modulus/2, modulus/2]. This is useful
-                for minimizing the total number of operations in a circuit.
-            validate_modulus: For use with `modulus`. If this is True, the
-                function will raise an error if the provided modulus does not
-                match the actual modulus of this operation.
 
         Returns:
             A copy of this operation repeated 'repetitions' times.
@@ -230,24 +218,13 @@ class CircuitOperation(ops.Operation):
             TypeError: `repetitions` is not an integer value.
             NotImplementedError: The operation contains measurements and
                 cannot have repetitions.
-            ValueError: `validate_modulus` was set to True, but raising this
-                operation to `modulus` does not produce the identity.
         """
         if not isinstance(repetitions, (int, np.integer)):
             raise TypeError('Only integer repetitions are allowed.')
         repetitions = int(repetitions)
         if protocols.is_measurement(self.circuit):
             raise NotImplementedError('Loops over measurements are not supported.')
-        new_reps = self.repetitions * repetitions
-        if modulus:
-            if validate_modulus and not linalg.allclose_up_to_global_phase(
-                protocols.unitary(self.circuit * modulus), np.eye(np.prod(self.circuit.qid_shape()))
-            ):
-                raise ValueError('Raising the circuit to "modulus" must produce the identity.')
-            new_reps %= modulus
-            if allow_invert and new_reps > modulus // 2:
-                new_reps -= modulus
-        return self.updated_copy(repetitions=new_reps)
+        return self.updated_copy(repetitions=self.repetitions * repetitions)
 
     def __pow__(self, power: int) -> 'CircuitOperation':
         return self.repeat(power)
