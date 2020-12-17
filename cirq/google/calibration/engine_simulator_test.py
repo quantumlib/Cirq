@@ -70,7 +70,7 @@ def test_ideal_sqrt_iswap_simulates_correctly() -> None:
 
     engine_simulator = PhasedFSimEngineSimulator.create_with_ideal_sqrt_iswap(cirq.Simulator())
 
-    actual = _final_state_vector(engine_simulator, circuit)
+    actual = engine_simulator.final_state_vector(circuit)
     expected = cirq.final_state_vector(circuit)
 
     assert cirq.allclose_up_to_global_phase(actual, expected)
@@ -102,7 +102,7 @@ def test_with_random_gaussian_sqrt_iswap_simulates_correctly() -> None:
         [cirq.PhasedFSimGate(**parameters[(b, c)].asdict()).on(b, c)]
     ])
 
-    actual = _final_state_vector(engine_simulator, circuit)
+    actual = engine_simulator.final_state_vector(circuit)
     expected = cirq.final_state_vector(expected_circuit)
 
     assert cirq.allclose_up_to_global_phase(actual, expected)
@@ -141,18 +141,13 @@ def test_from_dictionary_sqrt_iswap_simulates_correctly() -> None:
         }
     )
 
-    actual = _final_state_vector(engine_simulator, circuit)
+    actual = engine_simulator.final_state_vector(circuit)
     expected = cirq.final_state_vector(expected_circuit)
 
     assert cirq.allclose_up_to_global_phase(actual, expected)
 
 # TODO: Test create_from_dictionary_sqrt_iswap ideal_when_missing_gate and
 #  ideal_when_missing_parameter
-
-
-def _final_state_vector(simulator: cirq.SimulatesFinalState, program: cirq.Circuit) -> np.array:
-    result = simulator.simulate(program)
-    return cast(cirq.SparseSimulatorStep, result).state_vector()
 
 
 def _create_sqrt_iswap_request(
