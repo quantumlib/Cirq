@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union, cast
 
 import numpy as np
 import random
@@ -19,7 +19,12 @@ from cirq.ops import (
     SingleQubitGate,
     WaitGate
 )
-from cirq.sim import Simulator, SimulatesSamples, SimulatesIntermediateStateVector
+from cirq.sim import (
+    Simulator,
+    SimulatesSamples,
+    SimulatesIntermediateStateVector,
+    SparseSimulatorStep
+)
 from cirq.study import ParamResolver
 
 from cirq.google.calibration.phased_fsim import (
@@ -174,6 +179,10 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             ideal_when_missing_parameter: bool = False
     ) -> 'PhasedFSimEngineSimulator':
         return NotImplemented
+
+    def final_state_vector(self, program: Circuit) -> np.array:
+        result = self.simulate(program)
+        return cast(SparseSimulatorStep, result).state_vector()
 
     def get_calibrations(self,
                          requests: List[PhasedFSimCalibrationRequest]
