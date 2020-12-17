@@ -108,13 +108,29 @@ def floquet_characterization_for_circuit(
             return pairs_map[calibration.pairs]
 
     def merge_into_calibrations(calibration: FloquetPhasedFSimCalibrationRequest) -> int:
-        calibration_pairs = set(calibration.pairs)
-        for pairs, index in pairs_map.items():
-            if calibration_pairs.issubset(pairs):
+        new_pairs = set(calibration.pairs)
+        for index in pairs_map.values():
+            assert calibration.gate == calibrations[index].gate
+            assert calibration.gate_set == calibrations[index].gate_set
+            assert calibration.options == calibrations[index].options
+            existing_pairs = calibrations[index].pairs
+            if new_pairs.issubset(existing_pairs):
                 return index
-            elif calibration_pairs.issuperset(pairs):
+            elif new_pairs.issuperset(existing_pairs):
                 calibrations[index] = calibration
                 return index
+            else:
+                new_qubit_pairs = calibration.qubit_pairs
+                existing_qubit_pairs = calibrations[index].qubit_pairs
+                if all((new_qubit_pairs[q] == existing_qubit_pairs[q]
+                        for q in set(new_qubit_pairs.keys()).intersection(existing_qubit_pairs.keys()))):
+                    calibrations[index] = FloquetPhasedFSimCalibrationRequest(
+                        gate=calibration.gate,
+                        gate_set=gate_set,
+                        pairs=tuple(sorted(new_pairs.union(existing_pairs))),
+                        options=options
+                    )
+                    return index
 
         index = len(calibrations)
         calibrations.append(calibration)

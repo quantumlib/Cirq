@@ -1,7 +1,8 @@
-from typing import Dict, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, MutableMapping, Optional, Tuple, TYPE_CHECKING
 
 import abc
 import collections
+import functools
 import numpy as np
 import re
 
@@ -53,7 +54,7 @@ class PhasedFSimParameters:
         )
 
 
-@json_serializable_dataclass
+@json_serializable_dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationOptions:
     estimate_theta: bool
     estimate_zeta: bool
@@ -82,8 +83,8 @@ class FloquetPhasedFSimCalibrationOptions:
         )
 
 
-@json_serializable_dataclass
-class PhasedFSimCalibrationResult(abc.ABC):
+@json_serializable_dataclass(frozen=True)
+class PhasedFSimCalibrationResult:
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimParameters]
     gate: Gate
     gate_set: SerializableGateSet
@@ -97,11 +98,18 @@ class PhasedFSimCalibrationResult(abc.ABC):
             return None
 
 
-@json_serializable_dataclass
+@json_serializable_dataclass(frozen=True)
 class PhasedFSimCalibrationRequest(abc.ABC):
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
     gate_set: SerializableGateSet
     pairs: Tuple[Tuple[Qid, Qid]]
+
+    @property
+    @functools.lru_cache
+    def qubit_pairs(self) -> MutableMapping[Qid, Tuple[Qid, Qid]]:
+        # Returning mutable mapping as a cached result because it's hard to get a frozen dictionary
+        # in Python...
+        return collections.ChainMap(*({q: pair for q in pair} for pair in self.pairs))
 
     @abc.abstractmethod
     def to_calibration_layer(self, handler_name: str) -> CalibrationLayer:
@@ -112,12 +120,12 @@ class PhasedFSimCalibrationRequest(abc.ABC):
         pass
 
 
-@json_serializable_dataclass
+@json_serializable_dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationResult(PhasedFSimCalibrationResult):
     options: FloquetPhasedFSimCalibrationOptions
 
 
-@json_serializable_dataclass
+@json_serializable_dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     options: FloquetPhasedFSimCalibrationOptions
 
