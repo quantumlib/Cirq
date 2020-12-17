@@ -7,8 +7,10 @@ from cirq.ops import (
     GateOperation,
     MeasurementGate,
     Moment,
+    Operation,
     Qid,
-    SingleQubitGate
+    SingleQubitGate,
+    rz
 )
 from cirq.google.calibration.engine_simulator import (
     PhasedFSimEngineSimulator
@@ -24,6 +26,7 @@ from cirq.google.calibration.phased_fsim import (
 )
 from cirq.google.engine import Engine
 from cirq.google.serializable_gate_set import SerializableGateSet
+from itertools import zip_longest
 
 
 def floquet_characterization_for_moment(
@@ -52,11 +55,12 @@ def floquet_characterization_for_moment(
         else:
             translated_gate = gates_translator(op.gate)
             if translated_gate is None:
-                raise IncompatibleMomentError(f'Moment contains non-single qubit operation {op} '
-                                              f'with gate that is not equal to cirq.ISWAP ** -0.5')
+                raise IncompatibleMomentError(
+                    f'Moment {moment} contains unsupported non-single qubit operation {op}')
             elif gate is not None and gate != translated_gate:
-                raise IncompatibleMomentError(f'Moment contains operations resolved to two '
-                                              f'different gates {gate} and {translated_gate}')
+                raise IncompatibleMomentError(
+                    f'Moment {moment} contains operations resolved to two different gates {gate} '
+                    f'and {translated_gate}')
             else:
                 gate = translated_gate
             pair = cast(Tuple[Qid, Qid],
@@ -147,8 +151,8 @@ def floquet_characterization_for_circuit(
 
 def run_characterizations(calibrations: List[PhasedFSimCalibrationRequest],
                           engine: Union[Engine, PhasedFSimEngineSimulator],
-                          processor_id: str,
-                          handler_name: str,
+                          processor_id: Optional[str],
+                          handler_name: Optional[str],
                           max_layers_per_request: int = 1,
                           progress_func: Optional[Callable[[int, int], None]] = None
                           ) -> List[PhasedFSimCalibrationResult]:
@@ -165,6 +169,11 @@ def run_characterizations(calibrations: List[PhasedFSimCalibrationRequest],
         raise ValueError('All calibrations that run together must be defined for a single gate set')
 
     if isinstance(engine, Engine):
+        if processor_id is None:
+            raise ValueError('Processor id must not be None for engine simulation')
+        if handler_name is None:
+            raise ValueError('Handler name must not be None for engine simulation')
+
         results = []
 
         if progress_func:
@@ -200,7 +209,88 @@ def phased_calibration_for_circuit(
         moments_mapping: List[Optional[int]],
         gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator
 ) -> Tuple[Circuit, List[Optional[int]]]:
-    return NotImplemented
+    default_phases = PhasedFSimParameters(
+        zeta=0.0,
+        chi=0.0,
+        gamma=0.0
+    )
+
+    compensated = Circuit()
+    new_mapping = []
+    for index, moment in enumerate(circuit):
+        characterization_index = moments_mapping[index]
+        if characterization_index is not None:
+            parameters = characterizations[characterization_index]
+        else:
+            parameters = None
+
+        decompositions = []
+        other = []
+        new_moment_mapping = None
+        for op in moment:
+            if not isinstance(op, GateOperation):
+                raise IncompatibleMomentError(
+                    'Moment contains operation different than GateOperation')
+
+            if isinstance(op.gate, (MeasurementGate, SingleQubitGate)):
+                other.append(op)
+            else:
+                if parameters is None:
+                    raise ValueError(f'Missing characterization data for moment {moment}')
+                translated_gate = gates_translator(op.gate)
+                if translated_gate is None:
+                    raise IncompatibleMomentError(
+                        f'Moment {moment} contains unsupported non-single qubit operation {op}')
+                a, b = op.qubits
+                pair_parameters = parameters.get_parameters(a, b)
+                pair_parameters = pair_parameters.other_when_none(default_phases)
+                decomposed, decomposed_mapping = create_corrected_fsim_gate(
+                    (a, b), translated_gate, pair_parameters, characterization_index)
+                decompositions.append(decomposed)
+
+                if new_moment_mapping is None:
+                    new_moment_mapping = decomposed_mapping
+                elif new_moment_mapping != decomposed_mapping:
+                    raise ValueError(f'Inconsistent decompositions with a moment {moment}')
+
+        if other and decompositions:
+            raise IncompatibleMomentError(f'Moment {moment} contains mixed operations')
+        elif other:
+            compensated += Moment(other)
+            new_mapping.append(characterization_index)
+        elif decompositions:
+            for operations in zip_longest(*decompositions, fillvalue=()):
+                compensated += Moment(operations)
+            new_mapping += new_moment_mapping
+
+    return compensated, new_mapping
+
+
+def create_corrected_fsim_gate(
+        qubits: Tuple[Qid, Qid],
+        gate: FSimGate,
+        parameters: PhasedFSimParameters,
+        characterization_index
+) -> Tuple[Tuple[Tuple[Operation, ...], ...], List[Optional[int]]]:
+    zeta = parameters.zeta
+    gamma = parameters.gamma
+    chi = parameters.chi
+
+    a, b = qubits
+    alpha = 0.5 * (zeta + chi)
+    beta = 0.5 * (zeta - chi)
+    return (
+        (
+            (rz(0.5 * gamma - alpha).on(a), rz(0.5 * gamma + alpha).on(b)),
+            (gate.on(a, b),),
+            (rz(0.5 * gamma - beta).on(a), rz(0.5 * gamma + beta).on(b))
+        ),
+        [
+            None,
+            characterization_index,
+            None
+        ]
+    )
 
 
 def run_floquet_characterization_for_circuit(
@@ -231,8 +321,8 @@ def run_floquet_characterization_for_circuit(
 def run_floquet_phased_calibration_for_circuit(
         circuit: Circuit,
         engine: Union[Engine, PhasedFSimEngineSimulator],
-        processor_id: str,
-        handler_name: str,
+        processor_id: Optional[str],
+        handler_name: Optional[str],
         gate_set: SerializableGateSet,
         gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
         options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions(
