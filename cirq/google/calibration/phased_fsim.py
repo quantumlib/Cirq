@@ -4,7 +4,7 @@ import abc
 import collections
 from cirq.circuits import Circuit
 from cirq.ops import Gate, Qid
-import cirq.google.api.v2 as v2
+from cirq.google.api import v2
 from cirq.google.engine import CalibrationLayer, CalibrationResult, Engine
 from cirq.google.serializable_gate_set import SerializableGateSet
 import re
