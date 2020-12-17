@@ -98,19 +98,23 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(gate.phi, 0.0), (
                 f'Expected ISWAP ** -0.5 like gate, got {gate}'
             )
+
+            def sample_value(gaussian_mean: float, gaussian_sigma: float) -> float:
+                if gaussian_sigma:
+                    return rand.gauss(gaussian_mean, gaussian_sigma)
+                else:
+                    return gaussian_mean
+
             return PhasedFSimGate(
-                theta=rand.gauss(mean.theta, sigma.theta),
-                zeta=rand.gauss(mean.zeta, sigma.zeta),
-                chi=rand.gauss(mean.chi, sigma.chi),
-                gamma=rand.gauss(mean.gamma, sigma.gamma),
-                phi=rand.gauss(mean.phi, sigma.phi)
+                theta=sample_value(mean.theta, sigma.theta),
+                zeta=sample_value(mean.zeta, sigma.zeta),
+                chi=sample_value(mean.chi, sigma.chi),
+                gamma=sample_value(mean.gamma, sigma.gamma),
+                phi=sample_value(mean.phi, sigma.phi)
             )
 
         if mean.any_none():
             raise ValueError(f'All mean values must be provided, got {mean=}')
-
-        if sigma.any_none():
-            raise ValueError(f'All sigma values must be provided, got {sigma=}')
 
         if rand is not None:
             if isinstance(rand, int):
