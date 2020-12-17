@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Union, Sequence, Tuple
+from typing import List, Union, Tuple
 
 import numpy as np
 
 import cirq
-from cirq import optimizers as opt
 from cirq import ops
+from cirq import optimizers as opt
 
 
 def three_qubit_matrix_to_operations(
@@ -159,7 +159,7 @@ def _two_qubit_multiplexor_to_ops(
     shift_left: bool = True,
     diagonal: np.ndarray = np.eye(4),
     atol: float = 1e-8,
-) -> Tuple[np.ndarray, Sequence[ops.Operation]]:
+) -> Tuple[np.ndarray, List[ops.Operation]]:
     r"""Converts a two qubit double multiplexor to circuit.
     Input: U_1 ⊕ U_2, with select qubit a (i.e. a = |0> => U_1(b,c),
     a = |1> => U_2(b,c).
