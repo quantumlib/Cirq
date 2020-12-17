@@ -19,7 +19,7 @@ import json
 import os
 import pathlib
 import textwrap
-from typing import Any, Iterator, List, Optional, Set, Tuple, Type
+from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Type
 
 import pytest
 
@@ -431,6 +431,115 @@ def test_sympy():
     # Linear combinations.
     assert_json_roundtrip_works(t * 2)
     assert_json_roundtrip_works(4 * t + 3 * s + 2)
+
+
+class SBKImpl:
+    """A test implementation of SerializableByKey."""
+
+    def __init__(
+        self,
+        name: str,
+        data_list: Optional[List] = None,
+        data_tuple: Optional[Tuple] = None,
+        data_dict: Optional[Dict] = None,
+    ):
+        self.name = name
+        self.data_list = data_list or []
+        self.data_tuple = data_tuple or ()
+        self.data_dict = data_dict or {}
+
+    def __eq__(self, other):
+        if not isinstance(other, SBKImpl):
+            return False
+        return (
+            self.name == other.name
+            and self.data_list == other.data_list
+            and self.data_tuple == other.data_tuple
+            and self.data_dict == other.data_dict
+        )
+
+    def _json_dict_(self):
+        return {
+            "cirq_type": "SBKImpl",
+            "name": self.name,
+            "data_list": self.data_list,
+            "data_tuple": self.data_tuple,
+            "data_dict": self.data_dict,
+        }
+
+    def _serialization_key_(self):
+        return self.name
+
+    @classmethod
+    def _from_json_dict_(cls, name, data_list, data_tuple, data_dict, **kwargs):
+        return cls(name, data_list, tuple(data_tuple), data_dict)
+
+
+def test_context_serialization():
+    def custom_resolver(name):
+        if name == 'SBKImpl':
+            return SBKImpl
+
+    test_resolvers = [custom_resolver] + cirq.DEFAULT_RESOLVERS
+
+    sbki_empty = SBKImpl('sbki_empty')
+    assert_json_roundtrip_works(sbki_empty, resolvers=test_resolvers)
+
+    sbki_list = SBKImpl('sbki_list', data_list=[sbki_empty, sbki_empty])
+    assert_json_roundtrip_works(sbki_list, resolvers=test_resolvers)
+
+    sbki_tuple = SBKImpl('sbki_tuple', data_tuple=(sbki_list, sbki_list))
+    assert_json_roundtrip_works(sbki_tuple, resolvers=test_resolvers)
+
+    sbki_dict = SBKImpl('sbki_dict', data_dict={'a': sbki_tuple, 'b': sbki_tuple})
+    assert_json_roundtrip_works(sbki_dict, resolvers=test_resolvers)
+
+    sbki_json = str(cirq.to_json(sbki_dict))
+    # There should be exactly one context item for each previous SBKImpl.
+    assert sbki_json.count('"cirq_type": "_SerializedContext"') == 4
+    # There should be exactly two key items for each of sbki_(empty|list|tuple),
+    # plus one for the top-level sbki_dict.
+    assert sbki_json.count('"cirq_type": "_SerializedKey"') == 7
+    # The final object should be a _SerializedKey for sbki_dict.
+    final_obj_idx = sbki_json.rfind('{')
+    final_obj = sbki_json[final_obj_idx : sbki_json.find('}', final_obj_idx) + 1]
+    assert (
+        final_obj
+        == """{
+      "cirq_type": "_SerializedKey",
+      "key": "sbki_dict"
+    }"""
+    )
+
+    list_sbki = [sbki_dict]
+    assert_json_roundtrip_works(list_sbki, resolvers=test_resolvers)
+
+    dict_sbki = {'a': sbki_dict}
+    assert_json_roundtrip_works(dict_sbki, resolvers=test_resolvers)
+
+    assert sbki_list != json_serialization._SerializedKey(sbki_list)
+    sbki_other_list = SBKImpl('sbki_list', data_list=[sbki_list])
+    with pytest.raises(ValueError, match='different objects with the same serialization key'):
+        _ = cirq.to_json(sbki_other_list)
+
+
+def test_internal_serializer_types():
+    sbki = SBKImpl('test_key')
+    test_key = json_serialization._SerializedKey(sbki)
+    test_context = json_serialization._SerializedContext(sbki)
+    test_serialization = json_serialization._ContextualSerialization(sbki)
+
+    key_json = test_key._json_dict_()
+    with pytest.raises(TypeError, match='_from_json_dict_'):
+        _ = json_serialization._SerializedKey._from_json_dict_(**key_json)
+
+    context_json = test_context._json_dict_()
+    with pytest.raises(TypeError, match='_from_json_dict_'):
+        _ = json_serialization._SerializedContext._from_json_dict_(**context_json)
+
+    serialization_json = test_serialization._json_dict_()
+    with pytest.raises(TypeError, match='_from_json_dict_'):
+        _ = json_serialization._ContextualSerialization._from_json_dict_(**serialization_json)
 
 
 def _write_test_data(key: str, *test_instances: Any):
