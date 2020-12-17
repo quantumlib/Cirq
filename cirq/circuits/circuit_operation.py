@@ -104,7 +104,7 @@ class CircuitOperation(ops.Operation):
             name
             for symbol in protocols.parameter_symbols(self.circuit)
             for name in protocols.parameter_names(
-                protocols.resolve_parameters(symbol, self.param_resolver)
+                protocols.resolve_parameters(symbol, self.param_resolver, recursive=False)
             )
         }
 
@@ -114,7 +114,7 @@ class CircuitOperation(ops.Operation):
         if self.repetitions < 0:
             result = result ** -1
         result = protocols.with_measurement_key_mapping(result, self.measurement_key_map)
-        result = protocols.resolve_parameters(result, self.param_resolver)
+        result = protocols.resolve_parameters(result, self.param_resolver, recursive=False)
 
         return list(result.all_operations()) * abs(self.repetitions)
 
@@ -327,24 +327,35 @@ class CircuitOperation(ops.Operation):
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'CircuitOperation':
         return self.with_measurement_key_mapping(key_map)
 
-    def with_params(
-        self, param_values: study.ParamResolverOrSimilarType, recursive: bool = False
-    ) -> 'CircuitOperation':
+    def with_params(self, param_values: study.ParamResolverOrSimilarType) -> 'CircuitOperation':
         """Returns a copy of this operation with an updated ParamResolver.
+
+        Note that any resulting parameter mappings with no corresponding
+        parameter in the base circuit will be omitted.
 
         Args:
             param_values: A map or ParamResolver able to convert old param
                 values to new param values. This map will be composed with any
-                existing ParamResolver.
+                existing ParamResolver via single-step resolution.
 
         Returns:
             A copy of this operation with its ParamResolver updated as specified
                 by param_values.
         """
-        new_resolver = protocols.resolve_parameters(self.param_resolver, param_values, recursive)
-        return self.replace(param_resolver=new_resolver)
+        new_params = {}
+        for k in protocols.parameter_symbols(self.circuit):
+            v = self.param_resolver.value_of(k, recursive=False)
+            v = protocols.resolve_parameters(v, param_values, recursive=False)
+            if v != k:
+                new_params[k] = v
+        return self.replace(param_resolver=new_params)
 
     def _resolve_parameters_(
         self, param_resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'CircuitOperation':
-        return self.with_params(param_resolver.param_dict, recursive)
+        if recursive:
+            raise ValueError(
+                'Recursive resolution of CircuitOperation parameters is prohibited. '
+                'Use "recursive=False" to prevent this error.'
+            )
+        return self.with_params(param_resolver.param_dict)

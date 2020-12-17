@@ -139,12 +139,19 @@ def test_with_params():
         {
             z_exp: 2,
             x_exp: theta,
-            sympy.Symbol('k'): sympy.Symbol('phi'),
+            # As 'k' is irrelevant to the circuit, it does not appear here.
         }
     )
     assert cirq.parameter_names(op_with_params) == {'theta', 'delta'}
 
-    assert cirq.resolve_parameters(op_base, cirq.ParamResolver(param_dict)) == op_with_params
+    assert (
+        cirq.resolve_parameters(op_base, cirq.ParamResolver(param_dict), recursive=False)
+        == op_with_params
+    )
+
+    # Recursive parameter resolution is rejected.
+    with pytest.raises(ValueError, match='Use "recursive=False"'):
+        _ = cirq.resolve_parameters(op_base, cirq.ParamResolver(param_dict))
 
 
 def test_repetition():
@@ -395,7 +402,7 @@ def test_decompose_applies_maps():
     exp = sympy.Symbol('exp')
     theta = sympy.Symbol('theta')
     circuit = cirq.FrozenCircuit(
-        cirq.X(a),
+        cirq.X(a) ** theta,
         cirq.Y(b),
         cirq.H(c),
         cirq.CX(a, b) ** exp,
@@ -408,11 +415,11 @@ def test_decompose_applies_maps():
             b: c,
         },
         measurement_key_map={'m': 'p'},
-        param_resolver={exp: theta},
+        param_resolver={exp: theta, theta: exp},
     )
 
     expected_circuit = cirq.Circuit(
-        cirq.X(a),
+        cirq.X(a) ** exp,
         cirq.Y(c),
         cirq.H(b),
         cirq.CX(a, c) ** theta,
