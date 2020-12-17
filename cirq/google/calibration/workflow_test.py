@@ -68,9 +68,7 @@ def test_run_floquet_calibration() -> None:
     )
 
     a, b, c, d = cirq.LineQubit.range(4)
-    simulator = cirq.Simulator()
     engine_simulator = cirq.google.PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
-        simulator,
         parameters={
             (a, b): parameters_ab.other_when_none(SQRT_ISWAP_PARAMETERS),
             (b, c): parameters_bc.other_when_none(SQRT_ISWAP_PARAMETERS),
@@ -141,9 +139,7 @@ def test_run_floquet_calibration_no_chi() -> None:
     )
 
     a, b, c, d = cirq.LineQubit.range(4)
-    simulator = cirq.Simulator()
     engine_simulator = cirq.google.PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
-        simulator,
         parameters={
             (a, b): parameters_ab,
             (b, c): parameters_bc,
