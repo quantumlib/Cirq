@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Union, Sequence
+from typing import List, Union, Sequence, Tuple
 
 import numpy as np
 
@@ -73,13 +73,13 @@ def three_qubit_matrix_to_operations(
         u2 = u2 @ np.diag([1, -1, 1, -1])
         cs_ops = cs_ops[:-1]
 
-    d_ud, c_ud = _two_qubit_multiplexor_to_circuit(q0, q1, q2, u1, u2, shift_left=True, atol=atol)
+    d_ud, ud_ops = _two_qubit_multiplexor_to_ops(q0, q1, q2, u1, u2, shift_left=True, atol=atol)
 
-    _, c_vdh = _two_qubit_multiplexor_to_circuit(
+    _, vdh_ops = _two_qubit_multiplexor_to_ops(
         q0, q1, q2, v1h, v2h, shift_left=False, diagonal=d_ud, atol=atol
     )
 
-    return list(cirq.Circuit([c_vdh, cs_ops, c_ud]).all_operations())
+    return list(cirq.Circuit(vdh_ops + cs_ops + ud_ops).all_operations())
 
 
 def _cs_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, theta: np.ndarray) -> List[ops.Operation]:
@@ -150,7 +150,7 @@ def _optimize_multiplexed_angles_circuit(operations: List[ops.Operation]):
     return operations
 
 
-def _two_qubit_multiplexor_to_circuit(
+def _two_qubit_multiplexor_to_ops(
     q0: ops.Qid,
     q1: ops.Qid,
     q2: ops.Qid,
@@ -159,7 +159,7 @@ def _two_qubit_multiplexor_to_circuit(
     shift_left: bool = True,
     diagonal: np.ndarray = np.eye(4),
     atol: float = 1e-8,
-) -> Sequence[ops.Operation]:
+) -> Tuple[np.ndarray, Sequence[ops.Operation]]:
     r"""Converts a two qubit double multiplexor to circuit.
     Input: U_1 ⊕ U_2, with select qubit a (i.e. a = |0> => U_1(b,c),
     a = |1> => U_2(b,c).
@@ -225,7 +225,7 @@ def _two_qubit_multiplexor_to_circuit(
             q1, q2, w, allow_partial_czs=False, atol=atol
         )
 
-    return d_w, cirq.Circuit([circuit_u1u2_l, circuit_u1u2_mid, circuit_u1u2_r])
+    return d_w, [circuit_u1u2_l, circuit_u1u2_mid, circuit_u1u2_r]
 
 
 def _middle_multiplexor_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, eigvals: np.ndarray):

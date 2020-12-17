@@ -25,7 +25,7 @@ from cirq.optimizers.three_qubit_decomposition import (
     _multiplexed_angles,
     _cs_to_ops,
     _middle_multiplexor_to_ops,
-    _two_qubit_multiplexor_to_circuit,
+    _two_qubit_multiplexor_to_ops,
 )
 
 
@@ -48,7 +48,7 @@ def test_three_qubit_matrix_to_operations(u):
         [
             op
             for op in list(final_circuit.all_operations())
-            if isinstance(op.gate, cirq.CZPowGate) or isinstance(op.gate, cirq.CNotPowGate)
+            if isinstance(op.gate, (cirq.CZPowGate, cirq.CNotPowGate))
         ]
     )
     assert num_two_qubit_gates <= 20, f"expected at most 20 CZ/CNOTs got {num_two_qubit_gates}"
@@ -192,7 +192,9 @@ def test_two_qubit_multiplexor_to_circuit(shift_left):
     a, b, c = cirq.LineQubit.range(3)
     u1 = cirq.testing.random_unitary(4)
     u2 = cirq.testing.random_unitary(4)
-    d_ud, c_ud = _two_qubit_multiplexor_to_circuit(a, b, c, u1, u2, shift_left=shift_left)
+    d_ud, ud_ops = _two_qubit_multiplexor_to_ops(a, b, c, u1, u2, shift_left=shift_left)
     expected = block_diag(u1, u2)
-    actual = c_ud.unitary(qubits_that_should_be_present=[a, b, c]) @ np.kron(np.eye(2), d_ud)
+    actual = cirq.Circuit(ud_ops).unitary(qubits_that_should_be_present=[a, b, c]) @ np.kron(
+        np.eye(2), d_ud
+    )
     cirq.testing.assert_allclose_up_to_global_phase(expected, actual, atol=1e-8)
