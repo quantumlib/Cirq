@@ -18,7 +18,7 @@ applied as part of a larger circuit, a CircuitOperation will execute all
 component operations in order, including any nested CircuitOperations.
 """
 
-from typing import TYPE_CHECKING, AbstractSet, Callable, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, AbstractSet, Callable, Dict, List, Optional, Tuple, Union
 
 import dataclasses
 import numpy as np
@@ -48,6 +48,8 @@ class CircuitOperation(ops.Operation):
         measurement_key_map: Remappings for measurement keys in the circuit.
         param_resolver: Resolved values for parameters in the circuit.
     """
+
+    _hash: Optional[int] = dataclasses.field(default=None, init=False)
 
     circuit: 'cirq.FrozenCircuit'
     repetitions: int = 1
@@ -156,6 +158,23 @@ class CircuitOperation(ops.Operation):
         if not args:
             return f'{header}\n{circuit_msg}'
         return f'{header}\n{circuit_msg}({", ".join(args)})'
+
+    def __hash__(self):
+        if self._hash is None:
+            object.__setattr__(
+                self,
+                '_hash',
+                hash(
+                    (
+                        self.circuit,
+                        self.repetitions,
+                        frozenset(self.qubit_map.items()),
+                        frozenset(self.measurement_key_map.items()),
+                        self.param_resolver,
+                    )
+                ),
+            )
+        return self._hash
 
     def _json_dict_(self):
         return {

@@ -54,6 +54,9 @@ def test_circuit_sharing():
     assert op2.circuit is circuit
     assert op3.circuit is circuit
 
+    assert hash(op1) == hash(op2)
+    assert hash(op1) == hash(op3)
+
 
 def test_with_qubits():
     a, b, c, d = cirq.LineQubit.range(4)
