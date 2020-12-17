@@ -51,11 +51,12 @@ def floquet_characterization_for_moment(
         else:
             translated_gate = gates_translator(op.gate)
             if translated_gate is None:
-                raise IncompatibleMomentError(f'Moment contains non-single qubit operation {op} '
-                                              f'with gate that is not equal to cirq.ISWAP ** -0.5')
+                raise IncompatibleMomentError(
+                    f'Moment {moment} contains unsupported non-single qubit operation {op}')
             elif gate is not None and gate != translated_gate:
-                raise IncompatibleMomentError(f'Moment contains operations resolved to two '
-                                              f'different gates {gate} and {translated_gate}')
+                raise IncompatibleMomentError(
+                    f'Moment {moment} contains operations resolved to two different gates {gate} '
+                    f'and {translated_gate}')
             else:
                 gate = translated_gate
             pair = cast(Tuple[Qid, Qid],
