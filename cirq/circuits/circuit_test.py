@@ -1751,7 +1751,6 @@ def test_all_terminal(circuit_cls):
     assert c.are_all_matches_terminal(is_circuit_op)
 
 
-
 def test_clear_operations_touching():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')

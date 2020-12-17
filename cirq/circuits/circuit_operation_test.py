@@ -214,18 +214,20 @@ def test_string_format():
     assert (
         repr(op1)
         == f"""\
-cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
-    cirq.Moment(
-        cirq.X(cirq.LineQubit(0)),
-        cirq.H(cirq.LineQubit(1)),
-    ),
-    cirq.Moment(
-        cirq.CNOT(cirq.LineQubit(1), cirq.LineQubit(2)),
-    ),
-    cirq.Moment(
-        cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2), key='m'),
-    ),
-]))"""
+cirq.CircuitOperation(
+    circuit=cirq.FrozenCircuit([
+        cirq.Moment(
+            cirq.X(cirq.LineQubit(0)),
+            cirq.H(cirq.LineQubit(1)),
+        ),
+        cirq.Moment(
+            cirq.CNOT(cirq.LineQubit(1), cirq.LineQubit(2)),
+        ),
+        cirq.Moment(
+            cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2), key='m'),
+        ),
+    ]),
+)"""
     )
 
     fc2 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, x))
@@ -241,17 +243,19 @@ cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
     assert (
         repr(op2)
         == """\
-cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
-    cirq.Moment(
-        cirq.X(cirq.LineQubit(0)),
-        cirq.H(cirq.LineQubit(1)),
-    ),
-    cirq.Moment(
-        cirq.CNOT(cirq.LineQubit(1), cirq.LineQubit(0)),
-    ),
-]),
-repetitions=3,
-qubit_map={cirq.LineQubit(1): cirq.LineQubit(2)})"""
+cirq.CircuitOperation(
+    circuit=cirq.FrozenCircuit([
+        cirq.Moment(
+            cirq.X(cirq.LineQubit(0)),
+            cirq.H(cirq.LineQubit(1)),
+        ),
+        cirq.Moment(
+            cirq.CNOT(cirq.LineQubit(1), cirq.LineQubit(0)),
+        ),
+    ]),
+    repetitions=3,
+    qubit_map={cirq.LineQubit(1): cirq.LineQubit(2)},
+)"""
     )
 
     fc3 = cirq.FrozenCircuit(
@@ -264,6 +268,7 @@ qubit_map={cirq.LineQubit(1): cirq.LineQubit(2)})"""
         measurement_key_map={'m': 'p'},
         param_resolver={sympy.Symbol('b'): 2},
     )
+    indented_fc3_repr = repr(fc3).replace('\n', '\n    ')
     assert (
         str(op3)
         == f"""\
@@ -274,10 +279,12 @@ key_map={{m: p}}, params={{b: 2}})"""
     assert (
         repr(op3)
         == f"""\
-cirq.CircuitOperation(circuit={fc3!r},
-qubit_map={{cirq.LineQubit(0): cirq.LineQubit(1)}},
-measurement_key_map={{'m': 'p'}},
-param_resolver=cirq.ParamResolver({{sympy.Symbol('b'): 2}}))"""
+cirq.CircuitOperation(
+    circuit={indented_fc3_repr},
+    qubit_map={{cirq.LineQubit(0): cirq.LineQubit(1)}},
+    measurement_key_map={{'m': 'p'}},
+    param_resolver=cirq.ParamResolver({{sympy.Symbol('b'): 2}}),
+)"""
     )
 
 

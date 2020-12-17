@@ -66,25 +66,9 @@ class CircuitOperation(ops.Operation):
         """
         return CircuitOperation(self.circuit)
 
-    def updated_copy(
-        self,
-        *,
-        circuit: Optional['cirq.FrozenCircuit'] = None,
-        repetitions: Optional[int] = None,
-        qubit_map: Optional[Dict['cirq.Qid', 'cirq.Qid']] = None,
-        measurement_key_map: Optional[Dict[str, str]] = None,
-        param_resolver: Optional[study.ParamResolver] = None,
-    ):
-        """Returns a copy of this operation with the specified fields updated."""
-        return CircuitOperation(
-            circuit=self.circuit if circuit is None else circuit,
-            repetitions=self.repetitions if repetitions is None else repetitions,
-            qubit_map=self.qubit_map if qubit_map is None else qubit_map,
-            measurement_key_map=self.measurement_key_map
-            if measurement_key_map is None
-            else measurement_key_map,
-            param_resolver=self.param_resolver if param_resolver is None else param_resolver,
-        )
+    def replace(self, **changes) -> 'CircuitOperation':
+        """Returns a copy of this operation with the specified changes."""
+        return dataclasses.replace(self, **changes)
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, type(self)):
@@ -135,17 +119,17 @@ class CircuitOperation(ops.Operation):
     # Methods for string representation of the operation.
 
     def __repr__(self):
-        args = [f'circuit={self.circuit!r}']
+        args = f'\ncircuit={self.circuit!r},\n'
         if self.repetitions != 1:
-            args.append(f'repetitions={self.repetitions}')
+            args += f'repetitions={self.repetitions},\n'
         if self.qubit_map:
-            args.append(f'qubit_map={proper_repr(self.qubit_map)}')
+            args += f'qubit_map={proper_repr(self.qubit_map)},\n'
         if self.measurement_key_map:
-            args.append(f'measurement_key_map={proper_repr(self.measurement_key_map)}')
+            args += f'measurement_key_map={proper_repr(self.measurement_key_map)},\n'
         if self.param_resolver:
-            args.append(f'param_resolver={proper_repr(self.param_resolver)}')
-        argstr = ",\n".join(args)  # no backslashes allowed in fstring braces
-        return f'cirq.CircuitOperation({argstr})'
+            args += f'param_resolver={proper_repr(self.param_resolver)},\n'
+        indented_args = args.replace('\n', '\n    ')
+        return f'cirq.CircuitOperation({indented_args[:-4]})'
 
     def __str__(self):
         # TODO: support out-of-line subcircuit definition in string format.
@@ -224,7 +208,7 @@ class CircuitOperation(ops.Operation):
         repetitions = int(repetitions)
         if protocols.is_measurement(self.circuit):
             raise NotImplementedError('Loops over measurements are not supported.')
-        return self.updated_copy(repetitions=self.repetitions * repetitions)
+        return self.replace(repetitions=self.repetitions * repetitions)
 
     def __pow__(self, power: int) -> 'CircuitOperation':
         return self.repeat(power)
@@ -266,7 +250,7 @@ class CircuitOperation(ops.Operation):
             new_v = transform(v)
             if k != new_v:
                 new_map[k] = new_v
-        new_op = self.updated_copy(qubit_map=new_map)
+        new_op = self.replace(qubit_map=new_map)
         if len(set(new_op.qubits)) != len(set(self.qubits)):
             raise ValueError(
                 f'Collision in qubit map composition. Original map:\n{self.qubit_map}'
@@ -312,7 +296,7 @@ class CircuitOperation(ops.Operation):
         base_map = {m: m for m in self.circuit.all_measurement_keys()}
         base_map.update(self.measurement_key_map)
         new_map = {k: key_map.get(v, v) for k, v in base_map.items() if k != key_map.get(v, v)}
-        new_op = self.updated_copy(measurement_key_map=new_map)
+        new_op = self.replace(measurement_key_map=new_map)
         if len(new_op._measurement_keys_()) != len(self._measurement_keys_()):
             raise ValueError(
                 f'Collision in measurement key map composition. Original map:\n'
@@ -338,7 +322,7 @@ class CircuitOperation(ops.Operation):
                 by param_values.
         """
         new_resolver = protocols.resolve_parameters(self.param_resolver, param_values, recursive)
-        return self.updated_copy(param_resolver=new_resolver)
+        return self.replace(param_resolver=new_resolver)
 
     def _resolve_parameters_(
         self, param_resolver: 'cirq.ParamResolver', recursive: bool
