@@ -215,8 +215,7 @@ class CircuitOperation(ops.Operation):
 
     def with_qubit_mapping(
         self,
-        qubit_map: Optional[Dict['cirq.Qid', 'cirq.Qid']] = None,
-        transform: Optional[Callable[['cirq.Qid'], 'cirq.Qid']] = None,
+        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
     ) -> 'CircuitOperation':
         """Returns a copy of this operation with an updated qubit mapping.
 
@@ -232,17 +231,17 @@ class CircuitOperation(ops.Operation):
             A copy of this operation targeting qubits as indicated by qubit_map.
 
         Raises:
+            TypeError: qubit_map was not a function or dict mapping qubits to
+                qubits.
             ValueError: The new operation has a different number of qubits than
-                this operation, or the wrong number of arguments were provided
-                (should be exactly one).
+                this operation.
         """
-        if transform is None:
-            if qubit_map is None:
-                raise ValueError('with_qubit_mapping requires one of {qubit_map, transform}.')
-            else:
-                transform = lambda q: qubit_map.get(q, q)  # type: ignore
-        elif qubit_map is not None:
-            raise ValueError('with_qubit_mapping received both of {qubit_map, transform}.')
+        if isinstance(qubit_map, Callable):
+            transform = qubit_map
+        elif isinstance(qubit_map, Dict):
+            transform = lambda q: qubit_map.get(q, q)  # type: ignore
+        else:
+            raise TypeError('qubit_map must be a function or dict mapping qubits to qubits.')
         base_map = {q: q for q in self.circuit.all_qubits()}
         base_map.update(self.qubit_map)
         new_map = {}
