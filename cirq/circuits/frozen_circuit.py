@@ -17,7 +17,6 @@ from typing import (
     TYPE_CHECKING,
     AbstractSet,
     Callable,
-    Dict,
     FrozenSet,
     Iterator,
     Optional,
@@ -138,6 +137,9 @@ class FrozenCircuit(AbstractCircuit):
 
     def __radd__(self, other) -> 'FrozenCircuit':
         return (other + self.unfreeze()).freeze()
+
+    # Needed for numpy to handle multiplication by np.int64 correctly.
+    __array_priority__ = 10000
 
     # TODO: handle multiplication / powers differently?
     def __mul__(self, other) -> 'FrozenCircuit':
