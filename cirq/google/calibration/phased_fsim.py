@@ -44,7 +44,7 @@ class PhasedFSimParameters:
         )
 
 
-@json_serializable_dataclass
+@json_serializable_dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationOptions:
     estimate_theta: bool
     estimate_zeta: bool
@@ -53,8 +53,8 @@ class FloquetPhasedFSimCalibrationOptions:
     estimate_phi: bool
 
 
-@json_serializable_dataclass
-class PhasedFSimCalibrationResult(abc.ABC):
+@json_serializable_dataclass(frozen=True)
+class PhasedFSimCalibrationResult:
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimParameters]
     gate: Gate
     gate_set: SerializableGateSet
@@ -68,7 +68,7 @@ class PhasedFSimCalibrationResult(abc.ABC):
             return None
 
 
-@json_serializable_dataclass
+@json_serializable_dataclass(frozen=True)
 class PhasedFSimCalibrationRequest(abc.ABC):
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
     gate_set: SerializableGateSet
@@ -83,12 +83,12 @@ class PhasedFSimCalibrationRequest(abc.ABC):
         pass
 
 
-@json_serializable_dataclass
+@json_serializable_dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationResult(PhasedFSimCalibrationResult):
     options: FloquetPhasedFSimCalibrationOptions
 
 
-@json_serializable_dataclass
+@json_serializable_dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     options: FloquetPhasedFSimCalibrationOptions
 
