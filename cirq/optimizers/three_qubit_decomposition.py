@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Union, Tuple
+from typing import Union, Tuple, Sequence, List
 
 import numpy as np
 
@@ -23,7 +23,7 @@ from cirq import optimizers as opt
 
 def three_qubit_matrix_to_operations(
     q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, u: np.ndarray, atol: float = 1e-8
-) -> List[ops.Operation]:
+) -> Sequence[ops.Operation]:
     """Returns operations for a 3 qubit unitary.
 
     The algorithm is described in Shende et al.:
@@ -111,7 +111,7 @@ def _cs_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, theta: np.ndarray) -> List
     return _optimize_multiplexed_angles_circuit(ops)
 
 
-def _optimize_multiplexed_angles_circuit(operations: List[ops.Operation]):
+def _optimize_multiplexed_angles_circuit(operations: Sequence[ops.Operation]):
     """Removes two qubit gates that amount to identity.
     Exploiting the specific multiplexed structure, this methods looks ahead
     to find stripes of 3 or 4 consecutive CZ or CNOT gates and removes them.
@@ -225,7 +225,7 @@ def _two_qubit_multiplexor_to_ops(
             q1, q2, w, allow_partial_czs=False, atol=atol
         )
 
-    return d_w, [circuit_u1u2_l, circuit_u1u2_mid, circuit_u1u2_r]
+    return d_w, circuit_u1u2_l + circuit_u1u2_mid + circuit_u1u2_r
 
 
 def _middle_multiplexor_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, eigvals: np.ndarray):
@@ -245,7 +245,7 @@ def _middle_multiplexor_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, eigvals: n
     return _optimize_multiplexed_angles_circuit(ops)
 
 
-def _multiplexed_angles(theta: Union[List[float], np.ndarray]) -> np.ndarray:
+def _multiplexed_angles(theta: Union[Sequence[float], np.ndarray]) -> np.ndarray:
     """Calculates the angles for a 4-way multiplexed rotation.
 
     For example, if we want rz(theta[i]) if the select qubits are in state
