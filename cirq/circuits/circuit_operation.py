@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING, AbstractSet, Callable, Dict, List, Optional, T
 import dataclasses
 import numpy as np
 
-from cirq import linalg, ops, protocols, study
+from cirq import ops, protocols, study
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:

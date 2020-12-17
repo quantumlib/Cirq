@@ -753,6 +753,10 @@ class AbstractCircuit(abc.ABC):
     def are_all_matches_terminal(self, predicate: Callable[['cirq.Operation'], bool]):
         """Check whether all of the ops that satisfy a predicate are terminal.
 
+        This method will transparently descend into any CircuitOperations this
+        circuit contains; as a result, it will misbehave if the predicate
+        refers to CircuitOperations. See the tests for an example of this.
+
         Args:
             predicate: A predicate on ops.Operations which is being checked.
 
@@ -764,34 +768,30 @@ class AbstractCircuit(abc.ABC):
         from cirq.circuits import CircuitOperation
 
         # TaggedOperations can wrap CircuitOperations.
-        def is_circuit_op(op):
-            if isinstance(op, CircuitOperation):
-                return True
-            if isinstance(op, ops.TaggedOperation):
-                return is_circuit_op(op.sub_operation)
-            return False
+        def get_op_circuit(op: ops.Operation) -> Optional['cirq.FrozenCircuit']:
+            while isinstance(op, ops.TaggedOperation):
+                op = op.sub_operation
+            return op.circuit if isinstance(op, CircuitOperation) else None
 
         if not all(
             self.next_moment_operating_on(op.qubits, i + 1) is None
             for (i, op) in self.findall_operations(predicate)
-            if not is_circuit_op(op)
+            if get_op_circuit(op) is None
         ):
             return False
 
-        for index, op in self.findall_operations(lambda op: is_circuit_op(op)):
-            while isinstance(op, ops.TaggedOperation):
-                op = op.sub_operation
-            assert isinstance(
-                op, CircuitOperation
-            ), f'is_circuit_op captured a non-circuit operation: {op}'
-            if not op.circuit.are_all_matches_terminal(predicate):
-                return False
-            if index < len(self.moments) - 1 and not all(
-                self.next_moment_operating_on(op.qubits, index + 1) is None
-                for _, op in op.circuit.findall_operations(predicate)
-            ):
-                return False
-
+        for i, moment in enumerate(self.moments):
+            for op in moment.operations:
+                circuit = get_op_circuit(op)
+                if circuit is None:
+                    continue
+                if not circuit.are_all_matches_terminal(predicate):
+                    return False
+                if i < len(self.moments) - 1 and not all(
+                    self.next_moment_operating_on(op.qubits, i + 1) is None
+                    for _, op in circuit.findall_operations(predicate)
+                ):
+                    return False
         return True
 
     def _has_op_at(self, moment_index: int, qubits: Iterable['cirq.Qid']) -> bool:
