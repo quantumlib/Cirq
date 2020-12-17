@@ -178,7 +178,31 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             ideal_when_missing_gate: bool = False,
             ideal_when_missing_parameter: bool = False
     ) -> 'PhasedFSimEngineSimulator':
-        return NotImplemented
+        parameters = {}
+        for characterization in characterizations:
+            gate = characterization.gate
+            if (not isinstance(gate, FSimGate) or
+                    not np.isclose(gate.theta, np.pi / 4) or
+                    not np.isclose(gate.phi, 0.0)):
+                raise ValueError(f'Expected ISWAP ** -0.5 like gate, got {gate}')
+
+            for (a, b), pair_parameters in characterization.parameters.items():
+                if a > b:
+                    a, b = b, a
+                    pair_parameters = pair_parameters.for_qubits_swapped()
+                if (a, b) in parameters:
+                    # TODO: Add support for multi-moment simulation, where each moment can define
+                    #  different parameters for a given qubits pair.
+                    raise ValueError(f'Pair ({(a, b)}) appears in multiple moments, multi-moment '
+                                     f'simulation is not supported.')
+                parameters[(a, b)] = pair_parameters
+
+        return PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
+            simulator,
+            parameters=parameters,
+            ideal_when_missing_gate=ideal_when_missing_gate,
+            ideal_when_missing_parameter=ideal_when_missing_parameter
+        )
 
     def final_state_vector(self, program: Circuit) -> np.array:
         result = self.simulate(program)
