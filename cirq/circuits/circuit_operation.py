@@ -18,7 +18,7 @@ applied as part of a larger circuit, a CircuitOperation will execute all
 component operations in order, including any nested CircuitOperations.
 """
 
-from typing import TYPE_CHECKING, AbstractSet, Callable, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, AbstractSet, Callable, Dict, List, Tuple, Union
 
 import dataclasses
 import numpy as np
@@ -173,15 +173,13 @@ class CircuitOperation(ops.Operation):
     def _from_json_dict_(
         cls, circuit, repetitions, qubit_map, measurement_key_map, param_resolver, **kwargs
     ):
-        result = (
+        return (
             cls(circuit)
             .with_qubit_mapping(dict(qubit_map))
             .with_measurement_key_mapping(measurement_key_map)
             .with_params(param_resolver)
+            .repeat(repetitions)
         )
-        if repetitions != 1:
-            return result.repeat(repetitions)
-        return result
 
     # Methods for constructing a similar object with one field modified.
 
@@ -205,6 +203,9 @@ class CircuitOperation(ops.Operation):
         """
         if not isinstance(repetitions, (int, np.integer)):
             raise TypeError('Only integer repetitions are allowed.')
+        if repetitions == 1:
+            # As CircuitOperation is immutable, this can safely return the original.
+            return self
         repetitions = int(repetitions)
         if protocols.is_measurement(self.circuit):
             raise NotImplementedError('Loops over measurements are not supported.')
@@ -236,19 +237,17 @@ class CircuitOperation(ops.Operation):
             ValueError: The new operation has a different number of qubits than
                 this operation.
         """
-        if isinstance(qubit_map, Callable):
+        if callable(qubit_map):
             transform = qubit_map
-        elif isinstance(qubit_map, Dict):
+        elif isinstance(qubit_map, dict):
             transform = lambda q: qubit_map.get(q, q)  # type: ignore
         else:
             raise TypeError('qubit_map must be a function or dict mapping qubits to qubits.')
-        base_map = {q: q for q in self.circuit.all_qubits()}
-        base_map.update(self.qubit_map)
         new_map = {}
-        for k, v in base_map.items():
-            new_v = transform(v)
-            if k != new_v:
-                new_map[k] = new_v
+        for q in self.circuit.all_qubits():
+            q_new = transform(self.qubit_map.get(q, q))
+            if q_new != q:
+                new_map[q] = q_new
         new_op = self.replace(qubit_map=new_map)
         if len(set(new_op.qubits)) != len(set(self.qubits)):
             raise ValueError(
@@ -257,7 +256,7 @@ class CircuitOperation(ops.Operation):
             )
         return new_op
 
-    def with_qubits(self, *new_qubits: 'cirq.Qid'):
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'CircuitOperation':
         """Returns a copy of this operation with an updated qubit mapping.
 
         Args:
@@ -292,9 +291,12 @@ class CircuitOperation(ops.Operation):
             ValueError: The new operation has a different number of measurement
                 keys than this operation.
         """
-        base_map = {m: m for m in self.circuit.all_measurement_keys()}
-        base_map.update(self.measurement_key_map)
-        new_map = {k: key_map.get(v, v) for k, v in base_map.items() if k != key_map.get(v, v)}
+        new_map = {}
+        for k in self.circuit.all_measurement_keys():
+            k_new = self.measurement_key_map.get(k, k)
+            k_new = key_map.get(k_new, k_new)
+            if k_new != k:
+                new_map[k] = k_new
         new_op = self.replace(measurement_key_map=new_map)
         if len(new_op._measurement_keys_()) != len(self._measurement_keys_()):
             raise ValueError(

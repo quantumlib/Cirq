@@ -149,6 +149,7 @@ def test_repetition():
     # This circuit has a modulus of 8.
     circuit = cirq.FrozenCircuit(cirq.H(a), cirq.CX(a, b))
     op_base = cirq.CircuitOperation(circuit)
+    assert op_base.repeat(1) is op_base
 
     op_with_reps = op_base.repeat(-5)
     assert op_with_reps.repetitions == -5
