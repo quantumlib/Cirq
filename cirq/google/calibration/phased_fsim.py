@@ -83,6 +83,9 @@ class PhasedFSimParameters:
             phi=other.phi if self.phi is None else self.phi,
         )
 
+    def override(self, other: 'PhasedFSimParameters') -> 'PhasedFSimParameters':
+        return other.other_when_none(self)
+
 
 @json_serializable_dataclass
 class FloquetPhasedFSimCalibrationOptions:
@@ -120,7 +123,14 @@ class PhasedFSimCalibrationResult:
     gate_set: SerializableGateSet
 
     def override(self, parameters: PhasedFSimParameters) -> 'PhasedFSimCalibrationResult':
-        return NotImplemented
+        return PhasedFSimCalibrationResult(
+            parameters={
+                pair: pair_parameters.override(parameters)
+                for pair, pair_parameters in self.parameters.items()
+            },
+            gate=self.gate,
+            gate_set=self.gate_set
+        )
 
     def get_parameters(self, a: Qid, b: Qid) -> Optional['PhasedFSimParameters']:
         if (a, b) in self.parameters:
