@@ -44,6 +44,14 @@ def test_three_qubit_matrix_to_operations(u):
     final_circuit = cirq.Circuit(operations)
     final_unitary = final_circuit.unitary(qubits_that_should_be_present=[a, b, c])
     cirq.testing.assert_allclose_up_to_global_phase(u, final_unitary, atol=1e-9)
+    num_two_qubit_gates = len(
+        [
+            op
+            for op in list(final_circuit.all_operations())
+            if isinstance(op.gate, cirq.CZPowGate) or isinstance(op.gate, cirq.CNotPowGate)
+        ]
+    )
+    assert num_two_qubit_gates <= 20, f"expected at most 20 CZ/CNOTs got {num_two_qubit_gates}"
 
 
 def test_three_qubit_matrix_to_operations_errors():

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Union
+from typing import List, Union, Sequence
 
 import numpy as np
 
@@ -70,7 +70,7 @@ def three_qubit_matrix_to_operations(
         # as u1(b,c) is the operator in case a = \0>,
         # and u2(b,c) is the operator for (b,c) in case a = |1>
         # we can represent the merge by phasing u2 with I ⊗ Z
-        u2 = u2 @ np.kron(np.eye(2), np.array([[1, 0], [0, -1]]))
+        u2 = u2 @ np.diag([1, -1, 1, -1])
         cs_ops = cs_ops[:-1]
 
     d_ud, c_ud = _two_qubit_multiplexor_to_circuit(q0, q1, q2, u1, u2, shift_left=True, atol=atol)
@@ -159,31 +159,31 @@ def _two_qubit_multiplexor_to_circuit(
     shift_left: bool = True,
     diagonal: np.ndarray = np.eye(4),
     atol: float = 1e-8,
-):
+) -> Sequence[ops.Operation]:
     r"""Converts a two qubit double multiplexor to circuit.
-    Input: u1 ⊕ u2, with select qubit a (i.e. a = |0> => u1(b,c),
-    a = |1> => u2(b,c).
+    Input: U_1 ⊕ U_2, with select qubit a (i.e. a = |0> => U_1(b,c),
+    a = |1> => U_2(b,c).
 
     We want this:
         $$
-        u1 ⊕ u2 = v ⊕ v @ D ⊕ D^{\dagger} @ W ⊕ W
+        U_1 ⊕ U_2 = (V ⊕ V) @ (D ⊕ D^{\dagger}) @ (W ⊕ W)
         $$
     We can get it via:
         $$
-        u1 = v @ D @ W       (1)
-        u2 = v @ D^{\dagger} @ W (2)
+        U_1 = V @ D @ W       (1)
+        U_2 = V @ D^{\dagger} @ W (2)
         $$
 
     We can derive
         $$
-        u1u2^{adj}= v @ D^2 @ v^{\dagger}, (3)
+        U_1 U_2^{\dagger}= V @ D^2 @ V^{\dagger}, (3)
         $$
 
-    i.e the eigendecomposition of $u1u2^{\dagger}$ will give us D and v.
+    i.e the eigendecomposition of $U_1 U_2^{\dagger}$ will give us D and V.
     W is easy to derive from (2).
 
-    This function, after calculating v, D and W, also returns the circuit that
-    implements these unitaries: v, W on qubits b, c and the middle diagonal
+    This function, after calculating V, D and W, also returns the circuit that
+    implements these unitaries: V, W on qubits b, c and the middle diagonal
     multiplexer on a,b,c qubits.
 
     The resulting circuit will have only known two-qubit and one-qubit gates,
