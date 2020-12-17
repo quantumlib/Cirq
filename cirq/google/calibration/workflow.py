@@ -51,11 +51,12 @@ def floquet_characterization_for_moment(
         else:
             translated_gate = gates_translator(op.gate)
             if translated_gate is None:
-                raise IncompatibleMomentError(f'Moment contains non-single qubit operation {op} '
-                                              f'with gate that is not equal to cirq.ISWAP ** -0.5')
+                raise IncompatibleMomentError(
+                    f'Moment {moment} contains unsupported non-single qubit operation {op}')
             elif gate is not None and gate != translated_gate:
-                raise IncompatibleMomentError(f'Moment contains operations resolved to two '
-                                              f'different gates {gate} and {translated_gate}')
+                raise IncompatibleMomentError(
+                    f'Moment {moment} contains operations resolved to two different gates {gate} '
+                    f'and {translated_gate}')
             else:
                 gate = translated_gate
             pair = cast(Tuple[Qid, Qid],
@@ -80,9 +81,10 @@ def floquet_characterization_for_moment(
 
 def floquet_characterization_for_circuit(
         circuit: Circuit,
-        options: FloquetPhasedFSimCalibrationOptions,
         gate_set: SerializableGateSet,
         gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
+        options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.
+            all_except_for_chi_options(),
         merge_sub_sets: bool = True,
         initial: Optional[
             Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]] = None
@@ -198,15 +200,16 @@ def run_floquet_characterization_for_circuit(
         engine: Union[Engine, PhasedFSimEngineSimulator],
         processor_id: str,
         handler_name: str,
-        options: FloquetPhasedFSimCalibrationOptions,
         gate_set: SerializableGateSet,
         gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
+        options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.
+            all_except_for_chi_options(),
         merge_sub_sets: bool = True,
         max_layers_per_request: int = 1,
         progress_func: Optional[Callable[[int, int], None]] = None
 ) -> List[Optional[PhasedFSimCalibrationResult]]:
     requests, mapping = floquet_characterization_for_circuit(
-        circuit, options, gate_set, gates_translator, merge_sub_sets=merge_sub_sets)
+        circuit, gate_set, gates_translator, options, merge_sub_sets=merge_sub_sets)
     results = run_characterizations(requests, engine, processor_id, handler_name,
                                     max_layers_per_request=max_layers_per_request,
                                     progress_func=progress_func)
