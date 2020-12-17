@@ -63,6 +63,7 @@ if TYPE_CHECKING:
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='AbstractCircuit')
+INT_TYPE = Union[int, np.integer]
 
 
 class AbstractCircuit(abc.ABC):
@@ -73,29 +74,30 @@ class AbstractCircuit(abc.ABC):
 
     These methods return information about the circuit, and can be called on
     either Circuit or FrozenCircuit objects:
-        next_moment_operating_on
-        prev_moment_operating_on
-        next_moments_operating_on
-        operation_at
-        all_qubits
-        all_operations
-        findall_operations
-        findall_operations_between
-        findall_operations_until_blocked
-        findall_operations_with_gate_type
-        reachable_frontier_from
-        has_measurements
-        are_all_matches_terminal
-        are_all_measurements_terminal
-        unitary
-        final_state_vector
-        to_text_diagram
-        to_text_diagram_drawer
-        qid_shape
-        all_measurement_keys
-        to_quil
-        to_qasm
-        save_qasm
+
+    *   next_moment_operating_on
+    *   prev_moment_operating_on
+    *   next_moments_operating_on
+    *   operation_at
+    *   all_qubits
+    *   all_operations
+    *   findall_operations
+    *   findall_operations_between
+    *   findall_operations_until_blocked
+    *   findall_operations_with_gate_type
+    *   reachable_frontier_from
+    *   has_measurements
+    *   are_all_matches_terminal
+    *   are_all_measurements_terminal
+    *   unitary
+    *   final_state_vector
+    *   to_text_diagram
+    *   to_text_diagram_drawer
+    *   qid_shape
+    *   all_measurement_keys
+    *   to_quil
+    *   to_qasm
+    *   save_qasm
     """
 
     @property
@@ -703,10 +705,7 @@ class AbstractCircuit(abc.ABC):
         """
         if not 0 <= moment_index < len(self.moments):
             return None
-        for op in self.moments[moment_index].operations:
-            if qubit in op.qubits:
-                return op
-        return None
+        return self.moments[moment_index].operation_at(qubit)
 
     def findall_operations(
         self, predicate: Callable[['cirq.Operation'], bool]
@@ -1209,61 +1208,73 @@ class Circuit(AbstractCircuit):
 
     Methods returning information about the circuit (inherited from
     AbstractCircuit):
-        next_moment_operating_on
-        prev_moment_operating_on
-        next_moments_operating_on
-        operation_at
-        all_qubits
-        all_operations
-        findall_operations
-        findall_operations_between
-        findall_operations_until_blocked
-        findall_operations_with_gate_type
-        reachable_frontier_from
-        has_measurements
-        are_all_matches_terminal
-        are_all_measurements_terminal
-        unitary
-        final_state_vector
-        to_text_diagram
-        to_text_diagram_drawer
-        qid_shape
-        all_measurement_keys
-        to_quil
-        to_qasm
-        save_qasm
+
+    *   next_moment_operating_on
+    *   prev_moment_operating_on
+    *   next_moments_operating_on
+    *   operation_at
+    *   all_qubits
+    *   all_operations
+    *   findall_operations
+    *   findall_operations_between
+    *   findall_operations_until_blocked
+    *   findall_operations_with_gate_type
+    *   reachable_frontier_from
+    *   has_measurements
+    *   are_all_matches_terminal
+    *   are_all_measurements_terminal
+    *   unitary
+    *   final_state_vector
+    *   to_text_diagram
+    *   to_text_diagram_drawer
+    *   qid_shape
+    *   all_measurement_keys
+    *   to_quil
+    *   to_qasm
+    *   save_qasm
 
     Methods for mutation:
-        insert
-        append
-        insert_into_range
-        clear_operations_touching
-        batch_insert
-        batch_remove
-        batch_insert_into
-        insert_at_frontier
+
+    *   insert
+    *   append
+    *   insert_into_range
+    *   clear_operations_touching
+    *   batch_insert
+    *   batch_remove
+    *   batch_insert_into
+    *   insert_at_frontier
 
     Circuits can also be iterated over,
+
+    ```
         for moment in circuit:
             ...
+    ```
+
     and sliced,
-        circuit[1:3] is a new Circuit made up of two moments, the first being
-            circuit[1] and the second being circuit[2];
-        circuit[:, qubit] is a new Circuit with the same moments, but with only
-            those operations which act on the given Qubit;
-        circuit[:, qubits], where 'qubits' is list of Qubits, is a new Circuit
+
+    *   `circuit[1:3]` is a new Circuit made up of two moments, the first being
+            `circuit[1]` and the second being `circuit[2]`;
+    *   `circuit[:, qubit]` is a new Circuit with the same moments, but with
+            only those operations which act on the given Qubit;
+    *   `circuit[:, qubits]`, where 'qubits' is list of Qubits, is a new Circuit
             with the same moments, but only with those operations which touch
             any of the given qubits;
-        circuit[1:3, qubit] is equivalent to circuit[1:3][:, qubit];
-        circuit[1:3, qubits] is equivalent to circuit[1:3][:, qubits];
+    *   `circuit[1:3, qubit]` is equivalent to `circuit[1:3][:, qubit]`;
+    *   `circuit[1:3, qubits]` is equivalent to `circuit[1:3][:, qubits]`;
+
     and concatenated,
-        circuit1 + circuit2 is a new Circuit made up of the moments in circuit1
-            followed by the moments in circuit2;
+
+    *    `circuit1 + circuit2` is a new Circuit made up of the moments in
+            circuit1 followed by the moments in circuit2;
+
     and multiplied by an integer,
-        circuit * k is a new Circuit made up of the moments in circuit repeated
+
+    *    `circuit * k` is a new Circuit made up of the moments in circuit repeated
             k times.
+
     and mutated,
-        circuit[1:7] = [Moment(...)]
+    *    `circuit[1:7] = [Moment(...)]`
     """
 
     def __init__(
@@ -1370,21 +1381,24 @@ class Circuit(AbstractCircuit):
         result._device.validate_circuit(result)
         return result
 
-    def __imul__(self, repetitions: int):
-        if not isinstance(repetitions, int):
+    # Needed for numpy to handle multiplication by np.int64 correctly.
+    __array_priority__ = 10000
+
+    def __imul__(self, repetitions: INT_TYPE):
+        if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
-        self._moments *= repetitions
+        self._moments *= int(repetitions)
         return self
 
-    def __mul__(self, repetitions: int):
-        if not isinstance(repetitions, int):
+    def __mul__(self, repetitions: INT_TYPE):
+        if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
-        return Circuit(self._moments * repetitions, device=self._device)
+        return Circuit(self._moments * int(repetitions), device=self._device)
 
-    def __rmul__(self, repetitions: int):
-        if not isinstance(repetitions, int):
+    def __rmul__(self, repetitions: INT_TYPE):
+        if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
-        return self * repetitions
+        return self * int(repetitions)
 
     def __pow__(self, exponent: int) -> 'Circuit':
         """A circuit raised to a power, only valid for exponent -1, the inverse.

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Quantum gates that are commonly used in the literature.
 
 This module creates Gate instances for the following gates:
@@ -888,7 +887,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'H'
-        return f'H^{self._exponent}'
+        return f'H**{self._exponent}'
 
     def __repr__(self) -> str:
         if self._global_shift == 0:
@@ -1359,8 +1358,10 @@ document(
     The `exponent=1` instance of `cirq.HPowGate`.
 
     Matrix:
+    ```
         [[s, s],
          [s, -s]]
+    ```
         where s = sqrt(0.5).
     """,
 )
@@ -1373,8 +1374,10 @@ document(
     The `exponent=0.5` instance of `cirq.ZPowGate`.
 
     Matrix:
+    ```
         [[1, 0],
          [0, i]]
+    ```
     """,
 )
 
@@ -1386,8 +1389,10 @@ document(
     The `exponent=0.25` instance of `cirq.ZPowGate`.
 
     Matrix:
+    ```
         [[1, 0]
          [0, exp(i pi / 4)]]
+    ```
     """,
 )
 
@@ -1399,11 +1404,12 @@ document(
     The `exponent=1` instance of `cirq.CZPowGate`.
 
     Matrix:
-
+    ```
         [[1 . . .],
          [. 1 . .],
          [. . 1 .],
          [. . . -1]]
+    ```
     """,
 )
 
@@ -1416,10 +1422,11 @@ document(
     The `exponent=1` instance of `cirq.CXPowGate`.
 
     Matrix:
-
+    ```
         [[1 . . .],
          [. 1 . .],
          [. . . 1],
          [. . 1 .]]
+    ```
     """,
 )

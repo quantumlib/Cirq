@@ -91,34 +91,49 @@ def test_direct_fidelity_estimation_clifford_all_trials():
 
 
 def test_same_pauli_traces_clifford():
-    # When the circuit is Clifford, there is a speedup to compute the Pauli
-    # traces. Here, we test that the Pauli traces returned by the general algo
-    # and the speedup algo are the same.
+    n_qubits = 4
 
-    # Build a Clifford circuit and its states.
-    qubits = cirq.LineQubit.range(3)
-    n_qubits = len(qubits)
-    circuit = cirq.Circuit(
-        cirq.CNOT(qubits[0], qubits[2]),
-        cirq.Z(qubits[0]),
-        cirq.H(qubits[2]),
-        cirq.CNOT(qubits[2], qubits[1]),
-        cirq.X(qubits[0]),
-        cirq.X(qubits[1]),
-        cirq.CNOT(qubits[0], qubits[2]),
+    qubits = cirq.LineQubit.range(n_qubits)
+    circuit_clifford = cirq.Circuit(
+        cirq.X(qubits[3]),
     )
 
-    clifford_state = cirq.CliffordState(qubit_map={qubits[i]: i for i in range(len(qubits))})
-    for gate in circuit.all_operations():
-        clifford_state.apply_unitary(gate)
+    circuit_general = cirq.Circuit(
+        cirq.CCX(qubits[0], qubits[1], qubits[2]),
+        circuit_clifford,
+    )
+
+    def _run_dfe(circuit):
+        class NoiseOnLastQubitOnly(cirq.NoiseModel):
+            def __init__(self):
+                self.qubit_noise_gate = cirq.amplitude_damp(1.0)
+
+            def noisy_moment(self, moment, system_qubits):
+                return [
+                    moment,
+                    cirq.ops.Moment(
+                        [
+                            self.qubit_noise_gate(q).with_tags(cirq.ops.VirtualTag())
+                            for q in system_qubits[-1:]
+                        ]
+                    ),
+                ]
+
+        np.random.seed(0)
+        noise = NoiseOnLastQubitOnly()
+        noisy_simulator = cirq.DensityMatrixSimulator(noise=noise)
+
+        _, intermediate_results = dfe.direct_fidelity_estimation(
+            circuit, qubits, noisy_simulator, n_measured_operators=None, samples_per_term=1
+        )
+        return intermediate_results.pauli_traces, intermediate_results.clifford_tableau is not None
 
     # Run both algos
-    pauli_traces_clifford = dfe._estimate_pauli_traces_clifford(
-        n_qubits, clifford_state, n_measured_operators=None
-    )
-    pauli_traces_general = dfe._estimate_pauli_traces_general(
-        qubits, circuit, n_measured_operators=None
-    )
+    pauli_traces_clifford, clifford_is_clifford = _run_dfe(circuit_clifford)
+    pauli_traces_general, general_is_clifford = _run_dfe(circuit_general)
+
+    assert clifford_is_clifford
+    assert not general_is_clifford
 
     assert len(pauli_traces_clifford) == 2 ** n_qubits
     for pauli_trace_clifford in pauli_traces_clifford:
@@ -141,7 +156,7 @@ def test_direct_fidelity_estimation_intermediate_results():
     )
     # We only test a few fields to be sure that they are set properly. In
     # particular, some of them are random, and so we don't test them.
-    np.testing.assert_allclose(intermediate_result.clifford_state.ch_form.gamma, [0])
+    assert str(intermediate_result.clifford_tableau) == "+ Z "
 
     np.testing.assert_equal(len(intermediate_result.pauli_traces), 1)
     assert np.isclose(intermediate_result.pauli_traces[0].rho_i, 1.0)
