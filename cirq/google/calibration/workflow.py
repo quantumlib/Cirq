@@ -85,9 +85,10 @@ def floquet_characterization_for_moment(
 
 def floquet_characterization_for_circuit(
         circuit: Circuit,
-        options: FloquetPhasedFSimCalibrationOptions,
         gate_set: SerializableGateSet,
         gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
+        options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.
+            all_except_for_chi_options(),
         merge_sub_sets: bool = True,
         initial: Optional[
             Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]] = None
@@ -298,15 +299,16 @@ def run_floquet_characterization_for_circuit(
         engine: Union[Engine, PhasedFSimEngineSimulator],
         processor_id: str,
         handler_name: str,
-        options: FloquetPhasedFSimCalibrationOptions,
         gate_set: SerializableGateSet,
         gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
+        options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.
+            all_except_for_chi_options(),
         merge_sub_sets: bool = True,
         max_layers_per_request: int = 1,
         progress_func: Optional[Callable[[int, int], None]] = None
 ) -> List[Optional[PhasedFSimCalibrationResult]]:
     requests, mapping = floquet_characterization_for_circuit(
-        circuit, options, gate_set, gates_translator, merge_sub_sets=merge_sub_sets)
+        circuit, gate_set, gates_translator, options, merge_sub_sets=merge_sub_sets)
     results = run_characterizations(
         requests,
         engine,
@@ -337,7 +339,7 @@ def run_floquet_phased_calibration_for_circuit(
         progress_func: Optional[Callable[[int, int], None]] = None
 ) -> Tuple[Circuit, List[PhasedFSimCalibrationResult], List[Optional[int]], PhasedFSimParameters]:
     requests, mapping = floquet_characterization_for_circuit(
-        circuit, options, gate_set, gates_translator, merge_sub_sets=merge_sub_sets)
+        circuit, gate_set, gates_translator, options, merge_sub_sets=merge_sub_sets)
     characterizations = run_characterizations(
         requests,
         engine,
