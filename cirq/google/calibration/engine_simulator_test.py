@@ -150,6 +150,57 @@ def test_from_dictionary_sqrt_iswap_simulates_correctly() -> None:
 #  ideal_when_missing_parameter
 
 
+def test_from_characterizations_sqrt_iswap_simulates_correctly() -> None:
+    parameters_ab = cirq.google.PhasedFSimParameters(
+        theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
+    )
+    parameters_bc = cirq.google.PhasedFSimParameters(
+        theta=0.8, zeta=-0.5, chi=-0.4, gamma=-0.3, phi=-0.2
+    )
+    parameters_cd = cirq.google.PhasedFSimParameters(
+        theta=0.1, zeta=0.2, chi=0.3, gamma=0.4, phi=0.5
+    )
+
+    a, b, c, d = cirq.LineQubit.range(4)
+    circuit = cirq.Circuit([
+        [cirq.X(a), cirq.Y(c)],
+        [cirq.FSimGate(np.pi / 4, 0.0).on(a, b), cirq.FSimGate(np.pi / 4, 0.0).on(c, d)],
+        [cirq.FSimGate(np.pi / 4, 0.0).on(b, c)]
+    ])
+    expected_circuit = cirq.Circuit([
+        [cirq.X(a), cirq.X(c)],
+        [cirq.PhasedFSimGate(**parameters_ab.asdict()).on(a, b),
+         cirq.PhasedFSimGate(**parameters_cd.asdict()).on(c, d)],
+        [cirq.PhasedFSimGate(**parameters_bc.asdict()).on(b, c)]
+    ])
+
+    engine_simulator = PhasedFSimEngineSimulator.create_from_characterizations_sqrt_iswap(
+        cirq.Simulator(),
+        characterizations=[
+            cirq.google.PhasedFSimCalibrationResult(
+                gate=cirq.FSimGate(np.pi / 4, 0.0),
+                gate_set=cirq.google.SQRT_ISWAP_GATESET,
+                parameters={
+                    (a, b): parameters_ab,
+                    (c, d): parameters_cd
+                }
+            ),
+            cirq.google.PhasedFSimCalibrationResult(
+                gate=cirq.FSimGate(np.pi / 4, 0.0),
+                gate_set=cirq.google.SQRT_ISWAP_GATESET,
+                parameters={
+                    (b, c): parameters_bc
+                }
+            )
+        ]
+    )
+
+    actual = engine_simulator.final_state_vector(circuit)
+    expected = cirq.final_state_vector(expected_circuit)
+
+    assert cirq.allclose_up_to_global_phase(actual, expected)
+
+
 def _create_sqrt_iswap_request(
         pairs: Iterable[Tuple[cirq.Qid, cirq.Qid]],
         options: cirq.google.FloquetPhasedFSimCalibrationOptions =
