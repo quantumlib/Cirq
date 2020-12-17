@@ -289,6 +289,29 @@ cirq.CircuitOperation(
 )"""
     )
 
+    fc4 = cirq.FrozenCircuit(cirq.X(y))
+    op4 = cirq.CircuitOperation(fc4)
+    fc5 = cirq.FrozenCircuit(cirq.X(x), op4)
+    op5 = cirq.CircuitOperation(fc5)
+    assert (
+        repr(op5)
+        == f"""\
+cirq.CircuitOperation(
+    circuit=cirq.FrozenCircuit([
+        cirq.Moment(
+            cirq.X(cirq.LineQubit(0)),
+            cirq.CircuitOperation(
+                circuit=cirq.FrozenCircuit([
+                    cirq.Moment(
+                        cirq.X(cirq.LineQubit(1)),
+                    ),
+                ]),
+            ),
+        ),
+    ]),
+)"""
+    )
+
 
 def test_json_dict():
     a, b, c = cirq.LineQubit.range(3)
