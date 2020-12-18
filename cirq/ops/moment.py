@@ -87,11 +87,16 @@ class Moment:
 
         self._operations = tuple(op_tree.flatten_to_ops(contents))
 
-        # Check that operations don't overlap.
-        affected_qubits = [q for op in self.operations for q in op.qubits]
-        self._qubits = frozenset(affected_qubits)
-        if len(affected_qubits) != len(self._qubits):
-            raise ValueError('Overlapping operations: {}'.format(self.operations))
+        # An internal dictionary to support efficient operation access by qubit.
+        self._qubit_to_op: Dict['cirq.Qid', 'cirq.Operation'] = {}
+        for op in self.operations:
+            for q in op.qubits:
+                # Check that operations don't overlap.
+                if q in self._qubit_to_op:
+                    raise ValueError('Overlapping operations: {}'.format(self.operations))
+                self._qubit_to_op[q] = op
+
+        self._qubits = frozenset(self._qubit_to_op.keys())
 
     @property
     def operations(self) -> Tuple['cirq.Operation', ...]:
@@ -108,7 +113,7 @@ class Moment:
         Returns:
             Whether this moment has operations involving the qubit.
         """
-        return qubit in self.qubits
+        return qubit in self._qubit_to_op
 
     def operates_on(self, qubits: Iterable['cirq.Qid']) -> bool:
         """Determines if the moment has operations touching the given qubits.
@@ -148,10 +153,13 @@ class Moment:
         if any(q in self._qubits for q in operation.qubits):
             raise ValueError('Overlapping operations: {}'.format(operation))
 
-        # Use private variables to facilitate a quick copy
+        # Use private variables to facilitate a quick copy.
         m = Moment()
-        m._operations = self.operations + (operation,)
+        m._operations = self._operations + (operation,)
         m._qubits = frozenset(self._qubits.union(set(operation.qubits)))
+        m._qubit_to_op = self._qubit_to_op.copy()
+        for q in operation.qubits:
+            m._qubit_to_op[q] = operation
 
         return m
 
@@ -174,10 +182,14 @@ class Moment:
             operations.append(op)
             qubits.update(op.qubits)
 
-        # Use private variables to facilitate a quick copy
+        # Use private variables to facilitate a quick copy.
         m = Moment()
         m._operations = tuple(operations)
         m._qubits = frozenset(qubits)
+        m._qubit_to_op = self._qubit_to_op.copy()
+        for op in operations:
+            for q in op.qubits:
+                m._qubit_to_op[q] = op
 
         return m
 
@@ -198,18 +210,6 @@ class Moment:
             for operation in self.operations
             if qubits.isdisjoint(frozenset(operation.qubits))
         )
-
-    def _operation_touching(self, qubit: raw_types.Qid) -> 'cirq.Operation':
-        """Returns the operation touching given qubit.
-        Args:
-            qubit: Operations that touch this qubit will be returned.
-        Returns:
-            The operation which touches `qubit`.
-        """
-        for op in self.operations:
-            if qubit in op.qubits:
-                return op
-        raise KeyError("Moment doesn't act on given qubit")
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         return Moment(
@@ -337,13 +337,16 @@ class Moment:
 
     def __getitem__(self, key):
         if isinstance(key, raw_types.Qid):
-            return self._operation_touching(key)
+            if key not in self._qubit_to_op:
+                raise KeyError("Moment doesn't act on given qubit")
+            return self._qubit_to_op[key]
         elif isinstance(key, Iterable):
             qubits_to_keep = frozenset(key)
-            ops_to_keep = tuple(
-                op for op in self.operations if not qubits_to_keep.isdisjoint(frozenset(op.qubits))
-            )
-            return Moment(ops_to_keep)
+            ops_to_keep = []
+            for q in qubits_to_keep:
+                if q in self._qubit_to_op:
+                    ops_to_keep.append(self._qubit_to_op[q])
+            return Moment(frozenset(ops_to_keep))
 
     def to_text_diagram(
         self: 'cirq.Moment',

@@ -631,6 +631,13 @@ def test_multiply(circuit_cls):
     assert c * 0 == circuit_cls()
     assert d * 0 == circuit_cls()
     assert d * 2 == circuit_cls([cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.X(a)])])
+
+    twice_copied_circuit = circuit_cls([cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.X(a)])])
+    for num in [np.int64(2), np.ushort(2), np.int8(2), np.int32(2), np.short(2)]:
+        assert num * d == twice_copied_circuit
+        assert d * num == twice_copied_circuit
+
+    assert np.array([2])[0] * d == circuit_cls([cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.X(a)])])
     assert 1 * c == circuit_cls()
     assert -1 * d == circuit_cls()
     assert 1 * d == circuit_cls([cirq.Moment([cirq.X(a)])])
