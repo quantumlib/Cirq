@@ -46,7 +46,7 @@ def three_qubit_matrix_to_operations(
     """
     if np.shape(u) != (8, 8):
         raise ValueError(f"Expected unitary matrix with shape (8,8) got {np.shape(u)}")
-    if not cirq.is_unitary(u, atol):
+    if not cirq.is_unitary(u, atol=atol):
         raise ValueError(f"Matrix is not unitary: {u}")
 
     try:
