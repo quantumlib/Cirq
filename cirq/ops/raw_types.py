@@ -510,9 +510,11 @@ class Operation(metaclass=abc.ABCMeta):
 
 @value.value_equality
 class TaggedOperation(Operation):
-    """A specific operation instance that has been identified with a set
-    of Tags for special processing.  This can be initialized with
-    Using Operation.with_tags(tag) or by TaggedOperation(op, tag).
+    """Operation annotated with a set of Tags.
+
+    These Tags can be used for special processing.  TaggedOperations
+    can be initialized with using Operation.with_tags(tag)
+    or by using TaggedOperation(op, tag).
 
     Tags added can be of any type, but they should be Hashable in order
     to allow equality checking.  If you wish to serialize operations into
@@ -632,9 +634,11 @@ class TaggedOperation(Operation):
         tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
         return protocols.parameter_names(self.sub_operation) | tag_params
 
-    def _resolve_parameters_(self, resolver):
-        resolved_op = protocols.resolve_parameters(self.sub_operation, resolver)
-        resolved_tags = (protocols.resolve_parameters(tag, resolver) for tag in self._tags)
+    def _resolve_parameters_(self, resolver, recursive):
+        resolved_op = protocols.resolve_parameters(self.sub_operation, resolver, recursive)
+        resolved_tags = (
+            protocols.resolve_parameters(tag, resolver, recursive) for tag in self._tags
+        )
         return TaggedOperation(resolved_op, *resolved_tags)
 
     def _circuit_diagram_info_(

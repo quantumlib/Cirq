@@ -69,6 +69,7 @@ from cirq.circuits import (
     AbstractCircuit,
     Circuit,
     CircuitDag,
+    CircuitOperation,
     FrozenCircuit,
     InsertStrategy,
     PointOptimizationSummary,
@@ -321,6 +322,7 @@ from cirq.optimizers import (
     SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
     two_qubit_matrix_to_diagonal_and_operations,
+    three_qubit_matrix_to_operations,
 )
 
 from cirq.qis import (
@@ -496,6 +498,7 @@ from cirq.protocols import (
     QuilFormatter,
     read_json,
     resolve_parameters,
+    resolve_parameters_once,
     SupportsActOn,
     SupportsApplyChannel,
     SupportsApplyMixture,
