@@ -36,3 +36,41 @@ def test_initial_state():
     expected_state_vector = np.zeros(32)
     expected_state_vector[23] = 1
     np.testing.assert_allclose(state.state_vector(), expected_state_vector)
+
+
+def test_run():
+    (q0, q1, q2) = (cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2))
+
+    """
+    0: ───H───@───────────────X───M───────────
+              │
+    1: ───────X───@───────X───────────X───M───
+                  │                   │
+    2: ───────────X───M───────────────@───────
+
+    After the third moment, before the measurement, the state is |000> + |111>.
+    After measurement of q2, q0 and q1 both get a bit flip, so the q0
+    measurement always yields opposite of the q2 measurement. q1 has an
+    additional controlled not from q2, making it yield 1 always when measured.
+    If there were no measurements in the circuit, the final state would be
+    |110> + |011>.
+    """
+    circuit = cirq.Circuit(
+        cirq.H(q0),
+        cirq.CNOT(q0, q1),
+        cirq.CNOT(q1, q2),
+        cirq.measure(q2),
+        cirq.X(q1),
+        cirq.X(q0),
+        cirq.measure(q0),
+        cirq.CNOT(q2, q1),
+        cirq.measure(q1),
+        strategy=cirq.InsertStrategy.NEW,
+    )
+    # CliffordSimulator uses StabilizerStateChForm internally.
+    # TODO: Use StabilizerStateChForm directly through `act_on` once
+    #  MeasurementGate is updated to use `_measure` from StabilizerStateChForm.
+    simulator = cirq.CliffordSimulator()
+    result = simulator.run(circuit, repetitions=10)
+    assert all(result.measurements['1'] == 1)
+    assert all(result.measurements['0'] != result.measurements['2'])
