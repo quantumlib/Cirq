@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, Tuple, Sequence, List
+from typing import Union, Tuple, Sequence, List, Optional
 
 import numpy as np
 
@@ -46,7 +46,7 @@ def three_qubit_matrix_to_operations(
     """
     if np.shape(u) != (8, 8):
         raise ValueError(f"Expected unitary matrix with shape (8,8) got {np.shape(u)}")
-    if not cirq.is_unitary(u):
+    if not cirq.is_unitary(u, atol):
         raise ValueError(f"Matrix is not unitary: {u}")
 
     try:
@@ -111,45 +111,6 @@ def _cs_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, theta: np.ndarray) -> List
     return _optimize_multiplexed_angles_circuit(ops)
 
 
-def _optimize_multiplexed_angles_circuit(operations: Sequence[ops.Operation]):
-    """Removes two qubit gates that amount to identity.
-    Exploiting the specific multiplexed structure, this methods looks ahead
-    to find stripes of 3 or 4 consecutive CZ or CNOT gates and removes them.
-
-    Args:
-        operations: operations to be optimized
-    Returns:
-        the optimized operations
-    """
-    circuit = cirq.Circuit(operations)
-    cirq.optimizers.DropNegligible().optimize_circuit(circuit)
-    if np.allclose(circuit.unitary(), np.eye(8), atol=1e-14):
-        return cirq.Circuit([])
-
-    # the only way we can get identity here is if all four CZs are
-    # next to each other
-    def num_conseq_2qbit_gates(i):
-        j = i
-        while j < len(operations) and operations[j].gate.num_qubits() == 2:
-            j += 1
-        return j - i
-
-    operations = list(circuit.all_operations())
-
-    i = 0
-    while i < len(operations):
-        num_czs = num_conseq_2qbit_gates(i)
-        if num_czs == 4:
-            operations = operations[:1]
-            break
-        elif num_czs == 3:
-            operations = operations[:i] + [operations[i + 1]] + operations[i + 3 :]
-            break
-        else:
-            i += 1
-    return operations
-
-
 def _two_qubit_multiplexor_to_ops(
     q0: ops.Qid,
     q1: ops.Qid,
@@ -157,9 +118,9 @@ def _two_qubit_multiplexor_to_ops(
     u1: np.ndarray,
     u2: np.ndarray,
     shift_left: bool = True,
-    diagonal: np.ndarray = np.eye(4),
+    diagonal: Optional[np.ndarray] = None,
     atol: float = 1e-8,
-) -> Tuple[np.ndarray, List[ops.Operation]]:
+) -> Tuple[Optional[np.ndarray], List[ops.Operation]]:
     r"""Converts a two qubit double multiplexor to circuit.
     Input: U_1 ⊕ U_2, with select qubit a (i.e. a = |0> => U_1(b,c),
     a = |1> => U_2(b,c).
@@ -209,7 +170,8 @@ def _two_qubit_multiplexor_to_ops(
 
     circuit_u1u2_mid = _middle_multiplexor_to_ops(q0, q1, q2, eigvals)
 
-    v = diagonal @ v
+    if diagonal is not None:
+        v = diagonal @ v
 
     d_v, circuit_u1u2_r = opt.two_qubit_matrix_to_diagonal_and_operations(q1, q2, v, atol=atol)
 
@@ -220,12 +182,51 @@ def _two_qubit_multiplexor_to_ops(
         d_w, circuit_u1u2_l = opt.two_qubit_matrix_to_diagonal_and_operations(q1, q2, w, atol=atol)
     # if we are at the end of the circuit, then just fall back to KAK
     else:
-        d_w = np.eye(4)
+        d_w = None
         circuit_u1u2_l = opt.two_qubit_matrix_to_operations(
             q1, q2, w, allow_partial_czs=False, atol=atol
         )
 
     return d_w, circuit_u1u2_l + circuit_u1u2_mid + circuit_u1u2_r
+
+
+def _optimize_multiplexed_angles_circuit(operations: Sequence[ops.Operation]):
+    """Removes two qubit gates that amount to identity.
+    Exploiting the specific multiplexed structure, this methods looks ahead
+    to find stripes of 3 or 4 consecutive CZ or CNOT gates and removes them.
+
+    Args:
+        operations: operations to be optimized
+    Returns:
+        the optimized operations
+    """
+    circuit = cirq.Circuit(operations)
+    cirq.optimizers.DropNegligible().optimize_circuit(circuit)
+    if np.allclose(circuit.unitary(), np.eye(8), atol=1e-14):
+        return cirq.Circuit([])
+
+    # the only way we can get identity here is if all four CZs are
+    # next to each other
+    def num_conseq_2qbit_gates(i):
+        j = i
+        while j < len(operations) and operations[j].gate.num_qubits() == 2:
+            j += 1
+        return j - i
+
+    operations = list(circuit.all_operations())
+
+    i = 0
+    while i < len(operations):
+        num_czs = num_conseq_2qbit_gates(i)
+        if num_czs == 4:
+            operations = operations[:1]
+            break
+        elif num_czs == 3:
+            operations = operations[:i] + [operations[i + 1]] + operations[i + 3 :]
+            break
+        else:
+            i += 1
+    return operations
 
 
 def _middle_multiplexor_to_ops(q0: ops.Qid, q1: ops.Qid, q2: ops.Qid, eigvals: np.ndarray):
