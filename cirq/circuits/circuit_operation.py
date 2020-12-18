@@ -139,7 +139,7 @@ class CircuitOperation(ops.Operation):
         msg_lines = str(self.circuit).split('\n')
         msg_width = max([len(header) - 4] + [len(line) for line in msg_lines])
         circuit_msg = '\n'.join(
-            ['[ {line:<{width}} ]'.format(line=line, width=msg_width) for line in msg_lines]
+            '[ {line:<{width}} ]'.format(line=line, width=msg_width) for line in msg_lines
         )
         args = []
 
@@ -350,6 +350,7 @@ class CircuitOperation(ops.Operation):
                 new_params[k] = v
         return self.replace(param_resolver=new_params)
 
+    # TODO: handle recursive parameter resolution gracefully
     def _resolve_parameters_(
         self, param_resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'CircuitOperation':
