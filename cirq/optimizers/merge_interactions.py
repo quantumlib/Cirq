@@ -60,7 +60,7 @@ class MergeInteractions(circuits.PointOptimizer):
         )
         if not self.allow_partial_czs:
             switch_to_new |= any(
-                isinstance(old_op, ops.GateOperation)
+                old_op.gate is not None
                 and isinstance(old_op.gate, ops.CZPowGate)
                 and old_op.gate.exponent != 1
                 for old_op in old_operations

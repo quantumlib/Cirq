@@ -83,7 +83,7 @@ class ConvertToPauliStringPhasors(PointOptimizer):
 
         if (
             self.keep_clifford
-            and isinstance(op, ops.GateOperation)
+            and op.gate is not None
             and isinstance(op.gate, ops.SingleQubitCliffordGate)
         ):
             return op

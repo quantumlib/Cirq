@@ -107,7 +107,7 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
         """
         if len(op.qubits) == 1:
             return _phased_x_z_ops(protocols.unitary(op, None), op.qubits[0])
-        elif len(op.qubits) == 2 and isinstance(op, ops.GateOperation):
+        elif len(op.qubits) == 2 and op.gate is not None:
             return known_two_q_operations_to_sycamore_operations(
                 op.qubits[0], op.qubits[1], op, self.tabulation
             )
@@ -130,7 +130,7 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
         )
 
     def optimization_at(self, circuit, index, op):
-        if not isinstance(op, ops.GateOperation):
+        if op.gate is None:
             return None
 
         gate = op.gate
@@ -142,7 +142,7 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
             next_index = circuit.next_moment_operating_on(op.qubits, index + 1)
             if next_index is not None:
                 ops_in_front = list({circuit.operation_at(q, next_index) for q in op.qubits})
-                if len(ops_in_front) == 1 and isinstance(ops_in_front[0], ops.GateOperation):
+                if len(ops_in_front) == 1 and ops_in_front[0].gate is not None:
                     gate2 = ops_in_front[0].gate
 
             if isinstance(gate, ops.SwapPowGate) and isinstance(gate2, ops.ZZPowGate):

@@ -274,7 +274,7 @@ class GateOperation(raw_types.Operation):
         result = self.gate._mul_with_qubits(self._qubits, other)
 
         # python will not auto-attempt the reverse order for same type.
-        if result is NotImplemented and isinstance(other, GateOperation):
+        if result is NotImplemented and other.gate is not None:
             return other.__rmul__(self)
 
         return result

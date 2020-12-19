@@ -145,7 +145,7 @@ class EjectZ:
 
 
 def _try_get_known_z_half_turns(op: ops.Operation, eject_parameterized: bool) -> Optional[float]:
-    if not isinstance(op, ops.GateOperation):
+    if op.gate is None:
         return None
     if not isinstance(op.gate, ops.ZPowGate):
         return None

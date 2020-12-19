@@ -311,7 +311,7 @@ class QasmOutput:
             should_annotate = decomposed != [main_op]
             if should_annotate:
                 output_line_gap(1)
-                if isinstance(main_op, ops.GateOperation):
+                if main_op.gate is not None:
                     x = str(main_op.gate).replace('\n', '\n //')
                     output('// Gate: {!s}\n'.format(x))
                 else:

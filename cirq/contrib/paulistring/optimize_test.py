@@ -84,7 +84,7 @@ def test_optimize_large_circuit():
         sum(
             1
             for op in c_opt.all_operations()
-            if isinstance(op, cirq.GateOperation) and isinstance(op.gate, cirq.CZPowGate)
+            if op.gate is not None and isinstance(op.gate, cirq.CZPowGate)
         )
         == 10
     )
@@ -106,7 +106,7 @@ def test_repeat_limit():
         sum(
             1
             for op in c_opt.all_operations()
-            if isinstance(op, cirq.GateOperation) and isinstance(op.gate, cirq.CZPowGate)
+            if op.gate is not None and isinstance(op.gate, cirq.CZPowGate)
         )
         >= 10
     )

@@ -169,7 +169,7 @@ class ControlledOperation(raw_types.Operation):
                 return f'C{control_vals_str}'
 
         prefix = ''.join(map(get_prefix, self.control_values))
-        if isinstance(self.sub_operation, gate_operation.GateOperation):
+        if self.sub_operation.gate is not None:
             qubits = ', '.join(map(str, self.qubits))
             return f'{prefix}{self.sub_operation.gate}({qubits})'
         controls = ', '.join(str(q) for q in self.controls)

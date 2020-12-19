@@ -108,14 +108,14 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
             if other_op is not None and qubit not in set(other_op.qubits):
                 other_op = None
 
-            if isinstance(other_op, ops.GateOperation) and isinstance(
+            if other_op.gate is not None and isinstance(
                 other_op.gate, ops.SingleQubitCliffordGate
             ):
                 # Merge with another SingleQubitCliffordGate
                 new_op = part_cliff_gate.merged_with(other_op.gate)(qubit)
                 all_ops[merge_i] = new_op
             elif (
-                isinstance(other_op, ops.GateOperation)
+                other_op.gate is not None
                 and isinstance(other_op.gate, ops.CZPowGate)
                 and other_op.gate.exponent == 1
                 and quarter_turns == 2
@@ -152,7 +152,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
                 # Keep looking
                 continue
             elif not (
-                isinstance(op, ops.GateOperation)
+                op.gate is not None
                 and isinstance(op.gate, ops.CZPowGate)
                 and op.gate.exponent == 1
             ):
@@ -174,11 +174,11 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
     i = 0
     while i < len(all_ops):
         op = all_ops[i]
-        if isinstance(op, ops.GateOperation) and isinstance(op.gate, ops.SingleQubitCliffordGate):
+        if op.gate is not None and isinstance(op.gate, ops.SingleQubitCliffordGate):
             if try_merge_clifford(op, i):
                 i -= 1
         elif (
-            isinstance(op, ops.GateOperation)
+            op.gate is not None
             and isinstance(op.gate, ops.CZPowGate)
             and op.gate.exponent == 1
         ):

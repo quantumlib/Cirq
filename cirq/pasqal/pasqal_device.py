@@ -284,7 +284,7 @@ class PasqalVirtualDevice(PasqalDevice):
         super().validate_operation(operation)
 
         # Verify that a controlled gate operation is valid
-        if isinstance(operation, cirq.ops.GateOperation):
+        if operation.gate is not None:
             if len(operation.qubits) > 1 and not isinstance(
                 operation.gate, cirq.ops.MeasurementGate
             ):

@@ -165,7 +165,7 @@ class NeutralAtomDevice(devices.Device):
             return
 
         # Verify that a controlled gate operation is valid
-        if isinstance(operation, ops.GateOperation):
+        if operation.gate is not None:
             if len(operation.qubits) > self._max_parallel_c:
                 raise ValueError(
                     "Too many qubits acted on in parallel by a controlled gate operation"

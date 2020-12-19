@@ -172,7 +172,7 @@ def test_decompose_returns_deep_op_tree():
 
 def test_non_recursive_expansion():
     qubits = [cirq.NamedQubit(s) for s in 'xy']
-    no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and op.gate == cirq.ISWAP)
+    no_decomp = lambda op: (op.gate is not None and op.gate == cirq.ISWAP)
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
     unexpanded_circuit = cirq.Circuit(cirq.ISWAP(*qubits))
 
@@ -181,7 +181,7 @@ def test_non_recursive_expansion():
     assert circuit == unexpanded_circuit
 
     no_decomp = lambda op: (
-        isinstance(op, cirq.GateOperation)
+        op.gate is not None
         and isinstance(op.gate, (cirq.CNotPowGate, cirq.HPowGate))
     )
     expander = cirq.ExpandComposite(no_decomp=no_decomp)

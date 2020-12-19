@@ -299,7 +299,7 @@ def _double_cross_over_cz(op: ops.Operation, state: _OptimizerState) -> None:
 def _try_get_known_cz_half_turns(
     op: ops.Operation, no_symbolic: bool = False
 ) -> Optional[value.TParamVal]:
-    if not isinstance(op, ops.GateOperation) or not isinstance(op.gate, ops.CZPowGate):
+    if op.gate is None or not isinstance(op.gate, ops.CZPowGate):
         return None
     h = op.gate.exponent
     if no_symbolic and isinstance(h, sympy.Basic):
@@ -310,7 +310,7 @@ def _try_get_known_cz_half_turns(
 def _try_get_known_phased_pauli(
     op: ops.Operation, no_symbolic: bool = False
 ) -> Optional[Tuple[value.TParamVal, value.TParamVal]]:
-    if (no_symbolic and protocols.is_parameterized(op)) or not isinstance(op, ops.GateOperation):
+    if (no_symbolic and protocols.is_parameterized(op)) or op.gate is None:
         return None
     gate = op.gate
 
@@ -331,7 +331,7 @@ def _try_get_known_phased_pauli(
 def _try_get_known_z_half_turns(
     op: ops.Operation, no_symbolic: bool = False
 ) -> Optional[value.TParamVal]:
-    if not isinstance(op, ops.GateOperation) or not isinstance(op.gate, ops.ZPowGate):
+    if op.gate is None or not isinstance(op.gate, ops.ZPowGate):
         return None
     h = op.gate.exponent
     if no_symbolic and isinstance(h, sympy.Basic):

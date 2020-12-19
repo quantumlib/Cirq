@@ -103,7 +103,7 @@ def test_graph_device():
 
     def not_cnots(first_op, second_op):
         if all(
-            isinstance(op, cirq.GateOperation) and op.gate == cirq.CNOT
+            op.gate is not None and op.gate == cirq.CNOT
             for op in (first_op, second_op)
         ):
             raise ValueError('Simultaneous CNOTs')

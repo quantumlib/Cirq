@@ -46,7 +46,7 @@ def get_multigate_parameters(args: protocols.CircuitDiagramInfoArgs) -> Optional
 
 
 def hardcoded_qcircuit_diagram_info(op: ops.Operation) -> Optional[protocols.CircuitDiagramInfo]:
-    if not isinstance(op, ops.GateOperation):
+    if op.gate is None:
         return None
     symbols = (
         (r'\targ',)
@@ -77,7 +77,7 @@ def multigate_qcircuit_diagram_info(
     args: protocols.CircuitDiagramInfoArgs,
 ) -> Optional[protocols.CircuitDiagramInfo]:
     if not (
-        isinstance(op, ops.GateOperation) and isinstance(op.gate, ops.InterchangeableQubitsGate)
+        op.gate is not None and isinstance(op.gate, ops.InterchangeableQubitsGate)
     ):
         return None
 
@@ -89,7 +89,7 @@ def multigate_qcircuit_diagram_info(
 
     min_index, n_qubits = multigate_parameters
     name = escape_text_for_latex(
-        str(op.gate).rsplit('**', 1)[0] if isinstance(op, ops.GateOperation) else str(op)
+        str(op.gate).rsplit('**', 1)[0] if op.gate is not None else str(op)
     )
     if (info is not None) and (info.exponent != 1):
         name += '^{' + str(info.exponent) + '}'

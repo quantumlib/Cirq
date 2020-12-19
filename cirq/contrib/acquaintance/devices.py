@@ -33,7 +33,7 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
 
     def validate_operation(self, operation: 'cirq.Operation') -> None:
         if not (
-            isinstance(operation, ops.GateOperation) and isinstance(operation.gate, self.gate_types)
+            operation.gate is not None and isinstance(operation.gate, self.gate_types)
         ):
             raise ValueError(
                 'not (isinstance({0!r}, {1!r}) and '
