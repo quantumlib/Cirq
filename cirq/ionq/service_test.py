@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 from unittest import mock
 import pytest
 
@@ -117,3 +118,18 @@ def test_service_get_current_calibration():
     cal = service.get_current_calibration()
     assert cal.num_qubits() == 11
     mock_client.get_current_calibration.assert_called_once()
+
+
+def test_service_list_calibrations():
+    service = ionq.Service(remote_host='http://example.com', api_key='key')
+    mock_client = mock.MagicMock()
+    calibrations = [{'id': '1', 'qubits': '1'}, {'id': '2', 'qubits': 2}]
+    mock_client.list_calibrations.return_value = calibrations
+    service._client = mock_client
+    start = datetime.datetime.utcfromtimestamp(1284286794)
+    end = datetime.datetime.utcfromtimestamp(1284286795)
+
+    listed_calibrations = service.list_calibrations(start=start, end=end, limit=10, batch_size=2)
+    assert listed_calibrations[0].num_qubits() == 1
+    assert listed_calibrations[1].num_qubits() == 2
+    mock_client.list_calibrations.assert_called_with(start=start, end=end, limit=10, batch_size=2)
