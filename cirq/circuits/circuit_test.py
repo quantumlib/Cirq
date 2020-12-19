@@ -1252,7 +1252,7 @@ def test_findall_operations(circuit_cls):
     zb = cirq.Z.on(b)
 
     def is_x(op: cirq.Operation) -> bool:
-        return isinstance(op, cirq.GateOperation) and isinstance(op.gate, cirq.XPowGate)
+        return op.gate is not None and isinstance(op.gate, cirq.XPowGate)
 
     c = circuit_cls()
     assert list(c.findall_operations(is_x)) == []

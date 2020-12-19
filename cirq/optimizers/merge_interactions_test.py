@@ -182,7 +182,7 @@ def test_decompose_partial_czs(circuit):
     cz_gates = [
         op.gate
         for op in circuit.all_operations()
-        if isinstance(op, cirq.GateOperation) and isinstance(op.gate, cirq.CZPowGate)
+        if op.gate is not None and isinstance(op.gate, cirq.CZPowGate)
     ]
     num_full_cz = sum(1 for cz in cz_gates if cz.exponent % 2 == 1)
     num_part_cz = sum(1 for cz in cz_gates if cz.exponent % 2 != 1)
@@ -201,7 +201,7 @@ def test_not_decompose_partial_czs():
     cz_gates = [
         op.gate
         for op in circuit.all_operations()
-        if isinstance(op, cirq.GateOperation) and isinstance(op.gate, cirq.CZPowGate)
+        if op.gate is not None and isinstance(op.gate, cirq.CZPowGate)
     ]
     num_full_cz = sum(1 for cz in cz_gates if cz.exponent % 2 == 1)
     num_part_cz = sum(1 for cz in cz_gates if cz.exponent % 2 != 1)

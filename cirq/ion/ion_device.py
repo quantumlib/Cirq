@@ -84,7 +84,7 @@ class IonDevice(devices.Device):
             raise ValueError('Unsupported gate type: {!r}'.format(gate))
 
     def validate_operation(self, operation):
-        if not isinstance(operation, ops.GateOperation):
+        if op.gate is None:
             raise ValueError('Unsupported operation: {!r}'.format(operation))
 
         self.validate_gate(operation.gate)

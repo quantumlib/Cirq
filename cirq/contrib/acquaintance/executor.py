@@ -91,7 +91,7 @@ class StrategyExecutor(circuits.PointOptimizer):
                 clear_span=clear_span, clear_qubits=op.qubits, new_operations=logical_operations
             )
 
-        if isinstance(op, ops.GateOperation) and isinstance(op.gate, PermutationGate):
+        if op.gate is not None and isinstance(op.gate, PermutationGate):
             op.gate.update_mapping(self.mapping, op.qubits)
             return
 

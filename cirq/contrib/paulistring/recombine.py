@@ -46,7 +46,7 @@ def _sorted_best_string_placements(
                 # Pass through another Pauli string if they commute
                 continue
             if not (
-                isinstance(out_op, ops.GateOperation)
+                out_op.gate is not None
                 and isinstance(
                     out_op.gate,
                     (ops.SingleQubitCliffordGate, ops.PauliInteractionGate, ops.CZPowGate),

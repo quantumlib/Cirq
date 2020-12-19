@@ -55,7 +55,7 @@ def assert_ms_depth_below(operations, threshold):
     for op in operations:
         assert len(op.qubits) <= 2
         if len(op.qubits) == 2:
-            assert isinstance(op, cirq.GateOperation)
+            assert op.gate is not None
             assert isinstance(op.gate, cirq.XXPowGate)
             total_ms += abs(op.gate.exponent)
     assert total_ms <= threshold

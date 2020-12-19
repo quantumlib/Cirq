@@ -42,7 +42,7 @@ class ConvertToIonGates:
         """
 
         # Known gate name
-        if not isinstance(op, ops.GateOperation):
+        if op.gate is None:
             raise TypeError("{!r} is not a gate operation.".format(op))
 
         if is_native_ion_gate(op.gate):

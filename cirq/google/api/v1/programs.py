@@ -260,7 +260,7 @@ def is_native_xmon_op(op: 'cirq.Operation') -> bool:
     Returns:
         True if the operation is native to the xmon, false otherwise.
     """
-    return isinstance(op, ops.GateOperation) and is_native_xmon_gate(op.gate)
+    return op.gate is not None and is_native_xmon_gate(op.gate)
 
 
 def is_native_xmon_gate(gate: 'cirq.Gate') -> bool:

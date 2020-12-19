@@ -247,7 +247,7 @@ def update_mapping(mapping: Dict[ops.Qid, LogicalIndex], operations: 'cirq.OP_TR
         operations: The operations to update according to.
     """
     for op in ops.flatten_op_tree(operations):
-        if isinstance(op, ops.GateOperation) and isinstance(op.gate, PermutationGate):
+        if op.gate is not None and isinstance(op.gate, PermutationGate):
             op.gate.update_mapping(mapping, op.qubits)
 
 
@@ -267,7 +267,7 @@ def get_logical_operations(
     """
     mapping = initial_mapping.copy()
     for op in cast(Iterable['cirq.Operation'], ops.flatten_op_tree(operations)):
-        if isinstance(op, ops.GateOperation) and isinstance(op.gate, PermutationGate):
+        if op.gate is not None and isinstance(op.gate, PermutationGate):
             op.gate.update_mapping(mapping, op.qubits)
         else:
             for q in op.qubits:
@@ -290,7 +290,7 @@ class DecomposePermutationGates(optimizers.ExpandComposite):
             self.no_decomp = lambda op: (
                 not all(
                     [
-                        isinstance(op, ops.GateOperation),
+                        op.gate is not None,
                         isinstance(op.gate, PermutationGate),
                         not isinstance(op.gate, SwapPermutationGate),
                     ]
@@ -298,7 +298,7 @@ class DecomposePermutationGates(optimizers.ExpandComposite):
             )
         else:
             self.no_decomp = lambda op: (
-                not all([isinstance(op, ops.GateOperation), isinstance(op.gate, PermutationGate)])
+                not all([op.gate is not None, isinstance(op.gate, PermutationGate)])
             )
 
 
@@ -320,7 +320,7 @@ def return_to_initial_mapping(circuit: 'cirq.Circuit', swap_gate: 'cirq.Gate' = 
 
 def uses_consistent_swap_gate(circuit: 'cirq.Circuit', swap_gate: 'cirq.Gate') -> bool:
     for op in circuit.all_operations():
-        if isinstance(op, ops.GateOperation) and isinstance(op.gate, PermutationGate):
+        if op.gate is not None and isinstance(op.gate, PermutationGate):
             if op.gate.swap_gate != swap_gate:
                 return False
     return True

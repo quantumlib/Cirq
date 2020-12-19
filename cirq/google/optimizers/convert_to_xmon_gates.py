@@ -72,7 +72,7 @@ class ConvertToXmonGates(PointOptimizer):
         """
         from cirq.google.devices import XmonDevice
 
-        return isinstance(op, ops.GateOperation) and XmonDevice.is_supported_gate(op.gate)
+        return op.gate is not None and XmonDevice.is_supported_gate(op.gate)
 
     def convert(self, op: 'cirq.Operation') -> List['cirq.Operation']:
         def on_stuck_raise(bad):

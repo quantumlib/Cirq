@@ -134,7 +134,7 @@ def single_qubit_matrix_gate(matrix: Optional[np.ndarray]) -> Optional[QuirkOp]:
 
 
 def known_quirk_op_for_operation(op: ops.Operation) -> Optional[QuirkOp]:
-    if isinstance(op, ops.GateOperation):
+    if op.gate is not None:
         return _gate_to_quirk_op(op.gate)
     if isinstance(op, ops.ControlledOperation):
         return controlled_unwrap(op)
