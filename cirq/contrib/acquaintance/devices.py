@@ -32,9 +32,7 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
     gate_types = (AcquaintanceOpportunityGate, PermutationGate)
 
     def validate_operation(self, operation: 'cirq.Operation') -> None:
-        if not (
-            operation.gate is not None and isinstance(operation.gate, self.gate_types)
-        ):
+        if not (operation.gate is not None and isinstance(operation.gate, self.gate_types)):
             raise ValueError(
                 'not (isinstance({0!r}, {1!r}) and '
                 'ininstance({0!r}.gate, {2!r})'.format(operation, ops.Operation, self.gate_types)
@@ -53,7 +51,7 @@ def get_acquaintance_size(obj: Union[circuits.Circuit, ops.Operation]) -> int:
         return max(tuple(get_acquaintance_size(op) for op in obj.all_operations()) or (0,))
     if not isinstance(obj, ops.Operation):
         raise TypeError('not isinstance(obj, (Circuit, Operation))')
-    if not isinstance(obj, ops.GateOperation):
+    if obj.gate is None:
         return 0
     if isinstance(obj.gate, AcquaintanceOpportunityGate):
         return len(obj.qubits)

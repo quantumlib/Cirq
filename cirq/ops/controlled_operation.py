@@ -29,7 +29,7 @@ import itertools
 import numpy as np
 
 from cirq import protocols, qis, value
-from cirq.ops import raw_types, gate_operation, controlled_gate
+from cirq.ops import raw_types, controlled_gate
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:

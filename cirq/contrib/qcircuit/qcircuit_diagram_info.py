@@ -76,9 +76,7 @@ def multigate_qcircuit_diagram_info(
     op: ops.Operation,
     args: protocols.CircuitDiagramInfoArgs,
 ) -> Optional[protocols.CircuitDiagramInfo]:
-    if not (
-        op.gate is not None and isinstance(op.gate, ops.InterchangeableQubitsGate)
-    ):
+    if not (op.gate is not None and isinstance(op.gate, ops.InterchangeableQubitsGate)):
         return None
 
     multigate_parameters = get_multigate_parameters(args)

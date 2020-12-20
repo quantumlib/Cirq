@@ -102,10 +102,7 @@ def test_graph_device():
     device_graph = ccgd.UndirectedHypergraph(labelled_edges=edges)
 
     def not_cnots(first_op, second_op):
-        if all(
-            op.gate is not None and op.gate == cirq.CNOT
-            for op in (first_op, second_op)
-        ):
+        if all(op.gate is not None and op.gate == cirq.CNOT for op in (first_op, second_op)):
             raise ValueError('Simultaneous CNOTs')
 
     assert ccgd.is_undirected_device_graph(device_graph)

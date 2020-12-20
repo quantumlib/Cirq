@@ -32,7 +32,6 @@ def test_toffoli_separate():
 
     assert all(isinstance(op, cirq.PauliStringPhasor) for op in c_left.all_operations())
     assert all(
-        op.gate is not None
-        and isinstance(op.gate, (cirq.SingleQubitCliffordGate, cirq.CZPowGate))
+        op.gate is not None and isinstance(op.gate, (cirq.SingleQubitCliffordGate, cirq.CZPowGate))
         for op in c_right.all_operations()
     )
