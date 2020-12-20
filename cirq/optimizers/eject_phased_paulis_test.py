@@ -539,7 +539,7 @@ def test_blocked_by_unknown_and_symbols(sym):
 
 
 def test_optimization_with_tags():
-    """ GH Issue #3556 shows an example whereby adding a tag to Z
+    """GH Issue #3556 shows an example whereby adding a tag to Z
     causes the optimization to fail.
     """
     q = cirq.NamedQubit('q')

@@ -173,9 +173,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit, atol: float = 1e-8) ->
         if op.gate is not None and isinstance(op.gate, ops.SingleQubitCliffordGate):
             if try_merge_clifford(op, i):
                 i -= 1
-        elif (
-            op.gate is not None and isinstance(op.gate, ops.CZPowGate) and op.gate.exponent == 1
-        ):
+        elif op.gate is not None and isinstance(op.gate, ops.CZPowGate) and op.gate.exponent == 1:
             num_rm = try_merge_cz(op, i)
             i -= num_rm
         i += 1
