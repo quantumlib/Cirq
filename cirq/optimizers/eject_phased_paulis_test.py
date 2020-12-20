@@ -536,3 +536,32 @@ def test_blocked_by_unknown_and_symbols(sym):
         ),
         compare_unitaries=False,
     )
+
+
+def test_optimization_with_tags():
+    """ GH Issue #3556 shows an example whereby adding a tag to Z
+        causes the optimization to fail.
+    """
+    q = cirq.NamedQubit('q')
+
+    # First we try without tags...
+    assert_optimizes(
+        before=quick_circuit(
+            [cirq.PhasedXPowGate(phase_exponent=0.125).on(q)]
+            [cirq.Z(q)], 
+        ),
+        expected=quick_circuit(
+            [cirq.PhasedXPowGate(phase_exponent=0.625).on(q)],
+        ),
+    )
+
+    # ...then we add a tag to Z and make sure we get the same result
+    assert_optimizes(
+        before=quick_circuit(
+            [cirq.PhasedXPowGate(phase_exponent=0.125).on(q)]
+            [cirq.Z(q).with_tags('dummy value')], 
+        ),
+        expected=quick_circuit(
+            [cirq.PhasedXPowGate(phase_exponent=0.625).on(q)],
+        ),
+    )
