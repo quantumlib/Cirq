@@ -54,7 +54,7 @@ def get_qid_indices(qid_map: Mapping[raw_types.Qid, int], proj_key: ProjKey):
 
 
 @value.value_equality
-class Projector:
+class KetBraSum:
     """A projection matrix where you can specify the basis.
 
     The input is a matrix representing the basis of the space we project onto.
@@ -180,7 +180,7 @@ class Projector:
         return np.trace(state)
 
     def __repr__(self) -> str:
-        return f"cirq.Projector(projection_bases={self._projection_bases})"
+        return f"cirq.KetBraSum(projection_bases={self._projection_bases})"
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
