@@ -200,14 +200,12 @@ class BitstringAccumulator:
             self.timestamps = np.asarray(timestamps, dtype='datetime64[us]')
 
         if len(self.chunksizes) != len(self.timestamps):
-            # coverage: ignore
             raise ValueError(
                 "Invalid BitstringAccumulator state. "
                 "`chunksizes` and `timestamps` must have the same length."
             )
 
         if np.sum(self.chunksizes) != len(self.bitstrings):
-            # coverage: ignore
             raise ValueError(
                 "Invalid BitstringAccumulator state. "
                 "`chunksizes` must sum to the number of bitstrings."
@@ -375,7 +373,6 @@ class BitstringAccumulator:
             atol: The absolute tolerance for asserting coefficients are real.
         """
         if len(self.bitstrings) == 0:
-            # coverage: ignore
             raise ValueError("No measurements")
 
         all_obs_vals = np.array(
@@ -392,7 +389,6 @@ class BitstringAccumulator:
 
         # https://github.com/numpy/numpy/issues/11502
         if all_obs_vals.shape[0] == 1:
-            # coverage: ignore
             cov = np.array([[np.var(all_obs_vals[0], ddof=1)]])
             return cov
 
@@ -425,7 +421,6 @@ class BitstringAccumulator:
             atol: The absolute tolerance for asserting coefficients are real.
         """
         if len(self.bitstrings) == 0:
-            # coverage: ignore
             raise ValueError("No measurements")
         self._validate_setting(setting, what='variance')
 
@@ -449,7 +444,6 @@ class BitstringAccumulator:
     def mean(self, setting: InitObsSetting, *, atol: float = 1e-8):
         """Estimates of the mean of `setting`."""
         if len(self.bitstrings) == 0:
-            # coverage: ignore
             raise ValueError("No measurements")
         self._validate_setting(setting, what='mean')
 

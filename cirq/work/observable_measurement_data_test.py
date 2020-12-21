@@ -194,8 +194,8 @@ def test_bitstring_accumulator_strings(example_bsa):
         assert example_bsa.summary_string(setting) == ssb, ssb
 
     assert (
-        str(example_bsa)
-        == """Accumulator +Z(0) * +Z(1) → X(0)*Y(1); 4 repetitions
+            str(example_bsa)
+            == """Accumulator +Z(0) * +Z(1) → X(0)*Y(1); 4 repetitions
   +Z(0) * +Z(1) → X(0)*Y(1): 0.000 +- 0.577
   +Z(0) * +Z(1) → X(0): 0.000 +- 0.577
   +Z(0) * +Z(1) → Y(1): 0.000 +- 0.577"""
@@ -369,6 +369,55 @@ def test_bitstring_accumulator_stats_2():
         np.testing.assert_allclose(0, bsa.mean(setting))
         np.testing.assert_allclose(var / 4 / (4 - 1), bsa.variance(setting))
         np.testing.assert_allclose(np.sqrt(var / 4 / (4 - 1)), bsa.stderr(setting))
+
+
+def test_bitstring_accumulator_errors():
+    q0, q1 = cirq.LineQubit.range(2)
+    settings = cw.observables_to_settings(
+        [
+            cirq.X(q0),
+            cirq.Y(q0),
+            cirq.Z(q0),
+            cirq.Z(q0) * cirq.Z(q1),
+        ],
+        qubits=[q0, q1],
+    )
+    grouped_settings = cw.group_settings_greedy(settings)
+    max_setting = list(grouped_settings.keys())[0]
+    simul_settings = grouped_settings[max_setting]
+
+    with pytest.raises(ValueError):
+        bsa = cw.BitstringAccumulator(
+            meas_spec=_MeasurementSpec(max_setting, {}),
+            simul_settings=simul_settings,
+            qubit_to_index={q0: 0, q1: 1},
+            bitstrings=np.array([[0, 1], [0, 1]]),
+            chunksizes=np.array([2])
+        )
+
+    with pytest.raises(ValueError):
+        bsa = cw.BitstringAccumulator(
+            meas_spec=_MeasurementSpec(max_setting, {}),
+            simul_settings=simul_settings,
+            qubit_to_index={q0: 0, q1: 1},
+            bitstrings=np.array([[0, 1], [0, 1]]),
+            chunksizes=np.array([3]),
+            timestamps=[datetime.datetime.now()],
+        )
+    bsa = cw.BitstringAccumulator(
+        meas_spec=_MeasurementSpec(max_setting, {}),
+        simul_settings=simul_settings[:1],
+        qubit_to_index={q0: 0, q1: 1},
+    )
+    with pytest.raises(ValueError):
+        bsa.covariance()
+    with pytest.raises(ValueError):
+        bsa.variance(simul_settings[0])
+    with pytest.raises(ValueError):
+        bsa.mean(simul_settings[0])
+
+    bsa.consume_results(np.array([[0, 0]], dtype=np.uint8))
+    assert bsa.covariance().shape == (1, 1)
 
 
 def test_flatten_grouped_results():
