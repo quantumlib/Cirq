@@ -314,7 +314,9 @@ def test_json_bit_packing_force():
     assert _pack_digits(2 * np.ones(10, dtype=int), pack_bits='force') != _pack_digits(
         2 * np.ones(10, dtype=int), pack_bits='auto'
     )
-    # These are the `np.packbits` semantics; not sure I agree with them:
+    # These are the `np.packbits` semantics, namely calling packbits on things
+    # that aren't bits first converts elements to bool, which is why these
+    # two calls are equivalent.
     assert _pack_digits(2 * np.ones(10, dtype=int), pack_bits='force') == _pack_digits(
         np.ones(10), pack_bits='auto'
     )
