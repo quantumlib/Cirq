@@ -160,7 +160,7 @@ class KetBraSum:
         return f"cirq.KetBraSum(ket_bra_dict={self._ket_bra_dict})"
 
     def _json_dict_(self) -> Dict[str, Any]:
-        encoded_dict = {k: [list(t) for t in v] for k, v in self._ket_bra_dict.items()}
+        encoded_dict = {k: [(t[0], t[1]) for t in v] for k, v in self._ket_bra_dict.items()}
         return {
             'cirq_type': self.__class__.__name__,
             # JSON requires mappings to have string keys.
@@ -174,5 +174,5 @@ class KetBraSum:
 
     def _value_equality_values_(self) -> Any:
         ket_bra_dict = sorted(self._ket_bra_dict.items())
-        encoded_dict = {k: tuple([tuple(t) for t in v]) for k, v in ket_bra_dict}
+        encoded_dict = {k: tuple([(t[0], t[1]) for t in v]) for k, v in ket_bra_dict}
         return tuple(encoded_dict.items())
