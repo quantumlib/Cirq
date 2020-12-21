@@ -69,7 +69,7 @@ def test_stats_from_measurements():
     mean, err = _stats_from_measurements(bitstrings, qubit_to_index, obs, atol=1e-8)
 
     # The mean is zero since our bitstrings have balanced even- and odd-
-    # partiy cases.
+    # parity cases.
     assert mean == 0
 
     # Since we multiplied our observable by 10, the standard deviation is
