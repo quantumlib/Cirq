@@ -96,7 +96,7 @@ class ObservableMeasuredResult:
     Args:
         setting: The setting for which this object contains results
         mean: The mean of the observable specified by `setting`.
-        variance: The variance of the obserable specified by `setting`.
+        variance: The variance of the observable specified by `setting`.
         repetitions: The number of circuit repetitions used to estimate `setting`.
         circuit_params: The parameters used to resolve the circuit used to prepare the state that
             is being measured.
@@ -473,4 +473,4 @@ def flatten_grouped_results(
         grouped_results: A list of BitstringAccumulators, probably returned
             from `measure_observables` or `measure_grouped_settings`.
     """
-    return list(itertools.chain.from_iterable(acc.results for acc in grouped_results))
+    return [res for acc in grouped_results for res in acc.results]

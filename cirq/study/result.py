@@ -349,7 +349,7 @@ def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool
     if pack_bits == 'force':
         return _pack_bits(digits), True
     if pack_bits not in ['auto', 'never']:
-        raise ValueError("Please set `pack_bits` to 'auto', " "'always', or 'never'.")
+        raise ValueError("Please set `pack_bits` to 'auto', " "'force', or 'never'.")
         # Do error checking here, otherwise the following logic will work
         # for both "auto" and "never".
 
