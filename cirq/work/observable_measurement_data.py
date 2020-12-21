@@ -14,7 +14,6 @@
 
 import dataclasses
 import datetime
-import itertools
 from typing import Dict, List, Tuple, TYPE_CHECKING
 
 import numpy as np
