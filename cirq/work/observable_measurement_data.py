@@ -475,4 +475,4 @@ def flatten_grouped_results(
         grouped_results: A list of BitstringAccumulators, probably returned
             from `measure_observables` or `measure_grouped_settings`.
     """
-    return list(itertools.chain.from_iterable(acc.results for acc in grouped_results))
+    return [res for acc in grouped_results for res in acc.results]
