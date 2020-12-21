@@ -23,14 +23,15 @@ if TYPE_CHECKING:
     import cirq
     from cirq import protocols
 
-ProjKey = TypeVar('ProjKey', bound=Union[raw_types.Qid, Tuple[raw_types.Qid]])
+KetBraKey = TypeVar('KetBraKey', bound=Union[raw_types.Qid, Tuple[raw_types.Qid]])
+KetBra = TypeVar('KetBra', bound=Tuple[STATE_VECTOR_LIKE,STATE_VECTOR_LIKE])
 
 
-def qid_shape_from_proj_key(proj_key: ProjKey):
-    if isinstance(proj_key, tuple):
-        return [qid.dimension for qid in proj_key]
+def qid_shape_from_ket_bra_key(ket_bra_key: KetBraKey):
+    if isinstance(ket_bra_key, tuple):
+        return [qid.dimension for qid in ket_bra_key]
     else:
-        return [proj_key.dimension]
+        return [ket_bra_key.dimension]
 
 
 def get_dims_from_qid_map(qid_map: Mapping[raw_types.Qid, int]):
@@ -38,15 +39,15 @@ def get_dims_from_qid_map(qid_map: Mapping[raw_types.Qid, int]):
     return [x[1] for x in dims]
 
 
-def get_qid_indices(qid_map: Mapping[raw_types.Qid, int], proj_key: ProjKey):
-    if isinstance(proj_key, raw_types.Qid):
-        qid = proj_key
+def get_qid_indices(qid_map: Mapping[raw_types.Qid, int], ket_bra_key: KetBraKey):
+    if isinstance(ket_bra_key, raw_types.Qid):
+        qid = ket_bra_key
         if qid not in qid_map:
             raise ValueError(f"Missing qid: {qid}")
         return [qid_map[qid]]
     else:
         idx = []
-        for qid in proj_key:
+        for qid in ket_bra_key:
             if qid not in qid_map:
                 raise ValueError(f"Missing qid: {qid}")
             idx.append(qid_map[qid])
@@ -55,76 +56,47 @@ def get_qid_indices(qid_map: Mapping[raw_types.Qid, int], proj_key: ProjKey):
 
 @value.value_equality
 class KetBraSum:
-    """A projection matrix where you can specify the basis.
-
-    The input is a matrix representing the basis of the space we project onto.
-    The basis vectors need not be orthogonal, but they must be independent (i.e.
-    the matrix has full rank).
-
-    For example, if you want to project on |0⟩, you would provide the basis
-    [[1, 0]]. To project onto |10⟩, you would provide the basis [[0, 0, 1, 0]].
-    If you want to project on the space spanned by |10⟩ and |11⟩, you could
-    provide the basis [[0, 0, 1, 0], [0, 0, 0, 1]].
+    """A generic operation specified as a list of |ket><bra|.
     """
 
     def __init__(
         self,
-        projection_bases: Dict[ProjKey, Sequence[STATE_VECTOR_LIKE]],
-        enforce_orthonormal_basis: bool = False,
+        ket_bra_dict: Dict[KetBraKey, Sequence[KetBra]],
     ):
         """
         Args:
-            projection_bases: a dictionary of Qdit tuples to a
-                (p, 2**num_qubits) matrix that lists the projection vectors,
-                where p is the dimension of the subspace we're projecting on. If
-                you project onto a single vector, then p = 1 and thus the matrix
-                reduces to a single row.
-            enforce_orthonormal_basis: Whether to enfore the input basis to be
-                orthogonal.
-
-        Raises:
-            ValueError: If the basis vector is empty.
+            ket_bra_dict: a dictionary of Qdit tuples to a sequence of |ket><bra|
+                which express the operation to apply
         """
-        self._projection_bases = {}
-        for qids, projection_basis in projection_bases.items():
-            qid_shape = qid_shape_from_proj_key(qids)
-            projection_array = np.vstack(
-                [states.to_valid_state_vector(x, qid_shape=qid_shape) for x in projection_basis]
-            )
+        self._ket_bra_dict = ket_bra_dict
 
-            if enforce_orthonormal_basis:
-                B = projection_array @ projection_array.T.conj()
-                if not np.allclose(B, np.eye(projection_array.shape[0]), atol=1e-6):
-                    raise ValueError('The basis must be orthonormal')
+    def _ket_bra_dict_(self) -> Dict[KetBraKey, Sequence[KetBra]]:
+        return self._ket_bra_dict
 
-            if np.linalg.matrix_rank(projection_array) < projection_array.shape[0]:
-                raise ValueError('Vectors in basis must be linearly independent')
+    def _op_matrix(self, ket_bra_key: KetBraKey) -> np.ndarray:
+        # TODO(tonybruguier): Speed up computation when the ket and bra are
+        # encoded as integers. This probably means not calling this function at
+        # all, as encoding a matrix with a single non-zero entry is not
+        # efficient.
+        qid_shape = qid_shape_from_ket_bra_key(ket_bra_key)
 
-            self._projection_bases[qids] = projection_array
+        P = 0
+        for ket_bra in self._ket_bra_dict[ket_bra_key]:
+            ket = states.to_valid_state_vector(ket_bra[0], qid_shape=qid_shape)
+            bra = states.to_valid_state_vector(ket_bra[1], qid_shape=qid_shape)
+            P = P + np.einsum('i,j->ij', ket, bra)
 
-    def _projection_bases_(self) -> np.ndarray:
-        return self._projection_bases
-
-    def _proj_matrix(self, proj_key: ProjKey) -> np.ndarray:
-        projection_basis = self._projection_bases[proj_key]
-
-        # Make rows into columns
-        A = projection_basis.T
-        # Left pseudo-inverse
-        pseudoinverse = np.linalg.pinv(A)
-        # Projector to the range (column space) of A
-        P = A @ pseudoinverse
         return P
 
-    def matrix(self, proj_keys: Optional[Iterable[ProjKey]] = None) -> Iterable[np.ndarray]:
-        proj_keys = self._projection_bases.keys() if proj_keys is None else proj_keys
+    def matrix(self, ket_bra_keys: Optional[Iterable[KetBraKey]] = None) -> Iterable[np.ndarray]:
+        ket_bra_keys = self._ket_bra_dict.keys() if ket_bra_keys is None else ket_bra_keys
         factors = []
-        for proj_key in proj_keys:
-            if proj_key not in self._projection_bases.keys():
-                qid_shape = qid_shape_from_proj_key(proj_key)
+        for ket_bra_key in ket_bra_keys:
+            if ket_bra_key not in self._ket_bra_dict.keys():
+                qid_shape = qid_shape_from_ket_bra_key(ket_bra_key)
                 factors.append(np.eye(np.prod(qid_shape)))
             else:
-                factors.append(self._proj_matrix(proj_key))
+                factors.append(self._op_matrix(ket_bra_key))
         return linalg.kron(*factors)
 
     def expectation_from_state_vector(
@@ -138,13 +110,13 @@ class KetBraSum:
         dims = get_dims_from_qid_map(qid_map)
         state_vector = state_vector.reshape(dims)
 
-        for proj_key in self._projection_bases.keys():
-            idx = get_qid_indices(qid_map, proj_key)
-            proj_dims = qid_shape_from_proj_key(proj_key)
+        for ket_bra_key in self._ket_bra_dict.keys():
+            idx = get_qid_indices(qid_map, ket_bra_key)
+            op_dims = qid_shape_from_ket_bra_key(ket_bra_key)
             nr = len(idx)
 
-            P = self._proj_matrix(proj_key)
-            P = np.reshape(P, proj_dims * 2)
+            P = self._op_matrix(ket_bra_key)
+            P = np.reshape(P, op_dims * 2)
 
             state_vector = np.tensordot(P, state_vector, axes=(range(nr, 2 * nr), idx))
             state_vector = np.moveaxis(state_vector, range(nr), idx)
@@ -163,13 +135,13 @@ class KetBraSum:
         dims = get_dims_from_qid_map(qid_map)
         state = state.reshape(dims * 2)
 
-        for proj_key in self._projection_bases.keys():
-            idx = get_qid_indices(qid_map, proj_key)
-            proj_dims = qid_shape_from_proj_key(proj_key)
+        for ket_bra_key in self._ket_bra_dict.keys():
+            idx = get_qid_indices(qid_map, ket_bra_key)
+            op_dims = qid_shape_from_ket_bra_key(ket_bra_key)
             nr = len(idx)
 
-            P = self._proj_matrix(proj_key)
-            P = np.reshape(P, proj_dims * 2)
+            P = self._op_matrix(ket_bra_key)
+            P = np.reshape(P, op_dims * 2)
 
             state = np.tensordot(P, state, axes=(range(nr, 2 * nr), idx))
             state = np.moveaxis(state, range(nr), idx)
@@ -180,19 +152,22 @@ class KetBraSum:
         return np.trace(state)
 
     def __repr__(self) -> str:
-        return f"cirq.KetBraSum(projection_bases={self._projection_bases})"
+        return f"cirq.KetBraSum(ket_bra_dict={self._ket_bra_dict})"
 
     def _json_dict_(self) -> Dict[str, Any]:
+        encoded_dict = {k: [list(t) for t in v] for k, v in self._ket_bra_dict.items()}
         return {
             'cirq_type': self.__class__.__name__,
             # JSON requires mappings to have string keys.
-            'projection_bases': list(self._projection_bases.items()),
+            'ket_bra_dict': list(encoded_dict.items()),
         }
 
     @classmethod
-    def _from_json_dict_(cls, projection_bases, **kwargs):
-        return cls(projection_bases=dict(projection_bases))
+    def _from_json_dict_(cls, ket_bra_dict, **kwargs):
+        encoded_dict = dict(ket_bra_dict)
+        return cls(ket_bra_dict={k: [tuple(t) for t in v] for k, v in encoded_dict.items()})
 
     def _value_equality_values_(self) -> Any:
-        sorted_items = sorted(self._projection_bases.items())
-        return tuple([(x[0], x[1].tobytes()) for x in sorted_items])
+        ket_bra_dict = sorted(self._ket_bra_dict.items())
+        encoded_dict = {k: tuple([tuple(t) for t in v]) for k, v in ket_bra_dict}
+        return tuple(encoded_dict.items())

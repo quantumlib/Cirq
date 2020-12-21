@@ -1,1 +1,1 @@
-cirq.KetBraSum(projection_bases={cirq.NamedQubit('q0'): [[1.0, 0.0]]})
+cirq.KetBraSum(ket_bra_dict={cirq.NamedQubit('q0'): [([1.0, 0.0], [0.0, 1.0])]})
