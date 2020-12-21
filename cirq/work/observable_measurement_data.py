@@ -92,7 +92,7 @@ class ObservableMeasuredResult:
     Args:
         setting: The setting for which this object contains results
         mean: The mean of the observable specified by `setting`.
-        variance: The variance of the obserable specified by `setting`.
+        variance: The variance of the observable specified by `setting`.
         repetitions: The number of circuit repetitions used to estimate `setting`.
         circuit_params: The parameters used to resolve the circuit used to prepare the state that
             is being measured.
