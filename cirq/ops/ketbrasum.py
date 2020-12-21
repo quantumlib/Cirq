@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from cirq import protocols
 
 KetBraKey = TypeVar('KetBraKey', bound=Union[raw_types.Qid, Tuple[raw_types.Qid]])
-KetBra = TypeVar('KetBra', bound=Tuple[STATE_VECTOR_LIKE,STATE_VECTOR_LIKE])
+KetBra = TypeVar('KetBra', bound=Tuple[STATE_VECTOR_LIKE, STATE_VECTOR_LIKE])
 
 
 def qid_shape_from_ket_bra_key(ket_bra_key: KetBraKey):
@@ -57,6 +57,11 @@ def get_qid_indices(qid_map: Mapping[raw_types.Qid, int], ket_bra_key: KetBraKey
 @value.value_equality
 class KetBraSum:
     """A generic operation specified as a list of |ket><bra|.
+
+    The matrix is specified as a dictionary of qubits to IDs. The IDs are
+    specified as |ket><bra|. Note that the matrix is not necessarily unitary,
+    nor necessarily a idempotent (a projection). It is up to the caller to
+    ensure that it makes sense to use the object.
     """
 
     def __init__(

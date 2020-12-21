@@ -19,10 +19,10 @@ def test_ket_bra_qid():
     np.testing.assert_allclose(zero_projector.matrix(), [[1.0, 0.0], [0.0, 0.0]])
     np.testing.assert_allclose(one_projector.matrix(), [[0.0, 0.0], [0.0, 1.0]])
     np.testing.assert_allclose(not_a_projector.matrix(), [[0.0, 1.0], [0.0, 0.0]])
-    np.testing.assert_allclose(two_quids.matrix(), [[0.0, 0.0, 0.0, 0.0],
-              [0.0, 0.0, 0.0, 1.0],
-              [0.0, 0.0, 0.0, 0.0],
-              [0.0, 0.0, 0.0, 0.0]])
+    np.testing.assert_allclose(
+        two_quids.matrix(),
+        [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]],
+    )
 
 
 def test_ket_bra_from_np_array():
@@ -123,9 +123,7 @@ def test_repr():
     q0 = cirq.NamedQubit('q0')
     d = cirq.KetBraSum({q0: [[1.0, 0.0]]})
 
-    assert d.__repr__() == (
-        "cirq.KetBraSum(ket_bra_dict={cirq.NamedQubit('q0'): [[1.0, 0.0]]})"
-    )
+    assert d.__repr__() == ("cirq.KetBraSum(ket_bra_dict={cirq.NamedQubit('q0'): [[1.0, 0.0]]})")
 
 
 def test_consistency_with_existing():
