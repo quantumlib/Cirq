@@ -73,6 +73,10 @@ def _stats_from_measurements(
     # standard error of the mean, but squared.
     # Wikipedia uses the term "variance of the sampling distribution
     # of the sample mean"
+    # `ddof` is the delta degrees of freedom. Please read numpy documentation
+    # for details. Note that we use ddof=1 everywhere. This is the default for
+    # np.cov, but *not* the default for `np.var. We use 1 for both for
+    # consistency.
     obs_err = np.var(obs_vals, ddof=1) / len(obs_vals)
     return obs_mean.item(), obs_err.item()
 
