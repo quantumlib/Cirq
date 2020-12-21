@@ -194,8 +194,8 @@ def test_bitstring_accumulator_strings(example_bsa):
         assert example_bsa.summary_string(setting) == ssb, ssb
 
     assert (
-            str(example_bsa)
-            == """Accumulator +Z(0) * +Z(1) → X(0)*Y(1); 4 repetitions
+        str(example_bsa)
+        == """Accumulator +Z(0) * +Z(1) → X(0)*Y(1); 4 repetitions
   +Z(0) * +Z(1) → X(0)*Y(1): 0.000 +- 0.577
   +Z(0) * +Z(1) → X(0): 0.000 +- 0.577
   +Z(0) * +Z(1) → Y(1): 0.000 +- 0.577"""
@@ -392,7 +392,7 @@ def test_bitstring_accumulator_errors():
             simul_settings=simul_settings,
             qubit_to_index={q0: 0, q1: 1},
             bitstrings=np.array([[0, 1], [0, 1]]),
-            chunksizes=np.array([2])
+            chunksizes=np.array([2]),
         )
 
     with pytest.raises(ValueError):
