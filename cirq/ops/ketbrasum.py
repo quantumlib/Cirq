@@ -88,7 +88,7 @@ class KetBraSum:
         P = 0
         for ket_bra in self._ket_bra_dict[ket_bra_key]:
             ket = states.to_valid_state_vector(ket_bra[0], qid_shape=qid_shape)
-            bra = states.to_valid_state_vector(ket_bra[1], qid_shape=qid_shape)
+            bra = states.to_valid_state_vector(ket_bra[1], qid_shape=qid_shape).conj()
             P = P + np.einsum('i,j->ij', ket, bra)
 
         return P

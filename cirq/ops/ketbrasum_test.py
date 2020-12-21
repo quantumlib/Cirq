@@ -130,7 +130,7 @@ def test_consistency_with_existing():
     a, b = cirq.LineQubit.range(2)
     mx = (cirq.KET_IMAG(a) * cirq.KET_IMAG(b)).projector()
     proj_vec = np.asarray([0.5, 0.5j, 0.5j, -0.5])
-    ii_proj = cirq.KetBraSum({(a, b): [(proj_vec, proj_vec.conj())]})
+    ii_proj = cirq.KetBraSum({(a, b): [(proj_vec, proj_vec)]})
     np.testing.assert_allclose(mx, ii_proj.matrix())
 
 
@@ -253,7 +253,7 @@ def test_internal_consistency():
 def test_ket_bra_split_qubits():
     q0, q1, q2 = cirq.LineQubit.range(3)
     phi = np.asarray([1.0 / math.sqrt(2), 0.0, 0.0, 1.0 / math.sqrt(2)])
-    d = cirq.KetBraSum({(q0, q2): [(phi, phi.conj())]})
+    d = cirq.KetBraSum({(q0, q2): [(phi, phi)]})
 
     qid_map = {q0: 0, q1: 1, q2: 2}
 
