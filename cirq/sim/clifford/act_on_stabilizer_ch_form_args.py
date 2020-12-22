@@ -31,7 +31,6 @@ class ActOnStabilizerCHFormArgs:
 
     To act on this object, directly edit the `state` property, which is
     storing the stabilizer state of the quantum system with one axis per qubit.
-    Measurements are currently not supported on this object.
     """
 
     def __init__(
