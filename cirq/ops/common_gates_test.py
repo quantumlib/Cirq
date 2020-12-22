@@ -295,7 +295,7 @@ def test_h_init():
 
 def test_h_str():
     assert str(cirq.H) == 'H'
-    assert str(cirq.H ** 0.5) == 'H^0.5'
+    assert str(cirq.H ** 0.5) == 'H**0.5'
 
 
 def test_x_act_on_tableau():

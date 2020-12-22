@@ -63,6 +63,7 @@ if TYPE_CHECKING:
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='AbstractCircuit')
+INT_TYPE = Union[int, np.integer]
 
 
 class AbstractCircuit(abc.ABC):
@@ -73,29 +74,30 @@ class AbstractCircuit(abc.ABC):
 
     These methods return information about the circuit, and can be called on
     either Circuit or FrozenCircuit objects:
-        next_moment_operating_on
-        prev_moment_operating_on
-        next_moments_operating_on
-        operation_at
-        all_qubits
-        all_operations
-        findall_operations
-        findall_operations_between
-        findall_operations_until_blocked
-        findall_operations_with_gate_type
-        reachable_frontier_from
-        has_measurements
-        are_all_matches_terminal
-        are_all_measurements_terminal
-        unitary
-        final_state_vector
-        to_text_diagram
-        to_text_diagram_drawer
-        qid_shape
-        all_measurement_keys
-        to_quil
-        to_qasm
-        save_qasm
+
+    *   next_moment_operating_on
+    *   prev_moment_operating_on
+    *   next_moments_operating_on
+    *   operation_at
+    *   all_qubits
+    *   all_operations
+    *   findall_operations
+    *   findall_operations_between
+    *   findall_operations_until_blocked
+    *   findall_operations_with_gate_type
+    *   reachable_frontier_from
+    *   has_measurements
+    *   are_all_matches_terminal
+    *   are_all_measurements_terminal
+    *   unitary
+    *   final_state_vector
+    *   to_text_diagram
+    *   to_text_diagram_drawer
+    *   qid_shape
+    *   all_measurement_keys
+    *   to_quil
+    *   to_qasm
+    *   save_qasm
     """
 
     @property
@@ -215,17 +217,12 @@ class AbstractCircuit(abc.ABC):
 
     def __repr__(self) -> str:
         cls_name = self.__class__.__name__
-        if not self.moments and self.device == devices.UNCONSTRAINED_DEVICE:
-            return f'cirq.{cls_name}()'
-
-        if not self.moments:
-            return f'cirq.{cls_name}(device={self.device!r})'
-
-        moment_repr = _list_repr_with_indented_item_lines(self.moments)
-        if self.device == devices.UNCONSTRAINED_DEVICE:
-            return f'cirq.{cls_name}({moment_repr})'
-
-        return f'cirq.{cls_name}({moment_repr}, device={self.device!r})'
+        args = []
+        if self.moments:
+            args.append(_list_repr_with_indented_item_lines(self.moments))
+        if self.device != devices.UNCONSTRAINED_DEVICE:
+            args.append(f'device={self.device!r}')
+        return f'cirq.{cls_name}({", ".join(args)})'
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Print ASCII diagram in Jupyter."""
@@ -703,10 +700,7 @@ class AbstractCircuit(abc.ABC):
         """
         if not 0 <= moment_index < len(self.moments):
             return None
-        for op in self.moments[moment_index].operations:
-            if qubit in op.qubits:
-                return op
-        return None
+        return self.moments[moment_index].operation_at(qubit)
 
     def findall_operations(
         self, predicate: Callable[['cirq.Operation'], bool]
@@ -757,17 +751,46 @@ class AbstractCircuit(abc.ABC):
     def are_all_matches_terminal(self, predicate: Callable[['cirq.Operation'], bool]):
         """Check whether all of the ops that satisfy a predicate are terminal.
 
+        This method will transparently descend into any CircuitOperations this
+        circuit contains; as a result, it will misbehave if the predicate
+        refers to CircuitOperations. See the tests for an example of this.
+
         Args:
             predicate: A predicate on ops.Operations which is being checked.
 
         Returns:
             Whether or not all `Operation` s in a circuit that satisfy the
-            given predicate are terminal.
+            given predicate are terminal. Also checks within any CircuitGates
+            the circuit may contain.
         """
-        return all(
+        from cirq.circuits import CircuitOperation
+
+        # TaggedOperations can wrap CircuitOperations.
+        def get_op_circuit(op: ops.Operation) -> Optional['cirq.FrozenCircuit']:
+            while isinstance(op, ops.TaggedOperation):
+                op = op.sub_operation
+            return op.circuit if isinstance(op, CircuitOperation) else None
+
+        if not all(
             self.next_moment_operating_on(op.qubits, i + 1) is None
             for (i, op) in self.findall_operations(predicate)
-        )
+            if get_op_circuit(op) is None
+        ):
+            return False
+
+        for i, moment in enumerate(self.moments):
+            for op in moment.operations:
+                circuit = get_op_circuit(op)
+                if circuit is None:
+                    continue
+                if not circuit.are_all_matches_terminal(predicate):
+                    return False
+                if i < len(self.moments) - 1 and not all(
+                    self.next_moment_operating_on(op.qubits, i + 1) is None
+                    for _, op in circuit.findall_operations(predicate)
+                ):
+                    return False
+        return True
 
     def _has_op_at(self, moment_index: int, qubits: Iterable['cirq.Qid']) -> bool:
         return 0 <= moment_index < len(self.moments) and self.moments[moment_index].operates_on(
@@ -1209,61 +1232,73 @@ class Circuit(AbstractCircuit):
 
     Methods returning information about the circuit (inherited from
     AbstractCircuit):
-        next_moment_operating_on
-        prev_moment_operating_on
-        next_moments_operating_on
-        operation_at
-        all_qubits
-        all_operations
-        findall_operations
-        findall_operations_between
-        findall_operations_until_blocked
-        findall_operations_with_gate_type
-        reachable_frontier_from
-        has_measurements
-        are_all_matches_terminal
-        are_all_measurements_terminal
-        unitary
-        final_state_vector
-        to_text_diagram
-        to_text_diagram_drawer
-        qid_shape
-        all_measurement_keys
-        to_quil
-        to_qasm
-        save_qasm
+
+    *   next_moment_operating_on
+    *   prev_moment_operating_on
+    *   next_moments_operating_on
+    *   operation_at
+    *   all_qubits
+    *   all_operations
+    *   findall_operations
+    *   findall_operations_between
+    *   findall_operations_until_blocked
+    *   findall_operations_with_gate_type
+    *   reachable_frontier_from
+    *   has_measurements
+    *   are_all_matches_terminal
+    *   are_all_measurements_terminal
+    *   unitary
+    *   final_state_vector
+    *   to_text_diagram
+    *   to_text_diagram_drawer
+    *   qid_shape
+    *   all_measurement_keys
+    *   to_quil
+    *   to_qasm
+    *   save_qasm
 
     Methods for mutation:
-        insert
-        append
-        insert_into_range
-        clear_operations_touching
-        batch_insert
-        batch_remove
-        batch_insert_into
-        insert_at_frontier
+
+    *   insert
+    *   append
+    *   insert_into_range
+    *   clear_operations_touching
+    *   batch_insert
+    *   batch_remove
+    *   batch_insert_into
+    *   insert_at_frontier
 
     Circuits can also be iterated over,
+
+    ```
         for moment in circuit:
             ...
+    ```
+
     and sliced,
-        circuit[1:3] is a new Circuit made up of two moments, the first being
-            circuit[1] and the second being circuit[2];
-        circuit[:, qubit] is a new Circuit with the same moments, but with only
-            those operations which act on the given Qubit;
-        circuit[:, qubits], where 'qubits' is list of Qubits, is a new Circuit
+
+    *   `circuit[1:3]` is a new Circuit made up of two moments, the first being
+            `circuit[1]` and the second being `circuit[2]`;
+    *   `circuit[:, qubit]` is a new Circuit with the same moments, but with
+            only those operations which act on the given Qubit;
+    *   `circuit[:, qubits]`, where 'qubits' is list of Qubits, is a new Circuit
             with the same moments, but only with those operations which touch
             any of the given qubits;
-        circuit[1:3, qubit] is equivalent to circuit[1:3][:, qubit];
-        circuit[1:3, qubits] is equivalent to circuit[1:3][:, qubits];
+    *   `circuit[1:3, qubit]` is equivalent to `circuit[1:3][:, qubit]`;
+    *   `circuit[1:3, qubits]` is equivalent to `circuit[1:3][:, qubits]`;
+
     and concatenated,
-        circuit1 + circuit2 is a new Circuit made up of the moments in circuit1
-            followed by the moments in circuit2;
+
+    *    `circuit1 + circuit2` is a new Circuit made up of the moments in
+            circuit1 followed by the moments in circuit2;
+
     and multiplied by an integer,
-        circuit * k is a new Circuit made up of the moments in circuit repeated
+
+    *    `circuit * k` is a new Circuit made up of the moments in circuit repeated
             k times.
+
     and mutated,
-        circuit[1:7] = [Moment(...)]
+    *    `circuit[1:7] = [Moment(...)]`
     """
 
     def __init__(
@@ -1370,21 +1405,24 @@ class Circuit(AbstractCircuit):
         result._device.validate_circuit(result)
         return result
 
-    def __imul__(self, repetitions: int):
-        if not isinstance(repetitions, int):
+    # Needed for numpy to handle multiplication by np.int64 correctly.
+    __array_priority__ = 10000
+
+    def __imul__(self, repetitions: INT_TYPE):
+        if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
-        self._moments *= repetitions
+        self._moments *= int(repetitions)
         return self
 
-    def __mul__(self, repetitions: int):
-        if not isinstance(repetitions, int):
+    def __mul__(self, repetitions: INT_TYPE):
+        if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
-        return Circuit(self._moments * repetitions, device=self._device)
+        return Circuit(self._moments * int(repetitions), device=self._device)
 
-    def __rmul__(self, repetitions: int):
-        if not isinstance(repetitions, int):
+    def __rmul__(self, repetitions: INT_TYPE):
+        if not isinstance(repetitions, (int, np.integer)):
             return NotImplemented
-        return self * repetitions
+        return self * int(repetitions)
 
     def __pow__(self, exponent: int) -> 'Circuit':
         """A circuit raised to a power, only valid for exponent -1, the inverse.
