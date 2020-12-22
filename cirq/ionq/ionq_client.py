@@ -12,6 +12,7 @@
 # limitations under the License.
 """Client for making requests to IonQ's API."""
 
+import datetime
 import sys
 import time
 import urllib
@@ -86,70 +87,6 @@ class _IonQClient:
         self.max_retry_seconds = max_retry_seconds
         self.verbose = verbose
 
-    def _target(self, target: Optional[str]) -> str:
-        """Returns the target if not None or the default target.
-
-        Raises:
-            AssertionError: if both `target` and `default_target` are not set.
-        """
-        assert target is not None or self.default_target is not None, (
-            'One must specify a target on this call, or a default_target on the service/client, '
-            'but neither were set.'
-        )
-        return cast(str, target or self.default_target)
-
-    def _make_request(self, request: Callable[[], requests.Response]) -> requests.Response:
-        """Make a request to the API, retrying if necessary.
-
-        Args:
-            request: A function that returns a `requests.Response`.
-
-        Raises:
-            IonQException: If there was a not-retriable error from the API.
-            TimeoutError: If the requests retried for more than `max_retry_seconds`.
-
-        Returns:
-            The request.Response from the final successful request call.
-        """
-        # Initial backoff of 100ms.
-        delay_seconds = 0.1
-
-        while True:
-            try:
-                response = request()
-                if response.ok:
-                    return response
-                if response.status_code == requests.codes.unauthorized:
-                    raise ionq_exceptions.IonQException(
-                        '"Not authorized" returned by IonQ API. Check to ensure you have supplied '
-                        'the correct API key.',
-                        response.status_code,
-                    )
-                if response.status_code == requests.codes.not_found:
-                    raise ionq_exceptions.IonQNotFoundException(
-                        'IonQ could not find requested resource.'
-                    )
-                if response.status_code not in self.RETRIABLE_STATUS_CODES:
-                    raise ionq_exceptions.IonQException(
-                        'Non-retry-able error making request to IonQ API. '
-                        f'Status: {response.status_code} '
-                        f'Error :{response.reason}',
-                        response.status_code,
-                    )
-                message = response.reason
-                # Fallthrough should retry.
-            except requests.RequestException as e:
-                # Connection error, timeout at server, or too many redirects.
-                # Retry these.
-                message = f'RequestException of type {type(e)}.'
-            if delay_seconds > self.max_retry_seconds:
-                raise TimeoutError(f'Reached maximum number of retries. Last error: {message}')
-            if self.verbose:
-                print(message, file=sys.stderr)
-                print(f'Waiting {delay_seconds} seconds before retrying.')
-            time.sleep(delay_seconds)
-            delay_seconds *= 2
-
     def create_job(
         self,
         serialized_program: 'cirq.ionq.SerializedProgram',
@@ -220,7 +157,7 @@ class _IonQClient:
     def list_jobs(
         self, status: Optional[str] = None, limit: int = 100, batch_size: int = 1000
     ) -> List[Dict[str, Any]]:
-        """Lists jos from the IonQ API.
+        """Lists jobs from the IonQ API.
 
         Args:
             status: If not None, filter to jobs with this status.
@@ -233,27 +170,10 @@ class _IonQClient:
         Raises:
             IonQException: If the API call fails.
         """
-        json = {'limit': batch_size}
-        token: Optional[str] = None
-        jobs: List[Dict[str, Any]] = []
-        while True and len(jobs) < limit:
-            params = {}
-            if status:
-                params['status'] = status
-            if token:
-                params['next'] = token
-
-            def request():
-                return requests.get(
-                    f'{self.url}/jobs', headers=self.headers, json=json, params=params
-                )
-
-            response = self._make_request(request).json()
-            jobs.extend(response['jobs'])
-            if 'next' not in response:
-                break
-            token = response['next']
-        return jobs[:limit]
+        params = {}
+        if status:
+            params['status'] = status
+        return self._list('jobs', params, 'jobs', limit, batch_size)
 
     def cancel_job(self, job_id: str) -> dict:
         """Cancel a job on the IonQ API.
@@ -298,3 +218,136 @@ class _IonQClient:
             return requests.get(f'{self.url}/calibrations/current', headers=self.headers)
 
         return self._make_request(request).json()
+
+    def list_calibrations(
+        self,
+        start: datetime.datetime = None,
+        end: datetime.datetime = None,
+        limit: int = 100,
+        batch_size: int = 1000,
+    ) -> List[dict]:
+        """Lists calibrations from the IonQ API.
+
+        Args:
+            start: If supplied, only calibrations after this date and time. Accurate to seconds.
+            end: If supplied, only calibrations before this date and time. Accurate to seconds.
+            limit: The maximum number of calibrations to return.
+            batch_size: The size of the batches requested per http GET call.
+
+        Returns:
+            A list of the json bodies of the calibration dicts.
+
+        Raises:
+            IonQException: If the API call fails.
+        """
+
+        params = {}
+        epoch = datetime.datetime.utcfromtimestamp(0)
+        if start:
+            params['start'] = int((start - epoch).total_seconds() * 1000)
+        if end:
+            params['end'] = int((end - epoch).total_seconds() * 1000)
+        return self._list('calibrations', params, 'calibrations', limit, batch_size)
+
+    def _target(self, target: Optional[str]) -> str:
+        """Returns the target if not None or the default target.
+
+        Raises:
+            AssertionError: if both `target` and `default_target` are not set.
+        """
+        assert target is not None or self.default_target is not None, (
+            'One must specify a target on this call, or a default_target on the service/client, '
+            'but neither were set.'
+        )
+        return cast(str, target or self.default_target)
+
+    def _make_request(self, request: Callable[[], requests.Response]) -> requests.Response:
+        """Make a request to the API, retrying if necessary.
+
+        Args:
+            request: A function that returns a `requests.Response`.
+
+        Raises:
+            IonQException: If there was a not-retriable error from the API.
+            TimeoutError: If the requests retried for more than `max_retry_seconds`.
+
+        Returns:
+            The request.Response from the final successful request call.
+        """
+        # Initial backoff of 100ms.
+        delay_seconds = 0.1
+
+        while True:
+            try:
+                response = request()
+                if response.ok:
+                    return response
+                if response.status_code == requests.codes.unauthorized:
+                    raise ionq_exceptions.IonQException(
+                        '"Not authorized" returned by IonQ API. Check to ensure you have supplied '
+                        'the correct API key.',
+                        response.status_code,
+                    )
+                if response.status_code == requests.codes.not_found:
+                    raise ionq_exceptions.IonQNotFoundException(
+                        'IonQ could not find requested resource.'
+                    )
+                if response.status_code not in self.RETRIABLE_STATUS_CODES:
+                    raise ionq_exceptions.IonQException(
+                        'Non-retry-able error making request to IonQ API. '
+                        f'Status: {response.status_code} '
+                        f'Error :{response.reason}',
+                        response.status_code,
+                    )
+                message = response.reason
+                # Fallthrough should retry.
+            except requests.RequestException as e:
+                # Connection error, timeout at server, or too many redirects.
+                # Retry these.
+                message = f'RequestException of type {type(e)}.'
+            if delay_seconds > self.max_retry_seconds:
+                raise TimeoutError(f'Reached maximum number of retries. Last error: {message}')
+            if self.verbose:
+                print(message, file=sys.stderr)
+                print(f'Waiting {delay_seconds} seconds before retrying.')
+            time.sleep(delay_seconds)
+            delay_seconds *= 2
+
+    def _list(
+        self, resource_path: str, params: dict, response_key: str, limit: int, batch_size: int
+    ) -> List[Dict]:
+        """Helper method for list calls.
+
+        Args:
+            resource_path: The resource path for the object being listed. Follows the base url
+                and version. No leading slash.
+            params: The params to pass with the list call.
+            response_key: The key to get the list of objects that have been listed.
+            limit: The maximum number of objects to return.
+            batch_size: The size of the batches requested per http GET call.
+
+        Returns:
+            A sequence of dictionaries corresponding to the objects listed.
+        """
+        json = {'limit': batch_size}
+        token: Optional[str] = None
+        results: List[Dict[str, Any]] = []
+        while True and len(results) < limit:
+            full_params = params.copy()
+            if token:
+                full_params['next'] = token
+
+            def request():
+                return requests.get(
+                    f'{self.url}/{resource_path}',
+                    headers=self.headers,
+                    json=json,
+                    params=full_params,
+                )
+
+            response = self._make_request(request).json()
+            results.extend(response[response_key])
+            if 'next' not in response:
+                break
+            token = response['next']
+        return results[:limit]
