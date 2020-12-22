@@ -74,10 +74,10 @@ def test_run():
         for op in circuit.all_operations():
             args = cirq.ActOnStabilizerCHFormArgs(
                 state,
-                axes=[qubit_map[i] for i in op.qubits()],
+                axes=[qubit_map[i] for i in op.qubits],
                 prng=np.random.RandomState(),
                 log_of_measurement_results=measurements,
             )
             cirq.act_on(op, args)
-        assert measurements['1'] == 1
+        assert measurements['1'] == [1]
         assert measurements['0'] != measurements['2']
