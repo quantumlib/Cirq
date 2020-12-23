@@ -248,54 +248,11 @@ def test_clifford_state_str():
     assert str(state) == "|00⟩"
 
 
-def test_clifford_state_stabilizers():
-    (q0, q1, q2) = (cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2))
-    state = cirq.CliffordState(qubit_map={q0: 0, q1: 1, q2: 2})
-    state.apply_unitary(cirq.H(q0))
-    state.apply_unitary(cirq.H(q1))
-    state.apply_unitary(cirq.S(q1))
-
-    f = cirq.DensePauliString
-    assert state.stabilizers() == [f('XII'), f('IYI'), f('IIZ')]
-    assert state.destabilizers() == [f('ZII'), f('IZI'), f('IIX')]
-
-
 def test_clifford_state_state_vector():
     (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
     state = cirq.CliffordState(qubit_map={q0: 0, q1: 1})
 
     np.testing.assert_equal(state.state_vector(), [1.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j])
-
-
-def test_clifford_tableau_str():
-    (q0, q1, q2) = (cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2))
-    state = cirq.CliffordState(qubit_map={q0: 0, q1: 1, q2: 2})
-    state.apply_unitary(cirq.H(q0))
-    state.apply_unitary(cirq.H(q1))
-    state.apply_unitary(cirq.S(q1))
-
-    assert str(state.tableau) == "+ X I I \n+ I Y I \n+ I I Z "
-
-
-def test_clifford_tableau_repr():
-    (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
-    state = cirq.CliffordState(qubit_map={q0: 0, q1: 1})
-    f = cirq.DensePauliString
-    assert repr(state.tableau) == "stabilizers: [{!r}, {!r}]".format(f("ZI"), f("IZ"))
-
-
-def test_clifford_tableau_str_full():
-    (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
-    state = cirq.CliffordState(qubit_map={q0: 0, q1: 1})
-    state.apply_unitary(cirq.H(q0))
-    state.apply_unitary(cirq.S(q0))
-
-    assert (
-        state.tableau._str_full_() == "stable | destable\n"
-        "-------+----------\n"
-        "+ Y0   | + Z0  \n"
-        "+   Z1 | +   X1\n"
-    )
 
 
 def test_stabilizerStateChForm_H():
@@ -538,6 +495,12 @@ def test_deprecated():
     clifford_state = cirq.CliffordState({q: 0})
     with cirq.testing.assert_logs('wave_function', 'state_vector', 'deprecated'):
         _ = clifford_state.wave_function()
+
+    with cirq.testing.assert_logs('stabilizers', 'CliffordTableau', 'deprecated'):
+        _ = clifford_state.stabilizers()
+
+    with cirq.testing.assert_logs('destabilizers', 'CliffordTableau', 'deprecated'):
+        _ = clifford_state.destabilizers()
 
     with cirq.testing.assert_logs(
         'collapse_wavefunction', 'collapse_state_vector', 'apply_measurement', 'deprecated', count=2

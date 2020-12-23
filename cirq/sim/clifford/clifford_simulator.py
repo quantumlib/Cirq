@@ -106,8 +106,7 @@ class CliffordSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermedi
 
             for op in moment:
                 if isinstance(op.gate, ops.MeasurementGate):
-                    key = protocols.measurement_key(op)
-                    measurements[key].extend(state.perform_measurement(op.qubits, self._prng))
+                    state.apply_measurement(op, measurements, self._prng)
                 elif protocols.has_unitary(op):
                     state.apply_unitary(op)
                 else:
@@ -313,11 +312,13 @@ class CliffordState:
     def to_numpy(self) -> np.ndarray:
         return self.ch_form.to_state_vector()
 
+    @deprecated(deadline='v0.10.0', fix='use CliffordTableau instead')
     def stabilizers(self) -> List[DensePauliString]:
         """Returns the stabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi>"""
         return self.tableau.stabilizers()
 
+    @deprecated(deadline='v0.10.0', fix='use CliffordTableau instead')
     def destabilizers(self) -> List[DensePauliString]:
         """Returns the destabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
@@ -332,14 +333,10 @@ class CliffordState:
         return self.state_vector()
 
     def apply_unitary(self, op: 'cirq.Operation'):
-        tableau_args = clifford.ActOnCliffordTableauArgs(
-            self.tableau, [self.qubit_map[i] for i in op.qubits], np.random.RandomState(), {}
-        )
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
             self.ch_form, [self.qubit_map[i] for i in op.qubits], np.random.RandomState(), {}
         )
         try:
-            act_on(op, tableau_args)
             act_on(op, ch_form_args)
         except TypeError:
             raise ValueError(
@@ -359,14 +356,10 @@ class CliffordState:
         else:
             state = self.copy()
 
-        key = cirq.measurement_key(op)
         qids = [self.qubit_map[i] for i in op.qubits]
 
-        args = clifford.ActOnCliffordTableauArgs(state.tableau, qids, prng, measurements)
-        act_on(op, args)
-
-        for i, qid in enumerate(qids):
-            state.ch_form.project_Z(qid, measurements[key][i])
+        ch_form_args = clifford.ActOnStabilizerCHFormArgs(state.ch_form, qids, prng, measurements)
+        act_on(op, ch_form_args)
 
     @deprecated_parameter(
         deadline='v0.10.0',
