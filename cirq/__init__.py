@@ -363,6 +363,7 @@ from cirq.sim import (
     final_density_matrix,
     final_state_vector,
     final_wavefunction,
+    MPSSimulator,
     sample,
     sample_density_matrix,
     sample_state_vector,
