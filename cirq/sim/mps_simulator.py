@@ -41,14 +41,7 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
     @staticmethod
     def is_supported_operation(op: 'cirq.Operation') -> bool:
         """Checks whether given operation can be simulated by this simulator."""
-        # TODO: support more general Pauli measurements
-        if isinstance(op.gate, cirq.MeasurementGate):
-            return True
-        if isinstance(op, GlobalPhaseOperation):
-            return True
-        if not protocols.has_unitary(op):
-            return False
-        if len(op.qubits) == 1:
+        if protocols.has_unitary(op):
             return True
         else:
             return op.gate in [cirq.CNOT, cirq.CZ]
@@ -240,8 +233,7 @@ class MPSSimulatorStepResult(simulator.StepResult):
 
 @value.value_equality
 class MPSState:
-    """A state of the MPS simulation.
-    """
+    """A state of the MPS simulation."""
 
     def __init__(self, qubit_map, initial_state=0):
         self.qubit_map = qubit_map
@@ -256,7 +248,6 @@ class MPSState:
     @classmethod
     def _from_json_dict_(cls, qubit_map, **kwargs):
         state = cls(dict(qubit_map))
-
         return state
 
     def _value_equality_values_(self) -> Any:
@@ -277,7 +268,8 @@ class MPSState:
         return np.asarray([0.0])
 
     def to_numpy(self) -> np.ndarray:
-        return np.asarray([0.0])
+        return self.state_vector()
 
     def apply_unitary(self, op: 'cirq.Operation'):
+        print('TONYBOOM apply_unitary() op=%s' % (op))
         return
