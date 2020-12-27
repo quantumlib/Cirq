@@ -297,6 +297,7 @@ NOT_YET_SERIALIZABLE = [
     'LinearCombinationOfOperations',
     'Linspace',
     'ListSweep',
+    'MPSSimulator',
     'NeutralAtomDevice',
     'ParallelGateOperation',
     'PauliInteractionGate',
