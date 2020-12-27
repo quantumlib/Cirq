@@ -19,6 +19,14 @@ def test_simulate():
     assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1])
 
 
+def test_empty():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit()
+
+    for initial_state in range(4):
+        assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1], initial_state=initial_state)
+
+
 def test_cnot():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.CNOT(q0, q1))
