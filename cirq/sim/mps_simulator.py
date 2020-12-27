@@ -45,10 +45,12 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
     @staticmethod
     def is_supported_operation(op: 'cirq.Operation') -> bool:
         """Checks whether given operation can be simulated by this simulator."""
-        if protocols.has_unitary(op):
-            return True
-        else:
-            return op.gate in [cirq.CNOT, cirq.CZ]
+        idx = [self.qubit_map[qubit] for qubit in op.qubits]
+        if len(idx) >= 3:
+            return False
+        elif math.abs(idx[0] - idx[1]) != 1:
+            return False
+        return protocols.has_unitary(op)
 
     def _base_iterator(
         self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int

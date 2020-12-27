@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 import cirq
 
@@ -55,3 +56,22 @@ def test_cnot_flipped():
         assert_same_output_as_dense(
             circuit=circuit, qubit_order=[q0, q1], initial_state=initial_state
         )
+
+
+def test_jump_two():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(cirq.CNOT(q0, q2))
+
+    with pytest.raises(ValueError, match="Can only handle continguous qubits"):
+        assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1, q2])
+
+
+def test_measurement():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
+
+    simulator = cirq.MPSSimulator()
+
+    result = simulator.run(circuit, repetitions=100)
+    assert sum(result.measurements['0'])[0] < 80
+    assert sum(result.measurements['0'])[0] > 20
