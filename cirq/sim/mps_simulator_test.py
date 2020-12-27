@@ -68,10 +68,10 @@ def test_jump_two():
 
 def test_measurement():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
+    circuit = cirq.Circuit(cirq.X(q0), cirq.H(q1), cirq.measure(q1))
 
     simulator = cirq.MPSSimulator()
 
     result = simulator.run(circuit, repetitions=100)
-    assert sum(result.measurements['0'])[0] < 80
-    assert sum(result.measurements['0'])[0] > 20
+    assert sum(result.measurements['1'])[0] < 80
+    assert sum(result.measurements['1'])[0] > 20

@@ -322,3 +322,30 @@ class MPSState:
             self.M[p] = np.einsum('ns,spj->npj', S, Y)
         else:
             raise ValueError('Can only handle dim 2')
+
+    def perform_measurement(
+        self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
+    ):
+        results = []
+        for qubit in qubits:
+            n = self.qubit_map[qubit]
+            state_vector = np.einsum('mni->i', self.M[n])
+            probs = [abs(x) ** 2 for x in state_vector]
+
+            d = qubit.dimension
+            result = np.random.choice(d, p=probs)
+
+            if collapse_state_vector:
+                state_vector = np.zeros(
+                    (
+                        1,
+                        1,
+                        d,
+                    )
+                )
+                state_vector[0, 0, result] = 1.0
+                self.M[n] = state_vector
+
+            results.append(result)
+
+        return results
