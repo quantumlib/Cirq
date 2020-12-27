@@ -1445,8 +1445,9 @@ class MutablePauliString(Generic[TKey]):
                 coefficient=self.coefficient,
                 pauli_int_dict=new_dict,
             )
-        self.pauli_int_dict = new_dict
-        return self
+        result = cast('cirq.MutablePauliString[TKeyNew]', self)
+        result.pauli_int_dict = new_dict
+        return result
 
     def __imul__(self, other: 'cirq.PAULI_STRING_LIKE') -> 'cirq.MutablePauliString':
         """Left-multiplies a pauli string into this pauli string.
