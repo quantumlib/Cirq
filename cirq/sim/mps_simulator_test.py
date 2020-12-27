@@ -20,11 +20,13 @@ def test_simulate():
 
 
 def test_empty():
-    q0, q1 = cirq.LineQubit.range(2)
+    q0 = cirq.NamedQid('q0', dimension=2)
+    q1 = cirq.NamedQid('q1', dimension=3)
+    q2 = cirq.NamedQid('q2', dimension=5)
     circuit = cirq.Circuit()
 
-    for initial_state in range(4):
-        assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1], initial_state=initial_state)
+    for initial_state in range(2 * 3 * 5):
+        assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1, q2], initial_state=initial_state)
 
 
 def test_cnot():

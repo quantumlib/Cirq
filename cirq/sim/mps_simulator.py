@@ -248,6 +248,7 @@ class MPSState:
             x[0, 0, (initial_state % d)] = 1.0
             self.M.append(x)
             initial_state = initial_state // d
+        self.M = self.M[::-1]
         self.threshold = 1e-3
 
     def _json_dict_(self):
@@ -296,7 +297,7 @@ class MPSState:
             T = np.einsum('klij,mni,npj->mkpl', U, self.M[n], self.M[p])
             X, S, Y = np.linalg.svd(T.reshape([T.shape[0] * T.shape[1], T.shape[2] * T.shape[3]]))
             X = X.reshape([T.shape[0], T.shape[1], -1])
-            Y = Y.T.conj().reshape([-1, T.shape[2], T.shape[3]])
+            Y = Y.reshape([-1, T.shape[2], T.shape[3]])
 
             S = np.asarray([math.sqrt(x) for x in S])
 
