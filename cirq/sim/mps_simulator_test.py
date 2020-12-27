@@ -15,5 +15,5 @@ def assert_same_output_as_dense(circuit, qubit_order):
 
 def test_simulate():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.CNOT(q0, q1))
     assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1])

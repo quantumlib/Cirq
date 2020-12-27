@@ -17,6 +17,7 @@ https://arxiv.org/abs/2002.07730
 """
 
 import collections
+import math
 from typing import Any, Dict, List, Iterator, Sequence
 
 import numpy as np
@@ -247,6 +248,7 @@ class MPSState:
             x[0, 0, (initial_state % d)] = 1.0
             self.M.append(x)
             initial_state = initial_state // d
+        self.threshold = 1e-3
 
     def _json_dict_(self):
         return {
@@ -268,12 +270,46 @@ class MPSState:
         return state
 
     def state_vector(self):
-        return np.asarray([0.0])
+        M = self.M[0]
+        for i in range(1, len(self.M)):
+            M = np.einsum('mni,npj->mpij', M, self.M[i])
+            M = M.reshape(M.shape[0], M.shape[1], -1)
+        assert M.shape[0] == 1
+        assert M.shape[1] == 1
+        return M[0, 0, :]
 
     def to_numpy(self) -> np.ndarray:
         return self.state_vector()
 
     def apply_unitary(self, op: 'cirq.Operation'):
-        U = protocols.unitary(op)
-        print('TONYBOOM apply_unitary() op=%s U=%s' % (op, U))
-        return
+        idx = [self.qubit_map[qubit] for qubit in op.qubits]
+        U = protocols.unitary(op).reshape([qubit.dimension for qubit in op.qubits] * 2)
+
+        if len(idx) == 1:
+            n = idx[0]
+            self.M[n] = np.einsum('ij,mnj->mni', U, self.M[n])
+        elif len(idx) == 2:
+            n = idx[0]
+            p = idx[1]
+            if abs(n - p) != 1:
+                raise ValueError('Can only handle continguous qubits')
+            T = np.einsum('klij,mni,npj->mkpl', U, self.M[n], self.M[p])
+            X, S, Y = np.linalg.svd(T.reshape([T.shape[0] * T.shape[1], T.shape[2] * T.shape[3]]))
+            X = X.reshape([T.shape[0], T.shape[1], -1])
+            Y = Y.T.conj().reshape([-1, T.shape[2], T.shape[3]])
+
+            S = np.asarray([math.sqrt(x) for x in S])
+
+            nkeep = 0
+            for i in range(S.shape[0]):
+                if S[i] >= S[0] * self.threshold:
+                    nkeep = i + 1
+
+            X = X[:, :, :nkeep]
+            S = np.diag(S[:nkeep])
+            Y = Y[:nkeep, :, :]
+
+            self.M[n] = np.einsum('mis,sn->mni', X, S)
+            self.M[p] = np.einsum('ns,spj->npj', S, Y)
+        else:
+            raise ValueError('Can only handle dim 2')
