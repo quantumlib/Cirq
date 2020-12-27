@@ -14,13 +14,13 @@ def test_ket_bra_qid():
     zero_projector = cirq.KetBraSum({q0: [(0, 0)]})
     one_projector = cirq.KetBraSum({q0: [(1, 1)]})
     not_a_projector = cirq.KetBraSum({q0: [(0, 1)]})
-    two_quids = cirq.KetBraSum({(q0, q1): [(1, 3)]})
+    two_qids = cirq.KetBraSum({(q0, q1): [(1, 3)]})
 
     np.testing.assert_allclose(zero_projector.matrix(), [[1.0, 0.0], [0.0, 0.0]])
     np.testing.assert_allclose(one_projector.matrix(), [[0.0, 0.0], [0.0, 1.0]])
     np.testing.assert_allclose(not_a_projector.matrix(), [[0.0, 1.0], [0.0, 0.0]])
     np.testing.assert_allclose(
-        two_quids.matrix(),
+        two_qids.matrix(),
         [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]],
     )
 
