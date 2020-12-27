@@ -1421,9 +1421,9 @@ class MutablePauliString(Generic[TKey]):
     def __pos__(self) -> 'cirq.MutablePauliString':
         return self.mutable_copy()
 
-    def transform_qubits(self, func: Callable[['cirq.Qid'], 'cirq.Qid'],
-                         *,
-                         inplace: bool = False) -> 'cirq.MutablePauliString':
+    def transform_qubits(
+        self, func: Callable[[TKey], TKeyNew], *, inplace: bool = False
+    ) -> 'cirq.MutablePauliString[TKeyNew]':
         """Returns a mutable pauli string with transformed qubits.
 
         Args:
