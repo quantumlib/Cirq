@@ -13,10 +13,16 @@ def assert_same_output_as_dense(circuit, qubit_order, initial_state=0):
     assert len(actual.measurements) == 0
 
 
-def test_simulate():
-    q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.CNOT(q0, q1))
-    assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1])
+def test_various_gates():
+    gate_cls = [cirq.I, cirq.H, cirq.X, cirq.Y, cirq.Z]
+    cross_gate_cls = [cirq.CNOT, cirq.SWAP]
+
+    for q0_gate in gate_cls:
+        for q1_gate in gate_cls:
+            for cross_gate in cross_gate_cls:
+                q0, q1 = cirq.LineQubit.range(2)
+                circuit = cirq.Circuit(q0_gate(q0), q1_gate(q1), cross_gate(q0, q1))
+                assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1])
 
 
 def test_empty():
@@ -26,7 +32,9 @@ def test_empty():
     circuit = cirq.Circuit()
 
     for initial_state in range(2 * 3 * 5):
-        assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1, q2], initial_state=initial_state)
+        assert_same_output_as_dense(
+            circuit=circuit, qubit_order=[q0, q1, q2], initial_state=initial_state
+        )
 
 
 def test_cnot():
@@ -34,7 +42,9 @@ def test_cnot():
     circuit = cirq.Circuit(cirq.CNOT(q0, q1))
 
     for initial_state in range(4):
-        assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1], initial_state=initial_state)
+        assert_same_output_as_dense(
+            circuit=circuit, qubit_order=[q0, q1], initial_state=initial_state
+        )
 
 
 def test_cnot_flipped():
@@ -42,4 +52,6 @@ def test_cnot_flipped():
     circuit = cirq.Circuit(cirq.CNOT(q1, q0))
 
     for initial_state in range(4):
-        assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1], initial_state=initial_state)
+        assert_same_output_as_dense(
+            circuit=circuit, qubit_order=[q0, q1], initial_state=initial_state
+        )

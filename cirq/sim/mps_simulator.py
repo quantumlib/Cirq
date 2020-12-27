@@ -244,7 +244,13 @@ class MPSState:
         self.M = []
         for qubit in qubit_map.keys():
             d = qubit.dimension
-            x = np.zeros((1, 1, d,))
+            x = np.zeros(
+                (
+                    1,
+                    1,
+                    d,
+                )
+            )
             x[0, 0, (initial_state % d)] = 1.0
             self.M.append(x)
             initial_state = initial_state // d
