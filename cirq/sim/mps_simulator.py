@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""An MPS simulator"""
+"""An MPS simulator.
+
+https://arxiv.org/abs/2002.07730
+"""
 
 import collections
 from typing import Any, Dict, List, Iterator, Sequence
@@ -237,11 +240,19 @@ class MPSState:
 
     def __init__(self, qubit_map, initial_state=0):
         self.qubit_map = qubit_map
+        self.M = []
+        for qubit in qubit_map.keys():
+            d = qubit.dimension
+            x = np.zeros((1, 1, d,))
+            x[0, 0, (initial_state % d)] = 1.0
+            self.M.append(x)
+            initial_state = initial_state // d
 
     def _json_dict_(self):
         return {
             'cirq_type': self.__class__.__name__,
             'qubit_map': [(k, v) for k, v in self.qubit_map.items()],
+            'M': self.M,
         }
 
     @classmethod
@@ -263,5 +274,6 @@ class MPSState:
         return self.state_vector()
 
     def apply_unitary(self, op: 'cirq.Operation'):
-        print('TONYBOOM apply_unitary() op=%s' % (protocols.unitary(op)))
+        U = protocols.unitary(op)
+        print('TONYBOOM apply_unitary() op=%s U=%s' % (op, U))
         return
