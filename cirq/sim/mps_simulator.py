@@ -237,7 +237,6 @@ class MPSState:
 
     def __init__(self, qubit_map, initial_state=0):
         self.qubit_map = qubit_map
-        self.n = len(qubit_map)
 
     def _json_dict_(self):
         return {
@@ -257,13 +256,6 @@ class MPSState:
         state = MPSState(self.qubit_map)
         return state
 
-    def __repr__(self) -> str:
-        return repr(self.ch_form)
-
-    def __str__(self) -> str:
-        """Return the state vector string representation of the state."""
-        return str(self.ch_form)
-
     def state_vector(self):
         return np.asarray([0.0])
 
@@ -271,5 +263,5 @@ class MPSState:
         return self.state_vector()
 
     def apply_unitary(self, op: 'cirq.Operation'):
-        print('TONYBOOM apply_unitary() op=%s' % (op))
+        print('TONYBOOM apply_unitary() op=%s' % (protocols.unitary(op)))
         return
