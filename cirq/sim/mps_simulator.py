@@ -332,19 +332,18 @@ class MPSState:
             state_vector = np.einsum('mni->i', self.M[n])
             probs = [abs(x) ** 2 for x in state_vector]
 
+            # Because the computation is approximate, the probabilities do not
+            # necessarily add up to 1.0, and thus we re-normalize them.
+            norm_probs = probs / sum(probs)
+
             d = qubit.dimension
-            result = np.random.choice(d, p=probs)
+            result = np.random.choice(d, p=norm_probs)
 
             if collapse_state_vector:
-                state_vector = np.zeros(
-                    (
-                        1,
-                        1,
-                        d,
-                    )
-                )
-                state_vector[0, 0, result] = 1.0
-                self.M[n] = state_vector
+                renormalizer = np.zeros((d, d))
+                renormalizer[result][result] = 1.0 / math.sqrt(probs[result])
+
+                self.M[n] = np.einsum('ij,mnj->mni', renormalizer, self.M[n])
 
             results.append(result)
 
