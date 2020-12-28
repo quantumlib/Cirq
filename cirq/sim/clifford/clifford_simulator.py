@@ -335,7 +335,7 @@ class CliffordState:
             self.tableau, [self.qubit_map[i] for i in op.qubits], np.random.RandomState(), {}
         )
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
-            self.ch_form, [self.qubit_map[i] for i in op.qubits]
+            self.ch_form, [self.qubit_map[i] for i in op.qubits], np.random.RandomState(), {}
         )
         try:
             act_on(op, tableau_args)
