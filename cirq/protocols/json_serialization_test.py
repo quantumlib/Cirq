@@ -394,48 +394,49 @@ def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: st
         return pytest.xfail(reason="Not serializable (yet)")
 
     test_data_path = mod_spec.test_data_path
+    rel_path = test_data_path.relative_to(REPO_ROOT)
+    mod_path = mod_spec.name.replace(".", "/")
+    rel_resolver_cache_path = f"{mod_path}/json_resolver_cache.py"
     json_path = test_data_path / f'{cirq_obj_name}.json'
     json_path2 = test_data_path / f'{cirq_obj_name}.json_inward'
 
     if not json_path.exists() and not json_path2.exists():
         # coverage: ignore
-        raise NotImplementedError(
-            textwrap.fill(
-                f"Hello intrepid developer. There is a new public or "
-                f"serializable object named '{cirq_obj_name}' that does not "
-                f"have associated test data.\n"
-                f"\n"
-                f"You must create the file\n"
-                f"    cirq/protocols/json_test_data/{cirq_obj_name}.json\n"
-                f"and the file\n"
-                f"    cirq/protocols/json_test_data/{cirq_obj_name}.repr\n"
-                f"in order to guarantee this public object is, and will "
-                f"remain, serializable.\n"
-                f"\n"
-                f"The content of the .repr file should be the string returned "
-                f"by `repr(obj)` where `obj` is a test {cirq_obj_name} value "
-                f"or list of such values. To get this to work you may need to "
-                f"implement a __repr__ method for {cirq_obj_name}. The repr "
-                f"must be a parsable python expression that evaluates to "
-                f"something equal to `obj`."
-                f"\n"
-                f"The content of the .json file should be the string returned "
-                f"by `cirq.to_json(obj)` where `obj` is the same object or "
-                f"list of test objects.\n"
-                f"To get this to work you likely need "
-                f"to add {cirq_obj_name} to the "
-                f"`cirq_class_resolver_dictionary` method in "
-                f"the cirq/protocols/json_serialization.py source file. "
-                f"You may also need to add a _json_dict_ method to "
-                f"{cirq_obj_name}. In some cases you will also need to add a "
-                f"_from_json_dict_ method to {cirq_obj_name}."
-                f"\n"
-                f"For more information on JSON serialization, please read the "
-                f"docstring for protocols.SupportsJSON. If this object or "
-                f"class is not appropriate for serialization, add its name to "
-                f"the SHOULDNT_BE_SERIALIZED list in the "
-                f"cirq/protocols/json_serialization_test.py source file."
-            )
+        pytest.fail(
+            f"Hello intrepid developer. There is a new public or "
+            f"serializable object named '{cirq_obj_name}' in the module '{mod_spec.name}' that does not "
+            f"have associated test data.\n"
+            f"\n"
+            f"You must create the file\n"
+            f"    {rel_path}/{cirq_obj_name}.json\n"
+            f"and the file\n"
+            f"    {rel_path}/{cirq_obj_name}.repr\n"
+            f"in order to guarantee this public object is, and will "
+            f"remain, serializable.\n"
+            f"\n"
+            f"The content of the .repr file should be the string returned "
+            f"by `repr(obj)` where `obj` is a test {cirq_obj_name} value "
+            f"or list of such values. To get this to work you may need to "
+            f"implement a __repr__ method for {cirq_obj_name}. The repr "
+            f"must be a parsable python expression that evaluates to "
+            f"something equal to `obj`."
+            f"\n"
+            f"The content of the .json file should be the string returned "
+            f"by `cirq.to_json(obj)` where `obj` is the same object or "
+            f"list of test objects.\n"
+            f"To get this to work you likely need "
+            f"to add {cirq_obj_name} to the "
+            f"`_class_resolver_dictionary` method in "
+            f"the {rel_resolver_cache_path} source file. "
+            f"You may also need to add a _json_dict_ method to "
+            f"{cirq_obj_name}. In some cases you will also need to add a "
+            f"_from_json_dict_ class method to the {cirq_obj_name} class."
+            f"\n"
+            f"For more information on JSON serialization, please read the "
+            f"docstring for cirq.protocols.SupportsJSON. If this object or "
+            f"class is not appropriate for serialization, add its name to "
+            f"the `should_not_be_serialized` list in the TestSpec defined in the "
+            f"{rel_path}/spec.py source file."
         )
 
     repr_file = test_data_path / f'{cirq_obj_name}.repr'
