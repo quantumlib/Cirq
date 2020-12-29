@@ -295,7 +295,7 @@ def test_h_init():
 
 def test_h_str():
     assert str(cirq.H) == 'H'
-    assert str(cirq.H ** 0.5) == 'H^0.5'
+    assert str(cirq.H ** 0.5) == 'H**0.5'
 
 
 def test_x_act_on_tableau():
@@ -575,7 +575,12 @@ def test_act_on_ch_form(input_gate_sequence, outcome):
     else:
         assert num_qubits == 2
         axes = [0, 1]
-    args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(), axes=axes)
+    args = cirq.ActOnStabilizerCHFormArgs(
+        state=original_state.copy(),
+        axes=axes,
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
 
     flipped_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=23)
 

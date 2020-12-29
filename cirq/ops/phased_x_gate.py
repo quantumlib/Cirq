@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """An `XPowGate` conjugated by `ZPowGate`s."""
 from typing import AbstractSet, Any, cast, Dict, Optional, Sequence, Tuple, Union
 
@@ -183,7 +182,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         info = protocols.circuit_diagram_info(self)
         if info.exponent == 1:
             return info.wire_symbols[0]
-        return f'{info.wire_symbols[0]}^{info.exponent}'
+        return f'{info.wire_symbols[0]}**{info.exponent}'
 
     def __repr__(self) -> str:
         args = [f'phase_exponent={proper_repr(self.phase_exponent)}']
