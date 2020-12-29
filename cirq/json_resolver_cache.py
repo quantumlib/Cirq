@@ -64,6 +64,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'CrossEntropyResult': CrossEntropyResult,
         'CrossEntropyResultDict': CrossEntropyResultDict,
         'Circuit': cirq.Circuit,
+        'CircuitOperation': cirq.CircuitOperation,
         'CliffordState': cirq.CliffordState,
         'CliffordTableau': cirq.CliffordTableau,
         'DepolarizingChannel': cirq.DepolarizingChannel,

@@ -10,8 +10,6 @@ TestSpec = ModuleJsonTestSpec(
     packages=[cirq.google],
     test_data_path=pathlib.Path(__file__).parent,
     not_yet_serializable=[
-        'CalibrationResult',
-        'CalibrationLayer',
         'FSIM_GATESET',
         'SYC_GATESET',
         'Sycamore',

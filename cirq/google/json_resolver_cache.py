@@ -27,6 +27,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
         'Calibration': cirq.google.Calibration,
         'CalibrationTag': cirq.google.CalibrationTag,
+        'CalibrationLayer': cirq.google.CalibrationLayer,
+        'CalibrationResult': cirq.google.CalibrationResult,
         'SycamoreGate': cirq.google.SycamoreGate,
         'GateTabulation': cirq.google.GateTabulation,
         'PhysicalZTag': cirq.google.PhysicalZTag,

@@ -28,6 +28,7 @@ import sympy
 
 import cirq
 from cirq._compat import proper_eq
+from cirq.protocols import json_serialization
 from cirq.testing import assert_json_roundtrip_works
 from cirq.testing.json import ModuleJsonTestSpec, spec_for
 
@@ -182,8 +183,11 @@ def test_resolver_cache_vs_not_yet_serializable(mod_spec: ModuleJsonTestSpec):
     common = set(mod_spec.not_yet_serializable) & resolver_cache_types
 
     assert len(common) == 0, (
-        f"Defined in both {mod_spec.name} Resolver "
-        f"Cache and 'Not yet serializable' list: {common}"
+        f"Issue with the JSON config of {mod_spec.name}.\n"
+        f"Types are listed in both"
+        f" {mod_spec.name}.json_resolver_cache.py and in the 'NOT_YET_SERIALIZABLE' list in"
+        f" {mod_spec.name}.json_test_data.spec.py: "
+        f"\n {common}"
     )
 
 
@@ -266,6 +270,7 @@ def test_sympy():
     # Linear combinations.
     assert_json_roundtrip_works(t * 2)
     assert_json_roundtrip_works(4 * t + 3 * s + 2)
+
 
 class SBKImpl:
     """A test implementation of SerializableByKey."""
@@ -375,17 +380,6 @@ def test_internal_serializer_types():
     with pytest.raises(TypeError, match='_from_json_dict_'):
         _ = json_serialization._ContextualSerialization._from_json_dict_(**serialization_json)
 
-
-def _write_test_data(key: str, *test_instances: Any):
-    """Helper method for creating initial test data."""
-    # coverage: ignore
-    cirq.to_json(test_instances, TEST_DATA_PATH / f'{key}.json')
-    with open(TEST_DATA_PATH / f'{key}.repr', 'w') as f:
-        f.write('[\n')
-        for e in test_instances:
-            f.write(proper_repr(e))
-            f.write(',\n')
-        f.write(']')
 
 @pytest.mark.parametrize(
     'mod_spec,cirq_obj_name,cls',
