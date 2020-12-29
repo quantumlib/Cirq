@@ -335,7 +335,7 @@ class CliffordState:
             self.tableau, [self.qubit_map[i] for i in op.qubits], np.random.RandomState(), {}
         )
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
-            self.ch_form, [self.qubit_map[i] for i in op.qubits]
+            self.ch_form, [self.qubit_map[i] for i in op.qubits], np.random.RandomState(), {}
         )
         try:
             act_on(op, tableau_args)
@@ -370,8 +370,7 @@ class CliffordState:
             state = self.copy()
 
         for qubit in qubits:
-            result = state.tableau._measure(self.qubit_map[qubit], prng)
-            state.ch_form.project_Z(self.qubit_map[qubit], result)
+            result = state.ch_form._measure(self.qubit_map[qubit], prng)
             results.append(result)
 
         return results

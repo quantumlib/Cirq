@@ -45,7 +45,7 @@ class PullRequestDetails:
         References:
             https://developer.github.com/v3/pulls/#get-a-single-pull-request
         """
-        url = "https://api.github.com/repos/{}/{}/pulls/{}" "?access_token={}".format(
+        url = "https://api.github.com/repos/{}/{}/pulls/{}?access_token={}".format(
             repo.organization, repo.name, pull_id, repo.access_token
         )
 
@@ -195,7 +195,7 @@ def add_comment(repo: GithubRepository, pull_id: int, text: str) -> None:
     References:
         https://developer.github.com/v3/issues/comments/#create-a-comment
     """
-    url = "https://api.github.com/repos/{}/{}/issues/{}/comments" "?access_token={}".format(
+    url = "https://api.github.com/repos/{}/{}/issues/{}/comments?access_token={}".format(
         repo.organization, repo.name, pull_id, repo.access_token
     )
     data = {'body': text}
@@ -214,7 +214,7 @@ def edit_comment(repo: GithubRepository, text: str, comment_id: int) -> None:
     References:
         https://developer.github.com/v3/issues/comments/#edit-a-comment
     """
-    url = "https://api.github.com/repos/{}/{}/issues/comments/{}" "?access_token={}".format(
+    url = "https://api.github.com/repos/{}/{}/issues/comments/{}?access_token={}".format(
         repo.organization, repo.name, comment_id, repo.access_token
     )
     data = {'body': text}
@@ -233,7 +233,7 @@ def get_branch_details(repo: GithubRepository, branch: str) -> Any:
     References:
         https://developer.github.com/v3/repos/branches/#get-branch
     """
-    url = "https://api.github.com/repos/{}/{}/branches/{}" "?access_token={}".format(
+    url = "https://api.github.com/repos/{}/{}/branches/{}?access_token={}".format(
         repo.organization, repo.name, branch, repo.access_token
     )
     response = requests.get(url)
@@ -254,7 +254,7 @@ def get_pr_statuses(pr: PullRequestDetails) -> List[Dict[str, Any]]:
         https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref
     """
 
-    url = "https://api.github.com/repos/{}/{}/commits/{}/statuses" "?access_token={}".format(
+    url = "https://api.github.com/repos/{}/{}/commits/{}/statuses?access_token={}".format(
         pr.repo.organization, pr.repo.name, pr.branch_sha, pr.repo.access_token
     )
     response = requests.get(url)
@@ -275,7 +275,7 @@ def get_pr_check_status(pr: PullRequestDetails) -> Any:
         https://developer.github.com/v3/repos/statuses/#get-the-combined-status-for-a-specific-ref
     """
 
-    url = "https://api.github.com/repos/{}/{}/commits/{}/status" "?access_token={}".format(
+    url = "https://api.github.com/repos/{}/{}/commits/{}/status?access_token={}".format(
         pr.repo.organization, pr.repo.name, pr.branch_sha, pr.repo.access_token
     )
     response = requests.get(url)
@@ -358,7 +358,7 @@ def get_pr_checks(pr: PullRequestDetails) -> Dict[str, Any]:
     References:
         https://developer.github.com/v3/checks/runs/#list-check-runs-for-a-specific-ref
     """
-    url = "https://api.github.com/repos/{}/{}/commits/{}/check-runs" "?access_token={}".format(
+    url = "https://api.github.com/repos/{}/{}/commits/{}/check-runs?access_token={}".format(
         pr.repo.organization, pr.repo.name, pr.branch_sha, pr.repo.access_token
     )
     response = requests.get(url, headers={'Accept': 'application/vnd.github.antiope-preview+json'})
@@ -417,7 +417,7 @@ def get_repo_ref(repo: GithubRepository, ref: str) -> Dict[str, Any]:
         https://developer.github.com/v3/git/refs/#get-a-reference
     """
 
-    url = "https://api.github.com/repos/{}/{}/git/refs/{}" "?access_token={}".format(
+    url = "https://api.github.com/repos/{}/{}/git/refs/{}?access_token={}".format(
         repo.organization, repo.name, ref, repo.access_token
     )
     response = requests.get(url)
@@ -441,7 +441,7 @@ def list_pr_comments(repo: GithubRepository, pull_id: int) -> List[Dict[str, Any
     References:
         https://developer.github.com/v3/issues/comments/#list-comments-on-an-issue
     """
-    url = "https://api.github.com/repos/{}/{}/issues/{}/comments" "?access_token={}".format(
+    url = "https://api.github.com/repos/{}/{}/issues/{}/comments?access_token={}".format(
         repo.organization, repo.name, pull_id, repo.access_token
     )
     response = requests.get(url)
@@ -460,7 +460,7 @@ def delete_comment(repo: GithubRepository, comment_id: int) -> None:
     References:
         https://developer.github.com/v3/issues/comments/#delete-a-comment
     """
-    url = "https://api.github.com/repos/{}/{}/issues/comments/{}" "?access_token={}".format(
+    url = "https://api.github.com/repos/{}/{}/issues/comments/{}?access_token={}".format(
         repo.organization, repo.name, comment_id, repo.access_token
     )
     response = requests.delete(url)
@@ -517,7 +517,7 @@ def attempt_sync_with_master(pr: PullRequestDetails) -> Union[bool, CannotAutome
     """
     master_sha = get_master_sha(pr.repo)
     remote = pr.remote_repo
-    url = "https://api.github.com/repos/{}/{}/merges" "?access_token={}".format(
+    url = "https://api.github.com/repos/{}/{}/merges?access_token={}".format(
         remote.organization, remote.name, remote.access_token
     )
     data = {
@@ -559,7 +559,7 @@ def attempt_squash_merge(pr: PullRequestDetails) -> Union[bool, CannotAutomergeE
     References:
         https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button
     """
-    url = "https://api.github.com/repos/{}/{}/pulls/{}/merge" "?access_token={}".format(
+    url = "https://api.github.com/repos/{}/{}/pulls/{}/merge?access_token={}".format(
         pr.repo.organization, pr.repo.name, pr.pull_id, pr.repo.access_token
     )
     data = {
@@ -607,7 +607,7 @@ def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
         )
         return False
 
-    url = "https://api.github.com/repos/{}/{}/git/refs/heads/{}" "?access_token={}".format(
+    url = "https://api.github.com/repos/{}/{}/git/refs/heads/{}?access_token={}".format(
         remote.organization, remote.name, pr.branch_name, remote.access_token
     )
     response = requests.delete(url)
@@ -635,7 +635,7 @@ def add_labels_to_pr(
     References:
         https://developer.github.com/v3/issues/labels/#add-labels-to-an-issue
     """
-    url = "https://api.github.com/repos/{}/{}/issues/{}/labels" "?access_token={}".format(
+    url = "https://api.github.com/repos/{}/{}/issues/{}/labels?access_token={}".format(
         repo.organization, repo.name, pull_id, override_token or repo.access_token
     )
     response = requests.post(url, json=list(labels))
@@ -653,7 +653,7 @@ def remove_label_from_pr(repo: GithubRepository, pull_id: int, label: str) -> bo
     References:
         https://developer.github.com/v3/issues/labels/#remove-a-label-from-an-issue
     """
-    url = "https://api.github.com/repos/{}/{}/issues/{}/labels/{}" "?access_token={}".format(
+    url = "https://api.github.com/repos/{}/{}/issues/{}/labels/{}?access_token={}".format(
         repo.organization, repo.name, pull_id, label, repo.access_token
     )
     response = requests.delete(url)
@@ -915,7 +915,7 @@ def main():
             '{} not set. Trying secret manager.'.format(ACCESS_TOKEN_ENV_VARIABLE), file=sys.stderr
         )
         client = secretmanager_v1beta1.SecretManagerServiceClient()
-        secret_name = f'projects/{project_id}/' f'secrets/cirq-bot-api-key/versions/1'
+        secret_name = f'projects/{project_id}/secrets/cirq-bot-api-key/versions/1'
         response = client.access_secret_version(name=secret_name)
         access_token = response.payload.data.decode('UTF-8')
 

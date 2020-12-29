@@ -31,6 +31,7 @@ from typing import (
     Union,
     ValuesView,
     AbstractSet,
+    Callable,
     Generic,
 )
 
@@ -530,7 +531,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         # FIXME: Avoid enforce specific complex type. This is necessary to
         # prevent an `apply_unitary` bug (Issue #2041).
         if state_vector.dtype.kind != 'c':
-            raise TypeError("Input state dtype must be np.complex64 or " "np.complex128")
+            raise TypeError("Input state dtype must be np.complex64 or np.complex128")
 
         size = state_vector.size
         num_qubits = size.bit_length() - 1
@@ -632,7 +633,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         # FIXME: Avoid enforcing specific complex type. This is necessary to
         # prevent an `apply_unitary` bug (Issue #2041).
         if state.dtype.kind != 'c':
-            raise TypeError("Input state dtype must be np.complex64 or " "np.complex128")
+            raise TypeError("Input state dtype must be np.complex64 or np.complex128")
 
         size = state.size
         num_qubits = int(np.sqrt(size)).bit_length() - 1
@@ -1038,9 +1039,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             quarter_kickback += merge_and_kickback(
                 qubit0, pauli_map.get(qubit0), gate.pauli0, gate.invert0
             )
-        assert quarter_kickback % 2 == 0, (
-            'Impossible condition.  ' 'quarter_kickback is either incremented twice or never.'
-        )
+        assert (
+            quarter_kickback % 2 == 0
+        ), 'Impossible condition.  quarter_kickback is either incremented twice or never.'
         return quarter_kickback % 4 == 2
 
 
@@ -1062,12 +1063,12 @@ def _validate_qubit_mapping(
         isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()
     ):
         raise TypeError(
-            "Input qubit map must be a valid mapping from " "Qubit ID's to integer indices."
+            "Input qubit map must be a valid mapping from Qubit ID's to integer indices."
         )
 
     if not set(qubit_map.keys()) >= set(pauli_qubits):
         raise ValueError(
-            "Input qubit map must be a complete mapping over all " " of this PauliString's qubits."
+            "Input qubit map must be a complete mapping over all of this PauliString's qubits."
         )
 
     used_inds = [qubit_map[q] for q in pauli_qubits]
@@ -1075,7 +1076,7 @@ def _validate_qubit_mapping(
         sorted(used_inds)
     ):
         raise ValueError(
-            'Input qubit map indices must be valid for a state ' f'over {num_state_qubits} qubits.'
+            f'Input qubit map indices must be valid for a state over {num_state_qubits} qubits.'
         )
 
 
@@ -1412,6 +1413,42 @@ class MutablePauliString(Generic[TKey]):
             raise TypeError(f"{other!r} is not cirq.PAULI_STRING_LIKE.")
         return self
 
+    def __neg__(self) -> 'cirq.MutablePauliString':
+        result = self.mutable_copy()
+        result.coefficient *= -1
+        return result
+
+    def __pos__(self) -> 'cirq.MutablePauliString':
+        return self.mutable_copy()
+
+    def transform_qubits(
+        self, func: Callable[[TKey], TKeyNew], *, inplace: bool = False
+    ) -> 'cirq.MutablePauliString[TKeyNew]':
+        """Returns a mutable pauli string with transformed qubits.
+
+        Args:
+            func: The qubit transformation to apply.
+            inplace: If false (the default), creates a new mutable pauli string
+                to store the result. If true, overwrites this mutable pauli
+                string's contents. Defaults to false for consistency with
+                `cirq.PauliString.transform_qubits` in situations where the
+                pauli string being used may or may not be mutable.
+
+        Returns:
+            A transformed MutablePauliString.
+            If inplace=True, returns `self`.
+            If inplace=False, returns a new instance.
+        """
+        new_dict = {func(q): p for q, p in self.pauli_int_dict.items()}
+        if not inplace:
+            return MutablePauliString(
+                coefficient=self.coefficient,
+                pauli_int_dict=new_dict,
+            )
+        result = cast('cirq.MutablePauliString[TKeyNew]', self)
+        result.pauli_int_dict = new_dict
+        return result
+
     def __imul__(self, other: 'cirq.PAULI_STRING_LIKE') -> 'cirq.MutablePauliString':
         """Left-multiplies a pauli string into this pauli string.
 
@@ -1474,7 +1511,7 @@ def _decompose_into_cliffords(op: 'cirq.Operation') -> List['cirq.Operation']:
         return [out for sub_op in decomposed for out in _decompose_into_cliffords(sub_op)]
 
     raise TypeError(
-        f'Operation is not a known Clifford and did not decompose ' f'into known Cliffords: {op!r}'
+        f'Operation is not a known Clifford and did not decompose into known Cliffords: {op!r}'
     )
 
 

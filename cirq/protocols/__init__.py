@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Methods and classes that define cirq's protocols."""
 
 from cirq.protocols.act_on_protocol import (
     act_on,
@@ -130,6 +131,7 @@ from cirq.protocols.resolve_parameters import (
     parameter_names,
     parameter_symbols,
     resolve_parameters,
+    resolve_parameters_once,
     SupportsParameterization,
 )
 from cirq.protocols.phase_protocol import (

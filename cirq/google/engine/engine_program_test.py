@@ -498,7 +498,7 @@ def test_get_batch_size(get_program):
 @pytest.fixture(scope='session', autouse=True)
 def mock_grpc_client():
     with mock.patch(
-        'cirq.google.engine.engine_client' '.quantum.QuantumEngineServiceClient'
+        'cirq.google.engine.engine_client.quantum.QuantumEngineServiceClient'
     ) as _fixture:
         yield _fixture
 
@@ -512,7 +512,7 @@ def test_get_circuit_v2_unknown_gateset(get_program):
         )
     )
 
-    with pytest.raises(ValueError, match='unsupported gateset: BAD_GATESET'):
+    with pytest.raises(ValueError, match='BAD_GATESET'):
         program.get_circuit()
 
 
@@ -523,7 +523,7 @@ def test_get_circuit_unsupported_program_type(get_program):
         code=qtypes.any_pb2.Any(type_url='type.googleapis.com/unknown.proto')
     )
 
-    with pytest.raises(ValueError, match='unsupported program type: unknown.proto'):
+    with pytest.raises(ValueError, match='unknown.proto'):
         program.get_circuit()
 
 

@@ -112,9 +112,9 @@ def assert_all_implemented_act_on_effects_match_unitary(
 
     tableau = _final_clifford_tableau(circuit, qubit_map)
     if tableau is None:
-        assert not assert_tableau_implemented, (
-            "Failed to generate final " "tableau for the test circuit." "\n\nval: {!r}".format(val)
-        )
+        assert (
+            not assert_tableau_implemented
+        ), "Failed to generate final tableau for the test circuit.\n\nval: {!r}".format(val)
     else:
         assert all(
             state_vector_has_stabilizer(state_vector, stab) for stab in tableau.stabilizers()
@@ -190,7 +190,10 @@ def _final_stabilizer_state_ch_form(
     for op in circuit.all_operations():
         try:
             args = act_on_stabilizer_ch_form_args.ActOnStabilizerCHFormArgs(
-                state=stabilizer_ch_form, axes=[qubit_map[qid] for qid in op.qubits]
+                state=stabilizer_ch_form,
+                axes=[qubit_map[qid] for qid in op.qubits],
+                prng=np.random.RandomState(),
+                log_of_measurement_results={},
             )
             protocols.act_on(op, args, allow_decompose=True)
         except TypeError:

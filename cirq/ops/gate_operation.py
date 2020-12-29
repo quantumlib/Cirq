@@ -105,7 +105,7 @@ class GateOperation(raw_types.Operation):
         if self == self.gate.on(*self.qubits):
             return f'{gate_repr}.on({qubit_args_repr})'
 
-        return f'cirq.GateOperation(gate={self.gate!r}, ' f'qubits=[{qubit_args_repr}])'
+        return f'cirq.GateOperation(gate={self.gate!r}, qubits=[{qubit_args_repr}])'
 
     def __str__(self) -> str:
         qubits = ', '.join(str(e) for e in self.qubits)
@@ -224,8 +224,8 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _resolve_parameters_(self, resolver):
-        resolved_gate = protocols.resolve_parameters(self.gate, resolver)
+    def _resolve_parameters_(self, resolver, recursive):
+        resolved_gate = protocols.resolve_parameters(self.gate, resolver, recursive)
         return self.with_gate(resolved_gate)
 
     def _circuit_diagram_info_(

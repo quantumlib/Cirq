@@ -60,7 +60,7 @@ def random_bi_diagonalizable_pair(
 
 
 def _get_assert_diagonalized_by_str(m, p, d):
-    return 'm.round(3) : {}, p.round(3) : {}, ' 'np.abs(p.T @ m @ p).round(2): {}'.format(
+    return 'm.round(3) : {}, p.round(3) : {}, np.abs(p.T @ m @ p).round(2): {}'.format(
         np.round(m, 3), np.round(p, 3), np.abs(d).round(2)
     )
 

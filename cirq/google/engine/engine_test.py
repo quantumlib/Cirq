@@ -267,7 +267,7 @@ results: [{
 @pytest.fixture(scope='session', autouse=True)
 def mock_grpc_client():
     with mock.patch(
-        'cirq.google.engine.engine_client' '.quantum.QuantumEngineServiceClient'
+        'cirq.google.engine.engine_client.quantum.QuantumEngineServiceClient'
     ) as _fixture:
         yield _fixture
 
@@ -488,7 +488,7 @@ def test_run_circuit_cancelled(client):
     engine = cg.Engine(project_id='proj')
     with pytest.raises(
         RuntimeError,
-        match='Job projects/proj/programs/prog/jobs/job-id' ' failed in state CANCELLED.',
+        match='Job projects/proj/programs/prog/jobs/job-id failed in state CANCELLED.',
     ):
         engine.run(program=_CIRCUIT, gate_set=cg.XMON)
 
@@ -748,11 +748,7 @@ def test_run_calibration(client):
         program_id='prog',
         job_id='job-id',
         processor_ids=['mysim'],
-        run_context=_to_any(
-            v2.run_context_pb2.RunContext(
-                parameter_sweeps=[v2.run_context_pb2.ParameterSweep(repetitions=1)]
-            )
-        ),
+        run_context=_to_any(v2.run_context_pb2.RunContext()),
         description=None,
         labels={'calibration': ''},
     )

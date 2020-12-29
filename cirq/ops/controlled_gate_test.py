@@ -35,7 +35,7 @@ class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
         return isinstance(other, type(self))
 
     def __repr__(self):
-        return 'cirq.ops.controlled_gate_test.' 'GateUsingWorkspaceForApplyUnitary()'
+        return 'cirq.ops.controlled_gate_test.GateUsingWorkspaceForApplyUnitary()'
 
 
 class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
@@ -57,7 +57,7 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
         return isinstance(other, type(self))
 
     def __repr__(self):
-        return 'cirq.ops.controlled_gate_test.' 'GateAllocatingNewSpaceForResult()'
+        return 'cirq.ops.controlled_gate_test.GateAllocatingNewSpaceForResult()'
 
 
 class RestrictedGate(cirq.SingleQubitGate):
@@ -389,13 +389,14 @@ class UnphaseableGate(cirq.SingleQubitGate):
     pass
 
 
-def test_parameterizable():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameterizable(resolve_fn):
     a = sympy.Symbol('a')
     cy = cirq.ControlledGate(cirq.Y)
     cya = cirq.ControlledGate(cirq.YPowGate(exponent=a))
     assert cirq.is_parameterized(cya)
     assert not cirq.is_parameterized(cy)
-    assert cirq.resolve_parameters(cya, cirq.ParamResolver({'a': 1})) == cy
+    assert resolve_fn(cya, cirq.ParamResolver({'a': 1})) == cy
 
 
 def test_circuit_diagram_info():

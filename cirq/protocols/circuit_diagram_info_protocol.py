@@ -417,7 +417,7 @@ def circuit_diagram_info(
         return default
     if getter is None:
         raise TypeError(
-            "object of type '{}' " "has no _circuit_diagram_info_ method.".format(type(val))
+            "object of type '{}' has no _circuit_diagram_info_ method.".format(type(val))
         )
     raise TypeError(
         "object of type '{}' does have a _circuit_diagram_info_ "

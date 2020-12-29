@@ -21,7 +21,7 @@ from cirq.interop.quirk.cells.input_cells import SetDefaultInputCell
 
 def test_missing_input_cell():
     with pytest.raises(ValueError, match='Missing input'):
-        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":[' '["+=A2"]]}')
+        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":[["+=A2"]]}')
 
 
 def test_input_cell():
@@ -46,7 +46,7 @@ def test_input_cell():
     # Overlaps with effect.
     with pytest.raises(ValueError, match='Overlapping registers'):
         _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":[' '["+=A3","inputA3"]]}'
+            'https://algassert.com/quirk#circuit={"cols":[["+=A3","inputA3"]]}'
         )
 
 
@@ -73,7 +73,7 @@ def test_reversed_input_cell():
     # Overlaps with effect.
     with pytest.raises(ValueError, match='Overlapping registers'):
         _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":[' '["+=A3","revinputA3"]]}'
+            'https://algassert.com/quirk#circuit={"cols":[["+=A3","revinputA3"]]}'
         )
 
 
@@ -118,7 +118,7 @@ def test_set_default_input_cell():
 
     # Different values over time.
     assert_url_to_circuit_returns(
-        '{"cols":[' '[{"id":"setA","arg":1}],' '["+=A4"],' '[{"id":"setA","arg":4}],' '["+=A4"]]}',
+        '{"cols":[[{"id":"setA","arg":1}],["+=A4"],[{"id":"setA","arg":4}],["+=A4"]]}',
         maps={
             0: 5,
         },
@@ -126,7 +126,7 @@ def test_set_default_input_cell():
 
     # Broadcast.
     assert_url_to_circuit_returns(
-        '{"cols":[' '[{"id":"setA","arg":1}],' '["+=A2",1,"+=A2"],' '["+=A2",1,"+=A2"]]}',
+        '{"cols":[[{"id":"setA","arg":1}],["+=A2",1,"+=A2"],["+=A2",1,"+=A2"]]}',
         maps={
             0b_00_00: 0b_10_10,
             0b_10_01: 0b_00_11,
@@ -136,7 +136,7 @@ def test_set_default_input_cell():
     # Too late.
     with pytest.raises(ValueError, match='Missing input'):
         _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":[' '["+=A2"],' '[{"id":"setA","arg":1}]]}'
+            'https://algassert.com/quirk#circuit={"cols":[["+=A2"],[{"id":"setA","arg":1}]]}'
         )
 
 
