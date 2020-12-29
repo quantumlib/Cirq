@@ -17,13 +17,11 @@ import io
 import json
 import os
 import pathlib
-import textwrap
-from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Type
-
-import pytest
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+import pytest
 import sympy
 
 import cirq
