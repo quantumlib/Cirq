@@ -299,7 +299,6 @@ NOT_YET_SERIALIZABLE = [
     'ListSweep',
     'MPSSimulator',
     'NeutralAtomDevice',
-    'ParallelGateOperation',
     'PauliInteractionGate',
     'PauliStringPhasor',
     'PauliSum',
