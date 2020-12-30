@@ -298,7 +298,6 @@ NOT_YET_SERIALIZABLE = [
     'Linspace',
     'ListSweep',
     'NeutralAtomDevice',
-    'ParallelGateOperation',
     'PauliInteractionGate',
     'PauliStringPhasor',
     'PauliSum',
