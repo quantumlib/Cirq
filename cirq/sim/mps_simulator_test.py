@@ -68,6 +68,14 @@ def test_jump_two():
         assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1, q2])
 
 
+def test_three_qubits():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(cirq.CCX(q0, q1, q2))
+
+    with pytest.raises(ValueError, match="Can only handle 1 and 2 qubit operations"):
+        assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1, q2])
+
+
 def test_measurement():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.X(q0), cirq.H(q1), cirq.measure(q1))
@@ -103,6 +111,14 @@ def test_trial_result_str():
         == "measurements: m=1\n"
         "output state: [array([[[1., 0.]]])]"
     )
+
+
+def test_state_equal():
+    q0, q1 = cirq.LineQubit.range(2)
+    state0 = cirq.MPSState(qubit_map={q0: 0})
+    state1 = cirq.MPSState(qubit_map={q1: 0})
+    assert state0 == state0
+    assert state0 != state1
 
 
 def test_simulate_moment_steps_sample():
@@ -144,3 +160,13 @@ def test_simulate_moment_steps_sample():
                 assert np.array_equal(sample, [True, True]) or np.array_equal(
                     sample, [False, False]
                 )
+
+
+def test_sample_seed():
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
+    simulator = cirq.MPSSimulator(seed=1234)
+    result = simulator.run(circuit, repetitions=20)
+    measured = result.measurements['q']
+    result_string = ''.join(map(lambda x: str(int(x[0])), measured))
+    assert result_string == '01011001110111011011'

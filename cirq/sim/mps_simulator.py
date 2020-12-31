@@ -46,13 +46,6 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
         self.init = True
         self._prng = value.parse_random_state(seed)
 
-    @staticmethod
-    def is_supported_operation(op: 'cirq.Operation') -> bool:
-        """Checks whether given operation can be simulated by this simulator."""
-        if len(op.qubits) >= 3:
-            return False
-        return protocols.has_unitary(op)
-
     def _base_iterator(
         self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
     ) -> Iterator['cirq.MPSSimulatorStepResult']:
@@ -264,7 +257,7 @@ class MPSState:
         return str(self.M)
 
     def _value_equality_values_(self) -> Any:
-        return self.qubit_map, state.M, state.threshold
+        return self.qubit_map, self.M, self.threshold
 
     def copy(self) -> 'MPSState':
         state = MPSState(self.qubit_map)
@@ -314,6 +307,8 @@ class MPSState:
 
             self.M[n] = np.einsum('mis,sn->mni', X, S)
             self.M[p] = np.einsum('ns,spj->npj', S, Y)
+        else:
+            raise ValueError('Can only handle 1 and 2 qubit operations')
 
     def perform_measurement(
         self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
