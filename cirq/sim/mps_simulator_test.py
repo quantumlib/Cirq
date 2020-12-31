@@ -2,6 +2,7 @@ import math
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -113,6 +114,13 @@ def test_trial_result_str():
     )
 
 
+def test_empty_step_result():
+    q0 = cirq.LineQubit(0)
+    state = cirq.MPSState(qubit_map={q0: 0})
+    step_result = cirq.MPSSimulatorStepResult(state, measurements={'0': [1]})
+    assert str(step_result) == "0=1\n[array([[[1., 0.]]])]"
+
+
 def test_state_equal():
     q0, q1 = cirq.LineQubit.range(2)
     state0 = cirq.MPSState(qubit_map={q0: 0})
@@ -170,3 +178,19 @@ def test_sample_seed():
     measured = result.measurements['q']
     result_string = ''.join(map(lambda x: str(int(x[0])), measured))
     assert result_string == '01011001110111011011'
+
+
+def test_run_no_repetitions():
+    q0 = cirq.LineQubit(0)
+    simulator = cirq.MPSSimulator()
+    circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
+    result = simulator.run(circuit, repetitions=0)
+    assert sum(result.measurements['0']) == 0
+
+
+def test_run_parameters_not_resolved():
+    a = cirq.LineQubit(0)
+    simulator = cirq.MPSSimulator()
+    circuit = cirq.Circuit(cirq.XPowGate(exponent=sympy.Symbol('a'))(a), cirq.measure(a))
+    with pytest.raises(ValueError, match='symbols were not specified'):
+        _ = simulator.run_sweep(circuit, cirq.ParamResolver({}))
