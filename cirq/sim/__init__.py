@@ -34,6 +34,9 @@ from cirq.sim.density_matrix_simulator import (
 
 from cirq.sim.mps_simulator import (
     MPSSimulator,
+    MPSSimulatorStepResult,
+    MPSState,
+    MPSTrialResult,
 )
 
 from cirq.sim.mux import (

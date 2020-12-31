@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import pytest
 
@@ -75,3 +77,70 @@ def test_measurement():
     result = simulator.run(circuit, repetitions=100)
     assert sum(result.measurements['1'])[0] < 80
     assert sum(result.measurements['1'])[0] > 20
+
+
+def test_measurement_str():
+    q0 = cirq.NamedQid('q0', dimension=3)
+    circuit = cirq.Circuit(cirq.measure(q0))
+
+    simulator = cirq.MPSSimulator()
+    result = simulator.run(circuit, repetitions=7)
+
+    assert str(result) == "q0 (d=3)=0000000"
+
+
+def test_trial_result_str():
+    q0 = cirq.LineQubit(0)
+    final_simulator_state = cirq.MPSState(qubit_map={q0: 0})
+    assert (
+        str(
+            cirq.MPSTrialResult(
+                params=cirq.ParamResolver({}),
+                measurements={'m': np.array([[1]])},
+                final_simulator_state=final_simulator_state,
+            )
+        )
+        == "measurements: m=1\n"
+        "output state: [array([[[1., 0.]]])]"
+    )
+
+
+def test_simulate_moment_steps_sample():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
+
+    simulator = cirq.MPSSimulator()
+
+    for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
+        if i == 0:
+            np.testing.assert_almost_equal(
+                step._simulator_state().to_numpy(),
+                np.asarray([1.0 / math.sqrt(2), 0.0, 1.0 / math.sqrt(2), 0.0]),
+            )
+            assert str(step) == "[array([[[0.70710678+0.j, 0.70710678+0.j]]]), array([[[1., 0.]]])]"
+            samples = step.sample([q0, q1], repetitions=10)
+            for sample in samples:
+                assert np.array_equal(sample, [True, False]) or np.array_equal(
+                    sample, [False, False]
+                )
+            np.testing.assert_almost_equal(
+                step._simulator_state().to_numpy(),
+                np.asarray([1.0 / math.sqrt(2), 0.0, 1.0 / math.sqrt(2), 0.0]),
+            )
+        else:
+            np.testing.assert_almost_equal(
+                step._simulator_state().to_numpy(),
+                np.asarray([1.0 / math.sqrt(2), 0.0, 0.0, 1.0 / math.sqrt(2)]),
+            )
+            assert (
+                str(step)
+                == """[array([[[0.84089642+0.j, 0.        +0.j],
+        [0.        +0.j, 0.84089642+0.j]]]), array([[[0.84089642+0.j, 0.        +0.j]],
+
+       [[0.        +0.j, 0.84089642+0.j]]])]"""
+            )
+            samples = step.sample([q0, q1], repetitions=10)
+            for sample in samples:
+                assert np.array_equal(sample, [True, True]) or np.array_equal(
+                    sample, [False, False]
+                )

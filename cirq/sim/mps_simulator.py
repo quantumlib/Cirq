@@ -13,7 +13,14 @@
 # limitations under the License.
 """An MPS simulator.
 
+This is based on this paper:
 https://arxiv.org/abs/2002.07730
+
+TODO(tonybruguier): Currently, only linear circuits are handled, while the paper
+handles more general topologies.Currently
+
+TODO(tonybruguier): Currently, numpy is used for tensor computations. For speed
+switch to QIM for speed.
 """
 
 import collections
@@ -21,12 +28,9 @@ import math
 from typing import Any, Dict, List, Iterator, Sequence
 
 import numpy as np
-from cirq.ops.global_phase_op import GlobalPhaseOperation
 
 import cirq
 from cirq import circuits, study, ops, protocols, value
-from cirq.ops.dense_pauli_string import DensePauliString
-from cirq.protocols import act_on, unitary
 from cirq.sim import simulator
 
 
@@ -45,10 +49,7 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
     @staticmethod
     def is_supported_operation(op: 'cirq.Operation') -> bool:
         """Checks whether given operation can be simulated by this simulator."""
-        idx = [self.qubit_map[qubit] for qubit in op.qubits]
-        if len(idx) >= 3:
-            return False
-        elif math.abs(idx[0] - idx[1]) != 1:
+        if len(op.qubits) >= 3:
             return False
         return protocols.has_unitary(op)
 
@@ -82,11 +83,11 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
         state = MPSState(qubit_map, initial_state=initial_state)
 
         for moment in circuit:
-            measurements: Dict[str, List[np.ndarray]] = collections.defaultdict(list)
+            measurements: Dict[str, List[int]] = collections.defaultdict(list)
 
             for op in moment:
                 if isinstance(op.gate, ops.MeasurementGate):
-                    key = protocols.measurement_key(op)
+                    key = str(protocols.measurement_key(op))
                     measurements[key].extend(state.perform_measurement(op.qubits, self._prng))
                 elif protocols.has_unitary(op):
                     state.apply_unitary(op)
@@ -148,7 +149,7 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
                 for k, v in step_result.measurements.items():
                     if not k in measurements:
                         measurements[k] = []
-                    measurements[k].append(np.array(v, dtype=bool))
+                    measurements[k].append(np.array(v, dtype=int))
 
         return {k: np.array(v) for k, v in measurements.items()}
 
@@ -202,7 +203,7 @@ class MPSSimulatorStepResult(simulator.StepResult):
 
     def __str__(self) -> str:
         def bitstring(vals):
-            return ''.join('1' if v else '0' for v in vals)
+            return ','.join(str(v) for v in vals)
 
         results = sorted([(key, bitstring(val)) for key, val in self.measurements.items()])
 
@@ -225,7 +226,7 @@ class MPSSimulatorStepResult(simulator.StepResult):
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
 
-        measurements = []
+        measurements: List[int] = []
 
         for _ in range(repetitions):
             measurements.append(
@@ -234,7 +235,7 @@ class MPSSimulatorStepResult(simulator.StepResult):
                 )
             )
 
-        return np.array(measurements, dtype=bool)
+        return np.array(measurements, dtype=int)
 
 
 @value.value_equality
@@ -259,28 +260,21 @@ class MPSState:
         self.M = self.M[::-1]
         self.threshold = 1e-3
 
-    def _json_dict_(self):
-        return {
-            'cirq_type': self.__class__.__name__,
-            'qubit_map': [(k, v) for k, v in self.qubit_map.items()],
-            'M': self.M,
-        }
-
-    @classmethod
-    def _from_json_dict_(cls, qubit_map, **kwargs):
-        state = cls(dict(qubit_map))
-        return state
+    def __str__(self) -> str:
+        return str(self.M)
 
     def _value_equality_values_(self) -> Any:
-        return self.qubit_map
+        return self.qubit_map, state.M, state.threshold
 
     def copy(self) -> 'MPSState':
         state = MPSState(self.qubit_map)
+        state.M = [x.copy() for x in self.M]
+        state.threshold = self.threshold
         return state
 
     def state_vector(self):
-        M = self.M[0]
-        for i in range(1, len(self.M)):
+        M = np.ones((1, 1, 1))
+        for i in range(len(self.M)):
             M = np.einsum('mni,npj->mpij', M, self.M[i])
             M = M.reshape(M.shape[0], M.shape[1], -1)
         assert M.shape[0] == 1
@@ -320,30 +314,41 @@ class MPSState:
 
             self.M[n] = np.einsum('mis,sn->mni', X, S)
             self.M[p] = np.einsum('ns,spj->npj', S, Y)
-        else:
-            raise ValueError('Can only handle dim 2')
 
     def perform_measurement(
         self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
-    ):
-        results = []
+    ) -> List[int]:
+        results: List[int] = []
+
+        if collapse_state_vector:
+            state = self
+        else:
+            state = self.copy()
+
         for qubit in qubits:
-            n = self.qubit_map[qubit]
-            state_vector = np.einsum('mni->i', self.M[n])
-            probs = [abs(x) ** 2 for x in state_vector]
+            n = state.qubit_map[qubit]
+
+            M = np.ones((1, 1, 1))
+            for i in range(len(state.M)):
+                if i == n:
+                    M = np.einsum('mni,npj->mpij', M, state.M[i])
+                else:
+                    M = np.einsum('mni,npj->mpi', M, state.M[i])
+                M = M.reshape(M.shape[0], M.shape[1], -1)
+            M = M.reshape(-1)
+            probs = [abs(x) ** 2 for x in M]
 
             # Because the computation is approximate, the probabilities do not
             # necessarily add up to 1.0, and thus we re-normalize them.
-            norm_probs = probs / sum(probs)
+            norm_probs = [x / sum(probs) for x in probs]
 
             d = qubit.dimension
-            result = np.random.choice(d, p=norm_probs)
+            result: int = int(prng.choice(d, p=norm_probs))
 
-            if collapse_state_vector:
-                renormalizer = np.zeros((d, d))
-                renormalizer[result][result] = 1.0 / math.sqrt(probs[result])
+            renormalizer = np.zeros((d, d))
+            renormalizer[result][result] = 1.0 / math.sqrt(probs[result])
 
-                self.M[n] = np.einsum('ij,mnj->mni', renormalizer, self.M[n])
+            state.M[n] = np.einsum('ij,mnj->mni', renormalizer, state.M[n])
 
             results.append(result)
 
