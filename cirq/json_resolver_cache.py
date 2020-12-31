@@ -107,6 +107,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'ParamResolver': cirq.ParamResolver,
         'PasqalDevice': cirq.pasqal.PasqalDevice,
         'PasqalVirtualDevice': cirq.pasqal.PasqalVirtualDevice,
+        'ParallelGateOperation': cirq.ParallelGateOperation,
         'PauliString': cirq.PauliString,
         'PhaseDampingChannel': cirq.PhaseDampingChannel,
         'PhaseFlipChannel': cirq.PhaseFlipChannel,

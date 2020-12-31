@@ -183,8 +183,8 @@ def test_resolver_cache_vs_not_yet_serializable(mod_spec: ModuleJsonTestSpec):
     assert len(common) == 0, (
         f"Issue with the JSON config of {mod_spec.name}.\n"
         f"Types are listed in both"
-        f" {mod_spec.name}.json_resolver_cache.py and in the 'NOT_YET_SERIALIZABLE' list in"
-        f" {mod_spec.name}.json_test_data.spec.py: "
+        f" {mod_spec.name}.json_resolver_cache.py and in the 'not_yet_serializable' list in"
+        f" {mod_spec.test_data_path}/spec.py: "
         f"\n {common}"
     )
 
@@ -502,12 +502,14 @@ def assert_repr_and_json_test_data_agree(
     except ValueError as ex:  # coverage: ignore
         # coverage: ignore
         if "Could not resolve type" in str(ex):
+            mod_path = mod_spec.name.replace(".", "/")
+            rel_resolver_cache_path = f"{mod_path}/json_resolver_cache.py"
             # coverage: ignore
-            raise ValueError(
-                f"{rel_json_path} can't be parsed to JSON"
-                f". Maybe an entry is missing from the ResolverCache "
-                f"for {mod_spec.name}?"
-            ) from ex
+            pytest.fail(
+                f"{rel_json_path} can't be parsed to JSON.\n"
+                f"Maybe an entry is missing from the "
+                f" `_class_resolver_dictionary` method in {rel_resolver_cache_path}?"
+            )
         else:
             raise ValueError
     except Exception as ex:  # coverage: ignore
