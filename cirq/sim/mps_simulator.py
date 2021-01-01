@@ -266,13 +266,12 @@ class MPSState:
         return state
 
     def state_vector(self):
-        M = np.ones((1, 1, 1))
+        M = np.ones((1, 1))
         for i in range(len(self.M)):
-            M = np.einsum('mni,npj->mpij', M, self.M[i])
-            M = M.reshape(M.shape[0], M.shape[1], -1)
+            M = np.einsum('ni,npj->pij', M, self.M[i])
+            M = M.reshape(M.shape[0], -1)
         assert M.shape[0] == 1
-        assert M.shape[1] == 1
-        return M[0, 0, :]
+        return M[0, :]
 
     def to_numpy(self) -> np.ndarray:
         return self.state_vector()
@@ -323,13 +322,14 @@ class MPSState:
         for qubit in qubits:
             n = state.qubit_map[qubit]
 
-            M = np.ones((1, 1, 1))
+            M = np.ones((1, 1))
             for i in range(len(state.M)):
                 if i == n:
-                    M = np.einsum('mni,npj->mpij', M, state.M[i])
+                    M = np.einsum('ni,npj->pij', M, state.M[i])
                 else:
-                    M = np.einsum('mni,npj->mpi', M, state.M[i])
-                M = M.reshape(M.shape[0], M.shape[1], -1)
+                    M = np.einsum('ni,npj->pi', M, state.M[i])
+                M = M.reshape(M.shape[0], -1)
+            assert M.shape[0] == 1
             M = M.reshape(-1)
             probs = [abs(x) ** 2 for x in M]
 
