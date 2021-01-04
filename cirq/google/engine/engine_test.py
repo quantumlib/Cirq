@@ -748,11 +748,7 @@ def test_run_calibration(client):
         program_id='prog',
         job_id='job-id',
         processor_ids=['mysim'],
-        run_context=_to_any(
-            v2.run_context_pb2.RunContext(
-                parameter_sweeps=[v2.run_context_pb2.ParameterSweep(repetitions=1)]
-            )
-        ),
+        run_context=_to_any(v2.run_context_pb2.RunContext()),
         description=None,
         labels={'calibration': ''},
     )
