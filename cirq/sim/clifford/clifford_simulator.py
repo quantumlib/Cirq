@@ -351,6 +351,12 @@ class CliffordState:
         prng: np.random.RandomState,
         collapse_state_vector=True,
     ):
+        if not isinstance(op.gate, cirq.MeasurementGate):
+            raise TypeError(
+                'apply_measurement only supports cirq.MeasurementGate operations. Found %s instead.'
+                % str(op.gate)
+            )
+
         if collapse_state_vector:
             state = self
         else:
