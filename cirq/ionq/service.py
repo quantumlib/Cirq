@@ -12,6 +12,8 @@
 # limitations under the License.
 """Service to access IonQs API."""
 
+import datetime
+
 from typing import Optional, Sequence, TYPE_CHECKING
 
 from cirq import protocols, study
@@ -169,3 +171,29 @@ class Service:
         """
         calibration_dict = self._client.get_current_calibration()
         return calibration.Calibration(calibration_dict=calibration_dict)
+
+    def list_calibrations(
+        self,
+        start: datetime.datetime = None,
+        end: datetime.datetime = None,
+        limit: int = 100,
+        batch_size: int = 1000,
+    ) -> Sequence[calibration.Calibration]:
+        """List calibrations via the API.
+
+        Args:
+            start: If supplied, only calibrations after this date and time. Accurate to seconds.
+            end: If supplied, only calibrations before this date and time. Accurate to seconds.
+            limit: The maximum number of calibrations to return.
+            batch_size: The size of the batches requested per http GET call.
+
+        Returns:
+            A sequence of calibrations.
+
+        Raises:
+            IonQException: If there was an error accessing the API.
+        """
+        calibration_dicts = self._client.list_calibrations(
+            start=start, end=end, limit=limit, batch_size=batch_size
+        )
+        return [calibration.Calibration(calibration_dict=c) for c in calibration_dicts]
