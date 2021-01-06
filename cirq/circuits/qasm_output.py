@@ -308,9 +308,7 @@ class QasmOutput:
                 main_op, keep=keep, fallback_decomposer=fallback, on_stuck_raise=on_stuck
             )
 
-            qasms = list(
-                map(lambda decomposed_op: protocols.qasm(decomposed_op, args=self.args), decomposed)
-            )
+            qasms = [protocols.qasm(op, args=self.args) for op in decomposed]
 
             should_annotate = decomposed != [main_op] or qasms[0].count('\n') > 1
             if should_annotate:
