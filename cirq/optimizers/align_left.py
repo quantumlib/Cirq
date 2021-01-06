@@ -20,9 +20,5 @@ class AlignLeft:
 
     def optimize_circuit(self, circuit: circuits.Circuit):
       next = circuits.Circuit(circuit)
-      deletions: List[Tuple[int, ops.Operation]] = []
-      for moment_index, moment in enumerate(circuit):
-        for op in moment.operations:
-          deletions.append((moment_index, op))
-      circuit.batch_remove(deletions)      
-      circuit.append(list(next.all_operations()))
+      circuit.moments.clear()
+      circuit.append(next.all_operations())

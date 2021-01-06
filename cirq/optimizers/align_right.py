@@ -20,12 +20,7 @@ class AlignRight:
 
     def optimize_circuit(self, circuit: circuits.Circuit):
       next = circuits.Circuit(ops.freeze_op_tree(circuit)[::-1])[::-1]
-      deletions: List[Tuple[int, ops.Operation]] = []
-      for moment_index, moment in enumerate(circuit):
-        for op in moment.operations:
-          deletions.append((moment_index, op))
-      circuit.batch_remove(deletions)
-      
+      circuit.moments.clear()
       for moment_index, moment in enumerate(next):
         for op in moment.operations:
           circuit.insert(moment_index + 1, op, strategy=circuits.InsertStrategy.INLINE)
