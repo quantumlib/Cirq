@@ -344,11 +344,11 @@ def run_floquet_phased_calibration_for_circuit(
         gate_set: SerializableGateSet,
         gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
         options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions(
-            estimate_theta=False,
-            estimate_zeta=True,
-            estimate_chi=False,
-            estimate_gamma=True,
-            estimate_phi=False
+            characterize_theta=False,
+            characterize_zeta=True,
+            characterize_chi=False,
+            characterize_gamma=True,
+            characterize_phi=False
         ),
         merge_sub_sets: bool = True,
         max_layers_per_request: int = 1,
@@ -371,8 +371,8 @@ def run_floquet_phased_calibration_for_circuit(
         gates_translator
     )
     override = PhasedFSimParameters(
-        zeta=0.0 if options.estimate_zeta else None,
-        chi=0.0 if options.estimate_chi else None,
-        gamma=0.0 if options.estimate_gamma else None
+        zeta=0.0 if options.characterize_zeta else None,
+        chi=0.0 if options.characterize_chi else None,
+        gamma=0.0 if options.characterize_gamma else None
     )
     return calibrated_circuit, characterizations, calibrated_mapping, override

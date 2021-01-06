@@ -183,11 +183,11 @@ def test_run_floquet_calibration() -> None:
         handler_name=None,
         gate_set=cirq.google.SQRT_ISWAP_GATESET,
         options=cirq.google.FloquetPhasedFSimCalibrationOptions(
-            estimate_theta=False,
-            estimate_zeta=True,
-            estimate_chi=True,
-            estimate_gamma=True,
-            estimate_phi=False
+            characterize_theta=False,
+            characterize_zeta=True,
+            characterize_chi=True,
+            characterize_gamma=True,
+            characterize_phi=False
         )
     )
 

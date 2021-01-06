@@ -234,11 +234,11 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         results = []
         for request in requests:
             if isinstance(request, FloquetPhasedFSimCalibrationRequest):
-                estimate_theta = request.options.estimate_theta
-                estimate_zeta = request.options.estimate_zeta
-                estimate_chi = request.options.estimate_chi
-                estimate_gamma = request.options.estimate_gamma
-                estimate_phi = request.options.estimate_phi
+                characterize_theta = request.options.characterize_theta
+                characterize_zeta = request.options.characterize_zeta
+                characterize_chi = request.options.characterize_chi
+                characterize_gamma = request.options.characterize_gamma
+                characterize_phi = request.options.characterize_phi
             else:
                 raise ValueError(f'Unsupported calibration request {request}')
 
@@ -250,11 +250,11 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             for a, b in request.pairs:
                 drifted = self._get_or_create_gate(a, b, translated_gate)
                 parameters[a, b] = PhasedFSimParameters(
-                    theta=drifted.theta if estimate_theta else None,
-                    zeta=drifted.zeta if estimate_zeta else None,
-                    chi=drifted.chi if estimate_chi else None,
-                    gamma=drifted.gamma if estimate_gamma else None,
-                    phi=drifted.phi if estimate_phi else None,
+                    theta=drifted.theta if characterize_theta else None,
+                    zeta=drifted.zeta if characterize_zeta else None,
+                    chi=drifted.chi if characterize_chi else None,
+                    gamma=drifted.gamma if characterize_gamma else None,
+                    phi=drifted.phi if characterize_phi else None,
                 )
 
             results.append(PhasedFSimCalibrationResult(
