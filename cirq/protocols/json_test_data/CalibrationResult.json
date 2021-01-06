@@ -1,0 +1,79 @@
+{
+  "cirq_type": "CalibrationResult",
+  "code": 1,
+  "error_message": "a",
+  "token": "b",
+  "utc_valid_until": 1606319984.041021,
+  "metrics": {
+    "cirq_type": "Calibration",
+    "metrics": {
+      "metrics": [
+        {
+          "name": "xeb",
+          "targets": [
+            "0_0",
+            "0_1"
+          ],
+          "values": [
+            {
+              "doubleVal": 0.9999
+            }
+          ]
+        },
+        {
+          "name": "xeb",
+          "targets": [
+            "0_0",
+            "1_0"
+          ],
+          "values": [
+            {
+              "doubleVal": 0.9998
+            }
+          ]
+        },
+        {
+          "name": "t1",
+          "targets": [
+            "0_0"
+          ],
+          "values": [
+            {
+              "int64Val": "321"
+            }
+          ]
+        },
+        {
+          "name": "t1",
+          "targets": [
+            "0_1"
+          ],
+          "values": [
+            {
+              "int64Val": "911"
+            }
+          ]
+        },
+        {
+          "name": "t1",
+          "targets": [
+            "1_0"
+          ],
+          "values": [
+            {
+              "int64Val": "505"
+            }
+          ]
+        },
+        {
+          "name": "globalMetric",
+          "values": [
+            {
+              "strVal": "abcd"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
