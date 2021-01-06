@@ -2,6 +2,7 @@ from typing import Dict, MutableMapping, Optional, Tuple, TYPE_CHECKING
 
 import abc
 import collections
+import dataclasses
 import functools
 import numpy as np
 import re
@@ -18,8 +19,6 @@ from cirq.ops import (
 from cirq.google.api import v2
 from cirq.google.engine import CalibrationLayer, CalibrationResult
 from cirq.google.serializable_gate_set import SerializableGateSet
-import dataclasses
-import re
 
 if TYPE_CHECKING:
     # Workaround for mypy custom dataclasses
@@ -99,35 +98,36 @@ class PhasedFSimParameters:
 
 @json_serializable_dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationOptions:
-    estimate_theta: bool
-    estimate_zeta: bool
-    estimate_chi: bool
-    estimate_gamma: bool
-    estimate_phi: bool
+    characterize_theta: bool
+    characterize_zeta: bool
+    characterize_chi: bool
+    characterize_gamma: bool
+    characterize_phi: bool
 
     @staticmethod
     def all_options() -> 'FloquetPhasedFSimCalibrationOptions':
         return FloquetPhasedFSimCalibrationOptions(
-            estimate_theta=True,
-            estimate_zeta=True,
-            estimate_chi=True,
-            estimate_gamma=True,
-            estimate_phi=True
+            characterize_theta=True,
+            characterize_zeta=True,
+            characterize_chi=True,
+            characterize_gamma=True,
+            characterize_phi=True
         )
 
     @staticmethod
     def all_except_for_chi_options() -> 'FloquetPhasedFSimCalibrationOptions':
         return FloquetPhasedFSimCalibrationOptions(
-            estimate_theta=True,
-            estimate_zeta=True,
-            estimate_chi=False,
-            estimate_gamma=True,
-            estimate_phi=True
+            characterize_theta=True,
+            characterize_zeta=True,
+            characterize_chi=False,
+            characterize_gamma=True,
+            characterize_phi=True
         )
 
 
 @json_serializable_dataclass(frozen=True)
 class PhasedFSimCalibrationResult:
+    # TODO: Fix json serialization (the default one doesn't work with tuples as dictionary keys).
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimParameters]
     gate: Gate
     gate_set: SerializableGateSet
@@ -178,11 +178,11 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             calibration_type='floquet_phased_fsim_characterization',
             program=circuit,
             args={
-                'est_theta': self.options.estimate_theta,
-                'est_zeta': self.options.estimate_zeta,
-                'est_chi': self.options.estimate_chi,
-                'est_gamma': self.options.estimate_gamma,
-                'est_phi': self.options.estimate_phi,
+                'est_theta': self.options.characterize_theta,
+                'est_zeta': self.options.characterize_zeta,
+                'est_chi': self.options.characterize_chi,
+                'est_gamma': self.options.characterize_gamma,
+                'est_phi': self.options.characterize_phi,
                 'readout_corrections': True
             }
         )
