@@ -134,6 +134,7 @@ def _cirq_class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         '_PauliY': cirq.ops.pauli_gates._PauliY,
         '_PauliZ': cirq.ops.pauli_gates._PauliZ,
         'ParamResolver': cirq.ParamResolver,
+        'ParallelGateOperation': cirq.ParallelGateOperation,
         'PasqalDevice': cirq.pasqal.PasqalDevice,
         'PasqalVirtualDevice': cirq.pasqal.PasqalVirtualDevice,
         'PauliString': cirq.PauliString,
