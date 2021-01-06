@@ -18,5 +18,10 @@ from cirq import circuits, ops
 
 
 class AlignLeft:
+    """Aligns gates to the left of the circuit."""
+
+    def __call__(self, circuit: circuits.Circuit):
+        self.optimize_circuit(circuit)
+
     def optimize_circuit(self, circuit: circuits.Circuit):
         circuit[:] = circuits.Circuit(ops.freeze_op_tree(circuit))

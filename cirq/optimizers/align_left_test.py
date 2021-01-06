@@ -17,7 +17,7 @@ import cirq
 
 def assert_optimizes(before, after):
     opt = cirq.AlignLeft()
-    opt.optimize_circuit(before)
+    opt(before)
     assert before == after
 
 
