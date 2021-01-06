@@ -26,6 +26,7 @@ qiskit~=0.20.0
 # For generating notebooks in documentation
 ipython
 ipykernel
+notebook
 
 # For verifying rst
 rstcheck~=3.3.1

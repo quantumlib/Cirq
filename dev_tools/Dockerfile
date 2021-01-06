@@ -1,4 +1,4 @@
-FROM python:3.7-slim AS compile-image
+FROM python:3.8-slim AS compile-image
 
 # Install dependencies.
 # rm -rf /var/lib/apt/lists/* cleans up apt cache. See https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
@@ -8,8 +8,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteract
      texlive-latex-base \
      latexmk \
      git \
-     emacs \
-     vim \
      locales \
      && rm -rf /var/lib/apt/lists/*
 
@@ -24,21 +22,27 @@ ENV LC_ALL en_US.UTF-8
 RUN rm -f /usr/bin/python \
      && ln -s /usr/bin/python3 /usr/bin/python
 
-# Get a current copy of Cirq from Github.
-RUN git clone https://github.com/quantumlib/Cirq
+# Create a virtual enironment to copy over into
+# the final docker image
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
+# Copy current folder instead of cloning.
+COPY ./ .
 COPY requirements.txt .
-COPY Cirq/cirq/contrib/contrib-requirements.txt .
-COPY Cirq/dev_tools/conf/pip-list-dev-tools.txt .
+COPY ./cirq/contrib/contrib-requirements.txt .
+COPY ./dev_tools/conf/pip-list-dev-tools.txt .
 
-RUN cat requirements.txt contrib-requirements.txt pip-list-dev-tools.txt >> dependencies.txt \
-     && pip3 install --user -r dependencies
+RUN pip3 install -r requirements.txt -r contrib-requirements.txt -r pip-list-dev-tools.txt
 
-# Install the needed Python libraries.
-RUN pip3 install --user .
+# Install cirq
+RUN pip3 install cirq
 
-FROM python:3.7-slim AS build-image
-COPY --from=compile-image /root/.local /root/.local
+FROM python:3.8-slim AS build-image
+COPY --from=compile-image /opt/venv /opt/venv
+
+# Make sure scripts in .local are usable:
+ENV PATH="/opt/venv/bin:$PATH"
 
 WORKDIR /Cirq
 EXPOSE 8888
