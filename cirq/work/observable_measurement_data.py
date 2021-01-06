@@ -319,7 +319,7 @@ class BitstringAccumulator:
 
     def __eq__(self, other):
         if not isinstance(other, BitstringAccumulator):
-            return False  # coverage: ignore
+            return False
 
         if (
             self.max_setting != other.max_setting
@@ -327,16 +327,16 @@ class BitstringAccumulator:
             or self.circuit_params != other.circuit_params
             or self.qubit_to_index != other.qubit_to_index
         ):
-            return False  # coverage: ignore
+            return False
 
         if not np.array_equal(self.bitstrings, other.bitstrings):
-            return False  # coverage: ignore
+            return False
 
         if not np.array_equal(self.chunksizes, other.chunksizes):
-            return False  # coverage: ignore
+            return False
 
         if not np.array_equal(self.timestamps, other.timestamps):
-            return False  # coverage: ignore
+            return False
 
         return True
 

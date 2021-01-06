@@ -203,6 +203,7 @@ def test_bitstring_accumulator_strings(example_bsa):
 
 
 def test_bitstring_accumulator_equality():
+    et = cirq.testing.EqualsTester()
     bitstrings = np.array(
         [
             [0, 0],
@@ -221,38 +222,84 @@ def test_bitstring_accumulator_equality():
     setting = cw.InitObsSetting(init_state=cirq.Z(a) * cirq.Z(b), observable=obs)
     meas_spec = _MeasurementSpec(setting, {})
 
-    bsa = cw.BitstringAccumulator(
-        meas_spec=meas_spec,
-        simul_settings=[setting],
-        qubit_to_index=qubit_to_index,
-        bitstrings=bitstrings,
-        chunksizes=chunksizes,
-        timestamps=timestamps,
+    cirq.testing.assert_equivalent_repr(
+        cw.BitstringAccumulator(
+            meas_spec=meas_spec,
+            simul_settings=[setting],
+            qubit_to_index=qubit_to_index,
+            bitstrings=bitstrings.copy(),
+            chunksizes=chunksizes.copy(),
+            timestamps=timestamps.copy(),
+        )
     )
 
-    bsa2 = cw.BitstringAccumulator(
-        meas_spec=meas_spec,
-        simul_settings=[setting],
-        qubit_to_index=qubit_to_index,
-        bitstrings=bitstrings,
-        chunksizes=chunksizes,
-        timestamps=timestamps,
+    et.add_equality_group(
+        cw.BitstringAccumulator(
+            meas_spec=meas_spec,
+            simul_settings=[setting],
+            qubit_to_index=qubit_to_index,
+            bitstrings=bitstrings.copy(),
+            chunksizes=chunksizes.copy(),
+            timestamps=timestamps.copy(),
+        ),
+        cw.BitstringAccumulator(
+            meas_spec=meas_spec,
+            simul_settings=[setting],
+            qubit_to_index=qubit_to_index,
+            bitstrings=bitstrings.copy(),
+            chunksizes=chunksizes.copy(),
+            timestamps=timestamps.copy(),
+        ),
     )
-    assert bsa == bsa2
 
     time.sleep(1)
     timestamps = np.asarray([datetime.datetime.now()])
-    bsa3 = cw.BitstringAccumulator(
-        meas_spec=meas_spec,
-        simul_settings=[setting],
-        qubit_to_index=qubit_to_index,
-        bitstrings=bitstrings,
-        chunksizes=chunksizes,
-        timestamps=timestamps,
+    et.add_equality_group(
+        cw.BitstringAccumulator(
+            meas_spec=meas_spec,
+            simul_settings=[setting],
+            qubit_to_index=qubit_to_index,
+            bitstrings=bitstrings,
+            chunksizes=chunksizes,
+            timestamps=timestamps,
+        )
     )
-    assert bsa != bsa3
 
-    cirq.testing.assert_equivalent_repr(bsa)
+    et.add_equality_group(
+        cw.BitstringAccumulator(
+            meas_spec=_MeasurementSpec(setting, {'a': 2}),
+            simul_settings=[setting],
+            qubit_to_index=qubit_to_index,
+            bitstrings=bitstrings,
+            chunksizes=chunksizes,
+            timestamps=timestamps,
+        )
+    )
+
+    bitstrings = bitstrings.copy()
+    bitstrings[0] = [1, 1]
+    et.add_equality_group(
+        cw.BitstringAccumulator(
+            meas_spec=meas_spec,
+            simul_settings=[setting],
+            qubit_to_index=qubit_to_index,
+            bitstrings=bitstrings,
+            chunksizes=chunksizes,
+            timestamps=timestamps,
+        )
+    )
+    chunksizes = np.asarray([2, 2])
+    timestamps = np.asarray(list(timestamps) * 2)
+    et.add_equality_group(
+        cw.BitstringAccumulator(
+            meas_spec=meas_spec,
+            simul_settings=[setting],
+            qubit_to_index=qubit_to_index,
+            bitstrings=bitstrings,
+            chunksizes=chunksizes,
+            timestamps=timestamps,
+        )
+    )
 
 
 def test_bitstring_accumulator_stats():
