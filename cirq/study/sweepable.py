@@ -58,11 +58,7 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
         product_sweep = dict_to_product_sweep(sweepable)
         return [_resolver_to_sweep(resolver) for resolver in product_sweep]
     if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
-        return [
-            sweep
-            for item in sweepable
-            for sweep in to_sweeps(cast(SweepLike, item))
-        ]
+        return [sweep for item in sweepable for sweep in to_sweeps(cast(SweepLike, item))]
     raise TypeError(f'Unrecognized sweepable type: {type(sweepable)}.\nsweepable: {sweepable}')
 
 
