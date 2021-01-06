@@ -15,6 +15,7 @@ import datetime
 from unittest import mock
 import pytest
 
+import pandas as pd
 import sympy
 
 import cirq
@@ -63,6 +64,32 @@ def test_service_run(target, expected_results):
     assert create_job_kwargs['repetitions'] == 4
     assert create_job_kwargs['target'] == target
     assert create_job_kwargs['name'] == 'bacon'
+
+
+def test_sampler():
+    service = ionq.Service(remote_host='http://example.com', api_key='key')
+    mock_client = mock.MagicMock()
+    service._client = mock_client
+    job_dict = {
+        'id': '1',
+        'status': 'completed',
+        'qubits': '1',
+        'target': 'qpu',
+        'metadata': {'shots': 4, 'measurement0': f'a{chr(31)}0'},
+        'data': {'histogram': {'0': '0.25', '1': '0.75'}},
+    }
+    mock_client.create_job.return_value = job_dict
+    mock_client.get_job.return_value = job_dict
+
+    sampler = service.sampler(target='qpu', seed=10)
+
+    q0 = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(q0), cirq.measure(q0, key='a'))
+    results = sampler.sample(program=circuit, repetitions=4)
+    pd.testing.assert_frame_equal(
+        results, pd.DataFrame(columns=['a'], index=[0, 1, 2, 3], data=[[0], [1], [1], [1]])
+    )
+    mock_client.create_job.assert_called_once()
 
 
 def test_service_get_job():
