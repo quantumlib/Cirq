@@ -1,4 +1,6 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Dict, Optional, TYPE_CHECKING
+
+import dataclasses
 
 if TYPE_CHECKING:
     # Workaround for mypy custom dataclasses
@@ -14,3 +16,63 @@ class PhasedFSimParameters:
     chi: Optional[float] = None
     gamma: Optional[float] = None
     phi: Optional[float] = None
+
+    def asdict(self) -> Dict[str, float]:
+        """Converts parameters to a dictionary that maps angles name to values.
+        """
+        return dataclasses.asdict(self)
+
+    def all_none(self) -> bool:
+        """Checks if all the angles are None."""
+        return self.theta is None and self.zeta is None and self.chi is None and self.gamma is None and self.phi is None
+
+    def any_none(self) -> bool:
+        """Checks if any of the angles is None."""
+        return self.theta is None or self.zeta is None or self.chi is None or self.gamma is None or self.phi is None
+
+    def parameters_for_qubits_swapped(self) -> 'PhasedFSimParameters':
+        """Parameters for the gate with qubits swapped between each other.
+
+        The angles theta, gamma and phi are kept unchanged. The angles zeta and chi are negated for the gate with
+        swapped qubits.
+
+        Returns:
+            New instance with angles adjusted for swapped qubits.
+        """
+        return PhasedFSimParameters(
+            theta=self.theta,
+            zeta=-self.zeta if self.zeta is not None else None,
+            chi=-self.chi if self.chi is not None else None,
+            gamma=self.gamma,
+            phi=self.phi
+        )
+
+    def merge_with(self, other: 'PhasedFSimParameters') -> 'PhasedFSimParameters':
+        """Substitutes missing parameter with values from other.
+
+        Args:
+            other: Parameters to use for None values.
+
+        Returns:
+            New instance of PhasedFSimParameters with values from this instance if they are set or values from other
+            when some parameter is None.
+        """
+        return PhasedFSimParameters(
+            theta=other.theta if self.theta is None else self.theta,
+            zeta=other.zeta if self.zeta is None else self.zeta,
+            chi=other.chi if self.chi is None else self.chi,
+            gamma=other.gamma if self.gamma is None else self.gamma,
+            phi=other.phi if self.phi is None else self.phi,
+        )
+
+    def override_by(self, other: 'PhasedFSimParameters') -> 'PhasedFSimParameters':
+        """Overrides other parameters that are not None.
+
+        Args:
+            other: Parameters to use for override.
+
+        Returns:
+            New instance of PhasedFSimParameters with values from other if set (values from other that are not None).
+            Otherwise the current values are used.
+        """
+        return other.merge_with(self)
