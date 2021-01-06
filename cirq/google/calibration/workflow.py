@@ -260,7 +260,7 @@ def phased_calibration_for_circuit(
                         f'Moment {moment} contains unsupported non-single qubit operation {op}')
                 a, b = op.qubits
                 pair_parameters = parameters.get_parameters(a, b)
-                pair_parameters = pair_parameters.other_when_none(default_phases)
+                pair_parameters = pair_parameters.merge_with(default_phases)
                 decomposed, decomposed_mapping = create_corrected_fsim_gate(
                     (a, b), translated_gate, pair_parameters, characterization_index)
                 decompositions.append(decomposed)
