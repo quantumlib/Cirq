@@ -18,7 +18,7 @@ from typing import Optional, Sequence, TYPE_CHECKING
 
 from cirq import protocols, study
 
-from cirq.ionq import calibration, ionq_client, job, results, serializer
+from cirq.ionq import calibration, ionq_client, job, results, sampler, serializer
 
 if TYPE_CHECKING:
     import cirq
@@ -88,6 +88,21 @@ class Service:
             return result.to_cirq_result(params=study.ParamResolver(param_resolver))
         else:
             return result.to_cirq_result(params=study.ParamResolver(param_resolver), seed=seed)
+
+    def sampler(self, target: Optional[str] = None, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+        """Returns a `cirq.Sampler` object for accessing the sampler interface.
+
+        Args:
+            target: The target to sample against. Either this or `default_target` on this
+                service must be specified. If this is None, uses the `default_target`. If
+                both `default_target` and `target` are specified, uses `target`.
+            seed: If the target is `simulation` the seed for generating results. If None, this
+                will be `np.random`, if an int, will be `np.random.RandomState(int)`, otherwise
+                must be a modulate similar to `np.random`.
+        Returns:
+            A `cirq.Sampler` for the IonQ API.
+        """
+        return sampler.Sampler(service=self, target=target, seed=seed)
 
     def create_job(
         self,
