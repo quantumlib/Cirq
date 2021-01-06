@@ -19,6 +19,4 @@ from cirq import circuits, ops
 class AlignLeft:
 
     def optimize_circuit(self, circuit: circuits.Circuit):
-      next = circuits.Circuit(circuit)
-      circuit.moments.clear()
-      circuit.append(next.all_operations())
+      circuit[:] = circuits.Circuit(ops.freeze_op_tree(circuit))
