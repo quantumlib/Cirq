@@ -24,4 +24,5 @@ class AlignRight:
         self.optimize_circuit(circuit)
 
     def optimize_circuit(self, circuit: circuits.Circuit):
-        circuit[:] = circuits.Circuit(ops.freeze_op_tree(circuit)[::-1])[::-1]
+        backwards = ops.freeze_op_tree(circuit)[::-1]  # type: ignore
+        circuit[:] = circuits.Circuit(backwards)[::-1]

@@ -127,6 +127,8 @@ SHOULDNT_BE_SERIALIZED = [
     'ApplyUnitaryArgs',
     # Circuit optimizers are function-like. Only attributes
     # are ignore_failures, tolerance, and other feature flags
+    'AlignLeft',
+    'AlignRight',
     'ConvertToCzAndSingleGates',
     'ConvertToIonGates',
     'ConvertToNeutralAtomGates',
