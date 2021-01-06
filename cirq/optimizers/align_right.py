@@ -16,7 +16,7 @@
 
 from cirq import circuits, ops
 
-class AlignRight:
 
+class AlignRight:
     def optimize_circuit(self, circuit: circuits.Circuit):
-      circuit[:] = circuits.Circuit(ops.freeze_op_tree(circuit)[::-1])[::-1]
+        circuit[:] = circuits.Circuit(ops.freeze_op_tree(circuit)[::-1])[::-1]
