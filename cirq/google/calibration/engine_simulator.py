@@ -164,7 +164,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                     if not ideal_when_missing_parameter:
                         raise ValueError(f'Missing parameter value for pair {pair}, '
                                          f'parameters={pair_parameters}')
-                    pair_parameters = pair_parameters.other_when_none(SQRT_ISWAP_PARAMETERS)
+                    pair_parameters = pair_parameters.merge_with(SQRT_ISWAP_PARAMETERS)
             elif ideal_when_missing_gate:
                 pair_parameters = SQRT_ISWAP_PARAMETERS
             else:
