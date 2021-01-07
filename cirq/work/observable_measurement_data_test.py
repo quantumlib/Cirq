@@ -505,3 +505,93 @@ def test_flatten_grouped_results():
         assert res.mean == 1
         assert res.variance == 0
         assert res.repetitions == 3
+
+
+def test_readout_correction():
+    # Mock readout correction results by constructing a BitstringAccumulator
+    # with two <Z> measurements
+    q1_ro = np.array([0] * 90 + [1] * 10)
+    q2_ro = np.array([0] * 91 + [1] * 9)
+    rs = np.random.RandomState(52)
+    rs.shuffle(q1_ro)
+    rs.shuffle(q2_ro)
+    ro_bitstrings = np.vstack((q1_ro, q2_ro)).T
+    assert ro_bitstrings.shape == (100, 2)
+    chunksizes = np.asarray([100])
+    timestamps = np.asarray([datetime.datetime.now()])
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    qubit_to_index = {a: 0, b: 1}
+    ro_settings = list(cw.observables_to_settings([cirq.Z(a), cirq.Z(b)], qubits=[a, b]))
+    ro_meas_spec_setting = list(cw.observables_to_settings([cirq.Z(a) * cirq.Z(b)], qubits=[a, b]))[
+        0
+    ]
+    ro_meas_spec = _MeasurementSpec(ro_meas_spec_setting, {})
+
+    ro_bsa = cw.BitstringAccumulator(
+        meas_spec=ro_meas_spec,
+        simul_settings=ro_settings,
+        qubit_to_index=qubit_to_index,
+        bitstrings=ro_bitstrings,
+        chunksizes=chunksizes,
+        timestamps=timestamps,
+    )
+
+    # observables range from 1 to -1 while bitstrings range from 0 to 1
+    assert ro_bsa.mean(ro_settings[0]) == 0.8
+    assert ro_bsa.mean(ro_settings[1]) == 0.82
+    assert np.isclose(ro_bsa.mean(ro_meas_spec_setting), 0.8 * 0.82, atol=0.05)
+
+    bitstrings = np.array(
+        [
+            [0, 0],
+            [0, 0],
+            [0, 0],
+            [0, 0],
+            [0, 0],
+            [0, 0],
+            [0, 1],
+            [1, 1],
+        ],
+        dtype=np.uint8,
+    )
+    chunksizes = np.asarray([len(bitstrings)])
+    timestamps = np.asarray([datetime.datetime.now()])
+    qubit_to_index = {a: 0, b: 1}
+    settings = list(
+        cw.observables_to_settings([cirq.X(a) * cirq.Y(b), cirq.X(a), cirq.Y(b)], qubits=[a, b])
+    )
+    meas_spec = _MeasurementSpec(settings[0], {})
+
+    # First, make one with no readout correction
+    bsa1 = cw.BitstringAccumulator(
+        meas_spec=meas_spec,
+        simul_settings=settings,
+        qubit_to_index=qubit_to_index,
+        bitstrings=bitstrings,
+        chunksizes=chunksizes,
+        timestamps=timestamps,
+    )
+
+    # [XY: one excitation, X: one excitation, Y: two excitations]
+    np.testing.assert_allclose([1 - 1 / 4, 1 - 1 / 4, 1 - 2 / 4], bsa1.means())
+    np.testing.assert_allclose([0.75, 0.75, 0.5], bsa1.means())
+
+    # Turn on readout correction
+    bsa2 = cw.BitstringAccumulator(
+        meas_spec=meas_spec,
+        simul_settings=settings,
+        qubit_to_index=qubit_to_index,
+        bitstrings=bitstrings,
+        chunksizes=chunksizes,
+        timestamps=timestamps,
+        readout_calibration=ro_bsa,
+    )
+
+    # Readout correction increases variance
+    for setting in settings:
+        assert bsa2.variance(setting) > bsa1.variance(setting)
+
+    np.testing.assert_allclose(
+        [0.75 / (0.8 * 0.82), 0.75 / 0.8, 0.5 / 0.82], bsa2.means(), atol=0.01
+    )
