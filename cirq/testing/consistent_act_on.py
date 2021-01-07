@@ -190,7 +190,10 @@ def _final_stabilizer_state_ch_form(
     for op in circuit.all_operations():
         try:
             args = act_on_stabilizer_ch_form_args.ActOnStabilizerCHFormArgs(
-                state=stabilizer_ch_form, axes=[qubit_map[qid] for qid in op.qubits]
+                state=stabilizer_ch_form,
+                axes=[qubit_map[qid] for qid in op.qubits],
+                prng=np.random.RandomState(),
+                log_of_measurement_results={},
             )
             protocols.act_on(op, args, allow_decompose=True)
         except TypeError:
