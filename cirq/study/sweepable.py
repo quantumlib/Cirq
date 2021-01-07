@@ -22,15 +22,19 @@ from cirq._doc import document
 from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
 from cirq.study.sweeps import ListSweep, Points, Sweep, UnitSweep, Zip, dict_to_product_sweep
 
+SweepLike = Union[ParamResolverOrSimilarType, Sweep]
+document(SweepLike, """An object similar to an iterable of parameter resolvers.""")
 
-class SweepLike(Protocol):
-    """An object similar to an iterable of parameter resolvers."""
 
-    def __iter__(self) -> Iterator[Union[ParamResolverOrSimilarType, Sweep, 'SweepLike']]:
+class SweepLikeRecursive(Protocol):
+    """An intermediate class allowing for recursive definition of Sweepable,
+    since recursive union definitions are not yet supported in mypy."""
+
+    def __iter__(self) -> Iterator[Union[SweepLike, 'SweepLikeRecursive']]:
         pass
 
 
-Sweepable = Union[ParamResolverOrSimilarType, Sweep, SweepLike]
+Sweepable = Union[SweepLike, SweepLikeRecursive]
 document(
     Sweepable,
     """An object or collection of objects representing a parameter sweep.""",
