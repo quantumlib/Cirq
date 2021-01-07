@@ -15,18 +15,24 @@
 """Defines which types are Sweepable."""
 
 from typing import Dict, Iterable, Iterator, List, Sequence, Union, cast
+from typing_extensions import Protocol
 import warnings
 
 from cirq._doc import document
 from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
 from cirq.study.sweeps import ListSweep, Points, Sweep, UnitSweep, Zip, dict_to_product_sweep
 
-SweepLike = Union[ParamResolverOrSimilarType, Sweep]
-document(SweepLike, """An object similar to an iterable of parameter resolvers.""")  # type: ignore
 
-Sweepable = Union[SweepLike, Iterable[SweepLike]]
+class SweepLike(Protocol):
+    """An object similar to an iterable of parameter resolvers."""
+
+    def __iter__(self) -> Iterator[Union[ParamResolverOrSimilarType, Sweep, 'SweepLike']]:
+        pass
+
+
+Sweepable = Union[ParamResolverOrSimilarType, Sweep, SweepLike]
 document(
-    Sweepable,  # type: ignore
+    Sweepable,
     """An object or collection of objects representing a parameter sweep.""",
 )
 
@@ -58,7 +64,7 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
         product_sweep = dict_to_product_sweep(sweepable)
         return [_resolver_to_sweep(resolver) for resolver in product_sweep]
     if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
-        return [sweep for item in sweepable for sweep in to_sweeps(cast(SweepLike, item))]
+        return [sweep for item in sweepable for sweep in to_sweeps(item)]
     raise TypeError(f'Unrecognized sweepable type: {type(sweepable)}.\nsweepable: {sweepable}')
 
 
