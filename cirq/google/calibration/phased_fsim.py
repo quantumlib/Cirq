@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import Dict, Optional, Tuple, TYPE_CHECKING
 
 import abc
 import collections
@@ -8,7 +8,7 @@ import re
 from cirq.circuits import Circuit
 from cirq.ops import Gate, Qid
 from cirq.google.api import v2
-from cirq.google.engine import CalibrationLayer, CalibrationResult, Engine
+from cirq.google.engine import CalibrationLayer, CalibrationResult
 from cirq.google.serializable_gate_set import SerializableGateSet
 
 if TYPE_CHECKING:
@@ -157,7 +157,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
         decoded = collections.defaultdict(lambda: {})
-        for keys, values in result.metrics['angles']:
+        for keys, values in result.metrics['angles'].items():
             for key, value in zip(keys, values):
                 match = re.match(r'(\d+)_(.+)', key)
                 if not match:
@@ -168,8 +168,8 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
         parsed = {}
         for data in decoded.values():
-            a = v2.qubit_from_proto_id(data['0'])
-            b = v2.qubit_from_proto_id(data['1'])
+            a = v2.qubit_from_proto_id(data['qubit_a'])
+            b = v2.qubit_from_proto_id(data['qubit_b'])
             parsed[(a, b)] = PhasedFSimParameters(
                 theta=data.get('theta_est', None),
                 zeta=data.get('zeta_est', None),
@@ -184,24 +184,3 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             gate_set=self.gate_set,
             options=self.options
         )
-
-
-def run_calibrations(calibrations: List[PhasedFSimCalibrationRequest],
-                     engine: Engine,
-                     processor_id: str,
-                     handler_name: str
-                     ) -> List[PhasedFSimCalibrationResult]:
-    if not calibrations:
-        return []
-
-    gate_sets = [calibration.gate_set for calibration in calibrations]
-    gate_set = gate_sets[0]
-    if not all(gate_set == other for other in gate_sets):
-        raise ValueError('All calibrations that run together must be defined for a shared gate set')
-
-    requests = [calibration.to_calibration_layer(handler_name) for calibration in calibrations]
-    job = engine.run_calibration(requests,
-                                 processor_id=processor_id,
-                                 gate_set=gate_set)
-    return [calibration.parse_result(result)
-            for calibration, result in zip(calibrations, job.calibration_results())]
