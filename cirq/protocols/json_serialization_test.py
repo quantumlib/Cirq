@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import datetime
 import inspect
 
 import datetime
@@ -644,6 +645,7 @@ def _eval_repr_data_file(path: pathlib.Path):
             'pd': pd,
             'sympy': sympy,
             'np': np,
+            'datetime': datetime,
         },
         {},
     )
