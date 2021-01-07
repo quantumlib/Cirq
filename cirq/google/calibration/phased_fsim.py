@@ -222,6 +222,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         )
 
 
+# TODO: Add support for ISWAP ** 0.5 as well.
 def sqrt_iswap_gates_translator(gate: Gate) -> Optional[FSimGate]:
     if isinstance(gate, FSimGate):
         if not np.isclose(gate.phi, 0.0):
