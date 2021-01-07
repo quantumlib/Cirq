@@ -1,6 +1,9 @@
 from typing import List
 
-from cirq.google.calibration.phased_fsim import PhasedFSimCalibrationRequest, PhasedFSimCalibrationResult
+from cirq.google.calibration.phased_fsim import (
+    PhasedFSimCalibrationRequest,
+    PhasedFSimCalibrationResult
+)
 from cirq.google.engine import Engine
 
 

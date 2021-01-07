@@ -27,7 +27,7 @@ from cirq.google.calibration import (
     PhasedFSimParameters,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
-    run_calibrations
+    run_characterizations
 )
 
 from cirq.google.devices import (
