@@ -15,8 +15,8 @@
 """Defines which types are Sweepable."""
 
 from typing import Dict, Iterable, Iterator, List, Sequence, Union, cast
-from typing_extensions import Protocol
 import warnings
+from typing_extensions import Protocol
 
 from cirq._doc import document
 from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
