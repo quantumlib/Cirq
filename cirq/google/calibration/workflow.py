@@ -79,6 +79,9 @@ def floquet_characterization_for_moment(
     )
 
 
+# TODO: Add support for ISWAP ** 0.5 as well.
+# TODO: Add support for WaitGates
+# TODO: Add support for CircuitOperations.
 def floquet_characterization_for_circuit(
         circuit: Circuit,
         gate_set: SerializableGateSet,
