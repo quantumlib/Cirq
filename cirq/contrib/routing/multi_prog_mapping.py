@@ -476,7 +476,7 @@ class XSWAP:
         return flayers
 
     def generate_front_layers(
-            self, cir_dags: List[cirq.CircuitDag]) -> List[List[ops.Gate]]:
+            self, cir_dags: List[cirq.CircuitDag]) -> List[List[ops.Operation]]:
         """
         Generate front layers for all programs. Front layer is consisting of all gates 
         that could run and doesn't have any predecessors.
@@ -931,10 +931,10 @@ def prepare_couplingGraph_errorValues(device_graph):
     multi_prog_map(dgraph, single_er, two_er, program_circuits)
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
     # print( load_calibrations()['single_qubit_p00_error'] )
-    device_graph1 = ccr.get_grid_device_graph(3, 2)
-    device_graph = cirq.google.Sycamore
-    prepare_couplingGraph_errorValues(device_graph)
+    # device_graph1 = ccr.get_grid_device_graph(3, 2)
+    # device_graph = cirq.google.Sycamore
+    # prepare_couplingGraph_errorValues(device_graph)
 
     # multi_prog_map(device_graph)

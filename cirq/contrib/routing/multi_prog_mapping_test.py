@@ -27,3 +27,48 @@ def test_bad_args():
     with pytest.raises(TypeError):
         #multi_prog_map(circuit, device_graph)
         prepare_couplingGraph_errorValues(device_graph)
+
+def test_2small_programs():
+    # device_graph1 = ccr.get_grid_device_graph(3, 2)
+    # device_graph = cirq.google.Sycamore
+    # prepare_couplingGraph_errorValues(device_graph)
+
+    single_er = {
+        (cirq.GridQubit(1, 0),): [0.028600441075128205],
+        (cirq.GridQubit(0, 0),): [0.01138359559038841],
+        (cirq.GridQubit(1, 1),): [0.05313138858345922],
+        (cirq.GridQubit(0, 1),): [0.0005880214404983153],
+        (cirq.GridQubit(1, 2),): [0.0018232495924263727],
+        (cirq.GridQubit(0, 2),): [0.039571298178797366],
+    }
+    two_er = {
+        (cirq.GridQubit(1, 0), cirq.GridQubit(0, 0)): [0.018600441075128205],
+        (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)): [0.01938359559038841],
+        (cirq.GridQubit(1, 1), cirq.GridQubit(0, 1)): [0.01313138858345922],
+        (cirq.GridQubit(0, 1), cirq.GridQubit(0, 2)): [0.005880214404983153],
+        (cirq.GridQubit(1, 1), cirq.GridQubit(1, 2)): [0.008232495924263727],
+        (cirq.GridQubit(0, 2), cirq.GridQubit(1, 2)): [0.03571298178797366],
+    }
+
+    # Devise graph
+    dgraph = nx.Graph()
+
+    for q0, q1 in two_er:
+        dgraph.add_edge(q0, q1)
+
+    # list of program circuits
+    qubits = cirq.LineQubit.range(3)
+    circuit1 = cirq.Circuit(cirq.X(qubits[0]), cirq.Y(qubits[1]),
+                            cirq.CZ(qubits[0], qubits[1]),
+                            cirq.CZ(qubits[1], qubits[2]))
+    qubits = cirq.LineQubit.range(2)
+    circuit2 = cirq.Circuit(cirq.X(qubits[0]), cirq.Y(qubits[1]),
+                            cirq.CZ(qubits[0], qubits[1]))
+    program_circuits = []
+    program_circuits.append(circuit2)
+    program_circuits.append(circuit1)
+
+    print(circuit2)
+    print(circuit1)
+
+    multi_prog_map(dgraph, single_er, two_er, program_circuits)
