@@ -479,13 +479,6 @@ def test_json_roundtrip():
     state.apply_unitary(cirq.S(q1))
     state_roundtrip.apply_unitary(cirq.S(q1))
 
-    # The (de)stabilizers should be the same.
-    assert state.stabilizers() == state_roundtrip.stabilizers()
-    assert state.destabilizers() == state_roundtrip.destabilizers()
-
-    # Also check that the tableaux are also unchanged.
-    assert state.tableau._str_full_() == state_roundtrip.tableau._str_full_()
-
     # And the CH form isn't changed either.
     assert np.allclose(state.ch_form.state_vector(), state_roundtrip.ch_form.state_vector())
 
