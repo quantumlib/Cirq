@@ -127,9 +127,13 @@ class FloquetPhasedFSimCalibrationOptions:
         )
 
 
+# TODO: Fix json serialization (the default one doesn't work with tuples as dictionary keys).
+# TODO: Add start and end calibration timestamp
+# TODO: Add export to Panda's data frame
 @json_serializable_dataclass(frozen=True)
 class PhasedFSimCalibrationResult:
-    # TODO: Fix json serialization (the default one doesn't work with tuples as dictionary keys).
+    # TODO: Instead of parameters and gate, should that just be cirq.Moment validated at construction time? (This is
+    #  slightly problematic with frozen data classes).
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimParameters]
     gate: Gate
     gate_set: SerializableGateSet
@@ -224,6 +228,7 @@ class IncompatibleMomentError(Exception):
     pass
 
 
+# TODO: Add support for ISWAP ** 0.5 as well.
 def sqrt_iswap_gates_translator(gate: Gate) -> Optional[FSimGate]:
     if isinstance(gate, FSimGate):
         if not np.isclose(gate.phi, 0.0):
