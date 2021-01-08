@@ -11,14 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import datetime
-import inspect
 
 import datetime
+import inspect
 import io
 import json
 import os
 import pathlib
+import re
 import textwrap
 from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Type
 
@@ -683,6 +683,18 @@ def assert_repr_and_json_test_data_agree(
 
     if not inward_only:
         json_from_cirq = cirq.to_json(repr_obj)
+        if json_serialization.has_serializable_by_keys(repr_obj):
+            # Hash values are not consistent between python sessions.
+            # Replace each hash in hardcoded JSON file with the value from repr.
+            src = re.finditer('_Serialized(Context|Key).*?_0x.{16}', json_from_cirq, re.DOTALL)
+            dst = re.finditer('_Serialized(Context|Key).*?_0x.{16}', json_from_file, re.DOTALL)
+            for s, d in zip(src, dst):
+                json_from_file = (
+                    json_from_file[: d.start()]
+                    + json_from_cirq[s.start() : s.end()]
+                    + json_from_file[d.end() :]
+                )
+
         json_from_cirq_obj = json.loads(json_from_cirq)
         json_from_file_obj = json.loads(json_from_file)
 

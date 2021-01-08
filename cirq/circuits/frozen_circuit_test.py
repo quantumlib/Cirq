@@ -45,6 +45,24 @@ def test_freeze_and_unfreeze():
     assert fcc is not f
 
 
+def test_names():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.X(a), cirq.H(b), name='testname')
+
+    f = c.freeze()
+    assert f.name == c.name
+
+    ff = c.freeze()
+    assert ff.name == f.name
+    # Since the two are identical, this is acceptable.
+    assert ff.serialization_key() == f.serialization_key()
+
+    c.append(cirq.CX(b, a))
+    fff = c.freeze()
+    assert fff.name == f.name
+    assert fff.serialization_key() != f.serialization_key()
+
+
 def test_immutable():
     q = cirq.LineQubit(0)
     c = cirq.FrozenCircuit(cirq.X(q), cirq.H(q))

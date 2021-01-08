@@ -116,7 +116,8 @@
     ],
     "device": {
       "cirq_type": "_UnconstrainedDevice"
-    }
+    },
+    "name": "group_measure"
   },
   {
     "cirq_type": "Circuit",
@@ -170,7 +171,8 @@
     ],
     "device": {
       "cirq_type": "_UnconstrainedDevice"
-    }
+    },
+    "name": null
   },
   {
     "cirq_type": "Circuit",
@@ -200,6 +202,7 @@
     ],
     "device": {
       "cirq_type": "_UnconstrainedDevice"
-    }
+    },
+    "name": null
   }
 ]

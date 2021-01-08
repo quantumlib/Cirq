@@ -49,6 +49,7 @@ class FrozenCircuit(AbstractCircuit):
         *contents: 'cirq.OP_TREE',
         strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
         device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE,
+        name: Optional[str] = None,
     ) -> None:
         """Initializes a frozen circuit.
 
@@ -62,10 +63,13 @@ class FrozenCircuit(AbstractCircuit):
                 from `contents`, this determines how the operations are packed
                 together.
             device: Hardware that the circuit should be able to run on.
+            name: A user-specified key to identify this circuit in diagrams
+                and serialization.
         """
         base = Circuit(contents, strategy=strategy, device=device)
         self._moments = tuple(base.moments)
         self._device = base.device
+        self._name = name
 
         # These variables are memoized when first requested.
         self._num_qubits: Optional[int] = None
@@ -85,13 +89,19 @@ class FrozenCircuit(AbstractCircuit):
     def device(self) -> devices.Device:
         return self._device
 
+    @property
+    def name(self) -> Optional[str]:
+        return self._name
+
     def __hash__(self):
-        return hash((self.moments, self.device))
+        return hash((self.moments, self.device, self.name))
 
     def serialization_key(self):
-        # TODO: use this key in serialization and support user-specified keys.
         key = hash(self) & 0xFFFF_FFFF_FFFF_FFFF
-        return f'Circuit_0x{key:016x}'
+        return f'{self.name or "Circuit"}_0x{key:016x}'
+
+    def _serialization_key_(self):
+        return self.serialization_key()
 
     # Memoized methods for commonly-retrieved properties.
 
@@ -146,7 +156,6 @@ class FrozenCircuit(AbstractCircuit):
     # Needed for numpy to handle multiplication by np.int64 correctly.
     __array_priority__ = 10000
 
-    # TODO: handle multiplication / powers differently?
     def __mul__(self, other) -> 'FrozenCircuit':
         return (self.unfreeze() * other).freeze()
 
