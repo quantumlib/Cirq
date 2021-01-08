@@ -38,6 +38,19 @@ def test_properties():
     assert op == circuit.to_op()
 
 
+def type_validated():
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.X(a),
+        cirq.Y(b),
+        cirq.H(c),
+        cirq.CX(a, b) ** sympy.Symbol('exp'),
+        cirq.measure(a, b, c, key='m'),
+    )
+    with pytest.raises(TypeError, match='Only FrozenCircuits are allowed'):
+        _ = cirq.CircuitOperation(circuit)
+
+
 def test_circuit_sharing():
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.FrozenCircuit(
