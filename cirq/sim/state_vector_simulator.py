@@ -32,7 +32,7 @@ class SimulatesIntermediateStateVector(
 ):
     """A simulator that accesses its state vector as it does its simulation.
 
-    Implementors of this interface should implement the _simulator_iterator
+    Implementors of this interface should implement the _base_iterator
     method."""
 
     def _create_simulator_trial_result(

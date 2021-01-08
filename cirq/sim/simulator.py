@@ -342,6 +342,14 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
     ) -> Iterator:
         """Iterator over StepResult from Moments of a Circuit.
 
+        If the initial state is an int, the state is set to the computational
+        basis state corresponding to this state. Otherwise if the initial
+        state is a np.ndarray it is the full initial state, either a pure state
+        or the full density matrix.  If it is the pure state it must be the
+        correct size, be normalized (an L2 norm of 1), and be safely castable
+        to an appropriate dtype for the simulator.  If it is a mixed state
+        it must be correctly sized and positive semidefinite with trace one.
+
         Args:
             circuit: The circuit to simulate.
             param_resolver: A ParamResolver for determining values of
@@ -369,6 +377,22 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
         qubit_order: ops.QubitOrderOrList,
         initial_state: Any,
     ) -> Iterator['StepResult']:
+        """Iterator over StepResult from Moments of a Circuit.
+
+        Args:
+            circuit: The circuit to simulate.
+            param_resolver: A ParamResolver for determining values of
+                Symbols.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
+                documentation of the implementing class for details.
+
+        Yields:
+            StepResults from simulating a Moment of the Circuit.
+        """
         raise NotImplementedError()
 
     def _create_simulator_trial_result(
