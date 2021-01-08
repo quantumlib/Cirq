@@ -47,7 +47,7 @@ def test_circuit_type():
         cirq.CX(a, b) ** sympy.Symbol('exp'),
         cirq.measure(a, b, c, key='m'),
     )
-    with pytest.raises(TypeError, match='Expected circuit of type FrozenCircuits'):
+    with pytest.raises(TypeError, match='Expected circuit of type FrozenCircuit'):
         _ = cirq.CircuitOperation(circuit)
 
 
