@@ -5,8 +5,9 @@ import cirq
 
 
 def bristlecone():
-    value_map = {(qubit.row, qubit.col): np.random.random()
-                 for qubit in cirq.google.Bristlecone.qubits}
+    value_map = {
+        (qubit.row, qubit.col): np.random.random() for qubit in cirq.google.Bristlecone.qubits
+    }
 
     heatmap = cirq.Heatmap(value_map)
     file_path = "examples/bristlecone_heatmap_example.png"
@@ -48,7 +49,7 @@ def gateerror():
         (cirq.GridQubit(7, 5), cirq.GridQubit(8, 5)): 0.006424831182351348,
         (cirq.GridQubit(8, 3), cirq.GridQubit(8, 4)): 0.005248674988741292,
         (cirq.GridQubit(8, 4), cirq.GridQubit(8, 5)): 0.014301577907262525,
-        (cirq.GridQubit(8, 4), cirq.GridQubit(9, 4)): 0.0038720100369923904
+        (cirq.GridQubit(8, 4), cirq.GridQubit(9, 4)): 0.0038720100369923904,
     }
     heatmap = cirq.InterHeatmap(value_map, title)
     file_path = "examples/qubitinteraction_heatmap_example.png"
