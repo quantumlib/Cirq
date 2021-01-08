@@ -44,7 +44,6 @@ class EngineClient:
     served by using the Engine, EngineProgram, EngineJob, EngineProcessor, and
     Calibration objects instead of using this directly.
     """
-
     def __init__(
             self,
             service_args: Optional[Dict] = None,
@@ -160,7 +159,6 @@ class EngineClient:
                 if err.code.value not in RETRYABLE_ERROR_CODES:
                     raise EngineException(message) from err
 
-            current_delay *= 2
             if current_delay > self.max_retry_delay_seconds:
                 raise TimeoutError(
                     'Reached max retry attempts for error: {}'.format(message))
@@ -171,6 +169,7 @@ class EngineClient:
                       'seconds before retrying.',
                       file=sys.stderr)
             time.sleep(current_delay)
+            current_delay *= 2
 
     def create_program(
             self,

@@ -1,3 +1,4 @@
+
 API Reference
 =============
 
@@ -71,6 +72,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.identity_each
     cirq.qft
     cirq.riswap
+    cirq.wait
     .. autoclass:: cirq.CCNotPowGate
     cirq.CCXPowGate
     cirq.CCZPowGate
@@ -90,6 +92,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.MatrixGate
     cirq.Operation
     cirq.PhaseGradientGate
+    cirq.PhasedFSimGate
     cirq.PhasedISwapPowGate
     cirq.PhasedXPowGate
     cirq.PhasedXZGate
@@ -188,8 +191,10 @@ Circuits, Operations, and Moments.
     cirq.flatten_op_tree
     cirq.freeze_op_tree
     cirq.transform_op_tree
+    cirq.AbstractCircuit
     cirq.Circuit
     cirq.CircuitDag
+    cirq.FrozenCircuit
     cirq.GateOperation
     cirq.InsertStrategy
     cirq.Moment
@@ -270,6 +275,7 @@ results.
     cirq.PauliSumCollector
     cirq.Points
     cirq.Product
+    cirq.Result
     cirq.Sampler
     cirq.SimulatesAmplitudes
     cirq.SimulatesFinalState
@@ -279,6 +285,7 @@ results.
     cirq.SimulationTrialResult
     cirq.Simulator
     cirq.SparseSimulatorStep
+    cirq.StabilizerSampler
     cirq.StateVectorMixin
     cirq.StateVectorSimulatorState
     cirq.StateVectorStepResult
@@ -286,7 +293,6 @@ results.
     cirq.StepResult
     cirq.Sweep
     cirq.Sweepable
-    cirq.TrialResult
     cirq.UnitSweep
     cirq.ZerosSampler
     cirq.Zip
@@ -362,6 +368,7 @@ the magic methods that can be implemented.
     cirq.trace_distance_bound
     cirq.trace_distance_from_angle_list
     cirq.unitary
+    cirq.with_measurement_key_mapping
     cirq.ApplyChannelArgs
     cirq.ApplyMixtureArgs
     cirq.ApplyUnitaryArgs
@@ -408,6 +415,7 @@ Classes and methods for rewriting circuits.
 
     cirq.decompose_multi_controlled_rotation
     cirq.decompose_multi_controlled_x
+    cirq.decompose_two_qubit_interaction_into_four_fsim_gates
     cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b
     cirq.merge_single_qubit_gates_into_phased_x_z
     cirq.merge_single_qubit_gates_into_phxz
@@ -417,6 +425,7 @@ Classes and methods for rewriting circuits.
     cirq.single_qubit_matrix_to_phxz
     cirq.single_qubit_op_to_framed_phase_form
     cirq.stratified_circuit
+    cirq.two_qubit_matrix_to_diagonal_and_operations
     cirq.two_qubit_matrix_to_operations
     cirq.ConvertToCzAndSingleGates
     cirq.DropEmptyMoments
@@ -512,6 +521,7 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.SYC
     cirq.google.SYC_GATESET
     cirq.google.XMON
+    cirq.google.arg_from_proto
     cirq.google.get_engine
     cirq.google.get_engine_calibration
     cirq.google.get_engine_device
@@ -522,6 +532,9 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.AnnealSequenceSearchStrategy
     cirq.google.Bristlecone
     cirq.google.Calibration
+    cirq.google.CalibrationLayer
+    cirq.google.CalibrationResult
+    cirq.google.CalibrationTag
     cirq.google.ConvertToSqrtIswapGates
     cirq.google.ConvertToSycamoreGates
     cirq.google.ConvertToXmonGates
@@ -589,7 +602,7 @@ operation.
     cirq.LinearDict
     cirq.PeriodicValue
     cirq.testing.DEFAULT_GATE_DOMAIN
-    cirq.testing.assert_act_on_clifford_tableau_effect_matches_unitary
+    cirq.testing.assert_all_implemented_act_on_effects_match_unitary
     cirq.testing.assert_allclose_up_to_global_phase
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent
     cirq.testing.assert_commutes_magic_method_consistent_with_unitaries
@@ -620,6 +633,7 @@ operation.
     cirq.testing.random_special_orthogonal
     cirq.testing.random_special_unitary
     cirq.testing.random_superposition
+    cirq.testing.random_two_qubit_circuit_with_czs
     cirq.testing.random_unitary
     cirq.testing.EqualsTester
     cirq.testing.NoIdentifierQubit
@@ -672,6 +686,7 @@ Algebra and Representation
     cirq.match_global_phase
     cirq.matrix_commutes
     cirq.matrix_from_basis_coefficients
+    cirq.num_cnots_required
     cirq.partial_trace
     cirq.partial_trace_of_state_vector_as_mixture
     cirq.reflection_matrix_pow
@@ -680,6 +695,7 @@ Algebra and Representation
     cirq.sub_state_vector
     cirq.targeted_conjugate_about
     cirq.targeted_left_multiply
+    cirq.to_special
     cirq.unitary_eig
     cirq.AxisAngleDecomposition
     cirq.Duration
@@ -709,6 +725,7 @@ Quantum Information Science
     cirq.one_hot
     cirq.to_valid_density_matrix
     cirq.to_valid_state_vector
+    cirq.validate_density_matrix
     cirq.validate_indices
     cirq.validate_normalized_state_vector
     cirq.validate_qid_shape
@@ -749,6 +766,7 @@ These objects and methods will be removed in a future version of the library.
     cirq.validate_normalized_state
     cirq.wavefunction_partial_trace_as_mixture
     cirq.SimulatesIntermediateWaveFunction
+    cirq.TrialResult
     cirq.WaveFunctionSimulatorState
     cirq.WaveFunctionStepResult
     cirq.WaveFunctionTrialResult

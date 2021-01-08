@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A helper for jobs that have been created on the Quantum Engine."""
-
+import datetime
 import time
 
 from typing import Dict, Iterator, List, Optional, overload, Tuple, \
@@ -20,7 +20,9 @@ from typing import Dict, Iterator, List, Optional, overload, Tuple, \
 
 from cirq import study
 from cirq.google.engine import calibration
+from cirq.google.engine.calibration_result import CalibrationResult
 from cirq.google.engine.client import quantum
+from cirq.google.engine.result_type import ResultType
 from cirq.google.api import v1, v2
 
 if TYPE_CHECKING:
@@ -43,8 +45,8 @@ class EngineJob:
     executing on a machine, or it may have entered a terminal state
     (either succeeding or failing).
 
-    `EngineJob`s can be iterated over, returning `TrialResult`s. These
-    `TrialResult`s can also be accessed by index. Note that this will block
+    `EngineJob`s can be iterated over, returning `Result`s. These
+    `Result`s can also be accessed by index. Note that this will block
     until the results are returned from the Engine service.
 
     Attributes:
@@ -59,7 +61,7 @@ class EngineJob:
                  job_id: str,
                  context: 'engine_base.EngineContext',
                  _job: Optional[quantum.types.QuantumJob] = None,
-                 batch_mode: bool = False) -> None:
+                 result_type: ResultType = ResultType.Program) -> None:
         """A job submitted to the engine.
 
         Args:
@@ -68,16 +70,18 @@ class EngineJob:
             job_id: Unique ID of the job within the parent program.
             context: Engine configuration and context to use.
             _job: The optional current job state.
-            batch_mode: If this was created with a BatchProgram/BatchRunContext.
+            result_type: What type of results are expected, such as
+               batched results or the result of a focused calibration.
         """
         self.project_id = project_id
         self.program_id = program_id
         self.job_id = job_id
         self.context = context
         self._job = _job
-        self._results: Optional[List[study.TrialResult]] = None
-        self._batched_results: Optional[List[List[study.TrialResult]]] = None
-        self.batch_mode = batch_mode
+        self._results: Optional[List[study.Result]] = None
+        self._calibration_results: Optional[CalibrationResult] = None
+        self._batched_results: Optional[List[List[study.Result]]] = None
+        self.result_type = result_type
 
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object."""
@@ -264,11 +268,11 @@ class EngineJob:
         self.context.client.delete_job(self.project_id, self.program_id,
                                        self.job_id)
 
-    def batched_results(self) -> List[List[study.TrialResult]]:
+    def batched_results(self) -> List[List[study.Result]]:
         """Returns the job results, blocking until the job is complete.
 
         This method is intended for batched jobs.  Instead of flattening
-        results into a single list, this will return a List[TrialResult]
+        results into a single list, this will return a List[Result]
         for each circuit in the batch.
         """
         self.results()
@@ -276,26 +280,30 @@ class EngineJob:
             raise ValueError('batched_results called for a non-batch result.')
         return self._batched_results
 
-    def results(self) -> List[study.TrialResult]:
+    def _wait_for_result(self):
+        job = self._refresh_job()
+        total_seconds_waited = 0.0
+        timeout = self.context.timeout
+        while True:
+            if timeout and total_seconds_waited >= timeout:
+                break
+            if job.execution_status.state in TERMINAL_STATES:
+                break
+            time.sleep(0.5)
+            total_seconds_waited += 0.5
+            job = self._refresh_job()
+        self._raise_on_failure(job)
+        response = self.context.client.get_job_results(self.project_id,
+                                                       self.program_id,
+                                                       self.job_id)
+        return response.result
+
+    def results(self) -> List[study.Result]:
         """Returns the job results, blocking until the job is complete.
         """
         import cirq.google.engine.engine as engine_base
         if not self._results:
-            job = self._refresh_job()
-            total_seconds_waited = 0.0
-            timeout = self.context.timeout
-            while True:
-                if timeout and total_seconds_waited >= timeout:
-                    break
-                if job.execution_status.state in TERMINAL_STATES:
-                    break
-                time.sleep(0.5)
-                total_seconds_waited += 0.5
-                job = self._refresh_job()
-            self._raise_on_failure(job)
-            response = self.context.client.get_job_results(
-                self.project_id, self.program_id, self.job_id)
-            result = response.result
+            result = self._wait_for_result()
             result_type = result.type_url[len(engine_base.TYPE_PREFIX):]
             if (result_type == 'cirq.google.api.v1.Result' or
                     result_type == 'cirq.api.google.v1.Result'):
@@ -317,9 +325,40 @@ class EngineJob:
                     'invalid result proto version: {}'.format(result_type))
         return self._results
 
+    def calibration_results(self):
+        """Returns the results of a run_calibration() call.
+
+        This function will fail if any other type of results were returned
+        by the Engine.
+        """
+        import cirq.google.engine.engine as engine_base
+        if not self._calibration_results:
+            result = self._wait_for_result()
+            result_type = result.type_url[len(engine_base.TYPE_PREFIX):]
+            if result_type != 'cirq.google.api.v2.FocusedCalibrationResult':
+                raise ValueError(
+                    'Did not find calibration results, instead found: {}'.
+                    format(result_type))
+            parsed_val = v2.calibration_pb2.FocusedCalibrationResult.FromString(
+                result.value)
+            cal_results = []
+            for layer in parsed_val.results:
+                metrics = calibration.Calibration(layer.metrics)
+                message = layer.error_message or None
+                token = layer.token or None
+                if layer.valid_until_ms > 0:
+                    ts = datetime.datetime.fromtimestamp(layer.valid_until_ms /
+                                                         1000)
+                else:
+                    ts = None
+                cal_results.append(
+                    CalibrationResult(layer.code, message, token, ts, metrics))
+            self._calibration_results = cal_results
+        return self._calibration_results
+
     @staticmethod
     def _get_job_results_v1(result: v1.program_pb2.Result
-                           ) -> List[study.TrialResult]:
+                           ) -> List[study.Result]:
         trial_results = []
         for sweep_result in result.sweep_results:
             sweep_repetitions = sweep_result.repetitions
@@ -332,14 +371,14 @@ class EngineJob:
                                                  key_sizes)
 
                 trial_results.append(
-                    study.TrialResult.from_single_parameter_set(
+                    study.Result.from_single_parameter_set(
                         params=study.ParamResolver(result.params.assignments),
                         measurements=measurements))
         return trial_results
 
     @classmethod
     def _get_batch_results_v2(cls, results: v2.batch_pb2.BatchResult
-                             ) -> List[List[study.TrialResult]]:
+                             ) -> List[List[study.Result]]:
         trial_results = []
         for result in results.results:
             # Add a new list for the result
@@ -347,12 +386,11 @@ class EngineJob:
         return trial_results
 
     @classmethod
-    def _flatten(cls, result) -> List[study.TrialResult]:
+    def _flatten(cls, result) -> List[study.Result]:
         return [res for result_list in result for res in result_list]
 
     @staticmethod
-    def _get_job_results_v2(result: v2.result_pb2.Result
-                           ) -> List[study.TrialResult]:
+    def _get_job_results_v2(result: v2.result_pb2.Result) -> List[study.Result]:
         sweep_results = v2.results_from_proto(result)
         # Flatten to single list to match to sampler api.
         return [
@@ -386,16 +424,16 @@ class EngineJob:
                     format(name,
                            quantum.types.ExecutionStatus.State.Name(state)))
 
-    def __iter__(self) -> Iterator[study.TrialResult]:
+    def __iter__(self) -> Iterator[study.Result]:
         return iter(self.results())
 
     # pylint: disable=function-redefined
     @overload
-    def __getitem__(self, item: int) -> study.TrialResult:
+    def __getitem__(self, item: int) -> study.Result:
         pass
 
     @overload
-    def __getitem__(self, item: slice) -> List[study.TrialResult]:
+    def __getitem__(self, item: slice) -> List[study.Result]:
         pass
 
     def __getitem__(self, item):

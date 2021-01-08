@@ -79,6 +79,11 @@ class MeasurementGate(raw_types.Gate):
                                invert_mask=self.invert_mask,
                                qid_shape=self._qid_shape)
 
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+        if self.key not in key_map:
+            return self
+        return self.with_key(key_map[self.key])
+
     def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
         """Toggles whether or not the measurement inverts various outputs."""
         old_mask = self.invert_mask or ()

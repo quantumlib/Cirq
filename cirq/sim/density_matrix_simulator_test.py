@@ -884,7 +884,7 @@ def test_density_matrix_trial_result_qid_shape():
                 density_matrix=np.ones((4, 4)) / 4, qubit_map={
                     q0: 0,
                     q1: 1
-                }))) == (2, 2)
+                })),) == (2, 2)
     q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
     assert cirq.qid_shape(
         cirq.DensityMatrixTrialResult(
@@ -894,7 +894,7 @@ def test_density_matrix_trial_result_qid_shape():
                 density_matrix=np.ones((12, 12)) / 12, qubit_map={
                     q0: 0,
                     q1: 1
-                }))) == (3, 4)
+                })),) == (3, 4)
 
 
 def test_density_matrix_trial_result_repr():
@@ -1196,7 +1196,7 @@ def test_final_density_matrix_is_not_last_object():
 
     q = cirq.LineQubit(0)
     initial_state = np.array([[1, 0], [0, 0]], dtype=np.complex64)
-    circuit = cirq.Circuit(cirq.WaitGate(0)(q))
+    circuit = cirq.Circuit(cirq.wait(q))
     result = sim.simulate(circuit, initial_state=initial_state)
     assert result.final_density_matrix is not initial_state
     assert not np.shares_memory(result.final_density_matrix, initial_state)

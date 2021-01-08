@@ -64,7 +64,11 @@ from cirq.optimizers.synchronize_terminal_measurements import (
     SynchronizeTerminalMeasurements,)
 
 from cirq.optimizers.two_qubit_decompositions import (
-    two_qubit_matrix_to_operations,)
+    two_qubit_matrix_to_operations,
+    two_qubit_matrix_to_diagonal_and_operations,
+)
 
 from cirq.optimizers.two_qubit_to_fsim import (
-    decompose_two_qubit_interaction_into_four_fsim_gates_via_b,)
+    decompose_two_qubit_interaction_into_four_fsim_gates,
+    decompose_two_qubit_interaction_into_four_fsim_gates_via_b,
+)

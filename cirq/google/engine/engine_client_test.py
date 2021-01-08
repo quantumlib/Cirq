@@ -860,11 +860,29 @@ def test_api_retry_5xx_errors(client_constructor):
     grpc_client.get_quantum_program.side_effect = exceptions.ServiceUnavailable(
         'internal error')
 
-    client = EngineClient(max_retry_delay_seconds=1)
+    client = EngineClient(max_retry_delay_seconds=0.3)
     with pytest.raises(TimeoutError,
                        match='Reached max retry attempts.*internal error'):
         client.get_program('proj', 'prog', False)
-    assert grpc_client.get_quantum_program.call_count > 1
+    assert grpc_client.get_quantum_program.call_count == 3
+
+
+@mock.patch('time.sleep', return_value=None)
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_api_retry_times(client_constructor, mock_time):
+    grpc_client = setup_mock_(client_constructor)
+    grpc_client.get_quantum_program.side_effect = exceptions.ServiceUnavailable(
+        'internal error')
+
+    client = EngineClient(max_retry_delay_seconds=0.3)
+    with pytest.raises(TimeoutError,
+                       match='Reached max retry attempts.*internal error'):
+        client.get_program('proj', 'prog', False)
+    assert grpc_client.get_quantum_program.call_count == 3
+
+    assert len(mock_time.call_args_list) == 2
+    assert all(
+        x == y for (x, _), y in zip(mock_time.call_args_list, [(0.1,), (0.2,)]))
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)

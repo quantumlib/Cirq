@@ -46,16 +46,19 @@ _DEFAULT_ATOL = 1e-6
 
 
 def _near_mod_n(e, t, n, atol=_DEFAULT_ATOL):
+    """Returns whether a value, e, translated by t, is equal to 0 mod n."""
     if isinstance(e, sympy.Symbol):
         return False
     return abs((e - t + 1) % n - 1) <= atol
 
 
 def _near_mod_2pi(e, t, atol=_DEFAULT_ATOL):
+    """Returns whether a value, e, translated by t, is equal to 0 mod 2 * pi."""
     return _near_mod_n(e, t, n=2 * np.pi, atol=atol)
 
 
 def _near_mod_2(e, t, atol=_DEFAULT_ATOL):
+    """Returns whether a value, e, translated by t, is equal to 0 mod 2."""
     return _near_mod_n(e, t, n=2, atol=atol)
 
 
@@ -175,10 +178,12 @@ SINGLE_QUBIT_DESERIALIZERS = [
             op_deserializer.DeserializingArg(
                 serialized_name='axis_half_turns',
                 constructor_arg_name='phase_exponent',
+                default=0.0,
             ),
             op_deserializer.DeserializingArg(
                 serialized_name='half_turns',
                 constructor_arg_name='exponent',
+                default=1.0,
             ),
         ],
     ),
@@ -189,6 +194,7 @@ SINGLE_QUBIT_DESERIALIZERS = [
             op_deserializer.DeserializingArg(
                 serialized_name='half_turns',
                 constructor_arg_name='exponent',
+                default=1.0,
             ),
         ],
         op_wrapper=lambda op, proto: _convert_physical_z(op, proto)),
@@ -199,14 +205,17 @@ SINGLE_QUBIT_DESERIALIZERS = [
             op_deserializer.DeserializingArg(
                 serialized_name='x_exponent',
                 constructor_arg_name='x_exponent',
+                default=0.0,
             ),
             op_deserializer.DeserializingArg(
                 serialized_name='z_exponent',
                 constructor_arg_name='z_exponent',
+                default=0.0,
             ),
             op_deserializer.DeserializingArg(
                 serialized_name='axis_phase_exponent',
                 constructor_arg_name='axis_phase_exponent',
+                default=0.0,
             ),
         ],
     ),
@@ -322,7 +331,8 @@ SINGLE_QUBIT_HALF_PI_DESERIALIZERS = [
         args=[
             op_deserializer.DeserializingArg(
                 serialized_name='axis_half_turns',
-                constructor_arg_name='phase_exponent'),
+                constructor_arg_name='phase_exponent',
+            ),
             op_deserializer.DeserializingArg(serialized_name='axis_half_turns',
                                              constructor_arg_name='exponent',
                                              value_func=lambda _: 1),
@@ -376,8 +386,11 @@ CZ_POW_DESERIALIZER = op_deserializer.GateOpDeserializer(
     serialized_gate_id='cz',
     gate_constructor=ops.CZPowGate,
     args=[
-        op_deserializer.DeserializingArg(serialized_name='half_turns',
-                                         constructor_arg_name='exponent')
+        op_deserializer.DeserializingArg(
+            serialized_name='half_turns',
+            constructor_arg_name='exponent',
+            default=1.0,
+        )
     ])
 
 #
@@ -539,10 +552,16 @@ LIMITED_FSIM_DESERIALIZER = op_deserializer.GateOpDeserializer(
     serialized_gate_id='fsim',
     gate_constructor=ops.FSimGate,
     args=[
-        op_deserializer.DeserializingArg(serialized_name='theta',
-                                         constructor_arg_name='theta'),
-        op_deserializer.DeserializingArg(serialized_name='phi',
-                                         constructor_arg_name='phi'),
+        op_deserializer.DeserializingArg(
+            serialized_name='theta',
+            constructor_arg_name='theta',
+            default=0.0,
+        ),
+        op_deserializer.DeserializingArg(
+            serialized_name='phi',
+            constructor_arg_name='phi',
+            default=0.0,
+        ),
     ])
 
 
@@ -568,4 +587,5 @@ WAIT_GATE_DESERIALIZER = op_deserializer.GateOpDeserializer(
             constructor_arg_name='duration',
             value_func=lambda nanos: value.Duration(nanos=cast(
                 Union[int, float, sympy.Basic], nanos)))
-    ])
+    ],
+    num_qubits_param='num_qubits')

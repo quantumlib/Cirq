@@ -28,7 +28,7 @@ from cirq.testing.circuit_compare import (
 )
 
 from cirq.testing.consistent_act_on import (
-    assert_act_on_clifford_tableau_effect_matches_unitary,)
+    assert_all_implemented_act_on_effects_match_unitary,)
 
 from cirq.testing.consistent_phase_by import (
     assert_phase_by_is_consistent_with_unitary,)
@@ -89,6 +89,7 @@ from cirq.testing.order_tester import (
 from cirq.testing.random_circuit import (
     DEFAULT_GATE_DOMAIN,
     random_circuit,
+    random_two_qubit_circuit_with_czs,
 )
 
 from cirq.testing.sample_circuits import (

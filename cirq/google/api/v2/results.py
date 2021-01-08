@@ -112,7 +112,7 @@ def unpack_bits(data: bytes, repetitions: int) -> np.ndarray:
 
 
 def results_to_proto(
-        trial_sweeps: Iterable[Iterable[study.TrialResult]],
+        trial_sweeps: Iterable[Iterable[study.Result]],
         measurements: List[MeasureInfo],
         *,
         out: Optional[result_pb2.Result] = None,
@@ -150,7 +150,7 @@ def results_to_proto(
 def results_from_proto(
         msg: result_pb2.Result,
         measurements: List[MeasureInfo] = None,
-) -> List[List[study.TrialResult]]:
+) -> List[List[study.Result]]:
     """Converts a v2 result proto into List of list of trial results.
 
     Args:
@@ -174,7 +174,7 @@ def results_from_proto(
 def _trial_sweep_from_proto(
         msg: result_pb2.SweepResult,
         measure_map: Dict[str, MeasureInfo] = None,
-) -> List[study.TrialResult]:
+) -> List[study.Result]:
     """Converts a SweepResult proto into List of list of trial results.
 
     Args:
@@ -188,7 +188,7 @@ def _trial_sweep_from_proto(
         A list containing a list of trial results for the sweep.
     """
 
-    trial_sweep: List[study.TrialResult] = []
+    trial_sweep: List[study.Result] = []
     for pr in msg.parameterized_results:
         m_data: Dict[str, np.ndarray] = {}
         for mr in pr.measurement_results:
@@ -207,7 +207,7 @@ def _trial_sweep_from_proto(
                 ordered_results = list(qubit_results.values())
             m_data[mr.key] = np.array(ordered_results).transpose()
         trial_sweep.append(
-            study.TrialResult.from_single_parameter_set(
+            study.Result.from_single_parameter_set(
                 params=study.ParamResolver(dict(pr.params.assignments)),
                 measurements=m_data,
             ))

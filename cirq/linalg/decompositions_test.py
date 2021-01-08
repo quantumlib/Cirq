@@ -626,12 +626,14 @@ def _local_invariants_from_kak(vector: np.ndarray) -> np.ndarray:
 
     Any 2 qubit unitary may be expressed as
 
-    U = k_l A k_r
-    where k_l, k_r are single qubit (local) unitaries and
+    $U = k_l A k_r$
+    where $k_l, k_r$ are single qubit (local) unitaries and
 
-    A = \exp( i * \sum_{j=x,y,z} k_j \sigma_{j,0}\sigma{j,1} )
+    $$
+    A = \exp( i * \sum_{j=x,y,z} k_j \sigma_{(j,0)}\sigma_{(j,1)})
+    $$
 
-    Here (k_x,k_y,k_z) is the KAK vector.
+    Here $(k_x,k_y,k_z)$ is the KAK vector.
 
     Args:
         vector: Shape (...,3) tensor representing different KAK vectors.
@@ -741,3 +743,34 @@ def test_kak_decompose(unitary: np.ndarray):
     np.testing.assert_allclose(cirq.unitary(circuit), unitary, atol=1e-8)
     assert len(circuit) == 5
     assert len(list(circuit.all_operations())) == 8
+
+
+def test_num_two_qubit_gates_required():
+    for i in range(4):
+        assert cirq.num_cnots_required(
+            cirq.testing.random_two_qubit_circuit_with_czs(i).unitary()) == i
+
+    assert cirq.num_cnots_required(np.eye(4)) == 0
+
+
+def test_num_two_qubit_gates_required_invalid():
+    with pytest.raises(ValueError, match="(4,4)"):
+        cirq.num_cnots_required(np.array([[1]]))
+
+
+@pytest.mark.parametrize(
+    "U",
+    [
+        cirq.testing.random_two_qubit_circuit_with_czs(3).unitary(),
+        # an example where gamma(special(u))=I, so the denominator becomes 0
+        1 / np.sqrt(2) * np.array(
+            [[(1 - 1j) * 2 / np.sqrt(5), 0, 0,
+              (1 - 1j) * 1 / np.sqrt(5)], [0, 0, 1 - 1j, 0], [0, 1 - 1j, 0, 0],
+             [-(1 - 1j) * 1 / np.sqrt(5), 0, 0, (1 - 1j) * 2 / np.sqrt(5)]],
+            dtype=np.complex128)
+    ])
+def test_extract_right_diag(U):
+    assert cirq.num_cnots_required(U) == 3
+    diag = cirq.linalg.extract_right_diag(U)
+    assert cirq.is_diagonal(diag)
+    assert cirq.num_cnots_required(U @ diag) == 2

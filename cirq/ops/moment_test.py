@@ -199,6 +199,20 @@ def test_without_operations_touching():
                         ]).without_operations_touching([a, c]) == cirq.Moment())
 
 
+def test_with_measurement_keys():
+    a, b = cirq.LineQubit.range(2)
+    m = cirq.Moment(cirq.measure(a, key='m1'), cirq.measure(b, key='m2'))
+
+    new_moment = cirq.with_measurement_key_mapping(m, {
+        'm1': 'p1',
+        'm2': 'p2',
+        'x': 'z',
+    })
+
+    assert new_moment.operations[0] == cirq.measure(a, key='p1')
+    assert new_moment.operations[1] == cirq.measure(b, key='p2')
+
+
 def test_copy():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -377,3 +391,105 @@ def test_indexes_by_list_of_qubits():
     assert moment[q[2:4]] == cirq.Moment([cirq.CNOT(q[1], q[2])])
     assert moment[[q[0], q[3]]] == cirq.Moment([cirq.Z(q[0])])
     assert moment[q] == moment
+
+
+def test_moment_text_diagram():
+    a, b, c, d = cirq.GridQubit.rect(2, 2)
+    m = cirq.Moment(cirq.CZ(a, b), cirq.CNOT(c, d))
+    assert str(m).strip() == """
+  ╷ 0 1
+╶─┼─────
+0 │ @─@
+  │
+1 │ @─X
+  │
+    """.strip()
+
+    m = cirq.Moment(cirq.CZ(a, b), cirq.CNOT(c, d))
+    cirq.testing.assert_has_diagram(m,
+                                    """
+   ╷ None 0 1
+╶──┼──────────
+aa │
+   │
+0  │      @─@
+   │
+1  │      @─X
+   │
+        """,
+                                    extra_qubits=[cirq.NamedQubit("aa")])
+
+    m = cirq.Moment(cirq.S(c), cirq.ISWAP(a, d))
+    cirq.testing.assert_has_diagram(
+        m, """
+  ╷ 0     1
+╶─┼─────────────
+0 │ iSwap─┐
+  │       │
+1 │ S     iSwap
+  │
+    """)
+
+    m = cirq.Moment(cirq.S(c)**0.1, cirq.ISWAP(a, d)**0.5)
+    cirq.testing.assert_has_diagram(
+        m, """
+  ╷ 0         1
+╶─┼─────────────────
+0 │ iSwap^0.5─┐
+  │           │
+1 │ Z^0.05    iSwap
+  │
+    """)
+
+    a, b, c = cirq.LineQubit.range(3)
+    m = cirq.Moment(cirq.X(a), cirq.SWAP(b, c))
+    cirq.testing.assert_has_diagram(
+        m,
+        """
+  ╷ a b c
+╶─┼───────
+0 │ X
+  │
+1 │   ×─┐
+  │     │
+2 │     ×
+  │
+    """,
+        xy_breakdown_func=lambda q: ('abc' [q.x], q.x))
+
+    class EmptyGate(cirq.Gate):
+
+        def _num_qubits_(self) -> int:
+            return 1
+
+        def __str__(self):
+            return 'Empty'
+
+    m = cirq.Moment(EmptyGate().on(a))
+    cirq.testing.assert_has_diagram(m, """
+  ╷ 0
+╶─┼───────
+0 │ Empty
+  │
+    """)
+
+
+def test_commutes():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+    d = cirq.NamedQubit('d')
+
+    moment = cirq.Moment([cirq.X(a), cirq.Y(b), cirq.H(c)])
+
+    assert NotImplemented == cirq.commutes(moment, a, default=NotImplemented)
+
+    assert cirq.commutes(moment, cirq.X(a))
+    assert cirq.commutes(moment, cirq.Y(b))
+    assert cirq.commutes(moment, cirq.H(c))
+    assert cirq.commutes(moment, cirq.H(d))
+
+    # X and H do not commute
+    assert not cirq.commutes(moment, cirq.H(a))
+    assert not cirq.commutes(moment, cirq.H(b))
+    assert not cirq.commutes(moment, cirq.X(c))

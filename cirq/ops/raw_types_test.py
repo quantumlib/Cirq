@@ -461,6 +461,23 @@ def test_tagged_operation():
     assert op.with_qubits(q2).qubits == (q2,)
 
 
+def test_tagged_measurement():
+    a = cirq.LineQubit(0)
+    op = cirq.measure(a, key='m').with_tags('tag')
+
+    remap_op = cirq.with_measurement_key_mapping(op, {'m': 'k'})
+    assert remap_op.tags == ('tag',)
+    assert cirq.measurement_keys(remap_op) == {'k'}
+    assert cirq.with_measurement_key_mapping(op, {'x': 'k'}) == op
+
+
+def test_cannot_remap_non_measurement_gate():
+    a = cirq.LineQubit(0)
+    op = cirq.X(a).with_tags('tag')
+
+    assert cirq.with_measurement_key_mapping(op, {'m': 'k'}) is NotImplemented
+
+
 def test_circuit_diagram():
 
     class TaggyTag:
@@ -547,9 +564,6 @@ global phase:   π['tag1', 'tag2']""",
     # Two moments with global phase, one with another tagged gate
     c = cirq.Circuit([cirq.X(q).with_tags('x_tag'), tag1])
     c.append(cirq.Moment([cirq.X(q), tag2]))
-    for m in c:
-        print(m)
-        print('----')
     cirq.testing.assert_has_diagram(c,
                                     """\
 a: ─────────────X['x_tag']─────X──────────────

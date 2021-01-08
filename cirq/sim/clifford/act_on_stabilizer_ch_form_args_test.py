@@ -46,3 +46,45 @@ def test_gate_with_act_on():
     cirq.act_on(CustomGate(), args)
 
     np.testing.assert_allclose(state.gamma, [0, 1, 0])
+
+
+def test_unitary_fallback_y():
+
+    class UnitaryYGate(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _unitary_(self):
+            return np.array([[0, -1j], [1j, 0]])
+
+    original_state = cirq.StabilizerStateChForm(num_qubits=3)
+
+    args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(), axes=[1])
+    cirq.act_on(UnitaryYGate(), args)
+    expected_args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(),
+                                                   axes=[1])
+    cirq.act_on(cirq.Y, expected_args)
+    np.testing.assert_allclose(args.state.state_vector(),
+                               expected_args.state.state_vector())
+
+
+def test_unitary_fallback_h():
+
+    class UnitaryHGate(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _unitary_(self):
+            return np.array([[1, 1], [1, -1]]) / (2**0.5)
+
+    original_state = cirq.StabilizerStateChForm(num_qubits=3)
+
+    args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(), axes=[1])
+    cirq.act_on(UnitaryHGate(), args)
+    expected_args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(),
+                                                   axes=[1])
+    cirq.act_on(cirq.H, expected_args)
+    np.testing.assert_allclose(args.state.state_vector(),
+                               expected_args.state.state_vector())

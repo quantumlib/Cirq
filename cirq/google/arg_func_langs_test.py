@@ -20,8 +20,8 @@ from google.protobuf import json_format
 
 import cirq
 from cirq.google.arg_func_langs import (
-    _arg_from_proto,
-    _arg_to_proto,
+    arg_from_proto,
+    arg_to_proto,
     ARG_LIKE,
     LANGUAGE_ORDER,
 )
@@ -94,13 +94,13 @@ def test_correspondence(min_lang: str, value: ARG_LIKE,
         if i < min_i:
             with pytest.raises(ValueError,
                                match='not supported by arg_function_language'):
-                _ = _arg_to_proto(value, arg_function_language=lang)
+                _ = arg_to_proto(value, arg_function_language=lang)
             with pytest.raises(ValueError, match='Unrecognized function type'):
-                _ = _arg_from_proto(msg, arg_function_language=lang)
+                _ = arg_from_proto(msg, arg_function_language=lang)
         else:
-            parsed = _arg_from_proto(msg, arg_function_language=lang)
+            parsed = arg_from_proto(msg, arg_function_language=lang)
             packed = json_format.MessageToDict(
-                _arg_to_proto(value, arg_function_language=lang),
+                arg_to_proto(value, arg_function_language=lang),
                 including_default_value_fields=True,
                 preserving_proto_field_name=True,
                 use_integers_for_enums=True)
@@ -116,29 +116,29 @@ def test_double_value():
     """
     msg = v2.program_pb2.Arg()
     msg.arg_value.double_value = 1.0
-    parsed = _arg_from_proto(msg, arg_function_language='')
+    parsed = arg_from_proto(msg, arg_function_language='')
     assert parsed == 1
 
 
 def test_serialize_sympy_constants():
-    proto = _arg_to_proto(sympy.pi, arg_function_language='')
+    proto = arg_to_proto(sympy.pi, arg_function_language='')
     packed = json_format.MessageToDict(proto,
                                        including_default_value_fields=True,
                                        preserving_proto_field_name=True,
                                        use_integers_for_enums=True)
+    assert len(packed) == 1
+    assert len(packed['arg_value']) == 1
     # protobuf 3.12+ truncates floats to 4 bytes
-    assert packed == {
-        'arg_value': {
-            'float_value': float(str(np.float32(sympy.pi)))
-        }
-    }
+    assert np.isclose(packed['arg_value']['float_value'],
+                      np.float32(sympy.pi),
+                      atol=1e-7)
 
 
 def test_unsupported_function_language():
     with pytest.raises(ValueError, match='Unrecognized arg_function_language'):
-        _ = _arg_to_proto(1, arg_function_language='NEVER GONNAH APPEN')
+        _ = arg_to_proto(1, arg_function_language='NEVER GONNAH APPEN')
     with pytest.raises(ValueError, match='Unrecognized arg_function_language'):
-        _ = _arg_from_proto(None, arg_function_language='NEVER GONNAH APPEN')
+        _ = arg_from_proto(None, arg_function_language='NEVER GONNAH APPEN')
 
 
 @pytest.mark.parametrize('value,proto', [
@@ -160,8 +160,8 @@ def test_unsupported_function_language():
 def test_serialize_conversion(value: ARG_LIKE, proto: v2.program_pb2.Arg):
     msg = v2.program_pb2.Arg()
     json_format.ParseDict(proto, msg)
-    packed = json_format.MessageToDict(_arg_to_proto(value,
-                                                     arg_function_language=''),
+    packed = json_format.MessageToDict(arg_to_proto(value,
+                                                    arg_function_language=''),
                                        including_default_value_fields=True,
                                        preserving_proto_field_name=True,
                                        use_integers_for_enums=True)

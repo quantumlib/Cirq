@@ -41,8 +41,8 @@ def test_measurement_key_no_method():
 
     with pytest.raises(ValueError, match='multiple measurement keys'):
         cirq.measurement_key(
-            cirq.Circuit(cirq.measure(cirq.LineQubit(0)),
-                         cirq.measure(cirq.LineQubit(0))))
+            cirq.Circuit(cirq.measure(cirq.LineQubit(0), key='a'),
+                         cirq.measure(cirq.LineQubit(0), key='b')))
 
     assert cirq.measurement_key(NoMethod(), None) is None
     assert cirq.measurement_key(NoMethod(), NotImplemented) is NotImplemented
@@ -110,25 +110,69 @@ def test_measurement_keys():
             return 1
 
     a, b = cirq.LineQubit.range(2)
-    assert cirq.measurement_keys(Composite()) == ('inner1', 'inner2')
-    assert cirq.measurement_keys(Composite().on(a, b)) == ('inner1', 'inner2')
-    assert cirq.measurement_keys(Composite(), allow_decompose=False) == ()
+    assert cirq.measurement_keys(Composite()) == {'inner1', 'inner2'}
+    assert cirq.measurement_keys(Composite().on(a, b)) == {'inner1', 'inner2'}
+    assert cirq.measurement_keys(Composite(), allow_decompose=False) == set()
     assert cirq.measurement_keys(Composite().on(a, b),
-                                 allow_decompose=False) == ()
+                                 allow_decompose=False) == set()
 
-    assert cirq.measurement_keys(None) == ()
-    assert cirq.measurement_keys([]) == ()
-    assert cirq.measurement_keys(cirq.X) == ()
-    assert cirq.measurement_keys(cirq.X(a)) == ()
-    assert cirq.measurement_keys(None, allow_decompose=False) == ()
-    assert cirq.measurement_keys([], allow_decompose=False) == ()
-    assert cirq.measurement_keys(cirq.X, allow_decompose=False) == ()
-    assert cirq.measurement_keys(cirq.measure(a, key='out')) == ('out',)
+    assert cirq.measurement_keys(None) == set()
+    assert cirq.measurement_keys([]) == set()
+    assert cirq.measurement_keys(cirq.X) == set()
+    assert cirq.measurement_keys(cirq.X(a)) == set()
+    assert cirq.measurement_keys(None, allow_decompose=False) == set()
+    assert cirq.measurement_keys([], allow_decompose=False) == set()
+    assert cirq.measurement_keys(cirq.X, allow_decompose=False) == set()
+    assert cirq.measurement_keys(cirq.measure(a, key='out')) == {'out'}
     assert cirq.measurement_keys(cirq.measure(a, key='out'),
-                                 allow_decompose=False) == ('out',)
+                                 allow_decompose=False) == {'out'}
 
     assert cirq.measurement_keys(
         cirq.Circuit(cirq.measure(a, key='a'),
-                     cirq.measure(b, key='2'))) == ('a', '2')
-    assert cirq.measurement_keys(MeasurementKeysGate()) == ('a', 'b')
-    assert cirq.measurement_keys(MeasurementKeysGate().on(a)) == ('a', 'b')
+                     cirq.measure(b, key='2'))) == {'a', '2'}
+    assert cirq.measurement_keys(MeasurementKeysGate()) == {'a', 'b'}
+    assert cirq.measurement_keys(MeasurementKeysGate().on(a)) == {'a', 'b'}
+
+
+def test_measurement_key_mapping():
+
+    class MultiKeyGate:
+
+        def __init__(self, keys):
+            self._keys = set(keys)
+
+        def _measurement_keys_(self):
+            return self._keys
+
+        def _with_measurement_key_mapping_(self, key_map):
+            if not all(key in key_map for key in self._keys):
+                raise ValueError('missing keys')
+            return MultiKeyGate([key_map[key] for key in self._keys])
+
+    assert cirq.measurement_keys(MultiKeyGate([])) == set()
+    assert cirq.measurement_keys(MultiKeyGate(['a'])) == {'a'}
+
+    mkg_ab = MultiKeyGate(['a', 'b'])
+    assert cirq.measurement_keys(mkg_ab) == {'a', 'b'}
+
+    mkg_cd = cirq.with_measurement_key_mapping(mkg_ab, {'a': 'c', 'b': 'd'})
+    assert cirq.measurement_keys(mkg_cd) == {'c', 'd'}
+
+    mkg_ac = cirq.with_measurement_key_mapping(mkg_ab, {'a': 'a', 'b': 'c'})
+    assert cirq.measurement_keys(mkg_ac) == {'a', 'c'}
+
+    mkg_ba = cirq.with_measurement_key_mapping(mkg_ab, {'a': 'b', 'b': 'a'})
+    assert cirq.measurement_keys(mkg_ba) == {'a', 'b'}
+
+    with pytest.raises(ValueError):
+        cirq.with_measurement_key_mapping(mkg_ab, {'a': 'c'})
+
+    assert cirq.with_measurement_key_mapping(cirq.X,
+                                             {'a': 'c'}) is NotImplemented
+
+    mkg_cdx = cirq.with_measurement_key_mapping(mkg_ab, {
+        'a': 'c',
+        'b': 'd',
+        'x': 'y'
+    })
+    assert cirq.measurement_keys(mkg_cdx) == {'c', 'd'}

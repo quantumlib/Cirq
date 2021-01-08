@@ -227,6 +227,28 @@ results: [{
 """, v2.batch_pb2.BatchResult()))
 
 
+_CALIBRATION_RESULTS_V2 = _to_any(
+    Merge(
+        """
+results: [{
+    code: 1
+    error_message: 'First success'
+    token: 'abc123'
+    metrics: {
+      metrics: [{
+        name: 'fidelity'
+        targets: ['q2_3','q2_4']
+        values: [{
+            double_val: 0.75
+    }]
+    }]}
+    },{
+    code: 1
+    error_message: 'Second success'
+}]
+""", v2.calibration_pb2.FocusedCalibrationResult()))
+
+
 @pytest.fixture(scope='session', autouse=True)
 def mock_grpc_client():
     with mock.patch('cirq.google.engine.engine_client'
@@ -588,6 +610,31 @@ def test_run_batch(client):
     client().get_job_results.assert_called_once()
 
 
+@mock.patch('cirq.google.engine.engine_client.EngineClient')
+def test_run_batch_no_params(client):
+    # OK to run with no params, it should use empty sweeps for each
+    # circuit.
+    setup_run_circuit_with_result_(client, _BATCH_RESULTS_V2)
+    engine = cg.Engine(
+        project_id='proj',
+        proto_version=cg.engine.engine.ProtoVersion.V2,
+    )
+    engine.run_batch(programs=[_CIRCUIT, _CIRCUIT2],
+                     gate_set=cg.XMON,
+                     job_id='job-id',
+                     processor_ids=['mysim'])
+    # Validate correct number of params have been created and that they
+    # are empty sweeps.
+    run_context = v2.batch_pb2.BatchRunContext()
+    client().create_job.call_args[1]['run_context'].Unpack(run_context)
+    assert len(run_context.run_contexts) == 2
+    for rc in run_context.run_contexts:
+        sweeps = rc.parameter_sweeps
+        assert len(sweeps) == 1
+        assert sweeps[0].repetitions == 1
+        assert sweeps[0].sweep == v2.run_context_pb2.Sweep()
+
+
 def test_batch_size_validation_fails():
     engine = cg.Engine(
         project_id='proj',
@@ -628,6 +675,78 @@ def test_bad_sweep_proto():
     program = cg.EngineProgram('proj', 'prog', engine.context)
     with pytest.raises(ValueError, match='invalid run context proto version'):
         program.run_sweep()
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient')
+def test_run_calibration(client):
+    setup_run_circuit_with_result_(client, _CALIBRATION_RESULTS_V2)
+
+    engine = cg.Engine(
+        project_id='proj',
+        proto_version=cg.engine.engine.ProtoVersion.V2,
+    )
+    q1 = cirq.GridQubit(2, 3)
+    q2 = cirq.GridQubit(2, 4)
+    layer1 = cg.CalibrationLayer('xeb', cirq.Circuit(cirq.CZ(q1, q2)),
+                                 {'num_layers': 42})
+    layer2 = cg.CalibrationLayer('readout', cirq.Circuit(cirq.measure(q1, q2)),
+                                 {'num_samples': 4242})
+    job = engine.run_calibration(gate_set=cg.FSIM_GATESET,
+                                 layers=[layer1, layer2],
+                                 job_id='job-id',
+                                 processor_id='mysim')
+    results = job.calibration_results()
+    assert len(results) == 2
+    assert results[0].code == v2.calibration_pb2.SUCCESS
+    assert results[0].error_message == 'First success'
+    assert results[0].token == 'abc123'
+    assert len(results[0].metrics) == 1
+    assert len(results[0].metrics['fidelity']) == 1
+    assert results[0].metrics['fidelity'][(q1, q2)] == [0.75]
+    assert results[1].code == v2.calibration_pb2.SUCCESS
+    assert results[1].error_message == 'Second success'
+
+    # assert label is correct
+    client().create_job.assert_called_once_with(
+        project_id='proj',
+        program_id='prog',
+        job_id='job-id',
+        processor_ids=['mysim'],
+        run_context=_to_any(
+            v2.run_context_pb2.RunContext(parameter_sweeps=[
+                v2.run_context_pb2.ParameterSweep(repetitions=1)
+            ])),
+        description=None,
+        labels={'calibration': ''})
+
+
+def test_run_calibration_validation_fails():
+    engine = cg.Engine(
+        project_id='proj',
+        proto_version=cg.engine.engine.ProtoVersion.V2,
+    )
+    q1 = cirq.GridQubit(2, 3)
+    q2 = cirq.GridQubit(2, 4)
+    layer1 = cg.CalibrationLayer('xeb', cirq.Circuit(cirq.CZ(q1, q2)),
+                                 {'num_layers': 42})
+    layer2 = cg.CalibrationLayer('readout', cirq.Circuit(cirq.measure(q1, q2)),
+                                 {'num_samples': 4242})
+
+    with pytest.raises(ValueError, match='Processor id must be specified'):
+        _ = engine.run_calibration(layers=[layer1, layer2],
+                                   gate_set=cg.XMON,
+                                   job_id='job-id')
+
+    with pytest.raises(ValueError, match='Gate set must be specified'):
+        _ = engine.run_calibration(layers=[layer1, layer2],
+                                   processor_ids=['mysim'],
+                                   job_id='job-id')
+    with pytest.raises(ValueError, match='processor_id and processor_ids'):
+        _ = engine.run_calibration(layers=[layer1, layer2],
+                                   processor_ids=['mysim'],
+                                   processor_id='mysim',
+                                   gate_set=cg.XMON,
+                                   job_id='job-id')
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient')

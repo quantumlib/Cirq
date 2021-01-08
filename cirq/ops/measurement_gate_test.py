@@ -61,19 +61,26 @@ def test_measurement_full_invert_mask():
         2, 'a', invert_mask=(True,)).full_invert_mask() == (True, False))
 
 
+@pytest.mark.parametrize('use_protocol', [False, True])
 @pytest.mark.parametrize('gate', [
     cirq.MeasurementGate(1, 'a'),
     cirq.MeasurementGate(1, 'a', invert_mask=(True,)),
     cirq.MeasurementGate(1, 'a', qid_shape=(3,)),
     cirq.MeasurementGate(2, 'a', invert_mask=(True, False), qid_shape=(2, 3)),
 ])
-def test_measurement_with_key(gate):
-    gate1 = gate.with_key('b')
+def test_measurement_with_key(use_protocol, gate):
+    if use_protocol:
+        gate1 = cirq.with_measurement_key_mapping(gate, {'a': 'b'})
+    else:
+        gate1 = gate.with_key('b')
     assert gate1.key == 'b'
     assert gate1.num_qubits() == gate.num_qubits()
     assert gate1.invert_mask == gate.invert_mask
     assert cirq.qid_shape(gate1) == cirq.qid_shape(gate)
-    gate2 = gate1.with_key('a')
+    if use_protocol:
+        gate2 = cirq.with_measurement_key_mapping(gate, {'a': 'a'})
+    else:
+        gate2 = gate.with_key('a')
     assert gate2 == gate
 
 
@@ -128,8 +135,8 @@ def test_measurement_gate_diagram():
                                     known_qubit_count=3,
                                     use_unicode_characters=True,
                                     precision=None,
-                                    qubit_map=None)) == cirq.CircuitDiagramInfo(
-                                        ("M('')", 'M', 'M'))
+                                    qubit_map=None),
+    ) == cirq.CircuitDiagramInfo(("M('')", 'M', 'M'))
 
     # Shows invert mask.
     assert cirq.circuit_diagram_info(
@@ -278,7 +285,7 @@ def test_act_on_clifford_tableau():
     a, b = cirq.LineQubit.range(2)
     m = cirq.measure(a, b, key='out', invert_mask=(True,))
     # The below assertion does not fail since it ignores non-unitary operations
-    cirq.testing.assert_act_on_clifford_tableau_effect_matches_unitary(m)
+    cirq.testing.assert_all_implemented_act_on_effects_match_unitary(m)
 
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(m, object())

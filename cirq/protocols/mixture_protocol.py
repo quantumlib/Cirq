@@ -19,11 +19,10 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq._compat import deprecated
-from cirq._doc import document
+from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import \
     _try_decompose_into_operations_and_qubits
 from cirq.protocols.has_unitary_protocol import has_unitary
-
 from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the inverse method to determine
@@ -35,7 +34,7 @@ class SupportsMixture(Protocol):
     """An object that decomposes into a probability distribution of unitaries.
     """
 
-    @document
+    @doc_private
     def _mixture_(self
                  ) -> Union[Sequence[Tuple[float, Any]], NotImplementedType]:
         """Decompose into a probability distribution of unitaries.
@@ -53,7 +52,7 @@ class SupportsMixture(Protocol):
             A list of (probability, unitary) pairs.
         """
 
-    @document
+    @doc_private
     def _has_mixture_(self) -> bool:
         """Whether this value has a mixture representation.
 

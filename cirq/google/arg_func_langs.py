@@ -64,14 +64,6 @@ def _infer_function_language_from_circuit(value: v2.program_pb2.Circuit) -> str:
     })
 
 
-def _infer_function_language_from_schedule(value: v2.program_pb2.Schedule
-                                          ) -> str:
-    return _max_lang({
-        e for op in value.scheduled_operations
-        for e in _function_languages_from_operation(op.operation)
-    })
-
-
 def _function_languages_from_operation(value: v2.program_pb2.Operation
                                       ) -> Iterator[str]:
     for arg in value.args.values():
@@ -93,11 +85,11 @@ def _function_languages_from_arg(arg_proto: v2.program_pb2.Arg
                 yield from _function_languages_from_arg(a)
 
 
-def _arg_to_proto(value: ARG_LIKE,
-                  *,
-                  arg_function_language: Optional[str],
-                  out: Optional[v2.program_pb2.Arg] = None
-                 ) -> v2.program_pb2.Arg:
+def arg_to_proto(value: ARG_LIKE,
+                 *,
+                 arg_function_language: Optional[str] = None,
+                 out: Optional[v2.program_pb2.Arg] = None
+                ) -> v2.program_pb2.Arg:
     """Writes an argument value into an Arg proto.
 
     Args:
@@ -141,28 +133,28 @@ def _arg_to_proto(value: ARG_LIKE,
     elif isinstance(value, sympy.Add):
         msg.func.type = check_support('add')
         for arg in value.args:
-            _arg_to_proto(arg,
-                          arg_function_language=arg_function_language,
-                          out=msg.func.args.add())
+            arg_to_proto(arg,
+                         arg_function_language=arg_function_language,
+                         out=msg.func.args.add())
     elif isinstance(value, sympy.Mul):
         msg.func.type = check_support('mul')
         for arg in value.args:
-            _arg_to_proto(arg,
-                          arg_function_language=arg_function_language,
-                          out=msg.func.args.add())
+            arg_to_proto(arg,
+                         arg_function_language=arg_function_language,
+                         out=msg.func.args.add())
     elif isinstance(value, sympy.Pow):
         msg.func.type = check_support('pow')
         for arg in value.args:
-            _arg_to_proto(arg,
-                          arg_function_language=arg_function_language,
-                          out=msg.func.args.add())
+            arg_to_proto(arg,
+                         arg_function_language=arg_function_language,
+                         out=msg.func.args.add())
     else:
         raise ValueError(f'Unrecognized arg type: {type(value)}')
 
     return msg
 
 
-def _arg_from_proto(
+def arg_from_proto(
         arg_proto: v2.program_pb2.Arg,
         *,
         arg_function_language: str,
@@ -219,25 +211,25 @@ def _arg_from_proto(
 
         if func.type == 'add':
             return sympy.Add(*[
-                _arg_from_proto(a,
-                                arg_function_language=arg_function_language,
-                                required_arg_name='An addition argument')
+                arg_from_proto(a,
+                               arg_function_language=arg_function_language,
+                               required_arg_name='An addition argument')
                 for a in func.args
             ])
 
         if func.type == 'mul':
             return sympy.Mul(*[
-                _arg_from_proto(a,
-                                arg_function_language=arg_function_language,
-                                required_arg_name='A multiplication argument')
+                arg_from_proto(a,
+                               arg_function_language=arg_function_language,
+                               required_arg_name='A multiplication argument')
                 for a in func.args
             ])
 
         if func.type == 'pow':
             return sympy.Pow(*[
-                _arg_from_proto(a,
-                                arg_function_language=arg_function_language,
-                                required_arg_name='A power argument')
+                arg_from_proto(a,
+                               arg_function_language=arg_function_language,
+                               required_arg_name='A power argument')
                 for a in func.args
             ])
 

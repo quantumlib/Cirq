@@ -1,0 +1,67 @@
+{
+  "cirq_type": "_MeasurementSpec",
+  "max_setting": {
+    "cirq_type": "InitObsSetting",
+    "init_state": {
+      "cirq_type": "ProductState",
+      "states": [
+        [
+          {
+            "cirq_type": "LineQubit",
+            "x": 0
+          },
+          {
+            "cirq_type": "_ZEigenState",
+            "eigenvalue": 1
+          }
+        ],
+        [
+          {
+            "cirq_type": "LineQubit",
+            "x": 1
+          },
+          {
+            "cirq_type": "_ZEigenState",
+            "eigenvalue": 1
+          }
+        ]
+      ]
+    },
+    "observable": {
+      "cirq_type": "PauliString",
+      "qubit_pauli_map": [
+        [
+          {
+            "cirq_type": "LineQubit",
+            "x": 0
+          },
+          {
+            "cirq_type": "_PauliX",
+            "exponent": 1.0,
+            "global_shift": 0.0
+          }
+        ],
+        [
+          {
+            "cirq_type": "LineQubit",
+            "x": 1
+          },
+          {
+            "cirq_type": "_PauliY",
+            "exponent": 1.0,
+            "global_shift": 0.0
+          }
+        ]
+      ],
+      "coefficient": {
+        "cirq_type": "complex",
+        "real": 1.0,
+        "imag": 0.0
+      }
+    }
+  },
+  "circuit_params": {
+    "beta": 0.123,
+    "gamma": 0.456
+  }
+}
