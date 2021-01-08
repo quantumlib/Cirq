@@ -135,7 +135,7 @@ class AbstractCircuit(abc.ABC):
         """
         if isinstance(self, Circuit):
             return Circuit.copy(self)
-        return Circuit(self, strategy=InsertStrategy.EARLIEST, device=self.device)
+        return Circuit(self, strategy=InsertStrategy.EARLIEST, device=self.device, name=self.name)
 
     def __bool__(self):
         return bool(self.moments)

@@ -23,7 +23,7 @@ import cirq
 
 def test_freeze_and_unfreeze():
     a, b = cirq.LineQubit.range(2)
-    c = cirq.Circuit(cirq.X(a), cirq.H(b))
+    c = cirq.Circuit(cirq.X(a), cirq.H(b), name='testname')
 
     f = c.freeze()
     assert f.moments == tuple(c.moments)
