@@ -15,11 +15,11 @@
 
 import abc
 
-from typing import Any, cast, Dict, Iterator, Sequence, TYPE_CHECKING, Tuple
+from typing import Any, cast, Dict, Sequence, TYPE_CHECKING, Tuple
 
 import numpy as np
 
-from cirq import circuits, ops, study, value
+from cirq import ops, study, value
 from cirq.sim import simulator, state_vector
 from cirq._compat import deprecated
 
