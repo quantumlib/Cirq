@@ -96,11 +96,11 @@ class FrozenCircuit(AbstractCircuit):
     def __hash__(self):
         return hash((self.moments, self.device, self.name))
 
-    def serialization_key(self):
+    def serialization_key(self) -> str:
         key = hash(self) & 0xFFFF_FFFF_FFFF_FFFF
         return f'{self.name or "Circuit"}_0x{key:016x}'
 
-    def _serialization_key_(self):
+    def _serialization_key_(self) -> str:
         return self.serialization_key()
 
     # Memoized methods for commonly-retrieved properties.
