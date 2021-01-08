@@ -21,6 +21,7 @@ import pytest
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
+import cirq
 from cirq.devices import grid_qubit
 from cirq.vis import heatmap
 
@@ -61,7 +62,9 @@ def test_cell_colors(ax, colormap_name):
     values = 1.0 + 2.0 * np.random.random(len(qubits))  # [1, 3)
     test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
     vmin, vmax = 1.5, 2.5
-    random_heatmap = heatmap.Heatmap(test_value_map).set_colormap(vmin, vmax, colormap_name)
+    random_heatmap = heatmap.Heatmap(test_value_map).set_colormap(
+        colormap_name, vmin=vmin, vmax=vmax
+    )
     _, mesh, _ = random_heatmap.plot(ax)
 
     colormap = mpl.cm.get_cmap(colormap_name)
@@ -103,9 +106,7 @@ def test_annotation_position_and_content(ax, format_string):
     qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     values = np.random.random(len(qubits))
     test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
-    random_heatmap = (
-        heatmap.Heatmap(test_value_map).unset_annotation().set_annotation_format(format_string)
-    )
+    random_heatmap = heatmap.Heatmap(test_value_map).set_annotation_format(format_string)
     random_heatmap.plot(ax)
     actual_texts = set()
     for artist in ax.get_children():
@@ -117,6 +118,12 @@ def test_annotation_position_and_content(ax, format_string):
         (qubit, format(value, format_string)) for qubit, value in test_value_map.items()
     )
     assert expected_texts.issubset(actual_texts)
+
+
+def test_midpoint():
+    ih = heatmap.InterHeatmap(value_map={((1, 0), (0, 1)): 0.1})
+    assert ih._target_to_coordinate(((1, 0), (0, 1))) == (0.5, 0.5)
+    assert ih._target_to_coordinate((cirq.GridQubit(1, 0), cirq.GridQubit(0, 1))) == (0.5, 0.5)
 
 
 @pytest.mark.parametrize('test_GridQubit', [True, False])
@@ -174,7 +181,7 @@ def test_non_float_values(ax, format_string):
     vmin, vmax = 0.0, 1.0
     random_heatmap = (
         heatmap.Heatmap(test_value_map)
-        .set_colormap(vmin, vmax, colormap_name)
+        .set_colormap(colormap_name, vmin=vmin, vmax=vmax)
         .set_annotation_format(format_string)
     )
     _, mesh, _ = random_heatmap.plot(ax)
@@ -218,7 +225,7 @@ def test_urls(ax, test_GridQubit):
     extra_qubit = grid_qubit.GridQubit(10, 7) if test_GridQubit else (10, 7)
     test_url_map[extra_qubit] = 'http://google.com/10+7'
 
-    my_heatmap = heatmap.Heatmap(test_value_map).unset_url_map().set_url_map(test_url_map)
+    my_heatmap = heatmap.Heatmap(test_value_map).set_url_map(test_url_map)
     _, mesh, _ = my_heatmap.plot(ax)
     expected_urls = [
         test_url_map.get(qubit, '') for row_col, qubit in sorted(zip(row_col_list, qubits))
@@ -258,7 +265,7 @@ def test_interheatmap():
     test_heatmap.unset_colorbar().set_colorbar()
 
     colormap_name = 'Greys'
-    test_heatmap.set_colormap(0.001, 0.01, colormap_name)
+    test_heatmap.set_colormap(colormap_name, 0.001, 0.01)
 
     annot_map = {(3.5, 2): '.3e', (4, 1.5): '.2f'}
     test_heatmap.unset_annotation()
