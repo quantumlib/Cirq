@@ -453,6 +453,9 @@ class SerializableByKey(SupportsJSON):
         This should only return the same value for two objects if they are
         equal; otherwise, an error will occur if both are serialized into the
         same JSON string.
+
+        Tests will ignore a single hash value ("0x" + 16 hex digits) in each
+        serialization key to allow for variance between Python sessions.
         """
 
 
