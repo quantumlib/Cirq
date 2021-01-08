@@ -333,7 +333,6 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             circuit, study.ParamResolver(param_resolver), qubit_order, initial_state
         )
 
-    @abc.abstractmethod
     def _simulator_iterator(
         self,
         circuit: circuits.Circuit,
@@ -357,6 +356,19 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
+        param_resolver = param_resolver or study.ParamResolver({})
+        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        _check_all_resolved(resolved_circuit)
+        actual_initial_state = 0 if initial_state is None else initial_state
+        return self._base_iterator(resolved_circuit, qubit_order, actual_initial_state)
+
+    @abc.abstractmethod
+    def _base_iterator(
+        self,
+        circuit: circuits.Circuit,
+        qubit_order: ops.QubitOrderOrList,
+        initial_state: Any,
+    ) -> Iterator['StepResult']:
         raise NotImplementedError()
 
     def _create_simulator_trial_result(
@@ -593,3 +605,13 @@ def _verify_unique_measurement_keys(circuit: circuits.Circuit):
         duplicates = [k for k, v in result.most_common() if v > 1]
         if duplicates:
             raise ValueError('Measurement key {} repeated'.format(",".join(duplicates)))
+
+
+def _check_all_resolved(circuit):
+    """Raises if the circuit contains unresolved symbols."""
+    if protocols.is_parameterized(circuit):
+        unresolved = [op for moment in circuit for op in moment if protocols.is_parameterized(op)]
+        raise ValueError(
+            'Circuit contains ops whose symbols were not specified in '
+            'parameter sweep. Ops: {}'.format(unresolved)
+        )
