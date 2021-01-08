@@ -651,6 +651,20 @@ def _eval_repr_data_file(path: pathlib.Path):
     )
 
 
+def replace_trailing_hash(src: str, dst: str) -> str:
+    """Update serialization keys in dst to use hash values from src."""
+    match = '_Serialized(Context|Key).*\n.*"key".*?0x[0-9a-f]{16}'
+    re_src = re.finditer(match, src, re.M)
+    re_dst = re.finditer(match, dst, re.M)
+    for s, d in zip(re_src, re_dst):
+        dst = (
+            dst[: d.start()]
+            + src[s.start() : s.end()]
+            + dst[d.end() :]
+        )
+    return dst
+
+
 def assert_repr_and_json_test_data_agree(
     repr_path: pathlib.Path, json_path: pathlib.Path, inward_only: bool
 ):
@@ -686,14 +700,7 @@ def assert_repr_and_json_test_data_agree(
         if json_serialization.has_serializable_by_keys(repr_obj):
             # Hash values are not consistent between python sessions.
             # Replace each hash in hardcoded JSON file with the value from repr.
-            src = re.finditer('_Serialized(Context|Key).*?_0x.{16}', json_from_cirq, re.DOTALL)
-            dst = re.finditer('_Serialized(Context|Key).*?_0x.{16}', json_from_file, re.DOTALL)
-            for s, d in zip(src, dst):
-                json_from_file = (
-                    json_from_file[: d.start()]
-                    + json_from_cirq[s.start() : s.end()]
-                    + json_from_file[d.end() :]
-                )
+            json_from_file = replace_trailing_hash(json_from_cirq, json_from_file)
 
         json_from_cirq_obj = json.loads(json_from_cirq)
         json_from_file_obj = json.loads(json_from_file)
