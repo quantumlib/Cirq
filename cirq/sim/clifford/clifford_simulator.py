@@ -42,7 +42,7 @@ from cirq.ops.dense_pauli_string import DensePauliString
 from cirq.protocols import act_on, unitary
 from cirq.sim import clifford, simulator
 from cirq._compat import deprecated, deprecated_parameter
-from cirq.sim.simulator import _check_all_resolved
+from cirq.sim.simulator import check_all_resolved
 
 
 class CliffordSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
@@ -132,7 +132,7 @@ class CliffordSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermedi
 
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        _check_all_resolved(resolved_circuit)
+        check_all_resolved(resolved_circuit)
 
         measurements = {}  # type: Dict[str, List[np.ndarray]]
         if repetitions == 0:

@@ -26,7 +26,7 @@ from cirq.sim import (
     state_vector_simulator,
     act_on_state_vector_args,
 )
-from cirq.sim.simulator import _check_all_resolved
+from cirq.sim.simulator import check_all_resolved
 
 if TYPE_CHECKING:
     import cirq
@@ -136,7 +136,7 @@ class Simulator(
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        _check_all_resolved(resolved_circuit)
+        check_all_resolved(resolved_circuit)
         qubit_order = sorted(resolved_circuit.all_qubits())
 
         # Simulate as many unitary operations as possible before having to

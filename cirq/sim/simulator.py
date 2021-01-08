@@ -250,7 +250,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
     state at the end of a circuit, a SimulatesIntermediateState can
     simulate stepping through the moments of a circuit.
 
-    Implementors of this interface should implement the _simulator_iterator
+    Implementors of this interface should implement the _base_iterator
     method.
 
     Note that state here refers to simulator state, which is not necessarily
@@ -358,7 +358,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
         """
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        _check_all_resolved(resolved_circuit)
+        check_all_resolved(resolved_circuit)
         actual_initial_state = 0 if initial_state is None else initial_state
         return self._base_iterator(resolved_circuit, qubit_order, actual_initial_state)
 
@@ -607,7 +607,7 @@ def _verify_unique_measurement_keys(circuit: circuits.Circuit):
             raise ValueError('Measurement key {} repeated'.format(",".join(duplicates)))
 
 
-def _check_all_resolved(circuit):
+def check_all_resolved(circuit):
     """Raises if the circuit contains unresolved symbols."""
     if protocols.is_parameterized(circuit):
         unresolved = [op for moment in circuit for op in moment if protocols.is_parameterized(op)]

@@ -21,7 +21,7 @@ import numpy as np
 
 from cirq import circuits, ops, protocols, qis, study, value, devices
 from cirq.sim import density_matrix_utils, simulator
-from cirq.sim.simulator import _check_all_resolved
+from cirq.sim.simulator import check_all_resolved
 
 if TYPE_CHECKING:
     from typing import Tuple
@@ -166,7 +166,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples, simulator.SimulatesInte
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        _check_all_resolved(resolved_circuit)
+        check_all_resolved(resolved_circuit)
 
         if circuit.are_all_measurements_terminal():
             return self._run_sweep_sample(resolved_circuit, repetitions)
