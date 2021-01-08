@@ -59,11 +59,7 @@ class CircuitOperation(ops.Operation):
 
     def __post_init__(self):
         if not isinstance(self.circuit, circuits.FrozenCircuit):
-            raise TypeError(
-                'Only FrozenCircuits are allowed as circuit input. Found: {!r}'.format(
-                    type(self.circuit)
-                )
-            )
+            raise TypeError(f'Expected circuit of type FrozenCircuit, got: {type(self.circuit)!r}')
         # Ensure that param_resolver is converted to an actual ParamResolver.
         object.__setattr__(self, 'param_resolver', study.ParamResolver(self.param_resolver))
 

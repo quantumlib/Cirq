@@ -38,7 +38,7 @@ def test_properties():
     assert op == circuit.to_op()
 
 
-def type_validated():
+def test_circuit_type():
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(
         cirq.X(a),
@@ -47,7 +47,7 @@ def type_validated():
         cirq.CX(a, b) ** sympy.Symbol('exp'),
         cirq.measure(a, b, c, key='m'),
     )
-    with pytest.raises(TypeError, match='Only FrozenCircuits are allowed'):
+    with pytest.raises(TypeError, match='Expected circuit of type FrozenCircuits'):
         _ = cirq.CircuitOperation(circuit)
 
 
