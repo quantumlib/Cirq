@@ -37,20 +37,22 @@ document(
 
     Note that 0 is a `DURATION_LIKE`, despite the fact that `int` is not listed,
     because 0 is the only integer where the physical unit doesn't matter.
-    """)
+    """,
+)
 
 
 class Duration:
     """A time delta that supports symbols and picosecond accuracy."""
 
     def __init__(
-            self,
-            value: DURATION_LIKE = None,
-            *,  # Force keyword args.
-            picos: Union[int, float, sympy.Basic] = 0,
-            nanos: Union[int, float, sympy.Basic] = 0,
-            micros: Union[int, float, sympy.Basic] = 0,
-            millis: Union[int, float, sympy.Basic] = 0) -> None:
+        self,
+        value: DURATION_LIKE = None,
+        *,  # Force keyword args.
+        picos: Union[int, float, sympy.Basic] = 0,
+        nanos: Union[int, float, sympy.Basic] = 0,
+        micros: Union[int, float, sympy.Basic] = 0,
+        millis: Union[int, float, sympy.Basic] = 0,
+    ) -> None:
         """Initializes a Duration with a time specified in some unit.
 
         If multiple arguments are specified, their contributions are added.
@@ -78,9 +80,9 @@ class Duration:
             else:
                 raise TypeError(f'Not a `cirq.DURATION_LIKE`: {repr(value)}.')
 
-        self._picos: Union[float, int, sympy.Basic] = (picos + nanos * 1000 +
-                                                       micros * 1000_000 +
-                                                       millis * 1000_000_000)
+        self._picos: Union[float, int, sympy.Basic] = (
+            picos + nanos * 1000 + micros * 1000_000 + millis * 1000_000_000
+        )
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._picos)
@@ -88,9 +90,8 @@ class Duration:
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self._picos)
 
-    def _resolve_parameters_(self, param_resolver):
-        return Duration(
-            picos=protocols.resolve_parameters(self._picos, param_resolver))
+    def _resolve_parameters_(self, param_resolver, recursive):
+        return Duration(picos=protocols.resolve_parameters(self._picos, param_resolver, recursive))
 
     def total_picos(self) -> Union[sympy.Basic, float]:
         """Returns the number of picoseconds that the duration spans."""
@@ -192,9 +193,11 @@ class Duration:
         return hash((Duration, self._picos))
 
     def _decompose_into_amount_unit_suffix(self) -> Tuple[int, str, str]:
-        if (isinstance(self._picos, sympy.Mul) and
-                len(self._picos.args) == 2 and
-                isinstance(self._picos.args[0], (sympy.Integer, sympy.Float))):
+        if (
+            isinstance(self._picos, sympy.Mul)
+            and len(self._picos.args) == 2
+            and isinstance(self._picos.args[0], (sympy.Integer, sympy.Float))
+        ):
             scale = self._picos.args[0]
             rest = self._picos.args[1]
         else:
@@ -236,10 +239,7 @@ class Duration:
         return f'cirq.Duration({unit}={proper_repr(amount)})'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'cirq_type': self.__class__.__name__,
-            'picos': self.total_picos()
-        }
+        return {'cirq_type': self.__class__.__name__, 'picos': self.total_picos()}
 
 
 def _attempt_duration_like_to_duration(value: Any) -> Optional[Duration]:

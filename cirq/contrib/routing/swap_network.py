@@ -35,12 +35,10 @@ class SwapNetwork:
         initial_mapping: The initial mapping from physical to logical qubits.
     """
 
-    def __init__(self, circuit: 'cirq.Circuit',
-                 initial_mapping: Dict['cirq.Qid', 'cirq.Qid']) -> None:
-        if not all(
-                isinstance(i, ops.Qid)
-                for I in initial_mapping.items()
-                for i in I):
+    def __init__(
+        self, circuit: 'cirq.Circuit', initial_mapping: Dict['cirq.Qid', 'cirq.Qid']
+    ) -> None:
+        if not all(isinstance(i, ops.Qid) for I in initial_mapping.items() for i in I):
             raise ValueError('Mapping must be from Qids to Qids.')
         self.circuit = circuit
         self.initial_mapping = initial_mapping
@@ -51,14 +49,12 @@ class SwapNetwork:
         return mapping
 
     def get_logical_operations(self) -> Iterable['cirq.Operation']:
-        return cca.get_logical_operations(self.circuit.all_operations(),
-                                          self.initial_mapping)
+        return cca.get_logical_operations(self.circuit.all_operations(), self.initial_mapping)
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, type(self)):
             return False
-        return (self.circuit == other.circuit and
-                self.initial_mapping == other.initial_mapping)
+        return self.circuit == other.circuit and self.initial_mapping == other.initial_mapping
 
     @property
     def device(self) -> 'cirq.Device':

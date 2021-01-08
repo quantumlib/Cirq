@@ -34,8 +34,8 @@ def test_eq():
     q = cirq.LineQubit(0)
 
     eq.add_equality_group(
-        cirq.RandomGateChannel(sub_gate=cirq.X, probability=0.5),
-        cirq.X.with_probability(0.5))
+        cirq.RandomGateChannel(sub_gate=cirq.X, probability=0.5), cirq.X.with_probability(0.5)
+    )
 
     # Each field matters for equality.
     eq.add_equality_group(cirq.Y.with_probability(0.5))
@@ -58,11 +58,12 @@ def test_eq():
     # Flattening.
     eq.add_equality_group(
         cirq.RandomGateChannel(sub_gate=cirq.Z, probability=0.25),
-        cirq.RandomGateChannel(sub_gate=cirq.RandomGateChannel(sub_gate=cirq.Z,
-                                                               probability=0.5),
-                               probability=0.5),
+        cirq.RandomGateChannel(
+            sub_gate=cirq.RandomGateChannel(sub_gate=cirq.Z, probability=0.5), probability=0.5
+        ),
         cirq.Z.with_probability(0.5).with_probability(0.5),
-        cirq.Z.with_probability(0.25))
+        cirq.Z.with_probability(0.25),
+    )
 
     # Supports approximate equality.
     assert cirq.approx_eq(
@@ -79,51 +80,55 @@ def test_eq():
 
 def test_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.RandomGateChannel(sub_gate=cirq.X, probability=1))
+        cirq.RandomGateChannel(sub_gate=cirq.X, probability=1)
+    )
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.RandomGateChannel(sub_gate=cirq.X, probability=0))
+        cirq.RandomGateChannel(sub_gate=cirq.X, probability=0)
+    )
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.RandomGateChannel(sub_gate=cirq.X,
-                               probability=sympy.Symbol('x') / 2))
+        cirq.RandomGateChannel(sub_gate=cirq.X, probability=sympy.Symbol('x') / 2)
+    )
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.RandomGateChannel(sub_gate=cirq.X, probability=0.5))
+        cirq.RandomGateChannel(sub_gate=cirq.X, probability=0.5)
+    )
 
 
 def test_diagram():
-
     class NoDetailsGate(cirq.Gate):
-
         def num_qubits(self) -> int:
             raise NotImplementedError()
 
-    assert cirq.circuit_diagram_info(NoDetailsGate().with_probability(0.5),
-                                     None) is None
+    assert cirq.circuit_diagram_info(NoDetailsGate().with_probability(0.5), None) is None
 
     a, b = cirq.LineQubit.range(2)
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(cirq.CNOT(a, b).with_probability(0.125)), """
+        cirq.Circuit(cirq.CNOT(a, b).with_probability(0.125)),
+        """
 0: ───@[prob=0.125]───
       │
 1: ───X───────────────
-        """)
+        """,
+    )
 
-    cirq.testing.assert_has_diagram(cirq.Circuit(
-        cirq.CNOT(a, b).with_probability(0.125)),
-                                    """
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(cirq.CNOT(a, b).with_probability(0.125)),
+        """
 0: ───@[prob=0.1]───
       │
 1: ───X─────────────
         """,
-                                    precision=1)
+        precision=1,
+    )
 
 
-def test_parameterized():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameterized(resolve_fn):
     op = cirq.X.with_probability(sympy.Symbol('x'))
     assert cirq.is_parameterized(op)
     assert not cirq.has_channel(op)
     assert not cirq.has_mixture(op)
 
-    op2 = cirq.resolve_parameters(op, {'x': 0.5})
+    op2 = resolve_fn(op, {'x': 0.5})
     assert op2 == cirq.X.with_probability(0.5)
     assert not cirq.is_parameterized(op2)
     assert cirq.has_channel(op2)
@@ -131,17 +136,14 @@ def test_parameterized():
 
 
 def test_mixture():
-
     class NoDetailsGate(cirq.Gate):
-
         def num_qubits(self) -> int:
             return 1
 
     assert not cirq.has_mixture(NoDetailsGate().with_probability(0.5))
     assert cirq.mixture(NoDetailsGate().with_probability(0.5), None) is None
 
-    assert cirq.mixture(cirq.X.with_probability(sympy.Symbol('x')),
-                        None) is None
+    assert cirq.mixture(cirq.X.with_probability(sympy.Symbol('x')), None) is None
 
     m = cirq.mixture(cirq.X.with_probability(0.25))
     assert len(m) == 2
@@ -158,26 +160,20 @@ def test_mixture():
 def assert_channel_sums_to_identity(val):
     m = cirq.channel(val)
     s = sum(np.conj(e.T) @ e for e in m)
-    np.testing.assert_allclose(s,
-                               np.eye(np.product(cirq.qid_shape(val))),
-                               atol=1e-8)
+    np.testing.assert_allclose(s, np.eye(np.product(cirq.qid_shape(val))), atol=1e-8)
 
 
 def test_channel():
-
     class NoDetailsGate(cirq.Gate):
-
         def num_qubits(self) -> int:
             return 1
 
     assert not cirq.has_channel(NoDetailsGate().with_probability(0.5))
     assert cirq.channel(NoDetailsGate().with_probability(0.5), None) is None
-    assert cirq.channel(cirq.X.with_probability(sympy.Symbol('x')),
-                        None) is None
+    assert cirq.channel(cirq.X.with_probability(sympy.Symbol('x')), None) is None
     assert_channel_sums_to_identity(cirq.X.with_probability(0.25))
     assert_channel_sums_to_identity(cirq.bit_flip(0.75).with_probability(0.25))
-    assert_channel_sums_to_identity(
-        cirq.amplitude_damp(0.75).with_probability(0.25))
+    assert_channel_sums_to_identity(cirq.amplitude_damp(0.75).with_probability(0.25))
 
     m = cirq.channel(cirq.X.with_probability(0.25))
     assert len(m) == 2
@@ -257,7 +253,6 @@ def test_unsupported_stabilizer_safety():
         cirq.act_on(cirq.X.with_probability(sympy.Symbol('x')), object())
 
     q = cirq.LineQubit(0)
-    c = cirq.Circuit((cirq.X(q)**0.25).with_probability(0.5),
-                     cirq.measure(q, key='m'))
+    c = cirq.Circuit((cirq.X(q) ** 0.25).with_probability(0.5), cirq.measure(q, key='m'))
     with pytest.raises(TypeError, match='Failed to act'):
         cirq.StabilizerSampler().sample(c, repetitions=100)

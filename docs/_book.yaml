@@ -117,7 +117,7 @@ upper_tabs:
     - name: "Tutorials"
       contents:
       ####  OVERVIEW  ####
-      - title: "Cirq tutorials and examples"
+      - title: "Tutorials and examples"
         path: /cirq/tutorials/index
 
       ####  BEGINNER  ####
@@ -147,8 +147,6 @@ upper_tabs:
       - heading: "Google hardware"
       - title: "Getting started with QCS"
         path: /cirq/tutorials/google/start
-      - title: "Reservations"
-        path: /cirq/tutorials/google/reservations
 
       ####  AQT HARDWARE  ####
       - heading: "AQT hardware"

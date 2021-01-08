@@ -13,8 +13,17 @@
 # limitations under the License.
 """An immutable version of the Circuit data structure."""
 
-from typing import (TYPE_CHECKING, AbstractSet, Callable, Dict, FrozenSet,
-                    Iterator, Optional, Sequence, Tuple, Union)
+from typing import (
+    TYPE_CHECKING,
+    AbstractSet,
+    Callable,
+    FrozenSet,
+    Iterator,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 import numpy as np
 
@@ -35,10 +44,12 @@ class FrozenCircuit(AbstractCircuit):
     the `freeze` and `unfreeze` methods from AbstractCircuit.
     """
 
-    def __init__(self,
-                 *contents: 'cirq.OP_TREE',
-                 strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
-                 device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE) -> None:
+    def __init__(
+        self,
+        *contents: 'cirq.OP_TREE',
+        strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
+        device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE,
+    ) -> None:
         """Initializes a frozen circuit.
 
         Args:
@@ -76,6 +87,11 @@ class FrozenCircuit(AbstractCircuit):
 
     def __hash__(self):
         return hash((self.moments, self.device))
+
+    def serialization_key(self):
+        # TODO: use this key in serialization and support user-specified keys.
+        key = hash(self) & 0xFFFF_FFFF_FFFF_FFFF
+        return f'Circuit_0x{key:016x}'
 
     # Memoized methods for commonly-retrieved properties.
 
@@ -116,8 +132,7 @@ class FrozenCircuit(AbstractCircuit):
 
     def are_all_measurements_terminal(self) -> bool:
         if self._are_all_measurements_terminal is None:
-            self._are_all_measurements_terminal = super(
-            ).are_all_measurements_terminal()
+            self._are_all_measurements_terminal = super().are_all_measurements_terminal()
         return self._are_all_measurements_terminal
 
     # End of memoized methods.
@@ -128,6 +143,9 @@ class FrozenCircuit(AbstractCircuit):
     def __radd__(self, other) -> 'FrozenCircuit':
         return (other + self.unfreeze()).freeze()
 
+    # Needed for numpy to handle multiplication by np.int64 correctly.
+    __array_priority__ = 10000
+
     # TODO: handle multiplication / powers differently?
     def __mul__(self, other) -> 'FrozenCircuit':
         return (self.unfreeze() * other).freeze()
@@ -137,23 +155,29 @@ class FrozenCircuit(AbstractCircuit):
 
     def __pow__(self, other) -> 'FrozenCircuit':
         try:
-            return (self.unfreeze()**other).freeze()
+            return (self.unfreeze() ** other).freeze()
         except:
             return NotImplemented
 
-    def _with_sliced_moments(self, moments: Sequence['cirq.Moment']
-                            ) -> 'FrozenCircuit':
+    def _with_sliced_moments(self, moments: Sequence['cirq.Moment']) -> 'FrozenCircuit':
         new_circuit = FrozenCircuit(device=self.device)
         new_circuit._moments = tuple(moments)
         return new_circuit
 
     def with_device(
-            self,
-            new_device: 'cirq.Device',
-            qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
+        self,
+        new_device: 'cirq.Device',
+        qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
     ) -> 'FrozenCircuit':
         return self.unfreeze().with_device(new_device, qubit_mapping).freeze()
 
-    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver'
-                            ) -> 'FrozenCircuit':
-        return self.unfreeze()._resolve_parameters_(param_resolver).freeze()
+    def _resolve_parameters_(
+        self, param_resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'FrozenCircuit':
+        return self.unfreeze()._resolve_parameters_(param_resolver, recursive).freeze()
+
+    def to_op(self):
+        """Creates a CircuitOperation wrapping this circuit."""
+        from cirq.circuits import CircuitOperation
+
+        return CircuitOperation(self)

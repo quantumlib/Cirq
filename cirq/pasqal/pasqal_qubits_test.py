@@ -54,8 +54,9 @@ def test_distance_3D():
     for x in np.arange(-2, 3):
         for y in np.arange(-2, 3):
             for z in np.arange(-2, 3):
-                assert ThreeDQubit(0, 0, 0).distance(ThreeDQubit(
-                    x, y, z)) == np.sqrt(x**2 + y**2 + z**2)
+                assert ThreeDQubit(0, 0, 0).distance(ThreeDQubit(x, y, z)) == np.sqrt(
+                    x ** 2 + y ** 2 + z ** 2
+                )
 
 
 def test_grid_qubit_eq_3D():
@@ -75,7 +76,7 @@ def test_cube_3D():
         ThreeDQubit(1, 1, 2),
         ThreeDQubit(2, 1, 2),
         ThreeDQubit(1, 2, 2),
-        ThreeDQubit(2, 2, 2)
+        ThreeDQubit(2, 2, 2),
     ]
     assert ThreeDQubit.cube(2) == [
         ThreeDQubit(0, 0, 0),
@@ -105,7 +106,7 @@ def test_parrallelep_3D():
         ThreeDQubit(0, 0, 1),
         ThreeDQubit(1, 0, 1),
         ThreeDQubit(0, 1, 1),
-        ThreeDQubit(1, 1, 1)
+        ThreeDQubit(1, 1, 1),
     ]
 
 
@@ -114,25 +115,23 @@ def test_square_2D():
         TwoDQubit(1, 1),
         TwoDQubit(2, 1),
         TwoDQubit(1, 2),
-        TwoDQubit(2, 2)
+        TwoDQubit(2, 2),
     ]
     assert TwoDQubit.square(2) == [
         TwoDQubit(0, 0),
         TwoDQubit(1, 0),
         TwoDQubit(0, 1),
-        TwoDQubit(1, 1)
+        TwoDQubit(1, 1),
     ]
 
 
 def test_rec_2D():
-    assert TwoDQubit.rect(1, 2, x0=5,
-                          y0=6) == [TwoDQubit(5, 6),
-                                    TwoDQubit(5, 7)]
+    assert TwoDQubit.rect(1, 2, x0=5, y0=6) == [TwoDQubit(5, 6), TwoDQubit(5, 7)]
     assert TwoDQubit.rect(2, 2) == [
         TwoDQubit(0, 0),
         TwoDQubit(1, 0),
         TwoDQubit(0, 1),
-        TwoDQubit(1, 1)
+        TwoDQubit(1, 1),
     ]
 
 
@@ -141,14 +140,14 @@ def test_triangular_2D():
         TwoDQubit(0.0, 0.0),
         TwoDQubit(0.5, 0.8660254037844386),
         TwoDQubit(1.0, 0.0),
-        TwoDQubit(1.5, 0.8660254037844386)
+        TwoDQubit(1.5, 0.8660254037844386),
     ]
 
-    assert TwoDQubit.triangular_lattice(1, x0=5., y0=6.1) == [
+    assert TwoDQubit.triangular_lattice(1, x0=5.0, y0=6.1) == [
         TwoDQubit(5.0, 6.1),
         TwoDQubit(5.5, 6.966025403784438),
         TwoDQubit(6.0, 6.1),
-        TwoDQubit(6.5, 6.966025403784438)
+        TwoDQubit(6.5, 6.966025403784438),
     ]
 
 

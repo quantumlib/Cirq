@@ -22,7 +22,8 @@ from typing_extensions import Protocol
 
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import (
-    _try_decompose_into_operations_and_qubits,)
+    _try_decompose_into_operations_and_qubits,
+)
 from cirq.protocols.mixture_protocol import has_mixture
 
 
@@ -95,8 +96,9 @@ class SupportsChannel(Protocol):
         """
 
 
-def channel(val: Any, default: Any = RaiseTypeErrorIfNotProvided
-           ) -> Union[Tuple[np.ndarray, ...], TDefault]:
+def channel(
+    val: Any, default: Any = RaiseTypeErrorIfNotProvided
+) -> Union[Tuple[np.ndarray, ...], TDefault]:
     r"""Returns a list of matrices describing the channel for the given value.
 
     These matrices are the terms in the operator sum representation of
@@ -134,33 +136,32 @@ def channel(val: Any, default: Any = RaiseTypeErrorIfNotProvided
             specified.
     """
     channel_getter = getattr(val, '_channel_', None)
-    channel_result = (
-        NotImplemented if channel_getter is None else channel_getter())
+    channel_result = NotImplemented if channel_getter is None else channel_getter()
     if channel_result is not NotImplemented:
         return tuple(channel_result)
 
     mixture_getter = getattr(val, '_mixture_', None)
-    mixture_result = (
-        NotImplemented if mixture_getter is None else mixture_getter())
+    mixture_result = NotImplemented if mixture_getter is None else mixture_getter()
     if mixture_result is not NotImplemented and mixture_result is not None:
         return tuple(np.sqrt(p) * u for p, u in mixture_result)
 
     unitary_getter = getattr(val, '_unitary_', None)
-    unitary_result = (
-        NotImplemented if unitary_getter is None else unitary_getter())
+    unitary_result = NotImplemented if unitary_getter is None else unitary_getter()
     if unitary_result is not NotImplemented and unitary_result is not None:
         return (unitary_result,)
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
 
-    if (channel_getter is None and unitary_getter is None
-            and mixture_getter is None):
-        raise TypeError("object of type '{}' has no _channel_ or _mixture_ or "
-                        "_unitary_ method.".format(type(val)))
-    raise TypeError("object of type '{}' does have a _channel_, _mixture_ or "
-                "_unitary_ method, but it returned NotImplemented."
-                .format(type(val)))
+    if channel_getter is None and unitary_getter is None and mixture_getter is None:
+        raise TypeError(
+            "object of type '{}' has no _channel_ or _mixture_ or "
+            "_unitary_ method.".format(type(val))
+        )
+    raise TypeError(
+        "object of type '{}' does have a _channel_, _mixture_ or "
+        "_unitary_ method, but it returned NotImplemented.".format(type(val))
+    )
 
 
 def has_channel(val: Any, *, allow_decompose: bool = True) -> bool:

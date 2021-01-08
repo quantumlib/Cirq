@@ -17,13 +17,11 @@ from typing import cast
 from cirq import circuits, ops, protocols
 
 
-def pauli_string_reorder_pred(op1: ops.Operation,
-                              op2: ops.Operation) -> bool:
+def pauli_string_reorder_pred(op1: ops.Operation, op2: ops.Operation) -> bool:
     ps1 = cast(ops.PauliStringGateOperation, op1).pauli_string
     ps2 = cast(ops.PauliStringGateOperation, op2).pauli_string
     return protocols.commutes(ps1, ps2)
 
 
-def pauli_string_dag_from_circuit(circuit: circuits.Circuit
-                                  ) -> circuits.CircuitDag:
+def pauli_string_dag_from_circuit(circuit: circuits.Circuit) -> circuits.CircuitDag:
     return circuits.CircuitDag.from_circuit(circuit, pauli_string_reorder_pred)

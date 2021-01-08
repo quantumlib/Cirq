@@ -21,38 +21,34 @@ from cirq import quirk_url_to_circuit
 
 def test_swap():
     a, b, c = cirq.LineQubit.range(3)
-    assert_url_to_circuit_returns('{"cols":[["Swap","Swap"]]}',
-                                  cirq.Circuit(cirq.SWAP(a, b)))
-    assert_url_to_circuit_returns('{"cols":[["Swap","X","Swap"]]}',
-                                  cirq.Circuit(cirq.SWAP(a, c), cirq.X(b)))
+    assert_url_to_circuit_returns('{"cols":[["Swap","Swap"]]}', cirq.Circuit(cirq.SWAP(a, b)))
+    assert_url_to_circuit_returns(
+        '{"cols":[["Swap","X","Swap"]]}', cirq.Circuit(cirq.SWAP(a, c), cirq.X(b))
+    )
 
     with pytest.raises(ValueError, match='number of swap gates'):
-        _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":[['
-            '"Swap"]]}')
+        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":[["Swap"]]}')
     with pytest.raises(ValueError, match='number of swap gates'):
         _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":[['
-            '"Swap","Swap","Swap"]]}')
+            'https://algassert.com/quirk#circuit={"cols":[["Swap","Swap","Swap"]]}'
+        )
 
 
 def test_controlled_swap():
     a, b, c, d = cirq.LineQubit.range(4)
     assert_url_to_circuit_returns(
-        '{"cols":[["Swap","•","Swap"]]}',
-        cirq.Circuit(cirq.SWAP(a, c).controlled_by(b)))
+        '{"cols":[["Swap","•","Swap"]]}', cirq.Circuit(cirq.SWAP(a, c).controlled_by(b))
+    )
     assert_url_to_circuit_returns(
-        '{"cols":[["Swap","•","Swap","•"]]}',
-        cirq.Circuit(cirq.SWAP(a, c).controlled_by(b, d)))
+        '{"cols":[["Swap","•","Swap","•"]]}', cirq.Circuit(cirq.SWAP(a, c).controlled_by(b, d))
+    )
 
 
 def test_with_line_qubits_mapped_to():
     a, b, c, d = cirq.LineQubit.range(4)
     a2, b2, c2, d2 = cirq.NamedQubit.range(4, prefix='q')
-    cell = cirq.interop.quirk.cells.swap_cell.SwapCell(qubits=[a, b],
-                                                       controls=[c, d])
-    mapped_cell = cirq.interop.quirk.cells.swap_cell.SwapCell(qubits=[a2, b2],
-                                                              controls=[c2, d2])
+    cell = cirq.interop.quirk.cells.swap_cell.SwapCell(qubits=[a, b], controls=[c, d])
+    mapped_cell = cirq.interop.quirk.cells.swap_cell.SwapCell(qubits=[a2, b2], controls=[c2, d2])
     assert cell != mapped_cell
     assert cell.with_line_qubits_mapped_to([a2, b2, c2, d2]) == mapped_cell
 
@@ -60,5 +56,5 @@ def test_with_line_qubits_mapped_to():
 def test_repr():
     a, b, c, d = cirq.LineQubit.range(4)
     cirq.testing.assert_equivalent_repr(
-        cirq.interop.quirk.cells.swap_cell.SwapCell(qubits=[a, b],
-                                                    controls=[c, d]))
+        cirq.interop.quirk.cells.swap_cell.SwapCell(qubits=[a, b], controls=[c, d])
+    )

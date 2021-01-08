@@ -26,26 +26,29 @@ from cirq.interop.quirk.cells.cell import (
 def generate_all_frequency_space_cell_makers() -> Iterator[CellMaker]:
     # Frequency space.
     yield from _family("QFT", lambda n: cirq.QuantumFourierTransformGate(n))
+    yield from _family("QFT†", lambda n: cirq.inverse(cirq.QuantumFourierTransformGate(n)))
     yield from _family(
-        "QFT†", lambda n: cirq.inverse(cirq.QuantumFourierTransformGate(n)))
+        "PhaseGradient", lambda n: cirq.PhaseGradientGate(num_qubits=n, exponent=0.5)
+    )
     yield from _family(
-        "PhaseGradient", lambda n: cirq.PhaseGradientGate(num_qubits=n,
-                                                          exponent=0.5))
+        "PhaseUngradient", lambda n: cirq.PhaseGradientGate(num_qubits=n, exponent=-0.5)
+    )
     yield from _family(
-        "PhaseUngradient", lambda n: cirq.PhaseGradientGate(num_qubits=n,
-                                                            exponent=-0.5))
+        "grad^t",
+        lambda n: cirq.PhaseGradientGate(num_qubits=n, exponent=2 ** (n - 1) * sympy.Symbol('t')),
+    )
     yield from _family(
-        "grad^t", lambda n: cirq.PhaseGradientGate(
-            num_qubits=n, exponent=2**(n - 1) * sympy.Symbol('t')))
-    yield from _family(
-        "grad^-t", lambda n: cirq.PhaseGradientGate(
-            num_qubits=n, exponent=-2**(n - 1) * sympy.Symbol('t')))
+        "grad^-t",
+        lambda n: cirq.PhaseGradientGate(
+            num_qubits=n, exponent=-(2 ** (n - 1)) * sympy.Symbol('t')
+        ),
+    )
 
 
-def _family(identifier_prefix: str,
-            gate_maker: Callable[[int], 'cirq.Gate']) -> Iterator[CellMaker]:
-    f = lambda args: ExplicitOperationsCell(
-        [gate_maker(len(args.qubits)).on(*args.qubits)])
+def _family(
+    identifier_prefix: str, gate_maker: Callable[[int], 'cirq.Gate']
+) -> Iterator[CellMaker]:
+    f = lambda args: ExplicitOperationsCell([gate_maker(len(args.qubits)).on(*args.qubits)])
     yield CellMaker(identifier_prefix, 1, f)
     for i in CELL_SIZES:
         yield CellMaker(identifier_prefix + str(i), i, f)

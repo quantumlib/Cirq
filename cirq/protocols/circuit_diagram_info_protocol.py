@@ -13,8 +13,18 @@
 # limitations under the License.
 import re
 from fractions import Fraction
-from typing import (Any, TYPE_CHECKING, Optional, Union, TypeVar, Dict,
-                    overload, Iterable, List, Sequence)
+from typing import (
+    Any,
+    TYPE_CHECKING,
+    Optional,
+    Union,
+    TypeVar,
+    Dict,
+    overload,
+    Iterable,
+    List,
+    Sequence,
+)
 
 import numpy as np
 import sympy
@@ -31,12 +41,14 @@ if TYPE_CHECKING:
 class CircuitDiagramInfo:
     """Describes how to draw an operation in a circuit diagram."""
 
-    def __init__(self,
-                 wire_symbols: Iterable[str],
-                 exponent: Any = 1,
-                 connected: bool = True,
-                 exponent_qubit_index: Optional[int] = None,
-                 auto_exponent_parens: bool = True) -> None:
+    def __init__(
+        self,
+        wire_symbols: Iterable[str],
+        exponent: Any = 1,
+        connected: bool = True,
+        exponent_qubit_index: Optional[int] = None,
+        auto_exponent_parens: bool = True,
+    ) -> None:
         """
         Args:
             wire_symbols: The symbols that should be shown on the qubits
@@ -57,8 +69,7 @@ class CircuitDiagramInfo:
                 could be mistaken for an identity wire). Defaults to True.
         """
         if isinstance(wire_symbols, str):
-            raise ValueError(
-                'Expected an Iterable[str] for wire_symbols but got a str.')
+            raise ValueError('Expected an Iterable[str] for wire_symbols but got a str.')
         self.wire_symbols = tuple(wire_symbols)
         self.exponent = exponent
         self.connected = connected
@@ -84,10 +95,8 @@ class CircuitDiagramInfo:
         )
 
     def _wire_symbols_including_formatted_exponent(
-            self,
-            args: 'cirq.CircuitDiagramInfoArgs',
-            *,
-            preferred_exponent_index: Optional[int] = None) -> List[str]:
+        self, args: 'cirq.CircuitDiagramInfoArgs', *, preferred_exponent_index: Optional[int] = None
+    ) -> List[str]:
         result = list(self.wire_symbols)
         exponent = self._formatted_exponent(args)
         if exponent is not None:
@@ -104,13 +113,13 @@ class CircuitDiagramInfo:
                 result[k] += '^' + exponent
         return result
 
-    def _formatted_exponent(self: 'cirq.CircuitDiagramInfo',
-                            args: 'cirq.CircuitDiagramInfoArgs'
-                           ) -> Optional[str]:
+    def _formatted_exponent(
+        self: 'cirq.CircuitDiagramInfo', args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> Optional[str]:
 
         if protocols.is_parameterized(self.exponent):
             name = str(self.exponent)
-            return ('({})'.format(name) if _is_exposed_formula(name) else name)
+            return '({})'.format(name) if _is_exposed_formula(name) else name
 
         if self.exponent == 0:
             return '0'
@@ -129,8 +138,7 @@ class CircuitDiagramInfo:
                 # funky behavior of fraction, cast to str in constructor helps.
                 approx_frac = Fraction(self.exponent).limit_denominator(16)
                 if approx_frac.denominator not in [2, 4, 5, 10]:
-                    if abs(float(approx_frac) -
-                           self.exponent) < 10**-args.precision:
+                    if abs(float(approx_frac) - self.exponent) < 10 ** -args.precision:
                         return '({})'.format(approx_frac)
 
                 return args.format_real(self.exponent)
@@ -144,15 +152,16 @@ class CircuitDiagramInfo:
         return s
 
     @staticmethod
-    def _op_info_with_fallback(op: 'cirq.Operation',
-                               args: 'cirq.CircuitDiagramInfoArgs'
-                              ) -> 'cirq.CircuitDiagramInfo':
+    def _op_info_with_fallback(
+        op: 'cirq.Operation', args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
         info = protocols.circuit_diagram_info(op, args, None)
         if info is not None:
             if len(op.qubits) != len(info.wire_symbols):
-                raise ValueError('Wanted diagram info from {!r} for {} '
-                                 'qubits but got {!r}'.format(
-                                     op, len(op.qubits), info))
+                raise ValueError(
+                    'Wanted diagram info from {!r} for {} '
+                    'qubits but got {!r}'.format(op, len(op.qubits), info)
+                )
             return info
 
         # Use the untagged operation's __str__.
@@ -162,25 +171,26 @@ class CircuitDiagramInfo:
         # Try to cut off the qubit part, since that would be redundant.
         redundant_tail = '({})'.format(', '.join(str(e) for e in op.qubits))
         if name.endswith(redundant_tail):
-            name = name[:-len(redundant_tail)]
+            name = name[: -len(redundant_tail)]
 
         # Add tags onto the representation, if they exist
         if op.tags:
             name += f'{list(op.tags)}'
 
         # Include ordering in the qubit labels.
-        symbols = (name,) + tuple(
-            '#{}'.format(i + 1) for i in range(1, len(op.qubits)))
+        symbols = (name,) + tuple('#{}'.format(i + 1) for i in range(1, len(op.qubits)))
 
         return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
     def __repr__(self) -> str:
-        return ('cirq.CircuitDiagramInfo('
-                f'wire_symbols={self.wire_symbols!r}, '
-                f'exponent={self.exponent!r}, '
-                f'connected={self.connected!r}, '
-                f'exponent_qubit_index={self.exponent_qubit_index!r}, '
-                f'auto_exponent_parens={self.auto_exponent_parens!r})')
+        return (
+            'cirq.CircuitDiagramInfo('
+            f'wire_symbols={self.wire_symbols!r}, '
+            f'exponent={self.exponent!r}, '
+            f'connected={self.connected!r}, '
+            f'exponent_qubit_index={self.exponent_qubit_index!r}, '
+            f'auto_exponent_parens={self.auto_exponent_parens!r})'
+        )
 
 
 def _is_exposed_formula(text: str) -> bool:
@@ -210,15 +220,16 @@ class CircuitDiagramInfoArgs:
 
     UNINFORMED_DEFAULT = None  # type: CircuitDiagramInfoArgs
 
-    def __init__(self,
-                 known_qubits: Optional[Iterable['cirq.Qid']],
-                 known_qubit_count: Optional[int],
-                 use_unicode_characters: bool,
-                 precision: Optional[int],
-                 qubit_map: Optional[Dict['cirq.Qid', int]],
-                 include_tags: bool = True) -> None:
-        self.known_qubits = (None
-                             if known_qubits is None else tuple(known_qubits))
+    def __init__(
+        self,
+        known_qubits: Optional[Iterable['cirq.Qid']],
+        known_qubit_count: Optional[int],
+        use_unicode_characters: bool,
+        precision: Optional[int],
+        qubit_map: Optional[Dict['cirq.Qid', int]],
+        include_tags: bool = True,
+    ) -> None:
+        self.known_qubits = None if known_qubits is None else tuple(known_qubits)
         self.known_qubit_count = known_qubit_count
         self.use_unicode_characters = use_unicode_characters
         self.precision = precision
@@ -226,20 +237,27 @@ class CircuitDiagramInfoArgs:
         self.include_tags = include_tags
 
     def _value_equality_values_(self) -> Any:
-        return (self.known_qubits, self.known_qubit_count,
-                self.use_unicode_characters, self.precision,
-                None if self.qubit_map is None else tuple(
-                    sorted(self.qubit_map.items(), key=lambda e: e[0])),
-                self.include_tags)
+        return (
+            self.known_qubits,
+            self.known_qubit_count,
+            self.use_unicode_characters,
+            self.precision,
+            None
+            if self.qubit_map is None
+            else tuple(sorted(self.qubit_map.items(), key=lambda e: e[0])),
+            self.include_tags,
+        )
 
     def __repr__(self) -> str:
-        return ('cirq.CircuitDiagramInfoArgs('
-                f'known_qubits={self.known_qubits!r}, '
-                f'known_qubit_count={self.known_qubit_count!r}, '
-                f'use_unicode_characters={self.use_unicode_characters!r}, '
-                f'precision={self.precision!r}, '
-                f'qubit_map={self.qubit_map!r},'
-                f'include_tags={self.include_tags!r})')
+        return (
+            'cirq.CircuitDiagramInfoArgs('
+            f'known_qubits={self.known_qubits!r}, '
+            f'known_qubit_count={self.known_qubit_count!r}, '
+            f'use_unicode_characters={self.use_unicode_characters!r}, '
+            f'precision={self.precision!r}, '
+            f'qubit_map={self.qubit_map!r},'
+            f'include_tags={self.include_tags!r})'
+        )
 
     def format_real(self, val: Union[sympy.Basic, int, float]) -> str:
         if isinstance(val, sympy.Basic):
@@ -250,8 +268,7 @@ class CircuitDiagramInfoArgs:
             return str(val)
         return f'{float(val):.{self.precision}}'
 
-    def format_complex(self,
-                       val: Union[sympy.Basic, int, float, complex]) -> str:
+    def format_complex(self, val: Union[sympy.Basic, int, float, complex]) -> str:
         if isinstance(val, sympy.Basic):
             return str(val)
         c = complex(val)
@@ -285,7 +302,8 @@ class CircuitDiagramInfoArgs:
             known_qubit_count=self.known_qubit_count,
             use_unicode_characters=self.use_unicode_characters,
             precision=self.precision,
-            qubit_map=self.qubit_map)
+            qubit_map=self.qubit_map,
+        )
 
     def with_args(self, **kwargs):
         args = self.copy()
@@ -299,7 +317,8 @@ CircuitDiagramInfoArgs.UNINFORMED_DEFAULT = CircuitDiagramInfoArgs(
     known_qubit_count=None,
     use_unicode_characters=True,
     precision=3,
-    qubit_map=None)
+    qubit_map=None,
+)
 
 
 class SupportsCircuitDiagramInfo(Protocol):
@@ -307,7 +326,7 @@ class SupportsCircuitDiagramInfo(Protocol):
 
     @doc_private
     def _circuit_diagram_info_(
-            self, args: CircuitDiagramInfoArgs
+        self, args: CircuitDiagramInfoArgs
     ) -> Union[str, Iterable[str], CircuitDiagramInfo]:
         """Describes how to draw an operation in a circuit diagram.
 
@@ -332,28 +351,27 @@ RaiseTypeErrorIfNotProvided = CircuitDiagramInfo(())
 # pylint: disable=function-redefined
 @overload
 def circuit_diagram_info(
-        val: Any,
-        args: Optional[CircuitDiagramInfoArgs] = None,
+    val: Any,
+    args: Optional[CircuitDiagramInfoArgs] = None,
 ) -> CircuitDiagramInfo:
     pass
 
 
 @overload
-def circuit_diagram_info(val: Any, args: Optional[CircuitDiagramInfoArgs],
-                         default: TDefault
-                        ) -> Union[CircuitDiagramInfo, TDefault]:
+def circuit_diagram_info(
+    val: Any, args: Optional[CircuitDiagramInfoArgs], default: TDefault
+) -> Union[CircuitDiagramInfo, TDefault]:
     pass
 
 
 @overload
-def circuit_diagram_info(val: Any, *, default: TDefault
-                        ) -> Union[CircuitDiagramInfo, TDefault]:
+def circuit_diagram_info(val: Any, *, default: TDefault) -> Union[CircuitDiagramInfo, TDefault]:
     pass
 
 
-def circuit_diagram_info(val: Any,
-                         args: Optional[CircuitDiagramInfoArgs] = None,
-                         default=RaiseTypeErrorIfNotProvided):
+def circuit_diagram_info(
+    val: Any, args: Optional[CircuitDiagramInfoArgs] = None, default=RaiseTypeErrorIfNotProvided
+):
     """Requests information on drawing an operation in a circuit diagram.
 
     Calls _circuit_diagram_info_ on `val`. If `val` doesn't have
@@ -398,11 +416,13 @@ def circuit_diagram_info(val: Any,
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     if getter is None:
-        raise TypeError("object of type '{}' "
-                        "has no _circuit_diagram_info_ method.".format(
-                            type(val)))
-    raise TypeError("object of type '{}' does have a _circuit_diagram_info_ "
-                    "method, but it returned NotImplemented.".format(type(val)))
+        raise TypeError(
+            "object of type '{}' has no _circuit_diagram_info_ method.".format(type(val))
+        )
+    raise TypeError(
+        "object of type '{}' does have a _circuit_diagram_info_ "
+        "method, but it returned NotImplemented.".format(type(val))
+    )
 
 
 # pylint: enable=function-redefined

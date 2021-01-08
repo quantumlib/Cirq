@@ -45,8 +45,7 @@ def test_init():
     assert list(p2.pauli_mask) == list(m2.pauli_mask) == [1, 2, 3]
 
     # Mixed types.
-    assert cirq.DensePauliString([1, 'X',
-                                  cirq.X]) == cirq.DensePauliString('XXX')
+    assert cirq.DensePauliString([1, 'X', cirq.X]) == cirq.DensePauliString('XXX')
     with pytest.raises(TypeError, match='Expected a cirq.PAULI_GATE_LIKE'):
         _ = cirq.DensePauliString([object()])
 
@@ -56,8 +55,7 @@ def test_value_to_char_correspondence():
     assert [d.I_VAL, d.X_VAL, d.Y_VAL, d.Z_VAL] == [0, 1, 2, 3]
     assert list(d([cirq.I, cirq.X, cirq.Y, cirq.Z]).pauli_mask) == [0, 1, 2, 3]
     assert list(d("IXYZ").pauli_mask) == [0, 1, 2, 3]
-    assert list(d([d.I_VAL, d.X_VAL, d.Y_VAL,
-                   d.Z_VAL]).pauli_mask) == [0, 1, 2, 3]
+    assert list(d([d.I_VAL, d.X_VAL, d.Y_VAL, d.Z_VAL]).pauli_mask) == [0, 1, 2, 3]
 
     assert d('Y') * d('Z') == 1j * d('X')
     assert d('Z') * d('X') == 1j * d('Y')
@@ -89,26 +87,17 @@ def test_immutable_eq():
     eq = cirq.testing.EqualsTester()
 
     # Immutables
-    eq.make_equality_group(lambda: cirq.DensePauliString(coefficient=2,
-                                                         pauli_mask=[1]))
-    eq.add_equality_group(lambda: cirq.DensePauliString(coefficient=3,
-                                                        pauli_mask=[1]))
-    eq.make_equality_group(lambda: cirq.DensePauliString(coefficient=2,
-                                                         pauli_mask=[]))
-    eq.add_equality_group(lambda: cirq.DensePauliString(coefficient=2,
-                                                        pauli_mask=[0]))
-    eq.make_equality_group(lambda: cirq.DensePauliString(coefficient=2,
-                                                         pauli_mask=[2]))
+    eq.make_equality_group(lambda: cirq.DensePauliString(coefficient=2, pauli_mask=[1]))
+    eq.add_equality_group(lambda: cirq.DensePauliString(coefficient=3, pauli_mask=[1]))
+    eq.make_equality_group(lambda: cirq.DensePauliString(coefficient=2, pauli_mask=[]))
+    eq.add_equality_group(lambda: cirq.DensePauliString(coefficient=2, pauli_mask=[0]))
+    eq.make_equality_group(lambda: cirq.DensePauliString(coefficient=2, pauli_mask=[2]))
 
     # Mutables
-    eq.make_equality_group(lambda: cirq.MutableDensePauliString(coefficient=2,
-                                                                pauli_mask=[1]))
-    eq.add_equality_group(lambda: cirq.MutableDensePauliString(coefficient=3,
-                                                               pauli_mask=[1]))
-    eq.make_equality_group(lambda: cirq.MutableDensePauliString(coefficient=2,
-                                                                pauli_mask=[]))
-    eq.make_equality_group(lambda: cirq.MutableDensePauliString(coefficient=2,
-                                                                pauli_mask=[2]))
+    eq.make_equality_group(lambda: cirq.MutableDensePauliString(coefficient=2, pauli_mask=[1]))
+    eq.add_equality_group(lambda: cirq.MutableDensePauliString(coefficient=3, pauli_mask=[1]))
+    eq.make_equality_group(lambda: cirq.MutableDensePauliString(coefficient=2, pauli_mask=[]))
+    eq.make_equality_group(lambda: cirq.MutableDensePauliString(coefficient=2, pauli_mask=[2]))
 
 
 def test_eye():
@@ -123,8 +112,7 @@ def test_sparse():
     a, b, c = cirq.LineQubit.range(3)
     p = -cirq.DensePauliString('XYZ')
     assert p.sparse() == cirq.PauliString(-1, cirq.X(a), cirq.Y(b), cirq.Z(c))
-    assert p.sparse([c, b, a]) == cirq.PauliString(-1, cirq.X(c), cirq.Y(b),
-                                                   cirq.Z(a))
+    assert p.sparse([c, b, a]) == cirq.PauliString(-1, cirq.X(c), cirq.Y(b), cirq.Z(a))
     with pytest.raises(ValueError, match='number of qubits'):
         _ = p.sparse([])
     with pytest.raises(ValueError, match='number of qubits'):
@@ -144,11 +132,15 @@ def test_mul_vectorized_pauli_mul_phase():
             assert f(i, j) == (sparse1 * sparse2).coefficient
 
     # Check a vector case.
-    assert _vectorized_pauli_mul_phase(np.array([0, 1, 3, 2], dtype=np.uint8),
-                                       np.array([0, 1, 2, 0],
-                                                dtype=np.uint8)) == -1j
-    assert _vectorized_pauli_mul_phase(np.array([], dtype=np.uint8),
-                                       np.array([], dtype=np.uint8)) == 1
+    assert (
+        _vectorized_pauli_mul_phase(
+            np.array([0, 1, 3, 2], dtype=np.uint8), np.array([0, 1, 2, 0], dtype=np.uint8)
+        )
+        == -1j
+    )
+    assert (
+        _vectorized_pauli_mul_phase(np.array([], dtype=np.uint8), np.array([], dtype=np.uint8)) == 1
+    )
 
 
 def test_mul():
@@ -285,36 +277,36 @@ def test_pow():
     f = cirq.DensePauliString
     m = cirq.DensePauliString
     p = 1j * f('IXYZ')
-    assert p**0 == p**4 == p**8 == cirq.DensePauliString.eye(4)
-    assert p**1 == p**5 == p**-3 == p == p**101
-    assert p**2 == p**-2 == p**6 == -f('IIII')
-    assert p**3 == p**-1 == p**7 == -1j * f('IXYZ')
+    assert p ** 0 == p ** 4 == p ** 8 == cirq.DensePauliString.eye(4)
+    assert p ** 1 == p ** 5 == p ** -3 == p == p ** 101
+    assert p ** 2 == p ** -2 == p ** 6 == -f('IIII')
+    assert p ** 3 == p ** -1 == p ** 7 == -1j * f('IXYZ')
 
     p = -f('IXYZ')
-    assert p == p**1 == p**-1 == p**-3 == p**-303
-    assert p**0 == p**2 == p**-2 == p**-4 == p**102
+    assert p == p ** 1 == p ** -1 == p ** -3 == p ** -303
+    assert p ** 0 == p ** 2 == p ** -2 == p ** -4 == p ** 102
 
     p = 2 * f('XX')
-    assert p**-1 == (0.5 + 0j) * f('XX')
-    assert p**0 == f('II')
-    assert p**1 == 2 * f('XX')
-    assert p**2 == 4 * f('II')
-    assert p**3 == 8 * f('XX')
-    assert p**4 == 16 * f('II')
+    assert p ** -1 == (0.5 + 0j) * f('XX')
+    assert p ** 0 == f('II')
+    assert p ** 1 == 2 * f('XX')
+    assert p ** 2 == 4 * f('II')
+    assert p ** 3 == 8 * f('XX')
+    assert p ** 4 == 16 * f('II')
 
     p = -1j * f('XY')
-    assert p**101 == p == p**-103
+    assert p ** 101 == p == p ** -103
 
     p = 2j * f('XY')
-    assert (p**-1)**-1 == p
-    assert p**-2 == f('II') / -4
+    assert (p ** -1) ** -1 == p
+    assert p ** -2 == f('II') / -4
 
     p = f('XY')
-    assert p**-100 == p**0 == p**100 == f('II')
-    assert p**-101 == p**1 == p**101 == f('XY')
+    assert p ** -100 == p ** 0 == p ** 100 == f('II')
+    assert p ** -101 == p ** 1 == p ** 101 == f('XY')
 
     # Becomes an immutable copy.
-    assert m('X')**3 == f('X')
+    assert m('X') ** 3 == f('X')
 
 
 def test_div():
@@ -350,37 +342,25 @@ def test_repr():
     cirq.testing.assert_equivalent_repr(m(''))
     cirq.testing.assert_equivalent_repr(-m('X'))
     cirq.testing.assert_equivalent_repr(1j * m('XYZII'))
-    cirq.testing.assert_equivalent_repr(
-        f(coefficient=sympy.Symbol('c'), pauli_mask=[0, 3, 2, 1]))
-    cirq.testing.assert_equivalent_repr(
-        m(coefficient=sympy.Symbol('c'), pauli_mask=[0, 3, 2, 1]))
+    cirq.testing.assert_equivalent_repr(f(coefficient=sympy.Symbol('c'), pauli_mask=[0, 3, 2, 1]))
+    cirq.testing.assert_equivalent_repr(m(coefficient=sympy.Symbol('c'), pauli_mask=[0, 3, 2, 1]))
 
 
 def test_one_hot():
     f = cirq.DensePauliString
     m = cirq.MutableDensePauliString
 
-    assert cirq.DensePauliString.one_hot(index=3, length=5,
-                                         pauli=cirq.X) == f('IIIXI')
-    assert cirq.MutableDensePauliString.one_hot(index=3, length=5,
-                                                pauli=cirq.X) == m('IIIXI')
+    assert cirq.DensePauliString.one_hot(index=3, length=5, pauli=cirq.X) == f('IIIXI')
+    assert cirq.MutableDensePauliString.one_hot(index=3, length=5, pauli=cirq.X) == m('IIIXI')
 
-    assert cirq.BaseDensePauliString.one_hot(index=0, length=5,
-                                             pauli='X') == f('XIIII')
-    assert cirq.BaseDensePauliString.one_hot(index=0, length=5,
-                                             pauli='Y') == f('YIIII')
-    assert cirq.BaseDensePauliString.one_hot(index=0, length=5,
-                                             pauli='Z') == f('ZIIII')
-    assert cirq.BaseDensePauliString.one_hot(index=0, length=5,
-                                             pauli='I') == f('IIIII')
-    assert cirq.BaseDensePauliString.one_hot(index=0, length=5,
-                                             pauli=cirq.X) == f('XIIII')
-    assert cirq.BaseDensePauliString.one_hot(index=0, length=5,
-                                             pauli=cirq.Y) == f('YIIII')
-    assert cirq.BaseDensePauliString.one_hot(index=0, length=5,
-                                             pauli=cirq.Z) == f('ZIIII')
-    assert cirq.BaseDensePauliString.one_hot(index=0, length=5,
-                                             pauli=cirq.I) == f('IIIII')
+    assert cirq.BaseDensePauliString.one_hot(index=0, length=5, pauli='X') == f('XIIII')
+    assert cirq.BaseDensePauliString.one_hot(index=0, length=5, pauli='Y') == f('YIIII')
+    assert cirq.BaseDensePauliString.one_hot(index=0, length=5, pauli='Z') == f('ZIIII')
+    assert cirq.BaseDensePauliString.one_hot(index=0, length=5, pauli='I') == f('IIIII')
+    assert cirq.BaseDensePauliString.one_hot(index=0, length=5, pauli=cirq.X) == f('XIIII')
+    assert cirq.BaseDensePauliString.one_hot(index=0, length=5, pauli=cirq.Y) == f('YIIII')
+    assert cirq.BaseDensePauliString.one_hot(index=0, length=5, pauli=cirq.Z) == f('ZIIII')
+    assert cirq.BaseDensePauliString.one_hot(index=0, length=5, pauli=cirq.I) == f('IIIII')
 
     with pytest.raises(IndexError):
         _ = cirq.BaseDensePauliString.one_hot(index=50, length=5, pauli=cirq.X)
@@ -391,23 +371,18 @@ def test_one_hot():
 
 def test_protocols():
     t = sympy.Symbol('t')
-
+    cirq.testing.assert_implements_consistent_protocols(cirq.DensePauliString('Y'))
+    cirq.testing.assert_implements_consistent_protocols(-cirq.DensePauliString('Z'))
+    cirq.testing.assert_implements_consistent_protocols(1j * cirq.DensePauliString('X'))
+    cirq.testing.assert_implements_consistent_protocols(2 * cirq.DensePauliString('X'))
+    cirq.testing.assert_implements_consistent_protocols(t * cirq.DensePauliString('XYIZ'))
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.DensePauliString('Y'))
+        cirq.DensePauliString('XYIZ', coefficient=t + 2)
+    )
+    cirq.testing.assert_implements_consistent_protocols(-cirq.DensePauliString('XYIZ'))
     cirq.testing.assert_implements_consistent_protocols(
-        -cirq.DensePauliString('Z'))
-    cirq.testing.assert_implements_consistent_protocols(
-        1j * cirq.DensePauliString('X'))
-    cirq.testing.assert_implements_consistent_protocols(
-        2 * cirq.DensePauliString('X'))
-    cirq.testing.assert_implements_consistent_protocols(
-        t * cirq.DensePauliString('XYIZ'))
-    cirq.testing.assert_implements_consistent_protocols(
-        cirq.DensePauliString('XYIZ', coefficient=t + 2))
-    cirq.testing.assert_implements_consistent_protocols(
-        -cirq.DensePauliString('XYIZ'))
-    cirq.testing.assert_implements_consistent_protocols(
-        cirq.MutableDensePauliString('XYIZ', coefficient=-1))
+        cirq.MutableDensePauliString('XYIZ', coefficient=-1)
+    )
 
     # Unitarity and shape.
     assert cirq.has_unitary(1j * cirq.DensePauliString('X'))
@@ -416,13 +391,16 @@ def test_protocols():
     p = -cirq.DensePauliString('XYIZ')
     assert cirq.num_qubits(p) == len(p) == 4
 
-    # Parameterization.
+
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameterizable(resolve_fn):
+    t = sympy.Symbol('t')
     x = cirq.DensePauliString('X')
     assert not cirq.is_parameterized(x)
     assert not cirq.is_parameterized(x * 2)
     assert cirq.is_parameterized(x * t)
-    assert cirq.resolve_parameters(x * t, {'t': 2}) == x * 2
-    assert cirq.resolve_parameters(x * 3, {'t': 2}) == x * 3
+    assert resolve_fn(x * t, {'t': 2}) == x * 2
+    assert resolve_fn(x * 3, {'t': 2}) == x * 3
 
 
 def test_item_immutable():
@@ -497,9 +475,7 @@ def test_tensor_product():
     m = cirq.MutableDensePauliString
     assert (2 * f('XX')).tensor_product(-f('XI')) == -2 * f('XXXI')
     assert m('XX', coefficient=2).tensor_product(-f('XI')) == -2 * f('XXXI')
-    assert m('XX',
-             coefficient=2).tensor_product(m('XI',
-                                             coefficient=-1)) == -2 * f('XXXI')
+    assert m('XX', coefficient=2).tensor_product(m('XI', coefficient=-1)) == -2 * f('XXXI')
 
 
 def test_commutes():
@@ -515,8 +491,7 @@ def test_commutes():
     assert not cirq.commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(3)))
     assert cirq.commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(2)))
 
-    assert cirq.commutes(f('XX'), "test",
-                         default=NotImplemented) is NotImplemented
+    assert cirq.commutes(f('XX'), "test", default=NotImplemented) is NotImplemented
 
 
 def test_copy():
@@ -540,35 +515,28 @@ def test_copy():
     assert p.copy(coefficient=-1) is p
     assert p.copy(coefficient=-2) is not p
     assert p.copy(coefficient=-2) == -2 * cirq.DensePauliString('XYZ')
-    assert p.copy(coefficient=-2,
-                  pauli_mask=[3]) == -2 * cirq.DensePauliString('Z')
+    assert p.copy(coefficient=-2, pauli_mask=[3]) == -2 * cirq.DensePauliString('Z')
 
     # Copy mutable with modifications.
     assert m.copy(coefficient=-1) is not m
     assert m.copy(coefficient=-2) is not m
-    assert m.copy(coefficient=-2) == cirq.MutableDensePauliString(
-        'XYZ', coefficient=-2)
-    assert m.copy(coefficient=-2,
-                  pauli_mask=[2
-                             ]) == cirq.MutableDensePauliString('Y',
-                                                                coefficient=-2)
+    assert m.copy(coefficient=-2) == cirq.MutableDensePauliString('XYZ', coefficient=-2)
+    assert m.copy(coefficient=-2, pauli_mask=[2]) == cirq.MutableDensePauliString(
+        'Y', coefficient=-2
+    )
 
     # Aliasing of the mask attribute when copying with modifications.
     mask = np.array([1, 2, 3], dtype=np.uint8)
     assert cirq.MutableDensePauliString(mask).copy().pauli_mask is not mask
-    assert cirq.MutableDensePauliString(mask).copy(
-        pauli_mask=mask).pauli_mask is mask
-    assert cirq.MutableDensePauliString('XYZ').copy(
-        pauli_mask=mask).pauli_mask is mask
+    assert cirq.MutableDensePauliString(mask).copy(pauli_mask=mask).pauli_mask is mask
+    assert cirq.MutableDensePauliString('XYZ').copy(pauli_mask=mask).pauli_mask is mask
 
 
 def test_gaussian_elimination():
-
     def table(*rows: str) -> List[cirq.MutableDensePauliString]:
         coefs = {'i': 1j, '-': -1, '+': 1}
         return [
-            cirq.MutableDensePauliString(row[1:].replace('.', 'I'),
-                                         coefficient=coefs[row[0]])
+            cirq.MutableDensePauliString(row[1:].replace('.', 'I'), coefficient=coefs[row[0]])
             for row in rows
         ]
 

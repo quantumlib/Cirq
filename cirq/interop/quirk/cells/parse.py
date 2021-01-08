@@ -37,7 +37,7 @@ import sympy
 def _merge_scientific_float_tokens(tokens: Iterable[str]) -> List[str]:
     tokens = list(tokens)
     i = 0
-    while 'e' in tokens[i + 1:]:
+    while 'e' in tokens[i + 1 :]:
         i = tokens.index('e', i + 1)
         s = i - 1
         e = i + 1
@@ -55,8 +55,7 @@ def _merge_scientific_float_tokens(tokens: Iterable[str]) -> List[str]:
 T = TypeVar('T')
 
 
-def _segment_by(seq: Iterable[T], *,
-                key: Callable[[T], Any]) -> Iterator[List[T]]:
+def _segment_by(seq: Iterable[T], *, key: Callable[[T], Any]) -> Iterator[List[T]]:
     group: List[T] = []
     last_key = None
     for item in seq:
@@ -71,7 +70,6 @@ def _segment_by(seq: Iterable[T], *,
 
 
 def _tokenize(text: str) -> List[str]:
-
     def classify(e: str) -> str:
         assert e.strip() != ''  # Because _segment_by drops empty entries.
         if re.match(r'[.0-9]', e):
@@ -92,24 +90,21 @@ _ResolvedToken = Union[sympy.Basic, int, float, complex]
 
 
 class _CustomQuirkOperationToken:
-
     def __init__(
-            self,
-            unary_action: Optional[Callable[[_ResolvedToken], _ResolvedToken]],
-            binary_action: Optional[
-                Callable[[_ResolvedToken, _ResolvedToken], _ResolvedToken]],
-            priority: float):
+        self,
+        unary_action: Optional[Callable[[_ResolvedToken], _ResolvedToken]],
+        binary_action: Optional[Callable[[_ResolvedToken, _ResolvedToken], _ResolvedToken]],
+        priority: float,
+    ):
         self.unary_action = unary_action
         self.binary_action = binary_action
         self.priority = priority
 
 
 class _HangingNode:
-
     def __init__(
-            self,
-            func: Callable[[_ResolvedToken, _ResolvedToken], _ResolvedToken],
-            weight: float):
+        self, func: Callable[[_ResolvedToken, _ResolvedToken], _ResolvedToken], weight: float
+    ):
         self.func = func
         self.weight = weight
 
@@ -117,8 +112,7 @@ class _HangingNode:
 _HangingToken = Union[_ResolvedToken, str, _CustomQuirkOperationToken]
 
 
-def _translate_token(token_id: str,
-                     token_map: Mapping[str, _HangingToken]) -> _HangingToken:
+def _translate_token(token_id: str, token_map: Mapping[str, _HangingToken]) -> _HangingToken:
     if re.match(r'[0-9]+(\.[0-9]+)?', token_id):
         return float(token_id)
 
@@ -128,18 +122,18 @@ def _translate_token(token_id: str,
     raise ValueError(f"Unrecognized token: {token_id}")
 
 
-def _parse_formula_using_token_map(text: str,
-                                   token_map: Dict[str, _HangingToken]
-                                  ) -> _ResolvedToken:
+def _parse_formula_using_token_map(
+    text: str, token_map: Dict[str, _HangingToken]
+) -> _ResolvedToken:
     """Parses a value from an infix arithmetic expression."""
-    tokens: List[_HangingToken] = [
-        _translate_token(e, token_map) for e in _tokenize(text)
-    ]
+    tokens: List[_HangingToken] = [_translate_token(e, token_map) for e in _tokenize(text)]
 
     # Cut off trailing operation, so parse fails less often as users are typing.
-    if len(tokens) and isinstance(
-            tokens[-1],
-            _CustomQuirkOperationToken) and tokens[-1].priority is not None:
+    if (
+        len(tokens)
+        and isinstance(tokens[-1], _CustomQuirkOperationToken)
+        and tokens[-1].priority is not None
+    ):
         tokens = tokens[:-1]
 
     ops: List[Union[str, _HangingNode]] = []
@@ -155,8 +149,7 @@ def _parse_formula_using_token_map(text: str,
     def apply(op: Union[str, _HangingNode]) -> None:
         assert isinstance(op, _HangingNode)
         if len(vals) < 2:
-            raise ValueError(
-                "Bad expression: operated on nothing.\ntext={text!r}")
+            raise ValueError("Bad expression: operated on nothing.\ntext={text!r}")
         b = vals.pop()
         a = vals.pop()
         vals.append(cast(_HangingNode, op).func(a, b))
@@ -164,8 +157,7 @@ def _parse_formula_using_token_map(text: str,
     def close_paren() -> None:
         while True:
             if len(ops) == 0:
-                raise ValueError(
-                    "Bad expression: unmatched ')'.\ntext={text!r}")
+                raise ValueError("Bad expression: unmatched ')'.\ntext={text!r}")
             op = ops.pop()
             if op == "(":
                 break
@@ -174,8 +166,7 @@ def _parse_formula_using_token_map(text: str,
     def burn_ops(w: float) -> None:
         while len(ops) and len(vals) >= 2 and vals[-1] is not None:
             top = ops[-1]
-            if not isinstance(
-                    top, _HangingNode) or top.weight is None or top.weight < w:
+            if not isinstance(top, _HangingNode) or top.weight is None or top.weight < w:
                 break
             apply(ops.pop())
 
@@ -183,29 +174,27 @@ def _parse_formula_using_token_map(text: str,
         # Implied multiplication?
         mul = cast(_CustomQuirkOperationToken, token_map["*"])
         if could_be_binary and token != ")":
-            if (not isinstance(token, _CustomQuirkOperationToken) or cast(
-                    _CustomQuirkOperationToken, token).binary_action is None):
+            if (
+                not isinstance(token, _CustomQuirkOperationToken)
+                or cast(_CustomQuirkOperationToken, token).binary_action is None
+            ):
                 burn_ops(mul.priority)
                 ops.append(
-                    _HangingNode(func=cast(Callable[[T, T], T],
-                                           mul.binary_action),
-                                 weight=mul.priority))
+                    _HangingNode(
+                        func=cast(Callable[[T, T], T], mul.binary_action), weight=mul.priority
+                    )
+                )
 
         if isinstance(token, _CustomQuirkOperationToken):
             if could_be_binary and token.binary_action is not None:
                 burn_ops(token.priority)
-                ops.append(
-                    _HangingNode(func=token.binary_action,
-                                 weight=token.priority))
+                ops.append(_HangingNode(func=token.binary_action, weight=token.priority))
             elif token.unary_action is not None:
                 burn_ops(token.priority)
                 vals.append(None)
-                ops.append(
-                    _HangingNode(func=lambda _, b: token.unary_action(b),
-                                 weight=np.inf))
+                ops.append(_HangingNode(func=lambda _, b: token.unary_action(b), weight=np.inf))
             elif token.binary_action is not None:
-                raise ValueError(
-                    "Bad expression: binary op in bad spot.\ntext={text!r}")
+                raise ValueError("Bad expression: binary op in bad spot.\ntext={text!r}")
 
     was_valid_end_token = False
     for token in tokens:
@@ -250,109 +239,82 @@ UNICODE_FRACTIONS = {
 
 PARSE_COMPLEX_TOKEN_MAP_ALL: Dict[str, _HangingToken] = {
     **UNICODE_FRACTIONS,
-    'i':
-    1j,
-    'e':
-    sympy.E,
-    'pi':
-    sympy.pi,
-    '(':
-    '(',
-    ')':
-    ')',
-    'sqrt':
-    _CustomQuirkOperationToken(unary_action=sympy.sqrt,
-                               binary_action=None,
-                               priority=4),
-    'exp':
-    _CustomQuirkOperationToken(unary_action=sympy.exp,
-                               binary_action=None,
-                               priority=4),
-    'ln':
-    _CustomQuirkOperationToken(unary_action=sympy.log,
-                               binary_action=None,
-                               priority=4),
-    '^':
-    _CustomQuirkOperationToken(unary_action=None,
-                               binary_action=lambda a, b: a**complex(b),
-                               priority=3),
-    '*':
-    _CustomQuirkOperationToken(unary_action=None,
-                               binary_action=lambda a, b: a * b,
-                               priority=2),
-    '/':
-    _CustomQuirkOperationToken(unary_action=None,
-                               binary_action=lambda a, b: a / b,
-                               priority=2),
-    '+':
-    _CustomQuirkOperationToken(unary_action=lambda e: e,
-                               binary_action=lambda a, b: a + b,
-                               priority=1),
-    '-':
-    _CustomQuirkOperationToken(unary_action=lambda a: -a,
-                               binary_action=lambda a, b: a - b,
-                               priority=1),
+    'i': 1j,
+    'e': sympy.E,
+    'pi': sympy.pi,
+    '(': '(',
+    ')': ')',
+    'sqrt': _CustomQuirkOperationToken(unary_action=sympy.sqrt, binary_action=None, priority=4),
+    'exp': _CustomQuirkOperationToken(unary_action=sympy.exp, binary_action=None, priority=4),
+    'ln': _CustomQuirkOperationToken(unary_action=sympy.log, binary_action=None, priority=4),
+    '^': _CustomQuirkOperationToken(
+        unary_action=None, binary_action=lambda a, b: a ** complex(b), priority=3
+    ),
+    '*': _CustomQuirkOperationToken(
+        unary_action=None, binary_action=lambda a, b: a * b, priority=2
+    ),
+    '/': _CustomQuirkOperationToken(
+        unary_action=None, binary_action=lambda a, b: a / b, priority=2
+    ),
+    '+': _CustomQuirkOperationToken(
+        unary_action=lambda e: e, binary_action=lambda a, b: a + b, priority=1
+    ),
+    '-': _CustomQuirkOperationToken(
+        unary_action=lambda a: -a, binary_action=lambda a, b: a - b, priority=1
+    ),
 }
 PARSE_COMPLEX_TOKEN_MAP_ALL["√"] = PARSE_COMPLEX_TOKEN_MAP_ALL["sqrt"]
 
 PARSE_COMPLEX_TOKEN_MAP_DEG: Dict[str, _HangingToken] = {
     **PARSE_COMPLEX_TOKEN_MAP_ALL,
-    "cos":
-    _CustomQuirkOperationToken(
-        unary_action=lambda e: sympy.cos(e * sympy.pi / 180),
-        binary_action=None,
-        priority=4),
-    "sin":
-    _CustomQuirkOperationToken(
-        unary_action=lambda e: sympy.sin(e * sympy.pi / 180),
-        binary_action=None,
-        priority=4),
-    "asin":
-    _CustomQuirkOperationToken(
-        unary_action=lambda e: sympy.asin(e) * 180 / sympy.pi,
-        binary_action=None,
-        priority=4),
-    "acos":
-    _CustomQuirkOperationToken(
-        unary_action=lambda e: sympy.acos(e) * 180 / sympy.pi,
-        binary_action=None,
-        priority=4),
+    "cos": _CustomQuirkOperationToken(
+        unary_action=lambda e: sympy.cos(e * sympy.pi / 180), binary_action=None, priority=4
+    ),
+    "sin": _CustomQuirkOperationToken(
+        unary_action=lambda e: sympy.sin(e * sympy.pi / 180), binary_action=None, priority=4
+    ),
+    "asin": _CustomQuirkOperationToken(
+        unary_action=lambda e: sympy.asin(e) * 180 / sympy.pi, binary_action=None, priority=4
+    ),
+    "acos": _CustomQuirkOperationToken(
+        unary_action=lambda e: sympy.acos(e) * 180 / sympy.pi, binary_action=None, priority=4
+    ),
 }
 PARSE_COMPLEX_TOKEN_MAP_DEG["arccos"] = PARSE_COMPLEX_TOKEN_MAP_DEG["acos"]
 PARSE_COMPLEX_TOKEN_MAP_DEG["arcsin"] = PARSE_COMPLEX_TOKEN_MAP_DEG["asin"]
 
 PARSE_COMPLEX_TOKEN_MAP_RAD: Dict[str, _HangingToken] = {
     **PARSE_COMPLEX_TOKEN_MAP_ALL,
-    "cos":
-    _CustomQuirkOperationToken(unary_action=lambda e: sympy.cos(e)
-                               if isinstance(e, sympy.Basic) else cmath.cos(e),
-                               binary_action=None,
-                               priority=4),
-    "sin":
-    _CustomQuirkOperationToken(unary_action=lambda e: sympy.sin(e)
-                               if isinstance(e, sympy.Basic) else cmath.sin(e),
-                               binary_action=None,
-                               priority=4),
-    "asin":
-    _CustomQuirkOperationToken(unary_action=lambda e: sympy.asin(e)
-                               if isinstance(e, sympy.Basic) else np.arcsin(e),
-                               binary_action=None,
-                               priority=4),
-    "acos":
-    _CustomQuirkOperationToken(unary_action=lambda e: sympy.acos(e)
-                               if isinstance(e, sympy.Basic) else np.arccos(e),
-                               binary_action=None,
-                               priority=4),
-    "tan":
-    _CustomQuirkOperationToken(unary_action=lambda e: sympy.tan(e)
-                               if isinstance(e, sympy.Basic) else np.tan(e),
-                               binary_action=None,
-                               priority=4),
-    "atan":
-    _CustomQuirkOperationToken(unary_action=lambda e: sympy.atan(e)
-                               if isinstance(e, sympy.Basic) else np.arctan(e),
-                               binary_action=None,
-                               priority=4),
+    "cos": _CustomQuirkOperationToken(
+        unary_action=lambda e: sympy.cos(e) if isinstance(e, sympy.Basic) else cmath.cos(e),
+        binary_action=None,
+        priority=4,
+    ),
+    "sin": _CustomQuirkOperationToken(
+        unary_action=lambda e: sympy.sin(e) if isinstance(e, sympy.Basic) else cmath.sin(e),
+        binary_action=None,
+        priority=4,
+    ),
+    "asin": _CustomQuirkOperationToken(
+        unary_action=lambda e: sympy.asin(e) if isinstance(e, sympy.Basic) else np.arcsin(e),
+        binary_action=None,
+        priority=4,
+    ),
+    "acos": _CustomQuirkOperationToken(
+        unary_action=lambda e: sympy.acos(e) if isinstance(e, sympy.Basic) else np.arccos(e),
+        binary_action=None,
+        priority=4,
+    ),
+    "tan": _CustomQuirkOperationToken(
+        unary_action=lambda e: sympy.tan(e) if isinstance(e, sympy.Basic) else np.tan(e),
+        binary_action=None,
+        priority=4,
+    ),
+    "atan": _CustomQuirkOperationToken(
+        unary_action=lambda e: sympy.atan(e) if isinstance(e, sympy.Basic) else np.arctan(e),
+        binary_action=None,
+        priority=4,
+    ),
 }
 
 
@@ -361,17 +323,16 @@ def parse_matrix(text: str) -> np.ndarray:
     text = re.sub(r'\s', '', text)
     if len(text) < 4 or text[:2] != "{{" or text[-2:] != "}}":
         raise ValueError("Not surrounded by {{}}.")
-    return np.array([[parse_complex(cell)
-                      for cell in row.split(',')]
-                     for row in text[2:-2].split('},{')],
-                    dtype=np.complex128)
+    return np.array(
+        [[parse_complex(cell) for cell in row.split(',')] for row in text[2:-2].split('},{')],
+        dtype=np.complex128,
+    )
 
 
 def parse_complex(text: str) -> complex:
     """Attempts to parse a complex number in exactly the same way as Quirk."""
     try:
-        return complex(
-            _parse_formula_using_token_map(text, PARSE_COMPLEX_TOKEN_MAP_DEG))
+        return complex(_parse_formula_using_token_map(text, PARSE_COMPLEX_TOKEN_MAP_DEG))
     except Exception as ex:
         raise ValueError(f'Failed to parse complex from {text!r}') from ex
 

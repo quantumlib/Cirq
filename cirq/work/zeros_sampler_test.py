@@ -40,7 +40,7 @@ def test_sample():
     # actual simulation.
     qs = cirq.LineQubit.range(6)
     c = cirq.Circuit([cirq.CNOT(qs[0], qs[1]), cirq.X(qs[2]), cirq.X(qs[2])])
-    c += cirq.Z(qs[3])**sympy.Symbol('p')
+    c += cirq.Z(qs[3]) ** sympy.Symbol('p')
     c += [cirq.measure(q) for q in qs[0:3]]
     c += cirq.measure(qs[4], qs[5])
     # Z to even power is an identity.
@@ -53,11 +53,9 @@ def test_sample():
 
 
 class OnlyMeasurementsDevice(cirq.Device):
-
     def validate_operation(self, operation: 'cirq.Operation') -> None:
         if not cirq.is_measurement(operation):
-            raise ValueError(f'{operation} is not a measurement and this '
-                             f'device only measures!')
+            raise ValueError(f'{operation} is not a measurement and this device only measures!')
 
 
 def test_validate_device():
