@@ -96,7 +96,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+            if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
             q = args.axes[0]
@@ -112,7 +112,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             return True
 
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+            if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             _act_with_gates(args, H, ZPowGate(exponent=self._exponent), H)
             # Adjust the global phase based on the global_shift parameter.
@@ -251,7 +251,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         if self._is_parameterized_():
             return None
-        return self.exponent % 1 == 0
+        return self.exponent % 0.5 == 0
 
     def __str__(self) -> str:
         if self._global_shift == -0.5:
@@ -319,7 +319,7 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+            if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
             q = args.axes[0]
@@ -341,7 +341,7 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             return True
 
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+            if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             effective_exponent = self._exponent % 2
             state = args.state
@@ -442,7 +442,7 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         if self._is_parameterized_():
             return None
-        return self.exponent % 1 == 0
+        return self.exponent % 0.5 == 0
 
     def __str__(self) -> str:
         if self._global_shift == -0.5:
@@ -508,7 +508,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+            if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
             q = args.axes[0]
@@ -524,7 +524,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             return True
 
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+            if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             q = args.axes[0]
             effective_exponent = self._exponent % 2
@@ -795,7 +795,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            if protocols.is_parameterized(self) or self.exponent % 1 != 0:
+            if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
             q = args.axes[0]
@@ -808,7 +808,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             return True
 
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            if protocols.is_parameterized(self) or self.exponent % 1 != 0:
+            if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             q = args.axes[0]
             state = args.state
@@ -958,7 +958,7 @@ class CZPowGate(
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            if protocols.is_parameterized(self) or self.exponent % 1 != 0:
+            if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
             q1 = args.axes[0]
@@ -981,7 +981,7 @@ class CZPowGate(
             return True
 
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            if protocols.is_parameterized(self) or self.exponent % 1 != 0:
+            if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             q1 = args.axes[0]
             q2 = args.axes[1]
@@ -1181,7 +1181,7 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            if protocols.is_parameterized(self) or self.exponent % 1 != 0:
+            if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
             q1 = args.axes[0]
@@ -1197,7 +1197,7 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             return True
 
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            if protocols.is_parameterized(self) or self.exponent % 1 != 0:
+            if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             q1 = args.axes[0]
             q2 = args.axes[1]

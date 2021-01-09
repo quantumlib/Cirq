@@ -217,6 +217,9 @@ class MeasurementGate(raw_types.Gate):
             qid_shape=None if qid_shape is None else tuple(qid_shape),
         )
 
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        return True
+
     def _act_on_(self, args: Any) -> bool:
         from cirq import sim
 

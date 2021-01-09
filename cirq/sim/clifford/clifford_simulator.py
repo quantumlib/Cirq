@@ -60,17 +60,7 @@ class CliffordSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermedi
     def is_supported_operation(op: 'cirq.Operation') -> bool:
         """Checks whether given operation can be simulated by this simulator."""
         # TODO: support more general Pauli measurements
-        if isinstance(op.gate, cirq.MeasurementGate):
-            return True
-        if isinstance(op, GlobalPhaseOperation):
-            return True
-        if not protocols.has_unitary(op):
-            return False
-        if len(op.qubits) == 1:
-            u = unitary(op)
-            return SingleQubitCliffordGate.from_unitary(u) is not None
-        else:
-            return op.gate in [cirq.CNOT, cirq.CZ]
+        return protocols.has_stabilizer_effect(op)
 
     def _base_iterator(
         self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
