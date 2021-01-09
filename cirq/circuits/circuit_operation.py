@@ -18,12 +18,12 @@ applied as part of a larger circuit, a CircuitOperation will execute all
 component operations in order, including any nested CircuitOperations.
 """
 
-from typing import TYPE_CHECKING, AbstractSet, Callable, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, AbstractSet, Callable, Dict, Optional, Tuple, Union
 
 import dataclasses
 import numpy as np
 
-from cirq import ops, protocols, study
+from cirq import circuits, ops, protocols, study
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
@@ -58,6 +58,8 @@ class CircuitOperation(ops.Operation):
     param_resolver: study.ParamResolver = study.ParamResolver()
 
     def __post_init__(self):
+        if not isinstance(self.circuit, circuits.FrozenCircuit):
+            raise TypeError(f'Expected circuit of type FrozenCircuit, got: {type(self.circuit)!r}')
         # Ensure that param_resolver is converted to an actual ParamResolver.
         object.__setattr__(self, 'param_resolver', study.ParamResolver(self.param_resolver))
 
