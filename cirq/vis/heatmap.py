@@ -132,7 +132,8 @@ class HeatmapBase(Generic[T, K, M], abc.ABC):
     ) -> T:
         """Sets the annotation text.
 
-        This method supports setting the annotation map directly via coordinates, or by the "target" object (qubit or qubit pair) of the heatmap.
+        This method supports setting the annotation map directly via coordinates, or by the "target"
+        object (qubit or qubit pair) of the heatmap.
         Note that set_annotation_map() and set_annotation_format()
         both sets the annotation map to be used. Whichever is called later wins.
 
