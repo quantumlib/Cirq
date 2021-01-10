@@ -94,7 +94,7 @@ class SwapPowGate(
         from cirq import ops, sim, protocols
 
         if isinstance(args, (sim.ActOnStabilizerCHFormArgs, sim.ActOnCliffordTableauArgs)):
-            if self._has_stabilizer_effect_():
+            if not self._has_stabilizer_effect_():
                 return NotImplemented
             if isinstance(args, sim.ActOnStabilizerCHFormArgs):
                 args.state.omega *= 1j ** (2 * self.global_shift * self._exponent)
