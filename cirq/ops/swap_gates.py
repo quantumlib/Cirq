@@ -94,7 +94,7 @@ class SwapPowGate(
         from cirq import ops, sim, protocols
 
         if isinstance(args, (sim.ActOnStabilizerCHFormArgs, sim.ActOnCliffordTableauArgs)):
-            if not protocols.has_stabilizer_effect(self):
+            if self._has_stabilizer_effect_():
                 return NotImplemented
             if isinstance(args, sim.ActOnStabilizerCHFormArgs):
                 args.state.omega *= 1j ** (2 * self.global_shift * self._exponent)
@@ -105,12 +105,8 @@ class SwapPowGate(
                 protocols.act_on(ops.CNOT, args)
                 args.axes = args.axes[::-1]
                 protocols.act_on(ops.CNOT, args)
-            else:
-                # Any fractional exponent SWAP gate should have been rejected
-                # already. Any even exponent does not change anything except
-                # the global phase above.
-                assert self._exponent % 2 == 0
 
+            # An even exponent does not change anything except the global phase above.
             return True
 
         return NotImplemented
