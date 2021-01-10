@@ -698,3 +698,29 @@ def test_inverse_composite_standards():
     cirq.testing.assert_implements_consistent_protocols(
         cirq.inverse(Gate()), global_vals={'C': Gate}
     )
+
+
+def test_tagged_act_on():
+    class YesActOn(cirq.Gate):
+        def _num_qubits_(self) -> int:
+            return 1
+
+        def _act_on_(self, args):
+            return True
+
+    class NoActOn(cirq.Gate):
+        def _num_qubits_(self) -> int:
+            return 1
+
+    class NotImplActOn(cirq.Gate):
+        def _num_qubits_(self) -> int:
+            return 1
+
+        def _act_on_(self, args):
+            return NotImplemented
+
+    cirq.act_on(YesActOn(), object())
+    with pytest.raises(TypeError, match="Failed to act"):
+        cirq.act_on(NoActOn(), object())
+    with pytest.raises(TypeError, match="Failed to act"):
+        cirq.act_on(NotImplActOn(), object())

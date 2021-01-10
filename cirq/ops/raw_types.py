@@ -630,6 +630,11 @@ class TaggedOperation(Operation):
             protocols.is_parameterized(tag) for tag in self.tags
         )
 
+    def _act_on_(self, args) -> bool:
+        if hasattr(self.sub_operation, "_act_on_"):
+            return self.sub_operation._act_on_(args)
+        return NotImplemented
+
     def _parameter_names_(self) -> AbstractSet[str]:
         tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
         return protocols.parameter_names(self.sub_operation) | tag_params
