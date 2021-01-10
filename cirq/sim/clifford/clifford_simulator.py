@@ -115,8 +115,8 @@ class CliffordSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermedi
                     ch_form_args.axes = tuple(state.qubit_map[i] for i in op.qubits)
                     act_on(op, ch_form_args)
                 except TypeError:
-                    raise ValueError(
-                        '%s cannot be run with Clifford simulator.' % str(op.gate)
+                    raise NotImplementedError(
+                        f"CliffordSimulator doesn't support {op!r}"
                     )  # type: ignore
 
             yield CliffordSimulatorStepResult(
