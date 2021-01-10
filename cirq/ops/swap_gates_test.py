@@ -75,6 +75,13 @@ b: ---Swap---iSwap^-1---
     )
 
 
+def test_swap_has_stabilizer_effect():
+    assert cirq.has_stabilizer_effect(cirq.SWAP)
+    assert cirq.has_stabilizer_effect(cirq.SWAP ** 2)
+    assert not cirq.has_stabilizer_effect(cirq.SWAP ** 0.5)
+    assert not cirq.has_stabilizer_effect(cirq.SWAP ** sympy.Symbol('foo'))
+
+
 def test_swap_unitary():
     # yapf: disable
     np.testing.assert_almost_equal(
