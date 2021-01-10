@@ -113,7 +113,7 @@ class CliffordSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermedi
 
             for op in moment:
                 try:
-                    ch_form_args.axes = [state.qubit_map[i] for i in op.qubits]
+                    ch_form_args.axes = tuple(state.qubit_map[i] for i in op.qubits)
                     act_on(op, ch_form_args)
                 except TypeError:
                     raise ValueError(
