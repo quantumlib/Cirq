@@ -677,6 +677,10 @@ class ResetChannel(gate_features.SingleQubitGate):
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         return True
 
+    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+        args.validate_version('2.0')
+        return args.format('reset {0};\n', qubits[0])
+
     def _qid_shape_(self):
         return (self._dimension,)
 
