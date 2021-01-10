@@ -631,8 +631,9 @@ class TaggedOperation(Operation):
         )
 
     def _act_on_(self, args) -> bool:
-        if hasattr(self.sub_operation, "_act_on_"):
-            return self.sub_operation._act_on_(args)
+        sub = getattr(self.sub_operation, "_act_on_", None)
+        if sub is not None:
+            return sub(args)
         return NotImplemented
 
     def _parameter_names_(self) -> AbstractSet[str]:
