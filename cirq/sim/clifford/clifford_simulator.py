@@ -29,7 +29,6 @@ The quantum state is specified in two forms:
     to state vector amplitudes.
 """
 
-import collections
 from typing import Any, Dict, List, Iterator, Sequence
 
 import numpy as np
@@ -100,19 +99,28 @@ class CliffordSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermedi
             return
 
         state = CliffordState(qubit_map, initial_state=initial_state)
+        ch_form_args = clifford.ActOnStabilizerCHFormArgs(
+            state.ch_form,
+            [],
+            self._prng,
+            {},
+        )
 
         for moment in circuit:
-            measurements: Dict[str, List[np.ndarray]] = collections.defaultdict(list)
+            ch_form_args.log_of_measurement_results = {}
 
             for op in moment:
-                if isinstance(op.gate, ops.MeasurementGate):
-                    state.apply_measurement(op, measurements, self._prng)
-                elif protocols.has_unitary(op):
-                    state.apply_unitary(op)
-                else:
-                    raise NotImplementedError(f"Unrecognized operation: {op!r}")
+                try:
+                    ch_form_args.axes = tuple(state.qubit_map[i] for i in op.qubits)
+                    act_on(op, ch_form_args)
+                except TypeError:
+                    raise NotImplementedError(
+                        f"CliffordSimulator doesn't support {op!r}"
+                    )  # type: ignore
 
-            yield CliffordSimulatorStepResult(measurements=measurements, state=state)
+            yield CliffordSimulatorStepResult(
+                measurements=ch_form_args.log_of_measurement_results, state=state
+            )
 
     def _simulator_iterator(
         self,
