@@ -102,17 +102,27 @@ class CliffordSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermedi
         state = CliffordState(qubit_map, initial_state=initial_state)
 
         for moment in circuit:
+            ch_form_args = clifford.ActOnStabilizerCHFormArgs(
+                state.ch_form,
+                [],
+                self._prng,
+                {},
+            )
             measurements: Dict[str, List[np.ndarray]] = collections.defaultdict(list)
+            ch_form_args.log_of_measurement_results = collections.defaultdict(list)
 
             for op in moment:
-                if isinstance(op.gate, ops.MeasurementGate):
-                    state.apply_measurement(op, measurements, self._prng)
-                elif protocols.has_unitary(op):
-                    state.apply_unitary(op)
-                else:
-                    raise NotImplementedError(f"Unrecognized operation: {op!r}")
+                try:
+                    ch_form_args.axes = [state.qubit_map[i] for i in op.qubits]
+                    act_on(op, ch_form_args)
+                except TypeError:
+                    raise ValueError(
+                        '%s cannot be run with Clifford simulator.' % str(op.gate)
+                    )  # type: ignore
 
-            yield CliffordSimulatorStepResult(measurements=measurements, state=state)
+            yield CliffordSimulatorStepResult(
+                measurements=ch_form_args.log_of_measurement_results, state=state
+            )
 
     def _simulator_iterator(
         self,

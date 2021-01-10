@@ -524,3 +524,13 @@ def test_deprecated():
     ):
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
         _ = clifford_state.perform_measurement([q], prng=0, collapse_wavefunction=True)
+
+
+def test_reset():
+    q = cirq.LineQubit(0)
+    c = cirq.Circuit(cirq.X(q), cirq.reset(q), cirq.measure(q, key="out"))
+    assert cirq.CliffordSimulator().sample(c)["out"][0] == 0
+    c = cirq.Circuit(cirq.H(q), cirq.reset(q), cirq.measure(q, key="out"))
+    assert cirq.CliffordSimulator().sample(c)["out"][0] == 0
+    c = cirq.Circuit(cirq.reset(q), cirq.measure(q, key="out"))
+    assert cirq.CliffordSimulator().sample(c)["out"][0] == 0
