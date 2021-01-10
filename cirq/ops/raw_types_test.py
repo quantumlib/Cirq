@@ -719,8 +719,9 @@ def test_tagged_act_on():
         def _act_on_(self, args):
             return NotImplemented
 
-    cirq.act_on(YesActOn(), object())
+    q = cirq.LineQubit(1)
+    cirq.act_on(YesActOn()(q).with_tags("test"), object())
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(NoActOn(), object())
+        cirq.act_on(NoActOn()(q).with_tags("test"), object())
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(NotImplActOn(), object())
+        cirq.act_on(NotImplActOn()(q).with_tags("test"), object())
