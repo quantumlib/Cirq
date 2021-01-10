@@ -100,16 +100,15 @@ class CliffordSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermedi
             return
 
         state = CliffordState(qubit_map, initial_state=initial_state)
+        ch_form_args = clifford.ActOnStabilizerCHFormArgs(
+            state.ch_form,
+            [],
+            self._prng,
+            {},
+        )
 
         for moment in circuit:
-            ch_form_args = clifford.ActOnStabilizerCHFormArgs(
-                state.ch_form,
-                [],
-                self._prng,
-                {},
-            )
-            measurements: Dict[str, List[np.ndarray]] = collections.defaultdict(list)
-            ch_form_args.log_of_measurement_results = collections.defaultdict(list)
+            ch_form_args.log_of_measurement_results = {}
 
             for op in moment:
                 try:
