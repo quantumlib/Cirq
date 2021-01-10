@@ -33,13 +33,11 @@ import collections
 from typing import Any, Dict, List, Iterator, Sequence
 
 import numpy as np
-from cirq.ops.global_phase_op import GlobalPhaseOperation
 
 import cirq
 from cirq import circuits, study, ops, protocols, value
-from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.ops.dense_pauli_string import DensePauliString
-from cirq.protocols import act_on, unitary
+from cirq.protocols import act_on
 from cirq.sim import clifford, simulator
 from cirq._compat import deprecated, deprecated_parameter
 
