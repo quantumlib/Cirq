@@ -490,3 +490,33 @@ measure q[3] -> m_multi[2];
 x q[0];
 """
     )
+
+
+def test_reset():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.reset(a), cirq.reset(b))
+    output = cirq.QasmOutput(
+        c.all_operations(),
+        tuple(sorted(c.all_qubits())),
+        header='Generated from Cirq!',
+        precision=5,
+    )
+    assert (
+        str(output).strip()
+        == """
+// Generated from Cirq!
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [0, 1]
+qreg q[2];
+
+
+h q[0];
+cx q[0],q[1];
+reset q[0];
+reset q[1];
+    """.strip()
+    )
