@@ -494,16 +494,16 @@ x q[0];
 
 def test_reset():
     a, b = cirq.LineQubit.range(2)
-    c = cirq.Circuit(cirq.H(a),
-                     cirq.CNOT(a, b),
-                     cirq.reset(a),
-                     cirq.reset(b))
+    c = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.reset(a), cirq.reset(b))
     output = cirq.QasmOutput(
         c.all_operations(),
         tuple(sorted(c.all_qubits())),
         header='Generated from Cirq!',
-        precision=5)
-    assert str(output).strip() == """
+        precision=5,
+    )
+    assert (
+        str(output).strip()
+        == """
 // Generated from Cirq!
 
 OPENQASM 2.0;
@@ -519,3 +519,4 @@ cx q[0],q[1];
 reset q[0];
 reset q[1];
     """.strip()
+    )
