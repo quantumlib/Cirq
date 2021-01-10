@@ -674,6 +674,10 @@ class ResetChannel(gate_features.SingleQubitGate):
         """
         self._dimension = dimension
 
+    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+        args.validate_version('2.0')
+        return args.format('reset {0};\n', qubits[0])
+
     def _qid_shape_(self):
         return (self._dimension,)
 
