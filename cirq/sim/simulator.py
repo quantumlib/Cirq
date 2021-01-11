@@ -35,6 +35,7 @@ import collections
 import numpy as np
 
 from cirq import circuits, ops, protocols, study, value, work
+from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     import cirq
@@ -333,6 +334,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             circuit, study.ParamResolver(param_resolver), qubit_order, initial_state
         )
 
+    @deprecated(deadline='v0.11.0', fix='Override _base_iterator instead')
     def _simulator_iterator(
         self,
         circuit: circuits.Circuit,
