@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 
-SQRT_ISWAP_PARAMETERS = cirq.google.PhasedFSimParameters(
+SQRT_ISWAP_PARAMETERS = cirq.google.PhasedFSimCharacterization(
     theta=np.pi / 4,
     zeta=0.0,
     chi=0.0,
@@ -134,7 +134,7 @@ def test_create_corrected_fsim_gate(
     corrected_gate, corrected_mapping = workflow.create_corrected_fsim_gate(
         (a, b),
         cirq.FSimGate(theta=theta, phi=phi),
-        cirq.google.PhasedFSimParameters(
+        cirq.google.PhasedFSimCharacterization(
             theta=theta,
             zeta=zeta,
             chi=chi,
@@ -150,13 +150,13 @@ def test_create_corrected_fsim_gate(
 
 
 def test_run_floquet_calibration() -> None:
-    parameters_ab = cirq.google.PhasedFSimParameters(
+    parameters_ab = cirq.google.PhasedFSimCharacterization(
         zeta=0.5, chi=0.4, gamma=0.3
     )
-    parameters_bc = cirq.google.PhasedFSimParameters(
+    parameters_bc = cirq.google.PhasedFSimCharacterization(
         zeta=-0.5, chi=-0.4, gamma=-0.3
     )
-    parameters_cd = cirq.google.PhasedFSimParameters(
+    parameters_cd = cirq.google.PhasedFSimCharacterization(
         zeta=0.2, chi=0.3, gamma=0.4
     )
 
@@ -211,7 +211,7 @@ def test_run_floquet_calibration() -> None:
         )
     ]
     assert mapping == [None, None, 0, None, None, 1, None]
-    assert calibrated_parameters == cirq.google.PhasedFSimParameters(
+    assert calibrated_parameters == cirq.google.PhasedFSimCharacterization(
         zeta=0.0,
         chi=0.0,
         gamma=0.0
@@ -221,13 +221,13 @@ def test_run_floquet_calibration() -> None:
 
 
 def test_run_floquet_calibration_no_chi() -> None:
-    parameters_ab = cirq.google.PhasedFSimParameters(
+    parameters_ab = cirq.google.PhasedFSimCharacterization(
         theta=np.pi / 4, zeta=0.5, gamma=0.3
     )
-    parameters_bc = cirq.google.PhasedFSimParameters(
+    parameters_bc = cirq.google.PhasedFSimCharacterization(
         theta=np.pi / 4, zeta=-0.5, gamma=-0.3
     )
-    parameters_cd = cirq.google.PhasedFSimParameters(
+    parameters_cd = cirq.google.PhasedFSimCharacterization(
         theta=np.pi / 4, zeta=0.2, gamma=0.4
     )
 
