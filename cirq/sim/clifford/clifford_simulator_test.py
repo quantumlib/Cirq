@@ -387,18 +387,21 @@ def test_non_clifford_circuit():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit()
     circuit.append(cirq.T(q0))
-    with pytest.raises(ValueError, match="T cannot be run with Clifford simulator."):
+    with pytest.raises(NotImplementedError, match="support cirq.T"):
         cirq.CliffordSimulator().simulate(circuit)
 
 
-def test_gate_not_supported():
-    q = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit()
-    circuit.append(cirq.SWAP(q[0], q[1]))
-
-    # This is a Clifford gate, but it's not supported yet.
-    with pytest.raises(ValueError, match="SWAP cannot be run with Clifford simulator."):
-        cirq.CliffordSimulator().simulate(circuit)
+def test_swap():
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.X(a),
+        cirq.SWAP(a, b),
+        cirq.measure(a, key="a"),
+        cirq.measure(b, key="b"),
+    )
+    r = cirq.CliffordSimulator().sample(circuit)
+    assert not r["a"][0]
+    assert r["b"][0]
 
 
 def test_sample_seed():
@@ -524,3 +527,13 @@ def test_deprecated():
     ):
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
         _ = clifford_state.perform_measurement([q], prng=0, collapse_wavefunction=True)
+
+
+def test_reset():
+    q = cirq.LineQubit(0)
+    c = cirq.Circuit(cirq.X(q), cirq.reset(q), cirq.measure(q, key="out"))
+    assert cirq.CliffordSimulator().sample(c)["out"][0] == 0
+    c = cirq.Circuit(cirq.H(q), cirq.reset(q), cirq.measure(q, key="out"))
+    assert cirq.CliffordSimulator().sample(c)["out"][0] == 0
+    c = cirq.Circuit(cirq.reset(q), cirq.measure(q, key="out"))
+    assert cirq.CliffordSimulator().sample(c)["out"][0] == 0
