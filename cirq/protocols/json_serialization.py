@@ -13,6 +13,7 @@
 # limitations under the License.
 import dataclasses
 import functools
+import gzip
 import json
 import numbers
 import pathlib
@@ -702,3 +703,28 @@ def read_json(
             return json.load(file, object_hook=obj_hook)
 
     return json.load(cast(IO, file_or_fn), object_hook=obj_hook)
+
+
+def to_gzip(
+    obj: Any,
+    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    *,
+    indent: int = 2,
+    cls: Type[json.JSONEncoder] = CirqEncoder,
+) -> bytes:
+    json_str = to_json(obj, file_or_fn, indent=indent, cls=cls)
+    return gzip.compress(bytes(json_str, encoding='utf-8'))
+
+
+def read_gzip(
+    file_or_fn: Union[None, pathlib.Path, str] = None,
+    *,
+    gzip_raw: Optional[bytes] = None,
+    resolvers: Optional[Sequence[JsonResolver]] = None
+):
+    if gzip_raw is not None:
+        json_str = gzip.decompress(gzip_raw)
+        return read_json(json_text=json_str, resolvers=resolvers)
+
+    with gzip.open(file_or_fn, 'r') as json_file:
+        return read_json(json_file, resolvers=resolvers)
