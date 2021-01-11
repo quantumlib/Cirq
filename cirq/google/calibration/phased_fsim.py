@@ -10,7 +10,7 @@ else:
 
 
 @json_serializable_dataclass(frozen=True)
-class PhasedFSimParameters:
+class PhasedFSimCharacterization:
     theta: Optional[float] = None
     zeta: Optional[float] = None
     chi: Optional[float] = None
@@ -30,7 +30,7 @@ class PhasedFSimParameters:
         """Checks if any of the angles is None."""
         return self.theta is None or self.zeta is None or self.chi is None or self.gamma is None or self.phi is None
 
-    def parameters_for_qubits_swapped(self) -> 'PhasedFSimParameters':
+    def parameters_for_qubits_swapped(self) -> 'PhasedFSimCharacterization':
         """Parameters for the gate with qubits swapped between each other.
 
         The angles theta, gamma and phi are kept unchanged. The angles zeta and chi are negated for the gate with
@@ -39,7 +39,7 @@ class PhasedFSimParameters:
         Returns:
             New instance with angles adjusted for swapped qubits.
         """
-        return PhasedFSimParameters(
+        return PhasedFSimCharacterization(
             theta=self.theta,
             zeta=-self.zeta if self.zeta is not None else None,
             chi=-self.chi if self.chi is not None else None,
@@ -47,7 +47,7 @@ class PhasedFSimParameters:
             phi=self.phi
         )
 
-    def merge_with(self, other: 'PhasedFSimParameters') -> 'PhasedFSimParameters':
+    def merge_with(self, other: 'PhasedFSimCharacterization') -> 'PhasedFSimCharacterization':
         """Substitutes missing parameter with values from other.
 
         Args:
@@ -57,7 +57,7 @@ class PhasedFSimParameters:
             New instance of PhasedFSimParameters with values from this instance if they are set or values from other
             when some parameter is None.
         """
-        return PhasedFSimParameters(
+        return PhasedFSimCharacterization(
             theta=other.theta if self.theta is None else self.theta,
             zeta=other.zeta if self.zeta is None else self.zeta,
             chi=other.chi if self.chi is None else self.chi,
@@ -65,7 +65,7 @@ class PhasedFSimParameters:
             phi=other.phi if self.phi is None else self.phi,
         )
 
-    def override_by(self, other: 'PhasedFSimParameters') -> 'PhasedFSimParameters':
+    def override_by(self, other: 'PhasedFSimCharacterization') -> 'PhasedFSimCharacterization':
         """Overrides other parameters that are not None.
 
         Args:

@@ -140,7 +140,7 @@ def _cirq_class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'PhaseFlipChannel': cirq.PhaseFlipChannel,
         'PhaseGradientGate': cirq.PhaseGradientGate,
         'PhasedFSimGate': cirq.PhasedFSimGate,
-        'PhasedFSimParameters': cirq.google.PhasedFSimParameters,
+        'PhasedFSimParameters': cirq.google.PhasedFSimCharacterization,
         'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
         'PhasedXPowGate': cirq.PhasedXPowGate,
         'PhasedXZGate': cirq.PhasedXZGate,
