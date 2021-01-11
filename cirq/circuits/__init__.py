@@ -48,3 +48,6 @@ from cirq.circuits.optimization_pass import (
     PointOptimizer,
     PointOptimizationSummary,
 )
+from cirq.circuits.sparse_circuit_dag import (
+    SparseCircuitDag,
+)

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, Generic, Iterator, Iterable, TypeVar, cast, TYPE_CHECKING
+from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast, TYPE_CHECKING
 
 import functools
 import networkx
@@ -209,24 +209,3 @@ class CircuitDag(networkx.DiGraph):
                 remaining_dag.remove_node(node)
                 continue
             yield node
-
-    def findall_nodes_from_set(
-        self, input_set: Iterable[Unique[ops.Operation]]
-    ) -> Iterator[ops.Operation]:
-        """Finds all nodes from the given set.
-
-        Args:
-            input: The input set of Operation nodes.
-        """
-        for node in self.ordered_nodes():
-            if node in input_set:
-                yield node.val
-
-    def factorize(self) -> Iterator['cirq.CircuitDag']:
-        """Tries to factorize the underlying graph, using connected components algorithm.
-        If no factorization is possible, returns a sequence with a single element (itself).
-        """
-        for c in networkx.weakly_connected_components(self):
-            yield CircuitDag.from_ops(
-                self.findall_nodes_from_set(c), can_reorder=self.can_reorder, device=self.device
-            )
