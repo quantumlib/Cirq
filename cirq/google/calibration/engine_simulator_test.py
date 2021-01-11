@@ -11,16 +11,16 @@ import numpy as np
 
 def test_floquet_get_calibrations() -> None:
 
-    parameters_ab = cirq.google.PhasedFSimParameters(
+    parameters_ab = cirq.google.PhasedFSimCharacterization(
         theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
     )
-    parameters_bc = cirq.google.PhasedFSimParameters(
+    parameters_bc = cirq.google.PhasedFSimCharacterization(
         theta=0.8, zeta=-0.5, chi=-0.4, gamma=-0.3, phi=-0.2
     )
     parameters_cd_dict = {
         'theta': 0.1, 'zeta': 0.2, 'chi': 0.3, 'gamma': 0.4, 'phi': 0.5
     }
-    parameters_cd = cirq.google.PhasedFSimParameters(**parameters_cd_dict)
+    parameters_cd = cirq.google.PhasedFSimCharacterization(**parameters_cd_dict)
 
     a, b, c, d = cirq.LineQubit.range(4)
     engine_simulator = PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
@@ -107,10 +107,10 @@ def test_with_random_gaussian_sqrt_iswap_simulates_correctly() -> None:
 
 
 def test_from_dictionary_sqrt_iswap_simulates_correctly() -> None:
-    parameters_ab = cirq.google.PhasedFSimParameters(
+    parameters_ab = cirq.google.PhasedFSimCharacterization(
         theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
     )
-    parameters_bc = cirq.google.PhasedFSimParameters(
+    parameters_bc = cirq.google.PhasedFSimCharacterization(
         theta=0.8, zeta=-0.5, chi=-0.4, gamma=-0.3, phi=-0.2
     )
     parameters_cd_dict = {
@@ -148,13 +148,13 @@ def test_from_dictionary_sqrt_iswap_simulates_correctly() -> None:
 
 
 def test_from_characterizations_sqrt_iswap_simulates_correctly() -> None:
-    parameters_ab = cirq.google.PhasedFSimParameters(
+    parameters_ab = cirq.google.PhasedFSimCharacterization(
         theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
     )
-    parameters_bc = cirq.google.PhasedFSimParameters(
+    parameters_bc = cirq.google.PhasedFSimCharacterization(
         theta=0.8, zeta=-0.5, chi=-0.4, gamma=-0.3, phi=-0.2
     )
-    parameters_cd = cirq.google.PhasedFSimParameters(
+    parameters_cd = cirq.google.PhasedFSimCharacterization(
         theta=0.1, zeta=0.2, chi=0.3, gamma=0.4, phi=0.5
     )
 
