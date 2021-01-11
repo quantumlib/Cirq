@@ -11,6 +11,34 @@ else:
 
 @json_serializable_dataclass(frozen=True)
 class PhasedFSimCharacterization:
+    """Holder for the unitary angles of the cirq.PhasedFSimGate.
+
+    This class stores five unitary parameters (θ, ζ, χ, γ and φ) that describe the
+    cirq.PhasedFSimGate which is the most general particle conserving two-qubit gate. The unitary
+    of the underlying tate is:
+
+        [[1,                        0,                       0,                0],
+         [0,    exp(-i(γ + ζ)) cos(θ), -i exp(-i(γ - χ)) sin(θ),               0],
+         [0, -i exp(-i(γ + χ)) sin(θ),    exp(-i(γ - ζ)) cos(θ),               0],
+         [0,                        0,                       0,  exp(-i(2γ + φ))]]
+
+    The parameters θ, γ and φ are symmetric and parameters ζ and χ asymmetric under the qubits
+    exchange.
+
+    All the angles described by this class are optional and can be left unknown. This is relevant
+    for characterization routines that characterize only subset of the gate parameters. All the
+    angles are assumed to take a fixed numerical values which reflect the current state of the
+    characterized gate.
+
+    This class supports JSON serialization and deserialization.
+
+    Attributes:
+        theta: θ angle in radians or None when unknown.
+        zeta: ζ angle in radians or None when unknown.
+        chi: χ angle in radians or None when unknown.
+        gamma: γ angle in radians or None when unknown.
+        phi: φ angle in radians or None when unknown.
+    """
     theta: Optional[float] = None
     zeta: Optional[float] = None
     chi: Optional[float] = None
