@@ -26,15 +26,15 @@ SweepLike = Union[ParamResolverOrSimilarType, Sweep]
 document(SweepLike, """An object similar to an iterable of parameter resolvers.""")
 
 
-class SweepLikeRecursive(Protocol):
+class _Sweepable(Protocol):
     """An intermediate class allowing for recursive definition of Sweepable,
     since recursive union definitions are not yet supported in mypy."""
 
-    def __iter__(self) -> Iterator[Union[SweepLike, 'SweepLikeRecursive']]:
+    def __iter__(self) -> Iterator[Union[SweepLike, '_Sweepable']]:
         pass
 
 
-Sweepable = Union[SweepLike, SweepLikeRecursive]
+Sweepable = Union[SweepLike, _Sweepable]
 document(
     Sweepable,
     """An object or collection of objects representing a parameter sweep.""",
