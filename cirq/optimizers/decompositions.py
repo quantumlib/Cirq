@@ -112,7 +112,6 @@ def single_qubit_matrix_to_gates(
             operation.
     """
     rotations = single_qubit_matrix_to_pauli_rotations(mat, tolerance)
-    print(rotations)
     return [cast(ops.SingleQubitGate, pauli) ** ht for pauli, ht in rotations]
 
 
