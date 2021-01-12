@@ -27,6 +27,7 @@ import random
 import sys
 import numpy as np
 import cirq
+from cirq.sim import clifford
 
 
 def build_circuit() -> Tuple[cirq.Circuit, List[cirq.Qid]]:
@@ -173,19 +174,21 @@ class PauliTrace:
 
 
 def _estimate_pauli_traces_clifford(
-    n_qubits: int, clifford_state: cirq.CliffordState, n_measured_operators: Optional[int]
+    n_qubits: int,
+    stabilizer_basis: List[cirq.DensePauliString],
+    n_measured_operators: Optional[int],
 ) -> List[PauliTrace]:
     """
     Estimates the Pauli traces in case the circuit is Clifford. When we have a
     Clifford circuit, there are 2**n Pauli traces that have probability 1/2**n
     and all the other traces have probability 0. In addition, there is a fast
     way to compute find out what the traces are. See the documentation of
-    cirq.CliffordState for more detail. This function uses the speedup to sample
+    cirq.CliffordTableau for more detail. This function uses the speedup to sample
     the Pauli states with non-zero probability.
 
     Args:
         n_qubits: An integer that is the number of qubits.
-        clifford_state: The basis of the Pauli states with non-zero probability.
+        stabilizer_basis: The basis of the Pauli states with non-zero probability.
         n_measured_operators: The total number of Pauli measurements, or None to
             explore each Pauli state once.
 
@@ -200,12 +203,6 @@ def _estimate_pauli_traces_clifford(
 
     d = 2 ** n_qubits
 
-    # The stabilizers_basis variable only contains basis vectors. For
-    # example, if we have n=3 qubits, then we should have 2**n=8 Pauli
-    # states that we can sample, but the basis will still have 3 entries. We
-    # must flip a coin for each, whether or not to include them.
-    stabilizer_basis: List[cirq.DensePauliString] = clifford_state.stabilizers()
-
     if n_measured_operators is not None:
         dense_pauli_strings = _randomly_sample_from_stabilizer_bases(
             stabilizer_basis, n_measured_operators, n_qubits
@@ -217,11 +214,11 @@ def _estimate_pauli_traces_clifford(
 
     pauli_traces: List[PauliTrace] = []
     for dense_pauli_string in dense_pauli_strings:
-        # The code below is equivalent to calling
-        # clifford_state.state_vector() and then calling
-        # compute_characteristic_function() on the results (albeit with a
-        # wave function instead of a density matrix). It is, however,
-        # unnecessary to do so. Instead we directly obtain the scalar rho_i.
+        # The code below is equivalent to getting the state vectors from the
+        # Clifford tableau and then calling compute_characteristic_function()
+        # on the results (albeit with a  wave function instead of a density
+        # matrix). It is, however, unnecessary to do so. Instead we directly
+        # obtain the scalar rho_i.
         rho_i = dense_pauli_string.coefficient
 
         assert np.isclose(rho_i.imag, 0.0, atol=1e-6)
@@ -334,9 +331,9 @@ class DFEIntermediateResult:
     debugged offline.
     """
 
-    # If the circuit is Clifford, the Clifford state from which we can extract
+    # If the circuit is Clifford, the Clifford tableau from which we can extract
     # a list of Pauli strings for a basis of the stabilizers.
-    clifford_state: Optional[cirq.CliffordState]
+    clifford_tableau: Optional[cirq.CliffordTableau]
     # The list of Pauli traces we can sample from.
     pauli_traces: List[PauliTrace]
     # Measurement results from sampling the circuit.
@@ -379,21 +376,29 @@ def direct_fidelity_estimation(
     n_qubits = len(qubits)
 
     clifford_circuit = True
-    clifford_state: Optional[cirq.CliffordState] = None
+    qubit_map = {qubits[i]: i for i in range(n_qubits)}
+    clifford_tableau = cirq.CliffordTableau(n_qubits)
     try:
-        clifford_state = cirq.CliffordState(qubit_map={qubits[i]: i for i in range(len(qubits))})
         for gate in circuit.all_operations():
-            clifford_state.apply_unitary(gate)
-    except ValueError:
+            tableau_args = clifford.ActOnCliffordTableauArgs(
+                clifford_tableau, [qubit_map[i] for i in gate.qubits], np.random.RandomState(), {}
+            )
+            cirq.act_on(gate, tableau_args)
+    except TypeError:
         clifford_circuit = False
 
     # Computes for every \hat{P_i} of https://arxiv.org/abs/1104.3835
     # estimate rho_i and Pr(i). We then collect tuples (rho_i, Pr(i), \hat{Pi})
     # inside the variable 'pauli_traces'.
     if clifford_circuit:
-        assert clifford_state is not None
+        # The stabilizers_basis variable only contains basis vectors. For
+        # example, if we have n=3 qubits, then we should have 2**n=8 Pauli
+        # states that we can sample, but the basis will still have 3 entries. We
+        # must flip a coin for each, whether or not to include them.
+        stabilizer_basis: List[cirq.DensePauliString] = clifford_tableau.stabilizers()
+
         pauli_traces = _estimate_pauli_traces_clifford(
-            n_qubits, cast(cirq.CliffordState, clifford_state), n_measured_operators
+            n_qubits, stabilizer_basis, n_measured_operators
         )
     else:
         pauli_traces = _estimate_pauli_traces_general(qubits, circuit, n_measured_operators)
@@ -459,7 +464,7 @@ def direct_fidelity_estimation(
         std_dev_estimate, std_dev_bound = None, None
 
     dfe_intermediate_result = DFEIntermediateResult(
-        clifford_state=clifford_state,
+        clifford_tableau=clifford_tableau if clifford_circuit else None,
         pauli_traces=pauli_traces,
         trial_results=trial_results,
         std_dev_estimate=std_dev_estimate,

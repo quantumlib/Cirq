@@ -418,6 +418,11 @@ def test_negate():
     neg_ps1 = -ps1
     assert -neg_ps1 == ps1
 
+    m = ps1.mutable_copy()
+    assert -m == -1 * m
+    assert -m is not m
+    assert isinstance(-m, cirq.MutablePauliString)
+
 
 def test_mul_scalar():
     a, b = cirq.LineQubit.range(2)
@@ -513,6 +518,11 @@ def test_pos():
     qubit_pauli_map = {q0: cirq.X, q1: cirq.Y}
     ps1 = cirq.PauliString(qubit_pauli_map)
     assert ps1 == +ps1
+
+    m = ps1.mutable_copy()
+    assert +m == m
+    assert +m is not m
+    assert isinstance(+m, cirq.MutablePauliString)
 
 
 def test_pow():
@@ -1906,3 +1916,24 @@ def test_coefficient_precision():
     r2 = cirq.MutablePauliString({q: cirq.Y for q in qs})
     r2 *= r
     assert r2.coefficient == 1
+
+
+def test_transform_qubits():
+    a, b, c = cirq.LineQubit.range(3)
+    p = cirq.X(a) * cirq.Z(b)
+    p2 = cirq.X(b) * cirq.Z(c)
+    m = p.mutable_copy()
+    m2 = m.transform_qubits(lambda q: q + 1)
+    assert m is not m2
+    assert m == p
+    assert m2 == p2
+
+    m2 = m.transform_qubits(lambda q: q + 1, inplace=False)
+    assert m is not m2
+    assert m == p
+    assert m2 == p2
+
+    m2 = m.transform_qubits(lambda q: q + 1, inplace=True)
+    assert m is m2
+    assert m == p2
+    assert m2 == p2

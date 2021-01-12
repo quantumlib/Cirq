@@ -631,6 +631,13 @@ def test_multiply(circuit_cls):
     assert c * 0 == circuit_cls()
     assert d * 0 == circuit_cls()
     assert d * 2 == circuit_cls([cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.X(a)])])
+
+    twice_copied_circuit = circuit_cls([cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.X(a)])])
+    for num in [np.int64(2), np.ushort(2), np.int8(2), np.int32(2), np.short(2)]:
+        assert num * d == twice_copied_circuit
+        assert d * num == twice_copied_circuit
+
+    assert np.array([2])[0] * d == circuit_cls([cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.X(a)])])
     assert 1 * c == circuit_cls()
     assert -1 * d == circuit_cls()
     assert 1 * d == circuit_cls([cirq.Moment([cirq.X(a)])])
@@ -1740,6 +1747,15 @@ def test_all_terminal(circuit_cls):
 
     c = circuit_cls(xa, ya, xa)
     assert not c.are_all_matches_terminal(is_x_pow_gate)
+
+    def is_circuit_op(op):
+        isinstance(op, cirq.CircuitOperation)
+
+    cop_1 = cirq.CircuitOperation(cirq.FrozenCircuit(xa, ya))
+    cop_2 = cirq.CircuitOperation(cirq.FrozenCircuit(cop_1, xb))
+    c = circuit_cls(cop_2, yb)
+    # are_all_matches_terminal treats CircuitOperations as transparent.
+    assert c.are_all_matches_terminal(is_circuit_op)
 
 
 def test_clear_operations_touching():
