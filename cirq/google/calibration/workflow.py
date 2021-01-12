@@ -196,9 +196,6 @@ def run_characterizations(calibrations: List[PhasedFSimCalibrationRequest],
 
         results = []
 
-        if progress_func:
-            progress_func(len(results), len(calibrations))
-
         requests = [
             [calibration.to_calibration_layer(handler_name)
              for calibration in calibrations[offset:offset + max_layers_per_request]]
