@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import AbstractSet, Sequence, Tuple, Union, Any, Optional, TYPE_CHECKING
+from typing import AbstractSet, Sequence, Tuple, Union, Any, Optional, TYPE_CHECKING, Dict
 
 import numpy as np
 
@@ -157,3 +157,6 @@ class ParallelGateOperation(raw_types.Operation):
         if new_gate is NotImplemented:
             return NotImplemented
         return self.with_gate(new_gate)
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, attribute_names=["gate", "qubits"])
