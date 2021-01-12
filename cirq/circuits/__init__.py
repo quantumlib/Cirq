@@ -34,6 +34,9 @@ from cirq.circuits.circuit_dag import (
     CircuitDag,
     Unique,
 )
+from cirq.circuits.circuit_operation import (
+    CircuitOperation,
+)
 from cirq.circuits.frozen_circuit import (
     FrozenCircuit,
 )
