@@ -637,35 +637,12 @@ def test_to_from_strings():
 
 
 def test_to_from_gzip():
-    import time
     a, b = cirq.LineQubit.range(2)
     # Make a big, repetitive circuit.
-    cs = [cirq.FrozenCircuit(cirq.H(a), cirq.CX(a, b))]
-    for i in range(1, 12):
-        cs.append(cirq.FrozenCircuit(
-            cs[i-1].to_op(), 
-            cs[i-1].to_op(),
-        ))
-
-    test_circuit = cs[-1]
-    start = time.time_ns()
+    test_circuit = cirq.Circuit(cirq.H(a), cirq.CX(a, b))
     gzip_data = cirq.to_gzip(test_circuit)
     unzip_circuit = cirq.read_gzip(gzip_raw=gzip_data)
-    elapsed = time.time_ns() - start
-    print(f'nested: {elapsed / 1e9} s')
-    print(f'size: {len(gzip_data)}')
     assert test_circuit == unzip_circuit
-
-    test_circuit2 = cirq.FrozenCircuit(cirq.decompose(test_circuit))
-    start2 = time.time_ns()
-    gzip_data2 = cirq.to_gzip(test_circuit2)
-    unzip_circuit2 = cirq.read_gzip(gzip_raw=gzip_data2)
-    elapsed2 = time.time_ns() - start2
-    print(f'flattened: {elapsed2 / 1e9} s')
-    print(f'size: {len(gzip_data2)}')
-    assert test_circuit2 == unzip_circuit2
-
-    assert False
 
 
 def _eval_repr_data_file(path: pathlib.Path):
