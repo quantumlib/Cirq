@@ -85,6 +85,20 @@ class SwapPowGate(
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
+    def _act_on_(self, args):
+        from cirq import ops, sim, protocols
+
+        if isinstance(args, sim.ActOnStabilizerCHFormArgs) and self._exponent % 2 == 1:
+            args.state.omega *= 1j ** (2 * self.global_shift * self._exponent)
+            protocols.act_on(ops.CNOT, args)
+            args.axes = args.axes[::-1]
+            protocols.act_on(ops.CNOT, args)
+            args.axes = args.axes[::-1]
+            protocols.act_on(ops.CNOT, args)
+            return True
+
+        return NotImplemented
+
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if self._exponent != 1:
             return NotImplemented

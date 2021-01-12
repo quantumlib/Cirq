@@ -29,6 +29,11 @@ from cirq.work.observable_settings import (
 from cirq.work.observable_grouping import (
     group_settings_greedy,
 )
+from cirq.work.observable_measurement_data import (
+    ObservableMeasuredResult,
+    BitstringAccumulator,
+    flatten_grouped_results,
+)
 from cirq.work.sampler import (
     Sampler,
 )

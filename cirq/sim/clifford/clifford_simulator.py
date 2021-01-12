@@ -29,7 +29,6 @@ The quantum state is specified in two forms:
     to state vector amplitudes.
 """
 
-import collections
 from typing import Any, Dict, List, Iterator, Sequence
 
 import numpy as np
@@ -100,20 +99,28 @@ class CliffordSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermedi
             return
 
         state = CliffordState(qubit_map, initial_state=initial_state)
+        ch_form_args = clifford.ActOnStabilizerCHFormArgs(
+            state.ch_form,
+            [],
+            self._prng,
+            {},
+        )
 
         for moment in circuit:
-            measurements: Dict[str, List[np.ndarray]] = collections.defaultdict(list)
+            ch_form_args.log_of_measurement_results = {}
 
             for op in moment:
-                if isinstance(op.gate, ops.MeasurementGate):
-                    key = protocols.measurement_key(op)
-                    measurements[key].extend(state.perform_measurement(op.qubits, self._prng))
-                elif protocols.has_unitary(op):
-                    state.apply_unitary(op)
-                else:
-                    raise NotImplementedError(f"Unrecognized operation: {op!r}")
+                try:
+                    ch_form_args.axes = tuple(state.qubit_map[i] for i in op.qubits)
+                    act_on(op, ch_form_args)
+                except TypeError:
+                    raise NotImplementedError(
+                        f"CliffordSimulator doesn't support {op!r}"
+                    )  # type: ignore
 
-            yield CliffordSimulatorStepResult(measurements=measurements, state=state)
+            yield CliffordSimulatorStepResult(
+                measurements=ch_form_args.log_of_measurement_results, state=state
+            )
 
     def _simulator_iterator(
         self,
@@ -245,16 +252,17 @@ class CliffordSimulatorStepResult(simulator.StepResult):
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
 
-        measurements = []
+        measurements = {}  # type: Dict[str, List[np.ndarray]]
 
-        for _ in range(repetitions):
-            measurements.append(
-                self.state.perform_measurement(
-                    qubits, value.parse_random_state(seed), collapse_state_vector=False
-                )
+        for i in range(repetitions):
+            self.state.apply_measurement(
+                cirq.measure(*qubits, key=str(i)),
+                measurements,
+                value.parse_random_state(seed),
+                collapse_state_vector=False,
             )
 
-        return np.array(measurements, dtype=bool)
+        return np.array(list(measurements.values()), dtype=bool)
 
 
 @value.value_equality
@@ -312,11 +320,13 @@ class CliffordState:
     def to_numpy(self) -> np.ndarray:
         return self.ch_form.to_state_vector()
 
+    @deprecated(deadline='v0.11.0', fix='use CliffordTableau instead')
     def stabilizers(self) -> List[DensePauliString]:
         """Returns the stabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi>"""
         return self.tableau.stabilizers()
 
+    @deprecated(deadline='v0.11.0', fix='use CliffordTableau instead')
     def destabilizers(self) -> List[DensePauliString]:
         """Returns the destabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
@@ -331,20 +341,39 @@ class CliffordState:
         return self.state_vector()
 
     def apply_unitary(self, op: 'cirq.Operation'):
-        tableau_args = clifford.ActOnCliffordTableauArgs(
-            self.tableau, [self.qubit_map[i] for i in op.qubits], np.random.RandomState(), {}
-        )
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
-            self.ch_form, [self.qubit_map[i] for i in op.qubits]
+            self.ch_form, [self.qubit_map[i] for i in op.qubits], np.random.RandomState(), {}
         )
         try:
-            act_on(op, tableau_args)
             act_on(op, ch_form_args)
         except TypeError:
             raise ValueError(
                 '%s cannot be run with Clifford simulator.' % str(op.gate)
             )  # type: ignore
         return
+
+    def apply_measurement(
+        self,
+        op: 'cirq.Operation',
+        measurements: Dict[str, List[np.ndarray]],
+        prng: np.random.RandomState,
+        collapse_state_vector=True,
+    ):
+        if not isinstance(op.gate, cirq.MeasurementGate):
+            raise TypeError(
+                'apply_measurement only supports cirq.MeasurementGate operations. Found %s instead.'
+                % str(op.gate)
+            )
+
+        if collapse_state_vector:
+            state = self
+        else:
+            state = self.copy()
+
+        qids = [self.qubit_map[i] for i in op.qubits]
+
+        ch_form_args = clifford.ActOnStabilizerCHFormArgs(state.ch_form, qids, prng, measurements)
+        act_on(op, ch_form_args)
 
     @deprecated_parameter(
         deadline='v0.10.0',
@@ -359,6 +388,7 @@ class CliffordState:
             },
         ),
     )
+    @deprecated(deadline='v0.11.0', fix='Use the apply_measurement instead')
     def perform_measurement(
         self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
     ):
@@ -370,8 +400,7 @@ class CliffordState:
             state = self.copy()
 
         for qubit in qubits:
-            result = state.tableau._measure(self.qubit_map[qubit], prng)
-            state.ch_form.project_Z(self.qubit_map[qubit], result)
+            result = state.ch_form._measure(self.qubit_map[qubit], prng)
             results.append(result)
 
         return results

@@ -242,6 +242,13 @@ class MeasurementGate(raw_types.Gate):
             args.record_measurement_result(self.key, corrected)
             return True
 
+        if isinstance(args, sim.clifford.ActOnStabilizerCHFormArgs):
+            invert_mask = self.full_invert_mask()
+            bits = [args.state._measure(q, args.prng) for q in args.axes]
+            corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
+            args.record_measurement_result(self.key, corrected)
+            return True
+
         return NotImplemented
 
 
