@@ -192,9 +192,6 @@ def run_characterizations(calibrations: List[PhasedFSimCalibrationRequest],
 
     results = []
 
-    if progress_func:
-        progress_func(len(results), len(calibrations))
-
     for request in requests:
         job = engine.run_calibration(request,
                                      processor_id=processor_id,
