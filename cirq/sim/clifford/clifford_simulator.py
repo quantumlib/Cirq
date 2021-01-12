@@ -225,7 +225,7 @@ class CliffordSimulatorStepResult(simulator.StepResult):
                 method).
         """
         self.measurements = measurements
-        self.state = state
+        self.state = state.copy()
 
     def __str__(self) -> str:
         def bitstring(vals):
