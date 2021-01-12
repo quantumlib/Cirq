@@ -1,3 +1,4 @@
+import itertools
 import math
 
 import numpy as np
@@ -18,7 +19,7 @@ def assert_same_output_as_dense(circuit, qubit_order, initial_state=0):
 
 
 def test_various_gates():
-    gate_cls = [cirq.I, cirq.H, cirq.X, cirq.Y, cirq.Z]
+    gate_cls = [cirq.I, cirq.H, cirq.X, cirq.Y, cirq.Z, cirq.T]
     cross_gate_cls = [cirq.CNOT, cirq.SWAP]
 
     for q0_gate in gate_cls:
@@ -185,7 +186,7 @@ def test_run_no_repetitions():
     simulator = cirq.MPSSimulator()
     circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=0)
-    assert sum(result.measurements['0']) == 0
+    assert len(result.measurements['0']) == 0
 
 
 def test_run_parameters_not_resolved():
@@ -194,3 +195,18 @@ def test_run_parameters_not_resolved():
     circuit = cirq.Circuit(cirq.XPowGate(exponent=sympy.Symbol('a'))(a), cirq.measure(a))
     with pytest.raises(ValueError, match='symbols were not specified'):
         _ = simulator.run_sweep(circuit, cirq.ParamResolver({}))
+
+
+def test_state_copy():
+    sim = cirq.MPSSimulator()
+
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.H(q), cirq.H(q))
+
+    state_Ms = []
+    for step in sim.simulate_moment_steps(circuit):
+        state_Ms.append(step.state.M)
+    for x, y in itertools.combinations(state_Ms, 2):
+        assert len(x) == len(y)
+        for i in range(len(x)):
+            assert not np.shares_memory(x[i], y[i])

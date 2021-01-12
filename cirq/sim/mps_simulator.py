@@ -17,7 +17,7 @@ This is based on this paper:
 https://arxiv.org/abs/2002.07730
 
 TODO(tonybruguier): Currently, only linear circuits are handled, while the paper
-handles more general topologies.Currently
+handles more general topologies.
 
 TODO(tonybruguier): Currently, numpy is used for tensor computations. For speed
 switch to QIM for speed.
@@ -192,7 +192,7 @@ class MPSSimulatorStepResult(simulator.StepResult):
                 method).
         """
         self.measurements = measurements
-        self.state = state
+        self.state = state.copy()
 
     def __str__(self) -> str:
         def bitstring(vals):
