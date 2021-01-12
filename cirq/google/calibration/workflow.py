@@ -325,7 +325,7 @@ def run_floquet_characterization_for_circuit(
         merge_sub_sets: bool = True,
         max_layers_per_request: int = 1,
         progress_func: Optional[Callable[[int, int], None]] = None
-) -> List[Optional[PhasedFSimCalibrationResult]]:
+) -> Tuple[List[PhasedFSimCalibrationResult], List[Optional[int]]]:
     requests, mapping = floquet_characterization_for_circuit(
         circuit, gate_set, gates_translator, options, merge_sub_sets=merge_sub_sets)
     results = run_characterizations(
@@ -336,7 +336,7 @@ def run_floquet_characterization_for_circuit(
         max_layers_per_request=max_layers_per_request,
         progress_func=progress_func
     )
-    return [results[index] if index is not None else None for index in mapping]
+    return results, mapping
 
 
 def run_floquet_phased_calibration_for_circuit(
