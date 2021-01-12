@@ -712,14 +712,23 @@ def to_gzip(
     indent: int = 2,
     cls: Type[json.JSONEncoder] = CirqEncoder,
 ) -> Optional[bytes]:
-    json_str = to_json(obj, file_or_fn, indent=indent, cls=cls)
-    if json_str is None:
-        return None
-    return gzip.compress(bytes(json_str, encoding='utf-8'))
+    json_str = to_json(obj, indent=indent, cls=cls)
+    gzip_data = gzip.compress(bytes(json_str, encoding='utf-8'))  # type: ignore
+
+    if file_or_fn is None:
+        return gzip_data
+
+    if isinstance(file_or_fn, (str, pathlib.Path)):
+        with open(file_or_fn, 'wb') as actually_a_file:
+            actually_a_file.write(gzip_data)
+            return None
+
+    file_or_fn.write(gzip_data)
+    return None
 
 
 def read_gzip(
-    file_or_fn: Union[None, pathlib.Path, str] = None,
+    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
     *,
     gzip_raw: Optional[bytes] = None,
     resolvers: Optional[Sequence[JsonResolver]] = None,
@@ -731,8 +740,5 @@ def read_gzip(
         json_str = gzip.decompress(gzip_raw)
         return read_json(json_text=json_str, resolvers=resolvers)
 
-    if isinstance(file_or_fn, (str, pathlib.Path)):
-        with gzip.open(file_or_fn, 'r') as json_file:
-            return read_json(cast(IO, json_file), resolvers=resolvers)
-
-    raise TypeError('Received invalid file_or_fn.')
+    with gzip.open(file_or_fn, 'rt') as json_file:  # type: ignore
+        return read_json(cast(IO, json_file), resolvers=resolvers)
