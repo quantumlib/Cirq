@@ -663,7 +663,7 @@ def to_json(
 def read_json(
     file_or_fn: Union[None, IO, pathlib.Path, str] = None,
     *,
-    json_text: Optional[str] = None,
+    json_text: Optional[Union[str, bytes]] = None,
     resolvers: Optional[Sequence[JsonResolver]] = None,
 ):
     """Read a JSON file that optionally contains cirq objects.
@@ -711,8 +711,10 @@ def to_gzip(
     *,
     indent: int = 2,
     cls: Type[json.JSONEncoder] = CirqEncoder,
-) -> bytes:
+) -> Optional[bytes]:
     json_str = to_json(obj, file_or_fn, indent=indent, cls=cls)
+    if json_str is None:
+        return None
     return gzip.compress(bytes(json_str, encoding='utf-8'))
 
 
@@ -720,11 +722,17 @@ def read_gzip(
     file_or_fn: Union[None, pathlib.Path, str] = None,
     *,
     gzip_raw: Optional[bytes] = None,
-    resolvers: Optional[Sequence[JsonResolver]] = None
+    resolvers: Optional[Sequence[JsonResolver]] = None,
 ):
+    if (file_or_fn is None) == (gzip_raw is None):
+        raise ValueError('Must specify ONE of "file_or_fn" or "gzip_raw".')
+
     if gzip_raw is not None:
         json_str = gzip.decompress(gzip_raw)
         return read_json(json_text=json_str, resolvers=resolvers)
 
-    with gzip.open(file_or_fn, 'r') as json_file:
-        return read_json(json_file, resolvers=resolvers)
+    if isinstance(file_or_fn, (str, pathlib.Path)):
+        with gzip.open(file_or_fn, 'r') as json_file:
+            return read_json(cast(IO, json_file), resolvers=resolvers)
+
+    raise TypeError('Received invalid file_or_fn.')

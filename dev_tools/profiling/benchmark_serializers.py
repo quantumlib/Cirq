@@ -30,7 +30,7 @@ NUM_QUBITS = 8
 SUFFIXES = ['B', 'kB', 'MB', 'GB', 'TB']
 
 
-def serialize(serializer: str, num_gates: int, nesting_depth: int) -> None:
+def serialize(serializer: str, num_gates: int, nesting_depth: int) -> int:
     """"Runs a round-trip of the serializer."""
     circuit = cirq.Circuit()
     for _ in range(num_gates):
@@ -56,13 +56,15 @@ def serialize(serializer: str, num_gates: int, nesting_depth: int) -> None:
     test_circuit = cs[-1]
 
     if serializer == _JSON:
-        data = cirq.to_json(test_circuit)
-        data_size = len(data)
-        cirq.read_json(json_text=data)
+        json_data = cirq.to_json(test_circuit)
+        assert json_data is not None
+        data_size = len(json_data)
+        cirq.read_json(json_text=json_data)
     elif serializer == _GZIP:
-        data = cirq.to_gzip(test_circuit)
-        data_size = len(data)
-        cirq.read_gzip(gzip_raw=data)
+        gzip_data = cirq.to_gzip(test_circuit)
+        assert gzip_data is not None
+        data_size = len(gzip_data)
+        cirq.read_gzip(gzip_raw=gzip_data)
     return data_size
 
 
@@ -78,7 +80,7 @@ def main(
         command = f'serialize(\'{serializer}\', {num_gates}, {nesting_depth})'
         time = timeit.timeit(command, setup, number=num_repetitions)
         print(f'Round-trip serializer time: {time / num_repetitions}s')
-        data_size = serialize(serializer, num_gates, nesting_depth)
+        data_size = float(serialize(serializer, num_gates, nesting_depth))
         suffix_idx = 0
         while data_size > 1000:
             data_size /= 1024
@@ -92,8 +94,10 @@ def parse_arguments(args):
         '--num_gates', default=100, type=int, help='Number of gates at the bottom nesting layer.'
     )
     parser.add_argument(
-        '--nesting_depth', default=1, type=int,
-        help='Depth of nested subcircuits. Total gate count will be 2^nesting_depth * num_gates.'
+        '--nesting_depth',
+        default=1,
+        type=int,
+        help='Depth of nested subcircuits. Total gate count will be 2^nesting_depth * num_gates.',
     )
     parser.add_argument(
         '--num_repetitions', default=10, type=int, help='Number of times to repeat serialization.'
