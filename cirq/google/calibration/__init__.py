@@ -4,8 +4,6 @@ from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationResult,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
-    PhasedFSimCharacterization
+    PhasedFSimCharacterization,
 )
-from cirq.google.calibration.workflow import (
-    run_characterizations
-)
+from cirq.google.calibration.workflow import run_characterizations

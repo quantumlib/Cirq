@@ -135,8 +135,6 @@ class FloquetPhasedFSimCalibrationOptions:
 # TODO: Add export to Panda's data frame
 @dataclasses.dataclass(frozen=True)
 class PhasedFSimCalibrationResult:
-    # TODO: Instead of parameters and gate, should that just be cirq.Moment validated at construction time? (This is
-    #  slightly problematic with frozen data classes).
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
     gate: Gate
     gate_set: SerializableGateSet
@@ -188,8 +186,8 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
                 'est_chi': self.options.characterize_chi,
                 'est_gamma': self.options.characterize_gamma,
                 'est_phi': self.options.characterize_phi,
-                'readout_corrections': True
-            }
+                'readout_corrections': True,
+            },
         )
 
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
@@ -212,12 +210,9 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
                 zeta=data.get('zeta_est', None),
                 chi=data.get('chi_est', None),
                 gamma=data.get('gamma_est', None),
-                phi=data.get('phi_est', None)
+                phi=data.get('phi_est', None),
             )
 
         return FloquetPhasedFSimCalibrationResult(
-            parameters=parsed,
-            gate=self.gate,
-            gate_set=self.gate_set,
-            options=self.options
+            parameters=parsed, gate=self.gate, gate_set=self.gate_set, options=self.options
         )
