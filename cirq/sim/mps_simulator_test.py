@@ -35,17 +35,14 @@ def test_various_gates_1d():
 
 
 def test_various_gates_1d_flip():
-    q2, q3 = cirq.LineQubit.range(2)
-
-    q3_gate_op = cirq.H
-    cross_gate_op2 = cirq.CNOT
+    q0, q1 = cirq.LineQubit.range(2)
 
     circuit = cirq.Circuit(
-        q3_gate_op(q3),
-        cross_gate_op2(q3, q2),
+        cirq.H(q1),
+        cirq.CNOT(q1, q0),
     )
 
-    assert_same_output_as_dense(circuit=circuit, qubit_order=[q2, q3])
+    assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1])
 
 
 def test_empty():
