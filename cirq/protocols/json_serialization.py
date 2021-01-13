@@ -713,15 +713,14 @@ def to_gzip(
     cls: Type[json.JSONEncoder] = CirqEncoder,
 ) -> Optional[bytes]:
     json_str = to_json(obj, indent=indent, cls=cls)
-    gzip_data = gzip.compress(bytes(json_str, encoding='utf-8'))  # type: ignore
+    if isinstance(file_or_fn, (str, pathlib.Path)):
+        with gzip.open(file_or_fn, 'wt', encoding='utf-8') as actually_a_file:
+            actually_a_file.write(json_str)
+            return None
 
+    gzip_data = gzip.compress(bytes(json_str, encoding='utf-8'))  # type: ignore
     if file_or_fn is None:
         return gzip_data
-
-    if isinstance(file_or_fn, (str, pathlib.Path)):
-        with open(file_or_fn, 'wb') as actually_a_file:
-            actually_a_file.write(gzip_data)
-            return None
 
     file_or_fn.write(gzip_data)
     return None
