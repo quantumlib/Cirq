@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, Optional, Tuple
 
 import abc
 import collections
@@ -10,12 +10,6 @@ from cirq.ops import Gate, Qid
 from cirq.google.api import v2
 from cirq.google.engine import CalibrationLayer, CalibrationResult
 from cirq.google.serializable_gate_set import SerializableGateSet
-
-if TYPE_CHECKING:
-    # Workaround for mypy custom dataclasses
-    from dataclasses import dataclass as json_serializable_dataclass
-else:
-    from cirq.protocols import json_serializable_dataclass
 
 
 # TODO: Add JSON serialization support
@@ -126,7 +120,8 @@ class PhasedFSimCharacterization:
         return other.merge_with(self)
 
 
-@json_serializable_dataclass(frozen=True)
+# TODO: Add support for JSON serialization
+@dataclasses.dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationOptions:
     characterize_theta: bool
     characterize_zeta: bool
@@ -135,10 +130,10 @@ class FloquetPhasedFSimCalibrationOptions:
     characterize_phi: bool
 
 
-# TODO: Fix json serialization (the default one doesn't work with tuples as dictionary keys).
+# TODO: Add support for JSON serialization
 # TODO: Add start and end calibration timestamp
 # TODO: Add export to Panda's data frame
-@json_serializable_dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class PhasedFSimCalibrationResult:
     # TODO: Instead of parameters and gate, should that just be cirq.Moment validated at construction time? (This is
     #  slightly problematic with frozen data classes).
@@ -155,7 +150,8 @@ class PhasedFSimCalibrationResult:
             return None
 
 
-@json_serializable_dataclass(frozen=True)
+# TODO: Add support for JSON serialization
+@dataclasses.dataclass(frozen=True)
 class PhasedFSimCalibrationRequest(abc.ABC):
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
     gate_set: SerializableGateSet
@@ -170,12 +166,14 @@ class PhasedFSimCalibrationRequest(abc.ABC):
         pass
 
 
-@json_serializable_dataclass(frozen=True)
+# TODO: Add support for JSON serialization
+@dataclasses.dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationResult(PhasedFSimCalibrationResult):
     options: FloquetPhasedFSimCalibrationOptions
 
 
-@json_serializable_dataclass(frozen=True)
+# TODO: Add support for JSON serialization
+@dataclasses.dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     options: FloquetPhasedFSimCalibrationOptions
 
