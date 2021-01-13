@@ -1,21 +1,16 @@
-from typing import Dict, Optional, TYPE_CHECKING
+from typing import Dict, Optional
 
 import dataclasses
 
-if TYPE_CHECKING:
-    # Workaround for mypy custom dataclasses
-    from dataclasses import dataclass as json_serializable_dataclass
-else:
-    from cirq.protocols import json_serializable_dataclass
 
-
-@json_serializable_dataclass(frozen=True)
+# TODO: Add JSON serialization support
+@dataclasses.dataclass(frozen=True)
 class PhasedFSimCharacterization:
     """Holder for the unitary angles of the cirq.PhasedFSimGate.
 
     This class stores five unitary parameters (θ, ζ, χ, γ and φ) that describe the
     cirq.PhasedFSimGate which is the most general particle conserving two-qubit gate. The unitary
-    of the underlying tate is:
+    of the underlying gate is:
 
         [[1,                        0,                       0,                0],
          [0,    exp(-i(γ + ζ)) cos(θ), -i exp(-i(γ - χ)) sin(θ),               0],
@@ -30,8 +25,6 @@ class PhasedFSimCharacterization:
     angles are assumed to take a fixed numerical values which reflect the current state of the
     characterized gate.
 
-    This class supports JSON serialization and deserialization.
-
     Attributes:
         theta: θ angle in radians or None when unknown.
         zeta: ζ angle in radians or None when unknown.
@@ -39,6 +32,7 @@ class PhasedFSimCharacterization:
         gamma: γ angle in radians or None when unknown.
         phi: φ angle in radians or None when unknown.
     """
+
     theta: Optional[float] = None
     zeta: Optional[float] = None
     chi: Optional[float] = None
@@ -46,23 +40,34 @@ class PhasedFSimCharacterization:
     phi: Optional[float] = None
 
     def asdict(self) -> Dict[str, float]:
-        """Converts parameters to a dictionary that maps angles name to values.
-        """
+        """Converts parameters to a dictionary that maps angle names to values."""
         return dataclasses.asdict(self)
 
     def all_none(self) -> bool:
-        """Checks if all the angles are None."""
-        return self.theta is None and self.zeta is None and self.chi is None and self.gamma is None and self.phi is None
+        """Returns True if all the angles are None"""
+        return (
+            self.theta is None
+            and self.zeta is None
+            and self.chi is None
+            and self.gamma is None
+            and self.phi is None
+        )
 
     def any_none(self) -> bool:
-        """Checks if any of the angles is None."""
-        return self.theta is None or self.zeta is None or self.chi is None or self.gamma is None or self.phi is None
+        """Returns True if any the angle is None"""
+        return (
+            self.theta is None
+            or self.zeta is None
+            or self.chi is None
+            or self.gamma is None
+            or self.phi is None
+        )
 
     def parameters_for_qubits_swapped(self) -> 'PhasedFSimCharacterization':
         """Parameters for the gate with qubits swapped between each other.
 
-        The angles theta, gamma and phi are kept unchanged. The angles zeta and chi are negated for the gate with
-        swapped qubits.
+        The angles theta, gamma and phi are kept unchanged. The angles zeta and chi are negated for
+        the gate with swapped qubits.
 
         Returns:
             New instance with angles adjusted for swapped qubits.
@@ -72,7 +77,7 @@ class PhasedFSimCharacterization:
             zeta=-self.zeta if self.zeta is not None else None,
             chi=-self.chi if self.chi is not None else None,
             gamma=self.gamma,
-            phi=self.phi
+            phi=self.phi,
         )
 
     def merge_with(self, other: 'PhasedFSimCharacterization') -> 'PhasedFSimCharacterization':
@@ -82,8 +87,8 @@ class PhasedFSimCharacterization:
             other: Parameters to use for None values.
 
         Returns:
-            New instance of PhasedFSimParameters with values from this instance if they are set or values from other
-            when some parameter is None.
+            New instance of PhasedFSimCharacterization with values from this instance if they are
+            set or values from other when some parameter is None.
         """
         return PhasedFSimCharacterization(
             theta=other.theta if self.theta is None else self.theta,
@@ -100,7 +105,7 @@ class PhasedFSimCharacterization:
             other: Parameters to use for override.
 
         Returns:
-            New instance of PhasedFSimParameters with values from other if set (values from other that are not None).
-            Otherwise the current values are used.
+            New instance of PhasedFSimCharacterization with values from other if set (values from
+            other that are not None). Otherwise the current values are used.
         """
         return other.merge_with(self)
