@@ -19,7 +19,6 @@ import io
 import json
 import os
 import pathlib
-import tempfile
 import textwrap
 from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Type
 
@@ -91,6 +90,32 @@ def test_op_roundtrip_filename(tmpdir):
     assert os.path.exists(filename)
     op2 = cirq.read_json(filename)
     assert op1 == op2
+
+    gzip_filename = f'{tmpdir}/op.gzip'
+    cirq.to_gzip(op1, gzip_filename)
+    assert os.path.exists(gzip_filename)
+    op3 = cirq.read_gzip(gzip_filename)
+    assert op1 == op3
+
+
+def test_op_roundtrip_file_obj(tmpdir):
+    filename = f'{tmpdir}/op.json'
+    q = cirq.LineQubit(5)
+    op1 = cirq.rx(0.123).on(q)
+    with open(filename, 'w+') as file:
+        cirq.to_json(op1, file)
+        assert os.path.exists(filename)
+        file.seek(0)
+        op2 = cirq.read_json(file)
+        assert op1 == op2
+
+    gzip_filename = f'{tmpdir}/op.gzip'
+    with open(gzip_filename, 'w+b') as gzip_file:
+        cirq.to_gzip(op1, gzip_file)
+        assert os.path.exists(gzip_filename)
+        gzip_file.seek(0)
+        op3 = cirq.read_gzip(gzip_file)
+        assert op1 == op3
 
 
 def test_fail_to_resolve():
@@ -639,41 +664,13 @@ def test_to_from_strings():
 
 def test_to_from_gzip():
     a, b = cirq.LineQubit.range(2)
-    # Make a big, repetitive circuit.
     test_circuit = cirq.Circuit(cirq.H(a), cirq.CX(a, b))
     gzip_data = cirq.to_gzip(test_circuit)
     unzip_circuit = cirq.read_gzip(gzip_raw=gzip_data)
     assert test_circuit == unzip_circuit
 
-
-def test_to_from_gzip_file():
-    a, b = cirq.LineQubit.range(2)
-    # Make a big, repetitive circuit.
-    test_circuit = cirq.Circuit(cirq.H(a), cirq.CX(a, b))
-    with tempfile.TemporaryFile() as gzip_file:
-        cirq.to_gzip(test_circuit, file_or_fn=gzip_file)
-        gzip_file.seek(0)
-        unzip_circuit = cirq.read_gzip(gzip_file)
-    assert test_circuit == unzip_circuit
-
-    with tempfile.NamedTemporaryFile() as gzip_file:
-        cirq.to_gzip(test_circuit, file_or_fn=gzip_file.name)
-        gzip_file.seek(0)
-        unzip_circuit = cirq.read_gzip(gzip_file)
-    assert test_circuit == unzip_circuit
-
-
-def test_gzip_failure_modes():
-    a, b = cirq.LineQubit.range(2)
-    # Make a big, repetitive circuit.
-    test_circuit = cirq.Circuit(cirq.H(a), cirq.CX(a, b))
-    gzip_data = cirq.to_gzip(test_circuit)
-    with tempfile.TemporaryFile() as gzip_file:
-        cirq.to_gzip(test_circuit, file_or_fn=gzip_file)
-        gzip_file.seek(0)
-        with pytest.raises(ValueError):
-            _ = cirq.read_gzip(gzip_file, gzip_raw=gzip_data)
-
+    with pytest.raises(ValueError):
+        _ = cirq.read_gzip(io.StringIO(), gzip_raw=gzip_data)
     with pytest.raises(ValueError):
         _ = cirq.read_gzip()
 
@@ -773,6 +770,10 @@ def test_pathlib_paths(tmpdir):
     path = pathlib.Path(tmpdir) / 'op.json'
     cirq.to_json(cirq.X, path)
     assert cirq.read_json(path) == cirq.X
+
+    gzip_path = pathlib.Path(tmpdir) / 'op.gzip'
+    cirq.to_gzip(cirq.X, gzip_path)
+    assert cirq.read_gzip(gzip_path) == cirq.X
 
 
 def test_json_serializable_dataclass():
