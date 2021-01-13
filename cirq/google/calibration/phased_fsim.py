@@ -73,8 +73,8 @@ class PhasedFSimCharacterization:
     def parameters_for_qubits_swapped(self) -> 'PhasedFSimCharacterization':
         """Parameters for the gate with qubits swapped between each other.
 
-        The angles theta, gamma and phi are kept unchanged. The angles zeta and chi are negated for the gate with
-        swapped qubits.
+        The angles theta, gamma and phi are kept unchanged. The angles zeta and chi are negated for
+        the gate with swapped qubits.
 
         Returns:
             New instance with angles adjusted for swapped qubits.
