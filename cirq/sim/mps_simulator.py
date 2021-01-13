@@ -287,11 +287,9 @@ class MPSState:
             if abs(idx[0] - idx[1]) != 1:
                 raise ValueError('Can only handle continguous qubits')
             elif idx[0] < idx[1]:
-                n = idx[0]
-                p = idx[1]
+                n, p = idx
             else:
-                n = idx[1]
-                p = idx[0]
+                p, n = idx
                 U = np.swapaxes(np.swapaxes(U, 0, 1), 2, 3)
             T = np.einsum('klij,mni,npj->mkpl', U, self.M[n], self.M[p])
             X, S, Y = np.linalg.svd(T.reshape([T.shape[0] * T.shape[1], T.shape[2] * T.shape[3]]))
