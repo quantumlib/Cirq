@@ -180,7 +180,6 @@ def test_run_floquet_calibration() -> None:
         circuit,
         engine_simulator,
         processor_id=None,
-        handler_name=None,
         gate_set=cirq.google.SQRT_ISWAP_GATESET,
         options=cirq.google.FloquetPhasedFSimCalibrationOptions(
             characterize_theta=False,
@@ -251,7 +250,6 @@ def test_run_floquet_calibration_no_chi() -> None:
         circuit,
         engine_simulator,
         processor_id=None,
-        handler_name=None,
         gate_set=cirq.google.SQRT_ISWAP_GATESET
     )
 
