@@ -15,7 +15,7 @@ class PhasedFSimCharacterization:
 
     This class stores five unitary parameters (θ, ζ, χ, γ and φ) that describe the
     cirq.PhasedFSimGate which is the most general particle conserving two-qubit gate. The unitary
-    of the underlying tate is:
+    of the underlying gate is:
 
         [[1,                        0,                       0,                0],
          [0,    exp(-i(γ + ζ)) cos(θ), -i exp(-i(γ - χ)) sin(θ),               0],
@@ -46,16 +46,16 @@ class PhasedFSimCharacterization:
     phi: Optional[float] = None
 
     def asdict(self) -> Dict[str, float]:
-        """Converts parameters to a dictionary that maps angles name to values.
+        """Converts parameters to a dictionary that maps angle names to values.
         """
         return dataclasses.asdict(self)
 
     def all_none(self) -> bool:
-        """Checks if all the angles are None."""
+        """Returns True if all the angles are None"""
         return self.theta is None and self.zeta is None and self.chi is None and self.gamma is None and self.phi is None
 
     def any_none(self) -> bool:
-        """Checks if any of the angles is None."""
+        """Returns True if any the angle is None"""
         return self.theta is None or self.zeta is None or self.chi is None or self.gamma is None or self.phi is None
 
     def parameters_for_qubits_swapped(self) -> 'PhasedFSimCharacterization':
