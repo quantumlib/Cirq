@@ -26,9 +26,14 @@ if TYPE_CHECKING:
 
 _FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
 
+if TYPE_CHECKING:
+    # Workaround for mypy custom dataclasses
+    from dataclasses import dataclass as json_serializable_dataclass
+else:
+    from cirq.protocols import json_serializable_dataclass
 
-# TODO: Add JSON serialization support
-@dataclasses.dataclass(frozen=True)
+
+@json_serializable_dataclass(frozen=True)
 class PhasedFSimCharacterization:
     """Holder for the unitary angles of the cirq.PhasedFSimGate.
 
@@ -48,6 +53,8 @@ class PhasedFSimCharacterization:
     for characterization routines that characterize only subset of the gate parameters. All the
     angles are assumed to take a fixed numerical values which reflect the current state of the
     characterized gate.
+
+    This class supports JSON serialization and deserialization.
 
     Attributes:
         theta: θ angle in radians or None when unknown.
@@ -289,6 +296,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             },
         )
 
+    # TODO: Handle unsuccessful calibrations and throw appropriate exceptions.
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
         decoded = collections.defaultdict(lambda: {})
         for keys, values in result.metrics['angles'].items():
