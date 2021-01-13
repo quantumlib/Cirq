@@ -13,6 +13,17 @@ def run_characterizations(
     processor_id: str,
     handler_name: str,
 ) -> List[PhasedFSimCalibrationResult]:
+    """Runs calibration requests on the Engine.
+
+    Args:
+        calibrations: List of calibrations to perform described in a request object.
+        engine: cirq.google.Engine object used for running the calibrations.
+        processor_id: processor_id passed to engine.run_calibrations method.
+        handler_name:
+
+    Returns:
+        List of PhasedFSimCalibrationResult for each requested calibration.
+    """
     if not calibrations:
         return []
 
