@@ -121,25 +121,25 @@ class PhasedFSimCharacterization:
 
 
 # TODO: Add support for JSON serialization
-@dataclasses.dataclass(frozen=True)
-class FloquetPhasedFSimCalibrationOptions:
-    characterize_theta: bool
-    characterize_zeta: bool
-    characterize_chi: bool
-    characterize_gamma: bool
-    characterize_phi: bool
-
-
-# TODO: Add support for JSON serialization
 # TODO: Add start and end calibration timestamp
 # TODO: Add export to Panda's data frame
 @dataclasses.dataclass(frozen=True)
 class PhasedFSimCalibrationResult:
+    """The PhasedFSimGate characterization result.
+
+    Attributes:
+        parameters: Map from qubit pair to characterization result. For each pair of characterized
+            quibts a and b either only (a, b) or only (b, a) is present.
+        gate: Characterized gate for each qubit pair.
+        gate_set: Gate set provied for the characterization request.
+    """
+    # TODO: Add validation that only either (a, b) or (b, a) is present.
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
     gate: Gate
     gate_set: SerializableGateSet
 
     def get_parameters(self, a: Qid, b: Qid) -> Optional['PhasedFSimCharacterization']:
+        """Returns parameters for a qubit pair (a, b) or None when unknown."""
         if (a, b) in self.parameters:
             return self.parameters[(a, b)]
         elif (b, a) in self.parameters:
@@ -151,28 +151,70 @@ class PhasedFSimCalibrationResult:
 # TODO: Add support for JSON serialization
 @dataclasses.dataclass(frozen=True)
 class PhasedFSimCalibrationRequest(abc.ABC):
+    """Description of the request to characterize PhasedFSimGate.
+
+    Attributes:
+        gate: Gate to characterize for each qubit pair from pairs. This must be a supported gate
+            which can be described cirq.PhasedFSim gate.
+        gate_set: Gate set to use for characterization request.
+        pairs: Set of qubit pairs to characterize. A single qubit can appear on at most one pair in
+            the set.
+    """
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
     gate_set: SerializableGateSet
+    # TODO: Validate that each pair is unique and non-overlaping with any other pair.
     pairs: Tuple[Tuple[Qid, Qid]]
 
     @abc.abstractmethod
     def to_calibration_layer(self, handler_name: str) -> CalibrationLayer:
-        pass
+        """Encodes this characterization request in a CalibrationLayer object."""
 
     @abc.abstractmethod
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
-        pass
+        """Decodes the characterization result issued for this request."""
+
+
+# TODO: Add support for JSON serialization
+@dataclasses.dataclass(frozen=True)
+class FloquetPhasedFSimCalibrationOptions:
+    """Options specific to Floquet PhasedFSimCalibration.
+
+    Some angles require another angle to be characterized first so result might have more angles
+    characterized than requested here.
+
+    Attributes:
+        characterize_theta: Whether to characterize θ angle.
+        characterize_zeta: Whether to characterize ζ angle.
+        characterize_chi: Whether to characterize χ angle.
+        characterize_gamma: Whether to characterize γ angle.
+        characterize_phi: Whether to characterize φ angle.
+    """
+    characterize_theta: bool
+    characterize_zeta: bool
+    characterize_chi: bool
+    characterize_gamma: bool
+    characterize_phi: bool
 
 
 # TODO: Add support for JSON serialization
 @dataclasses.dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationResult(PhasedFSimCalibrationResult):
+    """PhasedFSim characterization result specific to Floquet calibration.
+
+    Attributes:
+        options: Options of the characterization from the request.
+    """
     options: FloquetPhasedFSimCalibrationOptions
 
 
 # TODO: Add support for JSON serialization
 @dataclasses.dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
+    """PhasedFSim characterization request specific to Floquet calibration.
+
+    Attributes:
+        options: Floquet-specific characterization options.
+    """
     options: FloquetPhasedFSimCalibrationOptions
 
     def to_calibration_layer(self, handler_name: str) -> CalibrationLayer:
