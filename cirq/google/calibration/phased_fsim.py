@@ -39,6 +39,7 @@ class PhasedFSimCharacterization:
         gamma: γ angle in radians or None when unknown.
         phi: φ angle in radians or None when unknown.
     """
+
     theta: Optional[float] = None
     zeta: Optional[float] = None
     chi: Optional[float] = None
@@ -46,17 +47,28 @@ class PhasedFSimCharacterization:
     phi: Optional[float] = None
 
     def asdict(self) -> Dict[str, float]:
-        """Converts parameters to a dictionary that maps angle names to values.
-        """
+        """Converts parameters to a dictionary that maps angle names to values."""
         return dataclasses.asdict(self)
 
     def all_none(self) -> bool:
         """Returns True if all the angles are None"""
-        return self.theta is None and self.zeta is None and self.chi is None and self.gamma is None and self.phi is None
+        return (
+            self.theta is None
+            and self.zeta is None
+            and self.chi is None
+            and self.gamma is None
+            and self.phi is None
+        )
 
     def any_none(self) -> bool:
         """Returns True if any the angle is None"""
-        return self.theta is None or self.zeta is None or self.chi is None or self.gamma is None or self.phi is None
+        return (
+            self.theta is None
+            or self.zeta is None
+            or self.chi is None
+            or self.gamma is None
+            or self.phi is None
+        )
 
     def parameters_for_qubits_swapped(self) -> 'PhasedFSimCharacterization':
         """Parameters for the gate with qubits swapped between each other.
@@ -72,7 +84,7 @@ class PhasedFSimCharacterization:
             zeta=-self.zeta if self.zeta is not None else None,
             chi=-self.chi if self.chi is not None else None,
             gamma=self.gamma,
-            phi=self.phi
+            phi=self.phi,
         )
 
     def merge_with(self, other: 'PhasedFSimCharacterization') -> 'PhasedFSimCharacterization':
