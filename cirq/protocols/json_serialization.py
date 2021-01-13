@@ -447,12 +447,11 @@ class SerializableByKey(SupportsJSON):
     """Protocol for objects that can be serialized to a key + context."""
 
     @doc_private
-    def _serialization_key_(self) -> str:
-        """Returns a unique string identifier for this object.
+    def _serialization_name_(self) -> str:
+        """Returns a string identifier for this object.
 
-        This should only return the same value for two objects if they are
-        equal; otherwise, an error will occur if both are serialized into the
-        same JSON string.
+        This identifier need not be globally unique; a unique suffix will be
+        dynamically generated to create the serialization key for this object.
         """
 
 
@@ -465,8 +464,8 @@ class _SerializedKey(SupportsJSON):
     the original `obj` for this type.
     """
 
-    def __init__(self, obj: SerializableByKey):
-        self.key = obj._serialization_key_()
+    def __init__(self, key: str):
+        self.key = key
 
     def _json_dict_(self):
         return obj_to_dict_helper(self, ['key'])
@@ -489,8 +488,8 @@ class _SerializedContext(SupportsJSON):
     the original `obj` for this type.
     """
 
-    def __init__(self, obj: SerializableByKey):
-        self.key = obj._serialization_key_()
+    def __init__(self, obj: SerializableByKey, suffix: int):
+        self.key = f'{obj._serialization_name_()}_{suffix}'
         self.obj = obj
 
     def _json_dict_(self):
@@ -518,12 +517,12 @@ class _ContextualSerialization(SupportsJSON):
         # Context information and the wrapped object are stored together in
         # `object_dag` to ensure consistent serialization ordering.
         self.object_dag = []
-        context_keys = set()
+        context = []
         for sbk in get_serializable_by_keys(obj):
-            new_sc = _SerializedContext(sbk)
-            if new_sc.key not in context_keys:
+            if sbk not in context:
+                context.append(sbk)
+                new_sc = _SerializedContext(sbk, len(context))
                 self.object_dag.append(new_sc)
-                context_keys.add(new_sc.key)
         self.object_dag += [obj]
 
     def _json_dict_(self):
@@ -541,7 +540,7 @@ class _ContextualSerialization(SupportsJSON):
 
 def has_serializable_by_keys(obj: Any) -> bool:
     """Returns true if obj contains one or more SerializableByKey objects."""
-    if hasattr(obj, '_serialization_key_'):
+    if hasattr(obj, '_serialization_name_'):
         return True
     json_dict = getattr(obj, '_json_dict_', lambda: None)()
     if isinstance(json_dict, Dict):
@@ -562,7 +561,7 @@ def get_serializable_by_keys(obj: Any) -> List[SerializableByKey]:
     are nested inside. This is required to ensure
     """
     result = []
-    if hasattr(obj, '_serialization_key_'):
+    if hasattr(obj, '_serialization_name_'):
         result.append(obj)
     json_dict = getattr(obj, '_json_dict_', lambda: None)()
     if isinstance(json_dict, Dict):
@@ -623,23 +622,23 @@ def to_json(
         class ContextualEncoder(cls):  # type: ignore
             """An encoder with a context map for concise serialization."""
 
-            # This map is populated gradually during serialization. An object
-            # with components defined in this map will represent those
+            # These lists populate gradually during serialization. An object
+            # with components defined in 'context' will represent those
             # components using their keys instead of inline definition.
-            context_map: Dict[str, 'SerializableByKey'] = {}
+            context: List['SerializableByKey'] = []
+            keys: List[str] = []
 
             def default(self, o):
-                skey = getattr(o, '_serialization_key_', lambda: None)()
-                if skey in ContextualEncoder.context_map:
-                    if ContextualEncoder.context_map[skey] == o._json_dict_():
-                        return _SerializedKey(o)._json_dict_()
-                    raise ValueError(
-                        'Found different objects with the same serialization key:'
-                        f'\n{ContextualEncoder.context_map[skey]}\n{o}'
-                    )
-                if skey is not None:
-                    ContextualEncoder.context_map[skey] = o._json_dict_()
-                return super().default(o)
+                if not hasattr(o, '_serialization_name_'):
+                    return super().default(o)
+                try:
+                    idx = ContextualEncoder.context.index(o)
+                    return _SerializedKey(ContextualEncoder.keys[idx])._json_dict_()
+                except ValueError:
+                    ContextualEncoder.context.append(o)
+                    key = f'{o._serialization_name_()}_{len(ContextualEncoder.context)}'
+                    ContextualEncoder.keys.append(key)
+                    return super().default(o)
 
         obj = _ContextualSerialization(obj)
         cls = ContextualEncoder
