@@ -1,10 +1,15 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, TYPE_CHECKING
 
 import dataclasses
 
+if TYPE_CHECKING:
+    # Workaround for mypy custom dataclasses
+    from dataclasses import dataclass as json_serializable_dataclass
+else:
+    from cirq.protocols import json_serializable_dataclass
 
-# TODO: Add JSON serialization support
-@dataclasses.dataclass(frozen=True)
+
+@json_serializable_dataclass(frozen=True)
 class PhasedFSimCharacterization:
     """Holder for the unitary angles of the cirq.PhasedFSimGate.
 
@@ -24,6 +29,8 @@ class PhasedFSimCharacterization:
     for characterization routines that characterize only subset of the gate parameters. All the
     angles are assumed to take a fixed numerical values which reflect the current state of the
     characterized gate.
+
+    This class supports JSON serialization and deserialization.
 
     Attributes:
         theta: θ angle in radians or None when unknown.
@@ -66,8 +73,8 @@ class PhasedFSimCharacterization:
     def parameters_for_qubits_swapped(self) -> 'PhasedFSimCharacterization':
         """Parameters for the gate with qubits swapped between each other.
 
-        The angles theta, gamma and phi are kept unchanged. The angles zeta and chi are negated for
-        the gate with swapped qubits.
+        The angles theta, gamma and phi are kept unchanged. The angles zeta and chi are negated for the gate with
+        swapped qubits.
 
         Returns:
             New instance with angles adjusted for swapped qubits.
