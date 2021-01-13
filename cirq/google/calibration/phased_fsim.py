@@ -3,6 +3,7 @@ from typing import Dict, Optional
 import dataclasses
 
 
+# TODO: Add JSON serialization support
 @dataclasses.dataclass(frozen=True)
 class PhasedFSimCharacterization:
     """Holder for the unitary angles of the cirq.PhasedFSimGate.
