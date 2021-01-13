@@ -1,12 +1,12 @@
+import numpy as np
+
+import cirq
 from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
     FloquetPhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
 )
-
-import cirq
-import numpy as np
 
 
 def test_asdict():
