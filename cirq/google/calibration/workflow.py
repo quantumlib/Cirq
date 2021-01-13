@@ -168,10 +168,20 @@ def floquet_characterization_for_circuit(
 def run_characterizations(calibrations: List[PhasedFSimCalibrationRequest],
                           engine: Engine,
                           processor_id: str,
-                          handler_name: str,
                           max_layers_per_request: int = 1,
                           progress_func: Optional[Callable[[int, int], None]] = None
                           ) -> List[PhasedFSimCalibrationResult]:
+    """Runs calibration requests on the Engine.
+
+    Args:
+        calibrations: List of calibrations to perform described in a request object.
+        engine: cirq.google.Engine object used for running the calibrations.
+        processor_id: processor_id passed to engine.run_calibrations method.
+        handler_name:
+
+    Returns:
+        List of PhasedFSimCalibrationResult for each requested calibration.
+    """
     if max_layers_per_request < 1:
         raise ValueError(f'Miaximum number of layers pere request must be at least 1, '
                          f'{max_layers_per_request} given')
@@ -185,7 +195,7 @@ def run_characterizations(calibrations: List[PhasedFSimCalibrationRequest],
         raise ValueError('All calibrations that run together must be defined for a shared gate set')
 
     requests = [
-        [calibration.to_calibration_layer(handler_name)
+        [calibration.to_calibration_layer()
          for calibration in calibrations[offset:offset + max_layers_per_request]]
         for offset in range(0, len(calibrations), max_layers_per_request)
     ]
@@ -208,7 +218,6 @@ def run_floquet_characterization_for_circuit(
         circuit: Circuit,
         engine: Engine,
         processor_id: str,
-        handler_name: str,
         gate_set: SerializableGateSet,
         gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
         options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.
@@ -219,7 +228,7 @@ def run_floquet_characterization_for_circuit(
 ) -> Tuple[List[PhasedFSimCalibrationResult], List[Optional[int]]]:
     requests, mapping = floquet_characterization_for_circuit(
         circuit, gate_set, gates_translator, options, merge_sub_sets=merge_sub_sets)
-    results = run_characterizations(requests, engine, processor_id, handler_name,
+    results = run_characterizations(requests, engine, processor_id,
                                     max_layers_per_request=max_layers_per_request,
                                     progress_func=progress_func)
     return results, mapping
