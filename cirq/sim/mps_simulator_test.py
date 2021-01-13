@@ -18,16 +18,59 @@ def assert_same_output_as_dense(circuit, qubit_order, initial_state=0):
     assert len(actual.measurements) == 0
 
 
-def test_various_gates():
-    gate_cls = [cirq.I, cirq.H, cirq.X, cirq.Y, cirq.Z, cirq.T]
-    cross_gate_cls = [cirq.CNOT, cirq.SWAP]
+def test_various_gates_1d():
+    gate_op_cls = [cirq.I, cirq.H, cirq.X, cirq.Y, cirq.Z, cirq.T]
+    cross_gate_op_cls = [cirq.CNOT, cirq.SWAP]
 
-    for q0_gate in gate_cls:
-        for q1_gate in gate_cls:
-            for cross_gate in cross_gate_cls:
-                q0, q1 = cirq.LineQubit.range(2)
-                circuit = cirq.Circuit(q0_gate(q0), q1_gate(q1), cross_gate(q0, q1))
-                assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1])
+    q0, q1 = cirq.LineQubit.range(2)
+
+    for q0_gate_op in gate_op_cls:
+        for q1_gate_op in gate_op_cls:
+            for cross_gate_op in cross_gate_op_cls:
+                circuit = cirq.Circuit(q0_gate_op(q0), q1_gate_op(q1), cross_gate_op(q0, q1))
+                for initial_state in range(2 * 2):
+                    assert_same_output_as_dense(
+                        circuit=circuit, qubit_order=[q0, q1], initial_state=initial_state
+                    )
+
+
+def test_various_gates_1d_long():
+    q2, q3 = cirq.LineQubit.range(2)
+
+    q3_gate_op = cirq.H
+    cross_gate_op2 = cirq.CNOT
+
+    circuit = cirq.Circuit(
+        q3_gate_op(q3),
+        cross_gate_op2(q3, q2),
+    )
+
+    assert_same_output_as_dense(circuit=circuit, qubit_order=[q2, q3])
+
+
+def test_various_gates_2d():
+    gate_op_cls = [cirq.I, cirq.H]
+    cross_gate_op_cls = [cirq.CNOT, cirq.SWAP]
+
+    q0, q1, q2, q3 = cirq.GridQubit.rect(2, 2)
+
+    for q0_gate_op in gate_op_cls:
+        for q1_gate_op in gate_op_cls:
+            for q2_gate_op in gate_op_cls:
+                for q3_gate_op in gate_op_cls:
+                    for cross_gate_op1 in cross_gate_op_cls:
+                        for cross_gate_op2 in cross_gate_op_cls:
+                            circuit = cirq.Circuit(
+                                q0_gate_op(q0),
+                                q1_gate_op(q1),
+                                cross_gate_op1(q0, q1),
+                                q2_gate_op(q2),
+                                q3_gate_op(q3),
+                                cross_gate_op2(q3, q1),
+                            )
+                            assert_same_output_as_dense(
+                                circuit=circuit, qubit_order=[q0, q1, q2, q3]
+                            )
 
 
 def test_empty():
