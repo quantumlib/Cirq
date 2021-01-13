@@ -168,7 +168,7 @@ class PhasedFSimCalibrationRequest(abc.ABC):
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
     gate_set: SerializableGateSet
     # TODO: Validate that each pair is unique and non-overlaping with any other pair.
-    pairs: Tuple[Tuple[Qid, Qid]]
+    pairs: Tuple[Tuple[Qid, Qid], ...]
 
     @abc.abstractmethod
     def to_calibration_layer(self) -> CalibrationLayer:
