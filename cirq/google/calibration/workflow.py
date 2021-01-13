@@ -8,10 +8,7 @@ from cirq.google.engine import Engine
 
 
 def run_characterizations(
-    calibrations: List[PhasedFSimCalibrationRequest],
-    engine: Engine,
-    processor_id: str,
-    handler_name: str,
+    calibrations: List[PhasedFSimCalibrationRequest], engine: Engine, processor_id: str
 ) -> List[PhasedFSimCalibrationResult]:
     """Runs calibration requests on the Engine.
 
@@ -32,7 +29,7 @@ def run_characterizations(
     if not all(gate_set == other for other in gate_sets):
         raise ValueError('All calibrations that run together must be defined for a shared gate set')
 
-    requests = [calibration.to_calibration_layer(handler_name) for calibration in calibrations]
+    requests = [calibration.to_calibration_layer() for calibration in calibrations]
     job = engine.run_calibration(requests, processor_id=processor_id, gate_set=gate_set)
     return [
         calibration.parse_result(result)

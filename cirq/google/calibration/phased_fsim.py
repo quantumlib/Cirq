@@ -12,6 +12,9 @@ from cirq.google.engine import CalibrationLayer, CalibrationResult
 from cirq.google.serializable_gate_set import SerializableGateSet
 
 
+_FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
+
+
 # TODO: Add JSON serialization support
 @dataclasses.dataclass(frozen=True)
 class PhasedFSimCharacterization:
@@ -133,6 +136,7 @@ class PhasedFSimCalibrationResult:
         gate: Characterized gate for each qubit pair.
         gate_set: Gate set provied for the characterization request.
     """
+
     # TODO: Add validation that only either (a, b) or (b, a) is present.
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
     gate: Gate
@@ -160,13 +164,14 @@ class PhasedFSimCalibrationRequest(abc.ABC):
         pairs: Set of qubit pairs to characterize. A single qubit can appear on at most one pair in
             the set.
     """
+
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
     gate_set: SerializableGateSet
     # TODO: Validate that each pair is unique and non-overlaping with any other pair.
     pairs: Tuple[Tuple[Qid, Qid]]
 
     @abc.abstractmethod
-    def to_calibration_layer(self, handler_name: str) -> CalibrationLayer:
+    def to_calibration_layer(self) -> CalibrationLayer:
         """Encodes this characterization request in a CalibrationLayer object."""
 
     @abc.abstractmethod
@@ -189,6 +194,7 @@ class FloquetPhasedFSimCalibrationOptions:
         characterize_gamma: Whether to characterize γ angle.
         characterize_phi: Whether to characterize φ angle.
     """
+
     characterize_theta: bool
     characterize_zeta: bool
     characterize_chi: bool
@@ -204,6 +210,7 @@ class FloquetPhasedFSimCalibrationResult(PhasedFSimCalibrationResult):
     Attributes:
         options: Options of the characterization from the request.
     """
+
     options: FloquetPhasedFSimCalibrationOptions
 
 
@@ -215,12 +222,13 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     Attributes:
         options: Floquet-specific characterization options.
     """
+
     options: FloquetPhasedFSimCalibrationOptions
 
-    def to_calibration_layer(self, handler_name: str) -> CalibrationLayer:
+    def to_calibration_layer(self) -> CalibrationLayer:
         circuit = Circuit([self.gate.on(*pair) for pair in self.pairs])
         return CalibrationLayer(
-            calibration_type='floquet_phased_fsim_characterization',
+            calibration_type=_FLOQUET_PHASED_FSIM_HANDLER_NAME,
             program=circuit,
             args={
                 'est_theta': self.options.characterize_theta,
