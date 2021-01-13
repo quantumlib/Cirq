@@ -87,8 +87,8 @@ class PhasedFSimCharacterization:
             other: Parameters to use for None values.
 
         Returns:
-            New instance of PhasedFSimParameters with values from this instance if they are set or
-            values from other when some parameter is None.
+            New instance of PhasedFSimCharacterization with values from this instance if they are
+            set or values from other when some parameter is None.
         """
         return PhasedFSimCharacterization(
             theta=other.theta if self.theta is None else self.theta,
@@ -105,7 +105,7 @@ class PhasedFSimCharacterization:
             other: Parameters to use for override.
 
         Returns:
-            New instance of PhasedFSimParameters with values from other if set (values from other
-            that are not None). Otherwise the current values are used.
+            New instance of PhasedFSimCharacterization with values from other if set (values from
+            other that are not None). Otherwise the current values are used.
         """
         return other.merge_with(self)
