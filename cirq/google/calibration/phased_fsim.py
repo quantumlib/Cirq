@@ -1,15 +1,9 @@
-from typing import Dict, Optional, TYPE_CHECKING
+from typing import Dict, Optional
 
 import dataclasses
 
-if TYPE_CHECKING:
-    # Workaround for mypy custom dataclasses
-    from dataclasses import dataclass as json_serializable_dataclass
-else:
-    from cirq.protocols import json_serializable_dataclass
 
-
-@json_serializable_dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class PhasedFSimCharacterization:
     """Holder for the unitary angles of the cirq.PhasedFSimGate.
 
@@ -29,8 +23,6 @@ class PhasedFSimCharacterization:
     for characterization routines that characterize only subset of the gate parameters. All the
     angles are assumed to take a fixed numerical values which reflect the current state of the
     characterized gate.
-
-    This class supports JSON serialization and deserialization.
 
     Attributes:
         theta: θ angle in radians or None when unknown.
@@ -73,8 +65,8 @@ class PhasedFSimCharacterization:
     def parameters_for_qubits_swapped(self) -> 'PhasedFSimCharacterization':
         """Parameters for the gate with qubits swapped between each other.
 
-        The angles theta, gamma and phi are kept unchanged. The angles zeta and chi are negated for the gate with
-        swapped qubits.
+        The angles theta, gamma and phi are kept unchanged. The angles zeta and chi are negated for
+        the gate with swapped qubits.
 
         Returns:
             New instance with angles adjusted for swapped qubits.
@@ -94,8 +86,8 @@ class PhasedFSimCharacterization:
             other: Parameters to use for None values.
 
         Returns:
-            New instance of PhasedFSimParameters with values from this instance if they are set or values from other
-            when some parameter is None.
+            New instance of PhasedFSimParameters with values from this instance if they are set or
+            values from other when some parameter is None.
         """
         return PhasedFSimCharacterization(
             theta=other.theta if self.theta is None else self.theta,
@@ -112,7 +104,7 @@ class PhasedFSimCharacterization:
             other: Parameters to use for override.
 
         Returns:
-            New instance of PhasedFSimParameters with values from other if set (values from other that are not None).
-            Otherwise the current values are used.
+            New instance of PhasedFSimParameters with values from other if set (values from other
+            that are not None). Otherwise the current values are used.
         """
         return other.merge_with(self)
