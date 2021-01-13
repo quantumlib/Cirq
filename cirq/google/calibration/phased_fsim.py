@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 else:
     from cirq.protocols import json_serializable_dataclass
 
+
 @json_serializable_dataclass(frozen=True)
 class PhasedFSimCharacterization:
     """Holder for the unitary angles of the cirq.PhasedFSimGate.
