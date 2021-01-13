@@ -1,0 +1,1 @@
+cirq.google.PhasedFSimCharacterization(theta=0.1, zeta=0.2, chi=0.3, gamma=0.4, phi=0.5)
