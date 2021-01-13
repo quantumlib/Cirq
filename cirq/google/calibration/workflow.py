@@ -201,8 +201,6 @@ def run_characterizations(calibrations: List[PhasedFSimCalibrationRequest],
     if isinstance(engine, Engine):
         if processor_id is None:
             raise ValueError('Processor id must not be None for engine simulation')
-        if handler_name is None:
-            raise ValueError('Handler name must not be None for engine simulation')
 
         results = []
 
