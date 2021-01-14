@@ -277,7 +277,7 @@ class MPSState:
         state.threshold = self.threshold
         return state
 
-    def _sum_up(self, qubit_to_skip_collapsing=-1):
+    def _sum_up(self, skip_tracing_out_for_qubit=-1):
         row = -1
         for i in range(len(self.M)):
             row_i = list(self.qubit_map.keys())[i].row if self.is_2d_grid else 0
@@ -292,24 +292,33 @@ class MPSState:
 
                     Mi = Mi[0, 0, :, :, :]
 
-                    skip_collapsing = qubit_to_skip_collapsing == -1 or qubit_to_skip_collapsing == i
-
-                    if skip_collapsing:
-                        M = np.einsum('mni,npj->mpij', M, Mi)
-                        M = M.reshape(M.shape[0], M.shape[1], np.prod(M.shape[2:4]))
-                    else:
-                        M = np.einsum('mni,npj->mpi', M, Mi)
+                    M = np.einsum('mni,npj->mpij', M, Mi)
+                    M = M.reshape(M.shape[0], M.shape[1], np.prod(M.shape[2:4]))
 
                 Mi = np.ones((1, 1, 1, 1, 1))
                 row = row_i
-            Mi = np.einsum('mnopi,nqrsj->mqorpsij', Mi, self.M[i])
-            Mi = Mi.reshape(
-                Mi.shape[0],
-                Mi.shape[1],
-                Mi.shape[2] * Mi.shape[3],
-                Mi.shape[4] * Mi.shape[5],
-                Mi.shape[6] * Mi.shape[7],
-            )
+
+            skip_tracing_out = skip_tracing_out_for_qubit == -1 or skip_tracing_out_for_qubit == i
+
+            if skip_tracing_out:
+                Mi = np.einsum('mnopi,nqrsj->mqorpsij', Mi, self.M[i])
+                Mi = Mi.reshape(
+                    Mi.shape[0],
+                    Mi.shape[1],
+                    Mi.shape[2] * Mi.shape[3],
+                    Mi.shape[4] * Mi.shape[5],
+                    Mi.shape[6] * Mi.shape[7],
+                )
+            else:
+                Mi = np.einsum('mnopi,nqrsj->mqorpsi', Mi, self.M[i])
+                Mi = Mi.reshape(
+                    Mi.shape[0],
+                    Mi.shape[1],
+                    Mi.shape[2] * Mi.shape[3],
+                    Mi.shape[4] * Mi.shape[5],
+                    Mi.shape[6],
+                )
+
         # We should have summed over all the column indices, thus they should be one.
         assert Mi.shape[0] == 1
         assert Mi.shape[1] == 1
@@ -401,7 +410,8 @@ class MPSState:
         # TODO(tonybruguier): Speed up computation by skipping the loop over
         # the qubit, and instead avoiding the multiple mutation, collapsing.
         for qubit in qubits:
-            M = state._sum_up(qubit_to_skip_collapsing=state.qubit_map[qubit])
+            n = state.qubit_map[qubit]
+            M = state._sum_up(skip_tracing_out_for_qubit=n)
 
             probs = [abs(x) ** 2 for x in M]
 
@@ -415,7 +425,7 @@ class MPSState:
             renormalizer = np.zeros((d, d))
             renormalizer[result][result] = 1.0 / math.sqrt(probs[result])
 
-            state.M[n] = np.einsum('ij,mnoj->mnoi', renormalizer, state.M[n])
+            state.M[n] = np.einsum('ij,mnopj->mnopi', renormalizer, state.M[n])
 
             results.append(result)
 

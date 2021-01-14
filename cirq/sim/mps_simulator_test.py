@@ -153,7 +153,7 @@ def test_trial_result_str():
             )
         )
         == "measurements: m=1\n"
-        "output state: [array([[[[1., 0.]]]])]"
+        "output state: [array([[[[[1., 0.]]]]])]"
     )
 
 
@@ -161,7 +161,7 @@ def test_empty_step_result():
     q0 = cirq.LineQubit(0)
     state = cirq.MPSState(qubit_map={q0: 0})
     step_result = cirq.MPSSimulatorStepResult(state, measurements={'0': [1]})
-    assert str(step_result) == "0=1\n[array([[[[1., 0.]]]])]"
+    assert str(step_result) == "0=1\n[array([[[[[1., 0.]]]]])]"
 
 
 def test_state_equal():
@@ -186,7 +186,7 @@ def test_simulate_moment_steps_sample():
             )
             assert (
                 str(step)
-                == "[array([[[[0.70710678+0.j, 0.70710678+0.j]]]]), array([[[[1., 0.]]]])]"
+                == "[array([[[[[0.70710678+0.j, 0.70710678+0.j]]]]]), array([[[[[1., 0.]]]]])]"
             )
             samples = step.sample([q0, q1], repetitions=10)
             for sample in samples:
@@ -204,11 +204,14 @@ def test_simulate_moment_steps_sample():
             )
             assert (
                 str(step)
-                == """[array([[[[0.84089642+0.j, 0.        +0.j],
-         [0.        +0.j, 0.84089642+0.j]]]]), array([[[[0.84089642+0.j, 0.        +0.j]]],
+                == """[array([[[[[0.84089642+0.j, 0.        +0.j]]],
 
 
-       [[[0.        +0.j, 0.84089642+0.j]]]])]"""
+        [[[0.        +0.j, 0.84089642+0.j]]]]]), array([[[[[0.84089642+0.j, 0.        +0.j]]]],
+
+
+
+       [[[[0.        +0.j, 0.84089642+0.j]]]]])]"""
             )
             samples = step.sample([q0, q1], repetitions=10)
             for sample in samples:
