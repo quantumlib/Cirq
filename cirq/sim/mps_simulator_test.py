@@ -155,7 +155,7 @@ def test_measurement_2qubits():
 
     simulator = cirq.MPSSimulator()
 
-    repetitions = 100
+    repetitions = 400
     measurement = simulator.run(circuit, repetitions=repetitions).measurements['0,2']
 
     result_counts = {'00': 0, '01': 0, '10': 0, '11': 0}

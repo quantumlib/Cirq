@@ -414,16 +414,15 @@ class MPSState:
         else:
             state = self.copy()
 
-        dims = [qubit.dimension for qubit in qubits]
+        qid_shape = [qubit.dimension for qubit in qubits]
         skip_tracing_out_for_qubits = {state.qubit_map[qubit] for qubit in qubits}
 
         M = state._sum_up(skip_tracing_out_for_qubits=skip_tracing_out_for_qubits)
-        M = M.reshape(dims)
 
         for i, qubit in enumerate(qubits):
             # Trace out other qubits
             trace_out_idx = [j for j in range(len(qubits)) if j != i]
-            M_traced_out = np.sum(M, axis=tuple(trace_out_idx))
+            M_traced_out = np.sum(M.reshape(qid_shape), axis=tuple(trace_out_idx))
             probs = [abs(x) ** 2 for x in M_traced_out]
 
             # Because the computation is approximate, the probabilities do not
@@ -438,6 +437,15 @@ class MPSState:
 
             n = state.qubit_map[qubit]
             state.M[n] = np.einsum('ij,mnopj->mnopi', renormalizer, state.M[n])
+
+            collapser = np.ones(1)
+            for j in range(len(qubits)):
+                if j == i:
+                    collapser = np.kron(collapser, renormalizer)
+                else:
+                    collapser = np.kron(collapser, np.eye(qid_shape[i]))
+
+            M = np.einsum('ij,j->i', collapser, M)
 
             results.append(result)
 
