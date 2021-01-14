@@ -375,8 +375,8 @@ class MPSState:
                 self.M[n] = np.einsum('mopky,yn->mnopk', X, S)
                 self.M[p] = np.einsum('yn,yqrsl->nqrsl', S, Y)
             else:
-                self.M[n] = np.einsum('mnoky,yn->mnopk', X, S)
-                self.M[p] = np.einsum('ny,yqrsl->qrpsl', S, Y)
+                self.M[n] = np.einsum('mnoky,yp->mnopk', X, S)
+                self.M[p] = np.einsum('yp,yqrsl->qrpsl', S, Y)
         else:
             raise ValueError('Can only handle 1 and 2 qubit operations')
 
