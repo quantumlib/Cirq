@@ -96,7 +96,6 @@ class HierarchyTree:
                     inside_edges += 1
         # Compute total edges
         for c1 in community1:
-            print(f"community: {type(c1)}")
             total_edges += len(c1.neighbors())
         for c2 in community2:
             total_edges += len(c2.neighbors())
@@ -684,10 +683,12 @@ class XSWAP:
             nx.all_simple_paths(self.device_graph,
                                 edge[0],
                                 edge[1],
-                                cutoff=len(self.partitions[pid])))
+                                cutoff=None) ) # cutoff=len(self.partitions[pid]))
+
+        
         distance = np.inf
         for p in paths:
-            if self.partitions[pid] in p:
+            if set(p).issubset(set(self.partitions[pid])):
                 if len(p) < distance:
                     distance = len(p)
         return distance
@@ -735,7 +736,7 @@ class XSWAP:
                 D_allp = new_path_len
                 D_singlep = self.compute_path_distance_in_sameP(phy_edge, i)
                 cost_i = cost_i + (D_allp - D_singlep) * in_path
-            gain_cost = gain_cost + float(1 / len(flayers[i])) * cost_i
+            gain_cost = gain_cost + float(1.0 / len(flayers[i])) * cost_i
         return gain_cost
 
     def find_best_swap(self, swap_candidate_lists: List[List[SWAPTypeLogical]],
@@ -760,8 +761,6 @@ class XSWAP:
                 gain_cost = self.compute_gainCost(flayers, new_l_ph, new_ph_l,
                                                   s)
                 cost = H_cost + gain_cost
-                print(f"H cost: {H_cost}")
-                print(f"gain cost: {gain_cost}")
                 if cost < min_cost:
                     min_cost = cost
                     best_swap = s
@@ -803,13 +802,12 @@ class XSWAP:
                     else:
                         ph0 = self.l_to_ph[(n.val.qubits[0], i)]
                         ph1 = self.l_to_ph[(n.val.qubits[1], i)]
-                        if (ph0, ph1) in self.device_graph.edges or (
-                                ph1, ph0) in self.device_graph.edges:
+                        if (ph0, ph1) in self.device_graph.edges or (ph1, ph0) in self.device_graph.edges:
                             g = n.val.gate
-                            lqs = n.val.qubits
-                            phq0 = self.l_to_ph[(lqs[0], i)]
-                            phq1 = self.l_to_ph[(lqs[1], i)]
-                            schedule.append(g(phq0, phq1))
+                            # lqs = n.val.qubits
+                            # phq0 = self.l_to_ph[(lqs[0], i)]
+                            # phq1 = self.l_to_ph[(lqs[1], i)]
+                            schedule.append(g(ph0, ph1))
 
                             dags[i].remove_node(n)
                             # Update front layer
@@ -829,6 +827,7 @@ class XSWAP:
                     swap_candidate_lists.append(swap_candidates)
                 # Find best SWAP
                 # List of 2 pairs: show each qubit belongs to which program id
+                print(f"number of swaps: {len(swap_candidate_lists)}")
                 best_swap = self.find_best_swap(swap_candidate_lists, flayers)
                 print(f"best swap: {best_swap}")
 
@@ -931,10 +930,10 @@ def prepare_couplingGraph_errorValues(device_graph):
     multi_prog_map(dgraph, single_er, two_er, program_circuits)
 
 
-# if __name__ == "__main__":
-    # print( load_calibrations()['single_qubit_p00_error'] )
-    # device_graph1 = ccr.get_grid_device_graph(3, 2)
-    # device_graph = cirq.google.Sycamore
-    # prepare_couplingGraph_errorValues(device_graph)
+if __name__ == "__main__":
+    #print( load_calibrations()['single_qubit_p00_error'] )
+    device_graph1 = ccr.get_grid_device_graph(3, 2)
+    device_graph = cirq.google.Sycamore
+    prepare_couplingGraph_errorValues(device_graph)
 
-    # multi_prog_map(device_graph)
+    prepare_couplingGraph_errorValues(device_graph)
