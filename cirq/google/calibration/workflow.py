@@ -76,9 +76,8 @@ def floquet_characterization_for_moment(
                                       f'single-qubit operations or measurement operations.')
 
     return FloquetPhasedFSimCalibrationRequest(
-        gate=gate,
-        gate_set=gate_set,
         pairs=tuple(sorted(pairs) if pairs_sorted else pairs),
+        gate=gate,
         options=options
     )
 
@@ -118,7 +117,6 @@ def floquet_characterization_for_circuit(
         new_pairs = set(calibration.pairs)
         for index in pairs_map.values():
             assert calibration.gate == calibrations[index].gate
-            assert calibration.gate_set == calibrations[index].gate_set
             assert calibration.options == calibrations[index].options
             existing_pairs = calibrations[index].pairs
             if new_pairs.issubset(existing_pairs):
@@ -133,7 +131,6 @@ def floquet_characterization_for_circuit(
                         for q in set(new_qubit_pairs.keys()).intersection(existing_qubit_pairs.keys()))):
                     calibrations[index] = FloquetPhasedFSimCalibrationRequest(
                         gate=calibration.gate,
-                        gate_set=gate_set,
                         pairs=tuple(sorted(new_pairs.union(existing_pairs))),
                         options=options
                     )
@@ -171,7 +168,8 @@ def floquet_characterization_for_circuit(
 
 def run_characterizations(calibrations: List[PhasedFSimCalibrationRequest],
                           engine: Union[Engine, PhasedFSimEngineSimulator],
-                          processor_id: Optional[str],
+                          processor_id: Optional[str] = None,
+                          gate_set: Optional[SerializableGateSet] = None,
                           max_layers_per_request: int = 1,
                           progress_func: Optional[Callable[[int, int], None]] = None
                           ) -> List[PhasedFSimCalibrationResult]:
@@ -181,7 +179,7 @@ def run_characterizations(calibrations: List[PhasedFSimCalibrationRequest],
         calibrations: List of calibrations to perform described in a request object.
         engine: cirq.google.Engine object used for running the calibrations.
         processor_id: processor_id passed to engine.run_calibrations method.
-        handler_name:
+        gate_set: Gate set to use for characterization request.
 
     Returns:
         List of PhasedFSimCalibrationResult for each requested calibration.
@@ -193,14 +191,11 @@ def run_characterizations(calibrations: List[PhasedFSimCalibrationRequest],
     if not calibrations:
         return []
 
-    gate_sets = [calibration.gate_set for calibration in calibrations]
-    gate_set = gate_sets[0]
-    if not all(gate_set == other for other in gate_sets):
-        raise ValueError('All calibrations that run together must be defined for a single gate set')
-
     if isinstance(engine, Engine):
         if processor_id is None:
-            raise ValueError('Processor id must not be None for engine simulation')
+            raise ValueError('processor_id must be provided when running on the engine')
+        if gate_set is None:
+            raise ValueError('gate_set must be provided when running on the engine')
 
         results = []
 
