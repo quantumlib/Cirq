@@ -9,7 +9,6 @@ from cirq.circuits import Circuit
 from cirq.ops import Gate, Qid
 from cirq.google.api import v2
 from cirq.google.engine import CalibrationLayer, CalibrationResult
-from cirq.google.serializable_gate_set import SerializableGateSet
 
 
 _FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
@@ -141,13 +140,11 @@ class PhasedFSimCalibrationResult:
         parameters: Map from qubit pair to characterization result. For each pair of characterized
             quibts a and b either only (a, b) or only (b, a) is present.
         gate: Characterized gate for each qubit pair.
-        gate_set: Gate set provied for the characterization request.
     """
 
     # TODO: Add validation that only either (a, b) or (b, a) is present.
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
     gate: Gate
-    gate_set: SerializableGateSet
 
     def get_parameters(self, a: Qid, b: Qid) -> Optional['PhasedFSimCharacterization']:
         """Returns parameters for a qubit pair (a, b) or None when unknown."""
@@ -165,17 +162,15 @@ class PhasedFSimCalibrationRequest(abc.ABC):
     """Description of the request to characterize PhasedFSimGate.
 
     Attributes:
-        gate: Gate to characterize for each qubit pair from pairs. This must be a supported gate
-            which can be described cirq.PhasedFSim gate.
-        gate_set: Gate set to use for characterization request.
         pairs: Set of qubit pairs to characterize. A single qubit can appear on at most one pair in
             the set.
+        gate: Gate to characterize for each qubit pair from pairs. This must be a supported gate
+            which can be described cirq.PhasedFSim gate.
     """
 
-    gate: Gate  # Any gate which can be described by cirq.PhasedFSim
-    gate_set: SerializableGateSet
     # TODO: Validate that each pair is unique and non-overlaping with any other pair.
     pairs: Tuple[Tuple[Qid, Qid], ...]
+    gate: Gate  # Any gate which can be described by cirq.PhasedFSim
 
     @abc.abstractmethod
     def to_calibration_layer(self) -> CalibrationLayer:
@@ -272,5 +267,5 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             )
 
         return FloquetPhasedFSimCalibrationResult(
-            parameters=parsed, gate=self.gate, gate_set=self.gate_set, options=self.options
+            parameters=parsed, gate=self.gate, options=self.options
         )
