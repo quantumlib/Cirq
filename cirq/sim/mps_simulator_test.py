@@ -114,7 +114,7 @@ def test_jump_two_1d():
 
 def test_jump_two_2d():
     qubit_order = cirq.GridQubit.rect(3, 3)
-    q0, q1, q2, q3, q4, q5, q6, q7, q8 = qubit_order
+    q0, _, q2, _, q4, _, q6, _, _ = qubit_order
 
     circuit_a = cirq.Circuit(cirq.CNOT(q0, q2))
     circuit_b = cirq.Circuit(cirq.CNOT(q0, q6))
