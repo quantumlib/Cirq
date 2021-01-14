@@ -52,7 +52,7 @@ def test_2small_programs():
     qubits = cirq.LineQubit.range(3)
     circuit1 = cirq.Circuit(cirq.X(qubits[0]), cirq.Y(qubits[1]),
                             cirq.CZ(qubits[0], qubits[1]),
-                            cirq.CZ(qubits[1], qubits[2]))
+                            cirq.CZ(qubits[0], qubits[2]))
     qubits = cirq.LineQubit.range(2)
     circuit2 = cirq.Circuit(cirq.X(qubits[0]), cirq.Y(qubits[1]),
                             cirq.CZ(qubits[0], qubits[1]))
@@ -60,7 +60,13 @@ def test_2small_programs():
     program_circuits.append(circuit2)
     program_circuits.append(circuit1)
 
-    print(circuit2)
-    print(circuit1)
+    
+    partitions , schedule = multi_prog_map(dgraph, single_er, two_er, program_circuits)
 
-    multi_prog_map(dgraph, single_er, two_er, program_circuits)
+    assert len(partitions) == len(program_circuits)
+    assert set(partitions[0]).issubset({cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(0, 2)})
+    assert set(partitions[1]).issubset({cirq.GridQubit(1, 1), cirq.GridQubit(1, 2)})
+    assert list(schedule.all_operations())[6] == cirq.SWAP(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))
+    
+
+

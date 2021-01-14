@@ -195,12 +195,12 @@ class HierarchyTree:
         label = 0
         communities = []
 
-        communities = [[i] for i in list(self.device_graph.nodes)]
+        communities = [[i] for i in sorted(list(self.device_graph.nodes))]
         q_values = [0.0] * len(communities)
 
         while len(communities) > 1:
             idx1, idx2, q_merged = self.compute_new_node(communities, q_values)
-            new_node_list = communities[idx1] + communities[idx2]
+            new_node_list = sorted(communities[idx1] + communities[idx2])
             new_node = tuple(new_node_list)
             tree.add_edge(new_node, tuple(communities[idx1]))
             tree.add_edge(new_node, tuple(communities[idx2]))
@@ -327,7 +327,7 @@ class QubitsPartitioning:
             if epst > max_f:
                 max_f = epst
                 best_cand = cand
-
+        
         return best_cand
 
     def qubits_allocation(
@@ -529,7 +529,7 @@ class XSWAP:
         total_l_qubits = 0
         total_ph_qubits = len(self.device_graph.nodes)
         for i in range(len(self.desc_program_circuits)):
-            logical_qubits = list(self.desc_program_circuits[i].all_qubits())
+            logical_qubits = sorted(list(self.desc_program_circuits[i].all_qubits()))
             total_l_qubits = total_l_qubits + len(logical_qubits)
             for j in range(len(logical_qubits)):
                 self.l_to_ph[(logical_qubits[j], i)] = self.partitions[i][j]
@@ -884,6 +884,8 @@ def multi_prog_map(device_graph: nx.Graph, single_er: Dict[Tuple[ops.Qid,],
     print("schedule:")
     print(schedule)
 
+    return partitions, schedule
+
 
 def prepare_couplingGraph_errorValues(device_graph):
     # single_er = load_calibrations()['single_qubit_p00_error'] # to do ??
@@ -916,7 +918,7 @@ def prepare_couplingGraph_errorValues(device_graph):
     qubits = cirq.LineQubit.range(3)
     circuit1 = cirq.Circuit(cirq.X(qubits[0]), cirq.Y(qubits[1]),
                             cirq.CZ(qubits[0], qubits[1]),
-                            cirq.CZ(qubits[1], qubits[2]))
+                            cirq.CZ(qubits[0], qubits[2]))
     qubits = cirq.LineQubit.range(2)
     circuit2 = cirq.Circuit(cirq.X(qubits[0]), cirq.Y(qubits[1]),
                             cirq.CZ(qubits[0], qubits[1]))
@@ -930,10 +932,10 @@ def prepare_couplingGraph_errorValues(device_graph):
     multi_prog_map(dgraph, single_er, two_er, program_circuits)
 
 
-# if __name__ == "__main__":
-#     #print( load_calibrations()['single_qubit_p00_error'] )
-#     device_graph1 = ccr.get_grid_device_graph(3, 2)
-#     device_graph = cirq.google.Sycamore
-#     prepare_couplingGraph_errorValues(device_graph)
+if __name__ == "__main__":
+    #print( load_calibrations()['single_qubit_p00_error'] )
+    device_graph1 = ccr.get_grid_device_graph(3, 2)
+    device_graph = cirq.google.Sycamore
+    prepare_couplingGraph_errorValues(device_graph)
 
-#     prepare_couplingGraph_errorValues(device_graph)
+    
