@@ -22,7 +22,7 @@ switch to QIM for speed.
 
 import collections
 import math
-from typing import Any, Dict, List, Iterator, Sequence
+from typing import Any, cast, Dict, List, Iterator, Sequence
 
 import numpy as np
 
@@ -256,10 +256,10 @@ class MPSState:
         self.M = self.M[::-1]
         self.threshold = 1e-3
 
-        self.is_2d_grid = self.qubit_map and (
-            isinstance(next(iter(self.qubit_map)), cirq.GridQid)
-            or isinstance(next(iter(self.qubit_map)), cirq.GridQubit)
+        self.is_2d_grid = self.qubit_map and isinstance(
+            next(iter(self.qubit_map)), (cirq.GridQid, cirq.GridQubit)
         )
+
         if self.is_2d_grid:
             self.num_rows = max([qubit.row for qubit in qubit_map.keys()]) + 1
         else:
@@ -349,16 +349,23 @@ class MPSState:
         elif len(op.qubits) == 2:
             idx = [self.qubit_map[qubit] for qubit in op.qubits]
             if self.is_2d_grid:
-                if op.qubits[0].row == op.qubits[1].row:
-                    if abs(op.qubits[0].col - op.qubits[1].col) != 1:
-                        raise ValueError('Can only handle continguous qubits')
+                casted_op_qubits = [
+                    cast(cirq.GridQid, qubit)
+                    if isinstance(qubit, cirq.GridQid)
+                    else cast(cirq.GridQubit, qubit)
+                    for qubit in op.qubits
+                ]
+
+                if casted_op_qubits[0].row == casted_op_qubits[1].row:
+                    if abs(casted_op_qubits[0].col - casted_op_qubits[1].col) != 1:
+                        raise ValueError('qubits on same row but not one column appart')
                     same_row = True
-                elif op.qubits[0].col == op.qubits[1].col:
-                    if abs(op.qubits[0].row - op.qubits[1].row) != 1:
-                        raise ValueError('Can only handle continguous qubits')
+                elif casted_op_qubits[0].col == casted_op_qubits[1].col:
+                    if abs(casted_op_qubits[0].row - casted_op_qubits[1].row) != 1:
+                        raise ValueError('qubits on same column but not one row appart')
                     same_row = False
                 else:
-                    raise ValueError('Can only handle continguous qubits')
+                    raise ValueError('qubits neither on same row nor on same column')
             else:
                 if abs(idx[0] - idx[1]) != 1:
                     raise ValueError('Can only handle continguous qubits')

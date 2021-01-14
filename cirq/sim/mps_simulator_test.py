@@ -104,12 +104,30 @@ def test_cnot_flipped():
         )
 
 
-def test_jump_two():
+def test_jump_two_1d():
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.CNOT(q0, q2))
 
     with pytest.raises(ValueError, match="Can only handle continguous qubits"):
         assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1, q2])
+
+
+def test_jump_two_2d():
+    qubit_order = cirq.GridQubit.rect(3, 3)
+    q0, q1, q2, q3, q4, q5, q6, q7, q8 = qubit_order
+
+    circuit_a = cirq.Circuit(cirq.CNOT(q0, q2))
+    circuit_b = cirq.Circuit(cirq.CNOT(q0, q6))
+    circuit_c = cirq.Circuit(cirq.CNOT(q0, q4))
+
+    with pytest.raises(ValueError, match="qubits on same row but not one column appart"):
+        assert_same_output_as_dense(circuit=circuit_a, qubit_order=qubit_order)
+
+    with pytest.raises(ValueError, match="qubits on same column but not one row appart"):
+        assert_same_output_as_dense(circuit=circuit_b, qubit_order=qubit_order)
+
+    with pytest.raises(ValueError, match="qubits neither on same row nor on same column"):
+        assert_same_output_as_dense(circuit=circuit_c, qubit_order=qubit_order)
 
 
 def test_three_qubits():
