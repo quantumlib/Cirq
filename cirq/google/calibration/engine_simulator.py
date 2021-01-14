@@ -258,9 +258,8 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                 )
 
             results.append(PhasedFSimCalibrationResult(
-                gate=request.gate,
-                gate_set=request.gate_set,
-                parameters=parameters
+                parameters=parameters,
+                gate=request.gate
             ))
 
         return results

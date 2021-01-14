@@ -29,15 +29,13 @@ def test_floquet_characterization_for_circuit() -> None:
 
     assert requests == [
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
-            gate=SQRT_ISWAP_GATE,
-            gate_set=cirq.google.SQRT_ISWAP_GATESET,
             pairs=((a, b), (c, d)),
+            gate=SQRT_ISWAP_GATE,
             options=options
         ),
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
-            gate=SQRT_ISWAP_GATE,
-            gate_set=cirq.google.SQRT_ISWAP_GATESET,
             pairs=((b, c),),
+            gate=SQRT_ISWAP_GATE,
             options=options
         )
     ]
@@ -61,15 +59,13 @@ def test_floquet_characterization_for_circuit_merges_sub_sets() -> None:
 
     assert requests == [
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
-            gate=SQRT_ISWAP_GATE,
-            gate_set=cirq.google.SQRT_ISWAP_GATESET,
             pairs=((a, b), (c, d)),
+            gate=SQRT_ISWAP_GATE,
             options=options
         ),
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
-            gate=SQRT_ISWAP_GATE,
-            gate_set=cirq.google.SQRT_ISWAP_GATESET,
             pairs=((b, c), (d, e)),
+            gate=SQRT_ISWAP_GATE,
             options=options
         )
     ]
@@ -92,15 +88,13 @@ def test_floquet_characterization_for_circuit_merges_compatible_sets() -> None:
 
     assert requests == [
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
-            gate=SQRT_ISWAP_GATE,
-            gate_set=cirq.google.SQRT_ISWAP_GATESET,
             pairs=((a, b), (c, d)),
+            gate=SQRT_ISWAP_GATE,
             options=options
         ),
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
-            gate=SQRT_ISWAP_GATE,
-            gate_set=cirq.google.SQRT_ISWAP_GATESET,
             pairs=((a, f), (b, c), (d, e)),
+            gate=SQRT_ISWAP_GATE,
             options=options
         )
     ]
@@ -195,7 +189,6 @@ def test_run_floquet_calibration() -> None:
     assert calibrations == [
         cirq.google.PhasedFSimCalibrationResult(
             gate=cirq.FSimGate(np.pi / 4, 0.0),
-            gate_set=cirq.google.SQRT_ISWAP_GATESET,
             parameters={
                 (a, b): parameters_ab,
                 (c, d): parameters_cd
@@ -203,7 +196,6 @@ def test_run_floquet_calibration() -> None:
         ),
         cirq.google.PhasedFSimCalibrationResult(
             gate=cirq.FSimGate(np.pi / 4, 0.0),
-            gate_set=cirq.google.SQRT_ISWAP_GATESET,
             parameters={
                 (b, c): parameters_bc
             }
