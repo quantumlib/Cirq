@@ -239,9 +239,10 @@ class MPSState:
             d = qubit.dimension
             x = np.zeros(
                 (
-                    1,  # \mu for qubit to the left
-                    1,  # \mu for qubit below
-                    1,  # \mu for the present qubit
+                    1,  # row-previous
+                    1,  # row-current
+                    1,  # col-previous
+                    1,  # col-current
                     d,
                 )
             )
@@ -249,20 +250,20 @@ class MPSState:
             # the exact same notation as in the paper. Instead, the qubits on
             # the edge still have a \mu referring to a dummy, non present,
             # qubit. The value of these \mu is always 0.
-            #
-            # This also implies that if we only have a 1D grid, then the \mu
-            # for the qubit below is always 0.
-            x[0, 0, 0, (initial_state % d)] = 1.0
+            x[0, 0, 0, 0, (initial_state % d)] = 1.0
             self.M.append(x)
             initial_state = initial_state // d
         self.M = self.M[::-1]
         self.threshold = 1e-3
 
-    def is_2d_grid(self):
-        return self.qubit_map and (
+        self.is_2d_grid = self.qubit_map and (
             isinstance(next(iter(self.qubit_map)), cirq.GridQid)
             or isinstance(next(iter(self.qubit_map)), cirq.GridQubit)
         )
+        if self.is_2d_grid:
+            self.num_rows = max([qubit.row for qubit in qubit_map.keys()]) + 1
+        else:
+            self.num_rows = 1
 
     def __str__(self) -> str:
         return str(self.M)
@@ -277,13 +278,46 @@ class MPSState:
         return state
 
     def state_vector(self):
-        M = np.ones((1, 1, 1))
+        row = -1
         for i in range(len(self.M)):
-            # DO NOT SUBMIT, this assumes linear topology
-            M = np.einsum('noi,opqj->npqij', M, self.M[i])
-            M = M.reshape(M.shape[0] * M.shape[1], M.shape[2], M.shape[3] * M.shape[4])
-        # DO NOT SUBMIT, the assert below is only true for 1D
+            row_i = list(self.qubit_map.keys())[i].row if self.is_2d_grid else 0
+
+            if row != row_i:  # New row:
+                if row == -1:  # First row
+                    M = np.ones((1, 1, 1))
+                else:
+                    # We should have summed over all the column indices, thus they should be one.
+                    assert Mi.shape[0] == 1
+                    assert Mi.shape[1] == 1
+
+                    Mi = Mi[0, 0, :, :, :]
+
+                    M = np.einsum('mni,npj->mpij', M, Mi)
+                    M = M.reshape(M.shape[0], M.shape[1], M.shape[2] * M.shape[3])
+
+                Mi = np.ones((1, 1, 1, 1, 1))
+                row = row_i
+            Mi = np.einsum('mnopi,nqrsj->mqorpsij', Mi, self.M[i])
+            Mi = Mi.reshape(
+                Mi.shape[0],
+                Mi.shape[1],
+                Mi.shape[2] * Mi.shape[3],
+                Mi.shape[4] * Mi.shape[5],
+                Mi.shape[6] * Mi.shape[7],
+            )
+        # We should have summed over all the column indices, thus they should be one.
+        assert Mi.shape[0] == 1
+        assert Mi.shape[1] == 1
+
+        Mi = Mi[0, 0, :, :, :]
+
+        M = np.einsum('mni,npj->mpij', M, Mi)
+        M = M.reshape(M.shape[0], M.shape[1], M.shape[2] * M.shape[3])
+
+        # We should have summed over all the row indices, thus they should be
+        # one.
         assert M.shape[0] == 1
+        assert M.shape[1] == 1
         return M[0, 0, :]
 
     def to_numpy(self) -> np.ndarray:
@@ -294,22 +328,37 @@ class MPSState:
 
         if len(op.qubits) == 1:
             n = self.qubit_map[op.qubits[0]]
-            self.M[n] = np.einsum('ij,mnoj->mnoi', U, self.M[n])
+            self.M[n] = np.einsum('ij,mnopj->mnopi', U, self.M[n])
         elif len(op.qubits) == 2:
             idx = [self.qubit_map[qubit] for qubit in op.qubits]
-            if abs(idx[0] - idx[1]) != 1:
-                raise ValueError('Can only handle continguous qubits')
-            elif idx[0] < idx[1]:
+            if self.is_2d_grid:
+                if op.qubits[0].row == op.qubits[1].row:
+                    if abs(op.qubits[0].col - op.qubits[1].col) != 1:
+                        raise ValueError('Can only handle continguous qubits')
+                    same_row = True
+                elif op.qubits[0].col == op.qubits[1].col:
+                    if abs(op.qubits[0].row - op.qubits[1].row) != 1:
+                        raise ValueError('Can only handle continguous qubits')
+                    same_row = False
+                else:
+                    raise ValueError('Can only handle continguous qubits')
+            else:
+                if abs(idx[0] - idx[1]) != 1:
+                    raise ValueError('Can only handle continguous qubits')
+                same_row = True
+            if idx[0] < idx[1]:
                 n, p = idx
             else:
                 p, n = idx
                 U = np.swapaxes(np.swapaxes(U, 0, 1), 2, 3)
-            # DO NOT SUBMIT, the code below assumes we are joining horizontally
-            T = np.einsum('klij,mnoi,opqj->mnkpql', U, self.M[n], self.M[p])
-            X, S, Y = np.linalg.svd(T.reshape([T.shape[0] * T.shape[1] * T.shape[2],
-                                               T.shape[3] * T.shape[4] * T.shape[5]]))
-            X = X.reshape([T.shape[0], T.shape[1], T.shape[2], -1])
-            Y = Y.reshape([-1, T.shape[3], T.shape[4], T.shape[5]])
+
+            if same_row:
+                T = np.einsum('klij,mnopi,nqrsj->mopkqrsl', U, self.M[n], self.M[p])
+            else:
+                T = np.einsum('klij,mnopi,qrpsj->mnokqrsl', U, self.M[n], self.M[p])
+            X, S, Y = np.linalg.svd(T.reshape([np.prod(T.shape[0:4]), np.prod(T.shape[4:8])]))
+            X = X.reshape(T.shape[0:4] + (-1,))
+            Y = Y.reshape((-1,) + T.shape[4:8])
 
             S = np.asarray([math.sqrt(x) for x in S])
 
@@ -318,12 +367,16 @@ class MPSState:
                 if S[i] >= S[0] * self.threshold:
                     nkeep = i + 1
 
-            X = X[:, :, :, :nkeep]
+            X = X[:, :, :, :, :nkeep]
             S = np.diag(S[:nkeep])
-            Y = Y[:nkeep, :, :, :]
+            Y = Y[:nkeep, :, :, :, :]
 
-            self.M[n] = np.einsum('mnis,so->mnoi', X, S)
-            self.M[p] = np.einsum('ns,spqj->npqj', S, Y)
+            if same_row:
+                self.M[n] = np.einsum('mopky,yn->mnopk', X, S)
+                self.M[p] = np.einsum('yn,yqrsl->nqrsl', S, Y)
+            else:
+                self.M[n] = np.einsum('mnoky,yn->mnopk', X, S)
+                self.M[p] = np.einsum('ny,yqrsl->qrpsl', S, Y)
         else:
             raise ValueError('Can only handle 1 and 2 qubit operations')
 
@@ -344,10 +397,8 @@ class MPSState:
             for i in range(len(state.M)):
                 # DO NOT SUBMIT, this assumes a linear topology
                 if i == n:
-                    #M = np.einsum('ni,npj->pij', M, state.M[i])
                     M = np.einsum('noi,nopj->poij', M, state.M[i])
                 else:
-                    #M = np.einsum('ni,npj->pi', M, state.M[i])
                     M = np.einsum('noi,nopj->poi', M, state.M[i])
                 M = M.reshape(M.shape[0], M.shape[1], -1)
             assert M.shape[0] == 1

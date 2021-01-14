@@ -14,7 +14,9 @@ def assert_same_output_as_dense(circuit, qubit_order, initial_state=0):
 
     actual = mps_simulator.simulate(circuit, qubit_order=qubit_order, initial_state=initial_state)
     expected = ref_simulator.simulate(circuit, qubit_order=qubit_order, initial_state=initial_state)
-    np.testing.assert_allclose(actual.final_state.to_numpy(), expected.final_state_vector, atol=1e-4)
+    np.testing.assert_allclose(
+        actual.final_state.to_numpy(), expected.final_state_vector, atol=1e-4
+    )
     assert len(actual.measurements) == 0
 
 
@@ -49,7 +51,7 @@ def test_various_gates_1d_flip():
 #     gate_op_cls = [cirq.I, cirq.H]
 #     cross_gate_op_cls = [cirq.CNOT, cirq.SWAP]
 
-#     q0, q1, q2, q3 = cirq.GridQubit.rect(2, 2)
+#     q0, q1, q2, q3, q4, q5 = cirq.GridQubit.rect(3, 2)
 
 #     for q0_gate_op in gate_op_cls:
 #         for q1_gate_op in gate_op_cls:
@@ -66,7 +68,7 @@ def test_various_gates_1d_flip():
 #                                 cross_gate_op2(q3, q1),
 #                             )
 #                             assert_same_output_as_dense(
-#                                 circuit=circuit, qubit_order=[q0, q1, q2, q3]
+#                                 circuit=circuit, qubit_order=[q0, q1, q2, q3, q4, q5]
 #                             )
 
 
@@ -182,7 +184,10 @@ def test_simulate_moment_steps_sample():
                 step._simulator_state().to_numpy(),
                 np.asarray([1.0 / math.sqrt(2), 0.0, 1.0 / math.sqrt(2), 0.0]),
             )
-            assert str(step) == "[array([[[[0.70710678+0.j, 0.70710678+0.j]]]]), array([[[[1., 0.]]]])]"
+            assert (
+                str(step)
+                == "[array([[[[0.70710678+0.j, 0.70710678+0.j]]]]), array([[[[1., 0.]]]])]"
+            )
             samples = step.sample([q0, q1], repetitions=10)
             for sample in samples:
                 assert np.array_equal(sample, [True, False]) or np.array_equal(
