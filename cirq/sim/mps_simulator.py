@@ -277,7 +277,7 @@ class MPSState:
         state.threshold = self.threshold
         return state
 
-    def state_vector(self):
+    def _sum_up(self, qubit_to_skip_collapsing=-1):
         row = -1
         for i in range(len(self.M)):
             row_i = list(self.qubit_map.keys())[i].row if self.is_2d_grid else 0
@@ -292,8 +292,13 @@ class MPSState:
 
                     Mi = Mi[0, 0, :, :, :]
 
-                    M = np.einsum('mni,npj->mpij', M, Mi)
-                    M = M.reshape(M.shape[0], M.shape[1], M.shape[2] * M.shape[3])
+                    skip_collapsing = qubit_to_skip_collapsing == -1 or qubit_to_skip_collapsing == i
+
+                    if skip_collapsing:
+                        M = np.einsum('mni,npj->mpij', M, Mi)
+                        M = M.reshape(M.shape[0], M.shape[1], np.prod(M.shape[2:4]))
+                    else:
+                        M = np.einsum('mni,npj->mpi', M, Mi)
 
                 Mi = np.ones((1, 1, 1, 1, 1))
                 row = row_i
@@ -319,6 +324,9 @@ class MPSState:
         assert M.shape[0] == 1
         assert M.shape[1] == 1
         return M[0, 0, :]
+
+    def state_vector(self):
+        return self._sum_up()
 
     def to_numpy(self) -> np.ndarray:
         return self.state_vector()
@@ -390,21 +398,11 @@ class MPSState:
         else:
             state = self.copy()
 
+        # TODO(tonybruguier): Speed up computation by skipping the loop over
+        # the qubit, and instead avoiding the multiple mutation, collapsing.
         for qubit in qubits:
-            n = state.qubit_map[qubit]
+            M = state._sum_up(qubit_to_skip_collapsing=state.qubit_map[qubit])
 
-            M = np.ones((1, 1, 1))
-            for i in range(len(state.M)):
-                # DO NOT SUBMIT, this assumes a linear topology
-                if i == n:
-                    M = np.einsum('noi,nopj->poij', M, state.M[i])
-                else:
-                    M = np.einsum('noi,nopj->poi', M, state.M[i])
-                M = M.reshape(M.shape[0], M.shape[1], -1)
-            assert M.shape[0] == 1
-            # DO NOT SUBMIT, the assert below is only true for 1D
-            assert M.shape[1] == 1
-            M = M.reshape(-1)
             probs = [abs(x) ** 2 for x in M]
 
             # Because the computation is approximate, the probabilities do not
