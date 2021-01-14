@@ -138,7 +138,7 @@ def test_three_qubits():
         assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1, q2])
 
 
-def test_measurement():
+def test_measurement_1qubit():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.X(q0), cirq.H(q1), cirq.measure(q1))
 
@@ -147,6 +147,26 @@ def test_measurement():
     result = simulator.run(circuit, repetitions=100)
     assert sum(result.measurements['1'])[0] < 80
     assert sum(result.measurements['1'])[0] > 20
+
+
+def test_measurement_2qubits():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q2), cirq.measure(q0, q2))
+
+    simulator = cirq.MPSSimulator()
+
+    repetitions = 100
+    measurement = simulator.run(circuit, repetitions=repetitions).measurements['0,2']
+
+    result_counts = {'00': 0, '01': 0, '10': 0, '11': 0}
+    for i in range(repetitions):
+        key = str(measurement[i, 0]) + str(measurement[i, 1])
+        result_counts[key] += 1
+
+    for result_count in result_counts.values():
+        # Expected value is 1/4:
+        assert result_count > repetitions * 0.20
+        assert result_count < repetitions * 0.30
 
 
 def test_measurement_str():

@@ -277,7 +277,7 @@ class MPSState:
         state.threshold = self.threshold
         return state
 
-    def _sum_up(self, skip_tracing_out_for_qubit=-1):
+    def _sum_up(self, skip_tracing_out_for_qubits=None):
         row = -1
         for i in range(len(self.M)):
             row_i = list(self.qubit_map.keys())[i].row if self.is_2d_grid else 0
@@ -298,7 +298,7 @@ class MPSState:
                 Mi = np.ones((1, 1, 1, 1, 1))
                 row = row_i
 
-            skip_tracing_out = skip_tracing_out_for_qubit == -1 or skip_tracing_out_for_qubit == i
+            skip_tracing_out = not skip_tracing_out_for_qubits or i in skip_tracing_out_for_qubits
 
             if skip_tracing_out:
                 Mi = np.einsum('mnopi,nqrsj->mqorpsij', Mi, self.M[i])
@@ -414,13 +414,17 @@ class MPSState:
         else:
             state = self.copy()
 
-        # TODO(tonybruguier): Speed up computation by skipping the loop over
-        # the qubit, and instead avoiding the multiple mutation, collapsing.
-        for qubit in qubits:
-            n = state.qubit_map[qubit]
-            M = state._sum_up(skip_tracing_out_for_qubit=n)
+        dims = [qubit.dimension for qubit in qubits]
+        skip_tracing_out_for_qubits = {state.qubit_map[qubit] for qubit in qubits}
 
-            probs = [abs(x) ** 2 for x in M]
+        M = state._sum_up(skip_tracing_out_for_qubits=skip_tracing_out_for_qubits)
+        M = M.reshape(dims)
+
+        for i, qubit in enumerate(qubits):
+            # Trace out other qubits
+            trace_out_idx = [j for j in range(len(qubits)) if j != i]
+            M_traced_out = np.sum(M, axis=tuple(trace_out_idx))
+            probs = [abs(x) ** 2 for x in M_traced_out]
 
             # Because the computation is approximate, the probabilities do not
             # necessarily add up to 1.0, and thus we re-normalize them.
@@ -432,6 +436,7 @@ class MPSState:
             renormalizer = np.zeros((d, d))
             renormalizer[result][result] = 1.0 / math.sqrt(probs[result])
 
+            n = state.qubit_map[qubit]
             state.M[n] = np.einsum('ij,mnopj->mnopi', renormalizer, state.M[n])
 
             results.append(result)
