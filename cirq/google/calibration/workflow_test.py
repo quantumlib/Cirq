@@ -1,8 +1,6 @@
 import cirq
 import cirq.google.calibration.workflow as workflow
-import itertools
 import numpy as np
-import pytest
 
 SQRT_ISWAP_GATE = cirq.FSimGate(np.pi / 4, 0.0)
 
@@ -21,15 +19,13 @@ def test_floquet_characterization_for_circuit() -> None:
 
     assert requests == [
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
-            gate=SQRT_ISWAP_GATE,
-            gate_set=cirq.google.SQRT_ISWAP_GATESET,
             pairs=((a, b), (c, d)),
+            gate=SQRT_ISWAP_GATE,
             options=options
         ),
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
-            gate=SQRT_ISWAP_GATE,
-            gate_set=cirq.google.SQRT_ISWAP_GATESET,
             pairs=((b, c),),
+            gate=SQRT_ISWAP_GATE,
             options=options
         )
     ]
@@ -53,15 +49,13 @@ def test_floquet_characterization_for_circuit_merges_sub_sets() -> None:
 
     assert requests == [
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
-            gate=SQRT_ISWAP_GATE,
-            gate_set=cirq.google.SQRT_ISWAP_GATESET,
             pairs=((a, b), (c, d)),
+            gate=SQRT_ISWAP_GATE,
             options=options
         ),
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
-            gate=SQRT_ISWAP_GATE,
-            gate_set=cirq.google.SQRT_ISWAP_GATESET,
             pairs=((b, c), (d, e)),
+            gate=SQRT_ISWAP_GATE,
             options=options
         )
     ]
@@ -84,15 +78,13 @@ def test_floquet_characterization_for_circuit_merges_compatible_sets() -> None:
 
     assert requests == [
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
-            gate=SQRT_ISWAP_GATE,
-            gate_set=cirq.google.SQRT_ISWAP_GATESET,
             pairs=((a, b), (c, d)),
+            gate=SQRT_ISWAP_GATE,
             options=options
         ),
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
-            gate=SQRT_ISWAP_GATE,
-            gate_set=cirq.google.SQRT_ISWAP_GATESET,
             pairs=((a, f), (b, c), (d, e)),
+            gate=SQRT_ISWAP_GATE,
             options=options
         )
     ]

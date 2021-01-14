@@ -61,7 +61,6 @@ def test_floquet_to_calibration_layer():
     gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
     request = FloquetPhasedFSimCalibrationRequest(
         gate=gate,
-        gate_set=cirq.google.SQRT_ISWAP_GATESET,
         pairs=((q_00, q_01), (q_02, q_03)),
         options=FloquetPhasedFSimCalibrationOptions(
             characterize_theta=True,
@@ -91,7 +90,6 @@ def test_floquet_parse_result():
     gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
     request = FloquetPhasedFSimCalibrationRequest(
         gate=gate,
-        gate_set=cirq.google.SQRT_ISWAP_GATESET,
         pairs=((q_00, q_01), (q_02, q_03)),
         options=FloquetPhasedFSimCalibrationOptions(
             characterize_theta=True,
@@ -152,7 +150,6 @@ def test_floquet_parse_result():
             ),
         },
         gate=gate,
-        gate_set=cirq.google.SQRT_ISWAP_GATESET,
         options=FloquetPhasedFSimCalibrationOptions(
             characterize_theta=True,
             characterize_zeta=True,
