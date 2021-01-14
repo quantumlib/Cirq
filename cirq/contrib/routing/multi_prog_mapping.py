@@ -930,10 +930,10 @@ def prepare_couplingGraph_errorValues(device_graph):
     multi_prog_map(dgraph, single_er, two_er, program_circuits)
 
 
-if __name__ == "__main__":
-    #print( load_calibrations()['single_qubit_p00_error'] )
-    device_graph1 = ccr.get_grid_device_graph(3, 2)
-    device_graph = cirq.google.Sycamore
-    prepare_couplingGraph_errorValues(device_graph)
+# if __name__ == "__main__":
+#     #print( load_calibrations()['single_qubit_p00_error'] )
+#     device_graph1 = ccr.get_grid_device_graph(3, 2)
+#     device_graph = cirq.google.Sycamore
+#     prepare_couplingGraph_errorValues(device_graph)
 
-    prepare_couplingGraph_errorValues(device_graph)
+#     prepare_couplingGraph_errorValues(device_graph)

@@ -20,15 +20,6 @@ import cirq.contrib.routing as ccr
 from cirq.contrib.routing.multi_prog_mapping import (
     multi_prog_map, prepare_couplingGraph_errorValues)
 
-
-def test_bad_args():
-    circuit = cirq.testing.random_circuit(4, 2, 0.5, random_state=5)
-    device_graph = ccr.get_grid_device_graph(3, 2)
-
-    with pytest.raises(TypeError):
-        #multi_prog_map(circuit, device_graph)
-        prepare_couplingGraph_errorValues(device_graph)
-
 def test_2small_programs():
     # device_graph1 = ccr.get_grid_device_graph(3, 2)
     # device_graph = cirq.google.Sycamore
