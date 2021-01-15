@@ -15,6 +15,7 @@
 """An optimization pass that aligns gates to the right of the circuit."""
 
 from cirq import circuits, ops
+from cirq.circuits.insert_strategy import InsertStrategy
 
 
 class AlignRight:
@@ -25,4 +26,4 @@ class AlignRight:
 
     def optimize_circuit(self, circuit: circuits.Circuit):
         backwards = list(circuit.all_operations())[::-1]
-        circuit[:] = circuits.Circuit(backwards)[::-1]
+        circuit[:] = circuits.Circuit(backwards, strategy=InsertStrategy.EARLIEST)[::-1]
