@@ -1,3 +1,4 @@
+import itertools
 import numpy as np
 import pytest
 import sympy
@@ -537,3 +538,16 @@ def test_reset():
     assert cirq.CliffordSimulator().sample(c)["out"][0] == 0
     c = cirq.Circuit(cirq.reset(q), cirq.measure(q, key="out"))
     assert cirq.CliffordSimulator().sample(c)["out"][0] == 0
+
+
+def test_state_copy():
+    sim = cirq.CliffordSimulator()
+
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.H(q), cirq.H(q))
+
+    state_tableaux = []
+    for step in sim.simulate_moment_steps(circuit):
+        state_tableaux.append(step.state.tableau)
+    for x, y in itertools.combinations(state_tableaux, 2):
+        assert not np.shares_memory(x.rs, y.rs)
