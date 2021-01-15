@@ -25,10 +25,8 @@ from cirq.circuits import AbstractCircuit, FrozenCircuit
 def factor_circuit(circuit: AbstractCircuit):
     new_circuit: List[Iterator[List[Iterator[Operation]]]] = []
     subcircuits = {frozenset([q]): [] for q in circuit.all_qubits()}
-    print()
     for moment in circuit.moments:
         subcircuits = _get_new_subcircuits(moment.operations, subcircuits)
-        print(f"new_subcircuits.count:{len(subcircuits)}")
         _add_moment(new_circuit, moment, subcircuits)
         subcircuits = _remove_measurements(moment.operations, subcircuits)
     return _to_circuit(new_circuit)
@@ -45,7 +43,6 @@ def _get_new_subcircuits(
             [current_qids[qubit] for qubit in op.qubits]
         )
         if len(distinct_sets) > 1:
-            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             new_set = frozenset.union(*distinct_sets)
             new_subcircuits[new_set] = []
             for old_set in distinct_sets:
@@ -62,11 +59,11 @@ def _remove_measurements(
     for op in operations:
         if isinstance(op.gate, MeasurementGate):
             for qubit in op.qubits:
-                print(new_subcircuits)
-                print(qubit)
-                print(current_qids[qubit])
-                new_subcircuits.pop(current_qids[qubit], None)
+                new_subcircuits.pop(current_qids[qubit])
+                current_qids[qubit] = current_qids[qubit].difference([qubit])
+                new_subcircuits[current_qids[qubit]] = []
                 new_subcircuits[frozenset([qubit])] = []
+                current_qids[qubit] = frozenset([qubit])
     return new_subcircuits
 
 
@@ -85,28 +82,17 @@ def _add_moment(
 
     for qubits, subcircuit in new_subcircuits.items():
         relevant_operations = list(filter(lambda op: next(iter(op.qubits)) in qubits, operations))
-        print("ADDING")
-        print(operations)
         subcircuit.append(Moment(relevant_operations))
 
 
 def _to_subcircuit(submoments: Iterator[Iterator[Operation]]):
-    print()
-    print(f"submoments.count:{len(submoments)}")
     circuit = FrozenCircuit([Moment(submoment) for submoment in submoments])
-    print("circuit")
-    print(circuit)
-    op = CircuitOperation(circuit)
-    print("op")
-    print(op)
-    return op
+    return CircuitOperation(circuit)
 
 
 def _to_moment(subcircuits: Iterator[Iterator[Iterator[Operation]]]):
-    print(f"subcircuits.count:{len(subcircuits)}")
     return Moment([_to_subcircuit(subcircuit) for subcircuit in subcircuits])
 
 
 def _to_circuit(moments: Iterator[Iterator[Iterator[Iterator[Operation]]]]):
-    print(f"moments.count:{len(moments)}")
     return FrozenCircuit([_to_moment(moment) for moment in moments])

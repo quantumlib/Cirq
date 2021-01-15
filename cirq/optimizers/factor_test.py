@@ -39,7 +39,7 @@ def test_align_left():
                 Moment([X(q1)]),
                 Moment([X(q1), X(q2)]),
                 Moment([Y(q1)]),
-                measure(*[q1, q2], key='a'),
+                measure(*[q1], key='a'),
                 Moment([X(q1)]),
                 Moment([X(q1), X(q2)]),
                 Moment([Y(q1)]),
