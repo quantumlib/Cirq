@@ -5,10 +5,14 @@ from cirq.google.calibration.phased_fsim import (
     PhasedFSimCalibrationResult,
 )
 from cirq.google.engine import Engine
+from cirq.google.serializable_gate_set import SerializableGateSet
 
 
 def run_characterizations(
-    calibrations: List[PhasedFSimCalibrationRequest], engine: Engine, processor_id: str
+    calibrations: List[PhasedFSimCalibrationRequest],
+    engine: Engine,
+    processor_id: str,
+    gate_set: SerializableGateSet,
 ) -> List[PhasedFSimCalibrationResult]:
     """Runs calibration requests on the Engine.
 
@@ -16,18 +20,13 @@ def run_characterizations(
         calibrations: List of calibrations to perform described in a request object.
         engine: cirq.google.Engine object used for running the calibrations.
         processor_id: processor_id passed to engine.run_calibrations method.
-        handler_name:
+        gate_set: Gate set to use for characterization request.
 
     Returns:
         List of PhasedFSimCalibrationResult for each requested calibration.
     """
     if not calibrations:
         return []
-
-    gate_sets = [calibration.gate_set for calibration in calibrations]
-    gate_set = gate_sets[0]
-    if not all(gate_set == other for other in gate_sets):
-        raise ValueError('All calibrations that run together must be defined for a shared gate set')
 
     requests = [calibration.to_calibration_layer() for calibration in calibrations]
     job = engine.run_calibration(requests, processor_id=processor_id, gate_set=gate_set)

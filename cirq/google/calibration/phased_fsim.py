@@ -188,15 +188,14 @@ class PhasedFSimCalibrationRequest(abc.ABC):
     """Description of the request to characterize PhasedFSimGate.
 
     Attributes:
-        gate: Gate to characterize for each qubit pair from pairs. This must be a supported gate
-            which can be described cirq.PhasedFSim gate.
         pairs: Set of qubit pairs to characterize. A single qubit can appear on at most one pair in
             the set.
+        gate: Gate to characterize for each qubit pair from pairs. This must be a supported gate
+            which can be described cirq.PhasedFSim gate.
     """
-
-    gate: Gate  # Any gate which can be described by cirq.PhasedFSim
     # TODO: Validate that each pair is unique and non-overlaping with any other pair.
     pairs: Tuple[Tuple[Qid, Qid], ...]
+    gate: Gate  # Any gate which can be described by cirq.PhasedFSim
 
     @abc.abstractmethod
     def to_calibration_layer(self) -> CalibrationLayer:
@@ -330,13 +329,13 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         Converts serialized dictionary into a dict suitable for
         class instantiation."""
         instantiation_pairs = tuple((entry['qubit_a'], entry['qubit_b']) for entry in pairs)
-        return cls(gate, instantiation_pairs, options)
+        return cls(instantiation_pairs, gate, options)
 
     def _json_dict_(self) -> Dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
         return {
             'cirq_type': 'FloquetPhasedFSimCalibrationRequest',
-            'gate': self.gate,
             'pairs': [{'qubit_a': pair[0], 'qubit_b': pair[1]} for pair in self.pairs],
+            'gate': self.gate,
             'options': self.options,
         }
