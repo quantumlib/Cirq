@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 
 import cirq
@@ -158,6 +159,45 @@ def test_floquet_parse_result():
             characterize_phi=True,
         ),
     )
+
+
+def test_floquet_parse_result_bad_metric():
+    q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
+    gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+    request = FloquetPhasedFSimCalibrationRequest(
+        gate=gate,
+        pairs=((q_00, q_01), (q_02, q_03)),
+        options=FloquetPhasedFSimCalibrationOptions(
+            characterize_theta=True,
+            characterize_zeta=True,
+            characterize_chi=False,
+            characterize_gamma=False,
+            characterize_phi=True,
+        ),
+    )
+    result = cirq.google.CalibrationResult(
+        code=cirq.google.api.v2.calibration_pb2.SUCCESS,
+        error_message=None,
+        token=None,
+        valid_until=None,
+        metrics=cirq.google.Calibration(
+            cirq.google.api.v2.metrics_pb2.MetricsSnapshot(
+                metrics=[
+                    cirq.google.api.v2.metrics_pb2.Metric(
+                        name='angles',
+                        targets=[
+                            '1000gerbils',
+                        ],
+                        values=[
+                            cirq.google.api.v2.metrics_pb2.Value(str_val='100_10'),
+                        ],
+                    )
+                ]
+            )
+        ),
+    )
+    with pytest.raises(ValueError, match='Unknown metric name 1000gerbils'):
+        _ = request.parse_result(result)
 
 
 def test_get_parameters():
