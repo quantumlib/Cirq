@@ -33,8 +33,8 @@ def factor_circuit(circuit: AbstractCircuit):
 
 
 def _get_new_subcircuits(
-        operations: Iterator[Operation],
-        current_subcircuits: Mapping[FrozenSet[Qid], List[Iterator[Operation]]],
+    operations: Iterator[Operation],
+    current_subcircuits: Mapping[FrozenSet[Qid], List[Iterator[Operation]]],
 ):
     new_subcircuits: dict[FrozenSet[Qid], List[Iterator[Operation]]] = dict(current_subcircuits)
     current_qids = {qubit: k for k in current_subcircuits.keys() for qubit in k}
