@@ -302,7 +302,7 @@ def test_bitstring_accumulator_equality():
     )
 
 
-def test_bitstring_accumulator_stats():
+def _get_ZZ_Z_Z_bsa_constructor_args():
     bitstrings = np.array(
         [
             [0, 0],
@@ -323,15 +323,22 @@ def test_bitstring_accumulator_stats():
         )
     )
     meas_spec = _MeasurementSpec(settings[0], {})
+    return {
+        'meas_spec': meas_spec,
+        'simul_settings': settings,
+        'qubit_to_index': qubit_to_index,
+        'bitstrings': bitstrings,
+        'chunksizes': chunksizes,
+        'timestamps': timestamps,
+    }
 
-    bsa = cw.BitstringAccumulator(
-        meas_spec=meas_spec,
-        simul_settings=settings,
-        qubit_to_index=qubit_to_index,
-        bitstrings=bitstrings,
-        chunksizes=chunksizes,
-        timestamps=timestamps,
-    )
+
+def test_bitstring_accumulator_stats():
+    kwargs = _get_ZZ_Z_Z_bsa_constructor_args()
+    settings = kwargs['simul_settings']
+    a, b = kwargs['qubit_to_index']
+
+    bsa = cw.BitstringAccumulator(**kwargs)
 
     # There are three observables, each with mean 0 because
     # the four 2-bit strings have even numbers of a) ones in the
@@ -507,11 +514,11 @@ def test_flatten_grouped_results():
         assert res.repetitions == 3
 
 
-def test_readout_correction():
+def _get_mock_readout_calibration(qa_0=90, qa_1=10, qb_0=91, qb_1=9):
     # Mock readout correction results by constructing a BitstringAccumulator
     # with two <Z> measurements
-    q1_ro = np.array([0] * 90 + [1] * 10)
-    q2_ro = np.array([0] * 91 + [1] * 9)
+    q1_ro = np.array([0] * qa_0 + [1] * qa_1)
+    q2_ro = np.array([0] * qb_0 + [1] * qb_1)
     rs = np.random.RandomState(52)
     rs.shuffle(q1_ro)
     rs.shuffle(q2_ro)
@@ -523,9 +530,9 @@ def test_readout_correction():
     b = cirq.NamedQubit('b')
     qubit_to_index = {a: 0, b: 1}
     ro_settings = list(cw.observables_to_settings([cirq.Z(a), cirq.Z(b)], qubits=[a, b]))
-    ro_meas_spec_setting = list(cw.observables_to_settings([cirq.Z(a) * cirq.Z(b)], qubits=[a, b]))[
-        0
-    ]
+    (ro_meas_spec_setting,) = list(
+        cw.observables_to_settings([cirq.Z(a) * cirq.Z(b)], qubits=[a, b])
+    )
     ro_meas_spec = _MeasurementSpec(ro_meas_spec_setting, {})
 
     ro_bsa = cw.BitstringAccumulator(
@@ -536,6 +543,13 @@ def test_readout_correction():
         chunksizes=chunksizes,
         timestamps=timestamps,
     )
+    return ro_bsa, ro_settings, ro_meas_spec_setting
+
+
+def test_readout_correction():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    ro_bsa, ro_settings, ro_meas_spec_setting = _get_mock_readout_calibration()
 
     # observables range from 1 to -1 while bitstrings range from 0 to 1
     assert ro_bsa.mean(ro_settings[0]) == 0.8
@@ -595,3 +609,31 @@ def test_readout_correction():
     np.testing.assert_allclose(
         [0.75 / (0.8 * 0.82), 0.75 / 0.8, 0.5 / 0.82], bsa2.means(), atol=0.01
     )
+
+    # Variance becomes singular when readout error is 50/50
+    ro_bsa_50_50, _, _ = _get_mock_readout_calibration(qa_0=50, qa_1=50)
+    bsa3 = cw.BitstringAccumulator(
+        meas_spec=meas_spec,
+        simul_settings=settings,
+        qubit_to_index=qubit_to_index,
+        bitstrings=bitstrings,
+        chunksizes=chunksizes,
+        timestamps=timestamps,
+        readout_calibration=ro_bsa_50_50,
+    )
+    with pytest.raises(ZeroDivisionError):
+        bsa3.means()
+
+    assert bsa3.variance(settings[1]) == np.inf
+
+
+def test_readout_correction_errors():
+    kwargs = _get_ZZ_Z_Z_bsa_constructor_args()
+    settings = kwargs['simul_settings']
+    ro_bsa, _, _ = _get_mock_readout_calibration()
+    kwargs['readout_calibration'] = ro_bsa
+    bsa = cw.BitstringAccumulator(**kwargs)
+
+    # Variance becomes singular as the estimated value approaches zero
+    np.testing.assert_allclose(bsa.means(), [0, 0, 0])
+    assert bsa.variance(settings[0]) == np.inf

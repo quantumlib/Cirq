@@ -178,15 +178,13 @@ class BitstringAccumulator:
             1d array will have the same length as `chunksizes`.
         readout_calibration:
             The result of `calibrate_readout_error`. When requesting
-            means and variances, if this is not None, we will use the
+            means and variances, if this is not `None`, we will use the
             calibrated value to correct the requested quantity. This is a
-            BitstringAccumulator containing the results of measuring Z
+            `BitstringAccumulator` containing the results of measuring Z
             observables with readout symmetrization enabled. This class
             does *not* validate that both this parameter and the
-            BitstringAccumulator under construction contain measurements taken
-            with readout symmetrization turned on; and we strongly
-            encourage you to avoid initializing this directly. Instead, use
-            `measure_observables` and `calibrate_readout_error`.
+            `BitstringAccumulator` under construction contain measurements taken
+            with readout symmetrization turned on.
 
     """
 
@@ -204,12 +202,6 @@ class BitstringAccumulator:
         self._simul_settings = simul_settings
         self._qubit_to_index = qubit_to_index
         self._readout_calibration = readout_calibration
-
-        # # Extract and cache <Z> observables from `readout_calibration`.
-        # self._readout_cal_dict = {
-        #     q: readout_calibration.mean(InitObsSetting(cirq.KET_ZERO(q), cirq.Z(q)))
-        #     for q in readout_calibration.max_setting.observable.qubits
-        # }
 
         if bitstrings is None:
             n_bits = len(qubit_to_index)
@@ -461,14 +453,14 @@ class BitstringAccumulator:
         )
 
         if self._readout_calibration is not None:
-            ro_setting = _setting_to_z_observable(setting)
             a = mean
-            if np.isclose(a, 0):
-                return np.inf  # coverage: ignore
+            if np.isclose(a, 0, atol=atol):
+                return np.inf
             var_a = var
+            ro_setting = _setting_to_z_observable(setting)
             b = self._readout_calibration.mean(ro_setting)
-            if np.isclose(b, 0):
-                return np.inf  # coverage: ignore
+            if np.isclose(b, 0, atol=atol):
+                return np.inf
             var_b = self._readout_calibration.variance(ro_setting)
             f = a / b
 
