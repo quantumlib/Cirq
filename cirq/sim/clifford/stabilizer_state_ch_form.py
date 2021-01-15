@@ -73,18 +73,18 @@ class StabilizerStateChForm:
     def _from_json_dict_(cls, n, G, F, M, gamma, v, s, omega, **kwargs):
         copy = StabilizerStateChForm(n)
 
-        copy.G = G.copy()
-        copy.F = F.copy()
-        copy.M = M.copy()
-        copy.gamma = gamma.copy()
-        copy.v = v.copy()
-        copy.s = s.copy()
+        copy.G = np.array(G.copy())
+        copy.F = np.array(F.copy())
+        copy.M = np.array(M.copy())
+        copy.gamma = np.array(gamma.copy())
+        copy.v = np.array(v.copy())
+        copy.s = np.array(s.copy())
         copy.omega = omega
 
         return copy
 
     def _value_equality_values_(self) -> Any:
-        return (self.n, self.G, self.F, self.M, self.gamma, self.v, self.v, self.s, self.omega)
+        return (self.n, self.G, self.F, self.M, self.gamma, self.v, self.s, self.omega)
 
     def copy(self) -> 'cirq.StabilizerStateChForm':
         copy = StabilizerStateChForm(self.n)
