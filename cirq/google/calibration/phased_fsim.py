@@ -3,7 +3,7 @@ from typing import Dict, Optional, TYPE_CHECKING
 import dataclasses
 
 if TYPE_CHECKING:
-    # Workaround for mypy custom dataclasses
+    # Workaround for mypy custom dataclasses (python/mypy#5406)
     from dataclasses import dataclass as json_serializable_dataclass
 else:
     from cirq.protocols import json_serializable_dataclass
