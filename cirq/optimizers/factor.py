@@ -15,7 +15,7 @@
 """An optimization pass that factors the circuit into non-entangled subcircuits."""
 from typing import Mapping, List, FrozenSet, Iterator
 
-from cirq import CircuitOperation, Moment, Qid, Operation
+from cirq import CircuitOperation, Moment, Qid, Operation, MeasurementGate
 from cirq.circuits import AbstractCircuit, FrozenCircuit
 
 
@@ -30,17 +30,17 @@ def factor_circuit(circuit: AbstractCircuit):
         subcircuits = _get_new_subcircuits(moment.operations, subcircuits)
         print(f"new_subcircuits.count:{len(subcircuits)}")
         _add_moment(new_circuit, moment, subcircuits)
+        subcircuits = _remove_measurements(moment.operations, subcircuits)
     return _to_circuit(new_circuit)
 
 
 def _get_new_subcircuits(
-    operations: Iterator[Operation],
-    current_subcircuits: Mapping[FrozenSet[Qid], List[Iterator[Operation]]],
+        operations: Iterator[Operation],
+        current_subcircuits: Mapping[FrozenSet[Qid], List[Iterator[Operation]]],
 ):
-    new_subcircuits: dict[FrozenSet[Qid], List[Moment]] = dict(current_subcircuits)
+    new_subcircuits: dict[FrozenSet[Qid], List[Iterator[Operation]]] = dict(current_subcircuits)
     current_qids = {qubit: k for k in current_subcircuits.keys() for qubit in k}
     for op in operations:
-        # todo: measurement gate
         distinct_sets: FrozenSet[FrozenSet[Qid]] = frozenset(
             [current_qids[qubit] for qubit in op.qubits]
         )
@@ -53,13 +53,30 @@ def _get_new_subcircuits(
     return new_subcircuits
 
 
+def _remove_measurements(
+    operations: Iterator[Operation],
+    current_subcircuits: Mapping[FrozenSet[Qid], List[Iterator[Operation]]],
+):
+    new_subcircuits: dict[FrozenSet[Qid], List[Iterator[Operation]]] = dict(current_subcircuits)
+    current_qids = {qubit: k for k in current_subcircuits.keys() for qubit in k}
+    for op in operations:
+        if isinstance(op.gate, MeasurementGate):
+            for qubit in op.qubits:
+                print(new_subcircuits)
+                print(qubit)
+                print(current_qids[qubit])
+                new_subcircuits.pop(current_qids[qubit], None)
+                new_subcircuits[frozenset([qubit])] = []
+    return new_subcircuits
+
+
 # circuit is a list of moments
 # moment is an iterator of subcircuits
 # subcircuit is a list of submoments
 # submoment is an iterator of operations
 def _add_moment(
     new_circuit: List[Iterator[List[Iterator[Operation]]]],
-    old_moment: Moment,
+    operations: Iterator[Operation],
     new_subcircuits: Mapping[FrozenSet[Qid], List[Iterator[Operation]]],
 ):
 
@@ -67,8 +84,10 @@ def _add_moment(
     new_circuit.append(new_ops)
 
     for qubits, subcircuit in new_subcircuits.items():
-        operations = filter(lambda op: next(iter(op.qubits)) in qubits, old_moment.operations)
-        subcircuit.append(Moment(operations))
+        relevant_operations = list(filter(lambda op: next(iter(op.qubits)) in qubits, operations))
+        print("ADDING")
+        print(operations)
+        subcircuit.append(Moment(relevant_operations))
 
 
 def _to_subcircuit(submoments: Iterator[Iterator[Operation]]):
