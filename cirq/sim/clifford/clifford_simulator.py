@@ -29,7 +29,6 @@ The quantum state is specified in two forms:
     to state vector amplitudes.
 """
 
-import collections
 from typing import Any, Dict, List, Iterator, Sequence
 
 import numpy as np
@@ -42,6 +41,7 @@ from cirq.ops.dense_pauli_string import DensePauliString
 from cirq.protocols import act_on, unitary
 from cirq.sim import clifford, simulator
 from cirq._compat import deprecated, deprecated_parameter
+from cirq.sim.simulator import check_all_resolved
 
 
 class CliffordSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
@@ -100,39 +100,28 @@ class CliffordSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermedi
             return
 
         state = CliffordState(qubit_map, initial_state=initial_state)
+        ch_form_args = clifford.ActOnStabilizerCHFormArgs(
+            state.ch_form,
+            [],
+            self._prng,
+            {},
+        )
 
         for moment in circuit:
-            measurements: Dict[str, List[np.ndarray]] = collections.defaultdict(list)
+            ch_form_args.log_of_measurement_results = {}
 
             for op in moment:
-                if isinstance(op.gate, ops.MeasurementGate):
-                    state.apply_measurement(op, measurements, self._prng)
-                elif protocols.has_unitary(op):
-                    state.apply_unitary(op)
-                else:
-                    raise NotImplementedError(f"Unrecognized operation: {op!r}")
+                try:
+                    ch_form_args.axes = tuple(state.qubit_map[i] for i in op.qubits)
+                    act_on(op, ch_form_args)
+                except TypeError:
+                    raise NotImplementedError(
+                        f"CliffordSimulator doesn't support {op!r}"
+                    )  # type: ignore
 
-            yield CliffordSimulatorStepResult(measurements=measurements, state=state)
-
-    def _simulator_iterator(
-        self,
-        circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver,
-        qubit_order: ops.QubitOrderOrList,
-        initial_state: int,
-    ) -> Iterator:
-        """See definition in `cirq.SimulatesIntermediateState`.
-
-        Args:
-            inital_state: An integer specifying the inital
-            state in the computational basis.
-        """
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        self._check_all_resolved(resolved_circuit)
-        actual_initial_state = 0 if initial_state is None else initial_state
-
-        return self._base_iterator(resolved_circuit, qubit_order, actual_initial_state)
+            yield CliffordSimulatorStepResult(
+                measurements=ch_form_args.log_of_measurement_results, state=state
+            )
 
     def _create_simulator_trial_result(
         self,
@@ -151,7 +140,7 @@ class CliffordSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermedi
 
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        self._check_all_resolved(resolved_circuit)
+        check_all_resolved(resolved_circuit)
 
         measurements = {}  # type: Dict[str, List[np.ndarray]]
         if repetitions == 0:
@@ -170,17 +159,6 @@ class CliffordSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermedi
                     measurements[k].append(np.array(v, dtype=bool))
 
         return {k: np.array(v) for k, v in measurements.items()}
-
-    def _check_all_resolved(self, circuit):
-        """Raises if the circuit contains unresolved symbols."""
-        if protocols.is_parameterized(circuit):
-            unresolved = [
-                op for moment in circuit for op in moment if protocols.is_parameterized(op)
-            ]
-            raise ValueError(
-                'Circuit contains ops whose symbols were not specified in '
-                'parameter sweep. Ops: {}'.format(unresolved)
-            )
 
 
 class CliffordTrialResult(simulator.SimulationTrialResult):
@@ -217,7 +195,7 @@ class CliffordSimulatorStepResult(simulator.StepResult):
                 method).
         """
         self.measurements = measurements
-        self.state = state
+        self.state = state.copy()
 
     def __str__(self) -> str:
         def bitstring(vals):
