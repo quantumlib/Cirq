@@ -193,6 +193,7 @@ class PhasedFSimCalibrationRequest(abc.ABC):
         gate: Gate to characterize for each qubit pair from pairs. This must be a supported gate
             which can be described cirq.PhasedFSim gate.
     """
+
     # TODO: Validate that each pair is unique and non-overlaping with any other pair.
     pairs: Tuple[Tuple[Qid, Qid], ...]
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
