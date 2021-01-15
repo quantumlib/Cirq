@@ -1,0 +1,42 @@
+{
+  "cirq_type": "FloquetPhasedFSimCalibrationRequest",
+  "gate": {
+    "cirq_type": "FSimGate",
+    "theta": 0.7853981633974483,
+    "phi": 0.0
+  },
+  "pairs": [
+    {
+      "qubit_a": {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 0
+      },
+      "qubit_b": {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 1
+      }
+    },
+    {
+      "qubit_a": {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 2
+      },
+      "qubit_b": {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 3
+      }
+    }
+  ],
+  "options": {
+    "cirq_type": "FloquetPhasedFSimCalibrationOptions",
+    "characterize_theta": true,
+    "characterize_zeta": true,
+    "characterize_chi": false,
+    "characterize_gamma": false,
+    "characterize_phi": true
+  }
+}

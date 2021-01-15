@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 import abc
 import collections
@@ -9,7 +9,6 @@ from cirq.circuits import Circuit
 from cirq.ops import Gate, Qid
 from cirq.google.api import v2
 from cirq.google.engine import CalibrationLayer, CalibrationResult
-from cirq.google.serializable_gate_set import SerializableGateSet
 
 
 _FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
@@ -130,7 +129,6 @@ class PhasedFSimCharacterization:
         return other.merge_with(self)
 
 
-# TODO: Add support for JSON serialization
 # TODO: Add start and end calibration timestamp
 # TODO: Add export to Panda's data frame
 @dataclasses.dataclass(frozen=True)
@@ -141,13 +139,11 @@ class PhasedFSimCalibrationResult:
         parameters: Map from qubit pair to characterization result. For each pair of characterized
             quibts a and b either only (a, b) or only (b, a) is present.
         gate: Characterized gate for each qubit pair.
-        gate_set: Gate set provied for the characterization request.
     """
 
     # TODO: Add validation that only either (a, b) or (b, a) is present.
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
     gate: Gate
-    gate_set: SerializableGateSet
 
     def get_parameters(self, a: Qid, b: Qid) -> Optional['PhasedFSimCharacterization']:
         """Returns parameters for a qubit pair (a, b) or None when unknown."""
@@ -158,8 +154,35 @@ class PhasedFSimCalibrationResult:
         else:
             return None
 
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        parameters: List[Dict[str, Any]],
+        gate: Gate,
+        **kwargs,
+    ) -> 'PhasedFSimCalibrationResult':
+        """Magic method for the JSON serialization protocol.
 
-# TODO: Add support for JSON serialization
+        Converts serialized dictionary into a dict suitable for
+        class instantiation."""
+        instantiation_dict = {}
+        for entry in parameters:
+            key = (entry['qubit_a'], entry['qubit_b'])
+            instantiation_dict[key] = entry['characterization']
+        return cls(instantiation_dict, gate)
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        """Magic method for the JSON serialization protocol."""
+        return {
+            'cirq_type': 'PhasedFSimCalibrationResult',
+            'gate': self.gate,
+            'parameters': [
+                {'qubit_a': key[0], 'qubit_b': key[1], 'characterization': self.parameters[key]}
+                for key in self.parameters
+            ],
+        }
+
+
 @dataclasses.dataclass(frozen=True)
 class PhasedFSimCalibrationRequest(abc.ABC):
     """Description of the request to characterize PhasedFSimGate.
@@ -167,13 +190,11 @@ class PhasedFSimCalibrationRequest(abc.ABC):
     Attributes:
         gate: Gate to characterize for each qubit pair from pairs. This must be a supported gate
             which can be described cirq.PhasedFSim gate.
-        gate_set: Gate set to use for characterization request.
         pairs: Set of qubit pairs to characterize. A single qubit can appear on at most one pair in
             the set.
     """
 
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
-    gate_set: SerializableGateSet
     # TODO: Validate that each pair is unique and non-overlaping with any other pair.
     pairs: Tuple[Tuple[Qid, Qid], ...]
 
@@ -186,8 +207,7 @@ class PhasedFSimCalibrationRequest(abc.ABC):
         """Decodes the characterization result issued for this request."""
 
 
-# TODO: Add support for JSON serialization
-@dataclasses.dataclass(frozen=True)
+@json_serializable_dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationOptions:
     """Options specific to Floquet PhasedFSimCalibration.
 
@@ -209,7 +229,6 @@ class FloquetPhasedFSimCalibrationOptions:
     characterize_phi: bool
 
 
-# TODO: Add support for JSON serialization
 @dataclasses.dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationResult(PhasedFSimCalibrationResult):
     """PhasedFSim characterization result specific to Floquet calibration.
@@ -220,8 +239,31 @@ class FloquetPhasedFSimCalibrationResult(PhasedFSimCalibrationResult):
 
     options: FloquetPhasedFSimCalibrationOptions
 
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        parameters: List[Dict[str, Any]],
+        gate: Gate,
+        **kwargs,
+    ) -> 'PhasedFSimCalibrationResult':
+        """Magic method for the JSON serialization protocol.
 
-# TODO: Add support for JSON serialization
+        Converts serialized dictionary into a dict suitable for
+        class instantiation."""
+        instantiation_dict = {}
+        for entry in parameters:
+            key = (entry['qubit_a'], entry['qubit_b'])
+            instantiation_dict[key] = entry['characterization']
+        return cls(instantiation_dict, gate, kwargs['options'])
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        """Magic method for the JSON serialization protocol."""
+        result_dict = super()._json_dict_()
+        result_dict['cirq_type'] = 'FloquetPhasedFSimCalibrationResult'
+        result_dict['options'] = self.options
+        return result_dict
+
+
 @dataclasses.dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     """PhasedFSim characterization request specific to Floquet calibration.
@@ -272,5 +314,29 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             )
 
         return FloquetPhasedFSimCalibrationResult(
-            parameters=parsed, gate=self.gate, gate_set=self.gate_set, options=self.options
+            parameters=parsed, gate=self.gate, options=self.options
         )
+
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        gate: Gate,
+        pairs: List[Dict[str, Qid]],
+        options: FloquetPhasedFSimCalibrationOptions,
+        **kwargs,
+    ) -> 'PhasedFSimCalibrationRequest':
+        """Magic method for the JSON serialization protocol.
+
+        Converts serialized dictionary into a dict suitable for
+        class instantiation."""
+        instantiation_pairs = tuple((entry['qubit_a'], entry['qubit_b']) for entry in pairs)
+        return cls(gate, instantiation_pairs, options)
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        """Magic method for the JSON serialization protocol."""
+        return {
+            'cirq_type': 'FloquetPhasedFSimCalibrationRequest',
+            'gate': self.gate,
+            'pairs': [{'qubit_a': pair[0], 'qubit_b': pair[1]} for pair in self.pairs],
+            'options': self.options,
+        }

@@ -1,0 +1,58 @@
+{
+  "cirq_type": "FloquetPhasedFSimCalibrationResult",
+  "gate": {
+    "cirq_type": "FSimGate",
+    "theta": 0.7853981633974483,
+    "phi": 0.0
+  },
+  "parameters": [
+    {
+      "qubit_a": {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 0
+      },
+      "qubit_b": {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 1
+      },
+      "characterization": {
+        "cirq_type": "PhasedFSimCharacterization",
+        "theta": 0.1,
+        "zeta": 0.2,
+        "chi": null,
+        "gamma": null,
+        "phi": 0.3
+      }
+    },
+    {
+      "qubit_a": {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 2
+      },
+      "qubit_b": {
+        "cirq_type": "GridQubit",
+        "row": 0,
+        "col": 3
+      },
+      "characterization": {
+        "cirq_type": "PhasedFSimCharacterization",
+        "theta": 0.4,
+        "zeta": 0.5,
+        "chi": null,
+        "gamma": null,
+        "phi": 0.6
+      }
+    }
+  ],
+  "options": {
+    "cirq_type": "FloquetPhasedFSimCalibrationOptions",
+    "characterize_theta": true,
+    "characterize_zeta": true,
+    "characterize_chi": false,
+    "characterize_gamma": false,
+    "characterize_phi": true
+  }
+}
