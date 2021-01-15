@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 """An optimization pass that aligns gates to the left of the circuit."""
 
 from cirq import circuits, ops
+from cirq.circuits.insert_strategy import InsertStrategy
 
 
 class AlignLeft:
@@ -24,4 +25,4 @@ class AlignLeft:
         self.optimize_circuit(circuit)
 
     def optimize_circuit(self, circuit: circuits.Circuit):
-        circuit[:] = circuits.Circuit(ops.freeze_op_tree(circuit))
+        circuit[:] = circuits.Circuit(circuit.all_operations(), strategy=InsertStrategy.EARLIEST)
