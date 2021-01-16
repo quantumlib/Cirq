@@ -296,6 +296,8 @@ from cirq.ops import (
 )
 
 from cirq.optimizers import (
+    AlignLeft,
+    AlignRight,
     compute_cphase_exponents_for_fsim_decomposition,
     ConvertToCzAndSingleGates,
     decompose_cphase_into_two_fsim,
@@ -363,6 +365,10 @@ from cirq.sim import (
     final_density_matrix,
     final_state_vector,
     final_wavefunction,
+    MPSSimulator,
+    MPSSimulatorStepResult,
+    MPSState,
+    MPSTrialResult,
     sample,
     sample_density_matrix,
     sample_state_vector,
