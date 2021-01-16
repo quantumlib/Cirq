@@ -178,10 +178,6 @@ class MPSTrialResult(simulator.SimulationTrialResult):
 class MPSSimulatorStepResult(simulator.StepResult):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
-    class MPSQidTensor(qtn.Tensor):
-        def to_numpy():
-            return super().isel()
-
     def __init__(self, state, measurements):
         """Results of a step of the simulator.
         Attributes:
@@ -346,17 +342,14 @@ class MPSState:
                 if casted_op_qubits[0].row == casted_op_qubits[1].row:
                     if abs(casted_op_qubits[0].col - casted_op_qubits[1].col) != 1:
                         raise ValueError('qubits on same row but not one column appart')
-                    same_row = True
                 elif casted_op_qubits[0].col == casted_op_qubits[1].col:
                     if abs(casted_op_qubits[0].row - casted_op_qubits[1].row) != 1:
                         raise ValueError('qubits on same column but not one row appart')
-                    same_row = False
                 else:
                     raise ValueError('qubits neither on same row nor on same column')
             else:
                 if abs(idx[0] - idx[1]) != 1:
                     raise ValueError('Can only handle continguous qubits')
-                same_row = True
 
             # Get U and pre-tag each index with which qid it's working on by using a prefix 'n_' or 'p_'
             if idx[0] < idx[1]:
