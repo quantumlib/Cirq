@@ -206,7 +206,7 @@ def random_rotations_between_two_qubit_circuit(
         single_qubit_gates=single_qubit_gates, qubits=(q0, q1), prng=prng
     )
 
-    for i in range(depth):
+    for _ in range(depth):
         single_qubit_layer = single_qubit_layer_factory.new_layer(previous_single_qubit_layer)
         circuit += single_qubit_layer
         circuit += two_qubit_op_factory(q0, q1, prng)
