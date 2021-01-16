@@ -41,9 +41,6 @@ def test_random_rotation_between_two_qubit_circuit():
     assert len(circuit) == 4 * 2
     assert circuit.all_qubits() == {q0, q1}
 
-    print()
-    print('-' * 20)
-    print(circuit.to_text_diagram(transpose=True))
     cirq.testing.assert_has_diagram(
         circuit,
         """\

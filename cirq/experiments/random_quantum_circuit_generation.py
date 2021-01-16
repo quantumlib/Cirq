@@ -282,7 +282,7 @@ def random_rotations_between_grid_interaction_layers_circuit(
         two_qubit_layer = _two_qubit_layer(
             coupled_qubit_pairs, two_qubit_op_factory, pattern[i % len(pattern)], prng
         )
-        circuit.append(two_qubit_layer)
+        circuit += two_qubit_layer
         previous_single_qubit_layer = single_qubit_layer
 
     if add_final_single_qubit_layer:
