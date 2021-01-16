@@ -25,6 +25,7 @@ import math
 from typing import Any, cast, Dict, List, Iterator, Sequence
 
 import numpy as np
+import quimb.tensor as qtn
 
 import cirq
 from cirq import circuits, study, ops, protocols, value
@@ -177,6 +178,10 @@ class MPSTrialResult(simulator.SimulationTrialResult):
 class MPSSimulatorStepResult(simulator.StepResult):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
+    class MPSQidTensor(qtn.Tensor):
+        def to_numpy():
+            return super().isel()
+
     def __init__(self, state, measurements):
         """Results of a step of the simulator.
         Attributes:
@@ -235,14 +240,19 @@ class MPSState:
     def __init__(self, qubit_map, initial_state=0):
         self.qubit_map = qubit_map
         self.M = []
-        for qubit in qubit_map.keys():
+
+        self.is_2d_grid = self.qubit_map and isinstance(
+            next(iter(self.qubit_map)), (cirq.GridQid, cirq.GridQubit)
+        )
+
+        for idx, qubit in enumerate(qubit_map.keys()):
             d = qubit.dimension
             x = np.zeros(
                 (
-                    1,  # row-previous
-                    1,  # row-current
-                    1,  # col-previous
-                    1,  # col-current
+                    1,
+                    1,
+                    1,
+                    1,
                     d,
                 )
             )
@@ -251,14 +261,26 @@ class MPSState:
             # the edge still have a \mu referring to a dummy, non present,
             # qubit. The value of these \mu is always 0.
             x[0, 0, 0, 0, (initial_state % d)] = 1.0
-            self.M.append(x)
+
+            if self.is_2d_grid:
+                row = qubit.row + 1
+                col = qubit.col + 1
+            else:
+                row = idx + 1
+                col = 1
+
+            inds = (
+                f'[{row-1},{col}]-[{row},{col}]',  # Link with previous row.
+                f'[{row},{col}]-[{row+1},{col}]',  # Link with next row.
+                f'[{row},{col-1}]-[{row},{col}]',  # Link with previous column.
+                f'[{row},{col}]-[{row},{col+1}]',  # Link with next column.
+                'i',
+            )
+
+            self.M.append(qtn.Tensor(x, inds=inds))
             initial_state = initial_state // d
         self.M = self.M[::-1]
         self.threshold = 1e-3
-
-        self.is_2d_grid = self.qubit_map and isinstance(
-            next(iter(self.qubit_map)), (cirq.GridQid, cirq.GridQubit)
-        )
 
         if self.is_2d_grid:
             self.num_rows = max([qubit.row for qubit in qubit_map.keys()]) + 1
@@ -266,7 +288,7 @@ class MPSState:
             self.num_rows = 1
 
     def __str__(self) -> str:
-        return str(self.M)
+        return str([x.data for x in self.M])
 
     def _value_equality_values_(self) -> Any:
         return self.qubit_map, self.M, self.threshold
@@ -278,61 +300,24 @@ class MPSState:
         return state
 
     def _sum_up(self, skip_tracing_out_for_qubits=None):
-        row = -1
+        M = qtn.Tensor([1], inds=('i'))
+
         for i in range(len(self.M)):
-            row_i = list(self.qubit_map.keys())[i].row if self.is_2d_grid else 0
-
-            if row != row_i:  # New row:
-                if row == -1:  # First row
-                    M = np.ones((1, 1, 1))
-                else:
-                    # We should have summed over all the column indices, thus they should be one.
-                    assert Mi.shape[0] == 1
-                    assert Mi.shape[1] == 1
-
-                    Mi = Mi[0, 0, :, :, :]
-
-                    M = np.einsum('mni,npj->mpij', M, Mi)
-                    M = M.reshape(M.shape[0], M.shape[1], np.prod(M.shape[2:4]))
-
-                Mi = np.ones((1, 1, 1, 1, 1))
-                row = row_i
+            Mi = self.M[i].reindex({'i': 'j'}).squeeze()
+            M = M @ Mi
 
             skip_tracing_out = not skip_tracing_out_for_qubits or i in skip_tracing_out_for_qubits
 
             if skip_tracing_out:
-                Mi = np.einsum('mnopi,nqrsj->mqorpsij', Mi, self.M[i])
-                Mi = Mi.reshape(
-                    Mi.shape[0],
-                    Mi.shape[1],
-                    Mi.shape[2] * Mi.shape[3],
-                    Mi.shape[4] * Mi.shape[5],
-                    Mi.shape[6] * Mi.shape[7],
-                )
+                M.fuse({'i': ('i', 'j')}, inplace=True)
             else:
-                Mi = np.einsum('mnopi,nqrsj->mqorpsi', Mi, self.M[i])
-                Mi = Mi.reshape(
-                    Mi.shape[0],
-                    Mi.shape[1],
-                    Mi.shape[2] * Mi.shape[3],
-                    Mi.shape[4] * Mi.shape[5],
-                    Mi.shape[6],
-                )
+                # TODO(tonybruguier): Use M.sum_reduce('j', inplace=True) once
+                # version 2.0 of Quimb is released.
+                summer = qtn.Tensor([1.0] * M.ind_size('j'), inds=('j',))
+                M = M @ summer
 
-        # We should have summed over all the column indices, thus they should be one.
-        assert Mi.shape[0] == 1
-        assert Mi.shape[1] == 1
-
-        Mi = Mi[0, 0, :, :, :]
-
-        M = np.einsum('mni,npj->mpij', M, Mi)
-        M = M.reshape(M.shape[0], M.shape[1], M.shape[2] * M.shape[3])
-
-        # We should have summed over all the row indices, thus they should be
-        # one.
-        assert M.shape[0] == 1
-        assert M.shape[1] == 1
-        return M[0, 0, :]
+        assert M.inds == ('i',)
+        return M.data
 
     def state_vector(self):
         return self._sum_up()
@@ -345,7 +330,9 @@ class MPSState:
 
         if len(op.qubits) == 1:
             n = self.qubit_map[op.qubits[0]]
-            self.M[n] = np.einsum('ij,mnopj->mnopi', U, self.M[n])
+
+            U = qtn.Tensor(U, inds=('j', 'i'))
+            self.M[n] = (U @ self.M[n]).reindex({'j': 'i'})
         elif len(op.qubits) == 2:
             idx = [self.qubit_map[qubit] for qubit in op.qubits]
             if self.is_2d_grid:
@@ -370,37 +357,29 @@ class MPSState:
                 if abs(idx[0] - idx[1]) != 1:
                     raise ValueError('Can only handle continguous qubits')
                 same_row = True
+
+            # Get U and pre-tag each index with which qid it's working on by using a prefix 'n_' or 'p_'
             if idx[0] < idx[1]:
                 n, p = idx
+                U = qtn.Tensor(U, inds=('n_j', 'p_j', 'n_i', 'p_i'))
             else:
                 p, n = idx
-                U = np.swapaxes(np.swapaxes(U, 0, 1), 2, 3)
+                U = qtn.Tensor(U, inds=('p_j', 'n_j', 'p_i', 'n_i'))
 
-            if same_row:
-                T = np.einsum('klij,mnopi,nqrsj->mopkqrsl', U, self.M[n], self.M[p])
-            else:
-                T = np.einsum('klij,mnopi,qrpsj->mnokqrsl', U, self.M[n], self.M[p])
-            X, S, Y = np.linalg.svd(T.reshape([np.prod(T.shape[0:4]), np.prod(T.shape[4:8])]))
-            X = X.reshape(T.shape[0:4] + (-1,))
-            Y = Y.reshape((-1,) + T.shape[4:8])
+            # We are going to perform an SVD, so we need to tag with the same prefixes 'n_' or 'p_'
+            Mn = self.M[n].reindex({'i': 'n_i'})
+            Mp = self.M[p].reindex({'i': 'p_i'})
 
-            S = np.asarray([math.sqrt(x) for x in S])
+            T = U @ Mn @ Mp
 
-            nkeep = 0
-            for i in range(S.shape[0]):
-                if S[i] >= S[0] * self.threshold:
-                    nkeep = i + 1
+            fused_ind = (set(Mn.inds) & set(Mp.inds)).pop()
+            left_inds = tuple(set(T.inds) & set(Mn.inds)) + ('n_j',)
+            X, Y = T.split(left_inds, cutoff=self.threshold, cutoff_mode='rel')
 
-            X = X[:, :, :, :, :nkeep]
-            S = np.diag(S[:nkeep])
-            Y = Y[:nkeep, :, :, :, :]
+            lambda_ind = (set(X.inds) - set(left_inds)).pop()
 
-            if same_row:
-                self.M[n] = np.einsum('mopky,yn->mnopk', X, S)
-                self.M[p] = np.einsum('yn,yqrsl->nqrsl', S, Y)
-            else:
-                self.M[n] = np.einsum('mnoky,yp->mnopk', X, S)
-                self.M[p] = np.einsum('yp,yqrsl->qrpsl', S, Y)
+            self.M[n] = X.reindex({lambda_ind: fused_ind, 'n_j': 'i'})
+            self.M[p] = Y.reindex({lambda_ind: fused_ind, 'p_j': 'i'})
         else:
             raise ValueError('Can only handle 1 and 2 qubit operations')
 
@@ -436,7 +415,7 @@ class MPSState:
             renormalizer[result][result] = 1.0 / math.sqrt(probs[result])
 
             n = state.qubit_map[qubit]
-            state.M[n] = np.einsum('ij,mnopj->mnopi', renormalizer, state.M[n])
+            state.M[n].modify(data=np.einsum('ij,mnopj->mnopi', renormalizer, state.M[n].data))
 
             collapser = np.ones(1)
             for j in range(len(qubits)):

@@ -224,7 +224,11 @@ def test_simulate_moment_steps_sample():
             )
             assert (
                 str(step)
-                == "[array([[[[[0.70710678+0.j, 0.70710678+0.j]]]]]), array([[[[[1., 0.]]]]])]"
+                == """[array([[[[[0.70710678+0.j]]]],
+
+
+
+       [[[[0.70710678+0.j]]]]]), array([[[[[1., 0.]]]]])]"""
             )
             samples = step.sample([q0, q1], repetitions=10)
             for sample in samples:
@@ -240,16 +244,21 @@ def test_simulate_moment_steps_sample():
                 step._simulator_state().to_numpy(),
                 np.asarray([1.0 / math.sqrt(2), 0.0, 0.0, 1.0 / math.sqrt(2)]),
             )
+            print('TONYBOOM ##\n%s\n###' % (str(step)))
             assert (
                 str(step)
-                == """[array([[[[[0.84089642+0.j, 0.        +0.j]]],
+                == """[array([[[[[0.84089642+0.j, 0.        +0.j],
+          [0.        +0.j, 0.84089642+0.j]]]]]), array([[[[[0.84089642+0.j]]],
 
 
-        [[[0.        +0.j, 0.84089642+0.j]]]]]), array([[[[[0.84089642+0.j, 0.        +0.j]]]],
+        [[[0.        +0.j]]]],
 
 
 
-       [[[[0.        +0.j, 0.84089642+0.j]]]]])]"""
+       [[[[0.        +0.j]]],
+
+
+        [[[0.84089642+0.j]]]]])]"""
             )
             samples = step.sample([q0, q1], repetitions=10)
             for sample in samples:
