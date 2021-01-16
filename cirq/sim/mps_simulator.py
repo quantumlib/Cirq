@@ -351,15 +351,9 @@ class MPSState:
                 if abs(idx[0] - idx[1]) != 1:
                     raise ValueError('Can only handle continguous qubits')
 
-            # Get U and pre-tag each index with which qid it's working on by using a prefix 'n_' or 'p_'
-            if idx[0] < idx[1]:
-                n, p = idx
-                U = qtn.Tensor(U, inds=('n_j', 'p_j', 'n_i', 'p_i'))
-            else:
-                p, n = idx
-                U = qtn.Tensor(U, inds=('p_j', 'n_j', 'p_i', 'n_i'))
+            n, p = idx
+            U = qtn.Tensor(U, inds=('n_j', 'p_j', 'n_i', 'p_i'))
 
-            # We are going to perform an SVD, so we need to tag with the same prefixes 'n_' or 'p_'
             Mn = self.M[n].reindex({'i': 'n_i'})
             Mp = self.M[p].reindex({'i': 'p_i'})
 
