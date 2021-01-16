@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """An optimization pass that factors the circuit into non-entangled subcircuits."""
-from typing import Mapping, List, FrozenSet, Tuple, Dict, Iterable
+from typing import Mapping, List, FrozenSet, Dict, Iterable
 
 from cirq import CircuitOperation, Moment, Qid, Operation, MeasurementGate
 from cirq.circuits import AbstractCircuit, FrozenCircuit
@@ -35,7 +35,7 @@ def factor_circuit(circuit: AbstractCircuit) -> FrozenCircuit:
 
 
 def _get_new_subcircuits(
-    operations: Tuple[Operation, ...],
+    operations: Iterable[Operation],
     current_subcircuits: Mapping[FrozenSet[Qid], List[Iterable[Operation]]],
 ) -> Mapping[FrozenSet[Qid], List[Iterable[Operation]]]:
     new_subcircuits: Dict[FrozenSet[Qid], List[Iterable[Operation]]] = dict(current_subcircuits)
@@ -53,7 +53,7 @@ def _get_new_subcircuits(
 
 
 def _remove_measurements(
-    operations: Tuple[Operation, ...],
+    operations: Iterable[Operation],
     current_subcircuits: Mapping[FrozenSet[Qid], List[Iterable[Operation]]],
 ):
     new_subcircuits: Dict[FrozenSet[Qid], List[Iterable[Operation]]] = dict(current_subcircuits)
@@ -75,7 +75,7 @@ def _remove_measurements(
 # submoment is an iterator of operations
 def _add_moment(
     new_circuit: List[Iterable[List[Iterable[Operation]]]],
-    operations: Tuple[Operation, ...],
+    operations: Iterable[Operation],
     new_subcircuits: Mapping[FrozenSet[Qid], List[Iterable[Operation]]],
 ):
 
