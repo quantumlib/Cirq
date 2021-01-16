@@ -6,6 +6,7 @@ import pytest
 import sympy
 
 import cirq
+import cirq.experiments.google_v2_supremacy_circuit as supremacy_v2
 
 
 def assert_same_output_as_dense(circuit, qubit_order, initial_state=0):
@@ -185,6 +186,14 @@ def test_state_equal():
     assert state0 == state0
     assert state0 != state1a
     assert state1a != state1b
+
+
+def test_supremacy_equal():
+    circuit = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_grid(
+        n_rows=2, n_cols=2, cz_depth=3, seed=0
+    )
+    qubits = circuit.all_qubits()
+    assert_same_output_as_dense(circuit, qubits)
 
 
 def test_simulate_moment_steps_sample():

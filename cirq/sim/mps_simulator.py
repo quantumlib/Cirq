@@ -348,11 +348,15 @@ class MPSState:
             new_n = 'new_' + old_n
             new_p = 'new_' + old_p
 
-            mu_ind = self.mu_str(n, p)
-            self.M[n].new_ind(mu_ind)
-            self.M[p].new_ind(mu_ind)
-
             U = qtn.Tensor(U, inds=(new_n, new_p, old_n, old_p))
+
+            mu_ind = self.mu_str(n, p)
+
+            if mu_ind not in self.M[n].inds:
+                self.M[n].new_ind(mu_ind)
+
+            if mu_ind not in self.M[p].inds:
+                self.M[p].new_ind(mu_ind)
 
             T = U @ self.M[n] @ self.M[p]
 
