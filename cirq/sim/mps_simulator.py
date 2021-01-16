@@ -15,9 +15,6 @@
 
 This is based on this paper:
 https://arxiv.org/abs/2002.07730
-
-TODO(tonybruguier): Currently, numpy is used for tensor computations. For speed
-switch to QIM for speed.
 """
 
 import collections
@@ -35,7 +32,7 @@ from cirq.sim import simulator
 class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
     """An efficient simulator for MPS circuits."""
 
-    def __init__(self, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+    def __init__(self, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None, rel_cutoff=1e-3):
         """Creates instance of `MPSSimulator`.
 
         Args:
@@ -43,6 +40,7 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
         """
         self.init = True
         self._prng = value.parse_random_state(seed)
+        self.rel_cutoff = rel_cutoff
 
     def _base_iterator(
         self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
@@ -67,11 +65,12 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
 
         if len(circuit) == 0:
             yield MPSSimulatorStepResult(
-                measurements={}, state=MPSState(qubit_map, initial_state=initial_state)
+                measurements={},
+                state=MPSState(qubit_map, self.rel_cutoff, initial_state=initial_state),
             )
             return
 
-        state = MPSState(qubit_map, initial_state=initial_state)
+        state = MPSState(qubit_map, self.rel_cutoff, initial_state=initial_state)
 
         for moment in circuit:
             measurements: Dict[str, List[int]] = collections.defaultdict(list)
@@ -229,94 +228,103 @@ class MPSSimulatorStepResult(simulator.StepResult):
         return np.array(measurements, dtype=int)
 
 
+def _sum_reduce(M, ind):
+    # TODO(tonybruguier): Use M.sum_reduce(ind, inplace=True) once
+    # version 2.0 of Quimb is released.
+    summer = qtn.Tensor([1.0] * M.ind_size(ind), inds=(ind,))
+    Msum = M @ summer
+    if not isinstance(Msum, qtn.Tensor):
+        Msum = qtn.Tensor(Msum)
+    return Msum
+
+
 @value.value_equality
 class MPSState:
     """A state of the MPS simulation."""
 
-    def __init__(self, qubit_map, initial_state=0):
+    def __init__(self, qubit_map, rel_cutoff, initial_state=0):
         self.qubit_map = qubit_map
         self.M = []
 
-        self.is_2d_grid = self.qubit_map and isinstance(
-            next(iter(self.qubit_map)), (cirq.GridQid, cirq.GridQubit)
-        )
+        num_digits = len('%d' % (max(qubit_map.values())))
+        self.format_i = 'i_%%.%dd' % (num_digits)
+        self.format_mu = 'mu_%%.%dd_%%.%dd' % (num_digits, num_digits)
 
-        for idx, qubit in enumerate(qubit_map.keys()):
+        for qubit in reversed(qubit_map.keys()):
             d = qubit.dimension
-            x = np.zeros(
-                (
-                    1,
-                    1,
-                    1,
-                    1,
-                    d,
-                )
-            )
-            # Note that for simplicity of writing the code, we do not quite use
-            # the exact same notation as in the paper. Instead, the qubits on
-            # the edge still have a \mu referring to a dummy, non present,
-            # qubit. The value of these \mu is always 0.
-            x[0, 0, 0, 0, (initial_state % d)] = 1.0
+            x = np.zeros(d)
+            x[initial_state % d] = 1.0
 
-            if self.is_2d_grid:
-                row = qubit.row + 1
-                col = qubit.col + 1
-            else:
-                row = idx + 1
-                col = 1
-
-            inds = (
-                f'[{row-1},{col}]-[{row},{col}]',  # Link with previous row.
-                f'[{row},{col}]-[{row+1},{col}]',  # Link with next row.
-                f'[{row},{col-1}]-[{row},{col}]',  # Link with previous column.
-                f'[{row},{col}]-[{row},{col+1}]',  # Link with next column.
-                'i',
-            )
-
-            self.M.append(qtn.Tensor(x, inds=inds))
+            i = qubit_map[qubit]
+            self.M.append(qtn.Tensor(x, inds=(self.i_str(i),)))
             initial_state = initial_state // d
         self.M = self.M[::-1]
-        self.threshold = 1e-3
+        self.rel_cutoff = rel_cutoff
 
-        if self.is_2d_grid:
-            self.num_rows = max([qubit.row for qubit in qubit_map.keys()]) + 1
-        else:
-            self.num_rows = 1
+    def i_str(self, i):
+        return self.format_i % (i)
+
+    def mu_str(self, i, j):
+        i, j = min(i, j), max(i, j)
+        return self.format_mu % (i, j)
 
     def __str__(self) -> str:
         return str([x.data for x in self.M])
 
     def _value_equality_values_(self) -> Any:
-        return self.qubit_map, self.M, self.threshold
+        return self.qubit_map, self.M, self.rel_cutoff
 
     def copy(self) -> 'MPSState':
-        state = MPSState(self.qubit_map)
+        state = MPSState(self.qubit_map, self.rel_cutoff)
         state.M = [x.copy() for x in self.M]
-        state.threshold = self.threshold
         return state
 
     def _sum_up(self, skip_tracing_out_for_qubits=None):
-        M = qtn.Tensor([1], inds=('i'))
+        M = qtn.Tensor(1.0)
 
-        for i in range(len(self.M)):
-            Mi = self.M[i].reindex({'i': 'j'}).squeeze()
-            M = M @ Mi
+        def _trace_out(i):
+            return skip_tracing_out_for_qubits and (i not in skip_tracing_out_for_qubits)
 
-            skip_tracing_out = not skip_tracing_out_for_qubits or i in skip_tracing_out_for_qubits
+        # We can aggregate the qubits in any order we want, theoretically. However, it's quite
+        # possible to blow up the memory doing so. Instead, we do a greedy search through the
+        # qubits that minimizes the memory required at every step.
+        badness_queue = [(qubit, 0) for qubit in self.qubit_map.keys()]
 
-            if skip_tracing_out:
-                M.fuse({'i': ('i', 'j')}, inplace=True)
-            else:
-                # TODO(tonybruguier): Use M.sum_reduce('j', inplace=True) once
-                # version 2.0 of Quimb is released.
-                summer = qtn.Tensor([1.0] * M.ind_size('j'), inds=('j',))
-                M = M @ summer
+        while len(badness_queue) > 0:
+            # Update the badness:
+            for idx in range(len(badness_queue)):
+                qubit = badness_queue[idx][0]
+                # We define the badness as the number of elements the tensor M post
+                # aggregation and tracing out.
+                i = self.qubit_map[qubit]
+                new_inds = set(self.M[i].inds)
+                uncollapsed_inds = new_inds - set(M.inds)
 
-        assert M.inds == ('i',)
-        return M.data
+                badness = 1
+                for ind, shape in zip(self.M[i].inds, self.M[i].shape):
+                    if ind in uncollapsed_inds and not _trace_out(i):
+                        badness *= shape
+
+                badness_queue[idx] = (qubit, badness)
+            badness_queue = sorted(badness_queue, key=lambda x: x[1])
+
+            # Pop the element to aggregate
+            qubit, _ = badness_queue.pop(0)
+
+            i = self.qubit_map[qubit]
+            M = M @ self.M[i]
+
+            if _trace_out(i):
+                M = _sum_reduce(M, self.i_str(i))
+
+        return M
 
     def state_vector(self):
-        return self._sum_up()
+        M = self._sum_up()
+        # Here, we rely on the formatting of the indices, and the fact that we have enough
+        # leading zeros so that 003 comes before 100.
+        sorted_ind = tuple(sorted(M.inds))
+        return M.fuse({'i': sorted_ind}).data
 
     def to_numpy(self) -> np.ndarray:
         return self.state_vector()
@@ -327,46 +335,35 @@ class MPSState:
         if len(op.qubits) == 1:
             n = self.qubit_map[op.qubits[0]]
 
-            U = qtn.Tensor(U, inds=('j', 'i'))
-            self.M[n] = (U @ self.M[n]).reindex({'j': 'i'})
+            old_n = self.i_str(n)
+            new_n = 'new_' + old_n
+
+            U = qtn.Tensor(U, inds=(new_n, old_n))
+            self.M[n] = (U @ self.M[n]).reindex({new_n: old_n})
         elif len(op.qubits) == 2:
-            idx = [self.qubit_map[qubit] for qubit in op.qubits]
-            if self.is_2d_grid:
-                casted_op_qubits = [
-                    cast(cirq.GridQid, qubit)
-                    if isinstance(qubit, cirq.GridQid)
-                    else cast(cirq.GridQubit, qubit)
-                    for qubit in op.qubits
-                ]
+            n, p = [self.qubit_map[qubit] for qubit in op.qubits]
 
-                if casted_op_qubits[0].row == casted_op_qubits[1].row:
-                    if abs(casted_op_qubits[0].col - casted_op_qubits[1].col) != 1:
-                        raise ValueError('qubits on same row but not one column appart')
-                elif casted_op_qubits[0].col == casted_op_qubits[1].col:
-                    if abs(casted_op_qubits[0].row - casted_op_qubits[1].row) != 1:
-                        raise ValueError('qubits on same column but not one row appart')
-                else:
-                    raise ValueError('qubits neither on same row nor on same column')
-            else:
-                if abs(idx[0] - idx[1]) != 1:
-                    raise ValueError('Can only handle continguous qubits')
+            old_n = self.i_str(n)
+            old_p = self.i_str(p)
+            new_n = 'new_' + old_n
+            new_p = 'new_' + old_p
 
-            n, p = idx
-            U = qtn.Tensor(U, inds=('n_j', 'p_j', 'n_i', 'p_i'))
+            mu_ind = self.mu_str(n, p)
+            self.M[n].new_ind(mu_ind)
+            self.M[p].new_ind(mu_ind)
 
-            Mn = self.M[n].reindex({'i': 'n_i'})
-            Mp = self.M[p].reindex({'i': 'p_i'})
+            U = qtn.Tensor(U, inds=(new_n, new_p, old_n, old_p))
 
-            T = U @ Mn @ Mp
+            T = U @ self.M[n] @ self.M[p]
 
-            fused_ind = (set(Mn.inds) & set(Mp.inds)).pop()
-            left_inds = tuple(set(T.inds) & set(Mn.inds)) + ('n_j',)
-            X, Y = T.split(left_inds, cutoff=self.threshold, cutoff_mode='rel')
+            fused_ind = (set(self.M[n].inds) & set(self.M[p].inds)).pop()
+            left_inds = tuple(set(T.inds) & set(self.M[n].inds)) + (new_n,)
+            X, Y = T.split(left_inds, cutoff=self.rel_cutoff, cutoff_mode='rel')
 
             lambda_ind = (set(X.inds) - set(left_inds)).pop()
 
-            self.M[n] = X.reindex({lambda_ind: fused_ind, 'n_j': 'i'})
-            self.M[p] = Y.reindex({lambda_ind: fused_ind, 'p_j': 'i'})
+            self.M[n] = X.reindex({lambda_ind: fused_ind, new_n: old_n})
+            self.M[p] = Y.reindex({lambda_ind: fused_ind, new_p: old_p})
         else:
             raise ValueError('Can only handle 1 and 2 qubit operations')
 
@@ -375,21 +372,19 @@ class MPSState:
     ) -> List[int]:
         results: List[int] = []
 
-        if collapse_state_vector:
-            state = self
-        else:
-            state = self.copy()
-
         qid_shape = [qubit.dimension for qubit in qubits]
-        skip_tracing_out_for_qubits = {state.qubit_map[qubit] for qubit in qubits}
+        skip_tracing_out_for_qubits = {self.qubit_map[qubit] for qubit in qubits}
 
-        M = state._sum_up(skip_tracing_out_for_qubits=skip_tracing_out_for_qubits)
+        M = self._sum_up(skip_tracing_out_for_qubits=skip_tracing_out_for_qubits)
 
         for i, qubit in enumerate(qubits):
             # Trace out other qubits
-            trace_out_idx = [j for j in range(len(qubits)) if j != i]
-            M_traced_out = np.sum(M.reshape(qid_shape), axis=tuple(trace_out_idx))
-            probs = [abs(x) ** 2 for x in M_traced_out]
+            M_traced_out = M
+            for j in range(len(qubits)):
+                if j != i:
+                    M_traced_out = _sum_reduce(M_traced_out, self.i_str(self.qubit_map[qubits[j]]))
+
+            probs = [abs(x) ** 2 for x in M_traced_out.data]
 
             # Because the computation is approximate, the probabilities do not
             # necessarily add up to 1.0, and thus we re-normalize them.
@@ -398,20 +393,19 @@ class MPSState:
             d = qubit.dimension
             result: int = int(prng.choice(d, p=norm_probs))
 
-            renormalizer = np.zeros((d, d))
-            renormalizer[result][result] = 1.0 / math.sqrt(probs[result])
+            collapser = np.zeros((d, d))
+            collapser[result][result] = 1.0 / math.sqrt(probs[result])
 
-            n = state.qubit_map[qubit]
-            state.M[n].modify(data=np.einsum('ij,mnopj->mnopi', renormalizer, state.M[n].data))
+            n = self.qubit_map[qubit]
 
-            collapser = np.ones(1)
-            for j in range(len(qubits)):
-                if j == i:
-                    collapser = np.kron(collapser, renormalizer)
-                else:
-                    collapser = np.kron(collapser, np.eye(qid_shape[i]))
+            old_n = self.i_str(n)
+            new_n = 'new_' + old_n
 
-            M = np.einsum('ij,j->i', collapser, M)
+            collapser = qtn.Tensor(collapser, inds=(new_n, old_n))
+
+            if collapse_state_vector:
+                self.M[n] = (collapser @ self.M[n]).reindex({new_n: old_n})
+            M = (collapser @ M).reindex({new_n: old_n})
 
             results.append(result)
 

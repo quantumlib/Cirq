@@ -45,6 +45,7 @@ def test_various_gates_1d_flip():
     )
 
     assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1])
+    assert_same_output_as_dense(circuit=circuit, qubit_order=[q1, q0])
 
 
 def test_various_gates_2d():
@@ -104,32 +105,6 @@ def test_cnot_flipped():
         )
 
 
-def test_jump_two_1d():
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit(cirq.CNOT(q0, q2))
-
-    with pytest.raises(ValueError, match="Can only handle continguous qubits"):
-        assert_same_output_as_dense(circuit=circuit, qubit_order=[q0, q1, q2])
-
-
-def test_jump_two_2d():
-    qubit_order = cirq.GridQubit.rect(3, 3)
-    q0, _, q2, _, q4, _, q6, _, _ = qubit_order
-
-    circuit_a = cirq.Circuit(cirq.CNOT(q0, q2))
-    circuit_b = cirq.Circuit(cirq.CNOT(q0, q6))
-    circuit_c = cirq.Circuit(cirq.CNOT(q0, q4))
-
-    with pytest.raises(ValueError, match="qubits on same row but not one column appart"):
-        assert_same_output_as_dense(circuit=circuit_a, qubit_order=qubit_order)
-
-    with pytest.raises(ValueError, match="qubits on same column but not one row appart"):
-        assert_same_output_as_dense(circuit=circuit_b, qubit_order=qubit_order)
-
-    with pytest.raises(ValueError, match="qubits neither on same row nor on same column"):
-        assert_same_output_as_dense(circuit=circuit_c, qubit_order=qubit_order)
-
-
 def test_three_qubits():
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.CCX(q0, q1, q2))
@@ -181,7 +156,7 @@ def test_measurement_str():
 
 def test_trial_result_str():
     q0 = cirq.LineQubit(0)
-    final_simulator_state = cirq.MPSState(qubit_map={q0: 0})
+    final_simulator_state = cirq.MPSState(qubit_map={q0: 0}, rel_cutoff=1e-3)
     assert (
         str(
             cirq.MPSTrialResult(
@@ -191,23 +166,25 @@ def test_trial_result_str():
             )
         )
         == "measurements: m=1\n"
-        "output state: [array([[[[[1., 0.]]]]])]"
+        "output state: [array([1., 0.])]"
     )
 
 
 def test_empty_step_result():
     q0 = cirq.LineQubit(0)
-    state = cirq.MPSState(qubit_map={q0: 0})
+    state = cirq.MPSState(qubit_map={q0: 0}, rel_cutoff=1e-3)
     step_result = cirq.MPSSimulatorStepResult(state, measurements={'0': [1]})
-    assert str(step_result) == "0=1\n[array([[[[[1., 0.]]]]])]"
+    assert str(step_result) == "0=1\n[array([1., 0.])]"
 
 
 def test_state_equal():
     q0, q1 = cirq.LineQubit.range(2)
-    state0 = cirq.MPSState(qubit_map={q0: 0})
-    state1 = cirq.MPSState(qubit_map={q1: 0})
+    state0 = cirq.MPSState(qubit_map={q0: 0}, rel_cutoff=1e-3)
+    state1a = cirq.MPSState(qubit_map={q1: 0}, rel_cutoff=1e-3)
+    state1b = cirq.MPSState(qubit_map={q1: 0}, rel_cutoff=1729.0)
     assert state0 == state0
-    assert state0 != state1
+    assert state0 != state1a
+    assert state1a != state1b
 
 
 def test_simulate_moment_steps_sample():
@@ -222,14 +199,7 @@ def test_simulate_moment_steps_sample():
                 step._simulator_state().to_numpy(),
                 np.asarray([1.0 / math.sqrt(2), 0.0, 1.0 / math.sqrt(2), 0.0]),
             )
-            assert (
-                str(step)
-                == """[array([[[[[0.70710678+0.j]]]],
-
-
-
-       [[[[0.70710678+0.j]]]]]), array([[[[[1., 0.]]]]])]"""
-            )
+            assert str(step) == "[array([0.70710678+0.j, 0.70710678+0.j]), array([1., 0.])]"
             samples = step.sample([q0, q1], repetitions=10)
             for sample in samples:
                 assert np.array_equal(sample, [True, False]) or np.array_equal(
@@ -244,21 +214,11 @@ def test_simulate_moment_steps_sample():
                 step._simulator_state().to_numpy(),
                 np.asarray([1.0 / math.sqrt(2), 0.0, 0.0, 1.0 / math.sqrt(2)]),
             )
-            print('TONYBOOM ##\n%s\n###' % (str(step)))
             assert (
                 str(step)
-                == """[array([[[[[0.84089642+0.j, 0.        +0.j],
-          [0.        +0.j, 0.84089642+0.j]]]]]), array([[[[[0.84089642+0.j]]],
-
-
-        [[[0.        +0.j]]]],
-
-
-
-       [[[[0.        +0.j]]],
-
-
-        [[[0.84089642+0.j]]]]])]"""
+                == """[array([[0.84089642+0.j, 0.        +0.j],
+       [0.        +0.j, 0.84089642+0.j]]), array([[0.84089642+0.j, 0.        +0.j],
+       [0.        +0.j, 0.84089642+0.j]])]"""
             )
             samples = step.sample([q0, q1], repetitions=10)
             for sample in samples:
