@@ -239,10 +239,8 @@ class CliffordSimulatorStepResult(simulator.StepResult):
 class CliffordState:
     """A state of the Clifford simulation.
 
-    The state is stored using two complementary representations:
-    Anderson's tableaux form and Bravyi's CH-form.
-    The tableaux keeps track of the stabilizer operations, while the
-    CH-form allows access to the full state vector (including phase).
+    The state is stored using Bravyi's CH-form which allows access to the full
+    state vector (including phase).
 
     Gates and measurements are applied to each representation in O(n^2) time.
     """
@@ -251,31 +249,27 @@ class CliffordState:
         self.qubit_map = qubit_map
         self.n = len(qubit_map)
 
-        self.tableau = clifford.CliffordTableau(self.n, initial_state)
         self.ch_form = clifford.StabilizerStateChForm(self.n, initial_state)
 
     def _json_dict_(self):
         return {
             'cirq_type': self.__class__.__name__,
             'qubit_map': [(k, v) for k, v in self.qubit_map.items()],
-            'tableau': self.tableau,
             'ch_form': self.ch_form,
         }
 
     @classmethod
-    def _from_json_dict_(cls, qubit_map, tableau, ch_form, **kwargs):
+    def _from_json_dict_(cls, qubit_map, ch_form, **kwargs):
         state = cls(dict(qubit_map))
-        state.tableau = tableau
         state.ch_form = ch_form
 
         return state
 
     def _value_equality_values_(self) -> Any:
-        return self.qubit_map, self.tableau, self.ch_form
+        return self.qubit_map, self.ch_form
 
     def copy(self) -> 'CliffordState':
         state = CliffordState(self.qubit_map)
-        state.tableau = self.tableau.copy()
         state.ch_form = self.ch_form.copy()
 
         return state
@@ -294,14 +288,14 @@ class CliffordState:
     def stabilizers(self) -> List[DensePauliString]:
         """Returns the stabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi>"""
-        return self.tableau.stabilizers()
+        return []
 
     @deprecated(deadline='v0.11.0', fix='use CliffordTableau instead')
     def destabilizers(self) -> List[DensePauliString]:
         """Returns the destabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
         generators above generate the full Pauli group on n qubits."""
-        return self.tableau.destabilizers()
+        return []
 
     def state_vector(self):
         return self.ch_form.state_vector()
