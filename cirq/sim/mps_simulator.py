@@ -377,7 +377,7 @@ class MPSState:
             X, Y = T.split(
                 left_inds,
                 cutoff=self.rsum2_cutoff,
-                cutoff_mode='sum2',
+                cutoff_mode='rsum2',
                 get='tensors',
                 absorb='both',
                 bond_ind=mu_ind,
