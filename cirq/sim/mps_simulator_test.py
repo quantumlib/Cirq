@@ -157,7 +157,7 @@ def test_measurement_str():
 
 def test_trial_result_str():
     q0 = cirq.LineQubit(0)
-    final_simulator_state = cirq.MPSState(qubit_map={q0: 0}, rel_cutoff=1e-3)
+    final_simulator_state = cirq.MPSState(qubit_map={q0: 0}, rsum2_cutoff=1e-3)
     assert (
         str(
             cirq.MPSTrialResult(
@@ -173,16 +173,16 @@ def test_trial_result_str():
 
 def test_empty_step_result():
     q0 = cirq.LineQubit(0)
-    state = cirq.MPSState(qubit_map={q0: 0}, rel_cutoff=1e-3)
+    state = cirq.MPSState(qubit_map={q0: 0}, rsum2_cutoff=1e-3)
     step_result = cirq.MPSSimulatorStepResult(state, measurements={'0': [1]})
     assert str(step_result) == "0=1\n[array([1., 0.])]"
 
 
 def test_state_equal():
     q0, q1 = cirq.LineQubit.range(2)
-    state0 = cirq.MPSState(qubit_map={q0: 0}, rel_cutoff=1e-3)
-    state1a = cirq.MPSState(qubit_map={q1: 0}, rel_cutoff=1e-3)
-    state1b = cirq.MPSState(qubit_map={q1: 0}, rel_cutoff=1729.0)
+    state0 = cirq.MPSState(qubit_map={q0: 0}, rsum2_cutoff=1e-3)
+    state1a = cirq.MPSState(qubit_map={q1: 0}, rsum2_cutoff=1e-3)
+    state1b = cirq.MPSState(qubit_map={q1: 0}, rsum2_cutoff=1729.0)
     assert state0 == state0
     assert state0 != state1a
     assert state1a != state1b

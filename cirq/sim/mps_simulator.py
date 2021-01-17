@@ -32,15 +32,21 @@ from cirq.sim import simulator
 class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
     """An efficient simulator for MPS circuits."""
 
-    def __init__(self, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None, rel_cutoff=1e-3):
+    def __init__(self, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None, rsum2_cutoff=1e-3):
         """Creates instance of `MPSSimulator`.
 
         Args:
             seed: The random seed to use for this simulator.
+            rsum2_cutoff: We drop singular values so that the sum of the
+                square of the dropped singular values divided by the sum of the
+                square of all the singular values is less than rsum2_cutoff.
+                This is related to the fidelity of the computation. If we have
+                N 2D gates, then the estimated fidelity is
+                (1 - rsum2_cutoff) ** N.
         """
         self.init = True
         self._prng = value.parse_random_state(seed)
-        self.rel_cutoff = rel_cutoff
+        self.rsum2_cutoff = rsum2_cutoff
 
     def _base_iterator(
         self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
@@ -66,11 +72,11 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
         if len(circuit) == 0:
             yield MPSSimulatorStepResult(
                 measurements={},
-                state=MPSState(qubit_map, self.rel_cutoff, initial_state=initial_state),
+                state=MPSState(qubit_map, self.rsum2_cutoff, initial_state=initial_state),
             )
             return
 
-        state = MPSState(qubit_map, self.rel_cutoff, initial_state=initial_state)
+        state = MPSState(qubit_map, self.rsum2_cutoff, initial_state=initial_state)
 
         for moment in circuit:
             measurements: Dict[str, List[int]] = collections.defaultdict(list)
@@ -243,7 +249,7 @@ def _sum_reduce(M, ind):
 class MPSState:
     """A state of the MPS simulation."""
 
-    def __init__(self, qubit_map, rel_cutoff, initial_state=0):
+    def __init__(self, qubit_map, rsum2_cutoff, initial_state=0):
         self.qubit_map = qubit_map
         self.M = []
 
@@ -265,7 +271,7 @@ class MPSState:
             self.M.append(qtn.Tensor(x, inds=(self.i_str(i),)))
             initial_state = initial_state // d
         self.M = self.M[::-1]
-        self.rel_cutoff = rel_cutoff
+        self.rsum2_cutoff = rsum2_cutoff
 
     def i_str(self, i):
         return self.format_i % (i)
@@ -279,10 +285,10 @@ class MPSState:
         return str([x.data for x in self.M])
 
     def _value_equality_values_(self) -> Any:
-        return self.qubit_map, self.M, self.rel_cutoff
+        return self.qubit_map, self.M, self.rsum2_cutoff
 
     def copy(self) -> 'MPSState':
-        state = MPSState(self.qubit_map, self.rel_cutoff)
+        state = MPSState(self.qubit_map, self.rsum2_cutoff)
         state.M = [x.copy() for x in self.M]
         return state
 
@@ -370,8 +376,8 @@ class MPSState:
             left_inds = tuple(set(T.inds) & set(self.M[n].inds)) + (new_n,)
             X, Y = T.split(
                 left_inds,
-                cutoff=self.rel_cutoff,
-                cutoff_mode='rel',
+                cutoff=self.rsum2_cutoff,
+                cutoff_mode='sum2',
                 get='tensors',
                 absorb='both',
                 bond_ind=mu_ind,
