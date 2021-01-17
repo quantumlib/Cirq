@@ -196,6 +196,22 @@ def test_supremacy_equal():
     assert_same_output_as_dense(circuit, qubits)
 
 
+def test_supremacy_big():
+    circuit = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_grid(
+        n_rows=8, n_cols=8, cz_depth=9, seed=0
+    )
+
+    mps_simulator = cirq.MPSSimulator(rsum2_cutoff=5e-5)
+    result = mps_simulator.simulate(circuit, qubit_order=circuit.all_qubits(), initial_state=0)
+
+    assert result.final_state.estimation_stats() == {
+        'estimated_fidelity': 0.994,
+        'memory_bytes': 34944,
+        'num_2d_gates': 128,
+        'num_coefs_used': 2184,
+    }
+
+
 def test_simulate_moment_steps_sample():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))

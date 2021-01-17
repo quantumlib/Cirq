@@ -272,6 +272,7 @@ class MPSState:
             initial_state = initial_state // d
         self.M = self.M[::-1]
         self.rsum2_cutoff = rsum2_cutoff
+        self.num_2d_gates = 0
 
     def i_str(self, i):
         return self.format_i % (i)
@@ -290,6 +291,7 @@ class MPSState:
     def copy(self) -> 'MPSState':
         state = MPSState(self.qubit_map, self.rsum2_cutoff)
         state.M = [x.copy() for x in self.M]
+        state.num_2d_gates = self.num_2d_gates
         return state
 
     def _sum_up(self, skip_tracing_out_for_qubits=None):
@@ -354,6 +356,8 @@ class MPSState:
             U = qtn.Tensor(U, inds=(new_n, old_n))
             self.M[n] = (U @ self.M[n]).reindex({new_n: old_n})
         elif len(op.qubits) == 2:
+            self.num_2d_gates += 1
+
             n, p = [self.qubit_map[qubit] for qubit in op.qubits]
 
             old_n = self.i_str(n)
@@ -393,6 +397,23 @@ class MPSState:
             # TODO(tonybruguier): Evaluate whether it's even useful to implement and learn more
             # about HOSVDs.
             raise ValueError('Can only handle 1 and 2 qubit operations')
+
+    def estimation_stats(self):
+        num_coefs_used = sum([Mi.data.size for Mi in self.M])
+        memory_bytes = sum([Mi.data.nbytes for Mi in self.M])
+
+        # The computation below is done for numerical stability, instead of directly using the
+        # formula:
+        # estimated_fidelity = (1 - self.rsum2_cutoff) ** self.num_2d_gates
+        estimated_fidelity = 1.0 + np.expm1(np.log1p(-self.rsum2_cutoff) * self.num_2d_gates)
+        estimated_fidelity = round(estimated_fidelity, ndigits=3)
+
+        return {
+            "num_coefs_used": num_coefs_used,
+            "memory_bytes": memory_bytes,
+            "num_2d_gates": self.num_2d_gates,
+            "estimated_fidelity": estimated_fidelity,
+        }
 
     def perform_measurement(
         self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
