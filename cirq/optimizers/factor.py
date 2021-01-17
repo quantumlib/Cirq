@@ -37,11 +37,11 @@ def factor_circuit(circuit: AbstractCircuit) -> FrozenCircuit:
 
 
 def _with_new_entanglements(
-    current_subcircuits: Mapping[EntanglementSet, TempSubcircuit],
+    subcircuits: Mapping[EntanglementSet, TempSubcircuit],
     operations: Iterable[Operation],
 ) -> Mapping[EntanglementSet, TempSubcircuit]:
-    new_subcircuits = dict(current_subcircuits)
-    entanglement_sets = {qubit: k for k in current_subcircuits.keys() for qubit in k}
+    new_subcircuits = dict(subcircuits)
+    entanglement_sets = {qubit: es for es in subcircuits.keys() for qubit in es}
     for op in operations:
         distinct_sets = frozenset(entanglement_sets[qubit] for qubit in op.qubits)
         if len(distinct_sets) > 1:
@@ -53,11 +53,11 @@ def _with_new_entanglements(
 
 
 def _with_measurements_removed(
-    current_subcircuits: Mapping[EntanglementSet, TempSubcircuit],
+    subcircuits: Mapping[EntanglementSet, TempSubcircuit],
     operations: Iterable[Operation],
 ):
-    new_subcircuits = dict(current_subcircuits)
-    entanglement_sets = {qubit: k for k in current_subcircuits.keys() for qubit in k}
+    new_subcircuits = dict(subcircuits)
+    entanglement_sets = {qubit: es for es in subcircuits.keys() for qubit in es}
     for op in operations:
         if isinstance(op.gate, MeasurementGate):
             for qubit in op.qubits:
