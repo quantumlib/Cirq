@@ -61,11 +61,15 @@ def _with_measurements_removed(
     for op in operations:
         if isinstance(op.gate, MeasurementGate):
             for qubit in op.qubits:
-                new_subcircuits.pop(entanglement_sets[qubit])
-                entanglement_sets[qubit] = entanglement_sets[qubit].difference([qubit])
-                new_subcircuits[entanglement_sets[qubit]] = []
-                new_subcircuits[frozenset([qubit])] = []
-                entanglement_sets[qubit] = frozenset([qubit])
+                old_entanglement_set = entanglement_sets[qubit]
+                new_subcircuits.pop(old_entanglement_set)
+                new_entanglement_set = old_entanglement_set.difference([qubit])
+                for other in new_entanglement_set:
+                    entanglement_sets[other] = new_entanglement_set
+                new_subcircuits[new_entanglement_set] = []
+                singleton_entanglement_set = frozenset([qubit])
+                new_subcircuits[singleton_entanglement_set] = []
+                entanglement_sets[qubit] = singleton_entanglement_set
     return new_subcircuits
 
 
