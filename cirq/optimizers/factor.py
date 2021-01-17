@@ -74,13 +74,13 @@ def _with_measurements_removed(
 
 
 def _add_moment(
-    new_circuit: TempCircuit,
+    circuit: TempCircuit,
     operations: Iterable[Operation],
-    new_subcircuits: Mapping[EntanglementSet, TempSubcircuit],
+    subcircuits: Mapping[EntanglementSet, TempSubcircuit],
 ):
-    new_ops = [circuit for circuit in new_subcircuits.values() if len(circuit) == 0]
-    new_circuit.append(new_ops)
-    for qubits, subcircuit in new_subcircuits.items():
+    new_subcircuits = [subcircuit for subcircuit in subcircuits.values() if len(subcircuit) == 0]
+    circuit.append(new_subcircuits)
+    for qubits, subcircuit in subcircuits.items():
         relevant_operations = filter(lambda op: next(iter(op.qubits)) in qubits, operations)
         subcircuit.append(list(relevant_operations))
 
