@@ -369,13 +369,16 @@ class MPSState:
 
             left_inds = tuple(set(T.inds) & set(self.M[n].inds)) + (new_n,)
             X, Y = T.split(
-                left_inds, cutoff=self.rel_cutoff, cutoff_mode='rel', get='tensors', absorb='both'
+                left_inds,
+                cutoff=self.rel_cutoff,
+                cutoff_mode='rel',
+                get='tensors',
+                absorb='both',
+                bond_ind=mu_ind,
             )
 
-            lambda_ind = (set(X.inds) - set(left_inds)).pop()
-
-            self.M[n] = X.reindex({lambda_ind: mu_ind, new_n: old_n})
-            self.M[p] = Y.reindex({lambda_ind: mu_ind, new_p: old_p})
+            self.M[n] = X.reindex({new_n: old_n})
+            self.M[p] = Y.reindex({new_p: old_p})
         else:
             # NOTE(tonybruguier): There could be a way to handle higher orders. I think this could
             # involve HOSVDs:
