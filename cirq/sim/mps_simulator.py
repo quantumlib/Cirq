@@ -233,6 +233,7 @@ def _sum_reduce(M, ind):
     # version 2.0 of Quimb is released.
     summer = qtn.Tensor([1.0] * M.ind_size(ind), inds=(ind,))
     Msum = M @ summer
+    # Sometimes, we get a scalar, but we would rather keep it as tensor.
     if not isinstance(Msum, qtn.Tensor):
         Msum = qtn.Tensor(Msum)
     return Msum
@@ -246,9 +247,14 @@ class MPSState:
         self.qubit_map = qubit_map
         self.M = []
 
-        num_digits = len('%d' % (max(qubit_map.values())))
-        self.format_i = 'i_%%.%dd' % (num_digits)
-        self.format_mu = 'mu_%%.%dd_%%.%dd' % (num_digits, num_digits)
+        # The order of the qubits matters, because the state |01> is different from |10>. Since
+        # Qimb uses strings to name tensor indices, we want to be able to sort them too. If we are
+        # working with, say, 123 qubits then we want qubit 3 to come before qubit 100, but then
+        # we want write the string '003' which comes before '100' in lexicographic order. The code
+        # below is just simple string formatting.
+        max_num_digits = len('%d' % (max(qubit_map.values())))
+        self.format_i = 'i_%%.%dd' % (max_num_digits)
+        self.format_mu = 'mu_%%.%dd_%%.%dd' % (max_num_digits, max_num_digits)
 
         for qubit in reversed(qubit_map.keys()):
             d = qubit.dimension
@@ -265,6 +271,7 @@ class MPSState:
         return self.format_i % (i)
 
     def mu_str(self, i, j):
+        # By convention, the lower index is always the first.
         i, j = min(i, j), max(i, j)
         return self.format_mu % (i, j)
 
@@ -350,25 +357,32 @@ class MPSState:
 
             U = qtn.Tensor(U, inds=(new_n, new_p, old_n, old_p))
 
+            # This is the index on which we do the joining. We need to add it iff it's the first
+            # time that we do the joining for that specific pair.
             mu_ind = self.mu_str(n, p)
-
             if mu_ind not in self.M[n].inds:
                 self.M[n].new_ind(mu_ind)
-
             if mu_ind not in self.M[p].inds:
                 self.M[p].new_ind(mu_ind)
 
             T = U @ self.M[n] @ self.M[p]
 
-            fused_ind = (set(self.M[n].inds) & set(self.M[p].inds)).pop()
             left_inds = tuple(set(T.inds) & set(self.M[n].inds)) + (new_n,)
-            X, Y = T.split(left_inds, cutoff=self.rel_cutoff, cutoff_mode='rel')
+            X, Y = T.split(
+                left_inds, cutoff=self.rel_cutoff, cutoff_mode='rel', get='tensors', absorb='both'
+            )
 
             lambda_ind = (set(X.inds) - set(left_inds)).pop()
 
-            self.M[n] = X.reindex({lambda_ind: fused_ind, new_n: old_n})
-            self.M[p] = Y.reindex({lambda_ind: fused_ind, new_p: old_p})
+            self.M[n] = X.reindex({lambda_ind: mu_ind, new_n: old_n})
+            self.M[p] = Y.reindex({lambda_ind: mu_ind, new_p: old_p})
         else:
+            # NOTE(tonybruguier): There could be a way to handle higher orders. I think this could
+            # involve HOSVDs:
+            # https://en.wikipedia.org/wiki/Higher-order_singular_value_decomposition
+            #
+            # TODO(tonybruguier): Evaluate whether it's even useful to implement and learn more
+            # about HOSVDs.
             raise ValueError('Can only handle 1 and 2 qubit operations')
 
     def perform_measurement(
