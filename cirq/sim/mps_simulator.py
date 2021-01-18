@@ -338,7 +338,7 @@ class MPSState:
                     smallest_badness = badness
                     pop_idx = idx
                 elif smallest_badness > badness:
-                    smallest_badness > badness
+                    smallest_badness = badness
                     pop_idx = idx
 
             # Pop the element to aggregate
