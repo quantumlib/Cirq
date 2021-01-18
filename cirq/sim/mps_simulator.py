@@ -295,7 +295,7 @@ class MPSState:
         state.num_2d_gates = self.num_2d_gates
         return state
 
-    def _sum_up(self, skip_tracing_out_for_qubits=None):
+    def _sum_up(self, skip_tracing_out_for_qubits):
         M = qtn.Tensor(1.0)
 
         def _trace_out(i):
@@ -352,12 +352,15 @@ class MPSState:
 
         return M
 
-    def state_vector(self):
-        M = self._sum_up()
+    def partial_state_vector(self, skip_tracing_out_for_qubits):
+        M = self._sum_up(skip_tracing_out_for_qubits=skip_tracing_out_for_qubits)
         # Here, we rely on the formatting of the indices, and the fact that we have enough
         # leading zeros so that 003 comes before 100.
         sorted_ind = tuple(sorted(M.inds))
         return M.fuse({'i': sorted_ind}).data
+
+    def state_vector(self):
+        return self.partial_state_vector(skip_tracing_out_for_qubits={})
 
     def to_numpy(self) -> np.ndarray:
         return self.state_vector()

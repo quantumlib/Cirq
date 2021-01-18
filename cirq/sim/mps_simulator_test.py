@@ -201,10 +201,13 @@ def test_supremacy_big():
         n_rows=7, n_cols=7, cz_depth=6, seed=0
     )
     qubit_order = circuit.all_qubits()
-    circuit.append(cirq.measure(next(iter(qubit_order))))
+    q0 = next(iter(qubit_order))
+    circuit.append(cirq.measure(q0))
 
     mps_simulator = cirq.MPSSimulator(rsum2_cutoff=5e-5)
     result = mps_simulator.simulate(circuit, qubit_order=qubit_order, initial_state=0)
+
+    result.final_state.partial_state_vector({q0})
 
     assert result.final_state.estimation_stats() == {
         'estimated_fidelity': 0.997,
