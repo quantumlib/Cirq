@@ -198,17 +198,19 @@ def test_supremacy_equal():
 
 def test_supremacy_big():
     circuit = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_grid(
-        n_rows=8, n_cols=8, cz_depth=9, seed=0
+        n_rows=7, n_cols=7, cz_depth=6, seed=0
     )
+    qubit_order = circuit.all_qubits()
+    circuit.append(cirq.measure(next(iter(qubit_order))))
 
     mps_simulator = cirq.MPSSimulator(rsum2_cutoff=5e-5)
-    result = mps_simulator.simulate(circuit, qubit_order=circuit.all_qubits(), initial_state=0)
+    result = mps_simulator.simulate(circuit, qubit_order=qubit_order, initial_state=0)
 
     assert result.final_state.estimation_stats() == {
-        'estimated_fidelity': 0.994,
-        'memory_bytes': 34944,
-        'num_2d_gates': 128,
-        'num_coefs_used': 2184,
+        'estimated_fidelity': 0.997,
+        'memory_bytes': 11008,
+        'num_2d_gates': 64,
+        'num_coefs_used': 688,
     }
 
 

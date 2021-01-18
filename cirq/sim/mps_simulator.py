@@ -18,8 +18,9 @@ https://arxiv.org/abs/2002.07730
 """
 
 import collections
+import functools
 import math
-from typing import Any, cast, Dict, List, Iterator, Sequence
+from typing import Any, Dict, List, Iterator, Sequence
 
 import numpy as np
 import quimb.tensor as qtn
@@ -303,12 +304,25 @@ class MPSState:
         # We can aggregate the qubits in any order we want, theoretically. However, it's quite
         # possible to blow up the memory doing so. Instead, we do a greedy search through the
         # qubits that minimizes the memory required at every step.
-        badness_queue = [(qubit, 0) for qubit in self.qubit_map.keys()]
+        qubit_queue = list(self.qubit_map.keys())
 
-        while len(badness_queue) > 0:
-            # Update the badness:
-            for idx in range(len(badness_queue)):
-                qubit = badness_queue[idx][0]
+        # The order of the aggregate matters quite a bit in terms of memory usage. For a 2D grid
+        # we want to have a heuristic is to per diagonals at a time.
+        def qubit_ordering_fn(qubit1, qubit2):
+            if isinstance(qubit1, cirq.GridQubit) and isinstance(qubit2, cirq.GridQubit):
+                delta = (qubit1.row + qubit1.col) - (qubit2.row + qubit2.col)
+                if delta != 0:
+                    return delta
+                return qubit1.row - qubit2.row
+            return self.qubit_map[qubit1] - self.qubit_map[qubit2]
+
+        qubit_queue.sort(key=functools.cmp_to_key(qubit_ordering_fn))
+
+        while len(qubit_queue) > 0:
+            pop_idx = -1
+            # Compute the smallest badness:
+            for idx in range(len(qubit_queue)):
+                qubit = qubit_queue[idx]
                 # We define the badness as the number of elements the tensor M post
                 # aggregation and tracing out.
                 i = self.qubit_map[qubit]
@@ -317,14 +331,18 @@ class MPSState:
 
                 badness = 1
                 for ind, shape in zip(self.M[i].inds, self.M[i].shape):
-                    if ind in uncollapsed_inds and not _trace_out(i):
+                    if ind in uncollapsed_inds or not _trace_out(i):
                         badness *= shape
 
-                badness_queue[idx] = (qubit, badness)
-            badness_queue = sorted(badness_queue, key=lambda x: x[1])
+                if pop_idx == -1:
+                    smallest_badness = badness
+                    pop_idx = idx
+                elif smallest_badness > badness:
+                    smallest_badness > badness
+                    pop_idx = idx
 
             # Pop the element to aggregate
-            qubit, _ = badness_queue.pop(0)
+            qubit = qubit_queue.pop(pop_idx)
 
             i = self.qubit_map[qubit]
             M = M @ self.M[i]
