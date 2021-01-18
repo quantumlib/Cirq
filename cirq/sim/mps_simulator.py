@@ -441,16 +441,18 @@ class MPSState:
         qid_shape = [qubit.dimension for qubit in qubits]
         skip_tracing_out_for_qubits = {self.qubit_map[qubit] for qubit in qubits}
 
-        M = self._sum_up(skip_tracing_out_for_qubits=skip_tracing_out_for_qubits)
+        if collapse_state_vector:
+            state = self
+        else:
+            state = self.copy()
 
-        for i, qubit in enumerate(qubits):
+        for qubit in qubits:
+            n = state.qubit_map[qubit]
+
             # Trace out other qubits
-            M_traced_out = M
-            for j in range(len(qubits)):
-                if j != i:
-                    M_traced_out = _sum_reduce(M_traced_out, self.i_str(self.qubit_map[qubits[j]]))
+            M = state._sum_up(skip_tracing_out_for_qubits={n})
 
-            probs = [abs(x) ** 2 for x in M_traced_out.data]
+            probs = [abs(x) ** 2 for x in M.data]
 
             # Because the computation is approximate, the probabilities do not
             # necessarily add up to 1.0, and thus we re-normalize them.
@@ -462,16 +464,12 @@ class MPSState:
             collapser = np.zeros((d, d))
             collapser[result][result] = 1.0 / math.sqrt(probs[result])
 
-            n = self.qubit_map[qubit]
-
-            old_n = self.i_str(n)
+            old_n = state.i_str(n)
             new_n = 'new_' + old_n
 
             collapser = qtn.Tensor(collapser, inds=(new_n, old_n))
 
-            if collapse_state_vector:
-                self.M[n] = (collapser @ self.M[n]).reindex({new_n: old_n})
-            M = (collapser @ M).reindex({new_n: old_n})
+            state.M[n] = (collapser @ state.M[n]).reindex({new_n: old_n})
 
             results.append(result)
 
