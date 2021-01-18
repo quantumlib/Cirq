@@ -307,7 +307,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         decoded = collections.defaultdict(lambda: {})
         for keys, values in result.metrics['angles'].items():
             for key, value in zip(keys, values):
-                match = re.match(r'(\d+)_(.+)', key)
+                match = re.match(r'(\d+)_(.+)', str(key))
                 if not match:
                     raise ValueError(f'Unknown metric name {key}')
                 index = int(match[1])
