@@ -28,7 +28,6 @@ class IncompatibleMomentError(Exception):
 def floquet_characterization_for_moment(
         moment: Moment,
         options: FloquetPhasedFSimCalibrationOptions,
-        gate_set: SerializableGateSet,
         gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
         pairs_in_canonical_order: bool = False,
         pairs_sorted: bool = False
@@ -83,7 +82,6 @@ def floquet_characterization_for_moment(
 # TODO: Add support for CircuitOperations.
 def floquet_characterization_for_circuit(
         circuit: Circuit,
-        gate_set: SerializableGateSet,
         gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
         options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.
             all_except_for_chi_options(),
@@ -146,7 +144,7 @@ def floquet_characterization_for_circuit(
     pairs_map = {}
 
     for moment in circuit:
-        calibration = floquet_characterization_for_moment(moment, options, gate_set, gates_translator,
+        calibration = floquet_characterization_for_moment(moment, options, gates_translator,
                                                           pairs_in_canonical_order=True,
                                                           pairs_sorted=True)
 
@@ -220,8 +218,8 @@ def run_floquet_characterization_for_circuit(
         progress_func: Optional[Callable[[int, int], None]] = None
 ) -> Tuple[List[PhasedFSimCalibrationResult], List[Optional[int]]]:
     requests, mapping = floquet_characterization_for_circuit(
-        circuit, gate_set, gates_translator, options, merge_sub_sets=merge_sub_sets)
-    results = run_characterizations(requests, engine, processor_id,
+        circuit, gates_translator, options, merge_sub_sets=merge_sub_sets)
+    results = run_characterizations(requests, engine, processor_id, gate_set,
                                     max_layers_per_request=max_layers_per_request,
                                     progress_func=progress_func)
     return results, mapping
