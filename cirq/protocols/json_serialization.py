@@ -663,7 +663,7 @@ def to_json(
 def read_json(
     file_or_fn: Union[None, IO, pathlib.Path, str] = None,
     *,
-    json_text: Optional[Union[str, bytes]] = None,
+    json_text: Optional[str] = None,
     resolvers: Optional[Sequence[JsonResolver]] = None,
 ):
     """Read a JSON file that optionally contains cirq objects.
@@ -705,7 +705,7 @@ def read_json(
     return json.load(cast(IO, file_or_fn), object_hook=obj_hook)
 
 
-def to_gzip(
+def to_json_gzip(
     obj: Any,
     file_or_fn: Union[None, IO, pathlib.Path, str] = None,
     *,
@@ -726,7 +726,7 @@ def to_gzip(
     return None
 
 
-def read_gzip(
+def read_json_gzip(
     file_or_fn: Union[None, IO, pathlib.Path, str] = None,
     *,
     gzip_raw: Optional[bytes] = None,
@@ -736,7 +736,7 @@ def read_gzip(
         raise ValueError('Must specify ONE of "file_or_fn" or "gzip_raw".')
 
     if gzip_raw is not None:
-        json_str = gzip.decompress(gzip_raw)
+        json_str = gzip.decompress(gzip_raw).decode(encoding='utf-8')
         return read_json(json_text=json_str, resolvers=resolvers)
 
     with gzip.open(file_or_fn, 'rt') as json_file:  # type: ignore

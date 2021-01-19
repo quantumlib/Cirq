@@ -91,10 +91,10 @@ def test_op_roundtrip_filename(tmpdir):
     op2 = cirq.read_json(filename)
     assert op1 == op2
 
-    gzip_filename = f'{tmpdir}/op.gzip'
-    cirq.to_gzip(op1, gzip_filename)
+    gzip_filename = f'{tmpdir}/op.gz'
+    cirq.to_json_gzip(op1, gzip_filename)
     assert os.path.exists(gzip_filename)
-    op3 = cirq.read_gzip(gzip_filename)
+    op3 = cirq.read_json_gzip(gzip_filename)
     assert op1 == op3
 
 
@@ -109,12 +109,12 @@ def test_op_roundtrip_file_obj(tmpdir):
         op2 = cirq.read_json(file)
         assert op1 == op2
 
-    gzip_filename = f'{tmpdir}/op.gzip'
+    gzip_filename = f'{tmpdir}/op.gz'
     with open(gzip_filename, 'w+b') as gzip_file:
-        cirq.to_gzip(op1, gzip_file)
+        cirq.to_json_gzip(op1, gzip_file)
         assert os.path.exists(gzip_filename)
         gzip_file.seek(0)
-        op3 = cirq.read_gzip(gzip_file)
+        op3 = cirq.read_json_gzip(gzip_file)
         assert op1 == op3
 
 
@@ -666,17 +666,17 @@ def test_to_from_strings():
         cirq.read_json(io.StringIO(), json_text=x_json_text)
 
 
-def test_to_from_gzip():
+def test_to_from_json_gzip():
     a, b = cirq.LineQubit.range(2)
     test_circuit = cirq.Circuit(cirq.H(a), cirq.CX(a, b))
-    gzip_data = cirq.to_gzip(test_circuit)
-    unzip_circuit = cirq.read_gzip(gzip_raw=gzip_data)
+    gzip_data = cirq.to_json_gzip(test_circuit)
+    unzip_circuit = cirq.read_json_gzip(gzip_raw=gzip_data)
     assert test_circuit == unzip_circuit
 
     with pytest.raises(ValueError):
-        _ = cirq.read_gzip(io.StringIO(), gzip_raw=gzip_data)
+        _ = cirq.read_json_gzip(io.StringIO(), gzip_raw=gzip_data)
     with pytest.raises(ValueError):
-        _ = cirq.read_gzip()
+        _ = cirq.read_json_gzip()
 
 
 def _eval_repr_data_file(path: pathlib.Path):
@@ -775,9 +775,9 @@ def test_pathlib_paths(tmpdir):
     cirq.to_json(cirq.X, path)
     assert cirq.read_json(path) == cirq.X
 
-    gzip_path = pathlib.Path(tmpdir) / 'op.gzip'
-    cirq.to_gzip(cirq.X, gzip_path)
-    assert cirq.read_gzip(gzip_path) == cirq.X
+    gzip_path = pathlib.Path(tmpdir) / 'op.gz'
+    cirq.to_json_gzip(cirq.X, gzip_path)
+    assert cirq.read_json_gzip(gzip_path) == cirq.X
 
 
 def test_json_serializable_dataclass():

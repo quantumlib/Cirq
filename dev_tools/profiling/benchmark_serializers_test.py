@@ -20,7 +20,7 @@ from dev_tools.profiling import benchmark_serializers
 def test_gzip_serializer():
     for num_gates in (10, 20):
         for nesting_depth in (1, 8):
-            benchmark_serializers.serialize('gzip', num_gates, nesting_depth)
+            benchmark_serializers.serialize('json_gzip', num_gates, nesting_depth)
 
 
 def test_json_serializer():
