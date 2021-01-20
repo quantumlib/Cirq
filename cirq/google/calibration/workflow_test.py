@@ -28,11 +28,7 @@ from cirq.google.calibration.phased_fsim import (
 
 
 SQRT_ISWAP_PARAMETERS = cirq.google.PhasedFSimCharacterization(
-    theta=np.pi / 4,
-    zeta=0.0,
-    chi=0.0,
-    gamma=0.0,
-    phi=0.0
+    theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
 )
 SQRT_ISWAP_GATE = cirq.FSimGate(np.pi / 4, 0.0)
 
@@ -202,41 +198,23 @@ def test_run_characterization(engine):
 
 @pytest.mark.parametrize(
     'theta,zeta,chi,gamma,phi',
-    itertools.product(
-        [0.1, 0.7],
-        [-0.3, 0.1, 0.5],
-        [-0.3, 0.2, 0.4],
-        [-0.6, 0.1, 0.6],
-        [0.2, 0.6]
-    )
+    itertools.product([0.1, 0.7], [-0.3, 0.1, 0.5], [-0.3, 0.2, 0.4], [-0.6, 0.1, 0.6], [0.2, 0.6]),
 )
-
-
 def test_create_corrected_fsim_gate(
-        theta: float, zeta: float, chi: float, gamma: float, phi: float
+    theta: float, zeta: float, chi: float, gamma: float, phi: float
 ) -> None:
     a, b = cirq.LineQubit.range(2)
 
-    expected_gate = cirq.PhasedFSimGate(
-        theta=theta,
-        zeta=-zeta,
-        chi=-chi,
-        gamma=-gamma,
-        phi=phi
-    )
+    expected_gate = cirq.PhasedFSimGate(theta=theta, zeta=-zeta, chi=-chi, gamma=-gamma, phi=phi)
     expected = cirq.unitary(expected_gate)
 
     corrected_gate, corrected_mapping = workflow.create_corrected_fsim_gate(
         (a, b),
         cirq.FSimGate(theta=theta, phi=phi),
         cirq.google.PhasedFSimCharacterization(
-            theta=theta,
-            zeta=zeta,
-            chi=chi,
-            gamma=gamma,
-            phi=phi
+            theta=theta, zeta=zeta, chi=chi, gamma=gamma, phi=phi
         ),
-        5
+        5,
     )
     actual = cirq.unitary(cirq.Circuit(corrected_gate))
 
@@ -245,33 +223,33 @@ def test_create_corrected_fsim_gate(
 
 
 def test_run_floquet_calibration() -> None:
-    parameters_ab = cirq.google.PhasedFSimCharacterization(
-        zeta=0.5, chi=0.4, gamma=0.3
-    )
-    parameters_bc = cirq.google.PhasedFSimCharacterization(
-        zeta=-0.5, chi=-0.4, gamma=-0.3
-    )
-    parameters_cd = cirq.google.PhasedFSimCharacterization(
-        zeta=0.2, chi=0.3, gamma=0.4
-    )
+    parameters_ab = cirq.google.PhasedFSimCharacterization(zeta=0.5, chi=0.4, gamma=0.3)
+    parameters_bc = cirq.google.PhasedFSimCharacterization(zeta=-0.5, chi=-0.4, gamma=-0.3)
+    parameters_cd = cirq.google.PhasedFSimCharacterization(zeta=0.2, chi=0.3, gamma=0.4)
 
     a, b, c, d = cirq.LineQubit.range(4)
     engine_simulator = cirq.google.PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
         parameters={
             (a, b): parameters_ab.merge_with(SQRT_ISWAP_PARAMETERS),
             (b, c): parameters_bc.merge_with(SQRT_ISWAP_PARAMETERS),
-            (c, d): parameters_cd.merge_with(SQRT_ISWAP_PARAMETERS)
+            (c, d): parameters_cd.merge_with(SQRT_ISWAP_PARAMETERS),
         }
     )
 
-    circuit = cirq.Circuit([
-        [cirq.X(a), cirq.Y(c)],
-        [cirq.FSimGate(np.pi / 4, 0.0).on(a, b), cirq.FSimGate(np.pi / 4, 0.0).on(c, d)],
-        [cirq.FSimGate(np.pi / 4, 0.0).on(b, c)]
-    ])
+    circuit = cirq.Circuit(
+        [
+            [cirq.X(a), cirq.Y(c)],
+            [cirq.FSimGate(np.pi / 4, 0.0).on(a, b), cirq.FSimGate(np.pi / 4, 0.0).on(c, d)],
+            [cirq.FSimGate(np.pi / 4, 0.0).on(b, c)],
+        ]
+    )
 
-    (calibrated, calibrations, mapping, calibrated_parameters
-     ) = workflow.run_floquet_phased_calibration_for_circuit(
+    (
+        calibrated,
+        calibrations,
+        mapping,
+        calibrated_parameters,
+    ) = workflow.run_floquet_phased_calibration_for_circuit(
         circuit,
         engine_simulator,
         processor_id=None,
@@ -281,70 +259,54 @@ def test_run_floquet_calibration() -> None:
             characterize_zeta=True,
             characterize_chi=True,
             characterize_gamma=True,
-            characterize_phi=False
-        )
+            characterize_phi=False,
+        ),
     )
 
     assert cirq.allclose_up_to_global_phase(
-        engine_simulator.final_state_vector(calibrated), cirq.final_state_vector(circuit))
+        engine_simulator.final_state_vector(calibrated), cirq.final_state_vector(circuit)
+    )
     assert calibrations == [
         cirq.google.PhasedFSimCalibrationResult(
             gate=cirq.FSimGate(np.pi / 4, 0.0),
-            parameters={
-                (a, b): parameters_ab,
-                (c, d): parameters_cd
-            }
+            parameters={(a, b): parameters_ab, (c, d): parameters_cd},
         ),
         cirq.google.PhasedFSimCalibrationResult(
-            gate=cirq.FSimGate(np.pi / 4, 0.0),
-            parameters={
-                (b, c): parameters_bc
-            }
-        )
+            gate=cirq.FSimGate(np.pi / 4, 0.0), parameters={(b, c): parameters_bc}
+        ),
     ]
     assert mapping == [None, None, 0, None, None, 1, None]
     assert calibrated_parameters == cirq.google.PhasedFSimCharacterization(
-        zeta=0.0,
-        chi=0.0,
-        gamma=0.0
+        zeta=0.0, chi=0.0, gamma=0.0
     )
+
 
 # TODO: Check if calibration preserves moments.
 
 
 def test_run_floquet_calibration_no_chi() -> None:
-    parameters_ab = cirq.google.PhasedFSimCharacterization(
-        theta=np.pi / 4, zeta=0.5, gamma=0.3
-    )
-    parameters_bc = cirq.google.PhasedFSimCharacterization(
-        theta=np.pi / 4, zeta=-0.5, gamma=-0.3
-    )
-    parameters_cd = cirq.google.PhasedFSimCharacterization(
-        theta=np.pi / 4, zeta=0.2, gamma=0.4
-    )
+    parameters_ab = cirq.google.PhasedFSimCharacterization(theta=np.pi / 4, zeta=0.5, gamma=0.3)
+    parameters_bc = cirq.google.PhasedFSimCharacterization(theta=np.pi / 4, zeta=-0.5, gamma=-0.3)
+    parameters_cd = cirq.google.PhasedFSimCharacterization(theta=np.pi / 4, zeta=0.2, gamma=0.4)
 
     a, b, c, d = cirq.LineQubit.range(4)
     engine_simulator = cirq.google.PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
-        parameters={
-            (a, b): parameters_ab,
-            (b, c): parameters_bc,
-            (c, d): parameters_cd
-        },
-        ideal_when_missing_parameter=True
+        parameters={(a, b): parameters_ab, (b, c): parameters_bc, (c, d): parameters_cd},
+        ideal_when_missing_parameter=True,
     )
 
-    circuit = cirq.Circuit([
-        [cirq.X(a), cirq.Y(c)],
-        [cirq.FSimGate(np.pi / 4, 0.0).on(a, b), cirq.FSimGate(np.pi / 4, 0.0).on(c, d)],
-        [cirq.FSimGate(np.pi / 4, 0.0).on(b, c)]
-    ])
+    circuit = cirq.Circuit(
+        [
+            [cirq.X(a), cirq.Y(c)],
+            [cirq.FSimGate(np.pi / 4, 0.0).on(a, b), cirq.FSimGate(np.pi / 4, 0.0).on(c, d)],
+            [cirq.FSimGate(np.pi / 4, 0.0).on(b, c)],
+        ]
+    )
 
     calibrated, *_ = workflow.run_floquet_phased_calibration_for_circuit(
-        circuit,
-        engine_simulator,
-        processor_id=None,
-        gate_set=cirq.google.SQRT_ISWAP_GATESET
+        circuit, engine_simulator, processor_id=None, gate_set=cirq.google.SQRT_ISWAP_GATESET
     )
 
     assert cirq.allclose_up_to_global_phase(
-        engine_simulator.final_state_vector(calibrated), cirq.final_state_vector(circuit))
+        engine_simulator.final_state_vector(calibrated), cirq.final_state_vector(circuit)
+    )
