@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """A simulator that uses numpy's einsum for sparse matrix operations."""
-
+import abc
 import collections
 from typing import Dict, Iterator, List, Type, TYPE_CHECKING, DefaultDict, Tuple, cast, Set
 
@@ -30,6 +30,77 @@ from cirq.sim.simulator import check_all_resolved
 
 if TYPE_CHECKING:
     import cirq
+
+
+class AbstractState(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def create(self, initial_state, qubits):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def act_on_state(self, op, sim_state):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def step_result(self, sim_state, qubit_map):
+        raise NotImplementedError()
+
+    @property
+    @abc.abstractmethod
+    def dtype(self):
+        raise NotImplementedError()
+
+    @property
+    @abc.abstractmethod
+    def prng(self):
+        raise NotImplementedError()
+
+
+class SparseState(AbstractState):
+    def __init__(
+        self,
+        *,
+        dtype: Type[np.number] = np.complex64,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ):
+        if np.dtype(dtype).kind != 'c':
+            raise ValueError('dtype must be a complex type but was {}'.format(dtype))
+        self._dtype = dtype
+        self._prng = value.parse_random_state(seed)
+
+    def create(self, initial_state, qubits):
+        num_qubits = len(qubits)
+        qid_shape = protocols.qid_shape(qubits)
+        state = qis.to_valid_state_vector(
+            initial_state, num_qubits, qid_shape=qid_shape, dtype=self._dtype
+        )
+        sim_state = act_on_state_vector_args.ActOnStateVectorArgs(
+            target_tensor=np.reshape(state, qid_shape),
+            available_buffer=np.empty(qid_shape, dtype=self._dtype),
+            axes=[],
+            prng=self._prng,
+            log_of_measurement_results={},
+        )
+        return sim_state
+
+    def act_on_state(self, op, sim_state):
+        protocols.act_on(op, sim_state)
+
+    def step_result(self, sim_state, qubit_map):
+        return SparseSimulatorStep(
+            state_vector=sim_state.target_tensor,
+            measurements=dict(sim_state.log_of_measurement_results),
+            qubit_map=qubit_map,
+            dtype=self._dtype,
+        )
+
+    @property
+    def dtype(self):
+        return self._dtype
+
+    @property
+    def prng(self):
+        return self._prng
 
 
 class Simulator(
@@ -117,6 +188,7 @@ class Simulator(
         *,
         dtype: Type[np.number] = np.complex64,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        state_algo: AbstractState = None,
     ):
         """A sparse matrix simulator.
 
@@ -125,10 +197,7 @@ class Simulator(
                 `numpy.complex64` or `numpy.complex128`.
             seed: The random seed to use for this simulator.
         """
-        if np.dtype(dtype).kind != 'c':
-            raise ValueError('dtype must be a complex type but was {}'.format(dtype))
-        self._dtype = dtype
-        self._prng = value.parse_random_state(seed)
+        self.state_algo = state_algo or SparseState(dtype=dtype, seed=seed)
 
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
@@ -159,7 +228,7 @@ class Simulator(
             return step_result.sample_measurement_ops(
                 measurement_ops=cast(List[ops.GateOperation], general_ops),
                 repetitions=repetitions,
-                seed=self._prng,
+                seed=self.state_algo.prng,
             )
 
         qid_shape = protocols.qid_shape(qubit_order)
@@ -201,35 +270,18 @@ class Simulator(
         perform_measurements: bool = True,
     ) -> Iterator['SparseSimulatorStep']:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        num_qubits = len(qubits)
-        qid_shape = protocols.qid_shape(qubits)
+        sim_state = self.state_algo.create(initial_state, qubits)
         qubit_map = {q: i for i, q in enumerate(qubits)}
-        state = qis.to_valid_state_vector(
-            initial_state, num_qubits, qid_shape=qid_shape, dtype=self._dtype
-        )
         if len(circuit) == 0:
-            yield SparseSimulatorStep(state, {}, qubit_map, self._dtype)
-
-        sim_state = act_on_state_vector_args.ActOnStateVectorArgs(
-            target_tensor=np.reshape(state, qid_shape),
-            available_buffer=np.empty(qid_shape, dtype=self._dtype),
-            axes=[],
-            prng=self._prng,
-            log_of_measurement_results={},
-        )
+            yield self.state_algo.step_result(sim_state, qubit_map)
 
         for moment in circuit:
             for op in moment:
                 if perform_measurements or not isinstance(op.gate, ops.MeasurementGate):
                     sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
-                    protocols.act_on(op, sim_state)
+                    self.state_algo.act_on_state(op, sim_state)
 
-            yield SparseSimulatorStep(
-                state_vector=sim_state.target_tensor,
-                measurements=dict(sim_state.log_of_measurement_results),
-                qubit_map=qubit_map,
-                dtype=self._dtype,
-            )
+            yield self.state_algo.step_result(sim_state, qubit_map)
             sim_state.log_of_measurement_results.clear()
 
 
