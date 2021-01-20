@@ -40,6 +40,7 @@ def test_initial_state():
 
 def test_run():
     (q0, q1, q2) = (cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2))
+    qubit_map = {q0: 0, q1: 1, q2: 2}
 
     """
     0: ───H───@───────────────X───M───────────
@@ -67,10 +68,16 @@ def test_run():
         cirq.measure(q1),
         strategy=cirq.InsertStrategy.NEW,
     )
-    # CliffordSimulator uses StabilizerStateChForm internally.
-    # TODO: Use StabilizerStateChForm directly through `act_on` once
-    #  MeasurementGate is updated to use `_measure` from StabilizerStateChForm.
-    simulator = cirq.CliffordSimulator()
-    result = simulator.run(circuit, repetitions=10)
-    assert all(result.measurements['1'] == 1)
-    assert all(result.measurements['0'] != result.measurements['2'])
+    for _ in range(10):
+        state = cirq.StabilizerStateChForm(num_qubits=3)
+        measurements = {}
+        for op in circuit.all_operations():
+            args = cirq.ActOnStabilizerCHFormArgs(
+                state,
+                axes=[qubit_map[i] for i in op.qubits],
+                prng=np.random.RandomState(),
+                log_of_measurement_results=measurements,
+            )
+            cirq.act_on(op, args)
+        assert measurements['1'] == [1]
+        assert measurements['0'] != measurements['2']
