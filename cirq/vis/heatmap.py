@@ -37,8 +37,11 @@ ValueMap = Union[Dict[grid_qubit.GridQubit, SupportsFloat], Dict[Tuple[int, int]
 def _get_qubit_row_col(qubit: QubitCoordinate) -> Tuple[int, int]:
     if isinstance(qubit, grid_qubit.GridQubit):
         return qubit.row, qubit.col
-    elif isinstance(qubit, tuple):
-        return qubit[0], qubit[1]
+    elif isinstance(qubit, tuple) and len(qubit) == 2:
+        return int(qubit[0]), int(qubit[1])
+    else:
+        raise ValueError("The key of value_map or other maps provided for HeatMap should be either "
+                         "GridQubit or a tuple with two integers.")
 
 
 def relative_luminance(color: np.ndarray) -> float:

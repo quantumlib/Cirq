@@ -226,20 +226,70 @@ def test_urls(ax, test_GridQubit):
     assert mesh.get_urls() == expected_urls
 
 
-def test_colorbar(ax):
+@pytest.mark.parametrize(
+    'position,size,pad',
+    [
+        ('right', "5%", "2%"),
+        ('right', "5%", "10%"),
+        ('right', "20%", "2%"),
+        ('right', "20%", "10%"),
+        ('left', "5%", "2%"),
+        ('left', "5%", "10%"),
+        ('left', "20%", "2%"),
+        ('left', "20%", "10%"),
+        ('top', "5%", "2%"),
+        ('top', "5%", "10%"),
+        ('top', "20%", "2%"),
+        ('top', "20%", "10%"),
+        ('bottom', "5%", "2%"),
+        ('bottom', "5%", "10%"),
+        ('bottom', "20%", "2%"),
+        ('bottom', "20%", "10%"),
+    ],
+)
+def test_colorbar(ax, position, size, pad):
     qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     values = np.random.random(len(qubits))
     test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
     random_heatmap = heatmap.Heatmap(test_value_map).unset_colorbar()
     fig1, ax1 = plt.subplots()
     random_heatmap.plot(ax1)
-    random_heatmap.set_colorbar()
+    random_heatmap.set_colorbar(position=position, size=size, pad=pad)
     fig2, ax2 = plt.subplots()
     random_heatmap.plot(ax2)
+
+    # We need to call draw() explicitly since the figure that has been altered in
+    # the HeatMap._plot_colorbar function.
+    plt.draw()
 
     # Check that the figure has one more object in it when colorbar is on.
     assert len(fig2.get_children()) == len(fig1.get_children()) + 1
 
-    # TODO: Make this is a more thorough test, e.g., we should test that the
-    # position, size and pad arguments are respected.
-    # Github issue: https://github.com/quantumlib/Cirq/issues/2969
+    fig_pos = fig2.get_axes()[0].get_position()
+    colorbar_pos = fig2.get_axes()[1].get_position()
+    size_perc, pad_perc = int(size.replace("%", "")) / 100, int(pad.replace("%", "")) / 100
+
+    # By default, the canvas size for plot is [[0.125, 0.125], [0.9, 0.88]]
+    canvas_size = 0.775 if position in ["left", "right"] else 0.755
+    expected_pad = canvas_size * pad_perc / (1 + size_perc + pad_perc)
+    expected_size = canvas_size * size_perc / (1 + size_perc + pad_perc)
+    if position == "right":
+        pad_distance = colorbar_pos.xmin - fig_pos.xmax
+        colorbar_size = colorbar_pos.xmax - colorbar_pos.xmin
+        assert abs(colorbar_size - expected_size) < 0.01
+        assert abs(pad_distance - expected_pad) < 0.01
+    elif position == "left":
+        pad_distance = fig_pos.xmin - colorbar_pos.xmax
+        colorbar_size = colorbar_pos.xmax - colorbar_pos.xmin
+        assert abs(colorbar_size - expected_size) < 0.01
+        assert abs(pad_distance - expected_pad) < 0.01
+    elif position == "top":
+        pad_distance = colorbar_pos.ymin - fig_pos.ymax
+        colorbar_size = colorbar_pos.ymax - colorbar_pos.ymin
+        assert abs(colorbar_size - expected_size) < 0.01
+        assert abs(pad_distance - expected_pad) < 0.01
+    elif position == "bottom":
+        pad_distance = fig_pos.ymin - colorbar_pos.ymax
+        colorbar_size = colorbar_pos.ymax - colorbar_pos.ymin
+        assert abs(colorbar_size - expected_size) < 0.01
+        assert abs(pad_distance - expected_pad) < 0.01
