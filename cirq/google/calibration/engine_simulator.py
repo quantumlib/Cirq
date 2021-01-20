@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union, cast
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union, cast
 
 import numpy as np
 import random
@@ -249,16 +249,15 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         converted = self._convert_to_circuit_with_drift(circuit)
         return self._simulator._run(converted, param_resolver, repetitions)
 
-    def _simulator_iterator(
+    def _base_iterator(
         self,
         circuit: Circuit,
-        param_resolver: ParamResolver,
         qubit_order: QubitOrderOrList,
-        initial_state: np.ndarray,
-    ) -> Iterator:
+        initial_state: Any,
+    ) -> Iterator['StepResult']:
         converted = self._convert_to_circuit_with_drift(circuit)
-        return self._simulator._simulator_iterator(
-            converted, param_resolver, qubit_order, initial_state
+        return self._simulator._base_iterator(
+            converted, qubit_order, initial_state
         )
 
     def _convert_to_circuit_with_drift(self, circuit: Circuit) -> Circuit:
