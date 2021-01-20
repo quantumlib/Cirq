@@ -256,9 +256,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         initial_state: Any,
     ) -> Iterator['StepResult']:
         converted = self._convert_to_circuit_with_drift(circuit)
-        return self._simulator._base_iterator(
-            converted, qubit_order, initial_state
-        )
+        return self._simulator._base_iterator(converted, qubit_order, initial_state)
 
     def _convert_to_circuit_with_drift(self, circuit: Circuit) -> Circuit:
         copied = Circuit(circuit)
