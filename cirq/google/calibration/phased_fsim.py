@@ -392,7 +392,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
 
 class IncompatibleMomentError(Exception):
-    pass
+    """Error that occurs when a moment is not supported by a calibration routine."""
 
 
 # TODO: Add support for ISWAP ** 0.5 as well.

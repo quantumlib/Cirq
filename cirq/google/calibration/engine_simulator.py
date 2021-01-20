@@ -1,7 +1,8 @@
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union, cast
 
-import numpy as np
 import random
+
+import numpy as np
 
 from cirq.circuits import Circuit, PointOptimizer, PointOptimizationSummary
 from cirq.ops import (

@@ -40,10 +40,6 @@ from cirq.google.serializable_gate_set import SerializableGateSet
 from itertools import zip_longest
 
 
-class IncompatibleMomentError(Exception):
-    """Error that occurs when a moment is not supported by a calibration routine."""
-
-
 def floquet_characterization_for_moment(
     moment: Moment,
     options: FloquetPhasedFSimCalibrationOptions,
