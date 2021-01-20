@@ -1,3 +1,4 @@
+import itertools
 import numpy as np
 import pytest
 import sympy
@@ -482,13 +483,6 @@ def test_json_roundtrip():
     state.apply_unitary(cirq.S(q1))
     state_roundtrip.apply_unitary(cirq.S(q1))
 
-    # The (de)stabilizers should be the same.
-    assert state.stabilizers() == state_roundtrip.stabilizers()
-    assert state.destabilizers() == state_roundtrip.destabilizers()
-
-    # Also check that the tableaux are also unchanged.
-    assert state.tableau._str_full_() == state_roundtrip.tableau._str_full_()
-
     # And the CH form isn't changed either.
     assert np.allclose(state.ch_form.state_vector(), state_roundtrip.ch_form.state_vector())
 
@@ -537,3 +531,16 @@ def test_reset():
     assert cirq.CliffordSimulator().sample(c)["out"][0] == 0
     c = cirq.Circuit(cirq.reset(q), cirq.measure(q, key="out"))
     assert cirq.CliffordSimulator().sample(c)["out"][0] == 0
+
+
+def test_state_copy():
+    sim = cirq.CliffordSimulator()
+
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.H(q), cirq.H(q))
+
+    state_ch_forms = []
+    for step in sim.simulate_moment_steps(circuit):
+        state_ch_forms.append(step.state.ch_form)
+    for x, y in itertools.combinations(state_ch_forms, 2):
+        assert not np.shares_memory(x.v, y.v)
