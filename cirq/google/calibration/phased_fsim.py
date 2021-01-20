@@ -206,7 +206,8 @@ class PhasedFSimCalibrationResult:
         }
 
 
-@dataclasses.dataclass(frozen=True)
+# We have to relax a mypy constraint, see https://github.com/python/mypy/issues/5374
+@dataclasses.dataclass(frozen=True) # type: ignore
 class PhasedFSimCalibrationRequest(abc.ABC):
     """Description of the request to characterize PhasedFSimGate.
 
