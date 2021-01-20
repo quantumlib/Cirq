@@ -22,14 +22,7 @@ import numpy as np
 import re
 
 from cirq.circuits import Circuit
-from cirq.ops import (
-    FSimGate,
-    Gate,
-    ISwapPowGate,
-    PhasedFSimGate,
-    PhasedISwapPowGate,
-    Qid
-)
+from cirq.ops import FSimGate, Gate, ISwapPowGate, PhasedFSimGate, PhasedISwapPowGate, Qid
 from cirq.google.api import v2
 from cirq.google.engine import CalibrationLayer, CalibrationResult
 
@@ -235,22 +228,24 @@ class FloquetPhasedFSimCalibrationOptions:
 
     @staticmethod
     def all_options() -> 'FloquetPhasedFSimCalibrationOptions':
+        """Gives options with all angles characterization requests set to True."""
         return FloquetPhasedFSimCalibrationOptions(
             characterize_theta=True,
             characterize_zeta=True,
             characterize_chi=True,
             characterize_gamma=True,
-            characterize_phi=True
+            characterize_phi=True,
         )
 
     @staticmethod
     def all_except_for_chi_options() -> 'FloquetPhasedFSimCalibrationOptions':
+        """Gives options with all but chi angle characterization requests set to True."""
         return FloquetPhasedFSimCalibrationOptions(
             characterize_theta=True,
             characterize_zeta=True,
             characterize_chi=False,
             characterize_gamma=True,
-            characterize_phi=True
+            characterize_phi=True,
         )
 
 
@@ -330,10 +325,12 @@ def sqrt_iswap_gates_translator(gate: Gate) -> Optional[FSimGate]:
     elif isinstance(gate, ISwapPowGate):
         angle = -gate.exponent * np.pi / 2
     elif isinstance(gate, PhasedFSimGate):
-        if (not np.isclose(gate.zeta, 0.0) or
-                not np.isclose(gate.chi, 0.0) or
-                not np.isclose(gate.gamma, 0.0) or
-                not np.isclose(gate.phi, 0.0)):
+        if (
+            not np.isclose(gate.zeta, 0.0)
+            or not np.isclose(gate.chi, 0.0)
+            or not np.isclose(gate.gamma, 0.0)
+            or not np.isclose(gate.phi, 0.0)
+        ):
             return None
         angle = gate.theta
     elif isinstance(gate, PhasedISwapPowGate):
