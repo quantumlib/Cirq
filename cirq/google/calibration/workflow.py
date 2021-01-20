@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional, Tuple, Union, cast
+from typing import Callable, List, Optional, Tuple, cast
 
 from cirq.circuits import Circuit
 from cirq.ops import FSimGate, Gate, GateOperation, MeasurementGate, Moment, Qid, SingleQubitGate
@@ -99,7 +99,8 @@ def floquet_characterization_for_moment(
 #  fast moment matching structure.
 def floquet_characterization_for_circuit(
     circuit: Circuit,
-    options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.all_except_for_chi_options(),
+    options: FloquetPhasedFSimCalibrationOptions =
+        FloquetPhasedFSimCalibrationOptions.all_except_for_chi_options(),
     gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
     merge_sub_sets: bool = True,
     initial: Optional[Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]] = None,

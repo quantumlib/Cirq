@@ -18,8 +18,9 @@ import abc
 import collections
 import dataclasses
 import functools
-import numpy as np
 import re
+
+import numpy as np
 
 from cirq.circuits import Circuit
 from cirq.ops import FSimGate, Gate, ISwapPowGate, PhasedFSimGate, PhasedISwapPowGate, Qid

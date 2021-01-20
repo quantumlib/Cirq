@@ -1,6 +1,7 @@
+import numpy as np
+
 import cirq
 import cirq.google.calibration.workflow as workflow
-import numpy as np
 
 SQRT_ISWAP_GATE = cirq.FSimGate(np.pi / 4, 0.0)
 
