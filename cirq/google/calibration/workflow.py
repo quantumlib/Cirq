@@ -13,6 +13,8 @@
 # limitations under the License.
 from typing import Callable, List, Optional, Tuple, Union, cast
 
+from itertools import zip_longest
+
 from cirq.circuits import Circuit
 from cirq.ops import (
     FSimGate,
@@ -37,7 +39,6 @@ from cirq.google.calibration.phased_fsim import (
 )
 from cirq.google.engine import Engine
 from cirq.google.serializable_gate_set import SerializableGateSet
-from itertools import zip_longest
 
 
 def floquet_characterization_for_moment(
@@ -456,12 +457,13 @@ def run_floquet_phased_calibration_for_circuit(
     Circuit, List[PhasedFSimCalibrationResult], List[Optional[int]], PhasedFSimCharacterization
 ]:
     requests, mapping = floquet_characterization_for_circuit(
-        circuit, gate_set, gates_translator, options, merge_sub_sets=merge_sub_sets
+        circuit, options, gates_translator, merge_sub_sets=merge_sub_sets
     )
     characterizations = run_characterizations(
         requests,
         engine,
         processor_id,
+        gate_set,
         max_layers_per_request=max_layers_per_request,
         progress_func=progress_func,
     )
