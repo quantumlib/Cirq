@@ -69,7 +69,6 @@ from cirq.circuits import (
     AbstractCircuit,
     Circuit,
     CircuitDag,
-    SparseCircuitDag,
     CircuitOperation,
     FrozenCircuit,
     InsertStrategy,
@@ -77,6 +76,7 @@ from cirq.circuits import (
     PointOptimizer,
     QasmOutput,
     QuilOutput,
+    SparseCircuitDag,
     TextDiagramDrawer,
     Unique,
 )

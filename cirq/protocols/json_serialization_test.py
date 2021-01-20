@@ -322,6 +322,7 @@ NOT_YET_SERIALIZABLE = [
     'SerializableGateSet',
     'SimulationTrialResult',
     'SingleQubitCliffordGate',
+    'SparseCircuitDag',
     'SparseSimulatorStep',
     'SQRT_ISWAP_GATESET',
     'StateVectorMixin',

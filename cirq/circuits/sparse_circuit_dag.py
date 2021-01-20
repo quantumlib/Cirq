@@ -2,7 +2,6 @@ from typing import (
     Any,
     Callable,
     Dict,
-    Generator,
     Iterator,
     Iterable,
     Set,
@@ -14,7 +13,7 @@ import itertools
 import operator
 import networkx
 
-from cirq import ops, devices, qis
+from cirq import ops, devices
 from cirq.circuits import circuit
 from cirq.ops.moment import Moment
 
