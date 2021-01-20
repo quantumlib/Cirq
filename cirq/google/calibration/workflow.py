@@ -16,8 +16,6 @@ from cirq.google.serializable_gate_set import SerializableGateSet
 class IncompatibleMomentError(Exception):
     """Error that occurs when a moment is not supported by a calibration routine."""
 
-    pass
-
 
 def floquet_characterization_for_moment(
     moment: Moment,
@@ -218,6 +216,11 @@ def run_characterizations(
         engine: cirq.google.Engine object used for running the calibrations.
         processor_id: processor_id passed to engine.run_calibrations method.
         gate_set: Gate set to use for characterization request.
+        max_layers_per_request: Maximum number of calibration requests issued to cirq.Engine at a
+            single time. Defaults to 1.
+        progress_func: Optional callback function that might be used to report the calibration
+            progress. The callback is called with two integers, the first one being a number of
+            layers already calibrated and the second one the total number of layers to calibrate.
 
     Returns:
         List of PhasedFSimCalibrationResult for each requested calibration.
@@ -265,7 +268,10 @@ def run_floquet_characterization_for_circuit(
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
 ) -> Tuple[List[PhasedFSimCalibrationResult], List[Optional[int]]]:
-    """
+    """Extracts moments within a circuit to characterize and characterizes them against engine.
+
+    The method calls floquet_characterization_for_circuit to extract moments to characterize and
+    run_characterizations to characterize them.
 
     Args:
         circuit: Circuit to characterize.
@@ -278,11 +284,22 @@ def run_floquet_characterization_for_circuit(
             characterization. Defaults to sqrt_iswap_gates_translator.
         merge_sub_sets: Whether to merge moments that can be characterized at the same time
             together.
-        max_layers_per_request:
-        progress_func:
+        max_layers_per_request: Maximum number of calibration requests issued to cirq.Engine at a
+            single time. Defaults to 1.
+        progress_func: Optional callback function that might be used to report the calibration
+            progress. The callback is called with two integers, the first one being a number of
+            layers already calibrated and the second one the total number of layers to calibrate.
 
     Returns:
+        Tuple of:
+          - list of PhasedFSimCalibrationResult for each recognized moment to characterize.
+          - list of indices of the generated characterization requests for each moment in the
+            supplied circuit. If None occurs at certain position, it means that the related moment
+            does not require characterization.
 
+    Raises:
+        IncompatibleMomentError when circuit contains a moment with operations other than the
+        operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
     """
     requests, mapping = floquet_characterization_for_circuit(
         circuit, options, gates_translator, merge_sub_sets=merge_sub_sets
