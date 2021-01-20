@@ -1,0 +1,231 @@
+{
+  "cirq_type": "BitstringAccumulator",
+  "meas_spec": {
+    "cirq_type": "_MeasurementSpec",
+    "max_setting": {
+      "cirq_type": "InitObsSetting",
+      "init_state": {
+        "cirq_type": "ProductState",
+        "states": [
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 0
+            },
+            {
+              "cirq_type": "_ZEigenState",
+              "eigenvalue": 1
+            }
+          ],
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 1
+            },
+            {
+              "cirq_type": "_ZEigenState",
+              "eigenvalue": 1
+            }
+          ]
+        ]
+      },
+      "observable": {
+        "cirq_type": "PauliString",
+        "qubit_pauli_map": [
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 0
+            },
+            {
+              "cirq_type": "_PauliX",
+              "exponent": 1.0,
+              "global_shift": 0.0
+            }
+          ],
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 1
+            },
+            {
+              "cirq_type": "_PauliY",
+              "exponent": 1.0,
+              "global_shift": 0.0
+            }
+          ]
+        ],
+        "coefficient": {
+          "cirq_type": "complex",
+          "real": 1.0,
+          "imag": 0.0
+        }
+      }
+    },
+    "circuit_params": {
+      "beta": 0.123,
+      "gamma": 0.456
+    }
+  },
+  "simul_settings": [
+    {
+      "cirq_type": "InitObsSetting",
+      "init_state": {
+        "cirq_type": "ProductState",
+        "states": [
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 0
+            },
+            {
+              "cirq_type": "_ZEigenState",
+              "eigenvalue": 1
+            }
+          ],
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 1
+            },
+            {
+              "cirq_type": "_ZEigenState",
+              "eigenvalue": 1
+            }
+          ]
+        ]
+      },
+      "observable": {
+        "cirq_type": "PauliString",
+        "qubit_pauli_map": [
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 0
+            },
+            {
+              "cirq_type": "_PauliX",
+              "exponent": 1.0,
+              "global_shift": 0.0
+            }
+          ],
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 1
+            },
+            {
+              "cirq_type": "_PauliY",
+              "exponent": 1.0,
+              "global_shift": 0.0
+            }
+          ]
+        ],
+        "coefficient": {
+          "cirq_type": "complex",
+          "real": 1.0,
+          "imag": 0.0
+        }
+      }
+    },
+    {
+      "cirq_type": "InitObsSetting",
+      "init_state": {
+        "cirq_type": "ProductState",
+        "states": [
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 0
+            },
+            {
+              "cirq_type": "_ZEigenState",
+              "eigenvalue": 1
+            }
+          ],
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 1
+            },
+            {
+              "cirq_type": "_ZEigenState",
+              "eigenvalue": 1
+            }
+          ]
+        ]
+      },
+      "observable": {
+        "cirq_type": "SingleQubitPauliStringGateOperation",
+        "pauli": {
+          "cirq_type": "_PauliX",
+          "exponent": 1.0,
+          "global_shift": 0.0
+        },
+        "qubit": {
+          "cirq_type": "LineQubit",
+          "x": 0
+        }
+      }
+    },
+    {
+      "cirq_type": "InitObsSetting",
+      "init_state": {
+        "cirq_type": "ProductState",
+        "states": [
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 0
+            },
+            {
+              "cirq_type": "_ZEigenState",
+              "eigenvalue": 1
+            }
+          ],
+          [
+            {
+              "cirq_type": "LineQubit",
+              "x": 1
+            },
+            {
+              "cirq_type": "_ZEigenState",
+              "eigenvalue": 1
+            }
+          ]
+        ]
+      },
+      "observable": {
+        "cirq_type": "SingleQubitPauliStringGateOperation",
+        "pauli": {
+          "cirq_type": "_PauliY",
+          "exponent": 1.0,
+          "global_shift": 0.0
+        },
+        "qubit": {
+          "cirq_type": "LineQubit",
+          "x": 1
+        }
+      }
+    }
+  ],
+  "qubit_to_index": [
+    [
+      {
+        "cirq_type": "LineQubit",
+        "x": 0
+      },
+      0
+    ],
+    [
+      {
+        "cirq_type": "LineQubit",
+        "x": 1
+      },
+      1
+    ]
+  ],
+  "bitstrings": "934e554d5059010076007b276465736372273a20277c7531272c2027666f727472616e5f6f72646572273a2046616c73652c20277368617065273a2028382c2032292c207d202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200a00000001010001010000000101000101",
+  "chunksizes": "934e554d5059010076007b276465736372273a20273c6938272c2027666f727472616e5f6f72646572273a2046616c73652c20277368617065273a2028322c292c207d2020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200a04000000000000000400000000000000",
+  "timestamps": "934e554d5059010076007b276465736372273a20273c4d385b75735d272c2027666f727472616e5f6f72646572273a2046616c73652c20277368617065273a2028322c292c207d20202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200a8cfb2101f8b50500bafb2101f8b50500"
+}
