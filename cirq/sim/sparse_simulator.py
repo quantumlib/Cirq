@@ -15,7 +15,7 @@
 """A simulator that uses numpy's einsum for sparse matrix operations."""
 import abc
 import collections
-from typing import Dict, Iterator, List, Type, TYPE_CHECKING, DefaultDict, Tuple, cast, Set
+from typing import Dict, Iterator, List, Type, TYPE_CHECKING, DefaultDict, Tuple, cast, Set, TypeVar, Generic
 
 import numpy as np
 
@@ -26,23 +26,26 @@ from cirq.sim import (
     state_vector_simulator,
     act_on_state_vector_args,
 )
-from cirq.sim.simulator import check_all_resolved
+from cirq.sim.simulator import check_all_resolved, StepResult
 
 if TYPE_CHECKING:
     import cirq
 
+TState = TypeVar('TState')
+TResult = TypeVar('TResult', bound=StepResult)
 
-class AbstractState(metaclass=abc.ABCMeta):
+
+class AbstractState(Generic[TState, TResult], metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def create_sim_state(self, initial_state, qubits):
+    def create_sim_state(self, initial_state, qubits) -> TState:
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def act_on_state(self, op, sim_state):
+    def act_on_state(self, op, sim_state: TState):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def step_result(self, sim_state, qubit_map):
+    def step_result(self, sim_state: TState, qubit_map) -> TResult:
         raise NotImplementedError()
 
     @property
@@ -51,7 +54,7 @@ class AbstractState(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
 
-class SparseState(AbstractState):
+class SparseState(AbstractState[act_on_state_vector_args.ActOnStateVectorArgs, 'SparseSimulatorStep']):
     def __init__(
         self,
         *,
