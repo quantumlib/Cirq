@@ -6,18 +6,18 @@
     "phi": 0.0
   },
   "parameters": [
-    {
-      "qubit_a": {
+    [
+      {
         "cirq_type": "GridQubit",
         "row": 0,
         "col": 0
       },
-      "qubit_b": {
+      {
         "cirq_type": "GridQubit",
         "row": 0,
         "col": 1
       },
-      "characterization": {
+      {
         "cirq_type": "PhasedFSimCharacterization",
         "theta": 0.1,
         "zeta": 0.2,
@@ -25,19 +25,19 @@
         "gamma": null,
         "phi": 0.3
       }
-    },
-    {
-      "qubit_a": {
+    ],
+    [
+      {
         "cirq_type": "GridQubit",
         "row": 0,
         "col": 2
       },
-      "qubit_b": {
+      {
         "cirq_type": "GridQubit",
         "row": 0,
         "col": 3
       },
-      "characterization": {
+      {
         "cirq_type": "PhasedFSimCharacterization",
         "theta": 0.4,
         "zeta": 0.5,
@@ -45,7 +45,7 @@
         "gamma": null,
         "phi": 0.6
       }
-    }
+    ]
   ],
   "options": {
     "cirq_type": "FloquetPhasedFSimCalibrationOptions",
