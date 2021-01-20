@@ -464,6 +464,7 @@ class BitstringAccumulator:
             var_b = self._readout_calibration.variance(ro_setting)
             f = a / b
 
+            # https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulae
             # assume cov(a,b) = 0, otherwise there would be another term.
             var = f ** 2 * (var_a / (a ** 2) + var_b / (b ** 2))
 
