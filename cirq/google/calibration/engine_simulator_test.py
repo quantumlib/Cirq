@@ -1,12 +1,15 @@
-from typing import Iterable, Tuple, cast
+from typing import Iterable, Tuple
+
+import collections
+
+import numpy as np
 
 from cirq.google.calibration.engine_simulator import (
     PhasedFSimEngineSimulator,
     SQRT_ISWAP_PARAMETERS,
 )
+from cirq.google.calibration import FloquetPhasedFSimCalibrationOptions
 import cirq
-import collections
-import numpy as np
 
 
 def test_floquet_get_calibrations() -> None:
@@ -189,7 +192,8 @@ def test_from_characterizations_sqrt_iswap_simulates_correctly() -> None:
 
 def _create_sqrt_iswap_request(
     pairs: Iterable[Tuple[cirq.Qid, cirq.Qid]],
-    options: cirq.google.FloquetPhasedFSimCalibrationOptions = cirq.google.FloquetPhasedFSimCalibrationOptions.all_options(),
+    options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.
+        all_options(),
 ) -> cirq.google.FloquetPhasedFSimCalibrationRequest:
     return cirq.google.FloquetPhasedFSimCalibrationRequest(
         gate=cirq.FSimGate(np.pi / 4, 0.0), pairs=tuple(pairs), options=options

@@ -28,10 +28,6 @@ from cirq.google.engine import Engine
 from cirq.google.serializable_gate_set import SerializableGateSet
 
 
-class IncompatibleMomentError(Exception):
-    """Error that occurs when a moment is not supported by a calibration routine."""
-
-
 def floquet_characterization_for_moment(
     moment: Moment,
     options: FloquetPhasedFSimCalibrationOptions,
