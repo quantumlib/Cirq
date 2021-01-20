@@ -77,7 +77,13 @@ def test_oneq_state():
 def test_product_state():
     q0, q1, q2 = cirq.LineQubit.range(3)
 
-    ps = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1)
+    plus0 = cirq.KET_PLUS(q0)
+    plus1 = cirq.KET_PLUS(q1)
+    plus2 = cirq.KET_PLUS(q2)
+
+    ps = plus0 * plus1
+    assert str(plus0) == "+X(0)"
+    assert str(plus1) == "+X(1)"
     assert str(ps) == "+X(0) * +X(1)"
 
     ps *= cirq.KET_ONE(q2)
@@ -85,7 +91,7 @@ def test_product_state():
 
     with pytest.raises(ValueError) as e:
         # Re-use q2
-        ps *= cirq.KET_PLUS(q2)
+        ps *= plus2
     assert e.match(r'.*both contain factors for these qubits: ' r'\[cirq.LineQubit\(2\)\]')
 
     ps2 = eval(repr(ps))
