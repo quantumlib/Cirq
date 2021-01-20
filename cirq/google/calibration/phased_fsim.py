@@ -27,7 +27,7 @@ from cirq.google.engine import CalibrationLayer, CalibrationResult
 _FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
 
 if TYPE_CHECKING:
-    # Workaround for mypy custom dataclasses
+    # Workaround for mypy custom dataclasses (python/mypy#5406)
     from dataclasses import dataclass as json_serializable_dataclass
 else:
     from cirq.protocols import json_serializable_dataclass

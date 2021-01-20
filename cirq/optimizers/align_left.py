@@ -12,12 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.google.calibration.phased_fsim import (
-    FloquetPhasedFSimCalibrationOptions,
-    FloquetPhasedFSimCalibrationRequest,
-    FloquetPhasedFSimCalibrationResult,
-    PhasedFSimCalibrationRequest,
-    PhasedFSimCalibrationResult,
-    PhasedFSimCharacterization,
-)
-from cirq.google.calibration.workflow import run_characterizations
+"""An optimization pass that aligns gates to the left of the circuit."""
+
+from cirq import circuits, ops
+from cirq.circuits.insert_strategy import InsertStrategy
+
+
+class AlignLeft:
+    """Aligns gates to the left of the circuit."""
+
+    def __call__(self, circuit: circuits.Circuit):
+        self.optimize_circuit(circuit)
+
+    def optimize_circuit(self, circuit: circuits.Circuit):
+        circuit[:] = circuits.Circuit(circuit.all_operations(), strategy=InsertStrategy.EARLIEST)
