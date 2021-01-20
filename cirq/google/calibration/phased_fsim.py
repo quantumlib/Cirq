@@ -201,7 +201,7 @@ class PhasedFSimCalibrationResult:
 
 
 @dataclasses.dataclass(frozen=True)
-class PhasedFSimCalibrationRequest(abc.ABC):
+class PhasedFSimCalibrationRequest:
     """Description of the request to characterize PhasedFSimGate.
 
     Attributes:
@@ -304,7 +304,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
     # TODO: Handle unsuccessful calibrations and throw appropriate exceptions.
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
-        decoded = collections.defaultdict(lambda: {})
+        decoded: Dict[int, Dict[str, Any]] = collections.defaultdict(lambda: {})
         for keys, values in result.metrics['angles'].items():
             for key, value in zip(keys, values):
                 match = re.match(r'(\d+)_(.+)', str(key))
