@@ -47,11 +47,6 @@ class AbstractState(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def dtype(self):
-        raise NotImplementedError()
-
-    @property
-    @abc.abstractmethod
     def prng(self):
         raise NotImplementedError()
 
@@ -93,10 +88,6 @@ class SparseState(AbstractState):
             qubit_map=qubit_map,
             dtype=self._dtype,
         )
-
-    @property
-    def dtype(self):
-        return self._dtype
 
     @property
     def prng(self):
