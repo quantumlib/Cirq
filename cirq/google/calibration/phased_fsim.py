@@ -201,7 +201,7 @@ class PhasedFSimCalibrationResult:
 
 
 @dataclasses.dataclass(frozen=True)
-class PhasedFSimCalibrationRequest:
+class PhasedFSimCalibrationRequest(abc.ABC):
     """Description of the request to characterize PhasedFSimGate.
 
     Attributes:
