@@ -12,7 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Dict, Iterable, Iterator, List, NamedTuple, Optional, Set, TYPE_CHECKING
+from typing import (
+    cast,
+    Dict,
+    Hashable,
+    Iterable,
+    Iterator,
+    List,
+    NamedTuple,
+    Optional,
+    Set,
+    TYPE_CHECKING,
+)
 
 from collections import OrderedDict
 import numpy as np
@@ -36,6 +47,7 @@ class MeasureInfo(
             ('qubits', List['cirq.GridQubit']),
             ('slot', int),
             ('invert_mask', List[bool]),
+            ('tags', List[Hashable]),
         ],
     )
 ):
@@ -86,6 +98,7 @@ def _circuit_measurements(circuit: 'cirq.Circuit') -> Iterator[MeasureInfo]:
                     qubits=_grid_qubits(op),
                     slot=i,
                     invert_mask=list(op.gate.full_invert_mask()),
+                    tags=list(op.tags),
                 )
 
 
