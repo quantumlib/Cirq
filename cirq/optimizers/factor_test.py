@@ -72,8 +72,6 @@ def test_factor_medium():
                         ),
                     ]
                 ),
-                Moment(),
-                Moment(),
             ]
         ),
     )
@@ -122,8 +120,6 @@ def test_factor_complex():
                         ),
                     ]
                 ),
-                Moment(),
-                Moment(),
                 Moment(
                     [
                         CircuitOperation(
@@ -139,10 +135,6 @@ def test_factor_complex():
                         )
                     ]
                 ),
-                Moment(),
-                Moment(),
-                Moment(),
-                Moment(),
                 Moment(
                     [
                         CircuitOperation(
@@ -165,8 +157,6 @@ def test_factor_complex():
                         ),
                     ]
                 ),
-                Moment(),
-                Moment(),
             ]
         ),
     )

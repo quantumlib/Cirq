@@ -79,7 +79,8 @@ def _add_moment(
     subcircuits: Mapping[EntanglementSet, TempSubcircuit],
 ):
     new_subcircuits = [subcircuit for subcircuit in subcircuits.values() if len(subcircuit) == 0]
-    circuit.append(new_subcircuits)
+    if len(new_subcircuits) != 0:
+        circuit.append(new_subcircuits)
     for qubits, subcircuit in subcircuits.items():
         relevant_operations = filter(lambda op: next(iter(op.qubits)) in qubits, operations)
         subcircuit.append(list(relevant_operations))
