@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 class AbstractState(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def create(self, initial_state, qubits):
+    def create_sim_state(self, initial_state, qubits):
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -63,7 +63,7 @@ class SparseState(AbstractState):
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
 
-    def create(self, initial_state, qubits):
+    def create_sim_state(self, initial_state, qubits):
         num_qubits = len(qubits)
         qid_shape = protocols.qid_shape(qubits)
         state = qis.to_valid_state_vector(
@@ -261,7 +261,7 @@ class Simulator(
         perform_measurements: bool = True,
     ) -> Iterator['SparseSimulatorStep']:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        sim_state = self.state_algo.create(initial_state, qubits)
+        sim_state = self.state_algo.create_sim_state(initial_state, qubits)
         qubit_map = {q: i for i, q in enumerate(qubits)}
         if len(circuit) == 0:
             yield self.state_algo.step_result(sim_state, qubit_map)
