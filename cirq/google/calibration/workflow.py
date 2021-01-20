@@ -43,7 +43,6 @@ def run_characterizations(
 
     requests = [calibration.to_calibration_layer() for calibration in calibrations]
     job = engine.run_calibration(requests, processor_id=processor_id, gate_set=gate_set)
-    print(job)
     return [
         calibration.parse_result(result)
         for calibration, result in zip(calibrations, job.calibration_results())
