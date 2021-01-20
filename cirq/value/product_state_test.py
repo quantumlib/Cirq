@@ -79,7 +79,6 @@ def test_product_state():
 
     plus0 = cirq.KET_PLUS(q0)
     plus1 = cirq.KET_PLUS(q1)
-    plus2 = cirq.KET_PLUS(q2)
 
     ps = plus0 * plus1
     assert str(plus0) == "+X(0)"
@@ -91,7 +90,7 @@ def test_product_state():
 
     with pytest.raises(ValueError) as e:
         # Re-use q2
-        ps *= plus2
+        ps *= cirq.KET_PLUS(q2)
     assert e.match(r'.*both contain factors for these qubits: ' r'\[cirq.LineQubit\(2\)\]')
 
     ps2 = eval(repr(ps))
