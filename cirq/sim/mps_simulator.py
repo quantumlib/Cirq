@@ -276,7 +276,7 @@ class MPSState:
             initial_state = initial_state // d
         self.M = self.M[::-1]
         self.rsum2_cutoff = rsum2_cutoff
-        self.num_2d_gates = 0
+        self.num_svd_splits = 0
 
     def i_str(self, i):
         return self.format_i % (i)
@@ -295,7 +295,7 @@ class MPSState:
     def copy(self) -> 'MPSState':
         state = MPSState(self.qubit_map, self.rsum2_cutoff)
         state.M = [x.copy() for x in self.M]
-        state.num_2d_gates = self.num_2d_gates
+        state.num_svd_splits = self.num_svd_splits
         return state
 
     def _get_qubit_queue(self):
@@ -405,7 +405,7 @@ class MPSState:
             U = qtn.Tensor(U, inds=(new_n, old_n))
             self.M[n] = (U @ self.M[n]).reindex({new_n: old_n})
         elif len(op.qubits) == 2:
-            self.num_2d_gates += 1
+            self.num_svd_splits += 1
 
             n, p = [self.qubit_map[qubit] for qubit in op.qubits]
 
@@ -453,14 +453,14 @@ class MPSState:
 
         # The computation below is done for numerical stability, instead of directly using the
         # formula:
-        # estimated_fidelity = (1 - self.rsum2_cutoff) ** self.num_2d_gates
-        estimated_fidelity = 1.0 + np.expm1(np.log1p(-self.rsum2_cutoff) * self.num_2d_gates)
+        # estimated_fidelity = (1 - self.rsum2_cutoff) ** self.num_svd_splits
+        estimated_fidelity = 1.0 + np.expm1(np.log1p(-self.rsum2_cutoff) * self.num_svd_splits)
         estimated_fidelity = round(estimated_fidelity, ndigits=3)
 
         return {
             "num_coefs_used": num_coefs_used,
             "memory_bytes": memory_bytes,
-            "num_2d_gates": self.num_2d_gates,
+            "num_svd_splits": self.num_svd_splits,
             "estimated_fidelity": estimated_fidelity,
         }
 

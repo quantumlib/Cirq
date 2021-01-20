@@ -212,7 +212,7 @@ def test_supremacy_big():
     assert result.final_state.estimation_stats() == {
         'estimated_fidelity': 0.997,
         'memory_bytes': 11008,
-        'num_2d_gates': 64,
+        'num_svd_splits': 64,
         'num_coefs_used': 688,
     }
 
