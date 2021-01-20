@@ -1,21 +1,28 @@
-from typing import Dict, MutableMapping, Optional, Tuple, TYPE_CHECKING
+# Copyright 2021 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+from typing import Any, Dict, List, MutableMapping, Optional, Tuple, TYPE_CHECKING
 
 import abc
 import collections
 import dataclasses
 import functools
-import numpy as np
 import re
 
+import numpy as np
+
 from cirq.circuits import Circuit
-from cirq.ops import (
-    FSimGate,
-    Gate,
-    ISwapPowGate,
-    PhasedFSimGate,
-    PhasedISwapPowGate,
-    Qid
-)
+from cirq.ops import FSimGate, Gate, ISwapPowGate, PhasedFSimGate, PhasedISwapPowGate, Qid
 from cirq.google.api import v2
 from cirq.google.engine import CalibrationLayer, CalibrationResult
 
@@ -26,7 +33,7 @@ if TYPE_CHECKING:
 _FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
 
 if TYPE_CHECKING:
-    # Workaround for mypy custom dataclasses
+    # Workaround for mypy custom dataclasses (python/mypy#5406)
     from dataclasses import dataclass as json_serializable_dataclass
 else:
     from cirq.protocols import json_serializable_dataclass
@@ -141,7 +148,6 @@ class PhasedFSimCharacterization:
         return other.merge_with(self)
 
 
-# TODO: Add support for JSON serialization
 # TODO: Add start and end calibration timestamp
 # TODO: Add export to Panda's data frame
 @dataclasses.dataclass(frozen=True)
@@ -167,9 +173,41 @@ class PhasedFSimCalibrationResult:
         else:
             return None
 
+    @classmethod
+    def _create_parameters_dict(
+        cls,
+        parameters: List[Tuple[Qid, Qid, PhasedFSimCharacterization]],
+    ) -> Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]:
+        """Utility function to create parameters from JSON.
 
-# TODO: Add support for JSON serialization
-@dataclasses.dataclass(frozen=True)
+        Can be used from child classes to instantiate classes in a _from_json_dict_
+        method."""
+        return {(entry[0], entry[1]): entry[2] for entry in parameters}
+
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        parameters: List[Tuple[Qid, Qid, PhasedFSimCharacterization]],
+        gate: Gate,
+        **kwargs,
+    ) -> 'PhasedFSimCalibrationResult':
+        """Magic method for the JSON serialization protocol.
+
+        Converts serialized dictionary into a dict suitable for
+        class instantiation."""
+        return cls(cls._create_parameters_dict(parameters), gate)
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        """Magic method for the JSON serialization protocol."""
+        return {
+            'cirq_type': 'PhasedFSimCalibrationResult',
+            'gate': self.gate,
+            'parameters': [(key[0], key[1], self.parameters[key]) for key in self.parameters],
+        }
+
+
+# We have to relax a mypy constraint, see https://github.com/python/mypy/issues/5374
+@dataclasses.dataclass(frozen=True)  # type: ignore
 class PhasedFSimCalibrationRequest(abc.ABC):
     """Description of the request to characterize PhasedFSimGate.
 
@@ -200,8 +238,7 @@ class PhasedFSimCalibrationRequest(abc.ABC):
         """Decodes the characterization result issued for this request."""
 
 
-# TODO: Add support for JSON serialization
-@dataclasses.dataclass(frozen=True)
+@json_serializable_dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationOptions:
     """Options specific to Floquet PhasedFSimCalibration.
 
@@ -224,26 +261,27 @@ class FloquetPhasedFSimCalibrationOptions:
 
     @staticmethod
     def all_options() -> 'FloquetPhasedFSimCalibrationOptions':
+        """Gives options with all angles characterization requests set to True."""
         return FloquetPhasedFSimCalibrationOptions(
             characterize_theta=True,
             characterize_zeta=True,
             characterize_chi=True,
             characterize_gamma=True,
-            characterize_phi=True
+            characterize_phi=True,
         )
 
     @staticmethod
     def all_except_for_chi_options() -> 'FloquetPhasedFSimCalibrationOptions':
+        """Gives options with all but chi angle characterization requests set to True."""
         return FloquetPhasedFSimCalibrationOptions(
             characterize_theta=True,
             characterize_zeta=True,
             characterize_chi=False,
             characterize_gamma=True,
-            characterize_phi=True
+            characterize_phi=True,
         )
 
 
-# TODO: Add support for JSON serialization
 @dataclasses.dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationResult(PhasedFSimCalibrationResult):
     """PhasedFSim characterization result specific to Floquet calibration.
@@ -254,8 +292,27 @@ class FloquetPhasedFSimCalibrationResult(PhasedFSimCalibrationResult):
 
     options: FloquetPhasedFSimCalibrationOptions
 
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        parameters: List[Tuple[Qid, Qid, PhasedFSimCharacterization]],
+        gate: Gate,
+        **kwargs,
+    ) -> 'PhasedFSimCalibrationResult':
+        """Magic method for the JSON serialization protocol.
 
-# TODO: Add support for JSON serialization
+        Converts serialized dictionary into a dict suitable for
+        class instantiation."""
+        return cls(cls._create_parameters_dict(parameters), gate, kwargs['options'])
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        """Magic method for the JSON serialization protocol."""
+        result_dict = super()._json_dict_()
+        result_dict['cirq_type'] = 'FloquetPhasedFSimCalibrationResult'
+        result_dict['options'] = self.options
+        return result_dict
+
+
 @dataclasses.dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     """PhasedFSim characterization request specific to Floquet calibration.
@@ -283,10 +340,10 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
     # TODO: Handle unsuccessful calibrations and throw appropriate exceptions.
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
-        decoded = collections.defaultdict(lambda: {})
+        decoded: Dict[int, Dict[str, Any]] = collections.defaultdict(lambda: {})
         for keys, values in result.metrics['angles'].items():
             for key, value in zip(keys, values):
-                match = re.match(r'(\d+)_(.+)', key)
+                match = re.match(r'(\d+)_(.+)', str(key))
                 if not match:
                     raise ValueError(f'Unknown metric name {key}')
                 index = int(match[1])
@@ -309,6 +366,30 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             parameters=parsed, gate=self.gate, options=self.options
         )
 
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        gate: Gate,
+        pairs: List[Tuple[Qid, Qid]],
+        options: FloquetPhasedFSimCalibrationOptions,
+        **kwargs,
+    ) -> 'PhasedFSimCalibrationRequest':
+        """Magic method for the JSON serialization protocol.
+
+        Converts serialized dictionary into a dict suitable for
+        class instantiation."""
+        instantiation_pairs = tuple((entry[0], entry[1]) for entry in pairs)
+        return cls(instantiation_pairs, gate, options)
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        """Magic method for the JSON serialization protocol."""
+        return {
+            'cirq_type': 'FloquetPhasedFSimCalibrationRequest',
+            'pairs': [(pair[0], pair[1]) for pair in self.pairs],
+            'gate': self.gate,
+            'options': self.options,
+        }
+
 
 class IncompatibleMomentError(Exception):
     pass
@@ -323,10 +404,12 @@ def sqrt_iswap_gates_translator(gate: Gate) -> Optional[FSimGate]:
     elif isinstance(gate, ISwapPowGate):
         angle = -gate.exponent * np.pi / 2
     elif isinstance(gate, PhasedFSimGate):
-        if (not np.isclose(gate.zeta, 0.0) or
-                not np.isclose(gate.chi, 0.0) or
-                not np.isclose(gate.gamma, 0.0) or
-                not np.isclose(gate.phi, 0.0)):
+        if (
+            not np.isclose(gate.zeta, 0.0)
+            or not np.isclose(gate.chi, 0.0)
+            or not np.isclose(gate.gamma, 0.0)
+            or not np.isclose(gate.phi, 0.0)
+        ):
             return None
         angle = gate.theta
     elif isinstance(gate, PhasedISwapPowGate):
