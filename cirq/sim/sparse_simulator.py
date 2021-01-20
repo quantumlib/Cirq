@@ -15,7 +15,19 @@
 """A simulator that uses numpy's einsum for sparse matrix operations."""
 import abc
 import collections
-from typing import Dict, Iterator, List, Type, TYPE_CHECKING, DefaultDict, Tuple, cast, Set, TypeVar, Generic
+from typing import (
+    Dict,
+    Iterator,
+    List,
+    Type,
+    TYPE_CHECKING,
+    DefaultDict,
+    Tuple,
+    cast,
+    Set,
+    TypeVar,
+    Generic,
+)
 
 import numpy as np
 
@@ -54,7 +66,9 @@ class AbstractState(Generic[TState, TResult], metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
 
-class SparseState(AbstractState[act_on_state_vector_args.ActOnStateVectorArgs, 'SparseSimulatorStep']):
+class SparseState(
+    AbstractState[act_on_state_vector_args.ActOnStateVectorArgs, 'SparseSimulatorStep']
+):
     def __init__(
         self,
         *,
