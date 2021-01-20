@@ -239,11 +239,14 @@ def _sum_reduce(M, ind):
     # TODO(tonybruguier): Use M.sum_reduce(ind, inplace=True) once
     # version 2.0 of Quimb is released.
     summer = qtn.Tensor([1.0] * M.ind_size(ind), inds=(ind,))
-    Msum = M @ summer
+    return _make_tensor_if_scalar(M @ summer)
+
+
+def _make_tensor_if_scalar(x):
     # Sometimes, we get a scalar, but we would rather keep it as tensor.
-    if not isinstance(Msum, qtn.Tensor):
-        Msum = qtn.Tensor(Msum)
-    return Msum
+    if not isinstance(x, qtn.Tensor):
+        return qtn.Tensor(x)
+    return x
 
 
 @value.value_equality
@@ -295,28 +298,50 @@ class MPSState:
         state.num_2d_gates = self.num_2d_gates
         return state
 
+    def _get_qubit_queue(self):
+        # We can aggregate the qubits in any order we want, theoretically. However, it's quite
+        # possible to blow up the memory doing so. Instead, we do a greedy search through the
+        # qubits that minimizes the memory required at every step.
+        qubit_queue = list(self.qubit_map.keys())
+
+        is_2d_grid = all([isinstance(qubit, cirq.GridQubit) for qubit in qubit_queue])
+        if is_2d_grid:
+            grid_height = max([qubit.row for qubit in qubit_queue]) - min(
+                [qubit.row for qubit in qubit_queue]
+            )
+            grid_width = max([qubit.col for qubit in qubit_queue]) - min(
+                [qubit.col for qubit in qubit_queue]
+            )
+            compare_row_first = grid_height < grid_width
+
+        def qubit_ordering_fn(qubit1, qubit2):
+            if is_2d_grid:
+                # For 2D grids, we do the shortest dimension first.
+                delta_row = qubit1.row - qubit2.row
+                delta_col = qubit1.col - qubit2.col
+
+                if compare_row_first:
+                    if delta_row != 0:
+                        return delta_row
+                else:
+                    if delta_col != 0:
+                        return delta_col
+
+                return delta_row + delta_col
+            else:
+                # For non-2D, we just use the naive ordering.
+                return self.qubit_map[qubit1] - self.qubit_map[qubit2]
+
+        qubit_queue.sort(key=functools.cmp_to_key(qubit_ordering_fn))
+        return qubit_queue
+
     def _sum_up(self, skip_tracing_out_for_qubits):
         M = qtn.Tensor(1.0)
 
         def _trace_out(i):
             return skip_tracing_out_for_qubits and (i not in skip_tracing_out_for_qubits)
 
-        # We can aggregate the qubits in any order we want, theoretically. However, it's quite
-        # possible to blow up the memory doing so. Instead, we do a greedy search through the
-        # qubits that minimizes the memory required at every step.
-        qubit_queue = list(self.qubit_map.keys())
-
-        # The order of the aggregate matters quite a bit in terms of memory usage. For a 2D grid
-        # we want to have a heuristic is to per diagonals at a time.
-        def qubit_ordering_fn(qubit1, qubit2):
-            if isinstance(qubit1, cirq.GridQubit) and isinstance(qubit2, cirq.GridQubit):
-                delta = (qubit1.row + qubit1.col) - (qubit2.row + qubit2.col)
-                if delta != 0:
-                    return delta
-                return qubit1.row - qubit2.row
-            return self.qubit_map[qubit1] - self.qubit_map[qubit2]
-
-        qubit_queue.sort(key=functools.cmp_to_key(qubit_ordering_fn))
+        qubit_queue = self._get_qubit_queue()
 
         while len(qubit_queue) > 0:
             pop_idx = -1
@@ -345,15 +370,18 @@ class MPSState:
             qubit = qubit_queue.pop(pop_idx)
 
             i = self.qubit_map[qubit]
-            M = M @ self.M[i]
-
+            Mi = self.M[i]
             if _trace_out(i):
-                M = _sum_reduce(M, self.i_str(i))
-
+                Mi = _sum_reduce(Mi, self.i_str(i))
+            M = _make_tensor_if_scalar(M @ Mi)
         return M
 
     def partial_state_vector(self, skip_tracing_out_for_qubits):
-        M = self._sum_up(skip_tracing_out_for_qubits=skip_tracing_out_for_qubits)
+        M = self._sum_up(
+            skip_tracing_out_for_qubits={
+                self.qubit_map[qubit] for qubit in skip_tracing_out_for_qubits
+            }
+        )
         # Here, we rely on the formatting of the indices, and the fact that we have enough
         # leading zeros so that 003 comes before 100.
         sorted_ind = tuple(sorted(M.inds))
