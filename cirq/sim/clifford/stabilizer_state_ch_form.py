@@ -61,7 +61,10 @@ class StabilizerStateChForm:
             big_endian_int_to_digits(initial_state, digit_count=num_qubits, base=2)
         ):
             if val:
-                protocols.act_on(pauli_gates.X, clifford.ActOnStabilizerCHFormArgs(self, [i]))
+                protocols.act_on(
+                    pauli_gates.X,
+                    clifford.ActOnStabilizerCHFormArgs(self, [i], np.random.RandomState(), {}),
+                )
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['n', 'G', 'F', 'M', 'gamma', 'v', 's', 'omega'])
@@ -70,18 +73,18 @@ class StabilizerStateChForm:
     def _from_json_dict_(cls, n, G, F, M, gamma, v, s, omega, **kwargs):
         copy = StabilizerStateChForm(n)
 
-        copy.G = G.copy()
-        copy.F = F.copy()
-        copy.M = M.copy()
-        copy.gamma = gamma.copy()
-        copy.v = v.copy()
-        copy.s = s.copy()
+        copy.G = np.array(G)
+        copy.F = np.array(F)
+        copy.M = np.array(M)
+        copy.gamma = np.array(gamma)
+        copy.v = np.array(v)
+        copy.s = np.array(s)
         copy.omega = omega
 
         return copy
 
     def _value_equality_values_(self) -> Any:
-        return (self.n, self.G, self.F, self.M, self.gamma, self.v, self.v, self.s, self.omega)
+        return (self.n, self.G, self.F, self.M, self.gamma, self.v, self.s, self.omega)
 
     def copy(self) -> 'cirq.StabilizerStateChForm':
         copy = StabilizerStateChForm(self.n)
@@ -242,6 +245,22 @@ class StabilizerStateChForm:
             arr[x] = self.inner_product_of_state_and_x(x)
 
         return arr
+
+    def _measure(self, q, prng: np.random.RandomState) -> int:
+        """Measures the q'th qubit.
+
+        Reference: Section 4.1 "Simulating measurements"
+
+        Returns: Computational basis measurement as 0 or 1.
+        """
+        w = self.s.copy()
+        for i, v_i in enumerate(self.v):
+            if v_i == 1:
+                w[i] = bool(prng.randint(2))
+        x_i = sum(w & self.G[q, :]) % 2
+        # Project the state to the above measurement outcome.
+        self.project_Z(q, x_i)
+        return x_i
 
     def project_Z(self, q, z):
         """Applies a Z projector on the q'th qubit.

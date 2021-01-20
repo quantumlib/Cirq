@@ -69,6 +69,7 @@ from cirq.circuits import (
     AbstractCircuit,
     Circuit,
     CircuitDag,
+    CircuitOperation,
     FrozenCircuit,
     InsertStrategy,
     PointOptimizationSummary,
@@ -295,6 +296,8 @@ from cirq.ops import (
 )
 
 from cirq.optimizers import (
+    AlignLeft,
+    AlignRight,
     compute_cphase_exponents_for_fsim_decomposition,
     ConvertToCzAndSingleGates,
     decompose_cphase_into_two_fsim,
@@ -321,6 +324,7 @@ from cirq.optimizers import (
     SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
     two_qubit_matrix_to_diagonal_and_operations,
+    three_qubit_matrix_to_operations,
 )
 
 from cirq.qis import (
@@ -361,6 +365,10 @@ from cirq.sim import (
     final_density_matrix,
     final_state_vector,
     final_wavefunction,
+    MPSSimulator,
+    MPSSimulatorStepResult,
+    MPSState,
+    MPSTrialResult,
     sample,
     sample_density_matrix,
     sample_state_vector,
