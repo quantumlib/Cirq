@@ -11,8 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from typing import Dict, MutableMapping, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, MutableMapping, Optional, Tuple, TYPE_CHECKING
 
 import abc
 import collections
@@ -146,7 +145,6 @@ class PhasedFSimCharacterization:
         return other.merge_with(self)
 
 
-# TODO: Add support for JSON serialization
 # TODO: Add start and end calibration timestamp
 # TODO: Add export to Panda's data frame
 @dataclasses.dataclass(frozen=True)
@@ -172,8 +170,39 @@ class PhasedFSimCalibrationResult:
         else:
             return None
 
+    @classmethod
+    def _create_parameters_dict(
+        cls,
+        parameters: List[Tuple[Qid, Qid, PhasedFSimCharacterization]],
+    ) -> Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]:
+        """Utility function to create parameters from JSON.
 
-# TODO: Add support for JSON serialization
+        Can be used from child classes to instantiate classes in a _from_json_dict_
+        method."""
+        return {(entry[0], entry[1]): entry[2] for entry in parameters}
+
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        parameters: List[Tuple[Qid, Qid, PhasedFSimCharacterization]],
+        gate: Gate,
+        **kwargs,
+    ) -> 'PhasedFSimCalibrationResult':
+        """Magic method for the JSON serialization protocol.
+
+        Converts serialized dictionary into a dict suitable for
+        class instantiation."""
+        return cls(cls._create_parameters_dict(parameters), gate)
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        """Magic method for the JSON serialization protocol."""
+        return {
+            'cirq_type': 'PhasedFSimCalibrationResult',
+            'gate': self.gate,
+            'parameters': [(key[0], key[1], self.parameters[key]) for key in self.parameters],
+        }
+
+
 @dataclasses.dataclass(frozen=True)
 class PhasedFSimCalibrationRequest(abc.ABC):
     """Description of the request to characterize PhasedFSimGate.
@@ -205,8 +234,7 @@ class PhasedFSimCalibrationRequest(abc.ABC):
         """Decodes the characterization result issued for this request."""
 
 
-# TODO: Add support for JSON serialization
-@dataclasses.dataclass(frozen=True)
+@json_serializable_dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationOptions:
     """Options specific to Floquet PhasedFSimCalibration.
 
@@ -250,7 +278,6 @@ class FloquetPhasedFSimCalibrationOptions:
         )
 
 
-# TODO: Add support for JSON serialization
 @dataclasses.dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationResult(PhasedFSimCalibrationResult):
     """PhasedFSim characterization result specific to Floquet calibration.
@@ -261,8 +288,27 @@ class FloquetPhasedFSimCalibrationResult(PhasedFSimCalibrationResult):
 
     options: FloquetPhasedFSimCalibrationOptions
 
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        parameters: List[Tuple[Qid, Qid, PhasedFSimCharacterization]],
+        gate: Gate,
+        **kwargs,
+    ) -> 'PhasedFSimCalibrationResult':
+        """Magic method for the JSON serialization protocol.
 
-# TODO: Add support for JSON serialization
+        Converts serialized dictionary into a dict suitable for
+        class instantiation."""
+        return cls(cls._create_parameters_dict(parameters), gate, kwargs['options'])
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        """Magic method for the JSON serialization protocol."""
+        result_dict = super()._json_dict_()
+        result_dict['cirq_type'] = 'FloquetPhasedFSimCalibrationResult'
+        result_dict['options'] = self.options
+        return result_dict
+
+
 @dataclasses.dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     """PhasedFSim characterization request specific to Floquet calibration.
@@ -293,7 +339,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         decoded = collections.defaultdict(lambda: {})
         for keys, values in result.metrics['angles'].items():
             for key, value in zip(keys, values):
-                match = re.match(r'(\d+)_(.+)', key)
+                match = re.match(r'(\d+)_(.+)', str(key))
                 if not match:
                     raise ValueError(f'Unknown metric name {key}')
                 index = int(match[1])
@@ -315,6 +361,30 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         return FloquetPhasedFSimCalibrationResult(
             parameters=parsed, gate=self.gate, options=self.options
         )
+
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        gate: Gate,
+        pairs: List[Tuple[Qid, Qid]],
+        options: FloquetPhasedFSimCalibrationOptions,
+        **kwargs,
+    ) -> 'PhasedFSimCalibrationRequest':
+        """Magic method for the JSON serialization protocol.
+
+        Converts serialized dictionary into a dict suitable for
+        class instantiation."""
+        instantiation_pairs = tuple((entry[0], entry[1]) for entry in pairs)
+        return cls(instantiation_pairs, gate, options)
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        """Magic method for the JSON serialization protocol."""
+        return {
+            'cirq_type': 'FloquetPhasedFSimCalibrationRequest',
+            'pairs': [(pair[0], pair[1]) for pair in self.pairs],
+            'gate': self.gate,
+            'options': self.options,
+        }
 
 
 # TODO: Add support for ISWAP ** 0.5 as well.
