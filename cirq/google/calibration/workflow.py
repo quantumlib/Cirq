@@ -14,18 +14,8 @@
 from typing import Callable, List, Optional, Tuple, Union, cast
 
 from cirq.circuits import Circuit
-from cirq.ops import (
-    FSimGate,
-    Gate,
-    GateOperation,
-    MeasurementGate,
-    Moment,
-    Qid,
-    SingleQubitGate
-)
-from cirq.google.calibration.engine_simulator import (
-    PhasedFSimEngineSimulator
-)
+from cirq.ops import FSimGate, Gate, GateOperation, MeasurementGate, Moment, Qid, SingleQubitGate
+from cirq.google.calibration.engine_simulator import PhasedFSimEngineSimulator
 from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
@@ -124,8 +114,8 @@ def floquet_characterization_for_moment(
 #  fast moment matching structure.
 def floquet_characterization_for_circuit(
     circuit: Circuit,
-    options: FloquetPhasedFSimCalibrationOptions =
-        FloquetPhasedFSimCalibrationOptions.all_except_for_chi_options(),
+    options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.
+        all_except_for_chi_options(),
     gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
     merge_sub_sets: bool = True,
     initial: Optional[Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]] = None,
@@ -227,13 +217,14 @@ def floquet_characterization_for_circuit(
     return calibrations, moments_map
 
 
-def run_characterizations(calibrations: List[PhasedFSimCalibrationRequest],
-                          engine: Union[Engine, PhasedFSimEngineSimulator],
-                          processor_id: Optional[str] = None,
-                          gate_set: Optional[SerializableGateSet] = None,
-                          max_layers_per_request: int = 1,
-                          progress_func: Optional[Callable[[int, int], None]] = None
-                          ) -> List[PhasedFSimCalibrationResult]:
+def run_characterizations(
+    calibrations: List[PhasedFSimCalibrationRequest],
+    engine: Union[Engine, PhasedFSimEngineSimulator],
+    processor_id: Optional[str] = None,
+    gate_set: Optional[SerializableGateSet] = None,
+    max_layers_per_request: int = 1,
+    progress_func: Optional[Callable[[int, int], None]] = None,
+) -> List[PhasedFSimCalibrationResult]:
     """Runs calibration requests on the Engine.
 
     Args:
@@ -268,18 +259,20 @@ def run_characterizations(calibrations: List[PhasedFSimCalibrationRequest],
         results = []
 
         requests = [
-            [calibration.to_calibration_layer()
-             for calibration in calibrations[offset:offset + max_layers_per_request]]
+            [
+                calibration.to_calibration_layer()
+                for calibration in calibrations[offset : offset + max_layers_per_request]
+            ]
             for offset in range(0, len(calibrations), max_layers_per_request)
         ]
 
         for request in requests:
-            job = engine.run_calibration(request,
-                                         processor_id=processor_id,
-                                         gate_set=gate_set)
+            job = engine.run_calibration(request, processor_id=processor_id, gate_set=gate_set)
             request_results = job.calibration_results()
-            results += [calibration.parse_result(result)
-                        for calibration, result in zip(calibrations, request_results)]
+            results += [
+                calibration.parse_result(result)
+                for calibration, result in zip(calibrations, request_results)
+            ]
             if progress_func:
                 progress_func(len(results), len(calibrations))
 
@@ -292,16 +285,16 @@ def run_characterizations(calibrations: List[PhasedFSimCalibrationRequest],
 
 
 def run_floquet_characterization_for_circuit(
-        circuit: Circuit,
-        engine: Union[Engine, PhasedFSimEngineSimulator],
-        processor_id: str,
-        gate_set: SerializableGateSet,
-        options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.
-            all_except_for_chi_options(),
-        gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
-        merge_sub_sets: bool = True,
-        max_layers_per_request: int = 1,
-        progress_func: Optional[Callable[[int, int], None]] = None
+    circuit: Circuit,
+    engine: Union[Engine, PhasedFSimEngineSimulator],
+    processor_id: str,
+    gate_set: SerializableGateSet,
+    options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.
+        all_except_for_chi_options(),
+    gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
+    merge_sub_sets: bool = True,
+    max_layers_per_request: int = 1,
+    progress_func: Optional[Callable[[int, int], None]] = None,
 ) -> Tuple[List[PhasedFSimCalibrationResult], List[Optional[int]]]:
     """Extracts moments within a circuit to characterize and characterizes them against engine.
 
