@@ -104,12 +104,6 @@ def floquet_characterization_for_moment(
     )
 
 
-# TODO: Add support for ISWAP ** 0.5 as well.
-# TODO: Add support for WaitGates
-# TODO: Add support for CircuitOperations.
-# TODO: Add more control to merge_sub_sets option.
-# TODO: Instead of returning mapping from moment to request, make this automatic with the use of
-#  fast moment matching structure.
 def floquet_characterization_for_circuit(
     circuit: Circuit,
     options: FloquetPhasedFSimCalibrationOptions =
