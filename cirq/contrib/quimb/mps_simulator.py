@@ -51,7 +51,7 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
 
     def _base_iterator(
         self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
-    ) -> Iterator['cirq.MPSSimulatorStepResult']:
+    ) -> Iterator['cirq.contrib.quimb.mps_simulator.MPSSimulatorStepResult']:
         """Iterator over MPSSimulatorStepResult from Moments of a Circuit
 
         Args:
@@ -266,7 +266,7 @@ class MPSState:
         self.format_i = 'i_%%.%dd' % (max_num_digits)
         self.format_mu = 'mu_%%.%dd_%%.%dd' % (max_num_digits, max_num_digits)
 
-        for qubit in reversed(qubit_map.keys()):
+        for qubit in reversed(list(qubit_map.keys())):
             d = qubit.dimension
             x = np.zeros(d)
             x[initial_state % d] = 1.0
@@ -468,9 +468,6 @@ class MPSState:
         self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
     ) -> List[int]:
         results: List[int] = []
-
-        qid_shape = [qubit.dimension for qubit in qubits]
-        skip_tracing_out_for_qubits = {self.qubit_map[qubit] for qubit in qubits}
 
         if collapse_state_vector:
             state = self
