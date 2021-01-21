@@ -6,11 +6,12 @@ import pytest
 import sympy
 
 import cirq
+import cirq.contrib.quimb as ccq
 import cirq.experiments.google_v2_supremacy_circuit as supremacy_v2
 
 
 def assert_same_output_as_dense(circuit, qubit_order, initial_state=0):
-    mps_simulator = cirq.MPSSimulator()
+    mps_simulator = ccq.mps_simulator.MPSSimulator()
     ref_simulator = cirq.Simulator()
 
     actual = mps_simulator.simulate(circuit, qubit_order=qubit_order, initial_state=initial_state)
@@ -118,7 +119,7 @@ def test_measurement_1qubit():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.X(q0), cirq.H(q1), cirq.measure(q1))
 
-    simulator = cirq.MPSSimulator()
+    simulator = ccq.mps_simulator.MPSSimulator()
 
     result = simulator.run(circuit, repetitions=100)
     assert sum(result.measurements['1'])[0] < 80
@@ -129,7 +130,7 @@ def test_measurement_2qubits():
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q2), cirq.measure(q0, q2))
 
-    simulator = cirq.MPSSimulator()
+    simulator = ccq.mps_simulator.MPSSimulator()
 
     repetitions = 1024
     measurement = simulator.run(circuit, repetitions=repetitions).measurements['0,2']
@@ -149,7 +150,7 @@ def test_measurement_str():
     q0 = cirq.NamedQid('q0', dimension=3)
     circuit = cirq.Circuit(cirq.measure(q0))
 
-    simulator = cirq.MPSSimulator()
+    simulator = ccq.mps_simulator.MPSSimulator()
     result = simulator.run(circuit, repetitions=7)
 
     assert str(result) == "q0 (d=3)=0000000"
@@ -157,10 +158,10 @@ def test_measurement_str():
 
 def test_trial_result_str():
     q0 = cirq.LineQubit(0)
-    final_simulator_state = cirq.MPSState(qubit_map={q0: 0}, rsum2_cutoff=1e-3)
+    final_simulator_state = ccq.mps_simulator.MPSState(qubit_map={q0: 0}, rsum2_cutoff=1e-3)
     assert (
         str(
-            cirq.MPSTrialResult(
+            ccq.mps_simulator.MPSTrialResult(
                 params=cirq.ParamResolver({}),
                 measurements={'m': np.array([[1]])},
                 final_simulator_state=final_simulator_state,
@@ -173,16 +174,16 @@ def test_trial_result_str():
 
 def test_empty_step_result():
     q0 = cirq.LineQubit(0)
-    state = cirq.MPSState(qubit_map={q0: 0}, rsum2_cutoff=1e-3)
-    step_result = cirq.MPSSimulatorStepResult(state, measurements={'0': [1]})
+    state = ccq.mps_simulator.MPSState(qubit_map={q0: 0}, rsum2_cutoff=1e-3)
+    step_result = ccq.mps_simulator.MPSSimulatorStepResult(state, measurements={'0': [1]})
     assert str(step_result) == "0=1\n[array([1., 0.])]"
 
 
 def test_state_equal():
     q0, q1 = cirq.LineQubit.range(2)
-    state0 = cirq.MPSState(qubit_map={q0: 0}, rsum2_cutoff=1e-3)
-    state1a = cirq.MPSState(qubit_map={q1: 0}, rsum2_cutoff=1e-3)
-    state1b = cirq.MPSState(qubit_map={q1: 0}, rsum2_cutoff=1729.0)
+    state0 = ccq.mps_simulator.MPSState(qubit_map={q0: 0}, rsum2_cutoff=1e-3)
+    state1a = ccq.mps_simulator.MPSState(qubit_map={q1: 0}, rsum2_cutoff=1e-3)
+    state1b = ccq.mps_simulator.MPSState(qubit_map={q1: 0}, rsum2_cutoff=1729.0)
     assert state0 == state0
     assert state0 != state1a
     assert state1a != state1b
@@ -204,7 +205,7 @@ def test_supremacy_big():
     q0 = next(iter(qubit_order))
     circuit.append(cirq.measure(q0))
 
-    mps_simulator = cirq.MPSSimulator(rsum2_cutoff=5e-5)
+    mps_simulator = ccq.mps_simulator.MPSSimulator(rsum2_cutoff=5e-5)
     result = mps_simulator.simulate(circuit, qubit_order=qubit_order, initial_state=0)
 
     result.final_state.partial_state_vector({q0})
@@ -221,7 +222,7 @@ def test_simulate_moment_steps_sample():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
 
-    simulator = cirq.MPSSimulator()
+    simulator = ccq.mps_simulator.MPSSimulator()
 
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         if i == 0:
@@ -260,7 +261,7 @@ def test_simulate_moment_steps_sample():
 def test_sample_seed():
     q = cirq.NamedQubit('q')
     circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
-    simulator = cirq.MPSSimulator(seed=1234)
+    simulator = ccq.mps_simulator.MPSSimulator(seed=1234)
     result = simulator.run(circuit, repetitions=20)
     measured = result.measurements['q']
     result_string = ''.join(map(lambda x: str(int(x[0])), measured))
@@ -269,7 +270,7 @@ def test_sample_seed():
 
 def test_run_no_repetitions():
     q0 = cirq.LineQubit(0)
-    simulator = cirq.MPSSimulator()
+    simulator = ccq.mps_simulator.MPSSimulator()
     circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=0)
     assert len(result.measurements['0']) == 0
@@ -277,14 +278,14 @@ def test_run_no_repetitions():
 
 def test_run_parameters_not_resolved():
     a = cirq.LineQubit(0)
-    simulator = cirq.MPSSimulator()
+    simulator = ccq.mps_simulator.MPSSimulator()
     circuit = cirq.Circuit(cirq.XPowGate(exponent=sympy.Symbol('a'))(a), cirq.measure(a))
     with pytest.raises(ValueError, match='symbols were not specified'):
         _ = simulator.run_sweep(circuit, cirq.ParamResolver({}))
 
 
 def test_state_copy():
-    sim = cirq.MPSSimulator()
+    sim = ccq.mps_simulator.MPSSimulator()
 
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q), cirq.H(q))
