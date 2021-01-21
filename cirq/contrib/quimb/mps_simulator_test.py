@@ -189,9 +189,17 @@ def test_state_equal():
     assert state1a != state1b
 
 
-def test_supremacy_equal():
+def test_supremacy_equal_more_rows():
     circuit = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_grid(
-        n_rows=2, n_cols=2, cz_depth=3, seed=0
+        n_rows=3, n_cols=2, cz_depth=3, seed=0
+    )
+    qubits = circuit.all_qubits()
+    assert_same_output_as_dense(circuit, qubits)
+
+
+def test_supremacy_equal_more_cols():
+    circuit = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_grid(
+        n_rows=2, n_cols=3, cz_depth=3, seed=0
     )
     qubits = circuit.all_qubits()
     assert_same_output_as_dense(circuit, qubits)
