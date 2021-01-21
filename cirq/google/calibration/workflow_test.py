@@ -188,3 +188,83 @@ def test_run_characterization(engine):
         )
     ]
     assert actual == expected
+
+
+@mock.patch('cirq.google.engine.Engine')
+def test_run_floquet_characterization_for_circuit(engine):
+    q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
+    gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+
+    circuit = cirq.Circuit([gate.on(q_00, q_01), gate.on(q_02, q_03)])
+
+    options = FloquetPhasedFSimCalibrationOptions(
+        characterize_theta=True,
+        characterize_zeta=True,
+        characterize_chi=False,
+        characterize_gamma=False,
+        characterize_phi=True,
+    )
+
+    job = cirq.google.engine.EngineJob('', '', '', None)
+    job._calibration_results = [
+        cirq.google.CalibrationResult(
+            code=cirq.google.api.v2.calibration_pb2.SUCCESS,
+            error_message=None,
+            token=None,
+            valid_until=None,
+            metrics=cirq.google.Calibration(
+                cirq.google.api.v2.metrics_pb2.MetricsSnapshot(
+                    metrics=[
+                        cirq.google.api.v2.metrics_pb2.Metric(
+                            name='angles',
+                            targets=[
+                                '0_qubit_a',
+                                '0_qubit_b',
+                                '0_theta_est',
+                                '0_zeta_est',
+                                '0_phi_est',
+                                '1_qubit_a',
+                                '1_qubit_b',
+                                '1_theta_est',
+                                '1_zeta_est',
+                                '1_phi_est',
+                            ],
+                            values=[
+                                cirq.google.api.v2.metrics_pb2.Value(str_val='0_0'),
+                                cirq.google.api.v2.metrics_pb2.Value(str_val='0_1'),
+                                cirq.google.api.v2.metrics_pb2.Value(double_val=0.1),
+                                cirq.google.api.v2.metrics_pb2.Value(double_val=0.2),
+                                cirq.google.api.v2.metrics_pb2.Value(double_val=0.3),
+                                cirq.google.api.v2.metrics_pb2.Value(str_val='0_2'),
+                                cirq.google.api.v2.metrics_pb2.Value(str_val='0_3'),
+                                cirq.google.api.v2.metrics_pb2.Value(double_val=0.4),
+                                cirq.google.api.v2.metrics_pb2.Value(double_val=0.5),
+                                cirq.google.api.v2.metrics_pb2.Value(double_val=0.6),
+                            ],
+                        )
+                    ]
+                )
+            ),
+        )
+    ]
+    engine.run_calibration.return_value = job
+
+    characterizations, mapping = workflow.run_floquet_characterization_for_circuit(
+        circuit, engine, 'qproc', cirq.google.FSIM_GATESET, options=options
+    )
+
+    assert characterizations == [
+        FloquetPhasedFSimCalibrationResult(
+            parameters={
+                (q_00, q_01): PhasedFSimCharacterization(
+                    theta=0.1, zeta=0.2, chi=None, gamma=None, phi=0.3
+                ),
+                (q_02, q_03): PhasedFSimCharacterization(
+                    theta=0.4, zeta=0.5, chi=None, gamma=None, phi=0.6
+                ),
+            },
+            gate=gate,
+            options=options,
+        )
+    ]
+    assert mapping == [0]

@@ -106,8 +106,7 @@ def floquet_characterization_for_moment(
 
 def floquet_characterization_for_circuit(
     circuit: Circuit,
-    options: FloquetPhasedFSimCalibrationOptions =
-        FloquetPhasedFSimCalibrationOptions.all_except_for_chi_options(),
+    options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.all_except_for_chi_options(),
     gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
     merge_sub_sets: bool = True,
     initial: Optional[Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]] = None,
@@ -269,8 +268,7 @@ def run_floquet_characterization_for_circuit(
     engine: Engine,
     processor_id: str,
     gate_set: SerializableGateSet,
-    options: FloquetPhasedFSimCalibrationOptions =
-        FloquetPhasedFSimCalibrationOptions.all_except_for_chi_options(),
+    options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.all_except_for_chi_options(),
     gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
     merge_sub_sets: bool = True,
     max_layers_per_request: int = 1,
