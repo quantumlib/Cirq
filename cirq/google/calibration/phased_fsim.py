@@ -27,16 +27,13 @@ from cirq.google.api import v2
 from cirq.google.engine import CalibrationLayer, CalibrationResult
 
 if TYPE_CHECKING:
-    from cirq.google.calibration.engine_simulator import PhasedFSimEngineSimulator
-
-
-_FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
-
-if TYPE_CHECKING:
     # Workaround for mypy custom dataclasses (python/mypy#5406)
     from dataclasses import dataclass as json_serializable_dataclass
 else:
     from cirq.protocols import json_serializable_dataclass
+
+
+_FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
 
 
 @json_serializable_dataclass(frozen=True)
@@ -148,8 +145,6 @@ class PhasedFSimCharacterization:
         return other.merge_with(self)
 
 
-# TODO: Add start and end calibration timestamp
-# TODO: Add export to Panda's data frame
 @dataclasses.dataclass(frozen=True)
 class PhasedFSimCalibrationResult:
     """The PhasedFSimGate characterization result.
@@ -160,7 +155,6 @@ class PhasedFSimCalibrationResult:
         gate: Characterized gate for each qubit pair.
     """
 
-    # TODO: Add validation that only either (a, b) or (b, a) is present.
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
     gate: Gate
 
@@ -218,7 +212,6 @@ class PhasedFSimCalibrationRequest(abc.ABC):
             which can be described cirq.PhasedFSim gate.
     """
 
-    # TODO: Validate that each pair is unique and non-overlaping with any other pair.
     pairs: Tuple[Tuple[Qid, Qid], ...]
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
 
@@ -338,7 +331,6 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             },
         )
 
-    # TODO: Handle unsuccessful calibrations and throw appropriate exceptions.
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
         decoded: Dict[int, Dict[str, Any]] = collections.defaultdict(lambda: {})
         for keys, values in result.metrics['angles'].items():
@@ -395,7 +387,6 @@ class IncompatibleMomentError(Exception):
     """Error that occurs when a moment is not supported by a calibration routine."""
 
 
-# TODO: Add support for ISWAP ** 0.5 as well.
 def sqrt_iswap_gates_translator(gate: Gate) -> Optional[FSimGate]:
     if isinstance(gate, FSimGate):
         if not np.isclose(gate.phi, 0.0):

@@ -166,8 +166,6 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             simulator, drift_generator=sample_gate, gates_translator=sqrt_iswap_gates_translator
         )
 
-    # TODO: Add support for multi-moment simulation, where each moment can define different
-    #  parameters for a given qubits pair.
     @staticmethod
     def create_from_characterizations_sqrt_iswap(
         characterizations: Iterable[PhasedFSimCalibrationResult],
