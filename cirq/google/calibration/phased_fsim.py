@@ -142,8 +142,6 @@ class PhasedFSimCharacterization:
         return other.merge_with(self)
 
 
-# TODO: Add start and end calibration timestamp
-# TODO: Add export to Panda's data frame
 @dataclasses.dataclass(frozen=True)
 class PhasedFSimCalibrationResult:
     """The PhasedFSimGate characterization result.
@@ -154,7 +152,6 @@ class PhasedFSimCalibrationResult:
         gate: Characterized gate for each qubit pair.
     """
 
-    # TODO: Add validation that only either (a, b) or (b, a) is present.
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
     gate: Gate
 
@@ -212,7 +209,6 @@ class PhasedFSimCalibrationRequest(abc.ABC):
             which can be described cirq.PhasedFSim gate.
     """
 
-    # TODO: Validate that each pair is unique and non-overlaping with any other pair.
     pairs: Tuple[Tuple[Qid, Qid], ...]
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
 
@@ -303,7 +299,6 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             },
         )
 
-    # TODO: Handle unsuccessful calibrations and throw appropriate exceptions.
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
         decoded: Dict[int, Dict[str, Any]] = collections.defaultdict(lambda: {})
         for keys, values in result.metrics['angles'].items():
