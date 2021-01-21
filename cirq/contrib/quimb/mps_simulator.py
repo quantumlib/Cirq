@@ -15,6 +15,9 @@
 
 This is based on this paper:
 https://arxiv.org/abs/2002.07730
+
+TODO(tonybruguier): Instead of handling individual tensor in the code, directly use Quimb's
+TensorNetwork object.
 """
 
 import collections
@@ -236,10 +239,14 @@ class MPSSimulatorStepResult(simulator.StepResult):
 
 
 def _sum_reduce(M, ind):
-    # TODO(tonybruguier): Use M.sum_reduce(ind, inplace=True) once
+    # TODO(tonybruguier): Use M.sum_reduce(ind, inplace=False) once
     # version 2.0 of Quimb is released.
-    summer = qtn.Tensor([1.0] * M.ind_size(ind), inds=(ind,))
-    return _make_tensor_if_scalar(M @ summer)
+    M = M.copy()
+    axis = M.inds.index(ind)
+    new_data = np.sum(M.data, axis=axis)
+    new_inds = M.inds[:axis] + M.inds[axis + 1 :]
+    M.modify(data=new_data, inds=new_inds)
+    return M
 
 
 def _make_tensor_if_scalar(x):
@@ -258,14 +265,16 @@ class MPSState:
         self.M = []
 
         # The order of the qubits matters, because the state |01> is different from |10>. Since
-        # Qimb uses strings to name tensor indices, we want to be able to sort them too. If we are
+        # Quimb uses strings to name tensor indices, we want to be able to sort them too. If we are
         # working with, say, 123 qubits then we want qubit 3 to come before qubit 100, but then
         # we want write the string '003' which comes before '100' in lexicographic order. The code
         # below is just simple string formatting.
-        max_num_digits = len('%d' % (max(qubit_map.values())))
-        self.format_i = 'i_%%.%dd' % (max_num_digits)
-        self.format_mu = 'mu_%%.%dd_%%.%dd' % (max_num_digits, max_num_digits)
+        max_num_digits = len('{}'.format(max(qubit_map.values())))
+        self.format_i = 'i_{{:0{}}}'.format(max_num_digits)
+        self.format_mu = 'mu_{{:0{}}}_{{:0{}}}'.format(max_num_digits, max_num_digits)
 
+        # TODO(tonybruguier): Refactor out so that the code below can also be used by
+        # circuit_to_tensors in cirq.contrib.quimb.state_vector.
         for qubit in reversed(list(qubit_map.keys())):
             d = qubit.dimension
             x = np.zeros(d)
@@ -279,12 +288,13 @@ class MPSState:
         self.num_svd_splits = 0
 
     def i_str(self, i):
-        return self.format_i % (i)
+        return self.format_i.format(i)
 
     def mu_str(self, i, j):
         # By convention, the lower index is always the first.
-        i, j = min(i, j), max(i, j)
-        return self.format_mu % (i, j)
+        smallest = min(i, j)
+        largest = max(i, j)
+        return self.format_mu.format(smallest, largest)
 
     def __str__(self) -> str:
         return str([x.data for x in self.M])
@@ -416,7 +426,7 @@ class MPSState:
 
             U = qtn.Tensor(U, inds=(new_n, new_p, old_n, old_p))
 
-            # This is the index on which we do the joining. We need to add it iff it's the first
+            # This is the index on which we do the contraction. We need to add it iff it's the first
             # time that we do the joining for that specific pair.
             mu_ind = self.mu_str(n, p)
             if mu_ind not in self.M[n].inds:
@@ -448,6 +458,8 @@ class MPSState:
             raise ValueError('Can only handle 1 and 2 qubit operations')
 
     def estimation_stats(self):
+        "Returns some statistics about the state in terms of memory and quality of the approximation."
+
         num_coefs_used = sum([Mi.data.size for Mi in self.M])
         memory_bytes = sum([Mi.data.nbytes for Mi in self.M])
 

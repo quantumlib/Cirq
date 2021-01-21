@@ -205,6 +205,17 @@ def test_supremacy_equal_more_cols():
     assert_same_output_as_dense(circuit, qubits)
 
 
+def test_tensor_index_names():
+    qubits = cirq.LineQubit.range(12)
+    qubit_map = {qubit: i for i, qubit in enumerate(qubits)}
+    state = ccq.mps_simulator.MPSState(qubit_map, rsum2_cutoff=0.1234)
+
+    assert state.i_str(0) == "i_00"
+    assert state.i_str(11) == "i_11"
+    assert state.mu_str(0, 3) == "mu_00_03"
+    assert state.mu_str(3, 0) == "mu_00_03"
+
+
 def test_supremacy_big():
     circuit = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_grid(
         n_rows=7, n_cols=7, cz_depth=6, seed=0
