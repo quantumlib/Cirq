@@ -260,36 +260,37 @@ def test_colorbar(ax, position, size, pad):
 
     # We need to call draw() explicitly since the figure that has been altered in
     # the HeatMap._plot_colorbar function.
-    plt.draw()
+    fig2.canvas.draw()
 
     # Check that the figure has one more object in it when colorbar is on.
     assert len(fig2.get_children()) == len(fig1.get_children()) + 1
 
     fig_pos = fig2.get_axes()[0].get_position()
     colorbar_pos = fig2.get_axes()[1].get_position()
-    size_perc, pad_perc = int(size.replace("%", "")) / 100, int(pad.replace("%", "")) / 100
 
-    # By default, the canvas size for plot is [[0.125, 0.125], [0.9, 0.88]]
-    canvas_size = 0.775 if position in ["left", "right"] else 0.755
-    expected_pad = canvas_size * pad_perc / (1 + size_perc + pad_perc)
-    expected_size = canvas_size * size_perc / (1 + size_perc + pad_perc)
+    origin_axes_size = (
+        fig_pos.xmax - fig_pos.xmin
+        if position in ["left", "right"]
+        else fig_pos.ymax - fig_pos.ymin
+    )
+    expected_pad = int(pad.replace("%", "")) / 100 * origin_axes_size
+    expected_size = int(size.replace("%", "")) / 100 * origin_axes_size
+
     if position == "right":
         pad_distance = colorbar_pos.xmin - fig_pos.xmax
         colorbar_size = colorbar_pos.xmax - colorbar_pos.xmin
-        assert abs(colorbar_size - expected_size) < 0.01
-        assert abs(pad_distance - expected_pad) < 0.01
     elif position == "left":
         pad_distance = fig_pos.xmin - colorbar_pos.xmax
         colorbar_size = colorbar_pos.xmax - colorbar_pos.xmin
-        assert abs(colorbar_size - expected_size) < 0.01
-        assert abs(pad_distance - expected_pad) < 0.01
     elif position == "top":
         pad_distance = colorbar_pos.ymin - fig_pos.ymax
         colorbar_size = colorbar_pos.ymax - colorbar_pos.ymin
-        assert abs(colorbar_size - expected_size) < 0.01
-        assert abs(pad_distance - expected_pad) < 0.01
     elif position == "bottom":
         pad_distance = fig_pos.ymin - colorbar_pos.ymax
         colorbar_size = colorbar_pos.ymax - colorbar_pos.ymin
-        assert abs(colorbar_size - expected_size) < 0.01
-        assert abs(pad_distance - expected_pad) < 0.01
+
+    assert np.isclose(colorbar_size, expected_size)
+    assert np.isclose(pad_distance, expected_pad)
+
+    plt.close(fig1)
+    plt.close(fig2)
