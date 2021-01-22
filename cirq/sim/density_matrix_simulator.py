@@ -61,8 +61,8 @@ class DensityMatrixStateManager(AbstractStateManager[_StateAndBuffers, 'DensityM
         sim_state = _StateAndBuffers(len(qid_shape), initial_matrix.reshape(qid_shape * 2))
         return sim_state
 
-    def act_on_state(self, op, sim_state):
-        indices = [sim_state.qubit_map[qubit] for qubit in op.qubits]
+    def act_on_state(self, op, sim_state, qubit_map):
+        indices = [qubit_map[qubit] for qubit in op.qubits]
         # TODO: support more general measurements.
         # Github issue: https://github.com/quantumlib/Cirq/issues/1357
         if isinstance(op.gate, ops.MeasurementGate):
@@ -242,7 +242,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples, simulator.SimulatesInte
                     if all_measurements_are_terminal:
                         continue
                 if perform_measurements or not isinstance(op.gate, ops.MeasurementGate):
-                    self.state_algo.act_on_state(op, sim_state)
+                    self.state_algo.act_on_state(op, sim_state, qubit_map)
 
             yield self.state_algo.step_result(sim_state, qubit_map)
 

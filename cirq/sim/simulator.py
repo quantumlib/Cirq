@@ -666,7 +666,7 @@ class AbstractStateManager(Generic[TState, TResult], metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def act_on_state(self, op, sim_state: TState):
+    def act_on_state(self, op, sim_state: TState, qubit_map):
         raise NotImplementedError()
 
     @abc.abstractmethod

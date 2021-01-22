@@ -70,8 +70,8 @@ class SparseStateManager(
         )
         return sim_state
 
-    def act_on_state(self, op, sim_state):
-        sim_state.axes = tuple(sim_state.qubit_map[qubit] for qubit in op.qubits)
+    def act_on_state(self, op, sim_state, qubit_map):
+        sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
         protocols.act_on(op, sim_state)
 
     def step_result(self, sim_state, qubit_map):
@@ -262,7 +262,7 @@ class Simulator(
         for moment in circuit:
             for op in moment:
                 if perform_measurements or not isinstance(op.gate, ops.MeasurementGate):
-                    self.state_algo.act_on_state(op, sim_state)
+                    self.state_algo.act_on_state(op, sim_state, qubit_map)
 
             yield self.state_algo.step_result(sim_state, qubit_map)
             sim_state.log_of_measurement_results.clear()
