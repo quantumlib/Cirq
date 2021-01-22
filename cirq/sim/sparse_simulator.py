@@ -13,7 +13,6 @@
 # limitations under the License.
 
 """A simulator that uses numpy's einsum for sparse matrix operations."""
-import abc
 import collections
 from typing import (
     Dict,
@@ -25,8 +24,6 @@ from typing import (
     Tuple,
     cast,
     Set,
-    TypeVar,
-    Generic,
 )
 
 import numpy as np
@@ -38,36 +35,14 @@ from cirq.sim import (
     state_vector_simulator,
     act_on_state_vector_args,
 )
-from cirq.sim.simulator import check_all_resolved, StepResult
+from cirq.sim.simulator import check_all_resolved, AbstractStateManager
 
 if TYPE_CHECKING:
     import cirq
 
-TState = TypeVar('TState')
-TResult = TypeVar('TResult', bound=StepResult)
 
-
-class AbstractState(Generic[TState, TResult], metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def create_sim_state(self, initial_state, qubits) -> TState:
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def act_on_state(self, op, sim_state: TState):
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def step_result(self, sim_state: TState, qubit_map) -> TResult:
-        raise NotImplementedError()
-
-    @property
-    @abc.abstractmethod
-    def prng(self):
-        raise NotImplementedError()
-
-
-class SparseState(
-    AbstractState[act_on_state_vector_args.ActOnStateVectorArgs, 'SparseSimulatorStep']
+class SparseStateManager(
+    AbstractStateManager[act_on_state_vector_args.ActOnStateVectorArgs, 'SparseSimulatorStep']
 ):
     def __init__(
         self,
@@ -96,6 +71,7 @@ class SparseState(
         return sim_state
 
     def act_on_state(self, op, sim_state):
+        sim_state.axes = tuple(sim_state.qubit_map[qubit] for qubit in op.qubits)
         protocols.act_on(op, sim_state)
 
     def step_result(self, sim_state, qubit_map):
@@ -196,7 +172,7 @@ class Simulator(
         *,
         dtype: Type[np.number] = np.complex64,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-        state_algo: AbstractState = None,
+        state_algo: AbstractStateManager = None,
     ):
         """A sparse matrix simulator.
 
@@ -205,7 +181,7 @@ class Simulator(
                 `numpy.complex64` or `numpy.complex128`.
             seed: The random seed to use for this simulator.
         """
-        self.state_algo = state_algo or SparseState(dtype=dtype, seed=seed)
+        self.state_algo = state_algo or SparseStateManager(dtype=dtype, seed=seed)
 
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
@@ -286,7 +262,6 @@ class Simulator(
         for moment in circuit:
             for op in moment:
                 if perform_measurements or not isinstance(op.gate, ops.MeasurementGate):
-                    sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
                     self.state_algo.act_on_state(op, sim_state)
 
             yield self.state_algo.step_result(sim_state, qubit_map)
