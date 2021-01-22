@@ -16,19 +16,32 @@ See examples/heatmap_example.py for an example usage in
 an interactive session.
 """
 import abc
-from typing import Any, Dict, List, Mapping, Optional, SupportsFloat, Tuple, Union, TypeVar, Generic
+from typing import (
+    Any,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    SupportsFloat,
+    Tuple,
+    Union,
+    TypeVar,
+    Generic,
+    NamedTuple,
+)
 
-import seaborn as sns
+from matplotlib import collections as mcoll
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib import collections as mpl_collections
+from matplotlib.patches import Polygon
 from mpl_toolkits import axes_grid1
 
 from cirq.devices import grid_qubit
 
-GraphicalCoordinate = Tuple[float, float]
+Point = Tuple[float, float]
 
 TupleQubitCoord = Tuple[int, int]
 QubitCoordinate = Union[TupleQubitCoord, grid_qubit.GridQubit]
@@ -115,7 +128,7 @@ class HeatmapBase(Generic[T, K, M], abc.ABC):
         self.value_map = {target: (float(value), value) for target, value in value_map.items()}
         return self
 
-    def _to_coord(self, target: Union[GraphicalCoordinate, K]):
+    def _to_coord(self, target: Union[Point, K]):
         if isinstance(target, tuple) and (
             isinstance(target[0], float) or isinstance(target[1], float)
         ):
@@ -123,12 +136,12 @@ class HeatmapBase(Generic[T, K, M], abc.ABC):
         return self._target_to_coordinate(target)  # type: ignore
 
     @abc.abstractmethod
-    def _target_to_coordinate(self, target: K) -> GraphicalCoordinate:
+    def _target_to_coordinate(self, target: K) -> Point:
         pass
 
     def set_annotation_map(
         self: T,
-        annot_map: Union[Mapping[GraphicalCoordinate, str], Mapping[K, str]],
+        annot_map: Union[Mapping[Point, str], Mapping[K, str]],
         **text_options: str,
     ) -> T:
         """Sets the annotation text.
@@ -167,9 +180,7 @@ class HeatmapBase(Generic[T, K, M], abc.ABC):
         self.annot_map = {}
         return self
 
-    def set_url_map(
-        self: T, url_map: Union[Mapping[GraphicalCoordinate, str], Mapping[K, str]]
-    ) -> T:
+    def set_url_map(self: T, url_map: Union[Mapping[Point, str], Mapping[K, str]]) -> T:
         """Sets the URLs for each cell."""
 
         self.url_map = {self._to_coord(key): value for key, value in url_map.items()}
@@ -351,7 +362,11 @@ class TwoQubitInteractionHeatmap(
         return float(r1 + r2) / 2, float(c1 + c2) / 2
 
     def plot(
-        self, ax: Optional[plt.Axes] = None, **pcolor_options: Any
+        self,
+        ax: Optional[plt.Axes] = None,
+        coupler_margin: float = 0.03,
+        coupler_width: float = 0.6,
+        **pcolor_options: Any,
     ) -> Tuple[plt.Axes, mpl_collections.Collection, pd.DataFrame]:
         """Plots the heatmap on the given Axes.
         Args:
@@ -397,17 +412,17 @@ class TwoQubitInteractionHeatmap(
 
         def get_qubit_map(vm):
             # TODO: clean this up later
-            return {**{q0: 0.0 for q0, _ in vm.keys()}, **{q1: 0.0 for _, q1 in vm.keys()}}
+            return {q: 0.0 for qubits in self.value_map.keys() for q in qubits}
 
         hm = Heatmap(get_qubit_map(self.value_map))
         hm.set_colormap('binary')
         hm.unset_colorbar()
+        hm.unset_annotation()
         hm.plot(
             ax=ax,
             linewidths=2,
             edgecolor='darkgrey',
             linestyle='dashed',
-            # annot_kws={'alpha': 0.0},  # A hack: transparent texts in qubit cells.
         )
 
         # Plot the heatmap.
@@ -421,12 +436,23 @@ class TwoQubitInteractionHeatmap(
             urls=url_array,
             **pcolor_options,
         )
+
+        coupler_list = _extract_pair_data(self.value_map, coupler_margin, coupler_width)
+
+        # Make a blank heatmap of qubits. Pop out (vmin, vmax) to ensure it's blank.
+        vmin = pcolor_options.pop('vmin', None)
+        vmax = pcolor_options.pop('vmax', None)
+
+        # Make the heatmap for two-qubit metrics.
+        collection = mcoll.PolyCollection([c.polygon for c in coupler_list], cmap=self.colormap)
+        collection.set_clim(vmin, vmax)
+        collection.set_array(np.array([c.value[0] for c in coupler_list]))
+        ax.add_collection(collection)
+
         mesh.update_scalarmappable()
         ax.set(xlabel='column', ylabel='row')
         ax.set_xticks(np.arange(min_col - 0.5, max_col + 1.5))
         ax.set_yticks(np.arange(min_row - 0.5, max_row + 1.5))
-        # ax.set_xticks(np.arange(min_col, max_col + 1), minor='true')
-        # ax.set_yticks(np.arange(min_row, max_row + 1), minor='true')
         ax.grid(b=True, which='minor', linestyle='--')
         ax.set_xlim((min_col - 1, max_col + 0.5))
         ax.set_ylim((max_row + 0.5, min_row - 0.5))
@@ -442,3 +468,99 @@ class TwoQubitInteractionHeatmap(
             fig.show()
 
         return ax, None, value_table
+
+
+class Coupler(NamedTuple('Coupler', [('polygon', Polygon), ('center', Point), ('value', Any)])):
+    """A Coupler contains all data necessary to plot a qubit-pair coupling.
+
+    Note that all coordinates are relative and un-normalized, i.e., x is in
+    [0, max_col + 1 - min_col] and y is in [0, max_row + 1 - min_row]. It is
+    a translation from the data coordinates [min_col, max_col + 1] x
+    [min_row, max_row + 1] by (-min_col, -min_row). This is the coordinates
+    of the axes after a pcolor() call.
+
+    Attributes:
+        polygon: a polygon for the vertices of the coupler.
+        center: the center coordinates for drawing the annotation.
+        value: the value associated with the coupler.
+    """
+
+
+def _extract_pair_data(
+    pair_value_map: Mapping[QubitPair, float], coupler_margin: float, coupler_width: float
+) -> List[Coupler]:
+    """Extracts data from pair_value_map and returns them.
+
+    Args:
+        pair_value_map: the map of a pair of qubit names to a value.
+        coupler_margin: the margin between a coupler polygon and the center of
+            qubit squares, zero means 2 couplers of the same qubit touch each
+            other.
+        coupler_width: the full width of the coupler polygon. Setting it to 0 or
+            a negative number removes the polygon.
+
+    Returns:
+        A tuple of 3 containers:
+        - A set of qubit names needed for plotting the background qubit map.
+        - A list of Coupler objects for plotting the qubit-pair couplers.
+        - A tuple of (minimum column, minimum row, maximum column, maximum row).
+    """
+    qubits = {q for qubits in pair_value_map.keys() for q in qubits}
+
+    # A hack to make the qubit-pair values align with qubits when qubits don't
+    # start from row 0 or column 0. It should be better to do this with
+    # matplotlib's transformations, but a hack will do for now.
+    indices = [_get_qubit_row_col(q) for q in qubits]
+    min_row = min(row for row, _ in indices)
+    min_col = min(col for _, col in indices)
+    max_row = max(row for row, _ in indices)
+    max_col = max(col for _, col in indices)
+    extremes = (min_col, min_row, max_col, max_row)
+
+    def _offset(x: float, y: float) -> Tuple[float, float]:
+        return x, y  # x + 0.5 - min_col, y + 0.5 - min_row
+
+    coupler_list: List[Coupler] = []
+    cwidth = coupler_width / 2.0
+    setback = 0.5 - cwidth
+    for (q1, q2) in sorted(pair_value_map.keys()):
+        value = pair_value_map[(q1, q2)]
+        row1, col1 = map(float, _get_qubit_row_col(q1))
+        row2, col2 = map(float, _get_qubit_row_col(q2))
+
+        if abs(row1 - row2) + abs(col1 - col2) != 1:
+            raise ValueError(f"{q1}-{q2} is not supported because they are not nearest neighbors")
+
+        if coupler_width <= 0:
+            polygon: Polygon = []
+        elif row1 == row2:  # horizontal
+            col1, col2 = min(col1, col2), max(col1, col2)
+            col_center = (col1 + col2) / 2.0
+            polygon = [
+                (col1 + coupler_margin, row1),
+                (col_center - setback, row1 + cwidth - coupler_margin),
+                (col_center + setback, row1 + cwidth - coupler_margin),
+                (col2 - coupler_margin, row2),
+                (col_center + setback, row1 - cwidth + coupler_margin),
+                (col_center - setback, row1 - cwidth + coupler_margin),
+            ]
+        elif col1 == col2:  # vertical
+            row1, row2 = min(row1, row2), max(row1, row2)
+            row_center = (row1 + row2) / 2.0
+            polygon = [
+                (col1, row1 + coupler_margin),
+                (col1 + cwidth - coupler_margin, row_center - setback),
+                (col1 + cwidth - coupler_margin, row_center + setback),
+                (col2, row2 - coupler_margin),
+                (col1 - cwidth + coupler_margin, row_center + setback),
+                (col1 - cwidth + coupler_margin, row_center - setback),
+            ]
+        coupler_list.append(
+            Coupler(
+                polygon=[_offset(c, r) for c, r in polygon],
+                center=_offset((col1 + col2) / 2.0, (row1 + row2) / 2.0),
+                value=value,
+            )
+        )
+
+    return coupler_list
