@@ -833,7 +833,7 @@ class AbstractCircuit(abc.ABC):
                     continue
                 if not circuit.are_any_matches_terminal(predicate):
                     continue
-                if i < len(self.moments) - 1 and any(
+                if i == len(self.moments) - 1 or any(
                     self.next_moment_operating_on(op.qubits, i + 1) is None
                     for _, op in circuit.findall_operations(predicate)
                 ):
