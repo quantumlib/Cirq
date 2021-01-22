@@ -95,7 +95,7 @@ def test_example_runs_bristlecone_heatmap():
 
 def test_example_runs_qubitinteraction_heatmap():
     plt.switch_backend('agg')
-    examples.heatmap_example.gateerror()
+    examples.heatmap_example.two_qubit_interaction_heatmap()
 
 
 def test_example_runs_qaoa():
