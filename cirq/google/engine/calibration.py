@@ -237,3 +237,31 @@ class Calibration(abc.Mapping):
             self.key_to_qubit(target): float(value) for target, (value,) in metrics.items()
         }
         return vis.Heatmap(value_map)
+
+    def interaction_heatmap(
+        self, key: str, title: Optional[str] = None
+    ) -> vis.TwoQubitInteractionHeatmap:
+        """Return a heatmap for metrics that target single qubits.
+
+        Args:
+            title: title of the heatmap
+            key: The metric key to return a heatmap for.
+
+        Returns:
+            A `cirq.Heatmap` for the metric.
+
+        Raises:
+            AssertionError if the heatmap is not for single qubits or the metric
+            values are not single floats.
+        """
+        metrics = self[key]
+        assert all(
+            len(k) == 2 for k in metrics.keys()
+        ), 'Heatmaps are only supported if all the targets in a metric are a pair of qubits.'
+        assert all(
+            len(k) == 1 for k in metrics.values()
+        ), 'Heatmaps are only supported if all the values in a metric are single metric values.'
+        value_map: Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], SupportsFloat] = {
+            (q1, q2): float(value) for (q1, q2), (value,) in metrics.items()
+        }
+        return vis.TwoQubitInteractionHeatmap(value_map, title=title)

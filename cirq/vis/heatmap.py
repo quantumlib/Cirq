@@ -336,7 +336,9 @@ class Heatmap(HeatmapBase['Heatmap', QubitCoordinate, ValueMap]):
         return ax, mesh, value_table
 
 
-class InterHeatmap(HeatmapBase['InterHeatmap', QubitPair, InterValueMap]):
+class TwoQubitInteractionHeatmap(
+    HeatmapBase['TwoQubitInteractionHeatmap', QubitPair, InterValueMap]
+):
     """Visualizing interactions between neighboring qubits on a 2D grid."""
 
     def __init__(self, value_map: InterValueMap, title: Optional[str] = None) -> None:

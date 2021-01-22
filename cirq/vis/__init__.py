@@ -14,4 +14,4 @@
 
 """Visualization utilities."""
 
-from cirq.vis.heatmap import Heatmap, InterHeatmap
+from cirq.vis.heatmap import Heatmap, TwoQubitInteractionHeatmap

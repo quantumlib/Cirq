@@ -121,7 +121,7 @@ def test_annotation_position_and_content(ax, format_string):
 
 
 def test_midpoint():
-    ih = heatmap.InterHeatmap(value_map={((1, 0), (0, 1)): 0.1})
+    ih = heatmap.TwoQubitInteractionHeatmap(value_map={((1, 0), (0, 1)): 0.1})
     assert ih._target_to_coordinate(((1, 0), (0, 1))) == (0.5, 0.5)
     assert ih._target_to_coordinate((cirq.GridQubit(1, 0), cirq.GridQubit(0, 1))) == (0.5, 0.5)
 
@@ -258,8 +258,8 @@ def test_interheatmap():
         (grid_qubit.GridQubit(4, 1), grid_qubit.GridQubit(4, 2)): 0.0076079162393482835,
     }
     value_map1 = {((3, 2), (4, 2)): 0.004619111460557768, ((4, 1), (4, 2)): 0.0076079162393482835}
-    test_heatmap = heatmap.InterHeatmap(value_map)
-    test_heatmap1 = heatmap.InterHeatmap(value_map1)
+    test_heatmap = heatmap.TwoQubitInteractionHeatmap(value_map)
+    test_heatmap1 = heatmap.TwoQubitInteractionHeatmap(value_map1)
     test_url_map = {(3.5, 2): 'http://google.com/1', (4, 1.5): 'http://google.com/2'}
     test_heatmap.unset_url_map().set_url_map(test_url_map)
     test_heatmap.unset_colorbar().set_colorbar()
