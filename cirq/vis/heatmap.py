@@ -58,7 +58,7 @@ QubitPair = Union[
 ValueMap = Union[Dict[grid_qubit.GridQubit, SupportsFloat], Dict[TupleQubitCoord, SupportsFloat]]
 
 # The value map that maps a qubit pair to a type that supports float conversion.
-InterValueMap = Union[
+InteractionValueMap = Union[
     Dict[GridQubitPair, SupportsFloat],
     Dict[TupleQubitPair, SupportsFloat],
 ]
@@ -74,6 +74,7 @@ QubitCoordAnnotation = Mapping[QubitCoordinate, str]
 
 def relative_luminance(color: np.ndarray) -> float:
     """Returns the relative luminance according to W3C specification.
+
     Spec: https://www.w3.org/TR/WCAG21/#dfn-relative-luminance.
     Args:
         color: a numpy array with the first 3 elements red, green, and blue
@@ -250,22 +251,41 @@ class HeatmapBase(Generic[T, K, M], abc.ABC):
         colorbar_ax.tick_params(axis='y', direction='out')
         return colorbar
 
-    def _write_annotations(self, ax: plt.Axes) -> None:
+    def _write_annotations(
+        self, centers: List[Point], mesh: mpl_collections.Collection, ax: plt.Axes
+    ) -> None:
         """Writes annotations to the center of cells. Internal."""
-        for target in self.value_map.keys():
-            row, col = self._target_to_coordinate(target)
-            annotation = self.annot_map.get((row, col), '')
+        print(centers, len(mesh.get_paths()), len(mesh.get_facecolors()))
+        for center, path, facecolor in zip(centers, mesh.get_paths(), mesh.get_facecolors()):
+            # Calculate the center of the cell, assuming that it is a square
+            # centered at (x=col, y=row).
+            col, row = center
+            annotation = self.annot_map.get((row, col), 'none')
+            print(annotation, center, path, facecolor)
             if not annotation:
                 continue
-            medium_brightness = (
-                (self.vmax + self.vmin) / 2
-                if (self.vmax is not None and self.vmin is not None)
-                else 0.5
-            )
-            text_color = 'black' if self.value_map[target][0] > medium_brightness else 'white'
+            face_luminance = relative_luminance(facecolor)
+            text_color = 'black' if face_luminance > 0.4 else 'white'
             text_kwargs = dict(color=text_color, ha="center", va="center")
             text_kwargs.update(self.annot_kwargs)
             ax.text(col, row, annotation, **text_kwargs)
+        #
+        # vmax = max(self.value_map.values())
+        # vmin = min(self.value_map.values())
+        # medium_brightness = ((vmax[0] + vmin[0]) / 2)
+        #
+        # for target in self.value_map.keys():
+        #     row, col = self._target_to_coordinate(target)
+        #     annotation = self.annot_map.get((row, col), '')
+        #     if not annotation:
+        #         continue
+        #
+        #
+        #     text_color = 'black' if self.value_map[target][0] > medium_brightness else 'white'
+        #     print(target, self.value_map[target][0], text_color, annotation)
+        #     text_kwargs = dict(color=text_color, ha="center", va="center")
+        #     text_kwargs.update(self.annot_kwargs)
+        #     ax.text(col, row, annotation, **text_kwargs)
 
 
 class Heatmap(HeatmapBase['Heatmap', QubitCoordinate, ValueMap]):
@@ -340,7 +360,11 @@ class Heatmap(HeatmapBase['Heatmap', QubitCoordinate, ValueMap]):
             self._plot_colorbar(mesh, ax)
 
         if self.annot_map:
-            self._write_annotations(ax)
+            self._write_annotations(
+                [np.mean([np.array(v) for v in p.vertices[:4]], axis=0) for p in mesh.get_paths()],
+                mesh,
+                ax,
+            )
 
         if show_plot:
             fig.show()
@@ -349,11 +373,11 @@ class Heatmap(HeatmapBase['Heatmap', QubitCoordinate, ValueMap]):
 
 
 class TwoQubitInteractionHeatmap(
-    HeatmapBase['TwoQubitInteractionHeatmap', QubitPair, InterValueMap]
+    HeatmapBase['TwoQubitInteractionHeatmap', QubitPair, InteractionValueMap]
 ):
     """Visualizing interactions between neighboring qubits on a 2D grid."""
 
-    def __init__(self, value_map: InterValueMap, title: Optional[str] = None) -> None:
+    def __init__(self, value_map: InteractionValueMap, title: Optional[str] = None) -> None:
         super().__init__(value_map, title)
 
     def _target_to_coordinate(self, target: QubitPair) -> Tuple[float, float]:
@@ -402,39 +426,23 @@ class TwoQubitInteractionHeatmap(
             row, col = self._target_to_coordinate(qubit)
             value_table[col][row] = float_value
         # Construct the (height + 1) x (width + 1) cell boundary tables.
-        x_table = np.arange(min_col - 0.25, max_col + 0.75, 0.5)
-        y_table = np.arange(min_row - 0.25, max_row + 0.75, 0.5).transpose()
+        # x_table = np.arange(min_col - 0.25, max_col + 0.75, 0.5)
+        # y_table = np.arange(min_row - 0.25, max_row + 0.75, 0.5).transpose()
 
         # Construct the URL array as an ordered list of URLs for non-nan cells.
         url_array: List[str] = []
         if self.url_map:
             url_array = [self.url_map.get((row, col), '') for row, col in value_table.stack().index]
 
-        def get_qubit_map(vm):
-            # TODO: clean this up later
-            return {q: 0.0 for qubits in self.value_map.keys() for q in qubits}
-
-        hm = Heatmap(get_qubit_map(self.value_map))
+        hm = Heatmap({q: 0.0 for qubits in self.value_map.keys() for q in qubits})
         hm.set_colormap('binary')
         hm.unset_colorbar()
         hm.unset_annotation()
         hm.plot(
             ax=ax,
             linewidths=2,
-            edgecolor='darkgrey',
+            edgecolor='lightgrey',
             linestyle='dashed',
-        )
-
-        # Plot the heatmap.
-        mesh = ax.pcolor(
-            x_table,
-            y_table,
-            value_table,
-            vmin=self.vmin,
-            vmax=self.vmax,
-            cmap=self.colormap,
-            urls=url_array,
-            **pcolor_options,
         )
 
         coupler_list = _extract_pair_data(self.value_map, coupler_margin, coupler_width)
@@ -446,28 +454,30 @@ class TwoQubitInteractionHeatmap(
         # Make the heatmap for two-qubit metrics.
         collection = mcoll.PolyCollection([c.polygon for c in coupler_list], cmap=self.colormap)
         collection.set_clim(vmin, vmax)
-        collection.set_array(np.array([c.value[0] for c in coupler_list]))
+        collection.set_array(np.array([c.value for c in coupler_list]))
         ax.add_collection(collection)
+        collection.update_scalarmappable()  # Populate facecolors.
+        if self.annot_map:
+            self._write_annotations([c.center for c in coupler_list], collection, ax)
 
-        mesh.update_scalarmappable()
         ax.set(xlabel='column', ylabel='row')
-        ax.set_xticks(np.arange(min_col - 0.5, max_col + 1.5))
-        ax.set_yticks(np.arange(min_row - 0.5, max_row + 1.5))
-        ax.grid(b=True, which='minor', linestyle='--')
-        ax.set_xlim((min_col - 1, max_col + 0.5))
-        ax.set_ylim((max_row + 0.5, min_row - 0.5))
+        min_xtick = np.floor(min_col)
+        max_xtick = np.floor(max_col)
+        ax.set_xticks(np.arange(min_xtick, max_xtick + 1))
+        min_ytick = np.floor(min_row)
+        max_ytick = np.floor(max_row)
+        ax.set_yticks(np.arange(min_ytick, max_ytick + 1))
+        ax.set_xlim((min_xtick - 0.6, max_xtick + 1.6))
+        ax.set_ylim((max_ytick + 1.6, min_ytick - 0.6))
         plt.title(self.title)
 
-        # if self.plot_colorbar:
-        #     self._plot_colorbar(mesh, ax)
-
-        if self.annot_map:
-            self._write_annotations(ax)
+        if self.plot_colorbar:
+            self._plot_colorbar(collection, ax)
 
         if show_plot:
             fig.show()
 
-        return ax, None, value_table
+        return ax, collection, value_table
 
 
 class Coupler(NamedTuple('Coupler', [('polygon', Polygon), ('center', Point), ('value', Any)])):
@@ -505,21 +515,6 @@ def _extract_pair_data(
         - A list of Coupler objects for plotting the qubit-pair couplers.
         - A tuple of (minimum column, minimum row, maximum column, maximum row).
     """
-    qubits = {q for qubits in pair_value_map.keys() for q in qubits}
-
-    # A hack to make the qubit-pair values align with qubits when qubits don't
-    # start from row 0 or column 0. It should be better to do this with
-    # matplotlib's transformations, but a hack will do for now.
-    indices = [_get_qubit_row_col(q) for q in qubits]
-    min_row = min(row for row, _ in indices)
-    min_col = min(col for _, col in indices)
-    max_row = max(row for row, _ in indices)
-    max_col = max(col for _, col in indices)
-    extremes = (min_col, min_row, max_col, max_row)
-
-    def _offset(x: float, y: float) -> Tuple[float, float]:
-        return x, y  # x + 0.5 - min_col, y + 0.5 - min_row
-
     coupler_list: List[Coupler] = []
     cwidth = coupler_width / 2.0
     setback = 0.5 - cwidth
@@ -557,9 +552,9 @@ def _extract_pair_data(
             ]
         coupler_list.append(
             Coupler(
-                polygon=[_offset(c, r) for c, r in polygon],
-                center=_offset((col1 + col2) / 2.0, (row1 + row2) / 2.0),
-                value=value,
+                polygon=[(c, r) for c, r in polygon],
+                center=((col1 + col2) / 2.0, (row1 + row2) / 2.0),
+                value=value[0],
             )
         )
 
