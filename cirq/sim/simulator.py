@@ -173,6 +173,103 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
 
+class SimulatesExpectationValues(metaclass=abc.ABCMeta):
+    """Simulator that computes exact expectation values of observables.
+
+    Given a circuit and an observable map, computes exact (to float precision)
+    expectation values for each observable at the end of the circuit.
+
+    Implementors of this interface should implement the
+    simulate_expectation_values_sweep method.
+    """
+
+    def simulate_expectation_values(
+        self,
+        program: 'cirq.Circuit',
+        observables: Dict[str, 'cirq.PauliSum'],
+        param_resolver: 'study.ParamResolverOrSimilarType' = None,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        initial_state: Any = None,
+        permit_terminal_measurements: bool = False,
+    ) -> Dict[str, float]:
+        """Simulates the supplied circuit and calculates exact expectation
+        values for the given observables on its final state.
+
+        This method has no perfect analogy in hardware. Instead compare with
+        Sampler.sample_expectation_values, which calculates estimated
+        expectation values by sampling multiple times.
+
+        Args:
+            program: The circuit to simulate.
+            observables: A map of observable names (strings) to observables.
+            param_resolver: Parameters to run with the program.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation. The  form of
+                this state depends on the simulation implementation.  See
+                documentation of the implementing class for details.
+            permit_terminal_measurements: If the provided circuit ends in a
+                measurement, this method will generate an error unless this
+                is set to True. This is meant to prevent measurements from
+                ruining expectation value calculations.
+
+        Returns:
+            A dict of observable names to expectation values. The keys in this
+            map match the keys of corresponding observables in the input.
+
+        Raises:
+            ValueError if 'program' has terminal measurements and
+            'permit_terminal_measurements' is False.
+        """
+        return self.simulate_expectation_values_sweep(
+            program,
+            observables,
+            study.ParamResolver(param_resolver),
+            qubit_order,
+            initial_state,
+            permit_terminal_measurements,
+        )[0]
+
+    @abc.abstractmethod
+    def simulate_expectation_values_sweep(
+        self,
+        program: 'cirq.Circuit',
+        observables: Dict[str, 'cirq.PauliSum'],
+        params: 'study.Sweepable',
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        initial_state: Any = None,
+        permit_terminal_measurements: bool = False,
+    ) -> List[Dict[str, float]]:
+        """Simulates the supplied circuit and calculates exact expectation
+        values for the given observables on its final state, sweeping over the
+        given params.
+
+        This method has no perfect analogy in hardware. Instead compare with
+        Sampler.sample_expectation_values, which calculates estimated
+        expectation values by sampling multiple times.
+
+        Args:
+            program: The circuit to simulate.
+            observables: A map of observable names (strings) to observables.
+            params: Parameters to run with the program.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation. The  form of
+                this state depends on the simulation implementation.  See
+                documentation of the implementing class for details.
+            permit_terminal_measurements: If the provided circuit ends in a
+                measurement, this method will generate an error unless this
+                is set to True. This is meant to prevent measurements from
+                ruining expectation value calculations.
+
+        Returns:
+            A list of observable-name-to-expectation-value maps, one for each
+            possible parameter resolver.
+        """
+
+
 class SimulatesFinalState(metaclass=abc.ABCMeta):
     """Simulator that allows access to the simulator's final state.
 
