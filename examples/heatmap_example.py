@@ -1,8 +1,4 @@
-"""Example heatmaps from the cirq.vis.heatmap package.
-
-bristlecone()
-two_qubit_interaction_heatmap() demonstrates how bristlecone_heatmap_example.png.
-"""
+"""Example heatmaps from the cirq.vis.heatmap package."""
 from typing import Tuple, cast
 
 import numpy as np
@@ -27,6 +23,7 @@ def bristlecone():
 def _sycamore_edges():
     # TODO(https://github.com/quantumlib/Cirq/issues/3696): replace this when we have a proper
     # method for it
+    print(cirq.google.Sycamore)
     return {
         pair
         for gate_defs in cirq.google.Sycamore.gate_definitions.values()
@@ -48,7 +45,7 @@ def two_qubit_interaction_heatmap():
     }
     heatmap = cirq.TwoQubitInteractionHeatmap(
         value_map=random_characterization_data,
-        title='Two Qubit Sycamore Gate Xeb Cycle Total Error',
+        title='Two Qubit Sycamore Gate XEB Cycle Total Error',
     )
     file_path = "examples/two_qubit_interaction_heatmap_example.png"
     fig, _, _ = heatmap.plot()
@@ -57,5 +54,5 @@ def two_qubit_interaction_heatmap():
 
 if __name__ == '__main__':
     # coverage: ignore
-    bristlecone()
+    # bristlecone()
     two_qubit_interaction_heatmap()

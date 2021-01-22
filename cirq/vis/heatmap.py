@@ -18,6 +18,7 @@ an interactive session.
 import abc
 from typing import Any, Dict, List, Mapping, Optional, SupportsFloat, Tuple, Union, TypeVar, Generic
 
+import seaborn as sns
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -394,6 +395,21 @@ class TwoQubitInteractionHeatmap(
         if self.url_map:
             url_array = [self.url_map.get((row, col), '') for row, col in value_table.stack().index]
 
+        def get_qubit_map(vm):
+            # TODO: clean this up later
+            return {**{q0: 0.0 for q0, _ in vm.keys()}, **{q1: 0.0 for _, q1 in vm.keys()}}
+
+        hm = Heatmap(get_qubit_map(self.value_map))
+        hm.set_colormap('binary')
+        hm.unset_colorbar()
+        hm.plot(
+            ax=ax,
+            linewidths=2,
+            edgecolor='darkgrey',
+            linestyle='dashed',
+            # annot_kws={'alpha': 0.0},  # A hack: transparent texts in qubit cells.
+        )
+
         # Plot the heatmap.
         mesh = ax.pcolor(
             x_table,
@@ -409,15 +425,15 @@ class TwoQubitInteractionHeatmap(
         ax.set(xlabel='column', ylabel='row')
         ax.set_xticks(np.arange(min_col - 0.5, max_col + 1.5))
         ax.set_yticks(np.arange(min_row - 0.5, max_row + 1.5))
-        ax.set_xticks(np.arange(min_col, max_col + 1), minor='true')
-        ax.set_yticks(np.arange(min_row, max_row + 1), minor='true')
+        # ax.set_xticks(np.arange(min_col, max_col + 1), minor='true')
+        # ax.set_yticks(np.arange(min_row, max_row + 1), minor='true')
         ax.grid(b=True, which='minor', linestyle='--')
-        ax.set_xlim((max_col + 0.5, min_col - 0.5))
+        ax.set_xlim((min_col - 1, max_col + 0.5))
         ax.set_ylim((max_row + 0.5, min_row - 0.5))
         plt.title(self.title)
 
-        if self.plot_colorbar:
-            self._plot_colorbar(mesh, ax)
+        # if self.plot_colorbar:
+        #     self._plot_colorbar(mesh, ax)
 
         if self.annot_map:
             self._write_annotations(ax)
@@ -425,4 +441,4 @@ class TwoQubitInteractionHeatmap(
         if show_plot:
             fig.show()
 
-        return ax, mesh, value_table
+        return ax, None, value_table
