@@ -18,12 +18,10 @@ https://arxiv.org/abs/2002.07730
 """
 
 import collections
-import functools
 import math
 from typing import Any, Dict, List, Iterator, Sequence
 
 import numpy as np
-import quimb
 import quimb.tensor as qtn
 
 import cirq
