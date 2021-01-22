@@ -15,9 +15,6 @@
 
 This is based on this paper:
 https://arxiv.org/abs/2002.07730
-
-TODO(tonybruguier): Instead of handling individual tensor in the code, directly use Quimb's
-TensorNetwork object.
 """
 
 import collections
@@ -26,6 +23,7 @@ import math
 from typing import Any, Dict, List, Iterator, Sequence
 
 import numpy as np
+import quimb
 import quimb.tensor as qtn
 
 import cirq
@@ -238,24 +236,6 @@ class MPSSimulatorStepResult(simulator.StepResult):
         return np.array(measurements, dtype=int)
 
 
-def _sum_reduce(M, ind):
-    # TODO(tonybruguier): Use M.sum_reduce(ind, inplace=False) once
-    # version 2.0 of Quimb is released.
-    M = M.copy()
-    axis = M.inds.index(ind)
-    new_data = np.sum(M.data, axis=axis)
-    new_inds = M.inds[:axis] + M.inds[axis + 1 :]
-    M.modify(data=new_data, inds=new_inds)
-    return M
-
-
-def _make_tensor_if_scalar(x):
-    # Sometimes, we get a scalar, but we would rather keep it as tensor.
-    if not isinstance(x, qtn.Tensor):
-        return qtn.Tensor(x)
-    return x
-
-
 @value.value_equality
 class MPSState:
     """A state of the MPS simulation."""
@@ -308,83 +288,16 @@ class MPSState:
         state.num_svd_splits = self.num_svd_splits
         return state
 
-    def _get_qubit_queue(self):
-        # We can aggregate the qubits in any order we want, theoretically. However, it's quite
-        # possible to blow up the memory doing so. Instead, we do a greedy search through the
-        # qubits that minimizes the memory required at every step.
-        qubit_queue = list(self.qubit_map.keys())
-
-        is_2d_grid = all([isinstance(qubit, cirq.GridQubit) for qubit in qubit_queue])
-        if is_2d_grid:
-            grid_height = max([qubit.row for qubit in qubit_queue]) - min(
-                [qubit.row for qubit in qubit_queue]
-            )
-            grid_width = max([qubit.col for qubit in qubit_queue]) - min(
-                [qubit.col for qubit in qubit_queue]
-            )
-            compare_row_first = grid_height < grid_width
-
-        def qubit_ordering_fn(qubit1, qubit2):
-            if is_2d_grid:
-                # For 2D grids, we do the shortest dimension first.
-                delta_row = qubit1.row - qubit2.row
-                delta_col = qubit1.col - qubit2.col
-
-                if compare_row_first:
-                    if delta_row != 0:
-                        return delta_row
-                else:
-                    if delta_col != 0:
-                        return delta_col
-
-                return delta_row + delta_col
-            else:
-                # For non-2D, we just use the naive ordering.
-                return self.qubit_map[qubit1] - self.qubit_map[qubit2]
-
-        qubit_queue.sort(key=functools.cmp_to_key(qubit_ordering_fn))
-        return qubit_queue
-
     def _sum_up(self, skip_tracing_out_for_qubits):
-        M = qtn.Tensor(1.0)
-
-        def _trace_out(i):
-            return skip_tracing_out_for_qubits and (i not in skip_tracing_out_for_qubits)
-
-        qubit_queue = self._get_qubit_queue()
-
-        while len(qubit_queue) > 0:
-            pop_idx = -1
-            # Compute the smallest badness:
-            for idx in range(len(qubit_queue)):
-                qubit = qubit_queue[idx]
-                # We define the badness as the number of elements the tensor M post
-                # aggregation and tracing out.
-                i = self.qubit_map[qubit]
-                new_inds = set(self.M[i].inds)
-                uncollapsed_inds = new_inds - set(M.inds)
-
-                badness = 1
-                for ind, shape in zip(self.M[i].inds, self.M[i].shape):
-                    if ind in uncollapsed_inds or not _trace_out(i):
-                        badness *= shape
-
-                if pop_idx == -1:
-                    smallest_badness = badness
-                    pop_idx = idx
-                elif smallest_badness > badness:
-                    smallest_badness = badness
-                    pop_idx = idx
-
-            # Pop the element to aggregate
-            qubit = qubit_queue.pop(pop_idx)
-
-            i = self.qubit_map[qubit]
-            Mi = self.M[i]
-            if _trace_out(i):
-                Mi = _sum_reduce(Mi, self.i_str(i))
-            M = _make_tensor_if_scalar(M @ Mi)
-        return M
+        end_bras = []
+        if skip_tracing_out_for_qubits:
+            for qubit, i in self.qubit_map.items():
+                if i not in skip_tracing_out_for_qubits:
+                    d = qubit.dimension
+                    data = [math.sqrt(d)] * d
+                    end_bras.append(qtn.Tensor(data=data, inds=(self.i_str(i),)))
+        tensor_network = qtn.TensorNetwork(self.M + end_bras)
+        return tensor_network.contract(inplace=False)
 
     def partial_state_vector(self, skip_tracing_out_for_qubits):
         M = self._sum_up(
