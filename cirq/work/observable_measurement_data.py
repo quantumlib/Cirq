@@ -18,13 +18,14 @@ from typing import Dict, List, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import protocols
+from cirq import protocols, ops
 from cirq._compat import proper_repr
 from cirq.work.observable_settings import (
     InitObsSetting,
     _max_weight_observable,
     _max_weight_state,
     _MeasurementSpec,
+    zeros_state,
 )
 
 if TYPE_CHECKING:
@@ -132,6 +133,14 @@ class ObservableMeasuredResult:
         return np.sqrt(self.variance)
 
 
+def _setting_to_z_observable(setting: InitObsSetting):
+    qubits = setting.observable.qubits
+    return InitObsSetting(
+        init_state=zeros_state(qubits),
+        observable=ops.PauliString(qubit_pauli_map={q: ops.Z for q in qubits}),
+    )
+
+
 class BitstringAccumulator:
     """A mutable container of bitstrings and associated metadata populated
     during a `measure_observables` run.
@@ -167,6 +176,16 @@ class BitstringAccumulator:
             arise. The total number of repetitions is the sum of this 1d array.
         timestamps: We record a timestamp for each request/chunk. This
             1d array will have the same length as `chunksizes`.
+        readout_calibration:
+            The result of `calibrate_readout_error`. When requesting
+            means and variances, if this is not `None`, we will use the
+            calibrated value to correct the requested quantity. This is a
+            `BitstringAccumulator` containing the results of measuring Z
+            observables with readout symmetrization enabled. This class
+            does *not* validate that both this parameter and the
+            `BitstringAccumulator` under construction contain measurements taken
+            with readout symmetrization turned on.
+
     """
 
     def __init__(
@@ -177,10 +196,12 @@ class BitstringAccumulator:
         bitstrings: np.ndarray = None,
         chunksizes: np.ndarray = None,
         timestamps: np.ndarray = None,
+        readout_calibration: 'BitstringAccumulator' = None,
     ):
         self._meas_spec = meas_spec
         self._simul_settings = simul_settings
         self._qubit_to_index = qubit_to_index
+        self._readout_calibration = readout_calibration
 
         if bitstrings is None:
             n_bits = len(qubit_to_index)
@@ -353,7 +374,8 @@ class BitstringAccumulator:
             f'qubit_to_index={self.qubit_to_index!r}, '
             f'bitstrings={proper_repr(self.bitstrings)}, '
             f'chunksizes={proper_repr(self.chunksizes)}, '
-            f'timestamps={proper_repr(self.timestamps)})'
+            f'timestamps={proper_repr(self.timestamps)}, '
+            f'readout_calibration={self._readout_calibration!r})'
         )
 
     def __str__(self):
@@ -423,12 +445,28 @@ class BitstringAccumulator:
             raise ValueError("No measurements")
         self._validate_setting(setting, what='variance')
 
-        _, var = _stats_from_measurements(
+        mean, var = _stats_from_measurements(
             bitstrings=self.bitstrings,
             qubit_to_index=self._qubit_to_index,
             observable=setting.observable,
             atol=atol,
         )
+
+        if self._readout_calibration is not None:
+            a = mean
+            if np.isclose(a, 0, atol=atol):
+                return np.inf
+            var_a = var
+            ro_setting = _setting_to_z_observable(setting)
+            b = self._readout_calibration.mean(ro_setting)
+            if np.isclose(b, 0, atol=atol):
+                return np.inf
+            var_b = self._readout_calibration.variance(ro_setting)
+            f = a / b
+
+            # https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulae
+            # assume cov(a,b) = 0, otherwise there would be another term.
+            var = f ** 2 * (var_a / (a ** 2) + var_b / (b ** 2))
 
         return var
 
@@ -452,6 +490,10 @@ class BitstringAccumulator:
             observable=setting.observable,
             atol=atol,
         )
+
+        if self._readout_calibration is not None:
+            ro_setting = _setting_to_z_observable(setting)
+            return mean / self._readout_calibration.mean(ro_setting, atol=atol)
 
         return mean
 

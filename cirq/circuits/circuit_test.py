@@ -1657,7 +1657,7 @@ def test_has_measurements(circuit_cls):
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_are_all_measurements_terminal(circuit_cls):
+def test_are_all_or_any_measurements_terminal(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -1669,40 +1669,51 @@ def test_are_all_measurements_terminal(circuit_cls):
 
     c = circuit_cls()
     assert c.are_all_measurements_terminal()
+    assert not c.are_any_measurements_terminal()
 
     c = circuit_cls(xa, xb)
     assert c.are_all_measurements_terminal()
+    assert not c.are_any_measurements_terminal()
 
     c = circuit_cls(ma)
     assert c.are_all_measurements_terminal()
+    assert c.are_any_measurements_terminal()
 
     c = circuit_cls(ma, mb)
     assert c.are_all_measurements_terminal()
+    assert c.are_any_measurements_terminal()
 
     c = circuit_cls(xa, ma)
     assert c.are_all_measurements_terminal()
+    assert c.are_any_measurements_terminal()
 
     c = circuit_cls(xa, ma, xb, mb)
     assert c.are_all_measurements_terminal()
+    assert c.are_any_measurements_terminal()
 
     c = circuit_cls(ma, xa)
     assert not c.are_all_measurements_terminal()
+    assert not c.are_any_measurements_terminal()
 
     c = circuit_cls(ma, xa, mb)
     assert not c.are_all_measurements_terminal()
+    assert c.are_any_measurements_terminal()
 
     c = circuit_cls(xa, ma, xb, xa)
     assert not c.are_all_measurements_terminal()
+    assert not c.are_any_measurements_terminal()
 
     c = circuit_cls(ma, ma)
     assert not c.are_all_measurements_terminal()
+    assert c.are_any_measurements_terminal()
 
     c = circuit_cls(xa, ma, xa)
     assert not c.are_all_measurements_terminal()
+    assert not c.are_any_measurements_terminal()
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_all_terminal(circuit_cls):
+def test_all_or_any_terminal(circuit_cls):
     def is_x_pow_gate(op):
         return isinstance(op.gate, cirq.XPowGate)
 
@@ -1717,36 +1728,47 @@ def test_all_terminal(circuit_cls):
 
     c = circuit_cls()
     assert c.are_all_matches_terminal(is_x_pow_gate)
+    assert not c.are_any_matches_terminal(is_x_pow_gate)
 
     c = circuit_cls(xa)
     assert c.are_all_matches_terminal(is_x_pow_gate)
+    assert c.are_any_matches_terminal(is_x_pow_gate)
 
     c = circuit_cls(xb)
     assert c.are_all_matches_terminal(is_x_pow_gate)
+    assert c.are_any_matches_terminal(is_x_pow_gate)
 
     c = circuit_cls(ya)
     assert c.are_all_matches_terminal(is_x_pow_gate)
+    assert not c.are_any_matches_terminal(is_x_pow_gate)
 
     c = circuit_cls(ya, yb)
     assert c.are_all_matches_terminal(is_x_pow_gate)
+    assert not c.are_any_matches_terminal(is_x_pow_gate)
 
     c = circuit_cls(ya, yb, xa)
     assert c.are_all_matches_terminal(is_x_pow_gate)
+    assert c.are_any_matches_terminal(is_x_pow_gate)
 
     c = circuit_cls(ya, yb, xa, xb)
     assert c.are_all_matches_terminal(is_x_pow_gate)
+    assert c.are_any_matches_terminal(is_x_pow_gate)
 
     c = circuit_cls(xa, xa)
     assert not c.are_all_matches_terminal(is_x_pow_gate)
+    assert c.are_any_matches_terminal(is_x_pow_gate)
 
     c = circuit_cls(xa, ya)
     assert not c.are_all_matches_terminal(is_x_pow_gate)
+    assert not c.are_any_matches_terminal(is_x_pow_gate)
 
     c = circuit_cls(xb, ya, yb)
     assert not c.are_all_matches_terminal(is_x_pow_gate)
+    assert not c.are_any_matches_terminal(is_x_pow_gate)
 
     c = circuit_cls(xa, ya, xa)
     assert not c.are_all_matches_terminal(is_x_pow_gate)
+    assert c.are_any_matches_terminal(is_x_pow_gate)
 
     def is_circuit_op(op):
         isinstance(op, cirq.CircuitOperation)
@@ -1756,6 +1778,7 @@ def test_all_terminal(circuit_cls):
     c = circuit_cls(cop_2, yb)
     # are_all_matches_terminal treats CircuitOperations as transparent.
     assert c.are_all_matches_terminal(is_circuit_op)
+    assert not c.are_any_matches_terminal(is_circuit_op)
 
 
 def test_clear_operations_touching():
