@@ -744,11 +744,11 @@ class AbstractCircuit(abc.ABC):
     def has_measurements(self):
         return any(self.findall_operations(protocols.is_measurement))
 
-    def are_all_measurements_terminal(self):
+    def are_all_measurements_terminal(self) -> bool:
         """Whether all measurement gates are at the end of the circuit."""
         return self.are_all_matches_terminal(protocols.is_measurement)
 
-    def are_all_matches_terminal(self, predicate: Callable[['cirq.Operation'], bool]):
+    def are_all_matches_terminal(self, predicate: Callable[['cirq.Operation'], bool]) -> bool:
         """Check whether all of the ops that satisfy a predicate are terminal.
 
         This method will transparently descend into any CircuitOperations this
@@ -763,24 +763,16 @@ class AbstractCircuit(abc.ABC):
             given predicate are terminal. Also checks within any CircuitGates
             the circuit may contain.
         """
-        from cirq.circuits import CircuitOperation
-
-        # TaggedOperations can wrap CircuitOperations.
-        def get_op_circuit(op: ops.Operation) -> Optional['cirq.FrozenCircuit']:
-            while isinstance(op, ops.TaggedOperation):
-                op = op.sub_operation
-            return op.circuit if isinstance(op, CircuitOperation) else None
-
         if not all(
             self.next_moment_operating_on(op.qubits, i + 1) is None
             for (i, op) in self.findall_operations(predicate)
-            if get_op_circuit(op) is None
+            if _get_op_circuit(op) is None
         ):
             return False
 
         for i, moment in enumerate(self.moments):
             for op in moment.operations:
-                circuit = get_op_circuit(op)
+                circuit = _get_op_circuit(op)
                 if circuit is None:
                     continue
                 if not circuit.are_all_matches_terminal(predicate):
@@ -792,11 +784,11 @@ class AbstractCircuit(abc.ABC):
                     return False
         return True
 
-    def are_any_measurements_terminal(self):
+    def are_any_measurements_terminal(self) -> bool:
         """Whether any measurement gates are at the end of the circuit."""
         return self.are_any_matches_terminal(protocols.is_measurement)
 
-    def are_any_matches_terminal(self, predicate: Callable[['cirq.Operation'], bool]):
+    def are_any_matches_terminal(self, predicate: Callable[['cirq.Operation'], bool]) -> bool:
         """Check whether any of the ops that satisfy a predicate are terminal.
 
         This method will transparently descend into any CircuitOperations this
@@ -811,24 +803,16 @@ class AbstractCircuit(abc.ABC):
             given predicate are terminal. Also checks within any CircuitGates
             the circuit may contain.
         """
-        from cirq.circuits import CircuitOperation
-
-        # TaggedOperations can wrap CircuitOperations.
-        def get_op_circuit(op: ops.Operation) -> Optional['cirq.FrozenCircuit']:
-            while isinstance(op, ops.TaggedOperation):
-                op = op.sub_operation
-            return op.circuit if isinstance(op, CircuitOperation) else None
-
         if any(
             self.next_moment_operating_on(op.qubits, i + 1) is None
             for (i, op) in self.findall_operations(predicate)
-            if get_op_circuit(op) is None
+            if _get_op_circuit(op) is None
         ):
             return True
 
-        for i, moment in enumerate(self.moments):
+        for i, moment in reversed(list(enumerate(self.moments))):
             for op in moment.operations:
-                circuit = get_op_circuit(op)
+                circuit = _get_op_circuit(op)
                 if circuit is None:
                     continue
                 if not circuit.are_any_matches_terminal(predicate):
@@ -2082,6 +2066,15 @@ class Circuit(AbstractCircuit):
             # Keep moments aligned
             c_noisy += Circuit(op_tree)
         return c_noisy
+
+
+def _get_op_circuit(op: ops.Operation) -> Optional['cirq.FrozenCircuit']:
+    """Retrieves the circuit contained by an operation, if there is one."""
+    from cirq.circuits import CircuitOperation
+
+    while isinstance(op, ops.TaggedOperation):
+        op = op.sub_operation
+    return op.circuit if isinstance(op, CircuitOperation) else None
 
 
 def _resolve_operations(
