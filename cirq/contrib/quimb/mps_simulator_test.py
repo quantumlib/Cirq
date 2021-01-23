@@ -75,6 +75,41 @@ def test_various_gates_2d():
                             )
 
 
+def test_same_partial_trace():
+    qubit_order = cirq.LineQubit.range(2)
+    q0, q1 = qubit_order
+
+    angles = [0.0, 0.20160913, math.pi / 3.0, math.pi / 4.0, math.pi / 2.0, math.pi]
+
+    for angle_0 in angles:
+        for angle_1 in angles:
+            for use_cnot in [False, True]:
+                op0 = cirq.ry(angle_0)
+                op1 = cirq.ry(angle_1)
+
+                circuit = cirq.Circuit()
+                circuit.append(op0(q0))
+                if use_cnot:
+                    circuit.append(cirq.CNOT(q0, q1))
+                circuit.append(op1(q1))
+
+                for initial_state in range(4):
+                    density_matrix = cirq.final_density_matrix(
+                        circuit, qubit_order=qubit_order, initial_state=initial_state
+                    )
+                    expected = cirq.partial_trace(
+                        density_matrix.reshape(2, 2, 2, 2), keep_indices=[0]
+                    )
+
+                    mps_simulator = ccq.mps_simulator.MPSSimulator()
+                    final_state = mps_simulator.simulate(
+                        circuit, qubit_order=qubit_order, initial_state=initial_state
+                    ).final_state
+                    actual = final_state.partial_trace([q0])
+
+                    np.testing.assert_allclose(actual, expected, atol=1e-4)
+
+
 def test_empty():
     q0 = cirq.NamedQid('q0', dimension=2)
     q1 = cirq.NamedQid('q1', dimension=3)
@@ -228,8 +263,6 @@ def test_supremacy_big():
 
     mps_simulator = ccq.mps_simulator.MPSSimulator(rsum2_cutoff=5e-5)
     result = mps_simulator.simulate(circuit, qubit_order=qubit_order, initial_state=0)
-
-    result.final_state.partial_state_vector({q0})
 
     assert result.final_state.estimation_stats() == {
         'estimated_fidelity': 0.997,

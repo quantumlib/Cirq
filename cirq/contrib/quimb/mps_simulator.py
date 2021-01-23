@@ -297,30 +297,34 @@ class MPSState:
         state.num_svd_splits = self.num_svd_splits
         return state
 
-    def _sum_up(self, skip_tracing_out_for_qubits):
-        end_bras = []
-        if skip_tracing_out_for_qubits:
-            for qubit, i in self.qubit_map.items():
-                if i not in skip_tracing_out_for_qubits:
-                    d = qubit.dimension
-                    data = [math.sqrt(d)] * d
-                    end_bras.append(qtn.Tensor(data=data, inds=(self.i_str(i),)))
-        tensor_network = qtn.TensorNetwork(self.M + end_bras)
-        return tensor_network.contract(inplace=False)
+    def state_vector(self):
+        tensor_network = qtn.TensorNetwork(self.M)
+        state_vector = tensor_network.contract(inplace=False)
 
-    def partial_state_vector(self, skip_tracing_out_for_qubits):
-        M = self._sum_up(
-            skip_tracing_out_for_qubits={
-                self.qubit_map[qubit] for qubit in skip_tracing_out_for_qubits
-            }
-        )
         # Here, we rely on the formatting of the indices, and the fact that we have enough
         # leading zeros so that 003 comes before 100.
-        sorted_ind = tuple(sorted(M.inds))
-        return M.fuse({'i': sorted_ind}).data
+        sorted_ind = tuple(sorted(state_vector.inds))
+        return state_vector.fuse({'i': sorted_ind}).data
 
-    def state_vector(self):
-        return self.partial_state_vector(skip_tracing_out_for_qubits={})
+    def partial_trace(self, keep_qubits):
+        tensor_network = qtn.TensorNetwork(self.M)
+
+        conj_tensor_network = tensor_network.conj()
+
+        old_inds = []
+        new_inds = []
+        for keep_qubit in keep_qubits:
+            old_ind = self.i_str(self.qubit_map[keep_qubit])
+            new_ind = "conj_" + old_ind
+            old_inds.append(old_ind)
+            new_inds.append(new_ind)
+            conj_tensor_network.reindex({old_ind: new_ind}, inplace=True)
+
+        partial_trace = conj_tensor_network @ tensor_network
+        old_inds = tuple(sorted(old_inds))
+        new_inds = tuple(sorted(new_inds))
+
+        return partial_trace.to_dense(new_inds, old_inds)
 
     def to_numpy(self) -> np.ndarray:
         return self.state_vector()
