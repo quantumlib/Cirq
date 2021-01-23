@@ -158,7 +158,9 @@ def test_measurement_str():
 
 def test_trial_result_str():
     q0 = cirq.LineQubit(0)
-    final_simulator_state = ccq.mps_simulator.MPSState(qubit_map={q0: 0}, rsum2_cutoff=1e-3)
+    final_simulator_state = ccq.mps_simulator.MPSState(
+        qubit_map={q0: 0}, rsum2_cutoff=1e-3, sum_prob_atol=1e-3
+    )
     assert (
         str(
             ccq.mps_simulator.MPSTrialResult(
@@ -174,16 +176,16 @@ def test_trial_result_str():
 
 def test_empty_step_result():
     q0 = cirq.LineQubit(0)
-    state = ccq.mps_simulator.MPSState(qubit_map={q0: 0}, rsum2_cutoff=1e-3)
+    state = ccq.mps_simulator.MPSState(qubit_map={q0: 0}, rsum2_cutoff=1e-3, sum_prob_atol=1e-3)
     step_result = ccq.mps_simulator.MPSSimulatorStepResult(state, measurements={'0': [1]})
     assert str(step_result) == "0=1\n[array([1., 0.])]"
 
 
 def test_state_equal():
     q0, q1 = cirq.LineQubit.range(2)
-    state0 = ccq.mps_simulator.MPSState(qubit_map={q0: 0}, rsum2_cutoff=1e-3)
-    state1a = ccq.mps_simulator.MPSState(qubit_map={q1: 0}, rsum2_cutoff=1e-3)
-    state1b = ccq.mps_simulator.MPSState(qubit_map={q1: 0}, rsum2_cutoff=1729.0)
+    state0 = ccq.mps_simulator.MPSState(qubit_map={q0: 0}, rsum2_cutoff=1e-3, sum_prob_atol=1e-3)
+    state1a = ccq.mps_simulator.MPSState(qubit_map={q1: 0}, rsum2_cutoff=1e-3, sum_prob_atol=1e-3)
+    state1b = ccq.mps_simulator.MPSState(qubit_map={q1: 0}, rsum2_cutoff=1729.0, sum_prob_atol=1e-3)
     assert state0 == state0
     assert state0 != state1a
     assert state1a != state1b
@@ -208,7 +210,7 @@ def test_supremacy_equal_more_cols():
 def test_tensor_index_names():
     qubits = cirq.LineQubit.range(12)
     qubit_map = {qubit: i for i, qubit in enumerate(qubits)}
-    state = ccq.mps_simulator.MPSState(qubit_map, rsum2_cutoff=0.1234)
+    state = ccq.mps_simulator.MPSState(qubit_map, rsum2_cutoff=0.1234, sum_prob_atol=1e-3)
 
     assert state.i_str(0) == "i_00"
     assert state.i_str(11) == "i_11"

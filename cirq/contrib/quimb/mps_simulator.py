@@ -32,7 +32,9 @@ from cirq.sim import simulator
 class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
     """An efficient simulator for MPS circuits."""
 
-    def __init__(self, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None, rsum2_cutoff=1e-3):
+    def __init__(
+        self, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None, rsum2_cutoff=1e-3, sum_prob_atol=1e-3
+    ):
         """Creates instance of `MPSSimulator`.
 
         Args:
@@ -43,10 +45,14 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
                 This is related to the fidelity of the computation. If we have
                 N 2D gates, then the estimated fidelity is
                 (1 - rsum2_cutoff) ** N.
+            sum_prob_atol: Because the computation is approximate, the sum of
+                the probabilities is not 1.0. This parameter is the absolute
+                deviation from 1.0 that is allowed.
         """
         self.init = True
         self._prng = value.parse_random_state(seed)
         self.rsum2_cutoff = rsum2_cutoff
+        self.sum_prob_atol = sum_prob_atol
 
     def _base_iterator(
         self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
@@ -72,11 +78,15 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
         if len(circuit) == 0:
             yield MPSSimulatorStepResult(
                 measurements={},
-                state=MPSState(qubit_map, self.rsum2_cutoff, initial_state=initial_state),
+                state=MPSState(
+                    qubit_map, self.rsum2_cutoff, self.sum_prob_atol, initial_state=initial_state
+                ),
             )
             return
 
-        state = MPSState(qubit_map, self.rsum2_cutoff, initial_state=initial_state)
+        state = MPSState(
+            qubit_map, self.rsum2_cutoff, self.sum_prob_atol, initial_state=initial_state
+        )
 
         for moment in circuit:
             measurements: Dict[str, List[int]] = collections.defaultdict(list)
@@ -238,7 +248,7 @@ class MPSSimulatorStepResult(simulator.StepResult):
 class MPSState:
     """A state of the MPS simulation."""
 
-    def __init__(self, qubit_map, rsum2_cutoff, initial_state=0):
+    def __init__(self, qubit_map, rsum2_cutoff, sum_prob_atol, initial_state=0):
         self.qubit_map = qubit_map
         self.M = []
 
@@ -263,6 +273,7 @@ class MPSState:
             initial_state = initial_state // d
         self.M = self.M[::-1]
         self.rsum2_cutoff = rsum2_cutoff
+        self.sum_prob_atol = sum_prob_atol
         self.num_svd_splits = 0
 
     def i_str(self, i):
@@ -278,10 +289,10 @@ class MPSState:
         return str([x.data for x in self.M])
 
     def _value_equality_values_(self) -> Any:
-        return self.qubit_map, self.M, self.rsum2_cutoff
+        return self.qubit_map, self.M, self.rsum2_cutoff, self.sum_prob_atol
 
     def copy(self) -> 'MPSState':
-        state = MPSState(self.qubit_map, self.rsum2_cutoff)
+        state = MPSState(self.qubit_map, self.rsum2_cutoff, self.sum_prob_atol)
         state.M = [x.copy() for x in self.M]
         state.num_svd_splits = self.num_svd_splits
         return state
@@ -404,10 +415,13 @@ class MPSState:
             M = state._sum_up(skip_tracing_out_for_qubits={n})
 
             probs = [abs(x) ** 2 for x in M.data]
+            sum_probs = sum(probs)
 
             # Because the computation is approximate, the probabilities do not
             # necessarily add up to 1.0, and thus we re-normalize them.
-            norm_probs = [x / sum(probs) for x in probs]
+            if abs(sum_probs - 1.0) > self.sum_prob_atol:
+                raise ValueError('Sum of probabilities exceeds tolerance: {}'.format(sum_probs))
+            norm_probs = [x / sum_probs for x in probs]
 
             d = qubit.dimension
             result: int = int(prng.choice(d, p=norm_probs))
