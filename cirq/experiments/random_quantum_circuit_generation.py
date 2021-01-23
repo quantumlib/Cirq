@@ -13,6 +13,7 @@
 # limitations under the License.
 """Code for generating random quantum circuits."""
 
+import dataclasses
 from typing import (
     Any,
     Callable,
@@ -25,8 +26,6 @@ from typing import (
     Tuple,
     Union,
 )
-
-import dataclasses
 
 from cirq import circuits, devices, google, ops, protocols, value
 from cirq._doc import document
