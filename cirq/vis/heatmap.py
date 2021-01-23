@@ -255,13 +255,11 @@ class HeatmapBase(Generic[T, K, M], abc.ABC):
         self, centers: List[Point], mesh: mpl_collections.Collection, ax: plt.Axes
     ) -> None:
         """Writes annotations to the center of cells. Internal."""
-        print(centers, len(mesh.get_paths()), len(mesh.get_facecolors()))
         for center, path, facecolor in zip(centers, mesh.get_paths(), mesh.get_facecolors()):
             # Calculate the center of the cell, assuming that it is a square
             # centered at (x=col, y=row).
             col, row = center
             annotation = self.annot_map.get((row, col), 'none')
-            print(annotation, center, path, facecolor)
             if not annotation:
                 continue
             face_luminance = relative_luminance(facecolor)
@@ -269,23 +267,6 @@ class HeatmapBase(Generic[T, K, M], abc.ABC):
             text_kwargs = dict(color=text_color, ha="center", va="center")
             text_kwargs.update(self.annot_kwargs)
             ax.text(col, row, annotation, **text_kwargs)
-        #
-        # vmax = max(self.value_map.values())
-        # vmin = min(self.value_map.values())
-        # medium_brightness = ((vmax[0] + vmin[0]) / 2)
-        #
-        # for target in self.value_map.keys():
-        #     row, col = self._target_to_coordinate(target)
-        #     annotation = self.annot_map.get((row, col), '')
-        #     if not annotation:
-        #         continue
-        #
-        #
-        #     text_color = 'black' if self.value_map[target][0] > medium_brightness else 'white'
-        #     print(target, self.value_map[target][0], text_color, annotation)
-        #     text_kwargs = dict(color=text_color, ha="center", va="center")
-        #     text_kwargs.update(self.annot_kwargs)
-        #     ax.text(col, row, annotation, **text_kwargs)
 
 
 class Heatmap(HeatmapBase['Heatmap', QubitCoordinate, ValueMap]):
@@ -360,8 +341,11 @@ class Heatmap(HeatmapBase['Heatmap', QubitCoordinate, ValueMap]):
             self._plot_colorbar(mesh, ax)
 
         if self.annot_map:
+            centers = [
+                np.mean([np.array(v) for v in p.vertices[:4]], axis=0) for p in mesh.get_paths()
+            ]
             self._write_annotations(
-                [np.mean([np.array(v) for v in p.vertices[:4]], axis=0) for p in mesh.get_paths()],
+                centers,
                 mesh,
                 ax,
             )
@@ -410,8 +394,8 @@ class TwoQubitInteractionHeatmap(
         coordinate_list = [
             self._target_to_coordinate(qubit_pair) for qubit_pair in self.value_map.keys()
         ]
-        rows = [row for row, _ in coordinate_list]
-        cols = [col for _, col in coordinate_list]
+        rows = {row for row, _ in coordinate_list}
+        cols = {col for _, col in coordinate_list}
         min_row, max_row = min(rows), max(rows)
         min_col, max_col = min(cols), max(cols)
         # Construct the table of values.
@@ -458,17 +442,19 @@ class TwoQubitInteractionHeatmap(
         ax.add_collection(collection)
         collection.update_scalarmappable()  # Populate facecolors.
         if self.annot_map:
-            self._write_annotations([c.center for c in coupler_list], collection, ax)
+            centers = [c.center for c in coupler_list]
+            self._write_annotations(centers, collection, ax)
 
         ax.set(xlabel='column', ylabel='row')
+
         min_xtick = np.floor(min_col)
-        max_xtick = np.floor(max_col)
+        max_xtick = np.ceil(max_col)
         ax.set_xticks(np.arange(min_xtick, max_xtick + 1))
         min_ytick = np.floor(min_row)
-        max_ytick = np.floor(max_row)
+        max_ytick = np.ceil(max_row)
         ax.set_yticks(np.arange(min_ytick, max_ytick + 1))
-        ax.set_xlim((min_xtick - 0.6, max_xtick + 1.6))
-        ax.set_ylim((max_ytick + 1.6, min_ytick - 0.6))
+        ax.set_xlim((min_xtick - 0.6, max_xtick + 0.6))
+        ax.set_ylim((max_ytick + 0.6, min_ytick - 0.6))
         plt.title(self.title)
 
         if self.plot_colorbar:

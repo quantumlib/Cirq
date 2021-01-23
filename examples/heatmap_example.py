@@ -23,7 +23,6 @@ def bristlecone():
 def _sycamore_edges():
     # TODO(https://github.com/quantumlib/Cirq/issues/3696): replace this when we have a proper
     # method for it
-    print(cirq.google.Sycamore)
     return {
         pair
         for gate_defs in cirq.google.Sycamore.gate_definitions.values()
@@ -34,12 +33,12 @@ def _sycamore_edges():
     }
 
 
-def two_qubit_interaction_heatmap():
+def two_qubit_interaction_heatmap(predef=False):
     """Demo of cirq.InteractionHeatmap.
 
     Demonstrates how cirq.Heatmap can be used to generate a heatmap of the qubit fidelities.
     """
-    predef = True
+
     # normally one would get these from cirq.google.engine
     s = np.random.RandomState(1234)
     random_characterization_data = {qubit_pair: s.random() for qubit_pair in _sycamore_edges()}
@@ -92,3 +91,4 @@ if __name__ == '__main__':
     # coverage: ignore
     # bristlecone()
     two_qubit_interaction_heatmap()
+    two_qubit_interaction_heatmap(True)
