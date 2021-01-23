@@ -54,6 +54,8 @@ PACKAGES = [
     "virtualenv-clone",
     # assumed to be part of colab
     "seaborn",
+    # https://github.com/nteract/papermill/issues/519
+    'ipykernel==5.3.4',
 ]
 
 
