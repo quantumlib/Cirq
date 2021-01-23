@@ -259,7 +259,7 @@ class HeatmapBase(Generic[T, K, M], abc.ABC):
             # Calculate the center of the cell, assuming that it is a square
             # centered at (x=col, y=row).
             col, row = center
-            annotation = self.annot_map.get((row, col), 'none')
+            annotation = self.annot_map.get((row, col), '')
             if not annotation:
                 continue
             face_luminance = relative_luminance(facecolor)
