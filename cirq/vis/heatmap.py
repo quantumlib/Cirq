@@ -438,6 +438,7 @@ class TwoQubitInteractionHeatmap(
         # Make the heatmap for two-qubit metrics.
         collection = mcoll.PolyCollection([c.polygon for c in coupler_list], cmap=self.colormap)
         collection.set_clim(vmin, vmax)
+        collection.set_urls(url_array)
         collection.set_array(np.array([c.value for c in coupler_list]))
         ax.add_collection(collection)
         collection.update_scalarmappable()  # Populate facecolors.
