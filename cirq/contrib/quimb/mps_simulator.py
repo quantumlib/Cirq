@@ -307,23 +307,26 @@ class MPSState:
         return state_vector.fuse({'i': sorted_ind}).data
 
     def partial_trace(self, keep_qubits):
+        contracted_inds = set(
+            [self.i_str(i) for qubit, i in self.qubit_map.items() if qubit not in keep_qubits]
+        )
+
+        CONJ_PFX = "conj_"
+
         tensor_network = qtn.TensorNetwork(self.M)
 
+        # Rename the internal indices to avoid collisions. Also rename the qubit
+        # indices that are kept. We do not rename the qubit indices that are
+        # traced out.
         conj_tensor_network = tensor_network.conj()
-
-        old_inds = []
-        new_inds = []
-        for keep_qubit in keep_qubits:
-            old_ind = self.i_str(self.qubit_map[keep_qubit])
-            new_ind = "conj_" + old_ind
-            old_inds.append(old_ind)
-            new_inds.append(new_ind)
-            conj_tensor_network.reindex({old_ind: new_ind}, inplace=True)
-
+        for M in conj_tensor_network.tensors:
+            for ind in M.inds:
+                if ind not in contracted_inds:
+                    conj_tensor_network.reindex({ind: CONJ_PFX + ind}, inplace=True)
         partial_trace = conj_tensor_network @ tensor_network
-        old_inds = tuple(sorted(old_inds))
-        new_inds = tuple(sorted(new_inds))
 
+        old_inds = [self.i_str(self.qubit_map[keep_qubit]) for keep_qubit in keep_qubits]
+        new_inds = [CONJ_PFX + old_ind for old_ind in old_inds]
         return partial_trace.to_dense(old_inds, new_inds)
 
     def to_numpy(self) -> np.ndarray:
