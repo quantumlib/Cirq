@@ -422,6 +422,8 @@ class MPSState:
 
         U = protocols.unitary(op).reshape([qubit.dimension for qubit in op.qubits] * 2)
 
+        # TODO(tonybruguier): Explore using the Quimb's tensor network natively.
+
         if len(op.qubits) == 1:
             n = self.qubit_map[op.qubits[0]]
 
