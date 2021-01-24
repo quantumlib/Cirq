@@ -348,7 +348,7 @@ class MPSState:
         return self.format_mu.format(smallest, largest)
 
     def __str__(self) -> str:
-        return str([x.data for x in self.M])
+        return str(qtn.TensorNetwork(self.M))
 
     def _value_equality_values_(self) -> Any:
         return self.qubit_map, self.M, self.rsum2_cutoff, self.sum_prob_atol
@@ -360,7 +360,11 @@ class MPSState:
         return state
 
     def state_vector(self) -> np.ndarray:
-        """Returns the full state vector."""
+        """Returns the full state vector.
+
+        Returns:
+            A vector that contains the full state.
+        """
         tensor_network = qtn.TensorNetwork(self.M)
         state_vector = tensor_network.contract(inplace=False)
 
@@ -370,7 +374,17 @@ class MPSState:
         return state_vector.fuse({'i': sorted_ind}).data
 
     def partial_trace(self, keep_qubits: Set[ops.Qid]) -> np.ndarray:
-        """Returns the partial trace only for the keep_qubits specified."""
+        """Returns the partial trace only for the keep_qubits specified.
+
+        Args:
+            keep_qubits: The set of qubits that are left after computing the
+                partial trace. For example, if we have a circuit for 3 qubits
+                and this parameter only has one qubit, the entire density matrix
+                would be 8x8, but this function returns a 2x2 matrix.
+
+        Returns:
+            An array that contains the partial trace.
+        """
 
         contracted_inds = set(
             [self.i_str(i) for qubit, i in self.qubit_map.items() if qubit not in keep_qubits]
@@ -395,10 +409,16 @@ class MPSState:
         return partial_trace.to_dense(old_inds, new_inds)
 
     def to_numpy(self) -> np.ndarray:
+        """An alias for the state vector."""
         return self.state_vector()
 
     def apply_unitary(self, op: 'cirq.Operation'):
-        """Applies a unitary operation, mutating the object to represent the new state."""
+        """Applies a unitary operation, mutating the object to represent the new state.
+
+        op:
+            The operation that mutates the object. Note that currently, only 1-
+            and 2- qubit operations are currently supported.
+        """
 
         U = protocols.unitary(op).reshape([qubit.dimension for qubit in op.qubits] * 2)
 
@@ -475,7 +495,14 @@ class MPSState:
     def perform_measurement(
         self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
     ) -> List[int]:
-        """Performs a measurement over one or more qubits."""
+        """Performs a measurement over one or more qubits.
+
+        Args:
+            qubits: The sequence of qids to measure, in that order.
+            prng: A random number generator, used to simulate measurements.
+            collapse_state_vector: A Boolean specifying whether we should mutate
+                the state after the measurement.
+        """
         results: List[int] = []
 
         if collapse_state_vector:
