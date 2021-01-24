@@ -19,7 +19,7 @@ https://arxiv.org/abs/2002.07730
 
 import collections
 import math
-from typing import Any, Dict, List, Iterator, Sequence
+from typing import Any, Dict, List, Iterator, Sequence, Set
 
 import numpy as np
 import quimb.tensor as qtn
@@ -33,7 +33,10 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
     """An efficient simulator for MPS circuits."""
 
     def __init__(
-        self, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None, rsum2_cutoff=1e-3, sum_prob_atol=1e-3
+        self,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        rsum2_cutoff: float = 1e-3,
+        sum_prob_atol: float = 1e-3,
     ):
         """Creates instance of `MPSSimulator`.
 
@@ -66,7 +69,6 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
                 ordering of the computational basis states.
             initial_state: The initial state for the simulation in the
                 computational basis. Represented as a big endian int.
-
 
         Yields:
             MPSStepResult from simulating a Moment of the Circuit.
@@ -108,12 +110,22 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
         param_resolver: study.ParamResolver,
         qubit_order: ops.QubitOrderOrList,
         initial_state: int,
-    ) -> Iterator:
-        """See definition in `cirq.SimulatesIntermediateState`.
+    ) -> Iterator['cirq.contrib.quimb.mps_simulator.MPSSimulatorStepResult']:
+        """Iterator over MPSSimulatorStepResult from Moments of a Circuit
 
         Args:
-            inital_state: An integer specifying the inital
-            state in the computational basis.
+            circuit: The circuit to simulate.
+            param_resolver: A ParamResolver for determining values of
+                Symbols.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
+                documentation of the implementing class for details.
+
+        Returns:
+            An interator over all the results.
         """
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
@@ -126,9 +138,21 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state,
-    ):
+        final_simulator_state: 'cirq.contrib.quimb.mps_simulator.MPSState',
+    ) -> 'cirq.contrib.quimb.mps_simulator.MPSTrialResult':
+        """Creates a single trial results with the measurements.
 
+        Args:
+            circuit: The circuit to simulate.
+            param_resolver: A ParamResolver for determining values of
+                Symbols.
+            measurements: A dictionary from measurement key (e.g. qubit) to the
+                actual measurement array.
+            final_simulator_state: The final state of the simulator.
+
+        Returns:
+            A single result.
+        """
         return MPSTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
@@ -136,7 +160,19 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
     ) -> Dict[str, List[np.ndarray]]:
+        """Repeats measurements multiple times.
 
+        Args:
+            circuit: The circuit to simulate.
+            param_resolver: A ParamResolver for determining values of
+                Symbols.
+            repetitions: How many measurements to perform
+            final_simulator_state: The final state of the simulator.
+
+        Returns:
+            A dictionay of measurement key (e.g. qubit) to a list of arrays that
+            are the measurements.
+        """
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         self._check_all_resolved(resolved_circuit)
@@ -172,6 +208,8 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
 
 
 class MPSTrialResult(simulator.SimulationTrialResult):
+    """A single trial reult"""
+
     def __init__(
         self,
         params: study.ParamResolver,
@@ -191,7 +229,7 @@ class MPSTrialResult(simulator.SimulationTrialResult):
 
 
 class MPSSimulatorStepResult(simulator.StepResult):
-    """A `StepResult` that includes `StateVectorMixin` methods."""
+    """A `StepResult` that can perform measurements."""
 
     def __init__(self, state, measurements):
         """Results of a step of the simulator.
@@ -248,7 +286,28 @@ class MPSSimulatorStepResult(simulator.StepResult):
 class MPSState:
     """A state of the MPS simulation."""
 
-    def __init__(self, qubit_map, rsum2_cutoff, sum_prob_atol, initial_state=0):
+    def __init__(
+        self,
+        qubit_map: Dict['cirq.Qid', int],
+        rsum2_cutoff: float,
+        sum_prob_atol: float,
+        initial_state: int = 0,
+    ):
+        """Creates and MPSState
+
+        Args:
+            qubit_map: A map from Qid to an integer that uniquely identifies it.
+            rsum2_cutoff: We drop singular values so that the sum of the
+                square of the dropped singular values divided by the sum of the
+                square of all the singular values is less than rsum2_cutoff.
+                This is related to the fidelity of the computation. If we have
+                N 2D gates, then the estimated fidelity is
+                (1 - rsum2_cutoff) ** N.
+            sum_prob_atol: Because the computation is approximate, the sum of
+                the probabilities is not 1.0. This parameter is the absolute
+                deviation from 1.0 that is allowed.
+            initial_state: An integer representing the initial state.
+        """
         self.qubit_map = qubit_map
         self.M = []
 
@@ -276,11 +335,14 @@ class MPSState:
         self.sum_prob_atol = sum_prob_atol
         self.num_svd_splits = 0
 
-    def i_str(self, i):
+    def i_str(self, i: int) -> str:
+        # Returns the indice name for the i'th qid.
         return self.format_i.format(i)
 
-    def mu_str(self, i, j):
-        # By convention, the lower index is always the first.
+    def mu_str(self, i: int, j: int) -> str:
+        # Returns the indice name for the pair of the i'th and j'th qids. Note
+        # that by convention, the lower index is always the first in the output
+        # string.
         smallest = min(i, j)
         largest = max(i, j)
         return self.format_mu.format(smallest, largest)
@@ -297,7 +359,8 @@ class MPSState:
         state.num_svd_splits = self.num_svd_splits
         return state
 
-    def state_vector(self):
+    def state_vector(self) -> np.ndarray:
+        """Returns the full state vector."""
         tensor_network = qtn.TensorNetwork(self.M)
         state_vector = tensor_network.contract(inplace=False)
 
@@ -306,7 +369,9 @@ class MPSState:
         sorted_ind = tuple(sorted(state_vector.inds))
         return state_vector.fuse({'i': sorted_ind}).data
 
-    def partial_trace(self, keep_qubits):
+    def partial_trace(self, keep_qubits: Set[ops.Qid]) -> np.ndarray:
+        """Returns the partial trace only for the keep_qubits specified."""
+
         contracted_inds = set(
             [self.i_str(i) for qubit, i in self.qubit_map.items() if qubit not in keep_qubits]
         )
@@ -333,6 +398,8 @@ class MPSState:
         return self.state_vector()
 
     def apply_unitary(self, op: 'cirq.Operation'):
+        """Applies a unitary operation, mutating the object to represent the new state."""
+
         U = protocols.unitary(op).reshape([qubit.dimension for qubit in op.qubits] * 2)
 
         if len(op.qubits) == 1:
@@ -408,6 +475,7 @@ class MPSState:
     def perform_measurement(
         self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
     ) -> List[int]:
+        """Performs a measurement over one or more qubits."""
         results: List[int] = []
 
         if collapse_state_vector:
