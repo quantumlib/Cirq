@@ -320,6 +320,10 @@ class MPSState:
         self.format_i = 'i_{{:0{}}}'.format(max_num_digits)
         self.format_mu = 'mu_{{:0{}}}_{{:0{}}}'.format(max_num_digits, max_num_digits)
 
+        # TODO(tonybruguier): Instead of relying on sortable indices could you keep a parallel
+        # mapping of e.g. qubit to string-index and do all "logic" on the qubits themselves and
+        # only translate to string-indices when calling a quimb API.
+
         # TODO(tonybruguier): Refactor out so that the code below can also be used by
         # circuit_to_tensors in cirq.contrib.quimb.state_vector.
         for qubit in reversed(list(qubit_map.keys())):
