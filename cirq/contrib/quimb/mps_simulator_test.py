@@ -79,35 +79,41 @@ def test_same_partial_trace():
     qubit_order = cirq.LineQubit.range(2)
     q0, q1 = qubit_order
 
-    angles = [0.0, 0.20160913, math.pi / 3.0, math.pi / 4.0, math.pi / 2.0, math.pi]
+    angles = [0.0, 0.20160913, math.pi / 3.0, math.pi / 2.0, math.pi]
+
+    gate_cls = [cirq.rx, cirq.ry]
 
     for angle_0 in angles:
-        for angle_1 in angles:
-            for use_cnot in [False, True]:
-                op0 = cirq.ry(angle_0)
-                op1 = cirq.ry(angle_1)
+        for gate_0 in gate_cls:
+            for angle_1 in angles:
+                for gate_1 in gate_cls:
+                    for use_cnot in [False, True]:
+                        op0 = gate_0(angle_0)
+                        op1 = gate_1(angle_1)
 
-                circuit = cirq.Circuit()
-                circuit.append(op0(q0))
-                if use_cnot:
-                    circuit.append(cirq.CNOT(q0, q1))
-                circuit.append(op1(q1))
+                        circuit = cirq.Circuit()
+                        circuit.append(op0(q0))
+                        if use_cnot:
+                            circuit.append(cirq.qft(q0, q1))
+                        circuit.append(op1(q1))
+                        if use_cnot:
+                            circuit.append(cirq.qft(q1, q0))
 
-                for initial_state in range(4):
-                    density_matrix = cirq.final_density_matrix(
-                        circuit, qubit_order=qubit_order, initial_state=initial_state
-                    )
-                    expected = cirq.partial_trace(
-                        density_matrix.reshape(2, 2, 2, 2), keep_indices=[0]
-                    )
+                        for initial_state in range(4):
+                            density_matrix = cirq.final_density_matrix(
+                                circuit, qubit_order=qubit_order, initial_state=initial_state
+                            )
+                            expected = cirq.partial_trace(
+                                density_matrix.reshape(2, 2, 2, 2), keep_indices=[0]
+                            )
 
-                    mps_simulator = ccq.mps_simulator.MPSSimulator()
-                    final_state = mps_simulator.simulate(
-                        circuit, qubit_order=qubit_order, initial_state=initial_state
-                    ).final_state
-                    actual = final_state.partial_trace([q0])
+                            mps_simulator = ccq.mps_simulator.MPSSimulator()
+                            final_state = mps_simulator.simulate(
+                                circuit, qubit_order=qubit_order, initial_state=initial_state
+                            ).final_state
+                            actual = final_state.partial_trace([q0])
 
-                    np.testing.assert_allclose(actual, expected, atol=1e-4)
+                            np.testing.assert_allclose(actual, expected, atol=1e-4)
 
 
 def test_empty():

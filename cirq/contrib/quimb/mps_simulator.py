@@ -324,7 +324,7 @@ class MPSState:
         old_inds = tuple(sorted(old_inds))
         new_inds = tuple(sorted(new_inds))
 
-        return partial_trace.to_dense(new_inds, old_inds)
+        return partial_trace.to_dense(old_inds, new_inds)
 
     def to_numpy(self) -> np.ndarray:
         return self.state_vector()
