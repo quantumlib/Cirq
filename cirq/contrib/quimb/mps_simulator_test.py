@@ -81,7 +81,7 @@ def test_same_partial_trace():
 
     angles = [0.0, 0.20160913, math.pi / 3.0, math.pi / 2.0, math.pi]
 
-    gate_cls = [cirq.rx, cirq.ry]
+    gate_cls = [cirq.rx, cirq.ry, cirq.rz]
 
     for angle_0 in angles:
         for gate_0 in gate_cls:
@@ -100,20 +100,36 @@ def test_same_partial_trace():
                             circuit.append(cirq.qft(q1, q0))
 
                         for initial_state in range(4):
-                            density_matrix = cirq.final_density_matrix(
+                            expected_density_matrix = cirq.final_density_matrix(
                                 circuit, qubit_order=qubit_order, initial_state=initial_state
                             )
-                            expected = cirq.partial_trace(
-                                density_matrix.reshape(2, 2, 2, 2), keep_indices=[0]
+                            expected_partial_trace = cirq.partial_trace(
+                                expected_density_matrix.reshape(2, 2, 2, 2), keep_indices=[0]
                             )
 
                             mps_simulator = ccq.mps_simulator.MPSSimulator()
                             final_state = mps_simulator.simulate(
                                 circuit, qubit_order=qubit_order, initial_state=initial_state
                             ).final_state
-                            actual = final_state.partial_trace([q0])
+                            actual_density_matrix = final_state.partial_trace([q0, q1])
+                            actual_partial_trace = final_state.partial_trace([q0])
 
-                            np.testing.assert_allclose(actual, expected, atol=1e-4)
+                            np.testing.assert_allclose(
+                                actual_density_matrix, expected_density_matrix, atol=1e-4
+                            )
+                            np.testing.assert_allclose(
+                                actual_partial_trace, expected_partial_trace, atol=1e-4
+                            )
+
+
+def test_probs_dont_sum_up_to_one():
+    q0 = cirq.NamedQid('q0', dimension=2)
+    circuit = cirq.Circuit(cirq.measure(q0))
+
+    simulator = ccq.mps_simulator.MPSSimulator(sum_prob_atol=-0.5)
+
+    with pytest.raises(ValueError, match="Sum of probabilities exceeds tolerance"):
+        simulator.run(circuit, repetitions=1)
 
 
 def test_empty():
