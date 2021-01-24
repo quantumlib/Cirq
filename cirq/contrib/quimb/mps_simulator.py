@@ -419,9 +419,8 @@ class MPSState:
             n = state.qubit_map[qubit]
 
             # Trace out other qubits
-            M = state._sum_up(skip_tracing_out_for_qubits={n})
-
-            probs = [abs(x) ** 2 for x in M.data]
+            M = state.partial_trace(keep_qubits={qubit})
+            probs = np.diag(M).real
             sum_probs = sum(probs)
 
             # Because the computation is approximate, the probabilities do not
