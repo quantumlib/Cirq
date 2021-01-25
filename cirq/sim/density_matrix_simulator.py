@@ -148,6 +148,16 @@ class DensityMatrixSimulationResultFactory(
         'DensityMatrixSimulatorState',
     ]
 ):
+    def trial_result(
+        self,
+        params: study.ParamResolver,
+        measurements: Dict[str, np.ndarray],
+        final_simulator_state: Any,
+    ) -> 'DensityMatrixTrialResult':
+        return DensityMatrixTrialResult(
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+        )
+
     def step_result(self, sim_state, qubit_map):
         return DensityMatrixStepResult(
             density_matrix=sim_state.tensor,
