@@ -68,10 +68,11 @@ class StateFactory(Generic[TState], metaclass=abc.ABCMeta):
 
 TStepResult = TypeVar('TStepResult', bound=StepResult)
 TSimulationTrialResult = TypeVar('TSimulationTrialResult', bound=SimulationTrialResult)
+TFinalState = TypeVar('TFinalState')
 
 
 class SimulationResultFactory(
-    Generic[TState, TStepResult, TSimulationTrialResult], metaclass=abc.ABCMeta
+    Generic[TState, TStepResult, TSimulationTrialResult, TFinalState], metaclass=abc.ABCMeta
 ):
     @abc.abstractmethod
     def step_result(self, sim_state: TState, qubit_map) -> TStepResult:
@@ -82,20 +83,22 @@ class SimulationResultFactory(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: TState,
+        final_simulator_state: TFinalState,
     ) -> TSimulationTrialResult:
         raise NotImplementedError()
 
 
 class OpByOpSimulator(
-    Generic[TState, TStepResult, TSimulationTrialResult],
+    Generic[TState, TStepResult, TSimulationTrialResult, TFinalState],
     simulator.SimulatesSamples,
     SimulatesIntermediateState,
 ):
     def __init__(
         self,
         state_algo: StateFactory[TState],
-        result_producer: SimulationResultFactory[TState, TStepResult, TSimulationTrialResult],
+        result_producer: SimulationResultFactory[
+            TState, TStepResult, TSimulationTrialResult, TFinalState
+        ],
     ):
         self.state_algo = state_algo
         self.result_producer = result_producer

@@ -141,7 +141,12 @@ class DensityMatrixStateFactory(StateFactory[_StateAndBuffers]):
 
 
 class DensityMatrixSimulationResultFactory(
-    SimulationResultFactory[_StateAndBuffers, 'DensityMatrixStepResult', 'DensityMatrixTrialResult']
+    SimulationResultFactory[
+        _StateAndBuffers,
+        'DensityMatrixStepResult',
+        'DensityMatrixTrialResult',
+        'DensityMatrixSimulatorState',
+    ]
 ):
     def step_result(self, sim_state, qubit_map):
         return DensityMatrixStepResult(

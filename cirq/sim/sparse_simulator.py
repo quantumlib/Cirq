@@ -18,6 +18,7 @@ from typing import (
     List,
     Type,
     TYPE_CHECKING,
+    Any,
 )
 
 import numpy as np
@@ -32,12 +33,10 @@ from cirq.sim.act_on_state_vector_args import ActOnStateVectorArgs
 from cirq.sim.op_by_op_simulator import (
     StateFactory,
     SimulationResultFactory,
-    TState,
-    TSimulationTrialResult,
     OpByOpSimulator,
 )
 
-from cirq.sim.state_vector_simulator import StateVectorTrialResult
+from cirq.sim.state_vector_simulator import StateVectorTrialResult, StateVectorSimulatorState
 
 if TYPE_CHECKING:
     import cirq
@@ -165,14 +164,14 @@ class SparseSimulatorStep(
 
 class SparseSimulationResultFactory(
     SimulationResultFactory[
-        ActOnStateVectorArgs, SparseSimulatorStep, StateVectorTrialResult
+        ActOnStateVectorArgs, SparseSimulatorStep, StateVectorTrialResult, StateVectorSimulatorState
     ]
 ):
     def trial_result(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: TState,
+        final_simulator_state: Any,
     ) -> StateVectorTrialResult:
         return StateVectorTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
@@ -188,7 +187,9 @@ class SparseSimulationResultFactory(
 
 
 class Simulator(
-    OpByOpSimulator[ActOnStateVectorArgs, SparseSimulatorStep, StateVectorTrialResult],
+    OpByOpSimulator[
+        ActOnStateVectorArgs, SparseSimulatorStep, StateVectorTrialResult, StateVectorSimulatorState
+    ],
     simulator.SimulatesSamples,
     state_vector_simulator.SimulatesIntermediateStateVector,
 ):
