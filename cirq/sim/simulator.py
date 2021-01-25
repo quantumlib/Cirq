@@ -38,8 +38,6 @@ from typing import (
     TYPE_CHECKING,
     Set,
     cast,
-    TypeVar,
-    Generic,
 )
 
 import abc
@@ -654,26 +652,3 @@ def check_all_resolved(circuit):
             'Circuit contains ops whose symbols were not specified in '
             'parameter sweep. Ops: {}'.format(unresolved)
         )
-
-
-TState = TypeVar('TState')
-TResult = TypeVar('TResult', bound=StepResult)
-
-
-class AbstractStateManager(Generic[TState, TResult], metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def create_sim_state(self, initial_state, qubits) -> TState:
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def act_on_state(self, op, sim_state: TState, qubit_map):
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def step_result(self, sim_state: TState, qubit_map) -> TResult:
-        raise NotImplementedError()
-
-    @property
-    @abc.abstractmethod
-    def prng(self):
-        raise NotImplementedError()

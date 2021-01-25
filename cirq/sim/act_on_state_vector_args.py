@@ -21,12 +21,13 @@ from cirq import linalg, protocols
 from cirq.protocols.decompose_protocol import (
     _try_decompose_into_operations_and_qubits,
 )
+from cirq.sim.op_by_op_simulator import AbstractState
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ActOnStateVectorArgs:
+class ActOnStateVectorArgs(AbstractState):
     """State and context for an operation acting on a state vector.
 
     There are three common ways to act on this object:
@@ -58,8 +59,6 @@ class ActOnStateVectorArgs:
                 `swap_target_tensor_for` will swap it for `target_tensor`.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
-            prng: The pseudo random number generator to use for probabilistic
-                effects.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into. Edit it easily by calling
                 `ActOnStateVectorArgs.record_measurement_result`.
@@ -68,7 +67,15 @@ class ActOnStateVectorArgs:
         self.available_buffer = available_buffer
         self.axes = tuple(axes)
         self.prng = prng
-        self.log_of_measurement_results = log_of_measurement_results
+        self._log_of_measurement_results = log_of_measurement_results
+
+    @property
+    def log_of_measurement_results(self):
+        return self._log_of_measurement_results
+
+    @property
+    def dtype(self):
+        return self.target_tensor.dtype
 
     def swap_target_tensor_for(self, new_target_tensor: np.ndarray):
         """Gives a new state vector for the system.
