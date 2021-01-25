@@ -21,6 +21,7 @@ from cirq.sim import (
     SimulatesSamples,
     SimulatesIntermediateStateVector,
     SparseSimulatorStep,
+    StepResult,
 )
 from cirq.study import ParamResolver
 
@@ -253,7 +254,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         circuit: Circuit,
         qubit_order: QubitOrderOrList,
         initial_state: Any,
-    ) -> Iterator['StepResult']:
+    ) -> Iterator[StepResult]:
         converted = self._convert_to_circuit_with_drift(circuit)
         return self._simulator._base_iterator(converted, qubit_order, initial_state)
 
