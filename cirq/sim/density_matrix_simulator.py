@@ -20,7 +20,8 @@ import numpy as np
 
 from cirq import circuits, ops, protocols, qis, study, value, devices
 from cirq.sim import density_matrix_utils, simulator
-from cirq.sim.op_by_op_simulator import AbstractState, StateFactory
+from cirq.sim.abstract_state import AbstractState
+from cirq.sim.op_by_op_simulator import StateFactory, SimulationResultFactory
 from cirq.sim.simulator import check_all_resolved
 
 if TYPE_CHECKING:
@@ -58,7 +59,7 @@ class DensityMatrixStateFactory(StateFactory[_StateAndBuffers]):
         self,
         *,
         dtype: Type[np.number] = np.complex64,
-        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         ignore_measurement_results: bool = False,
     ):
         if np.dtype(dtype).kind != 'c':
@@ -140,7 +141,7 @@ class DensityMatrixStateFactory(StateFactory[_StateAndBuffers]):
 
 
 class DensityMatrixSimulationResultFactory(
-    SimulationResultFactory[_StateAndBuffers, 'DensityMatrixStepResult']
+    SimulationResultFactory[_StateAndBuffers, 'DensityMatrixStepResult', 'DensityMatrixTrialResult']
 ):
     def step_result(self, sim_state, qubit_map):
         return DensityMatrixStepResult(

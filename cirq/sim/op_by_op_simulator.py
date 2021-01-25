@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ from cirq import circuits, ops, protocols, study
 from cirq.sim import (
     simulator,
 )
+from cirq.sim.abstract_state import AbstractState
 from cirq.sim.simulator import (
     check_all_resolved,
     SimulationTrialResult,
@@ -45,22 +46,6 @@ from cirq.sim.simulator import (
 
 if TYPE_CHECKING:
     import cirq
-
-
-class AbstractState(metaclass=abc.ABCMeta):
-    @property
-    @abc.abstractmethod
-    def dtype(self):
-        raise NotImplementedError()
-
-    @property
-    @abc.abstractmethod
-    def log_of_measurement_results(self):
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def record_measurement_result(self, key: str, value: Any):
-        raise NotImplementedError()
 
 
 TState = TypeVar('TState', bound=AbstractState)
@@ -162,7 +147,7 @@ class OpByOpSimulator(
         self,
         initial_state: np.ndarray,
         circuit: circuits.Circuit,
-        qubit_order: cirq.QubitOrderOrList,
+        qubit_order: 'cirq.QubitOrderOrList',
         repetitions: int,
     ) -> Dict[str, np.ndarray]:
         """Repeatedly simulate a circuit in order to produce samples."""
@@ -185,7 +170,7 @@ class OpByOpSimulator(
         self,
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,
-        initial_state: cirq.STATE_VECTOR_LIKE,
+        initial_state: 'cirq.STATE_VECTOR_LIKE',
         perform_measurements: bool = True,
     ) -> Iterator[TStepResult]:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())

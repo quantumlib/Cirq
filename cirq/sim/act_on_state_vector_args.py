@@ -21,7 +21,7 @@ from cirq import linalg, protocols
 from cirq.protocols.decompose_protocol import (
     _try_decompose_into_operations_and_qubits,
 )
-from cirq.sim.op_by_op_simulator import AbstractState
+from cirq.sim.abstract_state import AbstractState
 
 if TYPE_CHECKING:
     import cirq

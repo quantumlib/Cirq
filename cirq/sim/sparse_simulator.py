@@ -22,7 +22,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import ops, protocols, qis, study, value, StateVectorTrialResult
+from cirq import ops, protocols, qis, study, value
 from cirq.sim import (
     simulator,
     state_vector,
@@ -37,6 +37,8 @@ from cirq.sim.op_by_op_simulator import (
     OpByOpSimulator,
 )
 
+from cirq.sim.state_vector_simulator import StateVectorTrialResult
+
 if TYPE_CHECKING:
     import cirq
 
@@ -46,7 +48,7 @@ class SparseStateFactory(StateFactory[ActOnStateVectorArgs]):
         self,
         *,
         dtype: Type[np.number] = np.complex64,
-        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ):
         if np.dtype(dtype).kind != 'c':
             raise ValueError('dtype must be a complex type but was {}'.format(dtype))
@@ -139,7 +141,7 @@ class SparseSimulatorStep(
         vector = self._simulator_state().state_vector
         return vector.copy() if copy else vector
 
-    def set_state_vector(self, state: cirq.STATE_VECTOR_LIKE):
+    def set_state_vector(self, state: 'cirq.STATE_VECTOR_LIKE'):
         update_state = qis.to_valid_state_vector(
             state, len(self.qubit_map), qid_shape=protocols.qid_shape(self, None), dtype=self._dtype
         )
@@ -149,7 +151,7 @@ class SparseSimulatorStep(
         self,
         qubits: List[ops.Qid],
         repetitions: int = 1,
-        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
         indices = [self.qubit_map[qubit] for qubit in qubits]
         return state_vector.sample_state_vector(
@@ -162,7 +164,9 @@ class SparseSimulatorStep(
 
 
 class SparseSimulationResultFactory(
-    SimulationResultFactory[ActOnStateVectorArgs, SparseSimulatorStep, StateVectorTrialResult]
+    SimulationResultFactory[
+        ActOnStateVectorArgs, SparseSimulatorStep, 'cirq.StateVectorTrialResult'
+    ]
 ):
     def trial_result(
         self,
@@ -184,7 +188,7 @@ class SparseSimulationResultFactory(
 
 
 class Simulator(
-    OpByOpSimulator[ActOnStateVectorArgs, SparseSimulatorStep, StateVectorTrialResult],
+    OpByOpSimulator[ActOnStateVectorArgs, SparseSimulatorStep, 'cirq.StateVectorTrialResult'],
     simulator.SimulatesSamples,
     state_vector_simulator.SimulatesIntermediateStateVector,
 ):
@@ -269,7 +273,7 @@ class Simulator(
         self,
         *,
         dtype: Type[np.number] = np.complex64,
-        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ):
         """A sparse matrix simulator.
 
