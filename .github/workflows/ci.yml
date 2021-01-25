@@ -115,7 +115,8 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
-          pip install codeowners # linux only package
+          # TODO: move to requirements.txt after #3704
+          pip install codeowners==0.1.2 # linux only package
       - name: Pytest check
         run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
   build_docs:
