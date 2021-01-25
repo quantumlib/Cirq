@@ -132,6 +132,127 @@ def test_sampler_sample_inconsistent_keys():
         )
 
 
+def test_sampler_simple_sample_expectation_values():
+    a = cirq.LineQubit(0)
+    sampler = cirq.Simulator()
+    circuit = cirq.Circuit(cirq.H(a), cirq.measure(a, key='out'))
+    obs = cirq.PauliSum.from_pauli_strings(cirq.X(a))
+    results = sampler.sample_expectation_values(circuit, {'out': {'X': obs}}, num_samples=10000)
+
+    # results ~= [{'X': -1}]
+    assert len(results) == 1
+    # Precision of non-Z-basis expectation values is dependent on num_samples.
+    # To keep tests short, low precision is used here.
+    assert cirq.approx_eq(results[0]['X'].real, 1, atol=0.01)
+
+
+def test_sampler_sample_expectation_values_multi_param():
+    a = cirq.LineQubit(0)
+    t = sympy.Symbol('t')
+    sampler = cirq.Simulator()
+    circuit = cirq.Circuit(cirq.X(a) ** t, cirq.measure(a, key='out'))
+    obs = cirq.PauliSum.from_pauli_strings(cirq.Z(a))
+    results = sampler.sample_expectation_values(
+        circuit, {'out': {'Z': obs}}, num_samples=5, params=cirq.Linspace('t', 0, 2, 3)
+    )
+
+    # results ~= [{'Z': 1}, {'Z': -1}, {'Z': 1}]
+    assert len(results) == 3
+    assert all(r.get('Z', None) is not None for r in results)
+    assert np.allclose([r['Z'] for r in results], [1, -1, 1])
+
+
+def test_sampler_sample_expectation_values_multi_qubit():
+    q = cirq.LineQubit.range(3)
+    sampler = cirq.Simulator()
+    circuit = cirq.Circuit(cirq.X(q[0]), cirq.X(q[1]), cirq.X(q[2]), cirq.measure(*q, key='m3'))
+    obs = cirq.PauliSum.from_pauli_strings(cirq.Z(q[0]) + cirq.Z(q[1]) + cirq.Z(q[2]))
+    results = sampler.sample_expectation_values(circuit, {'m3': {'ZZZ': obs}}, num_samples=5)
+
+    # results ~= [{'ZXZ': 3}]
+    assert len(results) == 1
+    assert cirq.approx_eq(results[0]['ZZZ'].real, -3, atol=1e-6)
+
+
+def test_sampler_sample_expectation_values_multi_measure():
+    a = cirq.LineQubit(0)
+    sampler = cirq.Simulator()
+    circuit = cirq.Circuit(
+        cirq.X(a),
+        cirq.measure(a, key='m1'),
+        cirq.X(a),
+        cirq.measure(a, key='m2'),
+        cirq.X(a),
+        cirq.measure(a, key='m3'),
+    )
+    obs = cirq.PauliSum.from_pauli_strings(cirq.Z(a))
+    results = sampler.sample_expectation_values(
+        circuit,
+        {'m1': {'Z1': obs}, 'm2': {'Z2': obs}, 'm3': {'Z3': obs}},
+        num_samples=5,
+    )
+
+    # results ~= [{'Z1': -1, 'Z2': 1, 'Z3': -1}]
+    assert len(results) == 1
+    assert cirq.approx_eq(results[0]['Z1'], -1, atol=1e-6)
+    assert cirq.approx_eq(results[0]['Z2'], 1, atol=1e-6)
+    assert cirq.approx_eq(results[0]['Z3'], -1, atol=1e-6)
+
+
+def test_sampler_sample_expectation_values_composite():
+    # Tests multi-{param,qubit,measure} sampling together in one circuit.
+    # TODO: flaky?
+    q = cirq.LineQubit.range(3)
+    t = [sympy.Symbol(f't{x}') for x in range(3)]
+
+    sampler = cirq.Simulator()
+    circuit = cirq.Circuit(
+        cirq.X(q[0]) ** t[0],
+        cirq.X(q[1]) ** t[1],
+        cirq.X(q[2]) ** t[2],
+        cirq.measure(*q, key='m1'),
+        cirq.X(q[0]) ** t[0],
+        cirq.X(q[1]) ** t[1],
+        cirq.X(q[2]) ** t[2],
+        cirq.measure(*q, key='m2'),
+    )
+
+    obs = [cirq.PauliSum.from_pauli_strings(cirq.Z(q[x])) for x in range(3)]
+    # t0 is in the inner loop to make bit-ordering easier below.
+    params = ([{'t0': t0, 't1': t1, 't2': t2} for t2 in [0, 1] for t1 in [0, 1] for t0 in [0, 1]],)
+    results = sampler.sample_expectation_values(
+        circuit,
+        {
+            'm1': {'Z0_0': obs[0], 'Z1_0': obs[1], 'Z2_0': obs[2]},
+            'm2': {'Z0_1': obs[0], 'Z1_1': obs[1], 'Z2_1': obs[2]},
+        },
+        num_samples=5,
+        params=params,
+    )
+    # TODO: result ordering is flaky,
+    # *but* always consistent with a qubit-swap.
+    print('\n'.join(str(r) for r in results))
+
+    assert len(results) == 8
+    # Every ZN_1 result is a 1 (two no-ops, or flip and flip back).
+    # ZN_0 is a -1 if the Nth bit of sweep_idx is a 1; else ZN_0 is a 1.
+    for sweep_idx, result in enumerate(results):
+        for obs_idx in range(3):
+            mask = 1 << obs_idx
+            delta = (sweep_idx // mask) % 2
+            assert cirq.approx_eq(result[f'Z{obs_idx}_0'], 1 - 2 * delta, atol=1e-6)
+            assert cirq.approx_eq(result[f'Z{obs_idx}_1'], 1, atol=1e-6)
+
+
+def test_sampler_simple_sample_expectation_requires_samples():
+    a = cirq.LineQubit(0)
+    sampler = cirq.Simulator()
+    circuit = cirq.Circuit(cirq.H(a), cirq.measure(a, key='out'))
+    obs = cirq.PauliSum.from_pauli_strings(cirq.X(a))
+    with pytest.raises(ValueError):
+        _ = sampler.sample_expectation_values(circuit, {'out': {'X': obs}}, num_samples=0)
+
+
 @pytest.mark.asyncio
 async def test_sampler_async_not_run_inline():
     ran = False

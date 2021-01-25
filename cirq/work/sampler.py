@@ -13,12 +13,13 @@
 # limitations under the License.
 """Abstract base class for things sampling quantum circuits."""
 
-from typing import List, Optional, TYPE_CHECKING, Union
+from typing import Dict, List, Optional, TYPE_CHECKING, Union
 import abc
 
+import numpy as np
 import pandas as pd
 
-from cirq import study
+from cirq import ops, study
 
 if TYPE_CHECKING:
     import cirq
@@ -132,6 +133,46 @@ class Sampler(metaclass=abc.ABCMeta):
                 results.append(pd.concat([param_table, result.data], axis=1))
 
         return pd.concat(results)
+
+    def sample_expectation_values(
+        self,
+        program: 'cirq.Circuit',
+        measurement_to_observables: Dict[str, Dict[str, 'cirq.PauliSum']],
+        *,
+        num_samples: int,
+        params: 'cirq.Sweepable' = None,
+    ) -> List[Dict[str, float]]:
+        if num_samples <= 0:
+            raise ValueError(
+                f'Expectation values require at least one sample. Received: {num_samples}.'
+            )
+        samples = self.sample(program, repetitions=num_samples, params=params)
+        num_qubits = len(program.all_qubits())
+        num_param_values = len(list(study.to_resolvers(params)))
+        qmap = {q: i for i, q in enumerate(ops.QubitOrder.DEFAULT.order_for(program.all_qubits()))}
+
+        results = []
+        row_iter = samples.itertuples()
+        for _ in range(num_param_values):
+            state_vector_map = {}
+            for key in measurement_to_observables:
+                state_vector_map[key] = np.zeros(2 ** num_qubits, dtype=np.complex64)
+            # Aggregate results from all samples for the same parameter values
+            for __ in range(num_samples):
+                curr_row = next(row_iter)
+                for key in measurement_to_observables:
+                    state_vector_map[key][getattr(curr_row, key)] += 1
+            # Compute estimated expectation values from aggregated results
+            sweep_result = {}
+            for key, observables in measurement_to_observables.items():
+                norm = np.linalg.norm(state_vector_map[key])
+                state_vector_map[key] /= norm
+                for name, obs in observables.items():
+                    sweep_result[name] = obs.expectation_from_state_vector(
+                        state_vector_map[key], qmap
+                    )
+            results.append(sweep_result)
+        return results
 
     @abc.abstractmethod
     def run_sweep(
