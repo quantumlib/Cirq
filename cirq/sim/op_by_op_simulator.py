@@ -195,8 +195,8 @@ class OpByOpSimulator(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: Any,
-    ) -> SimulationTrialResult:
+        final_simulator_state: TFinalState,
+    ) -> TSimulationTrialResult:
         """This method can be overridden to creation of a trial result.
 
         Args:
