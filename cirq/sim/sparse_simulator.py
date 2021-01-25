@@ -165,7 +165,7 @@ class SparseSimulatorStep(
 
 class SparseSimulationResultFactory(
     SimulationResultFactory[
-        ActOnStateVectorArgs, SparseSimulatorStep, 'cirq.StateVectorTrialResult'
+        ActOnStateVectorArgs, SparseSimulatorStep, StateVectorTrialResult
     ]
 ):
     def trial_result(
@@ -173,7 +173,7 @@ class SparseSimulationResultFactory(
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
         final_simulator_state: TState,
-    ) -> TSimulationTrialResult:
+    ) -> StateVectorTrialResult:
         return StateVectorTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
@@ -188,7 +188,7 @@ class SparseSimulationResultFactory(
 
 
 class Simulator(
-    OpByOpSimulator[ActOnStateVectorArgs, SparseSimulatorStep, 'cirq.StateVectorTrialResult'],
+    OpByOpSimulator[ActOnStateVectorArgs, SparseSimulatorStep, StateVectorTrialResult],
     simulator.SimulatesSamples,
     state_vector_simulator.SimulatesIntermediateStateVector,
 ):
