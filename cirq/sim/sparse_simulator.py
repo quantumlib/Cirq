@@ -264,7 +264,7 @@ class Simulator(
             raise ValueError(
                 'Provided circuit has terminal measurements, which may '
                 'skew expectation values. If this is intentional, set '
-                f'permit_terminal_measurements=True.\n\nCircuit:\n{program}'
+                'permit_terminal_measurements=True.'
             )
         swept_evs = []
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
