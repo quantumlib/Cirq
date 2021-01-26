@@ -106,7 +106,6 @@ class OpByOpSimulator(
         self.noise = devices.NoiseModel.from_noise_model_like(noise)
 
     @final
-
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
     ) -> Dict[str, np.ndarray]:
@@ -114,44 +113,39 @@ class OpByOpSimulator(
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         check_all_resolved(resolved_circuit)
+        qubit_order = sorted(resolved_circuit.all_qubits())
 
-        if circuit.are_all_measurements_terminal():
-            return self._run_sweep_sample(resolved_circuit, repetitions)
-        return self._run_sweep_repeat(resolved_circuit, repetitions)
-
-    def _run_sweep_sample(
-        self, circuit: circuits.Circuit, repetitions: int
-    ) -> Dict[str, np.ndarray]:
+        # Simulate as many unitary operations as possible before having to
+        # repeat work for each sample.
+        unitary_prefix, general_suffix = _split_into_unitary_then_general(resolved_circuit)
+        step_result = None
         for step_result in self._base_iterator(
-            circuit=circuit,
-            qubit_order=ops.QubitOrder.DEFAULT,
+            circuit=unitary_prefix,
+            qubit_order=qubit_order,
             initial_state=0,
-            all_measurements_are_terminal=True,
+            perform_measurements=False,
         ):
             pass
-        measurement_ops = [
-            op for _, op, _ in circuit.findall_operations_with_gate_type(ops.MeasurementGate)
-        ]
-        return step_result.sample_measurement_ops(measurement_ops, repetitions, seed=self.state_algo.prng)
+        assert step_result is not None
 
-    def _run_sweep_repeat(
-        self, circuit: circuits.Circuit, repetitions: int
-    ) -> Dict[str, np.ndarray]:
-        measurements = {}  # type: Dict[str, List[np.ndarray]]
-        if repetitions == 0:
-            for _, op, _ in circuit.findall_operations_with_gate_type(ops.MeasurementGate):
-                measurements[protocols.measurement_key(op)] = np.empty([0, 1])
-
-        for _ in range(repetitions):
-            all_step_results = self._base_iterator(
-                circuit, qubit_order=ops.QubitOrder.DEFAULT, initial_state=0
+        # When an otherwise unitary circuit ends with non-demolition computation
+        # basis measurements, we can sample the results more efficiently.
+        general_ops = list(general_suffix.all_operations())
+        if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
+            return step_result.sample_measurement_ops(
+                measurement_ops=cast(List[ops.GateOperation], general_ops),
+                repetitions=repetitions,
+                seed=self.state_algo.prng,
             )
-            for step_result in all_step_results:
-                for k, v in step_result.measurements.items():
-                    if not k in measurements:
-                        measurements[k] = []
-                    measurements[k].append(np.array(v, dtype=np.uint8))
-        return {k: np.array(v) for k, v in measurements.items()}
+
+        qid_shape = protocols.qid_shape(qubit_order)
+        intermediate_state = step_result.state_vector()
+        return self._brute_force_samples(
+            initial_state=intermediate_state,
+            circuit=general_suffix,
+            repetitions=repetitions,
+            qubit_order=ops.QubitOrder.DEFAULT,
+        )
 
     @final
     def _brute_force_samples(
@@ -162,17 +156,61 @@ class OpByOpSimulator(
         repetitions: int,
     ) -> Dict[str, np.ndarray]:
         """Repeatedly simulate a circuit in order to produce samples."""
-        if repetitions == 0:
-            return {key: np.empty(shape=[0, 1]) for key in protocols.measurement_keys(circuit)}
+        if circuit.are_all_measurements_terminal():
+            return self._run_sweep_sample(initial_state, circuit, qubit_order, repetitions)
+        return self._run_sweep_repeat(initial_state, circuit, qubit_order, repetitions)
 
-        measurements: DefaultDict[str, List[np.ndarray]] = collections.defaultdict(list)
+    def _run_x(
+        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
+    ) -> Dict[str, np.ndarray]:
+        """See definition in `cirq.SimulatesSamples`."""
+        param_resolver = param_resolver or study.ParamResolver({})
+        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        check_all_resolved(resolved_circuit)
+
+        if circuit.are_all_measurements_terminal():
+            return self._run_sweep_sample(0, resolved_circuit, ops.QubitOrder.DEFAULT, repetitions)
+        return self._run_sweep_repeat(0, resolved_circuit, ops.QubitOrder.DEFAULT, repetitions)
+
+    def _run_sweep_sample(
+        self,
+        initial_state: np.ndarray,
+        circuit: circuits.Circuit,
+        qubit_order: 'cirq.QubitOrderOrList',
+        repetitions: int,
+    ) -> Dict[str, np.ndarray]:
+        for step_result in self._base_iterator(
+            circuit=circuit,
+            qubit_order=qubit_order,
+            initial_state=initial_state,
+            all_measurements_are_terminal=True,
+        ):
+            pass
+        measurement_ops = [
+            op for _, op, _ in circuit.findall_operations_with_gate_type(ops.MeasurementGate)
+        ]
+        return step_result.sample_measurement_ops(measurement_ops, repetitions, seed=self.state_algo.prng)
+
+    def _run_sweep_repeat(
+        self,
+        initial_state: np.ndarray,
+        circuit: circuits.Circuit,
+        qubit_order: 'cirq.QubitOrderOrList',
+        repetitions: int,
+    ) -> Dict[str, np.ndarray]:
+        measurements = {}  # type: Dict[str, List[np.ndarray]]
+        if repetitions == 0:
+            for _, op, _ in circuit.findall_operations_with_gate_type(ops.MeasurementGate):
+                measurements[protocols.measurement_key(op)] = np.empty([0, 1])
+
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
-                circuit, initial_state=initial_state, qubit_order=qubit_order
+                circuit, qubit_order=qubit_order, initial_state=initial_state
             )
-
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
+                    if not k in measurements:
+                        measurements[k] = []
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
 
