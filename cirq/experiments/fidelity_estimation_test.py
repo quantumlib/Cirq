@@ -21,8 +21,13 @@ import pytest
 import pandas as pd
 
 import cirq
-from cirq.experiments.fidelity_estimation import _SampleInBatches, SQRT_ISWAP, \
-    sample_2q_xeb_circuits, simulate_2q_xeb_circuits, simulate_2q_xeb_fidelities
+from cirq.experiments.fidelity_estimation import (
+    _SampleInBatches,
+    SQRT_ISWAP,
+    sample_2q_xeb_circuits,
+    simulate_2q_xeb_circuits,
+    simulate_2q_xeb_fidelities,
+)
 import cirq.experiments.random_quantum_circuit_generation as rqcg
 
 
@@ -245,14 +250,16 @@ def test_least_squares_xeb_fidelity_from_probabilities():
 
     np.random.set_state(prng_state)
 
+
 def test_sample_2q_xeb_circuits():
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
-            q0, q1,
+            q0,
+            q1,
             depth=50,
             two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b),
-            )
+        )
         for _ in range(2)
     ]
     cycle_depths = np.arange(3, 50, 9)
@@ -260,21 +267,22 @@ def test_sample_2q_xeb_circuits():
     df = sample_2q_xeb_circuits(
         sampler=cirq.Simulator(),
         circuits=circuits,
-        cycle_depths = cycle_depths,
+        cycle_depths=cycle_depths,
     )
     assert len(df) == len(cycle_depths) * len(circuits)
     for (circuit_i, cycle_depth), row in df.iterrows():
-        assert 0 <= circuit_i  < len(circuits)
+        assert 0 <= circuit_i < len(circuits)
         assert cycle_depth in cycle_depths
         assert len(row['sampled_probs']) == 4
-        assert np.isclose(np.sum(row['sampled_probs']),1)
+        assert np.isclose(np.sum(row['sampled_probs']), 1)
 
 
 def test_simulate_2q_xeb_circuits():
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
-            q0, q1,
+            q0,
+            q1,
             depth=50,
             two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b),
         )
@@ -284,39 +292,39 @@ def test_simulate_2q_xeb_circuits():
 
     df = simulate_2q_xeb_circuits(
         circuits=circuits,
-        cycle_depths = cycle_depths,
+        cycle_depths=cycle_depths,
     )
     assert len(df) == len(cycle_depths) * len(circuits)
     for (circuit_i, cycle_depth), row in df.iterrows():
-        assert 0 <= circuit_i  < len(circuits)
+        assert 0 <= circuit_i < len(circuits)
         assert cycle_depth in cycle_depths
         assert len(row['pure_probs']) == 4
-        assert np.isclose(np.sum(row['pure_probs']),1)
+        assert np.isclose(np.sum(row['pure_probs']), 1)
 
     with multiprocessing.Pool() as pool:
         df2 = simulate_2q_xeb_circuits(circuits, cycle_depths, pool=pool)
 
     pd.testing.assert_frame_equal(df, df2)
 
+
 def test_simulate_2q_xeb_fidelities():
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
-            q0, q1,
-            depth=50,
-            two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b),
-            seed=52
+            q0, q1, depth=50, two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b), seed=52
         )
         for _ in range(2)
     ]
     cycle_depths = np.arange(3, 50, 9)
 
-    sampled_df = sample_2q_xeb_circuits(sampler=cirq.Simulator(seed=53), circuits=circuits, cycle_depths = cycle_depths)
+    sampled_df = sample_2q_xeb_circuits(
+        sampler=cirq.Simulator(seed=53), circuits=circuits, cycle_depths=cycle_depths
+    )
     fid_df = simulate_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
     print()
     print(fid_df)
     print()
-    assert len(fid_df) ==  len(cycle_depths)
+    assert len(fid_df) == len(cycle_depths)
     for i, row in fid_df.iterrows():
         assert row['cycle_depth'] in cycle_depths
         assert row['fidelity'] > 0.98

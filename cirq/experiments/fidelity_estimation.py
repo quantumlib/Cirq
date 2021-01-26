@@ -17,8 +17,18 @@ import functools
 from abc import abstractmethod
 from concurrent.futures.thread import ThreadPoolExecutor
 from dataclasses import dataclass
-from typing import Callable, List, Mapping, Optional, Sequence, Tuple, cast, TYPE_CHECKING, Dict, \
-    Any
+from typing import (
+    Callable,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    cast,
+    TYPE_CHECKING,
+    Dict,
+    Any,
+)
 
 import numpy as np
 import pandas as pd
@@ -37,10 +47,9 @@ if TYPE_CHECKING:
 SQRT_ISWAP = ops.ISWAP ** 0.5
 
 
-
 def linear_xeb_fidelity_from_probabilities(
-        hilbert_space_dimension: int,
-        probabilities: Sequence[float],
+    hilbert_space_dimension: int,
+    probabilities: Sequence[float],
 ) -> float:
     """Linear XEB fidelity estimator.
 
@@ -81,8 +90,8 @@ def linear_xeb_fidelity_from_probabilities(
 
 
 def log_xeb_fidelity_from_probabilities(
-        hilbert_space_dimension: int,
-        probabilities: Sequence[float],
+    hilbert_space_dimension: int,
+    probabilities: Sequence[float],
 ) -> float:
     """Logarithmic XEB fidelity estimator.
 
@@ -115,8 +124,8 @@ def log_xeb_fidelity_from_probabilities(
 
 
 def hog_score_xeb_fidelity_from_probabilities(
-        hilbert_space_dimension: int,
-        probabilities: Sequence[float],
+    hilbert_space_dimension: int,
+    probabilities: Sequence[float],
 ) -> float:
     """XEB fidelity estimator based on normalized HOG score.
 
@@ -151,11 +160,11 @@ def hog_score_xeb_fidelity_from_probabilities(
 
 
 def xeb_fidelity(
-        circuit: Circuit,
-        bitstrings: Sequence[int],
-        qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-        amplitudes: Optional[Mapping[int, complex]] = None,
-        estimator: Callable[[int, Sequence[float]], float] = linear_xeb_fidelity_from_probabilities,
+    circuit: Circuit,
+    bitstrings: Sequence[int],
+    qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+    amplitudes: Optional[Mapping[int, complex]] = None,
+    estimator: Callable[[int, Sequence[float]], float] = linear_xeb_fidelity_from_probabilities,
 ) -> float:
     """Estimates XEB fidelity from one circuit using user-supplied estimator.
 
@@ -216,10 +225,10 @@ def xeb_fidelity(
 
 
 def linear_xeb_fidelity(
-        circuit: Circuit,
-        bitstrings: Sequence[int],
-        qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-        amplitudes: Optional[Mapping[int, complex]] = None,
+    circuit: Circuit,
+    bitstrings: Sequence[int],
+    qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+    amplitudes: Optional[Mapping[int, complex]] = None,
 ) -> float:
     """Estimates XEB fidelity from one circuit using linear estimator."""
     return xeb_fidelity(
@@ -232,10 +241,10 @@ def linear_xeb_fidelity(
 
 
 def log_xeb_fidelity(
-        circuit: Circuit,
-        bitstrings: Sequence[int],
-        qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-        amplitudes: Optional[Mapping[int, complex]] = None,
+    circuit: Circuit,
+    bitstrings: Sequence[int],
+    qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+    amplitudes: Optional[Mapping[int, complex]] = None,
 ) -> float:
     """Estimates XEB fidelity from one circuit using logarithmic estimator."""
     return xeb_fidelity(
@@ -244,9 +253,9 @@ def log_xeb_fidelity(
 
 
 def least_squares_xeb_fidelity_from_expectations(
-        measured_expectations: Sequence[float],
-        exact_expectations: Sequence[float],
-        uniform_expectations: Sequence[float],
+    measured_expectations: Sequence[float],
+    exact_expectations: Sequence[float],
+    uniform_expectations: Sequence[float],
 ) -> Tuple[float, List[float]]:
     """Least squares fidelity estimator.
 
@@ -323,11 +332,11 @@ def least_squares_xeb_fidelity_from_expectations(
 
 
 def least_squares_xeb_fidelity_from_probabilities(
-        hilbert_space_dimension: int,
-        observed_probabilities: Sequence[Sequence[float]],
-        all_probabilities: Sequence[Sequence[float]],
-        observable_from_probability: Optional[Callable[[float], float]] = None,
-        normalize_probabilities: bool = True,
+    hilbert_space_dimension: int,
+    observed_probabilities: Sequence[Sequence[float]],
+    all_probabilities: Sequence[Sequence[float]],
+    observable_from_probability: Optional[Callable[[float], float]] = None,
+    normalize_probabilities: bool = True,
 ) -> Tuple[float, List[float]]:
     """Least squares fidelity estimator with observable based on probabilities.
 
@@ -393,6 +402,7 @@ def least_squares_xeb_fidelity_from_probabilities(
 @dataclass(frozen=True)
 class _Sample2qXEBTask:
     """Helper contained for grouping a circuit to be sampled."""
+
     cycle_depth: int
     circuit_i: int
     prepared_circuit: 'cirq.Circuit'
@@ -426,9 +436,13 @@ class _SampleInBatches:
         return records
 
 
-def sample_2q_xeb_circuits(sampler: 'cirq.Sampler', circuits: Sequence['cirq.Circuit'],
-                           cycle_depths: Sequence[int], repetitions: int = 10_000,
-                           batch_size: int = 9):
+def sample_2q_xeb_circuits(
+    sampler: 'cirq.Sampler',
+    circuits: Sequence['cirq.Circuit'],
+    cycle_depths: Sequence[int],
+    repetitions: int = 10_000,
+    batch_size: int = 9,
+):
     """Sample two-qubit XEB circuits given a sampler.
 
     Args:
@@ -454,8 +468,9 @@ def sample_2q_xeb_circuits(sampler: 'cirq.Sampler', circuits: Sequence['cirq.Cir
     all_all_qubits = set().union(*(circuit.all_qubits() for circuit in circuits))
     all_all_qubits = sorted(all_all_qubits)
     if len(all_all_qubits) != 2:
-        raise ValueError("`circuits` should be a sequence of circuits each "
-                         "operating on the same two qubits.")
+        raise ValueError(
+            "`circuits` should be a sequence of circuits each " "operating on the same two qubits."
+        )
     q0, q1 = all_all_qubits
 
     tasks = []
@@ -472,7 +487,7 @@ def sample_2q_xeb_circuits(sampler: 'cirq.Sampler', circuits: Sequence['cirq.Cir
             )
 
     n_tasks = len(tasks)
-    tasks = [tasks[i: i + batch_size] for i in range(0, n_tasks, batch_size)]
+    tasks = [tasks[i : i + batch_size] for i in range(0, n_tasks, batch_size)]
 
     run_batch = _SampleInBatches(sampler=sampler, repetitions=repetitions)
     with ThreadPoolExecutor(max_workers=2) as pool:
@@ -512,9 +527,10 @@ def _simulate_2q_xeb_circuit(task: Dict[str, Any]):
 
 
 def simulate_2q_xeb_circuits(
-        circuits: Sequence['cirq.Circuit'], cycle_depths: Sequence[int],
-        param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
-        pool: Optional['multiprocessing.Pool'] = None
+    circuits: Sequence['cirq.Circuit'],
+    cycle_depths: Sequence[int],
+    param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+    pool: Optional['multiprocessing.Pool'] = None,
 ):
     """Simulate two-qubit XEB circuits.
 
@@ -556,11 +572,11 @@ def simulate_2q_xeb_circuits(
 
 
 def simulate_2q_xeb_fidelities(
-        sampled_df: pd.DataFrame,
-        circuits: Sequence['cirq.Circuit'],
-        cycle_depths: Sequence[int],
-        param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
-        pool: Optional['multiprocessing.Pool'] = None,
+    sampled_df: pd.DataFrame,
+    circuits: Sequence['cirq.Circuit'],
+    cycle_depths: Sequence[int],
+    param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+    pool: Optional['multiprocessing.Pool'] = None,
 ):
     """Simulate and benchmark two-qubit XEB circuits.
 
@@ -577,8 +593,9 @@ def simulate_2q_xeb_fidelities(
     Returns:
         A DataFrame with columns 'cycle_depth' and 'fidelity'.
     """
-    simulated_df = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths,
-                                            param_resolver=param_resolver, pool=pool)
+    simulated_df = simulate_2q_xeb_circuits(
+        circuits=circuits, cycle_depths=cycle_depths, param_resolver=param_resolver, pool=pool
+    )
     df = sampled_df.join(simulated_df)
 
     def _summary_stats(row):
