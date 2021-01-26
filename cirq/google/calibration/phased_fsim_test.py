@@ -18,8 +18,8 @@ import cirq
 from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
-    FloquetPhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
+    PhasedFSimCalibrationResult,
 )
 
 
@@ -154,7 +154,7 @@ def test_floquet_parse_result():
         ),
     )
 
-    assert request.parse_result(result) == FloquetPhasedFSimCalibrationResult(
+    assert request.parse_result(result) == PhasedFSimCalibrationResult(
         parameters={
             (q_00, q_01): PhasedFSimCharacterization(
                 theta=0.1, zeta=0.2, chi=None, gamma=None, phi=0.3
@@ -216,7 +216,7 @@ def test_floquet_parse_result_bad_metric():
 def test_get_parameters():
     q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
     gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
-    result = FloquetPhasedFSimCalibrationResult(
+    result = PhasedFSimCalibrationResult(
         parameters={
             (q_00, q_01): PhasedFSimCharacterization(
                 theta=0.1, zeta=0.2, chi=None, gamma=None, phi=0.3
