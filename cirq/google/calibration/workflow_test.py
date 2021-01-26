@@ -254,7 +254,7 @@ def test_run_floquet_characterization_for_circuit(engine):
     )
 
     assert characterizations == [
-        FloquetPhasedFSimCalibrationResult(
+        PhasedFSimCalibrationResult(
             parameters={
                 (q_00, q_01): PhasedFSimCharacterization(
                     theta=0.1, zeta=0.2, chi=None, gamma=None, phi=0.3
