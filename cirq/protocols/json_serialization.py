@@ -100,7 +100,6 @@ def _cirq_class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'Duration': cirq.Duration,
         'FloquetPhasedFSimCalibrationOptions': cirq.google.FloquetPhasedFSimCalibrationOptions,
         'FloquetPhasedFSimCalibrationRequest': cirq.google.FloquetPhasedFSimCalibrationRequest,
-        'FloquetPhasedFSimCalibrationResult': cirq.google.FloquetPhasedFSimCalibrationResult,
         'FrozenCircuit': cirq.FrozenCircuit,
         'FSimGate': cirq.FSimGate,
         'DensePauliString': cirq.DensePauliString,
