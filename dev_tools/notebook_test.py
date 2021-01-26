@@ -31,7 +31,7 @@ SKIP_NOTEBOOKS = [
     # https://github.com/quantumlib/Cirq/issues/3502
     "examples/*fidelity*",
     # https://github.com/quantumlib/Cirq/pull/3669#issuecomment-766450463
-    'docs/characterization/*.ipynb'
+    'docs/characterization/*.ipynb',
 ]
 
 
