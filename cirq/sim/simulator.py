@@ -27,7 +27,19 @@ Simulator types include:
         as the simulation iterates through the moments of a cirq.
 """
 
-from typing import Any, Dict, Iterator, List, Sequence, Tuple, Optional, TYPE_CHECKING, Set, cast
+from typing import (
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Sequence,
+    Tuple,
+    Union,
+    Optional,
+    TYPE_CHECKING,
+    Set,
+    cast,
+)
 
 import abc
 import collections
@@ -186,12 +198,12 @@ class SimulatesExpectationValues(metaclass=abc.ABCMeta):
     def simulate_expectation_values(
         self,
         program: 'cirq.Circuit',
-        observables: Dict[str, 'cirq.PauliSum'],
+        observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
         param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
-    ) -> Dict[str, float]:
+    ) -> List[float]:
         """Simulates the supplied circuit and calculates exact expectation
         values for the given observables on its final state.
 
@@ -201,7 +213,7 @@ class SimulatesExpectationValues(metaclass=abc.ABCMeta):
 
         Args:
             program: The circuit to simulate.
-            observables: A map of observable names (strings) to observables.
+            observables: An observable or list of observables.
             param_resolver: Parameters to run with the program.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
@@ -215,11 +227,11 @@ class SimulatesExpectationValues(metaclass=abc.ABCMeta):
                 ruining expectation value calculations.
 
         Returns:
-            A dict of observable names to expectation values. The keys in this
-            map match the keys of corresponding observables in the input.
+            A list of expectation values, with the value at index `n`
+            corresponding to `observables[n]` from the input.
 
         Raises:
-            ValueError if 'program' has terminal measurements and
+            ValueError if 'program' has terminal measurement(s) and
             'permit_terminal_measurements' is False.
         """
         return self.simulate_expectation_values_sweep(
@@ -235,12 +247,12 @@ class SimulatesExpectationValues(metaclass=abc.ABCMeta):
     def simulate_expectation_values_sweep(
         self,
         program: 'cirq.Circuit',
-        observables: Dict[str, 'cirq.PauliSum'],
+        observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
         params: 'study.Sweepable',
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
-    ) -> List[Dict[str, float]]:
+    ) -> List[List[float]]:
         """Simulates the supplied circuit and calculates exact expectation
         values for the given observables on its final state, sweeping over the
         given params.
@@ -251,7 +263,7 @@ class SimulatesExpectationValues(metaclass=abc.ABCMeta):
 
         Args:
             program: The circuit to simulate.
-            observables: A map of observable names (strings) to observables.
+            observables: An observable or list of observables.
             params: Parameters to run with the program.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
@@ -265,8 +277,14 @@ class SimulatesExpectationValues(metaclass=abc.ABCMeta):
                 ruining expectation value calculations.
 
         Returns:
-            A list of observable-name-to-expectation-value maps, one for each
-            possible parameter resolver.
+            A list of expectation-value lists. The outer index determines the
+            sweep, and the inner index determines the observable. For instance,
+            results[1][3] would select the fourth observable measured in the
+            second sweep.
+
+        Raises:
+            ValueError if 'program' has terminal measurement(s) and
+            'permit_terminal_measurements' is False.
         """
 
 

@@ -15,7 +15,19 @@
 """A simulator that uses numpy's einsum for sparse matrix operations."""
 
 import collections
-from typing import Any, Dict, Iterator, List, Type, TYPE_CHECKING, DefaultDict, Tuple, cast, Set
+from typing import (
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Type,
+    TYPE_CHECKING,
+    DefaultDict,
+    Tuple,
+    Union,
+    cast,
+    Set,
+)
 
 import numpy as np
 
@@ -254,12 +266,12 @@ class Simulator(
     def simulate_expectation_values_sweep(
         self,
         program: 'cirq.Circuit',
-        observables: Dict[str, 'cirq.PauliSum'],
+        observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
         params: 'study.Sweepable',
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
-    ) -> List[Dict[str, float]]:
+    ) -> List[List[float]]:
         if not permit_terminal_measurements and program.are_any_measurements_terminal():
             raise ValueError(
                 'Provided circuit has terminal measurements, which may '
@@ -269,6 +281,9 @@ class Simulator(
         swept_evs = []
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qmap = {q: i for i, q in enumerate(qubit_order.order_for(program.all_qubits()))}
+        if not isinstance(observables, List):
+            observables = [observables]
+        pslist = [ops.PauliSum.wrap(pslike) for pslike in observables]
         for param_resolver in study.to_resolvers(params):
             result = cast(
                 state_vector_simulator.StateVectorTrialResult,
@@ -277,10 +292,10 @@ class Simulator(
                 ),
             )
             swept_evs.append(
-                {
-                    k: obs.expectation_from_state_vector(result.final_state_vector, qmap)
-                    for k, obs in observables.items()
-                }
+                [
+                    obs.expectation_from_state_vector(result.final_state_vector, qmap)
+                    for obs in pslist
+                ]
             )
         return swept_evs
 

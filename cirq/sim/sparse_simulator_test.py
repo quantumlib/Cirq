@@ -595,30 +595,30 @@ def test_simulate_expectation_values(dtype):
     # Compare with test_expectation_from_state_vector_two_qubit_states
     # in file: cirq/ops/linear_combinations_test.py
     q0, q1 = cirq.LineQubit.range(2)
-    psum1 = cirq.PauliSum.from_pauli_strings(cirq.Z(q0) + 3.2 * cirq.Z(q1))
-    psum2 = cirq.PauliSum.from_pauli_strings(-1 * cirq.X(q0) + 2 * cirq.X(q1))
+    psum1 = cirq.Z(q0) + 3.2 * cirq.Z(q1)
+    psum2 = -1 * cirq.X(q0) + 2 * cirq.X(q1)
     c1 = cirq.Circuit(cirq.I(q0), cirq.X(q1))
     simulator = cirq.Simulator(dtype=dtype)
-    result = simulator.simulate_expectation_values(c1, {'Z+3.2Z': psum1, '-X+2X': psum2})
-    assert cirq.approx_eq(result['Z+3.2Z'], -2.2, atol=1e-6)
-    assert cirq.approx_eq(result['-X+2X'], 0, atol=1e-6)
+    result = simulator.simulate_expectation_values(c1, [psum1, psum2])
+    assert cirq.approx_eq(result[0], -2.2, atol=1e-6)
+    assert cirq.approx_eq(result[1], 0, atol=1e-6)
 
     c2 = cirq.Circuit(cirq.H(q0), cirq.H(q1))
-    result = simulator.simulate_expectation_values(c2, {'Z+3.2Z': psum1, '-X+2X': psum2})
-    assert cirq.approx_eq(result['Z+3.2Z'], 0, atol=1e-6)
-    assert cirq.approx_eq(result['-X+2X'], 1, atol=1e-6)
+    result = simulator.simulate_expectation_values(c2, [psum1, psum2])
+    assert cirq.approx_eq(result[0], 0, atol=1e-6)
+    assert cirq.approx_eq(result[1], 1, atol=1e-6)
 
     psum3 = cirq.Z(q0) + cirq.X(q1)
     c3 = cirq.Circuit(cirq.I(q0), cirq.H(q1))
-    result = simulator.simulate_expectation_values(c3, {'ZX': psum3})
-    assert cirq.approx_eq(result['ZX'], 2, atol=1e-6)
+    result = simulator.simulate_expectation_values(c3, psum3)
+    assert cirq.approx_eq(result[0], 2, atol=1e-6)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_simulate_expectation_values_terminal_measure(dtype):
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
-    obs = {'Z': cirq.PauliSum.from_pauli_strings(cirq.Z(q0))}
+    obs = cirq.Z(q0)
     simulator = cirq.Simulator(dtype=dtype)
     with pytest.raises(ValueError):
         _ = simulator.simulate_expectation_values(circuit, obs)
@@ -628,9 +628,9 @@ def test_simulate_expectation_values_terminal_measure(dtype):
         result = simulator.simulate_expectation_values(
             circuit, obs, permit_terminal_measurements=True
         )
-        if cirq.approx_eq(result['Z'], -1, atol=1e-6):
+        if cirq.approx_eq(result[0], -1, atol=1e-6):
             results[-1] += 1
-        if cirq.approx_eq(result['Z'], 1, atol=1e-6):
+        if cirq.approx_eq(result[0], 1, atol=1e-6):
             results[1] += 1
 
     # With a measurement after H, the Z-observable expects a specific state.
@@ -644,7 +644,7 @@ def test_simulate_expectation_values_terminal_measure(dtype):
         result = simulator.simulate_expectation_values(
             circuit, obs, permit_terminal_measurements=True
         )
-        if cirq.approx_eq(result['Z'], 0, atol=1e-6):
+        if cirq.approx_eq(result[0], 0, atol=1e-6):
             results[0] += 1
 
     # Without measurement after H, the Z-observable is indeterminate.
@@ -655,15 +655,15 @@ def test_simulate_expectation_values_terminal_measure(dtype):
 def test_simulate_expectation_values_qubit_order(dtype):
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.X(q2))
-    obs = {'XZ': cirq.PauliSum.from_pauli_strings(cirq.X(q0) + cirq.X(q1) - cirq.Z(q2))}
+    obs = cirq.X(q0) + cirq.X(q1) - cirq.Z(q2)
     simulator = cirq.Simulator(dtype=dtype)
 
     result = simulator.simulate_expectation_values(circuit, obs)
-    assert cirq.approx_eq(result['XZ'], 3, atol=1e-6)
+    assert cirq.approx_eq(result[0], 3, atol=1e-6)
 
     # Adjusting the qubit order has no effect on the observables.
     result_flipped = simulator.simulate_expectation_values(circuit, obs, qubit_order=[q1, q2, q0])
-    assert cirq.approx_eq(result_flipped['XZ'], 3, atol=1e-6)
+    assert cirq.approx_eq(result_flipped[0], 3, atol=1e-6)
 
 
 def test_invalid_run_no_unitary():
