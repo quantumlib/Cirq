@@ -260,7 +260,7 @@ def test_colorbar(ax, position, size, pad):
 
     # We need to call draw() explicitly since the figure that has been altered in
     # the HeatMap._plot_colorbar function.
-    fig2.canvas.draw()
+    fig2.savefig('/tmp/bla.png')
 
     # Check that the figure has one more object in it when colorbar is on.
     assert len(fig2.get_children()) == len(fig1.get_children()) + 1
