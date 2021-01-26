@@ -77,6 +77,10 @@ class SparseStateFactory(StateFactory[ActOnStateVectorArgs]):
     def prng(self):
         return self._prng
 
+    @property
+    def retains_noise(self):
+        return False
+
 
 class SparseSimulatorStep(
     state_vector.StateVectorMixin, state_vector_simulator.StateVectorStepResult

@@ -108,6 +108,10 @@ class DensityMatrixStateFactory(StateFactory[_StateAndBuffers]):
     def prng(self):
         return self._prng
 
+    @property
+    def retains_noise(self):
+        return True
+
     def on_stuck(self, bad_op: ops.Operation):
         return TypeError(
             "Can't simulate operations that don't implement "

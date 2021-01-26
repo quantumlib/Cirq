@@ -66,6 +66,11 @@ class StateFactory(Generic[TState], metaclass=abc.ABCMeta):
     def prng(self):
         raise NotImplementedError()
 
+    @property
+    @abc.abstractmethod
+    def retains_noise(self):
+        raise NotImplementedError()
+
 
 TStepResult = TypeVar('TStepResult', bound=StepResult)
 TSimulationTrialResult = TypeVar('TSimulationTrialResult', bound=SimulationTrialResult)
@@ -141,37 +146,10 @@ class OpByOpSimulator(
 
         qid_shape = protocols.qid_shape(qubit_order)
         intermediate_state = step_result.state_vector()
-        return self._brute_force_samples(
-            initial_state=intermediate_state,
-            circuit=general_suffix,
-            repetitions=repetitions,
-            qubit_order=ops.QubitOrder.DEFAULT,
-        )
-
-    @final
-    def _brute_force_samples(
-        self,
-        initial_state: np.ndarray,
-        circuit: circuits.Circuit,
-        qubit_order: 'cirq.QubitOrderOrList',
-        repetitions: int,
-    ) -> Dict[str, np.ndarray]:
         """Repeatedly simulate a circuit in order to produce samples."""
-        if circuit.are_all_measurements_terminal():
-            return self._run_sweep_sample(initial_state, circuit, qubit_order, repetitions)
-        return self._run_sweep_repeat(initial_state, circuit, qubit_order, repetitions)
-
-    def _run_x(
-        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
-    ) -> Dict[str, np.ndarray]:
-        """See definition in `cirq.SimulatesSamples`."""
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        check_all_resolved(resolved_circuit)
-
-        if circuit.are_all_measurements_terminal():
-            return self._run_sweep_sample(0, resolved_circuit, ops.QubitOrder.DEFAULT, repetitions)
-        return self._run_sweep_repeat(0, resolved_circuit, ops.QubitOrder.DEFAULT, repetitions)
+        if self.state_algo.retains_noise and circuit.are_all_measurements_terminal():
+            return self._run_sweep_sample(intermediate_state, general_suffix, qubit_order, repetitions)
+        return self._run_sweep_repeat(intermediate_state, general_suffix, qubit_order, repetitions)
 
     def _run_sweep_sample(
         self,
@@ -206,7 +184,7 @@ class OpByOpSimulator(
 
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
-                circuit, qubit_order=qubit_order, initial_state=copy.copy(initial_state)
+                circuit, qubit_order=qubit_order, initial_state=copy.deepcopy(initial_state)
             )
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
