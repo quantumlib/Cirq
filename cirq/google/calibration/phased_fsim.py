@@ -152,7 +152,8 @@ class PhasedFSimCalibrationResult:
     Attributes:
         parameters: Map from qubit pair to characterization result. For each pair of characterized
             quibts a and b either only (a, b) or only (b, a) is present.
-        gate: Characterized gate for each qubit pair.
+        gate: Characterized gate for each qubit pair. This is copied from the matching
+            PhasedFSimCalibrationRequest and is included to preserve execution context.
     """
 
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
@@ -209,7 +210,8 @@ class PhasedFSimCalibrationRequest(abc.ABC):
         pairs: Set of qubit pairs to characterize. A single qubit can appear on at most one pair in
             the set.
         gate: Gate to characterize for each qubit pair from pairs. This must be a supported gate
-            which can be described cirq.PhasedFSim gate.
+            which can be described cirq.PhasedFSim gate. This gate must be serialized by the
+            cirq.google.SerializableGateSet used
     """
 
     pairs: Tuple[Tuple[Qid, Qid], ...]
