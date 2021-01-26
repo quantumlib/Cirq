@@ -94,7 +94,7 @@ class DensityMatrixStateFactory(StateFactory[_StateAndBuffers]):
                 bits, _ = density_matrix_utils.measure_density_matrix(
                     sim_state.tensor,
                     indices,
-                    qid_shape=None,  # sim_state.qid_shape,
+                    qid_shape=simulator._qubit_map_to_shape(qubit_map),
                     out=sim_state.tensor,
                     seed=self._prng,
                 )
@@ -378,7 +378,7 @@ class DensityMatrixSimulationResultFactory(
     def step_result(self, sim_state, qubit_map):
         return DensityMatrixStepResult(
             state=sim_state,
-            measurements=dict(),  # dict(sim_state.log_of_measurement_results),
+            measurements=dict(sim_state.log_of_measurement_results),
             qubit_map=qubit_map,
         )
 
@@ -394,9 +394,11 @@ class DensityMatrixSimulator(OpByOpSimulator[_StateAndBuffers, DensityMatrixStep
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         ignore_measurement_results: bool = False,
     ):
-        state_algo = DensityMatrixStateFactory(dtype=dtype, seed=seed)
-        result_producer = DensityMatrixSimulationResultFactory()
-        super().__init__(state_algo, result_producer)
+        state_algo = state_algo or DensityMatrixStateFactory(
+            dtype=dtype, seed=seed, ignore_measurement_results=ignore_measurement_results
+        )
+        result_producer = result_producer or DensityMatrixSimulationResultFactory()
+        super().__init__(state_algo=state_algo, result_producer=result_producer, noise=noise)
 
 
 class DensityMatrixSimulatorx(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
