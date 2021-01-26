@@ -183,10 +183,9 @@ class DensityMatrixStepResult(simulator.StepResult):
 
     def __init__(
         self,
-        density_matrix: np.ndarray,
+        state: _StateAndBuffers,
         measurements: Dict[str, np.ndarray],
         qubit_map: Dict[ops.Qid, int],
-        dtype: Type[np.number] = np.complex64,
     ):
         """DensityMatrixStepResult.
 
@@ -198,10 +197,14 @@ class DensityMatrixStepResult(simulator.StepResult):
             dtype: The numpy dtype for the density matrix.
         """
         super().__init__(measurements)
-        self._density_matrix = density_matrix
+        self._density_matrix = state.tensor
         self._qubit_map = qubit_map
-        self._dtype = dtype
+        self._dtype = state.dtype
         self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
+        self.state = state
+
+    def state_vector(self):
+        return self.state
 
     def _qid_shape_(self):
         return self._qid_shape
@@ -374,10 +377,9 @@ class DensityMatrixSimulationResultFactory(
 
     def step_result(self, sim_state, qubit_map):
         return DensityMatrixStepResult(
-            density_matrix=sim_state.tensor,
+            state=sim_state,
             measurements=dict(),  # dict(sim_state.log_of_measurement_results),
             qubit_map=qubit_map,
-            dtype=sim_state.dtype,
         )
 
 

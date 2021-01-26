@@ -27,7 +27,7 @@ from typing import (
     Any,
     TypeVar,
     Generic,
-    final,
+    final, Union,
 )
 
 import numpy as np
@@ -137,7 +137,7 @@ class OpByOpSimulator(
             )
 
         qid_shape = protocols.qid_shape(qubit_order)
-        intermediate_state = step_result.state_vector().reshape(qid_shape)
+        intermediate_state = step_result.state_vector()
         return self._brute_force_samples(
             initial_state=intermediate_state,
             circuit=general_suffix,
@@ -173,11 +173,11 @@ class OpByOpSimulator(
         self,
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,
-        initial_state: 'cirq.STATE_VECTOR_LIKE',
+        initial_state: Union['cirq.STATE_VECTOR_LIKE', TState],
         perform_measurements: bool = True,
     ) -> Iterator[TStepResult]:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        sim_state = self.state_algo.create_sim_state(initial_state, qubits)
+        sim_state = cast(TState, initial_state) if isinstance(initial_state, AbstractState) else self.state_algo.create_sim_state(initial_state, qubits)
         qubit_map = {q: i for i, q in enumerate(qubits)}
         if len(circuit) == 0:
             yield self.result_producer.step_result(sim_state, qubit_map)
