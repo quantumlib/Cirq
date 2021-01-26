@@ -277,6 +277,18 @@ def test_sample_2q_xeb_circuits():
         assert np.isclose(np.sum(row['sampled_probs']), 1)
 
 
+def test_sample_2q_xeb_circuits_error():
+    qubits = cirq.LineQubit.range(3)
+    circuits = [cirq.testing.random_circuit(qubits, n_moments=5, op_density=0.8)]
+    cycle_depths = np.arange(3, 50, 9)
+    with pytest.raises(ValueError):
+        df = sample_2q_xeb_circuits(
+            sampler=cirq.Simulator(),
+            circuits=circuits,
+            cycle_depths=cycle_depths,
+        )
+
+
 def test_simulate_2q_xeb_circuits():
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [

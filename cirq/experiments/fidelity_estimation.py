@@ -469,7 +469,7 @@ def sample_2q_xeb_circuits(
     all_all_qubits = sorted(all_all_qubits)
     if len(all_all_qubits) != 2:
         raise ValueError(
-            "`circuits` should be a sequence of circuits each " "operating on the same two qubits."
+            "`circuits` should be a sequence of circuits each operating on the same two qubits."
         )
     q0, q1 = all_all_qubits
 
