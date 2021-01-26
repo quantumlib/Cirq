@@ -24,6 +24,9 @@ import matplotlib.pyplot as plt
 from cirq.devices import grid_qubit
 from cirq.vis import heatmap
 
+from tempfile import mkdtemp
+import pathlib
+
 
 @pytest.fixture
 def ax():
@@ -258,9 +261,10 @@ def test_colorbar(ax, position, size, pad):
     fig2, ax2 = plt.subplots()
     random_heatmap.plot(ax2)
 
-    # We need to call draw() explicitly since the figure that has been altered in
+    # We need to call savefig() explicitly since the figure that has been altered in
     # the HeatMap._plot_colorbar function.
-    fig2.savefig('/tmp/bla.png')
+    tmp_dir = mkdtemp()
+    fig2.savefig(pathlib.Path(tmp_dir) / 'tmp.png')
 
     # Check that the figure has one more object in it when colorbar is on.
     assert len(fig2.get_children()) == len(fig1.get_children()) + 1
