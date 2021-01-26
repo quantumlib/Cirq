@@ -15,6 +15,7 @@
 """A simulator that uses numpy's einsum for sparse matrix operations."""
 import abc
 import collections
+import copy
 from typing import (
     Dict,
     Iterator,
@@ -205,7 +206,7 @@ class OpByOpSimulator(
 
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
-                circuit, qubit_order=qubit_order, initial_state=initial_state
+                circuit, qubit_order=qubit_order, initial_state=copy.copy(initial_state)
             )
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
