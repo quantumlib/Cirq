@@ -145,6 +145,10 @@ class PhasedFSimCharacterization:
         return other.merge_with(self)
 
 
+class PhasedFSimCalibrationOptions(abc.ABC):
+    """Base class for calibration-specific options passed together with the requests."""
+
+
 @dataclasses.dataclass(frozen=True)
 class PhasedFSimCalibrationResult:
     """The PhasedFSimGate characterization result.
@@ -158,6 +162,7 @@ class PhasedFSimCalibrationResult:
 
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
     gate: Gate
+    options: PhasedFSimCalibrationOptions
 
     def get_parameters(self, a: Qid, b: Qid) -> Optional['PhasedFSimCharacterization']:
         """Returns parameters for a qubit pair (a, b) or None when unknown."""
@@ -198,6 +203,7 @@ class PhasedFSimCalibrationResult:
             'cirq_type': 'PhasedFSimCalibrationResult',
             'gate': self.gate,
             'parameters': [(q_a, q_b, params) for (q_a, q_b), params in self.parameters.items()],
+            'options': self.options,
         }
 
 
@@ -234,7 +240,7 @@ class PhasedFSimCalibrationRequest(abc.ABC):
 
 
 @json_serializable_dataclass(frozen=True)
-class FloquetPhasedFSimCalibrationOptions:
+class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     """Options specific to Floquet PhasedFSimCalibration.
 
     Some angles require another angle to be characterized first so result might have more angles
@@ -275,24 +281,6 @@ class FloquetPhasedFSimCalibrationOptions:
             characterize_gamma=True,
             characterize_phi=True,
         )
-
-
-@dataclasses.dataclass(frozen=True)
-class FloquetPhasedFSimCalibrationResult(PhasedFSimCalibrationResult):
-    """PhasedFSim characterization result specific to Floquet calibration.
-
-    Attributes:
-        options: Options of the characterization from the request.
-    """
-
-    options: FloquetPhasedFSimCalibrationOptions
-
-    def _json_dict_(self) -> Dict[str, Any]:
-        """Magic method for the JSON serialization protocol."""
-        result_dict = super()._json_dict_()
-        result_dict['cirq_type'] = 'FloquetPhasedFSimCalibrationResult'
-        result_dict['options'] = self.options
-        return result_dict
 
 
 @dataclasses.dataclass(frozen=True)
@@ -344,9 +332,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
                 phi=data.get('phi_est', None),
             )
 
-        return FloquetPhasedFSimCalibrationResult(
-            parameters=parsed, gate=self.gate, options=self.options
-        )
+        return PhasedFSimCalibrationResult(parameters=parsed, gate=self.gate, options=self.options)
 
     @classmethod
     def _from_json_dict_(
