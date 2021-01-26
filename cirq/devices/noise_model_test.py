@@ -14,11 +14,11 @@
 
 from typing import Sequence
 
+import numpy as np
 import pytest
 
 import cirq
 from cirq import ops
-import numpy as np
 
 
 def _assert_equivalent_op_tree(x: cirq.OP_TREE, y: cirq.OP_TREE):

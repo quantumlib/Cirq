@@ -22,7 +22,6 @@ import pandas as pd
 
 import cirq
 from cirq.experiments.fidelity_estimation import (
-    _SampleInBatches,
     SQRT_ISWAP,
     sample_2q_xeb_circuits,
     simulate_2q_xeb_circuits,
@@ -282,7 +281,7 @@ def test_sample_2q_xeb_circuits_error():
     circuits = [cirq.testing.random_circuit(qubits, n_moments=5, op_density=0.8)]
     cycle_depths = np.arange(3, 50, 9)
     with pytest.raises(ValueError):
-        df = sample_2q_xeb_circuits(
+        _ = sample_2q_xeb_circuits(
             sampler=cirq.Simulator(),
             circuits=circuits,
             cycle_depths=cycle_depths,
@@ -337,6 +336,6 @@ def test_simulate_2q_xeb_fidelities():
     print(fid_df)
     print()
     assert len(fid_df) == len(cycle_depths)
-    for i, row in fid_df.iterrows():
+    for _, row in fid_df.iterrows():
         assert row['cycle_depth'] in cycle_depths
         assert row['fidelity'] > 0.98
