@@ -128,6 +128,8 @@ SHOULDNT_BE_SERIALIZED = [
     'ApplyUnitaryArgs',
     # Circuit optimizers are function-like. Only attributes
     # are ignore_failures, tolerance, and other feature flags
+    'AlignLeft',
+    'AlignRight',
     'ConvertToCzAndSingleGates',
     'ConvertToIonGates',
     'ConvertToNeutralAtomGates',
@@ -299,6 +301,10 @@ NOT_YET_SERIALIZABLE = [
     'LinearCombinationOfOperations',
     'Linspace',
     'ListSweep',
+    'MPSSimulator',
+    'MPSSimulatorStepResult',
+    'MPSState',
+    'MPSTrialResult',
     'NeutralAtomDevice',
     'PauliInteractionGate',
     'PauliStringPhasor',
