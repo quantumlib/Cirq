@@ -72,6 +72,12 @@ class StateFactory(Generic[TState], metaclass=abc.ABCMeta):
     def retains_noise(self):
         raise NotImplementedError()
 
+    def keep(self, op):
+        return True
+
+    def on_stuck(self, op):
+        raise NotImplementedError()
+
 
 TStepResult = TypeVar('TStepResult', bound=StepResult)
 TSimulationTrialResult = TypeVar('TSimulationTrialResult', bound=SimulationTrialResult)
@@ -152,6 +158,7 @@ class OpByOpSimulator(
         intermediate_state = step_result.state_vector()
         return self._run_sweep_repeat(intermediate_state, general_suffix, qubit_order, repetitions)
 
+    @final
     def _run_sweep_sample(
         self,
         initial_state: np.ndarray,
@@ -173,6 +180,7 @@ class OpByOpSimulator(
             measurement_ops, repetitions, seed=self.state_algo.prng
         )
 
+    @final
     def _run_sweep_repeat(
         self,
         initial_state: np.ndarray,
@@ -219,11 +227,9 @@ class OpByOpSimulator(
 
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
         for moment in noisy_moments:
-            operations = moment
-            if getattr(self.state_algo, 'keep', None):
-                operations = protocols.decompose(
-                    moment, keep=self.state_algo.keep, on_stuck_raise=self.state_algo.on_stuck
-                )
+            operations = protocols.decompose(
+                moment, keep=self.state_algo.keep, on_stuck_raise=self.state_algo.on_stuck
+            )
             for op in operations:
                 if all_measurements_are_terminal and measured[op.qubits]:
                     continue
