@@ -23,7 +23,6 @@ from cirq.google.arg_func_langs import (
 from cirq.google.calibration import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
-    FloquetPhasedFSimCalibrationResult,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,

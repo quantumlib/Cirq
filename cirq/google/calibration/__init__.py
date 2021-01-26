@@ -20,7 +20,6 @@ from cirq.google.calibration.engine_simulator import (
 from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
-    FloquetPhasedFSimCalibrationResult,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
