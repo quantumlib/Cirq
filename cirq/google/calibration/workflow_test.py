@@ -109,8 +109,7 @@ def test_run_characterization_empty():
     assert workflow.run_characterizations([], None, 'qproc', cirq.google.FSIM_GATESET) == []
 
 
-@mock.patch('cirq.google.engine.Engine')
-def test_run_characterization(engine):
+def test_run_characterization():
     q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
     gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
     request = FloquetPhasedFSimCalibrationRequest(
@@ -165,7 +164,10 @@ def test_run_characterization(engine):
     )
     job = cirq.google.engine.EngineJob('', '', '', None)
     job._calibration_results = [result]
+
+    engine = mock.MagicMock(spec=cirq.google.Engine)
     engine.run_calibration.return_value = job
+
     actual = workflow.run_characterizations([request], engine, 'qproc', cirq.google.FSIM_GATESET)
     expected = [
         FloquetPhasedFSimCalibrationResult(
@@ -190,8 +192,7 @@ def test_run_characterization(engine):
     assert actual == expected
 
 
-@mock.patch('cirq.google.engine.Engine')
-def test_run_floquet_characterization_for_circuit(engine):
+def test_run_floquet_characterization_for_circuit():
     q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
     gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
 
@@ -247,6 +248,8 @@ def test_run_floquet_characterization_for_circuit(engine):
             ),
         )
     ]
+
+    engine = mock.MagicMock(spec=cirq.google.Engine)
     engine.run_calibration.return_value = job
 
     characterizations, mapping = workflow.run_floquet_characterization_for_circuit(
