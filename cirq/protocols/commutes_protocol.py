@@ -18,9 +18,8 @@ from typing import Any, TypeVar, Union
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq import linalg, ops
+from cirq import linalg
 from cirq._doc import doc_private
-from cirq.protocols import qid_shape_protocol, unitary_protocol
 from cirq.type_workarounds import NotImplementedType
 
 # This is a special indicator value used by the unitary method to determine
@@ -126,7 +125,6 @@ def commutes(
     strats = [
         _strat_commutes_from_commutes,
         _strat_commutes_from_matrix,
-        _strat_commutes_from_operation,
     ]
     for strat in strats:
         result = strat(v1, v2, atol=atol)
@@ -166,6 +164,7 @@ def _strat_commutes_from_commutes(
         getter = getattr(a, '_commutes_', None)
         if getter is None:
             continue
+
         val = getter(b, atol=atol)
         if val is not NotImplemented:
             return val
@@ -184,31 +183,3 @@ def _strat_commutes_from_matrix(
     if v1.shape != v2.shape:
         return None
     return linalg.matrix_commutes(v1, v2, atol=atol)
-
-
-def _strat_commutes_from_operation(
-    v1: Any,
-    v2: Any,
-    *,
-    atol: float,
-) -> Union[bool, NotImplementedType, None]:
-    if not isinstance(v1, ops.Operation) or not isinstance(v2, ops.Operation):
-        return NotImplemented
-
-    if set(v1.qubits).isdisjoint(v2.qubits):
-        return True
-
-    from cirq import circuits
-
-    circuit12 = circuits.Circuit(v1, v2)
-    circuit21 = circuits.Circuit(v2, v1)
-
-    # Don't create gigantic matrices.
-    if np.product(qid_shape_protocol.qid_shape(circuit12)) > 2 ** 10:
-        return NotImplemented  # coverage: ignore
-
-    m12 = unitary_protocol.unitary(circuit12, default=None)
-    m21 = unitary_protocol.unitary(circuit21, default=None)
-    if m12 is None:
-        return NotImplemented
-    return np.allclose(m12, m21, atol=atol)
