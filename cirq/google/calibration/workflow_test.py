@@ -40,6 +40,7 @@ def test_floquet_characterization_for_circuit() -> None:
             [cirq.X(a), cirq.Y(c)],
             [cirq.FSimGate(np.pi / 4, 0.0).on(a, b), cirq.FSimGate(np.pi / 4, 0.0).on(c, d)],
             [cirq.FSimGate(np.pi / 4, 0.0).on(b, c)],
+            [cirq.WaitGate(duration=cirq.Duration(micros=5.0)).on(b)]
         ]
     )
     options = cirq.google.FloquetPhasedFSimCalibrationOptions.without_chi_characterization()
@@ -54,7 +55,7 @@ def test_floquet_characterization_for_circuit() -> None:
             pairs=((b, c),), gate=SQRT_ISWAP_GATE, options=options
         ),
     ]
-    assert mapping == [None, 0, 1]
+    assert mapping == [None, 0, 1, None]
 
 
 def test_floquet_characterization_for_circuit_merges_sub_sets() -> None:

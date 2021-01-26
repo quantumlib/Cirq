@@ -25,6 +25,7 @@ from cirq.ops import (
     Operation,
     Qid,
     SingleQubitGate,
+    WaitGate,
     rz,
 )
 from cirq.google.calibration.engine_simulator import PhasedFSimEngineSimulator
@@ -72,8 +73,7 @@ def floquet_characterization_for_moment(
         by gates_translator, or it mixes a single qubit and two qubit gates.
     """
 
-    measurement = False
-    single_qubit = False
+    other_operation = False
     gate: Optional[FSimGate] = None
     pairs = []
 
@@ -81,10 +81,8 @@ def floquet_characterization_for_moment(
         if not isinstance(op, GateOperation):
             raise IncompatibleMomentError('Moment contains operation different than GateOperation')
 
-        if isinstance(op.gate, MeasurementGate):
-            measurement = True
-        elif isinstance(op.gate, SingleQubitGate):
-            single_qubit = True
+        if isinstance(op.gate, (MeasurementGate, SingleQubitGate, WaitGate)):
+            other_operation = True
         else:
             translated_gate = gates_translator(op.gate)
             if translated_gate is None:
@@ -107,10 +105,10 @@ def floquet_characterization_for_moment(
         # Either empty, single-qubit or measurement moment.
         return None
 
-    if gate is not None and (measurement or single_qubit):
+    if gate is not None and other_operation:
         raise IncompatibleMomentError(
-            f'Moment contains mixed two-qubit operations and '
-            f'single-qubit operations or measurement operations.'
+            f'Moment contains mixed two-qubit operations and either single-qubit measurement or '
+            f'wait operations.'
         )
 
     return FloquetPhasedFSimCalibrationRequest(
