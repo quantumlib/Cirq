@@ -13,7 +13,9 @@
 # limitations under the License.
 """Tests for Heatmap."""
 
+import pathlib
 import string
+from tempfile import mkdtemp
 
 import numpy as np
 import pytest
@@ -23,9 +25,6 @@ import matplotlib.pyplot as plt
 
 from cirq.devices import grid_qubit
 from cirq.vis import heatmap
-
-from tempfile import mkdtemp
-import pathlib
 
 
 @pytest.fixture
@@ -261,8 +260,8 @@ def test_colorbar(ax, position, size, pad):
     fig2, ax2 = plt.subplots()
     random_heatmap.plot(ax2)
 
-    # We need to call savefig() explicitly since the figure that has been altered in
-    # the HeatMap._plot_colorbar function.
+    # We need to call savefig() explicitly for updating axes position since the figure
+    # object has been altered in the HeatMap._plot_colorbar function.
     tmp_dir = mkdtemp()
     fig2.savefig(pathlib.Path(tmp_dir) / 'tmp.png')
 

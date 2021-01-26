@@ -37,7 +37,7 @@ ValueMap = Union[Dict[grid_qubit.GridQubit, SupportsFloat], Dict[Tuple[int, int]
 def _get_qubit_row_col(qubit: QubitCoordinate) -> Tuple[int, int]:
     if isinstance(qubit, grid_qubit.GridQubit):
         return qubit.row, qubit.col
-    elif isinstance(qubit, tuple) and len(qubit) == 2:
+    elif isinstance(qubit, tuple):
         return int(qubit[0]), int(qubit[1])
 
 
