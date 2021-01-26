@@ -453,6 +453,9 @@ class StepResult(metaclass=abc.ABCMeta):
         details.
         """
 
+    def state_vector(self) -> np.ndarray:
+        raise NotImplementedError()
+
     @abc.abstractmethod
     def sample(
         self,

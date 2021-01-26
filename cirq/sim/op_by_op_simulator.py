@@ -15,21 +15,17 @@
 """A simulator that uses numpy's einsum for sparse matrix operations."""
 import abc
 import collections
-import copy
 from typing import (
     Dict,
     Iterator,
     List,
     TYPE_CHECKING,
-    DefaultDict,
     Tuple,
     cast,
     Set,
-    Any,
     TypeVar,
     Generic,
     final,
-    Union,
 )
 
 import numpy as np
@@ -154,18 +150,18 @@ class OpByOpSimulator(
                 seed=self.state_algo.prng,
             )
 
-        qid_shape = protocols.qid_shape(qubit_order)
         intermediate_state = step_result.state_vector()
         return self._run_sweep_repeat(intermediate_state, general_suffix, qubit_order, repetitions)
 
     @final
     def _run_sweep_sample(
         self,
-        initial_state: np.ndarray,
+        initial_state: 'cirq.STATE_VECTOR_LIKE',
         circuit: circuits.Circuit,
         qubit_order: 'cirq.QubitOrderOrList',
         repetitions: int,
     ) -> Dict[str, np.ndarray]:
+        step_result = None
         for step_result in self._base_iterator(
             circuit=circuit,
             qubit_order=qubit_order,
@@ -176,6 +172,7 @@ class OpByOpSimulator(
         measurement_ops = [
             op for _, op, _ in circuit.findall_operations_with_gate_type(ops.MeasurementGate)
         ]
+
         return step_result.sample_measurement_ops(
             measurement_ops, repetitions, seed=self.state_algo.prng
         )
@@ -183,7 +180,7 @@ class OpByOpSimulator(
     @final
     def _run_sweep_repeat(
         self,
-        initial_state: np.ndarray,
+        initial_state: 'cirq.STATE_VECTOR_LIKE',
         circuit: circuits.Circuit,
         qubit_order: 'cirq.QubitOrderOrList',
         repetitions: int,
@@ -195,11 +192,11 @@ class OpByOpSimulator(
 
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
-                circuit, qubit_order=qubit_order, initial_state=copy.deepcopy(initial_state)
+                circuit, qubit_order=qubit_order, initial_state=initial_state
             )
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
-                    if not k in measurements:
+                    if k not in measurements:
                         measurements[k] = []
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
@@ -209,7 +206,7 @@ class OpByOpSimulator(
         self,
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,
-        initial_state: Union['cirq.STATE_VECTOR_LIKE', TState],
+        initial_state: 'cirq.STATE_VECTOR_LIKE',
         perform_measurements: bool = True,
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:

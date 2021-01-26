@@ -13,16 +13,14 @@
 # limitations under the License.
 """Simulator for density matrices that simulates noisy quantum circuits."""
 
-import collections
-from typing import Any, Dict, Iterator, List, TYPE_CHECKING, Tuple, Type, Union
+from typing import Any, Dict, List, TYPE_CHECKING, Tuple, Type, Union
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, qis, study, value, devices
+from cirq import ops, protocols, qis, study, value
 from cirq.sim import density_matrix_utils, simulator
 from cirq.sim.abstract_state import AbstractState
 from cirq.sim.op_by_op_simulator import StateFactory, SimulationResultFactory, OpByOpSimulator
-from cirq.sim.simulator import check_all_resolved
 
 if TYPE_CHECKING:
     from typing import Tuple
@@ -70,8 +68,12 @@ class DensityMatrixStateFactory(StateFactory[_StateAndBuffers]):
 
     def create_sim_state(self, initial_state, qubits):
         qid_shape = protocols.qid_shape(qubits)
-        initial_matrix = qis.to_valid_density_matrix(
-            initial_state, len(qid_shape), qid_shape=qid_shape, dtype=self._dtype
+        initial_matrix = (
+            initial_state
+            if isinstance(initial_state, np.ndarray)
+            else qis.to_valid_density_matrix(
+                initial_state, len(qid_shape), qid_shape=qid_shape, dtype=self._dtype
+            )
         )
         if np.may_share_memory(initial_matrix, initial_state):
             initial_matrix = initial_matrix.copy()
@@ -187,9 +189,10 @@ class DensityMatrixStepResult(simulator.StepResult):
 
     def __init__(
         self,
-        state: _StateAndBuffers,
+        density_matrix: np.ndarray,
         measurements: Dict[str, np.ndarray],
         qubit_map: Dict[ops.Qid, int],
+        dtype: Type[np.number] = np.complex64,
     ):
         """DensityMatrixStepResult.
 
@@ -201,14 +204,13 @@ class DensityMatrixStepResult(simulator.StepResult):
             dtype: The numpy dtype for the density matrix.
         """
         super().__init__(measurements)
-        self._density_matrix = state.tensor
+        self._density_matrix = density_matrix
         self._qubit_map = qubit_map
-        self._dtype = state.dtype
+        self._dtype = dtype
         self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
-        self.state = state
 
     def state_vector(self):
-        return self.state
+        return self._density_matrix
 
     def _qid_shape_(self):
         return self._qid_shape
@@ -381,9 +383,10 @@ class DensityMatrixSimulationResultFactory(
 
     def step_result(self, sim_state, qubit_map):
         return DensityMatrixStepResult(
-            state=sim_state,
+            density_matrix=sim_state.tensor,
             measurements=dict(sim_state.log_of_measurement_results),
             qubit_map=qubit_map,
+            dtype=sim_state.dtype,
         )
 
 
