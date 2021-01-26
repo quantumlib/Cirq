@@ -1,4 +1,4 @@
-# Copyright 2020 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,15 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import cirq
+
+"""An optimization pass that aligns gates to the left of the circuit."""
+
+from cirq import circuits, ops
+from cirq.circuits.insert_strategy import InsertStrategy
 
 
-def test_equality():
-    assert cirq.google.PhysicalZTag() == cirq.google.PhysicalZTag()
-    assert hash(cirq.google.PhysicalZTag()) == hash(cirq.google.PhysicalZTag())
+class AlignLeft:
+    """Aligns gates to the left of the circuit."""
 
+    def __call__(self, circuit: circuits.Circuit):
+        self.optimize_circuit(circuit)
 
-def test_syc_str_repr():
-    assert str(cirq.google.PhysicalZTag()) == 'PhysicalZTag()'
-    assert repr(cirq.google.PhysicalZTag()) == 'cirq.google.PhysicalZTag()'
-    cirq.testing.assert_equivalent_repr(cirq.google.PhysicalZTag(), setup_code=('import cirq\n'))
+    def optimize_circuit(self, circuit: circuits.Circuit):
+        circuit[:] = circuits.Circuit(circuit.all_operations(), strategy=InsertStrategy.EARLIEST)
