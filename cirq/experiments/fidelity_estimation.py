@@ -28,12 +28,13 @@ from typing import (
     TYPE_CHECKING,
     Dict,
     Any,
+    Set,
 )
 
 import numpy as np
 import pandas as pd
 
-from cirq import ops, circuits, protocols, sim
+from cirq import ops, circuits, protocols, sim, study
 from cirq.circuits import Circuit
 from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_state_vector
@@ -420,9 +421,9 @@ class _SampleInBatches:
         results = self.sampler.run_batch(prepared_circuits, repetitions=self.repetitions)
         assert len(results) == len(tasks)
         records = []
-        for task, result in zip(tasks, results):
-            assert len(result) == 1, len(result)
-            result = result[0]  # sweep nesting
+        for task, n_result in zip(tasks, results):
+            assert len(n_result) == 1, len(n_result)
+            result = n_result[0]  # sweep nesting
             sampled_inds = result.data.values[:, 0]
             sampled_probs = np.bincount(sampled_inds, minlength=2 ** 2) / len(sampled_inds)
 
@@ -465,8 +466,9 @@ def sample_2q_xeb_circuits(
     """
     import tqdm
 
-    all_all_qubits = set().union(*(circuit.all_qubits() for circuit in circuits))
-    all_all_qubits = sorted(all_all_qubits)
+    all_all_qubits_s: Set['cirq.Qid'] = set()
+    all_all_qubits_s = all_all_qubits_s.union(*(circuit.all_qubits() for circuit in circuits))
+    all_all_qubits = sorted(all_all_qubits_s)
     if len(all_all_qubits) != 2:
         raise ValueError(
             "`circuits` should be a sequence of circuits each operating on the same two qubits."
@@ -487,11 +489,11 @@ def sample_2q_xeb_circuits(
             )
 
     n_tasks = len(tasks)
-    tasks = [tasks[i : i + batch_size] for i in range(0, n_tasks, batch_size)]
+    b_tasks = [tasks[i : i + batch_size] for i in range(0, n_tasks, batch_size)]
 
     run_batch = _SampleInBatches(sampler=sampler, repetitions=repetitions)
     with ThreadPoolExecutor(max_workers=2) as pool:
-        futures = [pool.submit(run_batch, task) for task in tasks]
+        futures = [pool.submit(run_batch, task) for task in b_tasks]
 
         records = []
         with tqdm.tqdm(total=n_tasks) as progress:
@@ -515,7 +517,7 @@ def _simulate_2q_xeb_circuit(task: Dict[str, Any]):
     tcircuit = protocols.resolve_parameters_once(tcircuit, param_resolver=param_resolver)
 
     pure_sim = sim.Simulator()
-    psi = pure_sim.simulate(tcircuit)
+    psi = cast(sim.StateVectorTrialResult, pure_sim.simulate(tcircuit))
     psi = psi.final_state_vector
     pure_probs = np.abs(psi) ** 2
 
@@ -530,7 +532,7 @@ def simulate_2q_xeb_circuits(
     circuits: Sequence['cirq.Circuit'],
     cycle_depths: Sequence[int],
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
-    pool: Optional['multiprocessing.Pool'] = None,
+    pool: Optional['multiprocessing.pool.Pool'] = None,
 ):
     """Simulate two-qubit XEB circuits.
 
@@ -576,7 +578,7 @@ def simulate_2q_xeb_fidelities(
     circuits: Sequence['cirq.Circuit'],
     cycle_depths: Sequence[int],
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
-    pool: Optional['multiprocessing.Pool'] = None,
+    pool: Optional['multiprocessing.pool.Pool'] = None,
 ):
     """Simulate and benchmark two-qubit XEB circuits.
 
