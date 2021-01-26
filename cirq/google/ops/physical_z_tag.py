@@ -42,3 +42,6 @@ class PhysicalZTag:
 
     def __eq__(self, other) -> bool:
         return isinstance(other, PhysicalZTag)
+
+    def __hash__(self) -> int:
+        return 123
