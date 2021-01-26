@@ -20,8 +20,8 @@ import cirq.google.calibration.workflow as workflow
 from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
-    FloquetPhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
+    PhasedFSimCalibrationResult,
 )
 
 SQRT_ISWAP_GATE = cirq.FSimGate(np.pi / 4, 0.0)
@@ -168,7 +168,7 @@ def test_run_characterization(engine):
     engine.run_calibration.return_value = job
     actual = workflow.run_characterizations([request], engine, 'qproc', cirq.google.FSIM_GATESET)
     expected = [
-        FloquetPhasedFSimCalibrationResult(
+        PhasedFSimCalibrationResult(
             parameters={
                 (q_00, q_01): PhasedFSimCharacterization(
                     theta=0.1, zeta=0.2, chi=None, gamma=None, phi=0.3
