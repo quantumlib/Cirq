@@ -12,19 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
-
-from typing import Callable, List, Mapping, Optional, Sequence, Tuple, cast
+import concurrent
+import functools
+from abc import abstractmethod
+from concurrent.futures.thread import ThreadPoolExecutor
+from dataclasses import dataclass
+from typing import Callable, List, Mapping, Optional, Sequence, Tuple, cast, TYPE_CHECKING, Dict, \
+    Any
 
 import numpy as np
+import pandas as pd
 
+from cirq import ops, circuits, protocols, sim
 from cirq.circuits import Circuit
 from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_state_vector
 
+import scipy.optimize
+
+if TYPE_CHECKING:
+    import cirq
+    import multiprocessing
+
+SQRT_ISWAP = ops.ISWAP ** 0.5
+
 
 def linear_xeb_fidelity_from_probabilities(
-    hilbert_space_dimension: int,
-    probabilities: Sequence[float],
+        hilbert_space_dimension: int,
+        probabilities: Sequence[float],
 ) -> float:
     """Linear XEB fidelity estimator.
 
@@ -65,8 +80,8 @@ def linear_xeb_fidelity_from_probabilities(
 
 
 def log_xeb_fidelity_from_probabilities(
-    hilbert_space_dimension: int,
-    probabilities: Sequence[float],
+        hilbert_space_dimension: int,
+        probabilities: Sequence[float],
 ) -> float:
     """Logarithmic XEB fidelity estimator.
 
@@ -99,8 +114,8 @@ def log_xeb_fidelity_from_probabilities(
 
 
 def hog_score_xeb_fidelity_from_probabilities(
-    hilbert_space_dimension: int,
-    probabilities: Sequence[float],
+        hilbert_space_dimension: int,
+        probabilities: Sequence[float],
 ) -> float:
     """XEB fidelity estimator based on normalized HOG score.
 
@@ -135,17 +150,17 @@ def hog_score_xeb_fidelity_from_probabilities(
 
 
 def xeb_fidelity(
-    circuit: Circuit,
-    bitstrings: Sequence[int],
-    qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-    amplitudes: Optional[Mapping[int, complex]] = None,
-    estimator: Callable[[int, Sequence[float]], float] = linear_xeb_fidelity_from_probabilities,
+        circuit: Circuit,
+        bitstrings: Sequence[int],
+        qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+        amplitudes: Optional[Mapping[int, complex]] = None,
+        estimator: Callable[[int, Sequence[float]], float] = linear_xeb_fidelity_from_probabilities,
 ) -> float:
     """Estimates XEB fidelity from one circuit using user-supplied estimator.
 
     Fidelity quantifies the similarity of two quantum states. Here, we estimate
     the fidelity between the theoretically predicted output state of circuit and
-    the state producted in its experimental realization. Note that we don't know
+    the state produced in its experimental realization. Note that we don't know
     the latter state. Nevertheless, we can estimate the fidelity between the two
     states from the knowledge of the bitstrings observed in the experiment.
 
@@ -168,7 +183,7 @@ def xeb_fidelity(
             qubits starting with the most significant qubit.
         amplitudes: Optional mapping from bitstring to output amplitude.
             If provided, simulation is skipped. Useful for large circuits
-            when an offline simulation had already been peformed.
+            when an offline simulation had already been performed.
         estimator: Fidelity estimator to use, see above. Defaults to the
             linear XEB fidelity estimator.
     Returns:
@@ -200,10 +215,10 @@ def xeb_fidelity(
 
 
 def linear_xeb_fidelity(
-    circuit: Circuit,
-    bitstrings: Sequence[int],
-    qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-    amplitudes: Optional[Mapping[int, complex]] = None,
+        circuit: Circuit,
+        bitstrings: Sequence[int],
+        qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+        amplitudes: Optional[Mapping[int, complex]] = None,
 ) -> float:
     """Estimates XEB fidelity from one circuit using linear estimator."""
     return xeb_fidelity(
@@ -216,10 +231,10 @@ def linear_xeb_fidelity(
 
 
 def log_xeb_fidelity(
-    circuit: Circuit,
-    bitstrings: Sequence[int],
-    qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-    amplitudes: Optional[Mapping[int, complex]] = None,
+        circuit: Circuit,
+        bitstrings: Sequence[int],
+        qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+        amplitudes: Optional[Mapping[int, complex]] = None,
 ) -> float:
     """Estimates XEB fidelity from one circuit using logarithmic estimator."""
     return xeb_fidelity(
@@ -228,9 +243,9 @@ def log_xeb_fidelity(
 
 
 def least_squares_xeb_fidelity_from_expectations(
-    measured_expectations: Sequence[float],
-    exact_expectations: Sequence[float],
-    uniform_expectations: Sequence[float],
+        measured_expectations: Sequence[float],
+        exact_expectations: Sequence[float],
+        uniform_expectations: Sequence[float],
 ) -> Tuple[float, List[float]]:
     """Least squares fidelity estimator.
 
@@ -307,11 +322,11 @@ def least_squares_xeb_fidelity_from_expectations(
 
 
 def least_squares_xeb_fidelity_from_probabilities(
-    hilbert_space_dimension: int,
-    observed_probabilities: Sequence[Sequence[float]],
-    all_probabilities: Sequence[Sequence[float]],
-    observable_from_probability: Optional[Callable[[float], float]] = None,
-    normalize_probabilities: bool = True,
+        hilbert_space_dimension: int,
+        observed_probabilities: Sequence[Sequence[float]],
+        all_probabilities: Sequence[Sequence[float]],
+        observable_from_probability: Optional[Callable[[float], float]] = None,
+        normalize_probabilities: bool = True,
 ) -> Tuple[float, List[float]]:
     """Least squares fidelity estimator with observable based on probabilities.
 
@@ -372,3 +387,216 @@ def least_squares_xeb_fidelity_from_probabilities(
     return least_squares_xeb_fidelity_from_expectations(
         measured_expectations, exact_expectations, uniform_expectations
     )
+
+
+@dataclass(frozen=True)
+class _Sample2qXEBTask:
+    """Helper contained for grouping a circuit to be sampled."""
+    cycle_depth: int
+    circuit_i: int
+    prepared_circuit: 'cirq.Circuit'
+
+
+class _SampleInBatches:
+    def __init__(self, sampler: 'cirq.Sampler', repetitions: int):
+        """This closure will execute a list of `tasks` with one call to
+        `run_batch` on the provided sampler for a given number of repetitions."""
+        self.sampler = sampler
+        self.repetitions = repetitions
+
+    def __call__(self, tasks: List[_Sample2qXEBTask]):
+        prepared_circuits = [task.prepared_circuit for task in tasks]
+        results = self.sampler.run_batch(prepared_circuits, repetitions=self.repetitions)
+        assert len(results) == len(tasks)
+        records = []
+        for task, result in zip(tasks, results):
+            assert len(result) == 1, len(result)
+            result = result[0]  # sweep nesting
+            sampled_inds = result.data.values[:, 0]
+            sampled_probs = np.bincount(sampled_inds, minlength=2 ** 2) / len(sampled_inds)
+
+            records += [
+                {
+                    'circuit_i': task.circuit_i,
+                    'cycle_depth': task.cycle_depth,
+                    'sampled_probs': sampled_probs,
+                }
+            ]
+        return records
+
+
+def sample_2q_xeb_circuits(sampler: 'cirq.Sampler', circuits: Sequence['cirq.Circuit'],
+                           cycle_depths: Sequence[int], repetitions: int = 10_000,
+                           batch_size: int = 9):
+    """Sample two-qubit XEB circuits given a sampler.
+
+    Args:
+        sampler: A Cirq sampler for executing circuits.
+        circuits: A library of two-qubit circuits generated from
+            `random_rotations_between_two_qubit_circuit` of sufficient length
+            for `cycle_depths`.
+        cycle_depths: A sequence of cylce depths at which we will truncate each
+            of the `circuits` to execute.
+        repetitions: Each (circuit, cycle_depth) will be sampled for this many
+            repetitions.
+        batch_size: We call `run_batch` on the sampler, which can speed up
+            execution in certain environments. The number of
+            (circuit, cycle_depth) tasks to be run in each batch
+            is given by this number.
+
+    Returns:
+        A pandas dataframe with index given by ['circuit_i', 'cycle_depth'] and
+        column "sampled_probs".
+    """
+    import tqdm
+
+    all_all_qubits = set().union(*(circuit.all_qubits() for circuit in circuits))
+    all_all_qubits = sorted(all_all_qubits)
+    if len(all_all_qubits) != 2:
+        raise ValueError("`circuits` should be a sequence of circuits each "
+                         "operating on the same two qubits.")
+    q0, q1 = all_all_qubits
+
+    tasks = []
+    for cycle_depth in cycle_depths:
+        for circuit_i, circuit in enumerate(circuits):
+            circuit_depth = cycle_depth * 2 + 1
+            assert circuit_depth <= len(circuit)
+            tcircuit = circuit[:circuit_depth]
+            pcircuit = tcircuit + ops.measure(q0, q1)
+            tasks.append(
+                _Sample2qXEBTask(
+                    cycle_depth=cycle_depth, circuit_i=circuit_i, prepared_circuit=pcircuit
+                )
+            )
+
+    n_tasks = len(tasks)
+    tasks = [tasks[i: i + batch_size] for i in range(0, n_tasks, batch_size)]
+
+    run_batch = _SampleInBatches(sampler=sampler, repetitions=repetitions)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [pool.submit(run_batch, task) for task in tasks]
+
+        records = []
+        with tqdm.tqdm(total=n_tasks) as progress:
+            for future in concurrent.futures.as_completed(futures):
+                records += future.result()
+                progress.update(batch_size)
+
+    return pd.DataFrame(records).set_index(['circuit_i', 'cycle_depth'])
+
+
+def _simulate_2q_xeb_circuit(task: Dict[str, Any]):
+    """Helper function for simulating a given (circuit, cycle_depth)."""
+    circuit_i = task['circuit_i']
+    cycle_depth = task['cycle_depth']
+    circuit = task['circuit']
+    param_resolver = task['param_resolver']
+
+    circuit_depth = cycle_depth * 2 + 1
+    assert circuit_depth <= len(circuit)
+    tcircuit = circuit[:circuit_depth]
+    tcircuit = protocols.resolve_parameters_once(tcircuit, param_resolver=param_resolver)
+
+    pure_sim = sim.Simulator()
+    psi = pure_sim.simulate(tcircuit)
+    psi = psi.final_state_vector
+    pure_probs = np.abs(psi) ** 2
+
+    return {
+        'circuit_i': circuit_i,
+        'cycle_depth': cycle_depth,
+        'pure_probs': pure_probs,
+    }
+
+
+def simulate_2q_xeb_circuits(
+        circuits: Sequence['cirq.Circuit'], cycle_depths: Sequence[int],
+        param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+        pool: Optional['multiprocessing.Pool'] = None
+):
+    """Simulate two-qubit XEB circuits.
+
+    These ideal probabilities can be benchmarked against potentially noisy
+    results from `sample_2q_xeb_circuits`.
+
+    Args:
+        circuits: A library of two-qubit circuits generated from
+            `random_rotations_between_two_qubit_circuit` of sufficient length
+            for `cycle_depths`.
+        cycle_depths: A sequence of cycle depths at which we will truncate each
+            of the `circuits` to simulate.
+        param_resolver: If circuits contain parameters, resolve according
+            to this ParamResolver prior to simulation
+        pool: If provided, execute the simulations in parallel.
+
+    Returns:
+        A dataframe with index ['circuit_i', 'cycle_depth'] and column
+        "pure_probs" containing the pure-state probabilities for each row.
+    """
+    tasks = []
+    for cycle_depth in cycle_depths:
+        for circuit_i, circuit in enumerate(circuits):
+            tasks += [
+                {
+                    'circuit_i': circuit_i,
+                    'cycle_depth': cycle_depth,
+                    'circuit': circuit,
+                    'param_resolver': param_resolver,
+                }
+            ]
+
+    if pool is not None:
+        records = pool.map(_simulate_2q_xeb_circuit, tasks, chunksize=4)
+    else:
+        records = [_simulate_2q_xeb_circuit(record) for record in tasks]
+
+    return pd.DataFrame(records).set_index(['circuit_i', 'cycle_depth'])
+
+
+def simulate_2q_xeb_fidelities(
+        sampled_df: pd.DataFrame,
+        circuits: Sequence['cirq.Circuit'],
+        cycle_depths: Sequence[int],
+        param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+        pool: Optional['multiprocessing.Pool'] = None,
+):
+    """Simulate and benchmark two-qubit XEB circuits.
+
+    Args:
+         sampled_df: The sampled results to benchmark. This is likely producecd
+            by a call to `sample_2q_xeb_circuits`.
+        circuits: The library of circuits corresponding to the sampled results
+            in `sampled_df`.
+        cycle_depths: The sequence of cycle depths to simulate the circuits.
+        param_resolver: If circuits contain parameters, resolve according
+            to this ParamResolver prior to simulation
+        pool: If provided, execute the simulations in parallel.
+
+    Returns:
+        A DataFrame with columns 'cycle_depth' and 'fidelity'.
+    """
+    simulated_df = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths,
+                                            param_resolver=param_resolver, pool=pool)
+    df = sampled_df.join(simulated_df)
+
+    def _summary_stats(row):
+        D = 4  # Two qubits
+        row['e_u'] = np.sum(row['pure_probs'] ** 2)
+        row['u_u'] = np.sum(row['pure_probs']) / D
+        row['m_u'] = np.sum(row['pure_probs'] * row['sampled_probs'])
+
+        row['y'] = row['m_u'] - row['u_u']
+        row['x'] = row['e_u'] - row['u_u']
+
+        row['numerator'] = row['x'] * row['y']
+        row['denominator'] = row['x'] ** 2
+        return row
+
+    df = df.apply(_summary_stats, axis=1)
+
+    def per_cycle_depth(df):
+        fid_lsq = df['numerator'].sum() / df['denominator'].sum()
+        return pd.Series({'fidelity': fid_lsq})
+
+    return df.reset_index().groupby('cycle_depth').apply(per_cycle_depth).reset_index()
