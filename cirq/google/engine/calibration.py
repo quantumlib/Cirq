@@ -16,7 +16,19 @@
 from collections import abc, defaultdict
 import datetime
 
-from typing import Any, Dict, Iterator, List, Optional, SupportsFloat, Tuple, TYPE_CHECKING, Union
+from typing import (
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    SupportsFloat,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
+    Mapping,
+    cast,
+)
 
 import google.protobuf.json_format as json_format
 from cirq import devices, vis
@@ -262,6 +274,10 @@ class Calibration(abc.Mapping):
             len(k) == 1 for k in metrics.values()
         ), 'Heatmaps are only supported if all the values in a metric are single metric values.'
         value_map: Dict[Tuple['cirq.GridQubit', 'cirq.GridQubit'], SupportsFloat] = {
-            (q1, q2): float(value) for (q1, q2), (value,) in metrics.items()
+            (
+                cast('cirq.GridQubit', q1),
+                cast('cirq.GridQubit', q2),
+            ): float(value)
+            for (q1, q2), (value,) in metrics.items()
         }
         return vis.TwoQubitInteractionHeatmap(value_map, title=title)

@@ -28,6 +28,7 @@ from typing import (
     TypeVar,
     Generic,
     NamedTuple,
+    Set,
 )
 
 from matplotlib import collections as mcoll
@@ -55,21 +56,15 @@ QubitPair = Union[
 ]
 
 # The value map is qubit coordinate -> a type that supports float conversion.
-ValueMap = Union[Dict[grid_qubit.GridQubit, SupportsFloat], Dict[TupleQubitCoord, SupportsFloat]]
+ValueMap = Union[
+    Mapping[grid_qubit.GridQubit, SupportsFloat], Mapping[TupleQubitCoord, SupportsFloat]
+]
 
 # The value map that maps a qubit pair to a type that supports float conversion.
 InteractionValueMap = Union[
     Dict[GridQubitPair, SupportsFloat],
     Dict[TupleQubitPair, SupportsFloat],
 ]
-
-# The potential targets
-TargetType = Union[QubitPair, QubitCoordinate]
-
-GValueMap = Dict[TargetType, SupportsFloat]
-
-QubitPairAnnotation = Mapping[QubitPair, str]
-QubitCoordAnnotation = Mapping[QubitCoordinate, str]
 
 
 def relative_luminance(color: np.ndarray) -> float:
@@ -85,6 +80,10 @@ def relative_luminance(color: np.ndarray) -> float:
     rgb = color[:3]
     rgb = np.where(rgb <= 0.03928, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
     return rgb.dot([0.2126, 0.7152, 0.0722])
+
+
+def _to_grid_qubit(target: Tuple[int, int]):
+    return grid_qubit.GridQubit(target[0], target[1])
 
 
 def _get_qubit_row_col(qubit: QubitCoordinate) -> TupleQubitCoord:
@@ -106,6 +105,7 @@ class HeatmapBase(Generic[T, K, M], abc.ABC):
     """Base class for heatmaps."""
 
     def __init__(self, value_map: M, title: Optional[str] = None) -> None:
+        self.value_map: Mapping[K, Tuple[float, SupportsFloat]]
         self.set_value_map(value_map)
         self.annot_map = {  # Default annotation.
             self._target_to_coordinate(target): format(float(value), '.2g')
@@ -126,8 +126,14 @@ class HeatmapBase(Generic[T, K, M], abc.ABC):
         """
         # Fail fast if float() fails.
         # Keep the original value object for annotation.
-        self.value_map = {target: (float(value), value) for target, value in value_map.items()}
+        self.value_map = {
+            self._sanitize_key(target): (float(value), value) for target, value in value_map.items()
+        }
         return self
+
+    @abc.abstractmethod
+    def _sanitize_key(self: T, target: Any) -> K:
+        ...
 
     def _to_coord(self, target: Union[Point, K]):
         if isinstance(target, tuple) and (
@@ -269,15 +275,25 @@ class HeatmapBase(Generic[T, K, M], abc.ABC):
             ax.text(col, row, annotation, **text_kwargs)
 
 
-class Heatmap(HeatmapBase['Heatmap', QubitCoordinate, ValueMap]):
+class Heatmap(HeatmapBase['Heatmap', grid_qubit.GridQubit, ValueMap]):
     """Distribution of a value in 2D qubit lattice as a color map."""
 
     def __init__(self, value_map: ValueMap, title: Optional[str] = None) -> None:
         super().__init__(value_map, title)
 
-    def _target_to_coordinate(self, target: QubitCoordinate) -> Tuple[float, float]:
-        r, c = _get_qubit_row_col(target)
-        return float(r), float(c)
+    def _sanitize_key(self, target: QubitCoordinate) -> grid_qubit.GridQubit:
+        if isinstance(target, grid_qubit.GridQubit):
+            return target
+        elif isinstance(target, tuple) and list(map(type, target)) == [int, int]:
+            return _to_grid_qubit(target)
+        else:
+            raise ValueError(
+                f"Expected cirq.GridQubit or two-tuple of ints: {target} "
+                f"is of type {type(target)}"
+            )
+
+    def _target_to_coordinate(self, target: grid_qubit.GridQubit) -> Tuple[float, float]:
+        return float(target.row), float(target.col)
 
     def plot(
         self, ax: Optional[plt.Axes] = None, **pcolor_options: Any
@@ -357,16 +373,28 @@ class Heatmap(HeatmapBase['Heatmap', QubitCoordinate, ValueMap]):
 
 
 class TwoQubitInteractionHeatmap(
-    HeatmapBase['TwoQubitInteractionHeatmap', QubitPair, InteractionValueMap]
+    HeatmapBase['TwoQubitInteractionHeatmap', GridQubitPair, InteractionValueMap]
 ):
     """Visualizing interactions between neighboring qubits on a 2D grid."""
 
     def __init__(self, value_map: InteractionValueMap, title: Optional[str] = None) -> None:
         super().__init__(value_map, title)
 
-    def _target_to_coordinate(self, target: QubitPair) -> Tuple[float, float]:
-        r1, c1 = _get_qubit_row_col(target[0])
-        r2, c2 = _get_qubit_row_col(target[1])
+    def _sanitize_key(self: T, target: Any) -> GridQubitPair:
+        if isinstance(target, tuple):
+            tuple_type = lambda x: tuple(map(type, x)) if isinstance(x, tuple) else None
+            if tuple(map(tuple_type, target)) == ((int, int), (int, int)):
+                return _to_grid_qubit(target[0]), _to_grid_qubit(target[1])
+            elif tuple(map(type, target)) == (grid_qubit.GridQubit, grid_qubit.GridQubit):
+                return target  # type: ignore
+        raise ValueError(
+            f"Expected a two-tuple of cirq.GridQubits or of two-tuples of ints: "
+            f"got {target}, of type {type(target)}"
+        )
+
+    def _target_to_coordinate(self, target: GridQubitPair) -> Tuple[float, float]:
+        r1, c1 = target[0].row, target[0].col
+        r2, c2 = target[1].row, target[1].col
         return float(r1 + r2) / 2, float(c1 + c2) / 2
 
     def plot(
@@ -418,7 +446,7 @@ class TwoQubitInteractionHeatmap(
         if self.url_map:
             url_array = [self.url_map.get((row, col), '') for row, col in value_table.stack().index]
 
-        hm = Heatmap({q: 0.0 for qubits in self.value_map.keys() for q in qubits})
+        hm = Heatmap({q: 0.0 for q in self._qubits()})
         hm.set_colormap('binary')
         hm.unset_colorbar()
         hm.unset_annotation()
@@ -466,6 +494,9 @@ class TwoQubitInteractionHeatmap(
 
         return ax, collection, value_table
 
+    def _qubits(self) -> Set[grid_qubit.GridQubit]:
+        return {q for qubits in self.value_map.keys() for q in qubits}
+
 
 class Coupler(NamedTuple('Coupler', [('polygon', Polygon), ('center', Point), ('value', Any)])):
     """A Coupler contains all data necessary to plot a qubit-pair coupling.
@@ -484,7 +515,9 @@ class Coupler(NamedTuple('Coupler', [('polygon', Polygon), ('center', Point), ('
 
 
 def _extract_pair_data(
-    pair_value_map: Mapping[QubitPair, float], coupler_margin: float, coupler_width: float
+    pair_value_map: Mapping[GridQubitPair, Tuple[float, SupportsFloat]],
+    coupler_margin: float,
+    coupler_width: float,
 ) -> List[Coupler]:
     """Extracts data from pair_value_map and returns them.
 
