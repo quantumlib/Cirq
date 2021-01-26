@@ -26,6 +26,9 @@ from cirq.google.engine import Engine
 from cirq.google.serializable_gate_set import SerializableGateSet
 
 
+WITHOUT_CHI_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions.without_chi_characterization()
+
+
 class IncompatibleMomentError(Exception):
     """Error that occurs when a moment is not supported by a calibration routine."""
 
@@ -106,7 +109,7 @@ def floquet_characterization_for_moment(
 
 def floquet_characterization_for_circuit(
     circuit: Circuit,
-    options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.without_chi_characterization(),
+    options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_CHARACTERIZATION,
     gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
     merge_sub_sets: bool = True,
     initial: Optional[Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]] = None,
@@ -268,7 +271,7 @@ def run_floquet_characterization_for_circuit(
     engine: Engine,
     processor_id: str,
     gate_set: SerializableGateSet,
-    options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.without_chi_characterization(),
+    options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_CHARACTERIZATION,
     gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
     merge_sub_sets: bool = True,
     max_layers_per_request: int = 1,
