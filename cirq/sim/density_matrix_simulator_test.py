@@ -327,7 +327,7 @@ def test_run_measurement_not_terminal_no_repetitions(dtype):
                     result.measurements, {'0': np.empty([0, 1]), '1': np.empty([0, 1])}
                 )
                 assert result.repetitions == 0
-        assert mock_sim.call_count == 0
+        assert mock_sim.call_count == 4
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -348,7 +348,7 @@ def test_run_repetitions_measurement_not_terminal(dtype):
                 result = simulator.run(circuit, repetitions=3)
                 np.testing.assert_equal(result.measurements, {'0': [[b0]] * 3, '1': [[b1]] * 3})
                 assert result.repetitions == 3
-        assert mock_sim.call_count == 12
+        assert mock_sim.call_count == 16
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -371,7 +371,7 @@ def test_run_qudits_repetitions_measurement_not_terminal(dtype):
                     result.measurements, {'0 (d=2)': [[b0]] * 3, '1 (d=3)': [[b1]] * 3}
                 )
                 assert result.repetitions == 3
-        assert mock_sim.call_count == 18
+        assert mock_sim.call_count == 24
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])

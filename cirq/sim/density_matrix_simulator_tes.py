@@ -64,11 +64,21 @@ class _TestDecomposingChannel(cirq.Gate):
 
 dtype = np.complex64
 q0, q1 = cirq.LineQubit.range(2)
-circuit = cirq.Circuit(cirq.bit_flip(0.5)(q0), cirq.measure(q0), cirq.measure(q1))
 simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-result = simulator.run(circuit, repetitions=100)
-np.testing.assert_equal(result.measurements['1'], [[0]] * 100)
-# Test that we get at least one of each result. Probability of this test
-# failing is 2 ** (-99).
-q0_measurements = set(x[0] for x in result.measurements['0'].tolist())
-assert q0_measurements == {0, 1}
+with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    for b0 in [0, 1]:
+        for b1 in [0, 1]:
+            circuit = cirq.Circuit(
+                (cirq.X ** b0)(q0),
+                (cirq.X ** b1)(q1),
+                cirq.measure(q0),
+                cirq.measure(q1),
+                cirq.H(q0),
+                cirq.H(q1),
+            )
+            result = simulator.run(circuit, repetitions=0)
+            np.testing.assert_equal(
+                result.measurements, {'0': np.empty([0, 1]), '1': np.empty([0, 1])}
+            )
+            assert result.repetitions == 0
+    assert mock_sim.call_count == 0
