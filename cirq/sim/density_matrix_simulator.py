@@ -21,7 +21,7 @@ import numpy as np
 from cirq import circuits, ops, protocols, qis, study, value, devices
 from cirq.sim import density_matrix_utils, simulator
 from cirq.sim.abstract_state import AbstractState
-from cirq.sim.op_by_op_simulator import StateFactory, SimulationResultFactory
+from cirq.sim.op_by_op_simulator import StateFactory, SimulationResultFactory, OpByOpSimulator
 from cirq.sim.simulator import check_all_resolved
 
 if TYPE_CHECKING:
@@ -140,12 +140,226 @@ class DensityMatrixStateFactory(StateFactory[_StateAndBuffers]):
         state.tensor = result
 
 
+@value.value_equality(unhashable=True)
+class DensityMatrixSimulatorState:
+    """The simulator state for DensityMatrixSimulator
+
+    Args:
+        density_matrix: The density matrix of the simulation.
+        qubit_map: A map from qid to index used to define the
+            ordering of the basis in density_matrix.
+    """
+
+    def __init__(self, density_matrix: np.ndarray, qubit_map: Dict[ops.Qid, int]) -> None:
+        self.density_matrix = density_matrix
+        self.qubit_map = qubit_map
+        self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return self._qid_shape
+
+    def _value_equality_values_(self) -> Any:
+        return (self.density_matrix.tolist(), self.qubit_map)
+
+    def __repr__(self) -> str:
+        return (
+            'cirq.DensityMatrixSimulatorState('
+            f'density_matrix=np.array({self.density_matrix.tolist()!r}), '
+            f'qubit_map={self.qubit_map!r})'
+        )
+
+
+class DensityMatrixStepResult(simulator.StepResult):
+    """A single step in the simulation of the DensityMatrixSimulator.
+
+    Attributes:
+        qubit_map: A map from the Qubits in the Circuit to the the index
+            of this qubit for a canonical ordering. This canonical ordering
+            is used to define the state vector (see the state_vector()
+            method).
+        measurements: A dictionary from measurement gate key to measurement
+            results, ordered by the qubits that the measurement operates on.
+    """
+
+    def __init__(
+        self,
+        density_matrix: np.ndarray,
+        measurements: Dict[str, np.ndarray],
+        qubit_map: Dict[ops.Qid, int],
+        dtype: Type[np.number] = np.complex64,
+    ):
+        """DensityMatrixStepResult.
+
+        Args:
+            density_matrix: The density matrix at this step. Can be mutated.
+            measurements: The measurements for this step of the simulation.
+            qubit_map: A map from qid to index used to define the
+                ordering of the basis in density_matrix.
+            dtype: The numpy dtype for the density matrix.
+        """
+        super().__init__(measurements)
+        self._density_matrix = density_matrix
+        self._qubit_map = qubit_map
+        self._dtype = dtype
+        self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
+
+    def _qid_shape_(self):
+        return self._qid_shape
+
+    def _simulator_state(self) -> DensityMatrixSimulatorState:
+        return DensityMatrixSimulatorState(self._density_matrix, self._qubit_map)
+
+    def set_density_matrix(self, density_matrix_repr: Union[int, np.ndarray]):
+        """Set the density matrix to a new density matrix.
+
+        Args:
+            density_matrix_repr: If this is an int, the density matrix is set to
+            the computational basis state corresponding to this state. Otherwise
+            if this is a np.ndarray it is the full state, either a pure state
+            or the full density matrix.  If it is the pure state it must be the
+            correct size, be normalized (an L2 norm of 1), and be safely
+            castable to an appropriate dtype for the simulator.  If it is a
+            mixed state it must be correctly sized and positive semidefinite
+            with trace one.
+        """
+        density_matrix = qis.to_valid_density_matrix(
+            density_matrix_repr, len(self._qubit_map), qid_shape=self._qid_shape, dtype=self._dtype
+        )
+        sim_state_matrix = self._simulator_state().density_matrix
+        density_matrix = np.reshape(density_matrix, sim_state_matrix.shape)
+        np.copyto(dst=sim_state_matrix, src=density_matrix)
+
+    def density_matrix(self, copy=True):
+        """Returns the density matrix at this step in the simulation.
+
+        The density matrix that is stored in this result is returned in the
+        computational basis with these basis states defined by the qubit_map.
+        In particular the value in the qubit_map is the index of the qubit,
+        and these are translated into binary vectors where the last qubit is
+        the 1s bit of the index, the second-to-last is the 2s bit of the index,
+        and so forth (i.e. big endian ordering). The density matrix is a
+        `2 ** num_qubits` square matrix, with rows and columns ordered by
+        the computational basis as just described.
+
+        Example:
+             qubit_map: {QubitA: 0, QubitB: 1, QubitC: 2}
+             Then the returned density matrix will have (row and column) indices
+             mapped to qubit basis states like the following table
+
+                |     | QubitA | QubitB | QubitC |
+                | :-: | :----: | :----: | :----: |
+                |  0  |   0    |   0    |   0    |
+                |  1  |   0    |   0    |   1    |
+                |  2  |   0    |   1    |   0    |
+                |  3  |   0    |   1    |   1    |
+                |  4  |   1    |   0    |   0    |
+                |  5  |   1    |   0    |   1    |
+                |  6  |   1    |   1    |   0    |
+                |  7  |   1    |   1    |   1    |
+
+        Args:
+            copy: If True, then the returned state is a copy of the density
+                matrix. If False, then the density matrix is not copied,
+                potentially saving memory. If one only needs to read derived
+                parameters from the density matrix and store then using False
+                can speed up simulation by eliminating a memory copy.
+        """
+        size = np.prod(self._qid_shape, dtype=int)
+        matrix = self._density_matrix.copy() if copy else self._density_matrix
+        return np.reshape(matrix, (size, size))
+
+    def sample(
+        self,
+        qubits: List[ops.Qid],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        indices = [self._qubit_map[q] for q in qubits]
+        return density_matrix_utils.sample_density_matrix(
+            self._simulator_state().density_matrix,
+            indices,
+            qid_shape=self._qid_shape,
+            repetitions=repetitions,
+            seed=seed,
+        )
+
+
+@value.value_equality(unhashable=True)
+class DensityMatrixTrialResult(simulator.SimulationTrialResult):
+    """A `SimulationTrialResult` for `DensityMatrixSimulator` runs.
+
+    The density matrix that is stored in this result is returned in the
+    computational basis with these basis states defined by the qubit_map.
+    In particular the value in the qubit_map is the index of the qubit,
+    and these are translated into binary vectors where the last qubit is
+    the 1s bit of the index, the second-to-last is the 2s bit of the index,
+    and so forth (i.e. big endian ordering). The density matrix is a
+    `2 ** num_qubits` square matrix, with rows and columns ordered by
+    the computational basis as just described.
+
+    Example:
+         qubit_map: {QubitA: 0, QubitB: 1, QubitC: 2}
+         Then the returned density matrix will have (row and column) indices
+         mapped to qubit basis states like the following table
+
+            |     | QubitA | QubitB | QubitC |
+            | :-: | :----: | :----: | :----: |
+            |  0  |   0    |   0    |   0    |
+            |  1  |   0    |   0    |   1    |
+            |  2  |   0    |   1    |   0    |
+            |  3  |   0    |   1    |   1    |
+            |  4  |   1    |   0    |   0    |
+            |  5  |   1    |   0    |   1    |
+            |  6  |   1    |   1    |   0    |
+            |  7  |   1    |   1    |   1    |
+
+    Attributes:
+        params: A ParamResolver of settings used for this result.
+        measurements: A dictionary from measurement gate key to measurement
+            results. Measurement results are a numpy ndarray of actual boolean
+            measurement results (ordered by the qubits acted on by the
+            measurement gate.)
+        final_simulator_state: The final simulator state of the system after the
+            trial finishes.
+        final_density_matrix: The final density matrix of the system.
+    """
+
+    def __init__(
+        self,
+        params: study.ParamResolver,
+        measurements: Dict[str, np.ndarray],
+        final_simulator_state: DensityMatrixSimulatorState,
+    ) -> None:
+        super().__init__(
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+        )
+        size = np.prod(protocols.qid_shape(self), dtype=int)
+        self.final_density_matrix = np.reshape(
+            final_simulator_state.density_matrix.copy(), (size, size)
+        )
+
+    def _value_equality_values_(self) -> Any:
+        measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}
+        return (self.params, measurements, self._final_simulator_state)
+
+    def __str__(self) -> str:
+        samples = super().__str__()
+        return f'measurements: {samples}\nfinal density matrix:\n{self.final_density_matrix}'
+
+    def __repr__(self) -> str:
+        return (
+            'cirq.DensityMatrixTrialResult('
+            f'params={self.params!r}, measurements={self.measurements!r}, '
+            f'final_simulator_state={self._final_simulator_state!r})'
+        )
+
+
 class DensityMatrixSimulationResultFactory(
     SimulationResultFactory[
         _StateAndBuffers,
-        'DensityMatrixStepResult',
-        'DensityMatrixTrialResult',
-        'DensityMatrixSimulatorState',
+        DensityMatrixStepResult,
+        DensityMatrixTrialResult,
+        DensityMatrixSimulatorState,
     ]
 ):
     def trial_result(
@@ -153,7 +367,7 @@ class DensityMatrixSimulationResultFactory(
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
         final_simulator_state: Any,
-    ) -> 'DensityMatrixTrialResult':
+    ) -> DensityMatrixTrialResult:
         return DensityMatrixTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
@@ -167,7 +381,23 @@ class DensityMatrixSimulationResultFactory(
         )
 
 
-class DensityMatrixSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
+class DensityMatrixSimulator(OpByOpSimulator[_StateAndBuffers, DensityMatrixStepResult, DensityMatrixTrialResult, DensityMatrixSimulatorState]):
+    def __init__(
+        self,
+        *,
+        dtype: Type[np.number] = np.complex64,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        state_algo: DensityMatrixStateFactory = None,
+        result_producer: DensityMatrixSimulationResultFactory = None,
+        noise: 'cirq.NOISE_MODEL_LIKE' = None,
+        ignore_measurement_results: bool = False,
+    ):
+        state_algo = DensityMatrixStateFactory(dtype=dtype, seed=seed)
+        result_producer = DensityMatrixSimulationResultFactory()
+        super().__init__(state_algo, result_producer)
+
+
+class DensityMatrixSimulatorx(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
     def __init__(
         self,
         *,
@@ -265,217 +495,3 @@ class DensityMatrixSimulator(simulator.SimulatesSamples, simulator.SimulatesInte
                     self.state_algo.act_on_state(op, sim_state, qubit_map)
 
             yield self.result_producer.step_result(sim_state, qubit_map)
-
-
-class DensityMatrixStepResult(simulator.StepResult):
-    """A single step in the simulation of the DensityMatrixSimulator.
-
-    Attributes:
-        qubit_map: A map from the Qubits in the Circuit to the the index
-            of this qubit for a canonical ordering. This canonical ordering
-            is used to define the state vector (see the state_vector()
-            method).
-        measurements: A dictionary from measurement gate key to measurement
-            results, ordered by the qubits that the measurement operates on.
-    """
-
-    def __init__(
-        self,
-        density_matrix: np.ndarray,
-        measurements: Dict[str, np.ndarray],
-        qubit_map: Dict[ops.Qid, int],
-        dtype: Type[np.number] = np.complex64,
-    ):
-        """DensityMatrixStepResult.
-
-        Args:
-            density_matrix: The density matrix at this step. Can be mutated.
-            measurements: The measurements for this step of the simulation.
-            qubit_map: A map from qid to index used to define the
-                ordering of the basis in density_matrix.
-            dtype: The numpy dtype for the density matrix.
-        """
-        super().__init__(measurements)
-        self._density_matrix = density_matrix
-        self._qubit_map = qubit_map
-        self._dtype = dtype
-        self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
-
-    def _qid_shape_(self):
-        return self._qid_shape
-
-    def _simulator_state(self) -> 'DensityMatrixSimulatorState':
-        return DensityMatrixSimulatorState(self._density_matrix, self._qubit_map)
-
-    def set_density_matrix(self, density_matrix_repr: Union[int, np.ndarray]):
-        """Set the density matrix to a new density matrix.
-
-        Args:
-            density_matrix_repr: If this is an int, the density matrix is set to
-            the computational basis state corresponding to this state. Otherwise
-            if this is a np.ndarray it is the full state, either a pure state
-            or the full density matrix.  If it is the pure state it must be the
-            correct size, be normalized (an L2 norm of 1), and be safely
-            castable to an appropriate dtype for the simulator.  If it is a
-            mixed state it must be correctly sized and positive semidefinite
-            with trace one.
-        """
-        density_matrix = qis.to_valid_density_matrix(
-            density_matrix_repr, len(self._qubit_map), qid_shape=self._qid_shape, dtype=self._dtype
-        )
-        sim_state_matrix = self._simulator_state().density_matrix
-        density_matrix = np.reshape(density_matrix, sim_state_matrix.shape)
-        np.copyto(dst=sim_state_matrix, src=density_matrix)
-
-    def density_matrix(self, copy=True):
-        """Returns the density matrix at this step in the simulation.
-
-        The density matrix that is stored in this result is returned in the
-        computational basis with these basis states defined by the qubit_map.
-        In particular the value in the qubit_map is the index of the qubit,
-        and these are translated into binary vectors where the last qubit is
-        the 1s bit of the index, the second-to-last is the 2s bit of the index,
-        and so forth (i.e. big endian ordering). The density matrix is a
-        `2 ** num_qubits` square matrix, with rows and columns ordered by
-        the computational basis as just described.
-
-        Example:
-             qubit_map: {QubitA: 0, QubitB: 1, QubitC: 2}
-             Then the returned density matrix will have (row and column) indices
-             mapped to qubit basis states like the following table
-
-                |     | QubitA | QubitB | QubitC |
-                | :-: | :----: | :----: | :----: |
-                |  0  |   0    |   0    |   0    |
-                |  1  |   0    |   0    |   1    |
-                |  2  |   0    |   1    |   0    |
-                |  3  |   0    |   1    |   1    |
-                |  4  |   1    |   0    |   0    |
-                |  5  |   1    |   0    |   1    |
-                |  6  |   1    |   1    |   0    |
-                |  7  |   1    |   1    |   1    |
-
-        Args:
-            copy: If True, then the returned state is a copy of the density
-                matrix. If False, then the density matrix is not copied,
-                potentially saving memory. If one only needs to read derived
-                parameters from the density matrix and store then using False
-                can speed up simulation by eliminating a memory copy.
-        """
-        size = np.prod(self._qid_shape, dtype=int)
-        matrix = self._density_matrix.copy() if copy else self._density_matrix
-        return np.reshape(matrix, (size, size))
-
-    def sample(
-        self,
-        qubits: List[ops.Qid],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        indices = [self._qubit_map[q] for q in qubits]
-        return density_matrix_utils.sample_density_matrix(
-            self._simulator_state().density_matrix,
-            indices,
-            qid_shape=self._qid_shape,
-            repetitions=repetitions,
-            seed=seed,
-        )
-
-
-@value.value_equality(unhashable=True)
-class DensityMatrixSimulatorState:
-    """The simulator state for DensityMatrixSimulator
-
-    Args:
-        density_matrix: The density matrix of the simulation.
-        qubit_map: A map from qid to index used to define the
-            ordering of the basis in density_matrix.
-    """
-
-    def __init__(self, density_matrix: np.ndarray, qubit_map: Dict[ops.Qid, int]) -> None:
-        self.density_matrix = density_matrix
-        self.qubit_map = qubit_map
-        self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
-
-    def _qid_shape_(self) -> Tuple[int, ...]:
-        return self._qid_shape
-
-    def _value_equality_values_(self) -> Any:
-        return (self.density_matrix.tolist(), self.qubit_map)
-
-    def __repr__(self) -> str:
-        return (
-            'cirq.DensityMatrixSimulatorState('
-            f'density_matrix=np.array({self.density_matrix.tolist()!r}), '
-            f'qubit_map={self.qubit_map!r})'
-        )
-
-
-@value.value_equality(unhashable=True)
-class DensityMatrixTrialResult(simulator.SimulationTrialResult):
-    """A `SimulationTrialResult` for `DensityMatrixSimulator` runs.
-
-    The density matrix that is stored in this result is returned in the
-    computational basis with these basis states defined by the qubit_map.
-    In particular the value in the qubit_map is the index of the qubit,
-    and these are translated into binary vectors where the last qubit is
-    the 1s bit of the index, the second-to-last is the 2s bit of the index,
-    and so forth (i.e. big endian ordering). The density matrix is a
-    `2 ** num_qubits` square matrix, with rows and columns ordered by
-    the computational basis as just described.
-
-    Example:
-         qubit_map: {QubitA: 0, QubitB: 1, QubitC: 2}
-         Then the returned density matrix will have (row and column) indices
-         mapped to qubit basis states like the following table
-
-            |     | QubitA | QubitB | QubitC |
-            | :-: | :----: | :----: | :----: |
-            |  0  |   0    |   0    |   0    |
-            |  1  |   0    |   0    |   1    |
-            |  2  |   0    |   1    |   0    |
-            |  3  |   0    |   1    |   1    |
-            |  4  |   1    |   0    |   0    |
-            |  5  |   1    |   0    |   1    |
-            |  6  |   1    |   1    |   0    |
-            |  7  |   1    |   1    |   1    |
-
-    Attributes:
-        params: A ParamResolver of settings used for this result.
-        measurements: A dictionary from measurement gate key to measurement
-            results. Measurement results are a numpy ndarray of actual boolean
-            measurement results (ordered by the qubits acted on by the
-            measurement gate.)
-        final_simulator_state: The final simulator state of the system after the
-            trial finishes.
-        final_density_matrix: The final density matrix of the system.
-    """
-
-    def __init__(
-        self,
-        params: study.ParamResolver,
-        measurements: Dict[str, np.ndarray],
-        final_simulator_state: DensityMatrixSimulatorState,
-    ) -> None:
-        super().__init__(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
-        )
-        size = np.prod(protocols.qid_shape(self), dtype=int)
-        self.final_density_matrix = np.reshape(
-            final_simulator_state.density_matrix.copy(), (size, size)
-        )
-
-    def _value_equality_values_(self) -> Any:
-        measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}
-        return (self.params, measurements, self._final_simulator_state)
-
-    def __str__(self) -> str:
-        samples = super().__str__()
-        return f'measurements: {samples}\nfinal density matrix:\n{self.final_density_matrix}'
-
-    def __repr__(self) -> str:
-        return (
-            'cirq.DensityMatrixTrialResult('
-            f'params={self.params!r}, measurements={self.measurements!r}, '
-            f'final_simulator_state={self._final_simulator_state!r})'
-        )
