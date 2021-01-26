@@ -33,6 +33,7 @@ def test_properties():
     assert op.measurement_key_map == {}
     assert op.param_resolver == cirq.ParamResolver()
     assert op.repetitions == 1
+    assert op.repetition_ids == ['0']
     # Despite having the same decomposition, these objects are not equal.
     assert op != circuit
     assert op == circuit.to_op()
@@ -49,6 +50,32 @@ def test_circuit_type():
     )
     with pytest.raises(TypeError, match='Expected circuit of type FrozenCircuit'):
         _ = cirq.CircuitOperation(circuit)
+
+
+def test_non_invertible_circuit():
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.FrozenCircuit(
+        cirq.X(a),
+        cirq.Y(b),
+        cirq.H(c),
+        cirq.CX(a, b) ** sympy.Symbol('exp'),
+        cirq.measure(a, b, c, key='m'),
+    )
+    with pytest.raises(ValueError, match='circuit is not invertible'):
+        _ = cirq.CircuitOperation(circuit, repetitions=-2)
+
+
+def test_repetitions_and_ids_length_mismatch():
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.FrozenCircuit(
+        cirq.X(a),
+        cirq.Y(b),
+        cirq.H(c),
+        cirq.CX(a, b) ** sympy.Symbol('exp'),
+        cirq.measure(a, b, c, key='m'),
+    )
+    with pytest.raises(ValueError, match='Expected repetition_ids to be a list of length 2'):
+        _ = cirq.CircuitOperation(circuit, repetitions=2, repetition_ids=['a', 'b', 'c'])
 
 
 def test_circuit_sharing():
@@ -167,31 +194,65 @@ def test_with_params():
         _ = cirq.resolve_parameters(op_base, cirq.ParamResolver(param_dict))
 
 
-def test_repetition():
+@pytest.mark.parametrize('add_measurements', [True, False])
+def test_repeat(add_measurements):
     a, b = cirq.LineQubit.range(2)
-    # This circuit has a modulus of 8.
-    circuit = cirq.FrozenCircuit(cirq.H(a), cirq.CX(a, b))
-    op_base = cirq.CircuitOperation(circuit)
+    circuit = cirq.Circuit(cirq.H(a), cirq.CX(a, b))
+    if add_measurements:
+        circuit.append([cirq.measure(b, key='mb'), cirq.measure(a, key='ma')])
+    op_base = cirq.CircuitOperation(circuit.freeze())
     assert op_base.repeat(1) is op_base
+    assert op_base.repeat(1, ['0']) is op_base
+    assert op_base.repeat(1, ['a']) != op_base
+    assert op_base.repeat(1, ['a']) == op_base.with_repetition_ids(['a'])
 
-    op_with_reps = op_base.repeat(-5)
-    assert op_with_reps.repetitions == -5
-    assert op_base ** -5 == op_with_reps
+    initial_repetitions = -3
+    if add_measurements:
+        with pytest.raises(ValueError, match='circuit is not invertible'):
+            _ = op_base.repeat(initial_repetitions)
+        initial_repetitions = abs(initial_repetitions)
 
-    with pytest.raises(TypeError):
+    final_repetitions = 2 * initial_repetitions
+
+    op_with_reps = op_base.repeat(initial_repetitions)
+    assert op_with_reps.repetitions == initial_repetitions
+    assert op_with_reps.repetition_ids == ['0', '1', '2']
+    assert op_base ** initial_repetitions == op_with_reps
+    op_with_consecutive_reps = op_with_reps.repeat(2)
+    assert op_with_consecutive_reps.repetitions == final_repetitions
+    assert op_with_consecutive_reps.repetition_ids == ['0', '1', '2', '3', '4', '5']
+    assert op_base ** final_repetitions == op_with_consecutive_reps
+    op_with_consecutive_reps = op_with_reps.repeat(2, ['a', 'b'])
+    assert op_with_consecutive_reps.repetitions == final_repetitions
+    assert op_with_consecutive_reps.repetition_ids == ['a-0', 'a-1', 'a-2', 'b-0', 'b-1', 'b-2']
+    op_with_consecutive_reps = op_with_reps.repeat(2, ['a', 'b', 'c', 'd', 'e', 'f'])
+    assert op_with_consecutive_reps.repetitions == final_repetitions
+    assert op_with_consecutive_reps.repetition_ids == ['a', 'b', 'c', 'd', 'e', 'f']
+
+    with pytest.raises(ValueError, match='length to be either 6 or 2'):
+        _ = op_with_reps.repeat(2, ['a', 'b', 'c'])
+
+    rep_ids = ['a', 'b', 'c']
+    op_with_reps = op_base.repeat(initial_repetitions, rep_ids)
+    assert op_with_reps.repetitions == initial_repetitions
+    assert op_with_reps.repetition_ids == rep_ids
+    assert op_base ** initial_repetitions != op_with_reps
+    assert (op_base ** initial_repetitions).replace(repetition_ids=rep_ids) == op_with_reps
+    op_with_consecutive_reps = op_with_reps.repeat(2)
+    assert op_with_consecutive_reps.repetitions == final_repetitions
+    assert op_with_consecutive_reps.repetition_ids == ['0-a', '0-b', '0-c', '1-a', '1-b', '1-c']
+    op_with_consecutive_reps = op_with_reps.repeat(2, ['x', 'y'])
+    assert op_with_consecutive_reps.repetitions == final_repetitions
+    assert op_with_consecutive_reps.repetition_ids == ['x-a', 'x-b', 'x-c', 'y-a', 'y-b', 'y-c']
+    op_with_consecutive_reps = op_with_reps.repeat(2, ['a', 'b', 'c', 'd', 'e', 'f'])
+    assert op_with_consecutive_reps.repetitions == final_repetitions
+    assert op_with_consecutive_reps.repetition_ids == ['a', 'b', 'c', 'd', 'e', 'f']
+
+    with pytest.raises(ValueError, match='length to be either 6 or 2'):
+        _ = op_with_reps.repeat(2, ['a', 'b', 'c'])
+
+    with pytest.raises(TypeError, match='Only integer repetitions are allowed'):
         _ = op_base.repeat(1.3)
-
-
-def test_repeat_measurement_fails():
-    a, b = cirq.LineQubit.range(2)
-    circuit = cirq.FrozenCircuit(
-        cirq.X(a),
-        cirq.measure(b, key='mb'),
-        cirq.measure(a, key='ma'),
-    )
-    op = cirq.CircuitOperation(circuit)
-    with pytest.raises(NotImplementedError):
-        _ = op.repeat(3)
 
 
 def test_qid_shape():
@@ -253,14 +314,16 @@ cirq.CircuitOperation(
     )
 
     fc2 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, x))
-    op2 = cirq.CircuitOperation(circuit=fc2, qubit_map=({y: z}), repetitions=3)
+    op2 = cirq.CircuitOperation(
+        circuit=fc2, qubit_map=({y: z}), repetitions=3, repetition_ids=['a', 'b', 'c']
+    )
     assert (
         str(op2)
         == f"""\
 {op2.circuit.serialization_key()}:
 [ 0: ───X───X───          ]
 [           │             ]
-[ 1: ───H───@───          ](qubit_map={{1: 2}}, loops=3)"""
+[ 1: ───H───@───          ](qubit_map={{1: 2}}, repetition_ids=['a', 'b', 'c'])"""
     )
     assert (
         repr(op2)
@@ -277,6 +340,7 @@ cirq.CircuitOperation(
     ]),
     repetitions=3,
     qubit_map={cirq.LineQubit(1): cirq.LineQubit(2)},
+    repetition_ids=['a', 'b', 'c'],
 )"""
     )
 
@@ -356,6 +420,7 @@ def test_json_dict():
         'qubit_map': sorted([(k, v) for k, v in op.qubit_map.items()]),
         'measurement_key_map': op.measurement_key_map,
         'param_resolver': op.param_resolver,
+        'repetition_ids': ['0'],
     }
 
 
@@ -480,6 +545,33 @@ def test_decompose_loops():
     assert cirq.Circuit(cirq.decompose_once(op)) == expected_circuit
 
 
+def test_decompose_loops_with_measurements():
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.FrozenCircuit(
+        cirq.H(a),
+        cirq.CX(a, b),
+        cirq.measure(a, b, key='m'),
+    )
+    base_op = cirq.CircuitOperation(circuit)
+
+    op = base_op.with_qubits(b, a).repeat(3)
+    expected_circuit = cirq.Circuit(
+        cirq.H(b),
+        cirq.CX(b, a),
+        cirq.measure(b, a, key='0-m'),
+        cirq.H(b),
+        cirq.CX(b, a),
+        cirq.measure(b, a, key='1-m'),
+        cirq.H(b),
+        cirq.CX(b, a),
+        cirq.measure(b, a, key='2-m'),
+    )
+    assert cirq.Circuit(cirq.decompose_once(op)) == expected_circuit
+
+    with pytest.raises(ValueError, match='circuit is not invertible'):
+        _ = base_op.repeat(-2)
+
+
 def test_decompose_nested():
     a, b, c, d = cirq.LineQubit.range(4)
     exp1 = sympy.Symbol('exp1')
@@ -540,6 +632,48 @@ def test_decompose_nested():
         cirq.measure(d, key='md'),
     )
     assert cirq.Circuit(cirq.decompose(final_op)) == expected_circuit
+
+
+def test_decompose_repeated_nested_measurements():
+    # Details of this test described at
+    # https://tinyurl.com/measurement-repeated-circuitop#heading=h.sbgxcsyin9wt.
+    a = cirq.LineQubit(0)
+
+    op1 = (
+        cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(a, key='A')))
+        .with_measurement_key_mapping({'A': 'B'})
+        .repeat(2, ['zero', 'one'])
+    )
+
+    op2 = (
+        cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(a, key='P'), op1))
+        .with_measurement_key_mapping({'B': 'C', 'P': 'Q'})
+        .repeat(2, ['zero', 'one'])
+    )
+
+    op3 = (
+        cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(a, key='X'), op2))
+        .with_measurement_key_mapping({'C': 'D', 'X': 'Y'})
+        .repeat(2, ['zero', 'one'])
+    )
+
+    expected_circuit = cirq.Circuit(
+        cirq.measure(a, key='zero-Y'),
+        cirq.measure(a, key='zero-zero-Q'),
+        cirq.measure(a, key='zero-zero-zero-D'),
+        cirq.measure(a, key='zero-zero-one-D'),
+        cirq.measure(a, key='zero-one-Q'),
+        cirq.measure(a, key='zero-one-zero-D'),
+        cirq.measure(a, key='zero-one-one-D'),
+        cirq.measure(a, key='one-Y'),
+        cirq.measure(a, key='one-zero-Q'),
+        cirq.measure(a, key='one-zero-zero-D'),
+        cirq.measure(a, key='one-zero-one-D'),
+        cirq.measure(a, key='one-one-Q'),
+        cirq.measure(a, key='one-one-zero-D'),
+        cirq.measure(a, key='one-one-one-D'),
+    )
+    assert cirq.Circuit(cirq.decompose(op3)) == expected_circuit
 
 
 def test_tag_propagation():
