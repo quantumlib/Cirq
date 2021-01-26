@@ -108,8 +108,8 @@ class HeatmapBase(Generic[T, K, M], abc.ABC):
         self.value_map: Mapping[K, Tuple[float, SupportsFloat]]
         self.set_value_map(value_map)
         self.annot_map = {  # Default annotation.
-            self._target_to_coordinate(target): format(float(value), '.2g')
-            for target, value in value_map.items()
+            self._key_to_point(target): format(float(value[1]), '.2g')
+            for target, value in self.value_map.items()
         }
         self.annot_kwargs: Dict[str, Any] = {}
         self.unset_url_map()
@@ -135,15 +135,15 @@ class HeatmapBase(Generic[T, K, M], abc.ABC):
     def _sanitize_key(self: T, target: Any) -> K:
         ...
 
-    def _to_coord(self, target: Union[Point, K]):
+    def _to_point(self, target: Union[Point, K]) -> Point:
         if isinstance(target, tuple) and (
             isinstance(target[0], float) or isinstance(target[1], float)
         ):
-            return target
-        return self._target_to_coordinate(target)  # type: ignore
+            return float(target[0]), float(target[1])
+        return self._key_to_point(self._sanitize_key(target))
 
     @abc.abstractmethod
-    def _target_to_coordinate(self, target: K) -> Point:
+    def _key_to_point(self, target: K) -> Point:
         pass
 
     def set_annotation_map(
@@ -165,7 +165,7 @@ class HeatmapBase(Generic[T, K, M], abc.ABC):
         """
         self.annot_kwargs = text_options
 
-        self.annot_map = {self._to_coord(key): value for key, value in annot_map.items()}
+        self.annot_map = {self._to_point(key): value for key, value in annot_map.items()}
         return self
 
     def set_annotation_format(self: T, annot_format: str, **text_options: str) -> T:
@@ -176,7 +176,7 @@ class HeatmapBase(Generic[T, K, M], abc.ABC):
             text_options: keyword arguments to matplotlib.text.Text().
         """
         self.annot_map = {
-            self._to_coord(target): format(value[1], annot_format)
+            self._to_point(target): format(value[1], annot_format)
             for target, value in self.value_map.items()
         }
         self.annot_kwargs = text_options
@@ -190,7 +190,7 @@ class HeatmapBase(Generic[T, K, M], abc.ABC):
     def set_url_map(self: T, url_map: Union[Mapping[Point, str], Mapping[K, str]]) -> T:
         """Sets the URLs for each cell."""
 
-        self.url_map = {self._to_coord(key): value for key, value in url_map.items()}
+        self.url_map = {self._to_point(key): value for key, value in url_map.items()}
         return self
 
     def unset_url_map(self: T) -> T:
@@ -261,7 +261,7 @@ class HeatmapBase(Generic[T, K, M], abc.ABC):
         self, centers: List[Point], mesh: mpl_collections.Collection, ax: plt.Axes
     ) -> None:
         """Writes annotations to the center of cells. Internal."""
-        for center, path, facecolor in zip(centers, mesh.get_paths(), mesh.get_facecolors()):
+        for center, facecolor in zip(centers, mesh.get_facecolors()):
             # Calculate the center of the cell, assuming that it is a square
             # centered at (x=col, y=row).
             col, row = center
@@ -292,7 +292,7 @@ class Heatmap(HeatmapBase['Heatmap', grid_qubit.GridQubit, ValueMap]):
                 f"is of type {type(target)}"
             )
 
-    def _target_to_coordinate(self, target: grid_qubit.GridQubit) -> Tuple[float, float]:
+    def _key_to_point(self, target: grid_qubit.GridQubit) -> Tuple[float, float]:
         return float(target.row), float(target.col)
 
     def plot(
@@ -313,7 +313,7 @@ class Heatmap(HeatmapBase['Heatmap', grid_qubit.GridQubit, ValueMap]):
         if not ax:
             fig, ax = plt.subplots(figsize=(8, 8))
         # Find the boundary and size of the heatmap.
-        coordinate_list = [self._target_to_coordinate(target) for target in self.value_map.keys()]
+        coordinate_list = [self._key_to_point(target) for target in self.value_map.keys()]
         rows = [row for row, _ in coordinate_list]
         cols = [col for _, col in coordinate_list]
         min_row, max_row = min(rows), max(rows)
@@ -392,7 +392,7 @@ class TwoQubitInteractionHeatmap(
             f"got {target}, of type {type(target)}"
         )
 
-    def _target_to_coordinate(self, target: GridQubitPair) -> Tuple[float, float]:
+    def _key_to_point(self, target: GridQubitPair) -> Tuple[float, float]:
         r1, c1 = target[0].row, target[0].col
         r2, c2 = target[1].row, target[1].col
         return float(r1 + r2) / 2, float(c1 + c2) / 2
@@ -419,9 +419,7 @@ class TwoQubitInteractionHeatmap(
         if not ax:
             fig, ax = plt.subplots(figsize=(8, 8))
         # Find the boundary and size of the heatmap.
-        coordinate_list = [
-            self._target_to_coordinate(qubit_pair) for qubit_pair in self.value_map.keys()
-        ]
+        coordinate_list = [self._key_to_point(qubit_pair) for qubit_pair in self.value_map.keys()]
         rows = {row for row, _ in coordinate_list}
         cols = {col for _, col in coordinate_list}
         min_row, max_row = min(rows), max(rows)
@@ -435,7 +433,7 @@ class TwoQubitInteractionHeatmap(
         )
 
         for qubit, (float_value, _) in self.value_map.items():
-            row, col = self._target_to_coordinate(qubit)
+            row, col = self._key_to_point(qubit)
             value_table[col][row] = float_value
         # Construct the (height + 1) x (width + 1) cell boundary tables.
         # x_table = np.arange(min_col - 0.25, max_col + 0.75, 0.5)

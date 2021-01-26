@@ -122,8 +122,7 @@ def test_annotation_position_and_content(ax, format_string):
 
 def test_midpoint():
     ih = heatmap.TwoQubitInteractionHeatmap(value_map={((1, 0), (0, 1)): 0.1})
-    assert ih._target_to_coordinate(((1, 0), (0, 1))) == (0.5, 0.5)
-    assert ih._target_to_coordinate((cirq.GridQubit(1, 0), cirq.GridQubit(0, 1))) == (0.5, 0.5)
+    assert ih._key_to_point((cirq.GridQubit(1, 0), cirq.GridQubit(0, 1))) == (0.5, 0.5)
 
 
 @pytest.mark.parametrize('test_GridQubit', [True, False])

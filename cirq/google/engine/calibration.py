@@ -26,7 +26,6 @@ from typing import (
     Tuple,
     TYPE_CHECKING,
     Union,
-    Mapping,
     cast,
 )
 

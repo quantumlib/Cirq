@@ -1,7 +1,7 @@
 """Example heatmaps from the cirq.vis.heatmap package."""
-from typing import Tuple, cast
 
 import numpy as np
+
 import cirq
 
 
