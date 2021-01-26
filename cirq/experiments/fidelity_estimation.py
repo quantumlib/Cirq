@@ -37,6 +37,7 @@ if TYPE_CHECKING:
 SQRT_ISWAP = ops.ISWAP ** 0.5
 
 
+
 def linear_xeb_fidelity_from_probabilities(
         hilbert_space_dimension: int,
         probabilities: Sequence[float],
