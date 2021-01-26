@@ -137,11 +137,13 @@ class Sampler(metaclass=abc.ABCMeta):
     def sample_expectation_values(
         self,
         program: 'cirq.Circuit',
-        measurement_to_observables: Dict[str, Dict[str, 'cirq.PauliSum']],
+        measurement_to_observables: Dict[
+            str, Union['cirq.PauliSumLike', List['cirq.PauliSumLike']]
+        ],
         *,
         num_samples: int,
         params: 'cirq.Sweepable' = None,
-    ) -> List[Dict[str, float]]:
+    ) -> List[List[float]]:
         if num_samples <= 0:
             raise ValueError(
                 f'Expectation values require at least one sample. Received: {num_samples}.'
@@ -153,23 +155,30 @@ class Sampler(metaclass=abc.ABCMeta):
 
         results = []
         row_iter = samples.itertuples()
+        mto = {
+            key: [ops.PauliSum.wrap(o) for o in obs]
+            if isinstance(obs, List)
+            else [ops.PauliSum.wrap(obs)]
+            for key, obs in measurement_to_observables.items()
+        }
+        # Loop over sweeps
         for _ in range(num_param_values):
             state_vector_map = {}
-            for key in measurement_to_observables:
+            for key in mto:
                 state_vector_map[key] = np.zeros(2 ** num_qubits, dtype=np.complex64)
             # Aggregate results from all samples for the same parameter values
             for __ in range(num_samples):
                 curr_row = next(row_iter)
-                for key in measurement_to_observables:
+                for key in mto:
                     state_vector_map[key][getattr(curr_row, key)] += 1
             # Compute estimated expectation values from aggregated results
-            sweep_result = {}
-            for key, observables in measurement_to_observables.items():
+            sweep_result = []
+            for key, observables in mto.items():
                 norm = np.linalg.norm(state_vector_map[key])
                 state_vector_map[key] /= norm
-                for name, obs in observables.items():
-                    sweep_result[name] = obs.expectation_from_state_vector(
-                        state_vector_map[key], qmap
+                for obs in observables:
+                    sweep_result.append(
+                        obs.expectation_from_state_vector(state_vector_map[key], qmap)
                     )
             results.append(sweep_result)
         return results
