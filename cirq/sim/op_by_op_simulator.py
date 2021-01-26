@@ -28,7 +28,8 @@ from typing import (
     Any,
     TypeVar,
     Generic,
-    final, Union,
+    final,
+    Union,
 )
 
 import numpy as np
@@ -168,7 +169,9 @@ class OpByOpSimulator(
         measurement_ops = [
             op for _, op, _ in circuit.findall_operations_with_gate_type(ops.MeasurementGate)
         ]
-        return step_result.sample_measurement_ops(measurement_ops, repetitions, seed=self.state_algo.prng)
+        return step_result.sample_measurement_ops(
+            measurement_ops, repetitions, seed=self.state_algo.prng
+        )
 
     def _run_sweep_repeat(
         self,
@@ -203,7 +206,11 @@ class OpByOpSimulator(
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        sim_state = cast(TState, initial_state) if isinstance(initial_state, AbstractState) else self.state_algo.create_sim_state(initial_state, qubits)
+        sim_state = (
+            cast(TState, initial_state)
+            if isinstance(initial_state, AbstractState)
+            else self.state_algo.create_sim_state(initial_state, qubits)
+        )
         qubit_map = {q: i for i, q in enumerate(qubits)}
         if len(circuit) == 0:
             yield self.result_producer.step_result(sim_state, qubit_map)

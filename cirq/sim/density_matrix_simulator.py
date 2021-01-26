@@ -387,7 +387,14 @@ class DensityMatrixSimulationResultFactory(
         )
 
 
-class DensityMatrixSimulator(OpByOpSimulator[_StateAndBuffers, DensityMatrixStepResult, DensityMatrixTrialResult, DensityMatrixSimulatorState]):
+class DensityMatrixSimulator(
+    OpByOpSimulator[
+        _StateAndBuffers,
+        DensityMatrixStepResult,
+        DensityMatrixTrialResult,
+        DensityMatrixSimulatorState,
+    ]
+):
     def __init__(
         self,
         *,
@@ -403,103 +410,3 @@ class DensityMatrixSimulator(OpByOpSimulator[_StateAndBuffers, DensityMatrixStep
         )
         result_producer = result_producer or DensityMatrixSimulationResultFactory()
         super().__init__(state_algo=state_algo, result_producer=result_producer, noise=noise)
-
-
-class DensityMatrixSimulatorx(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
-    def __init__(
-        self,
-        *,
-        dtype: Type[np.number] = np.complex64,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-        state_algo: DensityMatrixStateFactory = None,
-        result_producer: DensityMatrixSimulationResultFactory = None,
-        noise: 'cirq.NOISE_MODEL_LIKE' = None,
-        ignore_measurement_results: bool = False,
-    ):
-        self.state_algo = state_algo or DensityMatrixStateFactory(
-            dtype=dtype, seed=seed, ignore_measurement_results=ignore_measurement_results
-        )
-        self.result_producer = result_producer or DensityMatrixSimulationResultFactory()
-        self.noise = devices.NoiseModel.from_noise_model_like(noise)
-
-    def _run(
-        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
-    ) -> Dict[str, np.ndarray]:
-        """See definition in `cirq.SimulatesSamples`."""
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        check_all_resolved(resolved_circuit)
-
-        if circuit.are_all_measurements_terminal():
-            return self._run_sweep_sample(resolved_circuit, repetitions)
-        return self._run_sweep_repeat(resolved_circuit, repetitions)
-
-    def _run_sweep_sample(
-        self, circuit: circuits.Circuit, repetitions: int
-    ) -> Dict[str, np.ndarray]:
-        for step_result in self._base_iterator(
-            circuit=circuit,
-            qubit_order=ops.QubitOrder.DEFAULT,
-            initial_state=0,
-            all_measurements_are_terminal=True,
-        ):
-            pass
-        measurement_ops = [
-            op for _, op, _ in circuit.findall_operations_with_gate_type(ops.MeasurementGate)
-        ]
-        return step_result.sample_measurement_ops(
-            measurement_ops, repetitions, seed=self.state_algo.prng
-        )
-
-    def _run_sweep_repeat(
-        self, circuit: circuits.Circuit, repetitions: int
-    ) -> Dict[str, np.ndarray]:
-        measurements = {}  # type: Dict[str, List[np.ndarray]]
-        if repetitions == 0:
-            for _, op, _ in circuit.findall_operations_with_gate_type(ops.MeasurementGate):
-                measurements[protocols.measurement_key(op)] = np.empty([0, 1])
-
-        for _ in range(repetitions):
-            all_step_results = self._base_iterator(
-                circuit, qubit_order=ops.QubitOrder.DEFAULT, initial_state=0
-            )
-            for step_result in all_step_results:
-                for k, v in step_result.measurements.items():
-                    if not k in measurements:
-                        measurements[k] = []
-                    measurements[k].append(np.array(v, dtype=np.uint8))
-        return {k: np.array(v) for k, v in measurements.items()}
-
-    def _base_iterator(
-        self,
-        circuit: circuits.Circuit,
-        qubit_order: ops.QubitOrderOrList,
-        initial_state: 'cirq.STATE_VECTOR_LIKE',
-        perform_measurements: bool = True,
-        all_measurements_are_terminal: bool = False,
-    ) -> Iterator['DensityMatrixStepResult']:
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        sim_state = self.state_algo.create_sim_state(initial_state, qubits)
-        qubit_map = {q: i for i, q in enumerate(qubits)}
-        if len(circuit) == 0:
-            yield self.result_producer.step_result(sim_state, qubit_map)
-        measured = collections.defaultdict(bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
-
-        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
-        for moment in noisy_moments:
-            operations = moment
-            if self.state_algo.keep:
-                operations = protocols.decompose(
-                    moment, keep=self.state_algo.keep, on_stuck_raise=self.state_algo.on_stuck
-                )
-            for op in operations:
-                if all_measurements_are_terminal and measured[op.qubits]:
-                    continue
-                if isinstance(op.gate, ops.MeasurementGate):
-                    measured[op.qubits] = True
-                    if all_measurements_are_terminal:
-                        continue
-                if perform_measurements or not isinstance(op.gate, ops.MeasurementGate):
-                    self.state_algo.act_on_state(op, sim_state, qubit_map)
-
-            yield self.result_producer.step_result(sim_state, qubit_map)
