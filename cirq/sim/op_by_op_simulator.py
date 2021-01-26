@@ -25,7 +25,6 @@ from typing import (
     Set,
     TypeVar,
     Generic,
-    final,
 )
 
 import numpy as np
@@ -114,7 +113,6 @@ class OpByOpSimulator(
         self.result_producer = result_producer
         self.noise = devices.NoiseModel.from_noise_model_like(noise)
 
-    @final
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
     ) -> Dict[str, np.ndarray]:
@@ -149,10 +147,11 @@ class OpByOpSimulator(
 
         intermediate_state = step_result.state_vector()
         if self.state_algo.retains_noise and resolved_circuit.are_all_measurements_terminal():
-            return self._run_sweep_sample(intermediate_state, general_suffix, qubit_order, repetitions)
+            return self._run_sweep_sample(
+                intermediate_state, general_suffix, qubit_order, repetitions
+            )
         return self._run_sweep_repeat(intermediate_state, general_suffix, qubit_order, repetitions)
 
-    @final
     def _run_sweep_sample(
         self,
         initial_state: 'cirq.STATE_VECTOR_LIKE',
@@ -176,7 +175,6 @@ class OpByOpSimulator(
             measurement_ops, repetitions, seed=self.state_algo.prng
         )
 
-    @final
     def _run_sweep_repeat(
         self,
         initial_state: 'cirq.STATE_VECTOR_LIKE',
@@ -200,7 +198,6 @@ class OpByOpSimulator(
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
 
-    @final
     def _base_iterator(
         self,
         circuit: circuits.Circuit,
@@ -239,7 +236,6 @@ class OpByOpSimulator(
             yield self.result_producer.step_result(sim_state, qubit_map)
             sim_state.log_of_measurement_results.clear()
 
-    @final
     def _create_simulator_trial_result(
         self,
         params: study.ParamResolver,
