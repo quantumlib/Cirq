@@ -41,9 +41,12 @@ def test_floquet_get_calibrations() -> None:
         cirq.google.PhasedFSimCalibrationResult(
             gate=cirq.FSimGate(np.pi / 4, 0.0),
             parameters={(a, b): parameters_ab, (c, d): parameters_cd},
+            options=WITH_ALL_ANGLES_CHARACTERIZATION,
         ),
         cirq.google.PhasedFSimCalibrationResult(
-            gate=cirq.FSimGate(np.pi / 4, 0.0), parameters={(b, c): parameters_bc}
+            gate=cirq.FSimGate(np.pi / 4, 0.0),
+            parameters={(b, c): parameters_bc},
+            options=WITH_ALL_ANGLES_CHARACTERIZATION,
         ),
     ]
 
@@ -182,9 +185,12 @@ def test_from_characterizations_sqrt_iswap_simulates_correctly() -> None:
             cirq.google.PhasedFSimCalibrationResult(
                 gate=cirq.FSimGate(np.pi / 4, 0.0),
                 parameters={(a, b): parameters_ab, (c, d): parameters_cd},
+                options=WITH_ALL_ANGLES_CHARACTERIZATION,
             ),
             cirq.google.PhasedFSimCalibrationResult(
-                gate=cirq.FSimGate(np.pi / 4, 0.0), parameters={(b, c): parameters_bc}
+                gate=cirq.FSimGate(np.pi / 4, 0.0),
+                parameters={(b, c): parameters_bc},
+                options=WITH_ALL_ANGLES_CHARACTERIZATION,
             ),
         ]
     )
