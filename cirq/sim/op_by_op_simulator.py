@@ -122,6 +122,8 @@ class OpByOpSimulator(
         check_all_resolved(resolved_circuit)
         qubit_order = sorted(resolved_circuit.all_qubits())
 
+        if self.state_algo.retains_noise and resolved_circuit.are_all_measurements_terminal():
+            return self._run_sweep_sample(0, resolved_circuit, qubit_order, repetitions)
         # Simulate as many unitary operations as possible before having to
         # repeat work for each sample.
         unitary_prefix, general_suffix = _split_into_unitary_then_general(resolved_circuit)
@@ -146,10 +148,6 @@ class OpByOpSimulator(
             )
 
         intermediate_state = step_result.state_vector()
-        if self.state_algo.retains_noise and resolved_circuit.are_all_measurements_terminal():
-            return self._run_sweep_sample(
-                intermediate_state, general_suffix, qubit_order, repetitions
-            )
         return self._run_sweep_repeat(intermediate_state, general_suffix, qubit_order, repetitions)
 
     def _run_sweep_sample(
