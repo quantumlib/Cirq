@@ -206,11 +206,11 @@ class SimulatesExpectationValues(metaclass=abc.ABCMeta):
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            initial_state: The initial state for the simulation. The  form of
-                this state depends on the simulation implementation.  See
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
-            permit_terminal_measurements: If the provided circuit ends in a
-                measurement, this method will generate an error unless this
+            permit_terminal_measurements: If the provided circuit ends with
+                measurement(s), this method will generate an error unless this
                 is set to True. This is meant to prevent measurements from
                 ruining expectation value calculations.
 
@@ -256,8 +256,8 @@ class SimulatesExpectationValues(metaclass=abc.ABCMeta):
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            initial_state: The initial state for the simulation. The  form of
-                this state depends on the simulation implementation.  See
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
             permit_terminal_measurements: If the provided circuit ends in a
                 measurement, this method will generate an error unless this
@@ -299,8 +299,8 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            initial_state: The initial state for the simulation. The  form of
-                this state depends on the simulation implementation.  See
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
 
         Returns:
@@ -331,7 +331,7 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             initial_state: The initial state for the simulation. The form of
-                this state depends on the simulation implementation.  See
+                this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
 
         Returns:
