@@ -12,6 +12,9 @@ from cirq.google.calibration import FloquetPhasedFSimCalibrationOptions
 import cirq
 
 
+WITHOUT_CHI_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions.without_chi_characterization()
+
+
 def test_floquet_get_calibrations() -> None:
 
     parameters_ab = cirq.google.PhasedFSimCharacterization(
@@ -192,8 +195,7 @@ def test_from_characterizations_sqrt_iswap_simulates_correctly() -> None:
 
 def _create_sqrt_iswap_request(
     pairs: Iterable[Tuple[cirq.Qid, cirq.Qid]],
-    options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions.
-        all_options(),
+    options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_CHARACTERIZATION,
 ) -> cirq.google.FloquetPhasedFSimCalibrationRequest:
     return cirq.google.FloquetPhasedFSimCalibrationRequest(
         gate=cirq.FSimGate(np.pi / 4, 0.0), pairs=tuple(pairs), options=options

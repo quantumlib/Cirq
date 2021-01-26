@@ -152,7 +152,8 @@ class PhasedFSimCalibrationResult:
     Attributes:
         parameters: Map from qubit pair to characterization result. For each pair of characterized
             quibts a and b either only (a, b) or only (b, a) is present.
-        gate: Characterized gate for each qubit pair.
+        gate: Characterized gate for each qubit pair. This is copied from the matching
+            PhasedFSimCalibrationRequest and is included to preserve execution context.
     """
 
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
@@ -209,7 +210,8 @@ class PhasedFSimCalibrationRequest(abc.ABC):
         pairs: Set of qubit pairs to characterize. A single qubit can appear on at most one pair in
             the set.
         gate: Gate to characterize for each qubit pair from pairs. This must be a supported gate
-            which can be described cirq.PhasedFSim gate.
+            which can be described cirq.PhasedFSim gate. This gate must be serialized by the
+            cirq.google.SerializableGateSet used
     """
 
     pairs: Tuple[Tuple[Qid, Qid], ...]
@@ -252,8 +254,8 @@ class FloquetPhasedFSimCalibrationOptions:
     characterize_gamma: bool
     characterize_phi: bool
 
-    @staticmethod
-    def all_options() -> 'FloquetPhasedFSimCalibrationOptions':
+    @classmethod
+    def with_all_angles_characterization(cls) -> 'FloquetPhasedFSimCalibrationOptions':
         """Gives options with all angles characterization requests set to True."""
         return FloquetPhasedFSimCalibrationOptions(
             characterize_theta=True,
@@ -263,8 +265,8 @@ class FloquetPhasedFSimCalibrationOptions:
             characterize_phi=True,
         )
 
-    @staticmethod
-    def all_except_for_chi_options() -> 'FloquetPhasedFSimCalibrationOptions':
+    @classmethod
+    def without_chi_characterization(cls) -> 'FloquetPhasedFSimCalibrationOptions':
         """Gives options with all but chi angle characterization requests set to True."""
         return FloquetPhasedFSimCalibrationOptions(
             characterize_theta=True,
