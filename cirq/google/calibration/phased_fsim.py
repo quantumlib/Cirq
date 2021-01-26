@@ -254,8 +254,8 @@ class FloquetPhasedFSimCalibrationOptions:
     characterize_gamma: bool
     characterize_phi: bool
 
-    @staticmethod
-    def all_options() -> 'FloquetPhasedFSimCalibrationOptions':
+    @classmethod
+    def with_all_angles_characterization(cls) -> 'FloquetPhasedFSimCalibrationOptions':
         """Gives options with all angles characterization requests set to True."""
         return FloquetPhasedFSimCalibrationOptions(
             characterize_theta=True,
@@ -265,8 +265,8 @@ class FloquetPhasedFSimCalibrationOptions:
             characterize_phi=True,
         )
 
-    @staticmethod
-    def all_except_for_chi_options() -> 'FloquetPhasedFSimCalibrationOptions':
+    @classmethod
+    def without_chi_characterization(cls) -> 'FloquetPhasedFSimCalibrationOptions':
         """Gives options with all but chi angle characterization requests set to True."""
         return FloquetPhasedFSimCalibrationOptions(
             characterize_theta=True,

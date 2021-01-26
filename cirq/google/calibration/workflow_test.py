@@ -36,7 +36,7 @@ def test_floquet_characterization_for_circuit() -> None:
             [cirq.FSimGate(np.pi / 4, 0.0).on(b, c)],
         ]
     )
-    options = cirq.google.FloquetPhasedFSimCalibrationOptions.all_except_for_chi_options()
+    options = cirq.google.FloquetPhasedFSimCalibrationOptions.without_chi_characterization()
 
     requests, mapping = workflow.floquet_characterization_for_circuit(circuit, options=options)
 
@@ -64,7 +64,7 @@ def test_floquet_characterization_for_circuit_merges_sub_sets() -> None:
     circuit += cirq.Moment(
         [cirq.FSimGate(np.pi / 4, 0.0).on(b, c), cirq.FSimGate(np.pi / 4, 0.0).on(d, e)]
     )
-    options = cirq.google.FloquetPhasedFSimCalibrationOptions.all_except_for_chi_options()
+    options = cirq.google.FloquetPhasedFSimCalibrationOptions.without_chi_characterization()
 
     requests, mapping = workflow.floquet_characterization_for_circuit(circuit, options=options)
 
@@ -90,7 +90,7 @@ def test_floquet_characterization_for_circuit_merges_compatible_sets() -> None:
     circuit += cirq.Moment(
         [cirq.FSimGate(np.pi / 4, 0.0).on(a, f), cirq.FSimGate(np.pi / 4, 0.0).on(d, e)]
     )
-    options = cirq.google.FloquetPhasedFSimCalibrationOptions.all_except_for_chi_options()
+    options = cirq.google.FloquetPhasedFSimCalibrationOptions.without_chi_characterization()
 
     requests, mapping = workflow.floquet_characterization_for_circuit(circuit, options=options)
 
