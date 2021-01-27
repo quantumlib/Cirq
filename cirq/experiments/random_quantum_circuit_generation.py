@@ -171,7 +171,7 @@ def random_rotations_between_two_qubit_circuit(
 ) -> 'cirq.Circuit':
     """Generate a random two-qubit quantum circuit.
 
-    This construction is uses a similar structure to those in the paper
+    This construction uses a similar structure to those in the paper
     https://www.nature.com/articles/s41586-019-1666-5.
 
     The generated circuit consists of a number of "cycles", this number being
