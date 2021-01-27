@@ -35,8 +35,8 @@ def make_floquet_request_for_moment(
     moment: Moment,
     options: FloquetPhasedFSimCalibrationOptions,
     gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
-    pairs_in_canonical_order: bool = False,
-    pairs_sorted: bool = False,
+    canonicalize_pairs: bool = False,
+    sort_pairs: bool = False,
 ) -> Optional[FloquetPhasedFSimCalibrationRequest]:
     """Describes a given moment in terms of a Floquet characterization request.
 
@@ -45,9 +45,9 @@ def make_floquet_request_for_moment(
         options: Options that are applied to each characterized gate within a moment.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo
             characterization. Defaults to sqrt_iswap_gates_translator.
-        pairs_in_canonical_order: Whether to sort each of the qubit pair so that the first qubit
+        canonicalize_pairs: Whether to sort each of the qubit pair so that the first qubit
             is always lower than the second.
-        pairs_sorted: Whether to sort all the qutibt pairs extracted from the moment which will
+        sort_pairs: Whether to sort all the qutibt pairs extracted from the moment which will
             undergo characterization.
 
     Returns:
@@ -86,7 +86,7 @@ def make_floquet_request_for_moment(
             else:
                 gate = translated_gate
             pair = cast(
-                Tuple[Qid, Qid], tuple(sorted(op.qubits) if pairs_in_canonical_order else op.qubits)
+                Tuple[Qid, Qid], tuple(sorted(op.qubits) if canonicalize_pairs else op.qubits)
             )
             pairs.append(pair)
 
@@ -101,7 +101,7 @@ def make_floquet_request_for_moment(
         )
 
     return FloquetPhasedFSimCalibrationRequest(
-        pairs=tuple(sorted(pairs) if pairs_sorted else pairs), gate=gate, options=options
+        pairs=tuple(sorted(pairs) if sort_pairs else pairs), gate=gate, options=options
     )
 
 
@@ -195,7 +195,7 @@ def make_floquet_request_for_circuit(
 
     for moment in circuit:
         calibration = make_floquet_request_for_moment(
-            moment, options, gates_translator, pairs_in_canonical_order=True, pairs_sorted=True
+            moment, options, gates_translator, canonicalize_pairs=True, sort_pairs=True
         )
 
         if calibration is not None:
