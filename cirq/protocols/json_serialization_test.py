@@ -213,6 +213,7 @@ SHOULDNT_BE_SERIALIZED = [
     'Unique',
     'DEFAULT_RESOLVERS',
     # Quantum Engine
+    'ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
     'Engine',
     'EngineJob',
     'EngineProcessor',
@@ -220,6 +221,7 @@ SHOULDNT_BE_SERIALIZED = [
     'EngineTimeSlot',
     'QuantumEngineSampler',
     'NAMED_GATESETS',
+    'WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
     # enums
     'ProtoVersion',
 ]
