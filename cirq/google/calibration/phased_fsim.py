@@ -223,7 +223,8 @@ class PhasedFSimCalibrationRequest(abc.ABC):
     pairs: Tuple[Tuple[Qid, Qid], ...]
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
 
-    @property
+    # See https://github.com/python/mypy/issues/1362
+    @property # type: ignore
     @functools.lru_cache(maxsize=None)
     def qubit_to_pair(self) -> MutableMapping[Qid, Tuple[Qid, Qid]]:
         """Returns mapping from qubit to a qubit pair that it belongs to."""
