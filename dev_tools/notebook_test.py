@@ -37,7 +37,6 @@ SKIP_NOTEBOOKS = [
 
 
 def _list_all_notebooks() -> Set[str]:
-    """Get the root of the git repository the cwd is within."""
     return set(shell_tools.output_of('git', 'ls-files', '*.ipynb').splitlines())
 
 
