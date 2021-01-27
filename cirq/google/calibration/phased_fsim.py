@@ -171,7 +171,7 @@ class PhasedFSimCalibrationResult:
                 for pair, pair_parameters in self.parameters.items()
             },
             gate=self.gate,
-            gate_set=self.gate_set
+            options=self.options
         )
 
     def get_parameters(self, a: Qid, b: Qid) -> Optional['PhasedFSimCharacterization']:
