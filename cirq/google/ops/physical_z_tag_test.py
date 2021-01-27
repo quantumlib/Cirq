@@ -16,6 +16,7 @@ import cirq
 
 def test_equality():
     assert cirq.google.PhysicalZTag() == cirq.google.PhysicalZTag()
+    assert hash(cirq.google.PhysicalZTag()) == hash(cirq.google.PhysicalZTag())
 
 
 def test_syc_str_repr():
