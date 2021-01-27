@@ -254,6 +254,7 @@ def test_try_convert_sqrt_iswap_to_fsim_converts_correctly():
     fsim = cirq.FSimGate(theta=np.pi / 4, phi=0)
     assert np.allclose(cirq.unitary(fsim), expected_unitary)
     assert try_convert_sqrt_iswap_to_fsim(fsim) == expected
+    assert try_convert_sqrt_iswap_to_fsim(cirq.FSimGate(theta=np.pi / 4, phi=0.1)) is None
     assert try_convert_sqrt_iswap_to_fsim(cirq.FSimGate(theta=np.pi / 3, phi=0)) is None
 
     phased_fsim = cirq.PhasedFSimGate(theta=np.pi / 4, phi=0)
@@ -276,3 +277,5 @@ def test_try_convert_sqrt_iswap_to_fsim_converts_correctly():
         try_convert_sqrt_iswap_to_fsim(cirq.PhasedISwapPowGate(exponent=-0.5, phase_exponent=0.1))
         is None
     )
+
+    assert try_convert_sqrt_iswap_to_fsim(cirq.CZ) is None

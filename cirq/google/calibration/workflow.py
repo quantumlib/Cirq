@@ -110,7 +110,7 @@ def make_floquet_request_for_circuit(
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
-    initial: Optional[Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]] = None,
+    initial: Optional[List[FloquetPhasedFSimCalibrationRequest]] = None,
 ) -> Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]:
     """Extracts a minimal set of Floquet characterization requests necessary to characterize given
     circuit.
@@ -127,8 +127,9 @@ def make_floquet_request_for_circuit(
         merge_subsets: Whether to merge moments that can be characterized at the same time
             together.
         initial: The characterization requests obtained by a previous scan of another circuit; i.e.,
-            return value of make_floquet_request_for_circuit invoked on another circuit. This might
-            be used to find a minimal set of moments to characterize across many circuits.
+            the first element of a tuple returned by make_floquet_request_for_circuit invoked on
+            another circuit. This might be used to find a minimal set of moments to characterize
+            across many circuits.
 
     Returns:
         Tuple of:
@@ -142,7 +143,14 @@ def make_floquet_request_for_circuit(
         operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
     """
 
-    pairs_map: Dict[Tuple[Tuple[Qid, Qid], ...], int] = {}
+    if initial is None:
+        calibrations: List[FloquetPhasedFSimCalibrationRequest] = []
+        allocations: List[Optional[int]] = []
+        pairs_map: Dict[Tuple[Tuple[Qid, Qid], ...], int] = {}
+    else:
+        calibrations = initial
+        allocations = []
+        pairs_map = {calibration.pairs: index for index, calibration in enumerate(calibrations)}
 
     def append_if_missing(calibration: FloquetPhasedFSimCalibrationRequest) -> int:
         if calibration.pairs not in pairs_map:
@@ -187,12 +195,6 @@ def make_floquet_request_for_circuit(
         pairs_map[calibration.pairs] = index
         return index
 
-    if initial is None:
-        calibrations: List[FloquetPhasedFSimCalibrationRequest] = []
-        moments_map: List[Optional[int]] = []
-    else:
-        calibrations, moments_map = initial
-
     for moment in circuit:
         calibration = make_floquet_request_for_moment(
             moment, options, gates_translator, canonicalize_pairs=True, sort_pairs=True
@@ -203,11 +205,11 @@ def make_floquet_request_for_circuit(
                 index = merge_into_calibrations(calibration)
             else:
                 index = append_if_missing(calibration)
-            moments_map.append(index)
+            allocations.append(index)
         else:
-            moments_map.append(None)
+            allocations.append(None)
 
-    return calibrations, moments_map
+    return calibrations, allocations
 
 
 def run_characterizations(
@@ -236,8 +238,8 @@ def run_characterizations(
     """
     if max_layers_per_request < 1:
         raise ValueError(
-            f'Miaximum number of layers pere request must be at least 1, '
-            f'{max_layers_per_request} given'
+            f'Maximum number of layers per request must be at least 1, {max_layers_per_request} '
+            f'given'
         )
 
     if not calibrations:
