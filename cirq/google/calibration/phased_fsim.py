@@ -379,7 +379,16 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         }
 
 
-def sqrt_iswap_gates_translator(gate: Gate) -> Optional[FSimGate]:
+def try_convert_sqrt_iswap_to_fsim(gate: Gate) -> Optional[FSimGate]:
+    """Converts an equivalent gate to FSimGate(theta=π/4, phi=0) if possible.
+
+    Args:
+        gate: Gate to verify.
+
+    Returns:
+        FSimGate(theta=π/4, phi=0) if provided gate either  FSimGate, ISWapPowGate, PhasedFSimGate
+        or PhasedISwapPowGate that is equivalent to FSimGate(theta=π/4, phi=0). None otherwise.
+    """
     if isinstance(gate, FSimGate):
         if not np.isclose(gate.phi, 0.0):
             return None
