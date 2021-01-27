@@ -242,7 +242,7 @@ def random_rotations_between_grid_interaction_layers_circuit(
     specified by `depth`. Each cycle is actually composed of two sub-layers:
     a layer of single-qubit gates followed by a layer of two-qubit gates,
     controlled by their respective arguments, see below. The pairs of qubits
-    in a given entangling layer is controlled by the ``pattern`` argument,
+    in a given entangling layer is controlled by the `pattern` argument,
     see below.
 
     Args:
