@@ -33,7 +33,7 @@ class IncompatibleMomentError(Exception):
     """Error that occurs when a moment is not supported by a calibration routine."""
 
 
-def floquet_characterization_for_moment(
+def make_floquet_request_for_moment(
     moment: Moment,
     options: FloquetPhasedFSimCalibrationOptions,
     gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
@@ -107,7 +107,7 @@ def floquet_characterization_for_moment(
     )
 
 
-def floquet_characterization_for_circuit(
+def make_floquet_request_for_circuit(
     circuit: Circuit,
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_CHARACTERIZATION,
     gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
@@ -195,7 +195,7 @@ def floquet_characterization_for_circuit(
     pairs_map = {}
 
     for moment in circuit:
-        calibration = floquet_characterization_for_moment(
+        calibration = make_floquet_request_for_moment(
             moment, options, gates_translator, pairs_in_canonical_order=True, pairs_sorted=True
         )
 
@@ -310,7 +310,7 @@ def run_floquet_characterization_for_circuit(
         IncompatibleMomentError when circuit contains a moment with operations other than the
         operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
     """
-    requests, mapping = floquet_characterization_for_circuit(
+    requests, mapping = make_floquet_request_for_circuit(
         circuit, options, gates_translator, merge_sub_sets=merge_sub_sets
     )
     results = run_characterizations(

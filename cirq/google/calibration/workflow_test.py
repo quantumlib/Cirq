@@ -38,7 +38,7 @@ def test_floquet_characterization_for_circuit() -> None:
     )
     options = cirq.google.FloquetPhasedFSimCalibrationOptions.without_chi_characterization()
 
-    requests, mapping = workflow.floquet_characterization_for_circuit(circuit, options=options)
+    requests, mapping = workflow.make_floquet_request_for_circuit(circuit, options=options)
 
     assert requests == [
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
@@ -66,7 +66,7 @@ def test_floquet_characterization_for_circuit_merges_sub_sets() -> None:
     )
     options = cirq.google.FloquetPhasedFSimCalibrationOptions.without_chi_characterization()
 
-    requests, mapping = workflow.floquet_characterization_for_circuit(circuit, options=options)
+    requests, mapping = workflow.make_floquet_request_for_circuit(circuit, options=options)
 
     assert requests == [
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
@@ -92,7 +92,7 @@ def test_floquet_characterization_for_circuit_merges_compatible_sets() -> None:
     )
     options = cirq.google.FloquetPhasedFSimCalibrationOptions.without_chi_characterization()
 
-    requests, mapping = workflow.floquet_characterization_for_circuit(circuit, options=options)
+    requests, mapping = workflow.make_floquet_request_for_circuit(circuit, options=options)
 
     assert requests == [
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(

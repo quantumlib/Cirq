@@ -26,11 +26,11 @@ from cirq.google.calibration import (
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
-    floquet_characterization_for_circuit,
-    floquet_characterization_for_moment,
+    make_floquet_request_for_circuit,
+    make_floquet_request_for_moment,
     run_characterizations,
     run_floquet_characterization_for_circuit,
-    sqrt_iswap_gates_translator
+    sqrt_iswap_gates_translator,
 )
 
 from cirq.google.devices import (
