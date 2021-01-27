@@ -15,6 +15,7 @@ import functools
 import glob
 import os
 import sys
+from typing import Set
 
 import pytest
 from filelock import FileLock
@@ -35,8 +36,13 @@ SKIP_NOTEBOOKS = [
 ]
 
 
+def _list_all_notebooks() -> Set[str]:
+    """Get the root of the git repository the cwd is within."""
+    return set(shell_tools.output_of('git', 'ls-files', '*.ipynb').splitlines())
+
+
 def _tested_notebooks():
-    all_notebooks = set(glob.glob("**/*.ipynb", recursive=True))
+    all_notebooks = _list_all_notebooks()
     skipped_notebooks = functools.reduce(
         lambda a, b: a.union(b), list(set(glob.glob(g, recursive=True)) for g in SKIP_NOTEBOOKS)
     )
