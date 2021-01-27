@@ -11,10 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from typing import cast, Dict, Iterable, Iterator, List, NamedTuple, Optional, Set, TYPE_CHECKING
-
+from typing import (
+    cast,
+    Dict,
+    Hashable,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Set,
+    TYPE_CHECKING,
+)
 from collections import OrderedDict
+import dataclasses
 import numpy as np
 
 from cirq.google.api import v2
@@ -28,17 +37,8 @@ if TYPE_CHECKING:
     import cirq
 
 
-class MeasureInfo(
-    NamedTuple(
-        'MeasureInfo',
-        [
-            ('key', str),
-            ('qubits', List['cirq.GridQubit']),
-            ('slot', int),
-            ('invert_mask', List[bool]),
-        ],
-    )
-):
+@dataclasses.dataclass
+class MeasureInfo:
     """Extra info about a single measurement within a circuit.
 
     Attributes:
@@ -52,6 +52,12 @@ class MeasureInfo(
         invert_mask: a list of booleans describing whether the results should
             be flipped for each of the qubits in the qubits field.
     """
+
+    key: str
+    qubits: List['cirq.GridQubit']
+    slot: int
+    invert_mask: List[bool]
+    tags: List[Hashable]
 
 
 def find_measurements(program: 'cirq.Circuit') -> List[MeasureInfo]:
@@ -86,6 +92,7 @@ def _circuit_measurements(circuit: 'cirq.Circuit') -> Iterator[MeasureInfo]:
                     qubits=_grid_qubits(op),
                     slot=i,
                     invert_mask=list(op.gate.full_invert_mask()),
+                    tags=list(op.tags),
                 )
 
 
