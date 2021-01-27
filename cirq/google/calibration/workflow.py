@@ -128,8 +128,9 @@ def make_floquet_request_for_circuit(
             characterization. Defaults to sqrt_iswap_gates_translator.
         merge_sub_sets: Whether to merge moments that can be characterized at the same time
             together.
-        initial: The characterization requests obtained by a previous scan of another circuit. This
-            might be used to find a minimal set of moments to characterize across many circuits.
+        initial: The characterization requests obtained by a previous scan of another circuit; i.e.,
+            return value of make_floquet_request_for_circuit invoked on another circuit. This might
+            be used to find a minimal set of moments to characterize across many circuits.
 
     Returns:
         Tuple of:
@@ -142,6 +143,8 @@ def make_floquet_request_for_circuit(
         IncompatibleMomentError when circuit contains a moment with operations other than the
         operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
     """
+
+    pairs_map = {}
 
     def append_if_missing(calibration: FloquetPhasedFSimCalibrationRequest) -> int:
         if calibration.pairs not in pairs_map:
@@ -191,8 +194,6 @@ def make_floquet_request_for_circuit(
         moments_map = []
     else:
         calibrations, moments_map = initial
-
-    pairs_map = {}
 
     for moment in circuit:
         calibration = make_floquet_request_for_moment(
@@ -310,7 +311,7 @@ def run_floquet_characterization_for_circuit(
         IncompatibleMomentError when circuit contains a moment with operations other than the
         operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
     """
-    requests, mapping = make_floquet_request_for_circuit(
+    requests, allocations = make_floquet_request_for_circuit(
         circuit, options, gates_translator, merge_sub_sets=merge_sub_sets
     )
     results = run_characterizations(
@@ -321,4 +322,4 @@ def run_floquet_characterization_for_circuit(
         max_layers_per_request=max_layers_per_request,
         progress_func=progress_func,
     )
-    return results, mapping
+    return results, allocations
