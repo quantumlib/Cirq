@@ -7,15 +7,15 @@ See [Access and Authentication](access.md) for details of access.
 ## Service class
 
 The main entrance for accessing IonQ's API are instances of the `cirq.ionq.Service` class.
-These objects can need to be initialized with the remote host url and api key, see [Access and Authentication](access.md) for details.
+These objects can need to be initialized with the remote host url and api key, see
+[Access and Authentication](access.md) for details.
 
-The basic flow of running a quantum circuit is
+The basic flow of running a quantum circuit in a blocking manner is
 1. Create a circuit to run.
 1. Create a `cirq.ionq.Service` with proper authentication and endpoints.
-3. Submit this circuit to run on the service.
-4. Await the results of the service, or alternatively if step 3 was submit more circuits or process
-previously run circuits.
-5. Transform the results in a form that is most useful for your analysis.
+3. Submit this circuit to run on the service and await the results of this call.
+(Or alternatively use asynchronous jobs and processing)
+4. Transform the results in a form that is most useful for your analysis.
 
 Here is a simple example of this flow
 ```python
@@ -25,28 +25,53 @@ import cirq.ionq as ionq
 # A circuit that applies a square root of NOT and then a measurement.
 qubit = cirq.LineQubit(0)
 circuit = cirq.Circuit(
-    cirq.X(qubit)**0.5,                # Square root of NOT.
-    cirq.measure(qubit, key='result')   # Measurement.
+    cirq.X(qubit)**0.5,            # Square root of NOT.
+    cirq.measure(qubit, key='x')   # Measurement store in key 'x'
 )
 
 # Create a ionq.Service object.
 # Replace REMOTE_HOST and API_KEY with your values.
+# Or alternatively if you have the IONQ_REMOTE_HOST and IONQ_API_KEY
+# environment variables set, you can omit specifying these parameters.
 service = ionq.Service(remote_host=REMOTE_HOST, api_key=API_KEY)
 
-# Run a program against the service.
-result = service.run(circuit=circuit)
+# Run a program against the service. This method will block execution
+# until the result is returned and periodically polls the IonQ API.
+result = service.run(circuit=circuit, repetition=100, target='qpu')
 
 # The return object of run is a cirq.Result object.
-
 # From this object one can get a histogram of results.
-print(results.histogram(key='resutl'))
+histogram = result.histogram(key='x')
+print(f'Histogram: {histogram}')
 
 # Or the data as a pandas frame.
-print(results.data)
+print(f'Data:\n{result.data}')
+```
+This produces output (will vary due to quantum randomness!)
+
+```
+Histogram: Counter({0: 53, 1: 47})
+Data:
+    x
+0   0
+1   0
+2   0
+3   0
+4   0
+.. ..
+95  1
+96  1
+97  1
+98  1
+99  1
+
+[100 rows x 1 columns]
 ```
 
+## Next steps
 
-bugs
+[Learn how to build circuits for the API](circuits.md)
 
-x**0.5 on qpu failed
-result object not printable
+[How to use the service API](jobs.md)
+
+[IonQ devices](devices.md)
