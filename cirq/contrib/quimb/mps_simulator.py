@@ -340,11 +340,11 @@ class MPSState:
         self.num_svd_splits = 0
 
     def i_str(self, i: int) -> str:
-        # Returns the indice name for the i'th qid.
+        # Returns the index name for the i'th qid.
         return self.format_i.format(i)
 
     def mu_str(self, i: int, j: int) -> str:
-        # Returns the indice name for the pair of the i'th and j'th qids. Note
+        # Returns the index name for the pair of the i'th and j'th qids. Note
         # that by convention, the lower index is always the first in the output
         # string.
         smallest = min(i, j)
@@ -378,7 +378,7 @@ class MPSState:
         return state_vector.fuse({'i': sorted_ind}).data
 
     def partial_trace(self, keep_qubits: Set[ops.Qid]) -> np.ndarray:
-        """Returns the partial trace only for the keep_qubits specified.
+        """Traces out all qubits except keep_qubits.
 
         Args:
             keep_qubits: The set of qubits that are left after computing the
@@ -394,7 +394,7 @@ class MPSState:
             [self.i_str(i) for qubit, i in self.qubit_map.items() if qubit not in keep_qubits]
         )
 
-        CONJ_PFX = "conj_"
+        conj_pfx = "conj_"
 
         tensor_network = qtn.TensorNetwork(self.M)
 
@@ -402,15 +402,17 @@ class MPSState:
         # indices that are kept. We do not rename the qubit indices that are
         # traced out.
         conj_tensor_network = tensor_network.conj()
+        reindex_mapping = {}
         for M in conj_tensor_network.tensors:
             for ind in M.inds:
                 if ind not in contracted_inds:
-                    conj_tensor_network.reindex({ind: CONJ_PFX + ind}, inplace=True)
+                    reindex_mapping[ind] = conj_pfx + ind
+        conj_tensor_network.reindex(reindex_mapping, inplace=True)
         partial_trace = conj_tensor_network @ tensor_network
 
-        old_inds = [self.i_str(self.qubit_map[keep_qubit]) for keep_qubit in keep_qubits]
-        new_inds = [CONJ_PFX + old_ind for old_ind in old_inds]
-        return partial_trace.to_dense(old_inds, new_inds)
+        forward_inds = [self.i_str(self.qubit_map[keep_qubit]) for keep_qubit in keep_qubits]
+        backward_inds = [conj_pfx + forward_ind for forward_ind in forward_inds]
+        return partial_trace.to_dense(forward_inds, backward_inds)
 
     def to_numpy(self) -> np.ndarray:
         """An alias for the state vector."""
