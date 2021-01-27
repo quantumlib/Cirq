@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, List, MutableMapping, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Callable, Dict, List, MutableMapping, Optional, Tuple, TypeVar, TYPE_CHECKING
 
 import abc
 import collections
@@ -34,6 +34,14 @@ if TYPE_CHECKING:
     from dataclasses import dataclass as json_serializable_dataclass
 else:
     from cirq.protocols import json_serializable_dataclass
+
+
+# Workaround for mypy: https://github.com/python/mypy/issues/5858
+T = TypeVar('T')
+
+
+def cache(func: Callable[..., T]) -> T:
+    return functools.lru_cache(maxsize=None)(func)  # type: ignore
 
 
 @json_serializable_dataclass(frozen=True)
@@ -224,8 +232,8 @@ class PhasedFSimCalibrationRequest(abc.ABC):
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
 
     # See https://github.com/python/mypy/issues/1362
-    @property # type: ignore
-    @functools.lru_cache(maxsize=None)
+    @property  # type: ignore
+    @cache
     def qubit_to_pair(self) -> MutableMapping[Qid, Tuple[Qid, Qid]]:
         """Returns mapping from qubit to a qubit pair that it belongs to."""
         # Returning mutable mapping as a cached result because it's hard to get a frozen dictionary
