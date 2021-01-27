@@ -11,7 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Callable, Dict, List, MutableMapping, Optional, Tuple, TypeVar, TYPE_CHECKING
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    MutableMapping,
+    Optional,
+    Tuple,
+    TypeVar,
+    TYPE_CHECKING,
+)
 
 import abc
 import collections
@@ -36,10 +46,10 @@ else:
     from cirq.protocols import json_serializable_dataclass
 
 
-# Workaround for mypy: https://github.com/python/mypy/issues/5858
 T = TypeVar('T')
 
 
+# Workaround for: https://github.com/python/mypy/issues/5858
 def cache(func: Callable[..., T]) -> T:
     return functools.lru_cache(maxsize=None)(func)  # type: ignore
 
@@ -231,7 +241,7 @@ class PhasedFSimCalibrationRequest(abc.ABC):
     pairs: Tuple[Tuple[Qid, Qid], ...]
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
 
-    # See https://github.com/python/mypy/issues/1362
+    # Workaround for: https://github.com/python/mypy/issues/1362
     @property  # type: ignore
     @cache
     def qubit_to_pair(self) -> MutableMapping[Qid, Tuple[Qid, Qid]]:
