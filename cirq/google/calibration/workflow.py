@@ -109,7 +109,7 @@ def make_floquet_request_for_circuit(
     circuit: Circuit,
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
-    merge_sub_sets: bool = True,
+    merge_subsets: bool = True,
     initial: Optional[Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]] = None,
 ) -> Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]:
     """Extracts a minimal set of Floquet characterization requests necessary to characterize given
@@ -124,7 +124,7 @@ def make_floquet_request_for_circuit(
             to all_except_for_chi_options which is the broadest currently supported choice.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo
             characterization. Defaults to sqrt_iswap_gates_translator.
-        merge_sub_sets: Whether to merge moments that can be characterized at the same time
+        merge_subsets: Whether to merge moments that can be characterized at the same time
             together.
         initial: The characterization requests obtained by a previous scan of another circuit; i.e.,
             return value of make_floquet_request_for_circuit invoked on another circuit. This might
@@ -199,7 +199,7 @@ def make_floquet_request_for_circuit(
         )
 
         if calibration is not None:
-            if merge_sub_sets:
+            if merge_subsets:
                 index = merge_into_calibrations(calibration)
             else:
                 index = append_if_missing(calibration)
@@ -272,7 +272,7 @@ def run_floquet_characterization_for_circuit(
     gate_set: SerializableGateSet,
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
-    merge_sub_sets: bool = True,
+    merge_subsets: bool = True,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
 ) -> Tuple[List[PhasedFSimCalibrationResult], List[Optional[int]]]:
@@ -290,7 +290,7 @@ def run_floquet_characterization_for_circuit(
             to all_except_for_chi_options which is the broadest currently supported choice.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo
             characterization. Defaults to sqrt_iswap_gates_translator.
-        merge_sub_sets: Whether to merge moments that can be characterized at the same time
+        merge_subsets: Whether to merge moments that can be characterized at the same time
             together.
         max_layers_per_request: Maximum number of calibration requests issued to cirq.Engine at a
             single time. Defaults to 1.
@@ -310,7 +310,7 @@ def run_floquet_characterization_for_circuit(
         operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
     """
     requests, allocations = make_floquet_request_for_circuit(
-        circuit, options, gates_translator, merge_sub_sets=merge_sub_sets
+        circuit, options, gates_translator, merge_subsets=merge_subsets
     )
     results = run_characterizations(
         requests,
