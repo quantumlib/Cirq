@@ -13,6 +13,7 @@
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
 import concurrent
+from abc import abstractmethod
 from concurrent.futures.thread import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import (
@@ -31,8 +32,10 @@ from typing import (
 
 import numpy as np
 import pandas as pd
+import scipy.optimize
+import sympy
 
-from cirq import ops, protocols, sim
+from cirq import ops, protocols, sim, circuits
 from cirq.circuits import Circuit
 from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_state_vector
@@ -41,6 +44,7 @@ if TYPE_CHECKING:
     import cirq
     import multiprocessing
 
+THETA, ZETA, CHI, GAMMA, PHI = sympy.symbols('theta zeta chi gamma phi')
 SQRT_ISWAP = ops.ISWAP ** 0.5
 
 
@@ -616,3 +620,129 @@ def simulate_2q_xeb_fidelities(
         return pd.Series({'fidelity': fid_lsq})
 
     return df.reset_index().groupby('cycle_depth').apply(per_cycle_depth).reset_index()
+
+
+@dataclass(frozen=True)
+class _XEBOptions:
+    parameterize_theta: bool = True
+    parameterize_zeta: bool = True
+    parameterize_chi: bool = True
+    parameterize_gamma: bool = True
+    parameterize_phi: bool = True
+
+    theta_default: float = 0
+    zeta_default: float = 0
+    chi_default: float = 0
+    gamma_default: float = 0
+    phi_default: float = 0
+
+    @staticmethod
+    @abstractmethod
+    def should_replace(op: 'cirq.Operation'):
+        pass
+
+    def get_initial_simplex_and_names(self, initial_simplex_step_size: float = 0.1):
+        x0 = []
+        names = []
+        if self.parameterize_theta:
+            x0 += [self.theta_default]
+            names += [THETA.name]
+        if self.parameterize_zeta:
+            x0 += [self.zeta_default]
+            names += [ZETA.name]
+        if self.parameterize_chi:
+            x0 += [self.chi_default]
+            names += [CHI.name]
+        if self.parameterize_gamma:
+            x0 += [self.gamma_default]
+            names += [GAMMA.name]
+        if self.parameterize_phi:
+            x0 += [self.phi_default]
+            names += [PHI.name]
+
+        x0 = np.asarray(x0)
+        n_param = len(x0)
+        initial_simplex = [x0]
+        for i in range(n_param):
+            basis_vec = np.zeros(n_param)
+            basis_vec[i] = 1
+            initial_simplex += [x0 + initial_simplex_step_size * basis_vec]
+
+        return initial_simplex, names
+
+
+@dataclass(frozen=True)
+class SqrtISwapXEBOptions(_XEBOptions):
+    theta_default: float = -np.pi / 4
+
+    @staticmethod
+    def should_replace(op: 'cirq.Operation'):
+        return op.gate == SQRT_ISWAP
+
+
+def parameterize_phased_fsim_circuit(
+    circuit: 'cirq.Circuit',
+    phased_fsim_options: _XEBOptions = SqrtISwapXEBOptions,
+):
+    o = phased_fsim_options
+    theta = THETA if o.parameterize_theta else o.theta_default
+    zeta = ZETA if o.parameterize_zeta else o.zeta_default
+    chi = CHI if o.parameterize_chi else o.chi_default
+    gamma = GAMMA if o.parameterize_gamma else o.gamma_default
+    phi = PHI if o.parameterize_phi else o.phi_default
+
+    new_moments = []
+    for moment in circuit.moments:
+        new_ops = []
+        for op in moment.operations:
+            if o.should_replace(op):
+                new_ops += [
+                    ops.PhasedFSimGate(
+                        theta=theta,
+                        zeta=zeta,
+                        chi=chi,
+                        gamma=gamma,
+                        phi=phi,
+                    ).on(*op.qubits)
+                ]
+            else:
+                new_ops += [op]
+        new_moments += [ops.Moment(new_ops)]
+
+    circuit = circuits.Circuit(new_moments)
+    return circuit
+
+
+def optimize_xeb(
+    sampled_df,
+    paramed_circuits,
+    cycle_depths,
+    phased_fsim_options: _XEBOptions,
+    initial_simplex_step_size=0.1,
+    xatol=1e-4,
+    fatol=1e-4,
+    pool=None,
+):
+    initial_simplex, names = phased_fsim_options.get_initial_simplex_and_names(
+        initial_simplex_step_size=initial_simplex_step_size
+    )
+    x0 = initial_simplex[0]
+
+    def _f(x):
+        params = dict(zip(names, x))
+        print("Simulating with {}".format(params))
+        fids = simulate_2q_xeb_fidelities(
+            sampled_df, paramed_circuits, cycle_depths, param_resolver=params, pool=pool
+        )
+
+        loss = 1 - fids['fidelity'].mean()
+        print("Got {}".format(loss), flush=True)
+        return loss
+
+    res = scipy.optimize.minimize(
+        _f,
+        x0=x0,
+        options={'initial_simplex': initial_simplex, 'xatol': xatol, 'fatol': fatol},
+        method='nelder-mead',
+    )
+    return res
