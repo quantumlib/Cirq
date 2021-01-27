@@ -105,6 +105,11 @@ upper_tabs:
       - title: "Access and authentication"
         path: /cirq/aqt/access
 
+      ##### IonQ ####
+      - heading: "IonQ hardware"
+      - title: "Access and authentication"
+        path: /cirq/ionq/access
+
       ####  PASQAL  ####
       - heading: "Pasqal hardware"
       - title: "Access and authentication"

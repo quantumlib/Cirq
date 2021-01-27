@@ -252,7 +252,7 @@ class SimulatorResult:
                 [(value >> (self.num_qubits() - target - 1)) & 1 for target in targets]
                 for value in rand_values
             ]
-            measurements[key] = bits
+            measurements[key] = np.array(bits)
         return study.Result(params=params or study.ParamResolver({}), measurements=measurements)
 
     def __eq__(self, other):
