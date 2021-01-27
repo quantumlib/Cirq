@@ -31,6 +31,7 @@ from typing import (
 
 import numpy as np
 import pandas as pd
+import tqdm
 
 from cirq import ops, protocols, sim
 from cirq.circuits import Circuit
@@ -422,7 +423,7 @@ class _SampleInBatches:
         assert len(results) == len(tasks)
         records = []
         for task, nested_result in zip(tasks, results):
-            result, = nested_result # remove nesting due to potential sweeps.
+            (result,) = nested_result  # remove nesting due to potential sweeps.
             sampled_inds = result.data.values[:, 0]
             sampled_probs = np.bincount(sampled_inds, minlength=2 ** 2) / len(sampled_inds)
 
@@ -435,7 +436,8 @@ class _SampleInBatches:
             ]
         return records
 
-def _verify_and_get_two_qubits_from_circuits(circuits:Sequence['cirq.Circuit']):
+
+def _verify_and_get_two_qubits_from_circuits(circuits: Sequence['cirq.Circuit']):
     """Make sure each of the provided circuits uses the same two qubits and return them."""
     all_qubits_set: Set['cirq.Qid'] = set()
     all_qubits_set = all_qubits_set.union(*(circuit.all_qubits() for circuit in circuits))
@@ -447,12 +449,31 @@ def _verify_and_get_two_qubits_from_circuits(circuits:Sequence['cirq.Circuit']):
     return all_qubits_list
 
 
+class _NoProgress:
+    """Dummy (lack of) tqdm-style progress bar."""
+
+    def __init__(self, total: int):
+        pass
+
+    def __enter__(
+        self,
+    ):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    def update(self, increment: int):
+        pass
+
+
 def sample_2q_xeb_circuits(
     sampler: 'cirq.Sampler',
     circuits: Sequence['cirq.Circuit'],
     cycle_depths: Sequence[int],
     repetitions: int = 10_000,
     batch_size: int = 9,
+    progress_bar=tqdm.tqdm,
 ):
     """Sample two-qubit XEB circuits given a sampler.
 
@@ -469,12 +490,15 @@ def sample_2q_xeb_circuits(
             execution in certain environments. The number of
             (circuit, cycle_depth) tasks to be run in each batch
             is given by this number.
+        progress_bar: A progress context manager following the `tqdm` API or
+            `None` to not report progress.
 
     Returns:
         A pandas dataframe with index given by ['circuit_i', 'cycle_depth'] and
         column "sampled_probs".
     """
-    import tqdm
+    if progress_bar is None:
+        progress_bar = _NoProgress
 
     q0, q1 = _verify_and_get_two_qubits_from_circuits(circuits)
     tasks = []
@@ -498,7 +522,7 @@ def sample_2q_xeb_circuits(
         futures = [pool.submit(run_batch, task_batch) for task_batch in batched_tasks]
 
         records = []
-        with tqdm.tqdm(total=n_tasks) as progress:
+        with progress_bar(total=n_tasks) as progress:
             for future in concurrent.futures.as_completed(futures):
                 records += future.result()
                 progress.update(batch_size)
