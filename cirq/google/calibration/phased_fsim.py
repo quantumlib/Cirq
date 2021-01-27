@@ -280,27 +280,25 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     characterize_gamma: bool
     characterize_phi: bool
 
-    @classmethod
-    def with_all_angles_characterization(cls) -> 'FloquetPhasedFSimCalibrationOptions':
-        """Gives options with all angles characterization requests set to True."""
-        return FloquetPhasedFSimCalibrationOptions(
-            characterize_theta=True,
-            characterize_zeta=True,
-            characterize_chi=True,
-            characterize_gamma=True,
-            characterize_phi=True,
-        )
 
-    @classmethod
-    def without_chi_characterization(cls) -> 'FloquetPhasedFSimCalibrationOptions':
-        """Gives options with all but chi angle characterization requests set to True."""
-        return FloquetPhasedFSimCalibrationOptions(
-            characterize_theta=True,
-            characterize_zeta=True,
-            characterize_chi=False,
-            characterize_gamma=True,
-            characterize_phi=True,
-        )
+"""PhasedFSimCalibrationOptions options with all angles characterization requests set to True."""
+ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
+    characterize_theta=True,
+    characterize_zeta=True,
+    characterize_chi=True,
+    characterize_gamma=True,
+    characterize_phi=True,
+)
+
+
+"""PhasedFSimCalibrationOptions with all but chi angle characterization requests set to True."""
+WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
+    characterize_theta=True,
+    characterize_zeta=True,
+    characterize_chi=False,
+    characterize_gamma=True,
+    characterize_phi=True,
+)
 
 
 @dataclasses.dataclass(frozen=True)

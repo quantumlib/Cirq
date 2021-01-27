@@ -20,13 +20,11 @@ from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationRequest,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
+    WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     try_convert_sqrt_iswap_to_fsim,
 )
 from cirq.google.engine import Engine
 from cirq.google.serializable_gate_set import SerializableGateSet
-
-
-WITHOUT_CHI_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions.without_chi_characterization()
 
 
 class IncompatibleMomentError(Exception):
@@ -109,7 +107,7 @@ def make_floquet_request_for_moment(
 
 def make_floquet_request_for_circuit(
     circuit: Circuit,
-    options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_CHARACTERIZATION,
+    options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
     merge_sub_sets: bool = True,
     initial: Optional[Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]] = None,
@@ -272,7 +270,7 @@ def run_floquet_characterization_for_circuit(
     engine: Engine,
     processor_id: str,
     gate_set: SerializableGateSet,
-    options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_CHARACTERIZATION,
+    options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
     merge_sub_sets: bool = True,
     max_layers_per_request: int = 1,

@@ -22,6 +22,7 @@ from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationRequest,
     PhasedFSimCharacterization,
     PhasedFSimCalibrationResult,
+    WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
 )
 
 SQRT_ISWAP_GATE = cirq.FSimGate(np.pi / 4, 0.0)
@@ -36,7 +37,7 @@ def test_floquet_characterization_for_circuit() -> None:
             [cirq.FSimGate(np.pi / 4, 0.0).on(b, c)],
         ]
     )
-    options = cirq.google.FloquetPhasedFSimCalibrationOptions.without_chi_characterization()
+    options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
     requests, mapping = workflow.make_floquet_request_for_circuit(circuit, options=options)
 
@@ -64,7 +65,7 @@ def test_floquet_characterization_for_circuit_merges_sub_sets() -> None:
     circuit += cirq.Moment(
         [cirq.FSimGate(np.pi / 4, 0.0).on(b, c), cirq.FSimGate(np.pi / 4, 0.0).on(d, e)]
     )
-    options = cirq.google.FloquetPhasedFSimCalibrationOptions.without_chi_characterization()
+    options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
     requests, mapping = workflow.make_floquet_request_for_circuit(circuit, options=options)
 
@@ -90,7 +91,7 @@ def test_floquet_characterization_for_circuit_merges_compatible_sets() -> None:
     circuit += cirq.Moment(
         [cirq.FSimGate(np.pi / 4, 0.0).on(a, f), cirq.FSimGate(np.pi / 4, 0.0).on(d, e)]
     )
-    options = cirq.google.FloquetPhasedFSimCalibrationOptions.without_chi_characterization()
+    options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
     requests, mapping = workflow.make_floquet_request_for_circuit(circuit, options=options)
 
