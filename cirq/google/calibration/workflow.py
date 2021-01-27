@@ -164,8 +164,8 @@ def floquet_characterization_for_circuit(
                 calibrations[index] = calibration
                 return index
             else:
-                new_qubit_pairs = calibration.qubit_pairs
-                existing_qubit_pairs = calibrations[index].qubit_pairs
+                new_qubit_pairs = calibration.qubit_to_pair
+                existing_qubit_pairs = calibrations[index].qubit_to_pair
                 if all(
                     (
                         new_qubit_pairs[q] == existing_qubit_pairs[q]

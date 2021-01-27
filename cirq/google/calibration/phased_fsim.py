@@ -225,7 +225,8 @@ class PhasedFSimCalibrationRequest(abc.ABC):
 
     @property
     @functools.lru_cache
-    def qubit_pairs(self) -> MutableMapping[Qid, Tuple[Qid, Qid]]:
+    def qubit_to_pair(self) -> MutableMapping[Qid, Tuple[Qid, Qid]]:
+        """Returns mapping from qubit to a qubit pair that it belongs to."""
         # Returning mutable mapping as a cached result because it's hard to get a frozen dictionary
         # in Python...
         return collections.ChainMap(*({q: pair for q in pair} for pair in self.pairs))
