@@ -40,7 +40,7 @@ def test_floquet_characterization_for_circuit() -> None:
             [cirq.X(a), cirq.Y(c)],
             [cirq.FSimGate(np.pi / 4, 0.0).on(a, b), cirq.FSimGate(np.pi / 4, 0.0).on(c, d)],
             [cirq.FSimGate(np.pi / 4, 0.0).on(b, c)],
-            [cirq.WaitGate(duration=cirq.Duration(micros=5.0)).on(b)]
+            [cirq.WaitGate(duration=cirq.Duration(micros=5.0)).on(b)],
         ]
     )
     options = cirq.google.FloquetPhasedFSimCalibrationOptions.without_chi_characterization()
@@ -298,7 +298,61 @@ def test_create_corrected_fsim_gate(
         cirq.google.PhasedFSimCharacterization(
             theta=theta, zeta=zeta, chi=chi, gamma=gamma, phi=phi
         ),
-        5,
+        phase_exponent=0.0,
+        characterization_index=5,
+    )
+    actual = cirq.unitary(cirq.Circuit(corrected_gate))
+
+    assert cirq.equal_up_to_global_phase(actual, expected)
+    assert corrected_mapping == [None, 5, None]
+
+
+# def test_create_corrected_fsim_gate_when_phase_exponent() -> None:
+#     a, b = cirq.LineQubit.range(2)
+#     theta = np.pi / 4
+#
+#     expected_gate = cirq.PhasedFSimGate(theta=-theta)
+#     expected = cirq.unitary(expected_gate)
+#
+#     corrected_gate, corrected_mapping = workflow.create_corrected_fsim_gate(
+#         (a, b),
+#         cirq.FSimGate(theta=theta, phi=0.0),
+#         cirq.google.PhasedFSimCharacterization(
+#             theta=theta, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
+#         ),
+#         phase_exponent=0.5,
+#         characterization_index=5,
+#     )
+#     actual = cirq.unitary(cirq.Circuit(corrected_gate))
+#     print(actual)
+#     print(expected)
+#
+#     assert cirq.equal_up_to_global_phase(actual, expected)
+#     assert corrected_mapping == [None, 5, None]
+
+
+@pytest.mark.parametrize(
+    'theta,zeta,chi,gamma,phi',
+    itertools.product(
+        [np.pi / 4, -0.2], [-0.3, 0.1, 0.5], [-0.3, 0.2, 0.4], [-0.6, 0.1, 0.6], [0.2, 0.6]
+    ),
+)
+def test_create_corrected_fsim_gate_when_phase_exponent(
+    theta: float, zeta: float, chi: float, gamma: float, phi: float
+) -> None:
+    a, b = cirq.LineQubit.range(2)
+
+    expected_gate = cirq.PhasedFSimGate(theta=-theta, zeta=-zeta, chi=-chi, gamma=-gamma, phi=phi)
+    expected = cirq.unitary(expected_gate)
+
+    corrected_gate, corrected_mapping = workflow.create_corrected_fsim_gate(
+        (a, b),
+        cirq.FSimGate(theta=theta, phi=phi),
+        cirq.google.PhasedFSimCharacterization(
+            theta=theta, zeta=zeta, chi=chi, gamma=gamma, phi=phi
+        ),
+        phase_exponent=0.5,
+        characterization_index=5,
     )
     actual = cirq.unitary(cirq.Circuit(corrected_gate))
 

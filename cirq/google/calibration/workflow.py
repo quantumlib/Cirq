@@ -15,6 +15,8 @@ from typing import Callable, List, Optional, Tuple, Union, cast
 
 from itertools import zip_longest
 
+import numpy as np
+
 from cirq.circuits import Circuit
 from cirq.ops import (
     FSimGate,
@@ -48,7 +50,9 @@ WITHOUT_CHI_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions.without_chi_c
 def floquet_characterization_for_moment(
     moment: Moment,
     options: FloquetPhasedFSimCalibrationOptions,
-    gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
+    gates_translator: Callable[
+        [Gate], Optional[Tuple[FSimGate, float]]
+    ] = sqrt_iswap_gates_translator,
     pairs_in_canonical_order: bool = False,
     pairs_sorted: bool = False,
 ) -> Optional[FloquetPhasedFSimCalibrationRequest]:
@@ -84,7 +88,7 @@ def floquet_characterization_for_moment(
         if isinstance(op.gate, (MeasurementGate, SingleQubitGate, WaitGate)):
             other_operation = True
         else:
-            translated_gate = gates_translator(op.gate)
+            translated_gate, _ = gates_translator(op.gate)
             if translated_gate is None:
                 raise IncompatibleMomentError(
                     f'Moment {moment} contains unsupported non-single qubit operation {op}'
@@ -119,7 +123,9 @@ def floquet_characterization_for_moment(
 def floquet_characterization_for_circuit(
     circuit: Circuit,
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_CHARACTERIZATION,
-    gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
+    gates_translator: Callable[
+        [Gate], Optional[Tuple[FSimGate, float]]
+    ] = sqrt_iswap_gates_translator,
     merge_sub_sets: bool = True,
     initial: Optional[Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]] = None,
 ) -> Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]:
@@ -291,7 +297,9 @@ def phased_calibration_for_circuit(
     circuit: Circuit,
     characterizations: List[PhasedFSimCalibrationResult],
     moments_mapping: List[Optional[int]],
-    gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
+    gates_translator: Callable[
+        [Gate], Optional[Tuple[FSimGate, float]]
+    ] = sqrt_iswap_gates_translator,
 ) -> Tuple[Circuit, List[Optional[int]]]:
     default_phases = PhasedFSimCharacterization(zeta=0.0, chi=0.0, gamma=0.0)
 
@@ -318,7 +326,7 @@ def phased_calibration_for_circuit(
             else:
                 if parameters is None:
                     raise ValueError(f'Missing characterization data for moment {moment}')
-                translated_gate = gates_translator(op.gate)
+                translated_gate, translated_phase_exponent = gates_translator(op.gate)
                 if translated_gate is None:
                     raise IncompatibleMomentError(
                         f'Moment {moment} contains unsupported non-single qubit operation {op}'
@@ -327,7 +335,11 @@ def phased_calibration_for_circuit(
                 pair_parameters = parameters.get_parameters(a, b)
                 pair_parameters = pair_parameters.merge_with(default_phases)
                 decomposed, decomposed_mapping = create_corrected_fsim_gate(
-                    (a, b), translated_gate, pair_parameters, characterization_index
+                    (a, b),
+                    translated_gate,
+                    pair_parameters,
+                    translated_phase_exponent,
+                    characterization_index,
                 )
                 decompositions.append(decomposed)
 
@@ -353,15 +365,17 @@ def create_corrected_fsim_gate(
     qubits: Tuple[Qid, Qid],
     gate: FSimGate,
     parameters: PhasedFSimCharacterization,
-    characterization_index,
+    phase_exponent: float,
+    characterization_index: int,
 ) -> Tuple[Tuple[Tuple[Operation, ...], ...], List[Optional[int]]]:
     zeta = parameters.zeta
     gamma = parameters.gamma
     chi = parameters.chi
 
     a, b = qubits
-    alpha = 0.5 * (zeta + chi)
-    beta = 0.5 * (zeta - chi)
+    phase = phase_exponent * np.pi
+    alpha = 0.5 * (zeta + chi) - phase
+    beta = 0.5 * (zeta - chi) + phase
     return (
         (
             (rz(0.5 * gamma - alpha).on(a), rz(0.5 * gamma + alpha).on(b)),
@@ -378,7 +392,9 @@ def run_floquet_characterization_for_circuit(
     processor_id: str,
     gate_set: SerializableGateSet,
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_CHARACTERIZATION,
-    gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
+    gates_translator: Callable[
+        [Gate], Optional[Tuple[FSimGate, float]]
+    ] = sqrt_iswap_gates_translator,
     merge_sub_sets: bool = True,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
@@ -435,7 +451,9 @@ def run_floquet_phased_calibration_for_circuit(
     engine: Union[Engine, PhasedFSimEngineSimulator],
     processor_id: Optional[str],
     gate_set: SerializableGateSet,
-    gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
+    gates_translator: Callable[
+        [Gate], Optional[Tuple[FSimGate, float]]
+    ] = sqrt_iswap_gates_translator,
     options: FloquetPhasedFSimCalibrationOptions = FloquetPhasedFSimCalibrationOptions(
         characterize_theta=False,
         characterize_zeta=True,

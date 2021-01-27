@@ -46,7 +46,9 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         simulator: Simulator,
         *,
         drift_generator: Callable[[Qid, Qid, FSimGate], PhasedFSimGate],
-        gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
+        gates_translator: Callable[
+            [Gate], Optional[Tuple[FSimGate, float]]
+        ] = sqrt_iswap_gates_translator,
     ) -> None:
         self._simulator = simulator
         self._drift_generator = drift_generator
@@ -225,7 +227,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             else:
                 raise ValueError(f'Unsupported calibration request {request}')
 
-            translated_gate = self._gates_translator(request.gate)
+            translated_gate, _ = self._gates_translator(request.gate)
             if translated_gate is None:
                 raise ValueError(f'Calibration request contains unsupported gate {request.gate}')
 
@@ -295,11 +297,14 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             if isinstance(op.gate, (MeasurementGate, SingleQubitGate, WaitGate)):
                 new_op = op
             else:
-                translated_gate = self._outer._gates_translator(op.gate)
+                translated_gate, translate_phase_exponent = self._outer._gates_translator(op.gate)
                 if translated_gate is None:
                     raise IncompatibleMomentError(
                         f'Moment contains non-single qubit operation ' f'{op} with unsupported gate'
                     )
+                # TODO: Introduce phase corrections by adjusting chi.
+                if not np.isclose(translate_phase_exponent, 0.0):
+                    raise RuntimeError('Gates with phase exponents not yet supported')
                 a, b = op.qubits
                 new_op = self._outer._get_or_create_gate(a, b, translated_gate).on(a, b)
 

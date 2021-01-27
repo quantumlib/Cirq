@@ -171,7 +171,7 @@ class PhasedFSimCalibrationResult:
                 for pair, pair_parameters in self.parameters.items()
             },
             gate=self.gate,
-            gate_set=self.gate_set
+            gate_set=self.gate_set,
         )
 
     def get_parameters(self, a: Qid, b: Qid) -> Optional['PhasedFSimCharacterization']:
@@ -373,7 +373,7 @@ class IncompatibleMomentError(Exception):
     """Error that occurs when a moment is not supported by a calibration routine."""
 
 
-def sqrt_iswap_gates_translator(gate: Gate) -> Optional[FSimGate]:
+def sqrt_iswap_gates_translator(gate: Gate) -> Optional[Tuple[FSimGate, float]]:
     if isinstance(gate, FSimGate):
         if not np.isclose(gate.phi, 0.0):
             return None
@@ -397,6 +397,8 @@ def sqrt_iswap_gates_translator(gate: Gate) -> Optional[FSimGate]:
         return None
 
     if np.isclose(angle, np.pi / 4):
-        return FSimGate(theta=np.pi / 4, phi=0.0)
+        return FSimGate(theta=np.pi / 4, phi=0.0), 0.0
+    elif np.isclose(angle, -np.pi / 4):
+        return FSimGate(theta=np.pi / 4, phi=0.0), 0.5
 
     return None
