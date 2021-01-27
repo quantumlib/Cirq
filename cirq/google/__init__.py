@@ -30,6 +30,7 @@ from cirq.google.calibration import (
     floquet_characterization_for_moment,
     run_characterizations,
     run_floquet_characterization_for_circuit,
+    sqrt_iswap_gates_translator
 )
 
 from cirq.google.devices import (
