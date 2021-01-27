@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, List, Optional, Tuple, cast
+from typing import Callable, Dict, List, Optional, Sequence, Tuple, cast
 
 from cirq.circuits import Circuit
 from cirq.ops import FSimGate, Gate, GateOperation, MeasurementGate, Moment, Qid, SingleQubitGate
@@ -144,7 +144,7 @@ def make_floquet_request_for_circuit(
         operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
     """
 
-    pairs_map = {}
+    pairs_map: Dict[Tuple[Tuple[Qid, Qid], ...], int] = {}
 
     def append_if_missing(calibration: FloquetPhasedFSimCalibrationRequest) -> int:
         if calibration.pairs not in pairs_map:
@@ -190,8 +190,8 @@ def make_floquet_request_for_circuit(
         return index
 
     if initial is None:
-        calibrations = []
-        moments_map = []
+        calibrations: List[FloquetPhasedFSimCalibrationRequest] = []
+        moments_map: List[Optional[int]] = []
     else:
         calibrations, moments_map = initial
 
@@ -213,7 +213,7 @@ def make_floquet_request_for_circuit(
 
 
 def run_characterizations(
-    calibrations: List[PhasedFSimCalibrationRequest],
+    calibrations: Sequence[PhasedFSimCalibrationRequest],
     engine: Engine,
     processor_id: str,
     gate_set: SerializableGateSet,
