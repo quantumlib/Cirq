@@ -171,7 +171,7 @@ def random_rotations_between_two_qubit_circuit(
 ) -> 'cirq.Circuit':
     """Generate a random two-qubit quantum circuit.
 
-    This construction is uses a similar structure to those in the paper
+    This construction uses a similar structure to those in the paper
     https://www.nature.com/articles/s41586-019-1666-5.
 
     The generated circuit consists of a number of "cycles", this number being
@@ -242,7 +242,7 @@ def random_rotations_between_grid_interaction_layers_circuit(
     specified by `depth`. Each cycle is actually composed of two sub-layers:
     a layer of single-qubit gates followed by a layer of two-qubit gates,
     controlled by their respective arguments, see below. The pairs of qubits
-    in a given entangling layer is controlled by the ``pattern`` argument,
+    in a given entangling layer is controlled by the `pattern` argument,
     see below.
 
     Args:
