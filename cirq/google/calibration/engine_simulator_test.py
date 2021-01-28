@@ -8,13 +8,11 @@ from cirq.google.calibration.engine_simulator import (
     PhasedFSimEngineSimulator,
     SQRT_ISWAP_PARAMETERS,
 )
-from cirq.google.calibration import FloquetPhasedFSimCalibrationOptions
-import cirq
-
-
-WITH_ALL_ANGLES_CHARACTERIZATION = (
-    FloquetPhasedFSimCalibrationOptions.with_all_angles_characterization()
+from cirq.google.calibration import (
+    FloquetPhasedFSimCalibrationOptions,
+    ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
 )
+import cirq
 
 
 def test_floquet_get_calibrations() -> None:
@@ -41,12 +39,12 @@ def test_floquet_get_calibrations() -> None:
         cirq.google.PhasedFSimCalibrationResult(
             gate=cirq.FSimGate(np.pi / 4, 0.0),
             parameters={(a, b): parameters_ab, (c, d): parameters_cd},
-            options=WITH_ALL_ANGLES_CHARACTERIZATION,
+            options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
         ),
         cirq.google.PhasedFSimCalibrationResult(
             gate=cirq.FSimGate(np.pi / 4, 0.0),
             parameters={(b, c): parameters_bc},
-            options=WITH_ALL_ANGLES_CHARACTERIZATION,
+            options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
         ),
     ]
 
@@ -185,12 +183,12 @@ def test_from_characterizations_sqrt_iswap_simulates_correctly() -> None:
             cirq.google.PhasedFSimCalibrationResult(
                 gate=cirq.FSimGate(np.pi / 4, 0.0),
                 parameters={(a, b): parameters_ab, (c, d): parameters_cd},
-                options=WITH_ALL_ANGLES_CHARACTERIZATION,
+                options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
             ),
             cirq.google.PhasedFSimCalibrationResult(
                 gate=cirq.FSimGate(np.pi / 4, 0.0),
                 parameters={(b, c): parameters_bc},
-                options=WITH_ALL_ANGLES_CHARACTERIZATION,
+                options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
             ),
         ]
     )
@@ -203,7 +201,7 @@ def test_from_characterizations_sqrt_iswap_simulates_correctly() -> None:
 
 def _create_sqrt_iswap_request(
     pairs: Iterable[Tuple[cirq.Qid, cirq.Qid]],
-    options: FloquetPhasedFSimCalibrationOptions = WITH_ALL_ANGLES_CHARACTERIZATION,
+    options: FloquetPhasedFSimCalibrationOptions = ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
 ) -> cirq.google.FloquetPhasedFSimCalibrationRequest:
     return cirq.google.FloquetPhasedFSimCalibrationRequest(
         gate=cirq.FSimGate(np.pi / 4, 0.0), pairs=tuple(pairs), options=options
