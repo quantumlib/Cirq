@@ -14,6 +14,7 @@
 import functools
 import glob
 import os
+import subprocess
 import sys
 from typing import Set
 
@@ -37,7 +38,8 @@ SKIP_NOTEBOOKS = [
 
 
 def _list_all_notebooks() -> Set[str]:
-    return set(shell_tools.output_of('git', 'ls-files', '*.ipynb').splitlines())
+    output = subprocess.check_output(['git', 'ls-files', '*.ipynb'])
+    return set(output.decode('utf-8').splitlines())
 
 
 def _tested_notebooks():
