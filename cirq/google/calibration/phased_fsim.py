@@ -50,7 +50,7 @@ T = TypeVar('T')
 
 
 # Workaround for: https://github.com/python/mypy/issues/5858
-def cache(func: Callable[..., T]) -> T:
+def lru_cache_typesafe(func: Callable[..., T]) -> T:
     return functools.lru_cache(maxsize=None)(func)  # type: ignore
 
 
@@ -243,7 +243,7 @@ class PhasedFSimCalibrationRequest(abc.ABC):
 
     # Workaround for: https://github.com/python/mypy/issues/1362
     @property  # type: ignore
-    @cache
+    @lru_cache_typesafe
     def qubit_to_pair(self) -> MutableMapping[Qid, Tuple[Qid, Qid]]:
         """Returns mapping from qubit to a qubit pair that it belongs to."""
         # Returning mutable mapping as a cached result because it's hard to get a frozen dictionary
