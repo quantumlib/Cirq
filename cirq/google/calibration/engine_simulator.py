@@ -31,7 +31,7 @@ from cirq.google.calibration.phased_fsim import (
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
-    sqrt_iswap_gates_translator,
+    try_convert_sqrt_iswap_to_fsim,
 )
 
 
@@ -46,7 +46,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         simulator: Simulator,
         *,
         drift_generator: Callable[[Qid, Qid, FSimGate], PhasedFSimGate],
-        gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
+        gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
     ) -> None:
         self._simulator = simulator
         self._drift_generator = drift_generator
@@ -67,7 +67,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             simulator = Simulator()
 
         return PhasedFSimEngineSimulator(
-            simulator, drift_generator=sample_gate, gates_translator=sqrt_iswap_gates_translator
+            simulator, drift_generator=sample_gate, gates_translator=try_convert_sqrt_iswap_to_fsim
         )
 
     @staticmethod
@@ -116,7 +116,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             simulator = Simulator()
 
         return PhasedFSimEngineSimulator(
-            simulator, drift_generator=sample_gate, gates_translator=sqrt_iswap_gates_translator
+            simulator, drift_generator=sample_gate, gates_translator=try_convert_sqrt_iswap_to_fsim
         )
 
     @staticmethod
@@ -164,7 +164,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             simulator = Simulator()
 
         return PhasedFSimEngineSimulator(
-            simulator, drift_generator=sample_gate, gates_translator=sqrt_iswap_gates_translator
+            simulator, drift_generator=sample_gate, gates_translator=try_convert_sqrt_iswap_to_fsim
         )
 
     @staticmethod
