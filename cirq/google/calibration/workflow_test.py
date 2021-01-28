@@ -34,7 +34,6 @@ SQRT_ISWAP_GATE = cirq.FSimGate(np.pi / 4, 0.0)
 def _fsim_identity_converter(gate: cirq.Gate) -> Optional[cirq.FSimGate]:
     if isinstance(gate, cirq.FSimGate):
         return gate
-    return None
 
 
 def test_make_floquet_request_for_moment_none_for_measurements() -> None:
@@ -197,8 +196,9 @@ def test_make_floquet_request_for_circuit_does_not_merge_sub_sets_when_disabled(
             [cirq.FSimGate(np.pi / 4, 0.0).on(a, b)],
         ]
     )
-    circuit += cirq.Moment(
-        [cirq.FSimGate(np.pi / 4, 0.0).on(b, c), cirq.FSimGate(np.pi / 4, 0.0).on(d, e)]
+    circuit += cirq.Circuit(
+        [cirq.FSimGate(np.pi / 4, 0.0).on(b, c), cirq.FSimGate(np.pi / 4, 0.0).on(d, e)],
+        [cirq.FSimGate(np.pi / 4, 0.0).on(b, c)],
     )
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
@@ -220,7 +220,7 @@ def test_make_floquet_request_for_circuit_does_not_merge_sub_sets_when_disabled(
             pairs=((b, c), (d, e)), gate=SQRT_ISWAP_GATE, options=options
         ),
     ]
-    assert mapping == [None, 0, 1, 2, 3]
+    assert mapping == [None, 0, 1, 2, 3, 1]
 
 
 def test_make_floquet_request_for_circuit_merges_compatible_sets() -> None:
