@@ -278,7 +278,7 @@ def test_sample_2q_xeb_circuits():
 
 def test_sample_2q_xeb_circuits_error():
     qubits = cirq.LineQubit.range(3)
-    circuits = [cirq.testing.random_circuit(qubits, n_moments=5, op_density=0.8)]
+    circuits = [cirq.testing.random_circuit(qubits, n_moments=5, op_density=0.8, random_state=52)]
     cycle_depths = np.arange(3, 50, 9)
     with pytest.raises(ValueError):  # three qubit circuits
         _ = sample_2q_xeb_circuits(
@@ -290,7 +290,7 @@ def test_sample_2q_xeb_circuits_error():
 
 def test_sample_2q_xeb_circuits_no_progress(capsys):
     qubits = cirq.LineQubit.range(2)
-    circuits = [cirq.testing.random_circuit(qubits, n_moments=7, op_density=0.8)]
+    circuits = [cirq.testing.random_circuit(qubits, n_moments=7, op_density=0.8, random_state=52)]
     cycle_depths = np.arange(3, 4)
     _ = sample_2q_xeb_circuits(
         sampler=cirq.Simulator(),
