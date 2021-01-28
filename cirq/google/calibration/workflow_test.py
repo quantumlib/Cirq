@@ -22,6 +22,7 @@ import cirq
 import cirq.google.calibration.workflow as workflow
 
 from cirq.google.calibration.phased_fsim import (
+    ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
     PhasedFSimCharacterization,
@@ -473,28 +474,27 @@ def test_create_corrected_fsim_gate(
     assert corrected_mapping == [None, 5, None]
 
 
-# def test_create_corrected_fsim_gate_when_phase_exponent() -> None:
-#     a, b = cirq.LineQubit.range(2)
-#     theta = np.pi / 4
-#
-#     expected_gate = cirq.PhasedFSimGate(theta=-theta)
-#     expected = cirq.unitary(expected_gate)
-#
-#     corrected_gate, corrected_mapping = workflow.create_corrected_fsim_gate(
-#         (a, b),
-#         cirq.FSimGate(theta=theta, phi=0.0),
-#         cirq.google.PhasedFSimCharacterization(
-#             theta=theta, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
-#         ),
-#         phase_exponent=0.5,
-#         characterization_index=5,
-#     )
-#     actual = cirq.unitary(cirq.Circuit(corrected_gate))
-#     print(actual)
-#     print(expected)
-#
-#     assert cirq.equal_up_to_global_phase(actual, expected)
-#     assert corrected_mapping == [None, 5, None]
+def test_phased_calibration_for_circuit():
+    a, b = cirq.LineQubit.range(2)
+
+    characterizations = [
+        PhasedFSimCalibrationResult(
+            parameters={(a, b): SQRT_ISWAP_PARAMETERS},
+            gate=SQRT_ISWAP_GATE,
+            options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+        )
+    ]
+    mapping = [0]
+
+    for circuit in [
+        cirq.Circuit(cirq.FSimGate(theta=np.pi / 4, phi=0.0).on(a, b)),
+        cirq.Circuit(cirq.FSimGate(theta=-np.pi / 4, phi=0.0).on(a, b)),
+    ]:
+        corrected_circuit, corrected_mapping = workflow.phased_calibration_for_circuit(
+            circuit, characterizations, mapping
+        )
+        assert np.allclose(cirq.unitary(circuit), cirq.unitary(corrected_circuit))
+        assert corrected_mapping == [None, 0, None]
 
 
 @pytest.mark.parametrize(
