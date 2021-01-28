@@ -144,56 +144,13 @@ def make_floquet_request_for_circuit(
     """
 
     if initial is None:
-        calibrations: List[FloquetPhasedFSimCalibrationRequest] = []
         allocations: List[Optional[int]] = []
+        calibrations: List[FloquetPhasedFSimCalibrationRequest] = []
         pairs_map: Dict[Tuple[Tuple[Qid, Qid], ...], int] = {}
     else:
-        calibrations = initial
         allocations = []
+        calibrations = initial
         pairs_map = {calibration.pairs: index for index, calibration in enumerate(calibrations)}
-
-    def append_if_missing(calibration: FloquetPhasedFSimCalibrationRequest) -> int:
-        if calibration.pairs not in pairs_map:
-            index = len(calibrations)
-            calibrations.append(calibration)
-            pairs_map[calibration.pairs] = index
-            return index
-        else:
-            return pairs_map[calibration.pairs]
-
-    def merge_into_calibrations(calibration: FloquetPhasedFSimCalibrationRequest) -> int:
-        new_pairs = set(calibration.pairs)
-        for index in pairs_map.values():
-            assert calibration.gate == calibrations[index].gate
-            assert calibration.options == calibrations[index].options
-            existing_pairs = calibrations[index].pairs
-            if new_pairs.issubset(existing_pairs):
-                return index
-            elif new_pairs.issuperset(existing_pairs):
-                calibrations[index] = calibration
-                return index
-            else:
-                new_qubit_pairs = calibration.qubit_to_pair
-                existing_qubit_pairs = calibrations[index].qubit_to_pair
-                if all(
-                    (
-                        new_qubit_pairs[q] == existing_qubit_pairs[q]
-                        for q in set(new_qubit_pairs.keys()).intersection(
-                            existing_qubit_pairs.keys()
-                        )
-                    )
-                ):
-                    calibrations[index] = FloquetPhasedFSimCalibrationRequest(
-                        gate=calibration.gate,
-                        pairs=tuple(sorted(new_pairs.union(existing_pairs))),
-                        options=options,
-                    )
-                    return index
-
-        index = len(calibrations)
-        calibrations.append(calibration)
-        pairs_map[calibration.pairs] = index
-        return index
 
     for moment in circuit:
         calibration = make_floquet_request_for_moment(
@@ -202,14 +159,99 @@ def make_floquet_request_for_circuit(
 
         if calibration is not None:
             if merge_subsets:
-                index = merge_into_calibrations(calibration)
+                index = _merge_into_calibrations(calibration, calibrations, pairs_map, options)
             else:
-                index = append_if_missing(calibration)
+                index = _append_into_calibrations_if_missing(calibration, calibrations, pairs_map)
             allocations.append(index)
         else:
             allocations.append(None)
 
     return calibrations, allocations
+
+
+def _append_into_calibrations_if_missing(
+    calibration: FloquetPhasedFSimCalibrationRequest,
+    calibrations: List[FloquetPhasedFSimCalibrationRequest],
+    pairs_map: Dict[Tuple[Tuple[Qid, Qid], ...], int],
+) -> int:
+    """Adds calibration to the calibrations list if not already present.
+
+    This function uses equivalence of calibration.pairs as a presence check.
+
+    Args:
+        calibration: Calibration to be added.
+        calibrations: List of calibrations to be mutated. The list is expanded only if a calibration
+            is not on the list already.
+        pairs_map: Map from pairs parameter of each calibration on the calibrations list to the
+            index on that list. This map will be updated if the calibrations list us expanded.
+
+    Returns:
+        Index of the calibration on the updated calibrations list. If the calibration was added, it
+        points to the last element of a list. If not, it points to already existing element.
+    """
+    if calibration.pairs not in pairs_map:
+        index = len(calibrations)
+        calibrations.append(calibration)
+        pairs_map[calibration.pairs] = index
+        return index
+    else:
+        return pairs_map[calibration.pairs]
+
+
+def _merge_into_calibrations(
+    calibration: FloquetPhasedFSimCalibrationRequest,
+    calibrations: List[FloquetPhasedFSimCalibrationRequest],
+    pairs_map: Dict[Tuple[Tuple[Qid, Qid], ...], int],
+    options: FloquetPhasedFSimCalibrationOptions,
+) -> int:
+    """Merges a calibration into list of calibrations.
+
+    If calibrations contains an item of which pairs could be expanded to include a new calibration
+    pairs, without breaking a moment structure, then those two calibrations will be merged together
+    and used as a calibration for both old and newly added calibration.
+    If no calibration like that exists, the list will be expanded by calibration item.
+
+    Args:
+        calibration: Calibration to be added.
+        calibrations: List of calibrations to be mutated.
+        pairs_map: Map from pairs parameter of each calibration on the calibrations list to the
+            index on that list. This map will be updated if the calibrations list us updated.
+        options: Calibrations options to use when creating a new requests.
+
+    Returns:
+        Index of the calibration on the updated calibrations list. If the calibration was added, it
+        points to the last element of a list. If not, it points to already existing element.
+    """
+    new_pairs = set(calibration.pairs)
+    for index in pairs_map.values():
+        assert calibration.gate == calibrations[index].gate
+        assert calibration.options == calibrations[index].options
+        existing_pairs = calibrations[index].pairs
+        if new_pairs.issubset(existing_pairs):
+            return index
+        elif new_pairs.issuperset(existing_pairs):
+            calibrations[index] = calibration
+            return index
+        else:
+            new_qubit_pairs = calibration.qubit_to_pair
+            existing_qubit_pairs = calibrations[index].qubit_to_pair
+            if all(
+                (
+                    new_qubit_pairs[q] == existing_qubit_pairs[q]
+                    for q in set(new_qubit_pairs.keys()).intersection(existing_qubit_pairs.keys())
+                )
+            ):
+                calibrations[index] = FloquetPhasedFSimCalibrationRequest(
+                    gate=calibration.gate,
+                    pairs=tuple(sorted(new_pairs.union(existing_pairs))),
+                    options=options,
+                )
+                return index
+
+    index = len(calibrations)
+    calibrations.append(calibration)
+    pairs_map[calibration.pairs] = index
+    return index
 
 
 def run_characterizations(
