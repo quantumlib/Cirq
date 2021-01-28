@@ -11,7 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, List, MutableMapping, Optional, Tuple, TYPE_CHECKING
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    MutableMapping,
+    Optional,
+    Tuple,
+    TypeVar,
+    TYPE_CHECKING,
+)
 
 import abc
 import collections
@@ -34,6 +44,14 @@ else:
 
 
 _FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
+
+
+T = TypeVar('T')
+
+
+# Workaround for: https://github.com/python/mypy/issues/5858
+def lru_cache_typesafe(func: Callable[..., T]) -> T:
+    return functools.lru_cache(maxsize=None)(func)  # type: ignore
 
 
 @json_serializable_dataclass(frozen=True)
@@ -171,7 +189,7 @@ class PhasedFSimCalibrationResult:
                 for pair, pair_parameters in self.parameters.items()
             },
             gate=self.gate,
-            options=self.options
+            options=self.options,
         )
 
     def get_parameters(self, a: Qid, b: Qid) -> Optional['PhasedFSimCharacterization']:
@@ -233,9 +251,11 @@ class PhasedFSimCalibrationRequest(abc.ABC):
     pairs: Tuple[Tuple[Qid, Qid], ...]
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
 
-    @property
-    @functools.lru_cache
-    def qubit_pairs(self) -> MutableMapping[Qid, Tuple[Qid, Qid]]:
+    # Workaround for: https://github.com/python/mypy/issues/1362
+    @property  # type: ignore
+    @lru_cache_typesafe
+    def qubit_to_pair(self) -> MutableMapping[Qid, Tuple[Qid, Qid]]:
+        """Returns mapping from qubit to a qubit pair that it belongs to."""
         # Returning mutable mapping as a cached result because it's hard to get a frozen dictionary
         # in Python...
         return collections.ChainMap(*({q: pair for q in pair} for pair in self.pairs))
@@ -270,27 +290,25 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     characterize_gamma: bool
     characterize_phi: bool
 
-    @classmethod
-    def with_all_angles_characterization(cls) -> 'FloquetPhasedFSimCalibrationOptions':
-        """Gives options with all angles characterization requests set to True."""
-        return FloquetPhasedFSimCalibrationOptions(
-            characterize_theta=True,
-            characterize_zeta=True,
-            characterize_chi=True,
-            characterize_gamma=True,
-            characterize_phi=True,
-        )
 
-    @classmethod
-    def without_chi_characterization(cls) -> 'FloquetPhasedFSimCalibrationOptions':
-        """Gives options with all but chi angle characterization requests set to True."""
-        return FloquetPhasedFSimCalibrationOptions(
-            characterize_theta=True,
-            characterize_zeta=True,
-            characterize_chi=False,
-            characterize_gamma=True,
-            characterize_phi=True,
-        )
+"""PhasedFSimCalibrationOptions options with all angles characterization requests set to True."""
+ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
+    characterize_theta=True,
+    characterize_zeta=True,
+    characterize_chi=True,
+    characterize_gamma=True,
+    characterize_phi=True,
+)
+
+
+"""PhasedFSimCalibrationOptions with all but chi angle characterization requests set to True."""
+WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
+    characterize_theta=True,
+    characterize_zeta=True,
+    characterize_chi=False,
+    characterize_gamma=True,
+    characterize_phi=True,
+)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -373,7 +391,16 @@ class IncompatibleMomentError(Exception):
     """Error that occurs when a moment is not supported by a calibration routine."""
 
 
-def sqrt_iswap_gates_translator(gate: Gate) -> Optional[Tuple[FSimGate, float]]:
+def try_convert_sqrt_iswap_to_fsim(gate: Gate) -> Optional[Tuple[FSimGate, float]]:
+    """Converts an equivalent gate to FSimGate(theta=π/4, phi=0) if possible.
+
+    Args:
+        gate: Gate to verify.
+
+    Returns:
+        FSimGate(theta=π/4, phi=0) if provided gate either  FSimGate, ISWapPowGate, PhasedFSimGate
+        or PhasedISwapPowGate that is equivalent to FSimGate(theta=π/4, phi=0). None otherwise.
+    """
     if isinstance(gate, FSimGate):
         if not np.isclose(gate.phi, 0.0):
             return None
