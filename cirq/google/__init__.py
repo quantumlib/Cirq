@@ -21,6 +21,7 @@ from cirq.google.arg_func_langs import (
 )
 
 from cirq.google.calibration import (
+    ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
     PhasedFSimCalibrationRequest,
@@ -28,10 +29,12 @@ from cirq.google.calibration import (
     PhasedFSimCharacterization,
     PhasedFSimEngineSimulator,
     SQRT_ISWAP_PARAMETERS,
-    floquet_characterization_for_circuit,
-    floquet_characterization_for_moment,
+    make_floquet_request_for_circuit,
+    make_floquet_request_for_moment,
     run_characterizations,
     run_floquet_characterization_for_circuit,
+    try_convert_sqrt_iswap_to_fsim,
+    WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
 )
 
 from cirq.google.devices import (

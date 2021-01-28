@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, List, Optional, Tuple, Union, cast
+from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union, cast
 
 from cirq.circuits import Circuit
 from cirq.ops import FSimGate, Gate, GateOperation, MeasurementGate, Moment, Qid, SingleQubitGate
@@ -22,21 +22,19 @@ from cirq.google.calibration.phased_fsim import (
     IncompatibleMomentError,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
-    sqrt_iswap_gates_translator,
+    WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    try_convert_sqrt_iswap_to_fsim,
 )
 from cirq.google.engine import Engine
 from cirq.google.serializable_gate_set import SerializableGateSet
 
 
-WITHOUT_CHI_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions.without_chi_characterization()
-
-
-def floquet_characterization_for_moment(
+def make_floquet_request_for_moment(
     moment: Moment,
     options: FloquetPhasedFSimCalibrationOptions,
-    gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
-    pairs_in_canonical_order: bool = False,
-    pairs_sorted: bool = False,
+    gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
+    canonicalize_pairs: bool = False,
+    sort_pairs: bool = False,
 ) -> Optional[FloquetPhasedFSimCalibrationRequest]:
     """Describes a given moment in terms of a Floquet characterization request.
 
@@ -45,9 +43,9 @@ def floquet_characterization_for_moment(
         options: Options that are applied to each characterized gate within a moment.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo
             characterization. Defaults to sqrt_iswap_gates_translator.
-        pairs_in_canonical_order: Whether to sort each of the qubit pair so that the first qubit
+        canonicalize_pairs: Whether to sort each of the qubit pair so that the first qubit
             is always lower than the second.
-        pairs_sorted: Whether to sort all the qutibt pairs extracted from the moment which will
+        sort_pairs: Whether to sort all the qutibt pairs extracted from the moment which will
             undergo characterization.
 
     Returns:
@@ -86,7 +84,7 @@ def floquet_characterization_for_moment(
             else:
                 gate = translated_gate
             pair = cast(
-                Tuple[Qid, Qid], tuple(sorted(op.qubits) if pairs_in_canonical_order else op.qubits)
+                Tuple[Qid, Qid], tuple(sorted(op.qubits) if canonicalize_pairs else op.qubits)
             )
             pairs.append(pair)
 
@@ -101,16 +99,16 @@ def floquet_characterization_for_moment(
         )
 
     return FloquetPhasedFSimCalibrationRequest(
-        pairs=tuple(sorted(pairs) if pairs_sorted else pairs), gate=gate, options=options
+        pairs=tuple(sorted(pairs) if sort_pairs else pairs), gate=gate, options=options
     )
 
 
-def floquet_characterization_for_circuit(
+def make_floquet_request_for_circuit(
     circuit: Circuit,
-    options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_CHARACTERIZATION,
-    gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
-    merge_sub_sets: bool = True,
-    initial: Optional[Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]] = None,
+    options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
+    merge_subsets: bool = True,
+    initial: Optional[List[FloquetPhasedFSimCalibrationRequest]] = None,
 ) -> Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]:
     """Extracts a minimal set of Floquet characterization requests necessary to characterize given
     circuit.
@@ -124,10 +122,12 @@ def floquet_characterization_for_circuit(
             to all_except_for_chi_options which is the broadest currently supported choice.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo
             characterization. Defaults to sqrt_iswap_gates_translator.
-        merge_sub_sets: Whether to merge moments that can be characterized at the same time
+        merge_subsets: Whether to merge moments that can be characterized at the same time
             together.
-        initial: The characterization requests obtained by a previous scan of another circuit. This
-            might be used to find a minimal set of moments to characterize across many circuits.
+        initial: The characterization requests obtained by a previous scan of another circuit; i.e.,
+            the first element of a tuple returned by make_floquet_request_for_circuit invoked on
+            another circuit. This might be used to find a minimal set of moments to characterize
+            across many circuits.
 
     Returns:
         Tuple of:
@@ -141,76 +141,119 @@ def floquet_characterization_for_circuit(
         operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
     """
 
-    def append_if_missing(calibration: FloquetPhasedFSimCalibrationRequest) -> int:
-        if calibration.pairs not in pairs_map:
-            index = len(calibrations)
-            calibrations.append(calibration)
-            pairs_map[calibration.pairs] = index
-            return index
-        else:
-            return pairs_map[calibration.pairs]
+    if initial is None:
+        allocations: List[Optional[int]] = []
+        calibrations: List[FloquetPhasedFSimCalibrationRequest] = []
+        pairs_map: Dict[Tuple[Tuple[Qid, Qid], ...], int] = {}
+    else:
+        allocations = []
+        calibrations = initial
+        pairs_map = {calibration.pairs: index for index, calibration in enumerate(calibrations)}
 
-    def merge_into_calibrations(calibration: FloquetPhasedFSimCalibrationRequest) -> int:
-        new_pairs = set(calibration.pairs)
-        for index in pairs_map.values():
-            assert calibration.gate == calibrations[index].gate
-            assert calibration.options == calibrations[index].options
-            existing_pairs = calibrations[index].pairs
-            if new_pairs.issubset(existing_pairs):
-                return index
-            elif new_pairs.issuperset(existing_pairs):
-                calibrations[index] = calibration
-                return index
+    for moment in circuit:
+        calibration = make_floquet_request_for_moment(
+            moment, options, gates_translator, canonicalize_pairs=True, sort_pairs=True
+        )
+
+        if calibration is not None:
+            if merge_subsets:
+                index = _merge_into_calibrations(calibration, calibrations, pairs_map, options)
             else:
-                new_qubit_pairs = calibration.qubit_pairs
-                existing_qubit_pairs = calibrations[index].qubit_pairs
-                if all(
-                    (
-                        new_qubit_pairs[q] == existing_qubit_pairs[q]
-                        for q in set(new_qubit_pairs.keys()).intersection(
-                            existing_qubit_pairs.keys()
-                        )
-                    )
-                ):
-                    calibrations[index] = FloquetPhasedFSimCalibrationRequest(
-                        gate=calibration.gate,
-                        pairs=tuple(sorted(new_pairs.union(existing_pairs))),
-                        options=options,
-                    )
-                    return index
+                index = _append_into_calibrations_if_missing(calibration, calibrations, pairs_map)
+            allocations.append(index)
+        else:
+            allocations.append(None)
 
+    return calibrations, allocations
+
+
+def _append_into_calibrations_if_missing(
+    calibration: FloquetPhasedFSimCalibrationRequest,
+    calibrations: List[FloquetPhasedFSimCalibrationRequest],
+    pairs_map: Dict[Tuple[Tuple[Qid, Qid], ...], int],
+) -> int:
+    """Adds calibration to the calibrations list if not already present.
+
+    This function uses equivalence of calibration.pairs as a presence check.
+
+    Args:
+        calibration: Calibration to be added.
+        calibrations: List of calibrations to be mutated. The list is expanded only if a calibration
+            is not on the list already.
+        pairs_map: Map from pairs parameter of each calibration on the calibrations list to the
+            index on that list. This map will be updated if the calibrations list us expanded.
+
+    Returns:
+        Index of the calibration on the updated calibrations list. If the calibration was added, it
+        points to the last element of a list. If not, it points to already existing element.
+    """
+    if calibration.pairs not in pairs_map:
         index = len(calibrations)
         calibrations.append(calibration)
         pairs_map[calibration.pairs] = index
         return index
-
-    if initial is None:
-        calibrations = []
-        moments_map = []
     else:
-        calibrations, moments_map = initial
+        return pairs_map[calibration.pairs]
 
-    pairs_map = {}
 
-    for moment in circuit:
-        calibration = floquet_characterization_for_moment(
-            moment, options, gates_translator, pairs_in_canonical_order=True, pairs_sorted=True
-        )
+def _merge_into_calibrations(
+    calibration: FloquetPhasedFSimCalibrationRequest,
+    calibrations: List[FloquetPhasedFSimCalibrationRequest],
+    pairs_map: Dict[Tuple[Tuple[Qid, Qid], ...], int],
+    options: FloquetPhasedFSimCalibrationOptions,
+) -> int:
+    """Merges a calibration into list of calibrations.
 
-        if calibration is not None:
-            if merge_sub_sets:
-                index = merge_into_calibrations(calibration)
-            else:
-                index = append_if_missing(calibration)
-            moments_map.append(index)
+    If calibrations contains an item of which pairs could be expanded to include a new calibration
+    pairs, without breaking a moment structure, then those two calibrations will be merged together
+    and used as a calibration for both old and newly added calibration.
+    If no calibration like that exists, the list will be expanded by calibration item.
+
+    Args:
+        calibration: Calibration to be added.
+        calibrations: List of calibrations to be mutated.
+        pairs_map: Map from pairs parameter of each calibration on the calibrations list to the
+            index on that list. This map will be updated if the calibrations list us updated.
+        options: Calibrations options to use when creating a new requests.
+
+    Returns:
+        Index of the calibration on the updated calibrations list. If the calibration was added, it
+        points to the last element of a list. If not, it points to already existing element.
+    """
+    new_pairs = set(calibration.pairs)
+    for index in pairs_map.values():
+        assert calibration.gate == calibrations[index].gate
+        assert calibration.options == calibrations[index].options
+        existing_pairs = calibrations[index].pairs
+        if new_pairs.issubset(existing_pairs):
+            return index
+        elif new_pairs.issuperset(existing_pairs):
+            calibrations[index] = calibration
+            return index
         else:
-            moments_map.append(None)
+            new_qubit_pairs = calibration.qubit_to_pair
+            existing_qubit_pairs = calibrations[index].qubit_to_pair
+            if all(
+                (
+                    new_qubit_pairs[q] == existing_qubit_pairs[q]
+                    for q in set(new_qubit_pairs.keys()).intersection(existing_qubit_pairs.keys())
+                )
+            ):
+                calibrations[index] = FloquetPhasedFSimCalibrationRequest(
+                    gate=calibration.gate,
+                    pairs=tuple(sorted(new_pairs.union(existing_pairs))),
+                    options=options,
+                )
+                return index
 
-    return calibrations, moments_map
+    index = len(calibrations)
+    calibrations.append(calibration)
+    pairs_map[calibration.pairs] = index
+    return index
 
 
 def run_characterizations(
-    calibrations: List[PhasedFSimCalibrationRequest],
+    calibrations: Sequence[PhasedFSimCalibrationRequest],
     engine: Union[Engine, PhasedFSimEngineSimulator],
     processor_id: Optional[str] = None,
     gate_set: Optional[SerializableGateSet] = None,
@@ -235,8 +278,8 @@ def run_characterizations(
     """
     if max_layers_per_request < 1:
         raise ValueError(
-            f'Miaximum number of layers pere request must be at least 1, '
-            f'{max_layers_per_request} given'
+            f'Maximum number of layers per request must be at least 1, {max_layers_per_request} '
+            f'given'
         )
 
     if not calibrations:
@@ -281,9 +324,9 @@ def run_floquet_characterization_for_circuit(
     engine: Union[Engine, PhasedFSimEngineSimulator],
     processor_id: str,
     gate_set: SerializableGateSet,
-    options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_CHARACTERIZATION,
-    gates_translator: Callable[[Gate], Optional[FSimGate]] = sqrt_iswap_gates_translator,
-    merge_sub_sets: bool = True,
+    options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
+    merge_subsets: bool = True,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
 ) -> Tuple[List[PhasedFSimCalibrationResult], List[Optional[int]]]:
@@ -301,7 +344,7 @@ def run_floquet_characterization_for_circuit(
             to all_except_for_chi_options which is the broadest currently supported choice.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo
             characterization. Defaults to sqrt_iswap_gates_translator.
-        merge_sub_sets: Whether to merge moments that can be characterized at the same time
+        merge_subsets: Whether to merge moments that can be characterized at the same time
             together.
         max_layers_per_request: Maximum number of calibration requests issued to cirq.Engine at a
             single time. Defaults to 1.
@@ -320,8 +363,8 @@ def run_floquet_characterization_for_circuit(
         IncompatibleMomentError when circuit contains a moment with operations other than the
         operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
     """
-    requests, mapping = floquet_characterization_for_circuit(
-        circuit, options, gates_translator, merge_sub_sets=merge_sub_sets
+    requests, allocations = make_floquet_request_for_circuit(
+        circuit, options, gates_translator, merge_subsets=merge_subsets
     )
     results = run_characterizations(
         requests,
@@ -331,4 +374,4 @@ def run_floquet_characterization_for_circuit(
         max_layers_per_request=max_layers_per_request,
         progress_func=progress_func,
     )
-    return results, mapping
+    return results, allocations
