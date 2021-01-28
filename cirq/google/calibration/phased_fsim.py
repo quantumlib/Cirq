@@ -11,10 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
-from typing import Dict, Optional, TYPE_CHECKING
-
+import abc
+import collections
 import dataclasses
+import re
+
+from cirq.circuits import Circuit
+from cirq.ops import Gate, Qid
+from cirq.google.api import v2
+from cirq.google.engine import CalibrationLayer, CalibrationResult
+
+
+_FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
 
 if TYPE_CHECKING:
     # Workaround for mypy custom dataclasses (python/mypy#5406)
@@ -130,3 +140,188 @@ class PhasedFSimCharacterization:
             other that are not None). Otherwise the current values are used.
         """
         return other.merge_with(self)
+
+
+class PhasedFSimCalibrationOptions(abc.ABC):
+    """Base class for calibration-specific options passed together with the requests."""
+
+
+@dataclasses.dataclass(frozen=True)
+class PhasedFSimCalibrationResult:
+    """The PhasedFSimGate characterization result.
+
+    Attributes:
+        parameters: Map from qubit pair to characterization result. For each pair of characterized
+            quibts a and b either only (a, b) or only (b, a) is present.
+        gate: Characterized gate for each qubit pair. This is copied from the matching
+            PhasedFSimCalibrationRequest and is included to preserve execution context.
+    """
+
+    parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
+    gate: Gate
+    options: PhasedFSimCalibrationOptions
+
+    def get_parameters(self, a: Qid, b: Qid) -> Optional['PhasedFSimCharacterization']:
+        """Returns parameters for a qubit pair (a, b) or None when unknown."""
+        if (a, b) in self.parameters:
+            return self.parameters[(a, b)]
+        elif (b, a) in self.parameters:
+            return self.parameters[(b, a)].parameters_for_qubits_swapped()
+        else:
+            return None
+
+    @classmethod
+    def _create_parameters_dict(
+        cls,
+        parameters: List[Tuple[Qid, Qid, PhasedFSimCharacterization]],
+    ) -> Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]:
+        """Utility function to create parameters from JSON.
+
+        Can be used from child classes to instantiate classes in a _from_json_dict_
+        method."""
+        return {(q_a, q_b): params for q_a, q_b, params in parameters}
+
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        **kwargs,
+    ) -> 'PhasedFSimCalibrationResult':
+        """Magic method for the JSON serialization protocol.
+
+        Converts serialized dictionary into a dict suitable for
+        class instantiation."""
+        del kwargs['cirq_type']
+        kwargs['parameters'] = cls._create_parameters_dict(kwargs['parameters'])
+        return cls(**kwargs)
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        """Magic method for the JSON serialization protocol."""
+        return {
+            'cirq_type': 'PhasedFSimCalibrationResult',
+            'gate': self.gate,
+            'parameters': [(q_a, q_b, params) for (q_a, q_b), params in self.parameters.items()],
+            'options': self.options,
+        }
+
+
+# We have to relax a mypy constraint, see https://github.com/python/mypy/issues/5374
+@dataclasses.dataclass(frozen=True)  # type: ignore
+class PhasedFSimCalibrationRequest(abc.ABC):
+    """Description of the request to characterize PhasedFSimGate.
+
+    Attributes:
+        pairs: Set of qubit pairs to characterize. A single qubit can appear on at most one pair in
+            the set.
+        gate: Gate to characterize for each qubit pair from pairs. This must be a supported gate
+            which can be described cirq.PhasedFSim gate. This gate must be serialized by the
+            cirq.google.SerializableGateSet used
+    """
+
+    pairs: Tuple[Tuple[Qid, Qid], ...]
+    gate: Gate  # Any gate which can be described by cirq.PhasedFSim
+
+    @abc.abstractmethod
+    def to_calibration_layer(self) -> CalibrationLayer:
+        """Encodes this characterization request in a CalibrationLayer object."""
+
+    @abc.abstractmethod
+    def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+        """Decodes the characterization result issued for this request."""
+
+
+@json_serializable_dataclass(frozen=True)
+class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
+    """Options specific to Floquet PhasedFSimCalibration.
+
+    Some angles require another angle to be characterized first so result might have more angles
+    characterized than requested here.
+
+    Attributes:
+        characterize_theta: Whether to characterize θ angle.
+        characterize_zeta: Whether to characterize ζ angle.
+        characterize_chi: Whether to characterize χ angle.
+        characterize_gamma: Whether to characterize γ angle.
+        characterize_phi: Whether to characterize φ angle.
+    """
+
+    characterize_theta: bool
+    characterize_zeta: bool
+    characterize_chi: bool
+    characterize_gamma: bool
+    characterize_phi: bool
+
+
+@dataclasses.dataclass(frozen=True)
+class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
+    """PhasedFSim characterization request specific to Floquet calibration.
+
+    Attributes:
+        options: Floquet-specific characterization options.
+    """
+
+    options: FloquetPhasedFSimCalibrationOptions
+
+    def to_calibration_layer(self) -> CalibrationLayer:
+        circuit = Circuit([self.gate.on(*pair) for pair in self.pairs])
+        return CalibrationLayer(
+            calibration_type=_FLOQUET_PHASED_FSIM_HANDLER_NAME,
+            program=circuit,
+            args={
+                'est_theta': self.options.characterize_theta,
+                'est_zeta': self.options.characterize_zeta,
+                'est_chi': self.options.characterize_chi,
+                'est_gamma': self.options.characterize_gamma,
+                'est_phi': self.options.characterize_phi,
+                # Experimental option that should always be set to True.
+                'readout_corrections': True,
+            },
+        )
+
+    def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+        decoded: Dict[int, Dict[str, Any]] = collections.defaultdict(lambda: {})
+        for keys, values in result.metrics['angles'].items():
+            for key, value in zip(keys, values):
+                match = re.match(r'(\d+)_(.+)', str(key))
+                if not match:
+                    raise ValueError(f'Unknown metric name {key}')
+                index = int(match[1])
+                name = match[2]
+                decoded[index][name] = value
+
+        parsed = {}
+        for data in decoded.values():
+            a = v2.qubit_from_proto_id(data['qubit_a'])
+            b = v2.qubit_from_proto_id(data['qubit_b'])
+            parsed[(a, b)] = PhasedFSimCharacterization(
+                theta=data.get('theta_est', None),
+                zeta=data.get('zeta_est', None),
+                chi=data.get('chi_est', None),
+                gamma=data.get('gamma_est', None),
+                phi=data.get('phi_est', None),
+            )
+
+        return PhasedFSimCalibrationResult(parameters=parsed, gate=self.gate, options=self.options)
+
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        gate: Gate,
+        pairs: List[Tuple[Qid, Qid]],
+        options: FloquetPhasedFSimCalibrationOptions,
+        **kwargs,
+    ) -> 'PhasedFSimCalibrationRequest':
+        """Magic method for the JSON serialization protocol.
+
+        Converts serialized dictionary into a dict suitable for
+        class instantiation."""
+        instantiation_pairs = tuple((q_a, q_b) for q_a, q_b in pairs)
+        return cls(instantiation_pairs, gate, options)
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        """Magic method for the JSON serialization protocol."""
+        return {
+            'cirq_type': 'FloquetPhasedFSimCalibrationRequest',
+            'pairs': [(pair[0], pair[1]) for pair in self.pairs],
+            'gate': self.gate,
+            'options': self.options,
+        }
