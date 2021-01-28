@@ -34,6 +34,7 @@ SQRT_ISWAP_GATE = cirq.FSimGate(np.pi / 4, 0.0)
 def _fsim_identity_converter(gate: cirq.Gate) -> Optional[cirq.FSimGate]:
     if isinstance(gate, cirq.FSimGate):
         return gate
+    return None
 
 
 def test_make_floquet_request_for_moment_none_for_measurements() -> None:
@@ -60,7 +61,9 @@ def test_make_floquet_request_for_moment_fails_for_unsupported_gate() -> None:
     moment = cirq.Moment(cirq.CZ(a, b))
     with pytest.raises(workflow.IncompatibleMomentError):
         workflow.make_floquet_request_for_moment(
-            moment, WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
+            moment,
+            WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+            gates_translator=_fsim_identity_converter,
         )
 
 
