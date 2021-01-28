@@ -367,7 +367,7 @@ def phased_calibration_for_circuit(
                     'Moment contains operation different than GateOperation'
                 )
 
-            if isinstance(op.gate, (MeasurementGate, SingleQubitGate)):
+            if isinstance(op.gate, (MeasurementGate, SingleQubitGate, WaitGate)):
                 other.append(op)
             else:
                 if parameters is None:
