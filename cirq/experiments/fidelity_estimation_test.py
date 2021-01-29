@@ -354,6 +354,7 @@ def test_simulate_2q_xeb_fidelities():
         assert row['cycle_depth'] in cycle_depths
         assert row['fidelity'] > 0.98
 
+
 def _ref_simulate_2q_xeb_circuit(task: Dict[str, Any]):
     """Helper function for simulating a given (circuit, cycle_depth)."""
     circuit_i = task['circuit_i']
@@ -384,24 +385,13 @@ def ref_simulate_2q_xeb_circuits(
         param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
         pool: Optional['multiprocessing.pool.Pool'] = None,
 ):
-    """Simulate two-qubit XEB circuits.
+    """Reference implementation for `simulate_2q_xeb_circuits` that
+    does each circuit independently instead of using intermediate states.
 
-    These ideal probabilities can be benchmarked against potentially noisy
-    results from `sample_2q_xeb_circuits`.
-
-    Args:
-        circuits: A library of two-qubit circuits generated from
-            `random_rotations_between_two_qubit_circuit` of sufficient length
-            for `cycle_depths`.
-        cycle_depths: A sequence of cycle depths at which we will truncate each
-            of the `circuits` to simulate.
-        param_resolver: If circuits contain parameters, resolve according
-            to this ParamResolver prior to simulation
-        pool: If provided, execute the simulations in parallel.
-
-    Returns:
-        A dataframe with index ['circuit_i', 'cycle_depth'] and column
-        "pure_probs" containing the pure-state probabilities for each row.
+    You can also try editing the helper function to use QSimSimulator() for
+    benchmarking. This simulator does not support intermediate states, so
+    you can't use it with the new functionality.
+    https://github.com/quantumlib/qsim/issues/101
     """
     tasks = []
     for cycle_depth in cycle_depths:
@@ -452,8 +442,14 @@ def test_incremental_simulate():
     )
     end2 = time.perf_counter()
     print()
-    print("new:", end2-end1, "old:", end1-start)
+    print("new:", end2 - end1, "old:", end1 - start)
     print()
+
     pd.testing.assert_frame_equal(df_ref, df)
 
-
+    # Use below for approximate equality, if e.g. you're using qsim:
+    # assert len(df_ref) == len(df)
+    # assert df_ref.columns == df.columns
+    # for (i1, row1), (i2, row2) in zip(df_ref.iterrows(), df.iterrows()):
+    #     assert i1 == i2
+    #     np.testing.assert_allclose(row1['pure_probs'], row2['pure_probs'], atol=5e-5)

@@ -536,40 +536,45 @@ def sample_2q_xeb_circuits(
     return pd.DataFrame(records).set_index(['circuit_i', 'cycle_depth'])
 
 
-def _simulate_2q_xeb_circuit(task: Dict[str, Any]):
-    """Helper function for simulating a given (circuit, cycle_depth)."""
-    circuit_i = task['circuit_i']
-    cycle_depths = set(task['cycle_depths'])
-    circuit = task['circuit']
-    param_resolver = task['param_resolver']
+class _Simulate_2q_XEB_Circuit:
+    """Closure used in `simulate_2q_xeb_circuits` so it works with multiprocessing."""
 
-    pure_sim:sim.SimulatesIntermediateStateVector = sim.Simulator()
-    records = []
-    for moment_i, step_result in enumerate(pure_sim.simulate_moment_steps(circuit=circuit, param_resolver=param_resolver)):
-        # circuit_depth = cycle_depth * 2 + 1
-        # step_result is the result *after* moment_i, so
-        # circuit_depth = moment_i + 1
-        # moment_i = cycle_depth * 2
-        if moment_i % 2 == 1:
-            continue
-        cycle_depth = moment_i //2
-        if cycle_depth not in cycle_depths:
-            continue
-        cycle_depths.remove(cycle_depth)
+    def __init__(self, simulator):
+        self.simulator=simulator
 
-        psi =  cast(sim.SparseSimulatorStep, step_result)
-        psi = psi.state_vector()
-        pure_probs = np.abs(psi) ** 2
+    def __call__(self, task: Dict[str, Any]):
+        """Helper function for simulating a given (circuit, cycle_depth)."""
+        circuit_i = task['circuit_i']
+        cycle_depths = set(task['cycle_depths'])
+        circuit = task['circuit']
+        param_resolver = task['param_resolver']
 
-        records +=[{
-            'circuit_i': circuit_i,
-            'cycle_depth': cycle_depth,
-            'pure_probs': pure_probs,
-        }]
+        records = []
+        for moment_i, step_result in enumerate(self.simulator.simulate_moment_steps(circuit=circuit, param_resolver=param_resolver)):
+            # circuit_depth = cycle_depth * 2 + 1
+            # step_result is the result *after* moment_i, so
+            # circuit_depth = moment_i + 1
+            # moment_i = cycle_depth * 2
+            if moment_i % 2 == 1:
+                continue
+            cycle_depth = moment_i //2
+            if cycle_depth not in cycle_depths:
+                continue
+            cycle_depths.remove(cycle_depth)
 
-    if len(cycle_depths) > 0:
-        raise ValueError("`circuit` was not long enough to compute all `cycle_depths`.")
-    return records
+            psi = cast(sim.SparseSimulatorStep, step_result)
+            psi = psi.state_vector()
+            pure_probs = np.abs(psi) ** 2
+
+            records +=[{
+                'circuit_i': circuit_i,
+                'cycle_depth': cycle_depth,
+                'pure_probs': pure_probs,
+            }]
+
+        if len(cycle_depths) > 0:
+            raise ValueError("`circuit` was not long enough to compute all `cycle_depths`.")
+        return records
 
 
 def simulate_2q_xeb_circuits(
@@ -577,7 +582,7 @@ def simulate_2q_xeb_circuits(
     cycle_depths: Sequence[int],
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     pool: Optional['multiprocessing.pool.Pool'] = None,
-        simulator = None,
+    simulator = None,
 ):
     """Simulate two-qubit XEB circuits.
 
@@ -599,7 +604,13 @@ def simulate_2q_xeb_circuits(
         "pure_probs" containing the pure-state probabilities for each row.
     """
     if simulator is None:
-        simulator = cirq.Simulator()
+        # Need an actual object; not np.random or else multiprocessing will
+        # fail to pickle the closure object:
+        # https://github.com/quantumlib/Cirq/issues/3717
+        rs = np.random.RandomState()
+        _simulate_2q_xeb_circuit = _Simulate_2q_XEB_Circuit(simulator=sim.Simulator(seed=rs))
+    else:
+        _simulate_2q_xeb_circuit = _Simulate_2q_XEB_Circuit(simulator=simulator)
 
     tasks = []
     for circuit_i, circuit in enumerate(circuits):
@@ -613,7 +624,7 @@ def simulate_2q_xeb_circuits(
         ]
 
     if pool is not None:
-        records = pool.map(_simulate_2q_xeb_circuit, tasks, chunksize=4)
+        records = pool.map(_simulate_2q_xeb_circuit, tasks)
     else:
         records = [_simulate_2q_xeb_circuit(record) for record in tasks]
 
