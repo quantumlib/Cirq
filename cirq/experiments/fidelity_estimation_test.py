@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import multiprocessing
-from typing import Sequence
+import time
+import timeit
+from typing import Sequence, Dict, Any, cast, Optional
 import itertools
 import math
 
@@ -351,3 +353,107 @@ def test_simulate_2q_xeb_fidelities():
     for _, row in fid_df.iterrows():
         assert row['cycle_depth'] in cycle_depths
         assert row['fidelity'] > 0.98
+
+def _ref_simulate_2q_xeb_circuit(task: Dict[str, Any]):
+    """Helper function for simulating a given (circuit, cycle_depth)."""
+    circuit_i = task['circuit_i']
+    cycle_depth = task['cycle_depth']
+    circuit = task['circuit']
+    param_resolver = task['param_resolver']
+
+    circuit_depth = cycle_depth * 2 + 1
+    assert circuit_depth <= len(circuit)
+    tcircuit = circuit[:circuit_depth]
+    tcircuit = cirq.resolve_parameters_once(tcircuit, param_resolver=param_resolver)
+
+    pure_sim = cirq.Simulator()
+    psi = cast(cirq.StateVectorTrialResult, pure_sim.simulate(tcircuit))
+    psi = psi.final_state_vector
+    pure_probs = np.abs(psi) ** 2
+
+    return {
+        'circuit_i': circuit_i,
+        'cycle_depth': cycle_depth,
+        'pure_probs': pure_probs,
+    }
+
+
+def ref_simulate_2q_xeb_circuits(
+        circuits: Sequence['cirq.Circuit'],
+        cycle_depths: Sequence[int],
+        param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+        pool: Optional['multiprocessing.pool.Pool'] = None,
+):
+    """Simulate two-qubit XEB circuits.
+
+    These ideal probabilities can be benchmarked against potentially noisy
+    results from `sample_2q_xeb_circuits`.
+
+    Args:
+        circuits: A library of two-qubit circuits generated from
+            `random_rotations_between_two_qubit_circuit` of sufficient length
+            for `cycle_depths`.
+        cycle_depths: A sequence of cycle depths at which we will truncate each
+            of the `circuits` to simulate.
+        param_resolver: If circuits contain parameters, resolve according
+            to this ParamResolver prior to simulation
+        pool: If provided, execute the simulations in parallel.
+
+    Returns:
+        A dataframe with index ['circuit_i', 'cycle_depth'] and column
+        "pure_probs" containing the pure-state probabilities for each row.
+    """
+    tasks = []
+    for cycle_depth in cycle_depths:
+        for circuit_i, circuit in enumerate(circuits):
+            tasks += [
+                {
+                    'circuit_i': circuit_i,
+                    'cycle_depth': cycle_depth,
+                    'circuit': circuit,
+                    'param_resolver': param_resolver,
+                }
+            ]
+
+    if pool is not None:
+        records = pool.map(_ref_simulate_2q_xeb_circuit, tasks, chunksize=4)
+    else:
+        records = [_ref_simulate_2q_xeb_circuit(record) for record in tasks]
+
+    return pd.DataFrame(records).set_index(['circuit_i', 'cycle_depth']).sort_index()
+
+
+def test_incremental_simulate():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuits = [
+        rqcg.random_rotations_between_two_qubit_circuit(
+            q0,
+            q1,
+            depth=100,
+            two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b),
+        )
+        for _ in range(20)
+    ]
+    cycle_depths = np.arange(3, 100, 9)
+    pool = multiprocessing.Pool()
+
+    start = time.perf_counter()
+    df_ref = ref_simulate_2q_xeb_circuits(
+        circuits=circuits,
+        cycle_depths=cycle_depths,
+        pool=pool,
+    )
+    end1 = time.perf_counter()
+
+    df = simulate_2q_xeb_circuits(
+        circuits=circuits,
+        cycle_depths=cycle_depths,
+        pool=pool
+    )
+    end2 = time.perf_counter()
+    print()
+    print("new:", end2-end1, "old:", end1-start)
+    print()
+    pd.testing.assert_frame_equal(df_ref, df)
+
+
