@@ -19,7 +19,7 @@ import dataclasses
 import re
 
 from cirq.circuits import Circuit
-from cirq.ops import Gate, Qid
+from cirq.ops import Gate, Qid, Moment
 from cirq.google.api import v2
 from cirq.google.engine import CalibrationLayer, CalibrationResult
 
@@ -220,6 +220,22 @@ class PhasedFSimCalibrationRequest(abc.ABC):
     pairs: Tuple[Tuple[Qid, Qid], ...]
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
 
+    @staticmethod
+    def _create_pairs_from_moment(moment: Moment):
+        gate = None
+        pairs = []
+        for op in moment:
+            if gate is None:
+                gate = op.gate
+            elif gate != op.gate:
+                raise ValueError(
+                    'All gates in request object ' f'must be identical {gate}!={op.gate}'
+                )
+            if len(op.qubits) != 2:
+                raise ValueError('All gates in request object ' f'must be two qubit gates: {op}')
+            pairs.append(tuple(op.qubits))
+        return tuple(pairs), gate
+
     @abc.abstractmethod
     def to_calibration_layer(self) -> CalibrationLayer:
         """Encodes this characterization request in a CalibrationLayer object."""
@@ -260,6 +276,11 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     """
 
     options: FloquetPhasedFSimCalibrationOptions
+
+    @classmethod
+    def from_moment(cls, moment: Moment, options: FloquetPhasedFSimCalibrationOptions):
+        pairs, gate = cls._create_pairs_from_moment(moment)
+        return cls(pairs, gate, options)
 
     def to_calibration_layer(self) -> CalibrationLayer:
         circuit = Circuit([self.gate.on(*pair) for pair in self.pairs])
