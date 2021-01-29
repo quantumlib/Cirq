@@ -536,18 +536,28 @@ def sample_2q_xeb_circuits(
     return pd.DataFrame(records).set_index(['circuit_i', 'cycle_depth'])
 
 
+@dataclass(frozen=True)
+class _Simulate2qXEBTask:
+    """Helper container for executing simulation tasks, potentially via multiprocessing."""
+
+    circuit_i: int
+    cycle_depths: Sequence[int]
+    circuit: 'cirq.Circuit'
+    param_resolver: Dict[str, float]
+
+
 class _Simulate_2q_XEB_Circuit:
     """Closure used in `simulate_2q_xeb_circuits` so it works with multiprocessing."""
 
     def __init__(self, simulator):
         self.simulator = simulator
 
-    def __call__(self, task: Dict[str, Any]):
+    def __call__(self, task: _Simulate2qXEBTask):
         """Helper function for simulating a given (circuit, cycle_depth)."""
-        circuit_i = task['circuit_i']
-        cycle_depths = set(task['cycle_depths'])
-        circuit = task['circuit']
-        param_resolver = task['param_resolver']
+        circuit_i = task.circuit_i
+        cycle_depths = set(task.cycle_depths)
+        circuit = task.circuit
+        param_resolver = task.param_resolver
 
         records = []
         for moment_i, step_result in enumerate(
