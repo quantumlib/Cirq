@@ -30,6 +30,8 @@ SKIP_NOTEBOOKS = [
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     "examples/*fidelity*",
+    # https://github.com/quantumlib/Cirq/pull/3669#issuecomment-766450463
+    'docs/characterization/*.ipynb',
 ]
 
 
@@ -40,7 +42,7 @@ def _tested_notebooks():
     )
 
     # sorted is important otherwise pytest-xdist will complain that
-    # the workers have differnent parametrization:
+    # the workers have different parametrization:
     # https://github.com/pytest-dev/pytest-xdist/issues/432
     return sorted(os.path.abspath(n) for n in all_notebooks.difference(skipped_notebooks))
 
@@ -54,6 +56,8 @@ PACKAGES = [
     "virtualenv-clone",
     # assumed to be part of colab
     "seaborn",
+    # https://github.com/nteract/papermill/issues/519
+    'ipykernel==5.3.4',
 ]
 
 
