@@ -13,6 +13,8 @@
 
 import pytest
 
+import numpy as np
+
 import cirq.ionq as ionq
 import cirq.testing
 
@@ -111,6 +113,9 @@ def test_qpu_result_to_cirq_result():
     assert result.to_cirq_result() == cirq.Result(
         params=cirq.ParamResolver({}), measurements={'x': [[0], [1], [1]]}
     )
+    # cirq.Result only compares pandas data frame, so possible to have supplied an list of
+    # list instead of a numpy multidimensional array. Check this here.
+    assert type(result.to_cirq_result().measurements['x']) == np.ndarray
 
 
 def test_qpu_result_to_cirq_result_multiple_keys():
@@ -277,6 +282,9 @@ def test_simulator_result_to_cirq_result():
     assert result.to_cirq_result(seed=2) == cirq.Result(
         params=cirq.ParamResolver({}), measurements={'x': [[1], [0], [1]]}
     )
+    # cirq.Result only compares pandas data frame, so possible to have supplied an list of
+    # list instead of a numpy multidimensional array. Check this here.
+    assert type(result.to_cirq_result().measurements['x']) == np.ndarray
 
 
 def test_simulator_result_to_cirq_result_multiple_keys():
