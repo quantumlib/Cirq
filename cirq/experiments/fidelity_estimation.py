@@ -629,12 +629,12 @@ def simulate_2q_xeb_circuits(
     tasks = []
     for circuit_i, circuit in enumerate(circuits):
         tasks += [
-            {
-                'circuit_i': circuit_i,
-                'cycle_depths': cycle_depths,
-                'circuit': circuit,
-                'param_resolver': param_resolver,
-            }
+            _Simulate2qXEBTask(
+                circuit_i=circuit_i,
+                cycle_depths=cycle_depths,
+                circuit=circuit,
+                param_resolver=param_resolver,
+            )
         ]
 
     if pool is not None:
