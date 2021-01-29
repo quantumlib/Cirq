@@ -380,10 +380,10 @@ def _ref_simulate_2q_xeb_circuit(task: Dict[str, Any]):
 
 
 def ref_simulate_2q_xeb_circuits(
-        circuits: Sequence['cirq.Circuit'],
-        cycle_depths: Sequence[int],
-        param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
-        pool: Optional['multiprocessing.pool.Pool'] = None,
+    circuits: Sequence['cirq.Circuit'],
+    cycle_depths: Sequence[int],
+    param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+    pool: Optional['multiprocessing.pool.Pool'] = None,
 ):
     """Reference implementation for `simulate_2q_xeb_circuits` that
     does each circuit independently instead of using intermediate states.
@@ -435,11 +435,7 @@ def test_incremental_simulate():
     )
     end1 = time.perf_counter()
 
-    df = simulate_2q_xeb_circuits(
-        circuits=circuits,
-        cycle_depths=cycle_depths,
-        pool=pool
-    )
+    df = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths, pool=pool)
     end2 = time.perf_counter()
     print()
     print("new:", end2 - end1, "old:", end1 - start)

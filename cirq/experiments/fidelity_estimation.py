@@ -540,7 +540,7 @@ class _Simulate_2q_XEB_Circuit:
     """Closure used in `simulate_2q_xeb_circuits` so it works with multiprocessing."""
 
     def __init__(self, simulator):
-        self.simulator=simulator
+        self.simulator = simulator
 
     def __call__(self, task: Dict[str, Any]):
         """Helper function for simulating a given (circuit, cycle_depth)."""
@@ -550,14 +550,16 @@ class _Simulate_2q_XEB_Circuit:
         param_resolver = task['param_resolver']
 
         records = []
-        for moment_i, step_result in enumerate(self.simulator.simulate_moment_steps(circuit=circuit, param_resolver=param_resolver)):
+        for moment_i, step_result in enumerate(
+            self.simulator.simulate_moment_steps(circuit=circuit, param_resolver=param_resolver)
+        ):
             # circuit_depth = cycle_depth * 2 + 1
             # step_result is the result *after* moment_i, so
             # circuit_depth = moment_i + 1
             # moment_i = cycle_depth * 2
             if moment_i % 2 == 1:
                 continue
-            cycle_depth = moment_i //2
+            cycle_depth = moment_i // 2
             if cycle_depth not in cycle_depths:
                 continue
             cycle_depths.remove(cycle_depth)
@@ -566,11 +568,13 @@ class _Simulate_2q_XEB_Circuit:
             psi = psi.state_vector()
             pure_probs = np.abs(psi) ** 2
 
-            records +=[{
-                'circuit_i': circuit_i,
-                'cycle_depth': cycle_depth,
-                'pure_probs': pure_probs,
-            }]
+            records += [
+                {
+                    'circuit_i': circuit_i,
+                    'cycle_depth': cycle_depth,
+                    'pure_probs': pure_probs,
+                }
+            ]
 
         if len(cycle_depths) > 0:
             raise ValueError("`circuit` was not long enough to compute all `cycle_depths`.")
@@ -582,7 +586,7 @@ def simulate_2q_xeb_circuits(
     cycle_depths: Sequence[int],
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     pool: Optional['multiprocessing.pool.Pool'] = None,
-    simulator = None,
+    simulator=None,
 ):
     """Simulate two-qubit XEB circuits.
 
