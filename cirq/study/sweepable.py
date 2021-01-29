@@ -14,7 +14,7 @@
 
 """Defines which types are Sweepable."""
 
-from typing import Dict, Iterable, Iterator, List, Sequence, Union, cast
+from typing import Iterable, Iterator, List, Sequence, Union, cast
 import warnings
 from typing_extensions import Protocol
 
