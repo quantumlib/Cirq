@@ -61,7 +61,7 @@ class SometimesOneQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         return operations
 
 
-class SingleQubitGate(SometimesOneQubitGate):
+class SingleQubitGate(SometimesOneQubitGate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly one qubit."""
 
     def _num_qubits_(self) -> int:

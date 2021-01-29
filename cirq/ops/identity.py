@@ -13,7 +13,7 @@
 # limitations under the License.
 """IdentityGate."""
 
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import Any, Dict, Iterable, List, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality
-class IdentityGate(gate_features.SometimesOneQubitGate):
+class IdentityGate(gate_features.SometimesOneQubitGate, raw_types.Gate):
     """A Gate that perform no operation on qubits.
 
     The unitary matrix of this gate is a diagonal matrix with all 1s on the
