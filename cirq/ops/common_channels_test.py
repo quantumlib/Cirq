@@ -227,7 +227,7 @@ def test_deprecated_on_each_for_depolarizing_channel_two_qubits():
     q0, q1 = cirq.LineQubit.range(2)
     op = cirq.DepolarizingChannel(p=0.1, n_qubits=2)
 
-    with pytest.raises(ValueError, match="Function cannot be used with multiple qubits"):
+    with pytest.raises(ValueError, match="one qubit"):
         op.on_each(q0, q1)
 
 
