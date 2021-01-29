@@ -15,12 +15,13 @@
 """Quantum channels that are commonly used in the literature."""
 
 import itertools
-from typing import Any, Dict, Iterable, Optional, Sequence, Tuple, Union, TYPE_CHECKING
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import protocols, value
 from cirq.ops import raw_types, common_gates, pauli_gates, gate_features, identity
+from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     import cirq
@@ -280,6 +281,33 @@ class DepolarizingChannel(raw_types.Gate):
 
     def _qid_shape_(self):
         return (2,) * self._n_qubits
+
+    @deprecated(deadline='v0.11.0', fix='Repeatedly call on() instead')
+    def on_each(self, *targets: Union[raw_types.Qid, Iterable[Any]]) -> List[raw_types.Operation]:
+        """Returns a list of operations applying the gate to all targets.
+
+        Args:
+            *targets: The qubits to apply this gate to.
+
+        Returns:
+            Operations applying this gate to the target qubits.
+
+        Raises:
+            ValueError if targets are not instances of Qid or List[Qid].
+        """
+        if self._n_qubits > 1:
+            raise ValueError('Function cannot be used with multiple qubits')
+        operations = []  # type: List[raw_types.Operation]
+        for target in targets:
+            if isinstance(target, raw_types.Qid):
+                operations.append(self.on(target))
+            elif isinstance(target, Iterable) and not isinstance(target, str):
+                operations.extend(self.on_each(*target))
+            else:
+                raise ValueError(
+                    'Gate was called with type different than Qid. Type: {}'.format(type(target))
+                )
+        return operations
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
         return self._delegate._mixture_()
