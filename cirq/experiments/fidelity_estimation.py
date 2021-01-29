@@ -27,6 +27,8 @@ from typing import (
     Dict,
     Any,
     Set,
+    Type,
+    ContextManager,
 )
 
 import numpy as np
@@ -473,7 +475,7 @@ def sample_2q_xeb_circuits(
     cycle_depths: Sequence[int],
     repetitions: int = 10_000,
     batch_size: int = 9,
-    progress_bar=tqdm.tqdm,
+    progress_bar: Optional[Callable[[int], ContextManager]] = tqdm.tqdm,
 ):
     """Sample two-qubit XEB circuits given a sampler.
 
