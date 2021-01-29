@@ -28,12 +28,14 @@ from typing import (
     Dict,
     Any,
     Set,
+    ContextManager,
 )
 
 import numpy as np
 import pandas as pd
 import scipy.optimize
 import sympy
+import tqdm
 
 from cirq import ops, protocols, sim, circuits
 from cirq.circuits import Circuit
@@ -402,7 +404,11 @@ def least_squares_xeb_fidelity_from_probabilities(
 
 @dataclass(frozen=True)
 class _Sample2qXEBTask:
-    """Helper contained for grouping a circuit to be sampled."""
+    """Helper container for grouping a circuit to be sampled.
+
+    `prepared_circuit` is the full-length circuit (with index `circuit_i`. that
+    has been truncated to `cycle_depth` and has a measurement gate on it.
+    """
 
     cycle_depth: int
     circuit_i: int
@@ -421,9 +427,8 @@ class _SampleInBatches:
         results = self.sampler.run_batch(prepared_circuits, repetitions=self.repetitions)
         assert len(results) == len(tasks)
         records = []
-        for task, n_result in zip(tasks, results):
-            assert len(n_result) == 1, len(n_result)
-            result = n_result[0]  # sweep nesting
+        for task, nested_result in zip(tasks, results):
+            (result,) = nested_result  # remove nesting due to potential sweeps.
             sampled_inds = result.data.values[:, 0]
             sampled_probs = np.bincount(sampled_inds, minlength=2 ** 2) / len(sampled_inds)
 
@@ -437,12 +442,43 @@ class _SampleInBatches:
         return records
 
 
+def _verify_and_get_two_qubits_from_circuits(circuits: Sequence['cirq.Circuit']):
+    """Make sure each of the provided circuits uses the same two qubits and return them."""
+    all_qubits_set: Set['cirq.Qid'] = set()
+    all_qubits_set = all_qubits_set.union(*(circuit.all_qubits() for circuit in circuits))
+    all_qubits_list = sorted(all_qubits_set)
+    if len(all_qubits_list) != 2:
+        raise ValueError(
+            "`circuits` should be a sequence of circuits each operating on the same two qubits."
+        )
+    return all_qubits_list
+
+
+class _NoProgress:
+    """Dummy (lack of) tqdm-style progress bar."""
+
+    def __init__(self, total: int):
+        pass
+
+    def __enter__(
+        self,
+    ):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    def update(self, increment: int):
+        pass
+
+
 def sample_2q_xeb_circuits(
     sampler: 'cirq.Sampler',
     circuits: Sequence['cirq.Circuit'],
     cycle_depths: Sequence[int],
     repetitions: int = 10_000,
     batch_size: int = 9,
+    progress_bar: Optional[Callable[[int], ContextManager]] = tqdm.tqdm,
 ):
     """Sample two-qubit XEB circuits given a sampler.
 
@@ -459,44 +495,39 @@ def sample_2q_xeb_circuits(
             execution in certain environments. The number of
             (circuit, cycle_depth) tasks to be run in each batch
             is given by this number.
+        progress_bar: A progress context manager following the `tqdm` API or
+            `None` to not report progress.
 
     Returns:
         A pandas dataframe with index given by ['circuit_i', 'cycle_depth'] and
         column "sampled_probs".
     """
-    import tqdm
+    if progress_bar is None:
+        progress_bar = _NoProgress
 
-    all_all_qubits_s: Set['cirq.Qid'] = set()
-    all_all_qubits_s = all_all_qubits_s.union(*(circuit.all_qubits() for circuit in circuits))
-    all_all_qubits = sorted(all_all_qubits_s)
-    if len(all_all_qubits) != 2:
-        raise ValueError(
-            "`circuits` should be a sequence of circuits each operating on the same two qubits."
-        )
-    q0, q1 = all_all_qubits
-
+    q0, q1 = _verify_and_get_two_qubits_from_circuits(circuits)
     tasks = []
     for cycle_depth in cycle_depths:
         for circuit_i, circuit in enumerate(circuits):
             circuit_depth = cycle_depth * 2 + 1
             assert circuit_depth <= len(circuit)
-            tcircuit = circuit[:circuit_depth]
-            pcircuit = tcircuit + ops.measure(q0, q1)
+            truncated_circuit = circuit[:circuit_depth]
+            prepared_circuit = truncated_circuit + ops.measure(q0, q1)
             tasks.append(
                 _Sample2qXEBTask(
-                    cycle_depth=cycle_depth, circuit_i=circuit_i, prepared_circuit=pcircuit
+                    cycle_depth=cycle_depth, circuit_i=circuit_i, prepared_circuit=prepared_circuit
                 )
             )
 
     n_tasks = len(tasks)
-    b_tasks = [tasks[i : i + batch_size] for i in range(0, n_tasks, batch_size)]
+    batched_tasks = [tasks[i : i + batch_size] for i in range(0, n_tasks, batch_size)]
 
     run_batch = _SampleInBatches(sampler=sampler, repetitions=repetitions)
     with ThreadPoolExecutor(max_workers=2) as pool:
-        futures = [pool.submit(run_batch, task) for task in b_tasks]
+        futures = [pool.submit(run_batch, task_batch) for task_batch in batched_tasks]
 
         records = []
-        with tqdm.tqdm(total=n_tasks) as progress:
+        with progress_bar(total=n_tasks) as progress:
             for future in concurrent.futures.as_completed(futures):
                 records += future.result()
                 progress.update(batch_size)
@@ -573,7 +604,7 @@ def simulate_2q_xeb_circuits(
     return pd.DataFrame(records).set_index(['circuit_i', 'cycle_depth'])
 
 
-def simulate_2q_xeb_fidelities(
+def benchmark_2q_xeb_fidelities(
     sampled_df: pd.DataFrame,
     circuits: Sequence['cirq.Circuit'],
     cycle_depths: Sequence[int],
@@ -583,7 +614,7 @@ def simulate_2q_xeb_fidelities(
     """Simulate and benchmark two-qubit XEB circuits.
 
     Args:
-         sampled_df: The sampled results to benchmark. This is likely producecd
+         sampled_df: The sampled results to benchmark. This is likely produced
             by a call to `sample_2q_xeb_circuits`.
         circuits: The library of circuits corresponding to the sampled results
             in `sampled_df`.

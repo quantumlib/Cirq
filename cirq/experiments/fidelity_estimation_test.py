@@ -25,7 +25,7 @@ from cirq.experiments.fidelity_estimation import (
     SQRT_ISWAP,
     sample_2q_xeb_circuits,
     simulate_2q_xeb_circuits,
-    simulate_2q_xeb_fidelities,
+    benchmark_2q_xeb_fidelities,
 )
 import cirq.experiments.random_quantum_circuit_generation as rqcg
 
@@ -256,12 +256,12 @@ def test_sample_2q_xeb_circuits():
         rqcg.random_rotations_between_two_qubit_circuit(
             q0,
             q1,
-            depth=50,
+            depth=20,
             two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b),
         )
         for _ in range(2)
     ]
-    cycle_depths = np.arange(3, 50, 9)
+    cycle_depths = np.arange(3, 20, 6)
 
     df = sample_2q_xeb_circuits(
         sampler=cirq.Simulator(),
@@ -278,14 +278,29 @@ def test_sample_2q_xeb_circuits():
 
 def test_sample_2q_xeb_circuits_error():
     qubits = cirq.LineQubit.range(3)
-    circuits = [cirq.testing.random_circuit(qubits, n_moments=5, op_density=0.8)]
+    circuits = [cirq.testing.random_circuit(qubits, n_moments=5, op_density=0.8, random_state=52)]
     cycle_depths = np.arange(3, 50, 9)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError):  # three qubit circuits
         _ = sample_2q_xeb_circuits(
             sampler=cirq.Simulator(),
             circuits=circuits,
             cycle_depths=cycle_depths,
         )
+
+
+def test_sample_2q_xeb_circuits_no_progress(capsys):
+    qubits = cirq.LineQubit.range(2)
+    circuits = [cirq.testing.random_circuit(qubits, n_moments=7, op_density=0.8, random_state=52)]
+    cycle_depths = np.arange(3, 4)
+    _ = sample_2q_xeb_circuits(
+        sampler=cirq.Simulator(),
+        circuits=circuits,
+        cycle_depths=cycle_depths,
+        progress_bar=None,
+    )
+    captured = capsys.readouterr()
+    assert captured.out == ''
+    assert captured.err == ''
 
 
 def test_simulate_2q_xeb_circuits():
@@ -331,10 +346,7 @@ def test_simulate_2q_xeb_fidelities():
     sampled_df = sample_2q_xeb_circuits(
         sampler=cirq.Simulator(seed=53), circuits=circuits, cycle_depths=cycle_depths
     )
-    fid_df = simulate_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
-    print()
-    print(fid_df)
-    print()
+    fid_df = benchmark_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
     assert len(fid_df) == len(cycle_depths)
     for _, row in fid_df.iterrows():
         assert row['cycle_depth'] in cycle_depths
