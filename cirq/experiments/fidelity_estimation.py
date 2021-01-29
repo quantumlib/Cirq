@@ -37,7 +37,7 @@ import scipy.optimize
 import sympy
 import tqdm
 
-from cirq import ops, protocols, sim, circuits
+from cirq import ops, sim, devices
 from cirq.circuits import Circuit
 from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_state_vector
@@ -740,7 +740,7 @@ def parameterize_phased_fsim_circuit(
                 new_ops += [op]
         new_moments += [ops.Moment(new_ops)]
 
-    circuit = circuits.Circuit(new_moments)
+    circuit = Circuit(new_moments)
     return circuit
 
 
@@ -762,7 +762,7 @@ def optimize_xeb(
     def _f(x):
         params = dict(zip(names, x))
         print("Simulating with {}".format(params))
-        fids = simulate_2q_xeb_fidelities(
+        fids = benchmark_2q_xeb_fidelities(
             sampled_df, paramed_circuits, cycle_depths, param_resolver=params, pool=pool
         )
 
