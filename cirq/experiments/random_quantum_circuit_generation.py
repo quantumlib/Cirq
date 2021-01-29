@@ -14,6 +14,7 @@
 """Code for generating random quantum circuits."""
 
 import dataclasses
+import itertools
 from typing import (
     Any,
     Callable,
@@ -25,13 +26,16 @@ from typing import (
     TYPE_CHECKING,
     Tuple,
     Union,
+    Optional,
 )
+
+import networkx as nx
+import numpy as np
 
 from cirq import circuits, devices, google, ops, protocols, value
 from cirq._doc import document
 
 if TYPE_CHECKING:
-    import numpy as np
     import cirq
 
 
@@ -137,6 +141,18 @@ document(
     """,
 )
 
+HALF_GRID_STAGGERED_PATTERN = (
+    GridInteractionLayer(col_offset=0, vertical=True, stagger=True),  # A
+    GridInteractionLayer(col_offset=1, vertical=True, stagger=True),  # B
+    GridInteractionLayer(col_offset=1, vertical=False, stagger=True),  # C
+    GridInteractionLayer(col_offset=0, vertical=False, stagger=True),  # D
+)
+document(
+    HALF_GRID_STAGGERED_PATTERN,
+    """A pattern that is half of GRID_STAGGERED_PATTERN
+    """,
+)
+
 GRID_ALIGNED_PATTERN = (
     GridInteractionLayer(col_offset=0, vertical=False, stagger=False),  # E
     GridInteractionLayer(col_offset=1, vertical=False, stagger=False),  # F
@@ -215,6 +231,43 @@ def random_rotations_between_two_qubit_circuit(
         circuit += single_qubit_layer_factory.new_layer(previous_single_qubit_layer)
 
     return circuit
+
+
+def generate_library_of_2q_circuits(
+    n_library_circuits: int,
+    two_qubit_gate: 'cirq.Gate',
+    *,
+    max_cycle_depth: int = 100,
+    q0=devices.LineQubit(0),
+    q1=devices.LineQubit(1),
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+) -> List['cirq.Circuit']:
+    """Generate a library of two-qubit Circuits.
+
+    Args:
+        n_library_circuits: The number of circuits to generate.
+        two_qubit_gate: The two qubit gate to use in the circuits.
+        max_depth: The maximum cycle_depth in the circuits to generate.
+            If you are using XEB, this must be greater than or equal to the
+            maximum value in `cycle_depths`.
+    """
+    rs = value.parse_random_state(random_state)
+    exponents = np.linspace(0, 7 / 4, 8)
+    single_qubit_gates = [
+        ops.PhasedXZGate(x_exponent=0.5, z_exponent=z, axis_phase_exponent=a)
+        for a, z in itertools.product(exponents, repeat=2)
+    ]
+    return [
+        random_rotations_between_two_qubit_circuit(
+            q0,
+            q1,
+            depth=max_cycle_depth,
+            two_qubit_op_factory=lambda a, b, _: two_qubit_gate(a, b),
+            single_qubit_gates=single_qubit_gates,
+            seed=rs,
+        )
+        for _ in range(n_library_circuits)
+    ]
 
 
 def random_rotations_between_grid_interaction_layers_circuit(
