@@ -705,6 +705,7 @@ class _XEBOptions:
 @dataclass(frozen=True)
 class SqrtISwapXEBOptions(_XEBOptions):
     theta_default: float = -np.pi / 4
+    phi_default: float = np.pi / 24
 
     @staticmethod
     def should_replace(op: 'cirq.Operation'):
