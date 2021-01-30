@@ -624,9 +624,9 @@ def sample_2q_xeb_circuits(
     for cycle_depth in cycle_depths:
         for zipped_circuit in zipped_circuits:
             circuit_depth = cycle_depth * 2 + 1
-            assert circuit_depth <= len(zipped_circuit.circuit)
+            assert circuit_depth <= len(zipped_circuit.wide_circuit)
             # Slicing creates a copy, although this isn't documented
-            prepared_circuit = zipped_circuit.circuit[:circuit_depth]
+            prepared_circuit = zipped_circuit.wide_circuit[:circuit_depth]
             for pair_i, pair in enumerate(zipped_circuit.pairs):
                 prepared_circuit += ops.measure(*pair, key=str(pair_i))
             tasks.append(
