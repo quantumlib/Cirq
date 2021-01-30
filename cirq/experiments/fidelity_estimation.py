@@ -654,7 +654,8 @@ def benchmark_2q_xeb_fidelities(
     return df.reset_index().groupby('cycle_depth').apply(per_cycle_depth).reset_index()
 
 
-@dataclass(frozen=True)
+# mypy issue: https://github.com/python/mypy/issues/5374
+@dataclass(frozen=True)  # type: ignore
 class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     """Options for calibrating a PhasedFSim-like gate using XEB.
 

@@ -387,6 +387,14 @@ X^0.5                                PhX(0.25)^0.5
     )
 
 
+def test_get_initial_simplex():
+    options = SqrtISwapXEBOptions()
+    simplex, names = options.get_initial_simplex_and_names()
+    assert names == ['theta', 'zeta', 'chi', 'gamma', 'phi']
+    assert len(simplex) == len(names) + 1
+    assert simplex.shape[1] == len(names)
+
+
 def test_characterize_phased_fsim_parameters_with_xeb():
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
