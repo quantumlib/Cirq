@@ -16,3 +16,10 @@ from cirq.contrib.quimb.grid_circuits import (
     MergeNQubitGates,
     get_grid_moments,
 )
+
+from cirq.contrib.quimb.mps_simulator import (
+    MPSSimulator,
+    MPSSimulatorStepResult,
+    MPSState,
+    MPSTrialResult,
+)
