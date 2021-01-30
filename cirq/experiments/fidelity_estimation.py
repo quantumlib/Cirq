@@ -37,8 +37,9 @@ import scipy.optimize
 import sympy
 import tqdm
 
-from cirq import ops, sim, devices
+from cirq import ops, sim, protocols
 from cirq.circuits import Circuit
+from cirq.google.calibration.phased_fsim import PhasedFSimCalibrationOptions
 from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_state_vector
 
@@ -654,7 +655,25 @@ def benchmark_2q_xeb_fidelities(
 
 
 @dataclass(frozen=True)
-class _XEBOptions:
+class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
+    """Options for calibrating a PhasedFSim-like gate using XEB.
+
+    You may want to use more specific subclasses like `SqrtISwapXEBOptions`
+    which have sensible defaults.
+
+    Attributes:
+        parameterize_theta: Whether to characterize θ angle.
+        parameterize_zeta: Whether to characterize ζ angle.
+        parameterize_chi: Whether to characterize χ angle.
+        parameterize_gamma: Whether to characterize γ angle.
+        parameterize_phi: Whether to characterize φ angle.
+        theta_default: The initial or default value to assume for the θ angle.
+        zeta_default: The initial or default value to assume for the ζ angle.
+        chi_default: The initial or default value to assume for the χ angle.
+        gamma_default: The initial or default value to assume for the γ angle.
+        phi_default: The initial or default value to assume for the φ angle.
+    """
+
     parameterize_theta: bool = True
     parameterize_zeta: bool = True
     parameterize_chi: bool = True
@@ -669,10 +688,23 @@ class _XEBOptions:
 
     @staticmethod
     @abstractmethod
-    def should_replace(op: 'cirq.Operation'):
-        pass
+    def should_parameterize(op: 'cirq.Operation') -> bool:
+        """Whether to replace `op` with a parameterized version."""
 
-    def get_initial_simplex_and_names(self, initial_simplex_step_size: float = 0.1):
+    def get_initial_simplex_and_names(
+        self, initial_simplex_step_size: float = 0.1
+    ) -> Tuple[np.ndarray, List[str]]:
+        """Get an initial simplex and parameter names for the optimization implied by these options.
+
+        The initial simplex initiates the Nelder-Mead optimization parameter. We
+        use the standard simplex of `x0 + s*basis_vec` where x0 is given by the
+        `xxx_default` attributes, s is `initial_simplex_step_size` and `basis_vec`
+        is a one-hot encoded vector for each parameter for which the `parameterize_xxx`
+        attribute is True.
+
+        We also return a list of parameter names so the Cirq `param_resovler`
+        can be accurately constructed during optimization.
+        """
         x0 = []
         names = []
         if self.parameterize_theta:
@@ -698,36 +730,46 @@ class _XEBOptions:
             basis_vec = np.zeros(n_param)
             basis_vec[i] = 1
             initial_simplex += [x0 + initial_simplex_step_size * basis_vec]
+        initial_simplex = np.asarray(initial_simplex)
 
         return initial_simplex, names
 
 
 @dataclass(frozen=True)
-class SqrtISwapXEBOptions(_XEBOptions):
+class SqrtISwapXEBOptions(XEBPhasedFSimCalibrationOptions):
+    """Options for calibrating a sqrt(ISWAP) gate using XEB.
+
+    As such, the default for theta is changed to -pi/4 and the parameterization
+    predicate seeks out sqrt(ISWAP) gates.
+    """
+
     theta_default: float = -np.pi / 4
     phi_default: float = np.pi / 24
 
     @staticmethod
-    def should_replace(op: 'cirq.Operation'):
+    def should_parameterize(op: 'cirq.Operation') -> bool:
         return op.gate == SQRT_ISWAP
 
 
 def parameterize_phased_fsim_circuit(
     circuit: 'cirq.Circuit',
-    phased_fsim_options: _XEBOptions = SqrtISwapXEBOptions,
-):
-    o = phased_fsim_options
-    theta = THETA if o.parameterize_theta else o.theta_default
-    zeta = ZETA if o.parameterize_zeta else o.zeta_default
-    chi = CHI if o.parameterize_chi else o.chi_default
-    gamma = GAMMA if o.parameterize_gamma else o.gamma_default
-    phi = PHI if o.parameterize_phi else o.phi_default
+    phased_fsim_options: XEBPhasedFSimCalibrationOptions,
+) -> 'cirq.Circuit':
+    """Parameterize PhasedFSim-like gates in a given circuit according to
+    `phased_fsim_options`.
+    """
+    options = phased_fsim_options
+    theta = THETA if options.parameterize_theta else options.theta_default
+    zeta = ZETA if options.parameterize_zeta else options.zeta_default
+    chi = CHI if options.parameterize_chi else options.chi_default
+    gamma = GAMMA if options.parameterize_gamma else options.gamma_default
+    phi = PHI if options.parameterize_phi else options.phi_default
 
     new_moments = []
     for moment in circuit.moments:
         new_ops = []
         for op in moment.operations:
-            if o.should_replace(op):
+            if options.should_parameterize(op):
                 new_ops += [
                     ops.PhasedFSimGate(
                         theta=theta,
@@ -745,16 +787,35 @@ def parameterize_phased_fsim_circuit(
     return circuit
 
 
-def optimize_xeb(
-    sampled_df,
-    paramed_circuits,
-    cycle_depths,
-    phased_fsim_options: _XEBOptions,
-    initial_simplex_step_size=0.1,
-    xatol=1e-4,
-    fatol=1e-4,
-    pool=None,
+def characterize_phased_fsim_parameters_with_xeb(
+    sampled_df: pd.DataFrame,
+    parameterized_circuits: List['cirq.Circuit'],
+    cycle_depths: Sequence[int],
+    phased_fsim_options: XEBPhasedFSimCalibrationOptions,
+    initial_simplex_step_size: float = 0.1,
+    xatol: float = 1e-3,
+    fatol: float = 1e-3,
+    verbose: bool = True,
+    pool: Optional['multiprocessing.pool.Pool'] = None,
 ):
+    """Run a classical optimization to fit phased fsim parameters to experimental data, and
+    thereby characterize PhasedFSim-like gates.
+
+    Args:
+        sampled_df: The DataFrame of sampled two-qubit probability distributions returned
+            from `sample_2q_xeb_circuits`.
+        parameterized_circuits: The circuits corresponding to those sampled in `sampled_df`,
+            but with some gates parameterized, likely by using `parameterize_phased_fsim_circuit`.
+        cycle_depths: The depths at which circuits were truncated.
+        phased_fsim_options: A set of options that controls the classical optimization loop
+            for characterizing the parameterized gates.
+        initial_simplex_step_size: Set the size of the initial simplex for Nelder-Mead.
+        xatol: The `xatol` argument for Nelder-Mead. This is the absolute error for convergence
+            in the parameters.
+        fatol: The `fatol` argument for Nelder-Mead. This is the absolute error for convergence
+            in the function evaluation.
+        pool: An optional multiprocessing pool to execute circuit simulations in parallel.
+    """
     initial_simplex, names = phased_fsim_options.get_initial_simplex_and_names(
         initial_simplex_step_size=initial_simplex_step_size
     )
@@ -762,13 +823,18 @@ def optimize_xeb(
 
     def _f(x):
         params = dict(zip(names, x))
-        print("Simulating with {}".format(params))
+        if verbose:
+            params_str = ''
+            for name, val in params.items():
+                params_str += f'{name:5s} = {val:7.3g} '
+            print("Simulating with {}".format(params_str))
         fids = benchmark_2q_xeb_fidelities(
-            sampled_df, paramed_circuits, cycle_depths, param_resolver=params, pool=pool
+            sampled_df, parameterized_circuits, cycle_depths, param_resolver=params, pool=pool
         )
 
         loss = 1 - fids['fidelity'].mean()
-        print("Got {}".format(loss), flush=True)
+        if verbose:
+            print("Loss: {:7.3g}".format(loss), flush=True)
         return loss
 
     res = scipy.optimize.minimize(
