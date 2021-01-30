@@ -744,7 +744,6 @@ class SqrtISwapXEBOptions(XEBPhasedFSimCalibrationOptions):
     """
 
     theta_default: float = -np.pi / 4
-    phi_default: float = np.pi / 24
 
     @staticmethod
     def should_parameterize(op: 'cirq.Operation') -> bool:
