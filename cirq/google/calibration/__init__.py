@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from cirq.google.calibration.engine_simulator import (
-    SQRT_ISWAP_PARAMETERS,
     PhasedFSimEngineSimulator,
 )
 
@@ -24,6 +23,7 @@ from cirq.google.calibration.phased_fsim import (
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
+    SQRT_ISWAP_PARAMETERS,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
 )
 

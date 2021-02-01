@@ -43,6 +43,7 @@ from cirq.google.calibration.phased_fsim import (
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
+    SQRT_ISWAP_PARAMETERS,
     try_convert_sqrt_iswap_to_fsim,
 )
 
@@ -50,9 +51,6 @@ from cirq.google.calibration.phased_fsim import (
 PhasedFsimDictParameters = Dict[
     Tuple[Qid, Qid], Union[Dict[str, float], PhasedFSimCharacterization]
 ]
-SQRT_ISWAP_PARAMETERS = PhasedFSimCharacterization(
-    theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
-)
 
 
 class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVector):
