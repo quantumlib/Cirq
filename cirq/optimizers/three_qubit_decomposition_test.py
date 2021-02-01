@@ -16,7 +16,6 @@ from random import random
 from typing import Callable
 
 import numpy as np
-
 import pytest
 from numpy.testing import assert_almost_equal
 from scipy.linalg import block_diag
