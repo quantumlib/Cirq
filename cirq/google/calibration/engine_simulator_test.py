@@ -220,6 +220,7 @@ def test_from_dictionary_sqrt_iswap_simulates_correctly() -> None:
         theta=0.8, zeta=-0.5, chi=-0.4, gamma=-0.3, phi=-0.2
     )
     parameters_cd_dict = {'theta': 0.1, 'zeta': 0.2, 'chi': 0.3, 'gamma': 0.4, 'phi': 0.5}
+    parameters_dc_dict = {'theta': 0.1, 'zeta': -0.2, 'chi': -0.3, 'gamma': 0.4, 'phi': 0.5}
 
     a, b, c, d = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(
@@ -227,6 +228,7 @@ def test_from_dictionary_sqrt_iswap_simulates_correctly() -> None:
             [cirq.X(a), cirq.Y(c)],
             [cirq.FSimGate(np.pi / 4, 0.0).on(a, b), cirq.FSimGate(np.pi / 4, 0.0).on(c, d)],
             [cirq.FSimGate(np.pi / 4, 0.0).on(b, c)],
+            [cirq.FSimGate(np.pi / 4, 0.0).on(a, b), cirq.FSimGate(np.pi / 4, 0.0).on(c, d)],
         ]
     )
     expected_circuit = cirq.Circuit(
@@ -237,6 +239,10 @@ def test_from_dictionary_sqrt_iswap_simulates_correctly() -> None:
                 cirq.PhasedFSimGate(**parameters_cd_dict).on(c, d),
             ],
             [cirq.PhasedFSimGate(**parameters_bc.asdict()).on(b, c)],
+            [
+                cirq.PhasedFSimGate(**parameters_ab.asdict()).on(a, b),
+                cirq.PhasedFSimGate(**parameters_dc_dict).on(d, c),
+            ],
         ]
     )
 
