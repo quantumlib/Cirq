@@ -12,17 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An optimization pass that aligns gates to the left of the circuit."""
-
-from cirq import circuits
-from cirq.circuits.insert_strategy import InsertStrategy
-
-
-class AlignLeft:
-    """Aligns gates to the left of the circuit."""
-
-    def __call__(self, circuit: circuits.Circuit):
-        self.optimize_circuit(circuit)
-
-    def optimize_circuit(self, circuit: circuits.Circuit):
-        circuit[:] = circuits.Circuit(circuit.all_operations(), strategy=InsertStrategy.EARLIEST)
+from cirq.google.calibration.phased_fsim import (
+    ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    FloquetPhasedFSimCalibrationOptions,
+    FloquetPhasedFSimCalibrationRequest,
+    PhasedFSimCalibrationRequest,
+    PhasedFSimCalibrationResult,
+    PhasedFSimCharacterization,
+    WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+)
+from cirq.google.calibration.workflow import (
+    make_floquet_request_for_circuit,
+    make_floquet_request_for_moment,
+    run_characterizations,
+    run_floquet_characterization_for_circuit,
+    try_convert_sqrt_iswap_to_fsim,
+)
