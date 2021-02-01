@@ -44,8 +44,6 @@ else:
 
 
 _FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
-
-
 T = TypeVar('T')
 
 

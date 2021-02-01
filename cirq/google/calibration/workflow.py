@@ -13,6 +13,7 @@
 # limitations under the License.
 from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union, cast
 
+import dataclasses
 from itertools import zip_longest
 
 import numpy as np
@@ -121,6 +122,21 @@ def make_floquet_request_for_moment(
     )
 
 
+@dataclasses.dataclass(frozen=True)
+class CircuitFloquetPhasedFSimCalibrationRequests:
+    """Circuit-specific characterization requests.
+
+    Attributes:
+        requests: List of calibration requests,
+        moment_allocations: List of indices to element in requests list for each moment in the
+            supplied circuit. If None occurs at certain position, it means that the related moment
+            does not require characterization.
+    """
+
+    requests: List[FloquetPhasedFSimCalibrationRequest]
+    moment_allocations: List[Optional[int]]
+
+
 def make_floquet_request_for_circuit(
     circuit: Circuit,
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -129,7 +145,7 @@ def make_floquet_request_for_circuit(
     ] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
     initial: Optional[List[FloquetPhasedFSimCalibrationRequest]] = None,
-) -> Tuple[List[FloquetPhasedFSimCalibrationRequest], List[Optional[int]]]:
+) -> CircuitFloquetPhasedFSimCalibrationRequests:
     """Extracts a minimal set of Floquet characterization requests necessary to characterize given
     circuit.
 
@@ -145,16 +161,12 @@ def make_floquet_request_for_circuit(
         merge_subsets: Whether to merge moments that can be characterized at the same time
             together.
         initial: The characterization requests obtained by a previous scan of another circuit; i.e.,
-            the first element of a tuple returned by make_floquet_request_for_circuit invoked on
+            the requests field of the return value of make_floquet_request_for_circuit invoked on
             another circuit. This might be used to find a minimal set of moments to characterize
             across many circuits.
 
     Returns:
-        Tuple of:
-          - list of calibration requests,
-          - list of indices of the generated characterization requests for each moment in the
-            supplied circuit. If None occurs at certain position, it means that the related moment
-            does not require characterization.
+        Instance of CircuitFloquetPhasedFSimCalibrationRequests.
 
     Raises:
         IncompatibleMomentError when circuit contains a moment with operations other than the
@@ -184,7 +196,7 @@ def make_floquet_request_for_circuit(
         else:
             allocations.append(None)
 
-    return calibrations, allocations
+    return CircuitFloquetPhasedFSimCalibrationRequests(calibrations, allocations)
 
 
 def _append_into_calibrations_if_missing(
@@ -432,9 +444,24 @@ def create_corrected_fsim_gate(
     )
 
 
+@dataclasses.dataclass(frozen=True)
+class CircuitPhasedFSimCalibrationResults:
+    """Circuit-specific calibration results
+
+    Attributes:
+        results: List of PhasedFSimCalibrationResult for each characterized moment.
+        moment_allocations: List of indices to element in results list for each moment in the
+            supplied circuit. If None occurs at certain position, it means that the related moment
+            does not require characterization.
+    """
+
+    results: List[PhasedFSimCalibrationResult]
+    moment_allocations: List[Optional[int]]
+
+
 def run_floquet_characterization_for_circuit(
     circuit: Circuit,
-    engine: Union[Engine, PhasedFSimEngineSimulator],
+    engine: Engine,
     processor_id: str,
     gate_set: SerializableGateSet,
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -444,7 +471,7 @@ def run_floquet_characterization_for_circuit(
     merge_subsets: bool = True,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
-) -> Tuple[List[PhasedFSimCalibrationResult], List[Optional[int]]]:
+) -> CircuitPhasedFSimCalibrationResults:
     """Extracts moments within a circuit to characterize and characterizes them against engine.
 
     The method calls floquet_characterization_for_circuit to extract moments to characterize and
@@ -468,28 +495,24 @@ def run_floquet_characterization_for_circuit(
             layers already calibrated and the second one the total number of layers to calibrate.
 
     Returns:
-        Tuple of:
-          - list of PhasedFSimCalibrationResult for each recognized moment to characterize.
-          - list of indices of the generated characterization requests for each moment in the
-            supplied circuit. If None occurs at certain position, it means that the related moment
-            does not require characterization.
+        Instance of CircuitPhasedFSimCalibrationResults.
 
     Raises:
         IncompatibleMomentError when circuit contains a moment with operations other than the
         operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
     """
-    requests, allocations = make_floquet_request_for_circuit(
+    request = make_floquet_request_for_circuit(
         circuit, options, gates_translator, merge_subsets=merge_subsets
     )
     results = run_characterizations(
-        requests,
+        request.requests,
         engine,
         processor_id,
         gate_set,
         max_layers_per_request=max_layers_per_request,
         progress_func=progress_func,
     )
-    return results, allocations
+    return CircuitPhasedFSimCalibrationResults(results, request.moment_allocations)
 
 
 def run_floquet_phased_calibration_for_circuit(
@@ -513,11 +536,11 @@ def run_floquet_phased_calibration_for_circuit(
 ) -> Tuple[
     Circuit, List[PhasedFSimCalibrationResult], List[Optional[int]], PhasedFSimCharacterization
 ]:
-    requests, mapping = make_floquet_request_for_circuit(
+    request = make_floquet_request_for_circuit(
         circuit, options, gates_translator, merge_subsets=merge_subsets
     )
     characterizations = run_characterizations(
-        requests,
+        request.requests,
         engine,
         processor_id,
         gate_set,
@@ -525,7 +548,7 @@ def run_floquet_phased_calibration_for_circuit(
         progress_func=progress_func,
     )
     calibrated_circuit, calibrated_mapping = phased_calibration_for_circuit(
-        circuit, characterizations, mapping, gates_translator
+        circuit, characterizations, request.moment_allocations, gates_translator
     )
     override = PhasedFSimCharacterization(
         zeta=0.0 if options.characterize_zeta else None,
