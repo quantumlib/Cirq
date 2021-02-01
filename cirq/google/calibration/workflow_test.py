@@ -108,9 +108,9 @@ def test_make_floquet_request_for_circuit() -> None:
     )
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
-    requests, mapping = workflow.make_floquet_request_for_circuit(circuit, options=options)
+    request = workflow.make_floquet_request_for_circuit(circuit, options=options)
 
-    assert requests == [
+    assert request.requests == [
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
             pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options
         ),
@@ -118,7 +118,7 @@ def test_make_floquet_request_for_circuit() -> None:
             pairs=((b, c),), gate=SQRT_ISWAP_GATE, options=options
         ),
     ]
-    assert mapping == [None, 0, 1]
+    assert request.moment_allocations == [None, 0, 1]
 
 
 def test_make_floquet_request_for_circuit_merges_sub_sets() -> None:
@@ -136,9 +136,9 @@ def test_make_floquet_request_for_circuit_merges_sub_sets() -> None:
     )
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
-    requests, mapping = workflow.make_floquet_request_for_circuit(circuit, options=options)
+    request = workflow.make_floquet_request_for_circuit(circuit, options=options)
 
-    assert requests == [
+    assert request.requests == [
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
             pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options
         ),
@@ -146,7 +146,7 @@ def test_make_floquet_request_for_circuit_merges_sub_sets() -> None:
             pairs=((b, c), (d, e)), gate=SQRT_ISWAP_GATE, options=options
         ),
     ]
-    assert mapping == [None, 0, 1, 0, 1]
+    assert request.moment_allocations == [None, 0, 1, 0, 1]
 
 
 def test_make_floquet_request_for_circuit_merges_many_circuits() -> None:
@@ -162,9 +162,9 @@ def test_make_floquet_request_for_circuit_merges_many_circuits() -> None:
         ]
     )
 
-    requests_1, mapping_1 = workflow.make_floquet_request_for_circuit(circuit_1, options=options)
+    request_1 = workflow.make_floquet_request_for_circuit(circuit_1, options=options)
 
-    assert requests_1 == [
+    assert request_1.requests == [
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
             pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options
         ),
@@ -172,18 +172,17 @@ def test_make_floquet_request_for_circuit_merges_many_circuits() -> None:
             pairs=((b, c),), gate=SQRT_ISWAP_GATE, options=options
         ),
     ]
-    assert mapping_1 == [None, 0, 1, 0]
+    assert request_1.moment_allocations == [None, 0, 1, 0]
 
     circuit_2 = cirq.Circuit(
         [cirq.FSimGate(np.pi / 4, 0.0).on(b, c), cirq.FSimGate(np.pi / 4, 0.0).on(d, e)]
     )
 
-    requests_2, mapping_2 = workflow.make_floquet_request_for_circuit(
-        circuit_2, options=options, initial=requests_1
+    request_2 = workflow.make_floquet_request_for_circuit(
+        circuit_2, options=options, initial=request_1.requests
     )
-    print(requests_2)
 
-    assert requests_2 == [
+    assert request_2.requests == [
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
             pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options
         ),
@@ -191,7 +190,7 @@ def test_make_floquet_request_for_circuit_merges_many_circuits() -> None:
             pairs=((b, c), (d, e)), gate=SQRT_ISWAP_GATE, options=options
         ),
     ]
-    assert mapping_2 == [1]
+    assert request_2.moment_allocations == [1]
 
 
 def test_make_floquet_request_for_circuit_does_not_merge_sub_sets_when_disabled() -> None:
@@ -210,11 +209,11 @@ def test_make_floquet_request_for_circuit_does_not_merge_sub_sets_when_disabled(
     )
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
-    requests, mapping = workflow.make_floquet_request_for_circuit(
+    request = workflow.make_floquet_request_for_circuit(
         circuit, options=options, merge_subsets=False
     )
 
-    assert requests == [
+    assert request.requests == [
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
             pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options
         ),
@@ -228,7 +227,7 @@ def test_make_floquet_request_for_circuit_does_not_merge_sub_sets_when_disabled(
             pairs=((b, c), (d, e)), gate=SQRT_ISWAP_GATE, options=options
         ),
     ]
-    assert mapping == [None, 0, 1, 2, 3, 1]
+    assert request.moment_allocations == [None, 0, 1, 2, 3, 1]
 
 
 def test_make_floquet_request_for_circuit_merges_compatible_sets() -> None:
@@ -244,9 +243,9 @@ def test_make_floquet_request_for_circuit_merges_compatible_sets() -> None:
     )
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
-    requests, mapping = workflow.make_floquet_request_for_circuit(circuit, options=options)
+    request = workflow.make_floquet_request_for_circuit(circuit, options=options)
 
-    assert requests == [
+    assert request.requests == [
         cirq.google.calibration.FloquetPhasedFSimCalibrationRequest(
             pairs=((a, b), (c, d)), gate=SQRT_ISWAP_GATE, options=options
         ),
@@ -254,7 +253,7 @@ def test_make_floquet_request_for_circuit_merges_compatible_sets() -> None:
             pairs=((a, f), (b, c), (d, e)), gate=SQRT_ISWAP_GATE, options=options
         ),
     ]
-    assert mapping == [None, 0, 1, 0, 1]
+    assert request.moment_allocations == [None, 0, 1, 0, 1]
 
 
 def test_run_characterization_empty():
@@ -424,11 +423,11 @@ def test_run_floquet_characterization_for_circuit():
     engine = mock.MagicMock(spec=cirq.google.Engine)
     engine.run_calibration.return_value = job
 
-    characterizations, mapping = workflow.run_floquet_characterization_for_circuit(
+    characterization = workflow.run_floquet_characterization_for_circuit(
         circuit, engine, 'qproc', cirq.google.FSIM_GATESET, options=options
     )
 
-    assert characterizations == [
+    assert characterization.results == [
         PhasedFSimCalibrationResult(
             parameters={
                 (q_00, q_01): PhasedFSimCharacterization(
@@ -442,7 +441,7 @@ def test_run_floquet_characterization_for_circuit():
             options=options,
         )
     ]
-    assert mapping == [0]
+    assert characterization.moment_allocations == [0]
 
 
 @pytest.mark.parametrize(

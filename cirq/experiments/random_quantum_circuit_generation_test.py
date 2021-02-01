@@ -22,8 +22,48 @@ from cirq.experiments import (
     GridInteractionLayer,
     random_rotations_between_grid_interaction_layers_circuit,
 )
+from cirq.experiments.random_quantum_circuit_generation import (
+    random_rotations_between_two_qubit_circuit,
+)
 
 SINGLE_QUBIT_LAYER = Dict[cirq.GridQubit, Optional[cirq.Gate]]
+
+
+def test_random_rotation_between_two_qubit_circuit():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = random_rotations_between_two_qubit_circuit(q0, q1, 4, seed=52)
+    assert len(circuit) == 4 * 2 + 1
+    assert circuit.all_qubits() == {q0, q1}
+
+    circuit = random_rotations_between_two_qubit_circuit(
+        q0, q1, 4, seed=52, add_final_single_qubit_layer=False
+    )
+    assert len(circuit) == 4 * 2
+    assert circuit.all_qubits() == {q0, q1}
+
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """\
+0             1
+│             │
+Y^0.5         X^0.5
+│             │
+SYC───────────SYC
+│             │
+PhX(0.25)^0.5 Y^0.5
+│             │
+SYC───────────SYC
+│             │
+Y^0.5         X^0.5
+│             │
+SYC───────────SYC
+│             │
+X^0.5         PhX(0.25)^0.5
+│             │
+SYC───────────SYC
+│             │""",
+        transpose=True,
+    )
 
 
 def _syc_with_adjacent_z_rotations(
