@@ -11,15 +11,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    MutableMapping,
+    Optional,
+    Tuple,
+    TypeVar,
+    TYPE_CHECKING,
+)
 
 import abc
 import collections
 import dataclasses
+import functools
 import re
 
+import numpy as np
+
 from cirq.circuits import Circuit
-from cirq.ops import Gate, Qid
+from cirq.ops import FSimGate, Gate, ISwapPowGate, PhasedFSimGate, PhasedISwapPowGate, Qid
 from cirq.google.api import v2
 from cirq.google.engine import CalibrationLayer, CalibrationResult
 
@@ -31,6 +44,14 @@ if TYPE_CHECKING:
     from dataclasses import dataclass as json_serializable_dataclass
 else:
     from cirq.protocols import json_serializable_dataclass
+
+
+T = TypeVar('T')
+
+
+# Workaround for: https://github.com/python/mypy/issues/5858
+def lru_cache_typesafe(func: Callable[..., T]) -> T:
+    return functools.lru_cache(maxsize=None)(func)  # type: ignore
 
 
 @json_serializable_dataclass(frozen=True)
@@ -220,6 +241,15 @@ class PhasedFSimCalibrationRequest(abc.ABC):
     pairs: Tuple[Tuple[Qid, Qid], ...]
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
 
+    # Workaround for: https://github.com/python/mypy/issues/1362
+    @property  # type: ignore
+    @lru_cache_typesafe
+    def qubit_to_pair(self) -> MutableMapping[Qid, Tuple[Qid, Qid]]:
+        """Returns mapping from qubit to a qubit pair that it belongs to."""
+        # Returning mutable mapping as a cached result because it's hard to get a frozen dictionary
+        # in Python...
+        return collections.ChainMap(*({q: pair for q in pair} for pair in self.pairs))
+
     @abc.abstractmethod
     def to_calibration_layer(self) -> CalibrationLayer:
         """Encodes this characterization request in a CalibrationLayer object."""
@@ -249,6 +279,26 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     characterize_chi: bool
     characterize_gamma: bool
     characterize_phi: bool
+
+
+"""PhasedFSimCalibrationOptions options with all angles characterization requests set to True."""
+ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
+    characterize_theta=True,
+    characterize_zeta=True,
+    characterize_chi=True,
+    characterize_gamma=True,
+    characterize_phi=True,
+)
+
+
+"""PhasedFSimCalibrationOptions with all but chi angle characterization requests set to True."""
+WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
+    characterize_theta=True,
+    characterize_zeta=True,
+    characterize_chi=False,
+    characterize_gamma=True,
+    characterize_phi=True,
+)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -325,3 +375,41 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             'gate': self.gate,
             'options': self.options,
         }
+
+
+def try_convert_sqrt_iswap_to_fsim(gate: Gate) -> Optional[FSimGate]:
+    """Converts an equivalent gate to FSimGate(theta=π/4, phi=0) if possible.
+
+    Args:
+        gate: Gate to verify.
+
+    Returns:
+        FSimGate(theta=π/4, phi=0) if provided gate either  FSimGate, ISWapPowGate, PhasedFSimGate
+        or PhasedISwapPowGate that is equivalent to FSimGate(theta=π/4, phi=0). None otherwise.
+    """
+    if isinstance(gate, FSimGate):
+        if not np.isclose(gate.phi, 0.0):
+            return None
+        angle = gate.theta
+    elif isinstance(gate, ISwapPowGate):
+        angle = -gate.exponent * np.pi / 2
+    elif isinstance(gate, PhasedFSimGate):
+        if (
+            not np.isclose(gate.zeta, 0.0)
+            or not np.isclose(gate.chi, 0.0)
+            or not np.isclose(gate.gamma, 0.0)
+            or not np.isclose(gate.phi, 0.0)
+        ):
+            return None
+        angle = gate.theta
+    elif isinstance(gate, PhasedISwapPowGate):
+        if not np.isclose(-gate.phase_exponent - 0.5, 0.0):
+            return None
+        angle = gate.exponent * np.pi / 2
+    else:
+        return None
+
+    if np.isclose(angle, np.pi / 4):
+        return FSimGate(theta=np.pi / 4, phi=0.0)
+
+    return None
