@@ -14,7 +14,9 @@
 import functools
 import glob
 import os
+import subprocess
 import sys
+from typing import Set
 
 import pytest
 from filelock import FileLock
@@ -30,17 +32,24 @@ SKIP_NOTEBOOKS = [
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     "examples/*fidelity*",
+    # https://github.com/quantumlib/Cirq/pull/3669#issuecomment-766450463
+    'docs/characterization/*.ipynb',
 ]
 
 
+def _list_all_notebooks() -> Set[str]:
+    output = subprocess.check_output(['git', 'ls-files', '*.ipynb'])
+    return set(output.decode('utf-8').splitlines())
+
+
 def _tested_notebooks():
-    all_notebooks = set(glob.glob("**/*.ipynb", recursive=True))
+    all_notebooks = _list_all_notebooks()
     skipped_notebooks = functools.reduce(
         lambda a, b: a.union(b), list(set(glob.glob(g, recursive=True)) for g in SKIP_NOTEBOOKS)
     )
 
     # sorted is important otherwise pytest-xdist will complain that
-    # the workers have differnent parametrization:
+    # the workers have different parametrization:
     # https://github.com/pytest-dev/pytest-xdist/issues/432
     return sorted(os.path.abspath(n) for n in all_notebooks.difference(skipped_notebooks))
 
@@ -54,6 +63,8 @@ PACKAGES = [
     "virtualenv-clone",
     # assumed to be part of colab
     "seaborn",
+    # https://github.com/nteract/papermill/issues/519
+    'ipykernel==5.3.4',
 ]
 
 

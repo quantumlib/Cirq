@@ -14,7 +14,7 @@
 
 """An optimization pass that aligns gates to the right of the circuit."""
 
-from cirq import circuits, ops
+from cirq import circuits
 from cirq.circuits.insert_strategy import InsertStrategy
 
 
