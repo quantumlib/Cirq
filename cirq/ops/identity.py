@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality
-class IdentityGate(gate_features.SometimesOneQubitGate, raw_types.Gate):
+class IdentityGate(gate_features.SupportsOnEachGate, raw_types.Gate):
     """A Gate that perform no operation on qubits.
 
     The unitary matrix of this gate is a diagonal matrix with all 1s on the
