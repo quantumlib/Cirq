@@ -590,3 +590,5 @@ def test_transform_qubits():
 
     assert original.transform_qubits({a: x, b: y}) == modified
     assert original.transform_qubits(lambda q: cirq.GridQubit(10 + q.x, 20)) == modified
+    with pytest.raises(TypeError, match='must be a function or dict'):
+        _ = original.transform_qubits('bad arg')

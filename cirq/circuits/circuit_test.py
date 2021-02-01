@@ -4083,6 +4083,8 @@ def test_transform_qubits():
         )
         == desired
     )
+    with pytest.raises(TypeError, match='must be a function or dict'):
+        _ = original.transform_qubits('bad arg')
 
     # Device
     original = cirq.Circuit(device=cg.Foxtail)
