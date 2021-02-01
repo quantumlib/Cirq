@@ -18,7 +18,7 @@ This tool was originally introduced to enable comparison of the two JSON
 serialization protocols (gzip and non-gzip):
 https://github.com/quantumlib/Cirq/pull/3662
 
-This is ppart of the "efficient serialization" effort:
+This is part of the "efficient serialization" effort:
 https://github.com/quantumlib/Cirq/issues/3438
 
 Run this benchmark with the following command (make sure to install cirq-dev):
