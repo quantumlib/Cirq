@@ -13,6 +13,7 @@
 # limitations under the License.
 import dataclasses
 import functools
+import gzip
 import json
 import numbers
 import pathlib
@@ -706,3 +707,41 @@ def read_json(
             return json.load(file, object_hook=obj_hook)
 
     return json.load(cast(IO, file_or_fn), object_hook=obj_hook)
+
+
+def to_json_gzip(
+    obj: Any,
+    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    *,
+    indent: int = 2,
+    cls: Type[json.JSONEncoder] = CirqEncoder,
+) -> Optional[bytes]:
+    json_str = to_json(obj, indent=indent, cls=cls)
+    if isinstance(file_or_fn, (str, pathlib.Path)):
+        with gzip.open(file_or_fn, 'wt', encoding='utf-8') as actually_a_file:
+            actually_a_file.write(json_str)
+            return None
+
+    gzip_data = gzip.compress(bytes(json_str, encoding='utf-8'))  # type: ignore
+    if file_or_fn is None:
+        return gzip_data
+
+    file_or_fn.write(gzip_data)
+    return None
+
+
+def read_json_gzip(
+    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    *,
+    gzip_raw: Optional[bytes] = None,
+    resolvers: Optional[Sequence[JsonResolver]] = None,
+):
+    if (file_or_fn is None) == (gzip_raw is None):
+        raise ValueError('Must specify ONE of "file_or_fn" or "gzip_raw".')
+
+    if gzip_raw is not None:
+        json_str = gzip.decompress(gzip_raw).decode(encoding='utf-8')
+        return read_json(json_text=json_str, resolvers=resolvers)
+
+    with gzip.open(file_or_fn, 'rt') as json_file:  # type: ignore
+        return read_json(cast(IO, json_file), resolvers=resolvers)
