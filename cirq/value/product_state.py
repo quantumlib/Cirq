@@ -80,7 +80,7 @@ class ProductState:
                 "but both contain factors for these qubits: {}".format(sorted(dupe_qubits))
             )
 
-        new_states = self.states
+        new_states = self.states.copy()
         new_states.update(other.states)
         return ProductState(new_states)
 

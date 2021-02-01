@@ -183,6 +183,7 @@ include "qelib1.inc";
 qreg q[1];
 
 
+// Gate: H**0.25
 ry(pi*0.25) q[0];
 rx(pi*0.25) q[0];
 ry(pi*-0.25) q[0];
@@ -414,9 +415,11 @@ u3(pi*0.5,pi*1.41581,pi*1.0) q[0];
 ry(pi*0.5) q[0];
 cx q[0],q[1];
 
+// Gate: CCZ
 h q[2];
 ccx q[0],q[1],q[2];
 h q[2];
+
 ccx q[0],q[1],q[2];
 
 // Gate: CCZ**0.5
@@ -457,6 +460,8 @@ h q[2];
 
 cswap q[0],q[1],q[2];
 id q[0];
+
+// Gate: I(3)
 id q[0];
 id q[1];
 id q[2];
@@ -480,10 +485,13 @@ measure q[1] -> m0[0];
 measure q[3] -> m_X[0];
 measure q[4] -> m__x[0];
 measure q[2] -> m_x_a[0];
+
+// Gate: cirq.MeasurementGate(3, 'multi', (False, True))
 measure q[1] -> m_multi[0];
 x q[2];  // Invert the following measurement
 measure q[2] -> m_multi[1];
 measure q[3] -> m_multi[2];
+
 // Dummy operation
 
 // Operation: DummyCompositeOperation()
