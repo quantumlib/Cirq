@@ -1,4 +1,16 @@
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    cast,
+)
 
 import random
 
@@ -35,6 +47,9 @@ from cirq.google.calibration.phased_fsim import (
 )
 
 
+PhasedFsimDictParameters = Dict[
+    Tuple[Qid, Qid], Union[Dict[str, float], PhasedFSimCharacterization]
+]
 SQRT_ISWAP_PARAMETERS = PhasedFSimCharacterization(
     theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
 )
@@ -78,14 +93,17 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         sigma: PhasedFSimCharacterization = PhasedFSimCharacterization(
             theta=0.02, zeta=0.05, chi=0.05, gamma=0.05, phi=0.02
         ),
-        rand: Optional[Union[int, random.Random]] = None,
+        seed_or_random: Optional[Union[int, random.Random]] = None,
     ) -> 'PhasedFSimEngineSimulator':
         def sample_gate(_1: Qid, _2: Qid, gate: FSimGate) -> PhasedFSimGate:
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
                 gate.phi, 0.0
             ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
 
-            def sample_value(gaussian_mean: float, gaussian_sigma: float) -> float:
+            def sample_value(
+                gaussian_mean: Optional[float], gaussian_sigma: Optional[float]
+            ) -> float:
+                assert gaussian_mean is not None
                 if gaussian_sigma:
                     return rand.gauss(gaussian_mean, gaussian_sigma)
                 else:
@@ -102,15 +120,16 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         if mean.any_none():
             raise ValueError(f'All mean values must be provided, got mean of {mean}')
 
-        if rand is not None:
-            if isinstance(rand, int):
-                rand = random.Random(rand)
-            elif not isinstance(rand, random.Random):
+        if seed_or_random is not None:
+            if isinstance(seed_or_random, int):
+                rand = random.Random(seed_or_random)
+            elif not isinstance(seed_or_random, random.Random):
                 raise ValueError(
-                    f'Provided rand argument {rand} is neither of type int or random.Random'
+                    f'Provided rand argument {seed_or_random} is neither of type int or '
+                    f'random.Random'
                 )
         else:
-            rand = random.Random(rand)
+            rand = random.Random()
 
         if simulator is None:
             simulator = Simulator()
@@ -121,7 +140,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
     @staticmethod
     def create_from_dictionary_sqrt_iswap(
-        parameters: Dict[Tuple[Qid, Qid], Union[Dict[str, float], PhasedFSimCharacterization]],
+        parameters: PhasedFsimDictParameters,
         *,
         simulator: Optional[Simulator] = None,
         ideal_when_missing_gate: bool = False,
@@ -175,7 +194,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         ideal_when_missing_gate: bool = False,
         ideal_when_missing_parameter: bool = False,
     ) -> 'PhasedFSimEngineSimulator':
-        parameters = {}
+        parameters: PhasedFsimDictParameters = {}
         for characterization in characterizations:
             gate = characterization.gate
             if (
@@ -188,7 +207,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             for (a, b), pair_parameters in characterization.parameters.items():
                 if a > b:
                     a, b = b, a
-                    pair_parameters = pair_parameters.for_qubits_swapped()
+                    pair_parameters = pair_parameters.parameters_for_qubits_swapped()
                 if (a, b) in parameters:
                     raise ValueError(
                         f'Pair ({(a, b)}) appears in multiple moments, multi-moment '
@@ -211,7 +230,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         return cast(SparseSimulatorStep, result).state_vector()
 
     def get_calibrations(
-        self, requests: List[PhasedFSimCalibrationRequest]
+        self, requests: Sequence[PhasedFSimCalibrationRequest]
     ) -> List[PhasedFSimCalibrationResult]:
         results = []
         for request in requests:
@@ -295,6 +314,8 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             if isinstance(op.gate, (MeasurementGate, SingleQubitGate, WaitGate)):
                 new_op = op
             else:
+                if op.gate is None:
+                    raise IncompatibleMomentError(f'Operation {op} has a missing gate')
                 translated_gate = self._outer._gates_translator(op.gate)
                 if translated_gate is None:
                     raise IncompatibleMomentError(
