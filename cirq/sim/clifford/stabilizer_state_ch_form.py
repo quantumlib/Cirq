@@ -73,12 +73,12 @@ class StabilizerStateChForm:
     def _from_json_dict_(cls, n, G, F, M, gamma, v, s, omega, **kwargs):
         copy = StabilizerStateChForm(n)
 
-        copy.G = np.array(G.copy())
-        copy.F = np.array(F.copy())
-        copy.M = np.array(M.copy())
-        copy.gamma = np.array(gamma.copy())
-        copy.v = np.array(v.copy())
-        copy.s = np.array(s.copy())
+        copy.G = np.array(G)
+        copy.F = np.array(F)
+        copy.M = np.array(M)
+        copy.gamma = np.array(gamma)
+        copy.v = np.array(v)
+        copy.s = np.array(s)
         copy.omega = omega
 
         return copy

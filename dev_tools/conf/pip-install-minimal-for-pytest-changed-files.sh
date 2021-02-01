@@ -27,7 +27,8 @@ pip install -r requirements.txt
 cat dev_tools/conf/pip-list-dev-tools.txt | grep pytest | xargs pip install
 cat dev_tools/conf/pip-list-dev-tools.txt | grep filelock | xargs pip install
 cat dev_tools/conf/pip-list-dev-tools.txt | grep freezegun | xargs pip install
-pip install codeowners # linux only package
+# TODO: move to requirements.txt after #3704
+pip install codeowners==0.1.2 # linux only package
 
 # Install contrib requirements only if needed.
 changed=$(git diff --name-only origin/master | grep "cirq/contrib" || true)
