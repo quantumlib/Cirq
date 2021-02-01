@@ -1,6 +1,7 @@
 from typing import Iterable, Tuple
 
 import collections
+import pytest
 
 import numpy as np
 
@@ -10,6 +11,7 @@ from cirq.google.calibration.engine_simulator import (
 )
 from cirq.google.calibration import (
     FloquetPhasedFSimCalibrationOptions,
+    IncompatibleMomentError,
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
 )
 import cirq
@@ -68,6 +70,19 @@ def test_ideal_sqrt_iswap_simulates_correctly() -> None:
     expected = cirq.final_state_vector(circuit)
 
     assert cirq.allclose_up_to_global_phase(actual, expected)
+
+
+def test_ideal_sqrt_iswap_simulates_correctly_invalid_circuit_fails() -> None:
+    engine_simulator = PhasedFSimEngineSimulator.create_with_ideal_sqrt_iswap()
+
+    with pytest.raises(IncompatibleMomentError):
+        a, b = cirq.LineQubit.range(2)
+        circuit = cirq.Circuit([cirq.CZ.on(a, b)])
+        engine_simulator.simulate(circuit)
+
+    with pytest.raises(IncompatibleMomentError):
+        circuit = cirq.Circuit(cirq.GlobalPhaseOperation(coefficient=1.0))
+        engine_simulator.simulate(circuit)
 
 
 def test_with_random_gaussian_sqrt_iswap_simulates_correctly() -> None:
