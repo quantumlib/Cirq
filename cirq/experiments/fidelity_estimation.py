@@ -402,8 +402,8 @@ def least_squares_xeb_fidelity_from_probabilities(
 class _Sample2qXEBTask:
     """Helper container for grouping a circuit to be sampled.
 
-    `prepared_circuit` is the full-length circuit (with index `circuit_i`. that
-    has been truncated to `cycle_depth` and has a measurement gate on it.
+    `prepared_circuit` is the full-length circuit (with index `circuit_i`) that has been truncated
+    to `cycle_depth` and has a measurement gate on it.
     """
 
     cycle_depth: int
@@ -481,18 +481,15 @@ def sample_2q_xeb_circuits(
     Args:
         sampler: A Cirq sampler for executing circuits.
         circuits: A library of two-qubit circuits generated from
-            `random_rotations_between_two_qubit_circuit` of sufficient length
-            for `cycle_depths`.
-        cycle_depths: A sequence of cylce depths at which we will truncate each
-            of the `circuits` to execute.
-        repetitions: Each (circuit, cycle_depth) will be sampled for this many
-            repetitions.
-        batch_size: We call `run_batch` on the sampler, which can speed up
-            execution in certain environments. The number of
-            (circuit, cycle_depth) tasks to be run in each batch
+            `random_rotations_between_two_qubit_circuit` of sufficient length for `cycle_depths`.
+        cycle_depths: A sequence of cylce depths at which we will truncate each of the `circuits`
+            to execute.
+        repetitions: Each (circuit, cycle_depth) will be sampled for this many repetitions.
+        batch_size: We call `run_batch` on the sampler, which can speed up execution in certain
+            environments. The number of (circuit, cycle_depth) tasks to be run in each batch
             is given by this number.
-        progress_bar: A progress context manager following the `tqdm` API or
-            `None` to not report progress.
+        progress_bar: A progress context manager following the `tqdm` API or `None` to not report
+            progress.
 
     Returns:
         A pandas dataframe with index given by ['circuit_i', 'cycle_depth'] and
@@ -568,12 +565,11 @@ def simulate_2q_xeb_circuits(
 
     Args:
         circuits: A library of two-qubit circuits generated from
-            `random_rotations_between_two_qubit_circuit` of sufficient length
-            for `cycle_depths`.
-        cycle_depths: A sequence of cycle depths at which we will truncate each
-            of the `circuits` to simulate.
-        param_resolver: If circuits contain parameters, resolve according
-            to this ParamResolver prior to simulation
+            `random_rotations_between_two_qubit_circuit` of sufficient length for `cycle_depths`.
+        cycle_depths: A sequence of cycle depths at which we will truncate each of the `circuits`
+            to simulate.
+        param_resolver: If circuits contain parameters, resolve according to this ParamResolver
+            prior to simulation
         pool: If provided, execute the simulations in parallel.
 
     Returns:
@@ -610,13 +606,12 @@ def benchmark_2q_xeb_fidelities(
     """Simulate and benchmark two-qubit XEB circuits.
 
     Args:
-         sampled_df: The sampled results to benchmark. This is likely produced
-            by a call to `sample_2q_xeb_circuits`.
-        circuits: The library of circuits corresponding to the sampled results
-            in `sampled_df`.
+         sampled_df: The sampled results to benchmark. This is likely produced by a call to
+            `sample_2q_xeb_circuits`.
+        circuits: The library of circuits corresponding to the sampled results in `sampled_df`.
         cycle_depths: The sequence of cycle depths to simulate the circuits.
-        param_resolver: If circuits contain parameters, resolve according
-            to this ParamResolver prior to simulation
+        param_resolver: If circuits contain parameters, resolve according to this ParamResolver
+            prior to simulation
         pool: If provided, execute the simulations in parallel.
 
     Returns:
