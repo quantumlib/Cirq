@@ -10,8 +10,8 @@ import cirq.contrib.quimb as ccq
 import cirq.experiments.google_v2_supremacy_circuit as supremacy_v2
 
 
-def assert_same_output_as_dense(circuit, qubit_order, initial_state=0):
-    mps_simulator = ccq.mps_simulator.MPSSimulator()
+def assert_same_output_as_dense(circuit, qubit_order, initial_state=0, grouping=None):
+    mps_simulator = ccq.mps_simulator.MPSSimulator(grouping=grouping)
     ref_simulator = cirq.Simulator()
 
     actual = mps_simulator.simulate(circuit, qubit_order=qubit_order, initial_state=initial_state)
@@ -73,6 +73,36 @@ def test_various_gates_2d():
                             assert_same_output_as_dense(
                                 circuit=circuit, qubit_order=[q0, q1, q2, q3, q4, q5]
                             )
+
+
+def test_grouping():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+
+    circuit = cirq.Circuit(
+        cirq.X(q0) ** 0.1,
+        cirq.Y(q1) ** 0.2,
+        cirq.Z(q2) ** 0.3,
+        cirq.CNOT(q0, q1),
+        cirq.Y(q1) ** 0.4,
+    )
+
+    groupings = [
+        None,
+        {q0: 0, q1: 1, q2: 2},
+        {q0: 0, q1: 0, q2: 1},
+        {q0: 0, q1: 1, q2: 0},
+        {q0: 1, q1: 0, q2: 0},
+        {q0: 0, q1: 0, q2: 0},
+    ]
+
+    for grouping in groupings:
+        for initial_state in range(2 * 2 * 2):
+            assert_same_output_as_dense(
+                circuit=circuit,
+                qubit_order=[q0, q1, q2],
+                initial_state=initial_state,
+                grouping=grouping,
+            )
 
 
 def test_same_partial_trace():
@@ -248,9 +278,15 @@ TensorNetwork([
 
 def test_state_equal():
     q0, q1 = cirq.LineQubit.range(2)
-    state0 = ccq.mps_simulator.MPSState(qubit_map={q0: 0}, rsum2_cutoff=1e-3, sum_prob_atol=1e-3)
-    state1a = ccq.mps_simulator.MPSState(qubit_map={q1: 0}, rsum2_cutoff=1e-3, sum_prob_atol=1e-3)
-    state1b = ccq.mps_simulator.MPSState(qubit_map={q1: 0}, rsum2_cutoff=1729.0, sum_prob_atol=1e-3)
+    state0 = ccq.mps_simulator.MPSState(
+        qubit_map={q0: 0}, rsum2_cutoff=1e-3, sum_prob_atol=1e-3, grouping=None
+    )
+    state1a = ccq.mps_simulator.MPSState(
+        qubit_map={q1: 0}, rsum2_cutoff=1e-3, sum_prob_atol=1e-3, grouping=None
+    )
+    state1b = ccq.mps_simulator.MPSState(
+        qubit_map={q1: 0}, rsum2_cutoff=1729.0, sum_prob_atol=1e-3, grouping=None
+    )
     assert state0 == state0
     assert state0 != state1a
     assert state1a != state1b
@@ -275,12 +311,14 @@ def test_supremacy_equal_more_cols():
 def test_tensor_index_names():
     qubits = cirq.LineQubit.range(12)
     qubit_map = {qubit: i for i, qubit in enumerate(qubits)}
-    state = ccq.mps_simulator.MPSState(qubit_map, rsum2_cutoff=0.1234, sum_prob_atol=1e-3)
+    state = ccq.mps_simulator.MPSState(
+        qubit_map, rsum2_cutoff=0.1234, sum_prob_atol=1e-3, grouping=None
+    )
 
     assert state.i_str(0) == "i_00"
     assert state.i_str(11) == "i_11"
-    assert state.mu_str(0, 3) == "mu_00_03"
-    assert state.mu_str(3, 0) == "mu_00_03"
+    assert state.mu_str(0, 3) == "mu_0_3"
+    assert state.mu_str(3, 0) == "mu_0_3"
 
 
 def test_supremacy_big():
