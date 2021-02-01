@@ -100,7 +100,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             )
 
         if mean.any_none():
-            raise ValueError(f'All mean values must be provided, got {mean=}')
+            raise ValueError(f'All mean values must be provided, got mean of {mean}')
 
         if rand is not None:
             if isinstance(rand, int):
