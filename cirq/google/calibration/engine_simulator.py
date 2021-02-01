@@ -48,6 +48,7 @@ from cirq.google.calibration.phased_fsim import (
 )
 
 
+ParametersDriftGenerator = Callable[[Qid, Qid, FSimGate], PhasedFSimCharacterization]
 PhasedFsimDictParameters = Dict[
     Tuple[Qid, Qid], Union[Dict[str, float], PhasedFSimCharacterization]
 ]
@@ -58,23 +59,25 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         self,
         simulator: Simulator,
         *,
-        drift_generator: Callable[[Qid, Qid, FSimGate], PhasedFSimGate],
+        drift_generator: ParametersDriftGenerator,
         gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
     ) -> None:
         self._simulator = simulator
         self._drift_generator = drift_generator
         self._gates_translator = gates_translator
-        self._drifted_gates: Dict[Tuple[Qid, Qid, FSimGate], PhasedFSimGate] = {}
+        self._drifted_parameters: Dict[Tuple[Qid, Qid, FSimGate], PhasedFSimCharacterization] = {}
 
     @staticmethod
     def create_with_ideal_sqrt_iswap(
         simulator: Optional[Simulator] = None,
     ) -> 'PhasedFSimEngineSimulator':
-        def sample_gate(_1: Qid, _2: Qid, gate: FSimGate) -> PhasedFSimGate:
+        def sample_gate(_1: Qid, _2: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
                 gate.phi, 0.0
             ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
-            return PhasedFSimGate(theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0)
+            return PhasedFSimCharacterization(
+                theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
+            )
 
         if simulator is None:
             simulator = Simulator()
@@ -93,7 +96,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         ),
         seed_or_random: Optional[Union[int, random.Random]] = None,
     ) -> 'PhasedFSimEngineSimulator':
-        def sample_gate(_1: Qid, _2: Qid, gate: FSimGate) -> PhasedFSimGate:
+        def sample_gate(_1: Qid, _2: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
                 gate.phi, 0.0
             ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
@@ -107,7 +110,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                 else:
                     return gaussian_mean
 
-            return PhasedFSimGate(
+            return PhasedFSimCharacterization(
                 theta=sample_value(mean.theta, sigma.theta),
                 zeta=sample_value(mean.zeta, sigma.zeta),
                 chi=sample_value(mean.chi, sigma.chi),
@@ -144,7 +147,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         ideal_when_missing_gate: bool = False,
         ideal_when_missing_parameter: bool = False,
     ) -> 'PhasedFSimEngineSimulator':
-        def sample_gate(a: Qid, b: Qid, gate: FSimGate) -> PhasedFSimGate:
+        def sample_gate(a: Qid, b: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
                 gate.phi, 0.0
             ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
@@ -168,7 +171,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             else:
                 raise ValueError(f'Missing parameters for pair {pair}')
 
-            return PhasedFSimGate(**pair_parameters.asdict())
+            return pair_parameters
 
         for a, b in parameters:
             if a > b:
@@ -248,7 +251,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
             parameters = {}
             for a, b in request.pairs:
-                drifted = self._get_or_create_gate(a, b, translated_gate)
+                drifted = self._create_gate(a, b, translated_gate)
                 parameters[a, b] = PhasedFSimCharacterization(
                     theta=drifted.theta if characterize_theta else None,
                     zeta=drifted.zeta if characterize_zeta else None,
@@ -286,19 +289,15 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         converter.optimize_circuit(copied)
         return copied
 
-    def _get_or_create_gate(self, a: Qid, b: Qid, gate: FSimGate) -> PhasedFSimGate:
-        drifted_gate = self._drifted_gates.get((a, b, gate), None)
-        if drifted_gate is None:
-            drifted_gate = self._drift_generator(a, b, gate)
-            self._drifted_gates[(a, b, gate)] = drifted_gate
-            self._drifted_gates[(b, a, gate)] = PhasedFSimGate(
-                theta=drifted_gate.theta,
-                zeta=-drifted_gate.zeta,
-                chi=-drifted_gate.chi,
-                gamma=drifted_gate.gamma,
-                phi=drifted_gate.phi,
-            )
-        return drifted_gate
+    def _create_gate(self, a: Qid, b: Qid, gate: FSimGate) -> PhasedFSimGate:
+        if (a, b, gate) in self._drifted_parameters:
+            parameters = self._drifted_parameters[(a, b, gate)]
+        elif (b, a, gate) in self._drifted_parameters:
+            parameters = self._drifted_parameters[(b, a, gate)].parameters_for_qubits_swapped()
+        else:
+            parameters = self._drift_generator(a, b, gate)
+            self._drifted_parameters[(a, b, gate)] = parameters
+        return PhasedFSimGate(**parameters.asdict())
 
     class _PhasedFSimConverter(PointOptimizer):
         def __init__(self, outer: 'PhasedFSimEngineSimulator') -> None:
@@ -320,7 +319,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                         f'Moment contains non-single qubit operation ' f'{op} with unsupported gate'
                     )
                 a, b = op.qubits
-                new_op = self._outer._get_or_create_gate(a, b, translated_gate).on(a, b)
+                new_op = self._outer._create_gate(a, b, translated_gate).on(a, b)
 
             return PointOptimizationSummary(
                 clear_span=1, clear_qubits=op.qubits, new_operations=new_op
