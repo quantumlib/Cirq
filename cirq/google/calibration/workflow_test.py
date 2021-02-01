@@ -20,6 +20,9 @@ import pytest
 import cirq
 import cirq.google.calibration.workflow as workflow
 
+from cirq.google.calibration.engine_simulator import (
+    PhasedFSimEngineSimulator
+)
 from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
@@ -251,17 +254,6 @@ def test_make_floquet_request_for_circuit_merges_compatible_sets() -> None:
     assert request.moment_allocations == [None, 0, 1, 0, 1]
 
 
-def test_run_characterization_empty():
-    assert workflow.run_characterizations([], None, 'qproc', cirq.google.FSIM_GATESET) == []
-
-
-def test_run_characterization_fails_when_invalid_arguments():
-    with pytest.raises(ValueError):
-        assert workflow.run_characterizations(
-            [], None, 'qproc', cirq.google.FSIM_GATESET, max_layers_per_request=0
-        )
-
-
 def test_run_characterization():
     q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
     gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
@@ -356,6 +348,33 @@ def test_run_characterization():
 
     assert actual == expected
     assert progress_calls == [(1, 1)]
+
+
+def test_run_characterization_empty():
+    assert workflow.run_characterizations([], None, 'qproc', cirq.google.FSIM_GATESET) == []
+
+
+def test_run_characterization_fails_when_invalid_arguments():
+    with pytest.raises(ValueError):
+        assert workflow.run_characterizations(
+            [], None, 'qproc', cirq.google.FSIM_GATESET, max_layers_per_request=0
+        )
+
+    request = FloquetPhasedFSimCalibrationRequest(
+        gate=SQRT_ISWAP_GATE,
+        pairs=(),
+        options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    )
+    engine = mock.MagicMock(spec=cirq.google.Engine)
+
+    with pytest.raises(ValueError):
+        assert workflow.run_characterizations([request], engine, None, cirq.google.FSIM_GATESET)
+
+    with pytest.raises(ValueError):
+        assert workflow.run_characterizations([request], engine, 'qproc', None)
+
+    with pytest.raises(ValueError):
+        assert workflow.run_characterizations([request], 0, 'qproc', cirq.google.FSIM_GATESET)
 
 
 def test_run_floquet_characterization_for_circuit():
