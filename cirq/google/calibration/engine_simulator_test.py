@@ -1,10 +1,10 @@
 from typing import Iterable, Tuple
 
 import collections
+from unittest import mock
 
 import numpy as np
 import pytest
-from unittest import mock
 
 from cirq.google.calibration.engine_simulator import (
     PhasedFSimEngineSimulator,
