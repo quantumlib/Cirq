@@ -38,7 +38,7 @@ def _get_qubit_row_col(qubit: QubitCoordinate) -> Tuple[int, int]:
     if isinstance(qubit, grid_qubit.GridQubit):
         return qubit.row, qubit.col
     elif isinstance(qubit, tuple):
-        return qubit[0], qubit[1]
+        return int(qubit[0]), int(qubit[1])
 
 
 def relative_luminance(color: np.ndarray) -> float:
