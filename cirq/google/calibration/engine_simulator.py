@@ -12,8 +12,6 @@ from typing import (
     cast,
 )
 
-import random
-
 import numpy as np
 
 from cirq.circuits import Circuit, PointOptimizer, PointOptimizationSummary

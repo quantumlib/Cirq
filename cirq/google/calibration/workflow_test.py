@@ -26,7 +26,6 @@ from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationRequest,
     PhasedFSimCharacterization,
     PhasedFSimCalibrationResult,
-    SQRT_ISWAP_PARAMETERS,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
 )
 
