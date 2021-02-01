@@ -85,6 +85,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
     @staticmethod
     def create_with_ideal_sqrt_iswap(
+        *,
         simulator: Optional[Simulator] = None,
     ) -> 'PhasedFSimEngineSimulator':
         """Creates a PhasedFSimEngineSimulator that simulates ideal FSimGate(theta=π/4, phi=0).

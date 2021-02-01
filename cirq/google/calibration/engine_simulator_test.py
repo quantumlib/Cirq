@@ -11,7 +11,10 @@ from cirq.google.calibration.engine_simulator import (
 )
 from cirq.google.calibration import (
     FloquetPhasedFSimCalibrationOptions,
+    FloquetPhasedFSimCalibrationRequest,
     IncompatibleMomentError,
+    PhasedFSimCalibrationRequest,
+    PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
 )
@@ -52,7 +55,46 @@ def test_floquet_get_calibrations() -> None:
     ]
 
 
-# TODO: Test get_calibrations exceptions and options (missing angles, etc.)
+def test_floquet_get_calibrations_when_invalid_request_fails() -> None:
+
+    parameters_ab = cirq.google.PhasedFSimCharacterization(
+        theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
+    )
+
+    a, b = cirq.LineQubit.range(2)
+    engine_simulator = PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
+        parameters={(a, b): parameters_ab}
+    )
+
+    with pytest.raises(ValueError):
+        engine_simulator.get_calibrations(
+            [
+                FloquetPhasedFSimCalibrationRequest(
+                    gate=cirq.FSimGate(np.pi / 4, 0.5),
+                    pairs=((a, b),),
+                    options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+                )
+            ]
+        )
+
+    class TestPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
+        def to_calibration_layer(self) -> cirq.google.CalibrationLayer:
+            return NotImplemented
+
+        def parse_result(
+            self, result: cirq.google.CalibrationResult
+        ) -> PhasedFSimCalibrationResult:
+            return NotImplemented
+
+    with pytest.raises(ValueError):
+        engine_simulator.get_calibrations(
+            [
+                TestPhasedFSimCalibrationRequest(
+                    gate=cirq.FSimGate(np.pi / 4, 0.5),
+                    pairs=((a, b),),
+                )
+            ]
+        )
 
 
 def test_ideal_sqrt_iswap_simulates_correctly() -> None:
@@ -128,6 +170,28 @@ def test_with_random_gaussian_sqrt_iswap_simulates_correctly() -> None:
     assert cirq.allclose_up_to_global_phase(actual, expected)
 
 
+def test_with_random_gaussian_runs_correctly() -> None:
+    a, b, c, d = cirq.LineQubit.range(4)
+    circuit = cirq.Circuit(
+        [
+            [cirq.X(a), cirq.Y(c)],
+            [cirq.FSimGate(np.pi / 4, 0.0).on(a, b), cirq.FSimGate(np.pi / 4, 0.0).on(c, d)],
+            [cirq.FSimGate(np.pi / 4, 0.0).on(b, c)],
+            cirq.measure(a, b, c, d, key='z'),
+        ]
+    )
+
+    simulator = cirq.Simulator()
+    engine_simulator = PhasedFSimEngineSimulator.create_with_random_gaussian_sqrt_iswap(
+        SQRT_ISWAP_PARAMETERS, simulator=simulator
+    )
+
+    actual = engine_simulator.run(circuit, repetitions=20000).measurements['z']
+    expected = simulator.run(circuit, repetitions=20000).measurements['z']
+
+    assert np.allclose(np.average(actual, axis=0), np.average(expected, axis=0), atol=0.05)
+
+
 def test_with_random_gaussian_sqrt_iswap_fails_with_invalid_mean() -> None:
     with pytest.raises(ValueError):
         PhasedFSimEngineSimulator.create_with_random_gaussian_sqrt_iswap(
@@ -171,6 +235,30 @@ def test_from_dictionary_sqrt_iswap_simulates_correctly() -> None:
     expected = cirq.final_state_vector(expected_circuit)
 
     assert cirq.allclose_up_to_global_phase(actual, expected)
+
+
+def test_from_dictionary_sqrt_iswap_ideal_when_missing_gate_fails() -> None:
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.FSimGate(np.pi / 4, 0.0).on(a, b))
+
+    engine_simulator = PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(parameters={})
+
+    with pytest.raises(ValueError):
+        engine_simulator.final_state_vector(circuit)
+
+
+def test_from_dictionary_sqrt_iswap_ideal_when_missing_parameter_fails() -> None:
+    parameters_ab = cirq.google.PhasedFSimCharacterization(theta=0.8, zeta=-0.5, chi=-0.4)
+
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.FSimGate(np.pi / 4, 0.0).on(a, b))
+
+    engine_simulator = PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
+        parameters={(a, b): parameters_ab},
+    )
+
+    with pytest.raises(ValueError):
+        engine_simulator.final_state_vector(circuit)
 
 
 def test_from_dictionary_sqrt_iswap_ideal_when_missing_simulates_correctly() -> None:
@@ -277,10 +365,48 @@ def test_from_characterizations_sqrt_iswap_simulates_correctly() -> None:
     assert cirq.allclose_up_to_global_phase(actual, expected)
 
 
+def test_from_characterizations_sqrt_iswap_when_invalid_arguments_fails() -> None:
+    parameters_ab = cirq.google.PhasedFSimCharacterization(
+        theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
+    )
+    parameters_bc = cirq.google.PhasedFSimCharacterization(
+        theta=0.8, zeta=-0.5, chi=-0.4, gamma=-0.3, phi=-0.2
+    )
+
+    a, b = cirq.LineQubit.range(2)
+
+    with pytest.raises(ValueError):
+        PhasedFSimEngineSimulator.create_from_characterizations_sqrt_iswap(
+            characterizations=[
+                cirq.google.PhasedFSimCalibrationResult(
+                    gate=cirq.FSimGate(np.pi / 4, 0.0),
+                    parameters={(a, b): parameters_ab},
+                    options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+                ),
+                cirq.google.PhasedFSimCalibrationResult(
+                    gate=cirq.FSimGate(np.pi / 4, 0.0),
+                    parameters={(a, b): parameters_bc},
+                    options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+                ),
+            ]
+        )
+
+    with pytest.raises(ValueError):
+        PhasedFSimEngineSimulator.create_from_characterizations_sqrt_iswap(
+            characterizations=[
+                cirq.google.PhasedFSimCalibrationResult(
+                    gate=cirq.FSimGate(np.pi / 4, 0.2),
+                    parameters={(a, b): parameters_ab},
+                    options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+                )
+            ]
+        )
+
+
 def _create_sqrt_iswap_request(
     pairs: Iterable[Tuple[cirq.Qid, cirq.Qid]],
     options: FloquetPhasedFSimCalibrationOptions = ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-) -> cirq.google.FloquetPhasedFSimCalibrationRequest:
-    return cirq.google.FloquetPhasedFSimCalibrationRequest(
+) -> FloquetPhasedFSimCalibrationRequest:
+    return FloquetPhasedFSimCalibrationRequest(
         gate=cirq.FSimGate(np.pi / 4, 0.0), pairs=tuple(pairs), options=options
     )
