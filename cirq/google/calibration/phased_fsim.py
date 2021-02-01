@@ -161,6 +161,11 @@ class PhasedFSimCharacterization:
         return other.merge_with(self)
 
 
+SQRT_ISWAP_PARAMETERS = PhasedFSimCharacterization(
+    theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
+)
+
+
 class PhasedFSimCalibrationOptions(abc.ABC):
     """Base class for calibration-specific options passed together with the requests."""
 
