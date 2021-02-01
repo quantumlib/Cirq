@@ -208,24 +208,27 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                 gate.phi, 0.0
             ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
 
-            pair = (a, b) if a < b else (b, a)
-
-            if pair in parameters:
-                pair_parameters = parameters[pair]
+            if (a, b) in parameters:
+                pair_parameters = parameters[(a, b)]
                 if not isinstance(pair_parameters, PhasedFSimCharacterization):
                     pair_parameters = PhasedFSimCharacterization(**pair_parameters)
-
-                if pair_parameters.any_none():
-                    if not ideal_when_missing_parameter:
-                        raise ValueError(
-                            f'Missing parameter value for pair {pair}, '
-                            f'parameters={pair_parameters}'
-                        )
-                    pair_parameters = pair_parameters.merge_with(SQRT_ISWAP_PARAMETERS)
+            elif (b, a) in parameters:
+                pair_parameters = parameters[(b, a)]
+                if not isinstance(pair_parameters, PhasedFSimCharacterization):
+                    pair_parameters = PhasedFSimCharacterization(**pair_parameters)
+                pair_parameters = pair_parameters.parameters_for_qubits_swapped()
             elif ideal_when_missing_gate:
                 pair_parameters = SQRT_ISWAP_PARAMETERS
             else:
-                raise ValueError(f'Missing parameters for pair {pair}')
+                raise ValueError(f'Missing parameters for pair {(a, b)}')
+
+            if pair_parameters.any_none():
+                if not ideal_when_missing_parameter:
+                    raise ValueError(
+                        f'Missing parameter value for pair {(a, b)}, '
+                        f'parameters={pair_parameters}'
+                    )
+                pair_parameters = pair_parameters.merge_with(SQRT_ISWAP_PARAMETERS)
 
             return pair_parameters
 

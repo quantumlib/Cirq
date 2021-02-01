@@ -1,9 +1,10 @@
 from typing import Iterable, Tuple
 
 import collections
-import pytest
 
 import numpy as np
+import pytest
+from unittest import mock
 
 from cirq.google.calibration.engine_simulator import (
     PhasedFSimEngineSimulator,
@@ -19,6 +20,27 @@ from cirq.google.calibration import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
 )
 import cirq
+
+
+class TestPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
+    def to_calibration_layer(self) -> cirq.google.CalibrationLayer:
+        return NotImplemented
+
+    def parse_result(self, result: cirq.google.CalibrationResult) -> PhasedFSimCalibrationResult:
+        return NotImplemented
+
+
+def test_test_calibration_request():
+    a, b = cirq.LineQubit.range(2)
+    request = TestPhasedFSimCalibrationRequest(
+        gate=cirq.FSimGate(np.pi / 4, 0.5),
+        pairs=((a, b),),
+    )
+
+    assert request.to_calibration_layer() is NotImplemented
+
+    result = mock.MagicMock(spec=cirq.google.CalibrationResult)
+    assert request.parse_result(result) is NotImplemented
 
 
 def test_floquet_get_calibrations() -> None:
@@ -76,15 +98,6 @@ def test_floquet_get_calibrations_when_invalid_request_fails() -> None:
                 )
             ]
         )
-
-    class TestPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
-        def to_calibration_layer(self) -> cirq.google.CalibrationLayer:
-            return NotImplemented
-
-        def parse_result(
-            self, result: cirq.google.CalibrationResult
-        ) -> PhasedFSimCalibrationResult:
-            return NotImplemented
 
     with pytest.raises(ValueError):
         engine_simulator.get_calibrations(
@@ -330,7 +343,7 @@ def test_from_characterizations_sqrt_iswap_simulates_correctly() -> None:
         [
             [cirq.X(a), cirq.Y(c)],
             [cirq.FSimGate(np.pi / 4, 0.0).on(a, b), cirq.FSimGate(np.pi / 4, 0.0).on(c, d)],
-            [cirq.FSimGate(np.pi / 4, 0.0).on(b, c)],
+            [cirq.FSimGate(np.pi / 4, 0.0).on(c, b)],
         ]
     )
     expected_circuit = cirq.Circuit(
@@ -353,7 +366,7 @@ def test_from_characterizations_sqrt_iswap_simulates_correctly() -> None:
             ),
             cirq.google.PhasedFSimCalibrationResult(
                 gate=cirq.FSimGate(np.pi / 4, 0.0),
-                parameters={(b, c): parameters_bc},
+                parameters={(c, b): parameters_bc.parameters_for_qubits_swapped()},
                 options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
             ),
         ]
