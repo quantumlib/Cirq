@@ -517,11 +517,11 @@ def run_floquet_phased_calibration_for_circuit(
 ) -> Tuple[
     Circuit, List[PhasedFSimCalibrationResult], List[Optional[int]], PhasedFSimCharacterization
 ]:
-    requests, mapping = make_floquet_request_for_circuit(
+    request = make_floquet_request_for_circuit(
         circuit, options, gates_translator, merge_subsets=merge_subsets
     )
     characterizations = run_characterizations(
-        requests,
+        request.requests,
         engine,
         processor_id,
         gate_set,
@@ -529,7 +529,7 @@ def run_floquet_phased_calibration_for_circuit(
         progress_func=progress_func,
     )
     calibrated_circuit, calibrated_mapping = phased_calibration_for_circuit(
-        circuit, characterizations, mapping, gates_translator
+        circuit, characterizations, request.moment_allocations, gates_translator
     )
     override = PhasedFSimCharacterization(
         zeta=0.0 if options.characterize_zeta else None,
