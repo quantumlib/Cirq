@@ -56,7 +56,13 @@ PhasedFsimDictParameters = Dict[
 
 
 class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVector):
-    """TODO"""
+    """Wrapper on top of cirq.Simulator that allows to simulate calibration requests.
+
+    This simulator introduces get_calibrations which allows to simulate
+    cirq.google.run_characterizations requests. The returned calibration results represent the
+    internal state of a simulator. Circuits which are run on this simulator are modified to account
+    for the changes in the unitary parameters as described by the calibration results.
+    """
 
     def __init__(
         self,
@@ -65,6 +71,15 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         drift_generator: ParametersDriftGenerator,
         gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
     ) -> None:
+        """Initializes the PhasedFSimEngineSimulator.
+
+        Args:
+            simulator: cirq.Simulator that all the simulation requests are delegated to.
+            drift_generator: Callable that generates the imperfect parameters for each pair of
+                qubits and the gate. They are later used for simulation.
+            gates_translator: Function that translates a gate to a supported FSimGate which will
+                undergo characterization.
+        """
         self._simulator = simulator
         self._drift_generator = drift_generator
         self._gates_translator = gates_translator
@@ -74,7 +89,15 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
     def create_with_ideal_sqrt_iswap(
         simulator: Optional[Simulator] = None,
     ) -> 'PhasedFSimEngineSimulator':
-        """TODO"""
+        """Creates a PhasedFSimEngineSimulator that simulates ideal FSimGate(theta=π/4, phi=0).
+
+        Attributes:
+            simulator: Simulator object to use. When None, a new instance of cirq.Simulator() will
+                be created.
+
+        Returns:
+            New PhasedFSimEngineSimulator instance.
+        """
 
         def sample_gate(_1: Qid, _2: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
@@ -101,7 +124,24 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         ),
         random_or_seed: RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> 'PhasedFSimEngineSimulator':
-        """TODO"""
+        """Creates a PhasedFSimEngineSimulator that introduces a random deviation from the mean.
+
+        The random deviations are described by a Gaussian distribution of a given mean and sigma,
+        for each angle respectively.
+
+        Each gate for each pair of qubits retains the sampled values for the entire simulation, even
+        weh used multiple times within a circuit.
+
+        Attributes:
+            mean: The mean value for each unitary angle. All parameters must be provided.
+            simulator: Simulator object to use. When None, a new instance of cirq.Simulator() will
+                be created.
+            sigma: The standard deviation for each unitary angle. When some sigma parameter is None,
+                the mean value will be always used for that parameter.
+
+        Returns:
+            New PhasedFSimEngineSimulator instance.
+        """
 
         def sample_gate(_1: Qid, _2: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
@@ -144,7 +184,25 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         ideal_when_missing_gate: bool = False,
         ideal_when_missing_parameter: bool = False,
     ) -> 'PhasedFSimEngineSimulator':
-        """TODO"""
+        """Creates PhasedFSimEngineSimulator with fixed drifts.
+
+        Args:
+            parameters: Parameters to use for each gate. All keys must be stored in canonical order,
+                when the first qubit is not greater than the second one.
+            simulator: Simulator object to use. When None, a new instance of cirq.Simulator() will
+                be created.
+            ideal_when_missing_gate: When set and parameters for some gate for a given pair of
+                qubits are not specified in the parameters dictionary then the
+                FSimGate(theta=π/4, phi=0) gate parameters will be used. When not set and this
+                situation occurs, ValueError is thrown during simulation.
+            ideal_when_missing_parameter: When set and some parameter for some gate for a given pair
+                of qubits are is specified then the matching parameter of FSimGate(theta=π/4, phi=0)
+                gate will be used. When not set and this situation occurs, ValueError is thrown
+                during simulation.
+
+        Returns:
+            New PhasedFSimEngineSimulator instance.
+        """
 
         def sample_gate(a: Qid, b: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
@@ -194,7 +252,25 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         ideal_when_missing_gate: bool = False,
         ideal_when_missing_parameter: bool = False,
     ) -> 'PhasedFSimEngineSimulator':
-        """TODO"""
+        """Creates PhasedFSimEngineSimulator with fixed drifts from the characterizations results.
+
+        Args:
+            characterizations: Characterization results which are source of the parameters for
+                each gate.
+            simulator: Simulator object to use. When None, a new instance of cirq.Simulator() will
+                be created.
+            ideal_when_missing_gate: When set and parameters for some gate for a given pair of
+                qubits are not specified in the parameters dictionary then the
+                FSimGate(theta=π/4, phi=0) gate parameters will be used. When not set and this
+                situation occurs, ValueError is thrown during simulation.
+            ideal_when_missing_parameter: When set and some parameter for some gate for a given pair
+                of qubits are is specified then the matching parameter of FSimGate(theta=π/4, phi=0)
+                gate will be used. When not set and this situation occurs, ValueError is thrown
+                during simulation.
+
+        Returns:
+            New PhasedFSimEngineSimulator instance.
+        """
 
         parameters: PhasedFsimDictParameters = {}
         for characterization in characterizations:
