@@ -12,6 +12,7 @@ from cirq.google.calibration.engine_simulator import (
 from cirq.google.calibration import (
     FloquetPhasedFSimCalibrationOptions,
     IncompatibleMomentError,
+    PhasedFSimCharacterization,
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
 )
 import cirq
@@ -87,7 +88,8 @@ def test_ideal_sqrt_iswap_simulates_correctly_invalid_circuit_fails() -> None:
 
 def test_with_random_gaussian_sqrt_iswap_simulates_correctly() -> None:
     engine_simulator = PhasedFSimEngineSimulator.create_with_random_gaussian_sqrt_iswap(
-        mean=SQRT_ISWAP_PARAMETERS
+        mean=SQRT_ISWAP_PARAMETERS,
+        sigma=PhasedFSimCharacterization(theta=0.02, zeta=0.05, chi=0.05, gamma=None, phi=0.02),
     )
 
     a, b, c, d = cirq.LineQubit.range(4)
@@ -96,6 +98,7 @@ def test_with_random_gaussian_sqrt_iswap_simulates_correctly() -> None:
             [cirq.X(a), cirq.Y(c)],
             [cirq.FSimGate(np.pi / 4, 0.0).on(a, b), cirq.FSimGate(np.pi / 4, 0.0).on(c, d)],
             [cirq.FSimGate(np.pi / 4, 0.0).on(b, c)],
+            [cirq.FSimGate(np.pi / 4, 0.0).on(b, a), cirq.FSimGate(np.pi / 4, 0.0).on(d, c)],
         ]
     )
 
@@ -112,6 +115,10 @@ def test_with_random_gaussian_sqrt_iswap_simulates_correctly() -> None:
                 cirq.PhasedFSimGate(**parameters[(c, d)].asdict()).on(c, d),
             ],
             [cirq.PhasedFSimGate(**parameters[(b, c)].asdict()).on(b, c)],
+            [
+                cirq.PhasedFSimGate(**parameters[(a, b)].asdict()).on(a, b),
+                cirq.PhasedFSimGate(**parameters[(c, d)].asdict()).on(c, d),
+            ],
         ]
     )
 
@@ -119,6 +126,13 @@ def test_with_random_gaussian_sqrt_iswap_simulates_correctly() -> None:
     expected = cirq.final_state_vector(expected_circuit)
 
     assert cirq.allclose_up_to_global_phase(actual, expected)
+
+
+def test_with_random_gaussian_sqrt_iswap_fails_with_invalid_mean() -> None:
+    with pytest.raises(ValueError):
+        PhasedFSimEngineSimulator.create_with_random_gaussian_sqrt_iswap(
+            mean=PhasedFSimCharacterization(theta=np.pi / 4)
+        )
 
 
 def test_from_dictionary_sqrt_iswap_simulates_correctly() -> None:
@@ -198,6 +212,18 @@ def test_from_dictionary_sqrt_iswap_ideal_when_missing_simulates_correctly() -> 
     expected = cirq.final_state_vector(expected_circuit)
 
     assert cirq.allclose_up_to_global_phase(actual, expected)
+
+
+def test_from_dictionary_sqrt_iswap_fails_when_invalid_parameters() -> None:
+    a, b = cirq.LineQubit.range(2)
+    parameters_ab = cirq.google.PhasedFSimCharacterization(
+        theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
+    )
+
+    with pytest.raises(ValueError):
+        PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
+            parameters={(b, a): parameters_ab}
+        )
 
 
 def test_from_characterizations_sqrt_iswap_simulates_correctly() -> None:
