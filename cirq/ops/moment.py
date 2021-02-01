@@ -280,19 +280,20 @@ class Moment:
         return self.to_text_diagram()
 
     def transform_qubits(
-        self: TSelf_Moment, func: Callable[['cirq.Qid'], 'cirq.Qid']
+        self: TSelf_Moment,
+        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
     ) -> TSelf_Moment:
         """Returns the same moment, but with different qubits.
 
         Args:
-            func: The function to use to turn each current qubit into a desired
-                new qubit.
+           qubit_map: A function or a dict mapping each current qubit into a
+                      desired new qubit.
 
         Returns:
             The receiving moment but with qubits transformed by the given
                 function.
         """
-        return self.__class__(op.transform_qubits(func) for op in self.operations)
+        return self.__class__(op.transform_qubits(qubit_map) for op in self.operations)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['operations'])
