@@ -236,12 +236,12 @@ def test_from_dictionary_sqrt_iswap_simulates_correctly() -> None:
             [cirq.X(a), cirq.X(c)],
             [
                 cirq.PhasedFSimGate(**parameters_ab.asdict()).on(a, b),
-                cirq.PhasedFSimGate(**parameters_cd_dict).on(c, d),
+                cirq.PhasedFSimGate(**parameters_dc_dict).on(d, c),
             ],
             [cirq.PhasedFSimGate(**parameters_bc.asdict()).on(b, c)],
             [
                 cirq.PhasedFSimGate(**parameters_ab.asdict()).on(a, b),
-                cirq.PhasedFSimGate(**parameters_dc_dict).on(d, c),
+                cirq.PhasedFSimGate(**parameters_cd_dict).on(c, d),
             ],
         ]
     )
