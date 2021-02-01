@@ -21,6 +21,7 @@ import pytest
 import cirq
 import cirq.google.calibration.workflow as workflow
 
+from cirq.google.calibration.engine_simulator import PhasedFSimEngineSimulator
 from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
@@ -256,17 +257,6 @@ def test_make_floquet_request_for_circuit_merges_compatible_sets() -> None:
     assert request.moment_allocations == [None, 0, 1, 0, 1]
 
 
-def test_run_characterization_empty():
-    assert workflow.run_characterizations([], None, 'qproc', cirq.google.FSIM_GATESET) == []
-
-
-def test_run_characterization_fails_when_invalid_arguments():
-    with pytest.raises(ValueError):
-        assert workflow.run_characterizations(
-            [], None, 'qproc', cirq.google.FSIM_GATESET, max_layers_per_request=0
-        )
-
-
 def test_run_characterization():
     q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
     gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
@@ -361,6 +351,75 @@ def test_run_characterization():
 
     assert actual == expected
     assert progress_calls == [(1, 1)]
+
+
+def test_run_characterization_empty():
+    assert workflow.run_characterizations([], None, 'qproc', cirq.google.FSIM_GATESET) == []
+
+
+def test_run_characterization_fails_when_invalid_arguments():
+    with pytest.raises(ValueError):
+        assert workflow.run_characterizations(
+            [], None, 'qproc', cirq.google.FSIM_GATESET, max_layers_per_request=0
+        )
+
+    request = FloquetPhasedFSimCalibrationRequest(
+        gate=SQRT_ISWAP_GATE,
+        pairs=(),
+        options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    )
+    engine = mock.MagicMock(spec=cirq.google.Engine)
+
+    with pytest.raises(ValueError):
+        assert workflow.run_characterizations([request], engine, None, cirq.google.FSIM_GATESET)
+
+    with pytest.raises(ValueError):
+        assert workflow.run_characterizations([request], engine, 'qproc', None)
+
+    with pytest.raises(ValueError):
+        assert workflow.run_characterizations([request], 0, 'qproc', cirq.google.FSIM_GATESET)
+
+
+def test_run_characterization_with_simulator():
+    q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
+    gate = SQRT_ISWAP_GATE
+
+    request = FloquetPhasedFSimCalibrationRequest(
+        gate=gate,
+        pairs=((q_00, q_01), (q_02, q_03)),
+        options=FloquetPhasedFSimCalibrationOptions(
+            characterize_theta=True,
+            characterize_zeta=True,
+            characterize_chi=False,
+            characterize_gamma=False,
+            characterize_phi=True,
+        ),
+    )
+
+    simulator = PhasedFSimEngineSimulator.create_with_ideal_sqrt_iswap()
+
+    actual = workflow.run_characterizations([request], simulator)
+
+    assert actual == [
+        PhasedFSimCalibrationResult(
+            parameters={
+                (q_00, q_01): PhasedFSimCharacterization(
+                    theta=np.pi / 4, zeta=0.0, chi=None, gamma=None, phi=0.0
+                ),
+                (q_02, q_03): PhasedFSimCharacterization(
+                    theta=np.pi / 4, zeta=0.0, chi=None, gamma=None, phi=0.0
+                ),
+            },
+            gate=SQRT_ISWAP_GATE,
+            options=FloquetPhasedFSimCalibrationOptions(
+                characterize_theta=True,
+                characterize_zeta=True,
+                characterize_chi=False,
+                characterize_gamma=False,
+                characterize_phi=True,
+            ),
+        )
+    ]
 
 
 def test_run_floquet_characterization_for_circuit():
