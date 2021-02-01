@@ -226,7 +226,7 @@ def test_from_dictionary_sqrt_iswap_simulates_correctly() -> None:
     circuit = cirq.Circuit(
         [
             [cirq.X(a), cirq.Y(c)],
-            [cirq.FSimGate(np.pi / 4, 0.0).on(a, b), cirq.FSimGate(np.pi / 4, 0.0).on(c, d)],
+            [cirq.FSimGate(np.pi / 4, 0.0).on(a, b), cirq.FSimGate(np.pi / 4, 0.0).on(d, c)],
             [cirq.FSimGate(np.pi / 4, 0.0).on(b, c)],
             [cirq.FSimGate(np.pi / 4, 0.0).on(a, b), cirq.FSimGate(np.pi / 4, 0.0).on(c, d)],
         ]
@@ -236,7 +236,7 @@ def test_from_dictionary_sqrt_iswap_simulates_correctly() -> None:
             [cirq.X(a), cirq.X(c)],
             [
                 cirq.PhasedFSimGate(**parameters_ab.asdict()).on(a, b),
-                cirq.PhasedFSimGate(**parameters_dc_dict).on(d, c),
+                cirq.PhasedFSimGate(**parameters_cd_dict).on(c, d),
             ],
             [cirq.PhasedFSimGate(**parameters_bc.asdict()).on(b, c)],
             [
