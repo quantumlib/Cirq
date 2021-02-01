@@ -426,29 +426,22 @@ class MPSState:
             and 2- qubit operations are currently supported.
         """
 
+        old_inds = tuple([self.i_str(self.qubit_map[qubit]) for qubit in op.qubits])
+        new_inds = tuple(['new_' + old_ind for old_ind in old_inds])
+
         U = protocols.unitary(op).reshape([qubit.dimension for qubit in op.qubits] * 2)
+        U = qtn.Tensor(U, inds=(new_inds + old_inds))
 
         # TODO(tonybruguier): Explore using the Quimb's tensor network natively.
 
         if len(op.qubits) == 1:
             n = self.qubit_map[op.qubits[0]]
 
-            old_n = self.i_str(n)
-            new_n = 'new_' + old_n
-
-            U = qtn.Tensor(U, inds=(new_n, old_n))
-            self.M[n] = (U @ self.M[n]).reindex({new_n: old_n})
+            self.M[n] = (U @ self.M[n]).reindex({new_inds[0]: old_inds[0]})
         elif len(op.qubits) == 2:
             self.num_svd_splits += 1
 
             n, p = [self.qubit_map[qubit] for qubit in op.qubits]
-
-            old_n = self.i_str(n)
-            old_p = self.i_str(p)
-            new_n = 'new_' + old_n
-            new_p = 'new_' + old_p
-
-            U = qtn.Tensor(U, inds=(new_n, new_p, old_n, old_p))
 
             # This is the index on which we do the contraction. We need to add it iff it's the first
             # time that we do the joining for that specific pair.
@@ -460,7 +453,7 @@ class MPSState:
 
             T = U @ self.M[n] @ self.M[p]
 
-            left_inds = tuple(set(T.inds) & set(self.M[n].inds)) + (new_n,)
+            left_inds = tuple(set(T.inds) & set(self.M[n].inds)) + (new_inds[0],)
             X, Y = T.split(
                 left_inds,
                 cutoff=self.rsum2_cutoff,
@@ -470,8 +463,8 @@ class MPSState:
                 bond_ind=mu_ind,
             )
 
-            self.M[n] = X.reindex({new_n: old_n})
-            self.M[p] = Y.reindex({new_p: old_p})
+            self.M[n] = X.reindex({new_inds[0]: old_inds[0]})
+            self.M[p] = Y.reindex({new_inds[1]: old_inds[1]})
         else:
             # NOTE(tonybruguier): There could be a way to handle higher orders. I think this could
             # involve HOSVDs:
