@@ -20,9 +20,7 @@ import pytest
 import cirq
 import cirq.google.calibration.workflow as workflow
 
-from cirq.google.calibration.engine_simulator import (
-    PhasedFSimEngineSimulator
-)
+from cirq.google.calibration.engine_simulator import PhasedFSimEngineSimulator
 from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,

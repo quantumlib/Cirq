@@ -36,6 +36,7 @@ from cirq.sim import (
     StepResult,
 )
 from cirq.study import ParamResolver
+from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
 
 from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationRequest,
@@ -55,6 +56,8 @@ PhasedFsimDictParameters = Dict[
 
 
 class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVector):
+    """TODO"""
+
     def __init__(
         self,
         simulator: Simulator,
@@ -71,6 +74,8 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
     def create_with_ideal_sqrt_iswap(
         simulator: Optional[Simulator] = None,
     ) -> 'PhasedFSimEngineSimulator':
+        """TODO"""
+
         def sample_gate(_1: Qid, _2: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
                 gate.phi, 0.0
@@ -94,8 +99,10 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         sigma: PhasedFSimCharacterization = PhasedFSimCharacterization(
             theta=0.02, zeta=0.05, chi=0.05, gamma=0.05, phi=0.02
         ),
-        seed_or_random: Optional[Union[int, random.Random]] = None,
+        random_or_seed: RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> 'PhasedFSimEngineSimulator':
+        """TODO"""
+
         def sample_gate(_1: Qid, _2: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
                 gate.phi, 0.0
@@ -105,10 +112,9 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                 gaussian_mean: Optional[float], gaussian_sigma: Optional[float]
             ) -> float:
                 assert gaussian_mean is not None
-                if gaussian_sigma:
-                    return rand.gauss(gaussian_mean, gaussian_sigma)
-                else:
+                if gaussian_sigma is None:
                     return gaussian_mean
+                return rand.normal(gaussian_mean, gaussian_sigma)
 
             return PhasedFSimCharacterization(
                 theta=sample_value(mean.theta, sigma.theta),
@@ -121,16 +127,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         if mean.any_none():
             raise ValueError(f'All mean values must be provided, got mean of {mean}')
 
-        if seed_or_random is not None:
-            if isinstance(seed_or_random, int):
-                rand = random.Random(seed_or_random)
-            elif not isinstance(seed_or_random, random.Random):
-                raise ValueError(
-                    f'Provided rand argument {seed_or_random} is neither of type int or '
-                    f'random.Random'
-                )
-        else:
-            rand = random.Random()
+        rand = parse_random_state(random_or_seed)
 
         if simulator is None:
             simulator = Simulator()
@@ -147,6 +144,8 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         ideal_when_missing_gate: bool = False,
         ideal_when_missing_parameter: bool = False,
     ) -> 'PhasedFSimEngineSimulator':
+        """TODO"""
+
         def sample_gate(a: Qid, b: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
                 gate.phi, 0.0
@@ -195,6 +194,8 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         ideal_when_missing_gate: bool = False,
         ideal_when_missing_parameter: bool = False,
     ) -> 'PhasedFSimEngineSimulator':
+        """TODO"""
+
         parameters: PhasedFsimDictParameters = {}
         for characterization in characterizations:
             gate = characterization.gate
