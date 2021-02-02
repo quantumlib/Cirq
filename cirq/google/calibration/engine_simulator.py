@@ -142,26 +142,29 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             mean: The mean value for each unitary angle. All parameters must be provided.
             simulator: Simulator object to use. When None, a new instance of cirq.Simulator() will
                 be created.
-            sigma: The standard deviation for each unitary angle. When some sigma parameter is None,
-                the mean value will be always used for that parameter.
+            sigma: The standard deviation for each unitary angle. For sigma parameters that are
+                None, the mean value will be used without any sampling.
 
         Returns:
             New PhasedFSimEngineSimulator instance.
         """
+
+        if mean.any_none():
+            raise ValueError(f'All mean values must be provided, got mean of {mean}')
+
+        rand = parse_random_state(random_or_seed)
+
+        def sample_value(gaussian_mean: Optional[float], gaussian_sigma: Optional[float]) -> float:
+            assert gaussian_mean is not None
+            if gaussian_sigma is None:
+                return gaussian_mean
+            return rand.normal(gaussian_mean, gaussian_sigma)
 
         def sample_gate(_1: Qid, _2: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
             assert isinstance(gate, FSimGate), f'Expected FSimGate, got {gate}'
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
                 gate.phi, 0.0
             ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
-
-            def sample_value(
-                gaussian_mean: Optional[float], gaussian_sigma: Optional[float]
-            ) -> float:
-                assert gaussian_mean is not None
-                if gaussian_sigma is None:
-                    return gaussian_mean
-                return rand.normal(gaussian_mean, gaussian_sigma)
 
             return PhasedFSimCharacterization(
                 theta=sample_value(mean.theta, sigma.theta),
@@ -170,11 +173,6 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                 gamma=sample_value(mean.gamma, sigma.gamma),
                 phi=sample_value(mean.phi, sigma.phi),
             )
-
-        if mean.any_none():
-            raise ValueError(f'All mean values must be provided, got mean of {mean}')
-
-        rand = parse_random_state(random_or_seed)
 
         if simulator is None:
             simulator = Simulator()
