@@ -50,7 +50,7 @@ class CircuitCalibration:
     Attributes:
         circuit: Circuit instance.
         moment_allocations: Maps each moment within a circuit to an index of a characterization
-            request or response. None means that there is characterization data for that moment.
+            request or response. None means that there is no characterization data for that moment.
     """
 
     circuit: Circuit
