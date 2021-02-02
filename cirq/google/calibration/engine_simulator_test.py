@@ -202,7 +202,7 @@ def test_with_random_gaussian_runs_correctly() -> None:
     actual = engine_simulator.run(circuit, repetitions=20000).measurements['z']
     expected = simulator.run(circuit, repetitions=20000).measurements['z']
 
-    assert np.allclose(np.average(actual, axis=0), np.average(expected, axis=0), atol=0.06)
+    assert np.allclose(np.average(actual, axis=0), np.average(expected, axis=0), atol=0.075)
 
 
 def test_with_random_gaussian_sqrt_iswap_fails_with_invalid_mean() -> None:
