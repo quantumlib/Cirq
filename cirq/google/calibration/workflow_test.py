@@ -559,11 +559,7 @@ def test_run_floquet_calibration() -> None:
         characterize_phi=False,
     )
 
-    (
-        calibrated_circuit,
-        calibrations,
-        calibrated_parameters,
-    ) = workflow.run_floquet_phased_calibration_for_circuit(
+    calibrated_circuit, calibrations = workflow.run_floquet_phased_calibration_for_circuit(
         circuit,
         engine_simulator,
         processor_id=None,
@@ -586,9 +582,6 @@ def test_run_floquet_calibration() -> None:
         ),
     ]
     assert calibrated_circuit.moment_allocations == [None, None, 0, None, None, 1, None]
-    assert calibrated_parameters == cirq.google.PhasedFSimCharacterization(
-        zeta=0.0, chi=0.0, gamma=0.0
-    )
 
 
 # TODO: Check if calibration preserves moments.

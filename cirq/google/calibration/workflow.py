@@ -23,7 +23,6 @@ from cirq.ops import (
     GateOperation,
     MeasurementGate,
     Moment,
-    Operation,
     Qid,
     SingleQubitGate,
     rz,
@@ -389,8 +388,9 @@ def phased_calibration_for_circuit(
             characterization. Defaults to sqrt_iswap_gates_translator.
 
     Returns:
-        Description of the calibrated circuit together with its calibration metadata. The calibrated
-        circuit has single-qubit Z gates added which compensates for the true gates imperfections.
+        Calibrated circuit together with its calibration metadata in CircuitCalibration object. The
+        calibrated circuit has single-qubit Z gates added which compensates for the true gates
+        imperfections.
     """
     default_phases = PhasedFSimCharacterization(zeta=0.0, chi=0.0, gamma=0.0)
 
@@ -579,12 +579,43 @@ def run_floquet_phased_calibration_for_circuit(
     engine: Union[Engine, PhasedFSimEngineSimulator],
     processor_id: Optional[str] = None,
     gate_set: Optional[SerializableGateSet] = None,
-    gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
     options: FloquetPhasedFSimCalibrationOptions = ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
-) -> Tuple[CircuitCalibration, List[PhasedFSimCalibrationResult], PhasedFSimCharacterization]:
+) -> Tuple[CircuitCalibration, List[PhasedFSimCalibrationResult]]:
+    """Compensates circuit against errors in zeta, chi and gamma angles by running calibrations on
+    the engine.
+
+    Args:
+        circuit: Circuit to characterize and calibrate.
+        engine: cirq.google.Engine or cirq.google.PhasedFSimEngineSimulator object used for running
+            the calibrations. When cirq.google.Engine then processor_id and gate_set arguments must
+            be provided as well.
+        processor_id: processor_id passed to engine.run_calibrations method. Can be None when
+            cirq.google.PhasedFSimEngineSimulator is used as an engine.
+        gate_set: Gate set to use for characterization request. Can be None when
+            cirq.google.PhasedFSimEngineSimulator is used as an engine.
+        options: Options that are applied to each characterized gate within a moment. Defaults
+            to all_except_for_chi_options which is the broadest currently supported choice.
+        gates_translator: Function that translates a gate to a supported FSimGate which will undergo
+            characterization. Defaults to sqrt_iswap_gates_translator.
+        merge_subsets: Whether to merge moments that can be characterized at the same time
+            together.
+        max_layers_per_request: Maximum number of calibration requests issued to cirq.Engine at a
+            single time. Defaults to 1.
+        progress_func: Optional callback function that might be used to report the calibration
+            progress. The callback is called with two integers, the first one being a number of
+            layers already calibrated and the second one the total number of layers to calibrate.
+
+    Returns:
+        Tuple of:
+          - Calibrated circuit together with its calibration metadata in CircuitCalibration object.
+            The calibrated circuit has single-qubit Z gates added which compensates for the true
+            gates imperfections.
+          - List of characterizations that were triggered in order to calibrate the circuit.
+    """
     request = make_floquet_request_for_circuit(
         circuit, options, gates_translator, merge_subsets=merge_subsets
     )
@@ -599,9 +630,4 @@ def run_floquet_phased_calibration_for_circuit(
     calibrated_circuit = phased_calibration_for_circuit(
         request.circuit_calibration, characterizations, gates_translator
     )
-    override = PhasedFSimCharacterization(
-        zeta=0.0 if options.characterize_zeta else None,
-        chi=0.0 if options.characterize_chi else None,
-        gamma=0.0 if options.characterize_gamma else None,
-    )
-    return calibrated_circuit, characterizations, override
+    return calibrated_circuit, characterizations
