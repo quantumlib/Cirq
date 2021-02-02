@@ -351,7 +351,7 @@ def run_characterizations(
     return results
 
 
-def phased_calibration_for_circuit(
+def zeta_chi_gamma_calibration_for_moments(
     circuit_calibration: CircuitCalibration,
     characterizations: List[PhasedFSimCalibrationResult],
     gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
@@ -359,7 +359,9 @@ def phased_calibration_for_circuit(
     """Compensates circuit against errors in zeta, chi and gamma angles.
 
     This method creates a new circuit with a single-qubit Z gates added in a such way so that
-    zeta, chi and gamma angles discovered by characterizations are cancelled-out and set to 0.
+    zeta, chi and gamma angles discovered by characterizations are cancelled-out and set to 0. The
+    method preserves a moment structure of the circuit. All single qubit gates appear on new moments
+    in the final circuit.
 
     Args:
         circuit_calibration: Description of the circuit together with its calibration metadata that
@@ -547,7 +549,7 @@ def run_floquet_characterization_for_circuit(
     return circuit_calibration, results
 
 
-def run_floquet_phased_calibration_for_circuit(
+def run_zeta_chi_gamma_calibration_for_moments(
     circuit: Circuit,
     engine: Union[Engine, PhasedFSimEngineSimulator],
     processor_id: Optional[str] = None,
@@ -600,7 +602,7 @@ def run_floquet_phased_calibration_for_circuit(
         max_layers_per_request=max_layers_per_request,
         progress_func=progress_func,
     )
-    calibrated_circuit = phased_calibration_for_circuit(
+    calibrated_circuit = zeta_chi_gamma_calibration_for_moments(
         circuit_calibration, characterizations, gates_translator
     )
     return calibrated_circuit, characterizations

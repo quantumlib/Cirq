@@ -545,7 +545,7 @@ def test_phase_corrected_fsim_operations(
     assert corrected.moment_allocations == [None, 5, None]
 
 
-def test_run_floquet_calibration() -> None:
+def test_run_zeta_chi_gamma_calibration_for_moments() -> None:
     parameters_ab = cirq.google.PhasedFSimCharacterization(zeta=0.5, chi=0.4, gamma=0.3)
     parameters_bc = cirq.google.PhasedFSimCharacterization(zeta=-0.5, chi=-0.4, gamma=-0.3)
     parameters_cd = cirq.google.PhasedFSimCharacterization(zeta=0.2, chi=0.3, gamma=0.4)
@@ -575,7 +575,7 @@ def test_run_floquet_calibration() -> None:
         characterize_phi=False,
     )
 
-    calibrated_circuit, calibrations = workflow.run_floquet_phased_calibration_for_circuit(
+    calibrated_circuit, calibrations = workflow.run_zeta_chi_gamma_calibration_for_moments(
         circuit,
         engine_simulator,
         processor_id=None,
@@ -603,7 +603,7 @@ def test_run_floquet_calibration() -> None:
 # TODO: Check if calibration preserves moments.
 
 
-def test_run_floquet_calibration_no_chi() -> None:
+def test_run_zeta_chi_gamma_calibration_for_moments_no_chi() -> None:
     parameters_ab = cirq.google.PhasedFSimCharacterization(theta=np.pi / 4, zeta=0.5, gamma=0.3)
     parameters_bc = cirq.google.PhasedFSimCharacterization(theta=np.pi / 4, zeta=-0.5, gamma=-0.3)
     parameters_cd = cirq.google.PhasedFSimCharacterization(theta=np.pi / 4, zeta=0.2, gamma=0.4)
@@ -622,7 +622,7 @@ def test_run_floquet_calibration_no_chi() -> None:
         ]
     )
 
-    calibrated_circuit, *_ = workflow.run_floquet_phased_calibration_for_circuit(
+    calibrated_circuit, *_ = workflow.run_zeta_chi_gamma_calibration_for_moments(
         circuit, engine_simulator, processor_id=None, gate_set=cirq.google.SQRT_ISWAP_GATESET
     )
 
