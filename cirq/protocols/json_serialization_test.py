@@ -245,7 +245,9 @@ SHOULDNT_BE_SERIALIZED = [
     'EngineProcessor',
     'EngineProgram',
     'EngineTimeSlot',
+    'PhasedFSimEngineSimulator',
     'QuantumEngineSampler',
+    'SQRT_ISWAP_PARAMETERS',
     'NAMED_GATESETS',
     'WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
     # enums
