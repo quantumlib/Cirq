@@ -32,4 +32,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'SycamoreGate': cirq.google.SycamoreGate,
         'GateTabulation': cirq.google.GateTabulation,
         'PhysicalZTag': cirq.google.PhysicalZTag,
+        'FloquetPhasedFSimCalibrationOptions': cirq.google.FloquetPhasedFSimCalibrationOptions,
+        'FloquetPhasedFSimCalibrationRequest': cirq.google.FloquetPhasedFSimCalibrationRequest,
+        'PhasedFSimCalibrationResult': cirq.google.PhasedFSimCalibrationResult,
+        'PhasedFSimCharacterization': cirq.google.PhasedFSimCharacterization,
     }
