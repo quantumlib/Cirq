@@ -35,8 +35,10 @@ def _skip_if_scipy(*, version_is_greater_than_1_5_0: bool) -> Callable[[Callable
             # pylint: disable=unused-import
             from scipy.linalg import cossin
 
+            # coverage: ignore
             return None if version_is_greater_than_1_5_0 else func
         except ImportError:
+            # coverage: ignore
             return func if version_is_greater_than_1_5_0 else None
 
     return decorator
@@ -79,9 +81,10 @@ def test_three_qubit_matrix_to_operations_errors():
 
 # on environments with scipy <1.5.0 this will not be sufficient to cover the
 # full three_qubit_matrix_to_operations method. In case we ever introduce a CI
-# environment like that, we'll need to ignore the coverage somehow condiditionally on
+# environment like that, we'll need to ignore the coverage somehow conditionally on
 # the scipy version.
 @_skip_if_scipy(version_is_greater_than_1_5_0=True)
+# coverage: ignore
 def test_three_qubit_matrix_to_operations_scipy_error():
     a, b, c = cirq.LineQubit.range(3)
     with pytest.raises(ImportError, match="three_qubit.*1.5.0+"):
