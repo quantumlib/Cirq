@@ -24,12 +24,12 @@ from cirq.google.calibration import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
+    PhaseCorrectedFSimOperations,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
     PhasedFSimEngineSimulator,
     SQRT_ISWAP_PARAMETERS,
-    create_corrected_fsim_gate,
     make_floquet_request_for_circuit,
     make_floquet_request_for_moment,
     phased_calibration_for_circuit,
@@ -38,6 +38,7 @@ from cirq.google.calibration import (
     run_floquet_phased_calibration_for_circuit,
     try_convert_sqrt_iswap_to_fsim,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
 )
 
 from cirq.google.devices import (

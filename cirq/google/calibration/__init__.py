@@ -26,10 +26,11 @@ from cirq.google.calibration.phased_fsim import (
     PhasedFSimCharacterization,
     SQRT_ISWAP_PARAMETERS,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
 )
 
 from cirq.google.calibration.workflow import (
-    create_corrected_fsim_gate,
+    PhaseCorrectedFSimOperations,
     make_floquet_request_for_circuit,
     make_floquet_request_for_moment,
     phased_calibration_for_circuit,
