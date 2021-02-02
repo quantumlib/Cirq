@@ -33,7 +33,7 @@ import abc
 import functools
 import numpy as np
 
-from cirq import protocols, value
+from cirq import protocols, value, ops
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -507,6 +507,33 @@ class Operation(metaclass=abc.ABCMeta):
         """
         _validate_qid_shape(self, qubits)
 
+    def _commutes_(
+        self, other: Any, *, atol: Union[int, float] = 1e-8
+    ) -> Union[bool, NotImplementedType, None]:
+        """Determine if this Operation commutes with the object"""
+        if not isinstance(other, Operation):
+            return NotImplemented
+
+        if hasattr(other, 'qubits') and set(self.qubits).isdisjoint(other.qubits):
+            return True
+
+        from cirq import circuits
+
+        circuit12 = circuits.Circuit(self, other)
+        circuit21 = circuits.Circuit(other, self)
+
+        # Don't create gigantic matrices.
+        shape = protocols.qid_shape_protocol.qid_shape(circuit12)
+        if np.product(shape) > 2 ** 10:
+            return NotImplemented  # coverage: ignore
+
+        m12 = protocols.unitary_protocol.unitary(circuit12, default=None)
+        m21 = protocols.unitary_protocol.unitary(circuit21, default=None)
+        if m12 is None:
+            return NotImplemented
+
+        return np.allclose(m12, m21, atol=atol)
+
 
 @value.value_equality
 class TaggedOperation(Operation):
@@ -629,6 +656,12 @@ class TaggedOperation(Operation):
         return protocols.is_parameterized(self.sub_operation) or any(
             protocols.is_parameterized(tag) for tag in self.tags
         )
+
+    def _act_on_(self, args: Any) -> bool:
+        sub = getattr(self.sub_operation, "_act_on_", None)
+        if sub is not None:
+            return sub(args)
+        return NotImplemented
 
     def _parameter_names_(self) -> AbstractSet[str]:
         tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}

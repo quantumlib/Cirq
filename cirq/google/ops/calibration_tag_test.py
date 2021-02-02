@@ -20,6 +20,16 @@ def test_equality():
     eq.add_equality_group(cirq.google.CalibrationTag('blah2'))
 
 
+def test_hash():
+    s = set()
+    s.add(cirq.google.CalibrationTag('foo'))
+    assert len(s) == 1
+    s.add(cirq.google.CalibrationTag('foo'))
+    assert len(s) == 1
+    s.add(cirq.google.CalibrationTag('bar'))
+    assert len(s) == 2
+
+
 def test_str_repr():
     example_tag = cirq.google.CalibrationTag('foo')
     assert str(example_tag) == 'CalibrationTag(\'foo\')'
