@@ -36,9 +36,6 @@ from cirq.ops import FSimGate, Gate, ISwapPowGate, PhasedFSimGate, PhasedISwapPo
 from cirq.google.api import v2
 from cirq.google.engine import CalibrationLayer, CalibrationResult
 
-
-_FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
-
 if TYPE_CHECKING:
     # Workaround for mypy custom dataclasses (python/mypy#5406)
     from dataclasses import dataclass as json_serializable_dataclass
@@ -46,6 +43,7 @@ else:
     from cirq.protocols import json_serializable_dataclass
 
 
+_FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
 T = TypeVar('T')
 
 
@@ -161,6 +159,11 @@ class PhasedFSimCharacterization:
             other that are not None). Otherwise the current values are used.
         """
         return other.merge_with(self)
+
+
+SQRT_ISWAP_PARAMETERS = PhasedFSimCharacterization(
+    theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
+)
 
 
 class PhasedFSimCalibrationOptions(abc.ABC):
@@ -375,6 +378,10 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             'gate': self.gate,
             'options': self.options,
         }
+
+
+class IncompatibleMomentError(Exception):
+    """Error that occurs when a moment is not supported by a calibration routine."""
 
 
 def try_convert_sqrt_iswap_to_fsim(gate: Gate) -> Optional[FSimGate]:

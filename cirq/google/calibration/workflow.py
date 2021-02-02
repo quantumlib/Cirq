@@ -11,15 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, Dict, List, Optional, Sequence, Tuple, cast
+from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union, cast
 
 import dataclasses
 
+
 from cirq.circuits import Circuit
 from cirq.ops import FSimGate, Gate, GateOperation, MeasurementGate, Moment, Qid, SingleQubitGate
+from cirq.google.calibration.engine_simulator import PhasedFSimEngineSimulator
 from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
+    IncompatibleMomentError,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -27,10 +30,6 @@ from cirq.google.calibration.phased_fsim import (
 )
 from cirq.google.engine import Engine
 from cirq.google.serializable_gate_set import SerializableGateSet
-
-
-class IncompatibleMomentError(Exception):
-    """Error that occurs when a moment is not supported by a calibration routine."""
 
 
 def make_floquet_request_for_moment(
@@ -269,9 +268,9 @@ def _merge_into_calibrations(
 
 def run_characterizations(
     calibrations: Sequence[PhasedFSimCalibrationRequest],
-    engine: Engine,
-    processor_id: str,
-    gate_set: SerializableGateSet,
+    engine: Union[Engine, PhasedFSimEngineSimulator],
+    processor_id: Optional[str] = None,
+    gate_set: Optional[SerializableGateSet] = None,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
 ) -> List[PhasedFSimCalibrationResult]:
@@ -279,9 +278,13 @@ def run_characterizations(
 
     Args:
         calibrations: List of calibrations to perform described in a request object.
-        engine: cirq.google.Engine object used for running the calibrations.
-        processor_id: processor_id passed to engine.run_calibrations method.
-        gate_set: Gate set to use for characterization request.
+        engine: cirq.google.Engine or cirq.google.PhasedFSimEngineSimulator object used for running
+            the calibrations. When cirq.google.Engine then processor_id and gate_set arguments must
+            be provided as well.
+        processor_id: processor_id passed to engine.run_calibrations method. Can be None when
+            cirq.google.PhasedFSimEngineSimulator is used as an engine.
+        gate_set: Gate set to use for characterization request. Can be None when
+            cirq.google.PhasedFSimEngineSimulator is used as an engine.
         max_layers_per_request: Maximum number of calibration requests issued to cirq.Engine at a
             single time. Defaults to 1.
         progress_func: Optional callback function that might be used to report the calibration
@@ -300,24 +303,36 @@ def run_characterizations(
     if not calibrations:
         return []
 
-    requests = [
-        [
-            calibration.to_calibration_layer()
-            for calibration in calibrations[offset : offset + max_layers_per_request]
-        ]
-        for offset in range(0, len(calibrations), max_layers_per_request)
-    ]
+    if isinstance(engine, Engine):
+        if processor_id is None:
+            raise ValueError('processor_id must be provided when running on the engine')
+        if gate_set is None:
+            raise ValueError('gate_set must be provided when running on the engine')
 
-    results = []
+        results = []
 
-    for request in requests:
-        job = engine.run_calibration(request, processor_id=processor_id, gate_set=gate_set)
-        results += [
-            calibration.parse_result(result)
-            for calibration, result in zip(calibrations, job.calibration_results())
+        requests = [
+            [
+                calibration.to_calibration_layer()
+                for calibration in calibrations[offset : offset + max_layers_per_request]
+            ]
+            for offset in range(0, len(calibrations), max_layers_per_request)
         ]
-        if progress_func:
-            progress_func(len(results), len(calibrations))
+
+        for request in requests:
+            job = engine.run_calibration(request, processor_id=processor_id, gate_set=gate_set)
+            request_results = job.calibration_results()
+            results += [
+                calibration.parse_result(result)
+                for calibration, result in zip(calibrations, request_results)
+            ]
+            if progress_func:
+                progress_func(len(results), len(calibrations))
+
+    elif isinstance(engine, PhasedFSimEngineSimulator):
+        results = engine.get_calibrations(calibrations)
+    else:
+        raise ValueError(f'Unsupported engine type {type(engine)}')
 
     return results
 
@@ -339,9 +354,9 @@ class CircuitPhasedFSimCalibrationResults:
 
 def run_floquet_characterization_for_circuit(
     circuit: Circuit,
-    engine: Engine,
-    processor_id: str,
-    gate_set: SerializableGateSet,
+    engine: Union[Engine, PhasedFSimEngineSimulator],
+    processor_id: Optional[str] = None,
+    gate_set: Optional[SerializableGateSet] = None,
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
@@ -355,9 +370,13 @@ def run_floquet_characterization_for_circuit(
 
     Args:
         circuit: Circuit to characterize.
-        engine: cirq.google.Engine object used for running the calibrations.
-        processor_id: processor_id passed to engine.run_calibrations method.
-        gate_set: Gate set to use for characterization request.
+        engine: cirq.google.Engine or cirq.google.PhasedFSimEngineSimulator object used for running
+            the calibrations. When cirq.google.Engine then processor_id and gate_set arguments must
+            be provided as well.
+        processor_id: processor_id passed to engine.run_calibrations method. Can be None when
+            cirq.google.PhasedFSimEngineSimulator is used as an engine.
+        gate_set: Gate set to use for characterization request. Can be None when
+            cirq.google.PhasedFSimEngineSimulator is used as an engine.
         options: Options that are applied to each characterized gate within a moment. Defaults
             to all_except_for_chi_options which is the broadest currently supported choice.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo
