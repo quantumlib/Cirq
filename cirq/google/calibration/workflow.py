@@ -16,6 +16,7 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union, cast
 import dataclasses
 from itertools import zip_longest
 
+
 from cirq.circuits import Circuit
 from cirq.ops import (
     FSimGate,
