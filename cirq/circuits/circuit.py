@@ -55,7 +55,7 @@ from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.quil_output import QuilOutput
 from cirq.type_workarounds import NotImplementedType
-from cirq._compat import deprecated
+from cirq._compat import deprecated, deprecated_parameter
 import cirq._version
 
 if TYPE_CHECKING:
@@ -1503,6 +1503,16 @@ class Circuit(AbstractCircuit):
             device=new_device,
         )
 
+    @deprecated_parameter(
+        deadline='v0.10.0',
+        fix='Use qubit_map instead.',
+        parameter_desc='positional func',
+        match=lambda args, kwargs: 'func' in kwargs,
+        rewrite=lambda args, kwargs: (
+            args,
+            {('qubit_map' if k == 'func' else k): v for k, v in kwargs.items()},
+        ),
+    )
     def transform_qubits(
         self,
         qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],

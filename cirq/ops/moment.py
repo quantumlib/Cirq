@@ -279,6 +279,16 @@ class Moment:
     def __str__(self) -> str:
         return self.to_text_diagram()
 
+    @deprecated_parameter(
+        deadline='v0.10.0',
+        fix='Use qubit_map instead.',
+        parameter_desc='positional func',
+        match=lambda args, kwargs: 'func' in kwargs,
+        rewrite=lambda args, kwargs: (
+            args,
+            {('qubit_map' if k == 'func' else k): v for k, v in kwargs.items()},
+        ),
+    )
     def transform_qubits(
         self: TSelf_Moment,
         qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],

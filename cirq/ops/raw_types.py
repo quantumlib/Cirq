@@ -35,6 +35,7 @@ import numpy as np
 
 from cirq import protocols, value, ops
 from cirq.type_workarounds import NotImplementedType
+from cirq._compat import deprecated_parameter
 
 if TYPE_CHECKING:
     import cirq
@@ -445,6 +446,16 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return TaggedOperation(self, *new_tags)
 
+    @deprecated_parameter(
+        deadline='v0.10.0',
+        fix='Use qubit_map instead.',
+        parameter_desc='positional func',
+        match=lambda args, kwargs: 'func' in kwargs,
+        rewrite=lambda args, kwargs: (
+            args,
+            {('qubit_map' if k == 'func' else k): v for k, v in kwargs.items()},
+        ),
+    )
     def transform_qubits(
         self: TSelf,
         qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
