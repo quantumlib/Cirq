@@ -23,6 +23,7 @@ def test_init():
     assert op.coefficient == 1j
     assert op.qubits == ()
     assert op.with_qubits() is op
+    assert cirq.has_stabilizer_effect(op)
 
     with pytest.raises(ValueError, match='not unitary'):
         _ = cirq.GlobalPhaseOperation(2)
