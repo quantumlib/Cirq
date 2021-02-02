@@ -240,6 +240,7 @@ SHOULDNT_BE_SERIALIZED = [
     'DEFAULT_RESOLVERS',
     # Quantum Engine
     'ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
+    'CircuitCalibration',
     'Engine',
     'EngineJob',
     'EngineProcessor',

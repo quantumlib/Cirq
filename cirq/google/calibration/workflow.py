@@ -359,9 +359,10 @@ def zeta_chi_gamma_calibration_for_moments(
     """Compensates circuit against errors in zeta, chi and gamma angles.
 
     This method creates a new circuit with a single-qubit Z gates added in a such way so that
-    zeta, chi and gamma angles discovered by characterizations are cancelled-out and set to 0. The
-    method preserves a moment structure of the circuit. All single qubit gates appear on new moments
-    in the final circuit.
+    zeta, chi and gamma angles discovered by characterizations are cancelled-out and set to 0.
+
+    This function preserves a moment structure of the circuit. All single qubit gates appear on new
+    moments in the final circuit.
 
     Args:
         circuit_calibration: Description of the circuit together with its calibration metadata that
