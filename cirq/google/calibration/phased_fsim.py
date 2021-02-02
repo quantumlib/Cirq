@@ -161,6 +161,11 @@ class PhasedFSimCharacterization:
         return other.merge_with(self)
 
 
+SQRT_ISWAP_PARAMETERS = PhasedFSimCharacterization(
+    theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
+)
+
+
 class PhasedFSimCalibrationOptions(abc.ABC):
     """Base class for calibration-specific options passed together with the requests."""
 
@@ -316,6 +321,16 @@ WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationO
     characterize_chi=False,
     characterize_gamma=True,
     characterize_phi=True,
+)
+
+
+"""PhasedFSimCalibrationOptions with zeta and gamma angles characterization requests set to True."""
+ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
+    characterize_theta=True,
+    characterize_zeta=True,
+    characterize_chi=False,
+    characterize_gamma=True,
+    characterize_phi=False,
 )
 
 

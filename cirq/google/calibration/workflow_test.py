@@ -21,6 +21,7 @@ import pytest
 import cirq
 import cirq.google.calibration.workflow as workflow
 
+from cirq.google.calibration.engine_simulator import PhasedFSimEngineSimulator
 from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
@@ -256,17 +257,6 @@ def test_make_floquet_request_for_circuit_merges_compatible_sets() -> None:
     assert request.moment_allocations == [None, 0, 1, 0, 1]
 
 
-def test_run_characterization_empty():
-    assert workflow.run_characterizations([], None, 'qproc', cirq.google.FSIM_GATESET) == []
-
-
-def test_run_characterization_fails_when_invalid_arguments():
-    with pytest.raises(ValueError):
-        assert workflow.run_characterizations(
-            [], None, 'qproc', cirq.google.FSIM_GATESET, max_layers_per_request=0
-        )
-
-
 def test_run_characterization():
     q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
     gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
@@ -363,6 +353,75 @@ def test_run_characterization():
     assert progress_calls == [(1, 1)]
 
 
+def test_run_characterization_empty():
+    assert workflow.run_characterizations([], None, 'qproc', cirq.google.FSIM_GATESET) == []
+
+
+def test_run_characterization_fails_when_invalid_arguments():
+    with pytest.raises(ValueError):
+        assert workflow.run_characterizations(
+            [], None, 'qproc', cirq.google.FSIM_GATESET, max_layers_per_request=0
+        )
+
+    request = FloquetPhasedFSimCalibrationRequest(
+        gate=SQRT_ISWAP_GATE,
+        pairs=(),
+        options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    )
+    engine = mock.MagicMock(spec=cirq.google.Engine)
+
+    with pytest.raises(ValueError):
+        assert workflow.run_characterizations([request], engine, None, cirq.google.FSIM_GATESET)
+
+    with pytest.raises(ValueError):
+        assert workflow.run_characterizations([request], engine, 'qproc', None)
+
+    with pytest.raises(ValueError):
+        assert workflow.run_characterizations([request], 0, 'qproc', cirq.google.FSIM_GATESET)
+
+
+def test_run_characterization_with_simulator():
+    q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
+    gate = SQRT_ISWAP_GATE
+
+    request = FloquetPhasedFSimCalibrationRequest(
+        gate=gate,
+        pairs=((q_00, q_01), (q_02, q_03)),
+        options=FloquetPhasedFSimCalibrationOptions(
+            characterize_theta=True,
+            characterize_zeta=True,
+            characterize_chi=False,
+            characterize_gamma=False,
+            characterize_phi=True,
+        ),
+    )
+
+    simulator = PhasedFSimEngineSimulator.create_with_ideal_sqrt_iswap()
+
+    actual = workflow.run_characterizations([request], simulator)
+
+    assert actual == [
+        PhasedFSimCalibrationResult(
+            parameters={
+                (q_00, q_01): PhasedFSimCharacterization(
+                    theta=np.pi / 4, zeta=0.0, chi=None, gamma=None, phi=0.0
+                ),
+                (q_02, q_03): PhasedFSimCharacterization(
+                    theta=np.pi / 4, zeta=0.0, chi=None, gamma=None, phi=0.0
+                ),
+            },
+            gate=SQRT_ISWAP_GATE,
+            options=FloquetPhasedFSimCalibrationOptions(
+                characterize_theta=True,
+                characterize_zeta=True,
+                characterize_chi=False,
+                characterize_gamma=False,
+                characterize_phi=True,
+            ),
+        )
+    ]
+
+
 def test_run_floquet_characterization_for_circuit():
     q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
     gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
@@ -448,7 +507,7 @@ def test_run_floquet_characterization_for_circuit():
     'theta,zeta,chi,gamma,phi',
     itertools.product([0.1, 0.7], [-0.3, 0.1, 0.5], [-0.3, 0.2, 0.4], [-0.6, 0.1, 0.6], [0.2, 0.6]),
 )
-def test_create_corrected_fsim_gate(
+def test_phase_corrected_fsim_operations(
     theta: float, zeta: float, chi: float, gamma: float, phi: float
 ) -> None:
     a, b = cirq.LineQubit.range(2)
@@ -456,7 +515,7 @@ def test_create_corrected_fsim_gate(
     expected_gate = cirq.PhasedFSimGate(theta=theta, zeta=-zeta, chi=-chi, gamma=-gamma, phi=phi)
     expected = cirq.unitary(expected_gate)
 
-    corrected_gate, corrected_mapping = workflow.create_corrected_fsim_gate(
+    corrected = workflow.PhaseCorrectedFSimOperations(
         (a, b),
         cirq.FSimGate(theta=theta, phi=phi),
         cirq.google.PhasedFSimCharacterization(
@@ -464,10 +523,10 @@ def test_create_corrected_fsim_gate(
         ),
         5,
     )
-    actual = cirq.unitary(cirq.Circuit(corrected_gate))
+    actual = cirq.unitary(corrected.as_circuit())
 
     assert cirq.equal_up_to_global_phase(actual, expected)
-    assert corrected_mapping == [None, 5, None]
+    assert corrected.moment_allocations == [None, 5, None]
 
 
 def test_run_floquet_calibration() -> None:
@@ -500,12 +559,7 @@ def test_run_floquet_calibration() -> None:
         characterize_phi=False,
     )
 
-    (
-        calibrated,
-        calibrations,
-        mapping,
-        calibrated_parameters,
-    ) = workflow.run_floquet_phased_calibration_for_circuit(
+    calibrated_circuit, calibrations = workflow.run_floquet_phased_calibration_for_circuit(
         circuit,
         engine_simulator,
         processor_id=None,
@@ -514,7 +568,8 @@ def test_run_floquet_calibration() -> None:
     )
 
     assert cirq.allclose_up_to_global_phase(
-        engine_simulator.final_state_vector(calibrated), cirq.final_state_vector(circuit)
+        engine_simulator.final_state_vector(calibrated_circuit.circuit),
+        cirq.final_state_vector(circuit),
     )
     assert calibrations == [
         cirq.google.PhasedFSimCalibrationResult(
@@ -526,10 +581,7 @@ def test_run_floquet_calibration() -> None:
             gate=cirq.FSimGate(np.pi / 4, 0.0), parameters={(b, c): parameters_bc}, options=options
         ),
     ]
-    assert mapping == [None, None, 0, None, None, 1, None]
-    assert calibrated_parameters == cirq.google.PhasedFSimCharacterization(
-        zeta=0.0, chi=0.0, gamma=0.0
-    )
+    assert calibrated_circuit.moment_allocations == [None, None, 0, None, None, 1, None]
 
 
 # TODO: Check if calibration preserves moments.
@@ -554,10 +606,11 @@ def test_run_floquet_calibration_no_chi() -> None:
         ]
     )
 
-    calibrated, *_ = workflow.run_floquet_phased_calibration_for_circuit(
+    calibrated_circuit, *_ = workflow.run_floquet_phased_calibration_for_circuit(
         circuit, engine_simulator, processor_id=None, gate_set=cirq.google.SQRT_ISWAP_GATESET
     )
 
     assert cirq.allclose_up_to_global_phase(
-        engine_simulator.final_state_vector(calibrated), cirq.final_state_vector(circuit)
+        engine_simulator.final_state_vector(calibrated_circuit.circuit),
+        cirq.final_state_vector(circuit),
     )
