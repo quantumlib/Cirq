@@ -380,10 +380,9 @@ def phased_calibration_for_circuit(
     for moment, characterization_index in zip(
         circuit_calibration.circuit, circuit_calibration.moment_allocations
     ):
+        parameters = None
         if characterization_index is not None:
             parameters = characterizations[characterization_index]
-        else:
-            parameters = None
 
         decompositions = []
         other = []
@@ -406,6 +405,11 @@ def phased_calibration_for_circuit(
                     )
                 a, b = op.qubits
                 pair_parameters = parameters.get_parameters(a, b)
+                if pair_parameters is None:
+                    raise ValueError(
+                        f'Missing characterization data for pair {(a, b)} in {parameters}'
+                    )
+
                 pair_parameters = pair_parameters.merge_with(default_phases)
                 corrected = PhaseCorrectedFSimOperations(
                     (a, b), translated_gate, pair_parameters, characterization_index
@@ -425,6 +429,7 @@ def phased_calibration_for_circuit(
         elif decompositions:
             for operations in zip_longest(*decompositions, fillvalue=()):
                 compensated += Moment(operations)
+            assert new_moment_mapping is not None  # Required for mypy
             compensated_allocations += new_moment_mapping
 
     return CircuitCalibration(compensated, compensated_allocations)
@@ -445,7 +450,7 @@ class PhaseCorrectedFSimOperations:
         qubits: Tuple[Qid, Qid],
         gate: FSimGate,
         parameters: PhasedFSimCharacterization,
-        characterization_index: int,
+        characterization_index: Optional[int],
     ) -> None:
         """Creates an operation that compensates for zeta, chi and gamma angles of the supplied
         gate.
@@ -456,8 +461,13 @@ class PhaseCorrectedFSimOperations:
             parameters: The real parameters of the supplied gate.
             characterization_index: characterization index to use at each moment with gate.
         """
+        assert parameters.zeta is not None, "Zeta value must not be None"
         zeta = parameters.zeta
+
+        assert parameters.gamma is not None, "Gamma value must not be None"
         gamma = parameters.gamma
+
+        assert parameters.chi is not None, "Chi value must not be None"
         chi = parameters.chi
 
         a, b = qubits
