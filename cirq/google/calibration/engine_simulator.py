@@ -83,8 +83,9 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         self._gates_translator = gates_translator
         self._drifted_parameters: Dict[Tuple[Qid, Qid, FSimGate], PhasedFSimCharacterization] = {}
 
-    @staticmethod
+    @classmethod
     def create_with_ideal_sqrt_iswap(
+        cls,
         *,
         simulator: Optional[Simulator] = None,
     ) -> 'PhasedFSimEngineSimulator':
@@ -99,6 +100,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         """
 
         def sample_gate(_1: Qid, _2: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
+            assert isinstance(gate, FSimGate), f'Expected FSimGate, got {gate}'
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
                 gate.phi, 0.0
             ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
@@ -109,13 +111,14 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         if simulator is None:
             simulator = Simulator()
 
-        return PhasedFSimEngineSimulator(
+        return cls(
             simulator, drift_generator=sample_gate, gates_translator=try_convert_sqrt_iswap_to_fsim
         )
 
-    @staticmethod
+    @classmethod
     def create_with_random_gaussian_sqrt_iswap(
-        mean: PhasedFSimCharacterization,
+        cls,
+        mean: PhasedFSimCharacterization = SQRT_ISWAP_PARAMETERS,
         *,
         simulator: Optional[Simulator] = None,
         sigma: PhasedFSimCharacterization = PhasedFSimCharacterization(
@@ -129,7 +132,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         for each angle respectively.
 
         Each gate for each pair of qubits retains the sampled values for the entire simulation, even
-        weh used multiple times within a circuit.
+        when used multiple times within a circuit.
 
         Attributes:
             mean: The mean value for each unitary angle. All parameters must be provided.
@@ -143,6 +146,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         """
 
         def sample_gate(_1: Qid, _2: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
+            assert isinstance(gate, FSimGate), f'Expected FSimGate, got {gate}'
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
                 gate.phi, 0.0
             ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
@@ -171,12 +175,13 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         if simulator is None:
             simulator = Simulator()
 
-        return PhasedFSimEngineSimulator(
+        return cls(
             simulator, drift_generator=sample_gate, gates_translator=try_convert_sqrt_iswap_to_fsim
         )
 
-    @staticmethod
+    @classmethod
     def create_from_dictionary_sqrt_iswap(
+        cls,
         parameters: PhasedFsimDictParameters,
         *,
         simulator: Optional[Simulator] = None,
@@ -195,7 +200,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                 FSimGate(theta=π/4, phi=0) gate parameters will be used. When not set and this
                 situation occurs, ValueError is thrown during simulation.
             ideal_when_missing_parameter: When set and some parameter for some gate for a given pair
-                of qubits are is specified then the matching parameter of FSimGate(theta=π/4, phi=0)
+                of qubits is specified then the matching parameter of FSimGate(theta=π/4, phi=0)
                 gate will be used. When not set and this situation occurs, ValueError is thrown
                 during simulation.
 
@@ -204,6 +209,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         """
 
         def sample_gate(a: Qid, b: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
+            assert isinstance(gate, FSimGate), f'Expected FSimGate, got {gate}'
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
                 gate.phi, 0.0
             ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
@@ -242,12 +248,13 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         if simulator is None:
             simulator = Simulator()
 
-        return PhasedFSimEngineSimulator(
+        return cls(
             simulator, drift_generator=sample_gate, gates_translator=try_convert_sqrt_iswap_to_fsim
         )
 
-    @staticmethod
+    @classmethod
     def create_from_characterizations_sqrt_iswap(
+        cls,
         characterizations: Iterable[PhasedFSimCalibrationResult],
         *,
         simulator: Optional[Simulator] = None,
@@ -266,7 +273,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                 FSimGate(theta=π/4, phi=0) gate parameters will be used. When not set and this
                 situation occurs, ValueError is thrown during simulation.
             ideal_when_missing_parameter: When set and some parameter for some gate for a given pair
-                of qubits are is specified then the matching parameter of FSimGate(theta=π/4, phi=0)
+                of qubits is specified then the matching parameter of FSimGate(theta=π/4, phi=0)
                 gate will be used. When not set and this situation occurs, ValueError is thrown
                 during simulation.
 
@@ -298,7 +305,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         if simulator is None:
             simulator = Simulator()
 
-        return PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
+        return cls.create_from_dictionary_sqrt_iswap(
             parameters,
             simulator=simulator,
             ideal_when_missing_gate=ideal_when_missing_gate,
