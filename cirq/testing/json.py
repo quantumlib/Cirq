@@ -76,7 +76,6 @@ class ModuleJsonTestSpec:
                 if inspect.isclass(obj) and inspect.isabstract(obj):
                     continue
 
-                # assert name != 'XPowGate'
                 yield name, obj
 
     def find_classes_that_should_serialize(self) -> Set[Tuple[str, Type]]:
@@ -125,12 +124,12 @@ def spec_for(module_name: str) -> ModuleJsonTestSpec:
     test_module_name = f"{module_name}.json_test_data"
     if importlib.util.find_spec(test_module_name) is None:
         raise ValueError(
-            f"{module_name} module is missing json_test_data " f"package, please set it up."
+            f"{module_name} module is missing json_test_data package, please set it up."
         )
     test_module = importlib.import_module(test_module_name)
 
     if not hasattr(test_module, "TestSpec"):
-        raise ValueError(f"{test_module_name} module is missing " f"TestSpec, please set it up.")
+        raise ValueError(f"{test_module_name} module is missing TestSpec, please set it up.")
 
     return getattr(test_module, "TestSpec")
 
