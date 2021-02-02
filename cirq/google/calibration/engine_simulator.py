@@ -60,6 +60,10 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
     cirq.google.run_characterizations requests. The returned calibration results represent the
     internal state of a simulator. Circuits which are run on this simulator are modified to account
     for the changes in the unitary parameters as described by the calibration results.
+
+    Attributes:
+        gates_translator: Function that translates a gate to a supported FSimGate which will undergo
+        characterization.
     """
 
     def __init__(
@@ -80,8 +84,8 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         """
         self._simulator = simulator
         self._drift_generator = drift_generator
-        self._gates_translator = gates_translator
         self._drifted_parameters: Dict[Tuple[Qid, Qid, FSimGate], PhasedFSimCharacterization] = {}
+        self.gates_translator = gates_translator
 
     @classmethod
     def create_with_ideal_sqrt_iswap(
@@ -319,6 +323,14 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
     def get_calibrations(
         self, requests: Sequence[PhasedFSimCalibrationRequest]
     ) -> List[PhasedFSimCalibrationResult]:
+        """Retrieves the calibration that matches the requests
+
+        Args:
+            requests: Calibration requests to obtain.
+
+        Returns:
+            Calibration results that reflect the internal state of simulator.
+        """
         results = []
         for request in requests:
             if isinstance(request, FloquetPhasedFSimCalibrationRequest):
@@ -331,13 +343,13 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             else:
                 raise ValueError(f'Unsupported calibration request {request}')
 
-            translated_gate = self._gates_translator(request.gate)
+            translated_gate = self.gates_translator(request.gate)
             if translated_gate is None:
                 raise ValueError(f'Calibration request contains unsupported gate {request.gate}')
 
             parameters = {}
             for a, b in request.pairs:
-                drifted = self._create_gate(a, b, translated_gate)
+                drifted = self.create_gate_with_drift(a, b, translated_gate)
                 parameters[a, b] = PhasedFSimCharacterization(
                     theta=drifted.theta if characterize_theta else None,
                     zeta=drifted.zeta if characterize_zeta else None,
@@ -354,28 +366,17 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
         return results
 
-    def _run(
-        self, circuit: Circuit, param_resolver: ParamResolver, repetitions: int
-    ) -> Dict[str, np.ndarray]:
-        converted = self._convert_to_circuit_with_drift(circuit)
-        return self._simulator._run(converted, param_resolver, repetitions)
+    def create_gate_with_drift(self, a: Qid, b: Qid, gate: FSimGate) -> PhasedFSimGate:
+        """Generates a gate with drift for a given gate.
 
-    def _base_iterator(
-        self,
-        circuit: Circuit,
-        qubit_order: QubitOrderOrList,
-        initial_state: Any,
-    ) -> Iterator[StepResult]:
-        converted = self._convert_to_circuit_with_drift(circuit)
-        return self._simulator._base_iterator(converted, qubit_order, initial_state)
+        Args:
+            a: The first qubit.
+            b: The second qubit.
+            gate: Gate which a modified version of should be generated.
 
-    def _convert_to_circuit_with_drift(self, circuit: Circuit) -> Circuit:
-        copied = Circuit(circuit)
-        converter = self._PhasedFSimConverter(self)
-        converter.optimize_circuit(copied)
-        return copied
-
-    def _create_gate(self, a: Qid, b: Qid, gate: FSimGate) -> PhasedFSimGate:
+        Returns:
+            A modified gate that includes the drifts induced by internal state of the simulator.
+        """
         if (a, b, gate) in self._drifted_parameters:
             parameters = self._drifted_parameters[(a, b, gate)]
         elif (b, a, gate) in self._drifted_parameters:
@@ -385,28 +386,51 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             self._drifted_parameters[(a, b, gate)] = parameters
         return PhasedFSimGate(**parameters.asdict())
 
-    class _PhasedFSimConverter(PointOptimizer):
-        def __init__(self, outer: 'PhasedFSimEngineSimulator') -> None:
-            super().__init__()
-            self._outer = outer
+    def _run(
+        self, circuit: Circuit, param_resolver: ParamResolver, repetitions: int
+    ) -> Dict[str, np.ndarray]:
+        converted = _convert_to_circuit_with_drift(self, circuit)
+        return self._simulator._run(converted, param_resolver, repetitions)
 
-        def optimization_at(
-            self, circuit: Circuit, index: int, op: Operation
-        ) -> Optional[PointOptimizationSummary]:
+    def _base_iterator(
+        self,
+        circuit: Circuit,
+        qubit_order: QubitOrderOrList,
+        initial_state: Any,
+    ) -> Iterator[StepResult]:
+        converted = _convert_to_circuit_with_drift(self, circuit)
+        return self._simulator._base_iterator(converted, qubit_order, initial_state)
 
-            if isinstance(op.gate, (MeasurementGate, SingleQubitGate, WaitGate)):
-                new_op = op
-            else:
-                if op.gate is None:
-                    raise IncompatibleMomentError(f'Operation {op} has a missing gate')
-                translated_gate = self._outer._gates_translator(op.gate)
-                if translated_gate is None:
-                    raise IncompatibleMomentError(
-                        f'Moment contains non-single qubit operation ' f'{op} with unsupported gate'
-                    )
-                a, b = op.qubits
-                new_op = self._outer._create_gate(a, b, translated_gate).on(a, b)
 
-            return PointOptimizationSummary(
-                clear_span=1, clear_qubits=op.qubits, new_operations=new_op
-            )
+class _PhasedFSimConverter(PointOptimizer):
+    def __init__(self, simulator: PhasedFSimEngineSimulator) -> None:
+        super().__init__()
+        self._simulator = simulator
+
+    def optimization_at(
+        self, circuit: Circuit, index: int, op: Operation
+    ) -> Optional[PointOptimizationSummary]:
+
+        if isinstance(op.gate, (MeasurementGate, SingleQubitGate, WaitGate)):
+            new_op = op
+        else:
+            if op.gate is None:
+                raise IncompatibleMomentError(f'Operation {op} has a missing gate')
+            translated_gate = self._simulator.gates_translator(op.gate)
+            if translated_gate is None:
+                raise IncompatibleMomentError(
+                    f'Moment contains non-single qubit operation ' f'{op} with unsupported gate'
+                )
+            a, b = op.qubits
+            new_op = self._simulator.create_gate_with_drift(a, b, translated_gate).on(a, b)
+
+        return PointOptimizationSummary(
+            clear_span=1, clear_qubits=op.qubits, new_operations=new_op
+        )
+
+
+def _convert_to_circuit_with_drift(simulator: PhasedFSimEngineSimulator, circuit: Circuit) -> Circuit:
+    circuit_with_drift = Circuit(circuit)
+    converter = _PhasedFSimConverter(simulator)
+    converter.optimize_circuit(circuit_with_drift)
+    return circuit_with_drift
