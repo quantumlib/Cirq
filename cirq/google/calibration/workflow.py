@@ -375,6 +375,9 @@ def zeta_chi_gamma_calibration_for_moments(
         calibrated circuit has single-qubit Z gates added which compensates for the true gates
         imperfections.
     """
+    if len(circuit_calibration.circuit) != len(circuit_calibration.moment_allocations):
+        raise ValueError('Moment allocations does not match circuit length')
+
     default_phases = PhasedFSimCharacterization(zeta=0.0, chi=0.0, gamma=0.0)
 
     compensated = Circuit()
@@ -398,21 +401,24 @@ def zeta_chi_gamma_calibration_for_moments(
             if isinstance(op.gate, (MeasurementGate, SingleQubitGate)):
                 other.append(op)
             else:
-                if parameters is None:
-                    raise ValueError(f'Missing characterization data for moment {moment}')
+                a, b = op.qubits
+
                 translated_gate = gates_translator(op.gate)
                 if translated_gate is None:
                     raise IncompatibleMomentError(
                         f'Moment {moment} contains unsupported non-single qubit operation {op}'
                     )
-                a, b = op.qubits
+
+                if parameters is None:
+                    raise ValueError(f'Missing characterization data for moment {moment}')
+
                 pair_parameters = parameters.get_parameters(a, b)
                 if pair_parameters is None:
                     raise ValueError(
                         f'Missing characterization data for pair {(a, b)} in {parameters}'
                     )
-
                 pair_parameters = pair_parameters.merge_with(default_phases)
+
                 corrected = PhaseCorrectedFSimOperations(
                     (a, b), translated_gate, pair_parameters, characterization_index
                 )
@@ -420,8 +426,10 @@ def zeta_chi_gamma_calibration_for_moments(
 
                 if new_moment_mapping is None:
                     new_moment_mapping = corrected.moment_allocations
-                elif new_moment_mapping != corrected.moment_allocations:
-                    raise ValueError(f'Inconsistent decompositions with a moment {moment}')
+                else:
+                    assert (
+                        new_moment_mapping == corrected.moment_allocations
+                    ), f'Inconsistent decompositions with a moment {moment}'
 
         if other and decompositions:
             raise IncompatibleMomentError(f'Moment {moment} contains mixed operations')
