@@ -85,16 +85,28 @@ class SwapPowGate(
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        if self._is_parameterized_():
+            return None
+        return self.exponent % 1 == 0
+
     def _act_on_(self, args):
         from cirq import ops, sim, protocols
 
-        if isinstance(args, sim.ActOnStabilizerCHFormArgs) and self._exponent % 2 == 1:
-            args.state.omega *= 1j ** (2 * self.global_shift * self._exponent)
-            protocols.act_on(ops.CNOT, args)
-            args.axes = args.axes[::-1]
-            protocols.act_on(ops.CNOT, args)
-            args.axes = args.axes[::-1]
-            protocols.act_on(ops.CNOT, args)
+        if isinstance(args, (sim.ActOnStabilizerCHFormArgs, sim.ActOnCliffordTableauArgs)):
+            if not self._has_stabilizer_effect_():
+                return NotImplemented
+            if isinstance(args, sim.ActOnStabilizerCHFormArgs):
+                args.state.omega *= 1j ** (2 * self.global_shift * self._exponent)
+
+            if self._exponent % 2 == 1:
+                protocols.act_on(ops.CNOT, args)
+                args.axes = args.axes[::-1]
+                protocols.act_on(ops.CNOT, args)
+                args.axes = args.axes[::-1]
+                protocols.act_on(ops.CNOT, args)
+
+            # An even exponent does not change anything except the global phase above.
             return True
 
         return NotImplemented
