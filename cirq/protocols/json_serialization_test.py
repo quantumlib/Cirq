@@ -429,8 +429,8 @@ def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: st
         # coverage: ignore
         pytest.fail(
             f"Hello intrepid developer. There is a new public or "
-            f"serializable object named '{cirq_obj_name}' in the module '{mod_spec.name}' that does not "
-            f"have associated test data.\n"
+            f"serializable object named '{cirq_obj_name}' in the module '{mod_spec.name}' "
+            f"that does not have associated test data.\n"
             f"\n"
             f"You must create the file\n"
             f"    {rel_path}/{cirq_obj_name}.json\n"
