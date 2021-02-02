@@ -622,7 +622,7 @@ def test_run_zeta_chi_gamma_calibration_for_moments_no_chi() -> None:
 
 
 def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None:
-    a, b = cirq.LineQubit.range(2)
+    a, b, c = cirq.LineQubit.range(3)
 
     with pytest.raises(ValueError):
         circuit_calibration = workflow.CircuitCalibration(cirq.Circuit(), [1])
@@ -656,3 +656,20 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
     with pytest.raises(workflow.IncompatibleMomentError):
         circuit_calibration = workflow.CircuitCalibration(cirq.Circuit(cirq.CZ.on(a, b)), [None])
         workflow.zeta_chi_gamma_calibration_for_moments(circuit_calibration, [])
+
+    with pytest.raises(workflow.IncompatibleMomentError):
+        circuit_calibration = workflow.CircuitCalibration(
+            cirq.Circuit([SQRT_ISWAP_GATE.on(a, b), cirq.Z.on(c)]), [0]
+        )
+        characterizations = [
+            PhasedFSimCalibrationResult(
+                parameters={
+                    (a, b): PhasedFSimCharacterization(
+                        theta=0.1, zeta=0.2, chi=0.3, gamma=0.4, phi=0.5
+                    )
+                },
+                gate=SQRT_ISWAP_GATE,
+                options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+            )
+        ]
+        workflow.zeta_chi_gamma_calibration_for_moments(circuit_calibration, characterizations)
