@@ -424,12 +424,12 @@ class _PhasedFSimConverter(PointOptimizer):
             a, b = op.qubits
             new_op = self._simulator.create_gate_with_drift(a, b, translated_gate).on(a, b)
 
-        return PointOptimizationSummary(
-            clear_span=1, clear_qubits=op.qubits, new_operations=new_op
-        )
+        return PointOptimizationSummary(clear_span=1, clear_qubits=op.qubits, new_operations=new_op)
 
 
-def _convert_to_circuit_with_drift(simulator: PhasedFSimEngineSimulator, circuit: Circuit) -> Circuit:
+def _convert_to_circuit_with_drift(
+    simulator: PhasedFSimEngineSimulator, circuit: Circuit
+) -> Circuit:
     circuit_with_drift = Circuit(circuit)
     converter = _PhasedFSimConverter(simulator)
     converter.optimize_circuit(circuit_with_drift)
