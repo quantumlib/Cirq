@@ -11,15 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import multiprocessing
 from typing import Sequence
 import itertools
 import math
 
 import numpy as np
 import pytest
+import pandas as pd
 
 import cirq
+from cirq.experiments.fidelity_estimation import (
+    SQRT_ISWAP,
+    sample_2q_xeb_circuits,
+    simulate_2q_xeb_circuits,
+    benchmark_2q_xeb_fidelities,
+)
+import cirq.experiments.random_quantum_circuit_generation as rqcg
 
 
 def sample_noisy_bitstrings(
@@ -240,3 +248,106 @@ def test_least_squares_xeb_fidelity_from_probabilities():
     np.testing.assert_allclose(np.sum(np.array(r_log_math) ** 2), 0.0, atol=1e-2)
 
     np.random.set_state(prng_state)
+
+
+def test_sample_2q_xeb_circuits():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuits = [
+        rqcg.random_rotations_between_two_qubit_circuit(
+            q0,
+            q1,
+            depth=20,
+            two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b),
+        )
+        for _ in range(2)
+    ]
+    cycle_depths = np.arange(3, 20, 6)
+
+    df = sample_2q_xeb_circuits(
+        sampler=cirq.Simulator(),
+        circuits=circuits,
+        cycle_depths=cycle_depths,
+    )
+    assert len(df) == len(cycle_depths) * len(circuits)
+    for (circuit_i, cycle_depth), row in df.iterrows():
+        assert 0 <= circuit_i < len(circuits)
+        assert cycle_depth in cycle_depths
+        assert len(row['sampled_probs']) == 4
+        assert np.isclose(np.sum(row['sampled_probs']), 1)
+
+
+def test_sample_2q_xeb_circuits_error():
+    qubits = cirq.LineQubit.range(3)
+    circuits = [cirq.testing.random_circuit(qubits, n_moments=5, op_density=0.8, random_state=52)]
+    cycle_depths = np.arange(3, 50, 9)
+    with pytest.raises(ValueError):  # three qubit circuits
+        _ = sample_2q_xeb_circuits(
+            sampler=cirq.Simulator(),
+            circuits=circuits,
+            cycle_depths=cycle_depths,
+        )
+
+
+def test_sample_2q_xeb_circuits_no_progress(capsys):
+    qubits = cirq.LineQubit.range(2)
+    circuits = [cirq.testing.random_circuit(qubits, n_moments=7, op_density=0.8, random_state=52)]
+    cycle_depths = np.arange(3, 4)
+    _ = sample_2q_xeb_circuits(
+        sampler=cirq.Simulator(),
+        circuits=circuits,
+        cycle_depths=cycle_depths,
+        progress_bar=None,
+    )
+    captured = capsys.readouterr()
+    assert captured.out == ''
+    assert captured.err == ''
+
+
+def test_simulate_2q_xeb_circuits():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuits = [
+        rqcg.random_rotations_between_two_qubit_circuit(
+            q0,
+            q1,
+            depth=50,
+            two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b),
+        )
+        for _ in range(2)
+    ]
+    cycle_depths = np.arange(3, 50, 9)
+
+    df = simulate_2q_xeb_circuits(
+        circuits=circuits,
+        cycle_depths=cycle_depths,
+    )
+    assert len(df) == len(cycle_depths) * len(circuits)
+    for (circuit_i, cycle_depth), row in df.iterrows():
+        assert 0 <= circuit_i < len(circuits)
+        assert cycle_depth in cycle_depths
+        assert len(row['pure_probs']) == 4
+        assert np.isclose(np.sum(row['pure_probs']), 1)
+
+    with multiprocessing.Pool() as pool:
+        df2 = simulate_2q_xeb_circuits(circuits, cycle_depths, pool=pool)
+
+    pd.testing.assert_frame_equal(df, df2)
+
+
+def test_simulate_2q_xeb_fidelities():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuits = [
+        rqcg.random_rotations_between_two_qubit_circuit(
+            q0, q1, depth=50, two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b), seed=52
+        )
+        for _ in range(2)
+    ]
+    cycle_depths = np.arange(3, 50, 9)
+
+    sampled_df = sample_2q_xeb_circuits(
+        sampler=cirq.Simulator(seed=53), circuits=circuits, cycle_depths=cycle_depths
+    )
+    fid_df = benchmark_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
+    assert len(fid_df) == len(cycle_depths)
+    for _, row in fid_df.iterrows():
+        assert row['cycle_depth'] in cycle_depths
+        assert row['fidelity'] > 0.98
