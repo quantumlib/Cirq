@@ -156,17 +156,19 @@ def resolve_parameters(
         return type(val)(resolve_parameters(e, param_resolver, recursive) for e in val)
 
     getter = getattr(val, '_resolve_parameters_', None)
-    try:
-        result = NotImplemented if getter is None else getter(param_resolver, recursive)
-    except TypeError:
-        # Backwards-compatibility for external _resolve_parameters_ methods.
-        # TODO: remove in Cirq v0.11.0
+    if getter is None:
+        result = NotImplemented
+    # Backwards-compatibility for external _resolve_parameters_ methods.
+    # TODO: remove in Cirq v0.11.0
+    elif 'recursive' in getter.__code__.co_varnames:
+        result = getter(param_resolver, recursive)
+    else:
         if not recursive:
             raise ValueError(
                 f'Object type {type(val)} does not support non-recursive parameter resolution.'
                 ' This must be updated before Cirq v0.11.'
             )
-        result = NotImplemented if getter is None else getter(param_resolver)
+        result = getter(param_resolver)
 
     if result is not NotImplemented:
         return result
