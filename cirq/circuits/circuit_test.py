@@ -4086,13 +4086,16 @@ def test_transform_qubits():
     with pytest.raises(TypeError, match='must be a function or dict'):
         _ = original.transform_qubits('bad arg')
 
+    with cirq.testing.assert_logs('Use qubit_map instead'):
+        # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
+        assert original.transform_qubits(func=lambda q: cirq.GridQubit(10 + q.x, 20)) == desired
+
     # Device
     original = cirq.Circuit(device=cg.Foxtail)
     assert original.transform_qubits(lambda q: q).device is cg.Foxtail
     assert (
         original.transform_qubits(lambda q: q, new_device=cg.Bristlecone).device is cg.Bristlecone
     )
-
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_indexing_by_pair(circuit_cls):
