@@ -333,8 +333,15 @@ WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationO
 )
 
 
-"""PhasedFSimCalibrationOptions with theta, zeta and gamma angles characterization requests set to 
-True."""
+"""PhasedFSimCalibrationOptions with theta, zeta and gamma angles characterization requests set to
+True.
+
+Those are the most efficient options that can be used to cancel out the errors by adding the
+appropriate single-qubit Z rotations to the circuit. The angles zeta, chi and gamma can be removed
+by those additions. The angle chi is disabled because it's not supported by Floquet characterization
+currently. The angle theta is set enabled because it is characterized together with zeta and adding
+it doesn't cost anything.
+"""
 THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
     characterize_theta=True,
     characterize_zeta=True,
