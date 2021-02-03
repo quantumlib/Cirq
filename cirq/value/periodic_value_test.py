@@ -76,10 +76,11 @@ def test_periodic_value_types_mismatch():
         (cirq.PeriodicValue(sympy.Symbol('v'), sympy.Symbol('p')), True, {'p', 'v'}),
     ],
 )
-def test_periodic_value_is_parameterized(value, is_parameterized, parameter_names):
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_periodic_value_is_parameterized(value, is_parameterized, parameter_names, resolve_fn):
     assert cirq.is_parameterized(value) == is_parameterized
     assert cirq.parameter_names(value) == parameter_names
-    resolved = cirq.resolve_parameters(value, {p: 1 for p in parameter_names})
+    resolved = resolve_fn(value, {p: 1 for p in parameter_names})
     assert not cirq.is_parameterized(resolved)
 
 

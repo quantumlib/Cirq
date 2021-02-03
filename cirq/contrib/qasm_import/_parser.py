@@ -119,7 +119,7 @@ class QasmGateStatement:
             if isinstance(qubits, ops.Qid):
                 yield final_gate.on(qubits)
             elif len(np.unique(qubits)) < len(qubits):
-                raise QasmException("Overlapping qubits in arguments" " at line {}".format(lineno))
+                raise QasmException("Overlapping qubits in arguments at line {}".format(lineno))
             else:
                 yield final_gate.on(*qubits)
 
@@ -297,10 +297,10 @@ class QasmParser:
         | CREG ID '[' NATURAL_NUMBER ']' ';'"""
         name, length = p[2], p[4]
         if name in self.qregs.keys() or name in self.cregs.keys():
-            raise QasmException("{} is already defined " "at line {}".format(name, p.lineno(2)))
+            raise QasmException("{} is already defined at line {}".format(name, p.lineno(2)))
         if length == 0:
             raise QasmException(
-                "Illegal, zero-length register '{}' " "at line {}".format(name, p.lineno(4))
+                "Illegal, zero-length register '{}' at line {}".format(name, p.lineno(4))
             )
         if p[1] == "qreg":
             self.qregs[name] = length
@@ -410,7 +410,7 @@ class QasmParser:
         reg = p[1]
         if reg not in self.qregs.keys():
             raise QasmException(
-                'Undefined quantum register "{}" ' 'at line {}'.format(reg, p.lineno(1))
+                'Undefined quantum register "{}" at line {}'.format(reg, p.lineno(1))
             )
         qubits = []
         for idx in range(self.qregs[reg]):
@@ -428,7 +428,7 @@ class QasmParser:
         reg = p[1]
         if reg not in self.cregs.keys():
             raise QasmException(
-                'Undefined classical register "{}" ' 'at line {}'.format(reg, p.lineno(1))
+                'Undefined classical register "{}" at line {}'.format(reg, p.lineno(1))
             )
 
         p[0] = [self.make_name(idx, reg) for idx in range(self.cregs[reg])]
@@ -443,7 +443,7 @@ class QasmParser:
         arg_name = self.make_name(idx, reg)
         if reg not in self.qregs.keys():
             raise QasmException(
-                'Undefined quantum register "{}" ' 'at line {}'.format(reg, p.lineno(1))
+                'Undefined quantum register "{}" at line {}'.format(reg, p.lineno(1))
             )
         size = self.qregs[reg]
         if idx >= size:
@@ -463,7 +463,7 @@ class QasmParser:
         arg_name = self.make_name(idx, reg)
         if reg not in self.cregs.keys():
             raise QasmException(
-                'Undefined classical register "{}" ' 'at line {}'.format(reg, p.lineno(1))
+                'Undefined classical register "{}" at line {}'.format(reg, p.lineno(1))
             )
 
         size = self.cregs[reg]

@@ -24,7 +24,7 @@ from cirq import quirk_url_to_circuit
 
 def test_arithmetic_comparison_gates():
     with pytest.raises(ValueError, match='Missing input'):
-        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":' '[["^A<B"]]}')
+        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":[["^A<B"]]}')
     assert_url_to_circuit_returns(
         '{"cols":[["^A<B","inputA2",1,"inputB2"]]}',
         diagram="""
@@ -269,7 +269,7 @@ def test_modular_arithmetic_modulus_size():
 
     with pytest.raises(ValueError, match='too small for modulus'):
         _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":[' '["incmodR2",1,"inputR3"]]}'
+            'https://algassert.com/quirk#circuit={"cols":[["incmodR2",1,"inputR3"]]}'
         )
 
     assert_url_to_circuit_returns('{"cols":[["incmodR3",1,1,"inputR3"]]}')

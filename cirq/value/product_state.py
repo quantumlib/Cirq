@@ -71,7 +71,7 @@ class ProductState:
 
     def __mul__(self, other: 'cirq.ProductState') -> 'cirq.ProductState':
         if not isinstance(other, ProductState):
-            raise ValueError("Multiplication is only supported " "with other TensorProductStates.")
+            raise ValueError("Multiplication is only supported with other TensorProductStates.")
 
         dupe_qubits = set(other.states.keys()) & set(self.states.keys())
         if len(dupe_qubits) != 0:

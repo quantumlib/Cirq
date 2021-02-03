@@ -86,17 +86,18 @@ def test_protocols_mul_not_implemented():
         cirq.protocols.pow(diagonal_gate, 3)
 
 
-def test_resolve():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve(resolve_fn):
     diagonal_angles = [2, 3, 5, 7]
     diagonal_gate = cirq.TwoQubitDiagonalGate(
         diagonal_angles[:2] + [sympy.Symbol('a'), sympy.Symbol('b')]
     )
     assert cirq.is_parameterized(diagonal_gate)
 
-    diagonal_gate = cirq.resolve_parameters(diagonal_gate, {'a': 5})
+    diagonal_gate = resolve_fn(diagonal_gate, {'a': 5})
     assert diagonal_gate == cirq.TwoQubitDiagonalGate(diagonal_angles[:3] + [sympy.Symbol('b')])
     assert cirq.is_parameterized(diagonal_gate)
 
-    diagonal_gate = cirq.resolve_parameters(diagonal_gate, {'b': 7})
+    diagonal_gate = resolve_fn(diagonal_gate, {'b': 7})
     assert diagonal_gate == cirq.TwoQubitDiagonalGate(diagonal_angles)
     assert not cirq.is_parameterized(diagonal_gate)

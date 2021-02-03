@@ -371,7 +371,6 @@ def test_one_hot():
 
 def test_protocols():
     t = sympy.Symbol('t')
-
     cirq.testing.assert_implements_consistent_protocols(cirq.DensePauliString('Y'))
     cirq.testing.assert_implements_consistent_protocols(-cirq.DensePauliString('Z'))
     cirq.testing.assert_implements_consistent_protocols(1j * cirq.DensePauliString('X'))
@@ -392,13 +391,16 @@ def test_protocols():
     p = -cirq.DensePauliString('XYIZ')
     assert cirq.num_qubits(p) == len(p) == 4
 
-    # Parameterization.
+
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameterizable(resolve_fn):
+    t = sympy.Symbol('t')
     x = cirq.DensePauliString('X')
     assert not cirq.is_parameterized(x)
     assert not cirq.is_parameterized(x * 2)
     assert cirq.is_parameterized(x * t)
-    assert cirq.resolve_parameters(x * t, {'t': 2}) == x * 2
-    assert cirq.resolve_parameters(x * 3, {'t': 2}) == x * 3
+    assert resolve_fn(x * t, {'t': 2}) == x * 2
+    assert resolve_fn(x * 3, {'t': 2}) == x * 3
 
 
 def test_item_immutable():

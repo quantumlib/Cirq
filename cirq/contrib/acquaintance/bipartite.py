@@ -126,7 +126,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
         qubit_count = 2 * self.part_size
         if args.known_qubit_count not in (None, qubit_count):
-            raise ValueError('args.known_qubit_count not in ' '(None, 2 * self.part_size)')
+            raise ValueError('args.known_qubit_count not in (None, 2 * self.part_size)')
         partial_permutation = self.permutation()
         permutation = {i: partial_permutation.get(i, i) for i in range(qubit_count)}
 
@@ -152,7 +152,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
         if self.swap_gate != ops.SWAP:
             args += (repr(self.swap_gate),)
         args_str = ', '.join(args)
-        return 'cirq.contrib.acquaintance.bipartite.BipartiteSwapNetworkGate' f'({args_str})'
+        return f'cirq.contrib.acquaintance.bipartite.BipartiteSwapNetworkGate({args_str})'
 
     def __eq__(self, other) -> bool:
         return (

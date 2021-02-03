@@ -151,7 +151,7 @@ class SwapPowGate(
             if self._exponent == 1:
                 return 'cirq.SWAP'
             return f'(cirq.SWAP**{e})'
-        return f'cirq.SwapPowGate(exponent={e}, ' f'global_shift={self._global_shift!r})'
+        return f'cirq.SwapPowGate(exponent={e}, global_shift={self._global_shift!r})'
 
 
 class ISwapPowGate(
@@ -264,7 +264,7 @@ class ISwapPowGate(
             if self._exponent == 1:
                 return 'cirq.ISWAP'
             return f'(cirq.ISWAP**{e})'
-        return f'cirq.ISwapPowGate(exponent={e}, ' f'global_shift={self._global_shift!r})'
+        return f'cirq.ISwapPowGate(exponent={e}, global_shift={self._global_shift!r})'
 
     def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter') -> str:
         if self._exponent == 1:
@@ -285,10 +285,12 @@ document(
 
     Matrix:
 
+    ```
         [[1, 0, 0, 0],
          [0, 0, 1, 0],
          [0, 1, 0, 0],
          [0, 0, 0, 1]]
+    ```
     """,
 )
 
@@ -298,10 +300,11 @@ document(
     """The iswap gate.
 
     Matrix:
-
+    ```
         [[1, 0, 0, 0],
          [0, 0, i, 0],
          [0, i, 0, 0],
          [0, 0, 0, 1]]
+    ```
     """,
 )

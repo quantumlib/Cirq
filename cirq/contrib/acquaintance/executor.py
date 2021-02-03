@@ -140,7 +140,7 @@ class GreedyExecutionStrategy(ExecutionStrategy):
 
         if len(set(len(indices) for indices in gates)) > 1:
             raise NotImplementedError(
-                'Can only implement greedy strategy if all gates ' 'are of the same arity.'
+                'Can only implement greedy strategy if all gates are of the same arity.'
             )
         self.index_set_to_gates = self.canonicalize_gates(gates)
         self._initial_mapping = initial_mapping.copy()

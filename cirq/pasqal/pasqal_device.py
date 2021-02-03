@@ -142,7 +142,7 @@ class PasqalDevice(cirq.devices.Device):
             raise ValueError("Unsupported operation")
 
         if not self.is_pasqal_device_op(operation):
-            raise ValueError('{!r} is not a supported ' 'gate'.format(operation.gate))
+            raise ValueError('{!r} is not a supported gate'.format(operation.gate))
 
         for qub in operation.qubits:
             if not isinstance(qub, self.supported_qubit_type):
@@ -157,7 +157,7 @@ class PasqalDevice(cirq.devices.Device):
         if isinstance(operation.gate, cirq.ops.MeasurementGate):
             if operation.gate.invert_mask != ():
                 raise NotImplementedError(
-                    "Measurements on Pasqal devices " "don't support invert_mask."
+                    "Measurements on Pasqal devices don't support invert_mask."
                 )
 
     def validate_circuit(self, circuit: 'cirq.Circuit') -> None:
@@ -291,7 +291,7 @@ class PasqalVirtualDevice(PasqalDevice):
                 for p in operation.qubits:
                     for q in operation.qubits:
                         if self.distance(p, q) > self.control_radius:
-                            raise ValueError("Qubits {!r}, {!r} are too " "far away".format(p, q))
+                            raise ValueError("Qubits {!r}, {!r} are too far away".format(p, q))
 
     def validate_moment(self, moment: cirq.ops.Moment):
         """Raises an error if the given moment is invalid on this device.
@@ -306,9 +306,7 @@ class PasqalVirtualDevice(PasqalDevice):
         if len(moment) > 1:
             for operation in moment:
                 if not isinstance(operation.gate, cirq.ops.MeasurementGate):
-                    raise ValueError(
-                        "Cannot do simultaneous gates. Use " "cirq.InsertStrategy.NEW."
-                    )
+                    raise ValueError("Cannot do simultaneous gates. Use cirq.InsertStrategy.NEW.")
 
     def minimal_distance(self) -> float:
         """Returns the minimal distance between two qubits in qubits.
@@ -353,7 +351,7 @@ class PasqalVirtualDevice(PasqalDevice):
         return np.sqrt((p.x - q.x) ** 2 + (p.y - q.y) ** 2 + (p.z - q.z) ** 2)
 
     def __repr__(self):
-        return ('pasqal.PasqalVirtualDevice(control_radius={!r}, ' 'qubits={!r})').format(
+        return ('pasqal.PasqalVirtualDevice(control_radius={!r}, qubits={!r})').format(
             self.control_radius, sorted(self.qubits)
         )
 

@@ -1006,7 +1006,7 @@ def test_density_matrix_trial_result_str():
     # Eliminate whitespace to harden tests against this variation
     result_no_whitespace = str(result).replace('\n', '').replace(' ', '')
     assert result_no_whitespace == (
-        'measurements:(nomeasurements)' 'finaldensitymatrix:' '[[0.50.5][0.50.5]]'
+        'measurements:(nomeasurements)finaldensitymatrix:[[0.50.5][0.50.5]]'
     )
 
 

@@ -29,37 +29,42 @@ If you want to contribute changes to Cirq, you will instead want to fork the rep
 1. Fork the Cirq repo (Fork button in upper right corner of
 [repo page](https://github.com/quantumlib/Cirq)).
 Forking creates a new github repo at the location
-```https://github.com/USERNAME/cirq``` where ```USERNAME``` is
+https://github.com/USERNAME/cirq where `USERNAME` is
 your github id.
 1. Clone the fork you created to your local machine at the directory
 where you would like to store your local copy of the code, and `cd` into the newly created directory.
-    ```bash
+    
+   ```bash
     git clone git@github.com:USERNAME/cirq.git
     cd Cirq
-    ```
-    (Alternatively, you can clone the repository using the URL provided
-    on your repo page under the green "Clone or Download" button)
+   ```
+   (Alternatively, you can clone the repository using the URL provided on your repo page under the green "Clone or Download" button)
 1. Add a remote called ```upstream``` to git.
 This remote will represent the main git repo for cirq (as opposed to the clone, which you just created, which will be the ```origin``` remote). 
 This remote can be used to merge changes from Cirq's main repository into your local development copy.
+   
     ```shell
     git remote add upstream https://github.com/quantumlib/cirq.git
     ```
-    To verify the remote, run ```git remote -v```.
-    You should see both the ```origin``` and ```upstream``` remotes.
+   
+    To verify the remote, run ```git remote -v```. You should see both the ```origin``` and ```upstream``` remotes.
 1. Sync up your local git with the ```upstream``` remote:
+   
     ```shell
     git fetch upstream
     ```
+   
     You can check the branches that are on the ```upstream``` remote by
     running ```git remote -va``` or ```git branch -r```.
 Most importantly you should see ```upstream/master``` listed.
 1. Merge the upstream master into your local master so that it is up to date.
-    ```shell
+    
+   ```shell
     git checkout master
     git merge upstream/master
-    ```
-    At this point your local git master should be synced with the master from the main cirq repo.
+   ```
+    
+At this point your local git master should be synced with the master from the main cirq repo.
 
 
 ## Setting up an environment

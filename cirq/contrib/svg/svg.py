@@ -197,9 +197,7 @@ def tdd_to_svg(
         else:
             # coverage: ignore
             stroke = 'black'
-        t += (
-            f'<line x1="{x1}" x2="{x2}" y1="{y}" y2="{y}" ' f'stroke="{stroke}" stroke-width="1" />'
-        )
+        t += f'<line x1="{x1}" x2="{x2}" y1="{y}" y2="{y}" stroke="{stroke}" stroke-width="1" />'
 
     for xi, yi1, yi2, _ in tdd.vertical_lines:
         yi1 = yi_map[yi1]
@@ -209,7 +207,7 @@ def tdd_to_svg(
 
         xi = cast(int, xi)
         x = col_starts[xi] + col_widths[xi] / 2
-        t += f'<line x1="{x}" x2="{x}" y1="{y1}" y2="{y2}" ' f'stroke="black" stroke-width="3" />'
+        t += f'<line x1="{x}" x2="{x}" y1="{y1}" y2="{y2}" stroke="black" stroke-width="3" />'
 
     for (xi, yi), v in tdd.entries.items():
         xi = cast(int, xi)

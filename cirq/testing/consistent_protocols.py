@@ -166,7 +166,7 @@ def assert_commutes_magic_method_consistent_with_unitaries(
     *vals: Sequence[Any], atol: Union[int, float] = 1e-8
 ) -> None:
     if any(isinstance(val, ops.Operation) for val in vals):
-        raise TypeError('`_commutes_` need not be consistent with unitaries ' 'for `Operation`.')
+        raise TypeError('`_commutes_` need not be consistent with unitaries for `Operation`.')
     unitaries = [protocols.unitary(val, None) for val in vals]
     pairs = itertools.permutations(zip(vals, unitaries), 2)
     for (left_val, left_unitary), (right_val, right_unitary) in pairs:

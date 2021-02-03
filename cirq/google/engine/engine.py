@@ -160,9 +160,7 @@ class Engine:
                 this should never be specified.
         """
         if context and (proto_version or service_args or verbose):
-            raise ValueError(
-                'Either provide context or proto_version, service_args' ' and verbose.'
-            )
+            raise ValueError('Either provide context or proto_version, service_args and verbose.')
 
         self.project_id = project_id
         if not context:
@@ -432,7 +430,7 @@ class Engine:
             calibration_results().
         """
         if processor_id and processor_ids:
-            raise ValueError('Only one of processor_id and processor_ids ' 'can be specified.')
+            raise ValueError('Only one of processor_id and processor_ids can be specified.')
         if not processor_ids and not processor_id:
             raise ValueError('Processor id must be specified.')
         if processor_id:

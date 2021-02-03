@@ -510,7 +510,7 @@ def validate_indices(num_qubits: int, indices: Sequence[int]) -> None:
         raise IndexError('Negative index in indices: {}'.format(indices))
     if any(index >= num_qubits for index in indices):
         raise IndexError(
-            'Out of range indices, must be less than number of ' 'qubits but was {}'.format(indices)
+            'Out of range indices, must be less than number of qubits but was {}'.format(indices)
         )
 
 
@@ -598,7 +598,7 @@ def validate_density_matrix(
         raise ValueError('The density matrix is not hermitian.')
     trace = np.trace(density_matrix)
     if not np.isclose(trace, 1.0, atol=atol):
-        raise ValueError('Density matrix does not have trace 1. Instead, it has ' f'trace {trace}.')
+        raise ValueError(f'Density matrix does not have trace 1. Instead, it has trace {trace}.')
     if not np.all(np.linalg.eigvalsh(density_matrix) > -atol):
         raise ValueError('The density matrix is not positive semidefinite.')
 
@@ -613,7 +613,7 @@ def _qid_shape_from_args(
     """
     if num_qubits is None and qid_shape is None:
         raise ValueError(
-            'Either the num_qubits or qid_shape argument must be ' 'specified. Both were None.'
+            'Either the num_qubits or qid_shape argument must be specified. Both were None.'
         )
     if num_qubits is None:
         return cast(Tuple[int, ...], qid_shape)

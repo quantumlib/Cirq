@@ -130,7 +130,7 @@ class MatrixGate(raw_types.Gate):
     def __repr__(self) -> str:
         if all(e == 2 for e in self._qid_shape):
             return f'cirq.MatrixGate({proper_repr(self._matrix)})'
-        return f'cirq.MatrixGate({proper_repr(self._matrix)}, ' f'qid_shape={self._qid_shape})'
+        return f'cirq.MatrixGate({proper_repr(self._matrix)}, qid_shape={self._qid_shape})'
 
     def __str__(self) -> str:
         return str(self._matrix.round(3))

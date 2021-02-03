@@ -65,8 +65,8 @@ class WaitGate(raw_types.Gate):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self.duration)
 
-    def _resolve_parameters_(self, param_resolver):
-        return WaitGate(protocols.resolve_parameters(self.duration, param_resolver))
+    def _resolve_parameters_(self, param_resolver, recursive):
+        return WaitGate(protocols.resolve_parameters(self.duration, param_resolver, recursive))
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape

@@ -87,7 +87,7 @@ def move_pauli_strings_into_circuit(
 
             assert (
                 best_index <= last_index
-            ), "Unexpected insertion index order," " {} >= {}, len: {}".format(
+            ), "Unexpected insertion index order, {} >= {}, len: {}".format(
                 best_index, last_index, len(output_ops)
             )
 

@@ -62,7 +62,7 @@ class ControlledOperation(raw_types.Operation):
         for q, val in zip(controls, self.control_values):
             if not all(0 <= v < q.dimension for v in val):
                 raise ValueError(
-                    'Control values <{!r}> outside of range for qubit ' '<{!r}>.'.format(val, q)
+                    'Control values <{!r}> outside of range for qubit <{!r}>.'.format(val, q)
                 )
 
         if not isinstance(sub_operation, ControlledOperation):
@@ -194,8 +194,8 @@ class ControlledOperation(raw_types.Operation):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self.sub_operation)
 
-    def _resolve_parameters_(self, resolver) -> 'ControlledOperation':
-        new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver)
+    def _resolve_parameters_(self, resolver, recursive) -> 'ControlledOperation':
+        new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver, recursive)
         return ControlledOperation(self.controls, new_sub_op, self.control_values)
 
     def _trace_distance_bound_(self) -> Optional[float]:

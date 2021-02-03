@@ -249,7 +249,7 @@ class GridQid(_BaseGridQid):
         return [GridQid(*c, dimension=dimension) for c in coords]
 
     def __repr__(self) -> str:
-        return f"cirq.GridQid({self.row}, {self.col}, " f"dimension={self.dimension})"
+        return f"cirq.GridQid({self.row}, {self.col}, dimension={self.dimension})"
 
     def __str__(self) -> str:
         return f"({self.row}, {self.col}) (d={self.dimension})"

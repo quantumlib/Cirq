@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """An `XPowGate` conjugated by `ZPowGate`s."""
 from typing import AbstractSet, Any, cast, Dict, Optional, Sequence, Tuple, Union
 
@@ -152,11 +151,11 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             self._phase_exponent
         )
 
-    def _resolve_parameters_(self, param_resolver) -> 'PhasedXPowGate':
+    def _resolve_parameters_(self, param_resolver, recursive) -> 'PhasedXPowGate':
         """See `cirq.SupportsParameterization`."""
         return PhasedXPowGate(
-            phase_exponent=param_resolver.value_of(self._phase_exponent),
-            exponent=param_resolver.value_of(self._exponent),
+            phase_exponent=param_resolver.value_of(self._phase_exponent, recursive),
+            exponent=param_resolver.value_of(self._exponent, recursive),
             global_shift=self._global_shift,
         )
 
@@ -183,7 +182,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         info = protocols.circuit_diagram_info(self)
         if info.exponent == 1:
             return info.wire_symbols[0]
-        return f'{info.wire_symbols[0]}^{info.exponent}'
+        return f'{info.wire_symbols[0]}**{info.exponent}'
 
     def __repr__(self) -> str:
         args = [f'phase_exponent={proper_repr(self.phase_exponent)}']

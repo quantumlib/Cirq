@@ -205,7 +205,7 @@ class CrossEntropyResult:
         )
 
     def __repr__(self) -> str:
-        args = f'data={[tuple(p) for p in self.data]!r}, ' f'repetitions={self.repetitions!r}'
+        args = f'data={[tuple(p) for p in self.data]!r}, repetitions={self.repetitions!r}'
         if self.purity_data is not None:
             args += f', purity_data={[tuple(p) for p in self.purity_data]!r}'
         return f'cirq.experiments.CrossEntropyResult({args})'
@@ -260,7 +260,7 @@ class CrossEntropyResultDict(Mapping[Tuple['cirq.Qid', ...], CrossEntropyResult]
         return cls(results={tuple(qubits): result for qubits, result in results})
 
     def __repr__(self) -> str:
-        return 'cirq.experiments.CrossEntropyResultDict(' f'results={self.results!r})'
+        return f'cirq.experiments.CrossEntropyResultDict(results={self.results!r})'
 
     def __getitem__(self, key: Tuple['cirq.Qid', ...]) -> CrossEntropyResult:
         return self.results[key]

@@ -31,7 +31,7 @@ flags.DEFINE_string("output_dir", "/tmp/cirq_api", "Where to output the docs")
 
 flags.DEFINE_string(
     "code_url_prefix",
-    ("https://github.com/quantumlib/cirq/tree/master/" "cirq"),
+    "https://github.com/quantumlib/cirq/tree/master/cirq",
     "The url prefix for links to code.",
 )
 

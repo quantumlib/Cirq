@@ -106,7 +106,7 @@ def test_validate_gate_errors():
     d = square_device(1, 1)
 
     d.validate_gate(cirq.IdentityGate(4))
-    with pytest.raises(ValueError, match="controlled gates must have integer " "exponents"):
+    with pytest.raises(ValueError, match="controlled gates must have integer exponents"):
         d.validate_gate(cirq.CNotPowGate(exponent=0.5))
     with pytest.raises(ValueError, match="Unsupported gate"):
         d.validate_gate(cirq.SingleQubitGate())
@@ -132,7 +132,7 @@ def test_validate_operation_errors():
     )
     with pytest.raises(ValueError, match="Qubit not on device"):
         d.validate_operation(not_on_device_op)
-    with pytest.raises(ValueError, match="Too many qubits acted on in parallel " "by"):
+    with pytest.raises(ValueError, match="Too many qubits acted on in parallel by"):
         d.validate_operation(cirq.CCX.on(*d.qubit_list()[0:3]))
     with pytest.raises(ValueError, match="are too far away"):
         d.validate_operation(cirq.CZ.on(cirq.GridQubit(0, 0), cirq.GridQubit(2, 2)))
@@ -165,12 +165,12 @@ def test_validate_moment_errors():
     with pytest.raises(ValueError, match="Non-identical simultaneous "):
         d.validate_moment(m)
     m = cirq.Moment([cirq.CNOT.on(q00, q01), cirq.CNOT.on(q12, q02)])
-    with pytest.raises(ValueError, match="Too many qubits acted on by " "controlled gates"):
+    with pytest.raises(ValueError, match="Too many qubits acted on by controlled gates"):
         d.validate_moment(m)
     m = cirq.Moment([cirq.CNOT.on(q00, q01), cirq.Z.on(q02)])
     with pytest.raises(
         ValueError,
-        match="Can't perform non-controlled " "operations at same time as controlled operations",
+        match="Can't perform non-controlled operations at same time as controlled operations",
     ):
         d.validate_moment(m)
     m = cirq.Moment(cirq.Z.on_each(*d.qubits))
@@ -181,7 +181,7 @@ def test_validate_moment_errors():
         d.validate_moment(m)
     m = cirq.Moment([cirq.MeasurementGate(1).on(q00), cirq.Z.on(q01)])
     with pytest.raises(
-        ValueError, match="Measurements can't be simultaneous " "with other operations"
+        ValueError, match="Measurements can't be simultaneous with other operations"
     ):
         d.validate_moment(m)
     d.validate_moment(cirq.Moment([cirq.X.on(q00), cirq.Z.on(q01)]))

@@ -198,7 +198,6 @@ def test_single_qubit_matrix_to_phased_x_z_known():
     assert cirq.approx_eq(actual, [cirq.PhasedXPowGate(phase_exponent=1.0)], atol=1e-9)
 
     actual = cirq.single_qubit_matrix_to_phased_x_z(np.array([[0, -1j], [1j, 0]]), atol=0.01)
-    print(repr(actual))
     assert cirq.approx_eq(actual, [cirq.PhasedXPowGate(phase_exponent=0.5, exponent=-1)], atol=1e-9)
 
     actual = cirq.single_qubit_matrix_to_phased_x_z(np.array([[1, 0], [0, -1]]), atol=0.01)

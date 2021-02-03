@@ -62,7 +62,7 @@ def generate_all_unsupported_cell_makers() -> Iterator[CellMaker]:
 def _unsupported_gate(identifier: str, reason: str) -> CellMaker:
     def fail(_):
         raise NotImplementedError(
-            f'Converting the Quirk gate {identifier} is not implemented yet. ' f'Reason: {reason}'
+            f'Converting the Quirk gate {identifier} is not implemented yet. Reason: {reason}'
         )
 
     return CellMaker(identifier, 0, fail)

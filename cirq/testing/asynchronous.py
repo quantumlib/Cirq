@@ -66,7 +66,7 @@ class _AwaitBeforeAssert:
 
     def __bool__(self):
         raise RuntimeError(
-            'You forgot the "await" in ' '"assert await cirq.testing.asyncio_pending(...)".'
+            'You forgot the "await" in "assert await cirq.testing.asyncio_pending(...)".'
         )
 
     def __await__(self):

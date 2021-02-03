@@ -99,13 +99,13 @@ def test_custom_circuit_gate():
 
     # With internal input.
     assert_url_to_circuit_returns(
-        '{"cols":[["~a5ls"]],"gates":[{"id":"~a5ls",' '"circuit":{"cols":[["inputA1","+=A1"]]}}]}',
+        '{"cols":[["~a5ls"]],"gates":[{"id":"~a5ls","circuit":{"cols":[["inputA1","+=A1"]]}}]}',
         cirq.Circuit(cirq.interop.quirk.QuirkArithmeticOperation('+=A1', target=[b], inputs=[[a]])),
     )
 
     # With external input.
     assert_url_to_circuit_returns(
-        '{"cols":[["inputA1","~r79k"]],"gates":[{"id":"~r79k",' '"circuit":{"cols":[["+=A1"]]}}]}',
+        '{"cols":[["inputA1","~r79k"]],"gates":[{"id":"~r79k","circuit":{"cols":[["+=A1"]]}}]}',
         cirq.Circuit(cirq.interop.quirk.QuirkArithmeticOperation('+=A1', target=[b], inputs=[[a]])),
     )
 

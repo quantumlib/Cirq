@@ -23,10 +23,10 @@ from cirq import quirk_url_to_circuit
 def test_input_rotation_cells():
     with pytest.raises(ValueError, match='classical constant'):
         _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":' '[["Z^(A/2^n)",{"id":"setA","arg":3}]]}'
+            'https://algassert.com/quirk#circuit={"cols":[["Z^(A/2^n)",{"id":"setA","arg":3}]]}'
         )
     with pytest.raises(ValueError, match="Missing input 'a'"):
-        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":' '[["X^(A/2^n)"]]}')
+        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":[["X^(A/2^n)"]]}')
 
     assert_url_to_circuit_returns(
         '{"cols":[["Z^(A/2^n)","inputA2"]]}',
@@ -107,7 +107,7 @@ def test_input_rotation_cells():
 
 def test_input_rotation_cells_repr():
     circuit = quirk_url_to_circuit(
-        'http://algassert.com/quirk#circuit=' '{"cols":[["•","X^(-A/2^n)","inputA2"]]}'
+        'http://algassert.com/quirk#circuit={"cols":[["•","X^(-A/2^n)","inputA2"]]}'
     )
     op = circuit[0].operations[0]
     cirq.testing.assert_equivalent_repr(op)

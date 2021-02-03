@@ -165,7 +165,7 @@ def qasm(
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     if method is None:
-        raise TypeError("object of type '{}' " "has no _qasm_ method.".format(type(val)))
+        raise TypeError("object of type '{}' has no _qasm_ method.".format(type(val)))
     raise TypeError(
         "object of type '{}' does have a _qasm_ method, "
         "but it returned NotImplemented or None.".format(type(val))

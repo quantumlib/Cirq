@@ -136,7 +136,7 @@ class ModularExp(cirq.ArithmeticOperation):
     ) -> None:
         if len(target) < modulus.bit_length():
             raise ValueError(
-                f'Register with {len(target)} qubits is too small ' f'for modulus {modulus}'
+                f'Register with {len(target)} qubits is too small for modulus {modulus}'
             )
         self.target = target
         self.exponent = exponent

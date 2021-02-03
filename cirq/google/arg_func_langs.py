@@ -107,7 +107,7 @@ def arg_to_proto(
     """
 
     if arg_function_language not in SUPPORTED_FUNCTIONS_FOR_LANGUAGE:
-        raise ValueError(f'Unrecognized arg_function_language: ' f'{arg_function_language!r}')
+        raise ValueError(f'Unrecognized arg_function_language: {arg_function_language!r}')
     supported = SUPPORTED_FUNCTIONS_FOR_LANGUAGE[arg_function_language]
 
     msg = v2.program_pb2.Arg() if out is None else out
@@ -116,7 +116,7 @@ def arg_to_proto(
         if func_type not in supported:
             lang = repr(arg_function_language) if arg_function_language is not None else '[any]'
             raise ValueError(
-                f'Function type {func_type!r} not supported by ' f'arg_function_language {lang}'
+                f'Function type {func_type!r} not supported by arg_function_language {lang}'
             )
         return func_type
 
@@ -174,7 +174,7 @@ def arg_from_proto(
     """
     supported = SUPPORTED_FUNCTIONS_FOR_LANGUAGE.get(arg_function_language)
     if supported is None:
-        raise ValueError(f'Unrecognized arg_function_language: ' f'{arg_function_language!r}')
+        raise ValueError(f'Unrecognized arg_function_language: {arg_function_language!r}')
 
     which = arg_proto.WhichOneof('arg')
     if which == 'arg_value':

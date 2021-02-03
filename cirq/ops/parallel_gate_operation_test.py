@@ -82,13 +82,14 @@ def test_extrapolate():
     assert cirq.inverse(op) == op ** -1 == cirq.ParallelGateOperation(cirq.Y ** -1, [q])
 
 
-def test_parameterizable_effect():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameterizable_effect(resolve_fn):
     q = cirq.NamedQubit('q')
     r = cirq.ParamResolver({'a': 0.5})
 
     op1 = cirq.ParallelGateOperation(cirq.Z ** sympy.Symbol('a'), [q])
     assert cirq.is_parameterized(op1)
-    op2 = cirq.resolve_parameters(op1, r)
+    op2 = resolve_fn(op1, r)
     assert not cirq.is_parameterized(op2)
 
 

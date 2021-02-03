@@ -36,7 +36,7 @@ def test_random_circuit_errors():
 
     with pytest.raises(
         ValueError,
-        match='After removing gates that act on less than 1 qubits, gate_domain ' 'had no gates',
+        match='After removing gates that act on less than 1 qubits, gate_domain had no gates',
     ):
         _ = cirq.testing.random_circuit(
             qubits=1, n_moments=5, op_density=0.5, gate_domain={cirq.CNOT: 2}

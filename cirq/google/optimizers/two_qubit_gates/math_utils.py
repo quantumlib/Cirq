@@ -224,7 +224,7 @@ def weyl_chamber_mesh(spacing: float) -> np.ndarray:
         chamber.
     """
     if spacing < 1e-3:  # memory required ~ 1 GB
-        raise ValueError(f'Generating a mesh with ' f'spacing {spacing} may cause system to crash.')
+        raise ValueError(f'Generating a mesh with spacing {spacing} may cause system to crash.')
 
     # Uniform mesh
     disps = np.arange(-np.pi / 4, np.pi / 4, step=spacing)

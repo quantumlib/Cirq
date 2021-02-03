@@ -26,7 +26,7 @@ def main():
     if len(sys.argv) < 2:
         print(
             shell_tools.highlight(
-                'Must specify a comparison branch ' '(e.g. "origin/master" or "HEAD~1").',
+                'Must specify a comparison branch (e.g. "origin/master" or "HEAD~1").',
                 shell_tools.RED,
             )
         )

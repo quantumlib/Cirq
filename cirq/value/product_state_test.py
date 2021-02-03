@@ -44,7 +44,6 @@ def test_stabilized():
         matrix = cirq.unitary(gate)
         vec = state.state_vector()
 
-        print(state)
         np.testing.assert_allclose(matrix @ vec, val * vec)
 
 

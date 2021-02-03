@@ -178,7 +178,7 @@ def test_validate_operation_errors():
         d.validate_operation(cirq.X.on(cirq.NamedQubit('q6')))
 
     with pytest.raises(
-        NotImplementedError, match="Measurements on Pasqal devices " "don't support invert_mask."
+        NotImplementedError, match="Measurements on Pasqal devices don't support invert_mask."
     ):
         circuit.append(cirq.measure(*d.qubits, invert_mask=(True, False, False)))
 
@@ -260,10 +260,10 @@ def test_value_equal():
 
 
 def test_repr():
-    assert repr(generic_device(1)) == ("pasqal.PasqalDevice(" "qubits=[cirq.NamedQubit('q0')])")
+    assert repr(generic_device(1)) == ("pasqal.PasqalDevice(qubits=[cirq.NamedQubit('q0')])")
     dev = PasqalVirtualDevice(control_radius=1.0, qubits=[TwoDQubit(0, 0)])
     assert repr(dev) == (
-        "pasqal.PasqalVirtualDevice(" "control_radius=1.0, " "qubits=[pasqal.TwoDQubit(0, 0)])"
+        "pasqal.PasqalVirtualDevice(control_radius=1.0, qubits=[pasqal.TwoDQubit(0, 0)])"
     )
 
 

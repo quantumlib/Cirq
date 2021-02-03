@@ -160,7 +160,7 @@ def test_approx_eq():
 
 def test_str_repr():
     assert str(cirq.PhasedXPowGate(phase_exponent=0.25)) == 'PhX(0.25)'
-    assert str(cirq.PhasedXPowGate(phase_exponent=0.25, exponent=0.5)) == 'PhX(0.25)^0.5'
+    assert str(cirq.PhasedXPowGate(phase_exponent=0.25, exponent=0.5)) == 'PhX(0.25)**0.5'
     assert repr(
         cirq.PhasedXPowGate(phase_exponent=0.25, exponent=4, global_shift=0.125)
         == 'cirq.PhasedXPowGate(phase_exponent=0.25, '
@@ -171,7 +171,8 @@ def test_str_repr():
     )
 
 
-def test_parameterize():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameterize(resolve_fn):
     parameterized_gate = cirq.PhasedXPowGate(
         exponent=sympy.Symbol('a'), phase_exponent=sympy.Symbol('b')
     )
@@ -186,7 +187,7 @@ def test_parameterize():
     assert cirq.is_parameterized(parameterized_gate)
 
     resolver = cirq.ParamResolver({'a': 0.1, 'b': 0.2})
-    resolved_gate = cirq.resolve_parameters(parameterized_gate, resolver)
+    resolved_gate = resolve_fn(parameterized_gate, resolver)
     assert resolved_gate == cirq.PhasedXPowGate(exponent=0.1, phase_exponent=0.2)
 
     unparameterized_gate = cirq.PhasedXPowGate(exponent=0.1, phase_exponent=0.2)

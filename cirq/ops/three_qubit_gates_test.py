@@ -304,17 +304,18 @@ def test_diagonal_exponent():
     assert cirq.pow(cirq.ThreeQubitDiagonalGate(diagonal_angles), "test", None) is None
 
 
-def test_resolve():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_resolve(resolve_fn):
     diagonal_angles = [2, 3, 5, 7, 11, 13, 17, 19]
     diagonal_gate = cirq.ThreeQubitDiagonalGate(
         diagonal_angles[:6] + [sympy.Symbol('a'), sympy.Symbol('b')]
     )
     assert cirq.is_parameterized(diagonal_gate)
 
-    diagonal_gate = cirq.resolve_parameters(diagonal_gate, {'a': 17})
+    diagonal_gate = resolve_fn(diagonal_gate, {'a': 17})
     assert diagonal_gate == cirq.ThreeQubitDiagonalGate(diagonal_angles[:7] + [sympy.Symbol('b')])
     assert cirq.is_parameterized(diagonal_gate)
 
-    diagonal_gate = cirq.resolve_parameters(diagonal_gate, {'b': 19})
+    diagonal_gate = resolve_fn(diagonal_gate, {'b': 19})
     assert diagonal_gate == cirq.ThreeQubitDiagonalGate(diagonal_angles)
     assert not cirq.is_parameterized(diagonal_gate)

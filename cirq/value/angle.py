@@ -40,7 +40,7 @@ def chosen_angle_to_half_turns(
     """
 
     if len([1 for e in [half_turns, rads, degs] if e is not None]) > 1:
-        raise ValueError('Redundant angle specification. ' 'Use ONE of half_turns, rads, or degs.')
+        raise ValueError('Redundant angle specification. Use ONE of half_turns, rads, or degs.')
 
     if rads is not None:
         return rads / np.pi

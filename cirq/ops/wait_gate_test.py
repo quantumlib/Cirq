@@ -58,6 +58,7 @@ def test_protocols():
     assert not cirq.is_parameterized(c)
     assert cirq.resolve_parameters(p, {'t': 2}) == cirq.WaitGate(cirq.Duration(millis=10))
     assert cirq.resolve_parameters(c, {'t': 2}) == c
+    assert cirq.resolve_parameters_once(c, {'t': 2}) == c
     assert cirq.trace_distance_bound(p) == 0
     assert cirq.trace_distance_bound(c) == 0
     assert cirq.inverse(c) == c

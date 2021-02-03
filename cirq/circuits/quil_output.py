@@ -48,7 +48,7 @@ class QuilOneQubitGate(ops.SingleQubitGate):
         )
 
     def __repr__(self) -> str:
-        return f'cirq.circuits.quil_output.QuilOneQubitGate(matrix=\n' f'{self.matrix}\n)'
+        return f'cirq.circuits.quil_output.QuilOneQubitGate(matrix=\n{self.matrix}\n)'
 
     def _value_equality_values_(self):
         return self.matrix
@@ -93,7 +93,7 @@ class QuilTwoQubitGate(ops.TwoQubitGate):
         )
 
     def __repr__(self) -> str:
-        return f'cirq.circuits.quil_output.QuilTwoQubitGate(matrix=\n' f'{self.matrix}\n)'
+        return f'cirq.circuits.quil_output.QuilTwoQubitGate(matrix=\n{self.matrix}\n)'
 
 
 class QuilOutput:

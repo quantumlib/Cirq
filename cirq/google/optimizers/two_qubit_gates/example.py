@@ -76,15 +76,15 @@ def main(samples: int = 1000, max_infidelity: float = 0.01):
             failed_infidelities.append(infidelity)  # coverage: ignore
     t_comp = time() - start
 
-    print(f'Gate compilation time : {t_comp:.3f} seconds ' f'({t_comp / samples:.4f} s per gate)')
+    print(f'Gate compilation time : {t_comp:.3f} seconds ({t_comp / samples:.4f} s per gate)')
 
     infidelities = np.array(infidelities)
     failed_infidelities = np.array(failed_infidelities)
 
     if np.size(failed_infidelities):
         # coverage: ignore
-        print(f'Number of "failed" compilations:' f' {np.size(failed_infidelities)}.')
-        print(f'Maximum infidelity of "failed" compilation: ' f'{np.max(failed_infidelities)}')
+        print(f'Number of "failed" compilations: {np.size(failed_infidelities)}.')
+        print(f'Maximum infidelity of "failed" compilation: {np.max(failed_infidelities)}')
 
     plt.figure()
     plt.hist(infidelities, bins=25, range=[0, max_infidelity * 1.1])

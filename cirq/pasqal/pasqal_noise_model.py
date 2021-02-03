@@ -59,10 +59,7 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
         noise_list = []
         for op in moment:
             op_str = self.get_op_string(op)
-            try:
-                noise_op = self.noise_op_dict[op_str]
-            except KeyError:
-                noise_op = cirq.ops.depolarize(5e-2)
+            noise_op = self.noise_op_dict.get(op_str, cirq.ops.depolarize(5e-2))
             for qubit in op.qubits:
                 noise_list.append(noise_op.on(qubit))
         return list(moment) + noise_list

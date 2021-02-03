@@ -227,7 +227,8 @@ def test_inverse():
     )
 
 
-def test_parameterized():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameterized(resolve_fn):
     a = random.random()
     b = random.random()
     c = random.random()
@@ -237,13 +238,13 @@ def test_parameterized():
     t = sympy.Symbol('t')
     gt = cirq.PhasedXZGate(x_exponent=t, z_exponent=b, axis_phase_exponent=c)
     assert cirq.is_parameterized(gt)
-    assert cirq.resolve_parameters(gt, {'t': a}) == g
+    assert resolve_fn(gt, {'t': a}) == g
     gt = cirq.PhasedXZGate(x_exponent=a, z_exponent=t, axis_phase_exponent=c)
     assert cirq.is_parameterized(gt)
-    assert cirq.resolve_parameters(gt, {'t': b}) == g
+    assert resolve_fn(gt, {'t': b}) == g
     gt = cirq.PhasedXZGate(x_exponent=a, z_exponent=b, axis_phase_exponent=t)
     assert cirq.is_parameterized(gt)
-    assert cirq.resolve_parameters(gt, {'t': c}) == g
+    assert resolve_fn(gt, {'t': c}) == g
 
 
 def test_str_diagram():

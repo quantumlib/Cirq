@@ -17,7 +17,6 @@ from typing import (
     TYPE_CHECKING,
     AbstractSet,
     Callable,
-    Dict,
     FrozenSet,
     Iterator,
     Optional,
@@ -89,6 +88,11 @@ class FrozenCircuit(AbstractCircuit):
     def __hash__(self):
         return hash((self.moments, self.device))
 
+    def serialization_key(self):
+        # TODO: use this key in serialization and support user-specified keys.
+        key = hash(self) & 0xFFFF_FFFF_FFFF_FFFF
+        return f'Circuit_0x{key:016x}'
+
     # Memoized methods for commonly-retrieved properties.
 
     def _num_qubits_(self) -> int:
@@ -139,6 +143,9 @@ class FrozenCircuit(AbstractCircuit):
     def __radd__(self, other) -> 'FrozenCircuit':
         return (other + self.unfreeze()).freeze()
 
+    # Needed for numpy to handle multiplication by np.int64 correctly.
+    __array_priority__ = 10000
+
     # TODO: handle multiplication / powers differently?
     def __mul__(self, other) -> 'FrozenCircuit':
         return (self.unfreeze() * other).freeze()
@@ -164,5 +171,13 @@ class FrozenCircuit(AbstractCircuit):
     ) -> 'FrozenCircuit':
         return self.unfreeze().with_device(new_device, qubit_mapping).freeze()
 
-    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver') -> 'FrozenCircuit':
-        return self.unfreeze()._resolve_parameters_(param_resolver).freeze()
+    def _resolve_parameters_(
+        self, param_resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'FrozenCircuit':
+        return self.unfreeze()._resolve_parameters_(param_resolver, recursive).freeze()
+
+    def to_op(self):
+        """Creates a CircuitOperation wrapping this circuit."""
+        from cirq.circuits import CircuitOperation
+
+        return CircuitOperation(self)

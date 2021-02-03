@@ -187,19 +187,19 @@ def test_init():
 
 def test_custom_gate_parse_failures():
     with pytest.raises(ValueError, match='must be a list'):
-        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":[],' '"gates":5}')
+        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":[],"gates":5}')
 
     with pytest.raises(ValueError, match='gate json must be a dict'):
-        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":[],' '"gates":[5]}')
+        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":[],"gates":[5]}')
 
     with pytest.raises(ValueError, match='Circuit JSON must be a dict'):
         _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":[],' '"gates":[{"id":"~a","circuit":5}]}'
+            'https://algassert.com/quirk#circuit={"cols":[],"gates":[{"id":"~a","circuit":5}]}'
         )
 
     with pytest.raises(ValueError, match='matrix json must be a string'):
         _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":[],' '"gates":[{"id":"~a","matrix":5}]}'
+            'https://algassert.com/quirk#circuit={"cols":[],"gates":[{"id":"~a","matrix":5}]}'
         )
 
     with pytest.raises(ValueError, match='Not surrounded by {{}}'):
@@ -226,7 +226,7 @@ def test_custom_gate_parse_failures():
 
     with pytest.raises(ValueError, match='matrix or a circuit'):
         _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":[],' '"gates":[' '{"id":"~a"}' ']}'
+            'https://algassert.com/quirk#circuit={"cols":[],"gates":[{"id":"~a"}]}'
         )
 
     with pytest.raises(ValueError, match='duplicate identifier'):
@@ -243,7 +243,7 @@ def test_custom_matrix_gate():
 
     # Without name.
     assert_url_to_circuit_returns(
-        '{"cols":[["~cv0d"]],' '"gates":[{"id":"~cv0d","matrix":"{{0,1},{1,0}}"}]}',
+        '{"cols":[["~cv0d"]],"gates":[{"id":"~cv0d","matrix":"{{0,1},{1,0}}"}]}',
         cirq.Circuit(
             cirq.MatrixGate(
                 np.array(
@@ -258,7 +258,7 @@ def test_custom_matrix_gate():
 
     # With name.
     assert_url_to_circuit_returns(
-        '{"cols":[["~cv0d"]],' '"gates":[{"id":"~cv0d","name":"test","matrix":"{{0,i},{1,0}}"}]}',
+        '{"cols":[["~cv0d"]],"gates":[{"id":"~cv0d","name":"test","matrix":"{{0,i},{1,0}}"}]}',
         cirq.Circuit(
             cirq.MatrixGate(
                 np.array(

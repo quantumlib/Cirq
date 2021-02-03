@@ -151,9 +151,7 @@ def test_supports_arbitrary_offsets():
 
 def test_repr():
     r = repr(BucketPriorityQueue(entries=[(1, 2), (3, 4)], drop_duplicate_entries=True))
-    assert r.endswith(
-        'BucketPriorityQueue(entries=[(1, 2), (3, 4)], ' 'drop_duplicate_entries=True)'
-    )
+    assert r.endswith('BucketPriorityQueue(entries=[(1, 2), (3, 4)], drop_duplicate_entries=True)')
 
     cirq.testing.assert_equivalent_repr(BucketPriorityQueue())
     cirq.testing.assert_equivalent_repr(BucketPriorityQueue(entries=[(1, 'a')]))

@@ -202,13 +202,14 @@ def test_bounded_effect():
     assert op1_bound == cirq.trace_distance_bound(cirq.Z ** 0.000001)
 
 
-def test_parameterizable_effect():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_parameterizable_effect(resolve_fn):
     q = cirq.NamedQubit('q')
     r = cirq.ParamResolver({'a': 0.5})
 
     op1 = cirq.GateOperation(cirq.Z ** sympy.Symbol('a'), [q])
     assert cirq.is_parameterized(op1)
-    op2 = cirq.resolve_parameters(op1, r)
+    op2 = resolve_fn(op1, r)
     assert not cirq.is_parameterized(op2)
     assert op2 == cirq.S.on(q)
 

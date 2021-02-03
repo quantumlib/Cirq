@@ -524,7 +524,6 @@ def test_format(terms, fmt, expected_string):
 @pytest.mark.parametrize('terms', (({}, {'X': 1}, {'X': 2, 'Y': 3}, {'X': 1.23456789e-12})))
 def test_repr(terms):
     original = cirq.LinearDict(terms)
-    print(repr(original))
     recovered = eval(repr(original))
     assert original == recovered
     assert recovered == original

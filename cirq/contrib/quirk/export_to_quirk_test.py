@@ -40,7 +40,7 @@ def test_x_z_same_col():
     )
     assert_links_to(
         circuit,
-        'http://algassert.com/quirk#circuit=' '%7B%22cols%22%3A%5B%5B%22X%22%2C%22Z%22%5D%5D%7D',
+        'http://algassert.com/quirk#circuit=%7B%22cols%22%3A%5B%5B%22X%22%2C%22Z%22%5D%5D%7D',
     )
 
 

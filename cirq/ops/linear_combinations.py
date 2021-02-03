@@ -152,10 +152,13 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         return {name for gate in self.keys() for name in protocols.parameter_names(gate)}
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolverOrSimilarType'
+        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
     ) -> 'LinearCombinationOfGates':
         return self.__class__(
-            {protocols.resolve_parameters(gate, resolver): coeff for gate, coeff in self.items()}
+            {
+                protocols.resolve_parameters(gate, resolver, recursive): coeff
+                for gate, coeff in self.items()
+            }
         )
 
     def matrix(self) -> np.ndarray:
@@ -264,10 +267,13 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         return {name for op in self.keys() for name in protocols.parameter_names(op)}
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolverOrSimilarType'
+        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
     ) -> 'LinearCombinationOfOperations':
         return self.__class__(
-            {protocols.resolve_parameters(op, resolver): coeff for op, coeff in self.items()}
+            {
+                protocols.resolve_parameters(op, resolver, recursive): coeff
+                for op, coeff in self.items()
+            }
         )
 
     def matrix(self) -> np.ndarray:
@@ -483,7 +489,7 @@ class PauliSum:
         # prevent an `apply_unitary` bug.
         # Github issue: https://github.com/quantumlib/Cirq/issues/2041
         if state_vector.dtype.kind != 'c':
-            raise TypeError("Input state dtype must be np.complex64 or " "np.complex128")
+            raise TypeError("Input state dtype must be np.complex64 or np.complex128")
 
         size = state_vector.size
         num_qubits = size.bit_length() - 1
@@ -538,7 +544,7 @@ class PauliSum:
         # FIXME: Avoid enforce specific complex type. This is necessary to
         # prevent an `apply_unitary` bug (Issue #2041).
         if state.dtype.kind != 'c':
-            raise TypeError("Input state dtype must be np.complex64 or " "np.complex128")
+            raise TypeError("Input state dtype must be np.complex64 or np.complex128")
 
         size = state.size
         num_qubits = int(np.sqrt(size)).bit_length() - 1

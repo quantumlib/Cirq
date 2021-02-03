@@ -221,10 +221,11 @@ def test_is_parameterized():
     assert cirq.is_parameterized(op ** sympy.Symbol('a'))
 
 
-def test_with_parameters_resolved_by():
+@pytest.mark.parametrize('resolve_fn', [cirq.resolve_parameters, cirq.resolve_parameters_once])
+def test_with_parameters_resolved_by(resolve_fn):
     op = cirq.PauliStringPhasor(cirq.PauliString({}), exponent_neg=sympy.Symbol('a'))
     resolver = cirq.ParamResolver({'a': 0.1})
-    actual = cirq.resolve_parameters(op, resolver)
+    actual = resolve_fn(op, resolver)
     expected = cirq.PauliStringPhasor(cirq.PauliString({}), exponent_neg=0.1)
     assert actual == expected
 

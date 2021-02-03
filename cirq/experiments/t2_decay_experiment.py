@@ -151,7 +151,7 @@ def t2_decay(
             length=num_points,
         )
     if delay_sweep.keys != ['delay_ns']:
-        raise ValueError('delay_sweep must be a SingleSweep ' 'with delay_ns parameter')
+        raise ValueError('delay_sweep must be a SingleSweep with delay_ns parameter')
 
     if experiment_type == ExperimentType.RAMSEY:
         # Ramsey T2* experiment
@@ -182,9 +182,7 @@ def t2_decay(
         # where N sweeps over the values of num_pulses
         #
         if not num_pulses:
-            raise ValueError(
-                'At least one value must be given ' 'for num_pulses in a CPMG experiment'
-            )
+            raise ValueError('At least one value must be given for num_pulses in a CPMG experiment')
         circuit = _cpmg_circuit(qubit, delay_var, max_pulses)
 
     # Add simple state tomography
@@ -421,7 +419,7 @@ class T2DecayResult:
         return ax
 
     def __str__(self):
-        return f'T2DecayResult with data:\n' f'<X>\n{self._x_basis_data}\n<Y>\n{self._y_basis_data}'
+        return f'T2DecayResult with data:\n<X>\n{self._x_basis_data}\n<Y>\n{self._y_basis_data}'
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):

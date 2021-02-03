@@ -128,7 +128,7 @@ class ShiftSwapNetworkGate(PermutationGate):
         if self.swap_gate != ops.SWAP:
             args += (repr(self.swap_gate),)
         args_str = ', '.join(args)
-        return 'cirq.contrib.acquaintance.shift_swap_network.' f'ShiftSwapNetworkGate({args_str})'
+        return f'cirq.contrib.acquaintance.shift_swap_network.ShiftSwapNetworkGate({args_str})'
 
     def __eq__(self, other) -> bool:
         return (
