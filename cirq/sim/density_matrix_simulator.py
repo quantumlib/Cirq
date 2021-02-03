@@ -21,6 +21,7 @@ import numpy as np
 
 from cirq import circuits, ops, protocols, qis, study, value, devices
 from cirq.sim import density_matrix_utils, simulator
+from cirq.sim.simulator import check_all_resolved
 
 if TYPE_CHECKING:
     from typing import Tuple
@@ -165,7 +166,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples, simulator.SimulatesInte
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        self._check_all_resolved(resolved_circuit)
+        check_all_resolved(resolved_circuit)
 
         if circuit.are_all_measurements_terminal():
             return self._run_sweep_sample(resolved_circuit, repetitions)
@@ -204,29 +205,6 @@ class DensityMatrixSimulator(simulator.SimulatesSamples, simulator.SimulatesInte
                         measurements[k] = []
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
-
-    def _simulator_iterator(
-        self,
-        circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver,
-        qubit_order: ops.QubitOrderOrList,
-        initial_state: Union[int, np.ndarray],
-    ) -> Iterator:
-        """See definition in `cirq.SimulatesIntermediateState`.
-
-        If the initial state is an int, the state is set to the computational
-        basis state corresponding to this state. Otherwise  if the initial
-        state is a np.ndarray it is the full initial state, either a pure state
-        or the full density matrix.  If it is the pure state it must be the
-        correct size, be normalized (an L2 norm of 1), and be safely castable
-        to an appropriate dtype for the simulator.  If it is a mixed state
-        it must be correctly sized and positive semidefinite with trace one.
-        """
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        self._check_all_resolved(resolved_circuit)
-        actual_initial_state = 0 if initial_state is None else initial_state
-        return self._base_iterator(resolved_circuit, qubit_order, actual_initial_state)
 
     def _apply_op_channel(
         self, op: ops.Operation, state: _StateAndBuffers, indices: List[int]
@@ -338,17 +316,6 @@ class DensityMatrixSimulator(simulator.SimulatesSamples, simulator.SimulatesInte
         return DensityMatrixTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
-
-    def _check_all_resolved(self, circuit):
-        """Raises if the circuit contains unresolved symbols."""
-        if protocols.is_parameterized(circuit):
-            unresolved = [
-                op for moment in circuit for op in moment if protocols.is_parameterized(op)
-            ]
-            raise ValueError(
-                'Circuit contains ops whose symbols were not specified in '
-                'parameter sweep. Ops: {}'.format(unresolved)
-            )
 
 
 class DensityMatrixStepResult(simulator.StepResult):

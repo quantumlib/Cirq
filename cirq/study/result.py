@@ -333,12 +333,29 @@ class TrialResult(Result):
     pass
 
 
-def _pack_digits(digits: np.ndarray) -> Tuple[str, bool]:
+def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool]:
     """Returns a string of packed digits and a boolean indicating whether the
-    digits were packed as binary values."""
+    digits were packed as binary values.
+
+    Args:
+        digits: A numpy array.
+        pack_bits: If 'auto' (the default), automatically pack binary digits
+            using `np.packbits` to save space. If 'never', do not pack binary
+            digits. If 'force', use `np.packbits` without checking for
+            compatibility.
+    """
     # If digits are binary, pack them better to save space
-    if np.array_equal(digits, digits.astype(np.bool)):
+
+    if pack_bits == 'force':
         return _pack_bits(digits), True
+    if pack_bits not in ['auto', 'never']:
+        raise ValueError("Please set `pack_bits` to 'auto', " "'force', or 'never'.")
+        # Do error checking here, otherwise the following logic will work
+        # for both "auto" and "never".
+
+    if pack_bits == 'auto' and np.array_equal(digits, digits.astype(np.bool)):
+        return _pack_bits(digits.astype(np.bool)), True
+
     buffer = io.BytesIO()
     np.save(buffer, digits, allow_pickle=False)
     buffer.seek(0)
@@ -352,10 +369,27 @@ def _pack_bits(bits: np.ndarray) -> str:
 
 
 def _unpack_digits(
-    packed_digits: str, binary: bool, dtype: str, shape: Sequence[int]
+    packed_digits: str, binary: bool, dtype: Union[None, str], shape: Union[None, Sequence[int]]
 ) -> np.ndarray:
+    """The opposite of `_pack_digits`.
+
+    Args:
+        packed_digits: The hex-encoded string representing a numpy array of
+            digits. This is the first return value of `_pack_digits`.
+        binary: Whether the digits have been packed as binary. This is the
+            second return value of `_pack_digits`.
+        dtype: If `binary` is True, you must also provide the datatype of the
+            array. Otherwise, dtype information is contained within the hex
+            string.
+        shape: If `binary` is True, you must also provide the shape of the
+            array. Otherwise, shape information is contained within the hex
+            string.
+    """
     if binary:
+        dtype = cast(str, dtype)
+        shape = cast(Sequence[int], shape)
         return _unpack_bits(packed_digits, dtype, shape)
+
     buffer = io.BytesIO()
     buffer.write(bytes.fromhex(packed_digits))
     buffer.seek(0)
