@@ -31,8 +31,7 @@ from cirq.value import Duration
 
 
 def _create_device(qubits: Iterable[GridQubit]):
-    return XmonDevice(Duration(nanos=0), Duration(nanos=0), Duration(nanos=0),
-                      qubits)
+    return XmonDevice(Duration(nanos=0), Duration(nanos=0), Duration(nanos=0), qubits)
 
 
 @mock.patch('cirq.google.line.placement.optimization.anneal_minimize')
@@ -43,11 +42,10 @@ def test_search_calls_anneal_minimize(anneal_minimize):
     edges = {(q00, q01)}
     anneal_minimize.return_value = seqs, edges
 
-    assert AnnealSequenceSearch(
-        _create_device([]),
-        seed=0xF00D0000).search() == seqs
-    anneal_minimize.assert_called_once_with(mock.ANY, mock.ANY, mock.ANY,
-                                            mock.ANY, trace_func=mock.ANY)
+    assert AnnealSequenceSearch(_create_device([]), seed=0xF00D0000).search() == seqs
+    anneal_minimize.assert_called_once_with(
+        mock.ANY, mock.ANY, mock.ANY, mock.ANY, trace_func=mock.ANY
+    )
 
 
 @mock.patch('cirq.google.line.placement.optimization.anneal_minimize')
@@ -58,11 +56,10 @@ def test_search_calls_anneal_minimize_reversed(anneal_minimize):
     edges = {(q00, q01)}
     anneal_minimize.return_value = seqs, edges
 
-    assert AnnealSequenceSearch(
-        _create_device([]),
-        seed=0xF00D0001).search() == seqs
-    anneal_minimize.assert_called_once_with(mock.ANY, mock.ANY, mock.ANY,
-                                            mock.ANY, trace_func=mock.ANY)
+    assert AnnealSequenceSearch(_create_device([]), seed=0xF00D0001).search() == seqs
+    anneal_minimize.assert_called_once_with(
+        mock.ANY, mock.ANY, mock.ANY, mock.ANY, trace_func=mock.ANY
+    )
 
 
 @mock.patch('cirq.google.line.placement.optimization.anneal_minimize')
@@ -74,9 +71,10 @@ def test_search_converts_trace_func(anneal_minimize):
     anneal_minimize.return_value = seqs, edges
     trace_func = mock.Mock()
 
-    assert AnnealSequenceSearch(
-        _create_device([]),
-        seed=0xF00D0002).search(trace_func=trace_func) == seqs
+    assert (
+        AnnealSequenceSearch(_create_device([]), seed=0xF00D0002).search(trace_func=trace_func)
+        == seqs
+    )
     wrapper_func = anneal_minimize.call_args[1]['trace_func']
 
     wrapper_func((seqs, edges), 1.0, 2.0, 3.0, True)
@@ -93,15 +91,14 @@ def test_quadratic_sum_cost_calculates_quadratic_cost():
         qubits = []  # type: List[GridQubit]
         for seq in seqs:
             qubits += seq
-        return AnnealSequenceSearch(
-            _create_device(qubits),
-            seed=0xF00D0003)._quadratic_sum_cost((seqs, set()))
+        return AnnealSequenceSearch(_create_device(qubits), seed=0xF00D0003)._quadratic_sum_cost(
+            (seqs, set())
+        )
 
     assert np.isclose(calculate_cost([[q00]]), -1.0)
     assert np.isclose(calculate_cost([[q00, q01]]), -1.0)
     assert np.isclose(calculate_cost([[q00], [q01]]), -(0.5 ** 2 + 0.5 ** 2))
-    assert np.isclose(calculate_cost([[q00], [q01, q02, q03]]),
-                      -(0.25 ** 2 + 0.75 ** 2))
+    assert np.isclose(calculate_cost([[q00], [q01, q02, q03]]), -(0.25 ** 2 + 0.75 ** 2))
 
 
 def test_force_edges_active_move_does_not_change_input():
@@ -109,9 +106,7 @@ def test_force_edges_active_move_does_not_change_input():
     q01 = GridQubit(0, 1)
     q10 = GridQubit(1, 0)
     q11 = GridQubit(1, 1)
-    search = AnnealSequenceSearch(
-        _create_device([q00, q01, q10, q11]),
-        seed=0xF00D0004)
+    search = AnnealSequenceSearch(_create_device([q00, q01, q10, q11]), seed=0xF00D0004)
     seqs, edges = search._create_initial_solution()
     seqs_copy, edges_copy = list(seqs), edges.copy()
     search._force_edges_active_move((seqs, edges))
@@ -124,11 +119,8 @@ def test_force_edges_active_move_calls_force_edge_active_move():
     q01 = GridQubit(0, 1)
     q10 = GridQubit(1, 0)
     q11 = GridQubit(1, 1)
-    search = AnnealSequenceSearch(
-        _create_device([q00, q01, q10, q11]),
-        seed=0xF00D0005)
-    with mock.patch.object(search, '_force_edge_active_move') \
-            as force_edge_active_move:
+    search = AnnealSequenceSearch(_create_device([q00, q01, q10, q11]), seed=0xF00D0005)
+    with mock.patch.object(search, '_force_edge_active_move') as force_edge_active_move:
         search._force_edges_active_move(search._create_initial_solution())
         force_edge_active_move.assert_called_with(mock.ANY)
 
@@ -138,9 +130,7 @@ def test_force_edge_active_move_does_not_change_input():
     q01 = GridQubit(0, 1)
     q10 = GridQubit(1, 0)
     q11 = GridQubit(1, 1)
-    search = AnnealSequenceSearch(
-        _create_device([q00, q01, q10, q11]),
-        seed=0xF00D0006)
+    search = AnnealSequenceSearch(_create_device([q00, q01, q10, q11]), seed=0xF00D0006)
     seqs, edges = search._create_initial_solution()
     seqs_copy, edges_copy = list(seqs), edges.copy()
     search._force_edge_active_move((seqs, edges))
@@ -151,9 +141,7 @@ def test_force_edge_active_move_does_not_change_input():
 def test_force_edge_active_move_quits_when_no_free_edge():
     q00 = GridQubit(0, 0)
     q01 = GridQubit(0, 1)
-    search = AnnealSequenceSearch(
-        _create_device([q00, q01]),
-        seed=0xF00D0007)
+    search = AnnealSequenceSearch(_create_device([q00, q01]), seed=0xF00D0007)
     seqs, edges = search._create_initial_solution()
     assert search._force_edge_active_move((seqs, edges)) == (seqs, edges)
 
@@ -195,31 +183,29 @@ def test_force_edge_active_creates_valid_solution_different_sequnces():
     #            |
     # +-+-+-+    +-+-+-+
     assert search._force_edge_active(
-        [[q00, q10, q20, q30], [q01, q11, q21, q31]],
-        (q00, q01), lambda: True) == [[q30, q20, q10, q00, q01, q11, q21, q31]]
+        [[q00, q10, q20, q30], [q01, q11, q21, q31]], (q00, q01), lambda: True
+    ) == [[q30, q20, q10, q00, q01, q11, q21, q31]]
 
     # +-+-+-+ -> +-+-+-+
     #                  |
     # +-+-+-+    +-+-+-+
     assert search._force_edge_active(
-        [[q00, q10, q20, q30], [q01, q11, q21, q31]],
-        (q30, q31), lambda: True) == [[q00, q10, q20, q30, q31, q21, q11, q01]]
+        [[q00, q10, q20, q30], [q01, q11, q21, q31]], (q30, q31), lambda: True
+    ) == [[q00, q10, q20, q30, q31, q21, q11, q01]]
 
     # +-+-+-+ -> + +-+-+
     #              |
     # +-+-+-+    + +-+-+
     assert search._force_edge_active(
-        [[q00, q10, q20, q30], [q01, q11, q21, q31]],
-        (q10, q11), lambda: True) == [[q30, q20, q10, q11, q21, q31], [q00],
-                                      [q01]]
+        [[q00, q10, q20, q30], [q01, q11, q21, q31]], (q10, q11), lambda: True
+    ) == [[q30, q20, q10, q11, q21, q31], [q00], [q01]]
 
     # +-+-+-+ -> +-+ +-+
     #              |
     # +-+-+-+    +-+ +-+
     assert search._force_edge_active(
-        [[q00, q10, q20, q30], [q01, q11, q21, q31]],
-        (q10, q11), lambda: False) == [[q00, q10, q11, q01], [q20, q30],
-                                       [q21, q31]]
+        [[q00, q10, q20, q30], [q01, q11, q21, q31]], (q10, q11), lambda: False
+    ) == [[q00, q10, q11, q01], [q20, q30], [q21, q31]]
 
 
 def test_force_edge_active_creates_valid_solution_single_sequence():
@@ -232,83 +218,72 @@ def test_force_edge_active_creates_valid_solution_single_sequence():
     # |          |     |
     # +-+-+-+    +-+-+-+
     assert search._force_edge_active(
-        [[q30, q20, q10, q00, q01, q11, q21, q31]],
-        (q30, q31), lambda: True) == [
-               [q20, q10, q00, q01, q11, q21, q31, q30]]
+        [[q30, q20, q10, q00, q01, q11, q21, q31]], (q30, q31), lambda: True
+    ) == [[q20, q10, q00, q01, q11, q21, q31, q30]]
 
     # +-+-+-+ -> +-+-+-+
     # |          |     |
     # +-+-+-+    +-+-+ +
     assert search._force_edge_active(
-        [[q31, q21, q11, q01, q00, q10, q20, q30]],
-        (q30, q31), lambda: True) == [
-               [q21, q11, q01, q00, q10, q20, q30, q31]]
+        [[q31, q21, q11, q01, q00, q10, q20, q30]], (q30, q31), lambda: True
+    ) == [[q21, q11, q01, q00, q10, q20, q30, q31]]
 
     # +-+-+-+ -> +-+-+ +
     # |          |     |
     # +-+-+-+    +-+-+ +
     assert search._force_edge_active(
-        [[q30, q20, q10, q00, q01, q11, q21, q31]],
-        (q30, q31), lambda: False) == [[q30, q31],
-                                       [q20, q10,
-                                        q00, q01,
-                                        q11, q21]]
+        [[q30, q20, q10, q00, q01, q11, q21, q31]], (q30, q31), lambda: False
+    ) == [[q30, q31], [q20, q10, q00, q01, q11, q21]]
 
     # +-+-+-+ -> +-+ +-+
     # |          |   |
     # +-+-+-+    +-+-+ +
     assert search._force_edge_active(
-        [[q30, q20, q10, q00, q01, q11, q21, q31]],
-        (q20, q21), lambda: True) == [
-               [q10, q00, q01, q11, q21, q20, q30], [q31]]
+        [[q30, q20, q10, q00, q01, q11, q21, q31]], (q20, q21), lambda: True
+    ) == [[q10, q00, q01, q11, q21, q20, q30], [q31]]
 
     # +-+-+-+ -> +-+ +-+
     # |          |   |
     # +-+-+-+    +-+ +-+
     assert search._force_edge_active(
-        [[q30, q20, q10, q00, q01, q11, q21, q31]],
-        (q20, q21), lambda: False) == [
-               [q30, q20, q21, q31], [q10, q00, q01, q11]]
+        [[q30, q20, q10, q00, q01, q11, q21, q31]], (q20, q21), lambda: False
+    ) == [[q30, q20, q21, q31], [q10, q00, q01, q11]]
 
     # +-+-+-+ -> +-+ +-+
     # |          |   |
     # +-+-+ +    +-+-+ +
     assert search._force_edge_active(
-        [[q30, q20, q10, q00, q01, q11, q21], [q31]],
-        (q20, q21), lambda: True) == [[q31],
-                                      [q10, q00, q01, q11, q21, q20, q30]]
+        [[q30, q20, q10, q00, q01, q11, q21], [q31]], (q20, q21), lambda: True
+    ) == [[q31], [q10, q00, q01, q11, q21, q20, q30]]
 
     # +-+-+-+ -> +-+ +-+
     # |          |   |
     # +-+-+ +    +-+ + +
     assert search._force_edge_active(
-        [[q30, q20, q10, q00, q01, q11, q21], [q31]],
-        (q20, q21), lambda: False) == [[q31], [q30, q20, q21],
-                                       [q10, q00, q01, q11]]
+        [[q30, q20, q10, q00, q01, q11, q21], [q31]], (q20, q21), lambda: False
+    ) == [[q31], [q30, q20, q21], [q10, q00, q01, q11]]
 
     # +-+-+ + -> +-+ + +
     # |          |   |
     # +-+-+-+    +-+-+ +
     assert search._force_edge_active(
-        [[q20, q10, q00, q01, q11, q21, q31], [q30]],
-        (q20, q21), lambda: True) == [[q30], [q10, q00, q01, q11, q21, q20],
-                                      [q31]]
+        [[q20, q10, q00, q01, q11, q21, q31], [q30]], (q20, q21), lambda: True
+    ) == [[q30], [q10, q00, q01, q11, q21, q20], [q31]]
 
     # +-+-+ + -> +-+-+ +
     # |          |   |
     # +-+-+-+    +-+ +-+
     samples = iter([True, False])
     assert search._force_edge_active(
-        [[q20, q10, q00, q01, q11, q21, q31], [q30]], (q20, q21),
-        lambda: next(samples)) == [[q30], [q31, q21, q20, q10, q00, q01, q11]]
+        [[q20, q10, q00, q01, q11, q21, q31], [q30]], (q20, q21), lambda: next(samples)
+    ) == [[q30], [q31, q21, q20, q10, q00, q01, q11]]
 
     # +-+-+ + -> +-+ + +
     # |          |   |
     # +-+-+-+    +-+ +-+
     assert search._force_edge_active(
-        [[q20, q10, q00, q01, q11, q21, q31], [q30]],
-        (q20, q21), lambda: False) == [[q30], [q20, q21, q31],
-                                       [q10, q00, q01, q11]]
+        [[q20, q10, q00, q01, q11, q21, q31], [q30]], (q20, q21), lambda: False
+    ) == [[q30], [q20, q21, q31], [q10, q00, q01, q11]]
 
 
 def test_create_initial_solution_creates_valid_solution():
@@ -316,8 +291,9 @@ def test_create_initial_solution_creates_valid_solution():
         _verify_valid_state(
             qubits,
             AnnealSequenceSearch(
-                _create_device(qubits),
-                seed=0xF00D0011)._create_initial_solution())
+                _create_device(qubits), seed=0xF00D0011
+            )._create_initial_solution(),
+        )
 
     q00, q01, q02 = [GridQubit(0, x) for x in range(3)]
     q10, q11, q12 = [GridQubit(1, x) for x in range(3)]

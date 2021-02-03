@@ -15,7 +15,9 @@ from typing import TYPE_CHECKING
 
 from cirq import circuits, ops
 from cirq.contrib.qcircuit.qcircuit_diagram_info import (
-    escape_text_for_latex, get_qcircuit_diagram_info)
+    escape_text_for_latex,
+    get_qcircuit_diagram_info,
+)
 
 if TYPE_CHECKING:
     import cirq
@@ -24,11 +26,11 @@ if TYPE_CHECKING:
 def qcircuit_qubit_namer(qubit: 'cirq.Qid') -> str:
     """Returns the latex code for a QCircuit label of given qubit.
 
-        Args:
-            qubit: The qubit which name to represent.
+    Args:
+        qubit: The qubit which name to represent.
 
-        Returns:
-            Latex code for the label.
+    Returns:
+        Latex code for the label.
     """
     return r'\lstick{' + escape_text_for_latex(str(qubit)) + '}&'
 
@@ -37,13 +39,9 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
     w = diagram.width()
     h = diagram.height()
 
-    qwx = {(x, y + 1)
-           for x, y1, y2, _ in diagram.vertical_lines
-           for y in range(int(y1), int(y2))}
+    qwx = {(x, y + 1) for x, y1, y2, _ in diagram.vertical_lines for y in range(int(y1), int(y2))}
 
-    qw = {(x, y)
-          for y, x1, x2, _ in diagram.horizontal_lines
-          for x in range(int(x1), int(x2))}
+    qw = {(x, y) for y, x1, x2, _ in diagram.horizontal_lines for x in range(int(x1), int(x2))}
 
     diagram2 = circuits.TextDiagramDrawer()
     for y in range(h):
@@ -64,8 +62,8 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
 
 
 def circuit_to_latex_using_qcircuit(
-        circuit: circuits.Circuit,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT) -> str:
+    circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
+) -> str:
     """Returns a QCircuit-based latex diagram of the given circuit.
 
     Args:
@@ -79,5 +77,6 @@ def circuit_to_latex_using_qcircuit(
         qubit_namer=qcircuit_qubit_namer,
         qubit_order=qubit_order,
         get_circuit_diagram_info=get_qcircuit_diagram_info,
-        draw_moment_groups=False)
+        draw_moment_groups=False,
+    )
     return _render(diagram)

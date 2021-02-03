@@ -29,27 +29,33 @@ def _get_text_width(t: str) -> float:
     return bb.width + 10
 
 
-def _rect(x: float,
-          y: float,
-          boxwidth: float,
-          boxheight: float,
-          fill: str = 'white',
-          strokewidth: float = 1):
+def _rect(
+    x: float,
+    y: float,
+    boxwidth: float,
+    boxheight: float,
+    fill: str = 'white',
+    strokewidth: float = 1,
+):
     """Draw an SVG <rect> rectangle."""
-    return f'<rect x="{x}" y="{y}" width="{boxwidth}" height="{boxheight}" ' \
-           f'stroke="black" fill="{fill}" stroke-width="{strokewidth}" />'
+    return (
+        f'<rect x="{x}" y="{y}" width="{boxwidth}" height="{boxheight}" '
+        f'stroke="black" fill="{fill}" stroke-width="{strokewidth}" />'
+    )
 
 
 def _text(x: float, y: float, text: str, fontsize: int = 14):
     """Draw SVG <text> text."""
-    return f'<text x="{x}" y="{y}" dominant-baseline="middle" ' \
-           f'text-anchor="middle" font-size="{fontsize}px" ' \
-           f'font-family="{FONT}">{text}</text>'
+    return (
+        f'<text x="{x}" y="{y}" dominant-baseline="middle" '
+        f'text-anchor="middle" font-size="{fontsize}px" '
+        f'font-family="{FONT}">{text}</text>'
+    )
 
 
-def _fit_horizontal(tdd: 'cirq.TextDiagramDrawer',
-                    ref_boxwidth: float, col_padding: float) \
-        -> Tuple[List[float], List[float]]:
+def _fit_horizontal(
+    tdd: 'cirq.TextDiagramDrawer', ref_boxwidth: float, col_padding: float
+) -> Tuple[List[float], List[float]]:
     """Figure out the horizontal spacing of columns to fit everything in.
 
     Returns:
@@ -57,8 +63,7 @@ def _fit_horizontal(tdd: 'cirq.TextDiagramDrawer',
         col_widths: a list of each column's width in pixels
     """
     max_xi = max(xi for xi, _ in tdd.entries.keys())
-    max_xi = max(max_xi,
-                 max(cast(int, xi2) for _, _, xi2, _ in tdd.horizontal_lines))
+    max_xi = max(max_xi, max(cast(int, xi2) for _, _, xi2, _ in tdd.horizontal_lines))
     col_widths = [0.0] * (max_xi + 2)
     for (xi, _), v in tdd.entries.items():
         tw = _get_text_width(v.text)
@@ -78,9 +83,9 @@ def _fit_horizontal(tdd: 'cirq.TextDiagramDrawer',
     return col_starts, col_widths
 
 
-def _fit_vertical(tdd: 'cirq.TextDiagramDrawer',
-                  ref_boxheight: float, row_padding: float) \
-        -> Tuple[List[float], List[float], Dict[float, int]]:
+def _fit_vertical(
+    tdd: 'cirq.TextDiagramDrawer', ref_boxheight: float, row_padding: float
+) -> Tuple[List[float], List[float], Dict[float, int]]:
     """Return data structures used to turn tdd vertical coordinates into
     well-spaced SVG coordinates.
 
@@ -108,10 +113,12 @@ def _fit_vertical(tdd: 'cirq.TextDiagramDrawer',
             the former two return values (ie row_starts and row_heights)
     """
     # Note: y values come as half integers. Map to integers
-    all_yis = sorted({yi for _, yi in tdd.entries.keys()} |
-                     {yi1 for _, yi1, _, _ in tdd.vertical_lines} |
-                     {yi2 for _, _, yi2, _ in tdd.vertical_lines} |
-                     {yi for yi, _, _, _ in tdd.horizontal_lines})
+    all_yis = sorted(
+        {yi for _, yi in tdd.entries.keys()}
+        | {yi1 for _, yi1, _, _ in tdd.vertical_lines}
+        | {yi2 for _, _, yi2, _ in tdd.vertical_lines}
+        | {yi for yi, _, _, _ in tdd.horizontal_lines}
+    )
     yi_map = {yi: i for i, yi in enumerate(all_yis)}
 
     max_yi = max(yi_map[yi] for yi in all_yis)
@@ -138,32 +145,38 @@ def _debug_spacing(col_starts, row_starts):
     # coverage: ignore
     t = ''
     for i, cs in enumerate(col_starts):
-        t += f'<line id="cs-{i}" ' \
-             f'x1="{cs}" x2="{cs}" y1="0" y2="{row_starts[-1]}" ' \
-             f'stroke="green" stroke-width="1" />'
+        t += (
+            f'<line id="cs-{i}" '
+            f'x1="{cs}" x2="{cs}" y1="0" y2="{row_starts[-1]}" '
+            f'stroke="green" stroke-width="1" />'
+        )
     for i, rs in enumerate(row_starts):
-        t += f'<line id="rs-{i}" ' \
-             f'x1="0" x2="{col_starts[-1]}" y1="{rs}" y2="{rs}" ' \
-             f'stroke="green" stroke-width="1" />'
+        t += (
+            f'<line id="rs-{i}" '
+            f'x1="0" x2="{col_starts[-1]}" y1="{rs}" y2="{rs}" '
+            f'stroke="green" stroke-width="1" />'
+        )
     return t
 
 
 def tdd_to_svg(
-        tdd: 'cirq.TextDiagramDrawer',
-        ref_boxwidth: float = 40,
-        ref_boxheight: float = 40,
-        col_padding: float = 20,
-        row_padding: float = 10,
+    tdd: 'cirq.TextDiagramDrawer',
+    ref_boxwidth: float = 40,
+    ref_boxheight: float = 40,
+    col_padding: float = 20,
+    row_padding: float = 10,
 ) -> str:
-    row_starts, row_heights, yi_map = _fit_vertical(tdd=tdd,
-                                                    ref_boxheight=ref_boxheight,
-                                                    row_padding=row_padding)
-    col_starts, col_widths = _fit_horizontal(tdd=tdd,
-                                             ref_boxwidth=ref_boxwidth,
-                                             col_padding=col_padding)
+    row_starts, row_heights, yi_map = _fit_vertical(
+        tdd=tdd, ref_boxheight=ref_boxheight, row_padding=row_padding
+    )
+    col_starts, col_widths = _fit_horizontal(
+        tdd=tdd, ref_boxwidth=ref_boxwidth, col_padding=col_padding
+    )
 
-    t = f'<svg xmlns="http://www.w3.org/2000/svg" ' \
+    t = (
+        f'<svg xmlns="http://www.w3.org/2000/svg" '
         f'width="{col_starts[-1]}" height="{row_starts[-1]}">'
+    )
 
     # Developers: uncomment below to draw green lines to debug
     #             col_starts and row_starts
@@ -184,8 +197,7 @@ def tdd_to_svg(
         else:
             # coverage: ignore
             stroke = 'black'
-        t += f'<line x1="{x1}" x2="{x2}" y1="{y}" y2="{y}" ' \
-             f'stroke="{stroke}" stroke-width="1" />'
+        t += f'<line x1="{x1}" x2="{x2}" y1="{y}" y2="{y}" stroke="{stroke}" stroke-width="1" />'
 
     for xi, yi1, yi2, _ in tdd.vertical_lines:
         yi1 = yi_map[yi1]
@@ -195,8 +207,7 @@ def tdd_to_svg(
 
         xi = cast(int, xi)
         x = col_starts[xi] + col_widths[xi] / 2
-        t += f'<line x1="{x}" x2="{x}" y1="{y1}" y2="{y2}" ' \
-             f'stroke="black" stroke-width="3" />'
+        t += f'<line x1="{x}" x2="{x}" y1="{y1}" y2="{y2}" stroke="black" stroke-width="3" />'
 
     for (xi, yi), v in tdd.entries.items():
         xi = cast(int, xi)
@@ -236,8 +247,10 @@ def _validate_circuit(circuit: 'cirq.Circuit'):
         raise ValueError("Can't draw SVG diagram for empty circuits")
 
     if any(len(mom) == 0 for mom in circuit.moments):
-        raise ValueError("Can't draw SVG diagram for circuits with empty "
-                         "moments. Run it through cirq.DropEmptyMoments()")
+        raise ValueError(
+            "Can't draw SVG diagram for circuits with empty "
+            "moments. Run it through cirq.DropEmptyMoments()"
+        )
 
 
 class SVGCircuit:

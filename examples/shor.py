@@ -59,15 +59,19 @@ import cirq
 
 parser = argparse.ArgumentParser(description='Factorization demo.')
 parser.add_argument('n', type=int, help='composite integer to factor')
-parser.add_argument('--order_finder',
-                    type=str,
-                    choices=('naive', 'quantum'),
-                    default='naive',
-                    help=('order finder to use; must be either "naive" '
-                          'for a naive classical algorithm or "quantum" '
-                          'for a quantum circuit; note that in practice '
-                          '"quantum" is substantially slower since it '
-                          'incurs the overhead of classical simulation.'))
+parser.add_argument(
+    '--order_finder',
+    type=str,
+    choices=('naive', 'quantum'),
+    default='naive',
+    help=(
+        'order finder to use; must be either "naive" '
+        'for a naive classical algorithm or "quantum" '
+        'for a quantum circuit; note that in practice '
+        '"quantum" is substantially slower since it '
+        'incurs the overhead of classical simulation.'
+    ),
+)
 
 
 def naive_order_finder(x: int, n: int) -> Optional[int]:
@@ -123,12 +127,17 @@ class ModularExp(cirq.ArithmeticOperation):
     Phase Estimation to compute the order of x modulo n.
     """
 
-    def __init__(self, target: Sequence[cirq.Qid],
-                 exponent: Union[int, Sequence[cirq.Qid]], base: int,
-                 modulus: int) -> None:
+    def __init__(
+        self,
+        target: Sequence[cirq.Qid],
+        exponent: Union[int, Sequence[cirq.Qid]],
+        base: int,
+        modulus: int,
+    ) -> None:
         if len(target) < modulus.bit_length():
-            raise ValueError(f'Register with {len(target)} qubits is too small '
-                             f'for modulus {modulus}')
+            raise ValueError(
+                f'Register with {len(target)} qubits is too small for modulus {modulus}'
+            )
         self.target = target
         self.exponent = exponent
         self.base = base
@@ -138,22 +147,21 @@ class ModularExp(cirq.ArithmeticOperation):
         return self.target, self.exponent, self.base, self.modulus
 
     def with_registers(
-            self,
-            *new_registers: Union[int, Sequence['cirq.Qid']],
+        self,
+        *new_registers: Union[int, Sequence['cirq.Qid']],
     ) -> 'ModularExp':
         if len(new_registers) != 4:
-            raise ValueError(f'Expected 4 registers (target, exponent, base, '
-                             f'modulus), but got {len(new_registers)}')
+            raise ValueError(
+                f'Expected 4 registers (target, exponent, base, '
+                f'modulus), but got {len(new_registers)}'
+            )
         target, exponent, base, modulus = new_registers
         if not isinstance(target, Sequence):
-            raise ValueError(
-                f'Target must be a qubit register, got {type(target)}')
+            raise ValueError(f'Target must be a qubit register, got {type(target)}')
         if not isinstance(base, int):
-            raise ValueError(
-                f'Base must be a classical constant, got {type(base)}')
+            raise ValueError(f'Base must be a classical constant, got {type(base)}')
         if not isinstance(modulus, int):
-            raise ValueError(
-                f'Modulus must be a classical constant, got {type(modulus)}')
+            raise ValueError(f'Modulus must be a classical constant, got {type(modulus)}')
         return ModularExp(target, exponent, base, modulus)
 
     def apply(self, *register_values: int) -> int:
@@ -161,11 +169,11 @@ class ModularExp(cirq.ArithmeticOperation):
         target, exponent, base, modulus = register_values
         if target >= modulus:
             return target
-        return (target * base**exponent) % modulus
+        return (target * base ** exponent) % modulus
 
     def _circuit_diagram_info_(
-            self,
-            args: cirq.CircuitDiagramInfoArgs,
+        self,
+        args: cirq.CircuitDiagramInfoArgs,
     ) -> cirq.CircuitDiagramInfo:
         assert args.known_qubits is not None
         wire_symbols: List[str] = []
@@ -177,8 +185,7 @@ class ModularExp(cirq.ArithmeticOperation):
                         e_str = 'e'
                     else:
                         e_str = str(self.exponent)
-                    wire_symbols.append(
-                        f'ModularExp(t*{self.base}**{e_str} % {self.modulus})')
+                    wire_symbols.append(f'ModularExp(t*{self.base}**{e_str} % {self.modulus})')
                 else:
                     wire_symbols.append('t' + str(t))
                 t += 1
@@ -248,7 +255,7 @@ def read_eigenphase(result: cirq.Result) -> float:
     """
     exponent_as_integer = result.data['exponent'][0]
     exponent_num_bits = result.measurements['exponent'].shape[1]
-    return float(exponent_as_integer / 2**exponent_num_bits)
+    return float(exponent_as_integer / 2 ** exponent_num_bits)
 
 
 def quantum_order_finder(x: int, n: int) -> Optional[int]:
@@ -279,7 +286,7 @@ def quantum_order_finder(x: int, n: int) -> Optional[int]:
     if f.numerator == 0:
         return None  # coverage: ignore
     r = f.denominator
-    if x**r % n != 1:
+    if x ** r % n != 1:
         return None  # coverage: ignore
     return r
 
@@ -289,17 +296,17 @@ def find_factor_of_prime_power(n: int) -> Optional[int]:
     for k in range(2, math.floor(math.log2(n)) + 1):
         c = math.pow(n, 1 / k)
         c1 = math.floor(c)
-        if c1**k == n:
+        if c1 ** k == n:
             return c1
         c2 = math.ceil(c)
-        if c2**k == n:
+        if c2 ** k == n:
             return c2
     return None
 
 
-def find_factor(n: int,
-                order_finder: Callable[[int, int], Optional[int]],
-                max_attempts: int = 30) -> Optional[int]:
+def find_factor(
+    n: int, order_finder: Callable[[int, int], Optional[int]], max_attempts: int = 30
+) -> Optional[int]:
     """Returns a non-trivial factor of composite integer n.
 
     Args:
@@ -330,7 +337,7 @@ def find_factor(n: int,
             continue  # coverage: ignore
         if r % 2 != 0:
             continue  # coverage: ignore
-        y = x**(r // 2) % n
+        y = x ** (r // 2) % n
         assert 1 < y < n
         c = math.gcd(y - 1, n)
         if 1 < c < n:
@@ -339,12 +346,11 @@ def find_factor(n: int,
 
 
 def main(
-        n: int,
-        order_finder: Callable[[int, int], Optional[int]] = naive_order_finder,
+    n: int,
+    order_finder: Callable[[int, int], Optional[int]] = naive_order_finder,
 ):
     if n < 2:
-        raise ValueError(
-            f'Invalid input {n}, expected positive integer greater than one.')
+        raise ValueError(f'Invalid input {n}, expected positive integer greater than one.')
 
     d = find_factor(n, order_finder)
 

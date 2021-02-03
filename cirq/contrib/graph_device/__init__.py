@@ -15,9 +15,14 @@
 from cirq.contrib.graph_device.hypergraph import UndirectedHypergraph
 
 from cirq.contrib.graph_device.graph_device import (
-    is_undirected_device_graph, is_crosstalk_graph,
-    FixedDurationUndirectedGraphDeviceEdge, UndirectedGraphDevice,
-    UnconstrainedUndirectedGraphDeviceEdge)
+    is_undirected_device_graph,
+    is_crosstalk_graph,
+    FixedDurationUndirectedGraphDeviceEdge,
+    UndirectedGraphDevice,
+    UnconstrainedUndirectedGraphDeviceEdge,
+)
 
 from cirq.contrib.graph_device.uniform_graph_device import (
-    uniform_undirected_graph_device, uniform_undirected_linear_device)
+    uniform_undirected_graph_device,
+    uniform_undirected_linear_device,
+)

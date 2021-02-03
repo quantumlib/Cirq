@@ -22,23 +22,24 @@ class NoMethod:
 
 
 class ReturnsNotImplemented:
-
     def __pow__(self, exponent):
         return NotImplemented
 
 
 class ReturnsExponent:
-
     def __pow__(self, exponent) -> int:
         return exponent
 
 
-@pytest.mark.parametrize('val', (
-    NoMethod(),
-    'text',
-    object(),
-    ReturnsNotImplemented(),
-))
+@pytest.mark.parametrize(
+    'val',
+    (
+        NoMethod(),
+        'text',
+        object(),
+        ReturnsNotImplemented(),
+    ),
+)
 def test_powerless(val):
     assert cirq.pow(val, 5, None) is None
     assert cirq.pow(val, 2, NotImplemented) is NotImplemented
@@ -54,11 +55,15 @@ def test_pow_error():
         _ = cirq.pow(NoMethod(), 3)
 
 
-@pytest.mark.parametrize('val,exponent,out', (
-    (ReturnsExponent(), 2, 2),
-    (1, 2, 1),
-    (2, 3, 8),
-))
+@pytest.mark.parametrize(
+    'val,exponent,out',
+    (
+        (ReturnsExponent(), 2, 2),
+        (1, 2, 1),
+        (2, 3, 8),
+    ),
+)
 def test_pow_with_result(val, exponent, out):
-    assert (cirq.pow(val, exponent) == cirq.pow(val, exponent, default=None) ==
-            val**exponent == out)
+    assert (
+        cirq.pow(val, exponent) == cirq.pow(val, exponent, default=None) == val ** exponent == out
+    )

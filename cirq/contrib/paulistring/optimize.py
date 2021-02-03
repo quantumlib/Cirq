@@ -15,49 +15,37 @@
 from typing import Sequence
 
 from cirq import ops, circuits, optimizers
-from cirq.contrib.paulistring.pauli_string_optimize import (
-    pauli_string_optimized_circuit)
-from cirq.contrib.paulistring.clifford_optimize import (
-    clifford_optimized_circuit)
+from cirq.contrib.paulistring.pauli_string_optimize import pauli_string_optimized_circuit
+from cirq.contrib.paulistring.clifford_optimize import clifford_optimized_circuit
 
 
-def optimized_circuit(circuit: circuits.Circuit,
-                      atol: float = 1e-8,
-                      repeat: int = 10,
-                      merge_interactions: bool = True
-                      ) -> circuits.Circuit:
+def optimized_circuit(
+    circuit: circuits.Circuit, atol: float = 1e-8, repeat: int = 10, merge_interactions: bool = True
+) -> circuits.Circuit:
     circuit = circuits.Circuit(circuit)  # Make a copy
     for _ in range(repeat):
         start_len = len(circuit)
         start_cz_count = _cz_count(circuit)
         if merge_interactions:
-            optimizers.MergeInteractions(allow_partial_czs=False,
-                                         post_clean_up=_optimized_ops,
-                                         ).optimize_circuit(circuit)
-        circuit2 = pauli_string_optimized_circuit(
-                        circuit,
-                        move_cliffords=False,
-                        atol=atol)
-        circuit3 = clifford_optimized_circuit(
-                        circuit2,
-                        atol=atol)
-        if (len(circuit3) == start_len
-            and _cz_count(circuit3) == start_cz_count):
+            optimizers.MergeInteractions(
+                allow_partial_czs=False,
+                post_clean_up=_optimized_ops,
+            ).optimize_circuit(circuit)
+        circuit2 = pauli_string_optimized_circuit(circuit, move_cliffords=False, atol=atol)
+        circuit3 = clifford_optimized_circuit(circuit2, atol=atol)
+        if len(circuit3) == start_len and _cz_count(circuit3) == start_cz_count:
             return circuit3
         circuit = circuit3
     return circuit
 
 
-def _optimized_ops(ops: Sequence[ops.Operation],
-                   atol: float = 1e-8,
-                   repeat: int = 10) -> ops.OP_TREE:
+def _optimized_ops(
+    ops: Sequence[ops.Operation], atol: float = 1e-8, repeat: int = 10
+) -> ops.OP_TREE:
     c = circuits.Circuit(ops)
     c_opt = optimized_circuit(c, atol, repeat, merge_interactions=False)
     return c_opt.all_operations()
 
 
 def _cz_count(circuit):
-    return sum(
-        isinstance(op.gate, ops.CZPowGate)
-        for moment in circuit
-        for op in moment)
+    return sum(isinstance(op.gate, ops.CZPowGate) for moment in circuit for op in moment)

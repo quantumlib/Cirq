@@ -20,6 +20,7 @@ import sympy
 
 import cirq
 
+
 def test_to_resolvers_none():
     assert list(cirq.to_resolvers(None)) == [cirq.ParamResolver({})]
 
@@ -84,15 +85,17 @@ def test_to_sweeps_iterable_sweeps():
 
 def test_to_sweeps_dictionary_of_list():
     with pytest.warns(DeprecationWarning, match='dict_to_product_sweep'):
-        assert cirq.study.to_sweeps({'t': [0, 2, 3]}) == \
-            cirq.study.to_sweeps([{'t': 0}, {'t': 2}, {'t': 3}])
-        assert cirq.study.to_sweeps({'t': [0, 1], 's': [2, 3], 'r': 4}) == \
-            cirq.study.to_sweeps([
+        assert cirq.study.to_sweeps({'t': [0, 2, 3]}) == cirq.study.to_sweeps(
+            [{'t': 0}, {'t': 2}, {'t': 3}]
+        )
+        assert cirq.study.to_sweeps({'t': [0, 1], 's': [2, 3], 'r': 4}) == cirq.study.to_sweeps(
+            [
                 {'t': 0, 's': 2, 'r': 4},
                 {'t': 0, 's': 3, 'r': 4},
                 {'t': 1, 's': 2, 'r': 4},
                 {'t': 1, 's': 3, 'r': 4},
-            ])
+            ]
+        )
 
 
 def test_to_sweeps_invalid():
@@ -105,16 +108,15 @@ def test_to_sweep_sweep():
     assert cirq.to_sweep(sweep) is sweep
 
 
-@pytest.mark.parametrize('r_gen', [
-    lambda: {
-        'a': 1
-    },
-    lambda: {
-        sympy.Symbol('a'): 1
-    },
-    lambda: cirq.ParamResolver({'a': 1}),
-    lambda: cirq.ParamResolver({sympy.Symbol('a'): 1}),
-])
+@pytest.mark.parametrize(
+    'r_gen',
+    [
+        lambda: {'a': 1},
+        lambda: {sympy.Symbol('a'): 1},
+        lambda: cirq.ParamResolver({'a': 1}),
+        lambda: cirq.ParamResolver({sympy.Symbol('a'): 1}),
+    ],
+)
 def test_to_sweep_single_resolver(r_gen):
     sweep = cirq.to_sweep(r_gen())
     assert isinstance(sweep, cirq.Sweep)
@@ -125,50 +127,24 @@ def test_to_sweep_single_resolver(r_gen):
     'r_list_gen',
     [
         # Lists
-        lambda: [{
-            'a': 1
-        }, {
-            'a': 1.5
-        }],
-        lambda: [{
-            sympy.Symbol('a'): 1
-        }, {
-            sympy.Symbol('a'): 1.5
-        }],
-        lambda: [cirq.ParamResolver({'a': 1}),
-                 cirq.ParamResolver({'a': 1.5})],
+        lambda: [{'a': 1}, {'a': 1.5}],
+        lambda: [{sympy.Symbol('a'): 1}, {sympy.Symbol('a'): 1.5}],
+        lambda: [cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 1.5})],
         lambda: [
             cirq.ParamResolver({sympy.Symbol('a'): 1}),
-            cirq.ParamResolver({sympy.Symbol('a'): 1.5})
+            cirq.ParamResolver({sympy.Symbol('a'): 1.5}),
         ],
-        lambda: [{
-            'a': 1
-        }, cirq.ParamResolver({sympy.Symbol('a'): 1.5})],
-        lambda: ({
-            'a': 1
-        }, {
-            'a': 1.5
-        }),
+        lambda: [{'a': 1}, cirq.ParamResolver({sympy.Symbol('a'): 1.5})],
+        lambda: ({'a': 1}, {'a': 1.5}),
         # Iterators
-        lambda: (r for r in [{
-            'a': 1
-        }, {
-            'a': 1.5
-        }]),
-        lambda: {object(): r for r in [{
-            'a': 1
-        }, {
-            'a': 1.5
-        }]}.values(),
-    ])
+        lambda: (r for r in [{'a': 1}, {'a': 1.5}]),
+        lambda: {object(): r for r in [{'a': 1}, {'a': 1.5}]}.values(),
+    ],
+)
 def test_to_sweep_resolver_list(r_list_gen):
     sweep = cirq.to_sweep(r_list_gen())
     assert isinstance(sweep, cirq.Sweep)
-    print(list(sweep))
-    assert list(sweep) == [
-        cirq.ParamResolver({'a': 1}),
-        cirq.ParamResolver({'a': 1.5})
-    ]
+    assert list(sweep) == [cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 1.5})]
 
 
 def test_to_sweep_type_error():

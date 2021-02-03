@@ -1,4 +1,4 @@
-# Plotting Guidelines
+# Plotting guidelines
 
 Here we recommend the input arguments, return value, and behavior of the
 `plot` method of a class.

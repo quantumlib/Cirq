@@ -1,5 +1,6 @@
 import random
 import cirq
+
 """Example program that demonstrates a Hidden Shift algorithm.
 
 The Hidden Shift Problem is one of the known problems whose quantum algorithm
@@ -87,10 +88,7 @@ def set_qubits(qubit_count):
 
 def make_oracle_f(qubits):
     """Implement function {f(x) = Σ_i x_(2i) x_(2i+1)}."""
-    return [
-        cirq.CZ(qubits[2 * i], qubits[2 * i + 1])
-        for i in range(len(qubits) // 2)
-    ]
+    return [cirq.CZ(qubits[2 * i], qubits[2 * i + 1]) for i in range(len(qubits) // 2)]
 
 
 def make_hs_circuit(qubits, oracle_f, shift):
@@ -98,34 +96,38 @@ def make_hs_circuit(qubits, oracle_f, shift):
     c = cirq.Circuit()
 
     # Initialize qubits.
-    c.append([
-        cirq.H.on_each(*qubits),
-    ])
+    c.append(
+        [
+            cirq.H.on_each(*qubits),
+        ]
+    )
 
     # Query oracle g: It is equivalent to that of f, shifted before and after:
     # Apply Shift:
-    c.append(
-        [cirq.X.on_each([qubits[k] for k in range(len(shift)) if shift[k]])])
+    c.append([cirq.X.on_each([qubits[k] for k in range(len(shift)) if shift[k]])])
 
     # Query oracle.
     c.append(oracle_f)
 
     # Apply Shift:
-    c.append(
-        [cirq.X.on_each([qubits[k] for k in range(len(shift)) if shift[k]])])
+    c.append([cirq.X.on_each([qubits[k] for k in range(len(shift)) if shift[k]])])
 
     # Second Application of Hadamards.
-    c.append([
-        cirq.H.on_each(*qubits),
-    ])
+    c.append(
+        [
+            cirq.H.on_each(*qubits),
+        ]
+    )
 
     # Query oracle f (this simplifies the phase).
     c.append(oracle_f)
 
     # Inverse Fourier Transform with Hadamards to go back to the shift state:
-    c.append([
-        cirq.H.on_each(*qubits),
-    ])
+    c.append(
+        [
+            cirq.H.on_each(*qubits),
+        ]
+    )
 
     # Measure the result.
     c.append(cirq.measure(*qubits, key='result'))

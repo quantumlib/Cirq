@@ -22,25 +22,20 @@ from dev_tools import env_tools, shell_tools
 
 class CheckResult:
     """Output of a status check that passed, failed, or error'ed."""
-    def __init__(self,
-                 check: 'Check',
-                 success: bool,
-                 message: str,
-                 unexpected_error: Optional[Exception]) -> None:
+
+    def __init__(
+        self, check: 'Check', success: bool, message: str, unexpected_error: Optional[Exception]
+    ) -> None:
         self.check = check
         self.success = success
         self.message = message
         self.unexpected_error = unexpected_error
 
     def __str__(self):
-        outcome = ('ERROR' if self.unexpected_error
-            else 'pass' if self.success
-            else 'FAIL')
+        outcome = 'ERROR' if self.unexpected_error else 'pass' if self.success else 'FAIL'
         msg = self.unexpected_error if self.unexpected_error else self.message
         result = '{}: {} ({})'.format(outcome, self.check.context(), msg)
-        return shell_tools.highlight(
-            result,
-            shell_tools.GREEN if self.success else shell_tools.RED)
+        return shell_tools.highlight(result, shell_tools.GREEN if self.success else shell_tools.RED)
 
 
 class Check(metaclass=abc.ABCMeta):
@@ -58,9 +53,7 @@ class Check(metaclass=abc.ABCMeta):
         """The name of this status check, as shown on github."""
 
     @abc.abstractmethod
-    def perform_check(self,
-                      env: env_tools.PreparedEnv,
-                      verbose: bool) -> Tuple[bool, str]:
+    def perform_check(self, env: env_tools.PreparedEnv, verbose: bool) -> Tuple[bool, str]:
         """Evaluates the status check and returns a pass/fail with message.
 
         Args:
@@ -74,10 +67,9 @@ class Check(metaclass=abc.ABCMeta):
     def needs_python2_env(self):
         return False
 
-    def run(self,
-            env: env_tools.PreparedEnv,
-            verbose: bool,
-            previous_failures: Set['Check']) -> CheckResult:
+    def run(
+        self, env: env_tools.PreparedEnv, verbose: bool, previous_failures: Set['Check']
+    ) -> CheckResult:
         """Evaluates this check.
 
         Args:
@@ -91,33 +83,32 @@ class Check(metaclass=abc.ABCMeta):
 
         # Skip if a dependency failed.
         if previous_failures.intersection(self.dependencies):
-            print(shell_tools.highlight(
-                'Skipped ' + self.command_line_switch(),
-                shell_tools.YELLOW))
-            return CheckResult(
-                self, False, 'Skipped due to dependency failing.', None)
+            print(
+                shell_tools.highlight('Skipped ' + self.command_line_switch(), shell_tools.YELLOW)
+            )
+            return CheckResult(self, False, 'Skipped due to dependency failing.', None)
 
-        print(shell_tools.highlight(
-            'Running ' + self.command_line_switch(),
-            shell_tools.GREEN))
+        print(shell_tools.highlight('Running ' + self.command_line_switch(), shell_tools.GREEN))
         try:
             success, message = self.perform_check(env, verbose=verbose)
             result = CheckResult(self, success, message, None)
         except Exception as ex:
             result = CheckResult(self, False, 'Unexpected error.', ex)
 
-        print(shell_tools.highlight(
-            'Finished ' + self.command_line_switch(),
-            shell_tools.GREEN if result.success else shell_tools.RED))
+        print(
+            shell_tools.highlight(
+                'Finished ' + self.command_line_switch(),
+                shell_tools.GREEN if result.success else shell_tools.RED,
+            )
+        )
         if verbose:
             print(result)
 
         return result
 
-    def pick_env_and_run_and_report(self, env: env_tools.PreparedEnv,
-                                    verbose: bool,
-                                    previous_failures: Set['Check']
-                                   ) -> CheckResult:
+    def pick_env_and_run_and_report(
+        self, env: env_tools.PreparedEnv, verbose: bool, previous_failures: Set['Check']
+    ) -> CheckResult:
         """Evaluates this check in python 3 or 2.7, and reports to github.
 
         If the prepared environments are not linked to a github repository,
@@ -138,13 +129,10 @@ class Check(metaclass=abc.ABCMeta):
         result = self.run(chosen_env, verbose, previous_failures)
 
         if result.unexpected_error is not None:
-            env.report_status_to_github('error',
-                                        'Unexpected error.',
-                                        self.context())
+            env.report_status_to_github('error', 'Unexpected error.', self.context())
         else:
             env.report_status_to_github(
-                'success' if result.success else 'failure',
-                result.message,
-                self.context())
+                'success' if result.success else 'failure', result.message, self.context()
+            )
 
         return result

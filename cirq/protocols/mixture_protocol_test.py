@@ -24,7 +24,6 @@ class NoMethod:
 
 
 class ReturnsNotImplemented:
-
     def _mixture_(self):
         return NotImplemented
 
@@ -33,7 +32,6 @@ class ReturnsNotImplemented:
 
 
 class ReturnsValidTuple(cirq.SupportsMixture):
-
     def _mixture_(self):
         return ((0.4, 'a'), (0.6, 'b'))
 
@@ -41,32 +39,27 @@ class ReturnsValidTuple(cirq.SupportsMixture):
         return True
 
 
-class ReturnsNonnormalizedTuple():
-
+class ReturnsNonnormalizedTuple:
     def _mixture_(self):
         return ((0.4, 'a'), (0.4, 'b'))
 
 
-class ReturnsNegativeProbability():
-
+class ReturnsNegativeProbability:
     def _mixture_(self):
         return ((0.4, 'a'), (-0.4, 'b'))
 
 
-class ReturnsGreaterThanUnityProbability():
-
+class ReturnsGreaterThanUnityProbability:
     def _mixture_(self):
         return ((1.2, 'a'), (0.4, 'b'))
 
 
-class ReturnsMixtureButNoHasMixture():
-
+class ReturnsMixtureButNoHasMixture:
     def _mixture_(self):
         return ((0.4, 'a'), (0.6, 'b'))
 
 
-class ReturnsUnitary():
-
+class ReturnsUnitary:
     def _unitary_(self):
         return np.ones((2, 2))
 
@@ -74,8 +67,7 @@ class ReturnsUnitary():
         return True
 
 
-class ReturnsNotImplementedUnitary():
-
+class ReturnsNotImplementedUnitary:
     def _unitary_(self):
         return NotImplemented
 
@@ -83,11 +75,14 @@ class ReturnsNotImplementedUnitary():
         return NotImplemented
 
 
-@pytest.mark.parametrize('val,mixture',
-                         ((ReturnsValidTuple(), ((0.4, 'a'), (0.6, 'b'))),
-                          (ReturnsNonnormalizedTuple(), ((0.4, 'a'),
-                                                         (0.4, 'b'))),
-                          (ReturnsUnitary(), ((1.0, np.ones((2, 2))),))))
+@pytest.mark.parametrize(
+    'val,mixture',
+    (
+        (ReturnsValidTuple(), ((0.4, 'a'), (0.6, 'b'))),
+        (ReturnsNonnormalizedTuple(), ((0.4, 'a'), (0.4, 'b'))),
+        (ReturnsUnitary(), ((1.0, np.ones((2, 2))),)),
+    ),
+)
 def test_objects_with_mixture(val, mixture):
     expected_keys, expected_values = zip(*mixture)
     keys, values = zip(*cirq.mixture(val))
@@ -100,8 +95,8 @@ def test_objects_with_mixture(val, mixture):
 
 
 @pytest.mark.parametrize(
-    'val',
-    (NoMethod(), ReturnsNotImplemented(), ReturnsNotImplementedUnitary()))
+    'val', (NoMethod(), ReturnsNotImplemented(), ReturnsNotImplementedUnitary())
+)
 def test_objects_with_no_mixture(val):
     with pytest.raises(TypeError, match="mixture"):
         _ = cirq.mixture(val)
@@ -119,7 +114,6 @@ def test_has_mixture():
     assert not cirq.has_mixture(ReturnsNotImplementedUnitary())
 
     class NoAtom(cirq.Operation):
-
         @property
         def qubits(self):
             return cirq.LineQubit.range(2)
@@ -128,12 +122,10 @@ def test_has_mixture():
             raise NotImplementedError()
 
     class No1:
-
         def _decompose_(self):
             return [NoAtom()]
 
     class Yes1:
-
         def _decompose_(self):
             return [cirq.X(cirq.LineQubit(0))]
 
@@ -148,9 +140,13 @@ def test_valid_mixture():
 
 
 @pytest.mark.parametrize(
-    'val,message', ((ReturnsNonnormalizedTuple(), '1.0'),
-                    (ReturnsNegativeProbability(), 'less than 0'),
-                    (ReturnsGreaterThanUnityProbability(), 'greater than 1')))
+    'val,message',
+    (
+        (ReturnsNonnormalizedTuple(), '1.0'),
+        (ReturnsNegativeProbability(), 'less than 0'),
+        (ReturnsGreaterThanUnityProbability(), 'greater than 1'),
+    ),
+)
 def test_invalid_mixture(val, message):
     with pytest.raises(ValueError, match=message):
         cirq.validate_mixture(val)
@@ -164,6 +160,5 @@ def test_missing_mixture():
 def test_deprecated_mixture_channel():
     with cirq.testing.assert_logs('"cirq.mixture"', ' mixture_channel '):
         _ = cirq.mixture_channel(cirq.X)
-    with cirq.testing.assert_logs('"cirq.has_mixture"',
-                                  ' has_mixture_channel '):
+    with cirq.testing.assert_logs('"cirq.has_mixture"', ' has_mixture_channel '):
         _ = cirq.has_mixture_channel(cirq.X)

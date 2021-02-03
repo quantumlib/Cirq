@@ -30,4 +30,5 @@ document(
 
     The ordering can either be specified by an iterable (such as a list) with
     the qubits in the desired order, or by a `cirq.QubitOrder` object.
-    """)
+    """,
+)

@@ -24,22 +24,18 @@ def _unitaries_allclose(circuit1, circuit2):
         (cirq.CZ, 8),
         (cirq.SWAP, 7),
         (cirq.CNOT, 9),
-        (cirq.ISWAP**0.5, 1),
-        (cirq.ISWAP**-0.5, 1),
+        (cirq.ISWAP ** 0.5, 1),
+        (cirq.ISWAP ** -0.5, 1),
         (cirq.ISwapPowGate(exponent=0.5), 1),
         (cirq.ISwapPowGate(exponent=-0.5), 1),
         (cirq.FSimGate(theta=np.pi / 4, phi=0), 1),
-        *[(cirq.SwapPowGate(exponent=a), 13)
-          for a in np.linspace(0, 2 * np.pi, 20)],
-        *[(cirq.CZPowGate(exponent=a), 8)
-          for a in np.linspace(0, 2 * np.pi, 20)],
-        *[(cirq.ISwapPowGate(exponent=a), 5)
-          for a in np.linspace(0, 2 * np.pi, 20)],
-        *[(cirq.CNotPowGate(exponent=a), 9)
-          for a in np.linspace(0, 2 * np.pi, 20)],
-        *[(cirq.FSimGate(theta=a, phi=a), 13)
-          for a in np.linspace(0, 2 * np.pi, 20)]
-    ])
+        *[(cirq.SwapPowGate(exponent=a), 13) for a in np.linspace(0, 2 * np.pi, 20)],
+        *[(cirq.CZPowGate(exponent=a), 8) for a in np.linspace(0, 2 * np.pi, 20)],
+        *[(cirq.ISwapPowGate(exponent=a), 5) for a in np.linspace(0, 2 * np.pi, 20)],
+        *[(cirq.CNotPowGate(exponent=a), 9) for a in np.linspace(0, 2 * np.pi, 20)],
+        *[(cirq.FSimGate(theta=a, phi=a), 13) for a in np.linspace(0, 2 * np.pi, 20)],
+    ],
+)
 def test_two_qubit_gates(gate: cirq.Gate, expected_length: int):
     """Tests that two qubit gates decompose to an equivalent and
     serializable circuit with the expected length (or less).
@@ -54,14 +50,17 @@ def test_two_qubit_gates(gate: cirq.Gate, expected_length: int):
     assert _unitaries_allclose(original_circuit, converted_circuit)
 
 
-@pytest.mark.parametrize('gate, expected_length', [
-    (cirq.FSimGate(theta=sympy.Symbol('t'), phi=0), 8),
-    (cirq.FSimGate(theta=0, phi=sympy.Symbol('t')), 8),
-    (cirq.ISwapPowGate(exponent=sympy.Symbol('t')), 5),
-    (cirq.SwapPowGate(exponent=sympy.Symbol('t')), 13),
-    (cirq.CNotPowGate(exponent=sympy.Symbol('t')), 9),
-    (cirq.CZPowGate(exponent=sympy.Symbol('t')), 8),
-])
+@pytest.mark.parametrize(
+    'gate, expected_length',
+    [
+        (cirq.FSimGate(theta=sympy.Symbol('t'), phi=0), 8),
+        (cirq.FSimGate(theta=0, phi=sympy.Symbol('t')), 8),
+        (cirq.ISwapPowGate(exponent=sympy.Symbol('t')), 5),
+        (cirq.SwapPowGate(exponent=sympy.Symbol('t')), 13),
+        (cirq.CNotPowGate(exponent=sympy.Symbol('t')), 9),
+        (cirq.CZPowGate(exponent=sympy.Symbol('t')), 8),
+    ],
+)
 def test_two_qubit_gates_with_symbols(gate: cirq.Gate, expected_length: int):
     """Tests that the gates with symbols decompose without error into a
     circuit that has an equivalent unitary form.
@@ -77,7 +76,8 @@ def test_two_qubit_gates_with_symbols(gate: cirq.Gate, expected_length: int):
     for val in np.linspace(0, 2 * np.pi, 12):
         assert _unitaries_allclose(
             cirq.resolve_parameters(original_circuit, {'t': val}),
-            cirq.resolve_parameters(converted_circuit, {'t': val}))
+            cirq.resolve_parameters(converted_circuit, {'t': val}),
+        )
 
 
 def test_cphase():
@@ -104,13 +104,11 @@ def test_givens_rotation():
         cgoc.ConvertToSqrtIswapGates().optimize_circuit(test_program)
         test_unitary = cirq.unitary(test_program)
         np.testing.assert_allclose(
-            4,
-            np.abs(np.trace(
-                np.conjugate(np.transpose(test_unitary)) @ unitary)))
+            4, np.abs(np.trace(np.conjugate(np.transpose(test_unitary)) @ unitary))
+        )
 
 
 def test_three_qubit_gate():
-
     class ThreeQubitGate(cirq.ThreeQubitGate):
         pass
 

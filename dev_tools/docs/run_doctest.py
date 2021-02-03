@@ -41,24 +41,21 @@ ModuleType = Any
 
 
 class Doctest:
-
-    def __init__(self, file_name: str, mod: ModuleType,
-                 test_globals: Dict[str, Any]):
+    def __init__(self, file_name: str, mod: ModuleType, test_globals: Dict[str, Any]):
         self.file_name = file_name
         self.mod = mod
         self.test_globals = test_globals
 
     def run(self) -> doctest.TestResults:
-        return doctest.testmod(self.mod,
-                               globs=self.test_globals,
-                               report=False,
-                               verbose=False)
+        return doctest.testmod(self.mod, globs=self.test_globals, report=False, verbose=False)
 
 
-def run_tests(file_paths: Iterable[str],
-              include_modules: bool = True,
-              include_local: bool = True,
-              quiet: bool = True) -> doctest.TestResults:
+def run_tests(
+    file_paths: Iterable[str],
+    include_modules: bool = True,
+    include_local: bool = True,
+    quiet: bool = True,
+) -> doctest.TestResults:
     """Runs code snippets from docstrings found in each file.
 
     Args:
@@ -75,12 +72,12 @@ def run_tests(file_paths: Iterable[str],
 
     # Ignore calls to `plt.show()`.
     import matplotlib.pyplot as plt
+
     plt.switch_backend('pdf')
 
-    tests = load_tests(file_paths,
-                       include_modules=include_modules,
-                       include_local=include_local,
-                       quiet=quiet)
+    tests = load_tests(
+        file_paths, include_modules=include_modules, include_local=include_local, quiet=quiet
+    )
     if not quiet:
         print()
     results, error_messages = exec_tests(tests, quiet=quiet)
@@ -91,10 +88,12 @@ def run_tests(file_paths: Iterable[str],
     return results
 
 
-def load_tests(file_paths: Iterable[str],
-               include_modules: bool = True,
-               include_local: bool = True,
-               quiet: bool = True) -> List[Doctest]:
+def load_tests(
+    file_paths: Iterable[str],
+    include_modules: bool = True,
+    include_local: bool = True,
+    quiet: bool = True,
+) -> List[Doctest]:
     """Prepares tests for code snippets from docstrings found in each file.
 
     Args:
@@ -116,6 +115,7 @@ def load_tests(file_paths: Iterable[str],
         import numpy
         import sympy
         import pandas
+
         base_globals = {'cirq': cirq, 'np': numpy, 'sympy': sympy, 'pd': pandas}
     else:
         base_globals = {}
@@ -141,8 +141,9 @@ def load_tests(file_paths: Iterable[str],
     return tests
 
 
-def exec_tests(tests: Iterable[Doctest],
-               quiet: bool = True) -> Tuple[doctest.TestResults, List[str]]:
+def exec_tests(
+    tests: Iterable[Doctest], quiet: bool = True
+) -> Tuple[doctest.TestResults, List[str]]:
     """Runs a list of `Doctest`s and collects and returns any error messages.
 
     Args:
@@ -169,8 +170,10 @@ def exec_tests(tests: Iterable[Doctest],
             try_print('F', end='', flush=True)
             error = shell_tools.highlight(
                 '{}\n{} failed, {} passed, {} total\n'.format(
-                    test.file_name, r.failed, r.attempted - r.failed,
-                    r.attempted), shell_tools.RED)
+                    test.file_name, r.failed, r.attempted - r.failed, r.attempted
+                ),
+                shell_tools.RED,
+            )
             error += out.content()
             error_messages.append(error)
         else:
@@ -178,8 +181,7 @@ def exec_tests(tests: Iterable[Doctest],
 
     try_print()
 
-    return doctest.TestResults(failed=failed,
-                               attempted=attempted), error_messages
+    return doctest.TestResults(failed=failed, attempted=attempted), error_messages
 
 
 def import_file(file_path: str) -> ModuleType:
@@ -208,24 +210,23 @@ def main():
 
     file_names = glob.glob('cirq/**/*.py', recursive=True)
     # Remove the engine client code.
-    file_names = [
-        f for f in file_names if not f.startswith('cirq/google/engine/client/')
-    ]
-    failed, attempted = run_tests(file_names,
-                                  include_modules=True,
-                                  include_local=False,
-                                  quiet=quiet)
+    file_names = [f for f in file_names if not f.startswith('cirq/google/engine/client/')]
+    failed, attempted = run_tests(
+        file_names, include_modules=True, include_local=False, quiet=quiet
+    )
 
     if failed != 0:
         print(
             shell_tools.highlight(
                 'Failed: {} failed, {} passed, {} total'.format(
-                    failed, attempted - failed, attempted), shell_tools.RED))
+                    failed, attempted - failed, attempted
+                ),
+                shell_tools.RED,
+            )
+        )
         sys.exit(1)
     else:
-        print(
-            shell_tools.highlight('Passed: {}'.format(attempted),
-                                  shell_tools.GREEN))
+        print(shell_tools.highlight('Passed: {}'.format(attempted), shell_tools.GREEN))
         sys.exit(0)
 
 

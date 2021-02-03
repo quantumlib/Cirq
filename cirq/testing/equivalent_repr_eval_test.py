@@ -23,13 +23,10 @@ def test_external():
         cirq.testing.assert_equivalent_repr(t)
         cirq.testing.assert_equivalent_repr(t, setup_code='')
 
-    cirq.testing.assert_equivalent_repr(
-        np.array([5]),
-        setup_code='from numpy import array')
+    cirq.testing.assert_equivalent_repr(np.array([5]), setup_code='from numpy import array')
 
     with pytest.raises(AssertionError, match='not defined'):
-        cirq.testing.assert_equivalent_repr(
-            np.array([5]))
+        cirq.testing.assert_equivalent_repr(np.array([5]))
 
 
 def test_custom_class_repr():
@@ -57,39 +54,33 @@ def test_custom_class_repr():
             return self.repr_str
 
     cirq.testing.assert_equivalent_repr(
-        CustomRepr('b', "CustomRepr('b')"),
-        setup_code=CustomRepr.setup_code)
+        CustomRepr('b', "CustomRepr('b')"), setup_code=CustomRepr.setup_code
+    )
     cirq.testing.assert_equivalent_repr(
-        CustomRepr('a', "CustomRepr('a')"),
-        setup_code=CustomRepr.setup_code)
+        CustomRepr('a', "CustomRepr('a')"), setup_code=CustomRepr.setup_code
+    )
 
     # Non-equal values.
     with pytest.raises(AssertionError, match=r'eval\(repr\(value\)\): a'):
-        cirq.testing.assert_equivalent_repr(
-            CustomRepr('a', "'a'"))
+        cirq.testing.assert_equivalent_repr(CustomRepr('a', "'a'"))
     with pytest.raises(AssertionError, match=r'eval\(repr\(value\)\): 1'):
-        cirq.testing.assert_equivalent_repr(
-            CustomRepr('a', "1"))
+        cirq.testing.assert_equivalent_repr(CustomRepr('a', "1"))
 
     # Single failure out of many.
     with pytest.raises(AssertionError, match=r'eval\(repr\(value\)\): a'):
-        cirq.testing.assert_equivalent_repr(
-            CustomRepr('a', "'a'"))
+        cirq.testing.assert_equivalent_repr(CustomRepr('a', "'a'"))
 
     # Syntax errors.
     with pytest.raises(AssertionError, match='SyntaxError'):
-        cirq.testing.assert_equivalent_repr(
-            CustomRepr('a', "("))
+        cirq.testing.assert_equivalent_repr(CustomRepr('a', "("))
     with pytest.raises(AssertionError, match='SyntaxError'):
-        cirq.testing.assert_equivalent_repr(
-            CustomRepr('a', "return 1"))
+        cirq.testing.assert_equivalent_repr(CustomRepr('a', "return 1"))
 
     # Not dottable.
     with pytest.raises(AssertionError, match=r'dottable'):
         cirq.testing.assert_equivalent_repr(
-            CustomRepr(5, "CustomRepr(5)**1"),
-            setup_code=CustomRepr.setup_code)
-
+            CustomRepr(5, "CustomRepr(5)**1"), setup_code=CustomRepr.setup_code
+        )
 
 
 def test_imports_cirq_by_default():

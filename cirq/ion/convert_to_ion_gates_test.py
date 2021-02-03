@@ -30,10 +30,7 @@ class NoUnitary(cirq.SingleQubitGate):
 
 class OtherCNOT(cirq.TwoQubitGate):
     def _unitary_(self) -> np.ndarray:
-        return np.array([[1, 0, 0, 0],
-                         [0, 1, 0, 0],
-                         [0, 0, 0, 1],
-                         [0, 0, 1, 0]])
+        return np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]])
 
 
 def test_convert_to_ion_gates():
@@ -49,27 +46,33 @@ def test_convert_to_ion_gates():
         cirq.ion.ConvertToIonGates().convert_one(NoUnitary().on(q0))
 
     no_unitary_op = NoUnitary().on(q0)
-    assert cirq.ion.ConvertToIonGates(ignore_failures=True).convert_one(
-        no_unitary_op) == [no_unitary_op]
+    assert cirq.ion.ConvertToIonGates(ignore_failures=True).convert_one(no_unitary_op) == [
+        no_unitary_op
+    ]
 
     rx = cirq.ion.ConvertToIonGates().convert_one(OtherX().on(q0))
     rop = cirq.ion.ConvertToIonGates().convert_one(op)
+    assert cirq.approx_eq(rx, [cirq.PhasedXPowGate(phase_exponent=1.0).on(cirq.GridQubit(0, 0))])
     assert cirq.approx_eq(
-        rx, [cirq.PhasedXPowGate(phase_exponent=1.0).on(cirq.GridQubit(0, 0))])
-    assert cirq.approx_eq(rop, [
-        cirq.ry(np.pi / 2).on(op.qubits[0]),
-        cirq.ms(np.pi / 4).on(op.qubits[0], op.qubits[1]),
-        cirq.rx(-1 * np.pi / 2).on(op.qubits[0]),
-        cirq.rx(-1 * np.pi / 2).on(op.qubits[1]),
-        cirq.ry(-1 * np.pi / 2).on(op.qubits[0])
-    ])
+        rop,
+        [
+            cirq.ry(np.pi / 2).on(op.qubits[0]),
+            cirq.ms(np.pi / 4).on(op.qubits[0], op.qubits[1]),
+            cirq.rx(-1 * np.pi / 2).on(op.qubits[0]),
+            cirq.rx(-1 * np.pi / 2).on(op.qubits[1]),
+            cirq.ry(-1 * np.pi / 2).on(op.qubits[0]),
+        ],
+    )
 
     rcnot = cirq.ion.ConvertToIonGates().convert_one(OtherCNOT().on(q0, q1))
-    assert cirq.approx_eq([op for op in rcnot if len(op.qubits) > 1],
-                          [cirq.ms(-0.5 * np.pi / 2).on(q0, q1)],
-                          atol=1e-4)
+    assert cirq.approx_eq(
+        [op for op in rcnot if len(op.qubits) > 1],
+        [cirq.ms(-0.5 * np.pi / 2).on(q0, q1)],
+        atol=1e-4,
+    )
     assert cirq.allclose_up_to_global_phase(
-        cirq.unitary(cirq.Circuit(rcnot)), cirq.unitary(OtherCNOT().on(q0, q1)))
+        cirq.unitary(cirq.Circuit(rcnot)), cirq.unitary(OtherCNOT().on(q0, q1))
+    )
 
 
 def test_convert_to_ion_circuit():
@@ -79,22 +82,17 @@ def test_convert_to_ion_circuit():
     ion_device = cirq.IonDevice(us, us, us, [q0, q1])
 
     clifford_circuit_1 = cirq.Circuit()
-    clifford_circuit_1.append(
-        [cirq.X(q0), cirq.H(q1),
-         cirq.ms(np.pi / 4).on(q0, q1)])
-    ion_circuit_1 = cirq.ion.ConvertToIonGates().convert_circuit(
-        clifford_circuit_1)
+    clifford_circuit_1.append([cirq.X(q0), cirq.H(q1), cirq.ms(np.pi / 4).on(q0, q1)])
+    ion_circuit_1 = cirq.ion.ConvertToIonGates().convert_circuit(clifford_circuit_1)
 
     ion_device.validate_circuit(ion_circuit_1)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        clifford_circuit_1, ion_circuit_1, atol=1e-6)
+        clifford_circuit_1, ion_circuit_1, atol=1e-6
+    )
     clifford_circuit_2 = cirq.Circuit()
-    clifford_circuit_2.append(
-        [cirq.X(q0),
-         cirq.CNOT(q1, q0),
-         cirq.ms(np.pi / 4).on(q0, q1)])
-    ion_circuit_2 = cirq.ion.ConvertToIonGates().convert_circuit(
-        clifford_circuit_2)
+    clifford_circuit_2.append([cirq.X(q0), cirq.CNOT(q1, q0), cirq.ms(np.pi / 4).on(q0, q1)])
+    ion_circuit_2 = cirq.ion.ConvertToIonGates().convert_circuit(clifford_circuit_2)
     ion_device.validate_circuit(ion_circuit_2)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        clifford_circuit_2, ion_circuit_2, atol=1e-6)
+        clifford_circuit_2, ion_circuit_2, atol=1e-6
+    )

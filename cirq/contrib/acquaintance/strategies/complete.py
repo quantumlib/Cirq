@@ -19,16 +19,17 @@ from cirq import circuits, ops
 from cirq.contrib.acquaintance.devices import UnconstrainedAcquaintanceDevice
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.mutation_utils import (
-    expose_acquaintance_gates, replace_acquaintance_with_swap_network)
+    expose_acquaintance_gates,
+    replace_acquaintance_with_swap_network,
+)
 
 if TYPE_CHECKING:
     import cirq
 
 
-def complete_acquaintance_strategy(qubit_order: Sequence['cirq.Qid'],
-                                   acquaintance_size: int = 0,
-                                   swap_gate: 'cirq.Gate' = ops.SWAP
-                                  ) -> 'cirq.Circuit':
+def complete_acquaintance_strategy(
+    qubit_order: Sequence['cirq.Qid'], acquaintance_size: int = 0, swap_gate: 'cirq.Gate' = ops.SWAP
+) -> 'cirq.Circuit':
     """
     Returns an acquaintance strategy capable of executing a gate corresponding
     to any set of at most acquaintance_size qubits.
@@ -51,13 +52,12 @@ def complete_acquaintance_strategy(qubit_order: Sequence['cirq.Qid'],
     if acquaintance_size > len(qubit_order):
         return circuits.Circuit(device=UnconstrainedAcquaintanceDevice)
     if acquaintance_size == len(qubit_order):
-        return circuits.Circuit(acquaint(*qubit_order),
-                                device=UnconstrainedAcquaintanceDevice)
+        return circuits.Circuit(acquaint(*qubit_order), device=UnconstrainedAcquaintanceDevice)
 
-    strategy = circuits.Circuit((acquaint(q) for q in qubit_order),
-                                device=UnconstrainedAcquaintanceDevice)
+    strategy = circuits.Circuit(
+        (acquaint(q) for q in qubit_order), device=UnconstrainedAcquaintanceDevice
+    )
     for size_to_acquaint in range(2, acquaintance_size + 1):
         expose_acquaintance_gates(strategy)
-        replace_acquaintance_with_swap_network(strategy, qubit_order,
-                                               size_to_acquaint, swap_gate)
+        replace_acquaintance_with_swap_network(strategy, qubit_order, size_to_acquaint, swap_gate)
     return strategy

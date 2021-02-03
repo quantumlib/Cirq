@@ -1,4 +1,4 @@
-# Device Specifications
+# Device specifications
 
 The device specification proto defines basic layout of a device as well as the
 gate set and serialized ids that can be used.  This specification can be used

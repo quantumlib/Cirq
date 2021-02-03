@@ -40,41 +40,44 @@ def test_create_program(client_constructor):
     code = qtypes.any_pb2.Any()
     labels = {'hello': 'world'}
     client = EngineClient()
-    assert client.create_program('proj', 'prog', code, 'A program',
-                                 labels) == ('prog', result)
+    assert client.create_program('proj', 'prog', code, 'A program', labels) == ('prog', result)
     assert grpc_client.create_quantum_program.call_args[0] == (
         'projects/proj',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog',
-                              code=code,
-                              description='A program',
-                              labels=labels), False)
+        qtypes.QuantumProgram(
+            name='projects/proj/programs/prog', code=code, description='A program', labels=labels
+        ),
+        False,
+    )
 
-    assert client.create_program('proj', 'prog', code,
-                                 'A program') == ('prog', result)
+    assert client.create_program('proj', 'prog', code, 'A program') == ('prog', result)
     assert grpc_client.create_quantum_program.call_args[0] == (
         'projects/proj',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog',
-                              code=code,
-                              description='A program'), False)
+        qtypes.QuantumProgram(
+            name='projects/proj/programs/prog', code=code, description='A program'
+        ),
+        False,
+    )
 
-    assert client.create_program('proj', 'prog', code,
-                                 labels=labels) == ('prog', result)
+    assert client.create_program('proj', 'prog', code, labels=labels) == ('prog', result)
     assert grpc_client.create_quantum_program.call_args[0] == (
         'projects/proj',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog',
-                              code=code,
-                              labels=labels), False)
+        qtypes.QuantumProgram(name='projects/proj/programs/prog', code=code, labels=labels),
+        False,
+    )
 
     assert client.create_program('proj', 'prog', code) == ('prog', result)
     assert grpc_client.create_quantum_program.call_args[0] == (
         'projects/proj',
-        qtypes.QuantumProgram(name='projects/proj/programs/prog',
-                              code=code), False)
+        qtypes.QuantumProgram(name='projects/proj/programs/prog', code=code),
+        False,
+    )
 
-    assert client.create_program('proj', program_id=None,
-                                 code=code) == ('prog', result)
+    assert client.create_program('proj', program_id=None, code=code) == ('prog', result)
     assert grpc_client.create_quantum_program.call_args[0] == (
-        'projects/proj', qtypes.QuantumProgram(code=code), False)
+        'projects/proj',
+        qtypes.QuantumProgram(code=code),
+        False,
+    )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -86,12 +89,10 @@ def test_get_program(client_constructor):
 
     client = EngineClient()
     assert client.get_program('proj', 'prog', False) == result
-    assert grpc_client.get_quantum_program.call_args[0] == (
-        'projects/proj/programs/prog', False)
+    assert grpc_client.get_quantum_program.call_args[0] == ('projects/proj/programs/prog', False)
 
     assert client.get_program('proj', 'prog', True) == result
-    assert grpc_client.get_quantum_program.call_args[0] == (
-        'projects/proj/programs/prog', True)
+    assert grpc_client.get_quantum_program.call_args[0] == ('projects/proj/programs/prog', True)
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -100,7 +101,7 @@ def test_list_program(client_constructor):
 
     results = [
         qtypes.QuantumProgram(name='projects/proj/programs/prog1'),
-        qtypes.QuantumProgram(name='projects/proj/programs/prog2')
+        qtypes.QuantumProgram(name='projects/proj/programs/prog2'),
     ]
     grpc_client.list_quantum_programs.return_value = results
 
@@ -860,11 +861,29 @@ def test_api_retry_5xx_errors(client_constructor):
     grpc_client.get_quantum_program.side_effect = exceptions.ServiceUnavailable(
         'internal error')
 
-    client = EngineClient(max_retry_delay_seconds=1)
+    client = EngineClient(max_retry_delay_seconds=0.3)
     with pytest.raises(TimeoutError,
                        match='Reached max retry attempts.*internal error'):
         client.get_program('proj', 'prog', False)
-    assert grpc_client.get_quantum_program.call_count > 1
+    assert grpc_client.get_quantum_program.call_count == 3
+
+
+@mock.patch('time.sleep', return_value=None)
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_api_retry_times(client_constructor, mock_time):
+    grpc_client = setup_mock_(client_constructor)
+    grpc_client.get_quantum_program.side_effect = exceptions.ServiceUnavailable(
+        'internal error')
+
+    client = EngineClient(max_retry_delay_seconds=0.3)
+    with pytest.raises(TimeoutError,
+                       match='Reached max retry attempts.*internal error'):
+        client.get_program('proj', 'prog', False)
+    assert grpc_client.get_quantum_program.call_count == 3
+
+    assert len(mock_time.call_args_list) == 2
+    assert all(
+        x == y for (x, _), y in zip(mock_time.call_args_list, [(0.1,), (0.2,)]))
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)

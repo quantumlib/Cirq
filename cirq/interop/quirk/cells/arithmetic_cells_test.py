@@ -24,10 +24,10 @@ from cirq import quirk_url_to_circuit
 
 def test_arithmetic_comparison_gates():
     with pytest.raises(ValueError, match='Missing input'):
-        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":'
-                                 '[["^A<B"]]}')
-    assert_url_to_circuit_returns('{"cols":[["^A<B","inputA2",1,"inputB2"]]}',
-                                  diagram="""
+        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":[["^A<B"]]}')
+    assert_url_to_circuit_returns(
+        '{"cols":[["^A<B","inputA2",1,"inputB2"]]}',
+        diagram="""
 0: ───Quirk(^A<B)───
       │
 1: ───A0────────────
@@ -38,73 +38,90 @@ def test_arithmetic_comparison_gates():
       │
 4: ───B1────────────
         """,
-                                  maps={
-                                      0b_0_00_10: 0b_1_00_10,
-                                      0b_1_00_10: 0b_0_00_10,
-                                      0b_0_11_10: 0b_0_11_10,
-                                      0b_0_10_10: 0b_0_10_10,
-                                      0b_0_01_10: 0b_1_01_10,
-                                  })
+        maps={
+            0b_0_00_10: 0b_1_00_10,
+            0b_1_00_10: 0b_0_00_10,
+            0b_0_11_10: 0b_0_11_10,
+            0b_0_10_10: 0b_0_10_10,
+            0b_0_01_10: 0b_1_01_10,
+        },
+    )
 
-    assert_url_to_circuit_returns('{"cols":[["^A>B","inputA2",1,"inputB2"]]}',
-                                  maps={
-                                      0b_0_11_10: 0b_1_11_10,
-                                      0b_0_10_10: 0b_0_10_10,
-                                      0b_0_01_10: 0b_0_01_10,
-                                  })
+    assert_url_to_circuit_returns(
+        '{"cols":[["^A>B","inputA2",1,"inputB2"]]}',
+        maps={
+            0b_0_11_10: 0b_1_11_10,
+            0b_0_10_10: 0b_0_10_10,
+            0b_0_01_10: 0b_0_01_10,
+        },
+    )
 
-    assert_url_to_circuit_returns('{"cols":[["^A>=B","inputA2",1,"inputB2"]]}',
-                                  maps={
-                                      0b_0_11_10: 0b_1_11_10,
-                                      0b_0_10_10: 0b_1_10_10,
-                                      0b_0_01_10: 0b_0_01_10,
-                                  })
+    assert_url_to_circuit_returns(
+        '{"cols":[["^A>=B","inputA2",1,"inputB2"]]}',
+        maps={
+            0b_0_11_10: 0b_1_11_10,
+            0b_0_10_10: 0b_1_10_10,
+            0b_0_01_10: 0b_0_01_10,
+        },
+    )
 
-    assert_url_to_circuit_returns('{"cols":[["^A<=B","inputA2",1,"inputB2"]]}',
-                                  maps={
-                                      0b_0_11_10: 0b_0_11_10,
-                                      0b_0_10_10: 0b_1_10_10,
-                                      0b_0_01_10: 0b_1_01_10,
-                                  })
+    assert_url_to_circuit_returns(
+        '{"cols":[["^A<=B","inputA2",1,"inputB2"]]}',
+        maps={
+            0b_0_11_10: 0b_0_11_10,
+            0b_0_10_10: 0b_1_10_10,
+            0b_0_01_10: 0b_1_01_10,
+        },
+    )
 
-    assert_url_to_circuit_returns('{"cols":[["^A=B","inputA2",1,"inputB2"]]}',
-                                  maps={
-                                      0b_0_11_10: 0b_0_11_10,
-                                      0b_0_10_10: 0b_1_10_10,
-                                      0b_0_01_10: 0b_0_01_10,
-                                  })
+    assert_url_to_circuit_returns(
+        '{"cols":[["^A=B","inputA2",1,"inputB2"]]}',
+        maps={
+            0b_0_11_10: 0b_0_11_10,
+            0b_0_10_10: 0b_1_10_10,
+            0b_0_01_10: 0b_0_01_10,
+        },
+    )
 
-    assert_url_to_circuit_returns('{"cols":[["^A!=B","inputA2",1,"inputB2"]]}',
-                                  maps={
-                                      0b_0_11_10: 0b_1_11_10,
-                                      0b_0_10_10: 0b_0_10_10,
-                                      0b_0_01_10: 0b_1_01_10,
-                                  })
+    assert_url_to_circuit_returns(
+        '{"cols":[["^A!=B","inputA2",1,"inputB2"]]}',
+        maps={
+            0b_0_11_10: 0b_1_11_10,
+            0b_0_10_10: 0b_0_10_10,
+            0b_0_01_10: 0b_1_01_10,
+        },
+    )
 
 
 def test_arithmetic_unlisted_misc_gates():
-    assert_url_to_circuit_returns('{"cols":[["^=A3",1,1,"inputA2"]]}',
-                                  maps={
-                                      0b_000_00: 0b_000_00,
-                                      0b_000_01: 0b_001_01,
-                                      0b_000_10: 0b_010_10,
-                                      0b_111_11: 0b_100_11,
-                                  })
+    assert_url_to_circuit_returns(
+        '{"cols":[["^=A3",1,1,"inputA2"]]}',
+        maps={
+            0b_000_00: 0b_000_00,
+            0b_000_01: 0b_001_01,
+            0b_000_10: 0b_010_10,
+            0b_111_11: 0b_100_11,
+        },
+    )
 
-    assert_url_to_circuit_returns('{"cols":[["^=A2",1,"inputA3"]]}',
-                                  maps={
-                                      0b_00_000: 0b_00_000,
-                                      0b_00_001: 0b_01_001,
-                                      0b_00_010: 0b_10_010,
-                                      0b_00_100: 0b_00_100,
-                                      0b_11_111: 0b_00_111,
-                                  })
+    assert_url_to_circuit_returns(
+        '{"cols":[["^=A2",1,"inputA3"]]}',
+        maps={
+            0b_00_000: 0b_00_000,
+            0b_00_001: 0b_01_001,
+            0b_00_010: 0b_10_010,
+            0b_00_100: 0b_00_100,
+            0b_11_111: 0b_00_111,
+        },
+    )
 
-    assert_url_to_circuit_returns('{"cols":[[{"id":"setA","arg":5}],["^=A4"]]}',
-                                  maps={
-                                      0b_0000: 0b_0101,
-                                      0b_1111: 0b_1010,
-                                  })
+    assert_url_to_circuit_returns(
+        '{"cols":[[{"id":"setA","arg":5}],["^=A4"]]}',
+        maps={
+            0b_0000: 0b_0101,
+            0b_1111: 0b_1010,
+        },
+    )
 
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":11}],["+cntA4"]]}',
@@ -112,21 +129,24 @@ def test_arithmetic_unlisted_misc_gates():
             0b_0000: 0b_0011,
             0b_0001: 0b_0100,
             0b_1111: 0b_0010,
-        })
+        },
+    )
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":5}],["+cntA4"]]}',
         maps={
             0b_0000: 0b_0010,
             0b_0001: 0b_0011,
             0b_1111: 0b_0001,
-        })
+        },
+    )
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":7}],["-cntA4"]]}',
         maps={
             0b_0000: 0b_1101,
             0b_0001: 0b_1110,
             0b_1111: 0b_1100,
-        })
+        },
+    )
 
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":5}],["Flip<A4"]]}',
@@ -139,7 +159,8 @@ def test_arithmetic_unlisted_misc_gates():
             0b_0010: 0b_0010,
             0b_0001: 0b_0011,
             0b_0000: 0b_0100,
-        })
+        },
+    )
 
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":6}],["Flip<A4"]]}',
@@ -152,57 +173,70 @@ def test_arithmetic_unlisted_misc_gates():
             0b_0010: 0b_0011,
             0b_0001: 0b_0100,
             0b_0000: 0b_0101,
-        })
+        },
+    )
 
 
 def test_arithmetic_addition_gates():
-    assert_url_to_circuit_returns('{"cols":[["inc3"]]}',
-                                  diagram="""
+    assert_url_to_circuit_returns(
+        '{"cols":[["inc3"]]}',
+        diagram="""
 0: ───Quirk(inc3)───
       │
 1: ───#2────────────
       │
 2: ───#3────────────
             """,
-                                  maps={
-                                      0: 1,
-                                      3: 4,
-                                      7: 0,
-                                  })
-    assert_url_to_circuit_returns('{"cols":[["dec3"]]}',
-                                  maps={
-                                      0: 7,
-                                      3: 2,
-                                      7: 6,
-                                  })
-    assert_url_to_circuit_returns('{"cols":[["+=A2",1,"inputA2"]]}',
-                                  maps={
-                                      0b_00_00: 0b_00_00,
-                                      0b_01_10: 0b_11_10,
-                                      0b_10_11: 0b_01_11,
-                                  })
-    assert_url_to_circuit_returns('{"cols":[["-=A2",1,"inputA2"]]}',
-                                  maps={
-                                      0b_00_00: 0b_00_00,
-                                      0b_01_10: 0b_11_10,
-                                      0b_10_11: 0b_11_11,
-                                  })
+        maps={
+            0: 1,
+            3: 4,
+            7: 0,
+        },
+    )
+    assert_url_to_circuit_returns(
+        '{"cols":[["dec3"]]}',
+        maps={
+            0: 7,
+            3: 2,
+            7: 6,
+        },
+    )
+    assert_url_to_circuit_returns(
+        '{"cols":[["+=A2",1,"inputA2"]]}',
+        maps={
+            0b_00_00: 0b_00_00,
+            0b_01_10: 0b_11_10,
+            0b_10_11: 0b_01_11,
+        },
+    )
+    assert_url_to_circuit_returns(
+        '{"cols":[["-=A2",1,"inputA2"]]}',
+        maps={
+            0b_00_00: 0b_00_00,
+            0b_01_10: 0b_11_10,
+            0b_10_11: 0b_11_11,
+        },
+    )
 
 
 def test_arithmetic_multiply_accumulate_gates():
-    assert_url_to_circuit_returns('{"cols":[["+=AA4",1,1,1,"inputA2"]]}',
-                                  maps={
-                                      0b_0000_00: 0b_0000_00,
-                                      0b_0100_10: 0b_1000_10,
-                                      0b_1000_11: 0b_0001_11,
-                                  })
+    assert_url_to_circuit_returns(
+        '{"cols":[["+=AA4",1,1,1,"inputA2"]]}',
+        maps={
+            0b_0000_00: 0b_0000_00,
+            0b_0100_10: 0b_1000_10,
+            0b_1000_11: 0b_0001_11,
+        },
+    )
 
-    assert_url_to_circuit_returns('{"cols":[["-=AA4",1,1,1,"inputA2"]]}',
-                                  maps={
-                                      0b_0000_00: 0b_0000_00,
-                                      0b_0100_10: 0b_0000_10,
-                                      0b_1000_11: 0b_1111_11,
-                                  })
+    assert_url_to_circuit_returns(
+        '{"cols":[["-=AA4",1,1,1,"inputA2"]]}',
+        maps={
+            0b_0000_00: 0b_0000_00,
+            0b_0100_10: 0b_0000_10,
+            0b_1000_11: 0b_1111_11,
+        },
+    )
 
     assert_url_to_circuit_returns(
         '{"cols":[["+=AB3",1,1,"inputA2",1,"inputB2"]]}',
@@ -210,7 +244,8 @@ def test_arithmetic_multiply_accumulate_gates():
             0b_000_00_00: 0b_000_00_00,
             0b_000_11_10: 0b_110_11_10,
             0b_100_11_11: 0b_101_11_11,
-        })
+        },
+    )
 
     assert_url_to_circuit_returns(
         '{"cols":[["-=AB3",1,1,"inputA2",1,"inputB2"]]}',
@@ -218,22 +253,24 @@ def test_arithmetic_multiply_accumulate_gates():
             0b_000_00_00: 0b_000_00_00,
             0b_000_11_10: 0b_010_11_10,
             0b_100_11_11: 0b_011_11_11,
-        })
+        },
+    )
 
 
 def test_modular_arithmetic_modulus_size():
     with pytest.raises(ValueError, match='too small for modulus'):
-        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":['
-                                 '[{"id":"setR","arg":17}],["incmodR4"]]}')
+        _ = quirk_url_to_circuit(
+            'https://algassert.com/quirk#circuit={"cols":['
+            '[{"id":"setR","arg":17}],["incmodR4"]]}'
+        )
 
-    assert_url_to_circuit_returns(
-        '{"cols":[[{"id":"setR","arg":16}],["incmodR4"]]}')
-    assert_url_to_circuit_returns(
-        '{"cols":[[{"id":"setR","arg":15}],["incmodR4"]]}')
+    assert_url_to_circuit_returns('{"cols":[[{"id":"setR","arg":16}],["incmodR4"]]}')
+    assert_url_to_circuit_returns('{"cols":[[{"id":"setR","arg":15}],["incmodR4"]]}')
 
     with pytest.raises(ValueError, match='too small for modulus'):
-        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":['
-                                 '["incmodR2",1,"inputR3"]]}')
+        _ = quirk_url_to_circuit(
+            'https://algassert.com/quirk#circuit={"cols":[["incmodR2",1,"inputR3"]]}'
+        )
 
     assert_url_to_circuit_returns('{"cols":[["incmodR3",1,1,"inputR3"]]}')
 
@@ -262,7 +299,8 @@ def test_arithmetic_modular_addition_gates():
             4: 5,
             5: 6,
             15: 0,
-        })
+        },
+    )
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setR","arg":5}],["incmodR4"]]}',
         maps={
@@ -273,7 +311,8 @@ def test_arithmetic_modular_addition_gates():
             4: 0,
             5: 5,
             15: 15,
-        })
+        },
+    )
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setR","arg":5}],["decmodR4"]]}',
         maps={
@@ -284,7 +323,8 @@ def test_arithmetic_modular_addition_gates():
             4: 3,
             5: 5,
             15: 15,
-        })
+        },
+    )
 
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setR","arg":5},{"id":"setA","arg":3}],["+AmodR4"]]}',
@@ -296,7 +336,8 @@ def test_arithmetic_modular_addition_gates():
             4: 2,
             5: 5,
             15: 15,
-        })
+        },
+    )
 
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setR","arg":5},{"id":"setA","arg":3}],["-AmodR4"]]}',
@@ -308,7 +349,8 @@ def test_arithmetic_modular_addition_gates():
             4: 1,
             5: 5,
             15: 15,
-        })
+        },
+    )
 
 
 def test_arithmetic_modular_multiply_accumulate_gates():
@@ -323,7 +365,8 @@ def test_arithmetic_modular_multiply_accumulate_gates():
             4: 1,
             5: 5,
             15: 15,
-        })
+        },
+    )
 
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setR","arg":27},{"id":"setA","arg":3},'
@@ -336,40 +379,49 @@ def test_arithmetic_modular_multiply_accumulate_gates():
             26: 26 - 15,
             27: 27,
             63: 63,
-        })
+        },
+    )
 
 
 def test_arithmetic_multiply_gates():
-    assert_url_to_circuit_returns('{"cols":[[{"id":"setA","arg":3}],["*A4"]]}',
-                                  maps={
-                                      0: 0,
-                                      1: 3,
-                                      3: 9,
-                                      9: 11,
-                                      11: 1,
-                                  })
-    assert_url_to_circuit_returns('{"cols":[[{"id":"setA","arg":3}],["/A4"]]}',
-                                  maps={
-                                      0: 0,
-                                      1: 11,
-                                      3: 1,
-                                      9: 3,
-                                      11: 9,
-                                  })
+    assert_url_to_circuit_returns(
+        '{"cols":[[{"id":"setA","arg":3}],["*A4"]]}',
+        maps={
+            0: 0,
+            1: 3,
+            3: 9,
+            9: 11,
+            11: 1,
+        },
+    )
+    assert_url_to_circuit_returns(
+        '{"cols":[[{"id":"setA","arg":3}],["/A4"]]}',
+        maps={
+            0: 0,
+            1: 11,
+            3: 1,
+            9: 3,
+            11: 9,
+        },
+    )
 
     # Irreversible multipliers have no effect.
-    assert_url_to_circuit_returns('{"cols":[[{"id":"setA","arg":4}],["*A4"]]}',
-                                  maps={
-                                      0: 0,
-                                      1: 1,
-                                      3: 3,
-                                  })
-    assert_url_to_circuit_returns('{"cols":[[{"id":"setA","arg":4}],["/A4"]]}',
-                                  maps={
-                                      0: 0,
-                                      1: 1,
-                                      3: 3,
-                                  })
+    assert_url_to_circuit_returns(
+        '{"cols":[[{"id":"setA","arg":4}],["*A4"]]}',
+        maps={
+            0: 0,
+            1: 1,
+            3: 3,
+        },
+    )
+    assert_url_to_circuit_returns(
+        '{"cols":[[{"id":"setA","arg":4}],["/A4"]]}',
+        maps={
+            0: 0,
+            1: 1,
+            3: 3,
+        },
+    )
 
 
 def test_arithmetic_modular_multiply_gates():
@@ -385,7 +437,8 @@ def test_arithmetic_modular_multiply_gates():
             5: 1,
             7: 7,
             15: 15,
-        })
+        },
+    )
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":3},{"id":"setR","arg":7}],["/AmodR4"]]}',
         maps={
@@ -398,7 +451,8 @@ def test_arithmetic_modular_multiply_gates():
             6: 2,
             7: 7,
             15: 15,
-        })
+        },
+    )
 
     # Irreversible multipliers have no effect.
     assert_url_to_circuit_returns(
@@ -408,7 +462,8 @@ def test_arithmetic_modular_multiply_gates():
             1: 1,
             3: 3,
             15: 15,
-        })
+        },
+    )
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":5},{"id":"setR","arg":15}],["/AmodR4"]]}',
         maps={
@@ -416,7 +471,8 @@ def test_arithmetic_modular_multiply_gates():
             1: 1,
             3: 3,
             15: 15,
-        })
+        },
+    )
 
 
 def test_arithmetic_modular_exponentiation_gates():
@@ -428,7 +484,8 @@ def test_arithmetic_modular_exponentiation_gates():
             1: 5,
             2: 3,
             15: 15,
-        })
+        },
+    )
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":6},{"id":"setB","arg":3},'
         '{"id":"setR","arg":7}],["*BToAmodR4"]]}',
@@ -437,7 +494,8 @@ def test_arithmetic_modular_exponentiation_gates():
             1: 1,
             2: 2,
             15: 15,
-        })
+        },
+    )
 
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":5},{"id":"setB","arg":3},'
@@ -447,7 +505,8 @@ def test_arithmetic_modular_exponentiation_gates():
             1: 3,
             2: 6,
             15: 15,
-        })
+        },
+    )
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":6},{"id":"setB","arg":3},'
         '{"id":"setR","arg":7}],["/BToAmodR4"]]}',
@@ -456,7 +515,8 @@ def test_arithmetic_modular_exponentiation_gates():
             1: 1,
             2: 2,
             15: 15,
-        })
+        },
+    )
 
 
 def test_repr():
@@ -465,13 +525,16 @@ def test_repr():
         '['
         '[{"id":"setA","arg":3}],'
         '["+=AB3",1,1,"inputB2"]'
-        ']}')
+        ']}'
+    )
     op = circuit[0].operations[0]
     cirq.testing.assert_equivalent_repr(op)
 
     cirq.testing.assert_equivalent_repr(
         cirq.interop.quirk.cells.arithmetic_cells.ArithmeticCell(
-            '+=A2', cirq.LineQubit.range(2), [cirq.LineQubit.range(2, 5)]))
+            '+=A2', cirq.LineQubit.range(2), [cirq.LineQubit.range(2, 5)]
+        )
+    )
 
 
 def test_with_registers():
@@ -480,7 +543,8 @@ def test_with_registers():
         '['
         '[{"id":"setA","arg":3}],'
         '["+=AB3",1,1,"inputB2"]'
-        ']}')
+        ']}'
+    )
     op = cast(cirq.ArithmeticOperation, circuit[0].operations[0])
 
     with pytest.raises(ValueError, match='number of registers'):
@@ -490,17 +554,14 @@ def test_with_registers():
         _ = op.with_registers(1, 2, 3)
 
     op2 = op.with_registers([], 5, 5)
-    np.testing.assert_allclose(cirq.unitary(cirq.Circuit(op2)),
-                               np.array([[1]]),
-                               atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(cirq.Circuit(op2)), np.array([[1]]), atol=1e-8)
 
     op2 = op.with_registers([*cirq.LineQubit.range(3)], 5, 5)
-    np.testing.assert_allclose(cirq.final_state_vector(cirq.Circuit(op2),
-                                                       initial_state=0),
-                               cirq.one_hot(index=25 % 8,
-                                            shape=8,
-                                            dtype=np.complex64),
-                               atol=1e-8)
+    np.testing.assert_allclose(
+        cirq.final_state_vector(cirq.Circuit(op2), initial_state=0),
+        cirq.one_hot(index=25 % 8, shape=8, dtype=np.complex64),
+        atol=1e-8,
+    )
 
 
 def test_helpers():
@@ -559,25 +620,21 @@ def test_with_line_qubits_mapped_to():
     a2, b2, c2, d2, e2 = cirq.NamedQubit.range(5, prefix='p')
 
     # After assigned to qubit register.
-    cell = cirq.interop.quirk.cells.arithmetic_cells.ArithmeticCell(
-        '+=A2', [a, b], [(c, d, e)])
+    cell = cirq.interop.quirk.cells.arithmetic_cells.ArithmeticCell('+=A2', [a, b], [(c, d, e)])
     mapped_cell = cirq.interop.quirk.cells.arithmetic_cells.ArithmeticCell(
-        '+=A2', [a2, b2], [(c2, d2, e2)])
+        '+=A2', [a2, b2], [(c2, d2, e2)]
+    )
     assert cell != mapped_cell
     assert cell.with_line_qubits_mapped_to([a2, b2, c2, d2, e2]) == mapped_cell
 
     # Before assigned.
-    cell = cirq.interop.quirk.cells.arithmetic_cells.ArithmeticCell(
-        '+=A2', [a, b], [None])
-    mapped_cell = cirq.interop.quirk.cells.arithmetic_cells.ArithmeticCell(
-        '+=A2', [a2, b2], [None])
+    cell = cirq.interop.quirk.cells.arithmetic_cells.ArithmeticCell('+=A2', [a, b], [None])
+    mapped_cell = cirq.interop.quirk.cells.arithmetic_cells.ArithmeticCell('+=A2', [a2, b2], [None])
     assert cell != mapped_cell
     assert cell.with_line_qubits_mapped_to([a2, b2, c2, d2, e2]) == mapped_cell
 
     # After assigned to classical constant.
-    cell = cirq.interop.quirk.cells.arithmetic_cells.ArithmeticCell(
-        '+=A2', [a, b], [42])
-    mapped_cell = cirq.interop.quirk.cells.arithmetic_cells.ArithmeticCell(
-        '+=A2', [a2, b2], [42])
+    cell = cirq.interop.quirk.cells.arithmetic_cells.ArithmeticCell('+=A2', [a, b], [42])
+    mapped_cell = cirq.interop.quirk.cells.arithmetic_cells.ArithmeticCell('+=A2', [a2, b2], [42])
     assert cell != mapped_cell
     assert cell.with_line_qubits_mapped_to([a2, b2, c2, d2, e2]) == mapped_cell

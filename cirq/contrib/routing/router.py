@@ -25,12 +25,14 @@ ROUTERS = {
 }
 
 
-def route_circuit(circuit: circuits.Circuit,
-                  device_graph: nx.Graph,
-                  *,
-                  algo_name: Optional[str] = None,
-                  router: Optional[Callable[..., SwapNetwork]] = None,
-                  **kwargs) -> SwapNetwork:
+def route_circuit(
+    circuit: circuits.Circuit,
+    device_graph: nx.Graph,
+    *,
+    algo_name: Optional[str] = None,
+    router: Optional[Callable[..., SwapNetwork]] = None,
+    **kwargs,
+) -> SwapNetwork:
     """Routes a circuit on a given device.
 
     Args:
@@ -45,12 +47,10 @@ def route_circuit(circuit: circuits.Circuit,
     """
 
     if any(protocols.num_qubits(op) > 2 for op in circuit.all_operations()):
-        raise ValueError('Can only route circuits with operations that act on'
-                         ' at most 2 qubits.')
+        raise ValueError('Can only route circuits with operations that act on at most 2 qubits.')
 
     if len(list(circuit.all_qubits())) > device_graph.number_of_nodes():
-        raise ValueError('Number of logical qubits is greater than number'
-                         ' of physical qubits.')
+        raise ValueError('Number of logical qubits is greater than number of physical qubits.')
 
     if not (algo_name is None or router is None):
         raise ValueError('At most one of algo_name or router can be specified.')

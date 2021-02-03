@@ -17,8 +17,7 @@
 
 import functools
 import pkg_resources
-from typing import (Any, Callable, Dict, List, Optional, Sequence, Tuple, Union,
-                    TYPE_CHECKING)
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union, TYPE_CHECKING
 import warnings
 
 from google.oauth2 import service_account
@@ -35,7 +34,9 @@ import grpc
 from cirq.google.engine.client.quantum_v1alpha1 import types as pb_types
 from cirq.google.engine.client.quantum_v1alpha1.gapic import enums
 from cirq.google.engine.client.quantum_v1alpha1.gapic import quantum_engine_service_client_config
-from cirq.google.engine.client.quantum_v1alpha1.gapic.transports import quantum_engine_service_grpc_transport
+from cirq.google.engine.client.quantum_v1alpha1.gapic.transports import (
+    quantum_engine_service_grpc_transport,
+)
 from cirq.google.engine.client.quantum_v1alpha1.proto import engine_pb2
 from cirq.google.engine.client.quantum_v1alpha1.proto import engine_pb2_grpc
 from cirq.google.engine.client.quantum_v1alpha1.proto import quantum_pb2
@@ -47,8 +48,8 @@ _GAPIC_LIBRARY_VERSION = 0.1
 
 QUANTUM_ENGINE_SERVICE_GRPC_TRANSPORT_LIKE = Union[
     quantum_engine_service_grpc_transport.QuantumEngineServiceGrpcTransport,
-    Callable[..., quantum_engine_service_grpc_transport.
-             QuantumEngineServiceGrpcTransport]]
+    Callable[..., quantum_engine_service_grpc_transport.QuantumEngineServiceGrpcTransport],
+]
 
 
 class QuantumEngineServiceClient(object):
@@ -75,22 +76,21 @@ class QuantumEngineServiceClient(object):
         Returns:
             QuantumEngineServiceClient: The constructed client.
         """
-        credentials = service_account.Credentials.from_service_account_file(
-            filename)
+        credentials = service_account.Credentials.from_service_account_file(filename)
         kwargs['credentials'] = credentials
         return cls(*args, **kwargs)
 
     from_service_account_json = from_service_account_file
 
-    def __init__(self,
-                 transport: QUANTUM_ENGINE_SERVICE_GRPC_TRANSPORT_LIKE = None,
-                 channel: Optional[grpc.Channel] = None,
-                 credentials: Optional[service_account.Credentials] = None,
-                 client_config: Optional[Dict[str, Any]] = None,
-                 client_info: Optional[
-                     google.api_core.gapic_v1.client_info.ClientInfo] = None,
-                 client_options: Union[Dict[str, Any], google.api_core.
-                                       client_options.ClientOptions] = None):
+    def __init__(
+        self,
+        transport: QUANTUM_ENGINE_SERVICE_GRPC_TRANSPORT_LIKE = None,
+        channel: Optional[grpc.Channel] = None,
+        credentials: Optional[service_account.Credentials] = None,
+        client_config: Optional[Dict[str, Any]] = None,
+        client_info: Optional[google.api_core.gapic_v1.client_info.ClientInfo] = None,
+        client_options: Union[Dict[str, Any], google.api_core.client_options.ClientOptions] = None,
+    ):
         """Constructor.
 
         Args:
@@ -126,24 +126,25 @@ class QuantumEngineServiceClient(object):
         """
         # Raise deprecation warnings for things we want to go away.
         if client_config is not None:
-            warnings.warn('The `client_config` argument is deprecated.',
-                          PendingDeprecationWarning,
-                          stacklevel=2)
+            warnings.warn(
+                'The `client_config` argument is deprecated.',
+                PendingDeprecationWarning,
+                stacklevel=2,
+            )
         else:
             client_config = quantum_engine_service_client_config.config
 
         if channel:
             warnings.warn(
-                'The `channel` argument is deprecated; use '
-                '`transport` instead.',
+                'The `channel` argument is deprecated; use `transport` instead.',
                 PendingDeprecationWarning,
-                stacklevel=2)
+                stacklevel=2,
+            )
 
         api_endpoint = self.SERVICE_ADDRESS
         if client_options:
             if type(client_options) == dict:
-                client_options = google.api_core.client_options.from_dict(
-                    client_options)
+                client_options = google.api_core.client_options.from_dict(client_options)
             if client_options.api_endpoint:
                 api_endpoint = client_options.api_endpoint
 
@@ -154,26 +155,29 @@ class QuantumEngineServiceClient(object):
             if callable(transport):
                 self.transport = transport(
                     credentials=credentials,
-                    default_class=quantum_engine_service_grpc_transport.
-                    QuantumEngineServiceGrpcTransport,
+                    default_class=quantum_engine_service_grpc_transport.QuantumEngineServiceGrpcTransport,
                     address=api_endpoint,
                 )
             else:
                 if credentials:
                     raise ValueError(
                         'Received both a transport instance and '
-                        'credentials; these are mutually exclusive.')
+                        'credentials; these are mutually exclusive.'
+                    )
                 self.transport = transport
         else:
-            self.transport = quantum_engine_service_grpc_transport.QuantumEngineServiceGrpcTransport(
-                address=api_endpoint,
-                channel=channel,
-                credentials=credentials,
+            self.transport = (
+                quantum_engine_service_grpc_transport.QuantumEngineServiceGrpcTransport(
+                    address=api_endpoint,
+                    channel=channel,
+                    credentials=credentials,
+                )
             )
 
         if client_info is None:
             client_info = google.api_core.gapic_v1.client_info.ClientInfo(
-                gapic_version=_GAPIC_LIBRARY_VERSION,)
+                gapic_version=_GAPIC_LIBRARY_VERSION,
+            )
         else:
             client_info.gapic_version = _GAPIC_LIBRARY_VERSION
         self._client_info = client_info
@@ -183,7 +187,8 @@ class QuantumEngineServiceClient(object):
         # (Ordinarily, these are the defaults specified in the `*_config.py`
         # file next to this one.)
         self._method_configs = google.api_core.gapic_v1.config.parse_method_configs(
-            client_config['interfaces'][self._INTERFACE_NAME],)
+            client_config['interfaces'][self._INTERFACE_NAME],
+        )
 
         # Save a dictionary of cached API call functions.
         # These are the actual callables which invoke the proper
@@ -193,15 +198,14 @@ class QuantumEngineServiceClient(object):
 
     # Service calls
     def create_quantum_program(
-            self,
-            parent: Optional[str] = None,
-            quantum_program: Union[Dict[str, Any], pb_types.
-                                   QuantumProgram] = None,
-            overwrite_existing_source_code: Optional[bool] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        parent: Optional[str] = None,
+        quantum_program: Union[Dict[str, Any], pb_types.QuantumProgram] = None,
+        overwrite_existing_source_code: Optional[bool] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -241,14 +245,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'create_quantum_program' not in self._inner_api_calls:
             self._inner_api_calls[
-                'create_quantum_program'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.create_quantum_program,
-                    default_retry=self._method_configs['CreateQuantumProgram'].
-                    retry,
-                    default_timeout=self.
-                    _method_configs['CreateQuantumProgram'].timeout,
-                    client_info=self._client_info,
-                )
+                'create_quantum_program'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.create_quantum_program,
+                default_retry=self._method_configs['CreateQuantumProgram'].retry,
+                default_timeout=self._method_configs['CreateQuantumProgram'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.CreateQuantumProgramRequest(
             parent=parent,
@@ -264,20 +267,22 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
         return self._inner_api_calls['create_quantum_program'](
-            request, retry=retry, timeout=timeout, metadata=metadata)
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def get_quantum_program(
-            self,
-            name: Optional[str] = None,
-            return_code: Optional[bool] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        name: Optional[str] = None,
+        return_code: Optional[bool] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -313,14 +318,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'get_quantum_program' not in self._inner_api_calls:
             self._inner_api_calls[
-                'get_quantum_program'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.get_quantum_program,
-                    default_retry=self._method_configs['GetQuantumProgram'].
-                    retry,
-                    default_timeout=self._method_configs['GetQuantumProgram'].
-                    timeout,
-                    client_info=self._client_info,
-                )
+                'get_quantum_program'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.get_quantum_program,
+                default_retry=self._method_configs['GetQuantumProgram'].retry,
+                default_timeout=self._method_configs['GetQuantumProgram'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.GetQuantumProgramRequest(
             name=name,
@@ -335,23 +339,23 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
-        return self._inner_api_calls['get_quantum_program'](request,
-                                                            retry=retry,
-                                                            timeout=timeout,
-                                                            metadata=metadata)
+        return self._inner_api_calls['get_quantum_program'](
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def list_quantum_programs(
-            self,
-            parent: Optional[str] = None,
-            page_size: Optional[int] = None,
-            filter_: Optional[str] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        parent: Optional[str] = None,
+        page_size: Optional[int] = None,
+        filter_: Optional[str] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -407,14 +411,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'list_quantum_programs' not in self._inner_api_calls:
             self._inner_api_calls[
-                'list_quantum_programs'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.list_quantum_programs,
-                    default_retry=self._method_configs['ListQuantumPrograms'].
-                    retry,
-                    default_timeout=self._method_configs['ListQuantumPrograms'].
-                    timeout,
-                    client_info=self._client_info,
-                )
+                'list_quantum_programs'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.list_quantum_programs,
+                default_retry=self._method_configs['ListQuantumPrograms'].retry,
+                default_timeout=self._method_configs['ListQuantumPrograms'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.ListQuantumProgramsRequest(
             parent=parent,
@@ -430,7 +433,8 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
         iterator = google.api_core.page_iterator.GRPCIterator(
@@ -439,7 +443,8 @@ class QuantumEngineServiceClient(object):
                 self._inner_api_calls['list_quantum_programs'],
                 retry=retry,
                 timeout=timeout,
-                metadata=metadata),
+                metadata=metadata,
+            ),
             request=request,
             items_field='programs',
             request_token_field='page_token',
@@ -448,13 +453,13 @@ class QuantumEngineServiceClient(object):
         return iterator
 
     def delete_quantum_program(
-            self,
-            name: Optional[str] = None,
-            delete_jobs: Optional[bool] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        name: Optional[str] = None,
+        delete_jobs: Optional[bool] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -487,14 +492,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'delete_quantum_program' not in self._inner_api_calls:
             self._inner_api_calls[
-                'delete_quantum_program'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.delete_quantum_program,
-                    default_retry=self._method_configs['DeleteQuantumProgram'].
-                    retry,
-                    default_timeout=self.
-                    _method_configs['DeleteQuantumProgram'].timeout,
-                    client_info=self._client_info,
-                )
+                'delete_quantum_program'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.delete_quantum_program,
+                default_retry=self._method_configs['DeleteQuantumProgram'].retry,
+                default_timeout=self._method_configs['DeleteQuantumProgram'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.DeleteQuantumProgramRequest(
             name=name,
@@ -509,24 +513,23 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
-        self._inner_api_calls['delete_quantum_program'](request,
-                                                        retry=retry,
-                                                        timeout=timeout,
-                                                        metadata=metadata)
+        self._inner_api_calls['delete_quantum_program'](
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def update_quantum_program(
-            self,
-            name: Optional[str] = None,
-            quantum_program: Union[Dict[str, Any], pb_types.
-                                   QuantumProgram] = None,
-            update_mask: Union[Dict[str, Any], field_mask_pb2.FieldMask] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        name: Optional[str] = None,
+        quantum_program: Union[Dict[str, Any], pb_types.QuantumProgram] = None,
+        update_mask: Union[Dict[str, Any], field_mask_pb2.FieldMask] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -569,14 +572,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'update_quantum_program' not in self._inner_api_calls:
             self._inner_api_calls[
-                'update_quantum_program'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.update_quantum_program,
-                    default_retry=self._method_configs['UpdateQuantumProgram'].
-                    retry,
-                    default_timeout=self.
-                    _method_configs['UpdateQuantumProgram'].timeout,
-                    client_info=self._client_info,
-                )
+                'update_quantum_program'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.update_quantum_program,
+                default_retry=self._method_configs['UpdateQuantumProgram'].retry,
+                default_timeout=self._method_configs['UpdateQuantumProgram'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.UpdateQuantumProgramRequest(
             name=name,
@@ -592,21 +594,23 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
         return self._inner_api_calls['update_quantum_program'](
-            request, retry=retry, timeout=timeout, metadata=metadata)
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def create_quantum_job(
-            self,
-            parent: Optional[str] = None,
-            quantum_job: Union[Dict[str, Any], pb_types.QuantumJob] = None,
-            overwrite_existing_run_context: Optional[bool] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        parent: Optional[str] = None,
+        quantum_job: Union[Dict[str, Any], pb_types.QuantumJob] = None,
+        overwrite_existing_run_context: Optional[bool] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -646,14 +650,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'create_quantum_job' not in self._inner_api_calls:
             self._inner_api_calls[
-                'create_quantum_job'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.create_quantum_job,
-                    default_retry=self._method_configs['CreateQuantumJob'].
-                    retry,
-                    default_timeout=self._method_configs['CreateQuantumJob'].
-                    timeout,
-                    client_info=self._client_info,
-                )
+                'create_quantum_job'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.create_quantum_job,
+                default_retry=self._method_configs['CreateQuantumJob'].retry,
+                default_timeout=self._method_configs['CreateQuantumJob'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.CreateQuantumJobRequest(
             parent=parent,
@@ -669,22 +672,22 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
-        return self._inner_api_calls['create_quantum_job'](request,
-                                                           retry=retry,
-                                                           timeout=timeout,
-                                                           metadata=metadata)
+        return self._inner_api_calls['create_quantum_job'](
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def get_quantum_job(
-            self,
-            name: Optional[str] = None,
-            return_run_context: Optional[bool] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        name: Optional[str] = None,
+        return_run_context: Optional[bool] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -719,14 +722,12 @@ class QuantumEngineServiceClient(object):
         """
         # Wrap the transport method to add retry and timeout logic.
         if 'get_quantum_job' not in self._inner_api_calls:
-            self._inner_api_calls[
-                'get_quantum_job'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.get_quantum_job,
-                    default_retry=self._method_configs['GetQuantumJob'].retry,
-                    default_timeout=self._method_configs['GetQuantumJob'].
-                    timeout,
-                    client_info=self._client_info,
-                )
+            self._inner_api_calls['get_quantum_job'] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.get_quantum_job,
+                default_retry=self._method_configs['GetQuantumJob'].retry,
+                default_timeout=self._method_configs['GetQuantumJob'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.GetQuantumJobRequest(
             name=name,
@@ -741,23 +742,23 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
-        return self._inner_api_calls['get_quantum_job'](request,
-                                                        retry=retry,
-                                                        timeout=timeout,
-                                                        metadata=metadata)
+        return self._inner_api_calls['get_quantum_job'](
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def list_quantum_jobs(
-            self,
-            parent: Optional[str] = None,
-            page_size: Optional[int] = None,
-            filter_: Optional[str] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        parent: Optional[str] = None,
+        page_size: Optional[int] = None,
+        filter_: Optional[str] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -813,13 +814,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'list_quantum_jobs' not in self._inner_api_calls:
             self._inner_api_calls[
-                'list_quantum_jobs'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.list_quantum_jobs,
-                    default_retry=self._method_configs['ListQuantumJobs'].retry,
-                    default_timeout=self._method_configs['ListQuantumJobs'].
-                    timeout,
-                    client_info=self._client_info,
-                )
+                'list_quantum_jobs'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.list_quantum_jobs,
+                default_retry=self._method_configs['ListQuantumJobs'].retry,
+                default_timeout=self._method_configs['ListQuantumJobs'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.ListQuantumJobsRequest(
             parent=parent,
@@ -835,15 +836,18 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
         iterator = google.api_core.page_iterator.GRPCIterator(
             client=None,
-            method=functools.partial(self._inner_api_calls['list_quantum_jobs'],
-                                     retry=retry,
-                                     timeout=timeout,
-                                     metadata=metadata),
+            method=functools.partial(
+                self._inner_api_calls['list_quantum_jobs'],
+                retry=retry,
+                timeout=timeout,
+                metadata=metadata,
+            ),
             request=request,
             items_field='jobs',
             request_token_field='page_token',
@@ -852,12 +856,12 @@ class QuantumEngineServiceClient(object):
         return iterator
 
     def delete_quantum_job(
-            self,
-            name: Optional[str] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        name: Optional[str] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -889,16 +893,17 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'delete_quantum_job' not in self._inner_api_calls:
             self._inner_api_calls[
-                'delete_quantum_job'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.delete_quantum_job,
-                    default_retry=self._method_configs['DeleteQuantumJob'].
-                    retry,
-                    default_timeout=self._method_configs['DeleteQuantumJob'].
-                    timeout,
-                    client_info=self._client_info,
-                )
+                'delete_quantum_job'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.delete_quantum_job,
+                default_retry=self._method_configs['DeleteQuantumJob'].retry,
+                default_timeout=self._method_configs['DeleteQuantumJob'].timeout,
+                client_info=self._client_info,
+            )
 
-        request = engine_pb2.DeleteQuantumJobRequest(name=name,)
+        request = engine_pb2.DeleteQuantumJobRequest(
+            name=name,
+        )
         if metadata is None:
             metadata = []
         metadata = list(metadata)
@@ -908,23 +913,23 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
-        self._inner_api_calls['delete_quantum_job'](request,
-                                                    retry=retry,
-                                                    timeout=timeout,
-                                                    metadata=metadata)
+        self._inner_api_calls['delete_quantum_job'](
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def update_quantum_job(
-            self,
-            name: Optional[str] = None,
-            quantum_job: Union[Dict[str, Any], pb_types.QuantumJob] = None,
-            update_mask: Union[Dict[str, Any], field_mask_pb2.FieldMask] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        name: Optional[str] = None,
+        quantum_job: Union[Dict[str, Any], pb_types.QuantumJob] = None,
+        update_mask: Union[Dict[str, Any], field_mask_pb2.FieldMask] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -967,14 +972,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'update_quantum_job' not in self._inner_api_calls:
             self._inner_api_calls[
-                'update_quantum_job'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.update_quantum_job,
-                    default_retry=self._method_configs['UpdateQuantumJob'].
-                    retry,
-                    default_timeout=self._method_configs['UpdateQuantumJob'].
-                    timeout,
-                    client_info=self._client_info,
-                )
+                'update_quantum_job'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.update_quantum_job,
+                default_retry=self._method_configs['UpdateQuantumJob'].retry,
+                default_timeout=self._method_configs['UpdateQuantumJob'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.UpdateQuantumJobRequest(
             name=name,
@@ -990,21 +994,21 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
-        return self._inner_api_calls['update_quantum_job'](request,
-                                                           retry=retry,
-                                                           timeout=timeout,
-                                                           metadata=metadata)
+        return self._inner_api_calls['update_quantum_job'](
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def cancel_quantum_job(
-            self,
-            name: Optional[str] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        name: Optional[str] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -1036,16 +1040,17 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'cancel_quantum_job' not in self._inner_api_calls:
             self._inner_api_calls[
-                'cancel_quantum_job'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.cancel_quantum_job,
-                    default_retry=self._method_configs['CancelQuantumJob'].
-                    retry,
-                    default_timeout=self._method_configs['CancelQuantumJob'].
-                    timeout,
-                    client_info=self._client_info,
-                )
+                'cancel_quantum_job'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.cancel_quantum_job,
+                default_retry=self._method_configs['CancelQuantumJob'].retry,
+                default_timeout=self._method_configs['CancelQuantumJob'].timeout,
+                client_info=self._client_info,
+            )
 
-        request = engine_pb2.CancelQuantumJobRequest(name=name,)
+        request = engine_pb2.CancelQuantumJobRequest(
+            name=name,
+        )
         if metadata is None:
             metadata = []
         metadata = list(metadata)
@@ -1055,22 +1060,22 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
-        self._inner_api_calls['cancel_quantum_job'](request,
-                                                    retry=retry,
-                                                    timeout=timeout,
-                                                    metadata=metadata)
+        self._inner_api_calls['cancel_quantum_job'](
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def list_quantum_job_events(
-            self,
-            parent: Optional[str] = None,
-            page_size: Optional[int] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        parent: Optional[str] = None,
+        page_size: Optional[int] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -1125,14 +1130,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'list_quantum_job_events' not in self._inner_api_calls:
             self._inner_api_calls[
-                'list_quantum_job_events'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.list_quantum_job_events,
-                    default_retry=self._method_configs['ListQuantumJobEvents'].
-                    retry,
-                    default_timeout=self.
-                    _method_configs['ListQuantumJobEvents'].timeout,
-                    client_info=self._client_info,
-                )
+                'list_quantum_job_events'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.list_quantum_job_events,
+                default_retry=self._method_configs['ListQuantumJobEvents'].retry,
+                default_timeout=self._method_configs['ListQuantumJobEvents'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.ListQuantumJobEventsRequest(
             parent=parent,
@@ -1147,7 +1151,8 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
         iterator = google.api_core.page_iterator.GRPCIterator(
@@ -1156,7 +1161,8 @@ class QuantumEngineServiceClient(object):
                 self._inner_api_calls['list_quantum_job_events'],
                 retry=retry,
                 timeout=timeout,
-                metadata=metadata),
+                metadata=metadata,
+            ),
             request=request,
             items_field='events',
             request_token_field='page_token',
@@ -1165,12 +1171,12 @@ class QuantumEngineServiceClient(object):
         return iterator
 
     def get_quantum_result(
-            self,
-            parent: Optional[str] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        parent: Optional[str] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -1205,16 +1211,17 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'get_quantum_result' not in self._inner_api_calls:
             self._inner_api_calls[
-                'get_quantum_result'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.get_quantum_result,
-                    default_retry=self._method_configs['GetQuantumResult'].
-                    retry,
-                    default_timeout=self._method_configs['GetQuantumResult'].
-                    timeout,
-                    client_info=self._client_info,
-                )
+                'get_quantum_result'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.get_quantum_result,
+                default_retry=self._method_configs['GetQuantumResult'].retry,
+                default_timeout=self._method_configs['GetQuantumResult'].timeout,
+                client_info=self._client_info,
+            )
 
-        request = engine_pb2.GetQuantumResultRequest(parent=parent,)
+        request = engine_pb2.GetQuantumResultRequest(
+            parent=parent,
+        )
         if metadata is None:
             metadata = []
         metadata = list(metadata)
@@ -1224,23 +1231,23 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
-        return self._inner_api_calls['get_quantum_result'](request,
-                                                           retry=retry,
-                                                           timeout=timeout,
-                                                           metadata=metadata)
+        return self._inner_api_calls['get_quantum_result'](
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def list_quantum_processors(
-            self,
-            parent: Optional[str] = None,
-            page_size: Optional[int] = None,
-            filter_: Optional[str] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        parent: Optional[str] = None,
+        page_size: Optional[int] = None,
+        filter_: Optional[str] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -1296,14 +1303,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'list_quantum_processors' not in self._inner_api_calls:
             self._inner_api_calls[
-                'list_quantum_processors'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.list_quantum_processors,
-                    default_retry=self._method_configs['ListQuantumProcessors'].
-                    retry,
-                    default_timeout=self.
-                    _method_configs['ListQuantumProcessors'].timeout,
-                    client_info=self._client_info,
-                )
+                'list_quantum_processors'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.list_quantum_processors,
+                default_retry=self._method_configs['ListQuantumProcessors'].retry,
+                default_timeout=self._method_configs['ListQuantumProcessors'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.ListQuantumProcessorsRequest(
             parent=parent,
@@ -1319,7 +1325,8 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
         iterator = google.api_core.page_iterator.GRPCIterator(
@@ -1328,7 +1335,8 @@ class QuantumEngineServiceClient(object):
                 self._inner_api_calls['list_quantum_processors'],
                 retry=retry,
                 timeout=timeout,
-                metadata=metadata),
+                metadata=metadata,
+            ),
             request=request,
             items_field='processors',
             request_token_field='page_token',
@@ -1337,12 +1345,12 @@ class QuantumEngineServiceClient(object):
         return iterator
 
     def get_quantum_processor(
-            self,
-            name: Optional[str] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        name: Optional[str] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -1377,16 +1385,17 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'get_quantum_processor' not in self._inner_api_calls:
             self._inner_api_calls[
-                'get_quantum_processor'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.get_quantum_processor,
-                    default_retry=self._method_configs['GetQuantumProcessor'].
-                    retry,
-                    default_timeout=self._method_configs['GetQuantumProcessor'].
-                    timeout,
-                    client_info=self._client_info,
-                )
+                'get_quantum_processor'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.get_quantum_processor,
+                default_retry=self._method_configs['GetQuantumProcessor'].retry,
+                default_timeout=self._method_configs['GetQuantumProcessor'].timeout,
+                client_info=self._client_info,
+            )
 
-        request = engine_pb2.GetQuantumProcessorRequest(name=name,)
+        request = engine_pb2.GetQuantumProcessorRequest(
+            name=name,
+        )
         if metadata is None:
             metadata = []
         metadata = list(metadata)
@@ -1396,23 +1405,23 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
-        return self._inner_api_calls['get_quantum_processor'](request,
-                                                              retry=retry,
-                                                              timeout=timeout,
-                                                              metadata=metadata)
+        return self._inner_api_calls['get_quantum_processor'](
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def list_quantum_calibrations(
-            self,
-            parent: Optional[str] = None,
-            page_size: Optional[int] = None,
-            filter_: Optional[str] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        parent: Optional[str] = None,
+        page_size: Optional[int] = None,
+        filter_: Optional[str] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -1468,14 +1477,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'list_quantum_calibrations' not in self._inner_api_calls:
             self._inner_api_calls[
-                'list_quantum_calibrations'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.list_quantum_calibrations,
-                    default_retry=self.
-                    _method_configs['ListQuantumCalibrations'].retry,
-                    default_timeout=self.
-                    _method_configs['ListQuantumCalibrations'].timeout,
-                    client_info=self._client_info,
-                )
+                'list_quantum_calibrations'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.list_quantum_calibrations,
+                default_retry=self._method_configs['ListQuantumCalibrations'].retry,
+                default_timeout=self._method_configs['ListQuantumCalibrations'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.ListQuantumCalibrationsRequest(
             parent=parent,
@@ -1491,7 +1499,8 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
         iterator = google.api_core.page_iterator.GRPCIterator(
@@ -1500,7 +1509,8 @@ class QuantumEngineServiceClient(object):
                 self._inner_api_calls['list_quantum_calibrations'],
                 retry=retry,
                 timeout=timeout,
-                metadata=metadata),
+                metadata=metadata,
+            ),
             request=request,
             items_field='calibrations',
             request_token_field='page_token',
@@ -1509,12 +1519,12 @@ class QuantumEngineServiceClient(object):
         return iterator
 
     def get_quantum_calibration(
-            self,
-            name: Optional[str] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        name: Optional[str] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -1549,16 +1559,17 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'get_quantum_calibration' not in self._inner_api_calls:
             self._inner_api_calls[
-                'get_quantum_calibration'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.get_quantum_calibration,
-                    default_retry=self._method_configs['GetQuantumCalibration'].
-                    retry,
-                    default_timeout=self.
-                    _method_configs['GetQuantumCalibration'].timeout,
-                    client_info=self._client_info,
-                )
+                'get_quantum_calibration'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.get_quantum_calibration,
+                default_retry=self._method_configs['GetQuantumCalibration'].retry,
+                default_timeout=self._method_configs['GetQuantumCalibration'].timeout,
+                client_info=self._client_info,
+            )
 
-        request = engine_pb2.GetQuantumCalibrationRequest(name=name,)
+        request = engine_pb2.GetQuantumCalibrationRequest(
+            name=name,
+        )
         if metadata is None:
             metadata = []
         metadata = list(metadata)
@@ -1568,21 +1579,22 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
         return self._inner_api_calls['get_quantum_calibration'](
-            request, retry=retry, timeout=timeout, metadata=metadata)
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def create_quantum_reservation(
-            self,
-            parent: Optional[str] = None,
-            quantum_reservation: Union[Dict[str, Any], pb_types.
-                                       QuantumReservation] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        parent: Optional[str] = None,
+        quantum_reservation: Union[Dict[str, Any], pb_types.QuantumReservation] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -1621,14 +1633,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'create_quantum_reservation' not in self._inner_api_calls:
             self._inner_api_calls[
-                'create_quantum_reservation'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.create_quantum_reservation,
-                    default_retry=self.
-                    _method_configs['CreateQuantumReservation'].retry,
-                    default_timeout=self.
-                    _method_configs['CreateQuantumReservation'].timeout,
-                    client_info=self._client_info,
-                )
+                'create_quantum_reservation'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.create_quantum_reservation,
+                default_retry=self._method_configs['CreateQuantumReservation'].retry,
+                default_timeout=self._method_configs['CreateQuantumReservation'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.CreateQuantumReservationRequest(
             parent=parent,
@@ -1643,19 +1654,21 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
         return self._inner_api_calls['create_quantum_reservation'](
-            request, retry=retry, timeout=timeout, metadata=metadata)
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def cancel_quantum_reservation(
-            self,
-            name: Optional[str] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        name: Optional[str] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -1690,16 +1703,17 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'cancel_quantum_reservation' not in self._inner_api_calls:
             self._inner_api_calls[
-                'cancel_quantum_reservation'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.cancel_quantum_reservation,
-                    default_retry=self.
-                    _method_configs['CancelQuantumReservation'].retry,
-                    default_timeout=self.
-                    _method_configs['CancelQuantumReservation'].timeout,
-                    client_info=self._client_info,
-                )
+                'cancel_quantum_reservation'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.cancel_quantum_reservation,
+                default_retry=self._method_configs['CancelQuantumReservation'].retry,
+                default_timeout=self._method_configs['CancelQuantumReservation'].timeout,
+                client_info=self._client_info,
+            )
 
-        request = engine_pb2.CancelQuantumReservationRequest(name=name,)
+        request = engine_pb2.CancelQuantumReservationRequest(
+            name=name,
+        )
         if metadata is None:
             metadata = []
         metadata = list(metadata)
@@ -1709,19 +1723,21 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
         return self._inner_api_calls['cancel_quantum_reservation'](
-            request, retry=retry, timeout=timeout, metadata=metadata)
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def delete_quantum_reservation(
-            self,
-            name: Optional[str] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        name: Optional[str] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -1753,16 +1769,17 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'delete_quantum_reservation' not in self._inner_api_calls:
             self._inner_api_calls[
-                'delete_quantum_reservation'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.delete_quantum_reservation,
-                    default_retry=self.
-                    _method_configs['DeleteQuantumReservation'].retry,
-                    default_timeout=self.
-                    _method_configs['DeleteQuantumReservation'].timeout,
-                    client_info=self._client_info,
-                )
+                'delete_quantum_reservation'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.delete_quantum_reservation,
+                default_retry=self._method_configs['DeleteQuantumReservation'].retry,
+                default_timeout=self._method_configs['DeleteQuantumReservation'].timeout,
+                client_info=self._client_info,
+            )
 
-        request = engine_pb2.DeleteQuantumReservationRequest(name=name,)
+        request = engine_pb2.DeleteQuantumReservationRequest(
+            name=name,
+        )
         if metadata is None:
             metadata = []
         metadata = list(metadata)
@@ -1772,21 +1789,21 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
-        self._inner_api_calls['delete_quantum_reservation'](request,
-                                                            retry=retry,
-                                                            timeout=timeout,
-                                                            metadata=metadata)
+        self._inner_api_calls['delete_quantum_reservation'](
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def get_quantum_reservation(
-            self,
-            name: Optional[str] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        name: Optional[str] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -1821,16 +1838,17 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'get_quantum_reservation' not in self._inner_api_calls:
             self._inner_api_calls[
-                'get_quantum_reservation'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.get_quantum_reservation,
-                    default_retry=self._method_configs['GetQuantumReservation'].
-                    retry,
-                    default_timeout=self.
-                    _method_configs['GetQuantumReservation'].timeout,
-                    client_info=self._client_info,
-                )
+                'get_quantum_reservation'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.get_quantum_reservation,
+                default_retry=self._method_configs['GetQuantumReservation'].retry,
+                default_timeout=self._method_configs['GetQuantumReservation'].timeout,
+                client_info=self._client_info,
+            )
 
-        request = engine_pb2.GetQuantumReservationRequest(name=name,)
+        request = engine_pb2.GetQuantumReservationRequest(
+            name=name,
+        )
         if metadata is None:
             metadata = []
         metadata = list(metadata)
@@ -1840,21 +1858,23 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
         return self._inner_api_calls['get_quantum_reservation'](
-            request, retry=retry, timeout=timeout, metadata=metadata)
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def list_quantum_reservations(
-            self,
-            parent: Optional[str] = None,
-            page_size: Optional[int] = None,
-            filter_: Optional[str] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        parent: Optional[str] = None,
+        page_size: Optional[int] = None,
+        filter_: Optional[str] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -1910,14 +1930,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'list_quantum_reservations' not in self._inner_api_calls:
             self._inner_api_calls[
-                'list_quantum_reservations'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.list_quantum_reservations,
-                    default_retry=self.
-                    _method_configs['ListQuantumReservations'].retry,
-                    default_timeout=self.
-                    _method_configs['ListQuantumReservations'].timeout,
-                    client_info=self._client_info,
-                )
+                'list_quantum_reservations'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.list_quantum_reservations,
+                default_retry=self._method_configs['ListQuantumReservations'].retry,
+                default_timeout=self._method_configs['ListQuantumReservations'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.ListQuantumReservationsRequest(
             parent=parent,
@@ -1933,7 +1952,8 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
         iterator = google.api_core.page_iterator.GRPCIterator(
@@ -1942,7 +1962,8 @@ class QuantumEngineServiceClient(object):
                 self._inner_api_calls['list_quantum_reservations'],
                 retry=retry,
                 timeout=timeout,
-                metadata=metadata),
+                metadata=metadata,
+            ),
             request=request,
             items_field='reservations',
             request_token_field='page_token',
@@ -1951,15 +1972,14 @@ class QuantumEngineServiceClient(object):
         return iterator
 
     def update_quantum_reservation(
-            self,
-            name: Optional[str] = None,
-            quantum_reservation: Union[Dict[str, Any], pb_types.
-                                       QuantumReservation] = None,
-            update_mask: Union[Dict[str, Any], field_mask_pb2.FieldMask] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        name: Optional[str] = None,
+        quantum_reservation: Union[Dict[str, Any], pb_types.QuantumReservation] = None,
+        update_mask: Union[Dict[str, Any], field_mask_pb2.FieldMask] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -2002,14 +2022,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'update_quantum_reservation' not in self._inner_api_calls:
             self._inner_api_calls[
-                'update_quantum_reservation'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.update_quantum_reservation,
-                    default_retry=self.
-                    _method_configs['UpdateQuantumReservation'].retry,
-                    default_timeout=self.
-                    _method_configs['UpdateQuantumReservation'].timeout,
-                    client_info=self._client_info,
-                )
+                'update_quantum_reservation'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.update_quantum_reservation,
+                default_retry=self._method_configs['UpdateQuantumReservation'].retry,
+                default_timeout=self._method_configs['UpdateQuantumReservation'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.UpdateQuantumReservationRequest(
             name=name,
@@ -2025,19 +2044,21 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
         return self._inner_api_calls['update_quantum_reservation'](
-            request, retry=retry, timeout=timeout, metadata=metadata)
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def quantum_run_stream(
-            self,
-            requests,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        requests,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -2078,29 +2099,27 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'quantum_run_stream' not in self._inner_api_calls:
             self._inner_api_calls[
-                'quantum_run_stream'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.quantum_run_stream,
-                    default_retry=self._method_configs['QuantumRunStream'].
-                    retry,
-                    default_timeout=self._method_configs['QuantumRunStream'].
-                    timeout,
-                    client_info=self._client_info,
-                )
+                'quantum_run_stream'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.quantum_run_stream,
+                default_retry=self._method_configs['QuantumRunStream'].retry,
+                default_timeout=self._method_configs['QuantumRunStream'].timeout,
+                client_info=self._client_info,
+            )
 
-        return self._inner_api_calls['quantum_run_stream'](requests,
-                                                           retry=retry,
-                                                           timeout=timeout,
-                                                           metadata=metadata)
+        return self._inner_api_calls['quantum_run_stream'](
+            requests, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def list_quantum_reservation_grants(
-            self,
-            parent: Optional[str] = None,
-            page_size: Optional[int] = None,
-            filter_: Optional[str] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        parent: Optional[str] = None,
+        page_size: Optional[int] = None,
+        filter_: Optional[str] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -2156,14 +2175,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'list_quantum_reservation_grants' not in self._inner_api_calls:
             self._inner_api_calls[
-                'list_quantum_reservation_grants'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.list_quantum_reservation_grants,
-                    default_retry=self.
-                    _method_configs['ListQuantumReservationGrants'].retry,
-                    default_timeout=self.
-                    _method_configs['ListQuantumReservationGrants'].timeout,
-                    client_info=self._client_info,
-                )
+                'list_quantum_reservation_grants'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.list_quantum_reservation_grants,
+                default_retry=self._method_configs['ListQuantumReservationGrants'].retry,
+                default_timeout=self._method_configs['ListQuantumReservationGrants'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.ListQuantumReservationGrantsRequest(
             parent=parent,
@@ -2179,7 +2197,8 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
         iterator = google.api_core.page_iterator.GRPCIterator(
@@ -2188,7 +2207,8 @@ class QuantumEngineServiceClient(object):
                 self._inner_api_calls['list_quantum_reservation_grants'],
                 retry=retry,
                 timeout=timeout,
-                metadata=metadata),
+                metadata=metadata,
+            ),
             request=request,
             items_field='reservation_grants',
             request_token_field='page_token',
@@ -2197,15 +2217,15 @@ class QuantumEngineServiceClient(object):
         return iterator
 
     def reallocate_quantum_reservation_grant(
-            self,
-            name: Optional[str] = None,
-            source_project_id: Optional[str] = None,
-            target_project_id: Optional[str] = None,
-            duration: Union[Dict[str, Any], duration_pb2.Duration] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        name: Optional[str] = None,
+        source_project_id: Optional[str] = None,
+        target_project_id: Optional[str] = None,
+        duration: Union[Dict[str, Any], duration_pb2.Duration] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -2246,14 +2266,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'reallocate_quantum_reservation_grant' not in self._inner_api_calls:
             self._inner_api_calls[
-                'reallocate_quantum_reservation_grant'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.reallocate_quantum_reservation_grant,
-                    default_retry=self.
-                    _method_configs['ReallocateQuantumReservationGrant'].retry,
-                    default_timeout=self._method_configs[
-                        'ReallocateQuantumReservationGrant'].timeout,
-                    client_info=self._client_info,
-                )
+                'reallocate_quantum_reservation_grant'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.reallocate_quantum_reservation_grant,
+                default_retry=self._method_configs['ReallocateQuantumReservationGrant'].retry,
+                default_timeout=self._method_configs['ReallocateQuantumReservationGrant'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.ReallocateQuantumReservationGrantRequest(
             name=name,
@@ -2270,21 +2289,23 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
         return self._inner_api_calls['reallocate_quantum_reservation_grant'](
-            request, retry=retry, timeout=timeout, metadata=metadata)
+            request, retry=retry, timeout=timeout, metadata=metadata
+        )
 
     def list_quantum_reservation_budgets(
-            self,
-            parent: Optional[str] = None,
-            page_size: Optional[int] = None,
-            filter_: Optional[str] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        parent: Optional[str] = None,
+        page_size: Optional[int] = None,
+        filter_: Optional[str] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -2340,14 +2361,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'list_quantum_reservation_budgets' not in self._inner_api_calls:
             self._inner_api_calls[
-                'list_quantum_reservation_budgets'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.list_quantum_reservation_budgets,
-                    default_retry=self.
-                    _method_configs['ListQuantumReservationBudgets'].retry,
-                    default_timeout=self.
-                    _method_configs['ListQuantumReservationBudgets'].timeout,
-                    client_info=self._client_info,
-                )
+                'list_quantum_reservation_budgets'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.list_quantum_reservation_budgets,
+                default_retry=self._method_configs['ListQuantumReservationBudgets'].retry,
+                default_timeout=self._method_configs['ListQuantumReservationBudgets'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.ListQuantumReservationBudgetsRequest(
             parent=parent,
@@ -2363,7 +2383,8 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
         iterator = google.api_core.page_iterator.GRPCIterator(
@@ -2372,7 +2393,8 @@ class QuantumEngineServiceClient(object):
                 self._inner_api_calls['list_quantum_reservation_budgets'],
                 retry=retry,
                 timeout=timeout,
-                metadata=metadata),
+                metadata=metadata,
+            ),
             request=request,
             items_field='reservation_budgets',
             request_token_field='page_token',
@@ -2381,14 +2403,14 @@ class QuantumEngineServiceClient(object):
         return iterator
 
     def list_quantum_time_slots(
-            self,
-            parent: Optional[str] = None,
-            page_size: Optional[int] = None,
-            filter_: Optional[str] = None,
-            retry: Optional[google.api_core.retry.
-                            Retry] = google.api_core.gapic_v1.method.DEFAULT,
-            timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
-            metadata: Optional[Sequence[Tuple[str, str]]] = None):
+        self,
+        parent: Optional[str] = None,
+        page_size: Optional[int] = None,
+        filter_: Optional[str] = None,
+        retry: Optional[google.api_core.retry.Retry] = google.api_core.gapic_v1.method.DEFAULT,
+        timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
+        metadata: Optional[Sequence[Tuple[str, str]]] = None,
+    ):
         """
         -
 
@@ -2444,14 +2466,13 @@ class QuantumEngineServiceClient(object):
         # Wrap the transport method to add retry and timeout logic.
         if 'list_quantum_time_slots' not in self._inner_api_calls:
             self._inner_api_calls[
-                'list_quantum_time_slots'] = google.api_core.gapic_v1.method.wrap_method(
-                    self.transport.list_quantum_time_slots,
-                    default_retry=self._method_configs['ListQuantumTimeSlots'].
-                    retry,
-                    default_timeout=self.
-                    _method_configs['ListQuantumTimeSlots'].timeout,
-                    client_info=self._client_info,
-                )
+                'list_quantum_time_slots'
+            ] = google.api_core.gapic_v1.method.wrap_method(
+                self.transport.list_quantum_time_slots,
+                default_retry=self._method_configs['ListQuantumTimeSlots'].retry,
+                default_timeout=self._method_configs['ListQuantumTimeSlots'].timeout,
+                client_info=self._client_info,
+            )
 
         request = engine_pb2.ListQuantumTimeSlotsRequest(
             parent=parent,
@@ -2467,7 +2488,8 @@ class QuantumEngineServiceClient(object):
             pass
         else:
             routing_metadata = google.api_core.gapic_v1.routing_header.to_grpc_metadata(
-                routing_header)
+                routing_header
+            )
             metadata.append(routing_metadata)
 
         iterator = google.api_core.page_iterator.GRPCIterator(
@@ -2476,7 +2498,8 @@ class QuantumEngineServiceClient(object):
                 self._inner_api_calls['list_quantum_time_slots'],
                 retry=retry,
                 timeout=timeout,
-                metadata=metadata),
+                metadata=metadata,
+            ),
             request=request,
             items_field='time_slots',
             request_token_field='page_token',

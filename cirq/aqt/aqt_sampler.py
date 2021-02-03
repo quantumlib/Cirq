@@ -37,8 +37,7 @@ from cirq import study, ops, IonDevice
 if TYPE_CHECKING:
     import cirq
 
-Sweepable = Union[study.ParamResolver, Iterable[study.ParamResolver], Sweep,
-                  Iterable[Sweep]]
+Sweepable = Union[study.ParamResolver, Iterable[study.ParamResolver], Sweep, Iterable[Sweep]]
 
 
 class AQTSampler(Sampler):
@@ -57,9 +56,9 @@ class AQTSampler(Sampler):
         self.access_token = access_token
 
     def _generate_json(
-            self,
-            circuit: circuits.Circuit,
-            param_resolver: study.ParamResolverOrSimilarType,
+        self,
+        circuit: circuits.Circuit,
+        param_resolver: study.ParamResolverOrSimilarType,
     ) -> str:
         """Generates the JSON string from a Circuit
 
@@ -82,8 +81,9 @@ class AQTSampler(Sampler):
             json formatted string of the sequence
         """
 
-        seq_list: List[Union[Tuple[str, float, List[int]],
-                             Tuple[str, float, float, List[int]]]] = []
+        seq_list: List[
+            Union[Tuple[str, float, List[int]], Tuple[str, float, float, List[int]]]
+        ] = []
         circuit = resolve_parameters(circuit, param_resolver)
         for op in circuit.all_operations():
             line_qubit = cast(Tuple[LineQubit], op.qubits)
@@ -93,8 +93,9 @@ class AQTSampler(Sampler):
             gate: Union[ops.EigenGate, ops.PhasedXPowGate]
             if op_str == 'R':
                 gate = cast(ops.PhasedXPowGate, op.gate)
-                seq_list.append((op_str, float(gate.exponent),
-                                 float(gate.phase_exponent), qubit_idx))
+                seq_list.append(
+                    (op_str, float(gate.exponent), float(gate.phase_exponent), qubit_idx)
+                )
             else:
                 gate = cast(ops.EigenGate, op.gate)
                 seq_list.append((op_str, float(gate.exponent), qubit_idx))
@@ -103,12 +104,14 @@ class AQTSampler(Sampler):
         json_str = json.dumps(seq_list)
         return json_str
 
-    def _send_json(self,
-                   *,
-                   json_str: str,
-                   id_str: Union[str, uuid.UUID],
-                   repetitions: int = 1,
-                   num_qubits: int = 1) -> np.ndarray:
+    def _send_json(
+        self,
+        *,
+        json_str: str,
+        id_str: Union[str, uuid.UUID],
+        repetitions: int = 1,
+        num_qubits: int = 1,
+    ) -> np.ndarray:
         """Sends the json string to the remote AQT device
 
         The interface is given by PUT requests to a single endpoint URL.
@@ -129,46 +132,41 @@ class AQTSampler(Sampler):
             Measurement results as an array of boolean.
         """
         header = {"Ocp-Apim-Subscription-Key": self.access_token, "SDK": "cirq"}
-        response = put(self.remote_host,
-                       data={
-                           'data': json_str,
-                           'access_token': self.access_token,
-                           'repetitions': repetitions,
-                           'no_qubits': num_qubits
-                       },
-                       headers=header)
+        response = put(
+            self.remote_host,
+            data={
+                'data': json_str,
+                'access_token': self.access_token,
+                'repetitions': repetitions,
+                'no_qubits': num_qubits,
+            },
+            headers=header,
+        )
         response = response.json()
         data = cast(Dict, response)
         if 'status' not in data.keys():
-            raise RuntimeError('Got unexpected return data from server: \n' +
-                               str(data))
+            raise RuntimeError('Got unexpected return data from server: \n' + str(data))
         if data['status'] == 'error':
             raise RuntimeError('AQT server reported error: \n' + str(data))
 
         if 'id' not in data.keys():
-            raise RuntimeError(
-                'Got unexpected return data from AQT server: \n' + str(data))
+            raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
         id_str = data['id']
 
         while True:
-            response = put(self.remote_host,
-                           data={
-                               'id': id_str,
-                               'access_token': self.access_token
-                           },
-                           headers=header)
+            response = put(
+                self.remote_host,
+                data={'id': id_str, 'access_token': self.access_token},
+                headers=header,
+            )
             response = response.json()
             data = cast(Dict, response)
             if 'status' not in data.keys():
-                raise RuntimeError(
-                    'Got unexpected return data from AQT server: \n' +
-                    str(data))
+                raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
             if data['status'] == 'finished':
                 break
             elif data['status'] == 'error':
-                raise RuntimeError(
-                    'Got unexpected return data from AQT server: \n' +
-                    str(data))
+                raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
             time.sleep(1.0)
         measurements_int = data['samples']
         measurements = np.zeros((len(measurements_int), num_qubits))
@@ -178,10 +176,9 @@ class AQTSampler(Sampler):
                 measurements[i, j] = int(measurement_int_bin[j])
         return measurements
 
-    def run_sweep(self,
-                  program: 'cirq.Circuit',
-                  params: study.Sweepable,
-                  repetitions: int = 1) -> List[study.Result]:
+    def run_sweep(
+        self, program: 'cirq.Circuit', params: study.Sweepable, repetitions: int = 1
+    ) -> List[study.Result]:
         """Samples from the given Circuit.
 
         In contrast to run, this allows for sweeping over different parameter
@@ -205,16 +202,13 @@ class AQTSampler(Sampler):
         for param_resolver in study.to_resolvers(params):
             id_str = uuid.uuid1()
             num_qubits = len(program.device.qubits)
-            json_str = self._generate_json(circuit=program,
-                                           param_resolver=param_resolver)
-            results = self._send_json(json_str=json_str,
-                                      id_str=id_str,
-                                      repetitions=repetitions,
-                                      num_qubits=num_qubits)
+            json_str = self._generate_json(circuit=program, param_resolver=param_resolver)
+            results = self._send_json(
+                json_str=json_str, id_str=id_str, repetitions=repetitions, num_qubits=num_qubits
+            )
             results = results.astype(bool)
             res_dict = {meas_name: results}
-            trial_results.append(
-                study.Result(params=param_resolver, measurements=res_dict))
+            trial_results.append(study.Result(params=param_resolver, measurements=res_dict))
         return trial_results
 
 
@@ -231,26 +225,25 @@ class AQTSamplerLocalSimulator(AQTSampler):
     sampler.simulate_ideal=True
     """
 
-    def __init__(self,
-                 remote_host: str = '',
-                 access_token: str = '',
-                 simulate_ideal: bool = False):
+    def __init__(self, remote_host: str = '', access_token: str = '', simulate_ideal: bool = False):
         """Args:
-            remote_host: Remote host is not used by the local simulator.
-            access_token: Access token is not used by the local simulator.
-            simulate_ideal: Boolean that determines whether a noisy or
-                            an ideal simulation is performed.
+        remote_host: Remote host is not used by the local simulator.
+        access_token: Access token is not used by the local simulator.
+        simulate_ideal: Boolean that determines whether a noisy or
+                        an ideal simulation is performed.
         """
         self.remote_host = remote_host
         self.access_token = access_token
         self.simulate_ideal = simulate_ideal
 
-    def _send_json(self,
-                   *,
-                   json_str: str,
-                   id_str: Union[str, uuid.UUID],
-                   repetitions: int = 1,
-                   num_qubits: int = 1) -> np.ndarray:
+    def _send_json(
+        self,
+        *,
+        json_str: str,
+        id_str: Union[str, uuid.UUID],
+        repetitions: int = 1,
+        num_qubits: int = 1,
+    ) -> np.ndarray:
         """Replaces the remote host with a local simulator
 
         Args:
@@ -262,8 +255,7 @@ class AQTSamplerLocalSimulator(AQTSampler):
         Returns:
             Measurement results as an ndarray of booleans.
         """
-        sim = AQTSimulator(num_qubits=num_qubits,
-                           simulate_ideal=self.simulate_ideal)
+        sim = AQTSimulator(num_qubits=num_qubits, simulate_ideal=self.simulate_ideal)
         sim.generate_circuit_from_list(json_str)
         data = sim.simulate_samples(repetitions)
         return data.measurements['m']

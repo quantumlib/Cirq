@@ -26,9 +26,13 @@ class QuantumEngineSampler(work.Sampler):
     Exposes a `cirq.google.Engine` instance as a `cirq.Sampler`.
     """
 
-    def __init__(self, *, engine: 'cirq.google.Engine',
-                 processor_id: Union[str, List[str]],
-                 gate_set: 'cirq.google.SerializableGateSet'):
+    def __init__(
+        self,
+        *,
+        engine: 'cirq.google.Engine',
+        processor_id: Union[str, List[str]],
+        gate_set: 'cirq.google.SerializableGateSet',
+    ):
         """
         Args:
             engine: Quantum engine instance to use.
@@ -37,35 +41,35 @@ class QuantumEngineSampler(work.Sampler):
             gate_set: Determines how to serialize circuits when requesting
                 samples.
         """
-        self._processor_ids = ([processor_id] if isinstance(processor_id, str)
-                               else processor_id)
+        self._processor_ids = [processor_id] if isinstance(processor_id, str) else processor_id
         self._gate_set = gate_set
         self._engine = engine
 
     def run_sweep(
-            self,
-            program: Union['cirq.Circuit', 'cirq.google.EngineProgram'],
-            params: 'cirq.Sweepable',
-            repetitions: int = 1,
+        self,
+        program: Union['cirq.Circuit', 'cirq.google.EngineProgram'],
+        params: 'cirq.Sweepable',
+        repetitions: int = 1,
     ) -> List['cirq.Result']:
         if isinstance(program, engine.EngineProgram):
-            job = program.run_sweep(params=params,
-                                    repetitions=repetitions,
-                                    processor_ids=self._processor_ids)
+            job = program.run_sweep(
+                params=params, repetitions=repetitions, processor_ids=self._processor_ids
+            )
         else:
-            job = self._engine.run_sweep(program=cast(circuits.Circuit,
-                                                      program),
-                                         params=params,
-                                         repetitions=repetitions,
-                                         processor_ids=self._processor_ids,
-                                         gate_set=self._gate_set)
+            job = self._engine.run_sweep(
+                program=cast(circuits.Circuit, program),
+                params=params,
+                repetitions=repetitions,
+                processor_ids=self._processor_ids,
+                gate_set=self._gate_set,
+            )
         return job.results()
 
     def run_batch(
-            self,
-            programs: List['cirq.Circuit'],
-            params_list: Optional[List['cirq.Sweepable']] = None,
-            repetitions: Union[int, List[int]] = 1,
+        self,
+        programs: List['cirq.Circuit'],
+        params_list: Optional[List['cirq.Sweepable']] = None,
+        repetitions: Union[int, List[int]] = 1,
     ) -> List[List['cirq.Result']]:
         """Runs the supplied circuits.
 
@@ -77,17 +81,21 @@ class QuantumEngineSampler(work.Sampler):
                or else a list with identical values.
         """
         if isinstance(repetitions, List) and len(programs) != len(repetitions):
-            raise ValueError('len(programs) and len(repetitions) must match. '
-                             f'Got {len(programs)} and {len(repetitions)}.')
+            raise ValueError(
+                'len(programs) and len(repetitions) must match. '
+                f'Got {len(programs)} and {len(repetitions)}.'
+            )
         if isinstance(repetitions, int) or len(set(repetitions)) == 1:
             # All repetitions are the same so batching can be done efficiently
             if isinstance(repetitions, List):
                 repetitions = repetitions[0]
-            job = self._engine.run_batch(programs=programs,
-                                         params_list=params_list,
-                                         repetitions=repetitions,
-                                         processor_ids=self._processor_ids,
-                                         gate_set=self._gate_set)
+            job = self._engine.run_batch(
+                programs=programs,
+                params_list=params_list,
+                repetitions=repetitions,
+                processor_ids=self._processor_ids,
+                gate_set=self._gate_set,
+            )
             return job.batched_results()
         # Varying number of repetitions so no speedup
         return super().run_batch(programs, params_list, repetitions)
@@ -97,9 +105,9 @@ class QuantumEngineSampler(work.Sampler):
         return self._engine
 
 
-def get_engine_sampler(processor_id: str, gate_set_name: str,
-                       project_id: Optional[str] = None) \
-        -> 'cirq.google.QuantumEngineSampler':
+def get_engine_sampler(
+    processor_id: str, gate_set_name: str, project_id: Optional[str] = None
+) -> 'cirq.google.QuantumEngineSampler':
     """Get an EngineSampler assuming some sensible defaults.
 
     This uses the environment variable GOOGLE_CLOUD_PROJECT for the Engine
@@ -123,11 +131,10 @@ def get_engine_sampler(processor_id: str, gate_set_name: str,
          EnvironmentError: If no project_id is specified and the environment
             variable GOOGLE_CLOUD_PROJECT is not set.
     """
-    try:
-        gate_set = gate_sets.NAMED_GATESETS[gate_set_name]
-    except KeyError:
-        raise ValueError(f"Please use one of the following gateset names: "
-                         f"{sorted(gate_sets.NAMED_GATESETS.keys())}")
-
-    return engine.get_engine(project_id).sampler(processor_id=processor_id,
-                                                 gate_set=gate_set)
+    if gate_set_name not in gate_sets.NAMED_GATESETS:
+        raise ValueError(
+            f"Unknown gateset {gate_set_name}. Please use one of: "
+            f"{sorted(gate_sets.NAMED_GATESETS.keys())}."
+        )
+    gate_set = gate_sets.NAMED_GATESETS[gate_set_name]
+    return engine.get_engine(project_id).sampler(processor_id=processor_id, gate_set=gate_set)

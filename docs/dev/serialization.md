@@ -1,4 +1,4 @@
-# Serialization Guidelines
+# Serialization guidelines
 
 This developer document explains how Cirq serializes objects into (and out of)
 JSON.

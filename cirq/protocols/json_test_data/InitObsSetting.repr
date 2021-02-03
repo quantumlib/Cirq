@@ -1,0 +1,1 @@
+cirq.work.InitObsSetting(init_state=cirq.ProductState({cirq.LineQubit(0): cirq.Z.basis[+1], cirq.LineQubit(1): cirq.Z.basis[+1]}), observable=(cirq.X(cirq.LineQubit(0))*cirq.Y(cirq.LineQubit(1))))

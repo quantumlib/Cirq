@@ -33,7 +33,7 @@ _NAMED_COMPARISON_OPERATORS = [
     ('==', lambda a, b: a == b),
     ('!=', lambda a, b: a != b),
     ('<=', lambda a, b: a <= b),
-    ('>=', lambda a, b: a >= b)
+    ('>=', lambda a, b: a >= b),
 ]
 
 
@@ -52,11 +52,9 @@ class OrderTester:
             assert expected == actual, (
                 "Ordering constraint violated. Expected X={} to {} Y={}, "
                 "but X {} Y returned {}".format(
-                    a,
-                    ['be more than', 'equal', 'be less than'][sign + 1],
-                    b,
-                    cmp_name,
-                    actual))
+                    a, ['be more than', 'equal', 'be less than'][sign + 1], b, cmp_name, actual
+                )
+            )
 
     def _verify_ordering(self, a: Any, b: Any, sign: int):
         """Checks that (a vs b) == (0 vs sign) and (b vs a) == (sign vs 0)."""
@@ -76,8 +74,8 @@ class OrderTester:
                 "    if not isinstance(other, type(self)):\n"
                 "        return NotImplemented\n"
                 "\n"
-                "That rule is being violated by this value: {!r}".format(
-                    item)) from ex
+                "That rule is being violated by this value: {!r}".format(item)
+            ) from ex
 
     def add_ascending(self, *items: Any):
         """Tries to add a sequence of ascending items to the order tester.
@@ -134,7 +132,6 @@ class OrderTester:
 
 
 class _EqualToEverything:
-
     def __eq__(self, other) -> bool:
         return True
 
@@ -158,7 +155,6 @@ class _EqualToEverything:
 
 
 class _SmallerThanEverythingElse:
-
     def __eq__(self, other) -> bool:
         return isinstance(other, _SmallerThanEverythingElse)
 
@@ -182,7 +178,6 @@ class _SmallerThanEverythingElse:
 
 
 class _LargerThanEverythingElse:
-
     def __eq__(self, other) -> bool:
         return isinstance(other, _LargerThanEverythingElse)
 

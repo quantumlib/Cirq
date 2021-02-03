@@ -72,8 +72,7 @@ def big_endian_int_to_bits(val: int, *, bit_count: int) -> List[int]:
     return [(val >> i) & 1 for i in range(bit_count)[::-1]]
 
 
-def big_endian_digits_to_int(digits: Iterable[int], *,
-                             base: Union[int, Iterable[int]]) -> int:
+def big_endian_digits_to_int(digits: Iterable[int], *, base: Union[int, Iterable[int]]) -> int:
     """Returns the big-endian integer specified by the given digits and base.
 
     Args:
@@ -113,8 +112,7 @@ def big_endian_digits_to_int(digits: Iterable[int], *,
     result = 0
     for d, b in zip(digits, base):
         if not (0 <= d < b):
-            raise ValueError(
-                'Out of range digit. Digit: {!r}, base: {!r}'.format(d, b))
+            raise ValueError('Out of range digit. Digit: {!r}, base: {!r}'.format(d, b))
         result *= b
         result += d
     return result
@@ -122,8 +120,7 @@ def big_endian_digits_to_int(digits: Iterable[int], *,
 
 # pylint: disable=function-redefined
 @overload
-def big_endian_int_to_digits(val: int, *, digit_count: int,
-                             base: int) -> List[int]:
+def big_endian_int_to_digits(val: int, *, digit_count: int, base: int) -> List[int]:
     pass
 
 
@@ -132,10 +129,9 @@ def big_endian_int_to_digits(val: int, *, base: Iterable[int]) -> List[int]:
     pass
 
 
-def big_endian_int_to_digits(val: int,
-                             *,
-                             digit_count: Optional[int] = None,
-                             base: Union[int, Iterable[int]]) -> List[int]:
+def big_endian_int_to_digits(
+    val: int, *, digit_count: Optional[int] = None, base: Union[int, Iterable[int]]
+) -> List[int]:
     """Separates an integer into big-endian digits.
 
     Args:
@@ -168,8 +164,7 @@ def big_endian_int_to_digits(val: int,
     """
     if isinstance(base, int):
         if digit_count is None:
-            raise ValueError(
-                'No digit count. Provide `digit_count` when base is an int.')
+            raise ValueError('No digit count. Provide `digit_count` when base is an int.')
         base = (base,) * digit_count
     else:
         base = tuple(base)
@@ -185,9 +180,11 @@ def big_endian_int_to_digits(val: int,
         val //= b
 
     if val:
-        raise ValueError('Out of range. '
-                         'Extracted digits {!r} but the long division process '
-                         'left behind {!r} instead of 0.'.format(result, val))
+        raise ValueError(
+            'Out of range. '
+            'Extracted digits {!r} but the long division process '
+            'left behind {!r} instead of 0.'.format(result, val)
+        )
 
     return result[::-1]
 

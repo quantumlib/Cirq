@@ -41,7 +41,7 @@ def fidelity(state1: np.ndarray, state2: np.ndarray) -> float:
     """
     if len(state1.shape) == 1 and len(state2.shape) == 1:
         # Both state vectors
-        return np.abs(np.vdot(state1, state2))**2
+        return np.abs(np.vdot(state1, state2)) ** 2
     elif len(state1.shape) == 1 and len(state2.shape) == 2:
         # state1 is a state vector and state2 is a density matrix
         return np.real(np.conjugate(state1) @ state2 @ state1)
@@ -55,9 +55,11 @@ def fidelity(state1: np.ndarray, state2: np.ndarray) -> float:
         # Zero out small negative entries
         eigs = np.maximum(eigs, np.zeros(eigs.shape, dtype=eigs.dtype))
         trace = np.sum(np.sqrt(eigs))
-        return trace**2
-    raise ValueError('The given arrays must be one- or two-dimensional. '
-                     f'Got shapes {state1.shape} and {state2.shape}.')
+        return trace ** 2
+    raise ValueError(
+        'The given arrays must be one- or two-dimensional. '
+        f'Got shapes {state1.shape} and {state2.shape}.'
+    )
 
 
 def von_neumann_entropy(density_matrix: np.ndarray) -> float:

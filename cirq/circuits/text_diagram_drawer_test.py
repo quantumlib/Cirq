@@ -17,13 +17,11 @@ import pytest
 
 from cirq.circuits import TextDiagramDrawer
 from cirq.circuits._block_diagram_drawer_test import _assert_same_diagram
-from cirq.circuits.text_diagram_drawer import (_HorizontalLine, _VerticalLine,
-                                               _DiagramText)
+from cirq.circuits.text_diagram_drawer import _HorizontalLine, _VerticalLine, _DiagramText
 import cirq.testing as ct
 
 
-def assert_has_rendering(actual: TextDiagramDrawer, desired: str,
-                         **kwargs) -> None:
+def assert_has_rendering(actual: TextDiagramDrawer, desired: str, **kwargs) -> None:
     """Determines if a given diagram has the desired rendering.
 
     Args:
@@ -44,8 +42,11 @@ def assert_has_rendering(actual: TextDiagramDrawer, desired: str,
         '\n'
         'Highlighted differences:\n'
         '{}\n'.format(
-            actual_diagram, desired_diagram,
-            ct.highlight_text_differences(actual_diagram, desired_diagram)))
+            actual_diagram,
+            desired_diagram,
+            ct.highlight_text_differences(actual_diagram, desired_diagram),
+        )
+    )
 
 
 def test_draw_entries_and_lines_with_options():
@@ -54,7 +55,9 @@ def test_draw_entries_and_lines_with_options():
     d.write(6, 2, 'span')
     d.horizontal_line(y=3, x1=2, x2=8)
     d.vertical_line(x=7, y1=1, y2=4)
-    _assert_same_diagram(d.render().strip(), """
+    _assert_same_diagram(
+        d.render().strip(),
+        """
 !
 
                  ╷
@@ -63,9 +66,12 @@ def test_draw_entries_and_lines_with_options():
                  │
     ╶────────────┼─
                  │
-    """.strip())
+    """.strip(),
+    )
 
-    _assert_same_diagram(d.render(use_unicode_characters=False).strip(), """
+    _assert_same_diagram(
+        d.render(use_unicode_characters=False).strip(),
+        """
 !
 
 
@@ -74,9 +80,12 @@ def test_draw_entries_and_lines_with_options():
                  |
      ------------+-
                  |
-    """.strip())
+    """.strip(),
+    )
 
-    _assert_same_diagram(d.render(crossing_char='@').strip() , """
+    _assert_same_diagram(
+        d.render(crossing_char='@').strip(),
+        """
 !
 
                  ╷
@@ -85,9 +94,12 @@ def test_draw_entries_and_lines_with_options():
                  │
     ╶────────────@─
                  │
-    """.strip())
+    """.strip(),
+    )
 
-    _assert_same_diagram(d.render(horizontal_spacing=0).strip() , """
+    _assert_same_diagram(
+        d.render(horizontal_spacing=0).strip(),
+        """
 !
 
           ╷
@@ -96,14 +108,18 @@ def test_draw_entries_and_lines_with_options():
           │
   ╶───────┼
           │
-    """.strip())
+    """.strip(),
+    )
 
-    _assert_same_diagram(d.render(vertical_spacing=0).strip() , """
+    _assert_same_diagram(
+        d.render(vertical_spacing=0).strip(),
+        """
 !
                  ╷
             span │
     ╶────────────┼─
-    """.strip())
+    """.strip(),
+    )
 
 
 def test_draw_entries_and_lines_with_emphasize():
@@ -114,7 +130,9 @@ def test_draw_entries_and_lines_with_emphasize():
     d.horizontal_line(y=5, x1=2, x2=9, emphasize=False)
     d.vertical_line(x=7, y1=1, y2=6, emphasize=True)
     d.vertical_line(x=5, y1=1, y2=7, emphasize=False)
-    _assert_same_diagram(d.render().strip() , """
+    _assert_same_diagram(
+        d.render().strip(),
+        """
 !
 
           ╷      ╻
@@ -129,7 +147,8 @@ def test_draw_entries_and_lines_with_emphasize():
           │      ┃
           │      ╹
           │
-    """.strip())
+    """.strip(),
+    )
 
 
 def test_line_detects_horizontal():
@@ -160,7 +179,9 @@ def test_multiline_entries():
     d.write(5, 2, '4n')
     d.vertical_line(x=5, y1=1, y2=2)
     d.horizontal_line(y=1, x1=0, x2=8)
-    _assert_same_diagram(d.render().strip() , """
+    _assert_same_diagram(
+        d.render().strip(),
+        """
 hello
 there
 
@@ -169,7 +190,8 @@ next──────────2──────
               3
               │
               4n
-    """.strip())
+    """.strip(),
+    )
 
     d = TextDiagramDrawer()
     d.vertical_line(x=0, y1=0, y2=3)
@@ -178,7 +200,9 @@ next──────────2──────
     d.vertical_line(x=3, y1=0, y2=3)
     d.write(0, 0, 'long line\nshort')
     d.write(2, 2, 'short\nlong line')
-    _assert_same_diagram(d.render().strip() , """
+    _assert_same_diagram(
+        d.render().strip(),
+        """
 long line ╷ ╷         ╷
 short     │ │         │
 │         │ │         │
@@ -187,7 +211,8 @@ short     │ │         │
 │         │ short     │
 │         │ long line │
 │         │ │         │
-    """.strip())
+    """.strip(),
+    )
 
 
 def test_drawer_copy():
@@ -201,7 +226,7 @@ def test_drawer_copy():
         'vertical_lines': orig_vertical_lines,
         'horizontal_lines': orig_horizontal_lines,
         'vertical_padding': orig_vertical_padding,
-        'horizontal_padding': orig_horizontal_padding
+        'horizontal_padding': orig_horizontal_padding,
     }
     orig_drawer = TextDiagramDrawer(**kwargs)
 

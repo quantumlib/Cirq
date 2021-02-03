@@ -13,8 +13,19 @@
 # limitations under the License.
 import json
 import urllib.parse
-from typing import Any, List, Dict, Optional, Sequence, cast, TYPE_CHECKING, \
-    Iterable, Union, Mapping, Tuple
+from typing import (
+    Any,
+    List,
+    Dict,
+    Optional,
+    Sequence,
+    cast,
+    TYPE_CHECKING,
+    Iterable,
+    Union,
+    Mapping,
+    Tuple,
+)
 
 import numpy as np
 
@@ -34,12 +45,14 @@ if TYPE_CHECKING:
 
 
 def quirk_url_to_circuit(
-        quirk_url: str,
-        *,
-        qubits: Optional[Sequence['cirq.Qid']] = None,
-        extra_cell_makers: Union[Dict[str, 'cirq.Gate'], Iterable[
-            'cirq.interop.quirk.cells.CellMaker']] = (),
-        max_operation_count: int = 10**6) -> 'cirq.Circuit':
+    quirk_url: str,
+    *,
+    qubits: Optional[Sequence['cirq.Qid']] = None,
+    extra_cell_makers: Union[
+        Dict[str, 'cirq.Gate'], Iterable['cirq.interop.quirk.cells.CellMaker']
+    ] = (),
+    max_operation_count: int = 10 ** 6,
+) -> 'cirq.Circuit':
     """Parses a Cirq circuit out of a Quirk URL.
 
     Args:
@@ -111,32 +124,38 @@ def quirk_url_to_circuit(
         return circuits.Circuit()
 
     if not parsed_url.fragment.startswith('circuit='):
-        raise ValueError('Not a valid quirk url. The URL fragment (the part '
-                         'after the #) must start with "circuit=".\n'
-                         f'URL={quirk_url}')
+        raise ValueError(
+            'Not a valid quirk url. The URL fragment (the part '
+            'after the #) must start with "circuit=".\n'
+            f'URL={quirk_url}'
+        )
 
     # URL parser may not have fixed escaped characters in the fragment.
-    json_text = parsed_url.fragment[len('circuit='):]
+    json_text = parsed_url.fragment[len('circuit=') :]
     if '%22' in json_text:
         json_text = urllib.parse.unquote(json_text)
 
     data = json.loads(json_text)
 
-    return quirk_json_to_circuit(data,
-                                 qubits=qubits,
-                                 extra_cell_makers=extra_cell_makers,
-                                 quirk_url=quirk_url,
-                                 max_operation_count=max_operation_count)
+    return quirk_json_to_circuit(
+        data,
+        qubits=qubits,
+        extra_cell_makers=extra_cell_makers,
+        quirk_url=quirk_url,
+        max_operation_count=max_operation_count,
+    )
 
 
 def quirk_json_to_circuit(
-        data: dict,
-        *,
-        qubits: Optional[Sequence['cirq.Qid']] = None,
-        extra_cell_makers: Union[Dict[str, 'cirq.Gate'], Iterable[
-            'cirq.interop.quirk.cells.CellMaker']] = (),
-        quirk_url: Optional[str] = None,
-        max_operation_count: int = 10**6) -> 'cirq.Circuit':
+    data: dict,
+    *,
+    qubits: Optional[Sequence['cirq.Qid']] = None,
+    extra_cell_makers: Union[
+        Dict[str, 'cirq.Gate'], Iterable['cirq.interop.quirk.cells.CellMaker']
+    ] = (),
+    quirk_url: Optional[str] = None,
+    max_operation_count: int = 10 ** 6,
+) -> 'cirq.Circuit':
     """Constructs a Cirq circuit from Quirk's JSON format.
 
     Args:
@@ -185,14 +204,14 @@ def quirk_json_to_circuit(
             CellMaker(
                 identifier=identifier,
                 size=protocols.num_qubits(gate),
-                maker=(lambda gate: lambda args: gate(*args.qubits))(gate))
+                maker=(lambda gate: lambda args: gate(*args.qubits))(gate),
+            )
             for identifier, gate in extra_cell_makers.items()
         ]
     else:
         extra_makers = list(extra_cell_makers)
     registry = {
-        entry.identifier: entry
-        for entry in [*generate_all_quirk_cell_makers(), *extra_makers]
+        entry.identifier: entry for entry in [*generate_all_quirk_cell_makers(), *extra_makers]
     }
 
     # Include custom gates in the registry.
@@ -204,11 +223,11 @@ def quirk_json_to_circuit(
 
     # Parse out the circuit.
     comp = _parse_cols_into_composite_cell(data, registry)
-    if (max_operation_count is not None and
-            comp.gate_count() > max_operation_count):
+    if max_operation_count is not None and comp.gate_count() > max_operation_count:
         raise ValueError(
             f'Quirk URL specifies a circuit with {comp.gate_count()} '
-            f'operations, but max_operation_count={max_operation_count}.')
+            f'operations, but max_operation_count={max_operation_count}.'
+        )
     circuit = comp.circuit()
 
     # Convert state initialization into operations.
@@ -224,7 +243,8 @@ def quirk_json_to_circuit(
                 raise IndexError(
                     f'Only {len(qs)} qubits specified, but the given quirk '
                     f'circuit used the qubit at offset {q.x}. Provide more '
-                    f'qubits.')
+                    f'qubits.'
+                )
             return qs[q.x]
 
         circuit = circuit.transform_qubits(map_qubit)
@@ -232,14 +252,13 @@ def quirk_json_to_circuit(
     return circuit
 
 
-def _parse_cols_into_composite_cell(data: Dict[str, Any],
-                                    registry: Dict[str, CellMaker]
-                                   ) -> CompositeCell:
+def _parse_cols_into_composite_cell(
+    data: Dict[str, Any], registry: Dict[str, CellMaker]
+) -> CompositeCell:
     if not isinstance(data, Dict):
         raise ValueError('Circuit JSON must be a dictionary.')
     if 'cols' not in data:
-        raise ValueError(
-            f'Circuit JSON dict must have a "cols" entry.\nJSON={data}')
+        raise ValueError(f'Circuit JSON dict must have a "cols" entry.\nJSON={data}')
     cols = data['cols']
     if not isinstance(cols, list):
         raise ValueError(f'Circuit JSON cols must be a list.\nJSON={data}')
@@ -272,52 +291,54 @@ def _parse_cols_into_composite_cell(data: Dict[str, Any],
                 if cell is not None:
                     c[i] = modifier(cell)
 
-    gate_count = sum(0 if cell is None else cell.gate_count()
-                     for col in parsed_cols
-                     for cell in col)
+    gate_count = sum(
+        0 if cell is None else cell.gate_count() for col in parsed_cols for cell in col
+    )
 
     return CompositeCell(height, parsed_cols, gate_count=gate_count)
 
 
 def _register_custom_gate(gate_json: Any, registry: Dict[str, CellMaker]):
     if not isinstance(gate_json, Dict):
-        raise ValueError(f'Custom gate json must be a dictionary.\n'
-                         f'Custom gate json={gate_json!r}.')
+        raise ValueError(f'Custom gate json must be a dictionary.\nCustom gate json={gate_json!r}.')
 
     if 'id' not in gate_json:
-        raise ValueError(f'Custom gate json must have an id key.\n'
-                         f'Custom gate json={gate_json!r}.')
+        raise ValueError(f'Custom gate json must have an id key.\nCustom gate json={gate_json!r}.')
     identifier = gate_json['id']
     if identifier in registry:
-        raise ValueError(
-            f'Custom gate with duplicate identifier: {identifier!r}')
+        raise ValueError(f'Custom gate with duplicate identifier: {identifier!r}')
 
     if 'matrix' in gate_json and 'circuit' in gate_json:
         raise ValueError(
             f'Custom gate json cannot have both a matrix and a circuit.\n'
-            f'Custom gate json={gate_json!r}.')
+            f'Custom gate json={gate_json!r}.'
+        )
 
     if 'matrix' in gate_json:
         if not isinstance(gate_json['matrix'], str):
-            raise ValueError(f'Custom gate matrix json must be a string.\n'
-                             f'Custom gate json={gate_json!r}.')
+            raise ValueError(
+                f'Custom gate matrix json must be a string.\nCustom gate json={gate_json!r}.'
+            )
         gate = ops.MatrixGate(parse_matrix(gate_json['matrix']))
         registry[identifier] = CellMaker(
             identifier=identifier,
             size=gate.num_qubits(),
-            maker=lambda args: gate(*args.qubits[::-1]))
+            maker=lambda args: gate(*args.qubits[::-1]),
+        )
 
     elif 'circuit' in gate_json:
         comp = _parse_cols_into_composite_cell(gate_json['circuit'], registry)
         registry[identifier] = CellMaker(
             identifier=identifier,
             size=comp.height,
-            maker=lambda args: comp.with_line_qubits_mapped_to(list(args.qubits)
-                                                              ))
+            maker=lambda args: comp.with_line_qubits_mapped_to(list(args.qubits)),
+        )
 
     else:
-        raise ValueError(f'Custom gate json must have a matrix or a circuit.\n'
-                         f'Custom gate json={gate_json!r}.')
+        raise ValueError(
+            f'Custom gate json must have a matrix or a circuit.\n'
+            f'Custom gate json={gate_json!r}.'
+        )
 
 
 def _init_ops(data: Dict[str, Any]) -> 'cirq.OP_TREE':
@@ -347,9 +368,9 @@ def _init_ops(data: Dict[str, Any]) -> 'cirq.OP_TREE':
     return ops.Moment(init_ops)
 
 
-def _parse_col_cells_with_height(registry: Dict[str, CellMaker], col: int,
-                                 col_data: Any
-                                ) -> Tuple[List[Optional[Cell]], int]:
+def _parse_col_cells_with_height(
+    registry: Dict[str, CellMaker], col: int, col_data: Any
+) -> Tuple[List[Optional[Cell]], int]:
     if not isinstance(col_data, list):
         raise ValueError('col must be a list.\ncol: {!r}'.format(col_data))
     result = []
@@ -361,8 +382,9 @@ def _parse_col_cells_with_height(registry: Dict[str, CellMaker], col: int,
     return result, height
 
 
-def _parse_cell_with_height(registry: Dict[str, CellMaker], row: int, col: int,
-                            entry: Any) -> Tuple[Optional[Cell], int]:
+def _parse_cell_with_height(
+    registry: Dict[str, CellMaker], row: int, col: int, entry: Any
+) -> Tuple[Optional[Cell], int]:
     if entry == 1:
         return None, 0
 

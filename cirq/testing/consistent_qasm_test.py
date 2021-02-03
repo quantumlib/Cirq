@@ -22,7 +22,6 @@ import cirq
 
 
 class Fixed(cirq.Operation):
-
     def __init__(self, unitary: np.ndarray, qasm: str) -> None:
         self.unitary = unitary
         self.qasm = qasm
@@ -42,7 +41,6 @@ class Fixed(cirq.Operation):
 
 
 class QuditGate(cirq.Gate):
-
     def _qid_shape_(self) -> Tuple[int, ...]:
         return (3, 3)
 
@@ -58,31 +56,38 @@ def test_assert_qasm_is_consistent_with_unitary():
         import qiskit as _
     except ImportError:
         # coverage: ignore
-        warnings.warn("Skipped test_assert_qasm_is_consistent_with_unitary "
-                      "because qiskit isn't installed to verify against.")
+        warnings.warn(
+            "Skipped test_assert_qasm_is_consistent_with_unitary "
+            "because qiskit isn't installed to verify against."
+        )
         return
 
     # Checks matrix.
     cirq.testing.assert_qasm_is_consistent_with_unitary(
-        Fixed(np.array([[1, 0], [0, 1]]), 'z {0}; z {0};'))
+        Fixed(np.array([[1, 0], [0, 1]]), 'z {0}; z {0};')
+    )
     cirq.testing.assert_qasm_is_consistent_with_unitary(
-        Fixed(np.array([[1, 0], [0, -1]]), 'z {0};'))
+        Fixed(np.array([[1, 0], [0, -1]]), 'z {0};')
+    )
     with pytest.raises(AssertionError, match='Not equal'):
         cirq.testing.assert_qasm_is_consistent_with_unitary(
-            Fixed(np.array([[1, 0], [0, -1]]), 'x {0};'))
+            Fixed(np.array([[1, 0], [0, -1]]), 'x {0};')
+        )
 
     # Checks qubit ordering.
+    cirq.testing.assert_qasm_is_consistent_with_unitary(cirq.CNOT)
     cirq.testing.assert_qasm_is_consistent_with_unitary(
-        cirq.CNOT)
+        cirq.CNOT.on(cirq.NamedQubit('a'), cirq.NamedQubit('b'))
+    )
     cirq.testing.assert_qasm_is_consistent_with_unitary(
-        cirq.CNOT.on(cirq.NamedQubit('a'), cirq.NamedQubit('b')))
-    cirq.testing.assert_qasm_is_consistent_with_unitary(
-        cirq.CNOT.on(cirq.NamedQubit('b'), cirq.NamedQubit('a')))
+        cirq.CNOT.on(cirq.NamedQubit('b'), cirq.NamedQubit('a'))
+    )
 
     # Checks that code is valid.
     with pytest.raises(AssertionError, match='Check your OPENQASM'):
         cirq.testing.assert_qasm_is_consistent_with_unitary(
-            Fixed(np.array([[1, 0], [0, -1]]), 'JUNK$&*@($#::=[];'))
+            Fixed(np.array([[1, 0], [0, -1]]), 'JUNK$&*@($#::=[];')
+        )
 
     # Checks that the test handles qudits
     cirq.testing.assert_qasm_is_consistent_with_unitary(QuditGate())

@@ -13,8 +13,7 @@
 # limitations under the License.
 """ISWAPPowGate conjugated by tensor product Rz(phi) and Rz(-phi)."""
 
-from typing import (AbstractSet, Any, Dict, List, Optional, Sequence, Tuple,
-                    Union)
+from typing import AbstractSet, Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import sympy
@@ -50,10 +49,12 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     and star indicates complex conjugate.
     """
 
-    def __init__(self,
-                 *,
-                 phase_exponent: Union[float, sympy.Symbol] = 0.25,
-                 exponent: Union[float, sympy.Symbol] = 1.0):
+    def __init__(
+        self,
+        *,
+        phase_exponent: Union[float, sympy.Symbol] = 0.25,
+        exponent: Union[float, sympy.Symbol] = 1.0,
+    ):
         """
         Args:
             phase_exponent: The exponent on the Z gates. We conjugate by
@@ -87,24 +88,25 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         return (self.phase_exponent, *self._iswap._value_equality_values_())
 
     def _is_parameterized_(self) -> bool:
-        return (protocols.is_parameterized(self._iswap) or
-                protocols.is_parameterized(self._phase_exponent))
+        return protocols.is_parameterized(self._iswap) or protocols.is_parameterized(
+            self._phase_exponent
+        )
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        return (protocols.parameter_names(self._iswap) |
-                protocols.parameter_names(self._phase_exponent))
+        return protocols.parameter_names(self._iswap) | protocols.parameter_names(
+            self._phase_exponent
+        )
 
-    def _resolve_parameters_(self, resolver: 'cirq.ParamResolverOrSimilarType'
-                            ) -> 'PhasedISwapPowGate':
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
+    ) -> 'PhasedISwapPowGate':
         return self.__class__(
-            phase_exponent=protocols.resolve_parameters(self.phase_exponent,
-                                                        resolver),
-            exponent=protocols.resolve_parameters(self.exponent, resolver))
+            phase_exponent=protocols.resolve_parameters(self.phase_exponent, resolver, recursive),
+            exponent=protocols.resolve_parameters(self.exponent, resolver, recursive),
+        )
 
-    def _with_exponent(self, exponent: value.type_alias.TParamVal
-                      ) -> 'PhasedISwapPowGate':
-        return PhasedISwapPowGate(phase_exponent=self.phase_exponent,
-                                  exponent=exponent)
+    def _with_exponent(self, exponent: value.type_alias.TParamVal) -> 'PhasedISwapPowGate':
+        return PhasedISwapPowGate(phase_exponent=self.phase_exponent, exponent=exponent)
 
     def _eigen_shifts(self) -> List[float]:
         return [0.0, +0.5, -0.5]
@@ -119,8 +121,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             eigen_components.append((eigenvalue, new_projector))
         return eigen_components
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
-                       ) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if protocols.is_parameterized(self):
             return NotImplemented
 
@@ -131,9 +132,9 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
         zo = args.subspace_index(0b01)
         oz = args.subspace_index(0b10)
-        linalg.apply_matrix_to_slices(args.target_tensor,
-                                      matrix, [oz, zo],
-                                      out=args.available_buffer)
+        linalg.apply_matrix_to_slices(
+            args.target_tensor, matrix, [oz, zo], out=args.available_buffer
+        )
         return args.available_buffer
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
@@ -141,11 +142,11 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             raise ValueError(f'Expected two qubits, got {len(qubits)}')
         a, b = qubits
 
-        yield cirq.Z(a)**self.phase_exponent
-        yield cirq.Z(b)**-self.phase_exponent
-        yield cirq.ISWAP(a, b)**self.exponent
-        yield cirq.Z(a)**-self.phase_exponent
-        yield cirq.Z(b)**self.phase_exponent
+        yield cirq.Z(a) ** self.phase_exponent
+        yield cirq.Z(b) ** -self.phase_exponent
+        yield cirq.ISWAP(a, b) ** self.exponent
+        yield cirq.Z(a) ** -self.phase_exponent
+        yield cirq.Z(b) ** self.phase_exponent
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if self._is_parameterized_():
@@ -158,20 +159,24 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         phase_angle = np.pi * self.phase_exponent
         c, s = np.cos(2 * phase_angle), np.sin(2 * phase_angle)
 
-        return value.LinearDict({
-            'II': expansion['II'],
-            'XX': c * v,
-            'YY': c * v,
-            'XY': s * v,
-            'YX': -s * v,
-            'ZZ': expansion['ZZ'],
-        })
+        return value.LinearDict(
+            {
+                'II': expansion['II'],
+                'XX': c * v,
+                'YY': c * v,
+                'XY': s * v,
+                'YX': -s * v,
+                'ZZ': expansion['ZZ'],
+            }
+        )
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                              ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(
+        self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> 'cirq.CircuitDiagramInfo':
         s = f'PhISwap({args.format_real(self._phase_exponent)})'
         return protocols.CircuitDiagramInfo(
-            wire_symbols=(s, s), exponent=self._diagram_exponent(args))
+            wire_symbols=(s, s), exponent=self._diagram_exponent(args)
+        )
 
     def __str__(self) -> str:
         if self.exponent == 1:
@@ -224,4 +229,4 @@ def givens(angle_rads: value.TParamVal) -> PhasedISwapPowGate:
         A phased iswap gate for the given rotation.
     """
     pi = sympy.pi if protocols.is_parameterized(angle_rads) else np.pi
-    return PhasedISwapPowGate()**(2 * angle_rads / pi)
+    return PhasedISwapPowGate() ** (2 * angle_rads / pi)

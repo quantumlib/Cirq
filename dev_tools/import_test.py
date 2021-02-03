@@ -43,20 +43,21 @@ import sys
 import time
 
 parser = argparse.ArgumentParser(
-    description="Locates imports that violate cirq's submodule dependencies.")
+    description="Locates imports that violate cirq's submodule dependencies."
+)
 parser.add_argument(
     '--time',
     action='store_true',
-    help='print a report of the modules that took the longest to import')
+    help='print a report of the modules that took the longest to import',
+)
 parser.add_argument(
     '--others',
     action='store_true',
-    help='also track packages other than cirq and print when they are imported')
+    help='also track packages other than cirq and print when they are imported',
+)
 
 
-def verify_import_tree(depth: int = 1,
-                       track_others: bool = False,
-                       timeit: bool = False) -> bool:
+def verify_import_tree(depth: int = 1, track_others: bool = False, timeit: bool = False) -> bool:
     """Locates imports that violate cirq's submodule dependencies by
     instrumenting python import machinery then importing cirq.
 
@@ -127,8 +128,7 @@ def verify_import_tree(depth: int = 1,
         path = module.__name__.split('.')
         if path[0] != 'cirq':
             if len(path) == 1:
-                print('{}Other {}'.format(indent * import_depth,
-                                          module.__name__))
+                print('{}Other {}'.format(indent * import_depth, module.__name__))
             return module
 
         currently_running_paths.append(path)
@@ -147,8 +147,7 @@ def verify_import_tree(depth: int = 1,
 
     def after_exec(module):
         nonlocal import_depth
-        load_times[module.__name__] = (time.perf_counter() -
-                                       start_times[module.__name__])
+        load_times[module.__name__] = time.perf_counter() - start_times[module.__name__]
 
         path = module.__name__.split('.')
         if path[0] != 'cirq':
@@ -169,9 +168,8 @@ def verify_import_tree(depth: int = 1,
             current_path[:] = path[:-1]
 
     def handle_error(import_from, import_to):
-        if import_from[:depth + 1] != import_to[:depth + 1]:
-            msg = '{} imported {}'.format('.'.join(import_from),
-                                          '.'.join(import_to))
+        if import_from[: depth + 1] != import_to[: depth + 1]:
+            msg = '{} imported {}'.format('.'.join(import_from), '.'.join(import_to))
             fail_list.append(msg)
             print('ERROR: {}'.format(msg))
 
@@ -181,12 +179,12 @@ def verify_import_tree(depth: int = 1,
     cirq_dir = os.path.join(project_dir, 'cirq')
     sys.path.append(cirq_dir)  # Put cirq/_import.py in the path.
     from _import import wrap_module_executions  # type: ignore
+
     sys.path[:] = orig_path  # Restore the path.
 
     sys.path.append(project_dir)  # Ensure the cirq package is in the path.
 
-    with wrap_module_executions('' if track_others else 'cirq', wrap_module,
-                                after_exec):
+    with wrap_module_executions('' if track_others else 'cirq', wrap_module, after_exec):
         # Import cirq with instrumentation
         import cirq  # pylint: disable=unused-import
 

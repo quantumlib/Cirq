@@ -13,22 +13,21 @@
 # limitations under the License.
 """IdentityGate."""
 
-from typing import (Any, Dict, Iterable, List, Optional, Tuple, Union,
-                    TYPE_CHECKING)
+from typing import Any, Dict, Iterable, List, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 import sympy
 
 from cirq import protocols, value
 from cirq._doc import document
-from cirq.ops import raw_types
+from cirq.ops import gate_features, raw_types
 
 if TYPE_CHECKING:
     import cirq
 
 
 @value.value_equality
-class IdentityGate(raw_types.Gate):
+class IdentityGate(gate_features.SupportsOnEachGate, raw_types.Gate):
     """A Gate that perform no operation on qubits.
 
     The unitary matrix of this gate is a diagonal matrix with all 1s on the
@@ -37,9 +36,9 @@ class IdentityGate(raw_types.Gate):
     `cirq.I` is the single qubit identity gate.
     """
 
-    def __init__(self,
-                 num_qubits: Optional[int] = None,
-                 qid_shape: Optional[Tuple[int, ...]] = None) -> None:
+    def __init__(
+        self, num_qubits: Optional[int] = None, qid_shape: Optional[Tuple[int, ...]] = None
+    ) -> None:
         """
         Args:
             num_qubits:
@@ -51,8 +50,7 @@ class IdentityGate(raw_types.Gate):
         """
         if qid_shape is None:
             if num_qubits is None:
-                raise ValueError(
-                    'Specify either the num_qubits or qid_shape argument.')
+                raise ValueError('Specify either the num_qubits or qid_shape argument.')
             qid_shape = (2,) * num_qubits
         elif num_qubits is None:
             num_qubits = len(qid_shape)
@@ -66,38 +64,6 @@ class IdentityGate(raw_types.Gate):
     def num_qubits(self) -> int:
         return len(self._qid_shape)
 
-    def on_each(self, *targets: Union['cirq.Qid', Iterable[Any]]
-               ) -> List['cirq.Operation']:
-        """Returns a list of operations that applies the single qubit identity
-        to each of the targets.
-
-        Args:
-            *targets: The qubits to apply this gate to.
-
-        Returns:
-            Operations applying this gate to the target qubits.
-
-        Raises:
-            ValueError if targets are not instances of Qid or List[Qid] or
-            the gate from which this is applied is not a single qubit identity
-            gate.
-        """
-        if len(self._qid_shape) != 1:
-            raise ValueError(
-                'IdentityGate only supports on_each when it is a one qubit '
-                'gate.')
-        operations: List['cirq.Operation'] = []
-        for target in targets:
-            if isinstance(target, raw_types.Qid):
-                operations.append(self.on(target))
-            elif isinstance(target, Iterable) and not isinstance(target, str):
-                operations.extend(self.on_each(*target))
-            else:
-                raise ValueError(
-                    'Gate was called with type different than Qid. Type: {}'.
-                    format(type(target)))
-        return operations
-
     def __pow__(self, power: Any) -> Any:
         if isinstance(power, (int, float, complex, sympy.Basic)):
             return self
@@ -109,8 +75,7 @@ class IdentityGate(raw_types.Gate):
     def _unitary_(self) -> np.ndarray:
         return np.identity(np.prod(self._qid_shape, dtype=int))
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
-                       ) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         return args.target_tensor
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
@@ -154,6 +119,7 @@ class IdentityGate(raw_types.Gate):
             return other
         if isinstance(other, (complex, float, int)):
             from cirq.ops.pauli_string import PauliString
+
             return PauliString(coefficient=other)
         return NotImplemented
 
@@ -162,30 +128,32 @@ class IdentityGate(raw_types.Gate):
     def _circuit_diagram_info_(self, args) -> Tuple[str, ...]:
         return ('I',) * self.num_qubits()
 
-    def _qasm_(self, args: 'cirq.QasmArgs',
-               qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         args.validate_version('2.0')
         return ''.join([args.format('id {0};\n', qubit) for qubit in qubits])
 
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
-               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+    def _quil_(
+        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
+    ) -> Optional[str]:
         return ''.join(formatter.format('I {0}\n', qubit) for qubit in qubits)
 
     @classmethod
     def _from_json_dict_(cls, num_qubits, qid_shape=None, **kwargs):
-        return cls(num_qubits=num_qubits,
-                   qid_shape=None if qid_shape is None else tuple(qid_shape))
+        return cls(num_qubits=num_qubits, qid_shape=None if qid_shape is None else tuple(qid_shape))
 
 
 I = IdentityGate(num_qubits=1)
 document(
-    I, """The one qubit identity gate.
+    I,
+    """The one qubit identity gate.
 
     Matrix:
-
+    ```
         [[1, 0],
          [0, 1]]
-    """)
+    ```
+    """,
+)
 
 
 def identity_each(*qubits: 'cirq.Qid') -> 'cirq.Operation':

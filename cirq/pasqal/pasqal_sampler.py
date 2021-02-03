@@ -20,7 +20,6 @@ import cirq
 
 
 class PasqalSampler(cirq.work.Sampler):
-
     def __init__(self, remote_host: str, access_token: str = '') -> None:
         """
         Args:
@@ -30,9 +29,9 @@ class PasqalSampler(cirq.work.Sampler):
         self.remote_host = remote_host
         self._authorization_header = {"Authorization": access_token}
 
-    def _serialize_circuit(self, circuit: cirq.circuits.Circuit,
-                           param_resolver: cirq.study.ParamResolverOrSimilarType
-                          ) -> str:
+    def _serialize_circuit(
+        self, circuit: cirq.circuits.Circuit, param_resolver: cirq.study.ParamResolverOrSimilarType
+    ) -> str:
         """Serialize a given Circuit.
         Args:
             circuit: The circuit to be run
@@ -68,9 +67,9 @@ class PasqalSampler(cirq.work.Sampler):
 
             time.sleep(1.0)
 
-    def _send_serialized_circuit(self,
-                                 serialization_str: str,
-                                 repetitions: int = 1) -> cirq.study.Result:
+    def _send_serialized_circuit(
+        self, serialization_str: str, repetitions: int = 1
+    ) -> cirq.study.Result:
         """Sends the json string to the remote Pasqal device
         Args:
             serialization_str: Json representation of the circuit.
@@ -97,10 +96,9 @@ class PasqalSampler(cirq.work.Sampler):
 
         return result
 
-    def run_sweep(self,
-                  program: cirq.Circuit,
-                  params: cirq.study.Sweepable,
-                  repetitions: int = 1) -> List[cirq.study.Result]:
+    def run_sweep(
+        self, program: cirq.Circuit, params: cirq.study.Sweepable, repetitions: int = 1
+    ) -> List[cirq.study.Result]:
         """Samples from the given Circuit.
         In contrast to run, this allows for sweeping over different parameter
         values.
@@ -117,10 +115,10 @@ class PasqalSampler(cirq.work.Sampler):
         trial_results = []
 
         for param_resolver in cirq.study.to_resolvers(params):
-            json_str = self._serialize_circuit(circuit=program,
-                                               param_resolver=param_resolver)
-            results = self._send_serialized_circuit(serialization_str=json_str,
-                                                    repetitions=repetitions)
+            json_str = self._serialize_circuit(circuit=program, param_resolver=param_resolver)
+            results = self._send_serialized_circuit(
+                serialization_str=json_str, repetitions=repetitions
+            )
             trial_results.append(results)
 
         return trial_results

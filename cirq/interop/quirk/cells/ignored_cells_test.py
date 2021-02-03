@@ -21,4 +21,6 @@ def test_displays():
         '{"cols":[["Amps2"],[1,"Amps3"],["Chance"],'
         '["Chance2"],["Density"],["Density3"],'
         '["Sample4"],["Bloch"],["Sample2"]'
-        ']}', cirq.Circuit())
+        ']}',
+        cirq.Circuit(),
+    )

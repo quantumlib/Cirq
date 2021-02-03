@@ -18,18 +18,16 @@ import cirq
 
 
 class OtherX(cirq.SingleQubitGate):
-
     def _unitary_(self) -> np.ndarray:
         return np.array([[0, 1], [1, 0]])
 
     def _decompose_(self, qubits):
         # Coverage explicitly ignored since we are checking that we don't
         # run this line and fall into an infinite loop.
-        return OtherOtherX().on(*qubits)  #coverage:ignore
+        return OtherOtherX().on(*qubits)  # coverage:ignore
 
 
 class OtherOtherX(cirq.SingleQubitGate):
-
     def _decompose_(self, qubits):
         return OtherX().on(*qubits)
 

@@ -19,8 +19,7 @@ import cirq
 from cirq import circuits
 
 
-def assert_equivalent_computational_basis_map(maps: Dict[int, int],
-                                              circuit: circuits.Circuit):
+def assert_equivalent_computational_basis_map(maps: Dict[int, int], circuit: circuits.Circuit):
     """Ensure equivalence of basis state mapping.
 
     Args:
@@ -41,17 +40,15 @@ def assert_equivalent_computational_basis_map(maps: Dict[int, int],
         assert actual_map.get(k) == maps[k], (
             f'{_bin_dec(k, mbl)} was mapped to '
             f'{_bin_dec(actual_map.get(k), mbl)} '
-            f'instead of {_bin_dec(maps[k], mbl)}.')
+            f'instead of {_bin_dec(maps[k], mbl)}.'
+        )
 
 
-def _sparse_computational_basis_map(inputs: Sequence[int],
-                                    circuit: circuits.Circuit
-                                   ) -> Dict[int, int]:
+def _sparse_computational_basis_map(
+    inputs: Sequence[int], circuit: circuits.Circuit
+) -> Dict[int, int]:
     # Pick a unique amplitude for each computational basis input state.
-    amps = [
-        np.exp(1j * i / len(inputs)) / len(inputs)**0.5
-        for i in range(len(inputs))
-    ]
+    amps = [np.exp(1j * i / len(inputs)) / len(inputs) ** 0.5 for i in range(len(inputs))]
 
     # Permute the amplitudes using the circuit.
     input_state = np.zeros(1 << len(circuit.all_qubits()), dtype=np.complex128)

@@ -5,8 +5,9 @@ import cirq
 
 
 def main():
-    value_map = {(qubit.row, qubit.col): np.random.random()
-                 for qubit in cirq.google.Bristlecone.qubits}
+    value_map = {
+        (qubit.row, qubit.col): np.random.random() for qubit in cirq.google.Bristlecone.qubits
+    }
 
     heatmap = cirq.Heatmap(value_map)
     heatmap.plot()

@@ -36,16 +36,15 @@ class QubitPermutationGate(raw_types.Gate):
             raise ValueError(f"Invalid permutation (empty): {permutation}")
 
         if len(set(permutation)) < len(permutation):
-            raise ValueError(f"Invalid permutation {permutation} "
-                             f"Each index must appear only once.")
+            raise ValueError(f"Invalid permutation {permutation} Each index must appear only once.")
 
-        invalid_indices = [
-            x for x in permutation if not 0 <= x < len(permutation)
-        ]
+        invalid_indices = [x for x in permutation if not 0 <= x < len(permutation)]
         if len(invalid_indices) > 0:
-            raise ValueError(f"All indices have to satisfy "
-                             f"0 <= i < {len(permutation)}. "
-                             f"Invalid indices: {invalid_indices}")
+            raise ValueError(
+                f"All indices have to satisfy "
+                f"0 <= i < {len(permutation)}. "
+                f"Invalid indices: {invalid_indices}"
+            )
 
         self.permutation = tuple(permutation)
 
@@ -72,15 +71,11 @@ class QubitPermutationGate(raw_types.Gate):
         args.available_buffer[...] = args.target_tensor.transpose(permuted_axes)
         return args.available_buffer
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                              ) -> Tuple[str, ...]:
-        return tuple(f'[{i}>{self.permutation[i]}]'
-                     for i in range(len(self.permutation)))
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
+        return tuple(f'[{i}>{self.permutation[i]}]' for i in range(len(self.permutation)))
 
     def __repr__(self) -> str:
-        return ('cirq.QubitPermutationGate('
-                f'permutation={repr(self.permutation)})')
+        return f'cirq.QubitPermutationGate(permutation={self.permutation!r})'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(self,
-                                            attribute_names=['permutation'])
+        return protocols.obj_to_dict_helper(self, attribute_names=['permutation'])

@@ -1,4 +1,4 @@
-name: Release cirq-unstable to PyPi
+name: Pre-release cirq to PyPi
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
           TWINE_USERNAME: ${{ secrets.PYPI_USER }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASS }}
         run: |
-          export CIRQ_UNSTABLE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
-          [[ "$CIRQ_UNSTABLE_VERSION" =~ .*dev.* ]] && echo "Deploying dev version '$CIRQ_UNSTABLE_VERSION'" || (echo "not dev version"; exit 1)
+          export CIRQ_PRE_RELEASE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
+          [[ "$CIRQ_PRE_RELEASE_VERSION" =~ .*dev.* ]] && echo "Deploying dev version '$CIRQ_PRE_RELEASE_VERSION'" || (echo "not dev version"; exit 1)
           python setup.py bdist_wheel
           twine upload dist/*

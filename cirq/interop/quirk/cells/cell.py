@@ -12,8 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import (Callable, Optional, List, NamedTuple, Any, Iterable,
-                    Sequence, TYPE_CHECKING, Union, Dict, Tuple)
+from typing import (
+    Callable,
+    Optional,
+    List,
+    NamedTuple,
+    Any,
+    Iterable,
+    Sequence,
+    TYPE_CHECKING,
+    Union,
+    Dict,
+    Tuple,
+)
 
 from cirq import ops, value, devices
 
@@ -30,19 +41,17 @@ class Cell(metaclass=abc.ABCMeta):
     """
 
     @classmethod
-    def _replace_qubit(cls, old_qubit: 'cirq.Qid',
-                       qubits: List['cirq.Qid']) -> 'cirq.Qid':
+    def _replace_qubit(cls, old_qubit: 'cirq.Qid', qubits: List['cirq.Qid']) -> 'cirq.Qid':
         if not isinstance(old_qubit, devices.LineQubit):
-            raise ValueError(
-                f'Can only map from line qubits, but got {old_qubit!r}.')
+            raise ValueError(f'Can only map from line qubits, but got {old_qubit!r}.')
         if not 0 <= old_qubit.x < len(qubits):
-            raise ValueError(
-                f'Line qubit index ({old_qubit.x}) not in range({len(qubits)})')
+            raise ValueError(f'Line qubit index ({old_qubit.x}) not in range({len(qubits)})')
         return qubits[old_qubit.x]
 
     @classmethod
-    def _replace_qubits(cls, old_qubits: Iterable['cirq.Qid'],
-                        qubits: List['cirq.Qid']) -> Tuple['cirq.Qid', ...]:
+    def _replace_qubits(
+        cls, old_qubits: Iterable['cirq.Qid'], qubits: List['cirq.Qid']
+    ) -> Tuple['cirq.Qid', ...]:
         return tuple(Cell._replace_qubit(e, qubits) for e in old_qubits)
 
     @abc.abstractmethod
@@ -75,8 +84,7 @@ class Cell(metaclass=abc.ABCMeta):
         extremely adversarial conditions.
         """
 
-    def with_input(self, letter: str,
-                   register: Union[Sequence['cirq.Qid'], int]) -> 'Cell':
+    def with_input(self, letter: str, register: Union[Sequence['cirq.Qid'], int]) -> 'Cell':
         """The same cell, but linked to an explicit input register or constant.
 
         If the cell doesn't need the input, it is returned unchanged.
@@ -169,9 +177,9 @@ class Cell(metaclass=abc.ABCMeta):
 class ExplicitOperationsCell(Cell):
     """A quirk cell with known body operations and basis change operations."""
 
-    def __init__(self,
-                 operations: Iterable[ops.Operation],
-                 basis_change: Iterable[ops.Operation] = ()):
+    def __init__(
+        self, operations: Iterable[ops.Operation], basis_change: Iterable[ops.Operation] = ()
+    ):
         self._operations = tuple(operations)
         self._basis_change = tuple(basis_change)
 
@@ -181,11 +189,13 @@ class ExplicitOperationsCell(Cell):
     def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
         return ExplicitOperationsCell(
             operations=tuple(
-                op.with_qubits(*Cell._replace_qubits(op.qubits, qubits))
-                for op in self._operations),
+                op.with_qubits(*Cell._replace_qubits(op.qubits, qubits)) for op in self._operations
+            ),
             basis_change=tuple(
                 op.with_qubits(*Cell._replace_qubits(op.qubits, qubits))
-                for op in self._basis_change))
+                for op in self._basis_change
+            ),
+        )
 
     def _value_equality_values_(self):
         return self._operations, self._basis_change
@@ -198,24 +208,30 @@ class ExplicitOperationsCell(Cell):
 
     def controlled_by(self, qubit: 'cirq.Qid') -> 'ExplicitOperationsCell':
         return ExplicitOperationsCell(
-            [op.controlled_by(qubit) for op in self._operations],
-            self._basis_change)
+            [op.controlled_by(qubit) for op in self._operations], self._basis_change
+        )
 
 
 CELL_SIZES = range(1, 17)
 
-CellMakerArgs = NamedTuple('CellMakerArgs', [
-    ('qubits', Sequence['cirq.Qid']),
-    ('value', Any),
-    ('row', int),
-    ('col', int),
-])
+CellMakerArgs = NamedTuple(
+    'CellMakerArgs',
+    [
+        ('qubits', Sequence['cirq.Qid']),
+        ('value', Any),
+        ('row', int),
+        ('col', int),
+    ],
+)
 
-CellMaker = NamedTuple('CellMaker', [
-    ('identifier', str),
-    ('size', int),
-    ('maker', Callable[[CellMakerArgs], Union[None, 'Cell', 'cirq.Operation']]),
-])
+CellMaker = NamedTuple(
+    'CellMaker',
+    [
+        ('identifier', str),
+        ('size', int),
+        ('maker', Callable[[CellMakerArgs], Union[None, 'Cell', 'cirq.Operation']]),
+    ],
+)
 CellMaker.__doc__ = """Turns Quirk identifiers into Cirq operations.
 
 Attributes:

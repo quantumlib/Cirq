@@ -46,8 +46,7 @@ class Device(metaclass=abc.ABCMeta):
         # Default to the qubits being unknown.
         return None
 
-    def decompose_operation(self, operation: 'cirq.Operation'
-                            ) -> 'cirq.OP_TREE':
+    def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         """Returns a device-valid decomposition for the given operation.
 
         This method is used when adding operations into circuits with a device
@@ -90,9 +89,9 @@ class Device(metaclass=abc.ABCMeta):
         for operation in moment.operations:
             self.validate_operation(operation)
 
-    def can_add_operation_into_moment(self,
-                                      operation: 'cirq.Operation',
-                                      moment: 'cirq.Moment') -> bool:
+    def can_add_operation_into_moment(
+        self, operation: 'cirq.Operation', moment: 'cirq.Moment'
+    ) -> bool:
         """Determines if it's possible to add an operation into a moment.
 
         For example, on the XmonDevice two CZs shouldn't be placed in the same

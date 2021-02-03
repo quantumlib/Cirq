@@ -85,10 +85,8 @@ def test_unconstrained_undirected_graph_device_edge():
 def test_graph_device():
     one_qubit_duration = cirq.Duration(picos=10)
     two_qubit_duration = cirq.Duration(picos=1)
-    one_qubit_edge = ccgd.FixedDurationUndirectedGraphDeviceEdge(
-        one_qubit_duration)
-    two_qubit_edge = ccgd.FixedDurationUndirectedGraphDeviceEdge(
-        two_qubit_duration)
+    one_qubit_edge = ccgd.FixedDurationUndirectedGraphDeviceEdge(one_qubit_duration)
+    two_qubit_edge = ccgd.FixedDurationUndirectedGraphDeviceEdge(two_qubit_duration)
 
     empty_device = ccgd.UndirectedGraphDevice()
     assert not empty_device.qubits
@@ -96,28 +94,29 @@ def test_graph_device():
 
     n_qubits = 4
     qubits = cirq.LineQubit.range(n_qubits)
-    edges = {(cirq.LineQubit(i), cirq.LineQubit((i + 1) % n_qubits)):
-             two_qubit_edge for i in range(n_qubits)}
-    edges.update({(cirq.LineQubit(i),): one_qubit_edge for i in range(n_qubits)
-                 })
+    edges = {
+        (cirq.LineQubit(i), cirq.LineQubit((i + 1) % n_qubits)): two_qubit_edge
+        for i in range(n_qubits)
+    }
+    edges.update({(cirq.LineQubit(i),): one_qubit_edge for i in range(n_qubits)})
     device_graph = ccgd.UndirectedHypergraph(labelled_edges=edges)
 
     def not_cnots(first_op, second_op):
         if all(
-                isinstance(op, cirq.GateOperation) and op.gate == cirq.CNOT
-                for op in (first_op, second_op)):
+            isinstance(op, cirq.GateOperation) and op.gate == cirq.CNOT
+            for op in (first_op, second_op)
+        ):
             raise ValueError('Simultaneous CNOTs')
 
     assert ccgd.is_undirected_device_graph(device_graph)
     with pytest.raises(TypeError):
         ccgd.UndirectedGraphDevice('abc')
     constraint_edges = {
-        (frozenset(cirq.LineQubit.range(2)),
-         frozenset(cirq.LineQubit.range(2, 4))):
-        None,
-        (frozenset(cirq.LineQubit.range(1, 3)),
-         frozenset((cirq.LineQubit(0), cirq.LineQubit(3)))):
-        not_cnots
+        (frozenset(cirq.LineQubit.range(2)), frozenset(cirq.LineQubit.range(2, 4))): None,
+        (
+            frozenset(cirq.LineQubit.range(1, 3)),
+            frozenset((cirq.LineQubit(0), cirq.LineQubit(3))),
+        ): not_cnots,
     }
     crosstalk_graph = ccgd.UndirectedHypergraph(labelled_edges=constraint_edges)
     assert ccgd.is_crosstalk_graph(crosstalk_graph)
@@ -128,16 +127,14 @@ def test_graph_device():
     graph_device = ccgd.UndirectedGraphDevice(device_graph)
     assert graph_device.crosstalk_graph == ccgd.UndirectedHypergraph()
 
-    graph_device = ccgd.UndirectedGraphDevice(device_graph,
-                                              crosstalk_graph=crosstalk_graph)
+    graph_device = ccgd.UndirectedGraphDevice(device_graph, crosstalk_graph=crosstalk_graph)
     assert sorted(graph_device.edges) == sorted(device_graph.edges)
     assert graph_device.qubits == tuple(qubits)
     assert graph_device.device_graph == device_graph
     assert graph_device.labelled_edges == device_graph.labelled_edges
 
     assert graph_device.duration_of(cirq.X(qubits[2])) == one_qubit_duration
-    assert (graph_device.duration_of(
-        cirq.CNOT(*qubits[:2])) == two_qubit_duration)
+    assert graph_device.duration_of(cirq.CNOT(*qubits[:2])) == two_qubit_duration
     with pytest.raises(KeyError):
         graph_device.duration_of(cirq.CNOT(qubits[0], qubits[2]))
     with pytest.raises(ValueError):
@@ -149,37 +146,28 @@ def test_graph_device():
     with pytest.raises(ValueError):
         graph_device.validate_moment(moment)
 
-    moment = cirq.Moment(
-        [cirq.CNOT(qubits[0], qubits[3]),
-         cirq.CZ(qubits[1], qubits[2])])
+    moment = cirq.Moment([cirq.CNOT(qubits[0], qubits[3]), cirq.CZ(qubits[1], qubits[2])])
     graph_device.validate_moment(moment)
 
-    moment = cirq.Moment(
-        [cirq.CNOT(qubits[0], qubits[3]),
-         cirq.CNOT(qubits[1], qubits[2])])
+    moment = cirq.Moment([cirq.CNOT(qubits[0], qubits[3]), cirq.CNOT(qubits[1], qubits[2])])
     with pytest.raises(ValueError):
         graph_device.validate_moment(moment)
 
 
 def test_graph_device_copy_and_add():
     a, b, c, d, e, f = cirq.LineQubit.range(6)
-    device_graph = ccgd.UndirectedHypergraph(labelled_edges={
-        (a, b): None,
-        (c, d): None
-    })
+    device_graph = ccgd.UndirectedHypergraph(labelled_edges={(a, b): None, (c, d): None})
     crosstalk_graph = ccgd.UndirectedHypergraph(
-        labelled_edges={(frozenset((a, b)), frozenset((c, d))): None})
-    device = ccgd.UndirectedGraphDevice(device_graph=device_graph,
-                                        crosstalk_graph=crosstalk_graph)
-    device_graph_addend = ccgd.UndirectedHypergraph(labelled_edges={
-        (a, b): None,
-        (e, f): None
-    })
+        labelled_edges={(frozenset((a, b)), frozenset((c, d))): None}
+    )
+    device = ccgd.UndirectedGraphDevice(device_graph=device_graph, crosstalk_graph=crosstalk_graph)
+    device_graph_addend = ccgd.UndirectedHypergraph(labelled_edges={(a, b): None, (e, f): None})
     crosstalk_graph_addend = ccgd.UndirectedHypergraph(
-        labelled_edges={(frozenset((a, b)), frozenset((e, f))): None})
+        labelled_edges={(frozenset((a, b)), frozenset((e, f))): None}
+    )
     device_addend = ccgd.UndirectedGraphDevice(
-        device_graph=device_graph_addend,
-        crosstalk_graph=crosstalk_graph_addend)
+        device_graph=device_graph_addend, crosstalk_graph=crosstalk_graph_addend
+    )
     device_sum = device + device_addend
     device_copy = device.__copy__()
     device_copy += device_addend
@@ -189,9 +177,6 @@ def test_graph_device_copy_and_add():
 
 def test_qubit_set():
     a, b, c, d = cirq.LineQubit.range(4)
-    device_graph = ccgd.UndirectedHypergraph(labelled_edges={
-        (a, b): None,
-        (c, d): None
-    })
+    device_graph = ccgd.UndirectedHypergraph(labelled_edges={(a, b): None, (c, d): None})
     device = ccgd.UndirectedGraphDevice(device_graph=device_graph)
     assert device.qubit_set() == {a, b, c, d}

@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from typing import (Any, cast, Dict, Iterable, Optional, Sequence, Tuple,
-                    TYPE_CHECKING, Iterator)
+from typing import Any, cast, Dict, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING, Iterator
 import numpy as np
 import sympy
 
@@ -31,113 +30,120 @@ def _load_json_bool(b: Any):
     return json.loads(b)
 
 
-def gate_to_proto(gate: 'cirq.Gate', qubits: Tuple['cirq.Qid', ...],
-                  delay: int) -> operations_pb2.Operation:
+def gate_to_proto(
+    gate: 'cirq.Gate', qubits: Tuple['cirq.Qid', ...], delay: int
+) -> operations_pb2.Operation:
     if isinstance(gate, ops.MeasurementGate):
-        return operations_pb2.Operation(incremental_delay_picoseconds=delay,
-                                        measurement=_measure_to_proto(
-                                            gate, qubits))
+        return operations_pb2.Operation(
+            incremental_delay_picoseconds=delay, measurement=_measure_to_proto(gate, qubits)
+        )
 
     if isinstance(gate, ops.XPowGate):
         if len(qubits) != 1:
             # coverage: ignore
             raise ValueError('Wrong number of qubits.')
-        return operations_pb2.Operation(incremental_delay_picoseconds=delay,
-                                        exp_w=_x_to_proto(gate, qubits[0]))
+        return operations_pb2.Operation(
+            incremental_delay_picoseconds=delay, exp_w=_x_to_proto(gate, qubits[0])
+        )
 
     if isinstance(gate, ops.YPowGate):
         if len(qubits) != 1:
             # coverage: ignore
             raise ValueError('Wrong number of qubits.')
-        return operations_pb2.Operation(incremental_delay_picoseconds=delay,
-                                        exp_w=_y_to_proto(gate, qubits[0]))
+        return operations_pb2.Operation(
+            incremental_delay_picoseconds=delay, exp_w=_y_to_proto(gate, qubits[0])
+        )
 
     if isinstance(gate, ops.PhasedXPowGate):
         if len(qubits) != 1:
             # coverage: ignore
             raise ValueError('Wrong number of qubits.')
-        return operations_pb2.Operation(incremental_delay_picoseconds=delay,
-                                        exp_w=_phased_x_to_proto(
-                                            gate, qubits[0]))
+        return operations_pb2.Operation(
+            incremental_delay_picoseconds=delay, exp_w=_phased_x_to_proto(gate, qubits[0])
+        )
 
     if isinstance(gate, ops.ZPowGate):
         if len(qubits) != 1:
             # coverage: ignore
             raise ValueError('Wrong number of qubits.')
-        return operations_pb2.Operation(incremental_delay_picoseconds=delay,
-                                        exp_z=_z_to_proto(gate, qubits[0]))
+        return operations_pb2.Operation(
+            incremental_delay_picoseconds=delay, exp_z=_z_to_proto(gate, qubits[0])
+        )
 
     if isinstance(gate, ops.CZPowGate):
         if len(qubits) != 2:
             # coverage: ignore
             raise ValueError('Wrong number of qubits.')
-        return operations_pb2.Operation(incremental_delay_picoseconds=delay,
-                                        exp_11=_cz_to_proto(gate, *qubits))
+        return operations_pb2.Operation(
+            incremental_delay_picoseconds=delay, exp_11=_cz_to_proto(gate, *qubits)
+        )
 
     raise ValueError("Don't know how to serialize this gate: {!r}".format(gate))
 
 
 def _x_to_proto(gate: 'cirq.XPowGate', q: 'cirq.Qid') -> operations_pb2.ExpW:
-    return operations_pb2.ExpW(target=_qubit_to_proto(q),
-                               axis_half_turns=_parameterized_value_to_proto(0),
-                               half_turns=_parameterized_value_to_proto(
-                                   gate.exponent))
+    return operations_pb2.ExpW(
+        target=_qubit_to_proto(q),
+        axis_half_turns=_parameterized_value_to_proto(0),
+        half_turns=_parameterized_value_to_proto(gate.exponent),
+    )
 
 
 def _y_to_proto(gate: 'cirq.YPowGate', q: 'cirq.Qid') -> operations_pb2.ExpW:
     return operations_pb2.ExpW(
         target=_qubit_to_proto(q),
         axis_half_turns=_parameterized_value_to_proto(0.5),
-        half_turns=_parameterized_value_to_proto(gate.exponent))
+        half_turns=_parameterized_value_to_proto(gate.exponent),
+    )
 
 
-def _phased_x_to_proto(gate: 'cirq.PhasedXPowGate',
-                       q: 'cirq.Qid') -> operations_pb2.ExpW:
+def _phased_x_to_proto(gate: 'cirq.PhasedXPowGate', q: 'cirq.Qid') -> operations_pb2.ExpW:
     return operations_pb2.ExpW(
         target=_qubit_to_proto(q),
         axis_half_turns=_parameterized_value_to_proto(gate.phase_exponent),
-        half_turns=_parameterized_value_to_proto(gate.exponent))
+        half_turns=_parameterized_value_to_proto(gate.exponent),
+    )
 
 
 def _z_to_proto(gate: 'cirq.ZPowGate', q: 'cirq.Qid') -> operations_pb2.ExpZ:
-    return operations_pb2.ExpZ(target=_qubit_to_proto(q),
-                               half_turns=_parameterized_value_to_proto(
-                                   gate.exponent))
+    return operations_pb2.ExpZ(
+        target=_qubit_to_proto(q), half_turns=_parameterized_value_to_proto(gate.exponent)
+    )
 
 
-def _cz_to_proto(gate: 'cirq.CZPowGate', p: 'cirq.Qid',
-                 q: 'cirq.Qid') -> operations_pb2.Exp11:
-    return operations_pb2.Exp11(target1=_qubit_to_proto(p),
-                                target2=_qubit_to_proto(q),
-                                half_turns=_parameterized_value_to_proto(
-                                    gate.exponent))
+def _cz_to_proto(gate: 'cirq.CZPowGate', p: 'cirq.Qid', q: 'cirq.Qid') -> operations_pb2.Exp11:
+    return operations_pb2.Exp11(
+        target1=_qubit_to_proto(p),
+        target2=_qubit_to_proto(q),
+        half_turns=_parameterized_value_to_proto(gate.exponent),
+    )
 
 
 def _qubit_to_proto(qubit):
     return operations_pb2.Qubit(row=qubit.row, col=qubit.col)
 
 
-def _measure_to_proto(gate: 'cirq.MeasurementGate',
-                      qubits: Sequence['cirq.Qid']):
+def _measure_to_proto(gate: 'cirq.MeasurementGate', qubits: Sequence['cirq.Qid']):
     if len(qubits) == 0:
         raise ValueError('Measurement gate on no qubits.')
 
     invert_mask = None
     if gate.invert_mask:
-        invert_mask = gate.invert_mask + (False,) * (gate.num_qubits() -
-                                                     len(gate.invert_mask))
+        invert_mask = gate.invert_mask + (False,) * (gate.num_qubits() - len(gate.invert_mask))
 
     if invert_mask and len(invert_mask) != len(qubits):
-        raise ValueError('Measurement gate had invert mask of length '
-                         'different than number of qubits it acts on.')
+        raise ValueError(
+            'Measurement gate had invert mask of length '
+            'different than number of qubits it acts on.'
+        )
     return operations_pb2.Measurement(
         targets=[_qubit_to_proto(q) for q in qubits],
         key=protocols.measurement_key(gate),
-        invert_mask=invert_mask)
+        invert_mask=invert_mask,
+    )
 
 
-def circuit_as_schedule_to_protos(circuit: 'cirq.Circuit'
-                                 ) -> Iterator[operations_pb2.Operation]:
+def circuit_as_schedule_to_protos(circuit: 'cirq.Circuit') -> Iterator[operations_pb2.Operation]:
     """Convert a circuit into an iterable of protos.
 
     Args:
@@ -161,8 +167,8 @@ def circuit_as_schedule_to_protos(circuit: 'cirq.Circuit'
 
 
 def circuit_from_schedule_from_protos(
-        device: 'cirq.google.XmonDevice',
-        ops: Iterable[operations_pb2.Operation],
+    device: 'cirq.google.XmonDevice',
+    ops: Iterable[operations_pb2.Operation],
 ) -> 'cirq.Circuit':
     """Convert protos into a Circuit for the given device."""
     result = []
@@ -196,8 +202,7 @@ def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
 
     reps = shapes[0][1][0]
     if not all(shape[0] == reps for _, shape in shapes):
-        raise ValueError(
-            "Expected same reps for all keys: shapes={}".format(shapes))
+        raise ValueError("Expected same reps for all keys: shapes={}".format(shapes))
 
     bits = np.hstack([np.asarray(data, dtype=bool) for _, data in measurements])
     bits = bits.reshape(-1)
@@ -214,9 +219,9 @@ def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
     return byte_arr.tobytes()
 
 
-def unpack_results(data: bytes, repetitions: int,
-                   key_sizes: Sequence[Tuple[str, int]]
-                  ) -> Dict[str, np.ndarray]:
+def unpack_results(
+    data: bytes, repetitions: int, key_sizes: Sequence[Tuple[str, int]]
+) -> Dict[str, np.ndarray]:
     """Unpack data from a bitstring into individual measurement results.
 
     Args:
@@ -240,7 +245,7 @@ def unpack_results(data: bytes, repetitions: int,
     results = {}
     ofs = 0
     for key, size in key_sizes:
-        results[key] = bits[:, ofs:ofs + size]
+        results[key] = bits[:, ofs : ofs + size]
         ofs += size
 
     return results
@@ -255,7 +260,7 @@ def is_native_xmon_op(op: 'cirq.Operation') -> bool:
     Returns:
         True if the operation is native to the xmon, false otherwise.
     """
-    return (isinstance(op, ops.GateOperation) and is_native_xmon_gate(op.gate))
+    return isinstance(op, ops.GateOperation) and is_native_xmon_gate(op.gate)
 
 
 def is_native_xmon_gate(gate: 'cirq.Gate') -> bool:
@@ -267,9 +272,17 @@ def is_native_xmon_gate(gate: 'cirq.Gate') -> bool:
     Returns:
         True if the gate is native to the xmon, false otherwise.
     """
-    return isinstance(gate,
-                      (ops.CZPowGate, ops.MeasurementGate, ops.PhasedXPowGate,
-                       ops.XPowGate, ops.YPowGate, ops.ZPowGate))
+    return isinstance(
+        gate,
+        (
+            ops.CZPowGate,
+            ops.MeasurementGate,
+            ops.PhasedXPowGate,
+            ops.XPowGate,
+            ops.YPowGate,
+            ops.ZPowGate,
+        ),
+    )
 
 
 def xmon_op_from_proto(proto: operations_pb2.Operation) -> 'cirq.Operation':
@@ -293,18 +306,15 @@ def xmon_op_from_proto(proto: operations_pb2.Operation) -> 'cirq.Operation':
         ).on(qubit(exp_w.target))
     if proto.HasField('exp_z'):
         exp_z = proto.exp_z
-        return ops.Z(qubit(exp_z.target))**param(exp_z.half_turns)
+        return ops.Z(qubit(exp_z.target)) ** param(exp_z.half_turns)
     if proto.HasField('exp_11'):
         exp_11 = proto.exp_11
-        return ops.CZ(qubit(exp_11.target1),
-                      qubit(exp_11.target2))**param(exp_11.half_turns)
+        return ops.CZ(qubit(exp_11.target1), qubit(exp_11.target2)) ** param(exp_11.half_turns)
     if proto.HasField('measurement'):
         meas = proto.measurement
         return ops.MeasurementGate(
-            num_qubits=len(meas.targets),
-            key=meas.key,
-            invert_mask=tuple(
-                meas.invert_mask)).on(*[qubit(q) for q in meas.targets])
+            num_qubits=len(meas.targets), key=meas.key, invert_mask=tuple(meas.invert_mask)
+        ).on(*[qubit(q) for q in meas.targets])
 
     raise ValueError('invalid operation: {}'.format(proto))
 
@@ -313,21 +323,20 @@ def _qubit_from_proto(proto: operations_pb2.Qubit):
     return devices.GridQubit(row=proto.row, col=proto.col)
 
 
-def _parameterized_value_from_proto(proto: operations_pb2.ParameterizedFloat
-                                   ) -> value.TParamVal:
+def _parameterized_value_from_proto(proto: operations_pb2.ParameterizedFloat) -> value.TParamVal:
     if proto.HasField('parameter_key'):
         return sympy.Symbol(proto.parameter_key)
     if proto.HasField('raw'):
         return proto.raw
-    raise ValueError('No value specified for parameterized float. '
-                     'Expected "raw" or "parameter_key" to be set. '
-                     'proto: {!r}'.format(proto))
+    raise ValueError(
+        'No value specified for parameterized float. '
+        'Expected "raw" or "parameter_key" to be set. '
+        'proto: {!r}'.format(proto)
+    )
 
 
-def _parameterized_value_to_proto(param: value.TParamVal
-                                 ) -> operations_pb2.ParameterizedFloat:
+def _parameterized_value_to_proto(param: value.TParamVal) -> operations_pb2.ParameterizedFloat:
     if isinstance(param, sympy.Symbol):
-        return operations_pb2.ParameterizedFloat(
-            parameter_key=str(param.free_symbols.pop()))
+        return operations_pb2.ParameterizedFloat(parameter_key=str(param.free_symbols.pop()))
     else:
         return operations_pb2.ParameterizedFloat(raw=float(param))

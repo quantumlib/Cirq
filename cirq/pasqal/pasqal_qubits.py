@@ -44,15 +44,11 @@ class ThreeDQubit(cirq.ops.Qid):
     def distance(self, other: cirq.ops.Qid) -> float:
         """Returns the distance between two qubits in 3d."""
         if not isinstance(other, ThreeDQubit):
-            raise TypeError(
-                "Can compute distance to another ThreeDQubit, but {}".format(
-                    other))
-        return sqrt((self.x - other.x)**2 + (self.y - other.y)**2 +
-                    (self.z - other.z)**2)
+            raise TypeError("Can compute distance to another ThreeDQubit, but {}".format(other))
+        return sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2)
 
     @staticmethod
-    def cube(diameter: int, x0: float = 0, y0: float = 0,
-             z0: float = 0) -> List['ThreeDQubit']:
+    def cube(diameter: int, x0: float = 0, y0: float = 0, z0: float = 0) -> List['ThreeDQubit']:
         """Returns a cube of ThreeDQubits.
 
         Args:
@@ -64,20 +60,12 @@ class ThreeDQubit(cirq.ops.Qid):
         Returns:
             A list of ThreeDQubits filling in a square grid
         """
-        return ThreeDQubit.parallelep(diameter,
-                                      diameter,
-                                      diameter,
-                                      x0=x0,
-                                      y0=y0,
-                                      z0=z0)
+        return ThreeDQubit.parallelep(diameter, diameter, diameter, x0=x0, y0=y0, z0=z0)
 
     @staticmethod
-    def parallelep(rows: int,
-                   cols: int,
-                   lays: int,
-                   x0: float = 0,
-                   y0: float = 0,
-                   z0: float = 0) -> List['ThreeDQubit']:
+    def parallelep(
+        rows: int, cols: int, lays: int, x0: float = 0, y0: float = 0, z0: float = 0
+    ) -> List['ThreeDQubit']:
         """Returns a parallelepiped of ThreeDQubits.
 
         Args:
@@ -91,8 +79,10 @@ class ThreeDQubit(cirq.ops.Qid):
             A list of ThreeDQubits filling in a 3d grid
         """
         return [
-            ThreeDQubit(x0 + x, y0 + y, z0 + z) for z in range(lays)
-            for y in range(cols) for x in range(rows)
+            ThreeDQubit(x0 + x, y0 + y, z0 + z)
+            for z in range(lays)
+            for y in range(cols)
+            for x in range(rows)
         ]
 
     def __repr__(self):
@@ -112,8 +102,7 @@ class TwoDQubit(ThreeDQubit):
         super().__init__(x, y, z=0)
 
     @staticmethod
-    def square(diameter: int, x0: float = 0,
-               y0: float = 0) -> List['TwoDQubit']:
+    def square(diameter: int, x0: float = 0, y0: float = 0) -> List['TwoDQubit']:
         """Returns a square of TwoDQubit.
 
         Args:
@@ -127,8 +116,7 @@ class TwoDQubit(ThreeDQubit):
         return TwoDQubit.rect(diameter, diameter, x0=x0, y0=y0)
 
     @staticmethod
-    def rect(rows: int, cols: int, x0: float = 0,
-             y0: float = 0) -> List['TwoDQubit']:
+    def rect(rows: int, cols: int, x0: float = 0, y0: float = 0) -> List['TwoDQubit']:
         """Returns a rectangle of TwoDQubit.
 
         Args:
@@ -140,9 +128,7 @@ class TwoDQubit(ThreeDQubit):
         Returns:
             A list of TwoDQubits filling in a rectangular grid
         """
-        return [
-            TwoDQubit(x0 + x, y0 + y) for y in range(cols) for x in range(rows)
-        ]
+        return [TwoDQubit(x0 + x, y0 + y) for y in range(cols) for x in range(rows)]
 
     @staticmethod
     def triangular_lattice(l: int, x0: float = 0, y0: float = 0):
@@ -156,8 +142,7 @@ class TwoDQubit(ThreeDQubit):
         Returns:
             A list of TwoDQubits filling in a triangular lattice.
         """
-        coords = np.array([[x, y] for x in range(l + 1) for y in range(l + 1)],
-                          dtype=float)
+        coords = np.array([[x, y] for x in range(l + 1) for y in range(l + 1)], dtype=float)
         coords[:, 0] += 0.5 * np.mod(coords[:, 1], 2)
         coords[:, 1] *= np.sqrt(3) / 2
         coords += [x0, y0]

@@ -29,8 +29,7 @@ class GridQubitLineTuple(tuple):
     """A contiguous non-overlapping sequence of adjacent grid qubits."""
 
     @staticmethod
-    def best_of(lines: Iterable[LineSequence],
-                length: int) -> 'GridQubitLineTuple':
+    def best_of(lines: Iterable[LineSequence], length: int) -> 'GridQubitLineTuple':
         lines = list(lines)
         longest = max(lines, key=len) if lines else []
         if len(longest) < length:
@@ -46,10 +45,6 @@ class GridQubitLineTuple(tuple):
             diagram.write(q.col - dx, q.row - dy, str(q))
 
         for q1, q2 in zip(self, self[1:]):
-            diagram.grid_line(q1.col - dx, q1.row - dy,
-                              q2.col - dx, q2.row - dy,
-                              True)
+            diagram.grid_line(q1.col - dx, q1.row - dy, q2.col - dx, q2.row - dy, True)
 
-        return diagram.render(horizontal_spacing=2,
-                              vertical_spacing=1,
-                              use_unicode_characters=True)
+        return diagram.render(horizontal_spacing=2, vertical_spacing=1, use_unicode_characters=True)

@@ -20,4 +20,5 @@ def test_nonoptimal_toffoli_circuit():
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2).unitary(),
         cirq.unitary(cirq.TOFFOLI(q0, q1, q2)),
-        atol=1e-7)
+        atol=1e-7,
+    )

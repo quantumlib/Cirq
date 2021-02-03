@@ -23,31 +23,26 @@ class Neither:
 
 
 class MulReturnsNotImplemented:
-
     def __mul__(self, other):
         return NotImplemented
 
 
 class RMulReturnsNotImplemented:
-
     def __rmul__(self, other):
         return NotImplemented
 
 
 class MulReturnsFive:
-
     def __mul__(self, other):
         return 5
 
 
 class RMulReturnsSix:
-
     def __rmul__(self, other):
         return 6
 
 
 class MulSevenRMulEight:
-
     def __mul__(self, other):
         return 7
 

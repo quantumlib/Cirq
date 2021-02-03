@@ -134,20 +134,14 @@ def test_access_sweep():
     assert sixth_elem == cirq.ParamResolver({'a': 2, 'b': 5})
 
 
-@pytest.mark.parametrize('r_list', [
-    [{
-        'a': a,
-        'b': a + 1
-    } for a in (0, 0.5, 1, -10)],
-    ({
-        'a': a,
-        'b': a + 1
-    } for a in (0, 0.5, 1, -10)),
-    ({
-        sympy.Symbol('a'): a,
-        'b': a + 1
-    } for a in (0, 0.5, 1, -10)),
-])
+@pytest.mark.parametrize(
+    'r_list',
+    [
+        [{'a': a, 'b': a + 1} for a in (0, 0.5, 1, -10)],
+        ({'a': a, 'b': a + 1} for a in (0, 0.5, 1, -10)),
+        ({sympy.Symbol('a'): a, 'b': a + 1} for a in (0, 0.5, 1, -10)),
+    ],
+)
 def test_list_sweep(r_list):
     sweep = cirq.ListSweep(r_list)
     assert sweep.keys == ['a', 'b']
@@ -186,30 +180,19 @@ def test_equality():
     et.make_equality_group(lambda: cirq.Points('b', list(range(11))))
 
     # Product and Zip sweeps can also be equated.
+    et.make_equality_group(lambda: cirq.Linspace('a', 0, 5, 6) * cirq.Linspace('b', 10, 15, 6))
+    et.make_equality_group(lambda: cirq.Linspace('a', 0, 5, 6) + cirq.Linspace('b', 10, 15, 6))
     et.make_equality_group(
-        lambda: cirq.Linspace('a', 0, 5, 6) * cirq.Linspace('b', 10, 15, 6))
-    et.make_equality_group(
-        lambda: cirq.Linspace('a', 0, 5, 6) + cirq.Linspace('b', 10, 15, 6))
-    et.make_equality_group(
-        lambda: cirq.Points('a', [1, 2]) *
-                     (cirq.Linspace('b', 0, 5, 6) +
-                      cirq.Linspace('c', 10, 15, 6)))
+        lambda: cirq.Points('a', [1, 2])
+        * (cirq.Linspace('b', 0, 5, 6) + cirq.Linspace('c', 10, 15, 6))
+    )
 
     # ListSweep
     et.make_equality_group(
-        lambda: cirq.ListSweep([{
-            'var': 1
-        }, {
-            'var': -1
-        }]), lambda: cirq.ListSweep(({
-            'var': 1
-        }, {
-            'var': -1
-        })), lambda: cirq.ListSweep(r for r in ({
-            'var': 1
-        }, {
-            'var': -1
-        })))
+        lambda: cirq.ListSweep([{'var': 1}, {'var': -1}]),
+        lambda: cirq.ListSweep(({'var': 1}, {'var': -1})),
+        lambda: cirq.ListSweep(r for r in ({'var': 1}, {'var': -1})),
+    )
     et.make_equality_group(lambda: cirq.ListSweep([{'var': -1}, {'var': 1}]))
     et.make_equality_group(lambda: cirq.ListSweep([{'var': 1}]))
     et.make_equality_group(lambda: cirq.ListSweep([{'x': 1}, {'x': -1}]))
@@ -218,39 +201,56 @@ def test_equality():
 def test_repr():
     cirq.testing.assert_equivalent_repr(
         cirq.study.sweeps.Product(cirq.UnitSweep),
-        setup_code='import cirq\nfrom collections import OrderedDict')
+        setup_code='import cirq\nfrom collections import OrderedDict',
+    )
     cirq.testing.assert_equivalent_repr(
         cirq.study.sweeps.Zip(cirq.UnitSweep),
-        setup_code='import cirq\nfrom collections import OrderedDict')
+        setup_code='import cirq\nfrom collections import OrderedDict',
+    )
     cirq.testing.assert_equivalent_repr(
         cirq.ListSweep(cirq.Linspace('a', start=0, stop=3, length=4)),
-        setup_code='import cirq\nfrom collections import OrderedDict')
+        setup_code='import cirq\nfrom collections import OrderedDict',
+    )
     cirq.testing.assert_equivalent_repr(cirq.Points('zero&pi', [0, 3.14159]))
     cirq.testing.assert_equivalent_repr(cirq.Linspace('I/10', 0, 1, 10))
 
 
 def test_zip_product_str():
-    assert (str(cirq.UnitSweep + cirq.UnitSweep + cirq.UnitSweep) ==
-            'cirq.UnitSweep + cirq.UnitSweep + cirq.UnitSweep')
-    assert (str(
-        cirq.UnitSweep * cirq.UnitSweep *
-        cirq.UnitSweep) == 'cirq.UnitSweep * cirq.UnitSweep * cirq.UnitSweep')
-    assert (str(cirq.UnitSweep + cirq.UnitSweep * cirq.UnitSweep) ==
-            'cirq.UnitSweep + cirq.UnitSweep * cirq.UnitSweep')
-    assert (str(
-        (cirq.UnitSweep + cirq.UnitSweep) *
-        cirq.UnitSweep) == '(cirq.UnitSweep + cirq.UnitSweep) * cirq.UnitSweep')
+    assert (
+        str(cirq.UnitSweep + cirq.UnitSweep + cirq.UnitSweep)
+        == 'cirq.UnitSweep + cirq.UnitSweep + cirq.UnitSweep'
+    )
+    assert (
+        str(cirq.UnitSweep * cirq.UnitSweep * cirq.UnitSweep)
+        == 'cirq.UnitSweep * cirq.UnitSweep * cirq.UnitSweep'
+    )
+    assert (
+        str(cirq.UnitSweep + cirq.UnitSweep * cirq.UnitSweep)
+        == 'cirq.UnitSweep + cirq.UnitSweep * cirq.UnitSweep'
+    )
+    assert (
+        str((cirq.UnitSweep + cirq.UnitSweep) * cirq.UnitSweep)
+        == '(cirq.UnitSweep + cirq.UnitSweep) * cirq.UnitSweep'
+    )
 
 
 def test_list_sweep_str():
-    assert str(cirq.UnitSweep) == '''Sweep:
+    assert (
+        str(cirq.UnitSweep)
+        == '''Sweep:
 {}'''
-    assert str(cirq.Linspace('a', start=0, stop=3, length=4)) == '''Sweep:
+    )
+    assert (
+        str(cirq.Linspace('a', start=0, stop=3, length=4))
+        == '''Sweep:
 {'a': 0.0}
 {'a': 1.0}
 {'a': 2.0}
 {'a': 3.0}'''
-    assert str(cirq.Linspace('a', start=0, stop=15.75, length=64)) == '''Sweep:
+    )
+    assert (
+        str(cirq.Linspace('a', start=0, stop=15.75, length=64))
+        == '''Sweep:
 {'a': 0.0}
 {'a': 0.25}
 {'a': 0.5}
@@ -262,16 +262,16 @@ def test_list_sweep_str():
 {'a': 15.25}
 {'a': 15.5}
 {'a': 15.75}'''
-    assert str(
-        cirq.ListSweep(
-            cirq.Linspace('a', 0, 3, 4) +
-            cirq.Linspace('b', 1, 2, 2))) == '''Sweep:
+    )
+    assert (
+        str(cirq.ListSweep(cirq.Linspace('a', 0, 3, 4) + cirq.Linspace('b', 1, 2, 2)))
+        == '''Sweep:
 {'a': 0.0, 'b': 1.0}
 {'a': 1.0, 'b': 2.0}'''
-    assert str(
-        cirq.ListSweep(
-            cirq.Linspace('a', 0, 3, 4) *
-            cirq.Linspace('b', 1, 2, 2))) == '''Sweep:
+    )
+    assert (
+        str(cirq.ListSweep(cirq.Linspace('a', 0, 3, 4) * cirq.Linspace('b', 1, 2, 2)))
+        == '''Sweep:
 {'a': 0.0, 'b': 1.0}
 {'a': 0.0, 'b': 2.0}
 {'a': 1.0, 'b': 1.0}
@@ -280,27 +280,22 @@ def test_list_sweep_str():
 {'a': 2.0, 'b': 2.0}
 {'a': 3.0, 'b': 1.0}
 {'a': 3.0, 'b': 2.0}'''
+    )
 
 
 def test_dict_to_product_sweep():
-    assert cirq.dict_to_product_sweep({'t': [0, 2, 3]}) == (cirq.Product(
-        cirq.Points('t', [0, 2, 3])))
+    assert cirq.dict_to_product_sweep({'t': [0, 2, 3]}) == (
+        cirq.Product(cirq.Points('t', [0, 2, 3]))
+    )
 
-    assert cirq.dict_to_product_sweep({
-        't': [0, 1],
-        's': [2, 3],
-        'r': 4
-    }) == (cirq.Product(cirq.Points('t', [0, 1]), cirq.Points('s', [2, 3]),
-                        cirq.Points('r', [4])))
+    assert cirq.dict_to_product_sweep({'t': [0, 1], 's': [2, 3], 'r': 4}) == (
+        cirq.Product(cirq.Points('t', [0, 1]), cirq.Points('s', [2, 3]), cirq.Points('r', [4]))
+    )
 
 
 def test_dict_to_zip_sweep():
-    assert cirq.dict_to_zip_sweep({'t': [0, 2, 3]
-                                  }) == (cirq.Zip(cirq.Points('t', [0, 2, 3])))
+    assert cirq.dict_to_zip_sweep({'t': [0, 2, 3]}) == (cirq.Zip(cirq.Points('t', [0, 2, 3])))
 
-    assert cirq.dict_to_zip_sweep({
-        't': [0, 1],
-        's': [2, 3],
-        'r': 4
-    }) == (cirq.Zip(cirq.Points('t', [0, 1]), cirq.Points('s', [2, 3]),
-                    cirq.Points('r', [4])))
+    assert cirq.dict_to_zip_sweep({'t': [0, 1], 's': [2, 3], 'r': 4}) == (
+        cirq.Zip(cirq.Points('t', [0, 1]), cirq.Points('s', [2, 3]), cirq.Points('r', [4]))
+    )

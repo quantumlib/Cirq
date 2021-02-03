@@ -21,30 +21,24 @@ def test_circular_shift_gate_init():
     assert g.num_qubits() == 4
     assert g.shift == 2
 
-    g = cca.CircularShiftGate(4, 1, swap_gate = cirq.CZ)
+    g = cca.CircularShiftGate(4, 1, swap_gate=cirq.CZ)
     assert g.swap_gate == cirq.CZ
 
 
 def test_circular_shift_gate_eq():
     equals_tester = cirq.testing.EqualsTester()
-    equals_tester.add_equality_group(cca.CircularShiftGate(4, 1),
-                                     cca.CircularShiftGate(4, 1))
-    equals_tester.add_equality_group(
-        cca.CircularShiftGate(4, 1, swap_gate=cirq.CZ))
+    equals_tester.add_equality_group(cca.CircularShiftGate(4, 1), cca.CircularShiftGate(4, 1))
+    equals_tester.add_equality_group(cca.CircularShiftGate(4, 1, swap_gate=cirq.CZ))
     equals_tester.add_equality_group(cca.CircularShiftGate(4, 2))
     equals_tester.add_equality_group(cca.CircularShiftGate(3, 2))
-    equals_tester.add_equality_group(
-        cca.CircularShiftGate(3, 2, swap_gate=cirq.CZ))
+    equals_tester.add_equality_group(cca.CircularShiftGate(3, 2, swap_gate=cirq.CZ))
 
 
 def test_circular_shift_gate_permutation():
-    assert (cca.CircularShiftGate(3, 4).permutation() ==
-            {0: 2, 1: 0, 2: 1})
-    assert (cca.CircularShiftGate(4, 0).permutation() ==
-            {0: 0, 1: 1, 2: 2, 3: 3})
+    assert cca.CircularShiftGate(3, 4).permutation() == {0: 2, 1: 0, 2: 1}
+    assert cca.CircularShiftGate(4, 0).permutation() == {0: 0, 1: 1, 2: 2, 3: 3}
 
-    assert (cca.CircularShiftGate(5, 2).permutation() ==
-            {0:3, 1: 4, 2: 0, 3: 1, 4: 2})
+    assert cca.CircularShiftGate(5, 2).permutation() == {0: 3, 1: 4, 2: 0, 3: 1, 4: 2}
 
 
 def test_circular_shift_gate_repr():
@@ -59,12 +53,10 @@ def test_circular_shift_gate_decomposition():
     circular_shift = cca.CircularShiftGate(2, 1, cirq.CZ)(*qubits[:2])
     circuit = cirq.Circuit(circular_shift)
     expander.optimize_circuit(circuit)
-    expected_circuit = cirq.Circuit(
-            (cirq.Moment((cirq.CZ(*qubits[:2]),)),))
+    expected_circuit = cirq.Circuit((cirq.Moment((cirq.CZ(*qubits[:2]),)),))
     assert circuit == expected_circuit
 
-    no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and
-                            op.gate == cirq.SWAP)
+    no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and op.gate == cirq.SWAP)
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
 
     circular_shift = cca.CircularShiftGate(6, 3)(*qubits)

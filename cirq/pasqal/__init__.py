@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+"""Devices, qubits, and sampler for Pasqal's neutrali atom device."""
 from cirq.pasqal.pasqal_qubits import (
     ThreeDQubit,
     TwoDQubit,
@@ -23,7 +23,9 @@ from cirq.pasqal.pasqal_device import (
 )
 
 from cirq.pasqal.pasqal_noise_model import (
-    PasqalNoiseModel,)
+    PasqalNoiseModel,
+)
 
 from cirq.pasqal.pasqal_sampler import (
-    PasqalSampler,)
+    PasqalSampler,
+)

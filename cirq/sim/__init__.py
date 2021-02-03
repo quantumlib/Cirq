@@ -15,7 +15,8 @@
 """Base simulation classes and generic simulators."""
 
 from cirq.sim.act_on_state_vector_args import (
-    ActOnStateVectorArgs,)
+    ActOnStateVectorArgs,
+)
 
 from cirq.sim.density_matrix_utils import (
     measure_density_matrix,
@@ -79,6 +80,7 @@ from cirq.sim.state_vector import (
 from cirq.sim.clifford import (
     ActOnCliffordTableauArgs,
     ActOnStabilizerCHFormArgs,
+    StabilizerSampler,
     StabilizerStateChForm,
     CliffordSimulator,
     CliffordState,
@@ -90,12 +92,12 @@ from cirq.sim.clifford import (
 # Deprecated
 # pylint: disable=wrong-import-order
 
-from cirq.qis import (STATE_VECTOR_LIKE)
+from cirq.qis import STATE_VECTOR_LIKE
 
 import sys as _sys
 from cirq._compat import wrap_module as _wrap_module
+
 deprecated_constants = {
     'STATE_VECTOR_LIKE': ('v0.9', 'Use cirq.STATE_VECTOR_LIKE instead'),
 }
-_sys.modules[__name__] = _wrap_module(_sys.modules[__name__],
-                                      deprecated_constants)
+_sys.modules[__name__] = _wrap_module(_sys.modules[__name__], deprecated_constants)

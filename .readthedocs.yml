@@ -2,10 +2,8 @@ version: 2
 build:
   image: latest
 python:
-  version: 3.6
+  version: 3.8
   install:
-      - requirements: requirements.txt
-      - requirements: dev_tools/conf/pip-list-dev-tools.txt
-      - requirements: cirq/contrib/contrib-requirements.txt
+      - requirements: rtd_docs/requirements.txt
 sphinx:
   configuration: rtd_docs/conf.py

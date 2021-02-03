@@ -15,6 +15,7 @@
 from typing import List, Union, Sequence, Dict, Optional, TYPE_CHECKING
 
 from cirq import ops, value
+from cirq.ops import Qid
 from cirq.circuits import Circuit
 from cirq._doc import document
 
@@ -32,7 +33,7 @@ DEFAULT_GATE_DOMAIN: Dict[ops.Gate, int] = {
     ops.T: 1,
     ops.X: 1,
     ops.Y: 1,
-    ops.Z: 1
+    ops.Z: 1,
 }
 document(
     DEFAULT_GATE_DOMAIN,
@@ -40,15 +41,17 @@ document(
 
 This includes the gates CNOT, CZ, H, ISWAP, CZ, S, SWAP, T, X, Y,
 and Z gates.
-""")
+""",
+)
 
 
-def random_circuit(qubits: Union[Sequence[ops.Qid], int],
-                   n_moments: int,
-                   op_density: float,
-                   gate_domain: Optional[Dict[ops.Gate, int]] = None,
-                   random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-                  ) -> Circuit:
+def random_circuit(
+    qubits: Union[Sequence[ops.Qid], int],
+    n_moments: int,
+    op_density: float,
+    gate_domain: Optional[Dict[ops.Gate, int]] = None,
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+) -> Circuit:
     """Generates a random circuit.
 
     Args:
@@ -96,8 +99,10 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
         raise ValueError('At least one qubit must be specified.')
     gate_domain = {k: v for k, v in gate_domain.items() if v <= n_qubits}
     if not gate_domain:
-        raise ValueError(f'After removing gates that act on less than '
-                         f'{n_qubits} qubits, gate_domain had no gates.')
+        raise ValueError(
+            f'After removing gates that act on less than '
+            f'{n_qubits} qubits, gate_domain had no gates.'
+        )
     max_arity = max(gate_domain.values())
 
     prng = value.parse_random_state(random_state)
@@ -110,12 +115,52 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
         free_qubits = set(qubits)
         while len(free_qubits) >= max_arity:
             gate, arity = gate_arity_pairs[prng.randint(num_gates)]
-            op_qubits = prng.choice(sorted(free_qubits),
-                                    size=arity,
-                                    replace=False)
+            op_qubits = prng.choice(sorted(free_qubits), size=arity, replace=False)
             free_qubits.difference_update(op_qubits)
             if prng.rand() <= op_density:
                 operations.append(gate(*op_qubits))
         moments.append(ops.Moment(operations))
 
     return Circuit(moments)
+
+
+def random_two_qubit_circuit_with_czs(
+    num_czs: int = 3,
+    q0: Qid = None,
+    q1: Qid = None,
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+) -> Circuit:
+    """Creates a random two qubit circuit with the given number of CNOTs.
+
+    The resulting circuit will have `num_cnots` number of CNOTs that will be
+    surrounded by random `PhasedXPowGate` instances on both qubits.
+
+    Args:
+         num_czs: the number of CNOTs to be guaranteed in the circuit
+         q0: the first qubit the circuit should operate on
+         q1: the second qubit the circuit should operate on
+         random_state: an optional random seed
+    Returns:
+         the random two qubit circuit
+    """
+    prng = value.parse_random_state(random_state)
+    q0 = ops.NamedQubit('q0') if q0 is None else q0
+    q1 = ops.NamedQubit('q1') if q1 is None else q1
+
+    def random_one_qubit_gate():
+        return ops.PhasedXPowGate(phase_exponent=prng.random(), exponent=prng.random())
+
+    def one_cz():
+        return [
+            ops.CZ.on(q0, q1),
+            random_one_qubit_gate().on(q0),
+            random_one_qubit_gate().on(q1),
+        ]
+
+    return Circuit(
+        [
+            random_one_qubit_gate().on(q0),
+            random_one_qubit_gate().on(q1),
+            [one_cz() for _ in range(num_czs)],
+        ]
+    )

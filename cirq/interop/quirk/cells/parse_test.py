@@ -25,15 +25,15 @@ from cirq.interop.quirk.cells.parse import (
 
 def test_parse_matrix():
     s = np.sqrt(0.5)
-    np.testing.assert_allclose(parse_matrix('{{√½,√½},{-√½,√½}}'),
-                               np.array([[s, s], [-s, s]]),
-                               atol=1e-8)
-    np.testing.assert_allclose(parse_matrix('{{√½,√½i},{√½i,√½}}'),
-                               np.array([[s, s * 1j], [s * 1j, s]]),
-                               atol=1e-8)
-    np.testing.assert_allclose(parse_matrix('{{1,-i},{i,1+i}}'),
-                               np.array([[1, -1j], [1j, 1 + 1j]]),
-                               atol=1e-8)
+    np.testing.assert_allclose(
+        parse_matrix('{{√½,√½},{-√½,√½}}'), np.array([[s, s], [-s, s]]), atol=1e-8
+    )
+    np.testing.assert_allclose(
+        parse_matrix('{{√½,√½i},{√½i,√½}}'), np.array([[s, s * 1j], [s * 1j, s]]), atol=1e-8
+    )
+    np.testing.assert_allclose(
+        parse_matrix('{{1,-i},{i,1+i}}'), np.array([[1, -1j], [1j, 1 + 1j]]), atol=1e-8
+    )
 
 
 def test_parse_matrix_failures():
@@ -85,7 +85,7 @@ def test_parse_complex():
     assert parse_complex('+i') == 1j
     assert parse_complex('1 + i - i') == 1
     assert parse_complex('1 + 2i - 3 i') == 1 - 1j
-    np.testing.assert_allclose(parse_complex('exp 2'), np.e**2, atol=1e-8)
+    np.testing.assert_allclose(parse_complex('exp 2'), np.e ** 2, atol=1e-8)
 
 
 def test_parse_complex_raw_cases_from_quirk():
@@ -123,21 +123,14 @@ def test_parse_complex_raw_cases_from_quirk():
 def test_parse_complex_expression_cases_from_quirk():
     np.testing.assert_allclose(parse_complex("1/3"), 1 / 3)
     np.testing.assert_allclose(parse_complex("2/3/5"), (2 / 3) / 5)
-    np.testing.assert_allclose(parse_complex("2/3/5*7/13"),
-                               ((((2 / 3) / 5)) * 7) / 13)
+    np.testing.assert_allclose(parse_complex("2/3/5*7/13"), ((((2 / 3) / 5)) * 7) / 13)
     np.testing.assert_allclose(parse_complex("2-3-5"), -6)
     np.testing.assert_allclose(parse_complex("1/3+2i"), 1 / 3 + 2j)
     np.testing.assert_allclose(parse_complex("(1/3)+2i"), 1 / 3 + 2j)
-    np.testing.assert_allclose(parse_complex("1/(3+2i)"),
-                               1 / (3 + 2j),
-                               atol=1e-8)
-    np.testing.assert_allclose(parse_complex("1/sqrt(3+2i)"),
-                               1 / ((3 + 2j)**0.5),
-                               atol=1e-8)
+    np.testing.assert_allclose(parse_complex("1/(3+2i)"), 1 / (3 + 2j), atol=1e-8)
+    np.testing.assert_allclose(parse_complex("1/sqrt(3+2i)"), 1 / ((3 + 2j) ** 0.5), atol=1e-8)
 
-    np.testing.assert_allclose(parse_complex("i^i"),
-                               0.20787957635076193,
-                               atol=1e-8)
+    np.testing.assert_allclose(parse_complex("i^i"), 0.20787957635076193, atol=1e-8)
     np.testing.assert_allclose(parse_complex("√i"), np.sqrt(1j))
     np.testing.assert_allclose(parse_complex("√4i"), 2j)
     np.testing.assert_allclose(parse_complex("sqrt4i"), 2j)
@@ -149,20 +142,16 @@ def test_parse_complex_expression_cases_from_quirk():
     np.testing.assert_allclose(parse_complex("0---+--+--1"), -1)
     np.testing.assert_allclose(parse_complex("0---+--+--1*"), -1)
     np.testing.assert_allclose(parse_complex("2+3^"), 5)
-    np.testing.assert_allclose(parse_complex("cos(45) + i sin(45)"),
-                               np.sqrt(0.5) + 1j * np.sqrt(0.5),
-                               atol=1e-8)
-    np.testing.assert_allclose(parse_complex("cos(45) + i (sin 45)"),
-                               np.sqrt(0.5) + 1j * np.sqrt(0.5),
-                               atol=1e-8)
+    np.testing.assert_allclose(
+        parse_complex("cos(45) + i sin(45)"), np.sqrt(0.5) + 1j * np.sqrt(0.5), atol=1e-8
+    )
+    np.testing.assert_allclose(
+        parse_complex("cos(45) + i (sin 45)"), np.sqrt(0.5) + 1j * np.sqrt(0.5), atol=1e-8
+    )
     np.testing.assert_allclose(parse_complex("e^(pi i)"), -1, atol=1e-8)
     np.testing.assert_allclose(parse_complex("exp(ln(2))"), 2, atol=1e-8)
-    np.testing.assert_allclose(parse_complex("sin(arcsin(0.5))"),
-                               0.5,
-                               atol=1e-8)
-    np.testing.assert_allclose(parse_complex("cos(arccos(0.5))"),
-                               0.5,
-                               atol=1e-8)
+    np.testing.assert_allclose(parse_complex("sin(arcsin(0.5))"), 0.5, atol=1e-8)
+    np.testing.assert_allclose(parse_complex("cos(arccos(0.5))"), 0.5, atol=1e-8)
     np.testing.assert_allclose(parse_complex("sin(asin(0.5))"), 0.5, atol=1e-8)
     np.testing.assert_allclose(parse_complex("cos(acos(0.5))"), 0.5, atol=1e-8)
 

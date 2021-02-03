@@ -22,10 +22,13 @@ import sympy
 
 from typing_extensions import Protocol
 
+from cirq._doc import doc_private
+
 
 class SupportsApproximateEquality(Protocol):
     """Object which can be compared approximately."""
 
+    @doc_private
     def _approx_eq_(self, other: Any, *, atol: Union[int, float]) -> bool:
         """Approximate comparator.
 
@@ -98,9 +101,11 @@ def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
     if isinstance(val, sympy.Basic) or isinstance(other, sympy.Basic):
         delta = sympy.Abs(other - val).simplify()
         if not delta.is_number:
-            raise AttributeError('Insufficient information to decide whether '
-                                 'expressions are approximately equal '
-                                 f'[{val}] vs [{other}]')
+            raise AttributeError(
+                'Insufficient information to decide whether '
+                'expressions are approximately equal '
+                f'[{val}] vs [{other}]'
+            )
         return sympy.LessThan(delta, atol) == sympy.true
 
     # If the values are iterable, try comparing recursively on items.
@@ -111,8 +116,7 @@ def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
     return val == other
 
 
-def _approx_eq_iterables(val: Iterable, other: Iterable, *,
-                         atol: Union[int, float]) -> bool:
+def _approx_eq_iterables(val: Iterable, other: Iterable, *, atol: Union[int, float]) -> bool:
     """Iterates over arguments and calls approx_eq recursively.
 
     Types of `val` and `other` does not necessarily needs to match each other.

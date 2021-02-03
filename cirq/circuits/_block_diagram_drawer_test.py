@@ -37,10 +37,7 @@ def _assert_same_diagram(actual: str, expected: str):
         '{}\n'
         '\n'
         'Highlighted differences:\n'
-        '{}\n'.format(actual,
-                      expected,
-                      cirq.testing.highlight_text_differences(actual,
-                                                              expected))
+        '{}\n'.format(actual, expected, cirq.testing.highlight_text_differences(actual, expected))
     )
 
 
@@ -48,14 +45,11 @@ def _curve_pieces_diagram(chars: BoxDrawCharacterSet) -> BlockDiagramDrawer:
     d = BlockDiagramDrawer()
     for x in range(4):
         for y in range(4):
-            block = d.mutable_block(x*2, y*2)
+            block = d.mutable_block(x * 2, y * 2)
             block.horizontal_alignment = 0.5
             block.draw_curve(
-                chars,
-                top=bool(y & 1),
-                bottom=bool(y & 2),
-                left=bool(x & 2),
-                right=bool(x & 1))
+                chars, top=bool(y & 1), bottom=bool(y & 2), left=bool(x & 2), right=bool(x & 1)
+            )
     return d
 
 
@@ -189,18 +183,8 @@ def test_mixed_block_curve():
         y = (c * 3 + d) * 2
         block = diagram.mutable_block(x, y)
         block.horizontal_alignment = 0.5
-        block.draw_curve(
-            NORMAL_BOX_CHARS,
-            top=a == 2,
-            bottom=b == 2,
-            left=c == 2,
-            right=d == 2)
-        block.draw_curve(
-            BOLD_BOX_CHARS,
-            top=a == 1,
-            bottom=b == 1,
-            left=c == 1,
-            right=d == 1)
+        block.draw_curve(NORMAL_BOX_CHARS, top=a == 2, bottom=b == 2, left=c == 2, right=d == 2)
+        block.draw_curve(BOLD_BOX_CHARS, top=a == 1, bottom=b == 1, left=c == 1, right=d == 1)
     actual = diagram.render(min_block_width=3, min_block_height=3)
     expected = """
                    ┃     ┃     ┃     │     │     │
@@ -253,7 +237,9 @@ def test_mixed_block_curve():
 
                    ┃     ┃     ┃     │     │     │
 ───   ─┰─   ─┬─   ─┸─   ─╂─   ─╀─   ─┴─   ─╁─   ─┼─
-       ┃     │           ┃     │           ┃     │"""[1:]
+       ┃     │           ┃     │           ┃     │"""[
+        1:
+    ]
     _assert_same_diagram(actual, expected)
 
 
@@ -266,29 +252,51 @@ def test_lines_meet_content():
     b.top = 'v'
     b.bottom = '^'
 
-    _assert_same_diagram(d.render(), """
+    _assert_same_diagram(
+        d.render(),
+        """
 long text<<<<<<<<<<
-with multiple lines"""[1:])
+with multiple lines"""[
+            1:
+        ],
+    )
 
     b.horizontal_alignment = 0.5
-    _assert_same_diagram(d.render(), """
+    _assert_same_diagram(
+        d.render(),
+        """
 >>>>>long text<<<<<
-with multiple lines"""[1:])
+with multiple lines"""[
+            1:
+        ],
+    )
 
-    _assert_same_diagram(d.render(min_block_height=5), """
+    _assert_same_diagram(
+        d.render(min_block_height=5),
+        """
          v
          v
 >>>>>long text<<<<<
 with multiple lines
-         ^"""[1:])
+         ^"""[
+            1:
+        ],
+    )
 
-    _assert_same_diagram(d.render(min_block_height=4), """
+    _assert_same_diagram(
+        d.render(min_block_height=4),
+        """
          v
 >>>>>long text<<<<<
 with multiple lines
-         ^"""[1:])
+         ^"""[
+            1:
+        ],
+    )
 
-    _assert_same_diagram(d.render(min_block_height=20, min_block_width=40), """
+    _assert_same_diagram(
+        d.render(min_block_height=20, min_block_width=40),
+        """
                    v
                    v
                    v
@@ -308,9 +316,14 @@ with multiple lines
                    ^
                    ^
                    ^
-                   ^"""[1:])
+                   ^"""[
+            1:
+        ],
+    )
 
-    _assert_same_diagram(d.render(min_block_height=21, min_block_width=41), """
+    _assert_same_diagram(
+        d.render(min_block_height=21, min_block_width=41),
+        """
                     v
                     v
                     v
@@ -331,10 +344,15 @@ with multiple lines
                     ^
                     ^
                     ^
-                    ^"""[1:])
+                    ^"""[
+            1:
+        ],
+    )
 
     b.content = 'short text'
-    _assert_same_diagram(d.render(min_block_height=21, min_block_width=41), """
+    _assert_same_diagram(
+        d.render(min_block_height=21, min_block_width=41),
+        """
                     v
                     v
                     v
@@ -355,10 +373,15 @@ with multiple lines
                     ^
                     ^
                     ^
-                    ^"""[1:])
+                    ^"""[
+            1:
+        ],
+    )
 
     b.content = 'abc\ndef\nghi'
-    _assert_same_diagram(d.render(min_block_height=21, min_block_width=41), """
+    _assert_same_diagram(
+        d.render(min_block_height=21, min_block_width=41),
+        """
                     v
                     v
                     v
@@ -379,7 +402,10 @@ with multiple lines
                     ^
                     ^
                     ^
-                    ^"""[1:])
+                    ^"""[
+            1:
+        ],
+    )
 
 
 def test_content_stretches_other_blocks():
@@ -389,16 +415,18 @@ def test_content_stretches_other_blocks():
     d.mutable_block(0, 1).horizontal_alignment = 0.5
     d.mutable_block(1, 1).horizontal_alignment = 0.5
     d.mutable_block(0, 0).content = 'long text\nwith multiple lines'
-    d.mutable_block(1, 0).draw_curve(
-        NORMAL_BOX_CHARS, top=True, bottom=True, left=True, right=True)
-    d.mutable_block(1, 1).draw_curve(
-        NORMAL_BOX_CHARS, top=True, bottom=True, left=True, right=True)
-    d.mutable_block(0, 1).draw_curve(
-        NORMAL_BOX_CHARS, top=True, bottom=True, left=True, right=True)
-    _assert_same_diagram(d.render(), """
+    d.mutable_block(1, 0).draw_curve(NORMAL_BOX_CHARS, top=True, bottom=True, left=True, right=True)
+    d.mutable_block(1, 1).draw_curve(NORMAL_BOX_CHARS, top=True, bottom=True, left=True, right=True)
+    d.mutable_block(0, 1).draw_curve(NORMAL_BOX_CHARS, top=True, bottom=True, left=True, right=True)
+    _assert_same_diagram(
+        d.render(),
+        """
      long text     ┼
 with multiple lines│
-─────────┼─────────┼"""[1:])
+─────────┼─────────┼"""[
+            1:
+        ],
+    )
 
 
 def test_lines_stretch_content():
@@ -409,10 +437,15 @@ def test_lines_stretch_content():
     d.mutable_block(16, 17).top = 't'
     d.mutable_block(19, 20).center = 'c'
     d.mutable_block(21, 23).content = 'C'
-    _assert_same_diagram(d.render(), """
+    _assert_same_diagram(
+        d.render(),
+        """
 
 
-  C"""[1:])
+  C"""[
+            1:
+        ],
+    )
 
 
 def test_indices():

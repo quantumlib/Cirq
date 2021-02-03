@@ -27,12 +27,14 @@ if TYPE_CHECKING:
 class PauliSumCollector(collector.Collector):
     """Estimates the energy of a linear combination of Pauli observables."""
 
-    def __init__(self,
-                 circuit: 'cirq.Circuit',
-                 observable: 'cirq.PauliSumLike',
-                 *,
-                 samples_per_term: int,
-                 max_samples_per_job: int = 1000000):
+    def __init__(
+        self,
+        circuit: 'cirq.Circuit',
+        observable: 'cirq.PauliSumLike',
+        *,
+        samples_per_term: int,
+        max_samples_per_job: int = 1000000,
+    ):
         """
         Args:
             circuit: Produces the state to be tested.
@@ -48,19 +50,15 @@ class PauliSumCollector(collector.Collector):
 
         self._circuit = circuit
         self._samples_per_job = max_samples_per_job
-        self._pauli_coef_terms = [
-            (p / p.coefficient, p.coefficient) for p in observable if p
-        ]
+        self._pauli_coef_terms = [(p / p.coefficient, p.coefficient) for p in observable if p]
 
         self._identity_offset = 0
         for p in observable:
             if not p:
                 self._identity_offset += p.coefficient
 
-        self._zeros: Dict[ops.PauliString, int] = collections.defaultdict(
-            lambda: 0)
-        self._ones: Dict[ops.PauliString, int] = collections.defaultdict(lambda:
-                                                                         0)
+        self._zeros: Dict[ops.PauliString, int] = collections.defaultdict(lambda: 0)
+        self._ones: Dict[ops.PauliString, int] = collections.defaultdict(lambda: 0)
         self._samples_per_term = samples_per_term
         self._total_samples_requested = 0
 
@@ -69,21 +67,18 @@ class PauliSumCollector(collector.Collector):
         if i >= len(self._pauli_coef_terms):
             return None
         pauli, _ = self._pauli_coef_terms[i]
-        remaining = self._samples_per_term * (i +
-                                              1) - self._total_samples_requested
+        remaining = self._samples_per_term * (i + 1) - self._total_samples_requested
         amount_to_request = min(remaining, self._samples_per_job)
         self._total_samples_requested += amount_to_request
         return collector.CircuitSampleJob(
-            circuit=_circuit_plus_pauli_string_measurements(
-                self._circuit, pauli),
+            circuit=_circuit_plus_pauli_string_measurements(self._circuit, pauli),
             repetitions=amount_to_request,
-            tag=pauli)
+            tag=pauli,
+        )
 
-    def on_job_result(self, job: 'cirq.CircuitSampleJob',
-                      result: 'cirq.Result'):
+    def on_job_result(self, job: 'cirq.CircuitSampleJob', result: 'cirq.Result'):
         job_id = cast(ops.PauliString, job.tag)
-        parities = result.histogram(key='out',
-                                    fold_func=lambda bits: np.sum(bits) % 2)
+        parities = result.histogram(key='out', fold_func=lambda bits: np.sum(bits) % 2)
         self._zeros[job_id] += parities[0]
         self._ones[job_id] += parities[1]
 
@@ -102,14 +97,12 @@ class PauliSumCollector(collector.Collector):
         return energy
 
 
-def _circuit_plus_pauli_string_measurements(circuit: 'cirq.Circuit',
-                                            pauli_string: 'cirq.PauliString'
-                                           ) -> 'cirq.Circuit':
-    """A circuit measuring the given observable at the end of the given circuit.
-    """
+def _circuit_plus_pauli_string_measurements(
+    circuit: 'cirq.Circuit', pauli_string: 'cirq.PauliString'
+) -> 'cirq.Circuit':
+    """A circuit measuring the given observable at the end of the given circuit."""
     assert pauli_string
     circuit = circuit.copy()
     circuit.append(ops.Moment(pauli_string.to_z_basis_ops()))
-    circuit.append(
-        ops.Moment([ops.measure(*sorted(pauli_string.keys()), key='out')]))
+    circuit.append(ops.Moment([ops.measure(*sorted(pauli_string.keys()), key='out')]))
     return circuit

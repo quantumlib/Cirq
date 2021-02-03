@@ -32,11 +32,9 @@ if TYPE_CHECKING:
     import cirq
 
 
-def two_qubit_matrix_to_ion_operations(q0: 'cirq.Qid',
-                                       q1: 'cirq.Qid',
-                                       mat: np.ndarray,
-                                       atol: float = 1e-8
-                                      ) -> List[ops.Operation]:
+def two_qubit_matrix_to_ion_operations(
+    q0: 'cirq.Qid', q1: 'cirq.Qid', mat: np.ndarray, atol: float = 1e-8
+) -> List[ops.Operation]:
     """Decomposes a two-qubit operation into MS/single-qubit rotation gates.
 
     Args:
@@ -50,40 +48,40 @@ def two_qubit_matrix_to_ion_operations(q0: 'cirq.Qid',
         A list of operations implementing the matrix.
     """
     kak = linalg.kak_decomposition(mat, atol=atol)
-    operations = _kak_decomposition_to_operations(q0,
-        q1, kak, atol)
+    operations = _kak_decomposition_to_operations(q0, q1, kak, atol)
     return _cleanup_operations(operations)
 
 
 def _cleanup_operations(operations: List[ops.Operation]):
     circuit = circuits.Circuit(operations)
-    optimizers.merge_single_qubit_gates.\
-        merge_single_qubit_gates_into_phased_x_z(circuit)
+    optimizers.merge_single_qubit_gates.merge_single_qubit_gates_into_phased_x_z(circuit)
     optimizers.eject_phased_paulis.EjectPhasedPaulis().optimize_circuit(circuit)
     optimizers.eject_z.EjectZ().optimize_circuit(circuit)
-    circuit = circuits.Circuit(circuit.all_operations(),
-                               strategy=circuits.InsertStrategy.EARLIEST)
+    circuit = circuits.Circuit(circuit.all_operations(), strategy=circuits.InsertStrategy.EARLIEST)
     return list(circuit.all_operations())
 
 
-def _kak_decomposition_to_operations(q0: 'cirq.Qid',
-                                     q1: 'cirq.Qid',
-                                     kak: linalg.KakDecomposition,
-                                     atol: float = 1e-8) -> List[ops.Operation]:
+def _kak_decomposition_to_operations(
+    q0: 'cirq.Qid', q1: 'cirq.Qid', kak: linalg.KakDecomposition, atol: float = 1e-8
+) -> List[ops.Operation]:
     """Assumes that the decomposition is canonical."""
     b0, b1 = kak.single_qubit_operations_before
     pre = [_do_single_on(b0, q0, atol), _do_single_on(b1, q1, atol)]
     a0, a1 = kak.single_qubit_operations_after
     post = [_do_single_on(a0, q0, atol), _do_single_on(a1, q1, atol)]
 
-    return list(cast(Iterable[ops.Operation], ops.flatten_op_tree([
-        pre,
-        _non_local_part(q0,
-                        q1,
-                        kak.interaction_coefficients,
-                        atol),
-        post,
-    ])))
+    return list(
+        cast(
+            Iterable[ops.Operation],
+            ops.flatten_op_tree(
+                [
+                    pre,
+                    _non_local_part(q0, q1, kak.interaction_coefficients, atol),
+                    post,
+                ]
+            ),
+        )
+    )
 
 
 def _do_single_on(u: np.ndarray, q: 'cirq.Qid', atol: float = 1e-8):
@@ -91,11 +89,9 @@ def _do_single_on(u: np.ndarray, q: 'cirq.Qid', atol: float = 1e-8):
         yield gate(q)
 
 
-def _parity_interaction(q0: 'cirq.Qid',
-                        q1: 'cirq.Qid',
-                        rads: float,
-                        atol: float,
-                        gate: Optional[ops.Gate] = None):
+def _parity_interaction(
+    q0: 'cirq.Qid', q1: 'cirq.Qid', rads: float, atol: float, gate: Optional[ops.Gate] = None
+):
     """Yields an XX interaction framed by the given operation."""
 
     if abs(rads) < atol:
@@ -112,10 +108,12 @@ def _parity_interaction(q0: 'cirq.Qid',
         yield g.on(q0), g.on(q1)
 
 
-def _non_local_part(q0: 'cirq.Qid',
-                    q1: 'cirq.Qid',
-                    interaction_coefficients: Tuple[float, float, float],
-                    atol: float = 1e-8):
+def _non_local_part(
+    q0: 'cirq.Qid',
+    q1: 'cirq.Qid',
+    interaction_coefficients: Tuple[float, float, float],
+    atol: float = 1e-8,
+):
     """Yields non-local operation of KAK decomposition."""
 
     x, y, z = interaction_coefficients
@@ -123,4 +121,5 @@ def _non_local_part(q0: 'cirq.Qid',
     return [
         _parity_interaction(q0, q1, x, atol),
         _parity_interaction(q0, q1, y, atol, ops.Z ** -0.5),
-        _parity_interaction(q0, q1, z, atol, ops.Y ** 0.5)]
+        _parity_interaction(q0, q1, z, atol, ops.Y ** 0.5),
+    ]

@@ -21,19 +21,16 @@ class NoMethod:
 
 
 class DecomposeNotImplemented:
-
     def _decompose_(self, qubits=None):
         return NotImplemented
 
 
 class DecomposeNone:
-
     def _decompose_(self, qubits=None):
         return None
 
 
 class DecomposeGiven:
-
     def __init__(self, val):
         self.val = val
 
@@ -42,7 +39,6 @@ class DecomposeGiven:
 
 
 class DecomposeWithQubitsGiven:
-
     def __init__(self, func):
         self.func = func
 
@@ -51,14 +47,12 @@ class DecomposeWithQubitsGiven:
 
 
 class DecomposeGenerated:
-
     def _decompose_(self):
         yield cirq.X(cirq.LineQubit(0))
         yield cirq.Y(cirq.LineQubit(1))
 
 
 class DecomposeQuditGate:
-
     def _decompose_(self, qids):
         yield cirq.identity_each(*qids)
 
@@ -83,11 +77,10 @@ def test_decompose_once():
     assert cirq.decompose_once(DecomposeGiven(op)) == [op]
     assert cirq.decompose_once(DecomposeGiven([[[op]], []])) == [op]
     assert cirq.decompose_once(DecomposeGiven(op for _ in range(2))) == [op, op]
-    assert type(cirq.decompose_once(DecomposeGiven(
-        op for _ in range(2)))) == list
+    assert type(cirq.decompose_once(DecomposeGiven(op for _ in range(2)))) == list
     assert cirq.decompose_once(DecomposeGenerated()) == [
         cirq.X(cirq.LineQubit(0)),
-        cirq.Y(cirq.LineQubit(1))
+        cirq.Y(cirq.LineQubit(1)),
     ]
 
 
@@ -104,34 +97,26 @@ def test_decompose_once_with_qubits():
 
     # Default value works.
     assert cirq.decompose_once_with_qubits(NoMethod(), qs, 5) == 5
-    assert cirq.decompose_once_with_qubits(DecomposeNotImplemented(), qs,
-                                           None) is None
-    assert cirq.decompose_once_with_qubits(NoMethod(), qs,
-                                           NotImplemented) is NotImplemented
+    assert cirq.decompose_once_with_qubits(DecomposeNotImplemented(), qs, None) is None
+    assert cirq.decompose_once_with_qubits(NoMethod(), qs, NotImplemented) is NotImplemented
 
     # Flattens into a list.
+    assert cirq.decompose_once_with_qubits(DecomposeWithQubitsGiven(cirq.X.on_each), qs) == [
+        cirq.X(cirq.LineQubit(0)),
+        cirq.X(cirq.LineQubit(1)),
+        cirq.X(cirq.LineQubit(2)),
+    ]
     assert cirq.decompose_once_with_qubits(
-        DecomposeWithQubitsGiven(cirq.X.on_each), qs) == [
-            cirq.X(cirq.LineQubit(0)),
-            cirq.X(cirq.LineQubit(1)),
-            cirq.X(cirq.LineQubit(2))
-        ]
+        DecomposeWithQubitsGiven(lambda *qubits: cirq.Y(qubits[0])), qs
+    ) == [cirq.Y(cirq.LineQubit(0))]
     assert cirq.decompose_once_with_qubits(
-        DecomposeWithQubitsGiven(lambda *qubits: cirq.Y(qubits[0])),
-        qs) == [cirq.Y(cirq.LineQubit(0))]
-    assert cirq.decompose_once_with_qubits(
-        DecomposeWithQubitsGiven(lambda *qubits: (cirq.Y(q) for q in qubits)),
-        qs) == [
-            cirq.Y(cirq.LineQubit(0)),
-            cirq.Y(cirq.LineQubit(1)),
-            cirq.Y(cirq.LineQubit(2))
-        ]
+        DecomposeWithQubitsGiven(lambda *qubits: (cirq.Y(q) for q in qubits)), qs
+    ) == [cirq.Y(cirq.LineQubit(0)), cirq.Y(cirq.LineQubit(1)), cirq.Y(cirq.LineQubit(2))]
 
     # Qudits, _decompose_ argument name is not 'qubits'.
     assert cirq.decompose_once_with_qubits(
-        DecomposeQuditGate(), cirq.LineQid.for_qid_shape((1, 2, 3))) == [
-            cirq.identity_each(*cirq.LineQid.for_qid_shape((1, 2, 3)))
-        ]
+        DecomposeQuditGate(), cirq.LineQid.for_qid_shape((1, 2, 3))
+    ) == [cirq.identity_each(*cirq.LineQid.for_qid_shape((1, 2, 3)))]
 
     # Works when qubits are generated.
     def use_qubits_twice(*qubits):
@@ -140,10 +125,9 @@ def test_decompose_once_with_qubits():
         yield cirq.X.on_each(*a)
         yield cirq.Y.on_each(*b)
 
-    assert (cirq.decompose_once_with_qubits(
-        DecomposeWithQubitsGiven(use_qubits_twice),
-        (q for q in qs)) == list(cirq.X.on_each(*qs)) +
-            list(cirq.Y.on_each(*qs)))
+    assert cirq.decompose_once_with_qubits(
+        DecomposeWithQubitsGiven(use_qubits_twice), (q for q in qs)
+    ) == list(cirq.X.on_each(*qs)) + list(cirq.Y.on_each(*qs))
 
 
 def test_decompose_general():
@@ -152,45 +136,41 @@ def test_decompose_general():
     assert cirq.decompose(no_method) == [no_method]
 
     # Flattens iterables.
-    assert cirq.decompose([cirq.SWAP(a, b),
-                           cirq.SWAP(a,
-                                     b)]) == 2 * cirq.decompose(cirq.SWAP(a, b))
+    assert cirq.decompose([cirq.SWAP(a, b), cirq.SWAP(a, b)]) == 2 * cirq.decompose(cirq.SWAP(a, b))
 
     # Decomposed circuit should be equivalent. The ordering should be correct.
     ops = cirq.TOFFOLI(a, b, c), cirq.H(a), cirq.CZ(a, c)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        cirq.Circuit(ops), cirq.Circuit(cirq.decompose(ops)), atol=1e-8)
+        cirq.Circuit(ops), cirq.Circuit(cirq.decompose(ops)), atol=1e-8
+    )
 
 
 def test_decompose_keep():
     a, b = cirq.LineQubit.range(2)
 
     # Recursion can be stopped.
-    assert cirq.decompose(
-        cirq.SWAP(a,
-                  b), keep=lambda e: isinstance(e.gate, cirq.CNotPowGate)) == [
-                      cirq.CNOT(a, b),
-                      cirq.CNOT(b, a),
-                      cirq.CNOT(a, b)
-                  ]
+    assert cirq.decompose(cirq.SWAP(a, b), keep=lambda e: isinstance(e.gate, cirq.CNotPowGate)) == [
+        cirq.CNOT(a, b),
+        cirq.CNOT(b, a),
+        cirq.CNOT(a, b),
+    ]
 
     # Recursion continues down to CZ + single-qubit gates.
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(cirq.decompose(cirq.SWAP(a, b))), """
+        cirq.Circuit(cirq.decompose(cirq.SWAP(a, b))),
+        """
 0: ────────────@───Y^-0.5───@───Y^0.5────@───────────
                │            │            │
 1: ───Y^-0.5───@───Y^0.5────@───Y^-0.5───@───Y^0.5───
-""")
+""",
+    )
 
     # If you're happy with everything, no decomposition happens.
-    assert cirq.decompose(cirq.SWAP(a, b),
-                          keep=lambda _: True) == [cirq.SWAP(a, b)]
+    assert cirq.decompose(cirq.SWAP(a, b), keep=lambda _: True) == [cirq.SWAP(a, b)]
     # Unless it's not an operation.
-    assert cirq.decompose(DecomposeGiven(cirq.SWAP(b, a)),
-                          keep=lambda _: True) == [cirq.SWAP(b, a)]
+    assert cirq.decompose(DecomposeGiven(cirq.SWAP(b, a)), keep=lambda _: True) == [cirq.SWAP(b, a)]
     # E.g. lists still get flattened.
-    assert cirq.decompose([[[cirq.SWAP(a, b)]]],
-                          keep=lambda _: True) == [cirq.SWAP(a, b)]
+    assert cirq.decompose([[[cirq.SWAP(a, b)]]], keep=lambda _: True) == [cirq.SWAP(a, b)]
 
 
 def test_decompose_on_stuck_raise():
@@ -203,21 +183,19 @@ def test_decompose_on_stuck_raise():
     # Unless there's no operations to be unhappy about.
     assert cirq.decompose([], keep=lambda _: False) == []
     # Or you say you're fine.
-    assert cirq.decompose(no_method, keep=lambda _: False,
-                          on_stuck_raise=None) == [no_method]
-    assert cirq.decompose(no_method,
-                          keep=lambda _: False,
-                          on_stuck_raise=lambda _: None) == [no_method]
+    assert cirq.decompose(no_method, keep=lambda _: False, on_stuck_raise=None) == [no_method]
+    assert cirq.decompose(no_method, keep=lambda _: False, on_stuck_raise=lambda _: None) == [
+        no_method
+    ]
     # You can customize the error.
     with pytest.raises(TypeError, match='test'):
-        _ = cirq.decompose(no_method,
-                           keep=lambda _: False,
-                           on_stuck_raise=TypeError('test'))
+        _ = cirq.decompose(no_method, keep=lambda _: False, on_stuck_raise=TypeError('test'))
     with pytest.raises(NotImplementedError, match='op cirq.CZ'):
         _ = cirq.decompose(
             cirq.CZ(a, b),
             keep=lambda _: False,
-            on_stuck_raise=lambda op: NotImplementedError('op {!r}'.format(op)))
+            on_stuck_raise=lambda op: NotImplementedError('op {!r}'.format(op)),
+        )
 
     # There's a nice warning if you specify `on_stuck_raise` but not `keep`.
     with pytest.raises(ValueError, match='on_stuck_raise'):
@@ -233,13 +211,14 @@ def test_decompose_intercept():
     # Runs instead of normal decomposition.
     actual = cirq.decompose(
         cirq.SWAP(a, b),
-        intercepting_decomposer=lambda op: (cirq.X(a) if op == cirq.SWAP(a, b)
-                                            else NotImplemented))
+        intercepting_decomposer=lambda op: (cirq.X(a) if op == cirq.SWAP(a, b) else NotImplemented),
+    )
     assert actual == [cirq.X(a)]
 
     # Falls back to normal decomposition when NotImplemented.
     actual = cirq.decompose(
         cirq.SWAP(a, b),
         keep=lambda op: isinstance(op.gate, cirq.CNotPowGate),
-        intercepting_decomposer=lambda _: NotImplemented)
+        intercepting_decomposer=lambda _: NotImplemented,
+    )
     assert actual == [cirq.CNOT(a, b), cirq.CNOT(b, a), cirq.CNOT(a, b)]

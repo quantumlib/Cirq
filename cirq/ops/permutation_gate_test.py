@@ -20,10 +20,10 @@ from cirq.ops import QubitPermutationGate
 
 def test_permutation_gate_equality():
     eq = cirq.testing.EqualsTester()
-    eq.make_equality_group(lambda: QubitPermutationGate([0, 1]), lambda:
-                           QubitPermutationGate((0, 1)))
-    eq.add_equality_group(QubitPermutationGate([1, 0]),
-                          QubitPermutationGate((1, 0)))
+    eq.make_equality_group(
+        lambda: QubitPermutationGate([0, 1]), lambda: QubitPermutationGate((0, 1))
+    )
+    eq.add_equality_group(QubitPermutationGate([1, 0]), QubitPermutationGate((1, 0)))
 
 
 def test_permutation_gate_repr():
@@ -52,8 +52,8 @@ def test_permutation_gate_invalid_permutation():
 def test_permutation_gate_diagram():
     q = cirq.LineQubit.range(6)
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(cirq.X(q[0]), cirq.X(q[5]),
-                     QubitPermutationGate([3, 2, 1, 0]).on(*q[1:5])), """
+        cirq.Circuit(cirq.X(q[0]), cirq.X(q[5]), QubitPermutationGate([3, 2, 1, 0]).on(*q[1:5])),
+        """
 0: ───X───────
 
 1: ───[0>3]───
@@ -65,34 +65,35 @@ def test_permutation_gate_diagram():
 4: ───[3>0]───
 
 5: ───X───────
-""")
+""",
+    )
 
 
 def test_permutation_gate_json_dict():
     assert cirq.QubitPermutationGate([0, 1, 2])._json_dict_() == {
         'cirq_type': 'QubitPermutationGate',
-        'permutation': (0, 1, 2)
+        'permutation': (0, 1, 2),
     }
 
 
-@pytest.mark.parametrize('maps, permutation', [
-    [{
-        0b0: 0b0
-    }, [0]],
-    [{
-        0b00: 0b00,
-        0b01: 0b01,
-        0b10: 0b10
-    }, [0, 1, 2]],
-    [{
-        0b_000: 0b_000,
-        0b_001: 0b_100,
-        0b_010: 0b_010,
-        0b_100: 0b_001,
-        0b_111: 0b_111,
-        0b_101: 0b_101,
-    }, [2, 1, 0]],
-])
+@pytest.mark.parametrize(
+    'maps, permutation',
+    [
+        [{0b0: 0b0}, [0]],
+        [{0b00: 0b00, 0b01: 0b01, 0b10: 0b10}, [0, 1, 2]],
+        [
+            {
+                0b_000: 0b_000,
+                0b_001: 0b_100,
+                0b_010: 0b_010,
+                0b_100: 0b_001,
+                0b_111: 0b_111,
+                0b_101: 0b_101,
+            },
+            [2, 1, 0],
+        ],
+    ],
+)
 def test_permutation_gate_maps(maps, permutation):
     qs = cirq.LineQubit.range(len(permutation))
     permutationOp = cirq.QubitPermutationGate(permutation).on(*qs)

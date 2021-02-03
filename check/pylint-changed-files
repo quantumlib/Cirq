@@ -54,7 +54,7 @@ else
 fi
 
 changed=$(git diff --name-only ${rev} -- \
-    | grep -E "^(cirq|dev_tools|examples).*"
+    | grep -E "^(cirq|dev_tools|examples).*.py$"
 )
 
 num_changed=$(echo -e "${changed[@]}" | wc -w)

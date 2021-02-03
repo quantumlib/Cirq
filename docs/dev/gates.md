@@ -1,4 +1,4 @@
-# Gate and Operation Guidelines
+# Gate and operation guidelines
 
 This developer document explains what is expected of a gate or operation exposed
 by Cirq.

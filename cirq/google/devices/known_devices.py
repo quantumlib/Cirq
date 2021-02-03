@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, Collection, Dict, Optional, Iterable, List, Set, Tuple,
-                    TYPE_CHECKING)
+from typing import Any, Collection, Dict, Optional, Iterable, List, Set, Tuple, TYPE_CHECKING
 
 from cirq._doc import document
 from cirq.devices import GridQubit
@@ -61,11 +60,10 @@ def _parse_device(s: str) -> Tuple[List[GridQubit], Dict[str, Set[GridQubit]]]:
 
 
 def create_device_proto_from_diagram(
-        ascii_grid: str,
-        gate_sets: Optional[Iterable[
-            serializable_gate_set.SerializableGateSet]] = None,
-        durations_picos: Optional[Dict[str, int]] = None,
-        out: Optional[device_pb2.DeviceSpecification] = None,
+    ascii_grid: str,
+    gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
+    durations_picos: Optional[Dict[str, int]] = None,
+    out: Optional[device_pb2.DeviceSpecification] = None,
 ) -> device_pb2.DeviceSpecification:
     """Parse ASCIIart device layout into DeviceSpecification proto.
 
@@ -89,17 +87,15 @@ def create_device_proto_from_diagram(
             if neighbor > qubit and neighbor in qubit_set:
                 pairs.append((qubit, neighbor))
 
-    return create_device_proto_for_qubits(qubits, pairs, gate_sets,
-                                          durations_picos, out)
+    return create_device_proto_for_qubits(qubits, pairs, gate_sets, durations_picos, out)
 
 
 def create_device_proto_for_qubits(
-        qubits: Collection['cirq.Qid'],
-        pairs: Collection[Tuple['cirq.Qid', 'cirq.Qid']],
-        gate_sets: Optional[Iterable[
-            serializable_gate_set.SerializableGateSet]] = None,
-        durations_picos: Optional[Dict[str, int]] = None,
-        out: Optional[device_pb2.DeviceSpecification] = None,
+    qubits: Collection['cirq.Qid'],
+    pairs: Collection[Tuple['cirq.Qid', 'cirq.Qid']],
+    gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
+    durations_picos: Optional[Dict[str, int]] = None,
+    out: Optional[device_pb2.DeviceSpecification] = None,
 ) -> device_pb2.DeviceSpecification:
     """Create device spec for the given qubits and coupled pairs.
 
@@ -167,7 +163,7 @@ def create_device_proto_for_qubits(
                     gate.number_of_qubits = 2
 
                 # Add gate duration
-                if (durations_picos is not None and gate.id in durations_picos):
+                if durations_picos is not None and gate.id in durations_picos:
                     gate.gate_duration_picos = durations_picos[gate.id]
 
                 # Add argument names and types for each gate.
@@ -192,7 +188,6 @@ CCCCCCDDDDD
 
 
 class _NamedConstantXmonDevice(XmonDevice):
-
     def __init__(self, constant: str, **kwargs) -> None:
         super().__init__(**kwargs)
         self._repr = constant
@@ -215,18 +210,23 @@ class _NamedConstantXmonDevice(XmonDevice):
         }
 
 
-Foxtail = _NamedConstantXmonDevice('cirq.google.Foxtail',
-                                   measurement_duration=Duration(nanos=4000),
-                                   exp_w_duration=Duration(nanos=20),
-                                   exp_11_duration=Duration(nanos=50),
-                                   qubits=_parse_device(_FOXTAIL_GRID)[0])
-document(Foxtail, f"""72 xmon qubit device.
+Foxtail = _NamedConstantXmonDevice(
+    'cirq.google.Foxtail',
+    measurement_duration=Duration(nanos=4000),
+    exp_w_duration=Duration(nanos=20),
+    exp_11_duration=Duration(nanos=50),
+    qubits=_parse_device(_FOXTAIL_GRID)[0],
+)
+document(
+    Foxtail,
+    f"""72 xmon qubit device.
 
 **Qubit grid**:
 ```
 {str(Foxtail)}
 ```
-""")
+""",
+)
 
 # Duration dict in picoseconds
 _DURATIONS_FOR_XMON = {
@@ -236,9 +236,9 @@ _DURATIONS_FOR_XMON = {
     'meas': 4_000_000,  # 1000ns for readout, 3000ns for "ring down"
 }
 
-FOXTAIL_PROTO = create_device_proto_from_diagram(_FOXTAIL_GRID,
-                                                 [gate_sets.XMON],
-                                                 _DURATIONS_FOR_XMON)
+FOXTAIL_PROTO = create_device_proto_from_diagram(
+    _FOXTAIL_GRID, [gate_sets.XMON], _DURATIONS_FOR_XMON
+)
 
 _BRISTLECONE_GRID = """
 -----AB-----
@@ -259,19 +259,22 @@ Bristlecone = _NamedConstantXmonDevice(
     measurement_duration=Duration(nanos=4000),
     exp_w_duration=Duration(nanos=20),
     exp_11_duration=Duration(nanos=50),
-    qubits=_parse_device(_BRISTLECONE_GRID)[0])
+    qubits=_parse_device(_BRISTLECONE_GRID)[0],
+)
 document(
-    Bristlecone, f"""72 xmon qubit device.
+    Bristlecone,
+    f"""72 xmon qubit device.
 
 **Qubit grid**:
 ```
 {str(Bristlecone)}
 ```
-""")
+""",
+)
 
-BRISTLECONE_PROTO = create_device_proto_from_diagram(_BRISTLECONE_GRID,
-                                                     [gate_sets.XMON],
-                                                     _DURATIONS_FOR_XMON)
+BRISTLECONE_PROTO = create_device_proto_from_diagram(
+    _BRISTLECONE_GRID, [gate_sets.XMON], _DURATIONS_FOR_XMON
+)
 
 _SYCAMORE_GRID = """
 -----AB---
@@ -305,8 +308,8 @@ SYCAMORE_PROTO = create_device_proto_from_diagram(
 )
 
 Sycamore = SerializableDevice.from_proto(
-    proto=SYCAMORE_PROTO,
-    gate_sets=[gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET])
+    proto=SYCAMORE_PROTO, gate_sets=[gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET]
+)
 
 # Subset of the Sycamore grid with a reduced layout.
 _SYCAMORE23_GRID = """
@@ -329,5 +332,5 @@ SYCAMORE23_PROTO = create_device_proto_from_diagram(
 )
 
 Sycamore23 = SerializableDevice.from_proto(
-    proto=SYCAMORE23_PROTO,
-    gate_sets=[gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET])
+    proto=SYCAMORE23_PROTO, gate_sets=[gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET]
+)

@@ -12,7 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Classes for working with Google's Quantum Engine API."""
+
 from cirq.google import api
+
+from cirq.google.arg_func_langs import (
+    arg_from_proto,
+)
+
+from cirq.google.calibration import (
+    ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    FloquetPhasedFSimCalibrationOptions,
+    FloquetPhasedFSimCalibrationRequest,
+    PhasedFSimCalibrationRequest,
+    PhasedFSimCalibrationResult,
+    PhasedFSimCharacterization,
+    PhasedFSimEngineSimulator,
+    SQRT_ISWAP_PARAMETERS,
+    make_floquet_request_for_circuit,
+    make_floquet_request_for_moment,
+    run_characterizations,
+    run_floquet_characterization_for_circuit,
+    try_convert_sqrt_iswap_to_fsim,
+    WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+)
 
 from cirq.google.devices import (
     Bristlecone,
@@ -25,6 +48,8 @@ from cirq.google.devices import (
 
 from cirq.google.engine import (
     Calibration,
+    CalibrationLayer,
+    CalibrationResult,
     Engine,
     engine_from_environment,
     EngineJob,
@@ -55,6 +80,7 @@ from cirq.google.line import (
 )
 
 from cirq.google.ops import (
+    CalibrationTag,
     PhysicalZTag,
     SycamoreGate,
     SYC,
@@ -80,4 +106,5 @@ from cirq.google.op_serializer import (
 )
 
 from cirq.google.serializable_gate_set import (
-    SerializableGateSet,)
+    SerializableGateSet,
+)

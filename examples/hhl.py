@@ -96,7 +96,7 @@ class PhaseEstimation(cirq.Gate):
         qubits = list(qubits)
         yield cirq.H.on_each(*qubits[:-1])
         yield PhaseKickback(self.num_qubits(), self.U)(*qubits)
-        yield cirq.qft(*qubits[:-1], without_reverse=True)**-1
+        yield cirq.qft(*qubits[:-1], without_reverse=True) ** -1
 
 
 class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
@@ -117,7 +117,7 @@ class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
         ws, vs = np.linalg.eigh(A)
         self.eigen_components = []
         for w, v in zip(ws, vs.T):
-            theta = w*t / math.pi
+            theta = w * t / math.pi
             P = np.outer(v, np.conj(v))
             self.eigen_components.append((theta, P))
 
@@ -150,7 +150,7 @@ class PhaseKickback(cirq.Gate):
         qubits = list(qubits)
         memory = qubits.pop()
         for i, qubit in enumerate(qubits):
-            yield cirq.ControlledGate(self.U**(2**i))(qubit, memory)
+            yield cirq.ControlledGate(self.U ** (2 ** i))(qubit, memory)
 
 
 class EigenRotation(cirq.Gate):
@@ -171,7 +171,7 @@ class EigenRotation(cirq.Gate):
         self._num_qubits = num_qubits
         self.C = C
         self.t = t
-        self.N = 2**(num_qubits-1)
+        self.N = 2 ** (num_qubits - 1)
 
     def num_qubits(self):
         return self._num_qubits
@@ -181,7 +181,7 @@ class EigenRotation(cirq.Gate):
             kGate = self._ancilla_rotation(k)
 
             # xor's 1 bits correspond to X gate positions.
-            xor = k ^ (k-1)
+            xor = k ^ (k - 1)
 
             for q in qubits[-2::-1]:
                 # Place X gates
@@ -197,7 +197,7 @@ class EigenRotation(cirq.Gate):
     def _ancilla_rotation(self, k):
         if k == 0:
             k = self.N
-        theta = 2*math.asin(self.C * self.N * self.t / (2*math.pi * k))
+        theta = 2 * math.asin(self.C * self.N * self.t / (2 * math.pi * k))
         return cirq.ry(theta)
 
 
@@ -230,21 +230,25 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
 
     c = cirq.Circuit()
     hs = HamiltonianSimulation(A, t)
-    pe = PhaseEstimation(register_size+1, hs)
+    pe = PhaseEstimation(register_size + 1, hs)
     c.append([gate(memory) for gate in input_prep_gates])
-    c.append([
-        pe(*(register + [memory])),
-        EigenRotation(register_size + 1, C, t)(*(register + [ancilla])),
-        pe(*(register + [memory]))**-1,
-        cirq.measure(ancilla, key='a')
-    ])
+    c.append(
+        [
+            pe(*(register + [memory])),
+            EigenRotation(register_size + 1, C, t)(*(register + [ancilla])),
+            pe(*(register + [memory])) ** -1,
+            cirq.measure(ancilla, key='a'),
+        ]
+    )
 
-    c.append([
-        cirq.PhasedXPowGate(
-            exponent=sympy.Symbol('exponent'),
-            phase_exponent=sympy.Symbol('phase_exponent'))(memory),
-        cirq.measure(memory, key='m')
-    ])
+    c.append(
+        [
+            cirq.PhasedXPowGate(
+                exponent=sympy.Symbol('exponent'), phase_exponent=sympy.Symbol('phase_exponent')
+            )(memory),
+            cirq.measure(memory, key='m'),
+        ]
+    )
 
     return c
 
@@ -253,16 +257,11 @@ def simulate(circuit):
     simulator = cirq.Simulator()
 
     # Cases for measuring X, Y, and Z (respectively) on the memory qubit.
-    params = [{
-        'exponent': 0.5,
-        'phase_exponent': -0.5
-    }, {
-        'exponent': 0.5,
-        'phase_exponent': 0
-    }, {
-        'exponent': 0,
-        'phase_exponent': 0
-    }]
+    params = [
+        {'exponent': 0.5, 'phase_exponent': -0.5},
+        {'exponent': 0.5, 'phase_exponent': 0},
+        {'exponent': 0, 'phase_exponent': 0},
+    ]
 
     results = simulator.run_sweep(circuit, params, repetitions=5000)
 
@@ -270,8 +269,7 @@ def simulate(circuit):
         # Only select cases where the ancilla is 1.
         # TODO: optimize using amplitude amplification algorithm.
         # Github issue: https://github.com/quantumlib/Cirq/issues/2216
-        expectation = 1 - 2 * np.mean(
-            result.measurements['m'][result.measurements['a'] == 1])
+        expectation = 1 - 2 * np.mean(result.measurements['m'][result.measurements['a'] == 1])
         print('{} = {}'.format(label, expectation))
 
 
@@ -287,18 +285,20 @@ def main():
     #   (0.349, [-0.236813, 0.237270-0.942137j])
     # |b> = (0.64510-0.47848j, 0.35490-0.47848j)
     # |x> = (-0.0662724-0.214548j, 0.784392-0.578192j)
-    A = np.array([[4.30213466-6.01593490e-08j,
-                   0.23531802+9.34386156e-01j],
-                  [0.23531882-9.34388383e-01j,
-                   0.58386534+6.01593489e-08j]])
-    t = 0.358166*math.pi
+    A = np.array(
+        [
+            [4.30213466 - 6.01593490e-08j, 0.23531802 + 9.34386156e-01j],
+            [0.23531882 - 9.34388383e-01j, 0.58386534 + 6.01593489e-08j],
+        ]
+    )
+    t = 0.358166 * math.pi
     register_size = 4
     input_prep_gates = [cirq.rx(1.276359), cirq.rz(1.276359)]
     expected = (0.144130, 0.413217, -0.899154)
 
     # Set C to be the smallest eigenvalue that can be represented by the
     # circuit.
-    C = 2*math.pi / (2**register_size * t)
+    C = 2 * math.pi / (2 ** register_size * t)
 
     # Simulate circuit
     print("Expected observable outputs:")

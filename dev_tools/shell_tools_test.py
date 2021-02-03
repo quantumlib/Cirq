@@ -56,41 +56,31 @@ def test_run_shell_raise_on_fail():
 
 @only_on_posix
 def test_run_cmd_capture():
-    assert run_cmd(
-        'echo', 'test',
-        out=None) == (None, None, 0)
-    assert run_cmd(
-        'echo', 'test',
-        out=shell_tools.TeeCapture()) == ('test\n', None, 0)
-    assert run_cmd(
-        'echo', 'test',
-        out=None,
-        err=shell_tools.TeeCapture()) == (None, '', 0)
+    assert run_cmd('echo', 'test', out=None) == (None, None, 0)
+    assert run_cmd('echo', 'test', out=shell_tools.TeeCapture()) == ('test\n', None, 0)
+    assert run_cmd('echo', 'test', out=None, err=shell_tools.TeeCapture()) == (None, '', 0)
 
 
 @only_on_posix
 def test_run_shell_capture():
-    assert run_shell(
-        'echo test 1>&2',
-        err=None) == (None, None, 0)
-    assert run_shell(
-        'echo test 1>&2',
-        err=shell_tools.TeeCapture()) == (None, 'test\n', 0)
-    assert run_shell(
-        'echo test 1>&2',
-        err=None,
-        out=shell_tools.TeeCapture()) == ('', None, 0)
+    assert run_shell('echo test 1>&2', err=None) == (None, None, 0)
+    assert run_shell('echo test 1>&2', err=shell_tools.TeeCapture()) == (None, 'test\n', 0)
+    assert run_shell('echo test 1>&2', err=None, out=shell_tools.TeeCapture()) == ('', None, 0)
 
 
 @only_on_posix
 def test_run_shell_does_not_deadlock_on_large_outputs():
-    assert run_shell(
-        r"""python3 -c "import sys;"""
-        r"""print((('o' * 99) + '\n') * 10000);"""
-        r"""print((('e' * 99) + '\n') * 10000, file=sys.stderr)"""
-        '"',
-        out=None,
-        err=None) == (None, None, 0)
+    assert (
+        run_shell(
+            r"""python3 -c "import sys;"""
+            r"""print((('o' * 99) + '\n') * 10000);"""
+            r"""print((('e' * 99) + '\n') * 10000, file=sys.stderr)"""
+            '"',
+            out=None,
+            err=None,
+        )
+        == (None, None, 0)
+    )
 
 
 @only_on_posix

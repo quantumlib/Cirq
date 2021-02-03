@@ -42,31 +42,66 @@ def test_accept_rejects():
 
 
 def test_anneal_minimize_improves_when_better():
-    assert optimization.anneal_minimize(
-        'initial', lambda s: 1.0 if s == 'initial' else 0.0,
-        lambda s: 'better', lambda: 1.0, 1.0, 0.5, 0.5, 1) == 'better'
+    assert (
+        optimization.anneal_minimize(
+            'initial',
+            lambda s: 1.0 if s == 'initial' else 0.0,
+            lambda s: 'better',
+            lambda: 1.0,
+            1.0,
+            0.5,
+            0.5,
+            1,
+        )
+        == 'better'
+    )
 
 
 def test_anneal_minimize_keeps_when_worse_and_discarded():
-    assert optimization.anneal_minimize(
-        'initial', lambda s: 0.0 if s == 'initial' else 1.0,
-        lambda s: 'better', lambda: 0.9, 1.0, 0.5, 0.5, 1) == 'initial'
+    assert (
+        optimization.anneal_minimize(
+            'initial',
+            lambda s: 0.0 if s == 'initial' else 1.0,
+            lambda s: 'better',
+            lambda: 0.9,
+            1.0,
+            0.5,
+            0.5,
+            1,
+        )
+        == 'initial'
+    )
 
 
 def test_anneal_minimize_raises_when_wrong_cooling_factor():
     with pytest.raises(ValueError):
         optimization.anneal_minimize(
-            'initial', lambda s: 1.0 if s == 'initial' else 0.0,
-            lambda s: 'better', lambda: 1.0, 1.0, 0.5, 2.0, 1)
+            'initial',
+            lambda s: 1.0 if s == 'initial' else 0.0,
+            lambda s: 'better',
+            lambda: 1.0,
+            1.0,
+            0.5,
+            2.0,
+            1,
+        )
 
 
 def test_anneal_minimize_calls_trace_func():
     trace_func = mock.Mock()
 
     optimization.anneal_minimize(
-        'initial', lambda s: 1.0 if s == 'initial' else 0.0,
-        lambda s: 'better', lambda: 1.0, 1.0, 0.5, 0.5, 1,
-        trace_func=trace_func)
+        'initial',
+        lambda s: 1.0 if s == 'initial' else 0.0,
+        lambda s: 'better',
+        lambda: 1.0,
+        1.0,
+        0.5,
+        0.5,
+        1,
+        trace_func=trace_func,
+    )
 
-    trace_func.assert_has_calls([mock.call('initial', 1.0, 1.0, 1.0, True),
-                                 mock.call('better', 1.0, 0.0, 1.0, True)])
+    trace_func.assert_has_calls(
+        [mock.call('initial', 1.0, 1.0, 1.0, True), mock.call('better', 1.0, 0.0, 1.0, True)]
+    )

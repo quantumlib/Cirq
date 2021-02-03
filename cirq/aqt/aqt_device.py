@@ -30,13 +30,7 @@ from cirq import ops, devices, study
 from cirq import Circuit, LineQubit, IonDevice, Duration
 from cirq import DensityMatrixSimulator
 
-gate_dict = {
-    'X': ops.X,
-    'Y': ops.Y,
-    'Z': ops.Z,
-    'MS': ops.XX,
-    'R': ops.PhasedXPowGate
-}
+gate_dict = {'X': ops.X, 'Y': ops.Y, 'Z': ops.Z, 'MS': ops.XX, 'R': ops.PhasedXPowGate}
 
 
 def get_op_string(op_obj: ops.Operation) -> str:
@@ -49,23 +43,17 @@ def get_op_string(op_obj: ops.Operation) -> str:
     Returns:
         String representing the gate operations
     """
-    if isinstance(op_obj, ops.XXPowGate) or isinstance(op_obj.gate,
-                                                       ops.XXPowGate):
+    if isinstance(op_obj, ops.XXPowGate) or isinstance(op_obj.gate, ops.XXPowGate):
         op_str = 'MS'
-    elif isinstance(op_obj, ops.XPowGate) or isinstance(op_obj.gate,
-                                                        ops.XPowGate):
+    elif isinstance(op_obj, ops.XPowGate) or isinstance(op_obj.gate, ops.XPowGate):
         op_str = 'X'
-    elif isinstance(op_obj, ops.YPowGate) or isinstance(op_obj.gate,
-                                                        ops.YPowGate):
+    elif isinstance(op_obj, ops.YPowGate) or isinstance(op_obj.gate, ops.YPowGate):
         op_str = 'Y'
-    elif isinstance(op_obj, ops.ZPowGate) or isinstance(op_obj.gate,
-                                                        ops.ZPowGate):
+    elif isinstance(op_obj, ops.ZPowGate) or isinstance(op_obj.gate, ops.ZPowGate):
         op_str = 'Z'
-    elif isinstance(op_obj, ops.PhasedXPowGate) or isinstance(
-            op_obj.gate, ops.PhasedXPowGate):
+    elif isinstance(op_obj, ops.PhasedXPowGate) or isinstance(op_obj.gate, ops.PhasedXPowGate):
         op_str = 'R'
-    elif isinstance(op_obj, ops.MeasurementGate) or isinstance(
-            op_obj.gate, ops.MeasurementGate):
+    elif isinstance(op_obj, ops.MeasurementGate) or isinstance(op_obj.gate, ops.MeasurementGate):
         op_str = 'Meas'
     else:
         raise ValueError('Got unknown gate:', op_obj)
@@ -78,8 +66,9 @@ class AQTNoiseModel(devices.NoiseModel):
     def __init__(self):
         self.noise_op_dict = get_default_noise_dict()
 
-    def noisy_moment(self, moment: ops.Moment,
-                     system_qubits: Sequence[ops.Qid]) -> List[ops.Operation]:
+    def noisy_moment(
+        self, moment: ops.Moment, system_qubits: Sequence[ops.Qid]
+    ) -> List[ops.Operation]:
         """Returns a list of noisy moments.
 
         The model includes
@@ -96,18 +85,17 @@ class AQTNoiseModel(devices.NoiseModel):
         noise_list = []
         for op in moment.operations:
             op_str = get_op_string(op)
-            try:
-                noise_op = self.noise_op_dict[op_str]
-            except KeyError:
+            if op_str not in self.noise_op_dict:
                 break
+            noise_op = self.noise_op_dict[op_str]
             for qubit in op.qubits:
                 noise_list.append(noise_op.on(qubit))
             noise_list += self.get_crosstalk_operation(op, system_qubits)
         return list(moment) + noise_list
 
-    def get_crosstalk_operation(self, operation: ops.Operation,
-                                system_qubits: Sequence[ops.Qid]
-                               ) -> List[ops.Operation]:
+    def get_crosstalk_operation(
+        self, operation: ops.Operation, system_qubits: Sequence[ops.Qid]
+    ) -> List[ops.Operation]:
         """Returns a list of operations including crosstalk
 
         Args:
@@ -135,16 +123,16 @@ class AQTNoiseModel(devices.NoiseModel):
         gate = cast(ops.EigenGate, gate_dict[op_str])
         if len(operation.qubits) == 1:
             for idx in xtlk_arr.nonzero()[0]:
-                exponent = operation.gate.exponent  #type:ignore
+                exponent = operation.gate.exponent  # type:ignore
                 exponent = exponent * xtlk_arr[idx]
-                xtlk_op = gate.on(system_qubits[idx])**exponent
+                xtlk_op = gate.on(system_qubits[idx]) ** exponent
                 xtlk_op_list.append(xtlk_op)
         elif len(operation.qubits) == 2:
             for op_qubit in operation.qubits:
                 for idx in xtlk_arr.nonzero()[0]:
                     exponent = operation.gate.exponent  # type:ignore
                     exponent = exponent * xtlk_arr[idx]
-                    xtlk_op = gate.on(op_qubit, system_qubits[idx])**exponent
+                    xtlk_op = gate.on(op_qubit, system_qubits[idx]) ** exponent
                     xtlk_op_list.append(xtlk_op)
         return xtlk_op_list
 
@@ -152,11 +140,13 @@ class AQTNoiseModel(devices.NoiseModel):
 class AQTSimulator:
     """A simulator for the AQT device."""
 
-    def __init__(self,
-                 num_qubits: int,
-                 circuit: Circuit = Circuit(),
-                 simulate_ideal: bool = False,
-                 noise_dict: Union[dict, None] = None):
+    def __init__(
+        self,
+        num_qubits: int,
+        circuit: Circuit = Circuit(),
+        simulate_ideal: bool = False,
+        noise_dict: Union[dict, None] = None,
+    ):
         """Initializes the AQT simulator
 
         Args:
@@ -192,17 +182,15 @@ class AQTSimulator:
                 theta = circuit_list[1]
                 phi = circuit_list[2]
                 qubits = [self.qubit_list[i] for i in circuit_list[3]]
-                self.circuit.append(
-                    gate(phase_exponent=phi, exponent=theta).on(*qubits))
+                self.circuit.append(gate(phase_exponent=phi, exponent=theta).on(*qubits))
             else:
                 gate = cast(ops.EigenGate, gate_dict[op_str])
                 angle = circuit_list[1]
                 qubits = [self.qubit_list[i] for i in circuit_list[2]]
-                self.circuit.append(gate.on(*qubits)**angle)
+                self.circuit.append(gate.on(*qubits) ** angle)
         # TODO: Better solution for measurement at the end.
         # Github issue: https://github.com/quantumlib/Cirq/issues/2199
-        self.circuit.append(
-            ops.measure(*[qubit for qubit in self.qubit_list], key='m'))
+        self.circuit.append(ops.measure(*[qubit for qubit in self.qubit_list], key='m'))
 
     def simulate_samples(self, repetitions: int) -> study.Result:
         """Samples the circuit
@@ -235,10 +223,12 @@ def get_aqt_device(num_qubits: int) -> Tuple[IonDevice, List[LineQubit]]:
     """
     qubit_list = LineQubit.range(num_qubits)
     us = 1000 * Duration(nanos=1)
-    ion_device = IonDevice(measurement_duration=100 * us,
-                           twoq_gates_duration=200 * us,
-                           oneq_gates_duration=10 * us,
-                           qubits=qubit_list)
+    ion_device = IonDevice(
+        measurement_duration=100 * us,
+        twoq_gates_duration=200 * us,
+        oneq_gates_duration=10 * us,
+        qubits=qubit_list,
+    )
     return ion_device, qubit_list
 
 
@@ -249,6 +239,6 @@ def get_default_noise_dict() -> Dict[str, Any]:
         'Y': ops.depolarize(1e-3),
         'Z': ops.depolarize(1e-3),
         'MS': ops.depolarize(1e-2),
-        'crosstalk': 0.03
+        'crosstalk': 0.03,
     }
     return default_noise_dict

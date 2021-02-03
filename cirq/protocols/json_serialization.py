@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dataclasses
+import functools
+import gzip
 import json
 import numbers
 import pathlib
 from typing import (
     Any,
+    Callable,
     cast,
     Dict,
     IO,
@@ -35,7 +38,8 @@ import pandas as pd
 import sympy
 from typing_extensions import Protocol
 
-from cirq.ops import raw_types  # Tells mypy that the raw_types module exists
+from cirq._doc import doc_private
+from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -43,166 +47,162 @@ if TYPE_CHECKING:
     import cirq.devices.unconstrained_device
 
 
-class _ResolverCache:
-    """Lazily import and build registry to avoid circular imports."""
-
-    def __init__(self):
-        self._crd = None
-
-    @property
-    def cirq_class_resolver_dictionary(self) -> Dict[str, Type]:
-        if self._crd is None:
-            import cirq
-            from cirq.devices.noise_model import _NoNoiseModel
-            from cirq.experiments import (CrossEntropyResult,
-                                          CrossEntropyResultDict,
-                                          GridInteractionLayer)
-            from cirq.experiments.grid_parallel_two_qubit_xeb import (
-                GridParallelXEBMetadata)
-            from cirq.google.devices.known_devices import (
-                _NamedConstantXmonDevice)
-
-            def _identity_operation_from_dict(qubits, **kwargs):
-                return cirq.identity_each(*qubits)
-
-            def single_qubit_matrix_gate(matrix):
-                if not isinstance(matrix, np.ndarray):
-                    matrix = np.array(matrix, dtype=np.complex128)
-                return cirq.MatrixGate(matrix, qid_shape=(matrix.shape[0],))
-
-            def two_qubit_matrix_gate(matrix):
-                if not isinstance(matrix, np.ndarray):
-                    matrix = np.array(matrix, dtype=np.complex128)
-                return cirq.MatrixGate(matrix, qid_shape=(2, 2))
-
-            self._crd = {
-                'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
-                'AsymmetricDepolarizingChannel':
-                cirq.AsymmetricDepolarizingChannel,
-                'BitFlipChannel': cirq.BitFlipChannel,
-                'ProductState': cirq.ProductState,
-                'CCNotPowGate': cirq.CCNotPowGate,
-                'CCXPowGate': cirq.CCXPowGate,
-                'CCZPowGate': cirq.CCZPowGate,
-                'CNotPowGate': cirq.CNotPowGate,
-                'ControlledGate': cirq.ControlledGate,
-                'ControlledOperation': cirq.ControlledOperation,
-                'CSwapGate': cirq.CSwapGate,
-                'CXPowGate': cirq.CXPowGate,
-                'CZPowGate': cirq.CZPowGate,
-                'CrossEntropyResult': CrossEntropyResult,
-                'CrossEntropyResultDict': CrossEntropyResultDict,
-                'Circuit': cirq.Circuit,
-                'CliffordState': cirq.CliffordState,
-                'CliffordTableau': cirq.CliffordTableau,
-                'DepolarizingChannel': cirq.DepolarizingChannel,
-                'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
-                'Duration': cirq.Duration,
-                'FSimGate': cirq.FSimGate,
-                'DensePauliString': cirq.DensePauliString,
-                'MutableDensePauliString': cirq.MutableDensePauliString,
-                'MutablePauliString': cirq.MutablePauliString,
-                'GateOperation': cirq.GateOperation,
-                'GateTabulation': cirq.google.GateTabulation,
-                'GeneralizedAmplitudeDampingChannel':
-                cirq.GeneralizedAmplitudeDampingChannel,
-                'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
-                'GridInteractionLayer': GridInteractionLayer,
-                'GridParallelXEBMetadata': GridParallelXEBMetadata,
-                'GridQid': cirq.GridQid,
-                'GridQubit': cirq.GridQubit,
-                'HPowGate': cirq.HPowGate,
-                'ISwapPowGate': cirq.ISwapPowGate,
-                'IdentityGate': cirq.IdentityGate,
-                'IdentityOperation': _identity_operation_from_dict,
-                'LinearDict': cirq.LinearDict,
-                'LineQubit': cirq.LineQubit,
-                'LineQid': cirq.LineQid,
-                'MatrixGate': cirq.MatrixGate,
-                'MeasurementGate': cirq.MeasurementGate,
-                'Moment': cirq.Moment,
-                '_XEigenState':
-                cirq.value.product_state._XEigenState,  # type: ignore
-                '_YEigenState':
-                cirq.value.product_state._YEigenState,  # type: ignore
-                '_ZEigenState':
-                cirq.value.product_state._ZEigenState,  # type: ignore
-                '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
-                '_NoNoiseModel': _NoNoiseModel,
-                'NamedQubit': cirq.NamedQubit,
-                'NamedQid': cirq.NamedQid,
-                'NoIdentifierQubit': cirq.testing.NoIdentifierQubit,
-                '_PauliX': cirq.ops.pauli_gates._PauliX,
-                '_PauliY': cirq.ops.pauli_gates._PauliY,
-                '_PauliZ': cirq.ops.pauli_gates._PauliZ,
-                'ParamResolver': cirq.ParamResolver,
-                'PasqalDevice': cirq.pasqal.PasqalDevice,
-                'PasqalVirtualDevice': cirq.pasqal.PasqalVirtualDevice,
-                'PauliString': cirq.PauliString,
-                'PhaseDampingChannel': cirq.PhaseDampingChannel,
-                'PhaseFlipChannel': cirq.PhaseFlipChannel,
-                'PhaseGradientGate': cirq.PhaseGradientGate,
-                'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
-                'PhasedXPowGate': cirq.PhasedXPowGate,
-                'PhasedXZGate': cirq.PhasedXZGate,
-                'PhysicalZTag': cirq.google.PhysicalZTag,
-                'RandomGateChannel': cirq.RandomGateChannel,
-                'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
-                'ResetChannel': cirq.ResetChannel,
-                'SingleQubitMatrixGate': single_qubit_matrix_gate,
-                'SingleQubitPauliStringGateOperation':
-                cirq.SingleQubitPauliStringGateOperation,
-                'SingleQubitReadoutCalibrationResult':
-                cirq.experiments.SingleQubitReadoutCalibrationResult,
-                'StabilizerStateChForm': cirq.StabilizerStateChForm,
-                'SwapPowGate': cirq.SwapPowGate,
-                'SycamoreGate': cirq.google.SycamoreGate,
-                'TaggedOperation': cirq.TaggedOperation,
-                'ThreeDQubit': cirq.pasqal.ThreeDQubit,
-                'Result': cirq.Result,
-                'TwoDQubit': cirq.pasqal.TwoDQubit,
-                'TwoQubitMatrixGate': two_qubit_matrix_gate,
-                'TwoQubitDiagonalGate': cirq.TwoQubitDiagonalGate,
-                '_UnconstrainedDevice':
-                cirq.devices.unconstrained_device._UnconstrainedDevice,
-                'VirtualTag': cirq.VirtualTag,
-                'WaitGate': cirq.WaitGate,
-                '_QubitAsQid': raw_types._QubitAsQid,
-                'XPowGate': cirq.XPowGate,
-                'XXPowGate': cirq.XXPowGate,
-                'YPowGate': cirq.YPowGate,
-                'YYPowGate': cirq.YYPowGate,
-                'ZPowGate': cirq.ZPowGate,
-                'ZZPowGate': cirq.ZZPowGate,
-
-                # not a cirq class, but treated as one:
-                'pandas.DataFrame': pd.DataFrame,
-                'pandas.Index': pd.Index,
-                'pandas.MultiIndex': pd.MultiIndex.from_tuples,
-                'sympy.Symbol': sympy.Symbol,
-                'sympy.Add': lambda args: sympy.Add(*args),
-                'sympy.Mul': lambda args: sympy.Mul(*args),
-                'sympy.Pow': lambda args: sympy.Pow(*args),
-                'sympy.Float': lambda approx: sympy.Float(approx),
-                'sympy.Integer': sympy.Integer,
-                'sympy.Rational': sympy.Rational,
-                'complex': complex,
-            }
-        return self._crd
+ObjectFactory = Union[Type, Callable[..., Any]]
 
 
-RESOLVER_CACHE = _ResolverCache()
+@functools.lru_cache(maxsize=1)
+def _cirq_class_resolver_dictionary() -> Dict[str, ObjectFactory]:
+    import cirq
+    from cirq.devices.noise_model import _NoNoiseModel
+    from cirq.experiments import CrossEntropyResult, CrossEntropyResultDict, GridInteractionLayer
+    from cirq.experiments.grid_parallel_two_qubit_xeb import GridParallelXEBMetadata
+    from cirq.google.devices.known_devices import _NamedConstantXmonDevice
+
+    def _identity_operation_from_dict(qubits, **kwargs):
+        return cirq.identity_each(*qubits)
+
+    def single_qubit_matrix_gate(matrix):
+        if not isinstance(matrix, np.ndarray):
+            matrix = np.array(matrix, dtype=np.complex128)
+        return cirq.MatrixGate(matrix, qid_shape=(matrix.shape[0],))
+
+    def two_qubit_matrix_gate(matrix):
+        if not isinstance(matrix, np.ndarray):
+            matrix = np.array(matrix, dtype=np.complex128)
+        return cirq.MatrixGate(matrix, qid_shape=(2, 2))
+
+    return {
+        'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
+        'AsymmetricDepolarizingChannel': cirq.AsymmetricDepolarizingChannel,
+        'BitFlipChannel': cirq.BitFlipChannel,
+        'BitstringAccumulator': cirq.work.BitstringAccumulator,
+        'ProductState': cirq.ProductState,
+        'CCNotPowGate': cirq.CCNotPowGate,
+        'CCXPowGate': cirq.CCXPowGate,
+        'CCZPowGate': cirq.CCZPowGate,
+        'CNotPowGate': cirq.CNotPowGate,
+        'Calibration': cirq.google.Calibration,
+        'CalibrationLayer': cirq.google.CalibrationLayer,
+        'CalibrationResult': cirq.google.CalibrationResult,
+        'CalibrationTag': cirq.google.CalibrationTag,
+        'ControlledGate': cirq.ControlledGate,
+        'ControlledOperation': cirq.ControlledOperation,
+        'CSwapGate': cirq.CSwapGate,
+        'CXPowGate': cirq.CXPowGate,
+        'CZPowGate': cirq.CZPowGate,
+        'CrossEntropyResult': CrossEntropyResult,
+        'CrossEntropyResultDict': CrossEntropyResultDict,
+        'Circuit': cirq.Circuit,
+        'CircuitOperation': cirq.CircuitOperation,
+        'CliffordState': cirq.CliffordState,
+        'CliffordTableau': cirq.CliffordTableau,
+        'DepolarizingChannel': cirq.DepolarizingChannel,
+        'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
+        'Duration': cirq.Duration,
+        'FloquetPhasedFSimCalibrationOptions': cirq.google.FloquetPhasedFSimCalibrationOptions,
+        'FloquetPhasedFSimCalibrationRequest': cirq.google.FloquetPhasedFSimCalibrationRequest,
+        'FrozenCircuit': cirq.FrozenCircuit,
+        'FSimGate': cirq.FSimGate,
+        'DensePauliString': cirq.DensePauliString,
+        'MutableDensePauliString': cirq.MutableDensePauliString,
+        'MutablePauliString': cirq.MutablePauliString,
+        'GateOperation': cirq.GateOperation,
+        'GateTabulation': cirq.google.GateTabulation,
+        'GeneralizedAmplitudeDampingChannel': cirq.GeneralizedAmplitudeDampingChannel,
+        'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
+        'GridInteractionLayer': GridInteractionLayer,
+        'GridParallelXEBMetadata': GridParallelXEBMetadata,
+        'GridQid': cirq.GridQid,
+        'GridQubit': cirq.GridQubit,
+        'HPowGate': cirq.HPowGate,
+        'ISwapPowGate': cirq.ISwapPowGate,
+        'IdentityGate': cirq.IdentityGate,
+        'IdentityOperation': _identity_operation_from_dict,
+        'InitObsSetting': cirq.work.InitObsSetting,
+        'LinearDict': cirq.LinearDict,
+        'LineQubit': cirq.LineQubit,
+        'LineQid': cirq.LineQid,
+        'MatrixGate': cirq.MatrixGate,
+        'MeasurementGate': cirq.MeasurementGate,
+        '_MeasurementSpec': cirq.work._MeasurementSpec,
+        'Moment': cirq.Moment,
+        '_XEigenState': cirq.value.product_state._XEigenState,
+        '_YEigenState': cirq.value.product_state._YEigenState,
+        '_ZEigenState': cirq.value.product_state._ZEigenState,
+        '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
+        '_NoNoiseModel': _NoNoiseModel,
+        'NamedQubit': cirq.NamedQubit,
+        'NamedQid': cirq.NamedQid,
+        'NoIdentifierQubit': cirq.testing.NoIdentifierQubit,
+        'ObservableMeasuredResult': cirq.work.ObservableMeasuredResult,
+        '_PauliX': cirq.ops.pauli_gates._PauliX,
+        '_PauliY': cirq.ops.pauli_gates._PauliY,
+        '_PauliZ': cirq.ops.pauli_gates._PauliZ,
+        'ParamResolver': cirq.ParamResolver,
+        'ParallelGateOperation': cirq.ParallelGateOperation,
+        'PasqalDevice': cirq.pasqal.PasqalDevice,
+        'PasqalVirtualDevice': cirq.pasqal.PasqalVirtualDevice,
+        'PauliString': cirq.PauliString,
+        'PhaseDampingChannel': cirq.PhaseDampingChannel,
+        'PhaseFlipChannel': cirq.PhaseFlipChannel,
+        'PhaseGradientGate': cirq.PhaseGradientGate,
+        'PhasedFSimCalibrationResult': cirq.google.PhasedFSimCalibrationResult,
+        'PhasedFSimCharacterization': cirq.google.PhasedFSimCharacterization,
+        'PhasedFSimGate': cirq.PhasedFSimGate,
+        'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
+        'PhasedXPowGate': cirq.PhasedXPowGate,
+        'PhasedXZGate': cirq.PhasedXZGate,
+        'PhysicalZTag': cirq.google.PhysicalZTag,
+        'RandomGateChannel': cirq.RandomGateChannel,
+        'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
+        'ResetChannel': cirq.ResetChannel,
+        'SingleQubitMatrixGate': single_qubit_matrix_gate,
+        'SingleQubitPauliStringGateOperation': cirq.SingleQubitPauliStringGateOperation,
+        'SingleQubitReadoutCalibrationResult': cirq.experiments.SingleQubitReadoutCalibrationResult,
+        'StabilizerStateChForm': cirq.StabilizerStateChForm,
+        'SwapPowGate': cirq.SwapPowGate,
+        'SycamoreGate': cirq.google.SycamoreGate,
+        'TaggedOperation': cirq.TaggedOperation,
+        'ThreeDQubit': cirq.pasqal.ThreeDQubit,
+        'Result': cirq.Result,
+        'TrialResult': cirq.TrialResult,
+        'TwoDQubit': cirq.pasqal.TwoDQubit,
+        'TwoQubitMatrixGate': two_qubit_matrix_gate,
+        'TwoQubitDiagonalGate': cirq.TwoQubitDiagonalGate,
+        '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
+        'VirtualTag': cirq.VirtualTag,
+        'WaitGate': cirq.WaitGate,
+        '_QubitAsQid': raw_types._QubitAsQid,
+        'XPowGate': cirq.XPowGate,
+        'XXPowGate': cirq.XXPowGate,
+        'YPowGate': cirq.YPowGate,
+        'YYPowGate': cirq.YYPowGate,
+        'ZPowGate': cirq.ZPowGate,
+        'ZZPowGate': cirq.ZZPowGate,
+        # not a cirq class, but treated as one:
+        'pandas.DataFrame': pd.DataFrame,
+        'pandas.Index': pd.Index,
+        'pandas.MultiIndex': pd.MultiIndex.from_tuples,
+        'sympy.Symbol': sympy.Symbol,
+        'sympy.Add': lambda args: sympy.Add(*args),
+        'sympy.Mul': lambda args: sympy.Mul(*args),
+        'sympy.Pow': lambda args: sympy.Pow(*args),
+        'sympy.Float': lambda approx: sympy.Float(approx),
+        'sympy.Integer': sympy.Integer,
+        'sympy.Rational': sympy.Rational,
+        'complex': complex,
+    }
 
 
 class JsonResolver(Protocol):
     """Protocol for json resolver functions passed to read_json."""
 
-    def __call__(self, cirq_type: str) -> Optional[Type]:
+    def __call__(self, cirq_type: str) -> Optional[ObjectFactory]:
         ...
 
 
-def _cirq_class_resolver(cirq_type: str) -> Optional[Type]:
-    return RESOLVER_CACHE.cirq_class_resolver_dictionary.get(cirq_type, None)
+def _cirq_class_resolver(cirq_type: str) -> Optional[ObjectFactory]:
+    return _cirq_class_resolver_dictionary().get(cirq_type, None)
 
 
 DEFAULT_RESOLVERS: List[JsonResolver] = [
@@ -241,13 +241,14 @@ class SupportsJSON(Protocol):
     constructor.
     """
 
+    @doc_private
     def _json_dict_(self) -> Union[None, NotImplementedType, Dict[Any, Any]]:
         pass
 
 
-def obj_to_dict_helper(obj: Any,
-                       attribute_names: Iterable[str],
-                       namespace: Optional[str] = None) -> Dict[str, Any]:
+def obj_to_dict_helper(
+    obj: Any, attribute_names: Iterable[str], namespace: Optional[str] = None
+) -> Dict[str, Any]:
     """Construct a dictionary containing attributes from obj
 
     This is useful as a helper function in objects implementing the
@@ -278,15 +279,17 @@ def obj_to_dict_helper(obj: Any,
 
 # Copying the Python API, whose usage of `repr` annoys pylint.
 # pylint: disable=redefined-builtin
-def json_serializable_dataclass(_cls: Optional[Type] = None,
-                                *,
-                                namespace: Optional[str] = None,
-                                init: bool = True,
-                                repr: bool = True,
-                                eq: bool = True,
-                                order: bool = False,
-                                unsafe_hash: bool = False,
-                                frozen: bool = False):
+def json_serializable_dataclass(
+    _cls: Optional[Type] = None,
+    *,
+    namespace: Optional[str] = None,
+    init: bool = True,
+    repr: bool = True,
+    eq: bool = True,
+    order: bool = False,
+    unsafe_hash: bool = False,
+    frozen: bool = False,
+):
     """
     Create a dataclass that supports JSON serialization
 
@@ -303,16 +306,13 @@ def json_serializable_dataclass(_cls: Optional[Type] = None,
     """
 
     def wrap(cls):
-        cls = dataclasses.dataclass(cls,
-                                    init=init,
-                                    repr=repr,
-                                    eq=eq,
-                                    order=order,
-                                    unsafe_hash=unsafe_hash,
-                                    frozen=frozen)
+        cls = dataclasses.dataclass(
+            cls, init=init, repr=repr, eq=eq, order=order, unsafe_hash=unsafe_hash, frozen=frozen
+        )
 
         cls._json_dict_ = lambda obj: obj_to_dict_helper(
-            obj, [f.name for f in dataclasses.fields(cls)], namespace=namespace)
+            obj, [f.name for f in dataclasses.fields(cls)], namespace=namespace
+        )
 
         return cls
 
@@ -417,46 +417,193 @@ class CirqEncoder(json.JSONEncoder):
         return super().default(o)  # coverage: ignore
 
 
-def _cirq_object_hook(d, resolvers: Sequence[JsonResolver]):
+def _cirq_object_hook(d, resolvers: Sequence[JsonResolver], context_map: Dict[str, Any]):
     if 'cirq_type' not in d:
         return d
+
+    if d['cirq_type'] == '_SerializedKey':
+        return _SerializedKey.read_from_context(context_map, **d)
+
+    if d['cirq_type'] == '_SerializedContext':
+        _SerializedContext.update_context(context_map, **d)
+        return None
+
+    if d['cirq_type'] == '_ContextualSerialization':
+        return _ContextualSerialization.deserialize_with_context(**d)
 
     for resolver in resolvers:
         cls = resolver(d['cirq_type'])
         if cls is not None:
             break
     else:
-        raise ValueError("Could not resolve type '{}' "
-                         "during deserialization".format(d['cirq_type']))
+        raise ValueError(
+            "Could not resolve type '{}' during deserialization".format(d['cirq_type'])
+        )
 
-    if hasattr(cls, '_from_json_dict_'):
-        return cls._from_json_dict_(**d)
+    from_json_dict = getattr(cls, '_from_json_dict_', None)
+    if from_json_dict is not None:
+        return from_json_dict(**d)
 
     del d['cirq_type']
     return cls(**d)
 
 
+class SerializableByKey(SupportsJSON):
+    """Protocol for objects that can be serialized to a key + context."""
+
+    @doc_private
+    def _serialization_key_(self) -> str:
+        """Returns a unique string identifier for this object.
+
+        This should only return the same value for two objects if they are
+        equal; otherwise, an error will occur if both are serialized into the
+        same JSON string.
+        """
+
+
+class _SerializedKey(SupportsJSON):
+    """Internal object for holding a SerializableByKey key.
+
+    This is a private type used in contextual serialization. Its deserialization
+    is context-dependent, and is not expected to match the original; in other
+    words, `cls._from_json_dict_(obj._json_dict_())` does not return
+    the original `obj` for this type.
+    """
+
+    def __init__(self, obj: SerializableByKey):
+        self.key = obj._serialization_key_()
+
+    def _json_dict_(self):
+        return obj_to_dict_helper(self, ['key'])
+
+    @classmethod
+    def _from_json_dict_(cls, **kwargs):
+        raise TypeError(f'Internal error: {cls} should never deserialize with _from_json_dict_.')
+
+    @classmethod
+    def read_from_context(cls, context_map, key, **kwargs):
+        return context_map[key]
+
+
+class _SerializedContext(SupportsJSON):
+    """Internal object for a single SerializableByKey key-to-object mapping.
+
+    This is a private type used in contextual serialization. Its deserialization
+    is context-dependent, and is not expected to match the original; in other
+    words, `cls._from_json_dict_(obj._json_dict_())` does not return
+    the original `obj` for this type.
+    """
+
+    def __init__(self, obj: SerializableByKey):
+        self.key = obj._serialization_key_()
+        self.obj = obj
+
+    def _json_dict_(self):
+        return obj_to_dict_helper(self, ['key', 'obj'])
+
+    @classmethod
+    def _from_json_dict_(cls, **kwargs):
+        raise TypeError(f'Internal error: {cls} should never deserialize with _from_json_dict_.')
+
+    @classmethod
+    def update_context(cls, context_map, key, obj, **kwargs):
+        context_map.update({key: obj})
+
+
+class _ContextualSerialization(SupportsJSON):
+    """Internal object for serializing an object with its context.
+
+    This is a private type used in contextual serialization. Its deserialization
+    is context-dependent, and is not expected to match the original; in other
+    words, `cls._from_json_dict_(obj._json_dict_())` does not return
+    the original `obj` for this type.
+    """
+
+    def __init__(self, obj: Any):
+        # Context information and the wrapped object are stored together in
+        # `object_dag` to ensure consistent serialization ordering.
+        self.object_dag = []
+        context_keys = set()
+        for sbk in get_serializable_by_keys(obj):
+            new_sc = _SerializedContext(sbk)
+            if new_sc.key not in context_keys:
+                self.object_dag.append(new_sc)
+                context_keys.add(new_sc.key)
+        self.object_dag += [obj]
+
+    def _json_dict_(self):
+        return obj_to_dict_helper(self, ['object_dag'])
+
+    @classmethod
+    def _from_json_dict_(cls, **kwargs):
+        raise TypeError(f'Internal error: {cls} should never deserialize with _from_json_dict_.')
+
+    @classmethod
+    def deserialize_with_context(cls, object_dag, **kwargs):
+        # The last element of object_dag is the object to be deserialized.
+        return object_dag[-1]
+
+
+def has_serializable_by_keys(obj: Any) -> bool:
+    """Returns true if obj contains one or more SerializableByKey objects."""
+    if hasattr(obj, '_serialization_key_'):
+        return True
+    json_dict = getattr(obj, '_json_dict_', lambda: None)()
+    if isinstance(json_dict, Dict):
+        return any(has_serializable_by_keys(v) for v in json_dict.values())
+
+    # Handle primitive container types.
+    if isinstance(obj, Dict):
+        return any(has_serializable_by_keys(elem) for pair in obj.items() for elem in pair)
+    if hasattr(obj, '__iter__') and not isinstance(obj, str):
+        return any(has_serializable_by_keys(elem) for elem in obj)
+    return False
+
+
+def get_serializable_by_keys(obj: Any) -> List[SerializableByKey]:
+    """Returns all SerializableByKeys contained by obj.
+
+    Objects are ordered such that nested objects appear before the object they
+    are nested inside. This is required to ensure
+    """
+    result = []
+    if hasattr(obj, '_serialization_key_'):
+        result.append(obj)
+    json_dict = getattr(obj, '_json_dict_', lambda: None)()
+    if isinstance(json_dict, Dict):
+        for v in json_dict.values():
+            result = get_serializable_by_keys(v) + result
+    if result:
+        return result
+
+    # Handle primitive container types.
+    if isinstance(obj, Dict):
+        return [sbk for pair in obj.items() for sbk in get_serializable_by_keys(pair)]
+    if hasattr(obj, '__iter__') and not isinstance(obj, str):
+        return [sbk for v in obj for sbk in get_serializable_by_keys(v)]
+    return []
+
+
 # pylint: disable=function-redefined
 @overload
-def to_json(obj: Any,
-            file_or_fn: Union[IO, pathlib.Path, str],
-            *,
-            indent=2,
-            cls=CirqEncoder) -> None:
+def to_json(
+    obj: Any, file_or_fn: Union[IO, pathlib.Path, str], *, indent=2, cls=CirqEncoder
+) -> None:
     pass
 
 
 @overload
-def to_json(obj: Any, file_or_fn: None = None, *, indent=2,
-            cls=CirqEncoder) -> str:
+def to_json(obj: Any, file_or_fn: None = None, *, indent=2, cls=CirqEncoder) -> str:
     pass
 
 
-def to_json(obj: Any,
-            file_or_fn: Union[None, IO, pathlib.Path, str] = None,
-            *,
-            indent: int = 2,
-            cls: Type[json.JSONEncoder] = CirqEncoder) -> Optional[str]:
+def to_json(
+    obj: Any,
+    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    *,
+    indent: int = 2,
+    cls: Type[json.JSONEncoder] = CirqEncoder,
+) -> Optional[str]:
     """Write a JSON file containing a representation of obj.
 
     The object may be a cirq object or have data members that are cirq
@@ -476,6 +623,32 @@ def to_json(obj: Any,
             party classes, prefer adding the _json_dict_ magic method
             to your classes rather than overriding this default.
     """
+    if has_serializable_by_keys(obj):
+
+        class ContextualEncoder(cls):  # type: ignore
+            """An encoder with a context map for concise serialization."""
+
+            # This map is populated gradually during serialization. An object
+            # with components defined in this map will represent those
+            # components using their keys instead of inline definition.
+            context_map: Dict[str, 'SerializableByKey'] = {}
+
+            def default(self, o):
+                skey = getattr(o, '_serialization_key_', lambda: None)()
+                if skey in ContextualEncoder.context_map:
+                    if ContextualEncoder.context_map[skey] == o._json_dict_():
+                        return _SerializedKey(o)._json_dict_()
+                    raise ValueError(
+                        'Found different objects with the same serialization key:'
+                        f'\n{ContextualEncoder.context_map[skey]}\n{o}'
+                    )
+                if skey is not None:
+                    ContextualEncoder.context_map[skey] = o._json_dict_()
+                return super().default(o)
+
+        obj = _ContextualSerialization(obj)
+        cls = ContextualEncoder
+
     if file_or_fn is None:
         return json.dumps(obj, indent=indent, cls=cls)
 
@@ -491,10 +664,12 @@ def to_json(obj: Any,
 # pylint: enable=function-redefined
 
 
-def read_json(file_or_fn: Union[None, IO, pathlib.Path, str] = None,
-              *,
-              json_text: Optional[str] = None,
-              resolvers: Optional[Sequence[JsonResolver]] = None):
+def read_json(
+    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    *,
+    json_text: Optional[str] = None,
+    resolvers: Optional[Sequence[JsonResolver]] = None,
+):
     """Read a JSON file that optionally contains cirq objects.
 
     Args:
@@ -519,8 +694,10 @@ def read_json(file_or_fn: Union[None, IO, pathlib.Path, str] = None,
     if resolvers is None:
         resolvers = DEFAULT_RESOLVERS
 
+    context_map: Dict[str, 'SerializableByKey'] = {}
+
     def obj_hook(x):
-        return _cirq_object_hook(x, resolvers)
+        return _cirq_object_hook(x, resolvers, context_map)
 
     if json_text is not None:
         return json.loads(json_text, object_hook=obj_hook)
@@ -530,3 +707,41 @@ def read_json(file_or_fn: Union[None, IO, pathlib.Path, str] = None,
             return json.load(file, object_hook=obj_hook)
 
     return json.load(cast(IO, file_or_fn), object_hook=obj_hook)
+
+
+def to_json_gzip(
+    obj: Any,
+    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    *,
+    indent: int = 2,
+    cls: Type[json.JSONEncoder] = CirqEncoder,
+) -> Optional[bytes]:
+    json_str = to_json(obj, indent=indent, cls=cls)
+    if isinstance(file_or_fn, (str, pathlib.Path)):
+        with gzip.open(file_or_fn, 'wt', encoding='utf-8') as actually_a_file:
+            actually_a_file.write(json_str)
+            return None
+
+    gzip_data = gzip.compress(bytes(json_str, encoding='utf-8'))  # type: ignore
+    if file_or_fn is None:
+        return gzip_data
+
+    file_or_fn.write(gzip_data)
+    return None
+
+
+def read_json_gzip(
+    file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+    *,
+    gzip_raw: Optional[bytes] = None,
+    resolvers: Optional[Sequence[JsonResolver]] = None,
+):
+    if (file_or_fn is None) == (gzip_raw is None):
+        raise ValueError('Must specify ONE of "file_or_fn" or "gzip_raw".')
+
+    if gzip_raw is not None:
+        json_str = gzip.decompress(gzip_raw).decode(encoding='utf-8')
+        return read_json(json_text=json_str, resolvers=resolvers)
+
+    with gzip.open(file_or_fn, 'rt') as json_file:  # type: ignore
+        return read_json(cast(IO, json_file), resolvers=resolvers)

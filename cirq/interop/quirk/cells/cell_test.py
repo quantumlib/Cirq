@@ -18,9 +18,7 @@ from cirq.interop.quirk.cells.cell import Cell, ExplicitOperationsCell
 
 
 def test_cell_defaults():
-
     class BasicCell(Cell):
-
         def with_line_qubits_mapped_to(self, qubits):
             raise NotImplementedError()
 
@@ -50,8 +48,7 @@ def test_cell_replace_utils():
 def test_explicit_operations_cell_equality():
     a = cirq.LineQubit(0)
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(ExplicitOperationsCell([], []),
-                          ExplicitOperationsCell([]))
+    eq.add_equality_group(ExplicitOperationsCell([], []), ExplicitOperationsCell([]))
     eq.add_equality_group(ExplicitOperationsCell([cirq.X(a)], []))
     eq.add_equality_group(ExplicitOperationsCell([], [cirq.Y(a)]))
 
@@ -61,5 +58,4 @@ def test_explicit_operations_cell():
     v = ExplicitOperationsCell([cirq.X(a)], [cirq.S(a)])
     assert v.operations() == (cirq.X(a),)
     assert v.basis_change() == (cirq.S(a),)
-    assert v.controlled_by(b) == ExplicitOperationsCell(
-        [cirq.X(a).controlled_by(b)], [cirq.S(a)])
+    assert v.controlled_by(b) == ExplicitOperationsCell([cirq.X(a).controlled_by(b)], [cirq.S(a)])

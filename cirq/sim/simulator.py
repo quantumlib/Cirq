@@ -27,8 +27,19 @@ Simulator types include:
         as the simulation iterates through the moments of a cirq.
 """
 
-from typing import (Any, Dict, Iterator, List, Sequence, Tuple, Optional,
-                    TYPE_CHECKING, Set, cast)
+from typing import (
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Sequence,
+    Tuple,
+    Union,
+    Optional,
+    TYPE_CHECKING,
+    Set,
+    cast,
+)
 
 import abc
 import collections
@@ -36,6 +47,7 @@ import collections
 import numpy as np
 
 from cirq import circuits, ops, protocols, study, value, work
+from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     import cirq
@@ -48,10 +60,10 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     """
 
     def run_sweep(
-            self,
-            program: 'cirq.Circuit',
-            params: study.Sweepable,
-            repetitions: int = 1,
+        self,
+        program: 'cirq.Circuit',
+        params: study.Sweepable,
+        repetitions: int = 1,
     ) -> List[study.Result]:
         """Runs the supplied Circuit, mimicking quantum hardware.
 
@@ -74,20 +86,19 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
 
         trial_results = []  # type: List[study.Result]
         for param_resolver in study.to_resolvers(params):
-            measurements = self._run(circuit=program,
-                                     param_resolver=param_resolver,
-                                     repetitions=repetitions)
+            measurements = self._run(
+                circuit=program, param_resolver=param_resolver, repetitions=repetitions
+            )
             trial_results.append(
                 study.Result.from_single_parameter_set(
-                    params=param_resolver, measurements=measurements))
+                    params=param_resolver, measurements=measurements
+                )
+            )
         return trial_results
 
     @abc.abstractmethod
     def _run(
-        self,
-        circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver,
-        repetitions: int
+        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
     ) -> Dict[str, np.ndarray]:
         """Run a simulation, mimicking quantum hardware.
 
@@ -116,11 +127,11 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
     """
 
     def compute_amplitudes(
-            self,
-            program: 'cirq.Circuit',
-            bitstrings: Sequence[int],
-            param_resolver: 'study.ParamResolverOrSimilarType' = None,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        self,
+        program: 'cirq.Circuit',
+        bitstrings: Sequence[int],
+        param_resolver: 'study.ParamResolverOrSimilarType' = None,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> Sequence[complex]:
         """Computes the desired amplitudes.
 
@@ -141,16 +152,16 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
             List of amplitudes.
         """
         return self.compute_amplitudes_sweep(
-            program, bitstrings, study.ParamResolver(param_resolver),
-            qubit_order)[0]
+            program, bitstrings, study.ParamResolver(param_resolver), qubit_order
+        )[0]
 
     @abc.abstractmethod
     def compute_amplitudes_sweep(
-            self,
-            program: 'cirq.Circuit',
-            bitstrings: Sequence[int],
-            params: study.Sweepable,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        self,
+        program: 'cirq.Circuit',
+        bitstrings: Sequence[int],
+        params: study.Sweepable,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> Sequence[Sequence[complex]]:
         """Computes the desired amplitudes.
 
@@ -174,6 +185,109 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
 
+class SimulatesExpectationValues(metaclass=abc.ABCMeta):
+    """Simulator that computes exact expectation values of observables.
+
+    Given a circuit and an observable map, computes exact (to float precision)
+    expectation values for each observable at the end of the circuit.
+
+    Implementors of this interface should implement the
+    simulate_expectation_values_sweep method.
+    """
+
+    def simulate_expectation_values(
+        self,
+        program: 'cirq.Circuit',
+        observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
+        param_resolver: 'study.ParamResolverOrSimilarType' = None,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        initial_state: Any = None,
+        permit_terminal_measurements: bool = False,
+    ) -> List[float]:
+        """Simulates the supplied circuit and calculates exact expectation
+        values for the given observables on its final state.
+
+        This method has no perfect analogy in hardware. Instead compare with
+        Sampler.sample_expectation_values, which calculates estimated
+        expectation values by sampling multiple times.
+
+        Args:
+            program: The circuit to simulate.
+            observables: An observable or list of observables.
+            param_resolver: Parameters to run with the program.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
+                documentation of the implementing class for details.
+            permit_terminal_measurements: If the provided circuit ends with
+                measurement(s), this method will generate an error unless this
+                is set to True. This is meant to prevent measurements from
+                ruining expectation value calculations.
+
+        Returns:
+            A list of expectation values, with the value at index `n`
+            corresponding to `observables[n]` from the input.
+
+        Raises:
+            ValueError if 'program' has terminal measurement(s) and
+            'permit_terminal_measurements' is False.
+        """
+        return self.simulate_expectation_values_sweep(
+            program,
+            observables,
+            study.ParamResolver(param_resolver),
+            qubit_order,
+            initial_state,
+            permit_terminal_measurements,
+        )[0]
+
+    @abc.abstractmethod
+    def simulate_expectation_values_sweep(
+        self,
+        program: 'cirq.Circuit',
+        observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
+        params: 'study.Sweepable',
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        initial_state: Any = None,
+        permit_terminal_measurements: bool = False,
+    ) -> List[List[float]]:
+        """Simulates the supplied circuit and calculates exact expectation
+        values for the given observables on its final state, sweeping over the
+        given params.
+
+        This method has no perfect analogy in hardware. Instead compare with
+        Sampler.sample_expectation_values, which calculates estimated
+        expectation values by sampling multiple times.
+
+        Args:
+            program: The circuit to simulate.
+            observables: An observable or list of observables.
+            params: Parameters to run with the program.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
+                documentation of the implementing class for details.
+            permit_terminal_measurements: If the provided circuit ends in a
+                measurement, this method will generate an error unless this
+                is set to True. This is meant to prevent measurements from
+                ruining expectation value calculations.
+
+        Returns:
+            A list of expectation-value lists. The outer index determines the
+            sweep, and the inner index determines the observable. For instance,
+            results[1][3] would select the fourth observable measured in the
+            second sweep.
+
+        Raises:
+            ValueError if 'program' has terminal measurement(s) and
+            'permit_terminal_measurements' is False.
+        """
+
+
 class SimulatesFinalState(metaclass=abc.ABCMeta):
     """Simulator that allows access to the simulator's final state.
 
@@ -186,11 +300,11 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
     """
 
     def simulate(
-            self,
-            program: 'cirq.Circuit',
-            param_resolver: 'study.ParamResolverOrSimilarType' = None,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            initial_state: Any = None,
+        self,
+        program: 'cirq.Circuit',
+        param_resolver: 'study.ParamResolverOrSimilarType' = None,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        initial_state: Any = None,
     ) -> 'SimulationTrialResult':
         """Simulates the supplied Circuit.
 
@@ -203,26 +317,24 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            initial_state: The initial state for the simulation. The  form of
-                this state depends on the simulation implementation.  See
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
 
         Returns:
             SimulationTrialResults for the simulation. Includes the final state.
         """
         return self.simulate_sweep(
-            program,
-            study.ParamResolver(param_resolver),
-            qubit_order,
-            initial_state)[0]
+            program, study.ParamResolver(param_resolver), qubit_order, initial_state
+        )[0]
 
     @abc.abstractmethod
     def simulate_sweep(
-            self,
-            program: 'cirq.Circuit',
-            params: study.Sweepable,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            initial_state: Any = None,
+        self,
+        program: 'cirq.Circuit',
+        params: study.Sweepable,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        initial_state: Any = None,
     ) -> List['SimulationTrialResult']:
         """Simulates the supplied Circuit.
 
@@ -237,7 +349,7 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             initial_state: The initial state for the simulation. The form of
-                this state depends on the simulation implementation.  See
+                this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
 
         Returns:
@@ -254,7 +366,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
     state at the end of a circuit, a SimulatesIntermediateState can
     simulate stepping through the moments of a circuit.
 
-    Implementors of this interface should implement the _simulator_iterator
+    Implementors of this interface should implement the _base_iterator
     method.
 
     Note that state here refers to simulator state, which is not necessarily
@@ -262,11 +374,11 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
     """
 
     def simulate_sweep(
-            self,
-            program: 'cirq.Circuit',
-            params: study.Sweepable,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            initial_state: Any = None,
+        self,
+        program: 'cirq.Circuit',
+        params: study.Sweepable,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        initial_state: Any = None,
     ) -> List['SimulationTrialResult']:
         """Simulates the supplied Circuit.
 
@@ -292,7 +404,8 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         for param_resolver in study.to_resolvers(params):
             all_step_results = self.simulate_moment_steps(
-                program, param_resolver, qubit_order, initial_state)
+                program, param_resolver, qubit_order, initial_state
+            )
             measurements = {}  # type: Dict[str, np.ndarray]
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
@@ -301,7 +414,9 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
                 self._create_simulator_trial_result(
                     params=param_resolver,
                     measurements=measurements,
-                    final_simulator_state=step_result._simulator_state()))
+                    final_simulator_state=step_result._simulator_state(),
+                )
+            )
         return trial_results
 
     def simulate_moment_steps(
@@ -309,7 +424,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
         circuit: circuits.Circuit,
         param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Any = None
+        initial_state: Any = None,
     ) -> Iterator:
         """Returns an iterator of StepResults for each moment simulated.
 
@@ -331,12 +446,10 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             moment and returning a StepResult for each moment.
         """
         return self._simulator_iterator(
-            circuit,
-            study.ParamResolver(param_resolver),
-            qubit_order,
-            initial_state)
+            circuit, study.ParamResolver(param_resolver), qubit_order, initial_state
+        )
 
-    @abc.abstractmethod
+    @deprecated(deadline='v0.11.0', fix='Override _base_iterator instead')
     def _simulator_iterator(
         self,
         circuit: circuits.Circuit,
@@ -344,6 +457,43 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
         qubit_order: ops.QubitOrderOrList,
         initial_state: Any,
     ) -> Iterator:
+        """Iterator over StepResult from Moments of a Circuit.
+
+        If the initial state is an int, the state is set to the computational
+        basis state corresponding to this state. Otherwise if the initial
+        state is a np.ndarray it is the full initial state, either a pure state
+        or the full density matrix.  If it is the pure state it must be the
+        correct size, be normalized (an L2 norm of 1), and be safely castable
+        to an appropriate dtype for the simulator.  If it is a mixed state
+        it must be correctly sized and positive semidefinite with trace one.
+
+        Args:
+            circuit: The circuit to simulate.
+            param_resolver: A ParamResolver for determining values of
+                Symbols.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
+                documentation of the implementing class for details.
+
+        Yields:
+            StepResults from simulating a Moment of the Circuit.
+        """
+        param_resolver = param_resolver or study.ParamResolver({})
+        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        check_all_resolved(resolved_circuit)
+        actual_initial_state = 0 if initial_state is None else initial_state
+        return self._base_iterator(resolved_circuit, qubit_order, actual_initial_state)
+
+    @abc.abstractmethod
+    def _base_iterator(
+        self,
+        circuit: circuits.Circuit,
+        qubit_order: ops.QubitOrderOrList,
+        initial_state: Any,
+    ) -> Iterator['StepResult']:
         """Iterator over StepResult from Moments of a Circuit.
 
         Args:
@@ -362,11 +512,12 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    def _create_simulator_trial_result(self,
+    def _create_simulator_trial_result(
+        self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: Any) \
-        -> 'SimulationTrialResult':
+        final_simulator_state: Any,
+    ) -> 'SimulationTrialResult':
         """This method can be overridden to creation of a trial result.
 
         Args:
@@ -379,9 +530,8 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             The SimulationTrialResult.
         """
         return SimulationTrialResult(
-            params=params,
-            measurements=measurements,
-            final_simulator_state=final_simulator_state)
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+        )
 
 
 class StepResult(metaclass=abc.ABCMeta):
@@ -392,8 +542,7 @@ class StepResult(metaclass=abc.ABCMeta):
             results, ordered by the qubits that the measurement operates on.
     """
 
-    def __init__(self,
-                 measurements: Optional[Dict[str, List[int]]] = None) -> None:
+    def __init__(self, measurements: Optional[Dict[str, List[int]]] = None) -> None:
         self.measurements = measurements or collections.defaultdict(list)
 
     @abc.abstractmethod
@@ -409,10 +558,12 @@ class StepResult(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def sample(self,
-               qubits: List[ops.Qid],
-               repetitions: int = 1,
-               seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
+    def sample(
+        self,
+        qubits: List[ops.Qid],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
         """Samples from the system at this point in the computation.
 
         Note that this does not collapse the state vector.
@@ -431,11 +582,12 @@ class StepResult(metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    def sample_measurement_ops(self,
-                               measurement_ops: List[ops.GateOperation],
-                               repetitions: int = 1,
-                               seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-                              ) -> Dict[str, np.ndarray]:
+    def sample_measurement_ops(
+        self,
+        measurement_ops: List[ops.GateOperation],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> Dict[str, np.ndarray]:
         """Samples from the system at this point in the computation.
 
         Note that this does not collapse the state vector.
@@ -520,27 +672,29 @@ class SimulationTrialResult:
             measurement gate.)
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: Any) -> None:
+        final_simulator_state: Any,
+    ) -> None:
         self.params = params
         self.measurements = measurements
         self._final_simulator_state = final_simulator_state
 
     def __repr__(self) -> str:
-        return (f'cirq.SimulationTrialResult(params={self.params!r}, '
-                f'measurements={self.measurements!r}, '
-                f'final_simulator_state={self._final_simulator_state!r})')
+        return (
+            f'cirq.SimulationTrialResult(params={self.params!r}, '
+            f'measurements={self.measurements!r}, '
+            f'final_simulator_state={self._final_simulator_state!r})'
+        )
 
     def __str__(self) -> str:
-
         def bitstring(vals):
             separator = ' ' if np.max(vals) >= 10 else ''
             return separator.join(str(int(v)) for v in vals)
 
-        results = sorted(
-            [(key, bitstring(val)) for key, val in self.measurements.items()])
+        results = sorted([(key, bitstring(val)) for key, val in self.measurements.items()])
         if not results:
             return '(no measurements)'
         return ' '.join([f'{key}={val}' for key, val in results])
@@ -554,8 +708,7 @@ class SimulationTrialResult:
             p.text(str(self))
 
     def _value_equality_values_(self) -> Any:
-        measurements = {k: v.tolist() for k, v in
-                        sorted(self.measurements.items())}
+        measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}
         return (self.params, measurements, self._final_simulator_state)
 
     @property
@@ -576,21 +729,30 @@ def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:
             qid_shape[i] = q.dimension
     except IndexError:
         raise ValueError(
-            'Invalid qubit_map. Qubit index out of bounds. Map is <{!r}>.'.
-            format(qubit_map))
+            'Invalid qubit_map. Qubit index out of bounds. Map is <{!r}>.'.format(qubit_map)
+        )
     if -1 in qid_shape:
         raise ValueError(
-            'Invalid qubit_map. Duplicate qubit index. Map is <{!r}>.'.format(
-                qubit_map))
+            'Invalid qubit_map. Duplicate qubit index. Map is <{!r}>.'.format(qubit_map)
+        )
     return tuple(qid_shape)
 
 
 def _verify_unique_measurement_keys(circuit: circuits.Circuit):
     result = collections.Counter(
-        key for op in ops.flatten_op_tree(iter(circuit))
-        for key in protocols.measurement_keys(op))
+        key for op in ops.flatten_op_tree(iter(circuit)) for key in protocols.measurement_keys(op)
+    )
     if result:
         duplicates = [k for k, v in result.most_common() if v > 1]
         if duplicates:
-            raise ValueError('Measurement key {} repeated'.format(
-                ",".join(duplicates)))
+            raise ValueError('Measurement key {} repeated'.format(",".join(duplicates)))
+
+
+def check_all_resolved(circuit):
+    """Raises if the circuit contains unresolved symbols."""
+    if protocols.is_parameterized(circuit):
+        unresolved = [op for moment in circuit for op in moment if protocols.is_parameterized(op)]
+        raise ValueError(
+            'Circuit contains ops whose symbols were not specified in '
+            'parameter sweep. Ops: {}'.format(unresolved)
+        )

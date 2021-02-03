@@ -20,19 +20,20 @@ import cirq.google as cg
 
 def square_device(width: int, height: int, holes=()) -> cg.XmonDevice:
     ns = cirq.Duration(nanos=1)
-    return cg.XmonDevice(measurement_duration=ns,
-                         exp_w_duration=2 * ns,
-                         exp_11_duration=3 * ns,
-                         qubits=[
-                             cirq.GridQubit(row, col)
-                             for col in range(width)
-                             for row in range(height)
-                             if cirq.GridQubit(col, row) not in holes
-                         ])
+    return cg.XmonDevice(
+        measurement_duration=ns,
+        exp_w_duration=2 * ns,
+        exp_11_duration=3 * ns,
+        qubits=[
+            cirq.GridQubit(row, col)
+            for col in range(width)
+            for row in range(height)
+            if cirq.GridQubit(col, row) not in holes
+        ],
+    )
 
 
 class NotImplementedOperation(cirq.Operation):
-
     def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
         raise NotImplementedError()
 
@@ -60,14 +61,14 @@ def test_init():
 
 def test_init_timedelta():
     from datetime import timedelta
+
     timedelta_duration = timedelta(microseconds=1)
     d = cg.XmonDevice(
         measurement_duration=timedelta_duration,
         exp_w_duration=2 * timedelta_duration,
         exp_11_duration=3 * timedelta_duration,
-        qubits=[
-            cirq.GridQubit(row, col) for col in range(2) for row in range(2)
-        ])
+        qubits=[cirq.GridQubit(row, col) for col in range(2) for row in range(2)],
+    )
     microsecond = cirq.Duration(nanos=1000)
     q00 = cirq.GridQubit(0, 0)
     q01 = cirq.GridQubit(0, 1)
@@ -85,13 +86,15 @@ def test_init_timedelta():
 def test_repr():
     d = square_device(2, 2, holes=[])
 
-    assert repr(d) == ("XmonDevice("
-                       "measurement_duration=cirq.Duration(nanos=1), "
-                       "exp_w_duration=cirq.Duration(nanos=2), "
-                       "exp_11_duration=cirq.Duration(nanos=3) "
-                       "qubits=[cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), "
-                       "cirq.GridQubit(1, 0), "
-                       "cirq.GridQubit(1, 1)])")
+    assert repr(d) == (
+        "XmonDevice("
+        "measurement_duration=cirq.Duration(nanos=1), "
+        "exp_w_duration=cirq.Duration(nanos=2), "
+        "exp_11_duration=cirq.Duration(nanos=3) "
+        "qubits=[cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), "
+        "cirq.GridQubit(1, 0), "
+        "cirq.GridQubit(1, 1)])"
+    )
 
 
 def test_can_add_operation_into_moment():
@@ -118,47 +121,40 @@ def test_validate_moment():
 def test_validate_operation_adjacent_qubits():
     d = square_device(3, 3)
 
-    d.validate_operation(
-        cirq.GateOperation(cirq.CZ,
-                           (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))))
+    d.validate_operation(cirq.GateOperation(cirq.CZ, (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))))
 
     with pytest.raises(ValueError, match='Non-local interaction'):
         d.validate_operation(
-            cirq.GateOperation(cirq.CZ,
-                               (cirq.GridQubit(0, 0), cirq.GridQubit(2, 0))))
+            cirq.GateOperation(cirq.CZ, (cirq.GridQubit(0, 0), cirq.GridQubit(2, 0)))
+        )
 
 
 def test_validate_measurement_non_adjacent_qubits_ok():
     d = square_device(3, 3)
 
     d.validate_operation(
-        cirq.GateOperation(cirq.MeasurementGate(2),
-                           (cirq.GridQubit(0, 0), cirq.GridQubit(2, 0))))
+        cirq.GateOperation(cirq.MeasurementGate(2), (cirq.GridQubit(0, 0), cirq.GridQubit(2, 0)))
+    )
 
 
 def test_validate_operation_existing_qubits():
     d = square_device(3, 3, holes=[cirq.GridQubit(1, 1)])
 
-    d.validate_operation(
-        cirq.GateOperation(cirq.CZ,
-                           (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))))
+    d.validate_operation(cirq.GateOperation(cirq.CZ, (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))))
     d.validate_operation(cirq.Z(cirq.GridQubit(0, 0)))
 
     with pytest.raises(ValueError):
-        d.validate_operation(
-            cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(-1, 0)))
+        d.validate_operation(cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(-1, 0)))
     with pytest.raises(ValueError):
         d.validate_operation(cirq.Z(cirq.GridQubit(-1, 0)))
     with pytest.raises(ValueError):
-        d.validate_operation(cirq.CZ(cirq.GridQubit(1, 0), cirq.GridQubit(1,
-                                                                          1)))
+        d.validate_operation(cirq.CZ(cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)))
 
 
 def test_validate_operation_supported_gate():
     d = square_device(3, 3)
 
     class MyGate(cirq.Gate):
-
         def num_qubits(self):
             return 1
 
@@ -166,8 +162,7 @@ def test_validate_operation_supported_gate():
 
     assert MyGate().num_qubits() == 1
     with pytest.raises(ValueError):
-        d.validate_operation(
-            cirq.GateOperation(MyGate(), [cirq.GridQubit(0, 0)]))
+        d.validate_operation(cirq.GateOperation(MyGate(), [cirq.GridQubit(0, 0)]))
     with pytest.raises(ValueError):
         d.validate_operation(NotImplementedOperation())
 
@@ -176,10 +171,9 @@ def test_validate_circuit_repeat_measurement_keys():
     d = square_device(3, 3)
 
     circuit = cirq.Circuit()
-    circuit.append([
-        cirq.measure(cirq.GridQubit(0, 0), key='a'),
-        cirq.measure(cirq.GridQubit(0, 1), key='a')
-    ])
+    circuit.append(
+        [cirq.measure(cirq.GridQubit(0, 0), key='a'), cirq.measure(cirq.GridQubit(0, 1), key='a')]
+    )
 
     with pytest.raises(ValueError, match='Measurement key a repeated'):
         d.validate_circuit(circuit)
@@ -188,21 +182,29 @@ def test_validate_circuit_repeat_measurement_keys():
 def test_xmon_device_eq():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: square_device(3, 3))
-    eq.make_equality_group(lambda: square_device(
-        3, 3, holes=[cirq.GridQubit(1, 1)]))
-    eq.make_equality_group(lambda: cg.XmonDevice(cirq.Duration(
-        nanos=1), cirq.Duration(nanos=2), cirq.Duration(nanos=3), []))
-    eq.make_equality_group(lambda: cg.XmonDevice(cirq.Duration(
-        nanos=1), cirq.Duration(nanos=1), cirq.Duration(nanos=1), []))
+    eq.make_equality_group(lambda: square_device(3, 3, holes=[cirq.GridQubit(1, 1)]))
+    eq.make_equality_group(
+        lambda: cg.XmonDevice(
+            cirq.Duration(nanos=1), cirq.Duration(nanos=2), cirq.Duration(nanos=3), []
+        )
+    )
+    eq.make_equality_group(
+        lambda: cg.XmonDevice(
+            cirq.Duration(nanos=1), cirq.Duration(nanos=1), cirq.Duration(nanos=1), []
+        )
+    )
 
 
 def test_xmon_device_str():
-    assert str(square_device(2, 2)).strip() == """
+    assert (
+        str(square_device(2, 2)).strip()
+        == """
 (0, 0)───(0, 1)
 │        │
 │        │
 (1, 0)───(1, 1)
     """.strip()
+    )
 
 
 def test_at():
@@ -226,16 +228,8 @@ def test_at():
 def test_row_and_col():
     d = square_device(2, 3)
     assert d.col(-1) == []
-    assert d.col(0) == [
-        cirq.GridQubit(0, 0),
-        cirq.GridQubit(1, 0),
-        cirq.GridQubit(2, 0)
-    ]
-    assert d.col(1) == [
-        cirq.GridQubit(0, 1),
-        cirq.GridQubit(1, 1),
-        cirq.GridQubit(2, 1)
-    ]
+    assert d.col(0) == [cirq.GridQubit(0, 0), cirq.GridQubit(1, 0), cirq.GridQubit(2, 0)]
+    assert d.col(1) == [cirq.GridQubit(0, 1), cirq.GridQubit(1, 1), cirq.GridQubit(2, 1)]
     assert d.col(2) == []
     assert d.col(5000) == []
 
@@ -248,11 +242,7 @@ def test_row_and_col():
     b = cg.Bristlecone
     assert b.col(0) == [cirq.GridQubit(5, 0)]
     assert b.row(0) == [cirq.GridQubit(0, 5), cirq.GridQubit(0, 6)]
-    assert b.col(1) == [
-        cirq.GridQubit(4, 1),
-        cirq.GridQubit(5, 1),
-        cirq.GridQubit(6, 1)
-    ]
+    assert b.col(1) == [cirq.GridQubit(4, 1), cirq.GridQubit(5, 1), cirq.GridQubit(6, 1)]
 
 
 def test_qubit_set():

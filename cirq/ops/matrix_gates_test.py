@@ -21,10 +21,7 @@ import cirq
 
 H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
 HH = cirq.kron(H, H)
-QFT2 = np.array([[1, 1, 1, 1],
-                 [1, 1j, -1, -1j],
-                 [1, -1, 1, -1],
-                 [1, -1j, -1, 1j]]) * 0.5
+QFT2 = np.array([[1, 1, 1, 1], [1, 1j, -1, -1j], [1, -1, 1, -1], [1, -1j, -1, 1j]]) * 0.5
 PLUS_ONE = np.array([[0, 0, 1], [1, 0, 0], [0, 1, 0]])
 
 
@@ -83,18 +80,18 @@ def test_single_qubit_extrapolate():
     assert cirq.has_unitary(x2)
     x2i = cirq.MatrixGate(np.conj(cirq.unitary(x2).T))
 
-    assert cirq.approx_eq(x**0, i, atol=1e-9)
-    assert cirq.approx_eq(x2**0, i, atol=1e-9)
-    assert cirq.approx_eq(x2**2, x, atol=1e-9)
-    assert cirq.approx_eq(x2**-1, x2i, atol=1e-9)
-    assert cirq.approx_eq(x2**3, x2i, atol=1e-9)
-    assert cirq.approx_eq(x**-1, x, atol=1e-9)
+    assert cirq.approx_eq(x ** 0, i, atol=1e-9)
+    assert cirq.approx_eq(x2 ** 0, i, atol=1e-9)
+    assert cirq.approx_eq(x2 ** 2, x, atol=1e-9)
+    assert cirq.approx_eq(x2 ** -1, x2i, atol=1e-9)
+    assert cirq.approx_eq(x2 ** 3, x2i, atol=1e-9)
+    assert cirq.approx_eq(x ** -1, x, atol=1e-9)
 
     z2 = cirq.MatrixGate(np.array([[1, 0], [0, 1j]]))
     z4 = cirq.MatrixGate(np.array([[1, 0], [0, (1 + 1j) * np.sqrt(0.5)]]))
-    assert cirq.approx_eq(z2**0.5, z4, atol=1e-9)
+    assert cirq.approx_eq(z2 ** 0.5, z4, atol=1e-9)
     with pytest.raises(TypeError):
-        _ = x**sympy.Symbol('a')
+        _ = x ** sympy.Symbol('a')
 
 
 def test_two_qubit_init():
@@ -128,11 +125,11 @@ def test_two_qubit_extrapolate():
     cz4 = cirq.MatrixGate(np.diag([1, 1, 1, (1 + 1j) * np.sqrt(0.5)]))
     i = cirq.MatrixGate(np.eye(4))
 
-    assert cirq.approx_eq(cz2**0, i, atol=1e-9)
-    assert cirq.approx_eq(cz4**0, i, atol=1e-9)
-    assert cirq.approx_eq(cz2**0.5, cz4, atol=1e-9)
+    assert cirq.approx_eq(cz2 ** 0, i, atol=1e-9)
+    assert cirq.approx_eq(cz4 ** 0, i, atol=1e-9)
+    assert cirq.approx_eq(cz2 ** 0.5, cz4, atol=1e-9)
     with pytest.raises(TypeError):
-        _ = cz2**sympy.Symbol('a')
+        _ = cz2 ** sympy.Symbol('a')
 
 
 def test_single_qubit_diagram():
@@ -141,16 +138,20 @@ def test_single_qubit_diagram():
     m = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
     c = cirq.Circuit(cirq.MatrixGate(m).on(a), cirq.CZ(a, b))
 
-    assert re.match(r"""
+    assert re.match(
+        r"""
       ┌[          ]+┐
 a: ───│[0-9\.+\-j ]+│───@───
       │[0-9\.+\-j ]+│   │
       └[          ]+┘   │
        [          ]+    │
 b: ────[──────────]+────@───
-    """.strip(), c.to_text_diagram().strip())
+    """.strip(),
+        c.to_text_diagram().strip(),
+    )
 
-    assert re.match(r"""
+    assert re.match(
+        r"""
 a[          ]+  b
 │[          ]+  │
 ┌[          ]+┐ │
@@ -160,7 +161,9 @@ a[          ]+  b
 │[          ]+  │
 @[──────────]+──@
 │[          ]+  │
-    """.strip(), c.to_text_diagram(transpose=True).strip())
+    """.strip(),
+        c.to_text_diagram(transpose=True).strip(),
+    )
 
 
 def test_two_qubit_diagram():
@@ -169,8 +172,10 @@ def test_two_qubit_diagram():
     c = cirq.NamedQubit('c')
     c = cirq.Circuit(
         cirq.MatrixGate(cirq.unitary(cirq.CZ)).on(a, b),
-        cirq.MatrixGate(cirq.unitary(cirq.CZ)).on(c, a))
-    assert re.match(r"""
+        cirq.MatrixGate(cirq.unitary(cirq.CZ)).on(c, a),
+    )
+    assert re.match(
+        r"""
       ┌[          ]+┐
       │[0-9\.+\-j ]+│
 a: ───│[0-9\.+\-j ]+│───#2─+
@@ -186,9 +191,12 @@ c: ────[──────────]+────│[0-9\.+\-j ]+│�
        [          ]+    │[0-9\.+\-j ]+│
        [          ]+    │[0-9\.+\-j ]+│
        [          ]+    └[          ]+┘
-    """.strip(), c.to_text_diagram().strip())
+    """.strip(),
+        c.to_text_diagram().strip(),
+    )
 
-    assert re.match(r"""
+    assert re.match(
+        r"""
 a[          ]+  b  c
 │[          ]+  │  │
 ┌[          ]+┐ │  │
@@ -205,7 +213,9 @@ a[          ]+  b  c
 │[          ]+  │  │[0-9\.+\-j ]+│
 │[          ]+  │  └[          ]+┘
 │[          ]+  │  │
-    """.strip(), c.to_text_diagram(transpose=True).strip())
+    """.strip(),
+        c.to_text_diagram(transpose=True).strip(),
+    )
 
 
 def test_str_executes():
@@ -226,10 +236,8 @@ def test_two_qubit_consistent():
 
 
 def test_repr():
-    cirq.testing.assert_equivalent_repr(
-        cirq.MatrixGate(cirq.testing.random_unitary(2)))
-    cirq.testing.assert_equivalent_repr(
-        cirq.MatrixGate(cirq.testing.random_unitary(4)))
+    cirq.testing.assert_equivalent_repr(cirq.MatrixGate(cirq.testing.random_unitary(2)))
+    cirq.testing.assert_equivalent_repr(cirq.MatrixGate(cirq.testing.random_unitary(4)))
 
 
 def test_matrix_gate_init_validation():
@@ -249,43 +257,37 @@ def test_matrix_gate_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.MatrixGate(np.eye(1)))
     eq.add_equality_group(cirq.MatrixGate(-np.eye(1)))
-    eq.add_equality_group(
-        cirq.MatrixGate(np.diag([1, 1, 1, 1, 1, -1]), qid_shape=(2, 3)))
-    eq.add_equality_group(
-        cirq.MatrixGate(np.diag([1, 1, 1, 1, 1, -1]), qid_shape=(3, 2)))
+    eq.add_equality_group(cirq.MatrixGate(np.diag([1, 1, 1, 1, 1, -1]), qid_shape=(2, 3)))
+    eq.add_equality_group(cirq.MatrixGate(np.diag([1, 1, 1, 1, 1, -1]), qid_shape=(3, 2)))
 
 
 def test_matrix_gate_pow():
     t = sympy.Symbol('t')
     assert cirq.pow(cirq.MatrixGate(1j * np.eye(1)), t, default=None) is None
-    assert cirq.pow(cirq.MatrixGate(1j * np.eye(1)),
-                    2) == cirq.MatrixGate(-np.eye(1))
+    assert cirq.pow(cirq.MatrixGate(1j * np.eye(1)), 2) == cirq.MatrixGate(-np.eye(1))
 
     m = cirq.MatrixGate(np.diag([1, 1j, -1]), qid_shape=(3,))
-    assert m**3 == cirq.MatrixGate(np.diag([1, -1j, -1]), qid_shape=(3,))
+    assert m ** 3 == cirq.MatrixGate(np.diag([1, -1j, -1]), qid_shape=(3,))
 
 
 def test_phase_by():
     # Single qubit case.
     x = cirq.MatrixGate(cirq.unitary(cirq.X))
     y = cirq.phase_by(x, 0.25, 0)
-    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(y),
-                                                    cirq.unitary(cirq.Y),
-                                                    atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(y), cirq.unitary(cirq.Y), atol=1e-8
+    )
 
     # Two qubit case. Commutes with control.
     cx = cirq.MatrixGate(cirq.unitary(cirq.X.controlled(1)))
     cx2 = cirq.phase_by(cx, 0.25, 0)
-    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(cx2),
-                                                    cirq.unitary(cx),
-                                                    atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(cx2), cirq.unitary(cx), atol=1e-8)
 
     # Two qubit case. Doesn't commute with target.
     cy = cirq.phase_by(cx, 0.25, 1)
-    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(cy),
-                                                    cirq.unitary(
-                                                        cirq.Y.controlled(1)),
-                                                    atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(cy), cirq.unitary(cirq.Y.controlled(1)), atol=1e-8
+    )
 
     m = cirq.MatrixGate(np.eye(3), qid_shape=[3])
     with pytest.raises(TypeError, match='returned NotImplemented'):
@@ -293,7 +295,7 @@ def test_phase_by():
 
 
 def test_protocols_and_repr():
+    cirq.testing.assert_implements_consistent_protocols(cirq.MatrixGate(np.diag([1, 1j, 1, -1])))
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.MatrixGate(np.diag([1, 1j, 1, -1])))
-    cirq.testing.assert_implements_consistent_protocols(
-        cirq.MatrixGate(np.diag([1, 1j, -1]), qid_shape=(3,)))
+        cirq.MatrixGate(np.diag([1, 1j, -1]), qid_shape=(3,))
+    )

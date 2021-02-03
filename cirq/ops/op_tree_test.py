@@ -20,8 +20,7 @@ import cirq
 
 def test_flatten_op_tree():
     operations = [
-        cirq.GateOperation(cirq.SingleQubitGate(), [cirq.NamedQubit(str(i))])
-        for i in range(10)
+        cirq.GateOperation(cirq.SingleQubitGate(), [cirq.NamedQubit(str(i))]) for i in range(10)
     ]
 
     # Empty tree.
@@ -34,14 +33,15 @@ def test_flatten_op_tree():
     assert list(cirq.flatten_op_tree(operations)) == operations
 
     # Tree.
-    assert list(cirq.flatten_op_tree((operations[0],
-                                      operations[1:5],
-                                      operations[5:]))) == operations
+    assert (
+        list(cirq.flatten_op_tree((operations[0], operations[1:5], operations[5:]))) == operations
+    )
 
     # Flatten moment.
-    assert list(cirq.flatten_op_tree((operations[0],
-                                      cirq.Moment(operations[1:5]),
-                                      operations[5:]))) == operations
+    assert (
+        list(cirq.flatten_op_tree((operations[0], cirq.Moment(operations[1:5]), operations[5:])))
+        == operations
+    )
 
     # Bad trees.
     with pytest.raises(TypeError):
@@ -54,8 +54,7 @@ def test_flatten_op_tree():
 
 def test_flatten_to_ops_or_moments():
     operations = [
-        cirq.GateOperation(cirq.SingleQubitGate(), [cirq.NamedQubit(str(i))])
-        for i in range(10)
+        cirq.GateOperation(cirq.SingleQubitGate(), [cirq.NamedQubit(str(i))]) for i in range(10)
     ]
     op_tree = [
         operations[0],
@@ -77,8 +76,7 @@ def test_flatten_to_ops_or_moments():
 
 def test_freeze_op_tree():
     operations = [
-        cirq.GateOperation(cirq.SingleQubitGate(), [cirq.NamedQubit(str(i))])
-        for i in range(10)
+        cirq.GateOperation(cirq.SingleQubitGate(), [cirq.NamedQubit(str(i))]) for i in range(10)
     ]
 
     # Empty tree.
@@ -91,11 +89,9 @@ def test_freeze_op_tree():
     assert cirq.freeze_op_tree(operations) == tuple(operations)
 
     # Tree.
-    assert (
-            cirq.freeze_op_tree(
-            (operations[0], (operations[i] for i in range(1, 5)),
-             operations[5:])) ==
-        (operations[0], tuple(operations[1:5]), tuple(operations[5:])))
+    assert cirq.freeze_op_tree(
+        (operations[0], (operations[i] for i in range(1, 5)), operations[5:])
+    ) == (operations[0], tuple(operations[1:5]), tuple(operations[5:]))
 
     # Bad trees.
     with pytest.raises(TypeError):
@@ -112,31 +108,27 @@ def test_transform_bad_tree():
     with pytest.raises(TypeError):
         _ = list(cirq.transform_op_tree(5))
     with pytest.raises(TypeError):
-        _ = list(cirq.flatten_op_tree(cirq.transform_op_tree([
-            cirq.GateOperation(cirq.Gate(), [cirq.NamedQubit('q')]), (4,)
-        ])))
+        _ = list(
+            cirq.flatten_op_tree(
+                cirq.transform_op_tree(
+                    [cirq.GateOperation(cirq.Gate(), [cirq.NamedQubit('q')]), (4,)]
+                )
+            )
+        )
 
 
 def test_transform_leaves():
     gs = [cirq.SingleQubitGate() for _ in range(10)]
-    operations = [
-        cirq.GateOperation(gs[i], [cirq.NamedQubit(str(i))])
-        for i in range(10)
-    ]
-    expected = [
-        cirq.GateOperation(gs[i], [cirq.NamedQubit(str(i) + 'a')])
-        for i in range(10)
-    ]
+    operations = [cirq.GateOperation(gs[i], [cirq.NamedQubit(str(i))]) for i in range(10)]
+    expected = [cirq.GateOperation(gs[i], [cirq.NamedQubit(str(i) + 'a')]) for i in range(10)]
 
     def move_left(op: cirq.GateOperation):
         return cirq.GateOperation(
-            op.gate,
-            [cirq.NamedQubit(cast(cirq.NamedQubit, q).name + 'a')
-             for q in op.qubits])
+            op.gate, [cirq.NamedQubit(cast(cirq.NamedQubit, q).name + 'a') for q in op.qubits]
+        )
 
     def move_tree_left_freeze(root):
-        return cirq.freeze_op_tree(
-            cirq.transform_op_tree(root, move_left))
+        return cirq.freeze_op_tree(cirq.transform_op_tree(root, move_left))
 
     # Empty tree.
     assert move_tree_left_freeze([[[]]]) == (((),),)
@@ -148,16 +140,16 @@ def test_transform_leaves():
     assert move_tree_left_freeze(operations) == tuple(expected)
 
     # Tree.
-    assert (
-        move_tree_left_freeze(
-            (operations[0], operations[1:5], operations[5:])) ==
-        (expected[0], tuple(expected[1:5]), tuple(expected[5:])))
+    assert move_tree_left_freeze((operations[0], operations[1:5], operations[5:])) == (
+        expected[0],
+        tuple(expected[1:5]),
+        tuple(expected[5:]),
+    )
 
 
 def test_transform_internal_nodes():
     operations = [
-        cirq.GateOperation(cirq.SingleQubitGate(), [cirq.LineQubit(2 * i)])
-        for i in range(10)
+        cirq.GateOperation(cirq.SingleQubitGate(), [cirq.LineQubit(2 * i)]) for i in range(10)
     ]
 
     def skip_first(op):
@@ -168,8 +160,7 @@ def test_transform_internal_nodes():
             first = False
 
     def skip_tree_freeze(root):
-        return cirq.freeze_op_tree(
-            cirq.transform_op_tree(root, iter_transformation=skip_first))
+        return cirq.freeze_op_tree(cirq.transform_op_tree(root, iter_transformation=skip_first))
 
     # Empty tree.
     assert skip_tree_freeze([[[]]]) == ()
@@ -182,6 +173,7 @@ def test_transform_internal_nodes():
     assert skip_tree_freeze(operations) == tuple(operations[1:])
 
     # Tree.
-    assert (skip_tree_freeze(
-        (operations[1:5], operations[0],
-         operations[5:])) == (operations[0], tuple(operations[6:])))
+    assert skip_tree_freeze((operations[1:5], operations[0], operations[5:])) == (
+        operations[0],
+        tuple(operations[6:]),
+    )

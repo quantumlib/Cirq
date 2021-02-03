@@ -63,11 +63,13 @@ document(
         (a `List[Union[cirq.Operation, Iterator[cirq.Operation]]]`).
     - Generally anything that can be iterated, and its items iterated, and
         so forth recursively until a bottom layer of operations is found.
-    """)
+    """,
+)
 
 
-def flatten_op_tree(root: OP_TREE, preserve_moments: bool = False
-                   ) -> Iterator[Union[Operation, Moment]]:
+def flatten_op_tree(
+    root: OP_TREE, preserve_moments: bool = False
+) -> Iterator[Union[Operation, Moment]]:
     """Performs an in-order iteration of the operations (leaves) in an OP_TREE.
 
     Args:
@@ -108,8 +110,7 @@ def flatten_to_ops(root: OP_TREE) -> Iterator[Operation]:
         _bad_op_tree(root)
 
 
-def flatten_to_ops_or_moments(root: OP_TREE
-                             ) -> Iterator[Union[Operation, Moment]]:
+def flatten_to_ops_or_moments(root: OP_TREE) -> Iterator[Union[Operation, Moment]]:
     """Performs an in-order iteration OP_TREE, yielding ops and moments.
 
     Args:
@@ -131,10 +132,10 @@ def flatten_to_ops_or_moments(root: OP_TREE
 
 
 def transform_op_tree(
-        root: OP_TREE,
-        op_transformation: Callable[[Operation], OP_TREE]=lambda e: e,
-        iter_transformation: Callable[[Iterable[OP_TREE]], OP_TREE]=lambda e: e,
-        preserve_moments: bool = False
+    root: OP_TREE,
+    op_transformation: Callable[[Operation], OP_TREE] = lambda e: e,
+    iter_transformation: Callable[[Iterable[OP_TREE]], OP_TREE] = lambda e: e,
+    preserve_moments: bool = False,
 ) -> OP_TREE:
     """Maps transformation functions onto the nodes of an OP_TREE.
 
@@ -161,11 +162,9 @@ def transform_op_tree(
 
     if isinstance(root, Iterable) and not isinstance(root, str):
         return iter_transformation(
-            transform_op_tree(subtree,
-                              op_transformation,
-                              iter_transformation,
-                              preserve_moments)
-            for subtree in root)
+            transform_op_tree(subtree, op_transformation, iter_transformation, preserve_moments)
+            for subtree in root
+        )
 
     _bad_op_tree(root)
 

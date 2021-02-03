@@ -28,10 +28,9 @@ def test_final_mapping():
     expected_final_mapping = dict(zip(qubits, reversed(qubits)))
     SWAP = cca.SwapPermutationGate()
     circuit = cirq.Circuit(
-        cirq.Moment(
-            SWAP(*qubits[i:i + 2])
-            for i in range(l % 2, n_qubits - 1, 2))
-        for l in range(n_qubits))
+        cirq.Moment(SWAP(*qubits[i : i + 2]) for i in range(l % 2, n_qubits - 1, 2))
+        for l in range(n_qubits)
+    )
     swap_network = ccr.SwapNetwork(circuit, initial_mapping)
     assert swap_network.final_mapping() == expected_final_mapping
 
@@ -48,8 +47,7 @@ def test_swap_network_bad_args():
         ccr.SwapNetwork(circuit, initial_mapping)
 
 
-@pytest.mark.parametrize(
-    'circuits', [[cirq.testing.random_circuit(10, 10, 0.5) for _ in range(3)]])
+@pytest.mark.parametrize('circuits', [[cirq.testing.random_circuit(10, 10, 0.5) for _ in range(3)]])
 def test_swap_network_equality(circuits):
     et = cirq.testing.EqualsTester()
     for circuit in circuits:  # NB: tiny prob. that circuits aren't unique
@@ -64,9 +62,7 @@ def test_swap_network_str():
     phys_qubits = cirq.GridQubit.rect(n_qubits, 1)
     log_qubits = cirq.LineQubit.range(n_qubits)
 
-    gates = {
-        (l, ll): cirq.ZZ for l, ll in itertools.combinations(log_qubits, 2)
-    }
+    gates = {(l, ll): cirq.ZZ for l, ll in itertools.combinations(log_qubits, 2)}
     initial_mapping = {p: l for p, l in zip(phys_qubits, log_qubits)}
     execution_strategy = cca.GreedyExecutionStrategy(gates, initial_mapping)
     routed_circuit = cca.complete_acquaintance_strategy(phys_qubits, 2)

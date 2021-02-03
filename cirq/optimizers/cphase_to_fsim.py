@@ -17,7 +17,8 @@ def _asinsin(x: float) -> float:
 
 
 def compute_cphase_exponents_for_fsim_decomposition(
-        fsim_gate: 'cirq.FSimGate') -> Sequence[Tuple[float, float]]:
+    fsim_gate: 'cirq.FSimGate',
+) -> Sequence[Tuple[float, float]]:
     """Returns intervals of CZPowGate exponents valid for FSim decomposition.
 
     Ideal intervals associated with the constraints are closed, but due to
@@ -36,8 +37,9 @@ def compute_cphase_exponents_for_fsim_decomposition(
         returns zero, one or two intervals.
     """
 
-    def nonempty_intervals(intervals: Sequence[Tuple[float, float]]
-                          ) -> Sequence[Tuple[float, float]]:
+    def nonempty_intervals(
+        intervals: Sequence[Tuple[float, float]]
+    ) -> Sequence[Tuple[float, float]]:
         return tuple((a, b) for a, b in intervals if a < b)
 
     # Each of the two FSimGate parameters sets a bound on phase angle.
@@ -56,11 +58,13 @@ def compute_cphase_exponents_for_fsim_decomposition(
 
     # Intervals are disjoint. Return both.
     if max_exponent_1 < min_exponent_2:
-        return nonempty_intervals([(min_exponent_1, max_exponent_1),
-                                   (min_exponent_2, max_exponent_2)])
+        return nonempty_intervals(
+            [(min_exponent_1, max_exponent_1), (min_exponent_2, max_exponent_2)]
+        )
     if max_exponent_2 < min_exponent_1:
-        return nonempty_intervals([(min_exponent_2, max_exponent_2),
-                                   (min_exponent_1, max_exponent_1)])
+        return nonempty_intervals(
+            [(min_exponent_2, max_exponent_2), (min_exponent_1, max_exponent_1)]
+        )
 
     # Intervals overlap. Merge.
     min_exponent = min(min_exponent_1, min_exponent_2)
@@ -69,11 +73,12 @@ def compute_cphase_exponents_for_fsim_decomposition(
 
 
 def decompose_cphase_into_two_fsim(
-        cphase_gate: 'cirq.CZPowGate',
-        *,
-        fsim_gate: 'cirq.FSimGate',
-        qubits: Optional[Sequence['cirq.Qid']] = None,
-        atol: float = 1e-8) -> 'cirq.OP_TREE':
+    cphase_gate: 'cirq.CZPowGate',
+    *,
+    fsim_gate: 'cirq.FSimGate',
+    qubits: Optional[Sequence['cirq.Qid']] = None,
+    atol: float = 1e-8,
+) -> 'cirq.OP_TREE':
     """Decomposes CZPowGate into two FSimGates.
 
     This function implements the decomposition described in section VII F I
@@ -152,7 +157,8 @@ def decompose_cphase_into_two_fsim(
         raise ValueError(
             f'{fsim_gate} cannot be used to decompose CZPowGate because '
             'sin(theta)**2 is too close to sin(phi/2)**2 '
-            f'(difference is {denominator}).')
+            f'(difference is {denominator}).'
+        )
 
     # Parametrization of CZPowGate by a real angle is a non-injective function
     # with the preimage of cphase_gate infinite. However, it is sufficient to
@@ -160,8 +166,7 @@ def decompose_cphase_into_two_fsim(
     canonical_delta = -np.pi * (cphase_gate.exponent % 2)
     for delta in (canonical_delta, canonical_delta + 2 * np.pi):
         sin_quarter_delta = np.sin(delta / 4)
-        numerator = (sin_quarter_delta - sin_half_phi) * (sin_quarter_delta +
-                                                          sin_half_phi)
+        numerator = (sin_quarter_delta - sin_half_phi) * (sin_quarter_delta + sin_half_phi)
         sin_alpha_squared = numerator / denominator
         if 0 <= sin_alpha_squared <= 1:
             break
@@ -169,7 +174,8 @@ def decompose_cphase_into_two_fsim(
         intervals = compute_cphase_exponents_for_fsim_decomposition(fsim_gate)
         raise ValueError(
             f'{cphase_gate} cannot be decomposed into two {fsim_gate}. Valid '
-            f'intervals for canonical exponent of CZPowGate: {intervals}.')
+            f'intervals for canonical exponent of CZPowGate: {intervals}.'
+        )
     assert 0 <= sin_alpha_squared <= 1
     alpha = np.arcsin(np.sqrt(sin_alpha_squared))
 
@@ -189,16 +195,13 @@ def decompose_cphase_into_two_fsim(
         # Local X rotations to convert Γ1⊗I − iZ⊗Γ2 into exp(-i Z⊗Z δ/4)
         ops.rx(xi).on(q0),
         ops.rx(eta).on(q1),
-
         # Y(θ, φ) := exp(-i X⊗X θ/2) exp(-i Y⊗Y θ/2) exp(-i Z⊗Z φ/4)
         fsim_gate.on(q0, q1),
         ops.rz(phi / 2).on(q0),
         ops.rz(phi / 2).on(q1),
         ops.GlobalPhaseOperation(np.exp(1j * phi / 4)),
-
         # exp(i X1 α)
         ops.rx(-2 * alpha).on(q0),
-
         # Y(-θ, φ) := exp(i X⊗X θ/2) exp(i Y⊗Y θ/2) exp(-i Z⊗Z φ/4)
         ops.Z(q0),
         fsim_gate.on(q0, q1),
@@ -206,11 +209,9 @@ def decompose_cphase_into_two_fsim(
         ops.rz(phi / 2).on(q1),
         ops.GlobalPhaseOperation(np.exp(1j * phi / 4)),
         ops.Z(q0),
-
         # Local X rotations to convert Γ1⊗I − iZ⊗Γ2 into exp(-i Z⊗Z δ/4)
         ops.rx(-eta).on(q1),
         ops.rx(xi).on(q0),
-
         # Local Z rotations to convert exp(-i Z⊗Z δ/4) into desired CPhase.
         ops.rz(-delta / 2).on(q0),
         ops.rz(-delta / 2).on(q1),

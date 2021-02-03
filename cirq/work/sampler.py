@@ -28,10 +28,10 @@ class Sampler(metaclass=abc.ABCMeta):
     """Something capable of sampling quantum circuits. Simulator or hardware."""
 
     def run(
-            self,
-            program: 'cirq.Circuit',
-            param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
-            repetitions: int = 1,
+        self,
+        program: 'cirq.Circuit',
+        param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+        repetitions: int = 1,
     ) -> 'cirq.Result':
         """Samples from the given Circuit.
 
@@ -46,15 +46,14 @@ class Sampler(metaclass=abc.ABCMeta):
         Returns:
             Result for a run.
         """
-        return self.run_sweep(program, study.ParamResolver(param_resolver),
-                              repetitions)[0]
+        return self.run_sweep(program, study.ParamResolver(param_resolver), repetitions)[0]
 
     def sample(
-            self,
-            program: 'cirq.Circuit',
-            *,
-            repetitions: int = 1,
-            params: 'cirq.Sweepable' = None,
+        self,
+        program: 'cirq.Circuit',
+        *,
+        repetitions: int = 1,
+        params: 'cirq.Sweepable' = None,
     ) -> 'pd.DataFrame':
         """Samples the given Circuit, producing a pandas data frame.
 
@@ -121,28 +120,25 @@ class Sampler(metaclass=abc.ABCMeta):
                 raise ValueError(
                     'Inconsistent sweep parameters. '
                     f'One sweep had {repr(keys)} '
-                    f'while another had {repr(sorted(sweep.keys))}.')
+                    f'while another had {repr(sorted(sweep.keys))}.'
+                )
 
         results = []
         for sweep in sweeps_list:
-            sweep_results = self.run_sweep(program,
-                                           params=sweep,
-                                           repetitions=repetitions)
+            sweep_results = self.run_sweep(program, params=sweep, repetitions=repetitions)
             for resolver, result in zip(sweep, sweep_results):
                 param_values_once = [resolver.value_of(key) for key in keys]
-                param_table = pd.DataFrame(data=[param_values_once] *
-                                           repetitions,
-                                           columns=keys)
+                param_table = pd.DataFrame(data=[param_values_once] * repetitions, columns=keys)
                 results.append(pd.concat([param_table, result.data], axis=1))
 
         return pd.concat(results)
 
     @abc.abstractmethod
     def run_sweep(
-            self,
-            program: 'cirq.Circuit',
-            params: 'cirq.Sweepable',
-            repetitions: int = 1,
+        self,
+        program: 'cirq.Circuit',
+        params: 'cirq.Sweepable',
+        repetitions: int = 1,
     ) -> List['cirq.Result']:
         """Samples from the given Circuit.
 
@@ -159,8 +155,7 @@ class Sampler(metaclass=abc.ABCMeta):
             resolver.
         """
 
-    async def run_async(self, program: 'cirq.Circuit', *,
-                        repetitions: int) -> 'cirq.Result':
+    async def run_async(self, program: 'cirq.Circuit', *, repetitions: int) -> 'cirq.Result':
         """Asynchronously samples from the given Circuit.
 
         By default, this method invokes `run` synchronously and simply exposes
@@ -177,10 +172,10 @@ class Sampler(metaclass=abc.ABCMeta):
         return self.run(program, repetitions=repetitions)
 
     async def run_sweep_async(
-            self,
-            program: 'cirq.Circuit',
-            params: 'cirq.Sweepable',
-            repetitions: int = 1,
+        self,
+        program: 'cirq.Circuit',
+        params: 'cirq.Sweepable',
+        repetitions: int = 1,
     ) -> List['cirq.Result']:
         """Asynchronously sweeps and samples from the given Circuit.
 
@@ -201,10 +196,10 @@ class Sampler(metaclass=abc.ABCMeta):
         return self.run_sweep(program, params=params, repetitions=repetitions)
 
     def run_batch(
-            self,
-            programs: List['cirq.Circuit'],
-            params_list: Optional[List['cirq.Sweepable']] = None,
-            repetitions: Union[int, List[int]] = 1,
+        self,
+        programs: List['cirq.Circuit'],
+        params_list: Optional[List['cirq.Sweepable']] = None,
+        repetitions: Union[int, List[int]] = 1,
     ) -> List[List['cirq.Result']]:
         """Runs the supplied circuits.
 
@@ -243,15 +238,18 @@ class Sampler(metaclass=abc.ABCMeta):
         if params_list is None:
             params_list = [None] * len(programs)
         if len(programs) != len(params_list):
-            raise ValueError('len(programs) and len(params_list) must match. '
-                             f'Got {len(programs)} and {len(params_list)}.')
+            raise ValueError(
+                'len(programs) and len(params_list) must match. '
+                f'Got {len(programs)} and {len(params_list)}.'
+            )
         if isinstance(repetitions, int):
             repetitions = [repetitions] * len(programs)
         if len(programs) != len(repetitions):
-            raise ValueError('len(programs) and len(repetitions) must match. '
-                             f'Got {len(programs)} and {len(repetitions)}.')
+            raise ValueError(
+                'len(programs) and len(repetitions) must match. '
+                f'Got {len(programs)} and {len(repetitions)}.'
+            )
         return [
             self.run_sweep(circuit, params=params, repetitions=repetitions)
-            for circuit, params, repetitions in zip(programs, params_list,
-                                                    repetitions)
+            for circuit, params, repetitions in zip(programs, params_list, repetitions)
         ]

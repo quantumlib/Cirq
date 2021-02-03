@@ -34,8 +34,7 @@ class CompletionOrderedAsyncWorkPool:
         output = self._loop.create_future()  # type: asyncio.Future
         self._out_queue.append(output)
         self._work_queue.append(output)
-        asyncio.ensure_future(self._async_handle_work_completion(work),
-                              loop=self._loop)
+        asyncio.ensure_future(self._async_handle_work_completion(work), loop=self._loop)
 
     @property
     def num_active(self) -> int:

@@ -21,13 +21,14 @@ from cirq import quirk_url_to_circuit
 
 
 def assert_url_to_circuit_returns(
-        json_text: str,
-        circuit: 'cirq.Circuit' = None,
-        *,
-        unitary: Optional[np.ndarray] = None,
-        diagram: Optional[str] = None,
-        output_amplitudes_from_quirk: Optional[List[Dict[str, float]]] = None,
-        maps: Optional[Dict[int, int]] = None):
+    json_text: str,
+    circuit: 'cirq.Circuit' = None,
+    *,
+    unitary: Optional[np.ndarray] = None,
+    diagram: Optional[str] = None,
+    output_amplitudes_from_quirk: Optional[List[Dict[str, float]]] = None,
+    maps: Optional[Dict[int, int]] = None,
+):
     """
     Args:
         json_text: The part of the quirk URL after "#circuit=".
@@ -49,8 +50,7 @@ def assert_url_to_circuit_returns(
             convention, meaning that the last bit of a binary literal will refer
             to the last qubit's value instead of vice versa.
     """
-    parsed = quirk_url_to_circuit(
-        f'https://algassert.com/quirk#circuit={json_text}')
+    parsed = quirk_url_to_circuit(f'https://algassert.com/quirk#circuit={json_text}')
 
     if diagram is not None:
         cirq.testing.assert_has_diagram(parsed, diagram)
@@ -62,10 +62,9 @@ def assert_url_to_circuit_returns(
         np.testing.assert_allclose(cirq.unitary(parsed), unitary, atol=1e-8)
 
     if output_amplitudes_from_quirk is not None:
-        expected = np.array([
-            float(e['r']) + 1j * float(e['i'])
-            for e in output_amplitudes_from_quirk
-        ])
+        expected = np.array(
+            [float(e['r']) + 1j * float(e['i']) for e in output_amplitudes_from_quirk]
+        )
 
         np.testing.assert_allclose(
             cirq.final_state_vector(
@@ -74,7 +73,8 @@ def assert_url_to_circuit_returns(
                 qubit_order=sorted(parsed.all_qubits(), reverse=True),
             ),
             expected,
-            atol=1e-8)
+            atol=1e-8,
+        )
 
     if maps:
         cirq.testing.assert_equivalent_computational_basis_map(maps, parsed)

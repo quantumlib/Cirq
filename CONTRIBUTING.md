@@ -49,6 +49,9 @@ main cirq repo you may need to merge in changes.  To do this,
 first update your local master and then merge the local master
 into your branch:
     ```shell
+    # Track the upstream repo (if your local repo hasn't):
+    git remote add upstream https://github.com/quantumlib/Cirq.git
+
     # Update your local master.
     git fetch upstream
     git checkout master

@@ -42,8 +42,7 @@ def has_stabilizer_effect(val: Any) -> bool:
     return False
 
 
-def _strat_has_stabilizer_effect_from_has_stabilizer_effect(val: Any
-                                                           ) -> Optional[bool]:
+def _strat_has_stabilizer_effect_from_has_stabilizer_effect(val: Any) -> Optional[bool]:
     """
     Attempts to infer whether val has stabilizer effect via its
     _has_stabilizer_effect_ method.
@@ -70,9 +69,9 @@ def _strat_has_stabilizer_effect_from_unitary(val: Any) -> Optional[bool]:
     Returns whether unitary of `val` normalizes the Pauli group. Works only for
     2x2 unitaries.
     """
-    if not protocols.has_unitary(val):
+    # Do not try this strategy if there is no unitary or if the number of
+    # qubits is not 1 since that would be expensive.
+    if not protocols.has_unitary(val) or protocols.num_qubits(val) != 1:
         return None
     unitary = protocols.unitary(val)
-    if unitary.shape == (2, 2):
-        return SingleQubitCliffordGate.from_unitary(unitary) is not None
-    return None
+    return SingleQubitCliffordGate.from_unitary(unitary) is not None

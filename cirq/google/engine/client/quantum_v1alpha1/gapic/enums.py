@@ -20,7 +20,6 @@ import enum
 
 
 class ExecutionStatus(object):
-
     class State(enum.IntEnum):
         """
         -
@@ -34,6 +33,7 @@ class ExecutionStatus(object):
           SUCCESS (int): -
           FAILURE (int): -
         """
+
         STATE_UNSPECIFIED = 0
         READY = 1
         RUNNING = 2
@@ -43,7 +43,6 @@ class ExecutionStatus(object):
         FAILURE = 6
 
     class Failure(object):
-
         class Code(enum.IntEnum):
             """
             -
@@ -63,6 +62,7 @@ class ExecutionStatus(object):
               WRITE_RESULT_GCS_PERMISSION_DENIED (int): -
               SCHEDULING_EXPIRED (int): -
             """
+
             CODE_UNSPECIFIED = 0
             SYSTEM_ERROR = 1
             INVALID_PROGRAM = 2
@@ -79,7 +79,6 @@ class ExecutionStatus(object):
 
 
 class QuantumProcessor(object):
-
     class Health(enum.IntEnum):
         """
         -
@@ -90,6 +89,7 @@ class QuantumProcessor(object):
           DOWN (int): -
           UNAVAILABLE (int): -
         """
+
         HEALTH_UNSPECIFIED = 0
         OK = 1
         DOWN = 2
@@ -97,7 +97,6 @@ class QuantumProcessor(object):
 
 
 class QuantumTimeSlot(object):
-
     class TimeSlotType(enum.IntEnum):
         """
         -
@@ -109,6 +108,7 @@ class QuantumTimeSlot(object):
           RESERVATION (int): -
           UNALLOCATED (int): -
         """
+
         TIME_SLOT_TYPE_UNSPECIFIED = 0
         MAINTENANCE = 1
         OPEN_SWIM = 2
@@ -117,7 +117,6 @@ class QuantumTimeSlot(object):
 
 
 class StreamError(object):
-
     class Code(enum.IntEnum):
         """
         -
@@ -135,6 +134,7 @@ class StreamError(object):
           INVALID_PROCESSOR_FOR_JOB (int): -
           RESERVATION_REQUIRED (int): -
         """
+
         CODE_UNSPECIFIED = 0
         INTERNAL = 1
         INVALID_ARGUMENT = 2

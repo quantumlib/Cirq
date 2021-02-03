@@ -18,18 +18,20 @@ import cirq
 import cirq.google as cg
 
 
-@pytest.mark.parametrize('gate_type,qubit_count', (
-    (cg.SYC, 2),
-    (cirq.PhasedXPowGate(phase_exponent=0.1), 1),
-    (cirq.PhasedXPowGate(exponent=0.5, phase_exponent=0.1), 1),
-))
+@pytest.mark.parametrize(
+    'gate_type,qubit_count',
+    (
+        (cg.SYC, 2),
+        (cirq.PhasedXPowGate(phase_exponent=0.1), 1),
+        (cirq.PhasedXPowGate(exponent=0.5, phase_exponent=0.1), 1),
+    ),
+)
 def test_consistent_protocols(gate_type, qubit_count):
     cirq.testing.assert_implements_consistent_protocols(
         gate_type,
-        setup_code=('import cirq\n'
-                    'import numpy as np\n'
-                    'import sympy\n'),
-        qubit_count=qubit_count)
+        setup_code='import cirq\nimport numpy as np\nimport sympy\n',
+        qubit_count=qubit_count,
+    )
 
 
 def test_syc_str_repr():
@@ -40,11 +42,14 @@ def test_syc_str_repr():
 def test_syc_circuit_diagram():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cg.SYC(a, b))
-    cirq.testing.assert_has_diagram(circuit, """
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
 0: ───SYC───
       │
 1: ───SYC───
-""")
+""",
+    )
 
 
 def test_syc_is_specific_fsim():
@@ -54,10 +59,13 @@ def test_syc_is_specific_fsim():
 def test_syc_unitary():
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(cg.SYC),
-        np.array([
-            [1, 0, 0, 0],
-            [0, 0, -1j, 0],
-            [0, -1j, 0, 0],
-            [0, 0, 0, np.exp(-1j * np.pi / 6)],
-        ]),
-        atol=1e-6)
+        np.array(
+            [
+                [1, 0, 0, 0],
+                [0, 0, -1j, 0],
+                [0, -1j, 0, 0],
+                [0, 0, 0, np.exp(-1j * np.pi / 6)],
+            ]
+        ),
+        atol=1e-6,
+    )

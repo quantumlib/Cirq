@@ -26,8 +26,7 @@ def test_unitary_simulator():
 def test_density_matrix_simulator():
     for num_qubits in (3, 8):
         for num_gates in (10, 20):
-            benchmark_simulators.simulate('density_matrix', num_qubits,
-                                          num_gates)
+            benchmark_simulators.simulate('density_matrix', num_qubits, num_gates)
 
 
 def test_args_have_defaults():
@@ -41,17 +40,20 @@ def test_main_loop():
     args = '--max_num_qubits 5'.split()
     benchmark_simulators.main(
         **benchmark_simulators.parse_arguments(args),
-        setup='from dev_tools.profiling.benchmark_simulators import simulate')
+        setup='from dev_tools.profiling.benchmark_simulators import simulate',
+    )
 
 
 def test_parse_args():
-    args = ('--sim_type unitary --min_num_qubits 5 --max_num_qubits 10 '
-            '--num_gates 5 --num_repetitions 2').split()
+    args = (
+        '--sim_type unitary --min_num_qubits 5 --max_num_qubits 10 '
+        '--num_gates 5 --num_repetitions 2'
+    ).split()
     kwargs = benchmark_simulators.parse_arguments(args)
     assert kwargs == {
         'sim_type': 'unitary',
         'min_num_qubits': 5,
         'max_num_qubits': 10,
         'num_gates': 5,
-        'num_repetitions': 2
+        'num_repetitions': 2,
     }

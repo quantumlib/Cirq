@@ -18,29 +18,23 @@ import cirq
 
 
 def test_qid_shape():
-
     class ShapeObj:
-
         def _qid_shape_(self):
             return (1, 2, 3)
 
     class NumObj:
-
         def _num_qubits_(self):
             return 2
 
     class NotImplShape:
-
         def _qid_shape_(self):
             return NotImplemented
 
     class NotImplNum:
-
         def _num_qubits_(self):
             return NotImplemented
 
     class NotImplBoth:
-
         def _num_qubits_(self):
             return NotImplemented
 

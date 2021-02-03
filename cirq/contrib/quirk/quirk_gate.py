@@ -27,7 +27,7 @@ class QuirkOp:
     for how things can be combined.
     """
 
-    def __init__(self, *keys: Any, can_merge: bool=True) -> None:
+    def __init__(self, *keys: Any, can_merge: bool = True) -> None:
         """
         Args:
             *keys: The JSON object(s) that each qubit is turned into when
@@ -58,8 +58,9 @@ def same_half_turns(a1: float, a2: float, atol=0.0001) -> bool:
 
 
 def _is_supported_formula(formula: sympy.Basic) -> bool:
-    if isinstance(formula, (sympy.Symbol, sympy.Integer, sympy.Float,
-                            sympy.Rational, sympy.NumberSymbol)):
+    if isinstance(
+        formula, (sympy.Symbol, sympy.Integer, sympy.Float, sympy.Rational, sympy.NumberSymbol)
+    ):
         return True
     if isinstance(formula, (sympy.Add, sympy.Mul)):
         return all(_is_supported_formula(f) for f in formula.args)
@@ -111,10 +112,15 @@ def single_qubit_matrix_gate(matrix: Optional[np.ndarray]) -> Optional[QuirkOp]:
 
     matrix = matrix.round(6)
     matrix_repr = '{{%s+%si,%s+%si},{%s+%si,%s+%si}}' % (
-        np.real(matrix[0, 0]), np.imag(matrix[0, 0]),
-        np.real(matrix[1, 0]), np.imag(matrix[1, 0]),
-        np.real(matrix[0, 1]), np.imag(matrix[0, 1]),
-        np.real(matrix[1, 1]), np.imag(matrix[1, 1]))
+        np.real(matrix[0, 0]),
+        np.imag(matrix[0, 0]),
+        np.real(matrix[1, 0]),
+        np.imag(matrix[1, 0]),
+        np.real(matrix[0, 1]),
+        np.imag(matrix[0, 1]),
+        np.real(matrix[1, 1]),
+        np.imag(matrix[1, 1]),
+    )
 
     # Clean up.
     matrix_repr = matrix_repr.replace('+-', '-')
@@ -124,10 +130,7 @@ def single_qubit_matrix_gate(matrix: Optional[np.ndarray]) -> Optional[QuirkOp]:
     matrix_repr = matrix_repr.replace('.0+', '+')
     matrix_repr = matrix_repr.replace('.0-', '-')
 
-    return QuirkOp({
-        'id': '?',
-        'matrix': matrix_repr
-    })
+    return QuirkOp({'id': '?', 'matrix': matrix_repr})
 
 
 def known_quirk_op_for_operation(op: ops.Operation) -> Optional[QuirkOp]:
@@ -150,19 +153,13 @@ def xyz_to_quirk_op(axis: str, gate: ops.EigenGate) -> QuirkOp:
     u = axis.upper()
 
     if gate.global_shift == -0.5:
-        return QuirkOp({
-            'id': f'R{d}ft',
-            'arg': f'({_val_to_quirk_formula(gate.exponent)}) pi'
-        })
+        return QuirkOp({'id': f'R{d}ft', 'arg': f'({_val_to_quirk_formula(gate.exponent)}) pi'})
 
     e = angle_to_exponent_key(gate.exponent)
     if e is not None:
         return QuirkOp(u + e)
 
-    return QuirkOp({
-        'id': f'{u}^ft',
-        'arg': f'{_val_to_quirk_formula(gate.exponent)}'
-    })
+    return QuirkOp({'id': f'{u}^ft', 'arg': f'{_val_to_quirk_formula(gate.exponent)}'})
 
 
 def x_to_quirk_op(gate: ops.XPowGate) -> QuirkOp:
@@ -178,11 +175,11 @@ def z_to_quirk_op(gate: ops.ZPowGate) -> QuirkOp:
 
 
 def cz_to_quirk_op(gate: ops.CZPowGate) -> Optional[QuirkOp]:
-    return z_to_quirk_op(ops.Z**gate.exponent).controlled()
+    return z_to_quirk_op(ops.Z ** gate.exponent).controlled()
 
 
 def cnot_to_quirk_op(gate: ops.CXPowGate) -> Optional[QuirkOp]:
-    return x_to_quirk_op(ops.X**gate.exponent).controlled()
+    return x_to_quirk_op(ops.X ** gate.exponent).controlled()
 
 
 def h_to_quirk_op(gate: ops.HPowGate) -> Optional[QuirkOp]:
@@ -223,7 +220,8 @@ def controlled_unwrap(op: ops.ControlledOperation) -> Optional[QuirkOp]:
 
 
 _known_gate_conversions = cast(
-    Dict[type, Callable[[ops.Gate], Optional[QuirkOp]]], {
+    Dict[type, Callable[[ops.Gate], Optional[QuirkOp]]],
+    {
         ops.CCXPowGate: ccx_to_quirk_op,
         ops.CCZPowGate: ccz_to_quirk_op,
         ops.CSwapGate: cswap_to_quirk_op,
@@ -234,5 +232,6 @@ _known_gate_conversions = cast(
         ops.CZPowGate: cz_to_quirk_op,
         ops.SwapPowGate: swap_to_quirk_op,
         ops.HPowGate: h_to_quirk_op,
-        ops.MeasurementGate: lambda _: QuirkOp('Measure')
-    })
+        ops.MeasurementGate: lambda _: QuirkOp('Measure'),
+    },
+)

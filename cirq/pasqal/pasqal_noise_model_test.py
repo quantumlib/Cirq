@@ -25,15 +25,13 @@ def test_NoiseModel_init():
         str(cirq.ops.ZPowGate()): cirq.ops.depolarize(1e-2),
         str(cirq.ops.XPowGate()): cirq.ops.depolarize(1e-2),
         str(cirq.ops.HPowGate(exponent=1)): cirq.ops.depolarize(1e-2),
-        str(cirq.ops.PhasedXPowGate(phase_exponent=0)):
-        cirq.ops.depolarize(1e-2),
+        str(cirq.ops.PhasedXPowGate(phase_exponent=0)): cirq.ops.depolarize(1e-2),
         str(cirq.ops.CNotPowGate(exponent=1)): cirq.ops.depolarize(3e-2),
         str(cirq.ops.CZPowGate(exponent=1)): cirq.ops.depolarize(3e-2),
         str(cirq.ops.CCXPowGate(exponent=1)): cirq.ops.depolarize(8e-2),
         str(cirq.ops.CCZPowGate(exponent=1)): cirq.ops.depolarize(8e-2),
     }
-    with pytest.raises(TypeError,
-                       match="noise model varies between Pasqal's devices."):
+    with pytest.raises(TypeError, match="noise model varies between Pasqal's devices."):
         PasqalNoiseModel(cirq.devices.UNCONSTRAINED_DEVICE)
 
 
@@ -50,15 +48,14 @@ def test_noisy_moments():
     for moment in p_circuit._moments:
         n_mts.append(noise_model.noisy_moment(moment, p_qubits))
 
-    assert n_mts == [[
-        cirq.ops.CZ.on(NamedQubit('q0'), NamedQubit('q1')),
-        cirq.depolarize(p=0.03).on(NamedQubit('q0')),
-        cirq.depolarize(p=0.03).on(NamedQubit('q1'))
-    ],
-                     [
-                         cirq.ops.Z.on(NamedQubit('q1')),
-                         cirq.depolarize(p=0.01).on(NamedQubit('q1'))
-                     ]]
+    assert n_mts == [
+        [
+            cirq.ops.CZ.on(NamedQubit('q0'), NamedQubit('q1')),
+            cirq.depolarize(p=0.03).on(NamedQubit('q0')),
+            cirq.depolarize(p=0.03).on(NamedQubit('q1')),
+        ],
+        [cirq.ops.Z.on(NamedQubit('q1')), cirq.depolarize(p=0.01).on(NamedQubit('q1'))],
+    ]
 
 
 def test_default_noise():
@@ -73,11 +70,13 @@ def test_default_noise():
     for moment in p_circuit._moments:
         n_mts.append(noise_model.noisy_moment(moment, p_qubits))
 
-    assert n_mts == [[
-        cirq.ops.CZPowGate(exponent=2).on(NamedQubit('q0'), NamedQubit('q1')),
-        cirq.depolarize(p=0.05).on(NamedQubit('q0')),
-        cirq.depolarize(p=0.05).on(NamedQubit('q1'))
-    ]]
+    assert n_mts == [
+        [
+            cirq.ops.CZPowGate(exponent=2).on(NamedQubit('q0'), NamedQubit('q1')),
+            cirq.depolarize(p=0.05).on(NamedQubit('q0')),
+            cirq.depolarize(p=0.05).on(NamedQubit('q1')),
+        ]
+    ]
 
 
 def test_get_op_string():

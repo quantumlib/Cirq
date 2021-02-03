@@ -12,8 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import fractions
-from typing import (AbstractSet, Any, cast, Dict, Iterable, List, NamedTuple,
-                    Optional, Tuple, TypeVar, Union)
+from typing import (
+    AbstractSet,
+    Any,
+    cast,
+    Dict,
+    Iterable,
+    List,
+    NamedTuple,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 import abc
 
@@ -38,12 +49,11 @@ EigenComponent = NamedTuple(
         # -1 instead of +1 resulting in square root operations returning -i
         # instead of +i.
         ('eigenvalue_exponent_factor', float),
-
         # The projection matrix onto the eigenspace of the eigenvalue. Must
         # equal Σ_k |λ_k⟩⟨λ_k| where the |λ_k⟩ vectors form an orthonormal
         # basis for the eigenspace.
         ('eigenspace_projector', np.ndarray),
-    ]
+    ],
 )
 
 
@@ -61,10 +71,8 @@ class EigenGate(raw_types.Gate):
     """
 
     def __init__(
-            self,
-            *,  # Forces keyword args.
-            exponent: value.TParamVal = 1.0,
-            global_shift: float = 0.0) -> None:
+        self, *, exponent: value.TParamVal = 1.0, global_shift: float = 0.0  # Forces keyword args.
+    ) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
         The eigenvalue of each eigenspace of a gate is computed by
@@ -104,9 +112,7 @@ class EigenGate(raw_types.Gate):
         """
         if isinstance(exponent, complex):
             if exponent.imag:
-                raise ValueError(
-                    "Gate exponent must be real. Invalid Value: {}".format(
-                        exponent))
+                raise ValueError("Gate exponent must be real. Invalid Value: {}".format(exponent))
             exponent = exponent.real
         self._exponent = exponent
         self._global_shift = global_shift
@@ -130,15 +136,12 @@ class EigenGate(raw_types.Gate):
         # pylint: disable=unexpected-keyword-arg
         if self._global_shift == 0:
             return type(self)(exponent=exponent)
-        return type(self)(
-            exponent=exponent,
-            global_shift=self._global_shift)
+        return type(self)(exponent=exponent, global_shift=self._global_shift)
         # pylint: enable=unexpected-keyword-arg
 
-    def _diagram_exponent(self,
-                          args: 'protocols.CircuitDiagramInfoArgs',
-                          *,
-                          ignore_global_phase: bool = True):
+    def _diagram_exponent(
+        self, args: 'protocols.CircuitDiagramInfoArgs', *, ignore_global_phase: bool = True
+    ):
         """The exponent to use in circuit diagrams.
 
         Basically, this just canonicalizes the exponent in a way that is
@@ -172,7 +175,7 @@ class EigenGate(raw_types.Gate):
             # Compute global-phase-independent period of the gate.
             shifts = list(self._eigen_shifts())
             relative_shifts = {e - shifts[0] for e in shifts[1:]}
-            relative_periods = [abs(2/e) for e in relative_shifts if e != 0]
+            relative_periods = [abs(2 / e) for e in relative_shifts if e != 0]
             diagram_period = _approximate_common_period(relative_periods)
         else:
             # Use normal period of the gate.
@@ -192,9 +195,9 @@ class EigenGate(raw_types.Gate):
         return result
 
     def _format_exponent_as_angle(
-            self,
-            args: 'protocols.CircuitDiagramInfoArgs',
-            order: int = 2,
+        self,
+        args: 'protocols.CircuitDiagramInfoArgs',
+        order: int = 2,
     ) -> str:
         """Returns string with exponent expressed as angle in radians.
 
@@ -227,8 +230,7 @@ class EigenGate(raw_types.Gate):
         return [e[0] for e in self._eigen_components()]
 
     @abc.abstractmethod
-    def _eigen_components(self) -> List[Union[EigenComponent,
-                                              Tuple[float, np.ndarray]]]:
+    def _eigen_components(self) -> List[Union[EigenComponent, Tuple[float, np.ndarray]]]:
         """Describes the eigendecomposition of the gate's matrix.
 
         Returns:
@@ -290,11 +292,10 @@ class EigenGate(raw_types.Gate):
             (-p/2, p/2] during initialization.
         """
         exponents = {e + self._global_shift for e in self._eigen_shifts()}
-        real_periods = [abs(2/e) for e in exponents if e != 0]
+        real_periods = [abs(2 / e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
-    def __pow__(self: TSelf,
-                exponent: Union[float, sympy.Symbol]) -> 'EigenGate':
+    def __pow__(self: TSelf, exponent: Union[float, sympy.Symbol]) -> 'EigenGate':
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented
@@ -334,11 +335,13 @@ class EigenGate(raw_types.Gate):
         if self._is_parameterized_():
             return NotImplemented
         e = cast(float, self._exponent)
-        return np.sum([
-            component * 1j**(
-                    2 * e * (half_turns + self._global_shift))
-            for half_turns, component in self._eigen_components()
-        ], axis=0)
+        return np.sum(
+            [
+                component * 1j ** (2 * e * (half_turns + self._global_shift))
+                for half_turns, component in self._eigen_components()
+            ],
+            axis=0,
+        )
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._exponent)
@@ -346,18 +349,16 @@ class EigenGate(raw_types.Gate):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self._exponent)
 
-    def _resolve_parameters_(self: TSelf, param_resolver) -> 'EigenGate':
-        return self._with_exponent(
-                exponent=param_resolver.value_of(self._exponent))
+    def _resolve_parameters_(self: TSelf, param_resolver, recursive: bool) -> 'EigenGate':
+        return self._with_exponent(exponent=param_resolver.value_of(self._exponent, recursive))
 
     def _equal_up_to_global_phase_(self, other, atol):
         if not isinstance(other, EigenGate):
             return NotImplemented
 
         exponents = (self.exponent, other.exponent)
-        exponents_is_parameterized = tuple(
-            protocols.is_parameterized(e) for e in exponents)
-        if (all(exponents_is_parameterized) and exponents[0] != exponents[1]):
+        exponents_is_parameterized = tuple(protocols.is_parameterized(e) for e in exponents)
+        if all(exponents_is_parameterized) and exponents[0] != exponents[1]:
             return False
         if any(exponents_is_parameterized):
             return False
@@ -367,9 +368,9 @@ class EigenGate(raw_types.Gate):
         other_without_phase = other._with_exponent(other.exponent)
         other_without_phase._global_shift = 0
         other_without_exp_or_phase = other_without_phase._with_exponent(0)
-        if not protocols.approx_eq(self_without_exp_or_phase,
-                                   other_without_exp_or_phase,
-                                   atol=atol):
+        if not protocols.approx_eq(
+            self_without_exp_or_phase, other_without_exp_or_phase, atol=atol
+        ):
             return False
 
         period = self_without_phase._period()
@@ -387,9 +388,9 @@ def _lcm(vals: Iterable[int]) -> int:
     return t
 
 
-def _approximate_common_period(periods: List[float],
-                               approx_denom: int = 60,
-                               reject_atol: float = 1e-8) -> Optional[float]:
+def _approximate_common_period(
+    periods: List[float], approx_denom: int = 60, reject_atol: float = 1e-8
+) -> Optional[float]:
     """Finds a value that is nearly an integer multiple of multiple periods.
 
     The returned value should be the smallest non-negative number with this
@@ -422,8 +423,7 @@ def _approximate_common_period(periods: List[float],
     if len(periods) == 1:
         return abs(periods[0])
     approx_rational_periods = [
-        fractions.Fraction(int(np.round(abs(p) * approx_denom)), approx_denom)
-        for p in periods
+        fractions.Fraction(int(np.round(abs(p) * approx_denom)), approx_denom) for p in periods
     ]
     common = float(_common_rational_period(approx_rational_periods))
 
@@ -434,8 +434,7 @@ def _approximate_common_period(periods: List[float],
     return common
 
 
-def _common_rational_period(rational_periods: List[fractions.Fraction]
-                            ) -> fractions.Fraction:
+def _common_rational_period(rational_periods: List[fractions.Fraction]) -> fractions.Fraction:
     """Finds the least common integer multiple of some fractions.
 
     The solution is the smallest positive integer c such that there
@@ -443,7 +442,6 @@ def _common_rational_period(rational_periods: List[fractions.Fraction]
     """
     assert rational_periods, "no well-defined solution for an empty list"
     common_denom = _lcm(p.denominator for p in rational_periods)
-    int_periods = [p.numerator * common_denom // p.denominator
-                   for p in rational_periods]
+    int_periods = [p.numerator * common_denom // p.denominator for p in rational_periods]
     int_common_period = _lcm(int_periods)
     return fractions.Fraction(int_common_period, common_denom)
