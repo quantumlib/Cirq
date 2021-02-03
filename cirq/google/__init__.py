@@ -27,6 +27,8 @@ from cirq.google.calibration import (
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
+    PhasedFSimEngineSimulator,
+    SQRT_ISWAP_PARAMETERS,
     make_floquet_request_for_circuit,
     make_floquet_request_for_moment,
     run_characterizations,

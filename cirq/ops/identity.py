@@ -13,21 +13,21 @@
 # limitations under the License.
 """IdentityGate."""
 
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import Any, Dict, Iterable, List, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 import sympy
 
 from cirq import protocols, value
 from cirq._doc import document
-from cirq.ops import raw_types
+from cirq.ops import gate_features, raw_types
 
 if TYPE_CHECKING:
     import cirq
 
 
 @value.value_equality
-class IdentityGate(raw_types.Gate):
+class IdentityGate(gate_features.SupportsOnEachGate, raw_types.Gate):
     """A Gate that perform no operation on qubits.
 
     The unitary matrix of this gate is a diagonal matrix with all 1s on the
@@ -63,35 +63,6 @@ class IdentityGate(raw_types.Gate):
 
     def num_qubits(self) -> int:
         return len(self._qid_shape)
-
-    def on_each(self, *targets: Union['cirq.Qid', Iterable[Any]]) -> List['cirq.Operation']:
-        """Returns a list of operations that applies the single qubit identity
-        to each of the targets.
-
-        Args:
-            *targets: The qubits to apply this gate to.
-
-        Returns:
-            Operations applying this gate to the target qubits.
-
-        Raises:
-            ValueError if targets are not instances of Qid or List[Qid] or
-            the gate from which this is applied is not a single qubit identity
-            gate.
-        """
-        if len(self._qid_shape) != 1:
-            raise ValueError('IdentityGate only supports on_each when it is a one qubit gate.')
-        operations: List['cirq.Operation'] = []
-        for target in targets:
-            if isinstance(target, raw_types.Qid):
-                operations.append(self.on(target))
-            elif isinstance(target, Iterable) and not isinstance(target, str):
-                operations.extend(self.on_each(*target))
-            else:
-                raise ValueError(
-                    'Gate was called with type different than Qid. Type: {}'.format(type(target))
-                )
-        return operations
 
     def __pow__(self, power: Any) -> Any:
         if isinstance(power, (int, float, complex, sympy.Basic)):
