@@ -37,7 +37,7 @@ from cirq.google.calibration.phased_fsim import (
     PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-    ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     try_convert_sqrt_iswap_to_fsim,
 )
 from cirq.google.engine import Engine
@@ -563,7 +563,7 @@ def run_zeta_chi_gamma_calibration_for_moments(
     engine: Union[Engine, PhasedFSimEngineSimulator],
     processor_id: Optional[str] = None,
     gate_set: Optional[SerializableGateSet] = None,
-    options: FloquetPhasedFSimCalibrationOptions = ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    options: FloquetPhasedFSimCalibrationOptions = THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
     max_layers_per_request: int = 1,
