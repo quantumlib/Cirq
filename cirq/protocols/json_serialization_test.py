@@ -246,7 +246,7 @@ SHOULDNT_BE_SERIALIZED = [
     'EngineProcessor',
     'EngineProgram',
     'EngineTimeSlot',
-    'PhaseCorrectedFSimOperations',
+    'FSimPhaseCorrections',
     'PhasedFSimEngineSimulator',
     'QuantumEngineSampler',
     'SQRT_ISWAP_PARAMETERS',
