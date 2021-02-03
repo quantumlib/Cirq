@@ -123,7 +123,7 @@ def test_make_floquet_request_for_circuit() -> None:
     ]
 
     assert circuit_calibration.circuit == circuit
-    assert circuit_calibration.moment_allocations == [None, 0, 1]
+    assert circuit_calibration.moment_to_calibration == [None, 0, 1]
 
 
 def test_make_floquet_request_for_circuit_merges_sub_sets() -> None:
@@ -152,7 +152,7 @@ def test_make_floquet_request_for_circuit_merges_sub_sets() -> None:
         ),
     ]
     assert circuit_calibration.circuit == circuit
-    assert circuit_calibration.moment_allocations == [None, 0, 1, 0, 1]
+    assert circuit_calibration.moment_to_calibration == [None, 0, 1, 0, 1]
 
 
 def test_make_floquet_request_for_circuit_merges_many_circuits() -> None:
@@ -181,7 +181,7 @@ def test_make_floquet_request_for_circuit_merges_many_circuits() -> None:
         ),
     ]
     assert circuit_calibration_1.circuit == circuit_1
-    assert circuit_calibration_1.moment_allocations == [None, 0, 1, 0]
+    assert circuit_calibration_1.moment_to_calibration == [None, 0, 1, 0]
 
     circuit_2 = cirq.Circuit([SQRT_ISWAP_GATE.on(b, c), SQRT_ISWAP_GATE.on(d, e)])
 
@@ -198,7 +198,7 @@ def test_make_floquet_request_for_circuit_merges_many_circuits() -> None:
         ),
     ]
     assert circuit_calibration_2.circuit == circuit_2
-    assert circuit_calibration_2.moment_allocations == [1]
+    assert circuit_calibration_2.moment_to_calibration == [1]
 
 
 def test_make_floquet_request_for_circuit_does_not_merge_sub_sets_when_disabled() -> None:
@@ -236,7 +236,7 @@ def test_make_floquet_request_for_circuit_does_not_merge_sub_sets_when_disabled(
         ),
     ]
     assert circuit_calibration.circuit == circuit
-    assert circuit_calibration.moment_allocations == [None, 0, 1, 2, 3, 1]
+    assert circuit_calibration.moment_to_calibration == [None, 0, 1, 2, 3, 1]
 
 
 def test_make_floquet_request_for_circuit_merges_compatible_sets() -> None:
@@ -261,7 +261,7 @@ def test_make_floquet_request_for_circuit_merges_compatible_sets() -> None:
         ),
     ]
     assert circuit_calibration.circuit == circuit
-    assert circuit_calibration.moment_allocations == [None, 0, 1, 0, 1]
+    assert circuit_calibration.moment_to_calibration == [None, 0, 1, 0, 1]
 
 
 def test_run_characterization():
@@ -508,7 +508,7 @@ def test_run_floquet_characterization_for_circuit():
         )
     ]
     assert circuit_calibration.circuit == circuit
-    assert circuit_calibration.moment_allocations == [0]
+    assert circuit_calibration.moment_to_calibration == [0]
 
 
 @pytest.mark.parametrize(
@@ -589,7 +589,7 @@ def test_run_zeta_chi_gamma_calibration_for_moments() -> None:
             gate=SQRT_ISWAP_GATE, parameters={(b, c): parameters_bc}, options=options
         ),
     ]
-    assert calibrated_circuit.moment_allocations == [None, None, 0, None, None, 1, None]
+    assert calibrated_circuit.moment_to_calibration == [None, None, 0, None, None, 1, None]
 
 
 def test_run_zeta_chi_gamma_calibration_for_moments_no_chi() -> None:
@@ -625,17 +625,17 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
     a, b, c = cirq.LineQubit.range(3)
 
     with pytest.raises(ValueError):
-        circuit_calibration = workflow.CircuitCalibration(cirq.Circuit(), [1])
+        circuit_calibration = workflow.CircuitWithCalibration(cirq.Circuit(), [1])
         workflow.zeta_chi_gamma_calibration_for_moments(circuit_calibration, [])
 
     with pytest.raises(ValueError):
-        circuit_calibration = workflow.CircuitCalibration(
+        circuit_calibration = workflow.CircuitWithCalibration(
             cirq.Circuit(SQRT_ISWAP_GATE.on(a, b)), [None]
         )
         workflow.zeta_chi_gamma_calibration_for_moments(circuit_calibration, [])
 
     with pytest.raises(ValueError):
-        circuit_calibration = workflow.CircuitCalibration(
+        circuit_calibration = workflow.CircuitWithCalibration(
             cirq.Circuit(SQRT_ISWAP_GATE.on(a, b)), [0]
         )
         characterizations = [
@@ -648,17 +648,17 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
         workflow.zeta_chi_gamma_calibration_for_moments(circuit_calibration, characterizations)
 
     with pytest.raises(workflow.IncompatibleMomentError):
-        circuit_calibration = workflow.CircuitCalibration(
+        circuit_calibration = workflow.CircuitWithCalibration(
             cirq.Circuit(cirq.GlobalPhaseOperation(coefficient=1.0)), [None]
         )
         workflow.zeta_chi_gamma_calibration_for_moments(circuit_calibration, [])
 
     with pytest.raises(workflow.IncompatibleMomentError):
-        circuit_calibration = workflow.CircuitCalibration(cirq.Circuit(cirq.CZ.on(a, b)), [None])
+        circuit_calibration = workflow.CircuitWithCalibration(cirq.Circuit(cirq.CZ.on(a, b)), [None])
         workflow.zeta_chi_gamma_calibration_for_moments(circuit_calibration, [])
 
     with pytest.raises(workflow.IncompatibleMomentError):
-        circuit_calibration = workflow.CircuitCalibration(
+        circuit_calibration = workflow.CircuitWithCalibration(
             cirq.Circuit([SQRT_ISWAP_GATE.on(a, b), cirq.Z.on(c)]), [0]
         )
         characterizations = [

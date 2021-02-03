@@ -45,17 +45,17 @@ from cirq.google.serializable_gate_set import SerializableGateSet
 
 
 @dataclasses.dataclass(frozen=True)
-class CircuitCalibration:
-    """Circuit with calibration data annotations.
+class CircuitWithCalibration:
+    """Circuit with characterization data annotations.
 
     Attributes:
         circuit: Circuit instance.
-        moment_allocations: Maps each moment within a circuit to an index of a characterization
+        moment_to_calibration: Maps each moment within a circuit to an index of a characterization
             request or response. None means that there is no characterization data for that moment.
     """
 
     circuit: Circuit
-    moment_allocations: List[Optional[int]]
+    moment_to_calibration: List[Optional[int]]
 
 
 def make_floquet_request_for_moment(
@@ -138,7 +138,7 @@ def make_floquet_request_for_circuit(
     gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
     initial: Optional[Sequence[FloquetPhasedFSimCalibrationRequest]] = None,
-) -> Tuple[CircuitCalibration, List[FloquetPhasedFSimCalibrationRequest]]:
+) -> Tuple[CircuitWithCalibration, List[FloquetPhasedFSimCalibrationRequest]]:
     """Extracts a minimal set of Floquet characterization requests necessary to characterize given
     circuit.
 
@@ -192,7 +192,7 @@ def make_floquet_request_for_circuit(
         else:
             allocations.append(None)
 
-    return CircuitCalibration(circuit, allocations), calibrations
+    return CircuitWithCalibration(circuit, allocations), calibrations
 
 
 def _append_into_calibrations_if_missing(
@@ -352,10 +352,10 @@ def run_characterizations(
 
 
 def zeta_chi_gamma_calibration_for_moments(
-    circuit_calibration: CircuitCalibration,
+    circuit_calibration: CircuitWithCalibration,
     characterizations: List[PhasedFSimCalibrationResult],
     gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
-) -> CircuitCalibration:
+) -> CircuitWithCalibration:
     """Compensates circuit against errors in zeta, chi and gamma angles.
 
     This method creates a new circuit with a single-qubit Z gates added in a such way so that
@@ -376,7 +376,7 @@ def zeta_chi_gamma_calibration_for_moments(
         calibrated circuit has single-qubit Z gates added which compensates for the true gates
         imperfections.
     """
-    if len(circuit_calibration.circuit) != len(circuit_calibration.moment_allocations):
+    if len(circuit_calibration.circuit) != len(circuit_calibration.moment_to_calibration):
         raise ValueError('Moment allocations does not match circuit length')
 
     default_phases = PhasedFSimCharacterization(zeta=0.0, chi=0.0, gamma=0.0)
@@ -384,7 +384,7 @@ def zeta_chi_gamma_calibration_for_moments(
     compensated = Circuit()
     compensated_allocations = []
     for moment, characterization_index in zip(
-        circuit_calibration.circuit, circuit_calibration.moment_allocations
+        circuit_calibration.circuit, circuit_calibration.moment_to_calibration
     ):
         parameters = None
         if characterization_index is not None:
@@ -443,7 +443,7 @@ def zeta_chi_gamma_calibration_for_moments(
             assert new_moment_mapping is not None  # Required for mypy
             compensated_allocations += new_moment_mapping
 
-    return CircuitCalibration(compensated, compensated_allocations)
+    return CircuitWithCalibration(compensated, compensated_allocations)
 
 
 class PhaseCorrectedFSimOperations:
@@ -507,7 +507,7 @@ def run_floquet_characterization_for_circuit(
     merge_subsets: bool = True,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
-) -> Tuple[CircuitCalibration, List[PhasedFSimCalibrationResult]]:
+) -> Tuple[CircuitWithCalibration, List[PhasedFSimCalibrationResult]]:
     """Extracts moments within a circuit to characterize and characterizes them against engine.
 
     The method calls floquet_characterization_for_circuit to extract moments to characterize and
@@ -569,7 +569,7 @@ def run_zeta_chi_gamma_calibration_for_moments(
     merge_subsets: bool = True,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
-) -> Tuple[CircuitCalibration, List[PhasedFSimCalibrationResult]]:
+) -> Tuple[CircuitWithCalibration, List[PhasedFSimCalibrationResult]]:
     """Compensates circuit against errors in zeta, chi and gamma angles by running calibrations on
     the engine.
 
