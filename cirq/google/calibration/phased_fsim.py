@@ -186,6 +186,15 @@ class PhasedFSimCalibrationResult:
     options: PhasedFSimCalibrationOptions
 
     def override(self, parameters: PhasedFSimCharacterization) -> 'PhasedFSimCalibrationResult':
+        """Creates the new results with certain parameters overridden for all characterizations.
+
+        Args:
+            parameters: Parameters that will be used when overriding. The angles of that object
+                which are not None will be used to replace current parameters for every pair stored.
+
+        Returns:
+            New instance of PhasedFSimCalibrationResult with certain parameters overriden.
+        """
         return PhasedFSimCalibrationResult(
             parameters={
                 pair: pair_parameters.override_by(parameters)
@@ -293,6 +302,16 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     characterize_gamma: bool
     characterize_phi: bool
 
+    def phase_corrected_override(self) -> PhasedFSimCharacterization:
+        """Gives a PhasedFSimCharacterization that can be used to override characterization after
+        correcting for zeta, chi and gamma angles.
+        """
+        return PhasedFSimCharacterization(
+            zeta=0.0 if self.characterize_zeta else None,
+            chi=0.0 if self.characterize_chi else None,
+            gamma=0.0 if self.characterize_gamma else None,
+        )
+
 
 """PhasedFSimCalibrationOptions options with all angles characterization requests set to True."""
 ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
@@ -311,6 +330,17 @@ WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationO
     characterize_chi=False,
     characterize_gamma=True,
     characterize_phi=True,
+)
+
+
+"""PhasedFSimCalibrationOptions with theta, zeta and gamma angles characterization requests set to 
+True."""
+THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
+    characterize_theta=True,
+    characterize_zeta=True,
+    characterize_chi=False,
+    characterize_gamma=True,
+    characterize_phi=False,
 )
 
 

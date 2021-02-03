@@ -60,6 +60,10 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
     cirq.google.run_characterizations requests. The returned calibration results represent the
     internal state of a simulator. Circuits which are run on this simulator are modified to account
     for the changes in the unitary parameters as described by the calibration results.
+
+    Attributes:
+        gates_translator: Function that translates a gate to a supported FSimGate which will undergo
+        characterization.
     """
 
     def __init__(
@@ -82,11 +86,12 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         """
         self._simulator = simulator
         self._drift_generator = drift_generator
-        self._gates_translator = gates_translator
         self._drifted_parameters: Dict[Tuple[Qid, Qid, FSimGate], PhasedFSimCharacterization] = {}
+        self.gates_translator = gates_translator
 
-    @staticmethod
+    @classmethod
     def create_with_ideal_sqrt_iswap(
+        cls,
         *,
         simulator: Optional[Simulator] = None,
     ) -> 'PhasedFSimEngineSimulator':
@@ -101,6 +106,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         """
 
         def sample_gate(_1: Qid, _2: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
+            assert isinstance(gate, FSimGate), f'Expected FSimGate, got {gate}'
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
                 gate.phi, 0.0
             ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
@@ -111,13 +117,14 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         if simulator is None:
             simulator = Simulator()
 
-        return PhasedFSimEngineSimulator(
+        return cls(
             simulator, drift_generator=sample_gate, gates_translator=try_convert_sqrt_iswap_to_fsim
         )
 
-    @staticmethod
+    @classmethod
     def create_with_random_gaussian_sqrt_iswap(
-        mean: PhasedFSimCharacterization,
+        cls,
+        mean: PhasedFSimCharacterization = SQRT_ISWAP_PARAMETERS,
         *,
         simulator: Optional[Simulator] = None,
         sigma: PhasedFSimCharacterization = PhasedFSimCharacterization(
@@ -131,31 +138,35 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         for each angle respectively.
 
         Each gate for each pair of qubits retains the sampled values for the entire simulation, even
-        weh used multiple times within a circuit.
+        when used multiple times within a circuit.
 
         Attributes:
             mean: The mean value for each unitary angle. All parameters must be provided.
             simulator: Simulator object to use. When None, a new instance of cirq.Simulator() will
                 be created.
-            sigma: The standard deviation for each unitary angle. When some sigma parameter is None,
-                the mean value will be always used for that parameter.
+            sigma: The standard deviation for each unitary angle. For sigma parameters that are
+                None, the mean value will be used without any sampling.
 
         Returns:
             New PhasedFSimEngineSimulator instance.
         """
 
+        if mean.any_none():
+            raise ValueError(f'All mean values must be provided, got mean of {mean}')
+
+        rand = parse_random_state(random_or_seed)
+
+        def sample_value(gaussian_mean: Optional[float], gaussian_sigma: Optional[float]) -> float:
+            assert gaussian_mean is not None
+            if gaussian_sigma is None:
+                return gaussian_mean
+            return rand.normal(gaussian_mean, gaussian_sigma)
+
         def sample_gate(_1: Qid, _2: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
+            assert isinstance(gate, FSimGate), f'Expected FSimGate, got {gate}'
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
                 gate.phi, 0.0
             ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
-
-            def sample_value(
-                gaussian_mean: Optional[float], gaussian_sigma: Optional[float]
-            ) -> float:
-                assert gaussian_mean is not None
-                if gaussian_sigma is None:
-                    return gaussian_mean
-                return rand.normal(gaussian_mean, gaussian_sigma)
 
             return PhasedFSimCharacterization(
                 theta=sample_value(mean.theta, sigma.theta),
@@ -165,20 +176,16 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                 phi=sample_value(mean.phi, sigma.phi),
             )
 
-        if mean.any_none():
-            raise ValueError(f'All mean values must be provided, got mean of {mean}')
-
-        rand = parse_random_state(random_or_seed)
-
         if simulator is None:
             simulator = Simulator()
 
-        return PhasedFSimEngineSimulator(
+        return cls(
             simulator, drift_generator=sample_gate, gates_translator=try_convert_sqrt_iswap_to_fsim
         )
 
-    @staticmethod
+    @classmethod
     def create_from_dictionary_sqrt_iswap(
+        cls,
         parameters: PhasedFsimDictParameters,
         *,
         simulator: Optional[Simulator] = None,
@@ -197,7 +204,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                 FSimGate(theta=π/4, phi=0) gate parameters will be used. When not set and this
                 situation occurs, ValueError is thrown during simulation.
             ideal_when_missing_parameter: When set and some parameter for some gate for a given pair
-                of qubits are is specified then the matching parameter of FSimGate(theta=π/4, phi=0)
+                of qubits is specified then the matching parameter of FSimGate(theta=π/4, phi=0)
                 gate will be used. When not set and this situation occurs, ValueError is thrown
                 during simulation.
 
@@ -206,6 +213,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         """
 
         def sample_gate(a: Qid, b: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
+            assert isinstance(gate, FSimGate), f'Expected FSimGate, got {gate}'
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
                 gate.phi, 0.0
             ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
@@ -244,12 +252,13 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         if simulator is None:
             simulator = Simulator()
 
-        return PhasedFSimEngineSimulator(
+        return cls(
             simulator, drift_generator=sample_gate, gates_translator=try_convert_sqrt_iswap_to_fsim
         )
 
-    @staticmethod
+    @classmethod
     def create_from_characterizations_sqrt_iswap(
+        cls,
         characterizations: Iterable[PhasedFSimCalibrationResult],
         *,
         simulator: Optional[Simulator] = None,
@@ -268,7 +277,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                 FSimGate(theta=π/4, phi=0) gate parameters will be used. When not set and this
                 situation occurs, ValueError is thrown during simulation.
             ideal_when_missing_parameter: When set and some parameter for some gate for a given pair
-                of qubits are is specified then the matching parameter of FSimGate(theta=π/4, phi=0)
+                of qubits is specified then the matching parameter of FSimGate(theta=π/4, phi=0)
                 gate will be used. When not set and this situation occurs, ValueError is thrown
                 during simulation.
 
@@ -300,7 +309,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         if simulator is None:
             simulator = Simulator()
 
-        return PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
+        return cls.create_from_dictionary_sqrt_iswap(
             parameters,
             simulator=simulator,
             ideal_when_missing_gate=ideal_when_missing_gate,
@@ -314,6 +323,14 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
     def get_calibrations(
         self, requests: Sequence[PhasedFSimCalibrationRequest]
     ) -> List[PhasedFSimCalibrationResult]:
+        """Retrieves the calibration that matches the requests
+
+        Args:
+            requests: Calibration requests to obtain.
+
+        Returns:
+            Calibration results that reflect the internal state of simulator.
+        """
         results = []
         for request in requests:
             if isinstance(request, FloquetPhasedFSimCalibrationRequest):
@@ -326,7 +343,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             else:
                 raise ValueError(f'Unsupported calibration request {request}')
 
-            translated = self._gates_translator(request.gate)
+            translated = self.gates_translator(request.gate)
             if translated is None:
                 raise ValueError(f'Calibration request contains unsupported gate {request.gate}')
 
@@ -334,7 +351,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
             parameters = {}
             for a, b in request.pairs:
-                drifted = self._create_gate(a, b, translated_gate)
+                drifted = self.create_gate_with_drift(a, b, translated_gate)
                 parameters[a, b] = PhasedFSimCharacterization(
                     theta=drifted.theta if characterize_theta else None,
                     zeta=drifted.zeta if characterize_zeta else None,
@@ -351,28 +368,17 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
         return results
 
-    def _run(
-        self, circuit: Circuit, param_resolver: ParamResolver, repetitions: int
-    ) -> Dict[str, np.ndarray]:
-        converted = self._convert_to_circuit_with_drift(circuit)
-        return self._simulator._run(converted, param_resolver, repetitions)
+    def create_gate_with_drift(self, a: Qid, b: Qid, gate: FSimGate) -> PhasedFSimGate:
+        """Generates a gate with drift for a given gate.
 
-    def _base_iterator(
-        self,
-        circuit: Circuit,
-        qubit_order: QubitOrderOrList,
-        initial_state: Any,
-    ) -> Iterator[StepResult]:
-        converted = self._convert_to_circuit_with_drift(circuit)
-        return self._simulator._base_iterator(converted, qubit_order, initial_state)
+        Args:
+            a: The first qubit.
+            b: The second qubit.
+            gate: Gate which a modified version of should be generated.
 
-    def _convert_to_circuit_with_drift(self, circuit: Circuit) -> Circuit:
-        copied = Circuit(circuit)
-        converter = self._PhasedFSimConverter(self)
-        converter.optimize_circuit(copied)
-        return copied
-
-    def _create_gate(self, a: Qid, b: Qid, gate: FSimGate) -> PhasedFSimGate:
+        Returns:
+            A modified gate that includes the drifts induced by internal state of the simulator.
+        """
         if (a, b, gate) in self._drifted_parameters:
             parameters = self._drifted_parameters[(a, b, gate)]
         elif (b, a, gate) in self._drifted_parameters:
@@ -382,32 +388,56 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             self._drifted_parameters[(a, b, gate)] = parameters
         return PhasedFSimGate(**parameters.asdict())
 
-    class _PhasedFSimConverter(PointOptimizer):
-        def __init__(self, outer: 'PhasedFSimEngineSimulator') -> None:
-            super().__init__()
-            self._outer = outer
+    def _run(
+        self, circuit: Circuit, param_resolver: ParamResolver, repetitions: int
+    ) -> Dict[str, np.ndarray]:
+        converted = _convert_to_circuit_with_drift(self, circuit)
+        return self._simulator._run(converted, param_resolver, repetitions)
 
-        def optimization_at(
-            self, circuit: Circuit, index: int, op: Operation
-        ) -> Optional[PointOptimizationSummary]:
+    def _base_iterator(
+        self,
+        circuit: Circuit,
+        qubit_order: QubitOrderOrList,
+        initial_state: Any,
+    ) -> Iterator[StepResult]:
+        converted = _convert_to_circuit_with_drift(self, circuit)
+        return self._simulator._base_iterator(converted, qubit_order, initial_state)
 
-            if isinstance(op.gate, (MeasurementGate, SingleQubitGate, WaitGate)):
-                new_op = op
-            else:
-                if op.gate is None:
-                    raise IncompatibleMomentError(f'Operation {op} has a missing gate')
-                translated = self._outer._gates_translator(op.gate)
-                if translated is None:
-                    raise IncompatibleMomentError(
-                        f'Moment contains non-single qubit operation ' f'{op} with unsupported gate'
-                    )
-                translated_gate, translate_phase_exponent = translated
-                # TODO: Introduce phase corrections by adjusting chi.
-                if not np.isclose(translate_phase_exponent, 0.0):
-                    raise RuntimeError('Gates with phase exponents not yet supported')
-                a, b = op.qubits
-                new_op = self._outer._create_gate(a, b, translated_gate).on(a, b)
 
-            return PointOptimizationSummary(
-                clear_span=1, clear_qubits=op.qubits, new_operations=new_op
-            )
+class _PhasedFSimConverter(PointOptimizer):
+    def __init__(self, simulator: PhasedFSimEngineSimulator) -> None:
+        super().__init__()
+        self._simulator = simulator
+
+    def optimization_at(
+        self, circuit: Circuit, index: int, op: Operation
+    ) -> Optional[PointOptimizationSummary]:
+
+        if isinstance(op.gate, (MeasurementGate, SingleQubitGate, WaitGate)):
+            new_op = op
+        else:
+            if op.gate is None:
+                raise IncompatibleMomentError(f'Operation {op} has a missing gate')
+            translated = self._simulator.gates_translator(op.gate)
+            if translated is None:
+                raise IncompatibleMomentError(
+                    f'Moment contains non-single qubit operation ' f'{op} with unsupported gate'
+                )
+            translated_gate, translate_phase_exponent = translated
+            if not np.isclose(translate_phase_exponent, 0.0):
+                raise RuntimeError('Gates with phase exponents not yet supported')
+
+            # TODO: Introduce phase corrections by adjusting chi.
+            a, b = op.qubits
+            new_op = self._simulator.create_gate_with_drift(a, b, translated_gate).on(a, b)
+
+        return PointOptimizationSummary(clear_span=1, clear_qubits=op.qubits, new_operations=new_op)
+
+
+def _convert_to_circuit_with_drift(
+    simulator: PhasedFSimEngineSimulator, circuit: Circuit
+) -> Circuit:
+    circuit_with_drift = Circuit(circuit)
+    converter = _PhasedFSimConverter(simulator)
+    converter.optimize_circuit(circuit_with_drift)
+    return circuit_with_drift
