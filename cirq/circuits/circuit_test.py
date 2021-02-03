@@ -119,13 +119,12 @@ def test_equality(circuit_cls):
     )
 
 
-class TestDevice(cirq.Device):
-    def validate_operation(self, operation: cirq.Operation) -> None:
-        pass
-
-
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_approx_eq(circuit_cls):
+    class TestDevice(cirq.Device):
+        def validate_operation(self, operation: cirq.Operation) -> None:
+            pass
+
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
