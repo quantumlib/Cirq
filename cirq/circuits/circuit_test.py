@@ -14,7 +14,7 @@
 import os
 from collections import defaultdict
 from random import randint, random, sample, randrange
-from typing import Tuple, Type, Set, cast
+from typing import Tuple, cast, AbstractSet
 
 import numpy as np
 import pytest
@@ -280,14 +280,13 @@ def test_radd_op_tree(circuit_cls):
     )
 
     # Preserves device.
-    d = foxy
-    c = circuit_cls(device=d)
+    c = circuit_cls(device=foxy)
     c2 = [] + c
-    assert c2.device is d
+    assert c2.device is foxy
     assert c2 == c
 
     # Validates versus device.
-    c = circuit_cls(device=d)
+    c = circuit_cls(device=foxy)
     with pytest.raises(ValueError, match='Unsupported qubit'):
         _ = [cirq.X(cirq.NamedQubit('a'))] + c
 
@@ -589,22 +588,22 @@ class FakeXmonDevice(cirq.Device):
 
     def __init__(
         self,
-        allowed_qubit_types: Tuple[Type],
-        allowed_gates: Tuple[Type],
-        qubits: Set[cirq.Qid],
-        repr: str,
+        allowed_qubit_types: Tuple[type, ...],
+        allowed_gates: Tuple[type, ...],
+        qubits: AbstractSet[cirq.Qid],
+        name: str,
     ):
         self.allowed_qubit_types = allowed_qubit_types
         self.allowed_gates = allowed_gates
         self.qubits = qubits
-        self._repr = repr
+        self._repr = name
 
     def validate_operation(self, operation: cirq.Operation) -> None:
         # This is pretty close to what the cirq.google.XmonDevice has for validation
         for q in operation.qubits:
             if not isinstance(q, self.allowed_qubit_types):
                 raise ValueError("Unsupported qubit type: {!r}".format(type(q)))
-            if q not in self.qubit_set():
+            if q not in self.qubits:
                 raise ValueError('Qubit not on device: {!r}'.format(q))
         if not isinstance(operation.gate, self.allowed_gates):
             raise ValueError("Unsupported gate type: {!r}".format(operation.gate))
@@ -634,32 +633,30 @@ class FakeXmonDevice(cirq.Device):
 
 
 foxy = FakeXmonDevice(
-    allowed_qubit_types=(cirq.GridQubit),
+    allowed_qubit_types=(cirq.GridQubit,),
     allowed_gates=(
         ops.CZPowGate,
         ops.XPowGate,
         ops.YPowGate,
-        ops.PhasedXPowGate,
-        ops.MeasurementGate,
         ops.ZPowGate,
     ),
-    qubits=frozenset(
-        {
-            cirq.GridQubit(0, 0),
-            cirq.GridQubit(1, 0),
-            cirq.GridQubit(0, 1),
-            cirq.GridQubit(1, 1),
-            cirq.GridQubit(0, 6),
-        }
-    ),
-    repr='cirq.circuits.circuit_test.foxy',
+    qubits={
+        cirq.GridQubit(0, 0),
+        cirq.GridQubit(1, 0),
+        cirq.GridQubit(0, 1),
+        cirq.GridQubit(1, 1),
+        cirq.GridQubit(0, 6),
+    },
+    name='cirq.circuits.circuit_test.foxy',
 )
 
 bcone = FakeXmonDevice(
-    allowed_qubit_types=(cirq.GridQubit),
+    allowed_qubit_types=(cirq.GridQubit,),
     allowed_gates=(cirq.XPowGate,),
-    qubits=frozenset({cirq.GridQubit(0, 6)}),
-    repr='cirq.circuits.circuit_test.bcone',
+    qubits={
+        cirq.GridQubit(0, 6),
+    },
+    name='cirq.circuits.circuit_test.bcone',
 )
 
 
