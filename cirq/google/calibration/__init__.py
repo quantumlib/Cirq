@@ -30,8 +30,8 @@ from cirq.google.calibration.phased_fsim import (
 )
 
 from cirq.google.calibration.workflow import (
-    CircuitCalibration,
-    PhaseCorrectedFSimOperations,
+    CircuitWithCalibration,
+    FSimPhaseCorrections,
     make_floquet_request_for_circuit,
     make_floquet_request_for_moment,
     zeta_chi_gamma_calibration_for_moments,

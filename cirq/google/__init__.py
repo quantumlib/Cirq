@@ -22,10 +22,10 @@ from cirq.google.arg_func_langs import (
 
 from cirq.google.calibration import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-    CircuitCalibration,
+    CircuitWithCalibration,
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
-    PhaseCorrectedFSimOperations,
+    FSimPhaseCorrections,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
