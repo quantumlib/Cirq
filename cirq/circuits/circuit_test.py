@@ -4097,6 +4097,7 @@ def test_transform_qubits():
         original.transform_qubits(lambda q: q, new_device=cg.Bristlecone).device is cg.Bristlecone
     )
 
+
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_indexing_by_pair(circuit_cls):
     # 0: ───H───@───X───@───
