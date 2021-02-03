@@ -18,17 +18,14 @@ data:
         - collaborator
         - owner
       members:
-        - dabacon
-        - strilanc
-        - viathor
-        - dstrain115
-        - kevinsung
-        - maffoo
-        - MichaelBroughton
-        - mpharrigan
-        - ncrubin
         - balopat
-
+        - dstrain115
+        - maffoo
+        - mpharrigan
+        - orion-martin-95
+        - viathor
+        - strilanc
+        - tanujkhattar
 
     collections:
       - id: daily
