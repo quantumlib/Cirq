@@ -109,9 +109,14 @@ def test_from_circuit():
     assert sorted(circuit.all_qubits()) == sorted(dag.all_qubits())
 
 
+class TestDevice(cirq.Device):
+    def validate_operation(self, operation: cirq.Operation) -> None:
+        pass
+
+
 def test_from_circuit_with_device():
     q0 = cirq.GridQubit(5, 5)
-    circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0), device=cirq.google.Bristlecone)
+    circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0), device=TestDevice())
     dag = cirq.CircuitDag.from_circuit(circuit)
     assert networkx.dag.is_directed_acyclic_graph(dag)
     assert dag.device == circuit.device
@@ -193,7 +198,12 @@ def test_equality():
 
 
 def test_larger_circuit():
-    q0, q1, q2, q3 = cirq.google.Bristlecone.col(5)[:4]
+    q0, q1, q2, q3 = [
+        cirq.GridQubit(0, 5),
+        cirq.GridQubit(1, 5),
+        cirq.GridQubit(2, 5),
+        cirq.GridQubit(3, 5),
+    ]
     # This circuit does not have CZ gates on adjacent qubits because the order
     # dag.to_circuit() would append them is non-deterministic.
     circuit = cirq.Circuit(
@@ -208,7 +218,7 @@ def test_larger_circuit():
         cirq.CZ(q0, q1),
         cirq.T(q3),
         strategy=cirq.InsertStrategy.EARLIEST,
-        device=cirq.google.Bristlecone,
+        device=TestDevice(),
     )
 
     dag = cirq.CircuitDag.from_circuit(circuit)

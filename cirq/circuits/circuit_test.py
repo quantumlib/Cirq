@@ -11,18 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from typing import Tuple
-
+import os
 from collections import defaultdict
 from random import randint, random, sample, randrange
-import os
+from typing import Tuple, Type, Set, cast
+
 import numpy as np
 import pytest
 import sympy
 
 import cirq
-import cirq.google as cg
 import cirq.testing
 from cirq import ops
 
@@ -93,7 +91,7 @@ def test_equality(circuit_cls):
         circuit_cls(()),
     )
     eq.add_equality_group(circuit_cls([cirq.Moment()]), circuit_cls((cirq.Moment(),)))
-    eq.add_equality_group(circuit_cls(device=cg.Foxtail))
+    eq.add_equality_group(circuit_cls(device=foxy))
 
     # Equality depends on structure and contents.
     eq.add_equality_group(circuit_cls([cirq.Moment([cirq.X(a)])]))
@@ -121,12 +119,13 @@ def test_equality(circuit_cls):
     )
 
 
+class TestDevice(cirq.Device):
+    def validate_operation(self, operation: cirq.Operation) -> None:
+        pass
+
+
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_approx_eq(circuit_cls):
-    class TestDevice(cirq.Device):
-        def validate_operation(self, operation: cirq.Operation) -> None:
-            pass
-
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -282,13 +281,14 @@ def test_radd_op_tree(circuit_cls):
     )
 
     # Preserves device.
-    c = circuit_cls(device=cirq.google.Bristlecone)
+    d = foxy
+    c = circuit_cls(device=d)
     c2 = [] + c
-    assert c2.device is cirq.google.Bristlecone
+    assert c2.device is d
     assert c2 == c
 
     # Validates versus device.
-    c = circuit_cls(device=cirq.google.Bristlecone)
+    c = circuit_cls(device=d)
     with pytest.raises(ValueError, match='Unsupported qubit'):
         _ = [cirq.X(cirq.NamedQubit('a'))] + c
 
@@ -336,11 +336,11 @@ def test_repr(circuit_cls):
 ])"""
     )
 
-    c = circuit_cls(device=cg.Foxtail)
+    c = circuit_cls(device=foxy)
     cirq.testing.assert_equivalent_repr(c)
-    assert repr(c) == f'cirq.{circuit_cls.__name__}(device=cirq.google.Foxtail)'
+    assert repr(c) == f'cirq.{circuit_cls.__name__}(device=cirq.circuits.circuit_test.foxy)'
 
-    c = circuit_cls(cirq.Z(cirq.GridQubit(0, 0)), device=cg.Foxtail)
+    c = circuit_cls(cirq.Z(cirq.GridQubit(0, 0)), device=foxy)
     cirq.testing.assert_equivalent_repr(c)
     assert (
         repr(c)
@@ -348,7 +348,7 @@ def test_repr(circuit_cls):
     cirq.Moment(
         cirq.Z(cirq.GridQubit(0, 0)),
     ),
-], device=cirq.google.Foxtail)"""
+], device=cirq.circuits.circuit_test.foxy)"""
     )
 
 
@@ -562,8 +562,8 @@ def test_concatenate():
 
 
 def test_concatenate_with_device():
-    fox = cirq.Circuit(device=cg.Foxtail)
-    cone = cirq.Circuit(device=cg.Bristlecone)
+    fox = cirq.Circuit(device=foxy)
+    cone = cirq.Circuit(device=bcone)
     unr = cirq.Circuit()
 
     _ = cone + cone
@@ -581,30 +581,114 @@ def test_concatenate_with_device():
     assert len(cone) == 0
 
 
+class FakeXmonDevice(cirq.Device):
+    """A Fake XMon device that was created to ensure certain Device validation features are
+    leveraged in Circuit functions. Originally this was cirq.google.Foxtail and
+    cirq.google.Bristlecone, however we decoupled cirq.google from cirq core. This class now
+    contains the minimum set of features that tests required. Feel free to extend the features
+    here as needed."""
+
+    def __init__(
+        self,
+        allowed_qubit_types: Tuple[Type],
+        allowed_gates: Tuple[Type],
+        qubits: Set[cirq.Qid],
+        repr: str,
+    ):
+        self.allowed_qubit_types = allowed_qubit_types
+        self.allowed_gates = allowed_gates
+        self.qubits = qubits
+        self._repr = repr
+
+    def validate_operation(self, operation: cirq.Operation) -> None:
+        # This is pretty close to what the cirq.google.XmonDevice has for validation
+        for q in operation.qubits:
+            if not isinstance(q, self.allowed_qubit_types):
+                raise ValueError("Unsupported qubit type: {!r}".format(type(q)))
+            if q not in self.qubit_set():
+                raise ValueError('Qubit not on device: {!r}'.format(q))
+        if not isinstance(operation.gate, self.allowed_gates):
+            raise ValueError("Unsupported gate type: {!r}".format(operation.gate))
+        if len(operation.qubits) == 2 and not isinstance(operation.gate, ops.MeasurementGate):
+            p, q = operation.qubits
+            if not cast(cirq.GridQubit, p).is_adjacent(q):
+                raise ValueError('Non-local interaction: {!r}.'.format(operation))
+
+    def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
+        # a fake decomposer for only TOFFOLI gates
+        if isinstance(operation.gate, cirq.CCXPowGate):
+            return cirq.decompose(operation)
+        return operation
+
+    def can_add_operation_into_moment(
+        self, operation: 'cirq.Operation', moment: 'cirq.Moment'
+    ) -> bool:
+        # a fake rule for ensuring that no two CZs are executed at the same moment.
+        # this will ensure that CZs are always in separate moments in this device
+        return not (
+            isinstance(operation.gate, cirq.CZPowGate)
+            and any(isinstance(op.gate, cirq.CZPowGate) for op in moment.operations)
+        )
+
+    def __repr__(self):
+        return self._repr
+
+
+foxy = FakeXmonDevice(
+    allowed_qubit_types=(cirq.GridQubit),
+    allowed_gates=(
+        ops.CZPowGate,
+        ops.XPowGate,
+        ops.YPowGate,
+        ops.PhasedXPowGate,
+        ops.MeasurementGate,
+        ops.ZPowGate,
+    ),
+    qubits=frozenset(
+        {
+            cirq.GridQubit(0, 0),
+            cirq.GridQubit(1, 0),
+            cirq.GridQubit(0, 1),
+            cirq.GridQubit(1, 1),
+            cirq.GridQubit(0, 6),
+        }
+    ),
+    repr='cirq.circuits.circuit_test.foxy',
+)
+
+bcone = FakeXmonDevice(
+    allowed_qubit_types=(cirq.GridQubit),
+    allowed_gates=(cirq.XPowGate,),
+    qubits=frozenset({cirq.GridQubit(0, 6)}),
+    repr='cirq.circuits.circuit_test.bcone',
+)
+
+
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_with_device(circuit_cls):
+
     c = circuit_cls(cirq.X(cirq.LineQubit(0)))
-    c2 = c.with_device(cg.Foxtail, lambda e: cirq.GridQubit(e.x, 0))
-    assert c2 == circuit_cls(cirq.X(cirq.GridQubit(0, 0)), device=cg.Foxtail)
+    c2 = c.with_device(foxy, lambda e: cirq.GridQubit(e.x, 0))
+    assert c2 == circuit_cls(cirq.X(cirq.GridQubit(0, 0)), device=foxy)
 
     # Qubit type must be correct.
     c = circuit_cls(cirq.X(cirq.LineQubit(0)))
     with pytest.raises(ValueError, match='Unsupported qubit type'):
-        _ = c.with_device(cg.Foxtail)
+        _ = c.with_device(foxy)
 
     # Operations must be compatible from the start
     c = circuit_cls(cirq.X(cirq.GridQubit(0, 0)))
-    _ = c.with_device(cg.Foxtail)
+    _ = c.with_device(foxy)
     c = circuit_cls(cirq.H(cirq.GridQubit(0, 0)))
     with pytest.raises(ValueError, match='Unsupported gate type'):
-        _ = c.with_device(cg.Foxtail)
+        _ = c.with_device(foxy)
 
     # Some qubits exist on multiple devices.
-    c = circuit_cls(cirq.X(cirq.GridQubit(0, 0)), device=cg.Foxtail)
+    c = circuit_cls(cirq.X(cirq.GridQubit(0, 0)), device=foxy)
     with pytest.raises(ValueError):
-        _ = c.with_device(cg.Bristlecone)
-    c = circuit_cls(cirq.X(cirq.GridQubit(0, 6)), device=cg.Foxtail)
-    _ = c.with_device(cg.Bristlecone)
+        _ = c.with_device(bcone)
+    c = circuit_cls(cirq.X(cirq.GridQubit(0, 6)), device=foxy)
+    _ = c.with_device(bcone)
 
 
 def test_set_device():
@@ -612,13 +696,13 @@ def test_set_device():
     assert c.device is cirq.UNCONSTRAINED_DEVICE
 
     with pytest.raises(ValueError):
-        c.device = cg.Foxtail
+        c.device = foxy
     assert c.device is cirq.UNCONSTRAINED_DEVICE
 
     c[:] = []
     c.append(cirq.X(cirq.GridQubit(0, 0)))
-    c.device = cg.Foxtail
-    assert c.device == cg.Foxtail
+    c.device = foxy
+    assert c.device == foxy
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -841,7 +925,7 @@ def test_insert_moment():
 
 def test_insert_validates_all_operations_before_inserting():
     a, b = cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)
-    c = cirq.Circuit(device=cg.Foxtail)
+    c = cirq.Circuit(device=foxy)
     operations = [cirq.Z(a), cirq.CZ(a, b)]
 
     with pytest.raises(ValueError, match='Non-local interaction'):
@@ -3375,7 +3459,7 @@ def test_insert_operations_errors():
 
 
 def test_validates_while_editing():
-    c = cirq.Circuit(device=cg.Foxtail)
+    c = cirq.Circuit(device=foxy)
 
     with pytest.raises(ValueError, match='Unsupported qubit type'):
         # Wrong type of qubit.
@@ -3383,17 +3467,17 @@ def test_validates_while_editing():
     with pytest.raises(ValueError, match='Qubit not on device'):
         # A qubit that's not on the device.
         c[:] = [cirq.Moment([cirq.Z(cirq.GridQubit(-5, 100))])]
-    c.append(cirq.Z(cirq.GridQubit(0, 0)))
+    c.append(cirq.Z(cirq.GridQubit(0, 1)))
 
     with pytest.raises(ValueError, match='Non-local interaction'):
         # Non-adjacent CZ.
-        c[0] = cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(1, 2))])
+        c[0] = cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(1, 1))])
 
     c.insert(0, cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)))
 
 
 def test_respects_additional_adjacency_constraints():
-    c = cirq.Circuit(device=cg.Foxtail)
+    c = cirq.Circuit(device=foxy)
     c.append(cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)))
     c.append(
         cirq.CZ(cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)), strategy=cirq.InsertStrategy.EARLIEST
@@ -3405,7 +3489,7 @@ def test_respects_additional_adjacency_constraints():
                 cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))]),
                 cirq.Moment([cirq.CZ(cirq.GridQubit(1, 0), cirq.GridQubit(1, 1))]),
             ],
-            device=cg.Foxtail,
+            device=foxy,
         ),
     )
 
@@ -3417,7 +3501,7 @@ def test_commutes_past_adjacency_constraints():
             cirq.Moment(),
             cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))]),
         ],
-        device=cg.Foxtail,
+        device=foxy,
     )
     c.append(
         cirq.CZ(cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)), strategy=cirq.InsertStrategy.EARLIEST
@@ -3430,21 +3514,21 @@ def test_commutes_past_adjacency_constraints():
                 cirq.Moment(),
                 cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))]),
             ],
-            device=cg.Foxtail,
+            device=foxy,
         ),
     )
 
 
 def test_decomposes_while_appending():
-    c = cirq.Circuit(device=cg.Foxtail)
-    c.append(cirq.TOFFOLI(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(0, 2)))
+    c = cirq.Circuit(device=foxy)
+    c.append(cirq.TOFFOLI(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(1, 0)))
     cirq.testing.assert_allclose_up_to_global_phase(
         c.unitary(), cirq.unitary(cirq.TOFFOLI), atol=1e-8
     )
 
     # But you still have to respect adjacency constraints!
     with pytest.raises(ValueError):
-        c.append(cirq.TOFFOLI(cirq.GridQubit(0, 0), cirq.GridQubit(0, 2), cirq.GridQubit(0, 4)))
+        c.append(cirq.TOFFOLI(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(0, 6)))
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -4073,9 +4157,9 @@ def test_transform_qubits():
     assert c.transform_qubits(lambda q: cirq.GridQubit(10 + q.x, 20)) == desired
 
     # Device
-    c = cirq.Circuit(device=cg.Foxtail)
-    assert c.transform_qubits(lambda q: q).device is cg.Foxtail
-    assert c.transform_qubits(lambda q: q, new_device=cg.Bristlecone).device is cg.Bristlecone
+    c = cirq.Circuit(device=foxy)
+    assert c.transform_qubits(lambda q: q).device is foxy
+    assert c.transform_qubits(lambda q: q, new_device=bcone).device is bcone
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
