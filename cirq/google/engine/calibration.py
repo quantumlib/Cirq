@@ -36,13 +36,11 @@ ALL_METRICS = Dict[str, METRIC_DICT]
 class Calibration(abc.Mapping):
     """A convenience wrapper for calibrations that acts like a dictionary.
 
-    Calibrations act as dictionaries whose keys are the names of the metric,
-    and whose values are the metric values.  The metric values themselves are
-    represented as a dictionary.  These metric value dictionaries have
-    keys that are tuples of `cirq.GridQubit`s and values that are lists of the
-    metric values for those qubits. If a metric acts globally and is attached
-    to no specified number of qubits, the map will be from the empty tuple
-    to the metrics values.
+    Calibrations act as dictionaries whose keys are the names of the metric, and whose values are
+    the metric values.  The metric values themselves are represented as a dictionary. These metric
+    value dictionaries have keys that are tuples of `cirq.GridQubit`s and values that are lists of
+    the metric values for those qubits. If a metric acts globally and is attached to no specified
+    number of qubits, the map will be from the empty tuple to the metrics values.
 
     Calibrations act just like a python dictionary. For example you can get
     a list of all of the metric names using

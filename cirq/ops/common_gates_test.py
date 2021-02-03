@@ -917,32 +917,8 @@ def test_parameterized_cphase():
     assert cirq.cphase(sympy.pi / 2) == cirq.CZ ** 0.5
 
 
-def test_x_stabilizer():
-    gate = cirq.X
-    assert cirq.has_stabilizer_effect(gate)
-    assert not cirq.has_stabilizer_effect(gate ** 0.5)
-    assert cirq.has_stabilizer_effect(gate ** 0)
-    assert not cirq.has_stabilizer_effect(gate ** -0.5)
-    assert cirq.has_stabilizer_effect(gate ** 4)
-    assert not cirq.has_stabilizer_effect(gate ** 1.2)
-    foo = sympy.Symbol('foo')
-    assert not cirq.has_stabilizer_effect(gate ** foo)
-
-
-def test_y_stabilizer():
-    gate = cirq.Y
-    assert cirq.has_stabilizer_effect(gate)
-    assert not cirq.has_stabilizer_effect(gate ** 0.5)
-    assert cirq.has_stabilizer_effect(gate ** 0)
-    assert not cirq.has_stabilizer_effect(gate ** -0.5)
-    assert cirq.has_stabilizer_effect(gate ** 4)
-    assert not cirq.has_stabilizer_effect(gate ** 1.2)
-    foo = sympy.Symbol('foo')
-    assert not cirq.has_stabilizer_effect(gate ** foo)
-
-
-def test_z_stabilizer():
-    gate = cirq.Z
+@pytest.mark.parametrize('gate', [cirq.X, cirq.Y, cirq.Z])
+def test_x_y_z_stabilizer(gate):
     assert cirq.has_stabilizer_effect(gate)
     assert cirq.has_stabilizer_effect(gate ** 0.5)
     assert cirq.has_stabilizer_effect(gate ** 0)
@@ -965,20 +941,8 @@ def test_h_stabilizer():
     assert not cirq.has_stabilizer_effect(gate ** foo)
 
 
-def test_cz_stabilizer():
-    gate = cirq.CZ
-    assert cirq.has_stabilizer_effect(gate)
-    assert not cirq.has_stabilizer_effect(gate ** 0.5)
-    assert cirq.has_stabilizer_effect(gate ** 0)
-    assert not cirq.has_stabilizer_effect(gate ** -0.5)
-    assert cirq.has_stabilizer_effect(gate ** 4)
-    assert not cirq.has_stabilizer_effect(gate ** 1.2)
-    foo = sympy.Symbol('foo')
-    assert not cirq.has_stabilizer_effect(gate ** foo)
-
-
-def test_cnot_stabilizer():
-    gate = cirq.CNOT
+@pytest.mark.parametrize('gate', [cirq.CX, cirq.CZ])
+def test_cx_cz_stabilizer(gate):
     assert cirq.has_stabilizer_effect(gate)
     assert not cirq.has_stabilizer_effect(gate ** 0.5)
     assert cirq.has_stabilizer_effect(gate ** 0)
