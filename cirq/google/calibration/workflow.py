@@ -395,9 +395,9 @@ def zeta_chi_gamma_calibration_for_moments(
         if characterization_index is not None:
             parameters = characterizations[characterization_index]
 
-        decompositions = []
-        other = []
-        new_moment_moment_to_calibration = None
+        decompositions: List[Tuple[Tuple[Operation, ...], ...]] = []
+        other: List[Operation] = []
+        new_moment_moment_to_calibration: Optional[List[Optional[int]]] = None
         for op in moment:
             if not isinstance(op, GateOperation):
                 raise IncompatibleMomentError(
