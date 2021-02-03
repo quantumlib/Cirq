@@ -31,6 +31,7 @@ from cirq.google.calibration import (
     PhasedFSimCharacterization,
     PhasedFSimEngineSimulator,
     SQRT_ISWAP_PARAMETERS,
+    THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     make_floquet_request_for_circuit,
     make_floquet_request_for_moment,
     zeta_chi_gamma_calibration_for_moments,
@@ -39,7 +40,6 @@ from cirq.google.calibration import (
     run_zeta_chi_gamma_calibration_for_moments,
     try_convert_sqrt_iswap_to_fsim,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-    ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
 )
 
 from cirq.google.devices import (
