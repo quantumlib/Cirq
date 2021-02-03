@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for cirq.Sampler."""
+from typing import List
 import pytest
 
 import numpy as np
@@ -133,21 +134,70 @@ def test_sampler_sample_inconsistent_keys():
 
 
 def test_sampler_simple_sample_expectation_values():
+    class DeterministicPlusStateSampler(cirq.Sampler):
+        """A simple, deterministic mock sampler.
+
+        Pretends to sample from the |+) state.
+        """
+
+        def run_sweep(
+            self,
+            program: 'cirq.Circuit',
+            params: 'cirq.Sweepable',
+            repetitions: int = 1,
+        ) -> List['cirq.Result']:
+            results = np.zeros((repetitions, 1), dtype=bool)
+            # Return slightly fewer zeroes than ones.
+            for idx in range(repetitions // 2 - 1):
+                results[idx][0] = 1
+            return [cirq.Result(params=cirq.ParamResolver(), measurements={'out': results})]
+
     a = cirq.LineQubit(0)
-    sampler = cirq.Simulator()
+    sampler = DeterministicPlusStateSampler()
+    # This circuit is not actually sampled, but the mock sampler above gives
+    # a reasonable approximation of it.
     circuit = cirq.Circuit(cirq.H(a), cirq.measure(a, key='out'))
     obs = cirq.X(a)
-    results = sampler.sample_expectation_values(circuit, {'out': obs}, num_samples=10000)
+    results = sampler.sample_expectation_values(circuit, {'out': obs}, num_samples=1000)
 
-    # Precision of non-Z-basis expectation values is dependent on num_samples.
-    # To keep tests short, low precision is used here.
-    assert np.allclose(results, [[1]], atol=0.01)
+    assert np.allclose(results, [[1]])
+
+
+def test_sampler_sample_expectation_values_calculation():
+    class DeterministicImbalancedStateSampler(cirq.Sampler):
+        """A simple, deterministic mock sampler.
+
+        Pretends to sample from a state vector with a 3:1 balance between the
+        probabilities of the |0) and |1) state.
+        """
+
+        def run_sweep(
+            self,
+            program: 'cirq.Circuit',
+            params: 'cirq.Sweepable',
+            repetitions: int = 1,
+        ) -> List['cirq.Result']:
+            results = np.zeros((repetitions, 1), dtype=bool)
+            for idx in range(repetitions // 4):
+                results[idx][0] = 1
+            return [cirq.Result(params=cirq.ParamResolver(), measurements={'out': results})]
+
+    a = cirq.LineQubit(0)
+    sampler = DeterministicImbalancedStateSampler()
+    # This circuit is not actually sampled, but the mock sampler above gives
+    # a reasonable approximation of it.
+    circuit = cirq.Circuit(cirq.X(a) ** (1 / 3), cirq.measure(a, key='out'))
+    obs = cirq.Z(a)
+    results = sampler.sample_expectation_values(circuit, {'out': obs}, num_samples=1000)
+
+    # (0.75 * 1) + (0.25 * -1) = 0.5
+    assert np.allclose(results, [[0.5]])
 
 
 def test_sampler_sample_expectation_values_multi_param():
     a = cirq.LineQubit(0)
     t = sympy.Symbol('t')
-    sampler = cirq.Simulator()
+    sampler = cirq.Simulator(seed=1)
     circuit = cirq.Circuit(cirq.X(a) ** t, cirq.measure(a, key='out'))
     obs = cirq.Z(a)
     results = sampler.sample_expectation_values(
@@ -159,7 +209,7 @@ def test_sampler_sample_expectation_values_multi_param():
 
 def test_sampler_sample_expectation_values_multi_qubit():
     q = cirq.LineQubit.range(3)
-    sampler = cirq.Simulator()
+    sampler = cirq.Simulator(seed=1)
     circuit = cirq.Circuit(cirq.X(q[0]), cirq.X(q[1]), cirq.X(q[2]), cirq.measure(*q, key='m3'))
     obs = cirq.Z(q[0]) + cirq.Z(q[1]) + cirq.Z(q[2])
     results = sampler.sample_expectation_values(circuit, {'m3': obs}, num_samples=5)
@@ -169,7 +219,7 @@ def test_sampler_sample_expectation_values_multi_qubit():
 
 def test_sampler_sample_expectation_values_multi_measure():
     a = cirq.LineQubit(0)
-    sampler = cirq.Simulator()
+    sampler = cirq.Simulator(seed=1)
     circuit = cirq.Circuit(
         cirq.X(a),
         cirq.measure(a, key='m1'),
@@ -193,7 +243,7 @@ def test_sampler_sample_expectation_values_composite():
     q = cirq.LineQubit.range(3)
     t = [sympy.Symbol(f't{x}') for x in range(3)]
 
-    sampler = cirq.Simulator()
+    sampler = cirq.Simulator(seed=1)
     circuit = cirq.Circuit(
         cirq.X(q[0]) ** t[0],
         cirq.X(q[1]) ** t[1],
@@ -237,7 +287,7 @@ def test_sampler_sample_expectation_values_composite():
 
 def test_sampler_simple_sample_expectation_requires_samples():
     a = cirq.LineQubit(0)
-    sampler = cirq.Simulator()
+    sampler = cirq.Simulator(seed=1)
     circuit = cirq.Circuit(cirq.H(a), cirq.measure(a, key='out'))
     obs = cirq.X(a)
     with pytest.raises(ValueError):

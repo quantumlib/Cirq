@@ -144,6 +144,26 @@ class Sampler(metaclass=abc.ABCMeta):
         num_samples: int,
         params: 'cirq.Sweepable' = None,
     ) -> List[List[float]]:
+        """Calculates estimated expectation values from samples of a circuit.
+
+        This method can be run on any device or simulator that supports circuit
+        sampling. Compare with `simulate_expectation_values` in simulator.py,
+        which is limited to simulators but provides exact results.
+
+        Args:
+            program: The circuit to simulate.
+            measurement_to_observables: A map of measurement keys to the
+                observable(s) associated with those measurements.
+            num_samples: The number of samples to take. Increasing this value
+                increases the accuracy of the estimate.
+            params: Parameters to run with the program.
+
+        Returns:
+            A list of expectation-value lists. The outer index determines the
+            sweep, and the inner index determines the observable. For instance,
+            results[1][3] would select the fourth observable measured in the
+            second sweep.
+        """
         if num_samples <= 0:
             raise ValueError(
                 f'Expectation values require at least one sample. Received: {num_samples}.'
@@ -174,8 +194,11 @@ class Sampler(metaclass=abc.ABCMeta):
             # Compute estimated expectation values from aggregated results
             sweep_result = []
             for key, observables in mto.items():
-                norm = np.linalg.norm(state_vector_map[key])
-                state_vector_map[key] /= norm
+                # This approximates the actual state vector, but the result
+                # disregards per-element phase. Fortunately, expectation value
+                # calculation does not require phases.
+                state_vector_map[key] /= num_samples
+                state_vector_map[key] = np.sqrt(state_vector_map[key])
                 for obs in observables:
                     sweep_result.append(
                         obs.expectation_from_state_vector(state_vector_map[key], qmap)
