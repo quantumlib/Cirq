@@ -165,10 +165,8 @@ class CircuitOperation(ops.Operation):
                         # For a measurement CircuitOperation, prefix the current repetition_id to
                         # the children repetition_ids.
                         ops.append(
-                            op.replace(
-                                repetition_ids=cartesian_product_of_string_lists(
-                                    [parent_id], op.repetition_ids
-                                )
+                            op.with_repetition_ids(
+                                cartesian_product_of_string_lists([parent_id], op.repetition_ids)
                             )
                         )
                     else:
