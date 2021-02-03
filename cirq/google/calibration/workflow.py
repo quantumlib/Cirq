@@ -360,7 +360,9 @@ def run_characterizations(
 def zeta_chi_gamma_calibration_for_moments(
     circuit_calibration: CircuitCalibration,
     characterizations: List[PhasedFSimCalibrationResult],
-    gates_translator: Callable[[Gate], Optional[Tuple[FSimGate, float]]] = try_convert_sqrt_iswap_to_fsim,
+    gates_translator: Callable[
+        [Gate], Optional[Tuple[FSimGate, float]]
+    ] = try_convert_sqrt_iswap_to_fsim,
 ) -> CircuitCalibration:
     """Compensates circuit against errors in zeta, chi and gamma angles.
 
@@ -428,7 +430,11 @@ def zeta_chi_gamma_calibration_for_moments(
                 pair_parameters = pair_parameters.merge_with(default_phases)
 
                 corrected = PhaseCorrectedFSimOperations(
-                    (a, b), translated_gate, pair_parameters, translated_phase_exponent, characterization_index
+                    (a, b),
+                    translated_gate,
+                    pair_parameters,
+                    translated_phase_exponent,
+                    characterization_index,
                 )
                 decompositions.append(corrected.operations)
 
@@ -576,7 +582,9 @@ def run_zeta_chi_gamma_calibration_for_moments(
     processor_id: Optional[str] = None,
     gate_set: Optional[SerializableGateSet] = None,
     options: FloquetPhasedFSimCalibrationOptions = THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-    gates_translator: Callable[[Gate], Optional[Tuple[FSimGate, float]]] = try_convert_sqrt_iswap_to_fsim,
+    gates_translator: Callable[
+        [Gate], Optional[Tuple[FSimGate, float]]
+    ] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,

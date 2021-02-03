@@ -546,7 +546,7 @@ def test_phase_corrected_fsim_operations(
         [np.pi / 4, -0.2], [-0.3, 0.1, 0.5], [-0.3, 0.2, 0.4], [-0.6, 0.1, 0.6], [0.2, 0.6]
     ),
 )
-def test_create_corrected_fsim_gate_when_phase_exponent(
+def test_phase_corrected_fsim_operations_with_phase_exponent(
     theta: float, zeta: float, chi: float, gamma: float, phi: float
 ) -> None:
     a, b = cirq.LineQubit.range(2)
