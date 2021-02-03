@@ -464,8 +464,8 @@ class MPSState:
                 )
             else:
                 self.num_svd_splits += 1
-                # This is the index on which we do the contraction. We need to add it iff it's the first
-                # time that we do the joining for that specific pair.
+                # This is the index on which we do the contraction. We need to add it iff it's
+                # the first time that we do the joining for that specific pair.
                 mu_ind = self.mu_str(n, p)
                 if mu_ind not in self.M[n].inds:
                     self.M[n].new_ind(mu_ind)
