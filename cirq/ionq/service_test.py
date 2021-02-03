@@ -12,7 +12,9 @@
 # limitations under the License.
 
 import datetime
+import os
 from unittest import mock
+
 import pytest
 
 import pandas as pd
@@ -160,3 +162,24 @@ def test_service_list_calibrations():
     assert listed_calibrations[0].num_qubits() == 1
     assert listed_calibrations[1].num_qubits() == 2
     mock_client.list_calibrations.assert_called_with(start=start, end=end, limit=10, batch_size=2)
+
+
+def test_service_api_key_via_env():
+    os.environ['IONQ_API_KEY'] = 'tomyheart'
+    service = ionq.Service(remote_host='http://example.com')
+    assert service.api_key == 'tomyheart'
+    del os.environ['IONQ_API_KEY']
+
+
+def test_service_remote_host_via_env():
+    os.environ['IONQ_REMOTE_HOST'] = 'http://example.com'
+    service = ionq.Service(api_key='tomyheart')
+    assert service.remote_host == 'http://example.com'
+    del os.environ['IONQ_REMOTE_HOST']
+
+
+def test_service_no_param_or_env_variable():
+    with pytest.raises(EnvironmentError):
+        _ = ionq.Service(remote_host='http://example.com')
+    with pytest.raises(EnvironmentError):
+        _ = ionq.Service(api_key='tomyheart')

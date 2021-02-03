@@ -31,11 +31,8 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
         return 0
 
 
-class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate that must be applied to exactly one qubit."""
-
-    def _num_qubits_(self) -> int:
-        return 1
+class SupportsOnEachGate(raw_types.Gate, metaclass=abc.ABCMeta):
+    """A gate that can be applied to exactly one qubit."""
 
     def on_each(self, *targets: Union[raw_types.Qid, Iterable[Any]]) -> List[raw_types.Operation]:
         """Returns a list of operations applying the gate to all targets.
@@ -48,7 +45,10 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
         Raises:
             ValueError if targets are not instances of Qid or List[Qid].
+            ValueError if the gate operates on two or more Qids.
         """
+        if self._num_qubits_() > 1:
+            raise ValueError('This gate only supports on_each when it is a one qubit gate.')
         operations = []  # type: List[raw_types.Operation]
         for target in targets:
             if isinstance(target, raw_types.Qid):
@@ -60,6 +60,13 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
                     'Gate was called with type different than Qid. Type: {}'.format(type(target))
                 )
         return operations
+
+
+class SingleQubitGate(SupportsOnEachGate, metaclass=abc.ABCMeta):
+    """A gate that must be applied to exactly one qubit."""
+
+    def _num_qubits_(self) -> int:
+        return 1
 
 
 class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
