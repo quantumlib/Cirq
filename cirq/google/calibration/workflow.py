@@ -423,16 +423,16 @@ def zeta_chi_gamma_calibration_for_moments(
                 raise ValueError(f'Missing characterization data for pair {(a, b)} in {parameters}')
             pair_parameters = pair_parameters.merge_with(default_phases)
 
-            corrected = FSimPhaseCorrections.from_characterization(
+            corrections = FSimPhaseCorrections.from_characterization(
                 (a, b), translated_gate, pair_parameters, characterization_index
             )
-            decompositions.append(corrected.operations)
+            decompositions.append(corrections.operations)
 
             if new_moment_moment_to_calibration is None:
-                new_moment_moment_to_calibration = corrected.moment_to_calibration
+                new_moment_moment_to_calibration = corrections.moment_to_calibration
             else:
                 assert (
-                    new_moment_moment_to_calibration == corrected.moment_to_calibration
+                    new_moment_moment_to_calibration == corrections.moment_to_calibration
                 ), f'Inconsistent decompositions with a moment {moment}'
 
         if other and decompositions:
