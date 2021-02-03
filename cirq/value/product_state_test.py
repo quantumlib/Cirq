@@ -77,7 +77,12 @@ def test_oneq_state():
 def test_product_state():
     q0, q1, q2 = cirq.LineQubit.range(3)
 
-    ps = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1)
+    plus0 = cirq.KET_PLUS(q0)
+    plus1 = cirq.KET_PLUS(q1)
+
+    ps = plus0 * plus1
+    assert str(plus0) == "+X(0)"
+    assert str(plus1) == "+X(1)"
     assert str(ps) == "+X(0) * +X(1)"
 
     ps *= cirq.KET_ONE(q2)
