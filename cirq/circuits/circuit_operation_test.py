@@ -568,9 +568,6 @@ def test_decompose_loops_with_measurements():
     )
     assert cirq.Circuit(cirq.decompose_once(op)) == expected_circuit
 
-    with pytest.raises(ValueError, match='circuit is not invertible'):
-        _ = base_op.repeat(-2)
-
 
 def test_decompose_nested():
     a, b, c, d = cirq.LineQubit.range(4)

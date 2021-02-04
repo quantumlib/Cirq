@@ -17,6 +17,7 @@ cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
     ),
 ]),
 repetitions=-2,
+repetition_ids=['a', 'b'],
 qubit_map={cirq.LineQubit(0): cirq.LineQubit(1)}),
 cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
     cirq.Moment(

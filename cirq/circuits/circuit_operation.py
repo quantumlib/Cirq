@@ -84,7 +84,7 @@ class CircuitOperation(ops.Operation):
         # Initialize repetition_ids to default, if unspecified. Else, validate their length.
         loop_size = abs(self.repetitions)
         if not self.repetition_ids:
-            object.__setattr__(self, 'repetition_ids', self._default_repetition_ids_())
+            object.__setattr__(self, 'repetition_ids', self._default_repetition_ids())
         elif len(self.repetition_ids) != loop_size:
             raise ValueError(
                 f'Expected repetition_ids to be a list of length {loop_size}, '
@@ -124,7 +124,7 @@ class CircuitOperation(ops.Operation):
         ordered_qubits = ops.QubitOrder.DEFAULT.order_for(self.circuit.all_qubits())
         return tuple(self.qubit_map.get(q, q) for q in ordered_qubits)
 
-    def _default_repetition_ids_(self) -> List[str]:
+    def _default_repetition_ids(self) -> List[str]:
         return default_repetition_ids(self.repetitions)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
@@ -153,7 +153,7 @@ class CircuitOperation(ops.Operation):
         result = protocols.resolve_parameters(result, self.param_resolver, recursive=False)
         # repetition_ids don't need to be taken into account if the circuit has no measurements
         # or if it has repetition of size 1 with default repetition_ids.
-        if not protocols.is_measurement(result) or self.repetition_ids == default_repetition_ids(1):
+        if self.repetition_ids == default_repetition_ids(1) or not protocols.is_measurement(result):
             return list(result.all_operations()) * abs(self.repetitions)
         # If it's a measurement circuit with repetitions/repetition_ids, prefix the repetition_ids
         # to measurements. Details at https://tinyurl.com/measurement-repeated-circuitop.
@@ -198,7 +198,7 @@ class CircuitOperation(ops.Operation):
             args += f'measurement_key_map={proper_repr(self.measurement_key_map)},\n'
         if self.param_resolver:
             args += f'param_resolver={proper_repr(self.param_resolver)},\n'
-        if self.repetition_ids != self._default_repetition_ids_():
+        if self.repetition_ids != self._default_repetition_ids():
             # Default repetition_ids need not be specified.
             args += f'repetition_ids={proper_repr(self.repetition_ids)},\n'
         indented_args = args.replace('\n', '\n    ')
@@ -224,7 +224,7 @@ class CircuitOperation(ops.Operation):
             args.append(f'key_map={dict_str(self.measurement_key_map)}')
         if self.param_resolver:
             args.append(f'params={self.param_resolver.param_dict}')
-        if self.repetition_ids != self._default_repetition_ids_():
+        if self.repetition_ids != self._default_repetition_ids():
             # Default repetition_ids need not be specified.
             args.append(f'repetition_ids={self.repetition_ids}')
         elif self.repetitions != 1:
@@ -324,7 +324,7 @@ class CircuitOperation(ops.Operation):
         final_repetitions = self.repetitions * repetitions
 
         if repetition_ids is None:
-            if self.repetition_ids == self._default_repetition_ids_():
+            if self.repetition_ids == self._default_repetition_ids():
                 # If the base CircuitOperation has default_repetition_ids, just replace them.
                 repetition_ids = default_repetition_ids(final_repetitions)
             else:
