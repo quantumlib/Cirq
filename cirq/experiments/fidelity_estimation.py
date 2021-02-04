@@ -36,10 +36,9 @@ import scipy.optimize
 import sympy
 import tqdm
 
-from cirq import ops, sim, protocols
+from cirq import ops, protocols, sim
 from cirq.circuits import Circuit
 from cirq.experiments.random_quantum_circuit_generation import CircuitLibraryCombination
-from cirq.google.calibration.phased_fsim import PhasedFSimCalibrationOptions
 from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_state_vector
 
@@ -407,8 +406,8 @@ def least_squares_xeb_fidelity_from_probabilities(
 class _Sample2qXEBTask:
     """Helper container for grouping a circuit to be sampled.
 
-    `prepared_circuit` is the full-length circuit (with index `circuit_i`. that
-    has been truncated to `cycle_depth` and has a measurement gate on it.
+    `prepared_circuit` is the full-length circuit (with index `circuit_i`) that has been truncated
+    to `cycle_depth` and has a measurement gate on it.
     """
 
     cycle_depth: int
@@ -544,25 +543,20 @@ def sample_2q_xeb_circuits(
     Args:
         sampler: A Cirq sampler for executing circuits.
         circuits: A library of two-qubit circuits generated from
-            `random_rotations_between_two_qubit_circuit` of sufficient length
-            for `cycle_depths`.
-        cycle_depths: A sequence of cylce depths at which we will truncate each
-            of the `circuits` to execute.
-        repetitions: Each (circuit, cycle_depth) will be sampled for this many
-            repetitions.
-        batch_size: We call `run_batch` on the sampler, which can speed up
-            execution in certain environments. The number of
-            (circuit, cycle_depth) tasks to be run in each batch
+            `random_rotations_between_two_qubit_circuit` of sufficient length for `cycle_depths`.
+        cycle_depths: A sequence of cylce depths at which we will truncate each of the `circuits`
+            to execute.
+        repetitions: Each (circuit, cycle_depth) will be sampled for this many repetitions.
+        batch_size: We call `run_batch` on the sampler, which can speed up execution in certain
+            environments. The number of (circuit, cycle_depth) tasks to be run in each batch
             is given by this number.
-        progress_bar: A progress context manager following the `tqdm` API or
-            `None` to not report progress.
+        progress_bar: A progress context manager following the `tqdm` API or `None` to not report
+            progress.
         combinations_by_layer: Either `None` or the result of
-            `rqcg.get_random_combinations_for_device`.
-            If this is `None`, the circuits specified by `circuits` will be
-            sampled verbatim, resulting in isolated XEB characterization.
-            Otherwise,  this contains all the
-            random combinations and metadata required to combine the circuits
-            in `circuits` into wide, parallel-XEB-style circuits for execution.
+            `rqcg.get_random_combinations_for_device`. If this is `None`, the circuits specified
+            by `circuits` will be sampled verbatim, resulting in isolated XEB characterization.
+            Otherwise, this contains all the random combinations and metadata required to combine
+            the circuits in `circuits` into wide, parallel-XEB-style circuits for execution.
 
     Returns:
         A pandas dataframe with index given by ['circuit_i', 'cycle_depth'].
@@ -743,12 +737,11 @@ def simulate_2q_xeb_circuits(
 
     Args:
         circuits: A library of two-qubit circuits generated from
-            `random_rotations_between_two_qubit_circuit` of sufficient length
-            for `cycle_depths`.
-        cycle_depths: A sequence of cycle depths at which we will truncate each
-            of the `circuits` to simulate.
-        param_resolver: If circuits contain parameters, resolve according
-            to this ParamResolver prior to simulation
+            `random_rotations_between_two_qubit_circuit` of sufficient length for `cycle_depths`.
+        cycle_depths: A sequence of cycle depths at which we will truncate each of the `circuits`
+            to simulate.
+        param_resolver: If circuits contain parameters, resolve according to this ParamResolver
+            prior to simulation
         pool: If provided, execute the simulations in parallel.
 
     Returns:
@@ -794,13 +787,12 @@ def benchmark_2q_xeb_fidelities(
     """Simulate and benchmark two-qubit XEB circuits.
 
     Args:
-         sampled_df: The sampled results to benchmark. This is likely produced
-            by a call to `sample_2q_xeb_circuits`.
-        circuits: The library of circuits corresponding to the sampled results
-            in `sampled_df`.
+         sampled_df: The sampled results to benchmark. This is likely produced by a call to
+            `sample_2q_xeb_circuits`.
+        circuits: The library of circuits corresponding to the sampled results in `sampled_df`.
         cycle_depths: The sequence of cycle depths to simulate the circuits.
-        param_resolver: If circuits contain parameters, resolve according
-            to this ParamResolver prior to simulation
+        param_resolver: If circuits contain parameters, resolve according to this ParamResolver
+            prior to simulation
         pool: If provided, execute the simulations in parallel.
 
     Returns:
@@ -854,7 +846,7 @@ def benchmark_2q_xeb_fidelities(
 
 # mypy issue: https://github.com/python/mypy/issues/5374
 @dataclass(frozen=True)  # type: ignore
-class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
+class XEBPhasedFSimCalibrationOptions:
     """Options for calibrating a PhasedFSim-like gate using XEB.
 
     You may want to use more specific subclasses like `SqrtISwapXEBOptions`
@@ -926,8 +918,7 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         n_param = len(x0)
         initial_simplex = [x0]
         for i in range(n_param):
-            basis_vec = np.zeros(n_param)
-            basis_vec[i] = 1
+            basis_vec = np.eye(1, n_param, i)[0]
             initial_simplex += [x0 + initial_simplex_step_size * basis_vec]
         initial_simplex = np.asarray(initial_simplex)
 
@@ -1012,6 +1003,7 @@ def characterize_phased_fsim_parameters_with_xeb(
             in the parameters.
         fatol: The `fatol` argument for Nelder-Mead. This is the absolute error for convergence
             in the function evaluation.
+        verbose: Whether to print progress updates.
         pool: An optional multiprocessing pool to execute circuit simulations in parallel.
     """
     initial_simplex, names = phased_fsim_options.get_initial_simplex_and_names(
@@ -1019,8 +1011,8 @@ def characterize_phased_fsim_parameters_with_xeb(
     )
     x0 = initial_simplex[0]
 
-    def _f(x):
-        params = dict(zip(names, x))
+    def _mean_infidelity(angles):
+        params = dict(zip(names, angles))
         if verbose:
             params_str = ''
             for name, val in params.items():
@@ -1036,7 +1028,7 @@ def characterize_phased_fsim_parameters_with_xeb(
         return loss
 
     res = scipy.optimize.minimize(
-        _f,
+        _mean_infidelity,
         x0=x0,
         options={'initial_simplex': initial_simplex, 'xatol': xatol, 'fatol': fatol},
         method='nelder-mead',
