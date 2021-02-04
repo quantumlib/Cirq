@@ -13,7 +13,6 @@
 # limitations under the License.
 import multiprocessing
 import time
-import timeit
 from typing import Sequence, Dict, Any, cast, Optional
 import itertools
 import math
@@ -467,7 +466,7 @@ def _ref_simulate_2q_xeb_circuit(task: Dict[str, Any]):
     }
 
 
-def ref_simulate_2q_xeb_circuits(
+def _ref_simulate_2q_xeb_circuits(
     circuits: Sequence['cirq.Circuit'],
     cycle_depths: Sequence[int],
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
@@ -516,7 +515,7 @@ def test_incremental_simulate():
     pool = multiprocessing.Pool()
 
     start = time.perf_counter()
-    df_ref = ref_simulate_2q_xeb_circuits(
+    df_ref = _ref_simulate_2q_xeb_circuits(
         circuits=circuits,
         cycle_depths=cycle_depths,
         pool=pool,
