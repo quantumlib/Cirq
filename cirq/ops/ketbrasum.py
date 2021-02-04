@@ -85,9 +85,6 @@ class KetBra:
     def __iter__(self):
         return iter(self.ket_bra_list)
 
-    def __repr__(self) -> str:
-        return f"cirq.KetBra(ket_bra_list={self.ket_bra_list})"
-
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
