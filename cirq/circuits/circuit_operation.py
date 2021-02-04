@@ -322,7 +322,6 @@ class CircuitOperation(ops.Operation):
                 2) both the base repetition_ids and the current input
                 `repetition_ids` are default/None (i.e no customization).
 
-
         Returns:
             A copy of this operation repeated `repetitions` times with the
             appropriate `repetition_ids` as described above.
