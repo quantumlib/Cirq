@@ -204,21 +204,21 @@ jobs:
   #          pip install -r dev_tools/conf/pip-list-dev-tools.txt
   #      - name: Pytest check
   #        run: check/pytest --ignore=cirq/contrib --benchmark-skip
-  #  notebooks-stable:
-  #    name: Notebook Tests (stable)
-  #    runs-on: ubuntu-16.04
-  #    steps:
-  #      - uses: actions/checkout@v2
-  #        with:
-  #          fetch-depth: 0
-  #      - uses: actions/setup-python@v1
-  #        with:
-  #          python-version: '3.7'
-  #          architecture: 'x64'
-  #      - name: Install requirements
-  #        run: pip install pytest pytest-xdist requests virtualenv filelock
-  #      - name: Notebook tests
-  #        run: check/pytest -n auto -m slow dev_tools/notebook_test.py
+#  notebooks-stable:
+#    name: Notebook Tests (stable)
+#    runs-on: ubuntu-16.04
+#    steps:
+#      - uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#      - uses: actions/setup-python@v1
+#        with:
+#          python-version: '3.7'
+#          architecture: 'x64'
+#      - name: Install requirements
+#        run: pip install pytest pytest-xdist requests virtualenv filelock
+#      - name: Notebook tests
+#        run: check/pytest -n auto -m slow dev_tools/notebook_test.py
   notebooks-branch:
     name: Notebook Tests (branch)
     runs-on: ubuntu-16.04
@@ -231,7 +231,7 @@ jobs:
       - name: Install requirements
         run: pip install -r requirements.txt -r dev_tools/conf/requirements-notebook-tests.txt
       - name: Notebook tests
-        run: check/pytest -n auto -m slow dev_tools/notebook_test.py -k walks
+        run: check/pytest -n auto -m slow dev_tools/notebook_test.py
       - uses: actions/upload-artifact@v2
         if: failure()
         with:
