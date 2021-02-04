@@ -34,6 +34,11 @@ def test_measure_init(num_qubits):
         cirq.MeasurementGate()
 
 
+@pytest.mark.parametrize('num_qubits', [1, 2, 4])
+def test_has_stabilizer_effect(num_qubits):
+    assert cirq.has_stabilizer_effect(cirq.MeasurementGate(num_qubits))
+
+
 def test_measurement_eq():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(
