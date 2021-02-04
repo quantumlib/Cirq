@@ -37,9 +37,8 @@ import scipy.optimize
 import sympy
 import tqdm
 
-from cirq import ops, sim, protocols
+from cirq import ops, protocols, sim
 from cirq.circuits import Circuit
-from cirq.google.calibration.phased_fsim import PhasedFSimCalibrationOptions
 from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_state_vector
 
@@ -651,7 +650,7 @@ def benchmark_2q_xeb_fidelities(
 
 # mypy issue: https://github.com/python/mypy/issues/5374
 @dataclass(frozen=True)  # type: ignore
-class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
+class XEBPhasedFSimCalibrationOptions:
     """Options for calibrating a PhasedFSim-like gate using XEB.
 
     You may want to use more specific subclasses like `SqrtISwapXEBOptions`
@@ -723,8 +722,7 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         n_param = len(x0)
         initial_simplex = [x0]
         for i in range(n_param):
-            basis_vec = np.zeros(n_param)
-            basis_vec[i] = 1
+            basis_vec = np.eye(1, n_param, i)[0]
             initial_simplex += [x0 + initial_simplex_step_size * basis_vec]
         initial_simplex = np.asarray(initial_simplex)
 
@@ -809,6 +807,7 @@ def characterize_phased_fsim_parameters_with_xeb(
             in the parameters.
         fatol: The `fatol` argument for Nelder-Mead. This is the absolute error for convergence
             in the function evaluation.
+        verbose: Whether to print progress updates.
         pool: An optional multiprocessing pool to execute circuit simulations in parallel.
     """
     initial_simplex, names = phased_fsim_options.get_initial_simplex_and_names(
@@ -816,8 +815,8 @@ def characterize_phased_fsim_parameters_with_xeb(
     )
     x0 = initial_simplex[0]
 
-    def _f(x):
-        params = dict(zip(names, x))
+    def _mean_infidelity(angles):
+        params = dict(zip(names, angles))
         if verbose:
             params_str = ''
             for name, val in params.items():
@@ -833,7 +832,7 @@ def characterize_phased_fsim_parameters_with_xeb(
         return loss
 
     res = scipy.optimize.minimize(
-        _f,
+        _mean_infidelity,
         x0=x0,
         options={'initial_simplex': initial_simplex, 'xatol': xatol, 'fatol': fatol},
         method='nelder-mead',
