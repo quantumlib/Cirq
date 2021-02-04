@@ -13,7 +13,6 @@
 # limitations under the License.
 import multiprocessing
 import time
-import timeit
 from typing import Sequence, Dict, Any, cast, Optional
 import itertools
 import math
@@ -399,18 +398,20 @@ def test_get_initial_simplex():
 
 def test_characterize_phased_fsim_parameters_with_xeb():
     q0, q1 = cirq.LineQubit.range(2)
+    rs = np.random.RandomState(52)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
             q0,
             q1,
             depth=20,
             two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b),
+            seed=rs,
         )
         for _ in range(2)
     ]
     cycle_depths = np.arange(3, 20, 6)
     sampled_df = sample_2q_xeb_circuits(
-        sampler=cirq.Simulator(seed=52),
+        sampler=cirq.Simulator(seed=rs),
         circuits=circuits,
         cycle_depths=cycle_depths,
         progress_bar=None,
@@ -465,7 +466,7 @@ def _ref_simulate_2q_xeb_circuit(task: Dict[str, Any]):
     }
 
 
-def ref_simulate_2q_xeb_circuits(
+def _ref_simulate_2q_xeb_circuits(
     circuits: Sequence['cirq.Circuit'],
     cycle_depths: Sequence[int],
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
@@ -514,7 +515,7 @@ def test_incremental_simulate():
     pool = multiprocessing.Pool()
 
     start = time.perf_counter()
-    df_ref = ref_simulate_2q_xeb_circuits(
+    df_ref = _ref_simulate_2q_xeb_circuits(
         circuits=circuits,
         cycle_depths=cycle_depths,
         pool=pool,

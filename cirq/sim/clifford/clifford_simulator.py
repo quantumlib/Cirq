@@ -32,13 +32,11 @@ The quantum state is specified in two forms:
 from typing import Any, Dict, List, Iterator, Sequence
 
 import numpy as np
-from cirq.ops.global_phase_op import GlobalPhaseOperation
 
 import cirq
 from cirq import circuits, study, ops, protocols, value
-from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.ops.dense_pauli_string import DensePauliString
-from cirq.protocols import act_on, unitary
+from cirq.protocols import act_on
 from cirq.sim import clifford, simulator
 from cirq._compat import deprecated, deprecated_parameter
 from cirq.sim.simulator import check_all_resolved
@@ -60,17 +58,7 @@ class CliffordSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermedi
     def is_supported_operation(op: 'cirq.Operation') -> bool:
         """Checks whether given operation can be simulated by this simulator."""
         # TODO: support more general Pauli measurements
-        if isinstance(op.gate, cirq.MeasurementGate):
-            return True
-        if isinstance(op, GlobalPhaseOperation):
-            return True
-        if not protocols.has_unitary(op):
-            return False
-        if len(op.qubits) == 1:
-            u = unitary(op)
-            return SingleQubitCliffordGate.from_unitary(u) is not None
-        else:
-            return op.gate in [cirq.CNOT, cirq.CZ]
+        return protocols.has_stabilizer_effect(op)
 
     def _base_iterator(
         self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
