@@ -240,15 +240,18 @@ SHOULDNT_BE_SERIALIZED = [
     'DEFAULT_RESOLVERS',
     # Quantum Engine
     'ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
+    'CircuitWithCalibration',
     'Engine',
     'EngineJob',
     'EngineProcessor',
     'EngineProgram',
     'EngineTimeSlot',
+    'FSimPhaseCorrections',
     'PhasedFSimEngineSimulator',
     'QuantumEngineSampler',
     'SQRT_ISWAP_PARAMETERS',
     'NAMED_GATESETS',
+    'THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
     'WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
     # enums
     'ProtoVersion',
