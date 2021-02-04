@@ -623,7 +623,6 @@ def test_to_z_basis_ops_product_state():
         z_basis_state, expected_state, rtol=1e-7, atol=1e-7
     )
 
-
 def _assert_pass_over(ops: List[cirq.Operation], before: cirq.PauliString, after: cirq.PauliString):
     assert before.pass_operations_over(ops[::-1]) == after
     assert after.pass_operations_over(ops, after_to_before=True) == before
@@ -674,7 +673,10 @@ def test_pass_operations_over_single(shift: int, sign: int):
 def test_pass_operations_over_double(shift: int, t_or_f1: bool, t_or_f2: bool, neg: bool):
     sign = -1 if neg else +1
     q0, q1, q2 = _make_qubits(3)
-    X, Y, Z = (cirq.Pauli.by_relative_index(pauli, shift) for pauli in (cirq.X, cirq.Y, cirq.Z))
+    X, Y, Z = (
+        cirq.Pauli.by_relative_index(cast(cirq.Pauli, pauli), shift)
+        for pauli in (cirq.X, cirq.Y, cirq.Z)
+    )
 
     op0 = cirq.PauliInteractionGate(Z, t_or_f1, X, t_or_f2)(q0, q1)
     ps_before = cirq.PauliString(qubit_pauli_map={q0: Z, q2: Y}, coefficient=sign)
