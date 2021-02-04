@@ -14,7 +14,6 @@
 import functools
 import glob
 import os
-import pathlib
 import subprocess
 import sys
 from typing import Set
@@ -44,7 +43,11 @@ def _list_all_notebooks() -> Set[str]:
 
 
 def _tested_notebooks():
-    """We list all notebooks here, even those that are not """
+    """The notebooks are assumed to work against the latest released version of Cirq.
+    This means that (except at release time) we can skip testing all of them.
+    By default we only test for changed notebooks - the CI, day-to-day use case. At release time,
+    one can pass in the env var $TEST_ALL_NOTEBOOKS and that will ensure that all notebooks
+    are tested against a given version."""
 
     all_notebooks = _list_all_notebooks()
     skipped_notebooks = functools.reduce(
@@ -59,16 +62,59 @@ def _tested_notebooks():
 
 TESTED_NOTEBOOKS = _tested_notebooks()
 
+PACKAGES = [
+    # for running the notebooks
+    "papermill",
+    "jupyter",
+    "virtualenv-clone",
+    # assumed to be part of colab
+    "seaborn",
+    # https://github.com/nteract/papermill/issues/519
+    'ipykernel==5.3.4',
+]
+
+
+@pytest.mark.slow
+@pytest.fixture(scope="session")
+def base_env(tmp_path_factory, worker_id):
+    # get the temp directory shared by all workers
+    root_tmp_dir = tmp_path_factory.getbasetemp().parent.parent
+    proto_dir = root_tmp_dir / "proto_dir"
+    with FileLock(str(proto_dir) + ".lock"):
+        if proto_dir.is_dir():
+            print(f"{worker_id} returning as {proto_dir} is a dir!")
+            print(
+                f"If all the notebooks are failing, the test framework might "
+                f"have left this directory around. Try 'rm -rf {proto_dir}'"
+            )
+        else:
+            print(f"{worker_id} creating stuff...")
+            create_base_env(proto_dir)
+
+    return root_tmp_dir, proto_dir
+
+
+def create_base_env(proto_dir):
+    create_virtual_env(str(proto_dir), [], sys.executable, True)
+    pip_path = str(proto_dir / "bin" / "pip")
+    shell_tools.run_cmd(pip_path, "install", *PACKAGES)
+
 
 @pytest.mark.slow
 @pytest.mark.parametrize("notebook_path", TESTED_NOTEBOOKS)
-def test_notebooks_against_released_cirq(notebook_path):
-    notebook_file = os.path.basename(notebook_path)
-    notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))
-    out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
-    cmd = f"""mkdir -p out/{notebook_rel_dir}
-papermill {notebook_path} {out_path}"""
+def test_notebooks_against_released_cirq(notebook_path, base_env):
+    """Tests the notebooks in isolated virtual environments."""
+    tmpdir, proto_dir = base_env
 
+    notebook_file = os.path.basename(notebook_path)
+    dir_name = notebook_file.rstrip(".ipynb")
+
+    notebook_env = os.path.join(tmpdir, f"{dir_name}")
+    cmd = f"""
+{proto_dir}/bin/virtualenv-clone {proto_dir} {notebook_env}
+cd {notebook_env}
+. ./bin/activate
+papermill {notebook_path}"""
     stdout, stderr, status = shell_tools.run_shell(
         cmd=cmd,
         log_run_to_stderr=False,
@@ -78,5 +124,6 @@ papermill {notebook_path} {out_path}"""
     )
 
     if status != 0:
+        print(stdout)
         print(stderr)
-        pytest.fail(f"Notebook failure: {notebook_file}, please see {out_path}")
+        pytest.fail(f"Notebook failure: {notebook_file}")
