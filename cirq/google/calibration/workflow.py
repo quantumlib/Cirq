@@ -48,6 +48,9 @@ from cirq.google.engine import Engine
 from cirq.google.serializable_gate_set import SerializableGateSet
 
 
+_CALIBRATION_IRRELEVANT_GATES = MeasurementGate, SingleQubitGate, WaitGate
+
+
 @dataclasses.dataclass(frozen=True)
 class CircuitWithCalibration:
     """Circuit with characterization data annotations.
@@ -100,7 +103,7 @@ def make_floquet_request_for_moment(
         if not isinstance(op, GateOperation):
             raise IncompatibleMomentError('Moment contains operation different than GateOperation')
 
-        if isinstance(op.gate, (MeasurementGate, SingleQubitGate, WaitGate)):
+        if isinstance(op.gate, _CALIBRATION_IRRELEVANT_GATES):
             other_operation = True
         else:
             translated = gates_translator(op.gate)
@@ -412,7 +415,7 @@ def zeta_chi_gamma_calibration_for_moments(
                     'Moment contains operation different than GateOperation'
                 )
 
-            if isinstance(op.gate, (MeasurementGate, SingleQubitGate, WaitGate)):
+            if isinstance(op.gate, _CALIBRATION_IRRELEVANT_GATES):
                 other.append(op)
                 continue
 
