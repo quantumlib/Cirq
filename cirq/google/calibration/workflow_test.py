@@ -279,6 +279,7 @@ def test_run_characterization():
             characterize_phi=True,
         ),
     )
+
     result = cirq.google.CalibrationResult(
         code=cirq.google.api.v2.calibration_pb2.SUCCESS,
         error_message=None,
