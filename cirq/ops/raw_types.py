@@ -33,7 +33,7 @@ import abc
 import functools
 import numpy as np
 
-from cirq import protocols, value, ops
+from cirq import protocols, value
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:

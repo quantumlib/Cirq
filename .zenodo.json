@@ -5,9 +5,9 @@
     "upload_type": "software",
     "creators": [
         {
-            "affiliation": "Google Inc",
-            "name": "Quantum AI team and collaborators"
+            "name": "Cirq Developers"
         }
     ],
-    "access_right": "open"
+    "access_right": "open",
+    "notes": "See full list of authors on Github: https://github.com/quantumlib/Cirq/graphs/contributors"
 }
