@@ -36,7 +36,7 @@ import scipy.optimize
 import sympy
 import tqdm
 
-from cirq import ops, protocols, sim
+from cirq import ops, sim, devices
 from cirq.circuits import Circuit
 from cirq.experiments.random_quantum_circuit_generation import CircuitLibraryCombination
 from cirq.ops import QubitOrder, QubitOrderOrList
@@ -798,25 +798,41 @@ def benchmark_2q_xeb_fidelities(
     Returns:
         A DataFrame with columns 'cycle_depth' and 'fidelity'.
     """
+
+    # TODO: we can technically intuit the cycle_depths
+    if cycle_depths is None:
+        cycle_depths = sampled_df.index.unique(level=1).values
+
     simulated_df = simulate_2q_xeb_circuits(
         circuits=circuits, cycle_depths=cycle_depths, param_resolver=param_resolver, pool=pool
     )
     df = sampled_df.join(simulated_df)
 
-    def _summary_stats(row):
-        D = 4  # Two qubits
-        row['e_u'] = np.sum(row['pure_probs'] ** 2)
-        row['u_u'] = np.sum(row['pure_probs']) / D
-        row['m_u'] = np.sum(row['pure_probs'] * row['sampled_probs'])
+    # def _summary_stats(row):
+    #     D = 4  # Two qubits
+    #     row['e_u'] = np.sum(row['pure_probs'] ** 2)
+    #     row['u_u'] = np.sum(row['pure_probs']) / D
+    #     row['m_u'] = np.sum(row['pure_probs'] * row['sampled_probs'])
+    #
+    #     row['y'] = row['m_u'] - row['u_u']
+    #     row['x'] = row['e_u'] - row['u_u']
+    #
+    #     row['numerator'] = row['x'] * row['y']
+    #     row['denominator'] = row['x'] ** 2
+    #     return row
+    #
+    # df = df.apply(_summary_stats, axis=1)
 
-        row['y'] = row['m_u'] - row['u_u']
-        row['x'] = row['e_u'] - row['u_u']
-
-        row['numerator'] = row['x'] * row['y']
-        row['denominator'] = row['x'] ** 2
-        return row
-
-    df = df.apply(_summary_stats, axis=1)
+    D = 4  # two qubits
+    pure_probs = np.array(df['pure_probs'].to_list())
+    sampled_probs = np.array(df['sampled_probs'].to_list())
+    df['e_u'] = np.sum(pure_probs ** 2, axis=1)
+    df['u_u'] = np.sum(pure_probs, axis=1) / D
+    df['m_u'] = np.sum(pure_probs * sampled_probs, axis=1)
+    df['y'] = df['m_u'] - df['u_u']
+    df['x'] = df['e_u'] - df['u_u']
+    df['numerator'] = df['x'] * df['y']
+    df['denominator'] = df['x'] ** 2
 
     def per_cycle_depth(df):
         """This function is applied per cycle_depth in the following groupby aggregation."""
@@ -1006,6 +1022,8 @@ def characterize_phased_fsim_parameters_with_xeb(
         verbose: Whether to print progress updates.
         pool: An optional multiprocessing pool to execute circuit simulations in parallel.
     """
+    if 'pair_name' in sampled_df.columns:
+        print('warning!')
     initial_simplex, names = phased_fsim_options.get_initial_simplex_and_names(
         initial_simplex_step_size=initial_simplex_step_size
     )
@@ -1025,6 +1043,8 @@ def characterize_phased_fsim_parameters_with_xeb(
         loss = 1 - fids['fidelity'].mean()
         if verbose:
             print("Loss: {:7.3g}".format(loss), flush=True)
+        else:
+            print('.', end='')
         return loss
 
     res = scipy.optimize.minimize(
@@ -1034,3 +1054,59 @@ def characterize_phased_fsim_parameters_with_xeb(
         method='nelder-mead',
     )
     return res
+
+
+class _CharacterizePhasedFsimParametersWithXebClosure:
+    def __init__(self,
+                 parameterized_circuits: List['cirq.Circuit'],
+                 cycle_depths: Sequence[int],
+                 phased_fsim_options: XEBPhasedFSimCalibrationOptions,
+                 initial_simplex_step_size: float = 0.1,
+                 xatol: float = 1e-3,
+                 fatol: float = 1e-3,
+                 ):
+        self.parameterized_circuits = parameterized_circuits
+        self.cycle_depths = cycle_depths
+        self.phased_fsim_options = phased_fsim_options
+        self.initial_simplex_step_size = initial_simplex_step_size
+        self.xatol = xatol
+        self.fatol = fatol
+
+    def __call__(self, sampled_df):
+        return characterize_phased_fsim_parameters_with_xeb(
+            sampled_df=sampled_df,
+            parameterized_circuits=self.parameterized_circuits,
+            cycle_depths=self.cycle_depths,
+            phased_fsim_options=self.phased_fsim_options,
+            initial_simplex_step_size=self.initial_simplex_step_size,
+            xatol=self.xatol,
+            fatol=self.fatol,
+            verbose=False,
+            pool=None
+        )
+
+
+def characterize_phased_fsim_parameters_with_xeb_by_pair(
+        sampled_df: pd.DataFrame,
+        parameterized_circuits: List['cirq.Circuit'],
+        cycle_depths: Sequence[int],
+        phased_fsim_options: XEBPhasedFSimCalibrationOptions,
+        initial_simplex_step_size: float = 0.1,
+        xatol: float = 1e-3,
+        fatol: float = 1e-3,
+        pool: Optional['multiprocessing.pool.Pool'] = None,
+):
+    # something about how pool is used here
+    pair_names = sampled_df['pair_name'].unique()
+    closure = _CharacterizePhasedFsimParametersWithXebClosure(
+        parameterized_circuits=parameterized_circuits,
+        cycle_depths=cycle_depths,
+        phased_fsim_options=phased_fsim_options,
+        initial_simplex_step_size=initial_simplex_step_size,
+        xatol=xatol,
+        fatol=fatol,
+    )
+    results = pool.map(closure,
+                       [sampled_df[sampled_df['pair_name'] == pair_name] for pair_name in
+                        pair_names])
+    return dict(zip(pair_names, results))
