@@ -39,7 +39,6 @@ import tqdm
 
 from cirq import ops, protocols, sim
 from cirq.circuits import Circuit
-from cirq.google.calibration.phased_fsim import PhasedFSimCalibrationOptions
 from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_state_vector
 
@@ -651,7 +650,7 @@ def benchmark_2q_xeb_fidelities(
 
 # mypy issue: https://github.com/python/mypy/issues/5374
 @dataclass(frozen=True)  # type: ignore
-class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
+class XEBPhasedFSimCalibrationOptions:
     """Options for calibrating a PhasedFSim-like gate using XEB.
 
     You may want to use more specific subclasses like `SqrtISwapXEBOptions`
