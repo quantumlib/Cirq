@@ -106,6 +106,7 @@ from cirq.ops.identity import (
 )
 
 from cirq.ops.ketbrasum import (
+    KetBra,
     KetBraSum,
 )
 

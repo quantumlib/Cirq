@@ -217,6 +217,7 @@ from cirq.ops import (
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,
+    KetBra,
     KetBraSum,
     LinearCombinationOfGates,
     LinearCombinationOfOperations,

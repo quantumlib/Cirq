@@ -3,7 +3,6 @@ from typing import (
     Dict,
     Iterable,
     Mapping,
-    Sequence,
     List,
     Optional,
     Tuple,
@@ -24,7 +23,6 @@ if TYPE_CHECKING:
     from cirq import protocols
 
 KetBraKey = TypeVar('KetBraKey', bound=Union[raw_types.Qid, Tuple[raw_types.Qid]])
-KetBra = TypeVar('KetBra', bound=Tuple[STATE_VECTOR_LIKE, STATE_VECTOR_LIKE])
 
 
 def qid_shape_from_ket_bra_key(ket_bra_key: KetBraKey):
@@ -55,6 +53,57 @@ def get_qid_indices(qid_map: Mapping[raw_types.Qid, int], ket_bra_key: KetBraKey
 
 
 @value.value_equality
+class KetBra:
+    def __init__(
+        self,
+        ket: Optional[STATE_VECTOR_LIKE] = None,
+        bra: Optional[STATE_VECTOR_LIKE] = None,
+        ket_bra_list: Optional[List[Tuple[STATE_VECTOR_LIKE, STATE_VECTOR_LIKE]]] = None,
+    ):
+
+        if ket_bra_list is not None:
+            self.ket_bra_list = ket_bra_list
+        else:
+            self.ket_bra_list = []
+        if ket is not None and bra is not None:
+            self.ket_bra_list.append(
+                (
+                    ket,
+                    bra,
+                )
+            )
+
+    def KetBra(self, ket: STATE_VECTOR_LIKE, bra: STATE_VECTOR_LIKE):
+        self.ket_bra_list.append(
+            (
+                ket,
+                bra,
+            )
+        )
+        return self
+
+    def __iter__(self):
+        return iter(self.ket_bra_list)
+
+    def __repr__(self) -> str:
+        return f"cirq.KetBra(ket_bra_list={self.ket_bra_list})"
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {
+            'cirq_type': self.__class__.__name__,
+            'ket_bra_list': [list(ket_bra) for ket_bra in self.ket_bra_list],
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, ket_bra_list, **kwargs):
+        ket_bra_list = [tuple(ket_bra) for ket_bra in ket_bra_list]
+        return cls(ket_bra_list=ket_bra_list)
+
+    def _value_equality_values_(self) -> Any:
+        return tuple(self.ket_bra_list)
+
+
+@value.value_equality
 class KetBraSum:
     """A generic operation specified as a list of |ket><bra|.
 
@@ -66,16 +115,16 @@ class KetBraSum:
 
     def __init__(
         self,
-        ket_bra_dict: Dict[KetBraKey, Sequence[KetBra]],
+        ket_bra_dict: Dict[KetBraKey, KetBra],
     ):
         """
         Args:
-            ket_bra_dict: a dictionary of Qdit tuples to a sequence of |ket><bra|
+            ket_bra_dict: a dictionary of Qdit tuples to a list of |ket><bra|
                 which express the operation to apply
         """
         self._ket_bra_dict = ket_bra_dict
 
-    def _ket_bra_dict_(self) -> Dict[KetBraKey, Sequence[KetBra]]:
+    def _ket_bra_dict_(self) -> Dict[KetBraKey, KetBra]:
         return self._ket_bra_dict
 
     def _op_matrix(self, ket_bra_key: KetBraKey) -> np.ndarray:
