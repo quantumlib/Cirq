@@ -43,6 +43,12 @@ def _list_all_notebooks() -> Set[str]:
 
 
 def _tested_notebooks():
+    """The notebooks are assumed to work against the latest released version of Cirq.
+    This means that (except at release time) we can skip testing all of them.
+    By default we only test for changed notebooks - the CI, day-to-day use case. At release time,
+    one can pass in the env var $TEST_ALL_NOTEBOOKS and that will ensure that all notebooks
+    are tested against a given version."""
+
     all_notebooks = _list_all_notebooks()
     skipped_notebooks = functools.reduce(
         lambda a, b: a.union(b), list(set(glob.glob(g, recursive=True)) for g in SKIP_NOTEBOOKS)
@@ -96,8 +102,8 @@ def create_base_env(proto_dir):
 
 @pytest.mark.slow
 @pytest.mark.parametrize("notebook_path", TESTED_NOTEBOOKS)
-def test_notebooks(notebook_path, base_env):
-    """Ensures testing the notebooks in isolated virtual environments."""
+def test_notebooks_against_released_cirq(notebook_path, base_env):
+    """Tests the notebooks in isolated virtual environments."""
     tmpdir, proto_dir = base_env
 
     notebook_file = os.path.basename(notebook_path)
