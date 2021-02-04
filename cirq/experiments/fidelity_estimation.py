@@ -808,6 +808,7 @@ def characterize_phased_fsim_parameters_with_xeb(
             in the parameters.
         fatol: The `fatol` argument for Nelder-Mead. This is the absolute error for convergence
             in the function evaluation.
+        verbose: Whether to print progress updates.
         pool: An optional multiprocessing pool to execute circuit simulations in parallel.
     """
     initial_simplex, names = phased_fsim_options.get_initial_simplex_and_names(
@@ -815,8 +816,8 @@ def characterize_phased_fsim_parameters_with_xeb(
     )
     x0 = initial_simplex[0]
 
-    def _f(x):
-        params = dict(zip(names, x))
+    def _mean_infidelity(angles):
+        params = dict(zip(names, angles))
         if verbose:
             params_str = ''
             for name, val in params.items():
@@ -832,7 +833,7 @@ def characterize_phased_fsim_parameters_with_xeb(
         return loss
 
     res = scipy.optimize.minimize(
-        _f,
+        _mean_infidelity,
         x0=x0,
         options={'initial_simplex': initial_simplex, 'xatol': xatol, 'fatol': fatol},
         method='nelder-mead',
