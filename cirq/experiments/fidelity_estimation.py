@@ -722,7 +722,7 @@ class XEBPhasedFSimCalibrationOptions:
         n_param = len(x0)
         initial_simplex = [x0]
         for i in range(n_param):
-            basis_vec = np.eye(1, n_param, i)
+            basis_vec = np.eye(1, n_param, i)[0]
             initial_simplex += [x0 + initial_simplex_step_size * basis_vec]
         initial_simplex = np.asarray(initial_simplex)
 
