@@ -38,8 +38,7 @@ def is_diagonal(matrix: np.ndarray, *, atol: float = 1e-8) -> bool:
     return tolerance.all_near_zero(matrix, atol=atol)
 
 
-def is_hermitian(matrix: np.ndarray, *, rtol: float = 1e-5,
-                 atol: float = 1e-8) -> bool:
+def is_hermitian(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately Hermitian.
 
     A matrix is Hermitian if it's square and equal to its adjoint.
@@ -52,12 +51,12 @@ def is_hermitian(matrix: np.ndarray, *, rtol: float = 1e-5,
     Returns:
         Whether the matrix is Hermitian within the given tolerance.
     """
-    return (matrix.shape[0] == matrix.shape[1] and
-            np.allclose(matrix, np.conj(matrix.T), rtol=rtol, atol=atol))
+    return matrix.shape[0] == matrix.shape[1] and np.allclose(
+        matrix, np.conj(matrix.T), rtol=rtol, atol=atol
+    )
 
 
-def is_orthogonal(matrix: np.ndarray, *, rtol: float = 1e-5,
-                  atol: float = 1e-8) -> bool:
+def is_orthogonal(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately orthogonal.
 
     A matrix is orthogonal if it's square and real and its transpose is its
@@ -71,18 +70,14 @@ def is_orthogonal(matrix: np.ndarray, *, rtol: float = 1e-5,
     Returns:
         Whether the matrix is orthogonal within the given tolerance.
     """
-    return (matrix.shape[0] == matrix.shape[1] and
-            np.all(np.imag(matrix) == 0) and
-            np.allclose(matrix.dot(matrix.T),
-                        np.eye(matrix.shape[0]),
-                        rtol=rtol,
-                        atol=atol))
+    return (
+        matrix.shape[0] == matrix.shape[1]
+        and np.all(np.imag(matrix) == 0)
+        and np.allclose(matrix.dot(matrix.T), np.eye(matrix.shape[0]), rtol=rtol, atol=atol)
+    )
 
 
-def is_special_orthogonal(matrix: np.ndarray,
-                          *,
-                          rtol: float = 1e-5,
-                          atol: float = 1e-8) -> bool:
+def is_special_orthogonal(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately special orthogonal.
 
     A matrix is special orthogonal if it is square and real and its transpose
@@ -96,13 +91,12 @@ def is_special_orthogonal(matrix: np.ndarray,
     Returns:
         Whether the matrix is special orthogonal within the given tolerance.
     """
-    return (is_orthogonal(matrix, rtol=rtol, atol=atol) and
-            (matrix.shape[0] == 0 or
-             np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)))
+    return is_orthogonal(matrix, rtol=rtol, atol=atol) and (
+        matrix.shape[0] == 0 or np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)
+    )
 
 
-def is_unitary(matrix: np.ndarray, *, rtol: float = 1e-5,
-               atol: float = 1e-8) -> bool:
+def is_unitary(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately unitary.
 
     A matrix is unitary if it's square and its adjoint is its inverse.
@@ -115,17 +109,12 @@ def is_unitary(matrix: np.ndarray, *, rtol: float = 1e-5,
     Returns:
         Whether the matrix is unitary within the given tolerance.
     """
-    return (matrix.shape[0] == matrix.shape[1] and
-            np.allclose(matrix.dot(np.conj(matrix.T)),
-                        np.eye(matrix.shape[0]),
-                        rtol=rtol,
-                        atol=atol))
+    return matrix.shape[0] == matrix.shape[1] and np.allclose(
+        matrix.dot(np.conj(matrix.T)), np.eye(matrix.shape[0]), rtol=rtol, atol=atol
+    )
 
 
-def is_special_unitary(matrix: np.ndarray,
-                       *,
-                       rtol: float = 1e-5,
-                       atol: float = 1e-8) -> bool:
+def is_special_unitary(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately unitary with unit determinant.
 
     A matrix is special-unitary if it is square and its adjoint is its inverse
@@ -139,13 +128,12 @@ def is_special_unitary(matrix: np.ndarray,
         Whether the matrix is unitary with unit determinant within the given
         tolerance.
     """
-    return (is_unitary(matrix, rtol=rtol, atol=atol) and
-            (matrix.shape[0] == 0 or
-             np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)))
+    return is_unitary(matrix, rtol=rtol, atol=atol) and (
+        matrix.shape[0] == 0 or np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)
+    )
 
 
-def is_normal(matrix: np.ndarray, *, rtol: float = 1e-5,
-              atol: float = 1e-8) -> bool:
+def is_normal(matrix: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately normal.
 
     A matrix is normal if it's square and commutes with its adjoint.
@@ -161,11 +149,9 @@ def is_normal(matrix: np.ndarray, *, rtol: float = 1e-5,
     return matrix_commutes(matrix, matrix.T.conj(), rtol=rtol, atol=atol)
 
 
-def matrix_commutes(m1: np.ndarray,
-                    m2: np.ndarray,
-                    *,
-                    rtol: float = 1e-5,
-                    atol: float = 1e-8) -> bool:
+def matrix_commutes(
+    m1: np.ndarray, m2: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8
+) -> bool:
     """Determines if two matrices approximately commute.
 
     Two matrices A and B commute if they are square and have the same size and
@@ -180,17 +166,22 @@ def matrix_commutes(m1: np.ndarray,
     Returns:
         Whether the two matrices have compatible sizes and a commutator equal
         to zero within tolerance.
-  """
-    return (m1.shape[0] == m1.shape[1] and m1.shape == m2.shape and
-            np.allclose(m1.dot(m2), m2.dot(m1), rtol=rtol, atol=atol))
+    """
+    return (
+        m1.shape[0] == m1.shape[1]
+        and m1.shape == m2.shape
+        and np.allclose(m1.dot(m2), m2.dot(m1), rtol=rtol, atol=atol)
+    )
 
 
-def allclose_up_to_global_phase(a: np.ndarray,
-                                b: np.ndarray,
-                                *,
-                                rtol: float = 1.e-5,
-                                atol: float = 1.e-8,
-                                equal_nan: bool = False) -> bool:
+def allclose_up_to_global_phase(
+    a: np.ndarray,
+    b: np.ndarray,
+    *,
+    rtol: float = 1.0e-5,
+    atol: float = 1.0e-8,
+    equal_nan: bool = False,
+) -> bool:
     """Determines if a ~= b * exp(i t) for some t.
 
     Args:
@@ -211,12 +202,12 @@ def allclose_up_to_global_phase(a: np.ndarray,
 
 
 def slice_for_qubits_equal_to(
-        target_qubit_axes: Sequence[int],
-        little_endian_qureg_value: int = 0,
-        *,  # Forces keyword args.
-        big_endian_qureg_value: int = 0,
-        num_qubits: Optional[int] = None,
-        qid_shape: Optional[Tuple[int, ...]] = None,
+    target_qubit_axes: Sequence[int],
+    little_endian_qureg_value: int = 0,
+    *,  # Forces keyword args.
+    big_endian_qureg_value: int = 0,
+    num_qubits: Optional[int] = None,
+    qid_shape: Optional[Tuple[int, ...]] = None,
 ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
 
@@ -276,10 +267,12 @@ def slice_for_qubits_equal_to(
     if little_endian_qureg_value and big_endian_qureg_value:
         raise ValueError(
             'Specify exactly one of the arguments little_endian_qureg_value '
-            'or big_endian_qureg_value.')
+            'or big_endian_qureg_value.'
+        )
     out_size_specified = num_qubits is not None
-    out_size = (cast(int, num_qubits) if out_size_specified else
-                max(target_qubit_axes, default=-1) + 1)
+    out_size = (
+        cast(int, num_qubits) if out_size_specified else max(target_qubit_axes, default=-1) + 1
+    )
     result = cast(List[Union[slice, int, 'ellipsis']], [slice(None)] * out_size)
     if not out_size_specified:
         result.append(Ellipsis)
@@ -287,14 +280,14 @@ def slice_for_qubits_equal_to(
         qid_shape = (2,) * out_size
     target_shape = tuple(qid_shape[i] for i in target_qubit_axes)
     if big_endian_qureg_value:
-        digits = value.big_endian_int_to_digits(big_endian_qureg_value,
-                                                base=target_shape)
+        digits = value.big_endian_int_to_digits(big_endian_qureg_value, base=target_shape)
     else:
         if little_endian_qureg_value < 0 and not qid_shape_specified:
             # Allow negative binary numbers
             little_endian_qureg_value &= (1 << len(target_shape)) - 1
-        digits = value.big_endian_int_to_digits(little_endian_qureg_value,
-                                                base=target_shape[::-1])[::-1]
+        digits = value.big_endian_int_to_digits(little_endian_qureg_value, base=target_shape[::-1])[
+            ::-1
+        ]
     for axis, digit in zip(target_qubit_axes, digits):
         result[axis] = digit
     return tuple(result)

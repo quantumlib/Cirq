@@ -19,9 +19,7 @@ import cirq
 
 
 def test_assert_specifies_has_unitary_if_unitary_from_matrix():
-
     class Bad:
-
         def _unitary_(self):
             return np.array([[1]])
 
@@ -31,9 +29,7 @@ def test_assert_specifies_has_unitary_if_unitary_from_matrix():
 
 
 def test_assert_specifies_has_unitary_if_unitary_from_apply():
-
     class Bad(cirq.Operation):
-
         @property
         def qubits(self):
             # coverage: ignore
@@ -52,9 +48,7 @@ def test_assert_specifies_has_unitary_if_unitary_from_apply():
 
 
 def test_assert_specifies_has_unitary_if_unitary_from_decompose():
-
     class Bad:
-
         def _decompose_(self):
             return []
 
@@ -63,7 +57,6 @@ def test_assert_specifies_has_unitary_if_unitary_from_decompose():
         cirq.testing.assert_specifies_has_unitary_if_unitary(Bad())
 
     class Bad2:
-
         def _decompose_(self):
             return [cirq.X(cirq.LineQubit(0))]
 
@@ -72,7 +65,6 @@ def test_assert_specifies_has_unitary_if_unitary_from_decompose():
         cirq.testing.assert_specifies_has_unitary_if_unitary(Bad2())
 
     class Okay:
-
         def _decompose_(self):
             return [cirq.depolarize(0.5).on(cirq.LineQubit(0))]
 
@@ -81,9 +73,7 @@ def test_assert_specifies_has_unitary_if_unitary_from_decompose():
 
 
 def test_assert_specifies_has_unitary_if_unitary_pass():
-
     class Good:
-
         def _has_unitary_(self):
             return True
 

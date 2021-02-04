@@ -38,8 +38,7 @@ class EqualsTester:
         eq = v1 == v2
         ne = v1 != v2
 
-        assert eq != ne, ("__eq__ is inconsistent with __ne__ "
-                          "between {!r} and {!r}".format(v1, v2))
+        assert eq != ne, "__eq__ is inconsistent with __ne__ between {!r} and {!r}".format(v1, v2)
         return eq
 
     def _verify_equality_group(self, *group_items: Any):
@@ -63,34 +62,36 @@ class EqualsTester:
         # Within-group items must be equal.
         for v1, v2 in itertools.product(group_items, group_items):
             same = EqualsTester._eq_check(v1, v2)
-            assert same or v1 is not v2, "{!r} isn't equal to itself!".format(
-                v1)
-            assert same, (
-                "{!r} and {!r} can't be in the same equality group. "
-                "They're not equal.".format(v1, v2))
+            assert same or v1 is not v2, "{!r} isn't equal to itself!".format(v1)
+            assert (
+                same
+            ), "{!r} and {!r} can't be in the same equality group. They're not equal.".format(
+                v1, v2
+            )
 
         # Between-group items must be unequal.
         for other_group in self._groups:
             for v1, v2 in itertools.product(group_items, other_group):
-                assert not EqualsTester._eq_check(v1, v2), (
-                    "{!r} and {!r} can't be in different equality groups. "
-                    "They're equal.".format(v1, v2))
+                assert not EqualsTester._eq_check(
+                    v1, v2
+                ), "{!r} and {!r} can't be in different equality groups. They're equal.".format(
+                    v1, v2
+                )
 
         # Check that group items hash to the same thing, or are all unhashable.
-        hashes = [
-            hash(v) if isinstance(v, collections.abc.Hashable) else None
-            for v in group_items
-        ]
+        hashes = [hash(v) if isinstance(v, collections.abc.Hashable) else None for v in group_items]
         if len(set(hashes)) > 1:
-            examples = ((v1, h1, v2, h2)
-                        for v1, h1 in zip(group_items, hashes)
-                        for v2, h2 in zip(group_items, hashes)
-                        if h1 != h2)
+            examples = (
+                (v1, h1, v2, h2)
+                for v1, h1 in zip(group_items, hashes)
+                for v2, h2 in zip(group_items, hashes)
+                if h1 != h2
+            )
             example = next(examples)
             raise AssertionError(
                 'Items in the same group produced different hashes. '
-                'Example: hash({!r}) is {!r} but hash({!r}) is {!r}.'.format(
-                    *example))
+                'Example: hash({!r}) is {!r} but hash({!r}) is {!r}.'.format(*example)
+            )
 
     def add_equality_group(self, *group_items: Any):
         """Tries to add a disjoint equivalence group to the equality tester.

@@ -24,36 +24,32 @@ import cirq.contrib.routing as ccr
 
 
 def random_seed():
-    return random.randint(0, 2**32)
+    return random.randint(0, 2 ** 32)
 
 
-@pytest.mark.parametrize('n_moments,algo,circuit_seed,routing_seed',
-                         [(20, algo, random_seed(), random_seed())
-                          for algo in ccr.ROUTERS
-                          for _ in range(5)] +
-                         [(0, 'greedy', random_seed(), random_seed())] +
-                         [(10, 'greedy', random_seed(), None)])
+@pytest.mark.parametrize(
+    'n_moments,algo,circuit_seed,routing_seed',
+    [(20, algo, random_seed(), random_seed()) for algo in ccr.ROUTERS for _ in range(5)]
+    + [(0, 'greedy', random_seed(), random_seed())]
+    + [(10, 'greedy', random_seed(), None)],
+)
 def test_route_circuit(n_moments, algo, circuit_seed, routing_seed):
-    circuit = cirq.testing.random_circuit(10,
-                                          n_moments,
-                                          0.5,
-                                          random_state=circuit_seed)
+    circuit = cirq.testing.random_circuit(10, n_moments, 0.5, random_state=circuit_seed)
     device_graph = ccr.get_grid_device_graph(4, 3)
-    swap_network = ccr.route_circuit(circuit,
-                                     device_graph,
-                                     algo_name=algo,
-                                     random_state=routing_seed)
+    swap_network = ccr.route_circuit(
+        circuit, device_graph, algo_name=algo, random_state=routing_seed
+    )
     assert set(swap_network.initial_mapping).issubset(device_graph)
-    assert (sorted(swap_network.initial_mapping.values()) == sorted(
-        circuit.all_qubits()))
+    assert sorted(swap_network.initial_mapping.values()) == sorted(circuit.all_qubits())
     assert ccr.ops_are_consistent_with_device_graph(
-        swap_network.circuit.all_operations(), device_graph)
+        swap_network.circuit.all_operations(), device_graph
+    )
     assert ccr.is_valid_routing(circuit, swap_network)
 
 
 @pytest.mark.parametrize(
-    'algo,seed',
-    [(algo, random_seed()) for algo in ccr.ROUTERS for _ in range(3)])
+    'algo,seed', [(algo, random_seed()) for algo in ccr.ROUTERS for _ in range(3)]
+)
 def test_route_circuit_reproducible_with_seed(algo, seed):
     circuit = cirq.testing.random_circuit(8, 20, 0.5, random_state=seed)
     device_graph = ccr.get_grid_device_graph(4, 3)
@@ -61,10 +57,9 @@ def test_route_circuit_reproducible_with_seed(algo, seed):
 
     swap_networks = []
     for wrapper, _ in itertools.product(wrappers, range(3)):
-        swap_network = ccr.route_circuit(circuit,
-                                         device_graph,
-                                         algo_name=algo,
-                                         random_state=wrapper(seed))
+        swap_network = ccr.route_circuit(
+            circuit, device_graph, algo_name=algo, random_state=wrapper(seed)
+        )
         swap_networks.append(swap_network)
 
     eq = cirq.testing.equals_tester.EqualsTester()
@@ -77,10 +72,7 @@ def test_route_circuit_reproducible_between_runs(algo):
     circuit = cirq.testing.random_circuit(6, 5, 0.5, random_state=seed)
     device_graph = ccr.get_grid_device_graph(2, 3)
 
-    swap_network = ccr.route_circuit(circuit,
-                                     device_graph,
-                                     algo_name=algo,
-                                     random_state=seed)
+    swap_network = ccr.route_circuit(circuit, device_graph, algo_name=algo, random_state=seed)
     swap_network_str = str(swap_network).lstrip('\n').rstrip()
     expected_swap_network_str = """
                ┌──┐       ┌────┐       ┌──────┐
@@ -96,23 +88,27 @@ def test_route_circuit_reproducible_between_runs(algo):
                                          │
 (1, 2): ───0────X─────0────────────0─────iSwap────0───
                └──┘       └────┘       └──────┘
-    """.lstrip('\n').rstrip()
+    """.lstrip(
+        '\n'
+    ).rstrip()
     assert swap_network_str == expected_swap_network_str
 
 
-@pytest.mark.parametrize('n_moments,algo,seed,make_bad',
-                         [(8, algo, random_seed(), make_bad)
-                          for algo in ccr.ROUTERS for make_bad in (False, True)
-                          for _ in range(5)] +
-                         [(0, 'greedy', random_seed(), False)])
+@pytest.mark.parametrize(
+    'n_moments,algo,seed,make_bad',
+    [
+        (8, algo, random_seed(), make_bad)
+        for algo in ccr.ROUTERS
+        for make_bad in (False, True)
+        for _ in range(5)
+    ]
+    + [(0, 'greedy', random_seed(), False)],
+)
 def test_route_circuit_via_unitaries(n_moments, algo, seed, make_bad):
     circuit = cirq.testing.random_circuit(4, n_moments, 0.5, random_state=seed)
     device_graph = ccr.get_grid_device_graph(3, 2)
 
-    swap_network = ccr.route_circuit(circuit,
-                                     device_graph,
-                                     algo_name=algo,
-                                     random_state=seed)
+    swap_network = ccr.route_circuit(circuit, device_graph, algo_name=algo, random_state=seed)
 
     logical_qubits = sorted(circuit.all_qubits())
     if len(logical_qubits) < 2:
@@ -142,16 +138,12 @@ def test_router_bad_args():
 
     algo_name = 'greedy'
     with pytest.raises(ValueError):
-        ccr.route_circuit(circuit,
-                          device_graph,
-                          algo_name=algo_name,
-                          router=ccr.ROUTERS[algo_name])
+        ccr.route_circuit(circuit, device_graph, algo_name=algo_name, router=ccr.ROUTERS[algo_name])
 
     circuit = cirq.Circuit(cirq.CCZ(*cirq.LineQubit.range(3)))
     with pytest.raises(ValueError):
         ccr.route_circuit(circuit, device_graph, algo_name=algo_name)
 
-    circuit = cirq.Circuit(
-        cirq.CZ(cirq.LineQubit(i), cirq.LineQubit(i + 1)) for i in range(5))
+    circuit = cirq.Circuit(cirq.CZ(cirq.LineQubit(i), cirq.LineQubit(i + 1)) for i in range(5))
     with pytest.raises(ValueError):
         ccr.route_circuit(circuit, device_graph, algo_name=algo_name)

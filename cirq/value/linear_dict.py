@@ -14,9 +14,24 @@
 
 """Linear combination represented as mapping of things to coefficients."""
 import numbers
-from typing import (Any, Callable, Dict, ItemsView, Iterable, Iterator,
-                    KeysView, Mapping, MutableMapping, overload, Tuple, TypeVar,
-                    Union, ValuesView, Generic, Optional)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    ItemsView,
+    Iterable,
+    Iterator,
+    KeysView,
+    Mapping,
+    MutableMapping,
+    overload,
+    Tuple,
+    TypeVar,
+    Union,
+    ValuesView,
+    Generic,
+    Optional,
+)
 
 Scalar = Union[complex, float, numbers.Complex]
 TVector = TypeVar('TVector')
@@ -52,9 +67,7 @@ def _format_term(format_spec: str, vector: TVector, coefficient: Scalar) -> str:
 
 
 def _format_terms(terms: Iterable[Tuple[TVector, Scalar]], format_spec: str):
-    formatted_terms = [
-        _format_term(format_spec, vector, coeff) for vector, coeff in terms
-    ]
+    formatted_terms = [_format_term(format_spec, vector, coeff) for vector, coeff in terms]
     s = ''.join(formatted_terms)
     if not s:
         return '{:{fmt}}'.format(0, fmt=format_spec)
@@ -77,9 +90,12 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
     the keys other than equality are ignored. In particular, keys are allowed
     to be linearly dependent.
     """
-    def __init__(self,
-                 terms: Optional[Mapping[TVector, Scalar]] = None,
-                 validator: Callable[[TVector], bool] = None) -> None:
+
+    def __init__(
+        self,
+        terms: Optional[Mapping[TVector, Scalar]] = None,
+        validator: Callable[[TVector], bool] = None,
+    ) -> None:
         """Initializes linear combination from a collection of terms.
 
         Args:
@@ -105,11 +121,9 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
 
     def _check_vector_valid(self, vector: TVector) -> None:
         if not self._is_valid(vector):
-            raise ValueError(
-                    '{} is not compatible with linear combination {}'
-                    .format(vector, self))
+            raise ValueError('{} is not compatible with linear combination {}'.format(vector, self))
 
-    def clean(self: 'TSelf', *, atol: float=1e-9) -> 'TSelf':
+    def clean(self: 'TSelf', *, atol: float = 1e-9) -> 'TSelf':
         """Remove terms with coefficients of absolute value atol or less."""
         negligible = [v for v, c in self._terms.items() if abs(c) <= atol]
         for v in negligible:
@@ -138,9 +152,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         pass
 
     @overload
-    def update(self,
-               other: Iterable[Tuple[TVector, Scalar]],
-               **kwargs: Scalar) -> None:
+    def update(self, other: Iterable[Tuple[TVector, Scalar]], **kwargs: Scalar) -> None:
         pass
 
     @overload
@@ -159,14 +171,14 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         pass
 
     @overload
-    def get(self, vector: TVector, default: TDefault
-            ) -> Union[Scalar, TDefault]:
+    def get(self, vector: TVector, default: TDefault) -> Union[Scalar, TDefault]:
         pass
 
     def get(self, vector, default=0):
         if self._terms.get(vector, 0) == 0:
             return default
         return self._terms.get(vector)
+
     # pylint: enable=function-redefined
 
     def __contains__(self, vector: Any) -> bool:
@@ -298,12 +310,11 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
 
     def _json_dict_(self) -> Dict[Any, Any]:
         if self._has_validator:
-            raise ValueError(
-                'LinearDict with a validator is not json serializable.')
+            raise ValueError('LinearDict with a validator is not json serializable.')
         return {
             'cirq_type': self.__class__.__name__,
             'keys': [k for k in self._terms.keys()],
-            'values': [v for v in self._terms.values()]
+            'values': [v for v in self._terms.values()],
         }
 
     @classmethod

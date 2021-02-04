@@ -3,6 +3,7 @@ from collections import Counter
 import numpy as np
 import scipy as sp
 import cirq
+
 """Demonstrates Simon's algorithm.
 Simon's Algorithm solves the following problem:
 
@@ -70,8 +71,7 @@ def main(qubit_count=3):
         flag = False  # check if we have a linearly independent set of measures
         while not flag:
             # Choose qubits to use.
-            input_qubits = [cirq.GridQubit(i, 0) for i in range(qubit_count)
-                           ]  # input x
+            input_qubits = [cirq.GridQubit(i, 0) for i in range(qubit_count)]  # input x
             output_qubits = [
                 cirq.GridQubit(i + qubit_count, 0) for i in range(qubit_count)
             ]  # output f(x)
@@ -85,8 +85,7 @@ def main(qubit_count=3):
             # Sample from the circuit a n-1 times (n = qubit_count).
             simulator = cirq.Simulator()
             results = [
-                simulator.run(circuit).measurements['result'][0]
-                for _ in range(qubit_count - 1)
+                simulator.run(circuit).measurements['result'][0] for _ in range(qubit_count - 1)
             ]
 
             # Classical Post-Processing:
@@ -114,8 +113,10 @@ def make_oracle(input_qubits, output_qubits, secret_string):
             if secret_string[j] > 0:
                 yield cirq.CNOT(input_qubits[significant], output_qubits[j])
     # Apply a random permutation:
-    pos = [0, len(secret_string) - 1
-          ]  # Swap some qubits to define oracle. We choose first and last:
+    pos = [
+        0,
+        len(secret_string) - 1,
+    ]  # Swap some qubits to define oracle. We choose first and last:
     yield cirq.SWAP(output_qubits[pos[0]], output_qubits[pos[1]])
 
 
@@ -127,18 +128,17 @@ def make_simon_circuit(input_qubits, output_qubits, oracle):
     c = cirq.Circuit()
 
     # Initialize qubits.
-    c.append([
-        cirq.H.on_each(*input_qubits),
-    ])
+    c.append(
+        [
+            cirq.H.on_each(*input_qubits),
+        ]
+    )
 
     # Query oracle.
     c.append(oracle)
 
     # Measure in X basis.
-    c.append([
-        cirq.H.on_each(*input_qubits),
-        cirq.measure(*input_qubits, key='result')
-    ])
+    c.append([cirq.H.on_each(*input_qubits), cirq.measure(*input_qubits, key='result')])
 
     return c
 
@@ -147,14 +147,12 @@ def post_processing(data, results):
     """Solves a system of equations with modulo 2 numbers"""
     sing_values = sp.linalg.svdvals(results)
     tolerance = 1e-5
-    if sum(sing_values < tolerance
-          ) == 0:  # check if measurements are linearly dependent
+    if sum(sing_values < tolerance) == 0:  # check if measurements are linearly dependent
         flag = True
         null_space = sp.linalg.null_space(results).T[0]
         solution = np.around(null_space, 3)  # chop very small values
         minval = abs(min(solution[np.nonzero(solution)], key=abs))
-        solution = (solution / minval % 2).astype(
-            int)  # renormalize vector mod 2
+        solution = (solution / minval % 2).astype(int)  # renormalize vector mod 2
         data.append(str(solution))
         return flag
 

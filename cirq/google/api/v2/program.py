@@ -11,13 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import re
 from typing import TYPE_CHECKING
 
 from cirq import devices, ops
 
 if TYPE_CHECKING:
     import cirq
+
+GRID_QUBIT_ID_PATTERN = r'^q?(-?\d+)_(-?\d+)$'
 
 
 def qubit_to_proto_id(q: 'cirq.Qid') -> str:
@@ -37,8 +39,7 @@ def qubit_to_proto_id(q: 'cirq.Qid') -> str:
     elif isinstance(q, devices.LineQubit):
         return '{}'.format(q.x)
     else:
-        raise ValueError('Qubits of type {} do not support proto id'.format(
-            type(q)))
+        raise ValueError('Qubits of type {} do not support proto id'.format(type(q)))
 
 
 def qubit_from_proto_id(proto_id: str) -> 'cirq.Qid':
@@ -93,18 +94,14 @@ def grid_qubit_from_proto_id(proto_id: str) -> 'cirq.GridQubit':
     Raises:
         ValueError: If the string not of the correct format.
     """
-    parts = proto_id.split('_')
-    if len(parts) != 2:
+
+    match = re.match(GRID_QUBIT_ID_PATTERN, proto_id)
+    if match is None:
         raise ValueError(
-            'GridQubit proto id must be of the form <int>_<int> but was {}'.
-            format(proto_id))
-    try:
-        row, col = parts
-        return devices.GridQubit(row=int(row), col=int(col))
-    except ValueError:
-        raise ValueError(
-            'GridQubit proto id must be of the form <int>_<int> but was {}'.
-            format(proto_id))
+            'GridQubit proto id must be of the form [q]<int>_<int> but was {}'.format(proto_id)
+        )
+    row, col = match.groups()
+    return devices.GridQubit(row=int(row), col=int(col))
 
 
 def line_qubit_from_proto_id(proto_id: str) -> 'cirq.LineQubit':
@@ -125,8 +122,7 @@ def line_qubit_from_proto_id(proto_id: str) -> 'cirq.LineQubit':
     try:
         return devices.LineQubit(x=int(proto_id))
     except ValueError:
-        raise ValueError(
-            'Line qubit proto id must be an int but was {}'.format(proto_id))
+        raise ValueError('Line qubit proto id must be an int but was {}'.format(proto_id))
 
 
 def named_qubit_from_proto_id(proto_id: str) -> 'cirq.NamedQubit':

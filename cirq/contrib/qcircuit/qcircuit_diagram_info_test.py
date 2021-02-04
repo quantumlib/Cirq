@@ -23,45 +23,46 @@ def test_get_qcircuit_diagram_info():
     op = gate(*qubits)
     qubit_map = {q: i for i, q in enumerate(qubits)}
     args = cirq.CircuitDiagramInfoArgs(
-            known_qubits=qubits,
-            known_qubit_count=None,
-            use_unicode_characters=True,
-            precision=3,
-            qubit_map=qubit_map)
+        known_qubits=qubits,
+        known_qubit_count=None,
+        use_unicode_characters=True,
+        precision=3,
+        qubit_map=qubit_map,
+    )
     actual_info = ccq.get_qcircuit_diagram_info(op, args)
     name = r'{\text{SWAP}^{0.5}}'
     expected_info = cirq.CircuitDiagramInfo(
-            (r'\multigate{1}' + name, r'\ghost' + name),
-            exponent=0.5,
-            connected=False)
+        (r'\multigate{1}' + name, r'\ghost' + name), exponent=0.5, connected=False
+    )
     assert actual_info == expected_info
 
     gate = cirq.SWAP
     op = gate(*qubits)
     qubit_map = {q: i for q, i in zip(qubits, (4, 3))}
     args = cirq.CircuitDiagramInfoArgs(
-            known_qubits=qubits,
-            known_qubit_count=None,
-            use_unicode_characters=True,
-            precision=3,
-            qubit_map=qubit_map)
+        known_qubits=qubits,
+        known_qubit_count=None,
+        use_unicode_characters=True,
+        precision=3,
+        qubit_map=qubit_map,
+    )
     actual_info = ccq.get_qcircuit_diagram_info(op, args)
     expected_info = cirq.CircuitDiagramInfo(
-            (r'\ghost{\text{SWAP}}', r'\multigate{1}{\text{SWAP}}'),
-            connected=False)
+        (r'\ghost{\text{SWAP}}', r'\multigate{1}{\text{SWAP}}'), connected=False
+    )
     assert actual_info == expected_info
 
     qubit_map = {q: i for q, i in zip(qubits, (2, 5))}
     args = cirq.CircuitDiagramInfoArgs(
-            known_qubits=qubits,
-            known_qubit_count=None,
-            use_unicode_characters=True,
-            precision=3,
-            qubit_map=qubit_map)
+        known_qubits=qubits,
+        known_qubit_count=None,
+        use_unicode_characters=True,
+        precision=3,
+        qubit_map=qubit_map,
+    )
     actual_info = ccq.get_qcircuit_diagram_info(op, args)
     expected_info = cirq.CircuitDiagramInfo((r'\gate{\text{Swap}}',) * 2)
     assert actual_info == expected_info
 
-    actual_info = ccq.get_qcircuit_diagram_info(op,
-            cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT)
+    actual_info = ccq.get_qcircuit_diagram_info(op, cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT)
     assert actual_info == expected_info

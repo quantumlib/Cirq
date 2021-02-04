@@ -1,4 +1,4 @@
-# Calibration Metrics
+# Calibration metrics
 
 Quantum processors periodically undergo calibrations to maintain the
 quality of the programs that can be run on them.
@@ -13,7 +13,12 @@ of the metric.  Note that the value of the metric is also usually a dictionary
 
 ## Retrieving calibration metrics
 
-Calibration metrics can be retrieved using an engine instance or with a job.
+You can view calibration metrics in the Cloud Console by clicking on the
+relevant processor in the
+[processors list](https://console.cloud.google.com/quantum/processors).
+A dropdown menu will let you choose the current characterization or historical
+metrics from a previous run.  Calibration metrics can also be retrieved
+programmatically using an engine instance or with a job.
 
 ```
 import cirq.google as cg
@@ -68,7 +73,7 @@ be the Pauli error divided by three.  The Pauli error and average error are
 related by a multiplicative factor dependent on the number of qubits.
 
 See Table 1 on page 11 of the
-[Supplementry Information](https://arxiv.org/abs/1910.11333)
+[Supplementary Information](https://arxiv.org/abs/1910.11333)
 document for a description and comparison between average error, Pauli error,
 and depolarization error.
 

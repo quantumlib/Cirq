@@ -22,8 +22,8 @@ def test_fixed_single_qubit_rotations():
     a, b, c, d = cirq.LineQubit.range(4)
 
     assert_url_to_circuit_returns(
-        '{"cols":[["H","X","Y","Z"]]}',
-        cirq.Circuit(cirq.H(a), cirq.X(b), cirq.Y(c), cirq.Z(d)))
+        '{"cols":[["H","X","Y","Z"]]}', cirq.Circuit(cirq.H(a), cirq.X(b), cirq.Y(c), cirq.Z(d))
+    )
 
     assert_url_to_circuit_returns(
         '{"cols":[["X^½","X^⅓","X^¼"],'
@@ -31,19 +31,20 @@ def test_fixed_single_qubit_rotations():
         '["X^-½","X^-⅓","X^-¼"],'
         '["X^-⅛","X^-⅟₁₆","X^-⅟₃₂"]]}',
         cirq.Circuit(
-            cirq.X(a)**(1 / 2),
-            cirq.X(b)**(1 / 3),
-            cirq.X(c)**(1 / 4),
-            cirq.X(a)**(1 / 8),
-            cirq.X(b)**(1 / 16),
-            cirq.X(c)**(1 / 32),
-            cirq.X(a)**(-1 / 2),
-            cirq.X(b)**(-1 / 3),
-            cirq.X(c)**(-1 / 4),
-            cirq.X(a)**(-1 / 8),
-            cirq.X(b)**(-1 / 16),
-            cirq.X(c)**(-1 / 32),
-        ))
+            cirq.X(a) ** (1 / 2),
+            cirq.X(b) ** (1 / 3),
+            cirq.X(c) ** (1 / 4),
+            cirq.X(a) ** (1 / 8),
+            cirq.X(b) ** (1 / 16),
+            cirq.X(c) ** (1 / 32),
+            cirq.X(a) ** (-1 / 2),
+            cirq.X(b) ** (-1 / 3),
+            cirq.X(c) ** (-1 / 4),
+            cirq.X(a) ** (-1 / 8),
+            cirq.X(b) ** (-1 / 16),
+            cirq.X(c) ** (-1 / 32),
+        ),
+    )
 
     assert_url_to_circuit_returns(
         '{"cols":[["Y^½","Y^⅓","Y^¼"],'
@@ -51,19 +52,20 @@ def test_fixed_single_qubit_rotations():
         '["Y^-½","Y^-⅓","Y^-¼"],'
         '["Y^-⅛","Y^-⅟₁₆","Y^-⅟₃₂"]]}',
         cirq.Circuit(
-            cirq.Y(a)**(1 / 2),
-            cirq.Y(b)**(1 / 3),
-            cirq.Y(c)**(1 / 4),
-            cirq.Y(a)**(1 / 8),
-            cirq.Y(b)**(1 / 16),
-            cirq.Y(c)**(1 / 32),
-            cirq.Y(a)**(-1 / 2),
-            cirq.Y(b)**(-1 / 3),
-            cirq.Y(c)**(-1 / 4),
-            cirq.Y(a)**(-1 / 8),
-            cirq.Y(b)**(-1 / 16),
-            cirq.Y(c)**(-1 / 32),
-        ))
+            cirq.Y(a) ** (1 / 2),
+            cirq.Y(b) ** (1 / 3),
+            cirq.Y(c) ** (1 / 4),
+            cirq.Y(a) ** (1 / 8),
+            cirq.Y(b) ** (1 / 16),
+            cirq.Y(c) ** (1 / 32),
+            cirq.Y(a) ** (-1 / 2),
+            cirq.Y(b) ** (-1 / 3),
+            cirq.Y(c) ** (-1 / 4),
+            cirq.Y(a) ** (-1 / 8),
+            cirq.Y(b) ** (-1 / 16),
+            cirq.Y(c) ** (-1 / 32),
+        ),
+    )
 
     assert_url_to_circuit_returns(
         '{"cols":[["Z^½","Z^⅓","Z^¼"],'
@@ -72,22 +74,25 @@ def test_fixed_single_qubit_rotations():
         '["Z^-½","Z^-⅓","Z^-¼"],'
         '["Z^-⅛","Z^-⅟₁₆"]]}',
         cirq.Circuit(
-            cirq.Z(a)**(1 / 2),
-            cirq.Z(b)**(1 / 3),
-            cirq.Z(c)**(1 / 4),
-            cirq.Z(a)**(1 / 8),
-            cirq.Z(b)**(1 / 16),
-            cirq.Z(c)**(1 / 32),
-            cirq.Z(a)**(1 / 64),
-            cirq.Z(b)**(1 / 128),
-            cirq.Moment([
-                cirq.Z(a)**(-1 / 2),
-                cirq.Z(b)**(-1 / 3),
-                cirq.Z(c)**(-1 / 4),
-            ]),
-            cirq.Z(a)**(-1 / 8),
-            cirq.Z(b)**(-1 / 16),
-        ))
+            cirq.Z(a) ** (1 / 2),
+            cirq.Z(b) ** (1 / 3),
+            cirq.Z(c) ** (1 / 4),
+            cirq.Z(a) ** (1 / 8),
+            cirq.Z(b) ** (1 / 16),
+            cirq.Z(c) ** (1 / 32),
+            cirq.Z(a) ** (1 / 64),
+            cirq.Z(b) ** (1 / 128),
+            cirq.Moment(
+                [
+                    cirq.Z(a) ** (-1 / 2),
+                    cirq.Z(b) ** (-1 / 3),
+                    cirq.Z(c) ** (-1 / 4),
+                ]
+            ),
+            cirq.Z(a) ** (-1 / 8),
+            cirq.Z(b) ** (-1 / 16),
+        ),
+    )
 
 
 def test_dynamic_single_qubit_rotations():
@@ -98,13 +103,14 @@ def test_dynamic_single_qubit_rotations():
     assert_url_to_circuit_returns(
         '{"cols":[["X^t","Y^t","Z^t"],["X^-t","Y^-t","Z^-t"]]}',
         cirq.Circuit(
-            cirq.X(a)**t,
-            cirq.Y(b)**t,
-            cirq.Z(c)**t,
-            cirq.X(a)**-t,
-            cirq.Y(b)**-t,
-            cirq.Z(c)**-t,
-        ))
+            cirq.X(a) ** t,
+            cirq.Y(b) ** t,
+            cirq.Z(c) ** t,
+            cirq.X(a) ** -t,
+            cirq.Y(b) ** -t,
+            cirq.Z(c) ** -t,
+        ),
+    )
     assert_url_to_circuit_returns(
         '{"cols":[["e^iXt","e^iYt","e^iZt"],["e^-iXt","e^-iYt","e^-iZt"]]}',
         cirq.Circuit(
@@ -114,7 +120,8 @@ def test_dynamic_single_qubit_rotations():
             cirq.rx(2 * sympy.pi * -t).on(a),
             cirq.ry(2 * sympy.pi * -t).on(b),
             cirq.rz(2 * sympy.pi * -t).on(c),
-        ))
+        ),
+    )
 
 
 def test_formulaic_gates():
@@ -124,36 +131,42 @@ def test_formulaic_gates():
     assert_url_to_circuit_returns(
         '{"cols":[["X^ft",{"id":"X^ft","arg":"t*t"}]]}',
         cirq.Circuit(
-            cirq.X(a)**sympy.sin(sympy.pi * t),
-            cirq.X(b)**(t * t),
-        ))
+            cirq.X(a) ** sympy.sin(sympy.pi * t),
+            cirq.X(b) ** (t * t),
+        ),
+    )
     assert_url_to_circuit_returns(
         '{"cols":[["Y^ft",{"id":"Y^ft","arg":"t*t"}]]}',
         cirq.Circuit(
-            cirq.Y(a)**sympy.sin(sympy.pi * t),
-            cirq.Y(b)**(t * t),
-        ))
+            cirq.Y(a) ** sympy.sin(sympy.pi * t),
+            cirq.Y(b) ** (t * t),
+        ),
+    )
     assert_url_to_circuit_returns(
         '{"cols":[["Z^ft",{"id":"Z^ft","arg":"t*t"}]]}',
         cirq.Circuit(
-            cirq.Z(a)**sympy.sin(sympy.pi * t),
-            cirq.Z(b)**(t * t),
-        ))
+            cirq.Z(a) ** sympy.sin(sympy.pi * t),
+            cirq.Z(b) ** (t * t),
+        ),
+    )
     assert_url_to_circuit_returns(
         '{"cols":[["Rxft",{"id":"Rxft","arg":"t*t"}]]}',
         cirq.Circuit(
             cirq.rx(sympy.pi * t * t).on(a),
             cirq.rx(t * t).on(b),
-        ))
+        ),
+    )
     assert_url_to_circuit_returns(
         '{"cols":[["Ryft",{"id":"Ryft","arg":"t*t"}]]}',
         cirq.Circuit(
             cirq.ry(sympy.pi * t * t).on(a),
             cirq.ry(t * t).on(b),
-        ))
+        ),
+    )
     assert_url_to_circuit_returns(
         '{"cols":[["Rzft",{"id":"Rzft","arg":"t*t"}]]}',
         cirq.Circuit(
             cirq.rz(sympy.pi * t * t).on(a),
             cirq.rz(t * t).on(b),
-        ))
+        ),
+    )

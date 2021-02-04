@@ -12,19 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Workaround for associating docstrings with public constants."""
-from typing import Any, Dict, NamedTuple, Optional
 
-DocProperties = NamedTuple(
-    'DocProperties',
-    [
-        ('doc_string', Optional[str]),
-    ],
-)
+from typing import Any, Dict
 
-RECORDED_CONST_DOCS: Dict[int, DocProperties] = {}
+RECORDED_CONST_DOCS: Dict[int, str] = {}
 
 
-def document(value: Any, doc_string: Optional[str] = None):
+def document(value: Any, doc_string: str = ''):
     """Stores documentation details about the given value.
 
     This method is used to associate a docstring with global constants. It is
@@ -42,6 +36,51 @@ def document(value: Any, doc_string: Optional[str] = None):
     Returns:
         The given value.
     """
-    docs = DocProperties(doc_string=doc_string)
-    RECORDED_CONST_DOCS[id(value)] = docs
+    RECORDED_CONST_DOCS[id(value)] = doc_string
+
+    ## this is how the devsite API generator picks up
+    ## docstrings for type aliases
+    try:
+        value.__doc__ = doc_string
+    except AttributeError:
+        # we have a couple (~ 7) global constants of type list, tuple, dict,
+        # that fail here as their __doc__ attribute is read-only.
+        # For the time being these are not going to be part of the generated
+        # API docs. See https://github.com/quantumlib/Cirq/issues/3276 for
+        # more info.
+
+        # to list them, uncomment these lines and run `import cirq`:
+        # print(f"WARNING: {e}")
+        # print(traceback.format_stack(limit=2)[0])
+        pass
     return value
+
+
+# This is based on
+# https://github.com/tensorflow/docs/commit/129e54b1a1dc2c2c82ad94bc81e986c7c2be3d6a#diff-85111596b523b2940651a8856939755c8531d470948895c7133deb6a537bc889R295-R324
+
+_DOC_PRIVATE = "_tf_docs_doc_private"
+
+
+def doc_private(obj):
+    """A decorator: Generates docs for private methods/functions.
+
+    For example:
+    ```
+    class Try:
+      @doc_private
+      def _private(self):
+        ...
+    ```
+    As a rule of thumb, private (beginning with `_`) methods/functions are
+    not documented. This decorator allows to force document a private
+    method/function.
+
+    Args:
+      obj: The class-attribute to force the documentation for.
+    Returns:
+      obj
+    """
+
+    setattr(obj, _DOC_PRIVATE, None)
+    return obj

@@ -1,0 +1,13 @@
+{
+    "description": "Cirq is a Python library for writing, manipulating, and optimizing quantum circuits and running them against quantum computers and simulators.",
+    "license": "Apache-2.0",
+    "title": "Cirq",
+    "upload_type": "software",
+    "creators": [
+        {
+            "affiliation": "Google Inc",
+            "name": "Quantum AI team and collaborators"
+        }
+    ],
+    "access_right": "open"
+}

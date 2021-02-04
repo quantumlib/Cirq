@@ -103,9 +103,7 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def with_registers(self: TSelf,
-                       *new_registers: Union[int, Sequence['cirq.Qid']]
-                      ) -> TSelf:
+    def with_registers(self: TSelf, *new_registers: Union[int, Sequence['cirq.Qid']]) -> TSelf:
         """Returns the same operation targeting different registers.
 
         Args:
@@ -166,8 +164,12 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
 
     @property
     def qubits(self):
-        return tuple(qubit for register in self.registers()
-                     if not isinstance(register, int) for qubit in register)
+        return tuple(
+            qubit
+            for register in self.registers()
+            if not isinstance(register, int)
+            for qubit in register
+        )
 
     def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
         new_registers: List[Union[int, Sequence['cirq.Qid']]] = []
@@ -206,19 +208,20 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
 
             # Wrap into list.
             inputs: List[int] = list(input_seq)
-            outputs: List[int] = ([output]
-                                  if isinstance(output, int) else list(output))
+            outputs: List[int] = [output] if isinstance(output, int) else list(output)
 
             # Omitted tail values default to the corresponding input value.
             if len(outputs) < len(inputs):
-                outputs += inputs[len(outputs) - len(inputs):]
+                outputs += inputs[len(outputs) - len(inputs) :]
             # Get indices into range.
             for i in range(len(outputs)):
                 if isinstance(registers[i], int):
                     if outputs[i] != registers[i]:
                         raise ValueError(
                             _describe_bad_arithmetic_changed_const(
-                                self.registers(), inputs, outputs))
+                                self.registers(), inputs, outputs
+                            )
+                        )
                     # Classical constants go to zero on a unit axe.
                     outputs[i] = 0
                     inputs[i] = 0
@@ -239,9 +242,10 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
 
 
 def _describe_bad_arithmetic_changed_const(
-        registers: Sequence[Union[int, Sequence['cirq.Qid']]],
-        inputs: List[int], outputs: List[int]) -> str:
+    registers: Sequence[Union[int, Sequence['cirq.Qid']]], inputs: List[int], outputs: List[int]
+) -> str:
     from cirq.circuits import TextDiagramDrawer
+
     drawer = TextDiagramDrawer()
     drawer.write(0, 0, 'Register Data')
     drawer.write(1, 0, 'Register Type')
@@ -249,12 +253,12 @@ def _describe_bad_arithmetic_changed_const(
     drawer.write(3, 0, 'Output Value')
     for i in range(len(registers)):
         drawer.write(0, i + 1, str(registers[i]))
-        drawer.write(1, i + 1,
-                     'constant' if isinstance(registers[i], int) else 'qureg')
+        drawer.write(1, i + 1, 'constant' if isinstance(registers[i], int) else 'qureg')
         drawer.write(2, i + 1, str(inputs[i]))
         drawer.write(3, i + 1, str(outputs[i]))
     return (
         "A register cannot be set to an int (a classical constant) unless its "
         "value is not affected by the operation.\n"
-        "\nExample case where a constant changed:\n" +
-        drawer.render(horizontal_spacing=1, vertical_spacing=0))
+        "\nExample case where a constant changed:\n"
+        + drawer.render(horizontal_spacing=1, vertical_spacing=0)
+    )

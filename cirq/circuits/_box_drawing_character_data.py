@@ -24,30 +24,25 @@ _BoxDrawCharacterSet = NamedTuple(
         ('bottom', str),
         ('left', str),
         ('right', str),
-
         ('top_bottom', str),
         ('top_left', str),
         ('top_right', str),
         ('bottom_left', str),
         ('bottom_right', str),
         ('left_right', str),
-
         ('top_bottom_left', str),
         ('top_bottom_right', str),
         ('top_left_right', str),
         ('bottom_left_right', str),
-
         ('top_bottom_left_right', str),
-    ]
+    ],
 )
 
 
 class BoxDrawCharacterSet(_BoxDrawCharacterSet):
-    def char(self,
-             top: bool = False,
-             bottom: bool = False,
-             left: bool = False,
-             right: bool = False) -> Optional[str]:
+    def char(
+        self, top: bool = False, bottom: bool = False, left: bool = False, right: bool = False
+    ) -> Optional[str]:
         parts = []
         if top:
             parts.append('top')
@@ -67,7 +62,6 @@ _MixedBoxDrawCharacterSet = NamedTuple(
     [
         ('first_char_set', BoxDrawCharacterSet),
         ('second_char_set', BoxDrawCharacterSet),
-
         ('top_then_bottom', str),
         ('top_then_left', str),
         ('top_then_right', str),
@@ -75,7 +69,6 @@ _MixedBoxDrawCharacterSet = NamedTuple(
         ('top_then_bottom_right', str),
         ('top_then_left_right', str),
         ('top_then_bottom_left_right', str),
-
         ('bottom_then_top', str),
         ('bottom_then_left', str),
         ('bottom_then_right', str),
@@ -83,7 +76,6 @@ _MixedBoxDrawCharacterSet = NamedTuple(
         ('bottom_then_top_right', str),
         ('bottom_then_left_right', str),
         ('bottom_then_top_left_right', str),
-
         ('left_then_top', str),
         ('left_then_bottom', str),
         ('left_then_right', str),
@@ -91,7 +83,6 @@ _MixedBoxDrawCharacterSet = NamedTuple(
         ('left_then_bottom_right', str),
         ('left_then_top_right', str),
         ('left_then_top_bottom_right', str),
-
         ('right_then_top', str),
         ('right_then_bottom', str),
         ('right_then_left', str),
@@ -99,47 +90,36 @@ _MixedBoxDrawCharacterSet = NamedTuple(
         ('right_then_top_left', str),
         ('right_then_bottom_left', str),
         ('right_then_top_bottom_left', str),
-
         ('top_bottom_then_left', str),
         ('top_bottom_then_right', str),
         ('top_bottom_then_left_right', str),
-
         ('top_left_then_bottom', str),
         ('top_left_then_right', str),
         ('top_left_then_bottom_right', str),
-
         ('top_right_then_bottom', str),
         ('top_right_then_left', str),
         ('top_right_then_bottom_left', str),
-
         ('bottom_left_then_top', str),
         ('bottom_left_then_right', str),
         ('bottom_left_then_top_right', str),
-
         ('bottom_right_then_top', str),
         ('bottom_right_then_left', str),
         ('bottom_right_then_top_left', str),
-
         ('left_right_then_top', str),
         ('left_right_then_bottom', str),
         ('left_right_then_top_bottom', str),
-
         ('top_bottom_left_then_right', str),
         ('top_bottom_right_then_left', str),
         ('top_left_right_then_bottom', str),
         ('bottom_left_right_then_top', str),
-    ]
+    ],
 )
 
 
 class MixedBoxDrawCharacterSet(_MixedBoxDrawCharacterSet):
-    def char(self,
-             *,
-             top: int = 0,
-             bottom: int = 0,
-             left: int = 0,
-             right: int = 0) -> Optional[str]:
-
+    def char(
+        self, *, top: int = 0, bottom: int = 0, left: int = 0, right: int = 0
+    ) -> Optional[str]:
         def parts_with(val: int) -> List[str]:
             parts = []
             if top == val:
@@ -169,19 +149,16 @@ NORMAL_BOX_CHARS = BoxDrawCharacterSet(
     bottom='╷',
     left='╴',
     right='╶',
-
     top_bottom='│',
     top_left='┘',
     top_right='└',
     bottom_left='┐',
     bottom_right='┌',
     left_right='─',
-
     top_bottom_left='┤',
     top_bottom_right='├',
     top_left_right='┴',
     bottom_left_right='┬',
-
     top_bottom_left_right='┼',
 )
 
@@ -191,19 +168,16 @@ BOLD_BOX_CHARS = BoxDrawCharacterSet(
     bottom='╻',
     left='╸',
     right='╺',
-
     top_bottom='┃',
     top_left='┛',
     top_right='┗',
     bottom_left='┓',
     bottom_right='┏',
     left_right='━',
-
     top_bottom_left='┫',
     top_bottom_right='┣',
     top_left_right='┻',
     bottom_left_right='┳',
-
     top_bottom_left_right='╋',
 )
 
@@ -214,19 +188,16 @@ DOUBLED_BOX_CHARS = BoxDrawCharacterSet(
     bottom='║',
     left='═',
     right='═',
-
     top_bottom='║',
     top_left='╝',
     top_right='╚',
     bottom_left='╗',
     bottom_right='╔',
     left_right='═',
-
     top_bottom_left='╣',
     top_bottom_right='╠',
     top_left_right='╩',
     bottom_left_right='╦',
-
     top_bottom_left_right='╬',
 )
 
@@ -237,19 +208,16 @@ ASCII_BOX_CHARS = BoxDrawCharacterSet(
     bottom=' ',
     left=' ',
     right=' ',
-
     top_bottom='|',
     top_left='/',
     top_right='\\',
     bottom_left='\\',
     bottom_right='/',
     left_right='-',
-
     top_bottom_left='+',
     top_bottom_right='+',
     top_left_right='+',
     bottom_left_right='+',
-
     top_bottom_left_right='+',
 )
 
@@ -257,7 +225,6 @@ ASCII_BOX_CHARS = BoxDrawCharacterSet(
 NORMAL_THEN_BOLD_MIXED_BOX_CHARS = MixedBoxDrawCharacterSet(
     first_char_set=NORMAL_BOX_CHARS,
     second_char_set=BOLD_BOX_CHARS,
-
     top_then_bottom='╽',
     top_then_left='┙',
     top_then_right='┕',
@@ -265,7 +232,6 @@ NORMAL_THEN_BOLD_MIXED_BOX_CHARS = MixedBoxDrawCharacterSet(
     top_then_bottom_right='┢',
     top_then_left_right='┷',
     top_then_bottom_left_right='╈',
-
     bottom_then_top='╿',
     bottom_then_left='┑',
     bottom_then_right='┍',
@@ -273,7 +239,6 @@ NORMAL_THEN_BOLD_MIXED_BOX_CHARS = MixedBoxDrawCharacterSet(
     bottom_then_top_right='┡',
     bottom_then_left_right='┯',
     bottom_then_top_left_right='╇',
-
     left_then_top='┚',
     left_then_bottom='┒',
     left_then_right='╼',
@@ -281,7 +246,6 @@ NORMAL_THEN_BOLD_MIXED_BOX_CHARS = MixedBoxDrawCharacterSet(
     left_then_bottom_right='┲',
     left_then_top_right='┺',
     left_then_top_bottom_right='╊',
-
     right_then_top='┖',
     right_then_bottom='┎',
     right_then_left='╾',
@@ -289,36 +253,28 @@ NORMAL_THEN_BOLD_MIXED_BOX_CHARS = MixedBoxDrawCharacterSet(
     right_then_top_left='┹',
     right_then_bottom_left='┱',
     right_then_top_bottom_left='╉',
-
     top_bottom_then_left='┥',
     top_bottom_then_right='┝',
     top_bottom_then_left_right='┿',
-
     top_left_then_bottom='┧',
     top_left_then_right='┶',
     top_left_then_bottom_right='╆',
-
     top_right_then_bottom='┟',
     top_right_then_left='┵',
     top_right_then_bottom_left='╅',
-
     bottom_left_then_top='┦',
     bottom_left_then_right='┮',
     bottom_left_then_top_right='╄',
-
     bottom_right_then_top='┞',
     bottom_right_then_left='┭',
     bottom_right_then_top_left='╃',
-
     left_right_then_top='┸',
     left_right_then_bottom='┰',
     left_right_then_top_bottom='╂',
-
     top_bottom_left_then_right='┾',
     top_bottom_right_then_left='┽',
     top_left_right_then_bottom='╁',
     bottom_left_right_then_top='╀',
-
     # You're right, it *was* tedious.
     # If the box drawing character set was laid out so that certain bits
     # corresponded to certain legs in a reasonable way, this wouldn't have been
@@ -326,13 +282,15 @@ NORMAL_THEN_BOLD_MIXED_BOX_CHARS = MixedBoxDrawCharacterSet(
 )
 
 
-def box_draw_character(first: Optional[BoxDrawCharacterSet],
-                       second: BoxDrawCharacterSet,
-                       *,
-                       top: int = 0,
-                       bottom: int = 0,
-                       left: int = 0,
-                       right: int = 0) -> Optional[str]:
+def box_draw_character(
+    first: Optional[BoxDrawCharacterSet],
+    second: BoxDrawCharacterSet,
+    *,
+    top: int = 0,
+    bottom: int = 0,
+    left: int = 0,
+    right: int = 0,
+) -> Optional[str]:
     """Finds a box drawing character based on its connectivity.
 
     For example:
@@ -372,12 +330,6 @@ def box_draw_character(first: Optional[BoxDrawCharacterSet],
 
     if combo is None:
         choice = second if +1 in [top, bottom, left, right] else first
-        return choice.char(top=bool(top),
-                           bottom=bool(bottom),
-                           left=bool(left),
-                           right=bool(right))
+        return choice.char(top=bool(top), bottom=bool(bottom), left=bool(left), right=bool(right))
 
-    return combo.char(top=top * sign,
-                      bottom=bottom * sign,
-                      left=left * sign,
-                      right=right * sign)
+    return combo.char(top=top * sign, bottom=bottom * sign, left=left * sign, right=right * sign)

@@ -33,11 +33,11 @@ document(
     at hand. For example, it might be an existing instance of
     `np.random.RandomState` or a custom pseudorandom number generator
     implementation.
-    """)
+    """,
+)
 
 
-def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE
-                      ) -> np.random.RandomState:
+def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE) -> np.random.RandomState:
     """Interpret an object as a pseudorandom number generator.
 
     If `random_state` is None, returns the module `np.random`.

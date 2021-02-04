@@ -23,17 +23,14 @@ from cirq._doc import document
 
 PAULI_BASIS = {
     'I': np.eye(2),
-    'X': np.array([[0., 1.], [1., 0.]]),
-    'Y': np.array([[0., -1j], [1j, 0.]]),
-    'Z': np.diag([1., -1]),
+    'X': np.array([[0.0, 1.0], [1.0, 0.0]]),
+    'Y': np.array([[0.0, -1j], [1j, 0.0]]),
+    'Z': np.diag([1.0, -1]),
 }
-document(
-    PAULI_BASIS,
-    """The four Pauli matrices (including identity) keyed by character.""")
+document(PAULI_BASIS, """The four Pauli matrices (including identity) keyed by character.""")
 
 
-def kron_bases(*bases: Dict[str, np.ndarray],
-               repeat: int = 1) -> Dict[str, np.ndarray]:
+def kron_bases(*bases: Dict[str, np.ndarray], repeat: int = 1) -> Dict[str, np.ndarray]:
     """Creates tensor product of bases."""
     product_basis = {'': 1}
     for basis in bases * repeat:
@@ -54,8 +51,8 @@ def hilbert_schmidt_inner_product(m1: np.ndarray, m2: np.ndarray) -> complex:
 
 
 def expand_matrix_in_orthogonal_basis(
-        m: np.ndarray,
-        basis: Dict[str, np.ndarray],
+    m: np.ndarray,
+    basis: Dict[str, np.ndarray],
 ) -> value.LinearDict[str]:
     """Computes coefficients of expansion of m in basis.
 
@@ -63,15 +60,17 @@ def expand_matrix_in_orthogonal_basis(
     product. We do not require that basis be orthonormal. Note that Pauli
     basis (I, X, Y, Z) is orthogonal, but not orthonormal.
     """
-    return value.LinearDict({
-        name: (hilbert_schmidt_inner_product(b, m) /
-               hilbert_schmidt_inner_product(b, b))
-        for name, b in basis.items()
-    })
+    return value.LinearDict(
+        {
+            name: (hilbert_schmidt_inner_product(b, m) / hilbert_schmidt_inner_product(b, b))
+            for name, b in basis.items()
+        }
+    )
 
 
-def matrix_from_basis_coefficients(expansion: value.LinearDict[str],
-                                   basis: Dict[str, np.ndarray]) -> np.ndarray:
+def matrix_from_basis_coefficients(
+    expansion: value.LinearDict[str], basis: Dict[str, np.ndarray]
+) -> np.ndarray:
     """Computes linear combination of basis vectors with given coefficients."""
     some_element = next(iter(basis.values()))
     result = np.zeros_like(some_element, dtype=np.complex128)
@@ -81,8 +80,7 @@ def matrix_from_basis_coefficients(expansion: value.LinearDict[str],
 
 
 def pow_pauli_combination(
-        ai: value.Scalar, ax: value.Scalar, ay: value.Scalar, az: value.Scalar,
-        exponent: int
+    ai: value.Scalar, ax: value.Scalar, ay: value.Scalar, az: value.Scalar, exponent: int
 ) -> Tuple[value.Scalar, value.Scalar, value.Scalar, value.Scalar]:
     """Computes non-negative integer power of single-qubit Pauli combination.
 

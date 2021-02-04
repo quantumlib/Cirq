@@ -14,7 +14,8 @@
 
 import cirq
 from cirq.contrib.paulistring import (
-    convert_and_separate_circuit,)
+    convert_and_separate_circuit,
+)
 
 
 def test_toffoli_separate():
@@ -29,10 +30,9 @@ def test_toffoli_separate():
         atol=1e-7,
     )
 
+    assert all(isinstance(op, cirq.PauliStringPhasor) for op in c_left.all_operations())
     assert all(
-        isinstance(op, cirq.PauliStringPhasor)
-        for op in c_left.all_operations())
-    assert all(
-        isinstance(op, cirq.GateOperation) and
-        isinstance(op.gate, (cirq.SingleQubitCliffordGate, cirq.CZPowGate))
-        for op in c_right.all_operations())
+        isinstance(op, cirq.GateOperation)
+        and isinstance(op.gate, (cirq.SingleQubitCliffordGate, cirq.CZPowGate))
+        for op in c_right.all_operations()
+    )

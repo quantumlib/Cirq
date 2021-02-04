@@ -23,9 +23,7 @@ if TYPE_CHECKING:
 
 @value.value_equality(unhashable=True)
 class SwapCell(Cell):
-
-    def __init__(self, qubits: Iterable['cirq.Qid'],
-                 controls: Iterable['cirq.Qid']):
+    def __init__(self, qubits: Iterable['cirq.Qid'], controls: Iterable['cirq.Qid']):
         self._qubits = list(qubits)
         self._controls = list(controls)
 
@@ -33,8 +31,10 @@ class SwapCell(Cell):
         return 1
 
     def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
-        return SwapCell(qubits=Cell._replace_qubits(self._qubits, qubits),
-                        controls=Cell._replace_qubits(self._controls, qubits))
+        return SwapCell(
+            qubits=Cell._replace_qubits(self._qubits, qubits),
+            controls=Cell._replace_qubits(self._controls, qubits),
+        )
 
     def modify_column(self, column: List[Optional['Cell']]):
         # Swallow other swap cells.
@@ -57,9 +57,11 @@ class SwapCell(Cell):
         return self._qubits, self._controls
 
     def __repr__(self) -> str:
-        return (f'cirq.interop.quirk.cells.swap_cell.SwapCell('
-                f'\n    {self._qubits!r},'
-                f'\n    {self._controls!r})')
+        return (
+            f'cirq.interop.quirk.cells.swap_cell.SwapCell('
+            f'\n    {self._qubits!r},'
+            f'\n    {self._controls!r})'
+        )
 
 
 def generate_all_swap_cell_makers() -> Iterator[CellMaker]:

@@ -1,5 +1,0 @@
-/* Need to include a very specific selector or this will
-   get overridden */
-.wy-side-nav-search a.icon img.logo {
-    width: 150px;
-}

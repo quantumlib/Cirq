@@ -21,8 +21,9 @@ class LivePlotCollector(cirq.Collector):
     to slow things down quite a lot, so refreshes are limited to 5Hz.)
     """
 
-    def __init__(self, *, circuit: cirq.Circuit, parameter: str,
-                 values: Sequence[float], repetitions: int):
+    def __init__(
+        self, *, circuit: cirq.Circuit, parameter: str, values: Sequence[float], repetitions: int
+    ):
         self.next_index = 0
         self.circuit = circuit
         self.sweep = cirq.Points(parameter, values)
@@ -32,8 +33,7 @@ class LivePlotCollector(cirq.Collector):
         self.unstarted_xs = list(values)
         self.started_xs: List[float] = []
         self.result_xs: List[float] = []
-        self.result_ys: Mapping[str, List[float]] = collections.defaultdict(
-            list)
+        self.result_ys: Mapping[str, List[float]] = collections.defaultdict(list)
 
         self.fig = plt.figure()
         self.last_redraw_time = time.monotonic()
@@ -46,19 +46,14 @@ class LivePlotCollector(cirq.Collector):
         self.next_index += 1
         self.started_xs.append(p)
         self.unstarted_xs.remove(p)
-        return cirq.CircuitSampleJob(cirq.resolve_parameters(
-            self.circuit, self.resolvers[k]),
-                                     repetitions=self.reps,
-                                     tag=p)
+        return cirq.CircuitSampleJob(
+            cirq.resolve_parameters(self.circuit, self.resolvers[k]), repetitions=self.reps, tag=p
+        )
 
     def _redraw(self):
         self.fig.clear()
-        plt.scatter(self.unstarted_xs, [0] * len(self.unstarted_xs),
-                    label='unstarted',
-                    s=1)
-        plt.scatter(self.started_xs, [1] * len(self.started_xs),
-                    label='started',
-                    s=1)
+        plt.scatter(self.unstarted_xs, [0] * len(self.unstarted_xs), label='unstarted', s=1)
+        plt.scatter(self.started_xs, [1] * len(self.started_xs), label='started', s=1)
         for k, v in self.result_ys.items():
             plt.scatter(self.result_xs, v, label=k, s=1)
         plt.xlabel(self.sweep.key)
@@ -84,14 +79,15 @@ def example():
     sampler = cirq.Simulator()
 
     circuit = cirq.Circuit(
-        cirq.X(a)**sympy.Symbol('t'),
-        cirq.CNOT(a, b)**sympy.Symbol('t'), cirq.measure(a, key='leader'),
-        cirq.measure(b, key='follower'))
+        cirq.X(a) ** sympy.Symbol('t'),
+        cirq.CNOT(a, b) ** sympy.Symbol('t'),
+        cirq.measure(a, key='leader'),
+        cirq.measure(b, key='follower'),
+    )
 
-    collector = LivePlotCollector(circuit=circuit,
-                                  parameter='t',
-                                  values=np.linspace(0, 1, 1000),
-                                  repetitions=200)
+    collector = LivePlotCollector(
+        circuit=circuit, parameter='t', values=np.linspace(0, 1, 1000), repetitions=200
+    )
 
     collector.collect(sampler, concurrency=5)
     plt.show()

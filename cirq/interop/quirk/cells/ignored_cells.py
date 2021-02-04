@@ -13,7 +13,7 @@
 # limitations under the License.
 from typing import Iterator
 
-from cirq.interop.quirk.cells.cell import (CellMaker, CELL_SIZES)
+from cirq.interop.quirk.cells.cell import CellMaker, CELL_SIZES
 
 
 def generate_all_ignored_cell_makers() -> Iterator[CellMaker]:

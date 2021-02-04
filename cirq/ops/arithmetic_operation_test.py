@@ -35,44 +35,54 @@ def adder_matrix(target_width: int, source_width: int) -> np.ndarray:
 
 
 def test_the_tests():
-    np.testing.assert_allclose(shift_matrix(4, 1),
-                               np.array([
-                                   [0, 0, 0, 1],
-                                   [1, 0, 0, 0],
-                                   [0, 1, 0, 0],
-                                   [0, 0, 1, 0],
-                               ]),
-                               atol=1e-8)
-    np.testing.assert_allclose(shift_matrix(8, -1),
-                               np.array([
-                                   [0, 1, 0, 0, 0, 0, 0, 0],
-                                   [0, 0, 1, 0, 0, 0, 0, 0],
-                                   [0, 0, 0, 1, 0, 0, 0, 0],
-                                   [0, 0, 0, 0, 1, 0, 0, 0],
-                                   [0, 0, 0, 0, 0, 1, 0, 0],
-                                   [0, 0, 0, 0, 0, 0, 1, 0],
-                                   [0, 0, 0, 0, 0, 0, 0, 1],
-                                   [1, 0, 0, 0, 0, 0, 0, 0],
-                               ]),
-                               atol=1e-8)
-    np.testing.assert_allclose(adder_matrix(4, 2),
-                               np.array([
-                                   [1, 0, 0, 0, 0, 0, 0, 0],
-                                   [0, 0, 0, 0, 0, 0, 0, 1],
-                                   [0, 0, 1, 0, 0, 0, 0, 0],
-                                   [0, 1, 0, 0, 0, 0, 0, 0],
-                                   [0, 0, 0, 0, 1, 0, 0, 0],
-                                   [0, 0, 0, 1, 0, 0, 0, 0],
-                                   [0, 0, 0, 0, 0, 0, 1, 0],
-                                   [0, 0, 0, 0, 0, 1, 0, 0],
-                               ]),
-                               atol=1e-8)
+    np.testing.assert_allclose(
+        shift_matrix(4, 1),
+        np.array(
+            [
+                [0, 0, 0, 1],
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+            ]
+        ),
+        atol=1e-8,
+    )
+    np.testing.assert_allclose(
+        shift_matrix(8, -1),
+        np.array(
+            [
+                [0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 0, 0, 0, 0],
+            ]
+        ),
+        atol=1e-8,
+    )
+    np.testing.assert_allclose(
+        adder_matrix(4, 2),
+        np.array(
+            [
+                [1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0],
+            ]
+        ),
+        atol=1e-8,
+    )
 
 
 def test_arithmetic_operation_apply_unitary():
-
     class Add(cirq.ArithmeticOperation):
-
         def __init__(self, target_register, input_register):
             self.target_register = target_register
             self.input_register = input_register
@@ -87,24 +97,16 @@ def test_arithmetic_operation_apply_unitary():
             return target_value + input_value
 
     inc2 = Add(cirq.LineQubit.range(2), 1)
-    np.testing.assert_allclose(cirq.unitary(inc2),
-                               shift_matrix(4, 1),
-                               atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(inc2), shift_matrix(4, 1), atol=1e-8)
 
     dec3 = Add(cirq.LineQubit.range(3), -1)
-    np.testing.assert_allclose(cirq.unitary(dec3),
-                               shift_matrix(8, -1),
-                               atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(dec3), shift_matrix(8, -1), atol=1e-8)
 
     add3from2 = Add(cirq.LineQubit.range(3), cirq.LineQubit.range(2))
-    np.testing.assert_allclose(cirq.unitary(add3from2),
-                               adder_matrix(8, 4),
-                               atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(add3from2), adder_matrix(8, 4), atol=1e-8)
 
     add2from3 = Add(cirq.LineQubit.range(2), cirq.LineQubit.range(3))
-    np.testing.assert_allclose(cirq.unitary(add2from3),
-                               adder_matrix(4, 8),
-                               atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(add2from3), adder_matrix(4, 8), atol=1e-8)
 
     with pytest.raises(ValueError, match='affected by the operation'):
         _ = cirq.unitary(Add(1, cirq.LineQubit.range(2)))
@@ -115,13 +117,12 @@ def test_arithmetic_operation_apply_unitary():
     np.testing.assert_allclose(cirq.unitary(Add(1, 0)), np.eye(1))
 
     cirq.testing.assert_has_consistent_apply_unitary(
-        Add(cirq.LineQubit.range(2), cirq.LineQubit.range(2)))
+        Add(cirq.LineQubit.range(2), cirq.LineQubit.range(2))
+    )
 
 
 def test_arithmetic_operation_qubits():
-
     class Three(cirq.ArithmeticOperation):
-
         def __init__(self, a, b, c):
             self.a = a
             self.b = b
@@ -155,9 +156,7 @@ def test_arithmetic_operation_qubits():
 
 
 def test_reshape_referencing():
-
     class Op1(cirq.ArithmeticOperation):
-
         def apply(self, *register_values: int):
             return register_values[0] + 1
 

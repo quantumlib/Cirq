@@ -1,4 +1,4 @@
-.. image:: https://raw.githubusercontent.com/quantumlib/Cirq/master/docs/_static/Cirq_logo_color.png
+.. image:: https://raw.githubusercontent.com/quantumlib/Cirq/master/docs/images/Cirq_logo_color.png
   :target: https://github.com/quantumlib/cirq
   :alt: Cirq
   :width: 500px
@@ -21,16 +21,16 @@ circuits and running them against quantum computers and simulators.
 Installation and Documentation
 ------------------------------
 
-Cirq documentation is available at `cirq.readthedocs.io <https://cirq.readthedocs.io>`_.
+Cirq documentation is available at `quantumai.google/cirq <https://quantumai.google/cirq>`_.
 
-Documentation for the latest **unstable** version of cirq (tracks the repository's master branch; what you get if you ``pip install cirq-unstable``), is available at `cirq.readthedocs.io/latest <https://cirq.readthedocs.io/en/latest/>`_.
+Documentation for the latest **pre-release** version of cirq (tracks the repository's master branch; what you get if you ``pip install --pre cirq``), is available at `cirq.readthedocs.io/latest <https://quantumai.google/cirq/>`_.
 
-Documentation for the latest **stable** version of cirq (what you get if you ``pip install cirq``) is available at `cirq.readthedocs.io/stable <https://cirq.readthedocs.io/en/stable/>`_.
+Documentation for the latest **stable** version of cirq (what you get if you ``pip install cirq``) is available at `cirq.readthedocs.io/stable <https://quantumai.google/cirq/>`_.
 
 
-- `Installation <https://cirq.readthedocs.io/en/stable/install.html>`_
-- `Documentation <https://cirq.readthedocs.io>`_
-- `Tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`_
+- `Installation <https://quantumai.google/cirq/install>`_
+- `Documentation <https://quantumai.google/cirq>`_
+- `Tutorials <https://quantumai.google/cirq/tutorials>`_
 
 For the latest news regarding Cirq, sign up to the `Cirq-announce email list <https://groups.google.com/forum/#!forum/cirq-announce>`__!
 
@@ -79,6 +79,29 @@ If you have feature requests or you found a bug, please `file them on Github <ht
 For questions about how to use Cirq post to
 `Quantum Computing Stack Exchange <https://quantumcomputing.stackexchange.com/>`__ with the
 `cirq <https://quantumcomputing.stackexchange.com/questions/tagged/cirq>`__ tag.
+
+How to cite Cirq
+----------------
+
+Cirq is uploaded to Zenodo automatically. Click on the badge below to see all the citation formats for all versions.
+
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4062499.svg
+  :target: https://doi.org/10.5281/zenodo.4062499
+  :alt: DOI
+
+An equivalent BibTex format reference is below for all the versions:
+
+.. code-block::
+
+    @software{quantum_ai_team_and_collaborators_2020_4062499,
+      author       = {Quantum AI team and collaborators},
+      title        = {Cirq},
+      month        = Oct,
+      year         = 2020,
+      publisher    = {Zenodo},
+      doi          = {10.5281/zenodo.4062499},
+      url          = {https://doi.org/10.5281/zenodo.4062499}
+    }
 
 
 Cirq Contributors Community

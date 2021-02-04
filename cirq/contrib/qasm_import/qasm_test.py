@@ -32,9 +32,9 @@ def test_consistency_with_qasm_output_and_qiskit():
         cirq.H.on(d),
         cirq.S.on(a),
         cirq.T.on(b),
-        cirq.S.on(c)**-1,
-        cirq.T.on(d)**-1,
-        cirq.X.on(d)**0.125,
+        cirq.S.on(c) ** -1,
+        cirq.T.on(d) ** -1,
+        cirq.X.on(d) ** 0.125,
         cirq.TOFFOLI.on(a, b, c),
         cirq.CSWAP.on(d, a, b),
         cirq.SWAP.on(c, d),
@@ -51,8 +51,6 @@ def test_consistency_with_qasm_output_and_qiskit():
     circuit2 = circuit_from_qasm(qasm)
 
     cirq_unitary = cirq.unitary(circuit2)
-    ct.assert_allclose_up_to_global_phase(cirq_unitary,
-                                          cirq.unitary(circuit1),
-                                          atol=1e-8)
+    ct.assert_allclose_up_to_global_phase(cirq_unitary, cirq.unitary(circuit1), atol=1e-8)
 
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, cirq_unitary)

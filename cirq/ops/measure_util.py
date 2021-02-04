@@ -28,9 +28,9 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
     return ','.join(str(q) for q in qubits)
 
 
-def measure(*target: 'cirq.Qid',
-            key: Optional[str] = None,
-            invert_mask: Tuple[bool, ...] = ()) -> raw_types.Operation:
+def measure(
+    *target: 'cirq.Qid', key: Optional[str] = None, invert_mask: Tuple[bool, ...] = ()
+) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
     The qubits are measured in the computational basis.
@@ -53,10 +53,10 @@ def measure(*target: 'cirq.Qid',
         if isinstance(qubit, np.ndarray):
             raise ValueError(
                 'measure() was called a numpy ndarray. Perhaps you meant '
-                'to call measure_state_vector on numpy array?')
+                'to call measure_state_vector on numpy array?'
+            )
         elif not isinstance(qubit, raw_types.Qid):
-            raise ValueError(
-                'measure() was called with type different than Qid.')
+            raise ValueError('measure() was called with type different than Qid.')
 
     if key is None:
         key = _default_measurement_key(target)
@@ -64,9 +64,9 @@ def measure(*target: 'cirq.Qid',
     return MeasurementGate(len(target), key, invert_mask, qid_shape).on(*target)
 
 
-def measure_each(*qubits: 'cirq.Qid',
-                 key_func: Callable[[raw_types.Qid], str] = str
-                ) -> List[raw_types.Operation]:
+def measure_each(
+    *qubits: 'cirq.Qid', key_func: Callable[[raw_types.Qid], str] = str
+) -> List[raw_types.Operation]:
     """Returns a list of operations individually measuring the given qubits.
 
     The qubits are measured in the computational basis.
@@ -79,7 +79,4 @@ def measure_each(*qubits: 'cirq.Qid',
     Returns:
         A list of operations individually measuring the given qubits.
     """
-    return [
-        MeasurementGate(1, key_func(q), qid_shape=(q.dimension,)).on(q)
-        for q in qubits
-    ]
+    return [MeasurementGate(1, key_func(q), qid_shape=(q.dimension,)).on(q) for q in qubits]

@@ -22,7 +22,19 @@ message Program {
     // absolute start times for the operations.
     Schedule schedule = 3;
   }
+
+  // List to store global constants, such as strings used in many places.
+  // constants are referred to their index in this list, starting at zero.
+  repeated Constant constants = 4;
 }
+
+// Constants, such as long strings, that are used throughout the circuit.
+// These constants can be stored here to save space.
+// Currently only supports strings, but could support other objects later.
+message Constant {
+  string string_value = 1;
+}
+
 
 // The quantum circuit, specified as a series of moments (abstract
 // slices of times with gates acting on disjoint sets of qubits).
@@ -99,6 +111,16 @@ message Operation {
 
   // Which qubits the operation acts on.
   repeated Qubit qubits = 3;
+
+  // Token that can be used to specify a version of a gate.
+  // For instance, a gate that has been calibrated for a circuit.
+  //
+  // The token can be specified as a string or as a reference to
+  // the constant table of the circuit.
+  oneof token {
+    string token_value = 4;
+    int32 token_constant_index = 5;
+  }
 }
 
 // The instruction identifying the action taken on the quantum computer.
@@ -133,10 +155,14 @@ message Arg {
   //
   // Functions are used to define a simple s-expression tree describing
   // how to combine numbers and symbols mathematically.
+  //
+  // The argument can also be specified as a lookup in the Constant
+  // table of the Circuit.
   oneof arg {
     ArgValue arg_value = 1;
     string symbol = 2;
     ArgFunction func = 3;
+    int32 constant_index = 4;
   }
 }
 

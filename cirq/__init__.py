@@ -25,6 +25,7 @@ from cirq import (
     _doc,
     type_workarounds,
 )
+
 with _import.delay_import('cirq.protocols'):
     from cirq import (
         # Core
@@ -55,6 +56,7 @@ from cirq import (
     testing,
     contrib,
 )
+
 # End dependency order list of sub-modules
 
 from cirq._version import (
@@ -64,8 +66,11 @@ from cirq._version import (
 # Flattened sub-modules.
 
 from cirq.circuits import (
+    AbstractCircuit,
     Circuit,
     CircuitDag,
+    CircuitOperation,
+    FrozenCircuit,
     InsertStrategy,
     PointOptimizationSummary,
     PointOptimizer,
@@ -144,6 +149,7 @@ from cirq.linalg import (
     match_global_phase,
     matrix_commutes,
     matrix_from_basis_coefficients,
+    num_cnots_required,
     partial_trace,
     partial_trace_of_state_vector_as_mixture,
     PAULI_BASIS,
@@ -156,6 +162,7 @@ from cirq.linalg import (
     sub_state_vector,
     targeted_conjugate_about,
     targeted_left_multiply,
+    to_special,
     unitary_eig,
     wavefunction_partial_trace_as_mixture,
 )
@@ -179,6 +186,7 @@ from cirq.ops import (
     CNotPowGate,
     ControlledGate,
     ControlledOperation,
+    cphase,
     CSWAP,
     CSwapGate,
     CX,
@@ -217,7 +225,9 @@ from cirq.ops import (
     MeasurementGate,
     Moment,
     MutableDensePauliString,
+    MutablePauliString,
     NamedQubit,
+    NamedQid,
     OP_TREE,
     Operation,
     ParallelGateOperation,
@@ -235,6 +245,7 @@ from cirq.ops import (
     phase_flip,
     PhaseDampingChannel,
     PhaseGradientGate,
+    PhasedFSimGate,
     PhasedISwapPowGate,
     PhasedXPowGate,
     PhasedXZGate,
@@ -246,6 +257,7 @@ from cirq.ops import (
     QuantumFourierTransformGate,
     QubitOrder,
     QubitOrderOrList,
+    QubitPermutationGate,
     reset,
     ResetChannel,
     riswap,
@@ -267,6 +279,7 @@ from cirq.ops import (
     TwoQubitDiagonalGate,
     TwoQubitGate,
     VirtualTag,
+    wait,
     WaitGate,
     X,
     XPowGate,
@@ -283,11 +296,14 @@ from cirq.ops import (
 )
 
 from cirq.optimizers import (
+    AlignLeft,
+    AlignRight,
     compute_cphase_exponents_for_fsim_decomposition,
     ConvertToCzAndSingleGates,
     decompose_cphase_into_two_fsim,
     decompose_multi_controlled_x,
     decompose_multi_controlled_rotation,
+    decompose_two_qubit_interaction_into_four_fsim_gates,
     decompose_two_qubit_interaction_into_four_fsim_gates_via_b,
     DropEmptyMoments,
     DropNegligible,
@@ -307,6 +323,8 @@ from cirq.optimizers import (
     stratified_circuit,
     SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
+    two_qubit_matrix_to_diagonal_and_operations,
+    three_qubit_matrix_to_operations,
 )
 
 from cirq.qis import (
@@ -319,6 +337,7 @@ from cirq.qis import (
     STATE_VECTOR_LIKE,
     to_valid_density_matrix,
     to_valid_state_vector,
+    validate_density_matrix,
     validate_indices,
     validate_normalized_state,
     validate_normalized_state_vector,
@@ -328,6 +347,7 @@ from cirq.qis import (
 
 from cirq.sim import (
     ActOnCliffordTableauArgs,
+    ActOnStabilizerCHFormArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,
     CIRCUIT_LIKE,
@@ -345,6 +365,10 @@ from cirq.sim import (
     final_density_matrix,
     final_state_vector,
     final_wavefunction,
+    MPSSimulator,
+    MPSSimulatorStepResult,
+    MPSState,
+    MPSTrialResult,
     sample,
     sample_density_matrix,
     sample_state_vector,
@@ -358,6 +382,7 @@ from cirq.sim import (
     SimulationTrialResult,
     Simulator,
     SparseSimulatorStep,
+    StabilizerSampler,
     StateVectorMixin,
     StateVectorSimulatorState,
     StateVectorStepResult,
@@ -369,6 +394,8 @@ from cirq.sim import (
 )
 
 from cirq.study import (
+    dict_to_product_sweep,
+    dict_to_zip_sweep,
     ExpressionMap,
     flatten,
     flatten_with_params,
@@ -386,6 +413,7 @@ from cirq.study import (
     to_resolvers,
     to_sweep,
     to_sweeps,
+    Result,
     TrialResult,
     UnitSweep,
     Zip,
@@ -407,9 +435,18 @@ from cirq.value import (
     PeriodicValue,
     RANDOM_STATE_OR_SEED_LIKE,
     Timestamp,
+    TParamKey,
     TParamVal,
     validate_probability,
     value_equality,
+    KET_PLUS,
+    KET_MINUS,
+    KET_IMAG,
+    KET_MINUS_IMAG,
+    KET_ZERO,
+    KET_ONE,
+    PAULI_STATES,
+    ProductState,
 )
 
 # pylint: disable=redefined-builtin
@@ -450,6 +487,8 @@ from cirq.protocols import (
     mixture_channel,
     mul,
     num_qubits,
+    parameter_names,
+    parameter_symbols,
     pauli_expansion,
     phase_by,
     pow,
@@ -460,6 +499,7 @@ from cirq.protocols import (
     QuilFormatter,
     read_json,
     resolve_parameters,
+    resolve_parameters_once,
     SupportsActOn,
     SupportsApplyChannel,
     SupportsApplyMixture,
@@ -478,6 +518,7 @@ from cirq.protocols import (
     SupportsMeasurementKey,
     SupportsMixture,
     SupportsParameterization,
+    SupportsPauliExpansion,
     SupportsPhase,
     SupportsQasm,
     SupportsQasmWithArgs,
@@ -490,6 +531,7 @@ from cirq.protocols import (
     trace_distance_from_angle_list,
     unitary,
     validate_mixture,
+    with_measurement_key_mapping,
 )
 
 from cirq.ion import (
@@ -506,7 +548,8 @@ from cirq.neutral_atoms import (
 )
 
 from cirq.vis import (
-    Heatmap,)
+    Heatmap,
+)
 
 from cirq.work import (
     CircuitSampleJob,
@@ -523,6 +566,7 @@ from cirq.work import (
 from cirq import (
     contrib,
     google,
+    ionq,
     pasqal,
     testing,
 )

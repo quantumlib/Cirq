@@ -23,7 +23,6 @@ from cirq.study import sweeps
 
 
 class UnknownSweep(sweeps.SingleSweep):
-
     def _tuple(self):
         # coverage: ignore
         return self.key, tuple(range(10))
@@ -37,18 +36,25 @@ class UnknownSweep(sweeps.SingleSweep):
         return iter(range(10))
 
 
-@pytest.mark.parametrize('sweep', [
-    cirq.UnitSweep,
-    cirq.Linspace('a', 0, 10, 100),
-    cirq.Points('b', [1, 1.5, 2, 2.5, 3]),
-    cirq.Linspace('a', 0, 1, 5) * cirq.Linspace('b', 0, 1, 5),
-    cirq.Points('a', [1, 2, 3]) + cirq.Linspace('b', 0, 1, 3),
-    (cirq.Linspace('a', 0, 1, 3) *
-     (cirq.Linspace('b', 0, 1, 4) + cirq.Linspace('c', 0, 10, 4)) *
-     (cirq.Linspace('d', 0, 1, 5) + cirq.Linspace('e', 0, 10, 5)) *
-     (cirq.Linspace('f', 0, 1, 6) +
-      (cirq.Points('g', [1, 2]) * cirq.Points('h', [-1, 0, 1])))),
-])
+@pytest.mark.parametrize(
+    'sweep',
+    [
+        cirq.UnitSweep,
+        cirq.Linspace('a', 0, 10, 100),
+        cirq.Points('b', [1, 1.5, 2, 2.5, 3]),
+        cirq.Linspace('a', 0, 1, 5) * cirq.Linspace('b', 0, 1, 5),
+        cirq.Points('a', [1, 2, 3]) + cirq.Linspace('b', 0, 1, 3),
+        (
+            cirq.Linspace('a', 0, 1, 3)
+            * (cirq.Linspace('b', 0, 1, 4) + cirq.Linspace('c', 0, 10, 4))
+            * (cirq.Linspace('d', 0, 1, 5) + cirq.Linspace('e', 0, 10, 5))
+            * (
+                cirq.Linspace('f', 0, 1, 6)
+                + (cirq.Points('g', [1, 2]) * cirq.Points('h', [-1, 0, 1]))
+            )
+        ),
+    ],
+)
 def test_sweep_to_proto_roundtrip(sweep):
     msg = v2.sweep_to_proto(sweep)
     deserialized = v2.sweep_from_proto(msg)
@@ -118,9 +124,13 @@ def test_sweep_with_list_sweep():
 def test_sweep_with_flattened_sweep():
     q = cirq.GridQubit(0, 0)
     circuit = cirq.Circuit(
-        cirq.PhasedXPowGate(exponent=sympy.Symbol('t') / 4 + 0.5,
-                            phase_exponent=sympy.Symbol('t') / 2 + 0.1,
-                            global_shift=0.0)(q), cirq.measure(q, key='m'))
+        cirq.PhasedXPowGate(
+            exponent=sympy.Symbol('t') / 4 + 0.5,
+            phase_exponent=sympy.Symbol('t') / 2 + 0.1,
+            global_shift=0.0,
+        )(q),
+        cirq.measure(q, key='m'),
+    )
     param_sweep1 = cirq.Linspace('t', start=0, stop=1, length=20)
     (_, param_sweep2) = cirq.flatten_with_sweep(circuit, param_sweep1)
     assert v2.sweep_to_proto(param_sweep2) is not None

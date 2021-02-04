@@ -25,12 +25,17 @@ def test_drop():
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     assert_optimizes(
-        before=cirq.Circuit([
-            cirq.Moment(),
-            cirq.Moment(),
-            cirq.Moment([cirq.CNOT(q1, q2)]),
-            cirq.Moment(),
-        ]),
-        after=cirq.Circuit([
-            cirq.Moment([cirq.CNOT(q1, q2)]),
-        ]))
+        before=cirq.Circuit(
+            [
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment([cirq.CNOT(q1, q2)]),
+                cirq.Moment(),
+            ]
+        ),
+        after=cirq.Circuit(
+            [
+                cirq.Moment([cirq.CNOT(q1, q2)]),
+            ]
+        ),
+    )

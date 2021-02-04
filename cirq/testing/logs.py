@@ -17,11 +17,9 @@ import logging
 from typing import ContextManager, List
 
 
-def assert_logs(*matches: str,
-                count: int = 1,
-                level: int = logging.WARNING,
-                capture_warnings: bool = True
-               ) -> ContextManager[List[logging.LogRecord]]:
+def assert_logs(
+    *matches: str, count: int = 1, level: int = logging.WARNING, capture_warnings: bool = True
+) -> ContextManager[List[logging.LogRecord]]:
     """A context manager for testing logging and warning events.
 
     To use this one wraps the code that is to be tested for log events within
@@ -38,7 +36,7 @@ def assert_logs(*matches: str,
 
     Args:
         matches: Each of these is checked to see if they match, as a substring,
-            any of the captures log meassages.
+            any of the captures log messages.
         count: The expected number of messages in logs. Defaults to 1.
         level: The level at which to capture the logs. See the python logging
             module for valid levels. By default this captures at the
@@ -55,7 +53,6 @@ def assert_logs(*matches: str,
     records = []
 
     class Handler(logging.Handler):
-
         def emit(self, record):
             records.append(record)
 
@@ -70,12 +67,12 @@ def assert_logs(*matches: str,
             logging.getLogger().removeHandler(self)
             if capture_warnings:
                 logging.captureWarnings(False)
-            assert len(records) == count, (
-                f'Expected {count} log message but got {len(records)}.')
+            assert len(records) == count, f'Expected {count} log message but got {len(records)}.'
             msgs = [record.getMessage() for record in records]
             for match in matches:
                 assert match in ''.join(msgs), (
                     f'{match} expected to appear in log messages but it was '
-                    f'not found. Logs messages: {msgs}.')
+                    f'not found. Logs messages: {msgs}.'
+                )
 
     return Handler()

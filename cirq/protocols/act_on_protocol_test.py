@@ -19,9 +19,7 @@ import cirq
 
 
 def test_act_on_checks():
-
-    class Bad():
-
+    class Bad:
         def _act_on_(self, args):
             return False
 

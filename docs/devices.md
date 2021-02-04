@@ -1,4 +1,16 @@
-### Devices
+# Devices
+
+``Device`` is an abstract concept in Cirq, that can represent constraints of an actual quantum processor. 
+This page describes this abstract concept. 
+
+If you are looking for ways of running quantum algorithms, take a look at 
+ - [Simulation](simulation.ipynb), that is available on any computer
+ - Quantum processors, that are provided by different Quantum Service Providers: 
+    - [Google Quantum Computing Service](tutorials/google/start.ipynb)
+    - [Alpine Quantum Technologies](tutorials/aqt/getting_started.ipynb)
+    - [Pasqal](tutorials/pasqal/getting_started.ipynb) 
+
+## The `cirq.Device` class
 
 The ``Device`` class is an abstract class which encapsulates constraints
 (or lack thereof) that come when running a circuit on actual hardware.

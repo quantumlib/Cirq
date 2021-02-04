@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from typing import (
-    TYPE_CHECKING,
     Any,
     TypeVar,
     Union,
@@ -24,18 +23,16 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import qis
-from cirq._doc import document
+from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import (
     ApplyUnitaryArgs,
     apply_unitaries,
 )
 from cirq.protocols.decompose_protocol import (
-    _try_decompose_into_operations_and_qubits,)
+    _try_decompose_into_operations_and_qubits,
+)
 from cirq.type_workarounds import NotImplementedType
-
-if TYPE_CHECKING:
-    import cirq
 
 # This is a special indicator value used by the unitary method to determine
 # whether or not the caller provided a 'default' argument. It must be of type
@@ -50,7 +47,7 @@ TDefault = TypeVar('TDefault')
 class SupportsUnitary(Protocol):
     """An object that may be describable by a unitary matrix."""
 
-    @document
+    @doc_private
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         """A unitary matrix describing this value, e.g. the matrix of a gate.
 
@@ -75,7 +72,7 @@ class SupportsUnitary(Protocol):
             is no such matrix.
         """
 
-    @document
+    @doc_private
     def _has_unitary_(self) -> bool:
         """Whether this value has a unitary matrix representation.
 
@@ -89,8 +86,9 @@ class SupportsUnitary(Protocol):
         """
 
 
-def unitary(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
-           ) -> Union[np.ndarray, TDefault]:
+def unitary(
+    val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
+) -> Union[np.ndarray, TDefault]:
     """Returns a unitary matrix describing the given value.
 
     The matrix is determined by any one of the following techniques:
@@ -123,8 +121,9 @@ def unitary(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
             specified.
     """
     strats = [
-        _strat_unitary_from_unitary, _strat_unitary_from_apply_unitary,
-        _strat_unitary_from_decompose
+        _strat_unitary_from_unitary,
+        _strat_unitary_from_apply_unitary,
+        _strat_unitary_from_decompose,
     ]
     for strat in strats:
         result = strat(val)
@@ -148,7 +147,8 @@ def unitary(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
         "- A `_decompose_(self)` method that returned a "
         "list of unitary operations.\n"
         "- An `_apply_unitary_(self, args) method that returned a value "
-        "besides None or NotImplemented.".format(type(val), val))
+        "besides None or NotImplemented.".format(type(val), val)
+    )
 
 
 def _strat_unitary_from_unitary(val: Any) -> Optional[np.ndarray]:
@@ -185,8 +185,7 @@ def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
 def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
     """Attempts to compute a value's unitary via its _decompose_ method."""
     # Check if there's a decomposition.
-    operations, qubits, val_qid_shape = (
-        _try_decompose_into_operations_and_qubits(val))
+    operations, qubits, val_qid_shape = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
         return NotImplemented
 
@@ -194,8 +193,8 @@ def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
     state = qis.eye_tensor(val_qid_shape, dtype=np.complex128)
     buffer = np.empty_like(state)
     result = apply_unitaries(
-        operations, qubits,
-        ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape))), None)
+        operations, qubits, ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape))), None
+    )
 
     # Package result.
     if result is None:

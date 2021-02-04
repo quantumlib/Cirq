@@ -27,18 +27,15 @@ def test_measure_qubits():
         _ = cirq.measure()
 
     assert cirq.measure(a) == cirq.MeasurementGate(num_qubits=1, key='a').on(a)
-    assert cirq.measure(a, b) == cirq.MeasurementGate(num_qubits=2,
-                                                      key='a,b').on(a, b)
-    assert cirq.measure(b, a) == cirq.MeasurementGate(num_qubits=2,
-                                                      key='b,a').on(b, a)
-    assert cirq.measure(a, key='b') == cirq.MeasurementGate(num_qubits=1,
-                                                            key='b').on(a)
+    assert cirq.measure(a, b) == cirq.MeasurementGate(num_qubits=2, key='a,b').on(a, b)
+    assert cirq.measure(b, a) == cirq.MeasurementGate(num_qubits=2, key='b,a').on(b, a)
+    assert cirq.measure(a, key='b') == cirq.MeasurementGate(num_qubits=1, key='b').on(a)
     assert cirq.measure(a, invert_mask=(True,)) == cirq.MeasurementGate(
-        num_qubits=1, key='a', invert_mask=(True,)).on(a)
-    assert cirq.measure(*cirq.LineQid.for_qid_shape(
-        (1, 2, 3)), key='a') == cirq.MeasurementGate(
-            num_qubits=3, key='a',
-            qid_shape=(1, 2, 3)).on(*cirq.LineQid.for_qid_shape((1, 2, 3)))
+        num_qubits=1, key='a', invert_mask=(True,)
+    ).on(a)
+    assert cirq.measure(*cirq.LineQid.for_qid_shape((1, 2, 3)), key='a') == cirq.MeasurementGate(
+        num_qubits=3, key='a', qid_shape=(1, 2, 3)
+    ).on(*cirq.LineQid.for_qid_shape((1, 2, 3)))
 
     with pytest.raises(ValueError, match='ndarray'):
         _ = cirq.measure(np.ndarray([1, 0]))
@@ -56,10 +53,10 @@ def test_measure_each():
     assert cirq.measure_each(a, b) == [cirq.measure(a), cirq.measure(b)]
     assert cirq.measure_each(a.with_dimension(3), b.with_dimension(3)) == [
         cirq.measure(a.with_dimension(3)),
-        cirq.measure(b.with_dimension(3))
+        cirq.measure(b.with_dimension(3)),
     ]
 
     assert cirq.measure_each(a, b, key_func=lambda e: e.name + '!') == [
         cirq.measure(a, key='a!'),
-        cirq.measure(b, key='b!')
+        cirq.measure(b, key='b!'),
     ]

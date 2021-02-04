@@ -24,7 +24,6 @@ def test_coverage():
     g = cirq.ThreeQubitGate()
 
     class FakeOperation(ops.Operation):
-
         def __init__(self, gate, qubits):
             self._gate = gate
             self._qubits = qubits
@@ -40,8 +39,9 @@ def test_coverage():
     c = cirq.Circuit(cirq.X.on(q[0]))
     cirq.neutral_atoms.ConvertToNeutralAtomGates().optimize_circuit(c)
     assert c == cirq.Circuit(cirq.X.on(q[0]))
-    assert (cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(
-        cirq.X.on(q[0])) == [cirq.X.on(q[0])])
+    assert cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(cirq.X.on(q[0])) == [
+        cirq.X.on(q[0])
+    ]
     with pytest.raises(TypeError, match="Don't know how to work with"):
         cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(op)
     assert not cirq.neutral_atoms.is_native_neutral_atom_op(op)
@@ -65,10 +65,7 @@ def test_avoids_decompose_fallback_when_matrix_available_single_qubit():
 def test_avoids_decompose_fallback_when_matrix_available_two_qubit():
     class OtherCZ(cirq.TwoQubitGate):
         def _unitary_(self) -> np.ndarray:
-            return np.array([[1, 0, 0, 0],
-                             [0, 1, 0, 0],
-                             [0, 0, 1, 0],
-                             [0, 0, 0, -1]])
+            return np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])
 
     class OtherOtherCZ(cirq.TwoQubitGate):
         def _decompose_(self, qubits):
@@ -79,8 +76,10 @@ def test_avoids_decompose_fallback_when_matrix_available_two_qubit():
     c = cirq.Circuit(OtherCZ().on(q00, q01), OtherOtherCZ().on(q00, q01))
     cirq.neutral_atoms.ConvertToNeutralAtomGates().optimize_circuit(c)
     cirq.testing.assert_has_diagram(
-        c, """
+        c,
+        """
 (0, 0): ───@───@───
            │   │
 (0, 1): ───@───@───
-""")
+""",
+    )

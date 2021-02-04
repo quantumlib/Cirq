@@ -20,13 +20,15 @@ import sympy
 import cirq
 
 
-@pytest.mark.parametrize('eigen_gate_type', [
-    cirq.ISwapPowGate,
-    cirq.SwapPowGate,
-])
+@pytest.mark.parametrize(
+    'eigen_gate_type',
+    [
+        cirq.ISwapPowGate,
+        cirq.SwapPowGate,
+    ],
+)
 def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type):
-    cirq.testing.assert_eigengate_implements_consistent_protocols(
-        eigen_gate_type)
+    cirq.testing.assert_eigengate_implements_consistent_protocols(eigen_gate_type)
 
 
 def test_interchangeable_qubit_eq():
@@ -38,35 +40,39 @@ def test_interchangeable_qubit_eq():
     eq.add_equality_group(cirq.SWAP(a, b), cirq.SWAP(b, a))
     eq.add_equality_group(cirq.SWAP(a, c))
 
-    eq.add_equality_group(cirq.SWAP(a, b)**0.3, cirq.SWAP(b, a)**0.3)
-    eq.add_equality_group(cirq.SWAP(a, c)**0.3)
+    eq.add_equality_group(cirq.SWAP(a, b) ** 0.3, cirq.SWAP(b, a) ** 0.3)
+    eq.add_equality_group(cirq.SWAP(a, c) ** 0.3)
 
     eq.add_equality_group(cirq.ISWAP(a, b), cirq.ISWAP(b, a))
     eq.add_equality_group(cirq.ISWAP(a, c))
 
-    eq.add_equality_group(cirq.ISWAP(a, b)**0.3, cirq.ISWAP(b, a)**0.3)
-    eq.add_equality_group(cirq.ISWAP(a, c)**0.3)
+    eq.add_equality_group(cirq.ISWAP(a, b) ** 0.3, cirq.ISWAP(b, a) ** 0.3)
+    eq.add_equality_group(cirq.ISWAP(a, c) ** 0.3)
 
 
 def test_text_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    circuit = cirq.Circuit(cirq.SWAP(a, b), cirq.ISWAP(a, b)**-1)
+    circuit = cirq.Circuit(cirq.SWAP(a, b), cirq.ISWAP(a, b) ** -1)
 
     cirq.testing.assert_has_diagram(
-        circuit, """
+        circuit,
+        """
 a: ───×───iSwap──────
       │   │
 b: ───×───iSwap^-1───
-""")
+""",
+    )
 
-    cirq.testing.assert_has_diagram(circuit,
-                                    """
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
 a: ---Swap---iSwap------
       |      |
 b: ---Swap---iSwap^-1---
 """,
-                                    use_unicode_characters=False)
+        use_unicode_characters=False,
+    )
 
 
 def test_swap_unitary():
@@ -98,50 +104,51 @@ def test_iswap_unitary():
 
 def test_repr():
     assert repr(cirq.SWAP) == 'cirq.SWAP'
-    assert repr(cirq.SWAP**0.5) == '(cirq.SWAP**0.5)'
+    assert repr(cirq.SWAP ** 0.5) == '(cirq.SWAP**0.5)'
 
     assert repr(cirq.ISWAP) == 'cirq.ISWAP'
-    assert repr(cirq.ISWAP**0.5) == '(cirq.ISWAP**0.5)'
+    assert repr(cirq.ISWAP ** 0.5) == '(cirq.ISWAP**0.5)'
 
 
 def test_str():
     assert str(cirq.SWAP) == 'SWAP'
-    assert str(cirq.SWAP**0.5) == 'SWAP**0.5'
+    assert str(cirq.SWAP ** 0.5) == 'SWAP**0.5'
 
     assert str(cirq.ISWAP) == 'ISWAP'
-    assert str(cirq.ISWAP**0.5) == 'ISWAP**0.5'
+    assert str(cirq.ISWAP ** 0.5) == 'ISWAP**0.5'
 
 
 def test_iswap_decompose_diagram():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    decomposed = cirq.Circuit(cirq.decompose_once(cirq.ISWAP(a, b)**0.5))
+    decomposed = cirq.Circuit(cirq.decompose_once(cirq.ISWAP(a, b) ** 0.5))
     cirq.testing.assert_has_diagram(
-        decomposed, """
+        decomposed,
+        """
 a: ───@───H───X───T───X───T^-1───H───@───
       │       │       │              │
 b: ───X───────@───────@──────────────X───
-""")
+""",
+    )
 
 
 def test_trace_distance():
     foo = sympy.Symbol('foo')
-    sswap = cirq.SWAP**foo
-    siswap = cirq.ISWAP**foo
+    sswap = cirq.SWAP ** foo
+    siswap = cirq.ISWAP ** foo
     # These values should have 1.0 or 0.0 directly returned
     assert cirq.trace_distance_bound(sswap) == 1.0
     assert cirq.trace_distance_bound(siswap) == 1.0
     # These values are calculated, so we use approx_eq
-    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.SWAP**0.3),
-                          np.sin(0.3 * np.pi / 2))
-    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.ISWAP**0), 0.0)
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.SWAP ** 0.3), np.sin(0.3 * np.pi / 2))
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.ISWAP ** 0), 0.0)
 
 
 def test_trace_distance_over_range_of_exponents():
     for exp in np.linspace(0, 4, 20):
-        cirq.testing.assert_has_consistent_trace_distance_bound(cirq.SWAP**exp)
-        cirq.testing.assert_has_consistent_trace_distance_bound(cirq.ISWAP**exp)
+        cirq.testing.assert_has_consistent_trace_distance_bound(cirq.SWAP ** exp)
+        cirq.testing.assert_has_consistent_trace_distance_bound(cirq.ISWAP ** exp)
 
 
 @pytest.mark.parametrize('angle_rads', (-np.pi, -np.pi / 3, -0.1, np.pi / 5))
@@ -172,4 +179,5 @@ def test_riswap_hamiltonian(angle_rads):
 @pytest.mark.parametrize('angle_rads', (-np.pi / 5, 0.4, 2, np.pi))
 def test_riswap_has_consistent_protocols(angle_rads):
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.riswap(angle_rads), ignoring_global_phase=False)
+        cirq.riswap(angle_rads), ignoring_global_phase=False
+    )

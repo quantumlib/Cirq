@@ -31,11 +31,10 @@ def test_plot_state_histogram():
     circuit = cirq.Circuit()
     circuit.append([cirq.X(q0), cirq.X(q1)])
     circuit.append([cirq.measure(q0, key='q0'), cirq.measure(q1, key='q1')])
-    result = simulator.run(program=circuit,
-                           repetitions=5)
+    result = simulator.run(program=circuit, repetitions=5)
 
     values_plotted = visualize.plot_state_histogram(result)
-    expected_values = [0., 0., 0., 5.]
+    expected_values = [0.0, 0.0, 0.0, 5.0]
 
     np.testing.assert_equal(values_plotted, expected_values)
 

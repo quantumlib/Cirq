@@ -36,11 +36,11 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
         self.device = device
 
     def run_sweep(
-            self,
-            program: 'cirq.Circuit',
-            params: study.Sweepable,
-            repetitions: int = 1,
-    ) -> List[study.TrialResult]:
+        self,
+        program: 'cirq.Circuit',
+        params: study.Sweepable,
+        repetitions: int = 1,
+    ) -> List[study.Result]:
         """Samples circuit as if every measurement resulted in zero.
 
         Args:
@@ -49,7 +49,7 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
             repetitions: The number of times to sample.
 
         Returns:
-            TrialResult list for this run; one for each possible parameter
+            Result list for this run; one for each possible parameter
             resolver.
 
         Raises:
@@ -62,9 +62,8 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
         for op in program.all_operations():
             key = protocols.measurement_key(op, default=None)
             if key is not None:
-                measurements[key] = np.zeros((repetitions, len(op.qubits)),
-                                             dtype=int)
+                measurements[key] = np.zeros((repetitions, len(op.qubits)), dtype=int)
         return [
-            study.TrialResult(params=param_resolver, measurements=measurements)
+            study.Result(params=param_resolver, measurements=measurements)
             for param_resolver in study.to_resolvers(params)
         ]

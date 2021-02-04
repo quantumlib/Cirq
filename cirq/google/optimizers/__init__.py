@@ -20,16 +20,21 @@ from cirq.google.optimizers.two_qubit_gates import (
 )
 
 from cirq.google.optimizers.convert_to_sycamore_gates import (
-    ConvertToSycamoreGates,)
+    ConvertToSycamoreGates,
+)
 
 from cirq.google.optimizers.convert_to_sqrt_iswap import (
-    ConvertToSqrtIswapGates,)
+    ConvertToSqrtIswapGates,
+)
 
 from cirq.google.optimizers.convert_to_xmon_gates import (
-    ConvertToXmonGates,)
+    ConvertToXmonGates,
+)
 
 from cirq.google.optimizers.optimize_for_sycamore import (
-    optimized_for_sycamore,)
+    optimized_for_sycamore,
+)
 
 from cirq.google.optimizers.optimize_for_xmon import (
-    optimized_for_xmon,)
+    optimized_for_xmon,
+)

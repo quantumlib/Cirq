@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+import "cirq/google/api/v2/metrics.proto";
+import "cirq/google/api/v2/program.proto";
+
+package cirq.google.api.v2;
+
+option java_package = "com.google.cirq.google.api.v2";
+option java_outer_classname = "FocusedCalibrationProto";
+option java_multiple_files = true;
+
+//  This message represents a request to execute a custom calibration routine.
+//
+message FocusedCalibration {
+     // The layers field represents each invocation of a calibration
+     // procedure.
+     //
+     // For instance, each (unique) moment of a circuit could be
+     // calibrated using parallel_xeb.  In this case,
+     // each moment would have its own CalibrationLayer.
+     //
+     // Some calibrations, such as a readout calibration,
+     // will only have one layer.
+     repeated CalibrationLayer layers = 1;
+}
+
+// Each CalibrationLayer represents one invocation
+// of a calibration procedure.
+message CalibrationLayer {
+     // The type of the calibration procedure to execute.
+     // The value of this field must be in one of the acceptable
+     // values found in the cirq enum TBD.
+     // TODO(dstrain): Point to the cirq enum once it exists.
+     string calibration_type = 1;
+
+     // A circuit that identifies the layer or circuit to optimize
+     // if the calibration requires this.  For many calibrations,
+     // this will be a single moment representing the layer to
+     // optimize for.
+     Program layer = 2;
+
+     // Arguments that can be specified to the calibration procedure,
+     // such as the number of layers, which angles to optimize, etc
+     map<string, Arg> args = 3;
+}
+
+// The results returned by a FocusedCalibration request.
+message FocusedCalibrationResult {
+
+     // The results of each CalibrationLayer request.
+     // There will be one CalibrationLayerResults message for each
+     // CalibrationLayer in the request, and the results will
+     // correspond to the order of the requests.
+     repeated CalibrationLayerResult results = 1;
+}
+
+// Response codes for Calibration requests
+enum CalibrationLayerCode {
+
+     // Zero is a default value and means the value was unknown or unset.
+     CALIBRATION_RESULT_UNSPECIFIED = 0;
+
+     // Successful run of the calibration.
+     SUCCESS = 1;
+
+     // Miscellaenous errors not covered by the below conditions.
+     ERROR_OTHER = 2;
+
+     // The parameters given to the calibration were not valid.
+     // For instance, multiple moments were given to a type of calibration
+     // that expects a single moment.
+     ERROR_INVALID_PARAMETERS = 3;
+
+     // The calibration took too long and was aborted.
+     ERROR_TIMEOUT = 4;
+
+     // The calibration failed for internal reasons.  For instance,
+     // suitable device parameters could not be acheived or dependencies
+     // needed by the calibration did not exist.
+     ERROR_CALIBRATION_FAILED = 5;
+}
+
+
+message CalibrationLayerResult {
+     // Whether the calibration procedure was a success or failure.
+     CalibrationLayerCode code = 1;
+
+     // On non-successful results, contains additional information
+     // about the details of the error.
+     string error_message = 2;
+
+     // A token identifying the calibration result.
+     // If a token exists in the response, it can be used to tag
+     // focused circuits that use parameters
+     // derived from this calibration.
+     // If no token exists, then the calibration was purely diagnostic.
+     string token = 3;
+
+     // Results, such as gate fidelities, gate angles, etc
+     // would be returned in a similar format to calibration metrics.
+     // This allows the return result to be easily extensible.
+     MetricsSnapshot metrics = 4;
+
+     // Timestamp of when the calibration is valid until, specified as
+     // milliseconds since the Unix epoch time.
+     uint64 valid_until_ms = 5;
+}

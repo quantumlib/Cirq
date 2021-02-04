@@ -18,7 +18,11 @@ import networkx as nx
 import cirq
 import cirq.contrib.routing as ccr
 from cirq.contrib.routing.multi_prog_mapping import (
-    multi_prog_map, prepare_couplingGraph_errorValues, HierarchyTree)
+    multi_prog_map,
+    prepare_couplingGraph_errorValues,
+    HierarchyTree,
+)
+
 
 def test_2small_programs():
     # device_graph1 = ccr.get_grid_device_graph(3, 2)
@@ -50,24 +54,29 @@ def test_2small_programs():
 
     # list of program circuits
     qubits = cirq.LineQubit.range(3)
-    circuit1 = cirq.Circuit(cirq.X(qubits[0]), cirq.Y(qubits[1]),
-                            cirq.CZ(qubits[0], qubits[1]),
-                            cirq.CZ(qubits[0], qubits[2]))
+    circuit1 = cirq.Circuit(
+        cirq.X(qubits[0]),
+        cirq.Y(qubits[1]),
+        cirq.CZ(qubits[0], qubits[1]),
+        cirq.CZ(qubits[0], qubits[2]),
+    )
     qubits = cirq.LineQubit.range(2)
-    circuit2 = cirq.Circuit(cirq.X(qubits[0]), cirq.Y(qubits[1]),
-                            cirq.CZ(qubits[0], qubits[1]))
+    circuit2 = cirq.Circuit(cirq.X(qubits[0]), cirq.Y(qubits[1]), cirq.CZ(qubits[0], qubits[1]))
     program_circuits = []
     program_circuits.append(circuit2)
     program_circuits.append(circuit1)
 
-    
-    partitions , schedule = multi_prog_map(dgraph, single_er, two_er, program_circuits)
+    partitions, schedule = multi_prog_map(dgraph, single_er, two_er, program_circuits)
 
     assert len(partitions) == len(program_circuits)
-    assert set(partitions[0]).issubset({cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(0, 2)})
+    assert set(partitions[0]).issubset(
+        {cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(0, 2)}
+    )
     assert set(partitions[1]).issubset({cirq.GridQubit(1, 1), cirq.GridQubit(1, 2)})
-    assert list(schedule.all_operations())[6] == cirq.SWAP(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))
-    
+    assert list(schedule.all_operations())[6] == cirq.SWAP(
+        cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)
+    )
+
 
 def test_create_tree():
     single_er = {

@@ -37,8 +37,7 @@ def test_example_runs_bernstein_vazirani():
     # Check empty oracle case. Cover both biases.
     a = cirq.NamedQubit('a')
     assert list(examples.bernstein_vazirani.make_oracle([], a, [], False)) == []
-    assert list(examples.bernstein_vazirani.make_oracle([], a, [],
-                                                        True)) == [cirq.X(a)]
+    assert list(examples.bernstein_vazirani.make_oracle([], a, [], True)) == [cirq.X(a)]
 
 
 def test_example_runs_simon():
@@ -100,8 +99,7 @@ def test_example_runs_qaoa():
 
 def test_example_runs_quantum_teleportation():
     _, teleported = examples.quantum_teleportation.main(seed=12)
-    assert np.allclose(np.array([0.07023552, -0.9968105, -0.03788921]),
-                       teleported)
+    assert np.allclose(np.array([0.07023552, -0.9968105, -0.03788921]), teleported)
 
 
 def test_example_runs_superdense_coding():
@@ -113,9 +111,9 @@ def test_example_runs_hhl():
 
 
 def test_example_runs_qubit_characterizations():
-    examples.qubit_characterizations_example.main(minimum_cliffords=2,
-                                                  maximum_cliffords=6,
-                                                  cliffords_step=2)
+    examples.qubit_characterizations_example.main(
+        minimum_cliffords=2, maximum_cliffords=6, cliffords_step=2
+    )
 
 
 def test_example_swap_networks():
@@ -123,9 +121,9 @@ def test_example_swap_networks():
 
 
 def test_example_cross_entropy_benchmarking():
-    examples.cross_entropy_benchmarking_example.main(repetitions=10,
-                                                     num_circuits=2,
-                                                     cycles=[2, 3, 4])
+    examples.cross_entropy_benchmarking_example.main(
+        repetitions=10, num_circuits=2, cycles=[2, 3, 4]
+    )
 
 
 def test_example_noisy_simulation():
@@ -134,29 +132,27 @@ def test_example_noisy_simulation():
 
 def test_example_shor_modular_exp_register_size():
     with pytest.raises(ValueError):
-        _ = examples.shor.ModularExp(target=cirq.LineQubit.range(2),
-                                     exponent=cirq.LineQubit.range(2, 5),
-                                     base=4,
-                                     modulus=5)
+        _ = examples.shor.ModularExp(
+            target=cirq.LineQubit.range(2), exponent=cirq.LineQubit.range(2, 5), base=4, modulus=5
+        )
 
 
 def test_example_shor_modular_exp_register_type():
-    operation = examples.shor.ModularExp(target=cirq.LineQubit.range(3),
-                                         exponent=cirq.LineQubit.range(3, 5),
-                                         base=4,
-                                         modulus=5)
+    operation = examples.shor.ModularExp(
+        target=cirq.LineQubit.range(3), exponent=cirq.LineQubit.range(3, 5), base=4, modulus=5
+    )
     with pytest.raises(ValueError):
         _ = operation.with_registers(cirq.LineQubit.range(3))
     with pytest.raises(ValueError):
         _ = operation.with_registers(1, cirq.LineQubit.range(3, 6), 4, 5)
     with pytest.raises(ValueError):
-        _ = operation.with_registers(cirq.LineQubit.range(3),
-                                     cirq.LineQubit.range(3, 6),
-                                     cirq.LineQubit.range(6, 9), 5)
+        _ = operation.with_registers(
+            cirq.LineQubit.range(3), cirq.LineQubit.range(3, 6), cirq.LineQubit.range(6, 9), 5
+        )
     with pytest.raises(ValueError):
-        _ = operation.with_registers(cirq.LineQubit.range(3),
-                                     cirq.LineQubit.range(3, 6), 4,
-                                     cirq.LineQubit.range(6, 9))
+        _ = operation.with_registers(
+            cirq.LineQubit.range(3), cirq.LineQubit.range(3, 6), 4, cirq.LineQubit.range(6, 9)
+        )
 
 
 def test_example_shor_modular_exp_registers():
@@ -177,7 +173,8 @@ def test_example_shor_modular_exp_diagram():
     operation = examples.shor.ModularExp(target, exponent, 4, 5)
     circuit = cirq.Circuit(operation)
     cirq.testing.assert_has_diagram(
-        circuit, """
+        circuit,
+        """
 0: ───ModularExp(t*4**e % 5)───
       │
 1: ───t1───────────────────────
@@ -187,18 +184,21 @@ def test_example_shor_modular_exp_diagram():
 3: ───e0───────────────────────
       │
 4: ───e1───────────────────────
-""")
+""",
+    )
 
     operation = operation.with_registers(target, 2, 4, 5)
     circuit = cirq.Circuit(operation)
     cirq.testing.assert_has_diagram(
-        circuit, """
+        circuit,
+        """
 0: ───ModularExp(t*4**2 % 5)───
       │
 1: ───t1───────────────────────
       │
 2: ───t2───────────────────────
-""")
+""",
+    )
 
 
 def assert_order(r: int, x: int, n: int) -> None:
@@ -210,8 +210,9 @@ def assert_order(r: int, x: int, n: int) -> None:
     assert y % n == 1
 
 
-@pytest.mark.parametrize('x, n', ((2, 3), (5, 6), (2, 7), (6, 7), (5, 8),
-                                  (6, 11), (6, 49), (7, 810)))
+@pytest.mark.parametrize(
+    'x, n', ((2, 3), (5, 6), (2, 7), (6, 7), (5, 8), (6, 11), (6, 49), (7, 810))
+)
 def test_example_shor_naive_order_finder(x, n):
     r = examples.shor.naive_order_finder(x, n)
     assert_order(r, x, n)
@@ -257,13 +258,15 @@ def test_example_shor_find_factor_with_composite_n_and_quantum_order_finder(n):
     'n, order_finder',
     itertools.product(
         (2, 3, 5, 11, 101, 127, 907),
-        (examples.shor.naive_order_finder, examples.shor.quantum_order_finder)))
+        (examples.shor.naive_order_finder, examples.shor.quantum_order_finder),
+    ),
+)
 def test_example_shor_find_factor_with_prime_n(n, order_finder):
     d = examples.shor.find_factor(n, order_finder)
     assert d is None
 
 
-@pytest.mark.parametrize('n', (2, 3, 15, 17, 2**89 - 1))
+@pytest.mark.parametrize('n', (2, 3, 15, 17, 2 ** 89 - 1))
 def test_example_runs_shor_valid(n):
     examples.shor.main(n=n)
 

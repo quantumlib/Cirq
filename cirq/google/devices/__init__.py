@@ -20,7 +20,9 @@ from cirq.google.devices.known_devices import (
 )
 
 from cirq.google.devices.serializable_device import (
-    SerializableDevice,)
+    SerializableDevice,
+)
 
 from cirq.google.devices.xmon_device import (
-    XmonDevice,)
+    XmonDevice,
+)

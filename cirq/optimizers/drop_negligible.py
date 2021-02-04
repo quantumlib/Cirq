@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from cirq import ops
 
 
-class DropNegligible():
+class DropNegligible:
     """An optimization pass that removes operations with tiny effects."""
 
     def __init__(self, tolerance: float = 1e-8) -> None:
@@ -36,7 +36,6 @@ class DropNegligible():
         deletions: List[Tuple[int, ops.Operation]] = []
         for moment_index, moment in enumerate(circuit):
             for op in moment.operations:
-                if (op is not None and
-                        protocols.trace_distance_bound(op) <= self.tolerance):
+                if op is not None and protocols.trace_distance_bound(op) <= self.tolerance:
                     deletions.append((moment_index, op))
         circuit.batch_remove(deletions)

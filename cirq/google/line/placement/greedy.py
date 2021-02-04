@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC
+# Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,12 +30,11 @@ if TYPE_CHECKING:
 class GreedySequenceSearch:
     """Base class for greedy search heuristics.
 
-    Specialized greedy heuristics should implement abstrace _sequence_search
+    Specialized greedy heuristics should implement abstract _sequence_search
     method.
     """
 
-    def __init__(self, device: 'cirq.google.XmonDevice',
-                 start: GridQubit) -> None:
+    def __init__(self, device: 'cirq.google.XmonDevice', start: GridQubit) -> None:
         """Greedy sequence search constructor.
 
         Args:
@@ -64,8 +63,7 @@ class GreedySequenceSearch:
         return self._sequence
 
     @abc.abstractmethod
-    def _choose_next_qubit(self, qubit: GridQubit,
-                           used: Set[GridQubit]) -> Optional[GridQubit]:
+    def _choose_next_qubit(self, qubit: GridQubit, used: Set[GridQubit]) -> Optional[GridQubit]:
         """Selects next qubit on the linear sequence.
 
         Args:
@@ -100,15 +98,14 @@ class GreedySequenceSearch:
 
         return self._expand_sequence(head + tail)
 
-    def _sequence_search(self, start: GridQubit,
-                         current: List[GridQubit]) -> List[GridQubit]:
+    def _sequence_search(self, start: GridQubit, current: List[GridQubit]) -> List[GridQubit]:
         """Search for the continuous linear sequence from the given qubit.
 
         This method is called twice for the same starting qubit, so that
         sequences that begin and end on this qubit are searched for.
 
         Args:
-            start: The first qubit, where search should be trigerred from.
+            start: The first qubit, where search should be triggered from.
             current: Previously found linear sequence, which qubits are
                      forbidden to use during the search.
 
@@ -146,8 +143,9 @@ class GreedySequenceSearch:
                 i += 1
         return seq
 
-    def _find_path_between(self, p: GridQubit, q: GridQubit,
-                           used: Set[GridQubit]) -> Optional[List[GridQubit]]:
+    def _find_path_between(
+        self, p: GridQubit, q: GridQubit, used: Set[GridQubit]
+    ) -> Optional[List[GridQubit]]:
         """Searches for continuous sequence between two qubits.
 
         This method runs two BFS algorithms in parallel (alternating variable s
@@ -174,10 +172,7 @@ class GreedySequenceSearch:
             return path
 
         other = {p: q, q: p}
-        parents = {
-            p: dict(),
-            q: dict()
-        }  # type: Dict[GridQubit, Dict[GridQubit, GridQubit]]
+        parents = {p: dict(), q: dict()}  # type: Dict[GridQubit, Dict[GridQubit, GridQubit]]
         visited = {p: set(), q: set()}  # type: Dict[GridQubit, Set[GridQubit]]
 
         queue = collections.deque([(p, p), (q, q)])
@@ -202,8 +197,7 @@ class GreedySequenceSearch:
 
         return None
 
-    def _neighbors_of_excluding(self, qubit: GridQubit, used: Set[GridQubit]
-                                ) -> List[GridQubit]:
+    def _neighbors_of_excluding(self, qubit: GridQubit, used: Set[GridQubit]) -> List[GridQubit]:
         return [n for n in self._c_adj[qubit] if n not in used]
 
 
@@ -217,16 +211,13 @@ class _PickFewestNeighbors(GreedySequenceSearch):
     obvious traps.
     """
 
-    def _choose_next_qubit(self, qubit: GridQubit,
-                           used: Set[GridQubit]) -> Optional[GridQubit]:
+    def _choose_next_qubit(self, qubit: GridQubit, used: Set[GridQubit]) -> Optional[GridQubit]:
         neighbors = self._neighbors_of_excluding(qubit, used)
         if not neighbors:
             return None
         return min(
-            neighbors,
-            key=lambda n:
-                len(self._neighbors_of_excluding(n, used)) or
-                float('inf'))  # Avoid dead ends with no neighbors at all.
+            neighbors, key=lambda n: len(self._neighbors_of_excluding(n, used)) or float('inf')
+        )  # Avoid dead ends with no neighbors at all.
 
 
 class _PickLargestArea(GreedySequenceSearch):
@@ -236,8 +227,7 @@ class _PickLargestArea(GreedySequenceSearch):
     part of the chip, when this qubit is added to the sequence.
     """
 
-    def _choose_next_qubit(self, qubit: GridQubit,
-                           used: Set[GridQubit]) -> Optional[GridQubit]:
+    def _choose_next_qubit(self, qubit: GridQubit, used: Set[GridQubit]) -> Optional[GridQubit]:
         analyzed = set()  # type: Set[GridQubit]
         best = None
         best_size = None
@@ -255,8 +245,7 @@ class _PickLargestArea(GreedySequenceSearch):
 
         return best
 
-    def _collect_unused(self, start: GridQubit,
-                        used: Set[GridQubit]) -> Set[GridQubit]:
+    def _collect_unused(self, start: GridQubit, used: Set[GridQubit]) -> Set[GridQubit]:
         """Lists all the qubits that are reachable from given qubit.
 
         Args:
@@ -282,25 +271,22 @@ class _PickLargestArea(GreedySequenceSearch):
 
 
 class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
-    """Greedy search method for linear sequence of qubits on a chip.
-    """
+    """Greedy search method for linear sequence of qubits on a chip."""
 
     def __init__(self, algorithm: str = 'best') -> None:
         """Initializes greedy sequence search strategy.
 
         Args:
             algorithm: Greedy algorithm to be used. Available options are:
-            best - runs all heuristics and chooses the best result,
-            largest_area - on every step takes the qubit which has connection
-            with the largest number of unassigned qubits, and
-            minimal_connectivity - on every step takes the qubit with minimal
-            number of unassigned neighbouring qubits.
+                best - runs all heuristics and chooses the best result,
+                largest_area - on every step takes the qubit which has
+                connection with the largest number of unassigned qubits, and
+                minimal_connectivity - on every step takes the qubit with
+                minimal number of unassigned neighbouring qubits.
         """
         self.algorithm = algorithm
 
-    def place_line(self,
-                   device: 'cirq.google.XmonDevice',
-                   length: int) -> GridQubitLineTuple:
+    def place_line(self, device: 'cirq.google.XmonDevice', length: int) -> GridQubitLineTuple:
         """Runs line sequence search.
 
         Args:
@@ -330,13 +316,12 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
             'best': [
                 _PickFewestNeighbors(device, start),
                 _PickLargestArea(device, start),
-            ]
+            ],
         }  # type: Dict[str, List[GreedySequenceSearch]]
 
         algos = greedy_search.get(self.algorithm)
         if algos is None:
-            raise ValueError(
-                "Unknown greedy search algorithm %s" % self.algorithm)
+            raise ValueError("Unknown greedy search algorithm %s" % self.algorithm)
 
         for algorithm in algos:
             sequences.append(algorithm.get_or_search())

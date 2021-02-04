@@ -36,10 +36,9 @@ class ConvertToPauliStringPhasors(PointOptimizer):
         PauliStringPhasor for each.
     """
 
-    def __init__(self,
-                 ignore_failures: bool = False,
-                 keep_clifford: bool = False,
-                 atol: float = 1e-14) -> None:
+    def __init__(
+        self, ignore_failures: bool = False, keep_clifford: bool = False, atol: float = 1e-14
+    ) -> None:
         """
         Args:
             ignore_failures: If set, gates that fail to convert are forwarded
@@ -55,28 +54,26 @@ class ConvertToPauliStringPhasors(PointOptimizer):
         self.keep_clifford = keep_clifford
         self.atol = atol
 
-    def _matrix_to_pauli_string_phasors(self, mat: np.ndarray,
-                                        qubit: 'cirq.Qid') -> ops.OP_TREE:
-        rotations = optimizers.single_qubit_matrix_to_pauli_rotations(
-            mat, self.atol)
+    def _matrix_to_pauli_string_phasors(self, mat: np.ndarray, qubit: 'cirq.Qid') -> ops.OP_TREE:
+        rotations = optimizers.single_qubit_matrix_to_pauli_rotations(mat, self.atol)
         out_ops: List[ops.Operation] = []
         for pauli, half_turns in rotations:
-            if (self.keep_clifford
-                    and linalg.all_near_zero_mod(half_turns, 0.5)):
+            if self.keep_clifford and linalg.all_near_zero_mod(half_turns, 0.5):
                 cliff_gate = ops.SingleQubitCliffordGate.from_quarter_turns(
-                    pauli, round(half_turns * 2))
-                if out_ops and not isinstance(out_ops[-1],
-                                              ops.PauliStringPhasor):
+                    pauli, round(half_turns * 2)
+                )
+                if out_ops and not isinstance(out_ops[-1], ops.PauliStringPhasor):
                     op = cast(ops.GateOperation, out_ops[-1])
                     gate = cast(ops.SingleQubitCliffordGate, op.gate)
                     out_ops[-1] = gate.merged_with(cliff_gate)(qubit)
                 else:
-                    out_ops.append(
-                        cliff_gate(qubit))
+                    out_ops.append(cliff_gate(qubit))
             else:
                 out_ops.append(
-                    ops.PauliStringPhasor(ops.PauliString(pauli.on(qubit)),
-                                          exponent_neg=round(half_turns, 10)))
+                    ops.PauliStringPhasor(
+                        ops.PauliString(pauli.on(qubit)), exponent_neg=round(half_turns, 10)
+                    )
+                )
         return out_ops
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
@@ -84,9 +81,11 @@ class ConvertToPauliStringPhasors(PointOptimizer):
         if isinstance(op, ops.PauliStringPhasor):
             return op
 
-        if (self.keep_clifford
+        if (
+            self.keep_clifford
             and isinstance(op, ops.GateOperation)
-                and isinstance(op.gate, ops.SingleQubitCliffordGate)):
+            and isinstance(op.gate, ops.SingleQubitCliffordGate)
+        ):
             return op
 
         # Single qubit gate with known matrix?
@@ -99,24 +98,25 @@ class ConvertToPauliStringPhasors(PointOptimizer):
         if self.ignore_failures:
             return op
 
-        raise TypeError("Don't know how to work with {!r}. "
-                        "It isn't a 1-qubit operation with a known unitary "
-                        "effect.".format(op))
+        raise TypeError(
+            "Don't know how to work with {!r}. "
+            "It isn't a 1-qubit operation with a known unitary "
+            "effect.".format(op)
+        )
 
     def convert(self, op: ops.Operation) -> ops.OP_TREE:
         converted = self._convert_one(op)
         if converted is op:
             return converted
-        return [self.convert(cast(ops.Operation, e))
-                for e in ops.flatten_op_tree(converted)]
+        return [self.convert(cast(ops.Operation, e)) for e in ops.flatten_op_tree(converted)]
 
-    def optimization_at(self, circuit: Circuit, index: int, op: ops.Operation
-                        ) -> Optional[PointOptimizationSummary]:
+    def optimization_at(
+        self, circuit: Circuit, index: int, op: ops.Operation
+    ) -> Optional[PointOptimizationSummary]:
         converted = self.convert(op)
         if converted is op:
             return None
 
         return PointOptimizationSummary(
-            clear_span=1,
-            new_operations=converted,
-            clear_qubits=op.qubits)
+            clear_span=1, new_operations=converted, clear_qubits=op.qubits
+        )

@@ -29,8 +29,7 @@ def test_channel_no_methods():
     class NoMethod:
         pass
 
-    with pytest.raises(TypeError,
-                       match='no _channel_ or _mixture_ or _unitary_ method'):
+    with pytest.raises(TypeError, match='no _channel_ or _mixture_ or _unitary_ method'):
         _ = cirq.channel(NoMethod())
 
     assert cirq.channel(NoMethod(), None) is None
@@ -46,16 +45,18 @@ def assert_not_implemented(val):
         _ = cirq.channel(val)
 
     assert cirq.channel(val, None) is None
-    assert (cirq.channel(val, NotImplemented) is NotImplemented)
+    assert cirq.channel(val, NotImplemented) is NotImplemented
     assert cirq.channel(val, (1,)) == (1,)
     assert cirq.channel(val, LOCAL_DEFAULT) is LOCAL_DEFAULT
 
     assert not cirq.has_channel(val)
 
+
 def test_channel_returns_not_implemented():
     class ReturnsNotImplemented:
         def _channel_(self):
             return NotImplemented
+
     assert_not_implemented(ReturnsNotImplemented())
 
 
@@ -63,6 +64,7 @@ def test_mixture_returns_not_implemented():
     class ReturnsNotImplemented:
         def _mixture_(self):
             return NotImplemented
+
     assert_not_implemented(ReturnsNotImplemented())
 
 
@@ -74,8 +76,7 @@ def test_unitary_returns_not_implemented():
     with pytest.raises(TypeError, match='returned NotImplemented'):
         _ = cirq.channel(ReturnsNotImplemented())
     assert cirq.channel(ReturnsNotImplemented(), None) is None
-    assert (cirq.channel(ReturnsNotImplemented(),
-                         NotImplemented) is NotImplemented)
+    assert cirq.channel(ReturnsNotImplemented(), NotImplemented) is NotImplemented
     assert cirq.channel(ReturnsNotImplemented(), (1,)) == (1,)
     assert cirq.channel(ReturnsNotImplemented(), LOCAL_DEFAULT) is LOCAL_DEFAULT
 
@@ -99,16 +100,17 @@ def test_channel():
 
 
 def test_channel_fallback_to_mixture():
-    m = ((0.3, cirq.unitary(cirq.X)), (0.4, cirq.unitary(cirq.Y)),
-         (0.3, cirq.unitary(cirq.Z)))
+    m = ((0.3, cirq.unitary(cirq.X)), (0.4, cirq.unitary(cirq.Y)), (0.3, cirq.unitary(cirq.Z)))
 
     class ReturnsMixture:
         def _mixture_(self) -> Iterable[Tuple[float, np.ndarray]]:
             return m
 
-    c = (np.sqrt(0.3) * cirq.unitary(cirq.X),
-         np.sqrt(0.4) * cirq.unitary(cirq.Y),
-         np.sqrt(0.3) * cirq.unitary(cirq.Z))
+    c = (
+        np.sqrt(0.3) * cirq.unitary(cirq.X),
+        np.sqrt(0.4) * cirq.unitary(cirq.Y),
+        np.sqrt(0.3) * cirq.unitary(cirq.Z),
+    )
 
     np.allclose(cirq.channel(ReturnsMixture()), c)
     np.allclose(cirq.channel(ReturnsMixture(), None), c)
@@ -128,29 +130,43 @@ def test_channel_fallback_to_unitary():
 
     np.testing.assert_equal(cirq.channel(ReturnsUnitary()), (u,))
     np.testing.assert_equal(cirq.channel(ReturnsUnitary(), None), (u,))
-    np.testing.assert_equal(cirq.channel(ReturnsUnitary(), NotImplemented),
-                            (u,))
+    np.testing.assert_equal(cirq.channel(ReturnsUnitary(), NotImplemented), (u,))
     np.testing.assert_equal(cirq.channel(ReturnsUnitary(), (1,)), (u,))
     np.testing.assert_equal(cirq.channel(ReturnsUnitary(), LOCAL_DEFAULT), (u,))
 
     assert cirq.has_channel(ReturnsUnitary())
 
 
-def test_has_channel():
-    class HasChannel:
-        def _has_channel_(self) -> bool:
-            return True
+class HasChannel(cirq.SingleQubitGate):
+    def _has_channel_(self) -> bool:
+        return True
 
-    assert cirq.has_channel(HasChannel())
 
-    class HasMixture:
-        def _has_mixture_(self) -> bool:
-            return True
+class HasMixture(cirq.SingleQubitGate):
+    def _has_mixture_(self) -> bool:
+        return True
 
-    assert cirq.has_channel(HasMixture())
 
-    class HasUnitary:
-        def _has_unitary_(self) -> bool:
-            return True
+class HasUnitary(cirq.SingleQubitGate):
+    def _has_unitary_(self) -> bool:
+        return True
 
-    assert cirq.has_channel(HasUnitary())
+
+class HasChannelWhenDecomposed(cirq.SingleQubitGate):
+    def __init__(self, decomposed_cls):
+        self.decomposed_cls = decomposed_cls
+
+    def _decompose_(self, qubits):
+        return [self.decomposed_cls().on(q) for q in qubits]
+
+
+@pytest.mark.parametrize('cls', [HasChannel, HasMixture, HasUnitary])
+def test_has_channel(cls):
+    assert cirq.has_channel(cls())
+
+
+@pytest.mark.parametrize('decomposed_cls', [HasChannel, HasMixture, HasUnitary])
+def test_has_channel_when_decomposed(decomposed_cls):
+    op = HasChannelWhenDecomposed(decomposed_cls).on(cirq.NamedQubit('test'))
+    assert cirq.has_channel(op)
+    assert not cirq.has_channel(op, allow_decompose=False)

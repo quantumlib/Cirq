@@ -31,8 +31,7 @@ class InputCell(Cell):
         return 0
 
     def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
-        return InputCell(qubits=Cell._replace_qubits(self.qubits, qubits),
-                         letter=self.letter)
+        return InputCell(qubits=Cell._replace_qubits(self.qubits, qubits), letter=self.letter)
 
     def modify_column(self, column: List[Optional['Cell']]):
         for i in range(len(column)):
@@ -55,10 +54,7 @@ class SetDefaultInputCell(Cell):
         return self
 
     def persistent_modifiers(self):
-        return {
-            f'set_default_{self.letter}':
-            lambda cell: cell.with_input(self.letter, self.value)
-        }
+        return {f'set_default_{self.letter}': lambda cell: cell.with_input(self.letter, self.value)}
 
 
 def generate_all_input_cell_makers() -> Iterator[CellMaker]:
@@ -70,19 +66,17 @@ def generate_all_input_cell_makers() -> Iterator[CellMaker]:
     yield from _input_family("revinputB", "b", rev=True)
 
     # Classical inputs.
-    yield CellMaker("setA",
-                    2, lambda args: SetDefaultInputCell('a', args.value))
-    yield CellMaker("setB",
-                    2, lambda args: SetDefaultInputCell('b', args.value))
-    yield CellMaker("setR",
-                    2, lambda args: SetDefaultInputCell('r', args.value))
+    yield CellMaker("setA", 2, lambda args: SetDefaultInputCell('a', args.value))
+    yield CellMaker("setB", 2, lambda args: SetDefaultInputCell('b', args.value))
+    yield CellMaker("setR", 2, lambda args: SetDefaultInputCell('r', args.value))
 
 
-def _input_family(identifier_prefix: str, letter: str,
-                  rev: bool = False) -> Iterator[CellMaker]:
+def _input_family(identifier_prefix: str, letter: str, rev: bool = False) -> Iterator[CellMaker]:
     for n in CELL_SIZES:
-        yield CellMaker(identifier=identifier_prefix + str(n),
-                        size=n,
-                        maker=lambda args: InputCell(qubits=args.qubits[::-1]
-                                                     if rev else args.qubits,
-                                                     letter=letter))
+        yield CellMaker(
+            identifier=identifier_prefix + str(n),
+            size=n,
+            maker=lambda args: InputCell(
+                qubits=args.qubits[::-1] if rev else args.qubits, letter=letter
+            ),
+        )

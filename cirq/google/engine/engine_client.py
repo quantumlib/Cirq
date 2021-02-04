@@ -15,7 +15,7 @@
 import datetime
 import sys
 import time
-from typing import Callable, Dict, List, Optional, Sequence, TypeVar, Tuple
+from typing import Callable, Dict, List, Optional, Sequence, Set, TypeVar, Tuple, Union
 import warnings
 
 from google.api_core.exceptions import GoogleAPICallError, NotFound
@@ -28,7 +28,6 @@ _R = TypeVar('_R')
 
 
 class EngineException(Exception):
-
     def __init__(self, message):
         # Call the base class constructor with the parameters it needs
         super().__init__(message)
@@ -45,10 +44,10 @@ class EngineClient:
     """
 
     def __init__(
-            self,
-            service_args: Optional[Dict] = None,
-            verbose: Optional[bool] = None,
-            max_retry_delay_seconds: int = 3600  # 1 hour
+        self,
+        service_args: Optional[Dict] = None,
+        verbose: Optional[bool] = None,
+        max_retry_delay_seconds: int = 3600,  # 1 hour
     ) -> None:
         """Engine service client.
 
@@ -71,8 +70,7 @@ class EngineClient:
         # Suppress warnings about using Application Default Credentials.
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            self.grpc_client = quantum.QuantumEngineServiceClient(
-                **service_args)
+            self.grpc_client = quantum.QuantumEngineServiceClient(**service_args)
 
     @staticmethod
     def _project_name(project_id: str) -> str:
@@ -83,26 +81,30 @@ class EngineClient:
         return 'projects/%s/programs/%s' % (project_id, program_id)
 
     @staticmethod
-    def _job_name_from_ids(project_id: str, program_id: str,
-                           job_id: str) -> str:
-        return 'projects/%s/programs/%s/jobs/%s' % (project_id, program_id,
-                                                    job_id)
+    def _job_name_from_ids(project_id: str, program_id: str, job_id: str) -> str:
+        return 'projects/%s/programs/%s/jobs/%s' % (project_id, program_id, job_id)
 
     @staticmethod
     def _processor_name_from_ids(project_id: str, processor_id: str) -> str:
         return 'projects/%s/processors/%s' % (project_id, processor_id)
 
     @staticmethod
-    def _calibration_name_from_ids(project_id: str, processor_id: str,
-                                   calibration_time_seconds: int) -> str:
+    def _calibration_name_from_ids(
+        project_id: str, processor_id: str, calibration_time_seconds: int
+    ) -> str:
         return 'projects/%s/processors/%s/calibrations/%d' % (
-            project_id, processor_id, calibration_time_seconds)
+            project_id,
+            processor_id,
+            calibration_time_seconds,
+        )
 
     @staticmethod
-    def _reservation_name_from_ids(project_id: str, processor_id: str,
-                                   reservation_id: str) -> str:
+    def _reservation_name_from_ids(project_id: str, processor_id: str, reservation_id: str) -> str:
         return 'projects/%s/processors/%s/reservations/%s' % (
-            project_id, processor_id, reservation_id)
+            project_id,
+            processor_id,
+            reservation_id,
+        )
 
     @staticmethod
     def _ids_from_program_name(program_name: str) -> Tuple[str, str]:
@@ -120,10 +122,30 @@ class EngineClient:
         return parts[1], parts[3]
 
     @staticmethod
-    def _ids_from_calibration_name(calibration_name: str
-                                  ) -> Tuple[str, str, int]:
+    def _ids_from_calibration_name(calibration_name: str) -> Tuple[str, str, int]:
         parts = calibration_name.split('/')
         return parts[1], parts[3], int(parts[5])
+
+    @staticmethod
+    def _date_or_time_to_filter_expr(
+        param_name: str, param: Union[datetime.datetime, datetime.date]
+    ):
+        """Formats datetime or date to filter expressions.
+
+        Args:
+            arg_name: the name of the filter parameter (for error messaging)
+            param: the value of the paramter
+        """
+        if isinstance(param, datetime.datetime):
+            return f"{int(param.timestamp())}"
+        elif isinstance(param, datetime.date):
+            return f"{param.isoformat()}"
+
+        raise ValueError(
+            f"Unsupported date/time type for {param_name}: got {param} of "
+            f"type {type(param)}. Supported types: datetime.datetime and"
+            f"datetime.date"
+        )
 
     def _make_request(self, request: Callable[[], _R]) -> _R:
         # Start with a 100ms retry delay with exponential backoff to
@@ -140,25 +162,21 @@ class EngineClient:
                 if err.code.value not in RETRYABLE_ERROR_CODES:
                     raise EngineException(message) from err
 
-            current_delay *= 2
             if current_delay > self.max_retry_delay_seconds:
-                raise TimeoutError(
-                    'Reached max retry attempts for error: {}'.format(message))
+                raise TimeoutError('Reached max retry attempts for error: {}'.format(message))
             if self.verbose:
                 print(message, file=sys.stderr)
-                print('Waiting ',
-                      current_delay,
-                      'seconds before retrying.',
-                      file=sys.stderr)
+                print('Waiting ', current_delay, 'seconds before retrying.', file=sys.stderr)
             time.sleep(current_delay)
+            current_delay *= 2
 
     def create_program(
-            self,
-            project_id: str,
-            program_id: Optional[str],
-            code: qtypes.any_pb2.Any,
-            description: Optional[str] = None,
-            labels: Optional[Dict[str, str]] = None,
+        self,
+        project_id: str,
+        program_id: Optional[str],
+        code: qtypes.any_pb2.Any,
+        description: Optional[str] = None,
+        labels: Optional[Dict[str, str]] = None,
     ) -> Tuple[str, qtypes.QuantumProgram]:
         """Creates a Quantum Engine program.
 
@@ -174,36 +192,80 @@ class EngineClient:
         """
 
         parent_name = self._project_name(project_id)
-        program_name = self._program_name_from_ids(
-            project_id, program_id) if program_id else ''
+        program_name = self._program_name_from_ids(project_id, program_id) if program_id else ''
         request = qtypes.QuantumProgram(name=program_name, code=code)
         if description:
             request.description = description
         if labels:
             request.labels.update(labels)
 
-        program = self._make_request(lambda: self.grpc_client.
-                                     create_quantum_program(
-                                         parent_name, request, False))
+        program = self._make_request(
+            lambda: self.grpc_client.create_quantum_program(parent_name, request, False)
+        )
         return self._ids_from_program_name(program.name)[1], program
 
-    def get_program(self, project_id: str, program_id: str,
-                    return_code: bool) -> qtypes.QuantumProgram:
+    def get_program(
+        self, project_id: str, program_id: str, return_code: bool
+    ) -> qtypes.QuantumProgram:
         """Returns a previously created quantum program.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             return_code: If True returns the serialized program code.
         """
-        return self._make_request(lambda: self.grpc_client.get_quantum_program(
-            self._program_name_from_ids(project_id, program_id), return_code))
+        return self._make_request(
+            lambda: self.grpc_client.get_quantum_program(
+                self._program_name_from_ids(project_id, program_id), return_code
+            )
+        )
 
-    def set_program_description(self, project_id: str, program_id: str,
-                                description: str) -> qtypes.QuantumProgram:
+    def list_programs(
+        self,
+        project_id: str,
+        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
+        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
+        has_labels: Optional[Dict[str, str]] = None,
+    ):
+        """Returns a list of previously executed quantum programs.
+
+        Args:
+            project_id: the id of the project
+            created_after: retrieve programs that were created after this date
+                or time.
+            created_before: retrieve programs that were created after this date
+                or time.
+            has_labels: retrieve programs that have labels on them specified by
+                this dict. If the value is set to `*`, filters having the label
+                egardless of the label value will be filtered. For example, to
+                uery programs that have the shape label and have the color
+                label with value red can be queried using
+
+                {'color': 'red', 'shape':'*'}
+        """
+        filters = []
+
+        if created_after is not None:
+            val = self._date_or_time_to_filter_expr('created_after', created_after)
+            filters.append(f"create_time >= {val}")
+        if created_before is not None:
+            val = self._date_or_time_to_filter_expr('created_before', created_before)
+            filters.append(f"create_time <= {val}")
+        if has_labels is not None:
+            for (k, v) in has_labels.items():
+                filters.append(f"labels.{k}:{v}")
+        return self._make_request(
+            lambda: self.grpc_client.list_quantum_programs(
+                self._project_name(project_id), filter_=" AND ".join(filters)
+            )
+        )
+
+    def set_program_description(
+        self, project_id: str, program_id: str, description: str
+    ) -> qtypes.QuantumProgram:
         """Sets the description for a previously created quantum program.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             description: The new program description.
@@ -211,34 +273,36 @@ class EngineClient:
         Returns:
             The updated quantum program.
         """
-        program_resource_name = self._program_name_from_ids(
-            project_id, program_id)
+        program_resource_name = self._program_name_from_ids(project_id, program_id)
         return self._make_request(
             lambda: self.grpc_client.update_quantum_program(
                 program_resource_name,
-                qtypes.QuantumProgram(name=program_resource_name,
-                                      description=description),
-                qtypes.field_mask_pb2.FieldMask(paths=['description'])))
+                qtypes.QuantumProgram(name=program_resource_name, description=description),
+                qtypes.field_mask_pb2.FieldMask(paths=['description']),
+            )
+        )
 
-    def _set_program_labels(self, project_id: str, program_id: str,
-                            labels: Dict[str, str],
-                            fingerprint: str) -> qtypes.QuantumProgram:
-        program_resource_name = self._program_name_from_ids(
-            project_id, program_id)
+    def _set_program_labels(
+        self, project_id: str, program_id: str, labels: Dict[str, str], fingerprint: str
+    ) -> qtypes.QuantumProgram:
+        program_resource_name = self._program_name_from_ids(project_id, program_id)
         return self._make_request(
             lambda: self.grpc_client.update_quantum_program(
                 program_resource_name,
-                qtypes.QuantumProgram(name=program_resource_name,
-                                      labels=labels,
-                                      label_fingerprint=fingerprint),
-                qtypes.field_mask_pb2.FieldMask(paths=['labels'])))
+                qtypes.QuantumProgram(
+                    name=program_resource_name, labels=labels, label_fingerprint=fingerprint
+                ),
+                qtypes.field_mask_pb2.FieldMask(paths=['labels']),
+            )
+        )
 
-    def set_program_labels(self, project_id: str, program_id: str,
-                           labels: Dict[str, str]) -> qtypes.QuantumProgram:
+    def set_program_labels(
+        self, project_id: str, program_id: str, labels: Dict[str, str]
+    ) -> qtypes.QuantumProgram:
         """Sets (overwriting) the labels for a previously created quantum
         program.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             labels: The entire set of new program labels.
@@ -247,14 +311,14 @@ class EngineClient:
             The updated quantum program.
         """
         program = self.get_program(project_id, program_id, False)
-        return self._set_program_labels(project_id, program_id, labels,
-                                        program.label_fingerprint)
+        return self._set_program_labels(project_id, program_id, labels, program.label_fingerprint)
 
-    def add_program_labels(self, project_id: str, program_id: str,
-                           labels: Dict[str, str]) -> qtypes.QuantumProgram:
+    def add_program_labels(
+        self, project_id: str, program_id: str, labels: Dict[str, str]
+    ) -> qtypes.QuantumProgram:
         """Adds new labels to a previously created quantum program.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             labels: New labels to add to the existing program labels.
@@ -268,16 +332,16 @@ class EngineClient:
         new_labels.update(labels)
         if new_labels != old_labels:
             fingerprint = program.label_fingerprint
-            return self._set_program_labels(project_id, program_id, new_labels,
-                                            fingerprint)
+            return self._set_program_labels(project_id, program_id, new_labels, fingerprint)
         return program
 
-    def remove_program_labels(self, project_id: str, program_id: str,
-                              label_keys: List[str]) -> qtypes.QuantumProgram:
+    def remove_program_labels(
+        self, project_id: str, program_id: str, label_keys: List[str]
+    ) -> qtypes.QuantumProgram:
         """Removes labels with given keys from the labels of a previously
         created quantum program.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             label_keys: Label keys to remove from the existing program labels.
@@ -292,35 +356,34 @@ class EngineClient:
             new_labels.pop(key, None)
         if new_labels != old_labels:
             fingerprint = program.label_fingerprint
-            return self._set_program_labels(project_id, program_id, new_labels,
-                                            fingerprint)
+            return self._set_program_labels(project_id, program_id, new_labels, fingerprint)
         return program
 
-    def delete_program(self,
-                       project_id: str,
-                       program_id: str,
-                       delete_jobs: bool = False) -> None:
+    def delete_program(self, project_id: str, program_id: str, delete_jobs: bool = False) -> None:
         """Deletes a previously created quantum program.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             delete_jobs: If True will delete all the program's jobs, other this
                 will fail if the program contains any jobs.
         """
-        self._make_request(lambda: self.grpc_client.delete_quantum_program(
-            self._program_name_from_ids(project_id, program_id), delete_jobs))
+        self._make_request(
+            lambda: self.grpc_client.delete_quantum_program(
+                self._program_name_from_ids(project_id, program_id), delete_jobs
+            )
+        )
 
     def create_job(
-            self,
-            project_id: str,
-            program_id: str,
-            job_id: Optional[str],
-            processor_ids: Sequence[str],
-            run_context: qtypes.any_pb2.Any,
-            priority: Optional[int] = None,
-            description: Optional[str] = None,
-            labels: Optional[Dict[str, str]] = None,
+        self,
+        project_id: str,
+        program_id: str,
+        job_id: Optional[str],
+        processor_ids: Sequence[str],
+        run_context: qtypes.any_pb2.Any,
+        priority: Optional[int] = None,
+        description: Optional[str] = None,
+        labels: Optional[Dict[str, str]] = None,
     ) -> Tuple[str, qtypes.QuantumJob]:
         """Creates and runs a job on Quantum Engine.
 
@@ -342,8 +405,7 @@ class EngineClient:
             raise ValueError('priority must be between 0 and 1000')
 
         # Create job.
-        job_name = self._job_name_from_ids(project_id, program_id,
-                                           job_id) if job_id else ''
+        job_name = self._job_name_from_ids(project_id, program_id, job_id) if job_id else ''
         request = qtypes.QuantumJob(
             name=job_name,
             scheduling_config=qtypes.SchedulingConfig(
@@ -351,37 +413,105 @@ class EngineClient:
                     processor_names=[
                         self._processor_name_from_ids(project_id, processor_id)
                         for processor_id in processor_ids
-                    ])),
-            run_context=run_context)
+                    ]
+                )
+            ),
+            run_context=run_context,
+        )
         if priority:
             request.scheduling_config.priority = priority
         if description:
             request.description = description
         if labels:
             request.labels.update(labels)
-        job = self._make_request(lambda: self.grpc_client.create_quantum_job(
-            self._program_name_from_ids(project_id, program_id), request, False)
-                                )
+        job = self._make_request(
+            lambda: self.grpc_client.create_quantum_job(
+                self._program_name_from_ids(project_id, program_id), request, False
+            )
+        )
         return self._ids_from_job_name(job.name)[2], job
 
-    def get_job(self, project_id: str, program_id: str, job_id: str,
-                return_run_context: bool) -> qtypes.QuantumJob:
+    def list_jobs(
+        self,
+        project_id: str,
+        program_id: Optional[str] = None,
+        created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
+        created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
+        has_labels: Optional[Dict[str, str]] = None,
+        execution_states: Optional[Set[quantum.enums.ExecutionStatus.State]] = None,
+    ):
+        """Returns the list of jobs for a given program.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            program_id: Optional, a unique ID of the program within the parent
+                project. If None, jobs will be listed across all programs within
+                the project.
+            created_after: retrieve jobs that were created after this date
+                or time.
+            created_before: retrieve jobs that were created after this date
+                or time.
+            has_labels: retrieve jobs that have labels on them specified by
+                this dict. If the value is set to `*`, filters having the label
+                regardless of the label value will be filtered. For example, to
+                query programs that have the shape label and have the color
+                label with value red can be queried using
+
+                {'color': 'red', 'shape':'*'}
+
+            execution_states: retrieve jobs that have an execution state that
+                is contained in `execution_states`. See
+                `quantum.enums.ExecutionStatus.State` enum for accepted values.
+        """
+        filters = []
+
+        if created_after is not None:
+            val = self._date_or_time_to_filter_expr('created_after', created_after)
+            filters.append(f"create_time >= {val}")
+        if created_before is not None:
+            val = self._date_or_time_to_filter_expr('created_before', created_before)
+            filters.append(f"create_time <= {val}")
+        if has_labels is not None:
+            for (k, v) in has_labels.items():
+                filters.append(f"labels.{k}:{v}")
+        if execution_states is not None:
+            state_filter = []
+            for execution_state in execution_states:
+                state_filter.append(f"execution_status.state = {execution_state.name}")
+            filters.append(f"({' OR '.join(state_filter)})")
+
+        if program_id is None:
+            program_id = "-"
+        parent = self._program_name_from_ids(project_id, program_id)
+        return self._make_request(
+            lambda: self.grpc_client.list_quantum_jobs(parent, filter_=" AND ".join(filters))
+        )
+
+    def get_job(
+        self, project_id: str, program_id: str, job_id: str, return_run_context: bool
+    ) -> qtypes.QuantumJob:
         """Returns a previously created job.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
-            job_id: Unique ID of the job within the parent program.
+                job_id: Unique ID of the job within the parent program.
+            return_run_context: If true then the run context will be loaded
+                from the job's run_context_location and set on the returned
+                QuantumJob.
         """
-        return self._make_request(lambda: self.grpc_client.get_quantum_job(
-            self._job_name_from_ids(project_id, program_id, job_id),
-            return_run_context))
+        return self._make_request(
+            lambda: self.grpc_client.get_quantum_job(
+                self._job_name_from_ids(project_id, program_id, job_id), return_run_context
+            )
+        )
 
-    def set_job_description(self, project_id: str, program_id: str, job_id: str,
-                            description: str) -> qtypes.QuantumJob:
+    def set_job_description(
+        self, project_id: str, program_id: str, job_id: str, description: str
+    ) -> qtypes.QuantumJob:
         """Sets the description for a previously created quantum job.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
@@ -390,30 +520,40 @@ class EngineClient:
         Returns:
             The updated quantum job.
         """
-        job_resource_name = self._job_name_from_ids(project_id, program_id,
-                                                    job_id)
-        return self._make_request(lambda: self.grpc_client.update_quantum_job(
-            job_resource_name,
-            qtypes.QuantumJob(name=job_resource_name, description=description),
-            qtypes.field_mask_pb2.FieldMask(paths=['description'])))
+        job_resource_name = self._job_name_from_ids(project_id, program_id, job_id)
+        return self._make_request(
+            lambda: self.grpc_client.update_quantum_job(
+                job_resource_name,
+                qtypes.QuantumJob(name=job_resource_name, description=description),
+                qtypes.field_mask_pb2.FieldMask(paths=['description']),
+            )
+        )
 
-    def _set_job_labels(self, project_id: str, program_id: str, job_id: str,
-                        labels: Dict[str, str],
-                        fingerprint: str) -> qtypes.QuantumJob:
-        job_resource_name = self._job_name_from_ids(project_id, program_id,
-                                                    job_id)
-        return self._make_request(lambda: self.grpc_client.update_quantum_job(
-            job_resource_name,
-            qtypes.QuantumJob(name=job_resource_name,
-                              labels=labels,
-                              label_fingerprint=fingerprint),
-            qtypes.field_mask_pb2.FieldMask(paths=['labels'])))
+    def _set_job_labels(
+        self,
+        project_id: str,
+        program_id: str,
+        job_id: str,
+        labels: Dict[str, str],
+        fingerprint: str,
+    ) -> qtypes.QuantumJob:
+        job_resource_name = self._job_name_from_ids(project_id, program_id, job_id)
+        return self._make_request(
+            lambda: self.grpc_client.update_quantum_job(
+                job_resource_name,
+                qtypes.QuantumJob(
+                    name=job_resource_name, labels=labels, label_fingerprint=fingerprint
+                ),
+                qtypes.field_mask_pb2.FieldMask(paths=['labels']),
+            )
+        )
 
-    def set_job_labels(self, project_id: str, program_id: str, job_id: str,
-                       labels: Dict[str, str]) -> qtypes.QuantumJob:
+    def set_job_labels(
+        self, project_id: str, program_id: str, job_id: str, labels: Dict[str, str]
+    ) -> qtypes.QuantumJob:
         """Sets (overwriting) the labels for a previously created quantum job.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
@@ -423,14 +563,14 @@ class EngineClient:
             The updated quantum job.
         """
         job = self.get_job(project_id, program_id, job_id, False)
-        return self._set_job_labels(project_id, program_id, job_id, labels,
-                                    job.label_fingerprint)
+        return self._set_job_labels(project_id, program_id, job_id, labels, job.label_fingerprint)
 
-    def add_job_labels(self, project_id: str, program_id: str, job_id: str,
-                       labels: Dict[str, str]) -> qtypes.QuantumJob:
+    def add_job_labels(
+        self, project_id: str, program_id: str, job_id: str, labels: Dict[str, str]
+    ) -> qtypes.QuantumJob:
         """Adds new labels to a previously created quantum job.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
@@ -445,16 +585,16 @@ class EngineClient:
         new_labels.update(labels)
         if new_labels != old_labels:
             fingerprint = job.label_fingerprint
-            return self._set_job_labels(project_id, program_id, job_id,
-                                        new_labels, fingerprint)
+            return self._set_job_labels(project_id, program_id, job_id, new_labels, fingerprint)
         return job
 
-    def remove_job_labels(self, project_id: str, program_id: str, job_id: str,
-                          label_keys: List[str]) -> qtypes.QuantumJob:
+    def remove_job_labels(
+        self, project_id: str, program_id: str, job_id: str, label_keys: List[str]
+    ) -> qtypes.QuantumJob:
         """Removes labels with given keys from the labels of a previously
         created quantum job.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
@@ -470,37 +610,43 @@ class EngineClient:
             new_labels.pop(key, None)
         if new_labels != old_labels:
             fingerprint = job.label_fingerprint
-            return self._set_job_labels(project_id, program_id, job_id,
-                                        new_labels, fingerprint)
+            return self._set_job_labels(project_id, program_id, job_id, new_labels, fingerprint)
         return job
 
     def delete_job(self, project_id: str, program_id: str, job_id: str) -> None:
         """Deletes a previously created quantum job.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
         """
-        self._make_request(lambda: self.grpc_client.delete_quantum_job(
-            self._job_name_from_ids(project_id, program_id, job_id)))
+        self._make_request(
+            lambda: self.grpc_client.delete_quantum_job(
+                self._job_name_from_ids(project_id, program_id, job_id)
+            )
+        )
 
     def cancel_job(self, project_id: str, program_id: str, job_id: str) -> None:
         """Cancels the given job.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
         """
-        self._make_request(lambda: self.grpc_client.cancel_quantum_job(
-            self._job_name_from_ids(project_id, program_id, job_id)))
+        self._make_request(
+            lambda: self.grpc_client.cancel_quantum_job(
+                self._job_name_from_ids(project_id, program_id, job_id)
+            )
+        )
 
-    def get_job_results(self, project_id: str, program_id: str,
-                        job_id: str) -> qtypes.QuantumResult:
+    def get_job_results(
+        self, project_id: str, program_id: str, job_id: str
+    ) -> qtypes.QuantumResult:
         """Returns the results of a completed job.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
@@ -508,15 +654,18 @@ class EngineClient:
         Returns:
             The quantum result.
         """
-        return self._make_request(lambda: self.grpc_client.get_quantum_result(
-            self._job_name_from_ids(project_id, program_id, job_id)))
+        return self._make_request(
+            lambda: self.grpc_client.get_quantum_result(
+                self._job_name_from_ids(project_id, program_id, job_id)
+            )
+        )
 
     def list_processors(self, project_id: str) -> List[qtypes.QuantumProcessor]:
         """Returns a list of Processors that the user has visibility to in the
         current Engine project. The names of these processors are used to
         identify devices when scheduling jobs and gathering calibration metrics.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
 
         Returns:
@@ -524,14 +673,15 @@ class EngineClient:
         """
         response = self._make_request(
             lambda: self.grpc_client.list_quantum_processors(
-                self._project_name(project_id), filter_=''))
+                self._project_name(project_id), filter_=''
+            )
+        )
         return list(response)
 
-    def get_processor(self, project_id: str,
-                      processor_id: str) -> qtypes.QuantumProcessor:
+    def get_processor(self, project_id: str, processor_id: str) -> qtypes.QuantumProcessor:
         """Returns a quantum processor.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
 
@@ -540,41 +690,39 @@ class EngineClient:
         """
         return self._make_request(
             lambda: self.grpc_client.get_quantum_processor(
-                self._processor_name_from_ids(project_id, processor_id)))
+                self._processor_name_from_ids(project_id, processor_id)
+            )
+        )
 
-    def list_calibrations(self,
-                          project_id: str,
-                          processor_id: str,
-                          filter_str: str = ''
-                         ) -> List[qtypes.QuantumCalibration]:
+    def list_calibrations(
+        self, project_id: str, processor_id: str, filter_str: str = ''
+    ) -> List[qtypes.QuantumCalibration]:
         """Returns a list of quantum calibrations.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             filter: Filter string current only supports 'timestamp' with values
-              of epoch time in seconds or short string 'yyyy-MM-dd' or long
-              string 'yyyy-MM-dd HH:mm:ss.SSS' both in UTC. For example:
+            of epoch time in seconds or short string 'yyyy-MM-dd'. For example:
                 'timestamp > 1577960125 AND timestamp <= 1578241810'
                 'timestamp > 2020-01-02 AND timestamp <= 2020-01-05'
-                'timestamp > "2020-01-02 10:15:25.000" AND timestamp <=
-                  "2020-01-05 16:30:10.456"'
 
         Returns:
             A list of calibrations.
         """
         response = self._make_request(
             lambda: self.grpc_client.list_quantum_calibrations(
-                self._processor_name_from_ids(project_id, processor_id),
-                filter_=filter_str))
+                self._processor_name_from_ids(project_id, processor_id), filter_=filter_str
+            )
+        )
         return list(response)
 
-    def get_calibration(self, project_id: str, processor_id: str,
-                        calibration_timestamp_seconds: int
-                       ) -> qtypes.QuantumCalibration:
+    def get_calibration(
+        self, project_id: str, processor_id: str, calibration_timestamp_seconds: int
+    ) -> qtypes.QuantumCalibration:
         """Returns a quantum calibration.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             calibration_timestamp_seconds: The timestamp of the calibration in
@@ -585,15 +733,19 @@ class EngineClient:
         """
         return self._make_request(
             lambda: self.grpc_client.get_quantum_calibration(
-                self._calibration_name_from_ids(project_id, processor_id,
-                                                calibration_timestamp_seconds)))
+                self._calibration_name_from_ids(
+                    project_id, processor_id, calibration_timestamp_seconds
+                )
+            )
+        )
 
-    def get_current_calibration(self, project_id: str, processor_id: str
-                               ) -> Optional[qtypes.QuantumCalibration]:
+    def get_current_calibration(
+        self, project_id: str, processor_id: str
+    ) -> Optional[qtypes.QuantumCalibration]:
         """Returns the current quantum calibration for a processor if it has
         one.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
 
@@ -603,22 +755,26 @@ class EngineClient:
         try:
             return self._make_request(
                 lambda: self.grpc_client.get_quantum_calibration(
-                    self._processor_name_from_ids(project_id, processor_id) +
-                    '/calibrations/current'))
+                    self._processor_name_from_ids(project_id, processor_id)
+                    + '/calibrations/current'
+                )
+            )
         except EngineException as err:
             if isinstance(err.__cause__, NotFound):
                 return None
             raise
 
-    def create_reservation(self,
-                           project_id: str,
-                           processor_id: str,
-                           start: datetime.datetime,
-                           end: datetime.datetime,
-                           whitelisted_users: Optional[List[str]] = None):
+    def create_reservation(
+        self,
+        project_id: str,
+        processor_id: str,
+        start: datetime.datetime,
+        end: datetime.datetime,
+        whitelisted_users: Optional[List[str]] = None,
+    ):
         """Creates a quantum reservation and returns the created object.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             reservation_id: Unique ID of the reservation in the parent project,
@@ -637,11 +793,12 @@ class EngineClient:
             reservation.whitelisted_users.extend(whitelisted_users)
         return self._make_request(
             lambda: self.grpc_client.create_quantum_reservation(
-                parent=parent, quantum_reservation=reservation))
+                parent=parent, quantum_reservation=reservation
+            )
+        )
 
-    def cancel_reservation(self, project_id: str, processor_id: str,
-                           reservation_id: str):
-        """ Cancels a quantum reservation.
+    def cancel_reservation(self, project_id: str, processor_id: str, reservation_id: str):
+        """Cancels a quantum reservation.
 
         This action is only valid if the associated [QuantumProcessor]
         schedule not been frozen. Otherwise, delete_reservation should
@@ -654,19 +811,16 @@ class EngineClient:
         has already ended or is beyond the processor's freeze window, then the
         call will return an error.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             reservation_id: Unique ID of the reservation in the parent project,
         """
-        name = self._reservation_name_from_ids(project_id, processor_id,
-                                               reservation_id)
-        return self._make_request(lambda: self.grpc_client.
-                                  cancel_quantum_reservation(name=name))
+        name = self._reservation_name_from_ids(project_id, processor_id, reservation_id)
+        return self._make_request(lambda: self.grpc_client.cancel_quantum_reservation(name=name))
 
-    def delete_reservation(self, project_id: str, processor_id: str,
-                           reservation_id: str):
-        """ Deletes a quantum reservation.
+    def delete_reservation(self, project_id: str, processor_id: str, reservation_id: str):
+        """Deletes a quantum reservation.
 
         This action is only valid if the associated [QuantumProcessor]
         schedule has not been frozen.  Otherwise, cancel_reservation
@@ -675,45 +829,38 @@ class EngineClient:
         If the reservation has already ended or is within the processor's
         freeze window, then the call will return a `FAILED_PRECONDITION` error.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             reservation_id: Unique ID of the reservation in the parent project,
         """
-        name = self._reservation_name_from_ids(project_id, processor_id,
-                                               reservation_id)
-        return self._make_request(lambda: self.grpc_client.
-                                  delete_quantum_reservation(name=name))
+        name = self._reservation_name_from_ids(project_id, processor_id, reservation_id)
+        return self._make_request(lambda: self.grpc_client.delete_quantum_reservation(name=name))
 
-    def get_reservation(self, project_id: str, processor_id: str,
-                        reservation_id: str):
-        """ Gets a quantum reservation from the engine.
+    def get_reservation(self, project_id: str, processor_id: str, reservation_id: str):
+        """Gets a quantum reservation from the engine.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             reservation_id: Unique ID of the reservation in the parent project,
         """
         try:
-            name = self._reservation_name_from_ids(project_id, processor_id,
-                                                   reservation_id)
-            return self._make_request(lambda: self.grpc_client.
-                                      get_quantum_reservation(name=name))
+            name = self._reservation_name_from_ids(project_id, processor_id, reservation_id)
+            return self._make_request(lambda: self.grpc_client.get_quantum_reservation(name=name))
         except EngineException as err:
             if isinstance(err.__cause__, NotFound):
                 return None
             raise
 
-    def list_reservations(self,
-                          project_id: str,
-                          processor_id: str,
-                          filter_str: str = ''
-                         ) -> List[qtypes.QuantumReservation]:
+    def list_reservations(
+        self, project_id: str, processor_id: str, filter_str: str = ''
+    ) -> List[qtypes.QuantumReservation]:
         """Returns a list of quantum reservations.
 
         Only reservations owned by this project will be returned.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             filter: A string for filtering quantum reservations.
@@ -721,33 +868,36 @@ class EngineClient:
                 Examples:
                     `start_time >= 1584385200`: Reservation began on or after
                         the epoch time Mar 16th, 7pm GMT.
-                    `end_time >= "2017-01-02 15:21:15.142"`: Reservation ends on
-                        or after Jan 2nd 2017 15:21:15.142
+                    `end_time >= 1483370475`: Reservation ends on
+                        or after Jan 2nd 2017 15:21:15
 
         Returns:
             A list of QuantumReservation objects.
         """
         response = self._make_request(
             lambda: self.grpc_client.list_quantum_reservations(
-                self._processor_name_from_ids(project_id, processor_id),
-                filter_=filter_str))
+                self._processor_name_from_ids(project_id, processor_id), filter_=filter_str
+            )
+        )
 
         return list(response)
 
-    def update_reservation(self,
-                           project_id: str,
-                           processor_id: str,
-                           reservation_id: str,
-                           start: Optional[datetime.datetime] = None,
-                           end: Optional[datetime.datetime] = None,
-                           whitelisted_users: Optional[List[str]] = None):
+    def update_reservation(
+        self,
+        project_id: str,
+        processor_id: str,
+        reservation_id: str,
+        start: Optional[datetime.datetime] = None,
+        end: Optional[datetime.datetime] = None,
+        whitelisted_users: Optional[List[str]] = None,
+    ):
         """Updates a quantum reservation.
 
         This will update a quantum reservation's starting time, ending time,
         and list of whitelisted users.  If any field is not filled, it will
         not be updated.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             reservation_id: Unique ID of the reservation in the parent project,
@@ -757,10 +907,15 @@ class EngineClient:
                 The empty list, [], will clear the whitelisted_users while None
                 will leave the value unchanged.
         """
-        name = self._reservation_name_from_ids(
-            project_id, processor_id, reservation_id) if reservation_id else ''
+        name = (
+            self._reservation_name_from_ids(project_id, processor_id, reservation_id)
+            if reservation_id
+            else ''
+        )
 
-        reservation = qtypes.QuantumReservation(name=name,)
+        reservation = qtypes.QuantumReservation(
+            name=name,
+        )
         paths = []
         if start:
             reservation.start_time.seconds = int(start.timestamp())
@@ -776,15 +931,16 @@ class EngineClient:
             lambda: self.grpc_client.update_quantum_reservation(
                 name=name,
                 quantum_reservation=reservation,
-                update_mask=qtypes.field_mask_pb2.FieldMask(paths=paths)))
+                update_mask=qtypes.field_mask_pb2.FieldMask(paths=paths),
+            )
+        )
 
-    def list_time_slots(self,
-                        project_id: str,
-                        processor_id: str,
-                        filter_str: str = '') -> List[qtypes.QuantumTimeSlot]:
+    def list_time_slots(
+        self, project_id: str, processor_id: str, filter_str: str = ''
+    ) -> List[qtypes.QuantumTimeSlot]:
         """Returns a list of quantum time slots on a processor.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             filter:  A string expression for filtering the quantum
@@ -796,6 +952,7 @@ class EngineClient:
         """
         response = self._make_request(
             lambda: self.grpc_client.list_quantum_time_slots(
-                self._processor_name_from_ids(project_id, processor_id),
-                filter_=filter_str))
+                self._processor_name_from_ids(project_id, processor_id), filter_=filter_str
+            )
+        )
         return list(response)

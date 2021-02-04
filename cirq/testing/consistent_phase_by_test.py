@@ -24,20 +24,16 @@ class GoodPhaser:
         self.e = e
 
     def _unitary_(self):
-        return np.array([
-            [0, 1j**-self.e],
-            [1j**self.e, 0]
-        ])
+        return np.array([[0, 1j ** -self.e], [1j ** self.e, 0]])
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
-        return GoodPhaser(self.e + phase_turns*4)
+        return GoodPhaser(self.e + phase_turns * 4)
 
-    def _resolve_parameters_(self, param_resolver):
-        return GoodPhaser(param_resolver.value_of(self.e))
+    def _resolve_parameters_(self, param_resolver, recursive):
+        return GoodPhaser(param_resolver.value_of(self.e, recursive))
 
 
 class GoodQuditPhaser:
-
     def __init__(self, e):
         self.e = e
 
@@ -45,17 +41,19 @@ class GoodQuditPhaser:
         return (3,)
 
     def _unitary_(self):
-        return np.array([
-            [0, 1j**-self.e, 0],
-            [0, 0, 1j**self.e],
-            [1, 0, 0],
-        ])
+        return np.array(
+            [
+                [0, 1j ** -self.e, 0],
+                [0, 0, 1j ** self.e],
+                [1, 0, 0],
+            ]
+        )
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return GoodQuditPhaser(self.e + phase_turns * 4)
 
-    def _resolve_parameters_(self, param_resolver):
-        return GoodQuditPhaser(param_resolver.value_of(self.e))
+    def _resolve_parameters_(self, param_resolver, recursive):
+        return GoodQuditPhaser(param_resolver.value_of(self.e, recursive))
 
 
 class BadPhaser:
@@ -63,24 +61,18 @@ class BadPhaser:
         self.e = e
 
     def _unitary_(self):
-        return np.array([
-            [0, 1j**-(self.e*2)],
-            [1j**self.e, 0]
-        ])
+        return np.array([[0, 1j ** -(self.e * 2)], [1j ** self.e, 0]])
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return BadPhaser(self.e + phase_turns * 4)
 
-    def _resolve_parameters_(self, param_resolver):
-        return BadPhaser(param_resolver.value_of(self.e))
+    def _resolve_parameters_(self, param_resolver, recursive):
+        return BadPhaser(param_resolver.value_of(self.e, recursive))
 
 
 class NotPhaser:
     def _unitary_(self):
-        return np.array([
-            [0, 1],
-            [1, 0]
-        ])
+        return np.array([[0, 1], [1, 0]])
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return NotImplemented
@@ -97,30 +89,23 @@ class SemiBadPhaser:
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         r = list(self.e)
-        r[qubit_index] += phase_turns*4
+        r[qubit_index] += phase_turns * 4
         return SemiBadPhaser(r)
 
-    def _resolve_parameters_(self, param_resolver):
-        return SemiBadPhaser([param_resolver.value_of(val) for val in self.e])
+    def _resolve_parameters_(self, param_resolver, recursive):
+        return SemiBadPhaser([param_resolver.value_of(val, recursive) for val in self.e])
 
 
 def test_assert_phase_by_is_consistent_with_unitary():
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(
-        GoodPhaser(0.5))
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(GoodPhaser(0.5))
 
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(
-        GoodQuditPhaser(0.5))
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(GoodQuditPhaser(0.5))
 
-    with pytest.raises(AssertionError,
-                       match='Phased unitary was incorrect for index #0'):
-        cirq.testing.assert_phase_by_is_consistent_with_unitary(
-            BadPhaser(0.5))
+    with pytest.raises(AssertionError, match='Phased unitary was incorrect for index #0'):
+        cirq.testing.assert_phase_by_is_consistent_with_unitary(BadPhaser(0.5))
 
-    with pytest.raises(AssertionError,
-                       match='Phased unitary was incorrect for index #1'):
-        cirq.testing.assert_phase_by_is_consistent_with_unitary(
-            SemiBadPhaser([0.5, 0.25]))
+    with pytest.raises(AssertionError, match='Phased unitary was incorrect for index #1'):
+        cirq.testing.assert_phase_by_is_consistent_with_unitary(SemiBadPhaser([0.5, 0.25]))
 
     # Vacuous success.
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(
-        NotPhaser())
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(NotPhaser())

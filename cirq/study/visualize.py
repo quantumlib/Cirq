@@ -14,12 +14,14 @@
 
 """Tool to visualize the results of a study."""
 
+from typing import TYPE_CHECKING
 import numpy as np
 
-from cirq.study import trial_result
+if TYPE_CHECKING:
+    from cirq.study import result
 
 
-def plot_state_histogram(result: trial_result.TrialResult) -> np.ndarray:
+def plot_state_histogram(result: 'result.Result') -> np.ndarray:
     """Plot the state histogram from a single result with repetitions.
 
     States is a bitstring representation of all the qubit states in a single
@@ -38,7 +40,7 @@ def plot_state_histogram(result: trial_result.TrialResult) -> np.ndarray:
     import matplotlib.pyplot as plt
 
     num_qubits = sum([value.shape[1] for value in result.measurements.values()])
-    states = 2**num_qubits
+    states = 2 ** num_qubits
     values = np.zeros(states)
     # measurements is a dict of {measurement gate key:
     #                            array(repetitions, boolean result)}

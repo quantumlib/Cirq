@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Types for devices, device-specific qubits, and noise models."""
 from cirq.devices.device import (
-    Device,)
+    Device,
+)
 
 from cirq.devices.grid_qubit import (
     GridQid,
@@ -26,7 +28,8 @@ from cirq.devices.line_qubit import (
 )
 
 from cirq.devices.unconstrained_device import (
-    UNCONSTRAINED_DEVICE,)
+    UNCONSTRAINED_DEVICE,
+)
 
 from cirq.devices.noise_model import (
     NO_NOISE,

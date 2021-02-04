@@ -13,8 +13,7 @@
 # limitations under the License.
 
 import functools
-from typing import (Any, Dict, Iterable, List, Optional, Tuple, Set, TypeVar,
-                    TYPE_CHECKING)
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Set, TypeVar, TYPE_CHECKING
 
 import abc
 
@@ -52,11 +51,12 @@ class _BaseGridQid(ops.Qid):
 
     def is_adjacent(self, other: 'cirq.Qid') -> bool:
         """Determines if two qubits are adjacent qubits."""
-        return (isinstance(other, GridQubit) and
-                abs(self.row - other.row) + abs(self.col - other.col) == 1)
+        return (
+            isinstance(other, GridQubit)
+            and abs(self.row - other.row) + abs(self.col - other.col) == 1
+        )
 
-    def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None
-                 ) -> Set['_BaseGridQid']:
+    def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set['_BaseGridQid']:
         """Returns qubits that are potential neighbors to this GridQid
 
         Args:
@@ -72,35 +72,46 @@ class _BaseGridQid(ops.Qid):
     def _with_row_col(self: TSelf, row: int, col: int) -> TSelf:
         """Returns a qid with the same type but a different coordinate."""
 
+    def __complex__(self) -> complex:
+        return self.col + 1j * self.row
+
     def __add__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
         if isinstance(other, _BaseGridQid):
             if self.dimension != other.dimension:
                 raise TypeError(
                     "Can only add GridQids with identical dimension. "
-                    f"Got {self.dimension} and {other.dimension}")
-            return self._with_row_col(row=self.row + other.row,
-                                      col=self.col + other.col)
-        if not (isinstance(other, (tuple, np.ndarray)) and len(other) == 2 and
-                all(isinstance(x, (int, np.integer)) for x in other)):
-            raise TypeError('Can only add integer tuples of length 2 to '
-                            f'{type(self).__name__}. Instead was {other}')
-        return self._with_row_col(row=self.row + other[0],
-                                  col=self.col + other[1])
+                    f"Got {self.dimension} and {other.dimension}"
+                )
+            return self._with_row_col(row=self.row + other.row, col=self.col + other.col)
+        if not (
+            isinstance(other, (tuple, np.ndarray))
+            and len(other) == 2
+            and all(isinstance(x, (int, np.integer)) for x in other)
+        ):
+            raise TypeError(
+                'Can only add integer tuples of length 2 to '
+                f'{type(self).__name__}. Instead was {other}'
+            )
+        return self._with_row_col(row=self.row + other[0], col=self.col + other[1])
 
     def __sub__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
         if isinstance(other, _BaseGridQid):
             if self.dimension != other.dimension:
                 raise TypeError(
                     "Can only subtract GridQids with identical dimension. "
-                    f"Got {self.dimension} and {other.dimension}")
-            return self._with_row_col(row=self.row - other.row,
-                                      col=self.col - other.col)
-        if not (isinstance(other, (tuple, np.ndarray)) and len(other) == 2 and
-                all(isinstance(x, (int, np.integer)) for x in other)):
-            raise TypeError("Can only subtract integer tuples of length 2 to "
-                            f"{type(self).__name__}. Instead was {other}")
-        return self._with_row_col(row=self.row - other[0],
-                                  col=self.col - other[1])
+                    f"Got {self.dimension} and {other.dimension}"
+                )
+            return self._with_row_col(row=self.row - other.row, col=self.col - other.col)
+        if not (
+            isinstance(other, (tuple, np.ndarray))
+            and len(other) == 2
+            and all(isinstance(x, (int, np.integer)) for x in other)
+        ):
+            raise TypeError(
+                "Can only subtract integer tuples of length 2 to "
+                f"{type(self).__name__}. Instead was {other}"
+            )
+        return self._with_row_col(row=self.row - other[0], col=self.col - other[1])
 
     def __radd__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
         return self + other
@@ -154,8 +165,7 @@ class GridQid(_BaseGridQid):
         return GridQid(row, col, dimension=self.dimension)
 
     @staticmethod
-    def square(diameter: int, top: int = 0, left: int = 0, *,
-               dimension: int) -> List['GridQid']:
+    def square(diameter: int, top: int = 0, left: int = 0, *, dimension: int) -> List['GridQid']:
         """Returns a square of GridQid.
 
         Args:
@@ -168,19 +178,12 @@ class GridQid(_BaseGridQid):
         Returns:
             A list of GridQid filling in a square grid
         """
-        return GridQid.rect(diameter,
-                            diameter,
-                            top=top,
-                            left=left,
-                            dimension=dimension)
+        return GridQid.rect(diameter, diameter, top=top, left=left, dimension=dimension)
 
     @staticmethod
-    def rect(rows: int,
-             cols: int,
-             top: int = 0,
-             left: int = 0,
-             *,
-             dimension: int) -> List['GridQid']:
+    def rect(
+        rows: int, cols: int, top: int = 0, left: int = 0, *, dimension: int
+    ) -> List['GridQid']:
         """Returns a rectangle of GridQid.
 
         Args:
@@ -246,8 +249,7 @@ class GridQid(_BaseGridQid):
         return [GridQid(*c, dimension=dimension) for c in coords]
 
     def __repr__(self) -> str:
-        return f"cirq.GridQid({self.row}, {self.col}, " \
-               f"dimension={self.dimension})"
+        return f"cirq.GridQid({self.row}, {self.col}, dimension={self.dimension})"
 
     def __str__(self) -> str:
         return f"({self.row}, {self.col}) (d={self.dimension})"
@@ -274,6 +276,26 @@ class GridQubit(_BaseGridQid):
         >>> cirq.GridQubit(2, 3,) + np.array([3, 1], dtype=int)
         cirq.GridQubit(5, 4)
     """
+
+    def __init__(self, row: int, col: int):
+        super().__init__(row, col)
+        self._hash = super().__hash__()
+
+    def __hash__(self):
+        # Explicitly cached for performance (vs delegating to Qid).
+        return self._hash
+
+    def __eq__(self, other):
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, GridQubit):
+            return self.row == other.row and self.col == other.col
+        return NotImplemented
+
+    def __ne__(self, other):
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, GridQubit):
+            return self.row != other.row or self.col != other.col
+        return NotImplemented
 
     @property
     def dimension(self) -> int:
@@ -302,8 +324,7 @@ class GridQubit(_BaseGridQid):
         return GridQubit.rect(diameter, diameter, top=top, left=left)
 
     @staticmethod
-    def rect(rows: int, cols: int, top: int = 0,
-             left: int = 0) -> List['GridQubit']:
+    def rect(rows: int, cols: int, top: int = 0, left: int = 0) -> List['GridQubit']:
         """Returns a rectangle of GridQubits.
 
         Args:

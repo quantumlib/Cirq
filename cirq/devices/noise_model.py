@@ -39,8 +39,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
     """
 
     @classmethod
-    def from_noise_model_like(cls, noise: 'cirq.NOISE_MODEL_LIKE'
-                             ) -> 'cirq.NoiseModel':
+    def from_noise_model_like(cls, noise: 'cirq.NOISE_MODEL_LIKE') -> 'cirq.NoiseModel':
         """Transforms an object into a noise model if umambiguously possible.
 
         Args:
@@ -64,11 +63,14 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
                     'Multi-qubit gates cannot be implicitly wrapped into a '
                     'noise model. Please use a single qubit gate (which will '
                     'be wrapped with `cirq.ConstantQubitNoiseModel`) or '
-                    'an instance of `cirq.NoiseModel`.')
+                    'an instance of `cirq.NoiseModel`.'
+                )
             return ConstantQubitNoiseModel(noise)
 
-        raise TypeError('Expected a NOISE_MODEL_LIKE (None, a cirq.NoiseModel, '
-                        'or a single qubit gate). Got {!r}'.format(noise))
+        raise TypeError(
+            'Expected a NOISE_MODEL_LIKE (None, a cirq.NoiseModel, '
+            'or a single qubit gate). Got {!r}'.format(noise)
+        )
 
     def is_virtual_moment(self, moment: 'cirq.Moment') -> bool:
         """Returns true iff the given moment is non-empty and all of its
@@ -86,34 +88,34 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         if not moment.operations:
             return False
-        return all([
-            isinstance(op, ops.TaggedOperation) and ops.VirtualTag() in op.tags
-            for op in moment.operations
-        ])
+        return all(
+            [
+                isinstance(op, ops.TaggedOperation) and ops.VirtualTag() in op.tags
+                for op in moment.operations
+            ]
+        )
 
-    def _noisy_moments_impl_moment(self, moments: 'Iterable[cirq.Moment]',
-                                   system_qubits: Sequence['cirq.Qid']
-                                  ) -> Sequence['cirq.OP_TREE']:
+    def _noisy_moments_impl_moment(
+        self, moments: 'Iterable[cirq.Moment]', system_qubits: Sequence['cirq.Qid']
+    ) -> Sequence['cirq.OP_TREE']:
         result = []
         for moment in moments:
             result.append(self.noisy_moment(moment, system_qubits))
         return result
 
-    def _noisy_moments_impl_operation(self, moments: 'Iterable[cirq.Moment]',
-                                      system_qubits: Sequence['cirq.Qid']
-                                     ) -> Sequence['cirq.OP_TREE']:
+    def _noisy_moments_impl_operation(
+        self, moments: 'Iterable[cirq.Moment]', system_qubits: Sequence['cirq.Qid']
+    ) -> Sequence['cirq.OP_TREE']:
         result = []
         for moment in moments:
             result.append([self.noisy_operation(op) for op in moment])
         return result
 
-    @value.alternative(requires='noisy_moment',
-                       implementation=_noisy_moments_impl_moment)
-    @value.alternative(requires='noisy_operation',
-                       implementation=_noisy_moments_impl_operation)
-    def noisy_moments(self, moments: 'Iterable[cirq.Moment]',
-                      system_qubits: Sequence['cirq.Qid']
-                     ) -> Sequence['cirq.OP_TREE']:
+    @value.alternative(requires='noisy_moment', implementation=_noisy_moments_impl_moment)
+    @value.alternative(requires='noisy_operation', implementation=_noisy_moments_impl_operation)
+    def noisy_moments(
+        self, moments: 'Iterable[cirq.Moment]', system_qubits: Sequence['cirq.Qid']
+    ) -> Sequence['cirq.OP_TREE']:
         """Adds possibly stateful noise to a series of moments.
 
         Args:
@@ -125,22 +127,21 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
             noisy operations for the k'th moment.
         """
 
-    def _noisy_moment_impl_moments(self, moment: 'cirq.Moment',
-                                   system_qubits: Sequence['cirq.Qid']
-                                  ) -> 'cirq.OP_TREE':
+    def _noisy_moment_impl_moments(
+        self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
+    ) -> 'cirq.OP_TREE':
         return self.noisy_moments([moment], system_qubits)
 
-    def _noisy_moment_impl_operation(self, moment: 'cirq.Moment',
-                                     system_qubits: Sequence['cirq.Qid']
-                                    ) -> 'cirq.OP_TREE':
+    def _noisy_moment_impl_operation(
+        self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
+    ) -> 'cirq.OP_TREE':
         return [self.noisy_operation(op) for op in moment]
 
-    @value.alternative(requires='noisy_moments',
-                       implementation=_noisy_moment_impl_moments)
-    @value.alternative(requires='noisy_operation',
-                       implementation=_noisy_moment_impl_operation)
-    def noisy_moment(self, moment: 'cirq.Moment',
-                     system_qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    @value.alternative(requires='noisy_moments', implementation=_noisy_moment_impl_moments)
+    @value.alternative(requires='noisy_operation', implementation=_noisy_moment_impl_operation)
+    def noisy_moment(
+        self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
+    ) -> 'cirq.OP_TREE':
         """Adds noise to the operations from a moment.
 
         Args:
@@ -151,18 +152,14 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
             An OP_TREE corresponding to the noisy operations for the moment.
         """
 
-    def _noisy_operation_impl_moments(self, operation: 'cirq.Operation'
-                                     ) -> 'cirq.OP_TREE':
+    def _noisy_operation_impl_moments(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         return self.noisy_moments([ops.Moment([operation])], operation.qubits)
 
-    def _noisy_operation_impl_moment(self, operation: 'cirq.Operation'
-                                    ) -> 'cirq.OP_TREE':
+    def _noisy_operation_impl_moment(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         return self.noisy_moment(ops.Moment([operation]), operation.qubits)
 
-    @value.alternative(requires='noisy_moments',
-                       implementation=_noisy_operation_impl_moments)
-    @value.alternative(requires='noisy_moment',
-                       implementation=_noisy_operation_impl_moment)
+    @value.alternative(requires='noisy_moments', implementation=_noisy_operation_impl_moments)
+    @value.alternative(requires='noisy_moment', implementation=_noisy_operation_impl_moment)
     def noisy_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         """Adds noise to an individual operation.
 
@@ -179,12 +176,10 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
 class _NoNoiseModel(NoiseModel):
     """A default noise model that adds no noise."""
 
-    def noisy_moments(self, moments: 'Iterable[cirq.Moment]',
-                      system_qubits: Sequence['cirq.Qid']):
+    def noisy_moments(self, moments: 'Iterable[cirq.Moment]', system_qubits: Sequence['cirq.Qid']):
         return list(moments)
 
-    def noisy_moment(self, moment: 'cirq.Moment',
-                     system_qubits: Sequence['cirq.Qid']):
+    def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
         return moment
 
     def noisy_operation(self, operation: 'cirq.Operation'):
@@ -222,17 +217,15 @@ class ConstantQubitNoiseModel(NoiseModel):
     def __repr__(self) -> str:
         return f'cirq.ConstantQubitNoiseModel({self.qubit_noise_gate!r})'
 
-    def noisy_moment(self, moment: 'cirq.Moment',
-                     system_qubits: Sequence['cirq.Qid']):
+    def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
         # Noise should not be appended to previously-added noise.
         if self.is_virtual_moment(moment):
             return moment
         return [
             moment,
-            ops.Moment([
-                self.qubit_noise_gate(q).with_tags(ops.VirtualTag())
-                for q in system_qubits
-            ])
+            ops.Moment(
+                [self.qubit_noise_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits]
+            ),
         ]
 
     def _json_dict_(self):
@@ -241,11 +234,13 @@ class ConstantQubitNoiseModel(NoiseModel):
 
 NO_NOISE: 'cirq.NoiseModel' = _NoNoiseModel()
 document(
-    NO_NOISE, """The trivial noise model with no effects.
+    NO_NOISE,
+    """The trivial noise model with no effects.
 
     This is the noise model used when a `NOISE_MODEL_LIKE` noise parameter is
     set to `None`.
-    """)
+    """,
+)
 
 NOISE_MODEL_LIKE = Union[None, 'cirq.NoiseModel', 'cirq.SingleQubitGate']
 document(
@@ -257,4 +252,5 @@ document(
 
     A single qubit gate is a `NOISE_MODEL_LIKE`. It will be wrapped inside of a
     `cirq.ConstantQubitNoiseModel`.
-    """)
+    """,
+)

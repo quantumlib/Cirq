@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality
-class QuirkQubitPermutationGate(ops.Gate):
+class QuirkQubitPermutationGate(ops.QubitPermutationGate):
     """A qubit permutation gate specified by a permutation list."""
 
     def __init__(self, identifier: str, name: str, permutation: Sequence[int]):
@@ -39,41 +39,23 @@ class QuirkQubitPermutationGate(ops.Gate):
         """
         self.identifier = identifier
         self.name = name
-        self.permutation = tuple(permutation)
+        super().__init__(permutation)
 
     def _value_equality_values_(self):
         return self.identifier, self.name, self.permutation
 
-    def num_qubits(self):
-        return len(self.permutation)
-
-    def _has_unitary_(self):
-        return True
-
-    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
-        # Compute the permutation index list.
-        permuted_axes = list(range(len(args.target_tensor.shape)))
-        for i in range(len(args.axes)):
-            j = self.permutation[i]
-            ai = args.axes[i]
-            aj = args.axes[j]
-            assert args.target_tensor.shape[ai] == args.target_tensor.shape[aj]
-            permuted_axes[aj] = ai
-
-        # Delegate to numpy to do the permuted copy.
-        args.available_buffer[...] = args.target_tensor.transpose(permuted_axes)
-        return args.available_buffer
-
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                              ) -> Tuple[str, ...]:
-        return tuple(f'{self.name}[{i}>{self.permutation[i]}]'
-                     for i in range(len(self.permutation)))
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
+        return tuple(
+            f'{self.name}[{i}>{self.permutation[i]}]' for i in range(len(self.permutation))
+        )
 
     def __repr__(self) -> str:
-        return ('cirq.interop.quirk.QuirkQubitPermutationGate('
-                f'identifier={repr(self.identifier)},'
-                f'name={repr(self.name)},'
-                f'permutation={repr(self.permutation)})')
+        return (
+            'cirq.interop.quirk.QuirkQubitPermutationGate('
+            f'identifier={repr(self.identifier)},'
+            f'name={repr(self.name)},'
+            f'permutation={repr(self.permutation)})'
+        )
 
 
 def generate_all_qubit_permutation_cell_makers() -> Iterator[CellMaker]:
@@ -84,25 +66,26 @@ def generate_all_qubit_permutation_cell_makers() -> Iterator[CellMaker]:
     yield from _permutation_family("split", 'deinterleave', _deinterleave_bit)
 
 
-def _permutation_family(identifier_prefix: str, name: str,
-                        permute: Callable[[int, int], int]
-                       ) -> Iterator[CellMaker]:
+def _permutation_family(
+    identifier_prefix: str, name: str, permute: Callable[[int, int], int]
+) -> Iterator[CellMaker]:
     for n in CELL_SIZES:
         permutation = tuple(permute(n, i) % n for i in range(n))
         yield _permutation(identifier_prefix + str(n), name, permutation)
 
 
 def _permutation(
-        identifier: str,
-        name: str,
-        permutation: Tuple[int, ...],
+    identifier: str,
+    name: str,
+    permutation: Tuple[int, ...],
 ) -> CellMaker:
     return CellMaker(
         identifier,
         size=len(permutation),
         maker=lambda args: QuirkQubitPermutationGate(
-            identifier=identifier, name=name, permutation=permutation).on(
-                *args.qubits))
+            identifier=identifier, name=name, permutation=permutation
+        ).on(*args.qubits),
+    )
 
 
 def _interleave_bit(n: int, x: int) -> int:

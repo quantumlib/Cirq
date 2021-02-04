@@ -90,7 +90,8 @@ def test_map():
     b = cirq.NamedQubit('b!')
     q = cirq.QubitOrder.explicit([cirq.NamedQubit('b')]).map(
         internalize=lambda e: cirq.NamedQubit(e.name[:-1]),
-        externalize=lambda e: cirq.NamedQubit(e.name + '!'))
+        externalize=lambda e: cirq.NamedQubit(e.name + '!'),
+    )
 
     assert q.order_for([]) == (b,)
     assert q.order_for([b]) == (b,)
@@ -103,7 +104,8 @@ def test_qubit_order_or_list():
     assert implied_by_list.order_for([]) == (b,)
 
     implied_by_generator = cirq.QubitOrder.as_qubit_order(
-        cirq.NamedQubit(e.name + '!') for e in [b])
+        cirq.NamedQubit(e.name + '!') for e in [b]
+    )
     assert implied_by_generator.order_for([]) == (cirq.NamedQubit('b!'),)
     assert implied_by_generator.order_for([]) == (cirq.NamedQubit('b!'),)
 
@@ -114,9 +116,16 @@ def test_qubit_order_or_list():
 
 def test_qubit_order_iterator():
     generator = (q for q in cirq.LineQubit.range(5))
-    assert cirq.QubitOrder.explicit(generator).order_for(
-        (cirq.LineQubit(3),)) == tuple(cirq.LineQubit.range(5))
+    assert cirq.QubitOrder.explicit(generator).order_for((cirq.LineQubit(3),)) == tuple(
+        cirq.LineQubit.range(5)
+    )
 
     generator = (q for q in cirq.LineQubit.range(5))
-    assert cirq.QubitOrder.as_qubit_order(generator).order_for(
-        (cirq.LineQubit(3),)) == tuple(cirq.LineQubit.range(5))
+    assert cirq.QubitOrder.as_qubit_order(generator).order_for((cirq.LineQubit(3),)) == tuple(
+        cirq.LineQubit.range(5)
+    )
+
+
+def test_qubit_order_invalid():
+    with pytest.raises(ValueError, match="Don't know how to interpret <5> as a Basis."):
+        _ = cirq.QubitOrder.as_qubit_order(5)

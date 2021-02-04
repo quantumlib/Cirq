@@ -16,28 +16,42 @@
 """
 
 from cirq.google.engine.calibration import (
-    Calibration,)
+    Calibration,
+)
 
+from cirq.google.engine.calibration_layer import (
+    CalibrationLayer,
+)
+from cirq.google.engine.calibration_result import (
+    CalibrationResult,
+)
 from cirq.google.engine.engine import (
     Engine,
     get_engine,
+    get_engine_calibration,
+    get_engine_device,
     ProtoVersion,
 )
 
 from cirq.google.engine.engine_client import (
-    EngineException,)
+    EngineException,
+)
 
 from cirq.google.engine.engine_job import (
-    EngineJob,)
+    EngineJob,
+)
 
 from cirq.google.engine.engine_processor import (
-    EngineProcessor,)
+    EngineProcessor,
+)
 
 from cirq.google.engine.engine_timeslot import (
-    EngineTimeSlot,)
+    EngineTimeSlot,
+)
 
 from cirq.google.engine.engine_program import (
-    EngineProgram,)
+    EngineProgram,
+)
 
 from cirq.google.engine.engine_sampler import (
     get_engine_sampler,
@@ -45,4 +59,5 @@ from cirq.google.engine.engine_sampler import (
 )
 
 from cirq.google.engine.env_config import (
-    engine_from_environment,)
+    engine_from_environment,
+)

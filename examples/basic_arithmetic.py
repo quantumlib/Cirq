@@ -90,7 +90,7 @@ import cirq
 
 
 class Adder(cirq.Gate):
-    """ A quantum circuit to calculate a + b
+    """A quantum circuit to calculate a + b
 
             -----------@---             ---@------------
                        |                   |
@@ -147,20 +147,20 @@ class Adder(cirq.Gate):
         yield cirq.CNOT(c0, b)
 
     def _decompose_(self, qubits):
-        n = int(len(qubits)/3)
+        n = int(len(qubits) / 3)
         c = qubits[0::3]
         a = qubits[1::3]
         b = qubits[2::3]
-        for i in range(n-1):
-            yield self.carry(c[i], a[i], b[i], c[i+1])
-        yield self.carry_sum(c[n-1], a[n-1], b[n-1])
-        for i in range(n-2, -1, -1):
-            yield self.uncarry(c[i], a[i], b[i], c[i+1])
+        for i in range(n - 1):
+            yield self.carry(c[i], a[i], b[i], c[i + 1])
+        yield self.carry_sum(c[n - 1], a[n - 1], b[n - 1])
+        for i in range(n - 2, -1, -1):
+            yield self.uncarry(c[i], a[i], b[i], c[i + 1])
             yield self.carry_sum(c[i], a[i], b[i])
 
 
 class Multiplier(cirq.Gate):
-    """ A quantum circuit to calculate y * x
+    """A quantum circuit to calculate y * x
 
                        -                         -                 -
     c0: --------------| |-----------------------| |---------------| |---------
@@ -202,21 +202,21 @@ class Multiplier(cirq.Gate):
         return self._num_qubits
 
     def _decompose_(self, qubits):
-        n = int(len(qubits)/5)
+        n = int(len(qubits) / 5)
         # c = qubits[0:n*3:3]
-        a = qubits[1:n*3:3]
+        a = qubits[1 : n * 3 : 3]
         # b = qubits[2::3]
-        y = qubits[n*3:n*4]
-        x = qubits[n*4:]
+        y = qubits[n * 3 : n * 4]
+        x = qubits[n * 4 :]
 
         for i, x_i in enumerate(x):
             # a = (y*(2**i))*x_i
-            for a_qubit, y_qubit in zip(a[i:], y[:n-i]):
+            for a_qubit, y_qubit in zip(a[i:], y[: n - i]):
                 yield cirq.TOFFOLI(x_i, y_qubit, a_qubit)
             # b += a
-            yield Adder(3 * n).on(*qubits[:3 * n])
+            yield Adder(3 * n).on(*qubits[: 3 * n])
             # a = 0
-            for a_qubit, y_qubit in zip(a[i:], y[:n-i]):
+            for a_qubit, y_qubit in zip(a[i:], y[: n - i]):
                 yield cirq.TOFFOLI(x_i, y_qubit, a_qubit)
 
 
@@ -233,13 +233,16 @@ def experiment_adder(p, q, n=3):
     # c = qubits[0::3]
     a = qubits[1::3]
     b = qubits[2::3]
-    circuit = cirq.Circuit(init_qubits(a_bin, *a), init_qubits(b_bin, *b),
-                           Adder(n * 3).on(*qubits),
-                           cirq.measure(*b, key='result'))
+    circuit = cirq.Circuit(
+        init_qubits(a_bin, *a),
+        init_qubits(b_bin, *b),
+        Adder(n * 3).on(*qubits),
+        cirq.measure(*b, key='result'),
+    )
     simulator = cirq.Simulator()
     result = simulator.run(circuit, repetitions=1).measurements['result']
     sum_bin = ''.join(result[0][::-1].astype(int).astype(str))
-    print ('{} + {} = {}'.format(a_bin, b_bin, sum_bin))
+    print('{} + {} = {}'.format(a_bin, b_bin, sum_bin))
 
 
 def experiment_multiplier(p, q, n=3):
@@ -248,35 +251,33 @@ def experiment_multiplier(p, q, n=3):
     qubits = cirq.LineQubit.range(5 * n)
     # c = qubits[0:n*3:3]
     # a = qubits[1:n*3:3]
-    b = qubits[2:n*3:3]
-    y = qubits[n*3:n*4]
-    x = qubits[n*4:]
+    b = qubits[2 : n * 3 : 3]
+    y = qubits[n * 3 : n * 4]
+    x = qubits[n * 4 :]
 
-    circuit = cirq.Circuit(init_qubits(x_bin, *x), init_qubits(y_bin, *y),
-                           Multiplier(5 * n).on(*qubits),
-                           cirq.measure(*b, key='result'))
+    circuit = cirq.Circuit(
+        init_qubits(x_bin, *x),
+        init_qubits(y_bin, *y),
+        Multiplier(5 * n).on(*qubits),
+        cirq.measure(*b, key='result'),
+    )
     simulator = cirq.Simulator()
     result = simulator.run(circuit, repetitions=1)
-    sum_bin = ''.join(
-        result.measurements['result'][0][::-1].astype(int).astype(str))
-    print ('{} * {} = {}'.format(y_bin, x_bin, sum_bin))
+    sum_bin = ''.join(result.measurements['result'][0][::-1].astype(int).astype(str))
+    print('{} * {} = {}'.format(y_bin, x_bin, sum_bin))
 
 
 def main(n=3):
-    print ('Execute Adder')
-    print(
-        cirq.Circuit(
-            cirq.decompose(Adder(3 * n).on(*cirq.LineQubit.range(3 * n)))))
-    for p in range(2*2):
-        for q in range(2*2):
+    print('Execute Adder')
+    print(cirq.Circuit(cirq.decompose(Adder(3 * n).on(*cirq.LineQubit.range(3 * n)))))
+    for p in range(2 * 2):
+        for q in range(2 * 2):
             experiment_adder(p, q, n)
-    print ('')
-    print ('Execute Multiplier')
-    print(
-        cirq.Circuit(
-            cirq.decompose(Multiplier(5 * n).on(*cirq.LineQubit.range(5 * n)))))
-    for p in range(2*2):
-        for q in range(2*2):
+    print('')
+    print('Execute Multiplier')
+    print(cirq.Circuit(cirq.decompose(Multiplier(5 * n).on(*cirq.LineQubit.range(5 * n)))))
+    for p in range(2 * 2):
+        for q in range(2 * 2):
             experiment_multiplier(p, q, n)
 
 

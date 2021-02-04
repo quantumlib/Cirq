@@ -18,33 +18,25 @@ import numpy as np
 
 import cirq
 from cirq.testing.circuit_compare import (
-    _assert_apply_unitary_works_when_axes_transposed,)
+    _assert_apply_unitary_works_when_axes_transposed,
+)
 
 
 def test_sensitive_to_phase():
     q = cirq.NamedQubit('q')
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        cirq.Circuit([
-            cirq.Moment([])
-        ]),
-        cirq.Circuit(),
-        atol=0)
+        cirq.Circuit([cirq.Moment([])]), cirq.Circuit(), atol=0
+    )
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            cirq.Circuit([
-                cirq.Moment([cirq.Z(q)**0.0001])
-            ]),
-            cirq.Circuit(),
-            atol=0)
+            cirq.Circuit([cirq.Moment([cirq.Z(q) ** 0.0001])]), cirq.Circuit(), atol=0
+        )
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        cirq.Circuit([
-            cirq.Moment([cirq.Z(q)**0.0001])
-        ]),
-        cirq.Circuit(),
-        atol=0.01)
+        cirq.Circuit([cirq.Moment([cirq.Z(q) ** 0.0001])]), cirq.Circuit(), atol=0.01
+    )
 
 
 def test_sensitive_to_measurement_but_not_measured_phase():
@@ -52,74 +44,77 @@ def test_sensitive_to_measurement_but_not_measured_phase():
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            cirq.Circuit([
-                cirq.Moment([cirq.measure(q)])
-            ]),
-            cirq.Circuit(),
-            atol=1e-8)
+            cirq.Circuit([cirq.Moment([cirq.measure(q)])]), cirq.Circuit(), atol=1e-8
+        )
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        cirq.Circuit([
-            cirq.Moment([cirq.measure(q)])
-        ]),
-        cirq.Circuit([
-            cirq.Moment([cirq.Z(q)]),
-            cirq.Moment([cirq.measure(q)]),
-        ]),
-        atol=1e-8)
+        cirq.Circuit([cirq.Moment([cirq.measure(q)])]),
+        cirq.Circuit(
+            [
+                cirq.Moment([cirq.Z(q)]),
+                cirq.Moment([cirq.measure(q)]),
+            ]
+        ),
+        atol=1e-8,
+    )
 
     a, b = cirq.LineQubit.range(2)
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        cirq.Circuit([
-            cirq.Moment([cirq.measure(a, b)])
-        ]),
-        cirq.Circuit([
-            cirq.Moment([cirq.Z(a)]),
-            cirq.Moment([cirq.measure(a, b)]),
-        ]),
-        atol=1e-8)
+        cirq.Circuit([cirq.Moment([cirq.measure(a, b)])]),
+        cirq.Circuit(
+            [
+                cirq.Moment([cirq.Z(a)]),
+                cirq.Moment([cirq.measure(a, b)]),
+            ]
+        ),
+        atol=1e-8,
+    )
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        cirq.Circuit([
-            cirq.Moment([cirq.measure(a)])
-        ]),
-        cirq.Circuit([
-            cirq.Moment([cirq.Z(a)]),
-            cirq.Moment([cirq.measure(a)]),
-        ]),
-        atol=1e-8)
+        cirq.Circuit([cirq.Moment([cirq.measure(a)])]),
+        cirq.Circuit(
+            [
+                cirq.Moment([cirq.Z(a)]),
+                cirq.Moment([cirq.measure(a)]),
+            ]
+        ),
+        atol=1e-8,
+    )
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        cirq.Circuit([
-            cirq.Moment([cirq.measure(a, b)])
-        ]),
-        cirq.Circuit([
-            cirq.Moment([cirq.T(a), cirq.S(b)]),
-            cirq.Moment([cirq.measure(a, b)]),
-        ]),
-        atol=1e-8)
+        cirq.Circuit([cirq.Moment([cirq.measure(a, b)])]),
+        cirq.Circuit(
+            [
+                cirq.Moment([cirq.T(a), cirq.S(b)]),
+                cirq.Moment([cirq.measure(a, b)]),
+            ]
+        ),
+        atol=1e-8,
+    )
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            cirq.Circuit([
-                cirq.Moment([cirq.measure(a)])
-            ]),
-            cirq.Circuit([
-                cirq.Moment([cirq.T(a), cirq.S(b)]),
-                cirq.Moment([cirq.measure(a)]),
-            ]),
-            atol=1e-8)
+            cirq.Circuit([cirq.Moment([cirq.measure(a)])]),
+            cirq.Circuit(
+                [
+                    cirq.Moment([cirq.T(a), cirq.S(b)]),
+                    cirq.Moment([cirq.measure(a)]),
+                ]
+            ),
+            atol=1e-8,
+        )
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        cirq.Circuit([
-            cirq.Moment([cirq.measure(a, b)])
-        ]),
-        cirq.Circuit([
-            cirq.Moment([cirq.CZ(a, b)]),
-            cirq.Moment([cirq.measure(a, b)]),
-        ]),
-        atol=1e-8)
+        cirq.Circuit([cirq.Moment([cirq.measure(a, b)])]),
+        cirq.Circuit(
+            [
+                cirq.Moment([cirq.CZ(a, b)]),
+                cirq.Moment([cirq.measure(a, b)]),
+            ]
+        ),
+        atol=1e-8,
+    )
 
 
 def test_sensitive_to_measurement_toggle():
@@ -127,34 +122,37 @@ def test_sensitive_to_measurement_toggle():
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            cirq.Circuit([
-                cirq.Moment([cirq.measure(q)])
-            ]),
-            cirq.Circuit([
-                cirq.Moment([cirq.X(q)]),
-                cirq.Moment([cirq.measure(q)]),
-            ]),
-            atol=1e-8)
+            cirq.Circuit([cirq.Moment([cirq.measure(q)])]),
+            cirq.Circuit(
+                [
+                    cirq.Moment([cirq.X(q)]),
+                    cirq.Moment([cirq.measure(q)]),
+                ]
+            ),
+            atol=1e-8,
+        )
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            cirq.Circuit([
-                cirq.Moment([cirq.measure(q)])
-            ]),
-            cirq.Circuit([
-                cirq.Moment([cirq.measure(q, invert_mask=(True,))]),
-            ]),
-            atol=1e-8)
+            cirq.Circuit([cirq.Moment([cirq.measure(q)])]),
+            cirq.Circuit(
+                [
+                    cirq.Moment([cirq.measure(q, invert_mask=(True,))]),
+                ]
+            ),
+            atol=1e-8,
+        )
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        cirq.Circuit([
-            cirq.Moment([cirq.measure(q)])
-        ]),
-        cirq.Circuit([
-            cirq.Moment([cirq.X(q)]),
-            cirq.Moment([cirq.measure(q, invert_mask=(True,))]),
-        ]),
-        atol=1e-8)
+        cirq.Circuit([cirq.Moment([cirq.measure(q)])]),
+        cirq.Circuit(
+            [
+                cirq.Moment([cirq.X(q)]),
+                cirq.Moment([cirq.measure(q, invert_mask=(True,))]),
+            ]
+        ),
+        atol=1e-8,
+    )
 
 
 def test_measuring_qubits():
@@ -162,54 +160,43 @@ def test_measuring_qubits():
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            cirq.Circuit([
-                cirq.Moment([cirq.measure(a)])
-            ]),
-            cirq.Circuit([
-                cirq.Moment([cirq.measure(b)])
-            ]),
-            atol=1e-8)
+            cirq.Circuit([cirq.Moment([cirq.measure(a)])]),
+            cirq.Circuit([cirq.Moment([cirq.measure(b)])]),
+            atol=1e-8,
+        )
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        cirq.Circuit([
-            cirq.Moment([cirq.measure(a, b, invert_mask=(True,))])
-        ]),
-        cirq.Circuit([
-            cirq.Moment([cirq.measure(b, a, invert_mask=(False, True))])
-        ]),
-        atol=1e-8)
+        cirq.Circuit([cirq.Moment([cirq.measure(a, b, invert_mask=(True,))])]),
+        cirq.Circuit([cirq.Moment([cirq.measure(b, a, invert_mask=(False, True))])]),
+        atol=1e-8,
+    )
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        cirq.Circuit([
-            cirq.Moment([cirq.measure(a)]),
-            cirq.Moment([cirq.measure(b)]),
-        ]),
-        cirq.Circuit([
-            cirq.Moment([cirq.measure(a, b)])
-        ]),
-        atol=1e-8)
+        cirq.Circuit(
+            [
+                cirq.Moment([cirq.measure(a)]),
+                cirq.Moment([cirq.measure(b)]),
+            ]
+        ),
+        cirq.Circuit([cirq.Moment([cirq.measure(a, b)])]),
+        atol=1e-8,
+    )
 
 
 @pytest.mark.parametrize(
-    'circuit',
-    [
-        cirq.testing.random_circuit(cirq.LineQubit.range(2), 4, 0.5)
-        for _ in range(5)
-    ]
+    'circuit', [cirq.testing.random_circuit(cirq.LineQubit.range(2), 4, 0.5) for _ in range(5)]
 )
 def test_random_same_matrix(circuit):
     a, b = cirq.LineQubit.range(2)
     same = cirq.Circuit(
-        cirq.MatrixGate(
-            circuit.unitary(qubits_that_should_be_present=[a, b])).on(a, b))
+        cirq.MatrixGate(circuit.unitary(qubits_that_should_be_present=[a, b])).on(a, b)
+    )
 
-    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit, same, atol=1e-8)
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(circuit, same, atol=1e-8)
 
     circuit.append(cirq.measure(a))
     same.append(cirq.measure(a))
-    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit, same, atol=1e-8)
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(circuit, same, atol=1e-8)
 
 
 def test_correct_qubit_ordering():
@@ -217,28 +204,32 @@ def test_correct_qubit_ordering():
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         cirq.Circuit(cirq.Z(a), cirq.Z(b), cirq.measure(b)),
         cirq.Circuit(cirq.Z(a), cirq.measure(b)),
-        atol=1e-8)
+        atol=1e-8,
+    )
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
             cirq.Circuit(cirq.Z(a), cirq.Z(b), cirq.measure(b)),
             cirq.Circuit(cirq.Z(b), cirq.measure(b)),
-            atol=1e-8)
+            atol=1e-8,
+        )
 
 
 def test_known_old_failure():
     a, b = cirq.LineQubit.range(2)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         actual=cirq.Circuit(
-            cirq.PhasedXPowGate(exponent=0.61351656,
-                                phase_exponent=0.8034575038876517).on(b),
-            cirq.measure(a, b)),
+            cirq.PhasedXPowGate(exponent=0.61351656, phase_exponent=0.8034575038876517).on(b),
+            cirq.measure(a, b),
+        ),
         reference=cirq.Circuit(
-            cirq.PhasedXPowGate(exponent=0.61351656,
-                                phase_exponent=0.8034575038876517).on(b),
-            cirq.Z(a)**0.5,
-            cirq.Z(b)**0.1, cirq.measure(a, b)),
-        atol=1e-8)
+            cirq.PhasedXPowGate(exponent=0.61351656, phase_exponent=0.8034575038876517).on(b),
+            cirq.Z(a) ** 0.5,
+            cirq.Z(b) ** 0.1,
+            cirq.measure(a, b),
+        ),
+        atol=1e-8,
+    )
 
 
 def test_assert_same_circuits():
@@ -273,11 +264,14 @@ def test_assert_same_circuits():
 def test_assert_has_diagram():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.CNOT(a, b))
-    cirq.testing.assert_has_diagram(circuit, """
+    cirq.testing.assert_has_diagram(
+        circuit,
+        """
 0: ───@───
       │
 1: ───X───
-""")
+""",
+    )
 
     expected_error = """Circuit's text diagram differs from the desired diagram.
 
@@ -299,11 +293,14 @@ Highlighted differences:
 """
 
     with pytest.raises(AssertionError) as ex_info:
-        cirq.testing.assert_has_diagram(circuit, """
+        cirq.testing.assert_has_diagram(
+            circuit,
+            """
 0: ───@───
       │
 1: ───Z───
-""")
+""",
+        )
     assert expected_error in ex_info.value.args[0]
 
 
@@ -319,8 +316,7 @@ def test_assert_has_consistent_apply_unitary():
             return 1
 
     with pytest.raises(AssertionError):
-        cirq.testing.assert_has_consistent_apply_unitary(
-            IdentityReturningUnalteredWorkspace())
+        cirq.testing.assert_has_consistent_apply_unitary(IdentityReturningUnalteredWorkspace())
 
     class DifferentEffect:
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
@@ -337,8 +333,7 @@ def test_assert_has_consistent_apply_unitary():
             return 1
 
     with pytest.raises(AssertionError):
-        cirq.testing.assert_has_consistent_apply_unitary(
-            DifferentEffect())
+        cirq.testing.assert_has_consistent_apply_unitary(DifferentEffect())
 
     class IgnoreAxisEffect:
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
@@ -354,8 +349,7 @@ def test_assert_has_consistent_apply_unitary():
             return 1
 
     with pytest.raises(AssertionError, match='Not equal|acted differently'):
-        cirq.testing.assert_has_consistent_apply_unitary(
-            IgnoreAxisEffect())
+        cirq.testing.assert_has_consistent_apply_unitary(IgnoreAxisEffect())
 
     class SameEffect:
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
@@ -371,11 +365,9 @@ def test_assert_has_consistent_apply_unitary():
         def _num_qubits_(self):
             return 1
 
-    cirq.testing.assert_has_consistent_apply_unitary(
-        SameEffect())
+    cirq.testing.assert_has_consistent_apply_unitary(SameEffect())
 
     class SameQuditEffect:
-
         def _qid_shape_(self):
             return (3,)
 
@@ -408,15 +400,14 @@ def test_assert_has_consistent_apply_unitary():
         def _unitary_(self):
             return np.array([[1, 0], [0, 2]])
 
-    cirq.testing.assert_has_consistent_apply_unitary(
-        BadExponent(1))
+    cirq.testing.assert_has_consistent_apply_unitary(BadExponent(1))
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
-            BadExponent(1), exponents=[1, 2])
+            BadExponent(1), exponents=[1, 2]
+        )
 
     class EffectWithoutUnitary:
-
         def _num_qubits_(self):
             return 1
 
@@ -426,7 +417,6 @@ def test_assert_has_consistent_apply_unitary():
     cirq.testing.assert_has_consistent_apply_unitary(EffectWithoutUnitary())
 
     class NoEffect:
-
         def _num_qubits_(self):
             return 1
 
@@ -439,20 +429,15 @@ def test_assert_has_consistent_apply_unitary():
         pass
 
     with pytest.raises(TypeError, match="no _num_qubits_ or _qid_shape_"):
-        cirq.testing.assert_has_consistent_apply_unitary(
-            UnknownCountEffect())
+        cirq.testing.assert_has_consistent_apply_unitary(UnknownCountEffect())
 
-    cirq.testing.assert_has_consistent_apply_unitary(
-        cirq.X)
+    cirq.testing.assert_has_consistent_apply_unitary(cirq.X)
 
-    cirq.testing.assert_has_consistent_apply_unitary(
-        cirq.X.on(cirq.NamedQubit('q')))
+    cirq.testing.assert_has_consistent_apply_unitary(cirq.X.on(cirq.NamedQubit('q')))
 
 
 def test_assert_has_consistent_qid_shape():
-
     class ConsistentGate(cirq.Gate):
-
         def _num_qubits_(self):
             return 4
 
@@ -460,7 +445,6 @@ def test_assert_has_consistent_qid_shape():
             return 1, 2, 3, 4
 
     class InconsistentGate(cirq.Gate):
-
         def _num_qubits_(self):
             return 2
 
@@ -468,7 +452,6 @@ def test_assert_has_consistent_qid_shape():
             return 1, 2, 3, 4
 
     class BadShapeGate(cirq.Gate):
-
         def _num_qubits_(self):
             return 4
 
@@ -476,7 +459,6 @@ def test_assert_has_consistent_qid_shape():
             return 1, 2, 0, 4
 
     class ConsistentOp(cirq.Operation):
-
         def with_qubits(self, *qubits):
             raise NotImplementedError  # coverage: ignore
 
@@ -494,7 +476,6 @@ def test_assert_has_consistent_qid_shape():
     # because test_assert_has_consistent_qid_shape may only need to check two of
     # the three methods before finding an inconsistency and throwing an error.
     class InconsistentOp1(cirq.Operation):
-
         def with_qubits(self, *qubits):
             raise NotImplementedError  # coverage: ignore
 
@@ -509,7 +490,6 @@ def test_assert_has_consistent_qid_shape():
             return (1, 2, 3, 4)  # coverage: ignore
 
     class InconsistentOp2(cirq.Operation):
-
         def with_qubits(self, *qubits):
             raise NotImplementedError  # coverage: ignore
 
@@ -524,7 +504,6 @@ def test_assert_has_consistent_qid_shape():
             return (1, 2, 3, 4)  # coverage: ignore
 
     class InconsistentOp3(cirq.Operation):
-
         def with_qubits(self, *qubits):
             raise NotImplementedError  # coverage: ignore
 
@@ -557,9 +536,7 @@ def test_assert_has_consistent_qid_shape():
 
 
 def test_assert_apply_unitary_works_when_axes_transposed_failure():
-
     class BadOp:
-
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
             # Get a more convenient view of the data.
             a, b = args.axes
@@ -585,7 +562,6 @@ def test_assert_apply_unitary_works_when_axes_transposed_failure():
     # Appears to work.
     np.testing.assert_allclose(cirq.unitary(bad_op), np.diag([1, 1j, -1, -1j]))
     # But fails the more discerning test.
-    with pytest.raises(AssertionError,
-                       match='acted differently on out-of-order axes'):
+    with pytest.raises(AssertionError, match='acted differently on out-of-order axes'):
         for _ in range(100):  # Axis orders chosen at random. Brute force a hit.
             _assert_apply_unitary_works_when_axes_transposed(bad_op)

@@ -1,8 +1,9 @@
+version: 2
 build:
   image: latest
 python:
-  version: 3.6
-  pip_install: true
-  extra_requirements:
-      - contrib
-      - dev_env
+  version: 3.8
+  install:
+      - requirements: rtd_docs/requirements.txt
+sphinx:
+  configuration: rtd_docs/conf.py

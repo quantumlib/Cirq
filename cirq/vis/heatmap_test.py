@@ -13,7 +13,9 @@
 # limitations under the License.
 """Tests for Heatmap."""
 
+import pathlib
 import string
+from tempfile import mkdtemp
 
 import numpy as np
 import pytest
@@ -54,15 +56,16 @@ def test_cells_positions(ax, test_GridQubit):
 # Test colormaps are the first one in each category in
 # https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html.
 @pytest.mark.parametrize(
-    'colormap_name',
-    ['viridis', 'Greys', 'binary', 'PiYG', 'twilight', 'Pastel1', 'flag'])
+    'colormap_name', ['viridis', 'Greys', 'binary', 'PiYG', 'twilight', 'Pastel1', 'flag']
+)
 def test_cell_colors(ax, colormap_name):
     qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     values = 1.0 + 2.0 * np.random.random(len(qubits))  # [1, 3)
     test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
     vmin, vmax = 1.5, 2.5
-    random_heatmap = (heatmap.Heatmap(test_value_map).set_colormap(
-        colormap_name, vmin=vmin, vmax=vmax))
+    random_heatmap = heatmap.Heatmap(test_value_map).set_colormap(
+        colormap_name, vmin=vmin, vmax=vmax
+    )
     _, mesh, _ = random_heatmap.plot(ax)
 
     colormap = mpl.cm.get_cmap(colormap_name)
@@ -93,8 +96,9 @@ def test_default_annotation(ax):
             col, row = artist.get_position()
             text = artist.get_text()
             actual_texts.add(((row, col), text))
-    expected_texts = set((qubit, format(float(value), '.2g'))
-                         for qubit, value in test_value_map.items())
+    expected_texts = set(
+        (qubit, format(float(value), '.2g')) for qubit, value in test_value_map.items()
+    )
     assert expected_texts.issubset(actual_texts)
 
 
@@ -103,8 +107,7 @@ def test_annotation_position_and_content(ax, format_string):
     qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     values = np.random.random(len(qubits))
     test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
-    random_heatmap = (
-        heatmap.Heatmap(test_value_map).set_annotation_format(format_string))
+    random_heatmap = heatmap.Heatmap(test_value_map).set_annotation_format(format_string)
     random_heatmap.plot(ax)
     actual_texts = set()
     for artist in ax.get_children():
@@ -112,8 +115,9 @@ def test_annotation_position_and_content(ax, format_string):
             col, row = artist.get_position()
             text = artist.get_text()
             actual_texts.add(((row, col), text))
-    expected_texts = set((qubit, format(value, format_string))
-                         for qubit, value in test_value_map.items())
+    expected_texts = set(
+        (qubit, format(value, format_string)) for qubit, value in test_value_map.items()
+    )
     assert expected_texts.issubset(actual_texts)
 
 
@@ -132,8 +136,7 @@ def test_annotation_map(ax, test_GridQubit):
         for qubit, row_col, anno in zip(qubits, row_col_list, annos)
         if row_col != (1, 6)
     }
-    random_heatmap = (
-        heatmap.Heatmap(test_value_map).set_annotation_map(test_anno_map))
+    random_heatmap = heatmap.Heatmap(test_value_map).set_annotation_map(test_anno_map)
     random_heatmap.plot(ax)
     actual_texts = set()
     for artist in ax.get_children():
@@ -141,17 +144,15 @@ def test_annotation_map(ax, test_GridQubit):
             col, row = artist.get_position()
             assert (row, col) != (1, 6)
             actual_texts.add(((row, col), artist.get_text()))
-    expected_texts = set((row_col, anno)
-                         for row_col, anno in zip(row_col_list, annos)
-                         if row_col != (1, 6))
+    expected_texts = set(
+        (row_col, anno) for row_col, anno in zip(row_col_list, annos) if row_col != (1, 6)
+    )
     assert expected_texts.issubset(actual_texts)
 
 
 @pytest.mark.parametrize('format_string', ['.3e', '.2f', '.4g', 's'])
 def test_non_float_values(ax, format_string):
-
     class Foo:
-
         def __init__(self, value: float, unit: str):
             self.value = value
             self.unit = unit
@@ -169,14 +170,15 @@ def test_non_float_values(ax, format_string):
     values = np.random.random(len(qubits))
     units = np.random.choice([c for c in string.ascii_letters], len(qubits))
     test_value_map = {
-        qubit: Foo(float(value), unit)
-        for qubit, value, unit in zip(qubits, values, units)
+        qubit: Foo(float(value), unit) for qubit, value, unit in zip(qubits, values, units)
     }
     colormap_name = 'viridis'
     vmin, vmax = 0.0, 1.0
-    random_heatmap = (heatmap.Heatmap(test_value_map).set_colormap(
-        colormap_name, vmin=vmin,
-        vmax=vmax).set_annotation_format(format_string))
+    random_heatmap = (
+        heatmap.Heatmap(test_value_map)
+        .set_colormap(colormap_name, vmin=vmin, vmax=vmax)
+        .set_annotation_format(format_string)
+    )
     _, mesh, _ = random_heatmap.plot(ax)
 
     colormap = mpl.cm.get_cmap(colormap_name)
@@ -221,26 +223,77 @@ def test_urls(ax, test_GridQubit):
     my_heatmap = heatmap.Heatmap(test_value_map).set_url_map(test_url_map)
     _, mesh, _ = my_heatmap.plot(ax)
     expected_urls = [
-        test_url_map.get(qubit, '')
-        for row_col, qubit in sorted(zip(row_col_list, qubits))
+        test_url_map.get(qubit, '') for row_col, qubit in sorted(zip(row_col_list, qubits))
     ]
     assert mesh.get_urls() == expected_urls
 
 
-def test_colorbar(ax):
+@pytest.mark.parametrize(
+    'position,size,pad',
+    [
+        ('right', "5%", "2%"),
+        ('right', "5%", "10%"),
+        ('right', "20%", "2%"),
+        ('right', "20%", "10%"),
+        ('left', "5%", "2%"),
+        ('left', "5%", "10%"),
+        ('left', "20%", "2%"),
+        ('left', "20%", "10%"),
+        ('top', "5%", "2%"),
+        ('top', "5%", "10%"),
+        ('top', "20%", "2%"),
+        ('top', "20%", "10%"),
+        ('bottom', "5%", "2%"),
+        ('bottom', "5%", "10%"),
+        ('bottom', "20%", "2%"),
+        ('bottom', "20%", "10%"),
+    ],
+)
+def test_colorbar(ax, position, size, pad):
     qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     values = np.random.random(len(qubits))
     test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
     random_heatmap = heatmap.Heatmap(test_value_map).unset_colorbar()
     fig1, ax1 = plt.subplots()
     random_heatmap.plot(ax1)
-    random_heatmap.set_colorbar()
+    random_heatmap.set_colorbar(position=position, size=size, pad=pad)
     fig2, ax2 = plt.subplots()
     random_heatmap.plot(ax2)
+
+    # We need to call savefig() explicitly for updating axes position since the figure
+    # object has been altered in the HeatMap._plot_colorbar function.
+    tmp_dir = mkdtemp()
+    fig2.savefig(pathlib.Path(tmp_dir) / 'tmp.png')
 
     # Check that the figure has one more object in it when colorbar is on.
     assert len(fig2.get_children()) == len(fig1.get_children()) + 1
 
-    # TODO: Make this is a more thorough test, e.g., we should test that the
-    # position, size and pad arguments are respected.
-    # Github issue: https://github.com/quantumlib/Cirq/issues/2969
+    fig_pos = fig2.get_axes()[0].get_position()
+    colorbar_pos = fig2.get_axes()[1].get_position()
+
+    origin_axes_size = (
+        fig_pos.xmax - fig_pos.xmin
+        if position in ["left", "right"]
+        else fig_pos.ymax - fig_pos.ymin
+    )
+    expected_pad = int(pad.replace("%", "")) / 100 * origin_axes_size
+    expected_size = int(size.replace("%", "")) / 100 * origin_axes_size
+
+    if position == "right":
+        pad_distance = colorbar_pos.xmin - fig_pos.xmax
+        colorbar_size = colorbar_pos.xmax - colorbar_pos.xmin
+    elif position == "left":
+        pad_distance = fig_pos.xmin - colorbar_pos.xmax
+        colorbar_size = colorbar_pos.xmax - colorbar_pos.xmin
+    elif position == "top":
+        pad_distance = colorbar_pos.ymin - fig_pos.ymax
+        colorbar_size = colorbar_pos.ymax - colorbar_pos.ymin
+    elif position == "bottom":
+        pad_distance = fig_pos.ymin - colorbar_pos.ymax
+        colorbar_size = colorbar_pos.ymax - colorbar_pos.ymin
+
+    assert np.isclose(colorbar_size, expected_size)
+    assert np.isclose(pad_distance, expected_pad)
+
+    plt.close(fig1)
+    plt.close(fig2)

@@ -1,0 +1,31 @@
+{
+  "cirq_type": "MutablePauliString",
+  "pauli_int_dict": [
+    [
+      {
+        "cirq_type": "LineQubit",
+        "x": 0
+      },
+      1
+    ],
+    [
+      {
+        "cirq_type": "LineQubit",
+        "x": 1
+      },
+      2
+    ],
+    [
+      {
+        "cirq_type": "LineQubit",
+        "x": 2
+      },
+      3
+    ]
+  ],
+  "coefficient": {
+    "cirq_type": "complex",
+    "real": 0.0,
+    "imag": 2.0
+  }
+}

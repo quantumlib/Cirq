@@ -1,10 +1,10 @@
-## Development
+# Contribute
 
 This document is a summary of how to do various tasks one runs into as a developer of Cirq.
 Note that all commands assume a Debian environment, and all commands (except the initial repository cloning command) assume your current working directory is the cirq repo root.
 
 
-### Cloning the repository
+## Cloning the repository
 
 The simplest way to get a local copy of cirq that you can edit is by cloning Cirq's github repository:
 
@@ -24,45 +24,50 @@ If you want to contribute changes to Cirq, you will instead want to fork the rep
 
 
 
-### Forking the repository
+## Forking the repository
 
 1. Fork the Cirq repo (Fork button in upper right corner of
 [repo page](https://github.com/quantumlib/Cirq)).
 Forking creates a new github repo at the location
-```https://github.com/USERNAME/cirq``` where ```USERNAME``` is
+https://github.com/USERNAME/cirq where `USERNAME` is
 your github id.
 1. Clone the fork you created to your local machine at the directory
 where you would like to store your local copy of the code, and `cd` into the newly created directory.
-    ```bash
+    
+   ```bash
     git clone git@github.com:USERNAME/cirq.git
     cd Cirq
-    ```
-    (Alternatively, you can clone the repository using the URL provided
-    on your repo page under the green "Clone or Download" button)
+   ```
+   (Alternatively, you can clone the repository using the URL provided on your repo page under the green "Clone or Download" button)
 1. Add a remote called ```upstream``` to git.
 This remote will represent the main git repo for cirq (as opposed to the clone, which you just created, which will be the ```origin``` remote). 
 This remote can be used to merge changes from Cirq's main repository into your local development copy.
+   
     ```shell
     git remote add upstream https://github.com/quantumlib/cirq.git
     ```
-    To verify the remote, run ```git remote -v```.
-    You should see both the ```origin``` and ```upstream``` remotes.
+   
+    To verify the remote, run ```git remote -v```. You should see both the ```origin``` and ```upstream``` remotes.
 1. Sync up your local git with the ```upstream``` remote:
+   
     ```shell
     git fetch upstream
     ```
+   
     You can check the branches that are on the ```upstream``` remote by
     running ```git remote -va``` or ```git branch -r```.
 Most importantly you should see ```upstream/master``` listed.
 1. Merge the upstream master into your local master so that it is up to date.
-    ```shell
+    
+   ```shell
     git checkout master
     git merge upstream/master
-    ```
-    At this point your local git master should be synced with the master from the main cirq repo.
+   ```
+    
+At this point your local git master should be synced with the master from the main cirq repo.
 
 
-### Setting up an environment
+## Setting up an environment
 
 0. First clone the repository, if you have not already done so.
 See the previous section for instructions.
@@ -112,7 +117,7 @@ See the previous section for instructions.
     add2virtualenv ./
     ```
 
-### Protocol buffers
+## Protocol buffers
 
 [Protocol buffers](https://developers.google.com/protocol-buffers) are used in Cirq for converting circuits, gates, and other objects into a standard form that can be written and read by other programs.
 Cirq's protobufs live at [cirq/api/google](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google) and may need to be changed or extended from time to time.
@@ -124,7 +129,7 @@ Additionally, for workflows that use bazel (relevant for C/C++ code depending on
 These rules live in the BUILD files [here](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google/v1) and [here](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google/v2).
 Downstream projects should load Cirq as an [external dependency](https://docs.bazel.build/versions/master/external.html), allowing rules from those BUILD files to be used directly.
 
-### Continuous integration and local testing
+## Continuous integration and local testing
 
 There are a few options for running continuous integration checks, varying from easy and fast to slow and reliable.
 
@@ -266,16 +271,17 @@ def some_method(a: int, b: str) -> float:
     """
 ```
 
-Documentation is generated automatically by readthedocs when pushing to `master`, but you can also generated a local copy by running:
+Currently the docs folder serves two sites: the new site that is under construction and the current site that is deployed to readthedocs.io. 
+The new site is currently not available for preview just yet. For the current site, documentation is generated automatically by readthedocs when pushing to `master`, but you can also generate a local copy by running:
 
 ```bash
-dev_tools/build-docs.sh
+dev_tools/docs/build-rtd-docs.sh
 ```
 
-The HTML output will go into the `docs/_build` directory.
+The HTML output will go into the `dev_tools/rtd_docs/sphinx/_build` directory.
 
 
-### Producing a pypi package
+## Producing a pypi package
 
 1. Do a dry run with test pypi.
 

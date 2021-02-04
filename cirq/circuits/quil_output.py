@@ -27,7 +27,7 @@ def to_quil_complex_format(num) -> str:
 @value.value_equality(approximate=True)
 class QuilOneQubitGate(ops.SingleQubitGate):
     """A QUIL gate representing any single qubit unitary with a DEFGATE and
-        2x2 matrix in QUIL.
+    2x2 matrix in QUIL.
     """
 
     def __init__(self, matrix: np.ndarray) -> None:
@@ -37,18 +37,18 @@ class QuilOneQubitGate(ops.SingleQubitGate):
         """
         self.matrix = matrix
 
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
-               formatter: 'cirq.QuilFormatter') -> str:
-        return (f'DEFGATE USERGATE:\n    '
-                f'{to_quil_complex_format(self.matrix[0, 0])}, '
-                f'{to_quil_complex_format(self.matrix[0, 1])}\n    '
-                f'{to_quil_complex_format(self.matrix[1, 0])}, '
-                f'{to_quil_complex_format(self.matrix[1, 1])}\n'
-                f'{formatter.format("USERGATE {0}", qubits[0])}\n')
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter') -> str:
+        return (
+            f'DEFGATE USERGATE:\n    '
+            f'{to_quil_complex_format(self.matrix[0, 0])}, '
+            f'{to_quil_complex_format(self.matrix[0, 1])}\n    '
+            f'{to_quil_complex_format(self.matrix[1, 0])}, '
+            f'{to_quil_complex_format(self.matrix[1, 1])}\n'
+            f'{formatter.format("USERGATE {0}", qubits[0])}\n'
+        )
 
     def __repr__(self) -> str:
-        return (f'cirq.circuits.quil_output.QuilOneQubitGate(matrix=\n'
-                f'{self.matrix}\n)')
+        return f'cirq.circuits.quil_output.QuilOneQubitGate(matrix=\n{self.matrix}\n)'
 
     def _value_equality_values_(self):
         return self.matrix
@@ -70,8 +70,7 @@ class QuilTwoQubitGate(ops.TwoQubitGate):
     def _value_equality_values_(self):
         return self.matrix
 
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
-               formatter: 'cirq.QuilFormatter') -> str:
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter') -> str:
         return (
             f'DEFGATE USERGATE:\n    '
             f'{to_quil_complex_format(self.matrix[0, 0])}, '
@@ -90,11 +89,11 @@ class QuilTwoQubitGate(ops.TwoQubitGate):
             f'{to_quil_complex_format(self.matrix[3, 1])}, '
             f'{to_quil_complex_format(self.matrix[3, 2])}, '
             f'{to_quil_complex_format(self.matrix[3, 3])}\n'
-            f'{formatter.format("USERGATE {0} {1}", qubits[0], qubits[1])}\n')
+            f'{formatter.format("USERGATE {0} {1}", qubits[0], qubits[1])}\n'
+        )
 
     def __repr__(self) -> str:
-        return (f'cirq.circuits.quil_output.QuilTwoQubitGate(matrix=\n'
-                f'{self.matrix}\n)')
+        return f'cirq.circuits.quil_output.QuilTwoQubitGate(matrix=\n{self.matrix}\n)'
 
 
 class QuilOutput:
@@ -103,8 +102,7 @@ class QuilOutput:
     circuit.
     """
 
-    def __init__(self, operations: 'cirq.OP_TREE',
-                 qubits: Tuple['cirq.Qid', ...]) -> None:
+    def __init__(self, operations: 'cirq.OP_TREE', qubits: Tuple['cirq.Qid', ...]) -> None:
         """
         Args:
             operations: A list or tuple of `cirq.OP_TREE` arguments.
@@ -112,13 +110,14 @@ class QuilOutput:
         """
         self.qubits = qubits
         self.operations = tuple(cirq.ops.flatten_to_ops(operations))
-        self.measurements = tuple(op for op in self.operations
-                                  if isinstance(op.gate, ops.MeasurementGate))
+        self.measurements = tuple(
+            op for op in self.operations if isinstance(op.gate, ops.MeasurementGate)
+        )
         self.qubit_id_map = self._generate_qubit_ids()
         self.measurement_id_map = self._generate_measurement_ids()
         self.formatter = protocols.QuilFormatter(
-            qubit_id_map=self.qubit_id_map,
-            measurement_id_map=self.measurement_id_map)
+            qubit_id_map=self.qubit_id_map, measurement_id_map=self.measurement_id_map
+        )
 
     def _generate_qubit_ids(self) -> Dict['cirq.Qid', str]:
         return {qubit: str(i) for i, qubit in enumerate(self.qubits)}
@@ -154,8 +153,9 @@ class QuilOutput:
                 if key in measurements_declared:
                     continue
                 measurements_declared.add(key)
-                output_func('DECLARE {} BIT[{}]\n'.format(
-                    self.measurement_id_map[key], len(m.qubits)))
+                output_func(
+                    'DECLARE {} BIT[{}]\n'.format(self.measurement_id_map[key], len(m.qubits))
+                )
             output_func('\n')
 
         def keep(op: 'cirq.Operation') -> bool:
@@ -178,18 +178,15 @@ class QuilOutput:
             return QuilTwoQubitGate(mat).on(*op.qubits)
 
         def on_stuck(bad_op):
-            return ValueError(
-                'Cannot output operation as QUIL: {!r}'.format(bad_op))
+            return ValueError('Cannot output operation as QUIL: {!r}'.format(bad_op))
 
         for main_op in self.operations:
-            decomposed = protocols.decompose(main_op,
-                                             keep=keep,
-                                             fallback_decomposer=fallback,
-                                             on_stuck_raise=on_stuck)
+            decomposed = protocols.decompose(
+                main_op, keep=keep, fallback_decomposer=fallback, on_stuck_raise=on_stuck
+            )
 
             for decomposed_op in decomposed:
-                output_func(
-                    protocols.quil(decomposed_op, formatter=self.formatter))
+                output_func(protocols.quil(decomposed_op, formatter=self.formatter))
 
     def rename_defgates(self, output: str) -> str:
         """A function for renaming the DEFGATEs within the QUIL output. This
@@ -216,7 +213,7 @@ class QuilOutput:
                 gateNum += 1
                 defIdx = 0
             if nameIdx == len(nameString):
-                result = result[:i + 1] + str(gateNum) + result[i + 1:]
+                result = result[: i + 1] + str(gateNum) + result[i + 1 :]
                 nameIdx = 0
                 i += 1
             i += 1

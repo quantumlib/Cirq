@@ -12,11 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Union
+from typing import AbstractSet, Any, TYPE_CHECKING, Union
 
 import sympy
 
 from cirq._compat import proper_repr
+
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class PeriodicValue:
@@ -57,10 +61,11 @@ class PeriodicValue:
         """Implementation of `SupportsApproximateEquality` protocol."""
         # HACK: Avoids circular dependencies.
         from cirq.protocols import approx_eq
+
         if not isinstance(other, type(self)):
             return NotImplemented
 
-        #self.value = value % period in __init__() creates a Mod
+        # self.value = value % period in __init__() creates a Mod
         if isinstance(other.value, sympy.Mod):
             return self.value == other.value
         # Periods must be exactly equal to avoid drift of normalized value when
@@ -86,4 +91,22 @@ class PeriodicValue:
     def _is_parameterized_(self) -> bool:
         # HACK: Avoids circular dependencies.
         from cirq.protocols import is_parameterized
-        return any(is_parameterized(val) for val in (self.value, self.period))
+
+        return is_parameterized(self.value) or is_parameterized(self.period)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        # HACK: Avoids circular dependencies.
+        from cirq.protocols import parameter_names
+
+        return parameter_names(self.value) | parameter_names(self.period)
+
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
+    ) -> 'PeriodicValue':
+        # HACK: Avoids circular dependencies.
+        from cirq.protocols import resolve_parameters
+
+        return PeriodicValue(
+            value=resolve_parameters(self.value, resolver, recursive),
+            period=resolve_parameters(self.period, resolver, recursive),
+        )

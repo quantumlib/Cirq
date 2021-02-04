@@ -56,11 +56,8 @@ class ConvertToXmonGates(PointOptimizer):
             return [g.on(op.qubits[0]) for g in gates]
         if mat is not None and len(op.qubits) == 2:
             return optimizers.two_qubit_matrix_to_operations(
-                op.qubits[0],
-                op.qubits[1],
-                mat,
-                allow_partial_czs=True,
-                clean_operations=False)
+                op.qubits[0], op.qubits[1], mat, allow_partial_czs=True, clean_operations=False
+            )
 
         return NotImplemented
 
@@ -74,28 +71,30 @@ class ConvertToXmonGates(PointOptimizer):
             True if the operation is native to the xmon, false otherwise.
         """
         from cirq.google.devices import XmonDevice
-        return (isinstance(op, ops.GateOperation) and
-                XmonDevice.is_supported_gate(op.gate))
+
+        return isinstance(op, ops.GateOperation) and XmonDevice.is_supported_gate(op.gate)
 
     def convert(self, op: 'cirq.Operation') -> List['cirq.Operation']:
-
         def on_stuck_raise(bad):
-            return TypeError("Don't know how to work with {!r}. "
-                             "It isn't a native xmon operation, "
-                             "a 1 or 2 qubit gate with a known unitary, "
-                             "or composite.".format(bad))
+            return TypeError(
+                "Don't know how to work with {!r}. "
+                "It isn't a native xmon operation, "
+                "a 1 or 2 qubit gate with a known unitary, "
+                "or composite.".format(bad)
+            )
 
         return protocols.decompose(
             op,
             keep=self._is_native_xmon_op,
             intercepting_decomposer=self._convert_one,
-            on_stuck_raise=None if self.ignore_failures else on_stuck_raise)
+            on_stuck_raise=None if self.ignore_failures else on_stuck_raise,
+        )
 
     def optimization_at(self, circuit, index, op):
         converted = self.convert(op)
         if len(converted) == 1 and converted[0] is op:
             return None
 
-        return PointOptimizationSummary(clear_span=1,
-                                        new_operations=converted,
-                                        clear_qubits=op.qubits)
+        return PointOptimizationSummary(
+            clear_span=1, new_operations=converted, clear_qubits=op.qubits
+        )

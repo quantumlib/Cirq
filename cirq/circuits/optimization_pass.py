@@ -13,8 +13,7 @@
 # limitations under the License.
 
 """Defines the OptimizationPass type."""
-from typing import (Dict, Callable, Iterable, Optional, Sequence, TYPE_CHECKING,
-                    Tuple, cast)
+from typing import Dict, Callable, Iterable, Optional, Sequence, TYPE_CHECKING, Tuple, cast
 
 import abc
 from collections import defaultdict
@@ -30,11 +29,13 @@ if TYPE_CHECKING:
 class PointOptimizationSummary:
     """A description of a local optimization to perform."""
 
-    def __init__(self,
-                 clear_span: int,
-                 clear_qubits: Iterable['cirq.Qid'],
-                 new_operations: 'cirq.OP_TREE',
-                 preserve_moments: bool = False) -> None:
+    def __init__(
+        self,
+        clear_span: int,
+        clear_qubits: Iterable['cirq.Qid'],
+        new_operations: 'cirq.OP_TREE',
+        preserve_moments: bool = False,
+    ) -> None:
         """
         Args:
             clear_span: Defines the range of moments to affect. Specifically,
@@ -53,39 +54,44 @@ class PointOptimizationSummary:
                 see https://github.com/quantumlib/Cirq/issues/2406.
         """
         self.new_operations = tuple(
-            ops.flatten_op_tree(new_operations,
-                                preserve_moments=preserve_moments))
+            ops.flatten_op_tree(new_operations, preserve_moments=preserve_moments)
+        )
         self.clear_span = clear_span
         self.clear_qubits = tuple(clear_qubits)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return (self.clear_span == other.clear_span and
-                self.clear_qubits == other.clear_qubits and
-                self.new_operations == other.new_operations)
+        return (
+            self.clear_span == other.clear_span
+            and self.clear_qubits == other.clear_qubits
+            and self.new_operations == other.new_operations
+        )
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self) -> int:
-        return hash((PointOptimizationSummary,
-                     self.clear_span,
-                     self.clear_qubits,
-                     self.new_operations))
+        return hash(
+            (PointOptimizationSummary, self.clear_span, self.clear_qubits, self.new_operations)
+        )
 
     def __repr__(self) -> str:
-        return (f'cirq.PointOptimizationSummary({self.clear_span!r}, '
-                f'{self.clear_qubits!r}, {self.new_operations!r})')
+        return (
+            f'cirq.PointOptimizationSummary({self.clear_span!r}, '
+            f'{self.clear_qubits!r}, {self.new_operations!r})'
+        )
 
 
 class PointOptimizer:
     """Makes circuit improvements focused on a specific location."""
 
-    def __init__(self,
-                 post_clean_up: Callable[[Sequence['cirq.Operation']], ops.
-                                         OP_TREE] = lambda op_list: op_list
-                ) -> None:
+    def __init__(
+        self,
+        post_clean_up: Callable[
+            [Sequence['cirq.Operation']], ops.OP_TREE
+        ] = lambda op_list: op_list,
+    ) -> None:
         """
         Args:
             post_clean_up: This function is called on each set of optimized
@@ -98,8 +104,9 @@ class PointOptimizer:
         return self.optimize_circuit(circuit)
 
     @abc.abstractmethod
-    def optimization_at(self, circuit: Circuit, index: int, op: 'cirq.Operation'
-                       ) -> Optional[PointOptimizationSummary]:
+    def optimization_at(
+        self, circuit: Circuit, index: int, op: 'cirq.Operation'
+    ) -> Optional[PointOptimizationSummary]:
         """Describes how to change operations near the given location.
 
         For example, this method could realize that the given operation is an
@@ -141,10 +148,9 @@ class PointOptimizer:
 
                 # Clear target area, and insert new operations.
                 circuit.clear_operations_touching(
-                    opt.clear_qubits,
-                    [e for e in range(i, i + opt.clear_span)])
-                new_operations = self.post_clean_up(
-                    cast(Tuple[ops.Operation], opt.new_operations))
+                    opt.clear_qubits, [e for e in range(i, i + opt.clear_span)]
+                )
+                new_operations = self.post_clean_up(cast(Tuple[ops.Operation], opt.new_operations))
 
                 flat_new_operations = tuple(ops.flatten_to_ops(new_operations))
 
@@ -155,8 +161,8 @@ class PointOptimizer:
 
                 if not new_qubits.issubset(set(opt.clear_qubits)):
                     raise ValueError(
-                        'New operations in PointOptimizer should not act on new'
-                        ' qubits.')
+                        'New operations in PointOptimizer should not act on new qubits.'
+                    )
 
                 circuit.insert_at_frontier(flat_new_operations, i, frontier)
             i += 1

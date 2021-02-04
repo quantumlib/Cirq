@@ -6,7 +6,7 @@ themselves are created. Note that development is done on the `master`
 branch, so if you want to use a more stable version you should use one
 of the [releases](https://github.com/quantumlib/Cirq/releases) or
 install from pypi using `pip install cirq`.  The release from the
-latest commit to master can be installed with `pip install cirq-unstable`.
+latest commit to master can be installed with `pip install --pre cirq`.
 
 ## Versioning
 
@@ -215,7 +215,7 @@ Using the information above, create the release on the
 [Release page](https://github.com/quantumlib/Cirq/releases).
 Be sure to include the whl file as an attachment.
 
-### Email cirq-announe
+### Email cirq-announce
 
 Lastly, email cirq-announce@googlegroups.com with the release notes
 and an announcement of the new version.

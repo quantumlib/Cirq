@@ -26,36 +26,38 @@ def test_timeslot_equality():
     end = datetime.datetime.fromtimestamp(1582596000)
     eq = cirq.testing.equals_tester.EqualsTester()
     eq.add_equality_group(
-        cg.EngineTimeSlot(processor_id='raining',
-                          start_time=start,
-                          end_time=end),
-        cg.EngineTimeSlot(processor_id='raining',
-                          start_time=start,
-                          end_time=end),
-        cg.EngineTimeSlot(processor_id='raining',
-                          start_time=start,
-                          end_time=end,
-                          slot_type=enums.QuantumTimeSlot.TimeSlotType.
-                          TIME_SLOT_TYPE_UNSPECIFIED))
+        cg.EngineTimeSlot(processor_id='raining', start_time=start, end_time=end),
+        cg.EngineTimeSlot(processor_id='raining', start_time=start, end_time=end),
+        cg.EngineTimeSlot(
+            processor_id='raining',
+            start_time=start,
+            end_time=end,
+            slot_type=enums.QuantumTimeSlot.TimeSlotType.TIME_SLOT_TYPE_UNSPECIFIED,
+        ),
+    )
     eq.add_equality_group(
-        cg.EngineTimeSlot(processor_id='raining',
-                          start_time=start,
-                          end_time=end,
-                          project_id='123456'))
+        cg.EngineTimeSlot(
+            processor_id='raining', start_time=start, end_time=end, project_id='123456'
+        )
+    )
     eq.add_equality_group(
         cg.EngineTimeSlot(
             processor_id='raining',
             start_time=start,
             end_time=end,
             slot_type=enums.QuantumTimeSlot.TimeSlotType.RESERVATION,
-            project_id='123456'))
+            project_id='123456',
+        )
+    )
     eq.add_equality_group(
         cg.EngineTimeSlot(
             processor_id='raining',
             start_time=start,
             end_time=end,
             slot_type=enums.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
-            project_id='123456'))
+            project_id='123456',
+        )
+    )
     eq.add_equality_group(
         cg.EngineTimeSlot(
             processor_id='raining',
@@ -64,7 +66,9 @@ def test_timeslot_equality():
             slot_type=enums.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
             project_id='123456',
             maintenance_title='Testing',
-            maintenance_description='Testing some new configuration.'))
+            maintenance_description='Testing some new configuration.',
+        )
+    )
 
 
 def test_from_to_proto_plain():
@@ -95,7 +99,8 @@ def test_from_to_proto_reservation():
         end_time=Timestamp(seconds=1500010000),
         slot_type=slot,
         reservation_config=qtypes.QuantumTimeSlot.ReservationConfig(
-            project_id='super_secret_quantum'),
+            project_id='super_secret_quantum'
+        ),
     )
     time_slot = cg.EngineTimeSlot(
         processor_id='potofgold',

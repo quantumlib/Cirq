@@ -61,7 +61,9 @@ _CALIBRATION_DATA = Merge(
             int32_val: 12300
         }]
     }]
-""", v2.metrics_pb2.MetricsSnapshot())
+""",
+    v2.metrics_pb2.MetricsSnapshot(),
+)
 
 
 def test_calibration_metrics_dictionary():
@@ -71,7 +73,7 @@ def test_calibration_metrics_dictionary():
     assert t1s == {
         (cirq.GridQubit(0, 0),): [321],
         (cirq.GridQubit(0, 1),): [911],
-        (cirq.GridQubit(1, 0),): [505]
+        (cirq.GridQubit(1, 0),): [505],
     }
     assert len(calibration) == 3
 
@@ -90,17 +92,60 @@ def test_calibration_metrics_dictionary():
 
 def test_calibration_str():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    assert str(calibration) == ("Calibration(keys=['globalMetric', 't1', "
-                                "'xeb'])")
+    assert str(calibration) == "Calibration(keys=['globalMetric', 't1', 'xeb'])"
+
+
+def test_calibration_repr():
+    calibration = cg.Calibration(_CALIBRATION_DATA)
+    cirq.testing.assert_equivalent_repr(calibration)
 
 
 def test_calibration_timestamp_str():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    assert (calibration.timestamp_str(
-        tz=datetime.timezone.utc) == '2019-07-08 00:00:00.021021+00:00')
-    assert (calibration.timestamp_str(
-        tz=datetime.timezone(datetime.timedelta(
-            hours=1))) == '2019-07-08 01:00:00.021021+01:00')
+    assert calibration.timestamp_str(tz=datetime.timezone.utc) == '2019-07-08 00:00:00.021021+00:00'
+    assert (
+        calibration.timestamp_str(tz=datetime.timezone(datetime.timedelta(hours=1)))
+        == '2019-07-08 01:00:00.021021+01:00'
+    )
+
+
+def test_to_proto():
+    calibration = cg.Calibration(_CALIBRATION_DATA)
+    assert calibration == cg.Calibration(calibration.to_proto())
+    invalid_value = cg.Calibration(metrics={'metric': {(cirq.GridQubit(1, 1),): [1.1, {}]}})
+    with pytest.raises(ValueError, match='Unsupported metric value'):
+        invalid_value.to_proto()
+
+
+def test_value_to_float():
+    assert cg.Calibration.value_to_float([1.1]) == 1.1
+    assert cg.Calibration.value_to_float([0.7, 0.5]) == 0.7
+    assert cg.Calibration.value_to_float([7]) == 7
+
+    with pytest.raises(ValueError, match='was empty'):
+        cg.Calibration.value_to_float([])
+    with pytest.raises(ValueError, match='could not convert string to float'):
+        cg.Calibration.value_to_float(['went for a walk'])
+
+
+def test_calibrations_with_string_key():
+    calibration = cg.Calibration(metrics={'metric1': {('alpha',): [0.1]}})
+    expected_proto = Merge(
+        """
+        metrics: [{
+          name: 'metric1'
+          targets: ['alpha']
+          values: [{double_val: 0.1}]
+        }]
+    """,
+        v2.metrics_pb2.MetricsSnapshot(),
+    )
+    assert expected_proto == calibration.to_proto()
+    assert calibration == cg.Calibration(expected_proto)
+    assert calibration == cg.Calibration(calibration.to_proto())
+
+    with pytest.raises(ValueError, match='was not a qubit'):
+        calibration.key_to_qubit('alpha')
 
 
 def test_calibration_heatmap():

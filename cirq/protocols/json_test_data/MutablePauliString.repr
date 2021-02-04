@@ -1,0 +1,1 @@
+cirq.MutablePauliString(2j, {cirq.LineQubit(0): 'X', cirq.LineQubit(1): 'Y', cirq.LineQubit(2): 'Z'})

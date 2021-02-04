@@ -24,6 +24,7 @@ def test_single_qubit_gate_validate_args():
     class Dummy(cirq.SingleQubitGate):
         def matrix(self):
             pass
+
     g = Dummy()
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
@@ -41,6 +42,7 @@ def test_single_qubit_gate_validates_on_each():
     class Dummy(cirq.SingleQubitGate):
         def matrix(self):
             pass
+
     g = Dummy()
     assert g.num_qubits() == 1
 
@@ -60,6 +62,7 @@ def test_single_qubit_validates_on():
     class Dummy(cirq.SingleQubitGate):
         def matrix(self):
             pass
+
     g = Dummy()
     assert g.num_qubits() == 1
 
@@ -76,8 +79,7 @@ def test_two_qubit_gate_is_abstract_can_implement():
         def matrix(self):
             pass
 
-    assert isinstance(Included(),
-                      cirq.TwoQubitGate)
+    assert isinstance(Included(), cirq.TwoQubitGate)
 
 
 def test_two_qubit_gate_validate_pass():
@@ -138,6 +140,7 @@ def test_three_qubit_gate_validate():
 def test_on_each():
     class CustomGate(cirq.SingleQubitGate):
         pass
+
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = CustomGate()
@@ -183,10 +186,11 @@ def test_qasm_output_args_format():
     m_a = cirq.measure(a, key='meas_a')
     m_b = cirq.measure(b, key='meas_b')
     args = cirq.QasmArgs(
-                    precision=4,
-                    version='2.0',
-                    qubit_id_map={a: 'aaa[0]', b: 'bbb[0]'},
-                    meas_key_id_map={'meas_a': 'm_a', 'meas_b': 'm_b'})
+        precision=4,
+        version='2.0',
+        qubit_id_map={a: 'aaa[0]', b: 'bbb[0]'},
+        meas_key_id_map={'meas_a': 'm_a', 'meas_b': 'm_b'},
+    )
 
     assert args.format('_{0}_', a) == '_aaa[0]_'
     assert args.format('_{0}_', b) == '_bbb[0]_'
@@ -205,7 +209,6 @@ def test_qasm_output_args_format():
 
 def test_multi_qubit_gate_validate():
     class Dummy(cirq.Gate):
-
         def num_qubits(self) -> int:
             return self._num_qubits
 
@@ -229,9 +232,7 @@ def test_multi_qubit_gate_validate():
 
 
 def test_on_each_iterable_qid():
-
     class QidIter(cirq.Qid):
-
         @property
         def dimension(self) -> int:
             return 2

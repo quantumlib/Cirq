@@ -1,0 +1,27 @@
+{
+  "cirq_type": "ProductState",
+  "states": [
+    [
+      {
+        "cirq_type": "GridQubit",
+        "row": 5,
+        "col": 2
+      },
+      {
+        "cirq_type": "_ZEigenState",
+        "eigenvalue": 1
+      }
+    ],
+    [
+      {
+        "cirq_type": "GridQubit",
+        "row": 7,
+        "col": 8
+      },
+      {
+        "cirq_type": "_XEigenState",
+        "eigenvalue": -1
+      }
+    ]
+  ]
+}

@@ -12,16 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Any, Sequence, Tuple, TypeVar, Union
+from typing import Any, Sequence, Tuple, TypeVar, Union
 
 from typing_extensions import Protocol
 
 from cirq import ops
-from cirq._doc import document
+from cirq._doc import document, doc_private
 from cirq.type_workarounds import NotImplementedType
-
-if TYPE_CHECKING:
-    import cirq
 
 # This is a special indicator value used by the methods to determine whether or
 # not the caller provided a 'default' argument. It must be of type
@@ -30,7 +27,7 @@ if TYPE_CHECKING:
 # user provides a different (0,) value.
 RaiseTypeErrorIfNotProvided = (0,)  # type: Any
 # Equal integers outside the range [-5, 256] aren't identically equal with `is`.
-RaiseTypeErrorIfNotProvidedInt = -2**512  # type: Any
+RaiseTypeErrorIfNotProvidedInt = -(2 ** 512)  # type: Any
 
 TDefault = TypeVar('TDefault')
 
@@ -39,7 +36,7 @@ class SupportsExplicitQidShape(Protocol):
     """A unitary, channel, mixture or other object that operates on a known
     number qubits/qudits/qids, each with a specific number of quantum levels."""
 
-    @document
+    @doc_private
     def _qid_shape_(self) -> Union[Tuple[int, ...], NotImplementedType]:
         """A tuple specifying the number of quantum levels of each qid this
         object operates on, e.g. (2, 2, 2) for a three-qubit gate.
@@ -81,8 +78,9 @@ class SupportsExplicitNumQubits(Protocol):
         """
 
 
-def qid_shape(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
-             ) -> Union[Tuple[int, ...], TDefault]:
+def qid_shape(
+    val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
+) -> Union[Tuple[int, ...], TDefault]:
     """Returns a tuple describing the number of quantum levels of each
     qubit/qudit/qid `val` operates on.
 
@@ -124,17 +122,23 @@ def qid_shape(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
         return default
 
     if getter is not None:
-        raise TypeError("object of type '{}' does have a _qid_shape_ method, "
-                        "but it returned NotImplemented.".format(type(val)))
+        raise TypeError(
+            "object of type '{}' does have a _qid_shape_ method, "
+            "but it returned NotImplemented.".format(type(val))
+        )
     if num_getter is not None:
-        raise TypeError("object of type '{}' does have a _num_qubits_ method, "
-                        "but it returned NotImplemented.".format(type(val)))
-    raise TypeError("object of type '{}' has no _num_qubits_ or _qid_shape_ "
-                    "methods.".format(type(val)))
+        raise TypeError(
+            "object of type '{}' does have a _num_qubits_ method, "
+            "but it returned NotImplemented.".format(type(val))
+        )
+    raise TypeError(
+        "object of type '{}' has no _num_qubits_ or _qid_shape_ methods.".format(type(val))
+    )
 
 
-def num_qubits(val: Any, default: TDefault = RaiseTypeErrorIfNotProvidedInt
-              ) -> Union[int, TDefault]:
+def num_qubits(
+    val: Any, default: TDefault = RaiseTypeErrorIfNotProvidedInt
+) -> Union[int, TDefault]:
     """Returns the number of qubits, qudits, or qids `val` operates on.
 
     Args:
@@ -175,10 +179,15 @@ def num_qubits(val: Any, default: TDefault = RaiseTypeErrorIfNotProvidedInt
         return default
 
     if num_getter is not None:
-        raise TypeError("object of type '{}' does have a _num_qubits_ method, "
-                        "but it returned NotImplemented.".format(type(val)))
+        raise TypeError(
+            "object of type '{}' does have a _num_qubits_ method, "
+            "but it returned NotImplemented.".format(type(val))
+        )
     if getter is not None:
-        raise TypeError("object of type '{}' does have a _qid_shape_ method, "
-                        "but it returned NotImplemented.".format(type(val)))
-    raise TypeError("object of type '{}' has no _num_qubits_ or _qid_shape_ "
-                    "methods.".format(type(val)))
+        raise TypeError(
+            "object of type '{}' does have a _qid_shape_ method, "
+            "but it returned NotImplemented.".format(type(val))
+        )
+    raise TypeError(
+        "object of type '{}' has no _num_qubits_ or _qid_shape_ methods.".format(type(val))
+    )

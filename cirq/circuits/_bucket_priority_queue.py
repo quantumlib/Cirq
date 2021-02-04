@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, Generic, Iterable, Iterator, List, Optional, Set,
-                    Tuple, TypeVar)
+from typing import Any, Generic, Iterable, Iterator, List, Optional, Set, Tuple, TypeVar
 
 
 TItem = TypeVar('TItem')
@@ -38,10 +37,9 @@ class BucketPriorityQueue(Generic[TItem]):
     use the worst case runtime complexity is O(N*P).
     """
 
-    def __init__(self,
-                 entries: Iterable[Tuple[int, TItem]] = (),
-                 *,
-                 drop_duplicate_entries: bool=False):
+    def __init__(
+        self, entries: Iterable[Tuple[int, TItem]] = (), *, drop_duplicate_entries: bool = False
+    ):
         """Initializes a new priority queue.
 
         Args:
@@ -54,8 +52,7 @@ class BucketPriorityQueue(Generic[TItem]):
         self._buckets: List[List[TItem]] = []
         self._offset = 0
         self._len = 0
-        self._drop_set: Optional[Set[Tuple[int, TItem]]] = (
-            set() if drop_duplicate_entries else None)
+        self._drop_set: Optional[Set[Tuple[int, TItem]]] = set() if drop_duplicate_entries else None
 
         for p, e in entries:
             self.enqueue(p, e)
@@ -157,26 +154,26 @@ class BucketPriorityQueue(Generic[TItem]):
         return priority, item
 
     def __str__(self) -> str:
-        lines = [
-            '{}: {},'.format(p, e)
-            for p, e in self
-        ]
+        lines = ['{}: {},'.format(p, e) for p, e in self]
         return 'BucketPriorityQueue {' + _indent(lines) + '\n}'
 
     def __repr__(self) -> str:
         entries = list(self)
         drop_duplicate_entries = self._drop_set is not None
-        return ('cirq.circuits._bucket_priority_queue.BucketPriorityQueue('
-                f'entries={entries!r}, '
-                f'drop_duplicate_entries={drop_duplicate_entries})')
+        return (
+            'cirq.circuits._bucket_priority_queue.BucketPriorityQueue('
+            f'entries={entries!r}, '
+            f'drop_duplicate_entries={drop_duplicate_entries})'
+        )
 
     __hash__ = None  # type: ignore
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return (self.drop_duplicate_entries == other.drop_duplicate_entries and
-                list(self) == list(other))
+        return self.drop_duplicate_entries == other.drop_duplicate_entries and list(self) == list(
+            other
+        )
 
     def __ne__(self, other):
         return not self == other

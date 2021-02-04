@@ -26,27 +26,27 @@ def test_equality():
 
     eq = EqualsTester()
 
-    eq.make_equality_group(lambda: PointOptimizationSummary(clear_span=0,
-                                                            clear_qubits=[],
-                                                            new_operations=[]))
-    eq.add_equality_group(PointOptimizationSummary(clear_span=1,
-                                                   clear_qubits=[a],
-                                                   new_operations=[]))
-    eq.add_equality_group(PointOptimizationSummary(clear_span=1,
-                                                   clear_qubits=[a],
-                                                   new_operations=[xa]))
-    eq.add_equality_group(PointOptimizationSummary(clear_span=1,
-                                                   clear_qubits=[a, b],
-                                                   new_operations=[xa]))
-    eq.add_equality_group(PointOptimizationSummary(clear_span=2,
-                                                   clear_qubits=[a],
-                                                   new_operations=[xa]))
-    eq.add_equality_group(PointOptimizationSummary(clear_span=1,
-                                                   clear_qubits=[a],
-                                                   new_operations=[ya]))
-    eq.add_equality_group(PointOptimizationSummary(clear_span=1,
-                                                   clear_qubits=[a],
-                                                   new_operations=[xa, xa]))
+    eq.make_equality_group(
+        lambda: PointOptimizationSummary(clear_span=0, clear_qubits=[], new_operations=[])
+    )
+    eq.add_equality_group(
+        PointOptimizationSummary(clear_span=1, clear_qubits=[a], new_operations=[])
+    )
+    eq.add_equality_group(
+        PointOptimizationSummary(clear_span=1, clear_qubits=[a], new_operations=[xa])
+    )
+    eq.add_equality_group(
+        PointOptimizationSummary(clear_span=1, clear_qubits=[a, b], new_operations=[xa])
+    )
+    eq.add_equality_group(
+        PointOptimizationSummary(clear_span=2, clear_qubits=[a], new_operations=[xa])
+    )
+    eq.add_equality_group(
+        PointOptimizationSummary(clear_span=1, clear_qubits=[a], new_operations=[ya])
+    )
+    eq.add_equality_group(
+        PointOptimizationSummary(clear_span=1, clear_qubits=[a], new_operations=[xa, xa])
+    )
 
 
 class ReplaceWithXGates(PointOptimizer):
@@ -56,6 +56,7 @@ class ReplaceWithXGates(PointOptimizer):
     qubits, clears the whole range, and inserts X gates for each cleared
     operation's qubits.
     """
+
     def optimization_at(self, circuit, index, op):
         end = index + 1
         new_ops = [cirq.X(q) for q in op.qubits]
@@ -75,9 +76,9 @@ class ReplaceWithXGates(PointOptimizer):
                     else:
                         done = True
 
-        return PointOptimizationSummary(clear_span=end - index,
-                                        clear_qubits=op.qubits,
-                                        new_operations=new_ops)
+        return PointOptimizationSummary(
+            clear_span=end - index, clear_qubits=op.qubits, new_operations=new_ops
+        )
 
 
 def test_point_optimizer_can_write_new_gates_inline():
@@ -129,6 +130,7 @@ def test_point_optimizer_post_clean_up():
     def clean_up(operations):
         for op in operations:
             yield op ** 0.5
+
     ReplaceWithXGates(post_clean_up=clean_up)(c)
 
     actual_text_diagram = c.to_text_diagram().strip()
@@ -144,16 +146,15 @@ z: ─────────────────────────�
 
 
 def test_point_optimizer_raises_on_gates_changing_qubits():
-
     class EverythingIs42(cirq.PointOptimizer):
         """Changes all single qubit operations to act on LineQubit(42)"""
 
         def optimization_at(self, circuit, index, op):
             if len(op.qubits) == 1:
                 new_op = op.gate(cirq.LineQubit(42))
-                return cirq.PointOptimizationSummary(clear_span=1,
-                                                     clear_qubits=op.qubits,
-                                                     new_operations=new_op)
+                return cirq.PointOptimizationSummary(
+                    clear_span=1, clear_qubits=op.qubits, new_operations=new_op
+                )
 
     c = cirq.Circuit(cirq.X(cirq.LineQubit(0)), cirq.X(cirq.LineQubit(1)))
     with pytest.raises(ValueError, match='new qubits'):
@@ -161,5 +162,7 @@ def test_point_optimizer_raises_on_gates_changing_qubits():
 
 
 def test_repr():
-    assert repr(cirq.PointOptimizationSummary(clear_span=0, clear_qubits=[
-    ], new_operations=[])) == 'cirq.PointOptimizationSummary(0, (), ())'
+    assert (
+        repr(cirq.PointOptimizationSummary(clear_span=0, clear_qubits=[], new_operations=[]))
+        == 'cirq.PointOptimizationSummary(0, (), ())'
+    )

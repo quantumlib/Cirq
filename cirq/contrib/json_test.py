@@ -11,7 +11,8 @@ def test_quantum_volume():
         model_circuit=cirq.Circuit(cirq.H.on_each(qubits)),
         heavy_set=[1, 2, 3],
         compiled_circuit=cirq.Circuit(cirq.H.on_each(qubits)),
-        sampler_result=.1)
+        sampler_result=0.1,
+    )
     assert_json_roundtrip_works(qvr, resolvers=DEFAULT_CONTRIB_RESOLVERS)
 
 

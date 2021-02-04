@@ -12,8 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, TYPE_CHECKING, Callable, Optional, Iterator, cast, \
-    Iterable, TypeVar, Union, Sequence
+from typing import (
+    List,
+    TYPE_CHECKING,
+    Callable,
+    Optional,
+    Iterator,
+    cast,
+    Iterable,
+    TypeVar,
+    Union,
+    Sequence,
+)
 
 from cirq import circuits
 from cirq.interop.quirk.cells.cell import Cell
@@ -28,9 +38,13 @@ class CompositeCell(Cell):
     This is used for custom circuit gates.
     """
 
-    def __init__(self, height: int,
-                 sub_cell_cols_generator: Iterable[List[Optional[Cell]]], *,
-                 gate_count: int):
+    def __init__(
+        self,
+        height: int,
+        sub_cell_cols_generator: Iterable[List[Optional[Cell]]],
+        *,
+        gate_count: int,
+    ):
         """
 
         Args:
@@ -71,10 +85,11 @@ class CompositeCell(Cell):
             # It is important that this is a generator instead of a list!
             # We must not list until after global operation counting.
             sub_cell_cols_generator=_iterator_to_iterable(
-                [None if cell is None else func(cell)
-                 for cell in col]
-                for col in self._sub_cell_cols_generator),
-            gate_count=self._gate_count)
+                [None if cell is None else func(cell) for cell in col]
+                for col in self._sub_cell_cols_generator
+            ),
+            gate_count=self._gate_count,
+        )
 
     def _sub_cell_cols_sealed(self) -> List[List[Optional[Cell]]]:
         if not isinstance(self._sub_cell_cols_generator, list):
@@ -82,13 +97,12 @@ class CompositeCell(Cell):
         return cast(List[List[Optional[Cell]]], self._sub_cell_cols_generator)
 
     def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
-        return self._transform_cells(lambda cell: cell.
-                                     with_line_qubits_mapped_to(qubits))
+        return self._transform_cells(lambda cell: cell.with_line_qubits_mapped_to(qubits))
 
-    def with_input(self, letter: str, register: Union[Sequence['cirq.Qid'], int]
-                  ) -> 'CompositeCell':
-        return self._transform_cells(lambda cell: cell.with_input(
-            letter, register))
+    def with_input(
+        self, letter: str, register: Union[Sequence['cirq.Qid'], int]
+    ) -> 'CompositeCell':
+        return self._transform_cells(lambda cell: cell.with_input(letter, register))
 
     def controlled_by(self, qubit: 'cirq.Qid') -> 'CompositeCell':
         return self._transform_cells(lambda cell: cell.controlled_by(qubit))
@@ -96,14 +110,14 @@ class CompositeCell(Cell):
     def circuit(self) -> 'cirq.Circuit':
         result = circuits.Circuit()
         for col in self._sub_cell_cols_sealed():
-            body = circuits.Circuit(
-                cell.operations() for cell in col if cell is not None)
+            body = circuits.Circuit(cell.operations() for cell in col if cell is not None)
             if body:
                 basis_change = circuits.Circuit(
-                    cell.basis_change() for cell in col if cell is not None)
+                    cell.basis_change() for cell in col if cell is not None
+                )
                 result += basis_change
                 result += body
-                result += basis_change**-1
+                result += basis_change ** -1
         return result
 
     def operations(self) -> 'cirq.OP_TREE':
@@ -118,7 +132,6 @@ def _iterator_to_iterable(iterator: Iterator[T]) -> Iterable[T]:
     items: List[T] = []
 
     class IterIntoItems:
-
         def __iter__(self):
             nonlocal done
             i = 0

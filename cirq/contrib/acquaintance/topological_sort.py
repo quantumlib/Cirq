@@ -25,9 +25,9 @@ if TYPE_CHECKING:
 
 
 def is_topologically_sorted(
-        dag: 'cirq.CircuitDag',
-        operations: 'cirq.OP_TREE',
-        equals: Callable[[ops.Operation, ops.Operation], bool] = operator.eq
+    dag: 'cirq.CircuitDag',
+    operations: 'cirq.OP_TREE',
+    equals: Callable[[ops.Operation, ops.Operation], bool] = operator.eq,
 ) -> bool:
     """Whether a given order of operations is consistent with the DAG.
 
@@ -56,18 +56,14 @@ def is_topologically_sorted(
     """
 
     remaining_dag = dag.copy()
-    frontier = [
-        node for node in remaining_dag.nodes() if not remaining_dag.pred[node]
-    ]
-    for operation in cast(Iterable[ops.Operation],
-                          ops.flatten_op_tree(operations)):
+    frontier = [node for node in remaining_dag.nodes() if not remaining_dag.pred[node]]
+    for operation in cast(Iterable[ops.Operation], ops.flatten_op_tree(operations)):
         for i, node in enumerate(frontier):
             if equals(node.val, operation):
                 frontier.pop(i)
                 succ = remaining_dag.succ[node]
                 remaining_dag.remove_node(node)
-                frontier.extend(new_node for new_node in succ
-                                if not remaining_dag.pred[new_node])
+                frontier.extend(new_node for new_node in succ if not remaining_dag.pred[new_node])
                 break
         else:
             return False
@@ -76,14 +72,12 @@ def is_topologically_sorted(
 
 def random_topological_sort(dag: networkx.DiGraph) -> Iterable[Any]:
     remaining_dag = dag.copy()
-    frontier = list(
-        node for node in remaining_dag.nodes() if not remaining_dag.pred[node])
+    frontier = list(node for node in remaining_dag.nodes() if not remaining_dag.pred[node])
     while frontier:
         random.shuffle(frontier)
         node = frontier.pop()
         succ = remaining_dag.succ[node]
         remaining_dag.remove_node(node)
-        frontier.extend(
-            new_node for new_node in succ if not remaining_dag.pred[new_node])
+        frontier.extend(new_node for new_node in succ if not remaining_dag.pred[new_node])
         yield node
     assert not remaining_dag

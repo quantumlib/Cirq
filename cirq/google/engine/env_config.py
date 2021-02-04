@@ -43,6 +43,5 @@ def engine_from_environment() -> 'cirq.google.Engine':
     """
     project_id = os.environ.get(ENV_PROJECT_ID)
     if not project_id:
-        raise EnvironmentError(
-            'Environment variable {} is not set.'.format(ENV_PROJECT_ID))
+        raise EnvironmentError('Environment variable {} is not set.'.format(ENV_PROJECT_ID))
     return engine.get_engine(project_id)

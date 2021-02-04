@@ -16,10 +16,10 @@ import cirq
 
 def test_equality():
     assert cirq.google.PhysicalZTag() == cirq.google.PhysicalZTag()
+    assert hash(cirq.google.PhysicalZTag()) == hash(cirq.google.PhysicalZTag())
 
 
 def test_syc_str_repr():
     assert str(cirq.google.PhysicalZTag()) == 'PhysicalZTag()'
     assert repr(cirq.google.PhysicalZTag()) == 'cirq.google.PhysicalZTag()'
-    cirq.testing.assert_equivalent_repr(cirq.google.PhysicalZTag(),
-                                        setup_code=('import cirq\n'))
+    cirq.testing.assert_equivalent_repr(cirq.google.PhysicalZTag(), setup_code=('import cirq\n'))

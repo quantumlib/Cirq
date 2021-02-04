@@ -38,8 +38,7 @@ def main():
     # Pick a secret 2-bit function and create a circuit to query the oracle.
     secret_function = [random.randint(0, 1) for _ in range(2)]
     oracle = make_oracle(q0, q1, secret_function)
-    print('Secret function:\nf(x) = <{}>'.format(
-        ', '.join(str(e) for e in secret_function)))
+    print('Secret function:\nf(x) = <{}>'.format(', '.join(str(e) for e in secret_function)))
 
     # Embed the oracle into a quantum circuit querying it exactly once.
     circuit = make_deutsch_circuit(q0, q1, oracle)
