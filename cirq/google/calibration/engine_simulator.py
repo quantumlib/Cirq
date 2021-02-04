@@ -375,7 +375,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         Args:
             a: The first qubit.
             b: The second qubit.
-            gate: Refernce gate together with a phase information.
+            gate_calibration: Reference gate together with a phase information.
 
         Returns:
             A modified gate that includes the drifts induced by internal state of the simulator.
