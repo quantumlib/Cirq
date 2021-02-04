@@ -591,7 +591,9 @@ def sample_2q_xeb_circuits(
 
     # Check `combinations_by_layer` is compatible with `circuits`.
     for layer_combinations in combinations_by_layer:
-        if np.any(layer_combinations.combinations < 0) or np.any(layer_combinations.combinations >= len(circuits)):
+        if np.any(layer_combinations.combinations < 0) or np.any(
+            layer_combinations.combinations >= len(circuits)
+        ):
             raise ValueError("`combinations_by_layer` has invalid indices.")
 
     # Construct fully-wide "zipped" circuits.
@@ -1047,24 +1049,30 @@ def characterize_phased_fsim_parameters_with_xeb(
             print('.', end='')
         return loss
 
-    res = scipy.optimize.minimize(
+    optimization_result = scipy.optimize.minimize(
         _mean_infidelity,
         x0=x0,
         options={'initial_simplex': initial_simplex, 'xatol': xatol, 'fatol': fatol},
         method='nelder-mead',
     )
-    return res
+
+    final_params = dict(zip(names, optimization_result.x))
+    fidelities_df = benchmark_2q_xeb_fidelities(
+        sampled_df, parameterized_circuits, cycle_depths, param_resolver=final_params
+    )
+    return optimization_result, final_params, fidelities_df
 
 
 class _CharacterizePhasedFsimParametersWithXebClosure:
-    def __init__(self,
-                 parameterized_circuits: List['cirq.Circuit'],
-                 cycle_depths: Sequence[int],
-                 phased_fsim_options: XEBPhasedFSimCalibrationOptions,
-                 initial_simplex_step_size: float = 0.1,
-                 xatol: float = 1e-3,
-                 fatol: float = 1e-3,
-                 ):
+    def __init__(
+        self,
+        parameterized_circuits: List['cirq.Circuit'],
+        cycle_depths: Sequence[int],
+        phased_fsim_options: XEBPhasedFSimCalibrationOptions,
+        initial_simplex_step_size: float = 0.1,
+        xatol: float = 1e-3,
+        fatol: float = 1e-3,
+    ):
         self.parameterized_circuits = parameterized_circuits
         self.cycle_depths = cycle_depths
         self.phased_fsim_options = phased_fsim_options
@@ -1082,7 +1090,7 @@ class _CharacterizePhasedFsimParametersWithXebClosure:
             xatol=self.xatol,
             fatol=self.fatol,
             verbose=False,
-            pool=None
+            pool=None,
         )
 
 
@@ -1106,7 +1114,52 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
         xatol=xatol,
         fatol=fatol,
     )
-    results = pool.map(closure,
-                       [sampled_df[sampled_df['pair_name'] == pair_name] for pair_name in
-                        pair_names])
-    return dict(zip(pair_names, results))
+    results = pool.map(
+        closure, [sampled_df[sampled_df['pair_name'] == pair_name] for pair_name in pair_names]
+    )
+    optimization_results = {}
+    final_params = {}
+    fid_dfs = []
+    for pair_name, (opt_result, final_params, fid_df) in zip(pair_names, results):
+        optimization_results[pair_name] = opt_result
+        final_params[pair_name] = final_params
+        fid_dfs.append(fid_df)
+    return optimization_results, final_params, pd.concat(fid_dfs)
+
+
+def exp(x, A, fid):
+    # TODO: check bases
+    return A * np.exp(np.log(fid) * x)
+
+
+def _one_unique(df, name):
+    vals = df[name].unique()
+    assert len(vals) == 1
+    return vals[0]
+
+
+def fit_decays(fids: pd.DataFrame):
+    records = []
+    for pair_name in fids['pair_name'].unique():
+        f1 = fids[fids['pair_name'] == pair_name]
+        (A, fid), pcov = scipy.optimize.curve_fit(
+            exp,
+            f1['cycle_depth'],
+            f1['fidelity'],
+            p0=(0.95, 5e-3),
+            bounds=([0, 0], [1, 1]),
+        )
+        record = {
+            'pair_name': pair_name,
+            'A': A,
+            'fid': fid,
+            'cycle_depths': f1['cycle_depth'].values,
+            'fidelities': f1['fidelity'].values,
+            'layer_i': _one_unique(f1, 'layer_i'),
+            'pair_i': _one_unique(f1, 'pair_i'),
+            'q0': _one_unique(f1, 'q0'),
+            'q1': _one_unique(f1, 'q1'),
+        }
+        records.append(record)
+    return records
+
