@@ -302,7 +302,7 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     characterize_gamma: bool
     characterize_phi: bool
 
-    def phase_corrected_override(self) -> PhasedFSimCharacterization:
+    def zeta_chi_gamma_correction_override(self) -> PhasedFSimCharacterization:
         """Gives a PhasedFSimCharacterization that can be used to override characterization after
         correcting for zeta, chi and gamma angles.
         """
