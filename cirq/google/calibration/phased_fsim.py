@@ -434,15 +434,36 @@ class IncompatibleMomentError(Exception):
     """Error that occurs when a moment is not supported by a calibration routine."""
 
 
-def try_convert_sqrt_iswap_to_fsim(gate: Gate) -> Optional[Tuple[FSimGate, float]]:
+@dataclasses.dataclass(frozen=True)
+class FSimGateCalibration:
+    """Association of a user gate with gate to calibrate.
+
+    This association stores an information regarding rotation of the calibrated FSim gate by
+    phase_exponent p:
+
+        (Z^-p ⊗ Z^p) FSim (Z^p ⊗ Z^-p).
+
+    The rotation should be reflected back during the compilation after the gate is calibrated and
+    is equivalent to the shift of -2πp in the χ angle of PhasedFSimGate.
+
+    Attributes:
+        engine_gate: Gate that should be used for calibration purposes.
+        phase_exponent: Phase rotation exponent p.
+    """
+    engine_gate: FSimGate
+    phase_exponent: float
+
+
+def try_convert_sqrt_iswap_to_fsim(gate: Gate) -> Optional[FSimGateCalibration]:
     """Converts an equivalent gate to FSimGate(theta=π/4, phi=0) if possible.
 
     Args:
         gate: Gate to verify.
 
     Returns:
-        FSimGate(theta=π/4, phi=0) if provided gate either  FSimGate, ISWapPowGate, PhasedFSimGate
-        or PhasedISwapPowGate that is equivalent to FSimGate(theta=π/4, phi=0). None otherwise.
+        FSimGateCalibration with engine_gate FSimGate(theta=π/4, phi=0) if the provided gate is
+        either FSimGate, ISWapPowGate, PhasedFSimGate or PhasedISwapPowGate that is equivalent to
+        FSimGate(theta=±π/4, phi=0). None otherwise.
     """
     if isinstance(gate, FSimGate):
         if not np.isclose(gate.phi, 0.0):
@@ -467,8 +488,8 @@ def try_convert_sqrt_iswap_to_fsim(gate: Gate) -> Optional[Tuple[FSimGate, float
         return None
 
     if np.isclose(angle, np.pi / 4):
-        return FSimGate(theta=np.pi / 4, phi=0.0), 0.0
+        return FSimGateCalibration(FSimGate(theta=np.pi / 4, phi=0.0), 0.0)
     elif np.isclose(angle, -np.pi / 4):
-        return FSimGate(theta=np.pi / 4, phi=0.0), 0.5
+        return FSimGateCalibration(FSimGate(theta=np.pi / 4, phi=0.0), 0.5)
 
     return None

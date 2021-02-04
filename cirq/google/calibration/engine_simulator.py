@@ -38,6 +38,7 @@ from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
 
 from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationRequest,
+    FSimGateCalibration,
     IncompatibleMomentError,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
@@ -72,7 +73,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         *,
         drift_generator: ParametersDriftGenerator,
         gates_translator: Callable[
-            [Gate], Optional[Tuple[FSimGate, float]]
+            [Gate], Optional[FSimGateCalibration]
         ] = try_convert_sqrt_iswap_to_fsim,
     ) -> None:
         """Initializes the PhasedFSimEngineSimulator.
@@ -347,11 +348,9 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             if translated is None:
                 raise ValueError(f'Calibration request contains unsupported gate {request.gate}')
 
-            translated_gate, _ = translated
-
             parameters = {}
             for a, b in request.pairs:
-                drifted = self.create_gate_with_drift(a, b, translated_gate)
+                drifted = self.create_gate_with_drift(a, b, translated)
                 parameters[a, b] = PhasedFSimCharacterization(
                     theta=drifted.theta if characterize_theta else None,
                     zeta=drifted.zeta if characterize_zeta else None,
@@ -368,17 +367,18 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
         return results
 
-    def create_gate_with_drift(self, a: Qid, b: Qid, gate: FSimGate) -> PhasedFSimGate:
+    def create_gate_with_drift(self, a: Qid, b: Qid, gate_calibration: FSimGateCalibration) -> PhasedFSimGate:
         """Generates a gate with drift for a given gate.
 
         Args:
             a: The first qubit.
             b: The second qubit.
-            gate: Gate which a modified version of should be generated.
+            gate: Refernce gate together with a phase information.
 
         Returns:
             A modified gate that includes the drifts induced by internal state of the simulator.
         """
+        gate = gate_calibration.engine_gate
         if (a, b, gate) in self._drifted_parameters:
             parameters = self._drifted_parameters[(a, b, gate)]
         elif (b, a, gate) in self._drifted_parameters:
@@ -386,7 +386,14 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         else:
             parameters = self._drift_generator(a, b, gate)
             self._drifted_parameters[(a, b, gate)] = parameters
-        return PhasedFSimGate(**parameters.asdict())
+
+        return PhasedFSimGate(
+            theta=parameters.theta,
+            zeta=parameters.zeta,
+            chi=parameters.chi - 2 * np.pi * gate_calibration.phase_exponent,
+            gamma=parameters.gamma,
+            phi=parameters.phi
+        )
 
     def _run(
         self, circuit: Circuit, param_resolver: ParamResolver, repetitions: int
@@ -423,13 +430,9 @@ class _PhasedFSimConverter(PointOptimizer):
                 raise IncompatibleMomentError(
                     f'Moment contains non-single qubit operation ' f'{op} with unsupported gate'
                 )
-            translated_gate, translate_phase_exponent = translated
-            if not np.isclose(translate_phase_exponent, 0.0):
-                raise RuntimeError('Gates with phase exponents not yet supported')
 
-            # TODO: Introduce phase corrections by adjusting chi.
             a, b = op.qubits
-            new_op = self._simulator.create_gate_with_drift(a, b, translated_gate).on(a, b)
+            new_op = self._simulator.create_gate_with_drift(a, b, translated).on(a, b)
 
         return PointOptimizationSummary(clear_span=1, clear_qubits=op.qubits, new_operations=new_op)
 
