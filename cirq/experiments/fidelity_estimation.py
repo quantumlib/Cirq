@@ -13,7 +13,6 @@
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
 import concurrent
-import itertools
 from abc import abstractmethod
 from concurrent.futures.thread import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -26,8 +25,6 @@ from typing import (
     Tuple,
     cast,
     TYPE_CHECKING,
-    Dict,
-    Any,
     Set,
     ContextManager,
 )
@@ -38,7 +35,7 @@ import scipy.optimize
 import sympy
 import tqdm
 
-from cirq import ops, protocols, sim
+from cirq import ops, sim
 from cirq.circuits import Circuit
 from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_state_vector
