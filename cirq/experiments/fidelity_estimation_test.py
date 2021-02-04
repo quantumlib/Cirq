@@ -417,11 +417,11 @@ def test_characterize_phased_fsim_parameters_with_xeb():
     )
     # only optimize theta so it goes faster.
     options = SqrtISwapXEBOptions(
-        parameterize_theta=True,
-        parameterize_gamma=False,
-        parameterize_chi=False,
-        parameterize_zeta=False,
-        parameterize_phi=False,
+        characterize_theta=True,
+        characterize_gamma=False,
+        characterize_chi=False,
+        characterize_zeta=False,
+        characterize_phi=False,
     )
     p_circuits = [parameterize_phased_fsim_circuit(circuit, options) for circuit in circuits]
     result = characterize_phased_fsim_parameters_with_xeb(
@@ -434,8 +434,5 @@ def test_characterize_phased_fsim_parameters_with_xeb():
         xatol=1e-2,
         pool=multiprocessing.Pool(),
     )
-    print()
-    print(result)
-    print()
     assert np.abs(result.x[0] + np.pi / 4) < 0.1
     assert np.abs(result.fun) < 0.1  # noiseless simulator
