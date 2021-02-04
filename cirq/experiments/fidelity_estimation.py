@@ -540,7 +540,7 @@ class _Simulate2qXEBTask:
     circuit_i: int
     cycle_depths: Sequence[int]
     circuit: 'cirq.Circuit'
-    param_resolver: Dict[str, float]
+    param_resolver: 'cirq.ParamResolverOrSimilarType'
 
 
 class _Simulate_2q_XEB_Circuit:
