@@ -551,12 +551,15 @@ def test_phase_corrected_fsim_operations_with_phase_exponent(
 ) -> None:
     a, b = cirq.LineQubit.range(2)
 
+    phase_exponent = 0.5
+
+    # Theta is negated to match the phase exponent of 0.5.
     expected_gate = cirq.PhasedFSimGate(theta=-theta, zeta=-zeta, chi=-chi, gamma=-gamma, phi=phi)
     expected = cirq.unitary(expected_gate)
 
     corrected = workflow.FSimPhaseCorrections.from_characterization(
         (a, b),
-        FSimGateCalibration(cirq.FSimGate(theta=theta, phi=phi), 0.5),
+        FSimGateCalibration(cirq.FSimGate(theta=theta, phi=phi), phase_exponent),
         cirq.google.PhasedFSimCharacterization(
             theta=theta, zeta=zeta, chi=chi, gamma=gamma, phi=phi
         ),

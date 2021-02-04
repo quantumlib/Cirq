@@ -499,13 +499,12 @@ class FSimPhaseCorrections:
         gamma = parameters.gamma
 
         assert parameters.chi is not None, "Chi value must not be None"
-        chi = parameters.chi
+        chi = parameters.chi - 2 * np.pi * gate_calibration.phase_exponent
 
         a, b = qubits
 
-        phase = gate_calibration.phase_exponent * np.pi
-        alpha = 0.5 * (zeta + chi) - phase
-        beta = 0.5 * (zeta - chi) + phase
+        alpha = 0.5 * (zeta + chi)
+        beta = 0.5 * (zeta - chi)
 
         operations = (
             (rz(0.5 * gamma - alpha).on(a), rz(0.5 * gamma + alpha).on(b)),
