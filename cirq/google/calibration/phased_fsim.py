@@ -450,6 +450,7 @@ class FSimGateCalibration:
         engine_gate: Gate that should be used for calibration purposes.
         phase_exponent: Phase rotation exponent p.
     """
+
     engine_gate: FSimGate
     phase_exponent: float
 

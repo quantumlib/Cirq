@@ -367,7 +367,9 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
         return results
 
-    def create_gate_with_drift(self, a: Qid, b: Qid, gate_calibration: FSimGateCalibration) -> PhasedFSimGate:
+    def create_gate_with_drift(
+        self, a: Qid, b: Qid, gate_calibration: FSimGateCalibration
+    ) -> PhasedFSimGate:
         """Generates a gate with drift for a given gate.
 
         Args:
@@ -392,7 +394,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             zeta=parameters.zeta,
             chi=parameters.chi - 2 * np.pi * gate_calibration.phase_exponent,
             gamma=parameters.gamma,
-            phi=parameters.phi
+            phi=parameters.phi,
         )
 
     def _run(
