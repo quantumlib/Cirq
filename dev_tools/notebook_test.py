@@ -35,6 +35,9 @@ SKIP_NOTEBOOKS = [
     "examples/*fidelity*",
     # https://github.com/quantumlib/Cirq/pull/3669#issuecomment-766450463
     'docs/characterization/*.ipynb',
+    # chemistry.ipynb requires openfermion, that installs cirq 0.9.1, which interferes
+    # with testing cirq itself...
+    'docs/tutorials/educators/chemistry.ipynb',
 ]
 
 
