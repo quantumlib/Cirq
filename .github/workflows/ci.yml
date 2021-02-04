@@ -233,6 +233,7 @@ jobs:
       - name: Notebook tests
         run: check/pytest -n auto -m slow dev_tools/notebook_test.py -k walks
       - uses: actions/upload-artifact@v2
+        if: failure()
         with:
           name: notebook-outputs
           path: out
