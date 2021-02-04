@@ -161,14 +161,11 @@ class PhasedFSimCharacterization:
         return other.merge_with(self)
 
 
-<<<<<<< HEAD
-=======
 SQRT_ISWAP_PARAMETERS = PhasedFSimCharacterization(
     theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
 )
 
 
->>>>>>> abfa2af0601fcf5acbd616973fcf581fca822f6e
 class PhasedFSimCalibrationOptions(abc.ABC):
     """Base class for calibration-specific options passed together with the requests."""
 
@@ -188,8 +185,6 @@ class PhasedFSimCalibrationResult:
     gate: Gate
     options: PhasedFSimCalibrationOptions
 
-<<<<<<< HEAD
-=======
     def override(self, parameters: PhasedFSimCharacterization) -> 'PhasedFSimCalibrationResult':
         """Creates the new results with certain parameters overridden for all characterizations.
 
@@ -212,7 +207,6 @@ class PhasedFSimCalibrationResult:
             options=self.options,
         )
 
->>>>>>> abfa2af0601fcf5acbd616973fcf581fca822f6e
     def get_parameters(self, a: Qid, b: Qid) -> Optional['PhasedFSimCharacterization']:
         """Returns parameters for a qubit pair (a, b) or None when unknown."""
         if (a, b) in self.parameters:
@@ -272,8 +266,6 @@ class PhasedFSimCalibrationRequest(abc.ABC):
     pairs: Tuple[Tuple[Qid, Qid], ...]
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
 
-<<<<<<< HEAD
-=======
     # Workaround for: https://github.com/python/mypy/issues/1362
     @property  # type: ignore
     @lru_cache_typesafe
@@ -283,7 +275,6 @@ class PhasedFSimCalibrationRequest(abc.ABC):
         # in Python...
         return collections.ChainMap(*({q: pair for q in pair} for pair in self.pairs))
 
->>>>>>> abfa2af0601fcf5acbd616973fcf581fca822f6e
     @abc.abstractmethod
     def to_calibration_layer(self) -> CalibrationLayer:
         """Encodes this characterization request in a CalibrationLayer object."""
@@ -314,8 +305,6 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     characterize_gamma: bool
     characterize_phi: bool
 
-<<<<<<< HEAD
-=======
     def zeta_chi_gamma_correction_override(self) -> PhasedFSimCharacterization:
         """Gives a PhasedFSimCharacterization that can be used to override characterization after
         correcting for zeta, chi and gamma angles.
@@ -364,7 +353,6 @@ THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibra
     characterize_phi=False,
 )
 
->>>>>>> abfa2af0601fcf5acbd616973fcf581fca822f6e
 
 @dataclasses.dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
@@ -440,8 +428,6 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             'gate': self.gate,
             'options': self.options,
         }
-<<<<<<< HEAD
-=======
 
 
 class IncompatibleMomentError(Exception):
@@ -484,4 +470,3 @@ def try_convert_sqrt_iswap_to_fsim(gate: Gate) -> Optional[FSimGate]:
         return FSimGate(theta=np.pi / 4, phi=0.0)
 
     return None
->>>>>>> abfa2af0601fcf5acbd616973fcf581fca822f6e

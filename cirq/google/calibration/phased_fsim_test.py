@@ -247,8 +247,6 @@ def test_get_parameters():
         theta=0.4, zeta=0.5, chi=None, gamma=None, phi=0.6
     )
     assert result.get_parameters(q_00, q_03) == None
-<<<<<<< HEAD
-=======
 
 
 def test_try_convert_sqrt_iswap_to_fsim_converts_correctly():
@@ -334,4 +332,3 @@ def test_options_phase_corrected_override():
         ).zeta_chi_gamma_correction_override()
         == PhasedFSimCharacterization()
     )
->>>>>>> abfa2af0601fcf5acbd616973fcf581fca822f6e

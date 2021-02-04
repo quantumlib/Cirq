@@ -279,10 +279,6 @@ def test_run_characterization():
             characterize_phi=True,
         ),
     )
-<<<<<<< HEAD
-=======
-
->>>>>>> abfa2af0601fcf5acbd616973fcf581fca822f6e
     result = cirq.google.CalibrationResult(
         code=cirq.google.api.v2.calibration_pb2.SUCCESS,
         error_message=None,
@@ -322,12 +318,6 @@ def test_run_characterization():
             )
         ),
     )
-<<<<<<< HEAD
-    job = cirq.google.engine.EngineJob('', '', '', None)
-    job._calibration_results = [result]
-    engine.run_calibration.return_value = job
-    actual = workflow.run_characterizations([request], engine, 'qproc', cirq.google.FSIM_GATESET)
-=======
 
     job = cirq.google.engine.EngineJob('', '', '', None)
     job._calibration_results = [result]
@@ -344,7 +334,6 @@ def test_run_characterization():
         [request], engine, 'qproc', cirq.google.FSIM_GATESET, progress_func=progress
     )
 
->>>>>>> abfa2af0601fcf5acbd616973fcf581fca822f6e
     expected = [
         PhasedFSimCalibrationResult(
             parameters={
@@ -365,9 +354,6 @@ def test_run_characterization():
             ),
         )
     ]
-<<<<<<< HEAD
-    assert actual == expected
-=======
 
     assert actual == expected
     assert progress_calls == [(1, 1)]
@@ -688,4 +674,3 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
             )
         ]
         workflow.zeta_chi_gamma_calibration_for_moments(circuit_with_calibration, characterizations)
->>>>>>> abfa2af0601fcf5acbd616973fcf581fca822f6e
