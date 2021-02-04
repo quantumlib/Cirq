@@ -300,7 +300,7 @@ def test_result_override():
         options=options,
     )
 
-    overridden = result.override(options.phase_corrected_override())
+    overridden = result.override(options.zeta_chi_gamma_correction_override())
 
     assert overridden == PhasedFSimCalibrationResult(
         parameters={
@@ -318,7 +318,7 @@ def test_result_override():
 
 def test_options_phase_corrected_override():
     assert (
-        ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION.phase_corrected_override()
+        ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION.zeta_chi_gamma_correction_override()
         == PhasedFSimCharacterization(zeta=0.0, chi=0.0, gamma=0.0)
     )
 
@@ -329,6 +329,6 @@ def test_options_phase_corrected_override():
             characterize_chi=False,
             characterize_gamma=False,
             characterize_phi=False,
-        ).phase_corrected_override()
+        ).zeta_chi_gamma_correction_override()
         == PhasedFSimCharacterization()
     )
