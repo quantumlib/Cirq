@@ -15,7 +15,7 @@
 """Quantum channels that are commonly used in the literature."""
 
 import itertools
-from typing import Any, Dict, Iterable, Optional, Sequence, Tuple, Union, TYPE_CHECKING
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -230,8 +230,8 @@ def asymmetric_depolarize(
 
 
 @value.value_equality
-class DepolarizingChannel(gate_features.SingleQubitGate):
-    """A channel that depolarizes a qubit."""
+class DepolarizingChannel(gate_features.SupportsOnEachGate, raw_types.Gate):
+    """A channel that depolarizes one or several qubits."""
 
     def __init__(self, p: float, n_qubits: int = 1) -> None:
         r"""The symmetric depolarizing channel.
@@ -277,6 +277,9 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
         self._n_qubits = n_qubits
 
         self._delegate = AsymmetricDepolarizingChannel(error_probabilities=error_probabilities)
+
+    def _qid_shape_(self):
+        return (2,) * self._n_qubits
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
         return self._delegate._mixture_()

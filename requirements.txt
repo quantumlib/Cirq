@@ -14,3 +14,4 @@ sortedcontainers~=2.0
 scipy
 sympy
 typing_extensions
+tqdm
