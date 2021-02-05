@@ -397,12 +397,16 @@ def test_swap():
     circuit = cirq.Circuit(
         cirq.X(a),
         cirq.SWAP(a, b),
+        cirq.SWAP(a, b) ** 4,
         cirq.measure(a, key="a"),
         cirq.measure(b, key="b"),
     )
     r = cirq.CliffordSimulator().sample(circuit)
     assert not r["a"][0]
     assert r["b"][0]
+
+    with pytest.raises(NotImplementedError, match="CliffordSimulator doesn't support"):
+        cirq.CliffordSimulator().simulate((cirq.Circuit(cirq.SWAP(a, b) ** 3.5)))
 
 
 def test_sample_seed():

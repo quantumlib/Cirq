@@ -11,26 +11,45 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    MutableMapping,
+    Optional,
+    Tuple,
+    TypeVar,
+    TYPE_CHECKING,
+)
 
 import abc
 import collections
 import dataclasses
+import functools
 import re
 
+import numpy as np
+
 from cirq.circuits import Circuit
-from cirq.ops import Gate, Qid, Moment
+from cirq.ops import FSimGate, Gate, ISwapPowGate, Moment, PhasedFSimGate, PhasedISwapPowGate, Qid
 from cirq.google.api import v2
 from cirq.google.engine import CalibrationLayer, CalibrationResult
-
-
-_FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
 
 if TYPE_CHECKING:
     # Workaround for mypy custom dataclasses (python/mypy#5406)
     from dataclasses import dataclass as json_serializable_dataclass
 else:
     from cirq.protocols import json_serializable_dataclass
+
+
+_FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
+T = TypeVar('T')
+
+
+# Workaround for: https://github.com/python/mypy/issues/5858
+def lru_cache_typesafe(func: Callable[..., T]) -> T:
+    return functools.lru_cache(maxsize=None)(func)  # type: ignore
 
 
 def _create_pairs_from_moment(moment: Moment) -> Tuple[Tuple[Tuple[Qid, Qid], ...], Gate]:
@@ -167,6 +186,11 @@ class PhasedFSimCharacterization:
         return other.merge_with(self)
 
 
+SQRT_ISWAP_PARAMETERS = PhasedFSimCharacterization(
+    theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
+)
+
+
 class PhasedFSimCalibrationOptions(abc.ABC):
     """Base class for calibration-specific options passed together with the requests."""
 
@@ -185,6 +209,28 @@ class PhasedFSimCalibrationResult:
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
     gate: Gate
     options: PhasedFSimCalibrationOptions
+
+    def override(self, parameters: PhasedFSimCharacterization) -> 'PhasedFSimCalibrationResult':
+        """Creates the new results with certain parameters overridden for all characterizations.
+
+        This functionality can be used to zero-out the corrected angles and do the analysis on
+        remaining errors.
+
+        Args:
+            parameters: Parameters that will be used when overriding. The angles of that object
+                which are not None will be used to replace current parameters for every pair stored.
+
+        Returns:
+            New instance of PhasedFSimCalibrationResult with certain parameters overriden.
+        """
+        return PhasedFSimCalibrationResult(
+            parameters={
+                pair: pair_parameters.override_by(parameters)
+                for pair, pair_parameters in self.parameters.items()
+            },
+            gate=self.gate,
+            options=self.options,
+        )
 
     def get_parameters(self, a: Qid, b: Qid) -> Optional['PhasedFSimCharacterization']:
         """Returns parameters for a qubit pair (a, b) or None when unknown."""
@@ -245,6 +291,15 @@ class PhasedFSimCalibrationRequest(abc.ABC):
     pairs: Tuple[Tuple[Qid, Qid], ...]
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
 
+    # Workaround for: https://github.com/python/mypy/issues/1362
+    @property  # type: ignore
+    @lru_cache_typesafe
+    def qubit_to_pair(self) -> MutableMapping[Qid, Tuple[Qid, Qid]]:
+        """Returns mapping from qubit to a qubit pair that it belongs to."""
+        # Returning mutable mapping as a cached result because it's hard to get a frozen dictionary
+        # in Python...
+        return collections.ChainMap(*({q: pair for q in pair} for pair in self.pairs))
+
     @abc.abstractmethod
     def to_calibration_layer(self) -> CalibrationLayer:
         """Encodes this characterization request in a CalibrationLayer object."""
@@ -274,6 +329,54 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     characterize_chi: bool
     characterize_gamma: bool
     characterize_phi: bool
+
+    def zeta_chi_gamma_correction_override(self) -> PhasedFSimCharacterization:
+        """Gives a PhasedFSimCharacterization that can be used to override characterization after
+        correcting for zeta, chi and gamma angles.
+        """
+        return PhasedFSimCharacterization(
+            zeta=0.0 if self.characterize_zeta else None,
+            chi=0.0 if self.characterize_chi else None,
+            gamma=0.0 if self.characterize_gamma else None,
+        )
+
+
+"""PhasedFSimCalibrationOptions options with all angles characterization requests set to True."""
+ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
+    characterize_theta=True,
+    characterize_zeta=True,
+    characterize_chi=True,
+    characterize_gamma=True,
+    characterize_phi=True,
+)
+
+
+"""PhasedFSimCalibrationOptions with all but chi angle characterization requests set to True."""
+WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
+    characterize_theta=True,
+    characterize_zeta=True,
+    characterize_chi=False,
+    characterize_gamma=True,
+    characterize_phi=True,
+)
+
+
+"""PhasedFSimCalibrationOptions with theta, zeta and gamma angles characterization requests set to
+True.
+
+Those are the most efficient options that can be used to cancel out the errors by adding the
+appropriate single-qubit Z rotations to the circuit. The angles zeta, chi and gamma can be removed
+by those additions. The angle chi is disabled because it's not supported by Floquet characterization
+currently. The angle theta is set enabled because it is characterized together with zeta and adding
+it doesn't cost anything.
+"""
+THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
+    characterize_theta=True,
+    characterize_zeta=True,
+    characterize_chi=False,
+    characterize_gamma=True,
+    characterize_phi=False,
+)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -362,3 +465,45 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             'gate': self.gate,
             'options': self.options,
         }
+
+
+class IncompatibleMomentError(Exception):
+    """Error that occurs when a moment is not supported by a calibration routine."""
+
+
+def try_convert_sqrt_iswap_to_fsim(gate: Gate) -> Optional[FSimGate]:
+    """Converts an equivalent gate to FSimGate(theta=π/4, phi=0) if possible.
+
+    Args:
+        gate: Gate to verify.
+
+    Returns:
+        FSimGate(theta=π/4, phi=0) if provided gate either  FSimGate, ISWapPowGate, PhasedFSimGate
+        or PhasedISwapPowGate that is equivalent to FSimGate(theta=π/4, phi=0). None otherwise.
+    """
+    if isinstance(gate, FSimGate):
+        if not np.isclose(gate.phi, 0.0):
+            return None
+        angle = gate.theta
+    elif isinstance(gate, ISwapPowGate):
+        angle = -gate.exponent * np.pi / 2
+    elif isinstance(gate, PhasedFSimGate):
+        if (
+            not np.isclose(gate.zeta, 0.0)
+            or not np.isclose(gate.chi, 0.0)
+            or not np.isclose(gate.gamma, 0.0)
+            or not np.isclose(gate.phi, 0.0)
+        ):
+            return None
+        angle = gate.theta
+    elif isinstance(gate, PhasedISwapPowGate):
+        if not np.isclose(-gate.phase_exponent - 0.5, 0.0):
+            return None
+        angle = gate.exponent * np.pi / 2
+    else:
+        return None
+
+    if np.isclose(angle, np.pi / 4):
+        return FSimGate(theta=np.pi / 4, phi=0.0)
+
+    return None
