@@ -185,6 +185,28 @@ class PhasedFSimCalibrationResult:
     gate: Gate
     options: PhasedFSimCalibrationOptions
 
+    def override(self, parameters: PhasedFSimCharacterization) -> 'PhasedFSimCalibrationResult':
+        """Creates the new results with certain parameters overridden for all characterizations.
+
+        This functionality can be used to zero-out the corrected angles and do the analysis on
+        remaining errors.
+
+        Args:
+            parameters: Parameters that will be used when overriding. The angles of that object
+                which are not None will be used to replace current parameters for every pair stored.
+
+        Returns:
+            New instance of PhasedFSimCalibrationResult with certain parameters overriden.
+        """
+        return PhasedFSimCalibrationResult(
+            parameters={
+                pair: pair_parameters.override_by(parameters)
+                for pair, pair_parameters in self.parameters.items()
+            },
+            gate=self.gate,
+            options=self.options,
+        )
+
     def get_parameters(self, a: Qid, b: Qid) -> Optional['PhasedFSimCharacterization']:
         """Returns parameters for a qubit pair (a, b) or None when unknown."""
         if (a, b) in self.parameters:
@@ -283,6 +305,16 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     characterize_gamma: bool
     characterize_phi: bool
 
+    def zeta_chi_gamma_correction_override(self) -> PhasedFSimCharacterization:
+        """Gives a PhasedFSimCharacterization that can be used to override characterization after
+        correcting for zeta, chi and gamma angles.
+        """
+        return PhasedFSimCharacterization(
+            zeta=0.0 if self.characterize_zeta else None,
+            chi=0.0 if self.characterize_chi else None,
+            gamma=0.0 if self.characterize_gamma else None,
+        )
+
 
 """PhasedFSimCalibrationOptions options with all angles characterization requests set to True."""
 ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
@@ -301,6 +333,24 @@ WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationO
     characterize_chi=False,
     characterize_gamma=True,
     characterize_phi=True,
+)
+
+
+"""PhasedFSimCalibrationOptions with theta, zeta and gamma angles characterization requests set to
+True.
+
+Those are the most efficient options that can be used to cancel out the errors by adding the
+appropriate single-qubit Z rotations to the circuit. The angles zeta, chi and gamma can be removed
+by those additions. The angle chi is disabled because it's not supported by Floquet characterization
+currently. The angle theta is set enabled because it is characterized together with zeta and adding
+it doesn't cost anything.
+"""
+THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
+    characterize_theta=True,
+    characterize_zeta=True,
+    characterize_chi=False,
+    characterize_gamma=True,
+    characterize_phi=False,
 )
 
 

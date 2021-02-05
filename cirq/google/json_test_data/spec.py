@@ -25,6 +25,7 @@ TestSpec = ModuleJsonTestSpec(
     ],
     should_not_be_serialized=[
         'AnnealSequenceSearchStrategy',
+        'CircuitWithCalibration',
         'ConvertToSqrtIswapGates',
         'ConvertToSycamoreGates',
         'ConvertToXmonGates',
@@ -34,6 +35,7 @@ TestSpec = ModuleJsonTestSpec(
         'EngineProcessor',
         'EngineProgram',
         'EngineTimeSlot',
+        'FSimPhaseCorrections',
         'NAMED_GATESETS',
         'ProtoVersion',
         'GateOpSerializer',
@@ -41,6 +43,7 @@ TestSpec = ModuleJsonTestSpec(
         'GreedySequenceSearchStrategy',
         'PhasedFSimEngineSimulator',
         'SerializingArg',
+        'THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
         'QuantumEngineSampler',
     ],
     resolver_cache=_class_resolver_dictionary(),
