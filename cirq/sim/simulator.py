@@ -35,6 +35,7 @@ import collections
 import numpy as np
 
 from cirq import circuits, ops, protocols, study, value, work
+from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     import cirq
@@ -250,7 +251,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
     state at the end of a circuit, a SimulatesIntermediateState can
     simulate stepping through the moments of a circuit.
 
-    Implementors of this interface should implement the _simulator_iterator
+    Implementors of this interface should implement the _base_iterator
     method.
 
     Note that state here refers to simulator state, which is not necessarily
@@ -333,7 +334,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             circuit, study.ParamResolver(param_resolver), qubit_order, initial_state
         )
 
-    @abc.abstractmethod
+    @deprecated(deadline='v0.11.0', fix='Override _base_iterator instead')
     def _simulator_iterator(
         self,
         circuit: circuits.Circuit,
@@ -341,6 +342,43 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
         qubit_order: ops.QubitOrderOrList,
         initial_state: Any,
     ) -> Iterator:
+        """Iterator over StepResult from Moments of a Circuit.
+
+        If the initial state is an int, the state is set to the computational
+        basis state corresponding to this state. Otherwise if the initial
+        state is a np.ndarray it is the full initial state, either a pure state
+        or the full density matrix.  If it is the pure state it must be the
+        correct size, be normalized (an L2 norm of 1), and be safely castable
+        to an appropriate dtype for the simulator.  If it is a mixed state
+        it must be correctly sized and positive semidefinite with trace one.
+
+        Args:
+            circuit: The circuit to simulate.
+            param_resolver: A ParamResolver for determining values of
+                Symbols.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
+                documentation of the implementing class for details.
+
+        Yields:
+            StepResults from simulating a Moment of the Circuit.
+        """
+        param_resolver = param_resolver or study.ParamResolver({})
+        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        check_all_resolved(resolved_circuit)
+        actual_initial_state = 0 if initial_state is None else initial_state
+        return self._base_iterator(resolved_circuit, qubit_order, actual_initial_state)
+
+    @abc.abstractmethod
+    def _base_iterator(
+        self,
+        circuit: circuits.Circuit,
+        qubit_order: ops.QubitOrderOrList,
+        initial_state: Any,
+    ) -> Iterator['StepResult']:
         """Iterator over StepResult from Moments of a Circuit.
 
         Args:
@@ -593,3 +631,13 @@ def _verify_unique_measurement_keys(circuit: circuits.Circuit):
         duplicates = [k for k, v in result.most_common() if v > 1]
         if duplicates:
             raise ValueError('Measurement key {} repeated'.format(",".join(duplicates)))
+
+
+def check_all_resolved(circuit):
+    """Raises if the circuit contains unresolved symbols."""
+    if protocols.is_parameterized(circuit):
+        unresolved = [op for moment in circuit for op in moment if protocols.is_parameterized(op)]
+        raise ValueError(
+            'Circuit contains ops whose symbols were not specified in '
+            'parameter sweep. Ops: {}'.format(unresolved)
+        )

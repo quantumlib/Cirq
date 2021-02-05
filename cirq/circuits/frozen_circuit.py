@@ -88,6 +88,11 @@ class FrozenCircuit(AbstractCircuit):
     def __hash__(self):
         return hash((self.moments, self.device))
 
+    def serialization_key(self):
+        # TODO: use this key in serialization and support user-specified keys.
+        key = hash(self) & 0xFFFF_FFFF_FFFF_FFFF
+        return f'Circuit_0x{key:016x}'
+
     # Memoized methods for commonly-retrieved properties.
 
     def _num_qubits_(self) -> int:
@@ -170,3 +175,9 @@ class FrozenCircuit(AbstractCircuit):
         self, param_resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'FrozenCircuit':
         return self.unfreeze()._resolve_parameters_(param_resolver, recursive).freeze()
+
+    def to_op(self):
+        """Creates a CircuitOperation wrapping this circuit."""
+        from cirq.circuits import CircuitOperation
+
+        return CircuitOperation(self)

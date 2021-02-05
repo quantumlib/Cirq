@@ -136,6 +136,8 @@ def assert_all_implemented_act_on_effects_match_unitary(
             np.reshape(stabilizer_ch_form.state_vector(), protocols.qid_shape(qubits)),
             state_vector,
             atol=1e-07,
+            err_msg=f"stabilizer_ch_form.state_vector disagrees with state_vector for {val!r}",
+            verbose=True,
         )
 
 
@@ -190,7 +192,10 @@ def _final_stabilizer_state_ch_form(
     for op in circuit.all_operations():
         try:
             args = act_on_stabilizer_ch_form_args.ActOnStabilizerCHFormArgs(
-                state=stabilizer_ch_form, axes=[qubit_map[qid] for qid in op.qubits]
+                state=stabilizer_ch_form,
+                axes=[qubit_map[qid] for qid in op.qubits],
+                prng=np.random.RandomState(),
+                log_of_measurement_results={},
             )
             protocols.act_on(op, args, allow_decompose=True)
         except TypeError:

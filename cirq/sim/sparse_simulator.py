@@ -26,6 +26,7 @@ from cirq.sim import (
     state_vector_simulator,
     act_on_state_vector_args,
 )
+from cirq.sim.simulator import check_all_resolved
 
 if TYPE_CHECKING:
     import cirq
@@ -135,7 +136,7 @@ class Simulator(
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        self._check_all_resolved(resolved_circuit)
+        check_all_resolved(resolved_circuit)
         qubit_order = sorted(resolved_circuit.all_qubits())
 
         # Simulate as many unitary operations as possible before having to
@@ -192,29 +193,6 @@ class Simulator(
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
 
-    def _simulator_iterator(
-        self,
-        circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver,
-        qubit_order: ops.QubitOrderOrList,
-        initial_state: 'cirq.STATE_VECTOR_LIKE',
-    ) -> Iterator:
-        """See definition in `cirq.SimulatesIntermediateState`.
-
-        If the initial state is an int, the state is set to the computational
-        basis state corresponding to this state. Otherwise  if the initial
-        state is a np.ndarray it is the full initial state. In this case it
-        must be the correct size, be normalized (an L2 norm of 1), and
-        be safely castable to an appropriate dtype for the simulator.
-        """
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        self._check_all_resolved(resolved_circuit)
-        actual_initial_state = 0 if initial_state is None else initial_state
-        return self._base_iterator(
-            resolved_circuit, qubit_order, actual_initial_state, perform_measurements=True
-        )
-
     def _base_iterator(
         self,
         circuit: circuits.Circuit,
@@ -253,17 +231,6 @@ class Simulator(
                 dtype=self._dtype,
             )
             sim_state.log_of_measurement_results.clear()
-
-    def _check_all_resolved(self, circuit):
-        """Raises if the circuit contains unresolved symbols."""
-        if protocols.is_parameterized(circuit):
-            unresolved = [
-                op for moment in circuit for op in moment if protocols.is_parameterized(op)
-            ]
-            raise ValueError(
-                'Circuit contains ops whose symbols were not specified in '
-                'parameter sweep. Ops: {}'.format(unresolved)
-            )
 
 
 class SparseSimulatorStep(

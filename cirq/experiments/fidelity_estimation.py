@@ -165,7 +165,7 @@ def xeb_fidelity(
             most to least significant qubit, i.e. in the order consistent with
             `cirq.final_state_vector`.
         qubit_order: Qubit order used to construct bitstrings enumerating
-            qubits starting with the most sigificant qubit.
+            qubits starting with the most significant qubit.
         amplitudes: Optional mapping from bitstring to output amplitude.
             If provided, simulation is skipped. Useful for large circuits
             when an offline simulation had already been peformed.

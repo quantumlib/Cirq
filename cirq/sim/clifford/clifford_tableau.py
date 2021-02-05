@@ -61,9 +61,9 @@ class CliffordTableau:
     @classmethod
     def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
         state = cls(n)
-        state.rs = rs
-        state.xs = xs
-        state.zs = zs
+        state.rs = np.array(rs)
+        state.xs = np.array(xs)
+        state.zs = np.array(zs)
         return state
 
     def __eq__(self, other):

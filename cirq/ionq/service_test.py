@@ -11,9 +11,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 from unittest import mock
 import pytest
 
+import pandas as pd
 import sympy
 
 import cirq
@@ -62,6 +64,32 @@ def test_service_run(target, expected_results):
     assert create_job_kwargs['repetitions'] == 4
     assert create_job_kwargs['target'] == target
     assert create_job_kwargs['name'] == 'bacon'
+
+
+def test_sampler():
+    service = ionq.Service(remote_host='http://example.com', api_key='key')
+    mock_client = mock.MagicMock()
+    service._client = mock_client
+    job_dict = {
+        'id': '1',
+        'status': 'completed',
+        'qubits': '1',
+        'target': 'qpu',
+        'metadata': {'shots': 4, 'measurement0': f'a{chr(31)}0'},
+        'data': {'histogram': {'0': '0.25', '1': '0.75'}},
+    }
+    mock_client.create_job.return_value = job_dict
+    mock_client.get_job.return_value = job_dict
+
+    sampler = service.sampler(target='qpu', seed=10)
+
+    q0 = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(q0), cirq.measure(q0, key='a'))
+    results = sampler.sample(program=circuit, repetitions=4)
+    pd.testing.assert_frame_equal(
+        results, pd.DataFrame(columns=['a'], index=[0, 1, 2, 3], data=[[0], [1], [1], [1]])
+    )
+    mock_client.create_job.assert_called_once()
 
 
 def test_service_get_job():
@@ -117,3 +145,18 @@ def test_service_get_current_calibration():
     cal = service.get_current_calibration()
     assert cal.num_qubits() == 11
     mock_client.get_current_calibration.assert_called_once()
+
+
+def test_service_list_calibrations():
+    service = ionq.Service(remote_host='http://example.com', api_key='key')
+    mock_client = mock.MagicMock()
+    calibrations = [{'id': '1', 'qubits': '1'}, {'id': '2', 'qubits': 2}]
+    mock_client.list_calibrations.return_value = calibrations
+    service._client = mock_client
+    start = datetime.datetime.utcfromtimestamp(1284286794)
+    end = datetime.datetime.utcfromtimestamp(1284286795)
+
+    listed_calibrations = service.list_calibrations(start=start, end=end, limit=10, batch_size=2)
+    assert listed_calibrations[0].num_qubits() == 1
+    assert listed_calibrations[1].num_qubits() == 2
+    mock_client.list_calibrations.assert_called_with(start=start, end=end, limit=10, batch_size=2)

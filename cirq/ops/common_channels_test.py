@@ -682,3 +682,7 @@ def test_multi_asymmetric_depolarizing_channel_text_diagram():
     assert cirq.circuit_diagram_info(a, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
         wire_symbols=('A(II:0.67, XX:0.33)',)
     )
+
+
+def test_reset_stabilizer():
+    assert cirq.has_stabilizer_effect(cirq.reset(cirq.LineQubit(0)))

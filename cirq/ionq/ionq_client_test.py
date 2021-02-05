@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import contextlib
+import datetime
 import io
 from unittest import mock
 
@@ -616,4 +617,142 @@ def test_ionq_client_get_calibration_retry(mock_get):
     response2.ok = True
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
     _ = client.get_current_calibration()
+    assert mock_get.call_count == 2
+
+
+@mock.patch('requests.get')
+def test_ionq_client_list_calibrations(mock_get):
+    mock_get.return_value.ok = True
+    mock_get.return_value.json.return_value = {'calibrations': [{'id': '1'}, {'id': '2'}]}
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    response = client.list_calibrations()
+    assert response == [{'id': '1'}, {'id': '2'}]
+
+    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    mock_get.assert_called_with(
+        'http://example.com/v0.1/calibrations',
+        headers=expected_headers,
+        json={'limit': 1000},
+        params={},
+    )
+
+
+@mock.patch('requests.get')
+def test_ionq_client_list_calibrations_dates(mock_get):
+    mock_get.return_value.ok = True
+    mock_get.return_value.json.return_value = {'calibrations': [{'id': '1'}, {'id': '2'}]}
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    response = client.list_calibrations(
+        start=datetime.datetime.utcfromtimestamp(1284286794),
+        end=datetime.datetime.utcfromtimestamp(1284286795),
+    )
+    assert response == [{'id': '1'}, {'id': '2'}]
+
+    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    mock_get.assert_called_with(
+        'http://example.com/v0.1/calibrations',
+        headers=expected_headers,
+        json={'limit': 1000},
+        params={'start': 1284286794000, 'end': 1284286795000},
+    )
+
+
+@mock.patch('requests.get')
+def test_ionq_client_list_calibrations_limit(mock_get):
+    mock_get.return_value.ok = True
+    mock_get.return_value.json.return_value = {
+        'calibrations': [{'id': '1'}, {'id': '2'}, {'id': 3}]
+    }
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    response = client.list_calibrations(limit=2)
+    assert response == [{'id': '1'}, {'id': '2'}]
+
+    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    mock_get.assert_called_with(
+        'http://example.com/v0.1/calibrations',
+        headers=expected_headers,
+        json={'limit': 1000},
+        params={},
+    )
+
+
+@mock.patch('requests.get')
+def test_ionq_client_list_calibrations_batches(mock_get):
+    mock_get.return_value.ok = True
+    mock_get.return_value.json.side_effect = [
+        {'calibrations': [{'id': '1'}], 'next': 'a'},
+        {'calibrations': [{'id': '2'}], 'next': 'b'},
+        {'calibrations': [{'id': '3'}]},
+    ]
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    response = client.list_calibrations(batch_size=1)
+    assert response == [{'id': '1'}, {'id': '2'}, {'id': '3'}]
+
+    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    url = 'http://example.com/v0.1/calibrations'
+    mock_get.assert_has_calls(
+        [
+            mock.call(url, headers=expected_headers, json={'limit': 1}, params={}),
+            mock.call().json(),
+            mock.call(url, headers=expected_headers, json={'limit': 1}, params={'next': 'a'}),
+            mock.call().json(),
+            mock.call(url, headers=expected_headers, json={'limit': 1}, params={'next': 'b'}),
+            mock.call().json(),
+        ]
+    )
+
+
+@mock.patch('requests.get')
+def test_ionq_client_list_calibrations_batches_does_not_divide_total(mock_get):
+    mock_get.return_value.ok = True
+    mock_get.return_value.json.side_effect = [
+        {'calibrations': [{'id': '1'}, {'id': '2'}], 'next': 'a'},
+        {'calibrations': [{'id': '3'}]},
+    ]
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    response = client.list_calibrations(batch_size=2)
+    assert response == [{'id': '1'}, {'id': '2'}, {'id': '3'}]
+
+    expected_headers = {'Authorization': 'apiKey to_my_heart', 'Content-Type': 'application/json'}
+    url = 'http://example.com/v0.1/calibrations'
+    mock_get.assert_has_calls(
+        [
+            mock.call(url, headers=expected_headers, json={'limit': 2}, params={}),
+            mock.call().json(),
+            mock.call(url, headers=expected_headers, json={'limit': 2}, params={'next': 'a'}),
+            mock.call().json(),
+        ]
+    )
+
+
+@mock.patch('requests.get')
+def test_ionq_client_list_calibrations_unauthorized(mock_get):
+    mock_get.return_value.ok = False
+    mock_get.return_value.status_code = requests.codes.unauthorized
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    with pytest.raises(ionq.IonQException, match='Not authorized'):
+        _ = client.list_calibrations()
+
+
+@mock.patch('requests.get')
+def test_ionq_client_list_calibrations_not_retriable(mock_get):
+    mock_get.return_value.ok = False
+    mock_get.return_value.status_code = requests.codes.not_implemented
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com', api_key='to_my_heart')
+    with pytest.raises(ionq.IonQException, match='Status: 501'):
+        _ = client.list_calibrations()
+
+
+@mock.patch('requests.get')
+def test_ionq_client_list_calibrations_retry(mock_get):
+    response1 = mock.MagicMock()
+    response2 = mock.MagicMock()
+    mock_get.side_effect = [response1, response2]
+    response1.ok = False
+    response1.status_code = requests.codes.service_unavailable
+    response2.ok = True
+    client = ionq.ionq_client._IonQClient(
+        remote_host='http://example.com', api_key='to_my_heart', default_target='simulator'
+    )
+    client.list_calibrations()
     assert mock_get.call_count == 2

@@ -1,0 +1,18 @@
+{
+  "cirq_type": "ParallelGateOperation",
+  "gate": {
+    "cirq_type": "_PauliY",
+    "exponent": 1.0,
+    "global_shift": 0.0
+  },
+  "qubits": [
+    {
+      "cirq_type": "NamedQubit",
+      "name": "a"
+    },
+    {
+      "cirq_type": "NamedQubit",
+      "name": "b"
+    }
+  ]
+}
