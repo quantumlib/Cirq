@@ -1,6 +1,6 @@
-# IonQ API Jobs
+# Running IonQ API Jobs
 
-Here we detail how to run jobs on the IonQ API versus QPUs and the
+Here we detail how to run jobs on the IonQ API against the IonQ QPU and the
 IonQ simulator.
 
 In this section we assume a `cirq.ionq.Service` object has been instantiated and is
@@ -45,17 +45,18 @@ Which results in
 ```
 x=0000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111
 ```
-What are the odds that the x measurements were all 0s followed by all 1s?  One thing
-to note is that the IonQAPI only returns statistics about the results, i.e. what
-number of results were 0 and what number were 1 (or if you are measuring
-multiple qubits the counts of the different outcome).  In order to make this
-compatible with Cirq's notition of `cirq.Result`, these are then converted into
-raw results with the exactly correct number of results (in lexical order).
-In other words the measurement results are not in an order corresponding to the
-temporal order of the measurements.
+Looking at these results you should notice something strange. What are the odds
+that the x measurements were all 0s followed by all 1s?  The reason for this
+sorting is that the IonQAPI only returns statistics about the results, i.e. what
+count of results were 0 and what count were 1 (or if you are measuring
+multiple qubits the counts of the different outcome bit string outcomes).  In
+order to make this compatible with Cirq's notition of `cirq.Result`, these
+are then converted into raw results with the exactly correct number of
+results (in lexical order). In other words, the measurement results are not
+in an order corresponding to the temporal order of the measurements.
 
 When calling run, one will need to include the number of `repetitions` or shots
-for the given circuit.  In addition, if there is no `defaul_target` set on the
+for the given circuit.  In addition, if there is no `default_target` set on the
 service, then a `target` needs to be specified.  Currently the supported targets
 are `qpu` and `simulator`.
 
@@ -89,6 +90,17 @@ the id of the job.  This job id can be recorded and at any time in
 the future one can query for the results of this job.
 
 ```python
+qubit = cirq.LineQubit(0)
+circuit = cirq.Circuit(
+    cirq.X(qubit)**0.5,            # Square root of NOT.
+    cirq.measure(qubit, key='x')   # Measurement store in key 'x'
+)
+job = service.create_job(circuit=circuit, target='qpu', repetitions=100)
+print(job)
+```
+which shows that the returned object is a `cirq.ionq.Job`:
+```
+cirq.ionq.Job(job_id=93d111c1-0898-48b8-babe-80d182f8ad66)
 ```
 
 One difference between this approach and the run and sampler methods
@@ -103,6 +115,6 @@ returned by `create_job` has `cancel` and `delete` methods.
 
 ## Next steps
 
-Learn about
+Learn how to get information about the performance of the hardware
 
 [IonQ calibrations](calibrations.md)

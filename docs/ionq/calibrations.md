@@ -1,8 +1,8 @@
-# Calibrations
+# IonQ API Calibrations
 
 Calibrations are snapshots of the performance of the IonQ platform
 at a given moment of time.  The IonQ quantum computers are continuously
-calibrated, and we periodically take measurements of the performance
+calibrated, and periodically measurements are taken of the performance
 of the machine.
 
 In this section we assume a `cirq.ionq.Service` object has been instantiated and is
@@ -28,7 +28,6 @@ as well as the current performance of the target.
 print(calibration.fidelities())
 # prints something like
 {'1q': {'mean': 0.99717}, '2q': {'mean': 0.9696}, 'spam': {'mean': 0.9961}}
->>>
 ```
 Here
 * `1q` and `2q` refer to one and two qubit average gate fidelities measured using
