@@ -16,10 +16,12 @@ import numpy as np
 
 import cirq
 from cirq.google.calibration.phased_fsim import (
+    ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
     PhasedFSimCharacterization,
     PhasedFSimCalibrationResult,
+    WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     try_convert_sqrt_iswap_to_fsim,
 )
 
@@ -279,3 +281,54 @@ def test_try_convert_sqrt_iswap_to_fsim_converts_correctly():
     )
 
     assert try_convert_sqrt_iswap_to_fsim(cirq.CZ) is None
+
+
+def test_result_override():
+    q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
+    gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+    options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
+    result = PhasedFSimCalibrationResult(
+        parameters={
+            (q_00, q_01): PhasedFSimCharacterization(
+                theta=0.1, zeta=0.2, chi=None, gamma=0.4, phi=0.5
+            ),
+            (q_02, q_03): PhasedFSimCharacterization(
+                theta=0.6, zeta=0.7, chi=None, gamma=0.9, phi=1.0
+            ),
+        },
+        gate=gate,
+        options=options,
+    )
+
+    overridden = result.override(options.zeta_chi_gamma_correction_override())
+
+    assert overridden == PhasedFSimCalibrationResult(
+        parameters={
+            (q_00, q_01): PhasedFSimCharacterization(
+                theta=0.1, zeta=0.0, chi=None, gamma=0.0, phi=0.5
+            ),
+            (q_02, q_03): PhasedFSimCharacterization(
+                theta=0.6, zeta=0.0, chi=None, gamma=0.0, phi=1.0
+            ),
+        },
+        gate=gate,
+        options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    )
+
+
+def test_options_phase_corrected_override():
+    assert (
+        ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION.zeta_chi_gamma_correction_override()
+        == PhasedFSimCharacterization(zeta=0.0, chi=0.0, gamma=0.0)
+    )
+
+    assert (
+        FloquetPhasedFSimCalibrationOptions(
+            characterize_theta=False,
+            characterize_zeta=False,
+            characterize_chi=False,
+            characterize_gamma=False,
+            characterize_phi=False,
+        ).zeta_chi_gamma_correction_override()
+        == PhasedFSimCharacterization()
+    )
