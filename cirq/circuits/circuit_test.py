@@ -640,13 +640,7 @@ FOXY = ValidatingTestDevice(
         ops.YPowGate,
         ops.ZPowGate,
     ),
-    qubits={
-        cirq.GridQubit(0, 0),
-        cirq.GridQubit(1, 0),
-        cirq.GridQubit(0, 1),
-        cirq.GridQubit(1, 1),
-        cirq.GridQubit(0, 6),
-    },
+    qubits=set(cirq.GridQubit.rect(2, 7)),
     name='cirq.circuits.circuit_test.FOXY',
 )
 
