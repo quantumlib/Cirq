@@ -510,7 +510,6 @@ def test_incremental_simulate():
         for _ in range(20)
     ]
     cycle_depths = np.arange(3, 100, 9)
-    pool = multiprocessing.Pool()
 
     with multiprocessing.Pool() as pool:
         start = time.perf_counter()
@@ -524,8 +523,7 @@ def test_incremental_simulate():
         df = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths, pool=pool)
         end2 = time.perf_counter()
 
-    # uncomment for benchmarks:
-    # print("\nnew:", end2 - end1, "old:", end1 - start)
+    print("\nnew:", end2 - end1, "old:", end1 - start)
 
     pd.testing.assert_frame_equal(df_ref, df)
 
