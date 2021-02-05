@@ -185,8 +185,7 @@ class CircuitOperation(ops.Operation):
                         protocols.with_measurement_key_mapping(
                             op,
                             key_map={
-                                key: f'{parent_id}-{key}'
-                                for key in protocols.measurement_keys(op)
+                                key: f'{parent_id}-{key}' for key in protocols.measurement_keys(op)
                             },
                         )
                     )
