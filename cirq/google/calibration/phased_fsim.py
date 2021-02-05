@@ -488,11 +488,11 @@ def try_convert_sqrt_iswap_to_fsim(gate: Gate) -> Optional[FSimGateCalibration]:
     else:
         return None
 
-    two_pi = 2 * np.pi
+    angle_canonical = angle % (2 * np.pi)
 
-    if np.isclose(angle % two_pi, np.pi / 4):
+    if np.isclose(angle_canonical, np.pi / 4):
         return FSimGateCalibration(FSimGate(theta=np.pi / 4, phi=0.0), 0.0)
-    elif np.isclose(angle % two_pi, 7 * np.pi / 4):
+    elif np.isclose(angle_canonical, 7 * np.pi / 4):
         return FSimGateCalibration(FSimGate(theta=np.pi / 4, phi=0.0), 0.5)
 
     return None
