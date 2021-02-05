@@ -126,6 +126,14 @@ def test_from_moment():
     with pytest.raises(ValueError, match='must be two qubit gates'):
         _ = FloquetPhasedFSimCalibrationRequest.from_moment(threeq, options)
 
+    not_gate = cirq.Moment(cirq.CircuitOperation(cirq.FrozenCircuit()))
+    with pytest.raises(ValueError, match='must be two qubit gates'):
+        _ = FloquetPhasedFSimCalibrationRequest.from_moment(not_gate, options)
+
+    empty = cirq.Moment()
+    with pytest.raises(ValueError, match='No gates found'):
+        _ = FloquetPhasedFSimCalibrationRequest.from_moment(empty, options)
+
 
 def test_floquet_parse_result():
     q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
