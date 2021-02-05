@@ -109,14 +109,9 @@ def test_from_circuit():
     assert sorted(circuit.all_qubits()) == sorted(dag.all_qubits())
 
 
-class TestDevice(cirq.Device):
-    def validate_operation(self, operation: cirq.Operation) -> None:
-        pass
-
-
 def test_from_circuit_with_device():
     q0 = cirq.GridQubit(5, 5)
-    circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0), device=TestDevice())
+    circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0), device=cirq.UNCONSTRAINED_DEVICE)
     dag = cirq.CircuitDag.from_circuit(circuit)
     assert networkx.dag.is_directed_acyclic_graph(dag)
     assert dag.device == circuit.device
@@ -218,7 +213,7 @@ def test_larger_circuit():
         cirq.CZ(q0, q1),
         cirq.T(q3),
         strategy=cirq.InsertStrategy.EARLIEST,
-        device=TestDevice(),
+        device=cirq.UNCONSTRAINED_DEVICE,
     )
 
     dag = cirq.CircuitDag.from_circuit(circuit)
