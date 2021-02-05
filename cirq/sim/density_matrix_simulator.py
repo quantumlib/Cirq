@@ -147,10 +147,10 @@ class DensityMatrixSimulator(simulator.SimulatesSamples, simulator.SimulatesInte
                In the other case:
                >>> simulator = cirq.DensityMatrixSimulator(
                ...     ignore_measurement_results = True)
-               >>> result = simulator.run(circuit)
 
-               The measurement result will be the maximally mixed state
-               with equal probability for 0 and 1.
+               will raise a `ValueError` exception if you call `simulator.run`
+							 when `ignore_measurement_results` has been set to True 
+							 (for more see https://github.com/quantumlib/Cirq/issues/2777).
         """
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError('dtype must be complex64 or complex128, was {}'.format(dtype))
