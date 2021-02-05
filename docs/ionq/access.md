@@ -29,6 +29,12 @@ by operating system.  For example in bash, one would do
 export IONQ_REMOTE_HOST=http://example.com/v1
 export IONQ_API_KEY=tomyheart
 ```
+In the case that one has set these environment variables, one can just perform
+```python
+import cirq.ionq as ionq
+
+service = ionq.Service()
+```
 The advantage of doing things this way is that one does not have to store the API key in
 source code, which might accidentally get uploaded to a version control system, and hence
 leak the API key.
