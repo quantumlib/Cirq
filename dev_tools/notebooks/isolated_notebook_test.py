@@ -72,8 +72,10 @@ PACKAGES = [
 def _find_base_revision():
     for rev in ['upstream/master', 'origin/master', 'master']:
         try:
-            out = subprocess.check_output(f'git cat-file -t {rev}'.split())
-            if "commit\n" == out.decode('utf-8'):
+            result = subprocess.run(
+                f'git cat-file -t {rev}'.split(), universal_newlines=True, capture_output=True
+            )
+            if result.stdout == "commit\n":
                 return rev
         except subprocess.CalledProcessError as e:
             print(e)
@@ -98,7 +100,7 @@ def _tested_notebooks():
 
     try:
         changed_notebooks = _list_changed_notebooks()
-    except Exception as e:
+    except ValueError as e:
         warnings.warn(
             f"No changed notebooks are tested "
             f"(this is expected in non-notebook tests in CI): {e}"
