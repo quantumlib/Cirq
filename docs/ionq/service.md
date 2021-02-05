@@ -1,4 +1,4 @@
-# IonQ API
+# IonQ API Service
 
 IonQ's API provides a way to execute quantum circuits on IonQ's trapped ion quantum computers
 or on cloud based simulators.  As of January 2021 this access is restricted to partners.
@@ -37,7 +37,7 @@ service = ionq.Service(remote_host=REMOTE_HOST, api_key=API_KEY)
 
 # Run a program against the service. This method will block execution
 # until the result is returned and periodically polls the IonQ API.
-result = service.run(circuit=circuit, repetition=100, target='qpu')
+result = service.run(circuit=circuit, repetitions=100, target='qpu')
 
 # The return object of run is a cirq.Result object.
 # From this object one can get a histogram of results.
@@ -68,10 +68,25 @@ Data:
 [100 rows x 1 columns]
 ```
 
+## Service options
+
+In addition to the `remote_host` and `api_key` there are some other options which are
+useful for configuring the service.  The most useful of these are
+
+* `default_target`: this is a string of either `simulator` or `qpu`. By setting this one
+does not have to specify a target every time one runs a job using `run`, `create_job`
+or via the `sampler` interface.  A helpful pattern is to create two service with
+defaults for the simulator and for the QPU separately.
+
+* `max_retry_seconds`: The API will pull with exponential backoff for completed jobs.
+By specifying this one can change the number of seconds before this retry gives up.
+It is common to set this to a very small number when, for example, wanting to fail
+fast, or to be set very long for long running jobs.
+
 ## Next steps
 
 [Learn how to build circuits for the API](circuits.md)
 
 [How to use the service API](jobs.md)
 
-[IonQ devices](devices.md)
+[IonQ calibrations](calibrations.md)
