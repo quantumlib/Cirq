@@ -760,42 +760,14 @@ def parameterize_phased_fsim_circuit(
     gamma = GAMMA_SYMBOL if options.characterize_gamma else options.gamma_default
     phi = PHI_SYMBOL if options.characterize_phi else options.phi_default
 
-    circuit = Circuit(
-        [
-            ops.Moment(
-                [
-                    ops.PhasedFSimGate(theta=theta, zeta=zeta, chi=chi, gamma=gamma, phi=phi).on(
-                        *op.qubits
-                    )
-                    if options.should_parameterize(op)
-                    else op
-                    for op in moment.operations
-                ]
-            )
-            for moment in circuit.moments
-        ]
+    fsim_gate = ops.PhasedFSimGate(theta=theta, zeta=zeta, chi=chi, gamma=gamma, phi=phi)
+    return Circuit(
+        ops.Moment(
+            fsim_gate.on(*op.qubits) if options.should_parameterize(op) else op
+            for op in moment.operations
+        )
+        for moment in circuit.moments
     )
-
-    new_moments = []
-    for moment in circuit.moments:
-        new_ops = []
-        for op in moment.operations:
-            if options.should_parameterize(op):
-                new_ops += [
-                    ops.PhasedFSimGate(
-                        theta=theta,
-                        zeta=zeta,
-                        chi=chi,
-                        gamma=gamma,
-                        phi=phi,
-                    ).on(*op.qubits)
-                ]
-            else:
-                new_ops += [op]
-        new_moments += [ops.Moment(new_ops)]
-    circuit = Circuit(new_moments)
-
-    return circuit
 
 
 def characterize_phased_fsim_parameters_with_xeb(
