@@ -6,8 +6,8 @@
 Cirq is a Python library for writing, manipulating, and optimizing quantum
 circuits and running them against quantum computers and simulators.
 
-.. image:: https://travis-ci.com/quantumlib/Cirq.svg?token=7FwHBHqoxBzvgH51kThw&branch=master
-  :target: https://travis-ci.com/quantumlib/Cirq
+.. image:: https://github.com/quantumlib/cirq/workflows/Continuous%20Integration/badge.svg
+  :target: https://github.com/quantumlib/Cirq
   :alt: Build Status
 
 .. image:: https://badge.fury.io/py/cirq.svg
@@ -88,21 +88,6 @@ Cirq is uploaded to Zenodo automatically. Click on the badge below to see all th
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4062499.svg
   :target: https://doi.org/10.5281/zenodo.4062499
   :alt: DOI
-
-An equivalent BibTex format reference is below for all the versions:
-
-.. code-block::
-
-    @software{quantum_ai_team_and_collaborators_2020_4062499,
-      author       = {Quantum AI team and collaborators},
-      title        = {Cirq},
-      month        = Oct,
-      year         = 2020,
-      publisher    = {Zenodo},
-      doi          = {10.5281/zenodo.4062499},
-      url          = {https://doi.org/10.5281/zenodo.4062499}
-    }
-
 
 Cirq Contributors Community
 ---------------------------
