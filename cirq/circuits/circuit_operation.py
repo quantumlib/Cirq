@@ -168,29 +168,28 @@ class CircuitOperation(ops.Operation):
         ops = []  # type: List[cirq.Operation]
         for parent_id in self.repetition_ids:
             for op in result.all_operations():
-                if protocols.is_measurement(op):
-                    if isinstance(op, CircuitOperation):
-                        # For a measurement CircuitOperation, prefix the current repetition_id to
-                        # the children repetition_ids.
-                        ops.append(
-                            op.with_repetition_ids(
-                                # If `op.repetition_ids` is None, this will return `[parent_id]`.
-                                cartesian_product_of_string_lists([parent_id], op.repetition_ids)
-                            )
+                if isinstance(op, CircuitOperation):
+                    # For a measurement CircuitOperation, prefix the current repetition_id to
+                    # the children repetition_ids.
+                    ops.append(
+                        op.with_repetition_ids(
+                            # If `op.repetition_ids` is None, this will return `[parent_id]`.
+                            cartesian_product_of_string_lists([parent_id], op.repetition_ids)
                         )
-                    else:
-                        # For a non-CircuitOperation measurement, prefix the current repetition_id
-                        # to the children measurement keys. Implemented by creating a mapping and
-                        # using the with_measurement_key_mapping protocol.
-                        ops.append(
-                            protocols.with_measurement_key_mapping(
-                                op,
-                                key_map={
-                                    key: f'{parent_id}-{key}'
-                                    for key in protocols.measurement_keys(op)
-                                },
-                            )
+                    )
+                elif protocols.is_measurement(op):
+                    # For a non-CircuitOperation measurement, prefix the current repetition_id
+                    # to the children measurement keys. Implemented by creating a mapping and
+                    # using the with_measurement_key_mapping protocol.
+                    ops.append(
+                        protocols.with_measurement_key_mapping(
+                            op,
+                            key_map={
+                                key: f'{parent_id}-{key}'
+                                for key in protocols.measurement_keys(op)
+                            },
                         )
+                    )
                 else:
                     ops.append(op)
         return ops
