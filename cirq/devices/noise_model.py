@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Sequence, TYPE_CHECKING, Union
+from typing import Any, Dict, Sequence, TYPE_CHECKING, Union, Callable
 
 from cirq import ops, protocols, value
 from cirq._doc import document
@@ -230,6 +230,16 @@ class ConstantQubitNoiseModel(NoiseModel):
 
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['qubit_noise_gate'])
+
+
+class GateSubstitutionNoiseModel(NoiseModel):
+    def __init__(self, substitution_func: Callable[['cirq.Operation'], 'cirq.Operation']):
+        self.substitution_func = substitution_func
+
+    def noisy_moment(
+        self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
+    ) -> 'cirq.OP_TREE':
+        return ops.Moment([self.substitution_func(op) for op in moment.operations])
 
 
 NO_NOISE: 'cirq.NoiseModel' = _NoNoiseModel()
