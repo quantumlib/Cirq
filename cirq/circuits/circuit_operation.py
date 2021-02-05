@@ -33,11 +33,19 @@ if TYPE_CHECKING:
 INT_TYPE = Union[int, np.integer]
 
 
-def default_repetition_ids(repetitions: int) -> List[str]:
-    return [str(i) for i in range(abs(repetitions))]
+def default_repetition_ids(repetitions: int) -> Optional[List[str]]:
+    if abs(repetitions) > 1:
+        return [str(i) for i in range(abs(repetitions))]
+    return None
 
 
-def cartesian_product_of_string_lists(list1: List[str], list2: List[str]):
+def cartesian_product_of_string_lists(list1: Optional[List[str]], list2: Optional[List[str]]):
+    if list1 is None and list2 is None:
+        return None  # coverage: ignore
+    if list1 is None:
+        return list2  # coverage: ignore
+    if list2 is None:
+        return list1
     return [f'{first}-{second}' for first in list1 for second in list2]
 
 
@@ -57,8 +65,8 @@ class CircuitOperation(ops.Operation):
         param_resolver: Resolved values for parameters in the circuit.
         repetition_ids: List of identifiers for each repetition of the
             CircuitOperation. If populated, the length should be equal to the
-            repetitions. If not populated, it is initialized to strings for
-            numbers 0 to self.repetitions.
+            repetitions. If not populated and abs(`repetitions`) > 1, it is
+            initialized to strings for numbers in `range(repetitions)`.
     """
 
     _hash: Optional[int] = dataclasses.field(default=None, init=False)
@@ -68,7 +76,7 @@ class CircuitOperation(ops.Operation):
     qubit_map: Dict['cirq.Qid', 'cirq.Qid'] = dataclasses.field(default_factory=dict)
     measurement_key_map: Dict[str, str] = dataclasses.field(default_factory=dict)
     param_resolver: study.ParamResolver = study.ParamResolver()
-    repetition_ids: List[str] = dataclasses.field(default_factory=list)
+    repetition_ids: Optional[List[str]] = dataclasses.field(default=None)
 
     def __post_init__(self):
         if not isinstance(self.circuit, circuits.FrozenCircuit):
@@ -124,7 +132,7 @@ class CircuitOperation(ops.Operation):
         ordered_qubits = ops.QubitOrder.DEFAULT.order_for(self.circuit.all_qubits())
         return tuple(self.qubit_map.get(q, q) for q in ordered_qubits)
 
-    def _default_repetition_ids(self) -> List[str]:
+    def _default_repetition_ids(self) -> Optional[List[str]]:
         return default_repetition_ids(self.repetitions)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
@@ -152,8 +160,8 @@ class CircuitOperation(ops.Operation):
         result = protocols.with_measurement_key_mapping(result, self.measurement_key_map)
         result = protocols.resolve_parameters(result, self.param_resolver, recursive=False)
         # repetition_ids don't need to be taken into account if the circuit has no measurements
-        # or if it has repetition of size 1 with default repetition_ids.
-        if self.repetition_ids == default_repetition_ids(1) or not protocols.is_measurement(result):
+        # or if repetition_ids are unset.
+        if self.repetition_ids is None or not protocols.is_measurement(result):
             return list(result.all_operations()) * abs(self.repetitions)
         # If it's a measurement circuit with repetitions/repetition_ids, prefix the repetition_ids
         # to measurements. Details at https://tinyurl.com/measurement-repeated-circuitop.
@@ -166,6 +174,7 @@ class CircuitOperation(ops.Operation):
                         # the children repetition_ids.
                         ops.append(
                             op.with_repetition_ids(
+                                # If `op.repetition_ids` is None, this will return `[parent_id]`.
                                 cartesian_product_of_string_lists([parent_id], op.repetition_ids)
                             )
                         )
@@ -246,7 +255,7 @@ class CircuitOperation(ops.Operation):
                         frozenset(self.qubit_map.items()),
                         frozenset(self.measurement_key_map.items()),
                         self.param_resolver,
-                        tuple(self.repetition_ids),
+                        tuple([] if self.repetition_ids is None else self.repetition_ids),
                     )
                 ),
             )
@@ -290,89 +299,58 @@ class CircuitOperation(ops.Operation):
         self,
         repetitions: Optional[INT_TYPE] = None,
         repetition_ids: Optional[List[str]] = None,
-        override_all_ids: Optional[bool] = None,
     ) -> 'CircuitOperation':
         """Returns a copy of this operation repeated 'repetitions' times.
          Each repetition instance will be identified by a single repetition_id.
 
         Args:
             repetitions: Number of times this operation should repeat. This
-                is multiplied with any pre-existing repetitions. If unset,
-                it is defaulted to a sane value that would validate the
-                `repetition_ids` and `override_all_ids` values.
-                If `override_all_ids` is evaluated to False, defaults to the
-                length of repetition_ids. If override_all_ids is evaluated to
-                True (details below), defaults to
-                `len(repetition_ids) / abs(self.repetitions)`
-            repetition_ids: List of IDs, one for each repetition. The size
-                should be equal to either `repetitions` or
-                `repetitions*self.repetitions` based on the evaluated value of
-                `override_all_ids` (details below).
-                If unset, defaults to `range(required_size)` converted to str
-            override_all_ids: If True, the `repetition_ids` are directly
-                applied to the final operation without taking
-                `self.repetition_ids` into account. Input `repetition_ids` size
-                needs to be equal to the final repetitions.
-                If False, the `repetition_ids` of the returned CircuitOperation
-                are the cartesian product of the input `repetition_ids` with
-                `self.repetition_ids`. Input `repetition_ids` size needs to be
-                equal to the input `repetitions`.
-                If unset, defaults to False unless either 1) the base operation
-                is a single default repetition (i.e. no actual repetitions) or
-                2) both the base repetition_ids and the current input
-                `repetition_ids` are default/None (i.e no customization).
+                is multiplied with any pre-existing repetitions. If unset, it
+                defaults to the length of `repetition_ids`.
+            repetition_ids: List of IDs, one for each repetition. If unset,
+                defaults to `default_repetition_ids(repetitions)`.
 
         Returns:
             A copy of this operation repeated `repetitions` times with the
-            appropriate `repetition_ids` as described above.
+            appropriate `repetition_ids`. The output `repetition_ids` are the
+            cartesian product of input `repetition_ids` with the base
+            operation's `repetition_ids`. If the base operation has unset
+            `repetition_ids` (indicates {-1, 0, 1} `repetitions` with no custom
+            IDs), the input `repetition_ids` are directly used.
 
         Raises:
             TypeError: `repetitions` is not an integer value.
             ValueError: Unexpected length of `repetition_ids`.
             ValueError: Both `repetitions` and `repetition_ids` are None.
         """
-        base_is_default_rep = self.repetition_ids == self._default_repetition_ids()
-        base_is_single_default_rep = self.repetitions == 1 and base_is_default_rep
-        no_custom_repetition_ids = repetition_ids is None and base_is_default_rep
-        if override_all_ids is None:
-            override_all_ids = base_is_single_default_rep or no_custom_repetition_ids
-
         if repetitions is None:
             if repetition_ids is None:
                 raise ValueError('At least one of repetitions and repetition_ids must be set')
-            if override_all_ids:
-                if len(repetition_ids) % abs(self.repetitions) != 0:
-                    raise ValueError(
-                        f'Length of repetition_ids must be a multiple of {abs(self.repetitions)}'
-                    )
-                repetitions = int(len(repetition_ids) / abs(self.repetitions))
-            else:
-                repetitions = len(repetition_ids)
+            repetitions = len(repetition_ids)
 
         if not isinstance(repetitions, (int, np.integer)):
             raise TypeError('Only integer repetitions are allowed.')
 
         repetitions = int(repetitions)
+
+        if repetitions == 1 and repetition_ids is None:
+            # As CircuitOperation is immutable, this can safely return the original.
+            return self
+
+        expected_repetition_id_length = abs(repetitions)
         # The eventual number of repetitions of the returned CircuitOperation.
         final_repetitions = self.repetitions * repetitions
-        expected_repetition_id_length = (
-            abs(final_repetitions) if override_all_ids else abs(repetitions)
-        )
 
         if repetition_ids is None:
-            repetition_ids = default_repetition_ids(expected_repetition_id_length)
+            repetition_ids = default_repetition_ids(repetitions)
         elif len(repetition_ids) != abs(expected_repetition_id_length):
             raise ValueError(
                 f'Expected repetition_ids={repetition_ids} length to be '
                 f'{expected_repetition_id_length}'
             )
 
-        if repetitions == 1 and repetition_ids == self.repetition_ids:
-            # As CircuitOperation is immutable, this can safely return the original.
-            return self
-
-        if not override_all_ids:
-            repetition_ids = cartesian_product_of_string_lists(repetition_ids, self.repetition_ids)
+        # If `self.repetition_ids` is None, this will just return `repetition_ids`.
+        repetition_ids = cartesian_product_of_string_lists(repetition_ids, self.repetition_ids)
 
         return self.replace(repetitions=final_repetitions, repetition_ids=repetition_ids)
 

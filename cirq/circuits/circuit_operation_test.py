@@ -35,7 +35,7 @@ def test_properties():
     assert op.measurement_key_map == {}
     assert op.param_resolver == cirq.ParamResolver()
     assert op.repetitions == 1
-    assert op.repetition_ids == ['0']
+    assert op.repetition_ids is None
     # Despite having the same decomposition, these objects are not equal.
     assert op != circuit
     assert op == circuit.to_op()
@@ -209,10 +209,9 @@ def test_repeat(add_measurements, use_default_ids_for_initial_rep):
         circuit.append([cirq.measure(b, key='mb'), cirq.measure(a, key='ma')])
     op_base = cirq.CircuitOperation(circuit.freeze())
     assert op_base.repeat(1) is op_base
-    assert op_base.repeat(1, ['0']) is op_base
-    assert op_base.repeat(1, ['a']) != op_base
-    assert op_base.repeat(1, ['a']) == op_base.repeat(repetition_ids=['a'])
-    assert op_base.repeat(1, ['a']) == op_base.with_repetition_ids(['a'])
+    assert op_base.repeat(1, ['0']) != op_base
+    assert op_base.repeat(1, ['0']) == op_base.repeat(repetition_ids=['0'])
+    assert op_base.repeat(1, ['0']) == op_base.with_repetition_ids(['0'])
 
     initial_repetitions = -3
     if add_measurements:
@@ -235,17 +234,14 @@ def test_repeat(add_measurements, use_default_ids_for_initial_rep):
         assert (op_base ** initial_repetitions).replace(repetition_ids=rep_ids) == op_with_reps
     assert op_with_reps.repetitions == initial_repetitions
     assert op_with_reps.repetition_ids == rep_ids
+    assert op_with_reps.repeat(1) is op_with_reps
 
     op_with_consecutive_reps = op_with_reps.repeat(2)
     assert op_with_consecutive_reps.repetitions == final_repetitions
-    if use_default_ids_for_initial_rep:
-        assert op_with_consecutive_reps.repetition_ids == ['0', '1', '2', '3', '4', '5']
-        assert op_base ** final_repetitions == op_with_consecutive_reps
-    else:
-        assert op_with_consecutive_reps.repetition_ids == cartesian_product_of_string_lists(
-            ['0', '1'], rep_ids
-        )
-        assert op_base ** final_repetitions != op_with_consecutive_reps
+    assert op_with_consecutive_reps.repetition_ids == cartesian_product_of_string_lists(
+        ['0', '1'], rep_ids
+    )
+    assert op_base ** final_repetitions != op_with_consecutive_reps
 
     op_with_consecutive_reps = op_with_reps.repeat(2, ['a', 'b'])
     assert op_with_reps.repeat(repetition_ids=['a', 'b']) == op_with_consecutive_reps
@@ -253,24 +249,9 @@ def test_repeat(add_measurements, use_default_ids_for_initial_rep):
     assert op_with_consecutive_reps.repetition_ids == cartesian_product_of_string_lists(
         ['a', 'b'], rep_ids
     )
-    op_with_consecutive_reps = op_with_reps.repeat(
-        2, ['a', 'b', 'c', 'd', 'e', 'f'], override_all_ids=True
-    )
-    assert (
-        op_with_reps.repeat(repetition_ids=['a', 'b', 'c', 'd', 'e', 'f'], override_all_ids=True)
-        == op_with_consecutive_reps
-    )
-    assert op_with_consecutive_reps.repetitions == final_repetitions
-    assert op_with_consecutive_reps.repetition_ids == ['a', 'b', 'c', 'd', 'e', 'f']
 
     with pytest.raises(ValueError, match='length to be 2'):
         _ = op_with_reps.repeat(2, ['a', 'b', 'c'])
-    with pytest.raises(ValueError, match='length to be 2'):
-        _ = op_with_reps.repeat(2, ['a', 'b', 'c'], override_all_ids=False)
-    with pytest.raises(ValueError, match='length to be 6'):
-        _ = op_with_reps.repeat(2, ['a', 'b', 'c'], override_all_ids=True)
-    with pytest.raises(ValueError, match='must be a multiple of 3'):
-        _ = op_with_reps.repeat(repetition_ids=['a', 'b'], override_all_ids=True)
 
     with pytest.raises(
         ValueError, match='At least one of repetitions and repetition_ids must be set'
@@ -446,7 +427,7 @@ def test_json_dict():
         'qubit_map': sorted([(k, v) for k, v in op.qubit_map.items()]),
         'measurement_key_map': op.measurement_key_map,
         'param_resolver': op.param_resolver,
-        'repetition_ids': ['0'],
+        'repetition_ids': None,
     }
 
 
