@@ -149,8 +149,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples, simulator.SimulatesInte
                ...     ignore_measurement_results = True)
 
                will raise a `ValueError` exception if you call `simulator.run`
-							 when `ignore_measurement_results` has been set to True 
-							 (for more see https://github.com/quantumlib/Cirq/issues/2777).
+               when `ignore_measurement_results` has been set to True
+               (for more see https://github.com/quantumlib/Cirq/issues/2777).
         """
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError('dtype must be complex64 or complex128, was {}'.format(dtype))
