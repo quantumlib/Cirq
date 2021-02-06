@@ -23,6 +23,7 @@ import pytest
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
+import cirq
 from cirq.devices import grid_qubit
 from cirq.vis import heatmap
 
@@ -297,3 +298,8 @@ def test_colorbar(ax, position, size, pad):
 
     plt.close(fig1)
     plt.close(fig2)
+
+
+def test_illegal_key_type():
+    with pytest.raises(ValueError, match=".*got cirq.NamedQubit\('a'\).*"):
+        cirq.Heatmap({cirq.NamedQubit("a"): 0.123})  # type: ignore

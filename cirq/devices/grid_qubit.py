@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import functools
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Set, TypeVar, TYPE_CHECKING, Iterator
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Set, TypeVar, TYPE_CHECKING
 
 import abc
 
@@ -121,9 +121,6 @@ class _BaseGridQid(ops.Qid):
 
     def __neg__(self: TSelf) -> 'TSelf':
         return self._with_row_col(row=-self.row, col=-self.col)
-
-    def __iter__(self) -> Iterator[int]:
-        return iter([self._row, self._col])
 
 
 class GridQid(_BaseGridQid):

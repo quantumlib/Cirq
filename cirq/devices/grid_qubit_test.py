@@ -346,8 +346,3 @@ def test_immutable():
 def test_complex():
     assert complex(cirq.GridQubit(row=1, col=2)) == 2 + 1j
     assert isinstance(complex(cirq.GridQubit(row=1, col=2)), complex)
-
-
-def test_unpack():
-    assert (*cirq.GridQubit(row=1, col=2),) == (1, 2)
-    assert [*cirq.GridQubit(row=1, col=2)] == [1, 2]
