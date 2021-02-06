@@ -349,7 +349,7 @@ def test_simulate_circuit_length_validation():
         for _ in range(2)
     ]
     cycle_depths = np.arange(3, 50, 9)
-    with pytest.raises(ValueError, match='.*not long enough.*') as ee:
+    with pytest.raises(ValueError, match='.*not long enough.*'):
         _ = simulate_2q_xeb_circuits(
             circuits=circuits,
             cycle_depths=cycle_depths,
