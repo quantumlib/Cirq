@@ -11,14 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import itertools
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple, cast
 
+import networkx as nx
 import numpy as np
 import pytest
 
 import cirq
-import cirq.contrib.routing as ccr
 from cirq.experiments import (
     GridInteractionLayer,
     random_rotations_between_grid_interaction_layers_circuit,
@@ -104,8 +104,15 @@ def test_generate_library_of_2q_circuits_custom_qubits():
             assert m2.operations[0].gate == cirq.ISWAP ** 0.5
 
 
+def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
+    # cirq.contrib.routing.gridqubits_to_graph_device
+    def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
+        return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
+
+    return nx.Graph(pair for pair in itertools.combinations(qubits, 2) if _manhattan_distance(*pair) == 1)
+
 def test_get_random_combinations_for_device():
-    graph = ccr.gridqubits_to_graph_device(cirq.GridQubit.rect(3, 3))
+    graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 3))
     n_combinations = 4
     combinations = get_random_combinations_for_device(
         n_library_circuits=3,

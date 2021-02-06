@@ -14,14 +14,14 @@
 import itertools
 import math
 import multiprocessing
-from typing import Sequence
+from typing import Sequence, Iterable
 
+import networkx as nx
 import numpy as np
 import pandas as pd
 import pytest
 
 import cirq
-import cirq.contrib.routing as ccr
 import cirq.experiments.random_quantum_circuit_generation as rqcg
 from cirq.experiments.fidelity_estimation import (
     SQRT_ISWAP,
@@ -306,13 +306,21 @@ def test_sample_2q_xeb_circuits_no_progress(capsys):
     assert captured.out == ''
     assert captured.err == ''
 
+def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
+    # cirq.contrib.routing.gridqubits_to_graph_device
+    def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
+        return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
+
+    return nx.Graph(pair for pair in itertools.combinations(qubits, 2) if _manhattan_distance(*pair) == 1)
+
+
 
 def test_sample_2q_parallel_xeb_circuits():
     circuits = rqcg.generate_library_of_2q_circuits(
         n_library_circuits=5, two_qubit_gate=cirq.ISWAP ** 0.5, max_cycle_depth=10
     )
     cycle_depths = [10]
-    graph = ccr.gridqubits_to_graph_device(cirq.GridQubit.rect(3, 2))
+    graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 2))
     combs = rqcg.get_random_combinations_for_device(
         n_library_circuits=len(circuits),
         n_combinations=5,
@@ -343,7 +351,7 @@ def test_sample_2q_parallel_xeb_circuits_error():
         n_library_circuits=5, two_qubit_gate=cirq.ISWAP ** 0.5, max_cycle_depth=10
     )
     cycle_depths = [10]
-    graph = ccr.gridqubits_to_graph_device(cirq.GridQubit.rect(3, 2))
+    graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 2))
     combs = rqcg.get_random_combinations_for_device(
         n_library_circuits=len(circuits) + 100,  # !!! should cause invlaid input
         n_combinations=5,
@@ -369,7 +377,7 @@ def test_sample_2q_parallel_xeb_circuits_error_2():
         q1=cirq.GridQubit(1, 1),
     )
     cycle_depths = [10]
-    graph = ccr.gridqubits_to_graph_device(cirq.GridQubit.rect(3, 2))
+    graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 2))
     combs = rqcg.get_random_combinations_for_device(
         n_library_circuits=len(circuits),
         n_combinations=5,
@@ -441,7 +449,7 @@ def test_benchmark_2q_xeb_fidelities_parallel():
         n_library_circuits=5, two_qubit_gate=cirq.ISWAP ** 0.5, max_cycle_depth=10
     )
     cycle_depths = [10]
-    graph = ccr.gridqubits_to_graph_device(cirq.GridQubit.rect(2, 2))
+    graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(2, 2))
     combs = rqcg.get_random_combinations_for_device(
         n_library_circuits=len(circuits),
         n_combinations=2,
