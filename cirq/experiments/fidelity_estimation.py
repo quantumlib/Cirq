@@ -46,7 +46,9 @@ if TYPE_CHECKING:
     import cirq
     import multiprocessing
 
-THETA, ZETA, CHI, GAMMA, PHI = sympy.symbols('theta zeta chi gamma phi')
+THETA_SYMBOL, ZETA_SYMBOL, CHI_SYMBOL, GAMMA_SYMBOL, PHI_SYMBOL = sympy.symbols(
+    'theta zeta chi gamma phi'
+)
 SQRT_ISWAP = ops.ISWAP ** 0.5
 
 
@@ -677,13 +679,13 @@ class _Simulate2qXEBTask:
     circuit_i: int
     cycle_depths: Sequence[int]
     circuit: 'cirq.Circuit'
-    param_resolver: Dict[str, float]
+    param_resolver: 'cirq.ParamResolverOrSimilarType'
 
 
 class _Simulate_2q_XEB_Circuit:
     """Closure used in `simulate_2q_xeb_circuits` so it works with multiprocessing."""
 
-    def __init__(self, simulator):
+    def __init__(self, simulator: 'cirq.SimulatesIntermediateState'):
         self.simulator = simulator
 
     def __call__(self, task: _Simulate2qXEBTask):
@@ -730,7 +732,7 @@ def simulate_2q_xeb_circuits(
     cycle_depths: Sequence[int],
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     pool: Optional['multiprocessing.pool.Pool'] = None,
-    simulator=None,
+    simulator: Optional['cirq.SimulatesIntermediateState'] = None,
 ):
     """Simulate two-qubit XEB circuits.
 
@@ -745,6 +747,9 @@ def simulate_2q_xeb_circuits(
         param_resolver: If circuits contain parameters, resolve according to this ParamResolver
             prior to simulation
         pool: If provided, execute the simulations in parallel.
+        simulator: A noiseless simulator used to simulate the circuits. By default, this is
+            `cirq.Simulator`. The simulator must support the `cirq.SimulatesIntermediateState`
+            interface.
 
     Returns:
         A dataframe with index ['circuit_i', 'cycle_depth'] and column
@@ -757,6 +762,7 @@ def simulate_2q_xeb_circuits(
         rs = np.random.RandomState()
         _simulate_2q_xeb_circuit = _Simulate_2q_XEB_Circuit(simulator=sim.Simulator(seed=rs))
     else:
+        # coverage: ignore
         _simulate_2q_xeb_circuit = _Simulate_2q_XEB_Circuit(simulator=simulator)
 
     tasks = []
@@ -864,18 +870,18 @@ def benchmark_2q_xeb_fidelities(
 
 # mypy issue: https://github.com/python/mypy/issues/5374
 @dataclass(frozen=True)  # type: ignore
-class XEBPhasedFSimCalibrationOptions:
+class XEBPhasedFSimCharacterizationOptions:
     """Options for calibrating a PhasedFSim-like gate using XEB.
 
     You may want to use more specific subclasses like `SqrtISwapXEBOptions`
     which have sensible defaults.
 
     Attributes:
-        parameterize_theta: Whether to characterize θ angle.
-        parameterize_zeta: Whether to characterize ζ angle.
-        parameterize_chi: Whether to characterize χ angle.
-        parameterize_gamma: Whether to characterize γ angle.
-        parameterize_phi: Whether to characterize φ angle.
+        characterize_theta: Whether to characterize θ angle.
+        characterize_zeta: Whether to characterize ζ angle.
+        characterize_chi: Whether to characterize χ angle.
+        characterize_gamma: Whether to characterize γ angle.
+        characterize_phi: Whether to characterize φ angle.
         theta_default: The initial or default value to assume for the θ angle.
         zeta_default: The initial or default value to assume for the ζ angle.
         chi_default: The initial or default value to assume for the χ angle.
@@ -883,11 +889,11 @@ class XEBPhasedFSimCalibrationOptions:
         phi_default: The initial or default value to assume for the φ angle.
     """
 
-    parameterize_theta: bool = True
-    parameterize_zeta: bool = True
-    parameterize_chi: bool = True
-    parameterize_gamma: bool = True
-    parameterize_phi: bool = True
+    characterize_theta: bool = True
+    characterize_zeta: bool = True
+    characterize_chi: bool = True
+    characterize_gamma: bool = True
+    characterize_phi: bool = True
 
     theta_default: float = 0
     zeta_default: float = 0
@@ -916,21 +922,21 @@ class XEBPhasedFSimCalibrationOptions:
         """
         x0 = []
         names = []
-        if self.parameterize_theta:
+        if self.characterize_theta:
             x0 += [self.theta_default]
-            names += [THETA.name]
-        if self.parameterize_zeta:
+            names += [THETA_SYMBOL.name]
+        if self.characterize_zeta:
             x0 += [self.zeta_default]
-            names += [ZETA.name]
-        if self.parameterize_chi:
+            names += [ZETA_SYMBOL.name]
+        if self.characterize_chi:
             x0 += [self.chi_default]
-            names += [CHI.name]
-        if self.parameterize_gamma:
+            names += [CHI_SYMBOL.name]
+        if self.characterize_gamma:
             x0 += [self.gamma_default]
-            names += [GAMMA.name]
-        if self.parameterize_phi:
+            names += [GAMMA_SYMBOL.name]
+        if self.characterize_phi:
             x0 += [self.phi_default]
-            names += [PHI.name]
+            names += [PHI_SYMBOL.name]
 
         x0 = np.asarray(x0)
         n_param = len(x0)
@@ -944,7 +950,7 @@ class XEBPhasedFSimCalibrationOptions:
 
 
 @dataclass(frozen=True)
-class SqrtISwapXEBOptions(XEBPhasedFSimCalibrationOptions):
+class SqrtISwapXEBOptions(XEBPhasedFSimCharacterizationOptions):
     """Options for calibrating a sqrt(ISWAP) gate using XEB.
 
     As such, the default for theta is changed to -pi/4 and the parameterization
@@ -960,45 +966,33 @@ class SqrtISwapXEBOptions(XEBPhasedFSimCalibrationOptions):
 
 def parameterize_phased_fsim_circuit(
     circuit: 'cirq.Circuit',
-    phased_fsim_options: XEBPhasedFSimCalibrationOptions,
+    phased_fsim_options: XEBPhasedFSimCharacterizationOptions,
 ) -> 'cirq.Circuit':
     """Parameterize PhasedFSim-like gates in a given circuit according to
     `phased_fsim_options`.
     """
     options = phased_fsim_options
-    theta = THETA if options.parameterize_theta else options.theta_default
-    zeta = ZETA if options.parameterize_zeta else options.zeta_default
-    chi = CHI if options.parameterize_chi else options.chi_default
-    gamma = GAMMA if options.parameterize_gamma else options.gamma_default
-    phi = PHI if options.parameterize_phi else options.phi_default
+    theta = THETA_SYMBOL if options.characterize_theta else options.theta_default
+    zeta = ZETA_SYMBOL if options.characterize_zeta else options.zeta_default
+    chi = CHI_SYMBOL if options.characterize_chi else options.chi_default
+    gamma = GAMMA_SYMBOL if options.characterize_gamma else options.gamma_default
+    phi = PHI_SYMBOL if options.characterize_phi else options.phi_default
 
-    new_moments = []
-    for moment in circuit.moments:
-        new_ops = []
-        for op in moment.operations:
-            if options.should_parameterize(op):
-                new_ops += [
-                    ops.PhasedFSimGate(
-                        theta=theta,
-                        zeta=zeta,
-                        chi=chi,
-                        gamma=gamma,
-                        phi=phi,
-                    ).on(*op.qubits)
-                ]
-            else:
-                new_ops += [op]
-        new_moments += [ops.Moment(new_ops)]
-
-    circuit = Circuit(new_moments)
-    return circuit
+    fsim_gate = ops.PhasedFSimGate(theta=theta, zeta=zeta, chi=chi, gamma=gamma, phi=phi)
+    return Circuit(
+        ops.Moment(
+            fsim_gate.on(*op.qubits) if options.should_parameterize(op) else op
+            for op in moment.operations
+        )
+        for moment in circuit.moments
+    )
 
 
 def characterize_phased_fsim_parameters_with_xeb(
     sampled_df: pd.DataFrame,
     parameterized_circuits: List['cirq.Circuit'],
     cycle_depths: Sequence[int],
-    phased_fsim_options: XEBPhasedFSimCalibrationOptions,
+    phased_fsim_options: XEBPhasedFSimCharacterizationOptions,
     initial_simplex_step_size: float = 0.1,
     xatol: float = 1e-3,
     fatol: float = 1e-3,
