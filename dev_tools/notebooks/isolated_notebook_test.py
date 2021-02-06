@@ -44,9 +44,10 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES = [
 # please always add a reason for skipping.
 SKIP_NOTEBOOKS = [
     # skipping vendor notebooks as we don't have auth sorted out
-    "**/google/*.ipynb",
-    "**/pasqal/*.ipynb",
     "**/aqt/*.ipynb",
+    "**/google/*.ipynb",
+    "**/ionq/*.ipynb",
+    "**/pasqal/*.ipynb",
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     "examples/*fidelity*",
