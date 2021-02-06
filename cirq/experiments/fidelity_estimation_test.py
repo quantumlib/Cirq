@@ -11,17 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import multiprocessing
-import time
-from typing import Sequence, Dict, Any, cast, Optional
 import itertools
 import math
+import multiprocessing
+from typing import Sequence
 
 import numpy as np
-import pytest
 import pandas as pd
+import pytest
 
 import cirq
+import cirq.experiments.random_quantum_circuit_generation as rqcg
 from cirq.experiments.fidelity_estimation import (
     SQRT_ISWAP,
     sample_2q_xeb_circuits,
@@ -31,7 +31,6 @@ from cirq.experiments.fidelity_estimation import (
     characterize_phased_fsim_parameters_with_xeb,
     SqrtISwapXEBOptions,
 )
-import cirq.experiments.random_quantum_circuit_generation as rqcg
 
 
 def sample_noisy_bitstrings(

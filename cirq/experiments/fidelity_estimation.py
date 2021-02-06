@@ -486,7 +486,8 @@ def _verify_and_get_two_qubits_from_circuits(circuits: Sequence['cirq.Circuit'])
 def _verify_two_line_qubits_from_circuits(circuits: Sequence['cirq.Circuit']):
     if _verify_and_get_two_qubits_from_circuits(circuits) != devices.LineQubit.range(2):
         raise ValueError(
-            "`circuits` should be a sequence of circuits each operating on LineQubit(0) and LineQubit(1)"
+            "`circuits` should be a sequence of circuits each operating "
+            "on LineQubit(0) and LineQubit(1)"
         )
 
 
@@ -658,7 +659,6 @@ def sample_2q_xeb_circuits(
     # Set up the dataframe.
     df = pd.DataFrame(records).set_index(['circuit_i', 'cycle_depth'])
     if one_pair:
-        # TODO: is this helpful or annoying?
         df = df.drop(['layer_i', 'pair_i', 'combination_i'], axis=1)
     return df
 

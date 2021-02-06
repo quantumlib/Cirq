@@ -149,7 +149,10 @@ HALF_GRID_STAGGERED_PATTERN = (
 )
 document(
     HALF_GRID_STAGGERED_PATTERN,
-    """A pattern that is half of GRID_STAGGERED_PATTERN
+    """A pattern that is half of GRID_STAGGERED_PATTERN.
+
+    It activates each link in a grid once in a staggered way permits
+    easier simulation.
     """,
 )
 
@@ -238,8 +241,8 @@ def generate_library_of_2q_circuits(
     two_qubit_gate: 'cirq.Gate',
     *,
     max_cycle_depth: int = 100,
-    q0=devices.LineQubit(0),
-    q1=devices.LineQubit(1),
+    q0: 'cirq.Qid' = devices.LineQubit(0),
+    q1: 'cirq.Qid' = devices.LineQubit(1),
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> List['cirq.Circuit']:
     """Generate a library of two-qubit Circuits.
@@ -247,9 +250,11 @@ def generate_library_of_2q_circuits(
     Args:
         n_library_circuits: The number of circuits to generate.
         two_qubit_gate: The two qubit gate to use in the circuits.
-        max_depth: The maximum cycle_depth in the circuits to generate.
-            If you are using XEB, this must be greater than or equal to the
-            maximum value in `cycle_depths`.
+        max_cycle_depth: The maximum cycle_depth in the circuits to generate. If you are using XEB,
+            this must be greater than or equal to the maximum value in `cycle_depths`.
+        q0: The first qubit to use when constructing the circuits.
+        q1: The second qubit to use when constructing the circuits
+        random_state: A random state or seed used to deterministically sample the random circuits.
     """
     rs = value.parse_random_state(random_state)
     exponents = np.linspace(0, 7 / 4, 8)
@@ -279,10 +284,11 @@ def _get_active_pairs(graph: nx.Graph, grid_layer: GridInteractionLayer):
 
 @dataclasses.dataclass(frozen=True)
 class CircuitLibraryCombination:
-    """For a given layer (which defines a set of pairs of qubits), `combinations`
-    is a 2d array of shape (n_combinations, len(pairs)) where each row
-    represents a combination (with replacement) of two-qubit circuits. The
-    actual values are indices into a list of library circuits.
+    """For a given layer (which defines a set of pairs of qubits), `combinations` is a 2d array
+    of shape (n_combinations, len(pairs)) where each row represents a combination (with replacement)
+    of two-qubit circuits. The actual values are indices into a list of library circuits.
+
+    `layer` is used for record-keeping but is otherwise unnecessary. Therefore, it is optional.
     """
 
     layer: Optional[GridInteractionLayer]
