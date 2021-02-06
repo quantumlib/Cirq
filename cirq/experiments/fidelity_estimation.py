@@ -545,7 +545,7 @@ class _Simulate2qXEBTask:
 class _Simulate_2q_XEB_Circuit:
     """Closure used in `simulate_2q_xeb_circuits` so it works with multiprocessing."""
 
-    def __init__(self, simulator):
+    def __init__(self, simulator: 'cirq.SimulatesIntermediateState'):
         self.simulator = simulator
 
     def __call__(self, task: _Simulate2qXEBTask):
@@ -592,7 +592,7 @@ def simulate_2q_xeb_circuits(
     cycle_depths: Sequence[int],
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     pool: Optional['multiprocessing.pool.Pool'] = None,
-    simulator=None,
+    simulator: Optional['cirq.SimulatesIntermediateState'] = None,
 ):
     """Simulate two-qubit XEB circuits.
 
@@ -607,6 +607,9 @@ def simulate_2q_xeb_circuits(
         param_resolver: If circuits contain parameters, resolve according to this ParamResolver
             prior to simulation
         pool: If provided, execute the simulations in parallel.
+        simulator: A noiseless simulator used to simulate the circuits. By default, this is
+            `cirq.Simulator`. The simulator must support the `cirq.SimulatesIntermediateState`
+            interface.
 
     Returns:
         A dataframe with index ['circuit_i', 'cycle_depth'] and column
@@ -619,6 +622,7 @@ def simulate_2q_xeb_circuits(
         rs = np.random.RandomState()
         _simulate_2q_xeb_circuit = _Simulate_2q_XEB_Circuit(simulator=sim.Simulator(seed=rs))
     else:
+        # coverage: ignore
         _simulate_2q_xeb_circuit = _Simulate_2q_XEB_Circuit(simulator=simulator)
 
     tasks = []
