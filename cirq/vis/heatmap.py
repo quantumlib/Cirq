@@ -264,7 +264,7 @@ class Heatmap:
             annotation = self.annot_map.get((row, col), '')
             if not annotation:
                 continue
-            face_luminance = relative_luminance(facecolor)
+            face_luminance = vis_utils.relative_luminance(facecolor)
             text_color = 'black' if face_luminance > 0.4 else 'white'
             text_kwargs = dict(color=text_color, ha="center", va="center")
             text_kwargs.update(self.annot_kwargs)
