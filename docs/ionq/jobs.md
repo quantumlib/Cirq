@@ -14,7 +14,7 @@ See [IonQ API Service](service.md) for how to set the service up.
 
 ## Running programs
 
-The IonQ API is a service that allows one to send a quantum circuit as a *job*
+The IonQ API is a service that allows you to send a quantum circuit as a *job*
 to a scheduler server.  This means that a user can submit a job to the API, and
 then this job is held in a queue before being scheduled to run on the appropriate
 hardware (QPU) or simulator.  Once a job is created (but not necessarily yet run)

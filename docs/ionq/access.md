@@ -13,8 +13,8 @@ url of the API frontend.  This should be specified as something like `https://ex
 random looking string.
 
 Given that you have the remote host and the API key, there are two ways to use these to
-get an object in python to access the API. The object that one constructs to access
-the API are instances of the `cirq.ionq.Service` class. One can directly use the remote host
+get an object in python to access the API. The object that you construct to access
+the API are instances of the `cirq.ionq.Service` class. You can directly use the remote host
 and API key in constructing this instances of this class. Here is an example of this pattern:
 ```python
 import cirq.ionq as ionq
@@ -22,19 +22,19 @@ import cirq.ionq as ionq
 service = ionq.Service(remote_host='http://example.com/', api_key='tomyheart')
 ```
 
-Alternatively one can use environment variables for these values. These environment variables
+Alternatively you can use environment variables for these values. These environment variables
 are `IONQ_REMOTE_HOST` and `IONQ_API_KEY`.  Details of how to set environment variables vary
-by operating system.  For example in bash, one would do
+by operating system.  For example in bash, you would do
 ```bash
 export IONQ_REMOTE_HOST=http://example.com/v1
 export IONQ_API_KEY=tomyheart
 ```
-In the case that one has set these environment variables, one can just perform
+In the case that you have set these environment variables, you can just perform
 ```python
 import cirq.ionq as ionq
 
 service = ionq.Service()
 ```
-The advantage of doing things this way is that one does not have to store the API key in
+The advantage of doing things this way is that you do not have to store the API key in
 source code, which might accidentally get uploaded to a version control system, and hence
 leak the API key.

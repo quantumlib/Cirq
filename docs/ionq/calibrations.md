@@ -16,7 +16,7 @@ See [IonQ API Service](service.md) for how to set the service up.
 
 ## Fetching information about the device
 
-To get the latest calibration, one simply queries the service for the calibration
+To get the latest calibration, you simply queries the service for the calibration
 object
 ```python
 calibration = service.get_current_calibration()

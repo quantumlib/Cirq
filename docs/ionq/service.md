@@ -40,7 +40,7 @@ service = ionq.Service(remote_host=REMOTE_HOST, api_key=API_KEY)
 result = service.run(circuit=circuit, repetitions=100, target='qpu')
 
 # The return object of run is a cirq.Result object.
-# From this object one can get a histogram of results.
+# From this object you can get a histogram of results.
 histogram = result.histogram(key='x')
 print(f'Histogram: {histogram}')
 
@@ -73,13 +73,13 @@ Data:
 In addition to the `remote_host` and `api_key` there are some other options which are
 useful for configuring the service.  The most useful of these are
 
-* `default_target`: this is a string of either `simulator` or `qpu`. By setting this one
-does not have to specify a target every time one runs a job using `run`, `create_job`
+* `default_target`: this is a string of either `simulator` or `qpu`. By setting this you
+does not have to specify a target every time you run a job using `run`, `create_job`
 or via the `sampler` interface.  A helpful pattern is to create two service with
 defaults for the simulator and for the QPU separately.
 
 * `max_retry_seconds`: The API will pull with exponential backoff for completed jobs.
-By specifying this one can change the number of seconds before this retry gives up.
+By specifying this you can change the number of seconds before this retry gives up.
 It is common to set this to a very small number when, for example, wanting to fail
 fast, or to be set very long for long running jobs.
 

@@ -1,6 +1,6 @@
 # IonQ API Circuits
 
-To run against the IonQ API, one must construct circuits that are valid
+To run against the IonQ API, you must construct circuits that are valid
 for the service. In other words, not every `cirq.Circuit` that you can
 construct will be able to run on the IonQ API, either against hardware
 or on the IonQ simulator.  Here we describe the restrictions on these circuits.
@@ -23,7 +23,7 @@ generically refer to the position of the ion in a chain, as the API
 may decide to run your algorithm on different qubits than the number
 you specify.  This integer number must be between zero and the number
 of qubits on the device minus one, inclusively.  To get the number of
-qubits on the device, one can query the calibration:
+qubits on the device, you can query the calibration:
 
 ```python
 calibration = service.get_current_calibration()
@@ -33,7 +33,7 @@ print(num_qubits)
 
 A useful way to generate a set of `cirq.LineQubit`s is to use the `range`
 method on this class, which functions similar to Python's native `range`.
-For example to create three qubits, with indices 0, 1, and 2 one can do
+For example to create three qubits, with indices 0, 1, and 2 you can do
 ```python
 q0, q1, q2 = cirq.LineQubit.range(3)
 ```
@@ -42,7 +42,7 @@ q0, q1, q2 = cirq.LineQubit.range(3)
 
 The IonQ API supports a set of gates via the API.  Circuits written with
 these gates can be run directly on the API without modifying the circuit.
-If the circuit has gates that are not in the this API gate set, then one
+If the circuit has gates that are not in the this API gate set, then you
 must transpile these circuits into the API gate set.
 
 The API gate for the IonQ device is given by
@@ -89,7 +89,7 @@ third qubit.
 
 ## Support for general one and two qubit gates.
 
-If one has a circuit with gates outside of the API native gates, one will
+If you have a circuit with gates outside of the API native gates, you will
 need to convert these gates into the native gates.  For the case in which
 these gates are one or two qubit gates which support the `unitary` protocol
 (i.e. which support calling `cirq.unitary` on the gate produces the unitary
