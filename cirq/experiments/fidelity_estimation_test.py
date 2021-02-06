@@ -337,7 +337,26 @@ def test_simulate_2q_xeb_circuits():
     pd.testing.assert_frame_equal(df, df2)
 
 
-def test_simulate_2q_xeb_fidelities():
+def test_simulate_circuit_length_validation():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuits = [
+        rqcg.random_rotations_between_two_qubit_circuit(
+            q0,
+            q1,
+            depth=10,  # not long enough!
+            two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b),
+        )
+        for _ in range(2)
+    ]
+    cycle_depths = np.arange(3, 50, 9)
+    with pytest.raises(ValueError, match='.*not long enough.*') as ee:
+        _ = simulate_2q_xeb_circuits(
+            circuits=circuits,
+            cycle_depths=cycle_depths,
+        )
+
+
+def test_benchmark_2q_xeb_fidelities():
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
@@ -418,26 +437,24 @@ def test_characterize_phased_fsim_parameters_with_xeb():
     )
     # only optimize theta so it goes faster.
     options = SqrtISwapXEBOptions(
-        parameterize_theta=True,
-        parameterize_gamma=False,
-        parameterize_chi=False,
-        parameterize_zeta=False,
-        parameterize_phi=False,
+        characterize_theta=True,
+        characterize_gamma=False,
+        characterize_chi=False,
+        characterize_zeta=False,
+        characterize_phi=False,
     )
     p_circuits = [parameterize_phased_fsim_circuit(circuit, options) for circuit in circuits]
-    result = characterize_phased_fsim_parameters_with_xeb(
-        sampled_df=sampled_df,
-        parameterized_circuits=p_circuits,
-        cycle_depths=cycle_depths,
-        phased_fsim_options=options,
-        # speed up with looser tolerances:
-        fatol=1e-2,
-        xatol=1e-2,
-        pool=multiprocessing.Pool(),
-    )
-    print()
-    print(result)
-    print()
+    with multiprocessing.Pool() as pool:
+        result = characterize_phased_fsim_parameters_with_xeb(
+            sampled_df=sampled_df,
+            parameterized_circuits=p_circuits,
+            cycle_depths=cycle_depths,
+            phased_fsim_options=options,
+            # speed up with looser tolerances:
+            fatol=1e-2,
+            xatol=1e-2,
+            pool=pool,
+        )
     assert np.abs(result.x[0] + np.pi / 4) < 0.1
     assert np.abs(result.fun) < 0.1  # noiseless simulator
 
@@ -500,7 +517,8 @@ def _ref_simulate_2q_xeb_circuits(
     return pd.DataFrame(records).set_index(['circuit_i', 'cycle_depth']).sort_index()
 
 
-def test_incremental_simulate():
+@pytest.mark.parametrize('multiprocess', (True, False))
+def test_incremental_simulate(multiprocess):
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
@@ -512,7 +530,11 @@ def test_incremental_simulate():
         for _ in range(20)
     ]
     cycle_depths = np.arange(3, 100, 9)
-    pool = multiprocessing.Pool()
+
+    if multiprocess:
+        pool = multiprocessing.Pool()
+    else:
+        pool = None
 
     start = time.perf_counter()
     df_ref = _ref_simulate_2q_xeb_circuits(
@@ -524,9 +546,9 @@ def test_incremental_simulate():
 
     df = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths, pool=pool)
     end2 = time.perf_counter()
-    print()
-    print("new:", end2 - end1, "old:", end1 - start)
-    print()
+    if pool is not None:
+        pool.terminate()
+    print("\nnew:", end2 - end1, "old:", end1 - start)
 
     pd.testing.assert_frame_equal(df_ref, df)
 
