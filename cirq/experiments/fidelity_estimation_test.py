@@ -337,7 +337,26 @@ def test_simulate_2q_xeb_circuits():
     pd.testing.assert_frame_equal(df, df2)
 
 
-def test_simulate_2q_xeb_fidelities():
+def test_simulate_circuit_length_validation():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuits = [
+        rqcg.random_rotations_between_two_qubit_circuit(
+            q0,
+            q1,
+            depth=10,  # not long enough!
+            two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b),
+        )
+        for _ in range(2)
+    ]
+    cycle_depths = np.arange(3, 50, 9)
+    with pytest.raises(ValueError, match='.*not long enough.*') as ee:
+        _ = simulate_2q_xeb_circuits(
+            circuits=circuits,
+            cycle_depths=cycle_depths,
+        )
+
+
+def test_benchmark_2q_xeb_fidelities():
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
@@ -498,7 +517,8 @@ def _ref_simulate_2q_xeb_circuits(
     return pd.DataFrame(records).set_index(['circuit_i', 'cycle_depth']).sort_index()
 
 
-def test_incremental_simulate():
+@pytest.mark.parametrize('multiprocess', (True, False))
+def test_incremental_simulate(multiprocess):
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
@@ -510,22 +530,25 @@ def test_incremental_simulate():
         for _ in range(20)
     ]
     cycle_depths = np.arange(3, 100, 9)
-    pool = multiprocessing.Pool()
 
-    with multiprocessing.Pool() as pool:
-        start = time.perf_counter()
-        df_ref = _ref_simulate_2q_xeb_circuits(
-            circuits=circuits,
-            cycle_depths=cycle_depths,
-            pool=pool,
-        )
-        end1 = time.perf_counter()
+    if multiprocess:
+        pool = multiprocessing.Pool()
+    else:
+        pool = None
 
-        df = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths, pool=pool)
-        end2 = time.perf_counter()
+    start = time.perf_counter()
+    df_ref = _ref_simulate_2q_xeb_circuits(
+        circuits=circuits,
+        cycle_depths=cycle_depths,
+        pool=pool,
+    )
+    end1 = time.perf_counter()
 
-    # uncomment for benchmarks:
-    # print("\nnew:", end2 - end1, "old:", end1 - start)
+    df = simulate_2q_xeb_circuits(circuits=circuits, cycle_depths=cycle_depths, pool=pool)
+    end2 = time.perf_counter()
+    if pool is not None:
+        pool.terminate()
+    print("\nnew:", end2 - end1, "old:", end1 - start)
 
     pd.testing.assert_frame_equal(df_ref, df)
 
