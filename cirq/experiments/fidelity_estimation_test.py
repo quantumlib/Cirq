@@ -21,6 +21,7 @@ import pandas as pd
 import pytest
 
 import cirq
+import cirq.contrib.routing as ccr
 import cirq.experiments.random_quantum_circuit_generation as rqcg
 from cirq.experiments.fidelity_estimation import (
     SQRT_ISWAP,
@@ -306,6 +307,85 @@ def test_sample_2q_xeb_circuits_no_progress(capsys):
     assert captured.err == ''
 
 
+def test_sample_2q_parallel_xeb_circuits():
+    circuits = rqcg.generate_library_of_2q_circuits(
+        n_library_circuits=5, two_qubit_gate=cirq.ISWAP ** 0.5, max_cycle_depth=10
+    )
+    cycle_depths = [10]
+    graph = ccr.gridqubits_to_graph_device(cirq.GridQubit.rect(3, 2))
+    combs = rqcg.get_random_combinations_for_device(
+        n_library_circuits=len(circuits),
+        n_combinations=5,
+        device_graph=graph,
+        random_state=10,
+    )
+
+    df = sample_2q_xeb_circuits(
+        sampler=cirq.Simulator(),
+        circuits=circuits,
+        cycle_depths=cycle_depths,
+        combinations_by_layer=combs,
+    )
+    n_pairs = sum(len(c.pairs) for c in combs)
+    assert len(df) == len(cycle_depths) * len(circuits) * n_pairs
+    for (circuit_i, cycle_depth), row in df.iterrows():
+        assert 0 <= circuit_i < len(circuits)
+        assert cycle_depth in cycle_depths
+        assert len(row['sampled_probs']) == 4
+        assert np.isclose(np.sum(row['sampled_probs']), 1)
+        assert 0 <= row['layer_i'] < 4
+        assert 0 <= row['pair_i'] < 2  # in 3x2 graph, there's a max of 2 pairs per layer
+    assert len(df['pair_name'].unique()) == 7  # seven pairs in 3x2 graph
+
+
+def test_sample_2q_parallel_xeb_circuits_error():
+    circuits = rqcg.generate_library_of_2q_circuits(
+        n_library_circuits=5, two_qubit_gate=cirq.ISWAP ** 0.5, max_cycle_depth=10
+    )
+    cycle_depths = [10]
+    graph = ccr.gridqubits_to_graph_device(cirq.GridQubit.rect(3, 2))
+    combs = rqcg.get_random_combinations_for_device(
+        n_library_circuits=len(circuits) + 100,  # !!! should cause invlaid input
+        n_combinations=5,
+        device_graph=graph,
+        random_state=10,
+    )
+
+    with pytest.raises(ValueError, match='.*invalid indices.*'):
+        _ = sample_2q_xeb_circuits(
+            sampler=cirq.Simulator(),
+            circuits=circuits,
+            cycle_depths=cycle_depths,
+            combinations_by_layer=combs,
+        )
+
+
+def test_sample_2q_parallel_xeb_circuits_error_2():
+    circuits = rqcg.generate_library_of_2q_circuits(
+        n_library_circuits=5,
+        two_qubit_gate=cirq.ISWAP ** 0.5,
+        max_cycle_depth=10,
+        q0=cirq.GridQubit(0, 0),
+        q1=cirq.GridQubit(1, 1),
+    )
+    cycle_depths = [10]
+    graph = ccr.gridqubits_to_graph_device(cirq.GridQubit.rect(3, 2))
+    combs = rqcg.get_random_combinations_for_device(
+        n_library_circuits=len(circuits),
+        n_combinations=5,
+        device_graph=graph,
+        random_state=10,
+    )
+
+    with pytest.raises(ValueError, match=r'.*each operating on LineQubit\(0\) and LineQubit\(1\)'):
+        _ = sample_2q_xeb_circuits(
+            sampler=cirq.Simulator(),
+            circuits=circuits,
+            cycle_depths=cycle_depths,
+            combinations_by_layer=combs,
+        )
+
+
 def test_simulate_2q_xeb_circuits():
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
@@ -336,7 +416,7 @@ def test_simulate_2q_xeb_circuits():
     pd.testing.assert_frame_equal(df, df2)
 
 
-def test_simulate_2q_xeb_fidelities():
+def test_benchmark_2q_xeb_fidelities():
     q0, q1 = cirq.LineQubit.range(2)
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
@@ -354,6 +434,30 @@ def test_simulate_2q_xeb_fidelities():
     for _, row in fid_df.iterrows():
         assert row['cycle_depth'] in cycle_depths
         assert row['fidelity'] > 0.98
+
+
+def test_benchmark_2q_xeb_fidelities_parallel():
+    circuits = rqcg.generate_library_of_2q_circuits(
+        n_library_circuits=5, two_qubit_gate=cirq.ISWAP ** 0.5, max_cycle_depth=10
+    )
+    cycle_depths = [10]
+    graph = ccr.gridqubits_to_graph_device(cirq.GridQubit.rect(2, 2))
+    combs = rqcg.get_random_combinations_for_device(
+        n_library_circuits=len(circuits),
+        n_combinations=2,
+        device_graph=graph,
+        random_state=10,
+    )
+
+    sampled_df = sample_2q_xeb_circuits(
+        sampler=cirq.Simulator(),
+        circuits=circuits,
+        cycle_depths=cycle_depths,
+        combinations_by_layer=combs,
+    )
+    fid_df = benchmark_2q_xeb_fidelities(sampled_df, circuits, cycle_depths)
+    n_pairs = sum(len(c.pairs) for c in combs)
+    assert len(fid_df) == len(cycle_depths) * n_pairs
 
 
 def test_parameterize_phased_fsim_circuit():

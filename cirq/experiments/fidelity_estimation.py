@@ -780,7 +780,7 @@ def benchmark_2q_xeb_fidelities(
         def _try_keep(k):
             """If all the values for a key `k` are the same in this group, we can keep it."""
             if k not in df.columns:
-                return
+                return  # coverage: ignore
             vals = df[k].unique()
             if len(vals) == 1:
                 ret[k] = vals[0]
