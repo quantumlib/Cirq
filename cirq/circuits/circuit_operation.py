@@ -169,8 +169,8 @@ class CircuitOperation(ops.Operation):
         for parent_id in self.repetition_ids:
             for op in result.all_operations():
                 if isinstance(op, CircuitOperation):
-                    # For a measurement CircuitOperation, prefix the current repetition_id to
-                    # the children repetition_ids.
+                    # For a CircuitOperation, prefix the current repetition_id to the children
+                    # repetition_ids.
                     ops.append(
                         op.with_repetition_ids(
                             # If `op.repetition_ids` is None, this will return `[parent_id]`.
@@ -340,8 +340,8 @@ class CircuitOperation(ops.Operation):
         final_repetitions = self.repetitions * repetitions
 
         if repetition_ids is None:
-            repetition_ids = default_repetition_ids(repetitions)
-        elif len(repetition_ids) != abs(expected_repetition_id_length):
+            repetition_ids = default_repetition_ids(expected_repetition_id_length)
+        elif len(repetition_ids) != expected_repetition_id_length:
             raise ValueError(
                 f'Expected repetition_ids={repetition_ids} length to be '
                 f'{expected_repetition_id_length}'

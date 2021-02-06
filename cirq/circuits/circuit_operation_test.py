@@ -17,6 +17,7 @@ from typing import List
 import pytest, sympy
 
 import cirq
+from cirq.circuits.circuit_operation import cartesian_product_of_string_lists
 
 
 def test_properties():
@@ -196,10 +197,6 @@ def test_with_params():
         _ = cirq.resolve_parameters(op_base, cirq.ParamResolver(param_dict))
 
 
-def cartesian_product_of_string_lists(list1: List[str], list2: List[str]):
-    return [f'{first}-{second}' for first in list1 for second in list2]
-
-
 @pytest.mark.parametrize('add_measurements', [True, False])
 @pytest.mark.parametrize('use_default_ids_for_initial_rep', [True, False])
 def test_repeat(add_measurements, use_default_ids_for_initial_rep):
@@ -219,8 +216,6 @@ def test_repeat(add_measurements, use_default_ids_for_initial_rep):
             _ = op_base.repeat(initial_repetitions)
         initial_repetitions = abs(initial_repetitions)
 
-    final_repetitions = 2 * initial_repetitions
-
     op_with_reps = None  # type: cirq.CircuitOperation
     rep_ids = []
     if use_default_ids_for_initial_rep:
@@ -235,6 +230,8 @@ def test_repeat(add_measurements, use_default_ids_for_initial_rep):
     assert op_with_reps.repetitions == initial_repetitions
     assert op_with_reps.repetition_ids == rep_ids
     assert op_with_reps.repeat(1) is op_with_reps
+
+    final_repetitions = 2 * initial_repetitions
 
     op_with_consecutive_reps = op_with_reps.repeat(2)
     assert op_with_consecutive_reps.repetitions == final_repetitions
