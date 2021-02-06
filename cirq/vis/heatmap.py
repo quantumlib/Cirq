@@ -34,13 +34,6 @@ QubitCoordinate = Union[Tuple[int, int], grid_qubit.GridQubit]
 ValueMap = Union[Dict[grid_qubit.GridQubit, SupportsFloat], Dict[Tuple[int, int], SupportsFloat]]
 
 
-def _get_qubit_row_col(qubit: QubitCoordinate) -> Tuple[int, int]:
-    if isinstance(qubit, grid_qubit.GridQubit):
-        return qubit.row, qubit.col
-    elif isinstance(qubit, tuple):
-        return int(qubit[0]), int(qubit[1])
-
-
 def relative_luminance(color: np.ndarray) -> float:
     """Returns the relative luminance according to W3C specification.
 
@@ -63,8 +56,7 @@ class Heatmap:
     def __init__(self, value_map: ValueMap) -> None:
         self.set_value_map(value_map)
         self.annot_map = {  # Default annotation.
-            _get_qubit_row_col(qubit): format(float(value), '.2g')
-            for qubit, value in value_map.items()
+            (*qubit,): format(float(value), '.2g') for qubit, value in value_map.items()
         }
         self.annot_kwargs: Dict[str, Any] = {}
         self.unset_url_map()
@@ -95,7 +87,7 @@ class Heatmap:
             text_options: keyword arguments passed to matplotlib.text.Text()
                 when drawing the annotation texts.
         """
-        self.annot_map = {_get_qubit_row_col(qubit): value for qubit, value in annot_map.items()}
+        self.annot_map = {(*qubit,): value for qubit, value in annot_map.items()}
         self.annot_kwargs = text_options
         return self
 
@@ -107,8 +99,7 @@ class Heatmap:
             text_options: keyword arguments to matplotlib.text.Text().
         """
         self.annot_map = {
-            _get_qubit_row_col(qubit): format(value[1], annot_format)
-            for qubit, value in self.value_map.items()
+            (*qubit,): format(value[1], annot_format) for qubit, value in self.value_map.items()
         }
         self.annot_kwargs = text_options
         return self
@@ -120,7 +111,7 @@ class Heatmap:
 
     def set_url_map(self, url_map: Mapping[QubitCoordinate, str]) -> 'Heatmap':
         """Sets the URLs for each cell."""
-        self.url_map = {_get_qubit_row_col(qubit): value for qubit, value in url_map.items()}
+        self.url_map = {(*qubit,): value for qubit, value in url_map.items()}
         return self
 
     def unset_url_map(self) -> 'Heatmap':
@@ -192,7 +183,7 @@ class Heatmap:
         if not ax:
             fig, ax = plt.subplots(figsize=(8, 8))
         # Find the boundary and size of the heatmap.
-        coordinate_list = [_get_qubit_row_col(qubit) for qubit in self.value_map.keys()]
+        coordinate_list = [(*qubit,) for qubit in self.value_map.keys()]
         rows = [row for row, _ in coordinate_list]
         cols = [col for _, col in coordinate_list]
         min_row, max_row = min(rows), max(rows)
@@ -204,7 +195,7 @@ class Heatmap:
             np.nan, index=range(min_row, max_row + 1), columns=range(min_col, max_col + 1)
         )
         for qubit, (float_value, _) in self.value_map.items():
-            row, col = _get_qubit_row_col(qubit)
+            row, col = (*qubit,)
             value_table[col][row] = float_value
         # Construct the (height + 1) x (width + 1) cell boundary tables.
         x_table = np.array([np.arange(min_col - 0.5, max_col + 1.5)] * (height + 1))
