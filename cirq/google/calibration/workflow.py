@@ -26,7 +26,7 @@ from cirq.ops import (
     Operation,
     Qid,
     SingleQubitGate,
-    WaitGate
+    WaitGate,
 )
 from cirq.google.calibration.engine_simulator import PhasedFSimEngineSimulator
 from cirq.google.calibration.phased_fsim import (
