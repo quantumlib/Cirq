@@ -389,13 +389,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             parameters = self._drift_generator(a, b, gate)
             self._drifted_parameters[(a, b, gate)] = parameters
 
-        return PhasedFSimGate(
-            theta=parameters.theta,
-            zeta=parameters.zeta,
-            chi=parameters.chi - 2 * np.pi * gate_calibration.phase_exponent,
-            gamma=parameters.gamma,
-            phi=parameters.phi,
-        )
+        return gate_calibration.as_characterized_phased_fsim_gate(parameters)
 
     def _run(
         self, circuit: Circuit, param_resolver: ParamResolver, repetitions: int

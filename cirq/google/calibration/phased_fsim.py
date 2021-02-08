@@ -32,7 +32,16 @@ import re
 import numpy as np
 
 from cirq.circuits import Circuit
-from cirq.ops import FSimGate, Gate, ISwapPowGate, PhasedFSimGate, PhasedISwapPowGate, Qid
+from cirq.ops import (
+    FSimGate,
+    Gate,
+    ISwapPowGate,
+    Operation,
+    PhasedFSimGate,
+    PhasedISwapPowGate,
+    Qid,
+    rz,
+)
 from cirq.google.api import v2
 from cirq.google.engine import CalibrationLayer, CalibrationResult
 
@@ -453,6 +462,61 @@ class FSimGateCalibration:
 
     engine_gate: FSimGate
     phase_exponent: float
+
+    def as_characterized_phased_fsim_gate(
+        self, parameters: PhasedFSimCharacterization
+    ) -> PhasedFSimGate:
+        """Creates a PhasedFSimGate which represents the characterized engine_gate but includes
+        deviations in unitary parameters.
+
+        Args:
+            parameters: The results of characterization of the engine gate.
+
+        Returns:
+            Instance of PhasedFSimGate that executes a gate according to the characterized
+            parameters of the engine_gate.
+        """
+        return PhasedFSimGate(
+            theta=parameters.theta,
+            zeta=parameters.zeta,
+            chi=parameters.chi - 2 * np.pi * self.phase_exponent,
+            gamma=parameters.gamma,
+            phi=parameters.phi,
+        )
+
+    def with_zeta_chi_gamma_compensated(
+        self, qubits: Tuple[Qid, Qid], parameters: PhasedFSimCharacterization
+    ) -> Tuple[Tuple[Operation, ...], ...]:
+        """Creates a composite operation that compensates for zeta, chi and gamma angles of the
+        characterization.
+
+        Args:
+            qubits: Qubits that the gate should act on.
+            parameters: The results of characterization of the engine gate.
+
+        Returns:
+            Tuple of tuple of operations that describe the compensated gate. The first index
+            iterates over moments of the composed operation.
+        """
+        assert parameters.zeta is not None, "Zeta value must not be None"
+        zeta = parameters.zeta
+
+        assert parameters.gamma is not None, "Gamma value must not be None"
+        gamma = parameters.gamma
+
+        assert parameters.chi is not None, "Chi value must not be None"
+        chi = parameters.chi - 2 * np.pi * self.phase_exponent
+
+        a, b = qubits
+
+        alpha = 0.5 * (zeta + chi)
+        beta = 0.5 * (zeta - chi)
+
+        return (
+            (rz(0.5 * gamma - alpha).on(a), rz(0.5 * gamma + alpha).on(b)),
+            (self.engine_gate.on(a, b),),
+            (rz(0.5 * gamma - beta).on(a), rz(0.5 * gamma + beta).on(b)),
+        )
 
 
 def try_convert_sqrt_iswap_to_fsim(gate: Gate) -> Optional[FSimGateCalibration]:

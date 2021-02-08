@@ -16,8 +16,6 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union, cast
 import dataclasses
 from itertools import zip_longest
 
-import numpy as np
-
 from cirq.circuits import Circuit
 from cirq.ops import (
     FSimGate,
@@ -28,8 +26,7 @@ from cirq.ops import (
     Operation,
     Qid,
     SingleQubitGate,
-    WaitGate,
-    rz,
+    WaitGate
 )
 from cirq.google.calibration.engine_simulator import PhasedFSimEngineSimulator
 from cirq.google.calibration.phased_fsim import (
@@ -495,26 +492,7 @@ class FSimPhaseCorrections:
             parameters: The real parameters of the supplied gate.
             characterization_index: characterization index to use at each moment with gate.
         """
-        assert parameters.zeta is not None, "Zeta value must not be None"
-        zeta = parameters.zeta
-
-        assert parameters.gamma is not None, "Gamma value must not be None"
-        gamma = parameters.gamma
-
-        assert parameters.chi is not None, "Chi value must not be None"
-        chi = parameters.chi - 2 * np.pi * gate_calibration.phase_exponent
-
-        a, b = qubits
-
-        alpha = 0.5 * (zeta + chi)
-        beta = 0.5 * (zeta - chi)
-
-        operations = (
-            (rz(0.5 * gamma - alpha).on(a), rz(0.5 * gamma + alpha).on(b)),
-            (gate_calibration.engine_gate.on(a, b),),
-            (rz(0.5 * gamma - beta).on(a), rz(0.5 * gamma + beta).on(b)),
-        )
-
+        operations = gate_calibration.with_zeta_chi_gamma_compensated(qubits, parameters)
         moment_to_calibration = [None, characterization_index, None]
 
         return cls(operations, moment_to_calibration)
