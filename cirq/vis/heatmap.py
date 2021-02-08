@@ -74,9 +74,9 @@ class Heatmap:
 
     def _sanitize_annotation_key(self, key: QubitCoordinate) -> Tuple[int, int]:
         if isinstance(key, grid_qubit.GridQubit):
-            return key.get
+            return key.row, key.col
         if isinstance(key, tuple) and tuple(map(type, key)) == (int, int):
-            return grid_qubit.GridQubit(*key)
+            return key
         raise ValueError(
             f"Unrecognized key type, expected cirq.GridQubit or Tuple[int,int], " f"got {repr(key)}"
         )

@@ -301,5 +301,5 @@ def test_colorbar(ax, position, size, pad):
 
 
 def test_illegal_key_type():
-    with pytest.raises(ValueError, match=".*got cirq.NamedQubit\('a'\).*"):
+    with pytest.raises(ValueError, match=r".*got cirq.NamedQubit\('a'\).*"):
         cirq.Heatmap({cirq.NamedQubit("a"): 0.123})  # type: ignore
