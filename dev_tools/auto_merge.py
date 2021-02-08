@@ -7,7 +7,7 @@ import os
 import time
 import sys
 
-from google.cloud import secretmanager_v1beta1
+from google.cloud import secretmanager
 import requests
 
 from dev_tools.github_repository import GithubRepository
@@ -914,9 +914,9 @@ def main():
         print(
             '{} not set. Trying secret manager.'.format(ACCESS_TOKEN_ENV_VARIABLE), file=sys.stderr
         )
-        client = secretmanager_v1beta1.SecretManagerServiceClient()
-        secret_name = f'projects/{project_id}/secrets/cirq-bot-api-key/versions/1'
-        response = client.access_secret_version(name=secret_name)
+        client = secretmanager.SecretManagerServiceClient()
+        secret_version_name = f'projects/{project_id}/secrets/cirq-bot-api-key/versions/1'
+        response = client.access_secret_version(request={"name": secret_version_name})
         access_token = response.payload.data.decode('UTF-8')
 
     repo = GithubRepository(
