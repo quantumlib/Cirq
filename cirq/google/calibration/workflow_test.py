@@ -567,7 +567,7 @@ def test_run_zeta_chi_gamma_calibration_for_moments() -> None:
         characterize_phi=False,
     )
 
-    calibrated_circuit, calibrations = workflow.run_zeta_chi_gamma_calibration_for_moments(
+    calibrated_circuit, calibrations = workflow.run_zeta_chi_gamma_compensation_for_moments(
         circuit,
         engine_simulator,
         processor_id=None,
@@ -611,7 +611,7 @@ def test_run_zeta_chi_gamma_calibration_for_moments_no_chi() -> None:
         ]
     )
 
-    calibrated_circuit, *_ = workflow.run_zeta_chi_gamma_calibration_for_moments(
+    calibrated_circuit, *_ = workflow.run_zeta_chi_gamma_compensation_for_moments(
         circuit, engine_simulator, processor_id=None, gate_set=cirq.google.SQRT_ISWAP_GATESET
     )
 
@@ -626,13 +626,13 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
 
     with pytest.raises(ValueError):
         circuit_with_calibration = workflow.CircuitWithCalibration(cirq.Circuit(), [1])
-        workflow.zeta_chi_gamma_calibration_for_moments(circuit_with_calibration, [])
+        workflow.zeta_chi_gamma_compensation_for_moments(circuit_with_calibration, [])
 
     with pytest.raises(ValueError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
             cirq.Circuit(SQRT_ISWAP_GATE.on(a, b)), [None]
         )
-        workflow.zeta_chi_gamma_calibration_for_moments(circuit_with_calibration, [])
+        workflow.zeta_chi_gamma_compensation_for_moments(circuit_with_calibration, [])
 
     with pytest.raises(ValueError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
@@ -645,19 +645,21 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
                 options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
             )
         ]
-        workflow.zeta_chi_gamma_calibration_for_moments(circuit_with_calibration, characterizations)
+        workflow.zeta_chi_gamma_compensation_for_moments(
+            circuit_with_calibration, characterizations
+        )
 
     with pytest.raises(workflow.IncompatibleMomentError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
             cirq.Circuit(cirq.GlobalPhaseOperation(coefficient=1.0)), [None]
         )
-        workflow.zeta_chi_gamma_calibration_for_moments(circuit_with_calibration, [])
+        workflow.zeta_chi_gamma_compensation_for_moments(circuit_with_calibration, [])
 
     with pytest.raises(workflow.IncompatibleMomentError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
             cirq.Circuit(cirq.CZ.on(a, b)), [None]
         )
-        workflow.zeta_chi_gamma_calibration_for_moments(circuit_with_calibration, [])
+        workflow.zeta_chi_gamma_compensation_for_moments(circuit_with_calibration, [])
 
     with pytest.raises(workflow.IncompatibleMomentError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
@@ -674,4 +676,6 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
                 options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
             )
         ]
-        workflow.zeta_chi_gamma_calibration_for_moments(circuit_with_calibration, characterizations)
+        workflow.zeta_chi_gamma_compensation_for_moments(
+            circuit_with_calibration, characterizations
+        )

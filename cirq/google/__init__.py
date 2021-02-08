@@ -34,10 +34,10 @@ from cirq.google.calibration import (
     THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     prepare_floquet_characterization_for_circuit,
     prepare_floquet_characterization_for_moment,
-    zeta_chi_gamma_calibration_for_moments,
+    zeta_chi_gamma_compensation_for_moments,
     run_calibrations,
     run_floquet_characterization_for_circuit,
-    run_zeta_chi_gamma_calibration_for_moments,
+    run_zeta_chi_gamma_compensation_for_moments,
     try_convert_sqrt_iswap_to_fsim,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
 )
