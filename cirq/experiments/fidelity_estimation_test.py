@@ -308,7 +308,7 @@ def test_sample_2q_xeb_circuits_no_progress(capsys):
 
 
 def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
-    # cirq.contrib.routing.gridqubits_to_graph_device
+    # cirq contrib: routing.gridqubits_to_graph_device
     def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
         return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
 

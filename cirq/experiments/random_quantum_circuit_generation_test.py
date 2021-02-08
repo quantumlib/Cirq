@@ -105,7 +105,7 @@ def test_generate_library_of_2q_circuits_custom_qubits():
 
 
 def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
-    # cirq.contrib.routing.gridqubits_to_graph_device
+    # cirq contrib: routing.gridqubits_to_graph_device
     def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
         return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
 
