@@ -11,17 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import cirq
 import numpy as np
+
+import cirq
 
 
 def test_relative_luminance():
     rl = cirq.vis.relative_luminance([100, 100, 100])
-    assert rl == 55560.63594389468
+    assert np.isclose(rl, 55560.6360)
     rl = cirq.vis.relative_luminance([0, 1, 2])
-    assert rl == 1.0728676632649454
+    assert np.isclose(rl, 1.0728676632649454)
     rl = cirq.vis.relative_luminance(np.array([0, 1, 2]))
-    assert rl == 1.0728676632649454
+    assert np.isclose(rl, 1.0728676632649454)
 
 
 def test_relative_luminance_deprecation():
