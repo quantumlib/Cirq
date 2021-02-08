@@ -27,6 +27,8 @@ from typing import (
     TYPE_CHECKING,
     Set,
     ContextManager,
+    Dict,
+    Any,
 )
 
 import numpy as np
@@ -548,27 +550,29 @@ class _Simulate_2q_XEB_Circuit:
     def __init__(self, simulator: 'cirq.SimulatesIntermediateState'):
         self.simulator = simulator
 
-    def __call__(self, task: _Simulate2qXEBTask):
+    def __call__(self, task: _Simulate2qXEBTask) -> List[Dict[str, Any]]:
         """Helper function for simulating a given (circuit, cycle_depth)."""
         circuit_i = task.circuit_i
         cycle_depths = set(task.cycle_depths)
         circuit = task.circuit
         param_resolver = task.param_resolver
 
-        records = []
+        circuit_max_cycle_depth = (len(circuit) - 1) // 2
+        if max(cycle_depths) > circuit_max_cycle_depth:
+            raise ValueError("`circuit` was not long enough to compute all `cycle_depths`.")
+
+        records: List[Dict[str, Any]] = []
         for moment_i, step_result in enumerate(
             self.simulator.simulate_moment_steps(circuit=circuit, param_resolver=param_resolver)
         ):
-            # circuit_depth = cycle_depth * 2 + 1
-            # step_result is the result *after* moment_i, so
-            # circuit_depth = moment_i + 1
-            # moment_i = cycle_depth * 2
+            # Translate from moment_i to cycle_depth:
+            # We know circuit_depth = cycle_depth * 2 + 1, and step_result is the result *after*
+            # moment_i, so circuit_depth = moment_i + 1 and moment_i = cycle_depth * 2.
             if moment_i % 2 == 1:
                 continue
             cycle_depth = moment_i // 2
             if cycle_depth not in cycle_depths:
                 continue
-            cycle_depths.remove(cycle_depth)
 
             psi = cast(sim.SparseSimulatorStep, step_result)
             psi = psi.state_vector()
@@ -582,8 +586,6 @@ class _Simulate_2q_XEB_Circuit:
                 }
             ]
 
-        if len(cycle_depths) > 0:
-            raise ValueError("`circuit` was not long enough to compute all `cycle_depths`.")
         return records
 
 
@@ -619,29 +621,25 @@ def simulate_2q_xeb_circuits(
         # Need an actual object; not np.random or else multiprocessing will
         # fail to pickle the closure object:
         # https://github.com/quantumlib/Cirq/issues/3717
-        rs = np.random.RandomState()
-        _simulate_2q_xeb_circuit = _Simulate_2q_XEB_Circuit(simulator=sim.Simulator(seed=rs))
-    else:
-        # coverage: ignore
-        _simulate_2q_xeb_circuit = _Simulate_2q_XEB_Circuit(simulator=simulator)
+        simulator = sim.Simulator(seed=np.random.RandomState())
+    _simulate_2q_xeb_circuit = _Simulate_2q_XEB_Circuit(simulator=simulator)
 
-    tasks = []
-    for circuit_i, circuit in enumerate(circuits):
-        tasks += [
-            _Simulate2qXEBTask(
-                circuit_i=circuit_i,
-                cycle_depths=cycle_depths,
-                circuit=circuit,
-                param_resolver=param_resolver,
-            )
-        ]
+    tasks = tuple(
+        _Simulate2qXEBTask(
+            circuit_i=circuit_i,
+            cycle_depths=cycle_depths,
+            circuit=circuit,
+            param_resolver=param_resolver,
+        )
+        for circuit_i, circuit in enumerate(circuits)
+    )
 
     if pool is not None:
-        records = pool.map(_simulate_2q_xeb_circuit, tasks)
+        nested_records = pool.map(_simulate_2q_xeb_circuit, tasks)
     else:
-        records = [_simulate_2q_xeb_circuit(record) for record in tasks]
+        nested_records = [_simulate_2q_xeb_circuit(task) for task in tasks]
 
-    records = [record for sublist in records for record in sublist]
+    records = [record for sublist in nested_records for record in sublist]
     return pd.DataFrame(records).set_index(['circuit_i', 'cycle_depth'])
 
 
