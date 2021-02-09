@@ -440,7 +440,7 @@ class _SampleInBatches:
         self.repetitions = repetitions
         self.combinations_by_layer = combinations_by_layer
 
-    def __call__(self, tasks: List[_Sample2qXEBTask]):
+    def __call__(self, tasks: List[_Sample2qXEBTask]) -> List[Dict[str, Any]]:
         prepared_circuits = [task.prepared_circuit for task in tasks]
         results = self.sampler.run_batch(prepared_circuits, repetitions=self.repetitions)
         assert len(results) == len(tasks)
@@ -453,7 +453,7 @@ class _SampleInBatches:
                 sampled_inds = result.data[pair_measurement_key].values
                 sampled_probs = np.bincount(sampled_inds, minlength=2 ** 2) / len(sampled_inds)
 
-                records += [
+                records.append(
                     {
                         'circuit_i': circuit_i,
                         'cycle_depth': task.cycle_depth,
@@ -467,7 +467,7 @@ class _SampleInBatches:
                         'q0': q0,
                         'q1': q1,
                     }
-                ]
+                )
         return records
 
 
@@ -517,19 +517,137 @@ class _ZippedCircuit:
     Args:
         wide_circuit: The zipped circuit on all pairs
         pairs: The pairs of qubits operated on in the wide circuit.
-        layer_i: The index of the GridInteractionLayer to which the pairs correspond.
-        combination_i: The row index of the combinations matrix that identifies this
-            particular combination of component narrow circuits.
-        combination: The row of the combinations matrix. Each entry is an index
-            into the (narrow) `circuits` library. Each entry indexes the
-            narrow circuit operating on the corresponding pair in `pairs`.
+        combination: A list of indices into the (narrow) `circuits` library. Each entry
+            indexes the narrow circuit operating on the corresponding pair in `pairs`. This
+            is a given row of the combinations matrix. It is essential for being able to
+            "unzip" the results of the `wide_circuit`.
+        layer_i: Metadata indicating how the `pairs` were generated. This 0-based index is
+            which `GridInteractionLayer` or `Moment` was used for these pairs when calibrating
+            several spacial layouts in one request. This field does not modify any behavior.
+            It is propagated to the output result object.
+        combination_i: Metadata indicating how the `wide_circuit` was zipped. This is
+            the row index of the combinations matrix that identifies this
+            particular combination of component narrow circuits. This field does not modify
+            any behavior. It is propagated to the output result object.
     """
 
     wide_circuit: 'cirq.Circuit'
     pairs: List[Tuple['cirq.Qid', 'cirq.Qid']]
+    combination: List[int]
     layer_i: int
     combination_i: int
-    combination: List[int]
+
+
+def _get_combinations_by_layer_for_isolated_xeb(
+    circuits: Sequence['cirq.Circuit'],
+) -> List[CircuitLibraryCombination]:
+    """Helper function used in `sample_2q_xeb_circuits`.
+
+    This creates a CircuitLibraryCombination object for isolated XEB. First, the qubits
+    are extracted from the lists of circuits and used to define one pair. Instead of using
+    `combinations` to shuffle the circuits for each pair, we just use each circuit (in order)
+    for the one pair.
+    """
+    q0, q1 = _verify_and_get_two_qubits_from_circuits(circuits)
+    circuits = [
+        circuit.transform_qubits(lambda q: {q0: devices.LineQubit(0), q1: devices.LineQubit(1)}[q])
+        for circuit in circuits
+    ]
+    return [
+        CircuitLibraryCombination(
+            layer=None,
+            combinations=np.arange(len(circuits))[:, np.newaxis],
+            pairs=[(q0, q1)],
+        )
+    ]
+
+
+def _zip_circuits(
+    circuits: Sequence['cirq.Circuit'], combinations_by_layer: List[CircuitLibraryCombination]
+) -> List[_ZippedCircuit]:
+    """Helper function used in `sample_2q_xeb_circuits` to zip together circuits.
+
+    This takes a sequence of narrow `circuits` and "zips" them together according to the
+    combinations in `combinations_by_layer`.
+    """
+
+    # Check `combinations_by_layer` is compatible with `circuits`.
+    for layer_combinations in combinations_by_layer:
+        if np.any(layer_combinations.combinations < 0) or np.any(
+            layer_combinations.combinations >= len(circuits)
+        ):
+            raise ValueError("`combinations_by_layer` has invalid indices.")
+
+    zipped_circuits: List[_ZippedCircuit] = []
+    for layer_i, layer_combinations in enumerate(combinations_by_layer):
+        for combination_i, combination in enumerate(layer_combinations.combinations):
+            wide_circuit = Circuit.zip(
+                *(
+                    circuits[i].transform_qubits(lambda q: pair[q.x])
+                    for i, pair in zip(combination, layer_combinations.pairs)
+                )
+            )
+            zipped_circuits.append(
+                _ZippedCircuit(
+                    wide_circuit=wide_circuit,
+                    pairs=layer_combinations.pairs,
+                    combination=combination.tolist(),
+                    layer_i=layer_i,
+                    combination_i=combination_i,
+                )
+            )
+    return zipped_circuits
+
+
+def _generate_sample_2q_xeb_tasks(
+    zipped_circuits: List[_ZippedCircuit], cycle_depths: Sequence[int]
+) -> List[_Sample2qXEBTask]:
+    """Helper function used in `sample_2q_xeb_circuits` to prepare circuits in sampling tasks."""
+    tasks: List[_Sample2qXEBTask] = []
+    for cycle_depth in cycle_depths:
+        for zipped_circuit in zipped_circuits:
+            circuit_depth = cycle_depth * 2 + 1
+            assert circuit_depth <= len(zipped_circuit.wide_circuit)
+            # Slicing creates a copy, although this isn't documented
+            prepared_circuit = zipped_circuit.wide_circuit[:circuit_depth]
+            for pair_i, pair in enumerate(zipped_circuit.pairs):
+                prepared_circuit += ops.measure(*pair, key=str(pair_i))
+            tasks.append(
+                _Sample2qXEBTask(
+                    cycle_depth=cycle_depth,
+                    layer_i=zipped_circuit.layer_i,
+                    combination_i=zipped_circuit.combination_i,
+                    prepared_circuit=prepared_circuit,
+                    combination=zipped_circuit.combination,
+                )
+            )
+    return tasks
+
+
+def _execute_sample_2q_xeb_tasks_in_batches(
+    tasks: List[_Sample2qXEBTask],
+    sampler: 'cirq.Sampler',
+    combinations_by_layer: List[CircuitLibraryCombination],
+    repetitions: int,
+    batch_size: int,
+    progress_bar: Optional[Callable[..., ContextManager]],
+) -> List[Dict[str, Any]]:
+    """Helper function used in `sample_2q_xeb_circuits` to batch and execute sampling tasks."""
+    n_tasks = len(tasks)
+    batched_tasks = [tasks[i : i + batch_size] for i in range(0, n_tasks, batch_size)]
+
+    run_batch = _SampleInBatches(
+        sampler=sampler, repetitions=repetitions, combinations_by_layer=combinations_by_layer
+    )
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [pool.submit(run_batch, task_batch) for task_batch in batched_tasks]
+
+        records = []
+        with progress_bar(total=n_tasks) as progress:
+            for future in concurrent.futures.as_completed(futures):
+                records += future.result()
+                progress.update(batch_size)
+    return records
 
 
 def sample_2q_xeb_circuits(
@@ -574,87 +692,27 @@ def sample_2q_xeb_circuits(
 
     # Shim isolated-XEB as a special case of combination-style parallel XEB.
     if combinations_by_layer is None:
-        q0, q1 = _verify_and_get_two_qubits_from_circuits(circuits)
-        circuits = [
-            circuit.transform_qubits(
-                lambda q: {q0: devices.LineQubit(0), q1: devices.LineQubit(1)}[q]
-            )
-            for circuit in circuits
-        ]
-        combinations_by_layer = [
-            CircuitLibraryCombination(
-                layer=None,
-                combinations=np.arange(len(circuits))[:, np.newaxis],
-                pairs=[(q0, q1)],
-            )
-        ]
+        combinations_by_layer = _get_combinations_by_layer_for_isolated_xeb(circuits)
         one_pair = True
     else:
         _verify_two_line_qubits_from_circuits(circuits)
         one_pair = False
 
-    # Check `combinations_by_layer` is compatible with `circuits`.
-    for layer_combinations in combinations_by_layer:
-        if np.any(layer_combinations.combinations < 0) or np.any(
-            layer_combinations.combinations >= len(circuits)
-        ):
-            raise ValueError("`combinations_by_layer` has invalid indices.")
-
     # Construct fully-wide "zipped" circuits.
-    zipped_circuits: List[_ZippedCircuit] = []
-    for layer_i, layer_combinations in enumerate(combinations_by_layer):
-        for combination_i, combination in enumerate(layer_combinations.combinations):
-            wide_circuit = Circuit.zip(
-                *(
-                    circuits[i].transform_qubits(lambda q: pair[q.x])
-                    for i, pair in zip(combination, layer_combinations.pairs)
-                )
-            )
-            zipped_circuits.append(
-                _ZippedCircuit(
-                    layer_i=layer_i,
-                    combination_i=combination_i,
-                    wide_circuit=wide_circuit,
-                    pairs=layer_combinations.pairs,
-                    combination=combination.tolist(),
-                )
-            )
+    zipped_circuits = _zip_circuits(circuits, combinations_by_layer)
 
-    # Construct truncated-with-measurement circuits to run!
-    tasks = []
-    for cycle_depth in cycle_depths:
-        for zipped_circuit in zipped_circuits:
-            circuit_depth = cycle_depth * 2 + 1
-            assert circuit_depth <= len(zipped_circuit.wide_circuit)
-            # Slicing creates a copy, although this isn't documented
-            prepared_circuit = zipped_circuit.wide_circuit[:circuit_depth]
-            for pair_i, pair in enumerate(zipped_circuit.pairs):
-                prepared_circuit += ops.measure(*pair, key=str(pair_i))
-            tasks.append(
-                _Sample2qXEBTask(
-                    cycle_depth=cycle_depth,
-                    layer_i=zipped_circuit.layer_i,
-                    combination_i=zipped_circuit.combination_i,
-                    prepared_circuit=prepared_circuit,
-                    combination=zipped_circuit.combination,
-                )
-            )
+    # Construct truncated-with-measurement circuits to run.
+    tasks = _generate_sample_2q_xeb_tasks(zipped_circuits, cycle_depths)
 
-    # Batch and run tasks
-    n_tasks = len(tasks)
-    batched_tasks = [tasks[i : i + batch_size] for i in range(0, n_tasks, batch_size)]
-
-    run_batch = _SampleInBatches(
-        sampler=sampler, repetitions=repetitions, combinations_by_layer=combinations_by_layer
+    # Batch and run tasks.
+    records = _execute_sample_2q_xeb_tasks_in_batches(
+        tasks=tasks,
+        sampler=sampler,
+        combinations_by_layer=combinations_by_layer,
+        repetitions=repetitions,
+        batch_size=batch_size,
+        progress_bar=progress_bar,
     )
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        futures = [pool.submit(run_batch, task_batch) for task_batch in batched_tasks]
-
-        records = []
-        with progress_bar(total=n_tasks) as progress:
-            for future in concurrent.futures.as_completed(futures):
-                records += future.result()
-                progress.update(batch_size)
 
     # Set up the dataframe.
     df = pd.DataFrame(records).set_index(['circuit_i', 'cycle_depth'])
@@ -784,6 +842,11 @@ def benchmark_2q_xeb_fidelities(
             vals = df[k].unique()
             if len(vals) == 1:
                 ret[k] = vals[0]
+            else:
+                raise AssertionError(
+                    f"When computing per-cycle-depth fidelity, multiple "
+                    f"values for {k} were grouped together: {vals}"
+                )
 
         _try_keep('q0')
         _try_keep('q1')

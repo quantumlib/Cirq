@@ -348,7 +348,7 @@ def test_sample_2q_parallel_xeb_circuits():
     assert len(df['pair_name'].unique()) == 7  # seven pairs in 3x2 graph
 
 
-def test_sample_2q_parallel_xeb_circuits_error():
+def test_sample_2q_parallel_xeb_circuits_bad_circuit_library():
     circuits = rqcg.generate_library_of_2q_circuits(
         n_library_circuits=5, two_qubit_gate=cirq.ISWAP ** 0.5, max_cycle_depth=10
     )
@@ -370,7 +370,7 @@ def test_sample_2q_parallel_xeb_circuits_error():
         )
 
 
-def test_sample_2q_parallel_xeb_circuits_error_2():
+def test_sample_2q_parallel_xeb_circuits_error_bad_qubits():
     circuits = rqcg.generate_library_of_2q_circuits(
         n_library_circuits=5,
         two_qubit_gate=cirq.ISWAP ** 0.5,

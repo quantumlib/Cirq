@@ -314,7 +314,9 @@ def get_random_combinations_for_device(
             using the library circuits. Since this function returns a
             `CircuitLibraryCombination`, the combinations will be represented
             by indexes between 0 and `n_library_circuits-1` instead of the circuits
-            themselves.
+            themselves. The more combinations, the more precise of an estimate for XEB
+            fidelity estimation, but a corresponding increase in the number of circuits
+            you must sample.
         device_graph: A graph whose nodes are qubits and whose edges represent
             the possibility of doing a two-qubit gate. This combined with the
             `pattern` argument determines which two qubit pairs are activated
