@@ -37,7 +37,7 @@ import scipy.optimize
 import sympy
 import tqdm
 
-from cirq import ops, sim, devices, protocols
+from cirq import ops, sim, devices
 from cirq.circuits import Circuit
 from cirq.experiments.random_quantum_circuit_generation import CircuitLibraryCombination
 from cirq.ops import QubitOrder, QubitOrderOrList

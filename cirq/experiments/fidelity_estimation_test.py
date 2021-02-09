@@ -11,12 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import multiprocessing
-import time
-from typing import Sequence, Dict, Any, cast, Optional
 import itertools
 import math
 import multiprocessing
+import time
+from typing import Dict, Any, cast, Optional
 from typing import Sequence, Iterable
 
 import networkx as nx
