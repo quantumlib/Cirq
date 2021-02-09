@@ -27,7 +27,7 @@ from typing import (
     Union,
 )
 
-from cirq import circuits, devices, google, ops, protocols, value
+from cirq import circuits, devices, ops, protocols, value
 from cirq._doc import document
 
 if TYPE_CHECKING:
@@ -160,7 +160,7 @@ def random_rotations_between_two_qubit_circuit(
     depth: int,
     two_qubit_op_factory: Callable[
         ['cirq.Qid', 'cirq.Qid', 'np.random.RandomState'], 'cirq.OP_TREE'
-    ] = lambda a, b, _: google.SYC(a, b),
+    ] = lambda a, b, _: cirq.CZ(a, b),
     single_qubit_gates: Sequence['cirq.Gate'] = (
         ops.X ** 0.5,
         ops.Y ** 0.5,
@@ -223,7 +223,7 @@ def random_rotations_between_grid_interaction_layers_circuit(
     *,  # forces keyword arguments
     two_qubit_op_factory: Callable[
         ['cirq.GridQubit', 'cirq.GridQubit', 'np.random.RandomState'], 'cirq.OP_TREE'
-    ] = lambda a, b, _: google.SYC(a, b),
+    ] = lambda a, b, _: cirq.CZ(a, b),
     pattern: Sequence[GridInteractionLayer] = GRID_STAGGERED_PATTERN,
     single_qubit_gates: Sequence['cirq.Gate'] = (
         ops.X ** 0.5,
