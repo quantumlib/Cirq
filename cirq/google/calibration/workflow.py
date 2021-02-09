@@ -352,7 +352,7 @@ def run_calibrations(
     return results
 
 
-def zeta_chi_gamma_compensation_for_moments(
+def make_zeta_chi_gamma_compensation_for_moments(
     circuit_with_calibration: CircuitWithCalibration,
     characterizations: List[PhasedFSimCalibrationResult],
     gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
@@ -625,7 +625,7 @@ def run_zeta_chi_gamma_compensation_for_moments(
         max_layers_per_request=max_layers_per_request,
         progress_func=progress_func,
     )
-    calibrated_circuit = zeta_chi_gamma_compensation_for_moments(
+    calibrated_circuit = make_zeta_chi_gamma_compensation_for_moments(
         circuit_with_calibration, characterizations, gates_translator
     )
     return calibrated_circuit, characterizations
