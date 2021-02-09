@@ -51,19 +51,19 @@ def test_random_rotation_between_two_qubit_circuit():
 │             │
 Y^0.5         X^0.5
 │             │
-SYC───────────SYC
+@─────────────@
 │             │
 PhX(0.25)^0.5 Y^0.5
 │             │
-SYC───────────SYC
+@─────────────@
 │             │
 Y^0.5         X^0.5
 │             │
-SYC───────────SYC
+@─────────────@
 │             │
 X^0.5         PhX(0.25)^0.5
 │             │
-SYC───────────SYC
+@─────────────@
 │             │""",
         transpose=True,
     )
@@ -136,13 +136,13 @@ def test_get_random_combinations_for_device():
         assert cirq.experiments.HALF_GRID_STAGGERED_PATTERN[i] == comb.layer
 
 
-def _syc_with_adjacent_z_rotations(
+def _cz_with_adjacent_z_rotations(
     a: cirq.GridQubit, b: cirq.GridQubit, prng: np.random.RandomState
 ):
     z_exponents = [prng.uniform(0, 1) for _ in range(4)]
     yield cirq.Z(a) ** z_exponents[0]
     yield cirq.Z(b) ** z_exponents[1]
-    yield cirq.google.SYC(a, b)
+    yield cirq.CZ(a, b)
     yield cirq.Z(a) ** z_exponents[2]
     yield cirq.Z(b) ** z_exponents[3]
 
@@ -156,7 +156,7 @@ def _syc_with_adjacent_z_rotations(
         (
             cirq.GridQubit.rect(4, 3),
             20,
-            lambda a, b, _: cirq.google.SYC(a, b),
+            lambda a, b, _: cirq.CZ(a, b),
             cirq.experiments.GRID_STAGGERED_PATTERN,
             (cirq.X ** 0.5, cirq.Y ** 0.5, cirq.Z ** 0.5),
             True,
@@ -180,7 +180,7 @@ def _syc_with_adjacent_z_rotations(
         (
             cirq.GridQubit.rect(4, 5),
             21,
-            lambda a, b, _: cirq.google.SYC(a, b),
+            lambda a, b, _: cirq.CZ(a, b),
             cirq.experiments.GRID_ALIGNED_PATTERN,
             (cirq.X ** 0.5, cirq.Y ** 0.5, cirq.Z ** 0.5),
             True,
@@ -192,7 +192,7 @@ def _syc_with_adjacent_z_rotations(
         (
             cirq.GridQubit.rect(5, 4),
             22,
-            _syc_with_adjacent_z_rotations,
+            _cz_with_adjacent_z_rotations,
             cirq.experiments.GRID_STAGGERED_PATTERN,
             (cirq.X ** 0.5, cirq.Y ** 0.5, cirq.Z ** 0.5),
             True,
@@ -204,7 +204,7 @@ def _syc_with_adjacent_z_rotations(
         (
             cirq.GridQubit.rect(5, 5),
             23,
-            lambda a, b, _: cirq.google.SYC(a, b),
+            lambda a, b, _: cirq.CZ(a, b),
             cirq.experiments.GRID_ALIGNED_PATTERN,
             (cirq.X ** 0.5, cirq.Y ** 0.5, cirq.Z ** 0.5),
             False,
@@ -216,7 +216,7 @@ def _syc_with_adjacent_z_rotations(
         (
             cirq.GridQubit.rect(5, 5),
             24,
-            lambda a, b, _: cirq.google.SYC(a, b),
+            lambda a, b, _: cirq.CZ(a, b),
             cirq.experiments.GRID_ALIGNED_PATTERN,
             (cirq.X ** 0.5, cirq.X ** 0.5),
             True,
