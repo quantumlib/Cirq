@@ -160,7 +160,7 @@ def random_rotations_between_two_qubit_circuit(
     depth: int,
     two_qubit_op_factory: Callable[
         ['cirq.Qid', 'cirq.Qid', 'np.random.RandomState'], 'cirq.OP_TREE'
-    ] = lambda a, b, _: cirq.CZ(a, b),
+    ] = lambda a, b, _: ops.CZ(a, b),
     single_qubit_gates: Sequence['cirq.Gate'] = (
         ops.X ** 0.5,
         ops.Y ** 0.5,
