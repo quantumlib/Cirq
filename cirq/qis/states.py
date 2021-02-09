@@ -83,6 +83,7 @@ class QuantumState:
             ValueError: Invalid quantum state.
         """
         if qid_shape is None:
+            # coverage: ignore
             raise NotImplementedError(
                 'Qid shape inference not yet implemented. Please specify the qid shape explicitly.'
             )
@@ -233,6 +234,8 @@ def quantum_state(
         qid_shape = actual_qid_shape
     elif isinstance(state, int):
         if qid_shape is None:
+            # TODO: remove coverage: ignore once qid shape inference is added
+            # coverage: ignore
             raise ValueError(
                 'The qid shape of the given state is ambiguous. '
                 'Please specify the qid shape explicitly using '
@@ -245,6 +248,7 @@ def quantum_state(
     else:
         data = np.array(state, copy=False)
         if qid_shape is None:
+            # coverage: ignore
             raise NotImplementedError(
                 'Qid shape inference not yet implemented. Please specify the qid shape explicitly.'
             )

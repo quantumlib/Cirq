@@ -132,6 +132,7 @@ def fidelity(
 
     # Use QuantumState machinery for the general case
     if qid_shape is None:
+        # coverage: ignore
         raise NotImplementedError(
             'Qid shape inference not yet implemented. Please specify the qid shape explicitly.'
         )
