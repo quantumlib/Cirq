@@ -21,7 +21,9 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _disjoint_qubits(term1: Tuple[int, 'cirq.Operation'], term2: Tuple[int, 'cirq.Operation']) -> bool:
+def _disjoint_qubits(
+    term1: Tuple[int, 'cirq.Operation'], term2: Tuple[int, 'cirq.Operation']
+) -> bool:
     """Returns true if and only if the operations have no qubits in common."""
     i1, op1 = term1
     i2, op2 = term2
