@@ -1,7 +1,6 @@
 from typing import (
     Any,
     Callable,
-    Dict,
     Iterator,
     Iterable,
     Set,
@@ -13,7 +12,7 @@ import itertools
 import operator
 import networkx
 
-from cirq import ops, devices
+from cirq import devices
 from cirq.circuits import circuit
 from cirq.ops.moment import Moment
 
@@ -25,8 +24,8 @@ def _disjoint_qubits(
     term1: Tuple[int, 'cirq.Operation'], term2: Tuple[int, 'cirq.Operation']
 ) -> bool:
     """Returns true if and only if the operations have no qubits in common."""
-    i1, op1 = term1
-    i2, op2 = term2
+    _, op1 = term1
+    _, op2 = term2
     return not set(op1.qubits) & set(op2.qubits)
 
 
