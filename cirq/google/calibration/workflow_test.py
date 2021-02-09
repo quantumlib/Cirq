@@ -47,7 +47,7 @@ def test_make_floquet_request_for_moment_none_for_measurements() -> None:
     a, b, c, d = cirq.LineQubit.range(4)
     moment = cirq.Moment(cirq.measure(a, b, c, d))
     assert (
-        workflow.make_floquet_request_for_moment(
+        workflow.prepare_floquet_characterization_for_moment(
             moment, WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
         )
         is None
@@ -57,7 +57,7 @@ def test_make_floquet_request_for_moment_none_for_measurements() -> None:
 def test_make_floquet_request_for_moment_fails_for_non_gate_operation() -> None:
     moment = cirq.Moment(cirq.GlobalPhaseOperation(coefficient=1.0))
     with pytest.raises(workflow.IncompatibleMomentError):
-        workflow.make_floquet_request_for_moment(
+        workflow.prepare_floquet_characterization_for_moment(
             moment, WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
         )
 
@@ -66,7 +66,7 @@ def test_make_floquet_request_for_moment_fails_for_unsupported_gate() -> None:
     a, b = cirq.LineQubit.range(2)
     moment = cirq.Moment(cirq.CZ(a, b))
     with pytest.raises(workflow.IncompatibleMomentError):
-        workflow.make_floquet_request_for_moment(
+        workflow.prepare_floquet_characterization_for_moment(
             moment,
             WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
             gates_translator=_fsim_identity_converter,
@@ -82,7 +82,7 @@ def test_make_floquet_request_for_moment_fails_for_mixed_gates() -> None:
         ]
     )
     with pytest.raises(workflow.IncompatibleMomentError):
-        workflow.make_floquet_request_for_moment(
+        workflow.prepare_floquet_characterization_for_moment(
             moment,
             WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
             gates_translator=_fsim_identity_converter,
@@ -93,7 +93,7 @@ def test_make_floquet_request_for_moment_fails_for_mixed_moment() -> None:
     a, b, c = cirq.LineQubit.range(3)
     moment = cirq.Moment([cirq.FSimGate(theta=np.pi / 4, phi=0.0).on(a, b), cirq.Z.on(c)])
     with pytest.raises(workflow.IncompatibleMomentError):
-        workflow.make_floquet_request_for_moment(
+        workflow.prepare_floquet_characterization_for_moment(
             moment, WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
         )
 
@@ -109,7 +109,7 @@ def test_make_floquet_request_for_circuit() -> None:
     )
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
-    circuit_with_calibration, requests = workflow.make_floquet_request_for_circuit(
+    circuit_with_calibration, requests = workflow.prepare_floquet_characterization_for_circuit(
         circuit, options=options
     )
 
@@ -139,7 +139,7 @@ def test_make_floquet_request_for_circuit_merges_sub_sets() -> None:
     circuit += cirq.Moment([SQRT_ISWAP_GATE.on(b, c), SQRT_ISWAP_GATE.on(d, e)])
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
-    circuit_with_calibration, requests = workflow.make_floquet_request_for_circuit(
+    circuit_with_calibration, requests = workflow.prepare_floquet_characterization_for_circuit(
         circuit, options=options
     )
 
@@ -168,7 +168,7 @@ def test_make_floquet_request_for_circuit_merges_many_circuits() -> None:
         ]
     )
 
-    circuit_with_calibration_1, requests_1 = workflow.make_floquet_request_for_circuit(
+    circuit_with_calibration_1, requests_1 = workflow.prepare_floquet_characterization_for_circuit(
         circuit_1, options=options
     )
 
@@ -185,7 +185,7 @@ def test_make_floquet_request_for_circuit_merges_many_circuits() -> None:
 
     circuit_2 = cirq.Circuit([SQRT_ISWAP_GATE.on(b, c), SQRT_ISWAP_GATE.on(d, e)])
 
-    circuit_with_calibration_2, requests_2 = workflow.make_floquet_request_for_circuit(
+    circuit_with_calibration_2, requests_2 = workflow.prepare_floquet_characterization_for_circuit(
         circuit_2, options=options, initial=requests_1
     )
 
@@ -217,7 +217,7 @@ def test_make_floquet_request_for_circuit_does_not_merge_sub_sets_when_disabled(
     )
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
-    circuit_with_calibration, requests = workflow.make_floquet_request_for_circuit(
+    circuit_with_calibration, requests = workflow.prepare_floquet_characterization_for_circuit(
         circuit, options=options, merge_subsets=False
     )
 
@@ -248,7 +248,7 @@ def test_make_floquet_request_for_circuit_merges_compatible_sets() -> None:
     circuit += cirq.Moment([SQRT_ISWAP_GATE.on(a, f), SQRT_ISWAP_GATE.on(d, e)])
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
-    circuit_with_calibration, requests = workflow.make_floquet_request_for_circuit(
+    circuit_with_calibration, requests = workflow.prepare_floquet_characterization_for_circuit(
         circuit, options=options
     )
 
@@ -331,7 +331,7 @@ def test_run_characterization():
     def progress(step: int, steps: int) -> None:
         progress_calls.append((step, steps))
 
-    actual = workflow.run_characterizations(
+    actual = workflow.run_calibrations(
         [request], engine, 'qproc', cirq.google.FSIM_GATESET, progress_func=progress
     )
 
@@ -361,12 +361,12 @@ def test_run_characterization():
 
 
 def test_run_characterization_empty():
-    assert workflow.run_characterizations([], None, 'qproc', cirq.google.FSIM_GATESET) == []
+    assert workflow.run_calibrations([], None, 'qproc', cirq.google.FSIM_GATESET) == []
 
 
 def test_run_characterization_fails_when_invalid_arguments():
     with pytest.raises(ValueError):
-        assert workflow.run_characterizations(
+        assert workflow.run_calibrations(
             [], None, 'qproc', cirq.google.FSIM_GATESET, max_layers_per_request=0
         )
 
@@ -378,13 +378,13 @@ def test_run_characterization_fails_when_invalid_arguments():
     engine = mock.MagicMock(spec=cirq.google.Engine)
 
     with pytest.raises(ValueError):
-        assert workflow.run_characterizations([request], engine, None, cirq.google.FSIM_GATESET)
+        assert workflow.run_calibrations([request], engine, None, cirq.google.FSIM_GATESET)
 
     with pytest.raises(ValueError):
-        assert workflow.run_characterizations([request], engine, 'qproc', None)
+        assert workflow.run_calibrations([request], engine, 'qproc', None)
 
     with pytest.raises(ValueError):
-        assert workflow.run_characterizations([request], 0, 'qproc', cirq.google.FSIM_GATESET)
+        assert workflow.run_calibrations([request], 0, 'qproc', cirq.google.FSIM_GATESET)
 
 
 def test_run_characterization_with_simulator():
@@ -405,7 +405,7 @@ def test_run_characterization_with_simulator():
 
     simulator = PhasedFSimEngineSimulator.create_with_ideal_sqrt_iswap()
 
-    actual = workflow.run_characterizations([request], simulator)
+    actual = workflow.run_calibrations([request], simulator)
 
     assert actual == [
         PhasedFSimCalibrationResult(
@@ -567,7 +567,7 @@ def test_run_zeta_chi_gamma_calibration_for_moments() -> None:
         characterize_phi=False,
     )
 
-    calibrated_circuit, calibrations = workflow.run_zeta_chi_gamma_calibration_for_moments(
+    calibrated_circuit, calibrations = workflow.run_zeta_chi_gamma_compensation_for_moments(
         circuit,
         engine_simulator,
         processor_id=None,
@@ -611,7 +611,7 @@ def test_run_zeta_chi_gamma_calibration_for_moments_no_chi() -> None:
         ]
     )
 
-    calibrated_circuit, *_ = workflow.run_zeta_chi_gamma_calibration_for_moments(
+    calibrated_circuit, *_ = workflow.run_zeta_chi_gamma_compensation_for_moments(
         circuit, engine_simulator, processor_id=None, gate_set=cirq.google.SQRT_ISWAP_GATESET
     )
 
@@ -626,13 +626,13 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
 
     with pytest.raises(ValueError):
         circuit_with_calibration = workflow.CircuitWithCalibration(cirq.Circuit(), [1])
-        workflow.zeta_chi_gamma_calibration_for_moments(circuit_with_calibration, [])
+        workflow.make_zeta_chi_gamma_compensation_for_moments(circuit_with_calibration, [])
 
     with pytest.raises(ValueError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
             cirq.Circuit(SQRT_ISWAP_GATE.on(a, b)), [None]
         )
-        workflow.zeta_chi_gamma_calibration_for_moments(circuit_with_calibration, [])
+        workflow.make_zeta_chi_gamma_compensation_for_moments(circuit_with_calibration, [])
 
     with pytest.raises(ValueError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
@@ -645,19 +645,21 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
                 options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
             )
         ]
-        workflow.zeta_chi_gamma_calibration_for_moments(circuit_with_calibration, characterizations)
+        workflow.make_zeta_chi_gamma_compensation_for_moments(
+            circuit_with_calibration, characterizations
+        )
 
     with pytest.raises(workflow.IncompatibleMomentError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
             cirq.Circuit(cirq.GlobalPhaseOperation(coefficient=1.0)), [None]
         )
-        workflow.zeta_chi_gamma_calibration_for_moments(circuit_with_calibration, [])
+        workflow.make_zeta_chi_gamma_compensation_for_moments(circuit_with_calibration, [])
 
     with pytest.raises(workflow.IncompatibleMomentError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
             cirq.Circuit(cirq.CZ.on(a, b)), [None]
         )
-        workflow.zeta_chi_gamma_calibration_for_moments(circuit_with_calibration, [])
+        workflow.make_zeta_chi_gamma_compensation_for_moments(circuit_with_calibration, [])
 
     with pytest.raises(workflow.IncompatibleMomentError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
@@ -674,4 +676,6 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
                 options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
             )
         ]
-        workflow.zeta_chi_gamma_calibration_for_moments(circuit_with_calibration, characterizations)
+        workflow.make_zeta_chi_gamma_compensation_for_moments(
+            circuit_with_calibration, characterizations
+        )
