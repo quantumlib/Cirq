@@ -13,9 +13,9 @@
 # limitations under the License.
 
 from random import random
+from typing import Callable
 
 import numpy as np
-
 import pytest
 from numpy.testing import assert_almost_equal
 from scipy.linalg import block_diag
@@ -29,6 +29,22 @@ from cirq.optimizers.three_qubit_decomposition import (
 )
 
 
+def _skip_if_scipy(*, version_is_greater_than_1_5_0: bool) -> Callable[[Callable], Callable]:
+    def decorator(func):
+        try:
+            # pylint: disable=unused-import
+            from scipy.linalg import cossin
+
+            # coverage: ignore
+            return None if version_is_greater_than_1_5_0 else func
+        except ImportError:
+            # coverage: ignore
+            return func if version_is_greater_than_1_5_0 else None
+
+    return decorator
+
+
+@_skip_if_scipy(version_is_greater_than_1_5_0=False)
 @pytest.mark.parametrize(
     "u",
     [
@@ -54,12 +70,25 @@ def test_three_qubit_matrix_to_operations(u):
     assert num_two_qubit_gates <= 20, f"expected at most 20 CZ/CNOTs got {num_two_qubit_gates}"
 
 
+@_skip_if_scipy(version_is_greater_than_1_5_0=False)
 def test_three_qubit_matrix_to_operations_errors():
     a, b, c = cirq.LineQubit.range(3)
     with pytest.raises(ValueError, match="(8,8)"):
         cirq.three_qubit_matrix_to_operations(a, b, c, np.eye(2))
     with pytest.raises(ValueError, match="not unitary"):
         cirq.three_qubit_matrix_to_operations(a, b, c, cirq.unitary(cirq.CCX) * 2)
+
+
+# on environments with scipy <1.5.0 this will not be sufficient to cover the
+# full three_qubit_matrix_to_operations method. In case we ever introduce a CI
+# environment like that, we'll need to ignore the coverage somehow conditionally on
+# the scipy version.
+@_skip_if_scipy(version_is_greater_than_1_5_0=True)
+# coverage: ignore
+def test_three_qubit_matrix_to_operations_scipy_error():
+    a, b, c = cirq.LineQubit.range(3)
+    with pytest.raises(ImportError, match="three_qubit.*1.5.0+"):
+        cirq.three_qubit_matrix_to_operations(a, b, c, np.eye(8))
 
 
 @pytest.mark.parametrize(

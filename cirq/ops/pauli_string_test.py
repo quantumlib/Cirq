@@ -418,6 +418,11 @@ def test_negate():
     neg_ps1 = -ps1
     assert -neg_ps1 == ps1
 
+    m = ps1.mutable_copy()
+    assert -m == -1 * m
+    assert -m is not m
+    assert isinstance(-m, cirq.MutablePauliString)
+
 
 def test_mul_scalar():
     a, b = cirq.LineQubit.range(2)
@@ -513,6 +518,11 @@ def test_pos():
     qubit_pauli_map = {q0: cirq.X, q1: cirq.Y}
     ps1 = cirq.PauliString(qubit_pauli_map)
     assert ps1 == +ps1
+
+    m = ps1.mutable_copy()
+    assert +m == m
+    assert +m is not m
+    assert isinstance(+m, cirq.MutablePauliString)
 
 
 def test_pow():
@@ -664,7 +674,10 @@ def test_pass_operations_over_single(shift: int, sign: int):
 def test_pass_operations_over_double(shift: int, t_or_f1: bool, t_or_f2: bool, neg: bool):
     sign = -1 if neg else +1
     q0, q1, q2 = _make_qubits(3)
-    X, Y, Z = (cirq.Pauli.by_relative_index(pauli, shift) for pauli in (cirq.X, cirq.Y, cirq.Z))
+    X, Y, Z = (
+        cirq.Pauli.by_relative_index(cast(cirq.Pauli, pauli), shift)
+        for pauli in (cirq.X, cirq.Y, cirq.Z)
+    )
 
     op0 = cirq.PauliInteractionGate(Z, t_or_f1, X, t_or_f2)(q0, q1)
     ps_before = cirq.PauliString(qubit_pauli_map={q0: Z, q2: Y}, coefficient=sign)
@@ -1906,3 +1919,24 @@ def test_coefficient_precision():
     r2 = cirq.MutablePauliString({q: cirq.Y for q in qs})
     r2 *= r
     assert r2.coefficient == 1
+
+
+def test_transform_qubits():
+    a, b, c = cirq.LineQubit.range(3)
+    p = cirq.X(a) * cirq.Z(b)
+    p2 = cirq.X(b) * cirq.Z(c)
+    m = p.mutable_copy()
+    m2 = m.transform_qubits(lambda q: q + 1)
+    assert m is not m2
+    assert m == p
+    assert m2 == p2
+
+    m2 = m.transform_qubits(lambda q: q + 1, inplace=False)
+    assert m is not m2
+    assert m == p
+    assert m2 == p2
+
+    m2 = m.transform_qubits(lambda q: q + 1, inplace=True)
+    assert m is m2
+    assert m == p2
+    assert m2 == p2

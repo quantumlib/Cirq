@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Iterable, TYPE_CHECKING
+from typing import Any, Dict, Iterable, TYPE_CHECKING
 
 import numpy as np
 
@@ -31,19 +31,43 @@ class ActOnStabilizerCHFormArgs:
 
     To act on this object, directly edit the `state` property, which is
     storing the stabilizer state of the quantum system with one axis per qubit.
-    Measurements are currently not supported on this object.
     """
 
-    def __init__(self, state: StabilizerStateChForm, axes: Iterable[int]):
+    def __init__(
+        self,
+        state: StabilizerStateChForm,
+        axes: Iterable[int],
+        prng: np.random.RandomState,
+        log_of_measurement_results: Dict[str, Any],
+    ):
         """Initializes with the given state and the axes for the operation.
         Args:
             state: The StabilizerStateChForm to act on. Operations are expected
                 to perform inplace edits of this object.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
+            prng: The pseudo random number generator to use for probabilistic
+                effects.
+            log_of_measurement_results: A mutable object that measurements are
+                being recorded into. Edit it easily by calling
+                `ActOnStabilizerCHFormArgs.record_measurement_result`.
         """
         self.state = state
         self.axes = tuple(axes)
+        self.prng = prng
+        self.log_of_measurement_results = log_of_measurement_results
+
+    def record_measurement_result(self, key: str, value: Any):
+        """Adds a measurement result to the log.
+        Args:
+            key: The key the measurement result should be logged under. Note
+                that operations should only store results under keys they have
+                declared in a `_measurement_keys_` method.
+            value: The value to log for the measurement.
+        """
+        if key in self.log_of_measurement_results:
+            raise ValueError(f"Measurement already logged to key {key!r}")
+        self.log_of_measurement_results[key] = value
 
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
         strats = []

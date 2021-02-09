@@ -31,6 +31,7 @@ from typing import (
     Union,
     ValuesView,
     AbstractSet,
+    Callable,
     Generic,
 )
 
@@ -698,7 +699,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     ) -> Iterator[Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]:
         return (paulis for qubit, paulis in self.zip_items(other))
 
-    def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(
+        self, other: Any, *, atol: Union[int, float] = 1e-8
+    ) -> Union[bool, NotImplementedType, None]:
         if not isinstance(other, PauliString):
             return NotImplemented
         return sum(not protocols.commutes(p0, p1) for p0, p1 in self.zip_paulis(other)) % 2 == 0
@@ -1411,6 +1414,42 @@ class MutablePauliString(Generic[TKey]):
         if self._imul_helper_checkpoint(other, +1) is NotImplemented:
             raise TypeError(f"{other!r} is not cirq.PAULI_STRING_LIKE.")
         return self
+
+    def __neg__(self) -> 'cirq.MutablePauliString':
+        result = self.mutable_copy()
+        result.coefficient *= -1
+        return result
+
+    def __pos__(self) -> 'cirq.MutablePauliString':
+        return self.mutable_copy()
+
+    def transform_qubits(
+        self, func: Callable[[TKey], TKeyNew], *, inplace: bool = False
+    ) -> 'cirq.MutablePauliString[TKeyNew]':
+        """Returns a mutable pauli string with transformed qubits.
+
+        Args:
+            func: The qubit transformation to apply.
+            inplace: If false (the default), creates a new mutable pauli string
+                to store the result. If true, overwrites this mutable pauli
+                string's contents. Defaults to false for consistency with
+                `cirq.PauliString.transform_qubits` in situations where the
+                pauli string being used may or may not be mutable.
+
+        Returns:
+            A transformed MutablePauliString.
+            If inplace=True, returns `self`.
+            If inplace=False, returns a new instance.
+        """
+        new_dict = {func(q): p for q, p in self.pauli_int_dict.items()}
+        if not inplace:
+            return MutablePauliString(
+                coefficient=self.coefficient,
+                pauli_int_dict=new_dict,
+            )
+        result = cast('cirq.MutablePauliString[TKeyNew]', self)
+        result.pauli_int_dict = new_dict
+        return result
 
     def __imul__(self, other: 'cirq.PAULI_STRING_LIKE') -> 'cirq.MutablePauliString':
         """Left-multiplies a pauli string into this pauli string.

@@ -38,6 +38,19 @@ def test_properties():
     assert op == circuit.to_op()
 
 
+def test_circuit_type():
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.X(a),
+        cirq.Y(b),
+        cirq.H(c),
+        cirq.CX(a, b) ** sympy.Symbol('exp'),
+        cirq.measure(a, b, c, key='m'),
+    )
+    with pytest.raises(TypeError, match='Expected circuit of type FrozenCircuit'):
+        _ = cirq.CircuitOperation(circuit)
+
+
 def test_circuit_sharing():
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.FrozenCircuit(
@@ -356,27 +369,35 @@ def test_terminal_matches():
 
     c = cirq.Circuit(cirq.X(a), op)
     assert c.are_all_measurements_terminal()
+    assert c.are_any_measurements_terminal()
 
     c = cirq.Circuit(cirq.X(b), op)
     assert c.are_all_measurements_terminal()
+    assert c.are_any_measurements_terminal()
 
     c = cirq.Circuit(cirq.measure(a), op)
     assert not c.are_all_measurements_terminal()
+    assert c.are_any_measurements_terminal()
 
     c = cirq.Circuit(cirq.measure(b), op)
     assert not c.are_all_measurements_terminal()
+    assert c.are_any_measurements_terminal()
 
     c = cirq.Circuit(op, cirq.X(a))
     assert c.are_all_measurements_terminal()
+    assert c.are_any_measurements_terminal()
 
     c = cirq.Circuit(op, cirq.X(b))
     assert not c.are_all_measurements_terminal()
+    assert not c.are_any_measurements_terminal()
 
     c = cirq.Circuit(op, cirq.measure(a))
     assert c.are_all_measurements_terminal()
+    assert c.are_any_measurements_terminal()
 
     c = cirq.Circuit(op, cirq.measure(b))
     assert not c.are_all_measurements_terminal()
+    assert c.are_any_measurements_terminal()
 
 
 def test_nonterminal_in_subcircuit():
@@ -390,11 +411,13 @@ def test_nonterminal_in_subcircuit():
     c = cirq.Circuit(cirq.X(a), op)
     assert isinstance(op, cirq.CircuitOperation)
     assert not c.are_all_measurements_terminal()
+    assert not c.are_any_measurements_terminal()
 
     op = op.with_tags('test')
     c = cirq.Circuit(cirq.X(a), op)
     assert not isinstance(op, cirq.CircuitOperation)
     assert not c.are_all_measurements_terminal()
+    assert not c.are_any_measurements_terminal()
 
 
 def test_decompose_applies_maps():

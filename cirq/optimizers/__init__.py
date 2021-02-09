@@ -14,6 +14,14 @@
 
 """Circuit transformation utilities."""
 
+from cirq.optimizers.align_left import (
+    AlignLeft,
+)
+
+from cirq.optimizers.align_right import (
+    AlignRight,
+)
+
 from cirq.optimizers.cphase_to_fsim import (
     compute_cphase_exponents_for_fsim_decomposition,
     decompose_cphase_into_two_fsim,

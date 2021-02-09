@@ -308,7 +308,9 @@ class QasmOutput:
                 main_op, keep=keep, fallback_decomposer=fallback, on_stuck_raise=on_stuck
             )
 
-            should_annotate = decomposed != [main_op]
+            qasms = [protocols.qasm(op, args=self.args) for op in decomposed]
+
+            should_annotate = decomposed != [main_op] or qasms[0].count('\n') > 1
             if should_annotate:
                 output_line_gap(1)
                 if isinstance(main_op, ops.GateOperation):
@@ -318,8 +320,8 @@ class QasmOutput:
                     x = str(main_op).replace('\n', '\n //')
                     output('// Operation: {!s}\n'.format(x))
 
-            for decomposed_op in decomposed:
-                output(protocols.qasm(decomposed_op, args=self.args))
+            for qasm in qasms:
+                output(qasm)
 
             if should_annotate:
                 output_line_gap(1)

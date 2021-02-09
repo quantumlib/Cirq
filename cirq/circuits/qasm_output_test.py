@@ -183,6 +183,7 @@ include "qelib1.inc";
 qreg q[1];
 
 
+// Gate: H**0.25
 ry(pi*0.25) q[0];
 rx(pi*0.25) q[0];
 ry(pi*-0.25) q[0];
@@ -414,9 +415,11 @@ u3(pi*0.5,pi*1.41581,pi*1.0) q[0];
 ry(pi*0.5) q[0];
 cx q[0],q[1];
 
+// Gate: CCZ
 h q[2];
 ccx q[0],q[1],q[2];
 h q[2];
+
 ccx q[0],q[1],q[2];
 
 // Gate: CCZ**0.5
@@ -457,6 +460,8 @@ h q[2];
 
 cswap q[0],q[1],q[2];
 id q[0];
+
+// Gate: I(3)
 id q[0];
 id q[1];
 id q[2];
@@ -480,13 +485,46 @@ measure q[1] -> m0[0];
 measure q[3] -> m_X[0];
 measure q[4] -> m__x[0];
 measure q[2] -> m_x_a[0];
+
+// Gate: cirq.MeasurementGate(3, 'multi', (False, True))
 measure q[1] -> m_multi[0];
 x q[2];  // Invert the following measurement
 measure q[2] -> m_multi[1];
 measure q[3] -> m_multi[2];
+
 // Dummy operation
 
 // Operation: DummyCompositeOperation()
 x q[0];
 """
+    )
+
+
+def test_reset():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.reset(a), cirq.reset(b))
+    output = cirq.QasmOutput(
+        c.all_operations(),
+        tuple(sorted(c.all_qubits())),
+        header='Generated from Cirq!',
+        precision=5,
+    )
+    assert (
+        str(output).strip()
+        == """
+// Generated from Cirq!
+
+OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [0, 1]
+qreg q[2];
+
+
+h q[0];
+cx q[0],q[1];
+reset q[0];
+reset q[1];
+    """.strip()
     )

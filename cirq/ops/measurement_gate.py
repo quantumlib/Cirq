@@ -217,6 +217,9 @@ class MeasurementGate(raw_types.Gate):
             qid_shape=None if qid_shape is None else tuple(qid_shape),
         )
 
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        return True
+
     def _act_on_(self, args: Any) -> bool:
         from cirq import sim
 
@@ -238,6 +241,13 @@ class MeasurementGate(raw_types.Gate):
         if isinstance(args, sim.clifford.ActOnCliffordTableauArgs):
             invert_mask = self.full_invert_mask()
             bits = [args.tableau._measure(q, args.prng) for q in args.axes]
+            corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
+            args.record_measurement_result(self.key, corrected)
+            return True
+
+        if isinstance(args, sim.clifford.ActOnStabilizerCHFormArgs):
+            invert_mask = self.full_invert_mask()
+            bits = [args.state._measure(q, args.prng) for q in args.axes]
             corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
             args.record_measurement_result(self.key, corrected)
             return True
