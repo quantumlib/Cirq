@@ -26,6 +26,8 @@ from cirq import value
 if TYPE_CHECKING:
     import cirq
 
+DEFAULT_COMPLEX_DTYPE = np.complex64
+
 STATE_VECTOR_LIKE = Union[
     # Full big-endian computational basis state index.
     int,
@@ -224,7 +226,7 @@ def quantum_state(
                 f'Shape of state: {actual_qid_shape}.'
             )
         if dtype is None:
-            dtype = np.complex64
+            dtype = DEFAULT_COMPLEX_DTYPE
         data = state.state_vector().astype(dtype, casting='unsafe', copy=False)
         qid_shape = actual_qid_shape
     elif isinstance(state, int):
@@ -236,7 +238,7 @@ def quantum_state(
             )
         dim = np.prod(qid_shape, dtype=int)
         if dtype is None:
-            dtype = np.complex64
+            dtype = DEFAULT_COMPLEX_DTYPE
         data = one_hot(index=state, shape=(dim,), dtype=dtype)
     else:
         data = np.array(state, copy=False)
@@ -870,7 +872,7 @@ def _amplitudes_to_validated_state_tensor(
     atol: float,
 ) -> np.ndarray:
     if dtype is None:
-        dtype = np.complex64
+        dtype = DEFAULT_COMPLEX_DTYPE
     result = np.array(state_vector, dtype=dtype).reshape(qid_shape)
     validate_normalized_state_vector(result, qid_shape=qid_shape, dtype=dtype, atol=atol)
     return result
@@ -903,7 +905,7 @@ def _qudit_values_to_state_tensor(
         )
 
     if dtype is None:
-        dtype = np.complex64
+        dtype = DEFAULT_COMPLEX_DTYPE
     return one_hot(index=tuple(int(e) for e in state_vector), shape=qid_shape, dtype=dtype)
 
 
@@ -921,7 +923,7 @@ def _computational_basis_state_to_state_tensor(
             f'qid_shape={qid_shape!r}\n'
         )
     if dtype is None:
-        dtype = np.complex64
+        dtype = DEFAULT_COMPLEX_DTYPE
     return one_hot(index=state_rep, shape=n, dtype=dtype).reshape(qid_shape)
 
 
