@@ -57,6 +57,9 @@ class GlobalPhaseOperation(raw_types.Operation):
         args.target_tensor *= self.coefficient
         return args.target_tensor
 
+    def _has_stabilizer_effect_(self) -> bool:
+        return True
+
     def _act_on_(self, args: Any):
         from cirq.sim import clifford
 
