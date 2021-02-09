@@ -38,6 +38,33 @@ def _sqrt_positive_semidefinite_matrix(mat: np.ndarray) -> np.ndarray:
     return vecs @ (np.sqrt(np.abs(eigs)) * vecs).T.conj()
 
 
+def _validate_int_state(state: int, qid_shape: Optional[Tuple[int, ...]]) -> None:
+    if state < 0:
+        raise ValueError(
+            'Invalid state: A state specified as an integer must be non-negative, '
+            f'but {state} was given.'
+        )
+    if qid_shape is not None:
+        dim = np.prod(qid_shape)
+        if state >= dim:
+            raise ValueError(
+                'Invalid state for given qid shape: '
+                'The maximum computational basis state for qid shape '
+                f'{qid_shape} is {dim - 1}, but {state} was given.'
+            )
+
+
+def _validate_product_state(
+    state: 'cirq.ProductState', qid_shape: Optional[Tuple[int, ...]]
+) -> None:
+    if qid_shape is not None and qid_shape != (2,) * len(state):
+        raise ValueError(
+            'Invalid state for given qid shape: '
+            f'Specified shape {qid_shape} but product state '
+            f'has shape {(2,) * len(state)}.'
+        )
+
+
 def fidelity(
     state1: 'cirq.QUANTUM_STATE_LIKE',
     state2: 'cirq.QUANTUM_STATE_LIKE',
@@ -70,20 +97,9 @@ def fidelity(
     """
     # Two ints
     if isinstance(state1, int) and isinstance(state2, int):
-        if validate and qid_shape is not None:
-            dim = np.prod(qid_shape)
-            if state1 >= dim:
-                raise ValueError(
-                    'Invalid state for given qid shape: '
-                    'The maximum computational basis state for qid shape '
-                    f'{qid_shape} is {dim - 1}, but {state1} was given.'
-                )
-            if state2 >= dim:
-                raise ValueError(
-                    'Invalid state for given qid shape: '
-                    'The maximum computational basis state for qid shape '
-                    f'{qid_shape} is {dim - 1}, but {state2} was given.'
-                )
+        if validate:
+            _validate_int_state(state1, qid_shape)
+            _validate_int_state(state2, qid_shape)
         return float(state1 == state2)
 
     # Two ProductStates
@@ -93,12 +109,9 @@ def fidelity(
                 'Mismatched number of qubits in product states: '
                 f'{len(state1)} and {len(state2)}.'
             )
-        if validate and qid_shape is not None and qid_shape != (2,) * len(state1):
-            raise ValueError(
-                'Invalid state for given qid shape: '
-                f'Specified shape {qid_shape} but product state '
-                f'has shape {(2,) * len(state1)}.'
-            )
+        if validate:
+            _validate_product_state(state1, qid_shape)
+            _validate_product_state(state2, qid_shape)
         prod = 1.0
         for q, s1 in state1:
             s2 = state2[q]
@@ -135,10 +148,10 @@ def _numpy_arrays_to_state_vectors_or_density_matrices(
     validate: bool,
     atol: float,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    if state1.ndim > 2 or state1.ndim == 2 and state1.shape[0] != state1.shape[1]:
+    if state1.ndim > 2 or (state1.ndim == 2 and state1.shape[0] != state1.shape[1]):
         # State tensor, convert to state vector
         state1 = np.reshape(state1, (np.prod(state1.shape),))
-    if state2.ndim > 2 or state2.ndim == 2 and state2.shape[0] != state2.shape[1]:
+    if state2.ndim > 2 or (state2.ndim == 2 and state2.shape[0] != state2.shape[1]):
         # State tensor, convert to state vector
         state2 = np.reshape(state2, (np.prod(state2.shape),))
     if state1.ndim == 2 and state2.ndim == 2:
@@ -185,14 +198,11 @@ def _numpy_arrays_to_state_vectors_or_density_matrices(
                     f'Expected dimension {expected_dim} but '
                     f'got dimension {dim1}.'
                 )
-        if state1.ndim == 2:
-            validate_density_matrix(state1, qid_shape=qid_shape, atol=atol)
-        else:
-            validate_normalized_state_vector(state1, qid_shape=qid_shape, atol=atol)
-        if state2.ndim == 2:
-            validate_density_matrix(state2, qid_shape=qid_shape, atol=atol)
-        else:
-            validate_normalized_state_vector(state2, qid_shape=qid_shape, atol=atol)
+        for state in (state1, state2):
+            if state.ndim == 2:
+                validate_density_matrix(state, qid_shape=qid_shape, atol=atol)
+            else:
+                validate_normalized_state_vector(state, qid_shape=qid_shape, atol=atol)
 
     return state1, state2
 
