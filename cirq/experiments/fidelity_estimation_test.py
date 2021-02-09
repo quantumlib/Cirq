@@ -26,6 +26,9 @@ from cirq.experiments.fidelity_estimation import (
     sample_2q_xeb_circuits,
     simulate_2q_xeb_circuits,
     benchmark_2q_xeb_fidelities,
+    parameterize_phased_fsim_circuit,
+    characterize_phased_fsim_parameters_with_xeb,
+    SqrtISwapXEBOptions,
 )
 import cirq.experiments.random_quantum_circuit_generation as rqcg
 
@@ -351,3 +354,86 @@ def test_simulate_2q_xeb_fidelities():
     for _, row in fid_df.iterrows():
         assert row['cycle_depth'] in cycle_depths
         assert row['fidelity'] > 0.98
+
+
+def test_parameterize_phased_fsim_circuit():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = rqcg.random_rotations_between_two_qubit_circuit(
+        q0, q1, depth=3, two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b), seed=52
+    )
+
+    p_circuit = parameterize_phased_fsim_circuit(circuit, SqrtISwapXEBOptions())
+    cirq.testing.assert_has_diagram(
+        p_circuit,
+        """\
+0                                    1
+│                                    │
+Y^0.5                                X^0.5
+│                                    │
+PhFSim(theta, zeta, chi, gamma, phi)─PhFSim(theta, zeta, chi, gamma, phi)
+│                                    │
+PhX(0.25)^0.5                        Y^0.5
+│                                    │
+PhFSim(theta, zeta, chi, gamma, phi)─PhFSim(theta, zeta, chi, gamma, phi)
+│                                    │
+Y^0.5                                X^0.5
+│                                    │
+PhFSim(theta, zeta, chi, gamma, phi)─PhFSim(theta, zeta, chi, gamma, phi)
+│                                    │
+X^0.5                                PhX(0.25)^0.5
+│                                    │
+    """,
+        transpose=True,
+    )
+
+
+def test_get_initial_simplex():
+    options = SqrtISwapXEBOptions()
+    simplex, names = options.get_initial_simplex_and_names()
+    assert names == ['theta', 'zeta', 'chi', 'gamma', 'phi']
+    assert len(simplex) == len(names) + 1
+    assert simplex.shape[1] == len(names)
+
+
+def test_characterize_phased_fsim_parameters_with_xeb():
+    q0, q1 = cirq.LineQubit.range(2)
+    rs = np.random.RandomState(52)
+    circuits = [
+        rqcg.random_rotations_between_two_qubit_circuit(
+            q0,
+            q1,
+            depth=20,
+            two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b),
+            seed=rs,
+        )
+        for _ in range(2)
+    ]
+    cycle_depths = np.arange(3, 20, 6)
+    sampled_df = sample_2q_xeb_circuits(
+        sampler=cirq.Simulator(seed=rs),
+        circuits=circuits,
+        cycle_depths=cycle_depths,
+        progress_bar=None,
+    )
+    # only optimize theta so it goes faster.
+    options = SqrtISwapXEBOptions(
+        characterize_theta=True,
+        characterize_gamma=False,
+        characterize_chi=False,
+        characterize_zeta=False,
+        characterize_phi=False,
+    )
+    p_circuits = [parameterize_phased_fsim_circuit(circuit, options) for circuit in circuits]
+    with multiprocessing.Pool() as pool:
+        result = characterize_phased_fsim_parameters_with_xeb(
+            sampled_df=sampled_df,
+            parameterized_circuits=p_circuits,
+            cycle_depths=cycle_depths,
+            phased_fsim_options=options,
+            # speed up with looser tolerances:
+            fatol=1e-2,
+            xatol=1e-2,
+            pool=pool,
+        )
+    assert np.abs(result.x[0] + np.pi / 4) < 0.1
+    assert np.abs(result.fun) < 0.1  # noiseless simulator
