@@ -1,4 +1,33 @@
+# Copyright 2020 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import cirq
+import pytest
+from cirq.circuits import SparseCircuitDag
+
+
+def test_from_ops_by_moment_index():
+    circuit = cirq.Circuit()
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit.append([cirq.CZ(q0, q1), cirq.H(q2), cirq.H(q0), cirq.CZ(q1, q2)])
+    circuit_ops_by_reverse_moment_index = (
+            (3-index, op) for index, moment in enumerate(circuit.moments) for op in moment.operations
+        )
+    with pytest.raises(ValueError, match="Moment indices expected to increase."):
+        _ = SparseCircuitDag.from_ops_by_moment_index(
+            circuit_ops_by_reverse_moment_index, device=circuit.device
+        )
 
 
 def test_factorize_simple_circuit_one_factor():
