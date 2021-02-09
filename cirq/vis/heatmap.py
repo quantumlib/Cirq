@@ -72,15 +72,6 @@ class Heatmap:
             f"Unrecognized key type, expected cirq.GridQubit or Tuple[int,int], " f"got {repr(key)}"
         )
 
-    def _sanitize_annotation_key(self, key: QubitCoordinate) -> Tuple[int, int]:
-        if isinstance(key, grid_qubit.GridQubit):
-            return key.row, key.col
-        if isinstance(key, tuple) and tuple(map(type, key)) == (int, int):
-            return key
-        raise ValueError(
-            f"Unrecognized key type, expected cirq.GridQubit or Tuple[int,int], " f"got {repr(key)}"
-        )
-
     def set_value_map(self, value_map: ValueMap) -> 'Heatmap':
         """Sets the values for each qubit.
 
