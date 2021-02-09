@@ -427,7 +427,7 @@ class _QidShapeSet:
         Args:
             explicit_qid_shapes: An explicit set of qid shapes.
             unfactorized_total_dimension: A number representing the dimension
-                of Hilbert space. The associated qid shapes are those compatible
+                of the Hilbert space. The associated qid shapes are those compatible
                 with this dimension, i.e., those for which the product of the
                 individual qudit dimensions is equal to the Hilbert space
                 dimension.
