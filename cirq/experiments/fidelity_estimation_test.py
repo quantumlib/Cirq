@@ -257,7 +257,8 @@ def test_least_squares_xeb_fidelity_from_probabilities():
 
 
 def test_sample_2q_xeb_circuits():
-    q0, q1 = cirq.LineQubit.range(2)
+    q0 = cirq.NamedQubit('a')
+    q1 = cirq.NamedQubit('b')
     circuits = [
         rqcg.random_rotations_between_two_qubit_circuit(
             q0,

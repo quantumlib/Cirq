@@ -540,7 +540,7 @@ class _ZippedCircuit:
 
 def _get_combinations_by_layer_for_isolated_xeb(
     circuits: Sequence['cirq.Circuit'],
-) -> List[CircuitLibraryCombination]:
+) -> Tuple[List[CircuitLibraryCombination], List['cirq.Circuit']]:
     """Helper function used in `sample_2q_xeb_circuits`.
 
     This creates a CircuitLibraryCombination object for isolated XEB. First, the qubits
@@ -559,7 +559,7 @@ def _get_combinations_by_layer_for_isolated_xeb(
             combinations=np.arange(len(circuits))[:, np.newaxis],
             pairs=[(q0, q1)],
         )
-    ]
+    ], circuits
 
 
 def _zip_circuits(
@@ -630,7 +630,7 @@ def _execute_sample_2q_xeb_tasks_in_batches(
     combinations_by_layer: List[CircuitLibraryCombination],
     repetitions: int,
     batch_size: int,
-    progress_bar: Optional[Callable[..., ContextManager]],
+    progress_bar: Callable[..., ContextManager],
 ) -> List[Dict[str, Any]]:
     """Helper function used in `sample_2q_xeb_circuits` to batch and execute sampling tasks."""
     n_tasks = len(tasks)
@@ -692,7 +692,7 @@ def sample_2q_xeb_circuits(
 
     # Shim isolated-XEB as a special case of combination-style parallel XEB.
     if combinations_by_layer is None:
-        combinations_by_layer = _get_combinations_by_layer_for_isolated_xeb(circuits)
+        combinations_by_layer, circuits = _get_combinations_by_layer_for_isolated_xeb(circuits)
         one_pair = True
     else:
         _verify_two_line_qubits_from_circuits(circuits)
@@ -884,6 +884,7 @@ def benchmark_2q_xeb_fidelities(
             if len(vals) == 1:
                 ret[k] = vals[0]
             else:
+                # coverage: ignore
                 raise AssertionError(
                     f"When computing per-cycle-depth fidelity, multiple "
                     f"values for {k} were grouped together: {vals}"
