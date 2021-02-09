@@ -55,7 +55,6 @@ class SparseCircuitDag(networkx.DiGraph):
             can_reorder: A predicate that determines if two operations may be
                 reordered.  Graph edges are created for pairs of operations
                 where this returns False.
-
                 The default predicate allows reordering only when the operations
                 don't share common qubits.
             incoming_graph_data: Data in initialize the graph.  This can be any
