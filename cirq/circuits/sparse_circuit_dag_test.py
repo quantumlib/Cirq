@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq
 import pytest
+
+import cirq
 from cirq.circuits import SparseCircuitDag
 
 
@@ -22,8 +23,8 @@ def test_from_ops_by_moment_index():
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit.append([cirq.CZ(q0, q1), cirq.H(q2), cirq.H(q0), cirq.CZ(q1, q2)])
     circuit_ops_by_reverse_moment_index = (
-            (3-index, op) for index, moment in enumerate(circuit.moments) for op in moment.operations
-        )
+        (3 - index, op) for index, moment in enumerate(circuit.moments) for op in moment.operations
+    )
     with pytest.raises(ValueError, match="Moment indices expected to increase."):
         _ = SparseCircuitDag.from_ops_by_moment_index(
             circuit_ops_by_reverse_moment_index, device=circuit.device
