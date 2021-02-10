@@ -582,5 +582,11 @@ def _register_resolver() -> None:
 
 _register_resolver()
 
-# so that we don't have to add contrib resolver cache in the DEFAULT_RESOLVER
-from cirq import contrib
+# contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
+
+# pylint: disable=wrong-import-position
+from cirq import (
+    contrib,
+)
+
+# pylint: enable=wrong-import-position
