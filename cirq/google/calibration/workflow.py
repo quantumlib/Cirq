@@ -32,7 +32,7 @@ from cirq.google.calibration.engine_simulator import PhasedFSimEngineSimulator
 from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
-    FSimGateCalibration,
+    PhaseCalibratedFSimGate,
     IncompatibleMomentError,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
@@ -66,7 +66,7 @@ def prepare_floquet_characterization_for_moment(
     moment: Moment,
     options: FloquetPhasedFSimCalibrationOptions,
     gates_translator: Callable[
-        [Gate], Optional[FSimGateCalibration]
+        [Gate], Optional[PhaseCalibratedFSimGate]
     ] = try_convert_sqrt_iswap_to_fsim,
     canonicalize_pairs: bool = False,
     sort_pairs: bool = False,
@@ -141,7 +141,7 @@ def prepare_floquet_characterization_for_circuit(
     circuit: Circuit,
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     gates_translator: Callable[
-        [Gate], Optional[FSimGateCalibration]
+        [Gate], Optional[PhaseCalibratedFSimGate]
     ] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
     initial: Optional[Sequence[FloquetPhasedFSimCalibrationRequest]] = None,
@@ -362,7 +362,7 @@ def make_zeta_chi_gamma_compensation_for_moments(
     circuit_with_calibration: CircuitWithCalibration,
     characterizations: List[PhasedFSimCalibrationResult],
     gates_translator: Callable[
-        [Gate], Optional[FSimGateCalibration]
+        [Gate], Optional[PhaseCalibratedFSimGate]
     ] = try_convert_sqrt_iswap_to_fsim,
 ) -> CircuitWithCalibration:
     """Compensates circuit against errors in zeta, chi and gamma angles.
@@ -478,7 +478,7 @@ class FSimPhaseCorrections:
     def from_characterization(
         cls,
         qubits: Tuple[Qid, Qid],
-        gate_calibration: FSimGateCalibration,
+        gate_calibration: PhaseCalibratedFSimGate,
         parameters: PhasedFSimCharacterization,
         characterization_index: Optional[int],
     ) -> 'FSimPhaseCorrections':
@@ -508,7 +508,7 @@ def run_floquet_characterization_for_circuit(
     gate_set: Optional[SerializableGateSet] = None,
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     gates_translator: Callable[
-        [Gate], Optional[FSimGateCalibration]
+        [Gate], Optional[PhaseCalibratedFSimGate]
     ] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
     max_layers_per_request: int = 1,
@@ -573,7 +573,7 @@ def run_zeta_chi_gamma_compensation_for_moments(
         THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION
     ),
     gates_translator: Callable[
-        [Gate], Optional[FSimGateCalibration]
+        [Gate], Optional[PhaseCalibratedFSimGate]
     ] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
     max_layers_per_request: int = 1,

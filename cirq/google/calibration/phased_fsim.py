@@ -444,7 +444,7 @@ class IncompatibleMomentError(Exception):
 
 
 @dataclasses.dataclass(frozen=True)
-class FSimGateCalibration:
+class PhaseCalibratedFSimGate:
     """Association of a user gate with gate to calibrate.
 
     This association stores an information regarding rotation of the calibrated FSim gate by
@@ -519,7 +519,7 @@ class FSimGateCalibration:
         )
 
 
-def try_convert_sqrt_iswap_to_fsim(gate: Gate) -> Optional[FSimGateCalibration]:
+def try_convert_sqrt_iswap_to_fsim(gate: Gate) -> Optional[PhaseCalibratedFSimGate]:
     """Converts an equivalent gate to FSimGate(theta=π/4, phi=0) if possible.
 
     Args:
@@ -555,8 +555,8 @@ def try_convert_sqrt_iswap_to_fsim(gate: Gate) -> Optional[FSimGateCalibration]:
     angle_canonical = angle % (2 * np.pi)
 
     if np.isclose(angle_canonical, np.pi / 4):
-        return FSimGateCalibration(FSimGate(theta=np.pi / 4, phi=0.0), 0.0)
+        return PhaseCalibratedFSimGate(FSimGate(theta=np.pi / 4, phi=0.0), 0.0)
     elif np.isclose(angle_canonical, 7 * np.pi / 4):
-        return FSimGateCalibration(FSimGate(theta=np.pi / 4, phi=0.0), 0.5)
+        return PhaseCalibratedFSimGate(FSimGate(theta=np.pi / 4, phi=0.0), 0.5)
 
     return None

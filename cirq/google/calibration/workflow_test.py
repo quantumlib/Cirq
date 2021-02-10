@@ -26,7 +26,7 @@ from cirq.google.calibration.phased_fsim import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
-    FSimGateCalibration,
+    PhaseCalibratedFSimGate,
     PhasedFSimCharacterization,
     PhasedFSimCalibrationResult,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -39,9 +39,9 @@ SQRT_ISWAP_PARAMETERS = cirq.google.PhasedFSimCharacterization(
 SQRT_ISWAP_GATE = cirq.FSimGate(np.pi / 4, 0.0)
 
 
-def _fsim_identity_converter(gate: cirq.Gate) -> Optional[FSimGateCalibration]:
+def _fsim_identity_converter(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGate]:
     if isinstance(gate, cirq.FSimGate):
-        return FSimGateCalibration(gate, 0.0)
+        return PhaseCalibratedFSimGate(gate, 0.0)
     return None
 
 
@@ -528,7 +528,7 @@ def test_fsim_phase_corrections(
 
     corrected = workflow.FSimPhaseCorrections.from_characterization(
         (a, b),
-        FSimGateCalibration(cirq.FSimGate(theta=theta, phi=phi), 0.0),
+        PhaseCalibratedFSimGate(cirq.FSimGate(theta=theta, phi=phi), 0.0),
         cirq.google.PhasedFSimCharacterization(
             theta=theta, zeta=zeta, chi=chi, gamma=gamma, phi=phi
         ),
@@ -559,7 +559,7 @@ def test_phase_corrected_fsim_operations_with_phase_exponent(
 
     corrected = workflow.FSimPhaseCorrections.from_characterization(
         (a, b),
-        FSimGateCalibration(cirq.FSimGate(theta=theta, phi=phi), phase_exponent),
+        PhaseCalibratedFSimGate(cirq.FSimGate(theta=theta, phi=phi), phase_exponent),
         cirq.google.PhasedFSimCharacterization(
             theta=theta, zeta=zeta, chi=chi, gamma=gamma, phi=phi
         ),

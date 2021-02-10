@@ -19,7 +19,7 @@ from cirq.google.calibration.phased_fsim import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
-    FSimGateCalibration,
+    PhaseCalibratedFSimGate,
     PhasedFSimCharacterization,
     PhasedFSimCalibrationResult,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -256,13 +256,13 @@ def test_try_convert_sqrt_iswap_to_fsim_converts_correctly():
 
     fsim = cirq.FSimGate(theta=np.pi / 4, phi=0)
     assert np.allclose(cirq.unitary(fsim), expected_unitary)
-    assert try_convert_sqrt_iswap_to_fsim(fsim) == FSimGateCalibration(expected, 0.0)
+    assert try_convert_sqrt_iswap_to_fsim(fsim) == PhaseCalibratedFSimGate(expected, 0.0)
     assert try_convert_sqrt_iswap_to_fsim(cirq.FSimGate(theta=np.pi / 4, phi=0.1)) is None
     assert try_convert_sqrt_iswap_to_fsim(cirq.FSimGate(theta=np.pi / 3, phi=0)) is None
 
     phased_fsim = cirq.PhasedFSimGate(theta=np.pi / 4, phi=0)
     assert np.allclose(cirq.unitary(phased_fsim), expected_unitary)
-    assert try_convert_sqrt_iswap_to_fsim(phased_fsim) == FSimGateCalibration(expected, 0.0)
+    assert try_convert_sqrt_iswap_to_fsim(phased_fsim) == PhaseCalibratedFSimGate(expected, 0.0)
     assert (
         try_convert_sqrt_iswap_to_fsim(cirq.PhasedFSimGate(theta=np.pi / 4, zeta=0.1, phi=0))
         is None
@@ -270,12 +270,14 @@ def test_try_convert_sqrt_iswap_to_fsim_converts_correctly():
 
     iswap_pow = cirq.ISwapPowGate(exponent=-0.5)
     assert np.allclose(cirq.unitary(iswap_pow), expected_unitary)
-    assert try_convert_sqrt_iswap_to_fsim(iswap_pow) == FSimGateCalibration(expected, 0.0)
+    assert try_convert_sqrt_iswap_to_fsim(iswap_pow) == PhaseCalibratedFSimGate(expected, 0.0)
     assert try_convert_sqrt_iswap_to_fsim(cirq.ISwapPowGate(exponent=-0.4)) is None
 
     phased_iswap_pow = cirq.PhasedISwapPowGate(exponent=0.5, phase_exponent=-0.5)
     assert np.allclose(cirq.unitary(phased_iswap_pow), expected_unitary)
-    assert try_convert_sqrt_iswap_to_fsim(phased_iswap_pow) == FSimGateCalibration(expected, 0.0)
+    assert try_convert_sqrt_iswap_to_fsim(phased_iswap_pow) == PhaseCalibratedFSimGate(
+        expected, 0.0
+    )
     assert (
         try_convert_sqrt_iswap_to_fsim(cirq.PhasedISwapPowGate(exponent=-0.5, phase_exponent=0.1))
         is None

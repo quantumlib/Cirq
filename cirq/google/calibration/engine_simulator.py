@@ -38,7 +38,7 @@ from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
 
 from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationRequest,
-    FSimGateCalibration,
+    PhaseCalibratedFSimGate,
     IncompatibleMomentError,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
@@ -73,7 +73,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         *,
         drift_generator: ParametersDriftGenerator,
         gates_translator: Callable[
-            [Gate], Optional[FSimGateCalibration]
+            [Gate], Optional[PhaseCalibratedFSimGate]
         ] = try_convert_sqrt_iswap_to_fsim,
     ) -> None:
         """Initializes the PhasedFSimEngineSimulator.
@@ -368,7 +368,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         return results
 
     def create_gate_with_drift(
-        self, a: Qid, b: Qid, gate_calibration: FSimGateCalibration
+        self, a: Qid, b: Qid, gate_calibration: PhaseCalibratedFSimGate
     ) -> PhasedFSimGate:
         """Generates a gate with drift for a given gate.
 
