@@ -247,7 +247,76 @@ def test_get_parameters():
     assert result.get_parameters(q_02, q_03) == PhasedFSimCharacterization(
         theta=0.4, zeta=0.5, chi=None, gamma=None, phi=0.6
     )
-    assert result.get_parameters(q_00, q_03) == None
+    assert result.get_parameters(q_00, q_03) is None
+
+
+@pytest.mark.parametrize('phase_exponent', np.linspace(0, 1, 5))
+def test_phase_calibrated_fsim_gate_as_characterized_phased_fsim_gate(phase_exponent: float):
+    a, b = cirq.LineQubit.range(2)
+    ideal_gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+    characterized_gate = cirq.PhasedFSimGate(
+        theta=ideal_gate.theta, zeta=0.1, chi=0.2, gamma=0.3, phi=ideal_gate.phi
+    )
+    parameters = PhasedFSimCharacterization(
+        theta=ideal_gate.theta,
+        zeta=characterized_gate.zeta,
+        chi=characterized_gate.chi,
+        gamma=characterized_gate.gamma,
+        phi=ideal_gate.phi,
+    )
+
+    calibrated = PhaseCalibratedFSimGate(ideal_gate, phase_exponent=phase_exponent)
+    phased_gate = calibrated.as_characterized_phased_fsim_gate(parameters).on(a, b)
+
+    assert np.allclose(
+        cirq.unitary(phased_gate),
+        cirq.unitary(
+            cirq.Circuit(
+                [
+                    [cirq.Z(a) ** -phase_exponent, cirq.Z(b) ** phase_exponent],
+                    characterized_gate.on(a, b),
+                    [cirq.Z(a) ** phase_exponent, cirq.Z(b) ** -phase_exponent],
+                ]
+            )
+        ),
+    )
+
+
+@pytest.mark.parametrize('phase_exponent', np.linspace(0, 1, 5))
+def test_phase_calibrated_fsim_gate_compensated(phase_exponent: float):
+    a, b = cirq.LineQubit.range(2)
+    ideal_gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+    characterized_gate = cirq.PhasedFSimGate(
+        theta=ideal_gate.theta, zeta=0.1, chi=0.2, gamma=0.3, phi=ideal_gate.phi
+    )
+    parameters = PhasedFSimCharacterization(
+        theta=ideal_gate.theta,
+        zeta=characterized_gate.zeta,
+        chi=characterized_gate.chi,
+        gamma=characterized_gate.gamma,
+        phi=ideal_gate.phi,
+    )
+
+    calibrated = PhaseCalibratedFSimGate(ideal_gate, phase_exponent=phase_exponent)
+
+    # Passing characterized_gate as engine_gate simulates the hardware execution.
+    operations = calibrated.with_zeta_chi_gamma_compensated(
+        (a, b), parameters, engine_gate=characterized_gate
+    )
+
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(cirq.Circuit(operations)),
+        cirq.unitary(
+            cirq.Circuit(
+                [
+                    [cirq.Z(a) ** -phase_exponent, cirq.Z(b) ** phase_exponent],
+                    ideal_gate.on(a, b),
+                    [cirq.Z(a) ** phase_exponent, cirq.Z(b) ** -phase_exponent],
+                ]
+            )
+        ),
+        atol=1e-8,
+    )
 
 
 def test_try_convert_sqrt_iswap_to_fsim_converts_correctly():

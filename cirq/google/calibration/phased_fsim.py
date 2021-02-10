@@ -40,6 +40,7 @@ from cirq.ops import (
     PhasedFSimGate,
     PhasedISwapPowGate,
     Qid,
+    TwoQubitGate,
     rz,
 )
 from cirq.google.api import v2
@@ -485,7 +486,11 @@ class PhaseCalibratedFSimGate:
         )
 
     def with_zeta_chi_gamma_compensated(
-        self, qubits: Tuple[Qid, Qid], parameters: PhasedFSimCharacterization
+        self,
+        qubits: Tuple[Qid, Qid],
+        parameters: PhasedFSimCharacterization,
+        *,
+        engine_gate: Optional[TwoQubitGate] = None,
     ) -> Tuple[Tuple[Operation, ...], ...]:
         """Creates a composite operation that compensates for zeta, chi and gamma angles of the
         characterization.
@@ -493,6 +498,9 @@ class PhaseCalibratedFSimGate:
         Args:
             qubits: Qubits that the gate should act on.
             parameters: The results of characterization of the engine gate.
+            engine_gate: TwoQubitGate that represents the engine gate. When None, the internal
+                engine_gate of this instance is used. This argument is useful for testing
+                purposes.
 
         Returns:
             Tuple of tuple of operations that describe the compensated gate. The first index
@@ -505,7 +513,10 @@ class PhaseCalibratedFSimGate:
         gamma = parameters.gamma
 
         assert parameters.chi is not None, "Chi value must not be None"
-        chi = parameters.chi - 2 * np.pi * self.phase_exponent
+        chi = parameters.chi + 2 * np.pi * self.phase_exponent
+
+        if engine_gate is None:
+            engine_gate = self.engine_gate
 
         a, b = qubits
 
@@ -514,7 +525,7 @@ class PhaseCalibratedFSimGate:
 
         return (
             (rz(0.5 * gamma - alpha).on(a), rz(0.5 * gamma + alpha).on(b)),
-            (self.engine_gate.on(a, b),),
+            (engine_gate.on(a, b),),
             (rz(0.5 * gamma - beta).on(a), rz(0.5 * gamma + beta).on(b)),
         )
 
