@@ -221,3 +221,7 @@ Lastly, email cirq-announce@googlegroups.com with the release notes
 and an announcement of the new version.
 
 Congratulate yourself for a well done release!
+
+### Post release PR for notebooks
+
+If there are unreleased notebooks (`NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES` is not empty in [dev_tools/notebooks/isolated_notebook_test.py](dev_tools/notebooks/isolated_notebook_test.py), follow the steps in our [notebooks guide](docs/dev/notebooks.md).
