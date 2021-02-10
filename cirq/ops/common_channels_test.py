@@ -164,6 +164,14 @@ def test_depolarizing_channel_two_qubits():
     )
     assert cirq.has_channel(d)
 
+    assert d.num_qubits() == 2
+    cirq.testing.assert_has_diagram(cirq.Circuit(d(*cirq.LineQubit.range(2))),
+        """
+0: ───D(0.15)───
+      │
+1: ───#2────────
+        """)
+
 
 def test_depolarizing_mixture():
     d = cirq.depolarize(0.3)
