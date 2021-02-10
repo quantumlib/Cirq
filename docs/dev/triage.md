@@ -218,19 +218,20 @@ The staleness check automation is implemented via Github Actions, the latest def
 **Goals:**
 
 * P0 - notice high priority issues as soon as possible and organize a fix for them.
-* P1 - maintain a backlog that makes it easy to match contributors as well as maintainers to work items.
-* P1 - for pull requests we are aiming for 
-    * **responsiveness** - people can get their work done - we don't want to block community / our team members.
-    * **clean workspace** - stale PRs are wasteful as clutter is cognitive cost for maintainers. Stale PRs also a resource cost on Github - eating into other contributors' capacity to execute Github Actions / checks.
+* P1 - keep the issue and PR backlog clean  
+    - maintain a backlog that makes it easy to match contributors as well as maintainers to work items.
+    - for pull requests we are aiming for 
+        * **responsiveness** - people can get their work done - we don't want to block community / our team members.
+        * **clean workspace** - stale PRs are wasteful as clutter is cognitive cost for maintainers. Stale PRs also a resource cost on Github - eating into other contributors' capacity to execute Github Actions / checks.
 
 **Who**
 
-* [mandatory] Googlers on weekly Cirq rotation - key thing is to cover p0 bugs.
+* [mandatory] Cirq maintainers on weekly Cirq rotation - key thing is to cover p0 bugs.
 * [optional] any maintainer who has Triage access rights to the repo. 
 
 **When**
 
-* daily, continuously  - Googler rotation is weekly
+* daily, continuously  - Cirq maintainer rotation is weekly
 
 **What**
 
