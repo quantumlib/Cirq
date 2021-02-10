@@ -13,24 +13,31 @@
 """Service to access IonQs API."""
 
 import datetime
+import os
 
 from typing import Optional, Sequence, TYPE_CHECKING
 
 from cirq import protocols, study
 
-from cirq.ionq import calibration, ionq_client, job, results, serializer
+from cirq.ionq import calibration, ionq_client, job, results, sampler, serializer
 
 if TYPE_CHECKING:
     import cirq
 
 
 class Service:
-    """A class to access IonQ's API."""
+    """A class to access IonQ's API.
+
+    To access the API, this class requires a remote host url and an API key. These can be
+    specified in the constructor via the parameters `remote_host` and `api_key`. Alternatively
+    these can be specified by setting the environment variables `IONQ_REMOTE_HOST` and
+    `IONQ_API_KEY`.
+    """
 
     def __init__(
         self,
-        remote_host: str,
-        api_key: str,
+        remote_host: Optional[str] = None,
+        api_key: Optional[str] = None,
         default_target: str = None,
         api_version='v0.1',
         max_retry_seconds: int = 3600,
@@ -39,8 +46,12 @@ class Service:
         """Creates the Service to access IonQ's API.
 
         Args:
-            remote_host: The location of the api in the form of an url.
-            api_key: A string key which allows access to the api.
+            remote_host: The location of the api in the form of an url. If this is None,
+                then this instance will use the environment variable `IONQ_REMOTE_HOST`. If that
+                variable is not set, then this will raise an `EnvironmentError`.
+            api_key: A string key which allows access to the api. If this is None,
+                then this instance will use the environment variable  `IONQ_API_KEY`. If that
+                variable is not set, then this will raise an `EnvironmentError`.
             default_target: Which target to default to using. If set to None, no default is set
                 and target must always be specified in calls. If set, then this default is used,
                 unless a target is specified for a given call. Supports either 'qpu' or
@@ -48,10 +59,27 @@ class Service:
             api_version: Version of the api. Defaults to 'v0.1'.
             max_retry_seconds: The number of seconds to retry calls for. Defaults to one hour.
             verbose: Whether to print to stdio and stderr on retriable errors.
+
+        Raises:
+            EnvironmentError: if `remote_host` or `api_key` are None and have no corresponding
+                environment variable set.
         """
+
+        def init_possibly_from_env(param, env_name, var_name):
+            param = param or os.getenv(env_name)
+            if not param:
+                raise EnvironmentError(
+                    f'Parameter {var_name} was not specified and the environment variable '
+                    f'{env_name} was also not set.'
+                )
+            return param
+
+        self.remote_host = init_possibly_from_env(remote_host, 'IONQ_REMOTE_HOST', 'remote_host')
+        self.api_key = init_possibly_from_env(api_key, 'IONQ_API_KEY', 'api_key')
+
         self._client = ionq_client._IonQClient(
-            remote_host=remote_host,
-            api_key=api_key,
+            remote_host=self.remote_host,
+            api_key=self.api_key,
             default_target=default_target,
             api_version=api_version,
             max_retry_seconds=max_retry_seconds,
@@ -88,6 +116,21 @@ class Service:
             return result.to_cirq_result(params=study.ParamResolver(param_resolver))
         else:
             return result.to_cirq_result(params=study.ParamResolver(param_resolver), seed=seed)
+
+    def sampler(self, target: Optional[str] = None, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+        """Returns a `cirq.Sampler` object for accessing the sampler interface.
+
+        Args:
+            target: The target to sample against. Either this or `default_target` on this
+                service must be specified. If this is None, uses the `default_target`. If
+                both `default_target` and `target` are specified, uses `target`.
+            seed: If the target is `simulation` the seed for generating results. If None, this
+                will be `np.random`, if an int, will be `np.random.RandomState(int)`, otherwise
+                must be a modulate similar to `np.random`.
+        Returns:
+            A `cirq.Sampler` for the IonQ API.
+        """
+        return sampler.Sampler(service=self, target=target, seed=seed)
 
     def create_job(
         self,

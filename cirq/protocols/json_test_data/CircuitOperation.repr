@@ -10,6 +10,7 @@
         cirq.MeasurementGate(5, '0,1,2,3,4', ()).on(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2), cirq.LineQubit(3), cirq.LineQubit(4)),
     ),
 ]),
+repetition_ids=['0'],
 measurement_key_map={'0,1,2,3,4': 'mixed_state'}),
 cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
     cirq.Moment(
@@ -17,6 +18,7 @@ cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
     ),
 ]),
 repetitions=-2,
+repetition_ids=['a', 'b'],
 qubit_map={cirq.LineQubit(0): cirq.LineQubit(1)}),
 cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
     cirq.Moment(

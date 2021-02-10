@@ -296,6 +296,8 @@ from cirq.ops import (
 )
 
 from cirq.optimizers import (
+    AlignLeft,
+    AlignRight,
     compute_cphase_exponents_for_fsim_decomposition,
     ConvertToCzAndSingleGates,
     decompose_cphase_into_two_fsim,
@@ -327,11 +329,15 @@ from cirq.optimizers import (
 
 from cirq.qis import (
     bloch_vector_from_state_vector,
+    density_matrix,
     density_matrix_from_state_vector,
     dirac_notation,
     eye_tensor,
     fidelity,
     one_hot,
+    QUANTUM_STATE_LIKE,
+    QuantumState,
+    quantum_state,
     STATE_VECTOR_LIKE,
     to_valid_density_matrix,
     to_valid_state_vector,
@@ -491,6 +497,7 @@ from cirq.protocols import (
     qid_shape,
     quil,
     QuilFormatter,
+    read_json_gzip,
     read_json,
     resolve_parameters,
     resolve_parameters_once,
@@ -519,6 +526,7 @@ from cirq.protocols import (
     SupportsQasmWithArgsAndQubits,
     SupportsTraceDistanceBound,
     SupportsUnitary,
+    to_json_gzip,
     to_json,
     obj_to_dict_helper,
     trace_distance_bound,

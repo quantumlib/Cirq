@@ -136,6 +136,8 @@ def assert_all_implemented_act_on_effects_match_unitary(
             np.reshape(stabilizer_ch_form.state_vector(), protocols.qid_shape(qubits)),
             state_vector,
             atol=1e-07,
+            err_msg=f"stabilizer_ch_form.state_vector disagrees with state_vector for {val!r}",
+            verbose=True,
         )
 
 
