@@ -7,6 +7,11 @@ Our guides and tutorials are frequently written using iPython Notebooks. The not
 Formatting is easy, the script `check/nbformat` should tell you if your notebooks are formatted or not.
 You can apply the changes in one go with `check/nbformat --apply`. It is recommended to add this to you [git pre-commit hook](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks), to save feedback time and CI resources. 
 
+## Output cells 
+
+Output cells typically should not be saved in the notebook. They will be generated for the final site.
+The exception to this rule are notebooks with external dependencies (see below). 
+
 ## Header
 
 We also expect a standard header to be included in all of our notebooks: 
@@ -20,6 +25,14 @@ Those notebooks that don't have any external dependencies (e.g. authentication) 
 See the `dev_tools/notebooks` directory for the two tests: 
 - notebook_tests.py - to test notebooks against the current branch
 - isolated_notebook_tests.py - to test notebooks against the latest released version of Cirq
+
+## Notebooks with external dependencies 
+
+Unfortunately we have no way to test notebooks yet easily with external API dependencies, e.g. cirq.google's Engine API. 
+These notebooks should be excluded from both tests. 
+
+The site that generates the outputs for notebooks also can't handle external dependencies. 
+Thus, for notebooks with external dependencies, **all cells must have their outputs saved in the notebook file**.  
 
 ## Lifecycle 
 
