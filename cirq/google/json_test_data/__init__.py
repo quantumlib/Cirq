@@ -12,4 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.protocols.json_test_data.spec import TestSpec
+# For the cirq.google module, this file specifies test data for JSON
+# serialization of public objects. It is used by
+# cirq/protocols/json_serialization_test.py which checks for coverage of
+# public classes and tests the correctness of repr and json results
+
+from cirq.google.json_test_data.spec import TestSpec
