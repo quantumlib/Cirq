@@ -38,6 +38,7 @@ from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
 
 from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationRequest,
+    PhaseCalibratedFSimGate,
     IncompatibleMomentError,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
@@ -71,7 +72,9 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         simulator: Simulator,
         *,
         drift_generator: ParametersDriftGenerator,
-        gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
+        gates_translator: Callable[
+            [Gate], Optional[PhaseCalibratedFSimGate]
+        ] = try_convert_sqrt_iswap_to_fsim,
     ) -> None:
         """Initializes the PhasedFSimEngineSimulator.
 
@@ -341,13 +344,13 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             else:
                 raise ValueError(f'Unsupported calibration request {request}')
 
-            translated_gate = self.gates_translator(request.gate)
-            if translated_gate is None:
+            translated = self.gates_translator(request.gate)
+            if translated is None:
                 raise ValueError(f'Calibration request contains unsupported gate {request.gate}')
 
             parameters = {}
             for a, b in request.pairs:
-                drifted = self.create_gate_with_drift(a, b, translated_gate)
+                drifted = self.create_gate_with_drift(a, b, translated)
                 parameters[a, b] = PhasedFSimCharacterization(
                     theta=drifted.theta if characterize_theta else None,
                     zeta=drifted.zeta if characterize_zeta else None,
@@ -364,17 +367,20 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
         return results
 
-    def create_gate_with_drift(self, a: Qid, b: Qid, gate: FSimGate) -> PhasedFSimGate:
+    def create_gate_with_drift(
+        self, a: Qid, b: Qid, gate_calibration: PhaseCalibratedFSimGate
+    ) -> PhasedFSimGate:
         """Generates a gate with drift for a given gate.
 
         Args:
             a: The first qubit.
             b: The second qubit.
-            gate: Gate which a modified version of should be generated.
+            gate_calibration: Reference gate together with a phase information.
 
         Returns:
             A modified gate that includes the drifts induced by internal state of the simulator.
         """
+        gate = gate_calibration.engine_gate
         if (a, b, gate) in self._drifted_parameters:
             parameters = self._drifted_parameters[(a, b, gate)]
         elif (b, a, gate) in self._drifted_parameters:
@@ -382,7 +388,8 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         else:
             parameters = self._drift_generator(a, b, gate)
             self._drifted_parameters[(a, b, gate)] = parameters
-        return PhasedFSimGate(**parameters.asdict())
+
+        return gate_calibration.as_characterized_phased_fsim_gate(parameters)
 
     def _run(
         self, circuit: Circuit, param_resolver: ParamResolver, repetitions: int
@@ -414,13 +421,14 @@ class _PhasedFSimConverter(PointOptimizer):
         else:
             if op.gate is None:
                 raise IncompatibleMomentError(f'Operation {op} has a missing gate')
-            translated_gate = self._simulator.gates_translator(op.gate)
-            if translated_gate is None:
+            translated = self._simulator.gates_translator(op.gate)
+            if translated is None:
                 raise IncompatibleMomentError(
                     f'Moment contains non-single qubit operation ' f'{op} with unsupported gate'
                 )
+
             a, b = op.qubits
-            new_op = self._simulator.create_gate_with_drift(a, b, translated_gate).on(a, b)
+            new_op = self._simulator.create_gate_with_drift(a, b, translated).on(a, b)
 
         return PointOptimizationSummary(clear_span=1, clear_qubits=op.qubits, new_operations=new_op)
 

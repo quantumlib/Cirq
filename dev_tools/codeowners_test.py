@@ -33,6 +33,10 @@ AQT_TEAM = {('USERNAME', u) for u in ["@ma5x", "@pschindler", "@alfrisch"]}
 
 AQT_MAINTAINERS = BASE_MAINTAINERS.union(AQT_TEAM)
 
+QCVV_TEAM = {('USERNAME', "@mrwojtek")}
+
+QCVV_MAINTAINERS = BASE_MAINTAINERS.union(QCVV_TEAM)
+
 
 def _vendor_module_testcases(mod_name, expected_group):
     return [
@@ -50,6 +54,7 @@ def _vendor_module_testcases(mod_name, expected_group):
         ("any_file", BASE_MAINTAINERS),
         ("in/any/dir/any_file.py", BASE_MAINTAINERS),
         ("cirq/contrib/bla.py", BASE_MAINTAINERS),
+        ("cirq/experiments/bla.py", QCVV_MAINTAINERS),
         *_vendor_module_testcases("aqt", AQT_MAINTAINERS),
         *_vendor_module_testcases("ionq", IONQ_MAINTAINERS),
         *_vendor_module_testcases("google", GOOGLE_MAINTAINERS),
