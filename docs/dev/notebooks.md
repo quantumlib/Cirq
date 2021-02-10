@@ -32,7 +32,8 @@ Unfortunately we have no way to test notebooks yet easily with external API depe
 These notebooks should be excluded from both tests. 
 
 The site that generates the outputs for notebooks also can't handle external dependencies. 
-Thus, for notebooks with external dependencies, **all cells must have their outputs saved in the notebook file**.  
+
+Thus, for notebooks with external dependencies, **all cells must have their outputs saved in the notebook file**. This ensures that the site pipeline will skip these notebooks.  
 
 ## Lifecycle 
 
