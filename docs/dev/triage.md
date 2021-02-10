@@ -10,9 +10,7 @@ The goals for this document are as follows:
 
 * provide visibility for project and release status 
 
-## Automation: Triage party, CirqBot and Github Actions
-
-CirqBot is a [Cirq community developed automation](https://github.com/quantumlib/Cirq/blob/master/dev_tools/auto_merge.py) for automerging PRs. We would extend its functionality to cater for some of the workflows mentioned here, for example marking issues stale automatically and close them after a certain time. 
+## Automation: Triage party and Github Actions
 
 [Triage Party](https://github.com/google/triage-party) is a stateless web app to optimize issue and PR triage for large open-source projects using the GitHub API. 
 
@@ -83,54 +81,6 @@ For `kind/health`, `kind/roadmap-item` and `kind/task` there is no particular in
 ### Prioritization 
 
 Labels for priority capture the **community's intent** around when a certain feature/bug/task should be done by. It is decided by the Triage team, based on the negotiation with the user who opened the issue. Priority is expected to be modified throughout the lifetime of the issue as the expectations evolve around it. 
-
-<table>
-  <tr>
-    <td>kind</td>
-    <td>p0</td>
-    <td>p1</td>
-    <td>p2</td>
-    <td>p3</td>
-    <td>no priority</td>
-  </tr>
-  <tr>
-    <td>bug</td>
-    <td>immediate fix required +  hotfix release + MUST be in next release</td>
-    <td>Fix is needed as soon as possible. Should be staffed. 
-
-It is blocking some major flows for a users that are okay with getting it in cirq-unstable. </td>
-    <td>SHOULD be in the next minor release but it can wait until then. 
-
-Should be staffed. </td>
-    <td>SHOULD be in the next 6 months or so</td>
-    <td>When these will be done depends on who picks them up and/or reprioritization. Contributors can hence "bump the priority" by raising the PRs for things they want.  </td>
-  </tr>
-  <tr>
-    <td>feature</td>
-    <td>N/A </td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-  </tr>
-  <tr>
-    <td>docs</td>
-    <td>N/A</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-  </tr>
-  <tr>
-    <td>health</td>
-    <td>immediate fix required hotfix/merge to master as soon as possible</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-  </tr>
-</table>
-
 
 - `priority/p0` should be very rare, only cases of emergency, and when a major critical user journey is blocked (e.g. users are exposed to a security vulnerability or they can't install Cirq)
 - `priority/p1` is reserved for issues that need to be addressed for high priority work (e.g. a publication that is planned earlier than the next release) 
