@@ -118,3 +118,7 @@ annotations like `# type: ignore`.
 
 For larger contributions that will benefit from design reviews, please use the 
 [Request for Comment](docs/dev/rfc_process.md) process.
+
+## Developing notebooks 
+
+Please refer to our [notebooks guide](docs/dev/notebooks.md) on how to develop iPython notebooks for documentation.
