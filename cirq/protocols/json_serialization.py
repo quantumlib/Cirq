@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dataclasses
-import functools
 import gzip
 import json
 import numbers
@@ -29,7 +28,6 @@ from typing import (
     overload,
     Sequence,
     Type,
-    TYPE_CHECKING,
     Union,
 )
 
@@ -39,159 +37,9 @@ import sympy
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
-from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
-if TYPE_CHECKING:
-    import cirq.ops.pauli_gates
-    import cirq.devices.unconstrained_device
-
-
 ObjectFactory = Union[Type, Callable[..., Any]]
-
-
-@functools.lru_cache(maxsize=1)
-def _cirq_class_resolver_dictionary() -> Dict[str, ObjectFactory]:
-    import cirq
-    from cirq.devices.noise_model import _NoNoiseModel
-    from cirq.experiments import CrossEntropyResult, CrossEntropyResultDict, GridInteractionLayer
-    from cirq.experiments.grid_parallel_two_qubit_xeb import GridParallelXEBMetadata
-    from cirq.google.devices.known_devices import _NamedConstantXmonDevice
-
-    def _identity_operation_from_dict(qubits, **kwargs):
-        return cirq.identity_each(*qubits)
-
-    def single_qubit_matrix_gate(matrix):
-        if not isinstance(matrix, np.ndarray):
-            matrix = np.array(matrix, dtype=np.complex128)
-        return cirq.MatrixGate(matrix, qid_shape=(matrix.shape[0],))
-
-    def two_qubit_matrix_gate(matrix):
-        if not isinstance(matrix, np.ndarray):
-            matrix = np.array(matrix, dtype=np.complex128)
-        return cirq.MatrixGate(matrix, qid_shape=(2, 2))
-
-    return {
-        'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
-        'AsymmetricDepolarizingChannel': cirq.AsymmetricDepolarizingChannel,
-        'BitFlipChannel': cirq.BitFlipChannel,
-        'BitstringAccumulator': cirq.work.BitstringAccumulator,
-        'ProductState': cirq.ProductState,
-        'CCNotPowGate': cirq.CCNotPowGate,
-        'CCXPowGate': cirq.CCXPowGate,
-        'CCZPowGate': cirq.CCZPowGate,
-        'CNotPowGate': cirq.CNotPowGate,
-        'Calibration': cirq.google.Calibration,
-        'CalibrationLayer': cirq.google.CalibrationLayer,
-        'CalibrationResult': cirq.google.CalibrationResult,
-        'CalibrationTag': cirq.google.CalibrationTag,
-        'ControlledGate': cirq.ControlledGate,
-        'ControlledOperation': cirq.ControlledOperation,
-        'CSwapGate': cirq.CSwapGate,
-        'CXPowGate': cirq.CXPowGate,
-        'CZPowGate': cirq.CZPowGate,
-        'CrossEntropyResult': CrossEntropyResult,
-        'CrossEntropyResultDict': CrossEntropyResultDict,
-        'Circuit': cirq.Circuit,
-        'CircuitOperation': cirq.CircuitOperation,
-        'CliffordState': cirq.CliffordState,
-        'CliffordTableau': cirq.CliffordTableau,
-        'DepolarizingChannel': cirq.DepolarizingChannel,
-        'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
-        'Duration': cirq.Duration,
-        'FloquetPhasedFSimCalibrationOptions': cirq.google.FloquetPhasedFSimCalibrationOptions,
-        'FloquetPhasedFSimCalibrationRequest': cirq.google.FloquetPhasedFSimCalibrationRequest,
-        'FrozenCircuit': cirq.FrozenCircuit,
-        'FSimGate': cirq.FSimGate,
-        'DensePauliString': cirq.DensePauliString,
-        'MutableDensePauliString': cirq.MutableDensePauliString,
-        'MutablePauliString': cirq.MutablePauliString,
-        'GateOperation': cirq.GateOperation,
-        'GateTabulation': cirq.google.GateTabulation,
-        'GeneralizedAmplitudeDampingChannel': cirq.GeneralizedAmplitudeDampingChannel,
-        'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
-        'GridInteractionLayer': GridInteractionLayer,
-        'GridParallelXEBMetadata': GridParallelXEBMetadata,
-        'GridQid': cirq.GridQid,
-        'GridQubit': cirq.GridQubit,
-        'HPowGate': cirq.HPowGate,
-        'ISwapPowGate': cirq.ISwapPowGate,
-        'IdentityGate': cirq.IdentityGate,
-        'IdentityOperation': _identity_operation_from_dict,
-        'InitObsSetting': cirq.work.InitObsSetting,
-        'LinearDict': cirq.LinearDict,
-        'LineQubit': cirq.LineQubit,
-        'LineQid': cirq.LineQid,
-        'MatrixGate': cirq.MatrixGate,
-        'MeasurementGate': cirq.MeasurementGate,
-        '_MeasurementSpec': cirq.work._MeasurementSpec,
-        'Moment': cirq.Moment,
-        '_XEigenState': cirq.value.product_state._XEigenState,
-        '_YEigenState': cirq.value.product_state._YEigenState,
-        '_ZEigenState': cirq.value.product_state._ZEigenState,
-        '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
-        '_NoNoiseModel': _NoNoiseModel,
-        'NamedQubit': cirq.NamedQubit,
-        'NamedQid': cirq.NamedQid,
-        'NoIdentifierQubit': cirq.testing.NoIdentifierQubit,
-        'ObservableMeasuredResult': cirq.work.ObservableMeasuredResult,
-        '_PauliX': cirq.ops.pauli_gates._PauliX,
-        '_PauliY': cirq.ops.pauli_gates._PauliY,
-        '_PauliZ': cirq.ops.pauli_gates._PauliZ,
-        'ParamResolver': cirq.ParamResolver,
-        'ParallelGateOperation': cirq.ParallelGateOperation,
-        'PasqalDevice': cirq.pasqal.PasqalDevice,
-        'PasqalVirtualDevice': cirq.pasqal.PasqalVirtualDevice,
-        'PauliString': cirq.PauliString,
-        'PhaseDampingChannel': cirq.PhaseDampingChannel,
-        'PhaseFlipChannel': cirq.PhaseFlipChannel,
-        'PhaseGradientGate': cirq.PhaseGradientGate,
-        'PhasedFSimCalibrationResult': cirq.google.PhasedFSimCalibrationResult,
-        'PhasedFSimCharacterization': cirq.google.PhasedFSimCharacterization,
-        'PhasedFSimGate': cirq.PhasedFSimGate,
-        'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
-        'PhasedXPowGate': cirq.PhasedXPowGate,
-        'PhasedXZGate': cirq.PhasedXZGate,
-        'PhysicalZTag': cirq.google.PhysicalZTag,
-        'RandomGateChannel': cirq.RandomGateChannel,
-        'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
-        'ResetChannel': cirq.ResetChannel,
-        'SingleQubitMatrixGate': single_qubit_matrix_gate,
-        'SingleQubitPauliStringGateOperation': cirq.SingleQubitPauliStringGateOperation,
-        'SingleQubitReadoutCalibrationResult': cirq.experiments.SingleQubitReadoutCalibrationResult,
-        'StabilizerStateChForm': cirq.StabilizerStateChForm,
-        'SwapPowGate': cirq.SwapPowGate,
-        'SycamoreGate': cirq.google.SycamoreGate,
-        'TaggedOperation': cirq.TaggedOperation,
-        'ThreeDQubit': cirq.pasqal.ThreeDQubit,
-        'Result': cirq.Result,
-        'TrialResult': cirq.TrialResult,
-        'TwoDQubit': cirq.pasqal.TwoDQubit,
-        'TwoQubitMatrixGate': two_qubit_matrix_gate,
-        'TwoQubitDiagonalGate': cirq.TwoQubitDiagonalGate,
-        '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
-        'VirtualTag': cirq.VirtualTag,
-        'WaitGate': cirq.WaitGate,
-        '_QubitAsQid': raw_types._QubitAsQid,
-        'XPowGate': cirq.XPowGate,
-        'XXPowGate': cirq.XXPowGate,
-        'YPowGate': cirq.YPowGate,
-        'YYPowGate': cirq.YYPowGate,
-        'ZPowGate': cirq.ZPowGate,
-        'ZZPowGate': cirq.ZZPowGate,
-        # not a cirq class, but treated as one:
-        'pandas.DataFrame': pd.DataFrame,
-        'pandas.Index': pd.Index,
-        'pandas.MultiIndex': pd.MultiIndex.from_tuples,
-        'sympy.Symbol': sympy.Symbol,
-        'sympy.Add': lambda args: sympy.Add(*args),
-        'sympy.Mul': lambda args: sympy.Mul(*args),
-        'sympy.Pow': lambda args: sympy.Pow(*args),
-        'sympy.Float': lambda approx: sympy.Float(approx),
-        'sympy.Integer': sympy.Integer,
-        'sympy.Rational': sympy.Rational,
-        'complex': complex,
-    }
 
 
 class JsonResolver(Protocol):
@@ -201,13 +49,23 @@ class JsonResolver(Protocol):
         ...
 
 
-def _cirq_class_resolver(cirq_type: str) -> Optional[ObjectFactory]:
-    return _cirq_class_resolver_dictionary().get(cirq_type, None)
+def _lazy_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> JsonResolver:
+    """A lazy JsonResolver based on a dict_factory.
+
+    It only calls dict_factory when the first key is accessed.
+
+    Args:
+        dict_factory: a callable that generates an instance of the
+          class resolution map - it is assumed to be cached
+    """
+
+    def json_resolver(cirq_type: str) -> Optional[ObjectFactory]:
+        return dict_factory().get(cirq_type, None)
+
+    return json_resolver
 
 
-DEFAULT_RESOLVERS: List[JsonResolver] = [
-    _cirq_class_resolver,
-]
+DEFAULT_RESOLVERS: List[JsonResolver] = []
 """A default list of 'JsonResolver' functions for use in read_json.
 
 For more information about cirq_type resolution during deserialization
@@ -225,6 +83,28 @@ prepended to this list:
             resolvers = MY_DEFAULT_RESOLVERS
         return cirq.read_json(file_or_fn, resolvers=resolvers)
 """
+
+
+def _internal_register_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]) -> None:
+    """Register a resolver based on a dict factory for lazy initialization.
+
+    Cirq modules are the ones referred in cirq/__init__.py. If a Cirq module
+    wants to expose JSON serializable objects, it should register itself using
+    this method to be supported by the protocol. See for example
+    cirq/__init__.py or cirq/google/__init__.py.
+
+    As Cirq modules are imported by cirq/__init__.py, they are different from
+    3rd party packages, and as such SHOULD NEVER rely on storing a
+    separate resolver based on DEAFULT_RESOLVERS because that will cause a
+    partial DEFAULT_RESOLVER to be used by that module. What it contains will
+    depend on where in cirq/__init__.py the module is imported first, as some
+    modules might not had the chance to register themselves yet.
+
+    Args:
+        dict_factory: the callable that returns the actual dict for type names
+            to types (ObjectFactory)
+    """
+    DEFAULT_RESOLVERS.append(_lazy_resolver(dict_factory))
 
 
 class SupportsJSON(Protocol):

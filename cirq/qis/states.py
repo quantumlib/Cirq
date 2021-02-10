@@ -11,19 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Utility methods for creating vectors and matrices."""
+"""Classes and methods for quantum states."""
 
-from typing import Any, cast, Iterable, Optional, Sequence, TYPE_CHECKING, Tuple, Type, Union
+from typing import Any, cast, Iterable, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Type, Union
 
 import itertools
 
 import numpy as np
 
 from cirq._compat import deprecated, deprecated_parameter
+from cirq._doc import document
 from cirq import value
 
 if TYPE_CHECKING:
     import cirq
+
+DEFAULT_COMPLEX_DTYPE = np.complex64
 
 STATE_VECTOR_LIKE = Union[
     # Full big-endian computational basis state index.
@@ -36,6 +39,286 @@ STATE_VECTOR_LIKE = Union[
     # Product state object
     'cirq.ProductState',
 ]
+document(STATE_VECTOR_LIKE, """An object representing a state vector.""")  # type: ignore
+
+QUANTUM_STATE_LIKE = Union[
+    # state vector
+    STATE_VECTOR_LIKE,
+    # density matrix
+    np.ndarray,
+    # quantum state object
+    'cirq.QuantumState',
+]
+document(QUANTUM_STATE_LIKE, """An object representing a quantum state.""")  # type: ignore
+
+
+class QuantumState:
+    """A quantum state.
+
+    Can be a state vector, a state tensor, or a density matrix.
+    """
+
+    def __init__(
+        self,
+        data: np.ndarray,
+        qid_shape: Optional[Tuple[int, ...]] = None,
+        *,  # Force keyword arguments
+        dtype: Optional[Type[np.number]] = None,
+        validate: bool = True,
+        atol: float = 1e-7,
+    ) -> None:
+        """Initialize a quantum state object.
+
+        Args:
+            data: The data representing the quantum state.
+            qid_shape: The qid shape.
+            validate: Whether to check if the given data and qid shape
+                represent a valid quantum state with the given dtype.
+            dtype: The expected data type of the quantum state.
+            atol: Absolute numerical tolerance to use for validation.
+
+        Raises:
+            ValueError: The qid shape was not specified and could not be
+                inferred.
+            ValueError: Invalid quantum state.
+        """
+        if qid_shape is None:
+            # coverage: ignore
+            raise NotImplementedError(
+                'Qid shape inference not yet implemented. Please specify the qid shape explicitly.'
+            )
+        self._data = data
+        self._qid_shape = qid_shape
+        self._dim = np.prod(self.qid_shape, dtype=int)
+        if validate:
+            self.validate(dtype=dtype, atol=atol)
+
+    @property
+    def data(self) -> np.ndarray:
+        """The data underlying the quantum state."""
+        return self._data
+
+    @property
+    def qid_shape(self) -> Tuple[int, ...]:
+        """The qid shape of the quantum state."""
+        return self._qid_shape
+
+    @property
+    def dtype(self) -> np.ndarray:
+        """The data type of the quantum state."""
+        return self._data.dtype
+
+    def state_vector(self) -> Optional[np.ndarray]:
+        """Return the state vector of this state.
+
+        A state vector stores the amplitudes of a pure state as a
+        one-dimensional array.
+        If the state is a density matrix, this method returns None.
+        """
+        if self._is_density_matrix():
+            return None
+        return np.reshape(self.data, (self._dim,))
+
+    def state_tensor(self) -> Optional[np.ndarray]:
+        """Return the state tensor of this state.
+
+        A state tensor stores the amplitudes of a pure state as an array with
+        shape equal to the qid shape of the state.
+        If the state is a density matrix, this method returns None.
+        """
+        if self._is_density_matrix():
+            return None
+        return np.reshape(self.data, self.qid_shape)
+
+    def density_matrix(self) -> np.ndarray:
+        """Return the density matrix of this state.
+
+        A density matrix stores the entries of a density matrix as a matrix
+        (a two-dimensional array).
+        """
+        if not self._is_density_matrix():
+            state_vector = self.state_vector()
+            return np.outer(state_vector, np.conj(state_vector))
+        return self.data
+
+    def _is_density_matrix(self) -> bool:
+        """Whether this quantum state is a density matrix."""
+        return self.data.shape == (self._dim, self._dim)
+
+    def validate(
+        self, *, dtype: Optional[Type[np.number]] = None, atol=1e-7  # Force keyword arguments
+    ) -> None:
+        """Check if this quantum state is valid.
+
+        Args:
+            dtype: The expected data type of the quantum state.
+            atol: Absolute numerical tolerance to use for validation.
+
+        Raises:
+            ValueError: Invalid quantum state.
+        """
+        is_state_vector = self.data.shape == (self._dim,)
+        is_state_tensor = self.data.shape == self.qid_shape
+        if is_state_vector or is_state_tensor:
+            validate_normalized_state_vector(
+                self.state_vector(), qid_shape=self.qid_shape, dtype=dtype, atol=atol
+            )
+        elif self._is_density_matrix():
+            validate_density_matrix(
+                self.density_matrix(), qid_shape=self.qid_shape, dtype=dtype, atol=atol
+            )
+        else:
+            raise ValueError(
+                'Invalid quantum state: '
+                f'Data shape of {self.data.shape} is not '
+                f'compatible with qid shape of {self.qid_shape}.'
+            )
+
+
+def quantum_state(
+    state: 'cirq.QUANTUM_STATE_LIKE',
+    qid_shape: Optional[Tuple[int, ...]] = None,
+    *,  # Force keyword arguments
+    copy: bool = False,
+    validate: bool = True,
+    dtype: Optional[Type[np.number]] = None,
+    atol: float = 1e-7,
+) -> QuantumState:
+    """Create a QuantumState object from a state-like object.
+
+    Args:
+        state: The state-like object.
+        qid_shape: The qid shape.
+        copy: Whether to copy the data underlying the state.
+        validate: Whether to check if the given data and qid shape
+            represent a valid quantum state with the given dtype.
+        dtype: The desired data type.
+        atol: Absolute numerical tolerance to use for validation.
+
+    Raises:
+        ValueError: Invalid quantum state.
+        ValueError: The qid shape was not specified and could not be inferred.
+    """
+    if isinstance(state, QuantumState):
+        if qid_shape is not None and state.qid_shape != qid_shape:
+            raise ValueError(
+                'The specified qid shape must be the same as the '
+                'qid shape of the given state.\n'
+                f'Specified shape: {qid_shape}\n'
+                f'Shape of state: {state.qid_shape}.'
+            )
+        if copy or dtype and dtype != state.dtype:
+            if dtype and dtype != state.dtype:
+                data = state.data.astype(dtype, casting='unsafe', copy=True)
+            else:
+                data = state.data.copy()
+            new_state = QuantumState(data, state.qid_shape)
+        else:
+            new_state = state
+        if validate:
+            new_state.validate(dtype=dtype, atol=atol)
+        return new_state
+
+    if isinstance(state, value.ProductState):
+        actual_qid_shape = (2,) * len(state)
+        if qid_shape is not None and qid_shape != actual_qid_shape:
+            raise ValueError(
+                'The specified qid shape must be the same as the '
+                'qid shape of the given state.\n'
+                f'Specified shape: {qid_shape}\n'
+                f'Shape of state: {actual_qid_shape}.'
+            )
+        if dtype is None:
+            dtype = DEFAULT_COMPLEX_DTYPE
+        data = state.state_vector().astype(dtype, casting='unsafe', copy=False)
+        qid_shape = actual_qid_shape
+    elif isinstance(state, int):
+        if qid_shape is None:
+            # TODO: remove coverage: ignore once qid shape inference is added
+            # coverage: ignore
+            raise ValueError(
+                'The qid shape of the given state is ambiguous. '
+                'Please specify the qid shape explicitly using '
+                'the qid_shape argument.'
+            )
+        dim = np.prod(qid_shape, dtype=int)
+        if dtype is None:
+            dtype = DEFAULT_COMPLEX_DTYPE
+        data = one_hot(index=state, shape=(dim,), dtype=dtype)
+    else:
+        data = np.array(state, copy=False)
+        if qid_shape is None:
+            # coverage: ignore
+            raise NotImplementedError(
+                'Qid shape inference not yet implemented. Please specify the qid shape explicitly.'
+            )
+        if data.ndim == 1:
+            if len(qid_shape) == np.prod(qid_shape, dtype=int) and data.dtype.kind != 'c':
+                raise ValueError(
+                    'Because len(qid_shape) == product(qid_shape), it is '
+                    'ambiguous whether the given state contains '
+                    'state vector amplitudes or per-qudit computational basis '
+                    'values. In this situation you are required to pass '
+                    'in a state vector that is a numpy array with a complex '
+                    'dtype.'
+                )
+            if data.shape == (len(qid_shape),):
+                # array contains per-qudit computational basis values
+                data = _qudit_values_to_state_tensor(
+                    state_vector=data, qid_shape=qid_shape, dtype=dtype
+                )
+        if copy or dtype and dtype != data.dtype:
+            if dtype and dtype != data.dtype:
+                data = data.astype(dtype, casting='unsafe', copy=True)
+            else:
+                data = data.copy()
+    return QuantumState(data=data, qid_shape=qid_shape, validate=validate, dtype=dtype, atol=atol)
+
+
+def density_matrix(
+    state: np.ndarray,
+    qid_shape: Optional[Tuple[int, ...]] = None,
+    *,  # Force keyword arguments
+    copy: bool = False,
+    validate: bool = True,
+    dtype: Optional[Type[np.number]] = None,
+    atol: float = 1e-7,
+) -> QuantumState:
+    """Create a QuantumState object from a density matrix.
+
+    Args:
+        state: The density matrix.
+        qid_shape: The qid shape.
+        copy: Whether to copy the density matrix.
+        validate: Whether to check if the given data and qid shape
+            represent a valid quantum state with the given dtype.
+        dtype: The expected data type.
+        atol: Absolute numerical tolerance to use for validation.
+
+    Raises:
+        ValueError: Invalid density matrix.
+    """
+    if state.ndim != 2 or state.shape[0] != state.shape[1]:
+        raise ValueError('A density matrix must be a square matrix. ' f'Got shape {state.shape}.')
+    dim, _ = state.shape
+    if qid_shape is None:
+        qid_shape = _infer_qid_shape_from_dimension(dim)
+    return QuantumState(
+        data=state.copy() if copy else state,
+        qid_shape=qid_shape,
+        dtype=dtype,
+        validate=validate,
+        atol=atol,
+    )
+
+
+def _infer_qid_shape_from_dimension(dim: int) -> Tuple[int, ...]:
+    if dim != 0 and dim & dim - 1 == 0:
+        # dim is a power of 2, assume qubits
+        n_qubits = dim.bit_length() - 1
+        return (2,) * n_qubits
+    # dim is not a power of 2, assume a single qudit
+    return (dim,)
 
 
 @deprecated_parameter(
@@ -323,16 +606,15 @@ def _state_like_to_state_tensor(
     if isinstance(state_like, np.ndarray):
         prod = np.prod(qid_shape, dtype=int)
 
-        if len(qid_shape) == prod:
-            if state_like.dtype.kind != 'c':
-                raise ValueError(
-                    'Because len(qid_shape) == product(qid_shape), it is '
-                    'ambiguous whether the given `state_like` contains '
-                    'state vector amplitudes or per-qudit computational basis '
-                    'values. In this situation you are required to pass '
-                    'in a state vector that is a numpy array with a complex '
-                    'dtype.'
-                )
+        if len(qid_shape) == prod and state_like.dtype.kind != 'c':
+            raise ValueError(
+                'Because len(qid_shape) == product(qid_shape), it is '
+                'ambiguous whether the given `state_like` contains '
+                'state vector amplitudes or per-qudit computational basis '
+                'values. In this situation you are required to pass '
+                'in a state vector that is a numpy array with a complex '
+                'dtype.'
+            )
 
         if state_like.shape == (prod,) or state_like.shape == qid_shape:
             return _amplitudes_to_validated_state_tensor(
@@ -373,7 +655,7 @@ def _amplitudes_to_validated_state_tensor(
     atol: float,
 ) -> np.ndarray:
     if dtype is None:
-        dtype = np.complex64
+        dtype = DEFAULT_COMPLEX_DTYPE
     result = np.array(state_vector, dtype=dtype).reshape(qid_shape)
     validate_normalized_state_vector(result, qid_shape=qid_shape, dtype=dtype, atol=atol)
     return result
@@ -406,7 +688,7 @@ def _qudit_values_to_state_tensor(
         )
 
     if dtype is None:
-        dtype = np.complex64
+        dtype = DEFAULT_COMPLEX_DTYPE
     return one_hot(index=tuple(int(e) for e in state_vector), shape=qid_shape, dtype=dtype)
 
 
@@ -424,7 +706,7 @@ def _computational_basis_state_to_state_tensor(
             f'qid_shape={qid_shape!r}\n'
         )
     if dtype is None:
-        dtype = np.complex64
+        dtype = DEFAULT_COMPLEX_DTYPE
     return one_hot(index=state_rep, shape=n, dtype=dtype).reshape(qid_shape)
 
 
