@@ -323,6 +323,8 @@ class MPSState:
         """
         self.qubit_map = qubit_map
         self.grouping = qubit_map if grouping is None else grouping
+        if self.grouping.keys() != self.qubit_map.keys():
+            raise ValueError('Grouping must cover exactly the qubits.')
         self.M = []
         for _ in range(max(self.grouping.values()) + 1):
             self.M.append(qtn.Tensor())
