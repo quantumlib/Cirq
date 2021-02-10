@@ -1,6 +1,6 @@
 steps:
 
-# deploy container image to GKE
+# get credentials from the GKE cluster
 - name: "gcr.io/k8s-skaffold/skaffold"
   args:
   - gcloud
