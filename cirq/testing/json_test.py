@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,8 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Visualization utilities."""
+import pytest
 
-from cirq.vis.heatmap import Heatmap
+from cirq.testing.json import spec_for
 
-from cirq.vis.vis_utils import relative_luminance
+
+def test_module_missing_json_test_data():
+    with pytest.raises(ValueError, match="json_test_data"):
+        spec_for('cirq.testing.test_data.test_module_missing_json_test_data')
+
+
+def test_module_missing_testspec():
+    with pytest.raises(ValueError, match="TestSpec"):
+        spec_for('cirq.testing.test_data.test_module_missing_testspec')
+
+
+def test_missing_module():
+    with pytest.raises(ModuleNotFoundError):
+        spec_for('non_existent')

@@ -35,6 +35,7 @@ import numpy as np
 
 from cirq import protocols, value
 from cirq.type_workarounds import NotImplementedType
+from cirq._compat import deprecated_parameter
 
 if TYPE_CHECKING:
     import cirq
@@ -445,18 +446,40 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return TaggedOperation(self, *new_tags)
 
-    def transform_qubits(self: TSelf, func: Callable[['cirq.Qid'], 'cirq.Qid']) -> TSelf:
+    @deprecated_parameter(
+        deadline='v0.11.0',
+        fix='Use qubit_map instead.',
+        parameter_desc='positional func',
+        match=lambda args, kwargs: 'func' in kwargs,
+        rewrite=lambda args, kwargs: (
+            args,
+            {('qubit_map' if k == 'func' else k): v for k, v in kwargs.items()},
+        ),
+    )
+    def transform_qubits(
+        self: TSelf,
+        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
+    ) -> TSelf:
         """Returns the same operation, but with different qubits.
 
         Args:
-            func: The function to use to turn each current qubit into a desired
+            qubit_map: A function or a dict mapping each current qubit into a desired
                 new qubit.
 
         Returns:
             The receiving operation but with qubits transformed by the given
                 function.
+        Raises:
+            TypeError: qubit_map was not a function or dict mapping qubits to
+                qubits.
         """
-        return self.with_qubits(*(func(q) for q in self.qubits))
+        if callable(qubit_map):
+            transform = qubit_map
+        elif isinstance(qubit_map, dict):
+            transform = lambda q: qubit_map.get(q, q)  # type: ignore
+        else:
+            raise TypeError('qubit_map must be a function or dict mapping qubits to qubits.')
+        return self.with_qubits(*(transform(q) for q in self.qubits))
 
     def controlled_by(
         self,
