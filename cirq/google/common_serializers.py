@@ -486,8 +486,8 @@ SQRT_ISWAP_DESERIALIZERS = [
 
 #
 # FSim serializer
-# Only allows sqrt_iswap, its inverse, identity, and sycamore
-#
+# Only allows iswap, sqrt_iswap and their inverses, iswap, CZ, identity, and sycamore
+# Note that not all combinations may not be available on all processors
 def _can_serialize_limited_fsim(theta: float, phi: float):
     # Symbols for LIMITED_FSIM are allowed, but may fail server-side
     # if an incorrect run context is specified
@@ -502,6 +502,12 @@ def _can_serialize_limited_fsim(theta: float, phi: float):
             return True
         # inverse sqrt ISWAP
         if _near_mod_2pi(theta, np.pi / 4):
+            return True
+        # ISWAP
+        if _near_mod_2pi(theta, -np.pi / 2):
+            return True
+        # Inverse ISWAP
+        if _near_mod_2pi(theta, np.pi / 2):
             return True
     # Sycamore
     if (
@@ -530,6 +536,12 @@ def _can_serialize_limited_iswap(exponent: float):
         return True
     # Inverse Sqrt ISWAP
     if _near_mod_n(exponent, -0.5, 4):
+        return True
+    # ISWAP
+    if _near_mod_n(exponent, -1.0, 4):
+        return True
+    # Inverse ISWAP
+    if _near_mod_n(exponent, 1.0, 4):
         return True
     # Identity
     if _near_mod_n(exponent, 0.0, 4):
