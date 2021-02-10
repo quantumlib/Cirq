@@ -36,5 +36,6 @@ After the Cirq release - for all unreleased notebooks we change all the above ac
  - change `pip install cirq —pre` to `pip install cirq`
  - remove the exclusions in dev_tools/notebooks/isolated_notebook_test.py by making `NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES=[]`
  
- As all the notebooks have been tested continuously up to this point, the post release notebook PR should pass without issues. 
+As all the notebooks have been tested continuously up to this point, the post release notebook PR should pass without issues. 
  
+If a released notebook needs to be modified to cater for unreleased functionality, then it will again become a pre-release notebook. 
