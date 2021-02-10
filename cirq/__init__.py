@@ -54,7 +54,6 @@ from cirq import (
     experiments,
     # Extra (nothing should depend on these)
     testing,
-    contrib,
 )
 
 # End dependency order list of sub-modules
@@ -566,7 +565,6 @@ from cirq.work import (
 # Unflattened sub-modules.
 
 from cirq import (
-    contrib,
     google,
     ionq,
     pasqal,
@@ -583,3 +581,6 @@ def _register_resolver() -> None:
 
 
 _register_resolver()
+
+# so that we don't have to add contrib resolver cache in the DEFAULT_RESOLVER
+from cirq import contrib
