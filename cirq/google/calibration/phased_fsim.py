@@ -448,7 +448,7 @@ class IncompatibleMomentError(Exception):
 class PhaseCalibratedFSimGate:
     """Association of a user gate with gate to calibrate.
 
-    This association stores an information regarding rotation of the calibrated FSim gate by
+    This association stores information regarding rotation of the calibrated FSim gate by
     phase_exponent p:
 
         (Z^-p ⊗ Z^p) FSim (Z^p ⊗ Z^-p).
