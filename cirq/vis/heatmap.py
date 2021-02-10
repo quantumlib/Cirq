@@ -26,7 +26,9 @@ import pandas as pd
 from matplotlib import collections as mpl_collections
 from mpl_toolkits import axes_grid1
 
+from cirq._compat import deprecated
 from cirq.devices import grid_qubit
+from cirq.vis import vis_utils
 
 QubitCoordinate = Union[Tuple[int, int], grid_qubit.GridQubit]
 
@@ -41,20 +43,13 @@ def _get_qubit_row_col(qubit: QubitCoordinate) -> Tuple[int, int]:
         return int(qubit[0]), int(qubit[1])
 
 
+@deprecated(
+    deadline="v0.11",
+    fix="use cirq.vis.relative_luminance instead",
+    name="cirq.vis.heatmap.relative_luminance",
+)
 def relative_luminance(color: np.ndarray) -> float:
-    """Returns the relative luminance according to W3C specification.
-
-    Spec: https://www.w3.org/TR/WCAG21/#dfn-relative-luminance.
-
-    Args:
-        color: a numpy array with the first 3 elements red, green, and blue
-            with values in [0, 1].
-    Returns:
-        relative luminance of color in [0, 1].
-    """
-    rgb = color[:3]
-    rgb = np.where(rgb <= 0.03928, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
-    return rgb.dot([0.2126, 0.7152, 0.0722])
+    return vis_utils.relative_luminance(color)
 
 
 class Heatmap:
@@ -269,7 +264,7 @@ class Heatmap:
             annotation = self.annot_map.get((row, col), '')
             if not annotation:
                 continue
-            face_luminance = relative_luminance(facecolor)
+            face_luminance = vis_utils.relative_luminance(facecolor)
             text_color = 'black' if face_luminance > 0.4 else 'white'
             text_kwargs = dict(color=text_color, ha="center", va="center")
             text_kwargs.update(self.annot_kwargs)
