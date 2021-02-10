@@ -25,10 +25,10 @@ from typing import (
     Tuple,
     cast,
     TYPE_CHECKING,
-    Dict,
-    Any,
     Set,
     ContextManager,
+    Dict,
+    Any,
 )
 
 import numpy as np
@@ -37,7 +37,7 @@ import scipy.optimize
 import sympy
 import tqdm
 
-from cirq import ops, protocols, sim
+from cirq import ops, sim
 from cirq.circuits import Circuit
 from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_state_vector
@@ -534,28 +534,59 @@ def sample_2q_xeb_circuits(
     return pd.DataFrame(records).set_index(['circuit_i', 'cycle_depth'])
 
 
-def _simulate_2q_xeb_circuit(task: Dict[str, Any]):
-    """Helper function for simulating a given (circuit, cycle_depth)."""
-    circuit_i = task['circuit_i']
-    cycle_depth = task['cycle_depth']
-    circuit = task['circuit']
-    param_resolver = task['param_resolver']
+@dataclass(frozen=True)
+class _Simulate2qXEBTask:
+    """Helper container for executing simulation tasks, potentially via multiprocessing."""
 
-    circuit_depth = cycle_depth * 2 + 1
-    assert circuit_depth <= len(circuit)
-    tcircuit = circuit[:circuit_depth]
-    tcircuit = protocols.resolve_parameters_once(tcircuit, param_resolver=param_resolver)
+    circuit_i: int
+    cycle_depths: Sequence[int]
+    circuit: 'cirq.Circuit'
+    param_resolver: 'cirq.ParamResolverOrSimilarType'
 
-    pure_sim = sim.Simulator()
-    psi = cast(sim.StateVectorTrialResult, pure_sim.simulate(tcircuit))
-    psi = psi.final_state_vector
-    pure_probs = np.abs(psi) ** 2
 
-    return {
-        'circuit_i': circuit_i,
-        'cycle_depth': cycle_depth,
-        'pure_probs': pure_probs,
-    }
+class _Simulate_2q_XEB_Circuit:
+    """Closure used in `simulate_2q_xeb_circuits` so it works with multiprocessing."""
+
+    def __init__(self, simulator: 'cirq.SimulatesIntermediateState'):
+        self.simulator = simulator
+
+    def __call__(self, task: _Simulate2qXEBTask) -> List[Dict[str, Any]]:
+        """Helper function for simulating a given (circuit, cycle_depth)."""
+        circuit_i = task.circuit_i
+        cycle_depths = set(task.cycle_depths)
+        circuit = task.circuit
+        param_resolver = task.param_resolver
+
+        circuit_max_cycle_depth = (len(circuit) - 1) // 2
+        if max(cycle_depths) > circuit_max_cycle_depth:
+            raise ValueError("`circuit` was not long enough to compute all `cycle_depths`.")
+
+        records: List[Dict[str, Any]] = []
+        for moment_i, step_result in enumerate(
+            self.simulator.simulate_moment_steps(circuit=circuit, param_resolver=param_resolver)
+        ):
+            # Translate from moment_i to cycle_depth:
+            # We know circuit_depth = cycle_depth * 2 + 1, and step_result is the result *after*
+            # moment_i, so circuit_depth = moment_i + 1 and moment_i = cycle_depth * 2.
+            if moment_i % 2 == 1:
+                continue
+            cycle_depth = moment_i // 2
+            if cycle_depth not in cycle_depths:
+                continue
+
+            psi = cast(sim.SparseSimulatorStep, step_result)
+            psi = psi.state_vector()
+            pure_probs = np.abs(psi) ** 2
+
+            records += [
+                {
+                    'circuit_i': circuit_i,
+                    'cycle_depth': cycle_depth,
+                    'pure_probs': pure_probs,
+                }
+            ]
+
+        return records
 
 
 def simulate_2q_xeb_circuits(
@@ -563,6 +594,7 @@ def simulate_2q_xeb_circuits(
     cycle_depths: Sequence[int],
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     pool: Optional['multiprocessing.pool.Pool'] = None,
+    simulator: Optional['cirq.SimulatesIntermediateState'] = None,
 ):
     """Simulate two-qubit XEB circuits.
 
@@ -577,28 +609,37 @@ def simulate_2q_xeb_circuits(
         param_resolver: If circuits contain parameters, resolve according to this ParamResolver
             prior to simulation
         pool: If provided, execute the simulations in parallel.
+        simulator: A noiseless simulator used to simulate the circuits. By default, this is
+            `cirq.Simulator`. The simulator must support the `cirq.SimulatesIntermediateState`
+            interface.
 
     Returns:
         A dataframe with index ['circuit_i', 'cycle_depth'] and column
         "pure_probs" containing the pure-state probabilities for each row.
     """
-    tasks = []
-    for cycle_depth in cycle_depths:
-        for circuit_i, circuit in enumerate(circuits):
-            tasks += [
-                {
-                    'circuit_i': circuit_i,
-                    'cycle_depth': cycle_depth,
-                    'circuit': circuit,
-                    'param_resolver': param_resolver,
-                }
-            ]
+    if simulator is None:
+        # Need an actual object; not np.random or else multiprocessing will
+        # fail to pickle the closure object:
+        # https://github.com/quantumlib/Cirq/issues/3717
+        simulator = sim.Simulator(seed=np.random.RandomState())
+    _simulate_2q_xeb_circuit = _Simulate_2q_XEB_Circuit(simulator=simulator)
+
+    tasks = tuple(
+        _Simulate2qXEBTask(
+            circuit_i=circuit_i,
+            cycle_depths=cycle_depths,
+            circuit=circuit,
+            param_resolver=param_resolver,
+        )
+        for circuit_i, circuit in enumerate(circuits)
+    )
 
     if pool is not None:
-        records = pool.map(_simulate_2q_xeb_circuit, tasks, chunksize=4)
+        nested_records = pool.map(_simulate_2q_xeb_circuit, tasks)
     else:
-        records = [_simulate_2q_xeb_circuit(record) for record in tasks]
+        nested_records = [_simulate_2q_xeb_circuit(task) for task in tasks]
 
+    records = [record for sublist in nested_records for record in sublist]
     return pd.DataFrame(records).set_index(['circuit_i', 'cycle_depth'])
 
 
