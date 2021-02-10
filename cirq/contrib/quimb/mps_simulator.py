@@ -19,7 +19,7 @@ https://arxiv.org/abs/2002.07730
 
 import collections
 import math
-from typing import Any, Dict, List, Iterator, Sequence, Set
+from typing import Any, Dict, List, Iterator, Optional, Sequence, Set
 
 import numpy as np
 import quimb.tensor as qtn
@@ -37,6 +37,7 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         rsum2_cutoff: float = 1e-3,
         sum_prob_atol: float = 1e-3,
+        grouping: Optional[Dict['cirq.Qid', int]] = None,
     ):
         """Creates instance of `MPSSimulator`.
 
@@ -51,11 +52,13 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
             sum_prob_atol: Because the computation is approximate, the sum of
                 the probabilities is not 1.0. This parameter is the absolute
                 deviation from 1.0 that is allowed.
+            grouping: How to group qubits together, if None all are individual.
         """
         self.init = True
         self._prng = value.parse_random_state(seed)
         self.rsum2_cutoff = rsum2_cutoff
         self.sum_prob_atol = sum_prob_atol
+        self.grouping = grouping
 
     def _base_iterator(
         self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
@@ -81,13 +84,21 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
             yield MPSSimulatorStepResult(
                 measurements={},
                 state=MPSState(
-                    qubit_map, self.rsum2_cutoff, self.sum_prob_atol, initial_state=initial_state
+                    qubit_map,
+                    self.rsum2_cutoff,
+                    self.sum_prob_atol,
+                    self.grouping,
+                    initial_state=initial_state,
                 ),
             )
             return
 
         state = MPSState(
-            qubit_map, self.rsum2_cutoff, self.sum_prob_atol, initial_state=initial_state
+            qubit_map,
+            self.rsum2_cutoff,
+            self.sum_prob_atol,
+            self.grouping,
+            initial_state=initial_state,
         )
 
         for moment in circuit:
@@ -291,6 +302,7 @@ class MPSState:
         qubit_map: Dict['cirq.Qid', int],
         rsum2_cutoff: float,
         sum_prob_atol: float,
+        grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
     ):
         """Creates and MPSState
@@ -306,10 +318,16 @@ class MPSState:
             sum_prob_atol: Because the computation is approximate, the sum of
                 the probabilities is not 1.0. This parameter is the absolute
                 deviation from 1.0 that is allowed.
+            grouping: How to group qubits together, if None all are individual.
             initial_state: An integer representing the initial state.
         """
         self.qubit_map = qubit_map
+        self.grouping = qubit_map if grouping is None else grouping
+        if self.grouping.keys() != self.qubit_map.keys():
+            raise ValueError('Grouping must cover exactly the qubits.')
         self.M = []
+        for _ in range(max(self.grouping.values()) + 1):
+            self.M.append(qtn.Tensor())
 
         # The order of the qubits matters, because the state |01> is different from |10>. Since
         # Quimb uses strings to name tensor indices, we want to be able to sort them too. If we are
@@ -318,7 +336,7 @@ class MPSState:
         # below is just simple string formatting.
         max_num_digits = len('{}'.format(max(qubit_map.values())))
         self.format_i = 'i_{{:0{}}}'.format(max_num_digits)
-        self.format_mu = 'mu_{{:0{}}}_{{:0{}}}'.format(max_num_digits, max_num_digits)
+        self.format_mu = 'mu_{}_{}'
 
         # TODO(tonybruguier): Instead of relying on sortable indices could you keep a parallel
         # mapping of e.g. qubit to string-index and do all "logic" on the qubits themselves and
@@ -326,15 +344,16 @@ class MPSState:
 
         # TODO(tonybruguier): Refactor out so that the code below can also be used by
         # circuit_to_tensors in cirq.contrib.quimb.state_vector.
+
         for qubit in reversed(list(qubit_map.keys())):
             d = qubit.dimension
             x = np.zeros(d)
             x[initial_state % d] = 1.0
 
             i = qubit_map[qubit]
-            self.M.append(qtn.Tensor(x, inds=(self.i_str(i),)))
+            n = self.grouping[qubit]
+            self.M[n] @= qtn.Tensor(x, inds=(self.i_str(i),))
             initial_state = initial_state // d
-        self.M = self.M[::-1]
         self.rsum2_cutoff = rsum2_cutoff
         self.sum_prob_atol = sum_prob_atol
         self.num_svd_splits = 0
@@ -355,10 +374,10 @@ class MPSState:
         return str(qtn.TensorNetwork(self.M))
 
     def _value_equality_values_(self) -> Any:
-        return self.qubit_map, self.M, self.rsum2_cutoff, self.sum_prob_atol
+        return self.qubit_map, self.M, self.rsum2_cutoff, self.sum_prob_atol, self.grouping
 
     def copy(self) -> 'MPSState':
-        state = MPSState(self.qubit_map, self.rsum2_cutoff, self.sum_prob_atol)
+        state = MPSState(self.qubit_map, self.rsum2_cutoff, self.sum_prob_atol, self.grouping)
         state.M = [x.copy() for x in self.M]
         state.num_svd_splits = self.num_svd_splits
         return state
@@ -426,52 +445,49 @@ class MPSState:
             and 2- qubit operations are currently supported.
         """
 
+        old_inds = tuple([self.i_str(self.qubit_map[qubit]) for qubit in op.qubits])
+        new_inds = tuple(['new_' + old_ind for old_ind in old_inds])
+
         U = protocols.unitary(op).reshape([qubit.dimension for qubit in op.qubits] * 2)
+        U = qtn.Tensor(U, inds=(new_inds + old_inds))
 
         # TODO(tonybruguier): Explore using the Quimb's tensor network natively.
 
         if len(op.qubits) == 1:
-            n = self.qubit_map[op.qubits[0]]
+            n = self.grouping[op.qubits[0]]
 
-            old_n = self.i_str(n)
-            new_n = 'new_' + old_n
-
-            U = qtn.Tensor(U, inds=(new_n, old_n))
-            self.M[n] = (U @ self.M[n]).reindex({new_n: old_n})
+            self.M[n] = (U @ self.M[n]).reindex({new_inds[0]: old_inds[0]})
         elif len(op.qubits) == 2:
-            self.num_svd_splits += 1
+            n, p = [self.grouping[qubit] for qubit in op.qubits]
 
-            n, p = [self.qubit_map[qubit] for qubit in op.qubits]
+            if n == p:
+                self.M[n] = (U @ self.M[n]).reindex(
+                    {new_inds[0]: old_inds[0], new_inds[1]: old_inds[1]}
+                )
+            else:
+                self.num_svd_splits += 1
+                # This is the index on which we do the contraction. We need to add it iff it's
+                # the first time that we do the joining for that specific pair.
+                mu_ind = self.mu_str(n, p)
+                if mu_ind not in self.M[n].inds:
+                    self.M[n].new_ind(mu_ind)
+                if mu_ind not in self.M[p].inds:
+                    self.M[p].new_ind(mu_ind)
 
-            old_n = self.i_str(n)
-            old_p = self.i_str(p)
-            new_n = 'new_' + old_n
-            new_p = 'new_' + old_p
+                T = U @ self.M[n] @ self.M[p]
 
-            U = qtn.Tensor(U, inds=(new_n, new_p, old_n, old_p))
+                left_inds = tuple(set(T.inds) & set(self.M[n].inds)) + (new_inds[0],)
+                X, Y = T.split(
+                    left_inds,
+                    cutoff=self.rsum2_cutoff,
+                    cutoff_mode='rsum2',
+                    get='tensors',
+                    absorb='both',
+                    bond_ind=mu_ind,
+                )
 
-            # This is the index on which we do the contraction. We need to add it iff it's the first
-            # time that we do the joining for that specific pair.
-            mu_ind = self.mu_str(n, p)
-            if mu_ind not in self.M[n].inds:
-                self.M[n].new_ind(mu_ind)
-            if mu_ind not in self.M[p].inds:
-                self.M[p].new_ind(mu_ind)
-
-            T = U @ self.M[n] @ self.M[p]
-
-            left_inds = tuple(set(T.inds) & set(self.M[n].inds)) + (new_n,)
-            X, Y = T.split(
-                left_inds,
-                cutoff=self.rsum2_cutoff,
-                cutoff_mode='rsum2',
-                get='tensors',
-                absorb='both',
-                bond_ind=mu_ind,
-            )
-
-            self.M[n] = X.reindex({new_n: old_n})
-            self.M[p] = Y.reindex({new_p: old_p})
+                self.M[n] = X.reindex({new_inds[0]: old_inds[0]})
+                self.M[p] = Y.reindex({new_inds[1]: old_inds[1]})
         else:
             # NOTE(tonybruguier): There could be a way to handle higher orders. I think this could
             # involve HOSVDs:
