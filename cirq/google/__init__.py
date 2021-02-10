@@ -113,3 +113,14 @@ from cirq.google.op_serializer import (
 from cirq.google.serializable_gate_set import (
     SerializableGateSet,
 )
+
+
+def _register_resolver() -> None:
+    """Registers the cirq.google's public classes for JSON serialization."""
+    from cirq.protocols.json_serialization import _internal_register_resolver
+    from cirq.google.json_resolver_cache import _class_resolver_dictionary
+
+    _internal_register_resolver(_class_resolver_dictionary)
+
+
+_register_resolver()
