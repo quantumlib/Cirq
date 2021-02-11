@@ -351,7 +351,9 @@ def test_generalized_amplitude_damping_channel_text_diagram():
     assert cirq.circuit_diagram_info(a, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
         wire_symbols=('GAD(0.1,0.4)',)
     )
-    assert cirq.circuit_diagram_info(a) == cirq.CircuitDiagramInfo(wire_symbols=('GAD(0.1,0.396)',))
+    assert cirq.circuit_diagram_info(a, args=no_precision) == cirq.CircuitDiagramInfo(
+        wire_symbols=('GAD(0.1,0.39558391)',)
+    )
 
 
 def test_amplitude_damping_channel():
@@ -399,6 +401,9 @@ def test_amplitude_damping_channel_text_diagram():
     )
     assert cirq.circuit_diagram_info(ad, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
         wire_symbols=('AD(0.38)',)
+    )
+    assert cirq.circuit_diagram_info(ad, args=no_precision) == cirq.CircuitDiagramInfo(
+        wire_symbols=('AD(0.38059322)',)
     )
 
 
@@ -726,6 +731,9 @@ def test_multi_asymmetric_depolarizing_channel_text_diagram():
     )
     assert cirq.circuit_diagram_info(a, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
         wire_symbols=('A(II:0.67, XX:0.33)',)
+    )
+    assert cirq.circuit_diagram_info(a, args=no_precision) == cirq.CircuitDiagramInfo(
+        wire_symbols=('A(II:0.6666666666666666, XX:0.3333333333333333)',)
     )
 
 
