@@ -66,7 +66,7 @@ def _make_random_id(prefix: str, length: int = 16):
     random_digits = [random.choice(string.ascii_uppercase + string.digits) for _ in range(length)]
     suffix = ''.join(random_digits)
     suffix += datetime.date.today().strftime('%y%m%d')
-    return '%s%s' % (prefix, suffix)
+    return f'{prefix}{suffix}'
 
 
 @value.value_equality
@@ -605,7 +605,7 @@ class Engine:
             program = gate_set.serialize(program)
             return self._pack_any(program)
         else:
-            raise ValueError('invalid program proto version: {}'.format(self.context.proto_version))
+            raise ValueError(f'invalid program proto version: {self.context.proto_version}')
 
     def _pack_any(self, message: 'google.protobuf.Message') -> any_pb2.Any:
         """Packs a message into an Any proto.

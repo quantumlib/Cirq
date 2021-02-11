@@ -99,7 +99,7 @@ def mixture(
 
     if mixture_getter is None and unitary_getter is None:
         raise TypeError(
-            "object of type '{}' has no _mixture_ or _unitary_ method.".format(type(val))
+            f"object of type '{type(val)}' has no _mixture_ or _unitary_ method."
         )
 
     raise TypeError(
@@ -162,13 +162,13 @@ def validate_mixture(supports_mixture: SupportsMixture):
     """Validates that the mixture's tuple are valid probabilities."""
     mixture_tuple = mixture(supports_mixture, None)
     if mixture_tuple is None:
-        raise TypeError('{}_mixture did not have a _mixture_ method'.format(supports_mixture))
+        raise TypeError(f'{supports_mixture}_mixture did not have a _mixture_ method')
 
     def validate_probability(p, p_str):
         if p < 0:
-            raise ValueError('{} was less than 0.'.format(p_str))
+            raise ValueError(f'{p_str} was less than 0.')
         elif p > 1:
-            raise ValueError('{} was greater than 1.'.format(p_str))
+            raise ValueError(f'{p_str} was greater than 1.')
 
     total = 0.0
     for p, val in mixture_tuple:

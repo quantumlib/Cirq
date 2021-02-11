@@ -157,7 +157,7 @@ class Simulator(
             seed: The random seed to use for this simulator.
         """
         if np.dtype(dtype).kind != 'c':
-            raise ValueError('dtype must be a complex type but was {}'.format(dtype))
+            raise ValueError(f'dtype must be a complex type but was {dtype}')
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
 

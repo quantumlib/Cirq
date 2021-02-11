@@ -33,13 +33,13 @@ def qubit_to_proto_id(q: 'cirq.Qid') -> str:
     For `cirq.LineQubit`s this is string of the `x` attribute.
     """
     if isinstance(q, devices.GridQubit):
-        return '{}_{}'.format(q.row, q.col)
+        return f'{q.row}_{q.col}'
     elif isinstance(q, ops.NamedQubit):
         return q.name
     elif isinstance(q, devices.LineQubit):
-        return '{}'.format(q.x)
+        return f'{q.x}'
     else:
-        raise ValueError('Qubits of type {} do not support proto id'.format(type(q)))
+        raise ValueError(f'Qubits of type {type(q)} do not support proto id')
 
 
 def qubit_from_proto_id(proto_id: str) -> 'cirq.Qid':
@@ -98,7 +98,7 @@ def grid_qubit_from_proto_id(proto_id: str) -> 'cirq.GridQubit':
     match = re.match(GRID_QUBIT_ID_PATTERN, proto_id)
     if match is None:
         raise ValueError(
-            'GridQubit proto id must be of the form [q]<int>_<int> but was {}'.format(proto_id)
+            f'GridQubit proto id must be of the form [q]<int>_<int> but was {proto_id}'
         )
     row, col = match.groups()
     return devices.GridQubit(row=int(row), col=int(col))
@@ -122,7 +122,7 @@ def line_qubit_from_proto_id(proto_id: str) -> 'cirq.LineQubit':
     try:
         return devices.LineQubit(x=int(proto_id))
     except ValueError:
-        raise ValueError('Line qubit proto id must be an int but was {}'.format(proto_id))
+        raise ValueError(f'Line qubit proto id must be an int but was {proto_id}')
 
 
 def named_qubit_from_proto_id(proto_id: str) -> 'cirq.NamedQubit':

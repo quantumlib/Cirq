@@ -80,7 +80,7 @@ class Qid(metaclass=abc.ABCMeta):
         """
         if dimension < 1:
             raise ValueError(
-                'Wrong qid dimension. Expected a positive integer but got {}.'.format(dimension)
+                f'Wrong qid dimension. Expected a positive integer but got {dimension}.'
             )
 
     def with_dimension(self, dimension: int) -> 'Qid':
@@ -796,5 +796,5 @@ def _validate_qid_shape(val: Any, qubits: Sequence['cirq.Qid']) -> None:
         )
     if len(set(qubits)) != len(qubits):
         raise ValueError(
-            'Duplicate qids for <{!r}>. Expected unique qids but got <{!r}>.'.format(val, qubits)
+            f'Duplicate qids for <{val!r}>. Expected unique qids but got <{qubits!r}>.'
         )

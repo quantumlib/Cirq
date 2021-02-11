@@ -21,7 +21,7 @@ from cirq import protocols, value, ops
 def to_quil_complex_format(num) -> str:
     """A function for outputting a number to a complex string in QUIL format."""
     cnum = complex(str(num))
-    return "{0}+{1}i".format(cnum.real, cnum.imag)
+    return f"{cnum.real}+{cnum.imag}i"
 
 
 @value.value_equality(approximate=True)
@@ -130,7 +130,7 @@ class QuilOutput:
                 key = protocols.measurement_key(op)
                 if key in measurement_id_map:
                     continue
-                measurement_id_map[key] = 'm{}'.format(index)
+                measurement_id_map[key] = f'm{index}'
                 index += 1
         return measurement_id_map
 
@@ -154,7 +154,7 @@ class QuilOutput:
                     continue
                 measurements_declared.add(key)
                 output_func(
-                    'DECLARE {} BIT[{}]\n'.format(self.measurement_id_map[key], len(m.qubits))
+                    f'DECLARE {self.measurement_id_map[key]} BIT[{len(m.qubits)}]\n'
                 )
             output_func('\n')
 
@@ -178,7 +178,7 @@ class QuilOutput:
             return QuilTwoQubitGate(mat).on(*op.qubits)
 
         def on_stuck(bad_op):
-            return ValueError('Cannot output operation as QUIL: {!r}'.format(bad_op))
+            return ValueError(f'Cannot output operation as QUIL: {bad_op!r}')
 
         for main_op in self.operations:
             decomposed = protocols.decompose(

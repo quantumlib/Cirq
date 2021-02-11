@@ -157,7 +157,7 @@ class CCZPowGate(
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.CCZ'
-            return '(cirq.CCZ**{})'.format(proper_repr(self._exponent))
+            return f'(cirq.CCZ**{proper_repr(self._exponent)})'
         return 'cirq.CCZPowGate(exponent={}, global_shift={!r})'.format(
             proper_repr(self._exponent), self._global_shift
         )
@@ -165,7 +165,7 @@ class CCZPowGate(
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'CCZ'
-        return 'CCZ**{}'.format(self._exponent)
+        return f'CCZ**{self._exponent}'
 
 
 @value.value_equality()
@@ -226,7 +226,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         rounded_angles = np.array(self._diag_angles_radians)
         if args.precision is not None:
             rounded_angles = rounded_angles.round(args.precision)
-        diag_str = 'diag({})'.format(', '.join(proper_repr(angle) for angle in rounded_angles))
+        diag_str = f"diag({', '.join(proper_repr(angle) for angle in rounded_angles)})"
         return protocols.CircuitDiagramInfo((diag_str, '#2', '#3'))
 
     def __pow__(self, exponent: Any) -> 'ThreeQubitDiagonalGate':
@@ -414,7 +414,7 @@ class CCXPowGate(
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.TOFFOLI'
-            return '(cirq.TOFFOLI**{})'.format(proper_repr(self._exponent))
+            return f'(cirq.TOFFOLI**{proper_repr(self._exponent)})'
         return 'cirq.CCXPowGate(exponent={}, global_shift={!r})'.format(
             proper_repr(self._exponent), self._global_shift
         )
@@ -422,7 +422,7 @@ class CCXPowGate(
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'TOFFOLI'
-        return 'TOFFOLI**{}'.format(self._exponent)
+        return f'TOFFOLI**{self._exponent}'
 
 
 @value.value_equality()

@@ -111,7 +111,7 @@ def fallback_qcircuit_diagram_info(
     if info is None:
         name = str(op.gate or op)
         n_qubits = len(op.qubits)
-        symbols = tuple('#{}'.format(i + 1) if i else name for i in range(n_qubits))
+        symbols = tuple(f'#{i + 1}' if i else name for i in range(n_qubits))
         info = protocols.CircuitDiagramInfo(symbols)
     return convert_text_diagram_info_to_qcircuit_diagram_info(info)
 

@@ -74,7 +74,7 @@ def main(
     for num_qubits in range(min_num_qubits, max_num_qubits + 1):
         command = 'simulate(\'{}\', {}, {})'.format(sim_type, num_qubits, num_gates)
         time = timeit.timeit(command, setup, number=num_repetitions)
-        print('{},{}'.format(num_qubits, time / (num_repetitions * num_gates)))
+        print(f'{num_qubits},{time / (num_repetitions * num_gates)}')
 
 
 def parse_arguments(args):

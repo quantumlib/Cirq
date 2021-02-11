@@ -257,23 +257,23 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         if self._global_shift == -0.5:
             if self._exponent == 1:
                 return 'Rx(π)'
-            return 'Rx({}π)'.format(self._exponent)
+            return f'Rx({self._exponent}π)'
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'X'
-            return 'X**{}'.format(self._exponent)
-        return 'XPowGate(exponent={}, global_shift={!r})'.format(self._exponent, self._global_shift)
+            return f'X**{self._exponent}'
+        return f'XPowGate(exponent={self._exponent}, global_shift={self._global_shift!r})'
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
             if protocols.is_parameterized(self._exponent):
-                return 'cirq.rx({})'.format(proper_repr(sympy.pi * self._exponent))
+                return f'cirq.rx({proper_repr(sympy.pi * self._exponent)})'
 
-            return 'cirq.rx(np.pi*{})'.format(proper_repr(self._exponent))
+            return f'cirq.rx(np.pi*{proper_repr(self._exponent)})'
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.X'
-            return '(cirq.X**{})'.format(proper_repr(self._exponent))
+            return f'(cirq.X**{proper_repr(self._exponent)})'
         return 'cirq.XPowGate(exponent={}, global_shift={!r})'.format(
             proper_repr(self._exponent), self._global_shift
         )
@@ -448,23 +448,23 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         if self._global_shift == -0.5:
             if self._exponent == 1:
                 return 'Ry(π)'
-            return 'Ry({}π)'.format(self._exponent)
+            return f'Ry({self._exponent}π)'
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'Y'
-            return 'Y**{}'.format(self._exponent)
-        return 'YPowGate(exponent={}, global_shift={!r})'.format(self._exponent, self._global_shift)
+            return f'Y**{self._exponent}'
+        return f'YPowGate(exponent={self._exponent}, global_shift={self._global_shift!r})'
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
             if protocols.is_parameterized(self._exponent):
-                return 'cirq.ry({})'.format(proper_repr(sympy.pi * self._exponent))
+                return f'cirq.ry({proper_repr(sympy.pi * self._exponent)})'
 
-            return 'cirq.ry(np.pi*{})'.format(proper_repr(self._exponent))
+            return f'cirq.ry(np.pi*{proper_repr(self._exponent)})'
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.Y'
-            return '(cirq.Y**{})'.format(proper_repr(self._exponent))
+            return f'(cirq.Y**{proper_repr(self._exponent)})'
         return 'cirq.YPowGate(exponent={}, global_shift={!r})'.format(
             proper_repr(self._exponent), self._global_shift
         )
@@ -674,7 +674,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         if self._global_shift == -0.5:
             if self._exponent == 1:
                 return 'Rz(π)'
-            return 'Rz({}π)'.format(self._exponent)
+            return f'Rz({self._exponent}π)'
         if self._global_shift == 0:
             if self._exponent == 0.25:
                 return 'T'
@@ -686,15 +686,15 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
                 return 'S**-1'
             if self._exponent == 1:
                 return 'Z'
-            return 'Z**{}'.format(self._exponent)
-        return 'ZPowGate(exponent={}, global_shift={!r})'.format(self._exponent, self._global_shift)
+            return f'Z**{self._exponent}'
+        return f'ZPowGate(exponent={self._exponent}, global_shift={self._global_shift!r})'
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
             if protocols.is_parameterized(self._exponent):
-                return 'cirq.rz({})'.format(proper_repr(sympy.pi * self._exponent))
+                return f'cirq.rz({proper_repr(sympy.pi * self._exponent)})'
 
-            return 'cirq.rz(np.pi*{!r})'.format(self._exponent)
+            return f'cirq.rz(np.pi*{self._exponent!r})'
         if self._global_shift == 0:
             if self._exponent == 0.25:
                 return 'cirq.T'
@@ -706,7 +706,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
                 return '(cirq.S**-1)'
             if self._exponent == 1:
                 return 'cirq.Z'
-            return '(cirq.Z**{})'.format(proper_repr(self._exponent))
+            return f'(cirq.Z**{proper_repr(self._exponent)})'
         return 'cirq.ZPowGate(exponent={}, global_shift={!r})'.format(
             proper_repr(self._exponent), self._global_shift
         )
@@ -1093,13 +1093,13 @@ class CZPowGate(
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'CZ'
-        return 'CZ**{!r}'.format(self._exponent)
+        return f'CZ**{self._exponent!r}'
 
     def __repr__(self) -> str:
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.CZ'
-            return '(cirq.CZ**{})'.format(proper_repr(self._exponent))
+            return f'(cirq.CZ**{proper_repr(self._exponent)})'
         return 'cirq.CZPowGate(exponent={}, global_shift={!r})'.format(
             proper_repr(self._exponent), self._global_shift
         )

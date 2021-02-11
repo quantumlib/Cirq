@@ -44,7 +44,7 @@ class ThreeDQubit(cirq.ops.Qid):
     def distance(self, other: cirq.ops.Qid) -> float:
         """Returns the distance between two qubits in 3d."""
         if not isinstance(other, ThreeDQubit):
-            raise TypeError("Can compute distance to another ThreeDQubit, but {}".format(other))
+            raise TypeError(f"Can compute distance to another ThreeDQubit, but {other}")
         return sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2)
 
     @staticmethod
@@ -86,10 +86,10 @@ class ThreeDQubit(cirq.ops.Qid):
         ]
 
     def __repr__(self):
-        return 'pasqal.ThreeDQubit({}, {}, {})'.format(self.x, self.y, self.z)
+        return f'pasqal.ThreeDQubit({self.x}, {self.y}, {self.z})'
 
     def __str__(self):
-        return '({}, {}, {})'.format(self.x, self.y, self.z)
+        return f'({self.x}, {self.y}, {self.z})'
 
     def _json_dict_(self):
         return cirq.protocols.obj_to_dict_helper(self, ['x', 'y', 'z'])
@@ -150,10 +150,10 @@ class TwoDQubit(ThreeDQubit):
         return [TwoDQubit(coord[0], coord[1]) for coord in coords]
 
     def __repr__(self):
-        return 'pasqal.TwoDQubit({}, {})'.format(self.x, self.y)
+        return f'pasqal.TwoDQubit({self.x}, {self.y})'
 
     def __str__(self):
-        return '({}, {})'.format(self.x, self.y)
+        return f'({self.x}, {self.y})'
 
     def _json_dict_(self):
         return cirq.protocols.obj_to_dict_helper(self, ['x', 'y'])

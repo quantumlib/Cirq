@@ -35,7 +35,7 @@ def _try_convert_to_quirk_gate(op: ops.Operation, prefer_unknown_gate_to_failure
         return matrix_op
     if prefer_unknown_gate_to_failure:
         return UNKNOWN_GATE
-    raise TypeError('Unrecognized operation: {!r}'.format(op))
+    raise TypeError(f'Unrecognized operation: {op!r}')
 
 
 def _to_quirk_cols(
@@ -100,4 +100,4 @@ def circuit_to_quirk_url(
         suffix = urllib.parse.quote(circuit_json)
     else:
         suffix = circuit_json
-    return 'http://algassert.com/quirk#circuit={}'.format(suffix)
+    return f'http://algassert.com/quirk#circuit={suffix}'
