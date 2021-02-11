@@ -973,21 +973,20 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         op: 'cirq.Operation',
         after_to_before: bool = False,
     ) -> bool:
-        if isinstance(op, gate_operation.GateOperation):
-            gate = op.gate
-            if isinstance(gate, clifford_gate.SingleQubitCliffordGate):
-                return PauliString._pass_single_clifford_gate_over(
-                    pauli_map, gate, cast(TKey, op.qubits[0]), after_to_before=after_to_before
-                )
-            if isinstance(gate, pauli_interaction_gate.PauliInteractionGate):
-                return PauliString._pass_pauli_interaction_gate_over(
-                    pauli_map,
-                    gate,
-                    cast(TKey, op.qubits[0]),
-                    cast(TKey, op.qubits[1]),
-                    after_to_before=after_to_before,
-                )
-        raise TypeError(f'Unsupported operation: {op!r}')
+    
+        gate = op.gate
+        if isinstance(gate, clifford_gate.SingleQubitCliffordGate):
+            return PauliString._pass_single_clifford_gate_over(
+                pauli_map, gate, cast(TKey, op.qubits[0]), after_to_before=after_to_before
+            )
+        if isinstance(gate, pauli_interaction_gate.PauliInteractionGate):
+            return PauliString._pass_pauli_interaction_gate_over(
+                pauli_map,
+                gate,
+                cast(TKey, op.qubits[0]),
+                cast(TKey, op.qubits[1]),
+                after_to_before=after_to_before,
+            )
 
     @staticmethod
     def _pass_single_clifford_gate_over(
