@@ -54,7 +54,6 @@ from cirq import (
     experiments,
     # Extra (nothing should depend on these)
     testing,
-    contrib,
 )
 
 # End dependency order list of sub-modules
@@ -566,9 +565,28 @@ from cirq.work import (
 # Unflattened sub-modules.
 
 from cirq import (
-    contrib,
     google,
     ionq,
     pasqal,
     testing,
 )
+
+
+def _register_resolver() -> None:
+    """Registers the cirq module's public classes for JSON serialization."""
+    from cirq.protocols.json_serialization import _internal_register_resolver
+    from cirq.json_resolver_cache import _class_resolver_dictionary
+
+    _internal_register_resolver(_class_resolver_dictionary)
+
+
+_register_resolver()
+
+# contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
+
+# pylint: disable=wrong-import-position
+from cirq import (
+    contrib,
+)
+
+# pylint: enable=wrong-import-position
