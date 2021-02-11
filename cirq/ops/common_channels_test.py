@@ -164,6 +164,16 @@ def test_depolarizing_channel_two_qubits():
     )
     assert cirq.has_channel(d)
 
+    assert d.num_qubits() == 2
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(d(*cirq.LineQubit.range(2))),
+        """
+0: ───D(0.15)───
+      │
+1: ───#2────────
+        """,
+    )
+
 
 def test_depolarizing_mixture():
     d = cirq.depolarize(0.3)
@@ -213,6 +223,36 @@ def test_depolarizing_channel_str_two_qubits():
     assert str(cirq.depolarize(0.3, n_qubits=2)) == 'depolarize(p=0.3,n_qubits=2)'
 
 
+def test_deprecated_on_each_for_depolarizing_channel_one_qubit():
+    q0 = cirq.LineQubit.range(1)
+    op = cirq.DepolarizingChannel(p=0.1, n_qubits=1)
+
+    op.on_each(q0)
+    op.on_each([q0])
+    with pytest.raises(ValueError, match="Gate was called with type different than Qid"):
+        op.on_each('bogus object')
+
+
+def test_deprecated_on_each_for_depolarizing_channel_two_qubits():
+    q0, q1 = cirq.LineQubit.range(2)
+    op = cirq.DepolarizingChannel(p=0.1, n_qubits=2)
+
+    with pytest.raises(ValueError, match="one qubit"):
+        op.on_each(q0, q1)
+
+
+def test_depolarizing_channel_apply_two_qubits():
+    q0, q1 = cirq.LineQubit.range(2)
+    op = cirq.DepolarizingChannel(p=0.1, n_qubits=2)
+    op(q0, q1)
+
+
+def test_asymmetric_depolarizing_channel_apply_two_qubits():
+    q0, q1 = cirq.LineQubit.range(2)
+    op = cirq.AsymmetricDepolarizingChannel(error_probabilities={'XX': 0.1})
+    op(q0, q1)
+
+
 def test_depolarizing_channel_eq():
     et = cirq.testing.EqualsTester()
     c = cirq.depolarize(0.0)
@@ -245,13 +285,13 @@ def test_depolarizing_channel_text_diagram():
 def test_depolarizing_channel_text_diagram_two_qubits():
     d = cirq.depolarize(0.1234567, n_qubits=2)
     assert cirq.circuit_diagram_info(d, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
-        wire_symbols=('D(0.123457)',)
+        wire_symbols=('D(0.123457)', '#2')
     )
     assert cirq.circuit_diagram_info(d, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
-        wire_symbols=('D(0.12)',)
+        wire_symbols=('D(0.12)', '#2')
     )
     assert cirq.circuit_diagram_info(d, args=no_precision) == cirq.CircuitDiagramInfo(
-        wire_symbols=('D(0.1234567)',)
+        wire_symbols=('D(0.1234567)', '#2')
     )
 
 

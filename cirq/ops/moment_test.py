@@ -579,3 +579,19 @@ def test_commutes():
     assert not cirq.commutes(moment, cirq.H(a))
     assert not cirq.commutes(moment, cirq.H(b))
     assert not cirq.commutes(moment, cirq.X(c))
+
+
+def test_transform_qubits():
+    a, b = cirq.LineQubit.range(2)
+    x, y = cirq.GridQubit.rect(2, 1, 10, 20)
+
+    original = cirq.Moment([cirq.X(a), cirq.Y(b)])
+    modified = cirq.Moment([cirq.X(x), cirq.Y(y)])
+
+    assert original.transform_qubits({a: x, b: y}) == modified
+    assert original.transform_qubits(lambda q: cirq.GridQubit(10 + q.x, 20)) == modified
+    with pytest.raises(TypeError, match='must be a function or dict'):
+        _ = original.transform_qubits('bad arg')
+    with cirq.testing.assert_logs('Use qubit_map instead'):
+        # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
+        assert original.transform_qubits(func=lambda q: cirq.GridQubit(10 + q.x, 20)) == modified
