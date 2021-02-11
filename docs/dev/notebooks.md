@@ -1,6 +1,6 @@
 # Notebooks guidelines 
 
-Our guides and tutorials are frequently written using iPython Notebooks. The notebooks require specific formatting, are continuosly tested (when possible) and we have a specific process to manage the lifecycle of a notebook before and after a Cirq release.    
+Our guides and tutorials are frequently written using iPython Notebooks. The notebooks require specific formatting, are continuously tested (when possible) and we have a specific process to manage the lifecycle of a notebook before and after a Cirq release.    
 
 ## Formatting 
 
