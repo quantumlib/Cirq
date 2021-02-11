@@ -610,8 +610,10 @@ def _generate_sample_2q_xeb_tasks(
             assert circuit_depth <= len(zipped_circuit.wide_circuit)
             # Slicing creates a copy, although this isn't documented
             prepared_circuit = zipped_circuit.wide_circuit[:circuit_depth]
-            for pair_i, pair in enumerate(zipped_circuit.pairs):
-                prepared_circuit += ops.measure(*pair, key=str(pair_i))
+            prepared_circuit += ops.Moment(
+                ops.measure(*pair, key=str(pair_i))
+                for pair_i, pair in enumerate(zipped_circuit.pairs)
+            )
             tasks.append(
                 _Sample2qXEBTask(
                     cycle_depth=cycle_depth,

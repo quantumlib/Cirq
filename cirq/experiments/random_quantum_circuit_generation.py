@@ -247,6 +247,11 @@ def generate_library_of_2q_circuits(
 ) -> List['cirq.Circuit']:
     """Generate a library of two-qubit Circuits.
 
+    For single-qubit gates, this uses PhasedXZGates where the axis-in-XY-plane is one
+    of eight eighth turns and the Z rotation angle is one of eight eighth turns. This
+    provides 8*8=64 total choices, each implementable with one PhasedXZGate. This is
+    appropriate for architectures with microwave single-qubit control.
+
     Args:
         n_library_circuits: The number of circuits to generate.
         two_qubit_gate: The two qubit gate to use in the circuits.
