@@ -279,20 +279,31 @@ class Moment:
     def __str__(self) -> str:
         return self.to_text_diagram()
 
+    @deprecated_parameter(
+        deadline='v0.11.0',
+        fix='Use qubit_map instead.',
+        parameter_desc='positional func',
+        match=lambda args, kwargs: 'func' in kwargs,
+        rewrite=lambda args, kwargs: (
+            args,
+            {('qubit_map' if k == 'func' else k): v for k, v in kwargs.items()},
+        ),
+    )
     def transform_qubits(
-        self: TSelf_Moment, func: Callable[['cirq.Qid'], 'cirq.Qid']
+        self: TSelf_Moment,
+        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
     ) -> TSelf_Moment:
         """Returns the same moment, but with different qubits.
 
         Args:
-            func: The function to use to turn each current qubit into a desired
-                new qubit.
+           qubit_map: A function or a dict mapping each current qubit into a
+                      desired new qubit.
 
         Returns:
             The receiving moment but with qubits transformed by the given
                 function.
         """
-        return self.__class__(op.transform_qubits(func) for op in self.operations)
+        return self.__class__(op.transform_qubits(qubit_map) for op in self.operations)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['operations'])

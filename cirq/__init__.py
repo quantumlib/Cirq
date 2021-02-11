@@ -54,7 +54,6 @@ from cirq import (
     experiments,
     # Extra (nothing should depend on these)
     testing,
-    contrib,
 )
 
 # End dependency order list of sub-modules
@@ -329,11 +328,15 @@ from cirq.optimizers import (
 
 from cirq.qis import (
     bloch_vector_from_state_vector,
+    density_matrix,
     density_matrix_from_state_vector,
     dirac_notation,
     eye_tensor,
     fidelity,
     one_hot,
+    QUANTUM_STATE_LIKE,
+    QuantumState,
+    quantum_state,
     STATE_VECTOR_LIKE,
     to_valid_density_matrix,
     to_valid_state_vector,
@@ -493,6 +496,7 @@ from cirq.protocols import (
     qid_shape,
     quil,
     QuilFormatter,
+    read_json_gzip,
     read_json,
     resolve_parameters,
     resolve_parameters_once,
@@ -521,6 +525,7 @@ from cirq.protocols import (
     SupportsQasmWithArgsAndQubits,
     SupportsTraceDistanceBound,
     SupportsUnitary,
+    to_json_gzip,
     to_json,
     obj_to_dict_helper,
     trace_distance_bound,
@@ -560,9 +565,28 @@ from cirq.work import (
 # Unflattened sub-modules.
 
 from cirq import (
-    contrib,
     google,
     ionq,
     pasqal,
     testing,
 )
+
+
+def _register_resolver() -> None:
+    """Registers the cirq module's public classes for JSON serialization."""
+    from cirq.protocols.json_serialization import _internal_register_resolver
+    from cirq.json_resolver_cache import _class_resolver_dictionary
+
+    _internal_register_resolver(_class_resolver_dictionary)
+
+
+_register_resolver()
+
+# contrib's json resolver cache depends on cirq.DEFAULT_RESOLVER
+
+# pylint: disable=wrong-import-position
+from cirq import (
+    contrib,
+)
+
+# pylint: enable=wrong-import-position
