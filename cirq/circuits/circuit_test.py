@@ -1208,6 +1208,9 @@ def test_next_moment_operating_on_distance(circuit_cls):
     # Huge max distances should be handled quickly due to capping.
     assert c.next_moment_operating_on([a], 5, max_distance=10 ** 100) is None
 
+    with pytest.raises(ValueError, match='Negative max_distance'):
+        c.next_moment_operating_on([a], 0, max_distance=-1)
+
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_prev_moment_operating_on(circuit_cls):
