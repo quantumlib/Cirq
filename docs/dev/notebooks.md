@@ -56,22 +56,21 @@ When you introduce a notebook that depends on pre-release features of Cirq, make
  
  - mark the notebook at the top that `Note: this notebook relies on unreleased Cirq features. If you want to try these feature, make sure you install cirq via pip install cirq --pre`. 
  - use `pip install cirq —pre`  in the installation instructions 
- - make sure dev_tools/notebooks/test_notebooks.py covers the notebook 
- - exclude the notebook from the dev_tools/notebooks/isolated_notebook_test.py by adding it to `NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES`
+ - make sure [notebook_test.py](https://github.com/quantumlib/Cirq/blob/master/dev_tools/notebooks/notebook_test.py) covers the notebook 
+ - exclude the notebook from the [isolated_notebook_test.py](https://github.com/quantumlib/Cirq/blob/master/dev_tools/notebooks/isolated_notebook_test.py) by adding it to `NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES`
 
 ### Stable notebooks
 
 When you introduce a notebook that only uses already released features of Cirq, make sure to
  - use `pip install cirq` (NOT `pip install cirq --pre`)
- - do not exclude the notebook from dev_tools/notebooks/isolated_notebook_test.py (except if the notebook has external dependencies)
- - do not exclude the notebook dev_tools/notebooks/notebook_test.py (except if the notebook has external dependencies)
-
+ - ensure the notebook is not excluded from either [notebook_test.py](https://github.com/quantumlib/Cirq/blob/master/dev_tools/notebooks/notebook_test.py) or [isolated_notebook_test.py](https://github.com/quantumlib/Cirq/blob/master/dev_tools/notebooks/isolated_notebook_test.py)  (except if the notebook has external dependencies, in which case you should exclude this from both!)
+ 
 ### Release 
 
 At release time, we change all the **pre-release notebooks** in bulk: 
  - remove the pre-release notices
  - change `pip install cirq —pre` to `pip install cirq`
- - remove the exclusions in dev_tools/notebooks/isolated_notebook_test.py by making `NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES=[]`
+ - remove the exclusions in [isolated_notebook_test.py](https://github.com/quantumlib/Cirq/blob/master/dev_tools/notebooks/isolated_notebook_test.py) by making `NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES=[]`
  
 As all the notebooks have been tested continuously up to this point, the release notebook PR should pass without issues. 
 
