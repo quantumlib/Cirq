@@ -23,7 +23,7 @@ Example header:
 
 ![notebook header](../images/notebook_header.png)
 
-You can use [our template notebook](https://storage.googleapis.com/tensorflow_docs/Cirq/docs/_template.ipynb) to get started - please remember to change the `$$$REPLACE_WITH_SITE_URL$$$` and `$$$REPLACE_WITH_NOTEBOOK_PATH$$$` placeholders.
+You can use [our template notebook](https://storage.googleapis.com/tensorflow_docs/Cirq/docs/_template.ipynb) to get started - please remember to change the `$$$REPLACE_WITH_TITLE$$$`, `$$$REPLACE_WITH_SITE_URL$$$` and `$$$REPLACE_WITH_NOTEBOOK_PATH$$$` placeholders.
 
 
 ## Editing the tree nav on the site: _book.yaml
@@ -48,19 +48,34 @@ Thus, for notebooks with external dependencies, **all cells must have their outp
 
 ## Lifecycle 
 
-We should follow different configurations for notebooks depending on whether they rely on features in the pre-release build of cirq or not. 
+You should configure notebooks differently depending on whether they rely on features in the pre-release build of cirq or not. 
 
-Pre-release notebooks: 
+### Pre-release notebooks
+
+When you introduce a notebook that depends on pre-release features of Cirq, make sure to 
+ 
  - mark the notebook at the top that `Note: this notebook relies on unreleased Cirq features. If you want to try these feature, make sure you install cirq via pip install cirq --pre`. 
  - use `pip install cirq —pre`  in the installation instructions 
  - make sure dev_tools/notebooks/test_notebooks.py covers the notebook 
  - exclude the notebook from the dev_tools/notebooks/isolated_notebook_test.py by adding it to `NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES`
 
-After the Cirq release - for all unreleased notebooks we change all the above accordingly in bulk for all the notebooks: 
+### Stable notebooks
+
+When you introduce a notebook that only uses already released features of Cirq, make sure to
+ - use `pip install cirq` (NOT `pip install cirq --pre`)
+ - do not exclude the notebook from dev_tools/notebooks/isolated_notebook_test.py (except if the notebook has external dependencies)
+ - do not exclude the notebook dev_tools/notebooks/notebook_test.py (except if the notebook has external dependencies)
+
+### Release 
+
+At release time, we change all the **pre-release notebooks** in bulk: 
  - remove the pre-release notices
  - change `pip install cirq —pre` to `pip install cirq`
  - remove the exclusions in dev_tools/notebooks/isolated_notebook_test.py by making `NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES=[]`
  
-As all the notebooks have been tested continuously up to this point, the post release notebook PR should pass without issues. 
+As all the notebooks have been tested continuously up to this point, the release notebook PR should pass without issues. 
+
+### Modifying stable notebooks 
  
-If a released notebook needs to be modified to cater for unreleased functionality, then it will again become a pre-release notebook. 
+Modifications to stable notebooks are tested with dev_tools/notebooks/isolated_notebook_test.py.
+However, a stable notebook will become a pre-release notebook if a modification introduces dependency on unreleased features. In this case, follow the pre-release notebook guidelines accordingly. 
