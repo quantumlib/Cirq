@@ -987,7 +987,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                     cast(TKey, op.qubits[1]),
                     after_to_before=after_to_before,
                 )
-        raise TypeError('Unsupported operation: {!r}'.format(op))
+        return False
 
     @staticmethod
     def _pass_single_clifford_gate_over(
