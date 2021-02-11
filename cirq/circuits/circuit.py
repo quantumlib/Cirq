@@ -209,7 +209,7 @@ class AbstractCircuit(abc.ABC):
     # pylint: enable=function-redefined
 
     @abc.abstractmethod
-    def _with_sliced_moments(self, moments: Sequence['cirq.Moment']):
+    def _with_sliced_moments(self: CIRCUIT_TYPE, moments: Iterable['cirq.Moment']) -> CIRCUIT_TYPE:
         """Helper method for constructing circuits from __getitem__."""
 
     def __str__(self) -> str:
@@ -864,6 +864,15 @@ class AbstractCircuit(abc.ABC):
         """
         return (op for moment in self for op in moment.operations)
 
+    def map_ops(
+        self: CIRCUIT_TYPE, func: Callable[['cirq.Operation'], 'cirq.OP_TREE']
+    ) -> CIRCUIT_TYPE:
+        def map_moment(moment: 'cirq.Moment') -> 'cirq.Circuit':
+            # Apply func to expand each op into a circuit, then zip up the circuits.
+            return Circuit.zip(*[Circuit(func(op)) for op in moment])
+
+        return self._with_sliced_moments(m for moment in self for m in map_moment(moment))
+
     def qid_shape(
         self, qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
     ) -> Tuple[int, ...]:
@@ -1374,7 +1383,7 @@ class Circuit(AbstractCircuit):
         copied_circuit._moments = self._moments[:]
         return copied_circuit
 
-    def _with_sliced_moments(self, moments: Sequence['cirq.Moment']) -> 'Circuit':
+    def _with_sliced_moments(self, moments: Iterable['cirq.Moment']) -> 'Circuit':
         new_circuit = Circuit(device=self.device)
         new_circuit._moments = list(moments)
         return new_circuit
@@ -1812,7 +1821,7 @@ class Circuit(AbstractCircuit):
                 self._moments[moment_index].operations + tuple(new_ops)
             )
 
-    def zip(*circuits):
+    def zip(*circuits: 'cirq.Circuit') -> 'cirq.Circuit':
         """Combines operations from circuits in a moment-by-moment fashion.
 
         Moment k of the resulting circuit will have all operations from moment
@@ -1866,7 +1875,6 @@ class Circuit(AbstractCircuit):
             <BLANKLINE>
             3: ───────S───────
         """
-        circuits = list(circuits)
         n = max([len(c) for c in circuits], default=0)
 
         result = cirq.Circuit()

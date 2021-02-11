@@ -152,6 +152,28 @@ class CircuitOperation(ops.Operation):
             )
         }
 
+    def mapped_circuit(self, deep: bool = False) -> 'cirq.Circuit':
+        circuit = self.circuit.unfreeze()
+        if deep:
+            circuit = circuit.map_ops(
+                lambda op: op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
+            )
+        circuit = circuit.transform_qubits(lambda q: self.qubit_map.get(q, q))
+        circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
+        circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
+        if self.repetitions < 0:
+            circuit = circuit ** -1
+        if self.repetition_ids is None or not protocols.is_measurement(circuit):
+            return circuit * abs(self.repetitions)
+        keys = protocols.measurement_keys(circuit)
+        return cirq.Circuit(
+            protocols.with_measurement_key_mapping(circuit, {key: f'{rep}-{key}' for key in keys})
+            for rep in self.repetition_ids
+        )
+
+    def mapped_op(self, deep: bool = False) -> 'cirq.CircuitOperation':
+        return CircuitOperation(circuit=self.mapped_circuit(deep=deep).freeze())
+
     def _decompose_(self) -> 'cirq.OP_TREE':
         result = self.circuit.unfreeze()
         result = result.transform_qubits(lambda q: self.qubit_map.get(q, q))
