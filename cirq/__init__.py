@@ -333,6 +333,7 @@ from cirq.qis import (
     dirac_notation,
     eye_tensor,
     fidelity,
+    infer_qid_shape,
     one_hot,
     QUANTUM_STATE_LIKE,
     QuantumState,

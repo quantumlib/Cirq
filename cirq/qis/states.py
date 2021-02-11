@@ -83,10 +83,7 @@ class QuantumState:
             ValueError: Invalid quantum state.
         """
         if qid_shape is None:
-            # coverage: ignore
-            raise NotImplementedError(
-                'Qid shape inference not yet implemented. Please specify the qid shape explicitly.'
-            )
+            qid_shape = infer_qid_shape(data)
         self._data = data
         self._qid_shape = qid_shape
         self._dim = np.prod(self.qid_shape, dtype=int)
@@ -234,8 +231,6 @@ def quantum_state(
         qid_shape = actual_qid_shape
     elif isinstance(state, int):
         if qid_shape is None:
-            # TODO: remove coverage: ignore once qid shape inference is added
-            # coverage: ignore
             raise ValueError(
                 'The qid shape of the given state is ambiguous. '
                 'Please specify the qid shape explicitly using '
@@ -248,10 +243,7 @@ def quantum_state(
     else:
         data = np.array(state, copy=False)
         if qid_shape is None:
-            # coverage: ignore
-            raise NotImplementedError(
-                'Qid shape inference not yet implemented. Please specify the qid shape explicitly.'
-            )
+            qid_shape = infer_qid_shape(state)
         if data.ndim == 1:
             if len(qid_shape) == np.prod(qid_shape, dtype=int) and data.dtype.kind != 'c':
                 raise ValueError(
@@ -319,6 +311,231 @@ def _infer_qid_shape_from_dimension(dim: int) -> Tuple[int, ...]:
         return (2,) * n_qubits
     # dim is not a power of 2, assume a single qudit
     return (dim,)
+
+
+def infer_qid_shape(*states: 'cirq.QUANTUM_STATE_LIKE') -> Tuple[int, ...]:
+    """Infer the qid shape of a set of states.
+
+    This is a heuristic that is guaranteed to return a qid shape compatible
+    with all of the given states, but may fail (raising an error) even
+    if there is a unique compatible qid shape. If, after applying the heuristic,
+    the qid shape is ambiguous, then an error is raised unless the qid shape is
+    to be inferred from the shape of a state vector or density matrix. In that
+    case, if the dimension of the state space is a power of 2, then the state
+    space is assumed to be composed of qubits; otherwise, it is assumed to be
+    composed of a single qudit.
+
+    Args:
+        states: The states for which to infer the qid shape.
+
+    Returns:
+        The inferred qid shape.
+
+    Raises:
+        ValueError: The qid shape of the given states is ambiguous.
+        ValueError: Failed to infer the qid shape of the given states.
+    """
+    integer_states = []
+    non_integer_states = []
+    for state in states:
+        if isinstance(state, int):
+            integer_states.append(state)
+        else:
+            non_integer_states.append(state)
+
+    # if all states are specified as integers, the shape is ambiguous
+    if not non_integer_states:
+        raise ValueError('The qid shape of the given states is ambiguous.')
+
+    # attempt to infer qid shape from non-integer states
+    potential_shapes = _potential_qid_shapes(non_integer_states[0])
+    for state in non_integer_states[1:]:
+        potential_shapes = potential_shapes.intersection_subset(_potential_qid_shapes(state))
+    if potential_shapes.is_ambiguous():
+        raise ValueError('The qid shape of the given states is ambiguous.')
+    qid_shape = potential_shapes.infer_qid_shape()
+    if qid_shape is None:
+        raise ValueError('Failed to infer the qid shape of the given states.')
+
+    # check if the shape is compatible with the states specified as integers
+    if integer_states and np.prod(qid_shape, dtype=int) <= max(integer_states):
+        raise ValueError('Failed to infer the qid shape of the given states.')
+
+    return qid_shape
+
+
+_NON_INT_STATE_LIKE = Union[
+    # Per-qudit computational basis values.
+    Sequence[int],
+    # Explicit state vector or state tensor.
+    np.ndarray,
+    Sequence[Union[int, float, complex]],
+    # Product state object
+    'cirq.ProductState',
+    # Quantum state object
+    'cirq.QuantumState',
+]
+
+
+def _potential_qid_shapes(state: _NON_INT_STATE_LIKE) -> '_QidShapeSet':
+    if isinstance(state, QuantumState):
+        return _QidShapeSet(explicit_qid_shapes={state.qid_shape})
+    if isinstance(state, value.ProductState):
+        return _QidShapeSet(explicit_qid_shapes={(2,) * len(state)})
+
+    if isinstance(state, Sequence):
+        state = np.array(state)
+    if state.ndim == 1:
+        (dim,) = state.shape
+        if state.dtype.kind == 'c':
+            # definitely state vector amplitudes
+            return _QidShapeSet(unfactorized_total_dimension=dim)
+        # could also be per-qudit computational basis values
+        min_qudit_dimensions = tuple(state.astype(int, copy=False) + 1)
+        return _QidShapeSet(
+            unfactorized_total_dimension=dim, min_qudit_dimensions=min_qudit_dimensions
+        )
+    if state.ndim == 2:
+        dim, _ = state.shape
+        return _QidShapeSet(
+            # could be a state tensor
+            explicit_qid_shapes={state.shape},
+            # could also be a density matrix
+            unfactorized_total_dimension=dim,
+        )
+    # state tensor
+    return _QidShapeSet(explicit_qid_shapes={state.shape})
+
+
+class _QidShapeSet:
+    """A potentially infinite set of possible qid shapes."""
+
+    def __init__(
+        self,
+        *,
+        explicit_qid_shapes: Optional[Set[Tuple[int, ...]]] = None,
+        unfactorized_total_dimension: Optional[int] = None,
+        min_qudit_dimensions: Optional[Tuple[int, ...]] = None,
+    ) -> None:
+        """Create a qid shape set.
+
+        The set of qid shapes is represented as the union of a set of shapes
+        specified explicitly in `explicit_qid_shapes`, a set of shapes
+        specified implicitly in `unfactorized_total_dimension`, and a set of
+        shapes specified implicitly in `min_qudit_dimensions`.
+
+        Args:
+            explicit_qid_shapes: An explicit set of qid shapes.
+            unfactorized_total_dimension: A number representing the dimension
+                of the Hilbert space. The associated qid shapes are those compatible
+                with this dimension, i.e., those for which the product of the
+                individual qudit dimensions is equal to the Hilbert space
+                dimension.
+            min_qudit_dimensions: A tuple of integers (n_1, ..., n_k).
+                The associated qid shapes are
+                {(m_1, ..., m_k) : m_i ≥ n_i for all i}.
+        """
+        self.explicit_qid_shapes = explicit_qid_shapes or set()
+        self.unfactorized_total_dimension = unfactorized_total_dimension
+        self.min_qudit_dimensions = min_qudit_dimensions
+
+    def intersection_subset(self, other: '_QidShapeSet'):
+        """Return a subset of the intersection with other qid shape set."""
+        explicit_qid_shapes = self.explicit_qid_shapes & other.explicit_qid_shapes
+        unfactorized_total_dimension = None
+        min_qudit_dimensions = None
+
+        if self.explicit_qid_shapes and other.unfactorized_total_dimension is not None:
+            explicit_qid_shapes |= _intersection_explicit_with_unfactorized_qid_shapes(
+                self.explicit_qid_shapes, other.unfactorized_total_dimension
+            )
+
+        if self.explicit_qid_shapes and other.min_qudit_dimensions:
+            explicit_qid_shapes |= _intersection_explicit_with_min_qudit_dims_qid_shapes(
+                self.explicit_qid_shapes, other.min_qudit_dimensions
+            )
+
+        if self.unfactorized_total_dimension is not None and other.explicit_qid_shapes:
+            explicit_qid_shapes |= _intersection_explicit_with_unfactorized_qid_shapes(
+                other.explicit_qid_shapes, self.unfactorized_total_dimension
+            )
+
+        if self.unfactorized_total_dimension == other.unfactorized_total_dimension:
+            unfactorized_total_dimension = self.unfactorized_total_dimension
+
+        # don't attempt to intersect unfactorized total dimension with
+        # min qudit dimensions
+
+        if self.min_qudit_dimensions is not None and other.explicit_qid_shapes:
+            explicit_qid_shapes |= _intersection_explicit_with_min_qudit_dims_qid_shapes(
+                other.explicit_qid_shapes, self.min_qudit_dimensions
+            )
+
+        # don't attempt to intersect min qudit dimensions with
+        # unfactorized total dimension
+
+        if self.min_qudit_dimensions is not None and other.min_qudit_dimensions is not None:
+            min_qudit_dimensions = _intersection_min_qudit_dims_qid_shapes(
+                self.min_qudit_dimensions, other.min_qudit_dimensions
+            )
+
+        return _QidShapeSet(
+            explicit_qid_shapes=explicit_qid_shapes,
+            unfactorized_total_dimension=unfactorized_total_dimension,
+            min_qudit_dimensions=min_qudit_dimensions,
+        )
+
+    def is_ambiguous(self) -> bool:
+        """Whether the qid shape is ambiguous and cannot be inferred."""
+        if self.min_qudit_dimensions is not None:
+            return True
+        if self.unfactorized_total_dimension is not None:
+            if self.explicit_qid_shapes:
+                return True
+            return False
+        return len(self.explicit_qid_shapes) > 1
+
+    def infer_qid_shape(self) -> Optional[Tuple[int, ...]]:
+        """Return a qid shape from this set, or None."""
+        if self.is_ambiguous():
+            # coverage: ignore
+            return None
+        if self.unfactorized_total_dimension is not None:
+            return _infer_qid_shape_from_dimension(self.unfactorized_total_dimension)
+        if len(self.explicit_qid_shapes) == 0:
+            return None
+        return self.explicit_qid_shapes.pop()
+
+
+def _intersection_explicit_with_unfactorized_qid_shapes(
+    explicit_qid_shapes: Set[Tuple[int, ...]], unfactorized_total_dimension: int
+) -> Set[Tuple[int, ...]]:
+    return {
+        qid_shape
+        for qid_shape in explicit_qid_shapes
+        if np.prod(qid_shape, dtype=int) == unfactorized_total_dimension
+    }
+
+
+def _intersection_explicit_with_min_qudit_dims_qid_shapes(
+    explicit_qid_shapes: Set[Tuple[int, ...]], min_qudit_dimensions: Tuple[int, ...]
+) -> Set[Tuple[int, ...]]:
+    return {
+        qid_shape
+        for qid_shape in explicit_qid_shapes
+        if len(qid_shape) == len(min_qudit_dimensions)
+        and all(dim1 >= dim2 for dim1, dim2 in zip(qid_shape, min_qudit_dimensions))
+    }
+
+
+def _intersection_min_qudit_dims_qid_shapes(
+    min_qudit_dimensions1: Tuple[int, ...], min_qudit_dimensions2: Tuple[int, ...]
+) -> Optional[Tuple[int, ...]]:
+    if len(min_qudit_dimensions1) == len(min_qudit_dimensions2):
+        return tuple(
+            max(dim1, dim2) for dim1, dim2 in zip(min_qudit_dimensions1, min_qudit_dimensions2)
+        )
+    return None
 
 
 @deprecated_parameter(
