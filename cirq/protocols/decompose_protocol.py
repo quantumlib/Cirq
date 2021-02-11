@@ -51,9 +51,7 @@ OpDecomposer = Callable[['cirq.Operation'], DecomposeResult]
 
 
 def _value_error_describing_bad_operation(op: 'cirq.Operation') -> ValueError:
-    return ValueError(
-        f"Operation doesn't satisfy the given `keep` but can't be decomposed: {op!r}"
-    )
+    return ValueError(f"Operation doesn't satisfy the given `keep` but can't be decomposed: {op!r}")
 
 
 class SupportsDecompose(Protocol):

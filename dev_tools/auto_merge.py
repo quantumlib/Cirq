@@ -911,9 +911,7 @@ def main():
     access_token = os.getenv(ACCESS_TOKEN_ENV_VARIABLE)
     if not access_token:
         project_id = 'cirq-infra'
-        print(
-            f'{ACCESS_TOKEN_ENV_VARIABLE} not set. Trying secret manager.', file=sys.stderr
-        )
+        print(f'{ACCESS_TOKEN_ENV_VARIABLE} not set. Trying secret manager.', file=sys.stderr)
         client = secretmanager_v1beta1.SecretManagerServiceClient()
         secret_name = f'projects/{project_id}/secrets/cirq-bot-api-key/versions/1'
         response = client.access_secret_version(name=secret_name)

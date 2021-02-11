@@ -61,9 +61,7 @@ class ControlledOperation(raw_types.Operation):
         # Verify control values not out of bounds
         for q, val in zip(controls, self.control_values):
             if not all(0 <= v < q.dimension for v in val):
-                raise ValueError(
-                    f'Control values <{val!r}> outside of range for qubit <{q!r}>.'
-                )
+                raise ValueError(f'Control values <{val!r}> outside of range for qubit <{q!r}>.')
 
         if not isinstance(sub_operation, ControlledOperation):
             self.controls = tuple(controls)

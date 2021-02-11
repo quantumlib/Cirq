@@ -271,9 +271,7 @@ class QasmOutput:
             if comment is None:
                 output(f'creg {meas_id}[{len(meas.qubits)}];\n')
             else:
-                output(
-                    f'creg {meas_id}[{len(meas.qubits)}];  // Measurement: {comment}\n'
-                )
+                output(f'creg {meas_id}[{len(meas.qubits)}];  // Measurement: {comment}\n')
         output_line_gap(2)
 
         # Operations

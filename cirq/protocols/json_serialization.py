@@ -316,9 +316,7 @@ def _cirq_object_hook(d, resolvers: Sequence[JsonResolver], context_map: Dict[st
         if cls is not None:
             break
     else:
-        raise ValueError(
-            f"Could not resolve type '{d['cirq_type']}' during deserialization"
-        )
+        raise ValueError(f"Could not resolve type '{d['cirq_type']}' during deserialization")
 
     from_json_dict = getattr(cls, '_from_json_dict_', None)
     if from_json_dict is not None:

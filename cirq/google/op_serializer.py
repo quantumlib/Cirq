@@ -166,9 +166,7 @@ class GateOpSerializer:
             gate = op.gate
             value = getattr(gate, op_getter, None)
             if value is None and arg.required:
-                raise ValueError(
-                    f'Gate {gate!r} does not have attribute or property {op_getter}'
-                )
+                raise ValueError(f'Gate {gate!r} does not have attribute or property {op_getter}')
         elif callable(op_getter):
             value = op_getter(op)
 
@@ -190,9 +188,7 @@ class GateOpSerializer:
     def _check_type(self, value: arg_func_langs.ARG_LIKE, arg: SerializingArg) -> None:
         if arg.serialized_type == float:
             if not isinstance(value, (float, int)):
-                raise ValueError(
-                    f'Expected type convertible to float but was {type(value)}'
-                )
+                raise ValueError(f'Expected type convertible to float but was {type(value)}')
         elif arg.serialized_type == List[bool]:
             if not isinstance(value, (list, tuple, np.ndarray)) or not all(
                 isinstance(x, (bool, np.bool_)) for x in value

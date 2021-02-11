@@ -298,9 +298,7 @@ class QasmParser:
         if name in self.qregs.keys() or name in self.cregs.keys():
             raise QasmException(f"{name} is already defined at line {p.lineno(2)}")
         if length == 0:
-            raise QasmException(
-                f"Illegal, zero-length register '{name}' at line {p.lineno(4)}"
-            )
+            raise QasmException(f"Illegal, zero-length register '{name}' at line {p.lineno(4)}")
         if p[1] == "qreg":
             self.qregs[name] = length
         else:
@@ -361,9 +359,7 @@ class QasmParser:
         """expr : ID '(' expr ')'"""
         func = p[1]
         if func not in self.functions.keys():
-            raise QasmException(
-                f"Function not recognized: '{func}' at line {p.lineno(1)}"
-            )
+            raise QasmException(f"Function not recognized: '{func}' at line {p.lineno(1)}")
         p[0] = self.functions[func](p[3])
 
     def p_expr_unary(self, p):
@@ -408,9 +404,7 @@ class QasmParser:
         """qarg : ID """
         reg = p[1]
         if reg not in self.qregs.keys():
-            raise QasmException(
-                f'Undefined quantum register "{reg}" at line {p.lineno(1)}'
-            )
+            raise QasmException(f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
         qubits = []
         for idx in range(self.qregs[reg]):
             arg_name = self.make_name(idx, reg)
@@ -426,9 +420,7 @@ class QasmParser:
         """carg : ID """
         reg = p[1]
         if reg not in self.cregs.keys():
-            raise QasmException(
-                f'Undefined classical register "{reg}" at line {p.lineno(1)}'
-            )
+            raise QasmException(f'Undefined classical register "{reg}" at line {p.lineno(1)}')
 
         p[0] = [self.make_name(idx, reg) for idx in range(self.cregs[reg])]
 
@@ -441,9 +433,7 @@ class QasmParser:
         idx = p[3]
         arg_name = self.make_name(idx, reg)
         if reg not in self.qregs.keys():
-            raise QasmException(
-                f'Undefined quantum register "{reg}" at line {p.lineno(1)}'
-            )
+            raise QasmException(f'Undefined quantum register "{reg}" at line {p.lineno(1)}')
         size = self.qregs[reg]
         if idx >= size:
             raise QasmException(
@@ -461,9 +451,7 @@ class QasmParser:
         idx = p[3]
         arg_name = self.make_name(idx, reg)
         if reg not in self.cregs.keys():
-            raise QasmException(
-                f'Undefined classical register "{reg}" at line {p.lineno(1)}'
-            )
+            raise QasmException(f'Undefined classical register "{reg}" at line {p.lineno(1)}')
 
         size = self.cregs[reg]
         if idx >= size:

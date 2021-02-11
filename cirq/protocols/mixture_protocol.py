@@ -98,9 +98,7 @@ def mixture(
         return default
 
     if mixture_getter is None and unitary_getter is None:
-        raise TypeError(
-            f"object of type '{type(val)}' has no _mixture_ or _unitary_ method."
-        )
+        raise TypeError(f"object of type '{type(val)}' has no _mixture_ or _unitary_ method.")
 
     raise TypeError(
         "object of type '{}' does have a _mixture_ or _unitary_ "

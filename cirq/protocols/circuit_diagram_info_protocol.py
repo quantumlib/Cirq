@@ -416,9 +416,7 @@ def circuit_diagram_info(
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     if getter is None:
-        raise TypeError(
-            f"object of type '{type(val)}' has no _circuit_diagram_info_ method."
-        )
+        raise TypeError(f"object of type '{type(val)}' has no _circuit_diagram_info_ method.")
     raise TypeError(
         "object of type '{}' does have a _circuit_diagram_info_ "
         "method, but it returned NotImplemented.".format(type(val))

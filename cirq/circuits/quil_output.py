@@ -153,9 +153,7 @@ class QuilOutput:
                 if key in measurements_declared:
                     continue
                 measurements_declared.add(key)
-                output_func(
-                    f'DECLARE {self.measurement_id_map[key]} BIT[{len(m.qubits)}]\n'
-                )
+                output_func(f'DECLARE {self.measurement_id_map[key]} BIT[{len(m.qubits)}]\n')
             output_func('\n')
 
         def keep(op: 'cirq.Operation') -> bool:

@@ -341,9 +341,7 @@ class EngineJob:
             result = self._wait_for_result()
             result_type = result.type_url[len(engine_base.TYPE_PREFIX) :]
             if result_type != 'cirq.google.api.v2.FocusedCalibrationResult':
-                raise ValueError(
-                    f'Did not find calibration results, instead found: {result_type}'
-                )
+                raise ValueError(f'Did not find calibration results, instead found: {result_type}')
             parsed_val = v2.calibration_pb2.FocusedCalibrationResult.FromString(result.value)
             cal_results = []
             for layer in parsed_val.results:

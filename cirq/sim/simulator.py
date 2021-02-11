@@ -728,13 +728,9 @@ def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:
         for q, i in qubit_map.items():
             qid_shape[i] = q.dimension
     except IndexError:
-        raise ValueError(
-            f'Invalid qubit_map. Qubit index out of bounds. Map is <{qubit_map!r}>.'
-        )
+        raise ValueError(f'Invalid qubit_map. Qubit index out of bounds. Map is <{qubit_map!r}>.')
     if -1 in qid_shape:
-        raise ValueError(
-            f'Invalid qubit_map. Duplicate qubit index. Map is <{qubit_map!r}>.'
-        )
+        raise ValueError(f'Invalid qubit_map. Duplicate qubit index. Map is <{qubit_map!r}>.')
     return tuple(qid_shape)
 
 
