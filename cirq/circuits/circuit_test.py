@@ -1257,7 +1257,6 @@ def test_prev_moment_operating_on(circuit_cls):
         assert c.prev_moment_operating_on([a, b], 4, max_distance=-1)
 
 
-
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_prev_moment_operating_on_distance(circuit_cls):
     a = cirq.NamedQubit('a')
@@ -1297,7 +1296,6 @@ def test_prev_moment_operating_on_distance(circuit_cls):
 
     with pytest.raises(ValueError, match='Negative max_distance'):
         c.prev_moment_operating_on([a], 6, max_distance=-1)
-
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])

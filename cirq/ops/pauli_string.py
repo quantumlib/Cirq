@@ -973,7 +973,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         op: 'cirq.Operation',
         after_to_before: bool = False,
     ) -> bool:
-    
+
         gate = op.gate
         if isinstance(gate, clifford_gate.SingleQubitCliffordGate):
             return PauliString._pass_single_clifford_gate_over(

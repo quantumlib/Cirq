@@ -351,9 +351,7 @@ def test_generalized_amplitude_damping_channel_text_diagram():
     assert cirq.circuit_diagram_info(a, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
         wire_symbols=('GAD(0.1,0.4)',)
     )
-    assert cirq.circuit_diagram_info(a) == cirq.CircuitDiagramInfo(
-        wire_symbols=('GAD(0.1,0.396)',)
-    )
+    assert cirq.circuit_diagram_info(a) == cirq.CircuitDiagramInfo(wire_symbols=('GAD(0.1,0.396)',))
 
 
 def test_amplitude_damping_channel():
@@ -524,11 +522,10 @@ def test_phase_damping_channel_text_diagram():
         wire_symbols=('PD(0.100001)',)
     )
     assert cirq.circuit_diagram_info(pd, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
-        wire_symbols=('PD(0.1)',)    )
-
-    assert cirq.circuit_diagram_info(pd) == cirq.CircuitDiagramInfo(
         wire_symbols=('PD(0.1)',)
     )
+
+    assert cirq.circuit_diagram_info(pd) == cirq.CircuitDiagramInfo(wire_symbols=('PD(0.1)',))
 
 
 def test_phase_flip_channel():
@@ -585,9 +582,7 @@ def test_phase_flip_channel_text_diagram():
     assert cirq.circuit_diagram_info(pf, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
         wire_symbols=('PF(0.99)',)
     )
-    assert cirq.circuit_diagram_info(pf) == cirq.CircuitDiagramInfo(
-        wire_symbols=('PF(0.988)',)
-    )
+    assert cirq.circuit_diagram_info(pf) == cirq.CircuitDiagramInfo(wire_symbols=('PF(0.988)',))
 
 
 def test_bit_flip_channel():
@@ -644,9 +639,7 @@ def test_bit_flip_channel_text_diagram():
     assert cirq.circuit_diagram_info(bf, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
         wire_symbols=('BF(0.12)',)
     )
-    assert cirq.circuit_diagram_info(bf) == cirq.CircuitDiagramInfo(
-        wire_symbols=('BF(0.123)',)
-    )
+    assert cirq.circuit_diagram_info(bf) == cirq.CircuitDiagramInfo(wire_symbols=('BF(0.123)',))
 
 
 def test_stabilizer_supports_depolarize():
