@@ -27,6 +27,7 @@ from typing import (
     Optional,
     overload,
     Sequence,
+    Set,
     Type,
     TYPE_CHECKING,
     Union,
@@ -448,7 +449,7 @@ class SerializableByKey(SupportsJSON):
 
     @doc_private
     def _serialization_name_(self) -> str:
-        """Returns a string identifier for this object.
+        """Returns a human-readable string identifier for this object.
 
         This identifier need not be globally unique; a unique suffix will be
         dynamically generated to create the serialization key for this object.
@@ -618,6 +619,7 @@ def to_json(
             to your classes rather than overriding this default.
     """
     if has_serializable_by_keys(obj):
+        obj = _ContextualSerialization(obj)
 
         class ContextualEncoder(cls):  # type: ignore
             """An encoder with a context map for concise serialization."""
@@ -625,22 +627,20 @@ def to_json(
             # These lists populate gradually during serialization. An object
             # with components defined in 'context' will represent those
             # components using their keys instead of inline definition.
-            context: List['SerializableByKey'] = []
-            keys: List[str] = []
+            seen: Set[str] = set()
 
             def default(self, o):
                 if not hasattr(o, '_serialization_name_'):
                     return super().default(o)
-                try:
-                    idx = ContextualEncoder.context.index(o)
-                    return _SerializedKey(ContextualEncoder.keys[idx])._json_dict_()
-                except ValueError:
-                    ContextualEncoder.context.append(o)
-                    key = f'{o._serialization_name_()}_{len(ContextualEncoder.context)}'
-                    ContextualEncoder.keys.append(key)
-                    return super().default(o)
+                for candidate in obj.object_dag[:-1]:
+                    if candidate.obj == o:
+                        if not candidate.key in ContextualEncoder.seen:
+                            ContextualEncoder.seen.add(candidate.key)
+                            return candidate.obj._json_dict_()
+                        else:
+                            return _SerializedKey(candidate.key)._json_dict_()
+                raise ValueError("Object mutated during serialization.")  # coverage: ignore
 
-        obj = _ContextualSerialization(obj)
         cls = ContextualEncoder
 
     if file_or_fn is None:
