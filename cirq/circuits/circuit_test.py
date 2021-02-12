@@ -14,7 +14,7 @@
 import os
 from collections import defaultdict
 from random import randint, random, sample, randrange
-from typing import Tuple, cast, AbstractSet, Iterable
+from typing import Tuple, cast, AbstractSet
 
 import numpy as np
 import pytest
@@ -2644,6 +2644,58 @@ def test_composite_gate_to_unitary_matrix(circuit_cls):
     mat_expected = cirq.unitary(cirq.CNOT)
 
     cirq.testing.assert_allclose_up_to_global_phase(mat, mat_expected, atol=1e-8)
+
+
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_circuit_is_noisy(circuit_cls):
+    a, b = cirq.LineQubit.range(2)
+    x = sympy.Symbol('x')
+    circuit = circuit_cls(
+        cirq.H(a),
+        cirq.X(b) ** x,
+        cirq.CX(a, b),
+        cirq.measure(a, b, key='m'),
+    )
+    assert not circuit.is_noisy()
+
+    c_op = cirq.CircuitOperation(circuit.freeze())
+    nested_circuit = circuit_cls(
+        cirq.X(a),
+        c_op,
+    )
+    assert not nested_circuit.is_noisy()
+
+    nested_circuit2 = circuit_cls(
+        cirq.X(a),
+        c_op.with_qubit_mapping({a: b, b: a}).with_tags('dummy_tag'),
+    )
+    assert not nested_circuit2.is_noisy()
+
+    # Noisy-circuit tests.
+    noisy_circuit = circuit_cls(
+        cirq.depolarize(p=0.1).on(a),
+    )
+    assert noisy_circuit.is_noisy()
+
+    noisy_c_op = cirq.CircuitOperation(noisy_circuit.freeze())
+    noisy_nested_circuit = circuit_cls(
+        cirq.X(a),
+        noisy_c_op,
+    )
+    assert noisy_nested_circuit.is_noisy()
+
+    noisy_nested_circuit2 = circuit_cls(
+        cirq.X(a),
+        noisy_c_op.with_qubit_mapping({a: b, b: a}).with_tags('dummy_tag'),
+    )
+    assert noisy_nested_circuit2.is_noisy()
+
+    noise_with_nested_circuit = circuit_cls(
+        cirq.X(a),
+        cirq.depolarize(p=0.1).on(a),
+        c_op,
+    )
+    assert noise_with_nested_circuit.is_noisy()
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])

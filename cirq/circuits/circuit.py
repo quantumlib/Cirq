@@ -90,6 +90,7 @@ class AbstractCircuit(abc.ABC):
     *   are_all_matches_terminal
     *   are_all_measurements_terminal
     *   unitary
+    *   is_noisy
     *   final_state_vector
     *   to_text_diagram
     *   to_text_diagram_drawer
@@ -963,6 +964,23 @@ class AbstractCircuit(abc.ABC):
 
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((side_len, side_len))
+
+    def is_noisy(self) -> bool:
+        """Checks if the circuit has "noisy" operations (channels or mixtures)."""
+        for op in self.all_operations():
+            test_op = op
+            c = _get_op_circuit(test_op)
+            if c is not None:
+                if c.is_noisy():
+                    return True
+            else:
+                if protocols.is_parameterized(op):
+                    test_op = protocols.resolve_parameters(
+                        op, {param: 1 for param in protocols.parameter_names(op)}
+                    )
+                if not (protocols.has_unitary(test_op) or protocols.is_measurement(test_op)):
+                    return True
+        return False
 
     def final_state_vector(
         self,
