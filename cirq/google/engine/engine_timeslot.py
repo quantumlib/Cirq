@@ -21,8 +21,10 @@ from cirq.google.engine.client.quantum import types as qtypes
 _DEFAULT_TYPE = qenums.QuantumTimeSlot.TimeSlotType.TIME_SLOT_TYPE_UNSPECIFIED
 
 
-def _to_timestamp(dt: datetime.datetime):
-    return timestamp_pb2.Timestamp(seconds=int(dt.timestamp()))
+def _to_timestamp(dt: Optional[datetime.datetime]) -> Optional[timestamp_pb2.Timestamp]:
+    if dt is not None:
+        return timestamp_pb2.Timestamp(seconds=int(dt.timestamp()))
+    return None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -42,8 +44,8 @@ class EngineTimeSlot:
     """
 
     processor_id: str
-    start_time: datetime.datetime
-    end_time: datetime.datetime
+    start_time: Optional[datetime.datetime] = None
+    end_time: Optional[datetime.datetime] = None
     slot_type: qenums.QuantumTimeSlot.TimeSlotType = _DEFAULT_TYPE
     project_id: Optional[str] = None
     maintenance_title: Optional[str] = None
@@ -52,27 +54,33 @@ class EngineTimeSlot:
     @classmethod
     def from_proto(cls, proto: qtypes.QuantumTimeSlot):
         slot_type = qenums.QuantumTimeSlot.TimeSlotType(proto.slot_type)
+        start_time = None
+        end_time = None
+        if proto.HasField('start_time'):
+            start_time = datetime.datetime.fromtimestamp(proto.start_time.seconds)
+        if proto.HasField('end_time'):
+            end_time = datetime.datetime.fromtimestamp(proto.end_time.seconds)
         if proto.HasField('reservation_config'):
             return cls(
                 processor_id=proto.processor_name,
-                start_time=datetime.datetime.fromtimestamp(proto.start_time.seconds),
-                end_time=datetime.datetime.fromtimestamp(proto.end_time.seconds),
+                start_time=start_time,
+                end_time=end_time,
                 slot_type=slot_type,
                 project_id=proto.reservation_config.project_id,
             )
         if proto.HasField('maintenance_config'):
             return cls(
                 processor_id=proto.processor_name,
-                start_time=datetime.datetime.fromtimestamp(proto.start_time.seconds),
-                end_time=datetime.datetime.fromtimestamp(proto.end_time.seconds),
+                start_time=start_time,
+                end_time=end_time,
                 slot_type=slot_type,
                 maintenance_title=proto.maintenance_config.title,
                 maintenance_description=proto.maintenance_config.description,
             )
         return cls(
             processor_id=proto.processor_name,
-            start_time=datetime.datetime.fromtimestamp(proto.start_time.seconds),
-            end_time=datetime.datetime.fromtimestamp(proto.end_time.seconds),
+            start_time=start_time,
+            end_time=end_time,
             slot_type=slot_type,
         )
 
