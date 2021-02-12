@@ -76,6 +76,8 @@ upper_tabs:
         path: /cirq/dev/rfc_process
       - title: "Style guide"
         path: /cirq/dev/style
+      - title: "Notebooks guide"
+        path: /cirq/dev/notebooks
       - title: "Nomenclature"
         path: /cirq/dev/nomenclature
       - title: "Gate and operation guidelines"
