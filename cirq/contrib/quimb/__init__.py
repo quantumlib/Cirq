@@ -19,6 +19,7 @@ from cirq.contrib.quimb.grid_circuits import (
 
 from cirq.contrib.quimb.mps_simulator import (
     MPSSimulator,
+    MPSSimulatorOptions,
     MPSSimulatorStepResult,
     MPSState,
     MPSTrialResult,
