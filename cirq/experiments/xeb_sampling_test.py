@@ -117,7 +117,7 @@ def test_sample_2q_parallel_xeb_circuits():
         assert np.isclose(np.sum(row['sampled_probs']), 1)
         assert 0 <= row['layer_i'] < 4
         assert 0 <= row['pair_i'] < 2  # in 3x2 graph, there's a max of 2 pairs per layer
-    assert len(df['pair_name'].unique()) == 7  # seven pairs in 3x2 graph
+    assert len(df['pair'].unique()) == 7  # seven pairs in 3x2 graph
 
 
 def test_sample_2q_parallel_xeb_circuits_bad_circuit_library():
