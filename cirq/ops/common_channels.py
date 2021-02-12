@@ -310,10 +310,15 @@ class DepolarizingChannel(gate_features.SupportsOnEachGate, raw_types.Gate):
             return True
         return NotImplemented
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
+        result: Tuple[str, ...]
         if args.precision is not None:
-            return f"D({self._p:.{args.precision}g})"
-        return f"D({self._p})"
+            result = (f"D({self._p:.{args.precision}g})",)
+        else:
+            result = (f"D({self._p})",)
+        while len(result) < self.num_qubits():
+            result += (f"#{len(result) + 1}",)
+        return result
 
     @property
     def p(self) -> float:
