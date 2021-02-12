@@ -13,9 +13,10 @@
 # limitations under the License.
 """Tests for grid_qubit."""
 
-import pytest
+import pickle
 
 import numpy as np
+import pytest
 
 import cirq
 
@@ -37,6 +38,18 @@ def test_eq():
     eq.make_equality_group(lambda: cirq.GridQubit(1, 0), lambda: cirq.GridQid(1, 0, dimension=2))
     eq.make_equality_group(lambda: cirq.GridQubit(0, 1), lambda: cirq.GridQid(0, 1, dimension=2))
     eq.make_equality_group(lambda: cirq.GridQid(0, 0, dimension=3))
+
+
+def test_pickled_hash():
+    q = cirq.GridQubit(3, 4)
+    q_bad = cirq.GridQubit(3, 4)
+    q_bad._hash += 1
+    assert q_bad == q
+    assert hash(q_bad) != hash(q)
+    data = pickle.dumps(q_bad)
+    q_ok = pickle.loads(data)
+    assert q_ok == q
+    assert hash(q_ok) == hash(q)
 
 
 def test_str():

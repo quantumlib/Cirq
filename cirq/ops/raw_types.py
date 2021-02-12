@@ -99,7 +99,7 @@ class Qid(metaclass=abc.ABCMeta):
         return (type(self).__name__, repr(type(self)), self._comparison_key(), self.dimension)
 
     def __hash__(self):
-        return hash((type(self).__name__, self._comparison_key()))
+        return hash((Qid, self._comparison_key()))
 
     def __eq__(self, other):
         if not isinstance(other, Qid):
