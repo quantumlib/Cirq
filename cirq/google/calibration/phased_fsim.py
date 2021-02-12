@@ -36,6 +36,7 @@ from cirq.ops import (
     FSimGate,
     Gate,
     ISwapPowGate,
+    Moment,
     Operation,
     PhasedFSimGate,
     PhasedISwapPowGate,
@@ -60,6 +61,31 @@ T = TypeVar('T')
 # Workaround for: https://github.com/python/mypy/issues/5858
 def lru_cache_typesafe(func: Callable[..., T]) -> T:
     return functools.lru_cache(maxsize=None)(func)  # type: ignore
+
+
+def _create_pairs_from_moment(moment: Moment) -> Tuple[Tuple[Tuple[Qid, Qid], ...], Gate]:
+    """Creates instantiation parameters from a Moment.
+
+    Given a moment, creates a tuple of pairs of qubits and the
+    gate for instantiation of a sub-class of PhasedFSimCalibrationRequest,
+    Sub-classes of PhasedFSimCalibrationRequest can call this function
+    to implement a from_moment function.
+    """
+    gate = None
+    pairs: List[Tuple[Qid, Qid]] = []
+    for op in moment:
+        if op.gate is None:
+            raise ValueError('All gates in request object must be two qubit gates: {op}')
+        if gate is None:
+            gate = op.gate
+        elif gate != op.gate:
+            raise ValueError('All gates in request object must be identical {gate}!={op.gate}')
+        if len(op.qubits) != 2:
+            raise ValueError('All gates in request object must be two qubit gates: {op}')
+        pairs.append((op.qubits[0], op.qubits[1]))
+    if gate is None:
+        raise ValueError('No gates found to create request {moment}')
+    return tuple(pairs), gate
 
 
 @json_serializable_dataclass(frozen=True)
@@ -373,6 +399,18 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     """
 
     options: FloquetPhasedFSimCalibrationOptions
+
+    @classmethod
+    def from_moment(cls, moment: Moment, options: FloquetPhasedFSimCalibrationOptions):
+        """Creates a FloquetPhasedFSimCalibrationRequest from a Moment.
+
+        Given a `Moment` object, this function extracts out the pairs of
+        qubits and the `Gate` used to create a `FloquetPhasedFSimCalibrationRequest`
+        object.  The moment must contain only identical two-qubit FSimGates.
+        If dissimilar gates are passed in, a ValueError is raised.
+        """
+        pairs, gate = _create_pairs_from_moment(moment)
+        return cls(pairs, gate, options)
 
     def to_calibration_layer(self) -> CalibrationLayer:
         circuit = Circuit([self.gate.on(*pair) for pair in self.pairs])
