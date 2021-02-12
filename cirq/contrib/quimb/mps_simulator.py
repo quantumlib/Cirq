@@ -29,7 +29,7 @@ from cirq import circuits, study, ops, protocols, value
 from cirq.sim import simulator
 
 
-class MPSSimulatorOptions:
+class MPSOptions:
     def __init__(
         self,
         method: str = 'svds',
@@ -70,7 +70,7 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
     def __init__(
         self,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-        simulation_options: 'cirq.MPSSimulatorOptions' = MPSSimulatorOptions(),
+        simulation_options: 'cirq.contrib.quimb.mps_simulator.MPSOptions' = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
     ):
         """Creates instance of `MPSSimulator`.
@@ -323,7 +323,7 @@ class MPSState:
     def __init__(
         self,
         qubit_map: Dict['cirq.Qid', int],
-        simulation_options: 'cirq.MPSSimulatorOptions' = MPSSimulatorOptions(),
+        simulation_options: 'cirq.contrib.quimb.mps_simulator.MPSOptions' = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
     ):
@@ -369,7 +369,7 @@ class MPSState:
             self.M[n] @= qtn.Tensor(x, inds=(self.i_str(i),))
             initial_state = initial_state // d
         self.simulation_options = simulation_options
-        self.e_n_s = []
+        self.e_n_s: List[float] = []
 
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.
@@ -501,7 +501,6 @@ class MPSState:
                 )
 
                 # Equations (13), (14), and (15):
-                f_n = self.simulation_options.cutoff
                 # TODO(tonybruguier): When Quimb 2.0.0 is released, the split()
                 # function should have a 'renorm' that, when set to None, will
                 # allow to compute e_n exactly as:

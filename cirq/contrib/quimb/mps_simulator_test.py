@@ -165,7 +165,7 @@ def test_probs_dont_sum_up_to_one():
     circuit = cirq.Circuit(cirq.measure(q0))
 
     simulator = ccq.mps_simulator.MPSSimulator(
-        simulation_options=ccq.mps_simulator.MPSSimulatorOptions(sum_prob_atol=-0.5)
+        simulation_options=ccq.mps_simulator.MPSOptions(sum_prob_atol=-0.5)
     )
 
     with pytest.raises(ValueError, match="Sum of probabilities exceeds tolerance"):
@@ -256,7 +256,7 @@ def test_measurement_str():
 def test_trial_result_str():
     q0 = cirq.LineQubit(0)
     final_simulator_state = ccq.mps_simulator.MPSState(
-        qubit_map={q0: 0}, simulation_options=ccq.mps_simulator.MPSSimulatorOptions()
+        qubit_map={q0: 0}, simulation_options=ccq.mps_simulator.MPSOptions()
     )
     assert (
         str(
@@ -290,15 +290,15 @@ def test_state_equal():
     q0, q1 = cirq.LineQubit.range(2)
     state0 = ccq.mps_simulator.MPSState(
         qubit_map={q0: 0},
-        simulation_options=ccq.mps_simulator.MPSSimulatorOptions(cutoff=1e-3, sum_prob_atol=1e-3),
+        simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1e-3, sum_prob_atol=1e-3),
     )
     state1a = ccq.mps_simulator.MPSState(
         qubit_map={q1: 0},
-        simulation_options=ccq.mps_simulator.MPSSimulatorOptions(cutoff=1e-3, sum_prob_atol=1e-3),
+        simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1e-3, sum_prob_atol=1e-3),
     )
     state1b = ccq.mps_simulator.MPSState(
         qubit_map={q1: 0},
-        simulation_options=ccq.mps_simulator.MPSSimulatorOptions(cutoff=1729.0, sum_prob_atol=1e-3),
+        simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1729.0, sum_prob_atol=1e-3),
     )
     assert state0 == state0
     assert state0 != state1a
@@ -341,7 +341,7 @@ def test_supremacy_big():
     circuit.append(cirq.measure(q0))
 
     mps_simulator = ccq.mps_simulator.MPSSimulator(
-        simulation_options=ccq.mps_simulator.MPSSimulatorOptions(cutoff=5e-5)
+        simulation_options=ccq.mps_simulator.MPSOptions(cutoff=5e-5)
     )
     result = mps_simulator.simulate(circuit, qubit_order=qubit_order, initial_state=0)
 
