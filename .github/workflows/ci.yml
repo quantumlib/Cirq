@@ -173,7 +173,7 @@ jobs:
     name: Pytest Windows
     strategy:
       matrix:
-        python-version: [ '3.6', '3.7', '3.8' ]
+        python-version: [ '3.7', '3.8' ]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -181,9 +181,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - name: Force old pip (3.6 only)
-        if: matrix.python-version == '3.6'
-        run: pip install pip==20.2
       - name: Install requirements
         run: |
           pip install -r requirements.txt
@@ -195,7 +192,7 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: [ '3.6', '3.7', '3.8' ]
+        python-version: ['3.7', '3.8' ]
     runs-on: macos-10.15
     steps:
       - uses: actions/checkout@v2
@@ -203,9 +200,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - name: Force old pip (3.6 only)
-        if: matrix.python-version == '3.6'
-        run: pip install pip==20.2
       - name: Install requirements
         run: |
           pip install -r requirements.txt
