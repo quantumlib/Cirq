@@ -108,6 +108,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
+      - name: Force old pip (3.6 only)
+        if: matrix.python-version == '3.7'
+        run: pip install pip==20.2
       - name: Install requirements
         run: |
           pip install -r requirements.txt
@@ -178,6 +181,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
+      - name: Force old pip (3.6 only)
+        if: matrix.python-version == '3.7'
+        run: pip install pip==20.2
       - name: Install requirements
         run: |
           pip install -r requirements.txt
@@ -197,6 +203,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
+      - name: Force old pip (3.6 only)
+        if: matrix.python-version == '3.7'
+        run: pip install pip==20.2
       - name: Install requirements
         run: |
           pip install -r requirements.txt
