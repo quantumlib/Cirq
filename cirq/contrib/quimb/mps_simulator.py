@@ -21,6 +21,7 @@ import collections
 import math
 from typing import Any, Dict, List, Iterator, Optional, Sequence, Set
 
+import dataclasses
 import numpy as np
 import quimb.tensor as qtn
 
@@ -29,6 +30,7 @@ from cirq import circuits, study, ops, protocols, value
 from cirq.sim import simulator
 
 
+@dataclasses.dataclass
 class MPSOptions:
     def __init__(
         self,
@@ -52,16 +54,16 @@ class MPSOptions:
             sum_prob_atol: Because the computation is approximate, the sum of
                 the probabilities is not 1.0. This parameter is the absolute
                 deviation from 1.0 that is allowed.
-            grouping: How to group qubits together, if None all are individual.
         """
+
+        # Quimb documentation:
+        # https://quimb.readthedocs.io/en/latest/_autosummary/ \
+        #       quimb.tensor.tensor_core.html#quimb.tensor.tensor_core.tensor_split
         self.method = method
         self.max_bond = max_bond
         self.cutoff_mode = cutoff_mode
         self.cutoff = cutoff
         self.sum_prob_atol = sum_prob_atol
-
-    cutoff: float
-    sum_prob_atol: float
 
 
 class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
@@ -369,7 +371,7 @@ class MPSState:
             self.M[n] @= qtn.Tensor(x, inds=(self.i_str(i),))
             initial_state = initial_state // d
         self.simulation_options = simulation_options
-        self.e_n_s: List[float] = []
+        self.estimated_gate_error_list: List[float] = []
 
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.
@@ -392,7 +394,7 @@ class MPSState:
     def copy(self) -> 'MPSState':
         state = MPSState(self.qubit_map, self.simulation_options, self.grouping)
         state.M = [x.copy() for x in self.M]
-        state.e_n_s = self.e_n_s
+        state.estimated_gate_error_list = self.estimated_gate_error_list
         return state
 
     def state_vector(self) -> np.ndarray:
@@ -510,7 +512,7 @@ class MPSState:
                 #
                 # However, for now, e_n are just the estimated value.
                 e_n = self.simulation_options.cutoff
-                self.e_n_s.append(e_n)
+                self.estimated_gate_error_list.append(e_n)
 
                 self.M[n] = X.reindex({new_inds[0]: old_inds[0]})
                 self.M[p] = Y.reindex({new_inds[1]: old_inds[1]})
@@ -531,8 +533,10 @@ class MPSState:
 
         # The computation below is done for numerical stability, instead of directly using the
         # formula:
-        # estimated_fidelity = \prod_i (1 - e_n_s_i)
-        estimated_fidelity = 1.0 + np.expm1(sum([np.log1p(-x) for x in self.e_n_s]))
+        # estimated_fidelity = \prod_i (1 - estimated_gate_error_list_i)
+        estimated_fidelity = 1.0 + np.expm1(
+            sum(np.log1p(-x) for x in self.estimated_gate_error_list)
+        )
         estimated_fidelity = round(estimated_fidelity, ndigits=3)
 
         return {
