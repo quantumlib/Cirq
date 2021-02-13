@@ -1291,7 +1291,7 @@ class AbstractCircuit(abc.ABC):
         return acc
 
 
-def _first_intersection_index(query: AbstractSet[Any], targets: List[AbstractSet[Any]]) -> int:
+def _first_intersection_index(query: AbstractSet[Any], targets: Sequence[AbstractSet[Any]]) -> int:
     for k, s in enumerate(targets):
         if not query.isdisjoint(s):
             return k
@@ -1920,7 +1920,6 @@ class Circuit(AbstractCircuit):
             <BLANKLINE>
             3: ───────S───────
         """
-        circuits = list(circuits)
         n = max([len(c) for c in circuits], default=0)
 
         result = cirq.Circuit()
