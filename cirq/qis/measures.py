@@ -20,6 +20,7 @@ import scipy
 import scipy.stats
 from cirq import value
 from cirq._compat import deprecated_parameter
+from cirq.linalg.operator_sum_utils import compute_kraus_operations
 from cirq.qis.states import (
     QuantumState,
     quantum_state,
@@ -29,8 +30,6 @@ from cirq.qis.states import (
 
 if TYPE_CHECKING:
     import cirq
-
-from cirq.linalg.operator_sum_utils import compute_kraus_operations
 
 
 def _sqrt_positive_semidefinite_matrix(mat: np.ndarray) -> np.ndarray:
