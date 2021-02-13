@@ -1258,6 +1258,60 @@ class AbstractCircuit(abc.ABC):
     def _from_json_dict_(cls, moments, device, **kwargs):
         return cls(moments, strategy=InsertStrategy.EARLIEST, device=device)
 
+    def raggedy_add(*circuits: 'cirq.Circuit') -> 'cirq.Circuit':
+        """Concatenates circuits while overlapping them if possible.
+
+        Starts with the first circuit (index 0), then iterates over the other
+        circuits while folding them in. To fold two circuits together, they
+        are placed one after the other and then the second one is moved backward
+        until either just before its operations would collide with operations
+        in the first one or else their ends are equal.
+
+        Beware that this method is *not* associative. For example:
+
+            >>> E = cirq.Circuit(cirq.Moment()) * 10
+            >>> H = cirq.Circuit(cirq.H(cirq.LineQubit(0)))
+            >>> f = cirq.Circuit.raggedy_add
+            >>> len(f(E, f(H, H))
+            10
+            >>> len(f(f(E, H), H))
+            11
+
+        Args:
+            circuits: The circuits to concatenate.
+
+        Returns:
+            The concatenated and overlapped circuit.
+        """
+        if len(circuits) == 0:
+            return Circuit()
+        acc = Circuit(circuits[0])
+        for k in range(1, len(circuits)):
+            acc = _raggedy_add_helper(acc, circuits[k])
+        return acc
+
+
+def _first_intersection_index(query: AbstractSet[Any], targets: List[AbstractSet[Any]]) -> int:
+    for k, s in enumerate(targets):
+        if not query.isdisjoint(s):
+            return k
+    return len(targets)
+
+
+def _raggedy_add_helper(c1: 'cirq.Circuit', c2: 'cirq.Circuit') -> 'cirq.Circuit':
+    max_overlap = min(len(c1), len(c2))
+    targets = [c2[k].qubits for k in range(max_overlap)]
+    for k in range(max_overlap):
+        t = k + _first_intersection_index(c1[len(c1) - k - 1].qubits, targets)
+        targets.pop()
+        max_overlap = min(max_overlap, t)
+
+    return Circuit(
+        c1[:-max_overlap],
+        c1[-max_overlap:].zip(c2[:max_overlap]),
+        c2[max_overlap:],
+    )
+
 
 class Circuit(AbstractCircuit):
     """A mutable list of groups of operations to apply to some qubits.
@@ -1812,7 +1866,7 @@ class Circuit(AbstractCircuit):
                 self._moments[moment_index].operations + tuple(new_ops)
             )
 
-    def zip(*circuits):
+    def zip(*circuits: 'cirq.Circuit'):
         """Combines operations from circuits in a moment-by-moment fashion.
 
         Moment k of the resulting circuit will have all operations from moment

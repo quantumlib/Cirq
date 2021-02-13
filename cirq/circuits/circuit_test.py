@@ -4360,3 +4360,46 @@ def test_repr_html_escaping(circuit_cls):
 
     # Escaping Special Characters in Qubit names.
     assert '|c&gt;' in circuit._repr_html_()
+
+
+def test_raggedy_add():
+    a, b = cirq.LineQubit.range(2)
+    empty = cirq.Circuit()
+
+    assert cirq.Circuit.raggedy_add(empty, empty) == empty
+    assert empty.raggedy_add(empty) == empty
+    assert empty.raggedy_add(empty, empty) == empty
+
+    ha = cirq.Circuit(cirq.H(a))
+    hb = cirq.Circuit(cirq.H(b))
+    assert ha.raggedy_add(hb) == ha.zip(hb)
+
+    assert ha.raggedy_add(empty) == ha
+    assert empty.raggedy_add(ha) == ha
+
+    hac = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
+    assert hac.raggedy_add(hb) == hac + hb
+    assert hb.raggedy_add(hac) == hb.zip(hac)
+
+    zig = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.H(b))
+    assert zig.raggedy_add(zig) == cirq.Circuit(
+        cirq.H(a), cirq.CNOT(a, b), cirq.Moment(cirq.H(a), cirq.H(b)), cirq.CNOT(a, b), cirq.H(b)
+    )
+
+    zag = cirq.Circuit(cirq.H(a), cirq.H(a), cirq.CNOT(a, b), cirq.H(b), cirq.H(b))
+    assert zag.raggedy_add(zag) == cirq.Circuit(
+        cirq.H(a),
+        cirq.H(a),
+        cirq.CNOT(a, b),
+        cirq.Moment(cirq.H(a), cirq.H(b)),
+        cirq.Moment(cirq.H(a), cirq.H(b)),
+        cirq.CNOT(a, b),
+        cirq.H(b),
+        cirq.H(b),
+    )
+
+    space = cirq.Circuit(cirq.Moment()) * 10
+    f = cirq.Circuit.raggedy_add
+    assert len(f(space, ha)) == 10
+    assert len(f(space, ha, ha, ha)) == 12
+    assert len(f(space, f(ha, ha, ha))) == 10
