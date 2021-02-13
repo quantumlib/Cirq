@@ -35,6 +35,7 @@ import numpy as np
 
 from cirq import protocols, value
 from cirq.type_workarounds import NotImplementedType
+from cirq._compat import deprecated_parameter
 
 if TYPE_CHECKING:
     import cirq
@@ -445,18 +446,40 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return TaggedOperation(self, *new_tags)
 
-    def transform_qubits(self: TSelf, func: Callable[['cirq.Qid'], 'cirq.Qid']) -> TSelf:
+    @deprecated_parameter(
+        deadline='v0.11.0',
+        fix='Use qubit_map instead.',
+        parameter_desc='positional func',
+        match=lambda args, kwargs: 'func' in kwargs,
+        rewrite=lambda args, kwargs: (
+            args,
+            {('qubit_map' if k == 'func' else k): v for k, v in kwargs.items()},
+        ),
+    )
+    def transform_qubits(
+        self: TSelf,
+        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
+    ) -> TSelf:
         """Returns the same operation, but with different qubits.
 
         Args:
-            func: The function to use to turn each current qubit into a desired
+            qubit_map: A function or a dict mapping each current qubit into a desired
                 new qubit.
 
         Returns:
             The receiving operation but with qubits transformed by the given
                 function.
+        Raises:
+            TypeError: qubit_map was not a function or dict mapping qubits to
+                qubits.
         """
-        return self.with_qubits(*(func(q) for q in self.qubits))
+        if callable(qubit_map):
+            transform = qubit_map
+        elif isinstance(qubit_map, dict):
+            transform = lambda q: qubit_map.get(q, q)  # type: ignore
+        else:
+            raise TypeError('qubit_map must be a function or dict mapping qubits to qubits.')
+        return self.with_qubits(*(transform(q) for q in self.qubits))
 
     def controlled_by(
         self,
@@ -506,6 +529,33 @@ class Operation(metaclass=abc.ABCMeta):
             ValueError: The operation had qids that don't match it's qid shape.
         """
         _validate_qid_shape(self, qubits)
+
+    def _commutes_(
+        self, other: Any, *, atol: Union[int, float] = 1e-8
+    ) -> Union[bool, NotImplementedType, None]:
+        """Determine if this Operation commutes with the object"""
+        if not isinstance(other, Operation):
+            return NotImplemented
+
+        if hasattr(other, 'qubits') and set(self.qubits).isdisjoint(other.qubits):
+            return True
+
+        from cirq import circuits
+
+        circuit12 = circuits.Circuit(self, other)
+        circuit21 = circuits.Circuit(other, self)
+
+        # Don't create gigantic matrices.
+        shape = protocols.qid_shape_protocol.qid_shape(circuit12)
+        if np.product(shape) > 2 ** 10:
+            return NotImplemented  # coverage: ignore
+
+        m12 = protocols.unitary_protocol.unitary(circuit12, default=None)
+        m21 = protocols.unitary_protocol.unitary(circuit21, default=None)
+        if m12 is None:
+            return NotImplemented
+
+        return np.allclose(m12, m21, atol=atol)
 
 
 @value.value_equality
@@ -629,6 +679,12 @@ class TaggedOperation(Operation):
         return protocols.is_parameterized(self.sub_operation) or any(
             protocols.is_parameterized(tag) for tag in self.tags
         )
+
+    def _act_on_(self, args: Any) -> bool:
+        sub = getattr(self.sub_operation, "_act_on_", None)
+        if sub is not None:
+            return sub(args)
+        return NotImplemented
 
     def _parameter_names_(self) -> AbstractSet[str]:
         tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}

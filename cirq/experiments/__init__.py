@@ -60,6 +60,7 @@ from cirq.experiments.purity_estimation import (
 from cirq.experiments.random_quantum_circuit_generation import (
     GRID_ALIGNED_PATTERN,
     GRID_STAGGERED_PATTERN,
+    HALF_GRID_STAGGERED_PATTERN,
     GridInteractionLayer,
     random_rotations_between_grid_interaction_layers_circuit,
 )

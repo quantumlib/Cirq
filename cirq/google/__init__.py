@@ -20,6 +20,28 @@ from cirq.google.arg_func_langs import (
     arg_from_proto,
 )
 
+from cirq.google.calibration import (
+    ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    CircuitWithCalibration,
+    FloquetPhasedFSimCalibrationOptions,
+    FloquetPhasedFSimCalibrationRequest,
+    FSimPhaseCorrections,
+    PhasedFSimCalibrationRequest,
+    PhasedFSimCalibrationResult,
+    PhasedFSimCharacterization,
+    PhasedFSimEngineSimulator,
+    SQRT_ISWAP_PARAMETERS,
+    THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    make_zeta_chi_gamma_compensation_for_moments,
+    prepare_floquet_characterization_for_circuit,
+    prepare_floquet_characterization_for_moment,
+    run_calibrations,
+    run_floquet_characterization_for_circuit,
+    run_zeta_chi_gamma_compensation_for_moments,
+    try_convert_sqrt_iswap_to_fsim,
+    WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+)
+
 from cirq.google.devices import (
     Bristlecone,
     Foxtail,
@@ -91,3 +113,14 @@ from cirq.google.op_serializer import (
 from cirq.google.serializable_gate_set import (
     SerializableGateSet,
 )
+
+
+def _register_resolver() -> None:
+    """Registers the cirq.google's public classes for JSON serialization."""
+    from cirq.protocols.json_serialization import _internal_register_resolver
+    from cirq.google.json_resolver_cache import _class_resolver_dictionary
+
+    _internal_register_resolver(_class_resolver_dictionary)
+
+
+_register_resolver()

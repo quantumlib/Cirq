@@ -501,6 +501,8 @@ def test_wait_gate_multi_qubit():
     [
         (cirq.ISWAP ** 0.5, -np.pi / 4, 0),
         (cirq.ISWAP ** -0.5, np.pi / 4, 0),
+        (cirq.ISWAP ** 1.0, -np.pi / 2, 0),
+        (cirq.ISWAP ** -1.0, np.pi / 2, 0),
         (cirq.ISWAP ** 0.0, 0, 0),
         (cirq.CZ, 0, np.pi),
         (cirq.CZ ** -1.0, 0, np.pi),
@@ -509,6 +511,8 @@ def test_wait_gate_multi_qubit():
         (cirq.FSimGate(theta=np.pi / 4, phi=0), np.pi / 4, 0),
         (cirq.FSimGate(theta=7 * np.pi / 4, phi=0), -np.pi / 4, 0),
         (cirq.FSimGate(theta=-np.pi / 4, phi=0), -np.pi / 4, 0),
+        (cirq.FSimGate(theta=np.pi / 2, phi=0), np.pi / 2, 0),
+        (cirq.FSimGate(theta=-np.pi / 2, phi=0), -np.pi / 2, 0),
         (cirq.FSimGate(theta=-7 * np.pi / 4, phi=0), np.pi / 4, 0),
         (cirq.google.SYC, np.pi / 2, np.pi / 6),
         (cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6), np.pi / 2, np.pi / 6),
@@ -596,7 +600,7 @@ def test_serialize_deserialize_iswap_symbols():
     'gate',
     [
         cirq.ISWAP ** 0.25,
-        cirq.ISWAP,
+        cirq.ISWAP ** 0.75,
         cirq.FSimGate(theta=0.1, phi=0),
         cirq.FSimGate(theta=0, phi=0.1),
         cirq.FSimGate(theta=sympy.Symbol('t'), phi=0.1),

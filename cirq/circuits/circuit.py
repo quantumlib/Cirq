@@ -55,7 +55,7 @@ from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.quil_output import QuilOutput
 from cirq.type_workarounds import NotImplementedType
-from cirq._compat import deprecated
+from cirq._compat import deprecated, deprecated_parameter
 import cirq._version
 
 if TYPE_CHECKING:
@@ -744,11 +744,11 @@ class AbstractCircuit(abc.ABC):
     def has_measurements(self):
         return any(self.findall_operations(protocols.is_measurement))
 
-    def are_all_measurements_terminal(self):
+    def are_all_measurements_terminal(self) -> bool:
         """Whether all measurement gates are at the end of the circuit."""
         return self.are_all_matches_terminal(protocols.is_measurement)
 
-    def are_all_matches_terminal(self, predicate: Callable[['cirq.Operation'], bool]):
+    def are_all_matches_terminal(self, predicate: Callable[['cirq.Operation'], bool]) -> bool:
         """Check whether all of the ops that satisfy a predicate are terminal.
 
         This method will transparently descend into any CircuitOperations this
@@ -763,24 +763,16 @@ class AbstractCircuit(abc.ABC):
             given predicate are terminal. Also checks within any CircuitGates
             the circuit may contain.
         """
-        from cirq.circuits import CircuitOperation
-
-        # TaggedOperations can wrap CircuitOperations.
-        def get_op_circuit(op: ops.Operation) -> Optional['cirq.FrozenCircuit']:
-            while isinstance(op, ops.TaggedOperation):
-                op = op.sub_operation
-            return op.circuit if isinstance(op, CircuitOperation) else None
-
         if not all(
             self.next_moment_operating_on(op.qubits, i + 1) is None
             for (i, op) in self.findall_operations(predicate)
-            if get_op_circuit(op) is None
+            if _get_op_circuit(op) is None
         ):
             return False
 
         for i, moment in enumerate(self.moments):
             for op in moment.operations:
-                circuit = get_op_circuit(op)
+                circuit = _get_op_circuit(op)
                 if circuit is None:
                     continue
                 if not circuit.are_all_matches_terminal(predicate):
@@ -791,6 +783,46 @@ class AbstractCircuit(abc.ABC):
                 ):
                     return False
         return True
+
+    def are_any_measurements_terminal(self) -> bool:
+        """Whether any measurement gates are at the end of the circuit."""
+        return self.are_any_matches_terminal(protocols.is_measurement)
+
+    def are_any_matches_terminal(self, predicate: Callable[['cirq.Operation'], bool]) -> bool:
+        """Check whether any of the ops that satisfy a predicate are terminal.
+
+        This method will transparently descend into any CircuitOperations this
+        circuit contains; as a result, it will misbehave if the predicate
+        refers to CircuitOperations. See the tests for an example of this.
+
+        Args:
+            predicate: A predicate on ops.Operations which is being checked.
+
+        Returns:
+            Whether or not any `Operation` s in a circuit that satisfy the
+            given predicate are terminal. Also checks within any CircuitGates
+            the circuit may contain.
+        """
+        if any(
+            self.next_moment_operating_on(op.qubits, i + 1) is None
+            for (i, op) in self.findall_operations(predicate)
+            if _get_op_circuit(op) is None
+        ):
+            return True
+
+        for i, moment in reversed(list(enumerate(self.moments))):
+            for op in moment.operations:
+                circuit = _get_op_circuit(op)
+                if circuit is None:
+                    continue
+                if not circuit.are_any_matches_terminal(predicate):
+                    continue
+                if i == len(self.moments) - 1 or any(
+                    self.next_moment_operating_on(op.qubits, i + 1) is None
+                    for _, op in circuit.findall_operations(predicate)
+                ):
+                    return True
+        return False
 
     def _has_op_at(self, moment_index: int, qubits: Iterable['cirq.Qid']) -> bool:
         return 0 <= moment_index < len(self.moments) and self.moments[moment_index].operates_on(
@@ -1471,8 +1503,21 @@ class Circuit(AbstractCircuit):
             device=new_device,
         )
 
+    @deprecated_parameter(
+        deadline='v0.11.0',
+        fix='Use qubit_map instead.',
+        parameter_desc='positional func',
+        match=lambda args, kwargs: 'func' in kwargs,
+        rewrite=lambda args, kwargs: (
+            args,
+            {('qubit_map' if k == 'func' else k): v for k, v in kwargs.items()},
+        ),
+    )
     def transform_qubits(
-        self, func: Callable[['cirq.Qid'], 'cirq.Qid'], *, new_device: 'cirq.Device' = None
+        self,
+        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
+        *,
+        new_device: 'cirq.Device' = None,
     ) -> 'cirq.Circuit':
         """Returns the same circuit, but with different qubits.
 
@@ -1481,7 +1526,7 @@ class Circuit(AbstractCircuit):
         also `transform_qubits` methods on `cirq.Operation` and `cirq.Moment`.
 
         Args:
-            func: The function to use to turn each current qubit into a desired
+            qubit_map: A function or a dict mapping each current qubit into a desired
                 new qubit.
             new_device: The device to use for the new circuit, if different.
                 If this is not set, the new device defaults to the current
@@ -1491,8 +1536,14 @@ class Circuit(AbstractCircuit):
             The receiving circuit but with qubits transformed by the given
                 function, and with an updated device (if specified).
         """
+        if callable(qubit_map):
+            transform = qubit_map
+        elif isinstance(qubit_map, dict):
+            transform = lambda q: qubit_map.get(q, q)  # type: ignore
+        else:
+            raise TypeError('qubit_map must be a function or dict mapping qubits to qubits.')
         return self.with_device(
-            new_device=self.device if new_device is None else new_device, qubit_mapping=func
+            new_device=self.device if new_device is None else new_device, qubit_mapping=transform
         )
 
     def _prev_moment_available(self, op: 'cirq.Operation', end_moment_index: int) -> Optional[int]:
@@ -2034,6 +2085,15 @@ class Circuit(AbstractCircuit):
             # Keep moments aligned
             c_noisy += Circuit(op_tree)
         return c_noisy
+
+
+def _get_op_circuit(op: ops.Operation) -> Optional['cirq.FrozenCircuit']:
+    """Retrieves the circuit contained by an operation, if there is one."""
+    from cirq.circuits import CircuitOperation
+
+    while isinstance(op, ops.TaggedOperation):
+        op = op.sub_operation
+    return op.circuit if isinstance(op, CircuitOperation) else None
 
 
 def _resolve_operations(

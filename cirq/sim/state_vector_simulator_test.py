@@ -200,7 +200,7 @@ def test_deprecated():
         _ = TestStepResult()
 
     class TestSimulatesClass(cirq.sim.SimulatesIntermediateWaveFunction):
-        def _simulator_iterator(self, circuit, param_resolver, qubit_order, initial_state):
+        def _base_iterator(self, circuit, qubit_order, initial_state):
             pass
 
     with cirq.testing.assert_logs(
