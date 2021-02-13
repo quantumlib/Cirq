@@ -73,7 +73,7 @@ def _find_base_revision():
     for rev in ['upstream/master', 'origin/master', 'master']:
         try:
             result = subprocess.run(
-                f'git cat-file -t {rev}'.split(), universal_newlines=True, capture_output=True
+                f'git cat-file -t {rev}'.split(), stdout=subprocess.PIPE, universal_newlines=True
             )
             if result.stdout == "commit\n":
                 return rev
