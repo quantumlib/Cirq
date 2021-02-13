@@ -89,6 +89,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'IdentityGate': cirq.IdentityGate,
         'IdentityOperation': _identity_operation_from_dict,
         'InitObsSetting': cirq.work.InitObsSetting,
+        'KetBra': cirq.KetBra,
+        'KetBraSum': cirq.KetBraSum,
         'LinearDict': cirq.LinearDict,
         'LineQubit': cirq.LineQubit,
         'LineQid': cirq.LineQid,
