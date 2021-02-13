@@ -65,6 +65,8 @@ upper_tabs:
         path: /cirq/interop
       - title: "Custom gates"
         path: /cirq/custom_gates
+      - title: "Operators and observables"
+        path: /cirq/operators_and_observables
 
       ####  Contributor Guide  ####
       - heading: "Contributor guide"
@@ -74,6 +76,8 @@ upper_tabs:
         path: /cirq/dev/rfc_process
       - title: "Style guide"
         path: /cirq/dev/style
+      - title: "Notebooks guide"
+        path: /cirq/dev/notebooks
       - title: "Nomenclature"
         path: /cirq/dev/nomenclature
       - title: "Gate and operation guidelines"
