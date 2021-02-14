@@ -1304,34 +1304,39 @@ class AbstractCircuit(abc.ABC):
 
 
 def _overlap_collision_time(
-    c1: 'cirq.Circuit', c2: 'cirq.Circuit', stop_at_first_alignment: bool
+    c1: 'cirq.AbstractCircuit', c2: 'cirq.AbstractCircuit', stop_at_first_alignment: bool
 ) -> int:
     # Tracks the first used moment index for each qubit in c2.
     # Tracks the complementary last used moment index for each qubit in c1.
     seen_times: Dict['cirq.Qid', int] = {}
 
+    # Start scanning from end of first and start of second.
     upper_bound = (min if stop_at_first_alignment else max)(len(c1), len(c2))
-    k = 0
-    while k < upper_bound:
-        if k < len(c2):
-            for op in c2[k]:
+    t = 0
+    while t < upper_bound:
+        if t < len(c2):
+            for op in c2[t]:
                 for q in op.qubits:
-                    k2 = seen_times.setdefault(q, +k)
+                    # Record time but check if qubit already seen on other side.
+                    k2 = seen_times.setdefault(q, t)
                     if k2 < 0:
-                        upper_bound = min(upper_bound, k + ~k2)
-        if k < len(c1):
-            for op in c1[-1 - k]:
+                        # Use this qubit collision to bound the collision time.
+                        upper_bound = min(upper_bound, t + ~k2)
+        if t < len(c1):
+            for op in c1[-1 - t]:
                 for q in op.qubits:
-                    k2 = seen_times.setdefault(q, ~k)
+                    # Record time but check if qubit already seen on other side.
+                    k2 = seen_times.setdefault(q, ~t)
                     if k2 >= 0:
-                        upper_bound = min(upper_bound, k + k2)
-        k += 1
+                        # Use this qubit collision to bound the collision time.
+                        upper_bound = min(upper_bound, t + k2)
+        t += 1
     return upper_bound
 
 
 def _raggedy_add_helper(
-    c1: 'cirq.Circuit',
-    c2: 'cirq.Circuit',
+    c1: 'cirq.AbstractCircuit',
+    c2: 'cirq.AbstractCircuit',
     stop_at_first_alignment: bool,
 ) -> 'cirq.Circuit':
     n1 = len(c1)
