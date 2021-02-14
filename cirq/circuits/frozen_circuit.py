@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """An immutable version of the Circuit data structure."""
-
+import functools
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
@@ -175,6 +175,14 @@ class FrozenCircuit(AbstractCircuit):
         self, param_resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'FrozenCircuit':
         return self.unfreeze()._resolve_parameters_(param_resolver, recursive).freeze()
+
+    @functools.wraps(Circuit.raggedy_add)  # Inherit doc string.
+    def raggedy_add(
+        *circuits: 'cirq.AbstractCircuit', stop_at_first_alignment: bool = False
+    ) -> 'cirq.FrozenCircuit':
+        return Circuit.raggedy_add(
+            *circuits, stop_at_first_alignment=stop_at_first_alignment
+        ).freeze()
 
     def to_op(self):
         """Creates a CircuitOperation wrapping this circuit."""

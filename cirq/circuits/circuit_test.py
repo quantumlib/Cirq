@@ -4510,3 +4510,15 @@ def test_raggedy_add():
                 ),
             )
         )
+
+    # Types.
+    v = ha.freeze().raggedy_add(empty)
+    assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
+    v = ha.raggedy_add(empty.freeze())
+    assert type(v) is cirq.Circuit and v == ha
+    v = ha.freeze().raggedy_add(empty)
+    assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
+    v = cirq.Circuit.raggedy_add(ha, empty)
+    assert type(v) is cirq.Circuit and v == ha
+    v = cirq.FrozenCircuit.raggedy_add(ha, empty)
+    assert type(v) is cirq.FrozenCircuit and v == ha.freeze()

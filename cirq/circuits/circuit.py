@@ -1259,25 +1259,29 @@ class AbstractCircuit(abc.ABC):
         return cls(moments, strategy=InsertStrategy.EARLIEST, device=device)
 
     def raggedy_add(
-        *circuits: 'cirq.Circuit', stop_at_first_alignment: bool = False
+        *circuits: 'cirq.AbstractCircuit', stop_at_first_alignment: bool = False
     ) -> 'cirq.Circuit':
         """Concatenates circuits while overlapping them if possible.
 
         Starts with the first circuit (index 0), then iterates over the other
         circuits while folding them in. To fold two circuits together, they
-        are placed one after the other and then the second one is moved backward
-        until either just before its operations would collide with operations
-        in the first one or else their ends are equal.
+        are placed one after the other and then moved inward until any of:
+
+            a) Just before their operations would collide.
+            b) stop_at_first_alignment==True and their ends (or starts) align
+                for the first time.
+            c) Their ends (or starts) align for the last time.
 
         Beware that this method is *not* associative. For example:
 
-            >>> E = cirq.Circuit(cirq.Moment()) * 10
-            >>> H = cirq.Circuit(cirq.H(cirq.LineQubit(0)))
+            >>> a, b = cirq.LineQubit.range(2)
+            >>> A = cirq.Circuit(cirq.H(a))
+            >>> B = cirq.Circuit(cirq.H(b))
             >>> f = cirq.Circuit.raggedy_add
-            >>> len(f(E, f(H, H))
-            10
-            >>> len(f(f(E, H), H))
-            11
+            >>> f(f(A, B), A) == f(A, f(B, A))
+            False
+            >>> len(f(f(f(A, B), A), B)) == len(f(f(A, f(B, A)), B))
+            False
 
         Args:
             circuits: The circuits to concatenate.
