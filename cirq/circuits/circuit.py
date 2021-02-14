@@ -1258,7 +1258,9 @@ class AbstractCircuit(abc.ABC):
     def _from_json_dict_(cls, moments, device, **kwargs):
         return cls(moments, strategy=InsertStrategy.EARLIEST, device=device)
 
-    def raggedy_add(*circuits: 'cirq.Circuit') -> 'cirq.Circuit':
+    def raggedy_add(
+        *circuits: 'cirq.Circuit', stop_at_first_alignment: bool = False
+    ) -> 'cirq.Circuit':
         """Concatenates circuits while overlapping them if possible.
 
         Starts with the first circuit (index 0), then iterates over the other
@@ -1279,6 +1281,12 @@ class AbstractCircuit(abc.ABC):
 
         Args:
             circuits: The circuits to concatenate.
+            stop_at_first_alignment: Defaults to false. When true, the circuits
+                are never overlapped more than needed to align their starts or
+                to align their ends. When false, the smaller circuit can be
+                pushed deeper into the larger circuit, past the first time their
+                starts or ends align, until the second time their starts or ends
+                align.
 
         Returns:
             The concatenated and overlapped circuit.
@@ -1287,7 +1295,7 @@ class AbstractCircuit(abc.ABC):
             return Circuit()
         acc = Circuit(circuits[0])
         for k in range(1, len(circuits)):
-            acc = _raggedy_add_helper(acc, circuits[k])
+            acc = _raggedy_add_helper(acc, circuits[k], stop_at_first_alignment)
         return acc
 
 
@@ -1298,19 +1306,49 @@ def _first_intersection_index(query: AbstractSet[Any], targets: Sequence[Abstrac
     return len(targets)
 
 
-def _raggedy_add_helper(c1: 'cirq.Circuit', c2: 'cirq.Circuit') -> 'cirq.Circuit':
-    max_overlap = min(len(c1), len(c2))
-    targets = [c2[k].qubits for k in range(max_overlap)]
-    for k in range(max_overlap):
-        t = k + _first_intersection_index(c1[len(c1) - k - 1].qubits, targets)
-        targets.pop()
-        max_overlap = min(max_overlap, t)
+def _overlap_collision_time(
+    c1: 'cirq.Circuit', c2: 'cirq.Circuit', stop_at_first_alignment: bool
+) -> int:
+    # Tracks the first used moment index for each qubit in c2.
+    # Tracks the complementary last used moment index for each qubit in c1.
+    seen_times: Dict['cirq.Qid', int] = {}
 
-    return Circuit(
-        c1[:-max_overlap],
-        c1[-max_overlap:].zip(c2[:max_overlap]),
-        c2[max_overlap:],
-    )
+    upper_bound = (min if stop_at_first_alignment else max)(len(c1), len(c2))
+    k = 0
+    while k < upper_bound:
+        if k < len(c2):
+            for op in c2[k]:
+                for q in op.qubits:
+                    k2 = seen_times.setdefault(q, +k)
+                    if k2 < 0:
+                        upper_bound = min(upper_bound, k + ~k2)
+        if k < len(c1):
+            for op in c1[-1 - k]:
+                for q in op.qubits:
+                    k2 = seen_times.setdefault(q, ~k)
+                    if k2 >= 0:
+                        upper_bound = min(upper_bound, k + k2)
+        k += 1
+    return upper_bound
+
+
+def _raggedy_add_helper(
+    c1: 'cirq.Circuit',
+    c2: 'cirq.Circuit',
+    stop_at_first_alignment: bool,
+) -> 'cirq.Circuit':
+    n1 = len(c1)
+    n2 = len(c2)
+    shift = _overlap_collision_time(c1, c2, stop_at_first_alignment)
+    c1_offset = max(shift - n1, 0)
+    c2_offset = max(n1 - shift, 0)
+    total_len = max(n1 + n2 - shift, n1, n2)
+    result = cirq.Circuit(cirq.Moment()) * total_len
+    for k, m in enumerate(c1):
+        result[k + c1_offset] = m
+    for k, m in enumerate(c2):
+        result[k + c2_offset] += m
+    return result
 
 
 class Circuit(AbstractCircuit):

@@ -4401,5 +4401,112 @@ def test_raggedy_add():
     space = cirq.Circuit(cirq.Moment()) * 10
     f = cirq.Circuit.raggedy_add
     assert len(f(space, ha)) == 10
-    assert len(f(space, ha, ha, ha)) == 12
+    assert len(f(space, ha, ha, ha)) == 10
     assert len(f(space, f(ha, ha, ha))) == 10
+    assert len(f(space, ha, stop_at_first_alignment=True)) == 10
+    assert len(f(space, ha, ha, ha, stop_at_first_alignment=True)) == 12
+    assert len(f(space, f(ha, ha, ha, stop_at_first_alignment=True))) == 10
+
+    # L shape overlap (vary c1).
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 4),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 1),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+    assert 8 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 6),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+    assert 9 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 7),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+
+    # L shape overlap (vary c2).
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 4, cirq.CZ(a, b)),
+        )
+    )
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 1, cirq.CZ(a, b)),
+        )
+    )
+    assert 8 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 6, cirq.CZ(a, b)),
+        )
+    )
+    assert 9 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 7, cirq.CZ(a, b)),
+        )
+    )
+
+    # When scanning sees a possible hit, continues scanning for earlier hit.
+    assert 10 == len(
+        f(
+            cirq.Circuit(
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(cirq.H(a)),
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(cirq.H(b)),
+            ),
+            cirq.Circuit(
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(cirq.H(a)),
+                cirq.Moment(),
+                cirq.Moment(cirq.H(b)),
+            ),
+        )
+    )
+    # Correct tie breaker when one operation sees two possible hits.
+    for cz_order in [cirq.CZ(a, b), cirq.CZ(b, a)]:
+        assert 3 == len(
+            f(
+                cirq.Circuit(
+                    cirq.Moment(cz_order),
+                    cirq.Moment(),
+                    cirq.Moment(),
+                ),
+                cirq.Circuit(
+                    cirq.Moment(cirq.H(a)),
+                    cirq.Moment(cirq.H(b)),
+                ),
+            )
+        )
