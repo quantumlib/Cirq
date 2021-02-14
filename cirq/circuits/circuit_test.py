@@ -4367,6 +4367,7 @@ def test_raggedy_add():
     empty = cirq.Circuit()
 
     assert cirq.Circuit.raggedy_add(empty, empty) == empty
+    assert cirq.Circuit.raggedy_add() == empty
     assert empty.raggedy_add(empty) == empty
     assert empty.raggedy_add(empty, empty) == empty
 

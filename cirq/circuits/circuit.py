@@ -1303,13 +1303,6 @@ class AbstractCircuit(abc.ABC):
         return acc
 
 
-def _first_intersection_index(query: AbstractSet[Any], targets: Sequence[AbstractSet[Any]]) -> int:
-    for k, s in enumerate(targets):
-        if not query.isdisjoint(s):
-            return k
-    return len(targets)
-
-
 def _overlap_collision_time(
     c1: 'cirq.Circuit', c2: 'cirq.Circuit', stop_at_first_alignment: bool
 ) -> int:
