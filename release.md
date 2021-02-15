@@ -215,6 +215,10 @@ Using the information above, create the release on the
 [Release page](https://github.com/quantumlib/Cirq/releases).
 Be sure to include the whl file as an attachment.
 
+### Release PR for notebooks
+
+If there are unreleased notebooks, that are under testing (`NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES` is not empty in [dev_tools/notebooks/isolated_notebook_test.py](dev_tools/notebooks/isolated_notebook_test.py)), follow the steps in our [notebooks guide](docs/dev/notebooks.md).
+
 ### Email cirq-announce
 
 Lastly, email cirq-announce@googlegroups.com with the release notes

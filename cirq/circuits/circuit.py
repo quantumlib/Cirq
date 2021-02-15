@@ -55,7 +55,7 @@ from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.quil_output import QuilOutput
 from cirq.type_workarounds import NotImplementedType
-from cirq._compat import deprecated
+from cirq._compat import deprecated, deprecated_parameter
 import cirq._version
 
 if TYPE_CHECKING:
@@ -1503,8 +1503,21 @@ class Circuit(AbstractCircuit):
             device=new_device,
         )
 
+    @deprecated_parameter(
+        deadline='v0.11.0',
+        fix='Use qubit_map instead.',
+        parameter_desc='positional func',
+        match=lambda args, kwargs: 'func' in kwargs,
+        rewrite=lambda args, kwargs: (
+            args,
+            {('qubit_map' if k == 'func' else k): v for k, v in kwargs.items()},
+        ),
+    )
     def transform_qubits(
-        self, func: Callable[['cirq.Qid'], 'cirq.Qid'], *, new_device: 'cirq.Device' = None
+        self,
+        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
+        *,
+        new_device: 'cirq.Device' = None,
     ) -> 'cirq.Circuit':
         """Returns the same circuit, but with different qubits.
 
@@ -1513,7 +1526,7 @@ class Circuit(AbstractCircuit):
         also `transform_qubits` methods on `cirq.Operation` and `cirq.Moment`.
 
         Args:
-            func: The function to use to turn each current qubit into a desired
+            qubit_map: A function or a dict mapping each current qubit into a desired
                 new qubit.
             new_device: The device to use for the new circuit, if different.
                 If this is not set, the new device defaults to the current
@@ -1523,8 +1536,14 @@ class Circuit(AbstractCircuit):
             The receiving circuit but with qubits transformed by the given
                 function, and with an updated device (if specified).
         """
+        if callable(qubit_map):
+            transform = qubit_map
+        elif isinstance(qubit_map, dict):
+            transform = lambda q: qubit_map.get(q, q)  # type: ignore
+        else:
+            raise TypeError('qubit_map must be a function or dict mapping qubits to qubits.')
         return self.with_device(
-            new_device=self.device if new_device is None else new_device, qubit_mapping=func
+            new_device=self.device if new_device is None else new_device, qubit_mapping=transform
         )
 
     def _prev_moment_available(self, op: 'cirq.Operation', end_moment_index: int) -> Optional[int]:
