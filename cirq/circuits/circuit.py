@@ -1351,7 +1351,7 @@ def _raggedy_add_helper(
     c1_offset: int,
     n1: int,
     buf: np.ndarray,
-    c2: List['cirq.Moment'],
+    c2: Sequence['cirq.Moment'],
     stop_at_first_alignment: bool,
 ) -> Tuple[int, int]:
     n2 = len(c2)
