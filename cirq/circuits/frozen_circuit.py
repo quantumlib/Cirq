@@ -176,11 +176,11 @@ class FrozenCircuit(AbstractCircuit):
     ) -> 'FrozenCircuit':
         return self.unfreeze()._resolve_parameters_(param_resolver, recursive).freeze()
 
-    @functools.wraps(Circuit.raggedy_add)  # Inherit doc string.
-    def raggedy_add(
+    @functools.wraps(Circuit.tetris_concat)  # Inherit doc string.
+    def tetris_concat(
         *circuits: 'cirq.AbstractCircuit', stop_at_first_alignment: bool = False
     ) -> 'cirq.FrozenCircuit':
-        return Circuit.raggedy_add(
+        return Circuit.tetris_concat(
             *circuits, stop_at_first_alignment=stop_at_first_alignment
         ).freeze()
 

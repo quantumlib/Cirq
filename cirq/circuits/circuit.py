@@ -1258,7 +1258,7 @@ class AbstractCircuit(abc.ABC):
     def _from_json_dict_(cls, moments, device, **kwargs):
         return cls(moments, strategy=InsertStrategy.EARLIEST, device=device)
 
-    def raggedy_add(
+    def tetris_concat(
         *circuits: 'cirq.AbstractCircuit', stop_at_first_alignment: bool = False
     ) -> 'cirq.Circuit':
         """Concatenates circuits while overlapping them if possible.
@@ -1277,7 +1277,7 @@ class AbstractCircuit(abc.ABC):
             >>> a, b = cirq.LineQubit.range(2)
             >>> A = cirq.Circuit(cirq.H(a))
             >>> B = cirq.Circuit(cirq.H(b))
-            >>> f = cirq.Circuit.raggedy_add
+            >>> f = cirq.Circuit.tetris_concat
             >>> f(f(A, B), A) == f(A, f(B, A))
             False
             >>> len(f(f(f(A, B), A), B)) == len(f(f(A, f(B, A)), B))
@@ -1309,7 +1309,7 @@ class AbstractCircuit(abc.ABC):
 
         # Accumulate all the circuits into the buffer.
         for k in range(1, len(circuits)):
-            offset, n_acc = _raggedy_add_helper(
+            offset, n_acc = _tetris_concat_helper(
                 offset, n_acc, buffer, circuits[k].moments, stop_at_first_alignment
             )
 
@@ -1347,7 +1347,7 @@ def _overlap_collision_time(
     return upper_bound
 
 
-def _raggedy_add_helper(
+def _tetris_concat_helper(
     c1_offset: int,
     n1: int,
     buf: np.ndarray,
