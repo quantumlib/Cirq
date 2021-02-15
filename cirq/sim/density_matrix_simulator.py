@@ -168,7 +168,9 @@ class DensityMatrixSimulator(simulator.SimulatesSamples, simulator.SimulatesInte
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         check_all_resolved(resolved_circuit)
 
-        if circuit.are_all_measurements_terminal():
+        if circuit.are_all_measurements_terminal() and not any(
+            circuit.findall_operations(lambda op: isinstance(op, circuits.CircuitOperation))
+        ):
             return self._run_sweep_sample(resolved_circuit, repetitions)
         return self._run_sweep_repeat(resolved_circuit, repetitions)
 

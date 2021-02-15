@@ -32,12 +32,12 @@ from cirq.google.calibration import (
     PhasedFSimEngineSimulator,
     SQRT_ISWAP_PARAMETERS,
     THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-    make_floquet_request_for_circuit,
-    make_floquet_request_for_moment,
-    zeta_chi_gamma_calibration_for_moments,
-    run_characterizations,
+    make_zeta_chi_gamma_compensation_for_moments,
+    prepare_floquet_characterization_for_circuit,
+    prepare_floquet_characterization_for_moment,
+    run_calibrations,
     run_floquet_characterization_for_circuit,
-    run_zeta_chi_gamma_calibration_for_moments,
+    run_zeta_chi_gamma_compensation_for_moments,
     try_convert_sqrt_iswap_to_fsim,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
 )
@@ -113,3 +113,14 @@ from cirq.google.op_serializer import (
 from cirq.google.serializable_gate_set import (
     SerializableGateSet,
 )
+
+
+def _register_resolver() -> None:
+    """Registers the cirq.google's public classes for JSON serialization."""
+    from cirq.protocols.json_serialization import _internal_register_resolver
+    from cirq.google.json_resolver_cache import _class_resolver_dictionary
+
+    _internal_register_resolver(_class_resolver_dictionary)
+
+
+_register_resolver()

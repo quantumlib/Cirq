@@ -11,9 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import itertools
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple, cast
 
+import networkx as nx
 import numpy as np
 import pytest
 
@@ -24,6 +25,8 @@ from cirq.experiments import (
 )
 from cirq.experiments.random_quantum_circuit_generation import (
     random_rotations_between_two_qubit_circuit,
+    generate_library_of_2q_circuits,
+    get_random_combinations_for_device,
 )
 
 SINGLE_QUBIT_LAYER = Dict[cirq.GridQubit, Optional[cirq.Gate]]
@@ -48,31 +51,98 @@ def test_random_rotation_between_two_qubit_circuit():
 │             │
 Y^0.5         X^0.5
 │             │
-SYC───────────SYC
+@─────────────@
 │             │
 PhX(0.25)^0.5 Y^0.5
 │             │
-SYC───────────SYC
+@─────────────@
 │             │
 Y^0.5         X^0.5
 │             │
-SYC───────────SYC
+@─────────────@
 │             │
 X^0.5         PhX(0.25)^0.5
 │             │
-SYC───────────SYC
+@─────────────@
 │             │""",
         transpose=True,
     )
 
 
-def _syc_with_adjacent_z_rotations(
+def test_generate_library_of_2q_circuits():
+    circuits = generate_library_of_2q_circuits(
+        n_library_circuits=5,
+        two_qubit_gate=cirq.CNOT,
+        max_cycle_depth=13,
+        random_state=9,
+    )
+    assert len(circuits) == 5
+    for circuit in circuits:
+        assert len(circuit.all_qubits()) == 2
+        assert sorted(circuit.all_qubits()) == cirq.LineQubit.range(2)
+        for m1, m2 in zip(circuit.moments[::2], circuit.moments[1::2]):
+            assert len(m1.operations) == 2  # single qubit layer
+            assert len(m2.operations) == 1
+            assert m2.operations[0].gate == cirq.CNOT
+
+
+def test_generate_library_of_2q_circuits_custom_qubits():
+    circuits = generate_library_of_2q_circuits(
+        n_library_circuits=5,
+        two_qubit_gate=cirq.ISWAP ** 0.5,
+        max_cycle_depth=13,
+        q0=cirq.GridQubit(9, 9),
+        q1=cirq.NamedQubit('hi mom'),
+        random_state=9,
+    )
+    assert len(circuits) == 5
+    for circuit in circuits:
+        assert sorted(circuit.all_qubits()) == [cirq.GridQubit(9, 9), cirq.NamedQubit('hi mom')]
+        for m1, m2 in zip(circuit.moments[::2], circuit.moments[1::2]):
+            assert len(m1.operations) == 2  # single qubit layer
+            assert len(m2.operations) == 1
+            assert m2.operations[0].gate == cirq.ISWAP ** 0.5
+
+
+def _gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
+    # cirq contrib: routing.gridqubits_to_graph_device
+    def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
+        return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
+
+    return nx.Graph(
+        pair for pair in itertools.combinations(qubits, 2) if _manhattan_distance(*pair) == 1
+    )
+
+
+def test_get_random_combinations_for_device():
+    graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 3))
+    n_combinations = 4
+    combinations = get_random_combinations_for_device(
+        n_library_circuits=3,
+        n_combinations=n_combinations,
+        device_graph=graph,
+        random_state=99,
+    )
+    assert len(combinations) == 4  # degree-four graph
+    for i, comb in enumerate(combinations):
+        assert comb.combinations.shape[0] == n_combinations
+        assert comb.combinations.shape[1] == len(comb.pairs)
+        assert np.all(comb.combinations >= 0)
+        assert np.all(comb.combinations < 3)  # number of library circuits
+        for q0, q1 in comb.pairs:
+            assert q0 in cirq.GridQubit.rect(3, 3)
+            assert q1 in cirq.GridQubit.rect(3, 3)
+
+        assert cirq.experiments.HALF_GRID_STAGGERED_PATTERN[i] == comb.layer
+
+
+def _cz_with_adjacent_z_rotations(
     a: cirq.GridQubit, b: cirq.GridQubit, prng: np.random.RandomState
 ):
     z_exponents = [prng.uniform(0, 1) for _ in range(4)]
     yield cirq.Z(a) ** z_exponents[0]
     yield cirq.Z(b) ** z_exponents[1]
-    yield cirq.google.SYC(a, b)
+    yield cirq.CZ(a, b)
     yield cirq.Z(a) ** z_exponents[2]
     yield cirq.Z(b) ** z_exponents[3]
 
@@ -86,8 +156,20 @@ def _syc_with_adjacent_z_rotations(
         (
             cirq.GridQubit.rect(4, 3),
             20,
-            lambda a, b, _: cirq.google.SYC(a, b),
+            lambda a, b, _: cirq.CZ(a, b),
             cirq.experiments.GRID_STAGGERED_PATTERN,
+            (cirq.X ** 0.5, cirq.Y ** 0.5, cirq.Z ** 0.5),
+            True,
+            1234,
+            41,
+            slice(None, None, 2),
+            slice(1, None, 2),
+        ),
+        (
+            cirq.GridQubit.rect(4, 3),
+            20,
+            lambda a, b, _: cirq.google.SYC(a, b),
+            cirq.experiments.HALF_GRID_STAGGERED_PATTERN,
             (cirq.X ** 0.5, cirq.Y ** 0.5, cirq.Z ** 0.5),
             True,
             1234,
@@ -98,7 +180,7 @@ def _syc_with_adjacent_z_rotations(
         (
             cirq.GridQubit.rect(4, 5),
             21,
-            lambda a, b, _: cirq.google.SYC(a, b),
+            lambda a, b, _: cirq.CZ(a, b),
             cirq.experiments.GRID_ALIGNED_PATTERN,
             (cirq.X ** 0.5, cirq.Y ** 0.5, cirq.Z ** 0.5),
             True,
@@ -110,7 +192,7 @@ def _syc_with_adjacent_z_rotations(
         (
             cirq.GridQubit.rect(5, 4),
             22,
-            _syc_with_adjacent_z_rotations,
+            _cz_with_adjacent_z_rotations,
             cirq.experiments.GRID_STAGGERED_PATTERN,
             (cirq.X ** 0.5, cirq.Y ** 0.5, cirq.Z ** 0.5),
             True,
@@ -122,7 +204,7 @@ def _syc_with_adjacent_z_rotations(
         (
             cirq.GridQubit.rect(5, 5),
             23,
-            lambda a, b, _: cirq.google.SYC(a, b),
+            lambda a, b, _: cirq.CZ(a, b),
             cirq.experiments.GRID_ALIGNED_PATTERN,
             (cirq.X ** 0.5, cirq.Y ** 0.5, cirq.Z ** 0.5),
             False,
@@ -134,7 +216,7 @@ def _syc_with_adjacent_z_rotations(
         (
             cirq.GridQubit.rect(5, 5),
             24,
-            lambda a, b, _: cirq.google.SYC(a, b),
+            lambda a, b, _: cirq.CZ(a, b),
             cirq.experiments.GRID_ALIGNED_PATTERN,
             (cirq.X ** 0.5, cirq.X ** 0.5),
             True,
