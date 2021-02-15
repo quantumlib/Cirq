@@ -1310,7 +1310,7 @@ class AbstractCircuit(abc.ABC):
         # Accumulate all the circuits into the buffer.
         for k in range(1, len(circuits)):
             offset, n_acc = _raggedy_add_helper(
-                offset, n_acc, buffer, circuits[k], stop_at_first_alignment
+                offset, n_acc, buffer, circuits[k].moments, stop_at_first_alignment
             )
 
         return cirq.Circuit(buffer[offset : offset + n_acc])
