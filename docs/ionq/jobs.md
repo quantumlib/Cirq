@@ -10,20 +10,19 @@ import cirq
 import cirq.ionq as ionq
 service = ionq.Service()
 ```
-See [IonQ API Service](service.md) for how to set the service up.
+See [IonQ API Service](service.md) for how to set up the service.
 
 ## Running programs
 
 The IonQ API is a service that allows you to send a quantum circuit as a *job*
-to a scheduler server.  This means that a user can submit a job to the API, and
+to a scheduler server.  This means that you can submit a job to the API, and
 then this job is held in a queue before being scheduled to run on the appropriate
 hardware (QPU) or simulator.  Once a job is created (but not necessarily yet run)
-on the scheduler, the job is assigned an id and then one can query this
-job via the API. The job has a status on it which tells what state the job is in
-`running`, `completed`, `failed`, etc.  From a users perspective this is abstracted
-mostly away in Cirq, depending on whether one wants to make blocking calls (which
-wait for the job to complete), or non-blocking calls (where one creates a job and
-only later does one query for the results.)
+on the scheduler, the job is assigned an id and then you can query this
+job via the API. The job has a status on it, which describes what state the job is in
+`running`, `completed`, `failed`, etc.  From a users perspective, this is abstracted
+mostly away in Cirq.  A job can be run in either block modes, or non-blocking mode,
+as described below.
 
 Here we describe these different methods.
 
@@ -50,12 +49,12 @@ that the x measurements were all 0s followed by all 1s?  The reason for this
 sorting is that the IonQAPI only returns statistics about the results, i.e. what
 count of results were 0 and what count were 1 (or if you are measuring
 multiple qubits the counts of the different outcome bit string outcomes).  In
-order to make this compatible with Cirq's notition of `cirq.Result`, these
+order to make this compatible with Cirq's notion of `cirq.Result`, these
 are then converted into raw results with the exactly correct number of
 results (in lexical order). In other words, the measurement results are not
 in an order corresponding to the temporal order of the measurements.
 
-When calling run, one will need to include the number of `repetitions` or shots
+When calling run, you will need to include the number of `repetitions` or shots
 for the given circuit.  In addition, if there is no `default_target` set on the
 service, then a `target` needs to be specified.  Currently the supported targets
 are `qpu` and `simulator`.
@@ -83,10 +82,10 @@ print(result)
 
 The above two methods, using run and the sampler, both block waiting for
 results.  This can be problematic when the queueing time for the service
-is long.  Instead it is recommended that one use the job api directly.
-In this pattern one first create the job with the quantum circuit one
-wishes to run, and the service immediately returns an object that has
-the id of the job.  This job id can be recorded and at any time in
+is long.  Instead, it is recommended that you use the job api directly.
+In this pattern, you can first create the job with the quantum circuit you
+wish to run, and the service immediately returns an object that has
+the id of the job.  This job id can be recorded, and at any time in
 the future one can query for the results of this job.
 
 ```python
@@ -104,17 +103,15 @@ cirq.ionq.Job(job_id=93d111c1-0898-48b8-babe-80d182f8ad66)
 ```
 
 One difference between this approach and the run and sampler methods
-is that the returned job objects results are more directly related to the
+is that the returned job object's results are more directly related to the
 return data from the IonQ API.  They are of types `ionq.QPUResult` or
-`ionq.SimulatorResult`.  If one wishes to massage these into the
+`ionq.SimulatorResult`.  If you wish to convert these into the
 `cirq.Result` format, one can use `to_cirq_result` on both of these.
 
-Another useful feature of working with jobs directly is that one can
-directly cancel or delete jobs.  In particular the `ionq.Job` object
+Another useful feature of working with jobs directly is that you can
+directly cancel or delete jobs.  In particular, the `ionq.Job` object
 returned by `create_job` has `cancel` and `delete` methods.
 
 ## Next steps
 
-Learn how to get information about the performance of the hardware
-
-[IonQ calibrations](calibrations.md)
+[Get information about QPUs from IonQ calibrations](calibrations.md)

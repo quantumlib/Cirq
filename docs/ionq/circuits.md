@@ -12,7 +12,7 @@ import cirq
 import cirq.ionq as ionq
 service = ionq.Service()
 ```
-See [IonQ API Service](service.md) for how to set the service up.
+See [IonQ API Service](service.md) for how to set up the service.
 
 ## Qubits
 
@@ -57,7 +57,7 @@ The API gate for the IonQ device is given by
 Here is a nonsense quantum circuit constructed from these API gates,
 demonstrating how to use these gates.
 ```python
-q0,q1,q2 = cirq.LineQubit.range(3)
+q0, q1, q2 = cirq.LineQubit.range(3)
 circuit = cirq.Circuit(
     cirq.X(q0)**0.5, cirq.Y(q1)**0.5, cirq.Z(q2)**0.25, # Pauli Pow gates
     cirq.X(q0), cirq.Y(q1), cirq.Z(q2), # Pauli gates
@@ -113,6 +113,12 @@ which produces
 0: ───Z^(1/14)───X^0.14───Z^(1/14)───
 ```
 
-Note that the decomposition messes with the `cirq.Moment` structure of the
+Note that the decomposition changes with the `cirq.Moment` structure of the
 circuit.
+
+## Next steps
+
+[How to use the service API](jobs.md)
+
+[Get information about QPUs from IonQ calibrations](calibrations.md)
 

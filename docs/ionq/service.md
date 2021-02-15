@@ -74,8 +74,8 @@ In addition to the `remote_host` and `api_key` there are some other options whic
 useful for configuring the service.  The most useful of these are
 
 * `default_target`: this is a string of either `simulator` or `qpu`. By setting this you
-does not have to specify a target every time you run a job using `run`, `create_job`
-or via the `sampler` interface.  A helpful pattern is to create two service with
+do not have to specify a target every time you run a job using `run`, `create_job`
+or via the `sampler` interface.  A helpful pattern is to create two services with
 defaults for the simulator and for the QPU separately.
 
 * `max_retry_seconds`: The API will pull with exponential backoff for completed jobs.
@@ -89,4 +89,4 @@ fast, or to be set very long for long running jobs.
 
 [How to use the service API](jobs.md)
 
-[IonQ calibrations](calibrations.md)
+[Get information about QPUs from IonQ calibrations](calibrations.md)

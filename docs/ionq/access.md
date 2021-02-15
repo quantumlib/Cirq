@@ -2,7 +2,7 @@
 
 IonQ's API gives access to IonQ's trapped ion quantum computers as well as a cloud simulator.
 IonQ direct access is currently restricted to those with access to an IonQ API key.
-As of January, 2021, this access is currently restricted to partners. More information
+As of January 2021, this access is currently restricted to partners. More information
 about partnerships can be found at [ionq.com/get-started](https://ionq.com/get-started).
 
 ## Authentication
@@ -22,7 +22,7 @@ import cirq.ionq as ionq
 service = ionq.Service(remote_host='http://example.com/', api_key='tomyheart')
 ```
 
-Alternatively you can use environment variables for these values. These environment variables
+Alternatively, you can use environment variables for these values. These environment variables
 are `IONQ_REMOTE_HOST` and `IONQ_API_KEY`.  Details of how to set environment variables vary
 by operating system.  For example in bash, you would do
 ```bash
@@ -38,3 +38,13 @@ service = ionq.Service()
 The advantage of doing things this way is that you do not have to store the API key in
 source code, which might accidentally get uploaded to a version control system, and hence
 leak the API key.
+
+## Next steps
+
+[Learn how to run jobs against the service](service.md)
+
+[Learn how to build circuits for the API](circuits.md)
+
+[How to use the service API](jobs.md)
+
+[Get information about QPUs from IonQ calibrations](calibrations.md)
