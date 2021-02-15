@@ -1297,14 +1297,27 @@ class AbstractCircuit(abc.ABC):
         """
         if len(circuits) == 0:
             return Circuit()
-        acc = Circuit(circuits[0])
+        n_acc = len(circuits[0])
+
+        # Allocate a buffer large enough to append and prepend all the circuits.
+        pad_len = sum(len(c) for c in circuits) - n_acc
+        buffer = np.zeros(shape=pad_len * 2 + n_acc, dtype=np.object)
+
+        # Put the initial circuit in the center of the buffer.
+        offset = pad_len
+        buffer[offset : offset + n_acc] = circuits[0].moments
+
+        # Accumulate all the circuits into the buffer.
         for k in range(1, len(circuits)):
-            acc = _raggedy_add_helper(acc, circuits[k], stop_at_first_alignment)
-        return acc
+            offset, n_acc = _raggedy_add_helper(
+                offset, n_acc, buffer, circuits[k], stop_at_first_alignment
+            )
+
+        return cirq.Circuit(buffer[offset : offset + n_acc])
 
 
 def _overlap_collision_time(
-    c1: 'cirq.AbstractCircuit', c2: 'cirq.AbstractCircuit', stop_at_first_alignment: bool
+    c1: Sequence['cirq.Moment'], c2: Sequence['cirq.Moment'], stop_at_first_alignment: bool
 ) -> int:
     # Tracks the first used moment index for each qubit in c2.
     # Tracks the complementary last used moment index for each qubit in c1.
@@ -1335,22 +1348,18 @@ def _overlap_collision_time(
 
 
 def _raggedy_add_helper(
-    c1: 'cirq.AbstractCircuit',
-    c2: 'cirq.AbstractCircuit',
+    c1_offset: int,
+    n1: int,
+    buf: np.ndarray,
+    c2: List['cirq.Moment'],
     stop_at_first_alignment: bool,
-) -> 'cirq.Circuit':
-    n1 = len(c1)
+) -> Tuple[int, int]:
     n2 = len(c2)
-    shift = _overlap_collision_time(c1, c2, stop_at_first_alignment)
-    c1_offset = max(shift - n1, 0)
-    c2_offset = max(n1 - shift, 0)
-    total_len = max(n1 + n2 - shift, n1, n2)
-    result = cirq.Circuit(cirq.Moment()) * total_len
-    for k, m in enumerate(c1):
-        result[k + c1_offset] = m
-    for k, m in enumerate(c2):
-        result[k + c2_offset] += m
-    return result
+    shift = _overlap_collision_time(buf[c1_offset : c1_offset + n1], c2, stop_at_first_alignment)
+    c2_offset = c1_offset + n1 - shift
+    for k in range(n2):
+        buf[k + c2_offset] = (buf[k + c2_offset] or ops.Moment()) + c2[k]
+    return min(c1_offset, c2_offset), max(n1, n2, n1 + n2 - shift)
 
 
 class Circuit(AbstractCircuit):
