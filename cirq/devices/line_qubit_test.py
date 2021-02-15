@@ -225,8 +225,6 @@ def test_json_dict():
 
 
 def test_for_gate():
-    q0, q1 = LineQubit.range(2)
-
     class NoQidGate:
         def _qid_shape_(self):
             return ()
