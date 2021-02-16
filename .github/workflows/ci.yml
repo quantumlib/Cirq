@@ -68,8 +68,10 @@ jobs:
           architecture: 'x64'
       - name: Install pylint
         run: cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint" | grep -v "#" | xargs pip install
+      - name: Display version
+        run: check/pylint --version
       - name: Lint
-        run: check/pylint
+        run: check/pylint -v
   doc_test:
     name: Doc test
     runs-on: ubuntu-16.04

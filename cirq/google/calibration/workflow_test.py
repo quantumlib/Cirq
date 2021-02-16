@@ -100,7 +100,7 @@ def test_make_floquet_request_for_moment_fails_for_mixed_moment() -> None:
         )
 
 
-def test_make_floquet_request_for_circuit() -> None:
+def test_make_floquet_request_for_moments() -> None:
     a, b, c, d = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(
         [
@@ -112,7 +112,7 @@ def test_make_floquet_request_for_circuit() -> None:
     )
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
-    circuit_with_calibration, requests = workflow.prepare_floquet_characterization_for_circuit(
+    circuit_with_calibration, requests = workflow.prepare_floquet_characterization_for_moments(
         circuit, options=options
     )
 
@@ -129,7 +129,7 @@ def test_make_floquet_request_for_circuit() -> None:
     assert circuit_with_calibration.moment_to_calibration == [None, 0, 1, None]
 
 
-def test_make_floquet_request_for_circuit_merges_sub_sets() -> None:
+def test_make_floquet_request_for_moments_merges_sub_sets() -> None:
     a, b, c, d, e = cirq.LineQubit.range(5)
     circuit = cirq.Circuit(
         [
@@ -142,7 +142,7 @@ def test_make_floquet_request_for_circuit_merges_sub_sets() -> None:
     circuit += cirq.Moment([SQRT_ISWAP_GATE.on(b, c), SQRT_ISWAP_GATE.on(d, e)])
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
-    circuit_with_calibration, requests = workflow.prepare_floquet_characterization_for_circuit(
+    circuit_with_calibration, requests = workflow.prepare_floquet_characterization_for_moments(
         circuit, options=options
     )
 
@@ -158,7 +158,7 @@ def test_make_floquet_request_for_circuit_merges_sub_sets() -> None:
     assert circuit_with_calibration.moment_to_calibration == [None, 0, 1, 0, 1]
 
 
-def test_make_floquet_request_for_circuit_merges_many_circuits() -> None:
+def test_make_floquet_request_for_moments_merges_many_circuits() -> None:
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
     a, b, c, d, e = cirq.LineQubit.range(5)
 
@@ -171,7 +171,7 @@ def test_make_floquet_request_for_circuit_merges_many_circuits() -> None:
         ]
     )
 
-    circuit_with_calibration_1, requests_1 = workflow.prepare_floquet_characterization_for_circuit(
+    circuit_with_calibration_1, requests_1 = workflow.prepare_floquet_characterization_for_moments(
         circuit_1, options=options
     )
 
@@ -188,7 +188,7 @@ def test_make_floquet_request_for_circuit_merges_many_circuits() -> None:
 
     circuit_2 = cirq.Circuit([SQRT_ISWAP_GATE.on(b, c), SQRT_ISWAP_GATE.on(d, e)])
 
-    circuit_with_calibration_2, requests_2 = workflow.prepare_floquet_characterization_for_circuit(
+    circuit_with_calibration_2, requests_2 = workflow.prepare_floquet_characterization_for_moments(
         circuit_2, options=options, initial=requests_1
     )
 
@@ -204,7 +204,7 @@ def test_make_floquet_request_for_circuit_merges_many_circuits() -> None:
     assert circuit_with_calibration_2.moment_to_calibration == [1]
 
 
-def test_make_floquet_request_for_circuit_does_not_merge_sub_sets_when_disabled() -> None:
+def test_make_floquet_request_for_moments_does_not_merge_sub_sets_when_disabled() -> None:
     a, b, c, d, e = cirq.LineQubit.range(5)
     circuit = cirq.Circuit(
         [
@@ -220,7 +220,7 @@ def test_make_floquet_request_for_circuit_does_not_merge_sub_sets_when_disabled(
     )
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
-    circuit_with_calibration, requests = workflow.prepare_floquet_characterization_for_circuit(
+    circuit_with_calibration, requests = workflow.prepare_floquet_characterization_for_moments(
         circuit, options=options, merge_subsets=False
     )
 
@@ -242,7 +242,7 @@ def test_make_floquet_request_for_circuit_does_not_merge_sub_sets_when_disabled(
     assert circuit_with_calibration.moment_to_calibration == [None, 0, 1, 2, 3, 1]
 
 
-def test_make_floquet_request_for_circuit_merges_compatible_sets() -> None:
+def test_make_floquet_request_for_moments_merges_compatible_sets() -> None:
     a, b, c, d, e, f = cirq.LineQubit.range(6)
     circuit = cirq.Circuit([cirq.X(a), cirq.Y(c)])
     circuit += cirq.Moment([SQRT_ISWAP_GATE.on(a, b)])
@@ -251,7 +251,7 @@ def test_make_floquet_request_for_circuit_merges_compatible_sets() -> None:
     circuit += cirq.Moment([SQRT_ISWAP_GATE.on(a, f), SQRT_ISWAP_GATE.on(d, e)])
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
-    circuit_with_calibration, requests = workflow.prepare_floquet_characterization_for_circuit(
+    circuit_with_calibration, requests = workflow.prepare_floquet_characterization_for_moments(
         circuit, options=options
     )
 
@@ -432,7 +432,7 @@ def test_run_characterization_with_simulator():
     ]
 
 
-def test_run_floquet_characterization_for_circuit():
+def test_run_floquet_characterization_for_moments():
     q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
     gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
 
@@ -492,7 +492,7 @@ def test_run_floquet_characterization_for_circuit():
     engine = mock.MagicMock(spec=cirq.google.Engine)
     engine.run_calibration.return_value = job
 
-    circuit_with_calibration, requests = workflow.run_floquet_characterization_for_circuit(
+    circuit_with_calibration, requests = workflow.run_floquet_characterization_for_moments(
         circuit, engine, 'qproc', cirq.google.FSIM_GATESET, options=options
     )
 
