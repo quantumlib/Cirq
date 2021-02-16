@@ -137,7 +137,7 @@ def prepare_floquet_characterization_for_moment(
     )
 
 
-def prepare_floquet_characterization_for_circuit(
+def prepare_floquet_characterization_for_moments(
     circuit: Circuit,
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     gates_translator: Callable[
@@ -148,6 +148,15 @@ def prepare_floquet_characterization_for_circuit(
 ) -> Tuple[CircuitWithCalibration, List[FloquetPhasedFSimCalibrationRequest]]:
     """Extracts a minimal set of Floquet characterization requests necessary to characterize given
     circuit.
+
+    This variant of prepare method works on moments of the circuit and assumes that all the
+    two-qubit gates to calibrate are not mixed with other gates in a moment. The method groups
+    together moments of similar structure to minimize the number of characterizations requested.
+
+    If merge_subsets parameter is True then the method tries to merge moments into the other moments
+    listed previously if they can be characterized together (they have no conflicting operations).
+    If merge_subsets is False then only moments of exactly the same structure are characterized
+    together.
 
     The circuit can only be composed of single qubit operations, measurement operations and
     operations supported by gates_translator.
@@ -501,7 +510,7 @@ class FSimPhaseCorrections:
         return Circuit(self.operations)
 
 
-def run_floquet_characterization_for_circuit(
+def run_floquet_characterization_for_moments(
     circuit: Circuit,
     engine: Union[Engine, PhasedFSimEngineSimulator],
     processor_id: Optional[str] = None,
@@ -516,8 +525,8 @@ def run_floquet_characterization_for_circuit(
 ) -> Tuple[CircuitWithCalibration, List[PhasedFSimCalibrationResult]]:
     """Extracts moments within a circuit to characterize and characterizes them against engine.
 
-    The method calls floquet_characterization_for_circuit to extract moments to characterize and
-    run_characterizations to characterize them.
+    The method calls prepare_floquet_characterization_for_moments to extract moments to characterize
+    and run_calibrations to characterize them.
 
     Args:
         circuit: Circuit to characterize.
@@ -550,7 +559,7 @@ def run_floquet_characterization_for_circuit(
         IncompatibleMomentError when circuit contains a moment with operations other than the
         operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
     """
-    circuit_calibration, requests = prepare_floquet_characterization_for_circuit(
+    circuit_calibration, requests = prepare_floquet_characterization_for_moments(
         circuit, options, gates_translator, merge_subsets=merge_subsets
     )
     results = run_calibrations(
@@ -582,6 +591,11 @@ def run_zeta_chi_gamma_compensation_for_moments(
     """Compensates circuit against errors in zeta, chi and gamma angles by running calibrations on
     the engine.
 
+    The method calls prepare_floquet_characterization_for_moments to extract moments to
+    characterize, run_calibrations to characterize them and
+    make_zeta_chi_gamma_compensation_for_moments to compensate the circuit with characterization
+    data.
+
     Args:
         circuit: Circuit to characterize and calibrate.
         engine: cirq.google.Engine or cirq.google.PhasedFSimEngineSimulator object used for running
@@ -612,7 +626,7 @@ def run_zeta_chi_gamma_compensation_for_moments(
             calibrations could be applied.
           - List of characterizations results that were obtained in order to calibrate the circuit.
     """
-    circuit_with_calibration, requests = prepare_floquet_characterization_for_circuit(
+    circuit_with_calibration, requests = prepare_floquet_characterization_for_moments(
         circuit, options, gates_translator, merge_subsets=merge_subsets
     )
     characterizations = run_calibrations(
