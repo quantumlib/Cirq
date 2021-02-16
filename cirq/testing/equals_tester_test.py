@@ -277,7 +277,8 @@ def test_returns_not_implemented_for_other_types():
         def __eq__(self, other):
             if isinstance(other, (FirstClass, SecondClass)):
                 return self.val == other.val
-            return NotImplemented
+            # Ignore coverage, this is just for illustrative purposes.
+            return NotImplemented  # coverage: ignore
 
     # But we see that this does not work because it fails commutativity of ==
     assert SecondClass("a") == FirstClass("a")
@@ -304,7 +305,8 @@ def test_returns_not_implemented_for_other_types():
         def __eq__(self, other):
             if isinstance(other, (ThirdClass, FourthClass)):
                 return self.val == other.val
-            return NotImplemented
+            # Ignore coverage, this is just for illustrative purposes.
+            return NotImplemented  # coverage: ignore
 
     # We see this is fixed:
     assert ThirdClass("a") == FourthClass("a")
