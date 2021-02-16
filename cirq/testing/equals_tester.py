@@ -38,7 +38,7 @@ class EqualsTester:
         eq = v1 == v2
         ne = v1 != v2
 
-        assert eq != ne, "__eq__ is inconsistent with __ne__ between {!r} and {!r}".format(v1, v2)
+        assert eq != ne, f"__eq__ is inconsistent with __ne__ between {v1!r} and {v2!r}"
         return eq
 
     def _verify_equality_group(self, *group_items: Any):
@@ -62,21 +62,17 @@ class EqualsTester:
         # Within-group items must be equal.
         for v1, v2 in itertools.product(group_items, group_items):
             same = EqualsTester._eq_check(v1, v2)
-            assert same or v1 is not v2, "{!r} isn't equal to itself!".format(v1)
+            assert same or v1 is not v2, f"{v1!r} isn't equal to itself!"
             assert (
                 same
-            ), "{!r} and {!r} can't be in the same equality group. They're not equal.".format(
-                v1, v2
-            )
+            ), f"{v1!r} and {v2!r} can't be in the same equality group. They're not equal."
 
         # Between-group items must be unequal.
         for other_group in self._groups:
             for v1, v2 in itertools.product(group_items, other_group):
                 assert not EqualsTester._eq_check(
                     v1, v2
-                ), "{!r} and {!r} can't be in different equality groups. They're equal.".format(
-                    v1, v2
-                )
+                ), f"{v1!r} and {v2!r} can't be in different equality groups. They're equal."
 
         # Check that group items hash to the same thing, or are all unhashable.
         hashes = [hash(v) if isinstance(v, collections.abc.Hashable) else None for v in group_items]
@@ -89,8 +85,22 @@ class EqualsTester:
             )
             example = next(examples)
             raise AssertionError(
-                'Items in the same group produced different hashes. '
-                'Example: hash({!r}) is {!r} but hash({!r}) is {!r}.'.format(*example)
+                "Items in the same group produced different hashes. "
+                f"fExample: hash({example[0]!r}) is {example[1]!r} but "
+                f"hash({example[2]!r}) is {example[3]!r}."
+            )
+
+        # Test that this object correctly returns NotImplemented when tested against classes
+        # that it does not know the type of.
+        for v in group_items:
+            assert (
+                _TestsForNotImplemented(None) != v
+                and v != _TestsForNotImplemented(None)
+                and _TestsForNotImplemented(v) == v
+                and v == _TestsForNotImplemented(v)
+            ), (
+                "An item in this group did not return NotImplemented when checking equality of this"
+                f"item against different type than the item. Relevant time: {v!r}."
             )
 
     def add_equality_group(self, *group_items: Any):
@@ -144,3 +154,20 @@ class _ClassUnknownToSubjects:
 
     def __hash__(self):
         return hash(_ClassUnknownToSubjects)
+
+
+class _TestsForNotImplemented:
+    """Used to test that objects return NotImplemented for equality with other types.
+
+    This class is equal to a specific instance or delegates by returning NotImplemented to
+    equality using the hash.
+    """
+
+    def __init__(self, other):
+        self.other = other
+
+    def __eq__(self, other):
+        return True if other is self.other else NotImplemented
+
+    def __hash__(self):
+        return hash(self.other)
