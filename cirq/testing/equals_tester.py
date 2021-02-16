@@ -90,18 +90,13 @@ class EqualsTester:
                 f"hash({example[2]!r}) is {example[3]!r}."
             )
 
-        # Test that this object correctly returns NotImplemented when tested against classes
-        # that it does not know the type of.
+        # Test that the objects correctly returns NotImplemented when tested against classes
+        # that the object does not know the type of.
         for v in group_items:
-            assert (
-                _TestsForNotImplemented(None) != v
-                and v != _TestsForNotImplemented(None)
-                and _TestsForNotImplemented(v) == v
-                and v == _TestsForNotImplemented(v)
-            ), (
+            assert _TestsForNotImplemented(v) == v and v == _TestsForNotImplemented(v), (
                 "An item did not return NotImplemented when checking equality of this "
                 f"item against a different type than the item. Relevant item: {v!r}. "
-                "Common problem: returning NotImplementedError instead of NotImplemented."
+                "Common problem: returning NotImplementedError instead of NotImplemented. "
             )
 
     def add_equality_group(self, *group_items: Any):
@@ -160,8 +155,7 @@ class _ClassUnknownToSubjects:
 class _TestsForNotImplemented:
     """Used to test that objects return NotImplemented for equality with other types.
 
-    This class is equal to a specific instance or delegates by returning NotImplemented to
-    equality using the hash.
+    This class is equal to a specific instance or delegates by returning NotImplemented.
     """
 
     def __init__(self, other):
@@ -169,6 +163,3 @@ class _TestsForNotImplemented:
 
     def __eq__(self, other):
         return True if other is self.other else NotImplemented
-
-    def __hash__(self):
-        return hash(self.other)
