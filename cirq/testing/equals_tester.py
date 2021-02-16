@@ -86,7 +86,7 @@ class EqualsTester:
             example = next(examples)
             raise AssertionError(
                 "Items in the same group produced different hashes. "
-                f"fExample: hash({example[0]!r}) is {example[1]!r} but "
+                f"Example: hash({example[0]!r}) is {example[1]!r} but "
                 f"hash({example[2]!r}) is {example[3]!r}."
             )
 
@@ -99,8 +99,9 @@ class EqualsTester:
                 and _TestsForNotImplemented(v) == v
                 and v == _TestsForNotImplemented(v)
             ), (
-                "An item in this group did not return NotImplemented when checking equality of this"
-                f"item against different type than the item. Relevant time: {v!r}."
+                "An item did not return NotImplemented when checking equality of this "
+                f"item against a different type than the item. Relevant item: {v!r}. "
+                "Common problem: returning NotImplementedError instead of NotImplemented."
             )
 
     def add_equality_group(self, *group_items: Any):
