@@ -27,6 +27,7 @@ from cirq.google.calibration.phased_fsim import (
     SQRT_ISWAP_PARAMETERS,
     THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    merge_matching_results,
 )
 
 from cirq.google.calibration.workflow import (
