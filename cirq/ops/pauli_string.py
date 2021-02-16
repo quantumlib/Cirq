@@ -357,7 +357,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
     def values(self) -> ValuesView[pauli_gates.Pauli]:
         return self._qubit_pauli_map.values()
 
-    def items(self) -> ItemsView:
+    def items(self) -> ItemsView[TKey, pauli_gates.Pauli]:
         return self._qubit_pauli_map.items()
 
     def frozen(self) -> 'cirq.PauliString':
