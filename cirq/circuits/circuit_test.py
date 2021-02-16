@@ -4032,15 +4032,18 @@ def test_operation_shape_validation(circuit_cls):
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_json_dict(circuit_cls):
     q0, q1 = cirq.LineQubit.range(2)
-    c = circuit_cls(cirq.CNOT(q0, q1))
+    c = circuit_cls(cirq.CNOT(q0, q1), name='test_circuit')
     moments = [cirq.Moment([cirq.CNOT(q0, q1)])]
     if circuit_cls == cirq.FrozenCircuit:
         moments = tuple(moments)
-    assert c._json_dict_() == {
+    c_json = c._json_dict_()
+    assert c_json == {
         'cirq_type': circuit_cls.__name__,
         'moments': moments,
         'device': cirq.UNCONSTRAINED_DEVICE,
+        'name': 'test_circuit',
     }
+    assert circuit_cls._from_json_dict_(**c_json) == c
 
 
 def test_with_noise():

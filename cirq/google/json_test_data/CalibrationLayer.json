@@ -25,7 +25,8 @@
     ],
     "device": {
       "cirq_type": "_UnconstrainedDevice"
-    }
+    },
+    "name": null
   },
   "args": {
     "type": "full",

@@ -23,7 +23,7 @@ import cirq
 
 def test_freeze_and_unfreeze():
     a, b = cirq.LineQubit.range(2)
-    c = cirq.Circuit(cirq.X(a), cirq.H(b))
+    c = cirq.Circuit(cirq.X(a), cirq.H(b), name='test_circuit')
 
     f = c.freeze()
     assert f.moments == tuple(c.moments)
@@ -43,6 +43,27 @@ def test_freeze_and_unfreeze():
     fcc = cc.freeze()
     assert fcc.moments == f.moments
     assert fcc is not f
+
+
+def test_names():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.X(a), cirq.H(b), name='testname')
+
+    f = c.freeze()
+    assert f.name == c.name
+    assert f.name == f._serialization_name_()
+
+    ff = c.freeze()
+    assert ff.name == f.name
+    # Since the two are identical, this is acceptable.
+    assert ff.diagram_name() == f.diagram_name()
+
+    c.append(cirq.CX(b, a))
+    fff = c.freeze()
+    assert fff.name == f.name
+    # Hash values are appended to diagram names.
+    # Since ff2.moments != f2.moments, these will differ.
+    assert fff.diagram_name() != f.diagram_name()
 
 
 def test_immutable():

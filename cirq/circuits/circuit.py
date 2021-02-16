@@ -110,6 +110,11 @@ class AbstractCircuit(abc.ABC):
     def device(self) -> devices.Device:
         pass
 
+    @property
+    @abc.abstractmethod
+    def name(self) -> Optional[str]:
+        pass
+
     def freeze(self) -> 'cirq.FrozenCircuit':
         """Creates a FrozenCircuit from this circuit.
 
@@ -119,7 +124,7 @@ class AbstractCircuit(abc.ABC):
 
         if isinstance(self, FrozenCircuit):
             return self
-        return FrozenCircuit(self, strategy=InsertStrategy.EARLIEST, device=self.device)
+        return FrozenCircuit(self, strategy=InsertStrategy.EARLIEST, device=self.device, name=self.name)
 
     def unfreeze(self) -> 'cirq.Circuit':
         """Creates a Circuit from this circuit.
@@ -128,7 +133,7 @@ class AbstractCircuit(abc.ABC):
         """
         if isinstance(self, Circuit):
             return Circuit.copy(self)
-        return Circuit(self, strategy=InsertStrategy.EARLIEST, device=self.device)
+        return Circuit(self, strategy=InsertStrategy.EARLIEST, device=self.device, name=self.name)
 
     def __bool__(self):
         return bool(self.moments)
@@ -136,7 +141,10 @@ class AbstractCircuit(abc.ABC):
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.moments == other.moments and self.device == other.device
+        return (
+            (self.moments, self.device, self.name) ==
+            (other.moments, other.device, other.name)
+        )
 
     def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
@@ -145,6 +153,7 @@ class AbstractCircuit(abc.ABC):
         return (
             cirq.protocols.approx_eq(self.moments, other.moments, atol=atol)
             and self.device == other.device
+            and self.name == other.name
         )
 
     def __ne__(self, other) -> bool:
@@ -1252,11 +1261,11 @@ class AbstractCircuit(abc.ABC):
         self._to_qasm_output(header, precision, qubit_order).save(file_path)
 
     def _json_dict_(self):
-        return protocols.obj_to_dict_helper(self, ['moments', 'device'])
+        return protocols.obj_to_dict_helper(self, ['moments', 'device', 'name'])
 
     @classmethod
     def _from_json_dict_(cls, moments, device, **kwargs):
-        return cls(moments, strategy=InsertStrategy.EARLIEST, device=device)
+        return cls(moments, strategy=InsertStrategy.EARLIEST, device=device, name=kwargs.get('name', None))
 
 
 class Circuit(AbstractCircuit):
@@ -1338,6 +1347,7 @@ class Circuit(AbstractCircuit):
         *contents: 'cirq.OP_TREE',
         strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
         device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE,
+        name: Optional[str] = None,
     ) -> None:
         """Initializes a circuit.
 
@@ -1352,14 +1362,21 @@ class Circuit(AbstractCircuit):
                 together. This option does not affect later insertions into the
                 circuit.
             device: Hardware that the circuit should be able to run on.
+            name: A user-specified key to identify frozen copies of this
+                circuit in diagrams and serialization.
         """
         self._moments: List['cirq.Moment'] = []
         self._device = device
+        self._name = name
         self.append(contents, strategy=strategy)
 
     @property
     def device(self) -> devices.Device:
         return self._device
+
+    @property
+    def name(self) -> Optional[str]:
+        return self._name
 
     @device.setter
     def device(self, new_device: 'cirq.Device') -> None:
