@@ -658,23 +658,30 @@ def test_decompose_repeated_nested_measurements():
         .repeat(2, ['zero', 'one'])
     )
 
-    expected_circuit = cirq.Circuit(
-        cirq.measure(a, key='zero-Y'),
-        cirq.measure(a, key='zero-zero-Q'),
-        cirq.measure(a, key='zero-zero-zero-D'),
-        cirq.measure(a, key='zero-zero-one-D'),
-        cirq.measure(a, key='zero-one-Q'),
-        cirq.measure(a, key='zero-one-zero-D'),
-        cirq.measure(a, key='zero-one-one-D'),
-        cirq.measure(a, key='one-Y'),
-        cirq.measure(a, key='one-zero-Q'),
-        cirq.measure(a, key='one-zero-zero-D'),
-        cirq.measure(a, key='one-zero-one-D'),
-        cirq.measure(a, key='one-one-Q'),
-        cirq.measure(a, key='one-one-zero-D'),
-        cirq.measure(a, key='one-one-one-D'),
-    )
+    expected_measurement_keys_in_order = [
+        'zero-Y',
+        'zero-zero-Q',
+        'zero-zero-zero-D',
+        'zero-zero-one-D',
+        'zero-one-Q',
+        'zero-one-zero-D',
+        'zero-one-one-D',
+        'one-Y',
+        'one-zero-Q',
+        'one-zero-zero-D',
+        'one-zero-one-D',
+        'one-one-Q',
+        'one-one-zero-D',
+        'one-one-one-D',
+    ]
+    assert cirq.measurement_keys(op3) == set(expected_measurement_keys_in_order)
+
+    expected_circuit = cirq.Circuit()
+    for key in expected_measurement_keys_in_order:
+        expected_circuit.append(cirq.measure(a, key=key))
+
     assert cirq.Circuit(cirq.decompose(op3)) == expected_circuit
+    assert cirq.measurement_keys(expected_circuit) == set(expected_measurement_keys_in_order)
 
 
 def test_tag_propagation():
