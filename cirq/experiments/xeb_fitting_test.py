@@ -290,8 +290,8 @@ def test_parallel_full_workflow(use_pool):
     for _, row in before_after_df.iterrows():
         assert len(row['fidelities_0']) == len(cycle_depths)
         assert len(row['fidelities_c']) == len(cycle_depths)
-        assert 0 <= row['A_0'] <= 1
-        assert 0 <= row['A_c'] <= 1
+        assert 0 <= row['a_0'] <= 1
+        assert 0 <= row['a_c'] <= 1
         assert 0 <= row['layer_fid_0'] <= 1
         assert 0 <= row['layer_fid_c'] <= 1
 
@@ -300,5 +300,5 @@ def test_fit_exponential_decays():
     rs = np.random.RandomState(999)
     cycle_depths = np.arange(3, 100, 11)
     fidelities = 0.95 * 0.98 ** cycle_depths + rs.normal(0, 0.2)
-    A, layer_fid = _fit_exponential_decay(cycle_depths, fidelities)
-    np.testing.assert_allclose([A, layer_fid], [0.95, 0.98], atol=0.02)
+    a, layer_fid = _fit_exponential_decay(cycle_depths, fidelities)
+    np.testing.assert_allclose([a, layer_fid], [0.95, 0.98], atol=0.02)

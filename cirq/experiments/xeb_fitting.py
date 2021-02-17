@@ -324,25 +324,17 @@ def characterize_phased_fsim_parameters_with_xeb(
     )
 
 
+@dataclass(frozen=True)
 class _CharacterizePhasedFsimParametersWithXebClosure:
     """A closure object to wrap `characterize_phased_fsim_parameters_with_xeb` for use in
     multiprocessing."""
 
-    def __init__(
-        self,
-        parameterized_circuits: List['cirq.Circuit'],
-        cycle_depths: Sequence[int],
-        phased_fsim_options: XEBPhasedFSimCharacterizationOptions,
-        initial_simplex_step_size: float = 0.1,
-        xatol: float = 1e-3,
-        fatol: float = 1e-3,
-    ):
-        self.parameterized_circuits = parameterized_circuits
-        self.cycle_depths = cycle_depths
-        self.phased_fsim_options = phased_fsim_options
-        self.initial_simplex_step_size = initial_simplex_step_size
-        self.xatol = xatol
-        self.fatol = fatol
+    parameterized_circuits: List['cirq.Circuit']
+    cycle_depths: Sequence[int]
+    phased_fsim_options: XEBPhasedFSimCharacterizationOptions
+    initial_simplex_step_size: float = 0.1
+    xatol: float = 1e-3
+    fatol: float = 1e-3
 
     def __call__(self, sampled_df) -> XEBCharacterizationResult:
         return characterize_phased_fsim_parameters_with_xeb(
@@ -419,13 +411,36 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
     )
 
 
-def exponential_decay(cycle_depths: np.ndarray, A: float, layer_fid: float) -> np.ndarray:
-    """An exponential decay for fitting."""
-    return A * layer_fid ** cycle_depths
+def exponential_decay(cycle_depths: np.ndarray, a: float, layer_fid: float) -> np.ndarray:
+    """An exponential decay for fitting.
+
+    This computes `a * layer_fid**cycle_depths`
+
+    Args:
+        cycle_depths: The various depths at which fidelity was estimated. This is the independent
+            variable in the exponential function.
+        a: A scale parameter in the exponential function.
+        layer_fid: The base of the exponent in the exponential function.
+    """
+    return a * layer_fid ** cycle_depths
 
 
 def _fit_exponential_decay(cycle_depths: np.ndarray, fidelities: np.ndarray) -> Tuple[float, float]:
-    """Fit an exponential model fidelities = A * layer_fid**x using nonlinear least squares."""
+    """Fit an exponential model fidelity = a * layer_fid**x using nonlinear least squares.
+
+    This uses `exponential_decay` as the function to fit with parameters `a` and `layer_fid`.
+
+    Args:
+        cycle_depths: The various depths at which fidelity was estimated. Each element is `x`
+            in the fit expression.
+        fidelities: The estimated fidelities for each cycle depth. Each element is `fidelity`
+            in the fit expression.
+
+    Returns:
+        a: The first fit parameter that scales the exponential function, perhaps accounting for
+            state prep and measurement (SPAM) error.
+        layer_fid: The second fit parameters which serves as the base of the exponential.
+    """
     cycle_depths = np.asarray(cycle_depths)
     fidelities = np.asarray(fidelities)
 
@@ -435,12 +450,12 @@ def _fit_exponential_decay(cycle_depths: np.ndarray, fidelities: np.ndarray) -> 
     log_fidelities = np.log(fidelities[positives])
     slope, intercept, _, _, _ = scipy.stats.linregress(cycle_depths_pos, log_fidelities)
     layer_fid_0 = np.clip(np.exp(slope), 0, 1)
-    A_0 = np.clip(np.exp(intercept), 0, 1)
+    a_0 = np.clip(np.exp(intercept), 0, 1)
 
-    (A, layer_fid), _ = scipy.optimize.curve_fit(
-        exponential_decay, cycle_depths, fidelities, p0=(A_0, layer_fid_0), bounds=((0, 0), (1, 1))
+    (a, layer_fid), _ = scipy.optimize.curve_fit(
+        exponential_decay, cycle_depths, fidelities, p0=(a_0, layer_fid_0), bounds=((0, 0), (1, 1))
     )
-    return A, layer_fid
+    return a, layer_fid
 
 
 def _one_unique(df, name, default):
@@ -463,16 +478,16 @@ def fit_exponential_decays(fidelities_df: pd.DataFrame) -> pd.DataFrame:
 
     Returns:
         A new, aggregated dataframe with index given by (pair, layer_i, pair_i); columns
-        for the fit parameters "A" and "layer_fid"; and nested "cycles_depths" and "fidelities"
+        for the fit parameters "a" and "layer_fid"; and nested "cycles_depths" and "fidelities"
         lists (now grouped by pair).
     """
     records = []
     for pair in fidelities_df['pair'].unique():
         f1 = fidelities_df[fidelities_df['pair'] == pair]
-        A, layer_fid = _fit_exponential_decay(f1['cycle_depth'], f1['fidelity'])
+        a, layer_fid = _fit_exponential_decay(f1['cycle_depth'], f1['fidelity'])
         record = {
             'pair': pair,
-            'A': A,
+            'a': a,
             'layer_fid': layer_fid,
             'cycle_depths': f1['cycle_depth'].values,
             'fidelities': f1['fidelity'].values,
@@ -506,8 +521,9 @@ def before_and_after_characterization(
     joined_df['characterized_angles'] = [
         characterization_result.final_params[pair] for pair, _, _ in joined_df.index
     ]
-    angle_names = list(list(characterization_result.final_params.values())[0].keys())
-    for angle_name in angle_names:
+    # Take any `final_params` (for any pair). We just need the angle names.
+    fp, *_ = characterization_result.final_params.values()
+    for angle_name in fp.keys():
         joined_df[angle_name] = [
             characterization_result.final_params[pair][angle_name] for pair, _, _ in joined_df.index
         ]
