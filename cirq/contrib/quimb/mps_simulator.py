@@ -51,7 +51,7 @@ class MPSOptions:
 
 class MPSSimulator(
     simulator.SimulatesSamples,
-    simulator.SimulatesIntermediateStateBase[
+    simulator.SimulatesIntermediateState[
         'cirq.contrib.quimb.mps_simulator.MPSSimulatorStepResult',
         'cirq.contrib.quimb.mps_simulator.MPSTrialResult',
         'cirq.contrib.quimb.mps_simulator.MPSState',

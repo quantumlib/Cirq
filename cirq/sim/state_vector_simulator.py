@@ -33,7 +33,7 @@ TStateVectorStepResult = TypeVar('TStateVectorStepResult', bound='StateVectorSte
 class SimulatesIntermediateStateVector(
     Generic[TStateVectorStepResult],
     simulator.SimulatesAmplitudes,
-    simulator.SimulatesIntermediateStateBase[
+    simulator.SimulatesIntermediateState[
         TStateVectorStepResult, 'StateVectorTrialResult', 'StateVectorSimulatorState'
     ],
     metaclass=abc.ABCMeta,

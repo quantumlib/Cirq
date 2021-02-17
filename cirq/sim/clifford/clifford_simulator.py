@@ -44,7 +44,7 @@ from cirq.sim.simulator import check_all_resolved
 
 class CliffordSimulator(
     simulator.SimulatesSamples,
-    simulator.SimulatesIntermediateStateBase[
+    simulator.SimulatesIntermediateState[
         'CliffordSimulatorStepResult', 'CliffordTrialResult', 'CliffordState'
     ],
 ):

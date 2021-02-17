@@ -37,7 +37,7 @@ class _StateAndBuffers:
 
 class DensityMatrixSimulator(
     simulator.SimulatesSamples,
-    simulator.SimulatesIntermediateStateBase[
+    simulator.SimulatesIntermediateState[
         'DensityMatrixStepResult', 'DensityMatrixTrialResult', 'DensityMatrixSimulatorState'
     ],
 ):

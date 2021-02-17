@@ -45,7 +45,7 @@ class _Simulate2qXEBTask:
 class _Simulate_2q_XEB_Circuit:
     """Closure used in `simulate_2q_xeb_circuits` so it works with multiprocessing."""
 
-    def __init__(self, simulator: 'sim.SimulatesIntermediateStateBase'):
+    def __init__(self, simulator: 'sim.SimulatesIntermediateState'):
         self.simulator = simulator
 
     def __call__(self, task: _Simulate2qXEBTask) -> List[Dict[str, Any]]:
@@ -91,7 +91,7 @@ def simulate_2q_xeb_circuits(
     cycle_depths: Sequence[int],
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     pool: Optional['multiprocessing.pool.Pool'] = None,
-    simulator: Optional['sim.SimulatesIntermediateStateBase'] = None,
+    simulator: Optional['sim.SimulatesIntermediateState'] = None,
 ):
     """Simulate two-qubit XEB circuits.
 

@@ -366,7 +366,7 @@ class SimulatesFinalState(Generic[TSimulationTrialResult], metaclass=abc.ABCMeta
         raise NotImplementedError()
 
 
-class SimulatesIntermediateStateBase(
+class SimulatesIntermediateState(
     Generic[TStepResult, TSimulationTrialResult, TSimulatorState],
     SimulatesFinalState[TSimulationTrialResult],
     metaclass=abc.ABCMeta,
@@ -542,35 +542,6 @@ class SimulatesIntermediateStateBase(
             The SimulationTrialResult.
         """
         raise NotImplementedError()
-
-
-class SimulatesIntermediateState(
-    Generic[TStepResult, TSimulatorState],
-    SimulatesIntermediateStateBase[TStepResult, 'SimulationTrialResult', TSimulatorState],
-    metaclass=abc.ABCMeta,
-):
-    """A SimulatesIntermediateState that uses the default SimulationTrialResult type."""
-
-    def _create_simulator_trial_result(
-        self,
-        params: study.ParamResolver,
-        measurements: Dict[str, np.ndarray],
-        final_simulator_state: Any,
-    ) -> 'SimulationTrialResult':
-        """This method creates a default trial result.
-
-        Args:
-            params: The ParamResolver for this trial.
-            measurements: The measurement results for this trial.
-            final_simulator_state: The final state of the simulator for the
-                StepResult.
-
-        Returns:
-            The SimulationTrialResult.
-        """
-        return SimulationTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
-        )
 
 
 class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
