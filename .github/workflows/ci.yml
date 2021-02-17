@@ -85,7 +85,7 @@ jobs:
         run: cat dev_tools/conf/pip-list-dev-tools.txt | grep "flynt" | grep -v "#" | xargs pip install
       - name: Display version
         run: check/flynt --version
-      - name: Lint
+      - name: Flynt
         run: check/flynt -v
   doc_test:
     name: Doc test
