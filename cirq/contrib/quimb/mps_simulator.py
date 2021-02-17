@@ -21,6 +21,7 @@ import collections
 import math
 from typing import Any, Dict, List, Iterator, Optional, Sequence, Set
 
+import dataclasses
 import numpy as np
 import quimb.tensor as qtn
 
@@ -29,35 +30,44 @@ from cirq import circuits, study, ops, protocols, value
 from cirq.sim import simulator
 
 
+@dataclasses.dataclass(frozen=True)
+class MPSOptions:
+    # Some of these parameters are fed directly to Quimb so refer to the documentation for detail:
+    # https://quimb.readthedocs.io/en/latest/_autosummary/ \
+    #       quimb.tensor.tensor_core.html#quimb.tensor.tensor_core.tensor_split
+
+    # How to split the tensor. Refer to the Quimb documentation for the exact meaning.
+    method: str = 'svds'
+    # If integer, the maxmimum number of singular values to keep, regardless of ``cutoff``.
+    max_bond: Optional[int] = None
+    # Method with which to apply the cutoff threshold. Refer to the Quimb documentation.
+    cutoff_mode: str = 'rsum2'
+    # The threshold below which to discard singular values. Refer to the Quimb documentation.
+    cutoff: float = 1e-6
+    # Because the computation is approximate, the sum of the probabilities is not 1.0. This
+    # parameter is the absolute deviation from 1.0 that is allowed.
+    sum_prob_atol: float = 1e-3
+
+
 class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
     """An efficient simulator for MPS circuits."""
 
     def __init__(
         self,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-        rsum2_cutoff: float = 1e-3,
-        sum_prob_atol: float = 1e-3,
+        simulation_options: 'cirq.contrib.quimb.mps_simulator.MPSOptions' = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
     ):
         """Creates instance of `MPSSimulator`.
 
         Args:
             seed: The random seed to use for this simulator.
-            rsum2_cutoff: We drop singular values so that the sum of the
-                square of the dropped singular values divided by the sum of the
-                square of all the singular values is less than rsum2_cutoff.
-                This is related to the fidelity of the computation. If we have
-                N 2D gates, then the estimated fidelity is
-                (1 - rsum2_cutoff) ** N.
-            sum_prob_atol: Because the computation is approximate, the sum of
-                the probabilities is not 1.0. This parameter is the absolute
-                deviation from 1.0 that is allowed.
+            simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
         """
         self.init = True
         self._prng = value.parse_random_state(seed)
-        self.rsum2_cutoff = rsum2_cutoff
-        self.sum_prob_atol = sum_prob_atol
+        self.simulation_options = simulation_options
         self.grouping = grouping
 
     def _base_iterator(
@@ -85,8 +95,7 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
                 measurements={},
                 state=MPSState(
                     qubit_map,
-                    self.rsum2_cutoff,
-                    self.sum_prob_atol,
+                    self.simulation_options,
                     self.grouping,
                     initial_state=initial_state,
                 ),
@@ -95,8 +104,7 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
 
         state = MPSState(
             qubit_map,
-            self.rsum2_cutoff,
-            self.sum_prob_atol,
+            self.simulation_options,
             self.grouping,
             initial_state=initial_state,
         )
@@ -300,8 +308,7 @@ class MPSState:
     def __init__(
         self,
         qubit_map: Dict['cirq.Qid', int],
-        rsum2_cutoff: float,
-        sum_prob_atol: float,
+        simulation_options: 'cirq.contrib.quimb.mps_simulator.MPSOptions' = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
     ):
@@ -309,15 +316,7 @@ class MPSState:
 
         Args:
             qubit_map: A map from Qid to an integer that uniquely identifies it.
-            rsum2_cutoff: We drop singular values so that the sum of the
-                square of the dropped singular values divided by the sum of the
-                square of all the singular values is less than rsum2_cutoff.
-                This is related to the fidelity of the computation. If we have
-                N 2D gates, then the estimated fidelity is
-                (1 - rsum2_cutoff) ** N.
-            sum_prob_atol: Because the computation is approximate, the sum of
-                the probabilities is not 1.0. This parameter is the absolute
-                deviation from 1.0 that is allowed.
+            simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
             initial_state: An integer representing the initial state.
         """
@@ -354,9 +353,8 @@ class MPSState:
             n = self.grouping[qubit]
             self.M[n] @= qtn.Tensor(x, inds=(self.i_str(i),))
             initial_state = initial_state // d
-        self.rsum2_cutoff = rsum2_cutoff
-        self.sum_prob_atol = sum_prob_atol
-        self.num_svd_splits = 0
+        self.simulation_options = simulation_options
+        self.estimated_gate_error_list: List[float] = []
 
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.
@@ -374,12 +372,12 @@ class MPSState:
         return str(qtn.TensorNetwork(self.M))
 
     def _value_equality_values_(self) -> Any:
-        return self.qubit_map, self.M, self.rsum2_cutoff, self.sum_prob_atol, self.grouping
+        return self.qubit_map, self.M, self.simulation_options, self.grouping
 
     def copy(self) -> 'MPSState':
-        state = MPSState(self.qubit_map, self.rsum2_cutoff, self.sum_prob_atol, self.grouping)
+        state = MPSState(self.qubit_map, self.simulation_options, self.grouping)
         state.M = [x.copy() for x in self.M]
-        state.num_svd_splits = self.num_svd_splits
+        state.estimated_gate_error_list = self.estimated_gate_error_list
         return state
 
     def state_vector(self) -> np.ndarray:
@@ -465,7 +463,6 @@ class MPSState:
                     {new_inds[0]: old_inds[0], new_inds[1]: old_inds[1]}
                 )
             else:
-                self.num_svd_splits += 1
                 # This is the index on which we do the contraction. We need to add it iff it's
                 # the first time that we do the joining for that specific pair.
                 mu_ind = self.mu_str(n, p)
@@ -479,12 +476,26 @@ class MPSState:
                 left_inds = tuple(set(T.inds) & set(self.M[n].inds)) + (new_inds[0],)
                 X, Y = T.split(
                     left_inds,
-                    cutoff=self.rsum2_cutoff,
-                    cutoff_mode='rsum2',
+                    method=self.simulation_options.method,
+                    max_bond=self.simulation_options.max_bond,
+                    cutoff=self.simulation_options.cutoff,
+                    cutoff_mode=self.simulation_options.cutoff_mode,
                     get='tensors',
                     absorb='both',
                     bond_ind=mu_ind,
                 )
+
+                # Equations (13), (14), and (15):
+                # TODO(tonybruguier): When Quimb 2.0.0 is released, the split()
+                # function should have a 'renorm' that, when set to None, will
+                # allow to compute e_n exactly as:
+                # np.sum(abs((X @ Y).data) ** 2).real / np.sum(abs(T) ** 2).real
+                #
+                # The renormalization would then have to be done manually.
+                #
+                # However, for now, e_n are just the estimated value.
+                e_n = self.simulation_options.cutoff
+                self.estimated_gate_error_list.append(e_n)
 
                 self.M[n] = X.reindex({new_inds[0]: old_inds[0]})
                 self.M[p] = Y.reindex({new_inds[1]: old_inds[1]})
@@ -505,14 +516,15 @@ class MPSState:
 
         # The computation below is done for numerical stability, instead of directly using the
         # formula:
-        # estimated_fidelity = (1 - self.rsum2_cutoff) ** self.num_svd_splits
-        estimated_fidelity = 1.0 + np.expm1(np.log1p(-self.rsum2_cutoff) * self.num_svd_splits)
+        # estimated_fidelity = \prod_i (1 - estimated_gate_error_list_i)
+        estimated_fidelity = 1.0 + np.expm1(
+            sum(np.log1p(-x) for x in self.estimated_gate_error_list)
+        )
         estimated_fidelity = round(estimated_fidelity, ndigits=3)
 
         return {
             "num_coefs_used": num_coefs_used,
             "memory_bytes": memory_bytes,
-            "num_svd_splits": self.num_svd_splits,
             "estimated_fidelity": estimated_fidelity,
         }
 
@@ -544,7 +556,7 @@ class MPSState:
 
             # Because the computation is approximate, the probabilities do not
             # necessarily add up to 1.0, and thus we re-normalize them.
-            if abs(sum_probs - 1.0) > self.sum_prob_atol:
+            if abs(sum_probs - 1.0) > self.simulation_options.sum_prob_atol:
                 raise ValueError('Sum of probabilities exceeds tolerance: {}'.format(sum_probs))
             norm_probs = [x / sum_probs for x in probs]
 
