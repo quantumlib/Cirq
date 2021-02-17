@@ -1258,6 +1258,111 @@ class AbstractCircuit(abc.ABC):
     def _from_json_dict_(cls, moments, device, **kwargs):
         return cls(moments, strategy=InsertStrategy.EARLIEST, device=device)
 
+    def tetris_concat(
+        *circuits: 'cirq.AbstractCircuit', stop_at_first_alignment: bool = False
+    ) -> 'cirq.Circuit':
+        """Concatenates circuits while overlapping them if possible.
+
+        Starts with the first circuit (index 0), then iterates over the other
+        circuits while folding them in. To fold two circuits together, they
+        are placed one after the other and then moved inward until any of:
+
+            a) Just before their operations would collide.
+            b) stop_at_first_alignment==True and their ends (or starts) align
+                for the first time.
+            c) Their ends (or starts) align for the last time.
+
+        Beware that this method is *not* associative. For example:
+
+            >>> a, b = cirq.LineQubit.range(2)
+            >>> A = cirq.Circuit(cirq.H(a))
+            >>> B = cirq.Circuit(cirq.H(b))
+            >>> f = cirq.Circuit.tetris_concat
+            >>> f(f(A, B), A) == f(A, f(B, A))
+            False
+            >>> len(f(f(f(A, B), A), B)) == len(f(f(A, f(B, A)), B))
+            False
+
+        Args:
+            circuits: The circuits to concatenate.
+            stop_at_first_alignment: Defaults to false. When true, the circuits
+                are never overlapped more than needed to align their starts (in
+                case the left circuit is smaller) or to align their ends (in
+                case the right circuit is smaller). When false, the smaller
+                circuit can be pushed deeper into the larger circuit, past the
+                first time their starts or ends align, until the second time
+                their starts or ends align.
+
+        Returns:
+            The concatenated and overlapped circuit.
+        """
+        if len(circuits) == 0:
+            return Circuit()
+        n_acc = len(circuits[0])
+
+        # Allocate a buffer large enough to append and prepend all the circuits.
+        pad_len = sum(len(c) for c in circuits) - n_acc
+        buffer = np.zeros(shape=pad_len * 2 + n_acc, dtype=np.object)
+
+        # Put the initial circuit in the center of the buffer.
+        offset = pad_len
+        buffer[offset : offset + n_acc] = circuits[0].moments
+
+        # Accumulate all the circuits into the buffer.
+        for k in range(1, len(circuits)):
+            offset, n_acc = _tetris_concat_helper(
+                offset, n_acc, buffer, circuits[k].moments, stop_at_first_alignment
+            )
+
+        return cirq.Circuit(buffer[offset : offset + n_acc])
+
+
+def _overlap_collision_time(
+    c1: Sequence['cirq.Moment'], c2: Sequence['cirq.Moment'], stop_at_first_alignment: bool
+) -> int:
+    # Tracks the first used moment index for each qubit in c2.
+    # Tracks the complementary last used moment index for each qubit in c1.
+    seen_times: Dict['cirq.Qid', int] = {}
+
+    # Start scanning from end of first and start of second.
+    upper_bound = (min if stop_at_first_alignment else max)(len(c1), len(c2))
+    t = 0
+    while t < upper_bound:
+        if t < len(c2):
+            for op in c2[t]:
+                for q in op.qubits:
+                    # Record time but check if qubit already seen on other side.
+                    k2 = seen_times.setdefault(q, t)
+                    if k2 < 0:
+                        # Use this qubit collision to bound the collision time.
+                        upper_bound = min(upper_bound, t + ~k2)
+        if t < len(c1):
+            for op in c1[-1 - t]:
+                for q in op.qubits:
+                    # Record time but check if qubit already seen on other side.
+                    # Note t is bitwise complemented to pack in left-vs-right origin data.
+                    k2 = seen_times.setdefault(q, ~t)
+                    if k2 >= 0:
+                        # Use this qubit collision to bound the collision time.
+                        upper_bound = min(upper_bound, t + k2)
+        t += 1
+    return upper_bound
+
+
+def _tetris_concat_helper(
+    c1_offset: int,
+    n1: int,
+    buf: np.ndarray,
+    c2: Sequence['cirq.Moment'],
+    stop_at_first_alignment: bool,
+) -> Tuple[int, int]:
+    n2 = len(c2)
+    shift = _overlap_collision_time(buf[c1_offset : c1_offset + n1], c2, stop_at_first_alignment)
+    c2_offset = c1_offset + n1 - shift
+    for k in range(n2):
+        buf[k + c2_offset] = (buf[k + c2_offset] or ops.Moment()) + c2[k]
+    return min(c1_offset, c2_offset), max(n1, n2, n1 + n2 - shift)
+
 
 class Circuit(AbstractCircuit):
     """A mutable list of groups of operations to apply to some qubits.
@@ -1812,7 +1917,7 @@ class Circuit(AbstractCircuit):
                 self._moments[moment_index].operations + tuple(new_ops)
             )
 
-    def zip(*circuits):
+    def zip(*circuits: 'cirq.Circuit'):
         """Combines operations from circuits in a moment-by-moment fashion.
 
         Moment k of the resulting circuit will have all operations from moment
@@ -1866,7 +1971,6 @@ class Circuit(AbstractCircuit):
             <BLANKLINE>
             3: ───────S───────
         """
-        circuits = list(circuits)
         n = max([len(c) for c in circuits], default=0)
 
         result = cirq.Circuit()
