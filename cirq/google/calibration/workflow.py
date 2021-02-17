@@ -422,8 +422,8 @@ def make_zeta_chi_gamma_compensation_for_operations(
     some errors caused by cross-talks are not mitigated.
 
     The major advantage of this method over make_zeta_chi_gamma_compensation_for_moments is that it
-    can work with arbitrary set characterizations that cover all the interactions of the circuit
-    (up to assumptions of merge_matching_results method). In particular for grid-like devices the
+    can work with arbitrary set of characterizations that cover all the interactions of the circuit
+    (up to assumptions of merge_matching_results method). In particular, for grid-like devices the
     number of characterizations is bounded by four, where in the case of
     make_zeta_chi_gamma_compensation_for_moments the number of characterizations is bounded by
     number of moments in a circuit.
