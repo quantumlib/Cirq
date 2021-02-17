@@ -1286,7 +1286,7 @@ class AbstractCircuit(abc.ABC):
         Args:
             circuits: The circuits to concatenate.
             stop_at_first_alignment: Defaults to false. When true, the circuits
-                are never overlapped more than needed to align their starts or
+                are never overlapped more than needed to align their starts (in case the left circuit is smaller) or
                 to align their ends. When false, the smaller circuit can be
                 pushed deeper into the larger circuit, past the first time their
                 starts or ends align, until the second time their starts or ends
