@@ -263,6 +263,11 @@ def prepare_floquet_characterization_for_operations(
     Contrary to prepare_floquet_characterization_for_moments, this method ignores moments structure
     and is less accurate because certain errors caused by cross-talks are ignored.
 
+    The major advantage of this method is that the number of generated characterization requests is
+    bounded by four for grid-like devices, where for the
+    prepare_floquet_characterization_for_moments the number of characterizations is bounded by
+    number of moments in a circuit.
+
     The circuit can only be composed of single qubit operations, wait operations, measurement
     operations and operations supported by gates_translator.
 
