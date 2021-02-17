@@ -124,7 +124,9 @@ class AbstractCircuit(abc.ABC):
 
         if isinstance(self, FrozenCircuit):
             return self
-        return FrozenCircuit(self, strategy=InsertStrategy.EARLIEST, device=self.device, name=self.name)
+        return FrozenCircuit(
+            self, strategy=InsertStrategy.EARLIEST, device=self.device, name=self.name
+        )
 
     def unfreeze(self) -> 'cirq.Circuit':
         """Creates a Circuit from this circuit.
@@ -141,10 +143,7 @@ class AbstractCircuit(abc.ABC):
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return (
-            (self.moments, self.device, self.name) ==
-            (other.moments, other.device, other.name)
-        )
+        return (self.moments, self.device, self.name) == (other.moments, other.device, other.name)
 
     def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
@@ -1265,7 +1264,9 @@ class AbstractCircuit(abc.ABC):
 
     @classmethod
     def _from_json_dict_(cls, moments, device, **kwargs):
-        return cls(moments, strategy=InsertStrategy.EARLIEST, device=device, name=kwargs.get('name', None))
+        return cls(
+            moments, strategy=InsertStrategy.EARLIEST, device=device, name=kwargs.get('name', None)
+        )
 
 
 class Circuit(AbstractCircuit):
@@ -1374,14 +1375,14 @@ class Circuit(AbstractCircuit):
     def device(self) -> devices.Device:
         return self._device
 
-    @property
-    def name(self) -> Optional[str]:
-        return self._name
-
     @device.setter
     def device(self, new_device: 'cirq.Device') -> None:
         new_device.validate_circuit(self)
         self._device = new_device
+
+    @property
+    def name(self) -> Optional[str]:
+        return self._name
 
     def __copy__(self) -> 'Circuit':
         return self.copy()

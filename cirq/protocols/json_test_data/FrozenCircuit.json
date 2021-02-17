@@ -3,7 +3,7 @@
   "object_dag": [
     {
       "cirq_type": "_SerializedContext",
-      "key": "None_1",
+      "key": "Circuit_1",
       "obj": {
         "cirq_type": "FrozenCircuit",
         "moments": [          {            "cirq_type": "Moment",
@@ -183,7 +183,7 @@
     },
     {
       "cirq_type": "_SerializedContext",
-      "key": "None_3",
+      "key": "Circuit_3",
       "obj": {
         "cirq_type": "FrozenCircuit",
         "moments": [
@@ -219,7 +219,7 @@
     [
       {
         "cirq_type": "_SerializedKey",
-        "key": "None_1"
+        "key": "Circuit_1"
       },
       {
         "cirq_type": "_SerializedKey",
@@ -227,7 +227,7 @@
       },
       {
         "cirq_type": "_SerializedKey",
-        "key": "None_3"
+        "key": "Circuit_3"
       }
     ]
   ]

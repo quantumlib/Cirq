@@ -127,7 +127,7 @@
     },
     {
       "cirq_type": "_SerializedContext",
-      "key": "None_2",
+      "key": "Circuit_2",
       "obj": {
         "cirq_type": "FrozenCircuit",
         "moments": [
@@ -159,7 +159,7 @@
     },
     {
       "cirq_type": "_SerializedContext",
-      "key": "None_3",
+      "key": "Circuit_3",
       "obj": {
         "cirq_type": "FrozenCircuit",
         "moments": [
@@ -216,7 +216,7 @@
         "cirq_type": "CircuitOperation",
         "circuit": {
           "cirq_type": "_SerializedKey",
-          "key": "None_2"
+          "key": "Circuit_2"
         },
         "repetitions": -2,
         "qubit_map": [
@@ -245,7 +245,7 @@
         "cirq_type": "CircuitOperation",
         "circuit": {
           "cirq_type": "_SerializedKey",
-          "key": "None_3"
+          "key": "Circuit_3"
         },
         "repetitions": 1,
         "qubit_map": [],
