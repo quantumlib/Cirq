@@ -1339,6 +1339,7 @@ def _overlap_collision_time(
             for op in c1[-1 - t]:
                 for q in op.qubits:
                     # Record time but check if qubit already seen on other side.
+                    # Note t is bitwise complemented to pack in left-vs-right origin data.
                     k2 = seen_times.setdefault(q, ~t)
                     if k2 >= 0:
                         # Use this qubit collision to bound the collision time.
