@@ -29,7 +29,6 @@ from cirq.sim import (
     Simulator,
     SimulatesSamples,
     SimulatesIntermediateStateVector,
-    SparseSimulatorStep,
     StateVectorStepResult,
 )
 from cirq.study import ParamResolver
