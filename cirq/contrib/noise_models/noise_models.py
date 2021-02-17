@@ -14,7 +14,8 @@
 
 from typing import Sequence, TYPE_CHECKING
 
-from cirq import devices, value, ops, protocols
+from cirq import devices, value, ops
+from cirq.devices.noise_model import validate_all_measurements
 
 if TYPE_CHECKING:
     import cirq
@@ -38,7 +39,7 @@ class DepolarizingNoiseModel(devices.NoiseModel):
         self.qubit_noise_gate = ops.DepolarizingChannel(depol_prob)
 
     def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
-        if _homogeneous_moment_is_measurements(moment) or self.is_virtual_moment(moment):
+        if validate_all_measurements(moment) or self.is_virtual_moment(moment):
             # coverage: ignore
             return moment
 
@@ -72,7 +73,7 @@ class ReadoutNoiseModel(devices.NoiseModel):
     def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
         if self.is_virtual_moment(moment):
             return moment
-        if _homogeneous_moment_is_measurements(moment):
+        if validate_all_measurements(moment):
             return [
                 ops.Moment(
                     self.readout_noise_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits
@@ -106,7 +107,7 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
     def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
         if self.is_virtual_moment(moment):
             return moment
-        if _homogeneous_moment_is_measurements(moment):
+        if validate_all_measurements(moment):
             return [
                 ops.Moment(
                     self.readout_decay_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits
@@ -136,7 +137,7 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
         self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
 
     def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
-        if _homogeneous_moment_is_measurements(moment):
+        if validate_all_measurements(moment):
             return [
                 ops.Moment(self.readout_noise_gate(q) for q in system_qubits),
                 moment,
@@ -177,7 +178,7 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
         self.readout_decay_gate = ops.AmplitudeDampingChannel(decay_prob)
 
     def noisy_moment(self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']):
-        if _homogeneous_moment_is_measurements(moment):
+        if validate_all_measurements(moment):
             return [
                 ops.Moment(self.readout_decay_gate(q) for q in system_qubits),
                 ops.Moment(self.readout_noise_gate(q) for q in system_qubits),

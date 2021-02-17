@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-
 import cirq
 import cirq.contrib.noise_models as ccn
-from cirq.devices.noise_model_test import _assert_equivalent_op_tree
 from cirq import ops
+from cirq.devices.noise_model_test import _assert_equivalent_op_tree
 
 
 def test_depol_noise():
