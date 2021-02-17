@@ -293,7 +293,7 @@ def merge_matching_results(
     """Merges a collection of results into a single result.
 
     Args:
-        results: List of results to merge. They must be compatible with each other all gate and
+        results: List of results to merge. They must be compatible with each other: all gate and
             options fields must be equal and every characterized pair must be present only in one of
             the characterizations.
 
