@@ -772,10 +772,10 @@ def split_into_matching_protocol_then_general(
     up to that point).
     """
     blocked_qubits: Set[cirq.Qid] = set()
-    unitary_prefix = circuits.Circuit()
+    matching_prefix = circuits.Circuit()
     general_suffix = circuits.Circuit()
     for moment in circuit:
-        unitary_part = []
+        matching_part = []
         general_part = []
         for op in moment:
             qs = set(op.qubits)
@@ -783,11 +783,11 @@ def split_into_matching_protocol_then_general(
                 blocked_qubits |= qs
 
             if qs.isdisjoint(blocked_qubits):
-                unitary_part.append(op)
+                matching_part.append(op)
             else:
                 general_part.append(op)
-        if unitary_part:
-            unitary_prefix.append(ops.Moment(unitary_part))
+        if matching_part:
+            matching_prefix.append(ops.Moment(matching_part))
         if general_part:
             general_suffix.append(ops.Moment(general_part))
-    return unitary_prefix, general_suffix
+    return matching_prefix, general_suffix
