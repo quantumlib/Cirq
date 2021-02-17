@@ -28,7 +28,7 @@ from typing import (
 import numpy as np
 
 from cirq import devices, ops
-from cirq.circuits import AbstractCircuit, Circuit
+from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.type_workarounds import NotImplementedType
 
@@ -176,13 +176,19 @@ class FrozenCircuit(AbstractCircuit):
     ) -> 'FrozenCircuit':
         return self.unfreeze()._resolve_parameters_(param_resolver, recursive).freeze()
 
-    @functools.wraps(Circuit.tetris_concat)  # Inherit doc string.
     def tetris_concat(
-        *circuits: 'cirq.AbstractCircuit', stop_at_first_alignment: bool = False
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.START
     ) -> 'cirq.FrozenCircuit':
-        return Circuit.tetris_concat(
-            *circuits, stop_at_first_alignment=stop_at_first_alignment
-        ).freeze()
+        return Circuit.tetris_concat(*circuits, align=align).freeze()
+
+    tetris_concat.__doc__ = Circuit.tetris_concat.__doc__
+
+    def zip(
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.START
+    ) -> 'cirq.FrozenCircuit':
+        return Circuit.zip(*circuits, align=align).freeze()
+
+    zip.__doc__ = Circuit.zip.__doc__
 
     def to_op(self):
         """Creates a CircuitOperation wrapping this circuit."""

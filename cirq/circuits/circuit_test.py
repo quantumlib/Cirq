@@ -4476,9 +4476,12 @@ def test_tetris_concat():
     assert len(f(space, ha)) == 10
     assert len(f(space, ha, ha, ha)) == 10
     assert len(f(space, f(ha, ha, ha))) == 10
-    assert len(f(space, ha, stop_at_first_alignment=True)) == 10
-    assert len(f(space, ha, ha, ha, stop_at_first_alignment=True)) == 12
-    assert len(f(space, f(ha, ha, ha, stop_at_first_alignment=True))) == 10
+    assert len(f(space, ha, align='START')) == 10
+    assert len(f(space, ha, ha, ha, align='END')) == 12
+    assert len(f(space, f(ha, ha, ha, align='START'))) == 10
+    assert len(f(space, f(ha, ha, ha, align='END'))) == 10
+    assert len(f(space, f(ha, ha, ha), align='START')) == 10
+    assert len(f(space, f(ha, ha, ha), align='END')) == 10
 
     # L shape overlap (vary c1).
     assert 7 == len(

@@ -20,6 +20,7 @@ Moment the Operations must all act on distinct Qubits.
 """
 
 from collections import defaultdict
+import enum
 from itertools import groupby
 import math
 
@@ -64,6 +65,11 @@ if TYPE_CHECKING:
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='AbstractCircuit')
 INT_TYPE = Union[int, np.integer]
+
+
+class Alignment(enum.Enum):
+    START = 1
+    END = 2
 
 
 class AbstractCircuit(abc.ABC):
@@ -1258,19 +1264,92 @@ class AbstractCircuit(abc.ABC):
     def _from_json_dict_(cls, moments, device, **kwargs):
         return cls(moments, strategy=InsertStrategy.EARLIEST, device=device)
 
+    def zip(
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.START
+    ) -> 'cirq.Circuit':
+        """Combines operations from circuits in a moment-by-moment fashion.
+
+        Moment k of the resulting circuit will have all operations from moment
+        k of each of the given circuits.
+
+        When the given circuits have different lengths, the shorter circuits are
+        implicitly padded with empty moments. This differs from the behavior of
+        python's built-in zip function, which would instead truncate the longer
+        circuits.
+
+        The zipped circuits can't have overlapping operations occurring at the
+        same moment index.
+
+        Args:
+            circuits: The circuits to merge together.
+
+        Returns:
+            The merged circuit.
+
+        Raises:
+            ValueError:
+                The zipped circuits have overlapping operations occurring at the
+                same moment index.
+
+        Examples:
+            >>> import cirq
+            >>> a, b, c, d = cirq.LineQubit.range(4)
+            >>> circuit1 = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
+            >>> circuit2 = cirq.Circuit(cirq.X(c), cirq.Y(c), cirq.Z(c))
+            >>> circuit3 = cirq.Circuit(cirq.Moment(), cirq.Moment(cirq.S(d)))
+            >>> print(circuit1.zip(circuit2))
+            0: ───H───@───────
+                      │
+            1: ───────X───────
+            <BLANKLINE>
+            2: ───X───Y───Z───
+            >>> print(circuit1.zip(circuit2, circuit3))
+            0: ───H───@───────
+                      │
+            1: ───────X───────
+            <BLANKLINE>
+            2: ───X───Y───Z───
+            <BLANKLINE>
+            3: ───────S───────
+            >>> print(cirq.Circuit.zip(circuit3, circuit2, circuit1))
+            0: ───H───@───────
+                      │
+            1: ───────X───────
+            <BLANKLINE>
+            2: ───X───Y───Z───
+            <BLANKLINE>
+            3: ───────S───────
+        """
+        n = max([len(c) for c in circuits], default=0)
+
+        if isinstance(align, str):
+            align = Alignment[align.upper()]
+
+        result = cirq.Circuit()
+        for k in range(n):
+            try:
+                if align == Alignment.START:
+                    moment = cirq.Moment(c[k] for c in circuits if k < len(c))
+                else:
+                    moment = cirq.Moment(c[n - len(c) + k] for c in circuits if n - len(c) + k >= 0)
+                result.append(moment)
+            except ValueError as ex:
+                raise ValueError(
+                    f"Overlapping operations between zipped circuits at moment index {k}.\n{ex}"
+                ) from ex
+        return result
+
     def tetris_concat(
-        *circuits: 'cirq.AbstractCircuit', stop_at_first_alignment: bool = False
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.START
     ) -> 'cirq.Circuit':
         """Concatenates circuits while overlapping them if possible.
 
         Starts with the first circuit (index 0), then iterates over the other
         circuits while folding them in. To fold two circuits together, they
-        are placed one after the other and then moved inward until any of:
-
-            a) Just before their operations would collide.
-            b) stop_at_first_alignment==True and their ends (or starts) align
-                for the first time.
-            c) Their ends (or starts) align for the last time.
+        are placed one after the other and then moved inward until just before
+        their operations would collide. If any of the circuits do not share
+        qubits and so would not collide, the starts or ends of the circuits will
+        be aligned, acording to the given align parameter.
 
         Beware that this method is *not* associative. For example:
 
@@ -1300,6 +1379,9 @@ class AbstractCircuit(abc.ABC):
             return Circuit()
         n_acc = len(circuits[0])
 
+        if isinstance(align, str):
+            align = Alignment[align.upper()]
+
         # Allocate a buffer large enough to append and prepend all the circuits.
         pad_len = sum(len(c) for c in circuits) - n_acc
         buffer = np.zeros(shape=pad_len * 2 + n_acc, dtype=np.object)
@@ -1310,22 +1392,20 @@ class AbstractCircuit(abc.ABC):
 
         # Accumulate all the circuits into the buffer.
         for k in range(1, len(circuits)):
-            offset, n_acc = _tetris_concat_helper(
-                offset, n_acc, buffer, circuits[k].moments, stop_at_first_alignment
-            )
+            offset, n_acc = _tetris_concat_helper(offset, n_acc, buffer, circuits[k].moments, align)
 
         return cirq.Circuit(buffer[offset : offset + n_acc])
 
 
 def _overlap_collision_time(
-    c1: Sequence['cirq.Moment'], c2: Sequence['cirq.Moment'], stop_at_first_alignment: bool
+    c1: Sequence['cirq.Moment'], c2: Sequence['cirq.Moment'], align: 'cirq.Alignment'
 ) -> int:
     # Tracks the first used moment index for each qubit in c2.
     # Tracks the complementary last used moment index for each qubit in c1.
     seen_times: Dict['cirq.Qid', int] = {}
 
     # Start scanning from end of first and start of second.
-    upper_bound = (min if stop_at_first_alignment else max)(len(c1), len(c2))
+    upper_bound = len(c1) if align == Alignment.START else len(c2)
     t = 0
     while t < upper_bound:
         if t < len(c2):
@@ -1350,14 +1430,10 @@ def _overlap_collision_time(
 
 
 def _tetris_concat_helper(
-    c1_offset: int,
-    n1: int,
-    buf: np.ndarray,
-    c2: Sequence['cirq.Moment'],
-    stop_at_first_alignment: bool,
+    c1_offset: int, n1: int, buf: np.ndarray, c2: Sequence['cirq.Moment'], align: 'cirq.Alignment'
 ) -> Tuple[int, int]:
     n2 = len(c2)
-    shift = _overlap_collision_time(buf[c1_offset : c1_offset + n1], c2, stop_at_first_alignment)
+    shift = _overlap_collision_time(buf[c1_offset : c1_offset + n1], c2, align)
     c2_offset = c1_offset + n1 - shift
     for k in range(n2):
         buf[k + c2_offset] = (buf[k + c2_offset] or ops.Moment()) + c2[k]
@@ -1916,72 +1992,6 @@ class Circuit(AbstractCircuit):
             self._moments[moment_index] = ops.Moment(
                 self._moments[moment_index].operations + tuple(new_ops)
             )
-
-    def zip(*circuits: 'cirq.Circuit'):
-        """Combines operations from circuits in a moment-by-moment fashion.
-
-        Moment k of the resulting circuit will have all operations from moment
-        k of each of the given circuits.
-
-        When the given circuits have different lengths, the shorter circuits are
-        implicitly padded with empty moments. This differs from the behavior of
-        python's built-in zip function, which would instead truncate the longer
-        circuits.
-
-        The zipped circuits can't have overlapping operations occurring at the
-        same moment index.
-
-        Args:
-            circuits: The circuits to merge together.
-
-        Returns:
-            The merged circuit.
-
-        Raises:
-            ValueError:
-                The zipped circuits have overlapping operations occurring at the
-                same moment index.
-
-        Examples:
-            >>> import cirq
-            >>> a, b, c, d = cirq.LineQubit.range(4)
-            >>> circuit1 = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
-            >>> circuit2 = cirq.Circuit(cirq.X(c), cirq.Y(c), cirq.Z(c))
-            >>> circuit3 = cirq.Circuit(cirq.Moment(), cirq.Moment(cirq.S(d)))
-            >>> print(circuit1.zip(circuit2))
-            0: ───H───@───────
-                      │
-            1: ───────X───────
-            <BLANKLINE>
-            2: ───X───Y───Z───
-            >>> print(circuit1.zip(circuit2, circuit3))
-            0: ───H───@───────
-                      │
-            1: ───────X───────
-            <BLANKLINE>
-            2: ───X───Y───Z───
-            <BLANKLINE>
-            3: ───────S───────
-            >>> print(cirq.Circuit.zip(circuit3, circuit2, circuit1))
-            0: ───H───@───────
-                      │
-            1: ───────X───────
-            <BLANKLINE>
-            2: ───X───Y───Z───
-            <BLANKLINE>
-            3: ───────S───────
-        """
-        n = max([len(c) for c in circuits], default=0)
-
-        result = cirq.Circuit()
-        for k in range(n):
-            try:
-                result.append(cirq.Moment(c[k] for c in circuits if k < len(c)))
-            except ValueError as ex:
-                raise ValueError(
-                    f"Overlapping operations between zipped circuits at moment index {k}.\n{ex}"
-                ) from ex
-        return result
 
     def insert_at_frontier(
         self, operations: 'cirq.OP_TREE', start: int, frontier: Dict['cirq.Qid', int] = None
