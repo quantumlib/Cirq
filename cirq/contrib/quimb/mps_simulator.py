@@ -52,7 +52,9 @@ class MPSOptions:
 class MPSSimulator(
     simulator.SimulatesSamples,
     simulator.SimulatesIntermediateStateBase[
-        'MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState'
+        'cirq.contrib.quimb.mps_simulator.MPSSimulatorStepResult',
+        'cirq.contrib.quimb.mps_simulator.MPSTrialResult',
+        'cirq.contrib.quimb.mps_simulator.MPSState',
     ],
 ):
     """An efficient simulator for MPS circuits."""

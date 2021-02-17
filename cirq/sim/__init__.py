@@ -45,6 +45,7 @@ from cirq.sim.simulator import (
     SimulatesAmplitudes,
     SimulatesFinalState,
     SimulatesIntermediateState,
+    SimulatesIntermediateStateBase,
     SimulatesSamples,
     SimulationTrialResult,
     StepResult,

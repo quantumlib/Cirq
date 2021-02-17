@@ -17,7 +17,6 @@ from typing import (
     List,
     Optional,
     Sequence,
-    cast,
     TYPE_CHECKING,
     Dict,
     Any,
@@ -46,7 +45,7 @@ class _Simulate2qXEBTask:
 class _Simulate_2q_XEB_Circuit:
     """Closure used in `simulate_2q_xeb_circuits` so it works with multiprocessing."""
 
-    def __init__(self, simulator: 'cirq.SimulatesIntermediateState'):
+    def __init__(self, simulator: 'sim.SimulatesIntermediateStateBase'):
         self.simulator = simulator
 
     def __call__(self, task: _Simulate2qXEBTask) -> List[Dict[str, Any]]:
@@ -92,7 +91,7 @@ def simulate_2q_xeb_circuits(
     cycle_depths: Sequence[int],
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     pool: Optional['multiprocessing.pool.Pool'] = None,
-    simulator: Optional['cirq.SimulatesIntermediateState'] = None,
+    simulator: Optional['sim.SimulatesIntermediateStateBase'] = None,
 ):
     """Simulate two-qubit XEB circuits.
 
@@ -119,9 +118,7 @@ def simulate_2q_xeb_circuits(
         # Need an actual object; not np.random or else multiprocessing will
         # fail to pickle the closure object:
         # https://github.com/quantumlib/Cirq/issues/3717
-        simulator = cast(
-            'cirq.SimulatesIntermediateState', sim.Simulator(seed=np.random.RandomState())
-        )
+        simulator = sim.Simulator(seed=np.random.RandomState())
     _simulate_2q_xeb_circuit = _Simulate_2q_XEB_Circuit(simulator=simulator)
 
     tasks = tuple(
