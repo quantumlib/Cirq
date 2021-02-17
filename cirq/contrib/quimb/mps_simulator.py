@@ -29,7 +29,12 @@ from cirq import circuits, study, ops, protocols, value
 from cirq.sim import simulator
 
 
-class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
+class MPSSimulator(
+    simulator.SimulatesSamples,
+    simulator.SimulatesIntermediateStateBase[
+        'MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState'
+    ],
+):
     """An efficient simulator for MPS circuits."""
 
     def __init__(
@@ -239,7 +244,7 @@ class MPSTrialResult(simulator.SimulationTrialResult):
         return f'measurements: {samples}\noutput state: {final}'
 
 
-class MPSSimulatorStepResult(simulator.StepResult):
+class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
     """A `StepResult` that can perform measurements."""
 
     def __init__(self, state, measurements):

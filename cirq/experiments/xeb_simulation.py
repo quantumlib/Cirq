@@ -120,7 +120,9 @@ def simulate_2q_xeb_circuits(
         # Need an actual object; not np.random or else multiprocessing will
         # fail to pickle the closure object:
         # https://github.com/quantumlib/Cirq/issues/3717
-        simulator = sim.Simulator(seed=np.random.RandomState())
+        simulator = cast(
+            'cirq.SimulatesIntermediateState', sim.Simulator(seed=np.random.RandomState())
+        )
     _simulate_2q_xeb_circuit = _Simulate_2q_XEB_Circuit(simulator=simulator)
 
     tasks = tuple(

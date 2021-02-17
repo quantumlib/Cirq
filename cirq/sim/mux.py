@@ -273,16 +273,16 @@ def final_density_matrix(
 
     if can_do_unitary_simulation:
         # pure case: use SparseSimulator
-        result = sparse_simulator.Simulator(dtype=dtype, seed=seed).simulate(
+        sparse_result = sparse_simulator.Simulator(dtype=dtype, seed=seed).simulate(
             program=circuit_like,
             initial_state=initial_state,
             qubit_order=qubit_order,
             param_resolver=param_resolver,
         )
-        return cast(state_vector_simulator.StateVectorTrialResult, result).density_matrix_of()
+        return sparse_result.density_matrix_of()
     else:
         # noisy case: use DensityMatrixSimulator with dephasing
-        result = density_matrix_simulator.DensityMatrixSimulator(
+        density_result = density_matrix_simulator.DensityMatrixSimulator(
             dtype=dtype,
             noise=noise,
             seed=seed,
@@ -293,4 +293,4 @@ def final_density_matrix(
             qubit_order=qubit_order,
             param_resolver=param_resolver,
         )
-        return cast(density_matrix_simulator.DensityMatrixTrialResult, result).final_density_matrix
+        return density_result.final_density_matrix

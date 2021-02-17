@@ -46,7 +46,7 @@ if TYPE_CHECKING:
 
 class Simulator(
     simulator.SimulatesSamples,
-    state_vector_simulator.SimulatesIntermediateStateVector,
+    state_vector_simulator.SimulatesIntermediateStateVector['SparseSimulatorStep'],
     simulator.SimulatesExpectationValues,
 ):
     """A sparse matrix state vector simulator that uses numpy.

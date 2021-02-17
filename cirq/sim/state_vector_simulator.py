@@ -15,7 +15,7 @@
 
 import abc
 
-from typing import Any, cast, Dict, Sequence, TYPE_CHECKING, Tuple
+from typing import Any, cast, Dict, Sequence, TYPE_CHECKING, Tuple, Generic, TypeVar
 
 import numpy as np
 
@@ -27,8 +27,16 @@ if TYPE_CHECKING:
     import cirq
 
 
+TStateVectorStepResult = TypeVar('TStateVectorStepResult', bound='StateVectorStepResult')
+
+
 class SimulatesIntermediateStateVector(
-    simulator.SimulatesAmplitudes, simulator.SimulatesIntermediateState, metaclass=abc.ABCMeta
+    Generic[TStateVectorStepResult],
+    simulator.SimulatesAmplitudes,
+    simulator.SimulatesIntermediateStateBase[
+        TStateVectorStepResult, 'StateVectorTrialResult', 'StateVectorSimulatorState'
+    ],
+    metaclass=abc.ABCMeta,
 ):
     """A simulator that accesses its state vector as it does its simulation.
 
@@ -87,7 +95,9 @@ class SimulatesIntermediateWaveFunction(SimulatesIntermediateStateVector):
         return SimulatesIntermediateStateVector.__new__(cls)
 
 
-class StateVectorStepResult(simulator.StepResult, metaclass=abc.ABCMeta):
+class StateVectorStepResult(
+    simulator.StepResult['StateVectorSimulatorState'], metaclass=abc.ABCMeta
+):
     @abc.abstractmethod
     def _simulator_state(self) -> 'StateVectorSimulatorState':
         """Returns the simulator_state of the simulator after this step.
