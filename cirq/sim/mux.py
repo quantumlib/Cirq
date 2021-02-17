@@ -155,7 +155,7 @@ def final_state_vector(
         param_resolver=param_resolver,
     )
 
-    return cast(sparse_simulator.SparseSimulatorStep, result).state_vector()
+    return result.state_vector()
 
 
 @deprecated(

@@ -15,7 +15,7 @@
 
 import abc
 
-from typing import Any, cast, Dict, Sequence, TYPE_CHECKING, Tuple, Generic, TypeVar
+from typing import Any, Dict, Sequence, TYPE_CHECKING, Tuple, Generic, TypeVar
 
 import numpy as np
 
@@ -76,7 +76,6 @@ class SimulatesIntermediateStateVector(
 
         all_amplitudes = []
         for trial_result in trial_results:
-            trial_result = cast(StateVectorTrialResult, trial_result)
             amplitudes = trial_result.final_state_vector[bitstrings]
             all_amplitudes.append(amplitudes)
 

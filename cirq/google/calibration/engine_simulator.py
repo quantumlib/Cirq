@@ -9,7 +9,6 @@ from typing import (
     Sequence,
     Tuple,
     Union,
-    cast,
 )
 
 import numpy as np
@@ -319,7 +318,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
     def final_state_vector(self, program: Circuit) -> np.array:
         result = self.simulate(program)
-        return cast(SparseSimulatorStep, result).state_vector()
+        return result.state_vector()
 
     def get_calibrations(
         self, requests: Sequence[PhasedFSimCalibrationRequest]

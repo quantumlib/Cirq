@@ -73,8 +73,7 @@ class _Simulate_2q_XEB_Circuit:
             if cycle_depth not in cycle_depths:
                 continue
 
-            psi = cast(sim.SparseSimulatorStep, step_result)
-            psi = psi.state_vector()
+            psi = step_result.state_vector()
             pure_probs = np.abs(psi) ** 2
 
             records += [
