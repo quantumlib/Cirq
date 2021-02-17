@@ -340,12 +340,25 @@ def test_supremacy_big():
     q0 = next(iter(qubit_order))
     circuit.append(cirq.measure(q0))
 
-    mps_simulator = ccq.mps_simulator.MPSSimulator(
+    mps_simulator_1 = ccq.mps_simulator.MPSSimulator(
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=5e-5)
     )
-    result = mps_simulator.simulate(circuit, qubit_order=qubit_order, initial_state=0)
+    result_1 = mps_simulator_1.simulate(circuit, qubit_order=qubit_order, initial_state=0)
 
-    assert result.final_state.estimation_stats() == {
+    assert result_1.final_state.estimation_stats() == {
+        'estimated_fidelity': 0.997,
+        'memory_bytes': 11008,
+        'num_coefs_used': 688,
+    }
+
+    mps_simulator_2 = ccq.mps_simulator.MPSSimulator(
+        simulation_options=ccq.mps_simulator.MPSOptions(
+            method='isvd', max_bond=1, cutoff_mode='rsum'
+        )
+    )
+    result_2 = mps_simulator_1.simulate(circuit, qubit_order=qubit_order, initial_state=0)
+
+    assert result_2.final_state.estimation_stats() == {
         'estimated_fidelity': 0.997,
         'memory_bytes': 11008,
         'num_coefs_used': 688,

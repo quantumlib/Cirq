@@ -30,40 +30,23 @@ from cirq import circuits, study, ops, protocols, value
 from cirq.sim import simulator
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class MPSOptions:
-    def __init__(
-        self,
-        method: str = 'svds',
-        max_bond: Optional[int] = None,
-        cutoff_mode: str = 'rsum2',
-        cutoff: float = 1e-6,
-        sum_prob_atol: float = 1e-3,
-    ):
-        """Numerical options for the simulation.
+    # Some of these parameters are fed directly to Quimb so refer to the documentation for detail:
+    # https://quimb.readthedocs.io/en/latest/_autosummary/ \
+    #       quimb.tensor.tensor_core.html#quimb.tensor.tensor_core.tensor_split
 
-        Args:
-            method: How to split the tensor. Refer to the Quimb documentation
-                for the exact meaning.
-            max_bond: If integer, the maxmimum number of singular values to keep,
-                regardless of ``cutoff``.
-            cutoff_mode: Method with which to apply the cutoff threshold. Refer
-                to the Quimb documentation for the exact meaning.
-            cutoff: The threshold below which to discard singular values. Refer
-                to the Quimb documentation for the exact meaning.
-            sum_prob_atol: Because the computation is approximate, the sum of
-                the probabilities is not 1.0. This parameter is the absolute
-                deviation from 1.0 that is allowed.
-        """
-
-        # Quimb documentation:
-        # https://quimb.readthedocs.io/en/latest/_autosummary/ \
-        #       quimb.tensor.tensor_core.html#quimb.tensor.tensor_core.tensor_split
-        self.method = method
-        self.max_bond = max_bond
-        self.cutoff_mode = cutoff_mode
-        self.cutoff = cutoff
-        self.sum_prob_atol = sum_prob_atol
+    # How to split the tensor. Refer to the Quimb documentation for the exact meaning.
+    method: str = 'svds'
+    # If integer, the maxmimum number of singular values to keep, regardless of ``cutoff``.
+    max_bond: Optional[int] = None
+    # Method with which to apply the cutoff threshold. Refer to the Quimb documentation.
+    cutoff_mode: str = 'rsum2'
+    # The threshold below which to discard singular values. Refer to the Quimb documentation.
+    cutoff: float = 1e-6
+    # Because the computation is approximate, the sum of the probabilities is not 1.0. This
+    # parameter is the absolute deviation from 1.0 that is allowed.
+    sum_prob_atol: float = 1e-3
 
 
 class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
