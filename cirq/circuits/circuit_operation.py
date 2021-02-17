@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 
 INT_TYPE = Union[int, np.integer]
-measurement_key_separator = '-'
+MEASUREMENT_KEY_SEPARATOR = '-'
 
 
 def default_repetition_ids(repetitions: int) -> Optional[List[str]]:
@@ -48,14 +48,15 @@ def cartesian_product_of_string_lists(list1: Optional[List[str]], list2: Optiona
     if list2 is None:
         return list1
     return [
-        f'{measurement_key_separator.join([first, second])}' for first in list1 for second in list2
+        f'{MEASUREMENT_KEY_SEPARATOR.join([first, second])}' for first in list1 for second in list2
     ]
 
 
 def split_maybe_indexed_key(maybe_indexed_key: str) -> List[str]:
     """Given a measurement_key, splits into index (series of repetition_ids) and unindexed key
-    parts. For a key without index, returns the unaltered key in a list"""
-    return maybe_indexed_key.rsplit(measurement_key_separator, maxsplit=1)
+    parts. For a key without index, returns the unaltered key in a list. Breaks down if the
+    measurement key has the MEASUREMENT_KEY_SEPARATOR as part of the unindexed key."""
+    return maybe_indexed_key.rsplit(MEASUREMENT_KEY_SEPARATOR, maxsplit=1)
 
 
 def get_unindexed_key(maybe_indexed_key: str) -> str:
@@ -69,7 +70,7 @@ def remap_maybe_indexed_key(key_map: Dict[str, str], key: str) -> str:
     the same format. Does not modify the index (series of repetition_ids) part, if it exists."""
     split_key = split_maybe_indexed_key(key)
     split_key[-1] = key_map.get(split_key[-1], split_key[-1])
-    return measurement_key_separator.join(split_key)
+    return MEASUREMENT_KEY_SEPARATOR.join(split_key)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -212,7 +213,7 @@ class CircuitOperation(ops.Operation):
                         protocols.with_measurement_key_mapping(
                             op,
                             key_map={
-                                key: f'{measurement_key_separator.join([parent_id, key])}'
+                                key: f'{MEASUREMENT_KEY_SEPARATOR.join([parent_id, key])}'
                                 for key in protocols.measurement_keys(op)
                             },
                         )
