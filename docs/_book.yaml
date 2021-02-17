@@ -103,6 +103,8 @@ upper_tabs:
         path: /cirq/google/calibration
       - title: "Best practices"
         path: /cirq/google/best_practices
+      - title: "Floquet calibration"
+        path: /cirq/google/floquet
 
       ####  AQT  ####
       - heading: "AQT hardware"
