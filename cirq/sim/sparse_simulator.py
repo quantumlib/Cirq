@@ -162,7 +162,7 @@ class Simulator(
             raise ValueError('dtype must be a complex type but was {}'.format(dtype))
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
-        self.noise = devices.NoiseModel.from_noise_model_like(noise)
+        self.noise = None if noise is None else devices.NoiseModel.from_noise_model_like(noise)
 
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
@@ -252,9 +252,13 @@ class Simulator(
             log_of_measurement_results={},
         )
 
-        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
-        for op_tree in noisy_moments:
-            moment = protocols.decompose(op_tree)
+        moments = (
+            circuit.moments
+            if self.noise is None
+            else self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
+        )
+        for moment in moments:
+            moment = moment if self.noise is None else protocols.decompose(moment)
             for op in moment:
                 if perform_measurements or not isinstance(op.gate, ops.MeasurementGate):
                     sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
