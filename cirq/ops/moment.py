@@ -490,7 +490,6 @@ class Moment:
         return self._operations
 
 
-
 class _SortByValFallbackToType:
     def __init__(self, value):
         self.value = value
