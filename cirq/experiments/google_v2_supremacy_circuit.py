@@ -16,7 +16,7 @@ import random
 from typing import Callable, Iterable, TypeVar, cast, Sequence
 
 from cirq.circuits import InsertStrategy
-from cirq import circuits, devices, google, ops
+from cirq import circuits, devices, ops
 
 
 def generate_boixo_2018_supremacy_circuits_v2(
@@ -135,6 +135,9 @@ def generate_boixo_2018_supremacy_circuits_v2_bristlecone(
 
         assert 2 <= n_rows <= 11
         max_row = n_rows - 1
+        # to avoid circular dependencies
+        from cirq import google
+
         dev = google.Bristlecone
         # we need a consistent order of qubits
         qubits = list(dev.qubits)
