@@ -49,7 +49,14 @@ class MPSOptions:
     sum_prob_atol: float = 1e-3
 
 
-class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
+class MPSSimulator(
+    simulator.SimulatesSamples,
+    simulator.SimulatesIntermediateState[
+        'cirq.contrib.quimb.mps_simulator.MPSSimulatorStepResult',
+        'cirq.contrib.quimb.mps_simulator.MPSTrialResult',
+        'cirq.contrib.quimb.mps_simulator.MPSState',
+    ],
+):
     """An efficient simulator for MPS circuits."""
 
     def __init__(
@@ -247,7 +254,7 @@ class MPSTrialResult(simulator.SimulationTrialResult):
         return f'measurements: {samples}\noutput state: {final}'
 
 
-class MPSSimulatorStepResult(simulator.StepResult):
+class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
     """A `StepResult` that can perform measurements."""
 
     def __init__(self, state, measurements):
