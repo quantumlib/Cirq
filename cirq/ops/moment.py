@@ -486,9 +486,6 @@ class Moment:
 
         return True
 
-    def _decompose_(self) -> 'cirq.OP_TREE':
-        return self._operations
-
 
 class _SortByValFallbackToType:
     def __init__(self, value):
