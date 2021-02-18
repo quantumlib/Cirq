@@ -153,7 +153,9 @@ def test_noise_composition():
 
     def merge(circuit):
         decomposed = cirq.Circuit(protocols.decompose(circuit))
-        return cirq.optimizers.merge_single_qubit_gates_into_phased_x_z(decomposed)
+        cirq.optimizers.merge_single_qubit_gates_into_phased_x_z(decomposed)
+        return decomposed
+
     base_moments = [cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.Y(b)]), cirq.Moment([cirq.H(c)])]
     circuit_z = cirq.Circuit(noise_z.noisy_moments(base_moments, [a, b, c]))
     circuit_s = cirq.Circuit(noise_inv_s.noisy_moments(base_moments, [a, b, c]))
@@ -170,9 +172,9 @@ def test_noise_composition():
     )
 
     # All of the gates will be the same, just out of order. Merging fixes this.
-    merge(actual_zs)
-    merge(actual_sz)
-    merge(expected_circuit)
+    actual_zs = merge(actual_zs)
+    actual_sz = merge(actual_sz)
+    expected_circuit = merge(expected_circuit)
     _assert_equivalent_op_tree(actual_zs, actual_sz)
     _assert_equivalent_op_tree(actual_zs, expected_circuit)
 
