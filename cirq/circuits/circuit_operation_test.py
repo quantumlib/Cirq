@@ -81,6 +81,27 @@ def test_repetitions_and_ids_length_mismatch():
         _ = cirq.CircuitOperation(circuit, repetitions=2, repetition_ids=['a', 'b', 'c'])
 
 
+def test_invalid_measurement_keys():
+    a = cirq.LineQubit(0)
+    circuit = cirq.FrozenCircuit(cirq.measure(a, key='m'))
+    c_op = cirq.CircuitOperation(circuit)
+    # Invalid key remapping
+    with pytest.raises(ValueError, match='invalid key: m-a'):
+        _ = c_op.with_measurement_key_mapping({'m': 'm-a'})
+
+    # Invalid key remapping nested CircuitOperation
+    with pytest.raises(ValueError, match='invalid key: m-a'):
+        _ = cirq.CircuitOperation(cirq.FrozenCircuit(c_op), measurement_key_map={'m': 'm-a'})
+
+    # Originally invalid key
+    circuit = cirq.FrozenCircuit(cirq.measure(a, key='m-a'))
+    with pytest.raises(ValueError, match='invalid key: m-a'):
+        _ = cirq.CircuitOperation(circuit)
+
+    # Remapped to valid key
+    _ = cirq.CircuitOperation(circuit, measurement_key_map={'m-a': 'ma'})
+
+
 def test_circuit_sharing():
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.FrozenCircuit(

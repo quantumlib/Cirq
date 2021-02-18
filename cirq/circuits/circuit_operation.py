@@ -54,8 +54,9 @@ def cartesian_product_of_string_lists(list1: Optional[List[str]], list2: Optiona
 
 def split_maybe_indexed_key(maybe_indexed_key: str) -> List[str]:
     """Given a measurement_key, splits into index (series of repetition_ids) and unindexed key
-    parts. For a key without index, returns the unaltered key in a list. Breaks down if the
-    measurement key has the MEASUREMENT_KEY_SEPARATOR as part of the unindexed key."""
+    parts. For a key without index, returns the unaltered key in a list. Assumes that the
+    unindexed measurement key does not contain the MEASUREMENT_KEY_SEPARATOR. This is validated by
+    the `CircuitOperation` constructor."""
     return maybe_indexed_key.rsplit(MEASUREMENT_KEY_SEPARATOR, maxsplit=1)
 
 
@@ -87,6 +88,7 @@ class CircuitOperation(ops.Operation):
         qubit_map: Remappings for qubits in the circuit.
         measurement_key_map: Remappings for measurement keys in the circuit.
             The keys and values should be unindexed (i.e. without repetition_ids).
+            The values cannot contain the `MEASUREMENT_KEY_SEPARATOR`.
         param_resolver: Resolved values for parameters in the circuit.
         repetition_ids: List of identifiers for each repetition of the
             CircuitOperation. If populated, the length should be equal to the
@@ -123,6 +125,28 @@ class CircuitOperation(ops.Operation):
                 f'Expected repetition_ids to be a list of length {loop_size}, '
                 f'got: {self.repetition_ids}'
             )
+
+        # Disallow mapping to keys containing the `MEASUREMENT_KEY_SEPARATOR`
+        for mapped_key in self.measurement_key_map.values():
+            if MEASUREMENT_KEY_SEPARATOR in mapped_key:
+                raise ValueError(
+                    f'Mapping to invalid key: {mapped_key}. "{MEASUREMENT_KEY_SEPARATOR}" '
+                    'is not allowed for measurement keys in a CircuitOperation'
+                )
+
+        # Validate the keys for all direct child measurements. They are not allowed to contain
+        # `MEASUREMENT_KEY_SEPARATOR`
+        for _, op in self.circuit.findall_operations(
+            lambda op: not isinstance(op, CircuitOperation) and protocols.is_measurement(op)
+        ):
+            for key in protocols.measurement_keys(op):
+                key = self.measurement_key_map.get(key, key)
+                if MEASUREMENT_KEY_SEPARATOR in key:
+                    raise ValueError(
+                        f'Measurement {op} found to have invalid key: {key}. '
+                        f'"{MEASUREMENT_KEY_SEPARATOR}" is not allowed for measurement keys '
+                        'in a CircuitOperation'
+                    )
         # Ensure that param_resolver is converted to an actual ParamResolver.
         object.__setattr__(self, 'param_resolver', study.ParamResolver(self.param_resolver))
 
