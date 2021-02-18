@@ -42,7 +42,12 @@ from cirq._compat import deprecated, deprecated_parameter
 from cirq.sim.simulator import check_all_resolved
 
 
-class CliffordSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
+class CliffordSimulator(
+    simulator.SimulatesSamples,
+    simulator.SimulatesIntermediateState[
+        'CliffordSimulatorStepResult', 'CliffordTrialResult', 'CliffordState'
+    ],
+):
     """An efficient simulator for Clifford circuits."""
 
     def __init__(self, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
@@ -168,7 +173,7 @@ class CliffordTrialResult(simulator.SimulationTrialResult):
         return f'measurements: {samples}\noutput state: {final}'
 
 
-class CliffordSimulatorStepResult(simulator.StepResult):
+class CliffordSimulatorStepResult(simulator.StepResult['CliffordState']):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
     def __init__(self, state, measurements):
