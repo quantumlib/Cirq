@@ -4091,6 +4091,7 @@ def test_with_noise():
     assert c_noisy == c_expected
 
     # Accepts NOISE_MODEL_LIKE.
+    assert c.with_noise(None) == c
     assert c.with_noise(cirq.depolarize(0.1)) == cirq.Circuit(
         cirq.X(q0),
         cirq.Y(q1),
