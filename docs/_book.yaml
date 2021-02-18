@@ -68,6 +68,11 @@ upper_tabs:
       - title: "Operators and observables"
         path: /cirq/operators_and_observables
 
+      ####  Support  ####
+      - heading: "Support"
+      - title: "Issues / requests / questions"
+        path: /cirq/support
+
       ####  Contributor Guide  ####
       - heading: "Contributor guide"
       - title: "Contribute"
