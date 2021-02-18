@@ -23,10 +23,8 @@ from typing import (
     Type,
     TYPE_CHECKING,
     DefaultDict,
-    Tuple,
     Union,
     cast,
-    Set,
 )
 
 import numpy as np
@@ -38,7 +36,7 @@ from cirq.sim import (
     state_vector_simulator,
     act_on_state_vector_args,
 )
-from cirq.sim.simulator import check_all_resolved
+from cirq.sim.simulator import check_all_resolved, split_into_matching_protocol_then_general
 
 if TYPE_CHECKING:
     import cirq
@@ -172,7 +170,9 @@ class Simulator(
 
         # Simulate as many unitary operations as possible before having to
         # repeat work for each sample.
-        unitary_prefix, general_suffix = _split_into_unitary_then_general(resolved_circuit)
+        unitary_prefix, general_suffix = split_into_matching_protocol_then_general(
+            resolved_circuit, protocols.has_unitary
+        )
         step_result = None
         for step_result in self._base_iterator(
             circuit=unitary_prefix,
@@ -379,36 +379,3 @@ class SparseSimulatorStep(
             repetitions=repetitions,
             seed=seed,
         )
-
-
-def _split_into_unitary_then_general(
-    circuit: 'cirq.Circuit',
-) -> Tuple['cirq.Circuit', 'cirq.Circuit']:
-    """Splits the circuit into a unitary prefix and non-unitary suffix.
-
-    The splitting happens in a per-qubit fashion. A non-unitary operation on
-    qubit A will cause later operations on A to be part of the non-unitary
-    suffix, but later operations on other qubits will continue to be put into
-    the unitary part (as long as those qubits have had no non-unitary operation
-    up to that point).
-    """
-    blocked_qubits: Set[cirq.Qid] = set()
-    unitary_prefix = circuits.Circuit()
-    general_suffix = circuits.Circuit()
-    for moment in circuit:
-        unitary_part = []
-        general_part = []
-        for op in moment:
-            qs = set(op.qubits)
-            if not protocols.has_unitary(op) or not qs.isdisjoint(blocked_qubits):
-                blocked_qubits |= qs
-
-            if qs.isdisjoint(blocked_qubits):
-                unitary_part.append(op)
-            else:
-                general_part.append(op)
-        if unitary_part:
-            unitary_prefix.append(ops.Moment(unitary_part))
-        if general_part:
-            general_suffix.append(ops.Moment(general_part))
-    return unitary_prefix, general_suffix

@@ -136,6 +136,18 @@ def test_get_random_combinations_for_device():
         assert cirq.experiments.HALF_GRID_STAGGERED_PATTERN[i] == comb.layer
 
 
+def test_get_random_combinations_for_small_device():
+    graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 1))
+    n_combinations = 4
+    combinations = get_random_combinations_for_device(
+        n_library_circuits=3,
+        n_combinations=n_combinations,
+        device_graph=graph,
+        random_state=99,
+    )
+    assert len(combinations) == 2  # 3x1 device only fits two layers
+
+
 def _cz_with_adjacent_z_rotations(
     a: cirq.GridQubit, b: cirq.GridQubit, prng: np.random.RandomState
 ):
