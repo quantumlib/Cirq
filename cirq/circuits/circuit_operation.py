@@ -145,7 +145,8 @@ class CircuitOperation(ops.Operation):
                     raise ValueError(
                         f'Measurement {op} found to have invalid key: {key}. '
                         f'"{MEASUREMENT_KEY_SEPARATOR}" is not allowed for measurement keys '
-                        'in a CircuitOperation'
+                        'in a CircuitOperation. Consider remapping the key using '
+                        '`measurement_key_map` in the CircuitOperation constructor.'
                     )
         # Ensure that param_resolver is converted to an actual ParamResolver.
         object.__setattr__(self, 'param_resolver', study.ParamResolver(self.param_resolver))
