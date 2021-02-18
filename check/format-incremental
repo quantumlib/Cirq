@@ -1,6 +1,19 @@
 #!/usr/bin/env bash
 
 ################################################################################
+# Runs flynt on the repository
+#
+# Usage:
+#     check/flynt [--flags for flynt]
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$(git rev-parse --show-toplevel)"
+
+flynt $@ cirq dev_tools examples -f
+
+################################################################################
 # Formats python files that have been modified.
 #
 # Usage:
@@ -29,10 +42,6 @@
 #
 # If none exists, the script fails.
 ################################################################################
-
-# Get the working directory to the repo root.
-cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "$(git rev-parse --show-toplevel)"
 
 # Parse arguments.
 only_print=1
