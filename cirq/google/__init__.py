@@ -115,6 +115,8 @@ from cirq.google.serializable_gate_set import (
     SerializableGateSet,
 )
 
+from cirq.google import experimental
+
 
 def _register_resolver() -> None:
     """Registers the cirq.google's public classes for JSON serialization."""
