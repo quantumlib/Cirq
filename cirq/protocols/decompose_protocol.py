@@ -294,9 +294,6 @@ def decompose_once(val: Any, default=RaiseTypeErrorIfNotProvided, *args, **kwarg
         `val` didn't have a `_decompose_` method (or that method returned
         `NotImplemented` or `None`) and `default` wasn't set.
     """
-    if isinstance(val, ops.Moment):
-        return list(ops.flatten_op_tree(val))
-
     method = getattr(val, '_decompose_', None)
     decomposed = NotImplemented if method is None else method(*args, **kwargs)
 

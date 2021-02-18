@@ -1229,13 +1229,19 @@ def test_final_state_vector_is_not_last_object():
     np.testing.assert_equal(result.state_vector(), initial_state)
 
 
-def test_simulate_noise_with_terminal_measurements():
+def test_simulate_noise():
     q = cirq.LineQubit(0)
-    circuit1 = cirq.Circuit(cirq.measure(q))
-    circuit2 = circuit1 + cirq.I(q)
+    circuit1 = cirq.Circuit(cirq.I(q), cirq.measure(q))
 
-    simulator = cirq.Simulator(noise=cirq.X)
-    result1 = simulator.run(circuit1, repetitions=10)
-    result2 = simulator.run(circuit2, repetitions=10)
+    simulator1 = cirq.Simulator(noise=cirq.X)
+    result1 = simulator1.run(circuit1, repetitions=10)
+
+    simulator2 = cirq.Simulator(noise=cirq.X)
+    result2 = simulator2.run(circuit1, repetitions=10)
 
     assert result1 == result2
+
+    simulator3 = cirq.Simulator(noise=cirq.Z)
+    result3 = simulator3.run(circuit1, repetitions=10)
+
+    assert result1 != result3

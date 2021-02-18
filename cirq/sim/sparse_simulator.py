@@ -254,7 +254,7 @@ class Simulator(
 
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
         for op_tree in noisy_moments:
-            moment = cast(ops.Moment, op_tree)
+            moment = protocols.decompose(op_tree)
             for op in moment:
                 if perform_measurements or not isinstance(op.gate, ops.MeasurementGate):
                     sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
