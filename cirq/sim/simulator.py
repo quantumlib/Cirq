@@ -39,6 +39,7 @@ from typing import (
     TYPE_CHECKING,
     Set,
     cast,
+    Callable,
     TypeVar,
     Generic,
 )
@@ -766,3 +767,37 @@ def check_all_resolved(circuit):
             'Circuit contains ops whose symbols were not specified in '
             'parameter sweep. Ops: {}'.format(unresolved)
         )
+
+
+def split_into_matching_protocol_then_general(
+    circuit: 'cirq.Circuit',
+    predicate: Callable[['cirq.Operation'], bool],
+) -> Tuple['cirq.Circuit', 'cirq.Circuit']:
+    """Splits the circuit into a matching prefix and non-matching suffix.
+
+    The splitting happens in a per-qubit fashion. A non-matching operation on
+    qubit A will cause later operations on A to be part of the non-matching
+    suffix, but later operations on other qubits will continue to be put into
+    the matching part (as long as those qubits have had no non-matching operation
+    up to that point).
+    """
+    blocked_qubits: Set[cirq.Qid] = set()
+    matching_prefix = circuits.Circuit()
+    general_suffix = circuits.Circuit()
+    for moment in circuit:
+        matching_part = []
+        general_part = []
+        for op in moment:
+            qs = set(op.qubits)
+            if not predicate(op) or not qs.isdisjoint(blocked_qubits):
+                blocked_qubits |= qs
+
+            if qs.isdisjoint(blocked_qubits):
+                matching_part.append(op)
+            else:
+                general_part.append(op)
+        if matching_part:
+            matching_prefix.append(ops.Moment(matching_part))
+        if general_part:
+            general_suffix.append(ops.Moment(general_part))
+    return matching_prefix, general_suffix
