@@ -48,10 +48,10 @@ from cirq import (
     # Hardware specific
     ion,
     neutral_atoms,
-    google,
     interop,
     # Applications
     experiments,
+    google,
     # Extra (nothing should depend on these)
     testing,
 )
