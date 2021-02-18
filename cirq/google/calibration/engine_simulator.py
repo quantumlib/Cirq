@@ -9,7 +9,6 @@ from typing import (
     Sequence,
     Tuple,
     Union,
-    cast,
 )
 
 import numpy as np
@@ -30,8 +29,7 @@ from cirq.sim import (
     Simulator,
     SimulatesSamples,
     SimulatesIntermediateStateVector,
-    SparseSimulatorStep,
-    StepResult,
+    StateVectorStepResult,
 )
 from cirq.study import ParamResolver
 from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
@@ -319,7 +317,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
     def final_state_vector(self, program: Circuit) -> np.array:
         result = self.simulate(program)
-        return cast(SparseSimulatorStep, result).state_vector()
+        return result.state_vector()
 
     def get_calibrations(
         self, requests: Sequence[PhasedFSimCalibrationRequest]
@@ -402,7 +400,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         circuit: Circuit,
         qubit_order: QubitOrderOrList,
         initial_state: Any,
-    ) -> Iterator[StepResult]:
+    ) -> Iterator[StateVectorStepResult]:
         converted = _convert_to_circuit_with_drift(self, circuit)
         return self._simulator._base_iterator(converted, qubit_order, initial_state)
 
