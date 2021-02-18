@@ -344,6 +344,9 @@ def get_random_combinations_for_device(
     combinations_by_layer = []
     for layer in pattern:
         pairs = sorted(_get_active_pairs(device_graph, layer))
+        if len(pairs) == 0:
+            continue
+
         combinations = rs.randint(0, n_library_circuits, size=(n_combinations, len(pairs)))
         combinations_by_layer.append(
             CircuitLibraryCombination(layer=layer, combinations=combinations, pairs=pairs)
