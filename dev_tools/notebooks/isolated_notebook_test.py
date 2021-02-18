@@ -37,7 +37,7 @@ from dev_tools.env_tools import create_virtual_env
 # after every release we should raise a PR and empty out this list
 # note that these notebooks are still tested in dev_tools/notebook_test.py
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES = [
-    'docs/characterization/*.ipynb',
+    'docs/qcvv/*.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
