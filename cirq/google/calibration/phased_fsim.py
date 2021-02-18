@@ -15,6 +15,7 @@ from typing import (
     Any,
     Callable,
     Dict,
+    Iterable,
     List,
     MutableMapping,
     Optional,
@@ -36,6 +37,7 @@ from cirq.ops import (
     FSimGate,
     Gate,
     ISwapPowGate,
+    Moment,
     Operation,
     PhasedFSimGate,
     PhasedISwapPowGate,
@@ -60,6 +62,31 @@ T = TypeVar('T')
 # Workaround for: https://github.com/python/mypy/issues/5858
 def lru_cache_typesafe(func: Callable[..., T]) -> T:
     return functools.lru_cache(maxsize=None)(func)  # type: ignore
+
+
+def _create_pairs_from_moment(moment: Moment) -> Tuple[Tuple[Tuple[Qid, Qid], ...], Gate]:
+    """Creates instantiation parameters from a Moment.
+
+    Given a moment, creates a tuple of pairs of qubits and the
+    gate for instantiation of a sub-class of PhasedFSimCalibrationRequest,
+    Sub-classes of PhasedFSimCalibrationRequest can call this function
+    to implement a from_moment function.
+    """
+    gate = None
+    pairs: List[Tuple[Qid, Qid]] = []
+    for op in moment:
+        if op.gate is None:
+            raise ValueError('All gates in request object must be two qubit gates: {op}')
+        if gate is None:
+            gate = op.gate
+        elif gate != op.gate:
+            raise ValueError('All gates in request object must be identical {gate}!={op.gate}')
+        if len(op.qubits) != 2:
+            raise ValueError('All gates in request object must be two qubit gates: {op}')
+        pairs.append((op.qubits[0], op.qubits[1]))
+    if gate is None:
+        raise ValueError('No gates found to create request {moment}')
+    return tuple(pairs), gate
 
 
 @json_serializable_dataclass(frozen=True)
@@ -260,6 +287,50 @@ class PhasedFSimCalibrationResult:
         }
 
 
+def merge_matching_results(
+    results: Iterable[PhasedFSimCalibrationResult],
+) -> Optional[PhasedFSimCalibrationResult]:
+    """Merges a collection of results into a single result.
+
+    Args:
+        results: List of results to merge. They must be compatible with each other: all gate and
+            options fields must be equal and every characterized pair must be present only in one of
+            the characterizations.
+
+    Returns:
+        New PhasedFSimCalibrationResult that contains all the parameters from every result in
+        results or None when the results list is empty.
+    """
+    all_parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization] = {}
+    common_gate = None
+    common_options = None
+    for result in results:
+        if common_gate is None:
+            common_gate = result.gate
+        elif common_gate != result.gate:
+            raise ValueError(
+                f'Only matching results can be merged, got gates {common_gate} and {result.gate}'
+            )
+
+        if common_options is None:
+            common_options = result.options
+        elif common_options != result.options:
+            raise ValueError(
+                f'Only matching results can be merged, got options {common_options} and '
+                f'{result.options}'
+            )
+
+        if not all_parameters.keys().isdisjoint(result.parameters):
+            raise ValueError(f'Only results with disjoint parameters sets can be merged')
+
+        all_parameters.update(result.parameters)
+
+    if common_gate is None or common_options is None:
+        return None
+
+    return PhasedFSimCalibrationResult(all_parameters, common_gate, common_options)
+
+
 # We have to relax a mypy constraint, see https://github.com/python/mypy/issues/5374
 @dataclasses.dataclass(frozen=True)  # type: ignore
 class PhasedFSimCalibrationRequest(abc.ABC):
@@ -373,6 +444,18 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     """
 
     options: FloquetPhasedFSimCalibrationOptions
+
+    @classmethod
+    def from_moment(cls, moment: Moment, options: FloquetPhasedFSimCalibrationOptions):
+        """Creates a FloquetPhasedFSimCalibrationRequest from a Moment.
+
+        Given a `Moment` object, this function extracts out the pairs of
+        qubits and the `Gate` used to create a `FloquetPhasedFSimCalibrationRequest`
+        object.  The moment must contain only identical two-qubit FSimGates.
+        If dissimilar gates are passed in, a ValueError is raised.
+        """
+        pairs, gate = _create_pairs_from_moment(moment)
+        return cls(pairs, gate, options)
 
     def to_calibration_layer(self) -> CalibrationLayer:
         circuit = Circuit([self.gate.on(*pair) for pair in self.pairs])

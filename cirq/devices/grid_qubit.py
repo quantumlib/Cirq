@@ -281,6 +281,16 @@ class GridQubit(_BaseGridQid):
         super().__init__(row, col)
         self._hash = super().__hash__()
 
+    def __getstate__(self):
+        # Don't save hash when pickling; see #3777.
+        state = self.__dict__.copy()
+        del state['_hash']
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self._hash = super().__hash__()
+
     def __hash__(self):
         # Explicitly cached for performance (vs delegating to Qid).
         return self._hash

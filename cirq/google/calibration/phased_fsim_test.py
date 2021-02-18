@@ -23,6 +23,7 @@ from cirq.google.calibration.phased_fsim import (
     PhasedFSimCharacterization,
     PhasedFSimCalibrationResult,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    merge_matching_results,
     try_convert_sqrt_iswap_to_fsim,
 )
 
@@ -101,6 +102,42 @@ def test_floquet_to_calibration_layer():
             'readout_corrections': True,
         },
     )
+
+
+def test_from_moment():
+    q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
+    m = cirq.Moment(cirq.ISWAP(q_00, q_01) ** 0.5, cirq.ISWAP(q_02, q_03) ** 0.5)
+    options = FloquetPhasedFSimCalibrationOptions(
+        characterize_theta=True,
+        characterize_zeta=True,
+        characterize_chi=False,
+        characterize_gamma=False,
+        characterize_phi=True,
+    )
+    request = FloquetPhasedFSimCalibrationRequest.from_moment(m, options)
+    assert request == FloquetPhasedFSimCalibrationRequest(
+        gate=cirq.ISWAP ** 0.5, pairs=((q_00, q_01), (q_02, q_03)), options=options
+    )
+
+    non_identical = cirq.Moment(cirq.ISWAP(q_00, q_01) ** 0.5, cirq.ISWAP(q_02, q_03))
+    with pytest.raises(ValueError, match='must be identical'):
+        _ = FloquetPhasedFSimCalibrationRequest.from_moment(non_identical, options)
+
+    sq = cirq.Moment(cirq.X(q_00))
+    with pytest.raises(ValueError, match='must be two qubit gates'):
+        _ = FloquetPhasedFSimCalibrationRequest.from_moment(sq, options)
+
+    threeq = cirq.Moment(cirq.TOFFOLI(q_00, q_01, q_02))
+    with pytest.raises(ValueError, match='must be two qubit gates'):
+        _ = FloquetPhasedFSimCalibrationRequest.from_moment(threeq, options)
+
+    not_gate = cirq.Moment(cirq.CircuitOperation(cirq.FrozenCircuit()))
+    with pytest.raises(ValueError, match='must be two qubit gates'):
+        _ = FloquetPhasedFSimCalibrationRequest.from_moment(not_gate, options)
+
+    empty = cirq.Moment()
+    with pytest.raises(ValueError, match='No gates found'):
+        _ = FloquetPhasedFSimCalibrationRequest.from_moment(empty, options)
 
 
 def test_floquet_parse_result():
@@ -248,6 +285,106 @@ def test_get_parameters():
         theta=0.4, zeta=0.5, chi=None, gamma=None, phi=0.6
     )
     assert result.get_parameters(q_00, q_03) is None
+
+
+def test_merge_matching_results():
+    q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
+    gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+    options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
+    parameters_1 = {
+        (q_00, q_01): PhasedFSimCharacterization(
+            theta=0.1, zeta=0.2, chi=None, gamma=None, phi=0.3
+        ),
+    }
+    parameters_2 = {
+        (q_02, q_03): PhasedFSimCharacterization(
+            theta=0.4, zeta=0.5, chi=None, gamma=None, phi=0.6
+        ),
+    }
+
+    results = [
+        PhasedFSimCalibrationResult(
+            parameters=parameters_1,
+            gate=gate,
+            options=options,
+        ),
+        PhasedFSimCalibrationResult(
+            parameters=parameters_2,
+            gate=gate,
+            options=options,
+        ),
+    ]
+
+    assert merge_matching_results(results) == PhasedFSimCalibrationResult(
+        parameters={**parameters_1, **parameters_2},
+        gate=gate,
+        options=options,
+    )
+
+
+def test_merge_matching_results_when_empty_none():
+    assert merge_matching_results([]) is None
+
+
+def test_merge_matching_results_when_incompatible_fails():
+    q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
+    gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+    options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
+    parameters_1 = {
+        (q_00, q_01): PhasedFSimCharacterization(
+            theta=0.1, zeta=0.2, chi=None, gamma=None, phi=0.3
+        ),
+    }
+    parameters_2 = {
+        (q_02, q_03): PhasedFSimCharacterization(
+            theta=0.4, zeta=0.5, chi=None, gamma=None, phi=0.6
+        ),
+    }
+
+    with pytest.raises(ValueError):
+        results = [
+            PhasedFSimCalibrationResult(
+                parameters=parameters_1,
+                gate=gate,
+                options=options,
+            ),
+            PhasedFSimCalibrationResult(
+                parameters=parameters_1,
+                gate=gate,
+                options=options,
+            ),
+        ]
+        assert merge_matching_results(results)
+
+    with pytest.raises(ValueError):
+        results = [
+            PhasedFSimCalibrationResult(
+                parameters=parameters_1,
+                gate=gate,
+                options=options,
+            ),
+            PhasedFSimCalibrationResult(
+                parameters=parameters_2,
+                gate=cirq.CZ,
+                options=options,
+            ),
+        ]
+        assert merge_matching_results(results)
+
+    with pytest.raises(ValueError):
+        results = [
+            PhasedFSimCalibrationResult(
+                parameters=parameters_1,
+                gate=gate,
+                options=options,
+            ),
+            PhasedFSimCalibrationResult(
+                parameters=parameters_2,
+                gate=gate,
+                options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+            ),
+        ]
+        assert merge_matching_results(results)
 
 
 @pytest.mark.parametrize('phase_exponent', np.linspace(0, 1, 5))
