@@ -1227,3 +1227,15 @@ def test_final_state_vector_is_not_last_object():
     assert result.state_vector() is not initial_state
     assert not np.shares_memory(result.state_vector(), initial_state)
     np.testing.assert_equal(result.state_vector(), initial_state)
+
+
+def test_simulate_noise_with_terminal_measurements():
+    q = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.measure(q))
+    circuit2 = circuit1 + cirq.I(q)
+
+    simulator = cirq.Simulator(noise=cirq.X)
+    result1 = simulator.run(circuit1, repetitions=10)
+    result2 = simulator.run(circuit2, repetitions=10)
+
+    assert result1 == result2

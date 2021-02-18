@@ -14,7 +14,7 @@
 
 from typing import Any, Dict, Sequence, TYPE_CHECKING, Union, Callable
 
-from cirq import ops, protocols, value
+from cirq import ops, protocols, value, circuits
 from cirq._doc import document
 
 if TYPE_CHECKING:
@@ -222,10 +222,17 @@ class ConstantQubitNoiseModel(NoiseModel):
         if self.is_virtual_moment(moment):
             return moment
         return [
-            moment,
-            ops.Moment(
-                [self.qubit_noise_gate(q).with_tags(ops.VirtualTag()) for q in system_qubits]
-            ),
+            circuits.CircuitOperation(
+                circuits.FrozenCircuit(
+                    moment,
+                    ops.Moment(
+                        [
+                            self.qubit_noise_gate(q).with_tags(ops.VirtualTag())
+                            for q in system_qubits
+                        ]
+                    ),
+                )
+            )
         ]
 
     def _json_dict_(self):

@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq import ops
+from cirq import ops, protocols
 
 
 def _assert_equivalent_op_tree(x: cirq.OP_TREE, y: cirq.OP_TREE):
@@ -113,12 +113,28 @@ def test_constant_qubit_noise():
     actual = damp_all.noisy_moments([cirq.Moment([cirq.X(a)]), cirq.Moment()], [a, b, c])
     expected = [
         [
-            cirq.Moment([cirq.X(a)]),
-            cirq.Moment(d.with_tags(ops.VirtualTag()) for d in [damp(a), damp(b), damp(c)]),
+            cirq.CircuitOperation(
+                cirq.FrozenCircuit(
+                    [
+                        cirq.Moment([cirq.X(a)]),
+                        cirq.Moment(
+                            d.with_tags(ops.VirtualTag()) for d in [damp(a), damp(b), damp(c)]
+                        ),
+                    ]
+                )
+            )
         ],
         [
-            cirq.Moment(),
-            cirq.Moment(d.with_tags(ops.VirtualTag()) for d in [damp(a), damp(b), damp(c)]),
+            cirq.CircuitOperation(
+                cirq.FrozenCircuit(
+                    [
+                        cirq.Moment(),
+                        cirq.Moment(
+                            d.with_tags(ops.VirtualTag()) for d in [damp(a), damp(b), damp(c)]
+                        ),
+                    ]
+                )
+            ),
         ],
     ]
     assert actual == expected
@@ -134,7 +150,10 @@ def test_noise_composition():
     a, b, c = cirq.LineQubit.range(3)
     noise_z = cirq.ConstantQubitNoiseModel(cirq.Z)
     noise_inv_s = cirq.ConstantQubitNoiseModel(cirq.S ** -1)
-    merge = cirq.optimizers.merge_single_qubit_gates_into_phased_x_z
+
+    def merge(circuit):
+        decomposed = cirq.Circuit(protocols.decompose(circuit))
+        return cirq.optimizers.merge_single_qubit_gates_into_phased_x_z(decomposed)
     base_moments = [cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.Y(b)]), cirq.Moment([cirq.H(c)])]
     circuit_z = cirq.Circuit(noise_z.noisy_moments(base_moments, [a, b, c]))
     circuit_s = cirq.Circuit(noise_inv_s.noisy_moments(base_moments, [a, b, c]))

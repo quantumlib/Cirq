@@ -31,7 +31,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, qis, study, value
+from cirq import circuits, ops, protocols, qis, study, value, devices
 from cirq.sim import (
     simulator,
     state_vector,
@@ -147,6 +147,7 @@ class Simulator(
         self,
         *,
         dtype: Type[np.number] = np.complex64,
+        noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ):
         """A sparse matrix simulator.
@@ -154,12 +155,14 @@ class Simulator(
         Args:
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`.
+            noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
         """
         if np.dtype(dtype).kind != 'c':
             raise ValueError('dtype must be a complex type but was {}'.format(dtype))
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
+        self.noise = devices.NoiseModel.from_noise_model_like(noise)
 
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
@@ -249,7 +252,8 @@ class Simulator(
             log_of_measurement_results={},
         )
 
-        for moment in circuit:
+        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
+        for moment in noisy_moments:
             for op in moment:
                 if perform_measurements or not isinstance(op.gate, ops.MeasurementGate):
                     sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
