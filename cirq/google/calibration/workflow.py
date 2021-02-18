@@ -40,6 +40,7 @@ from cirq.google.calibration.phased_fsim import (
     PhasedFSimCharacterization,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    merge_matching_results,
     try_convert_sqrt_iswap_to_fsim,
 )
 from cirq.google.engine import Engine
@@ -60,7 +61,7 @@ class CircuitWithCalibration:
     """
 
     circuit: Circuit
-    moment_to_calibration: List[Optional[int]]
+    moment_to_calibration: Sequence[Optional[int]]
 
 
 def prepare_floquet_characterization_for_moment(
@@ -522,7 +523,7 @@ def make_zeta_chi_gamma_compensation_for_moments(
         [Gate], Optional[PhaseCalibratedFSimGate]
     ] = try_convert_sqrt_iswap_to_fsim,
 ) -> CircuitWithCalibration:
-    """Compensates circuit against errors in zeta, chi and gamma angles.
+    """Compensates circuit moments against errors in zeta, chi and gamma angles.
 
     This method creates a new circuit with a single-qubit Z gates added in a such way so that
     zeta, chi and gamma angles discovered by characterizations are cancelled-out and set to 0.
@@ -546,6 +547,74 @@ def make_zeta_chi_gamma_compensation_for_moments(
         The moment to calibration mapping is updated for the new circuit so that successive
         calibrations could be applied.
     """
+    return _make_zeta_chi_gamma_compensation(
+        circuit_with_calibration, characterizations, gates_translator, permit_mixed_moments=False
+    )
+
+
+def make_zeta_chi_gamma_compensation_for_operations(
+    circuit: Circuit,
+    characterizations: List[PhasedFSimCalibrationResult],
+    gates_translator: Callable[
+        [Gate], Optional[PhaseCalibratedFSimGate]
+    ] = try_convert_sqrt_iswap_to_fsim,
+    permit_mixed_moments: bool = False,
+) -> Circuit:
+    """Compensates circuit operations against errors in zeta, chi and gamma angles.
+
+    This method creates a new circuit with a single-qubit Z gates added in a such way so that
+    zeta, chi and gamma angles discovered by characterizations are cancelled-out and set to 0.
+
+    Contrary to make_zeta_chi_gamma_compensation_for_moments this method does not match
+    characterizations to the moment structure of the circuits and thus is less accurate because
+    some errors caused by cross-talks are not mitigated.
+
+    The major advantage of this method over make_zeta_chi_gamma_compensation_for_moments is that it
+    can work with arbitrary set of characterizations that cover all the interactions of the circuit
+    (up to assumptions of merge_matching_results method). In particular, for grid-like devices the
+    number of characterizations is bounded by four, where in the case of
+    make_zeta_chi_gamma_compensation_for_moments the number of characterizations is bounded by
+    number of moments in a circuit.
+
+    This function preserves a moment structure of the circuit. All single qubit gates appear on new
+    moments in the final circuit.
+
+    Args:
+        circuit: Circuit to calibrate.
+        characterizations: List of characterization results (likely returned from run_calibrations).
+            All the characterizations must be compatible in sense of merge_matching_results, they
+            will be merged together.
+        gates_translator: Function that translates a gate to a supported FSimGate which will undergo
+            characterization. Defaults to sqrt_iswap_gates_translator.
+        permit_mixed_moments: Whether to allow mixing single-qubit and two-qubit gates in a single
+            moment.
+
+    Returns:
+        Calibrated circuit with a single-qubit Z gates added which compensates for the true gates
+        imperfections.
+    """
+
+    characterization = merge_matching_results(characterizations)
+    moment_to_calibration = [0] * len(circuit)
+    calibrated = _make_zeta_chi_gamma_compensation(
+        CircuitWithCalibration(circuit, moment_to_calibration),
+        [characterization] if characterization is not None else [],
+        gates_translator,
+        permit_mixed_moments=permit_mixed_moments,
+    )
+    return calibrated.circuit
+
+
+def _make_zeta_chi_gamma_compensation(
+    circuit_with_calibration: CircuitWithCalibration,
+    characterizations: List[PhasedFSimCalibrationResult],
+    gates_translator: Callable[[Gate], Optional[PhaseCalibratedFSimGate]],
+    permit_mixed_moments: bool,
+) -> CircuitWithCalibration:
+
+    if permit_mixed_moments:
+        raise NotImplementedError('Mixed moments compensation ist supported yet')
+
     if len(circuit_with_calibration.circuit) != len(circuit_with_calibration.moment_to_calibration):
         raise ValueError('Moment allocations does not match circuit length')
 
