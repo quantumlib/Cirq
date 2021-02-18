@@ -68,25 +68,8 @@ jobs:
           architecture: 'x64'
       - name: Install pylint
         run: cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint" | grep -v "#" | xargs pip install
-      - name: Display version
-        run: check/pylint --version
       - name: Lint
-        run: check/pylint -v
-  flynt:
-    name: Flynt check
-    runs-on: ubuntu-16.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.7'
-          architecture: 'x64'
-      - name: Install flynt
-        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep "flynt" | grep -v "#" | xargs pip install
-      - name: Display version
-        run: check/flynt --version
-      - name: Flynt
-        run: check/flynt -v
+        run: check/pylint
   doc_test:
     name: Doc test
     runs-on: ubuntu-16.04
@@ -117,8 +100,7 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        # TODO(#3800): remove 3.6 when Colab switches to 3.7
-        python-version: ['3.6', '3.7', '3.8']
+        python-version: ['3.7', '3.8']
     runs-on: ubuntu-16.04
     steps:
       - uses: actions/checkout@v2
@@ -126,9 +108,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
-      - name: Force old pip (3.6 only)
-        if: matrix.python-version == '3.6'
-        run: pip install pip==20.2
       - name: Install requirements
         run: |
           pip install -r requirements.txt
@@ -191,7 +170,7 @@ jobs:
     name: Pytest Windows
     strategy:
       matrix:
-        python-version: ['3.7', '3.8']
+        python-version: [ '3.7', '3.8' ]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -210,7 +189,7 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: ['3.7', '3.8']
+        python-version: [ '3.7', '3.8' ]
     runs-on: macos-10.15
     steps:
       - uses: actions/checkout@v2
