@@ -46,7 +46,7 @@ if TYPE_CHECKING:
 
 class Simulator(
     simulator.SimulatesSamples,
-    state_vector_simulator.SimulatesIntermediateStateVector,
+    state_vector_simulator.SimulatesIntermediateStateVector['SparseSimulatorStep'],
     simulator.SimulatesExpectationValues,
 ):
     """A sparse matrix state vector simulator that uses numpy.
@@ -285,11 +285,8 @@ class Simulator(
             observables = [observables]
         pslist = [ops.PauliSum.wrap(pslike) for pslike in observables]
         for param_resolver in study.to_resolvers(params):
-            result = cast(
-                state_vector_simulator.StateVectorTrialResult,
-                self.simulate(
-                    program, param_resolver, qubit_order=qubit_order, initial_state=initial_state
-                ),
+            result = self.simulate(
+                program, param_resolver, qubit_order=qubit_order, initial_state=initial_state
             )
             swept_evs.append(
                 [

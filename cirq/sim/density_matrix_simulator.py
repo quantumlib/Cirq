@@ -35,7 +35,12 @@ class _StateAndBuffers:
         self.buffers = [np.empty_like(tensor) for _ in range(3)]
 
 
-class DensityMatrixSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
+class DensityMatrixSimulator(
+    simulator.SimulatesSamples,
+    simulator.SimulatesIntermediateState[
+        'DensityMatrixStepResult', 'DensityMatrixTrialResult', 'DensityMatrixSimulatorState'
+    ],
+):
     """A simulator for density matrices and noisy quantum circuits.
 
     This simulator can be applied on circuits that are made up of operations
@@ -320,7 +325,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples, simulator.SimulatesInte
         )
 
 
-class DensityMatrixStepResult(simulator.StepResult):
+class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState']):
     """A single step in the simulation of the DensityMatrixSimulator.
 
     Attributes:
