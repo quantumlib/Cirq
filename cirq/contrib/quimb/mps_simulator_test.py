@@ -164,7 +164,9 @@ def test_probs_dont_sum_up_to_one():
     q0 = cirq.NamedQid('q0', dimension=2)
     circuit = cirq.Circuit(cirq.measure(q0))
 
-    simulator = ccq.mps_simulator.MPSSimulator(sum_prob_atol=-0.5)
+    simulator = ccq.mps_simulator.MPSSimulator(
+        simulation_options=ccq.mps_simulator.MPSOptions(sum_prob_atol=-0.5)
+    )
 
     with pytest.raises(ValueError, match="Sum of probabilities exceeds tolerance"):
         simulator.run(circuit, repetitions=1)
@@ -254,7 +256,7 @@ def test_measurement_str():
 def test_trial_result_str():
     q0 = cirq.LineQubit(0)
     final_simulator_state = ccq.mps_simulator.MPSState(
-        qubit_map={q0: 0}, rsum2_cutoff=1e-3, sum_prob_atol=1e-3
+        qubit_map={q0: 0}, simulation_options=ccq.mps_simulator.MPSOptions()
     )
     assert (
         str(
@@ -273,7 +275,7 @@ output state: TensorNetwork([
 
 def test_empty_step_result():
     q0 = cirq.LineQubit(0)
-    state = ccq.mps_simulator.MPSState(qubit_map={q0: 0}, rsum2_cutoff=1e-3, sum_prob_atol=1e-3)
+    state = ccq.mps_simulator.MPSState(qubit_map={q0: 0})
     step_result = ccq.mps_simulator.MPSSimulatorStepResult(state, measurements={'0': [1]})
     assert (
         str(step_result)
@@ -286,9 +288,18 @@ TensorNetwork([
 
 def test_state_equal():
     q0, q1 = cirq.LineQubit.range(2)
-    state0 = ccq.mps_simulator.MPSState(qubit_map={q0: 0}, rsum2_cutoff=1e-3, sum_prob_atol=1e-3)
-    state1a = ccq.mps_simulator.MPSState(qubit_map={q1: 0}, rsum2_cutoff=1e-3, sum_prob_atol=1e-3)
-    state1b = ccq.mps_simulator.MPSState(qubit_map={q1: 0}, rsum2_cutoff=1729.0, sum_prob_atol=1e-3)
+    state0 = ccq.mps_simulator.MPSState(
+        qubit_map={q0: 0},
+        simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1e-3, sum_prob_atol=1e-3),
+    )
+    state1a = ccq.mps_simulator.MPSState(
+        qubit_map={q1: 0},
+        simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1e-3, sum_prob_atol=1e-3),
+    )
+    state1b = ccq.mps_simulator.MPSState(
+        qubit_map={q1: 0},
+        simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1729.0, sum_prob_atol=1e-3),
+    )
     assert state0 == state0
     assert state0 != state1a
     assert state1a != state1b
@@ -313,7 +324,7 @@ def test_supremacy_equal_more_cols():
 def test_tensor_index_names():
     qubits = cirq.LineQubit.range(12)
     qubit_map = {qubit: i for i, qubit in enumerate(qubits)}
-    state = ccq.mps_simulator.MPSState(qubit_map, rsum2_cutoff=0.1234, sum_prob_atol=1e-3)
+    state = ccq.mps_simulator.MPSState(qubit_map)
 
     assert state.i_str(0) == "i_00"
     assert state.i_str(11) == "i_11"
@@ -329,14 +340,28 @@ def test_supremacy_big():
     q0 = next(iter(qubit_order))
     circuit.append(cirq.measure(q0))
 
-    mps_simulator = ccq.mps_simulator.MPSSimulator(rsum2_cutoff=5e-5)
-    result = mps_simulator.simulate(circuit, qubit_order=qubit_order, initial_state=0)
+    mps_simulator_1 = ccq.mps_simulator.MPSSimulator(
+        simulation_options=ccq.mps_simulator.MPSOptions(cutoff=5e-5)
+    )
+    result_1 = mps_simulator_1.simulate(circuit, qubit_order=qubit_order, initial_state=0)
 
-    assert result.final_state.estimation_stats() == {
+    assert result_1.final_state.estimation_stats() == {
         'estimated_fidelity': 0.997,
         'memory_bytes': 11008,
-        'num_svd_splits': 64,
         'num_coefs_used': 688,
+    }
+
+    mps_simulator_2 = ccq.mps_simulator.MPSSimulator(
+        simulation_options=ccq.mps_simulator.MPSOptions(
+            method='isvd', max_bond=1, cutoff_mode='sum2'
+        )
+    )
+    result_2 = mps_simulator_2.simulate(circuit, qubit_order=qubit_order, initial_state=0)
+
+    assert result_2.final_state.estimation_stats() == {
+        'estimated_fidelity': 1.0,
+        'memory_bytes': 1568,
+        'num_coefs_used': 98,
     }
 
 

@@ -39,6 +39,8 @@ from typing import (
     TYPE_CHECKING,
     Set,
     cast,
+    TypeVar,
+    Generic,
 )
 
 import abc
@@ -51,6 +53,11 @@ from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     import cirq
+
+
+TStepResult = TypeVar('TStepResult', bound='StepResult')
+TSimulationTrialResult = TypeVar('TSimulationTrialResult', bound='SimulationTrialResult')
+TSimulatorState = TypeVar('TSimulatorState')
 
 
 class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
@@ -288,7 +295,7 @@ class SimulatesExpectationValues(metaclass=abc.ABCMeta):
         """
 
 
-class SimulatesFinalState(metaclass=abc.ABCMeta):
+class SimulatesFinalState(Generic[TSimulationTrialResult], metaclass=abc.ABCMeta):
     """Simulator that allows access to the simulator's final state.
 
     Implementors of this interface should implement the simulate_sweep
@@ -305,7 +312,7 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
         param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
-    ) -> 'SimulationTrialResult':
+    ) -> TSimulationTrialResult:
         """Simulates the supplied Circuit.
 
         This method returns a result which allows access to the entire
@@ -335,7 +342,7 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
-    ) -> List['SimulationTrialResult']:
+    ) -> List[TSimulationTrialResult]:
         """Simulates the supplied Circuit.
 
         This method returns a result which allows access to the entire final
@@ -359,7 +366,11 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
 
-class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
+class SimulatesIntermediateState(
+    Generic[TStepResult, TSimulationTrialResult, TSimulatorState],
+    SimulatesFinalState[TSimulationTrialResult],
+    metaclass=abc.ABCMeta,
+):
     """A SimulatesFinalState that simulates a circuit by moments.
 
     Whereas a general SimulatesFinalState may return the entire simulator
@@ -379,7 +390,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
-    ) -> List['SimulationTrialResult']:
+    ) -> List[TSimulationTrialResult]:
         """Simulates the supplied Circuit.
 
         This method returns a result which allows access to the entire
@@ -425,7 +436,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
         param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
-    ) -> Iterator:
+    ) -> Iterator[TStepResult]:
         """Returns an iterator of StepResults for each moment simulated.
 
         If the circuit being simulated is empty, a single step result should
@@ -456,7 +467,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
         param_resolver: study.ParamResolver,
         qubit_order: ops.QubitOrderOrList,
         initial_state: Any,
-    ) -> Iterator:
+    ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
         If the initial state is an int, the state is set to the computational
@@ -493,7 +504,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,
         initial_state: Any,
-    ) -> Iterator['StepResult']:
+    ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
         Args:
@@ -512,13 +523,14 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
     def _create_simulator_trial_result(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: Any,
-    ) -> 'SimulationTrialResult':
-        """This method can be overridden to creation of a trial result.
+        final_simulator_state: TSimulatorState,
+    ) -> TSimulationTrialResult:
+        """This method can be implemented to create a trial result.
 
         Args:
             params: The ParamResolver for this trial.
@@ -529,12 +541,10 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
         Returns:
             The SimulationTrialResult.
         """
-        return SimulationTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
-        )
+        raise NotImplementedError()
 
 
-class StepResult(metaclass=abc.ABCMeta):
+class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
     """Results of a step of a SimulatesIntermediateState.
 
     Attributes:
@@ -546,7 +556,7 @@ class StepResult(metaclass=abc.ABCMeta):
         self.measurements = measurements or collections.defaultdict(list)
 
     @abc.abstractmethod
-    def _simulator_state(self) -> Any:
+    def _simulator_state(self) -> TSimulatorState:
         """Returns the simulator state of the simulator after this step.
 
         This method starts with an underscore to indicate that it is private.
