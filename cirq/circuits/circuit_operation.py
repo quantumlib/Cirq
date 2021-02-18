@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 
 INT_TYPE = Union[int, np.integer]
-MEASUREMENT_KEY_SEPARATOR = '-'
+MEASUREMENT_KEY_SEPARATOR = ':'
 
 
 def default_repetition_ids(repetitions: int) -> Optional[List[str]]:

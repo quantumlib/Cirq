@@ -86,20 +86,20 @@ def test_invalid_measurement_keys():
     circuit = cirq.FrozenCircuit(cirq.measure(a, key='m'))
     c_op = cirq.CircuitOperation(circuit)
     # Invalid key remapping
-    with pytest.raises(ValueError, match='invalid key: m-a'):
-        _ = c_op.with_measurement_key_mapping({'m': 'm-a'})
+    with pytest.raises(ValueError, match='invalid key: m:a'):
+        _ = c_op.with_measurement_key_mapping({'m': 'm:a'})
 
     # Invalid key remapping nested CircuitOperation
-    with pytest.raises(ValueError, match='invalid key: m-a'):
-        _ = cirq.CircuitOperation(cirq.FrozenCircuit(c_op), measurement_key_map={'m': 'm-a'})
+    with pytest.raises(ValueError, match='invalid key: m:a'):
+        _ = cirq.CircuitOperation(cirq.FrozenCircuit(c_op), measurement_key_map={'m': 'm:a'})
 
     # Originally invalid key
-    circuit = cirq.FrozenCircuit(cirq.measure(a, key='m-a'))
-    with pytest.raises(ValueError, match='invalid key: m-a'):
+    circuit = cirq.FrozenCircuit(cirq.measure(a, key='m:a'))
+    with pytest.raises(ValueError, match='invalid key: m:a'):
         _ = cirq.CircuitOperation(circuit)
 
     # Remapped to valid key
-    _ = cirq.CircuitOperation(circuit, measurement_key_map={'m-a': 'ma'})
+    _ = cirq.CircuitOperation(circuit, measurement_key_map={'m:a': 'ma'})
 
 
 def test_circuit_sharing():
@@ -583,13 +583,13 @@ def test_decompose_loops_with_measurements():
     expected_circuit = cirq.Circuit(
         cirq.H(b),
         cirq.CX(b, a),
-        cirq.measure(b, a, key='0-m'),
+        cirq.measure(b, a, key='0:m'),
         cirq.H(b),
         cirq.CX(b, a),
-        cirq.measure(b, a, key='1-m'),
+        cirq.measure(b, a, key='1:m'),
         cirq.H(b),
         cirq.CX(b, a),
-        cirq.measure(b, a, key='2-m'),
+        cirq.measure(b, a, key='2:m'),
     )
     assert cirq.Circuit(cirq.decompose_once(op)) == expected_circuit
 
@@ -680,20 +680,20 @@ def test_decompose_repeated_nested_measurements():
     )
 
     expected_measurement_keys_in_order = [
-        'zero-Y',
-        'zero-zero-Q',
-        'zero-zero-zero-D',
-        'zero-zero-one-D',
-        'zero-one-Q',
-        'zero-one-zero-D',
-        'zero-one-one-D',
-        'one-Y',
-        'one-zero-Q',
-        'one-zero-zero-D',
-        'one-zero-one-D',
-        'one-one-Q',
-        'one-one-zero-D',
-        'one-one-one-D',
+        'zero:Y',
+        'zero:zero:Q',
+        'zero:zero:zero:D',
+        'zero:zero:one:D',
+        'zero:one:Q',
+        'zero:one:zero:D',
+        'zero:one:one:D',
+        'one:Y',
+        'one:zero:Q',
+        'one:zero:zero:D',
+        'one:zero:one:D',
+        'one:one:Q',
+        'one:one:zero:D',
+        'one:one:one:D',
     ]
     assert cirq.measurement_keys(op3) == set(expected_measurement_keys_in_order)
 
