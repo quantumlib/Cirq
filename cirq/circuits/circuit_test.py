@@ -4091,33 +4091,14 @@ def test_with_noise():
     assert c_noisy == c_expected
 
     # Accepts NOISE_MODEL_LIKE.
-    assert c.with_noise(None) == c
     assert c.with_noise(cirq.depolarize(0.1)) == cirq.Circuit(
-        cirq.CircuitOperation(
-            cirq.FrozenCircuit(
-                cirq.X(q0),
-                cirq.Y(q1),
-                cirq.Moment(
-                    [d.with_tags(ops.VirtualTag()) for d in cirq.depolarize(0.1).on_each(q0, q1)]
-                ),
-            )
-        ),
-        cirq.CircuitOperation(
-            cirq.FrozenCircuit(
-                cirq.Z(q1),
-                cirq.Moment(
-                    [d.with_tags(ops.VirtualTag()) for d in cirq.depolarize(0.1).on_each(q0, q1)]
-                ),
-            )
-        ),
-        cirq.CircuitOperation(
-            cirq.FrozenCircuit(
-                cirq.Moment([cirq.X(q0)]),
-                cirq.Moment(
-                    [d.with_tags(ops.VirtualTag()) for d in cirq.depolarize(0.1).on_each(q0, q1)]
-                ),
-            )
-        ),
+        cirq.X(q0),
+        cirq.Y(q1),
+        cirq.Moment([d.with_tags(ops.VirtualTag()) for d in cirq.depolarize(0.1).on_each(q0, q1)]),
+        cirq.Z(q1),
+        cirq.Moment([d.with_tags(ops.VirtualTag()) for d in cirq.depolarize(0.1).on_each(q0, q1)]),
+        cirq.Moment([cirq.X(q0)]),
+        cirq.Moment([d.with_tags(ops.VirtualTag()) for d in cirq.depolarize(0.1).on_each(q0, q1)]),
     )
 
 
