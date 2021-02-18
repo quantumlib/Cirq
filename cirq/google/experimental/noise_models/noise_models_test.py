@@ -18,8 +18,8 @@ import pytest
 from google.protobuf.text_format import Merge
 
 import cirq
-import cirq.google.noise_models as ccn
-from cirq.google.noise_models import (
+import cirq.google.experimental.noise_models as ccn
+from cirq.google.experimental.noise_models import (
     simple_noise_from_calibration_metrics,
 )
 from cirq.devices.noise_model_test import _assert_equivalent_op_tree
