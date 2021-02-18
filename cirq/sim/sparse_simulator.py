@@ -258,8 +258,8 @@ class Simulator(
             else self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
         )
         for moment in moments:
-            moment = moment if self.noise is None else protocols.decompose(moment)
-            for op in moment:
+            operations = moment.operations if self.noise is None else protocols.decompose(moment)
+            for op in operations:
                 if perform_measurements or not isinstance(op.gate, ops.MeasurementGate):
                     sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
                     protocols.act_on(op, sim_state)
