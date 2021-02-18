@@ -168,10 +168,10 @@ class DensityMatrixSimulator(simulator.SimulatesSamples, simulator.SimulatesInte
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         check_all_resolved(resolved_circuit)
 
-        unmeasured_prefix, general_suffix = split_into_matching_protocol_then_general(
+        _, general_suffix = split_into_matching_protocol_then_general(
             resolved_circuit, lambda op: not protocols.is_measurement(op)
         )
-        if len(general_suffix) <= 1 and not any(
+        if general_suffix.are_all_measurements_terminal() and not any(
             general_suffix.findall_operations(lambda op: isinstance(op, circuits.CircuitOperation))
         ):
             return self._run_sweep_sample(resolved_circuit, repetitions)
