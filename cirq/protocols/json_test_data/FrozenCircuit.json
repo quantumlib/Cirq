@@ -118,8 +118,7 @@
         ],
         "device": {
           "cirq_type": "_UnconstrainedDevice"
-        },
-        "name": null
+        }
       }
     },
     {
@@ -212,8 +211,7 @@
         ],
         "device": {
           "cirq_type": "_UnconstrainedDevice"
-        },
-        "name": null
+        }
       }
     },
     [

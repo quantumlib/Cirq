@@ -1260,6 +1260,8 @@ class AbstractCircuit(abc.ABC):
         self._to_qasm_output(header, precision, qubit_order).save(file_path)
 
     def _json_dict_(self):
+        if self.name is None:
+            return protocols.obj_to_dict_helper(self, ['moments', 'device'])
         return protocols.obj_to_dict_helper(self, ['moments', 'device', 'name'])
 
     @classmethod
