@@ -237,7 +237,8 @@ class DensityMatrixSimulator(
             log_of_measurement_results={},
         )
 
-        for moment in circuit:
+        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
+        for moment in noisy_moments:
             for op in moment:
                 op_list = [op]
                 if isinstance(op.gate, ops.MeasurementGate):
