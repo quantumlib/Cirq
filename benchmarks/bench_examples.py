@@ -30,6 +30,8 @@ import examples.superdense_coding
 
 
 class ExamplesTest:
+    """Benchmark algorithms in Cirq/examples/ using ASV."""
+
     def time_example_runs_bernstein_vazirani_perf(self):
         examples.bernstein_vazirani.main(qubit_count=3)
 
