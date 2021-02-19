@@ -256,16 +256,16 @@ class CirqEncoder(json.JSONEncoder):
             }
 
         if isinstance(o, sympy.NumberSymbol):
-          # check if `o` is a numeric symbol,
-          # i.e. one of the transcendental numbers
-          # sympy.pi, sympy.E or sympy.EulerGamma
-          # (note that these are singletons).
-          if o is sympy.pi:
-              return {'cirq_type': 'sympy.pi'}
-          if o is sympy.E:
-              return {'cirq_type': 'sympy.E'}
-          if o is sympy.EulerGamma:
-              return {'cirq_type': 'sympy.EulerGamma'}
+            # check if `o` is a numeric symbol,
+            # i.e. one of the transcendental numbers
+            # sympy.pi, sympy.E or sympy.EulerGamma
+            # (note that these are singletons).
+            if o is sympy.pi:
+                return {'cirq_type': 'sympy.pi'}
+            if o is sympy.E:
+                return {'cirq_type': 'sympy.E'}
+            if o is sympy.EulerGamma:
+                return {'cirq_type': 'sympy.EulerGamma'}
 
         # A basic number object?
         if isinstance(o, numbers.Integral):
