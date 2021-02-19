@@ -19,4 +19,4 @@ You can also pass arguments to the script, which would be forwarded to the `asv 
 Please refer [Running Benchmarks guide by ASV](https://asv.readthedocs.io/en/stable/using.html#running-benchmarks) for more information. 
 
 ## Results Database
-By default, the benchmarks are run on every commit to master and the results are stored in a GCP server and hosted on (TODO: add link after GCP setup). 
+TODO([#3838](https://github.com/quantumlib/Cirq/issues/3838)): Add details regarding GCP setup.
