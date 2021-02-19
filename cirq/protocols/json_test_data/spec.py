@@ -80,6 +80,7 @@ TestSpec = ModuleJsonTestSpec(
     should_not_be_serialized=[
         # Intermediate states with work buffers and unknown external prng guts.
         'ActOnCliffordTableauArgs',
+        'ActOnDensityMatrixArgs',
         'ActOnStabilizerCHFormArgs',
         'ActOnStateVectorArgs',
         'ApplyChannelArgs',
