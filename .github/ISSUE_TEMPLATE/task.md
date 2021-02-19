@@ -12,3 +12,8 @@ assignees: ''
 
 **Acceptance criteria - when is the task considered done?**
 
+
+<!-- optional, feel free to remove this section -->
+**Related**
+
+Related issues: #abc, #xyz, ... 
