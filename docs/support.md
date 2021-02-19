@@ -17,4 +17,13 @@ improve open-source quantum software!
 # Questions
 
 If you're not sure whether a certain behavior is buggy, or if you have other questions,
-please ask us in the [Cirq Gitter channel](https://gitter.im/cirqdev).
+please ask us in the [Cirq Gitter channel](https://gitter.im/cirqdev). 
+
+# Weekly developer meetings
+
+You may also be interested to join the weekly 
+[Cirq sync](https://groups.google.com/g/cirq-dev) with Cirq developers and 
+contributors. There are also weekly syncs for 
+[OpenFermion](https://groups.google.com/g/openfermion-dev),
+[qsim](https://groups.google.com/g/qsim-qsimh-dev), and
+[TensorFlow Quantum](https://groups.google.com/g/openfermion-dev).
