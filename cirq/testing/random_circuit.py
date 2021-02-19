@@ -148,7 +148,7 @@ def random_two_qubit_circuit_with_czs(
     q1 = ops.NamedQubit('q1') if q1 is None else q1
 
     def random_one_qubit_gate():
-        return ops.PhasedXPowGate(phase_exponent=prng.random(), exponent=prng.random())
+        return ops.PhasedXPowGate(phase_exponent=prng.rand(), exponent=prng.rand())
 
     def one_cz():
         return [
