@@ -235,6 +235,11 @@ class CirqEncoder(json.JSONEncoder):
         # Sympy object? (Must come before general number checks.)
         # TODO: More support for sympy
         # Github issue: https://github.com/quantumlib/Cirq/issues/2014
+
+        if isinstance(o, sympy.Basic):
+            # check if `o` is a numeric constant
+            if o.is_number:
+                o = sympy.N(o)
         if isinstance(o, sympy.Symbol):
             return obj_to_dict_helper(o, ['name'], namespace='sympy')
 
