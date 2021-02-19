@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
 
 ################################################################################
-# Runs performance tests
+# Runs performance benchmark tests using asv
 #
 # Usage:
-#     check/performance
+#     check/asv_run [--flags for asv run]
 ################################################################################
 
 # Get the working directory to the repo root.
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$(git rev-parse --show-toplevel)"
 
-# Test will fail if Mean is 0.1 seconds slower for any test.
-pytest --benchmark-autosave --benchmark-only --benchmark-compare --benchmark-compare-fail=mean:0.1  \
-&& cd .benchmarks/Linux-CPython-3.6-64bit/ && ls -t | tail -n +2 | xargs rm -- && ls
+export ASV_PYTHONPATH="$(git rev-parse --show-toplevel)/examples"
+asv run $@
