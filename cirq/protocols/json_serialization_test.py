@@ -685,7 +685,8 @@ def test_json_serializable_dataclass_namespace():
 def test_sympy_NumberSymbol_serialization():
     def _test_json(symbol, name):
         serialized = cirq.to_json(symbol)
-        assert serialized == json.dumps({"cirq_type": name}).replace('{', '{\n  ').replace('}', '\n}')
+        expected = json.dumps({"cirq_type": name}).replace('{', '{\n  ').replace('}', '\n}')
+        assert serialized == expected
         assert cirq.read_json(json_text == serialized) == symbol
     symbols = [sympy.pi, sympy.E, sympy.EulerGamma]
     names = ['sympy.pi', 'sympy.E', 'sympy.EulerGamma']
