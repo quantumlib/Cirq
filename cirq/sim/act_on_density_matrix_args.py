@@ -13,11 +13,12 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a density matrix."""
 
-from typing import Any, Iterable, Dict, List
+from typing import Any, Iterable, Dict, List, Sequence
 
 import numpy as np
 
-from cirq import protocols
+from cirq import protocols, ops
+from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 
 
 class ActOnDensityMatrixArgs:
@@ -92,9 +93,42 @@ class ActOnDensityMatrixArgs:
                 left_axes=self.axes,
                 right_axes=[e + self.num_qubits for e in self.axes],
             ),
+            default=None,
         )
-        for i in range(3):
-            if result is self.available_buffer[i]:
-                self.available_buffer[i] = self.target_tensor
-        self.target_tensor = result
-        return True
+        if result is not None:
+            for i in range(3):
+                if result is self.available_buffer[i]:
+                    self.available_buffer[i] = self.target_tensor
+            self.target_tensor = result
+            return True
+
+        if allow_decompose:
+            return _strat_act_on_density_matrix_from_apply_decompose(action, self)
+
+        return NotImplemented
+
+
+def _strat_act_on_density_matrix_from_apply_decompose(
+    val: Any,
+    args: ActOnDensityMatrixArgs,
+) -> bool:
+    operations, qubits, _ = _try_decompose_into_operations_and_qubits(val)
+    if operations is None:
+        return NotImplemented
+    return _act_all_on_density_matrix(operations, qubits, args)
+
+
+def _act_all_on_density_matrix(
+    actions: Iterable[Any], qubits: Sequence[ops.Qid], args: ActOnDensityMatrixArgs
+):
+    assert len(qubits) == len(args.axes)
+    qubit_map = {q: args.axes[i] for i, q in enumerate(qubits)}
+
+    old_axes = args.axes
+    try:
+        for action in actions:
+            args.axes = tuple(qubit_map[q] for q in action.qubits)
+            protocols.act_on(action, args)
+    finally:
+        args.axes = old_axes
+    return True
