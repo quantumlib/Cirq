@@ -4,7 +4,7 @@
 # Runs performance benchmark tests using asv
 #
 # Usage:
-#     check/asv [--flags for asv]
+#     check/asv_run [--flags for asv run]
 ################################################################################
 
 # Get the working directory to the repo root.
