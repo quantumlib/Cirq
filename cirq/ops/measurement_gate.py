@@ -240,7 +240,6 @@ class MeasurementGate(raw_types.Gate):
 
         if isinstance(args, sim.ActOnDensityMatrixArgs):
             invert_mask = self.full_invert_mask()
-            # Measure updates inline.
             bits, _ = sim.measure_density_matrix(
                 args.target_tensor,
                 args.axes,

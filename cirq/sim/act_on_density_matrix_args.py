@@ -18,9 +18,6 @@ from typing import Any, Iterable, Dict, List
 import numpy as np
 
 from cirq import protocols
-from cirq.protocols.decompose_protocol import (
-    _try_decompose_into_operations_and_qubits,
-)
 
 
 class ActOnDensityMatrixArgs:
@@ -39,7 +36,8 @@ class ActOnDensityMatrixArgs:
         self,
         target_tensor: np.ndarray,
         available_buffer: List[np.ndarray],
-        axes: List[int],
+        axes: Iterable[int],
+        num_qubits: int,
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
     ):
@@ -55,6 +53,7 @@ class ActOnDensityMatrixArgs:
                 `swap_target_tensor_for` will swap it for `target_tensor`.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
+            num_qubits: The number of qubits in the circuit.
             prng: The pseudo random number generator to use for probabilistic
                 effects.
             log_of_measurement_results: A mutable object that measurements are
@@ -63,7 +62,8 @@ class ActOnDensityMatrixArgs:
         """
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
-        self.axes = axes
+        self.axes = tuple(axes)
+        self.num_qubits = num_qubits
         self.prng = prng
         self.log_of_measurement_results = log_of_measurement_results
 
@@ -82,10 +82,6 @@ class ActOnDensityMatrixArgs:
 
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
         """Apply channel to state."""
-        operations, qubits, _ = _try_decompose_into_operations_and_qubits(action)
-        assert len(qubits) == len(self.axes)
-        qubit_map = {q: self.axes[i] for i, q in enumerate(qubits)}
-        indices = [qubit_map[qubit] for qubit in qubits]
         result = protocols.apply_channel(
             action,
             args=protocols.ApplyChannelArgs(
@@ -93,12 +89,12 @@ class ActOnDensityMatrixArgs:
                 out_buffer=self.available_buffer[0],
                 auxiliary_buffer0=self.available_buffer[1],
                 auxiliary_buffer1=self.available_buffer[2],
-                left_axes=indices,
-                right_axes=[e + len(qubits) for e in indices],
+                left_axes=self.axes,
+                right_axes=[e + self.num_qubits for e in self.axes],
             ),
         )
         for i in range(3):
             if result is self.available_buffer[i]:
                 self.available_buffer[i] = self.target_tensor
-        self.tensor = result
+        self.target_tensor = result
         return True

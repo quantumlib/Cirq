@@ -227,10 +227,12 @@ class DensityMatrixSimulator(
         if len(circuit) == 0:
             yield DensityMatrixStepResult(state, {}, qubit_map, self._dtype)
 
+        tensor = state.reshape(qid_shape * 2)
         sim_state = act_on_density_matrix_args.ActOnDensityMatrixArgs(
-            target_tensor=np.reshape(state, qid_shape * 2),
-            available_buffer=[np.empty(qid_shape, dtype=self._dtype) for _ in range(3)],
+            target_tensor=tensor,
+            available_buffer=[np.empty_like(tensor) for _ in range(3)],
             axes=[],
+            num_qubits=num_qubits,
             prng=self._prng,
             log_of_measurement_results={},
         )
@@ -244,7 +246,7 @@ class DensityMatrixSimulator(
                     if self._ignore_measurement_results:
                         op_list = [ops.phase_damp(1).on(q) for q in op.qubits]
                 for op in op_list:
-                    sim_state.axes = [qubit_map[qubit] for qubit in op.qubits]
+                    sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
                     protocols.act_on(op, sim_state)
 
             yield DensityMatrixStepResult(
