@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a density matrix."""
 
-from typing import Any, Iterable, Dict, List, Sequence
+from typing import Any, Iterable, Dict, List, Sequence, Tuple
 
 import numpy as np
 
@@ -38,7 +38,7 @@ class ActOnDensityMatrixArgs:
         target_tensor: np.ndarray,
         available_buffer: List[np.ndarray],
         axes: Iterable[int],
-        num_qubits: int,
+        qid_shape: Tuple[int, ...],
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
     ):
@@ -54,7 +54,7 @@ class ActOnDensityMatrixArgs:
                 `swap_target_tensor_for` will swap it for `target_tensor`.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
-            num_qubits: The number of qubits in the circuit.
+            qid_shape: The shape of the target tensor.
             prng: The pseudo random number generator to use for probabilistic
                 effects.
             log_of_measurement_results: A mutable object that measurements are
@@ -64,7 +64,7 @@ class ActOnDensityMatrixArgs:
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
         self.axes = tuple(axes)
-        self.num_qubits = num_qubits
+        self.qid_shape = qid_shape
         self.prng = prng
         self.log_of_measurement_results = log_of_measurement_results
 
@@ -91,7 +91,7 @@ class ActOnDensityMatrixArgs:
                 auxiliary_buffer0=self.available_buffer[1],
                 auxiliary_buffer1=self.available_buffer[2],
                 left_axes=self.axes,
-                right_axes=[e + self.num_qubits for e in self.axes],
+                right_axes=[e + len(self.qid_shape) for e in self.axes],
             ),
             default=None,
         )

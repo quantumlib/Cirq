@@ -232,7 +232,7 @@ class DensityMatrixSimulator(
             target_tensor=tensor,
             available_buffer=[np.empty_like(tensor) for _ in range(3)],
             axes=[],
-            num_qubits=num_qubits,
+            qid_shape=qid_shape,
             prng=self._prng,
             log_of_measurement_results={},
         )

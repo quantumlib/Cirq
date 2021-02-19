@@ -244,7 +244,7 @@ class MeasurementGate(raw_types.Gate):
                 args.target_tensor,
                 args.axes,
                 out=args.target_tensor,
-                qid_shape=args.target_tensor.shape,
+                qid_shape=args.qid_shape,
                 seed=args.prng,
             )
             corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
