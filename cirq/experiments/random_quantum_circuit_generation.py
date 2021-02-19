@@ -27,8 +27,8 @@ from typing import (
     Tuple,
     Union,
     Optional,
-    Generator,
     cast,
+    Iterator,
 )
 
 import networkx as nx
@@ -313,7 +313,7 @@ def _get_random_combinations(
     n_library_circuits: int,
     n_combinations: int,
     *,
-    pair_gen: Generator[Tuple[List[QidPairT], Any], None, None],
+    pair_gen: Iterator[Tuple[List[QidPairT], Any]],
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> List[CircuitLibraryCombination]:
     """For qubit pairs, prepare a set of combinations to efficiently sample
@@ -348,9 +348,6 @@ def _get_random_combinations(
 
     combinations_by_layer = []
     for pairs, layer in pair_gen:
-        if len(pairs) == 0:
-            continue
-
         combinations = rs.randint(0, n_library_circuits, size=(n_combinations, len(pairs)))
         combinations_by_layer.append(
             CircuitLibraryCombination(layer=layer, combinations=combinations, pairs=pairs)
@@ -390,7 +387,8 @@ def get_random_combinations_for_device(
 
     Returns:
         A list of `CircuitLibraryCombination`, each corresponding to an interaction
-        layer in `pattern`. Each object has a `combinations` matrix of circuit
+        layer in `pattern` where there is a non-zero number of pairs which would be activated.
+        Each object has a `combinations` matrix of circuit
         indices of shape `(n_combinations, len(pairs))` where `len(pairs)` may
         be different for each entry (i.e. for each layer in `pattern`). This
         returned list can be provided to `sample_2q_xeb_circuits` to efficiently
@@ -400,6 +398,9 @@ def get_random_combinations_for_device(
     def pair_gen():
         for layer in pattern:
             pairs = sorted(_get_active_pairs(device_graph, layer))
+            if len(pairs) == 0:
+                continue
+
             yield pairs, layer
 
     return _get_random_combinations(
@@ -462,7 +463,7 @@ def _pairs_from_moment(moment: 'cirq.Moment') -> List[QidPairT]:
     pairs: List[QidPairT] = []
     for op in moment.operations:
         if len(op.qubits) != 2:
-            raise ValueError("Layer circuit contains >2-qubit operations.")
+            raise ValueError("Layer circuit contains non-2-qubit operations.")
         qpair = cast(QidPairT, op.qubits)
         pairs.append(qpair)
     return pairs

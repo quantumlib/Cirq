@@ -198,7 +198,7 @@ def test_get_random_combinations_for_bad_layer_circuit():
         cirq.H.on_each(q0, q1, q2, q3), cirq.CNOT(q0, q1), cirq.CNOT(q2, q3), cirq.CNOT(q1, q2)
     )
 
-    with pytest.raises(ValueError, match=r'>2-qubit operation'):
+    with pytest.raises(ValueError, match=r'non-2-qubit operation'):
         _ = get_random_combinations_for_layer_circuit(
             n_library_circuits=3, n_combinations=4, layer_circuit=circuit, random_state=99
         )
@@ -207,29 +207,43 @@ def test_get_random_combinations_for_bad_layer_circuit():
 def test_get_grid_interaction_layer_circuit():
     graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 3))
     layer_circuit = get_grid_interaction_layer_circuit(graph)
-    cirq.testing.assert_has_diagram(
-        layer_circuit,
-        """
-           ┌──────────────────┐   ┌──────────────────┐
-(0, 0): ────iSwap────────────────────────────────────────────────────iSwap───────
-            │                                                        │
-(0, 1): ────┼──────────────────────iSwap─────────────────iSwap───────iSwap^0.5───
-            │                      │                     │
-(0, 2): ────┼────────iSwap─────────┼─────────────────────iSwap^0.5───────────────
-            │        │             │
-(1, 0): ────iSwap^0.5┼─────────────┼────────iSwap────────iSwap───────────────────
-                     │             │        │            │
-(1, 1): ────iSwap────┼─────────────iSwap^0.5┼────────────iSwap^0.5───iSwap───────
-            │        │                      │                        │
-(1, 2): ────┼────────iSwap^0.5─────iSwap────┼────────────────────────iSwap^0.5───
-            │                      │        │
-(2, 0): ────┼──────────────────────┼────────iSwap^0.5────────────────iSwap───────
-            │                      │                                 │
-(2, 1): ────iSwap^0.5──────────────┼─────────────────────iSwap───────iSwap^0.5───
-                                   │                     │
-(2, 2): ───────────────────────────iSwap^0.5─────────────iSwap^0.5───────────────
-           └──────────────────┘   └──────────────────┘""",
+
+    sqrtisw = cirq.ISWAP ** 0.5
+    gq = cirq.GridQubit
+    should_be = cirq.Circuit(
+        # Vertical
+        sqrtisw(gq(0, 0), gq(1, 0)),
+        sqrtisw(gq(1, 1), gq(2, 1)),
+        sqrtisw(gq(0, 2), gq(1, 2)),
+        # Vertical, offset
+        sqrtisw(gq(0, 1), gq(1, 1)),
+        sqrtisw(gq(1, 2), gq(2, 2)),
+        sqrtisw(gq(1, 0), gq(2, 0)),
+        # Horizontal, offset
+        sqrtisw(gq(0, 1), gq(0, 2)),
+        sqrtisw(gq(1, 0), gq(1, 1)),
+        sqrtisw(gq(2, 1), gq(2, 2)),
+        # Horizontal
+        sqrtisw(gq(0, 0), gq(0, 1)),
+        sqrtisw(gq(1, 1), gq(1, 2)),
+        sqrtisw(gq(2, 0), gq(2, 1)),
     )
+    assert layer_circuit == should_be
+
+
+def test_random_combinations_layer_circuit_vs_device():
+    # Random combinations from layer circuit is the same as getting it directly from graph
+    graph = _gridqubits_to_graph_device(cirq.GridQubit.rect(3, 3))
+    layer_circuit = get_grid_interaction_layer_circuit(graph)
+    combs1 = get_random_combinations_for_layer_circuit(
+        n_library_circuits=10, n_combinations=10, layer_circuit=layer_circuit, random_state=1
+    )
+    combs2 = get_random_combinations_for_device(
+        n_library_circuits=10, n_combinations=10, device_graph=graph, random_state=1
+    )
+    for comb1, comb2 in zip(combs1, combs2):
+        assert comb1.pairs == comb2.pairs
+        assert np.all(comb1.combinations == comb2.combinations)
 
 
 def _cz_with_adjacent_z_rotations(
