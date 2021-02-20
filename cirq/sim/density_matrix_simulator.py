@@ -18,11 +18,11 @@ from typing import Any, Dict, Iterator, List, TYPE_CHECKING, Tuple, Type, Union
 import numpy as np
 
 from cirq import circuits, ops, protocols, qis, study, value, devices
+from cirq.ops import flatten_to_ops
 from cirq.sim import density_matrix_utils, simulator, act_on_density_matrix_args
 from cirq.sim.simulator import check_all_resolved, split_into_matching_protocol_then_general
 
 if TYPE_CHECKING:
-    from typing import Tuple
     import cirq
 
 
@@ -240,7 +240,7 @@ class DensityMatrixSimulator(
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
         measured = collections.defaultdict(bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
         for moment in noisy_moments:
-            for op in moment:
+            for op in flatten_to_ops(moment):
                 if all_measurements_are_terminal and measured[op.qubits]:
                     continue
                 op_list = [op]
