@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Simulator for density matrices that simulates noisy quantum circuits."""
-
+import collections
 from typing import Any, Dict, Iterator, List, TYPE_CHECKING, Tuple, Type, Union
 
 import numpy as np
@@ -238,10 +238,14 @@ class DensityMatrixSimulator(
         )
 
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
+        measured = collections.defaultdict(bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
         for moment in noisy_moments:
             for op in moment:
+                if all_measurements_are_terminal and measured[op.qubits]:
+                    continue
                 op_list = [op]
-                if isinstance(op.gate, ops.MeasurementGate):
+                if protocols.is_measurement(op):
+                    measured[op.qubits] = True
                     if all_measurements_are_terminal:
                         continue
                     if self._ignore_measurement_results:
