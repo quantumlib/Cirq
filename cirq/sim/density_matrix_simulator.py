@@ -218,16 +218,17 @@ class DensityMatrixSimulator(
         num_qubits = len(qubits)
         qid_shape = protocols.qid_shape(qubits)
         qubit_map = {q: i for i, q in enumerate(qubits)}
-        state = qis.to_valid_density_matrix(
+        initial_matrix = qis.to_valid_density_matrix(
             initial_state, num_qubits, qid_shape=qid_shape, dtype=self._dtype
         )
-        if np.may_share_memory(state, initial_state):
-            state = state.copy()
+        if np.may_share_memory(initial_matrix, initial_state):
+            initial_matrix = initial_matrix.copy()
 
         if len(circuit) == 0:
-            yield DensityMatrixStepResult(state, {}, qubit_map, self._dtype)
+            yield DensityMatrixStepResult(initial_matrix, {}, qubit_map, self._dtype)
+            return
 
-        tensor = state.reshape(qid_shape * 2)
+        tensor = initial_matrix.reshape(qid_shape * 2)
         sim_state = act_on_density_matrix_args.ActOnDensityMatrixArgs(
             target_tensor=tensor,
             available_buffer=[np.empty_like(tensor) for _ in range(3)],
