@@ -19,6 +19,7 @@ import numpy as np
 from cirq.ops import common_gates, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
+from cirq.sim.act_on_args import ActOnArgs
 from cirq.sim.clifford.stabilizer_state_ch_form import StabilizerStateChForm
 
 if TYPE_CHECKING:
@@ -26,7 +27,7 @@ if TYPE_CHECKING:
     from typing import Optional
 
 
-class ActOnStabilizerCHFormArgs:
+class ActOnStabilizerCHFormArgs(ActOnArgs):
     """Wrapper around a stabilizer state in CH form for the act_on protocol.
 
     To act on this object, directly edit the `state` property, which is
@@ -52,22 +53,8 @@ class ActOnStabilizerCHFormArgs:
                 being recorded into. Edit it easily by calling
                 `ActOnStabilizerCHFormArgs.record_measurement_result`.
         """
+        super().__init__(axes, prng, log_of_measurement_results)
         self.state = state
-        self.axes = tuple(axes)
-        self.prng = prng
-        self.log_of_measurement_results = log_of_measurement_results
-
-    def record_measurement_result(self, key: str, value: Any):
-        """Adds a measurement result to the log.
-        Args:
-            key: The key the measurement result should be logged under. Note
-                that operations should only store results under keys they have
-                declared in a `_measurement_keys_` method.
-            value: The value to log for the measurement.
-        """
-        if key in self.log_of_measurement_results:
-            raise ValueError(f"Measurement already logged to key {key!r}")
-        self.log_of_measurement_results[key] = value
 
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
         strats = []

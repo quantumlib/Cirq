@@ -14,6 +14,10 @@
 
 """Base simulation classes and generic simulators."""
 
+from cirq.sim.act_on_args import (
+    ActOnArgs,
+)
+
 from cirq.sim.act_on_density_matrix_args import (
     ActOnDensityMatrixArgs,
 )

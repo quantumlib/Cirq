@@ -13,24 +13,19 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a density matrix."""
 
-from typing import Any, Iterable, Dict, List, Sequence, Tuple
+from typing import Any, Iterable, Dict, List, Tuple
 
 import numpy as np
 
-from cirq import protocols, ops
-from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
+from cirq import protocols
+from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 
 
-class ActOnDensityMatrixArgs:
+class ActOnDensityMatrixArgs(ActOnArgs):
     """State and context for an operation acting on a density matrix.
 
-    There are three common ways to act on this object:
-
-    1. Directly edit the `target_tensor` property, which is storing the density
-        matrix of the quantum system as a numpy array with one axis per qudit.
-    2. Overwrite the `available_buffer` property with the new state vector, and
-        then pass `available_buffer` into `swap_target_tensor_for`.
-    3. Call `record_measurement_result(key, val)` to log a measurement result.
+    To act on this object, directly edit the `target_tensor` property, which is
+    storing the density matrix of the quantum system with one axis per qubit.
     """
 
     def __init__(
@@ -50,8 +45,7 @@ class ActOnDensityMatrixArgs:
             available_buffer: A workspace with the same shape and dtype as
                 `target_tensor`. Used by operations that cannot be applied to
                 `target_tensor` inline, in order to avoid unnecessary
-                allocations. Passing `available_buffer` into
-                `swap_target_tensor_for` will swap it for `target_tensor`.
+                allocations.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
             qid_shape: The shape of the target tensor.
@@ -61,25 +55,10 @@ class ActOnDensityMatrixArgs:
                 being recorded into. Edit it easily by calling
                 `ActOnStateVectorArgs.record_measurement_result`.
         """
+        super().__init__(axes, prng, log_of_measurement_results)
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
-        self.axes = tuple(axes)
         self.qid_shape = qid_shape
-        self.prng = prng
-        self.log_of_measurement_results = log_of_measurement_results
-
-    def record_measurement_result(self, key: str, value: Any):
-        """Adds a measurement result to the log.
-
-        Args:
-            key: The key the measurement result should be logged under. Note
-                that operations should only store results under keys they have
-                declared in a `_measurement_keys_` method.
-            value: The value to log for the measurement.
-        """
-        if key in self.log_of_measurement_results:
-            raise ValueError(f"Measurement already logged to key {key!r}")
-        self.log_of_measurement_results[key] = value
 
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
         """Apply channel to state."""
@@ -103,32 +82,6 @@ class ActOnDensityMatrixArgs:
             return True
 
         if allow_decompose:
-            return _strat_act_on_density_matrix_from_apply_decompose(action, self)
+            return strat_act_on_from_apply_decompose(action, self)
 
         return NotImplemented
-
-
-def _strat_act_on_density_matrix_from_apply_decompose(
-    val: Any,
-    args: ActOnDensityMatrixArgs,
-) -> bool:
-    operations, qubits, _ = _try_decompose_into_operations_and_qubits(val)
-    if operations is None:
-        return NotImplemented
-    return _act_all_on_density_matrix(operations, qubits, args)
-
-
-def _act_all_on_density_matrix(
-    actions: Iterable[Any], qubits: Sequence[ops.Qid], args: ActOnDensityMatrixArgs
-):
-    assert len(qubits) == len(args.axes)
-    qubit_map = {q: args.axes[i] for i, q in enumerate(qubits)}
-
-    old_axes = args.axes
-    try:
-        for action in actions:
-            args.axes = tuple(qubit_map[q] for q in action.qubits)
-            protocols.act_on(action, args)
-    finally:
-        args.axes = old_axes
-    return True
