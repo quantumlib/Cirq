@@ -84,4 +84,4 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         if allow_decompose:
             return strat_act_on_from_apply_decompose(action, self)
 
-        return NotImplemented
+        return NotImplemented  # coverage: ignore

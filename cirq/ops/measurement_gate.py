@@ -252,7 +252,7 @@ class MeasurementGate(raw_types.Gate):
                 bits = [args.state._measure(q, args.prng) for q in args.axes]
 
             else:
-                return NotImplemented
+                return NotImplemented  # coverage: ignore
 
             corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
             args.record_measurement_result(self.key, corrected)
