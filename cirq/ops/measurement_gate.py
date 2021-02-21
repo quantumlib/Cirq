@@ -225,31 +225,31 @@ class MeasurementGate(raw_types.Gate):
 
         if isinstance(args, sim.ActOnArgs):
             invert_mask = self.full_invert_mask()
-            bits, axes, prng = [], args.axes, args.prng
+            bits = []
 
             if isinstance(args, sim.ActOnStateVectorArgs):
                 bits, _ = sim.measure_state_vector(
                     args.target_tensor,
-                    axes,
+                    args.axes,
                     out=args.target_tensor,
                     qid_shape=args.target_tensor.shape,
-                    seed=prng,
+                    seed=args.prng,
                 )
 
             elif isinstance(args, sim.ActOnDensityMatrixArgs):
                 bits, _ = sim.measure_density_matrix(
                     args.target_tensor,
-                    axes,
+                    args.axes,
                     out=args.target_tensor,
                     qid_shape=args.qid_shape,
-                    seed=prng,
+                    seed=args.prng,
                 )
 
             elif isinstance(args, sim.clifford.ActOnCliffordTableauArgs):
-                bits = [args.tableau._measure(q, prng) for q in axes]
+                bits = [args.tableau._measure(q, args.prng) for q in args.axes]
 
             elif isinstance(args, sim.clifford.ActOnStabilizerCHFormArgs):
-                bits = [args.state._measure(q, prng) for q in axes]
+                bits = [args.state._measure(q, args.prng) for q in args.axes]
 
             else:
                 return NotImplemented
