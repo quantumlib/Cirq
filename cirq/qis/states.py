@@ -313,57 +313,6 @@ def _infer_qid_shape_from_dimension(dim: int) -> Tuple[int, ...]:
     return (dim,)
 
 
-def infer_qid_shape(*states: 'cirq.QUANTUM_STATE_LIKE') -> Tuple[int, ...]:
-    """Infer the qid shape of a set of states.
-
-    This is a heuristic that is guaranteed to return a qid shape compatible
-    with all of the given states, but may fail (raising an error) even
-    if there is a unique compatible qid shape. If, after applying the heuristic,
-    the qid shape is ambiguous, then an error is raised unless the qid shape is
-    to be inferred from the shape of a state vector or density matrix. In that
-    case, if the dimension of the state space is a power of 2, then the state
-    space is assumed to be composed of qubits; otherwise, it is assumed to be
-    composed of a single qudit.
-
-    Args:
-        states: The states for which to infer the qid shape.
-
-    Returns:
-        The inferred qid shape.
-
-    Raises:
-        ValueError: The qid shape of the given states is ambiguous.
-        ValueError: Failed to infer the qid shape of the given states.
-    """
-    integer_states = []
-    non_integer_states = []
-    for state in states:
-        if isinstance(state, int):
-            integer_states.append(state)
-        else:
-            non_integer_states.append(state)
-
-    # if all states are specified as integers, the shape is ambiguous
-    if not non_integer_states:
-        raise ValueError('The qid shape of the given states is ambiguous.')
-
-    # attempt to infer qid shape from non-integer states
-    potential_shapes = _potential_qid_shapes(non_integer_states[0])
-    for state in non_integer_states[1:]:
-        potential_shapes = potential_shapes.intersection_subset(_potential_qid_shapes(state))
-    if potential_shapes.is_ambiguous():
-        raise ValueError('The qid shape of the given states is ambiguous.')
-    qid_shape = potential_shapes.infer_qid_shape()
-    if qid_shape is None:
-        raise ValueError('Failed to infer the qid shape of the given states.')
-
-    # check if the shape is compatible with the states specified as integers
-    if integer_states and np.prod(qid_shape, dtype=int) <= max(integer_states):
-        raise ValueError('Failed to infer the qid shape of the given states.')
-
-    return qid_shape
-
-
 _NON_INT_STATE_LIKE = Union[
     # Per-qudit computational basis values.
     Sequence[int],
@@ -377,7 +326,68 @@ _NON_INT_STATE_LIKE = Union[
 ]
 
 
+def infer_qid_shape(*states: 'cirq.QUANTUM_STATE_LIKE') -> Tuple[int, ...]:
+    """Infer the qid shape of a set of states.
+
+    This is a heuristic to determine a qid shape compatible with all of the
+    given states. It works by attempting to find the intersection of the sets
+    of potential qid shapes for each given state. It may fail (raising an
+    error) even if there is a unique compatible qid shape. If the dimension of
+    a state vector or density matrix (but not state tensor) is a power of 2,
+    then the state space is assumed to be composed of qubits; otherwise, it is
+    assumed to be composed of a single qudit. If the qid shape is ambiguous,
+    an error is raised.
+
+    Args:
+        states: The states for which to infer the qid shape.
+
+    Returns:
+        The inferred qid shape.
+
+    Raises:
+        ValueError: The qid shape of the given states is ambiguous.
+        ValueError: Failed to infer the qid shape of the given states.
+    """
+    integer_states: List[int] = []
+    non_integer_states: List[_NON_INT_STATE_LIKE] = []
+    for state in states:
+        if isinstance(state, int):
+            integer_states.append(state)
+        else:
+            non_integer_states.append(state)
+
+    # if all states are specified as integers, the shape is ambiguous
+    if not non_integer_states:
+        raise ValueError(
+            'The qid shape of the given states is ambiguous, '
+            'since all states were specified as integers.'
+        )
+
+    # attempt to infer qid shape from non-integer states
+    potential_shapes = _potential_qid_shapes(non_integer_states[0])
+    for state in non_integer_states[1:]:
+        potential_shapes = potential_shapes.intersection_subset(_potential_qid_shapes(state))
+    qid_shape = potential_shapes.infer_qid_shape()
+    if qid_shape is None:
+        raise ValueError(
+            'Failed to infer the qid shape of the given states. '
+            'Either there is no compatible qid shape for the given states, or there is one '
+            'but the heuristic failed to find it.'
+        )
+
+    # check if the shape is compatible with the states specified as integers
+    if integer_states and np.prod(qid_shape, dtype=int) <= max(integer_states):
+        raise ValueError(
+            'Failed to infer the qid shape of the given states. '
+            f'The given integer state {max(integer_states)} is too high for the '
+            f'qid shape {qid_shape} inferred from some other given states.'
+        )
+
+    return qid_shape
+
+
 def _potential_qid_shapes(state: _NON_INT_STATE_LIKE) -> '_QidShapeSet':
+    """Return a set of qid shapes compatible with a given state."""
     if isinstance(state, QuantumState):
         return _QidShapeSet(explicit_qid_shapes={state.qid_shape})
     if isinstance(state, value.ProductState):
@@ -463,21 +473,19 @@ class _QidShapeSet:
         if self.unfactorized_total_dimension == other.unfactorized_total_dimension:
             unfactorized_total_dimension = self.unfactorized_total_dimension
 
-        # don't attempt to intersect unfactorized total dimension with
-        # min qudit dimensions
-
         if self.min_qudit_dimensions is not None and other.explicit_qid_shapes:
             explicit_qid_shapes |= _intersection_explicit_with_min_qudit_dims_qid_shapes(
                 other.explicit_qid_shapes, self.min_qudit_dimensions
             )
 
-        # don't attempt to intersect min qudit dimensions with
-        # unfactorized total dimension
-
         if self.min_qudit_dimensions is not None and other.min_qudit_dimensions is not None:
             min_qudit_dimensions = _intersection_min_qudit_dims_qid_shapes(
                 self.min_qudit_dimensions, other.min_qudit_dimensions
             )
+
+        # Above, we only intersected 7 pairs of sets even though there are 9 possible pairs.
+        # We omitted the 2 pairs involving unfactorized total dimension and min qudit dimensions
+        # because that calculation is inefficient.
 
         return _QidShapeSet(
             explicit_qid_shapes=explicit_qid_shapes,
@@ -485,21 +493,30 @@ class _QidShapeSet:
             min_qudit_dimensions=min_qudit_dimensions,
         )
 
-    def is_ambiguous(self) -> bool:
-        """Whether the qid shape is ambiguous and cannot be inferred."""
+    def _raise_value_error_if_ambiguous(self) -> None:
+        """Raise an error if the qid shape is ambiguous and cannot be inferred."""
         if self.min_qudit_dimensions is not None:
-            return True
-        if self.unfactorized_total_dimension is not None:
-            if self.explicit_qid_shapes:
-                return True
-            return False
-        return len(self.explicit_qid_shapes) > 1
+            raise ValueError(
+                'Qid shape is ambiguous: '
+                f'Could be any shape on {len(self.min_qudit_dimensions)} qudits '
+                'with the corresponding qudit dimensions being at least '
+                f'{self.min_qudit_dimensions}.'
+            )
+        if len(self.explicit_qid_shapes) > 1:
+            raise ValueError(
+                f'Qid shape is ambiguous: Could be any one of {self.explicit_qid_shapes}.'
+            )
+        if self.explicit_qid_shapes and self.unfactorized_total_dimension is not None:
+            explicit_shape = next(iter(self.explicit_qid_shapes))
+            raise ValueError(
+                'Qid shape is ambiguous: '
+                f'Could be {explicit_shape} or any shape compatible with '
+                f'a Hilbert space dimension of {self.unfactorized_total_dimension}.'
+            )
 
     def infer_qid_shape(self) -> Optional[Tuple[int, ...]]:
         """Return a qid shape from this set, or None."""
-        if self.is_ambiguous():
-            # coverage: ignore
-            return None
+        self._raise_value_error_if_ambiguous()
         if self.unfactorized_total_dimension is not None:
             return _infer_qid_shape_from_dimension(self.unfactorized_total_dimension)
         if len(self.explicit_qid_shapes) == 0:
