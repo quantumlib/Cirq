@@ -13,7 +13,19 @@
 # limitations under the License.
 """Classes and methods for quantum states."""
 
-from typing import Any, cast, Iterable, Optional, Sequence, Set, TYPE_CHECKING, Tuple, Type, Union
+from typing import (
+    Any,
+    cast,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    TYPE_CHECKING,
+    Tuple,
+    Type,
+    Union,
+)
 
 import itertools
 
@@ -502,6 +514,7 @@ class _QidShapeSet:
                 f'{self.min_qudit_dimensions}.'
             )
         if len(self.explicit_qid_shapes) > 1:
+            # coverage: ignore
             raise ValueError(
                 f'Qid shape is ambiguous: Could be any one of {self.explicit_qid_shapes}.'
             )
