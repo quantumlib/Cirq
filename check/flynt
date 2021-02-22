@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs flynt on the repository
+#
+# Usage:
+#     check/flynt [--flags for flynt]
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$(git rev-parse --show-toplevel)"
+
+# TODO: Remove '-e cirq/ops/pauli_string.py' once the line is covered (https://github.com/quantumlib/Cirq/issues/3804)
+flynt cirq dev_tools examples -f -e cirq/ops/pauli_string.py
+
+STATUS=$?
+
+exit $STATUS
