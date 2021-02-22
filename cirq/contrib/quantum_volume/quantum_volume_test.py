@@ -9,6 +9,9 @@ import cirq.contrib.routing as ccr
 from cirq.contrib.quantum_volume import CompilationResult
 
 
+BCONE = cirq.google.Bristlecone
+
+
 def test_generate_model_circuit():
     """Test that a model circuit is randomly generated."""
     model_circuit = cirq.contrib.quantum_volume.generate_model_circuit(
@@ -118,7 +121,7 @@ def test_compile_circuit_router():
     router_mock = MagicMock()
     cirq.contrib.quantum_volume.compile_circuit(
         cirq.Circuit(),
-        device_graph=ccr.xmon_device_to_graph(cirq.google.Bristlecone),
+        device_graph=ccr.xmon_device_to_graph(BCONE),
         router=router_mock,
         routing_attempts=1,
     )
@@ -136,7 +139,7 @@ def test_compile_circuit():
     )
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
-        device_graph=ccr.xmon_device_to_graph(cirq.google.Bristlecone),
+        device_graph=ccr.xmon_device_to_graph(BCONE),
         compiler=compiler_mock,
         routing_attempts=1,
     )
@@ -144,7 +147,7 @@ def test_compile_circuit():
     assert len(compilation_result.mapping) == 3
     assert cirq.contrib.routing.ops_are_consistent_with_device_graph(
         compilation_result.circuit.all_operations(),
-        cirq.contrib.routing.xmon_device_to_graph(cirq.google.Bristlecone),
+        cirq.contrib.routing.xmon_device_to_graph(BCONE),
     )
     compiler_mock.assert_called_with(compilation_result.circuit)
 
@@ -164,7 +167,7 @@ def test_compile_circuit_replaces_swaps():
     )
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
-        device_graph=ccr.xmon_device_to_graph(cirq.google.Bristlecone),
+        device_graph=ccr.xmon_device_to_graph(BCONE),
         compiler=compiler_mock,
         routing_attempts=1,
     )
@@ -204,7 +207,7 @@ def test_compile_circuit_with_readout_correction():
     )
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
-        device_graph=ccr.xmon_device_to_graph(cirq.google.Bristlecone),
+        device_graph=ccr.xmon_device_to_graph(BCONE),
         compiler=compiler_mock,
         router=router_mock,
         routing_attempts=1,
@@ -253,7 +256,7 @@ def test_compile_circuit_multiple_routing_attempts():
 
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
-        device_graph=ccr.xmon_device_to_graph(cirq.google.Bristlecone),
+        device_graph=ccr.xmon_device_to_graph(BCONE),
         compiler=compiler_mock,
         router=router_mock,
         routing_attempts=3,
@@ -276,7 +279,7 @@ def test_compile_circuit_no_routing_attempts():
     with pytest.raises(AssertionError) as e:
         cirq.contrib.quantum_volume.compile_circuit(
             model_circuit,
-            device_graph=ccr.xmon_device_to_graph(cirq.google.Bristlecone),
+            device_graph=ccr.xmon_device_to_graph(BCONE),
             routing_attempts=0,
         )
     assert e.match('Unable to get routing for circuit')
@@ -288,7 +291,7 @@ def test_calculate_quantum_volume_result():
         num_qubits=3,
         depth=3,
         num_circuits=1,
-        device_or_qubits=cirq.google.Bristlecone,
+        device_qubits=cirq.GridQubit.rect(3, 3),
         samplers=[cirq.Simulator()],
         routing_attempts=2,
         random_state=1,
@@ -311,7 +314,7 @@ def test_calculate_quantum_volume_result_with_device_graph():
         num_qubits=3,
         depth=3,
         num_circuits=1,
-        device_or_qubits=device_qubits,
+        device_qubits=device_qubits,
         samplers=[cirq.Simulator()],
         routing_attempts=2,
         random_state=1,
@@ -333,7 +336,7 @@ def test_calculate_quantum_volume_loop():
         num_circuits=1,
         routing_attempts=2,
         random_state=1,
-        device_or_qubits=cirq.google.Bristlecone,
+        device_qubits=cirq.GridQubit.rect(3, 3),
         samplers=[cirq.Simulator()],
     )
 
@@ -349,7 +352,7 @@ def test_calculate_quantum_volume_loop_with_readout_correction():
         num_circuits=1,
         routing_attempts=2,
         random_state=1,
-        device_or_qubits=cirq.google.Bristlecone,
+        device_qubits=cirq.GridQubit.rect(3, 3),
         samplers=[cirq.Simulator()],
         add_readout_error_correction=True,
     )
