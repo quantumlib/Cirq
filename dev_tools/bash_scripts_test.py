@@ -599,7 +599,13 @@ def test_incremental_format_branch_selection(tmpdir_factory):
         'git commit -q -m test3 --no-gpg-sign\n',
     )
     assert result.exit_code == 0
-    assert 'INTERCEPTED black --color --check --diff alt.py' in result.out
+    assert (
+        """Running flynt v.0.60
+`cirq` not found
+INTERCEPTED black --color --check --diff alt.py
+"""
+        in result.out
+    )
     assert result.err.startswith("Comparing against revision 'master' (merge base ")
 
 
@@ -610,7 +616,7 @@ def test_pylint_changed_files_file_selection(tmpdir_factory):
         script_file='check/pylint-changed-files',
         tmpdir_factory=tmpdir_factory,
         arg='HEAD~1',
-        setup='touch file.py\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
+        setup='git init\ntouch file.py\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.exit_code == 0
     assert result.out == ''
