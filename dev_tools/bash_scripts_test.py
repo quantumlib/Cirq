@@ -598,7 +598,7 @@ def test_incremental_format_branch_selection(tmpdir_factory):
         'git add -A\n'
         'git commit -q -m test3 --no-gpg-sign\n',
     )
-    assert result.exit_code == 0
+    assert result.exit_code == 1
     assert (
         """Running flynt v.0.60
 `cirq` not found
