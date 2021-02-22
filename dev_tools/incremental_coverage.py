@@ -26,6 +26,7 @@ IGNORED_FILE_PATTERNS = [
     r'^setup\.py$',  # Installation code.
     r'^cirq/google/engine/client/.+.py$',  # Generated gRPC client code.
     r'^cirq/google/api/v1/.+.py$',  # deprecated API code
+    r'^benchmarks/',
 ]
 IGNORED_BLOCK_PATTERNS = [
     r'^\s*if TYPE_CHECKING:$',  # imports needed only while type-checking.
