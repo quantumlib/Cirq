@@ -32,6 +32,9 @@ from typing import (
 )
 
 import matplotlib.pyplot as plt
+
+# this is for older systems with matplotlib <3.2 otherwise 3d projections fail
+from mpl_toolkits import mplot3d  # pylint: disable=unused-import
 import numpy as np
 import scipy
 
