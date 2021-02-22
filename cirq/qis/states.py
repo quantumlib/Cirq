@@ -397,11 +397,10 @@ def _potential_qid_shapes(state: _NON_INT_STATE_LIKE) -> '_QidShapeSet':
         state = np.array(state)
     if state.ndim == 1:
         (dim,) = state.shape
-        if state.dtype.kind == 'c':
-            # definitely state vector amplitudes
-            return _QidShapeSet(unfactorized_total_dimension=dim)
-        # could also be per-qudit computational basis values
-        min_qudit_dimensions = tuple(state.astype(int, copy=False) + 1)
+        min_qudit_dimensions = None
+        if state.dtype.kind[0] in '?bBiu':
+            # could be per-qudit computational basis values
+            min_qudit_dimensions = tuple(state.astype(int, copy=False) + 1)
         return _QidShapeSet(
             unfactorized_total_dimension=dim, min_qudit_dimensions=min_qudit_dimensions
         )
