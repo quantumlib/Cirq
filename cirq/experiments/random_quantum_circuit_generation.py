@@ -319,7 +319,10 @@ def _get_random_combinations(
     """For qubit pairs, prepare a set of combinations to efficiently sample
     parallel two-qubit XEB circuits.
 
-    This helper function should be called by one of `xx`, `xx` which define
+    This helper function should be called by one of
+    `get_random_comibations_for_device`,
+    `get_random_combinations_for_layer_circuit`, or
+    `get_random_combinations_for_pairs` which define
     appropriate `pair_gen` arguments.
 
     Args:
