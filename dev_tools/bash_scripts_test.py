@@ -509,7 +509,12 @@ def test_incremental_format_branch_selection(tmpdir_factory):
         script_file='check/format-incremental', tmpdir_factory=tmpdir_factory, arg='HEAD~9999'
     )
     assert result.exit_code == 1
-    assert result.out == ''
+    assert (
+        result.out
+        == """Running flynt v.0.60
+    `cirq` not found
+    """
+    )
     assert "No revision 'HEAD~9999'." in result.err
 
     result = run(script_file='check/format-incremental', tmpdir_factory=tmpdir_factory)
