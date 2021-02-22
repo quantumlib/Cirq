@@ -512,8 +512,8 @@ def test_incremental_format_branch_selection(tmpdir_factory):
     assert (
         result.out
         == """Running flynt v.0.60
-    `cirq` not found
-    """
+`cirq` not found
+"""
     )
     assert "No revision 'HEAD~9999'." in result.err
 
