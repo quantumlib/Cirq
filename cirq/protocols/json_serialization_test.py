@@ -331,7 +331,7 @@ class SBKImpl:
             "data_dict": self.data_dict,
         }
 
-    def _serialization_key_(self):
+    def _serialization_name_(self):
         return self.name
 
     @classmethod
@@ -371,7 +371,7 @@ def test_context_serialization():
         final_obj
         == """{
       "cirq_type": "_SerializedKey",
-      "key": "sbki_dict"
+      "key": "sbki_dict_4"
     }"""
     )
 
@@ -382,15 +382,17 @@ def test_context_serialization():
     assert_json_roundtrip_works(dict_sbki, resolvers=test_resolvers)
 
     assert sbki_list != json_serialization._SerializedKey(sbki_list)
+
+    # Serialization keys have unique suffixes.
     sbki_other_list = SBKImpl('sbki_list', data_list=[sbki_list])
-    with pytest.raises(ValueError, match='different objects with the same serialization key'):
-        _ = cirq.to_json(sbki_other_list)
+    assert_json_roundtrip_works(sbki_other_list, resolvers=test_resolvers)
 
 
 def test_internal_serializer_types():
     sbki = SBKImpl('test_key')
-    test_key = json_serialization._SerializedKey(sbki)
-    test_context = json_serialization._SerializedContext(sbki)
+    key = f'{sbki._serialization_name_()}_1'
+    test_key = json_serialization._SerializedKey(key)
+    test_context = json_serialization._SerializedContext(sbki, 1)
     test_serialization = json_serialization._ContextualSerialization(sbki)
 
     key_json = test_key._json_dict_()
