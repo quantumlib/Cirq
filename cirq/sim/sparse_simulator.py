@@ -177,34 +177,33 @@ class Simulator(
 
         # Simulate as many unitary operations as possible before having to
         # repeat work for each sample.
-        general_suffix = resolved_circuit
-        intermediate_state = 0
-        if protocols.has_unitary(self.noise):
-            unitary_prefix, general_suffix = split_into_matching_protocol_then_general(
-                resolved_circuit, protocols.has_unitary
+        unitary_prefix, general_suffix = (
+            split_into_matching_protocol_then_general(resolved_circuit, protocols.has_unitary)
+            if protocols.has_unitary(self.noise)
+            else (resolved_circuit[0:0], resolved_circuit)
+        )
+        step_result = None
+        for step_result in self._base_iterator(
+            circuit=unitary_prefix,
+            qubit_order=qubit_order,
+            initial_state=0,
+            perform_measurements=False,
+        ):
+            pass
+        assert step_result is not None
+
+        # When an otherwise unitary circuit ends with non-demolition computation
+        # basis measurements, we can sample the results more efficiently.
+        general_ops = list(general_suffix.all_operations())
+        if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
+            return step_result.sample_measurement_ops(
+                measurement_ops=cast(List[ops.GateOperation], general_ops),
+                repetitions=repetitions,
+                seed=self._prng,
             )
-            step_result = None
-            for step_result in self._base_iterator(
-                circuit=unitary_prefix,
-                qubit_order=qubit_order,
-                initial_state=0,
-                perform_measurements=False,
-            ):
-                pass
-            assert step_result is not None
 
-            # When an otherwise unitary circuit ends with non-demolition computation
-            # basis measurements, we can sample the results more efficiently.
-            general_ops = list(general_suffix.all_operations())
-            if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
-                return step_result.sample_measurement_ops(
-                    measurement_ops=cast(List[ops.GateOperation], general_ops),
-                    repetitions=repetitions,
-                    seed=self._prng,
-                )
-
-            qid_shape = protocols.qid_shape(qubit_order)
-            intermediate_state = step_result.state_vector().reshape(qid_shape)
+        qid_shape = protocols.qid_shape(qubit_order)
+        intermediate_state = step_result.state_vector().reshape(qid_shape)
         return self._brute_force_samples(
             initial_state=intermediate_state,
             circuit=general_suffix,
