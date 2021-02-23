@@ -114,6 +114,7 @@ jobs:
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
           # TODO: move to requirements.txt after #3704
           pip install codeowners==0.1.2 # linux only package
+          dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
       - name: Pytest check
         run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
   build_docs:
