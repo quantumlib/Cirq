@@ -15,6 +15,7 @@ from typing import (
     Any,
     Callable,
     Dict,
+    Iterable,
     List,
     MutableMapping,
     Optional,
@@ -284,6 +285,50 @@ class PhasedFSimCalibrationResult:
             'parameters': [(q_a, q_b, params) for (q_a, q_b), params in self.parameters.items()],
             'options': self.options,
         }
+
+
+def merge_matching_results(
+    results: Iterable[PhasedFSimCalibrationResult],
+) -> Optional[PhasedFSimCalibrationResult]:
+    """Merges a collection of results into a single result.
+
+    Args:
+        results: List of results to merge. They must be compatible with each other: all gate and
+            options fields must be equal and every characterized pair must be present only in one of
+            the characterizations.
+
+    Returns:
+        New PhasedFSimCalibrationResult that contains all the parameters from every result in
+        results or None when the results list is empty.
+    """
+    all_parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization] = {}
+    common_gate = None
+    common_options = None
+    for result in results:
+        if common_gate is None:
+            common_gate = result.gate
+        elif common_gate != result.gate:
+            raise ValueError(
+                f'Only matching results can be merged, got gates {common_gate} and {result.gate}'
+            )
+
+        if common_options is None:
+            common_options = result.options
+        elif common_options != result.options:
+            raise ValueError(
+                f'Only matching results can be merged, got options {common_options} and '
+                f'{result.options}'
+            )
+
+        if not all_parameters.keys().isdisjoint(result.parameters):
+            raise ValueError(f'Only results with disjoint parameters sets can be merged')
+
+        all_parameters.update(result.parameters)
+
+    if common_gate is None or common_options is None:
+        return None
+
+    return PhasedFSimCalibrationResult(all_parameters, common_gate, common_options)
 
 
 # We have to relax a mypy constraint, see https://github.com/python/mypy/issues/5374
