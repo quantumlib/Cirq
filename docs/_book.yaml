@@ -164,6 +164,8 @@ upper_tabs:
       - heading: "Google hardware"
       - title: "Getting started with QCS"
         path: /cirq/tutorials/google/start
+      - title: "Floquet calibration"
+        path: /cirq/tutorials/google/floquet
 
       ####  AQT HARDWARE  ####
       - heading: "AQT hardware"
