@@ -203,9 +203,6 @@ class _NoNoiseModel(NoiseModel):
     def _has_mixture_(self):
         return True
 
-    def _has_channel_(self):
-        return True
-
 
 @value.value_equality
 class ConstantQubitNoiseModel(NoiseModel):
@@ -245,9 +242,6 @@ class ConstantQubitNoiseModel(NoiseModel):
 
     def _has_mixture_(self):
         return protocols.has_mixture(self.qubit_noise_gate)
-
-    def _has_channel_(self):
-        return protocols.has_channel(self.qubit_noise_gate)
 
 
 class GateSubstitutionNoiseModel(NoiseModel):
