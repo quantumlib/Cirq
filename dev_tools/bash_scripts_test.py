@@ -331,6 +331,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     )
     assert result.exit_code == 0
     assert result.out == ''
+
     assert (
         result.err.split()
         == (
