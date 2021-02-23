@@ -29,8 +29,6 @@ jobs:
         run: cat dev_tools/conf/pip-list-dev-tools.txt | grep flynt | xargs pip install
       - name: Install black
         run: cat dev_tools/conf/pip-list-dev-tools.txt | grep black | xargs pip install
-      - name: Flynt
-        run: check/flynt
       - name: Format
         run: check/format-incremental
   mypy:
