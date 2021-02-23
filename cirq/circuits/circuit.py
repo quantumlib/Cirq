@@ -71,6 +71,9 @@ class Alignment(enum.Enum):
     START = 1
     END = 2
 
+    def __repr__(self) -> str:
+        return f'cirq.Alignment.{self.name}'
+
 
 class AbstractCircuit(abc.ABC):
     """The base class for Circuit-like objects.
@@ -1331,7 +1334,7 @@ class AbstractCircuit(abc.ABC):
                 if align == Alignment.START:
                     moment = cirq.Moment(c[k] for c in circuits if k < len(c))
                 else:
-                    moment = cirq.Moment(c[n - len(c) + k] for c in circuits if n - len(c) + k >= 0)
+                    moment = cirq.Moment(c[len(c) - n + k] for c in circuits if len(c) - n + k >= 0)
                 result.append(moment)
             except ValueError as ex:
                 raise ValueError(

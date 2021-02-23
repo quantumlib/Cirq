@@ -14,7 +14,7 @@
 import os
 from collections import defaultdict
 from random import randint, random, sample, randrange
-from typing import Tuple, cast, AbstractSet, Iterable
+from typing import Tuple, cast, AbstractSet
 
 import numpy as np
 import pytest
@@ -36,6 +36,11 @@ class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
 
 
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
+
+
+def test_alignment():
+    assert repr(cirq.Alignment.START) == 'cirq.Alignment.START'
+    assert repr(cirq.Alignment.END) == 'cirq.Alignment.END'
 
 
 def test_insert_moment_types():
@@ -4410,6 +4415,33 @@ def test_zip():
             cirq.Circuit(cirq.X(a), cirq.CNOT(a, b)),
             cirq.Circuit(cirq.X(b), cirq.Z(b)),
         )
+
+
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_zip_alignment(circuit_cls):
+    a, b, c = cirq.LineQubit.range(3)
+
+    circuit1 = circuit_cls([cirq.H(a)] * 5)
+    circuit2 = circuit_cls([cirq.H(b)] * 3)
+    circuit3 = circuit_cls([cirq.H(c)] * 2)
+
+    c_start = circuit_cls.zip(circuit1, circuit2, circuit3, align='START')
+    assert c_start == circuit_cls(
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+        cirq.Moment(cirq.H(a), cirq.H(b)),
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.H(a)),
+    )
+
+    c_end = circuit_cls.zip(circuit1, circuit2, circuit3, align='END')
+    assert c_end == circuit_cls(
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.H(a), cirq.H(b)),
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+    )
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])

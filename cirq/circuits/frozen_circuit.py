@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """An immutable version of the Circuit data structure."""
-import functools
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
