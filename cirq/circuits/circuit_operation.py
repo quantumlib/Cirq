@@ -31,6 +31,7 @@ if TYPE_CHECKING:
 
 
 INT_TYPE = Union[int, np.integer]
+MEASUREMENT_KEY_SEPARATOR = ':'
 
 
 def default_repetition_ids(repetitions: int) -> Optional[List[str]]:
@@ -46,7 +47,31 @@ def cartesian_product_of_string_lists(list1: Optional[List[str]], list2: Optiona
         return list2  # coverage: ignore
     if list2 is None:
         return list1
-    return [f'{first}-{second}' for first in list1 for second in list2]
+    return [
+        f'{MEASUREMENT_KEY_SEPARATOR.join([first, second])}' for first in list1 for second in list2
+    ]
+
+
+def split_maybe_indexed_key(maybe_indexed_key: str) -> List[str]:
+    """Given a measurement_key, splits into index (series of repetition_ids) and unindexed key
+    parts. For a key without index, returns the unaltered key in a list. Assumes that the
+    unindexed measurement key does not contain the MEASUREMENT_KEY_SEPARATOR. This is validated by
+    the `CircuitOperation` constructor."""
+    return maybe_indexed_key.rsplit(MEASUREMENT_KEY_SEPARATOR, maxsplit=1)
+
+
+def get_unindexed_key(maybe_indexed_key: str) -> str:
+    """Given a measurement_key, returns the unindexed key part (without the series of prefixed
+    repetition_ids). For an already unindexed key, returns the unaltered key."""
+    return split_maybe_indexed_key(maybe_indexed_key)[-1]
+
+
+def remap_maybe_indexed_key(key_map: Dict[str, str], key: str) -> str:
+    """Given a key map and a measurement_key (indexed or unindexed), returns the remapped key in
+    the same format. Does not modify the index (series of repetition_ids) part, if it exists."""
+    split_key = split_maybe_indexed_key(key)
+    split_key[-1] = key_map.get(split_key[-1], split_key[-1])
+    return MEASUREMENT_KEY_SEPARATOR.join(split_key)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -62,6 +87,8 @@ class CircuitOperation(ops.Operation):
         repetitions: How many times the circuit should be repeated.
         qubit_map: Remappings for qubits in the circuit.
         measurement_key_map: Remappings for measurement keys in the circuit.
+            The keys and values should be unindexed (i.e. without repetition_ids).
+            The values cannot contain the `MEASUREMENT_KEY_SEPARATOR`.
         param_resolver: Resolved values for parameters in the circuit.
         repetition_ids: List of identifiers for each repetition of the
             CircuitOperation. If populated, the length should be equal to the
@@ -98,6 +125,29 @@ class CircuitOperation(ops.Operation):
                 f'Expected repetition_ids to be a list of length {loop_size}, '
                 f'got: {self.repetition_ids}'
             )
+
+        # Disallow mapping to keys containing the `MEASUREMENT_KEY_SEPARATOR`
+        for mapped_key in self.measurement_key_map.values():
+            if MEASUREMENT_KEY_SEPARATOR in mapped_key:
+                raise ValueError(
+                    f'Mapping to invalid key: {mapped_key}. "{MEASUREMENT_KEY_SEPARATOR}" '
+                    'is not allowed for measurement keys in a CircuitOperation'
+                )
+
+        # Validate the keys for all direct child measurements. They are not allowed to contain
+        # `MEASUREMENT_KEY_SEPARATOR`
+        for _, op in self.circuit.findall_operations(
+            lambda op: not isinstance(op, CircuitOperation) and protocols.is_measurement(op)
+        ):
+            for key in protocols.measurement_keys(op):
+                key = self.measurement_key_map.get(key, key)
+                if MEASUREMENT_KEY_SEPARATOR in key:
+                    raise ValueError(
+                        f'Measurement {op} found to have invalid key: {key}. '
+                        f'"{MEASUREMENT_KEY_SEPARATOR}" is not allowed for measurement keys '
+                        'in a CircuitOperation. Consider remapping the key using '
+                        '`measurement_key_map` in the CircuitOperation constructor.'
+                    )
         # Ensure that param_resolver is converted to an actual ParamResolver.
         object.__setattr__(self, 'param_resolver', study.ParamResolver(self.param_resolver))
 
@@ -139,9 +189,12 @@ class CircuitOperation(ops.Operation):
         return tuple(q.dimension for q in self.qubits)
 
     def _measurement_keys_(self) -> AbstractSet[str]:
-        return {
-            self.measurement_key_map.get(key, key) for key in self.circuit.all_measurement_keys()
-        }
+        circuit_keys = self.circuit.all_measurement_keys()
+        if self.repetition_ids is not None:
+            circuit_keys = cartesian_product_of_string_lists(
+                self.repetition_ids, list(circuit_keys)
+            )
+        return {remap_maybe_indexed_key(self.measurement_key_map, key) for key in circuit_keys}
 
     def _parameter_names_(self) -> AbstractSet[str]:
         return {
@@ -185,7 +238,8 @@ class CircuitOperation(ops.Operation):
                         protocols.with_measurement_key_mapping(
                             op,
                             key_map={
-                                key: f'{parent_id}-{key}' for key in protocols.measurement_keys(op)
+                                key: f'{MEASUREMENT_KEY_SEPARATOR.join([parent_id, key])}'
+                                for key in protocols.measurement_keys(op)
                             },
                         )
                     )
@@ -426,6 +480,8 @@ class CircuitOperation(ops.Operation):
         Args:
             key_map: A mapping of old measurement keys to new measurement keys.
                 This map will be composed with any existing key mapping.
+                The keys and values of the map should be unindexed (i.e. without
+                repetition_ids).
 
         Returns:
             A copy of this operation with measurement keys updated as specified
@@ -437,6 +493,7 @@ class CircuitOperation(ops.Operation):
         """
         new_map = {}
         for k in self.circuit.all_measurement_keys():
+            k = get_unindexed_key(k)
             k_new = self.measurement_key_map.get(k, k)
             k_new = key_map.get(k_new, k_new)
             if k_new != k:
