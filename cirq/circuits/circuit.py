@@ -134,16 +134,16 @@ class AbstractCircuit(abc.ABC):
         return bool(self.moments)
 
     def __eq__(self, other):
-        if not isinstance(other, type(self)):
+        if not isinstance(other, AbstractCircuit):
             return NotImplemented
-        return self.moments == other.moments and self.device == other.device
+        return tuple(self.moments) == tuple(other.moments) and self.device == other.device
 
     def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
-        if not isinstance(other, type(self)):
+        if not isinstance(other, AbstractCircuit):
             return NotImplemented
         return (
-            cirq.protocols.approx_eq(self.moments, other.moments, atol=atol)
+            cirq.protocols.approx_eq(tuple(self.moments), tuple(other.moments), atol=atol)
             and self.device == other.device
         )
 
