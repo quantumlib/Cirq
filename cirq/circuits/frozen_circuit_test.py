@@ -26,7 +26,9 @@ def test_freeze_and_unfreeze():
     c = cirq.Circuit(cirq.X(a), cirq.H(b))
 
     f = c.freeze()
-    assert f.moments == tuple(c.moments)
+    # Circuits equal their frozen versions, similar to set(x) == frozenset(x).
+    assert f == c
+    assert cirq.approx_eq(f, c)
 
     # Freezing a FrozenCircuit will return the original.
     ff = f.freeze()
