@@ -141,7 +141,7 @@ def test_params_and_settings():
         circuit = cirq.Circuit(cirq.I.on_each(*qubits))
         circuit = _with_parameterized_layers(circuit, qubits=qubits, needs_init_layer=True)
         params = _get_params_for_setting(
-            setting, flips=[False], qubits=qubits, needs_init_layer=False
+            setting, flips=[False], qubits=qubits, needs_init_layer=True
         )
 
         circuit = circuit[:-1]  # remove measurement so we can compute <Z>

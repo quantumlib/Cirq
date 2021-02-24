@@ -162,7 +162,7 @@ class _FlippyMeasSpec:
     flips: np.ndarray
     qubits: Sequence['cirq.Qid']
 
-    def param_tuples(self, *, needs_init_layer=False):
+    def param_tuples(self, *, needs_init_layer=True):
         yield from _get_params_for_setting(
             self.meas_spec.max_setting,
             flips=self.flips,
