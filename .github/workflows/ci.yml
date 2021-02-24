@@ -121,7 +121,7 @@ jobs:
           # TODO: move to requirements.txt after #3704
           pip install codeowners==0.1.2 # linux only package
       - name: Pytest check
-        run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
+        run: check/pytest --ignore=cirq/contrib --actually-quiet
   build_docs:
     name: Build docs
     runs-on: ubuntu-16.04
@@ -189,7 +189,7 @@ jobs:
           pip install -r requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - name: Pytest Windows
-        run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
+        run: check/pytest --ignore=cirq/contrib --actually-quiet
         shell: bash
   macos:
     name: Pytest MacOS
@@ -208,7 +208,7 @@ jobs:
           pip install -r requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - name: Pytest check
-        run: check/pytest --ignore=cirq/contrib --benchmark-skip
+        run: check/pytest --ignore=cirq/contrib
   notebooks-stable:
     name: Changed Notebooks Isolated Test against Cirq stable
     runs-on: ubuntu-16.04
