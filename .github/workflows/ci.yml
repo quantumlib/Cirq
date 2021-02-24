@@ -56,12 +56,7 @@ jobs:
           python-version: '3.7'
           architecture: 'x64'
       - name: Install changed files test dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install -r cirq/contrib/contrib-requirements.txt
-          pip install -r dev_tools/conf/pip-list-dev-tools.txt
-          # TODO: move to requirements.txt after #3704
-          pip install codeowners==0.1.2 # linux only package
+        run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
       - name: Changed files test
         run: check/pytest-changed-files
   lint:
