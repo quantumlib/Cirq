@@ -84,7 +84,7 @@ class _SampleInBatches:
             (result,) = nested_result  # remove nesting due to potential sweeps.
             for pair_i, circuit_i in enumerate(task.combination):
                 pair_measurement_key = str(pair_i)
-                q0, q1 = self.combinations_by_layer[task.layer_i].pairs[pair_i]
+                pair = self.combinations_by_layer[task.layer_i].pairs[pair_i]
                 sampled_inds = result.data[pair_measurement_key].values
                 sampled_probs = np.bincount(sampled_inds, minlength=2 ** 2) / len(sampled_inds)
 
@@ -98,9 +98,7 @@ class _SampleInBatches:
                         'layer_i': task.layer_i,
                         'pair_i': pair_i,
                         'combination_i': task.combination_i,
-                        'pair_name': f'{q0}-{q1}',
-                        'q0': q0,
-                        'q1': q1,
+                        'pair': pair,
                     }
                 )
         return records

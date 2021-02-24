@@ -12,12 +12,49 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for simulator.py"""
-
+import abc
+from typing import Generic, Dict, Any
 from unittest import mock
 import numpy as np
 import pytest
 
 import cirq
+from cirq import study
+from cirq.sim.simulator import (
+    TStepResult,
+    TSimulatorState,
+    SimulatesIntermediateState,
+    SimulationTrialResult,
+)
+
+
+class SimulatesIntermediateStateImpl(
+    Generic[TStepResult, TSimulatorState],
+    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TSimulatorState],
+    metaclass=abc.ABCMeta,
+):
+    """A SimulatesIntermediateState that uses the default SimulationTrialResult type."""
+
+    def _create_simulator_trial_result(
+        self,
+        params: study.ParamResolver,
+        measurements: Dict[str, np.ndarray],
+        final_simulator_state: Any,
+    ) -> 'SimulationTrialResult':
+        """This method creates a default trial result.
+
+        Args:
+            params: The ParamResolver for this trial.
+            measurements: The measurement results for this trial.
+            final_simulator_state: The final state of the simulator for the
+                StepResult.
+
+        Returns:
+            The SimulationTrialResult.
+        """
+        return SimulationTrialResult(
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+        )
 
 
 @mock.patch.multiple(cirq.SimulatesSamples, __abstractmethods__=set(), _run=mock.Mock())
@@ -66,10 +103,10 @@ def test_run_simulator_sweeps():
 
 
 @mock.patch.multiple(
-    cirq.SimulatesIntermediateState, __abstractmethods__=set(), _simulator_iterator=mock.Mock()
+    SimulatesIntermediateStateImpl, __abstractmethods__=set(), _simulator_iterator=mock.Mock()
 )
 def test_intermediate_simulator():
-    simulator = cirq.SimulatesIntermediateState()
+    simulator = SimulatesIntermediateStateImpl()
 
     final_simulator_state = np.array([1, 0, 0, 0])
 
@@ -98,10 +135,10 @@ def test_intermediate_simulator():
 
 
 @mock.patch.multiple(
-    cirq.SimulatesIntermediateState, __abstractmethods__=set(), _simulator_iterator=mock.Mock()
+    SimulatesIntermediateStateImpl, __abstractmethods__=set(), _simulator_iterator=mock.Mock()
 )
 def test_intermediate_sweeps():
-    simulator = cirq.SimulatesIntermediateState()
+    simulator = SimulatesIntermediateStateImpl()
 
     final_state = np.array([1, 0, 0, 0])
 

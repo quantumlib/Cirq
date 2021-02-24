@@ -23,6 +23,7 @@ from cirq.google.calibration.phased_fsim import (
     PhasedFSimCharacterization,
     PhasedFSimCalibrationResult,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    merge_matching_results,
     try_convert_sqrt_iswap_to_fsim,
 )
 
@@ -284,6 +285,106 @@ def test_get_parameters():
         theta=0.4, zeta=0.5, chi=None, gamma=None, phi=0.6
     )
     assert result.get_parameters(q_00, q_03) is None
+
+
+def test_merge_matching_results():
+    q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
+    gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+    options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
+    parameters_1 = {
+        (q_00, q_01): PhasedFSimCharacterization(
+            theta=0.1, zeta=0.2, chi=None, gamma=None, phi=0.3
+        ),
+    }
+    parameters_2 = {
+        (q_02, q_03): PhasedFSimCharacterization(
+            theta=0.4, zeta=0.5, chi=None, gamma=None, phi=0.6
+        ),
+    }
+
+    results = [
+        PhasedFSimCalibrationResult(
+            parameters=parameters_1,
+            gate=gate,
+            options=options,
+        ),
+        PhasedFSimCalibrationResult(
+            parameters=parameters_2,
+            gate=gate,
+            options=options,
+        ),
+    ]
+
+    assert merge_matching_results(results) == PhasedFSimCalibrationResult(
+        parameters={**parameters_1, **parameters_2},
+        gate=gate,
+        options=options,
+    )
+
+
+def test_merge_matching_results_when_empty_none():
+    assert merge_matching_results([]) is None
+
+
+def test_merge_matching_results_when_incompatible_fails():
+    q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
+    gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+    options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
+    parameters_1 = {
+        (q_00, q_01): PhasedFSimCharacterization(
+            theta=0.1, zeta=0.2, chi=None, gamma=None, phi=0.3
+        ),
+    }
+    parameters_2 = {
+        (q_02, q_03): PhasedFSimCharacterization(
+            theta=0.4, zeta=0.5, chi=None, gamma=None, phi=0.6
+        ),
+    }
+
+    with pytest.raises(ValueError):
+        results = [
+            PhasedFSimCalibrationResult(
+                parameters=parameters_1,
+                gate=gate,
+                options=options,
+            ),
+            PhasedFSimCalibrationResult(
+                parameters=parameters_1,
+                gate=gate,
+                options=options,
+            ),
+        ]
+        assert merge_matching_results(results)
+
+    with pytest.raises(ValueError):
+        results = [
+            PhasedFSimCalibrationResult(
+                parameters=parameters_1,
+                gate=gate,
+                options=options,
+            ),
+            PhasedFSimCalibrationResult(
+                parameters=parameters_2,
+                gate=cirq.CZ,
+                options=options,
+            ),
+        ]
+        assert merge_matching_results(results)
+
+    with pytest.raises(ValueError):
+        results = [
+            PhasedFSimCalibrationResult(
+                parameters=parameters_1,
+                gate=gate,
+                options=options,
+            ),
+            PhasedFSimCalibrationResult(
+                parameters=parameters_2,
+                gate=gate,
+                options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+            ),
+        ]
+        assert merge_matching_results(results)
 
 
 @pytest.mark.parametrize('phase_exponent', np.linspace(0, 1, 5))
