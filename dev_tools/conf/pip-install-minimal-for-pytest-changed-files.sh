@@ -30,9 +30,8 @@ pip install -r requirements.txt
 # TODO: move to requirements.txt after #3704
 pip install codeowners==0.1.2 # linux only package
 
-# # Install contrib requirements only if needed.
-# changed=$(git diff --name-only origin/master | grep "cirq/contrib" || true)
-# [ "${changed}" = "" ] || pip install -r cirq/contrib/contrib-requirements.txt
+# Install contrib requirements only if needed.
+changed=$(git diff --name-only origin/master | grep "cirq/contrib" || true)
+[ "${changed}" = "" ] || pip install -r cirq/contrib/contrib-requirements.txt
 
-pip install -r cirq/contrib/contrib-requirements.txt
 pip install -r dev_tools/conf/pip-list-dev-tools.txt
