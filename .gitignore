@@ -32,8 +32,8 @@ docs/api_docs
 # Mac only
 .DS_Store
 
-# From pytest-benchmark
-*.benchmarks/
+# From asv
+*.asv/
 
 # Ignore generated Jupyter files
 *.ipynb_checkpoints/

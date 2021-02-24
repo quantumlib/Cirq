@@ -13,7 +13,7 @@
 # limitations under the License.
 import multiprocessing
 import time
-from typing import Dict, Any, cast, Optional
+from typing import Dict, Any, Optional
 from typing import Sequence
 
 import numpy as np
@@ -89,7 +89,7 @@ def _ref_simulate_2q_xeb_circuit(task: Dict[str, Any]):
     tcircuit = cirq.resolve_parameters_once(tcircuit, param_resolver=param_resolver)
 
     pure_sim = cirq.Simulator()
-    psi = cast(cirq.StateVectorTrialResult, pure_sim.simulate(tcircuit))
+    psi = pure_sim.simulate(tcircuit)
     psi = psi.final_state_vector
     pure_probs = np.abs(psi) ** 2
 
