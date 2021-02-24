@@ -31,9 +31,10 @@ from dev_tools import shell_tools
 
 SKIP_NOTEBOOKS = [
     # skipping vendor notebooks as we don't have auth sorted out
+    "**/aqt/*.ipynb",
+    "**/ionq/*.ipynb",
     "**/google/*.ipynb",
     "**/pasqal/*.ipynb",
-    "**/aqt/*.ipynb",
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     "examples/*fidelity*",
