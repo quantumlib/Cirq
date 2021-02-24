@@ -86,7 +86,7 @@ is long.  Instead, it is recommended that you use the job api directly.
 In this pattern, you can first create the job with the quantum circuit you
 wish to run, and the service immediately returns an object that has
 the id of the job.  This job id can be recorded, and at any time in
-the future one can query for the results of this job.
+the future you can query for the results of this job.
 
 ```python
 qubit = cirq.LineQubit(0)
@@ -106,7 +106,7 @@ One difference between this approach and the run and sampler methods
 is that the returned job object's results are more directly related to the
 return data from the IonQ API.  They are of types `ionq.QPUResult` or
 `ionq.SimulatorResult`.  If you wish to convert these into the
-`cirq.Result` format, one can use `to_cirq_result` on both of these.
+`cirq.Result` format, you can use `to_cirq_result` on both of these.
 
 Another useful feature of working with jobs directly is that you can
 directly cancel or delete jobs.  In particular, the `ionq.Job` object
