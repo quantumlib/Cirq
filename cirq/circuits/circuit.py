@@ -130,13 +130,14 @@ class AbstractCircuit(abc.ABC):
             return self
         return FrozenCircuit(self, strategy=InsertStrategy.EARLIEST, device=self.device)
 
-    def unfreeze(self) -> 'cirq.Circuit':
+    def unfreeze(self, copy: bool = True) -> 'cirq.Circuit':
         """Creates a Circuit from this circuit.
 
-        If 'self' is a Circuit, this returns a copy of that circuit.
+        Args:
+            copy: If True and 'self' is a Circuit, returns a copy that circuit.
         """
         if isinstance(self, Circuit):
-            return Circuit.copy(self)
+            return Circuit.copy(self) if copy else self
         return Circuit(self, strategy=InsertStrategy.EARLIEST, device=self.device)
 
     def __bool__(self):
@@ -1269,7 +1270,7 @@ class AbstractCircuit(abc.ABC):
 
     def zip(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.START
-    ) -> 'cirq.Circuit':
+    ) -> 'cirq.AbstractCircuit':
         """Combines operations from circuits in a moment-by-moment fashion.
 
         Moment k of the resulting circuit will have all operations from moment
@@ -1344,7 +1345,7 @@ class AbstractCircuit(abc.ABC):
 
     def tetris_concat(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.START
-    ) -> 'cirq.Circuit':
+    ) -> 'cirq.AbstractCircuit':
         """Concatenates circuits while overlapping them if possible.
 
         Starts with the first circuit (index 0), then iterates over the other
@@ -1686,6 +1687,20 @@ class Circuit(AbstractCircuit):
             ],
             device=new_device,
         )
+
+    def tetris_concat(
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.START
+    ) -> 'cirq.Circuit':
+        return AbstractCircuit.tetris_concat(*circuits, align=align).unfreeze(copy=False)
+
+    tetris_concat.__doc__ = AbstractCircuit.tetris_concat.__doc__
+
+    def zip(
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.START
+    ) -> 'cirq.Circuit':
+        return AbstractCircuit.zip(*circuits, align=align).unfreeze(copy=False)
+
+    zip.__doc__ = AbstractCircuit.zip.__doc__
 
     @deprecated_parameter(
         deadline='v0.11.0',
