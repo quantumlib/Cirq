@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# set -e
+set -e
 
 # Get the working directory to the repo root.
 cd "$( dirname "${BASH_SOURCE[0]}" )"
