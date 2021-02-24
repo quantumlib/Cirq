@@ -34,14 +34,30 @@ def test_with_parameterized_layers():
             cirq.CZ(qs[1], qs[2]),
         ]
     )
-    circuit2 = _with_parameterized_layers(circuit, qubits=qs, no_initialization=True)
+    circuit2 = _with_parameterized_layers(circuit, qubits=qs, needs_init_layer=False)
     assert circuit != circuit2
     assert len(circuit2) == 3 + 3  # 3 original, then X, Y, measure layer
+    *_, xlayer, ylayer, measurelayer = circuit2.moments
+    for op in xlayer.operations:
+        assert isinstance(op.gate, cirq.XPowGate)
+        assert op.gate.exponent.name.endswith('-Xf')
+    for op in ylayer.operations:
+        assert isinstance(op.gate, cirq.YPowGate)
+        assert op.gate.exponent.name.endswith('-Yf')
+    for op in measurelayer:
+        assert isinstance(op.gate, cirq.MeasurementGate)
 
-    circuit3 = _with_parameterized_layers(circuit, qubits=qs, no_initialization=False)
+    circuit3 = _with_parameterized_layers(circuit, qubits=qs, needs_init_layer=True)
     assert circuit != circuit3
     assert circuit2 != circuit3
     assert len(circuit3) == 2 + 3 + 3
+    xlayer, ylayer, *_ = circuit3.moments
+    for op in xlayer.operations:
+        assert isinstance(op.gate, cirq.XPowGate)
+        assert op.gate.exponent.name.endswith('-Xi')
+    for op in ylayer.operations:
+        assert isinstance(op.gate, cirq.YPowGate)
+        assert op.gate.exponent.name.endswith('-Yi')
 
 
 def test_get_params_for_setting():
@@ -57,13 +73,19 @@ def test_get_params_for_setting():
     assert init_state == cirq.KET_PLUS(a) * cirq.KET_ZERO(b)
     assert observable == cirq.X(a) * cirq.Y(b)
 
-    no_initializaiton = False
+    needs_init_layer = True
     with pytest.raises(ValueError):
         _get_params_for_setting(
-            padded_setting, flips=[0, 0], qubits=qubits, no_initialization=no_initializaiton
+            padded_setting,
+            flips=[0, 0],
+            qubits=qubits,
+            needs_init_layer=needs_init_layer,
         )
     params = _get_params_for_setting(
-        padded_setting, flips=[0, 0, 1], qubits=qubits, no_initialization=no_initializaiton
+        padded_setting,
+        flips=[0, 0, 1],
+        qubits=qubits,
+        needs_init_layer=needs_init_layer,
     )
     assert all(
         x in params
@@ -85,7 +107,9 @@ def test_get_params_for_setting():
 
     circuit = cirq.Circuit(cirq.I.on_each(*qubits))
     circuit = _with_parameterized_layers(
-        circuit, qubits=qubits, no_initialization=no_initializaiton
+        circuit,
+        qubits=qubits,
+        needs_init_layer=needs_init_layer,
     )
     circuit = circuit[:-1]  # remove measurement so we can compute <Z>
     psi = cirq.Simulator().simulate(circuit, param_resolver=params)
@@ -115,9 +139,9 @@ def test_params_and_settings():
             observable=obs(q),
         )
         circuit = cirq.Circuit(cirq.I.on_each(*qubits))
-        circuit = _with_parameterized_layers(circuit, qubits=qubits, no_initialization=False)
+        circuit = _with_parameterized_layers(circuit, qubits=qubits, needs_init_layer=True)
         params = _get_params_for_setting(
-            setting, flips=[False], qubits=qubits, no_initialization=False
+            setting, flips=[False], qubits=qubits, needs_init_layer=False
         )
 
         circuit = circuit[:-1]  # remove measurement so we can compute <Z>
