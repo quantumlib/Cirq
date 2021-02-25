@@ -80,7 +80,7 @@ class MPSSimulator(
         if not protocols.has_mixture(noise_model):
             raise ValueError('noise must be unitary or mixture but was {}'.format(noise_model))
         self.noise = noise_model
-        self._prng = value.parse_random_state(seed)
+        self.prng = value.parse_random_state(seed)
         self.simulation_options = simulation_options
         self.grouping = grouping
 
@@ -130,9 +130,9 @@ class MPSSimulator(
             for op in flatten_to_ops(op_tree):
                 if isinstance(op.gate, ops.MeasurementGate):
                     key = str(protocols.measurement_key(op))
-                    measurements[key].extend(state.perform_measurement(op.qubits, self._prng))
-                elif protocols.has_unitary(op):
-                    state.apply_unitary(op)
+                    measurements[key].extend(state.perform_measurement(op.qubits, self.prng))
+                elif protocols.has_mixture(op):
+                    state.apply_op(op, self.prng)
                 else:
                     raise NotImplementedError(f"Unrecognized operation: {op!r}")
 
@@ -450,7 +450,7 @@ class MPSState:
         """An alias for the state vector."""
         return self.state_vector()
 
-    def apply_unitary(self, op: 'cirq.Operation'):
+    def apply_op(self, op: 'cirq.Operation', prng: np.random.RandomState):
         """Applies a unitary operation, mutating the object to represent the new state.
 
         op:
@@ -461,8 +461,15 @@ class MPSState:
         old_inds = tuple([self.i_str(self.qubit_map[qubit]) for qubit in op.qubits])
         new_inds = tuple(['new_' + old_ind for old_ind in old_inds])
 
-        U = protocols.unitary(op).reshape([qubit.dimension for qubit in op.qubits] * 2)
-        U = qtn.Tensor(U, inds=(new_inds + old_inds))
+        if protocols.has_unitary(op):
+            U = protocols.unitary(op)
+        else:
+            mixtures = protocols.mixture(op)
+            mixture_idx = int(prng.choice(len(mixtures), p=[mixture[0] for mixture in mixtures]))
+            U = mixtures[mixture_idx][1]
+        U = qtn.Tensor(
+            U.reshape([qubit.dimension for qubit in op.qubits] * 2), inds=(new_inds + old_inds)
+        )
 
         # TODO(tonybruguier): Explore using the Quimb's tensor network natively.
 
