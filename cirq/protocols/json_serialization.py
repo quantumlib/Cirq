@@ -331,7 +331,7 @@ def _cirq_object_hook(d, resolvers: Sequence[JsonResolver], context_map: Dict[st
 
 class SerializableByKey(SupportsJSON):
     """Protocol for objects that can be serialized to a key + context.
-    
+
     In serialization, objects that inherit from this type will only be fully
     defined once (the "context"). Thereafter, a unique integer key will be used
     to identify that object.

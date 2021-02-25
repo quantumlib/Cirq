@@ -297,7 +297,7 @@ def test_sympy():
     assert_json_roundtrip_works(4 * t + 3 * s + 2)
 
 
-class SBKImpl(cirq.protocols.SerializableByKey):
+class SBKImpl(cirq.SerializableByKey):
     """A test implementation of SerializableByKey."""
 
     def __init__(
@@ -414,6 +414,12 @@ def test_internal_serializer_types():
     ],
 )
 def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls):
+    if cirq_obj_name == "SerializableByKey":
+        pytest.skip(
+            "SerializableByKey does not follow common serialization rules. "
+            "It is tested separately in test_context_serialization."
+        )
+
     if cirq_obj_name in mod_spec.not_yet_serializable:
         return pytest.xfail(reason="Not serializable (yet)")
 
