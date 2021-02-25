@@ -11,24 +11,31 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import os
-
+import re
 from contextlib import contextmanager
+
+from cirq.testing import assert_logs
 
 ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
 
+DEADLINE_REGEX=r"v(\d)+\.(\d)+.(\d)+"
+
 
 @contextmanager
-def allow_deprecation():
+def assert_deprecated(*msgs: str, deadline: str):
     """Allows deprecated functions, classes, decorators in tests.
 
     It acts as a contextmanager that can be used in with statements:
-    >>> with allow_deprecation():
+    >>> with assert_deprecated("use cirq.x instead", deadline="v0.9"):
     >>>     # do something deprecated
     """
+
+    assert re.match(DEADLINE_REGEX, deadline), "deadline should match vX.Y.Z"
+
     os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
     try:
-        yield True
+        with assert_logs(*(msgs + (deadline,))):
+            yield True
     finally:
         del os.environ[ALLOW_DEPRECATION_IN_TEST]

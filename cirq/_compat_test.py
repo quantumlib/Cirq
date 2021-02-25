@@ -81,12 +81,13 @@ def test_proper_eq():
 
 
 def test_deprecated_with_name():
-    @deprecated(deadline='vNever', fix='Roll some dice.', name='test_func')
+    @deprecated(deadline='v1.2.3', fix='Roll some dice.', name='test_func')
     def f(a, b):
         return a + b
 
-    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(
-        'test_func was used', 'will be removed in cirq vNever', 'Roll some dice.'
+    with cirq.testing.assert_deprecated(
+        'test_func was used', 'will be removed in cirq v1.2.3', 'Roll some dice.',
+        deadline='v1.2.3'
     ):
         assert f(1, 2) == 3
 
@@ -95,19 +96,20 @@ def test_deprecated():
     def new_func(a, b):
         return a + b
 
-    @deprecated(deadline='vNever', fix='Roll some dice.')
+    @deprecated(deadline='v1.2.3', fix='Roll some dice.')
     def old_func(*args, **kwargs):
         return new_func(*args, **kwargs)
 
-    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(
-        'old_func was used', 'will be removed in cirq vNever', 'Roll some dice.'
+    with cirq.testing.assert_deprecated(
+        'old_func was used', 'will be removed in cirq v1.2.3', 'Roll some dice.',
+            deadline='v1.2.3'
     ):
         assert old_func(1, 2) == 3
 
 
 def test_deprecated_parameter():
     @deprecated_parameter(
-        deadline='vAlready',
+        deadline='v1.2.3',
         fix='Double it yourself.',
         func_name='test_func',
         parameter_desc='double_count',
@@ -118,14 +120,15 @@ def test_deprecated_parameter():
         return new_count
 
     # Does not warn on usual use.
-    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(count=0):
+    with cirq.testing.assert_logs(count=0):
         assert f(1) == 1
         assert f(new_count=1) == 1
 
-    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(
+    with cirq.testing.assert_deprecated(
         'double_count parameter of test_func was used',
-        'will be removed in cirq vAlready',
+        'will be removed in cirq v1.2.3',
         'Double it yourself.',
+            deadline='v1.2.3'
     ):
         # pylint: disable=unexpected-keyword-arg
         # pylint: disable=no-value-for-parameter
@@ -142,7 +145,7 @@ def test_wrap_module():
     assert 'bar' in my_module.__dict__
     assert 'zoo' not in my_module.__dict__
 
-    wrapped = wrap_module(my_module, {'foo': ('0.6.0', 'use bar instead')})
+    wrapped = wrap_module(my_module, {'foo': ('v0.6.0', 'use bar instead')})
     # Dunder methods
     assert wrapped.__doc__ == 'my doc string'
     assert wrapped.__name__ == 'my_module'
@@ -152,8 +155,9 @@ def test_wrap_module():
     assert 'zoo' not in wrapped.__dict__
 
     # Deprecation capability.
-    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(
-        'foo was used but is deprecated.', 'will be removed in cirq 0.6.0', 'use bar instead'
+    with cirq.testing.assert_deprecated(
+        'foo was used but is deprecated.', 'will be removed in cirq v0.6.0', 'use bar instead',
+        deadline='v0.6.0'
     ):
         _ = wrapped.foo
 
@@ -177,15 +181,16 @@ def test_deprecated_class():
         def hello(cls):
             return f"hello {cls}"
 
-    @deprecated_class(deadline="deadline", fix="theFix", name="foo")
+    @deprecated_class(deadline="v1.2.3", fix="theFix", name="foo")
     class OldClass(NewClass):
         """The OldClass docs"""
 
     assert OldClass.__doc__.startswith("THIS CLASS IS DEPRECATED")
     assert "OldClass docs" in OldClass.__doc__
 
-    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(
-        'foo was used but is deprecated', 'will be removed in cirq deadline', 'theFix'
+    with cirq.testing.assert_deprecated(
+        'foo was used but is deprecated', 'will be removed in cirq v1.2.3', 'theFix',
+        deadline="v1.2.3"
     ):
         old_obj = OldClass("1")
         assert repr(old_obj) == "NewClass: 1"

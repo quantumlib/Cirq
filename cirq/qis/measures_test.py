@@ -223,7 +223,7 @@ def test_von_neumann_entropy():
 
 def test_deprecated():
     density_matrix = np.array([[0.5, 0], [0, 0.5]])
-    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(
+    with cirq.testing.assert_deprecated(), cirq.testing.assert_logs(
         'density_matrix', 'state', 'deprecated'
     ):
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter

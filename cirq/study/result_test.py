@@ -323,14 +323,14 @@ def test_json_bit_packing_force():
 
 
 def test_deprecation_log():
-    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(
+    with cirq.testing.assert_deprecated(), cirq.testing.assert_logs(
         'TrialResult was used but is deprecated'
     ):
         cirq.TrialResult(params=cirq.ParamResolver({}), measurements={})
 
 
 def test_deprecated_json():
-    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(
+    with cirq.testing.assert_deprecated(), cirq.testing.assert_logs(
         'TrialResult was used but is deprecated'
     ):
         result = cirq.read_json(

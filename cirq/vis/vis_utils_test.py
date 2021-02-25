@@ -26,7 +26,7 @@ def test_relative_luminance():
 
 
 def test_relative_luminance_deprecation():
-    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(
+    with cirq.testing.assert_deprecated(), cirq.testing.assert_logs(
         'cirq.vis.heatmap.relative_luminance was used but is deprecated.\n'
         'It will be removed in cirq v0.11.\n'
         'use cirq.vis.relative_luminance instead',

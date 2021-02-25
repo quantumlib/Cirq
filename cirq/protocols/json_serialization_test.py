@@ -513,7 +513,7 @@ def test_to_from_json_gzip():
 
 
 def _eval_repr_data_file(path: pathlib.Path):
-    with cirq.testing.allow_deprecation():
+    with cirq.testing.assert_deprecated():
         return eval(
             path.read_text(),
             {
@@ -542,7 +542,7 @@ def assert_repr_and_json_test_data_agree(
 
     try:
         json_from_file = json_path.read_text()
-        with cirq.testing.allow_deprecation():
+        with cirq.testing.assert_deprecated():
             json_obj = cirq.read_json(json_text=json_from_file)
     except ValueError as ex:  # coverage: ignore
         # coverage: ignore

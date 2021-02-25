@@ -110,5 +110,5 @@ from cirq.testing.sample_circuits import (
 )
 
 from cirq.testing.deprecation import (
-    allow_deprecation,
+    assert_deprecated,
 )
