@@ -242,12 +242,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'create_quantum_program' not in self._inner_api_calls:
             self._inner_api_calls[
                 'create_quantum_program'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.create_quantum_program,
+                functools.partial(
+                    self.transport.create_quantum_program, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['CreateQuantumProgram'].retry,
                 default_timeout=self._method_configs['CreateQuantumProgram'].timeout,
                 client_info=self._client_info,
@@ -315,12 +317,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'get_quantum_program' not in self._inner_api_calls:
             self._inner_api_calls[
                 'get_quantum_program'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.get_quantum_program,
+                functools.partial(
+                    self.transport.get_quantum_program, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['GetQuantumProgram'].retry,
                 default_timeout=self._method_configs['GetQuantumProgram'].timeout,
                 client_info=self._client_info,
@@ -408,12 +412,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'list_quantum_programs' not in self._inner_api_calls:
             self._inner_api_calls[
                 'list_quantum_programs'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.list_quantum_programs,
+                functools.partial(
+                    self.transport.list_quantum_programs, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['ListQuantumPrograms'].retry,
                 default_timeout=self._method_configs['ListQuantumPrograms'].timeout,
                 client_info=self._client_info,
@@ -489,12 +495,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'delete_quantum_program' not in self._inner_api_calls:
             self._inner_api_calls[
                 'delete_quantum_program'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.delete_quantum_program,
+                functools.partial(
+                    self.transport.delete_quantum_program, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['DeleteQuantumProgram'].retry,
                 default_timeout=self._method_configs['DeleteQuantumProgram'].timeout,
                 client_info=self._client_info,
@@ -569,12 +577,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'update_quantum_program' not in self._inner_api_calls:
             self._inner_api_calls[
                 'update_quantum_program'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.update_quantum_program,
+                functools.partial(
+                    self.transport.update_quantum_program, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['UpdateQuantumProgram'].retry,
                 default_timeout=self._method_configs['UpdateQuantumProgram'].timeout,
                 client_info=self._client_info,
@@ -647,12 +657,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'create_quantum_job' not in self._inner_api_calls:
             self._inner_api_calls[
                 'create_quantum_job'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.create_quantum_job,
+                functools.partial(
+                    self.transport.create_quantum_job, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['CreateQuantumJob'].retry,
                 default_timeout=self._method_configs['CreateQuantumJob'].timeout,
                 client_info=self._client_info,
@@ -720,10 +732,12 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'get_quantum_job' not in self._inner_api_calls:
             self._inner_api_calls['get_quantum_job'] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.get_quantum_job,
+                functools.partial(
+                    self.transport.get_quantum_job, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['GetQuantumJob'].retry,
                 default_timeout=self._method_configs['GetQuantumJob'].timeout,
                 client_info=self._client_info,
@@ -811,12 +825,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'list_quantum_jobs' not in self._inner_api_calls:
             self._inner_api_calls[
                 'list_quantum_jobs'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.list_quantum_jobs,
+                functools.partial(
+                    self.transport.list_quantum_jobs, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['ListQuantumJobs'].retry,
                 default_timeout=self._method_configs['ListQuantumJobs'].timeout,
                 client_info=self._client_info,
@@ -890,12 +906,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'delete_quantum_job' not in self._inner_api_calls:
             self._inner_api_calls[
                 'delete_quantum_job'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.delete_quantum_job,
+                functools.partial(
+                    self.transport.delete_quantum_job, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['DeleteQuantumJob'].retry,
                 default_timeout=self._method_configs['DeleteQuantumJob'].timeout,
                 client_info=self._client_info,
@@ -969,12 +987,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'update_quantum_job' not in self._inner_api_calls:
             self._inner_api_calls[
                 'update_quantum_job'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.update_quantum_job,
+                functools.partial(
+                    self.transport.update_quantum_job, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['UpdateQuantumJob'].retry,
                 default_timeout=self._method_configs['UpdateQuantumJob'].timeout,
                 client_info=self._client_info,
@@ -1037,12 +1057,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'cancel_quantum_job' not in self._inner_api_calls:
             self._inner_api_calls[
                 'cancel_quantum_job'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.cancel_quantum_job,
+                functools.partial(
+                    self.transport.cancel_quantum_job, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['CancelQuantumJob'].retry,
                 default_timeout=self._method_configs['CancelQuantumJob'].timeout,
                 client_info=self._client_info,
@@ -1127,12 +1149,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'list_quantum_job_events' not in self._inner_api_calls:
             self._inner_api_calls[
                 'list_quantum_job_events'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.list_quantum_job_events,
+                functools.partial(
+                    self.transport.list_quantum_job_events, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['ListQuantumJobEvents'].retry,
                 default_timeout=self._method_configs['ListQuantumJobEvents'].timeout,
                 client_info=self._client_info,
@@ -1208,12 +1232,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'get_quantum_result' not in self._inner_api_calls:
             self._inner_api_calls[
                 'get_quantum_result'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.get_quantum_result,
+                functools.partial(
+                    self.transport.get_quantum_result, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['GetQuantumResult'].retry,
                 default_timeout=self._method_configs['GetQuantumResult'].timeout,
                 client_info=self._client_info,
@@ -1300,12 +1326,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'list_quantum_processors' not in self._inner_api_calls:
             self._inner_api_calls[
                 'list_quantum_processors'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.list_quantum_processors,
+                functools.partial(
+                    self.transport.list_quantum_processors, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['ListQuantumProcessors'].retry,
                 default_timeout=self._method_configs['ListQuantumProcessors'].timeout,
                 client_info=self._client_info,
@@ -1382,12 +1410,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'get_quantum_processor' not in self._inner_api_calls:
             self._inner_api_calls[
                 'get_quantum_processor'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.get_quantum_processor,
+                functools.partial(
+                    self.transport.get_quantum_processor, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['GetQuantumProcessor'].retry,
                 default_timeout=self._method_configs['GetQuantumProcessor'].timeout,
                 client_info=self._client_info,
@@ -1474,12 +1504,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'list_quantum_calibrations' not in self._inner_api_calls:
             self._inner_api_calls[
                 'list_quantum_calibrations'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.list_quantum_calibrations,
+                functools.partial(
+                    self.transport.list_quantum_calibrations, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['ListQuantumCalibrations'].retry,
                 default_timeout=self._method_configs['ListQuantumCalibrations'].timeout,
                 client_info=self._client_info,
@@ -1556,12 +1588,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'get_quantum_calibration' not in self._inner_api_calls:
             self._inner_api_calls[
                 'get_quantum_calibration'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.get_quantum_calibration,
+                functools.partial(
+                    self.transport.get_quantum_calibration, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['GetQuantumCalibration'].retry,
                 default_timeout=self._method_configs['GetQuantumCalibration'].timeout,
                 client_info=self._client_info,
@@ -1630,12 +1664,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'create_quantum_reservation' not in self._inner_api_calls:
             self._inner_api_calls[
                 'create_quantum_reservation'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.create_quantum_reservation,
+                functools.partial(
+                    self.transport.create_quantum_reservation, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['CreateQuantumReservation'].retry,
                 default_timeout=self._method_configs['CreateQuantumReservation'].timeout,
                 client_info=self._client_info,
@@ -1700,12 +1736,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'cancel_quantum_reservation' not in self._inner_api_calls:
             self._inner_api_calls[
                 'cancel_quantum_reservation'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.cancel_quantum_reservation,
+                functools.partial(
+                    self.transport.cancel_quantum_reservation, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['CancelQuantumReservation'].retry,
                 default_timeout=self._method_configs['CancelQuantumReservation'].timeout,
                 client_info=self._client_info,
@@ -1766,12 +1804,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'delete_quantum_reservation' not in self._inner_api_calls:
             self._inner_api_calls[
                 'delete_quantum_reservation'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.delete_quantum_reservation,
+                functools.partial(
+                    self.transport.delete_quantum_reservation, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['DeleteQuantumReservation'].retry,
                 default_timeout=self._method_configs['DeleteQuantumReservation'].timeout,
                 client_info=self._client_info,
@@ -1835,12 +1875,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'get_quantum_reservation' not in self._inner_api_calls:
             self._inner_api_calls[
                 'get_quantum_reservation'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.get_quantum_reservation,
+                functools.partial(
+                    self.transport.get_quantum_reservation, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['GetQuantumReservation'].retry,
                 default_timeout=self._method_configs['GetQuantumReservation'].timeout,
                 client_info=self._client_info,
@@ -1927,12 +1969,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'list_quantum_reservations' not in self._inner_api_calls:
             self._inner_api_calls[
                 'list_quantum_reservations'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.list_quantum_reservations,
+                functools.partial(
+                    self.transport.list_quantum_reservations, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['ListQuantumReservations'].retry,
                 default_timeout=self._method_configs['ListQuantumReservations'].timeout,
                 client_info=self._client_info,
@@ -2019,12 +2063,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'update_quantum_reservation' not in self._inner_api_calls:
             self._inner_api_calls[
                 'update_quantum_reservation'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.update_quantum_reservation,
+                functools.partial(
+                    self.transport.update_quantum_reservation, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['UpdateQuantumReservation'].retry,
                 default_timeout=self._method_configs['UpdateQuantumReservation'].timeout,
                 client_info=self._client_info,
@@ -2096,12 +2142,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'quantum_run_stream' not in self._inner_api_calls:
             self._inner_api_calls[
                 'quantum_run_stream'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.quantum_run_stream,
+                functools.partial(
+                    self.transport.quantum_run_stream, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['QuantumRunStream'].retry,
                 default_timeout=self._method_configs['QuantumRunStream'].timeout,
                 client_info=self._client_info,
@@ -2172,12 +2220,15 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'list_quantum_reservation_grants' not in self._inner_api_calls:
             self._inner_api_calls[
                 'list_quantum_reservation_grants'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.list_quantum_reservation_grants,
+                functools.partial(
+                    self.transport.list_quantum_reservation_grants,
+                    compression=grpc.Compression.Gzip,,
+                ),
                 default_retry=self._method_configs['ListQuantumReservationGrants'].retry,
                 default_timeout=self._method_configs['ListQuantumReservationGrants'].timeout,
                 client_info=self._client_info,
@@ -2263,12 +2314,15 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'reallocate_quantum_reservation_grant' not in self._inner_api_calls:
             self._inner_api_calls[
                 'reallocate_quantum_reservation_grant'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.reallocate_quantum_reservation_grant,
+                functools.partial(
+                    self.transport.reallocate_quantum_reservation_grant,
+                    compression=grpc.Compression.Gzip,,
+                ),
                 default_retry=self._method_configs['ReallocateQuantumReservationGrant'].retry,
                 default_timeout=self._method_configs['ReallocateQuantumReservationGrant'].timeout,
                 client_info=self._client_info,
@@ -2358,12 +2412,15 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'list_quantum_reservation_budgets' not in self._inner_api_calls:
             self._inner_api_calls[
                 'list_quantum_reservation_budgets'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.list_quantum_reservation_budgets,
+                functools.partial(
+                    self.transport.list_quantum_reservation_budgets,
+                    compression=grpc.Compression.Gzip,,
+                ),
                 default_retry=self._method_configs['ListQuantumReservationBudgets'].retry,
                 default_timeout=self._method_configs['ListQuantumReservationBudgets'].timeout,
                 client_info=self._client_info,
@@ -2463,12 +2520,14 @@ class QuantumEngineServiceClient(object):
                     to a retryable error and retry attempts failed.
             ValueError: If the parameters are invalid.
         """
-        # Wrap the transport method to add retry and timeout logic.
+        # Wrap the transport method to add retry, timeout, and compression logic.
         if 'list_quantum_time_slots' not in self._inner_api_calls:
             self._inner_api_calls[
                 'list_quantum_time_slots'
             ] = google.api_core.gapic_v1.method.wrap_method(
-                self.transport.list_quantum_time_slots,
+                functools.partial(
+                    self.transport.list_quantum_time_slots, compression=grpc.Compression.Gzip,
+                ),
                 default_retry=self._method_configs['ListQuantumTimeSlots'].retry,
                 default_timeout=self._method_configs['ListQuantumTimeSlots'].timeout,
                 client_info=self._client_info,
