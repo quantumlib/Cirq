@@ -139,6 +139,8 @@ def test_assert_logs_warnings():
             logging.error('orange apple fruit')
             warnings.warn('warn')
 
-        with pytest.raises(AssertionError, match='^Expected 1 log message but got 0. Log messages.*$'):
+        with pytest.raises(
+            AssertionError, match='^Expected 1 log message but got 0. Log messages.*$'
+        ):
             with cirq.testing.assert_logs('apple', capture_warnings=False):
                 warnings.warn('orange apple fruit')
