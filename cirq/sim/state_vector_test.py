@@ -378,24 +378,8 @@ def test_step_result_bloch_vector():
 
 
 def test_deprecated():
-    with cirq.testing.assert_logs('cirq.bloch_vector_from_state_vector', 'deprecated'):
-        _ = cirq.sim.bloch_vector_from_state_vector(np.array([1, 0]), 0)
-
-    with cirq.testing.assert_logs('cirq.density_matrix_from_state_vector', 'deprecated'):
-        _ = cirq.sim.density_matrix_from_state_vector(np.array([1, 0]))
-
-    with cirq.testing.assert_logs('cirq.dirac_notation', 'deprecated'):
-        _ = cirq.sim.dirac_notation(np.array([1, 0]))
-
-    with cirq.testing.assert_logs('cirq.to_valid_state_vector', 'deprecated'):
-        _ = cirq.sim.to_valid_state_vector(0, 1)
-
     with cirq.testing.assert_logs('irq.validate_normalized_state', 'deprecated'):
         _ = cirq.sim.validate_normalized_state(np.array([1, 0], dtype=np.complex64), qid_shape=(2,))
-
-    with cirq.testing.assert_logs('cirq.STATE_VECTOR_LIKE', 'deprecated'):
-        # Reason for type: ignore: https://github.com/python/mypy/issues/5354
-        _ = cirq.sim.STATE_VECTOR_LIKE  # type: ignore
 
     state_vector = np.array([1, 1]) / np.sqrt(2)
     with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
