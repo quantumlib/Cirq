@@ -12,8 +12,10 @@ filelock~=3.0.12
 
 # For generating protobufs
 
-# 1.26 is the min version that has python 3.8 wheels
-grpcio-tools~=1.26
+# 1.26.0 is the min version that has python 3.8 wheels
+# however, we can't really go much higher - the protoc version needs to be <= 3.9.2
+# otherwise it will generate pb2 files that are incompatible with tensorflow quantum
+grpcio-tools~=1.26.0
 mypy-protobuf==1.10
 
 # For uploading packages to pypi.
