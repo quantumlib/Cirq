@@ -109,6 +109,19 @@ upper_tabs:
       - title: "Access and authentication"
         path: /cirq/aqt/access
 
+      ##### IonQ ####
+      - heading: "IonQ hardware"
+      - title: "Access and authentication"
+        path: /cirq/ionq/access
+      - title: "IonQ API service"
+        path: /cirq/ionq/service
+      - title: "IonQ API circuits"
+        path: /cirq/ionq/circuits
+      - title: "Running IonQ API jobs"
+        path: /cirq/ionq/jobs
+      - title: "IonQ API calibrations"
+        path: /cirq/ionq/calibrations
+
       ####  PASQAL  ####
       - heading: "Pasqal hardware"
       - title: "Access and authentication"

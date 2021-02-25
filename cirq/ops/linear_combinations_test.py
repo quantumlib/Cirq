@@ -1574,16 +1574,3 @@ def test_expectation_from_density_matrix_two_qubit_states():
         np.testing.assert_allclose(
             psum3.expectation_from_density_matrix(state, qubit_map=q_map_2), 0
         )
-
-
-def test_deprecated():
-    q = cirq.LineQubit(0)
-    pauli_sum = cirq.X(q) + 0.2 * cirq.Z(q)
-    state_vector = np.array([1, 1], dtype=np.complex64) / np.sqrt(2)
-    with cirq.testing.assert_logs(
-        'expectation_from_wavefunction', 'expectation_from_state_vector', 'deprecated'
-    ):
-        _ = pauli_sum.expectation_from_wavefunction(state_vector, {q: 0})
-
-    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
-        _ = pauli_sum.expectation_from_state_vector(state=state_vector, qubit_map={q: 0})
