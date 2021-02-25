@@ -19,15 +19,17 @@ https://arxiv.org/abs/2002.07730
 
 import collections
 import math
-from typing import Any, Dict, List, Iterator, Optional, Sequence, Set
+from typing import Any, Dict, List, Iterator, Optional, Sequence, Set, TYPE_CHECKING
 
 import dataclasses
 import numpy as np
 import quimb.tensor as qtn
 
-import cirq
 from cirq import circuits, study, ops, protocols, value
 from cirq.sim import simulator
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @dataclasses.dataclass(frozen=True)

@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-import re
 from contextlib import contextmanager
 
 from cirq.testing import assert_logs
