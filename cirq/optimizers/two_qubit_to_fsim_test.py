@@ -100,11 +100,11 @@ def test_decompose_two_qubit_interaction_into_four_fsim_gates_validate():
         cirq.decompose_two_qubit_interaction_into_four_fsim_gates(
             np.eye(4), fsim_gate=cirq.FSimGate(theta=np.pi / 10, phi=0)
         )
-    with cirq.testing.assert_deprecated(), pytest.raises(ValueError, match='fsim_gate.phi'):
+    with pytest.raises(ValueError, match='fsim_gate.phi'):
         cirq.decompose_two_qubit_interaction_into_four_fsim_gates(
             np.eye(4), fsim_gate=cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 3)
         )
-    with cirq.testing.assert_deprecated(), pytest.raises(ValueError, match='pair of qubits'):
+    with pytest.raises(ValueError, match='pair of qubits'):
         cirq.decompose_two_qubit_interaction_into_four_fsim_gates(
             np.eye(4), fsim_gate=iswap, qubits=cirq.LineQubit.range(3)
         )

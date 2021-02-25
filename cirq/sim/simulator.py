@@ -463,7 +463,7 @@ class SimulatesIntermediateState(
         actual_initial_state = 0 if initial_state is None else initial_state
         return self._base_iterator(resolved_circuit, qubit_order, actual_initial_state)
 
-    @deprecated(deadline='v0.11.0', fix='Override _base_iterator instead')
+    @deprecated(deadline='v0.11', fix='Override _base_iterator instead')
     def _simulator_iterator(
         self,
         circuit: circuits.Circuit,

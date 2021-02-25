@@ -19,23 +19,26 @@ from cirq.testing import assert_logs
 
 ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
 
-DEADLINE_REGEX=r"v(\d)+\.(\d)+.(\d)+"
-
 
 @contextmanager
-def assert_deprecated(*msgs: str, deadline: str):
+def assert_deprecated(*msgs: str, deadline: str, allow_multiple_warnings: bool = False):
     """Allows deprecated functions, classes, decorators in tests.
 
     It acts as a contextmanager that can be used in with statements:
     >>> with assert_deprecated("use cirq.x instead", deadline="v0.9"):
     >>>     # do something deprecated
-    """
 
-    assert re.match(DEADLINE_REGEX, deadline), "deadline should match vX.Y.Z"
+    Args:
+        msgs: messages that should match the warnings captured
+        deadline: the expected deadline the feature will be deprecated by. Has to follow the format
+            vX.Y (minor versions only)
+        allow_multiple_warnings: if True, multiple warnings are accepted. Typically this should not
+            be used, by default it's False.
+    """
 
     os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
     try:
-        with assert_logs(*(msgs + (deadline,))):
+        with assert_logs(*(msgs + (deadline,)), count=None if allow_multiple_warnings else 1):
             yield True
     finally:
         del os.environ[ALLOW_DEPRECATION_IN_TEST]

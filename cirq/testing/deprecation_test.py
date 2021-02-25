@@ -18,11 +18,26 @@ import pytest
 from cirq.testing import assert_deprecated
 
 
-def test_assert_deprecated_version_handling():
-    with pytest.raises(AssertionError, match="v1.2.3 .* was not found"):
-        with assert_deprecated("hello", deadline="v1.2.3"):
-            warnings.warn("hello")
-    with pytest.raises(AssertionError, match="vX.Y.Z"):
-        with assert_deprecated(deadline="abc"):
+def test_assert_deprecated_log_handling():
+    # correct deprecation message
+    with assert_deprecated("hello", deadline="v1.2"):
+        warnings.warn("hello, this is deprecated in v1.2")
+
+    # missed deprecation warning
+    with pytest.raises(AssertionError, match="Expected 1 log message but got 0."):
+        with assert_deprecated(deadline="v1.2"):
             pass
+
+    # too many deprecation warnings (only 1 should be emitted!)
+    with pytest.raises(AssertionError, match="Expected 1 log message but got 2."):
+        with assert_deprecated(deadline="v1.2"):
+            warnings.warn("hello, this is deprecated in v1.2")
+            warnings.warn("hello, this is deprecated in v1.2")
+
+    # allowing for multiple deprecation warnings (in case of json serialization for multiple objects
+    # for example)
+    with assert_deprecated(deadline="v1.2", allow_multiple_warnings=True):
+            warnings.warn("hello, this is deprecated in v1.2")
+            warnings.warn("hello, this is deprecated in v1.2")
+
 
