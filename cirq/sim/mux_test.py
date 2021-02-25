@@ -392,14 +392,6 @@ def test_final_density_matrix_noise():
     )
 
 
-def test_deprecated():
-    a = cirq.LineQubit(0)
-    with cirq.testing.assert_logs(
-        'final_wavefunction', 'final_state_vector', 'deprecated', count=2
-    ):
-        _ = cirq.final_wavefunction([cirq.H(a)])
-
-
 def test_ps_initial_state_wfn():
     q0, q1 = cirq.LineQubit.range(2)
     s00 = cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1)

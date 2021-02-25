@@ -4345,14 +4345,6 @@ def test_all_measurement_keys(circuit_cls):
     )
 
 
-@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_deprecated(circuit_cls):
-    q = cirq.NamedQubit('q')
-    circuit = circuit_cls([cirq.H(q)])
-    with cirq.testing.assert_logs('final_state_vector', 'deprecated'):
-        _ = circuit.final_wavefunction()
-
-
 def test_zip():
     a, b, c, d = cirq.LineQubit.range(4)
 
