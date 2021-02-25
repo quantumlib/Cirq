@@ -12,13 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Protocol for objects that are mixtures (probabilistic combinations)."""
-import functools
 from typing import Any, Sequence, Tuple, Union
 
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq._compat import deprecated
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.protocols.has_unitary_protocol import has_unitary
@@ -142,20 +140,6 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
 
     # No _has_mixture_ or _has_unitary_ function, use _mixture_ instead.
     return mixture(val, None) is not None
-
-
-@deprecated(deadline='v0.10.0', fix='Use "cirq.mixture" instead.', name='mixture_channel')
-@functools.wraps(mixture)
-def mixture_channel(
-    val: Any, default: Any = RaiseTypeErrorIfNotProvided
-) -> Sequence[Tuple[float, np.ndarray]]:
-    return mixture(val, default)
-
-
-@deprecated(deadline='v0.10.0', fix='Use "cirq.has_mixture" instead.', name='has_mixture_channel')
-@functools.wraps(has_mixture)
-def has_mixture_channel(val: Any) -> bool:
-    return has_mixture(val)
 
 
 def validate_mixture(supports_mixture: SupportsMixture):

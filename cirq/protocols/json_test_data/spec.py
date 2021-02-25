@@ -72,8 +72,6 @@ TestSpec = ModuleJsonTestSpec(
         'UnitSweep',
         'StateVectorSimulatorState',
         'StateVectorTrialResult',
-        'WaveFunctionSimulatorState',
-        'WaveFunctionTrialResult',
         'ZerosSampler',
         'Zip',
     ],
