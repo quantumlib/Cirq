@@ -20,7 +20,6 @@ import sympy
 import cirq
 from cirq import value, _compat
 from cirq.ops import raw_types
-from cirq._compat import deprecated
 
 
 @value.value_equality
@@ -200,8 +199,3 @@ def qft(
     if inverse:
         result = cirq.inverse(result)
     return result
-
-
-@deprecated(deadline='v0.10.0', fix='Use cirq.qft instead.')
-def QFT(*args, **kwargs):
-    return qft(*args, **kwargs)

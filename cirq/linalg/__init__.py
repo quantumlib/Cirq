@@ -87,10 +87,8 @@ from cirq.linalg.transformations import (
     partial_trace,
     partial_trace_of_state_vector_as_mixture,
     reflection_matrix_pow,
-    subwavefunction,
     sub_state_vector,
     targeted_conjugate_about,
     targeted_left_multiply,
     to_special,
-    wavefunction_partial_trace_as_mixture,
 )
