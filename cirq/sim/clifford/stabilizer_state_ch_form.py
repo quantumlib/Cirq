@@ -20,7 +20,6 @@ from cirq import protocols, value
 from cirq.ops import pauli_gates
 from cirq.sim import clifford
 from cirq.value import big_endian_int_to_digits
-from cirq._compat import deprecated
 
 
 @value.value_equality
@@ -135,10 +134,6 @@ class StabilizerStateChForm:
             wf[x] = self.inner_product_of_state_and_x(x)
 
         return wf
-
-    @deprecated(deadline='v0.10.0', fix='Use state_vector instead.')
-    def wave_function(self) -> np.ndarray:
-        return self.state_vector()
 
     def _S_right(self, q):
         r"""Right multiplication version of S gate."""
