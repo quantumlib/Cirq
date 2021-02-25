@@ -225,7 +225,7 @@ class MeasurementGate(raw_types.Gate):
 
         if isinstance(args, sim.ActOnArgs):
             invert_mask = self.full_invert_mask()
-            bits = []
+            bits: List[int] = []
 
             if isinstance(args, sim.ActOnStateVectorArgs):
                 bits, _ = sim.measure_state_vector(
