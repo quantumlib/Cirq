@@ -14,6 +14,7 @@
 
 """Workarounds for compatibility issues between versions and libraries."""
 import functools
+import os
 import warnings
 from typing import Any, Callable, Optional, Dict, Tuple, Type
 from types import ModuleType
@@ -83,6 +84,21 @@ def proper_eq(a: Any, b: Any) -> bool:
     return a == b
 
 
+def _warn_or_error(msg):
+    from cirq.testing.deprecation import ALLOW_DEPRECATION_IN_TEST
+
+    called_from_test = 'PYTEST_CURRENT_TEST' in os.environ
+    deprecation_allowed = ALLOW_DEPRECATION_IN_TEST in os.environ
+    if called_from_test and not deprecation_allowed:
+        raise ValueError(f"Cirq should not use deprecated functionality: {msg}")
+
+    warnings.warn(
+        msg,
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+
 def deprecated(
     *, deadline: str, fix: str, name: Optional[str] = None
 ) -> Callable[[Callable], Callable]:
@@ -103,12 +119,10 @@ def deprecated(
         @functools.wraps(func)
         def decorated_func(*args, **kwargs) -> Any:
             qualname = func.__qualname__ if name is None else name
-            warnings.warn(
+            _warn_or_error(
                 f'{qualname} was used but is deprecated.\n'
                 f'It will be removed in cirq {deadline}.\n'
-                f'{fix}\n',
-                DeprecationWarning,
-                stacklevel=2,
+                f'{fix}\n'
             )
 
             return func(*args, **kwargs)
@@ -146,12 +160,10 @@ def deprecated_class(
 
         def patched_new(cls, *args, **kwargs):
             qualname = clazz.__qualname__ if name is None else name
-            warnings.warn(
+            _warn_or_error(
                 f'{qualname} was used but is deprecated.\n'
                 f'It will be removed in cirq {deadline}.\n'
-                f'{fix}\n',
-                DeprecationWarning,
-                stacklevel=2,
+                f'{fix}\n'
             )
 
             return clazz_new(cls)
@@ -213,13 +225,11 @@ def deprecated_parameter(
                     args, kwargs = rewrite(args, kwargs)
 
                 qualname = func.__qualname__ if func_name is None else func_name
-                warnings.warn(
+                _warn_or_error(
                     f'The {parameter_desc} parameter of {qualname} was '
                     f'used but is deprecated.\n'
                     f'It will be removed in cirq {deadline}.\n'
                     f'{fix}\n',
-                    DeprecationWarning,
-                    stacklevel=2,
                 )
 
             return func(*args, **kwargs)
@@ -251,12 +261,10 @@ def wrap_module(module: ModuleType, deprecated_attributes: Dict[str, Tuple[str, 
         def __getattr__(self, name):
             if name in deprecated_attributes:
                 deadline, fix = deprecated_attributes[name]
-                warnings.warn(
+                _warn_or_error(
                     f'{name} was used but is deprecated.\n'
                     f'It will be removed in cirq {deadline}.\n'
-                    f'{fix}\n',
-                    DeprecationWarning,
-                    stacklevel=2,
+                    f'{fix}\n'
                 )
             return getattr(module, name)
 

@@ -513,18 +513,19 @@ def test_to_from_json_gzip():
 
 
 def _eval_repr_data_file(path: pathlib.Path):
-    return eval(
-        path.read_text(),
-        {
-            'cirq': cirq,
-            'datetime': datetime,
-            'pd': pd,
-            'sympy': sympy,
-            'np': np,
-            'datetime': datetime,
-        },
-        {},
-    )
+    with cirq.testing.allow_deprecation():
+        return eval(
+            path.read_text(),
+            {
+                'cirq': cirq,
+                'datetime': datetime,
+                'pd': pd,
+                'sympy': sympy,
+                'np': np,
+                'datetime': datetime,
+            },
+            {},
+        )
 
 
 def assert_repr_and_json_test_data_agree(
@@ -541,7 +542,8 @@ def assert_repr_and_json_test_data_agree(
 
     try:
         json_from_file = json_path.read_text()
-        json_obj = cirq.read_json(json_text=json_from_file)
+        with cirq.testing.allow_deprecation():
+            json_obj = cirq.read_json(json_text=json_from_file)
     except ValueError as ex:  # coverage: ignore
         # coverage: ignore
         if "Could not resolve type" in str(ex):

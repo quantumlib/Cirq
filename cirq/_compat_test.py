@@ -85,7 +85,7 @@ def test_deprecated_with_name():
     def f(a, b):
         return a + b
 
-    with cirq.testing.assert_logs(
+    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(
         'test_func was used', 'will be removed in cirq vNever', 'Roll some dice.'
     ):
         assert f(1, 2) == 3
@@ -99,7 +99,7 @@ def test_deprecated():
     def old_func(*args, **kwargs):
         return new_func(*args, **kwargs)
 
-    with cirq.testing.assert_logs(
+    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(
         'old_func was used', 'will be removed in cirq vNever', 'Roll some dice.'
     ):
         assert old_func(1, 2) == 3
@@ -118,11 +118,11 @@ def test_deprecated_parameter():
         return new_count
 
     # Does not warn on usual use.
-    with cirq.testing.assert_logs(count=0):
+    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(count=0):
         assert f(1) == 1
         assert f(new_count=1) == 1
 
-    with cirq.testing.assert_logs(
+    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(
         'double_count parameter of test_func was used',
         'will be removed in cirq vAlready',
         'Double it yourself.',
@@ -152,7 +152,7 @@ def test_wrap_module():
     assert 'zoo' not in wrapped.__dict__
 
     # Deprecation capability.
-    with cirq.testing.assert_logs(
+    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(
         'foo was used but is deprecated.', 'will be removed in cirq 0.6.0', 'use bar instead'
     ):
         _ = wrapped.foo
@@ -184,7 +184,7 @@ def test_deprecated_class():
     assert OldClass.__doc__.startswith("THIS CLASS IS DEPRECATED")
     assert "OldClass docs" in OldClass.__doc__
 
-    with cirq.testing.assert_logs(
+    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(
         'foo was used but is deprecated', 'will be removed in cirq deadline', 'theFix'
     ):
         old_obj = OldClass("1")

@@ -130,36 +130,6 @@ class MPSSimulator(
 
             yield MPSSimulatorStepResult(measurements=measurements, state=state)
 
-    def _simulator_iterator(
-        self,
-        circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver,
-        qubit_order: ops.QubitOrderOrList,
-        initial_state: int,
-    ) -> Iterator['cirq.contrib.quimb.mps_simulator.MPSSimulatorStepResult']:
-        """Iterator over MPSSimulatorStepResult from Moments of a Circuit
-
-        Args:
-            circuit: The circuit to simulate.
-            param_resolver: A ParamResolver for determining values of
-                Symbols.
-            qubit_order: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
-            initial_state: The initial state for the simulation. The form of
-                this state depends on the simulation implementation. See
-                documentation of the implementing class for details.
-
-        Returns:
-            An interator over all the results.
-        """
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        self._check_all_resolved(resolved_circuit)
-        actual_initial_state = 0 if initial_state is None else initial_state
-
-        return self._base_iterator(resolved_circuit, qubit_order, actual_initial_state)
-
     def _create_simulator_trial_result(
         self,
         params: study.ParamResolver,

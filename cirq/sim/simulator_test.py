@@ -103,7 +103,7 @@ def test_run_simulator_sweeps():
 
 
 @mock.patch.multiple(
-    SimulatesIntermediateStateImpl, __abstractmethods__=set(), _simulator_iterator=mock.Mock()
+    SimulatesIntermediateStateImpl, __abstractmethods__=set(), simulate_moment_steps=mock.Mock()
 )
 def test_intermediate_simulator():
     simulator = SimulatesIntermediateStateImpl()
@@ -119,7 +119,7 @@ def test_intermediate_simulator():
         result._simulator_state.return_value = final_simulator_state
         yield result
 
-    simulator._simulator_iterator.side_effect = steps
+    simulator.simulate_moment_steps.side_effect = steps
     circuit = mock.Mock(cirq.Circuit)
     param_resolver = mock.Mock(cirq.ParamResolver)
     param_resolver.param_dict = {}
@@ -135,7 +135,7 @@ def test_intermediate_simulator():
 
 
 @mock.patch.multiple(
-    SimulatesIntermediateStateImpl, __abstractmethods__=set(), _simulator_iterator=mock.Mock()
+    SimulatesIntermediateStateImpl, __abstractmethods__=set(), simulate_moment_steps=mock.Mock()
 )
 def test_intermediate_sweeps():
     simulator = SimulatesIntermediateStateImpl()
@@ -148,7 +148,7 @@ def test_intermediate_sweeps():
         result._simulator_state.return_value = final_state
         yield result
 
-    simulator._simulator_iterator.side_effect = steps
+    simulator.simulate_moment_steps.side_effect = steps
     circuit = mock.Mock(cirq.Circuit)
     param_resolvers = [mock.Mock(cirq.ParamResolver), mock.Mock(cirq.ParamResolver)]
     for resolver in param_resolvers:

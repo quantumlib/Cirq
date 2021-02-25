@@ -512,10 +512,14 @@ def test_deprecated():
     q = cirq.LineQubit(0)
     clifford_state = cirq.CliffordState({q: 0})
 
-    with cirq.testing.assert_logs('stabilizers', 'CliffordTableau', 'deprecated'):
+    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(
+        'stabilizers', 'CliffordTableau', 'deprecated'
+    ):
         _ = clifford_state.stabilizers()
 
-    with cirq.testing.assert_logs('destabilizers', 'CliffordTableau', 'deprecated'):
+    with cirq.testing.allow_deprecation(), cirq.testing.assert_logs(
+        'destabilizers', 'CliffordTableau', 'deprecated'
+    ):
         _ = clifford_state.destabilizers()
 
 
