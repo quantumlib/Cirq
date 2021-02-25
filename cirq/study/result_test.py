@@ -20,7 +20,6 @@ import pandas as pd
 
 import cirq
 from cirq.study.result import _pack_digits
-from cirq.testing.deprecation import allow_deprecation
 
 
 def test_repr():
