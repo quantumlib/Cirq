@@ -146,7 +146,6 @@ def test_deprecated_parameter():
         # pylint: enable=unexpected-keyword-arg
 
 
-
 def test_wrap_module():
     my_module = types.ModuleType('my_module', 'my doc string')
     my_module.foo = 'foo'
