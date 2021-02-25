@@ -17,8 +17,7 @@ from typing import List, Optional, TYPE_CHECKING, Tuple
 
 import numpy as np
 
-from cirq import linalg, qis, value
-from cirq._compat import deprecated
+from cirq import linalg, value
 
 if TYPE_CHECKING:
     import cirq
