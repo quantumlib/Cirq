@@ -20,30 +20,9 @@ import numpy as np
 
 from cirq import linalg, ops, qis, value
 from cirq.sim import simulator
-from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     import cirq
-
-
-@deprecated(deadline='v0.9', fix='Use cirq.bloch_vector_from_state_vector instead.')
-def bloch_vector_from_state_vector(*args, **kwargs):
-    return qis.bloch_vector_from_state_vector(*args, **kwargs)
-
-
-@deprecated(deadline='v0.9', fix='Use cirq.density_matrix_from_state_vector instead.')
-def density_matrix_from_state_vector(*args, **kwargs):
-    return qis.density_matrix_from_state_vector(*args, **kwargs)
-
-
-@deprecated(deadline='v0.9', fix='Use cirq.dirac_notation instead.')
-def dirac_notation(*args, **kwargs):
-    return qis.dirac_notation(*args, **kwargs)
-
-
-@deprecated(deadline='v0.9', fix='Use cirq.to_valid_state_vector instead.')
-def to_valid_state_vector(*args, **kwargs):
-    return qis.to_valid_state_vector(*args, **kwargs)
 
 
 # For backwards compatibility and to make mypy happy:
