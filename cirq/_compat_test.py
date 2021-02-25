@@ -16,6 +16,7 @@ import types
 
 import numpy as np
 import pandas as pd
+import pytest
 import sympy
 
 import cirq.testing
@@ -104,6 +105,9 @@ def test_deprecated():
     ):
         assert old_func(1, 2) == 3
 
+    with pytest.raises(ValueError, "Cirq should not use deprecated functionality:.*v1.2"):
+        old_func(1, 2)
+
 
 def test_deprecated_parameter():
     @deprecated_parameter(
@@ -134,6 +138,14 @@ def test_deprecated_parameter():
         # pylint: enable=no-value-for-parameter
         # pylint: enable=unexpected-keyword-arg
 
+    with pytest.raises(ValueError, "Cirq should not use deprecated functionality:.*v1.2"):
+        # pylint: disable=unexpected-keyword-arg
+        # pylint: disable=no-value-for-parameter
+        f(double_count=1)
+        # pylint: enable=no-value-for-parameter
+        # pylint: enable=unexpected-keyword-arg
+
+
 
 def test_wrap_module():
     my_module = types.ModuleType('my_module', 'my doc string')
@@ -159,6 +171,9 @@ def test_wrap_module():
         'use bar instead',
         deadline='v0.6',
     ):
+        _ = wrapped.foo
+
+    with pytest.raises(ValueError, "Cirq should not use deprecated functionality:.*v0.6"):
         _ = wrapped.foo
 
     with cirq.testing.assert_logs(count=0):
@@ -197,3 +212,6 @@ def test_deprecated_class():
         old_obj = OldClass("1")
         assert repr(old_obj) == "NewClass: 1"
         assert "OldClass" in old_obj.hello()
+
+    with pytest.raises(ValueError, "Cirq should not use deprecated functionality:.*v1.2"):
+        OldClass("1")
