@@ -26,7 +26,8 @@ import numpy as np
 import quimb.tensor as qtn
 
 import cirq
-from cirq import circuits, study, ops, protocols, value
+from cirq import circuits, devices, study, ops, protocols, value
+from cirq.ops import flatten_to_ops
 from cirq.sim import simulator
 
 
@@ -61,6 +62,7 @@ class MPSSimulator(
 
     def __init__(
         self,
+        noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         simulation_options: 'cirq.contrib.quimb.mps_simulator.MPSOptions' = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
@@ -68,11 +70,16 @@ class MPSSimulator(
         """Creates instance of `MPSSimulator`.
 
         Args:
+            noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
         """
         self.init = True
+        noise_model = devices.NoiseModel.from_noise_model_like(noise)
+        if not protocols.has_mixture(noise_model):
+            raise ValueError('noise must be unitary or mixture but was {}'.format(noise_model))
+        self.noise = noise_model
         self._prng = value.parse_random_state(seed)
         self.simulation_options = simulation_options
         self.grouping = grouping
@@ -116,10 +123,11 @@ class MPSSimulator(
             initial_state=initial_state,
         )
 
-        for moment in circuit:
+        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
+        for op_tree in noisy_moments:
             measurements: Dict[str, List[int]] = collections.defaultdict(list)
 
-            for op in moment:
+            for op in flatten_to_ops(op_tree):
                 if isinstance(op.gate, ops.MeasurementGate):
                     key = str(protocols.measurement_key(op))
                     measurements[key].extend(state.perform_measurement(op.qubits, self._prng))
