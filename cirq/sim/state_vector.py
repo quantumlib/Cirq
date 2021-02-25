@@ -20,15 +20,9 @@ import numpy as np
 
 from cirq import linalg, ops, qis, value
 from cirq.sim import simulator
-from cirq._compat import deprecated, deprecated_parameter
 
 if TYPE_CHECKING:
     import cirq
-
-
-@deprecated(deadline='v0.10', fix='Use cirq.validate_normalized_state_vector instead.')
-def validate_normalized_state(*args, **kwargs):
-    return qis.validate_normalized_state_vector(*args, **kwargs)
 
 
 # For backwards compatibility and to make mypy happy:
@@ -165,16 +159,6 @@ class StateVectorMixin:
         )
 
 
-@deprecated_parameter(
-    deadline='v0.10.0',
-    fix='Use state_vector instead.',
-    parameter_desc='state',
-    match=lambda args, kwargs: 'state' in kwargs,
-    rewrite=lambda args, kwargs: (
-        args,
-        {('state_vector' if k == 'state' else k): v for k, v in kwargs.items()},
-    ),
-)
 def sample_state_vector(
     state_vector: np.ndarray,
     indices: List[int],
@@ -239,16 +223,6 @@ def sample_state_vector(
     )
 
 
-@deprecated_parameter(
-    deadline='v0.10.0',
-    fix='Use state_vector instead.',
-    parameter_desc='state',
-    match=lambda args, kwargs: 'state' in kwargs,
-    rewrite=lambda args, kwargs: (
-        args,
-        {('state_vector' if k == 'state' else k): v for k, v in kwargs.items()},
-    ),
-)
 def measure_state_vector(
     state_vector: np.ndarray,
     indices: Sequence[int],

@@ -1587,21 +1587,6 @@ def test_pretty_print():
     assert p.text_pretty == 'cirq.PauliString(...)'
 
 
-def test_deprecated():
-    a = cirq.LineQubit(0)
-    state_vector = np.array([1, 1], dtype=np.complex64) / np.sqrt(2)
-    with cirq.testing.assert_logs(
-        'expectation_from_wavefunction', 'expectation_from_state_vector', 'deprecated'
-    ):
-        _ = cirq.PauliString({a: 'x'}).expectation_from_wavefunction(state_vector, {a: 0})
-
-    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
-        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
-        _ = cirq.PauliString({a: 'x'}).expectation_from_state_vector(
-            state=state_vector, qubit_map={a: 0}
-        )
-
-
 # pylint: disable=line-too-long
 def test_circuit_diagram_info():
     a, b, c = cirq.LineQubit.range(3)

@@ -376,16 +376,3 @@ def test_step_result_bloch_vector():
     np.testing.assert_array_almost_equal(bloch1, step_result.bloch_vector_of(q1))
     np.testing.assert_array_almost_equal(bloch0, step_result.bloch_vector_of(q0))
 
-
-def test_deprecated():
-    with cirq.testing.assert_logs('irq.validate_normalized_state', 'deprecated'):
-        _ = cirq.sim.validate_normalized_state(np.array([1, 0], dtype=np.complex64), qid_shape=(2,))
-
-    state_vector = np.array([1, 1]) / np.sqrt(2)
-    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
-        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
-        _ = cirq.sample_state_vector(state=state_vector, indices=[0])
-
-    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
-        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
-        _ = cirq.measure_state_vector(state=state_vector, indices=[0])

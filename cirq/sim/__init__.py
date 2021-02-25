@@ -35,7 +35,6 @@ from cirq.sim.mux import (
     CIRCUIT_LIKE,
     final_density_matrix,
     final_state_vector,
-    final_wavefunction,
     sample,
     sample_sweep,
 )
@@ -56,20 +55,15 @@ from cirq.sim.sparse_simulator import (
 
 from cirq.sim.state_vector_simulator import (
     SimulatesIntermediateStateVector,
-    SimulatesIntermediateWaveFunction,
     StateVectorSimulatorState,
     StateVectorStepResult,
     StateVectorTrialResult,
-    WaveFunctionSimulatorState,
-    WaveFunctionStepResult,
-    WaveFunctionTrialResult,
 )
 
 from cirq.sim.state_vector import (
     measure_state_vector,
     sample_state_vector,
     StateVectorMixin,
-    validate_normalized_state,
 )
 
 from cirq.sim.clifford import (
