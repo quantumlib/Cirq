@@ -193,10 +193,9 @@ class Heatmap:
         ax.set_ylim((max_ytick + 0.6, min_ytick - 0.6))
         # Step-6: Set title
         if self._config.get("title", None):
-            ax.set_title(self._config["title"], fontweight = 'bold')
+            ax.set_title(self._config["title"], fontweight='bold')
 
-
-    def plot(self, ax: Optional[plt.Axes], **collection_options: Any):
+    def plot(self, ax: Optional[plt.Axes] = None, **collection_options: Any):
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(figsize=(8, 8))
