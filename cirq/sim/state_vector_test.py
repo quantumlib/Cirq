@@ -375,4 +375,3 @@ def test_step_result_bloch_vector():
     bloch0 = np.array([0, 0, 1])
     np.testing.assert_array_almost_equal(bloch1, step_result.bloch_vector_of(q1))
     np.testing.assert_array_almost_equal(bloch0, step_result.bloch_vector_of(q0))
-
