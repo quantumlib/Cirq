@@ -170,8 +170,3 @@ def test_circuit_diagram():
 3: ───#4────#4───────
         """,
     )
-
-
-def test_deprecated():
-    with cirq.testing.assert_logs('cirq.qft', 'deprecated'):
-        _ = cirq.QFT(*cirq.LineQubit.range(3))

@@ -511,20 +511,12 @@ def test_valid_apply_measurement():
 def test_deprecated():
     q = cirq.LineQubit(0)
     clifford_state = cirq.CliffordState({q: 0})
-    with cirq.testing.assert_logs('wave_function', 'state_vector', 'deprecated'):
-        _ = clifford_state.wave_function()
 
     with cirq.testing.assert_logs('stabilizers', 'CliffordTableau', 'deprecated'):
         _ = clifford_state.stabilizers()
 
     with cirq.testing.assert_logs('destabilizers', 'CliffordTableau', 'deprecated'):
         _ = clifford_state.destabilizers()
-
-    with cirq.testing.assert_logs(
-        'collapse_wavefunction', 'collapse_state_vector', 'apply_measurement', 'deprecated', count=2
-    ):
-        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
-        _ = clifford_state.perform_measurement([q], prng=0, collapse_wavefunction=True)
 
 
 def test_reset():
