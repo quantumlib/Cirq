@@ -128,8 +128,9 @@ def test_tensor_expectation_value():
                 eval_tn = ccq.tensor_expectation_value(circuit, operator)
 
                 wfn = cirq.Simulator().simulate(circuit)
-                eval_normal = operator.expectation_from_state_vector(wfn.final_state_vector,
-                                                                     wfn.qubit_map)
+                eval_normal = operator.expectation_from_state_vector(
+                    wfn.final_state_vector, wfn.qubit_map
+                )
                 assert eval_normal.imag < 1e-6
                 eval_normal = eval_normal.real
                 np.testing.assert_allclose(eval_tn, eval_normal, atol=1e-3)
