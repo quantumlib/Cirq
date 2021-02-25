@@ -42,10 +42,6 @@ from cirq.linalg.decompositions import (
     so4_to_magic_su2s,
 )
 
-from cirq.linalg.states import (
-    one_hot,
-    eye_tensor,
-)
 
 from cirq.linalg.diagonalize import (
     bidiagonalize_real_matrix_pair_with_symmetric_products,
@@ -89,10 +85,8 @@ from cirq.linalg.transformations import (
     partial_trace,
     partial_trace_of_state_vector_as_mixture,
     reflection_matrix_pow,
-    subwavefunction,
     sub_state_vector,
     targeted_conjugate_about,
     targeted_left_multiply,
     to_special,
-    wavefunction_partial_trace_as_mixture,
 )

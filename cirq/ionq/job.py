@@ -193,6 +193,9 @@ class Job:
             time.sleep(polling_seconds)
             time_waited_seconds += polling_seconds
         if self.status() != 'completed':
+            if 'failure' in self._job and 'error' in self._job['failure']:
+                error = self._job['failure']['error']
+                raise RuntimeError(f'Job failed. Error message: {error}')
             raise RuntimeError(
                 f'Job was not completed successful. Instead had status: {self.status()}'
             )
