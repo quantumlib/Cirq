@@ -105,7 +105,7 @@ def test_deprecated():
     ):
         assert old_func(1, 2) == 3
 
-    with pytest.raises(ValueError, "Cirq should not use deprecated functionality:.*v1.2"):
+    with pytest.raises(ValueError, match="Cirq should not use deprecated functionality"):
         old_func(1, 2)
 
 
@@ -138,7 +138,7 @@ def test_deprecated_parameter():
         # pylint: enable=no-value-for-parameter
         # pylint: enable=unexpected-keyword-arg
 
-    with pytest.raises(ValueError, "Cirq should not use deprecated functionality:.*v1.2"):
+    with pytest.raises(ValueError, match="Cirq should not use deprecated functionality"):
         # pylint: disable=unexpected-keyword-arg
         # pylint: disable=no-value-for-parameter
         f(double_count=1)
@@ -172,7 +172,7 @@ def test_wrap_module():
     ):
         _ = wrapped.foo
 
-    with pytest.raises(ValueError, "Cirq should not use deprecated functionality:.*v0.6"):
+    with pytest.raises(ValueError, match="Cirq should not use deprecated functionality"):
         _ = wrapped.foo
 
     with cirq.testing.assert_logs(count=0):
@@ -212,5 +212,5 @@ def test_deprecated_class():
         assert repr(old_obj) == "NewClass: 1"
         assert "OldClass" in old_obj.hello()
 
-    with pytest.raises(ValueError, "Cirq should not use deprecated functionality:.*v1.2"):
+    with pytest.raises(ValueError, match="Cirq should not use deprecated functionality"):
         OldClass("1")
