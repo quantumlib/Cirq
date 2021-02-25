@@ -297,7 +297,7 @@ def test_sympy():
     assert_json_roundtrip_works(4 * t + 3 * s + 2)
 
 
-class SBKImpl:
+class SBKImpl(cirq.protocols.SerializableByKey):
     """A test implementation of SerializableByKey."""
 
     def __init__(
@@ -330,9 +330,6 @@ class SBKImpl:
             "data_tuple": self.data_tuple,
             "data_dict": self.data_dict,
         }
-
-    def _serialization_name_(self):
-        return self.name
 
     @classmethod
     def _from_json_dict_(cls, name, data_list, data_tuple, data_dict, **kwargs):
@@ -371,7 +368,7 @@ def test_context_serialization():
         final_obj
         == """{
       "cirq_type": "_SerializedKey",
-      "key": "sbki_dict_4"
+      "key": 4
     }"""
     )
 
@@ -390,7 +387,7 @@ def test_context_serialization():
 
 def test_internal_serializer_types():
     sbki = SBKImpl('test_key')
-    key = f'{sbki._serialization_name_()}_1'
+    key = 1
     test_key = json_serialization._SerializedKey(key)
     test_context = json_serialization._SerializedContext(sbki, 1)
     test_serialization = json_serialization._ContextualSerialization(sbki)

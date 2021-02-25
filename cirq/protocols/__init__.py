@@ -84,6 +84,7 @@ from cirq.protocols.json_serialization import (
     to_json,
     read_json,
     obj_to_dict_helper,
+    SerializableByKey,
     SupportsJSON,
 )
 from cirq.protocols.measurement_key_protocol import (
