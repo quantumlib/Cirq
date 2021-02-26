@@ -13,7 +13,6 @@
 # limitations under the License.
 """Calibration wrapper for calibrations returned from the Quantum Engine."""
 
-from cirq.devices.grid_qubit import GridQubit
 from collections import abc, defaultdict
 import datetime
 
