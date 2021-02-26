@@ -180,14 +180,14 @@ class FrozenCircuit(AbstractCircuit):
     ) -> 'cirq.FrozenCircuit':
         return AbstractCircuit.tetris_concat(*circuits, align=align).freeze()
 
-    tetris_concat.__doc__ = Circuit.tetris_concat.__doc__
+    tetris_concat.__doc__ = AbstractCircuit.tetris_concat.__doc__
 
     def zip(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.FrozenCircuit':
         return AbstractCircuit.zip(*circuits, align=align).freeze()
 
-    zip.__doc__ = Circuit.zip.__doc__
+    zip.__doc__ = AbstractCircuit.zip.__doc__
 
     def to_op(self):
         """Creates a CircuitOperation wrapping this circuit."""
