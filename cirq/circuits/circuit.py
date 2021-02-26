@@ -68,8 +68,8 @@ INT_TYPE = Union[int, np.integer]
 
 
 class Alignment(enum.Enum):
-    START = 1
-    END = 2
+    LEFT = 1
+    RIGHT = 2
 
     def __repr__(self) -> str:
         return f'cirq.Alignment.{self.name}'
@@ -1251,7 +1251,7 @@ class AbstractCircuit(abc.ABC):
         return cls(moments, strategy=InsertStrategy.EARLIEST, device=device)
 
     def zip(
-        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.START
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.AbstractCircuit':
         """Combines operations from circuits in a moment-by-moment fashion.
 
@@ -1314,7 +1314,7 @@ class AbstractCircuit(abc.ABC):
         result = cirq.Circuit()
         for k in range(n):
             try:
-                if align == Alignment.START:
+                if align == Alignment.LEFT:
                     moment = cirq.Moment(c[k] for c in circuits if k < len(c))
                 else:
                     moment = cirq.Moment(c[len(c) - n + k] for c in circuits if len(c) - n + k >= 0)
@@ -1326,7 +1326,7 @@ class AbstractCircuit(abc.ABC):
         return result
 
     def tetris_concat(
-        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.START
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.AbstractCircuit':
         """Concatenates circuits while overlapping them if possible.
 
@@ -1391,7 +1391,7 @@ def _overlap_collision_time(
     seen_times: Dict['cirq.Qid', int] = {}
 
     # Start scanning from end of first and start of second.
-    upper_bound = len(c1) if align == Alignment.START else len(c2)
+    upper_bound = len(c1) if align == Alignment.LEFT else len(c2)
     t = 0
     while t < upper_bound:
         if t < len(c2):
@@ -1671,14 +1671,14 @@ class Circuit(AbstractCircuit):
         )
 
     def tetris_concat(
-        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.START
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.Circuit':
         return AbstractCircuit.tetris_concat(*circuits, align=align).unfreeze(copy=False)
 
     tetris_concat.__doc__ = AbstractCircuit.tetris_concat.__doc__
 
     def zip(
-        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.START
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.Circuit':
         return AbstractCircuit.zip(*circuits, align=align).unfreeze(copy=False)
 

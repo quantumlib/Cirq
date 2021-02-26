@@ -176,14 +176,14 @@ class FrozenCircuit(AbstractCircuit):
         return self.unfreeze()._resolve_parameters_(param_resolver, recursive).freeze()
 
     def tetris_concat(
-        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.START
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.FrozenCircuit':
         return AbstractCircuit.tetris_concat(*circuits, align=align).freeze()
 
     tetris_concat.__doc__ = Circuit.tetris_concat.__doc__
 
     def zip(
-        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.START
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.FrozenCircuit':
         return AbstractCircuit.zip(*circuits, align=align).freeze()
 
