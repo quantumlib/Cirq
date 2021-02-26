@@ -94,9 +94,14 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
 
         trial_results = []  # type: List[study.Result]
         for param_resolver in study.to_resolvers(params):
-            measurements = self._run(
-                circuit=program, param_resolver=param_resolver, repetitions=repetitions
-            )
+            measurements = {}
+            if repetitions == 0:
+                for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
+                    measurements[protocols.measurement_key(op)] = np.empty([0, 1])
+            else:
+                measurements = self._run(
+                    circuit=program, param_resolver=param_resolver, repetitions=repetitions
+                )
             trial_results.append(
                 study.Result.from_single_parameter_set(
                     params=param_resolver, measurements=measurements

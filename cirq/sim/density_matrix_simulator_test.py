@@ -270,7 +270,7 @@ def test_run_measure_at_end_no_repetitions(dtype):
                     result.measurements, {'0': np.empty([0, 1]), '1': np.empty([0, 1])}
                 )
                 assert result.repetitions == 0
-        assert mock_sim.call_count == 8
+        assert mock_sim.call_count == 0
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -327,7 +327,7 @@ def test_run_measurement_not_terminal_no_repetitions(dtype):
                     result.measurements, {'0': np.empty([0, 1]), '1': np.empty([0, 1])}
                 )
                 assert result.repetitions == 0
-        assert mock_sim.call_count == 4
+        assert mock_sim.call_count == 0
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
