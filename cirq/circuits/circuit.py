@@ -55,7 +55,7 @@ from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.quil_output import QuilOutput
 from cirq.type_workarounds import NotImplementedType
-from cirq._compat import deprecated, deprecated_parameter
+from cirq._compat import deprecated_parameter
 import cirq._version
 
 if TYPE_CHECKING:
@@ -1047,24 +1047,6 @@ class AbstractCircuit(abc.ABC):
         )
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((state_len,))
-
-    @deprecated(deadline='v0.10.0', fix='Use final_state_vector instead.')
-    def final_wavefunction(
-        self,
-        initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
-        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-        qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
-        ignore_terminal_measurements: bool = True,
-        dtype: Type[np.number] = np.complex128,
-    ) -> np.ndarray:
-        """Deprecated. Please use `final_state_vector`."""
-        return self.final_state_vector(
-            initial_state=initial_state,
-            qubit_order=qubit_order,
-            qubits_that_should_be_present=qubits_that_should_be_present,
-            ignore_terminal_measurements=ignore_terminal_measurements,
-            dtype=dtype,
-        )
 
     def to_text_diagram(
         self,
