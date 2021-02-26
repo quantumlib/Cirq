@@ -17,7 +17,7 @@ from typing import Any, Iterable, Dict, List, Tuple
 
 import numpy as np
 
-from cirq import protocols
+from cirq import protocols, sim
 from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 
 
@@ -85,3 +85,14 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             return strat_act_on_from_apply_decompose(action, self)
 
         return NotImplemented  # coverage: ignore
+
+    def perform_measurement(self) -> List[int]:
+        """Delegates the call to measure the density matrix."""
+        bits, _ = sim.measure_density_matrix(
+            self.target_tensor,
+            self.axes,
+            out=self.target_tensor,
+            qid_shape=self.qid_shape,
+            seed=self.prng,
+        )
+        return bits

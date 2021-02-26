@@ -14,7 +14,7 @@
 """A protocol for implementing high performance clifford tableau evolutions
  for Clifford Simulator."""
 
-from typing import Any, Dict, Iterable, TYPE_CHECKING
+from typing import Any, Dict, Iterable, TYPE_CHECKING, List
 
 import numpy as np
 
@@ -72,6 +72,10 @@ class ActOnCliffordTableauArgs(ActOnArgs):
             assert result is NotImplemented, str(result)
 
         return NotImplemented
+
+    def perform_measurement(self) -> List[int]:
+        """Returns the measurement from the tableau."""
+        return [self.tableau._measure(q, self.prng) for q in self.axes]
 
 
 def _strat_act_on_clifford_tableau_from_single_qubit_decompose(

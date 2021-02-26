@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
-
-from typing import Any, Iterable, Dict, Sequence
+import abc
+from typing import Any, Iterable, Dict, Sequence, Optional, List
 
 import numpy as np
 
@@ -44,18 +44,25 @@ class ActOnArgs:
         self.prng = prng
         self.log_of_measurement_results = log_of_measurement_results
 
-    def record_measurement_result(self, key: str, value: Any):
+    def measure(self, key, invert_mask):
         """Adds a measurement result to the log.
 
         Args:
             key: The key the measurement result should be logged under. Note
                 that operations should only store results under keys they have
                 declared in a `_measurement_keys_` method.
-            value: The value to log for the measurement.
+            invert_mask: The invert mask for the measurement.
         """
+        bits = self.perform_measurement()
+        corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
         if key in self.log_of_measurement_results:
             raise ValueError(f"Measurement already logged to key {key!r}")
-        self.log_of_measurement_results[key] = value
+        self.log_of_measurement_results[key] = corrected
+
+    @abc.abstractmethod
+    def perform_measurement(self) -> List[int]:
+        """Child classes that perform measurements should implement this with
+        the implementation."""
 
 
 def strat_act_on_from_apply_decompose(
