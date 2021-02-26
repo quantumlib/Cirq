@@ -33,7 +33,6 @@ from cirq.linalg import operator_spaces
 from cirq.ops import identity, raw_types, pauli_gates, pauli_string
 from cirq.ops.pauli_string import PauliString, _validate_qubit_mapping
 from cirq.value.linear_dict import _format_terms
-from cirq._compat import deprecated, deprecated_parameter
 
 if TYPE_CHECKING:
     import cirq
@@ -430,32 +429,6 @@ class PauliSum:
             return m
         raise ValueError(f'{self} is not unitary')
 
-    @deprecated(deadline='v0.10.0', fix='Use expectation_from_state_vector instead.')
-    def expectation_from_wavefunction(
-        self,
-        state: np.ndarray,
-        qubit_map: Mapping[raw_types.Qid, int],
-        *,
-        atol: float = 1e-7,
-        check_preconditions: bool = True,
-    ) -> float:
-        return self.expectation_from_state_vector(
-            state_vector=state,
-            qubit_map=qubit_map,
-            atol=atol,
-            check_preconditions=check_preconditions,
-        )
-
-    @deprecated_parameter(
-        deadline='v0.10.0',
-        fix='Use state_vector instead',
-        parameter_desc='state',
-        match=lambda args, kwargs: 'state' in kwargs,
-        rewrite=lambda args, kwargs: (
-            args,
-            {('state_vector' if k == 'state' else k): v for k, v in kwargs.items()},
-        ),
-    )
     def expectation_from_state_vector(
         self,
         state_vector: np.ndarray,

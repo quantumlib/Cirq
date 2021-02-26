@@ -15,7 +15,7 @@
 import datetime
 import os
 
-from typing import Optional, Sequence, TYPE_CHECKING
+from typing import cast, Optional, Sequence, TYPE_CHECKING
 
 from cirq import protocols, study
 
@@ -115,7 +115,8 @@ class Service:
         if isinstance(result, results.QPUResult):
             return result.to_cirq_result(params=study.ParamResolver(param_resolver))
         else:
-            return result.to_cirq_result(params=study.ParamResolver(param_resolver), seed=seed)
+            sim_result = cast(results.SimulatorResult, result)
+            return sim_result.to_cirq_result(params=study.ParamResolver(param_resolver), seed=seed)
 
     def sampler(self, target: Optional[str] = None, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
         """Returns a `cirq.Sampler` object for accessing the sampler interface.
