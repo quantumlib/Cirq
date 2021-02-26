@@ -438,6 +438,42 @@ def test_run_parameters_not_resolved():
         _ = simulator.run_sweep(circuit, cirq.ParamResolver({}))
 
 
+def test_deterministic_gate_noise():
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.I(q), cirq.measure(q))
+
+    simulator1 = ccq.mps_simulator.MPSSimulator(noise=cirq.X)
+    result1 = simulator1.run(circuit, repetitions=10)
+
+    simulator2 = ccq.mps_simulator.MPSSimulator(noise=cirq.X)
+    result2 = simulator2.run(circuit, repetitions=10)
+
+    assert result1 == result2
+
+    simulator3 = ccq.mps_simulator.MPSSimulator(noise=cirq.Z)
+    result3 = simulator3.run(circuit, repetitions=10)
+
+    assert result1 != result3
+
+
+def test_nondeterministic_mixture_noise():
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.I(q), cirq.measure(q))
+
+    simulator = ccq.mps_simulator.MPSSimulator(
+        noise=cirq.ConstantQubitNoiseModel(cirq.depolarize(0.5))
+    )
+    result1 = simulator.run(circuit, repetitions=50)
+    result2 = simulator.run(circuit, repetitions=50)
+
+    assert result1 != result2
+
+
+def test_unsupported_noise_fails():
+    with pytest.raises(ValueError, match='noise must be unitary or mixture but was'):
+        ccq.mps_simulator.MPSSimulator(noise=cirq.amplitude_damp(0.5))
+
+
 def test_state_copy():
     sim = ccq.mps_simulator.MPSSimulator()
 
