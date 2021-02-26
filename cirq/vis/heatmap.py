@@ -78,7 +78,7 @@ class Heatmap:
         colormap: Matplotlib colormap, default = viridis
         vmin, vmax: colormap scaling floats, default = None
         """
-        self._value_map: Mapping[QubitTuple, float] = {k: float(v) for k, v in value_map.items()}
+        self._value_map: Mapping[QubitTuple, SupportsFloat] = value_map
         self._validate_kwargs(kwargs)
         if '_config' not in self.__dict__:
             self._config: Dict[str, Any] = {}
@@ -144,11 +144,14 @@ class Heatmap:
             Point(y, x),
         )
 
-    def _get_annotation_value(self, key):
+    def _get_annotation_value(self, key, value):
         if self._config.get('annotation_map', None):
             return self._config['annotation_map'].get(key, None)
         elif self._config.get('annotation_format', None):
-            return format(float(self._value_map[key]), self._config['annotation_format'])
+            try:
+                return format(value, self._config['annotation_format'])
+            except:
+                return format(float(value), self._config['annotation_format'])
         else:
             return None
 
@@ -160,8 +163,8 @@ class Heatmap:
                 PolygonUnit(
                     polygon=polygon,
                     center=center,
-                    value=value,
-                    annot=self._get_annotation_value(qubits),
+                    value=float(value),
+                    annot=self._get_annotation_value(qubits, value),
                 )
             )
         return polygon_unit_list

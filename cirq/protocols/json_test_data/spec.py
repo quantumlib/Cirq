@@ -69,6 +69,7 @@ TestSpec = ModuleJsonTestSpec(
         'ThreeQubitDiagonalGate',
         'Timestamp',
         'TwoQubitDiagonalGate',
+        'TwoQubitHeatmap',
         'UnitSweep',
         'StateVectorSimulatorState',
         'StateVectorTrialResult',

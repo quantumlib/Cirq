@@ -9,9 +9,7 @@ def bristlecone():
     """Demo of cirq.Heatmap.
     Demonstrates how cirq.Heatmap can be used to generate a heatmap of the qubit fidelities.
     """
-    value_map = {
-        (qubit,): np.random.random() for qubit in cirq.google.Bristlecone.qubits
-    }
+    value_map = {(qubit,): np.random.random() for qubit in cirq.google.Bristlecone.qubits}
 
     heatmap = cirq.Heatmap(value_map)
     file_path = "examples/bristlecone_heatmap_example.png"
@@ -49,10 +47,12 @@ def two_qubit_interaction_heatmap():
     fig, _ = heatmap.plot()
     fig.figure.savefig(file_path)
 
+
 def main():
     # coverage: ignore
     bristlecone()
     two_qubit_interaction_heatmap()
+
 
 if __name__ == '__main__':
     main()
