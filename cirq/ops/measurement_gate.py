@@ -224,8 +224,7 @@ class MeasurementGate(raw_types.Gate):
         from cirq import sim
 
         if isinstance(args, sim.ActOnArgs):
-            invert_mask = self.full_invert_mask()
-            bits: List[int] = []
+            bits: Optional[List[int]] = None
 
             if isinstance(args, sim.ActOnStateVectorArgs):
                 bits, _ = sim.measure_state_vector(
@@ -251,12 +250,11 @@ class MeasurementGate(raw_types.Gate):
             elif isinstance(args, sim.clifford.ActOnStabilizerCHFormArgs):
                 bits = [args.state._measure(q, args.prng) for q in args.axes]
 
-            else:
-                return NotImplemented  # coverage: ignore
-
-            corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
-            args.record_measurement_result(self.key, corrected)
-            return True
+            if bits is not None:
+                invert_mask = self.full_invert_mask()
+                corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
+                args.record_measurement_result(self.key, corrected)
+                return True
 
         return NotImplemented
 

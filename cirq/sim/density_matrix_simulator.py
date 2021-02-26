@@ -243,16 +243,14 @@ class DensityMatrixSimulator(
             for op in flatten_to_ops(moment):
                 if all_measurements_are_terminal and measured[op.qubits]:
                     continue
-                op_list = [op]
                 if protocols.is_measurement(op):
                     measured[op.qubits] = True
                     if all_measurements_are_terminal:
                         continue
                     if self._ignore_measurement_results:
-                        op_list = [ops.phase_damp(1).on(q) for q in op.qubits]
-                for op in op_list:
-                    sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
-                    protocols.act_on(op, sim_state)
+                        op = ops.phase_damp(1).on(*op.qubits)
+                sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
+                protocols.act_on(op, sim_state)
 
             yield DensityMatrixStepResult(
                 density_matrix=sim_state.target_tensor,
