@@ -539,6 +539,7 @@ from cirq.neutral_atoms import (
 
 from cirq.vis import (
     Heatmap,
+    TwoQubitHeatmap,
 )
 
 from cirq.work import (

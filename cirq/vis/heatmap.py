@@ -17,8 +17,6 @@ import numpy as np
 from matplotlib import collections as mcoll
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import pandas as pd
-from dataclasses import dataclass
 from matplotlib import collections as mpl_collections
 from mpl_toolkits import axes_grid1
 from matplotlib.patches import Polygon
@@ -28,10 +26,16 @@ from cirq.devices import grid_qubit
 from cirq.vis import vis_utils
 
 
-QubitTuple = Tuple[grid_qubit.GridQubit, ...]
-ValueMap = Dict[QubitTuple, SupportsFloat]
-Point = Tuple[float, float]
+@deprecated(
+    deadline="v0.11",
+    fix="use cirq.vis.relative_luminance instead",
+    name="cirq.vis.heatmap.relative_luminance",
+)
+def relative_luminance(color: np.ndarray) -> float:
+    return vis_utils.relative_luminance(color)
 
+
+QubitTuple = Tuple[grid_qubit.GridQubit, ...]
 Point = NamedTuple('Point', [('x', SupportsFloat), ('y', SupportsFloat)])
 PolygonUnit = NamedTuple(
     'PolygonUnit',
@@ -40,20 +44,58 @@ PolygonUnit = NamedTuple(
 
 
 class Heatmap:
-    _config = None
+    """Distribution of a value in 2D qubit lattice as a color map."""
 
     def __init__(self, value_map: Mapping[QubitTuple, SupportsFloat], **kwargs):
-        self._value_map = value_map
+        """2D qubit grid Heatmaps
+
+        Draw 2D qubit grid heatmap with Matplotlib with parameters to configure the properties of
+        the plot.
+
+        Parameters
+        ----------
+        value_map: dictionary
+            A dictionary of QubitTuples as keys and corresponding magnitude as float values. It
+            corresponds to the data which should be plotted as a heatmap.
+
+        title: str, default = None
+        plot_colorbar: bool, default = True
+
+        annotation_map: dictionary,
+            A dictionary of QubitTuples as keys and corresponding annotation str as values. It
+            corresponds to the text that should be added on top of each heatmap polygon unit.
+        annotation_format: str, default = '.2g'
+            Formatting string using which annotation_map will be implicitly contstructed by
+            applying format(value, annotation_format) for each key in value_map.
+            This is ignored if annotation_map is explicitly specified.
+        annotation_text_kwargs: Matplotlib Text **kwargs,
+
+        colorbar_position: {'right', 'left', 'top', 'bottom'}, default = 'right'
+        colorbar_size: str, default = '5%'
+        colorbar_pad: str, default = '2%'
+        colorbar_options: Matplotlib colorbar **kwargs, default = None,
+
+        colormap: Matplotlib colormap, default = viridis
+        vmin, vmax: colormap scaling floats, default = None
+        """
+        self._value_map: Mapping[QubitTuple, float] = {k: float(v) for k, v in value_map.items()}
         self._validate_kwargs(kwargs)
-        self._config = {
-            "plot_colorbar": True,
-            "colorbar_position": "right",
-            "colorbar_size": "5%",
-            "colorbar_pad": "2%",
-            "colormap": "viridis",
-            "annotation_format": ".2g",
-        }
+        if '_config' not in self.__dict__:
+            self._config: Dict[str, Any] = {}
+        self._config.update(
+            {
+                "plot_colorbar": True,
+                "colorbar_position": "right",
+                "colorbar_size": "5%",
+                "colorbar_pad": "2%",
+                "colormap": "viridis",
+                "annotation_format": ".2g",
+            }
+        )
         self._config.update(kwargs)
+
+    def _extra_valid_kwargs(self) -> List[str]:
+        return []
 
     def _validate_kwargs(self, kwargs):
         valid_colorbar_kwargs = [
@@ -74,21 +116,24 @@ class Heatmap:
             "annotation_text_kwargs",
             "annotation_format",
         ]
-        valid_kwargs = valid_colorbar_kwargs + valid_colormap_kwargs + valid_heatmap_kwargs
+        valid_kwargs = (
+            valid_colorbar_kwargs
+            + valid_colormap_kwargs
+            + valid_heatmap_kwargs
+            + self._extra_valid_kwargs()
+        )
         if any([k not in valid_kwargs for k in kwargs]):
             invalid_args = ", ".join([k for k in kwargs if k not in valid_kwargs])
             raise ValueError(f"Received invalid argument(s): {invalid_args}")
 
     def update_config(self, **kwargs):
-        self.__validate_kwargs__(kwargs)
+        """Add/Modify **kwargs parameters passed during initialisation."""
+        self._validate_kwargs(kwargs)
         self._config.update(kwargs)
 
-    def _qubits_to_polygon(self, qubits: Tuple[grid_qubit.GridQid]) -> Tuple[Polygon, float]:
-        print(qubits)
+    def _qubits_to_polygon(self, qubits: QubitTuple) -> Tuple[Polygon, Point]:
         qubit = qubits[0]
-        print(qubit)
         x, y = map(float, (qubit.row, qubit.col))
-        print(x, y)
         return (
             [
                 (y - 0.5, x - 0.5),
@@ -96,29 +141,26 @@ class Heatmap:
                 (y + 0.5, x + 0.5),
                 (y + 0.5, x - 0.5),
             ],
-            (y, x),
+            Point(y, x),
         )
 
     def _get_annotation_value(self, key):
-        if self._config['annotation_format']:
-            print(key)
-            return format(float(self._value_map[key][0]), self._config['annotation_format'])
-        elif self._config.get('annotation_map', None):
+        if self._config.get('annotation_map', None):
             return self._config['annotation_map'].get(key, None)
+        elif self._config.get('annotation_format', None):
+            return format(float(self._value_map[key]), self._config['annotation_format'])
         else:
             return None
 
-    # @abc.abstractmethod
     def _get_polygon_units(self) -> List[PolygonUnit]:
         polygon_unit_list: List[PolygonUnit] = []
         for qubits, value in sorted(self._value_map.items()):
             polygon, center = self._qubits_to_polygon(qubits)
-            print(qubits, polygon, center)
             polygon_unit_list.append(
                 PolygonUnit(
                     polygon=polygon,
                     center=center,
-                    value=value[0],
+                    value=value,
                     annot=self._get_annotation_value(qubits),
                 )
             )
@@ -160,10 +202,10 @@ class Heatmap:
             text_kwargs.update(self._config.get('annotation_text_kwargs', {}))
             ax.text(x, y, annotation, **text_kwargs)
 
-    def _plot_on_axis(self, ax: Optional[plt.Axes], **collection_options: Any):
+    def _plot_on_axis(self, ax: plt.Axes, **collection_options: Any) -> mpl_collections.Collection:
         # Step-1: Convert value_map to a list of polygons to plot.
         polygon_list = self._get_polygon_units()
-        collection = mcoll.PolyCollection(
+        collection: mpl_collections.Collection = mcoll.PolyCollection(
             [c.polygon for c in polygon_list], cmap=self._config['colormap'], **collection_options
         )
         collection.set_clim(self._config.get('vmin', None), self._config.get('vmax', None))
@@ -194,27 +236,64 @@ class Heatmap:
         # Step-6: Set title
         if self._config.get("title", None):
             ax.set_title(self._config["title"], fontweight='bold')
+        return collection
 
-    def plot(self, ax: Optional[plt.Axes] = None, **collection_options: Any):
+    def plot(
+        self, ax: Optional[plt.Axes] = None, **collection_options: Any
+    ) -> Tuple[plt.Axes, mpl_collections.Collection]:
+        """Plots the heatmap on the given Axes.
+        Args:
+            ax: the Axes to plot on. If not given, a new figure is created,
+                plotted on, and shown.
+            collection_options: keyword arguments passed to mcoll.PolyCollection().
+        Returns:
+            A 2-tuple ``(ax, collection)``. ``ax`` is the `plt.Axes` that
+            is plotted on. ``collection`` is the collection of paths drawn and filled.
+        """
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(figsize=(8, 8))
-        self._plot_on_axis(ax, **collection_options)
+        collection = self._plot_on_axis(ax, **collection_options)
         if show_plot:
             fig.show()
+        return (ax, collection)
 
 
-class TwoQubitInteractionHeatmap(Heatmap):
-    def _qubits_to_polygon(self, qubits: Tuple[grid_qubit.GridQid]) -> Tuple[Polygon, float]:
-        coupler_margin: float = 0.03
-        coupler_width: float = 0.6
+class TwoQubitHeatmap(Heatmap):
+    """Visualizing interactions between neighboring qubits on a 2D grid."""
+
+    def __init__(self, value_map: Mapping[QubitTuple, SupportsFloat], **kwargs):
+        """2D qubit grid Heatmaps
+
+        Draw 2D qubit-qubit interaction heatmap with Matplotlib with parameters to configure the
+        properties of the plot. The parameter list includes all parameters of cirq.vis.Heatmap()
+        plus the following.
+
+        Parameters
+        ----------
+        coupler_margin: float, default = 0.03
+        coupler_width: float, default = 0.6
+        """
+        self._config: Dict[str, Any] = {
+            "coupler_margin": 0.03,
+            "coupler_width": 0.6,
+        }
+        super().__init__(value_map, **kwargs)
+
+    def _extra_valid_kwargs(self) -> List[str]:
+        return ["coupler_margin", "coupler_width"]
+
+    def _qubits_to_polygon(self, qubits: QubitTuple) -> Tuple[Polygon, Point]:
+        coupler_margin = self._config["coupler_margin"]
+        coupler_width = self._config["coupler_width"]
         cwidth = coupler_width / 2.0
         setback = 0.5 - cwidth
         row1, col1 = map(float, (qubits[0].row, qubits[0].col))
         row2, col2 = map(float, (qubits[1].row, qubits[1].col))
-        print(row1, col1, row2, col2, coupler_margin)
         if abs(row1 - row2) + abs(col1 - col2) != 1:
-            raise ValueError(f"{q1}-{q2} is not supported because they are not nearest neighbors")
+            raise ValueError(
+                f"{qubits[0]}-{qubits[1]} is not supported because they are not nearest neighbors"
+            )
         if coupler_width <= 0:
             polygon: Polygon = []
         elif row1 == row2:  # horizontal
@@ -240,19 +319,31 @@ class TwoQubitInteractionHeatmap(Heatmap):
                 (col1 - cwidth + coupler_margin, row_center - setback),
             ]
 
-        return (polygon, ((col1 + col2) / 2.0, (row1 + row2) / 2.0))
+        return (polygon, Point((col1 + col2) / 2.0, (row1 + row2) / 2.0))
 
-    def plot(self, ax: Optional[plt.Axes] = None, **collection_options: Any):
+    def plot(
+        self, ax: Optional[plt.Axes] = None, **collection_options: Any
+    ) -> Tuple[plt.Axes, mpl_collections.Collection]:
+        """Plots the heatmap on the given Axes.
+        Args:
+            ax: the Axes to plot on. If not given, a new figure is created,
+                plotted on, and shown.
+            collection_options: keyword arguments passed to mcoll.PolyCollection().
+        Returns:
+            A 2-tuple ``(ax, collection)``. ``ax`` is the `plt.Axes` that
+            is plotted on. ``collection`` is the collection of paths drawn and filled.
+        """
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(figsize=(8, 8))
         qubits = set([q for qubits in self._value_map.keys() for q in qubits])
         Heatmap(
-            {(q,): [0.0] for q in qubits},
+            {(q,): 0.0 for q in qubits},
             colormap='binary',
             plot_colorbar=False,
             annotation_format=None,
         ).plot(ax=ax, linewidths=2, edgecolor='lightgrey', linestyle='dashed')
-        self._plot_on_axis(ax, **collection_options)
+        collection = self._plot_on_axis(ax, **collection_options)
         if show_plot:
             fig.show()
+        return (ax, collection)

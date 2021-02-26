@@ -147,6 +147,9 @@ def test_calibrations_with_string_key():
     with pytest.raises(ValueError, match='was not a qubit'):
         calibration.key_to_qubit('alpha')
 
+    with pytest.raises(ValueError, match='was not a qubit'):
+        calibration.key_to_qubits('alpha')
+
 
 def test_calibration_heatmap():
     calibration = cg.Calibration(_CALIBRATION_DATA)
@@ -155,3 +158,20 @@ def test_calibration_heatmap():
     figure = mpl.figure.Figure()
     axes = figure.add_subplot(111)
     heatmap.plot(axes)
+
+    heatmap = calibration.heatmap('xeb')
+    figure = mpl.figure.Figure()
+    axes = figure.add_subplot(999)
+    heatmap.plot(axes)
+
+    with pytest.raises(AssertionError, match="one or two qubits"):
+        multi_qubit_data = Merge(
+            """
+            metrics: [{
+                name: 'multi_qubit',
+                targets: ['0_0', '0_1', '1_0'],
+                values: [{
+                    double_val: 0.999}]}]""",
+            v2.metrics_pb2.MetricsSnapshot(),
+        )
+        cg.Calibration(multi_qubit_data).heatmap('multi_qubit')

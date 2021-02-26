@@ -13,10 +13,11 @@
 # limitations under the License.
 """Calibration wrapper for calibrations returned from the Quantum Engine."""
 
+from cirq.devices.grid_qubit import GridQubit
 from collections import abc, defaultdict
 import datetime
 
-from typing import Any, Dict, Iterator, List, Optional, SupportsFloat, Tuple, TYPE_CHECKING, Union
+from typing import Any, Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING, Union
 
 import google.protobuf.json_format as json_format
 from cirq import devices, vis
@@ -186,13 +187,26 @@ class Calibration(abc.Mapping):
     def key_to_qubit(target: METRIC_KEY) -> devices.GridQubit:
         """Returns a single qubit from a metric key.
 
-        If the metric key is multiple qubits, return the first one.
-
         Raises:
            ValueError if the metric key is a tuple of strings.
         """
         if target and isinstance(target, tuple) and isinstance(target[0], devices.GridQubit):
             return target[0]
+        raise ValueError(f'The metric target {target} was not a qubit.')
+
+    @staticmethod
+    def key_to_qubits(target: METRIC_KEY) -> Tuple[devices.GridQubit, ...]:
+        """Returns a tuple of qubits from a metric key.
+
+        Raises:
+           ValueError if the metric key is a tuple of strings.
+        """
+        if (
+            target
+            and isinstance(target, tuple)
+            and all(isinstance(q, devices.GridQubit) for q in target)
+        ):
+            return target  # type: ignore
         raise ValueError(f'The metric target {target} was not a qubit.')
 
     @staticmethod
@@ -221,17 +235,18 @@ class Calibration(abc.Mapping):
             A `cirq.Heatmap` for the metric.
 
         Raises:
-            AssertionError if the heatmap is not for single qubits or the metric
+            AssertionError if the heatmap is not for one/two qubits or the metric
             values are not single floats.
         """
         metrics = self[key]
         assert all(
-            len(k) == 1 for k in metrics.keys()
-        ), 'Heatmaps are only supported if all the targets in a metric are single qubits.'
-        assert all(
             len(k) == 1 for k in metrics.values()
         ), 'Heatmaps are only supported if all the values in a metric are single metric values.'
-        value_map: Dict['cirq.GridQubit', SupportsFloat] = {
-            self.key_to_qubit(target): float(value) for target, (value,) in metrics.items()
-        }
-        return vis.Heatmap(value_map)
+        value_map = {self.key_to_qubits(k): self.value_to_float(v) for k, v in metrics.items()}
+        if all(len(k) == 1 for k in value_map.keys()):
+            return vis.Heatmap(value_map)
+        elif all(len(k) == 2 for k in value_map.keys()):
+            return vis.TwoQubitHeatmap(value_map)
+        raise AssertionError(
+            'Heatmaps are only supported if all the targets in a metric are one or two qubits.'
+        )
