@@ -22,11 +22,6 @@ import cirq.testing
 # Github issue: https://github.com/quantumlib/Cirq/issues/3021
 
 
-def test_deprecated():
-    with cirq.testing.assert_logs('wave_function', 'state_vector', 'deprecated'):
-        _ = cirq.StabilizerStateChForm(initial_state=0, num_qubits=1).wave_function()
-
-
 def test_initial_state():
     with pytest.raises(ValueError, match='Out of range'):
         _ = cirq.StabilizerStateChForm(initial_state=-31, num_qubits=5)
