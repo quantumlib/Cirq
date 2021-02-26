@@ -28,6 +28,7 @@ from cirq.circuits.quil_output import (
 
 from cirq.circuits.circuit import (
     AbstractCircuit,
+    Alignment,
     Circuit,
 )
 from cirq.circuits.circuit_dag import (
