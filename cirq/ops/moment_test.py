@@ -427,14 +427,6 @@ def test_op_tree():
     )
 
 
-def test_deprecated_operations_parameter():
-    op = cirq.X(cirq.LineQubit(0))
-    with cirq.testing.assert_logs('Don\'t specify a keyword.'):
-        # pylint: disable=unexpected-keyword-arg
-        m = cirq.Moment(operations=[op])
-    assert m == cirq.Moment(op)
-
-
 def test_indexes_by_qubit():
     a, b, c = cirq.LineQubit.range(3)
     moment = cirq.Moment([cirq.H(a), cirq.CNOT(b, c)])

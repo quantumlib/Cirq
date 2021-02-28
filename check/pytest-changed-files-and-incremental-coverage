@@ -87,8 +87,7 @@ fi
 check/pytest "${changed_python_tests[@]}" \
     "${cov_changed_python_file_dirs[@]}" \
     --cov-report=annotate \
-    --cov-config=dev_tools/conf/.coveragerc \
-    --benchmark-skip
+    --cov-config=dev_tools/conf/.coveragerc
 pytest_result=$?
 
 # Analyze coverage files.
