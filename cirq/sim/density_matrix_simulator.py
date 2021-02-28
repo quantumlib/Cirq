@@ -207,6 +207,7 @@ class DensityMatrixSimulator(
             qubit_order=qubit_order,
             initial_state=intermediate_state,
             all_measurements_are_terminal=True,
+            is_raw_state=True,
         ):
             pass
         measurement_ops = [
@@ -225,7 +226,10 @@ class DensityMatrixSimulator(
 
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
-                circuit, qubit_order=qubit_order, initial_state=intermediate_state
+                circuit,
+                qubit_order=qubit_order,
+                initial_state=intermediate_state,
+                is_raw_state=True,
             )
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
@@ -260,11 +264,11 @@ class DensityMatrixSimulator(
         qubit_order: ops.QubitOrderOrList,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'],
         all_measurements_are_terminal=False,
+        is_raw_state=False,
     ) -> Iterator:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         qid_shape = protocols.qid_shape(qubits)
         qubit_map = {q: i for i, q in enumerate(qubits)}
-        is_raw_state = isinstance(initial_state, np.ndarray)
         initial_matrix = (
             qis.to_valid_density_matrix(
                 initial_state, len(qid_shape), qid_shape=qid_shape, dtype=self._dtype
