@@ -1,28 +1,13 @@
 #!/usr/bin/env bash
 
 ################################################################################
-# Runs flynt on the repository
-#
-# Usage:
-#     check/flynt [--flags for flynt]
-################################################################################
-
-# Get the working directory to the repo root.
-cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "$(git rev-parse --show-toplevel)"
-
-# TODO: Remove '-e cirq/ops/pauli_string.py' once the line is covered (https://github.com/quantumlib/Cirq/issues/3804)
-flynt cirq dev_tools examples -f -e cirq/ops/pauli_string.py
-
-FLYNTSTATUS=$?
-
-################################################################################
 # Formats python files that have been modified.
 #
 # Usage:
 #     check/format-incremental [BASE_REVISION] [--apply] [--all]
 #
-# By default, the script analyzes python files that have changed relative to the
+# By default, the script runs flynt to convert old string literal formatting to f-strings
+# and analyzes python files that have changed relative to the
 # base revision and determines whether they need to be formatted. If any changes
 # are needed, it prints the diff and exits with code 1, otherwise it exits with
 # code 0.
@@ -49,6 +34,11 @@ FLYNTSTATUS=$?
 # Get the working directory to the repo root.
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$(git rev-parse --show-toplevel)"
+
+# TODO: Remove '-e cirq/ops/pauli_string.py' once the line is covered (https://github.com/quantumlib/Cirq/issues/3804)
+flynt cirq dev_tools examples -f -e cirq/ops/pauli_string.py
+
+FLYNTSTATUS=$?
 
 # Parse arguments.
 only_print=1
