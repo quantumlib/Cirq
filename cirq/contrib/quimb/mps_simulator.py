@@ -78,7 +78,7 @@ class MPSSimulator(
         self.init = True
         noise_model = devices.NoiseModel.from_noise_model_like(noise)
         if not protocols.has_mixture(noise_model):
-            raise ValueError('noise must be unitary or mixture but was {}'.format(noise_model))
+            raise ValueError(f'noise must be unitary or mixture but was {noise_model}')
         self.noise = noise_model
         self.prng = value.parse_random_state(seed)
         self.simulation_options = simulation_options
