@@ -14,7 +14,7 @@
 import os
 from collections import defaultdict
 from random import randint, random, sample, randrange
-from typing import Tuple, cast, AbstractSet, Iterable
+from typing import Tuple, cast, AbstractSet
 
 import numpy as np
 import pytest
@@ -36,6 +36,11 @@ class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
 
 
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
+
+
+def test_alignment():
+    assert repr(cirq.Alignment.LEFT) == 'cirq.Alignment.LEFT'
+    assert repr(cirq.Alignment.RIGHT) == 'cirq.Alignment.RIGHT'
 
 
 def test_insert_moment_types():
@@ -4405,6 +4410,33 @@ def test_zip():
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_zip_alignment(circuit_cls):
+    a, b, c = cirq.LineQubit.range(3)
+
+    circuit1 = circuit_cls([cirq.H(a)] * 5)
+    circuit2 = circuit_cls([cirq.H(b)] * 3)
+    circuit3 = circuit_cls([cirq.H(c)] * 2)
+
+    c_start = circuit_cls.zip(circuit1, circuit2, circuit3, align='LEFT')
+    assert c_start == circuit_cls(
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+        cirq.Moment(cirq.H(a), cirq.H(b)),
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.H(a)),
+    )
+
+    c_end = circuit_cls.zip(circuit1, circuit2, circuit3, align='RIGHT')
+    assert c_end == circuit_cls(
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.H(a), cirq.H(b)),
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+    )
+
+
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_repr_html_escaping(circuit_cls):
     class TestGate(cirq.Gate):
         def num_qubits(self):
@@ -4468,9 +4500,12 @@ def test_tetris_concat():
     assert len(f(space, ha)) == 10
     assert len(f(space, ha, ha, ha)) == 10
     assert len(f(space, f(ha, ha, ha))) == 10
-    assert len(f(space, ha, stop_at_first_alignment=True)) == 10
-    assert len(f(space, ha, ha, ha, stop_at_first_alignment=True)) == 12
-    assert len(f(space, f(ha, ha, ha, stop_at_first_alignment=True))) == 10
+    assert len(f(space, ha, align='LEFT')) == 10
+    assert len(f(space, ha, ha, ha, align='RIGHT')) == 12
+    assert len(f(space, f(ha, ha, ha, align='LEFT'))) == 10
+    assert len(f(space, f(ha, ha, ha, align='RIGHT'))) == 10
+    assert len(f(space, f(ha, ha, ha), align='LEFT')) == 10
+    assert len(f(space, f(ha, ha, ha), align='RIGHT')) == 10
 
     # L shape overlap (vary c1).
     assert 7 == len(
