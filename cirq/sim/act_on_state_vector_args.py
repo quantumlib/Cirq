@@ -13,11 +13,11 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Iterable, Tuple, TYPE_CHECKING, Union, Dict
+from typing import Any, Iterable, Tuple, TYPE_CHECKING, Union, Dict, List
 
 import numpy as np
 
-from cirq import linalg, protocols
+from cirq import linalg, protocols, sim
 from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 
 if TYPE_CHECKING:
@@ -152,6 +152,17 @@ class ActOnStateVectorArgs(ActOnArgs):
             assert result is NotImplemented, str(result)
 
         return NotImplemented
+
+    def perform_measurement(self) -> List[int]:
+        """Delegates the call to measure the density matrix."""
+        bits, _ = sim.measure_state_vector(
+            self.target_tensor,
+            self.axes,
+            out=self.target_tensor,
+            qid_shape=self.target_tensor.shape,
+            seed=self.prng,
+        )
+        return bits
 
 
 def _strat_act_on_state_vector_from_apply_unitary(

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, TYPE_CHECKING
+from typing import Any, Dict, Iterable, TYPE_CHECKING, List
 
 import numpy as np
 
@@ -67,6 +67,10 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             assert result is NotImplemented, str(result)
 
         return NotImplemented
+
+    def perform_measurement(self) -> List[int]:
+        """Returns the measurement from the stabilizer state form."""
+        return [self.state._measure(q, self.prng) for q in self.axes]
 
 
 def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
