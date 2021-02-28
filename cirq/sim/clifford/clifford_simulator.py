@@ -38,7 +38,7 @@ from cirq import circuits, study, ops, protocols, value
 from cirq.ops.dense_pauli_string import DensePauliString
 from cirq.protocols import act_on
 from cirq.sim import clifford, simulator
-from cirq._compat import deprecated, deprecated_parameter
+from cirq._compat import deprecated
 from cirq.sim.simulator import check_all_resolved
 
 
@@ -293,10 +293,6 @@ class CliffordState:
     def state_vector(self):
         return self.ch_form.state_vector()
 
-    @deprecated(deadline='v0.10.0', fix='use state_vector instead')
-    def wave_function(self):
-        return self.state_vector()
-
     def apply_unitary(self, op: 'cirq.Operation'):
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
             self.ch_form, [self.qubit_map[i] for i in op.qubits], np.random.RandomState(), {}
@@ -332,19 +328,6 @@ class CliffordState:
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(state.ch_form, qids, prng, measurements)
         act_on(op, ch_form_args)
 
-    @deprecated_parameter(
-        deadline='v0.10.0',
-        fix='Use collapse_state_vector instead.',
-        parameter_desc='collapse_wavefunction',
-        match=lambda args, kwargs: 'collapse_wavefunction' in kwargs,
-        rewrite=lambda args, kwargs: (
-            args,
-            {
-                ('collapse_state_vector' if k == 'collapse_wavefunction' else k): v
-                for k, v in kwargs.items()
-            },
-        ),
-    )
     @deprecated(deadline='v0.11.0', fix='Use the apply_measurement instead')
     def perform_measurement(
         self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True

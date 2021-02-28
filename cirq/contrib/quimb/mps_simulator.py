@@ -26,7 +26,8 @@ import numpy as np
 import quimb.tensor as qtn
 
 import cirq
-from cirq import circuits, study, ops, protocols, value
+from cirq import circuits, devices, study, ops, protocols, value
+from cirq.ops import flatten_to_ops
 from cirq.sim import simulator
 
 
@@ -61,6 +62,7 @@ class MPSSimulator(
 
     def __init__(
         self,
+        noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         simulation_options: 'cirq.contrib.quimb.mps_simulator.MPSOptions' = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
@@ -68,12 +70,17 @@ class MPSSimulator(
         """Creates instance of `MPSSimulator`.
 
         Args:
+            noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
         """
         self.init = True
-        self._prng = value.parse_random_state(seed)
+        noise_model = devices.NoiseModel.from_noise_model_like(noise)
+        if not protocols.has_mixture(noise_model):
+            raise ValueError('noise must be unitary or mixture but was {}'.format(noise_model))
+        self.noise = noise_model
+        self.prng = value.parse_random_state(seed)
         self.simulation_options = simulation_options
         self.grouping = grouping
 
@@ -116,15 +123,16 @@ class MPSSimulator(
             initial_state=initial_state,
         )
 
-        for moment in circuit:
+        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
+        for op_tree in noisy_moments:
             measurements: Dict[str, List[int]] = collections.defaultdict(list)
 
-            for op in moment:
+            for op in flatten_to_ops(op_tree):
                 if isinstance(op.gate, ops.MeasurementGate):
                     key = str(protocols.measurement_key(op))
-                    measurements[key].extend(state.perform_measurement(op.qubits, self._prng))
-                elif protocols.has_unitary(op):
-                    state.apply_unitary(op)
+                    measurements[key].extend(state.perform_measurement(op.qubits, self.prng))
+                elif protocols.has_mixture(op):
+                    state.apply_op(op, self.prng)
                 else:
                     raise NotImplementedError(f"Unrecognized operation: {op!r}")
 
@@ -442,7 +450,7 @@ class MPSState:
         """An alias for the state vector."""
         return self.state_vector()
 
-    def apply_unitary(self, op: 'cirq.Operation'):
+    def apply_op(self, op: 'cirq.Operation', prng: np.random.RandomState):
         """Applies a unitary operation, mutating the object to represent the new state.
 
         op:
@@ -453,8 +461,15 @@ class MPSState:
         old_inds = tuple([self.i_str(self.qubit_map[qubit]) for qubit in op.qubits])
         new_inds = tuple(['new_' + old_ind for old_ind in old_inds])
 
-        U = protocols.unitary(op).reshape([qubit.dimension for qubit in op.qubits] * 2)
-        U = qtn.Tensor(U, inds=(new_inds + old_inds))
+        if protocols.has_unitary(op):
+            U = protocols.unitary(op)
+        else:
+            mixtures = protocols.mixture(op)
+            mixture_idx = int(prng.choice(len(mixtures), p=[mixture[0] for mixture in mixtures]))
+            U = mixtures[mixture_idx][1]
+        U = qtn.Tensor(
+            U.reshape([qubit.dimension for qubit in op.qubits] * 2), inds=(new_inds + old_inds)
+        )
 
         # TODO(tonybruguier): Explore using the Quimb's tensor network natively.
 

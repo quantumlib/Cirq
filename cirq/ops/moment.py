@@ -66,13 +66,6 @@ class Moment:
             are no such operations, returns an empty Moment.
     """
 
-    @deprecated_parameter(
-        deadline='v0.9',
-        fix='Don\'t specify a keyword.',
-        match=lambda _, kwargs: 'operations' in kwargs,
-        parameter_desc='operations',
-        rewrite=lambda args, kwargs: (args + (kwargs['operations'],), {}),
-    )
     def __init__(self, *contents: 'cirq.OP_TREE') -> None:
         """Constructs a moment with the given operations.
 
