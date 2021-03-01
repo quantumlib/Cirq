@@ -200,7 +200,7 @@ class Heatmap:
 
     def _write_annotations(
         self,
-        centers_and_annot: List[Tuple[Point, str]],
+        centers_and_annot: List[Tuple[Point, Optional[str]]],
         collection: mpl_collections.Collection,
         ax: plt.Axes,
     ) -> None:
@@ -230,7 +230,7 @@ class Heatmap:
         collection.update_scalarmappable()
         # Step-3: Write annotation texts
         if self._config.get('annotation_map') or self._config.get('annotation_format'):
-            self._write_annotations([(c.center, str(c.annot)) for c in polygon_list], collection, ax)
+            self._write_annotations([(c.center, c.annot) for c in polygon_list], collection, ax)
         ax.set(xlabel='column', ylabel='row')
         # Step-4: Draw colorbar if applicable
         if self._config.get('plot_colorbar'):
