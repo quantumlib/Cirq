@@ -24,6 +24,7 @@ TestSpec = ModuleJsonTestSpec(
     test_data_path=pathlib.Path(__file__).parent,
     resolver_cache=_class_resolver_dictionary(),
     not_yet_serializable=[
+        'Alignment',
         'AxisAngleDecomposition',
         'CircuitDag',
         'CircuitDiagramInfo',

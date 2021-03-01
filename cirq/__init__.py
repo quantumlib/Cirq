@@ -66,6 +66,7 @@ from cirq._version import (
 
 from cirq.circuits import (
     AbstractCircuit,
+    Alignment,
     Circuit,
     CircuitDag,
     CircuitOperation,
