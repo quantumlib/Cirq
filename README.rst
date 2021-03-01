@@ -23,9 +23,9 @@ Installation and Documentation
 
 Cirq documentation is available at `quantumai.google/cirq <https://quantumai.google/cirq>`_.
 
-Documentation for the latest **pre-release** version of cirq (tracks the repository's master branch; what you get if you ``pip install --pre cirq``), is available at `cirq.readthedocs.io/latest <https://quantumai.google/cirq/>`_.
+Documentation for the latest **pre-release** version of cirq (tracks the repository's master branch; what you get if you ``pip install --pre cirq``), is available at `here <https://quantumai.google/reference/python/cirq/all_symbols?version=nightly>`__.
 
-Documentation for the latest **stable** version of cirq (what you get if you ``pip install cirq``) is available at `cirq.readthedocs.io/stable <https://quantumai.google/cirq/>`_.
+Documentation for the latest **stable** version of cirq (what you get if you ``pip install cirq``) is available at `here <https://quantumai.google/reference/python/cirq/all_symbols>`__.
 
 
 - `Installation <https://quantumai.google/cirq/install>`_
