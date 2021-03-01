@@ -187,7 +187,6 @@ class Simulator(
             circuit=unitary_prefix,
             qubit_order=qubit_order,
             initial_state=0,
-            perform_measurements=False,
         ):
             pass
         assert step_result is not None
@@ -238,7 +237,6 @@ class Simulator(
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,
         initial_state: 'cirq.STATE_VECTOR_LIKE',
-        perform_measurements: bool = True,
     ) -> Iterator['SparseSimulatorStep']:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         num_qubits = len(qubits)
@@ -261,9 +259,8 @@ class Simulator(
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
         for op_tree in noisy_moments:
             for op in flatten_to_ops(op_tree):
-                if perform_measurements or not isinstance(op.gate, ops.MeasurementGate):
-                    sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
-                    protocols.act_on(op, sim_state)
+                sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
+                protocols.act_on(op, sim_state)
 
             yield SparseSimulatorStep(
                 state_vector=sim_state.target_tensor,
