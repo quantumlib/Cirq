@@ -36,7 +36,6 @@ TestSpec = ModuleJsonTestSpec(
         'DensityMatrixStepResult',
         'DensityMatrixTrialResult',
         'ExpressionMap',
-        'Heatmap',
         'InsertStrategy',
         'IonDevice',
         'KakDecomposition',
@@ -69,7 +68,6 @@ TestSpec = ModuleJsonTestSpec(
         'ThreeQubitDiagonalGate',
         'Timestamp',
         'TwoQubitDiagonalGate',
-        'TwoQubitHeatmap',
         'UnitSweep',
         'StateVectorSimulatorState',
         'StateVectorTrialResult',
@@ -77,6 +75,9 @@ TestSpec = ModuleJsonTestSpec(
         'Zip',
     ],
     should_not_be_serialized=[
+        # Heatmaps
+        'Heatmap',
+        'TwoQubitHeatmap',
         # Intermediate states with work buffers and unknown external prng guts.
         'ActOnCliffordTableauArgs',
         'ActOnStabilizerCHFormArgs',

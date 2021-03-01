@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, List, Mapping, NamedTuple, Optional, SupportsFloat, Tuple
+from typing import Any, Dict, List, Mapping, Optional, SupportsFloat, Tuple
+from dataclasses import astuple, dataclass
 
 import numpy as np
 from matplotlib import collections as mcoll
@@ -36,11 +37,23 @@ def relative_luminance(color: np.ndarray) -> float:
 
 
 QubitTuple = Tuple[grid_qubit.GridQubit, ...]
-Point = NamedTuple('Point', [('x', SupportsFloat), ('y', SupportsFloat)])
-PolygonUnit = NamedTuple(
-    'PolygonUnit',
-    [('polygon', Polygon), ('center', Point), ('value', SupportsFloat), ('annot', str)],
-)
+
+
+@dataclass
+class Point:
+    x: float
+    y: float
+
+    def __iter__(self):
+        return iter(astuple(self))
+
+
+@dataclass
+class PolygonUnit:
+    polygon: Polygon
+    center: Point
+    value: float
+    annot: Optional[str]
 
 
 class Heatmap:
@@ -52,31 +65,30 @@ class Heatmap:
         Draw 2D qubit grid heatmap with Matplotlib with parameters to configure the properties of
         the plot.
 
-        Parameters
-        ----------
-        value_map: dictionary
-            A dictionary of QubitTuples as keys and corresponding magnitude as float values. It
-            corresponds to the data which should be plotted as a heatmap.
+        Args:
+            value_map: dictionary
+                A dictionary of QubitTuples as keys and corresponding magnitude as float values. It
+                corresponds to the data which should be plotted as a heatmap.
 
-        title: str, default = None
-        plot_colorbar: bool, default = True
+            title: str, default = None
+            plot_colorbar: bool, default = True
 
-        annotation_map: dictionary,
-            A dictionary of QubitTuples as keys and corresponding annotation str as values. It
-            corresponds to the text that should be added on top of each heatmap polygon unit.
-        annotation_format: str, default = '.2g'
-            Formatting string using which annotation_map will be implicitly contstructed by
-            applying format(value, annotation_format) for each key in value_map.
-            This is ignored if annotation_map is explicitly specified.
-        annotation_text_kwargs: Matplotlib Text **kwargs,
+            annotation_map: dictionary,
+                A dictionary of QubitTuples as keys and corresponding annotation str as values. It
+                corresponds to the text that should be added on top of each heatmap polygon unit.
+            annotation_format: str, default = '.2g'
+                Formatting string using which annotation_map will be implicitly contstructed by
+                applying format(value, annotation_format) for each key in value_map.
+                This is ignored if annotation_map is explicitly specified.
+            annotation_text_kwargs: Matplotlib Text **kwargs,
 
-        colorbar_position: {'right', 'left', 'top', 'bottom'}, default = 'right'
-        colorbar_size: str, default = '5%'
-        colorbar_pad: str, default = '2%'
-        colorbar_options: Matplotlib colorbar **kwargs, default = None,
+            colorbar_position: {'right', 'left', 'top', 'bottom'}, default = 'right'
+            colorbar_size: str, default = '5%'
+            colorbar_pad: str, default = '2%'
+            colorbar_options: Matplotlib colorbar **kwargs, default = None,
 
-        colormap: Matplotlib colormap, default = viridis
-        vmin, vmax: colormap scaling floats, default = None
+            colormap: Matplotlib colormap, default = viridis
+            vmin, vmax: colormap scaling floats, default = None
         """
         self._value_map: Mapping[QubitTuple, SupportsFloat] = value_map
         self._validate_kwargs(kwargs)
@@ -97,7 +109,7 @@ class Heatmap:
     def _extra_valid_kwargs(self) -> List[str]:
         return []
 
-    def _validate_kwargs(self, kwargs):
+    def _validate_kwargs(self, kwargs) -> None:
         valid_colorbar_kwargs = [
             "plot_colorbar",
             "colorbar_position",
@@ -126,8 +138,8 @@ class Heatmap:
             invalid_args = ", ".join([k for k in kwargs if k not in valid_kwargs])
             raise ValueError(f"Received invalid argument(s): {invalid_args}")
 
-    def update_config(self, **kwargs):
-        """Add/Modify **kwargs parameters passed during initialisation."""
+    def update_config(self, **kwargs) -> None:
+        """Add/Modify **kwargs args passed during initialisation."""
         self._validate_kwargs(kwargs)
         self._config.update(kwargs)
 
@@ -144,10 +156,10 @@ class Heatmap:
             Point(y, x),
         )
 
-    def _get_annotation_value(self, key, value):
-        if self._config.get('annotation_map', None):
-            return self._config['annotation_map'].get(key, None)
-        elif self._config.get('annotation_format', None):
+    def _get_annotation_value(self, key, value) -> Optional[str]:
+        if self._config.get('annotation_map'):
+            return self._config['annotation_map'].get(key)
+        elif self._config.get('annotation_format'):
             try:
                 return format(value, self._config['annotation_format'])
             except:
@@ -211,17 +223,17 @@ class Heatmap:
         collection: mpl_collections.Collection = mcoll.PolyCollection(
             [c.polygon for c in polygon_list], cmap=self._config['colormap'], **collection_options
         )
-        collection.set_clim(self._config.get('vmin', None), self._config.get('vmax', None))
+        collection.set_clim(self._config.get('vmin'), self._config.get('vmax'))
         collection.set_array(np.array([c.value for c in polygon_list]))
         # Step-2: Plot the polygons
         ax.add_collection(collection)
         collection.update_scalarmappable()
         # Step-3: Write annotation texts
-        if self._config.get('annotation_map', None) or self._config.get('annotation_format', None):
-            self._write_annotations([(c.center, c.annot) for c in polygon_list], collection, ax)
+        if self._config.get('annotation_map') or self._config.get('annotation_format'):
+            self._write_annotations([(c.center, str(c.annot)) for c in polygon_list], collection, ax)
         ax.set(xlabel='column', ylabel='row')
         # Step-4: Draw colorbar if applicable
-        if self._config.get('plot_colorbar', None):
+        if self._config.get('plot_colorbar'):
             self._plot_colorbar(collection, ax)
         # Step-5: Set min/max limits of x/y axis on the plot.
         rows = set([q.row for qubits in self._value_map.keys() for q in qubits])
@@ -237,7 +249,7 @@ class Heatmap:
         ax.set_xlim((min_xtick - 0.6, max_xtick + 0.6))
         ax.set_ylim((max_ytick + 0.6, min_ytick - 0.6))
         # Step-6: Set title
-        if self._config.get("title", None):
+        if self._config.get("title"):
             ax.set_title(self._config["title"], fontweight='bold')
         return collection
 
@@ -268,14 +280,13 @@ class TwoQubitHeatmap(Heatmap):
     def __init__(self, value_map: Mapping[QubitTuple, SupportsFloat], **kwargs):
         """2D qubit grid Heatmaps
 
-        Draw 2D qubit-qubit interaction heatmap with Matplotlib with parameters to configure the
-        properties of the plot. The parameter list includes all parameters of cirq.vis.Heatmap()
+        Draw 2D qubit-qubit interaction heatmap with Matplotlib with arguments to configure the
+        properties of the plot. The valid argument list includes all arguments of cirq.vis.Heatmap()
         plus the following.
 
-        Parameters
-        ----------
-        coupler_margin: float, default = 0.03
-        coupler_width: float, default = 0.6
+        Args:
+            coupler_margin: float, default = 0.03
+            coupler_width: float, default = 0.6
         """
         self._config: Dict[str, Any] = {
             "coupler_margin": 0.03,

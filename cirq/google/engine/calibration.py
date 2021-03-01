@@ -191,7 +191,7 @@ class Calibration(abc.Mapping):
         """
         if target and isinstance(target, tuple) and isinstance(target[0], devices.GridQubit):
             return target[0]
-        raise ValueError(f'The metric target {target} was not a qubit.')
+        raise ValueError(f'The metric target {target} was not a tuple of qubits')
 
     @staticmethod
     def key_to_qubits(target: METRIC_KEY) -> Tuple[devices.GridQubit, ...]:
@@ -206,7 +206,7 @@ class Calibration(abc.Mapping):
             and all(isinstance(q, devices.GridQubit) for q in target)
         ):
             return target  # type: ignore
-        raise ValueError(f'The metric target {target} was not a qubit.')
+        raise ValueError(f'The metric target {target} was not a tuple of grid qubits.')
 
     @staticmethod
     def value_to_float(value: METRIC_VALUE) -> float:
@@ -234,18 +234,21 @@ class Calibration(abc.Mapping):
             A `cirq.Heatmap` for the metric.
 
         Raises:
-            AssertionError if the heatmap is not for one/two qubits or the metric
+            ValueError if the heatmap is not for one/two qubits or the metric
             values are not single floats.
         """
         metrics = self[key]
-        assert all(
-            len(k) == 1 for k in metrics.values()
-        ), 'Heatmaps are only supported if all the values in a metric are single metric values.'
+        if not all(len(k) == 1 for k in metrics.values()):
+            raise ValueError(
+                'Heatmaps are only supported if all values in a metric are single metric values.'
+                + f'{key} has metric values {metrics.values()}'
+            )
         value_map = {self.key_to_qubits(k): self.value_to_float(v) for k, v in metrics.items()}
         if all(len(k) == 1 for k in value_map.keys()):
             return vis.Heatmap(value_map)
         elif all(len(k) == 2 for k in value_map.keys()):
             return vis.TwoQubitHeatmap(value_map)
-        raise AssertionError(
+        raise ValueError(
             'Heatmaps are only supported if all the targets in a metric are one or two qubits.'
+            + f'{key} has target qubits {value_map.keys()}'
         )
