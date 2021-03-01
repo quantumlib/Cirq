@@ -230,7 +230,6 @@ class SqrtISwapXEBOptions(XEBPhasedFSimCharacterizationOptions):
         return op.gate == SQRT_ISWAP
 
 
-
 def parameterize_circuit(
     circuit: 'cirq.Circuit',
     options: XEBCharacterizationOptions,
@@ -379,6 +378,10 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
 
     This is appropriate if you have run parallel XEB on multiple pairs of qubits.
 
+    The optimization is done per-pair. If you have the same pair in e.g. two different
+    layers the characterization optimization will lump the data together. This is in contrast
+    with the benchmarking functionality, which will always index on `(layer_i, pair_i, pair)`.
+
     Args:
         sampled_df: The DataFrame of sampled two-qubit probability distributions returned
             from `sample_2q_xeb_circuits`.
@@ -480,7 +483,8 @@ def _fit_exponential_decay(
             p0=(a_0, layer_fid_0),
             bounds=((0, 0), (1, 1)),
         )
-    except ValueError:
+    except ValueError:  # coverage: ignore
+        # coverage: ignore
         return 0, 0, np.inf, np.inf
 
     a_std, layer_fid_std = np.sqrt(np.diag(pcov))
@@ -510,6 +514,7 @@ def fit_exponential_decays(fidelities_df: pd.DataFrame) -> pd.DataFrame:
         for the fit parameters "a" and "layer_fid"; and nested "cycles_depths" and "fidelities"
         lists (now grouped by pair).
     """
+
     def _per_pair(f1):
         a, layer_fid, a_std, layer_fid_std = _fit_exponential_decay(
             f1['cycle_depth'], f1['fidelity']
@@ -522,9 +527,13 @@ def fit_exponential_decays(fidelities_df: pd.DataFrame) -> pd.DataFrame:
             'a_std': a_std,
             'layer_fid_std': layer_fid_std,
         }
-        return pd.DataFrame(record)
+        return pd.Series(record)
 
-    return fidelities_df.groupby(['layer_i', 'pair_i', 'pair']).apply(_per_pair)
+    if 'layer_i' in fidelities_df.columns:
+        groupby = ['layer_i', 'pair_i', 'pair']
+    else:
+        groupby = ['pair']
+    return fidelities_df.groupby(groupby).apply(_per_pair)
 
 
 def before_and_after_characterization(
@@ -547,13 +556,16 @@ def before_and_after_characterization(
     fit_decay_df_c = fit_exponential_decays(characterization_result.fidelities_df)
 
     joined_df = fit_decay_df_0.join(fit_decay_df_c, how='outer', lsuffix='_0', rsuffix='_c')
-    joined_df['characterized_angles'] = [
-        characterization_result.final_params[pair] for pair, _, _ in joined_df.index
-    ]
+    # Remove (layer_i, pair_i) from the index. While we keep this for `fit_exponential_decays`
+    # so the same pair can be benchmarked in different contexts, the multi-pair characterization
+    # function only keys on the pair identity. This can be seen acutely by the
+    # `characterization_result.final_params` dictionary being keyed only by the pair.
+    joined_df = joined_df.reset_index().set_index('pair')
+
+    cr = characterization_result  # shorter name to prevent line wrapping
+    joined_df['characterized_angles'] = [cr.final_params[pair] for pair in joined_df.index]
     # Take any `final_params` (for any pair). We just need the angle names.
-    fp, *_ = characterization_result.final_params.values()
+    fp, *_ = cr.final_params.values()
     for angle_name in fp.keys():
-        joined_df[angle_name] = [
-            characterization_result.final_params[pair][angle_name] for pair, _, _ in joined_df.index
-        ]
+        joined_df[angle_name] = [cr.final_params[pair][angle_name] for pair in joined_df.index]
     return joined_df
