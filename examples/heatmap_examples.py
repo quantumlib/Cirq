@@ -5,19 +5,19 @@ import numpy as np
 import cirq
 
 
-def bristlecone():
+def single_qubit_heatmap():
     """Demo of cirq.Heatmap.
     Demonstrates how cirq.Heatmap can be used to generate a heatmap of the qubit fidelities.
     """
     value_map = {(qubit,): np.random.random() for qubit in cirq.google.Bristlecone.qubits}
 
     heatmap = cirq.Heatmap(value_map)
-    file_path = "examples/bristlecone_heatmap_example.png"
+    file_path = "examples/single_qubit_heatmap_example.png"
     fig, _ = heatmap.plot()
     fig.figure.savefig(file_path)
 
 
-def _sycamore_edges():
+def _sycamore_qubit_pairs():
     # TODO(https://github.com/quantumlib/Cirq/issues/3696): replace this when we have a proper
     # method for it
     return set(
@@ -32,12 +32,14 @@ def _sycamore_edges():
 
 def two_qubit_interaction_heatmap():
     """Demo of cirq.InteractionHeatmap.
-    Demonstrates how cirq.Heatmap can be used to generate a heatmap of the qubit fidelities.
+    Demonstrates how cirq.Heatmap can be used to generate a two qubit interaction heatmap.
     """
 
     # normally one would get these from cirq.google.engine
     s = np.random.RandomState(1234)
-    random_characterization_data = {qubit_pair: s.random() for qubit_pair in _sycamore_edges()}
+    random_characterization_data = {
+        qubit_pair: s.random() for qubit_pair in _sycamore_qubit_pairs()
+    }
 
     heatmap = cirq.TwoQubitHeatmap(
         value_map=random_characterization_data,
@@ -50,7 +52,7 @@ def two_qubit_interaction_heatmap():
 
 def main():
     # coverage: ignore
-    bristlecone()
+    single_qubit_heatmap()
     two_qubit_interaction_heatmap()
 
 

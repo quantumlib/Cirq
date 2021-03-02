@@ -55,7 +55,7 @@ def test_two_qubit_heatmap(ax):
         (grid_qubit.GridQubit(4, 1), grid_qubit.GridQubit(4, 2)): 0.0076079162393482835,
     }
     title = "Two Qubit Interaction Heatmap"
-    heatmap.TwoQubitHeatmap(value_map, title=title).plot(ax)
+    heatmap.TwoQubitInteractionHeatmap(value_map, title=title).plot(ax)
     assert ax.get_title() == title
 
 
@@ -65,7 +65,7 @@ def test_invalid_args():
         (grid_qubit.GridQubit(4, 1), grid_qubit.GridQubit(4, 2)): 0.0076079162393482835,
     }
     with pytest.raises(ValueError, match="invalid argument.*colormap_args"):
-        heatmap.TwoQubitHeatmap(value_map, colormap_args='Greys')
+        heatmap.TwoQubitInteractionHeatmap(value_map, colormap_args='Greys')
 
 
 def test_two_qubit_nearest_neighbor(ax):
@@ -74,7 +74,7 @@ def test_two_qubit_nearest_neighbor(ax):
         (grid_qubit.GridQubit(4, 1), grid_qubit.GridQubit(3, 2)): 0.0076079162393482835,
     }
     with pytest.raises(ValueError, match="not nearest neighbors"):
-        heatmap.TwoQubitHeatmap(value_map, coupler_width=0).plot(ax)
+        heatmap.TwoQubitInteractionHeatmap(value_map, coupler_width=0).plot(ax)
 
 
 # Test colormaps are the first one in each category in

@@ -78,7 +78,7 @@ TestSpec = ModuleJsonTestSpec(
     should_not_be_serialized=[
         # Heatmaps
         'Heatmap',
-        'TwoQubitHeatmap',
+        'TwoQubitInteractionHeatmap',
         # Intermediate states with work buffers and unknown external prng guts.
         'ActOnCliffordTableauArgs',
         'ActOnStabilizerCHFormArgs',

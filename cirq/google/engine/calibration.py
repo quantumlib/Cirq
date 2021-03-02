@@ -247,7 +247,7 @@ class Calibration(abc.Mapping):
         if all(len(k) == 1 for k in value_map.keys()):
             return vis.Heatmap(value_map)
         elif all(len(k) == 2 for k in value_map.keys()):
-            return vis.TwoQubitHeatmap(value_map)
+            return vis.TwoQubitInteractionHeatmap(value_map)
         raise ValueError(
             'Heatmaps are only supported if all the targets in a metric are one or two qubits.'
             + f'{key} has target qubits {value_map.keys()}'

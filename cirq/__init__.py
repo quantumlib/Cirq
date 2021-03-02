@@ -540,7 +540,7 @@ from cirq.neutral_atoms import (
 
 from cirq.vis import (
     Heatmap,
-    TwoQubitHeatmap,
+    TwoQubitInteractionHeatmap,
 )
 
 from cirq.work import (

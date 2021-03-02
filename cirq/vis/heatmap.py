@@ -50,9 +50,22 @@ class Point:
 
 @dataclass
 class PolygonUnit:
+    """Dataclass to store information about a single polygon unit to plot on the heatmap
+
+    For single (grid) qubit heatmaps, the polygon is a square.
+    For two (grid) qubit interaction heatmaps, the polygon is a hexagon.
+
+    Args:
+        polygon: The polygon to plot.
+        value: The value for the heatmap coloring.
+        center: The center point of the polygon where annotation text should be printed.
+        annot: The annotation string to print on the coupler.
+
+    """
+
     polygon: Polygon
-    center: Point
     value: float
+    center: Point
     annot: Optional[str]
 
 
@@ -274,11 +287,11 @@ class Heatmap:
         return (ax, collection)
 
 
-class TwoQubitHeatmap(Heatmap):
+class TwoQubitInteractionHeatmap(Heatmap):
     """Visualizing interactions between neighboring qubits on a 2D grid."""
 
     def __init__(self, value_map: Mapping[QubitTuple, SupportsFloat], **kwargs):
-        """2D qubit grid Heatmaps
+        """Heatmap to display two-qubit interaction fidelities.
 
         Draw 2D qubit-qubit interaction heatmap with Matplotlib with arguments to configure the
         properties of the plot. The valid argument list includes all arguments of cirq.vis.Heatmap()
