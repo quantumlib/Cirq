@@ -108,6 +108,12 @@ def test_deprecated():
     with pytest.raises(ValueError, match="Cirq should not use deprecated functionality"):
         old_func(1, 2)
 
+    with pytest.raises(AssertionError, match="deadline should match vX.Y"):
+
+        @deprecated(deadline='invalid', fix='Roll some dice.')
+        def old_func(*args, **kwargs):
+            return new_func(*args, **kwargs)
+
 
 def test_deprecated_parameter():
     @deprecated_parameter(
@@ -145,6 +151,19 @@ def test_deprecated_parameter():
         # pylint: enable=no-value-for-parameter
         # pylint: enable=unexpected-keyword-arg
 
+    with pytest.raises(AssertionError, match="deadline should match vX.Y"):
+
+        @deprecated_parameter(
+            deadline='invalid',
+            fix='Double it yourself.',
+            func_name='test_func',
+            parameter_desc='double_count',
+            match=lambda args, kwargs: 'double_count' in kwargs,
+            rewrite=lambda args, kwargs: (args, {'new_count': kwargs['double_count'] * 2}),
+        )
+        def f(new_count):
+            return new_count
+
 
 def test_wrap_module():
     my_module = types.ModuleType('my_module', 'my doc string')
@@ -153,6 +172,9 @@ def test_wrap_module():
     assert 'foo' in my_module.__dict__
     assert 'bar' in my_module.__dict__
     assert 'zoo' not in my_module.__dict__
+
+    with pytest.raises(AssertionError, match="deadline should match vX.Y"):
+        deprecate_attributes(my_module, {'foo': ('invalid', 'use bar instead')})
 
     wrapped = deprecate_attributes(my_module, {'foo': ('v0.6', 'use bar instead')})
     # Dunder methods
@@ -214,3 +236,9 @@ def test_deprecated_class():
 
     with pytest.raises(ValueError, match="Cirq should not use deprecated functionality"):
         OldClass("1")
+
+    with pytest.raises(AssertionError, match="deadline should match vX.Y"):
+
+        @deprecated_class(deadline="invalid", fix="theFix", name="foo")
+        class OldClass(NewClass):
+            ...
