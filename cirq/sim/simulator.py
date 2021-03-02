@@ -118,7 +118,8 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         Args:
             circuit: The circuit to simulate.
             param_resolver: Parameters to run with the program.
-            repetitions: Number of times to repeat the run.
+            repetitions: Number of times to repeat the run. It is expected that
+                this is validated greater than zero before calling this method.
 
         Returns:
             A dictionary from measurement gate key to measurement
