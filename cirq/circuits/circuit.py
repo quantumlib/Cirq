@@ -47,6 +47,7 @@ from typing import (
 
 import abc
 import html
+import networkx
 import numpy as np
 
 from cirq import devices, ops, protocols, qis
@@ -2199,6 +2200,31 @@ class Circuit(AbstractCircuit):
             # Keep moments aligned
             c_noisy += Circuit(op_tree)
         return c_noisy
+
+    def decompose(self, add_empty_moments=True) -> Iterable['cirq.Circuit']:
+        """Decomposes circuit into a set of circuits, if it's possible (i.e. if
+        the circuit qubits can be divided into two or more groups of qubits
+        such that there are no entangling gates between them).
+
+        If this is not possible, will return the set consisting of the single
+        circuit (this one).
+        """
+        uf = networkx.utils.UnionFind(self.all_qubits())
+        for op in self.all_operations():
+            if len(op.qubits) > 1:
+                uf.union(*op.qubits)
+        qubit_sets = sorted(uf.to_sets(), key=lambda x: min(x))
+        if len(qubit_sets) == 1:
+            return (self,)
+        else:
+
+            new_moments: List[List['cirq.Moment']] = [[] for _ in qubit_sets]
+            for m in self.moments:
+                for mi, qubits in enumerate(qubit_sets):
+                    new_moment = m[qubits]
+                    if add_empty_moments or len(new_moment) > 0:
+                        new_moments[mi].append(m[qubits])
+            return (Circuit(m) for m in new_moments)
 
 
 def _get_op_circuit(op: ops.Operation) -> Optional['cirq.FrozenCircuit']:
