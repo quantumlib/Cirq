@@ -66,6 +66,7 @@ from cirq._version import (
 
 from cirq.circuits import (
     AbstractCircuit,
+    Alignment,
     Circuit,
     CircuitDag,
     CircuitOperation,
@@ -538,6 +539,7 @@ from cirq.neutral_atoms import (
 
 from cirq.vis import (
     Heatmap,
+    TwoQubitInteractionHeatmap,
 )
 
 from cirq.work import (

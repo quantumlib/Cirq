@@ -144,8 +144,16 @@ def test_calibrations_with_string_key():
     assert calibration == cg.Calibration(expected_proto)
     assert calibration == cg.Calibration(calibration.to_proto())
 
-    with pytest.raises(ValueError, match='was not a qubit'):
-        calibration.key_to_qubit('alpha')
+
+def test_key_to_qubits():
+    qubits = tuple([cirq.GridQubit(1, 1), cirq.GridQubit(1, 2)])
+    assert cg.Calibration.key_to_qubit(qubits) == cirq.GridQubit(1, 1)
+    assert cg.Calibration.key_to_qubits(qubits) == (cirq.GridQubit(1, 1), cirq.GridQubit(1, 2))
+
+    with pytest.raises(ValueError, match='was not a tuple of qubits'):
+        cg.Calibration.key_to_qubit('alpha')
+    with pytest.raises(ValueError, match='was not a tuple of grid qubits'):
+        cg.Calibration.key_to_qubits('alpha')
 
 
 def test_calibration_heatmap():
@@ -155,3 +163,27 @@ def test_calibration_heatmap():
     figure = mpl.figure.Figure()
     axes = figure.add_subplot(111)
     heatmap.plot(axes)
+
+    heatmap = calibration.heatmap('xeb')
+    figure = mpl.figure.Figure()
+    axes = figure.add_subplot(999)
+    heatmap.plot(axes)
+
+    with pytest.raises(ValueError, match="one or two qubits.*multi_qubit"):
+        multi_qubit_data = Merge(
+            """metrics: [{
+                name: 'multi_qubit',
+                targets: ['0_0', '0_1', '1_0'],
+                values: [{double_val: 0.999}]}]""",
+            v2.metrics_pb2.MetricsSnapshot(),
+        )
+        cg.Calibration(multi_qubit_data).heatmap('multi_qubit')
+    with pytest.raises(ValueError, match="single metric values.*multi_value"):
+        multi_qubit_data = Merge(
+            """metrics: [{
+                name: 'multi_value',
+                targets: ['0_0'],
+                values: [{double_val: 0.999}, {double_val: 0.001}]}]""",
+            v2.metrics_pb2.MetricsSnapshot(),
+        )
+        cg.Calibration(multi_qubit_data).heatmap('multi_value')
