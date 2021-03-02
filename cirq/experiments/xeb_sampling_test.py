@@ -45,6 +45,7 @@ def test_sample_2q_xeb_circuits():
         sampler=cirq.Simulator(),
         circuits=circuits,
         cycle_depths=cycle_depths,
+        shuffle=np.random.RandomState(10),
     )
     assert len(df) == len(cycle_depths) * len(circuits)
     for (circuit_i, cycle_depth), row in df.iterrows():
