@@ -13,7 +13,6 @@
 # limitations under the License.
 import glob
 import itertools
-import os
 from typing import Iterable
 
 import networkx as nx
@@ -106,7 +105,6 @@ def _assert_frame_approx_equal(df, df2, *, atol):
 
 
 def test_sample_2q_parallel_xeb_circuits(tmpdir):
-    os.chdir(tmpdir)
     circuits = rqcg.generate_library_of_2q_circuits(
         n_library_circuits=5, two_qubit_gate=cirq.ISWAP ** 0.5, max_cycle_depth=10
     )
@@ -124,7 +122,7 @@ def test_sample_2q_parallel_xeb_circuits(tmpdir):
         circuits=circuits,
         cycle_depths=cycle_depths,
         combinations_by_layer=combs,
-        dataset_id='my_dataset',
+        dataset_directory=f'{tmpdir}/my_dataset',
     )
 
     n_pairs = sum(len(c.pairs) for c in combs)
@@ -139,7 +137,7 @@ def test_sample_2q_parallel_xeb_circuits(tmpdir):
     assert len(df['pair'].unique()) == 7  # seven pairs in 3x2 graph
 
     # Test loading from dataset
-    chunks = [record for fn in glob.glob('./my_dataset/*') for record in cirq.read_json(fn)]
+    chunks = [record for fn in glob.glob(f'{tmpdir}/my_dataset/*') for record in cirq.read_json(fn)]
     df2 = pd.DataFrame(chunks).set_index(['circuit_i', 'cycle_depth'])
     df2['pair'] = [tuple(row['pair']) for _, row in df2.iterrows()]
     actual_index_names = ['layer_i', 'pair_i', 'combination_i', 'cycle_depth']

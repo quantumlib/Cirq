@@ -271,7 +271,7 @@ def _execute_sample_2q_xeb_tasks_in_batches(
     repetitions: int,
     batch_size: int,
     progress_bar: Callable[..., ContextManager],
-    dataset_id: Optional[str] = None,
+    dataset_directory: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Helper function used in `sample_2q_xeb_circuits` to batch and execute sampling tasks."""
     n_tasks = len(tasks)
@@ -287,9 +287,9 @@ def _execute_sample_2q_xeb_tasks_in_batches(
         with progress_bar(total=len(batched_tasks) * batch_size) as progress:
             for future in concurrent.futures.as_completed(futures):
                 new_records = future.result()
-                if dataset_id is not None:
-                    os.makedirs(f'./{dataset_id}', exist_ok=True)
-                    protocols.to_json(new_records, f'./{dataset_id}/xeb.{uuid.uuid4()}.json')
+                if dataset_directory is not None:
+                    os.makedirs(f'{dataset_directory}', exist_ok=True)
+                    protocols.to_json(new_records, f'{dataset_directory}/xeb.{uuid.uuid4()}.json')
                 records.extend(new_records)
                 progress.update(batch_size)
     return records
@@ -305,7 +305,7 @@ def sample_2q_xeb_circuits(
     progress_bar: Optional[Callable[..., ContextManager]] = tqdm.tqdm,
     combinations_by_layer: Optional[List[CircuitLibraryCombination]] = None,
     shuffle: Optional['cirq.RANDOM_STATE_OR_SEED_LIKE'] = None,
-    dataset_id: Optional[str] = None,
+    dataset_directory: Optional[str] = None,
 ):
     """Sample two-qubit XEB circuits given a sampler.
 
@@ -328,9 +328,9 @@ def sample_2q_xeb_circuits(
             the circuits in `circuits` into wide, parallel-XEB-style circuits for execution.
         shuffle: If provided, use this random state or seed to shuffle the order in which tasks
             are executed.
-        dataset_id: If provided, save each batch of sampled results to a file
-            `./{dataset_id}/xeb.{uuid4()}.json` where uuid4() is a random string. This can be used
-            to incrementally save results to be analyzed later.
+        dataset_directory: If provided, save each batch of sampled results to a file
+            `{dataset_directory}/xeb.{uuid4()}.json` where uuid4() is a random string. This can be
+            used to incrementally save results to be analyzed later.
 
     Returns:
         A pandas dataframe with index given by ['circuit_i', 'cycle_depth'].
@@ -367,7 +367,7 @@ def sample_2q_xeb_circuits(
         repetitions=repetitions,
         batch_size=batch_size,
         progress_bar=progress_bar,
-        dataset_id=dataset_id,
+        dataset_directory=dataset_directory,
     )
 
     # Set up the dataframe.
