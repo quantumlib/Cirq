@@ -4663,26 +4663,6 @@ def test_decompose_simple_circuit_two_factors():
         cirq.testing.assert_has_diagram(f, d)
 
 
-def test_decompose_simple_circuit_two_factors_without_empty_moments():
-    circuit = cirq.Circuit()
-    q0, q1, q2 = cirq.LineQubit.range(3)
-    circuit.append([cirq.H(q1), cirq.CZ(q0, q1), cirq.H(q2), cirq.H(q0), cirq.H(q0)])
-    factors = list(circuit.decompose(add_empty_moments=False))
-    assert len(factors) == 2
-    desired = [
-        """
-0: ───────@───H───H───
-          │
-1: ───H───@───────────
-""",
-        """
-2: ───H───
-""",
-    ]
-    for f, d in zip(factors, desired):
-        cirq.testing.assert_has_diagram(f, d)
-
-
 def test_large_circuit():
     circuit = cirq.Circuit()
     qubits = cirq.GridQubit.rect(3, 3)
