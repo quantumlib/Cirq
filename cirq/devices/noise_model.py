@@ -197,6 +197,12 @@ class _NoNoiseModel(NoiseModel):
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, [])
 
+    def _has_unitary_(self):
+        return True
+
+    def _has_mixture_(self):
+        return True
+
 
 @value.value_equality
 class ConstantQubitNoiseModel(NoiseModel):
@@ -230,6 +236,12 @@ class ConstantQubitNoiseModel(NoiseModel):
 
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['qubit_noise_gate'])
+
+    def _has_unitary_(self):
+        return protocols.has_unitary(self.qubit_noise_gate)
+
+    def _has_mixture_(self):
+        return protocols.has_mixture(self.qubit_noise_gate)
 
 
 class GateSubstitutionNoiseModel(NoiseModel):

@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import cmath
+import math
+import numbers
 from typing import (
     Any,
     cast,
@@ -35,10 +38,6 @@ from typing import (
     Generic,
 )
 
-import cmath
-import math
-import numbers
-
 import numpy as np
 
 from cirq import value, protocols, linalg, qis
@@ -55,7 +54,6 @@ from cirq.ops import (
     raw_types,
 )
 from cirq.type_workarounds import NotImplementedType
-from cirq._compat import deprecated, deprecated_parameter
 
 if TYPE_CHECKING:
     import cirq
@@ -455,32 +453,6 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             args.target_tensor *= self.coefficient
         return protocols.apply_unitaries([self[q].on(q) for q in self.qubits], self.qubits, args)
 
-    @deprecated(deadline='v0.10.0', fix='Use expectation_from_state_vector instead')
-    def expectation_from_wavefunction(
-        self,
-        state: np.ndarray,
-        qubit_map: Mapping[TKey, int],
-        *,
-        atol: float = 1e-7,
-        check_preconditions: bool = True,
-    ) -> float:
-        return self.expectation_from_state_vector(
-            state_vector=state,
-            qubit_map=qubit_map,
-            atol=atol,
-            check_preconditions=check_preconditions,
-        )
-
-    @deprecated_parameter(
-        deadline='v0.10.0',
-        fix='Use state_vector instead',
-        parameter_desc='state',
-        match=lambda args, kwargs: 'state' in kwargs,
-        rewrite=lambda args, kwargs: (
-            args,
-            {('state_vector' if k == 'state' else k): v for k, v in kwargs.items()},
-        ),
-    )
     def expectation_from_state_vector(
         self,
         state_vector: np.ndarray,
