@@ -166,4 +166,5 @@ TestSpec = ModuleJsonTestSpec(
         'Unique',
         'DEFAULT_RESOLVERS',
     ],
+    deprecated={'TrialResult': "v0.11"},
 )
