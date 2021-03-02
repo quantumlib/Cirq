@@ -604,27 +604,6 @@ def test_partial_trace_of_state_vector_as_mixture_mixed_result():
         assert mixtures_equal(mixture, truth)
 
 
-def test_deprecated():
-    a = np.arange(4) / np.linalg.norm(np.arange(4))
-    with cirq.testing.assert_logs('subwavefunction', 'sub_state_vector', 'deprecated'):
-        _ = cirq.subwavefunction(a, [0, 1], atol=1e-8)
-
-    with cirq.testing.assert_logs('wavefunction', 'state_vector', 'deprecated'):
-        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
-        _ = cirq.sub_state_vector(wavefunction=a, keep_indices=[0, 1], atol=1e-8)
-
-    with cirq.testing.assert_logs(
-        'wavefunction_partial_trace_as_mixture',
-        'partial_trace_of_state_vector_as_mixture',
-        'deprecated',
-    ):
-        _ = cirq.wavefunction_partial_trace_as_mixture(a, [0])
-
-    with cirq.testing.assert_logs('wavefunction', 'state_vector', 'deprecated'):
-        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
-        _ = cirq.partial_trace_of_state_vector_as_mixture(wavefunction=a, keep_indices=[0])
-
-
 def test_to_special():
     u = cirq.testing.random_unitary(4)
     su = cirq.to_special(u)

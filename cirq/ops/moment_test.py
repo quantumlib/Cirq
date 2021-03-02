@@ -16,6 +16,7 @@ import pytest
 
 import cirq
 import cirq.testing
+from cirq.testing.deprecation import assert_deprecated
 
 
 def test_validation():
@@ -427,14 +428,6 @@ def test_op_tree():
     )
 
 
-def test_deprecated_operations_parameter():
-    op = cirq.X(cirq.LineQubit(0))
-    with cirq.testing.assert_logs('Don\'t specify a keyword.'):
-        # pylint: disable=unexpected-keyword-arg
-        m = cirq.Moment(operations=[op])
-    assert m == cirq.Moment(op)
-
-
 def test_indexes_by_qubit():
     a, b, c = cirq.LineQubit.range(3)
     moment = cirq.Moment([cirq.H(a), cirq.CNOT(b, c)])
@@ -592,6 +585,6 @@ def test_transform_qubits():
     assert original.transform_qubits(lambda q: cirq.GridQubit(10 + q.x, 20)) == modified
     with pytest.raises(TypeError, match='must be a function or dict'):
         _ = original.transform_qubits('bad arg')
-    with cirq.testing.assert_logs('Use qubit_map instead'):
+    with assert_deprecated('Use qubit_map instead', deadline="v0.11"):
         # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
         assert original.transform_qubits(func=lambda q: cirq.GridQubit(10 + q.x, 20)) == modified

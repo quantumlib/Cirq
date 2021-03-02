@@ -25,7 +25,6 @@ from cirq import circuits, protocols, study, devices, ops, value
 from cirq._doc import document
 from cirq.sim import sparse_simulator, density_matrix_simulator
 from cirq.sim.clifford import clifford_simulator
-from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     import cirq
@@ -156,14 +155,6 @@ def final_state_vector(
     )
 
     return result.state_vector()
-
-
-@deprecated(
-    deadline='v0.10.0',
-    fix='Use `cirq.final_state_vector` instead.',
-)
-def final_wavefunction(*args, **kwargs):
-    return final_state_vector(*args, **kwargs)
 
 
 def sample_sweep(

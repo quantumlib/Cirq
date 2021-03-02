@@ -19,15 +19,18 @@ https://arxiv.org/abs/2002.07730
 
 import collections
 import math
-from typing import Any, Dict, List, Iterator, Optional, Sequence, Set
+from typing import Any, Dict, List, Iterator, Optional, Sequence, Set, TYPE_CHECKING
 
 import dataclasses
 import numpy as np
 import quimb.tensor as qtn
 
-import cirq
-from cirq import circuits, study, ops, protocols, value
+from cirq import circuits, devices, study, ops, protocols, value
+from cirq.ops import flatten_to_ops
 from cirq.sim import simulator
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @dataclasses.dataclass(frozen=True)
@@ -61,6 +64,7 @@ class MPSSimulator(
 
     def __init__(
         self,
+        noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         simulation_options: 'cirq.contrib.quimb.mps_simulator.MPSOptions' = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
@@ -68,12 +72,17 @@ class MPSSimulator(
         """Creates instance of `MPSSimulator`.
 
         Args:
+            noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
         """
         self.init = True
-        self._prng = value.parse_random_state(seed)
+        noise_model = devices.NoiseModel.from_noise_model_like(noise)
+        if not protocols.has_mixture(noise_model):
+            raise ValueError('noise must be unitary or mixture but was {}'.format(noise_model))
+        self.noise = noise_model
+        self.prng = value.parse_random_state(seed)
         self.simulation_options = simulation_options
         self.grouping = grouping
 
@@ -116,49 +125,20 @@ class MPSSimulator(
             initial_state=initial_state,
         )
 
-        for moment in circuit:
+        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
+        for op_tree in noisy_moments:
             measurements: Dict[str, List[int]] = collections.defaultdict(list)
 
-            for op in moment:
+            for op in flatten_to_ops(op_tree):
                 if isinstance(op.gate, ops.MeasurementGate):
                     key = str(protocols.measurement_key(op))
-                    measurements[key].extend(state.perform_measurement(op.qubits, self._prng))
-                elif protocols.has_unitary(op):
-                    state.apply_unitary(op)
+                    measurements[key].extend(state.perform_measurement(op.qubits, self.prng))
+                elif protocols.has_mixture(op):
+                    state.apply_op(op, self.prng)
                 else:
                     raise NotImplementedError(f"Unrecognized operation: {op!r}")
 
             yield MPSSimulatorStepResult(measurements=measurements, state=state)
-
-    def _simulator_iterator(
-        self,
-        circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver,
-        qubit_order: ops.QubitOrderOrList,
-        initial_state: int,
-    ) -> Iterator['cirq.contrib.quimb.mps_simulator.MPSSimulatorStepResult']:
-        """Iterator over MPSSimulatorStepResult from Moments of a Circuit
-
-        Args:
-            circuit: The circuit to simulate.
-            param_resolver: A ParamResolver for determining values of
-                Symbols.
-            qubit_order: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
-            initial_state: The initial state for the simulation. The form of
-                this state depends on the simulation implementation. See
-                documentation of the implementing class for details.
-
-        Returns:
-            An interator over all the results.
-        """
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        self._check_all_resolved(resolved_circuit)
-        actual_initial_state = 0 if initial_state is None else initial_state
-
-        return self._base_iterator(resolved_circuit, qubit_order, actual_initial_state)
 
     def _create_simulator_trial_result(
         self,
@@ -442,7 +422,7 @@ class MPSState:
         """An alias for the state vector."""
         return self.state_vector()
 
-    def apply_unitary(self, op: 'cirq.Operation'):
+    def apply_op(self, op: 'cirq.Operation', prng: np.random.RandomState):
         """Applies a unitary operation, mutating the object to represent the new state.
 
         op:
@@ -453,8 +433,15 @@ class MPSState:
         old_inds = tuple([self.i_str(self.qubit_map[qubit]) for qubit in op.qubits])
         new_inds = tuple(['new_' + old_ind for old_ind in old_inds])
 
-        U = protocols.unitary(op).reshape([qubit.dimension for qubit in op.qubits] * 2)
-        U = qtn.Tensor(U, inds=(new_inds + old_inds))
+        if protocols.has_unitary(op):
+            U = protocols.unitary(op)
+        else:
+            mixtures = protocols.mixture(op)
+            mixture_idx = int(prng.choice(len(mixtures), p=[mixture[0] for mixture in mixtures]))
+            U = mixtures[mixture_idx][1]
+        U = qtn.Tensor(
+            U.reshape([qubit.dimension for qubit in op.qubits] * 2), inds=(new_inds + old_inds)
+        )
 
         # TODO(tonybruguier): Explore using the Quimb's tensor network natively.
 

@@ -59,7 +59,6 @@ from cirq.google.engine import (
     CalibrationLayer,
     CalibrationResult,
     Engine,
-    engine_from_environment,
     EngineJob,
     EngineProgram,
     EngineProcessor,

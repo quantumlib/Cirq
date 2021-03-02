@@ -29,7 +29,8 @@ from typing import (
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, qis, study, value
+from cirq import circuits, ops, protocols, qis, study, value, devices
+from cirq.ops import flatten_to_ops
 from cirq.sim import (
     simulator,
     state_vector,
@@ -145,6 +146,7 @@ class Simulator(
         self,
         *,
         dtype: Type[np.number] = np.complex64,
+        noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ):
         """A sparse matrix simulator.
@@ -152,12 +154,17 @@ class Simulator(
         Args:
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`.
+            noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
         """
         if np.dtype(dtype).kind != 'c':
             raise ValueError('dtype must be a complex type but was {}'.format(dtype))
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
+        noise_model = devices.NoiseModel.from_noise_model_like(noise)
+        if not protocols.has_mixture(noise_model):
+            raise ValueError('noise must be unitary or mixture but was {}'.format(noise_model))
+        self.noise = noise_model
 
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
@@ -170,15 +177,16 @@ class Simulator(
 
         # Simulate as many unitary operations as possible before having to
         # repeat work for each sample.
-        unitary_prefix, general_suffix = split_into_matching_protocol_then_general(
-            resolved_circuit, protocols.has_unitary
+        unitary_prefix, general_suffix = (
+            split_into_matching_protocol_then_general(resolved_circuit, protocols.has_unitary)
+            if protocols.has_unitary(self.noise)
+            else (resolved_circuit[0:0], resolved_circuit)
         )
         step_result = None
         for step_result in self._base_iterator(
             circuit=unitary_prefix,
             qubit_order=qubit_order,
             initial_state=0,
-            perform_measurements=False,
         ):
             pass
         assert step_result is not None
@@ -229,7 +237,6 @@ class Simulator(
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,
         initial_state: 'cirq.STATE_VECTOR_LIKE',
-        perform_measurements: bool = True,
     ) -> Iterator['SparseSimulatorStep']:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         num_qubits = len(qubits)
@@ -249,11 +256,11 @@ class Simulator(
             log_of_measurement_results={},
         )
 
-        for moment in circuit:
-            for op in moment:
-                if perform_measurements or not isinstance(op.gate, ops.MeasurementGate):
-                    sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
-                    protocols.act_on(op, sim_state)
+        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
+        for op_tree in noisy_moments:
+            for op in flatten_to_ops(op_tree):
+                sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
+                protocols.act_on(op, sim_state)
 
             yield SparseSimulatorStep(
                 state_vector=sim_state.target_tensor,
