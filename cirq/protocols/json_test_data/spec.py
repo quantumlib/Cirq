@@ -49,6 +49,7 @@ TestSpec = ModuleJsonTestSpec(
         'PauliStringPhasor',
         'PauliSum',
         'PauliSumCollector',
+        'PauliSumExponential',
         'PauliTransform',
         'PeriodicValue',
         'PointOptimizationSummary',
