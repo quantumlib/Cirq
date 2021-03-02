@@ -98,7 +98,7 @@ def _assert_frame_approx_equal(df, df2, *, atol):
         for k in set(row1.keys()) | set(row2.keys()):
             v1 = row1[k]
             v2 = row2[k]
-            if isinstance(v1, np.ndarray) or isinstance(v1, float):
+            if isinstance(v1, (float, np.ndarray)):
                 np.testing.assert_allclose(v1, v2, atol=atol)
             else:
                 assert v1 == v2, k
