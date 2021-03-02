@@ -457,11 +457,13 @@ class SimulatesIntermediateState(
             Iterator that steps through the simulation, simulating each
             moment and returning a StepResult for each moment.
         """
-        return self._simulator_iterator(
-            circuit, study.ParamResolver(param_resolver), qubit_order, initial_state
-        )
+        param_resolver = study.ParamResolver(param_resolver)
+        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        check_all_resolved(resolved_circuit)
+        actual_initial_state = 0 if initial_state is None else initial_state
+        return self._base_iterator(resolved_circuit, qubit_order, actual_initial_state)
 
-    @deprecated(deadline='v0.11.0', fix='Override _base_iterator instead')
+    @deprecated(deadline='v0.11', fix='Override _base_iterator instead')
     def _simulator_iterator(
         self,
         circuit: circuits.Circuit,
@@ -493,11 +495,7 @@ class SimulatesIntermediateState(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        check_all_resolved(resolved_circuit)
-        actual_initial_state = 0 if initial_state is None else initial_state
-        return self._base_iterator(resolved_circuit, qubit_order, actual_initial_state)
+        return self.simulate_moment_steps(circuit, param_resolver, qubit_order, initial_state)
 
     @abc.abstractmethod
     def _base_iterator(
