@@ -21,14 +21,6 @@ import cirq
 import cirq.testing
 
 
-def test_deprecated():
-    with cirq.testing.assert_logs('cirq.to_valid_density_matrix', 'deprecated'):
-        _ = cirq.sim.to_valid_density_matrix(0, 1)
-
-    with cirq.testing.assert_logs('cirq.von_neumann_entropy', 'deprecated'):
-        _ = cirq.sim.von_neumann_entropy(np.eye(2) / 2)
-
-
 def test_sample_density_matrix_big_endian():
     results = []
     for x in range(8):

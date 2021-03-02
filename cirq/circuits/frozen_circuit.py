@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """An immutable version of the Circuit data structure."""
-
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
@@ -28,7 +27,7 @@ from typing import (
 import numpy as np
 
 from cirq import devices, ops, protocols
-from cirq.circuits import AbstractCircuit, Circuit
+from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.type_workarounds import NotImplementedType
 
@@ -175,6 +174,20 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         self, param_resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'FrozenCircuit':
         return self.unfreeze()._resolve_parameters_(param_resolver, recursive).freeze()
+
+    def tetris_concat(
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
+    ) -> 'cirq.FrozenCircuit':
+        return AbstractCircuit.tetris_concat(*circuits, align=align).freeze()
+
+    tetris_concat.__doc__ = AbstractCircuit.tetris_concat.__doc__
+
+    def zip(
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
+    ) -> 'cirq.FrozenCircuit':
+        return AbstractCircuit.zip(*circuits, align=align).freeze()
+
+    zip.__doc__ = AbstractCircuit.zip.__doc__
 
     def to_op(self):
         """Creates a CircuitOperation wrapping this circuit."""

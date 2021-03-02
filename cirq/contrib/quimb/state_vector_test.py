@@ -81,7 +81,7 @@ def test_sandwich_operator_expect_val():
         tot_c = ccq.circuit_for_expectation_value(circuit, operator)
         eval_sandwich = cirq.unitary(tot_c)[0, 0]
         wfn = cirq.Simulator().simulate(circuit)
-        eval_normal = operator.expectation_from_wavefunction(wfn.final_state, wfn.qubit_map)
+        eval_normal = operator.expectation_from_state_vector(wfn.final_state_vector, wfn.qubit_map)
         np.testing.assert_allclose(eval_sandwich, eval_normal, atol=1e-5)
 
 
@@ -128,7 +128,9 @@ def test_tensor_expectation_value():
                 eval_tn = ccq.tensor_expectation_value(circuit, operator)
 
                 wfn = cirq.Simulator().simulate(circuit)
-                eval_normal = operator.expectation_from_wavefunction(wfn.final_state, wfn.qubit_map)
+                eval_normal = operator.expectation_from_state_vector(
+                    wfn.final_state_vector, wfn.qubit_map
+                )
                 assert eval_normal.imag < 1e-6
                 eval_normal = eval_normal.real
                 np.testing.assert_allclose(eval_tn, eval_normal, atol=1e-3)

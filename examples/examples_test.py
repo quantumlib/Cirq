@@ -10,7 +10,7 @@ import examples.bb84
 import examples.bell_inequality
 import examples.bernstein_vazirani
 import examples.bcs_mean_field
-import examples.bristlecone_heatmap_example
+import examples.heatmap_examples
 import examples.cross_entropy_benchmarking_example
 import examples.deutsch
 import examples.grover
@@ -88,9 +88,9 @@ def test_example_runs_phase_estimator():
     examples.phase_estimator.main(qnums=(2,), repetitions=2)
 
 
-def test_example_runs_bristlecone_heatmap():
+def test_example_heatmaps():
     plt.switch_backend('agg')
-    examples.bristlecone_heatmap_example.main()
+    examples.heatmap_examples.main()
 
 
 def test_example_runs_qaoa():
