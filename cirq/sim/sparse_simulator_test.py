@@ -100,8 +100,7 @@ def test_run_measure_at_end_no_repetitions(dtype):
                     result.measurements, {'0': np.empty([0, 1]), '1': np.empty([0, 1])}
                 )
                 assert result.repetitions == 0
-        # We expect one call per b0,b1.
-        assert mock_sim.call_count == 4
+        assert mock_sim.call_count == 0
 
 
 def test_run_repetitions_terminal_measurement_stochastic():
@@ -188,8 +187,7 @@ def test_run_measurement_not_terminal_no_repetitions(dtype):
                     result.measurements, {'0': np.empty([0, 1]), '1': np.empty([0, 1])}
                 )
                 assert result.repetitions == 0
-        # We expect one call per b0,b1 instead of one call.
-        assert mock_sim.call_count == 4
+        assert mock_sim.call_count == 0
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
