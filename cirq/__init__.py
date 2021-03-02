@@ -489,6 +489,7 @@ from cirq.protocols import (
     read_json,
     resolve_parameters,
     resolve_parameters_once,
+    SerializableByKey,
     SupportsActOn,
     SupportsApplyChannel,
     SupportsApplyMixture,
