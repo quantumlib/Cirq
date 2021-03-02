@@ -277,13 +277,13 @@ class CliffordState:
     def to_numpy(self) -> np.ndarray:
         return self.ch_form.to_state_vector()
 
-    @deprecated(deadline='v0.11.0', fix='use CliffordTableau instead')
+    @deprecated(deadline='v0.11', fix='use CliffordTableau instead')
     def stabilizers(self) -> List[DensePauliString]:
         """Returns the stabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi>"""
         return []
 
-    @deprecated(deadline='v0.11.0', fix='use CliffordTableau instead')
+    @deprecated(deadline='v0.11', fix='use CliffordTableau instead')
     def destabilizers(self) -> List[DensePauliString]:
         """Returns the destabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
@@ -328,7 +328,7 @@ class CliffordState:
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(state.ch_form, qids, prng, measurements)
         act_on(op, ch_form_args)
 
-    @deprecated(deadline='v0.11.0', fix='Use the apply_measurement instead')
+    @deprecated(deadline='v0.11', fix='Use the apply_measurement instead')
     def perform_measurement(
         self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
     ):
