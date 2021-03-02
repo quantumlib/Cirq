@@ -109,11 +109,11 @@ def test_deprecated():
         old_func(1, 2)
 
     with pytest.raises(AssertionError, match="deadline should match vX.Y"):
-
+        # pylint: disable=unused-variable
         @deprecated(deadline='invalid', fix='Roll some dice.')
-        def old_func(*args, **kwargs):
+        def badly_deprecated_func(*args, **kwargs):
             return new_func(*args, **kwargs)
-
+        # pylint: enable=unused-variable
 
 def test_deprecated_parameter():
     @deprecated_parameter(
@@ -161,9 +161,10 @@ def test_deprecated_parameter():
             match=lambda args, kwargs: 'double_count' in kwargs,
             rewrite=lambda args, kwargs: (args, {'new_count': kwargs['double_count'] * 2}),
         )
-        def f(new_count):
+        # pylint: disable=unused-variable
+        def f_with_badly_deprecated_param(new_count):
             return new_count
-
+        # pylint: enable=unused-variable
 
 def test_wrap_module():
     my_module = types.ModuleType('my_module', 'my doc string')
@@ -238,7 +239,8 @@ def test_deprecated_class():
         OldClass("1")
 
     with pytest.raises(AssertionError, match="deadline should match vX.Y"):
-
+        # pylint: disable=unused-variable
         @deprecated_class(deadline="invalid", fix="theFix", name="foo")
-        class OldClass(NewClass):
+        class BadlyDeprecatedClass(NewClass):
             ...
+        # pylint: enable=unused-variable

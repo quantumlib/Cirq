@@ -267,7 +267,7 @@ def deprecate_attributes(module: ModuleType, deprecated_attributes: Dict[str, Tu
         will cause a warning for these deprecated attributes.
     """
 
-    for name, (deadline, _) in deprecated_attributes.items():
+    for (deadline, _) in deprecated_attributes.values():
         _validate_deadline(deadline)
 
     class Wrapped(ModuleType):
