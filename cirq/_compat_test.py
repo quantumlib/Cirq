@@ -113,7 +113,9 @@ def test_deprecated():
         @deprecated(deadline='invalid', fix='Roll some dice.')
         def badly_deprecated_func(*args, **kwargs):
             return new_func(*args, **kwargs)
+
         # pylint: enable=unused-variable
+
 
 def test_deprecated_parameter():
     @deprecated_parameter(
@@ -164,7 +166,9 @@ def test_deprecated_parameter():
         # pylint: disable=unused-variable
         def f_with_badly_deprecated_param(new_count):
             return new_count
+
         # pylint: enable=unused-variable
+
 
 def test_wrap_module():
     my_module = types.ModuleType('my_module', 'my doc string')
@@ -243,4 +247,5 @@ def test_deprecated_class():
         @deprecated_class(deadline="invalid", fix="theFix", name="foo")
         class BadlyDeprecatedClass(NewClass):
             ...
+
         # pylint: enable=unused-variable
