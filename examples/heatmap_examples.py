@@ -41,7 +41,7 @@ def two_qubit_interaction_heatmap():
         qubit_pair: s.random() for qubit_pair in _sycamore_qubit_pairs()
     }
 
-    heatmap = cirq.TwoQubitHeatmap(
+    heatmap = cirq.TwoQubitInteractionHeatmap(
         value_map=random_characterization_data,
         title='Two Qubit Sycamore Gate XEB Cycle Total Error',
     )
