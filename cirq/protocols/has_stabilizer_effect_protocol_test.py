@@ -41,13 +41,16 @@ class Yes:
         return True
 
 
+q = cirq.LineQubit(0)
+
+
 class EmptyOp(cirq.Operation):
     """A trivial operation."""
 
     @property
     def qubits(self):
         # coverage: ignore
-        return ()
+        return (q,)
 
     def with_qubits(self, *new_qubits):
         # coverage: ignore

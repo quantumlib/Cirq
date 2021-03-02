@@ -139,3 +139,51 @@ def test_from_to_proto_maintenance():
     assert actual_from_proto == time_slot
     actual_to_proto = cg.EngineTimeSlot.to_proto(time_slot)
     assert actual_to_proto == proto
+
+
+def test_from_to_proto_no_end_time():
+    slot = enums.QuantumTimeSlot.TimeSlotType.MAINTENANCE
+    proto = qtypes.QuantumTimeSlot(
+        processor_name='potofgold',
+        end_time=Timestamp(seconds=1500040000),
+        slot_type=slot,
+        maintenance_config=qtypes.QuantumTimeSlot.MaintenanceConfig(
+            title='Testing',
+            description='Testing some new configuration.',
+        ),
+    )
+    time_slot = cg.EngineTimeSlot(
+        processor_id='potofgold',
+        end_time=datetime.datetime.fromtimestamp(1500040000),
+        slot_type=slot,
+        maintenance_title='Testing',
+        maintenance_description='Testing some new configuration.',
+    )
+    actual_from_proto = cg.EngineTimeSlot.from_proto(proto)
+    assert actual_from_proto == time_slot
+    actual_to_proto = cg.EngineTimeSlot.to_proto(time_slot)
+    assert actual_to_proto == proto
+
+
+def test_from_to_proto_no_start_time():
+    slot = enums.QuantumTimeSlot.TimeSlotType.MAINTENANCE
+    proto = qtypes.QuantumTimeSlot(
+        processor_name='potofgold',
+        start_time=Timestamp(seconds=1500040000),
+        slot_type=slot,
+        maintenance_config=qtypes.QuantumTimeSlot.MaintenanceConfig(
+            title='Testing',
+            description='Testing some new configuration.',
+        ),
+    )
+    time_slot = cg.EngineTimeSlot(
+        processor_id='potofgold',
+        start_time=datetime.datetime.fromtimestamp(1500040000),
+        slot_type=slot,
+        maintenance_title='Testing',
+        maintenance_description='Testing some new configuration.',
+    )
+    actual_from_proto = cg.EngineTimeSlot.from_proto(proto)
+    assert actual_from_proto == time_slot
+    actual_to_proto = cg.EngineTimeSlot.to_proto(time_slot)
+    assert actual_to_proto == proto

@@ -1275,6 +1275,42 @@ def test_simulate_noise_with_terminal_measurements():
     assert result1 == result2
 
 
+def test_simulate_noise_with_subcircuit_measurements():
+    q = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.measure(q))
+    circuit2 = cirq.Circuit(cirq.CircuitOperation(cirq.Circuit(cirq.measure(q)).freeze()))
+
+    simulator = cirq.DensityMatrixSimulator(noise=cirq.X)
+    result1 = simulator.run(circuit1, repetitions=10)
+    result2 = simulator.run(circuit2, repetitions=10)
+
+    assert result1 == result2
+
+
+def test_nonmeasuring_subcircuits_do_not_cause_sweep_repeat():
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(cirq.Circuit(cirq.H(q)).freeze()),
+        cirq.measure(q, key='x'),
+    )
+    simulator = cirq.DensityMatrixSimulator()
+    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+        simulator.run(circuit, repetitions=10)
+        assert mock_sim.call_count == 1
+
+
+def test_measuring_subcircuits_cause_sweep_repeat():
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(
+        cirq.CircuitOperation(cirq.Circuit(cirq.measure(q)).freeze()),
+        cirq.measure(q, key='x'),
+    )
+    simulator = cirq.DensityMatrixSimulator()
+    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+        simulator.run(circuit, repetitions=10)
+        assert mock_sim.call_count == 10
+
+
 def test_density_matrix_copy():
     sim = cirq.DensityMatrixSimulator()
 

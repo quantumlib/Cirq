@@ -230,8 +230,8 @@ def asymmetric_depolarize(
 
 
 @value.value_equality
-class DepolarizingChannel(gate_features.SingleQubitGate):
-    """A channel that depolarizes a qubit."""
+class DepolarizingChannel(gate_features.SupportsOnEachGate, raw_types.Gate):
+    """A channel that depolarizes one or several qubits."""
 
     def __init__(self, p: float, n_qubits: int = 1) -> None:
         r"""The symmetric depolarizing channel.
@@ -278,6 +278,9 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
 
         self._delegate = AsymmetricDepolarizingChannel(error_probabilities=error_probabilities)
 
+    def _qid_shape_(self):
+        return (2,) * self._n_qubits
+
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
         return self._delegate._mixture_()
 
@@ -307,10 +310,15 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
             return True
         return NotImplemented
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
+        result: Tuple[str, ...]
         if args.precision is not None:
-            return f"D({self._p:.{args.precision}g})"
-        return f"D({self._p})"
+            result = (f"D({self._p:.{args.precision}g})",)
+        else:
+            result = (f"D({self._p})",)
+        while len(result) < self.num_qubits():
+            result += (f"#{len(result) + 1}",)
+        return result
 
     @property
     def p(self) -> float:
@@ -674,11 +682,24 @@ class ResetChannel(gate_features.SingleQubitGate):
         """
         self._dimension = dimension
 
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        return True
+
+    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+        args.validate_version('2.0')
+        return args.format('reset {0};\n', qubits[0])
+
     def _qid_shape_(self):
         return (self._dimension,)
 
     def _act_on_(self, args: Any):
-        from cirq import sim
+        from cirq import sim, ops
+
+        if isinstance(args, sim.ActOnStabilizerCHFormArgs):
+            (axe,) = args.axes
+            if args.state._measure(axe, args.prng):
+                ops.X._act_on_(args)
+            return True
 
         if isinstance(args, sim.ActOnStateVectorArgs):
             # Do a silent measurement.

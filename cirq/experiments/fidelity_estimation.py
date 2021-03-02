@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,8 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
-
-from typing import Callable, List, Mapping, Optional, Sequence, Tuple, cast
+from typing import (
+    Callable,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    cast,
+)
 
 import numpy as np
 
@@ -145,7 +152,7 @@ def xeb_fidelity(
 
     Fidelity quantifies the similarity of two quantum states. Here, we estimate
     the fidelity between the theoretically predicted output state of circuit and
-    the state producted in its experimental realization. Note that we don't know
+    the state produced in its experimental realization. Note that we don't know
     the latter state. Nevertheless, we can estimate the fidelity between the two
     states from the knowledge of the bitstrings observed in the experiment.
 
@@ -168,7 +175,7 @@ def xeb_fidelity(
             qubits starting with the most significant qubit.
         amplitudes: Optional mapping from bitstring to output amplitude.
             If provided, simulation is skipped. Useful for large circuits
-            when an offline simulation had already been peformed.
+            when an offline simulation had already been performed.
         estimator: Fidelity estimator to use, see above. Defaults to the
             linear XEB fidelity estimator.
     Returns:

@@ -65,6 +65,8 @@ upper_tabs:
         path: /cirq/interop
       - title: "Custom gates"
         path: /cirq/custom_gates
+      - title: "Operators and observables"
+        path: /cirq/operators_and_observables
 
       ####  Contributor Guide  ####
       - heading: "Contributor guide"
@@ -74,6 +76,8 @@ upper_tabs:
         path: /cirq/dev/rfc_process
       - title: "Style guide"
         path: /cirq/dev/style
+      - title: "Notebooks guide"
+        path: /cirq/dev/notebooks
       - title: "Nomenclature"
         path: /cirq/dev/nomenclature
       - title: "Gate and operation guidelines"
@@ -105,6 +109,19 @@ upper_tabs:
       - title: "Access and authentication"
         path: /cirq/aqt/access
 
+      ##### IonQ ####
+      - heading: "IonQ hardware"
+      - title: "Access and authentication"
+        path: /cirq/ionq/access
+      - title: "IonQ API service"
+        path: /cirq/ionq/service
+      - title: "IonQ API circuits"
+        path: /cirq/ionq/circuits
+      - title: "Running IonQ API jobs"
+        path: /cirq/ionq/jobs
+      - title: "IonQ API calibrations"
+        path: /cirq/ionq/calibrations
+
       ####  PASQAL  ####
       - heading: "Pasqal hardware"
       - title: "Access and authentication"
@@ -127,26 +144,28 @@ upper_tabs:
 
       ####  INTERMEDIATE  ####
       - heading: "Intermediate"
-      - title: "Shor's algorithm"
-        path: /cirq/tutorials/shor
+      - title: "Quantum variational algorithm"
+        path: /cirq/tutorials/variational_algorithm
+      - title: "Approximate optimization"
+        path: /cirq/tutorials/qaoa
+      - title: "Quantum walks"
+        path: /cirq/tutorials/quantum_walks
 
       ####  ADVANCED  ####
       - heading: "Advanced"
-      - title: "Quantum variational algorithm"
-        path: /cirq/tutorials/variational_algorithm
-      - title: "QAOA experiment"
-        path: /cirq/tutorials/qaoa
       - title: "Hidden linear function problem"
         path: /cirq/tutorials/hidden_linear_function
-      - title: "Quantum walks"
-        path: /cirq/tutorials/quantum_walks
       - title: "Rabi oscillation experiment"
         path: /cirq/tutorials/rabi_oscillations
+      - title: "Shor's algorithm"
+        path: /cirq/tutorials/shor
 
       ####  GOOGLE HARDWARE  ####
       - heading: "Google hardware"
       - title: "Getting started with QCS"
         path: /cirq/tutorials/google/start
+      - title: "Floquet calibration"
+        path: /cirq/tutorials/google/floquet
 
       ####  AQT HARDWARE  ####
       - heading: "AQT hardware"

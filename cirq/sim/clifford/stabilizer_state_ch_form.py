@@ -20,7 +20,6 @@ from cirq import protocols, value
 from cirq.ops import pauli_gates
 from cirq.sim import clifford
 from cirq.value import big_endian_int_to_digits
-from cirq._compat import deprecated
 
 
 @value.value_equality
@@ -73,18 +72,18 @@ class StabilizerStateChForm:
     def _from_json_dict_(cls, n, G, F, M, gamma, v, s, omega, **kwargs):
         copy = StabilizerStateChForm(n)
 
-        copy.G = G.copy()
-        copy.F = F.copy()
-        copy.M = M.copy()
-        copy.gamma = gamma.copy()
-        copy.v = v.copy()
-        copy.s = s.copy()
+        copy.G = np.array(G)
+        copy.F = np.array(F)
+        copy.M = np.array(M)
+        copy.gamma = np.array(gamma)
+        copy.v = np.array(v)
+        copy.s = np.array(s)
         copy.omega = omega
 
         return copy
 
     def _value_equality_values_(self) -> Any:
-        return (self.n, self.G, self.F, self.M, self.gamma, self.v, self.v, self.s, self.omega)
+        return (self.n, self.G, self.F, self.M, self.gamma, self.v, self.s, self.omega)
 
     def copy(self) -> 'cirq.StabilizerStateChForm':
         copy = StabilizerStateChForm(self.n)
@@ -135,10 +134,6 @@ class StabilizerStateChForm:
             wf[x] = self.inner_product_of_state_and_x(x)
 
         return wf
-
-    @deprecated(deadline='v0.10.0', fix='Use state_vector instead.')
-    def wave_function(self) -> np.ndarray:
-        return self.state_vector()
 
     def _S_right(self, q):
         r"""Right multiplication version of S gate."""

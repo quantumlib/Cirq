@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,13 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq
-import cirq.testing
+"""An optimization pass that aligns gates to the left of the circuit."""
+
+from cirq import circuits
+from cirq.circuits.insert_strategy import InsertStrategy
 
 
-def test_deprecated():
-    with cirq.testing.assert_logs('cirq.eye_tensor', 'deprecated'):
-        _ = cirq.linalg.eye_tensor((1,), dtype=float)
+class AlignLeft:
+    """Aligns gates to the left of the circuit."""
 
-    with cirq.testing.assert_logs('cirq.one_hot', 'deprecated'):
-        _ = cirq.linalg.one_hot(shape=(1,), dtype=float)
+    def __call__(self, circuit: circuits.Circuit):
+        self.optimize_circuit(circuit)
+
+    def optimize_circuit(self, circuit: circuits.Circuit):
+        circuit[:] = circuits.Circuit(circuit.all_operations(), strategy=InsertStrategy.EARLIEST)

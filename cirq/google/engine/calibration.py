@@ -16,7 +16,7 @@
 from collections import abc, defaultdict
 import datetime
 
-from typing import Any, Dict, Iterator, List, Optional, SupportsFloat, Tuple, TYPE_CHECKING, Union
+from typing import Any, Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING, Union
 
 import google.protobuf.json_format as json_format
 from cirq import devices, vis
@@ -36,13 +36,11 @@ ALL_METRICS = Dict[str, METRIC_DICT]
 class Calibration(abc.Mapping):
     """A convenience wrapper for calibrations that acts like a dictionary.
 
-    Calibrations act as dictionaries whose keys are the names of the metric,
-    and whose values are the metric values.  The metric values themselves are
-    represented as a dictionary.  These metric value dictionaries have
-    keys that are tuples of `cirq.GridQubit`s and values that are lists of the
-    metric values for those qubits. If a metric acts globally and is attached
-    to no specified number of qubits, the map will be from the empty tuple
-    to the metrics values.
+    Calibrations act as dictionaries whose keys are the names of the metric, and whose values are
+    the metric values.  The metric values themselves are represented as a dictionary. These metric
+    value dictionaries have keys that are tuples of `cirq.GridQubit`s and values that are lists of
+    the metric values for those qubits. If a metric acts globally and is attached to no specified
+    number of qubits, the map will be from the empty tuple to the metrics values.
 
     Calibrations act just like a python dictionary. For example you can get
     a list of all of the metric names using
@@ -188,14 +186,27 @@ class Calibration(abc.Mapping):
     def key_to_qubit(target: METRIC_KEY) -> devices.GridQubit:
         """Returns a single qubit from a metric key.
 
-        If the metric key is multiple qubits, return the first one.
-
         Raises:
            ValueError if the metric key is a tuple of strings.
         """
         if target and isinstance(target, tuple) and isinstance(target[0], devices.GridQubit):
             return target[0]
-        raise ValueError(f'The metric target {target} was not a qubit.')
+        raise ValueError(f'The metric target {target} was not a tuple of qubits')
+
+    @staticmethod
+    def key_to_qubits(target: METRIC_KEY) -> Tuple[devices.GridQubit, ...]:
+        """Returns a tuple of qubits from a metric key.
+
+        Raises:
+           ValueError if the metric key is a tuple of strings.
+        """
+        if (
+            target
+            and isinstance(target, tuple)
+            and all(isinstance(q, devices.GridQubit) for q in target)
+        ):
+            return target  # type: ignore
+        raise ValueError(f'The metric target {target} was not a tuple of grid qubits.')
 
     @staticmethod
     def value_to_float(value: METRIC_VALUE) -> float:
@@ -223,17 +234,21 @@ class Calibration(abc.Mapping):
             A `cirq.Heatmap` for the metric.
 
         Raises:
-            AssertionError if the heatmap is not for single qubits or the metric
+            ValueError if the heatmap is not for one/two qubits or the metric
             values are not single floats.
         """
         metrics = self[key]
-        assert all(
-            len(k) == 1 for k in metrics.keys()
-        ), 'Heatmaps are only supported if all the targets in a metric are single qubits.'
-        assert all(
-            len(k) == 1 for k in metrics.values()
-        ), 'Heatmaps are only supported if all the values in a metric are single metric values.'
-        value_map: Dict['cirq.GridQubit', SupportsFloat] = {
-            self.key_to_qubit(target): float(value) for target, (value,) in metrics.items()
-        }
-        return vis.Heatmap(value_map)
+        if not all(len(k) == 1 for k in metrics.values()):
+            raise ValueError(
+                'Heatmaps are only supported if all values in a metric are single metric values.'
+                + f'{key} has metric values {metrics.values()}'
+            )
+        value_map = {self.key_to_qubits(k): self.value_to_float(v) for k, v in metrics.items()}
+        if all(len(k) == 1 for k in value_map.keys()):
+            return vis.Heatmap(value_map)
+        elif all(len(k) == 2 for k in value_map.keys()):
+            return vis.TwoQubitInteractionHeatmap(value_map)
+        raise ValueError(
+            'Heatmaps are only supported if all the targets in a metric are one or two qubits.'
+            + f'{key} has target qubits {value_map.keys()}'
+        )

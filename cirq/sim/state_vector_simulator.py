@@ -15,51 +15,32 @@
 
 import abc
 
-from typing import Any, cast, Dict, Iterator, Sequence, TYPE_CHECKING, Tuple
+from typing import Any, Dict, Sequence, TYPE_CHECKING, Tuple, Generic, TypeVar
 
 import numpy as np
 
-from cirq import circuits, ops, study, value
+from cirq import ops, study, value
 from cirq.sim import simulator, state_vector
-from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     import cirq
 
 
+TStateVectorStepResult = TypeVar('TStateVectorStepResult', bound='StateVectorStepResult')
+
+
 class SimulatesIntermediateStateVector(
-    simulator.SimulatesAmplitudes, simulator.SimulatesIntermediateState, metaclass=abc.ABCMeta
+    Generic[TStateVectorStepResult],
+    simulator.SimulatesAmplitudes,
+    simulator.SimulatesIntermediateState[
+        TStateVectorStepResult, 'StateVectorTrialResult', 'StateVectorSimulatorState'
+    ],
+    metaclass=abc.ABCMeta,
 ):
     """A simulator that accesses its state vector as it does its simulation.
 
-    Implementors of this interface should implement the _simulator_iterator
+    Implementors of this interface should implement the _base_iterator
     method."""
-
-    @abc.abstractmethod
-    def _simulator_iterator(
-        self,
-        circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver,
-        qubit_order: ops.QubitOrderOrList,
-        initial_state: np.ndarray,
-    ) -> Iterator:
-        """Iterator over StateVectorStepResult from Moments of a Circuit.
-
-        Args:
-            circuit: The circuit to simulate.
-            param_resolver: A ParamResolver for determining values of
-                Symbols.
-            qubit_order: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
-            initial_state: The initial state for the simulation. The form of
-                this state depends on the simulation implementation. See
-                documentation of the implementing class for details.
-
-        Yields:
-            StateVectorStepResult from simulating a Moment of the Circuit.
-        """
-        raise NotImplementedError()
 
     def _create_simulator_trial_result(
         self,
@@ -94,26 +75,15 @@ class SimulatesIntermediateStateVector(
 
         all_amplitudes = []
         for trial_result in trial_results:
-            trial_result = cast(StateVectorTrialResult, trial_result)
             amplitudes = trial_result.final_state_vector[bitstrings]
             all_amplitudes.append(amplitudes)
 
         return all_amplitudes
 
 
-class SimulatesIntermediateWaveFunction(SimulatesIntermediateStateVector):
-    """Deprecated. Please use `SimulatesIntermediateStateVector` instead."""
-
-    @deprecated(
-        deadline='v0.10.0',
-        fix='Use SimulatesIntermediateStateVector instead.',
-        name='The class SimulatesIntermediateWaveFunction',
-    )
-    def __new__(cls, *args, **kwargs):
-        return SimulatesIntermediateStateVector.__new__(cls)
-
-
-class StateVectorStepResult(simulator.StepResult, metaclass=abc.ABCMeta):
+class StateVectorStepResult(
+    simulator.StepResult['StateVectorSimulatorState'], metaclass=abc.ABCMeta
+):
     @abc.abstractmethod
     def _simulator_state(self) -> 'StateVectorSimulatorState':
         """Returns the simulator_state of the simulator after this step.
@@ -123,18 +93,6 @@ class StateVectorStepResult(simulator.StepResult, metaclass=abc.ABCMeta):
         details.
         """
         raise NotImplementedError()
-
-
-class WaveFunctionStepResult(StateVectorStepResult):
-    """Deprecated. Please use `StateVectorStepResult` instead."""
-
-    @deprecated(
-        deadline='v0.10.0',
-        fix='Use StateVectorStepResult instead.',
-        name='The class WaveFunctionStepResult',
-    )
-    def __new__(cls, *args, **kwargs):
-        return StateVectorStepResult.__new__(cls)
 
 
 @value.value_equality(unhashable=True)
@@ -158,18 +116,6 @@ class StateVectorSimulatorState:
         return (self.state_vector.tolist(), self.qubit_map)
 
 
-class WaveFunctionSimulatorState(StateVectorSimulatorState):
-    """Deprecated. Please use `StateVectorSimulatorState` instead."""
-
-    @deprecated(
-        deadline='v0.10.0',
-        fix='Use StateVectorSimulatorState instead.',
-        name='The class WaveFunctionSimulatorState',
-    )
-    def __new__(cls, *args, **kwargs):
-        return StateVectorSimulatorState.__new__(cls)
-
-
 @value.value_equality(unhashable=True)
 class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.SimulationTrialResult):
     """A `SimulationTrialResult` that includes the `StateVectorMixin` methods.
@@ -191,11 +137,6 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
             qubit_map=final_simulator_state.qubit_map,
         )
         self.final_state_vector = final_simulator_state.state_vector
-
-    @property  # type: ignore
-    @deprecated(deadline='v0.10.0', fix='Use final_state_vector instead.')
-    def final_state(self):
-        return self.final_state_vector
 
     def state_vector(self):
         """Return the state vector at the end of the computation.
@@ -252,15 +193,3 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
             f'measurements={self.measurements!r}, '
             f'final_simulator_state={self._final_simulator_state!r})'
         )
-
-
-class WaveFunctionTrialResult(StateVectorTrialResult):
-    """Deprecated. Please use `StateVectorTrialResult` instead."""
-
-    @deprecated(
-        deadline='v0.10.0',
-        fix='Use StateVectorTrialResult instead.',
-        name='The class WaveFunctionTrialResult',
-    )
-    def __new__(cls, *args, **kwargs):
-        return StateVectorTrialResult.__new__(cls)

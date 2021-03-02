@@ -18,7 +18,7 @@ def test_pack_bits(reps):
 q = cirq.GridQubit  # For brevity.
 
 
-def _check_measurement(m, key, qubits, slot, invert_mask=None):
+def _check_measurement(m, key, qubits, slot, invert_mask=None, tags=None):
     assert m.key == key
     assert m.qubits == qubits
     assert m.slot == slot
@@ -27,6 +27,10 @@ def _check_measurement(m, key, qubits, slot, invert_mask=None):
     else:
         assert len(m.invert_mask) == len(m.qubits)
         assert m.invert_mask == [False] * len(m.qubits)
+    if tags is not None:
+        assert m.tags == tags
+    else:
+        assert len(m.tags) == 0
 
 
 def test_find_measurements_simple_circuit():
@@ -49,6 +53,27 @@ def test_find_measurements_invert_mask():
     assert len(measurements) == 1
     m = measurements[0]
     _check_measurement(m, 'k', [q(0, 0), q(0, 1), q(0, 2)], 0, [False, True, True])
+
+
+def test_find_measurements_with_tags():
+    circuit = cirq.Circuit()
+    circuit.append(
+        cirq.measure(q(0, 0), q(0, 1), q(0, 2), key='k', invert_mask=[False, True, True]).with_tags(
+            cirq.google.CalibrationTag('special')
+        )
+    )
+    measurements = v2.find_measurements(circuit)
+
+    assert len(measurements) == 1
+    m = measurements[0]
+    _check_measurement(
+        m,
+        'k',
+        [q(0, 0), q(0, 1), q(0, 2)],
+        0,
+        [False, True, True],
+        [cirq.google.CalibrationTag('special')],
+    )
 
 
 def test_find_measurements_fill_mask():
@@ -110,7 +135,7 @@ def test_multiple_measurements_shared_slots():
 
 
 def test_results_to_proto():
-    measurements = [v2.MeasureInfo('foo', [q(0, 0)], slot=0, invert_mask=[False])]
+    measurements = [v2.MeasureInfo('foo', [q(0, 0)], slot=0, invert_mask=[False], tags=[])]
     trial_results = [
         [
             cirq.Result.from_single_parameter_set(
@@ -157,7 +182,7 @@ def test_results_to_proto():
 
 
 def test_results_to_proto_sweep_repetitions():
-    measurements = [v2.MeasureInfo('foo', [q(0, 0)], slot=0, invert_mask=[False])]
+    measurements = [v2.MeasureInfo('foo', [q(0, 0)], slot=0, invert_mask=[False], tags=[])]
     trial_results = [
         [
             cirq.Result.from_single_parameter_set(
@@ -181,7 +206,7 @@ def test_results_to_proto_sweep_repetitions():
 def test_results_from_proto_qubit_ordering():
     measurements = [
         v2.MeasureInfo(
-            'foo', [q(0, 0), q(0, 1), q(1, 1)], slot=0, invert_mask=[False, False, False]
+            'foo', [q(0, 0), q(0, 1), q(1, 1)], slot=0, invert_mask=[False, False, False], tags=[]
         )
     ]
     proto = v2.result_pb2.Result()
@@ -225,7 +250,7 @@ def test_results_from_proto_qubit_ordering():
 def test_results_from_proto_duplicate_qubit():
     measurements = [
         v2.MeasureInfo(
-            'foo', [q(0, 0), q(0, 1), q(1, 1)], slot=0, invert_mask=[False, False, False]
+            'foo', [q(0, 0), q(0, 1), q(1, 1)], slot=0, invert_mask=[False, False, False], tags=[]
         )
     ]
     proto = v2.result_pb2.Result()

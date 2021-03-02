@@ -6,8 +6,8 @@
 Cirq is a Python library for writing, manipulating, and optimizing quantum
 circuits and running them against quantum computers and simulators.
 
-.. image:: https://travis-ci.com/quantumlib/Cirq.svg?token=7FwHBHqoxBzvgH51kThw&branch=master
-  :target: https://travis-ci.com/quantumlib/Cirq
+.. image:: https://github.com/quantumlib/cirq/workflows/Continuous%20Integration/badge.svg
+  :target: https://github.com/quantumlib/Cirq
   :alt: Build Status
 
 .. image:: https://badge.fury.io/py/cirq.svg
@@ -23,9 +23,9 @@ Installation and Documentation
 
 Cirq documentation is available at `quantumai.google/cirq <https://quantumai.google/cirq>`_.
 
-Documentation for the latest **pre-release** version of cirq (tracks the repository's master branch; what you get if you ``pip install --pre cirq``), is available at `cirq.readthedocs.io/latest <https://quantumai.google/cirq/>`_.
+Documentation for the latest **pre-release** version of cirq (tracks the repository's master branch; what you get if you ``pip install --pre cirq``), is available at `here <https://quantumai.google/reference/python/cirq/all_symbols?version=nightly>`__.
 
-Documentation for the latest **stable** version of cirq (what you get if you ``pip install cirq``) is available at `cirq.readthedocs.io/stable <https://quantumai.google/cirq/>`_.
+Documentation for the latest **stable** version of cirq (what you get if you ``pip install cirq``) is available at `here <https://quantumai.google/reference/python/cirq/all_symbols>`__.
 
 
 - `Installation <https://quantumai.google/cirq/install>`_
@@ -88,21 +88,6 @@ Cirq is uploaded to Zenodo automatically. Click on the badge below to see all th
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4062499.svg
   :target: https://doi.org/10.5281/zenodo.4062499
   :alt: DOI
-
-An equivalent BibTex format reference is below for all the versions:
-
-.. code-block::
-
-    @software{quantum_ai_team_and_collaborators_2020_4062499,
-      author       = {Quantum AI team and collaborators},
-      title        = {Cirq},
-      month        = Oct,
-      year         = 2020,
-      publisher    = {Zenodo},
-      doi          = {10.5281/zenodo.4062499},
-      url          = {https://doi.org/10.5281/zenodo.4062499}
-    }
-
 
 Cirq Contributors Community
 ---------------------------
