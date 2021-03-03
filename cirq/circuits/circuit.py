@@ -2201,23 +2201,33 @@ class Circuit(AbstractCircuit):
             c_noisy += Circuit(op_tree)
         return c_noisy
 
-    def decompose(self) -> Iterable['cirq.Circuit']:
-        """Decomposes circuit into a set of circuits, if it's possible (i.e. if
+    def factorize(self, with_qubits: Iterable['cirq.Qid'] = None) -> Iterable['cirq.Circuit']:
+        """Factorize circuit into a set of circuits, if it's possible (i.e. if
         the circuit qubits can be divided into two or more groups of qubits
         such that there are no entangling gates between them).
 
         If this is not possible, will return the set consisting of the single
         circuit (this one).
+
+        Args:
+            with_qubits: If set, will only return factors containing these
+            qubits. They must be present in the circuit.
         """
+        if not with_qubits is None and not frozenset(with_qubits) < self.all_qubits():
+            raise ValueError('Unknown qubit.')
+
         uf = networkx.utils.UnionFind(self.all_qubits())
         for op in self.all_operations():
             if len(op.qubits) > 1:
                 uf.union(*op.qubits)
         qubit_sets = sorted(uf.to_sets(), key=min)
+
         if len(qubit_sets) == 1:
             return (self,)
-        new_moments = [[m[qubits] for m in self.moments] for qubits in qubit_sets]
-        return (Circuit(m) for m in new_moments)
+        if not with_qubits is None:
+            qubit_sets = [qs for qs in qubit_sets if qs.intersection(with_qubits)]
+
+        return (Circuit(m[qubits] for m in self.moments) for qubits in qubit_sets)
 
 
 def _get_op_circuit(op: ops.Operation) -> Optional['cirq.FrozenCircuit']:
