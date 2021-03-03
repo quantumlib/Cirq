@@ -150,11 +150,10 @@ class Result:
 
     @property
     def repetitions(self) -> int:
-        measurement_values = self.measurements.values()
-        if not measurement_values:
+        if not self._measurements or not self.measurements.values():
             return 0
         # Get the length quickly from one of the keyed results.
-        return len(next(iter(measurement_values)))
+        return len(next(iter(self.measurements.values())))
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def multi_measurement_histogram(  # type: ignore
