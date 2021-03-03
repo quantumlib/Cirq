@@ -34,7 +34,7 @@ test_device = cirq.google.XmonDevice(
 )
 
 
-def simulate(sim_type: str, num_qubits: int, num_gates: int) -> None:
+def simulate(sim_type: str, num_qubits: int, num_gates: int, run_repetitions: int = 1) -> None:
     """"Runs the simulator."""
     circuit = cirq.Circuit(device=test_device)
 
@@ -54,12 +54,17 @@ def simulate(sim_type: str, num_qubits: int, num_gates: int) -> None:
             q1 = cirq.GridQubit(0, np.random.randint(num_qubits - 1))
             q2 = cirq.GridQubit(0, q1.col + 1)
             circuit.append(cirq.CZ(q1, q2) ** np.random.random())
-    circuit.append([cirq.measure(cirq.GridQubit(0, np.random.randint(num_qubits)), key='meas')])
+    circuit.append([cirq.measure(*[cirq.GridQubit(0, i) for i in range(num_qubits)], key='meas')])
+
+    if sim_type == _DENSITY:
+        for i in range(num_qubits):
+            circuit.append(cirq.H(cirq.GridQubit(0, i)))
+            circuit.append(cirq.measure(cirq.GridQubit(0, i), key=f"meas{i}."))
 
     if sim_type == _UNITARY:
         circuit.final_state_vector(initial_state=0)
     elif sim_type == _DENSITY:
-        cirq.DensityMatrixSimulator().run(circuit)
+        cirq.DensityMatrixSimulator().run(circuit, repetitions=run_repetitions)
 
 
 def main(
@@ -68,11 +73,14 @@ def main(
     max_num_qubits: int,
     num_gates: int,
     num_repetitions: int,
+    run_repetitions: int,
     setup: str = 'from __main__ import simulate',
 ):
     print('num_qubits,seconds per gate')
     for num_qubits in range(min_num_qubits, max_num_qubits + 1):
-        command = 'simulate(\'{}\', {}, {})'.format(sim_type, num_qubits, num_gates)
+        command = 'simulate(\'{}\', {}, {}, {})'.format(
+            sim_type, num_qubits, num_gates, run_repetitions
+        )
         time = timeit.timeit(command, setup, number=num_repetitions)
         print('{},{}'.format(num_qubits, time / (num_repetitions * num_gates)))
 
@@ -97,6 +105,12 @@ def parse_arguments(args):
     )
     parser.add_argument(
         '--num_repetitions', default=10, type=int, help='Number of times to repeat a simulation'
+    )
+    parser.add_argument(
+        '--run_repetitions',
+        default=1,
+        type=int,
+        help='Number of repetitions in the run (density matrix only).',
     )
     return vars(parser.parse_args(args))
 
