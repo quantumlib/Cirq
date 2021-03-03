@@ -113,27 +113,6 @@ def test_has_mixture():
     assert cirq.has_mixture(ReturnsUnitary())
     assert not cirq.has_mixture(ReturnsNotImplementedUnitary())
 
-    class NoAtom(cirq.Operation):
-        @property
-        def qubits(self):
-            return cirq.LineQubit.range(2)
-
-        def with_qubits(self):
-            raise NotImplementedError()
-
-    class No1:
-        def _decompose_(self):
-            return [NoAtom()]
-
-    class Yes1:
-        def _decompose_(self):
-            return [cirq.X(cirq.LineQubit(0))]
-
-    with cirq.testing.assert_logs('cirq.has_mixture', ' has_mixture_channel '):
-        assert not cirq.has_mixture_channel(No1())
-    with cirq.testing.assert_logs('cirq.has_mixture', ' has_mixture_channel '):
-        assert cirq.has_mixture_channel(Yes1())
-
 
 def test_valid_mixture():
     cirq.validate_mixture(ReturnsValidTuple())
@@ -155,10 +134,3 @@ def test_invalid_mixture(val, message):
 def test_missing_mixture():
     with pytest.raises(TypeError, match='_mixture_'):
         cirq.validate_mixture(NoMethod)
-
-
-def test_deprecated_mixture_channel():
-    with cirq.testing.assert_logs('"cirq.mixture"', ' mixture_channel '):
-        _ = cirq.mixture_channel(cirq.X)
-    with cirq.testing.assert_logs('"cirq.has_mixture"', ' has_mixture_channel '):
-        _ = cirq.has_mixture_channel(cirq.X)
