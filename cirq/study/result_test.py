@@ -158,6 +158,16 @@ def test_multi_measurement_histogram():
         }
     )
 
+    result = cirq.Result.from_single_parameter_set(
+        params=cirq.ParamResolver({}),
+        measurements={},
+    )
+
+    assert (
+        result.multi_measurement_histogram(keys=[], fold_func=lambda e: None)
+        == collections.Counter()
+    )
+
 
 def test_trial_result_equality():
     et = cirq.testing.EqualsTester()
