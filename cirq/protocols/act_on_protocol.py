@@ -19,6 +19,9 @@ from typing_extensions import Protocol
 
 from cirq._doc import doc_private
 from cirq.type_workarounds import NotImplementedType
+from cirq.protocols.decompose_protocol import (
+    _try_decompose_into_operations_and_qubits,
+)
 
 if TYPE_CHECKING:
     pass
@@ -123,3 +126,41 @@ def act_on(
         f"Action type: {type(action)}\n"
         f"Action repr: {action!r}\n"
     )
+
+
+def strat_act_on_from_apply_decompose(
+    action: Any,
+    args: Any,
+) -> bool:
+    """Decomposes the input action and then tries to apply `act_on` to each constituent operation.
+
+     Args:
+        action: The action to decompose and apply to the arg. Typically a `cirq.Operation`.
+        args: A mutable state object that should be modified by the action. If the internal state
+         is mutated and the method eventually fails, the internal state is restored to its original
+         value.
+
+    Returns:
+        True if the action was able to fully act on the args. Returns NotImplemented otherwise.
+    """
+    operations, qubits, _ = _try_decompose_into_operations_and_qubits(action)
+
+    if operations is None:
+        return NotImplemented
+    assert len(qubits) == len(args.axes)
+    qubit_map = {q: args.axes[i] for i, q in enumerate(qubits)}
+
+    old_axes = args.axes
+    old_internal_state = args.internal_state.copy()
+    try:
+        for action in operations:
+            args.axes = tuple(qubit_map[q] for q in action.qubits)
+            act_on(action, args)
+    except TypeError:
+        # Restore original state in case of failure since the try block above might have modified
+        # it, but the modification is now useless since the whole loop was unsuccessful.
+        args.internal_state = old_internal_state
+        return NotImplemented
+    finally:
+        args.axes = old_axes
+    return True

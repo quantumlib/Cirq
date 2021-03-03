@@ -18,7 +18,7 @@ import numpy as np
 
 from cirq.ops import common_gates, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
-from cirq.protocols import has_unitary, num_qubits, unitary
+from cirq import protocols
 from cirq.sim.clifford.stabilizer_state_ch_form import StabilizerStateChForm
 
 if TYPE_CHECKING:
@@ -57,6 +57,14 @@ class ActOnStabilizerCHFormArgs:
         self.prng = prng
         self.log_of_measurement_results = log_of_measurement_results
 
+    @property
+    def internal_state(self):
+        return self.state
+
+    @internal_state.setter
+    def internal_state(self, new_value):
+        self.state = new_value
+
     def record_measurement_result(self, key: str, value: Any):
         """Adds a measurement result to the log.
         Args:
@@ -72,6 +80,7 @@ class ActOnStabilizerCHFormArgs:
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
         strats = []
         if allow_decompose:
+            strats.append(protocols.strat_act_on_from_apply_decompose)  # type: ignore
             strats.append(_strat_act_on_stabilizer_ch_form_from_single_qubit_decompose)
         for strat in strats:
             result = strat(action, self)
@@ -85,10 +94,10 @@ class ActOnStabilizerCHFormArgs:
 def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
     val: Any, args: 'cirq.ActOnStabilizerCHFormArgs'
 ) -> bool:
-    if num_qubits(val) == 1:
-        if not has_unitary(val):
+    if protocols.num_qubits(val) == 1:
+        if not protocols.has_unitary(val):
             return NotImplemented
-        u = unitary(val)
+        u = protocols.unitary(val)
         clifford_gate = SingleQubitCliffordGate.from_unitary(u)
         if clifford_gate is not None:
             # Gather the effective unitary applied so as to correct for the
@@ -107,7 +116,7 @@ def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
                     gate = common_gates.ZPowGate(exponent=quarter_turns / 2)
                     assert gate._act_on_(args)
 
-                final_unitary = np.matmul(unitary(gate), final_unitary)
+                final_unitary = np.matmul(protocols.unitary(gate), final_unitary)
 
             # Find the entry with the largest magnitude in the input unitary.
             k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))

@@ -13,14 +13,11 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Iterable, Sequence, Tuple, TYPE_CHECKING, Union, Dict
+from typing import Any, Iterable, Tuple, TYPE_CHECKING, Union, Dict
 
 import numpy as np
 
 from cirq import linalg, protocols
-from cirq.protocols.decompose_protocol import (
-    _try_decompose_into_operations_and_qubits,
-)
 
 if TYPE_CHECKING:
     import cirq
@@ -83,6 +80,14 @@ class ActOnStateVectorArgs:
         if new_target_tensor is self.available_buffer:
             self.available_buffer = self.target_tensor
         self.target_tensor = new_target_tensor
+
+    @property
+    def internal_state(self):
+        return self.target_tensor
+
+    @internal_state.setter
+    def internal_state(self, new_value):
+        self.swap_target_tensor_for(new_value)
 
     def record_measurement_result(self, key: str, value: Any):
         """Adds a measurement result to the log.
@@ -157,7 +162,7 @@ class ActOnStateVectorArgs:
             _strat_act_on_state_vector_from_channel,
         ]
         if allow_decompose:
-            strats.append(_strat_act_on_state_vector_from_apply_decompose)
+            strats.append(protocols.strat_act_on_from_apply_decompose)  # type: ignore
 
         # Try each strategy, stopping if one works.
         for strat in strats:
@@ -188,32 +193,6 @@ def _strat_act_on_state_vector_from_apply_unitary(
     if new_target_tensor is NotImplemented:
         return NotImplemented
     args.swap_target_tensor_for(new_target_tensor)
-    return True
-
-
-def _strat_act_on_state_vector_from_apply_decompose(
-    val: Any,
-    args: ActOnStateVectorArgs,
-) -> bool:
-    operations, qubits, _ = _try_decompose_into_operations_and_qubits(val)
-    if operations is None:
-        return NotImplemented
-    return _act_all_on_state_vector(operations, qubits, args)
-
-
-def _act_all_on_state_vector(
-    actions: Iterable[Any], qubits: Sequence['cirq.Qid'], args: 'cirq.ActOnStateVectorArgs'
-):
-    assert len(qubits) == len(args.axes)
-    qubit_map = {q: args.axes[i] for i, q in enumerate(qubits)}
-
-    old_axes = args.axes
-    try:
-        for action in actions:
-            args.axes = tuple(qubit_map[q] for q in action.qubits)
-            protocols.act_on(action, args)
-    finally:
-        args.axes = old_axes
     return True
 
 

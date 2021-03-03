@@ -16,6 +16,7 @@
 
 from cirq.protocols.act_on_protocol import (
     act_on,
+    strat_act_on_from_apply_decompose,
     SupportsActOn,
 )
 from cirq.protocols.apply_unitary_protocol import (

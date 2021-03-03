@@ -42,6 +42,32 @@ def test_decomposed_fallback():
     )
 
 
+def test_unsupported_decomposed_preserves_args():
+    class NoDetails(cirq.SingleQubitGate):
+        pass
+
+    class UnsupportedComposite(cirq.Gate):
+        def num_qubits(self) -> int:
+            return 1
+
+        def _decompose_(self, qubits):
+            return [cirq.H(*qubits), NoDetails().on(*qubits), cirq.H(*qubits)]
+
+    original_tensor = cirq.one_hot(shape=(2, 2, 2), dtype=np.complex64)
+
+    args = cirq.ActOnStateVectorArgs(
+        target_tensor=original_tensor.copy(),
+        available_buffer=np.empty((2, 2, 2), dtype=np.complex64),
+        axes=[1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    with pytest.raises(TypeError, match="Failed to act"):
+        cirq.act_on(UnsupportedComposite(), args)
+
+    np.testing.assert_allclose(args.target_tensor, original_tensor)
+
+
 def test_cannot_act():
     class NoDetails:
         pass

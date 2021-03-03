@@ -21,7 +21,7 @@ import numpy as np
 from cirq.ops import common_gates
 from cirq.ops import pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
-from cirq.protocols import has_unitary, num_qubits, unitary
+from cirq import protocols
 from cirq.sim.clifford.clifford_tableau import CliffordTableau
 
 if TYPE_CHECKING:
@@ -60,6 +60,14 @@ class ActOnCliffordTableauArgs:
         self.prng = prng
         self.log_of_measurement_results = log_of_measurement_results
 
+    @property
+    def internal_state(self):
+        return self.tableau
+
+    @internal_state.setter
+    def internal_state(self, new_value):
+        self.tableau = new_value
+
     def record_measurement_result(self, key: str, value: Any):
         """Adds a measurement result to the log.
         Args:
@@ -75,6 +83,7 @@ class ActOnCliffordTableauArgs:
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
         strats = []
         if allow_decompose:
+            strats.append(protocols.strat_act_on_from_apply_decompose)  # type: ignore
             strats.append(_strat_act_on_clifford_tableau_from_single_qubit_decompose)
         for strat in strats:
             result = strat(action, self)
@@ -90,10 +99,10 @@ class ActOnCliffordTableauArgs:
 def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
     val: Any, args: 'cirq.ActOnCliffordTableauArgs'
 ) -> bool:
-    if num_qubits(val) == 1:
-        if not has_unitary(val):
+    if protocols.num_qubits(val) == 1:
+        if not protocols.has_unitary(val):
             return NotImplemented
-        u = unitary(val)
+        u = protocols.unitary(val)
         clifford_gate = SingleQubitCliffordGate.from_unitary(u)
         if clifford_gate is not None:
             for axis, quarter_turns in clifford_gate.decompose_rotation():

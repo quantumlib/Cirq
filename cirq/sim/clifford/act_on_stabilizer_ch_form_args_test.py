@@ -106,3 +106,55 @@ def test_unitary_fallback_h():
     )
     cirq.act_on(cirq.H, expected_args)
     np.testing.assert_allclose(args.state.state_vector(), expected_args.state.state_vector())
+
+
+def test_decomposed_fallback():
+    class Composite(cirq.Gate):
+        def num_qubits(self) -> int:
+            return 1
+
+        def _decompose_(self, qubits):
+            yield cirq.X(*qubits)
+
+    original_state = cirq.StabilizerStateChForm(num_qubits=3)
+
+    args = cirq.ActOnStabilizerCHFormArgs(
+        state=original_state.copy(),
+        axes=[1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(Composite(), args)
+    expected_args = cirq.ActOnStabilizerCHFormArgs(
+        state=original_state.copy(),
+        axes=[1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(cirq.X, expected_args)
+    np.testing.assert_allclose(args.state.state_vector(), expected_args.state.state_vector())
+
+
+def test_unsupported_decomposed_preserves_args():
+    class NoDetails(cirq.SingleQubitGate):
+        pass
+
+    class UnsupportedComposite(cirq.Gate):
+        def num_qubits(self) -> int:
+            return 1
+
+        def _decompose_(self, qubits):
+            return [cirq.H(*qubits), NoDetails().on(*qubits), cirq.H(*qubits)]
+
+    original_state = cirq.StabilizerStateChForm(num_qubits=3)
+
+    args = cirq.ActOnStabilizerCHFormArgs(
+        state=original_state.copy(),
+        axes=[1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    with pytest.raises(TypeError, match="Failed to act"):
+        cirq.act_on(UnsupportedComposite(), args)
+
+    np.testing.assert_allclose(args.state.state_vector(), original_state.state_vector())
