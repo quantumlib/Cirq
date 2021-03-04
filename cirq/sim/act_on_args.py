@@ -53,14 +53,14 @@ class ActOnArgs:
                 declared in a `_measurement_keys_` method.
             invert_mask: The invert mask for the measurement.
         """
-        bits = self.perform_measurement()
+        bits = self._perform_measurement()
         corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
         if key in self.log_of_measurement_results:
             raise ValueError(f"Measurement already logged to key {key!r}")
         self.log_of_measurement_results[key] = corrected
 
     @abc.abstractmethod
-    def perform_measurement(self) -> List[int]:
+    def _perform_measurement(self) -> List[int]:
         """Child classes that perform measurements should implement this with
         the implementation."""
 

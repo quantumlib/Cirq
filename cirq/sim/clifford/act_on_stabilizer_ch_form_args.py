@@ -68,7 +68,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
 
         return NotImplemented
 
-    def perform_measurement(self) -> List[int]:
+    def _perform_measurement(self) -> List[int]:
         """Returns the measurement from the stabilizer state form."""
         return [self.state._measure(q, self.prng) for q in self.axes]
 

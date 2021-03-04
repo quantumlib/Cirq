@@ -78,7 +78,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
 
         return NotImplemented  # coverage: ignore
 
-    def perform_measurement(self) -> List[int]:
+    def _perform_measurement(self) -> List[int]:
         """Delegates the call to measure the density matrix."""
         bits, _ = sim.measure_density_matrix(
             self.target_tensor,
