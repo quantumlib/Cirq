@@ -269,7 +269,7 @@ class DensityMatrixSimulator(
         for moment in noisy_moments:
             for op in flatten_to_ops(moment):
                 # TODO: support more general measurements.
-                # Github issue: https://github.com/quantumlib/Cirq/issues/1357
+                # Github issue: https://github.com/quantumlib/Cirq/issues/3566
                 if all_measurements_are_terminal and measured[op.qubits]:
                     continue
                 if protocols.is_measurement(op):
