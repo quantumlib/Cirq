@@ -83,8 +83,7 @@ for PYTHON_VERSION in python3; do
     # Install package.
     if [ "${PYPI_REPO_NAME}" == "TEST" ]; then
         echo "Pre-installing dependencies since they don't all exist in TEST pypi"
-        "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet -r "${RUNTIME_DEPS_FILE}"
-        "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet -r "${DEV_DEPS_FILE}"
+        "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet -r "${RUNTIME_DEPS_FILE}" -r "${DEV_DEPS_FILE}"
     fi
     echo Installing "${PYPI_PROJECT_NAME}==${PROJECT_VERSION} from ${PYPI_REPO_NAME} pypi"
     "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet ${PIP_FLAGS} "${PYPI_PROJECT_NAME}==${PROJECT_VERSION}"
