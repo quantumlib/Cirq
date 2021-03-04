@@ -562,10 +562,13 @@ def before_and_after_characterization(
     # `characterization_result.final_params` dictionary being keyed only by the pair.
     joined_df = joined_df.reset_index().set_index('pair')
 
-    cr = characterization_result  # shorter name to prevent line wrapping
-    joined_df['characterized_angles'] = [cr.final_params[pair] for pair in joined_df.index]
+    joined_df['characterized_angles'] = [
+        characterization_result.final_params[pair] for pair in joined_df.index
+    ]
     # Take any `final_params` (for any pair). We just need the angle names.
-    fp, *_ = cr.final_params.values()
+    fp, *_ = characterization_result.final_params.values()
     for angle_name in fp.keys():
-        joined_df[angle_name] = [cr.final_params[pair][angle_name] for pair in joined_df.index]
+        joined_df[angle_name] = [
+            characterization_result.final_params[pair][angle_name] for pair in joined_df.index
+        ]
     return joined_df
