@@ -620,6 +620,7 @@ def test_pathlib_paths(tmpdir):
     cirq.to_json_gzip(cirq.X, gzip_path)
     assert cirq.read_json_gzip(gzip_path) == cirq.X
 
+
 def test_json_serializable_dataclass():
     @cirq.json_serializable_dataclass
     class MyDC:
