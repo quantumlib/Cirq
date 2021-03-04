@@ -72,18 +72,14 @@ def strat_act_on_from_apply_decompose(
     operations, qubits, _ = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
         return NotImplemented
-    return _act_all_on_(operations, qubits, args)
-
-
-def _act_all_on_(actions: Iterable[Any], qubits: Sequence[ops.Qid], args: ActOnArgs):
     assert len(qubits) == len(args.axes)
     qubit_map = {q: args.axes[i] for i, q in enumerate(qubits)}
 
     old_axes = args.axes
     try:
-        for action in actions:
-            args.axes = tuple(qubit_map[q] for q in action.qubits)
-            protocols.act_on(action, args)
+        for operation in operations:
+            args.axes = tuple(qubit_map[q] for q in operation.qubits)
+            protocols.act_on(operation, args)
     finally:
         args.axes = old_axes
     return True

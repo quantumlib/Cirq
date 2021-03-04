@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -61,28 +61,20 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         self.qid_shape = qid_shape
 
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
-        """Apply channel to state."""
-        result = protocols.apply_channel(
-            action,
-            args=protocols.ApplyChannelArgs(
-                target_tensor=self.target_tensor,
-                out_buffer=self.available_buffer[0],
-                auxiliary_buffer0=self.available_buffer[1],
-                auxiliary_buffer1=self.available_buffer[2],
-                left_axes=self.axes,
-                right_axes=[e + len(self.qid_shape) for e in self.axes],
-            ),
-            default=None,
-        )
-        if result is not None:
-            for i in range(3):
-                if result is self.available_buffer[i]:
-                    self.available_buffer[i] = self.target_tensor
-            self.target_tensor = result
-            return True
-
+        strats = [
+            _strat_apply_channel_to_state,
+        ]
         if allow_decompose:
-            return strat_act_on_from_apply_decompose(action, self)
+            strats.append(strat_act_on_from_apply_decompose)  # type: ignore
+
+        # Try each strategy, stopping if one works.
+        for strat in strats:
+            result = strat(action, self)
+            if result is False:
+                break  # coverage: ignore
+            if result is True:
+                return True
+            assert result is NotImplemented, str(result)
 
         return NotImplemented  # coverage: ignore
 
@@ -96,3 +88,29 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             seed=self.prng,
         )
         return bits
+
+
+def _strat_apply_channel_to_state(
+    action: Any,
+    args: ActOnDensityMatrixArgs,
+) -> bool:
+    """Apply channel to state."""
+    result = protocols.apply_channel(
+        action,
+        args=protocols.ApplyChannelArgs(
+            target_tensor=args.target_tensor,
+            out_buffer=args.available_buffer[0],
+            auxiliary_buffer0=args.available_buffer[1],
+            auxiliary_buffer1=args.available_buffer[2],
+            left_axes=args.axes,
+            right_axes=[e + len(args.qid_shape) for e in args.axes],
+        ),
+        default=None,
+    )
+    if result is None:
+        return NotImplemented
+    for i in range(3):
+        if result is args.available_buffer[i]:
+            args.available_buffer[i] = args.target_tensor
+    args.target_tensor = result
+    return True
