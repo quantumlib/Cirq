@@ -17,7 +17,7 @@ from typing import Any, Iterable, Dict, List
 
 import numpy as np
 
-from cirq import protocols, ops
+from cirq import protocols
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 
 

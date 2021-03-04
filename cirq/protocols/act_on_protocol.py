@@ -109,6 +109,8 @@ def act_on(
         result = arg_fallback(action, allow_decompose=allow_decompose)
         if result is True:
             return
+        if isinstance(result, TypeError):
+            raise result
         if result is not NotImplemented:
             raise ValueError(
                 f'_act_on_fallback_ must return True or NotImplemented but got '

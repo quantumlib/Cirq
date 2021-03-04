@@ -150,8 +150,11 @@ class ActOnStateVectorArgs(ActOnArgs):
             if result is True:
                 return True
             assert result is NotImplemented, str(result)
-
-        return NotImplemented
+        raise TypeError(
+            "Can't simulate operations that don't implement "
+            "SupportsUnitary, SupportsConsistentApplyUnitary, "
+            "SupportsMixture or is a measurement: {!r}".format(action)
+        )
 
     def _perform_measurement(self) -> List[int]:
         """Delegates the call to measure the density matrix."""
