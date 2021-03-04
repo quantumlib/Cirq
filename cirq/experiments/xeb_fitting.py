@@ -465,9 +465,13 @@ def _fit_exponential_decay(
     cycle_depths = np.asarray(cycle_depths)
     fidelities = np.asarray(fidelities)
 
-    # Get initial guess by linear least squares with logarithm of model
+    # Get initial guess by linear least squares with logarithm of model.
+    # This only works for positive fidelities. We use numpy fancy indexing
+    # with `positives` (an ndarray of bools).
     positives = fidelities > 0
     if np.sum(positives) <= 1:
+        # The sum of the boolean array is the number of `True` entries.
+        # For one or fewer positive values, we cannot perform the linear fit.
         return 0, 0, np.inf, np.inf
     cycle_depths_pos = cycle_depths[positives]
     log_fidelities = np.log(fidelities[positives])
