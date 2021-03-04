@@ -37,7 +37,6 @@ TestSpec = ModuleJsonTestSpec(
         'DensityMatrixStepResult',
         'DensityMatrixTrialResult',
         'ExpressionMap',
-        'Heatmap',
         'InsertStrategy',
         'IonDevice',
         'KakDecomposition',
@@ -50,6 +49,7 @@ TestSpec = ModuleJsonTestSpec(
         'PauliStringPhasor',
         'PauliSum',
         'PauliSumCollector',
+        'PauliSumExponential',
         'PauliTransform',
         'PeriodicValue',
         'PointOptimizationSummary',
@@ -77,6 +77,9 @@ TestSpec = ModuleJsonTestSpec(
         'Zip',
     ],
     should_not_be_serialized=[
+        # Heatmaps
+        'Heatmap',
+        'TwoQubitInteractionHeatmap',
         # Intermediate states with work buffers and unknown external prng guts.
         'ActOnCliffordTableauArgs',
         'ActOnStabilizerCHFormArgs',
@@ -163,4 +166,5 @@ TestSpec = ModuleJsonTestSpec(
         'Unique',
         'DEFAULT_RESOLVERS',
     ],
+    deprecated={'TrialResult': "v0.11"},
 )

@@ -26,7 +26,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import devices, ops
+from cirq import devices, ops, protocols
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.type_workarounds import NotImplementedType
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-class FrozenCircuit(AbstractCircuit):
+class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     """An immutable version of the Circuit data structure.
 
     FrozenCircuits are immutable (and therefore hashable), but otherwise behave
@@ -87,8 +87,8 @@ class FrozenCircuit(AbstractCircuit):
     def __hash__(self):
         return hash((self.moments, self.device))
 
-    def serialization_key(self):
-        # TODO: use this key in serialization and support user-specified keys.
+    def diagram_name(self):
+        """Name used to represent this in circuit diagrams."""
         key = hash(self) & 0xFFFF_FFFF_FFFF_FFFF
         return f'Circuit_0x{key:016x}'
 
