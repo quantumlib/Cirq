@@ -22,6 +22,11 @@ import cirq
 from cirq.study.result import _pack_digits
 
 
+def test_result_init():
+    assert cirq.Result(params=cirq.ParamResolver({}), measurements=None).repetitions == 0
+    assert cirq.Result(params=cirq.ParamResolver({}), measurements={}).repetitions == 0
+
+
 def test_repr():
     v = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({'a': 2}), measurements={'xy': np.array([[1, 0], [0, 1]])}
