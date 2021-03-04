@@ -128,6 +128,24 @@ def test_ideal_sqrt_iswap_simulates_correctly() -> None:
     assert cirq.allclose_up_to_global_phase(actual, expected)
 
 
+def test_ideal_sqrt_iswap_inverse_simulates_correctly() -> None:
+    a, b, c, d = cirq.LineQubit.range(4)
+    circuit = cirq.Circuit(
+        [
+            [cirq.X(a), cirq.Y(c)],
+            [cirq.FSimGate(-np.pi / 4, 0.0).on(a, b), cirq.FSimGate(-np.pi / 4, 0.0).on(c, d)],
+            [cirq.FSimGate(-np.pi / 4, 0.0).on(b, c)],
+        ]
+    )
+
+    engine_simulator = PhasedFSimEngineSimulator.create_with_ideal_sqrt_iswap()
+
+    actual = engine_simulator.final_state_vector(circuit)
+    expected = cirq.final_state_vector(circuit)
+
+    assert cirq.allclose_up_to_global_phase(actual, expected)
+
+
 def test_ideal_sqrt_iswap_simulates_correctly_invalid_circuit_fails() -> None:
     engine_simulator = PhasedFSimEngineSimulator.create_with_ideal_sqrt_iswap()
 
