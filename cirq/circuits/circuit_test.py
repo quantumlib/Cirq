@@ -4165,7 +4165,7 @@ def test_transform_qubits():
     with pytest.raises(TypeError, match='must be a function or dict'):
         _ = original.transform_qubits('bad arg')
 
-    with cirq.testing.assert_logs('Use qubit_map instead'):
+    with cirq.testing.assert_deprecated('Use qubit_map instead', deadline="v0.11"):
         # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
         assert original.transform_qubits(func=lambda q: cirq.GridQubit(10 + q.x, 20)) == desired
 

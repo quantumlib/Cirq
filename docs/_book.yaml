@@ -67,6 +67,8 @@ upper_tabs:
         path: /cirq/custom_gates
       - title: "Operators and observables"
         path: /cirq/operators_and_observables
+      - title: "Issues / requests / questions"
+        path: /cirq/support
 
       ####  Contributor Guide  ####
       - heading: "Contributor guide"

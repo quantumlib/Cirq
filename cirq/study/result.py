@@ -68,7 +68,7 @@ def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]) -> str:
         reps = vals[key]
         n = 0 if len(reps) == 0 else len(reps[0])
         all_bits = ', '.join(_bitstring(reps[:, i]) for i in range(n))
-        keyed_bitstrings.append('{}={}'.format(key, all_bits))
+        keyed_bitstrings.append(f'{key}={all_bits}')
     return '\n'.join(keyed_bitstrings)
 
 
@@ -150,6 +150,8 @@ class Result:
 
     @property
     def repetitions(self) -> int:
+        if not self.measurements:
+            return 0
         # Get the length quickly from one of the keyed results.
         return len(next(iter(self.measurements.values())))
 
@@ -263,7 +265,7 @@ class Result:
     def __repr__(self) -> str:
         def item_repr(entry):
             key, val = entry
-            return '{!r}: {}'.format(key, proper_repr(val))
+            return f'{key!r}: {proper_repr(val)}'
 
         measurement_dict_repr = (
             '{' + ', '.join([item_repr(e) for e in self.measurements.items()]) + '}'
