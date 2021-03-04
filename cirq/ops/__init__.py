@@ -120,6 +120,10 @@ from cirq.ops.linear_combinations import (
     PauliSumLike,
 )
 
+from cirq.ops.pauli_sum_exponential import (
+    PauliSumExponential,
+)
+
 from cirq.ops.parallel_gate_operation import (
     ParallelGateOperation,
 )

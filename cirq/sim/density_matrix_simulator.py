@@ -172,24 +172,42 @@ class DensityMatrixSimulator(
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         check_all_resolved(resolved_circuit)
+        qubit_order = sorted(resolved_circuit.all_qubits())
 
-        _, general_suffix = split_into_matching_protocol_then_general(
+        prefix, general_suffix = split_into_matching_protocol_then_general(
             resolved_circuit, lambda op: not protocols.is_measurement(op)
         )
+        step_result = None
+        for step_result in self._base_iterator(
+            circuit=prefix,
+            qubit_order=qubit_order,
+            initial_state=0,
+        ):
+            pass
+        assert step_result is not None
+
+        intermediate_state = step_result._density_matrix
         if general_suffix.are_all_measurements_terminal() and not any(
             general_suffix.findall_operations(lambda op: isinstance(op, circuits.CircuitOperation))
         ):
-            return self._run_sweep_sample(resolved_circuit, repetitions)
-        return self._run_sweep_repeat(resolved_circuit, repetitions)
+            return self._run_sweep_sample(
+                general_suffix, repetitions, qubit_order, intermediate_state
+            )
+        return self._run_sweep_repeat(general_suffix, repetitions, qubit_order, intermediate_state)
 
     def _run_sweep_sample(
-        self, circuit: circuits.Circuit, repetitions: int
+        self,
+        circuit: circuits.Circuit,
+        repetitions: int,
+        qubit_order: ops.QubitOrderOrList,
+        intermediate_state: np.ndarray,
     ) -> Dict[str, np.ndarray]:
         for step_result in self._base_iterator(
             circuit=circuit,
-            qubit_order=ops.QubitOrder.DEFAULT,
-            initial_state=0,
+            qubit_order=qubit_order,
+            initial_state=intermediate_state,
             all_measurements_are_terminal=True,
+            is_raw_state=True,
         ):
             pass
         measurement_ops = [
@@ -198,16 +216,20 @@ class DensityMatrixSimulator(
         return step_result.sample_measurement_ops(measurement_ops, repetitions, seed=self._prng)
 
     def _run_sweep_repeat(
-        self, circuit: circuits.Circuit, repetitions: int
+        self,
+        circuit: circuits.Circuit,
+        repetitions: int,
+        qubit_order: ops.QubitOrderOrList,
+        intermediate_state: np.ndarray,
     ) -> Dict[str, np.ndarray]:
         measurements = {}  # type: Dict[str, List[np.ndarray]]
-        if repetitions == 0:
-            for _, op, _ in circuit.findall_operations_with_gate_type(ops.MeasurementGate):
-                measurements[protocols.measurement_key(op)] = np.empty([0, 1])
 
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
-                circuit, qubit_order=ops.QubitOrder.DEFAULT, initial_state=0
+                circuit,
+                qubit_order=qubit_order,
+                initial_state=intermediate_state,
+                is_raw_state=True,
             )
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
@@ -242,12 +264,17 @@ class DensityMatrixSimulator(
         qubit_order: ops.QubitOrderOrList,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'],
         all_measurements_are_terminal=False,
+        is_raw_state=False,
     ) -> Iterator:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         qid_shape = protocols.qid_shape(qubits)
         qubit_map = {q: i for i, q in enumerate(qubits)}
-        initial_matrix = qis.to_valid_density_matrix(
-            initial_state, len(qid_shape), qid_shape=qid_shape, dtype=self._dtype
+        initial_matrix = (
+            qis.to_valid_density_matrix(
+                initial_state, len(qid_shape), qid_shape=qid_shape, dtype=self._dtype
+            )
+            if not is_raw_state
+            else initial_state
         )
         if np.may_share_memory(initial_matrix, initial_state):
             initial_matrix = initial_matrix.copy()
@@ -256,7 +283,10 @@ class DensityMatrixSimulator(
             yield DensityMatrixStepResult(initial_matrix, {}, qubit_map, self._dtype)
             return
 
-        state = _StateAndBuffers(len(qid_shape), initial_matrix.reshape(qid_shape * 2))
+        state = _StateAndBuffers(
+            len(qid_shape),
+            initial_matrix.reshape(qid_shape * 2) if not is_raw_state else initial_matrix,
+        )
 
         def on_stuck(bad_op: ops.Operation):
             return TypeError(

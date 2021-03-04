@@ -239,6 +239,7 @@ from cirq.ops import (
     PauliStringGateOperation,
     PauliStringPhasor,
     PauliSum,
+    PauliSumExponential,
     PauliSumLike,
     PauliTransform,
     phase_damp,
@@ -303,7 +304,6 @@ from cirq.optimizers import (
     decompose_multi_controlled_x,
     decompose_multi_controlled_rotation,
     decompose_two_qubit_interaction_into_four_fsim_gates,
-    decompose_two_qubit_interaction_into_four_fsim_gates_via_b,
     DropEmptyMoments,
     DropNegligible,
     EjectPhasedPaulis,
@@ -492,6 +492,7 @@ from cirq.protocols import (
     read_json,
     resolve_parameters,
     resolve_parameters_once,
+    SerializableByKey,
     SupportsActOn,
     SupportsApplyChannel,
     SupportsApplyMixture,
@@ -542,6 +543,7 @@ from cirq.neutral_atoms import (
 
 from cirq.vis import (
     Heatmap,
+    TwoQubitInteractionHeatmap,
 )
 
 from cirq.work import (
