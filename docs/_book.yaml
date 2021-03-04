@@ -67,6 +67,8 @@ upper_tabs:
         path: /cirq/custom_gates
       - title: "Operators and observables"
         path: /cirq/operators_and_observables
+      - title: "Issues / requests / questions"
+        path: /cirq/support
 
       ####  Contributor Guide  ####
       - heading: "Contributor guide"
@@ -76,6 +78,8 @@ upper_tabs:
         path: /cirq/dev/rfc_process
       - title: "Style guide"
         path: /cirq/dev/style
+      - title: "Notebooks guide"
+        path: /cirq/dev/notebooks
       - title: "Nomenclature"
         path: /cirq/dev/nomenclature
       - title: "Gate and operation guidelines"
@@ -106,6 +110,19 @@ upper_tabs:
       - heading: "AQT hardware"
       - title: "Access and authentication"
         path: /cirq/aqt/access
+
+      ##### IonQ ####
+      - heading: "IonQ hardware"
+      - title: "Access and authentication"
+        path: /cirq/ionq/access
+      - title: "IonQ API service"
+        path: /cirq/ionq/service
+      - title: "IonQ API circuits"
+        path: /cirq/ionq/circuits
+      - title: "Running IonQ API jobs"
+        path: /cirq/ionq/jobs
+      - title: "IonQ API calibrations"
+        path: /cirq/ionq/calibrations
 
       ####  PASQAL  ####
       - heading: "Pasqal hardware"
@@ -149,6 +166,8 @@ upper_tabs:
       - heading: "Google hardware"
       - title: "Getting started with QCS"
         path: /cirq/tutorials/google/start
+      - title: "Floquet calibration"
+        path: /cirq/tutorials/google/floquet
 
       ####  AQT HARDWARE  ####
       - heading: "AQT hardware"

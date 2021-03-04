@@ -1042,6 +1042,25 @@ def test_pauli_sum_qubits(psum, expected_qubits):
     assert psum.qubits == expected_qubits
 
 
+@pytest.mark.parametrize(
+    'psum, expected_psum',
+    (
+        (cirq.Z(q0) + cirq.Y(q0), cirq.Z(q1) + cirq.Y(q0)),
+        (2 * cirq.X(q0) + 3 * cirq.Y(q2), 2 * cirq.X(q1) + 3 * cirq.Y(q3)),
+        (
+            cirq.X(q0) * cirq.Y(q1) + cirq.Y(q1) * cirq.Z(q3),
+            cirq.X(q1) * cirq.Y(q2) + cirq.Y(q2) * cirq.Z(q3),
+        ),
+    ),
+)
+def test_pauli_sum_with_qubits(psum, expected_psum):
+    if len(expected_psum.qubits) == len(psum.qubits):
+        assert psum.with_qubits(*expected_psum.qubits) == expected_psum
+    else:
+        with pytest.raises(ValueError, match='number'):
+            psum.with_qubits(*expected_psum.qubits)
+
+
 def test_pauli_sum_from_single_pauli():
     q = cirq.LineQubit.range(2)
     psum1 = cirq.X(q[0]) + cirq.Y(q[1])
@@ -1574,16 +1593,3 @@ def test_expectation_from_density_matrix_two_qubit_states():
         np.testing.assert_allclose(
             psum3.expectation_from_density_matrix(state, qubit_map=q_map_2), 0
         )
-
-
-def test_deprecated():
-    q = cirq.LineQubit(0)
-    pauli_sum = cirq.X(q) + 0.2 * cirq.Z(q)
-    state_vector = np.array([1, 1], dtype=np.complex64) / np.sqrt(2)
-    with cirq.testing.assert_logs(
-        'expectation_from_wavefunction', 'expectation_from_state_vector', 'deprecated'
-    ):
-        _ = pauli_sum.expectation_from_wavefunction(state_vector, {q: 0})
-
-    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
-        _ = pauli_sum.expectation_from_state_vector(state=state_vector, qubit_map={q: 0})
