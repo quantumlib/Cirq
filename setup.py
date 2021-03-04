@@ -77,5 +77,6 @@ setup(
         'cirq.google.api.v1': ['*.proto', '*.pyi'],
         'cirq.google.api.v2': ['*.proto', '*.pyi'],
         'cirq.protocols.json_test_data': ['*'],
+        'cirq.google.json_test_data': ['*'],
     },
 )
