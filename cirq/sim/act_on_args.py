@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
-from typing import Any, Iterable, Dict, Sequence, List
+from typing import Any, Iterable, Dict, List
 
 import numpy as np
 
