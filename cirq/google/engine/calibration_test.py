@@ -163,11 +163,13 @@ def test_calibration_heatmap():
     figure = mpl.figure.Figure()
     axes = figure.add_subplot(111)
     heatmap.plot(axes)
+    assert axes.get_title() == 'T1'
 
     heatmap = calibration.heatmap('xeb')
     figure = mpl.figure.Figure()
     axes = figure.add_subplot(999)
     heatmap.plot(axes)
+    assert axes.get_title() == 'Xeb'
 
     with pytest.raises(ValueError, match="one or two qubits.*multi_qubit"):
         multi_qubit_data = Merge(
