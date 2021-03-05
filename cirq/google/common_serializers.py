@@ -36,6 +36,9 @@ from cirq.google.ops import PhysicalZTag
 PHYSICAL_Z = 'physical'
 VIRTUAL_Z = 'virtual_propagates_forward'
 
+# Strings used for phase matching args
+PHASE_MATCH_PHYS_Z = 'phys_z'
+
 
 # Default tolerance for differences in floating point
 # Note that Google protocol buffers use floats
@@ -371,6 +374,21 @@ SINGLE_QUBIT_HALF_PI_DESERIALIZERS = [
 #
 #############################################
 
+_phase_match_arg = op_serializer.SerializingArg(
+    serialized_name='phase_match',
+    serialized_type=str,
+    op_getter=lambda op: PHASE_MATCH_PHYS_Z if PhysicalZTag() in op.tags else None,
+    required=False,
+)
+
+
+def _add_phase_match(op: ops.Operation, proto: v2.program_pb2.Operation):
+    if 'phase_match' in proto.args:
+        if proto.args['phase_match'].arg_value.string_value == PHASE_MATCH_PHYS_Z:
+            return op.with_tags(PhysicalZTag())
+    return op
+
+
 #
 # CZ Serializer and deserializer
 #
@@ -382,7 +400,8 @@ CZ_SERIALIZER = op_serializer.GateOpSerializer(
     args=[
         op_serializer.SerializingArg(
             serialized_name='half_turns', serialized_type=float, op_getter='exponent'
-        )
+        ),
+        _phase_match_arg,
     ],
     can_serialize_predicate=lambda op: _near_mod_2(cast(ops.CZPowGate, op.gate).exponent, 1.0),
 )
@@ -394,7 +413,8 @@ CZ_POW_SERIALIZER = op_serializer.GateOpSerializer(
     args=[
         op_serializer.SerializingArg(
             serialized_name='half_turns', serialized_type=float, op_getter='exponent'
-        )
+        ),
+        _phase_match_arg,
     ],
 )
 
@@ -406,8 +426,9 @@ CZ_POW_DESERIALIZER = op_deserializer.GateOpDeserializer(
             serialized_name='half_turns',
             constructor_arg_name='exponent',
             default=1.0,
-        )
+        ),
     ],
+    op_wrapper=lambda op, proto: _add_phase_match(op, proto),
 )
 
 #
@@ -416,7 +437,7 @@ CZ_POW_DESERIALIZER = op_deserializer.GateOpDeserializer(
 SYC_SERIALIZER = op_serializer.GateOpSerializer(
     gate_type=ops.FSimGate,
     serialized_gate_id='syc',
-    args=[],
+    args=[_phase_match_arg],
     can_serialize_predicate=(
         lambda op: _near_mod_2pi(cast(ops.FSimGate, op.gate).theta, np.pi / 2)
         and _near_mod_2pi(cast(ops.FSimGate, op.gate).phi, np.pi / 6)
@@ -427,6 +448,7 @@ SYC_DESERIALIZER = op_deserializer.GateOpDeserializer(
     serialized_gate_id='syc',
     gate_constructor=lambda: ops.FSimGate(theta=np.pi / 2, phi=np.pi / 6),
     args=[],
+    op_wrapper=lambda op, proto: _add_phase_match(op, proto),
 )
 
 #
@@ -437,7 +459,7 @@ SQRT_ISWAP_SERIALIZERS = [
     op_serializer.GateOpSerializer(
         gate_type=ops.FSimGate,
         serialized_gate_id='fsim_pi_4',
-        args=[],
+        args=[_phase_match_arg],
         can_serialize_predicate=(
             lambda op: _near_mod_2pi(cast(ops.FSimGate, op.gate).theta, np.pi / 4)
             and _near_mod_2pi(cast(ops.FSimGate, op.gate).phi, 0)
@@ -446,7 +468,7 @@ SQRT_ISWAP_SERIALIZERS = [
     op_serializer.GateOpSerializer(
         gate_type=ops.ISwapPowGate,
         serialized_gate_id='fsim_pi_4',
-        args=[],
+        args=[_phase_match_arg],
         can_serialize_predicate=(
             lambda op: _near_mod_n(cast(ops.ISwapPowGate, op.gate).exponent, -0.5, 4)
         ),
@@ -454,7 +476,7 @@ SQRT_ISWAP_SERIALIZERS = [
     op_serializer.GateOpSerializer(
         gate_type=ops.FSimGate,
         serialized_gate_id='inv_fsim_pi_4',
-        args=[],
+        args=[_phase_match_arg],
         can_serialize_predicate=(
             lambda op: _near_mod_2pi(cast(ops.FSimGate, op.gate).theta, -np.pi / 4)
             and _near_mod_2pi(cast(ops.FSimGate, op.gate).phi, 0)
@@ -463,7 +485,7 @@ SQRT_ISWAP_SERIALIZERS = [
     op_serializer.GateOpSerializer(
         gate_type=ops.ISwapPowGate,
         serialized_gate_id='inv_fsim_pi_4',
-        args=[],
+        args=[_phase_match_arg],
         can_serialize_predicate=(
             lambda op: _near_mod_n(cast(ops.ISwapPowGate, op.gate).exponent, +0.5, 4)
         ),
@@ -475,11 +497,13 @@ SQRT_ISWAP_DESERIALIZERS = [
         serialized_gate_id='fsim_pi_4',
         gate_constructor=lambda: ops.FSimGate(theta=np.pi / 4, phi=0),
         args=[],
+        op_wrapper=lambda op, proto: _add_phase_match(op, proto),
     ),
     op_deserializer.GateOpDeserializer(
         serialized_gate_id='inv_fsim_pi_4',
         gate_constructor=lambda: ops.FSimGate(theta=-np.pi / 4, phi=0),
         args=[],
+        op_wrapper=lambda op, proto: _add_phase_match(op, proto),
     ),
 ]
 
@@ -560,6 +584,7 @@ LIMITED_FSIM_SERIALIZERS = [
             op_serializer.SerializingArg(
                 serialized_name='phi', serialized_type=float, op_getter='phi'
             ),
+            _phase_match_arg,
         ],
         can_serialize_predicate=(
             lambda op: _can_serialize_limited_fsim(
@@ -580,6 +605,7 @@ LIMITED_FSIM_SERIALIZERS = [
             op_serializer.SerializingArg(
                 serialized_name='phi', serialized_type=float, op_getter=lambda e: 0
             ),
+            _phase_match_arg,
         ],
         can_serialize_predicate=(
             lambda op: _can_serialize_limited_iswap(cast(ops.ISwapPowGate, op.gate).exponent)
@@ -595,6 +621,7 @@ LIMITED_FSIM_SERIALIZERS = [
             op_serializer.SerializingArg(
                 serialized_name='phi', serialized_type=float, op_getter=lambda e: np.pi
             ),
+            _phase_match_arg,
         ],
         can_serialize_predicate=lambda op: _near_mod_2(cast(ops.CZPowGate, op.gate).exponent, 1.0),
     ),
@@ -616,6 +643,7 @@ LIMITED_FSIM_DESERIALIZER = op_deserializer.GateOpDeserializer(
             default=0.0,
         ),
     ],
+    op_wrapper=lambda op, proto: _add_phase_match(op, proto),
 )
 
 

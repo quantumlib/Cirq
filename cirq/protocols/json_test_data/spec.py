@@ -24,6 +24,7 @@ TestSpec = ModuleJsonTestSpec(
     test_data_path=pathlib.Path(__file__).parent,
     resolver_cache=_class_resolver_dictionary(),
     not_yet_serializable=[
+        'Alignment',
         'AxisAngleDecomposition',
         'CircuitDag',
         'CircuitDiagramInfo',
@@ -36,7 +37,6 @@ TestSpec = ModuleJsonTestSpec(
         'DensityMatrixStepResult',
         'DensityMatrixTrialResult',
         'ExpressionMap',
-        'Heatmap',
         'InsertStrategy',
         'IonDevice',
         'KakDecomposition',
@@ -49,6 +49,7 @@ TestSpec = ModuleJsonTestSpec(
         'PauliStringPhasor',
         'PauliSum',
         'PauliSumCollector',
+        'PauliSumExponential',
         'PauliTransform',
         'PeriodicValue',
         'PointOptimizationSummary',
@@ -72,12 +73,13 @@ TestSpec = ModuleJsonTestSpec(
         'UnitSweep',
         'StateVectorSimulatorState',
         'StateVectorTrialResult',
-        'WaveFunctionSimulatorState',
-        'WaveFunctionTrialResult',
         'ZerosSampler',
         'Zip',
     ],
     should_not_be_serialized=[
+        # Heatmaps
+        'Heatmap',
+        'TwoQubitInteractionHeatmap',
         # Intermediate states with work buffers and unknown external prng guts.
         'ActOnCliffordTableauArgs',
         'ActOnStabilizerCHFormArgs',
@@ -164,4 +166,5 @@ TestSpec = ModuleJsonTestSpec(
         'Unique',
         'DEFAULT_RESOLVERS',
     ],
+    deprecated={'TrialResult': "v0.11"},
 )

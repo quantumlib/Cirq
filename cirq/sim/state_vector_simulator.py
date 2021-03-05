@@ -21,7 +21,6 @@ import numpy as np
 
 from cirq import ops, study, value
 from cirq.sim import simulator, state_vector
-from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     import cirq
@@ -82,18 +81,6 @@ class SimulatesIntermediateStateVector(
         return all_amplitudes
 
 
-class SimulatesIntermediateWaveFunction(SimulatesIntermediateStateVector):
-    """Deprecated. Please use `SimulatesIntermediateStateVector` instead."""
-
-    @deprecated(
-        deadline='v0.10.0',
-        fix='Use SimulatesIntermediateStateVector instead.',
-        name='The class SimulatesIntermediateWaveFunction',
-    )
-    def __new__(cls, *args, **kwargs):
-        return SimulatesIntermediateStateVector.__new__(cls)
-
-
 class StateVectorStepResult(
     simulator.StepResult['StateVectorSimulatorState'], metaclass=abc.ABCMeta
 ):
@@ -106,18 +93,6 @@ class StateVectorStepResult(
         details.
         """
         raise NotImplementedError()
-
-
-class WaveFunctionStepResult(StateVectorStepResult):
-    """Deprecated. Please use `StateVectorStepResult` instead."""
-
-    @deprecated(
-        deadline='v0.10.0',
-        fix='Use StateVectorStepResult instead.',
-        name='The class WaveFunctionStepResult',
-    )
-    def __new__(cls, *args, **kwargs):
-        return StateVectorStepResult.__new__(cls)
 
 
 @value.value_equality(unhashable=True)
@@ -141,18 +116,6 @@ class StateVectorSimulatorState:
         return (self.state_vector.tolist(), self.qubit_map)
 
 
-class WaveFunctionSimulatorState(StateVectorSimulatorState):
-    """Deprecated. Please use `StateVectorSimulatorState` instead."""
-
-    @deprecated(
-        deadline='v0.10.0',
-        fix='Use StateVectorSimulatorState instead.',
-        name='The class WaveFunctionSimulatorState',
-    )
-    def __new__(cls, *args, **kwargs):
-        return StateVectorSimulatorState.__new__(cls)
-
-
 @value.value_equality(unhashable=True)
 class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.SimulationTrialResult):
     """A `SimulationTrialResult` that includes the `StateVectorMixin` methods.
@@ -174,11 +137,6 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
             qubit_map=final_simulator_state.qubit_map,
         )
         self.final_state_vector = final_simulator_state.state_vector
-
-    @property  # type: ignore
-    @deprecated(deadline='v0.10.0', fix='Use final_state_vector instead.')
-    def final_state(self):
-        return self.final_state_vector
 
     def state_vector(self):
         """Return the state vector at the end of the computation.
@@ -235,15 +193,3 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
             f'measurements={self.measurements!r}, '
             f'final_simulator_state={self._final_simulator_state!r})'
         )
-
-
-class WaveFunctionTrialResult(StateVectorTrialResult):
-    """Deprecated. Please use `StateVectorTrialResult` instead."""
-
-    @deprecated(
-        deadline='v0.10.0',
-        fix='Use StateVectorTrialResult instead.',
-        name='The class WaveFunctionTrialResult',
-    )
-    def __new__(cls, *args, **kwargs):
-        return StateVectorTrialResult.__new__(cls)
