@@ -11,6 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import abc
+import collections
+import dataclasses
+import functools
+import re
 from typing import (
     Any,
     Callable,
@@ -24,15 +29,15 @@ from typing import (
     TYPE_CHECKING,
 )
 
-import abc
-import collections
-import dataclasses
-import functools
-import re
-
 import numpy as np
+import pandas as pd
 
 from cirq.circuits import Circuit
+from cirq.experiments.xeb_fitting import (
+    XEBPhasedFSimCharacterizationOptions,
+)
+from cirq.google.api import v2
+from cirq.google.engine import CalibrationLayer, CalibrationResult
 from cirq.ops import (
     FSimGate,
     Gate,
@@ -45,8 +50,6 @@ from cirq.ops import (
     TwoQubitGate,
     rz,
 )
-from cirq.google.api import v2
-from cirq.google.engine import CalibrationLayer, CalibrationResult
 
 if TYPE_CHECKING:
     # Workaround for mypy custom dataclasses (python/mypy#5406)
@@ -56,6 +59,7 @@ else:
 
 
 _FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
+_XEB_PHASED_FSIM_HANDLER_NAME = 'xeb_phased_fsim_characterization'
 T = TypeVar('T')
 
 
@@ -346,6 +350,7 @@ class PhasedFSimCalibrationRequest(abc.ABC):
 
     pairs: Tuple[Tuple[Qid, Qid], ...]
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
+    options: PhasedFSimCalibrationOptions
 
     # Workaround for: https://github.com/python/mypy/issues/1362
     @property  # type: ignore
@@ -363,6 +368,35 @@ class PhasedFSimCalibrationRequest(abc.ABC):
     @abc.abstractmethod
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
         """Decodes the characterization result issued for this request."""
+
+
+@json_serializable_dataclass(frozen=True)
+class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
+    n_library_circuits: int = 20
+    n_combinations: int = 10
+    cycle_min: int = 3
+    cycle_max: int = 100
+    cycle_step: int = 20
+    fatol: Optional[float] = 5e-3
+    xatol: Optional[float] = 5e-3
+
+    gate_options: XEBPhasedFSimCharacterizationOptions = XEBPhasedFSimCharacterizationOptions()
+
+    def to_args(self):
+        args = {
+            'n_library_circuits': self.n_library_circuits,
+            'n_combinations': self.n_combinations,
+            'cycle_min': self.cycle_min,
+            'cycle_max': self.cycle_max,
+            'cycle_step': self.cycle_step,
+        }
+        if self.fatol is not None:
+            args['fatol'] = self.fatol
+        if self.xatol is not None:
+            args['xatol'] = self.xatol
+
+        args.update(dataclasses.asdict(self.gate_options))
+        return args
 
 
 @json_serializable_dataclass(frozen=True)
@@ -521,6 +555,92 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             'gate': self.gate,
             'options': self.options,
         }
+
+
+def _parse_xeb_fidelities_df(targets, values):
+    records = collections.defaultdict(dict)
+    for target, val in zip(targets, values):
+        ma = re.match(r'(\d+)_(\d+)_(\d+)_(\w+)', target)
+        layer_i = int(ma.group(1))
+        pair_i = int(ma.group(2))
+        cycle_depth = int(ma.group(3))
+        key = ma.group(4)
+        if key.startswith('qubit_'):
+            val = v2.qubit_from_proto_id(val)
+
+        records[layer_i, pair_i, cycle_depth][key] = val
+
+    flat_records = []
+    for (layer_i, pair_i, cycle_depth), record in records.items():
+        record['layer_i'] = layer_i
+        record['pair_i'] = pair_i
+        record['cycle_depth'] = cycle_depth
+        record['pair'] = record['qubit_a'], record['qubit_b']
+        del record['qubit_a']
+        del record['qubit_b']
+        flat_records.append(record)
+    return pd.DataFrame(flat_records)
+
+
+def _parse_characterized_angles(targets, values):
+    records = collections.defaultdict(dict)
+    for target, val in zip(targets, values):
+        ma = re.match(r'(\d+)_(\w+)', target)
+        pair_index = int(ma.group(1))
+        key = ma.group(2)
+        if key.startswith('qubit_'):
+            val = v2.qubit_from_proto_id(val)
+        records[pair_index][key] = val
+
+    final_params = {}
+    for record in records.values():
+        qa, qb = record['qubit_a'], record['qubit_b']
+        del record['qubit_a']
+        del record['qubit_b']
+        assert all(k.endswith('_est') for k in record.keys())
+
+        final_params[qa, qb] = {k.rstrip('_est'): v for k, v in record.items()}
+    return final_params
+
+
+@dataclasses.dataclass(frozen=True)
+class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
+    options: XEBPhasedFSimCalibrationOptions
+
+    def to_calibration_layer(self) -> CalibrationLayer:
+        circuit = Circuit([self.gate.on(*pair) for pair in self.pairs])
+        return CalibrationLayer(
+            calibration_type=_XEB_PHASED_FSIM_HANDLER_NAME,
+            program=circuit,
+            args=self.options.to_args(),
+        )
+
+    def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+        for metric_name, metric in result.metrics.items():
+            print(metric_name)
+
+            # For some reason, the metric proto gets turned into a length-1 dictionary
+            # where the key is all the targets and value is all the values
+            assert len(metric) == 1
+            targets, values = list(metric.items())[0]
+
+            if metric_name == 'initial_fidelities_by_depth':
+                initial_fids = _parse_xeb_fidelities_df(targets, values)
+            elif metric_name == 'final_fidelities_by_depth':
+                final_fids = _parse_xeb_fidelities_df(targets, values)
+            elif metric_name == 'characterized_angles':
+                final_params = _parse_characterized_angles(targets, values)
+                final_params = {
+                    pair: PhasedFSimCharacterization(**angles)
+                    for pair, angles in final_params.items()
+                }
+            else:
+                raise ValueError(f"Unknown metric name {metric.name}")
+
+        # TODO: Return initial_fids, final_fids somehow.
+        return PhasedFSimCalibrationResult(
+            parameters=final_params, gate=self.gate, options=self.options
+        )
 
 
 class IncompatibleMomentError(Exception):
