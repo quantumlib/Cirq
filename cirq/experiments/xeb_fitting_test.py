@@ -25,7 +25,7 @@ import cirq.experiments.random_quantum_circuit_generation as rqcg
 from cirq.experiments.xeb_fitting import (
     SQRT_ISWAP,
     benchmark_2q_xeb_fidelities,
-    parameterize_phased_fsim_circuit,
+    parameterize_circuit,
     SqrtISwapXEBOptions,
     characterize_phased_fsim_parameters_with_xeb,
     characterize_phased_fsim_parameters_with_xeb_by_pair,
@@ -144,7 +144,7 @@ def test_parameterize_phased_fsim_circuit():
         q0, q1, depth=3, two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b), seed=52
     )
 
-    p_circuit = parameterize_phased_fsim_circuit(circuit, SqrtISwapXEBOptions())
+    p_circuit = parameterize_circuit(circuit, SqrtISwapXEBOptions())
     cirq.testing.assert_has_diagram(
         p_circuit,
         """\
@@ -205,13 +205,13 @@ def test_characterize_phased_fsim_parameters_with_xeb():
         characterize_zeta=False,
         characterize_phi=False,
     )
-    p_circuits = [parameterize_phased_fsim_circuit(circuit, options) for circuit in circuits]
+    p_circuits = [parameterize_circuit(circuit, options) for circuit in circuits]
     with multiprocessing.Pool() as pool:
         result = characterize_phased_fsim_parameters_with_xeb(
             sampled_df=sampled_df,
             parameterized_circuits=p_circuits,
             cycle_depths=cycle_depths,
-            phased_fsim_options=options,
+            options=options,
             # speed up with looser tolerances:
             fatol=1e-2,
             xatol=1e-2,
@@ -264,13 +264,13 @@ def test_parallel_full_workflow(use_pool):
     options = SqrtISwapXEBOptions(
         characterize_zeta=False, characterize_gamma=False, characterize_chi=False
     )
-    p_circuits = [parameterize_phased_fsim_circuit(circuit, options) for circuit in circuits]
+    p_circuits = [parameterize_circuit(circuit, options) for circuit in circuits]
 
     result = characterize_phased_fsim_parameters_with_xeb_by_pair(
         sampled_df=sampled_df,
         parameterized_circuits=p_circuits,
         cycle_depths=cycle_depths,
-        phased_fsim_options=options,
+        options=options,
         # super loose tolerances
         fatol=5e-2,
         xatol=5e-2,
@@ -300,5 +300,19 @@ def test_fit_exponential_decays():
     rs = np.random.RandomState(999)
     cycle_depths = np.arange(3, 100, 11)
     fidelities = 0.95 * 0.98 ** cycle_depths + rs.normal(0, 0.2)
-    a, layer_fid = _fit_exponential_decay(cycle_depths, fidelities)
+    a, layer_fid, a_std, layer_fid_std = _fit_exponential_decay(cycle_depths, fidelities)
     np.testing.assert_allclose([a, layer_fid], [0.95, 0.98], atol=0.02)
+    assert 0 < a_std < 0.2 / len(cycle_depths)
+    assert 0 < layer_fid_std < 1e-3
+
+
+def test_fit_exponential_decays_negative_fids():
+    rs = np.random.RandomState(999)
+    cycle_depths = np.arange(3, 100, 11)
+    fidelities = 0.5 * 0.5 ** cycle_depths + rs.normal(0, 0.2) - 0.5
+    assert np.sum(fidelities > 0) <= 1, 'they go negative'
+    a, layer_fid, a_std, layer_fid_std = _fit_exponential_decay(cycle_depths, fidelities)
+    assert a == 0
+    assert layer_fid == 0
+    assert a_std == np.inf
+    assert layer_fid_std == np.inf

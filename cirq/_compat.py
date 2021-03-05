@@ -14,6 +14,8 @@
 
 """Workarounds for compatibility issues between versions and libraries."""
 import functools
+import os
+import re
 import warnings
 from typing import Any, Callable, Optional, Dict, Tuple, Type
 from types import ModuleType
@@ -83,13 +85,34 @@ def proper_eq(a: Any, b: Any) -> bool:
     return a == b
 
 
+def _warn_or_error(msg):
+    from cirq.testing.deprecation import ALLOW_DEPRECATION_IN_TEST
+
+    called_from_test = 'PYTEST_CURRENT_TEST' in os.environ
+    deprecation_allowed = ALLOW_DEPRECATION_IN_TEST in os.environ
+    if called_from_test and not deprecation_allowed:
+        raise ValueError(f"Cirq should not use deprecated functionality: {msg}")
+
+    warnings.warn(
+        msg,
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+
+def _validate_deadline(deadline: str):
+    DEADLINE_REGEX = r"^v(\d)+\.(\d)+$"
+    assert re.match(DEADLINE_REGEX, deadline), "deadline should match vX.Y"
+
+
 def deprecated(
     *, deadline: str, fix: str, name: Optional[str] = None
 ) -> Callable[[Callable], Callable]:
     """Marks a function as deprecated.
 
     Args:
-        deadline: The version where the function will be deleted (e.g. "v0.7").
+        deadline: The version where the function will be deleted. It should be a minor version
+            (e.g. "v0.7").
         fix: A complete sentence describing what the user should be using
             instead of this particular function (e.g. "Use cos instead.")
         name: How to refer to the function.
@@ -98,17 +121,16 @@ def deprecated(
     Returns:
         A decorator that decorates functions with a deprecation warning.
     """
+    _validate_deadline(deadline)
 
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def decorated_func(*args, **kwargs) -> Any:
             qualname = func.__qualname__ if name is None else name
-            warnings.warn(
+            _warn_or_error(
                 f'{qualname} was used but is deprecated.\n'
                 f'It will be removed in cirq {deadline}.\n'
-                f'{fix}\n',
-                DeprecationWarning,
-                stacklevel=2,
+                f'{fix}\n'
             )
 
             return func(*args, **kwargs)
@@ -131,7 +153,8 @@ def deprecated_class(
     """Marks a class as deprecated.
 
     Args:
-        deadline: The version where the function will be deleted (e.g. "v0.7").
+        deadline: The version where the function will be deleted. It should be a minor version
+            (e.g. "v0.7").
         fix: A complete sentence describing what the user should be using
             instead of this particular function (e.g. "Use cos instead.")
         name: How to refer to the class.
@@ -141,17 +164,17 @@ def deprecated_class(
         A decorator that decorates classes with a deprecation warning.
     """
 
+    _validate_deadline(deadline)
+
     def decorator(clazz: Type) -> Type:
         clazz_new = clazz.__new__
 
         def patched_new(cls, *args, **kwargs):
             qualname = clazz.__qualname__ if name is None else name
-            warnings.warn(
+            _warn_or_error(
                 f'{qualname} was used but is deprecated.\n'
                 f'It will be removed in cirq {deadline}.\n'
-                f'{fix}\n',
-                DeprecationWarning,
-                stacklevel=2,
+                f'{fix}\n'
             )
 
             return clazz_new(cls)
@@ -185,7 +208,8 @@ def deprecated_parameter(
     Also handles rewriting the deprecated parameter into the new signature.
 
     Args:
-        deadline: The version where the parameter will be deleted (e.g. "v0.7").
+        deadline: The version where the function will be deleted. It should be a minor version
+            (e.g. "v0.7").
         fix: A complete sentence describing what the user should be using
             instead of this particular function (e.g. "Use cos instead.")
         func_name: How to refer to the function.
@@ -204,6 +228,7 @@ def deprecated_parameter(
         A decorator that decorates functions with a parameter deprecation
             warning.
     """
+    _validate_deadline(deadline)
 
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -213,13 +238,11 @@ def deprecated_parameter(
                     args, kwargs = rewrite(args, kwargs)
 
                 qualname = func.__qualname__ if func_name is None else func_name
-                warnings.warn(
+                _warn_or_error(
                     f'The {parameter_desc} parameter of {qualname} was '
                     f'used but is deprecated.\n'
                     f'It will be removed in cirq {deadline}.\n'
                     f'{fix}\n',
-                    DeprecationWarning,
-                    stacklevel=2,
                 )
 
             return func(*args, **kwargs)
@@ -229,7 +252,7 @@ def deprecated_parameter(
     return decorator
 
 
-def wrap_module(module: ModuleType, deprecated_attributes: Dict[str, Tuple[str, str]]):
+def deprecate_attributes(module: ModuleType, deprecated_attributes: Dict[str, Tuple[str, str]]):
     """Wrap a module with deprecated attributes that give warnings.
 
     Args:
@@ -244,6 +267,9 @@ def wrap_module(module: ModuleType, deprecated_attributes: Dict[str, Tuple[str, 
         will cause a warning for these deprecated attributes.
     """
 
+    for (deadline, _) in deprecated_attributes.values():
+        _validate_deadline(deadline)
+
     class Wrapped(ModuleType):
 
         __dict__ = module.__dict__
@@ -251,12 +277,10 @@ def wrap_module(module: ModuleType, deprecated_attributes: Dict[str, Tuple[str, 
         def __getattr__(self, name):
             if name in deprecated_attributes:
                 deadline, fix = deprecated_attributes[name]
-                warnings.warn(
+                _warn_or_error(
                     f'{name} was used but is deprecated.\n'
                     f'It will be removed in cirq {deadline}.\n'
-                    f'{fix}\n',
-                    DeprecationWarning,
-                    stacklevel=2,
+                    f'{fix}\n'
                 )
             return getattr(module, name)
 

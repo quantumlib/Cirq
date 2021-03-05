@@ -15,5 +15,6 @@
 """Visualization utilities."""
 
 from cirq.vis.heatmap import Heatmap
+from cirq.vis.heatmap import TwoQubitInteractionHeatmap
 
 from cirq.vis.vis_utils import relative_luminance

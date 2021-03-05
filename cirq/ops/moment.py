@@ -66,13 +66,6 @@ class Moment:
             are no such operations, returns an empty Moment.
     """
 
-    @deprecated_parameter(
-        deadline='v0.9',
-        fix='Don\'t specify a keyword.',
-        match=lambda _, kwargs: 'operations' in kwargs,
-        parameter_desc='operations',
-        rewrite=lambda args, kwargs: (args + (kwargs['operations'],), {}),
-    )
     def __init__(self, *contents: 'cirq.OP_TREE') -> None:
         """Constructs a moment with the given operations.
 
@@ -280,7 +273,7 @@ class Moment:
         return self.to_text_diagram()
 
     @deprecated_parameter(
-        deadline='v0.11.0',
+        deadline='v0.11',
         fix='Use qubit_map instead.',
         parameter_desc='positional func',
         match=lambda args, kwargs: 'func' in kwargs,
