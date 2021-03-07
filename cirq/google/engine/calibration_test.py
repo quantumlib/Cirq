@@ -26,13 +26,13 @@ _CALIBRATION_DATA = Merge(
     """
     timestamp_ms: 1562544000021,
     metrics: [{
-        name: 'xeb',
+        name: 'two_qubit_xeb',
         targets: ['0_0', '0_1'],
         values: [{
             double_val: .9999
         }]
     }, {
-        name: 'xeb',
+        name: 'two_qubit_xeb',
         targets: ['0_0', '1_0'],
         values: [{
             double_val: .9998
@@ -92,7 +92,7 @@ def test_calibration_metrics_dictionary():
 
 def test_calibration_str():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    assert str(calibration) == "Calibration(keys=['globalMetric', 't1', 'xeb'])"
+    assert str(calibration) == "Calibration(keys=['globalMetric', 't1', 'two_qubit_xeb'])"
 
 
 def test_calibration_repr():
@@ -163,11 +163,13 @@ def test_calibration_heatmap():
     figure = mpl.figure.Figure()
     axes = figure.add_subplot(111)
     heatmap.plot(axes)
+    assert axes.get_title() == 'T1'
 
-    heatmap = calibration.heatmap('xeb')
+    heatmap = calibration.heatmap('two_qubit_xeb')
     figure = mpl.figure.Figure()
     axes = figure.add_subplot(999)
     heatmap.plot(axes)
+    assert axes.get_title() == 'Two Qubit Xeb'
 
     with pytest.raises(ValueError, match="one or two qubits.*multi_qubit"):
         multi_qubit_data = Merge(
