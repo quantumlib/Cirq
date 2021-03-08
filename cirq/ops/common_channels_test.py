@@ -688,7 +688,7 @@ def test_stabilizer_supports_depolarize():
 
 def test_default_asymmetric_depolarizing_channel():
     d = cirq.asymmetric_depolarize()
-    assert d.p_1 == 0.0
+    assert d.p_i == 1.0
     assert d.p_x == 0.0
     assert d.p_y == 0.0
     assert d.p_z == 0.0
