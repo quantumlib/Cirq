@@ -15,9 +15,11 @@
 from dataclasses import dataclass
 from typing import Any, Callable, List, Optional, Type, TypeVar, Union, TYPE_CHECKING
 
+import abc
 import numpy as np
 
-from cirq import ops
+from cirq import circuits, ops
+from cirq._compat import deprecated
 from cirq.google.api import v2
 from cirq.google import arg_func_langs
 from cirq.google.arg_func_langs import arg_to_proto
@@ -28,6 +30,69 @@ if TYPE_CHECKING:
 
 # Type for variables that are subclasses of ops.Gate.
 Gate = TypeVar('Gate', bound=ops.Gate)
+
+
+class OpSerializer(abc.ABC):
+    """Generic supertype for op serializers."""
+
+    @property
+    @abc.abstractmethod
+    def internal_type(self) -> Type:
+        """Returns the type that the operation contains.
+
+        For GateOperations, this is the gate type.
+        For CircuitOperations, this is FrozenCircuit.
+        """
+
+    @property  # type: ignore
+    @deprecated(deadline='v0.12.0', fix='Use internal_type instead.')
+    def gate_type(self) -> Type:
+        return self.internal_type
+
+    @property
+    @abc.abstractmethod
+    def serialized_id(self) -> str:
+        """Returns the string identifier for the resulting serialized object.
+
+        This value should reflect the internal_type of the serializer.
+        """
+
+    @property  # type: ignore
+    @deprecated(deadline='v0.12.0', fix='Use serialized_id instead.')
+    def serialized_gate_id(self) -> str:
+        return self.serialized_id
+
+    @property
+    @abc.abstractmethod
+    def args(self):
+        """TODO: determine if this property makes sense."""
+
+    @abc.abstractmethod
+    def to_proto(
+        self,
+        op,
+        msg: Optional[v2.program_pb2.CircuitOperation] = None,
+        *,
+        arg_function_language: Optional[str] = '',
+        constants: List[v2.program_pb2.Constant] = None,
+        raw_constants: List[Any] = None,
+    ) -> Optional[v2.program_pb2.CircuitOperation]:
+        """Converts op to proto using this serializer.
+
+        If self.can_serialize_operation(op) == false, this should return None.
+        """
+
+    @property
+    @abc.abstractmethod
+    def can_serialize_predicate(self) -> Callable[['cirq.Operation'], bool]:
+        """The method used to determine if this can serialize an operation.
+
+        Depending on the serializer, additional checks may be required.
+        """
+
+    def can_serialize_operation(self, op: 'cirq.Operation') -> bool:
+        """Whether the given operation can be serialized by this serializer."""
+        return self.can_serialize_predicate(op)
 
 
 @dataclass(frozen=True)
@@ -55,7 +120,7 @@ class SerializingArg:
     default: Any = None
 
 
-class GateOpSerializer:
+class GateOpSerializer(OpSerializer):
     """Describes how to serialize a GateOperation for a given Gate type.
 
     Attributes:
@@ -88,11 +153,27 @@ class GateOpSerializer:
                 serializing, including how to get this information from the
                 gate of the given gate type.
         """
-        self.gate_type = gate_type
-        self.serialized_gate_id = serialized_gate_id
-        self.args = args
-        self.can_serialize_predicate = can_serialize_predicate
-        self.serialize_tokens = serialize_tokens
+        self._gate_type = gate_type
+        self._serialized_gate_id = serialized_gate_id
+        self._args = args
+        self._can_serialize_predicate = can_serialize_predicate
+        self._serialize_tokens = serialize_tokens
+
+    @property
+    def internal_type(self):
+        return self._gate_type
+
+    @property
+    def serialized_id(self):
+        return self._serialized_gate_id
+
+    @property
+    def args(self):
+        return self._args
+
+    @property
+    def can_serialize_predicate(self):
+        return self._can_serialize_predicate
 
     def can_serialize_operation(self, op: 'cirq.Operation') -> bool:
         """Whether the given operation can be serialized by this serializer.
@@ -101,8 +182,8 @@ class GateOpSerializer:
         serializer, and that the gate returns true for
         `can_serializer_predicate` called on the gate.
         """
-        supported_gate_type = self.gate_type in type(op.gate).mro()
-        return supported_gate_type and self.can_serialize_predicate(op)
+        supported_gate_type = self._gate_type in type(op.gate).mro()
+        return supported_gate_type and self._can_serialize_predicate(op)
 
     def to_proto(
         self,
@@ -111,6 +192,7 @@ class GateOpSerializer:
         *,
         arg_function_language: Optional[str] = '',
         constants: List[v2.program_pb2.Constant] = None,
+        raw_constants: List[Any] = None,
     ) -> Optional[v2.program_pb2.Operation]:
         """Returns the cirq.google.api.v2.Operation message as a proto dict.
 
@@ -119,21 +201,21 @@ class GateOpSerializer:
         """
 
         gate = op.gate
-        if not isinstance(gate, self.gate_type):
+        if not isinstance(gate, self._gate_type):
             raise ValueError(
                 f'Gate of type {type(gate)} but serializer expected type {self.gate_type}'
             )
 
-        if not self.can_serialize_predicate(op):
+        if not self._can_serialize_predicate(op):
             return None
 
         if msg is None:
             msg = v2.program_pb2.Operation()
 
-        msg.gate.id = self.serialized_gate_id
+        msg.gate.id = self._serialized_gate_id
         for qubit in op.qubits:
             msg.qubits.add().id = v2.qubit_to_proto_id(qubit)
-        for arg in self.args:
+        for arg in self._args:
             value = self._value_from_gate(op, arg)
             if value is not None and (not arg.default or value != arg.default):
                 arg_to_proto(
@@ -141,7 +223,7 @@ class GateOpSerializer:
                     out=msg.args[arg.serialized_name],
                     arg_function_language=arg_function_language,
                 )
-        if self.serialize_tokens:
+        if self._serialize_tokens:
             for tag in op.tags:
                 if isinstance(tag, CalibrationTag):
                     if constants is not None:
@@ -153,6 +235,8 @@ class GateOpSerializer:
                             # Token not found, add it to the list
                             msg.token_constant_index = len(constants)
                             constants.append(constant)
+                            if raw_constants is not None:
+                                raw_constants.append(tag.token)
                     else:
                         msg.token_value = tag.token
         return msg
@@ -200,3 +284,83 @@ class GateOpSerializer:
                     arg.serialized_name, arg.serialized_type, type(value)
                 )
             )
+
+
+class CircuitOpSerializer(OpSerializer):
+    """Describes how to serialize CircuitOperations."""
+
+    @property
+    def internal_type(self):
+        return circuits.FrozenCircuit
+
+    @property
+    def serialized_id(self):
+        return 'circuit'
+
+    @property
+    def args(self):
+        """TODO: this only exists to appease known_devices."""
+        return []
+
+    @property
+    def can_serialize_predicate(self):
+        return lambda op: isinstance(op.untagged, circuits.CircuitOperation)
+
+    def to_proto(
+        self,
+        op: 'cirq.CircuitOperation',
+        msg: Optional[v2.program_pb2.CircuitOperation] = None,
+        *,
+        arg_function_language: Optional[str] = '',
+        constants: List[v2.program_pb2.Constant] = None,
+        raw_constants: List[Any] = None,
+    ) -> Optional[v2.program_pb2.CircuitOperation]:
+        """Returns the cirq.google.api.v2.CircuitOperation message as a proto dict.
+
+        Note that this function requires the constants and raw_constants lists
+        to be pre-populated with the circuit in op.
+        """
+        if constants is None or raw_constants is None:
+            raise ValueError(
+                'CircuitOp serialization requires a constants list and a corresponding list of '
+                'pre-serialization values (raw_constants).'
+            )
+
+        if not isinstance(op, circuits.CircuitOperation):
+            raise ValueError(f'Serializer expected CircuitOperation but got {type(op)}.')
+
+        circuit = getattr(op.untagged, 'circuit', None)
+        if circuit is None:
+            return None
+
+        msg = msg or v2.program_pb2.CircuitOperation()
+        try:
+            msg.circuit_constant_index = raw_constants.index(circuit)
+        except ValueError as err:
+            # Circuits must be serialized prior to any CircuitOperations that use them.
+            raise ValueError(
+                'Encountered a circuit not in the constants table. ' f'Full error message:\n{err}'
+            )
+
+        if op.repetition_ids:
+            for rep_id in op.repetition_ids:
+                msg.repetition_spec.rep_ids.ids.append(rep_id)
+        else:
+            msg.repetition_spec.rep_count = op.repetitions
+
+        for q1, q2 in op.qubit_map.items():
+            pair = msg.qubit_map.pairs.add()
+            pair.first.id = v2.qubit_to_proto_id(q1)
+            pair.second.id = v2.qubit_to_proto_id(q2)
+
+        for mk1, mk2 in op.measurement_key_map.items():
+            pair = msg.measurement_key_map.pairs.add()
+            pair.first.str_key = mk1
+            pair.second.str_key = mk2
+
+        for p1, p2 in op.param_resolver.param_dict.items():
+            pair = msg.arg_map.pairs.add()
+            arg_to_proto(p1, out=pair.first, arg_function_language=arg_function_language)
+            arg_to_proto(p2, out=pair.second, arg_function_language=arg_function_language)
+
+        return msg

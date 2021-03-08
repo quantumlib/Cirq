@@ -23,12 +23,45 @@ from typing import (
 )
 from dataclasses import dataclass
 
+import abc
+import sympy
+
+from cirq import circuits
+from cirq._compat import deprecated
 from cirq.google import arg_func_langs
 from cirq.google.api import v2
 from cirq.google.ops.calibration_tag import CalibrationTag
 
 if TYPE_CHECKING:
     import cirq
+
+
+class OpDeserializer(abc.ABC):
+    """Generic supertype for op deserializers."""
+
+    @property
+    @abc.abstractmethod
+    def serialized_id(self) -> str:
+        """Returns the string identifier for the resulting serialized object.
+
+        This value should reflect the internal_type of the serializer.
+        """
+
+    @property  # type: ignore
+    @deprecated(deadline='v0.12.0', fix='Use serialized_id instead.')
+    def serialized_gate_id(self) -> str:
+        return self.serialized_id
+
+    @abc.abstractmethod
+    def from_proto(
+        self,
+        proto,
+        *,
+        arg_function_language: str = '',
+        constants: List[v2.program_pb2.Constant] = None,
+        raw_constants: List[Any] = None,
+    ) -> 'cirq.Operation':
+        pass
 
 
 @dataclass(frozen=True)
@@ -57,7 +90,7 @@ class DeserializingArg:
     default: Any = None
 
 
-class GateOpDeserializer:
+class GateOpDeserializer(OpDeserializer):
     """Describes how to deserialize a proto to a given Gate type.
 
     Attributes:
@@ -94,12 +127,16 @@ class GateOpDeserializer:
             deserialize_tokens: Whether to convert tokens to
                 CalibrationTags. Defaults to True.
         """
-        self.serialized_gate_id = serialized_gate_id
-        self.gate_constructor = gate_constructor
-        self.args = args
-        self.num_qubits_param = num_qubits_param
-        self.op_wrapper = op_wrapper
-        self.deserialize_tokens = deserialize_tokens
+        self._serialized_gate_id = serialized_gate_id
+        self._gate_constructor = gate_constructor
+        self._args = args
+        self._num_qubits_param = num_qubits_param
+        self._op_wrapper = op_wrapper
+        self._deserialize_tokens = deserialize_tokens
+
+    @property
+    def serialized_id(self):
+        return self._serialized_gate_id
 
     def from_proto(
         self,
@@ -107,15 +144,16 @@ class GateOpDeserializer:
         *,
         arg_function_language: str = '',
         constants: List[v2.program_pb2.Constant] = None,
+        raw_constants: List[Any] = None,  # unused
     ) -> 'cirq.Operation':
         """Turns a cirq.google.api.v2.Operation proto into a GateOperation."""
         qubits = [v2.qubit_from_proto_id(q.id) for q in proto.qubits]
         args = self._args_from_proto(proto, arg_function_language=arg_function_language)
-        if self.num_qubits_param is not None:
-            args[self.num_qubits_param] = len(qubits)
-        gate = self.gate_constructor(**args)
-        op = self.op_wrapper(gate.on(*qubits), proto)
-        if self.deserialize_tokens:
+        if self._num_qubits_param is not None:
+            args[self._num_qubits_param] = len(qubits)
+        gate = self._gate_constructor(**args)
+        op = self._op_wrapper(gate.on(*qubits), proto)
+        if self._deserialize_tokens:
             which = proto.WhichOneof('token')
             if which == 'token_constant_index':
                 if not constants:
@@ -135,7 +173,7 @@ class GateOpDeserializer:
         self, proto: v2.program_pb2.Operation, *, arg_function_language: str
     ) -> Dict[str, arg_func_langs.ARG_LIKE]:
         return_args = {}
-        for arg in self.args:
+        for arg in self._args:
             if arg.serialized_name not in proto.args:
                 if arg.default:
                     return_args[arg.constructor_arg_name] = arg.default
@@ -158,3 +196,78 @@ class GateOpDeserializer:
             if value is not None:
                 return_args[arg.constructor_arg_name] = value
         return return_args
+
+
+class CircuitOpDeserializer(OpDeserializer):
+    """Describes how to serialize CircuitOperations."""
+
+    @property
+    def serialized_id(self):
+        return 'circuit'
+
+    def from_proto(
+        self,
+        proto: v2.program_pb2.CircuitOperation,
+        *,
+        arg_function_language: str = '',
+        constants: List[v2.program_pb2.Constant] = None,
+        raw_constants: List[Any] = None,
+    ) -> 'cirq.CircuitOperation':
+        """Turns a cirq.google.api.v2.CircuitOperation proto into a CircuitOperation."""
+        if constants is None or raw_constants is None:
+            raise ValueError(
+                'CircuitOp deserialization requires a constants list and a corresponding list of '
+                'post-deserialization values (raw_constants).'
+            )
+        circuit = raw_constants[proto.circuit_constant_index]
+        if not isinstance(circuit, circuits.FrozenCircuit):
+            raise ValueError(
+                f'Constant at index {proto.circuit_constant_index} was expected to be a circuit, '
+                f'but it has type {type(circuit)} in the raw_constants list.'
+            )
+
+        if not proto.repetition_spec.repetition_ids:
+            repetition_ids = None
+            repetitions = proto.repetition_spec.repetitions
+        else:
+            repetition_ids = proto.repetition_spec.repetition_ids
+            repetitions = len(repetition_ids)
+
+        qubit_map = {
+            v2.qubit_from_proto_id(pair.first): v2.qubit_from_proto_id(pair.second)
+            for pair in proto.qubit_map
+        }
+        measurement_key_map = {
+            pair.first.str_key: pair.second.str_key for pair in proto.measurement_key_map
+        }
+        arg_map = {
+            arg_func_langs.arg_from_proto(
+                pair.first, arg_function_language=arg_function_language
+            ): arg_func_langs.arg_from_proto(
+                pair.second, arg_function_language=arg_function_language
+            )
+            for pair in proto.arg_map
+        }
+
+        for arg in arg_map.keys():
+            if not isinstance(arg, (str, sympy.Symbol)):
+                raise ValueError(
+                    'Invalid key parameter type in deserialized CircuitOperation. '
+                    f'Expected str or sympy.Symbol, found {type(arg)}.\nFull arg: {arg}'
+                )
+
+        for arg in arg_map.values():
+            if arg is None:
+                raise ValueError(
+                    'Invalid value parameter type in deserialized CircuitOperation. '
+                    f'Expected str or sympy.Symbol, found None.\nFull arg: {arg}'
+                )
+
+        return circuits.CircuitOperation(
+            circuit,
+            repetitions,
+            qubit_map,
+            measurement_key_map,
+            arg_map,  # type: ignore
+            repetition_ids,
+        )

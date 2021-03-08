@@ -66,10 +66,13 @@ Y_DESERIALIZER = cg.GateOpDeserializer(
     ],
 )
 
+CIRCUIT_OP_SERIALIZER = cg.op_serializer.CircuitOpSerializer()
+CIRCUIT_OP_DESERIALIZER = cg.op_deserializer.CircuitOpDeserializer()
+
 MY_GATE_SET = cg.SerializableGateSet(
     gate_set_name='my_gate_set',
-    serializers=[X_SERIALIZER],
-    deserializers=[X_DESERIALIZER],
+    serializers=[X_SERIALIZER, CIRCUIT_OP_SERIALIZER],
+    deserializers=[X_DESERIALIZER, CIRCUIT_OP_DESERIALIZER],
 )
 
 
@@ -80,7 +83,7 @@ def op_proto(json: Dict) -> v2.program_pb2.Operation:
 
 
 def test_supported_gate_types():
-    assert MY_GATE_SET.supported_gate_types() == (cirq.XPowGate,)
+    assert MY_GATE_SET.supported_gate_types() == (cirq.XPowGate, cirq.FrozenCircuit)
 
 
 def test_is_supported():
