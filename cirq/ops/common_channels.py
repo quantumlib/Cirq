@@ -339,6 +339,9 @@ class DepolarizingChannel(gate_features.SupportsOnEachGate, raw_types.Gate):
             return protocols.obj_to_dict_helper(self, ['p'])
         return protocols.obj_to_dict_helper(self, ['p', 'n_qubits'])
 
+    def _approx_eq_(self, other: Any, atol: float) -> bool:
+        return np.isclose(self.p, other.p, atol=atol) and self.n_qubits == other.n_qubits
+
 
 def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
     r"""Returns a DepolarizingChannel with given probability of error.
