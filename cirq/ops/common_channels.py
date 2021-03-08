@@ -781,9 +781,6 @@ class ResetChannel(gate_features.SingleQubitGate):
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['dimension'])
 
-    def _approx_eq_(self, other: Any, atol: float) -> bool:
-        return np.isclose(self.p, other.p, atol=atol) and self.n_qubits == other.n_qubits
-
 
 def reset(qubit: 'cirq.Qid') -> raw_types.Operation:
     """Returns a `ResetChannel` on the given qubit."""
