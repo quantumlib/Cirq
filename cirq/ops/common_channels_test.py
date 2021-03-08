@@ -334,6 +334,11 @@ def test_generalized_amplitude_damping_str():
 
 
 def test_generalized_amplitude_damping_channel_eq():
+    a = cirq.generalized_amplitude_damp(0.0099999, 0.01)
+    b = cirq.generalized_amplitude_damp(0.01, 0.0099999)
+
+    assert cirq.approx_eq(a, b, atol=1e-2)
+
     et = cirq.testing.EqualsTester()
     c = cirq.generalized_amplitude_damp(0.0, 0.0)
     et.make_equality_group(lambda: c)
@@ -683,6 +688,7 @@ def test_stabilizer_supports_depolarize():
 
 def test_default_asymmetric_depolarizing_channel():
     d = cirq.asymmetric_depolarize()
+    assert d.p_1 == 0.0
     assert d.p_x == 0.0
     assert d.p_y == 0.0
     assert d.p_z == 0.0
