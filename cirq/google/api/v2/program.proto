@@ -30,9 +30,9 @@ message Program {
 
 // Constants, such as long strings, that are used throughout the circuit.
 // These constants can be stored here to save space.
-// Currently only supports strings, but could support other objects later.
 message Constant {
   string string_value = 1;
+  Circuit circuit_value = 2;
 }
 
 
@@ -64,6 +64,11 @@ message Moment {
   // All of the operations in the moment. Each operation must act on different
   // qubits.
   repeated Operation operations = 1;
+
+  // As 'operations', but may include CircuitOperations (i.e. operations that
+  // contain subcircuits). If 'operations' is non-empty, this field will be
+  // ignored.
+  repeated GenericOperation generic_operations = 2;
 }
 
 // The quantum circuit, specified as a series of operations at specific
@@ -98,6 +103,17 @@ message Language {
   // Valid names for the arg function language can be found in
   // cirq/google/arg_func_langs.py
   string arg_function_language = 2;
+}
+
+// A generic operation, containing either a single gate or a subcircuit.
+message GenericOperation {
+  oneof op {
+    // The operation this represents.
+    Operation operation = 1;
+
+    // The CircuitOperation (i.e. subcircuit) this represents.
+    CircuitOperation circuit_operation = 2;
+  }
 }
 
 // An operation acts on a set of qubits.
@@ -197,4 +213,82 @@ message ArgFunction {
 
   // The arguments to the function.
   repeated Arg args = 2;
+}
+
+// An operation that describes a circuit.
+message CircuitOperation {
+  // The index of the circuit in the top-level constant table.
+  int32 circuit_constant_index = 1;
+
+  // Specifier for repetitions of the circuit, including number of reps and
+  // repetition IDs.
+  RepetitionSpec repetition_spec = 2;
+
+  // Map of qubits in the circuit to the qubits used in this operation.
+  QubitMapping qubit_map = 3;
+
+  // Map of measurement keys in the circuit to the measurement keys used in
+  // this operation.
+  MeasurementKeyMapping measurement_key_map = 4;
+
+  // Map of args in the circuit to the values (or replacement args) used in
+  // this operation.
+  ArgMapping arg_map = 5;
+}
+
+// A description of the repetitions of a subcircuit.
+message RepetitionSpec {
+  // An ordered list of IDs for a sequence of repetitions.
+  message RepetitionIds {
+    repeated string ids = 1;
+  }
+
+  oneof rep_value {
+    // A list of unique IDs, one per repetition of the subcircuit.
+    RepetitionIds rep_ids = 1;
+
+    // An integer number of repetitions to perform.
+    int32 rep_count = 2;
+  }
+}
+
+// A mapping of qubits from one value to another.
+message QubitMapping {
+  // Indicates that qubit "first" should be replaced with "second".
+  message QubitPair {
+    Qubit first = 1;
+    Qubit second = 2;
+  }
+
+  // A list of qubit mappings to apply.
+  repeated QubitPair qubit_pairs = 1;
+}
+
+// A key for matching a measurement event to its results.
+message MeasurementKey {
+  string str_key = 1;
+}
+
+// A mapping of measurement keys from one value to another.
+message MeasurementKeyMapping {
+  // Indicates that measurement key "first" should be replaced with "second".
+  message MeasurementKeyPair {
+    MeasurementKey first = 1;
+    MeasurementKey second = 2;
+  }
+
+  // A list of measurement key mappings to apply.
+  repeated MeasurementKeyPair measurement_key_pairs = 1;
+}
+
+// A mapping of args from one value to another.
+message ArgMapping {
+  // Indicates that arg "first" should be replaced with "second".
+  message ArgPair {
+    Arg first = 1;
+    Arg second = 2;
+  }
+
+  // A list of args mappings to apply.
+  repeated ArgPair arg_pairs = 1;
 }
