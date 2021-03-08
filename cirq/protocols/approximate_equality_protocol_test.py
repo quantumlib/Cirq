@@ -186,12 +186,6 @@ def test_approx_eq_symbol():
         cirq.approx_eq(symbol_1, symbol_3, atol=0.2)
 
 
-def test_approx_eq_channels():
-    a = cirq.depolarize(p=0.0099999)
-    b = cirq.depolarize(p=0.01)
-    assert cirq.approx_eq(a, b, atol=1e-2)
-
-
 def test_approx_eq_default():
     assert cirq.approx_eq(1.0, 1.0 + 1e-9)
     assert cirq.approx_eq(1.0, 1.0 - 1e-9)
