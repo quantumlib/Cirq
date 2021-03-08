@@ -22,13 +22,14 @@ import cirq.contrib.routing as ccr
 
 def test_xmon_device_to_graph():
     with cirq.testing.assert_deprecated("gridqubits_to_graph_device", deadline="v0.12"):
+
         class TestDevice:
-            qubits = cirq.GridQubit.rect(2,11)
+            qubits = cirq.GridQubit.rect(2, 11)
+
         foxtail_graph = ccr.xmon_device_to_graph(TestDevice())
         two_by_eleven_grid_graph = ccr.get_grid_device_graph(2, 11)
         assert foxtail_graph.nodes == two_by_eleven_grid_graph.nodes
         assert foxtail_graph.edges() == two_by_eleven_grid_graph.edges()
-
 
 
 @pytest.mark.parametrize('n_qubits', (2, 5, 11))
@@ -40,7 +41,7 @@ def test_get_linear_device_graph(n_qubits):
 
 
 def test_nx_qubit_layout():
-    grid_qubit_graph = ccr.gridqubits_to_graph_device(cirq.GridQubit.rect(5,5))
+    grid_qubit_graph = ccr.gridqubits_to_graph_device(cirq.GridQubit.rect(5, 5))
     pos = ccr.nx_qubit_layout(grid_qubit_graph)
     assert len(pos) == len(grid_qubit_graph)
     for k, (x, y) in pos.items():

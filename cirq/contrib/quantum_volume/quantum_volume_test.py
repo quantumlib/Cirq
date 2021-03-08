@@ -10,7 +10,7 @@ from cirq.contrib.quantum_volume import CompilationResult
 
 
 class TestDevice(cirq.Device):
-    qubits = cirq.GridQubit.rect(5,5)
+    qubits = cirq.GridQubit.rect(5, 5)
 
 
 def test_generate_model_circuit():
