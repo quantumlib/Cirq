@@ -12,26 +12,9 @@ from typing import (
 import numpy as np
 
 from cirq import ops, linalg, circuits, devices
-from cirq.optimizers import merge_single_qubit_gates, drop_empty_moments
-from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     import cirq
-
-
-@deprecated(deadline='v0.10', fix='Use cirq.decompose_two_qubit_interaction_into_four_fsim_gates.')
-def decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
-    interaction: Union['cirq.Operation', 'cirq.Gate', np.ndarray, Any],
-    *,
-    fsim_gate: Union['cirq.FSimGate', 'cirq.ISwapPowGate'],
-    qubits: Sequence['cirq.Qid'] = None,
-) -> 'cirq.Circuit':
-    circuit = decompose_two_qubit_interaction_into_four_fsim_gates(
-        interaction, fsim_gate=fsim_gate, qubits=qubits
-    )
-    merge_single_qubit_gates.MergeSingleQubitGates().optimize_circuit(circuit)
-    drop_empty_moments.DropEmptyMoments().optimize_circuit(circuit)
-    return circuit
 
 
 def decompose_two_qubit_interaction_into_four_fsim_gates(

@@ -22,6 +22,11 @@ import cirq
 from cirq.study.result import _pack_digits
 
 
+def test_result_init():
+    assert cirq.Result(params=cirq.ParamResolver({}), measurements=None).repetitions == 0
+    assert cirq.Result(params=cirq.ParamResolver({}), measurements={}).repetitions == 0
+
+
 def test_repr():
     v = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({'a': 2}), measurements={'xy': np.array([[1, 0], [0, 1]])}
@@ -323,12 +328,12 @@ def test_json_bit_packing_force():
 
 
 def test_deprecation_log():
-    with cirq.testing.assert_logs('TrialResult was used but is deprecated'):
+    with cirq.testing.assert_deprecated('TrialResult was used but is deprecated', deadline="v0.11"):
         cirq.TrialResult(params=cirq.ParamResolver({}), measurements={})
 
 
 def test_deprecated_json():
-    with cirq.testing.assert_logs('TrialResult was used but is deprecated'):
+    with cirq.testing.assert_deprecated('TrialResult was used but is deprecated', deadline="v0.11"):
         result = cirq.read_json(
             json_text="""{
           "cirq_type": "TrialResult",

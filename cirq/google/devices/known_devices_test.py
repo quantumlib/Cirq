@@ -82,6 +82,10 @@ valid_gate_sets {
       name: "half_turns"
       type: FLOAT
     }
+    valid_args {
+      name: "phase_match"
+      type: STRING
+    }
     gate_duration_picos: 45000
     valid_targets: "2_qubit_targets"
   }
@@ -364,6 +368,10 @@ valid_gate_sets {
     valid_args {
       name: "half_turns"
       type: FLOAT
+    }
+    valid_args {
+      name: "phase_match"
+      type: STRING
     }
     gate_duration_picos: 11000
     valid_targets: "2_qubit_targets"
