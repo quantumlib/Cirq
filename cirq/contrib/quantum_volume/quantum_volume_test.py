@@ -9,7 +9,8 @@ import cirq.contrib.routing as ccr
 from cirq.contrib.quantum_volume import CompilationResult
 
 
-BCONE = cirq.google.Bristlecone
+class TestDevice(cirq.Device):
+    qubits = cirq.GridQubit.rect(5,5)
 
 
 def test_generate_model_circuit():
@@ -121,7 +122,7 @@ def test_compile_circuit_router():
     router_mock = MagicMock()
     cirq.contrib.quantum_volume.compile_circuit(
         cirq.Circuit(),
-        device_graph=ccr.xmon_device_to_graph(BCONE),
+        device_graph=ccr.gridqubits_to_graph_device(TestDevice().qubits),
         router=router_mock,
         routing_attempts=1,
     )
@@ -139,7 +140,7 @@ def test_compile_circuit():
     )
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
-        device_graph=ccr.xmon_device_to_graph(BCONE),
+        device_graph=ccr.gridqubits_to_graph_device(TestDevice().qubits),
         compiler=compiler_mock,
         routing_attempts=1,
     )
@@ -147,7 +148,7 @@ def test_compile_circuit():
     assert len(compilation_result.mapping) == 3
     assert cirq.contrib.routing.ops_are_consistent_with_device_graph(
         compilation_result.circuit.all_operations(),
-        cirq.contrib.routing.xmon_device_to_graph(BCONE),
+        cirq.contrib.routing.gridqubits_to_graph_device(TestDevice().qubits),
     )
     compiler_mock.assert_called_with(compilation_result.circuit)
 
@@ -167,7 +168,7 @@ def test_compile_circuit_replaces_swaps():
     )
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
-        device_graph=ccr.xmon_device_to_graph(BCONE),
+        device_graph=ccr.gridqubits_to_graph_device(TestDevice().qubits),
         compiler=compiler_mock,
         routing_attempts=1,
     )
@@ -207,7 +208,7 @@ def test_compile_circuit_with_readout_correction():
     )
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
-        device_graph=ccr.xmon_device_to_graph(BCONE),
+        device_graph=ccr.gridqubits_to_graph_device(TestDevice().qubits),
         compiler=compiler_mock,
         router=router_mock,
         routing_attempts=1,
@@ -256,7 +257,7 @@ def test_compile_circuit_multiple_routing_attempts():
 
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
-        device_graph=ccr.xmon_device_to_graph(BCONE),
+        device_graph=ccr.gridqubits_to_graph_device(TestDevice().qubits),
         compiler=compiler_mock,
         router=router_mock,
         routing_attempts=3,
@@ -279,7 +280,7 @@ def test_compile_circuit_no_routing_attempts():
     with pytest.raises(AssertionError) as e:
         cirq.contrib.quantum_volume.compile_circuit(
             model_circuit,
-            device_graph=ccr.xmon_device_to_graph(BCONE),
+            device_graph=ccr.gridqubits_to_graph_device(TestDevice().qubits),
             routing_attempts=0,
         )
     assert e.match('Unable to get routing for circuit')
