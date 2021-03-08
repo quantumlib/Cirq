@@ -195,6 +195,7 @@ from cirq.ops import (
     DensePauliString,
     depolarize,
     DepolarizingChannel,
+    DiagonalGate,
     EigenGate,
     flatten_op_tree,
     flatten_to_ops,

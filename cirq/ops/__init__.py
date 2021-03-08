@@ -149,6 +149,10 @@ from cirq.ops.moment import (
     Moment,
 )
 
+from cirq.ops.n_qubit_diagonal_gate import (
+    DiagonalGate,
+)
+
 from cirq.ops.named_qubit import (
     NamedQubit,
     NamedQid,
