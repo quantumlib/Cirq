@@ -2,7 +2,7 @@
 https://arxiv.org/abs/1811.12926.
 """
 
-from typing import Optional, List, cast, Callable, Dict, Tuple, Set, Union
+from typing import Optional, List, cast, Callable, Dict, Tuple, Set
 from dataclasses import dataclass
 
 import numpy as np
