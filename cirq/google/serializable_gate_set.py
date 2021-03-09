@@ -26,7 +26,7 @@ from typing import (
 )
 
 from cirq import circuits, ops
-from cirq._compat import deprecated_parameter
+from cirq._compat import deprecated, deprecated_parameter
 from cirq.google import op_deserializer, op_serializer, arg_func_langs
 from cirq.google.api import v2
 
@@ -57,7 +57,7 @@ class SerializableGateSet:
                 different serialized form depending on the parameters of the
                 gate.
             deserializers: The OpDeserializers to convert serialized
-                forms of gates to GateOperations.
+                forms of gates or circuits into Operations.
         """
         self.gate_set_name = gate_set_name
         self.serializers: Dict[Type, List[op_serializer.OpSerializer]] = {}
@@ -65,8 +65,7 @@ class SerializableGateSet:
             self.serializers.setdefault(s.gate_type, []).append(s)
         self.deserializers = {d.serialized_gate_id: d for d in deserializers}
 
-    # TODO: naming is now weird
-    def with_added_gates(
+    def with_added_types(
         self,
         *,
         gate_set_name: Optional[str] = None,
@@ -91,17 +90,36 @@ class SerializableGateSet:
             deserializers=[*self.deserializers.values(), *deserializers],
         )
 
-    # TODO: naming is now weird
-    def supported_gate_types(self) -> Tuple:
+    @deprecated(deadline='v0.12.0', fix='Use with_added_types instead.')
+    def with_added_gates(
+        self,
+        *,
+        gate_set_name: Optional[str] = None,
+        serializers: Iterable[op_serializer.OpSerializer] = (),
+        deserializers: Iterable[op_deserializer.OpDeserializer] = (),
+    ) -> 'SerializableGateSet':
+        return self.with_added_types(
+            gate_set_name=gate_set_name,
+            serializers=serializers,
+            deserializers=deserializers,
+        )
+
+    def supported_internal_types(self) -> Tuple:
         return tuple(self.serializers.keys())
+
+    @deprecated(deadline='v0.12.0', fix='Use supported_internal_types instead.')
+    def supported_gate_types(self) -> Tuple:
+        return self.supported_internal_types()
 
     def is_supported(self, op_tree: 'cirq.OP_TREE') -> bool:
         """Whether the given object contains only supported operations."""
         return all(self.is_supported_operation(op) for op in ops.flatten_to_ops(op_tree))
 
-    # TODO: needs CircuitOperation-friendly checks
     def is_supported_operation(self, op: 'cirq.Operation') -> bool:
         """Whether or not the given gate can be serialized by this gate set."""
+        subcircuit = getattr(op.untagged, 'circuit', None)
+        if subcircuit is not None:
+            return self.is_supported(subcircuit)
         return any(
             serializer.can_serialize_operation(op)
             for gate_type in type(op.gate).mro()

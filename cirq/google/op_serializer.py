@@ -62,11 +62,6 @@ class OpSerializer(abc.ABC):
     def serialized_gate_id(self) -> str:
         return self.serialized_id
 
-    @property
-    @abc.abstractmethod
-    def args(self):
-        """TODO: determine if this property makes sense."""
-
     @abc.abstractmethod
     def to_proto(
         self,
@@ -296,11 +291,6 @@ class CircuitOpSerializer(OpSerializer):
     @property
     def serialized_id(self):
         return 'circuit'
-
-    @property
-    def args(self):
-        """TODO: this only exists to appease known_devices."""
-        return []
 
     @property
     def can_serialize_predicate(self):
