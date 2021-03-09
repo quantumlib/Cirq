@@ -202,11 +202,33 @@ def test_serialize_circuit():
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
-                v2.program_pb2.Moment(operations=[cg.XMON.serialize_op(cirq.CZ(q0, q1))]),
                 v2.program_pb2.Moment(
-                    operations=[cg.XMON.serialize_op(cirq.X(q0)), cg.XMON.serialize_op(cirq.Z(q1))]
+                    operations=[cg.XMON.serialize_op(cirq.CZ(q0, q1))],
+                    generic_operations=[
+                        v2.program_pb2.GenericOperation(
+                            operation=cg.XMON.serialize_op(cirq.CZ(q0, q1))
+                        ),
+                    ],
                 ),
-                v2.program_pb2.Moment(operations=[cg.XMON.serialize_op(cirq.measure(q1, key='m'))]),
+                v2.program_pb2.Moment(
+                    operations=[cg.XMON.serialize_op(cirq.X(q0)), cg.XMON.serialize_op(cirq.Z(q1))],
+                    generic_operations=[
+                        v2.program_pb2.GenericOperation(
+                            operation=cg.XMON.serialize_op(cirq.X(q0)),
+                        ),
+                        v2.program_pb2.GenericOperation(
+                            operation=cg.XMON.serialize_op(cirq.Z(q1)),
+                        ),
+                    ],
+                ),
+                v2.program_pb2.Moment(
+                    operations=[cg.XMON.serialize_op(cirq.measure(q1, key='m'))],
+                    generic_operations=[
+                        v2.program_pb2.GenericOperation(
+                            operation=cg.XMON.serialize_op(cirq.measure(q1, key='m'))
+                        ),
+                    ],
+                ),
             ],
         ),
     )
