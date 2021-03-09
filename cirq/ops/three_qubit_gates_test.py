@@ -218,6 +218,7 @@ def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
         cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19]),
     ],
 )
+@cirq.testing.skip_if_module_not_exists(module="cirq.google")
 def test_decomposition_respects_locality(gate):
     a = cirq.GridQubit(0, 0)
     b = cirq.GridQubit(1, 0)

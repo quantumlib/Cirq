@@ -98,6 +98,26 @@ jobs:
           architecture: 'x64'
       - name: Doc check
         run: check/nbformat
+  cirq-only:
+    name: Pytest (cirq-only) Ubuntu
+    strategy:
+      matrix:
+        python-version: [ '3.8' ]
+    runs-on: ubuntu-16.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: 'x64'
+      - name: Install requirements
+        run: |
+          pip install -r requirements.txt
+          pip install -r dev_tools/conf/pip-list-dev-tools.txt
+          # TODO: move to requirements.txt after #3704
+          pip install codeowners==0.1.2 # linux only package
+      - name: Pytest check
+        run: check/pytest --cirq-only --ignore=cirq/contrib --actually-quiet
   pytest:
     name: Pytest Ubuntu
     strategy:

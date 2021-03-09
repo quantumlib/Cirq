@@ -7,6 +7,7 @@ from examples.advanced import quantum_volume
 import cirq
 
 
+@cirq.testing.skip_if_module_not_exists(module="cirq.google")
 def test_main_loop():
     """Test that the main loop is able to run without erring."""
     # Keep test from taking a long time by lowering repetitions.

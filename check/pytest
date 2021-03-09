@@ -25,6 +25,8 @@ for arg in $@; do
     elif [[ "${arg}" == "--cirq-only" ]]; then
         tmp_dir=$(mktemp -d "/tmp/cirq-pytest.XXXXXXXXXXXXXXXX")
         cp -R ./* ${tmp_dir}/
+        cp -R ./.github ${tmp_dir}/
+        cp -R ./.git ${tmp_dir}/
         cd ${tmp_dir}
         rm -rf cirq/google
         trap "{ rm -rf ${tmp_dir}; }" EXIT
