@@ -11,6 +11,7 @@ import networkx as nx
 
 import cirq
 import cirq.contrib.routing as ccr
+from cirq._compat import deprecated_parameter
 
 
 def generate_model_circuit(
@@ -422,6 +423,16 @@ def execute_circuits(
     return results
 
 
+@deprecated_parameter(
+    deadline="v0.12",
+    fix="use device_qubits instead",
+    parameter_desc='device_or_qubits',
+    match=lambda args, kwargs: 'device_or_qubits' in kwargs,
+    rewrite=lambda args, kwargs: (
+        args,
+        {('device_qubits' if k == 'device_or_qubits' else k): v for k, v in kwargs.items()},
+    ),
+)
 def calculate_quantum_volume(
     *,
     num_qubits: int,
