@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from logging import warning
 
 from cirq import _import
 
@@ -51,7 +52,6 @@ from cirq import (
     interop,
     # Applications
     experiments,
-    google,
     # Extra (nothing should depend on these)
     testing,
 )
@@ -557,11 +557,16 @@ from cirq.work import (
 # Unflattened sub-modules.
 
 from cirq import (
-    google,
     ionq,
     pasqal,
     testing,
 )
+
+try:
+    from cirq import google
+except ImportError as ex:
+    warning("Can't import cirq.google:", ex)
+    pass
 
 
 def _register_resolver() -> None:

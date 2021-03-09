@@ -167,3 +167,9 @@ def delay_import(module_name: str):
     delay = False
     for module in execute_list:
         module.__loader__.exec_module(module)  # Calls back into wrap_func
+
+
+def module_exists(*, module: str) -> bool:
+    import importlib
+
+    return importlib.util.find_spec(module) is not None
