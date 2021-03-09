@@ -263,7 +263,7 @@ message QubitMapping {
   }
 
   // A list of qubit mappings to apply.
-  repeated QubitPair qubit_pairs = 1;
+  repeated QubitPair pairs = 1;
 }
 
 // A key for matching a measurement event to its results.
@@ -280,7 +280,7 @@ message MeasurementKeyMapping {
   }
 
   // A list of measurement key mappings to apply.
-  repeated MeasurementKeyPair measurement_key_pairs = 1;
+  repeated MeasurementKeyPair pairs = 1;
 }
 
 // A mapping of args from one value to another.
@@ -292,5 +292,5 @@ message ArgMapping {
   }
 
   // A list of args mappings to apply.
-  repeated ArgPair arg_pairs = 1;
+  repeated ArgPair pairs = 1;
 }
