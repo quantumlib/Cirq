@@ -170,6 +170,6 @@ def delay_import(module_name: str):
 
 
 def module_exists(*, module: str) -> bool:
-    import importlib
+    import importlib.util
 
     return importlib.util.find_spec(module) is not None
