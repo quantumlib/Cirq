@@ -565,6 +565,7 @@ from cirq import (
 try:
     from cirq import google
 except ImportError as ex:
+    # coverage: ignore
     warning("Can't import cirq.google:", ex)
 
 
