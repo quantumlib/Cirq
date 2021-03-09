@@ -25,7 +25,7 @@ twine
 pyquil~=2.21.0
 
 # For verifying behavior of qasm output.
-qiskit~=0.20.0
+qiskit-aer~=0.7.6
 
 # For generating notebooks in documentation
 ipython
