@@ -776,13 +776,13 @@ class AbstractCircuit(abc.ABC):
         if not all(
             self.next_moment_operating_on(op.qubits, i + 1) is None
             for (i, op) in self.findall_operations(predicate)
-            if _get_op_circuit(op) is None
+            if getattr(op.untagged, 'circuit', None) is None
         ):
             return False
 
         for i, moment in enumerate(self.moments):
             for op in moment.operations:
-                circuit = _get_op_circuit(op)
+                circuit = getattr(op.untagged, 'circuit', None)
                 if circuit is None:
                     continue
                 if not circuit.are_all_matches_terminal(predicate):
@@ -816,13 +816,13 @@ class AbstractCircuit(abc.ABC):
         if any(
             self.next_moment_operating_on(op.qubits, i + 1) is None
             for (i, op) in self.findall_operations(predicate)
-            if _get_op_circuit(op) is None
+            if getattr(op.untagged, 'circuit', None) is None
         ):
             return True
 
         for i, moment in reversed(list(enumerate(self.moments))):
             for op in moment.operations:
-                circuit = _get_op_circuit(op)
+                circuit = getattr(op.untagged, 'circuit', None)
                 if circuit is None:
                     continue
                 if not circuit.are_any_matches_terminal(predicate):
@@ -2199,15 +2199,6 @@ class Circuit(AbstractCircuit):
             # Keep moments aligned
             c_noisy += Circuit(op_tree)
         return c_noisy
-
-
-def _get_op_circuit(op: ops.Operation) -> Optional['cirq.FrozenCircuit']:
-    """Retrieves the circuit contained by an operation, if there is one."""
-    from cirq.circuits import CircuitOperation
-
-    while isinstance(op, ops.TaggedOperation):
-        op = op.sub_operation
-    return op.circuit if isinstance(op, CircuitOperation) else None
 
 
 def _resolve_operations(
