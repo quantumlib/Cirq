@@ -226,19 +226,19 @@ class CircuitOpDeserializer(OpDeserializer):
                 f'but it has type {type(circuit)} in the raw_constants list.'
             )
 
-        if not proto.repetition_spec.repetition_ids:
-            repetition_ids = None
-            repetitions = proto.repetition_spec.repetitions
+        if not proto.repetition_spec.rep_ids:
+            rep_ids = None
+            repetitions = proto.repetition_spec.rep_count
         else:
-            repetition_ids = proto.repetition_spec.repetition_ids
-            repetitions = len(repetition_ids)
+            rep_ids = proto.repetition_spec.rep_ids.ids
+            repetitions = len(rep_ids)
 
         qubit_map = {
-            v2.qubit_from_proto_id(pair.first): v2.qubit_from_proto_id(pair.second)
-            for pair in proto.qubit_map
+            v2.qubit_from_proto_id(pair.first.id): v2.qubit_from_proto_id(pair.second.id)
+            for pair in proto.qubit_map.pairs
         }
         measurement_key_map = {
-            pair.first.str_key: pair.second.str_key for pair in proto.measurement_key_map
+            pair.first.str_key: pair.second.str_key for pair in proto.measurement_key_map.pairs
         }
         arg_map = {
             arg_func_langs.arg_from_proto(
@@ -246,7 +246,7 @@ class CircuitOpDeserializer(OpDeserializer):
             ): arg_func_langs.arg_from_proto(
                 pair.second, arg_function_language=arg_function_language
             )
-            for pair in proto.arg_map
+            for pair in proto.arg_map.pairs
         }
 
         for arg in arg_map.keys():
@@ -269,5 +269,5 @@ class CircuitOpDeserializer(OpDeserializer):
             qubit_map,
             measurement_key_map,
             arg_map,  # type: ignore
-            repetition_ids,
+            rep_ids,
         )

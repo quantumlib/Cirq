@@ -92,11 +92,37 @@ def test_is_supported():
     assert not MY_GATE_SET.is_supported(cirq.Circuit(cirq.X(q0), cirq.Z(q1)))
 
 
+def test_is_supported_subcircuits():
+    q0, q1 = cirq.GridQubit.rect(1, 2)
+    assert MY_GATE_SET.is_supported(
+        cirq.Circuit(cirq.X(q0), cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q1))))
+    )
+    assert not MY_GATE_SET.is_supported(
+        cirq.Circuit(cirq.X(q0), cirq.CircuitOperation(cirq.FrozenCircuit(cirq.Z(q1))))
+    )
+
+
 def test_is_supported_operation():
     q = cirq.GridQubit(1, 1)
     assert MY_GATE_SET.is_supported_operation(cirq.XPowGate()(q))
     assert MY_GATE_SET.is_supported_operation(cirq.X(q))
     assert not MY_GATE_SET.is_supported_operation(cirq.ZPowGate()(q))
+
+
+def test_is_supported_circuit_operation():
+    q = cirq.GridQubit(1, 1)
+    assert MY_GATE_SET.is_supported_operation(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q))))
+    assert MY_GATE_SET.is_supported_operation(
+        cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q))).with_tags('test_tag')
+    )
+    assert MY_GATE_SET.is_supported_operation(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q))))
+        )
+    )
+    assert not MY_GATE_SET.is_supported_operation(
+        cirq.CircuitOperation(cirq.FrozenCircuit(cirq.Z(q)))
+    )
 
 
 def test_is_supported_operation_can_serialize_predicate():
@@ -126,6 +152,11 @@ def test_serialize_deserialize_circuit():
     q1 = cirq.GridQubit(1, 2)
     circuit = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.X(q0))
 
+    genop1 = v2.program_pb2.GenericOperation()
+    genop1.operation.CopyFrom(X_SERIALIZER.to_proto(cirq.X(q0)))
+    genop2 = v2.program_pb2.GenericOperation()
+    genop2.operation.CopyFrom(X_SERIALIZER.to_proto(cirq.X(q1)))
+
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
@@ -135,9 +166,13 @@ def test_serialize_deserialize_circuit():
                     operations=[
                         X_SERIALIZER.to_proto(cirq.X(q0)),
                         X_SERIALIZER.to_proto(cirq.X(q1)),
-                    ]
+                    ],
+                    generic_operations=[genop1, genop2],
                 ),
-                v2.program_pb2.Moment(operations=[X_SERIALIZER.to_proto(cirq.X(q0))]),
+                v2.program_pb2.Moment(
+                    operations=[X_SERIALIZER.to_proto(cirq.X(q0))],
+                    generic_operations=[genop1],
+                ),
             ],
         ),
     )
@@ -151,23 +186,36 @@ def test_serialize_deserialize_circuit_with_tokens():
     tag1 = cg.CalibrationTag('abc123')
     tag2 = cg.CalibrationTag('def456')
     circuit = cirq.Circuit(cirq.X(q0).with_tags(tag1), cirq.X(q1).with_tags(tag2), cirq.X(q0))
-    op1 = v2.program_pb2.Operation()
+
+    genop1 = v2.program_pb2.GenericOperation()
+    op1 = genop1.operation
     op1.gate.id = 'x_pow'
     op1.args['half_turns'].arg_value.float_value = 1.0
     op1.qubits.add().id = '1_1'
     op1.token_constant_index = 0
-    op2 = v2.program_pb2.Operation()
+
+    genop2 = v2.program_pb2.GenericOperation()
+    op2 = genop2.operation
     op2.gate.id = 'x_pow'
     op2.args['half_turns'].arg_value.float_value = 1.0
     op2.qubits.add().id = '1_2'
     op2.token_constant_index = 1
+
+    genopX = v2.program_pb2.GenericOperation()
+    genopX.operation.CopyFrom(X_SERIALIZER.to_proto(cirq.X(q0)))
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
             scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
             moments=[
-                v2.program_pb2.Moment(operations=[op1, op2]),
-                v2.program_pb2.Moment(operations=[X_SERIALIZER.to_proto(cirq.X(q0))]),
+                v2.program_pb2.Moment(
+                    operations=[op1, op2],
+                    generic_operations=[genop1, genop2],
+                ),
+                v2.program_pb2.Moment(
+                    operations=[X_SERIALIZER.to_proto(cirq.X(q0))],
+                    generic_operations=[genopX],
+                ),
             ],
         ),
         constants=[
@@ -176,6 +224,76 @@ def test_serialize_deserialize_circuit_with_tokens():
         ],
     )
     assert proto == MY_GATE_SET.serialize(circuit)
+    assert MY_GATE_SET.deserialize(proto) == circuit
+
+
+def test_serialize_deserialize_circuit_with_subcircuit():
+    q0 = cirq.GridQubit(1, 1)
+    q1 = cirq.GridQubit(1, 2)
+    tag1 = cg.CalibrationTag('abc123')
+    circuit = cirq.Circuit(
+        cirq.X(q0).with_tags(tag1),
+        cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q0)))
+        .with_qubit_mapping({q0: q1})
+        .repeat(repetition_ids=['a', 'b']),
+        cirq.X(q0),
+    )
+
+    genop1 = v2.program_pb2.GenericOperation()
+    op1 = genop1.operation
+    op1.gate.id = 'x_pow'
+    op1.args['half_turns'].arg_value.float_value = 1.0
+    op1.qubits.add().id = '1_1'
+    op1.token_constant_index = 0
+
+    genop2 = v2.program_pb2.GenericOperation()
+    c_op = genop2.circuit_operation
+    c_op.circuit_constant_index = 1
+    rep_spec = c_op.repetition_spec
+    rep_spec.rep_count = 2
+    rep_spec.rep_ids.ids.extend(['a', 'b'])
+    qmap = c_op.qubit_map.pairs.add()
+    qmap.first.id = '1_1'
+    qmap.second.id = '1_2'
+
+    # This op triggers a fallback to generic operation deserialization.
+    flag_op = v2.program_pb2.Operation()
+    flag_op.gate.id = cirq.google.serializable_gate_set.FALLBACK_TO_GENERIC
+
+    genopX = v2.program_pb2.GenericOperation()
+    genopX.operation.CopyFrom(X_SERIALIZER.to_proto(cirq.X(q0)))
+    proto = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+            moments=[
+                v2.program_pb2.Moment(
+                    operations=[op1, flag_op],
+                    generic_operations=[genop1, genop2],
+                ),
+                v2.program_pb2.Moment(
+                    operations=[X_SERIALIZER.to_proto(cirq.X(q0))],
+                    generic_operations=[genopX],
+                ),
+            ],
+        ),
+        constants=[
+            v2.program_pb2.Constant(string_value='abc123'),
+            v2.program_pb2.Constant(
+                circuit_value=v2.program_pb2.Circuit(
+                    scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+                    moments=[
+                        v2.program_pb2.Moment(
+                            operations=[X_SERIALIZER.to_proto(cirq.X(q0))],
+                            generic_operations=[genopX],
+                        )
+                    ],
+                )
+            ),
+        ],
+    )
+    assert proto == MY_GATE_SET.serialize(circuit)
+    # TODO: bypass "operations" for "generic_operations"
     assert MY_GATE_SET.deserialize(proto) == circuit
 
 
