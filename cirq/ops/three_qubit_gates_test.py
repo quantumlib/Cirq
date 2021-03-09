@@ -201,6 +201,7 @@ def test_identity_multiplication():
         ),
     ],
 )
+@cirq.testing.skip_if_module_not_exists(module="cirq.google")
 def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
     ops = tuple(cirq.flatten_op_tree(cirq.google.ConvertToXmonGates().convert(op)))
     two_cost = len([e for e in ops if len(e.qubits) == 2])

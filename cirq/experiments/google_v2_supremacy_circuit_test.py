@@ -14,6 +14,7 @@
 
 import pytest
 
+import cirq
 from cirq import GridQubit
 from cirq import ops
 import cirq.experiments.google_v2_supremacy_circuit as supremacy_v2
@@ -44,6 +45,7 @@ def test_google_v2_supremacy_circuit():
     assert circuit.operation_at(qubits[14], 7).gate == ops.CZ
 
 
+@cirq.testing.skip_if_module_not_exists(module="cirq.google")
 def test_google_v2_supremacy_bristlecone():
     # Check instance consistency
     c = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_bristlecone(
@@ -70,6 +72,7 @@ def test_google_v2_supremacy_bristlecone():
     assert len(list(c.findall_operations_with_gate_type(ops.XPowGate))) == 32
 
 
+@cirq.testing.skip_if_module_not_exists(module="cirq.google")
 def test_n_rows_less_than_2():
     with pytest.raises(AssertionError):
         supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_bristlecone(

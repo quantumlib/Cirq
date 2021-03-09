@@ -170,6 +170,13 @@ def delay_import(module_name: str):
 
 
 def module_exists(*, module: str) -> bool:
+    """Returns `True` if the given module is importable.
+
+    Args:
+        module: the name of the module to check
+    Returns:
+        `True` if the given module is importable.
+    """
     import importlib.util
 
     return importlib.util.find_spec(module) is not None

@@ -28,6 +28,7 @@ def _assert_no_multi_qubit_pauli_strings(circuit: cirq.Circuit) -> None:
             assert len(op.pauli_string) == 1
 
 
+@cirq.testing.skip_if_module_not_exists(module="cirq.google")
 def test_move_non_clifford_into_clifford():
     q0, q1, q2 = cirq.LineQubit.range(3)
     c_orig = cirq.testing.nonoptimal_toffoli_circuit(q0, q1, q2)
