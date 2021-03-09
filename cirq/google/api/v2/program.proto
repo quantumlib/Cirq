@@ -31,8 +31,10 @@ message Program {
 // Constants, such as long strings, that are used throughout the circuit.
 // These constants can be stored here to save space.
 message Constant {
-  string string_value = 1;
-  Circuit circuit_value = 2;
+  oneof const_value {
+    string string_value = 1;
+    Circuit circuit_value = 2;
+  }
 }
 
 
