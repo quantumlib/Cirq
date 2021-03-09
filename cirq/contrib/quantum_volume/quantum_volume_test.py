@@ -363,6 +363,8 @@ def test_deprecated():
     with cirq.testing.assert_deprecated(
         "device_or_qubits", "use device_qubits instead", deadline="v0.12"
     ):
+        # pylint: disable=unexpected-keyword-arg
+        # pylint: disable=missing-kwoa
         cirq.contrib.quantum_volume.calculate_quantum_volume(
             num_qubits=4,
             depth=4,
@@ -373,3 +375,5 @@ def test_deprecated():
             samplers=[cirq.Simulator()],
             add_readout_error_correction=True,
         )
+        # pylint: enable=unexpected-keyword-arg
+        # pylint: enable=missing-kwoa
