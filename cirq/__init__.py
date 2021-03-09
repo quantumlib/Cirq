@@ -566,7 +566,6 @@ try:
     from cirq import google
 except ImportError as ex:
     warning("Can't import cirq.google:", ex)
-    pass
 
 
 def _register_resolver() -> None:
