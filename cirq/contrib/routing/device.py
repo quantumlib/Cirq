@@ -13,14 +13,16 @@
 # limitations under the License.
 
 import itertools
-from typing import Iterable, Tuple, Dict
+from typing import Iterable, Tuple, Dict, Any
 
 import networkx as nx
 
 import cirq
+from cirq._compat import deprecated
 
 
-def xmon_device_to_graph(device: cirq.google.XmonDevice) -> nx.Graph:
+@deprecated(deadline="v0.12", fix="use gridqubits_to_graph_device(device.qubits) instead")
+def xmon_device_to_graph(device: Any) -> nx.Graph:
     """Gets the graph of an XmonDevice."""
     return gridqubits_to_graph_device(device.qubits)
 
@@ -62,7 +64,7 @@ def nx_qubit_layout(graph: nx.Graph) -> Dict[cirq.Qid, Tuple[float, float]]:
     >>> import matplotlib.pyplot as plt
     >>> # Clear plot state to prevent issues with pyplot dimensionality.
     >>> plt.clf()
-    >>> g = ccr.xmon_device_to_graph(cirq.google.Foxtail)
+    >>> g = ccr.gridqubits_to_graph_device(cirq.GridQubit.rect(4,5))
     >>> pos = ccr.nx_qubit_layout(g)
     >>> nx.draw_networkx(g, pos=pos)
 

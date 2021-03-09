@@ -19,10 +19,9 @@ Output:
 
 import argparse
 import sys
-from typing import Optional, List, cast, Callable, Dict, Tuple
 
-from cirq.contrib.quantum_volume import calculate_quantum_volume
 import cirq
+from cirq.contrib.quantum_volume import calculate_quantum_volume
 
 
 def main(*, num_qubits: int, depth: int, num_circuits: int, seed: int, routes: int):
@@ -48,7 +47,7 @@ def main(*, num_qubits: int, depth: int, num_circuits: int, seed: int, routes: i
         depth=depth,
         num_circuits=num_circuits,
         random_state=seed,
-        device_or_qubits=device,
+        device_qubits=device.qubits,
         samplers=[cirq.Simulator(), noisy],
         routing_attempts=routes,
         compiler=compiler,

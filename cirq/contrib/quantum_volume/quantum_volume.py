@@ -2,7 +2,7 @@
 https://arxiv.org/abs/1811.12926.
 """
 
-from typing import Optional, List, cast, Callable, Dict, Tuple, Set, Union
+from typing import Optional, List, cast, Callable, Dict, Tuple, Set
 from dataclasses import dataclass
 
 import numpy as np
@@ -11,6 +11,7 @@ import networkx as nx
 
 import cirq
 import cirq.contrib.routing as ccr
+from cirq._compat import deprecated_parameter
 
 
 def generate_model_circuit(
@@ -422,12 +423,22 @@ def execute_circuits(
     return results
 
 
+@deprecated_parameter(
+    deadline="v0.12",
+    fix="use device_qubits instead",
+    parameter_desc='device_or_qubits',
+    match=lambda args, kwargs: 'device_or_qubits' in kwargs,
+    rewrite=lambda args, kwargs: (
+        args,
+        {('device_qubits' if k == 'device_or_qubits' else k): v for k, v in kwargs.items()},
+    ),
+)
 def calculate_quantum_volume(
     *,
     num_qubits: int,
     depth: int,
     num_circuits: int,
-    device_or_qubits: Union[cirq.google.XmonDevice, List[cirq.GridQubit]],
+    device_qubits: List[cirq.GridQubit],
     samplers: List[cirq.Sampler],
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
@@ -449,8 +460,7 @@ def calculate_quantum_volume(
         depth: The number of gate layers to generate.
         num_circuits: The number of random circuits to run.
         random_state: Random state or random state seed.
-        device_or_qubits: The device or the device qubits to run the compiled
-            circuit on.
+        device_qubits: The device or qubits to run the compiled circuit on.
         samplers: The samplers to run the algorithm on.
         compiler: An optional function to compiler the model circuit's
             gates down to the target devices gate set and the optimize it.
@@ -474,11 +484,7 @@ def calculate_quantum_volume(
     )
 
     # Get the device graph from the given qubits or device.
-    device_graph = None
-    if isinstance(device_or_qubits, list):
-        device_graph = ccr.gridqubits_to_graph_device(device_or_qubits)
-    else:
-        device_graph = ccr.xmon_device_to_graph(device_or_qubits)
+    device_graph = ccr.gridqubits_to_graph_device(device_qubits)
 
     return execute_circuits(
         circuits=circuits,
