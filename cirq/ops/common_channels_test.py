@@ -83,8 +83,14 @@ def test_asymmetric_depolarizing_channel_str():
 
 
 def test_asymmetric_depolarizing_channel_eq():
-    et = cirq.testing.EqualsTester()
+
+    a = cirq.asymmetric_depolarize(0.0099999, 0.01)
+    b = cirq.asymmetric_depolarize(0.01, 0.0099999)
     c = cirq.asymmetric_depolarize(0.0, 0.0, 0.0)
+
+    assert cirq.approx_eq(a, b, atol=1e-2)
+
+    et = cirq.testing.EqualsTester()
     et.make_equality_group(lambda: c)
     et.add_equality_group(cirq.asymmetric_depolarize(0.0, 0.0, 0.1))
     et.add_equality_group(cirq.asymmetric_depolarize(0.0, 0.1, 0.0))
@@ -254,8 +260,14 @@ def test_asymmetric_depolarizing_channel_apply_two_qubits():
 
 
 def test_depolarizing_channel_eq():
-    et = cirq.testing.EqualsTester()
+    a = cirq.depolarize(p=0.0099999)
+    b = cirq.depolarize(p=0.01)
     c = cirq.depolarize(0.0)
+
+    assert cirq.approx_eq(a, b, atol=1e-2)
+
+    et = cirq.testing.EqualsTester()
+
     et.make_equality_group(lambda: c)
     et.add_equality_group(cirq.depolarize(0.1))
     et.add_equality_group(cirq.depolarize(0.9))
@@ -322,6 +334,11 @@ def test_generalized_amplitude_damping_str():
 
 
 def test_generalized_amplitude_damping_channel_eq():
+    a = cirq.generalized_amplitude_damp(0.0099999, 0.01)
+    b = cirq.generalized_amplitude_damp(0.01, 0.0099999)
+
+    assert cirq.approx_eq(a, b, atol=1e-2)
+
     et = cirq.testing.EqualsTester()
     c = cirq.generalized_amplitude_damp(0.0, 0.0)
     et.make_equality_group(lambda: c)
@@ -375,8 +392,13 @@ def test_amplitude_damping_channel_str():
 
 
 def test_amplitude_damping_channel_eq():
-    et = cirq.testing.EqualsTester()
+    a = cirq.amplitude_damp(0.0099999)
+    b = cirq.amplitude_damp(0.01)
     c = cirq.amplitude_damp(0.0)
+
+    assert cirq.approx_eq(a, b, atol=1e-2)
+
+    et = cirq.testing.EqualsTester()
     et.make_equality_group(lambda: c)
     et.add_equality_group(cirq.amplitude_damp(0.1))
     et.add_equality_group(cirq.amplitude_damp(0.4))
@@ -499,8 +521,13 @@ def test_phase_damping_channel_str():
 
 
 def test_phase_damping_channel_eq():
-    et = cirq.testing.EqualsTester()
+    a = cirq.phase_damp(0.0099999)
+    b = cirq.phase_damp(0.01)
     c = cirq.phase_damp(0.0)
+
+    assert cirq.approx_eq(a, b, atol=1e-2)
+
+    et = cirq.testing.EqualsTester()
     et.make_equality_group(lambda: c)
     et.add_equality_group(cirq.phase_damp(0.1))
     et.add_equality_group(cirq.phase_damp(0.4))
@@ -555,8 +582,13 @@ def test_phase_flip_channel_str():
 
 
 def test_phase_flip_channel_eq():
-    et = cirq.testing.EqualsTester()
+    a = cirq.phase_flip(0.0099999)
+    b = cirq.phase_flip(0.01)
     c = cirq.phase_flip(0.0)
+
+    assert cirq.approx_eq(a, b, atol=1e-2)
+
+    et = cirq.testing.EqualsTester()
     et.make_equality_group(lambda: c)
     et.add_equality_group(cirq.phase_flip(0.1))
     et.add_equality_group(cirq.phase_flip(0.4))
@@ -611,8 +643,14 @@ def test_bit_flip_channel_str():
 
 
 def test_bit_flip_channel_eq():
-    et = cirq.testing.EqualsTester()
+
+    a = cirq.bit_flip(0.0099999)
+    b = cirq.bit_flip(0.01)
     c = cirq.bit_flip(0.0)
+
+    assert cirq.approx_eq(a, b, atol=1e-2)
+
+    et = cirq.testing.EqualsTester()
     et.make_equality_group(lambda: c)
     et.add_equality_group(cirq.bit_flip(0.1))
     et.add_equality_group(cirq.bit_flip(0.4))
@@ -650,6 +688,7 @@ def test_stabilizer_supports_depolarize():
 
 def test_default_asymmetric_depolarizing_channel():
     d = cirq.asymmetric_depolarize()
+    assert d.p_i == 1.0
     assert d.p_x == 0.0
     assert d.p_y == 0.0
     assert d.p_z == 0.0
@@ -684,6 +723,9 @@ def test_multi_asymmetric_depolarizing_channel():
     )
     assert cirq.has_channel(d)
     np.testing.assert_equal(d._num_qubits_(), 2)
+
+    with pytest.raises(ValueError, match="num_qubits should be 1"):
+        assert d.p_i == 1.0
     with pytest.raises(ValueError, match="num_qubits should be 1"):
         assert d.p_x == 0.0
     with pytest.raises(ValueError, match="num_qubits should be 1"):
