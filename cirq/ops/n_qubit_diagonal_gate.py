@@ -134,8 +134,6 @@ class DiagonalGate(raw_types.Gate):
         angles = []
         for angle in self._diag_angles_radians:
             mulAngle = protocols.mul(angle, exponent, NotImplemented)
-            if mulAngle == NotImplemented:
-                return NotImplemented
             angles.append(mulAngle)
         return DiagonalGate(angles)
 
@@ -154,7 +152,7 @@ class DiagonalGate(raw_types.Gate):
             yield common_gates.CNOT(qubits[_flip_bit], qubits[largest_digit])
 
     def _decompose_(self, qubits):
-        """ Decompose the n-qubit diagonal gates into CNOT and Rz gates.
+        """Decompose the n-qubit diagonal gates into CNOT and Rz gates.
 
         A 3 qubits decomposition looks like
         0: ───────────────────────────────────X───Rz(6)───X───Rz(7)───X───Rz(5)───X───Rz(4)───

@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from typing import List
-import itertools
 import numpy as np
 import pytest
 import sympy
