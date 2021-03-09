@@ -360,7 +360,9 @@ def test_calculate_quantum_volume_loop_with_readout_correction():
 
 
 def test_deprecated():
-    with cirq.testing.assert_deprecated("device_or_qubits", "use device_qubits instead", deadline="v0.12"):
+    with cirq.testing.assert_deprecated(
+        "device_or_qubits", "use device_qubits instead", deadline="v0.12"
+    ):
         cirq.contrib.quantum_volume.calculate_quantum_volume(
             num_qubits=4,
             depth=4,
