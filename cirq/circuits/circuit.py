@@ -2298,10 +2298,10 @@ def _draw_moment_in_diagram(
 
 def _get_global_phase_and_tags_for_op(op):
     if isinstance(op.untagged, ops.GlobalPhaseOperation):
-        return op.untagged.coefficient, list(op.tags)
+        return op.untagged.coefficient, op.tags
     elif isinstance(op.untagged, CircuitOperation):
         op_phase, op_tags = _get_global_phase_and_tags_for_ops(op.untagged.circuit.all_operations())
-        return op_phase, list(op.tags) + list(op_tags)
+        return op_phase, list(op.tags) + op_tags
     else:
         return None, None
 
