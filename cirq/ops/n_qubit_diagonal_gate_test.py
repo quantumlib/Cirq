@@ -128,4 +128,3 @@ def test_resolve(resolve_fn):
     diagonal_gate = resolve_fn(diagonal_gate, {'b': 19})
     assert diagonal_gate == cirq.DiagonalGate(diagonal_angles)
     assert not cirq.is_parameterized(diagonal_gate)
-
