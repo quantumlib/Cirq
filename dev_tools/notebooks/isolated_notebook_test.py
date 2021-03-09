@@ -40,7 +40,7 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES = [
     # these notebooks now use cirq.contrib.calculate_quantum_volume(...device_qubits...)
     # the device_or_qubits parameter is deprecated
     'examples/advanced/quantum_volume_routing.ipynb',
-    'examples/advanced/quantum_volume_error.ipynb',
+    'examples/advanced/quantum_volume_errors.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
