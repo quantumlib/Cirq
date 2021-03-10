@@ -81,6 +81,27 @@ def test_repetitions_and_ids_length_mismatch():
         _ = cirq.CircuitOperation(circuit, repetitions=2, repetition_ids=['a', 'b', 'c'])
 
 
+def test_invalid_measurement_keys():
+    a = cirq.LineQubit(0)
+    circuit = cirq.FrozenCircuit(cirq.measure(a, key='m'))
+    c_op = cirq.CircuitOperation(circuit)
+    # Invalid key remapping
+    with pytest.raises(ValueError, match='invalid key: m:a'):
+        _ = c_op.with_measurement_key_mapping({'m': 'm:a'})
+
+    # Invalid key remapping nested CircuitOperation
+    with pytest.raises(ValueError, match='invalid key: m:a'):
+        _ = cirq.CircuitOperation(cirq.FrozenCircuit(c_op), measurement_key_map={'m': 'm:a'})
+
+    # Originally invalid key
+    circuit = cirq.FrozenCircuit(cirq.measure(a, key='m:a'))
+    with pytest.raises(ValueError, match='invalid key: m:a'):
+        _ = cirq.CircuitOperation(circuit)
+
+    # Remapped to valid key
+    _ = cirq.CircuitOperation(circuit, measurement_key_map={'m:a': 'ma'})
+
+
 def test_circuit_sharing():
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.FrozenCircuit(
@@ -282,7 +303,7 @@ def test_string_format():
     assert (
         str(op0)
         == f"""\
-{op0.circuit.serialization_key()}:
+{op0.circuit.diagram_name()}:
 [                         ]"""
     )
 
@@ -291,7 +312,7 @@ def test_string_format():
     assert (
         str(op1)
         == f"""\
-{op1.circuit.serialization_key()}:
+{op1.circuit.diagram_name()}:
 [ 0: ───X───────M('m')─── ]
 [               │         ]
 [ 1: ───H───@───M──────── ]
@@ -324,7 +345,7 @@ cirq.CircuitOperation(
     assert (
         str(op2)
         == f"""\
-{op2.circuit.serialization_key()}:
+{op2.circuit.diagram_name()}:
 [ 0: ───X───X───          ]
 [           │             ]
 [ 1: ───H───@───          ](qubit_map={{1: 2}}, repetition_ids=['a', 'b', 'c'])"""
@@ -362,7 +383,7 @@ cirq.CircuitOperation(
     assert (
         str(op3)
         == f"""\
-{op3.circuit.serialization_key()}:
+{op3.circuit.diagram_name()}:
 [ 0: ───X^b───M('m')───   ](qubit_map={{0: 1}}, \
 key_map={{m: p}}, params={{b: 2}})"""
     )
@@ -562,13 +583,13 @@ def test_decompose_loops_with_measurements():
     expected_circuit = cirq.Circuit(
         cirq.H(b),
         cirq.CX(b, a),
-        cirq.measure(b, a, key='0-m'),
+        cirq.measure(b, a, key='0:m'),
         cirq.H(b),
         cirq.CX(b, a),
-        cirq.measure(b, a, key='1-m'),
+        cirq.measure(b, a, key='1:m'),
         cirq.H(b),
         cirq.CX(b, a),
-        cirq.measure(b, a, key='2-m'),
+        cirq.measure(b, a, key='2:m'),
     )
     assert cirq.Circuit(cirq.decompose_once(op)) == expected_circuit
 
@@ -658,23 +679,30 @@ def test_decompose_repeated_nested_measurements():
         .repeat(2, ['zero', 'one'])
     )
 
-    expected_circuit = cirq.Circuit(
-        cirq.measure(a, key='zero-Y'),
-        cirq.measure(a, key='zero-zero-Q'),
-        cirq.measure(a, key='zero-zero-zero-D'),
-        cirq.measure(a, key='zero-zero-one-D'),
-        cirq.measure(a, key='zero-one-Q'),
-        cirq.measure(a, key='zero-one-zero-D'),
-        cirq.measure(a, key='zero-one-one-D'),
-        cirq.measure(a, key='one-Y'),
-        cirq.measure(a, key='one-zero-Q'),
-        cirq.measure(a, key='one-zero-zero-D'),
-        cirq.measure(a, key='one-zero-one-D'),
-        cirq.measure(a, key='one-one-Q'),
-        cirq.measure(a, key='one-one-zero-D'),
-        cirq.measure(a, key='one-one-one-D'),
-    )
+    expected_measurement_keys_in_order = [
+        'zero:Y',
+        'zero:zero:Q',
+        'zero:zero:zero:D',
+        'zero:zero:one:D',
+        'zero:one:Q',
+        'zero:one:zero:D',
+        'zero:one:one:D',
+        'one:Y',
+        'one:zero:Q',
+        'one:zero:zero:D',
+        'one:zero:one:D',
+        'one:one:Q',
+        'one:one:zero:D',
+        'one:one:one:D',
+    ]
+    assert cirq.measurement_keys(op3) == set(expected_measurement_keys_in_order)
+
+    expected_circuit = cirq.Circuit()
+    for key in expected_measurement_keys_in_order:
+        expected_circuit.append(cirq.measure(a, key=key))
+
     assert cirq.Circuit(cirq.decompose(op3)) == expected_circuit
+    assert cirq.measurement_keys(expected_circuit) == set(expected_measurement_keys_in_order)
 
 
 def test_tag_propagation():

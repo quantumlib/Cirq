@@ -57,7 +57,7 @@ class SupportsOnEachGate(raw_types.Gate, metaclass=abc.ABCMeta):
                 operations.extend(self.on_each(*target))
             else:
                 raise ValueError(
-                    'Gate was called with type different than Qid. Type: {}'.format(type(target))
+                    f'Gate was called with type different than Qid. Type: {type(target)}'
                 )
         return operations
 

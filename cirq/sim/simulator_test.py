@@ -12,12 +12,49 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for simulator.py"""
-
+import abc
+from typing import Generic, Dict, Any
 from unittest import mock
 import numpy as np
 import pytest
 
 import cirq
+from cirq import study
+from cirq.sim.simulator import (
+    TStepResult,
+    TSimulatorState,
+    SimulatesIntermediateState,
+    SimulationTrialResult,
+)
+
+
+class SimulatesIntermediateStateImpl(
+    Generic[TStepResult, TSimulatorState],
+    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TSimulatorState],
+    metaclass=abc.ABCMeta,
+):
+    """A SimulatesIntermediateState that uses the default SimulationTrialResult type."""
+
+    def _create_simulator_trial_result(
+        self,
+        params: study.ParamResolver,
+        measurements: Dict[str, np.ndarray],
+        final_simulator_state: Any,
+    ) -> 'SimulationTrialResult':
+        """This method creates a default trial result.
+
+        Args:
+            params: The ParamResolver for this trial.
+            measurements: The measurement results for this trial.
+            final_simulator_state: The final state of the simulator for the
+                StepResult.
+
+        Returns:
+            The SimulationTrialResult.
+        """
+        return SimulationTrialResult(
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+        )
 
 
 @mock.patch.multiple(cirq.SimulatesSamples, __abstractmethods__=set(), _run=mock.Mock())
@@ -66,10 +103,10 @@ def test_run_simulator_sweeps():
 
 
 @mock.patch.multiple(
-    cirq.SimulatesIntermediateState, __abstractmethods__=set(), _simulator_iterator=mock.Mock()
+    SimulatesIntermediateStateImpl, __abstractmethods__=set(), simulate_moment_steps=mock.Mock()
 )
 def test_intermediate_simulator():
-    simulator = cirq.SimulatesIntermediateState()
+    simulator = SimulatesIntermediateStateImpl()
 
     final_simulator_state = np.array([1, 0, 0, 0])
 
@@ -82,7 +119,7 @@ def test_intermediate_simulator():
         result._simulator_state.return_value = final_simulator_state
         yield result
 
-    simulator._simulator_iterator.side_effect = steps
+    simulator.simulate_moment_steps.side_effect = steps
     circuit = mock.Mock(cirq.Circuit)
     param_resolver = mock.Mock(cirq.ParamResolver)
     param_resolver.param_dict = {}
@@ -98,10 +135,10 @@ def test_intermediate_simulator():
 
 
 @mock.patch.multiple(
-    cirq.SimulatesIntermediateState, __abstractmethods__=set(), _simulator_iterator=mock.Mock()
+    SimulatesIntermediateStateImpl, __abstractmethods__=set(), simulate_moment_steps=mock.Mock()
 )
 def test_intermediate_sweeps():
-    simulator = cirq.SimulatesIntermediateState()
+    simulator = SimulatesIntermediateStateImpl()
 
     final_state = np.array([1, 0, 0, 0])
 
@@ -111,7 +148,7 @@ def test_intermediate_sweeps():
         result._simulator_state.return_value = final_state
         yield result
 
-    simulator._simulator_iterator.side_effect = steps
+    simulator.simulate_moment_steps.side_effect = steps
     circuit = mock.Mock(cirq.Circuit)
     param_resolvers = [mock.Mock(cirq.ParamResolver), mock.Mock(cirq.ParamResolver)]
     for resolver in param_resolvers:
@@ -402,3 +439,8 @@ def test_monte_carlo_on_unknown_channel():
         np.testing.assert_allclose(
             out.state_vector(), cirq.one_hot(index=k % 3, shape=4, dtype=np.complex64), atol=1e-8
         )
+
+
+def test_deprecation():
+    with cirq.testing.assert_deprecated("_base_iterator", deadline="v0.11"):
+        cirq.Simulator()._simulator_iterator(cirq.Circuit(), cirq.ParamResolver({}), [], 0)

@@ -25,6 +25,8 @@ jobs:
         with:
           python-version: '3.7'
           architecture: 'x64'
+      - name: Install flynt
+        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep flynt | xargs pip install
       - name: Install black
         run: cat dev_tools/conf/pip-list-dev-tools.txt | grep black | xargs pip install
       - name: Format
@@ -121,7 +123,7 @@ jobs:
           # TODO: move to requirements.txt after #3704
           pip install codeowners==0.1.2 # linux only package
       - name: Pytest check
-        run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
+        run: check/pytest --ignore=cirq/contrib --actually-quiet
   build_docs:
     name: Build docs
     runs-on: ubuntu-16.04
@@ -189,7 +191,7 @@ jobs:
           pip install -r requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - name: Pytest Windows
-        run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
+        run: check/pytest --ignore=cirq/contrib --actually-quiet
         shell: bash
   macos:
     name: Pytest MacOS
@@ -208,7 +210,7 @@ jobs:
           pip install -r requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - name: Pytest check
-        run: check/pytest --ignore=cirq/contrib --benchmark-skip
+        run: check/pytest --ignore=cirq/contrib
   notebooks-stable:
     name: Changed Notebooks Isolated Test against Cirq stable
     runs-on: ubuntu-16.04

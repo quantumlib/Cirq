@@ -14,7 +14,7 @@
 import os
 from collections import defaultdict
 from random import randint, random, sample, randrange
-from typing import Tuple, cast, AbstractSet, Iterable
+from typing import Tuple, cast, AbstractSet
 
 import numpy as np
 import pytest
@@ -28,14 +28,19 @@ from cirq import ops
 class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
     def validate_operation(self, operation):
         if not isinstance(operation, cirq.Operation):
-            raise ValueError('not isinstance({!r}, {!r})'.format(operation, cirq.Operation))
+            raise ValueError(f'not isinstance({operation!r}, {cirq.Operation!r})')
 
     def validate_moment(self, moment):
         if not isinstance(moment, cirq.Moment):
-            raise ValueError('not isinstance({!r}, {!r})'.format(moment, cirq.Moment))
+            raise ValueError(f'not isinstance({moment!r}, {cirq.Moment!r})')
 
 
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
+
+
+def test_alignment():
+    assert repr(cirq.Alignment.LEFT) == 'cirq.Alignment.LEFT'
+    assert repr(cirq.Alignment.RIGHT) == 'cirq.Alignment.RIGHT'
 
 
 def test_insert_moment_types():
@@ -600,15 +605,15 @@ class ValidatingTestDevice(cirq.Device):
         # This is pretty close to what the cirq.google.XmonDevice has for validation
         for q in operation.qubits:
             if not isinstance(q, self.allowed_qubit_types):
-                raise ValueError("Unsupported qubit type: {!r}".format(type(q)))
+                raise ValueError(f"Unsupported qubit type: {type(q)!r}")
             if q not in self.qubits:
-                raise ValueError('Qubit not on device: {!r}'.format(q))
+                raise ValueError(f'Qubit not on device: {q!r}')
         if not isinstance(operation.gate, self.allowed_gates):
-            raise ValueError("Unsupported gate type: {!r}".format(operation.gate))
+            raise ValueError(f"Unsupported gate type: {operation.gate!r}")
         if len(operation.qubits) == 2 and not isinstance(operation.gate, ops.MeasurementGate):
             p, q = operation.qubits
             if not cast(cirq.GridQubit, p).is_adjacent(q):
-                raise ValueError('Non-local interaction: {!r}.'.format(operation))
+                raise ValueError(f'Non-local interaction: {operation!r}.')
 
     def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         # a fake decomposer for only TOFFOLI gates
@@ -1208,6 +1213,9 @@ def test_next_moment_operating_on_distance(circuit_cls):
     # Huge max distances should be handled quickly due to capping.
     assert c.next_moment_operating_on([a], 5, max_distance=10 ** 100) is None
 
+    with pytest.raises(ValueError, match='Negative max_distance'):
+        c.next_moment_operating_on([a], 0, max_distance=-1)
+
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_prev_moment_operating_on(circuit_cls):
@@ -1253,6 +1261,9 @@ def test_prev_moment_operating_on(circuit_cls):
     assert c.prev_moment_operating_on([a, b], 1) == 0
     assert c.prev_moment_operating_on([a, b], 0) is None
 
+    with pytest.raises(ValueError, match='Negative max_distance'):
+        assert c.prev_moment_operating_on([a, b], 4, max_distance=-1)
+
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_prev_moment_operating_on_distance(circuit_cls):
@@ -1290,6 +1301,9 @@ def test_prev_moment_operating_on_distance(circuit_cls):
 
     # Huge max distances should be handled quickly due to capping.
     assert c.prev_moment_operating_on([a], 1, max_distance=10 ** 100) is None
+
+    with pytest.raises(ValueError, match='Negative max_distance'):
+        c.prev_moment_operating_on([a], 6, max_distance=-1)
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -3530,7 +3544,7 @@ def test_to_qasm(circuit_cls):
     assert circuit.to_qasm() == cirq.qasm(circuit)
     assert (
         circuit.to_qasm()
-        == """// Generated from Cirq v{}
+        == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -3541,9 +3555,7 @@ qreg q[1];
 
 
 x q[0];
-""".format(
-            cirq.__version__
-        )
+"""
     )
 
 
@@ -3560,7 +3572,7 @@ def test_save_qasm(tmpdir, circuit_cls):
         file_content = f.read()
     assert (
         file_content
-        == """// Generated from Cirq v{}
+        == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -3571,9 +3583,7 @@ qreg q[1];
 
 
 x q[0];
-""".format(
-            cirq.__version__
-        )
+"""
     )
 
 
@@ -4160,7 +4170,7 @@ def test_transform_qubits():
     with pytest.raises(TypeError, match='must be a function or dict'):
         _ = original.transform_qubits('bad arg')
 
-    with cirq.testing.assert_logs('Use qubit_map instead'):
+    with cirq.testing.assert_deprecated('Use qubit_map instead', deadline="v0.11"):
         # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
         assert original.transform_qubits(func=lambda q: cirq.GridQubit(10 + q.x, 20)) == desired
 
@@ -4345,14 +4355,6 @@ def test_all_measurement_keys(circuit_cls):
     )
 
 
-@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_deprecated(circuit_cls):
-    q = cirq.NamedQubit('q')
-    circuit = circuit_cls([cirq.H(q)])
-    with cirq.testing.assert_logs('final_state_vector', 'deprecated'):
-        _ = circuit.final_wavefunction()
-
-
 def test_zip():
     a, b, c, d = cirq.LineQubit.range(4)
 
@@ -4413,6 +4415,33 @@ def test_zip():
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_zip_alignment(circuit_cls):
+    a, b, c = cirq.LineQubit.range(3)
+
+    circuit1 = circuit_cls([cirq.H(a)] * 5)
+    circuit2 = circuit_cls([cirq.H(b)] * 3)
+    circuit3 = circuit_cls([cirq.H(c)] * 2)
+
+    c_start = circuit_cls.zip(circuit1, circuit2, circuit3, align='LEFT')
+    assert c_start == circuit_cls(
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+        cirq.Moment(cirq.H(a), cirq.H(b)),
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.H(a)),
+    )
+
+    c_end = circuit_cls.zip(circuit1, circuit2, circuit3, align='RIGHT')
+    assert c_end == circuit_cls(
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.H(a), cirq.H(b)),
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+    )
+
+
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_repr_html_escaping(circuit_cls):
     class TestGate(cirq.Gate):
         def num_qubits(self):
@@ -4432,3 +4461,169 @@ def test_repr_html_escaping(circuit_cls):
 
     # Escaping Special Characters in Qubit names.
     assert '|c&gt;' in circuit._repr_html_()
+
+
+def test_tetris_concat():
+    a, b = cirq.LineQubit.range(2)
+    empty = cirq.Circuit()
+
+    assert cirq.Circuit.tetris_concat(empty, empty) == empty
+    assert cirq.Circuit.tetris_concat() == empty
+    assert empty.tetris_concat(empty) == empty
+    assert empty.tetris_concat(empty, empty) == empty
+
+    ha = cirq.Circuit(cirq.H(a))
+    hb = cirq.Circuit(cirq.H(b))
+    assert ha.tetris_concat(hb) == ha.zip(hb)
+
+    assert ha.tetris_concat(empty) == ha
+    assert empty.tetris_concat(ha) == ha
+
+    hac = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
+    assert hac.tetris_concat(hb) == hac + hb
+    assert hb.tetris_concat(hac) == hb.zip(hac)
+
+    zig = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.H(b))
+    assert zig.tetris_concat(zig) == cirq.Circuit(
+        cirq.H(a), cirq.CNOT(a, b), cirq.Moment(cirq.H(a), cirq.H(b)), cirq.CNOT(a, b), cirq.H(b)
+    )
+
+    zag = cirq.Circuit(cirq.H(a), cirq.H(a), cirq.CNOT(a, b), cirq.H(b), cirq.H(b))
+    assert zag.tetris_concat(zag) == cirq.Circuit(
+        cirq.H(a),
+        cirq.H(a),
+        cirq.CNOT(a, b),
+        cirq.Moment(cirq.H(a), cirq.H(b)),
+        cirq.Moment(cirq.H(a), cirq.H(b)),
+        cirq.CNOT(a, b),
+        cirq.H(b),
+        cirq.H(b),
+    )
+
+    space = cirq.Circuit(cirq.Moment()) * 10
+    f = cirq.Circuit.tetris_concat
+    assert len(f(space, ha)) == 10
+    assert len(f(space, ha, ha, ha)) == 10
+    assert len(f(space, f(ha, ha, ha))) == 10
+    assert len(f(space, ha, align='LEFT')) == 10
+    assert len(f(space, ha, ha, ha, align='RIGHT')) == 12
+    assert len(f(space, f(ha, ha, ha, align='LEFT'))) == 10
+    assert len(f(space, f(ha, ha, ha, align='RIGHT'))) == 10
+    assert len(f(space, f(ha, ha, ha), align='LEFT')) == 10
+    assert len(f(space, f(ha, ha, ha), align='RIGHT')) == 10
+
+    # L shape overlap (vary c1).
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 4),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 1),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+    assert 8 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 6),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+    assert 9 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 7),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+
+    # L shape overlap (vary c2).
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 4, cirq.CZ(a, b)),
+        )
+    )
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 1, cirq.CZ(a, b)),
+        )
+    )
+    assert 8 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 6, cirq.CZ(a, b)),
+        )
+    )
+    assert 9 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 7, cirq.CZ(a, b)),
+        )
+    )
+
+    # When scanning sees a possible hit, continues scanning for earlier hit.
+    assert 10 == len(
+        f(
+            cirq.Circuit(
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(cirq.H(a)),
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(cirq.H(b)),
+            ),
+            cirq.Circuit(
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(cirq.H(a)),
+                cirq.Moment(),
+                cirq.Moment(cirq.H(b)),
+            ),
+        )
+    )
+    # Correct tie breaker when one operation sees two possible hits.
+    for cz_order in [cirq.CZ(a, b), cirq.CZ(b, a)]:
+        assert 3 == len(
+            f(
+                cirq.Circuit(
+                    cirq.Moment(cz_order),
+                    cirq.Moment(),
+                    cirq.Moment(),
+                ),
+                cirq.Circuit(
+                    cirq.Moment(cirq.H(a)),
+                    cirq.Moment(cirq.H(b)),
+                ),
+            )
+        )
+
+    # Types.
+    v = ha.freeze().tetris_concat(empty)
+    assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
+    v = ha.tetris_concat(empty.freeze())
+    assert type(v) is cirq.Circuit and v == ha
+    v = ha.freeze().tetris_concat(empty)
+    assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
+    v = cirq.Circuit.tetris_concat(ha, empty)
+    assert type(v) is cirq.Circuit and v == ha
+    v = cirq.FrozenCircuit.tetris_concat(ha, empty)
+    assert type(v) is cirq.FrozenCircuit and v == ha.freeze()

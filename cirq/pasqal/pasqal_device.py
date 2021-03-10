@@ -81,7 +81,7 @@ class PasqalDevice(cirq.devices.Device):
         decomposition = [operation]
 
         if not isinstance(operation, (cirq.ops.GateOperation, cirq.ParallelGateOperation)):
-            raise TypeError("{!r} is not a gate operation.".format(operation))
+            raise TypeError(f"{operation!r} is not a gate operation.")
 
         # Try to decompose the operation into elementary device operations
         if not self.is_pasqal_device_op(operation):
@@ -142,7 +142,7 @@ class PasqalDevice(cirq.devices.Device):
             raise ValueError("Unsupported operation")
 
         if not self.is_pasqal_device_op(operation):
-            raise ValueError('{!r} is not a supported gate'.format(operation.gate))
+            raise ValueError(f'{operation.gate!r} is not a supported gate')
 
         for qub in operation.qubits:
             if not isinstance(qub, self.supported_qubit_type):
@@ -152,7 +152,7 @@ class PasqalDevice(cirq.devices.Device):
                     '{}'.format(qub, operation.gate, self.supported_qubit_type)
                 )
             if qub not in self.qubit_set():
-                raise ValueError('{} is not part of the device.'.format(qub))
+                raise ValueError(f'{qub} is not part of the device.')
 
         if isinstance(operation.gate, cirq.ops.MeasurementGate):
             if operation.gate.invert_mask != ():
@@ -211,7 +211,7 @@ class PasqalDevice(cirq.devices.Device):
         return True
 
     def __repr__(self):
-        return 'pasqal.PasqalDevice(qubits={!r})'.format(sorted(self.qubits))
+        return f'pasqal.PasqalDevice(qubits={sorted(self.qubits)!r})'
 
     def _value_equality_values_(self):
         return self.qubits
@@ -291,7 +291,7 @@ class PasqalVirtualDevice(PasqalDevice):
                 for p in operation.qubits:
                     for q in operation.qubits:
                         if self.distance(p, q) > self.control_radius:
-                            raise ValueError("Qubits {!r}, {!r} are too far away".format(p, q))
+                            raise ValueError(f"Qubits {p!r}, {q!r} are too far away")
 
     def validate_moment(self, moment: cirq.ops.Moment):
         """Raises an error if the given moment is invalid on this device.

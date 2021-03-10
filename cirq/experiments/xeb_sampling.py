@@ -13,6 +13,9 @@
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
 import concurrent
+import os
+import time
+import uuid
 from concurrent.futures.thread import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import (
@@ -32,7 +35,7 @@ import numpy as np
 import pandas as pd
 import tqdm
 
-from cirq import ops, devices
+from cirq import ops, devices, value, protocols
 from cirq.circuits import Circuit
 from cirq.experiments.random_quantum_circuit_generation import CircuitLibraryCombination
 
@@ -78,13 +81,14 @@ class _SampleInBatches:
     def __call__(self, tasks: List[_Sample2qXEBTask]) -> List[Dict[str, Any]]:
         prepared_circuits = [task.prepared_circuit for task in tasks]
         results = self.sampler.run_batch(prepared_circuits, repetitions=self.repetitions)
+        timestamp = time.time()
         assert len(results) == len(tasks)
         records = []
         for task, nested_result in zip(tasks, results):
             (result,) = nested_result  # remove nesting due to potential sweeps.
             for pair_i, circuit_i in enumerate(task.combination):
                 pair_measurement_key = str(pair_i)
-                q0, q1 = self.combinations_by_layer[task.layer_i].pairs[pair_i]
+                pair = self.combinations_by_layer[task.layer_i].pairs[pair_i]
                 sampled_inds = result.data[pair_measurement_key].values
                 sampled_probs = np.bincount(sampled_inds, minlength=2 ** 2) / len(sampled_inds)
 
@@ -93,14 +97,13 @@ class _SampleInBatches:
                         'circuit_i': circuit_i,
                         'cycle_depth': task.cycle_depth,
                         'sampled_probs': sampled_probs,
+                        'timestamp': timestamp,
                         # Additional metadata to track *how* this circuit
                         # was zipped and executed.
                         'layer_i': task.layer_i,
                         'pair_i': pair_i,
                         'combination_i': task.combination_i,
-                        'pair_name': f'{q0}-{q1}',
-                        'q0': q0,
-                        'q1': q1,
+                        'pair': pair,
                     }
                 )
         return records
@@ -268,6 +271,7 @@ def _execute_sample_2q_xeb_tasks_in_batches(
     repetitions: int,
     batch_size: int,
     progress_bar: Callable[..., ContextManager],
+    dataset_directory: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Helper function used in `sample_2q_xeb_circuits` to batch and execute sampling tasks."""
     n_tasks = len(tasks)
@@ -280,9 +284,13 @@ def _execute_sample_2q_xeb_tasks_in_batches(
         futures = [pool.submit(run_batch, task_batch) for task_batch in batched_tasks]
 
         records = []
-        with progress_bar(total=n_tasks) as progress:
+        with progress_bar(total=len(batched_tasks) * batch_size) as progress:
             for future in concurrent.futures.as_completed(futures):
-                records += future.result()
+                new_records = future.result()
+                if dataset_directory is not None:
+                    os.makedirs(f'{dataset_directory}', exist_ok=True)
+                    protocols.to_json(new_records, f'{dataset_directory}/xeb.{uuid.uuid4()}.json')
+                records.extend(new_records)
                 progress.update(batch_size)
     return records
 
@@ -296,6 +304,8 @@ def sample_2q_xeb_circuits(
     batch_size: int = 9,
     progress_bar: Optional[Callable[..., ContextManager]] = tqdm.tqdm,
     combinations_by_layer: Optional[List[CircuitLibraryCombination]] = None,
+    shuffle: Optional['cirq.RANDOM_STATE_OR_SEED_LIKE'] = None,
+    dataset_directory: Optional[str] = None,
 ):
     """Sample two-qubit XEB circuits given a sampler.
 
@@ -316,6 +326,11 @@ def sample_2q_xeb_circuits(
             by `circuits` will be sampled verbatim, resulting in isolated XEB characterization.
             Otherwise, this contains all the random combinations and metadata required to combine
             the circuits in `circuits` into wide, parallel-XEB-style circuits for execution.
+        shuffle: If provided, use this random state or seed to shuffle the order in which tasks
+            are executed.
+        dataset_directory: If provided, save each batch of sampled results to a file
+            `{dataset_directory}/xeb.{uuid4()}.json` where uuid4() is a random string. This can be
+            used to incrementally save results to be analyzed later.
 
     Returns:
         A pandas dataframe with index given by ['circuit_i', 'cycle_depth'].
@@ -340,6 +355,9 @@ def sample_2q_xeb_circuits(
 
     # Construct truncated-with-measurement circuits to run.
     tasks = _generate_sample_2q_xeb_tasks(zipped_circuits, cycle_depths)
+    if shuffle is not None:
+        shuffle = value.parse_random_state(shuffle)
+        shuffle.shuffle(tasks)
 
     # Batch and run tasks.
     records = _execute_sample_2q_xeb_tasks_in_batches(
@@ -349,6 +367,7 @@ def sample_2q_xeb_circuits(
         repetitions=repetitions,
         batch_size=batch_size,
         progress_bar=progress_bar,
+        dataset_directory=dataset_directory,
     )
 
     # Set up the dataframe.
