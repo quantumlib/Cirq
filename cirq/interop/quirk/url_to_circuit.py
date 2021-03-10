@@ -372,7 +372,7 @@ def _parse_col_cells_with_height(
     registry: Dict[str, CellMaker], col: int, col_data: Any
 ) -> Tuple[List[Optional[Cell]], int]:
     if not isinstance(col_data, list):
-        raise ValueError('col must be a list.\ncol: {!r}'.format(col_data))
+        raise ValueError(f'col must be a list.\ncol: {col_data!r}')
     result = []
     height = 0
     for row in range(len(col_data)):
@@ -404,4 +404,4 @@ def _parse_cell_with_height(
             return ExplicitOperationsCell([result]), entry.size
         return result, entry.size
 
-    raise ValueError('Unrecognized column entry: {!r}'.format(entry))
+    raise ValueError(f'Unrecognized column entry: {entry!r}')

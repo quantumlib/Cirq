@@ -141,7 +141,7 @@ class MixedBoxDrawCharacterSet(_MixedBoxDrawCharacterSet):
             return getattr(self.second_char_set, second_key)
         if not second_key:
             return getattr(self.first_char_set, first_key)
-        return getattr(self, '{}_then_{}'.format(first_key, second_key))
+        return getattr(self, f'{first_key}_then_{second_key}')
 
 
 NORMAL_BOX_CHARS = BoxDrawCharacterSet(

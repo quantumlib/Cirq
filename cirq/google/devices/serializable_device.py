@@ -279,7 +279,7 @@ class SerializableDevice(devices.Device):
     def validate_operation(self, operation: 'cirq.Operation') -> None:
         for q in operation.qubits:
             if q not in self.qubits:
-                raise ValueError('Qubit not on device: {!r}'.format(q))
+                raise ValueError(f'Qubit not on device: {q!r}')
 
         gate_def = self._find_operation_type(operation)
         if gate_def is None:

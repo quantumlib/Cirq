@@ -100,9 +100,9 @@ class Calibration(abc.Mapping):
         be an empty tuple.
         """
         if not isinstance(key, str):
-            raise TypeError('Calibration metrics only have string keys. Key was {}'.format(key))
+            raise TypeError(f'Calibration metrics only have string keys. Key was {key}')
         if key not in self._metric_dict:
-            raise KeyError('Metric named {} not in calibration'.format(key))
+            raise KeyError(f'Metric named {key} not in calibration')
         return self._metric_dict[key]
 
     def __iter__(self) -> Iterator:

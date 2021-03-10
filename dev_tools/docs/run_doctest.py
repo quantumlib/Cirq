@@ -226,7 +226,7 @@ def main():
         )
         sys.exit(1)
     else:
-        print(shell_tools.highlight('Passed: {}'.format(attempted), shell_tools.GREEN))
+        print(shell_tools.highlight(f'Passed: {attempted}', shell_tools.GREEN))
         sys.exit(0)
 
 

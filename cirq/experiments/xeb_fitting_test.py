@@ -102,9 +102,7 @@ def test_benchmark_2q_xeb_fidelities_parallel():
 
 def test_benchmark_2q_xeb_fidelities_vectorized():
     rs = np.random.RandomState(52)
-    dummy_records = [
-        {'pure_probs': rs.random(4), 'sampled_probs': rs.random(4)} for _ in range(100)
-    ]
+    dummy_records = [{'pure_probs': rs.rand(4), 'sampled_probs': rs.rand(4)} for _ in range(100)]
     df = pd.DataFrame(dummy_records)
 
     # Using `df.apply` is wayyyy slower than the new implementation!
