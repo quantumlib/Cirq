@@ -22,7 +22,7 @@ from cirq.circuits.quil_output import QuilOneQubitGate, QuilTwoQubitGate
 
 
 def _make_qubits(n):
-    return [cirq.NamedQubit('q{}'.format(i)) for i in range(n)]
+    return [cirq.NamedQubit(f'q{i}') for i in range(n)]
 
 
 def test_single_gate_no_parameter():

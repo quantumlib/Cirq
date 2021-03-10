@@ -510,7 +510,7 @@ def main(*, n_measured_operators: Optional[int], samples_per_term: int):
     circuit, qubits = build_circuit()
 
     noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
-    print('Noise model: %s' % (noise))
+    print(f'Noise model: {noise}')
     noisy_simulator = cirq.DensityMatrixSimulator(noise=noise)
 
     estimated_fidelity, _ = direct_fidelity_estimation(
@@ -520,7 +520,7 @@ def main(*, n_measured_operators: Optional[int], samples_per_term: int):
         n_measured_operators=n_measured_operators,
         samples_per_term=samples_per_term,
     )
-    print('Estimated fidelity: %f' % (estimated_fidelity))
+    print(f'Estimated fidelity: {estimated_fidelity:f}')
 
 
 if __name__ == '__main__':

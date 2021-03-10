@@ -407,7 +407,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         else:
             rotations = self.decompose_rotation()
             symbol = '-'.join(str(r) + ('^' + str(qt / 2)) * (qt % 4 != 2) for r, qt in rotations)
-            symbol = '({})'.format(symbol)
+            symbol = f'({symbol})'
         return protocols.CircuitDiagramInfo(
             wire_symbols=(symbol,),
             exponent={
