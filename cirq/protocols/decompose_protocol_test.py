@@ -194,7 +194,7 @@ def test_decompose_on_stuck_raise():
         _ = cirq.decompose(
             cirq.CZ(a, b),
             keep=lambda _: False,
-            on_stuck_raise=lambda op: NotImplementedError('op {!r}'.format(op)),
+            on_stuck_raise=lambda op: NotImplementedError(f'op {op!r}'),
         )
 
     # There's a nice warning if you specify `on_stuck_raise` but not `keep`.

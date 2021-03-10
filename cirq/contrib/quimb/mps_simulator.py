@@ -80,7 +80,7 @@ class MPSSimulator(
         self.init = True
         noise_model = devices.NoiseModel.from_noise_model_like(noise)
         if not protocols.has_mixture(noise_model):
-            raise ValueError('noise must be unitary or mixture but was {}'.format(noise_model))
+            raise ValueError(f'noise must be unitary or mixture but was {noise_model}')
         self.noise = noise_model
         self.prng = value.parse_random_state(seed)
         self.simulation_options = simulation_options
@@ -317,8 +317,8 @@ class MPSState:
         # working with, say, 123 qubits then we want qubit 3 to come before qubit 100, but then
         # we want write the string '003' which comes before '100' in lexicographic order. The code
         # below is just simple string formatting.
-        max_num_digits = len('{}'.format(max(qubit_map.values())))
-        self.format_i = 'i_{{:0{}}}'.format(max_num_digits)
+        max_num_digits = len(f'{max(qubit_map.values())}')
+        self.format_i = f'i_{{:0{max_num_digits}}}'
         self.format_mu = 'mu_{}_{}'
 
         # TODO(tonybruguier): Instead of relying on sortable indices could you keep a parallel
@@ -548,7 +548,7 @@ class MPSState:
             # Because the computation is approximate, the probabilities do not
             # necessarily add up to 1.0, and thus we re-normalize them.
             if abs(sum_probs - 1.0) > self.simulation_options.sum_prob_atol:
-                raise ValueError('Sum of probabilities exceeds tolerance: {}'.format(sum_probs))
+                raise ValueError(f'Sum of probabilities exceeds tolerance: {sum_probs}')
             norm_probs = [x / sum_probs for x in probs]
 
             d = qubit.dimension

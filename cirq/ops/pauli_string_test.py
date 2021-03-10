@@ -25,7 +25,7 @@ import cirq.testing
 
 
 def _make_qubits(n):
-    return [cirq.NamedQubit('q{}'.format(i)) for i in range(n)]
+    return [cirq.NamedQubit(f'q{i}') for i in range(n)]
 
 
 def _sample_qubit_pauli_maps():

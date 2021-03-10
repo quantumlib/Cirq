@@ -355,12 +355,10 @@ def test_U_gate_too_much_params_error():
     ],
 )
 def test_expressions(expr: str):
-    qasm = """OPENQASM 2.0;
+    qasm = f"""OPENQASM 2.0;
      qreg q[1];
-     U({}, 2 * pi, pi / 2.0) q[0];
-""".format(
-        expr
-    )
+     U({expr}, 2 * pi, pi / 2.0) q[0];
+"""
 
     parser = QasmParser()
 
@@ -447,14 +445,12 @@ def test_rotation_gates(qasm_gate: str, cirq_gate: cirq.SingleQubitGate):
 
 @pytest.mark.parametrize('qasm_gate', [g[0] for g in rotation_gates])
 def test_rotation_gates_wrong_number_of_args(qasm_gate: str):
-    qasm = """
+    qasm = f"""
      OPENQASM 2.0;
      include "qelib1.inc";             
      qreg q[2];     
-     {}(pi) q[0], q[1];     
-""".format(
-        qasm_gate
-    )
+     {qasm_gate}(pi) q[0], q[1];     
+"""
 
     parser = QasmParser()
 
@@ -464,13 +460,11 @@ def test_rotation_gates_wrong_number_of_args(qasm_gate: str):
 
 @pytest.mark.parametrize('qasm_gate', [g[0] for g in rotation_gates])
 def test_rotation_gates_zero_params_error(qasm_gate: str):
-    qasm = """OPENQASM 2.0;
+    qasm = f"""OPENQASM 2.0;
      include "qelib1.inc";             
      qreg q[2];     
-     {} q[1];     
-""".format(
-        qasm_gate
-    )
+     {qasm_gate} q[1];     
+"""
 
     parser = QasmParser()
 
@@ -756,14 +750,12 @@ def test_u3_gate():
     + [g[0] for g in single_qubit_gates],
 )
 def test_standard_single_qubit_gates_wrong_number_of_args(qasm_gate):
-    qasm = """
+    qasm = f"""
      OPENQASM 2.0;
      include "qelib1.inc";             
      qreg q[2];     
-     {} q[0], q[1];     
-""".format(
-        qasm_gate
-    )
+     {qasm_gate} q[0], q[1];     
+"""
 
     parser = QasmParser()
 
@@ -784,13 +776,11 @@ def test_standard_single_qubit_gates_wrong_number_of_args(qasm_gate):
     + [[g[0], 0] for g in single_qubit_gates],
 )
 def test_standard_gates_wrong_params_error(qasm_gate: str, num_params: int):
-    qasm = """OPENQASM 2.0;
+    qasm = f"""OPENQASM 2.0;
      include "qelib1.inc";             
      qreg q[2];     
-     {}(pi, 2*pi, 3*pi, 4*pi, 5*pi) q[1];     
-""".format(
-        qasm_gate
-    )
+     {qasm_gate}(pi, 2*pi, 3*pi, 4*pi, 5*pi) q[1];     
+"""
 
     parser = QasmParser()
 
@@ -802,13 +792,11 @@ def test_standard_gates_wrong_params_error(qasm_gate: str, num_params: int):
     if num_params == 0:
         return
 
-    qasm = """OPENQASM 2.0;
+    qasm = f"""OPENQASM 2.0;
      include "qelib1.inc";             
      qreg q[2];     
-     {} q[1];     
-    """.format(
-        qasm_gate
-    )
+     {qasm_gate} q[1];     
+    """
 
     parser = QasmParser()
 
@@ -869,14 +857,12 @@ def test_two_qubit_gates(qasm_gate: str, cirq_gate: cirq.TwoQubitGate):
 
 @pytest.mark.parametrize('qasm_gate', [g[0] for g in two_qubit_gates])
 def test_two_qubit_gates_not_enough_args(qasm_gate: str):
-    qasm = """
+    qasm = f"""
      OPENQASM 2.0;    
      include "qelib1.inc";             
      qreg q[2];
-     {} q[0];
-""".format(
-        qasm_gate
-    )
+     {qasm_gate} q[0];
+"""
 
     parser = QasmParser()
 
@@ -888,14 +874,12 @@ def test_two_qubit_gates_not_enough_args(qasm_gate: str):
 
 @pytest.mark.parametrize('qasm_gate', [g[0] for g in two_qubit_gates])
 def test_two_qubit_gates_with_too_much_parameters(qasm_gate: str):
-    qasm = """
+    qasm = f"""
      OPENQASM 2.0;    
      include "qelib1.inc";             
      qreg q[2];
-     {}(pi) q[0],q[1];
-""".format(
-        qasm_gate
-    )
+     {qasm_gate}(pi) q[0],q[1];
+"""
 
     parser = QasmParser()
 
@@ -952,13 +936,11 @@ def test_three_qubit_gates(qasm_gate: str, cirq_gate: cirq.TwoQubitGate):
 
 @pytest.mark.parametrize('qasm_gate', [g[0] for g in three_qubit_gates])
 def test_three_qubit_gates_not_enough_args(qasm_gate: str):
-    qasm = """OPENQASM 2.0;
+    qasm = f"""OPENQASM 2.0;
      include "qelib1.inc";
      qreg q[2];
-     {} q[0];
-""".format(
-        qasm_gate
-    )
+     {qasm_gate} q[0];
+"""
 
     parser = QasmParser()
 
@@ -970,13 +952,11 @@ def test_three_qubit_gates_not_enough_args(qasm_gate: str):
 
 @pytest.mark.parametrize('qasm_gate', [g[0] for g in three_qubit_gates])
 def test_three_qubit_gates_with_too_much_parameters(qasm_gate: str):
-    qasm = """OPENQASM 2.0;
+    qasm = f"""OPENQASM 2.0;
      include "qelib1.inc";
      qreg q[3];
-     {}(pi) q[0],q[1],q[2];
-""".format(
-        qasm_gate
-    )
+     {qasm_gate}(pi) q[0],q[1],q[2];
+"""
 
     parser = QasmParser()
 

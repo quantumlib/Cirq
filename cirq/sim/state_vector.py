@@ -198,7 +198,7 @@ def sample_state_vector(
             of qubits corresponding to the state.
     """
     if repetitions < 0:
-        raise ValueError('Number of repetitions cannot be negative. Was {}'.format(repetitions))
+        raise ValueError(f'Number of repetitions cannot be negative. Was {repetitions}')
     shape = qis.validate_qid_shape(state_vector, qid_shape)
     num_qubits = len(shape)
     qis.validate_indices(num_qubits, indices)

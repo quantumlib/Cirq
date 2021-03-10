@@ -298,7 +298,7 @@ class CliffordState:
             act_on(op, ch_form_args)
         except TypeError:
             raise ValueError(
-                '%s cannot be run with Clifford simulator.' % str(op.gate)
+                f'{str(op.gate)} cannot be run with Clifford simulator.'
             )  # type: ignore
         return
 

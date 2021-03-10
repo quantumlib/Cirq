@@ -74,19 +74,19 @@ class EngineClient:
 
     @staticmethod
     def _project_name(project_id: str) -> str:
-        return 'projects/%s' % project_id
+        return f'projects/{project_id}'
 
     @staticmethod
     def _program_name_from_ids(project_id: str, program_id: str) -> str:
-        return 'projects/%s/programs/%s' % (project_id, program_id)
+        return f'projects/{project_id}/programs/{program_id}'
 
     @staticmethod
     def _job_name_from_ids(project_id: str, program_id: str, job_id: str) -> str:
-        return 'projects/%s/programs/%s/jobs/%s' % (project_id, program_id, job_id)
+        return f'projects/{project_id}/programs/{program_id}/jobs/{job_id}'
 
     @staticmethod
     def _processor_name_from_ids(project_id: str, processor_id: str) -> str:
-        return 'projects/%s/processors/%s' % (project_id, processor_id)
+        return f'projects/{project_id}/processors/{processor_id}'
 
     @staticmethod
     def _calibration_name_from_ids(
@@ -163,7 +163,7 @@ class EngineClient:
                     raise EngineException(message) from err
 
             if current_delay > self.max_retry_delay_seconds:
-                raise TimeoutError('Reached max retry attempts for error: {}'.format(message))
+                raise TimeoutError(f'Reached max retry attempts for error: {message}')
             if self.verbose:
                 print(message, file=sys.stderr)
                 print('Waiting ', current_delay, 'seconds before retrying.', file=sys.stderr)

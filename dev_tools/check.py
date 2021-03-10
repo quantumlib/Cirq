@@ -34,7 +34,7 @@ class CheckResult:
     def __str__(self):
         outcome = 'ERROR' if self.unexpected_error else 'pass' if self.success else 'FAIL'
         msg = self.unexpected_error if self.unexpected_error else self.message
-        result = '{}: {} ({})'.format(outcome, self.check.context(), msg)
+        result = f'{outcome}: {self.check.context()} ({msg})'
         return shell_tools.highlight(result, shell_tools.GREEN if self.success else shell_tools.RED)
 
 

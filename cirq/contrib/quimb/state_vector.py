@@ -170,9 +170,7 @@ def tensor_expectation_value(
     path_info = tn.contract(get='path-info')
     ram_gb = path_info.largest_intermediate * 128 / 8 / 1024 / 1024 / 1024
     if ram_gb > max_ram_gb:
-        raise MemoryError(
-            "We estimate that this contraction will take too much RAM! {} GB".format(ram_gb)
-        )
+        raise MemoryError(f"We estimate that this contraction will take too much RAM! {ram_gb} GB")
     e_val = tn.contract(inplace=True)
     assert e_val.imag < tol
     assert pauli_string.coefficient.imag < tol

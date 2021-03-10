@@ -82,7 +82,7 @@ def main(
             sim_type, num_qubits, num_gates, run_repetitions
         )
         time = timeit.timeit(command, setup, number=num_repetitions)
-        print('{},{}'.format(num_qubits, time / (num_repetitions * num_gates)))
+        print(f'{num_qubits},{time / (num_repetitions * num_gates)}')
 
 
 def parse_arguments(args):
