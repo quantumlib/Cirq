@@ -473,16 +473,16 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
         return self._p, self._gamma
 
     def __repr__(self) -> str:
-        return 'cirq.generalized_amplitude_damp(p={!r},gamma={!r})'.format(self._p, self._gamma)
+        return f'cirq.generalized_amplitude_damp(p={self._p!r},gamma={self._gamma!r})'
 
     def __str__(self) -> str:
-        return 'generalized_amplitude_damp(p={!r},gamma={!r})'.format(self._p, self._gamma)
+        return f'generalized_amplitude_damp(p={self._p!r},gamma={self._gamma!r})'
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
-            return 'GAD({},{})'.format(f, f).format(self._p, self._gamma)
-        return 'GAD({!r},{!r})'.format(self._p, self._gamma)
+            return f'GAD({f},{f})'.format(self._p, self._gamma)
+        return f'GAD({self._p!r},{self._gamma!r})'
 
     @property
     def p(self) -> float:
@@ -608,16 +608,16 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
         return self._gamma
 
     def __repr__(self) -> str:
-        return 'cirq.amplitude_damp(gamma={!r})'.format(self._gamma)
+        return f'cirq.amplitude_damp(gamma={self._gamma!r})'
 
     def __str__(self) -> str:
-        return 'amplitude_damp(gamma={!r})'.format(self._gamma)
+        return f'amplitude_damp(gamma={self._gamma!r})'
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
-            return 'AD({})'.format(f).format(self._gamma)
-        return 'AD({!r})'.format(self._gamma)
+            return f'AD({f})'.format(self._gamma)
+        return f'AD({self._gamma!r})'
 
     @property
     def gamma(self) -> float:
@@ -765,7 +765,7 @@ class ResetChannel(gate_features.SingleQubitGate):
         if self._dimension == 2:
             return 'cirq.ResetChannel()'
         else:
-            return 'cirq.ResetChannel(dimension={!r})'.format(self._dimension)
+            return f'cirq.ResetChannel(dimension={self._dimension!r})'
 
     def __str__(self) -> str:
         return 'reset'
@@ -843,16 +843,16 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
         return self._gamma
 
     def __repr__(self) -> str:
-        return 'cirq.phase_damp(gamma={!r})'.format(self._gamma)
+        return f'cirq.phase_damp(gamma={self._gamma!r})'
 
     def __str__(self) -> str:
-        return 'phase_damp(gamma={!r})'.format(self._gamma)
+        return f'phase_damp(gamma={self._gamma!r})'
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
-            return 'PD({})'.format(f).format(self._gamma)
-        return 'PD({!r})'.format(self._gamma)
+            return f'PD({f})'.format(self._gamma)
+        return f'PD({self._gamma!r})'
 
     @property
     def gamma(self) -> float:
@@ -953,16 +953,16 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
         return self._p
 
     def __repr__(self) -> str:
-        return 'cirq.phase_flip(p={!r})'.format(self._p)
+        return f'cirq.phase_flip(p={self._p!r})'
 
     def __str__(self) -> str:
-        return 'phase_flip(p={!r})'.format(self._p)
+        return f'phase_flip(p={self._p!r})'
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
-            return 'PF({})'.format(f).format(self._p)
-        return 'PF({!r})'.format(self._p)
+            return f'PF({f})'.format(self._p)
+        return f'PF({self._p!r})'
 
     @property
     def p(self) -> float:
@@ -1109,16 +1109,16 @@ class BitFlipChannel(gate_features.SingleQubitGate):
         return self._p
 
     def __repr__(self) -> str:
-        return 'cirq.bit_flip(p={!r})'.format(self._p)
+        return f'cirq.bit_flip(p={self._p!r})'
 
     def __str__(self) -> str:
-        return 'bit_flip(p={!r})'.format(self._p)
+        return f'bit_flip(p={self._p!r})'
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
-            return 'BF({})'.format(f).format(self._p)
-        return 'BF({!r})'.format(self._p)
+            return f'BF({f})'.format(self._p)
+        return f'BF({self._p!r})'
 
     @property
     def p(self) -> float:

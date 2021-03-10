@@ -84,7 +84,7 @@ class TwoQubitDiagonalGate(gate_features.TwoQubitGate):
         rounded_angles = np.array(self._diag_angles_radians)
         if args.precision is not None:
             rounded_angles = rounded_angles.round(args.precision)
-        diag_str = 'diag({})'.format(', '.join(proper_repr(angle) for angle in rounded_angles))
+        diag_str = f"diag({', '.join(proper_repr(angle) for angle in rounded_angles)})"
         return protocols.CircuitDiagramInfo((diag_str, '#2'))
 
     def __pow__(self, exponent: Any) -> 'TwoQubitDiagonalGate':

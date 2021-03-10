@@ -203,7 +203,7 @@ class _XEigenState(_PauliEigenState):
         elif self.eigenvalue == -1:
             return np.array([1, -1]) / np.sqrt(2)
         # coverage: ignore
-        raise ValueError("Bad eigenvalue: {}".format(self.eigenvalue))
+        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
 
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
         # Prevent circular import from `value.value_equality`
@@ -221,7 +221,7 @@ class _YEigenState(_PauliEigenState):
         elif self.eigenvalue == -1:
             return np.array([1, -1j]) / np.sqrt(2)
         # coverage: ignore
-        raise ValueError("Bad eigenvalue: {}".format(self.eigenvalue))
+        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
 
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
         from cirq import ops
@@ -238,7 +238,7 @@ class _ZEigenState(_PauliEigenState):
         elif self.eigenvalue == -1:
             return np.array([0, 1])
         # coverage: ignore
-        raise ValueError("Bad eigenvalue: {}".format(self.eigenvalue))
+        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
 
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
         from cirq import ops

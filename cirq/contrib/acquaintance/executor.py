@@ -118,7 +118,7 @@ class AcquaintanceOperation(ops.GateOperation):
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
-        wire_symbols = tuple('({})'.format(i) for i in self.logical_indices)
+        wire_symbols = tuple(f'({i})' for i in self.logical_indices)
         return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
 

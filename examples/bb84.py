@@ -220,9 +220,9 @@ def print_results(alice_basis, bob_basis, alice_state, expected_key, obtained_ke
     print('Alice\'s basis:\t{}'.format(alice_basis_str))
     print('Bob\'s basis:\t{}'.format(bob_basis_str))
     print('Alice\'s bits:\t{}'.format(bitstring(alice_state)))
-    print('Bases match::\t{}'.format(basis_match))
-    print('Expected key:\t{}'.format(expected_key))
-    print('Actual key:\t{}'.format(obtained_key))
+    print(f'Bases match::\t{basis_match}')
+    print(f'Expected key:\t{expected_key}')
+    print(f'Actual key:\t{obtained_key}')
 
 
 if __name__ == "__main__":

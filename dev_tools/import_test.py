@@ -128,7 +128,7 @@ def verify_import_tree(depth: int = 1, track_others: bool = False, timeit: bool 
         path = module.__name__.split('.')
         if path[0] != 'cirq':
             if len(path) == 1:
-                print('{}Other {}'.format(indent * import_depth, module.__name__))
+                print(f'{indent * import_depth}Other {module.__name__}')
             return module
 
         currently_running_paths.append(path)
@@ -140,7 +140,7 @@ def verify_import_tree(depth: int = 1, track_others: bool = False, timeit: bool 
             handle_error(currently_running_paths[-2], path)
             current_path[:] = path
         if len(path) <= depth + 1:
-            print('{}Start {}'.format(indent * import_depth, module.__name__))
+            print(f'{indent * import_depth}Start {module.__name__}')
             import_depth += 1
 
         return module
@@ -156,7 +156,7 @@ def verify_import_tree(depth: int = 1, track_others: bool = False, timeit: bool 
         assert path == currently_running_paths.pop(), 'Unexpected import state'
         if len(path) <= depth + 1:
             import_depth -= 1
-            print('{}End   {}'.format(indent * import_depth, module.__name__))
+            print(f'{indent * import_depth}End   {module.__name__}')
         if path == current_path:
             # No submodules were here
             current_path.pop()
@@ -169,9 +169,9 @@ def verify_import_tree(depth: int = 1, track_others: bool = False, timeit: bool 
 
     def handle_error(import_from, import_to):
         if import_from[: depth + 1] != import_to[: depth + 1]:
-            msg = '{} imported {}'.format('.'.join(import_from), '.'.join(import_to))
+            msg = f"{'.'.join(import_from)} imported {'.'.join(import_to)}"
             fail_list.append(msg)
-            print('ERROR: {}'.format(msg))
+            print(f'ERROR: {msg}')
 
     # Import wrap_module_executions without importing cirq
     orig_path = list(sys.path)
@@ -194,14 +194,14 @@ def verify_import_tree(depth: int = 1, track_others: bool = False, timeit: bool 
         print()
         # Only print the first because later errors are often caused by the
         # first and not as helpful.
-        print('Invalid import: {}'.format(fail_list[0]))
+        print(f'Invalid import: {fail_list[0]}')
 
     if timeit:
         worst_loads = collections.Counter(load_times).most_common(15)
         print()
         print('Worst load times:')
         for name, dt in worst_loads:
-            print('{:.3f}  {}'.format(dt, name))
+            print(f'{dt:.3f}  {name}')
 
     return not fail_list
 

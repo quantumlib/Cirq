@@ -449,7 +449,7 @@ def sub_state_vector(
     if not np.isclose(np.linalg.norm(state_vector), 1):
         raise ValueError("Input state must be normalized.")
     if len(set(keep_indices)) != len(keep_indices):
-        raise ValueError("keep_indices were {} but must be unique.".format(keep_indices))
+        raise ValueError(f"keep_indices were {keep_indices} but must be unique.")
     if any([ind >= n_qubits for ind in keep_indices]):
         raise ValueError("keep_indices {} are an invalid subset of the input state vector.")
 
