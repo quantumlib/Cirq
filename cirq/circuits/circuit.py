@@ -282,7 +282,7 @@ class AbstractCircuit(abc.ABC):
         if max_distance is None:
             max_distance = max_circuit_distance
         elif max_distance < 0:
-            raise ValueError('Negative max_distance: {}'.format(max_distance))
+            raise ValueError(f'Negative max_distance: {max_distance}')
         else:
             max_distance = min(max_distance, max_circuit_distance)
 
@@ -341,7 +341,7 @@ class AbstractCircuit(abc.ABC):
         if max_distance is None:
             max_distance = len(self.moments)
         elif max_distance < 0:
-            raise ValueError('Negative max_distance: {}'.format(max_distance))
+            raise ValueError(f'Negative max_distance: {max_distance}')
         else:
             max_distance = min(end_moment_index, max_distance)
 
@@ -773,16 +773,18 @@ class AbstractCircuit(abc.ABC):
             given predicate are terminal. Also checks within any CircuitGates
             the circuit may contain.
         """
+        from cirq.circuits import CircuitOperation
+
         if not all(
             self.next_moment_operating_on(op.qubits, i + 1) is None
             for (i, op) in self.findall_operations(predicate)
-            if _get_op_circuit(op) is None
+            if not isinstance(op.untagged, CircuitOperation)
         ):
             return False
 
         for i, moment in enumerate(self.moments):
             for op in moment.operations:
-                circuit = _get_op_circuit(op)
+                circuit = getattr(op.untagged, 'circuit', None)
                 if circuit is None:
                     continue
                 if not circuit.are_all_matches_terminal(predicate):
@@ -813,16 +815,18 @@ class AbstractCircuit(abc.ABC):
             given predicate are terminal. Also checks within any CircuitGates
             the circuit may contain.
         """
+        from cirq.circuits import CircuitOperation
+
         if any(
             self.next_moment_operating_on(op.qubits, i + 1) is None
             for (i, op) in self.findall_operations(predicate)
-            if _get_op_circuit(op) is None
+            if not isinstance(op.untagged, CircuitOperation)
         ):
             return True
 
         for i, moment in reversed(list(enumerate(self.moments))):
             for op in moment.operations:
-                circuit = _get_op_circuit(op)
+                circuit = getattr(op.untagged, 'circuit', None)
                 if circuit is None:
                     continue
                 if not circuit.are_any_matches_terminal(predicate):
@@ -1187,7 +1191,7 @@ class AbstractCircuit(abc.ABC):
                 register.
         """
         if header is None:
-            header = 'Generated from Cirq v{}'.format(cirq._version.__version__)
+            header = f'Generated from Cirq v{cirq._version.__version__}'
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return QasmOutput(
             operations=self.all_operations(),
@@ -1779,7 +1783,7 @@ class Circuit(AbstractCircuit):
                 splitter_index, op, InsertStrategy.INLINE
             )
 
-        raise ValueError('Unrecognized append strategy: {}'.format(strategy))
+        raise ValueError(f'Unrecognized append strategy: {strategy}')
 
     def _can_add_op_at(self, moment_index: int, operation: 'cirq.Operation') -> bool:
         if not 0 <= moment_index < len(self._moments):
@@ -1867,7 +1871,7 @@ class Circuit(AbstractCircuit):
             IndexError: Bad inline_start and/or inline_end.
         """
         if not 0 <= start <= end <= len(self):
-            raise IndexError('Bad insert indices: [{}, {})'.format(start, end))
+            raise IndexError(f'Bad insert indices: [{start}, {end})')
 
         flat_ops = list(ops.flatten_to_ops(operations))
         for op in flat_ops:
@@ -2044,7 +2048,7 @@ class Circuit(AbstractCircuit):
         copy = self.copy()
         for i, op in removals:
             if op not in copy._moments[i].operations:
-                raise ValueError("Can't remove {} @ {} because it doesn't exist.".format(op, i))
+                raise ValueError(f"Can't remove {op} @ {i} because it doesn't exist.")
             copy._moments[i] = ops.Moment(
                 old_op for old_op in copy._moments[i].operations if op != old_op
             )
@@ -2201,15 +2205,6 @@ class Circuit(AbstractCircuit):
         return c_noisy
 
 
-def _get_op_circuit(op: ops.Operation) -> Optional['cirq.FrozenCircuit']:
-    """Retrieves the circuit contained by an operation, if there is one."""
-    from cirq.circuits import CircuitOperation
-
-    while isinstance(op, ops.TaggedOperation):
-        op = op.sub_operation
-    return op.circuit if isinstance(op, CircuitOperation) else None
-
-
 def _resolve_operations(
     operations: Iterable['cirq.Operation'], param_resolver: 'cirq.ParamResolver', recursive: bool
 ) -> List['cirq.Operation']:
@@ -2307,7 +2302,7 @@ def _formatted_phase(coefficient: complex, unicode: bool, precision: Optional[in
     unit = 'π' if unicode else 'pi'
     if h == 1:
         return unit
-    return '{{:.{}}}'.format(precision).format(h) + unit
+    return f'{{:.{precision}}}'.format(h) + unit
 
 
 def _draw_moment_groups_in_diagram(
@@ -2373,7 +2368,7 @@ def _apply_unitary_circuit(
     buffer = np.empty_like(state)
 
     def on_stuck(bad_op):
-        return TypeError('Operation without a known matrix or decomposition: {!r}'.format(bad_op))
+        return TypeError(f'Operation without a known matrix or decomposition: {bad_op!r}')
 
     unitary_ops = protocols.decompose(
         circuit.all_operations(),
@@ -2396,7 +2391,7 @@ def _decompose_measurement_inversions(op: 'cirq.Operation') -> 'cirq.OP_TREE':
 def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:
     block = '\n'.join([repr(op) + ',' for op in items])
     indented = '    ' + '\n    '.join(block.split('\n'))
-    return '[\n{}\n]'.format(indented)
+    return f'[\n{indented}\n]'
 
 
 TIn = TypeVar('TIn')

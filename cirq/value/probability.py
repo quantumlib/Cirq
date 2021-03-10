@@ -29,7 +29,7 @@ def validate_probability(p: float, p_str: str) -> float:
         ValueError if the probability is invalid.
     """
     if p < 0:
-        raise ValueError('{} was less than 0.'.format(p_str))
+        raise ValueError(f'{p_str} was less than 0.')
     elif p > 1:
-        raise ValueError('{} was greater than 1.'.format(p_str))
+        raise ValueError(f'{p_str} was greater than 1.')
     return p

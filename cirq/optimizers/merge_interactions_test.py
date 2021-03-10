@@ -37,7 +37,7 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
         post(actual)
         post(expected)
 
-    assert actual == expected, 'ACTUAL {} : EXPECTED {}'.format(actual, expected)
+    assert actual == expected, f'ACTUAL {actual} : EXPECTED {expected}'
 
 
 def assert_optimization_not_broken(circuit):

@@ -472,5 +472,5 @@ def _same_element_or_throw_error(elements: Sequence[Any]):
     """
     unique_elements = set(elements)
     if len(unique_elements) > 1:
-        raise ValueError('len(set({})) > 1'.format(elements))
+        raise ValueError(f'len(set({elements})) > 1')
     return unique_elements.pop() if elements else None

@@ -317,7 +317,7 @@ class EngineProgram:
 
             context.Pack(run_context)
         else:
-            raise ValueError('invalid run context proto version: {}'.format(proto_version))
+            raise ValueError(f'invalid run context proto version: {proto_version}')
         return context
 
     def engine(self) -> 'engine_base.Engine':
@@ -540,7 +540,7 @@ class EngineProgram:
                 )
             return gate_set_map[program.language.gate_set].deserialize(program)
 
-        raise ValueError('unsupported program type: {}'.format(code_type))
+        raise ValueError(f'unsupported program type: {code_type}')
 
     def delete(self, delete_jobs: bool = False) -> None:
         """Deletes a previously created quantum program.
