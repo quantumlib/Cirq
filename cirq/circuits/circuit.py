@@ -2293,7 +2293,7 @@ def _draw_moment_in_diagram(
 
 def _get_global_phase_and_tags_for_op(op: 'cirq.Operation') -> Tuple[Optional[complex], List[Any]]:
     if isinstance(op.untagged, ops.GlobalPhaseOperation):
-        return op.untagged.coefficient, op.tags
+        return complex(op.untagged.coefficient), list(op.tags)
     elif isinstance(op.untagged, CircuitOperation):
         op_phase, op_tags = _get_global_phase_and_tags_for_ops(op.untagged.circuit.all_operations())
         return op_phase, list(op.tags) + op_tags
@@ -2309,7 +2309,7 @@ def _get_global_phase_and_tags_for_ops(op_list: Any) -> Tuple[Optional[complex],
         if op_phase:
             if global_phase is None:
                 global_phase = complex(1)
-            global_phase *= complex(op_phase)
+            global_phase *= op_phase
         if op_tags:
             tags.extend(op_tags)
     return global_phase, tags
