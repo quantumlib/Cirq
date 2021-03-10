@@ -307,15 +307,21 @@ def test_string_format():
 [                         ]"""
     )
 
-    fc0_global_phase = cirq.FrozenCircuit(cirq.GlobalPhaseOperation(-1))
-    op0_global_phase = cirq.CircuitOperation(fc0_global_phase)
+    fc0_global_phase_inner = cirq.FrozenCircuit(
+        cirq.GlobalPhaseOperation(1j), cirq.GlobalPhaseOperation(1j)
+    )
+    op0_global_phase_inner = cirq.CircuitOperation(fc0_global_phase_inner)
+    fc0_global_phase_outer = cirq.FrozenCircuit(
+        op0_global_phase_inner, cirq.GlobalPhaseOperation(1j)
+    )
+    op0_global_phase_outer = cirq.CircuitOperation(fc0_global_phase_outer)
     assert (
-        str(op0_global_phase)
+        str(op0_global_phase_outer)
         == f"""\
-{op0_global_phase.circuit.diagram_name()}:
+{op0_global_phase_outer.circuit.diagram_name()}:
 [                         ]
 [                         ]
-[ global phase:   π       ]"""
+[ global phase:   -0.5π   ]"""
     )
 
     fc1 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, z), cirq.measure(x, y, z, key='m'))

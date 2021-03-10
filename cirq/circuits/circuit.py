@@ -2296,17 +2296,17 @@ def _draw_moment_in_diagram(
         moment_groups.append((x0, max_x))
 
 
-def _get_global_phase_and_tags_for_op(op):
+def _get_global_phase_and_tags_for_op(op: 'cirq.Operation') -> Tuple[Optional[complex], List[Any]]:
     if isinstance(op.untagged, ops.GlobalPhaseOperation):
         return op.untagged.coefficient, op.tags
     elif isinstance(op.untagged, CircuitOperation):
         op_phase, op_tags = _get_global_phase_and_tags_for_ops(op.untagged.circuit.all_operations())
         return op_phase, list(op.tags) + op_tags
     else:
-        return None, None
+        return None, []
 
 
-def _get_global_phase_and_tags_for_ops(op_list):
+def _get_global_phase_and_tags_for_ops(op_list: Any) -> Tuple[Optional[complex], List[Any]]:
     global_phase: Optional[complex] = None
     tags: List[Any] = []
     for op in op_list:
