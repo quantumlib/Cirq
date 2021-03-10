@@ -12,9 +12,8 @@ def single_qubit_heatmap():
     value_map = {(qubit,): np.random.random() for qubit in cirq.google.Bristlecone.qubits}
 
     heatmap = cirq.Heatmap(value_map)
-    file_path = "examples/single_qubit_heatmap_example.png"
-    fig, _ = heatmap.plot()
-    fig.figure.savefig(file_path)
+    # This is going to produce an image similar to examples/single_qubit_heatmap_example.png
+    heatmap.plot()
 
 
 def _sycamore_qubit_pairs():
@@ -37,17 +36,14 @@ def two_qubit_interaction_heatmap():
 
     # normally one would get these from cirq.google.engine
     s = np.random.RandomState(1234)
-    random_characterization_data = {
-        qubit_pair: s.random() for qubit_pair in _sycamore_qubit_pairs()
-    }
+    random_characterization_data = {qubit_pair: s.rand() for qubit_pair in _sycamore_qubit_pairs()}
 
     heatmap = cirq.TwoQubitInteractionHeatmap(
         value_map=random_characterization_data,
         title='Two Qubit Sycamore Gate XEB Cycle Total Error',
     )
-    file_path = "examples/two_qubit_interaction_heatmap_example.png"
-    fig, _ = heatmap.plot()
-    fig.figure.savefig(file_path)
+    # this is going to plot something similar to examples/two_qubit_interaction_heatmap_example.png
+    heatmap.plot()
 
 
 def main():
