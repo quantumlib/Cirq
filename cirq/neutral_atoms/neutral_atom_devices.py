@@ -78,7 +78,7 @@ class NeutralAtomDevice(devices.Device):
         self._max_parallel_c = max_parallel_c
         for q in qubits:
             if not isinstance(q, GridQubit):
-                raise ValueError('Unsupported qubit type: {!r}'.format(q))
+                raise ValueError(f'Unsupported qubit type: {q!r}')
         self.qubits = frozenset(qubits)
 
     def qubit_set(self) -> FrozenSet['cirq.GridQubit']:
@@ -135,7 +135,7 @@ class NeutralAtomDevice(devices.Device):
                 ops.IdentityGate,
             ),
         ):
-            raise ValueError('Unsupported gate: {!r}'.format(gate))
+            raise ValueError(f'Unsupported gate: {gate!r}')
         if isinstance(gate, (ops.CNotPowGate, ops.CZPowGate, ops.CCXPowGate, ops.CCZPowGate)):
             if not gate.exponent.is_integer():
                 raise ValueError('controlled gates must have integer exponents')
@@ -151,7 +151,7 @@ class NeutralAtomDevice(devices.Device):
             ValueError: If the operation is not valid
         """
         if not isinstance(operation, (ops.GateOperation, ops.ParallelGateOperation)):
-            raise ValueError('Unsupported operation: {!r}'.format(operation))
+            raise ValueError(f'Unsupported operation: {operation!r}')
 
         # The gate must be valid
         self.validate_gate(operation.gate)
@@ -159,7 +159,7 @@ class NeutralAtomDevice(devices.Device):
         # All qubits the operation acts on must be on the device
         for q in operation.qubits:
             if q not in self.qubits:
-                raise ValueError('Qubit not on device: {!r}'.format(q))
+                raise ValueError(f'Qubit not on device: {q!r}')
 
         if isinstance(operation.gate, (ops.MeasurementGate, ops.IdentityGate)):
             return
@@ -174,7 +174,7 @@ class NeutralAtomDevice(devices.Device):
                 for p in operation.qubits:
                     for q in operation.qubits:
                         if self.distance(p, q) > self._control_radius:
-                            raise ValueError("Qubits {!r}, {!r} are too far away".format(p, q))
+                            raise ValueError(f"Qubits {p!r}, {q!r} are too far away")
             return
 
         # Verify that a valid number of Z gates are applied in parallel
@@ -227,7 +227,7 @@ class NeutralAtomDevice(devices.Device):
 
         for k in ['Z', 'XY', 'controlled']:
             if len(set(op.gate for op in categorized_ops[k])) > 1:
-                raise ValueError("Non-identical simultaneous {} gates".format(k))
+                raise ValueError(f"Non-identical simultaneous {k} gates")
 
         num_parallel_xy = sum([len(op.qubits) for op in categorized_ops['XY']])
         num_parallel_z = sum([len(op.qubits) for op in categorized_ops['Z']])

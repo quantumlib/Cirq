@@ -1183,7 +1183,7 @@ def test_pauli_sum_formatting():
     assert str(paulisum2) == '1.000*X(0)*X(1)+1.000*Z(0)'
     paulisum3 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0]) * cirq.Z(q[1])
     assert str(paulisum3) == '1.000*X(0)*X(1)+1.000*Z(0)*Z(1)'
-    assert "{:.0f}".format(paulisum3) == '1*X(0)*X(1)+1*Z(0)*Z(1)'
+    assert f"{paulisum3:.0f}" == '1*X(0)*X(1)+1*Z(0)*Z(1)'
 
     empty = cirq.PauliSum.from_pauli_strings([])
     assert str(empty) == "0.000"

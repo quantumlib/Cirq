@@ -33,10 +33,10 @@ class ValidQubit(cirq.Qid):
         return self._name
 
     def __repr__(self):
-        return 'ValidQubit({!r})'.format(self._name)
+        return f'ValidQubit({self._name!r})'
 
     def __str__(self):
-        return 'TQ_{!s}'.format(self._name)
+        return f'TQ_{self._name!s}'
 
 
 class ValidQid(cirq.Qid):

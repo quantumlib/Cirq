@@ -227,8 +227,8 @@ def init_qubits(x_bin, *qubits):
 
 
 def experiment_adder(p, q, n=3):
-    a_bin = '{:08b}'.format(p)[-n:]
-    b_bin = '{:08b}'.format(q)[-n:]
+    a_bin = f'{p:08b}'[-n:]
+    b_bin = f'{q:08b}'[-n:]
     qubits = cirq.LineQubit.range(3 * n)
     # c = qubits[0::3]
     a = qubits[1::3]
@@ -242,12 +242,12 @@ def experiment_adder(p, q, n=3):
     simulator = cirq.Simulator()
     result = simulator.run(circuit, repetitions=1).measurements['result']
     sum_bin = ''.join(result[0][::-1].astype(int).astype(str))
-    print('{} + {} = {}'.format(a_bin, b_bin, sum_bin))
+    print(f'{a_bin} + {b_bin} = {sum_bin}')
 
 
 def experiment_multiplier(p, q, n=3):
-    y_bin = '{:08b}'.format(p)[-n:]
-    x_bin = '{:08b}'.format(q)[-n:]
+    y_bin = f'{p:08b}'[-n:]
+    x_bin = f'{q:08b}'[-n:]
     qubits = cirq.LineQubit.range(5 * n)
     # c = qubits[0:n*3:3]
     # a = qubits[1:n*3:3]
@@ -264,7 +264,7 @@ def experiment_multiplier(p, q, n=3):
     simulator = cirq.Simulator()
     result = simulator.run(circuit, repetitions=1)
     sum_bin = ''.join(result.measurements['result'][0][::-1].astype(int).astype(str))
-    print('{} * {} = {}'.format(y_bin, x_bin, sum_bin))
+    print(f'{y_bin} * {x_bin} = {sum_bin}')
 
 
 def main(n=3):

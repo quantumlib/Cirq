@@ -97,10 +97,10 @@ class GoodGate(cirq.SingleQubitGate):
         return GoodGate(phase_exponent=self.phase_exponent, exponent=new_exponent)
 
     def __repr__(self):
-        args = ['phase_exponent={}'.format(proper_repr(self.phase_exponent))]
+        args = [f'phase_exponent={proper_repr(self.phase_exponent)}']
         if self.exponent != 1:
-            args.append('exponent={}'.format(proper_repr(self.exponent)))
-        return 'GoodGate({})'.format(', '.join(args))
+            args.append(f'exponent={proper_repr(self.exponent)}')
+        return f"GoodGate({', '.join(args)})"
 
     def _is_parameterized_(self) -> bool:
         return cirq.is_parameterized(self.exponent) or cirq.is_parameterized(self.phase_exponent)
@@ -179,11 +179,11 @@ class BadGatePhaseBy(GoodGate):
 
 class BadGateRepr(GoodGate):
     def __repr__(self):
-        args = ['phase_exponent={!r}'.format(2 * self.phase_exponent)]
+        args = [f'phase_exponent={2 * self.phase_exponent!r}']
         if self.exponent != 1:
             # coverage: ignore
-            args.append('exponent={}'.format(proper_repr(self.exponent)))
-        return 'BadGateRepr({})'.format(', '.join(args))
+            args.append(f'exponent={proper_repr(self.exponent)}')
+        return f"BadGateRepr({', '.join(args)})"
 
 
 class GoodEigenGate(cirq.EigenGate, cirq.SingleQubitGate):

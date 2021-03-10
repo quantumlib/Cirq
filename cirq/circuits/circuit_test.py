@@ -28,11 +28,11 @@ from cirq import ops
 class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
     def validate_operation(self, operation):
         if not isinstance(operation, cirq.Operation):
-            raise ValueError('not isinstance({!r}, {!r})'.format(operation, cirq.Operation))
+            raise ValueError(f'not isinstance({operation!r}, {cirq.Operation!r})')
 
     def validate_moment(self, moment):
         if not isinstance(moment, cirq.Moment):
-            raise ValueError('not isinstance({!r}, {!r})'.format(moment, cirq.Moment))
+            raise ValueError(f'not isinstance({moment!r}, {cirq.Moment!r})')
 
 
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
@@ -605,15 +605,15 @@ class ValidatingTestDevice(cirq.Device):
         # This is pretty close to what the cirq.google.XmonDevice has for validation
         for q in operation.qubits:
             if not isinstance(q, self.allowed_qubit_types):
-                raise ValueError("Unsupported qubit type: {!r}".format(type(q)))
+                raise ValueError(f"Unsupported qubit type: {type(q)!r}")
             if q not in self.qubits:
-                raise ValueError('Qubit not on device: {!r}'.format(q))
+                raise ValueError(f'Qubit not on device: {q!r}')
         if not isinstance(operation.gate, self.allowed_gates):
-            raise ValueError("Unsupported gate type: {!r}".format(operation.gate))
+            raise ValueError(f"Unsupported gate type: {operation.gate!r}")
         if len(operation.qubits) == 2 and not isinstance(operation.gate, ops.MeasurementGate):
             p, q = operation.qubits
             if not cast(cirq.GridQubit, p).is_adjacent(q):
-                raise ValueError('Non-local interaction: {!r}.'.format(operation))
+                raise ValueError(f'Non-local interaction: {operation!r}.')
 
     def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         # a fake decomposer for only TOFFOLI gates
@@ -1213,6 +1213,9 @@ def test_next_moment_operating_on_distance(circuit_cls):
     # Huge max distances should be handled quickly due to capping.
     assert c.next_moment_operating_on([a], 5, max_distance=10 ** 100) is None
 
+    with pytest.raises(ValueError, match='Negative max_distance'):
+        c.next_moment_operating_on([a], 0, max_distance=-1)
+
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_prev_moment_operating_on(circuit_cls):
@@ -1258,6 +1261,9 @@ def test_prev_moment_operating_on(circuit_cls):
     assert c.prev_moment_operating_on([a, b], 1) == 0
     assert c.prev_moment_operating_on([a, b], 0) is None
 
+    with pytest.raises(ValueError, match='Negative max_distance'):
+        assert c.prev_moment_operating_on([a, b], 4, max_distance=-1)
+
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_prev_moment_operating_on_distance(circuit_cls):
@@ -1295,6 +1301,9 @@ def test_prev_moment_operating_on_distance(circuit_cls):
 
     # Huge max distances should be handled quickly due to capping.
     assert c.prev_moment_operating_on([a], 1, max_distance=10 ** 100) is None
+
+    with pytest.raises(ValueError, match='Negative max_distance'):
+        c.prev_moment_operating_on([a], 6, max_distance=-1)
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -3535,7 +3544,7 @@ def test_to_qasm(circuit_cls):
     assert circuit.to_qasm() == cirq.qasm(circuit)
     assert (
         circuit.to_qasm()
-        == """// Generated from Cirq v{}
+        == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -3546,9 +3555,7 @@ qreg q[1];
 
 
 x q[0];
-""".format(
-            cirq.__version__
-        )
+"""
     )
 
 
@@ -3565,7 +3572,7 @@ def test_save_qasm(tmpdir, circuit_cls):
         file_content = f.read()
     assert (
         file_content
-        == """// Generated from Cirq v{}
+        == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -3576,9 +3583,7 @@ qreg q[1];
 
 
 x q[0];
-""".format(
-            cirq.__version__
-        )
+"""
     )
 
 

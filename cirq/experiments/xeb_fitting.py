@@ -309,14 +309,14 @@ def characterize_phased_fsim_parameters_with_xeb(
             params_str = ''
             for name, val in params.items():
                 params_str += f'{name:5s} = {val:7.3g} '
-            print("Simulating with {}".format(params_str))
+            print(f"Simulating with {params_str}")
         fids = benchmark_2q_xeb_fidelities(
             sampled_df, parameterized_circuits, cycle_depths, param_resolver=params, pool=pool
         )
 
         loss = 1 - fids['fidelity'].mean()
         if verbose:
-            print("Loss: {:7.3g}".format(loss), flush=True)
+            print(f"Loss: {loss:7.3g}", flush=True)
         return loss
 
     optimization_result = scipy.optimize.minimize(
