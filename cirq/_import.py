@@ -179,4 +179,7 @@ def module_exists(*, module: str) -> bool:
     """
     import importlib.util
 
-    return importlib.util.find_spec(module) is not None
+    spec = importlib.util.find_spec(module)
+    # namespace packages have spec.origin set to None
+    # see https://docs.python.org/3/library/importlib.html#importlib.machinery.ModuleSpec.origin
+    return spec is not None and spec.origin is not None

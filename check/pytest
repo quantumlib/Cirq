@@ -28,7 +28,10 @@ for arg in $@; do
         cp -R ./.github ${tmp_dir}/
         cp -R ./.git ${tmp_dir}/
         cd ${tmp_dir}
-        rm -rf cirq/google
+        # the reason the empty google folder is left there is to ensure that even when
+        # cirq/google is left empty and only contains proto files (in some environments...)
+        # then it is not recognized as a namespace package accidentally, causing issues
+        rm -rf cirq/google/*
         trap "{ rm -rf ${tmp_dir}; }" EXIT
     else
         PYTEST_ARGS+=("${arg}")

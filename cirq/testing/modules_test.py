@@ -20,5 +20,9 @@ def test_skip_module_decorators():
     assert cirq.testing.skip_if_module_not_exists(module="cirq")(f) == f
     assert cirq.testing.skip_if_module_exists(module="cirq")(f) is None
 
+    # docs is not a valid python package but it is a directory
+    assert cirq.testing.skip_if_module_not_exists(module="docs")(f) is None
+    assert cirq.testing.skip_if_module_exists(module="docs")(f) == f
+
     assert cirq.testing.skip_if_module_not_exists(module="cirq.non_existent")(f) is None
     assert cirq.testing.skip_if_module_exists(module="cirq.non_existent")(f) == f
