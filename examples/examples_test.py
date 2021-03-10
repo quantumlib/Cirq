@@ -10,7 +10,6 @@ import examples.bb84
 import examples.bell_inequality
 import examples.bernstein_vazirani
 import examples.bcs_mean_field
-import examples.heatmap_examples
 import examples.cross_entropy_benchmarking_example
 import examples.deutsch
 import examples.grover

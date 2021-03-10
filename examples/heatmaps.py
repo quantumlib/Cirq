@@ -13,7 +13,7 @@ def single_qubit_heatmap():
 
     heatmap = cirq.Heatmap(value_map)
     # This is going to produce an image similar to examples/single_qubit_heatmap_example.png
-    fig, _ = heatmap.plot()
+    heatmap.plot()
 
 
 def _sycamore_qubit_pairs():
@@ -43,7 +43,7 @@ def two_qubit_interaction_heatmap():
         title='Two Qubit Sycamore Gate XEB Cycle Total Error',
     )
     # this is going to plot something similar to examples/two_qubit_interaction_heatmap_example.png
-    fig, _ = heatmap.plot()
+    heatmap.plot()
 
 
 def main():
