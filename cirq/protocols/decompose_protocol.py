@@ -38,8 +38,6 @@ from cirq.type_workarounds import NotImplementedType
 if TYPE_CHECKING:
     import cirq
 
-TValue = TypeVar('TValue')
-
 TDefault = TypeVar('TDefault')
 
 TError = TypeVar('TError', bound=Exception)
@@ -140,13 +138,13 @@ def decompose(
     intercepting_decomposer: Optional[OpDecomposer] = None,
     fallback_decomposer: Optional[OpDecomposer] = None,
     keep: Optional[Callable[['cirq.Operation'], bool]] = None,
-    on_stuck_raise: Optional[Union[TError, Callable[['cirq.Operation'], TError]]],
+    on_stuck_raise: Union[None, TError, Callable[['cirq.Operation'], Optional[TError]]],
 ) -> List['cirq.Operation']:
     pass
 
 
 def decompose(
-    val: TValue,
+    val: Any,
     *,
     intercepting_decomposer: Optional[OpDecomposer] = None,
     fallback_decomposer: Optional[OpDecomposer] = None,
@@ -317,10 +315,7 @@ def decompose_once_with_qubits(val: Any, qubits: Iterable['cirq.Qid']) -> List['
 def decompose_once_with_qubits(
     val: Any,
     qubits: Iterable['cirq.Qid'],
-    # NOTE: should be TDefault instead of Any, but
-    # mypy has false positive errors when setting
-    # default to None.
-    default: Any,
+    default: Optional[TDefault],
 ) -> Union[TDefault, List['cirq.Operation']]:
     pass
 
@@ -387,3 +382,66 @@ def _try_decompose_into_operations_and_qubits(
         return result, qubits, tuple(qid_shape_dict[q] for q in qubits)
 
     return None, (), ()
+
+
+def decompose_preserving_structure(
+    val: Any,
+    *,
+    fallback_decomposer: Optional[OpDecomposer] = None,
+    keep: Optional[Callable[['cirq.Operation'], bool]] = None,
+    on_stuck_raise: Union[
+        None, Exception, Callable[['cirq.Operation'], Union[None, Exception]]
+    ] = _value_error_describing_bad_operation,
+) -> DecomposeResult:
+    """Preserves structure (e.g. subcircuits) while decomposing ops.
+
+    This can be used to reduce a circuit to a particular gateset without
+    increasing its serialization size. See tests for examples.
+    """
+    if on_stuck_raise is not _value_error_describing_bad_operation and keep is None:
+        raise ValueError(
+            "Must specify 'keep' if specifying 'on_stuck_raise', because it's "
+            "not possible to get stuck if you don't have a criteria on what's "
+            "acceptable to keep."
+        )
+    # This method provides a generated 'keep' to its decompose() calls.
+    # If the user-provided keep is not set, on_stuck_raise must be unset to
+    # ensure that failure to decompose does not generate errors.
+    on_stuck_raise = on_stuck_raise if keep is not None else None
+
+    from cirq.circuits import CircuitOperation, FrozenCircuit
+
+    visited_fcs = set()
+
+    def keep_structure(op: 'cirq.Operation'):
+        circuit = getattr(op.untagged, 'circuit', None)
+        if circuit is not None:
+            return circuit in visited_fcs
+        if keep is not None and keep(op):
+            return True
+
+    def dps_interceptor(op: 'cirq.Operation'):
+        if not isinstance(op.untagged, CircuitOperation):
+            return NotImplemented
+
+        # TODO: infinite loop (circuitop triggers this every iteration)
+        new_fc = FrozenCircuit(
+            decompose(
+                op.untagged.circuit,
+                intercepting_decomposer=dps_interceptor,
+                fallback_decomposer=fallback_decomposer,
+                keep=keep_structure,
+                on_stuck_raise=on_stuck_raise,
+            )
+        )
+        visited_fcs.add(new_fc)
+        new_co = op.untagged.replace(circuit=new_fc)
+        return new_co if not op.tags else new_co.with_tags(*op.tags)
+
+    return decompose(
+        val,
+        intercepting_decomposer=dps_interceptor,
+        fallback_decomposer=fallback_decomposer,
+        keep=keep_structure,
+        on_stuck_raise=on_stuck_raise,
+    )

@@ -222,3 +222,95 @@ def test_decompose_intercept():
         intercepting_decomposer=lambda _: NotImplemented,
     )
     assert actual == [cirq.CNOT(a, b), cirq.CNOT(b, a), cirq.CNOT(a, b)]
+
+
+def test_decompose_preserving_structure():
+    a, b = cirq.LineQubit.range(2)
+    fc1 = cirq.FrozenCircuit(cirq.SWAP(a, b), cirq.FSimGate(0.1, 0.2).on(a, b))
+    cop1_1 = cirq.CircuitOperation(fc1).with_tags('test_tag')
+    cop1_2 = cirq.CircuitOperation(fc1).with_qubit_mapping({a: b, b: a})
+    fc2 = cirq.FrozenCircuit(cirq.X(a), cop1_1, cop1_2)
+    cop2 = cirq.CircuitOperation(fc2)
+
+    circuit = cirq.Circuit(cop2, cirq.measure(a, b, key='m'))
+    actual = cirq.Circuit(cirq.decompose_preserving_structure(circuit))
+
+    # This should keep the CircuitOperations but decompose their SWAPs.
+    fc1_decomp = cirq.FrozenCircuit(cirq.decompose(fc1))
+    expected = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                cirq.X(a),
+                cirq.CircuitOperation(fc1_decomp).with_tags('test_tag'),
+                cirq.CircuitOperation(fc1_decomp).with_qubit_mapping({a: b, b: a}),
+            )
+        ),
+        cirq.measure(a, b, key='m'),
+    )
+    assert actual == expected
+
+
+def test_decompose_preserving_structure_forwards_args():
+    a, b = cirq.LineQubit.range(2)
+    fc1 = cirq.FrozenCircuit(cirq.SWAP(a, b), cirq.FSimGate(0.1, 0.2).on(a, b))
+    cop1_1 = cirq.CircuitOperation(fc1).with_tags('test_tag')
+    cop1_2 = cirq.CircuitOperation(fc1).with_qubit_mapping({a: b, b: a})
+    fc2 = cirq.FrozenCircuit(cirq.X(a), cop1_1, cop1_2)
+    cop2 = cirq.CircuitOperation(fc2)
+
+    circuit = cirq.Circuit(cop2, cirq.measure(a, b, key='m'))
+
+    def keep_func(op: 'cirq.Operation'):
+        # Only decompose SWAP and X.
+        return not isinstance(op.gate, (cirq.SwapPowGate, cirq.XPowGate))
+
+    def x_to_hzh(op: 'cirq.Operation'):
+        if isinstance(op.gate, cirq.XPowGate) and op.gate.exponent == 1:
+            return [
+                cirq.H(*op.qubits),
+                cirq.Z(*op.qubits),
+                cirq.H(*op.qubits),
+            ]
+
+    actual = cirq.Circuit(
+        cirq.decompose_preserving_structure(
+            circuit,
+            keep=keep_func,
+            fallback_decomposer=x_to_hzh,
+        ),
+    )
+
+    # This should keep the CircuitOperations but decompose their SWAPs.
+    fc1_decomp = cirq.FrozenCircuit(
+        cirq.decompose(
+            fc1,
+            keep=keep_func,
+            fallback_decomposer=x_to_hzh,
+        )
+    )
+    expected = cirq.Circuit(
+        cirq.CircuitOperation(
+            cirq.FrozenCircuit(
+                cirq.H(a),
+                cirq.Z(a),
+                cirq.H(a),
+                cirq.CircuitOperation(fc1_decomp).with_tags('test_tag'),
+                cirq.CircuitOperation(fc1_decomp).with_qubit_mapping({a: b, b: a}),
+            )
+        ),
+        cirq.measure(a, b, key='m'),
+    )
+    assert actual == expected
+
+
+def test_decompose_preserving_structure_on_stuck_no_keep():
+    a, b = cirq.LineQubit.range(2)
+    fc1 = cirq.FrozenCircuit(cirq.SWAP(a, b), cirq.FSimGate(0.1, 0.2).on(a, b))
+    cop1_1 = cirq.CircuitOperation(fc1).with_tags('test_tag')
+    cop1_2 = cirq.CircuitOperation(fc1).with_qubit_mapping({a: b, b: a})
+    fc2 = cirq.FrozenCircuit(cirq.X(a), cop1_1, cop1_2)
+    cop2 = cirq.CircuitOperation(fc2)
+
+    circuit = cirq.Circuit(cop2, cirq.measure(a, b, key='m'))
+    with pytest.raises(ValueError, match="Must specify 'keep'"):
+        cirq.decompose_preserving_structure(circuit, on_stuck_raise=ValueError('other error'))

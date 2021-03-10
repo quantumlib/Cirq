@@ -459,6 +459,7 @@ from cirq.protocols import (
     decompose,
     decompose_once,
     decompose_once_with_qubits,
+    decompose_preserving_structure,
     DEFAULT_RESOLVERS,
     definitely_commutes,
     equal_up_to_global_phase,

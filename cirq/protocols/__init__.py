@@ -58,6 +58,7 @@ from cirq.protocols.decompose_protocol import (
     decompose,
     decompose_once,
     decompose_once_with_qubits,
+    decompose_preserving_structure,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
 )
