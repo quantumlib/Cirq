@@ -150,6 +150,8 @@ class Result:
 
     @property
     def repetitions(self) -> int:
+        if not self.measurements:
+            return 0
         # Get the length quickly from one of the keyed results.
         return len(next(iter(self.measurements.values())))
 

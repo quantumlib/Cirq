@@ -94,9 +94,14 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
 
         trial_results = []  # type: List[study.Result]
         for param_resolver in study.to_resolvers(params):
-            measurements = self._run(
-                circuit=program, param_resolver=param_resolver, repetitions=repetitions
-            )
+            measurements = {}
+            if repetitions == 0:
+                for _, op, _ in program.findall_operations_with_gate_type(ops.MeasurementGate):
+                    measurements[protocols.measurement_key(op)] = np.empty([0, 1])
+            else:
+                measurements = self._run(
+                    circuit=program, param_resolver=param_resolver, repetitions=repetitions
+                )
             trial_results.append(
                 study.Result.from_single_parameter_set(
                     params=param_resolver, measurements=measurements
@@ -113,7 +118,8 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         Args:
             circuit: The circuit to simulate.
             param_resolver: Parameters to run with the program.
-            repetitions: Number of times to repeat the run.
+            repetitions: Number of times to repeat the run. It is expected that
+                this is validated greater than zero before calling this method.
 
         Returns:
             A dictionary from measurement gate key to measurement
@@ -457,11 +463,13 @@ class SimulatesIntermediateState(
             Iterator that steps through the simulation, simulating each
             moment and returning a StepResult for each moment.
         """
-        return self._simulator_iterator(
-            circuit, study.ParamResolver(param_resolver), qubit_order, initial_state
-        )
+        param_resolver = study.ParamResolver(param_resolver)
+        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        check_all_resolved(resolved_circuit)
+        actual_initial_state = 0 if initial_state is None else initial_state
+        return self._base_iterator(resolved_circuit, qubit_order, actual_initial_state)
 
-    @deprecated(deadline='v0.11.0', fix='Override _base_iterator instead')
+    @deprecated(deadline='v0.11', fix='Override _base_iterator instead')
     def _simulator_iterator(
         self,
         circuit: circuits.Circuit,
@@ -493,11 +501,7 @@ class SimulatesIntermediateState(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        check_all_resolved(resolved_circuit)
-        actual_initial_state = 0 if initial_state is None else initial_state
-        return self._base_iterator(resolved_circuit, qubit_order, actual_initial_state)
+        return self.simulate_moment_steps(circuit, param_resolver, qubit_order, initial_state)
 
     @abc.abstractmethod
     def _base_iterator(

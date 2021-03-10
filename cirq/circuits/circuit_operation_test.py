@@ -303,7 +303,7 @@ def test_string_format():
     assert (
         str(op0)
         == f"""\
-{op0.circuit.serialization_key()}:
+{op0.circuit.diagram_name()}:
 [                         ]"""
     )
 
@@ -312,7 +312,7 @@ def test_string_format():
     assert (
         str(op1)
         == f"""\
-{op1.circuit.serialization_key()}:
+{op1.circuit.diagram_name()}:
 [ 0: ───X───────M('m')─── ]
 [               │         ]
 [ 1: ───H───@───M──────── ]
@@ -345,7 +345,7 @@ cirq.CircuitOperation(
     assert (
         str(op2)
         == f"""\
-{op2.circuit.serialization_key()}:
+{op2.circuit.diagram_name()}:
 [ 0: ───X───X───          ]
 [           │             ]
 [ 1: ───H───@───          ](qubit_map={{1: 2}}, repetition_ids=['a', 'b', 'c'])"""
@@ -383,7 +383,7 @@ cirq.CircuitOperation(
     assert (
         str(op3)
         == f"""\
-{op3.circuit.serialization_key()}:
+{op3.circuit.diagram_name()}:
 [ 0: ───X^b───M('m')───   ](qubit_map={{0: 1}}, \
 key_map={{m: p}}, params={{b: 2}})"""
     )

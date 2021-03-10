@@ -218,8 +218,6 @@ class Simulator(
         repetitions: int,
     ) -> Dict[str, np.ndarray]:
         """Repeatedly simulate a circuit in order to produce samples."""
-        if repetitions == 0:
-            return {key: np.empty(shape=[0, 1]) for key in protocols.measurement_keys(circuit)}
 
         measurements: DefaultDict[str, List[np.ndarray]] = collections.defaultdict(list)
         for _ in range(repetitions):

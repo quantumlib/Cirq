@@ -67,6 +67,8 @@ upper_tabs:
         path: /cirq/custom_gates
       - title: "Operators and observables"
         path: /cirq/operators_and_observables
+      - title: "Issues / requests / questions"
+        path: /cirq/support
 
       ####  Contributor Guide  ####
       - heading: "Contributor guide"
@@ -171,6 +173,11 @@ upper_tabs:
       - heading: "AQT hardware"
       - title: "Getting started with AQT hardware"
         path: /cirq/tutorials/aqt/getting_started
+
+      ####  IONQ HARDWARE ####
+      - heading: "IonQ hardware"
+      - title: "Getting started with IonQ hardware"
+        path: /cirq/tutorials/ionq/getting_started
 
       ####  PASQAL HARDWARE  ####
       - heading: "Pasqal hardware"

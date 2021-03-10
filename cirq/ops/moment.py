@@ -273,7 +273,7 @@ class Moment:
         return self.to_text_diagram()
 
     @deprecated_parameter(
-        deadline='v0.11.0',
+        deadline='v0.11',
         fix='Use qubit_map instead.',
         parameter_desc='positional func',
         match=lambda args, kwargs: 'func' in kwargs,
