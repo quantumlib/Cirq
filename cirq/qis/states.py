@@ -26,14 +26,12 @@ from typing import (
     Type,
     Union,
 )
-
 import itertools
 
 import numpy as np
 
-from cirq._compat import deprecated, deprecated_parameter
-from cirq._doc import document
 from cirq import value
+from cirq._doc import document
 
 if TYPE_CHECKING:
     import cirq
@@ -567,16 +565,6 @@ def _intersection_min_qudit_dims_qid_shapes(
     return None
 
 
-@deprecated_parameter(
-    deadline='v0.10.0',
-    fix='Use state_vector instead.',
-    parameter_desc='state',
-    match=lambda args, kwargs: 'state' in kwargs,
-    rewrite=lambda args, kwargs: (
-        args,
-        {('state_vector' if k == 'state' else k): v for k, v in kwargs.items()},
-    ),
-)
 def bloch_vector_from_state_vector(
     state_vector: np.ndarray, index: int, qid_shape: Optional[Tuple[int, ...]] = None
 ) -> np.ndarray:
@@ -616,16 +604,6 @@ def bloch_vector_from_state_vector(
     return v
 
 
-@deprecated_parameter(
-    deadline='v0.10.0',
-    fix='Use state_vector instead.',
-    parameter_desc='state',
-    match=lambda args, kwargs: 'state' in kwargs,
-    rewrite=lambda args, kwargs: (
-        args,
-        {('state_vector' if k == 'state' else k): v for k, v in kwargs.items()},
-    ),
-)
 def density_matrix_from_state_vector(
     state_vector: np.ndarray,
     indices: Optional[Iterable[int]] = None,
@@ -699,16 +677,6 @@ def density_matrix_from_state_vector(
     return rho.reshape((new_shape, new_shape))
 
 
-@deprecated_parameter(
-    deadline='v0.10.0',
-    fix='Use state_vector instead.',
-    parameter_desc='state',
-    match=lambda args, kwargs: 'state' in kwargs,
-    rewrite=lambda args, kwargs: (
-        args,
-        {('state_vector' if k == 'state' else k): v for k, v in kwargs.items()},
-    ),
-)
 def dirac_notation(
     state_vector: np.ndarray, decimals: int = 2, qid_shape: Optional[Tuple[int, ...]] = None
 ) -> str:
@@ -990,24 +958,9 @@ def validate_normalized_state_vector(
         )
     norm = np.sum(np.abs(state_vector) ** 2)
     if not np.isclose(norm, 1, atol=atol):
-        raise ValueError('State_vector is not normalized instead had norm {}'.format(norm))
+        raise ValueError(f'State_vector is not normalized instead had norm {norm}')
 
 
-validate_normalized_state = deprecated(
-    deadline='v0.10.0', fix='Use `cirq.validate_normalized_state_vector` instead.'
-)(validate_normalized_state_vector)
-
-
-@deprecated_parameter(
-    deadline='v0.10.0',
-    fix='Use state_vector instead.',
-    parameter_desc='state',
-    match=lambda args, kwargs: 'state' in kwargs,
-    rewrite=lambda args, kwargs: (
-        args,
-        {('state_vector' if k == 'state' else k): v for k, v in kwargs.items()},
-    ),
-)
 def validate_qid_shape(
     state_vector: np.ndarray, qid_shape: Optional[Tuple[int, ...]]
 ) -> Tuple[int, ...]:
@@ -1035,10 +988,10 @@ def validate_qid_shape(
 def validate_indices(num_qubits: int, indices: Sequence[int]) -> None:
     """Validates that the indices have values within range of num_qubits."""
     if any(index < 0 for index in indices):
-        raise IndexError('Negative index in indices: {}'.format(indices))
+        raise IndexError(f'Negative index in indices: {indices}')
     if any(index >= num_qubits for index in indices):
         raise IndexError(
-            'Out of range indices, must be less than number of qubits but was {}'.format(indices)
+            f'Out of range indices, must be less than number of qubits but was {indices}'
         )
 
 

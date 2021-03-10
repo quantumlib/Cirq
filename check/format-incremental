@@ -6,7 +6,8 @@
 # Usage:
 #     check/format-incremental [BASE_REVISION] [--apply] [--all]
 #
-# By default, the script analyzes python files that have changed relative to the
+# By default, the script runs flynt to convert old string literal formatting to f-strings
+# and analyzes python files that have changed relative to the
 # base revision and determines whether they need to be formatted. If any changes
 # are needed, it prints the diff and exits with code 1, otherwise it exits with
 # code 0.
@@ -33,6 +34,11 @@
 # Get the working directory to the repo root.
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$(git rev-parse --show-toplevel)"
+
+# TODO: Remove '-e cirq/ops/pauli_string.py' once the line is covered (https://github.com/quantumlib/Cirq/issues/3804)
+flynt cirq dev_tools examples -f -e cirq/ops/pauli_string.py
+
+FLYNTSTATUS=$?
 
 # Parse arguments.
 only_print=1
@@ -114,9 +120,13 @@ fi
 # black "${args[@]}" ${format_files}
 # exit $?
 LOGS="$(black "${args[@]}" ${format_files} 2>&1)"
-STATUS=$?
+BLACKSTATUS=$?
 echo "${LOGS}"
-if [[ "$STATUS" == "123" && "$LOGS" =~ ^.*"INTERNAL ERROR: Black produced different code on the second pass of the formatter.".*$ ]]; then
+if [[ "$BLACKSTATUS" == "123" && "$LOGS" =~ ^.*"INTERNAL ERROR: Black produced different code on the second pass of the formatter.".*$ ]]; then
   echo -e "\033[31mWarning, it seems we ran into https://github.com/psf/black/issues/1629. Typically, this can be fixed by adding a trailing comma. If you get stuck, please file a cirq issue on github.\033[0m"
 fi
-exit $STATUS
+
+if [[ "$FLYNTSTATUS" != "0" || "$BLACKSTATUS" != "0"  ]]; then
+  exit 1
+fi
+exit 0

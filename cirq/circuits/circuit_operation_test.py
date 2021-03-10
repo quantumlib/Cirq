@@ -303,8 +303,25 @@ def test_string_format():
     assert (
         str(op0)
         == f"""\
-{op0.circuit.serialization_key()}:
+{op0.circuit.diagram_name()}:
 [                         ]"""
+    )
+
+    fc0_global_phase_inner = cirq.FrozenCircuit(
+        cirq.GlobalPhaseOperation(1j), cirq.GlobalPhaseOperation(1j)
+    )
+    op0_global_phase_inner = cirq.CircuitOperation(fc0_global_phase_inner)
+    fc0_global_phase_outer = cirq.FrozenCircuit(
+        op0_global_phase_inner, cirq.GlobalPhaseOperation(1j)
+    )
+    op0_global_phase_outer = cirq.CircuitOperation(fc0_global_phase_outer)
+    assert (
+        str(op0_global_phase_outer)
+        == f"""\
+{op0_global_phase_outer.circuit.diagram_name()}:
+[                         ]
+[                         ]
+[ global phase:   -0.5π   ]"""
     )
 
     fc1 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, z), cirq.measure(x, y, z, key='m'))
@@ -312,7 +329,7 @@ def test_string_format():
     assert (
         str(op1)
         == f"""\
-{op1.circuit.serialization_key()}:
+{op1.circuit.diagram_name()}:
 [ 0: ───X───────M('m')─── ]
 [               │         ]
 [ 1: ───H───@───M──────── ]
@@ -345,7 +362,7 @@ cirq.CircuitOperation(
     assert (
         str(op2)
         == f"""\
-{op2.circuit.serialization_key()}:
+{op2.circuit.diagram_name()}:
 [ 0: ───X───X───          ]
 [           │             ]
 [ 1: ───H───@───          ](qubit_map={{1: 2}}, repetition_ids=['a', 'b', 'c'])"""
@@ -383,7 +400,7 @@ cirq.CircuitOperation(
     assert (
         str(op3)
         == f"""\
-{op3.circuit.serialization_key()}:
+{op3.circuit.diagram_name()}:
 [ 0: ───X^b───M('m')───   ](qubit_map={{0: 1}}, \
 key_map={{m: p}}, params={{b: 2}})"""
     )

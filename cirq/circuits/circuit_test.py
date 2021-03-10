@@ -14,7 +14,7 @@
 import os
 from collections import defaultdict
 from random import randint, random, sample, randrange
-from typing import Tuple, cast, AbstractSet, Iterable
+from typing import Tuple, cast, AbstractSet
 
 import numpy as np
 import pytest
@@ -28,14 +28,19 @@ from cirq import ops
 class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
     def validate_operation(self, operation):
         if not isinstance(operation, cirq.Operation):
-            raise ValueError('not isinstance({!r}, {!r})'.format(operation, cirq.Operation))
+            raise ValueError(f'not isinstance({operation!r}, {cirq.Operation!r})')
 
     def validate_moment(self, moment):
         if not isinstance(moment, cirq.Moment):
-            raise ValueError('not isinstance({!r}, {!r})'.format(moment, cirq.Moment))
+            raise ValueError(f'not isinstance({moment!r}, {cirq.Moment!r})')
 
 
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
+
+
+def test_alignment():
+    assert repr(cirq.Alignment.LEFT) == 'cirq.Alignment.LEFT'
+    assert repr(cirq.Alignment.RIGHT) == 'cirq.Alignment.RIGHT'
 
 
 def test_insert_moment_types():
@@ -600,15 +605,15 @@ class ValidatingTestDevice(cirq.Device):
         # This is pretty close to what the cirq.google.XmonDevice has for validation
         for q in operation.qubits:
             if not isinstance(q, self.allowed_qubit_types):
-                raise ValueError("Unsupported qubit type: {!r}".format(type(q)))
+                raise ValueError(f"Unsupported qubit type: {type(q)!r}")
             if q not in self.qubits:
-                raise ValueError('Qubit not on device: {!r}'.format(q))
+                raise ValueError(f'Qubit not on device: {q!r}')
         if not isinstance(operation.gate, self.allowed_gates):
-            raise ValueError("Unsupported gate type: {!r}".format(operation.gate))
+            raise ValueError(f"Unsupported gate type: {operation.gate!r}")
         if len(operation.qubits) == 2 and not isinstance(operation.gate, ops.MeasurementGate):
             p, q = operation.qubits
             if not cast(cirq.GridQubit, p).is_adjacent(q):
-                raise ValueError('Non-local interaction: {!r}.'.format(operation))
+                raise ValueError(f'Non-local interaction: {operation!r}.')
 
     def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         # a fake decomposer for only TOFFOLI gates
@@ -1208,6 +1213,9 @@ def test_next_moment_operating_on_distance(circuit_cls):
     # Huge max distances should be handled quickly due to capping.
     assert c.next_moment_operating_on([a], 5, max_distance=10 ** 100) is None
 
+    with pytest.raises(ValueError, match='Negative max_distance'):
+        c.next_moment_operating_on([a], 0, max_distance=-1)
+
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_prev_moment_operating_on(circuit_cls):
@@ -1253,6 +1261,9 @@ def test_prev_moment_operating_on(circuit_cls):
     assert c.prev_moment_operating_on([a, b], 1) == 0
     assert c.prev_moment_operating_on([a, b], 0) is None
 
+    with pytest.raises(ValueError, match='Negative max_distance'):
+        assert c.prev_moment_operating_on([a, b], 4, max_distance=-1)
+
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_prev_moment_operating_on_distance(circuit_cls):
@@ -1290,6 +1301,9 @@ def test_prev_moment_operating_on_distance(circuit_cls):
 
     # Huge max distances should be handled quickly due to capping.
     assert c.prev_moment_operating_on([a], 1, max_distance=10 ** 100) is None
+
+    with pytest.raises(ValueError, match='Negative max_distance'):
+        c.prev_moment_operating_on([a], 6, max_distance=-1)
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -2401,6 +2415,18 @@ global phase:   0.5π   0.5π
 """,
         use_unicode_characters=True,
         precision=2,
+    )
+
+    c = circuit_cls(
+        cirq.X(cirq.LineQubit(2)),
+        cirq.CircuitOperation(circuit_cls(cirq.GlobalPhaseOperation(-1).with_tags("tag")).freeze()),
+    )
+    cirq.testing.assert_has_diagram(
+        c,
+        """\
+2: ───X──────────
+
+      π['tag']""",
     )
 
 
@@ -3530,7 +3556,7 @@ def test_to_qasm(circuit_cls):
     assert circuit.to_qasm() == cirq.qasm(circuit)
     assert (
         circuit.to_qasm()
-        == """// Generated from Cirq v{}
+        == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -3541,9 +3567,7 @@ qreg q[1];
 
 
 x q[0];
-""".format(
-            cirq.__version__
-        )
+"""
     )
 
 
@@ -3560,7 +3584,7 @@ def test_save_qasm(tmpdir, circuit_cls):
         file_content = f.read()
     assert (
         file_content
-        == """// Generated from Cirq v{}
+        == f"""// Generated from Cirq v{cirq.__version__}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -3571,9 +3595,7 @@ qreg q[1];
 
 
 x q[0];
-""".format(
-            cirq.__version__
-        )
+"""
     )
 
 
@@ -4160,7 +4182,7 @@ def test_transform_qubits():
     with pytest.raises(TypeError, match='must be a function or dict'):
         _ = original.transform_qubits('bad arg')
 
-    with cirq.testing.assert_logs('Use qubit_map instead'):
+    with cirq.testing.assert_deprecated('Use qubit_map instead', deadline="v0.11"):
         # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
         assert original.transform_qubits(func=lambda q: cirq.GridQubit(10 + q.x, 20)) == desired
 
@@ -4345,14 +4367,6 @@ def test_all_measurement_keys(circuit_cls):
     )
 
 
-@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_deprecated(circuit_cls):
-    q = cirq.NamedQubit('q')
-    circuit = circuit_cls([cirq.H(q)])
-    with cirq.testing.assert_logs('final_state_vector', 'deprecated'):
-        _ = circuit.final_wavefunction()
-
-
 def test_zip():
     a, b, c, d = cirq.LineQubit.range(4)
 
@@ -4410,6 +4424,33 @@ def test_zip():
             cirq.Circuit(cirq.X(a), cirq.CNOT(a, b)),
             cirq.Circuit(cirq.X(b), cirq.Z(b)),
         )
+
+
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_zip_alignment(circuit_cls):
+    a, b, c = cirq.LineQubit.range(3)
+
+    circuit1 = circuit_cls([cirq.H(a)] * 5)
+    circuit2 = circuit_cls([cirq.H(b)] * 3)
+    circuit3 = circuit_cls([cirq.H(c)] * 2)
+
+    c_start = circuit_cls.zip(circuit1, circuit2, circuit3, align='LEFT')
+    assert c_start == circuit_cls(
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+        cirq.Moment(cirq.H(a), cirq.H(b)),
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.H(a)),
+    )
+
+    c_end = circuit_cls.zip(circuit1, circuit2, circuit3, align='RIGHT')
+    assert c_end == circuit_cls(
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.H(a), cirq.H(b)),
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+    )
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
@@ -4476,9 +4517,12 @@ def test_tetris_concat():
     assert len(f(space, ha)) == 10
     assert len(f(space, ha, ha, ha)) == 10
     assert len(f(space, f(ha, ha, ha))) == 10
-    assert len(f(space, ha, stop_at_first_alignment=True)) == 10
-    assert len(f(space, ha, ha, ha, stop_at_first_alignment=True)) == 12
-    assert len(f(space, f(ha, ha, ha, stop_at_first_alignment=True))) == 10
+    assert len(f(space, ha, align='LEFT')) == 10
+    assert len(f(space, ha, ha, ha, align='RIGHT')) == 12
+    assert len(f(space, f(ha, ha, ha, align='LEFT'))) == 10
+    assert len(f(space, f(ha, ha, ha, align='RIGHT'))) == 10
+    assert len(f(space, f(ha, ha, ha), align='LEFT')) == 10
+    assert len(f(space, f(ha, ha, ha), align='RIGHT')) == 10
 
     # L shape overlap (vary c1).
     assert 7 == len(

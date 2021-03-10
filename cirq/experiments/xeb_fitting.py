@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import (
     List,
@@ -114,9 +114,26 @@ def benchmark_2q_xeb_fidelities(
     return df.reset_index().groupby(groupby_names).apply(per_cycle_depth).reset_index()
 
 
+class XEBCharacterizationOptions(ABC):
+    @staticmethod
+    @abstractmethod
+    def should_parameterize(op: 'cirq.Operation') -> bool:
+        """Whether to replace `op` with a parameterized version."""
+
+    @abstractmethod
+    def get_parameterized_gate(self) -> 'cirq.Gate':
+        """The parameterized gate to use."""
+
+    @abstractmethod
+    def get_initial_simplex_and_names(
+        self, initial_simplex_step_size: float = 0.1
+    ) -> Tuple[np.ndarray, List[str]]:
+        """Return an initial Nelder-Mead simplex and the names for each parameter."""
+
+
 # mypy issue: https://github.com/python/mypy/issues/5374
 @dataclass(frozen=True)  # type: ignore
-class XEBPhasedFSimCharacterizationOptions:
+class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
     """Options for calibrating a PhasedFSim-like gate using XEB.
 
     You may want to use more specific subclasses like `SqrtISwapXEBOptions`
@@ -146,11 +163,6 @@ class XEBPhasedFSimCharacterizationOptions:
     chi_default: float = 0
     gamma_default: float = 0
     phi_default: float = 0
-
-    @staticmethod
-    @abstractmethod
-    def should_parameterize(op: 'cirq.Operation') -> bool:
-        """Whether to replace `op` with a parameterized version."""
 
     def get_initial_simplex_and_names(
         self, initial_simplex_step_size: float = 0.1
@@ -194,6 +206,14 @@ class XEBPhasedFSimCharacterizationOptions:
 
         return initial_simplex, names
 
+    def get_parameterized_gate(self):
+        theta = THETA_SYMBOL if self.characterize_theta else self.theta_default
+        zeta = ZETA_SYMBOL if self.characterize_zeta else self.zeta_default
+        chi = CHI_SYMBOL if self.characterize_chi else self.chi_default
+        gamma = GAMMA_SYMBOL if self.characterize_gamma else self.gamma_default
+        phi = PHI_SYMBOL if self.characterize_phi else self.phi_default
+        return ops.PhasedFSimGate(theta=theta, zeta=zeta, chi=chi, gamma=gamma, phi=phi)
+
 
 @dataclass(frozen=True)
 class SqrtISwapXEBOptions(XEBPhasedFSimCharacterizationOptions):
@@ -210,24 +230,17 @@ class SqrtISwapXEBOptions(XEBPhasedFSimCharacterizationOptions):
         return op.gate == SQRT_ISWAP
 
 
-def parameterize_phased_fsim_circuit(
+def parameterize_circuit(
     circuit: 'cirq.Circuit',
-    phased_fsim_options: XEBPhasedFSimCharacterizationOptions,
+    options: XEBCharacterizationOptions,
 ) -> 'cirq.Circuit':
     """Parameterize PhasedFSim-like gates in a given circuit according to
     `phased_fsim_options`.
     """
-    options = phased_fsim_options
-    theta = THETA_SYMBOL if options.characterize_theta else options.theta_default
-    zeta = ZETA_SYMBOL if options.characterize_zeta else options.zeta_default
-    chi = CHI_SYMBOL if options.characterize_chi else options.chi_default
-    gamma = GAMMA_SYMBOL if options.characterize_gamma else options.gamma_default
-    phi = PHI_SYMBOL if options.characterize_phi else options.phi_default
-
-    fsim_gate = ops.PhasedFSimGate(theta=theta, zeta=zeta, chi=chi, gamma=gamma, phi=phi)
+    gate = options.get_parameterized_gate()
     return Circuit(
         ops.Moment(
-            fsim_gate.on(*op.qubits) if options.should_parameterize(op) else op
+            gate.on(*op.qubits) if options.should_parameterize(op) else op
             for op in moment.operations
         )
         for moment in circuit.moments
@@ -258,7 +271,7 @@ def characterize_phased_fsim_parameters_with_xeb(
     sampled_df: pd.DataFrame,
     parameterized_circuits: List['cirq.Circuit'],
     cycle_depths: Sequence[int],
-    phased_fsim_options: XEBPhasedFSimCharacterizationOptions,
+    options: XEBCharacterizationOptions,
     initial_simplex_step_size: float = 0.1,
     xatol: float = 1e-3,
     fatol: float = 1e-3,
@@ -272,9 +285,9 @@ def characterize_phased_fsim_parameters_with_xeb(
         sampled_df: The DataFrame of sampled two-qubit probability distributions returned
             from `sample_2q_xeb_circuits`.
         parameterized_circuits: The circuits corresponding to those sampled in `sampled_df`,
-            but with some gates parameterized, likely by using `parameterize_phased_fsim_circuit`.
+            but with some gates parameterized, likely by using `parameterize_circuit`.
         cycle_depths: The depths at which circuits were truncated.
-        phased_fsim_options: A set of options that controls the classical optimization loop
+        options: A set of options that controls the classical optimization loop
             for characterizing the parameterized gates.
         initial_simplex_step_size: Set the size of the initial simplex for Nelder-Mead.
         xatol: The `xatol` argument for Nelder-Mead. This is the absolute error for convergence
@@ -285,7 +298,7 @@ def characterize_phased_fsim_parameters_with_xeb(
         pool: An optional multiprocessing pool to execute circuit simulations in parallel.
     """
     (pair,) = sampled_df['pair'].unique()
-    initial_simplex, names = phased_fsim_options.get_initial_simplex_and_names(
+    initial_simplex, names = options.get_initial_simplex_and_names(
         initial_simplex_step_size=initial_simplex_step_size
     )
     x0 = initial_simplex[0]
@@ -296,14 +309,14 @@ def characterize_phased_fsim_parameters_with_xeb(
             params_str = ''
             for name, val in params.items():
                 params_str += f'{name:5s} = {val:7.3g} '
-            print("Simulating with {}".format(params_str))
+            print(f"Simulating with {params_str}")
         fids = benchmark_2q_xeb_fidelities(
             sampled_df, parameterized_circuits, cycle_depths, param_resolver=params, pool=pool
         )
 
         loss = 1 - fids['fidelity'].mean()
         if verbose:
-            print("Loss: {:7.3g}".format(loss), flush=True)
+            print(f"Loss: {loss:7.3g}", flush=True)
         return loss
 
     optimization_result = scipy.optimize.minimize(
@@ -331,7 +344,7 @@ class _CharacterizePhasedFsimParametersWithXebClosure:
 
     parameterized_circuits: List['cirq.Circuit']
     cycle_depths: Sequence[int]
-    phased_fsim_options: XEBPhasedFSimCharacterizationOptions
+    options: XEBCharacterizationOptions
     initial_simplex_step_size: float = 0.1
     xatol: float = 1e-3
     fatol: float = 1e-3
@@ -341,7 +354,7 @@ class _CharacterizePhasedFsimParametersWithXebClosure:
             sampled_df=sampled_df,
             parameterized_circuits=self.parameterized_circuits,
             cycle_depths=self.cycle_depths,
-            phased_fsim_options=self.phased_fsim_options,
+            options=self.options,
             initial_simplex_step_size=self.initial_simplex_step_size,
             xatol=self.xatol,
             fatol=self.fatol,
@@ -354,7 +367,7 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
     sampled_df: pd.DataFrame,
     parameterized_circuits: List['cirq.Circuit'],
     cycle_depths: Sequence[int],
-    phased_fsim_options: XEBPhasedFSimCharacterizationOptions,
+    options: XEBCharacterizationOptions,
     initial_simplex_step_size: float = 0.1,
     xatol: float = 1e-3,
     fatol: float = 1e-3,
@@ -365,13 +378,17 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
 
     This is appropriate if you have run parallel XEB on multiple pairs of qubits.
 
+    The optimization is done per-pair. If you have the same pair in e.g. two different
+    layers the characterization optimization will lump the data together. This is in contrast
+    with the benchmarking functionality, which will always index on `(layer_i, pair_i, pair)`.
+
     Args:
         sampled_df: The DataFrame of sampled two-qubit probability distributions returned
             from `sample_2q_xeb_circuits`.
         parameterized_circuits: The circuits corresponding to those sampled in `sampled_df`,
-            but with some gates parameterized, likely by using `parameterize_phased_fsim_circuit`.
+            but with some gates parameterized, likely by using `parameterize_circuit`.
         cycle_depths: The depths at which circuits were truncated.
-        phased_fsim_options: A set of options that controls the classical optimization loop
+        options: A set of options that controls the classical optimization loop
             for characterizing the parameterized gates.
         initial_simplex_step_size: Set the size of the initial simplex for Nelder-Mead.
         xatol: The `xatol` argument for Nelder-Mead. This is the absolute error for convergence
@@ -385,7 +402,7 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
     closure = _CharacterizePhasedFsimParametersWithXebClosure(
         parameterized_circuits=parameterized_circuits,
         cycle_depths=cycle_depths,
-        phased_fsim_options=phased_fsim_options,
+        options=options,
         initial_simplex_step_size=initial_simplex_step_size,
         xatol=xatol,
         fatol=fatol,
@@ -425,7 +442,9 @@ def exponential_decay(cycle_depths: np.ndarray, a: float, layer_fid: float) -> n
     return a * layer_fid ** cycle_depths
 
 
-def _fit_exponential_decay(cycle_depths: np.ndarray, fidelities: np.ndarray) -> Tuple[float, float]:
+def _fit_exponential_decay(
+    cycle_depths: np.ndarray, fidelities: np.ndarray
+) -> Tuple[float, float, float, float]:
     """Fit an exponential model fidelity = a * layer_fid**x using nonlinear least squares.
 
     This uses `exponential_decay` as the function to fit with parameters `a` and `layer_fid`.
@@ -440,22 +459,40 @@ def _fit_exponential_decay(cycle_depths: np.ndarray, fidelities: np.ndarray) -> 
         a: The first fit parameter that scales the exponential function, perhaps accounting for
             state prep and measurement (SPAM) error.
         layer_fid: The second fit parameters which serves as the base of the exponential.
+        a_std: The standard deviation of the `a` parameter estimate.
+        layer_fid_std: The standard deviation of the `layer_fid` parameter estimate.
     """
     cycle_depths = np.asarray(cycle_depths)
     fidelities = np.asarray(fidelities)
 
-    # Get initial guess by linear least squares with logarithm of model
+    # Get initial guess by linear least squares with logarithm of model.
+    # This only works for positive fidelities. We use numpy fancy indexing
+    # with `positives` (an ndarray of bools).
     positives = fidelities > 0
+    if np.sum(positives) <= 1:
+        # The sum of the boolean array is the number of `True` entries.
+        # For one or fewer positive values, we cannot perform the linear fit.
+        return 0, 0, np.inf, np.inf
     cycle_depths_pos = cycle_depths[positives]
     log_fidelities = np.log(fidelities[positives])
     slope, intercept, _, _, _ = scipy.stats.linregress(cycle_depths_pos, log_fidelities)
     layer_fid_0 = np.clip(np.exp(slope), 0, 1)
     a_0 = np.clip(np.exp(intercept), 0, 1)
 
-    (a, layer_fid), _ = scipy.optimize.curve_fit(
-        exponential_decay, cycle_depths, fidelities, p0=(a_0, layer_fid_0), bounds=((0, 0), (1, 1))
-    )
-    return a, layer_fid
+    try:
+        (a, layer_fid), pcov = scipy.optimize.curve_fit(
+            exponential_decay,
+            cycle_depths,
+            fidelities,
+            p0=(a_0, layer_fid_0),
+            bounds=((0, 0), (1, 1)),
+        )
+    except ValueError:  # coverage: ignore
+        # coverage: ignore
+        return 0, 0, np.inf, np.inf
+
+    a_std, layer_fid_std = np.sqrt(np.diag(pcov))
+    return a, layer_fid, a_std, layer_fid_std
 
 
 def _one_unique(df, name, default):
@@ -481,21 +518,26 @@ def fit_exponential_decays(fidelities_df: pd.DataFrame) -> pd.DataFrame:
         for the fit parameters "a" and "layer_fid"; and nested "cycles_depths" and "fidelities"
         lists (now grouped by pair).
     """
-    records = []
-    for pair in fidelities_df['pair'].unique():
-        f1 = fidelities_df[fidelities_df['pair'] == pair]
-        a, layer_fid = _fit_exponential_decay(f1['cycle_depth'], f1['fidelity'])
+
+    def _per_pair(f1):
+        a, layer_fid, a_std, layer_fid_std = _fit_exponential_decay(
+            f1['cycle_depth'], f1['fidelity']
+        )
         record = {
-            'pair': pair,
             'a': a,
             'layer_fid': layer_fid,
             'cycle_depths': f1['cycle_depth'].values,
             'fidelities': f1['fidelity'].values,
-            'layer_i': _one_unique(f1, 'layer_i', default=0),
-            'pair_i': _one_unique(f1, 'pair_i', default=0),
+            'a_std': a_std,
+            'layer_fid_std': layer_fid_std,
         }
-        records.append(record)
-    return pd.DataFrame(records).set_index(['pair', 'layer_i', 'pair_i'])
+        return pd.Series(record)
+
+    if 'layer_i' in fidelities_df.columns:
+        groupby = ['layer_i', 'pair_i', 'pair']
+    else:
+        groupby = ['pair']
+    return fidelities_df.groupby(groupby).apply(_per_pair)
 
 
 def before_and_after_characterization(
@@ -518,13 +560,19 @@ def before_and_after_characterization(
     fit_decay_df_c = fit_exponential_decays(characterization_result.fidelities_df)
 
     joined_df = fit_decay_df_0.join(fit_decay_df_c, how='outer', lsuffix='_0', rsuffix='_c')
+    # Remove (layer_i, pair_i) from the index. While we keep this for `fit_exponential_decays`
+    # so the same pair can be benchmarked in different contexts, the multi-pair characterization
+    # function only keys on the pair identity. This can be seen acutely by the
+    # `characterization_result.final_params` dictionary being keyed only by the pair.
+    joined_df = joined_df.reset_index().set_index('pair')
+
     joined_df['characterized_angles'] = [
-        characterization_result.final_params[pair] for pair, _, _ in joined_df.index
+        characterization_result.final_params[pair] for pair in joined_df.index
     ]
     # Take any `final_params` (for any pair). We just need the angle names.
     fp, *_ = characterization_result.final_params.values()
     for angle_name in fp.keys():
         joined_df[angle_name] = [
-            characterization_result.final_params[pair][angle_name] for pair, _, _ in joined_df.index
+            characterization_result.final_params[pair][angle_name] for pair in joined_df.index
         ]
     return joined_df

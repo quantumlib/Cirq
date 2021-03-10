@@ -10,10 +10,10 @@ import examples.bb84
 import examples.bell_inequality
 import examples.bernstein_vazirani
 import examples.bcs_mean_field
-import examples.bristlecone_heatmap_example
 import examples.cross_entropy_benchmarking_example
 import examples.deutsch
 import examples.grover
+import examples.heatmaps
 import examples.hello_qubit
 import examples.hhl
 import examples.hidden_shift_algorithm
@@ -88,9 +88,9 @@ def test_example_runs_phase_estimator():
     examples.phase_estimator.main(qnums=(2,), repetitions=2)
 
 
-def test_example_runs_bristlecone_heatmap():
+def test_example_heatmaps():
     plt.switch_backend('agg')
-    examples.bristlecone_heatmap_example.main()
+    examples.heatmaps.main()
 
 
 def test_example_runs_qaoa():

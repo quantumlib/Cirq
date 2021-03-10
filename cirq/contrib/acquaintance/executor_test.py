@@ -188,5 +188,5 @@ def test_acquaintance_operation():
         op = cca.AcquaintanceOperation(physical_qubits, logical_indices)
         assert op.logical_indices == logical_indices
         assert op.qubits == physical_qubits
-        wire_symbols = tuple('({})'.format(i) for i in logical_indices)
+        wire_symbols = tuple(f'({i})' for i in logical_indices)
         assert cirq.circuit_diagram_info(op) == cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)

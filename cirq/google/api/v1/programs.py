@@ -78,7 +78,7 @@ def gate_to_proto(
             incremental_delay_picoseconds=delay, exp_11=_cz_to_proto(gate, *qubits)
         )
 
-    raise ValueError("Don't know how to serialize this gate: {!r}".format(gate))
+    raise ValueError(f"Don't know how to serialize this gate: {gate!r}")
 
 
 def _x_to_proto(gate: 'cirq.XPowGate', q: 'cirq.Qid') -> operations_pb2.ExpW:
@@ -198,11 +198,11 @@ def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
 
     shapes = [(key, np.shape(data)) for key, data in measurements]
     if not all(len(shape) == 2 for _, shape in shapes):
-        raise ValueError("Expected 2-D data: shapes={}".format(shapes))
+        raise ValueError(f"Expected 2-D data: shapes={shapes}")
 
     reps = shapes[0][1][0]
     if not all(shape[0] == reps for _, shape in shapes):
-        raise ValueError("Expected same reps for all keys: shapes={}".format(shapes))
+        raise ValueError(f"Expected same reps for all keys: shapes={shapes}")
 
     bits = np.hstack([np.asarray(data, dtype=bool) for _, data in measurements])
     bits = bits.reshape(-1)
@@ -316,7 +316,7 @@ def xmon_op_from_proto(proto: operations_pb2.Operation) -> 'cirq.Operation':
             num_qubits=len(meas.targets), key=meas.key, invert_mask=tuple(meas.invert_mask)
         ).on(*[qubit(q) for q in meas.targets])
 
-    raise ValueError('invalid operation: {}'.format(proto))
+    raise ValueError(f'invalid operation: {proto}')
 
 
 def _qubit_from_proto(proto: operations_pb2.Qubit):

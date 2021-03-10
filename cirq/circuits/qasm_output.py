@@ -142,7 +142,7 @@ class QasmTwoQubitGate(ops.TwoQubitGate):
         yield QasmUGate.from_matrix(a1).on(q1)
 
     def __repr__(self) -> str:
-        return 'cirq.circuits.qasm_output.QasmTwoQubitGate({!r})'.format(self.kak)
+        return f'cirq.circuits.qasm_output.QasmTwoQubitGate({self.kak!r})'
 
 
 class QasmOutput:
@@ -192,18 +192,18 @@ class QasmOutput:
             key = protocols.measurement_key(meas)
             if key in meas_key_id_map:
                 continue
-            meas_id = 'm_{}'.format(key)
+            meas_id = f'm_{key}'
             if self.is_valid_qasm_id(meas_id):
                 meas_comments[key] = None
             else:
-                meas_id = 'm{}'.format(meas_i)
+                meas_id = f'm{meas_i}'
                 meas_i += 1
                 meas_comments[key] = ' '.join(key.split('\n'))
             meas_key_id_map[key] = meas_id
         return meas_key_id_map, meas_comments
 
     def _generate_qubit_ids(self) -> Dict['cirq.Qid', str]:
-        return {qubit: 'q[{}]'.format(i) for i, qubit in enumerate(self.qubits)}
+        return {qubit: f'q[{i}]' for i, qubit in enumerate(self.qubits)}
 
     def is_valid_qasm_id(self, id_str: str) -> bool:
         """Test if id_str is a valid id in QASM grammar."""
@@ -255,9 +255,9 @@ class QasmOutput:
 
         # Register definitions
         # Qubit registers
-        output('// Qubits: [{}]\n'.format(', '.join(map(str, self.qubits))))
+        output(f"// Qubits: [{', '.join(map(str, self.qubits))}]\n")
         if len(self.qubits) > 0:
-            output('qreg q[{}];\n'.format(len(self.qubits)))
+            output(f'qreg q[{len(self.qubits)}];\n')
         # Classical registers
         # Pick an id for the creg that will store each measurement
         already_output_keys: Set[str] = set()
@@ -269,11 +269,9 @@ class QasmOutput:
             meas_id = self.args.meas_key_id_map[key]
             comment = self.meas_comments[key]
             if comment is None:
-                output('creg {}[{}];\n'.format(meas_id, len(meas.qubits)))
+                output(f'creg {meas_id}[{len(meas.qubits)}];\n')
             else:
-                output(
-                    'creg {}[{}];  // Measurement: {}\n'.format(meas_id, len(meas.qubits), comment)
-                )
+                output(f'creg {meas_id}[{len(meas.qubits)}];  // Measurement: {comment}\n')
         output_line_gap(2)
 
         # Operations
@@ -301,7 +299,7 @@ class QasmOutput:
             return QasmTwoQubitGate.from_matrix(mat).on(*op.qubits)
 
         def on_stuck(bad_op):
-            return ValueError('Cannot output operation as QASM: {!r}'.format(bad_op))
+            return ValueError(f'Cannot output operation as QASM: {bad_op!r}')
 
         for main_op in ops.flatten_op_tree(op_tree):
             decomposed = protocols.decompose(
@@ -315,10 +313,10 @@ class QasmOutput:
                 output_line_gap(1)
                 if isinstance(main_op, ops.GateOperation):
                     x = str(main_op.gate).replace('\n', '\n //')
-                    output('// Gate: {!s}\n'.format(x))
+                    output(f'// Gate: {x!s}\n')
                 else:
                     x = str(main_op).replace('\n', '\n //')
-                    output('// Operation: {!s}\n'.format(x))
+                    output(f'// Operation: {x!s}\n')
 
             for qasm in qasms:
                 output(qasm)
