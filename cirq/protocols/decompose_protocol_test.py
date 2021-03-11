@@ -233,7 +233,7 @@ def test_decompose_preserving_structure():
     cop2 = cirq.CircuitOperation(fc2)
 
     circuit = cirq.Circuit(cop2, cirq.measure(a, b, key='m'))
-    actual = cirq.Circuit(cirq.decompose_preserving_structure(circuit))
+    actual = cirq.Circuit(cirq.decompose(circuit, preserve_structure=True))
 
     # This should keep the CircuitOperations but decompose their SWAPs.
     fc1_decomp = cirq.FrozenCircuit(cirq.decompose(fc1))
@@ -273,10 +273,11 @@ def test_decompose_preserving_structure_forwards_args():
             ]
 
     actual = cirq.Circuit(
-        cirq.decompose_preserving_structure(
+        cirq.decompose(
             circuit,
             keep=keep_func,
             fallback_decomposer=x_to_hzh,
+            preserve_structure=True,
         ),
     )
 
@@ -303,7 +304,7 @@ def test_decompose_preserving_structure_forwards_args():
     assert actual == expected
 
 
-def test_decompose_preserving_structure_on_stuck_no_keep():
+def test_decompose_preserving_structure_no_interceptor():
     a, b = cirq.LineQubit.range(2)
     fc1 = cirq.FrozenCircuit(cirq.SWAP(a, b), cirq.FSimGate(0.1, 0.2).on(a, b))
     cop1_1 = cirq.CircuitOperation(fc1).with_tags('test_tag')
@@ -312,5 +313,9 @@ def test_decompose_preserving_structure_on_stuck_no_keep():
     cop2 = cirq.CircuitOperation(fc2)
 
     circuit = cirq.Circuit(cop2, cirq.measure(a, b, key='m'))
-    with pytest.raises(ValueError, match="Must specify 'keep'"):
-        cirq.decompose_preserving_structure(circuit, on_stuck_raise=ValueError('other error'))
+    with pytest.raises(ValueError, match='Cannot specify intercepting_decomposer'):
+        cirq.decompose(
+            circuit,
+            intercepting_decomposer=lambda x: [],
+            preserve_structure=True,
+        )

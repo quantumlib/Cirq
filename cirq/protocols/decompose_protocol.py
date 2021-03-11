@@ -152,6 +152,7 @@ def decompose(
     on_stuck_raise: Union[
         None, Exception, Callable[['cirq.Operation'], Union[None, Exception]]
     ] = _value_error_describing_bad_operation,
+    preserve_structure: bool = False,
 ) -> List['cirq.Operation']:
     """Recursively decomposes a value into `cirq.Operation`s meeting a criteria.
 
@@ -180,6 +181,9 @@ def decompose(
             returns `None`, non-decomposable operations are simply silently
             kept. `on_stuck_raise` defaults to a `ValueError` describing the
             unwanted non-decomposable operation.
+        preserve_structure: Prevents structural elements (i.e. subcircuits)
+            from being decomposed, but decomposes their contents. If this is
+            True, 'intercepting_decomposer' cannot be specified.
 
     Returns:
         A list of operations that the given value was decomposed into. If
@@ -205,6 +209,16 @@ def decompose(
             "Must specify 'keep' if specifying 'on_stuck_raise', because it's "
             "not possible to get stuck if you don't have a criteria on what's "
             "acceptable to keep."
+        )
+
+    if preserve_structure:
+        if intercepting_decomposer is not None:
+            raise ValueError('Cannot specify intercepting_decomposer while preserving structure.')
+        return _decompose_preserving_structure(
+            val,
+            fallback_decomposer=fallback_decomposer,
+            keep=keep,
+            on_stuck_raise=on_stuck_raise,
         )
 
     def try_op_decomposer(val: Any, decomposer: Optional[OpDecomposer]) -> DecomposeResult:
@@ -384,7 +398,7 @@ def _try_decompose_into_operations_and_qubits(
     return None, (), ()
 
 
-def decompose_preserving_structure(
+def _decompose_preserving_structure(
     val: Any,
     *,
     fallback_decomposer: Optional[OpDecomposer] = None,
@@ -392,18 +406,13 @@ def decompose_preserving_structure(
     on_stuck_raise: Union[
         None, Exception, Callable[['cirq.Operation'], Union[None, Exception]]
     ] = _value_error_describing_bad_operation,
-) -> DecomposeResult:
+) -> List['cirq.Operation']:
     """Preserves structure (e.g. subcircuits) while decomposing ops.
 
     This can be used to reduce a circuit to a particular gateset without
     increasing its serialization size. See tests for examples.
     """
-    if on_stuck_raise is not _value_error_describing_bad_operation and keep is None:
-        raise ValueError(
-            "Must specify 'keep' if specifying 'on_stuck_raise', because it's "
-            "not possible to get stuck if you don't have a criteria on what's "
-            "acceptable to keep."
-        )
+
     # This method provides a generated 'keep' to its decompose() calls.
     # If the user-provided keep is not set, on_stuck_raise must be unset to
     # ensure that failure to decompose does not generate errors.
@@ -424,7 +433,6 @@ def decompose_preserving_structure(
         if not isinstance(op.untagged, CircuitOperation):
             return NotImplemented
 
-        # TODO: infinite loop (circuitop triggers this every iteration)
         new_fc = FrozenCircuit(
             decompose(
                 op.untagged.circuit,
