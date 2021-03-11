@@ -22,6 +22,7 @@ import sys
 
 import cirq
 from cirq.contrib.quantum_volume import calculate_quantum_volume
+from cirq.contrib import routing
 
 
 def main(*, num_qubits: int, depth: int, num_circuits: int, seed: int, routes: int):
@@ -47,7 +48,7 @@ def main(*, num_qubits: int, depth: int, num_circuits: int, seed: int, routes: i
         depth=depth,
         num_circuits=num_circuits,
         random_state=seed,
-        device_qubits=device.qubits,
+        device_graph=routing.gridqubits_to_graph_device(device.qubits),
         samplers=[cirq.Simulator(), noisy],
         routing_attempts=routes,
         compiler=compiler,

@@ -2417,6 +2417,18 @@ global phase:   0.5π   0.5π
         precision=2,
     )
 
+    c = circuit_cls(
+        cirq.X(cirq.LineQubit(2)),
+        cirq.CircuitOperation(circuit_cls(cirq.GlobalPhaseOperation(-1).with_tags("tag")).freeze()),
+    )
+    cirq.testing.assert_has_diagram(
+        c,
+        """\
+2: ───X──────────
+
+      π['tag']""",
+    )
+
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_has_unitary(circuit_cls):
