@@ -178,7 +178,7 @@ class GateOpSerializer(OpSerializer):
         `can_serializer_predicate` called on the gate.
         """
         supported_gate_type = self._gate_type in type(op.gate).mro()
-        return supported_gate_type and self._can_serialize_predicate(op)
+        return supported_gate_type and super().can_serialize_operation(op)
 
     def to_proto(
         self,
@@ -319,13 +319,9 @@ class CircuitOpSerializer(OpSerializer):
         if not isinstance(op, circuits.CircuitOperation):
             raise ValueError(f'Serializer expected CircuitOperation but got {type(op)}.')
 
-        circuit = getattr(op.untagged, 'circuit', None)
-        if circuit is None:
-            return None
-
         msg = msg or v2.program_pb2.CircuitOperation()
         try:
-            msg.circuit_constant_index = raw_constants.index(circuit)
+            msg.circuit_constant_index = raw_constants.index(op.untagged.circuit)
         except ValueError as err:
             # Circuits must be serialized prior to any CircuitOperations that use them.
             raise ValueError(

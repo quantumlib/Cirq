@@ -330,7 +330,7 @@ def test_token_with_references():
         deserializer.from_proto(serialized)
 
 
-def test_circuit_proto():
+def default_circuit_proto():
     genop1 = v2.program_pb2.GenericOperation()
     op1 = genop1.operation
     op1.gate.id = 'x_pow'
@@ -348,7 +348,7 @@ def test_circuit_proto():
     )
 
 
-def test_circuit():
+def default_circuit():
     return cirq.FrozenCircuit(
         cirq.X(cirq.GridQubit(1, 1)) ** sympy.Symbol('k'),
         cirq.measure(cirq.GridQubit(1, 1), key='m'),
@@ -359,8 +359,8 @@ def test_circuit_op_from_proto_errors():
     deserializer = cg.CircuitOpDeserializer()
     serialized = v2.program_pb2.CircuitOperation(circuit_constant_index=0)
 
-    constants = [v2.program_pb2.Constant(circuit_value=test_circuit_proto())]
-    raw_constants = [test_circuit()]
+    constants = [v2.program_pb2.Constant(circuit_value=default_circuit_proto())]
+    raw_constants = [default_circuit()]
 
     with pytest.raises(ValueError, match='CircuitOp deserialization requires a constants list'):
         deserializer.from_proto(serialized)
@@ -383,13 +383,10 @@ def test_circuit_op_arg_key_errors():
     p1.first.arg_value.float_value = 1.0
     p1.second.arg_value.float_value = 2.0
 
-    serialized = v2.program_pb2.CircuitOperation(
-        circuit_constant_index=0,
-        arg_map=arg_map
-    )
+    serialized = v2.program_pb2.CircuitOperation(circuit_constant_index=0, arg_map=arg_map)
 
-    constants = [v2.program_pb2.Constant(circuit_value=test_circuit_proto())]
-    raw_constants = [test_circuit()]
+    constants = [v2.program_pb2.Constant(circuit_value=default_circuit_proto())]
+    raw_constants = [default_circuit()]
 
     with pytest.raises(ValueError, match='Invalid key parameter type'):
         deserializer.from_proto(serialized, constants=constants, raw_constants=raw_constants)
@@ -402,13 +399,10 @@ def test_circuit_op_arg_val_errors():
     p1.first.arg_value.string_value = 'k'
     p1.second.arg_value.bool_values.values.extend([True, False])
 
-    serialized = v2.program_pb2.CircuitOperation(
-        circuit_constant_index=0,
-        arg_map=arg_map
-    )
+    serialized = v2.program_pb2.CircuitOperation(circuit_constant_index=0, arg_map=arg_map)
 
-    constants = [v2.program_pb2.Constant(circuit_value=test_circuit_proto())]
-    raw_constants = [test_circuit()]
+    constants = [v2.program_pb2.Constant(circuit_value=default_circuit_proto())]
+    raw_constants = [default_circuit()]
 
     with pytest.raises(ValueError, match='Invalid value parameter type'):
         deserializer.from_proto(serialized, constants=constants, raw_constants=raw_constants)
@@ -443,12 +437,12 @@ def test_circuit_op_from_proto():
         arg_map=arg_map,
     )
 
-    constants = [v2.program_pb2.Constant(circuit_value=test_circuit_proto())]
-    raw_constants = [test_circuit()]
+    constants = [v2.program_pb2.Constant(circuit_value=default_circuit_proto())]
+    raw_constants = [default_circuit()]
 
     actual = deserializer.from_proto(serialized, constants=constants, raw_constants=raw_constants)
     expected = cirq.CircuitOperation(
-        circuit=test_circuit(),
+        circuit=default_circuit(),
         qubit_map={cirq.GridQubit(1, 1): cirq.GridQubit(1, 2)},
         measurement_key_map={'m': 'results'},
         param_resolver={'k': 1.0},
