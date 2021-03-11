@@ -2,7 +2,7 @@
 https://arxiv.org/abs/1811.12926.
 """
 
-from typing import Optional, List, cast, Callable, Dict, Tuple, Set
+from typing import Optional, List, cast, Callable, Dict, Tuple, Set, Any
 from dataclasses import dataclass
 
 import numpy as np
@@ -423,6 +423,10 @@ def execute_circuits(
     return results
 
 
+def _get_qubits(device_or_qubits: Any):
+    return device_or_qubits if isinstance(device_or_qubits, list) else device_or_qubits.qubits
+
+
 @deprecated_parameter(
     deadline="v0.12",
     fix="use device_qubits instead",
@@ -430,7 +434,12 @@ def execute_circuits(
     match=lambda args, kwargs: 'device_or_qubits' in kwargs,
     rewrite=lambda args, kwargs: (
         args,
-        {('device_qubits' if k == 'device_or_qubits' else k): v for k, v in kwargs.items()},
+        dict(
+            ('device_qubits', _get_qubits(arg_val))
+            if arg_name == 'device_or_qubits'
+            else (arg_name, arg_val)
+            for arg_name, arg_val in kwargs.items()
+        ),
     ),
 )
 def calculate_quantum_volume(
