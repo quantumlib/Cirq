@@ -321,7 +321,7 @@ class SerializableGateSet:
         if isinstance(operation_proto, v2.program_pb2.CircuitOperation):
             return self.deserialize_circuit_op(operation_proto, **kwargs)
 
-        raise NotImplementedError('Program proto does not contain a circuit.')
+        raise ValueError('Generic operation has no operation.')
 
     def deserialize_gate_op(
         self,
@@ -382,9 +382,6 @@ class SerializableGateSet:
                 f'Unsupported serialized CircuitOperation.\n\noperation_proto:\n{operation_proto}'
             )
 
-        if not isinstance(deserializer, op_deserializer.CircuitOpDeserializer):
-            raise ValueError(f'Deserializer {deserializer} cannot deserialize CircuitOperations.')
-
         return deserializer.from_proto(
             operation_proto,
             arg_function_language=arg_function_language,
@@ -433,6 +430,7 @@ class SerializableGateSet:
         for i, moment_proto in enumerate(circuit_proto.moments):
             moment_ops = []
             try_generic = False
+            print('trying basic ops')
             for op in moment_proto.operations:
                 try:
                     moment_ops.append(
@@ -454,6 +452,7 @@ class SerializableGateSet:
                             f'following proto:\n{op}'
                         ) from ex
             if try_generic:
+                print('trying generic')
                 moment_ops = []
                 for gen_op in moment_proto.generic_operations:
                     try:

@@ -14,6 +14,7 @@
 
 from typing import Dict
 import pytest
+import sympy
 from google.protobuf import json_format
 
 import cirq
@@ -154,8 +155,8 @@ def test_serialize_deserialize_circuit():
 
     genop1 = v2.program_pb2.GenericOperation()
     genop1.operation.CopyFrom(X_SERIALIZER.to_proto(cirq.X(q0)))
-    genop2 = v2.program_pb2.GenericOperation()
-    genop2.operation.CopyFrom(X_SERIALIZER.to_proto(cirq.X(q1)))
+    genop4 = v2.program_pb2.GenericOperation()
+    genop4.operation.CopyFrom(X_SERIALIZER.to_proto(cirq.X(q1)))
 
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
@@ -167,7 +168,7 @@ def test_serialize_deserialize_circuit():
                         X_SERIALIZER.to_proto(cirq.X(q0)),
                         X_SERIALIZER.to_proto(cirq.X(q1)),
                     ],
-                    generic_operations=[genop1, genop2],
+                    generic_operations=[genop1, genop4],
                 ),
                 v2.program_pb2.Moment(
                     operations=[X_SERIALIZER.to_proto(cirq.X(q0))],
@@ -231,11 +232,11 @@ def test_serialize_deserialize_circuit_with_subcircuit():
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)
     tag1 = cg.CalibrationTag('abc123')
+    fcircuit = cirq.FrozenCircuit(cirq.X(q0))
     circuit = cirq.Circuit(
-        cirq.X(q0).with_tags(tag1),
-        cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q0)))
-        .with_qubit_mapping({q0: q1})
-        .repeat(repetition_ids=['a', 'b']),
+        cirq.X(q1).with_tags(tag1),
+        cirq.CircuitOperation(fcircuit).repeat(repetition_ids=['a', 'b']),
+        cirq.CircuitOperation(fcircuit).with_qubit_mapping({q0: q1}),
         cirq.X(q0),
     )
 
@@ -243,25 +244,31 @@ def test_serialize_deserialize_circuit_with_subcircuit():
     op1 = genop1.operation
     op1.gate.id = 'x_pow'
     op1.args['half_turns'].arg_value.float_value = 1.0
-    op1.qubits.add().id = '1_1'
+    op1.qubits.add().id = '1_2'
     op1.token_constant_index = 0
 
     genop2 = v2.program_pb2.GenericOperation()
-    c_op = genop2.circuit_operation
-    c_op.circuit_constant_index = 1
-    rep_spec = c_op.repetition_spec
+    c_op1 = genop2.circuit_operation
+    c_op1.circuit_constant_index = 1
+    rep_spec = c_op1.repetition_spec
     rep_spec.rep_count = 2
     rep_spec.rep_ids.ids.extend(['a', 'b'])
-    qmap = c_op.qubit_map.pairs.add()
+
+    genop3 = v2.program_pb2.GenericOperation()
+    c_op2 = genop3.circuit_operation
+    c_op2.circuit_constant_index = 1
+    c_op2.repetition_spec.rep_count = 1
+    qmap = c_op2.qubit_map.pairs.add()
     qmap.first.id = '1_1'
     qmap.second.id = '1_2'
+
+    genop4 = v2.program_pb2.GenericOperation()
+    genop4.operation.CopyFrom(X_SERIALIZER.to_proto(cirq.X(q0)))
 
     # This op triggers a fallback to generic operation deserialization.
     flag_op = v2.program_pb2.Operation()
     flag_op.gate.id = cirq.google.serializable_gate_set.FALLBACK_TO_GENERIC
 
-    genopX = v2.program_pb2.GenericOperation()
-    genopX.operation.CopyFrom(X_SERIALIZER.to_proto(cirq.X(q0)))
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
         circuit=v2.program_pb2.Circuit(
@@ -272,8 +279,8 @@ def test_serialize_deserialize_circuit_with_subcircuit():
                     generic_operations=[genop1, genop2],
                 ),
                 v2.program_pb2.Moment(
-                    operations=[X_SERIALIZER.to_proto(cirq.X(q0))],
-                    generic_operations=[genopX],
+                    operations=[flag_op, X_SERIALIZER.to_proto(cirq.X(q0))],
+                    generic_operations=[genop3, genop4],
                 ),
             ],
         ),
@@ -285,7 +292,7 @@ def test_serialize_deserialize_circuit_with_subcircuit():
                     moments=[
                         v2.program_pb2.Moment(
                             operations=[X_SERIALIZER.to_proto(cirq.X(q0))],
-                            generic_operations=[genopX],
+                            generic_operations=[genop4],
                         )
                     ],
                 )
@@ -293,8 +300,39 @@ def test_serialize_deserialize_circuit_with_subcircuit():
         ],
     )
     assert proto == MY_GATE_SET.serialize(circuit)
-    # TODO: bypass "operations" for "generic_operations"
     assert MY_GATE_SET.deserialize(proto) == circuit
+
+
+def test_deserialize_bad_circuit_op_fallback():
+    genop = v2.program_pb2.GenericOperation()
+    op1 = genop.operation
+    op1.gate.id = 'x_pow'
+    op1.args['half_turns'].arg_value.float_value = 1.0
+    op1.qubits.add().id = '1_1'
+
+    bad_genop = v2.program_pb2.GenericOperation()
+
+    # This op triggers a fallback to generic operation deserialization.
+    # In this test, the fallback is invalid and triggers an error.
+    flag_op = v2.program_pb2.Operation()
+    flag_op.gate.id = cirq.google.serializable_gate_set.FALLBACK_TO_GENERIC
+
+    proto = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(arg_function_language='', gate_set='my_gate_set'),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+            moments=[
+                v2.program_pb2.Moment(
+                    operations=[op1, flag_op],
+                    generic_operations=[genop, bad_genop],
+                ),
+            ],
+        ),
+    )
+    with pytest.raises(
+        ValueError, match=f'There was a problem in moment 0 handling a generic operation'
+    ):
+        MY_GATE_SET.deserialize(proto)
 
 
 def test_deserialize_bad_operation_id():
@@ -447,6 +485,89 @@ def test_serialize_deserialize_op_subclass():
     # cirq.X is a subclass of XPowGate.
     assert proto == MY_GATE_SET.serialize_op(cirq.X(q0))
     assert MY_GATE_SET.deserialize_op(proto) == cirq.X(q0)
+
+
+def default_circuit_proto():
+    genop1 = v2.program_pb2.GenericOperation()
+    op1 = genop1.operation
+    op1.gate.id = 'x_pow'
+    op1.args['half_turns'].arg_value.string_value = 'k'
+    op1.qubits.add().id = '1_1'
+
+    return v2.program_pb2.Circuit(
+        scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+        moments=[
+            v2.program_pb2.Moment(
+                operations=[op1],
+                generic_operations=[genop1],
+            ),
+        ],
+    )
+
+
+def default_circuit():
+    return cirq.FrozenCircuit(
+        cirq.X(cirq.GridQubit(1, 1)) ** sympy.Symbol('k'),
+        cirq.measure(cirq.GridQubit(1, 1), key='m'),
+    )
+
+
+def test_serialize_circuit_op_errors():
+    q0 = cirq.GridQubit(1, 1)
+    constants = [default_circuit_proto()]
+    raw_constants = [default_circuit()]
+
+    op = cirq.CircuitOperation(default_circuit())
+    with pytest.raises(ValueError, match='CircuitOp serialization requires a constants list'):
+        MY_GATE_SET.serialize_op(op)
+
+    with pytest.raises(ValueError, match='CircuitOp serialization requires a constants list'):
+        MY_GATE_SET.serialize_op(op, constants=constants)
+
+    with pytest.raises(ValueError, match='CircuitOp serialization requires a constants list'):
+        MY_GATE_SET.serialize_op(op, raw_constants=raw_constants)
+
+    NO_CIRCUIT_OP_GATE_SET = cg.SerializableGateSet(
+        gate_set_name='no_circuit_op_gateset',
+        serializers=[X_SERIALIZER],
+        deserializers=[X_DESERIALIZER],
+    )
+    with pytest.raises(ValueError, match='Cannot serialize CircuitOperation'):
+        NO_CIRCUIT_OP_GATE_SET.serialize_op(op, constants=constants, raw_constants=raw_constants)
+
+
+def test_deserialize_circuit_op_errors():
+    q0 = cirq.GridQubit(1, 1)
+    constants = [default_circuit_proto()]
+    raw_constants = [default_circuit()]
+
+    proto = v2.program_pb2.CircuitOperation()
+    proto.circuit_constant_index = 0
+    proto.repetition_spec.rep_count = 1
+
+    NO_CIRCUIT_OP_GATE_SET = cg.SerializableGateSet(
+        gate_set_name='no_circuit_op_gateset',
+        serializers=[X_SERIALIZER],
+        deserializers=[X_DESERIALIZER],
+    )
+    with pytest.raises(ValueError, match='Unsupported serialized CircuitOperation'):
+        NO_CIRCUIT_OP_GATE_SET.deserialize_op(
+            proto, constants=constants, raw_constants=raw_constants
+        )
+
+
+def test_serialize_deserialize_circuit_op():
+    q0 = cirq.GridQubit(1, 1)
+    constants = [default_circuit_proto()]
+    raw_constants = [default_circuit()]
+
+    proto = v2.program_pb2.CircuitOperation()
+    proto.circuit_constant_index = 0
+    proto.repetition_spec.rep_count = 1
+
+    op = cirq.CircuitOperation(default_circuit())
+    assert proto == MY_GATE_SET.serialize_op(op, constants=constants, raw_constants=raw_constants)
+    assert MY_GATE_SET.deserialize_op(proto, constants=constants, raw_constants=raw_constants) == op
 
 
 def test_multiple_serializers():
