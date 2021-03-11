@@ -2,9 +2,10 @@
 
 ################################################################################
 # Runs pylint on the repository using a preconfigured .pylintrc file.
+# Runs flynt
 #
 # Usage:
-#     check/pylint [--flags for pylint]
+#     check/lint [--flags for pylint]
 ################################################################################
 
 # Get the working directory to the repo root.
