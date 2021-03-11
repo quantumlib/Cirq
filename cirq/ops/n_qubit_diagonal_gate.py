@@ -133,7 +133,7 @@ class DiagonalGate(raw_types.Gate):
             return NotImplemented
         angles = []
         for angle in self._diag_angles_radians:
-            mulAngle = protocols.mul(angle, exponent, NotImplemented)
+            mul_angle = protocols.mul(angle, exponent, NotImplemented)
             angles.append(mulAngle)
         return DiagonalGate(angles)
 
