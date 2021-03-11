@@ -113,7 +113,7 @@ def test_cs_to_ops(theta, num_czs):
     assert (
         len([cz for cz in list(circuit_cs.all_operations()) if isinstance(cz.gate, cirq.CZPowGate)])
         == num_czs
-    ), "expected {} CZs got \n {} \n {}".format(num_czs, circuit_cs, circuit_cs.unitary())
+    ), f"expected {num_czs} CZs got \n {circuit_cs} \n {circuit_cs.unitary()}"
 
 
 def _theta_to_cs(theta: np.ndarray) -> np.ndarray:

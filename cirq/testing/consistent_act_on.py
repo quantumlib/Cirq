@@ -114,7 +114,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
     if tableau is None:
         assert (
             not assert_tableau_implemented
-        ), "Failed to generate final tableau for the test circuit.\n\nval: {!r}".format(val)
+        ), f"Failed to generate final tableau for the test circuit.\n\nval: {val!r}"
     else:
         assert all(
             state_vector_has_stabilizer(state_vector, stab) for stab in tableau.stabilizers()

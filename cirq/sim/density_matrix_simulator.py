@@ -158,7 +158,7 @@ class DensityMatrixSimulator(
                with equal probability for 0 and 1.
         """
         if dtype not in {np.complex64, np.complex128}:
-            raise ValueError('dtype must be complex64 or complex128, was {}'.format(dtype))
+            raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
 
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
