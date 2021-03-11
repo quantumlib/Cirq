@@ -49,7 +49,7 @@ def _gen_gray_code(n: int):
     """Generate the Gray Code from 0 to 2^n-1.
 
     Each iteration yields a two-tuple, `(gray_code, bit_flip)`. `gray_code` is the decimal representation
-    of the gray code and the second one is the position of bits flipped for next gray code.
+    of the gray code and `bit_flip` is the position of bits flipped for next gray code.
     """
     gray_code = 0
     for i in range(1, 2 ** n):
