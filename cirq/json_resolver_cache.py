@@ -136,6 +136,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'VirtualTag': cirq.VirtualTag,
         'WaitGate': cirq.WaitGate,
         '_QubitAsQid': raw_types._QubitAsQid,
+        'XEBPhasedFSimCharacterizationOptions': cirq.experiments.XEBPhasedFSimCharacterizationOptions,
         'XPowGate': cirq.XPowGate,
         'XXPowGate': cirq.XXPowGate,
         'YPowGate': cirq.YPowGate,

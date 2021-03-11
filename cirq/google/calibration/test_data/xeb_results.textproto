@@ -1,0 +1,274 @@
+timestamp_ms: 1615418725184
+metrics {
+  name: "initial_fidelities_by_depth"
+  targets: "0_0_3_qubit_a"
+  targets: "0_0_3_qubit_b"
+  targets: "0_0_3_fidelity"
+  targets: "0_0_23_qubit_a"
+  targets: "0_0_23_qubit_b"
+  targets: "0_0_23_fidelity"
+  targets: "0_0_43_qubit_a"
+  targets: "0_0_43_qubit_b"
+  targets: "0_0_43_fidelity"
+  targets: "0_0_63_qubit_a"
+  targets: "0_0_63_qubit_b"
+  targets: "0_0_63_fidelity"
+  targets: "0_0_83_qubit_a"
+  targets: "0_0_83_qubit_b"
+  targets: "0_0_83_fidelity"
+  targets: "0_1_3_qubit_a"
+  targets: "0_1_3_qubit_b"
+  targets: "0_1_3_fidelity"
+  targets: "0_1_23_qubit_a"
+  targets: "0_1_23_qubit_b"
+  targets: "0_1_23_fidelity"
+  targets: "0_1_43_qubit_a"
+  targets: "0_1_43_qubit_b"
+  targets: "0_1_43_fidelity"
+  targets: "0_1_63_qubit_a"
+  targets: "0_1_63_qubit_b"
+  targets: "0_1_63_fidelity"
+  targets: "0_1_83_qubit_a"
+  targets: "0_1_83_qubit_b"
+  targets: "0_1_83_fidelity"
+  values {
+    str_val: "0_0"
+  }
+  values {
+    str_val: "0_1"
+  }
+  values {
+    double_val: 0.9932020253010514
+  }
+  values {
+    str_val: "0_0"
+  }
+  values {
+    str_val: "0_1"
+  }
+  values {
+    double_val: 1.000933060032245
+  }
+  values {
+    str_val: "0_0"
+  }
+  values {
+    str_val: "0_1"
+  }
+  values {
+    double_val: 0.9908676426147491
+  }
+  values {
+    str_val: "0_0"
+  }
+  values {
+    str_val: "0_1"
+  }
+  values {
+    double_val: 0.9991898765677693
+  }
+  values {
+    str_val: "0_0"
+  }
+  values {
+    str_val: "0_1"
+  }
+  values {
+    double_val: 0.9995452035810966
+  }
+  values {
+    str_val: "0_2"
+  }
+  values {
+    str_val: "0_3"
+  }
+  values {
+    double_val: 1.0065929792201604
+  }
+  values {
+    str_val: "0_2"
+  }
+  values {
+    str_val: "0_3"
+  }
+  values {
+    double_val: 1.0005800391727224
+  }
+  values {
+    str_val: "0_2"
+  }
+  values {
+    str_val: "0_3"
+  }
+  values {
+    double_val: 1.0014922407844125
+  }
+  values {
+    str_val: "0_2"
+  }
+  values {
+    str_val: "0_3"
+  }
+  values {
+    double_val: 0.9960591405539406
+  }
+  values {
+    str_val: "0_2"
+  }
+  values {
+    str_val: "0_3"
+  }
+  values {
+    double_val: 1.0046427979829986
+  }
+}
+metrics {
+  name: "final_fidelities_by_depth"
+  targets: "0_0_3_qubit_a"
+  targets: "0_0_3_qubit_b"
+  targets: "0_0_3_fidelity"
+  targets: "0_0_23_qubit_a"
+  targets: "0_0_23_qubit_b"
+  targets: "0_0_23_fidelity"
+  targets: "0_0_43_qubit_a"
+  targets: "0_0_43_qubit_b"
+  targets: "0_0_43_fidelity"
+  targets: "0_0_63_qubit_a"
+  targets: "0_0_63_qubit_b"
+  targets: "0_0_63_fidelity"
+  targets: "0_0_83_qubit_a"
+  targets: "0_0_83_qubit_b"
+  targets: "0_0_83_fidelity"
+  targets: "0_1_3_qubit_a"
+  targets: "0_1_3_qubit_b"
+  targets: "0_1_3_fidelity"
+  targets: "0_1_23_qubit_a"
+  targets: "0_1_23_qubit_b"
+  targets: "0_1_23_fidelity"
+  targets: "0_1_43_qubit_a"
+  targets: "0_1_43_qubit_b"
+  targets: "0_1_43_fidelity"
+  targets: "0_1_63_qubit_a"
+  targets: "0_1_63_qubit_b"
+  targets: "0_1_63_fidelity"
+  targets: "0_1_83_qubit_a"
+  targets: "0_1_83_qubit_b"
+  targets: "0_1_83_fidelity"
+  values {
+    str_val: "0_0"
+  }
+  values {
+    str_val: "0_1"
+  }
+  values {
+    double_val: 0.9942293786916478
+  }
+  values {
+    str_val: "0_0"
+  }
+  values {
+    str_val: "0_1"
+  }
+  values {
+    double_val: 1.0129246123462898
+  }
+  values {
+    str_val: "0_0"
+  }
+  values {
+    str_val: "0_1"
+  }
+  values {
+    double_val: 1.0008345993398706
+  }
+  values {
+    str_val: "0_0"
+  }
+  values {
+    str_val: "0_1"
+  }
+  values {
+    double_val: 0.9990192202058212
+  }
+  values {
+    str_val: "0_0"
+  }
+  values {
+    str_val: "0_1"
+  }
+  values {
+    double_val: 0.9832412176022925
+  }
+  values {
+    str_val: "0_2"
+  }
+  values {
+    str_val: "0_3"
+  }
+  values {
+    double_val: 1.0091376754659138
+  }
+  values {
+    str_val: "0_2"
+  }
+  values {
+    str_val: "0_3"
+  }
+  values {
+    double_val: 1.0019398495638803
+  }
+  values {
+    str_val: "0_2"
+  }
+  values {
+    str_val: "0_3"
+  }
+  values {
+    double_val: 1.0038768005205012
+  }
+  values {
+    str_val: "0_2"
+  }
+  values {
+    str_val: "0_3"
+  }
+  values {
+    double_val: 0.9965359261775038
+  }
+  values {
+    str_val: "0_2"
+  }
+  values {
+    str_val: "0_3"
+  }
+  values {
+    double_val: 1.0018567675652608
+  }
+}
+metrics {
+  name: "characterized_angles"
+  targets: "0_qubit_a"
+  targets: "0_qubit_b"
+  targets: "0_phi_est"
+  targets: "1_qubit_a"
+  targets: "1_qubit_b"
+  targets: "1_phi_est"
+  values {
+    str_val: "0_0"
+  }
+  values {
+    str_val: "0_1"
+  }
+  values {
+    double_val: -0.0093750000000000
+  }
+  values {
+    str_val: "0_2"
+  }
+  values {
+    str_val: "0_3"
+  }
+  values {
+    double_val: -0.00625
+  }
+}

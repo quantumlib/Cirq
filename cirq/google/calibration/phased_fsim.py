@@ -440,6 +440,16 @@ ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOp
     characterize_phi=True,
 )
 
+ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION = XEBPhasedFSimCalibrationOptions(
+    gate_options=XEBPhasedFSimCharacterizationOptions(
+        characterize_theta=True,
+        characterize_zeta=True,
+        characterize_chi=True,
+        characterize_gamma=True,
+        characterize_phi=True,
+    )
+)
+
 
 """PhasedFSimCalibrationOptions with all but chi angle characterization requests set to True."""
 WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
@@ -539,7 +549,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         pairs: List[Tuple[Qid, Qid]],
         options: FloquetPhasedFSimCalibrationOptions,
         **kwargs,
-    ) -> 'PhasedFSimCalibrationRequest':
+    ) -> 'FloquetPhasedFSimCalibrationRequest':
         """Magic method for the JSON serialization protocol.
 
         Converts serialized dictionary into a dict suitable for
@@ -603,7 +613,7 @@ def _parse_characterized_angles(targets, values):
     return final_params
 
 
-@dataclasses.dataclass(frozen=True)
+@json_serializable_dataclass(frozen=True)
 class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     options: XEBPhasedFSimCalibrationOptions
 
@@ -634,13 +644,23 @@ class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
                     pair: PhasedFSimCharacterization(**angles)
                     for pair, angles in final_params.items()
                 }
-            else:
-                raise ValueError(f"Unknown metric name {metric.name}")
 
         # TODO: Return initial_fids, final_fids somehow.
         return PhasedFSimCalibrationResult(
             parameters=final_params, gate=self.gate, options=self.options
         )
+
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        gate: Gate,
+        pairs: List[Tuple[Qid, Qid]],
+        options: XEBPhasedFSimCalibrationOptions,
+        **kwargs,
+    ) -> 'XEBPhasedFSimCalibrationRequest':
+        # List -> Tuple
+        instantiation_pairs = tuple((q_a, q_b) for q_a, q_b in pairs)
+        return cls(instantiation_pairs, gate, options)
 
 
 class IncompatibleMomentError(Exception):

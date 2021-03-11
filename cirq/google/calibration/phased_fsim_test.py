@@ -11,10 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
+
 import pytest
 import numpy as np
+from google.protobuf import text_format
 
 import cirq
+from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 from cirq.google.calibration.phased_fsim import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     FloquetPhasedFSimCalibrationOptions,
@@ -25,6 +29,8 @@ from cirq.google.calibration.phased_fsim import (
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     merge_matching_results,
     try_convert_sqrt_iswap_to_fsim,
+    XEBPhasedFSimCalibrationRequest,
+    XEBPhasedFSimCalibrationOptions,
 )
 
 
@@ -100,6 +106,48 @@ def test_floquet_to_calibration_layer():
             'est_gamma': False,
             'est_phi': True,
             'readout_corrections': True,
+        },
+    )
+
+
+def test_xeb_to_calibration_layer():
+    q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
+    gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+    request = XEBPhasedFSimCalibrationRequest(
+        gate=gate,
+        pairs=((q_00, q_01), (q_02, q_03)),
+        options=XEBPhasedFSimCalibrationOptions(
+            n_library_circuits=22,
+            gate_options=XEBPhasedFSimCharacterizationOptions(
+                characterize_theta=True,
+                characterize_zeta=True,
+                characterize_chi=False,
+                characterize_gamma=False,
+                characterize_phi=True,
+            ),
+        ),
+    )
+    assert request.to_calibration_layer() == cirq.google.CalibrationLayer(
+        calibration_type='xeb_phased_fsim_characterization',
+        program=cirq.Circuit([gate.on(q_00, q_01), gate.on(q_02, q_03)]),
+        args={
+            'n_library_circuits': 22,
+            'n_combinations': 10,
+            'cycle_min': 3,
+            'cycle_max': 100,
+            'cycle_step': 20,
+            'fatol': 5e-3,
+            'xatol': 5e-3,
+            'characterize_theta': True,
+            'characterize_zeta': True,
+            'characterize_chi': False,
+            'characterize_gamma': False,
+            'characterize_phi': True,
+            'theta_default': 0,
+            'zeta_default': 0,
+            'chi_default': 0,
+            'gamma_default': 0,
+            'phi_default': 0,
         },
     )
 
@@ -212,6 +260,46 @@ def test_floquet_parse_result():
             characterize_gamma=False,
             characterize_phi=True,
         ),
+    )
+
+
+def test_xeb_parse_result():
+    q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
+    gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+    request = XEBPhasedFSimCalibrationRequest(
+        gate=gate,
+        pairs=((q_00, q_01), (q_02, q_03)),
+        options=XEBPhasedFSimCalibrationOptions(
+            gate_options=XEBPhasedFSimCharacterizationOptions(
+                characterize_theta=False,
+                characterize_zeta=False,
+                characterize_chi=False,
+                characterize_gamma=False,
+                characterize_phi=True,
+            )
+        ),
+    )
+
+    with open(os.path.dirname(__file__) + '/test_data/xeb_results.textproto') as f:
+        metrics_snapshot = text_format.Parse(
+            f.read(), cirq.google.api.v2.metrics_pb2.MetricsSnapshot()
+        )
+
+    result = cirq.google.CalibrationResult(
+        code=cirq.google.api.v2.calibration_pb2.SUCCESS,
+        error_message=None,
+        token=None,
+        valid_until=None,
+        metrics=cirq.google.Calibration(metrics_snapshot),
+    )
+
+    assert request.parse_result(result) == PhasedFSimCalibrationResult(
+        parameters={
+            (q_00, q_01): PhasedFSimCharacterization(phi=-0.009375),
+            (q_02, q_03): PhasedFSimCharacterization(phi=-0.00625),
+        },
+        gate=gate,
+        options=request.options,
     )
 
 

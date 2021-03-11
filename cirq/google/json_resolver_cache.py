@@ -36,4 +36,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'FloquetPhasedFSimCalibrationRequest': cirq.google.FloquetPhasedFSimCalibrationRequest,
         'PhasedFSimCalibrationResult': cirq.google.PhasedFSimCalibrationResult,
         'PhasedFSimCharacterization': cirq.google.PhasedFSimCharacterization,
+        'XEBPhasedFSimCalibrationOptions': cirq.google.XEBPhasedFSimCalibrationOptions,
+        'XEBPhasedFSimCalibrationRequest': cirq.google.XEBPhasedFSimCalibrationRequest,
     }
