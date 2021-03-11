@@ -48,7 +48,7 @@ def _fast_walsh_hadamard_transform(a: Tuple[float]) -> np.array:
 def _gen_gray_code(n: int):
     """Generate the Gray Code from 0 to 2^n-1.
 
-    Each iteration returns two elements. The first element is the decimal representation
+    Each iteration yields a two-tuple, `(gray_code, bit_flip)`. `gray_code` is the decimal representation
     of the gray code and the second one is the position of bits flipped for next gray code.
     """
     gray_code = 0
