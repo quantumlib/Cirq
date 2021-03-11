@@ -566,7 +566,7 @@ try:
     from cirq import google
 except ImportError as ex:
     # coverage: ignore
-    warning("Can't import cirq.google:", ex)
+    warning("Can't import cirq.google: ", ex)
 
 
 def _register_resolver() -> None:

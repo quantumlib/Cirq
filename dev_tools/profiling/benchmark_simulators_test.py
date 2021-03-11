@@ -13,18 +13,15 @@
 # limitations under the License.
 
 """Tests for the simulator benchmarker."""
-import cirq
 from dev_tools.profiling import benchmark_simulators
 
 
-@cirq.testing.skip_if_module_not_exists(module="cirq.google")
 def test_unitary_simulator():
     for num_qubits in (4, 10):
         for num_gates in (10, 20):
             benchmark_simulators.simulate('unitary', num_qubits, num_gates)
 
 
-@cirq.testing.skip_if_module_not_exists(module="cirq.google")
 def test_density_matrix_simulator():
     for num_qubits in (3, 8):
         for num_gates in (10, 20):
@@ -37,7 +34,6 @@ def test_args_have_defaults():
         assert v is not None
 
 
-@cirq.testing.skip_if_module_not_exists(module="cirq.google")
 def test_main_loop():
     # Keep test from taking a long time by lowering max qubits.
     args = '--max_num_qubits 5'.split()

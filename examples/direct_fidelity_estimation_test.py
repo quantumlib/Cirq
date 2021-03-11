@@ -58,15 +58,12 @@ def test_direct_fidelity_estimation_with_noise_non_clifford():
     assert estimated_fidelity >= -1.0 and estimated_fidelity <= 1.0
 
 
-@cirq.testing.skip_if_module_not_exists(module="cirq.google")
 def test_incorrect_sampler_raises_exception():
     import cirq.google
 
     qubits = cirq.LineQubit.range(1)
     circuit = cirq.Circuit(cirq.X(qubits[0]))
-    sampler_incorrect_type = cirq.google.QuantumEngineSampler(
-        engine=None, processor_id='dummy_id', gate_set=[]
-    )
+    sampler_incorrect_type = cirq.ZerosSampler
 
     with pytest.raises(TypeError):
         dfe.direct_fidelity_estimation(
