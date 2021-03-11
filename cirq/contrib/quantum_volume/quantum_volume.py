@@ -470,7 +470,7 @@ def calculate_quantum_volume(
         depth: The number of gate layers to generate.
         num_circuits: The number of random circuits to run.
         random_state: Random state or random state seed.
-        device_graph: The device or qubits to run the compiled circuit on.
+        device_graph: A graph whose nodes are qubits and edges represent two qubit interactions to run the compiled circuit on.
         samplers: The samplers to run the algorithm on.
         compiler: An optional function to compiler the model circuit's
             gates down to the target devices gate set and the optimize it.
