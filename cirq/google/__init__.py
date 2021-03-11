@@ -103,11 +103,13 @@ from cirq.google.optimizers import (
 )
 
 from cirq.google.op_deserializer import (
+    CircuitOpDeserializer,
     DeserializingArg,
     GateOpDeserializer,
 )
 
 from cirq.google.op_serializer import (
+    CircuitOpSerializer,
     GateOpSerializer,
     SerializingArg,
 )

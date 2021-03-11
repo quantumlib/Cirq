@@ -64,6 +64,19 @@ def get_val(op):
     return op.gate.get_val()
 
 
+def test_deprecated_fields():
+    serializer = cg.GateOpSerializer(
+        gate_type=GateWithAttribute,
+        serialized_gate_id='my_gate',
+        args=[],
+    )
+    with pytest.warns(DeprecationWarning, match='Use serialized_id'):
+        assert serializer.serialized_gate_id == serializer.serialized_id
+
+    with pytest.warns(DeprecationWarning, match='Use internal_type'):
+        assert serializer.gate_type == serializer.internal_type
+
+
 TEST_CASES = (
     (float, 1.0, {'arg_value': {'float_value': 1.0}}),
     (str, 'abc', {'arg_value': {'string_value': 'abc'}}),

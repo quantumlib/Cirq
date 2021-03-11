@@ -226,7 +226,7 @@ class CircuitOpDeserializer(OpDeserializer):
                 f'but it has type {type(circuit)} in the raw_constants list.'
             )
 
-        if not proto.repetition_spec.rep_ids:
+        if not proto.repetition_spec.rep_ids.ids:
             rep_ids = None
             repetitions = proto.repetition_spec.rep_count
         else:
@@ -251,16 +251,19 @@ class CircuitOpDeserializer(OpDeserializer):
 
         for arg in arg_map.keys():
             if not isinstance(arg, (str, sympy.Symbol)):
+                print('whoopee')
                 raise ValueError(
                     'Invalid key parameter type in deserialized CircuitOperation. '
-                    f'Expected str or sympy.Symbol, found {type(arg)}.\nFull arg: {arg}'
+                    f'Expected str or sympy.Symbol, found {type(arg)}.'
+                    f'\nFull arg: {arg}'
                 )
 
         for arg in arg_map.values():
-            if arg is None:
+            if not isinstance(arg, (str, sympy.Symbol, float, int)):
                 raise ValueError(
                     'Invalid value parameter type in deserialized CircuitOperation. '
-                    f'Expected str or sympy.Symbol, found None.\nFull arg: {arg}'
+                    f'Expected str, sympy.Symbol, or number; found {type(arg)}.'
+                    f'\nFull arg: {arg}'
                 )
 
         return circuits.CircuitOperation(

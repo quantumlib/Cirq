@@ -39,6 +39,29 @@ class GateWithAttribute(cirq.SingleQubitGate):
         return (self.val,)
 
 
+def base_deserializer():
+    return cg.GateOpDeserializer(
+        serialized_gate_id='my_gate',
+        gate_constructor=GateWithAttribute,
+        args=[
+            cg.DeserializingArg(
+                serialized_name='my_val',
+                constructor_arg_name='val',
+            )
+        ],
+    )
+
+
+def test_deprecated_fields():
+    deserializer = cg.GateOpDeserializer(
+        serialized_gate_id='my_gate',
+        gate_constructor=GateWithAttribute,
+        args=[],
+    )
+    with pytest.warns(DeprecationWarning, match='Use serialized_id'):
+        assert deserializer.serialized_gate_id == deserializer.serialized_id
+
+
 TEST_CASES = [
     (float, 1.0, {'arg_value': {'float_value': 1.0}}),
     (str, 'abc', {'arg_value': {'string_value': 'abc'}}),
@@ -68,16 +91,7 @@ TEST_CASES = [
 
 @pytest.mark.parametrize(('val_type', 'val', 'arg_value'), TEST_CASES)
 def test_from_proto(val_type, val, arg_value):
-    deserializer = cg.GateOpDeserializer(
-        serialized_gate_id='my_gate',
-        gate_constructor=GateWithAttribute,
-        args=[
-            cg.DeserializingArg(
-                serialized_name='my_val',
-                constructor_arg_name='val',
-            )
-        ],
-    )
+    deserializer = base_deserializer()
     serialized = op_proto(
         {'gate': {'id': 'my_gate'}, 'args': {'my_val': arg_value}, 'qubits': [{'id': '1_2'}]}
     )
@@ -87,16 +101,7 @@ def test_from_proto(val_type, val, arg_value):
 
 
 def test_from_proto_required_missing():
-    deserializer = cg.GateOpDeserializer(
-        serialized_gate_id='my_gate',
-        gate_constructor=GateWithAttribute,
-        args=[
-            cg.DeserializingArg(
-                serialized_name='my_val',
-                constructor_arg_name='val',
-            )
-        ],
-    )
+    deserializer = base_deserializer()
     serialized = op_proto(
         {
             'gate': {'id': 'my_gate'},
@@ -109,16 +114,7 @@ def test_from_proto_required_missing():
 
 
 def test_from_proto_unknown_function():
-    deserializer = cg.GateOpDeserializer(
-        serialized_gate_id='my_gate',
-        gate_constructor=GateWithAttribute,
-        args=[
-            cg.DeserializingArg(
-                serialized_name='my_val',
-                constructor_arg_name='val',
-            )
-        ],
-    )
+    deserializer = base_deserializer()
     serialized = op_proto(
         {
             'gate': {'id': 'my_gate'},
@@ -141,16 +137,7 @@ def test_from_proto_unknown_function():
 
 
 def test_from_proto_value_type_not_recognized():
-    deserializer = cg.GateOpDeserializer(
-        serialized_gate_id='my_gate',
-        gate_constructor=GateWithAttribute,
-        args=[
-            cg.DeserializingArg(
-                serialized_name='my_val',
-                constructor_arg_name='val',
-            )
-        ],
-    )
+    deserializer = base_deserializer()
     serialized = op_proto(
         {
             'gate': {'id': 'my_gate'},
@@ -167,16 +154,7 @@ def test_from_proto_value_type_not_recognized():
 
 
 def test_from_proto_function_argument_not_set():
-    deserializer = cg.GateOpDeserializer(
-        serialized_gate_id='my_gate',
-        gate_constructor=GateWithAttribute,
-        args=[
-            cg.DeserializingArg(
-                serialized_name='my_val',
-                constructor_arg_name='val',
-            )
-        ],
-    )
+    deserializer = base_deserializer()
     serialized = op_proto(
         {
             'gate': {'id': 'my_gate'},
@@ -313,13 +291,7 @@ def test_defaults():
 
 
 def test_token():
-    deserializer = cg.GateOpDeserializer(
-        serialized_gate_id='my_gate',
-        gate_constructor=GateWithAttribute,
-        args=[
-            cg.DeserializingArg(serialized_name='my_val', constructor_arg_name='val'),
-        ],
-    )
+    deserializer = base_deserializer()
     serialized = op_proto(
         {
             'gate': {'id': 'my_gate'},
@@ -334,13 +306,7 @@ def test_token():
 
 
 def test_token_with_references():
-    deserializer = cg.GateOpDeserializer(
-        serialized_gate_id='my_gate',
-        gate_constructor=GateWithAttribute,
-        args=[
-            cg.DeserializingArg(serialized_name='my_val', constructor_arg_name='val'),
-        ],
-    )
+    deserializer = base_deserializer()
     serialized = op_proto(
         {
             'gate': {'id': 'my_gate'},
@@ -362,3 +328,129 @@ def test_token_with_references():
 
     with pytest.raises(ValueError, match='Proto has references to constants table'):
         deserializer.from_proto(serialized)
+
+
+def test_circuit_proto():
+    genop1 = v2.program_pb2.GenericOperation()
+    op1 = genop1.operation
+    op1.gate.id = 'x_pow'
+    op1.args['half_turns'].arg_value.string_value = 'k'
+    op1.qubits.add().id = '1_1'
+
+    return v2.program_pb2.Circuit(
+        scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+        moments=[
+            v2.program_pb2.Moment(
+                operations=[op1],
+                generic_operations=[genop1],
+            ),
+        ],
+    )
+
+
+def test_circuit():
+    return cirq.FrozenCircuit(
+        cirq.X(cirq.GridQubit(1, 1)) ** sympy.Symbol('k'),
+        cirq.measure(cirq.GridQubit(1, 1), key='m'),
+    )
+
+
+def test_circuit_op_from_proto_errors():
+    deserializer = cg.CircuitOpDeserializer()
+    serialized = v2.program_pb2.CircuitOperation(circuit_constant_index=0)
+
+    constants = [v2.program_pb2.Constant(circuit_value=test_circuit_proto())]
+    raw_constants = [test_circuit()]
+
+    with pytest.raises(ValueError, match='CircuitOp deserialization requires a constants list'):
+        deserializer.from_proto(serialized)
+
+    with pytest.raises(ValueError, match='CircuitOp deserialization requires a constants list'):
+        deserializer.from_proto(serialized, constants=constants)
+
+    with pytest.raises(ValueError, match='CircuitOp deserialization requires a constants list'):
+        deserializer.from_proto(serialized, raw_constants=raw_constants)
+
+    bad_raw_constants = [2]
+    with pytest.raises(ValueError, match='Constant at index 0 was expected to be a circuit'):
+        deserializer.from_proto(serialized, constants=constants, raw_constants=bad_raw_constants)
+
+
+def test_circuit_op_arg_key_errors():
+    deserializer = cg.CircuitOpDeserializer()
+    arg_map = v2.program_pb2.ArgMapping()
+    p1 = arg_map.pairs.add()
+    p1.first.arg_value.float_value = 1.0
+    p1.second.arg_value.float_value = 2.0
+
+    serialized = v2.program_pb2.CircuitOperation(
+        circuit_constant_index=0,
+        arg_map=arg_map
+    )
+
+    constants = [v2.program_pb2.Constant(circuit_value=test_circuit_proto())]
+    raw_constants = [test_circuit()]
+
+    with pytest.raises(ValueError, match='Invalid key parameter type'):
+        deserializer.from_proto(serialized, constants=constants, raw_constants=raw_constants)
+
+
+def test_circuit_op_arg_val_errors():
+    deserializer = cg.CircuitOpDeserializer()
+    arg_map = v2.program_pb2.ArgMapping()
+    p1 = arg_map.pairs.add()
+    p1.first.arg_value.string_value = 'k'
+    p1.second.arg_value.bool_values.values.extend([True, False])
+
+    serialized = v2.program_pb2.CircuitOperation(
+        circuit_constant_index=0,
+        arg_map=arg_map
+    )
+
+    constants = [v2.program_pb2.Constant(circuit_value=test_circuit_proto())]
+    raw_constants = [test_circuit()]
+
+    with pytest.raises(ValueError, match='Invalid value parameter type'):
+        deserializer.from_proto(serialized, constants=constants, raw_constants=raw_constants)
+
+
+def test_circuit_op_from_proto():
+    deserializer = cg.CircuitOpDeserializer()
+
+    repetition_spec = v2.program_pb2.RepetitionSpec()
+    repetition_spec.rep_count = 1
+
+    qubit_map = v2.program_pb2.QubitMapping()
+    q_p1 = qubit_map.pairs.add()
+    q_p1.first.id = '1_1'
+    q_p1.second.id = '1_2'
+
+    measurement_key_map = v2.program_pb2.MeasurementKeyMapping()
+    meas_p1 = measurement_key_map.pairs.add()
+    meas_p1.first.str_key = 'm'
+    meas_p1.second.str_key = 'results'
+
+    arg_map = v2.program_pb2.ArgMapping()
+    arg_p1 = arg_map.pairs.add()
+    arg_p1.first.arg_value.string_value = 'k'
+    arg_p1.second.arg_value.float_value = 1.0
+
+    serialized = v2.program_pb2.CircuitOperation(
+        circuit_constant_index=0,
+        repetition_spec=repetition_spec,
+        qubit_map=qubit_map,
+        measurement_key_map=measurement_key_map,
+        arg_map=arg_map,
+    )
+
+    constants = [v2.program_pb2.Constant(circuit_value=test_circuit_proto())]
+    raw_constants = [test_circuit()]
+
+    actual = deserializer.from_proto(serialized, constants=constants, raw_constants=raw_constants)
+    expected = cirq.CircuitOperation(
+        circuit=test_circuit(),
+        qubit_map={cirq.GridQubit(1, 1): cirq.GridQubit(1, 2)},
+        measurement_key_map={'m': 'results'},
+        param_resolver={'k': 1.0},
+    )
+    assert actual == expected
