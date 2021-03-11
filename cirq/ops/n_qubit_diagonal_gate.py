@@ -175,7 +175,7 @@ class DiagonalGate(raw_types.Gate):
         hat_angles = _fast_walsh_hadamard_transform(self._diag_angles_radians) / (2 ** n)
 
         # There is one global phase shift between unitary matrix of the diagonal gate and the
-        # decomposed gates. It is not a problem usually. However, if using this diagonal gate
+        # decomposed gates. On its own it is not physically observable. However, if using this diagonal gate
         # for sub-system like controlled gate, it is no longer equivalent. Hence, we add
         # global phase.
         yield global_phase_op.GlobalPhaseOperation(np.exp(1j * hat_angles[0]))
