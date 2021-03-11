@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 
 def _fast_walsh_hadamard_transform(a: Tuple[float]) -> np.array:
-    """Fast Walsh–Hadamard Transform of array a."""
+    """Fast Walsh–Hadamard Transform of an array."""
     h = 1
     a_ = np.array(a)
     while h < len(a_):
