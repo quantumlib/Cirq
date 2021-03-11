@@ -2,9 +2,10 @@
 
 ################################################################################
 # Runs pylint on changed files using a preconfigured .pylintrc file.
+# Runs flynt
 #
 # Usage:
-#     check/pylint-changed-files [BASE_REVISION]
+#     check/lint-changed-files [BASE_REVISION]
 #
 # You can specify a base git revision to compare against (i.e. to use when
 # determining whether or not a line is considered to have "changed"). To make
@@ -21,7 +22,7 @@
 #
 # If none exists, the script fails.
 #
-# See check/pylint for linting all files.
+# See check/lint for linting all files.
 ################################################################################
 
 # Get the working directory to the repo root.
