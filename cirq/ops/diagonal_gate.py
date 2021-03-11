@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _fast_walsh_hadamard_transform(a: Tuple[float]) -> np.array:
+def _fast_walsh_hadamard_transform(a: Tuple[Any, ...]) -> np.array:
     """Fast Walsh–Hadamard Transform of an array."""
     h = 1
     a_ = np.array(a)
@@ -48,8 +48,9 @@ def _fast_walsh_hadamard_transform(a: Tuple[float]) -> np.array:
 def _gen_gray_code(n: int) -> Iterator[Tuple[int, int]]:
     """Generate the Gray Code from 0 to 2^n-1.
 
-    Each iteration yields a two-tuple, `(gray_code, bit_flip)`. `gray_code` is the decimal representation
-    of the gray code and `bit_flip` is the position of bits flipped for next gray code.
+    Each iteration yields a two-tuple, `(gray_code, bit_flip)`. `gray_code` is the decimal
+    representation of the gray code and `bit_flip` is the position of bits flipped for next
+    gray code.
     """
     gray_code = 0
     for i in range(1, 2 ** n):
@@ -118,12 +119,13 @@ class DiagonalGate(raw_types.Gate):
         if args.precision is not None:
             rounded_angles = rounded_angles.round(args.precision)
         if len(rounded_angles) <= 4:
-            diag_str = 'diag({})'.format(', '.join(proper_repr(angle) for angle in rounded_angles))
+            rounded_angles_str = ', '.join(proper_repr(angle) for angle in rounded_angles)
+            diag_str = f'diag({rounded_angles_str})'
         else:
             diag_str = ', '.join(proper_repr(angle) for angle in rounded_angles[:2])
             diag_str += ', ..., '
             diag_str += ', '.join(proper_repr(angle) for angle in rounded_angles[-2:])
-            diag_str = 'diag({})'.format(diag_str)
+            diag_str = f'diag({diag_str})'
         return protocols.CircuitDiagramInfo(
             [diag_str] + ['#' + str(i) for i in range(2, self._num_qubits_() + 1)]
         )
@@ -180,9 +182,9 @@ class DiagonalGate(raw_types.Gate):
         hat_angles = _fast_walsh_hadamard_transform(self._diag_angles_radians) / (2 ** n)
 
         # There is one global phase shift between unitary matrix of the diagonal gate and the
-        # decomposed gates. On its own it is not physically observable. However, if using this diagonal gate
-        # for sub-system like controlled gate, it is no longer equivalent. Hence, we add
-        # global phase.
+        # decomposed gates. On its own it is not physically observable. However, if using this
+        # diagonal gate for sub-system like controlled gate, it is no longer equivalent. Hence,
+        # we add global phase.
         yield global_phase_op.GlobalPhaseOperation(np.exp(1j * hat_angles[0]))
         for i, bit_flip in _gen_gray_code(n):
             yield from self._decompose_for_basis(i, bit_flip, -hat_angles[i], qubits)
