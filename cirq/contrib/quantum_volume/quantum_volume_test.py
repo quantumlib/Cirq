@@ -292,7 +292,7 @@ def test_calculate_quantum_volume_result():
         num_qubits=3,
         depth=3,
         num_circuits=1,
-        device_qubits=cirq.GridQubit.rect(3, 3),
+        device_graph=ccr.gridqubits_to_graph_device(cirq.GridQubit.rect(3, 3)),
         samplers=[cirq.Simulator()],
         routing_attempts=2,
         random_state=1,
@@ -311,11 +311,12 @@ def test_calculate_quantum_volume_result_with_device_graph():
     """Test that running the main loop routes the circuit onto the given device
     graph"""
     device_qubits = [cirq.GridQubit(i, j) for i in range(2) for j in range(3)]
+
     results = cirq.contrib.quantum_volume.calculate_quantum_volume(
         num_qubits=3,
         depth=3,
         num_circuits=1,
-        device_qubits=device_qubits,
+        device_graph=ccr.gridqubits_to_graph_device(device_qubits),
         samplers=[cirq.Simulator()],
         routing_attempts=2,
         random_state=1,
@@ -337,7 +338,7 @@ def test_calculate_quantum_volume_loop():
         num_circuits=1,
         routing_attempts=2,
         random_state=1,
-        device_qubits=cirq.GridQubit.rect(3, 3),
+        device_graph=ccr.gridqubits_to_graph_device(cirq.GridQubit.rect(3, 3)),
         samplers=[cirq.Simulator()],
     )
 
@@ -353,7 +354,7 @@ def test_calculate_quantum_volume_loop_with_readout_correction():
         num_circuits=1,
         routing_attempts=2,
         random_state=1,
-        device_qubits=cirq.GridQubit.rect(3, 3),
+        device_graph=ccr.gridqubits_to_graph_device(cirq.GridQubit.rect(3, 3)),
         samplers=[cirq.Simulator()],
         add_readout_error_correction=True,
     )
@@ -361,7 +362,7 @@ def test_calculate_quantum_volume_loop_with_readout_correction():
 
 def test_deprecated():
     with cirq.testing.assert_deprecated(
-        "device_or_qubits", "use device_qubits instead", deadline="v0.12"
+        "device_or_qubits", "use device_graph instead", deadline="v0.12"
     ):
         # pylint: disable=unexpected-keyword-arg
         # pylint: disable=missing-kwoa
@@ -379,7 +380,7 @@ def test_deprecated():
         # pylint: enable=missing-kwoa
 
     with cirq.testing.assert_deprecated(
-        "device_or_qubits", "use device_qubits instead", deadline="v0.12"
+        "device_or_qubits", "use device_graph instead", deadline="v0.12"
     ):
         # pylint: disable=unexpected-keyword-arg
         # pylint: disable=missing-kwoa

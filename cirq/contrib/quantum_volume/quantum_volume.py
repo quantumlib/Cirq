@@ -423,19 +423,20 @@ def execute_circuits(
     return results
 
 
-def _get_qubits(device_or_qubits: Any):
-    return device_or_qubits if isinstance(device_or_qubits, list) else device_or_qubits.qubits
+def _get_device_graph(device_or_qubits: Any):
+    qubits = device_or_qubits if isinstance(device_or_qubits, list) else device_or_qubits.qubits
+    return ccr.gridqubits_to_graph_device(qubits)
 
 
 @deprecated_parameter(
     deadline="v0.12",
-    fix="use device_qubits instead",
+    fix="use device_graph instead",
     parameter_desc='device_or_qubits',
     match=lambda args, kwargs: 'device_or_qubits' in kwargs,
     rewrite=lambda args, kwargs: (
         args,
         dict(
-            ('device_qubits', _get_qubits(arg_val))
+            ('device_graph', _get_device_graph(arg_val))
             if arg_name == 'device_or_qubits'
             else (arg_name, arg_val)
             for arg_name, arg_val in kwargs.items()
@@ -447,7 +448,7 @@ def calculate_quantum_volume(
     num_qubits: int,
     depth: int,
     num_circuits: int,
-    device_qubits: List[cirq.GridQubit],
+    device_graph: nx.Graph,
     samplers: List[cirq.Sampler],
     random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
@@ -469,7 +470,7 @@ def calculate_quantum_volume(
         depth: The number of gate layers to generate.
         num_circuits: The number of random circuits to run.
         random_state: Random state or random state seed.
-        device_qubits: The device or qubits to run the compiled circuit on.
+        device_graph: The device or qubits to run the compiled circuit on.
         samplers: The samplers to run the algorithm on.
         compiler: An optional function to compiler the model circuit's
             gates down to the target devices gate set and the optimize it.
@@ -491,9 +492,6 @@ def calculate_quantum_volume(
     circuits = prepare_circuits(
         num_qubits=num_qubits, depth=depth, num_circuits=num_circuits, random_state=random_state
     )
-
-    # Get the device graph from the given qubits or device.
-    device_graph = ccr.gridqubits_to_graph_device(device_qubits)
 
     return execute_circuits(
         circuits=circuits,
