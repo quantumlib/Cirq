@@ -210,6 +210,22 @@ SQRT_ISWAP_PARAMETERS = PhasedFSimCharacterization(
 class PhasedFSimCalibrationOptions(abc.ABC):
     """Base class for calibration-specific options passed together with the requests."""
 
+    @abc.abstractmethod
+    def create_phased_fsim_request(
+        self,
+        pairs: Tuple[Tuple[Qid, Qid], ...],
+        gate: Gate,
+    ) -> 'PhasedFSimCalibrationRequest':
+        """Create a PhasedFSimCalibrationRequest of the correct type for these options.
+
+        Args:
+            pairs: Set of qubit pairs to characterize. A single qubit can appear on at most one
+                pair in the set.
+            gate: Gate to characterize for each qubit pair from pairs. This must be a supported gate
+                which can be described cirq.PhasedFSim gate. This gate must be serialized by the
+                cirq.google.SerializableGateSet used
+        """
+
 
 @dataclasses.dataclass(frozen=True)
 class PhasedFSimCalibrationResult:
@@ -398,6 +414,13 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         args.update(dataclasses.asdict(self.gate_options))
         return args
 
+    def create_phased_fsim_request(
+        self,
+        pairs: Tuple[Tuple[Qid, Qid], ...],
+        gate: Gate,
+    ) -> 'PhasedFSimCalibrationRequest':
+        return XEBPhasedFSimCalibrationRequest(pairs=pairs, gate=gate, options=self)
+
 
 @json_serializable_dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
@@ -429,6 +452,13 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
             chi=0.0 if self.characterize_chi else None,
             gamma=0.0 if self.characterize_gamma else None,
         )
+
+    def create_phased_fsim_request(
+        self,
+        pairs: Tuple[Tuple[Qid, Qid], ...],
+        gate: Gate,
+    ) -> 'PhasedFSimCalibrationRequest':
+        return FloquetPhasedFSimCalibrationRequest(pairs=pairs, gate=gate, options=self)
 
 
 """PhasedFSimCalibrationOptions options with all angles characterization requests set to True."""

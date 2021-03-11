@@ -81,27 +81,10 @@ class CircuitWithCalibration:
 RequestT = TypeVar('RequestT', bound=PhasedFSimCalibrationRequest)
 
 
-def _deduce_calibration_request_type(
-    calibration_request_type: Optional[Type[RequestT]], options: PhasedFSimCalibrationOptions
-) -> Type[RequestT]:
-    """In order to make `prepare_characterization_for_moment(s)` general, it needs to know
-    what type of request to construct. This deduces the correct class from the option type."""
-    if calibration_request_type is not None:
-        return calibration_request_type
-
-    # TODO: should options know their request type?
-    if isinstance(options, FloquetPhasedFSimCalibrationOptions):
-        return FloquetPhasedFSimCalibrationRequest
-    if isinstance(options, XEBPhasedFSimCalibrationOptions):
-        return XEBPhasedFSimCalibrationRequest
-    raise ValueError(f"Unknown PhasedFSimCalibrationRequest type for {options}")
-
-
 def prepare_characterization_for_moment(
     moment: Moment,
     options: PhasedFSimCalibrationOptions,
     *,
-    calibration_request_type: Optional[Type[RequestT]] = None,
     gates_translator: Callable[
         [Gate], Optional[PhaseCalibratedFSimGate]
     ] = try_convert_sqrt_iswap_to_fsim,
@@ -113,8 +96,6 @@ def prepare_characterization_for_moment(
     Args:
         moment: Moment to characterize.
         options: Options that are applied to each characterized gate within a moment.
-        calibration_request_type: The class type of calibration request to construct. This is
-            deduced from the type of options if not explicitly specified.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo
             characterization. Defaults to sqrt_iswap_gates_translator.
         canonicalize_pairs: Whether to sort each of the qubit pair so that the first qubit
@@ -136,10 +117,9 @@ def prepare_characterization_for_moment(
     if pairs_and_gate is None:
         return None
 
-    calibration_request_type = _deduce_calibration_request_type(calibration_request_type, options)
     pairs, gate = pairs_and_gate
-    return calibration_request_type(
-        pairs=tuple(sorted(pairs) if sort_pairs else pairs), gate=gate, options=options
+    return options.create_phased_fsim_request(
+        pairs=tuple(sorted(pairs) if sort_pairs else pairs), gate=gate
     )
 
 
@@ -175,7 +155,6 @@ def prepare_floquet_characterization_for_moment(
     return prepare_characterization_for_moment(
         moment=moment,
         options=options,
-        calibration_request_type=FloquetPhasedFSimCalibrationRequest,
         gates_translator=gates_translator,
         canonicalize_pairs=canonicalize_pairs,
         sort_pairs=sort_pairs,
@@ -253,7 +232,6 @@ def prepare_characterization_for_moments(
     circuit: Circuit,
     options: PhasedFSimCalibrationOptions,
     *,
-    calibration_request_type: Type[RequestT] = None,
     gates_translator: Callable[
         [Gate], Optional[PhaseCalibratedFSimGate]
     ] = try_convert_sqrt_iswap_to_fsim,
@@ -272,8 +250,6 @@ def prepare_characterization_for_moments(
     Args:
         circuit: Circuit to characterize.
         options: Options that are applied to each characterized gate within a moment.
-        calibration_request_type: The class type of calibration request to construct. This is
-            deduced from the type of options if not explicitly specified.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo
             characterization. Defaults to sqrt_iswap_gates_translator.
         merge_subsets: If `True` then this method tries to merge moments into the other moments
@@ -305,12 +281,10 @@ def prepare_characterization_for_moments(
         calibrations = list(initial)
         pairs_map = {calibration.pairs: index for index, calibration in enumerate(calibrations)}
 
-    calibration_request_type = _deduce_calibration_request_type(calibration_request_type, options)
     for moment in circuit:
         calibration = prepare_characterization_for_moment(
             moment,
             options,
-            calibration_request_type=calibration_request_type,
             gates_translator=gates_translator,
             canonicalize_pairs=True,
             sort_pairs=True,
@@ -318,9 +292,7 @@ def prepare_characterization_for_moments(
 
         if calibration is not None:
             if merge_subsets:
-                index = _merge_into_calibrations(
-                    calibration, calibrations, calibration_request_type, pairs_map, options
-                )
+                index = _merge_into_calibrations(calibration, calibrations, pairs_map, options)
             else:
                 index = _append_into_calibrations_if_missing(calibration, calibrations, pairs_map)
             allocations.append(index)
@@ -380,7 +352,6 @@ def prepare_floquet_characterization_for_moments(
     return prepare_characterization_for_moments(
         circuit=circuit,
         options=options,
-        calibration_request_type=FloquetPhasedFSimCalibrationRequest,
         gates_translator=gates_translator,
         merge_subsets=merge_subsets,
         initial=initial,
@@ -391,7 +362,6 @@ def prepare_characterization_for_operations(
     circuit: Union[Circuit, Iterable[Circuit]],
     options: PhasedFSimCalibrationOptions,
     *,
-    calibration_request_type: Type[RequestT] = None,
     gates_translator: Callable[
         [Gate], Optional[PhaseCalibratedFSimGate]
     ] = try_convert_sqrt_iswap_to_fsim,
@@ -440,16 +410,12 @@ def prepare_characterization_for_operations(
     if gate is None:
         return []
 
-    calibration_request_type = _deduce_calibration_request_type(calibration_request_type, options)
-
     characterizations = []
     for pattern in HALF_GRID_STAGGERED_PATTERN:
         pattern_pairs = [pair for pair in pairs if pair in pattern]
         if pattern_pairs:
             characterizations.append(
-                calibration_request_type(
-                    pairs=tuple(sorted(pattern_pairs)), gate=gate, options=options
-                )
+                options.create_phased_fsim_request(pairs=tuple(sorted(pattern_pairs)), gate=gate)
             )
 
     if sum((len(characterization.pairs) for characterization in characterizations)) != len(pairs):
@@ -504,7 +470,6 @@ def prepare_floquet_characterization_for_operations(
     return prepare_characterization_for_operations(
         circuit=circuit,
         options=options,
-        calibration_request_type=FloquetPhasedFSimCalibrationRequest,
         gates_translator=gates_translator,
         permit_mixed_moments=permit_mixed_moments,
     )
@@ -588,7 +553,6 @@ def _append_into_calibrations_if_missing(
 def _merge_into_calibrations(
     calibration: RequestT,
     calibrations: List[RequestT],
-    calibration_request_type: Type[RequestT],
     pairs_map: Dict[Tuple[Tuple[Qid, Qid], ...], int],
     options: PhasedFSimCalibrationOptions,
 ) -> int:
@@ -629,10 +593,9 @@ def _merge_into_calibrations(
                     for q in set(new_qubit_pairs.keys()).intersection(existing_qubit_pairs.keys())
                 )
             ):
-                calibrations[index] = calibration_request_type(
+                calibrations[index] = options.create_phased_fsim_request(
                     gate=calibration.gate,
                     pairs=tuple(sorted(new_pairs.union(existing_pairs))),
-                    options=options,
                 )
                 return index
 

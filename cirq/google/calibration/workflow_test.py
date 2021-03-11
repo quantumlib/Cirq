@@ -111,21 +111,6 @@ def test_prepare_characterization_for_moment_fails_for_unsupported_gate(options)
         )
 
 
-def test_prepare_characterization_for_moment_fails_for_unsupported_options():
-    a, b = cirq.LineQubit.range(2)
-    moment = cirq.Moment(cirq.FSimGate(np.pi / 4, 0).on(a, b))
-
-    class MyOptions(workflow.PhasedFSimCalibrationOptions):
-        pass
-
-    with pytest.raises(ValueError, match=r'Unknown PhasedFSimCalibrationRequest type'):
-        workflow.prepare_characterization_for_moment(
-            moment,
-            options=MyOptions(),
-            gates_translator=_fsim_identity_converter,
-        )
-
-
 def test_prepare_floquet_characterization_for_moment_fails_for_mixed_gates():
     a, b, c, d = cirq.LineQubit.range(4)
     moment = cirq.Moment(
