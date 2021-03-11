@@ -509,12 +509,7 @@ def test_incremental_format_branch_selection(tmpdir_factory):
         script_file='check/format-incremental', tmpdir_factory=tmpdir_factory, arg='HEAD~9999'
     )
     assert result.exit_code == 1
-    assert (
-        result.out
-        == """Running flynt v.0.60
-`cirq` not found
-"""
-    )
+    assert result.out == ''
     assert "No revision 'HEAD~9999'." in result.err
 
     result = run(script_file='check/format-incremental', tmpdir_factory=tmpdir_factory)
@@ -555,12 +550,7 @@ def test_incremental_format_branch_selection(tmpdir_factory):
         setup='git checkout -b other --quiet\ngit branch -D master --quiet\n',
     )
     assert result.exit_code == 1
-    assert (
-        result.out
-        == """Running flynt v.0.60
-`cirq` not found
-"""
-    )
+    assert result.out == ''
     assert 'No default revision found to compare against' in result.err
 
     # Works when ambiguous between revision and file.
@@ -598,13 +588,13 @@ def test_incremental_format_branch_selection(tmpdir_factory):
         'git add -A\n'
         'git commit -q -m test3 --no-gpg-sign\n',
     )
-    assert result.exit_code == 1
+    assert result.exit_code == 0
     assert 'INTERCEPTED black --color --check --diff alt.py' in result.out
     assert result.err.startswith("Comparing against revision 'master' (merge base ")
 
 
 @only_on_posix
-def test_pylint_changed_files_file_selection(tmpdir_factory):
+def test_lint_changed_files_file_selection(tmpdir_factory):
 
     result = run(
         script_file='check/lint-changed-files',
@@ -634,7 +624,13 @@ def test_pylint_changed_files_file_selection(tmpdir_factory):
         'git commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.exit_code == 0
-    assert result.out == intercepted_prefix + 'cirq/file.py\n'
+    assert (
+        result.out
+        == intercepted_prefix
+        + """cirq/file.py
+Running flynt v.0.60
+"""
+    )
     assert (
         result.err.split()
         == (
@@ -653,7 +649,13 @@ def test_pylint_changed_files_file_selection(tmpdir_factory):
         'git commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.exit_code == 0
-    assert result.out == intercepted_prefix + 'cirq/file.py\n'
+    assert (
+        result.out
+        == intercepted_prefix
+        + """cirq/file.py
+Running flynt v.0.60
+"""
+    )
     assert (
         result.err.split()
         == (
@@ -673,7 +675,13 @@ def test_pylint_changed_files_file_selection(tmpdir_factory):
         'echo x > cirq/file.py',
     )
     assert result.exit_code == 0
-    assert result.out == intercepted_prefix + 'cirq/file.py\n'
+    assert (
+        result.out
+        == intercepted_prefix
+        + """cirq/file.py
+Running flynt v.0.60
+"""
+    )
     assert (
         result.err.split()
         == (
@@ -693,7 +701,13 @@ def test_pylint_changed_files_file_selection(tmpdir_factory):
         'git commit -m test --quiet --no-gpg-sign\n',
     )
     assert result.exit_code == 0
-    assert result.out == intercepted_prefix + ('cirq/file.py dev_tools/file.py examples/file.py\n')
+    assert (
+        result.out
+        == intercepted_prefix
+        + """cirq/file.py dev_tools/file.py examples/file.py
+Running flynt v.0.60
+"""
+    )
     assert (
         result.err.split()
         == (
