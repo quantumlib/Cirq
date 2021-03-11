@@ -66,5 +66,5 @@ if [ "${num_changed}" -eq 0 ]; then
     exit 0
 fi
 pylint --rcfile=dev_tools/conf/.pylintrc ${changed[@]}
-flynt ${changed[@]} -f -q -d -e cirq/ops/pauli_string.py
+flynt ${changed[@]} -f -q -e cirq/ops/pauli_string.py
 
