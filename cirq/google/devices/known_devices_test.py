@@ -498,6 +498,62 @@ def test_sycamore_grid_layout():
         cg.Sycamore23.validate_operation(sqrt_iswap)
 
 
+def test_proto_with_circuitop():
+    circuitop_gateset = cg.serializable_gate_set.SerializableGateSet(
+        gate_set_name='circuitop_gateset',
+        serializers=[cgc.CIRCUIT_OP_SERIALIZER],
+        deserializers=[cgc.CIRCUIT_OP_DESERIALIZER],
+    )
+    circuitop_proto = cg.devices.known_devices.create_device_proto_from_diagram(
+        "aa\naa",
+        [circuitop_gateset],
+    )
+    circuitop_device = cg.SerializableDevice.from_proto(
+      proto=circuitop_proto,
+      gate_sets=[circuitop_gateset]
+    )
+
+    assert (
+        str(circuitop_proto)
+        == """\
+valid_gate_sets {
+  name: "circuitop_gateset"
+  valid_gates {
+    id: "circuit"
+  }
+}
+valid_qubits: "0_0"
+valid_qubits: "0_1"
+valid_qubits: "1_0"
+valid_qubits: "1_1"
+valid_targets {
+  name: "meas_targets"
+  target_ordering: SUBSET_PERMUTATION
+}
+valid_targets {
+  name: "2_qubit_targets"
+  target_ordering: SYMMETRIC
+  targets {
+    ids: "0_0"
+    ids: "0_1"
+  }
+  targets {
+    ids: "0_0"
+    ids: "1_0"
+  }
+  targets {
+    ids: "0_1"
+    ids: "1_1"
+  }
+  targets {
+    ids: "1_0"
+    ids: "1_1"
+  }
+}
+"""
+    )
+
+
 def test_proto_with_waitgate():
     wait_gateset = cg.serializable_gate_set.SerializableGateSet(
         gate_set_name='wait_gateset',
