@@ -40,7 +40,7 @@
     "cycle_step": 20,
     "fatol": 0.005,
     "xatol": 0.005,
-    "gate_options": {
+    "fsim_options": {
       "cirq_type": "XEBPhasedFSimCharacterizationOptions",
       "characterize_theta": true,
       "characterize_zeta": true,

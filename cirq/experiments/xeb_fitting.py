@@ -31,12 +31,16 @@ import sympy
 
 from cirq import ops
 from cirq.circuits import Circuit
-from cirq.protocols import json_serializable_dataclass
 from cirq.experiments.xeb_simulation import simulate_2q_xeb_circuits
 
 if TYPE_CHECKING:
     import cirq
     import multiprocessing
+
+    # Workaround for mypy custom dataclasses (python/mypy#5406)
+    from dataclasses import dataclass as json_serializable_dataclass
+else:
+    from cirq.protocols import json_serializable_dataclass
 
 THETA_SYMBOL, ZETA_SYMBOL, CHI_SYMBOL, GAMMA_SYMBOL, PHI_SYMBOL = sympy.symbols(
     'theta zeta chi gamma phi'

@@ -118,7 +118,7 @@ def test_xeb_to_calibration_layer():
         pairs=((q_00, q_01), (q_02, q_03)),
         options=XEBPhasedFSimCalibrationOptions(
             n_library_circuits=22,
-            gate_options=XEBPhasedFSimCharacterizationOptions(
+            fsim_options=XEBPhasedFSimCharacterizationOptions(
                 characterize_theta=True,
                 characterize_zeta=True,
                 characterize_chi=False,
@@ -270,7 +270,7 @@ def test_xeb_parse_result():
         gate=gate,
         pairs=((q_00, q_01), (q_02, q_03)),
         options=XEBPhasedFSimCalibrationOptions(
-            gate_options=XEBPhasedFSimCharacterizationOptions(
+            fsim_options=XEBPhasedFSimCharacterizationOptions(
                 characterize_theta=False,
                 characterize_zeta=False,
                 characterize_chi=False,

@@ -24,8 +24,6 @@ from typing import (
     Tuple,
     Union,
     cast,
-    Type,
-    TypeVar,
 )
 
 from cirq.circuits import Circuit
@@ -43,9 +41,8 @@ from cirq.google.calibration.phased_fsim import (
     THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     merge_matching_results,
     try_convert_sqrt_iswap_to_fsim,
-    XEBPhasedFSimCalibrationRequest,
     PhasedFSimCalibrationOptions,
-    XEBPhasedFSimCalibrationOptions,
+    RequestT,
 )
 from cirq.google.engine import Engine
 from cirq.google.serializable_gate_set import SerializableGateSet
@@ -78,12 +75,9 @@ class CircuitWithCalibration:
     moment_to_calibration: Sequence[Optional[int]]
 
 
-RequestT = TypeVar('RequestT', bound=PhasedFSimCalibrationRequest)
-
-
 def prepare_characterization_for_moment(
     moment: Moment,
-    options: PhasedFSimCalibrationOptions,
+    options: PhasedFSimCalibrationOptions[RequestT],
     *,
     gates_translator: Callable[
         [Gate], Optional[PhaseCalibratedFSimGate]
@@ -230,7 +224,7 @@ def _list_moment_pairs_to_characterize(
 
 def prepare_characterization_for_moments(
     circuit: Circuit,
-    options: PhasedFSimCalibrationOptions,
+    options: PhasedFSimCalibrationOptions[RequestT],
     *,
     gates_translator: Callable[
         [Gate], Optional[PhaseCalibratedFSimGate]
@@ -274,7 +268,7 @@ def prepare_characterization_for_moments(
     """
     if initial is None:
         allocations: List[Optional[int]] = []
-        calibrations: List[PhasedFSimCalibrationRequest] = []
+        calibrations: List[RequestT] = []
         pairs_map: Dict[Tuple[Tuple[Qid, Qid], ...], int] = {}
     else:
         allocations = []
@@ -360,7 +354,7 @@ def prepare_floquet_characterization_for_moments(
 
 def prepare_characterization_for_operations(
     circuit: Union[Circuit, Iterable[Circuit]],
-    options: PhasedFSimCalibrationOptions,
+    options: PhasedFSimCalibrationOptions[RequestT],
     *,
     gates_translator: Callable[
         [Gate], Optional[PhaseCalibratedFSimGate]
@@ -554,7 +548,7 @@ def _merge_into_calibrations(
     calibration: RequestT,
     calibrations: List[RequestT],
     pairs_map: Dict[Tuple[Tuple[Qid, Qid], ...], int],
-    options: PhasedFSimCalibrationOptions,
+    options: PhasedFSimCalibrationOptions[RequestT],
 ) -> int:
     """Merges a calibration into list of calibrations.
 

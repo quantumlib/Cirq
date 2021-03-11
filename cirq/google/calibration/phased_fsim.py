@@ -27,6 +27,7 @@ from typing import (
     Tuple,
     TypeVar,
     TYPE_CHECKING,
+    Generic,
 )
 
 import numpy as np
@@ -61,6 +62,8 @@ else:
 _FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
 _XEB_PHASED_FSIM_HANDLER_NAME = 'xeb_phased_fsim_characterization'
 T = TypeVar('T')
+
+RequestT = TypeVar('RequestT', bound='PhasedFSimCalibrationRequest')
 
 
 # Workaround for: https://github.com/python/mypy/issues/5858
@@ -207,7 +210,7 @@ SQRT_ISWAP_PARAMETERS = PhasedFSimCharacterization(
 )
 
 
-class PhasedFSimCalibrationOptions(abc.ABC):
+class PhasedFSimCalibrationOptions(abc.ABC, Generic[RequestT]):
     """Base class for calibration-specific options passed together with the requests."""
 
     @abc.abstractmethod
@@ -215,7 +218,7 @@ class PhasedFSimCalibrationOptions(abc.ABC):
         self,
         pairs: Tuple[Tuple[Qid, Qid], ...],
         gate: Gate,
-    ) -> 'PhasedFSimCalibrationRequest':
+    ) -> RequestT:
         """Create a PhasedFSimCalibrationRequest of the correct type for these options.
 
         Args:
@@ -388,6 +391,37 @@ class PhasedFSimCalibrationRequest(abc.ABC):
 
 @json_serializable_dataclass(frozen=True)
 class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
+    """Options for configuring a PhasedFSim calibration using XEB.
+
+    XEB uses the fidelity of random circuits to characterize PhasedFSim gates. The parameters
+    of the gate are varied by a classical optimizer to maximize the observed fidelities.
+
+    Args:
+        n_library_circuits: The number of distinct, two-qubit random circuits to use in our
+            library of random circuits. This should be the same order of magnitude as
+            `n_combinations`.
+        n_combinations: We take each library circuit and randomly assign it to qubit pairs.
+            This parameter controls the number of random combinations of the two-qubit random
+            circuits we execute. Higher values increase the precision of estimates but linearly
+            increase experimental runtime.
+        cycle_min: We run the random circuits at a variety of cycle depths to fit an exponential
+            decay in the fidelity. This is the minimum number of cycles to execute for each
+            combination. The number of cycles is given as range(cycle_min, cycle_max, cycle_step)
+        cycle_max: The maximum number of cycles to execute for each combinations. The number of
+            cycles is given as range(cycle_min, cycle_max, cycle_step)
+        cycle_step: The increment in cycle depths. The number of cycles is given as
+            range(cycle_min, cycle_max, cycle_step).
+        fatol: The absolute convergence tolerance for the objective function evaluation in
+            the Nelder-Mead optimization. This controls the runtime of the classical
+            characterization optimization loop.
+        xatol: The absolute convergence tolerance for the parameter estimates in
+            the Nelder-Mead optimization. This controls the runtime of the classical
+            characterization optimization loop.
+        fsim_options: An instance of `XEBPhasedFSimCharacterizationOptions` that controls aspects
+            of the PhasedFSim characterization like initial guesses and which angles to
+            characterize.
+    """
+
     n_library_circuits: int = 20
     n_combinations: int = 10
     cycle_min: int = 3
@@ -396,10 +430,12 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     fatol: Optional[float] = 5e-3
     xatol: Optional[float] = 5e-3
 
-    gate_options: XEBPhasedFSimCharacterizationOptions = XEBPhasedFSimCharacterizationOptions()
+    fsim_options: XEBPhasedFSimCharacterizationOptions = XEBPhasedFSimCharacterizationOptions()
 
-    def to_args(self):
-        args = {
+    def to_args(self) -> Dict[str, Any]:
+        """Convert this dataclass to an `args` dictionary suitable for sending to the Quantum
+        Engine calibration API."""
+        args: Dict[str, Any] = {
             'n_library_circuits': self.n_library_circuits,
             'n_combinations': self.n_combinations,
             'cycle_min': self.cycle_min,
@@ -411,14 +447,14 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         if self.xatol is not None:
             args['xatol'] = self.xatol
 
-        args.update(dataclasses.asdict(self.gate_options))
+        args.update(dataclasses.asdict(self.fsim_options))
         return args
 
     def create_phased_fsim_request(
         self,
         pairs: Tuple[Tuple[Qid, Qid], ...],
         gate: Gate,
-    ) -> 'PhasedFSimCalibrationRequest':
+    ) -> 'XEBPhasedFSimCalibrationRequest':
         return XEBPhasedFSimCalibrationRequest(pairs=pairs, gate=gate, options=self)
 
 
@@ -457,11 +493,12 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         self,
         pairs: Tuple[Tuple[Qid, Qid], ...],
         gate: Gate,
-    ) -> 'PhasedFSimCalibrationRequest':
+    ) -> 'FloquetPhasedFSimCalibrationRequest':
         return FloquetPhasedFSimCalibrationRequest(pairs=pairs, gate=gate, options=self)
 
 
-"""PhasedFSimCalibrationOptions options with all angles characterization requests set to True."""
+"""Floquet PhasedFSimCalibrationOptions options with all angles characterization requests set to
+True."""
 ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
     characterize_theta=True,
     characterize_zeta=True,
@@ -470,8 +507,10 @@ ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOp
     characterize_phi=True,
 )
 
+"""XEB PhasedFSimCalibrationOptions options with all angles characterization requests set to
+True."""
 ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION = XEBPhasedFSimCalibrationOptions(
-    gate_options=XEBPhasedFSimCharacterizationOptions(
+    fsim_options=XEBPhasedFSimCharacterizationOptions(
         characterize_theta=True,
         characterize_zeta=True,
         characterize_chi=True,
@@ -664,6 +703,7 @@ class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             assert len(metric) == 1
             targets, values = list(metric.items())[0]
 
+            # pylint: disable=unused-variable
             if metric_name == 'initial_fidelities_by_depth':
                 initial_fids = _parse_xeb_fidelities_df(targets, values)
             elif metric_name == 'final_fidelities_by_depth':
@@ -674,6 +714,7 @@ class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
                     pair: PhasedFSimCharacterization(**angles)
                     for pair, angles in final_params.items()
                 }
+            # pylint: enable=unused-variable
 
         # TODO: Return initial_fids, final_fids somehow.
         return PhasedFSimCalibrationResult(
