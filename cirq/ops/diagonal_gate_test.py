@@ -30,8 +30,8 @@ _candidate_angles: List[float] = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41
             cirq.DiagonalGate([0, 0, 0, 0]),
             cirq.DiagonalGate([2, 3, 5, sympy.Symbol('a')]),
             cirq.DiagonalGate([0.34, 0.12, 0, 0.96]),
-            cirq.DiagonalGate(_candidate_angeles[:8]),
-            cirq.DiagonalGate(_candidate_angeles[:16]),
+            cirq.DiagonalGate(_candidate_angles[:8]),
+            cirq.DiagonalGate(_candidate_angles[:16]),
         )
     ),
 )
@@ -53,7 +53,7 @@ def test_decomposition_unitary(n):
 
 @pytest.mark.parametrize('n', [1, 2, 3, 4])
 def test_diagonal_exponent(n):
-    diagonal_angles = _candidate_angeles[: 2 ** n]
+    diagonal_angles = _candidate_angles[: 2 ** n]
     diagonal_gate = cirq.DiagonalGate(diagonal_angles)
 
     sqrt_diagonal_gate = diagonal_gate ** 0.5
@@ -64,10 +64,28 @@ def test_diagonal_exponent(n):
     assert cirq.pow(cirq.DiagonalGate(diagonal_angles), "test", None) is None
 
 
+@pytest.mark.parametrize('n', [1, 2, 3, 4])
+def test_decomposition_diagonal_exponent(n):
+    diagonal_angles = np.random.randn(2 ** n)
+    diagonal_gate = cirq.DiagonalGate(diagonal_angles)
+    sqrt_diagonal_gate = diagonal_gate ** 0.5
+    decomposed_circ = cirq.Circuit(cirq.decompose(sqrt_diagonal_gate(*cirq.LineQubit.range(n))))
+
+    expected_f = [np.exp(1j * angle / 2) for angle in diagonal_angles]
+    decomposed_f = cirq.unitary(decomposed_circ).diagonal()
+
+    np.testing.assert_allclose(decomposed_f, expected_f)
+
+
+def test_disallow_decomposition_with_parametrized():
+    diagonal_gate = cirq.DiagonalGate([2, 3, 5, sympy.Symbol('a')])
+    assert not cirq.decompose(diagonal_gate(*cirq.LineQubit.range(2)))
+
+
 def test_diagram():
     a, b, c, d = cirq.LineQubit.range(4)
 
-    diagonal_circuit = cirq.Circuit(cirq.DiagonalGate(_candidate_angeles[:16])(a, b, c, d))
+    diagonal_circuit = cirq.Circuit(cirq.DiagonalGate(_candidate_angles[:16])(a, b, c, d))
     cirq.testing.assert_has_diagram(
         diagonal_circuit,
         """
@@ -81,7 +99,7 @@ def test_diagram():
 """,
     )
 
-    diagonal_circuit = cirq.Circuit(cirq.DiagonalGate(_candidate_angeles[:8])(a, b, c))
+    diagonal_circuit = cirq.Circuit(cirq.DiagonalGate(_candidate_angles[:8])(a, b, c))
     cirq.testing.assert_has_diagram(
         diagonal_circuit,
         """
@@ -93,7 +111,7 @@ def test_diagram():
 """,
     )
 
-    diagonal_circuit = cirq.Circuit(cirq.DiagonalGate(_candidate_angeles[:4])(a, b))
+    diagonal_circuit = cirq.Circuit(cirq.DiagonalGate(_candidate_angles[:4])(a, b))
     cirq.testing.assert_has_diagram(
         diagonal_circuit,
         """
@@ -106,7 +124,7 @@ def test_diagram():
 
 @pytest.mark.parametrize('n', [1, 2, 3, 4])
 def test_unitary(n):
-    diagonal_angles = _candidate_angeles[: 2 ** n]
+    diagonal_angles = _candidate_angles[: 2 ** n]
     assert cirq.has_unitary(cirq.DiagonalGate(diagonal_angles))
     np.testing.assert_allclose(
         cirq.unitary(cirq.DiagonalGate(diagonal_angles)).diagonal(),

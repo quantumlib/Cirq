@@ -18,7 +18,7 @@ The gate is used to create a (2^n)x(2^n) matrix with the diagonal elements
 passed as a list.
 """
 
-from typing import AbstractSet, Any, Tuple, List, TYPE_CHECKING
+from typing import AbstractSet, Any, Tuple, Iterator, List, Sequence, TYPE_CHECKING, Union
 import numpy as np
 import sympy
 
@@ -45,7 +45,7 @@ def _fast_walsh_hadamard_transform(a: Tuple[float]) -> np.array:
     return a_
 
 
-def _gen_gray_code(n: int):
+def _gen_gray_code(n: int) -> Iterator[Tuple[int, int]]:
     """Generate the Gray Code from 0 to 2^n-1.
 
     Each iteration yields a two-tuple, `(gray_code, bit_flip)`. `gray_code` is the decimal representation
@@ -134,13 +134,15 @@ class DiagonalGate(raw_types.Gate):
         angles = []
         for angle in self._diag_angles_radians:
             mul_angle = protocols.mul(angle, exponent, NotImplemented)
-            angles.append(mulAngle)
+            angles.append(mul_angle)
         return DiagonalGate(angles)
 
     def _value_equality_values_(self) -> Any:
         return tuple(self._diag_angles_radians)
 
-    def _decompose_for_basis(self, index, bit_flip, theta, qubits):
+    def _decompose_for_basis(
+        self, index: int, bit_flip: int, theta: float, qubits: Sequence['cirq.Qid']
+    ) -> Iterator[Union['cirq.ZPowGate', 'cirq.CXPowGate']]:
         if index == 0:
             return []
         largest_digit = self._num_qubits_() - (len(bin(index)) - 2)
@@ -151,7 +153,7 @@ class DiagonalGate(raw_types.Gate):
         elif _flip_bit > largest_digit:
             yield common_gates.CNOT(qubits[_flip_bit], qubits[largest_digit])
 
-    def _decompose_(self, qubits):
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         """Decompose the n-qubit diagonal gates into CNOT and Rz gates.
 
         A 3 qubits decomposition looks like
@@ -171,6 +173,9 @@ class DiagonalGate(raw_types.Gate):
             ancillas." New Journal of Physics 16.3 (2014): 033040.
             https://iopscience.iop.org/article/10.1088/1367-2630/16/3/033040/meta
         """
+        if protocols.is_parameterized(self):
+            return NotImplemented
+
         n = self._num_qubits_()
         hat_angles = _fast_walsh_hadamard_transform(self._diag_angles_radians) / (2 ** n)
 

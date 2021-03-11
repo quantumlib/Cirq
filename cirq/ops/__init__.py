@@ -72,6 +72,10 @@ from cirq.ops.controlled_gate import (
     ControlledGate,
 )
 
+from cirq.ops.diagonal_gate import (
+    DiagonalGate,
+)
+
 from cirq.ops.eigen_gate import (
     EigenGate,
 )
@@ -147,10 +151,6 @@ from cirq.ops.measurement_gate import (
 
 from cirq.ops.moment import (
     Moment,
-)
-
-from cirq.ops.n_qubit_diagonal_gate import (
-    DiagonalGate,
 )
 
 from cirq.ops.named_qubit import (
