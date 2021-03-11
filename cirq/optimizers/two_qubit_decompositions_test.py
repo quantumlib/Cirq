@@ -55,7 +55,7 @@ from cirq.testing import random_two_qubit_circuit_with_czs
 def test_is_trivial_angle(rad, expected):
     tolerance = 1e-8
     out = _is_trivial_angle(rad, tolerance)
-    assert out == expected, 'rad = {}'.format(rad)
+    assert out == expected, f'rad = {rad}'
 
 
 def _operations_to_matrix(operations, qubits):

@@ -119,7 +119,7 @@ class CircuitDiagramInfo:
 
         if protocols.is_parameterized(self.exponent):
             name = str(self.exponent)
-            return '({})'.format(name) if _is_exposed_formula(name) else name
+            return f'({name})' if _is_exposed_formula(name) else name
 
         if self.exponent == 0:
             return '0'
@@ -139,7 +139,7 @@ class CircuitDiagramInfo:
                 approx_frac = Fraction(self.exponent).limit_denominator(16)
                 if approx_frac.denominator not in [2, 4, 5, 10]:
                     if abs(float(approx_frac) - self.exponent) < 10 ** -args.precision:
-                        return '({})'.format(approx_frac)
+                        return f'({approx_frac})'
 
                 return args.format_real(self.exponent)
             return repr(self.exponent)
@@ -148,7 +148,7 @@ class CircuitDiagramInfo:
         s = str(self.exponent)
         if self.auto_exponent_parens and ('+' in s or ' ' in s or '-' in s[1:]):
             # The string has confusing characters. Put parens around it.
-            return '({})'.format(self.exponent)
+            return f'({self.exponent})'
         return s
 
     @staticmethod
@@ -169,7 +169,7 @@ class CircuitDiagramInfo:
 
         # Representation usually looks like 'gate(qubit1, qubit2, etc)'.
         # Try to cut off the qubit part, since that would be redundant.
-        redundant_tail = '({})'.format(', '.join(str(e) for e in op.qubits))
+        redundant_tail = f"({', '.join(str(e) for e in op.qubits)})"
         if name.endswith(redundant_tail):
             name = name[: -len(redundant_tail)]
 
@@ -178,7 +178,7 @@ class CircuitDiagramInfo:
             name += f'{list(op.tags)}'
 
         # Include ordering in the qubit labels.
-        symbols = (name,) + tuple('#{}'.format(i + 1) for i in range(1, len(op.qubits)))
+        symbols = (name,) + tuple(f'#{i + 1}' for i in range(1, len(op.qubits)))
 
         return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
@@ -416,9 +416,7 @@ def circuit_diagram_info(
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     if getter is None:
-        raise TypeError(
-            "object of type '{}' has no _circuit_diagram_info_ method.".format(type(val))
-        )
+        raise TypeError(f"object of type '{type(val)}' has no _circuit_diagram_info_ method.")
     raise TypeError(
         "object of type '{}' does have a _circuit_diagram_info_ "
         "method, but it returned NotImplemented.".format(type(val))

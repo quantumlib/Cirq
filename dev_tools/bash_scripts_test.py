@@ -509,7 +509,12 @@ def test_incremental_format_branch_selection(tmpdir_factory):
         script_file='check/format-incremental', tmpdir_factory=tmpdir_factory, arg='HEAD~9999'
     )
     assert result.exit_code == 1
-    assert result.out == ''
+    assert (
+        result.out
+        == """Running flynt v.0.60
+`cirq` not found
+"""
+    )
     assert "No revision 'HEAD~9999'." in result.err
 
     result = run(script_file='check/format-incremental', tmpdir_factory=tmpdir_factory)
@@ -550,7 +555,12 @@ def test_incremental_format_branch_selection(tmpdir_factory):
         setup='git checkout -b other --quiet\ngit branch -D master --quiet\n',
     )
     assert result.exit_code == 1
-    assert result.out == ''
+    assert (
+        result.out
+        == """Running flynt v.0.60
+`cirq` not found
+"""
+    )
     assert 'No default revision found to compare against' in result.err
 
     # Works when ambiguous between revision and file.
@@ -588,7 +598,7 @@ def test_incremental_format_branch_selection(tmpdir_factory):
         'git add -A\n'
         'git commit -q -m test3 --no-gpg-sign\n',
     )
-    assert result.exit_code == 0
+    assert result.exit_code == 1
     assert 'INTERCEPTED black --color --check --diff alt.py' in result.out
     assert result.err.startswith("Comparing against revision 'master' (merge base ")
 

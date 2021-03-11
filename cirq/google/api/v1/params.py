@@ -39,7 +39,7 @@ def _to_zip_product(sweep: sweeps.Sweep) -> sweeps.Product:
     for factor in sweep.factors:
         for term in cast(sweeps.Zip, factor).sweeps:
             if not isinstance(term, sweeps.SingleSweep):
-                raise ValueError('cannot convert to zip-product form: {}'.format(sweep))
+                raise ValueError(f'cannot convert to zip-product form: {sweep}')
     return sweep
 
 
@@ -61,7 +61,7 @@ def _single_param_sweep_to_proto(sweep: sweeps.SingleSweep) -> params_pb2.Single
             parameter_key=sweep.key, points=params_pb2.Points(points=sweep.points)
         )
     else:
-        raise ValueError('invalid single-parameter sweep: {}'.format(sweep))
+        raise ValueError(f'invalid single-parameter sweep: {sweep}')
 
 
 def sweep_from_proto(param_sweep: params_pb2.ParameterSweep) -> sweeps.Sweep:

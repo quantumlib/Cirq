@@ -86,7 +86,7 @@ class Moment:
             for q in op.qubits:
                 # Check that operations don't overlap.
                 if q in self._qubit_to_op:
-                    raise ValueError('Overlapping operations: {}'.format(self.operations))
+                    raise ValueError(f'Overlapping operations: {self.operations}')
                 self._qubit_to_op[q] = op
 
         self._qubits = frozenset(self._qubit_to_op.keys())
@@ -144,7 +144,7 @@ class Moment:
             The new moment.
         """
         if any(q in self._qubits for q in operation.qubits):
-            raise ValueError('Overlapping operations: {}'.format(operation))
+            raise ValueError(f'Overlapping operations: {operation}')
 
         # Use private variables to facilitate a quick copy.
         m = Moment()
@@ -171,7 +171,7 @@ class Moment:
         qubits = set(self._qubits)
         for op in op_tree.flatten_to_ops(contents):
             if any(q in qubits for q in op.qubits):
-                raise ValueError('Overlapping operations: {}'.format(op))
+                raise ValueError(f'Overlapping operations: {op}')
             operations.append(op)
             qubits.update(op.qubits)
 

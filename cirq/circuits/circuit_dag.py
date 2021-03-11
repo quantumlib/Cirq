@@ -42,7 +42,7 @@ class Unique(Generic[T]):
         self.val = val
 
     def __repr__(self) -> str:
-        return 'cirq.Unique({}, {!r})'.format(id(self), self.val)
+        return f'cirq.Unique({id(self)}, {self.val!r})'
 
     def __lt__(self, other):
         if not isinstance(other, type(self)):

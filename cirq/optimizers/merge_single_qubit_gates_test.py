@@ -34,7 +34,7 @@ def assert_optimizes(
         post(before)  # type: ignore #  error: "object" not callable
         post(expected)  # type: ignore #  error: "object" not callable
 
-    assert before == expected, 'BEFORE:\n{}\nEXPECTED:\n{}'.format(before, expected)
+    assert before == expected, f'BEFORE:\n{before}\nEXPECTED:\n{expected}'
 
 
 def test_leaves_singleton():
