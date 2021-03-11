@@ -382,6 +382,12 @@ class SerializableGateSet:
                 f'Unsupported serialized CircuitOperation.\n\noperation_proto:\n{operation_proto}'
             )
 
+        if not isinstance(deserializer, op_deserializer.CircuitOpDeserializer):
+            raise ValueError(
+                'Expected CircuitOpDeserializer for id "circuit", '
+                f'got {deserializer.serialized_id}.'
+            )
+
         return deserializer.from_proto(
             operation_proto,
             arg_function_language=arg_function_language,

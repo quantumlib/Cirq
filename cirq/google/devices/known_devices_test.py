@@ -508,10 +508,6 @@ def test_proto_with_circuitop():
         "aa\naa",
         [circuitop_gateset],
     )
-    circuitop_device = cg.SerializableDevice.from_proto(
-      proto=circuitop_proto,
-      gate_sets=[circuitop_gateset]
-    )
 
     assert (
         str(circuitop_proto)

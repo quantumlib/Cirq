@@ -321,7 +321,7 @@ class CircuitOpSerializer(OpSerializer):
 
         msg = msg or v2.program_pb2.CircuitOperation()
         try:
-            msg.circuit_constant_index = raw_constants.index(op.untagged.circuit)
+            msg.circuit_constant_index = raw_constants.index(op.circuit)
         except ValueError as err:
             # Circuits must be serialized prior to any CircuitOperations that use them.
             raise ValueError(

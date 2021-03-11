@@ -508,3 +508,4 @@ def test_circuit_op_to_proto():
         arg_map=arg_map,
     )
     actual = serializer.to_proto(to_serialize, constants=constants, raw_constants=raw_constants)
+    assert actual == expected

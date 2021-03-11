@@ -513,7 +513,6 @@ def default_circuit():
 
 
 def test_serialize_circuit_op_errors():
-    q0 = cirq.GridQubit(1, 1)
     constants = [default_circuit_proto()]
     raw_constants = [default_circuit()]
 
@@ -537,7 +536,6 @@ def test_serialize_circuit_op_errors():
 
 
 def test_deserialize_circuit_op_errors():
-    q0 = cirq.GridQubit(1, 1)
     constants = [default_circuit_proto()]
     raw_constants = [default_circuit()]
 
@@ -555,9 +553,23 @@ def test_deserialize_circuit_op_errors():
             proto, constants=constants, raw_constants=raw_constants
         )
 
+    BAD_CIRCUIT_DESERIALIZER = cg.GateOpDeserializer(
+        serialized_gate_id='circuit',
+        gate_constructor=cirq.ZPowGate,
+        args=[],
+    )
+    BAD_CIRCUIT_DESERIALIZER_GATE_SET = cg.SerializableGateSet(
+        gate_set_name='bad_circuit_gateset',
+        serializers=[CIRCUIT_OP_SERIALIZER],
+        deserializers=[BAD_CIRCUIT_DESERIALIZER],
+    )
+    with pytest.raises(ValueError, match='Expected CircuitOpDeserializer for id "circuit"'):
+        BAD_CIRCUIT_DESERIALIZER_GATE_SET.deserialize_op(
+            proto, constants=constants, raw_constants=raw_constants
+        )
+
 
 def test_serialize_deserialize_circuit_op():
-    q0 = cirq.GridQubit(1, 1)
     constants = [default_circuit_proto()]
     raw_constants = [default_circuit()]
 
