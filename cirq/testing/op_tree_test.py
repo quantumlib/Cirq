@@ -19,7 +19,7 @@ from cirq.testing import assert_equivalent_op_tree
 
 def test_assert_equivalent_op_tree():
     assert_equivalent_op_tree([], [])
-    a, b = cirq.LineQubit.range(2)
+    a = cirq.NamedQubit("a")
     assert_equivalent_op_tree([cirq.X(a)], [cirq.X(a)])
 
     assert_equivalent_op_tree(cirq.Circuit([cirq.X(a)]), [cirq.X(a)])
