@@ -53,6 +53,8 @@ from cirq.ops import (
 )
 
 if TYPE_CHECKING:
+    import cirq
+
     # Workaround for mypy custom dataclasses (python/mypy#5406)
     from dataclasses import dataclass as json_serializable_dataclass
 else:
@@ -636,10 +638,16 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         }
 
 
-def _parse_xeb_fidelities_df(targets, values):
-    records = collections.defaultdict(dict)
+def _parse_xeb_fidelities_df(targets, values) -> pd.DataFrame:
+    """Parse a fidelities DataFrame from targets and values in a Metric proto."""
+    # dict(zip(targets, values)) is a mapping to values where the keys are all unique.
+    # The prefix of a given key, e.g. 4_3_23_qubit_0_1 is a stringified version of the
+    # "index" for the dataframe. Here, it is (layer_i, pair_i, cycle_depth). We do an
+    # initial parse and put into `records`, which is keyed by the index value.
+    records: Dict[Tuple[int, int, int], Dict[str, Any]] = collections.defaultdict(dict)
     for target, val in zip(targets, values):
         ma = re.match(r'(\d+)_(\d+)_(\d+)_(\w+)', target)
+        assert ma is not None, str(ma)
         layer_i = int(ma.group(1))
         pair_i = int(ma.group(2))
         cycle_depth = int(ma.group(3))
@@ -649,6 +657,8 @@ def _parse_xeb_fidelities_df(targets, values):
 
         records[layer_i, pair_i, cycle_depth][key] = val
 
+    # To construct the dataframe, we flatten the `records` dictionary to a flat list of
+    # entries. Each entry learns its index value (layer_i, pair_i, cycle_depth).
     flat_records = []
     for (layer_i, pair_i, cycle_depth), record in records.items():
         record['layer_i'] = layer_i
@@ -661,16 +671,28 @@ def _parse_xeb_fidelities_df(targets, values):
     return pd.DataFrame(flat_records)
 
 
-def _parse_characterized_angles(targets, values):
-    records = collections.defaultdict(dict)
+def _parse_characterized_angles(
+    targets, values
+) -> Dict[Tuple['cirq.Qid', 'cirq.Qid'], Dict[str, float]]:
+    """Parses a characterized angle dictionary"""
+
+    # dict(zip(targets, values)) is a mapping to values where the keys are all unique.
+    # The prefix of a given key, e.g. 9_qubit_0_1 is a stringified version of the
+    # "index" for the dataframe. Here, it is `pair_i`. We do an
+    # initial parse and put into `records`, which is keyed by the index value.
+    records: Dict[int, Dict[str, Any]] = collections.defaultdict(dict)
     for target, val in zip(targets, values):
         ma = re.match(r'(\d+)_(\w+)', target)
-        pair_index = int(ma.group(1))
+        assert ma is not None, str(ma)
+        pair_i = int(ma.group(1))
         key = ma.group(2)
         if key.startswith('qubit_'):
             val = v2.qubit_from_proto_id(val)
-        records[pair_index][key] = val
+        records[pair_i][key] = val
 
+    # To construct the actual return value, we switch from using a pair index key
+    # to the actual qubits and make sure the value is (just) a mapping from angle
+    # names to values.
     final_params = {}
     for record in records.values():
         qa, qb = record['qubit_a'], record['qubit_b']
@@ -709,10 +731,9 @@ class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             elif metric_name == 'final_fidelities_by_depth':
                 final_fids = _parse_xeb_fidelities_df(targets, values)
             elif metric_name == 'characterized_angles':
-                final_params = _parse_characterized_angles(targets, values)
                 final_params = {
                     pair: PhasedFSimCharacterization(**angles)
-                    for pair, angles in final_params.items()
+                    for pair, angles in _parse_characterized_angles(targets, values).items()
                 }
             # pylint: enable=unused-variable
 
