@@ -718,8 +718,6 @@ class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
         for metric_name, metric in result.metrics.items():
-            print(metric_name)
-
             # For some reason, the metric proto gets turned into a length-1 dictionary
             # where the key is all the targets and value is all the values
             assert len(metric) == 1
