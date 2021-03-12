@@ -187,7 +187,7 @@ class DiagonalGate(raw_types.Gate):
         # we add global phase.
         decomposed_circ = [global_phase_op.GlobalPhaseOperation(np.exp(1j * hat_angles[0]))]
         for i, bit_flip in _gen_gray_code(n):
-            decomposed_circ.extend(self._decompose_for_basis(i, bit_flip, -hat_angles[i], qubits))
+            decomposed_circ += list(self._decompose_for_basis(i, bit_flip, -hat_angles[i], qubits))
         return decomposed_circ
 
     def __repr__(self) -> str:
