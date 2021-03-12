@@ -15,7 +15,7 @@
 import cirq
 import cirq.contrib.noise_models as ccn
 from cirq import ops
-from cirq.devices.noise_model_test import _assert_equivalent_op_tree
+from cirq.testing import assert_equivalent_op_tree
 
 
 def test_depol_noise():
@@ -83,7 +83,7 @@ def test_readout_noise_after_moment():
             cirq.measure(qubits[2], key='q2'),
         ]
     )
-    _assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
+    assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
 
 
 # Composes depolarization, damping, and readout noise (in that order).
@@ -140,7 +140,7 @@ def test_decay_noise_after_moment():
             cirq.measure(qubits[2], key='q2'),
         ]
     )
-    _assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
+    assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
 
 
 # Test the aggregate noise models.
@@ -188,7 +188,7 @@ def test_aggregate_readout_noise_after_moment():
             cirq.measure(qubits[2], key='q2'),
         ]
     )
-    _assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
+    assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
 
 
 def test_aggregate_decay_noise_after_moment():
@@ -238,4 +238,4 @@ def test_aggregate_decay_noise_after_moment():
             cirq.measure(qubits[2], key='q2'),
         ]
     )
-    _assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
+    assert_equivalent_op_tree(true_noisy_program, noisy_circuit)

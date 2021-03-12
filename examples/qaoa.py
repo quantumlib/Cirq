@@ -117,9 +117,9 @@ def main(repetitions=1000, maxiter=50):
     max_cut_value = np.max(all_values)
 
     # Print the results
-    print('The largest cut value found was {}.'.format(largest_cut_value_found))
-    print('The largest possible cut has size {}.'.format(max_cut_value))
-    print('The approximation ratio achieved is {}.'.format(largest_cut_value_found / max_cut_value))
+    print(f'The largest cut value found was {largest_cut_value_found}.')
+    print(f'The largest possible cut has size {max_cut_value}.')
+    print(f'The approximation ratio achieved is {largest_cut_value_found / max_cut_value}.')
 
 
 def rzz(rads):

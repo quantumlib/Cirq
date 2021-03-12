@@ -68,14 +68,14 @@ class QubitOrder:
         """
         result = tuple(fixed_qubits)
         if len(set(result)) < len(result):
-            raise ValueError('Qubits appear in fixed_order twice: {}.'.format(result))
+            raise ValueError(f'Qubits appear in fixed_order twice: {result}.')
 
         def func(qubits):
             remaining = set(qubits) - set(result)
             if not remaining:
                 return result
             if not fallback:
-                raise ValueError('Unexpected extra qubits: {}.'.format(remaining))
+                raise ValueError(f'Unexpected extra qubits: {remaining}.')
             return result + fallback.order_for(remaining)
 
         return QubitOrder(func)
@@ -122,7 +122,7 @@ class QubitOrder:
             return QubitOrder.explicit(val)
         if isinstance(val, QubitOrder):
             return val
-        raise ValueError("Don't know how to interpret <{}> as a Basis.".format(val))
+        raise ValueError(f"Don't know how to interpret <{val}> as a Basis.")
 
     def map(
         self,
