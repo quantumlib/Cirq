@@ -77,9 +77,14 @@ def test_decomposition_diagonal_exponent(n):
     np.testing.assert_allclose(decomposed_f, expected_f)
 
 
-def test_disallow_decomposition_with_parametrized():
+def test_decomposition_with_parameterization():
     diagonal_gate = cirq.DiagonalGate([2, 3, 5, sympy.Symbol('a')])
-    assert not cirq.decompose(diagonal_gate(*cirq.LineQubit.range(2)))
+    op = diagonal_gate(*cirq.LineQubit.range(2))
+
+    # We do not support the decomposition of parameterized case yet.
+    # So cirq.decompose should do nothing.
+    assert len(cirq.decompose(op)) == 1
+    assert cirq.decompose(op)[0] == op
 
 
 def test_diagram():
