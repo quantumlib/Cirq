@@ -19,6 +19,8 @@ from google.protobuf import text_format
 
 import cirq
 from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
+from cirq.google.api import v2
+from cirq.google.arg_func_langs import arg_to_proto
 from cirq.google.calibration.phased_fsim import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     FloquetPhasedFSimCalibrationOptions,
@@ -127,7 +129,8 @@ def test_xeb_to_calibration_layer():
             ),
         ),
     )
-    assert request.to_calibration_layer() == cirq.google.CalibrationLayer(
+    layer = request.to_calibration_layer()
+    assert layer == cirq.google.CalibrationLayer(
         calibration_type='xeb_phased_fsim_characterization',
         program=cirq.Circuit([gate.on(q_00, q_01), gate.on(q_02, q_03)]),
         args={
@@ -143,13 +146,25 @@ def test_xeb_to_calibration_layer():
             'characterize_chi': False,
             'characterize_gamma': False,
             'characterize_phi': True,
-            'theta_default': 0,
-            'zeta_default': 0,
-            'chi_default': 0,
-            'gamma_default': 0,
-            'phi_default': 0,
+            'theta_default': 0.0,
+            'zeta_default': 0.0,
+            'chi_default': 0.0,
+            'gamma_default': 0.0,
+            'phi_default': 0.0,
         },
     )
+
+    # Serialize to proto
+    calibration = v2.calibration_pb2.FocusedCalibration()
+    new_layer = calibration.layers.add()
+    new_layer.calibration_type = layer.calibration_type
+    for arg in layer.args:
+        arg_to_proto(layer.args[arg], out=new_layer.args[arg])
+    cirq.google.SQRT_ISWAP_GATESET.serialize(layer.program, msg=new_layer.layer)
+    with open(os.path.dirname(__file__) + '/test_data/xeb_calibration_layer.textproto') as f:
+        desired_textproto = f.read()
+
+    assert str(new_layer) == desired_textproto
 
 
 def test_from_moment():

@@ -1,0 +1,169 @@
+calibration_type: "xeb_phased_fsim_characterization"
+layer {
+  language {
+    gate_set: "sqrt_iswap"
+  }
+  circuit {
+    scheduling_strategy: MOMENT_BY_MOMENT
+    moments {
+      operations {
+        gate {
+          id: "fsim_pi_4"
+        }
+        qubits {
+          id: "0_0"
+        }
+        qubits {
+          id: "0_1"
+        }
+      }
+      operations {
+        gate {
+          id: "fsim_pi_4"
+        }
+        qubits {
+          id: "0_2"
+        }
+        qubits {
+          id: "0_3"
+        }
+      }
+    }
+  }
+}
+args {
+  key: "characterize_chi"
+  value {
+    arg_value {
+      float_value: 0.0
+    }
+  }
+}
+args {
+  key: "characterize_gamma"
+  value {
+    arg_value {
+      float_value: 0.0
+    }
+  }
+}
+args {
+  key: "characterize_phi"
+  value {
+    arg_value {
+      float_value: 1.0
+    }
+  }
+}
+args {
+  key: "characterize_theta"
+  value {
+    arg_value {
+      float_value: 1.0
+    }
+  }
+}
+args {
+  key: "characterize_zeta"
+  value {
+    arg_value {
+      float_value: 1.0
+    }
+  }
+}
+args {
+  key: "chi_default"
+  value {
+    arg_value {
+      float_value: 0.0
+    }
+  }
+}
+args {
+  key: "cycle_max"
+  value {
+    arg_value {
+      float_value: 100.0
+    }
+  }
+}
+args {
+  key: "cycle_min"
+  value {
+    arg_value {
+      float_value: 3.0
+    }
+  }
+}
+args {
+  key: "cycle_step"
+  value {
+    arg_value {
+      float_value: 20.0
+    }
+  }
+}
+args {
+  key: "fatol"
+  value {
+    arg_value {
+      float_value: 0.004999999888241291
+    }
+  }
+}
+args {
+  key: "gamma_default"
+  value {
+    arg_value {
+      float_value: 0.0
+    }
+  }
+}
+args {
+  key: "n_combinations"
+  value {
+    arg_value {
+      float_value: 10.0
+    }
+  }
+}
+args {
+  key: "n_library_circuits"
+  value {
+    arg_value {
+      float_value: 22.0
+    }
+  }
+}
+args {
+  key: "phi_default"
+  value {
+    arg_value {
+      float_value: 0.0
+    }
+  }
+}
+args {
+  key: "theta_default"
+  value {
+    arg_value {
+      float_value: 0.0
+    }
+  }
+}
+args {
+  key: "xatol"
+  value {
+    arg_value {
+      float_value: 0.004999999888241291
+    }
+  }
+}
+args {
+  key: "zeta_default"
+  value {
+    arg_value {
+      float_value: 0.0
+    }
+  }
+}
