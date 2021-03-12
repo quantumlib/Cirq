@@ -112,3 +112,5 @@ from cirq.testing.sample_circuits import (
 from cirq.testing.deprecation import (
     assert_deprecated,
 )
+
+from cirq.testing.op_tree import assert_equivalent_op_tree
