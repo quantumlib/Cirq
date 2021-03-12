@@ -18,7 +18,12 @@ import abc
 
 import pandas as pd
 
-from cirq import study
+from cirq import ops, study
+from cirq.work import group_settings_greedy, observables_to_settings
+from cirq.work.observable_measurement import (
+    _get_params_for_setting,
+    _with_parameterized_layers,
+)
 
 if TYPE_CHECKING:
     import cirq
@@ -132,6 +137,126 @@ class Sampler(metaclass=abc.ABCMeta):
                 results.append(pd.concat([param_table, result.data], axis=1))
 
         return pd.concat(results)
+
+    def sample_expectation_values(
+        self,
+        program: 'cirq.Circuit',
+        observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
+        *,
+        num_samples: int,
+        params: 'cirq.Sweepable' = None,
+        permit_terminal_measurements: bool = False,
+    ) -> List[List[float]]:
+        """Calculates estimated expectation values from samples of a circuit.
+
+        This method can be run on any device or simulator that supports circuit
+        sampling. Compare with `simulate_expectation_values` in simulator.py,
+        which is limited to simulators but provides exact results.
+
+        Args:
+            program: The circuit to simulate.
+            observables: A list of observables for which to calculate
+                expectation values.
+            num_samples: The number of samples to take. Increasing this value
+                increases the accuracy of the estimate.
+            params: Parameters to run with the program.
+            permit_terminal_measurements: If the provided circuit ends in a
+                measurement, this method will generate an error unless this
+                is set to True. This is meant to prevent measurements from
+                ruining expectation value calculations.
+
+        Returns:
+            A list of expectation-value lists. The outer index determines the
+            sweep, and the inner index determines the observable. For instance,
+            results[1][3] would select the fourth observable measured in the
+            second sweep.
+        """
+        if num_samples <= 0:
+            raise ValueError(
+                f'Expectation values require at least one sample. Received: {num_samples}.'
+            )
+        if not observables:
+            raise ValueError('At least one observable must be provided.')
+        if not permit_terminal_measurements and program.are_any_measurements_terminal():
+            raise ValueError(
+                'Provided circuit has terminal measurements, which may '
+                'skew expectation values. If this is intentional, set '
+                'permit_terminal_measurements=True.'
+            )
+        qubits = ops.QubitOrder.DEFAULT.order_for(program.all_qubits())
+        qmap = {q: i for i, q in enumerate(qubits)}
+        num_qubits = len(qubits)
+        psums = (
+            [ops.PauliSum.wrap(o) for o in observables]
+            if isinstance(observables, List)
+            else [ops.PauliSum.wrap(observables)]
+        )
+
+        obs_pstrings: List[ops.PauliString] = []
+        for psum in psums:
+            pstring_aggregate = {}
+            for pstring in psum:
+                pstring_aggregate.update(pstring.items())
+            obs_pstrings.append(ops.PauliString(pstring_aggregate))
+
+        # List of observable settings with the same indexing as 'observables'.
+        obs_settings = list(observables_to_settings(obs_pstrings, qubits))
+        # Map of setting-groups to the settings they cover.
+        sampling_groups = group_settings_greedy(obs_settings)
+        sampling_params = {
+            max_setting: _get_params_for_setting(
+                setting=max_setting,
+                flips=[False] * num_qubits,
+                qubits=qubits,
+                needs_init_layer=False,
+            )
+            for max_setting in sampling_groups
+        }
+
+        # Parameterized circuit for observable measurement.
+        mod_program = _with_parameterized_layers(program, qubits, needs_init_layer=False)
+
+        input_params = list(params) if params else {}
+        num_input_param_values = len(list(study.to_resolvers(input_params)))
+        # Pairing of input sweeps with each required observable rotation.
+        sweeps = study.to_sweeps(input_params)
+        mod_sweep = study.ListSweep(sampling_params.values())
+        all_sweeps = [study.Product(sweep, mod_sweep) for sweep in sweeps]
+
+        # Results sampled from the modified circuit. Parameterization ensures
+        # that all 'z' results map directly to observables.
+        samples = self.sample(mod_program, repetitions=num_samples, params=all_sweeps)
+        results: List[List[float]] = [[0] * len(psums) for _ in range(num_input_param_values)]
+
+        for max_setting, grouped_settings in sampling_groups.items():
+            ev_params = sampling_params[max_setting]
+            # A set of num_samples integer-packed results for this setting.
+            series = [True] * len(samples)
+            for k, v in ev_params.items():
+                series = series & (samples[k] == v)
+
+            for sweep_idx, pr in enumerate(study.to_resolvers(input_params)):
+                subseries = series
+                for k in pr:
+                    subseries = subseries & (samples[k] == pr.value_of(k))
+                int_results = samples.loc[subseries, 'z']
+                for setting in grouped_settings:
+                    obs_idx = obs_settings.index(setting)
+                    psum = psums[obs_idx]
+                    ev = 0
+                    for pstr in psum:
+                        sum_val = 0
+                        for int_result in int_results:
+                            val = 1
+                            for q in pstr.qubits:
+                                bit_idx = num_qubits - qmap[q] - 1
+                                if (int_result >> bit_idx) & 1:
+                                    val *= -1
+                            sum_val += val
+                        ev += sum_val * pstr.coefficient
+                    results[sweep_idx][obs_idx] = ev / num_samples
+
+        return results
 
     @abc.abstractmethod
     def run_sweep(
