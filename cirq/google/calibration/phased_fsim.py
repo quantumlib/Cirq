@@ -201,6 +201,8 @@ class PhasedFSimCharacterization:
 SQRT_ISWAP_INV_PARAMETERS = PhasedFSimCharacterization(
     theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
 )
+# Pending deprecation in 0.11.
+SQRT_ISWAP_PARAMETERS = SQRT_ISWAP_INV_PARAMETERS
 
 
 class PhasedFSimCalibrationOptions(abc.ABC):
