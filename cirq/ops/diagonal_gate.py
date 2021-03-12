@@ -185,9 +185,11 @@ class DiagonalGate(raw_types.Gate):
         # decomposed gates. On its own it is not physically observable. However, if using this
         # diagonal gate for sub-system like controlled gate, it is no longer equivalent. Hence,
         # we add global phase.
-        decomposed_circ = [global_phase_op.GlobalPhaseOperation(np.exp(1j * hat_angles[0]))]
+        decomposed_circ: List[Any] = [
+            global_phase_op.GlobalPhaseOperation(np.exp(1j * hat_angles[0]))
+        ]
         for i, bit_flip in _gen_gray_code(n):
-            decomposed_circ += list(self._decompose_for_basis(i, bit_flip, -hat_angles[i], qubits))
+            decomposed_circ.extend(self._decompose_for_basis(i, bit_flip, -hat_angles[i], qubits))
         return decomposed_circ
 
     def __repr__(self) -> str:
