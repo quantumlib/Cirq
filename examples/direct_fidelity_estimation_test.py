@@ -59,8 +59,6 @@ def test_direct_fidelity_estimation_with_noise_non_clifford():
 
 
 def test_incorrect_sampler_raises_exception():
-    import cirq.google
-
     qubits = cirq.LineQubit.range(1)
     circuit = cirq.Circuit(cirq.X(qubits[0]))
     sampler_incorrect_type = cirq.ZerosSampler
