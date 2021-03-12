@@ -83,7 +83,7 @@ def test_decomposition_with_parameterization():
 
     # We do not support the decomposition of parameterized case yet.
     # So cirq.decompose should do nothing.
-    assert len(cirq.decompose(op)) == [op]
+    assert cirq.decompose(op) == [op]
 
 
 def test_diagram():
