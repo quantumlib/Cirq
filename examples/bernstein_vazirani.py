@@ -69,7 +69,7 @@ def main(qubit_count=8):
     simulator = cirq.Simulator()
     result = simulator.run(circuit, repetitions=circuit_sample_count)
     frequencies = result.histogram(key='result', fold_func=bitstring)
-    print('Sampled results:\n{}'.format(frequencies))
+    print(f'Sampled results:\n{frequencies}')
 
     # Check if we actually found the secret value.
     most_common_bitstring = frequencies.most_common(1)[0][0]

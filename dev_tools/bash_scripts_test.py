@@ -551,6 +551,7 @@ def test_incremental_format_branch_selection(tmpdir_factory):
     )
     assert result.exit_code == 1
     assert result.out == ''
+
     assert 'No default revision found to compare against' in result.err
 
     # Works when ambiguous between revision and file.

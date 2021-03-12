@@ -83,7 +83,7 @@ def assert_equivalent_repr(
     )
 
     try:
-        a = eval('{!r}.__class__'.format(value), global_vals, local_vals)
+        a = eval(f'{value!r}.__class__', global_vals, local_vals)
     except Exception:
         raise AssertionError(
             "The repr of a value of type {} wasn't 'dottable'.\n"
@@ -91,7 +91,7 @@ def assert_equivalent_repr(
             "but it raised an error instead.".format(type(value), value, value)
         )
 
-    b = eval('({!r}).__class__'.format(value), global_vals, local_vals)
+    b = eval(f'({value!r}).__class__', global_vals, local_vals)
     assert a == b, (
         "The repr of a value of type {} wasn't 'dottable'.\n"
         "{!r}.XXX must be equivalent to ({!r}).XXX, "

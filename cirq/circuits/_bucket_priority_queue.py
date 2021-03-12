@@ -154,7 +154,7 @@ class BucketPriorityQueue(Generic[TItem]):
         return priority, item
 
     def __str__(self) -> str:
-        lines = ['{}: {},'.format(p, e) for p, e in self]
+        lines = [f'{p}: {e},' for p, e in self]
         return 'BucketPriorityQueue {' + _indent(lines) + '\n}'
 
     def __repr__(self) -> str:

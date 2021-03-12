@@ -67,7 +67,7 @@ class IonDevice(devices.Device):
             return self._oneq_gates_duration
         if isinstance(operation.gate, ops.MeasurementGate):
             return self._measurement_duration
-        raise ValueError('Unsupported gate type: {!r}'.format(operation))
+        raise ValueError(f'Unsupported gate type: {operation!r}')
 
     def validate_gate(self, gate: ops.Gate):
         if not isinstance(
@@ -81,19 +81,19 @@ class IonDevice(devices.Device):
                 ops.MeasurementGate,
             ),
         ):
-            raise ValueError('Unsupported gate type: {!r}'.format(gate))
+            raise ValueError(f'Unsupported gate type: {gate!r}')
 
     def validate_operation(self, operation):
         if not isinstance(operation, ops.GateOperation):
-            raise ValueError('Unsupported operation: {!r}'.format(operation))
+            raise ValueError(f'Unsupported operation: {operation!r}')
 
         self.validate_gate(operation.gate)
 
         for q in operation.qubits:
             if not isinstance(q, devices.LineQubit):
-                raise ValueError('Unsupported qubit type: {!r}'.format(q))
+                raise ValueError(f'Unsupported qubit type: {q!r}')
             if q not in self.qubits:
-                raise ValueError('Qubit not on device: {!r}'.format(q))
+                raise ValueError(f'Qubit not on device: {q!r}')
 
     def _check_if_XXPow_operation_interacts_with_any(
         self, XXPow_op: ops.GateOperation, others: Iterable[ops.GateOperation]
@@ -173,5 +173,5 @@ def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
             meas = op.gate
             key = protocols.measurement_key(meas)
             if key in seen:
-                raise ValueError('Measurement key {} repeated'.format(key))
+                raise ValueError(f'Measurement key {key} repeated')
             seen.add(key)
