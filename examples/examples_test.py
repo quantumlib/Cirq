@@ -52,8 +52,8 @@ def test_example_runs_deutsch():
     examples.deutsch.main()
 
 
-@cirq.testing.skip_if_module_not_exists(module="cirq.google")
 def test_example_runs_hello_line():
+    pytest.importorskip("cirq.google")
     examples.place_on_bristlecone.main()
 
 
@@ -73,8 +73,8 @@ def test_example_runs_quantum_fourier_transform():
     examples.quantum_fourier_transform.main()
 
 
-@cirq.testing.skip_if_module_not_exists(module="cirq.google")
 def test_example_runs_bcs_mean_field():
+    pytest.importorskip("cirq.google")
     examples.bcs_mean_field.main()
 
 
@@ -90,8 +90,8 @@ def test_example_runs_phase_estimator():
     examples.phase_estimator.main(qnums=(2,), repetitions=2)
 
 
-@cirq.testing.skip_if_module_not_exists(module="cirq.google")
 def test_example_heatmaps():
+    pytest.importorskip("cirq.google")
     plt.switch_backend('agg')
     examples.heatmaps.main()
 

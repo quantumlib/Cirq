@@ -112,8 +112,3 @@ from cirq.testing.sample_circuits import (
 from cirq.testing.deprecation import (
     assert_deprecated,
 )
-
-from cirq.testing.modules import (
-    skip_if_module_exists,
-    skip_if_module_not_exists,
-)
