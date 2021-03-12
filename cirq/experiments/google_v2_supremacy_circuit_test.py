@@ -14,7 +14,6 @@
 
 import pytest
 
-import cirq
 from cirq import GridQubit
 from cirq import ops
 import cirq.experiments.google_v2_supremacy_circuit as supremacy_v2

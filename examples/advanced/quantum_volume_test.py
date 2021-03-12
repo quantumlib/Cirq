@@ -1,12 +1,8 @@
 """Tests for the Quantum Volume benchmarker."""
 
-from unittest.mock import Mock, MagicMock
-import io
-import numpy as np
 import pytest
 
 from examples.advanced import quantum_volume
-import cirq
 
 
 def test_main_loop():
