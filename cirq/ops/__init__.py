@@ -72,6 +72,10 @@ from cirq.ops.controlled_gate import (
     ControlledGate,
 )
 
+from cirq.ops.diagonal_gate import (
+    DiagonalGate,
+)
+
 from cirq.ops.eigen_gate import (
     EigenGate,
 )
