@@ -379,6 +379,14 @@ def _debug(*args):
     # print(*args)
 
 
+def _is_internal(filename: str) -> bool:
+    """Signal whether the frame is an internal CPython implementation detail.
+
+    Shamelessly based on warnings.py
+    """
+    return 'importlib' in filename and '_bootstrap' in filename
+
+
 class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
     """A module finder used to hook the python import statement."""
 
@@ -434,28 +442,28 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
 
     def handle_deprecation_warning(self, fullname):
         if (
-            fullname.startswith(self.old_module_name)
-            and self.old_module_name not in DeprecatedModuleFinder._warned
+            not fullname.startswith(self.old_module_name)
+            or self.old_module_name in DeprecatedModuleFinder._warned
         ):
-            DeprecatedModuleFinder._warned.add(self.old_module_name)
+            return
 
-            # find the first frame that is not this file or importlib land
-            file, deprecation_level = next(
-                filter(
-                    lambda indexed_frame_file: (
-                        "importlib" not in indexed_frame_file[0]
-                        and "cirq/_compat.py" not in indexed_frame_file[0]
-                    ),
-                    [(frame[0], i) for i, frame in enumerate(reversed(traceback.extract_stack()))],
-                )
-            )
+        DeprecatedModuleFinder._warned.add(self.old_module_name)
 
-            _warn_or_error(
-                f"{file, deprecation_level}! import {self.old_module_name} is deprecated, "
-                f"it will be removed in version {self.deadline}, "
-                f"use {self.new_module_name} instead.",
-                stacklevel=deprecation_level,
-            )
+        # we have to dynamically count the non-internal frames
+        # due to the potentially multiple nested deprecating `DeprecatedModuleFinder`s
+        deprecation_level = 2
+        for filename, _, _, _ in reversed(traceback.extract_stack()):
+            if not _is_internal(filename) and "cirq/_compat.py" not in filename:
+                break
+            if "cirq/_compat.py" in filename:
+                deprecation_level += 1
+
+        _warn_or_error(
+            f"import {self.old_module_name} is deprecated, "
+            f"it will be removed in version {self.deadline}, "
+            f"use {self.new_module_name} instead.",
+            stacklevel=deprecation_level,
+        )
 
 
 sys.deprecating = []

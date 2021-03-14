@@ -254,19 +254,26 @@ def test_deprecated_class():
         # pylint: enable=unused-variable
 
 
-def old_user_code_simple_import():
+def _from_parent_import_deprecated():
+    from cirq.testing._compat_test_data import fake_a
+
+    assert fake_a
+
+
+def _import_deprecated_assert_sub():
     import cirq.testing._compat_test_data.fake_a
 
     assert cirq.testing._compat_test_data.fake_a.module_b
 
 
-def old_user_code_from_import():
+def _from_deprecated_import_sub():
     from cirq.testing._compat_test_data.fake_a import module_b
 
     assert module_b
 
 
-def old_user_code_double_old_first_new_second():
+def _import_deprecated_first_new_second():
+    """To ensure that module_a gets initialized only once."""
     from cirq.testing._compat_test_data.fake_a import module_b
 
     assert module_b
@@ -275,7 +282,8 @@ def old_user_code_double_old_first_new_second():
     assert module_b
 
 
-def old_user_code_new_first_old_second():
+def _import_new_first_deprecated_second():
+    """To ensure that module_a gets initialized only once."""
     from cirq.testing._compat_test_data.module_a import module_b
 
     assert module_b
@@ -284,7 +292,8 @@ def old_user_code_new_first_old_second():
     assert module_b
 
 
-def deeper_nesting_from_import():
+def _from_deprecated_import_sub_of_sub():
+    """Ensures that the deprecation warning level is correct."""
     from cirq.testing._compat_test_data.module_a.module_b import module_c
 
     assert module_c
@@ -293,7 +302,8 @@ def deeper_nesting_from_import():
     assert module_c
 
 
-def multiple_deprecations():
+def _import_multiple_deprecated():
+    """Ensures that multiple deprecations play well together."""
     from cirq.testing._compat_test_data.module_a.module_b import module_c
 
     assert module_c
@@ -337,11 +347,12 @@ _deprecation_msg_3_parts = [
 @pytest.mark.parametrize(
     'outdated_method,deprecation_messages',
     [
-        (old_user_code_simple_import, [_deprecation_msg_1_parts]),
-        (old_user_code_from_import, [_deprecation_msg_1_parts]),
-        (old_user_code_double_old_first_new_second, [_deprecation_msg_1_parts]),
-        (old_user_code_new_first_old_second, [_deprecation_msg_1_parts]),
-        (multiple_deprecations, [_deprecation_msg_1_parts, _deprecation_msg_2_parts]),
+        (_from_parent_import_deprecated, [_deprecation_msg_1_parts]),
+        (_import_deprecated_assert_sub, [_deprecation_msg_1_parts]),
+        (_from_deprecated_import_sub, [_deprecation_msg_1_parts]),
+        (_import_deprecated_first_new_second, [_deprecation_msg_1_parts]),
+        (_import_new_first_deprecated_second, [_deprecation_msg_1_parts]),
+        (_import_multiple_deprecated, [_deprecation_msg_1_parts, _deprecation_msg_2_parts]),
         (new_module_in_different_parent, [_deprecation_msg_3_parts]),
     ],
 )
