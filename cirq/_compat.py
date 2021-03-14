@@ -411,6 +411,28 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         ):
             return self.finder.find_spec(fullname, path, target)
 
+        self.handle_deprecation_warning(fullname)
+
+        new_fullname = fullname.replace(self.old_module_name, self.new_module_name)
+        if fullname == self.old_module_name:
+            spec = self.new_module_spec
+        else:
+            # we are finding a submodule of the deprecated module
+            spec = self.finder.find_spec(
+                new_fullname,
+                path=self.new_module_spec.submodule_search_locations + path,
+                target=target,
+            )
+        if spec is not None and fullname.startswith(self.old_module_name):
+            if spec.loader.name == new_fullname:
+                spec.loader.name = fullname
+            spec.loader = AliasingLoader(spec.loader, fullname, new_fullname)
+            spec.name = fullname
+
+        _debug(f"find_spec result: {fullname} - {spec}")
+        return spec
+
+    def handle_deprecation_warning(self, fullname):
         if (
             fullname.startswith(self.old_module_name)
             and self.old_module_name not in DeprecatedModuleFinder._warned
@@ -434,25 +456,6 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
                 f"use {self.new_module_name} instead.",
                 stacklevel=deprecation_level,
             )
-
-        new_fullname = fullname.replace(self.old_module_name, self.new_module_name)
-        if fullname == self.old_module_name:
-            spec = self.new_module_spec
-        else:
-            # we are finding a submodule of the deprecated module
-            spec = self.finder.find_spec(
-                new_fullname,
-                path=self.new_module_spec.submodule_search_locations + path,
-                target=target,
-            )
-        if spec is not None and fullname.startswith(self.old_module_name):
-            if spec.loader.name == new_fullname:
-                spec.loader.name = fullname
-            spec.loader = AliasingLoader(spec.loader, fullname, new_fullname)
-            spec.name = fullname
-
-        _debug(f"find_spec result: {fullname} - {spec}")
-        return spec
 
 
 sys.deprecating = []
