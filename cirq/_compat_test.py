@@ -255,58 +255,58 @@ def test_deprecated_class():
 
 
 def old_user_code_simple_import():
-    import cirq._compat_test_data.fake_a
+    import cirq.testing._compat_test_data.fake_a
 
-    assert cirq._compat_test_data.fake_a.module_b
+    assert cirq.testing._compat_test_data.fake_a.module_b
 
 
 def old_user_code_from_import():
-    from cirq._compat_test_data.fake_a import module_b
+    from cirq.testing._compat_test_data.fake_a import module_b
 
     assert module_b
 
 
 def old_user_code_double_old_first_new_second():
-    from cirq._compat_test_data.fake_a import module_b
+    from cirq.testing._compat_test_data.fake_a import module_b
 
     assert module_b
-    from cirq._compat_test_data.module_a import module_b
+    from cirq.testing._compat_test_data.module_a import module_b
 
     assert module_b
 
 
 def old_user_code_new_first_old_second():
-    from cirq._compat_test_data.module_a import module_b
+    from cirq.testing._compat_test_data.module_a import module_b
 
     assert module_b
-    from cirq._compat_test_data.fake_a import module_b
+    from cirq.testing._compat_test_data.fake_a import module_b
 
     assert module_b
 
 
 def deeper_nesting_from_import():
-    from cirq._compat_test_data.module_a.module_b import module_c
+    from cirq.testing._compat_test_data.module_a.module_b import module_c
 
     assert module_c
-    from cirq._compat_test_data.fake_a.module_b import module_c
+    from cirq.testing._compat_test_data.fake_a.module_b import module_c
 
     assert module_c
 
 
 def multiple_deprecations():
-    from cirq._compat_test_data.module_a.module_b import module_c
+    from cirq.testing._compat_test_data.module_a.module_b import module_c
 
     assert module_c
-    from cirq._compat_test_data.fake_a.module_b import module_c
+    from cirq.testing._compat_test_data.fake_a.module_b import module_c
 
     assert module_c
-    from cirq._compat_test_data.fake_b import module_c
+    from cirq.testing._compat_test_data.fake_b import module_c
 
     assert module_c
 
 
 def new_module_in_different_parent():
-    from cirq._compat_test_data.fake_google import engine
+    from cirq.testing._compat_test_data.fake_google import engine
 
     assert engine
 
@@ -318,13 +318,13 @@ _deprecation_origin = ['_compat_test.py:']
 # see cirq_compat_test_data/__init__.py for the setup code
 _deprecation_msg_1_parts = [
     'fake_a is deprecated',
-    'use cirq._compat_test_data.module_a instead',
+    'use cirq.testing._compat_test_data.module_a instead',
 ] + _deprecation_origin
 
 # see cirq_compat_test_data/__init__.py for the setup code
 _deprecation_msg_2_parts = [
     'fake_b is deprecated',
-    'use cirq._compat_test_data.module_a.module_b instead',
+    'use cirq.testing._compat_test_data.module_a.module_b instead',
 ] + _deprecation_origin
 
 # see cirq_compat_test_data/__init__.py for the setup code
