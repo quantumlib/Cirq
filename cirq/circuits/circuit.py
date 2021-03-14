@@ -51,6 +51,7 @@ import numpy as np
 
 from cirq import devices, ops, protocols, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
+from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
@@ -2271,14 +2272,7 @@ def _draw_moment_in_diagram(
         if x > max_x:
             max_x = x
 
-    global_phase: Optional[complex] = None
-    tags: List[Any] = []
-    for op in moment:
-        if isinstance(op.untagged, ops.GlobalPhaseOperation):
-            tags.extend(op.tags)
-            if global_phase is None:
-                global_phase = complex(1)
-            global_phase *= complex(op.untagged.coefficient)
+    global_phase, tags = _get_global_phase_and_tags_for_ops(moment)
 
     # Print out global phase, unless it's 1 (phase of 0pi) or it's the only op.
     if global_phase and (global_phase != 1 or not non_global_ops):
@@ -2295,6 +2289,30 @@ def _draw_moment_in_diagram(
     # Group together columns belonging to the same Moment.
     if moment.operations and max_x > x0:
         moment_groups.append((x0, max_x))
+
+
+def _get_global_phase_and_tags_for_op(op: 'cirq.Operation') -> Tuple[Optional[complex], List[Any]]:
+    if isinstance(op.untagged, ops.GlobalPhaseOperation):
+        return complex(op.untagged.coefficient), list(op.tags)
+    elif isinstance(op.untagged, CircuitOperation):
+        op_phase, op_tags = _get_global_phase_and_tags_for_ops(op.untagged.circuit.all_operations())
+        return op_phase, list(op.tags) + op_tags
+    else:
+        return None, []
+
+
+def _get_global_phase_and_tags_for_ops(op_list: Any) -> Tuple[Optional[complex], List[Any]]:
+    global_phase: Optional[complex] = None
+    tags: List[Any] = []
+    for op in op_list:
+        op_phase, op_tags = _get_global_phase_and_tags_for_op(op)
+        if op_phase:
+            if global_phase is None:
+                global_phase = complex(1)
+            global_phase *= op_phase
+        if op_tags:
+            tags.extend(op_tags)
+    return global_phase, tags
 
 
 def _formatted_phase(coefficient: complex, unicode: bool, precision: Optional[int]) -> str:
