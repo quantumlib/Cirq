@@ -58,12 +58,13 @@ def assert_logs(
 
     class Handler(logging.Handler):
         def emit(self, record):
-            records.append(record)
+            if record.levelno == level:
+                records.append(record)
 
         def __enter__(self):
             logging.captureWarnings(capture_warnings)
             logger = logging.getLogger()
-            logger.setLevel(level)
+            logger.setLevel(logging.INFO)
             logger.addHandler(self)
             return records
 

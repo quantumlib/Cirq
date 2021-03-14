@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+"""PYTEST_DONT_REWRITE"""
+import logging
 import types
 
 import numpy as np
@@ -252,3 +253,59 @@ def test_deprecated_class():
             ...
 
         # pylint: enable=unused-variable
+
+
+# def test_deprecated_module_top_level(restore_import_system):
+#     def old_user_code():
+#         import cirquit
+#
+#     deprecated_submodule("cirq", "cirquit", deadline="v0.13")
+#     with cirq.testing.assert_deprecated('import cirquit is deprecated',
+#                                         'use cirq instead',
+#                                         deadline="v0.13"):
+#         old_user_code()
+
+
+# def test_deprecated_module_simple_import(restore_import_system):
+#     def old_user_code():
+#         import cirq._compat_test_data
+#         import cirq._compat_test_data.fake_old_module_a
+#
+#     with cirq.testing.assert_deprecated('cirq._compat_test_data.fake_old_module_a was used',
+#                                         'Use instead cirq._compat_test_data.module_a.module_b',
+#                                         deadline="v0.20"):
+#         old_user_code()
+
+
+def test_deprecated_module_simple_import():
+    def old_user_code():
+        import cirq._compat_test_data.fake_calibration
+
+        assert cirq._compat_test_data.fake_calibration.PhasedFSimEngineSimulator
+
+    with cirq.testing.assert_logs("TEST DATA INIT", level=logging.INFO, capture_warnings=False):
+        with cirq.testing.assert_deprecated(
+            '_compat_test.py:',
+            'fake_calibration is deprecated',
+            'use cirq.google.calibration instead',
+            deadline="v0.20",
+            allow_multiple_warnings=True,
+        ):
+            old_user_code()
+
+
+def test_deprecated_module_import_from():
+    def old_user_code():
+        from cirq._compat_test_data.fake_calibration import PhasedFSimEngineSimulator
+
+        assert PhasedFSimEngineSimulator
+
+    with cirq.testing.assert_logs("TEST DATA INIT", level=logging.INFO, capture_warnings=False):
+        with cirq.testing.assert_deprecated(
+            '_compat_test.py:',
+            'fake_calibration is deprecated',
+            'use cirq.google.calibration instead',
+            deadline="v0.20",
+            allow_multiple_warnings=True,
+        ):
+            old_user_code()
