@@ -20,7 +20,8 @@ from typing import ContextManager, List, Optional
 def assert_logs(
     *matches: str,
     count: Optional[int] = 1,
-    level: int = logging.WARNING,
+    min_level: int = logging.WARNING,
+    max_level: int = logging.CRITICAL,
     capture_warnings: bool = True,
 ) -> ContextManager[List[logging.LogRecord]]:
     """A context manager for testing logging and warning events.
@@ -42,7 +43,7 @@ def assert_logs(
             any of the captures log messages.
         count: The expected number of messages in logs. Defaults to 1. If None is passed in counts
             are not checked.
-        level: The level at which to capture the logs. See the python logging
+        min_level: The level at which to capture the logs. See the python logging
             module for valid levels. By default this captures at the
             `logging.WARNING` level, so this does not capture `logging.INFO`
             or `logging.DEBUG` logs by default.
@@ -58,12 +59,15 @@ def assert_logs(
 
     class Handler(logging.Handler):
         def emit(self, record):
-            records.append(record)
+            # filter only the ones interesting
+            if max_level >= record.levelno >= min_level:
+                records.append(record)
 
         def __enter__(self):
             logging.captureWarnings(capture_warnings)
             logger = logging.getLogger()
-            logger.setLevel(level)
+            # we capture all the logs
+            logger.setLevel(logging.DEBUG)
             logger.addHandler(self)
             return records
 
