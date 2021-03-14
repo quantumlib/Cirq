@@ -255,57 +255,108 @@ def test_deprecated_class():
         # pylint: enable=unused-variable
 
 
-# def test_deprecated_module_top_level(restore_import_system):
-#     def old_user_code():
-#         import cirquit
-#
-#     deprecated_submodule("cirq", "cirquit", deadline="v0.13")
-#     with cirq.testing.assert_deprecated('import cirquit is deprecated',
-#                                         'use cirq instead',
-#                                         deadline="v0.13"):
-#         old_user_code()
+def old_user_code_simple_import():
+    import cirq._compat_test_data.fake_a
+
+    assert cirq._compat_test_data.fake_a.module_b
 
 
-# def test_deprecated_module_simple_import(restore_import_system):
-#     def old_user_code():
-#         import cirq._compat_test_data
-#         import cirq._compat_test_data.fake_old_module_a
-#
-#     with cirq.testing.assert_deprecated('cirq._compat_test_data.fake_old_module_a was used',
-#                                         'Use instead cirq._compat_test_data.module_a.module_b',
-#                                         deadline="v0.20"):
-#         old_user_code()
+def old_user_code_from_import():
+    from cirq._compat_test_data.fake_a import module_b
+
+    assert module_b
 
 
-def test_deprecated_module_simple_import():
-    def old_user_code():
-        import cirq._compat_test_data.fake_calibration
+def old_user_code_double_old_first_new_second():
+    from cirq._compat_test_data.fake_a import module_b
 
-        assert cirq._compat_test_data.fake_calibration.PhasedFSimEngineSimulator
+    assert module_b
+    from cirq._compat_test_data.module_a import module_b
 
-    with cirq.testing.assert_logs("TEST DATA INIT", min_level=logging.INFO, max_level=logging.INFO):
+    assert module_b
+
+
+def old_user_code_new_first_old_second():
+    from cirq._compat_test_data.module_a import module_b
+
+    assert module_b
+    from cirq._compat_test_data.fake_a import module_b
+
+    assert module_b
+
+
+def deeper_nesting_from_import():
+    from cirq._compat_test_data.module_a.module_b import module_c
+
+    assert module_c
+    from cirq._compat_test_data.fake_a.module_b import module_c
+
+    assert module_c
+
+
+def multiple_deprecations():
+    from cirq._compat_test_data.module_a.module_b import module_c
+
+    assert module_c
+    from cirq._compat_test_data.fake_a.module_b import module_c
+
+    assert module_c
+    from cirq._compat_test_data.fake_b import module_c
+
+    assert module_c
+
+
+def new_module_in_different_parent():
+    from cirq._compat_test_data.fake_google import engine
+
+    assert engine
+
+
+# this is where the deprecation error should show where the deprecated usage
+# has occured, which is this file
+_deprecation_origin = ['_compat_test.py:']
+
+# see cirq_compat_test_data/__init__.py for the setup code
+_deprecation_msg_1_parts = [
+    'fake_a is deprecated',
+    'use cirq._compat_test_data.module_a instead',
+] + _deprecation_origin
+
+# see cirq_compat_test_data/__init__.py for the setup code
+_deprecation_msg_2_parts = [
+    'fake_b is deprecated',
+    'use cirq._compat_test_data.module_a.module_b instead',
+] + _deprecation_origin
+
+# see cirq_compat_test_data/__init__.py for the setup code
+_deprecation_msg_3_parts = [
+    'fake_google is deprecated',
+    'use cirq.google instead',
+] + _deprecation_origin
+
+
+@pytest.mark.parametrize(
+    'outdated_method,deprecation_messages',
+    [
+        (old_user_code_simple_import, [_deprecation_msg_1_parts]),
+        (old_user_code_from_import, [_deprecation_msg_1_parts]),
+        (old_user_code_double_old_first_new_second, [_deprecation_msg_1_parts]),
+        (old_user_code_new_first_old_second, [_deprecation_msg_1_parts]),
+        (multiple_deprecations, [_deprecation_msg_1_parts, _deprecation_msg_2_parts]),
+        (new_module_in_different_parent, [_deprecation_msg_3_parts]),
+    ],
+)
+def test_deprecated_module_simple_import(outdated_method, deprecation_messages):
+    with cirq.testing.assert_logs(
+        "init:compat_test_data",
+        "init:module_a",
+        min_level=logging.INFO,
+        max_level=logging.INFO,
+        count=2,
+    ):
         with cirq.testing.assert_deprecated(
-            '_compat_test.py:',
-            'fake_calibration is deprecated',
-            'use cirq.google.calibration instead',
+            *[msg for dep in deprecation_messages for msg in dep],
             deadline="v0.20",
-            allow_multiple_warnings=True,
+            count=len(deprecation_messages),
         ):
-            old_user_code()
-
-
-def test_deprecated_module_import_from():
-    def old_user_code():
-        from cirq._compat_test_data.fake_calibration import PhasedFSimEngineSimulator
-
-        assert PhasedFSimEngineSimulator
-
-    with cirq.testing.assert_logs("TEST DATA INIT", min_level=logging.INFO, max_level=logging.INFO):
-        with cirq.testing.assert_deprecated(
-            '_compat_test.py:',
-            'fake_calibration is deprecated',
-            'use cirq.google.calibration instead',
-            deadline="v0.20",
-            allow_multiple_warnings=True,
-        ):
-            old_user_code()
+            outdated_method()

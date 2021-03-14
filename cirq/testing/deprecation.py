@@ -13,6 +13,7 @@
 # limitations under the License.
 import os
 from contextlib import contextmanager
+from typing import Optional
 
 from cirq.testing import assert_logs
 
@@ -20,7 +21,7 @@ ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
 
 
 @contextmanager
-def assert_deprecated(*msgs: str, deadline: str, allow_multiple_warnings: bool = False):
+def assert_deprecated(*msgs: str, deadline: str, count: Optional[int] = 1):
     """Allows deprecated functions, classes, decorators in tests.
 
     It acts as a contextmanager that can be used in with statements:
@@ -31,13 +32,13 @@ def assert_deprecated(*msgs: str, deadline: str, allow_multiple_warnings: bool =
         msgs: messages that should match the warnings captured
         deadline: the expected deadline the feature will be deprecated by. Has to follow the format
             vX.Y (minor versions only)
-        allow_multiple_warnings: if True, multiple warnings are accepted. Typically this should not
-            be used, by default it's False.
+        count: if None count of messages is not asserted, otherwise the number of deprecation
+            messages have to equal count.
     """
 
     os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
     try:
-        with assert_logs(*(msgs + (deadline,)), count=None if allow_multiple_warnings else 1):
+        with assert_logs(*(msgs + (deadline,)), count=count):
             yield True
     finally:
         del os.environ[ALLOW_DEPRECATION_IN_TEST]
