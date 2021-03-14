@@ -283,7 +283,7 @@ def test_deprecated_module_simple_import():
 
         assert cirq._compat_test_data.fake_calibration.PhasedFSimEngineSimulator
 
-    with cirq.testing.assert_logs("TEST DATA INIT", level=logging.INFO, capture_warnings=False):
+    with cirq.testing.assert_logs("TEST DATA INIT", min_level=logging.INFO, max_level=logging.INFO):
         with cirq.testing.assert_deprecated(
             '_compat_test.py:',
             'fake_calibration is deprecated',
@@ -300,7 +300,7 @@ def test_deprecated_module_import_from():
 
         assert PhasedFSimEngineSimulator
 
-    with cirq.testing.assert_logs("TEST DATA INIT", level=logging.INFO, capture_warnings=False):
+    with cirq.testing.assert_logs("TEST DATA INIT", min_level=logging.INFO, max_level=logging.INFO):
         with cirq.testing.assert_deprecated(
             '_compat_test.py:',
             'fake_calibration is deprecated',
