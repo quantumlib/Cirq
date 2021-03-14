@@ -43,10 +43,13 @@ def assert_logs(
             any of the captures log messages.
         count: The expected number of messages in logs. Defaults to 1. If None is passed in counts
             are not checked.
-        min_level: The level at which to capture the logs. See the python logging
+        min_level: The minimum level at which to capture the logs. See the python logging
             module for valid levels. By default this captures at the
-            `logging.WARNING` level, so this does not capture `logging.INFO`
+            `logging.WARNING` level and above, so this does not capture `logging.INFO`
             or `logging.DEBUG` logs by default.
+        max_level: The maxium level at which to capture the logs. See the python logging
+            module for valid levels. By default this captures to the `logging.CRITICAL` level
+            thus, all the errors and critical messages will be captured as well.
         capture_warnings: Whether warnings from the python's `warnings` module
             are redirected to the logging system and captured.
 
@@ -59,7 +62,7 @@ def assert_logs(
 
     class Handler(logging.Handler):
         def emit(self, record):
-            # filter only the ones interesting
+            # filter only the interesting ones
             if max_level >= record.levelno >= min_level:
                 records.append(record)
 
