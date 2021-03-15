@@ -315,10 +315,56 @@ def _import_multiple_deprecated():
     assert module_c
 
 
-def new_module_in_different_parent():
+def _new_module_in_different_parent():
     from cirq.testing._compat_test_data.fake_google import engine
 
     assert engine
+
+
+def test_new_module_is_top_level():
+    # sets up the DeprecationFinders
+
+    # imports a top level module that was also deprecated
+    from ipykernel import displayhook
+
+    assert displayhook
+
+
+def _find_spec_deprecated_multiple_times():
+    """to ensure the idempotency of the aliasing loader change"""
+    # sets up the DeprecationFinders
+    import importlib.util
+
+    # first import, the loader is the regular loader on the spec
+    assert importlib.util.find_spec("cirq.testing._compat_test_data.fake_a")
+    # second import it might be the aliasing loader already
+    assert importlib.util.find_spec("cirq.testing._compat_test_data.fake_a")
+
+
+def _import_parent_use_constant_from_deprecated():
+    """to ensure that module initializations set attributes correctly"""
+    # sets up the DeprecationFinders
+    import cirq.testing._compat_test_data
+
+    # the parent should have fake_a set on it as an attribute - just like
+    # a regular module import (e.g. cirq.google)
+    # should have a DUPE_CONSTANT as its imported from the dupe submodule
+    assert cirq.testing._compat_test_data.fake_a.DUPE_CONSTANT == False
+
+
+def _import_deprecated_sub_use_constant():
+    """to ensure that submodule initializations set attributes correctly"""
+    # sets up the DeprecationFinders
+    import cirq.testing._compat_test_data.fake_a.dupe
+
+    # should have a DUPE_CONSTANT as its defined on it, set to False
+    assert cirq.testing._compat_test_data.fake_a.dupe.DUPE_CONSTANT == False
+
+
+def _import_top_level_deprecated():
+    from cirq.testing._compat_test_data.fake_ipykernel import displayhook
+
+    assert displayhook
 
 
 # this is where the deprecation error should show where the deprecated usage
@@ -327,20 +373,27 @@ _deprecation_origin = ['_compat_test.py:']
 
 # see cirq_compat_test_data/__init__.py for the setup code
 _deprecation_msg_1_parts = [
-    'fake_a is deprecated',
-    'use cirq.testing._compat_test_data.module_a instead',
+    'fake_a was used but is deprecated',
+    'Use cirq.testing._compat_test_data.module_a instead',
 ] + _deprecation_origin
 
 # see cirq_compat_test_data/__init__.py for the setup code
 _deprecation_msg_2_parts = [
-    'fake_b is deprecated',
-    'use cirq.testing._compat_test_data.module_a.module_b instead',
+    'fake_b was used but is deprecated',
+    'Use cirq.testing._compat_test_data.module_a.module_b instead',
 ] + _deprecation_origin
 
 # see cirq_compat_test_data/__init__.py for the setup code
 _deprecation_msg_3_parts = [
-    'fake_google is deprecated',
-    'use cirq.google instead',
+    'fake_google was used but is deprecated',
+    'Use cirq.google instead',
+] + _deprecation_origin
+
+
+# see cirq_compat_test_data/__init__.py for the setup code
+_deprecation_msg_4_parts = [
+    'fake_ipykernel was used but is deprecated',
+    'Use ipykernel instead',
 ] + _deprecation_origin
 
 
@@ -353,10 +406,18 @@ _deprecation_msg_3_parts = [
         (_import_deprecated_first_new_second, [_deprecation_msg_1_parts]),
         (_import_new_first_deprecated_second, [_deprecation_msg_1_parts]),
         (_import_multiple_deprecated, [_deprecation_msg_1_parts, _deprecation_msg_2_parts]),
-        (new_module_in_different_parent, [_deprecation_msg_3_parts]),
+        (_new_module_in_different_parent, [_deprecation_msg_3_parts]),
+        # ignore the frame requirement - as we are using find_spec from importlib, it
+        # is detected as an "internal" frame by warnings
+        (_find_spec_deprecated_multiple_times, [_deprecation_msg_1_parts[:-1]]),
+        (_import_parent_use_constant_from_deprecated, [_deprecation_msg_1_parts]),
+        (_import_deprecated_sub_use_constant, [_deprecation_msg_1_parts]),
+        (_import_top_level_deprecated, [_deprecation_msg_4_parts]),
     ],
 )
+@pytest.mark.subprocess
 def test_deprecated_module_simple_import(outdated_method, deprecation_messages):
+    # ensure that both packages are initialized exactly once
     with cirq.testing.assert_logs(
         "init:compat_test_data",
         "init:module_a",
@@ -370,3 +431,23 @@ def test_deprecated_module_simple_import(outdated_method, deprecation_messages):
             count=len(deprecation_messages),
         ):
             outdated_method()
+
+
+def test_same_name_submodule_earlier_in_subtree():
+    """Tests whether module resolution works in the right order.
+
+    We have two packages with a bool `DUPE_CONSTANT` attribute each:
+       1. cirq.testing._compat_test_data.module_a.sub.dupe.DUPE_CONSTANT=True # the right one
+       2. cirq.testing._compat_test_data.module_a.dupe.DUPE_CONSTANT=False # the wrong one
+
+    If the new module's (in this case cirq.testing._compat_test_data.module_a) path has precedence
+    during module spec resolution, dupe number 2 is going to get resolved.
+
+    You might wonder where this comes up in cirq. There was a bug where the lookup path was not in
+    the right order. The motivating example is cirq.google.calibration vs the
+    cirq.google.engine.calibration packages. The wrong resolution resulted in false circular
+    imports!
+    """
+    from cirq.testing._compat_test_data.module_a.sub.subsub.dupe import DUPE_CONSTANT
+
+    assert DUPE_CONSTANT
