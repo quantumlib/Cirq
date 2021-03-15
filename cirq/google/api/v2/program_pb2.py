@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='cirq.google.api.v2',
   syntax='proto3',
   serialized_options=_b('\n\035com.google.cirq.google.api.v2B\014ProgramProtoP\001'),
-  serialized_pb=_b('\n cirq/google/api/v2/program.proto\x12\x12\x63irq.google.api.v2\"\xd7\x01\n\x07Program\x12.\n\x08language\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.Language\x12.\n\x07\x63ircuit\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.CircuitH\x00\x12\x30\n\x08schedule\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.ScheduleH\x00\x12/\n\tconstants\x18\x04 \x03(\x0b\x32\x1c.cirq.google.api.v2.ConstantB\t\n\x07program\"g\n\x08\x43onstant\x12\x16\n\x0cstring_value\x18\x01 \x01(\tH\x00\x12\x34\n\rcircuit_value\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.CircuitH\x00\x42\r\n\x0b\x63onst_value\"\xd4\x01\n\x07\x43ircuit\x12K\n\x13scheduling_strategy\x18\x01 \x01(\x0e\x32..cirq.google.api.v2.Circuit.SchedulingStrategy\x12+\n\x07moments\x18\x02 \x03(\x0b\x32\x1a.cirq.google.api.v2.Moment\"O\n\x12SchedulingStrategy\x12#\n\x1fSCHEDULING_STRATEGY_UNSPECIFIED\x10\x00\x12\x14\n\x10MOMENT_BY_MOMENT\x10\x01\"}\n\x06Moment\x12\x31\n\noperations\x18\x01 \x03(\x0b\x32\x1d.cirq.google.api.v2.Operation\x12@\n\x12generic_operations\x18\x02 \x03(\x0b\x32$.cirq.google.api.v2.GenericOperation\"P\n\x08Schedule\x12\x44\n\x14scheduled_operations\x18\x03 \x03(\x0b\x32&.cirq.google.api.v2.ScheduledOperation\"`\n\x12ScheduledOperation\x12\x30\n\toperation\x18\x01 \x01(\x0b\x32\x1d.cirq.google.api.v2.Operation\x12\x18\n\x10start_time_picos\x18\x02 \x01(\x03\";\n\x08Language\x12\x10\n\x08gate_set\x18\x01 \x01(\t\x12\x1d\n\x15\x61rg_function_language\x18\x02 \x01(\t\"\x8f\x01\n\x10GenericOperation\x12\x32\n\toperation\x18\x01 \x01(\x0b\x32\x1d.cirq.google.api.v2.OperationH\x00\x12\x41\n\x11\x63ircuit_operation\x18\x02 \x01(\x0b\x32$.cirq.google.api.v2.CircuitOperationH\x00\x42\x04\n\x02op\"\x9b\x02\n\tOperation\x12&\n\x04gate\x18\x01 \x01(\x0b\x32\x18.cirq.google.api.v2.Gate\x12\x35\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\'.cirq.google.api.v2.Operation.ArgsEntry\x12)\n\x06qubits\x18\x03 \x03(\x0b\x32\x19.cirq.google.api.v2.Qubit\x12\x15\n\x0btoken_value\x18\x04 \x01(\tH\x00\x12\x1e\n\x14token_constant_index\x18\x05 \x01(\x05H\x00\x1a\x44\n\tArgsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg:\x02\x38\x01\x42\x07\n\x05token\"\x12\n\x04Gate\x12\n\n\x02id\x18\x01 \x01(\t\"\x13\n\x05Qubit\x12\n\n\x02id\x18\x02 \x01(\t\"\x9c\x01\n\x03\x41rg\x12\x31\n\targ_value\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.ArgValueH\x00\x12\x10\n\x06symbol\x18\x02 \x01(\tH\x00\x12/\n\x04\x66unc\x18\x03 \x01(\x0b\x32\x1f.cirq.google.api.v2.ArgFunctionH\x00\x12\x18\n\x0e\x63onstant_index\x18\x04 \x01(\x05H\x00\x42\x05\n\x03\x61rg\"\x9a\x01\n\x08\x41rgValue\x12\x15\n\x0b\x66loat_value\x18\x01 \x01(\x02H\x00\x12:\n\x0b\x62ool_values\x18\x02 \x01(\x0b\x32#.cirq.google.api.v2.RepeatedBooleanH\x00\x12\x16\n\x0cstring_value\x18\x03 \x01(\tH\x00\x12\x16\n\x0c\x64ouble_value\x18\x04 \x01(\x01H\x00\x42\x0b\n\targ_value\"!\n\x0fRepeatedBoolean\x12\x0e\n\x06values\x18\x01 \x03(\x08\"B\n\x0b\x41rgFunction\x12\x0c\n\x04type\x18\x01 \x01(\t\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.google.api.v2.Arg\"\xaf\x02\n\x10\x43ircuitOperation\x12\x1e\n\x16\x63ircuit_constant_index\x18\x01 \x01(\x05\x12M\n\x18repetition_specification\x18\x02 \x01(\x0b\x32+.cirq.google.api.v2.RepetitionSpecification\x12\x33\n\tqubit_map\x18\x03 \x01(\x0b\x32 .cirq.google.api.v2.QubitMapping\x12\x46\n\x13measurement_key_map\x18\x04 \x01(\x0b\x32).cirq.google.api.v2.MeasurementKeyMapping\x12/\n\x07\x61rg_map\x18\x05 \x01(\x0b\x32\x1e.cirq.google.api.v2.ArgMapping\"\xbc\x01\n\x17RepetitionSpecification\x12S\n\x0erepetition_ids\x18\x01 \x01(\x0b\x32\x39.cirq.google.api.v2.RepetitionSpecification.RepetitionIdsH\x00\x12\x1a\n\x10repetition_count\x18\x02 \x01(\x05H\x00\x1a\x1c\n\rRepetitionIds\x12\x0b\n\x03ids\x18\x01 \x03(\tB\x12\n\x10repetition_value\"\xac\x01\n\x0cQubitMapping\x12\x39\n\x05pairs\x18\x01 \x03(\x0b\x32*.cirq.google.api.v2.QubitMapping.QubitPair\x1a\x61\n\tQubitPair\x12)\n\x06source\x18\x01 \x01(\x0b\x32\x19.cirq.google.api.v2.Qubit\x12)\n\x06target\x18\x02 \x01(\x0b\x32\x19.cirq.google.api.v2.Qubit\"$\n\x0eMeasurementKey\x12\x12\n\nstring_key\x18\x01 \x01(\t\"\xe2\x01\n\x15MeasurementKeyMapping\x12K\n\x05pairs\x18\x01 \x03(\x0b\x32<.cirq.google.api.v2.MeasurementKeyMapping.MeasurementKeyPair\x1a|\n\x12MeasurementKeyPair\x12\x32\n\x06source\x18\x01 \x01(\x0b\x32\".cirq.google.api.v2.MeasurementKey\x12\x32\n\x06target\x18\x02 \x01(\x0b\x32\".cirq.google.api.v2.MeasurementKey\"\xa0\x01\n\nArgMapping\x12\x35\n\x05pairs\x18\x01 \x03(\x0b\x32&.cirq.google.api.v2.ArgMapping.ArgPair\x1a[\n\x07\x41rgPair\x12\'\n\x06source\x18\x01 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg\x12\'\n\x06target\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.ArgB/\n\x1d\x63om.google.cirq.google.api.v2B\x0cProgramProtoP\x01\x62\x06proto3')
+  serialized_pb=_b('\n cirq/google/api/v2/program.proto\x12\x12\x63irq.google.api.v2\"\xd7\x01\n\x07Program\x12.\n\x08language\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.Language\x12.\n\x07\x63ircuit\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.CircuitH\x00\x12\x30\n\x08schedule\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.ScheduleH\x00\x12/\n\tconstants\x18\x04 \x03(\x0b\x32\x1c.cirq.google.api.v2.ConstantB\t\n\x07program\"g\n\x08\x43onstant\x12\x16\n\x0cstring_value\x18\x01 \x01(\tH\x00\x12\x34\n\rcircuit_value\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.CircuitH\x00\x42\r\n\x0b\x63onst_value\"\xd4\x01\n\x07\x43ircuit\x12K\n\x13scheduling_strategy\x18\x01 \x01(\x0e\x32..cirq.google.api.v2.Circuit.SchedulingStrategy\x12+\n\x07moments\x18\x02 \x03(\x0b\x32\x1a.cirq.google.api.v2.Moment\"O\n\x12SchedulingStrategy\x12#\n\x1fSCHEDULING_STRATEGY_UNSPECIFIED\x10\x00\x12\x14\n\x10MOMENT_BY_MOMENT\x10\x01\"}\n\x06Moment\x12\x31\n\noperations\x18\x01 \x03(\x0b\x32\x1d.cirq.google.api.v2.Operation\x12@\n\x12\x63ircuit_operations\x18\x02 \x03(\x0b\x32$.cirq.google.api.v2.CircuitOperation\"P\n\x08Schedule\x12\x44\n\x14scheduled_operations\x18\x03 \x03(\x0b\x32&.cirq.google.api.v2.ScheduledOperation\"`\n\x12ScheduledOperation\x12\x30\n\toperation\x18\x01 \x01(\x0b\x32\x1d.cirq.google.api.v2.Operation\x12\x18\n\x10start_time_picos\x18\x02 \x01(\x03\";\n\x08Language\x12\x10\n\x08gate_set\x18\x01 \x01(\t\x12\x1d\n\x15\x61rg_function_language\x18\x02 \x01(\t\"\x9b\x02\n\tOperation\x12&\n\x04gate\x18\x01 \x01(\x0b\x32\x18.cirq.google.api.v2.Gate\x12\x35\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\'.cirq.google.api.v2.Operation.ArgsEntry\x12)\n\x06qubits\x18\x03 \x03(\x0b\x32\x19.cirq.google.api.v2.Qubit\x12\x15\n\x0btoken_value\x18\x04 \x01(\tH\x00\x12\x1e\n\x14token_constant_index\x18\x05 \x01(\x05H\x00\x1a\x44\n\tArgsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg:\x02\x38\x01\x42\x07\n\x05token\"\x12\n\x04Gate\x12\n\n\x02id\x18\x01 \x01(\t\"\x13\n\x05Qubit\x12\n\n\x02id\x18\x02 \x01(\t\"\x9c\x01\n\x03\x41rg\x12\x31\n\targ_value\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.ArgValueH\x00\x12\x10\n\x06symbol\x18\x02 \x01(\tH\x00\x12/\n\x04\x66unc\x18\x03 \x01(\x0b\x32\x1f.cirq.google.api.v2.ArgFunctionH\x00\x12\x18\n\x0e\x63onstant_index\x18\x04 \x01(\x05H\x00\x42\x05\n\x03\x61rg\"\x9a\x01\n\x08\x41rgValue\x12\x15\n\x0b\x66loat_value\x18\x01 \x01(\x02H\x00\x12:\n\x0b\x62ool_values\x18\x02 \x01(\x0b\x32#.cirq.google.api.v2.RepeatedBooleanH\x00\x12\x16\n\x0cstring_value\x18\x03 \x01(\tH\x00\x12\x16\n\x0c\x64ouble_value\x18\x04 \x01(\x01H\x00\x42\x0b\n\targ_value\"!\n\x0fRepeatedBoolean\x12\x0e\n\x06values\x18\x01 \x03(\x08\"B\n\x0b\x41rgFunction\x12\x0c\n\x04type\x18\x01 \x01(\t\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.google.api.v2.Arg\"\xaf\x02\n\x10\x43ircuitOperation\x12\x1e\n\x16\x63ircuit_constant_index\x18\x01 \x01(\x05\x12M\n\x18repetition_specification\x18\x02 \x01(\x0b\x32+.cirq.google.api.v2.RepetitionSpecification\x12\x33\n\tqubit_map\x18\x03 \x01(\x0b\x32 .cirq.google.api.v2.QubitMapping\x12\x46\n\x13measurement_key_map\x18\x04 \x01(\x0b\x32).cirq.google.api.v2.MeasurementKeyMapping\x12/\n\x07\x61rg_map\x18\x05 \x01(\x0b\x32\x1e.cirq.google.api.v2.ArgMapping\"\xbc\x01\n\x17RepetitionSpecification\x12S\n\x0erepetition_ids\x18\x01 \x01(\x0b\x32\x39.cirq.google.api.v2.RepetitionSpecification.RepetitionIdsH\x00\x12\x1a\n\x10repetition_count\x18\x02 \x01(\x05H\x00\x1a\x1c\n\rRepetitionIds\x12\x0b\n\x03ids\x18\x01 \x03(\tB\x12\n\x10repetition_value\"\xac\x01\n\x0cQubitMapping\x12\x39\n\x05pairs\x18\x01 \x03(\x0b\x32*.cirq.google.api.v2.QubitMapping.QubitPair\x1a\x61\n\tQubitPair\x12)\n\x06source\x18\x01 \x01(\x0b\x32\x19.cirq.google.api.v2.Qubit\x12)\n\x06target\x18\x02 \x01(\x0b\x32\x19.cirq.google.api.v2.Qubit\"$\n\x0eMeasurementKey\x12\x12\n\nstring_key\x18\x01 \x01(\t\"\xe2\x01\n\x15MeasurementKeyMapping\x12K\n\x05pairs\x18\x01 \x03(\x0b\x32<.cirq.google.api.v2.MeasurementKeyMapping.MeasurementKeyPair\x1a|\n\x12MeasurementKeyPair\x12\x32\n\x06source\x18\x01 \x01(\x0b\x32\".cirq.google.api.v2.MeasurementKey\x12\x32\n\x06target\x18\x02 \x01(\x0b\x32\".cirq.google.api.v2.MeasurementKey\"\xa0\x01\n\nArgMapping\x12\x35\n\x05pairs\x18\x01 \x03(\x0b\x32&.cirq.google.api.v2.ArgMapping.ArgPair\x1a[\n\x07\x41rgPair\x12\'\n\x06source\x18\x01 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg\x12\'\n\x06target\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.ArgB/\n\x1d\x63om.google.cirq.google.api.v2B\x0cProgramProtoP\x01\x62\x06proto3')
 )
 
 
@@ -198,7 +198,7 @@ _MOMENT = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='generic_operations', full_name='cirq.google.api.v2.Moment.generic_operations', index=1,
+      name='circuit_operations', full_name='cirq.google.api.v2.Moment.circuit_operations', index=1,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -328,47 +328,6 @@ _LANGUAGE = _descriptor.Descriptor(
 )
 
 
-_GENERICOPERATION = _descriptor.Descriptor(
-  name='GenericOperation',
-  full_name='cirq.google.api.v2.GenericOperation',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='operation', full_name='cirq.google.api.v2.GenericOperation.operation', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='circuit_operation', full_name='cirq.google.api.v2.GenericOperation.circuit_operation', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-    _descriptor.OneofDescriptor(
-      name='op', full_name='cirq.google.api.v2.GenericOperation.op',
-      index=0, containing_type=None, fields=[]),
-  ],
-  serialized_start=963,
-  serialized_end=1106,
-)
-
-
 _OPERATION_ARGSENTRY = _descriptor.Descriptor(
   name='ArgsEntry',
   full_name='cirq.google.api.v2.Operation.ArgsEntry',
@@ -402,8 +361,8 @@ _OPERATION_ARGSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1315,
-  serialized_end=1383,
+  serialized_start=1169,
+  serialized_end=1237,
 )
 
 _OPERATION = _descriptor.Descriptor(
@@ -463,8 +422,8 @@ _OPERATION = _descriptor.Descriptor(
       name='token', full_name='cirq.google.api.v2.Operation.token',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1109,
-  serialized_end=1392,
+  serialized_start=963,
+  serialized_end=1246,
 )
 
 
@@ -494,8 +453,8 @@ _GATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1394,
-  serialized_end=1412,
+  serialized_start=1248,
+  serialized_end=1266,
 )
 
 
@@ -525,8 +484,8 @@ _QUBIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1414,
-  serialized_end=1433,
+  serialized_start=1268,
+  serialized_end=1287,
 )
 
 
@@ -580,8 +539,8 @@ _ARG = _descriptor.Descriptor(
       name='arg', full_name='cirq.google.api.v2.Arg.arg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1436,
-  serialized_end=1592,
+  serialized_start=1290,
+  serialized_end=1446,
 )
 
 
@@ -635,8 +594,8 @@ _ARGVALUE = _descriptor.Descriptor(
       name='arg_value', full_name='cirq.google.api.v2.ArgValue.arg_value',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1595,
-  serialized_end=1749,
+  serialized_start=1449,
+  serialized_end=1603,
 )
 
 
@@ -666,8 +625,8 @@ _REPEATEDBOOLEAN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1751,
-  serialized_end=1784,
+  serialized_start=1605,
+  serialized_end=1638,
 )
 
 
@@ -704,8 +663,8 @@ _ARGFUNCTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1786,
-  serialized_end=1852,
+  serialized_start=1640,
+  serialized_end=1706,
 )
 
 
@@ -763,8 +722,8 @@ _CIRCUITOPERATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1855,
-  serialized_end=2158,
+  serialized_start=1709,
+  serialized_end=2012,
 )
 
 
@@ -794,8 +753,8 @@ _REPETITIONSPECIFICATION_REPETITIONIDS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2301,
-  serialized_end=2329,
+  serialized_start=2155,
+  serialized_end=2183,
 )
 
 _REPETITIONSPECIFICATION = _descriptor.Descriptor(
@@ -834,8 +793,8 @@ _REPETITIONSPECIFICATION = _descriptor.Descriptor(
       name='repetition_value', full_name='cirq.google.api.v2.RepetitionSpecification.repetition_value',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=2161,
-  serialized_end=2349,
+  serialized_start=2015,
+  serialized_end=2203,
 )
 
 
@@ -872,8 +831,8 @@ _QUBITMAPPING_QUBITPAIR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2427,
-  serialized_end=2524,
+  serialized_start=2281,
+  serialized_end=2378,
 )
 
 _QUBITMAPPING = _descriptor.Descriptor(
@@ -902,8 +861,8 @@ _QUBITMAPPING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2352,
-  serialized_end=2524,
+  serialized_start=2206,
+  serialized_end=2378,
 )
 
 
@@ -933,8 +892,8 @@ _MEASUREMENTKEY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2526,
-  serialized_end=2562,
+  serialized_start=2380,
+  serialized_end=2416,
 )
 
 
@@ -971,8 +930,8 @@ _MEASUREMENTKEYMAPPING_MEASUREMENTKEYPAIR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2667,
-  serialized_end=2791,
+  serialized_start=2521,
+  serialized_end=2645,
 )
 
 _MEASUREMENTKEYMAPPING = _descriptor.Descriptor(
@@ -1001,8 +960,8 @@ _MEASUREMENTKEYMAPPING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2565,
-  serialized_end=2791,
+  serialized_start=2419,
+  serialized_end=2645,
 )
 
 
@@ -1039,8 +998,8 @@ _ARGMAPPING_ARGPAIR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2863,
-  serialized_end=2954,
+  serialized_start=2717,
+  serialized_end=2808,
 )
 
 _ARGMAPPING = _descriptor.Descriptor(
@@ -1069,8 +1028,8 @@ _ARGMAPPING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2794,
-  serialized_end=2954,
+  serialized_start=2648,
+  serialized_end=2808,
 )
 
 _PROGRAM.fields_by_name['language'].message_type = _LANGUAGE
@@ -1094,17 +1053,9 @@ _CIRCUIT.fields_by_name['scheduling_strategy'].enum_type = _CIRCUIT_SCHEDULINGST
 _CIRCUIT.fields_by_name['moments'].message_type = _MOMENT
 _CIRCUIT_SCHEDULINGSTRATEGY.containing_type = _CIRCUIT
 _MOMENT.fields_by_name['operations'].message_type = _OPERATION
-_MOMENT.fields_by_name['generic_operations'].message_type = _GENERICOPERATION
+_MOMENT.fields_by_name['circuit_operations'].message_type = _CIRCUITOPERATION
 _SCHEDULE.fields_by_name['scheduled_operations'].message_type = _SCHEDULEDOPERATION
 _SCHEDULEDOPERATION.fields_by_name['operation'].message_type = _OPERATION
-_GENERICOPERATION.fields_by_name['operation'].message_type = _OPERATION
-_GENERICOPERATION.fields_by_name['circuit_operation'].message_type = _CIRCUITOPERATION
-_GENERICOPERATION.oneofs_by_name['op'].fields.append(
-  _GENERICOPERATION.fields_by_name['operation'])
-_GENERICOPERATION.fields_by_name['operation'].containing_oneof = _GENERICOPERATION.oneofs_by_name['op']
-_GENERICOPERATION.oneofs_by_name['op'].fields.append(
-  _GENERICOPERATION.fields_by_name['circuit_operation'])
-_GENERICOPERATION.fields_by_name['circuit_operation'].containing_oneof = _GENERICOPERATION.oneofs_by_name['op']
 _OPERATION_ARGSENTRY.fields_by_name['value'].message_type = _ARG
 _OPERATION_ARGSENTRY.containing_type = _OPERATION
 _OPERATION.fields_by_name['gate'].message_type = _GATE
@@ -1175,7 +1126,6 @@ DESCRIPTOR.message_types_by_name['Moment'] = _MOMENT
 DESCRIPTOR.message_types_by_name['Schedule'] = _SCHEDULE
 DESCRIPTOR.message_types_by_name['ScheduledOperation'] = _SCHEDULEDOPERATION
 DESCRIPTOR.message_types_by_name['Language'] = _LANGUAGE
-DESCRIPTOR.message_types_by_name['GenericOperation'] = _GENERICOPERATION
 DESCRIPTOR.message_types_by_name['Operation'] = _OPERATION
 DESCRIPTOR.message_types_by_name['Gate'] = _GATE
 DESCRIPTOR.message_types_by_name['Qubit'] = _QUBIT
@@ -1239,13 +1189,6 @@ Language = _reflection.GeneratedProtocolMessageType('Language', (_message.Messag
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Language)
   })
 _sym_db.RegisterMessage(Language)
-
-GenericOperation = _reflection.GeneratedProtocolMessageType('GenericOperation', (_message.Message,), {
-  'DESCRIPTOR' : _GENERICOPERATION,
-  '__module__' : 'cirq.google.api.v2.program_pb2'
-  # @@protoc_insertion_point(class_scope:cirq.google.api.v2.GenericOperation)
-  })
-_sym_db.RegisterMessage(GenericOperation)
 
 Operation = _reflection.GeneratedProtocolMessageType('Operation', (_message.Message,), {
 

@@ -59,18 +59,17 @@ message Circuit {
   repeated Moment moments = 2;
 }
 
-// A moment is a collection of operations that operate on a disjoint set of
-// qubits. Conceptually a moment represents operations that all occurring
-// the same finite period of time.
+// A moment is a collection of operations and circuit operations that operate
+// on a disjoint set of qubits. Conceptually, a moment represents operations
+// that all occur in the same finite period of time.
 message Moment {
-  // All of the operations in the moment. Each operation must act on different
-  // qubits.
+  // All of the gate operations in the moment. Each operation and circuit
+  // operation must act on different qubits.
   repeated Operation operations = 1;
 
-  // As 'operations', but may include CircuitOperations (i.e. operations that
-  // contain subcircuits). If 'operations' is non-empty, this field will be
-  // ignored.
-  repeated GenericOperation generic_operations = 2;
+  // All of the circuit operations in the moment. Each operation and circuit
+  // operation must act on different qubits.
+  repeated CircuitOperation circuit_operations = 2;
 }
 
 // The quantum circuit, specified as a series of operations at specific
@@ -105,17 +104,6 @@ message Language {
   // Valid names for the arg function language can be found in
   // cirq/google/arg_func_langs.py
   string arg_function_language = 2;
-}
-
-// A generic operation, containing either a single gate or a subcircuit.
-message GenericOperation {
-  oneof op {
-    // The operation this represents.
-    Operation operation = 1;
-
-    // The CircuitOperation (i.e. subcircuit) this represents.
-    CircuitOperation circuit_operation = 2;
-  }
 }
 
 // An operation acts on a set of qubits.
