@@ -545,5 +545,6 @@ def test_options_phase_corrected_override():
 
 def test_sqrt_iswap_parameters_deprecation():
     from cirq.google.calibration import SQRT_ISWAP_INV_PARAMETERS, SQRT_ISWAP_PARAMETERS
+
     with pytest.warns(DeprecationWarning):
         assert SQRT_ISWAP_PARAMETERS == SQRT_ISWAP_INV_PARAMETERS
