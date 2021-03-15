@@ -13,14 +13,29 @@
 # limitations under the License.
 import os
 from contextlib import contextmanager
+from typing import Optional
 
+from cirq._compat import deprecated_parameter
 from cirq.testing import assert_logs
 
 ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
 
 
 @contextmanager
-def assert_deprecated(*msgs: str, deadline: str, allow_multiple_warnings: bool = False):
+@deprecated_parameter(
+    deadline='v0.12',
+    fix='Use count instead.',
+    parameter_desc='allow_multiple_warnings',
+    match=lambda args, kwargs: 'allow_multiple_warnings' in kwargs,
+    rewrite=lambda args, kwargs: (
+        args,
+        dict(
+            ('count', None if v == True else 1) if k == 'allow_multiple_warnings' else (k, v)
+            for k, v in kwargs.items()
+        ),
+    ),
+)
+def assert_deprecated(*msgs: str, deadline: str, count: Optional[int] = 1):
     """Allows deprecated functions, classes, decorators in tests.
 
     It acts as a contextmanager that can be used in with statements:
@@ -31,13 +46,17 @@ def assert_deprecated(*msgs: str, deadline: str, allow_multiple_warnings: bool =
         msgs: messages that should match the warnings captured
         deadline: the expected deadline the feature will be deprecated by. Has to follow the format
             vX.Y (minor versions only)
-        allow_multiple_warnings: if True, multiple warnings are accepted. Typically this should not
-            be used, by default it's False.
+        count: if None count of messages is not asserted, otherwise the number of deprecation
+            messages have to equal count.
     """
 
     os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
     try:
-        with assert_logs(*(msgs + (deadline,)), count=None if allow_multiple_warnings else 1):
+        with assert_logs(*(msgs + (deadline,)), count=count):
             yield True
     finally:
-        del os.environ[ALLOW_DEPRECATION_IN_TEST]
+        try:
+            del os.environ[ALLOW_DEPRECATION_IN_TEST]
+        except:
+            # this is only for nested deprecation checks
+            pass

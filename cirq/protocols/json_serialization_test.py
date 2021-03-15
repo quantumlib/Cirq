@@ -518,7 +518,7 @@ def test_to_from_json_gzip():
 
 def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]):
     ctx_manager = (
-        cirq.testing.assert_deprecated(deadline=deprecation_deadline, allow_multiple_warnings=True)
+        cirq.testing.assert_deprecated(deadline=deprecation_deadline, count=None)
         if deprecation_deadline
         else contextlib.suppress()
     )
@@ -554,9 +554,7 @@ def assert_repr_and_json_test_data_agree(
     try:
         json_from_file = json_path.read_text()
         ctx_manager = (
-            cirq.testing.assert_deprecated(
-                deadline=deprecation_deadline, allow_multiple_warnings=True
-            )
+            cirq.testing.assert_deprecated(deadline=deprecation_deadline, count=None)
             if deprecation_deadline
             else contextlib.suppress()
         )
