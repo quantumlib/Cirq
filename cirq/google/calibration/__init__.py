@@ -52,6 +52,6 @@ import sys as _sys
 from cirq._compat import deprecate_attributes as _deprecate_attributes
 
 deprecated_constants: Dict[str, Tuple[str, str]] = {
-    'SQRT_ISWAP_PARAMETERS': ('v0.11', 'Use cirq.google.SQRT_ISWAP_INV_PARAMETERS instead'),
+    'SQRT_ISWAP_PARAMETERS': ('v0.12', 'Use cirq.google.SQRT_ISWAP_INV_PARAMETERS instead'),
 }
 _sys.modules[__name__] = _deprecate_attributes(_sys.modules[__name__], deprecated_constants)
