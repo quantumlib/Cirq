@@ -341,10 +341,7 @@ class DeprecatedModuleLoader(importlib.abc.Loader):
                 sys.modules[new_module_name] = module
 
                 try:
-
-                    res = method(module)
-
-                    return res
+                    return method(module)
                 except Exception as ex:
                     # if there's an error, we atomically remove both
                     del sys.modules[new_module_name]
@@ -364,15 +361,10 @@ class DeprecatedModuleLoader(importlib.abc.Loader):
         self.new_prefix = new_prefix
 
     def create_module(self, spec: ModuleType) -> ModuleType:
-
         return self.loader.create_module(spec)
 
     def module_repr(self, module: ModuleType) -> str:
-
         return self.loader.module_repr(module)
-
-    def __repr__(self):
-        return f"AliasingLoader: {self.old_prefix} -> {self.new_prefix} wrapping {self.loader}"
 
 
 def _is_internal(filename: str) -> bool:

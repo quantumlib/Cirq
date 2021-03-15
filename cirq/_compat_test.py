@@ -323,6 +323,8 @@ def _new_module_in_different_parent():
 
 def test_new_module_is_top_level():
     # sets up the DeprecationFinders
+    # pylint: disable=unused-import
+    import cirq.testing._compat_test_data
 
     # imports a top level module that was also deprecated
     from ipykernel import displayhook
