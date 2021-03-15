@@ -217,14 +217,19 @@ message ArgFunction {
   repeated Arg args = 2;
 }
 
-// An operation that describes a circuit.
+// An operation that applies a modified version of a reference circuit. The
+// circuit is stored in the top-level Constants table; the mappings in this
+// object specify how that circuit should be modified for this operation.
+//
+// Multiple CircuitOperations may reference the same base circuit even if their
+// mappings of that circuit are different.
 message CircuitOperation {
   // The index of the circuit in the top-level constant table.
   int32 circuit_constant_index = 1;
 
   // Specifier for repetitions of the circuit, including number of reps and
   // repetition IDs.
-  RepetitionSpec repetition_spec = 2;
+  RepetitionSpecification repetition_specification = 2;
 
   // Map of qubits in the circuit to the qubits used in this operation.
   QubitMapping qubit_map = 3;
@@ -238,28 +243,32 @@ message CircuitOperation {
   ArgMapping arg_map = 5;
 }
 
-// A description of the repetitions of a subcircuit.
-message RepetitionSpec {
+// A description of the repetitions of a subcircuit. IDs are used as suffixes
+// for measurements in the repeated subcircuit; if repetition_count is given
+// instead, the IDs will simply be the integers [0..N-1].
+message RepetitionSpecification {
   // An ordered list of IDs for a sequence of repetitions.
   message RepetitionIds {
     repeated string ids = 1;
   }
 
-  oneof rep_value {
+  oneof repetition_value {
     // A list of unique IDs, one per repetition of the subcircuit.
-    RepetitionIds rep_ids = 1;
+    RepetitionIds repetition_ids = 1;
 
     // An integer number of repetitions to perform.
-    int32 rep_count = 2;
+    int32 repetition_count = 2;
   }
 }
 
-// A mapping of qubits from one value to another.
+// A mapping of qubits from one value to another. All mappings are applied
+// simultaneously and independently; for example, [(a, b), (b, a)] will swap
+// qubits a and b.
 message QubitMapping {
-  // Indicates that qubit "first" should be replaced with "second".
+  // Indicates that qubit "source" should be replaced with "target".
   message QubitPair {
-    Qubit first = 1;
-    Qubit second = 2;
+    Qubit source = 1;
+    Qubit target = 2;
   }
 
   // A list of qubit mappings to apply.
@@ -268,15 +277,15 @@ message QubitMapping {
 
 // A key for matching a measurement event to its results.
 message MeasurementKey {
-  string str_key = 1;
+  string string_key = 1;
 }
 
 // A mapping of measurement keys from one value to another.
 message MeasurementKeyMapping {
-  // Indicates that measurement key "first" should be replaced with "second".
+  // Indicates that measurement key "source" should be replaced with "target".
   message MeasurementKeyPair {
-    MeasurementKey first = 1;
-    MeasurementKey second = 2;
+    MeasurementKey source = 1;
+    MeasurementKey target = 2;
   }
 
   // A list of measurement key mappings to apply.
@@ -285,10 +294,10 @@ message MeasurementKeyMapping {
 
 // A mapping of args from one value to another.
 message ArgMapping {
-  // Indicates that arg "first" should be replaced with "second".
+  // Indicates that arg "source" should be replaced with "target".
   message ArgPair {
-    Arg first = 1;
-    Arg second = 2;
+    Arg source = 1;
+    Arg target = 2;
   }
 
   // A list of args mappings to apply.
