@@ -406,6 +406,41 @@ _deprecation_msg_4_parts = [
 ] + _deprecation_origin
 
 
+def subprocess_context(test_func):
+    import traceback
+    import functools
+    from multiprocessing import Process, Queue
+
+    exception = Queue()
+
+    def trace_unhandled_exceptions(func):
+        @functools.wraps(func)
+        def wrapped_func(*args, **kwargs):
+            queue: Queue = kwargs['q']
+            del kwargs['q']
+            try:
+                func(*args, **kwargs)
+                queue.put(None)
+            except BaseException as ex:
+                msg = str(ex)
+                queue.put((type(ex).__name__, msg, traceback.format_exc()))
+
+        return wrapped_func
+
+    @functools.wraps(test_func)
+    def isolated_func(*args, **kwargs):
+        kwargs['q'] = exception
+        p = Process(target=trace_unhandled_exceptions(test_func), args=args, kwargs=kwargs)
+        p.start()
+        result = exception.get()
+        p.join()
+        if result:
+            ex_type, msg, ex_trace = result
+            pytest.fail(f"{ex_type}: {msg}\n{ex_trace}")
+
+    return isolated_func
+
+
 @pytest.mark.parametrize(
     'outdated_method,deprecation_messages',
     [
@@ -425,8 +460,8 @@ _deprecation_msg_4_parts = [
         (_import_top_level_deprecated, [_deprecation_msg_4_parts]),
     ],
 )
-@pytest.mark.subprocess
-def test_deprecated_module_simple_import(outdated_method, deprecation_messages):
+@subprocess_context
+def test_deprecated_module(outdated_method, deprecation_messages):
     # ensure that both packages are initialized exactly once
     with cirq.testing.assert_logs(
         "init:compat_test_data",
@@ -443,7 +478,7 @@ def test_deprecated_module_simple_import(outdated_method, deprecation_messages):
             outdated_method()
 
 
-@pytest.mark.subprocess
+@subprocess_context
 def test_same_name_submodule_earlier_in_subtree():
     """Tests whether module resolution works in the right order.
 
@@ -464,14 +499,13 @@ def test_same_name_submodule_earlier_in_subtree():
     assert DUPE_CONSTANT
 
 
-@pytest.mark.subprocess
+@subprocess_context
 def test_metadata_search_path():
     # to cater for metadata path finders
     # https://docs.python.org/3/library/importlib.metadata.html#extending-the-search-algorithm
 
     # initialize the DeprecatedModuleFinders
     # pylint: disable=unused-import
-    import cirq.testing._compat_test_data.module_a
 
     try:
         # importlib.metadata for python 3.8+
@@ -480,7 +514,7 @@ def test_metadata_search_path():
         # importlib_metadata for python <3.8
         import importlib_metadata as m
 
-    assert m.metadata("jsonschema")
+    assert m.metadata("flynt")
 
 
 def test_deprecated_module_deadline_validation():
@@ -494,11 +528,10 @@ def test_deprecated_module_deadline_validation():
         )
 
 
-@pytest.mark.subprocess
+@subprocess_context
 def test_new_module_is_top_level():
     # sets up the DeprecationFinders
     # pylint: disable=unused-import
-    import cirq.testing._compat_test_data
 
     # imports a top level module that was also deprecated
     from freezegun import api

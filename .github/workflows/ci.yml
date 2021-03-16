@@ -124,8 +124,6 @@ jobs:
           pip install codeowners==0.1.2 # linux only package
       - name: Pytest check
         run: check/pytest --ignore=cirq/contrib --actually-quiet
-      - name: Pytest separate subprocess tests
-        run: check/pytest --forked -m subprocess
   build_docs:
     name: Build docs
     runs-on: ubuntu-16.04
