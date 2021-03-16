@@ -19,7 +19,7 @@ from google.protobuf.text_format import Merge
 
 import cirq
 from cirq import ops
-from cirq.devices.noise_model_test import _assert_equivalent_op_tree
+from cirq.testing import assert_equivalent_op_tree
 from cirq.google.api import v2
 from cirq.google.experimental.noise_models import (
     simple_noise_from_calibration_metrics,
@@ -168,7 +168,7 @@ def test_per_qubit_depol_noise_from_data():
             ]
         ),
     )
-    _assert_equivalent_op_tree(expected_program, noisy_circuit)
+    assert_equivalent_op_tree(expected_program, noisy_circuit)
 
 
 def test_per_qubit_readout_error_from_data():
@@ -214,7 +214,7 @@ def test_per_qubit_readout_error_from_data():
             ]
         ),
     )
-    _assert_equivalent_op_tree(expected_program, noisy_circuit)
+    assert_equivalent_op_tree(expected_program, noisy_circuit)
 
 
 def test_per_qubit_readout_decay_from_data():
@@ -255,7 +255,7 @@ def test_per_qubit_readout_decay_from_data():
             ]
         ),
     )
-    _assert_equivalent_op_tree(expected_program, noisy_circuit)
+    assert_equivalent_op_tree(expected_program, noisy_circuit)
 
 
 def test_per_qubit_combined_noise_from_data():
@@ -319,4 +319,4 @@ def test_per_qubit_combined_noise_from_data():
             ]
         ),
     )
-    _assert_equivalent_op_tree(expected_program, noisy_circuit)
+    assert_equivalent_op_tree(expected_program, noisy_circuit)
