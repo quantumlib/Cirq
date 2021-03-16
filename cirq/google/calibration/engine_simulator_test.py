@@ -22,7 +22,7 @@ from cirq.google.calibration import (
 import cirq
 
 
-class TestPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
+class TestingPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     def to_calibration_layer(self) -> cirq.google.CalibrationLayer:
         return NotImplemented
 
@@ -32,7 +32,7 @@ class TestPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
 def test_test_calibration_request():
     a, b = cirq.LineQubit.range(2)
-    request = TestPhasedFSimCalibrationRequest(
+    request = TestingPhasedFSimCalibrationRequest(
         gate=cirq.FSimGate(np.pi / 4, 0.5),
         pairs=((a, b),),
     )
@@ -102,7 +102,7 @@ def test_floquet_get_calibrations_when_invalid_request_fails() -> None:
     with pytest.raises(ValueError):
         engine_simulator.get_calibrations(
             [
-                TestPhasedFSimCalibrationRequest(
+                TestingPhasedFSimCalibrationRequest(
                     gate=cirq.FSimGate(np.pi / 4, 0.5),
                     pairs=((a, b),),
                 )
