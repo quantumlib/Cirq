@@ -30,6 +30,7 @@ from cirq.google.calibration import (
     PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
     PhasedFSimEngineSimulator,
+    SQRT_ISWAP_PARAMETERS,
     SQRT_ISWAP_INV_PARAMETERS,
     THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     make_zeta_chi_gamma_compensation_for_moments,
@@ -128,3 +129,15 @@ def _register_resolver() -> None:
 
 
 _register_resolver()
+
+
+# pylint: disable=wrong-import-order
+from typing import Dict, Tuple
+
+import sys as _sys
+from cirq._compat import deprecate_attributes as _deprecate_attributes
+
+deprecated_constants: Dict[str, Tuple[str, str]] = {
+    'SQRT_ISWAP_PARAMETERS': ('v0.12', 'Use cirq.google.SQRT_ISWAP_INV_PARAMETERS instead'),
+}
+_sys.modules[__name__] = _deprecate_attributes(_sys.modules[__name__], deprecated_constants)
