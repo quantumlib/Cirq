@@ -549,5 +549,8 @@ def test_sqrt_iswap_parameters_deprecation():
         'It will be removed in cirq v0.12.',
         'Use cirq.google.SQRT_ISWAP_INV_PARAMETERS instead',
         deadline='v0.12',
+        allow_multiple_warnings=True,
     ):
-        cirq.google.calibration.SQRT_ISWAP_PARAMETERS
+        from cirq.google.calibration import SQRT_ISWAP_PARAMETERS, SQRT_ISWAP_INV_PARAMETERS
+
+        assert SQRT_ISWAP_PARAMETERS == SQRT_ISWAP_INV_PARAMETERS
