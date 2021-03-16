@@ -215,8 +215,8 @@ message CircuitOperation {
   // The index of the circuit in the top-level constant table.
   int32 circuit_constant_index = 1;
 
-  // Specifier for repetitions of the circuit, including number of reps and
-  // repetition IDs.
+  // Specifier for repetitions of the circuit, which contains either a number
+  // of repetitions or a list of repetition IDs.
   RepetitionSpecification repetition_specification = 2;
 
   // Map of qubits in the circuit to the qubits used in this operation.
@@ -253,14 +253,14 @@ message RepetitionSpecification {
 // simultaneously and independently; for example, [(a, b), (b, a)] will swap
 // qubits a and b.
 message QubitMapping {
-  // Indicates that qubit "source" should be replaced with "target".
-  message QubitPair {
-    Qubit source = 1;
-    Qubit target = 2;
+  // Indicates that qubit "key" should be replaced with "value".
+  message Entry {
+    Qubit key = 1;
+    Qubit value = 2;
   }
 
   // A list of qubit mappings to apply.
-  repeated QubitPair pairs = 1;
+  repeated Entry entries = 1;
 }
 
 // A key for matching a measurement event to its results.
@@ -268,26 +268,30 @@ message MeasurementKey {
   string string_key = 1;
 }
 
-// A mapping of measurement keys from one value to another.
+// A mapping of measurement keys from one value to another. All mappings are
+// applied simultaneously and independently; for example, [(a, b), (b, a)] will
+// swap measurement keys a and b.
 message MeasurementKeyMapping {
-  // Indicates that measurement key "source" should be replaced with "target".
-  message MeasurementKeyPair {
-    MeasurementKey source = 1;
-    MeasurementKey target = 2;
+  // Indicates that measurement key "key" should be replaced with "value".
+  message Entry {
+    MeasurementKey key = 1;
+    MeasurementKey value = 2;
   }
 
   // A list of measurement key mappings to apply.
-  repeated MeasurementKeyPair pairs = 1;
+  repeated Entry entries = 1;
 }
 
-// A mapping of args from one value to another.
+// A mapping of args from one value to another. All mappings are applied
+// simultaneously and independently; for example, [(a, b), (b, a)] will swap
+// args a and b.
 message ArgMapping {
-  // Indicates that arg "source" should be replaced with "target".
-  message ArgPair {
-    Arg source = 1;
-    Arg target = 2;
+  // Indicates that arg "key" should be replaced with "value".
+  message Entry {
+    Arg key = 1;
+    Arg value = 2;
   }
 
-  // A list of args mappings to apply.
-  repeated ArgPair pairs = 1;
+  // A list of arg mappings to apply.
+  repeated Entry entries = 1;
 }
