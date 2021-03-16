@@ -300,57 +300,63 @@ def deprecate_attributes(module: ModuleType, deprecated_attributes: Dict[str, Tu
 
 
 class DeprecatedModuleLoader(importlib.abc.Loader):
-    """A module loader used to hook the python import statement."""
+    """A Loader for deprecated modules.
 
-    def __init__(self, loader: Any, old_prefix: str, new_prefix: str):
+    It wraps an existing Loader instance, to which it delegates the loading. On top of that
+    it ensures that the sys.modules cache has both the deprecated module's name and the
+    new module's name pointing to the same exact ModuleType instance.
+
+    Args:
+        loader: the loader to be wrapped
+        old_module_name: the deprecated module's fully qualified name
+        new_module_name: the new module's fully qualified name
+    """
+
+    def __init__(self, loader: Any, old_module_name: str, new_module_name: str):
         """A module loader that uses an existing module loader and intercepts
         the execution of a module.
         """
-
-        def wrap_exec_module(method: Any) -> Any:
-            def exec_module(module: ModuleType) -> None:
-                assert module.__name__.startswith(self.old_prefix), (
-                    f"DeprecatedModuleLoader for {self.old_prefix} and submodules was asked to "
-                    f"load {module.__name__}"
-                )
-
-                new_module_name = module.__name__.replace(self.old_prefix, self.new_prefix)
-                old_module_name = module.__name__
-                # check for new_module whether it was loaded
-                if new_module_name in sys.modules:
-                    # found it - no need to load the module again
-                    sys.modules[old_module_name] = sys.modules[new_module_name]
-                    return
-
-                # now we know we have to initialize the module
-                sys.modules[old_module_name] = module
-                sys.modules[new_module_name] = module
-
-                try:
-                    return method(module)
-                except Exception as ex:
-                    # if there's an error, we atomically remove both
-                    del sys.modules[new_module_name]
-                    del sys.modules[old_module_name]
-                    raise ex
-
-            return exec_module
-
         self.loader = loader
         if hasattr(loader, 'exec_module'):
-            self.exec_module = wrap_exec_module(loader.exec_module)
+            self.exec_module = self._wrap_exec_module(loader.exec_module)
         # while this is rare and load_module was deprecated in 3.4
         # in older environments this line makes them work as well
         if hasattr(loader, 'load_module'):
             self.load_module = loader.load_module
-        self.old_prefix = old_prefix
-        self.new_prefix = new_prefix
+        self.old_module_name = old_module_name
+        self.new_module_name = new_module_name
 
     def create_module(self, spec: ModuleType) -> ModuleType:
         return self.loader.create_module(spec)
 
     def module_repr(self, module: ModuleType) -> str:
         return self.loader.module_repr(module)
+
+    def _wrap_exec_module(self, method: Any) -> Any:
+        def exec_module(module: ModuleType) -> None:
+            assert module.__name__ == self.old_module_name, (
+                f"DeprecatedModuleLoader for {self.old_module_name} was asked to "
+                f"load {module.__name__}"
+            )
+            # check for new_module whether it was loaded
+            if self.new_module_name in sys.modules:
+                # found it - no need to load the module again
+                sys.modules[self.old_module_name] = sys.modules[self.new_module_name]
+                return
+
+            # now we know we have to initialize the module
+            sys.modules[self.old_module_name] = module
+            sys.modules[self.new_module_name] = module
+
+            try:
+                return method(module)
+            except Exception as ex:
+                # if there's an error, we atomically remove both
+                del sys.modules[self.new_module_name]
+                del sys.modules[self.old_module_name]
+                raise ex
+
+        return exec_module
 
 
 def _is_internal(filename: str) -> bool:
