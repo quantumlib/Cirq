@@ -425,7 +425,7 @@ _deprecation_msg_4_parts = [
         (_import_top_level_deprecated, [_deprecation_msg_4_parts]),
     ],
 )
-# @pytest.mark.subprocess
+@pytest.mark.subprocess
 def test_deprecated_module_simple_import(outdated_method, deprecation_messages):
     # ensure that both packages are initialized exactly once
     with cirq.testing.assert_logs(
