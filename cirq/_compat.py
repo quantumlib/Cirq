@@ -474,13 +474,6 @@ def deprecated_submodule(
     Note that this method will execute `new_module_name` in order to ensure that it is in the module
     cache.
 
-    While it is not recommended, one could even use this to make this work:
-
-    >>> import numpy as np
-    >>> import cirq._import
-    >>> cirq._import.deprecated_submodule('numpy', 'np')
-    >>> from np import linalg # which would otherwise fail!
-
     Args:
         new_module_name: absolute module name for the new module
         old_parent: the current module that had the original submodule
