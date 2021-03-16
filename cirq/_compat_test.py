@@ -506,6 +506,7 @@ def test_metadata_search_path():
 
     # initialize the DeprecatedModuleFinders
     # pylint: disable=unused-import
+    import cirq.testing._compat_test_data.module_a
 
     try:
         # importlib.metadata for python 3.8+
@@ -532,6 +533,7 @@ def test_deprecated_module_deadline_validation():
 def test_new_module_is_top_level():
     # sets up the DeprecationFinders
     # pylint: disable=unused-import
+    import cirq.testing._compat_test_data
 
     # imports a top level module that was also deprecated
     from freezegun import api
