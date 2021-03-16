@@ -309,32 +309,18 @@ class DeprecatedModuleLoader(importlib.abc.Loader):
 
         def wrap_exec_module(method: Any) -> Any:
             def exec_module(module: ModuleType) -> None:
+                assert module.__name__.startswith(self.old_prefix), (
+                    f"DeprecatedModuleLoader for {self.old_prefix} and submodules was asked to "
+                    f"load {module.__name__}"
+                )
 
-                if not module.__name__.startswith(
-                    self.old_prefix
-                ) and not module.__name__.startswith(self.new_prefix):
-                    return method(module)
-
-                old_module_is_not_cached_yet = module.__name__.startswith(self.old_prefix)
-
-                if old_module_is_not_cached_yet:
-                    new_module_name = module.__name__.replace(self.old_prefix, self.new_prefix)
-                    old_module_name = module.__name__
-                    # check for new_module whether it was loaded
-                    if new_module_name in sys.modules:
-                        # found it - no need to load the module again
-                        sys.modules[old_module_name] = sys.modules[new_module_name]
-                        return
-                else:
-
-                    # new module is not cached yet
-                    new_module_name = module.__name__
-                    old_module_name = module.__name__.replace(self.new_prefix, self.old_prefix)
-                    # check for old_module whether it was loaded first
-                    if old_module_name in sys.modules:
-                        # found it - no need to load the module again
-                        sys.modules[new_module_name] = sys.modules[old_module_name]
-                        return
+                new_module_name = module.__name__.replace(self.old_prefix, self.new_prefix)
+                old_module_name = module.__name__
+                # check for new_module whether it was loaded
+                if new_module_name in sys.modules:
+                    # found it - no need to load the module again
+                    sys.modules[old_module_name] = sys.modules[new_module_name]
+                    return
 
                 # now we know we have to initialize the module
                 sys.modules[old_module_name] = module
@@ -392,7 +378,19 @@ def _deduped_module_warn_or_error(old_module_name, new_module_name, deadline):
 
 
 class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
-    """A module finder used to hook the python import statement."""
+    """A module finder to handle deprecated module references.
+
+    It sends a deprecation warning when a deprecated module is asked to be found.
+    It is meant to be used as a wrapper around existing MetaPathFinder instances.
+
+    Args:
+        finder: the finder to wrap.
+        new_module_name: the new module's fully qualified name
+        new_module_spec: the spec of the new module, that will be the root of the search path for
+            the submodules of the deprecated module
+        old_module_name: the deprecated module's fully qualified name
+        deadline: the deprecation deadline
+    """
 
     def __init__(
         self,
@@ -416,38 +414,44 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
             self.find_distributions = getattr(finder, "find_distributions")
 
     def find_spec(self, fullname: str, path: Any = None, target: Any = None) -> Any:
-        if not fullname.startswith(self.old_module_name) and not fullname.startswith(
-            self.new_module_name
-        ):
+        """Finds the specification of a module.
+
+        This is an implementation of the
+        Args:
+            fullname: name of the module
+            path: if presented, this is the parent module's submodule search path
+        """
+        if not fullname.startswith(self.old_module_name):
+            # if we are not interested in it, then just pass through to the wrapped finder
             return self.finder.find_spec(fullname, path, target)
 
-        if fullname.startswith(self.old_module_name):
-            _deduped_module_warn_or_error(self.old_module_name, self.new_module_name, self.deadline)
+        # warn for deprecation
+        _deduped_module_warn_or_error(self.old_module_name, self.new_module_name, self.deadline)
 
         new_fullname = fullname.replace(self.old_module_name, self.new_module_name)
 
-        if fullname == self.new_module_name or fullname == self.old_module_name:
+        # find the corresponding spec in the new structure
+        if fullname == self.old_module_name:
             spec = self.new_module_spec
         else:
             # we are finding a submodule of the deprecated module
-            assert path is not None, f"{fullname} should have search path but it doesn't"
             spec = self.finder.find_spec(
                 new_fullname,
-                path=path + self.new_module_spec.submodule_search_locations,
+                path=path,
                 target=target,
             )
-        if spec is not None and fullname.startswith(self.old_module_name):
+
+        # if the spec exists, return the DeprecatedModuleLoader that will do the loading as well
+        # as set the alias(es) in sys.modules as necessary
+        if spec is not None:
+            # change back the name to the deprecated module name
+            spec.name = fullname
             # some loaders do a check to ensure the module's name is the same
             # as the loader was created for
             if hasattr(spec.loader, "name") and spec.loader.name == new_fullname:
                 spec.loader.name = fullname
             spec.loader = DeprecatedModuleLoader(spec.loader, fullname, new_fullname)
-            spec.name = fullname
-
         return spec
-
-
-sys.deprecating = []
 
 
 def deprecated_submodule(
@@ -479,9 +483,8 @@ def deprecated_submodule(
             old_parent module
     Returns:
         None
-    Raises:
-          AssertionError - when the
     """
+    _validate_deadline(deadline)
 
     old_module_name = f"{old_parent}.{old_child}"
 
@@ -490,7 +493,7 @@ def deprecated_submodule(
 
     if create_attribute:
         _setup_deprecated_submodule_attribute(
-            deadline, new_module, new_module_name, old_child, old_parent
+            new_module_name, old_parent, old_child, deadline, new_module
         )
 
     def wrap(finder: Any) -> Any:
@@ -502,11 +505,9 @@ def deprecated_submodule(
 
     sys.meta_path = [wrap(finder) for finder in sys.meta_path]
 
-    return new_module
-
 
 def _setup_deprecated_submodule_attribute(
-    deadline, new_module, new_module_name, old_child, old_parent
+    new_module_name: str, old_parent: str, old_child: str, deadline: str, new_module: ModuleType
 ):
     parent_module = sys.modules[old_parent]
     setattr(parent_module, old_child, new_module)

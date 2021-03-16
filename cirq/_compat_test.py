@@ -27,6 +27,7 @@ from cirq._compat import (
     proper_eq,
     deprecate_attributes,
     deprecated_class,
+    deprecated_submodule,
 )
 
 
@@ -363,6 +364,12 @@ def _import_deprecated_sub_use_constant():
     assert cirq.testing._compat_test_data.fake_a.dupe.DUPE_CONSTANT == False
 
 
+def _import_deprecated_same_name_in_earlier_subtree():
+    from cirq.testing._compat_test_data.fake_a.sub.subsub.dupe import DUPE_CONSTANT
+
+    assert DUPE_CONSTANT
+
+
 def _import_top_level_deprecated():
     from cirq.testing._compat_test_data.fake_ipykernel import displayhook
 
@@ -414,6 +421,7 @@ _deprecation_msg_4_parts = [
         (_find_spec_deprecated_multiple_times, [_deprecation_msg_1_parts[:-1]]),
         (_import_parent_use_constant_from_deprecated, [_deprecation_msg_1_parts]),
         (_import_deprecated_sub_use_constant, [_deprecation_msg_1_parts]),
+        (_import_deprecated_same_name_in_earlier_subtree, [_deprecation_msg_1_parts]),
         (_import_top_level_deprecated, [_deprecation_msg_4_parts]),
     ],
 )
@@ -453,3 +461,32 @@ def test_same_name_submodule_earlier_in_subtree():
     from cirq.testing._compat_test_data.module_a.sub.subsub.dupe import DUPE_CONSTANT
 
     assert DUPE_CONSTANT
+
+
+def test_metadata_search_path():
+    # to cater for metadata path finders
+    # https://docs.python.org/3/library/importlib.metadata.html#extending-the-search-algorithm
+
+    # initialize the DeprecatedModuleFinders
+    # pylint: disable=unused-import
+    import cirq.testing._compat_test_data.module_a
+
+    try:
+        # importlib.metadata for python 3.8+
+        import importlib.metadata as m
+    except:
+        # importlib_metadata for python <3.8
+        import importlib_metadata as m
+
+    assert m.metadata("jsonschema")
+
+
+def test_deprecated_module_deadline_validation():
+    with pytest.raises(AssertionError, match="deadline should match vX.Y"):
+        deprecated_submodule(
+            new_module_name="new",
+            old_parent="old_p",
+            old_child="old_ch",
+            deadline="invalid",
+            create_attribute=False,
+        )
