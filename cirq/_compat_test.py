@@ -11,10 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import importlib
 import logging
 import multiprocessing
 import traceback
 import types
+from types import ModuleType
 
 import numpy as np
 import pandas as pd
@@ -30,6 +32,8 @@ from cirq._compat import (
     deprecate_attributes,
     deprecated_class,
     deprecated_submodule,
+    DeprecatedModuleLoader,
+    DeprecatedModuleFinder,
 )
 
 
@@ -383,26 +387,26 @@ def _import_top_level_deprecated():
 _deprecation_origin = ['_compat_test.py:']
 
 # see cirq_compat_test_data/__init__.py for the setup code
-_deprecation_msg_1_parts = [
+_fake_a_deprecation_msg = [
     'fake_a was used but is deprecated',
     'Use cirq.testing._compat_test_data.module_a instead',
 ] + _deprecation_origin
 
 # see cirq_compat_test_data/__init__.py for the setup code
-_deprecation_msg_2_parts = [
+_fake_b_deprecation_msg = [
     'fake_b was used but is deprecated',
     'Use cirq.testing._compat_test_data.module_a.module_b instead',
 ] + _deprecation_origin
 
 # see cirq_compat_test_data/__init__.py for the setup code
-_deprecation_msg_3_parts = [
+_fake_google_deprecation_msg = [
     'fake_google was used but is deprecated',
     'Use cirq.google instead',
 ] + _deprecation_origin
 
 
 # see cirq_compat_test_data/__init__.py for the setup code
-_deprecation_msg_4_parts = [
+_fake_freezegun_deprecation_msg = [
     'fake_freezegun was used but is deprecated',
     'Use freezegun instead',
 ] + _deprecation_origin
@@ -418,13 +422,15 @@ def _trace_unhandled_exceptions(*args, **kwargs):
     try:
         func(*args, **kwargs)
         queue.put(None)
+    # coverage: ignore
     except BaseException as ex:
+        # coverage: ignore
         msg = str(ex)
         queue.put((type(ex).__name__, msg, traceback.format_exc()))
 
 
 def subprocess_context(test_func):
-    """This ensures that sys.modules changes in subprocesses won't impact the parent"""
+    """Ensures that sys.modules changes in subprocesses won't impact the parent process."""
     ctx = multiprocessing.get_context("fork")
 
     exception = ctx.Queue()
@@ -437,6 +443,7 @@ def subprocess_context(test_func):
         result = exception.get()
         p.join()
         if result:
+            # coverage: ignore
             ex_type, msg, ex_trace = result
             pytest.fail(f"{ex_type}: {msg}\n{ex_trace}")
 
@@ -446,20 +453,21 @@ def subprocess_context(test_func):
 @pytest.mark.parametrize(
     'outdated_method,deprecation_messages',
     [
-        (_from_parent_import_deprecated, [_deprecation_msg_1_parts]),
-        (_import_deprecated_assert_sub, [_deprecation_msg_1_parts]),
-        (_from_deprecated_import_sub, [_deprecation_msg_1_parts]),
-        (_import_deprecated_first_new_second, [_deprecation_msg_1_parts]),
-        (_import_new_first_deprecated_second, [_deprecation_msg_1_parts]),
-        (_import_multiple_deprecated, [_deprecation_msg_1_parts, _deprecation_msg_2_parts]),
-        (_new_module_in_different_parent, [_deprecation_msg_3_parts]),
+        (_from_parent_import_deprecated, [_fake_a_deprecation_msg]),
+        (_import_deprecated_assert_sub, [_fake_a_deprecation_msg]),
+        (_from_deprecated_import_sub, [_fake_a_deprecation_msg]),
+        (_import_deprecated_first_new_second, [_fake_a_deprecation_msg]),
+        (_import_new_first_deprecated_second, [_fake_a_deprecation_msg]),
+        (_import_multiple_deprecated, [_fake_a_deprecation_msg, _fake_b_deprecation_msg]),
+        (_new_module_in_different_parent, [_fake_google_deprecation_msg]),
         # ignore the frame requirement - as we are using find_spec from importlib, it
         # is detected as an "internal" frame by warnings
-        (_find_spec_deprecated_multiple_times, [_deprecation_msg_1_parts[:-1]]),
-        (_import_parent_use_constant_from_deprecated, [_deprecation_msg_1_parts]),
-        (_import_deprecated_sub_use_constant, [_deprecation_msg_1_parts]),
-        (_import_deprecated_same_name_in_earlier_subtree, [_deprecation_msg_1_parts]),
-        (_import_top_level_deprecated, [_deprecation_msg_4_parts]),
+        (_find_spec_deprecated_multiple_times, [_fake_a_deprecation_msg[:-1]]),
+        (_import_parent_use_constant_from_deprecated, [_fake_a_deprecation_msg]),
+        (_import_deprecated_sub_use_constant, [_fake_a_deprecation_msg]),
+        (_import_deprecated_same_name_in_earlier_subtree, [_fake_a_deprecation_msg]),
+        (_import_top_level_deprecated, [_fake_freezegun_deprecation_msg]),
+        (_from_deprecated_import_sub_of_sub, [_fake_a_deprecation_msg]),
     ],
 )
 def test_deprecated_module(outdated_method, deprecation_messages):
@@ -525,8 +533,10 @@ def _test_metadata_search_path_inner():
 
     try:
         # importlib.metadata for python 3.8+
+        # coverage: ignore
         import importlib.metadata as m
-    except:
+    except:  # coverage: ignore
+        # coverage: ignore
         # importlib_metadata for python <3.8
         import importlib_metadata as m
 
@@ -557,3 +567,34 @@ def _test_new_module_is_top_level_inner():
     from freezegun import api
 
     assert api
+
+
+def test_loader_failure():
+    class FakeLoader(importlib.abc.Loader):
+        def exec_module(self, module: ModuleType) -> None:
+            raise ValueError("hello")
+
+    with pytest.raises(ValueError, match="hello"):
+        module = types.ModuleType("old")
+        DeprecatedModuleLoader(FakeLoader(), "old", "new").exec_module(module)
+
+
+def test_loader_module_repr():
+    class FakeLoader(importlib.abc.Loader):
+        def module_repr(self, module: ModuleType) -> str:
+            return "hello"
+
+    module = types.ModuleType("old")
+    assert DeprecatedModuleLoader(FakeLoader(), "old", "new").module_repr(module) == "hello"
+
+
+def test_invalidate_caches():
+    called = False
+
+    class FakeFinder(importlib.abc.MetaPathFinder):
+        def invalidate_caches(self) -> None:
+            nonlocal called
+            called = True
+
+    DeprecatedModuleFinder(FakeFinder(), "new", None, "old", "v0.1").invalidate_caches()
+    assert called
