@@ -130,13 +130,6 @@ def test_assert_logs_log_level():
             logging.info("info only 1")
             logging.warning("info warning 1")
 
-    with cirq.testing.assert_logs('info only 1', min_level=logging.INFO, max_level=logging.INFO):
-        with cirq.testing.assert_logs(
-            'info warning 1', min_level=logging.WARNING, max_level=logging.WARNING
-        ):
-            logging.info("info only 1")
-            logging.warning("info warning 1")
-
 
 def test_invalid_levels():
     with pytest.raises(ValueError, match="min_level.*max_level"):
