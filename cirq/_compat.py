@@ -15,6 +15,7 @@
 """Workarounds for compatibility issues between versions and libraries."""
 import functools
 import importlib
+from importlib.machinery import ModuleSpec
 import os
 import re
 import sys
@@ -318,15 +319,15 @@ class DeprecatedModuleLoader(importlib.abc.Loader):
         """
         self.loader = loader
         if hasattr(loader, 'exec_module'):
-            self.exec_module = self._wrap_exec_module(loader.exec_module)
+            setattr(self, 'exec_module', self._wrap_exec_module(loader.exec_module))
         # while this is rare and load_module was deprecated in 3.4
         # in older environments this line makes them work as well
         if hasattr(loader, 'load_module'):
-            self.load_module = loader.load_module
+            setattr(self, 'load_module', loader.load_module)
         self.old_module_name = old_module_name
         self.new_module_name = new_module_name
 
-    def create_module(self, spec: ModuleType) -> ModuleType:
+    def create_module(self, spec: ModuleSpec) -> ModuleType:
         return self.loader.create_module(spec)
 
     def module_repr(self, module: ModuleType) -> str:
@@ -402,7 +403,7 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         self,
         finder: Any,
         new_module_name: str,
-        new_module_spec: importlib._bootstrap.ModuleSpec,
+        new_module_spec: ModuleSpec,
         old_module_name: str,
         deadline: str,
     ):
@@ -454,8 +455,8 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
             spec.name = fullname
             # some loaders do a check to ensure the module's name is the same
             # as the loader was created for
-            if hasattr(spec.loader, "name") and spec.loader.name == new_fullname:
-                spec.loader.name = fullname
+            if hasattr(spec.loader, "name") and getattr(spec.loader, "name") == new_fullname:
+                setattr(spec.loader, "name", fullname)
             spec.loader = DeprecatedModuleLoader(spec.loader, fullname, new_fullname)
         return spec
 

@@ -42,13 +42,13 @@ _compat.deprecated_submodule(
 # simulates a move of numpy...a top level module
 # this will be the case with cirq.google -> cirq_google
 # fake_freezegun -> freezegun
-# _compat.deprecated_submodule(
-#     new_module_name="freezegun",
-#     old_parent=__name__,
-#     old_child="fake_freezegun",
-#     deadline="v0.20",
-#     create_attribute=True,
-# )
+_compat.deprecated_submodule(
+    new_module_name="freezegun",
+    old_parent=__name__,
+    old_child="fake_freezegun",
+    deadline="v0.20",
+    create_attribute=True,
+)
 
 # simulates a move of this module
 # fake_c -> module_a.module_b.module_c
