@@ -219,15 +219,18 @@ message CircuitOperation {
   // of repetitions or a list of repetition IDs.
   RepetitionSpecification repetition_specification = 2;
 
-  // Map of qubits in the circuit to the qubits used in this operation.
+  // Map from qubits in the "inner" circuit (referenced by
+  // circuit_constant_index) to qubits in the "outer" circuit (the one that
+  // contains this operation).
   QubitMapping qubit_map = 3;
 
-  // Map of measurement keys in the circuit to the measurement keys used in
-  // this operation.
+  // Map of measurement keys in the "inner" circuit (referenced by
+  // circuit_constant_index) to measurement keys in the "outer" circuit (the
+  // one that contains this operation).
   MeasurementKeyMapping measurement_key_map = 4;
 
-  // Map of args in the circuit to the values (or replacement args) used in
-  // this operation.
+  // Map of args in the "inner" circuit (referenced by circuit_constant_index)
+  // to args in the "outer" circuit (the one that contains this operation).
   ArgMapping arg_map = 5;
 }
 
