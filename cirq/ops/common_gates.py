@@ -281,10 +281,11 @@ class Rx(XPowGate):
     """
 
     def __init__(self, *, rads: value.TParamVal):
-        super(Rx, self).__init__(exponent=rads / _pi(rads), global_shift=-0.5)
+        self._rads = rads
+        super().__init__(exponent=rads / _pi(rads), global_shift=-0.5)
 
     def _with_exponent(self: 'Rx', exponent: value.TParamVal) -> 'Rx':
-        return type(self)(rads=exponent * _pi(exponent))
+        return Rx(rads=exponent * _pi(exponent))
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -298,14 +299,12 @@ class Rx(XPowGate):
         return f'Rx({self._exponent}π)'
 
     def __repr__(self) -> str:
-        if protocols.is_parameterized(self._exponent):
-            return f'cirq.Rx(rads={proper_repr(sympy.pi * self._exponent)})'
-        return f'cirq.Rx(rads=np.pi*{proper_repr(self._exponent)})'
+        return f'cirq.Rx(rads={proper_repr(self._rads)})'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
-            'rads': self._exponent * _pi(self._exponent),
+            'rads': self._rads,
         }
 
     @classmethod
@@ -503,10 +502,11 @@ class Ry(YPowGate):
     """
 
     def __init__(self, *, rads: value.TParamVal):
-        super(Ry, self).__init__(exponent=rads / _pi(rads), global_shift=-0.5)
+        self._rads = rads
+        super().__init__(exponent=rads / _pi(rads), global_shift=-0.5)
 
     def _with_exponent(self: 'Ry', exponent: value.TParamVal) -> 'Ry':
-        return type(self)(rads=exponent * _pi(exponent))
+        return Ry(rads=exponent * _pi(exponent))
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -520,14 +520,12 @@ class Ry(YPowGate):
         return f'Ry({self._exponent}π)'
 
     def __repr__(self) -> str:
-        if protocols.is_parameterized(self._exponent):
-            return f'cirq.Ry(rads={proper_repr(sympy.pi * self._exponent)})'
-        return f'cirq.Ry(rads=np.pi*{proper_repr(self._exponent)})'
+        return f'cirq.Ry(rads={proper_repr(self._rads)})'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
-            'rads': self._exponent * _pi(self._exponent),
+            'rads': self._rads,
         }
 
     @classmethod
@@ -787,10 +785,11 @@ class Rz(ZPowGate):
     """
 
     def __init__(self, *, rads: value.TParamVal):
-        super(Rz, self).__init__(exponent=rads / _pi(rads), global_shift=-0.5)
+        self._rads = rads
+        super().__init__(exponent=rads / _pi(rads), global_shift=-0.5)
 
     def _with_exponent(self: 'Rz', exponent: value.TParamVal) -> 'Rz':
-        return type(self)(rads=exponent * _pi(exponent))
+        return Rz(rads=exponent * _pi(exponent))
 
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -804,14 +803,12 @@ class Rz(ZPowGate):
         return f'Rz({self._exponent}π)'
 
     def __repr__(self) -> str:
-        if protocols.is_parameterized(self._exponent):
-            return f'cirq.Rz(rads={proper_repr(sympy.pi * self._exponent)})'
-        return f'cirq.Rz(rads=np.pi*{self._exponent!r})'
+        return f'cirq.Rz(rads={proper_repr(self._rads)})'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
-            'rads': self._exponent * _pi(self._exponent),
+            'rads': self._rads,
         }
 
     @classmethod
