@@ -339,9 +339,9 @@ def test_new_module_is_top_level():
     import cirq.testing._compat_test_data
 
     # imports a top level module that was also deprecated
-    from ipykernel import displayhook
+    from freezegun import api
 
-    assert displayhook
+    assert api
 
 
 def _find_spec_deprecated_multiple_times():
@@ -382,7 +382,7 @@ def _import_deprecated_same_name_in_earlier_subtree():
 
 
 def _import_top_level_deprecated():
-    from cirq.testing._compat_test_data.fake_ipykernel import displayhook
+    from cirq.testing._compat_test_data.fake_freezegun import displayhook
 
     assert displayhook
 
@@ -412,8 +412,8 @@ _deprecation_msg_3_parts = [
 
 # see cirq_compat_test_data/__init__.py for the setup code
 _deprecation_msg_4_parts = [
-    'fake_ipykernel was used but is deprecated',
-    'Use ipykernel instead',
+    'fake_freezegun was used but is deprecated',
+    'Use freezegun instead',
 ] + _deprecation_origin
 
 
@@ -436,7 +436,7 @@ _deprecation_msg_4_parts = [
         (_import_top_level_deprecated, [_deprecation_msg_4_parts]),
     ],
 )
-@pytest.mark.subprocess
+# @pytest.mark.subprocess
 def test_deprecated_module_simple_import(outdated_method, deprecation_messages):
     # ensure that both packages are initialized exactly once
     with cirq.testing.assert_logs(

@@ -41,11 +41,11 @@ _compat.deprecated_submodule(
 
 # simulates a move of numpy...a top level module
 # this will be the case with cirq.google -> cirq_google
-# fake_ipykernel -> ipykernel
+# fake_freezegun -> freezegun
 _compat.deprecated_submodule(
-    new_module_name="ipykernel",
+    new_module_name="freezegun",
     old_parent=__name__,
-    old_child="fake_ipykernel",
+    old_child="fake_freezegun",
     deadline="v0.20",
     create_attribute=True,
 )
