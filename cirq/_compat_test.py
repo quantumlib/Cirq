@@ -431,7 +431,9 @@ def _trace_unhandled_exceptions(*args, **kwargs):
 
 def subprocess_context(test_func):
     """Ensures that sys.modules changes in subprocesses won't impact the parent process."""
-    ctx = multiprocessing.get_context("fork")
+    import os
+
+    ctx = multiprocessing.get_context("spawn" if os.name == 'nt' else "fork")
 
     exception = ctx.Queue()
 
