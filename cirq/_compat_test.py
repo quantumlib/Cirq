@@ -333,17 +333,6 @@ def _new_module_in_different_parent():
     assert engine
 
 
-def test_new_module_is_top_level():
-    # sets up the DeprecationFinders
-    # pylint: disable=unused-import
-    import cirq.testing._compat_test_data
-
-    # imports a top level module that was also deprecated
-    from freezegun import api
-
-    assert api
-
-
 def _find_spec_deprecated_multiple_times():
     """to ensure the idempotency of the aliasing loader change"""
     # sets up the DeprecationFinders
@@ -382,9 +371,9 @@ def _import_deprecated_same_name_in_earlier_subtree():
 
 
 def _import_top_level_deprecated():
-    from cirq.testing._compat_test_data.fake_freezegun import displayhook
+    from cirq.testing._compat_test_data.fake_freezegun import api
 
-    assert displayhook
+    assert api
 
 
 # this is where the deprecation error should show where the deprecated usage
@@ -436,7 +425,7 @@ _deprecation_msg_4_parts = [
         (_import_top_level_deprecated, [_deprecation_msg_4_parts]),
     ],
 )
-# @pytest.mark.subprocess
+@pytest.mark.subprocess
 def test_deprecated_module_simple_import(outdated_method, deprecation_messages):
     # ensure that both packages are initialized exactly once
     with cirq.testing.assert_logs(
@@ -454,6 +443,7 @@ def test_deprecated_module_simple_import(outdated_method, deprecation_messages):
             outdated_method()
 
 
+@pytest.mark.subprocess
 def test_same_name_submodule_earlier_in_subtree():
     """Tests whether module resolution works in the right order.
 
@@ -474,6 +464,7 @@ def test_same_name_submodule_earlier_in_subtree():
     assert DUPE_CONSTANT
 
 
+@pytest.mark.subprocess
 def test_metadata_search_path():
     # to cater for metadata path finders
     # https://docs.python.org/3/library/importlib.metadata.html#extending-the-search-algorithm
@@ -501,3 +492,15 @@ def test_deprecated_module_deadline_validation():
             deadline="invalid",
             create_attribute=False,
         )
+
+
+@pytest.mark.subprocess
+def test_new_module_is_top_level():
+    # sets up the DeprecationFinders
+    # pylint: disable=unused-import
+    import cirq.testing._compat_test_data
+
+    # imports a top level module that was also deprecated
+    from freezegun import api
+
+    assert api
