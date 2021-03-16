@@ -88,7 +88,11 @@ def test_deprecated_with_name():
         return a + b
 
     with cirq.testing.assert_deprecated(
-        'test_func was used', 'will be removed in cirq v1.2', 'Roll some dice.', deadline='v1.2'
+        '_compat_test.py:',
+        'test_func was used',
+        'will be removed in cirq v1.2',
+        'Roll some dice.',
+        deadline='v1.2',
     ):
         assert f(1, 2) == 3
 
@@ -102,7 +106,11 @@ def test_deprecated():
         return new_func(*args, **kwargs)
 
     with cirq.testing.assert_deprecated(
-        'old_func was used', 'will be removed in cirq v1.2', 'Roll some dice.', deadline='v1.2'
+        '_compat_test.py:',
+        'old_func was used',
+        'will be removed in cirq v1.2',
+        'Roll some dice.',
+        deadline='v1.2',
     ):
         assert old_func(1, 2) == 3
 
@@ -137,6 +145,7 @@ def test_deprecated_parameter():
         assert f(new_count=1) == 1
 
     with cirq.testing.assert_deprecated(
+        '_compat_test.py:',
         'double_count parameter of test_func was used',
         'will be removed in cirq v1.2',
         'Double it yourself.',
@@ -195,6 +204,7 @@ def test_wrap_module():
 
     # Deprecation capability.
     with cirq.testing.assert_deprecated(
+        '_compat_test.py:',
         'foo was used but is deprecated.',
         'will be removed in cirq v0.6',
         'use bar instead',
@@ -233,6 +243,7 @@ def test_deprecated_class():
     assert "OldClass docs" in OldClass.__doc__
 
     with cirq.testing.assert_deprecated(
+        '_compat_test.py:',
         'foo was used but is deprecated',
         'will be removed in cirq v1.2',
         'theFix',
