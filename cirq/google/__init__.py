@@ -120,17 +120,6 @@ from cirq.google.serializable_gate_set import (
 from cirq.google import experimental
 
 
-def _register_resolver() -> None:
-    """Registers the cirq.google's public classes for JSON serialization."""
-    from cirq.protocols.json_serialization import _internal_register_resolver
-    from cirq.google.json_resolver_cache import _class_resolver_dictionary
-
-    _internal_register_resolver(_class_resolver_dictionary)
-
-
-_register_resolver()
-
-
 # pylint: disable=wrong-import-order
 from typing import Dict, Tuple
 
@@ -141,3 +130,14 @@ deprecated_constants: Dict[str, Tuple[str, str]] = {
     'SQRT_ISWAP_PARAMETERS': ('v0.12', 'Use cirq.google.SQRT_ISWAP_INV_PARAMETERS instead'),
 }
 _sys.modules[__name__] = _deprecate_attributes(_sys.modules[__name__], deprecated_constants)
+
+
+def _register_resolver() -> None:
+    """Registers the cirq.google's public classes for JSON serialization."""
+    from cirq.protocols.json_serialization import _internal_register_resolver
+    from cirq.google.json_resolver_cache import _class_resolver_dictionary
+
+    _internal_register_resolver(_class_resolver_dictionary)
+
+
+_register_resolver()
