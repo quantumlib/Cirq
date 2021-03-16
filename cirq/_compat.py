@@ -509,6 +509,8 @@ def deprecated_submodule(
     def wrap(finder: Any) -> Any:
         if not hasattr(finder, 'find_spec'):
             return finder
+        # this is just to make mypy not complain about the type of new_module_spec being Optional
+        assert new_module_spec is not None
         return DeprecatedModuleFinder(
             finder, new_module_name, new_module_spec, old_module_name, deadline
         )
