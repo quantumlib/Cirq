@@ -16,7 +16,19 @@
 import logging
 from typing import ContextManager, List, Optional
 
+from cirq._compat import deprecated_parameter
 
+
+@deprecated_parameter(
+    deadline="v0.12",
+    fix="use min_level instead",
+    parameter_desc="level",
+    match=lambda args, kwargs: 'level' in kwargs,
+    rewrite=lambda args, kwargs: (
+        args,
+        {('min_level' if k == 'level' else k): v for k, v in kwargs.items()},
+    ),
+)
 def assert_logs(
     *matches: str,
     count: Optional[int] = 1,
@@ -58,6 +70,8 @@ def assert_logs(
         for code executed within the entered context. This ContextManager
         checks that the asserts for the logs are true on exit.
     """
+    if min_level > max_level:
+        raise ValueError("min_level should be less than or equal to max_level")
     records = []
 
     class Handler(logging.Handler):
