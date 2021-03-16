@@ -55,22 +55,22 @@ def test_cz_init():
     assert (cirq.CZ ** 0.5).exponent == 0.5
 
 
-def test_transformations():
-    pi = np.pi
-    initialRx = cirq.rx(0.4)
-    expectedPowx = cirq.X ** (0.4 / pi)
+@pytest.mark.parametrize('theta,pi', [(0.4, np.pi), (sympy.Symbol("theta"), sympy.pi)])
+def test_transformations(theta, pi):
+    initialRx = cirq.rx(theta)
+    expectedPowx = cirq.X ** (theta / pi)
     receivedPowx = initialRx.with_canonical_global_phase()
     backToRx = receivedPowx.in_su2()
     assert receivedPowx == expectedPowx
     assert backToRx == initialRx
-    initialRy = cirq.ry(0.123)
-    expectedPowy = cirq.Y ** (0.123 / pi)
+    initialRy = cirq.ry(theta)
+    expectedPowy = cirq.Y ** (theta / pi)
     receivedPowy = initialRy.with_canonical_global_phase()
     backToRy = receivedPowy.in_su2()
     assert receivedPowy == expectedPowy
     assert backToRy == initialRy
-    initialRz = cirq.rz(-1.53)
-    expectedPowz = cirq.Z ** (-1.53 / pi)
+    initialRz = cirq.rz(theta)
+    expectedPowz = cirq.Z ** (theta / pi)
     receivedPowz = initialRz.with_canonical_global_phase()
     backToRz = receivedPowz.in_su2()
     assert receivedPowz == expectedPowz
@@ -803,7 +803,9 @@ def test_repr():
     cirq.testing.assert_equivalent_repr(
         cirq.X ** (sympy.Symbol('a') / 2 - sympy.Symbol('c') * 3 + 5)
     )
+    cirq.testing.assert_equivalent_repr(cirq.Rx(rads=sympy.Symbol('theta')))
     cirq.testing.assert_equivalent_repr(cirq.Ry(rads=sympy.Symbol('theta')))
+    cirq.testing.assert_equivalent_repr(cirq.Rz(rads=sympy.Symbol('theta')))
 
     # There should be no floating point error during initialization, and repr
     # should be using the "shortest decimal value closer to X than any other
