@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+import multiprocessing
+import traceback
 import types
 
 import numpy as np
@@ -406,31 +408,31 @@ _deprecation_msg_4_parts = [
 ] + _deprecation_origin
 
 
+def _trace_unhandled_exceptions(*args, **kwargs):
+    from multiprocessing import Queue
+
+    queue: Queue = kwargs['q']
+    func = kwargs['func']
+    del kwargs['q']
+    del kwargs['func']
+    try:
+        func(*args, **kwargs)
+        queue.put(None)
+    except BaseException as ex:
+        msg = str(ex)
+        queue.put((type(ex).__name__, msg, traceback.format_exc()))
+
+
 def subprocess_context(test_func):
-    import traceback
-    import functools
-    from multiprocessing import Process, Queue
+    """This ensures that sys.modules changes in subprocesses won't impact the parent"""
+    ctx = multiprocessing.get_context("fork")
 
-    exception = Queue()
+    exception = ctx.Queue()
 
-    def trace_unhandled_exceptions(func):
-        @functools.wraps(func)
-        def wrapped_func(*args, **kwargs):
-            queue: Queue = kwargs['q']
-            del kwargs['q']
-            try:
-                func(*args, **kwargs)
-                queue.put(None)
-            except BaseException as ex:
-                msg = str(ex)
-                queue.put((type(ex).__name__, msg, traceback.format_exc()))
-
-        return wrapped_func
-
-    @functools.wraps(test_func)
     def isolated_func(*args, **kwargs):
         kwargs['q'] = exception
-        p = Process(target=trace_unhandled_exceptions(test_func), args=args, kwargs=kwargs)
+        kwargs['func'] = test_func
+        p = ctx.Process(target=_trace_unhandled_exceptions, args=args, kwargs=kwargs)
         p.start()
         result = exception.get()
         p.join()
@@ -460,9 +462,14 @@ def subprocess_context(test_func):
         (_import_top_level_deprecated, [_deprecation_msg_4_parts]),
     ],
 )
-@subprocess_context
 def test_deprecated_module(outdated_method, deprecation_messages):
+    subprocess_context(_test_deprecated_module_inner)(outdated_method, deprecation_messages)
+
+
+def _test_deprecated_module_inner(outdated_method, deprecation_messages):
     # ensure that both packages are initialized exactly once
+    import cirq
+
     with cirq.testing.assert_logs(
         "init:compat_test_data",
         "init:module_a",
@@ -475,10 +482,12 @@ def test_deprecated_module(outdated_method, deprecation_messages):
             deadline="v0.20",
             count=len(deprecation_messages),
         ):
+            import warnings
+
+            warnings.simplefilter("always")
             outdated_method()
 
 
-@subprocess_context
 def test_same_name_submodule_earlier_in_subtree():
     """Tests whether module resolution works in the right order.
 
@@ -494,16 +503,22 @@ def test_same_name_submodule_earlier_in_subtree():
     cirq.google.engine.calibration packages. The wrong resolution resulted in false circular
     imports!
     """
+    subprocess_context(_test_same_name_submodule_earlier_in_subtree_inner)()
+
+
+def _test_same_name_submodule_earlier_in_subtree_inner():
     from cirq.testing._compat_test_data.module_a.sub.subsub.dupe import DUPE_CONSTANT
 
     assert DUPE_CONSTANT
 
 
-@subprocess_context
 def test_metadata_search_path():
     # to cater for metadata path finders
     # https://docs.python.org/3/library/importlib.metadata.html#extending-the-search-algorithm
+    subprocess_context(_test_metadata_search_path_inner)()
 
+
+def _test_metadata_search_path_inner():
     # initialize the DeprecatedModuleFinders
     # pylint: disable=unused-import
     import cirq.testing._compat_test_data.module_a
@@ -529,8 +544,11 @@ def test_deprecated_module_deadline_validation():
         )
 
 
-@subprocess_context
 def test_new_module_is_top_level():
+    subprocess_context(_test_new_module_is_top_level_inner)()
+
+
+def _test_new_module_is_top_level_inner():
     # sets up the DeprecationFinders
     # pylint: disable=unused-import
     import cirq.testing._compat_test_data
