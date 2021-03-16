@@ -75,7 +75,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             if result is True:
                 return True
             assert result is NotImplemented, str(result)
-        return TypeError(
+        raise TypeError(
             "Can't simulate operations that don't implement "
             "SupportsUnitary, SupportsConsistentApplyUnitary, "
             "SupportsMixture, SupportsChannel or is a measurement: {!r}".format(action)
