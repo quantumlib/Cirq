@@ -36,6 +36,29 @@ def test_assert_deprecated_log_handling():
 
     # allowing for multiple deprecation warnings (in case of json serialization for multiple objects
     # for example)
-    with assert_deprecated(deadline="v1.2", allow_multiple_warnings=True):
+    with assert_deprecated(deadline="v1.2", count=2):
         warnings.warn("hello, this is deprecated in v1.2")
         warnings.warn("hello, this is deprecated in v1.2")
+
+    with assert_deprecated(deadline="v1.2", count=None):
+        warnings.warn("hello, this is deprecated in v1.2")
+        warnings.warn("hello, this is deprecated in v1.2")
+        warnings.warn("hello, this is deprecated in v1.2")
+
+
+def test_deprecated():
+    # allow_multiple_warnings is now deprecated...so this is a bit convoluted,
+    # a parameter of the deprecator is being deprecated
+
+    with assert_deprecated(deadline="v0.12", count=3):
+        with pytest.raises(AssertionError, match="Expected 1 log message but got 2."):
+            # pylint: disable=unexpected-keyword-arg
+            with assert_deprecated(deadline="v1.2", allow_multiple_warnings=False):
+                warnings.warn("hello, this is deprecated in v1.2")
+                warnings.warn("hello, this is deprecated in v1.2")
+
+    with assert_deprecated(deadline="v0.12", count=3):
+        # pylint: disable=unexpected-keyword-arg
+        with assert_deprecated(deadline="v1.2", allow_multiple_warnings=True):
+            warnings.warn("hello, this is deprecated in v1.2")
+            warnings.warn("hello, this is deprecated in v1.2")
