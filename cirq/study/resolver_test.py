@@ -234,7 +234,7 @@ def test_custom_resolved_value():
     class Foo:
         def _resolved_value_(self):
             return self
-    asdf
+
     class Bar:
         def _resolved_value_(self):
             return NotImplemented
