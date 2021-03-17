@@ -251,6 +251,4 @@ def _resolve_value(val: Any) -> Any:
 
     getter = getattr(val, '_resolved_value_', None)
     result = NotImplemented if getter is None else getter()
-    if result is not NotImplemented:
-        return val
-    return NotImplemented
+    return result
