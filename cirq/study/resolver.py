@@ -20,7 +20,7 @@ import numpy as np
 import sympy
 from sympy.core import numbers as sympy_numbers
 from cirq._compat import proper_repr
-from cirq._doc import document, doc_private
+from cirq._doc import document
 
 if TYPE_CHECKING:
     import cirq
