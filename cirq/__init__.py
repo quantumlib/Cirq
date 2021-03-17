@@ -347,7 +347,9 @@ from cirq.qis import (
 )
 
 from cirq.sim import (
+    ActOnArgs,
     ActOnCliffordTableauArgs,
+    ActOnDensityMatrixArgs,
     ActOnStabilizerCHFormArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,
