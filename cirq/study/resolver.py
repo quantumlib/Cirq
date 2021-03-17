@@ -244,4 +244,9 @@ def _sympy_pass_through(val: Any) -> Optional[Any]:
         return val.p / val.q
     if val == sympy.pi:
         return np.pi
+
+    getter = getattr(val, '_sympy_pass_through_', None)
+    result = NotImplemented if getter is None else getter()
+    if result is not NotImplemented and result:
+        return val
     return None

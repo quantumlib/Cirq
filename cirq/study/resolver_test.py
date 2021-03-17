@@ -230,6 +230,25 @@ def test_resolve_unknown_type():
     assert r.value_of(cirq.X) == cirq.X
 
 
+def test_custom_sympy_pass_through():
+    class Foo:
+        def _sympy_pass_through_(self):
+            return True
+
+    class Bar:
+        def _sympy_pass_through_(self):
+            return False
+
+    foo = Foo()
+    bar = Bar()
+
+    a = sympy.Symbol('a')
+    b = sympy.Symbol('b')
+    r = cirq.ParamResolver({a: foo, b: bar})
+    assert r.value_of(a) is foo
+    assert r.value_of(b) is b
+
+
 def test_compose():
     """
     Calling cirq.resolve_paramters on a ParamResolver composes that resolver
