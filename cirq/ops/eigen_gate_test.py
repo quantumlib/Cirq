@@ -43,7 +43,7 @@ class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
     def _with_exponent(self, exponent):
         return CExpZinGate(exponent)
 
-    def _eigen_components(self) -> List[Union[eigen_gate.EigenComponent, Tuple[float, np.ndarray]]]:
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (0, np.diag([1, 1, 0, 0])),
             (0.5, np.diag([0, 0, 1, 0])),
@@ -56,7 +56,7 @@ class ZGateDef(cirq.EigenGate, cirq.TwoQubitGate):
     def exponent(self):
         return self._exponent
 
-    def _eigen_components(self) -> List[Union[eigen_gate.EigenComponent, Tuple[float, np.ndarray]]]:
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (0, np.diag([1, 0])),
             (1, np.diag([0, 1])),
@@ -352,7 +352,7 @@ class WeightedZPowGate(cirq.EigenGate, cirq.SingleQubitGate):
 
     _value_equality_approximate_values_ = _value_equality_values_
 
-    def _eigen_components(self) -> List[Union[eigen_gate.EigenComponent, Tuple[float, np.ndarray]]]:
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (0, np.diag([1, 0])),
             (self.weight, np.diag([0, 1])),

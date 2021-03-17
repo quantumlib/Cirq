@@ -66,7 +66,7 @@ class SwapPowGate(
         )
         yield common_gates.CNOT(a, b)
 
-    def _eigen_components(self) -> List[Union[eigen_gate.EigenComponent, Tuple[float, np.ndarray]]]:
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         # yapf: disable
         return [
             (0, np.array([[1, 0,   0,   0],
@@ -210,7 +210,7 @@ class ISwapPowGate(
         https://quantumcomputing.stackexchange.com/questions/2594/
     """
 
-    def _eigen_components(self) -> List[Union[eigen_gate.EigenComponent, Tuple[float, np.ndarray]]]:
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         # yapf: disable
         return [
             (0, np.diag([1, 0, 0, 1])),
