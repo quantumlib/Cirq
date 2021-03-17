@@ -236,7 +236,8 @@ def test_custom_sympy_pass_through():
             return self
 
     class Bar:
-        pass
+        def _resolver_value_(self):
+            return NotImplemented
 
     foo = Foo()
     bar = Bar()

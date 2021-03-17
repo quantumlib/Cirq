@@ -34,6 +34,8 @@ document(
     """Something that can be used to turn parameters into values.""",
 )
 
+RecursionFlag = object()
+
 
 class ParamResolver:
     """Resolves parameters to actual values.
@@ -97,7 +99,7 @@ class ParamResolver:
 
         # Input is a pass through type, no resolution needed: return early
         v = _sympy_pass_through(value)
-        if v is not None:
+        if v is not NotImplemented:
             return v
 
         # Handles 2 cases:
@@ -107,7 +109,7 @@ class ParamResolver:
         if value in self.param_dict:
             param_value = self.param_dict[value]
             v = _sympy_pass_through(param_value)
-            if v is not None:
+            if v is not NotImplemented:
                 return v
 
         # Input is a string and is not in the dictionary.
@@ -122,7 +124,7 @@ class ParamResolver:
         if isinstance(value, sympy.Symbol) and value.name in self.param_dict:
             param_value = self.param_dict[value.name]
             v = _sympy_pass_through(param_value)
-            if v is not None:
+            if v is not NotImplemented:
                 return v
 
         # The following resolves common sympy expressions
@@ -166,13 +168,13 @@ class ParamResolver:
         # single symbol, since combinations are handled earlier in the method.
         if value in self._deep_eval_map:
             v = self._deep_eval_map[value]
-            if v is not None:
+            if v is not RecursionFlag:
                 return v
             raise RecursionError('Evaluation of {value} indirectly contains itself.')
 
         # There isn't a full evaluation for 'value' yet. Until it's ready,
         # map value to None to identify loops in component evaluation.
-        self._deep_eval_map[value] = None
+        self._deep_eval_map[value] = RecursionFlag
 
         v = self.value_of(value, recursive=False)
         if v == value:
@@ -235,7 +237,7 @@ class ParamResolver:
         return cls(dict(param_dict))
 
 
-def _sympy_pass_through(val: Any) -> Optional[Any]:
+def _sympy_pass_through(val: Any) -> Any:
     if isinstance(val, numbers.Number) and not isinstance(val, sympy.Basic):
         return val
     if isinstance(val, sympy_numbers.IntegerConstant):
@@ -249,4 +251,4 @@ def _sympy_pass_through(val: Any) -> Optional[Any]:
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented:
         return val
-    return None
+    return NotImplemented
