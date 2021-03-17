@@ -55,10 +55,10 @@ class TwoQubitDiagonalGate(gate_features.TwoQubitGate):
         }
 
     def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolver', recursive: bool
+        self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'TwoQubitDiagonalGate':
         return TwoQubitDiagonalGate(
-            protocols.resolve_parameters(self._diag_angles_radians, param_resolver, recursive)
+            protocols.resolve_parameters(self._diag_angles_radians, resolver, recursive)
         )
 
     def _has_unitary_(self) -> bool:

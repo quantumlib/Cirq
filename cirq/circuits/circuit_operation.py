@@ -534,11 +534,11 @@ class CircuitOperation(ops.Operation):
 
     # TODO: handle recursive parameter resolution gracefully
     def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolver', recursive: bool
+        self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'CircuitOperation':
         if recursive:
             raise ValueError(
                 'Recursive resolution of CircuitOperation parameters is prohibited. '
                 'Use "recursive=False" to prevent this error.'
             )
-        return self.with_params(param_resolver.param_dict)
+        return self.with_params(resolver.param_dict)

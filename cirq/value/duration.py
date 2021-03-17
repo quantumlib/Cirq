@@ -90,8 +90,8 @@ class Duration:
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self._picos)
 
-    def _resolve_parameters_(self, param_resolver, recursive):
-        return Duration(picos=protocols.resolve_parameters(self._picos, param_resolver, recursive))
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'Duration':
+        return Duration(picos=protocols.resolve_parameters(self._picos, resolver, recursive))
 
     def total_picos(self) -> Union[sympy.Basic, float]:
         """Returns the number of picoseconds that the duration spans."""
