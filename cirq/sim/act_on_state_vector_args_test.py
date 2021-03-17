@@ -54,7 +54,7 @@ def test_cannot_act():
         log_of_measurement_results={},
     )
 
-    with pytest.raises(TypeError, match="Failed to act"):
+    with pytest.raises(TypeError, match="Can't simulate operations"):
         cirq.act_on(NoDetails(), args)
 
 

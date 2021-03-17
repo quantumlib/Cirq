@@ -194,6 +194,7 @@ from cirq.ops import (
     DensePauliString,
     depolarize,
     DepolarizingChannel,
+    DiagonalGate,
     EigenGate,
     flatten_op_tree,
     flatten_to_ops,
@@ -346,7 +347,9 @@ from cirq.qis import (
 )
 
 from cirq.sim import (
+    ActOnArgs,
     ActOnCliffordTableauArgs,
+    ActOnDensityMatrixArgs,
     ActOnStabilizerCHFormArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,

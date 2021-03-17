@@ -67,6 +67,16 @@ def test_invalid_dtype():
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_run_with_ignore_measurement_results(dtype):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype, ignore_measurement_results=True)
+
+    circuit = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.measure(q0))
+    with pytest.raises(ValueError, match="ignore_measurement_results = True"):
+        simulator.run(circuit)
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_no_measurements(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
@@ -109,7 +119,7 @@ def test_run_bit_flips(dtype):
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_bit_flips_with_dephasing(dtype):
     q0, q1 = cirq.LineQubit.range(2)
-    simulator = cirq.DensityMatrixSimulator(dtype=dtype, ignore_measurement_results=True)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
             circuit = cirq.Circuit(

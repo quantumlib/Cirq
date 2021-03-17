@@ -17,8 +17,8 @@ import functools
 import os
 import re
 import warnings
-from typing import Any, Callable, Optional, Dict, Tuple, Type
 from types import ModuleType
+from typing import Any, Callable, Optional, Dict, Tuple, Type
 
 import numpy as np
 import pandas as pd
@@ -96,7 +96,7 @@ def _warn_or_error(msg):
     warnings.warn(
         msg,
         DeprecationWarning,
-        stacklevel=2,
+        stacklevel=3,
     )
 
 
