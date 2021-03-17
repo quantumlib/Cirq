@@ -49,6 +49,16 @@ class SupportsParameterization(Protocol):
         """Resolve the parameters in the effect."""
 
 
+class ResolvableValue(Protocol):
+    @doc_private
+    def _resolved_value_(self) -> Any:
+        """Returns a resolved value during parameter resolution.
+
+        Use this to mark a custom type as "resolved", instead of requiring
+        further parsing like we do with Sympy symbols.
+        """
+
+
 def is_parameterized(val: Any) -> bool:
     """Returns whether the object is parameterized with any Symbols.
 

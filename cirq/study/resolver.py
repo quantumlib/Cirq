@@ -15,7 +15,7 @@
 """Resolves ParameterValues to assigned values."""
 import numbers
 from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
-from typing_extensions import Protocol
+
 import numpy as np
 import sympy
 from sympy.core import numbers as sympy_numbers
@@ -99,7 +99,7 @@ class ParamResolver:
         """
 
         # Input is a pass through type, no resolution needed: return early
-        v = _sympy_pass_through(value)
+        v = _resolve_value(value)
         if v is not NotImplemented:
             return v
 
@@ -109,7 +109,7 @@ class ParamResolver:
         # In both cases, return it directly.
         if value in self.param_dict:
             param_value = self.param_dict[value]
-            v = _sympy_pass_through(param_value)
+            v = _resolve_value(param_value)
             if v is not NotImplemented:
                 return v
 
@@ -124,7 +124,7 @@ class ParamResolver:
         # in the dictionary ({'a': 1.0}).  Return it.
         if isinstance(value, sympy.Symbol) and value.name in self.param_dict:
             param_value = self.param_dict[value.name]
-            v = _sympy_pass_through(param_value)
+            v = _resolve_value(param_value)
             if v is not NotImplemented:
                 return v
 
@@ -238,17 +238,7 @@ class ParamResolver:
         return cls(dict(param_dict))
 
 
-class ResolvableValue(Protocol):
-    @doc_private
-    def _resolver_value_(self) -> Any:
-        """Returns a resolved value during parameter resolution.
-
-        Use this to mark a custom type as "resolved", instead of requiring
-        further parsing like we do with Sympy symbols.
-        """
-
-
-def _sympy_pass_through(val: Any) -> Any:
+def _resolve_value(val: Any) -> Any:
     if isinstance(val, numbers.Number) and not isinstance(val, sympy.Basic):
         return val
     if isinstance(val, sympy_numbers.IntegerConstant):
@@ -258,7 +248,7 @@ def _sympy_pass_through(val: Any) -> Any:
     if val == sympy.pi:
         return np.pi
 
-    getter = getattr(val, '_resolver_value_', None)
+    getter = getattr(val, '_resolved_value_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented:
         return val

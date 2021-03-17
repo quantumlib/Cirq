@@ -232,11 +232,11 @@ def test_resolve_unknown_type():
 
 def test_custom_sympy_pass_through():
     class Foo:
-        def _resolver_value_(self):
+        def _resolved_value_(self):
             return self
 
     class Bar:
-        def _resolver_value_(self):
+        def _resolved_value_(self):
             return NotImplemented
 
     foo = Foo()
