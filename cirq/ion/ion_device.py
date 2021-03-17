@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Any, cast, FrozenSet, Iterable, Optional, Set, TYPE_CHECKING
 
 from cirq import circuits, value, devices, ops, protocols
@@ -30,9 +31,9 @@ class IonDevice(devices.Device):
 
     def __init__(
         self,
-        measurement_duration: 'cirq.DURATION_LIKE',
-        twoq_gates_duration: 'cirq.DURATION_LIKE',
-        oneq_gates_duration: 'cirq.DURATION_LIKE',
+        measurement_duration: cirq.DURATION_LIKE,
+        twoq_gates_duration: cirq.DURATION_LIKE,
+        oneq_gates_duration: cirq.DURATION_LIKE,
         qubits: Iterable[devices.LineQubit],
     ) -> None:
         """Initializes the description of an ion trap device.
@@ -49,7 +50,7 @@ class IonDevice(devices.Device):
         self._oneq_gates_duration = value.Duration(oneq_gates_duration)
         self.qubits = frozenset(qubits)
 
-    def qubit_set(self) -> FrozenSet['cirq.LineQubit']:
+    def qubit_set(self) -> FrozenSet[cirq.LineQubit]:
         return self.qubits
 
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:

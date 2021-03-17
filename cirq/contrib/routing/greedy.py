@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import itertools
 from typing import (
     Callable,
@@ -108,7 +109,7 @@ class _GreedyRouter:
         can_reorder: Callable[
             [ops.Operation, ops.Operation], bool
         ] = circuits.circuit_dag._disjoint_qubits,
-        random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ):
 
         self.prng = value.parse_random_state(random_state)
@@ -147,12 +148,12 @@ class _GreedyRouter:
             ]
         return self.edge_sets[edge_set_size]
 
-    def log_to_phys(self, *qubits: 'cirq.Qid') -> Iterable[ops.Qid]:
+    def log_to_phys(self, *qubits: cirq.Qid) -> Iterable[ops.Qid]:
         """Returns an iterator over the physical qubits mapped to by the given
         logical qubits."""
         return (self._log_to_phys[q] for q in qubits)
 
-    def phys_to_log(self, *qubits: 'cirq.Qid') -> Iterable[Optional[ops.Qid]]:
+    def phys_to_log(self, *qubits: cirq.Qid) -> Iterable[Optional[ops.Qid]]:
         """Returns an iterator over the logical qubits that map to the given
         physical qubits."""
         return (self._phys_to_log[q] for q in qubits)

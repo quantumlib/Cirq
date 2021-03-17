@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 import os
 from collections import defaultdict
 from random import randint, random, sample, randrange
@@ -615,15 +616,13 @@ class ValidatingTestDevice(cirq.Device):
             if not cast(cirq.GridQubit, p).is_adjacent(q):
                 raise ValueError(f'Non-local interaction: {operation!r}.')
 
-    def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
+    def decompose_operation(self, operation: cirq.Operation) -> cirq.OP_TREE:
         # a fake decomposer for only TOFFOLI gates
         if isinstance(operation.gate, cirq.CCXPowGate):
             return cirq.decompose(operation)
         return operation
 
-    def can_add_operation_into_moment(
-        self, operation: 'cirq.Operation', moment: 'cirq.Moment'
-    ) -> bool:
+    def can_add_operation_into_moment(self, operation: cirq.Operation, moment: cirq.Moment) -> bool:
         if not super().can_add_operation_into_moment(operation, moment):
             return False
         # a fake rule for ensuring that no two CZs are executed at the same moment.

@@ -13,6 +13,7 @@
 # limitations under the License.
 """Abstract base class for things sampling quantum circuits."""
 
+from __future__ import annotations
 from typing import List, Optional, TYPE_CHECKING, Union
 import abc
 
@@ -29,10 +30,10 @@ class Sampler(metaclass=abc.ABCMeta):
 
     def run(
         self,
-        program: 'cirq.Circuit',
-        param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+        program: cirq.Circuit,
+        param_resolver: cirq.ParamResolverOrSimilarType = None,
         repetitions: int = 1,
-    ) -> 'cirq.Result':
+    ) -> cirq.Result:
         """Samples from the given Circuit.
 
         By default, the `run_async` method invokes this method on another
@@ -50,11 +51,11 @@ class Sampler(metaclass=abc.ABCMeta):
 
     def sample(
         self,
-        program: 'cirq.Circuit',
+        program: cirq.Circuit,
         *,
         repetitions: int = 1,
-        params: 'cirq.Sweepable' = None,
-    ) -> 'pd.DataFrame':
+        params: cirq.Sweepable = None,
+    ) -> pd.DataFrame:
         """Samples the given Circuit, producing a pandas data frame.
 
         Args:
@@ -136,10 +137,10 @@ class Sampler(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def run_sweep(
         self,
-        program: 'cirq.Circuit',
-        params: 'cirq.Sweepable',
+        program: cirq.Circuit,
+        params: cirq.Sweepable,
         repetitions: int = 1,
-    ) -> List['cirq.Result']:
+    ) -> List[cirq.Result]:
         """Samples from the given Circuit.
 
         In contrast to run, this allows for sweeping over different parameter
@@ -155,7 +156,7 @@ class Sampler(metaclass=abc.ABCMeta):
             resolver.
         """
 
-    async def run_async(self, program: 'cirq.Circuit', *, repetitions: int) -> 'cirq.Result':
+    async def run_async(self, program: cirq.Circuit, *, repetitions: int) -> cirq.Result:
         """Asynchronously samples from the given Circuit.
 
         By default, this method invokes `run` synchronously and simply exposes
@@ -173,10 +174,10 @@ class Sampler(metaclass=abc.ABCMeta):
 
     async def run_sweep_async(
         self,
-        program: 'cirq.Circuit',
-        params: 'cirq.Sweepable',
+        program: cirq.Circuit,
+        params: cirq.Sweepable,
         repetitions: int = 1,
-    ) -> List['cirq.Result']:
+    ) -> List[cirq.Result]:
         """Asynchronously sweeps and samples from the given Circuit.
 
         By default, this method invokes `run_sweep` synchronously and simply
@@ -197,10 +198,10 @@ class Sampler(metaclass=abc.ABCMeta):
 
     def run_batch(
         self,
-        programs: List['cirq.Circuit'],
-        params_list: Optional[List['cirq.Sweepable']] = None,
+        programs: List[cirq.Circuit],
+        params_list: Optional[List[cirq.Sweepable]] = None,
         repetitions: Union[int, List[int]] = 1,
-    ) -> List[List['cirq.Result']]:
+    ) -> List[List[cirq.Result]]:
         """Runs the supplied circuits.
 
         Each circuit provided in `programs` will pair with the optional

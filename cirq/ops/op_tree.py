@@ -15,6 +15,7 @@
 """A recursive type describing trees of operations, and utility methods for it.
 """
 
+from __future__ import annotations
 from typing import Callable, Iterable, Iterator, NoReturn, Union
 from typing_extensions import Protocol
 
@@ -44,7 +45,7 @@ class OpTree(Protocol):
     See: https://github.com/python/mypy/issues/731
     """
 
-    def __iter__(self) -> Iterator[Union[Operation, 'OpTree']]:
+    def __iter__(self) -> Iterator[Union[Operation, OpTree]]:
         pass
 
 

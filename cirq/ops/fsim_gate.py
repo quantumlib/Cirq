@@ -21,6 +21,7 @@ context of chemistry the electron count is conserved over time. This property
 applies more generally to fermions, thus the name of the gate.
 """
 
+from __future__ import annotations
 import cmath
 import math
 from typing import AbstractSet, Any, Dict, Optional, Tuple, Union
@@ -137,14 +138,14 @@ class FSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGa
         )
 
     def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'cirq.FSimGate':
+        self, param_resolver: cirq.ParamResolver, recursive: bool
+    ) -> cirq.FSimGate:
         return FSimGate(
             protocols.resolve_parameters(self.theta, param_resolver, recursive),
             protocols.resolve_parameters(self.phi, param_resolver, recursive),
         )
 
-    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Optional[np.ndarray]:
         if cirq.is_parameterized(self):
             return None
         if self.theta != 0:
@@ -161,7 +162,7 @@ class FSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGa
             out[ii] *= cmath.exp(-1j * self.phi)
         return out
 
-    def _decompose_(self, qubits) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits) -> cirq.OP_TREE:
         a, b = qubits
         xx = cirq.XXPowGate(exponent=self.theta / np.pi, global_shift=-0.5)
         yy = cirq.YYPowGate(exponent=self.theta / np.pi, global_shift=-0.5)
@@ -169,12 +170,12 @@ class FSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGa
         yield yy(a, b)
         yield cirq.CZ(a, b) ** (-self.phi / np.pi)
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
         t = args.format_radians(self.theta)
         p = args.format_radians(self.phi)
         return f'FSim({t}, {p})', f'FSim({t}, {p})'
 
-    def __pow__(self, power) -> 'FSimGate':
+    def __pow__(self, power) -> FSimGate:
         return FSimGate(cirq.mul(self.theta, power), cirq.mul(self.phi, power))
 
     def __repr__(self) -> str:
@@ -276,7 +277,7 @@ class PhasedFSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQu
         phi: Union[float, sympy.Basic],
         rz_angles_before: Tuple[Union[float, sympy.Basic], Union[float, sympy.Basic]],
         rz_angles_after: Tuple[Union[float, sympy.Basic], Union[float, sympy.Basic]],
-    ) -> 'PhasedFSimGate':
+    ) -> PhasedFSimGate:
         """Creates PhasedFSimGate using an alternate parametrization.
 
         Args:
@@ -364,8 +365,8 @@ class PhasedFSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQu
         )
 
     def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'cirq.PhasedFSimGate':
+        self, param_resolver: cirq.ParamResolver, recursive: bool
+    ) -> cirq.PhasedFSimGate:
         return PhasedFSimGate(
             protocols.resolve_parameters(self.theta, param_resolver, recursive),
             protocols.resolve_parameters(self.zeta, param_resolver, recursive),
@@ -374,7 +375,7 @@ class PhasedFSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQu
             protocols.resolve_parameters(self.phi, param_resolver, recursive),
         )
 
-    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> Optional[np.ndarray]:
         if cirq.is_parameterized(self):
             return None
         oi = args.subspace_index(0b01)
@@ -399,7 +400,7 @@ class PhasedFSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQu
             out[ii] *= f * f
         return out
 
-    def _decompose_(self, qubits) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits) -> cirq.OP_TREE:
         """Decomposes self into Z rotations and FSimGate.
 
         Note that Z rotations returned by this method have unusual global phase
@@ -422,7 +423,7 @@ class PhasedFSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQu
         yield cirq.Z(q0) ** to_exponent(after[0])
         yield cirq.Z(q1) ** to_exponent(after[1])
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
         theta = args.format_radians(self.theta)
         zeta = args.format_radians(self.zeta)
         chi = args.format_radians(self.chi)

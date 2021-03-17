@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import abc
 from typing import TYPE_CHECKING, Optional, AbstractSet
 
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
 class Device(metaclass=abc.ABCMeta):
     """Hardware constraints for validating circuits."""
 
-    def qubit_set(self) -> Optional[AbstractSet['cirq.Qid']]:
+    def qubit_set(self) -> Optional[AbstractSet[cirq.Qid]]:
         """Returns a set or frozenset of qubits on the device, if possible.
 
         Returns:
@@ -46,7 +47,7 @@ class Device(metaclass=abc.ABCMeta):
         # Default to the qubits being unknown.
         return None
 
-    def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
+    def decompose_operation(self, operation: cirq.Operation) -> cirq.OP_TREE:
         """Returns a device-valid decomposition for the given operation.
 
         This method is used when adding operations into circuits with a device
@@ -55,7 +56,7 @@ class Device(metaclass=abc.ABCMeta):
         """
         return operation
 
-    def validate_operation(self, operation: 'cirq.Operation') -> None:
+    def validate_operation(self, operation: cirq.Operation) -> None:
         """Raises an exception if an operation is not valid.
 
         Args:
@@ -65,7 +66,7 @@ class Device(metaclass=abc.ABCMeta):
             ValueError: The operation isn't valid for this device.
         """
 
-    def validate_circuit(self, circuit: 'cirq.Circuit') -> None:
+    def validate_circuit(self, circuit: cirq.Circuit) -> None:
         """Raises an exception if a circuit is not valid.
 
         Args:
@@ -77,7 +78,7 @@ class Device(metaclass=abc.ABCMeta):
         for moment in circuit:
             self.validate_moment(moment)
 
-    def validate_moment(self, moment: 'cirq.Moment') -> None:
+    def validate_moment(self, moment: cirq.Moment) -> None:
         """Raises an exception if a moment is not valid.
 
         Args:
@@ -89,9 +90,7 @@ class Device(metaclass=abc.ABCMeta):
         for operation in moment.operations:
             self.validate_operation(operation)
 
-    def can_add_operation_into_moment(
-        self, operation: 'cirq.Operation', moment: 'cirq.Moment'
-    ) -> bool:
+    def can_add_operation_into_moment(self, operation: cirq.Operation, moment: cirq.Moment) -> bool:
         """Determines if it's possible to add an operation into a moment.
 
         For example, on the XmonDevice two CZs shouldn't be placed in the same

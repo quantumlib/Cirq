@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
+from __future__ import annotations
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import (
@@ -45,10 +46,10 @@ SQRT_ISWAP = ops.ISWAP ** 0.5
 
 def benchmark_2q_xeb_fidelities(
     sampled_df: pd.DataFrame,
-    circuits: Sequence['cirq.Circuit'],
+    circuits: Sequence[cirq.Circuit],
     cycle_depths: Sequence[int],
-    param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
-    pool: Optional['multiprocessing.pool.Pool'] = None,
+    param_resolver: cirq.ParamResolverOrSimilarType = None,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ):
     """Simulate and benchmark two-qubit XEB circuits.
 
@@ -117,11 +118,11 @@ def benchmark_2q_xeb_fidelities(
 class XEBCharacterizationOptions(ABC):
     @staticmethod
     @abstractmethod
-    def should_parameterize(op: 'cirq.Operation') -> bool:
+    def should_parameterize(op: cirq.Operation) -> bool:
         """Whether to replace `op` with a parameterized version."""
 
     @abstractmethod
-    def get_parameterized_gate(self) -> 'cirq.Gate':
+    def get_parameterized_gate(self) -> cirq.Gate:
         """The parameterized gate to use."""
 
     @abstractmethod
@@ -226,14 +227,14 @@ class SqrtISwapXEBOptions(XEBPhasedFSimCharacterizationOptions):
     theta_default: float = -np.pi / 4
 
     @staticmethod
-    def should_parameterize(op: 'cirq.Operation') -> bool:
+    def should_parameterize(op: cirq.Operation) -> bool:
         return op.gate == SQRT_ISWAP
 
 
 def parameterize_circuit(
-    circuit: 'cirq.Circuit',
+    circuit: cirq.Circuit,
     options: XEBCharacterizationOptions,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Parameterize PhasedFSim-like gates in a given circuit according to
     `phased_fsim_options`.
     """
@@ -269,14 +270,14 @@ class XEBCharacterizationResult:
 
 def characterize_phased_fsim_parameters_with_xeb(
     sampled_df: pd.DataFrame,
-    parameterized_circuits: List['cirq.Circuit'],
+    parameterized_circuits: List[cirq.Circuit],
     cycle_depths: Sequence[int],
     options: XEBCharacterizationOptions,
     initial_simplex_step_size: float = 0.1,
     xatol: float = 1e-3,
     fatol: float = 1e-3,
     verbose: bool = True,
-    pool: Optional['multiprocessing.pool.Pool'] = None,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> XEBCharacterizationResult:
     """Run a classical optimization to fit phased fsim parameters to experimental data, and
     thereby characterize PhasedFSim-like gates.
@@ -342,7 +343,7 @@ class _CharacterizePhasedFsimParametersWithXebClosure:
     """A closure object to wrap `characterize_phased_fsim_parameters_with_xeb` for use in
     multiprocessing."""
 
-    parameterized_circuits: List['cirq.Circuit']
+    parameterized_circuits: List[cirq.Circuit]
     cycle_depths: Sequence[int]
     options: XEBCharacterizationOptions
     initial_simplex_step_size: float = 0.1
@@ -365,13 +366,13 @@ class _CharacterizePhasedFsimParametersWithXebClosure:
 
 def characterize_phased_fsim_parameters_with_xeb_by_pair(
     sampled_df: pd.DataFrame,
-    parameterized_circuits: List['cirq.Circuit'],
+    parameterized_circuits: List[cirq.Circuit],
     cycle_depths: Sequence[int],
     options: XEBCharacterizationOptions,
     initial_simplex_step_size: float = 0.1,
     xatol: float = 1e-3,
     fatol: float = 1e-3,
-    pool: Optional['multiprocessing.pool.Pool'] = None,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> XEBCharacterizationResult:
     """Run a classical optimization to fit phased fsim parameters to experimental data, and
     thereby characterize PhasedFSim-like gates grouped by pairs.

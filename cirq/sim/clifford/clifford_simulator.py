@@ -29,6 +29,7 @@ The quantum state is specified in two forms:
     to state vector amplitudes.
 """
 
+from __future__ import annotations
 from typing import Any, Dict, List, Iterator, Sequence
 
 import numpy as np
@@ -50,7 +51,7 @@ class CliffordSimulator(
 ):
     """An efficient simulator for Clifford circuits."""
 
-    def __init__(self, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+    def __init__(self, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
         """Creates instance of `CliffordSimulator`.
 
         Args:
@@ -60,14 +61,14 @@ class CliffordSimulator(
         self._prng = value.parse_random_state(seed)
 
     @staticmethod
-    def is_supported_operation(op: 'cirq.Operation') -> bool:
+    def is_supported_operation(op: cirq.Operation) -> bool:
         """Checks whether given operation can be simulated by this simulator."""
         # TODO: support more general Pauli measurements
         return protocols.has_stabilizer_effect(op)
 
     def _base_iterator(
         self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
-    ) -> Iterator['cirq.CliffordSimulatorStepResult']:
+    ) -> Iterator[cirq.CliffordSimulatorStepResult]:
         """Iterator over CliffordSimulatorStepResult from Moments of a Circuit
 
         Args:
@@ -156,7 +157,7 @@ class CliffordTrialResult(simulator.SimulationTrialResult):
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'CliffordState',
+        final_simulator_state: CliffordState,
     ) -> None:
         super().__init__(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
@@ -209,7 +210,7 @@ class CliffordSimulatorStepResult(simulator.StepResult['CliffordState']):
         self,
         qubits: List[ops.Qid],
         repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
 
         measurements = {}  # type: Dict[str, List[np.ndarray]]
@@ -258,7 +259,7 @@ class CliffordState:
     def _value_equality_values_(self) -> Any:
         return self.qubit_map, self.ch_form
 
-    def copy(self) -> 'CliffordState':
+    def copy(self) -> CliffordState:
         state = CliffordState(self.qubit_map)
         state.ch_form = self.ch_form.copy()
 
@@ -290,7 +291,7 @@ class CliffordState:
     def state_vector(self):
         return self.ch_form.state_vector()
 
-    def apply_unitary(self, op: 'cirq.Operation'):
+    def apply_unitary(self, op: cirq.Operation):
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
             self.ch_form, [self.qubit_map[i] for i in op.qubits], np.random.RandomState(), {}
         )
@@ -304,7 +305,7 @@ class CliffordState:
 
     def apply_measurement(
         self,
-        op: 'cirq.Operation',
+        op: cirq.Operation,
         measurements: Dict[str, List[np.ndarray]],
         prng: np.random.RandomState,
         collapse_state_vector=True,

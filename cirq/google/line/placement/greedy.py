@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Dict, List, Optional, Set, TYPE_CHECKING
 
 import abc
@@ -34,7 +35,7 @@ class GreedySequenceSearch:
     method.
     """
 
-    def __init__(self, device: 'cirq.google.XmonDevice', start: GridQubit) -> None:
+    def __init__(self, device: cirq.google.XmonDevice, start: GridQubit) -> None:
         """Greedy sequence search constructor.
 
         Args:
@@ -286,7 +287,7 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
         """
         self.algorithm = algorithm
 
-    def place_line(self, device: 'cirq.google.XmonDevice', length: int) -> GridQubitLineTuple:
+    def place_line(self, device: cirq.google.XmonDevice, length: int) -> GridQubitLineTuple:
         """Runs line sequence search.
 
         Args:

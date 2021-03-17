@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Callable, Dict, Set, Tuple, Union
 import numpy as np
 import cirq
@@ -37,7 +38,7 @@ class QuilOneQubitGate(ops.SingleQubitGate):
         """
         self.matrix = matrix
 
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter') -> str:
+    def _quil_(self, qubits: Tuple[cirq.Qid, ...], formatter: cirq.QuilFormatter) -> str:
         return (
             f'DEFGATE USERGATE:\n    '
             f'{to_quil_complex_format(self.matrix[0, 0])}, '
@@ -70,7 +71,7 @@ class QuilTwoQubitGate(ops.TwoQubitGate):
     def _value_equality_values_(self):
         return self.matrix
 
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter') -> str:
+    def _quil_(self, qubits: Tuple[cirq.Qid, ...], formatter: cirq.QuilFormatter) -> str:
         return (
             f'DEFGATE USERGATE:\n    '
             f'{to_quil_complex_format(self.matrix[0, 0])}, '
@@ -102,7 +103,7 @@ class QuilOutput:
     circuit.
     """
 
-    def __init__(self, operations: 'cirq.OP_TREE', qubits: Tuple['cirq.Qid', ...]) -> None:
+    def __init__(self, operations: cirq.OP_TREE, qubits: Tuple[cirq.Qid, ...]) -> None:
         """
         Args:
             operations: A list or tuple of `cirq.OP_TREE` arguments.
@@ -119,7 +120,7 @@ class QuilOutput:
             qubit_id_map=self.qubit_id_map, measurement_id_map=self.measurement_id_map
         )
 
-    def _generate_qubit_ids(self) -> Dict['cirq.Qid', str]:
+    def _generate_qubit_ids(self) -> Dict[cirq.Qid, str]:
         return {qubit: str(i) for i, qubit in enumerate(self.qubits)}
 
     def _generate_measurement_ids(self) -> Dict[str, str]:
@@ -156,7 +157,7 @@ class QuilOutput:
                 output_func(f'DECLARE {self.measurement_id_map[key]} BIT[{len(m.qubits)}]\n')
             output_func('\n')
 
-        def keep(op: 'cirq.Operation') -> bool:
+        def keep(op: cirq.Operation) -> bool:
             return protocols.quil(op, formatter=self.formatter) is not None
 
         def fallback(op):

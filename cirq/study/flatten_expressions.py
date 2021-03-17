@@ -13,6 +13,7 @@
 # limitations under the License.
 """Resolves symbolic expressions to unique symbols."""
 
+from __future__ import annotations
 from typing import overload, Any, Callable, List, Optional, Tuple, Union
 
 import sympy
@@ -21,7 +22,7 @@ from cirq import protocols
 from cirq.study import resolver, sweeps, sweepable
 
 
-def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
+def flatten(val: Any) -> Tuple[Any, ExpressionMap]:
     """Creates a copy of `val` with any symbols or expressions replaced with
     new symbols.  `val` can be a `Circuit`, `Gate`, `Operation`, or other
     type.

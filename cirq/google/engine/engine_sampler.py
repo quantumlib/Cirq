@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 from typing import List, TYPE_CHECKING, Union, Optional, cast
 
 from cirq import work, circuits
@@ -29,9 +30,9 @@ class QuantumEngineSampler(work.Sampler):
     def __init__(
         self,
         *,
-        engine: 'cirq.google.Engine',
+        engine: cirq.google.Engine,
         processor_id: Union[str, List[str]],
-        gate_set: 'cirq.google.SerializableGateSet',
+        gate_set: cirq.google.SerializableGateSet,
     ):
         """
         Args:
@@ -47,10 +48,10 @@ class QuantumEngineSampler(work.Sampler):
 
     def run_sweep(
         self,
-        program: Union['cirq.Circuit', 'cirq.google.EngineProgram'],
-        params: 'cirq.Sweepable',
+        program: Union[cirq.Circuit, cirq.google.EngineProgram],
+        params: cirq.Sweepable,
         repetitions: int = 1,
-    ) -> List['cirq.Result']:
+    ) -> List[cirq.Result]:
         if isinstance(program, engine.EngineProgram):
             job = program.run_sweep(
                 params=params, repetitions=repetitions, processor_ids=self._processor_ids
@@ -67,10 +68,10 @@ class QuantumEngineSampler(work.Sampler):
 
     def run_batch(
         self,
-        programs: List['cirq.Circuit'],
-        params_list: Optional[List['cirq.Sweepable']] = None,
+        programs: List[cirq.Circuit],
+        params_list: Optional[List[cirq.Sweepable]] = None,
         repetitions: Union[int, List[int]] = 1,
-    ) -> List[List['cirq.Result']]:
+    ) -> List[List[cirq.Result]]:
         """Runs the supplied circuits.
 
         In order to gain a speedup from using this method instead of other run
@@ -101,13 +102,13 @@ class QuantumEngineSampler(work.Sampler):
         return super().run_batch(programs, params_list, repetitions)
 
     @property
-    def engine(self) -> 'cirq.google.Engine':
+    def engine(self) -> cirq.google.Engine:
         return self._engine
 
 
 def get_engine_sampler(
     processor_id: str, gate_set_name: str, project_id: Optional[str] = None
-) -> 'cirq.google.QuantumEngineSampler':
+) -> cirq.google.QuantumEngineSampler:
     """Get an EngineSampler assuming some sensible defaults.
 
     This uses the environment variable GOOGLE_CLOUD_PROJECT for the Engine

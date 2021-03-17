@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 import enum
 
 from typing import Any, List, Optional, TYPE_CHECKING, Union
@@ -36,17 +37,17 @@ _T2_COLUMNS = ['delay_ns', 0, 1]
 
 
 def t2_decay(
-    sampler: 'cirq.Sampler',
+    sampler: cirq.Sampler,
     *,
-    qubit: 'cirq.Qid',
-    experiment_type: 'ExperimentType' = ExperimentType.RAMSEY,
+    qubit: cirq.Qid,
+    experiment_type: ExperimentType = ExperimentType.RAMSEY,
     num_points: int,
-    max_delay: 'cirq.DURATION_LIKE',
-    min_delay: 'cirq.DURATION_LIKE' = None,
+    max_delay: cirq.DURATION_LIKE,
+    min_delay: cirq.DURATION_LIKE = None,
     repetitions: int = 1000,
     delay_sweep: Optional[study.Sweep] = None,
     num_pulses: List[int] = None,
-) -> Union['cirq.experiments.T2DecayResult', List['cirq.experiments.T2DecayResult']]:
+) -> Union[cirq.experiments.T2DecayResult, List[cirq.experiments.T2DecayResult]]:
     """Runs a t2 transverse relaxation experiment.
 
     Initializes a qubit into a superposition state, evolves the system using
@@ -232,7 +233,7 @@ def _create_tabulation(measurements: pd.DataFrame) -> pd.DataFrame:
     return tabulation
 
 
-def _cpmg_circuit(qubit: 'cirq.Qid', delay_var: sympy.Symbol, max_pulses: int) -> 'cirq.Circuit':
+def _cpmg_circuit(qubit: cirq.Qid, delay_var: sympy.Symbol, max_pulses: int) -> cirq.Circuit:
     """Creates a CPMG circuit for a given qubit.
 
     The circuit will look like:

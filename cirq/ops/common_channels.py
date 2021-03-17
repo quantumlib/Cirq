@@ -14,6 +14,7 @@
 
 """Quantum channels that are commonly used in the literature."""
 
+from __future__ import annotations
 import itertools
 from typing import Any, Dict, Iterable, Optional, Sequence, Tuple, Union, TYPE_CHECKING
 
@@ -133,7 +134,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'asymmetric_depolarize(' + f"error_probabilities={self._error_probabilities})"
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs) -> str:
         if self._num_qubits == 1:
             if args.precision is not None:
                 return (
@@ -326,7 +327,7 @@ class DepolarizingChannel(gate_features.SupportsOnEachGate, raw_types.Gate):
             return True
         return NotImplemented
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
         result: Tuple[str, ...]
         if args.precision is not None:
             result = (f"D({self._p:.{args.precision}g})",)
@@ -478,7 +479,7 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return f'generalized_amplitude_damp(p={self._p!r},gamma={self._gamma!r})'
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs) -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
             return f'GAD({f},{f})'.format(self._p, self._gamma)
@@ -613,7 +614,7 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return f'amplitude_damp(gamma={self._gamma!r})'
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs) -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
             return f'AD({f})'.format(self._gamma)
@@ -712,7 +713,7 @@ class ResetChannel(gate_features.SingleQubitGate):
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         return True
 
-    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         return args.format('reset {0};\n', qubits[0])
 
@@ -770,7 +771,7 @@ class ResetChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'reset'
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs) -> str:
         return 'R'
 
     @property
@@ -782,7 +783,7 @@ class ResetChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['dimension'])
 
 
-def reset(qubit: 'cirq.Qid') -> raw_types.Operation:
+def reset(qubit: cirq.Qid) -> raw_types.Operation:
     """Returns a `ResetChannel` on the given qubit."""
     return ResetChannel(qubit.dimension).on(qubit)
 
@@ -848,7 +849,7 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return f'phase_damp(gamma={self._gamma!r})'
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs) -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
             return f'PD({f})'.format(self._gamma)
@@ -958,7 +959,7 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return f'phase_flip(p={self._p!r})'
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs) -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
             return f'PF({f})'.format(self._p)
@@ -1114,7 +1115,7 @@ class BitFlipChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return f'bit_flip(p={self._p!r})'
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs) -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
             return f'BF({f})'.format(self._p)

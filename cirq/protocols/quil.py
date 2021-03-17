@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import string
 from typing import Any, Optional, Dict, Iterable
 import cirq
@@ -21,7 +22,7 @@ class QuilFormatter(string.Formatter):
     """A unique formatter to correctly output values to QUIL."""
 
     def __init__(
-        self, qubit_id_map: Dict['cirq.Qid', str], measurement_id_map: Dict[str, str]
+        self, qubit_id_map: Dict[cirq.Qid, str], measurement_id_map: Dict[str, str]
     ) -> None:
         """
         Args:
@@ -46,7 +47,7 @@ class QuilFormatter(string.Formatter):
 def quil(
     val: Any,
     *,
-    qubits: Optional[Iterable['cirq.Qid']] = None,
+    qubits: Optional[Iterable[cirq.Qid]] = None,
     formatter: Optional[QuilFormatter] = None,
 ):
     """Returns the QUIL code for the given value.

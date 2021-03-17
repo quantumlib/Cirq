@@ -14,6 +14,7 @@
 
 """An optimization pass that combines adjacent single-qubit rotations."""
 
+from __future__ import annotations
 from typing import Callable, List, Optional, Sequence, Tuple, cast, TYPE_CHECKING
 
 import numpy as np
@@ -90,7 +91,7 @@ class MergeInteractions(circuits.PointOptimizer):
         )
 
     def _op_to_matrix(
-        self, op: ops.Operation, qubits: Tuple['cirq.Qid', ...]
+        self, op: ops.Operation, qubits: Tuple[cirq.Qid, ...]
     ) -> Optional[np.ndarray]:
         """Determines the effect of an operation on the given qubits.
 
@@ -129,7 +130,7 @@ class MergeInteractions(circuits.PointOptimizer):
         return None
 
     def _scan_two_qubit_ops_into_matrix(
-        self, circuit: circuits.Circuit, index: Optional[int], qubits: Tuple['cirq.Qid', ...]
+        self, circuit: circuits.Circuit, index: Optional[int], qubits: Tuple[cirq.Qid, ...]
     ) -> Tuple[List[ops.Operation], List[int], np.ndarray]:
         """Accumulates operations affecting the given pair of qubits.
 

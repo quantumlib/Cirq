@@ -13,6 +13,7 @@
 # limitations under the License.
 """Helpers for handling quantum state vectors."""
 
+from __future__ import annotations
 from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, Sequence
 
 import abc
@@ -135,7 +136,7 @@ class StateVectorMixin:
             qid_shape=self._qid_shape,
         )
 
-    def bloch_vector_of(self, qubit: 'cirq.Qid') -> np.ndarray:
+    def bloch_vector_of(self, qubit: cirq.Qid) -> np.ndarray:
         """Returns the bloch vector of a qubit in the state.
 
         Calculates the bloch vector of the given qubit
@@ -165,7 +166,7 @@ def sample_state_vector(
     *,  # Force keyword args
     qid_shape: Optional[Tuple[int, ...]] = None,
     repetitions: int = 1,
-    seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> np.ndarray:
     """Samples repeatedly from measurements in the computational basis.
 
@@ -229,7 +230,7 @@ def measure_state_vector(
     *,  # Force keyword args
     qid_shape: Optional[Tuple[int, ...]] = None,
     out: np.ndarray = None,
-    seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> Tuple[List[int], np.ndarray]:
     """Performs a measurement of the state in the computational basis.
 

@@ -13,6 +13,7 @@
 # limitations under the License.
 """Calibration wrapper for calibrations returned from the Quantum Engine."""
 
+from __future__ import annotations
 from collections import abc, defaultdict
 import datetime
 
@@ -147,7 +148,7 @@ class Calibration(abc.Mapping):
         return proto
 
     @classmethod
-    def _from_json_dict_(cls, metrics: str, **kwargs) -> 'Calibration':
+    def _from_json_dict_(cls, metrics: str, **kwargs) -> Calibration:
         """Magic method for the JSON serialization protocol."""
         metric_proto = v2.metrics_pb2.MetricsSnapshot()
         return cls(json_format.ParseDict(metrics, metric_proto))

@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
@@ -17,7 +18,7 @@ def _asinsin(x: float) -> float:
 
 
 def compute_cphase_exponents_for_fsim_decomposition(
-    fsim_gate: 'cirq.FSimGate',
+    fsim_gate: cirq.FSimGate,
 ) -> Sequence[Tuple[float, float]]:
     """Returns intervals of CZPowGate exponents valid for FSim decomposition.
 
@@ -73,12 +74,12 @@ def compute_cphase_exponents_for_fsim_decomposition(
 
 
 def decompose_cphase_into_two_fsim(
-    cphase_gate: 'cirq.CZPowGate',
+    cphase_gate: cirq.CZPowGate,
     *,
-    fsim_gate: 'cirq.FSimGate',
-    qubits: Optional[Sequence['cirq.Qid']] = None,
+    fsim_gate: cirq.FSimGate,
+    qubits: Optional[Sequence[cirq.Qid]] = None,
     atol: float = 1e-8,
-) -> 'cirq.OP_TREE':
+) -> cirq.OP_TREE:
     """Decomposes CZPowGate into two FSimGates.
 
     This function implements the decomposition described in section VII F I

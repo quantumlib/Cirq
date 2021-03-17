@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable, List, Optional, Type, TypeVar, Union, TYPE_CHECKING
 
@@ -50,7 +51,7 @@ class SerializingArg:
 
     serialized_name: str
     serialized_type: Type[arg_func_langs.ARG_LIKE]
-    op_getter: Union[str, Callable[['cirq.Operation'], arg_func_langs.ARG_LIKE]]
+    op_getter: Union[str, Callable[[cirq.Operation], arg_func_langs.ARG_LIKE]]
     required: bool = True
     default: Any = None
 
@@ -71,7 +72,7 @@ class GateOpSerializer:
         gate_type: Type[Gate],
         serialized_gate_id: str,
         args: List[SerializingArg],
-        can_serialize_predicate: Callable[['cirq.Operation'], bool] = lambda x: True,
+        can_serialize_predicate: Callable[[cirq.Operation], bool] = lambda x: True,
         serialize_tokens: Optional[bool] = True,
     ):
         """Construct the serializer.
@@ -94,7 +95,7 @@ class GateOpSerializer:
         self.can_serialize_predicate = can_serialize_predicate
         self.serialize_tokens = serialize_tokens
 
-    def can_serialize_operation(self, op: 'cirq.Operation') -> bool:
+    def can_serialize_operation(self, op: cirq.Operation) -> bool:
         """Whether the given operation can be serialized by this serializer.
 
         This checks that the gate is a subclass of the gate type for this
@@ -106,7 +107,7 @@ class GateOpSerializer:
 
     def to_proto(
         self,
-        op: 'cirq.Operation',
+        op: cirq.Operation,
         msg: Optional[v2.program_pb2.Operation] = None,
         *,
         arg_function_language: Optional[str] = '',
@@ -158,7 +159,7 @@ class GateOpSerializer:
         return msg
 
     def _value_from_gate(
-        self, op: 'cirq.Operation', arg: SerializingArg
+        self, op: cirq.Operation, arg: SerializingArg
     ) -> Optional[arg_func_langs.ARG_LIKE]:
         value = None
         op_getter = arg.op_getter

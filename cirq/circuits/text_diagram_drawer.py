@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import (
     Any,
     Callable,
@@ -185,7 +186,7 @@ class TextDiagramDrawer:
         x1, x2 = sorted([x1, x2])
         self.horizontal_lines.append(_HorizontalLine(y, x1, x2, emphasize))
 
-    def transpose(self) -> 'TextDiagramDrawer':
+    def transpose(self) -> TextDiagramDrawer:
         """Returns the same diagram, but mirrored across its diagonal."""
         out = TextDiagramDrawer()
         out.entries = {
@@ -356,14 +357,14 @@ class TextDiagramDrawer:
             horizontal_padding=self.horizontal_padding,
         )
 
-    def shift(self, dx: int = 0, dy: int = 0) -> 'TextDiagramDrawer':
+    def shift(self, dx: int = 0, dy: int = 0) -> TextDiagramDrawer:
         self._transform_coordinates(lambda x, y: (x + dx, y + dy))
         return self
 
-    def shifted(self, dx: int = 0, dy: int = 0) -> 'TextDiagramDrawer':
+    def shifted(self, dx: int = 0, dy: int = 0) -> TextDiagramDrawer:
         return self.copy().shift(dx, dy)
 
-    def superimpose(self, other: 'TextDiagramDrawer') -> 'TextDiagramDrawer':
+    def superimpose(self, other: TextDiagramDrawer) -> TextDiagramDrawer:
         self.entries.update(other.entries)
         self.horizontal_lines += other.horizontal_lines
         self.vertical_lines += other.vertical_lines
@@ -371,13 +372,13 @@ class TextDiagramDrawer:
         self.vertical_padding.update(other.vertical_padding)
         return self
 
-    def superimposed(self, other: 'TextDiagramDrawer') -> 'TextDiagramDrawer':
+    def superimposed(self, other: TextDiagramDrawer) -> TextDiagramDrawer:
         return self.copy().superimpose(other)
 
     @classmethod
     def vstack(
         cls,
-        diagrams: Sequence['TextDiagramDrawer'],
+        diagrams: Sequence[TextDiagramDrawer],
         padding_resolver: Optional[Callable[[Sequence[Optional[int]]], int]] = None,
     ):
         """Vertically stack text diagrams.
@@ -418,7 +419,7 @@ class TextDiagramDrawer:
     @classmethod
     def hstack(
         cls,
-        diagrams: Sequence['TextDiagramDrawer'],
+        diagrams: Sequence[TextDiagramDrawer],
         padding_resolver: Optional[Callable[[Sequence[Optional[int]]], int]] = None,
     ):
         """Horizontally stack text diagrams.

@@ -13,6 +13,7 @@
 # limitations under the License.
 """A protocol for implementing high performance unitary left-multiplies."""
 
+from __future__ import annotations
 from typing import (
     Any,
     cast,
@@ -96,7 +97,7 @@ class ApplyUnitaryArgs:
     @staticmethod
     def default(
         num_qubits: Optional[int] = None, *, qid_shape: Optional[Tuple[int, ...]] = None
-    ) -> 'ApplyUnitaryArgs':
+    ) -> ApplyUnitaryArgs:
         """A default instance starting in state |0⟩.
 
         Specify exactly one argument.
@@ -114,7 +115,7 @@ class ApplyUnitaryArgs:
         state = qis.one_hot(index=(0,) * num_qubits, shape=qid_shape, dtype=np.complex128)
         return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
 
-    def with_axes_transposed_to_start(self) -> 'ApplyUnitaryArgs':
+    def with_axes_transposed_to_start(self) -> ApplyUnitaryArgs:
         """Returns a transposed view of the same arguments.
 
         Returns:
@@ -133,7 +134,7 @@ class ApplyUnitaryArgs:
 
     def _for_operation_with_qid_shape(
         self, indices: Iterable[int], qid_shape: Tuple[int, ...]
-    ) -> 'ApplyUnitaryArgs':
+    ) -> ApplyUnitaryArgs:
         """Creates a sliced and transposed view of `self` appropriate for an
         operation with shape `qid_shape` on qubits with the given indices.
 
@@ -165,7 +166,7 @@ class ApplyUnitaryArgs:
 
     def subspace_index(
         self, little_endian_bits_int: int = 0, *, big_endian_bits_int: int = 0
-    ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
+    ) -> Tuple[Union[slice, int, ellipsis], ...]:
         """An index for the subspace where the target axes equal a value.
 
         Args:
@@ -427,7 +428,7 @@ def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs) -> Opt
 
 def apply_unitaries(
     unitary_values: Iterable[Any],
-    qubits: Sequence['cirq.Qid'],
+    qubits: Sequence[cirq.Qid],
     args: Optional[ApplyUnitaryArgs] = None,
     default: Any = RaiseTypeErrorIfNotProvided,
 ) -> Optional[np.ndarray]:
@@ -508,7 +509,7 @@ def apply_unitaries(
 
 
 def _incorporate_result_into_target(
-    args: 'ApplyUnitaryArgs', sub_args: 'ApplyUnitaryArgs', sub_result: np.ndarray
+    args: ApplyUnitaryArgs, sub_args: ApplyUnitaryArgs, sub_result: np.ndarray
 ):
     """Takes the result of calling `_apply_unitary_` on `sub_args` and
     copies it back into `args.target_tensor` or `args.available_buffer` as

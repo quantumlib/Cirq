@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Dict, Iterable, TYPE_CHECKING
 
 from cirq import ops
@@ -35,20 +36,18 @@ class SwapNetwork:
         initial_mapping: The initial mapping from physical to logical qubits.
     """
 
-    def __init__(
-        self, circuit: 'cirq.Circuit', initial_mapping: Dict['cirq.Qid', 'cirq.Qid']
-    ) -> None:
+    def __init__(self, circuit: cirq.Circuit, initial_mapping: Dict[cirq.Qid, cirq.Qid]) -> None:
         if not all(isinstance(i, ops.Qid) for I in initial_mapping.items() for i in I):
             raise ValueError('Mapping must be from Qids to Qids.')
         self.circuit = circuit
         self.initial_mapping = initial_mapping
 
-    def final_mapping(self) -> Dict['cirq.Qid', 'cirq.Qid']:
+    def final_mapping(self) -> Dict[cirq.Qid, cirq.Qid]:
         mapping = dict(self.initial_mapping)
         cca.update_mapping(mapping, self.circuit.all_operations())
         return mapping
 
-    def get_logical_operations(self) -> Iterable['cirq.Operation']:
+    def get_logical_operations(self) -> Iterable[cirq.Operation]:
         return cca.get_logical_operations(self.circuit.all_operations(), self.initial_mapping)
 
     def __eq__(self, other) -> bool:
@@ -57,7 +56,7 @@ class SwapNetwork:
         return self.circuit == other.circuit and self.initial_mapping == other.initial_mapping
 
     @property
-    def device(self) -> 'cirq.Device':
+    def device(self) -> cirq.Device:
         return self.circuit.device
 
     def __str__(self) -> str:

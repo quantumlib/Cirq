@@ -13,6 +13,7 @@
 # limitations under the License.
 """Classes and methods for quantum states."""
 
+from __future__ import annotations
 import itertools
 from typing import Any, cast, Iterable, Optional, Sequence, TYPE_CHECKING, Tuple, Type, Union
 
@@ -174,7 +175,7 @@ class QuantumState:
 
 
 def quantum_state(
-    state: 'cirq.QUANTUM_STATE_LIKE',
+    state: cirq.QUANTUM_STATE_LIKE,
     qid_shape: Optional[Tuple[int, ...]] = None,
     *,  # Force keyword arguments
     copy: bool = False,
@@ -490,7 +491,7 @@ def dirac_notation(
 
 
 def to_valid_state_vector(
-    state_rep: 'cirq.STATE_VECTOR_LIKE',
+    state_rep: cirq.STATE_VECTOR_LIKE,
     num_qubits: Optional[int] = None,
     *,  # Force keyword arguments
     qid_shape: Optional[Sequence[int]] = None,
@@ -553,7 +554,7 @@ def to_valid_state_vector(
 
 def _state_like_to_state_tensor(
     *,
-    state_like: 'cirq.STATE_VECTOR_LIKE',
+    state_like: cirq.STATE_VECTOR_LIKE,
     qid_shape: Tuple[int, ...],
     dtype: Optional[Type[np.number]],
     atol: float,
@@ -750,7 +751,7 @@ def validate_indices(num_qubits: int, indices: Sequence[int]) -> None:
 
 
 def to_valid_density_matrix(
-    density_matrix_rep: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'],
+    density_matrix_rep: Union[np.ndarray, cirq.STATE_VECTOR_LIKE],
     num_qubits: Optional[int] = None,
     *,  # Force keyword arguments
     qid_shape: Optional[Tuple[int, ...]] = None,

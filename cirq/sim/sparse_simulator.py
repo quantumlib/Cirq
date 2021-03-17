@@ -14,6 +14,7 @@
 
 """A simulator that uses numpy's einsum for sparse matrix operations."""
 
+from __future__ import annotations
 import collections
 from typing import (
     Any,
@@ -146,8 +147,8 @@ class Simulator(
         self,
         *,
         dtype: Type[np.number] = np.complex64,
-        noise: 'cirq.NOISE_MODEL_LIKE' = None,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        noise: cirq.NOISE_MODEL_LIKE = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ):
         """A sparse matrix simulator.
 
@@ -214,7 +215,7 @@ class Simulator(
         self,
         initial_state: np.ndarray,
         circuit: circuits.Circuit,
-        qubit_order: 'cirq.QubitOrderOrList',
+        qubit_order: cirq.QubitOrderOrList,
         repetitions: int,
     ) -> Dict[str, np.ndarray]:
         """Repeatedly simulate a circuit in order to produce samples."""
@@ -234,8 +235,8 @@ class Simulator(
         self,
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,
-        initial_state: 'cirq.STATE_VECTOR_LIKE',
-    ) -> Iterator['SparseSimulatorStep']:
+        initial_state: cirq.STATE_VECTOR_LIKE,
+    ) -> Iterator[SparseSimulatorStep]:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         num_qubits = len(qubits)
         qid_shape = protocols.qid_shape(qubits)
@@ -270,9 +271,9 @@ class Simulator(
 
     def simulate_expectation_values_sweep(
         self,
-        program: 'cirq.Circuit',
-        observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
-        params: 'study.Sweepable',
+        program: cirq.Circuit,
+        observables: Union[cirq.PauliSumLike, List[cirq.PauliSumLike]],
+        params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
@@ -364,7 +365,7 @@ class SparseSimulatorStep(
         vector = self._simulator_state().state_vector
         return vector.copy() if copy else vector
 
-    def set_state_vector(self, state: 'cirq.STATE_VECTOR_LIKE'):
+    def set_state_vector(self, state: cirq.STATE_VECTOR_LIKE):
         update_state = qis.to_valid_state_vector(
             state, len(self.qubit_map), qid_shape=protocols.qid_shape(self, None), dtype=self._dtype
         )
@@ -374,7 +375,7 @@ class SparseSimulatorStep(
         self,
         qubits: List[ops.Qid],
         repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
         indices = [self.qubit_map[qubit] for qubit in qubits]
         return state_vector.sample_state_vector(

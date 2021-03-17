@@ -12,6 +12,7 @@
 # limitations under the License.
 """Devices for IonQ hardware."""
 
+from __future__ import annotations
 from typing import AbstractSet, Callable, Dict, Sequence, Type, Union, TYPE_CHECKING
 
 import numpy as np
@@ -56,7 +57,7 @@ class IonQAPIDevice(devices.Device):
         self.atol = atol
         all_gates_valid = lambda x: True
         near_1_mod_2 = lambda x: abs(x.gate.exponent % 2 - 1) < self.atol
-        self._is_api_gate_dispatch: Dict[Type['cirq.Gate'], Callable] = {
+        self._is_api_gate_dispatch: Dict[Type[cirq.Gate], Callable] = {
             common_gates.XPowGate: all_gates_valid,
             common_gates.YPowGate: all_gates_valid,
             common_gates.ZPowGate: all_gates_valid,
@@ -69,10 +70,10 @@ class IonQAPIDevice(devices.Device):
             common_gates.MeasurementGate: all_gates_valid,
         }
 
-    def qubit_set(self) -> AbstractSet['cirq.Qid']:
+    def qubit_set(self) -> AbstractSet[cirq.Qid]:
         return self.qubits
 
-    def validate_operation(self, operation: 'cirq.Operation'):
+    def validate_operation(self, operation: cirq.Operation):
         if operation.gate is None:
             raise ValueError(
                 f'IonQAPIDevice does not support operations with no gates {operation}.'
@@ -82,14 +83,14 @@ class IonQAPIDevice(devices.Device):
         if not set(operation.qubits).intersection(self.qubit_set()):
             raise ValueError(f'Operation with qubits not on the device. Qubits: {operation.qubits}')
 
-    def is_api_gate(self, operation: 'cirq.Operation') -> bool:
+    def is_api_gate(self, operation: cirq.Operation) -> bool:
         gate = operation.gate
         for gate_mro_type in type(gate).mro():
             if gate_mro_type in self._is_api_gate_dispatch:
                 return self._is_api_gate_dispatch[gate_mro_type](operation)
         return False
 
-    def decompose_operation(self, operation: 'cirq.Operation') -> ops.OP_TREE:
+    def decompose_operation(self, operation: cirq.Operation) -> ops.OP_TREE:
         if self.is_api_gate(operation):
             return operation
         assert protocols.has_unitary(operation), (
@@ -103,13 +104,13 @@ class IonQAPIDevice(devices.Device):
             return self._decompose_two_qubit(operation)
         raise ValueError('Operation {operation} not supported by IonQ API.')
 
-    def _decompose_single_qubit(self, operation: 'cirq.Operation') -> ops.OP_TREE:
+    def _decompose_single_qubit(self, operation: cirq.Operation) -> ops.OP_TREE:
         qubit = operation.qubits[0]
         mat = protocols.unitary(operation)
         for gate in optimizers.single_qubit_matrix_to_gates(mat, self.atol):
             yield gate(qubit)
 
-    def _decompose_two_qubit(self, operation: 'cirq.Operation') -> ops.OP_TREE:
+    def _decompose_two_qubit(self, operation: cirq.Operation) -> ops.OP_TREE:
         """Decomposes a two qubit gate into XXPow, YYPow, and ZZPow plus single qubit gates."""
         mat = protocols.unitary(operation)
         kak = linalg.kak_decomposition(mat, check_preconditions=False)

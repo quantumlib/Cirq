@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast, TYPE_CHECKING
 
 import functools
@@ -50,7 +51,7 @@ class Unique(Generic[T]):
         return id(self) < id(other)
 
 
-def _disjoint_qubits(op1: 'cirq.Operation', op2: 'cirq.Operation') -> bool:
+def _disjoint_qubits(op1: cirq.Operation, op2: cirq.Operation) -> bool:
     """Returns true only if the operations have qubits in common."""
     return not set(op1.qubits) & set(op2.qubits)
 
@@ -72,7 +73,7 @@ class CircuitDag(networkx.DiGraph):
 
     def __init__(
         self,
-        can_reorder: Callable[['cirq.Operation', 'cirq.Operation'], bool] = _disjoint_qubits,
+        can_reorder: Callable[[cirq.Operation, cirq.Operation], bool] = _disjoint_qubits,
         incoming_graph_data: Any = None,
         device: devices.Device = devices.UNCONSTRAINED_DEVICE,
     ) -> None:
@@ -95,30 +96,30 @@ class CircuitDag(networkx.DiGraph):
         self.device = device
 
     @staticmethod
-    def make_node(op: 'cirq.Operation') -> Unique:
+    def make_node(op: cirq.Operation) -> Unique:
         return Unique(op)
 
     @staticmethod
     def from_circuit(
         circuit: circuit.Circuit,
-        can_reorder: Callable[['cirq.Operation', 'cirq.Operation'], bool] = _disjoint_qubits,
-    ) -> 'CircuitDag':
+        can_reorder: Callable[[cirq.Operation, cirq.Operation], bool] = _disjoint_qubits,
+    ) -> CircuitDag:
         return CircuitDag.from_ops(
             circuit.all_operations(), can_reorder=can_reorder, device=circuit.device
         )
 
     @staticmethod
     def from_ops(
-        *operations: 'cirq.OP_TREE',
-        can_reorder: Callable[['cirq.Operation', 'cirq.Operation'], bool] = _disjoint_qubits,
+        *operations: cirq.OP_TREE,
+        can_reorder: Callable[[cirq.Operation, cirq.Operation], bool] = _disjoint_qubits,
         device: devices.Device = devices.UNCONSTRAINED_DEVICE,
-    ) -> 'CircuitDag':
+    ) -> CircuitDag:
         dag = CircuitDag(can_reorder=can_reorder, device=device)
         for op in ops.flatten_op_tree(operations):
             dag.append(cast(ops.Operation, op))
         return dag
 
-    def append(self, op: 'cirq.Operation') -> None:
+    def append(self, op: cirq.Operation) -> None:
         new_node = self.make_node(op)
         for node in list(self.nodes()):
             if not self.can_reorder(node.val, op):

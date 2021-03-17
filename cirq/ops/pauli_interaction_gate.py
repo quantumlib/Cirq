@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import List, Sequence, Tuple, cast, Dict, TYPE_CHECKING
 
 import numpy as np
@@ -80,7 +81,7 @@ class PauliInteractionGate(
             return 0
         return index
 
-    def _with_exponent(self, exponent: value.TParamVal) -> 'PauliInteractionGate':
+    def _with_exponent(self, exponent: value.TParamVal) -> PauliInteractionGate:
         return PauliInteractionGate(
             self.pauli0, self.invert0, self.pauli1, self.invert1, exponent=exponent
         )
@@ -96,7 +97,7 @@ class PauliInteractionGate(
         comp0 = np.eye(4) - comp1
         return [(0, comp0), (1, comp1)]
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         q0, q1 = qubits
         right_gate0 = SingleQubitCliffordGate.from_single_map(z_to=(self.pauli0, self.invert0))
         right_gate1 = SingleQubitCliffordGate.from_single_map(z_to=(self.pauli1, self.invert1))
@@ -109,9 +110,7 @@ class PauliInteractionGate(
         yield right_gate0(q0)
         yield right_gate1(q1)
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         labels = cast(
             Dict[pauli_gates.Pauli, np.ndarray],
             {pauli_gates.X: 'X', pauli_gates.Y: 'Y', pauli_gates.Z: '@'},

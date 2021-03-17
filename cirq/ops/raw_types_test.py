@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import AbstractSet
 
 import pytest
@@ -513,8 +514,8 @@ def test_circuit_diagram_tagged_global_phase():
     # Operation with no qubits and returns diagram info with no wire symbols
     class NoWireSymbols(cirq.GlobalPhaseOperation):
         def _circuit_diagram_info_(
-            self, args: 'cirq.CircuitDiagramInfoArgs'
-        ) -> 'cirq.CircuitDiagramInfo':
+            self, args: cirq.CircuitDiagramInfoArgs
+        ) -> cirq.CircuitDiagramInfo:
             return expected
 
     no_wire_symbol_op = NoWireSymbols(coefficient=-1.0).with_tags('tag0')
@@ -658,7 +659,7 @@ class ParameterizableTag:
     def _parameter_names_(self) -> AbstractSet[str]:
         return cirq.parameter_names(self.value)
 
-    def _resolve_parameters_(self, resolver, recursive) -> 'ParameterizableTag':
+    def _resolve_parameters_(self, resolver, recursive) -> ParameterizableTag:
         return ParameterizableTag(cirq.resolve_parameters(self.value, resolver, recursive))
 
 

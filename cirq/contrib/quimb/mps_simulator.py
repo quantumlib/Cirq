@@ -17,6 +17,7 @@ This is based on this paper:
 https://arxiv.org/abs/2002.07730
 """
 
+from __future__ import annotations
 import collections
 import math
 from typing import Any, Dict, List, Iterator, Optional, Sequence, Set, TYPE_CHECKING
@@ -64,10 +65,10 @@ class MPSSimulator(
 
     def __init__(
         self,
-        noise: 'cirq.NOISE_MODEL_LIKE' = None,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-        simulation_options: 'cirq.contrib.quimb.mps_simulator.MPSOptions' = MPSOptions(),
-        grouping: Optional[Dict['cirq.Qid', int]] = None,
+        noise: cirq.NOISE_MODEL_LIKE = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+        simulation_options: cirq.contrib.quimb.mps_simulator.MPSOptions = MPSOptions(),
+        grouping: Optional[Dict[cirq.Qid, int]] = None,
     ):
         """Creates instance of `MPSSimulator`.
 
@@ -88,7 +89,7 @@ class MPSSimulator(
 
     def _base_iterator(
         self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
-    ) -> Iterator['cirq.contrib.quimb.mps_simulator.MPSSimulatorStepResult']:
+    ) -> Iterator[cirq.contrib.quimb.mps_simulator.MPSSimulatorStepResult]:
         """Iterator over MPSSimulatorStepResult from Moments of a Circuit
 
         Args:
@@ -144,8 +145,8 @@ class MPSSimulator(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.contrib.quimb.mps_simulator.MPSState',
-    ) -> 'cirq.contrib.quimb.mps_simulator.MPSTrialResult':
+        final_simulator_state: cirq.contrib.quimb.mps_simulator.MPSState,
+    ) -> cirq.contrib.quimb.mps_simulator.MPSTrialResult:
         """Creates a single trial results with the measurements.
 
         Args:
@@ -217,7 +218,7 @@ class MPSTrialResult(simulator.SimulationTrialResult):
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'MPSState',
+        final_simulator_state: MPSState,
     ) -> None:
         super().__init__(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
@@ -270,7 +271,7 @@ class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
         self,
         qubits: List[ops.Qid],
         repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
 
         measurements: List[int] = []
@@ -291,9 +292,9 @@ class MPSState:
 
     def __init__(
         self,
-        qubit_map: Dict['cirq.Qid', int],
-        simulation_options: 'cirq.contrib.quimb.mps_simulator.MPSOptions' = MPSOptions(),
-        grouping: Optional[Dict['cirq.Qid', int]] = None,
+        qubit_map: Dict[cirq.Qid, int],
+        simulation_options: cirq.contrib.quimb.mps_simulator.MPSOptions = MPSOptions(),
+        grouping: Optional[Dict[cirq.Qid, int]] = None,
         initial_state: int = 0,
     ):
         """Creates and MPSState
@@ -358,7 +359,7 @@ class MPSState:
     def _value_equality_values_(self) -> Any:
         return self.qubit_map, self.M, self.simulation_options, self.grouping
 
-    def copy(self) -> 'MPSState':
+    def copy(self) -> MPSState:
         state = MPSState(self.qubit_map, self.simulation_options, self.grouping)
         state.M = [x.copy() for x in self.M]
         state.estimated_gate_error_list = self.estimated_gate_error_list
@@ -419,7 +420,7 @@ class MPSState:
         """An alias for the state vector."""
         return self.state_vector()
 
-    def apply_op(self, op: 'cirq.Operation', prng: np.random.RandomState):
+    def apply_op(self, op: cirq.Operation, prng: np.random.RandomState):
         """Applies a unitary operation, mutating the object to represent the new state.
 
         op:

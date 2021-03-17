@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import cast, Iterable, List, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import circuits, ops
@@ -23,7 +24,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def qubit_pairs_to_qubit_order(qubit_pairs: Sequence[Sequence['cirq.Qid']]) -> List['cirq.Qid']:
+def qubit_pairs_to_qubit_order(qubit_pairs: Sequence[Sequence[cirq.Qid]]) -> List[cirq.Qid]:
     """Takes a sequence of qubit pairs and returns a sequence in which every
     pair is at distance two.
 
@@ -48,8 +49,8 @@ def qubit_pairs_to_qubit_order(qubit_pairs: Sequence[Sequence['cirq.Qid']]) -> L
 
 
 def quartic_paired_acquaintance_strategy(
-    qubit_pairs: Iterable[Tuple['cirq.Qid', ops.Qid]]
-) -> Tuple['cirq.Circuit', Sequence['cirq.Qid']]:
+    qubit_pairs: Iterable[Tuple[cirq.Qid, ops.Qid]]
+) -> Tuple[cirq.Circuit, Sequence[cirq.Qid]]:
     """Acquaintance strategy for pairs of pairs.
 
     Implements UpCCGSD ansatz from arXiv:1810.02327.

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A helper for jobs that have been created on the Quantum Engine."""
+from __future__ import annotations
 import datetime
 import time
 
@@ -59,7 +60,7 @@ class EngineJob:
         project_id: str,
         program_id: str,
         job_id: str,
-        context: 'engine_base.EngineContext',
+        context: engine_base.EngineContext,
         _job: Optional[quantum.types.QuantumJob] = None,
         result_type: ResultType = ResultType.Program,
     ) -> None:
@@ -84,13 +85,13 @@ class EngineJob:
         self._batched_results: Optional[List[List[study.Result]]] = None
         self.result_type = result_type
 
-    def engine(self) -> 'engine_base.Engine':
+    def engine(self) -> engine_base.Engine:
         """Returns the parent Engine object."""
         import cirq.google.engine.engine as engine_base
 
         return engine_base.Engine(self.project_id, context=self.context)
 
-    def program(self) -> 'engine_program.EngineProgram':
+    def program(self) -> engine_program.EngineProgram:
         """Returns the parent EngineProgram object."""
         import cirq.google.engine.engine_program as engine_program
 
@@ -110,11 +111,11 @@ class EngineJob:
             )
         return self._job
 
-    def create_time(self) -> 'datetime.datetime':
+    def create_time(self) -> datetime.datetime:
         """Returns when the job was created."""
         return self._inner_job().create_time.ToDatetime()
 
-    def update_time(self) -> 'datetime.datetime':
+    def update_time(self) -> datetime.datetime:
         """Returns when the job was last updated."""
         self._job = self.context.client.get_job(
             self.project_id, self.program_id, self.job_id, False
@@ -125,7 +126,7 @@ class EngineJob:
         """Returns the description of the job."""
         return self._inner_job().description
 
-    def set_description(self, description: str) -> 'EngineJob':
+    def set_description(self, description: str) -> EngineJob:
         """Sets the description of the job.
 
         Params:
@@ -143,7 +144,7 @@ class EngineJob:
         """Returns the labels of the job."""
         return self._inner_job().labels
 
-    def set_labels(self, labels: Dict[str, str]) -> 'EngineJob':
+    def set_labels(self, labels: Dict[str, str]) -> EngineJob:
         """Sets (overwriting) the labels for a previously created quantum job.
 
         Params:
@@ -157,7 +158,7 @@ class EngineJob:
         )
         return self
 
-    def add_labels(self, labels: Dict[str, str]) -> 'EngineJob':
+    def add_labels(self, labels: Dict[str, str]) -> EngineJob:
         """Adds new labels to a previously created quantum job.
 
         Params:
@@ -171,7 +172,7 @@ class EngineJob:
         )
         return self
 
-    def remove_labels(self, keys: List[str]) -> 'EngineJob':
+    def remove_labels(self, keys: List[str]) -> EngineJob:
         """Removes labels with given keys from the labels of a previously
         created quantum job.
 
@@ -242,7 +243,7 @@ class EngineJob:
             ]
         raise ValueError(f'unsupported run_context type: {run_context_type}')
 
-    def get_processor(self) -> 'Optional[engine_processor.EngineProcessor]':
+    def get_processor(self) -> Optional[engine_processor.EngineProcessor]:
         """Returns the EngineProcessor for the processor the job is/was run on,
         if available, else None."""
         status = self._inner_job().execution_status

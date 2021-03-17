@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import AbstractSet, Any, cast, Collection, Dict, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -31,7 +32,7 @@ class ControlledGate(raw_types.Gate):
 
     def __init__(
         self,
-        sub_gate: 'cirq.Gate',
+        sub_gate: cirq.Gate,
         num_controls: int = None,
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
         control_qid_shape: Optional[Sequence[int]] = None,
@@ -113,7 +114,7 @@ class ControlledGate(raw_types.Gate):
             )
         return decomposed
 
-    def on(self, *qubits: 'cirq.Qid') -> cop.ControlledOperation:
+    def on(self, *qubits: cirq.Qid) -> cop.ControlledOperation:
         if len(qubits) == 0:
             raise ValueError(f"Applied a gate to an empty set of qubits. Gate: {self!r}")
         self.validate_args(qubits)
@@ -130,7 +131,7 @@ class ControlledGate(raw_types.Gate):
             frozenset(zip(self.control_values, self.control_qid_shape)),
         )
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         qubits = cirq.LineQid.for_gate(self)
         op = self.sub_gate.on(*qubits[self.num_controls() :])
         c_op = cop.ControlledOperation(qubits[: self.num_controls()], op, self.control_values)
@@ -155,7 +156,7 @@ class ControlledGate(raw_types.Gate):
         c_op = cop.ControlledOperation(qubits[: self.num_controls()], op, self.control_values)
         return protocols.mixture(c_op, default=NotImplemented)
 
-    def __pow__(self, exponent: Any) -> 'ControlledGate':
+    def __pow__(self, exponent: Any) -> ControlledGate:
         new_sub_gate = protocols.pow(self.sub_gate, exponent, NotImplemented)
         if new_sub_gate is NotImplemented:
             return NotImplemented
@@ -190,9 +191,7 @@ class ControlledGate(raw_types.Gate):
         angle_list = np.append(np.angle(np.linalg.eigvals(u)), 0)
         return protocols.trace_distance_from_angle_list(angle_list)
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         sub_args = protocols.CircuitDiagramInfoArgs(
             known_qubit_count=(
                 args.known_qubit_count - self.num_controls()

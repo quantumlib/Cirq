@@ -13,6 +13,7 @@
 # limitations under the License.
 """Abstract classes for simulations which keep track of state vector."""
 
+from __future__ import annotations
 import abc
 
 from typing import Any, Dict, Sequence, TYPE_CHECKING, Tuple, Generic, TypeVar
@@ -46,15 +47,15 @@ class SimulatesIntermediateStateVector(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'StateVectorSimulatorState',
-    ) -> 'StateVectorTrialResult':
+        final_simulator_state: StateVectorSimulatorState,
+    ) -> StateVectorTrialResult:
         return StateVectorTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
     def compute_amplitudes_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: cirq.Circuit,
         bitstrings: Sequence[int],
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -85,7 +86,7 @@ class StateVectorStepResult(
     simulator.StepResult['StateVectorSimulatorState'], metaclass=abc.ABCMeta
 ):
     @abc.abstractmethod
-    def _simulator_state(self) -> 'StateVectorSimulatorState':
+    def _simulator_state(self) -> StateVectorSimulatorState:
         """Returns the simulator_state of the simulator after this step.
 
         The form of the simulator_state depends on the implementation of the

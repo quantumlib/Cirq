@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import itertools
 import collections
 from typing import Any, Iterable, cast, DefaultDict, TYPE_CHECKING, FrozenSet
@@ -34,8 +35,8 @@ class NeutralAtomDevice(devices.Device):
 
     def __init__(
         self,
-        measurement_duration: 'cirq.DURATION_LIKE',
-        gate_duration: 'cirq.DURATION_LIKE',
+        measurement_duration: cirq.DURATION_LIKE,
+        gate_duration: cirq.DURATION_LIKE,
         control_radius: float,
         max_parallel_z: int,
         max_parallel_xy: int,
@@ -81,7 +82,7 @@ class NeutralAtomDevice(devices.Device):
                 raise ValueError(f'Unsupported qubit type: {q!r}')
         self.qubits = frozenset(qubits)
 
-    def qubit_set(self) -> FrozenSet['cirq.GridQubit']:
+    def qubit_set(self) -> FrozenSet[cirq.GridQubit]:
         return self.qubits
 
     def qubit_list(self):
@@ -333,7 +334,7 @@ class NeutralAtomDevice(devices.Device):
             f'qubits={sorted(self.qubits)!r})'
         )
 
-    def neighbors_of(self, qubit: 'cirq.GridQubit') -> Iterable['cirq.GridQubit']:
+    def neighbors_of(self, qubit: cirq.GridQubit) -> Iterable[cirq.GridQubit]:
         """Returns the qubits that the given qubit can interact with."""
         possibles = [
             GridQubit(qubit.row + 1, qubit.col),
@@ -343,7 +344,7 @@ class NeutralAtomDevice(devices.Device):
         ]
         return [e for e in possibles if e in self.qubits]
 
-    def distance(self, p: 'cirq.Qid', q: 'cirq.Qid') -> float:
+    def distance(self, p: cirq.Qid, q: cirq.Qid) -> float:
         p = cast(GridQubit, p)
         q = cast(GridQubit, q)
         return sqrt((p.row - q.row) ** 2 + (p.col - q.col) ** 2)

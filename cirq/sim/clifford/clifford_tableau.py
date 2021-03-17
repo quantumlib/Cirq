@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Any, Dict, List
 import numpy as np
 
@@ -77,7 +78,7 @@ class CliffordTableau:
             and np.array_equal(self.zs, other.zs)
         )
 
-    def copy(self) -> 'CliffordTableau':
+    def copy(self) -> CliffordTableau:
         state = CliffordTableau(self.n)
         state.rs = self.rs.copy()
         state.xs = self.xs.copy()

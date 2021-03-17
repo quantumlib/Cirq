@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A combination of several optimizations targeting XmonDevice."""
+from __future__ import annotations
 from functools import lru_cache
 from typing import Callable, cast, List, Optional, TYPE_CHECKING
 
@@ -31,7 +32,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _get_common_cleanup_optimizers(tolerance: float) -> List[Callable[['cirq.Circuit'], None]]:
+def _get_common_cleanup_optimizers(tolerance: float) -> List[Callable[[cirq.Circuit], None]]:
     return [
         optimizers.EjectPhasedPaulis(tolerance=tolerance).optimize_circuit,
         optimizers.EjectZ(tolerance=tolerance).optimize_circuit,
@@ -41,7 +42,7 @@ def _get_common_cleanup_optimizers(tolerance: float) -> List[Callable[['cirq.Cir
 
 def _get_xmon_optimizers(
     tolerance: float, tabulation: Optional[GateTabulation]
-) -> List[Callable[['cirq.Circuit'], None]]:
+) -> List[Callable[[cirq.Circuit], None]]:
     if tabulation is not None:
         # coverage: ignore
         raise ValueError("Gate tabulation not supported for xmon")
@@ -56,7 +57,7 @@ def _get_xmon_optimizers(
 
 def _get_xmon_optimizers_part_cz(
     tolerance: float, tabulation: Optional[GateTabulation]
-) -> List[Callable[['cirq.Circuit'], None]]:
+) -> List[Callable[[cirq.Circuit], None]]:
     if tabulation is not None:
         # coverage: ignore
         raise ValueError("Gate tabulation not supported for xmon")
@@ -70,7 +71,7 @@ def _get_xmon_optimizers_part_cz(
 
 def _get_sycamore_optimizers(
     tolerance: float, tabulation: Optional[GateTabulation]
-) -> List[Callable[['cirq.Circuit'], None]]:
+) -> List[Callable[[cirq.Circuit], None]]:
     return [
         ConvertToSycamoreGates(tabulation=tabulation).optimize_circuit,
         lambda c: optimizers.merge_single_qubit_gates_into_phxz(c, tolerance),
@@ -80,7 +81,7 @@ def _get_sycamore_optimizers(
 
 def _get_sqrt_iswap_optimizers(
     tolerance: float, tabulation: Optional[GateTabulation]
-) -> List[Callable[['cirq.Circuit'], None]]:
+) -> List[Callable[[cirq.Circuit], None]]:
     if tabulation is not None:
         # coverage: ignore
         raise ValueError("Gate tabulation not supported for sqrt_iswap")
@@ -113,14 +114,14 @@ def _gate_product_tabulation_cached(
 
 
 def optimized_for_sycamore(
-    circuit: 'cirq.Circuit',
+    circuit: cirq.Circuit,
     *,
-    new_device: Optional['cirq.google.XmonDevice'] = None,
-    qubit_map: Callable[['cirq.Qid'], devices.GridQubit] = lambda e: cast(devices.GridQubit, e),
+    new_device: Optional[cirq.google.XmonDevice] = None,
+    qubit_map: Callable[[cirq.Qid], devices.GridQubit] = lambda e: cast(devices.GridQubit, e),
     optimizer_type: str = 'sqrt_iswap',
     tolerance: float = 1e-5,
     tabulation_resolution: Optional[float] = None,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Optimizes a circuit for Google devices.
 
     Uses a set of optimizers that will compile to the proper gateset for the

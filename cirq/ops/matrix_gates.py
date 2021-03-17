@@ -14,6 +14,7 @@
 
 """Quantum gates defined by a matrix."""
 
+from __future__ import annotations
 from typing import Any, cast, Dict, Iterable, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
@@ -76,14 +77,14 @@ class MatrixGate(raw_types.Gate):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
-    def __pow__(self, exponent: Any) -> 'MatrixGate':
+    def __pow__(self, exponent: Any) -> MatrixGate:
         if not isinstance(exponent, (int, float)):
             return NotImplemented
         e = cast(float, exponent)
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b ** e)
         return MatrixGate(new_mat, qid_shape=self._qid_shape)
 
-    def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'MatrixGate':
+    def _phase_by_(self, phase_turns: float, qubit_index: int) -> MatrixGate:
         if not isinstance(phase_turns, (int, float)):
             return NotImplemented
         if self._qid_shape[qubit_index] != 2:
@@ -103,9 +104,7 @@ class MatrixGate(raw_types.Gate):
     def _unitary_(self) -> np.ndarray:
         return np.copy(self._matrix)
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         main = _matrix_to_diagram_symbol(self._matrix, args)
         rest = [f'#{i+1}' for i in range(1, len(self._qid_shape))]
         return protocols.CircuitDiagramInfo(wire_symbols=[main, *rest])
@@ -136,7 +135,7 @@ class MatrixGate(raw_types.Gate):
         return str(self._matrix.round(3))
 
 
-def _matrix_to_diagram_symbol(matrix: np.ndarray, args: 'protocols.CircuitDiagramInfoArgs') -> str:
+def _matrix_to_diagram_symbol(matrix: np.ndarray, args: protocols.CircuitDiagramInfoArgs) -> str:
     if args.precision is not None:
         matrix = matrix.round(args.precision)
     result = str(matrix)

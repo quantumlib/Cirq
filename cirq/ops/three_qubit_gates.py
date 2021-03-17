@@ -14,6 +14,7 @@
 
 """Common quantum gates that target three qubits."""
 
+from __future__ import annotations
 from typing import AbstractSet, Any, List, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
@@ -114,7 +115,7 @@ class CCZPowGate(
             sweep_abc,
         ]
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         if protocols.is_parameterized(self):
             return NotImplemented
         ooo = args.subspace_index(0b111)
@@ -124,12 +125,10 @@ class CCZPowGate(
             args.target_tensor *= p
         return args.target_tensor
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(('@', '@', '@'), exponent=self._diagram_exponent(args))
 
-    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None
 
@@ -141,9 +140,7 @@ class CCZPowGate(
         ]
         return ''.join(lines)
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple[cirq.Qid, ...], formatter: cirq.QuilFormatter) -> Optional[str]:
         if self._exponent != 1:
             return None
         lines = [
@@ -194,8 +191,8 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         }
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
-    ) -> 'ThreeQubitDiagonalGate':
+        self, resolver: cirq.ParamResolverOrSimilarType, recursive: bool
+    ) -> ThreeQubitDiagonalGate:
         return self.__class__(
             [
                 protocols.resolve_parameters(angle, resolver, recursive)
@@ -211,7 +208,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
             return NotImplemented
         return np.diag([np.exp(1j * angle) for angle in self._diag_angles_radians])
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         if self._is_parameterized_():
             return NotImplemented
         for index, angle in enumerate(self._diag_angles_radians):
@@ -220,16 +217,14 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
             args.target_tensor[subspace_index] *= np.exp(1j * angle)
         return args.target_tensor
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         rounded_angles = np.array(self._diag_angles_radians)
         if args.precision is not None:
             rounded_angles = rounded_angles.round(args.precision)
         diag_str = f"diag({', '.join(proper_repr(angle) for angle in rounded_angles)})"
         return protocols.CircuitDiagramInfo((diag_str, '#2', '#3'))
 
-    def __pow__(self, exponent: Any) -> 'ThreeQubitDiagonalGate':
+    def __pow__(self, exponent: Any) -> ThreeQubitDiagonalGate:
         if not isinstance(exponent, (int, float, sympy.Basic)):
             return NotImplemented
         return ThreeQubitDiagonalGate(
@@ -371,7 +366,7 @@ class CCXPowGate(
     def qubit_index_to_equivalence_group_key(self, index):
         return index < 2
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         if protocols.is_parameterized(self):
             return NotImplemented
         p = 1j ** (2 * self._exponent * self._global_shift)
@@ -391,21 +386,17 @@ class CCXPowGate(
         yield CCZ(c1, c2, t) ** self._exponent
         yield common_gates.H(t)
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(('@', '@', 'X'), exponent=self._diagram_exponent(args))
 
-    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None
 
         args.validate_version('2.0')
         return args.format('ccx {0},{1},{2};\n', qubits[0], qubits[1], qubits[2])
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple[cirq.Qid, ...], formatter: cirq.QuilFormatter) -> Optional[str]:
         if self._exponent != 1:
             return None
         return formatter.format('CCNOT {0} {1} {2}\n', qubits[0], qubits[1], qubits[2])
@@ -464,8 +455,8 @@ class CSwapGate(gate_features.ThreeQubitGate, gate_features.InterchangeableQubit
         return self._decompose_outside_control(c, t1, t2)
 
     def _decompose_inside_control(
-        self, target1: 'cirq.Qid', control: 'cirq.Qid', target2: 'cirq.Qid'
-    ) -> 'cirq.OP_TREE':
+        self, target1: cirq.Qid, control: cirq.Qid, target2: cirq.Qid
+    ) -> cirq.OP_TREE:
         """A decomposition assuming the control separates the targets.
 
         target1: ─@─X───────T──────@────────@─────────X───@─────X^-0.5─
@@ -500,7 +491,7 @@ class CSwapGate(gate_features.ThreeQubitGate, gate_features.InterchangeableQubit
         yield common_gates.S(c) ** -1
         yield pauli_gates.X(a) ** -0.5
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         return protocols.apply_unitary(
             controlled_gate.ControlledGate(swap_gates.SWAP),
             protocols.ApplyUnitaryArgs(args.target_tensor, args.available_buffer, args.axes),
@@ -508,8 +499,8 @@ class CSwapGate(gate_features.ThreeQubitGate, gate_features.InterchangeableQubit
         )
 
     def _decompose_outside_control(
-        self, control: 'cirq.Qid', near_target: 'cirq.Qid', far_target: 'cirq.Qid'
-    ) -> 'cirq.OP_TREE':
+        self, control: cirq.Qid, near_target: cirq.Qid, far_target: cirq.Qid
+    ) -> cirq.OP_TREE:
         """A decomposition assuming one of the targets is in the middle.
 
         control: ───T──────@────────@───@────────────@────────────────
@@ -544,20 +535,16 @@ class CSwapGate(gate_features.ThreeQubitGate, gate_features.InterchangeableQubit
     def _unitary_(self) -> np.ndarray:
         return linalg.block_diag(np.diag([1, 1, 1, 1, 1]), np.array([[0, 1], [1, 0]]), np.diag([1]))
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         if not args.use_unicode_characters:
             return protocols.CircuitDiagramInfo(('@', 'swap', 'swap'))
         return protocols.CircuitDiagramInfo(('@', '×', '×'))
 
-    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         return args.format('cswap {0},{1},{2};\n', qubits[0], qubits[1], qubits[2])
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple[cirq.Qid, ...], formatter: cirq.QuilFormatter) -> Optional[str]:
         return formatter.format('CSWAP {0} {1} {2}\n', qubits[0], qubits[1], qubits[2])
 
     def _value_equality_values_(self):

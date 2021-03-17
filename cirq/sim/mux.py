@@ -17,6 +17,7 @@
 Filename is a reference to multiplexing.
 """
 
+from __future__ import annotations
 from typing import List, Optional, Type, Union, cast, TYPE_CHECKING
 
 import numpy as np
@@ -38,7 +39,7 @@ document(
 )
 
 
-def _is_clifford_circuit(program: 'cirq.Circuit') -> bool:
+def _is_clifford_circuit(program: cirq.Circuit) -> bool:
     return all(
         clifford_simulator.CliffordSimulator.is_supported_operation(op)
         for op in program.all_operations()
@@ -46,13 +47,13 @@ def _is_clifford_circuit(program: 'cirq.Circuit') -> bool:
 
 
 def sample(
-    program: 'cirq.Circuit',
+    program: cirq.Circuit,
     *,
-    noise: 'cirq.NOISE_MODEL_LIKE' = None,
+    noise: cirq.NOISE_MODEL_LIKE = None,
     param_resolver: Optional[study.ParamResolver] = None,
     repetitions: int = 1,
     dtype: Type[np.number] = np.complex64,
-    seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> study.Result:
     """Simulates sampling from the given circuit.
 
@@ -86,7 +87,7 @@ def sample(
     ).run(program=program, param_resolver=param_resolver, repetitions=repetitions)
 
 
-def _to_circuit(program: 'cirq.CIRCUIT_LIKE') -> 'cirq.Circuit':
+def _to_circuit(program: cirq.CIRCUIT_LIKE) -> cirq.Circuit:
     result = None
     if isinstance(program, circuits.Circuit):
         # No change needed.
@@ -100,14 +101,14 @@ def _to_circuit(program: 'cirq.CIRCUIT_LIKE') -> 'cirq.Circuit':
 
 
 def final_state_vector(
-    program: 'cirq.CIRCUIT_LIKE',
+    program: cirq.CIRCUIT_LIKE,
     *,
-    initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
+    initial_state: cirq.STATE_VECTOR_LIKE = 0,
     param_resolver: study.ParamResolverOrSimilarType = None,
     qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     dtype: Type[np.number] = np.complex64,
-    seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-) -> 'np.ndarray':
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+) -> np.ndarray:
     """Returns the state vector resulting from acting operations on a state.
 
     By default the input state is the computational basis zero state, in which
@@ -158,13 +159,13 @@ def final_state_vector(
 
 
 def sample_sweep(
-    program: 'cirq.Circuit',
+    program: cirq.Circuit,
     params: study.Sweepable,
     *,
-    noise: 'cirq.NOISE_MODEL_LIKE' = None,
+    noise: cirq.NOISE_MODEL_LIKE = None,
     repetitions: int = 1,
     dtype: Type[np.number] = np.complex64,
-    seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> List[study.Result]:
     """Runs the supplied Circuit, mimicking quantum hardware.
 
@@ -203,16 +204,16 @@ def sample_sweep(
 
 
 def final_density_matrix(
-    program: 'cirq.CIRCUIT_LIKE',
+    program: cirq.CIRCUIT_LIKE,
     *,
-    noise: 'cirq.NOISE_MODEL_LIKE' = None,
-    initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
+    noise: cirq.NOISE_MODEL_LIKE = None,
+    initial_state: cirq.STATE_VECTOR_LIKE = 0,
     param_resolver: study.ParamResolverOrSimilarType = None,
     qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     dtype: Type[np.number] = np.complex64,
     seed: Optional[Union[int, np.random.RandomState]] = None,
     ignore_measurement_results: bool = True,
-) -> 'np.ndarray':
+) -> np.ndarray:
     """Returns the density matrix resulting from simulating the circuit.
 
     Note that, unlike `cirq.final_state_vector`, terminal measurements

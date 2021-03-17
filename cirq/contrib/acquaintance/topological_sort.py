@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import operator
 import random
 from typing import Any, Callable, cast, Iterable, TYPE_CHECKING
@@ -25,8 +26,8 @@ if TYPE_CHECKING:
 
 
 def is_topologically_sorted(
-    dag: 'cirq.CircuitDag',
-    operations: 'cirq.OP_TREE',
+    dag: cirq.CircuitDag,
+    operations: cirq.OP_TREE,
     equals: Callable[[ops.Operation, ops.Operation], bool] = operator.eq,
 ) -> bool:
     """Whether a given order of operations is consistent with the DAG.

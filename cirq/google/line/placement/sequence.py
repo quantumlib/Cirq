@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import List, Iterable
 
 from cirq.circuits import TextDiagramDrawer
@@ -29,7 +30,7 @@ class GridQubitLineTuple(tuple):
     """A contiguous non-overlapping sequence of adjacent grid qubits."""
 
     @staticmethod
-    def best_of(lines: Iterable[LineSequence], length: int) -> 'GridQubitLineTuple':
+    def best_of(lines: Iterable[LineSequence], length: int) -> GridQubitLineTuple:
         lines = list(lines)
         longest = max(lines, key=len) if lines else []
         if len(longest) < length:

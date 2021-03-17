@@ -15,6 +15,7 @@
 """Pushes 180 degree rotations around axes in the XY plane later in the circuit.
 """
 
+from __future__ import annotations
 from typing import Optional, cast, TYPE_CHECKING, Iterable, Tuple, Dict, List
 import sympy
 
@@ -213,7 +214,7 @@ def _potential_cross_partial_w(
 
 
 def _single_cross_over_cz(
-    moment_index: int, op: ops.Operation, qubit_with_w: 'cirq.Qid', state: _OptimizerState
+    moment_index: int, op: ops.Operation, qubit_with_w: cirq.Qid, state: _OptimizerState
 ) -> None:
     """Crosses exactly one W flip over a partial CZ.
 

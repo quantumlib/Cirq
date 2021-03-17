@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import TYPE_CHECKING, List, Tuple, cast, Dict
 
 import matplotlib.textpath
@@ -54,7 +55,7 @@ def _text(x: float, y: float, text: str, fontsize: int = 14):
 
 
 def _fit_horizontal(
-    tdd: 'cirq.TextDiagramDrawer', ref_boxwidth: float, col_padding: float
+    tdd: cirq.TextDiagramDrawer, ref_boxwidth: float, col_padding: float
 ) -> Tuple[List[float], List[float]]:
     """Figure out the horizontal spacing of columns to fit everything in.
 
@@ -84,7 +85,7 @@ def _fit_horizontal(
 
 
 def _fit_vertical(
-    tdd: 'cirq.TextDiagramDrawer', ref_boxheight: float, row_padding: float
+    tdd: cirq.TextDiagramDrawer, ref_boxheight: float, row_padding: float
 ) -> Tuple[List[float], List[float], Dict[float, int]]:
     """Return data structures used to turn tdd vertical coordinates into
     well-spaced SVG coordinates.
@@ -160,7 +161,7 @@ def _debug_spacing(col_starts, row_starts):
 
 
 def tdd_to_svg(
-    tdd: 'cirq.TextDiagramDrawer',
+    tdd: cirq.TextDiagramDrawer,
     ref_boxwidth: float = 40,
     ref_boxheight: float = 40,
     col_padding: float = 20,
@@ -242,7 +243,7 @@ def tdd_to_svg(
     return t
 
 
-def _validate_circuit(circuit: 'cirq.Circuit'):
+def _validate_circuit(circuit: cirq.Circuit):
     if len(circuit) == 0:
         raise ValueError("Can't draw SVG diagram for empty circuits")
 
@@ -262,7 +263,7 @@ class SVGCircuit:
     which will cause the circuit to be displayed as an SVG image.
     """
 
-    def __init__(self, circuit: 'cirq.Circuit'):
+    def __init__(self, circuit: cirq.Circuit):
         # coverage: ignore
         self.circuit = circuit
 
@@ -273,7 +274,7 @@ class SVGCircuit:
         return tdd_to_svg(tdd)
 
 
-def circuit_to_svg(circuit: 'cirq.Circuit') -> str:
+def circuit_to_svg(circuit: cirq.Circuit) -> str:
     """Render a circuit as SVG."""
     _validate_circuit(circuit)
     tdd = circuit.to_text_diagram_drawer(transpose=False)

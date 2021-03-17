@@ -12,6 +12,7 @@
 # limitations under the License.
 """Client for making requests to IonQ's API."""
 
+from __future__ import annotations
 import datetime
 import sys
 import time
@@ -89,7 +90,7 @@ class _IonQClient:
 
     def create_job(
         self,
-        serialized_program: 'cirq.ionq.SerializedProgram',
+        serialized_program: cirq.ionq.SerializedProgram,
         repetitions: Optional[int] = None,
         target: Optional[str] = None,
         name: Optional[str] = None,

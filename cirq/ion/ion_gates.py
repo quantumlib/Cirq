@@ -14,6 +14,7 @@
 
 """Operations native to iontrap systems."""
 
+from __future__ import annotations
 from typing import Union, TYPE_CHECKING
 import numpy as np
 
@@ -40,12 +41,12 @@ class MSGate(ops.XXPowGate):
     def __init__(self, *, rads: float):  # Forces keyword args.
         ops.XXPowGate.__init__(self, exponent=rads * 2 / np.pi, global_shift=-0.5)
 
-    def _with_exponent(self: 'MSGate', exponent: value.TParamVal) -> 'MSGate':
+    def _with_exponent(self: MSGate, exponent: value.TParamVal) -> MSGate:
         return type(self)(rads=exponent * np.pi / 2)
 
     def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> Union[str, 'protocols.CircuitDiagramInfo']:
+        self, args: cirq.CircuitDiagramInfoArgs
+    ) -> Union[str, protocols.CircuitDiagramInfo]:
         angle_str = self._format_exponent_as_angle(args, order=4)
         symbol = f'MS({angle_str})'
         return protocols.CircuitDiagramInfo(wire_symbols=(symbol, symbol))

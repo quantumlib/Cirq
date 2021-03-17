@@ -13,6 +13,7 @@
 # limitations under the License.
 """Support for serializing and deserializing cirq.google.api.v2 protos."""
 
+from __future__ import annotations
 from typing import (
     Dict,
     Iterable,
@@ -68,7 +69,7 @@ class SerializableGateSet:
         gate_set_name: Optional[str] = None,
         serializers: Iterable[op_serializer.GateOpSerializer] = (),
         deserializers: Iterable[op_deserializer.GateOpDeserializer] = (),
-    ) -> 'SerializableGateSet':
+    ) -> SerializableGateSet:
         """Creates a new gateset with additional (de)serializers.
 
         Args:
@@ -90,11 +91,11 @@ class SerializableGateSet:
     def supported_gate_types(self) -> Tuple:
         return tuple(self.serializers.keys())
 
-    def is_supported(self, op_tree: 'cirq.OP_TREE') -> bool:
+    def is_supported(self, op_tree: cirq.OP_TREE) -> bool:
         """Whether the given object contains only supported operations."""
         return all(self.is_supported_operation(op) for op in ops.flatten_to_ops(op_tree))
 
-    def is_supported_operation(self, op: 'cirq.Operation') -> bool:
+    def is_supported_operation(self, op: cirq.Operation) -> bool:
         """Whether or not the given gate can be serialized by this gate set."""
         return any(
             serializer.can_serialize_operation(op)
@@ -104,7 +105,7 @@ class SerializableGateSet:
 
     def serialize(
         self,
-        program: 'cirq.Circuit',
+        program: cirq.Circuit,
         msg: Optional[v2.program_pb2.Program] = None,
         *,
         arg_function_language: Optional[str] = None,
@@ -141,7 +142,7 @@ class SerializableGateSet:
 
     def serialize_op(
         self,
-        op: 'cirq.Operation',
+        op: cirq.Operation,
         msg: Optional[v2.program_pb2.Operation] = None,
         *,
         arg_function_language: Optional[str] = '',
@@ -170,8 +171,8 @@ class SerializableGateSet:
         raise ValueError(f'Cannot serialize op {op!r} of type {gate_type}')
 
     def deserialize(
-        self, proto: v2.program_pb2.Program, device: Optional['cirq.Device'] = None
-    ) -> 'cirq.Circuit':
+        self, proto: v2.program_pb2.Program, device: Optional[cirq.Device] = None
+    ) -> cirq.Circuit:
         """Deserialize a Circuit from a cirq.google.api.v2.Program.
 
         Args:
@@ -214,7 +215,7 @@ class SerializableGateSet:
         *,
         arg_function_language: str = '',
         constants: Optional[List[v2.program_pb2.Constant]] = None,
-    ) -> 'cirq.Operation':
+    ) -> cirq.Operation:
         """Deserialize an Operation from a cirq.google.api.v2.Operation.
 
         Args:
@@ -240,7 +241,7 @@ class SerializableGateSet:
 
     def _serialize_circuit(
         self,
-        circuit: 'cirq.Circuit',
+        circuit: cirq.Circuit,
         msg: v2.program_pb2.Circuit,
         *,
         arg_function_language: Optional[str],
@@ -263,7 +264,7 @@ class SerializableGateSet:
         *,
         arg_function_language: str,
         constants: List[v2.program_pb2.Constant],
-    ) -> 'cirq.Circuit':
+    ) -> cirq.Circuit:
         moments = []
         for i, moment_proto in enumerate(circuit_proto.moments):
             moment_ops = []
@@ -287,10 +288,10 @@ class SerializableGateSet:
     def _deserialize_schedule(
         self,
         schedule_proto: v2.program_pb2.Schedule,
-        device: 'cirq.Device',
+        device: cirq.Device,
         *,
         arg_function_language: str,
-    ) -> 'cirq.Circuit':
+    ) -> cirq.Circuit:
         result = []
         for scheduled_op_proto in schedule_proto.scheduled_operations:
             if not scheduled_op_proto.HasField('operation'):

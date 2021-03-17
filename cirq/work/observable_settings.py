@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Union, Iterable, Dict, TYPE_CHECKING, Tuple
 
 from cirq import ops, value
@@ -111,13 +112,13 @@ def _max_weight_state(states: Iterable[value.ProductState]) -> Union[None, value
     return value.ProductState(qubit_state_map)
 
 
-def zeros_state(qubits: Iterable['cirq.Qid']):
+def zeros_state(qubits: Iterable[cirq.Qid]):
     """Return the ProductState that is |00..00> on all qubits."""
     return value.ProductState({q: value.KET_ZERO for q in qubits})
 
 
 def observables_to_settings(
-    observables: Iterable['cirq.PauliString'], qubits: Iterable['cirq.Qid']
+    observables: Iterable[cirq.PauliString], qubits: Iterable[cirq.Qid]
 ) -> Iterable[InitObsSetting]:
     """Transform an observable to an InitObsSetting initialized in the
     all-zeros state.

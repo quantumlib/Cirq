@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 import dataclasses
 import gzip
 import json
@@ -569,7 +570,7 @@ def read_json(
     if resolvers is None:
         resolvers = DEFAULT_RESOLVERS
 
-    context_map: Dict[str, 'SerializableByKey'] = {}
+    context_map: Dict[str, SerializableByKey] = {}
 
     def obj_hook(x):
         return _cirq_object_hook(x, resolvers, context_map)

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Any, Dict, Iterable, TYPE_CHECKING, List
 
 import numpy as np
@@ -74,7 +75,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
 
 
 def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
-    val: Any, args: 'cirq.ActOnStabilizerCHFormArgs'
+    val: Any, args: cirq.ActOnStabilizerCHFormArgs
 ) -> bool:
     if num_qubits(val) == 1:
         if not has_unitary(val):

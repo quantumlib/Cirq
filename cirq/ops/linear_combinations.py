@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 from collections import defaultdict
 from typing import (
     AbstractSet,
@@ -88,38 +89,38 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         any_gate = next(iter(self))
         return any_gate.num_qubits()
 
-    def _is_compatible(self, gate: 'cirq.Gate') -> bool:
+    def _is_compatible(self, gate: cirq.Gate) -> bool:
         return self.num_qubits() is None or self.num_qubits() == gate.num_qubits()
 
     def __add__(
-        self, other: Union[raw_types.Gate, 'LinearCombinationOfGates']
-    ) -> 'LinearCombinationOfGates':
+        self, other: Union[raw_types.Gate, LinearCombinationOfGates]
+    ) -> LinearCombinationOfGates:
         if not isinstance(other, LinearCombinationOfGates):
             other = other.wrap_in_linear_combination()
         return super().__add__(other)
 
     def __iadd__(
-        self, other: Union[raw_types.Gate, 'LinearCombinationOfGates']
-    ) -> 'LinearCombinationOfGates':
+        self, other: Union[raw_types.Gate, LinearCombinationOfGates]
+    ) -> LinearCombinationOfGates:
         if not isinstance(other, LinearCombinationOfGates):
             other = other.wrap_in_linear_combination()
         return super().__iadd__(other)
 
     def __sub__(
-        self, other: Union[raw_types.Gate, 'LinearCombinationOfGates']
-    ) -> 'LinearCombinationOfGates':
+        self, other: Union[raw_types.Gate, LinearCombinationOfGates]
+    ) -> LinearCombinationOfGates:
         if not isinstance(other, LinearCombinationOfGates):
             other = other.wrap_in_linear_combination()
         return super().__sub__(other)
 
     def __isub__(
-        self, other: Union[raw_types.Gate, 'LinearCombinationOfGates']
-    ) -> 'LinearCombinationOfGates':
+        self, other: Union[raw_types.Gate, LinearCombinationOfGates]
+    ) -> LinearCombinationOfGates:
         if not isinstance(other, LinearCombinationOfGates):
             other = other.wrap_in_linear_combination()
         return super().__isub__(other)
 
-    def __pow__(self, exponent: int) -> 'LinearCombinationOfGates':
+    def __pow__(self, exponent: int) -> LinearCombinationOfGates:
         if not isinstance(exponent, int):
             return NotImplemented
         if exponent < 0:
@@ -151,8 +152,8 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         return {name for gate in self.keys() for name in protocols.parameter_names(gate)}
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
-    ) -> 'LinearCombinationOfGates':
+        self, resolver: cirq.ParamResolverOrSimilarType, recursive: bool
+    ) -> LinearCombinationOfGates:
         return self.__class__(
             {
                 protocols.resolve_parameters(gate, resolver, recursive): coeff
@@ -227,7 +228,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         """
         super().__init__(terms, validator=self._is_compatible)
 
-    def _is_compatible(self, operation: 'cirq.Operation') -> bool:
+    def _is_compatible(self, operation: cirq.Operation) -> bool:
         return isinstance(operation, raw_types.Operation)
 
     @property
@@ -239,7 +240,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         all_qubits = set.union(*qubit_sets)
         return tuple(sorted(all_qubits))
 
-    def __pow__(self, exponent: int) -> 'LinearCombinationOfOperations':
+    def __pow__(self, exponent: int) -> LinearCombinationOfOperations:
         if not isinstance(exponent, int):
             return NotImplemented
         if exponent < 0:
@@ -266,8 +267,8 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         return {name for op in self.keys() for name in protocols.parameter_names(op)}
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
-    ) -> 'LinearCombinationOfOperations':
+        self, resolver: cirq.ParamResolverOrSimilarType, recursive: bool
+    ) -> LinearCombinationOfOperations:
         return self.__class__(
             {
                 protocols.resolve_parameters(op, resolver, recursive): coeff
@@ -309,7 +310,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         """Computes Pauli expansion of self from Pauli expansions of terms."""
 
         def extend_term(
-            pauli_names: str, qubits: Tuple['cirq.Qid', ...], all_qubits: Tuple['cirq.Qid', ...]
+            pauli_names: str, qubits: Tuple[cirq.Qid, ...], all_qubits: Tuple[cirq.Qid, ...]
         ) -> str:
             """Extends Pauli product on qubits to product on all_qubits."""
             assert len(pauli_names) == len(qubits)
@@ -318,8 +319,8 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
 
         def extend(
             expansion: value.LinearDict[str],
-            qubits: Tuple['cirq.Qid', ...],
-            all_qubits: Tuple['cirq.Qid', ...],
+            qubits: Tuple[cirq.Qid, ...],
+            all_qubits: Tuple[cirq.Qid, ...],
         ) -> value.LinearDict[str]:
             """Extends Pauli expansion on qubits to expansion on all_qubits."""
             return value.LinearDict(
@@ -382,13 +383,13 @@ class PauliSum:
         return self._linear_dict
 
     @staticmethod
-    def wrap(val: PauliSumLike) -> 'PauliSum':
+    def wrap(val: PauliSumLike) -> PauliSum:
         if isinstance(val, PauliSum):
             return val
         return PauliSum() + val
 
     @classmethod
-    def from_pauli_strings(cls, terms: Union[PauliString, List[PauliString]]) -> 'PauliSum':
+    def from_pauli_strings(cls, terms: Union[PauliString, List[PauliString]]) -> PauliSum:
         if isinstance(terms, PauliString):
             terms = [terms]
         termdict: DefaultDict[UnitPauliStringT, value.Scalar] = defaultdict(lambda: 0)
@@ -402,7 +403,7 @@ class PauliSum:
         qs = {q for k in self._linear_dict.keys() for q, _ in k}
         return tuple(sorted(qs))
 
-    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'PauliSum':
+    def with_qubits(self, *new_qubits: cirq.Qid) -> PauliSum:
         qubits = self.qubits
         if len(new_qubits) != len(qubits):
             raise ValueError('Incorrect number of qubits for PauliSum.')
@@ -412,7 +413,7 @@ class PauliSum:
             new_pauli_strings.append(pauli_string.map_qubits(qubit_map))
         return PauliSum.from_pauli_strings(new_pauli_strings)
 
-    def copy(self) -> 'PauliSum':
+    def copy(self) -> PauliSum:
         factory = type(self)
         return factory(self._linear_dict.copy())
 

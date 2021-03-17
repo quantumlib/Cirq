@@ -1,3 +1,4 @@
+from __future__ import annotations
 from functools import lru_cache
 from typing import Sequence, Dict, Union, Tuple, List, Optional, cast, Iterable
 
@@ -72,7 +73,7 @@ def _add_to_positions(
 
 def circuit_to_density_matrix_tensors(
     circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.LineQubit]] = None
-) -> Tuple[List[qtn.Tensor], Dict['cirq.Qid', int], Dict[Tuple[str, str], Tuple[float, float]]]:
+) -> Tuple[List[qtn.Tensor], Dict[cirq.Qid, int], Dict[Tuple[str, str], Tuple[float, float]]]:
     """Given a circuit with mixtures or channels, construct a tensor network
     representation of the density matrix.
 

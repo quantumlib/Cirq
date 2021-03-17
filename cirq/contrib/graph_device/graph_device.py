@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import abc
 import itertools
 
@@ -149,10 +150,10 @@ class UndirectedGraphDevice(devices.Device):
         self.crosstalk_graph = crosstalk_graph
 
     @property
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
+    def qubits(self) -> Tuple[cirq.Qid, ...]:
         return cast(Tuple['cirq.Qid', ...], tuple(sorted(self.device_graph.vertices)))
 
-    def qubit_set(self) -> FrozenSet['cirq.Qid']:
+    def qubit_set(self) -> FrozenSet[cirq.Qid]:
         return frozenset(self.qubits)
 
     @property

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import AbstractSet, Any, Dict, Union
 
 import numpy as np
@@ -78,9 +79,7 @@ class QuantumFourierTransformGate(raw_types.Gate):
             f'without_reverse={self._without_reverse!r})'
         )
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return cirq.CircuitDiagramInfo(
             wire_symbols=(str(self),) + tuple(f'#{k+1}' for k in range(1, self._num_qubits)),
             exponent_qubit_index=0,
@@ -112,7 +111,7 @@ class PhaseGradientGate(raw_types.Gate):
         for i, q in enumerate(qubits):
             yield cirq.Z(q) ** (self.exponent / 2 ** i)
 
-    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
         if isinstance(self.exponent, sympy.Basic):
             return NotImplemented
 
@@ -162,9 +161,7 @@ class PhaseGradientGate(raw_types.Gate):
             f'exponent={_compat.proper_repr(self.exponent)})'
         )
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return cirq.CircuitDiagramInfo(
             wire_symbols=('Grad',) + tuple(f'#{k+1}' for k in range(1, self._num_qubits)),
             exponent=self.exponent,
@@ -172,9 +169,7 @@ class PhaseGradientGate(raw_types.Gate):
         )
 
 
-def qft(
-    *qubits: 'cirq.Qid', without_reverse: bool = False, inverse: bool = False
-) -> 'cirq.Operation':
+def qft(*qubits: cirq.Qid, without_reverse: bool = False, inverse: bool = False) -> cirq.Operation:
     """The quantum Fourier transform.
 
     Transforms a qubit register from the computational basis to the frequency

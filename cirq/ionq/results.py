@@ -12,6 +12,7 @@
 # limitations under the License.
 """Result types for the IonQ API."""
 
+from __future__ import annotations
 import collections
 
 from typing import Dict, Counter, Optional, Sequence, TYPE_CHECKING
@@ -208,7 +209,7 @@ class SimulatorResult:
     def to_cirq_result(
         self,
         params: study.ParamResolver = None,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         override_repetitions=None,
     ) -> study.Result:
         """Samples from the simulation probability result, producing a `cirq.Result`.

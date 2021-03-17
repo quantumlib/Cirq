@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Any, Dict, Iterable, TYPE_CHECKING
 
 import dataclasses
@@ -39,8 +40,8 @@ class SingleQubitReadoutCalibrationResult:
         timestamp: The time the data was taken, in seconds since the epoch.
     """
 
-    zero_state_errors: Dict['cirq.Qid', float]
-    one_state_errors: Dict['cirq.Qid', float]
+    zero_state_errors: Dict[cirq.Qid, float]
+    one_state_errors: Dict[cirq.Qid, float]
     repetitions: int
     timestamp: float
 
@@ -75,7 +76,7 @@ class SingleQubitReadoutCalibrationResult:
 
 
 def estimate_single_qubit_readout_errors(
-    sampler: 'cirq.Sampler', *, qubits: Iterable['cirq.Qid'], repetitions: int = 1000
+    sampler: cirq.Sampler, *, qubits: Iterable[cirq.Qid], repetitions: int = 1000
 ) -> SingleQubitReadoutCalibrationResult:
     """Estimate single-qubit readout error.
 

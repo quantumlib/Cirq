@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import (
     Any,
     Callable,
@@ -93,7 +94,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         cls,
         *,
         simulator: Optional[Simulator] = None,
-    ) -> 'PhasedFSimEngineSimulator':
+    ) -> PhasedFSimEngineSimulator:
         """Creates a PhasedFSimEngineSimulator that simulates ideal FSimGate(theta=π/4, phi=0).
 
         Attributes:
@@ -130,7 +131,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             theta=0.02, zeta=0.05, chi=0.05, gamma=0.05, phi=0.02
         ),
         random_or_seed: RANDOM_STATE_OR_SEED_LIKE = None,
-    ) -> 'PhasedFSimEngineSimulator':
+    ) -> PhasedFSimEngineSimulator:
         """Creates a PhasedFSimEngineSimulator that introduces a random deviation from the mean.
 
         The random deviations are described by a Gaussian distribution of a given mean and sigma,
@@ -190,7 +191,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         simulator: Optional[Simulator] = None,
         ideal_when_missing_gate: bool = False,
         ideal_when_missing_parameter: bool = False,
-    ) -> 'PhasedFSimEngineSimulator':
+    ) -> PhasedFSimEngineSimulator:
         """Creates PhasedFSimEngineSimulator with fixed drifts.
 
         Args:
@@ -263,7 +264,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         simulator: Optional[Simulator] = None,
         ideal_when_missing_gate: bool = False,
         ideal_when_missing_parameter: bool = False,
-    ) -> 'PhasedFSimEngineSimulator':
+    ) -> PhasedFSimEngineSimulator:
         """Creates PhasedFSimEngineSimulator with fixed drifts from the characterizations results.
 
         Args:

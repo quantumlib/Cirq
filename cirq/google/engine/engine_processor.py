@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 import datetime
 
 from typing import Iterable, List, Optional, TYPE_CHECKING, Union
@@ -41,7 +42,7 @@ class EngineProcessor:
         self,
         project_id: str,
         processor_id: str,
-        context: 'engine_base.EngineContext',
+        context: engine_base.EngineContext,
         _processor: Optional[qtypes.QuantumProcessor] = None,
     ) -> None:
         """A processor available via the engine.
@@ -57,7 +58,7 @@ class EngineProcessor:
         self.context = context
         self._processor = _processor
 
-    def engine(self) -> 'engine_base.Engine':
+    def engine(self) -> engine_base.Engine:
         """Returns the parent Engine object.
 
         Returns:
@@ -77,7 +78,7 @@ class EngineProcessor:
         self._processor = self.context.client.get_processor(self.project_id, self.processor_id)
         return qtypes.QuantumProcessor.Health.Name(self._processor.health)
 
-    def expected_down_time(self) -> 'Optional[datetime.datetime]':
+    def expected_down_time(self) -> Optional[datetime.datetime]:
         """Returns the start of the next expected down time of the processor, if
         set."""
         if self._inner_processor().HasField('expected_down_time'):
@@ -85,7 +86,7 @@ class EngineProcessor:
         else:
             return None
 
-    def expected_recovery_time(self) -> 'Optional[datetime.datetime]':
+    def expected_recovery_time(self) -> Optional[datetime.datetime]:
         """Returns the expected the processor should be available, if set."""
         if self._inner_processor().HasField('expected_recovery_time'):
             return self._inner_processor().expected_recovery_time.ToDatetime()
@@ -112,7 +113,7 @@ class EngineProcessor:
 
     def get_device(
         self, gate_sets: Iterable[serializable_gate_set.SerializableGateSet]
-    ) -> 'cirq.Device':
+    ) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,

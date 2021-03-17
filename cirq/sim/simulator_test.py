@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for simulator.py"""
+from __future__ import annotations
 import abc
 from typing import Generic, Dict, Any
 from unittest import mock
@@ -40,7 +41,7 @@ class SimulatesIntermediateStateImpl(
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
         final_simulator_state: Any,
-    ) -> 'SimulationTrialResult':
+    ) -> SimulationTrialResult:
         """This method creates a default trial result.
 
         Args:

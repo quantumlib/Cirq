@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 import itertools
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple, cast
 
@@ -346,7 +347,7 @@ def test_random_rotations_between_grid_interaction_layers(
     pattern: Sequence[GridInteractionLayer],
     single_qubit_gates: Sequence[cirq.Gate],
     add_final_single_qubit_layer: bool,
-    seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE',
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE,
     expected_circuit_length: int,
     single_qubit_layers_slice: slice,
     two_qubit_layers_slice: slice,
@@ -421,12 +422,12 @@ def _validate_two_qubit_layers(
 
 
 def _coupled_qubit_pairs(
-    qubits: Set['cirq.GridQubit'],
-) -> List[Tuple['cirq.GridQubit', 'cirq.GridQubit']]:
+    qubits: Set[cirq.GridQubit],
+) -> List[Tuple[cirq.GridQubit, cirq.GridQubit]]:
     pairs = []
     for qubit in qubits:
 
-        def add_pair(neighbor: 'cirq.GridQubit'):
+        def add_pair(neighbor: cirq.GridQubit):
             if neighbor in qubits:
                 pairs.append((qubit, neighbor))
 

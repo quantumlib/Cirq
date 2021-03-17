@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Sequence
 
 import numpy as np
@@ -77,7 +78,7 @@ def test_infers_other_methods():
     )
 
     class NoiseModelWithNoisyOperationMethod(cirq.NoiseModel):
-        def noisy_operation(self, operation: 'cirq.Operation'):
+        def noisy_operation(self, operation: cirq.Operation):
             return cirq.Z(operation.qubits[0]).with_tags(ops.VirtualTag())
 
     c = NoiseModelWithNoisyOperationMethod()

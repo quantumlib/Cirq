@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 from typing import FrozenSet, Callable, List, Sequence, Any, Union, Dict
 import numpy as np
 
@@ -76,7 +77,7 @@ class PasqalDevice(cirq.devices.Device):
     def qubit_list(self):
         return [qubit for qubit in self.qubits]
 
-    def decompose_operation(self, operation: cirq.ops.Operation) -> 'cirq.OP_TREE':
+    def decompose_operation(self, operation: cirq.ops.Operation) -> cirq.OP_TREE:
 
         decomposition = [operation]
 
@@ -160,7 +161,7 @@ class PasqalDevice(cirq.devices.Device):
                     "Measurements on Pasqal devices don't support invert_mask."
                 )
 
-    def validate_circuit(self, circuit: 'cirq.Circuit') -> None:
+    def validate_circuit(self, circuit: cirq.Circuit) -> None:
         """Raises an error if the given circuit is invalid on this device.
 
         A circuit is invalid if any of its moments are invalid or if there

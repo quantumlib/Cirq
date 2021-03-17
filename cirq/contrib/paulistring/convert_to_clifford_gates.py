@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Optional, TYPE_CHECKING
 
 import numpy as np
@@ -65,7 +66,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
 
         return ops.SingleQubitCliffordGate.I
 
-    def _matrix_to_clifford_op(self, mat: np.ndarray, qubit: 'cirq.Qid') -> Optional[ops.Operation]:
+    def _matrix_to_clifford_op(self, mat: np.ndarray, qubit: cirq.Qid) -> Optional[ops.Operation]:
         rotations = optimizers.single_qubit_matrix_to_pauli_rotations(mat, self.atol)
         clifford_gate = ops.SingleQubitCliffordGate.I
         for pauli, half_turns in rotations:

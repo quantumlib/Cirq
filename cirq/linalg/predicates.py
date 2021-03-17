@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Utility methods for checking properties of matrices."""
+from __future__ import annotations
 from typing import cast, List, Optional, Sequence, Union, Tuple
 
 import numpy as np
@@ -208,7 +209,7 @@ def slice_for_qubits_equal_to(
     big_endian_qureg_value: int = 0,
     num_qubits: Optional[int] = None,
     qid_shape: Optional[Tuple[int, ...]] = None,
-) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
+) -> Tuple[Union[slice, int, ellipsis], ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
 
     It is assumed that the np.ndarray's shape is of the form (2, 2, 2, ..., 2).

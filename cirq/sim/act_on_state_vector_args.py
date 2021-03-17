@@ -13,6 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
+from __future__ import annotations
 from typing import Any, Iterable, Tuple, TYPE_CHECKING, Union, Dict, List
 
 import numpy as np
@@ -82,7 +83,7 @@ class ActOnStateVectorArgs(ActOnArgs):
 
     def subspace_index(
         self, little_endian_bits_int: int = 0, *, big_endian_bits_int: int = 0
-    ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
+    ) -> Tuple[Union[slice, int, ellipsis], ...]:
         """An index for the subspace where the target axes equal a value.
 
         Args:
@@ -170,7 +171,7 @@ class ActOnStateVectorArgs(ActOnArgs):
 
 def _strat_act_on_state_vector_from_apply_unitary(
     unitary_value: Any,
-    args: 'cirq.ActOnStateVectorArgs',
+    args: cirq.ActOnStateVectorArgs,
 ) -> bool:
     new_target_tensor = protocols.apply_unitary(
         unitary_value,
@@ -188,7 +189,7 @@ def _strat_act_on_state_vector_from_apply_unitary(
     return True
 
 
-def _strat_act_on_state_vector_from_mixture(action: Any, args: 'cirq.ActOnStateVectorArgs') -> bool:
+def _strat_act_on_state_vector_from_mixture(action: Any, args: cirq.ActOnStateVectorArgs) -> bool:
     mixture = protocols.mixture(action, default=None)
     if mixture is None:
         return NotImplemented
@@ -202,7 +203,7 @@ def _strat_act_on_state_vector_from_mixture(action: Any, args: 'cirq.ActOnStateV
     return True
 
 
-def _strat_act_on_state_vector_from_channel(action: Any, args: 'cirq.ActOnStateVectorArgs') -> bool:
+def _strat_act_on_state_vector_from_channel(action: Any, args: cirq.ActOnStateVectorArgs) -> bool:
     kraus_operators = protocols.channel(action, default=None)
     if kraus_operators is None:
         return NotImplemented

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import AbstractSet, Any, TYPE_CHECKING, Union
 
 import sympy
@@ -101,8 +102,8 @@ class PeriodicValue:
         return parameter_names(self.value) | parameter_names(self.period)
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
-    ) -> 'PeriodicValue':
+        self, resolver: cirq.ParamResolverOrSimilarType, recursive: bool
+    ) -> PeriodicValue:
         # HACK: Avoids circular dependencies.
         from cirq.protocols import resolve_parameters
 

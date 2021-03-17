@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """An `XPowGate` conjugated by `ZPowGate`s."""
+from __future__ import annotations
 from typing import AbstractSet, Any, cast, Dict, Optional, Sequence, Tuple, Union
 
 import math
@@ -47,7 +48,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         self._exponent = exponent
         self._global_shift = global_shift
 
-    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
         if cirq.is_parameterized(self):
             return None
 
@@ -75,7 +76,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             qubits[0],
         )
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         assert len(qubits) == 1
         q = qubits[0]
         z = cirq.Z(q) ** self._phase_exponent
@@ -98,7 +99,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
     def global_shift(self) -> float:
         return self._global_shift
 
-    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'PhasedXPowGate':
+    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> PhasedXPowGate:
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented
@@ -151,7 +152,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             self._phase_exponent
         )
 
-    def _resolve_parameters_(self, param_resolver, recursive) -> 'PhasedXPowGate':
+    def _resolve_parameters_(self, param_resolver, recursive) -> PhasedXPowGate:
         """See `cirq.SupportsParameterization`."""
         return PhasedXPowGate(
             phase_exponent=param_resolver.value_of(self._phase_exponent, recursive),
@@ -168,9 +169,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             global_shift=self._global_shift,
         )
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         """See `cirq.SupportsCircuitDiagramInfo`."""
 
         return protocols.CircuitDiagramInfo(

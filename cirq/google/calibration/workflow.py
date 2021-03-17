@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union, cast
 
 import dataclasses
@@ -707,7 +708,7 @@ class FSimPhaseCorrections:
         gate_calibration: PhaseCalibratedFSimGate,
         parameters: PhasedFSimCharacterization,
         characterization_index: Optional[int],
-    ) -> 'FSimPhaseCorrections':
+    ) -> FSimPhaseCorrections:
         """Creates an operation that compensates for zeta, chi and gamma angles of the supplied
         gate and characterization.
 

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A combination of several optimizations targeting XmonDevice."""
+from __future__ import annotations
 from typing import Callable, cast, Optional, TYPE_CHECKING
 
 from cirq import devices
@@ -22,11 +23,11 @@ if TYPE_CHECKING:
 
 
 def optimized_for_xmon(
-    circuit: 'cirq.Circuit',
-    new_device: Optional['cirq.google.XmonDevice'] = None,
-    qubit_map: Callable[['cirq.Qid'], devices.GridQubit] = lambda e: cast(devices.GridQubit, e),
+    circuit: cirq.Circuit,
+    new_device: Optional[cirq.google.XmonDevice] = None,
+    qubit_map: Callable[[cirq.Qid], devices.GridQubit] = lambda e: cast(devices.GridQubit, e),
     allow_partial_czs: bool = False,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     if allow_partial_czs:
         return optimized_for_sycamore(
             circuit, new_device=new_device, qubit_map=qubit_map, optimizer_type='xmon_partial_cz'

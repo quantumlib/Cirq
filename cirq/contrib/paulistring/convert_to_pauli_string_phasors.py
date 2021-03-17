@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import List, Optional, cast, TYPE_CHECKING
 
 import numpy as np
@@ -54,7 +55,7 @@ class ConvertToPauliStringPhasors(PointOptimizer):
         self.keep_clifford = keep_clifford
         self.atol = atol
 
-    def _matrix_to_pauli_string_phasors(self, mat: np.ndarray, qubit: 'cirq.Qid') -> ops.OP_TREE:
+    def _matrix_to_pauli_string_phasors(self, mat: np.ndarray, qubit: cirq.Qid) -> ops.OP_TREE:
         rotations = optimizers.single_qubit_matrix_to_pauli_rotations(mat, self.atol)
         out_ops: List[ops.Operation] = []
         for pauli, half_turns in rotations:

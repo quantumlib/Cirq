@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from itertools import combinations, product
 from random import randint
 from string import ascii_lowercase as alphabet
@@ -261,7 +262,7 @@ class OtherOperation(cirq.Operation):
     def qubits(self) -> Tuple[cirq.Qid, ...]:
         return self._qubits
 
-    def with_qubits(self, *new_qubits: cirq.Qid) -> 'OtherOperation':
+    def with_qubits(self, *new_qubits: cirq.Qid) -> OtherOperation:
         return type(self)(self._qubits)
 
     def __eq__(self, other):

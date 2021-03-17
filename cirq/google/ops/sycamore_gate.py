@@ -13,6 +13,7 @@
 # limitations under the License.
 """An instance of FSimGate that works naturally on Google's Sycamore chip"""
 
+from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -49,7 +50,7 @@ class SycamoreGate(ops.FSimGate):
     def __str__(self) -> str:
         return 'SYC'
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs):
         return 'SYC', 'SYC'
 
     def _json_dict_(self):

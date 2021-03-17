@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 from typing import Any, Iterator, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
@@ -23,7 +24,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _all_pauli_strings_commute(pauli_sum: 'cirq.PauliSum') -> bool:
+def _all_pauli_strings_commute(pauli_sum: cirq.PauliSum) -> bool:
     for x in pauli_sum:
         for y in pauli_sum:
             if not protocols.commutes(x, y):
@@ -44,7 +45,7 @@ class PauliSumExponential:
 
     def __init__(
         self,
-        pauli_sum_like: 'cirq.PauliSumLike',
+        pauli_sum_like: cirq.PauliSumLike,
         exponent: Union[int, float, sympy.Basic] = 1,
         atol: float = 1e-8,
     ):
@@ -69,24 +70,24 @@ class PauliSumExponential:
         self._pauli_sum = pauli_sum
 
     @property
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
+    def qubits(self) -> Tuple[cirq.Qid, ...]:
         return self._pauli_sum.qubits
 
     def _value_equality_values_(self) -> Any:
         return (self._pauli_sum, self._exponent)
 
-    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'PauliSumExponential':
+    def with_qubits(self, *new_qubits: cirq.Qid) -> PauliSumExponential:
         return PauliSumExponential(self._pauli_sum.with_qubits(*new_qubits), self._exponent)
 
     def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
-    ) -> 'PauliSumExponential':
+        self, param_resolver: cirq.ParamResolverOrSimilarType, recursive: bool
+    ) -> PauliSumExponential:
         return PauliSumExponential(
             self._pauli_sum,
             exponent=protocols.resolve_parameters(self._exponent, param_resolver, recursive),
         )
 
-    def __iter__(self) -> Iterator['cirq.PauliStringPhasor']:
+    def __iter__(self) -> Iterator[cirq.PauliStringPhasor]:
         for pauli_string in self._pauli_sum:
             theta = pauli_string.coefficient * self._multiplier
             theta *= self._exponent / np.pi
@@ -115,7 +116,7 @@ class PauliSumExponential:
     def _unitary_(self) -> np.ndarray:
         return self.matrix()
 
-    def __pow__(self, exponent: int) -> 'PauliSumExponential':
+    def __pow__(self, exponent: int) -> PauliSumExponential:
         return PauliSumExponential(self._pauli_sum, self._exponent * exponent)
 
     def __repr__(self) -> str:

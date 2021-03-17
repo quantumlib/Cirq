@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import pytest
 
 import cirq
@@ -34,7 +35,7 @@ def square_device(width: int, height: int, holes=()) -> cg.XmonDevice:
 
 
 class NotImplementedOperation(cirq.Operation):
-    def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
+    def with_qubits(self, *new_qubits) -> NotImplementedOperation:
         raise NotImplementedError()
 
     @property

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Callable, Iterable, List, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
@@ -29,7 +30,7 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
 
 
 def measure(
-    *target: 'cirq.Qid', key: Optional[str] = None, invert_mask: Tuple[bool, ...] = ()
+    *target: cirq.Qid, key: Optional[str] = None, invert_mask: Tuple[bool, ...] = ()
 ) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
@@ -65,7 +66,7 @@ def measure(
 
 
 def measure_each(
-    *qubits: 'cirq.Qid', key_func: Callable[[raw_types.Qid], str] = str
+    *qubits: cirq.Qid, key_func: Callable[[raw_types.Qid], str] = str
 ) -> List[raw_types.Operation]:
     """Returns a list of operations individually measuring the given qubits.
 

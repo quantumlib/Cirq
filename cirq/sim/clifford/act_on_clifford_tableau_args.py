@@ -14,6 +14,7 @@
 """A protocol for implementing high performance clifford tableau evolutions
  for Clifford Simulator."""
 
+from __future__ import annotations
 from typing import Any, Dict, Iterable, TYPE_CHECKING, List
 
 import numpy as np
@@ -79,7 +80,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
 
 
 def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
-    val: Any, args: 'cirq.ActOnCliffordTableauArgs'
+    val: Any, args: cirq.ActOnCliffordTableauArgs
 ) -> bool:
     if num_qubits(val) == 1:
         if not has_unitary(val):

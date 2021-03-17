@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import dataclasses
 import itertools
 
@@ -213,8 +214,8 @@ class TomographyResult:
 
 
 def rabi_oscillations(
-    sampler: 'cirq.Sampler',
-    qubit: 'cirq.Qid',
+    sampler: cirq.Sampler,
+    qubit: cirq.Qid,
     max_angle: float = 2 * np.pi,
     *,
     repetitions: int = 1000,
@@ -252,8 +253,8 @@ def rabi_oscillations(
 
 
 def single_qubit_randomized_benchmarking(
-    sampler: 'cirq.Sampler',
-    qubit: 'cirq.Qid',
+    sampler: cirq.Sampler,
+    qubit: cirq.Qid,
     use_xy_basis: bool = True,
     *,
     num_clifford_range: Sequence[int] = range(10, 100, 10),
@@ -312,9 +313,9 @@ def single_qubit_randomized_benchmarking(
 
 
 def two_qubit_randomized_benchmarking(
-    sampler: 'cirq.Sampler',
-    first_qubit: 'cirq.Qid',
-    second_qubit: 'cirq.Qid',
+    sampler: cirq.Sampler,
+    first_qubit: cirq.Qid,
+    second_qubit: cirq.Qid,
     *,
     num_clifford_range: Sequence[int] = range(5, 50, 5),
     num_circuits: int = 20,
@@ -372,9 +373,9 @@ def two_qubit_randomized_benchmarking(
 
 
 def single_qubit_state_tomography(
-    sampler: 'cirq.Sampler',
-    qubit: 'cirq.Qid',
-    circuit: 'cirq.AbstractCircuit',
+    sampler: cirq.Sampler,
+    qubit: cirq.Qid,
+    circuit: cirq.AbstractCircuit,
     repetitions: int = 1000,
 ) -> TomographyResult:
     """Single-qubit state tomography.
@@ -418,10 +419,10 @@ def single_qubit_state_tomography(
 
 
 def two_qubit_state_tomography(
-    sampler: 'cirq.Sampler',
-    first_qubit: 'cirq.Qid',
-    second_qubit: 'cirq.Qid',
-    circuit: 'cirq.AbstractCircuit',
+    sampler: cirq.Sampler,
+    first_qubit: cirq.Qid,
+    second_qubit: cirq.Qid,
+    circuit: cirq.AbstractCircuit,
     repetitions: int = 1000,
 ) -> TomographyResult:
     r"""Two-qubit state tomography.
@@ -554,9 +555,7 @@ def _indices_after_basis_rot(i: int, j: int) -> Tuple[int, Sequence[int], Sequen
     return mat_idx, indices, signs
 
 
-def _two_qubit_clifford_matrices(
-    q_0: 'cirq.Qid', q_1: 'cirq.Qid', cliffords: Cliffords
-) -> np.ndarray:
+def _two_qubit_clifford_matrices(q_0: cirq.Qid, q_1: cirq.Qid, cliffords: Cliffords) -> np.ndarray:
     mats = []
 
     # Total number of different gates in the two-qubit Clifford group.
@@ -586,11 +585,11 @@ def _two_qubit_clifford_matrices(
 
 
 def _random_single_q_clifford(
-    qubit: 'cirq.Qid',
+    qubit: cirq.Qid,
     num_cfds: int,
-    cfds: Sequence[Sequence['cirq.Gate']],
+    cfds: Sequence[Sequence[cirq.Gate]],
     cfd_matrices: np.ndarray,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     clifford_group_size = 24
     gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
     gate_sequence = [gate for gate_id in gate_ids for gate in cfds[gate_id]]
@@ -601,8 +600,8 @@ def _random_single_q_clifford(
 
 
 def _random_two_q_clifford(
-    q_0: 'cirq.Qid', q_1: 'cirq.Qid', num_cfds: int, cfd_matrices: np.ndarray, cliffords: Cliffords
-) -> 'cirq.Circuit':
+    q_0: cirq.Qid, q_1: cirq.Qid, num_cfds: int, cfd_matrices: np.ndarray, cliffords: Cliffords
+) -> cirq.Circuit:
     clifford_group_size = 11520
     idx_list = list(np.random.choice(clifford_group_size, num_cfds))
     circuit = circuits.Circuit()
@@ -655,7 +654,7 @@ def _matrix_bar_plot(
         ax.set_title(title)
 
 
-def _gate_seq_to_mats(gate_seq: Sequence['cirq.Gate']) -> np.ndarray:
+def _gate_seq_to_mats(gate_seq: Sequence[cirq.Gate]) -> np.ndarray:
     mat_rep = protocols.unitary(gate_seq[0])
     for gate in gate_seq[1:]:
         mat_rep = np.dot(protocols.unitary(gate), mat_rep)
@@ -663,8 +662,8 @@ def _gate_seq_to_mats(gate_seq: Sequence['cirq.Gate']) -> np.ndarray:
 
 
 def _two_qubit_clifford(
-    q_0: 'cirq.Qid', q_1: 'cirq.Qid', idx: int, cliffords: Cliffords
-) -> Iterator['cirq.OP_TREE']:
+    q_0: cirq.Qid, q_1: cirq.Qid, idx: int, cliffords: Cliffords
+) -> Iterator[cirq.OP_TREE]:
     """Generates a two-qubit Clifford gate.
 
     An integer (idx) from 0 to 11519 is used to generate a two-qubit Clifford
@@ -719,8 +718,8 @@ def _split_two_q_clifford_idx(idx: int):
 
 
 def _two_qubit_clifford_starters(
-    q_0: 'cirq.Qid', q_1: 'cirq.Qid', idx_0: int, idx_1: int, cliffords: Cliffords
-) -> Iterator['cirq.OP_TREE']:
+    q_0: cirq.Qid, q_1: cirq.Qid, idx_0: int, idx_1: int, cliffords: Cliffords
+) -> Iterator[cirq.OP_TREE]:
     """Fulfills part (a) for two-qubit Cliffords."""
     c1 = cliffords.c1_in_xy
     yield _single_qubit_gates(c1[idx_0], q_0)
@@ -728,8 +727,8 @@ def _two_qubit_clifford_starters(
 
 
 def _two_qubit_clifford_mixers(
-    q_0: 'cirq.Qid', q_1: 'cirq.Qid', idx_2: int, cliffords: Cliffords
-) -> Iterator['cirq.OP_TREE']:
+    q_0: cirq.Qid, q_1: cirq.Qid, idx_2: int, cliffords: Cliffords
+) -> Iterator[cirq.OP_TREE]:
     """Fulfills parts (b-d) for two-qubit Cliffords."""
     s1 = cliffords.s1
     s1_x = cliffords.s1_x
@@ -760,9 +759,7 @@ def _two_qubit_clifford_mixers(
         yield _single_qubit_gates(s1_x[idx_4], q_1)
 
 
-def _single_qubit_gates(
-    gate_seq: Sequence['cirq.Gate'], qubit: 'cirq.Qid'
-) -> Iterator['cirq.OP_TREE']:
+def _single_qubit_gates(gate_seq: Sequence[cirq.Gate], qubit: cirq.Qid) -> Iterator[cirq.OP_TREE]:
     for gate in gate_seq:
         yield gate(qubit)
 
@@ -770,8 +767,8 @@ def _single_qubit_gates(
 def _single_qubit_cliffords() -> Cliffords:
     X, Y, Z = ops.X, ops.Y, ops.Z
 
-    c1_in_xy: List[List['cirq.Gate']] = []
-    c1_in_xz: List[List['cirq.Gate']] = []
+    c1_in_xy: List[List[cirq.Gate]] = []
+    c1_in_xz: List[List[cirq.Gate]] = []
 
     for phi_0, phi_1 in itertools.product([1.0, 0.5, -0.5], [0.0, 0.5, -0.5]):
         c1_in_xy.append([X ** phi_0, Y ** phi_1])
@@ -804,17 +801,17 @@ def _single_qubit_cliffords() -> Cliffords:
     for z0, x, z1 in phi_xz:
         c1_in_xz.append([Z ** z0, X ** x, Z ** z1])
 
-    s1: List[List['cirq.Gate']] = [
+    s1: List[List[cirq.Gate]] = [
         [X ** 0.0],
         [Y ** 0.5, X ** 0.5],
         [X ** -0.5, Y ** -0.5],
     ]
-    s1_x: List[List['cirq.Gate']] = [
+    s1_x: List[List[cirq.Gate]] = [
         [X ** 0.5],
         [X ** 0.5, Y ** 0.5, X ** 0.5],
         [Y ** -0.5],
     ]
-    s1_y: List[List['cirq.Gate']] = [
+    s1_y: List[List[cirq.Gate]] = [
         [Y ** 0.5],
         [X ** -0.5, Y ** -0.5, X ** 0.5],
         [Y, X ** 0.5],

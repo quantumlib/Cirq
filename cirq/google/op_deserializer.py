@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import (
     Any,
     Callable,
@@ -71,7 +72,7 @@ class GateOpDeserializer:
         args: Sequence[DeserializingArg],
         num_qubits_param: Optional[str] = None,
         op_wrapper: Callable[
-            ['cirq.Operation', v2.program_pb2.Operation], 'cirq.Operation'
+            [cirq.Operation, v2.program_pb2.Operation], cirq.Operation
         ] = lambda x, y: x,
         deserialize_tokens: Optional[bool] = True,
     ):
@@ -107,7 +108,7 @@ class GateOpDeserializer:
         *,
         arg_function_language: str = '',
         constants: List[v2.program_pb2.Constant] = None,
-    ) -> 'cirq.Operation':
+    ) -> cirq.Operation:
         """Turns a cirq.google.api.v2.Operation proto into a GateOperation."""
         qubits = [v2.qubit_from_proto_id(q.id) for q in proto.qubits]
         args = self._args_from_proto(proto, arg_function_language=arg_function_language)

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Any, List, overload, Tuple, TYPE_CHECKING, TypeVar, Union, Iterable
 
 from cirq import ops
@@ -28,42 +29,42 @@ TDefault = TypeVar('TDefault')
 
 # pylint: disable=function-redefined
 @overload
-def inverse(val: 'cirq.Gate') -> 'cirq.Gate':
+def inverse(val: cirq.Gate) -> cirq.Gate:
     pass
 
 
 @overload
-def inverse(val: 'cirq.Operation') -> 'cirq.Operation':
+def inverse(val: cirq.Operation) -> cirq.Operation:
     pass
 
 
 @overload
-def inverse(val: 'cirq.Circuit') -> 'cirq.Circuit':
+def inverse(val: cirq.Circuit) -> cirq.Circuit:
     pass
 
 
 @overload
-def inverse(val: 'cirq.OP_TREE') -> 'cirq.OP_TREE':
+def inverse(val: cirq.OP_TREE) -> cirq.OP_TREE:
     pass
 
 
 @overload
-def inverse(val: 'cirq.Gate', default: TDefault) -> Union[TDefault, 'cirq.Gate']:
+def inverse(val: cirq.Gate, default: TDefault) -> Union[TDefault, cirq.Gate]:
     pass
 
 
 @overload
-def inverse(val: 'cirq.Operation', default: TDefault) -> Union[TDefault, 'cirq.Operation']:
+def inverse(val: cirq.Operation, default: TDefault) -> Union[TDefault, cirq.Operation]:
     pass
 
 
 @overload
-def inverse(val: 'cirq.Circuit', default: TDefault) -> Union[TDefault, 'cirq.Circuit']:
+def inverse(val: cirq.Circuit, default: TDefault) -> Union[TDefault, cirq.Circuit]:
     pass
 
 
 @overload
-def inverse(val: 'cirq.OP_TREE', default: TDefault) -> Union[TDefault, 'cirq.OP_TREE']:
+def inverse(val: cirq.OP_TREE, default: TDefault) -> Union[TDefault, cirq.OP_TREE]:
     pass
 
 

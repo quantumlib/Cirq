@@ -13,6 +13,7 @@
 # limitations under the License.
 """A typed time delta that supports picosecond accuracy."""
 
+from __future__ import annotations
 from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
 import datetime
 
@@ -109,36 +110,36 @@ class Duration:
         """Returns the number of milliseconds that the duration spans."""
         return self._picos / 1000_000_000
 
-    def __add__(self, other) -> 'Duration':
+    def __add__(self, other) -> Duration:
         other = _attempt_duration_like_to_duration(other)
         if other is None:
             return NotImplemented
         return Duration(picos=self._picos + other._picos)
 
-    def __radd__(self, other) -> 'Duration':
+    def __radd__(self, other) -> Duration:
         return self.__add__(other)
 
-    def __sub__(self, other) -> 'Duration':
+    def __sub__(self, other) -> Duration:
         other = _attempt_duration_like_to_duration(other)
         if other is None:
             return NotImplemented
         return Duration(picos=self._picos - other._picos)
 
-    def __rsub__(self, other) -> 'Duration':
+    def __rsub__(self, other) -> Duration:
         other = _attempt_duration_like_to_duration(other)
         if other is None:
             return NotImplemented
         return Duration(picos=other._picos - self._picos)
 
-    def __mul__(self, other) -> 'Duration':
+    def __mul__(self, other) -> Duration:
         if not isinstance(other, (int, float, sympy.Basic)):
             return NotImplemented
         return Duration(picos=self._picos * other)
 
-    def __rmul__(self, other) -> 'Duration':
+    def __rmul__(self, other) -> Duration:
         return self.__mul__(other)
 
-    def __truediv__(self, other) -> Union['Duration', float]:
+    def __truediv__(self, other) -> Union[Duration, float]:
         if isinstance(other, (int, float, sympy.Basic)):
             return Duration(picos=self._picos / other)
 

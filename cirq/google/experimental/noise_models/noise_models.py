@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from math import exp
 from typing import Dict, Sequence, TYPE_CHECKING
 
@@ -36,9 +37,9 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
 
     def __init__(
         self,
-        depol_probs: Dict['cirq.Qid', float] = None,
-        bitflip_probs: Dict['cirq.Qid', float] = None,
-        decay_probs: Dict['cirq.Qid', float] = None,
+        depol_probs: Dict[cirq.Qid, float] = None,
+        bitflip_probs: Dict[cirq.Qid, float] = None,
+        decay_probs: Dict[cirq.Qid, float] = None,
     ):
         """A depolarizing noise model with damped readout error.
 
@@ -64,9 +65,7 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
         self.bitflip_probs = bitflip_probs
         self.decay_probs = decay_probs
 
-    def noisy_moment(
-        self, moment: 'cirq.Moment', system_qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.OP_TREE':
+    def noisy_moment(self, moment: cirq.Moment, system_qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if self.is_virtual_moment(moment):
             return moment
         moments = []
@@ -124,9 +123,9 @@ def simple_noise_from_calibration_metrics(
     if not any([depol_noise, damping_noise, readout_decay_noise, readout_error_noise]):
         raise ValueError('At least one error type must be specified.')
     assert calibration is not None
-    depol_probs: Dict['cirq.Qid', float] = {}
-    readout_decay_probs: Dict['cirq.Qid', float] = {}
-    readout_error_probs: Dict['cirq.Qid', float] = {}
+    depol_probs: Dict[cirq.Qid, float] = {}
+    readout_decay_probs: Dict[cirq.Qid, float] = {}
+    readout_error_probs: Dict[cirq.Qid, float] = {}
 
     if depol_noise:
         # In the single-qubit case, Pauli error and the depolarization fidelity

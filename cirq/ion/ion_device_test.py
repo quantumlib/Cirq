@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from datetime import timedelta
 import pytest
 
@@ -32,7 +33,7 @@ def ion_device(chain_length: int, use_timedelta=False) -> ci.IonDevice:
 
 
 class NotImplementedOperation(cirq.Operation):
-    def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
+    def with_qubits(self, *new_qubits) -> NotImplementedOperation:
         raise NotImplementedError()
 
     @property

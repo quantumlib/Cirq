@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """An immutable version of the Circuit data structure."""
+from __future__ import annotations
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
@@ -45,9 +46,9 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
 
     def __init__(
         self,
-        *contents: 'cirq.OP_TREE',
-        strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
-        device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE,
+        *contents: cirq.OP_TREE,
+        strategy: cirq.InsertStrategy = InsertStrategy.EARLIEST,
+        device: cirq.Device = devices.UNCONSTRAINED_DEVICE,
     ) -> None:
         """Initializes a frozen circuit.
 
@@ -70,14 +71,14 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         self._num_qubits: Optional[int] = None
         self._unitary: Optional[Union[np.ndarray, NotImplementedType]] = None
         self._qid_shape: Optional[Tuple[int, ...]] = None
-        self._all_qubits: Optional[FrozenSet['cirq.Qid']] = None
+        self._all_qubits: Optional[FrozenSet[cirq.Qid]] = None
         self._all_operations: Optional[Tuple[ops.Operation, ...]] = None
         self._has_measurements: Optional[bool] = None
         self._all_measurement_keys: Optional[AbstractSet[str]] = None
         self._are_all_measurements_terminal: Optional[bool] = None
 
     @property
-    def moments(self) -> Sequence['cirq.Moment']:
+    def moments(self) -> Sequence[cirq.Moment]:
         return self._moments
 
     @property
@@ -109,7 +110,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             self._unitary = super()._unitary_()
         return self._unitary
 
-    def all_qubits(self) -> FrozenSet['cirq.Qid']:
+    def all_qubits(self) -> FrozenSet[cirq.Qid]:
         if self._all_qubits is None:
             self._all_qubits = super().all_qubits()
         return self._all_qubits
@@ -136,55 +137,55 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
 
     # End of memoized methods.
 
-    def __add__(self, other) -> 'FrozenCircuit':
+    def __add__(self, other) -> FrozenCircuit:
         return (self.unfreeze() + other).freeze()
 
-    def __radd__(self, other) -> 'FrozenCircuit':
+    def __radd__(self, other) -> FrozenCircuit:
         return (other + self.unfreeze()).freeze()
 
     # Needed for numpy to handle multiplication by np.int64 correctly.
     __array_priority__ = 10000
 
     # TODO: handle multiplication / powers differently?
-    def __mul__(self, other) -> 'FrozenCircuit':
+    def __mul__(self, other) -> FrozenCircuit:
         return (self.unfreeze() * other).freeze()
 
-    def __rmul__(self, other) -> 'FrozenCircuit':
+    def __rmul__(self, other) -> FrozenCircuit:
         return (other * self.unfreeze()).freeze()
 
-    def __pow__(self, other) -> 'FrozenCircuit':
+    def __pow__(self, other) -> FrozenCircuit:
         try:
             return (self.unfreeze() ** other).freeze()
         except:
             return NotImplemented
 
-    def _with_sliced_moments(self, moments: Sequence['cirq.Moment']) -> 'FrozenCircuit':
+    def _with_sliced_moments(self, moments: Sequence[cirq.Moment]) -> FrozenCircuit:
         new_circuit = FrozenCircuit(device=self.device)
         new_circuit._moments = tuple(moments)
         return new_circuit
 
     def with_device(
         self,
-        new_device: 'cirq.Device',
-        qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
-    ) -> 'FrozenCircuit':
+        new_device: cirq.Device,
+        qubit_mapping: Callable[[cirq.Qid], cirq.Qid] = lambda e: e,
+    ) -> FrozenCircuit:
         return self.unfreeze().with_device(new_device, qubit_mapping).freeze()
 
     def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'FrozenCircuit':
+        self, param_resolver: cirq.ParamResolver, recursive: bool
+    ) -> FrozenCircuit:
         return self.unfreeze()._resolve_parameters_(param_resolver, recursive).freeze()
 
     def tetris_concat(
-        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
-    ) -> 'cirq.FrozenCircuit':
+        *circuits: cirq.AbstractCircuit, align: Union[cirq.Alignment, str] = Alignment.LEFT
+    ) -> cirq.FrozenCircuit:
         return AbstractCircuit.tetris_concat(*circuits, align=align).freeze()
 
     tetris_concat.__doc__ = AbstractCircuit.tetris_concat.__doc__
 
     def zip(
-        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
-    ) -> 'cirq.FrozenCircuit':
+        *circuits: cirq.AbstractCircuit, align: Union[cirq.Alignment, str] = Alignment.LEFT
+    ) -> cirq.FrozenCircuit:
         return AbstractCircuit.zip(*circuits, align=align).freeze()
 
     zip.__doc__ = AbstractCircuit.zip.__doc__

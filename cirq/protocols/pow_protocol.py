@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Any, overload, TYPE_CHECKING, TypeVar, Union
 
 if TYPE_CHECKING:
@@ -26,29 +27,27 @@ TDefault = TypeVar('TDefault')
 
 # pylint: disable=function-redefined, redefined-builtin
 @overload
-def pow(val: 'cirq.Gate', exponent: Any) -> 'cirq.Gate':
+def pow(val: cirq.Gate, exponent: Any) -> cirq.Gate:
     pass
 
 
 @overload
-def pow(val: 'cirq.Operation', exponent: Any) -> 'cirq.Operation':
+def pow(val: cirq.Operation, exponent: Any) -> cirq.Operation:
     pass
 
 
 @overload
-def pow(val: 'cirq.Gate', exponent: Any, default: TDefault) -> Union[TDefault, 'cirq.Gate']:
+def pow(val: cirq.Gate, exponent: Any, default: TDefault) -> Union[TDefault, cirq.Gate]:
     pass
 
 
 @overload
-def pow(
-    val: 'cirq.Operation', exponent: Any, default: TDefault
-) -> Union[TDefault, 'cirq.Operation']:
+def pow(val: cirq.Operation, exponent: Any, default: TDefault) -> Union[TDefault, cirq.Operation]:
     pass
 
 
 @overload
-def pow(val: 'cirq.Circuit', exponent: int, default: TDefault) -> Union[TDefault, 'cirq.Circuit']:
+def pow(val: cirq.Circuit, exponent: int, default: TDefault) -> Union[TDefault, cirq.Circuit]:
     pass
 
 

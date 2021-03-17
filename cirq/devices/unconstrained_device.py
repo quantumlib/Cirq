@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Any, Dict, TYPE_CHECKING
 
 from cirq import value, protocols
@@ -29,7 +30,7 @@ class _UnconstrainedDevice(device.Device):
     def qubit_set(self) -> None:
         return None
 
-    def duration_of(self, operation: 'cirq.Operation') -> 'cirq.Duration':
+    def duration_of(self, operation: cirq.Operation) -> cirq.Duration:
         return value.Duration(picos=0)
 
     def validate_moment(self, moment) -> None:

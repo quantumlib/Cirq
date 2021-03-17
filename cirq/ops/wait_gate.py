@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
 
 import sympy
@@ -32,7 +33,7 @@ class WaitGate(raw_types.Gate):
 
     def __init__(
         self,
-        duration: 'cirq.DURATION_LIKE',
+        duration: cirq.DURATION_LIKE,
         num_qubits: Optional[int] = None,
         qid_shape: Tuple[int, ...] = None,
     ) -> None:
@@ -117,13 +118,13 @@ class WaitGate(raw_types.Gate):
     def _value_equality_values_(self) -> Any:
         return self.duration
 
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'):
+    def _quil_(self, qubits: Tuple[cirq.Qid, ...], formatter: cirq.QuilFormatter):
         return 'WAIT\n'
 
 
 def wait(
-    *target: 'cirq.Qid',
-    duration: 'cirq.DURATION_LIKE' = None,
+    *target: cirq.Qid,
+    duration: cirq.DURATION_LIKE = None,
     picos: Union[int, float, sympy.Basic] = 0,
     nanos: Union[int, float, sympy.Basic] = 0,
     micros: Union[int, float, sympy.Basic] = 0,

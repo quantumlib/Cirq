@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Sequence, TYPE_CHECKING
 
 from cirq import circuits, ops
@@ -28,8 +29,8 @@ if TYPE_CHECKING:
 
 
 def complete_acquaintance_strategy(
-    qubit_order: Sequence['cirq.Qid'], acquaintance_size: int = 0, swap_gate: 'cirq.Gate' = ops.SWAP
-) -> 'cirq.Circuit':
+    qubit_order: Sequence[cirq.Qid], acquaintance_size: int = 0, swap_gate: cirq.Gate = ops.SWAP
+) -> cirq.Circuit:
     """
     Returns an acquaintance strategy capable of executing a gate corresponding
     to any set of at most acquaintance_size qubits.

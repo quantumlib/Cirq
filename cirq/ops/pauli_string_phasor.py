@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import AbstractSet, Dict, Iterable, Union, TYPE_CHECKING
 
 import sympy
@@ -96,17 +97,17 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
             exponent_pos=self.exponent_pos,
         )
 
-    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'PauliStringPhasor':
+    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> PauliStringPhasor:
         pn = protocols.mul(self.exponent_neg, exponent, None)
         pp = protocols.mul(self.exponent_pos, exponent, None)
         if pn is None or pp is None:
             return NotImplemented
         return PauliStringPhasor(self.pauli_string, exponent_neg=pn, exponent_pos=pp)
 
-    def can_merge_with(self, op: 'PauliStringPhasor') -> bool:
+    def can_merge_with(self, op: PauliStringPhasor) -> bool:
         return self.pauli_string.equal_up_to_coefficient(op.pauli_string)
 
-    def merged_with(self, op: 'PauliStringPhasor') -> 'PauliStringPhasor':
+    def merged_with(self, op: PauliStringPhasor) -> PauliStringPhasor:
         if not self.can_merge_with(op):
             raise ValueError(f'Cannot merge operations: {self}, {op}')
         pp = self.exponent_pos + op.exponent_pos
@@ -116,7 +117,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
     def _has_unitary_(self):
         return not self._is_parameterized_()
 
-    def _decompose_(self) -> 'cirq.OP_TREE':
+    def _decompose_(self) -> cirq.OP_TREE:
         if len(self.pauli_string) <= 0:
             return
         qubits = self.qubits
@@ -136,9 +137,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
         yield protocols.inverse(xor_decomp)
         yield protocols.inverse(to_z_ops)
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return self._pauli_string_diagram_info(args, exponent=self.exponent_relative)
 
     def _trace_distance_bound_(self) -> float:
@@ -156,7 +155,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
             self.exponent_pos
         )
 
-    def _resolve_parameters_(self, param_resolver, recursive) -> 'PauliStringPhasor':
+    def _resolve_parameters_(self, param_resolver, recursive) -> PauliStringPhasor:
         return PauliStringPhasor(
             self.pauli_string,
             exponent_neg=param_resolver.value_of(self.exponent_neg, recursive),
@@ -165,7 +164,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
 
     def pass_operations_over(
         self, ops: Iterable[raw_types.Operation], after_to_before: bool = False
-    ) -> 'PauliStringPhasor':
+    ) -> PauliStringPhasor:
         new_pauli_string = self.pauli_string.pass_operations_over(ops, after_to_before)
         pp = self.exponent_pos
         pn = self.exponent_neg
@@ -187,7 +186,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
 
 
 def xor_nonlocal_decompose(
-    qubits: Iterable[raw_types.Qid], onto_qubit: 'cirq.Qid'
+    qubits: Iterable[raw_types.Qid], onto_qubit: cirq.Qid
 ) -> Iterable[raw_types.Operation]:
     """Decomposition ignores connectivity."""
     for qubit in qubits:

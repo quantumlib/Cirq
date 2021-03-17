@@ -13,6 +13,7 @@
 # limitations under the License.
 """Measures on and between quantum states and operations."""
 
+from __future__ import annotations
 from typing import Optional, TYPE_CHECKING, Tuple
 
 import numpy as np
@@ -53,9 +54,7 @@ def _validate_int_state(state: int, qid_shape: Optional[Tuple[int, ...]]) -> Non
             )
 
 
-def _validate_product_state(
-    state: 'cirq.ProductState', qid_shape: Optional[Tuple[int, ...]]
-) -> None:
+def _validate_product_state(state: cirq.ProductState, qid_shape: Optional[Tuple[int, ...]]) -> None:
     if qid_shape is not None and qid_shape != (2,) * len(state):
         raise ValueError(
             'Invalid state for given qid shape: '
@@ -65,8 +64,8 @@ def _validate_product_state(
 
 
 def fidelity(
-    state1: 'cirq.QUANTUM_STATE_LIKE',
-    state2: 'cirq.QUANTUM_STATE_LIKE',
+    state1: cirq.QUANTUM_STATE_LIKE,
+    state2: cirq.QUANTUM_STATE_LIKE,
     qid_shape: Optional[Tuple[int, ...]] = None,
     validate: bool = True,
     atol: float = 1e-7,
@@ -242,7 +241,7 @@ def _fidelity_state_vectors_or_density_matrices(state1: np.ndarray, state2: np.n
     ),
 )
 def von_neumann_entropy(
-    state: 'cirq.QUANTUM_STATE_LIKE',
+    state: cirq.QUANTUM_STATE_LIKE,
     qid_shape: Optional[Tuple[int, ...]] = None,
     validate: bool = True,
     atol: float = 1e-7,

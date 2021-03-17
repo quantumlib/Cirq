@@ -21,6 +21,7 @@ Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.ISWAP**0.5). See the definition in EigenGate.
 """
 
+from __future__ import annotations
 from typing import Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
@@ -111,7 +112,7 @@ class SwapPowGate(
 
         return NotImplemented
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
         if self._exponent != 1:
             return NotImplemented
 
@@ -140,9 +141,7 @@ class SwapPowGate(
             }
         )
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         if not args.use_unicode_characters:
             return protocols.CircuitDiagramInfo(
                 wire_symbols=('Swap', 'Swap'), exponent=self._diagram_exponent(args)
@@ -151,15 +150,13 @@ class SwapPowGate(
             wire_symbols=('×', '×'), exponent=self._diagram_exponent(args)
         )
 
-    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
         return args.format('swap {0},{1};\n', qubits[0], qubits[1])
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple[cirq.Qid, ...], formatter: cirq.QuilFormatter) -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('SWAP {0} {1}\n', qubits[0], qubits[1])
         return formatter.format(
@@ -241,7 +238,7 @@ class ISwapPowGate(
         yield common_gates.H(a)
         yield common_gates.CNOT(a, b)
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
         if self._exponent != 1:
             return NotImplemented
 
@@ -272,9 +269,7 @@ class ISwapPowGate(
             }
         )
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(
             wire_symbols=('iSwap', 'iSwap'), exponent=self._diagram_exponent(args)
         )
@@ -292,7 +287,7 @@ class ISwapPowGate(
             return f'(cirq.ISWAP**{e})'
         return f'cirq.ISwapPowGate(exponent={e}, global_shift={self._global_shift!r})'
 
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter') -> str:
+    def _quil_(self, qubits: Tuple[cirq.Qid, ...], formatter: cirq.QuilFormatter) -> str:
         if self._exponent == 1:
             return formatter.format('ISWAP {0} {1}\n', qubits[0], qubits[1])
         return formatter.format('XY({0}) {1} {2}\n', self._exponent * np.pi, qubits[0], qubits[1])

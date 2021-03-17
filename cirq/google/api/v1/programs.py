@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 import json
 from typing import Any, cast, Dict, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING, Iterator
 import numpy as np
@@ -31,7 +32,7 @@ def _load_json_bool(b: Any):
 
 
 def gate_to_proto(
-    gate: 'cirq.Gate', qubits: Tuple['cirq.Qid', ...], delay: int
+    gate: cirq.Gate, qubits: Tuple[cirq.Qid, ...], delay: int
 ) -> operations_pb2.Operation:
     if isinstance(gate, ops.MeasurementGate):
         return operations_pb2.Operation(
@@ -81,7 +82,7 @@ def gate_to_proto(
     raise ValueError(f"Don't know how to serialize this gate: {gate!r}")
 
 
-def _x_to_proto(gate: 'cirq.XPowGate', q: 'cirq.Qid') -> operations_pb2.ExpW:
+def _x_to_proto(gate: cirq.XPowGate, q: cirq.Qid) -> operations_pb2.ExpW:
     return operations_pb2.ExpW(
         target=_qubit_to_proto(q),
         axis_half_turns=_parameterized_value_to_proto(0),
@@ -89,7 +90,7 @@ def _x_to_proto(gate: 'cirq.XPowGate', q: 'cirq.Qid') -> operations_pb2.ExpW:
     )
 
 
-def _y_to_proto(gate: 'cirq.YPowGate', q: 'cirq.Qid') -> operations_pb2.ExpW:
+def _y_to_proto(gate: cirq.YPowGate, q: cirq.Qid) -> operations_pb2.ExpW:
     return operations_pb2.ExpW(
         target=_qubit_to_proto(q),
         axis_half_turns=_parameterized_value_to_proto(0.5),
@@ -97,7 +98,7 @@ def _y_to_proto(gate: 'cirq.YPowGate', q: 'cirq.Qid') -> operations_pb2.ExpW:
     )
 
 
-def _phased_x_to_proto(gate: 'cirq.PhasedXPowGate', q: 'cirq.Qid') -> operations_pb2.ExpW:
+def _phased_x_to_proto(gate: cirq.PhasedXPowGate, q: cirq.Qid) -> operations_pb2.ExpW:
     return operations_pb2.ExpW(
         target=_qubit_to_proto(q),
         axis_half_turns=_parameterized_value_to_proto(gate.phase_exponent),
@@ -105,13 +106,13 @@ def _phased_x_to_proto(gate: 'cirq.PhasedXPowGate', q: 'cirq.Qid') -> operations
     )
 
 
-def _z_to_proto(gate: 'cirq.ZPowGate', q: 'cirq.Qid') -> operations_pb2.ExpZ:
+def _z_to_proto(gate: cirq.ZPowGate, q: cirq.Qid) -> operations_pb2.ExpZ:
     return operations_pb2.ExpZ(
         target=_qubit_to_proto(q), half_turns=_parameterized_value_to_proto(gate.exponent)
     )
 
 
-def _cz_to_proto(gate: 'cirq.CZPowGate', p: 'cirq.Qid', q: 'cirq.Qid') -> operations_pb2.Exp11:
+def _cz_to_proto(gate: cirq.CZPowGate, p: cirq.Qid, q: cirq.Qid) -> operations_pb2.Exp11:
     return operations_pb2.Exp11(
         target1=_qubit_to_proto(p),
         target2=_qubit_to_proto(q),
@@ -123,7 +124,7 @@ def _qubit_to_proto(qubit):
     return operations_pb2.Qubit(row=qubit.row, col=qubit.col)
 
 
-def _measure_to_proto(gate: 'cirq.MeasurementGate', qubits: Sequence['cirq.Qid']):
+def _measure_to_proto(gate: cirq.MeasurementGate, qubits: Sequence[cirq.Qid]):
     if len(qubits) == 0:
         raise ValueError('Measurement gate on no qubits.')
 
@@ -143,7 +144,7 @@ def _measure_to_proto(gate: 'cirq.MeasurementGate', qubits: Sequence['cirq.Qid']
     )
 
 
-def circuit_as_schedule_to_protos(circuit: 'cirq.Circuit') -> Iterator[operations_pb2.Operation]:
+def circuit_as_schedule_to_protos(circuit: cirq.Circuit) -> Iterator[operations_pb2.Operation]:
     """Convert a circuit into an iterable of protos.
 
     Args:
@@ -167,9 +168,9 @@ def circuit_as_schedule_to_protos(circuit: 'cirq.Circuit') -> Iterator[operation
 
 
 def circuit_from_schedule_from_protos(
-    device: 'cirq.google.XmonDevice',
+    device: cirq.google.XmonDevice,
     ops: Iterable[operations_pb2.Operation],
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Convert protos into a Circuit for the given device."""
     result = []
     for op in ops:
@@ -251,7 +252,7 @@ def unpack_results(
     return results
 
 
-def is_native_xmon_op(op: 'cirq.Operation') -> bool:
+def is_native_xmon_op(op: cirq.Operation) -> bool:
     """Check if the gate corresponding to an operation is a native xmon gate.
 
     Args:
@@ -263,7 +264,7 @@ def is_native_xmon_op(op: 'cirq.Operation') -> bool:
     return isinstance(op, ops.GateOperation) and is_native_xmon_gate(op.gate)
 
 
-def is_native_xmon_gate(gate: 'cirq.Gate') -> bool:
+def is_native_xmon_gate(gate: cirq.Gate) -> bool:
     """Check if a gate is a native xmon gate.
 
     Args:
@@ -285,7 +286,7 @@ def is_native_xmon_gate(gate: 'cirq.Gate') -> bool:
     )
 
 
-def xmon_op_from_proto(proto: operations_pb2.Operation) -> 'cirq.Operation':
+def xmon_op_from_proto(proto: operations_pb2.Operation) -> cirq.Operation:
     """Convert the proto to the corresponding operation.
 
     See protos in api/google/v1 for specification of the protos.

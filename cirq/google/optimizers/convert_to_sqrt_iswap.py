@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 from typing import List, Optional, TYPE_CHECKING
 
 import numpy as np
@@ -57,7 +58,7 @@ class ConvertToSqrtIswapGates(circuits.PointOptimizer):
         super().__init__()
         self.ignore_failures = ignore_failures
 
-    def _convert_one(self, op: 'cirq.Operation') -> 'cirq.OP_TREE':
+    def _convert_one(self, op: cirq.Operation) -> cirq.OP_TREE:
         """
         Decomposer intercept:  Let cirq decompose one-qubit gates,
         intercept on 2-qubit gates if they are known gates.
@@ -94,7 +95,7 @@ class ConvertToSqrtIswapGates(circuits.PointOptimizer):
             "or composite."
         )
 
-    def convert(self, op: 'cirq.Operation') -> List['cirq.Operation']:
+    def convert(self, op: cirq.Operation) -> List[cirq.Operation]:
 
         a = protocols.decompose(
             op,
@@ -117,7 +118,7 @@ class ConvertToSqrtIswapGates(circuits.PointOptimizer):
         )
 
 
-def is_sqrt_iswap_compatible(op: 'cirq.Operation') -> bool:
+def is_sqrt_iswap_compatible(op: cirq.Operation) -> bool:
     """Check if the given operation is compatible with the sqrt_iswap gateset
     gate set.
 
@@ -130,7 +131,7 @@ def is_sqrt_iswap_compatible(op: 'cirq.Operation') -> bool:
     return is_basic_gate(op.gate) or is_sqrt_iswap(op.gate)
 
 
-def is_sqrt_iswap(gate: Optional['cirq.Gate']) -> bool:
+def is_sqrt_iswap(gate: Optional[cirq.Gate]) -> bool:
     """Checks if this is a ± sqrt(iSWAP) gate specified using either
     ISwapPowGate or with the equivalent FSimGate.
     """
@@ -148,7 +149,7 @@ def is_sqrt_iswap(gate: Optional['cirq.Gate']) -> bool:
     )
 
 
-def is_basic_gate(gate: Optional['cirq.Gate']) -> bool:
+def is_basic_gate(gate: Optional[cirq.Gate]) -> bool:
     """Check if a gate is a basic supported one-qubit gate.
 
     Args:

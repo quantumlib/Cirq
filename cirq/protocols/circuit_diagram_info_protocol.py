@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 import re
 from fractions import Fraction
 from typing import (
@@ -95,7 +96,7 @@ class CircuitDiagramInfo:
         )
 
     def _wire_symbols_including_formatted_exponent(
-        self, args: 'cirq.CircuitDiagramInfoArgs', *, preferred_exponent_index: Optional[int] = None
+        self, args: cirq.CircuitDiagramInfoArgs, *, preferred_exponent_index: Optional[int] = None
     ) -> List[str]:
         result = list(self.wire_symbols)
         exponent = self._formatted_exponent(args)
@@ -114,7 +115,7 @@ class CircuitDiagramInfo:
         return result
 
     def _formatted_exponent(
-        self: 'cirq.CircuitDiagramInfo', args: 'cirq.CircuitDiagramInfoArgs'
+        self: cirq.CircuitDiagramInfo, args: cirq.CircuitDiagramInfoArgs
     ) -> Optional[str]:
 
         if protocols.is_parameterized(self.exponent):
@@ -153,8 +154,8 @@ class CircuitDiagramInfo:
 
     @staticmethod
     def _op_info_with_fallback(
-        op: 'cirq.Operation', args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+        op: cirq.Operation, args: cirq.CircuitDiagramInfoArgs
+    ) -> cirq.CircuitDiagramInfo:
         info = protocols.circuit_diagram_info(op, args, None)
         if info is not None:
             if len(op.qubits) != len(info.wire_symbols):
@@ -222,11 +223,11 @@ class CircuitDiagramInfoArgs:
 
     def __init__(
         self,
-        known_qubits: Optional[Iterable['cirq.Qid']],
+        known_qubits: Optional[Iterable[cirq.Qid]],
         known_qubit_count: Optional[int],
         use_unicode_characters: bool,
         precision: Optional[int],
-        qubit_map: Optional[Dict['cirq.Qid', int]],
+        qubit_map: Optional[Dict[cirq.Qid, int]],
         include_tags: bool = True,
     ) -> None:
         self.known_qubits = None if known_qubits is None else tuple(known_qubits)

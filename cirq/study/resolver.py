@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Resolves ParameterValues to assigned values."""
+from __future__ import annotations
 import numbers
 from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
 
@@ -53,12 +54,12 @@ class ParamResolver:
             assigned value.
     """
 
-    def __new__(cls, param_dict: 'cirq.ParamResolverOrSimilarType' = None):
+    def __new__(cls, param_dict: cirq.ParamResolverOrSimilarType = None):
         if isinstance(param_dict, ParamResolver):
             return param_dict
         return super().__new__(cls)
 
-    def __init__(self, param_dict: 'cirq.ParamResolverOrSimilarType' = None) -> None:
+    def __init__(self, param_dict: cirq.ParamResolverOrSimilarType = None) -> None:
         if hasattr(self, 'param_dict'):
             return  # Already initialized. Got wrapped as part of the __new__.
 
@@ -67,8 +68,8 @@ class ParamResolver:
         self._deep_eval_map: ParamDictType = {}
 
     def value_of(
-        self, value: Union['cirq.TParamKey', float], recursive: bool = True
-    ) -> 'cirq.TParamVal':
+        self, value: Union[cirq.TParamKey, float], recursive: bool = True
+    ) -> cirq.TParamVal:
         """Attempt to resolve a parameter to its assigned value.
 
         Floats are returned without modification.  Strings are resolved via
@@ -185,9 +186,7 @@ class ParamResolver:
             self._deep_eval_map[value] = self.value_of(v, recursive)
         return self._deep_eval_map[value]
 
-    def _resolve_parameters_(
-        self, param_resolver: 'ParamResolver', recursive: bool
-    ) -> 'ParamResolver':
+    def _resolve_parameters_(self, param_resolver: ParamResolver, recursive: bool) -> ParamResolver:
         new_dict = {k: k for k in param_resolver}
         new_dict.update({k: self.value_of(k, recursive) for k in self})
         new_dict.update({k: param_resolver.value_of(v, recursive) for k, v in new_dict.items()})
@@ -203,7 +202,7 @@ class ParamResolver:
     def __bool__(self) -> bool:
         return bool(self.param_dict)
 
-    def __getitem__(self, key: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':
+    def __getitem__(self, key: Union[sympy.Basic, float, str]) -> cirq.TParamVal:
         return self.value_of(key)
 
     def __hash__(self) -> int:

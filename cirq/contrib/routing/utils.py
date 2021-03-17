@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import operator
 from typing import Callable, Iterable, List, TYPE_CHECKING
 import re
@@ -82,7 +83,7 @@ def is_valid_routing(
         raise
 
 
-def get_circuit_connectivity(circuit: 'cirq.Circuit') -> nx.Graph:
+def get_circuit_connectivity(circuit: cirq.Circuit) -> nx.Graph:
     """Return a graph of all 2q interactions in a circuit.
 
     Nodes are qubits and undirected edges correspond to any two-qubit

@@ -13,6 +13,7 @@
 # limitations under the License.
 """A typed location in time that supports picosecond accuracy."""
 
+from __future__ import annotations
 from datetime import timedelta
 from typing import Union, overload
 
@@ -47,23 +48,23 @@ class Timestamp:
         """The timestamp's location in picoseconds from arbitrary time zero."""
         return self._picos
 
-    def __add__(self, other) -> 'Timestamp':
+    def __add__(self, other) -> Timestamp:
         if isinstance(other, timedelta):
             return Timestamp(picos=self._picos + other.total_seconds() * 10 ** 12)
         if not isinstance(other, Duration):
             return NotImplemented
         return Timestamp(picos=self._picos + other.total_picos())
 
-    def __radd__(self, other) -> 'Timestamp':
+    def __radd__(self, other) -> Timestamp:
         return self.__add__(other)
 
     # pylint: disable=function-redefined
     @overload
-    def __sub__(self, other: 'Timestamp') -> Duration:
+    def __sub__(self, other: Timestamp) -> Duration:
         pass
 
     @overload
-    def __sub__(self, other: Duration) -> 'Timestamp':
+    def __sub__(self, other: Duration) -> Timestamp:
         pass
 
     def __sub__(self, other):

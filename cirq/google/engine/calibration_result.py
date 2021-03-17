@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from __future__ import annotations
 import dataclasses
 import datetime
 from typing import Any, Dict, Optional, TYPE_CHECKING
@@ -33,22 +34,22 @@ class CalibrationResult:
     These defaults will converted to `None` by the API client.
     """
 
-    code: 'calibration_pb2.CalibrationLayerCode'
+    code: calibration_pb2.CalibrationLayerCode
     error_message: Optional[str]
     token: Optional[str]
     valid_until: Optional[datetime.datetime]
-    metrics: 'cirq.google.Calibration'
+    metrics: cirq.google.Calibration
 
     @classmethod
     def _from_json_dict_(
         cls,
-        code: 'calibration_pb2.CalibrationLayerCode',
+        code: calibration_pb2.CalibrationLayerCode,
         error_message: Optional[str],
         token: Optional[str],
         utc_valid_until: float,
-        metrics: 'cirq.google.Calibration',
+        metrics: cirq.google.Calibration,
         **kwargs,
-    ) -> 'CalibrationResult':
+    ) -> CalibrationResult:
         """Magic method for the JSON serialization protocol."""
         valid_until = (
             datetime.datetime.utcfromtimestamp(utc_valid_until)

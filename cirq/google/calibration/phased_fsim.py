@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 from typing import (
     Any,
     Callable,
@@ -150,7 +151,7 @@ class PhasedFSimCharacterization:
             or self.phi is None
         )
 
-    def parameters_for_qubits_swapped(self) -> 'PhasedFSimCharacterization':
+    def parameters_for_qubits_swapped(self) -> PhasedFSimCharacterization:
         """Parameters for the gate with qubits swapped between each other.
 
         The angles theta, gamma and phi are kept unchanged. The angles zeta and chi are negated for
@@ -167,7 +168,7 @@ class PhasedFSimCharacterization:
             phi=self.phi,
         )
 
-    def merge_with(self, other: 'PhasedFSimCharacterization') -> 'PhasedFSimCharacterization':
+    def merge_with(self, other: PhasedFSimCharacterization) -> PhasedFSimCharacterization:
         """Substitutes missing parameter with values from other.
 
         Args:
@@ -185,7 +186,7 @@ class PhasedFSimCharacterization:
             phi=other.phi if self.phi is None else self.phi,
         )
 
-    def override_by(self, other: 'PhasedFSimCharacterization') -> 'PhasedFSimCharacterization':
+    def override_by(self, other: PhasedFSimCharacterization) -> PhasedFSimCharacterization:
         """Overrides other parameters that are not None.
 
         Args:
@@ -222,7 +223,7 @@ class PhasedFSimCalibrationResult:
     gate: Gate
     options: PhasedFSimCalibrationOptions
 
-    def override(self, parameters: PhasedFSimCharacterization) -> 'PhasedFSimCalibrationResult':
+    def override(self, parameters: PhasedFSimCharacterization) -> PhasedFSimCalibrationResult:
         """Creates the new results with certain parameters overridden for all characterizations.
 
         This functionality can be used to zero-out the corrected angles and do the analysis on
@@ -244,7 +245,7 @@ class PhasedFSimCalibrationResult:
             options=self.options,
         )
 
-    def get_parameters(self, a: Qid, b: Qid) -> Optional['PhasedFSimCharacterization']:
+    def get_parameters(self, a: Qid, b: Qid) -> Optional[PhasedFSimCharacterization]:
         """Returns parameters for a qubit pair (a, b) or None when unknown."""
         if (a, b) in self.parameters:
             return self.parameters[(a, b)]
@@ -268,7 +269,7 @@ class PhasedFSimCalibrationResult:
     def _from_json_dict_(
         cls,
         **kwargs,
-    ) -> 'PhasedFSimCalibrationResult':
+    ) -> PhasedFSimCalibrationResult:
         """Magic method for the JSON serialization protocol.
 
         Converts serialized dictionary into a dict suitable for
@@ -505,7 +506,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         pairs: List[Tuple[Qid, Qid]],
         options: FloquetPhasedFSimCalibrationOptions,
         **kwargs,
-    ) -> 'PhasedFSimCalibrationRequest':
+    ) -> PhasedFSimCalibrationRequest:
         """Magic method for the JSON serialization protocol.
 
         Converts serialized dictionary into a dict suitable for

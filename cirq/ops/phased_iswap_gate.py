@@ -13,6 +13,7 @@
 # limitations under the License.
 """ISWAPPowGate conjugated by tensor product Rz(phi) and Rz(-phi)."""
 
+from __future__ import annotations
 from typing import AbstractSet, Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -98,14 +99,14 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         )
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
-    ) -> 'PhasedISwapPowGate':
+        self, resolver: cirq.ParamResolverOrSimilarType, recursive: bool
+    ) -> PhasedISwapPowGate:
         return self.__class__(
             phase_exponent=protocols.resolve_parameters(self.phase_exponent, resolver, recursive),
             exponent=protocols.resolve_parameters(self.exponent, resolver, recursive),
         )
 
-    def _with_exponent(self, exponent: value.type_alias.TParamVal) -> 'PhasedISwapPowGate':
+    def _with_exponent(self, exponent: value.type_alias.TParamVal) -> PhasedISwapPowGate:
         return PhasedISwapPowGate(phase_exponent=self.phase_exponent, exponent=exponent)
 
     def _eigen_shifts(self) -> List[float]:
@@ -121,7 +122,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             eigen_components.append((eigenvalue, new_projector))
         return eigen_components
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
         if protocols.is_parameterized(self):
             return NotImplemented
 
@@ -137,7 +138,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         )
         return args.available_buffer
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         if len(qubits) != 2:
             raise ValueError(f'Expected two qubits, got {len(qubits)}')
         a, b = qubits
@@ -170,9 +171,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             }
         )
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         s = f'PhISwap({args.format_real(self._phase_exponent)})'
         return protocols.CircuitDiagramInfo(
             wire_symbols=(s, s), exponent=self._diagram_exponent(args)

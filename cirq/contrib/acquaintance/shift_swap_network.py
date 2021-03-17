@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import functools
 import itertools
 from typing import Dict, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING
@@ -51,7 +52,7 @@ class ShiftSwapNetworkGate(PermutationGate):
         self,
         left_part_lens: Iterable[int],
         right_part_lens: Iterable[int],
-        swap_gate: 'cirq.Gate' = ops.SWAP,
+        swap_gate: cirq.Gate = ops.SWAP,
     ) -> None:
 
         self.part_lens = {'left': tuple(left_part_lens), 'right': tuple(right_part_lens)}
@@ -65,7 +66,7 @@ class ShiftSwapNetworkGate(PermutationGate):
     def acquaintance_size(self) -> int:
         return sum(max(self.part_lens[side]) for side in ('left', 'right'))
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         part_lens = list(itertools.chain(*(self.part_lens[side] for side in ('left', 'right'))))
 
         n_qubits = 0
@@ -110,7 +111,7 @@ class ShiftSwapNetworkGate(PermutationGate):
             )
         )
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
         qubit_count = self.qubit_count()
         assert args.known_qubit_count in (None, qubit_count)
 

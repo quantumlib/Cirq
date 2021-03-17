@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import datetime
 from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 
@@ -43,7 +44,7 @@ class EngineProgram:
         self,
         project_id: str,
         program_id: str,
-        context: 'engine_base.EngineContext',
+        context: engine_base.EngineContext,
         _program: Optional[qtypes.QuantumProgram] = None,
         result_type: ResultType = ResultType.Program,
     ) -> None:
@@ -320,7 +321,7 @@ class EngineProgram:
             raise ValueError(f'invalid run context proto version: {proto_version}')
         return context
 
-    def engine(self) -> 'engine_base.Engine':
+    def engine(self) -> engine_base.Engine:
         """Returns the parent Engine object.
 
         Returns:
@@ -394,11 +395,11 @@ class EngineProgram:
             self._program = self.context.client.get_program(self.project_id, self.program_id, False)
         return self._program
 
-    def create_time(self) -> 'datetime.datetime':
+    def create_time(self) -> datetime.datetime:
         """Returns when the program was created."""
         return self._inner_program().create_time.ToDatetime()
 
-    def update_time(self) -> 'datetime.datetime':
+    def update_time(self) -> datetime.datetime:
         """Returns when the program was last updated."""
         self._program = self.context.client.get_program(self.project_id, self.program_id, False)
         return self._program.update_time.ToDatetime()
@@ -407,7 +408,7 @@ class EngineProgram:
         """Returns the description of the program."""
         return self._inner_program().description
 
-    def set_description(self, description: str) -> 'EngineProgram':
+    def set_description(self, description: str) -> EngineProgram:
         """Sets the description of the program.
 
         Params:
@@ -425,7 +426,7 @@ class EngineProgram:
         """Returns the labels of the program."""
         return self._inner_program().labels
 
-    def set_labels(self, labels: Dict[str, str]) -> 'EngineProgram':
+    def set_labels(self, labels: Dict[str, str]) -> EngineProgram:
         """Sets (overwriting) the labels for a previously created quantum
         program.
 
@@ -440,7 +441,7 @@ class EngineProgram:
         )
         return self
 
-    def add_labels(self, labels: Dict[str, str]) -> 'EngineProgram':
+    def add_labels(self, labels: Dict[str, str]) -> EngineProgram:
         """Adds new labels to a previously created quantum program.
 
         Params:
@@ -454,7 +455,7 @@ class EngineProgram:
         )
         return self
 
-    def remove_labels(self, keys: List[str]) -> 'EngineProgram':
+    def remove_labels(self, keys: List[str]) -> EngineProgram:
         """Removes labels with given keys from the labels of a previously
         created quantum program.
 
@@ -469,7 +470,7 @@ class EngineProgram:
         )
         return self
 
-    def get_circuit(self, program_num: Optional[int] = None) -> 'Circuit':
+    def get_circuit(self, program_num: Optional[int] = None) -> Circuit:
         """Returns the cirq Circuit for the Quantum Engine program. This is only
         supported if the program was created with the V2 protos.
 
@@ -509,7 +510,7 @@ class EngineProgram:
     @staticmethod
     def _deserialize_program(
         code: qtypes.any_pb2.Any, program_num: Optional[int] = None
-    ) -> 'Circuit':
+    ) -> Circuit:
         import cirq.google.engine.engine as engine_base
 
         code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]

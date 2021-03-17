@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import itertools
 import random
 from typing import Any, Dict, FrozenSet, Hashable, Iterable, Mapping, Optional, Set, Tuple, Union
@@ -107,7 +108,7 @@ class UndirectedHypergraph:
     @classmethod
     def random(
         cls, vertices: Union[int, Iterable], edge_probs: Mapping[int, float]
-    ) -> 'UndirectedHypergraph':
+    ) -> UndirectedHypergraph:
         """A random hypergraph.
 
         Every possible edge is included with probability edge_prob[len(edge)].

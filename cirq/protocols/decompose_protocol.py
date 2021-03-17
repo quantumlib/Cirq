@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -50,7 +51,7 @@ DecomposeResult = Union[None, NotImplementedType, 'cirq.OP_TREE']
 OpDecomposer = Callable[['cirq.Operation'], DecomposeResult]
 
 
-def _value_error_describing_bad_operation(op: 'cirq.Operation') -> ValueError:
+def _value_error_describing_bad_operation(op: cirq.Operation) -> ValueError:
     return ValueError(f"Operation doesn't satisfy the given `keep` but can't be decomposed: {op!r}")
 
 
@@ -117,7 +118,7 @@ class SupportsDecomposeWithQubits(Protocol):
     implements `SupportsDecomposeWithQubits`.
     """
 
-    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> DecomposeResult:
+    def _decompose_(self, qubits: Tuple[cirq.Qid, ...]) -> DecomposeResult:
         pass
 
 
@@ -128,8 +129,8 @@ def decompose(
     *,
     intercepting_decomposer: Optional[OpDecomposer] = None,
     fallback_decomposer: Optional[OpDecomposer] = None,
-    keep: Optional[Callable[['cirq.Operation'], bool]] = None,
-) -> List['cirq.Operation']:
+    keep: Optional[Callable[[cirq.Operation], bool]] = None,
+) -> List[cirq.Operation]:
     pass
 
 
@@ -139,9 +140,9 @@ def decompose(
     *,
     intercepting_decomposer: Optional[OpDecomposer] = None,
     fallback_decomposer: Optional[OpDecomposer] = None,
-    keep: Optional[Callable[['cirq.Operation'], bool]] = None,
-    on_stuck_raise: Optional[Union[TError, Callable[['cirq.Operation'], TError]]],
-) -> List['cirq.Operation']:
+    keep: Optional[Callable[[cirq.Operation], bool]] = None,
+    on_stuck_raise: Optional[Union[TError, Callable[[cirq.Operation], TError]]],
+) -> List[cirq.Operation]:
     pass
 
 
@@ -150,11 +151,11 @@ def decompose(
     *,
     intercepting_decomposer: Optional[OpDecomposer] = None,
     fallback_decomposer: Optional[OpDecomposer] = None,
-    keep: Optional[Callable[['cirq.Operation'], bool]] = None,
+    keep: Optional[Callable[[cirq.Operation], bool]] = None,
     on_stuck_raise: Union[
-        None, Exception, Callable[['cirq.Operation'], Union[None, Exception]]
+        None, Exception, Callable[[cirq.Operation], Union[None, Exception]]
     ] = _value_error_describing_bad_operation,
-) -> List['cirq.Operation']:
+) -> List[cirq.Operation]:
     """Recursively decomposes a value into `cirq.Operation`s meeting a criteria.
 
     Args:
@@ -252,14 +253,14 @@ def decompose(
 
 
 @overload
-def decompose_once(val: Any, **kwargs) -> List['cirq.Operation']:
+def decompose_once(val: Any, **kwargs) -> List[cirq.Operation]:
     pass
 
 
 @overload
 def decompose_once(
     val: Any, default: TDefault, *args, **kwargs
-) -> Union[TDefault, List['cirq.Operation']]:
+) -> Union[TDefault, List[cirq.Operation]]:
     pass
 
 
@@ -309,24 +310,24 @@ def decompose_once(val: Any, default=RaiseTypeErrorIfNotProvided, *args, **kwarg
 
 
 @overload
-def decompose_once_with_qubits(val: Any, qubits: Iterable['cirq.Qid']) -> List['cirq.Operation']:
+def decompose_once_with_qubits(val: Any, qubits: Iterable[cirq.Qid]) -> List[cirq.Operation]:
     pass
 
 
 @overload
 def decompose_once_with_qubits(
     val: Any,
-    qubits: Iterable['cirq.Qid'],
+    qubits: Iterable[cirq.Qid],
     # NOTE: should be TDefault instead of Any, but
     # mypy has false positive errors when setting
     # default to None.
     default: Any,
-) -> Union[TDefault, List['cirq.Operation']]:
+) -> Union[TDefault, List[cirq.Operation]]:
     pass
 
 
 def decompose_once_with_qubits(
-    val: Any, qubits: Iterable['cirq.Qid'], default=RaiseTypeErrorIfNotProvided
+    val: Any, qubits: Iterable[cirq.Qid], default=RaiseTypeErrorIfNotProvided
 ):
     """Decomposes a value into operations on the given qubits.
 
@@ -362,7 +363,7 @@ def decompose_once_with_qubits(
 
 def _try_decompose_into_operations_and_qubits(
     val: Any,
-) -> Tuple[Optional[List['cirq.Operation']], Sequence['cirq.Qid'], Tuple[int, ...]]:
+) -> Tuple[Optional[List[cirq.Operation]], Sequence[cirq.Qid], Tuple[int, ...]]:
     """Returns the value's decomposition (if any) and the qubits it applies to."""
 
     if isinstance(val, ops.Gate):

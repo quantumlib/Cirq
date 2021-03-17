@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import numbers
 from typing import AbstractSet, Tuple, TYPE_CHECKING, Dict, Any, cast, SupportsFloat, Optional
 
@@ -29,7 +30,7 @@ if TYPE_CHECKING:
 class RandomGateChannel(raw_types.Gate):
     """Applies a sub gate with some probability."""
 
-    def __init__(self, *, sub_gate: 'cirq.Gate', probability: value.TParamVal):
+    def __init__(self, *, sub_gate: cirq.Gate, probability: value.TParamVal):
         if (
             isinstance(probability, numbers.Number)
             and not 0 <= float(cast(SupportsFloat, probability)) <= 1
@@ -129,8 +130,8 @@ class RandomGateChannel(raw_types.Gate):
         return cls(sub_gate=sub_gate, probability=probability)
 
     def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> Optional['cirq.CircuitDiagramInfo']:
+        self, args: cirq.CircuitDiagramInfoArgs
+    ) -> Optional[cirq.CircuitDiagramInfo]:
         result = protocols.circuit_diagram_info(self.sub_gate, args, None)
         if result is None:
             return None

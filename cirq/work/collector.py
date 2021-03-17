@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Any, Iterable, List, Optional, TYPE_CHECKING, Union
 import abc
 import asyncio
@@ -100,7 +101,7 @@ class Collector(metaclass=abc.ABCMeta):
 
     def collect(
         self,
-        sampler: 'cirq.Sampler',
+        sampler: cirq.Sampler,
         *,
         concurrency: int = 2,
         max_total_samples: Optional[int] = None,
@@ -138,7 +139,7 @@ class Collector(metaclass=abc.ABCMeta):
 
     async def collect_async(
         self,
-        sampler: 'cirq.Sampler',
+        sampler: cirq.Sampler,
         *,
         concurrency: int = 2,
         max_total_samples: Optional[int] = None,

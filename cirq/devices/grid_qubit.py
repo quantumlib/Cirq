@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import functools
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Set, TypeVar, TYPE_CHECKING
 
@@ -46,17 +47,17 @@ class _BaseGridQid(ops.Qid):
     def col(self) -> int:
         return self._col
 
-    def with_dimension(self, dimension: int) -> 'GridQid':
+    def with_dimension(self, dimension: int) -> GridQid:
         return GridQid(self.row, self.col, dimension=dimension)
 
-    def is_adjacent(self, other: 'cirq.Qid') -> bool:
+    def is_adjacent(self, other: cirq.Qid) -> bool:
         """Determines if two qubits are adjacent qubits."""
         return (
             isinstance(other, GridQubit)
             and abs(self.row - other.row) + abs(self.col - other.col) == 1
         )
 
-    def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set['_BaseGridQid']:
+    def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set[_BaseGridQid]:
         """Returns qubits that are potential neighbors to this GridQid
 
         Args:
@@ -75,7 +76,7 @@ class _BaseGridQid(ops.Qid):
     def __complex__(self) -> complex:
         return self.col + 1j * self.row
 
-    def __add__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
+    def __add__(self: TSelf, other: Tuple[int, int]) -> TSelf:
         if isinstance(other, _BaseGridQid):
             if self.dimension != other.dimension:
                 raise TypeError(
@@ -94,7 +95,7 @@ class _BaseGridQid(ops.Qid):
             )
         return self._with_row_col(row=self.row + other[0], col=self.col + other[1])
 
-    def __sub__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
+    def __sub__(self: TSelf, other: Tuple[int, int]) -> TSelf:
         if isinstance(other, _BaseGridQid):
             if self.dimension != other.dimension:
                 raise TypeError(
@@ -113,13 +114,13 @@ class _BaseGridQid(ops.Qid):
             )
         return self._with_row_col(row=self.row - other[0], col=self.col - other[1])
 
-    def __radd__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
+    def __radd__(self: TSelf, other: Tuple[int, int]) -> TSelf:
         return self + other
 
-    def __rsub__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
+    def __rsub__(self: TSelf, other: Tuple[int, int]) -> TSelf:
         return -self + other
 
-    def __neg__(self: TSelf) -> 'TSelf':
+    def __neg__(self: TSelf) -> TSelf:
         return self._with_row_col(row=-self.row, col=-self.col)
 
 
@@ -161,11 +162,11 @@ class GridQid(_BaseGridQid):
     def dimension(self):
         return self._dimension
 
-    def _with_row_col(self, row: int, col: int) -> 'GridQid':
+    def _with_row_col(self, row: int, col: int) -> GridQid:
         return GridQid(row, col, dimension=self.dimension)
 
     @staticmethod
-    def square(diameter: int, top: int = 0, left: int = 0, *, dimension: int) -> List['GridQid']:
+    def square(diameter: int, top: int = 0, left: int = 0, *, dimension: int) -> List[GridQid]:
         """Returns a square of GridQid.
 
         Args:
@@ -181,9 +182,7 @@ class GridQid(_BaseGridQid):
         return GridQid.rect(diameter, diameter, top=top, left=left, dimension=dimension)
 
     @staticmethod
-    def rect(
-        rows: int, cols: int, top: int = 0, left: int = 0, *, dimension: int
-    ) -> List['GridQid']:
+    def rect(rows: int, cols: int, top: int = 0, left: int = 0, *, dimension: int) -> List[GridQid]:
         """Returns a rectangle of GridQid.
 
         Args:
@@ -204,7 +203,7 @@ class GridQid(_BaseGridQid):
         ]
 
     @staticmethod
-    def from_diagram(diagram: str, dimension: int) -> List['GridQid']:
+    def from_diagram(diagram: str, dimension: int) -> List[GridQid]:
         """Parse ASCII art device layout into info about qids and
         connectivity. As an example, the below diagram will create a list of
         GridQid in a pyramid structure.
@@ -320,7 +319,7 @@ class GridQubit(_BaseGridQid):
         return (cls.__name__, repr(cls), self._comparison_key(), self.dimension)
 
     @staticmethod
-    def square(diameter: int, top: int = 0, left: int = 0) -> List['GridQubit']:
+    def square(diameter: int, top: int = 0, left: int = 0) -> List[GridQubit]:
         """Returns a square of GridQubits.
 
         Args:
@@ -334,7 +333,7 @@ class GridQubit(_BaseGridQid):
         return GridQubit.rect(diameter, diameter, top=top, left=left)
 
     @staticmethod
-    def rect(rows: int, cols: int, top: int = 0, left: int = 0) -> List['GridQubit']:
+    def rect(rows: int, cols: int, top: int = 0, left: int = 0) -> List[GridQubit]:
         """Returns a rectangle of GridQubits.
 
         Args:
@@ -353,7 +352,7 @@ class GridQubit(_BaseGridQid):
         ]
 
     @staticmethod
-    def from_diagram(diagram: str) -> List['GridQubit']:
+    def from_diagram(diagram: str) -> List[GridQubit]:
         """Parse ASCII art device layout into info about qubits and
         connectivity. As an example, the below diagram will create a list of
         GridQubit in a pyramid structure.

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 from typing import (
     AbstractSet,
     Any,
@@ -45,8 +46,8 @@ class ControlledOperation(raw_types.Operation):
 
     def __init__(
         self,
-        controls: Sequence['cirq.Qid'],
-        sub_operation: 'cirq.Operation',
+        controls: Sequence[cirq.Qid],
+        sub_operation: cirq.Operation,
         control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
     ):
         if control_values is None:
@@ -73,7 +74,7 @@ class ControlledOperation(raw_types.Operation):
             self.control_values += sub_operation.control_values
 
     @property
-    def gate(self) -> Optional['cirq.ControlledGate']:
+    def gate(self) -> Optional[cirq.ControlledGate]:
         if self.sub_operation.gate is None:
             return None
         return controlled_gate.ControlledGate(
@@ -102,7 +103,7 @@ class ControlledOperation(raw_types.Operation):
     def _value_equality_values_(self):
         return (frozenset(zip(self.controls, self.control_values)), self.sub_operation)
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         n = len(self.controls)
         sub_n = len(args.axes) - n
         sub_axes = args.axes[n:]
@@ -192,7 +193,7 @@ class ControlledOperation(raw_types.Operation):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self.sub_operation)
 
-    def _resolve_parameters_(self, resolver, recursive) -> 'ControlledOperation':
+    def _resolve_parameters_(self, resolver, recursive) -> ControlledOperation:
         new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver, recursive)
         return ControlledOperation(self.controls, new_sub_op, self.control_values)
 
@@ -205,15 +206,15 @@ class ControlledOperation(raw_types.Operation):
         angle_list = np.append(np.angle(np.linalg.eigvals(u)), 0)
         return protocols.trace_distance_from_angle_list(angle_list)
 
-    def __pow__(self, exponent: Any) -> 'ControlledOperation':
+    def __pow__(self, exponent: Any) -> ControlledOperation:
         new_sub_op = protocols.pow(self.sub_operation, exponent, NotImplemented)
         if new_sub_op is NotImplemented:
             return NotImplemented
         return ControlledOperation(self.controls, new_sub_op, self.control_values)
 
     def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> Optional['protocols.CircuitDiagramInfo']:
+        self, args: cirq.CircuitDiagramInfoArgs
+    ) -> Optional[protocols.CircuitDiagramInfo]:
         n = len(self.controls)
 
         sub_args = protocols.CircuitDiagramInfoArgs(

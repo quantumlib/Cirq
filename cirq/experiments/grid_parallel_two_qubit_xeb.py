@@ -20,6 +20,7 @@ to connected pairs of grid qubits. The qubit pairs are benchmarked in parallel
 by executing circuits that act on many pairs simultaneously.
 """
 
+from __future__ import annotations
 from typing import Any, Iterable, List, Optional, Sequence, TYPE_CHECKING, Tuple, cast
 import collections
 from concurrent.futures import ThreadPoolExecutor
@@ -109,8 +110,8 @@ class GridParallelXEBMetadata:
         data_collection_id: The data collection ID of the experiment.
     """
 
-    qubits: List['cirq.Qid']
-    two_qubit_gate: 'cirq.Gate'
+    qubits: List[cirq.Qid]
+    two_qubit_gate: cirq.Gate
     num_circuits: int
     repetitions: int
     cycles: List[int]
@@ -218,15 +219,15 @@ class GridParallelXEBResultsParameters:
 
 
 def collect_grid_parallel_two_qubit_xeb_data(
-    sampler: 'cirq.Sampler',
-    qubits: Iterable['cirq.GridQubit'],
-    two_qubit_gate: 'cirq.Gate',
+    sampler: cirq.Sampler,
+    qubits: Iterable[cirq.GridQubit],
+    two_qubit_gate: cirq.Gate,
     *,
     num_circuits: int = 50,
     repetitions: int = 10_000,
     cycles: Iterable[int] = range(3, 204, 10),
     layers: Sequence[GridInteractionLayer] = (LAYER_A, LAYER_B, LAYER_C, LAYER_D),
-    seed: 'cirq.value.RANDOM_STATE_OR_SEED_LIKE' = None,
+    seed: cirq.value.RANDOM_STATE_OR_SEED_LIKE = None,
     data_collection_id: Optional[str] = None,
     num_workers: int = 4,
     base_dir: str = DEFAULT_BASE_DIR,
@@ -346,7 +347,7 @@ def collect_grid_parallel_two_qubit_xeb_data(
 
     # Collect data
     def run_truncated_circuit(
-        truncated_circuit: 'cirq.Circuit',
+        truncated_circuit: cirq.Circuit,
         layer: GridInteractionLayer,
         depth: int,
         circuit_index: int,
@@ -474,7 +475,7 @@ def compute_grid_parallel_two_qubit_xeb_results(
 
 def _get_xeb_result(
     qubit_pair: GridQubitPair,
-    circuits: List['cirq.Circuit'],
+    circuits: List[cirq.Circuit],
     measurement_results: Sequence[List[np.ndarray]],
     num_circuits: int,
     repetitions: int,
@@ -529,14 +530,14 @@ def _get_xeb_result(
 
 
 def _coupled_qubit_pairs(
-    qubits: List['cirq.GridQubit'],
+    qubits: List[cirq.GridQubit],
 ) -> List[GridQubitPair]:
     """Get pairs of GridQubits that are neighbors."""
     pairs = []
     qubit_set = set(qubits)
     for qubit in qubits:
 
-        def add_pair(neighbor: 'cirq.GridQubit'):
+        def add_pair(neighbor: cirq.GridQubit):
             if neighbor in qubit_set:
                 pairs.append((qubit, neighbor))
 

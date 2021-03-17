@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Defines the OptimizationPass type."""
+from __future__ import annotations
 from typing import Dict, Callable, Iterable, Optional, Sequence, TYPE_CHECKING, Tuple, cast
 
 import abc
@@ -32,8 +33,8 @@ class PointOptimizationSummary:
     def __init__(
         self,
         clear_span: int,
-        clear_qubits: Iterable['cirq.Qid'],
-        new_operations: 'cirq.OP_TREE',
+        clear_qubits: Iterable[cirq.Qid],
+        new_operations: cirq.OP_TREE,
         preserve_moments: bool = False,
     ) -> None:
         """
@@ -88,9 +89,7 @@ class PointOptimizer:
 
     def __init__(
         self,
-        post_clean_up: Callable[
-            [Sequence['cirq.Operation']], ops.OP_TREE
-        ] = lambda op_list: op_list,
+        post_clean_up: Callable[[Sequence[cirq.Operation]], ops.OP_TREE] = lambda op_list: op_list,
     ) -> None:
         """
         Args:
@@ -105,7 +104,7 @@ class PointOptimizer:
 
     @abc.abstractmethod
     def optimization_at(
-        self, circuit: Circuit, index: int, op: 'cirq.Operation'
+        self, circuit: Circuit, index: int, op: cirq.Operation
     ) -> Optional[PointOptimizationSummary]:
         """Describes how to change operations near the given location.
 
@@ -127,7 +126,7 @@ class PointOptimizer:
         """
 
     def optimize_circuit(self, circuit: Circuit):
-        frontier: Dict['Qid', int] = defaultdict(lambda: 0)
+        frontier: Dict[Qid, int] = defaultdict(lambda: 0)
         i = 0
         while i < len(circuit):  # Note: circuit may mutate as we go.
             for op in circuit[i].operations:

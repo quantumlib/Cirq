@@ -1,3 +1,4 @@
+from __future__ import annotations
 import numbers
 from typing import AbstractSet, Any, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
@@ -46,7 +47,7 @@ class PhasedXZGate(gate_features.SingleQubitGate):
         self._z_exponent = z_exponent
         self._axis_phase_exponent = axis_phase_exponent
 
-    def _canonical(self) -> 'cirq.PhasedXZGate':
+    def _canonical(self) -> cirq.PhasedXZGate:
         x = self.x_exponent
         z = self.z_exponent
         a = self.axis_phase_exponent
@@ -108,7 +109,7 @@ class PhasedXZGate(gate_features.SingleQubitGate):
         )
 
     @staticmethod
-    def from_matrix(mat: np.array) -> 'cirq.PhasedXZGate':
+    def from_matrix(mat: np.array) -> cirq.PhasedXZGate:
         pre_phase, rotation, post_phase = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
         pre_phase /= np.pi
         post_phase /= np.pi
@@ -119,14 +120,14 @@ class PhasedXZGate(gate_features.SingleQubitGate):
             x_exponent=rotation, axis_phase_exponent=-pre_phase, z_exponent=post_phase + pre_phase
         )._canonical()
 
-    def with_z_exponent(self, z_exponent: Union[numbers.Real, sympy.Basic]) -> 'cirq.PhasedXZGate':
+    def with_z_exponent(self, z_exponent: Union[numbers.Real, sympy.Basic]) -> cirq.PhasedXZGate:
         return PhasedXZGate(
             axis_phase_exponent=self._axis_phase_exponent,
             x_exponent=self._x_exponent,
             z_exponent=z_exponent,
         )
 
-    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
         from cirq.circuits import qasm_output
 
         qasm_gate = qasm_output.QasmUGate(
@@ -139,13 +140,13 @@ class PhasedXZGate(gate_features.SingleQubitGate):
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         q = qubits[0]
         yield ops.Z(q) ** -self._axis_phase_exponent
         yield ops.X(q) ** self._x_exponent
         yield ops.Z(q) ** (self._axis_phase_exponent + self._z_exponent)
 
-    def __pow__(self, exponent: Union[float, int]) -> 'PhasedXZGate':
+    def __pow__(self, exponent: Union[float, int]) -> PhasedXZGate:
         if exponent == 1:
             return self
         if exponent == -1:
@@ -172,7 +173,7 @@ class PhasedXZGate(gate_features.SingleQubitGate):
             | protocols.parameter_names(self._axis_phase_exponent)
         )
 
-    def _resolve_parameters_(self, param_resolver, recursive) -> 'cirq.PhasedXZGate':
+    def _resolve_parameters_(self, param_resolver, recursive) -> cirq.PhasedXZGate:
         """See `cirq.SupportsParameterization`."""
         return PhasedXZGate(
             z_exponent=param_resolver.value_of(self._z_exponent, recursive),
@@ -180,7 +181,7 @@ class PhasedXZGate(gate_features.SingleQubitGate):
             axis_phase_exponent=param_resolver.value_of(self._axis_phase_exponent, recursive),
         )
 
-    def _phase_by_(self, phase_turns, qubit_index) -> 'cirq.PhasedXZGate':
+    def _phase_by_(self, phase_turns, qubit_index) -> cirq.PhasedXZGate:
         """See `cirq.SupportsPhase`."""
         assert qubit_index == 0
         return PhasedXZGate(
@@ -189,7 +190,7 @@ class PhasedXZGate(gate_features.SingleQubitGate):
             axis_phase_exponent=self._axis_phase_exponent + phase_turns * 2,
         )
 
-    def _pauli_expansion_(self) -> 'cirq.LinearDict[str]':
+    def _pauli_expansion_(self) -> cirq.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         x_angle = np.pi * self._x_exponent / 2
@@ -208,7 +209,7 @@ class PhasedXZGate(gate_features.SingleQubitGate):
             }
         )  # yapf: disable
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> str:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> str:
         """See `cirq.SupportsCircuitDiagramInfo`."""
         return (
             f'PhXZ('

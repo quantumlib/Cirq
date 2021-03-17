@@ -14,6 +14,7 @@
 
 """Quantum gates that phase with respect to product-of-pauli observables."""
 
+from __future__ import annotations
 from typing import Optional, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
@@ -104,15 +105,13 @@ class XXPowGate(
         return NotImplemented
 
     def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> Union[str, 'protocols.CircuitDiagramInfo']:
+        self, args: cirq.CircuitDiagramInfoArgs
+    ) -> Union[str, protocols.CircuitDiagramInfo]:
         return protocols.CircuitDiagramInfo(
             wire_symbols=('XX', 'XX'), exponent=self._diagram_exponent(args)
         )
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple[cirq.Qid, ...], formatter: cirq.QuilFormatter) -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('X {0}\nX {1}\n', qubits[0], qubits[1])
         return formatter.format(
@@ -214,16 +213,12 @@ class YYPowGate(
             ]
         return NotImplemented
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(
             wire_symbols=('YY', 'YY'), exponent=self._diagram_exponent(args)
         )
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple[cirq.Qid, ...], formatter: cirq.QuilFormatter) -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('Y {0}\nY {1}\n', qubits[0], qubits[1])
 
@@ -291,14 +286,12 @@ class ZZPowGate(
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(
             wire_symbols=('ZZ', 'ZZ'), exponent=self._diagram_exponent(args)
         )
 
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
         if protocols.is_parameterized(self):
             return None
 
@@ -314,9 +307,7 @@ class ZZPowGate(
 
         return args.target_tensor
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple[cirq.Qid, ...], formatter: cirq.QuilFormatter) -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('Z {0}\nZ {1}\n', qubits[0], qubits[1])
 

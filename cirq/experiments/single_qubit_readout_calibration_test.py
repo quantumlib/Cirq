@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import List
 
 import numpy as np
@@ -20,7 +21,7 @@ import cirq
 
 
 class NoisySingleQubitReadoutSampler(cirq.Sampler):
-    def __init__(self, p0: float, p1: float, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+    def __init__(self, p0: float, p1: float, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
         """Sampler that flips some bits upon readout.
 
         Args:
@@ -35,7 +36,7 @@ class NoisySingleQubitReadoutSampler(cirq.Sampler):
 
     def run_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: cirq.Circuit,
         params: cirq.Sweepable,
         repetitions: int = 1,
     ) -> List[cirq.Result]:

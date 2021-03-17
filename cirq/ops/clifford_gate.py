@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Any, cast, Dict, NamedTuple, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
@@ -43,7 +44,7 @@ def _to_pauli_transform(matrix: np.ndarray) -> Optional[PauliTransform]:
     return None
 
 
-def _pretend_initialized() -> 'SingleQubitCliffordGate':
+def _pretend_initialized() -> SingleQubitCliffordGate:
     # HACK: This is a workaround to fool mypy and pylint into correctly handling
     # class fields that can't be initialized until after the class is defined.
     pass
@@ -75,9 +76,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         self._inverse_map = _inverse_map
 
     @staticmethod
-    def from_xz_map(
-        x_to: Tuple[Pauli, bool], z_to: Tuple[Pauli, bool]
-    ) -> 'SingleQubitCliffordGate':
+    def from_xz_map(x_to: Tuple[Pauli, bool], z_to: Tuple[Pauli, bool]) -> SingleQubitCliffordGate:
         """Returns a SingleQubitCliffordGate for the specified transforms.
         The Y transform is derived from the X and Z.
 
@@ -94,7 +93,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         x_to: Optional[Tuple[Pauli, bool]] = None,
         y_to: Optional[Tuple[Pauli, bool]] = None,
         z_to: Optional[Tuple[Pauli, bool]] = None,
-    ) -> 'SingleQubitCliffordGate':
+    ) -> SingleQubitCliffordGate:
         """Returns a SingleQubitCliffordGate for the
         specified transform with a 90 or 180 degree rotation.
 
@@ -131,7 +130,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         x_to: Optional[Tuple[Pauli, bool]] = None,
         y_to: Optional[Tuple[Pauli, bool]] = None,
         z_to: Optional[Tuple[Pauli, bool]] = None,
-    ) -> 'SingleQubitCliffordGate':
+    ) -> SingleQubitCliffordGate:
         """Returns a SingleQubitCliffordGate for the
         specified transform with a 90 or 180 degree rotation.
 
@@ -156,7 +155,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         return SingleQubitCliffordGate(_rotation_map=rotation_map, _inverse_map=inverse_map)
 
     @staticmethod
-    def from_pauli(pauli: Pauli, sqrt: bool = False) -> 'SingleQubitCliffordGate':
+    def from_pauli(pauli: Pauli, sqrt: bool = False) -> SingleQubitCliffordGate:
         prev_pauli = Pauli.by_relative_index(pauli, -1)
         next_pauli = Pauli.by_relative_index(pauli, 1)
         if sqrt:
@@ -175,7 +174,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         return SingleQubitCliffordGate(_rotation_map=rotation_map, _inverse_map=inverse_map)
 
     @staticmethod
-    def from_quarter_turns(pauli: Pauli, quarter_turns: int) -> 'SingleQubitCliffordGate':
+    def from_quarter_turns(pauli: Pauli, quarter_turns: int) -> SingleQubitCliffordGate:
         quarter_turns = quarter_turns % 4
         if quarter_turns == 0:
             return SingleQubitCliffordGate.I
@@ -218,7 +217,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         return {frm: PauliTransform(to, flip) for frm, (to, flip) in pauli_map_to.items()}
 
     @staticmethod
-    def from_unitary(u: np.ndarray) -> Optional['SingleQubitCliffordGate']:
+    def from_unitary(u: np.ndarray) -> Optional[SingleQubitCliffordGate]:
         """Creates Clifford gate with given unitary (up to global phase).
 
         Args:
@@ -249,7 +248,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             self.transform(pauli_gates.Z),
         )
 
-    def __pow__(self, exponent) -> 'SingleQubitCliffordGate':
+    def __pow__(self, exponent) -> SingleQubitCliffordGate:
         if exponent == 0.5 or exponent == -0.5:
             return SQRT_EXP_MAP[exponent][self]
         if exponent != -1:
@@ -266,7 +265,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             return self.commutes_with_pauli(other)
         return NotImplemented
 
-    def commutes_with_single_qubit_gate(self, gate: 'SingleQubitCliffordGate') -> bool:
+    def commutes_with_single_qubit_gate(self, gate: SingleQubitCliffordGate) -> bool:
         """Tests if the two circuits would be equivalent up to global phase:
         --self--gate-- and --gate--self--"""
         for pauli0 in (pauli_gates.X, pauli_gates.Z):
@@ -282,7 +281,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         to, flip = self.transform(pauli)
         return to == pauli and not flip
 
-    def merged_with(self, second: 'SingleQubitCliffordGate') -> 'SingleQubitCliffordGate':
+    def merged_with(self, second: SingleQubitCliffordGate) -> SingleQubitCliffordGate:
         """Returns a SingleQubitCliffordGate such that the circuits
             --output-- and --self--second--
         are equivalent up to global phase."""
@@ -304,7 +303,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             mat = protocols.unitary(op).dot(mat)
         return mat
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         (qubit,) = qubits
         if self == SingleQubitCliffordGate.H:
             return (common_gates.H(qubit),)
@@ -368,7 +367,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             False
         ), 'Impossible condition where this gate only rotates one Pauli to a different Pauli.'
 
-    def equivalent_gate_before(self, after: 'SingleQubitCliffordGate') -> 'SingleQubitCliffordGate':
+    def equivalent_gate_before(self, after: SingleQubitCliffordGate) -> SingleQubitCliffordGate:
         """Returns a SingleQubitCliffordGate such that the circuits
             --output--self-- and --self--gate--
         are equivalent up to global phase."""
@@ -386,9 +385,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             f'Y:{y_sign}{y.to!s}, Z:{z_sign}{z.to!s})'
         )
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         well_known_map = {
             SingleQubitCliffordGate.I: 'I',
             SingleQubitCliffordGate.H: 'H',

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 from typing import List, TYPE_CHECKING
 
 from cirq import ops, protocols
@@ -48,7 +49,7 @@ class ConvertToXmonGates(PointOptimizer):
         super().__init__()
         self.ignore_failures = ignore_failures
 
-    def _convert_one(self, op: 'cirq.Operation') -> 'cirq.OP_TREE':
+    def _convert_one(self, op: cirq.Operation) -> cirq.OP_TREE:
         # Known matrix?
         mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
         if mat is not None and len(op.qubits) == 1:
@@ -61,7 +62,7 @@ class ConvertToXmonGates(PointOptimizer):
 
         return NotImplemented
 
-    def _is_native_xmon_op(self, op: 'cirq.Operation') -> bool:
+    def _is_native_xmon_op(self, op: cirq.Operation) -> bool:
         """Check if the gate within an operation is a native xmon gate.
 
         Args:
@@ -74,7 +75,7 @@ class ConvertToXmonGates(PointOptimizer):
 
         return isinstance(op, ops.GateOperation) and XmonDevice.is_supported_gate(op.gate)
 
-    def convert(self, op: 'cirq.Operation') -> List['cirq.Operation']:
+    def convert(self, op: cirq.Operation) -> List[cirq.Operation]:
         def on_stuck_raise(bad):
             return TypeError(
                 "Don't know how to work with {!r}. "

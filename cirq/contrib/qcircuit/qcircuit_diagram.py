@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from cirq import circuits, ops
@@ -23,7 +24,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def qcircuit_qubit_namer(qubit: 'cirq.Qid') -> str:
+def qcircuit_qubit_namer(qubit: cirq.Qid) -> str:
     """Returns the latex code for a QCircuit label of given qubit.
 
     Args:

@@ -13,6 +13,7 @@
 # limitations under the License.
 """Code for generating random quantum circuits."""
 
+from __future__ import annotations
 import dataclasses
 import itertools
 from typing import (
@@ -179,20 +180,20 @@ document(
 
 
 def random_rotations_between_two_qubit_circuit(
-    q0: 'cirq.Qid',
-    q1: 'cirq.Qid',
+    q0: cirq.Qid,
+    q1: cirq.Qid,
     depth: int,
     two_qubit_op_factory: Callable[
-        ['cirq.Qid', 'cirq.Qid', 'np.random.RandomState'], 'cirq.OP_TREE'
+        [cirq.Qid, cirq.Qid, np.random.RandomState], cirq.OP_TREE
     ] = lambda a, b, _: ops.CZPowGate()(a, b),
-    single_qubit_gates: Sequence['cirq.Gate'] = (
+    single_qubit_gates: Sequence[cirq.Gate] = (
         ops.X ** 0.5,
         ops.Y ** 0.5,
         ops.PhasedXPowGate(phase_exponent=0.25, exponent=0.5),
     ),
     add_final_single_qubit_layer: bool = True,
-    seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-) -> 'cirq.Circuit':
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+) -> cirq.Circuit:
     """Generate a random two-qubit quantum circuit.
 
     This construction uses a similar structure to those in the paper
@@ -243,13 +244,13 @@ def random_rotations_between_two_qubit_circuit(
 
 def generate_library_of_2q_circuits(
     n_library_circuits: int,
-    two_qubit_gate: 'cirq.Gate',
+    two_qubit_gate: cirq.Gate,
     *,
     max_cycle_depth: int = 100,
-    q0: 'cirq.Qid' = devices.LineQubit(0),
-    q1: 'cirq.Qid' = devices.LineQubit(1),
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-) -> List['cirq.Circuit']:
+    q0: cirq.Qid = devices.LineQubit(0),
+    q1: cirq.Qid = devices.LineQubit(1),
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+) -> List[cirq.Circuit]:
     """Generate a library of two-qubit Circuits.
 
     For single-qubit gates, this uses PhasedXZGates where the axis-in-XY-plane is one
@@ -314,7 +315,7 @@ def _get_random_combinations(
     n_combinations: int,
     *,
     pair_gen: Iterator[Tuple[List[QidPairT], Any]],
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> List[CircuitLibraryCombination]:
     """For qubit pairs, prepare a set of combinations to efficiently sample
     parallel two-qubit XEB circuits.
@@ -364,7 +365,7 @@ def get_random_combinations_for_device(
     device_graph: nx.Graph,
     *,
     pattern: Sequence[GridInteractionLayer] = HALF_GRID_STAGGERED_PATTERN,
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> List[CircuitLibraryCombination]:
     """For a given device, prepare a set of combinations to efficiently sample
     parallel two-qubit XEB circuits.
@@ -418,7 +419,7 @@ def get_random_combinations_for_pairs(
     n_library_circuits: int,
     n_combinations: int,
     all_pairs: List[List[QidPairT]],
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> List[CircuitLibraryCombination]:
     """For an explicit nested list of pairs, prepare a set of combinations to efficiently sample
     parallel two-qubit XEB circuits.
@@ -458,7 +459,7 @@ def get_random_combinations_for_pairs(
     )
 
 
-def _pairs_from_moment(moment: 'cirq.Moment') -> List[QidPairT]:
+def _pairs_from_moment(moment: cirq.Moment) -> List[QidPairT]:
     """Helper function in `get_random_combinations_for_layer_circuit` pair generator.
 
     The moment should contain only two qubit operations, which define a list of qubit pairs.
@@ -475,8 +476,8 @@ def _pairs_from_moment(moment: 'cirq.Moment') -> List[QidPairT]:
 def get_random_combinations_for_layer_circuit(
     n_library_circuits: int,
     n_combinations: int,
-    layer_circuit: 'cirq.Circuit',
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    layer_circuit: cirq.Circuit,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> List[CircuitLibraryCombination]:
     """For a layer circuit, prepare a set of combinations to efficiently sample
     parallel two-qubit XEB circuits.
@@ -521,7 +522,7 @@ def get_grid_interaction_layer_circuit(
     device_graph: nx.Graph,
     pattern: Sequence[GridInteractionLayer] = HALF_GRID_STAGGERED_PATTERN,
     two_qubit_gate=ops.ISWAP ** 0.5,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Create a circuit representation of a grid interaction pattern on a given device topology.
 
     The resulting circuit is deterministic, of depth len(pattern), and consists of `two_qubit_gate`
@@ -546,21 +547,21 @@ def get_grid_interaction_layer_circuit(
 
 
 def random_rotations_between_grid_interaction_layers_circuit(
-    qubits: Iterable['cirq.GridQubit'],
+    qubits: Iterable[cirq.GridQubit],
     depth: int,
     *,  # forces keyword arguments
     two_qubit_op_factory: Callable[
-        ['cirq.GridQubit', 'cirq.GridQubit', 'np.random.RandomState'], 'cirq.OP_TREE'
+        [cirq.GridQubit, cirq.GridQubit, np.random.RandomState], cirq.OP_TREE
     ] = lambda a, b, _: ops.CZPowGate()(a, b),
     pattern: Sequence[GridInteractionLayer] = GRID_STAGGERED_PATTERN,
-    single_qubit_gates: Sequence['cirq.Gate'] = (
+    single_qubit_gates: Sequence[cirq.Gate] = (
         ops.X ** 0.5,
         ops.Y ** 0.5,
         ops.PhasedXPowGate(phase_exponent=0.25, exponent=0.5),
     ),
     add_final_single_qubit_layer: bool = True,
-    seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-) -> 'cirq.Circuit':
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+) -> cirq.Circuit:
     """Generate a random quantum circuit of a particular form.
 
     This construction is based on the circuits used in the paper
@@ -619,13 +620,13 @@ def random_rotations_between_grid_interaction_layers_circuit(
 
 
 def _coupled_qubit_pairs(
-    qubits: List['cirq.GridQubit'],
+    qubits: List[cirq.GridQubit],
 ) -> List[GridQubitPairT]:
     pairs = []
     qubit_set = set(qubits)
     for qubit in qubits:
 
-        def add_pair(neighbor: 'cirq.GridQubit'):
+        def add_pair(neighbor: cirq.GridQubit):
             if neighbor in qubit_set:
                 pairs.append((qubit, neighbor))
 
@@ -638,16 +639,16 @@ def _coupled_qubit_pairs(
 class _RandomSingleQubitLayerFactory:
     def __init__(
         self,
-        qubits: Sequence['cirq.Qid'],
-        single_qubit_gates: Sequence['cirq.Gate'],
-        prng: 'np.random.RandomState',
+        qubits: Sequence[cirq.Qid],
+        single_qubit_gates: Sequence[cirq.Gate],
+        prng: np.random.RandomState,
     ) -> None:
         self.qubits = qubits
         self.single_qubit_gates = single_qubit_gates
         self.prng = prng
 
-    def new_layer(self, previous_single_qubit_layer: 'cirq.Moment') -> 'cirq.Moment':
-        def random_gate(qubit: 'cirq.Qid') -> 'cirq.Gate':
+    def new_layer(self, previous_single_qubit_layer: cirq.Moment) -> cirq.Moment:
+        def random_gate(qubit: cirq.Qid) -> cirq.Gate:
             excluded_op = previous_single_qubit_layer.operation_at(qubit)
             excluded_gate = excluded_op.gate if excluded_op is not None else None
             g = self.single_qubit_gates[self.prng.randint(0, len(self.single_qubit_gates))]
@@ -659,10 +660,10 @@ class _RandomSingleQubitLayerFactory:
 
 
 class _FixedSingleQubitLayerFactory:
-    def __init__(self, fixed_single_qubit_layer: Dict['cirq.Qid', 'cirq.Gate']) -> None:
+    def __init__(self, fixed_single_qubit_layer: Dict[cirq.Qid, cirq.Gate]) -> None:
         self.fixed_single_qubit_layer = fixed_single_qubit_layer
 
-    def new_layer(self, previous_single_qubit_layer: 'cirq.Moment') -> 'cirq.Moment':
+    def new_layer(self, previous_single_qubit_layer: cirq.Moment) -> cirq.Moment:
         return ops.Moment(v.on(q) for q, v in self.fixed_single_qubit_layer.items())
 
 
@@ -670,9 +671,9 @@ _SingleQubitLayerFactory = Union[_FixedSingleQubitLayerFactory, _RandomSingleQub
 
 
 def _single_qubit_gates_arg_to_factory(
-    single_qubit_gates: Sequence['cirq.Gate'],
-    qubits: Sequence['cirq.Qid'],
-    prng: 'np.random.RandomState',
+    single_qubit_gates: Sequence[cirq.Gate],
+    qubits: Sequence[cirq.Qid],
+    prng: np.random.RandomState,
 ) -> _SingleQubitLayerFactory:
     """Parse the `single_qubit_gates` argument for circuit generation functions.
 
@@ -689,11 +690,11 @@ def _single_qubit_gates_arg_to_factory(
 def _two_qubit_layer(
     coupled_qubit_pairs: List[GridQubitPairT],
     two_qubit_op_factory: Callable[
-        ['cirq.GridQubit', 'cirq.GridQubit', 'np.random.RandomState'], 'cirq.OP_TREE'
+        [cirq.GridQubit, cirq.GridQubit, np.random.RandomState], cirq.OP_TREE
     ],
     layer: GridInteractionLayer,
-    prng: 'np.random.RandomState',
-) -> 'cirq.OP_TREE':
+    prng: np.random.RandomState,
+) -> cirq.OP_TREE:
     for a, b in coupled_qubit_pairs:
         if (a, b) in layer:
             yield two_qubit_op_factory(a, b, prng)

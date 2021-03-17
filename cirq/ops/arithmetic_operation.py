@@ -13,6 +13,7 @@
 # limitations under the License.
 """Helper class for implementing classical arithmetic operations."""
 
+from __future__ import annotations
 import abc
 import itertools
 from typing import Union, Iterable, List, Sequence, cast, TypeVar, TYPE_CHECKING
@@ -85,7 +86,7 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def registers(self) -> Sequence[Union[int, Sequence['cirq.Qid']]]:
+    def registers(self) -> Sequence[Union[int, Sequence[cirq.Qid]]]:
         """The data acted upon by the arithmetic operation.
 
         Each register in the list can either be a classical constant (an `int`),
@@ -103,7 +104,7 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def with_registers(self: TSelf, *new_registers: Union[int, Sequence['cirq.Qid']]) -> TSelf:
+    def with_registers(self: TSelf, *new_registers: Union[int, Sequence[cirq.Qid]]) -> TSelf:
         """Returns the same operation targeting different registers.
 
         Args:
@@ -171,8 +172,8 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
             for qubit in register
         )
 
-    def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
-        new_registers: List[Union[int, Sequence['cirq.Qid']]] = []
+    def with_qubits(self: TSelf, *new_qubits: cirq.Qid) -> TSelf:
+        new_registers: List[Union[int, Sequence[cirq.Qid]]] = []
         qs = iter(new_qubits)
         for register in self.registers():
             if isinstance(register, int):
@@ -181,7 +182,7 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
                 new_registers.append([next(qs) for _ in register])
         return self.with_registers(*new_registers)
 
-    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
         registers = self.registers()
         input_ranges: List[Sequence[int]] = []
         shape = []
@@ -242,7 +243,7 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
 
 
 def _describe_bad_arithmetic_changed_const(
-    registers: Sequence[Union[int, Sequence['cirq.Qid']]], inputs: List[int], outputs: List[int]
+    registers: Sequence[Union[int, Sequence[cirq.Qid]]], inputs: List[int], outputs: List[int]
 ) -> str:
     from cirq.circuits import TextDiagramDrawer
 

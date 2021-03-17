@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import List, Union, Sequence, Dict, Optional, TYPE_CHECKING
 
 from cirq import ops, value
@@ -50,7 +51,7 @@ def random_circuit(
     n_moments: int,
     op_density: float,
     gate_domain: Optional[Dict[ops.Gate, int]] = None,
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> Circuit:
     """Generates a random circuit.
 
@@ -128,7 +129,7 @@ def random_two_qubit_circuit_with_czs(
     num_czs: int = 3,
     q0: Qid = None,
     q1: Qid = None,
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> Circuit:
     """Creates a random two qubit circuit with the given number of CNOTs.
 

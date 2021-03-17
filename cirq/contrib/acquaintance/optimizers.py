@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import cast, FrozenSet, List, Sequence, Set, TYPE_CHECKING
 
 from cirq import ops
@@ -26,7 +27,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def remove_redundant_acquaintance_opportunities(strategy: 'cirq.Circuit') -> int:
+def remove_redundant_acquaintance_opportunities(strategy: cirq.Circuit) -> int:
     """Removes redundant acquaintance opportunities."""
     if not is_acquaintance_strategy(strategy):
         raise TypeError('not is_acquaintance_strategy(circuit)')
@@ -38,11 +39,11 @@ def remove_redundant_acquaintance_opportunities(strategy: 'cirq.Circuit') -> int
     annotated_strategy = strategy.copy()
     LogicalAnnotator(mapping)(annotated_strategy)
 
-    new_moments: List['cirq.Moment'] = []
+    new_moments: List[cirq.Moment] = []
     acquaintance_opps: Set[FrozenSet[int]] = set()
     n_removed = 0
     for moment in annotated_strategy:
-        new_moment: List['cirq.Operation'] = []
+        new_moment: List[cirq.Operation] = []
         for op in moment:
             if isinstance(op, AcquaintanceOperation):
                 opp = frozenset(cast(Sequence[int], op.logical_indices))

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 from typing import Iterator, List, Optional, TYPE_CHECKING
 
 import math
@@ -448,7 +449,7 @@ def create_corrected_circuit(
     yield from _phased_x_z_ops(a_1, q1)
 
 
-def _phased_x_z_ops(mat: np.ndarray, q: 'cirq.Qid') -> Iterator['cirq.Operation']:
+def _phased_x_z_ops(mat: np.ndarray, q: cirq.Qid) -> Iterator[cirq.Operation]:
     gate = optimizers.single_qubit_matrix_to_phxz(mat)
     if gate:
         yield gate(q)

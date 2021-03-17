@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import functools
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, TypeVar, TYPE_CHECKING
 
@@ -40,14 +41,14 @@ class _BaseLineQid(ops.Qid):
     def x(self) -> int:
         return self._x
 
-    def with_dimension(self, dimension: int) -> 'LineQid':
+    def with_dimension(self, dimension: int) -> LineQid:
         return LineQid(self.x, dimension)
 
-    def is_adjacent(self, other: 'cirq.Qid') -> bool:
+    def is_adjacent(self, other: cirq.Qid) -> bool:
         """Determines if two qubits are adjacent line qubits."""
         return isinstance(other, _BaseLineQid) and abs(self.x - other.x) == 1
 
-    def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set['_BaseLineQid']:
+    def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None) -> Set[_BaseLineQid]:
         """Returns qubits that are potential neighbors to this LineQubit
 
         Args:
@@ -140,11 +141,11 @@ class LineQid(_BaseLineQid):
     def dimension(self):
         return self._dimension
 
-    def _with_x(self, x: int) -> 'LineQid':
+    def _with_x(self, x: int) -> LineQid:
         return LineQid(x, dimension=self.dimension)
 
     @staticmethod
-    def range(*range_args, dimension: int) -> List['LineQid']:
+    def range(*range_args, dimension: int) -> List[LineQid]:
         """Returns a range of line qids.
 
         Args:
@@ -158,7 +159,7 @@ class LineQid(_BaseLineQid):
         return [LineQid(i, dimension=dimension) for i in range(*range_args)]
 
     @staticmethod
-    def for_qid_shape(qid_shape: Sequence[int], start: int = 0, step: int = 1) -> List['LineQid']:
+    def for_qid_shape(qid_shape: Sequence[int], start: int = 0, step: int = 1) -> List[LineQid]:
         """Returns a range of line qids for each entry in `qid_shape` with
         matching dimension.
 
@@ -172,7 +173,7 @@ class LineQid(_BaseLineQid):
         ]
 
     @staticmethod
-    def for_gate(val: Any, start: int = 0, step: int = 1) -> List['LineQid']:
+    def for_gate(val: Any, start: int = 0, step: int = 1) -> List[LineQid]:
         """Returns a range of line qids with the same qid shape as the gate.
 
         Args:
@@ -216,7 +217,7 @@ class LineQubit(_BaseLineQid):
     def dimension(self) -> int:
         return 2
 
-    def _with_x(self, x: int) -> 'LineQubit':
+    def _with_x(self, x: int) -> LineQubit:
         return LineQubit(x)
 
     def _cmp_tuple(self):
@@ -226,7 +227,7 @@ class LineQubit(_BaseLineQid):
         return (cls.__name__, repr(cls), self._comparison_key(), self.dimension)
 
     @staticmethod
-    def range(*range_args) -> List['LineQubit']:
+    def range(*range_args) -> List[LineQubit]:
         """Returns a range of line qubits.
 
         Args:

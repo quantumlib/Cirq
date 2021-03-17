@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 import abc
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict, Sequence, Tuple, Iterator
@@ -27,7 +28,7 @@ if TYPE_CHECKING:
 class _NamedOneQubitState(metaclass=abc.ABCMeta):
     """Abstract class representing a one-qubit state of note."""
 
-    def on(self, qubit: 'cirq.Qid') -> 'ProductState':
+    def on(self, qubit: cirq.Qid) -> ProductState:
         """Associates one qubit with this named state.
 
         The returned object is a ProductState of length 1.
@@ -56,7 +57,7 @@ class ProductState:
     with `cirq.KET_PLUS(q0)`.
     """
 
-    states: Dict['cirq.Qid', _NamedOneQubitState]
+    states: Dict[cirq.Qid, _NamedOneQubitState]
 
     def __init__(self, states=None):
         if states is None:
@@ -66,10 +67,10 @@ class ProductState:
         object.__setattr__(self, 'states', states)
 
     @property
-    def qubits(self) -> Sequence['cirq.Qid']:
+    def qubits(self) -> Sequence[cirq.Qid]:
         return sorted(self.states.keys())
 
-    def __mul__(self, other: 'cirq.ProductState') -> 'cirq.ProductState':
+    def __mul__(self, other: cirq.ProductState) -> cirq.ProductState:
         if not isinstance(other, ProductState):
             raise ValueError("Multiplication is only supported with other TensorProductStates.")
 
@@ -93,11 +94,11 @@ class ProductState:
         )
         return 'cirq.ProductState({%s})' % states_dict_repr
 
-    def __getitem__(self, qubit: 'cirq.Qid') -> _NamedOneQubitState:
+    def __getitem__(self, qubit: cirq.Qid) -> _NamedOneQubitState:
         """Return the _NamedOneQubitState at the given qubit."""
         return self.states[qubit]
 
-    def __iter__(self) -> Iterator[Tuple['cirq.Qid', _NamedOneQubitState]]:
+    def __iter__(self) -> Iterator[Tuple[cirq.Qid, _NamedOneQubitState]]:
         yield from self.states.items()
 
     def __len__(self) -> int:
@@ -122,7 +123,7 @@ class ProductState:
     def _from_json_dict_(cls, states, **kwargs):
         return cls(states=dict(states))
 
-    def state_vector(self, qubit_order: 'cirq.QubitOrder' = None) -> np.ndarray:
+    def state_vector(self, qubit_order: cirq.QubitOrder = None) -> np.ndarray:
         """The state-vector representation of this state."""
         from cirq import ops
 
@@ -139,7 +140,7 @@ class ProductState:
 
         return mat
 
-    def projector(self, qubit_order: 'cirq.QubitOrder' = None) -> np.ndarray:
+    def projector(self, qubit_order: cirq.QubitOrder = None) -> np.ndarray:
         """The projector associated with this state expressed as a matrix.
 
         This is |s⟩⟨s| where |s⟩ is this state.
@@ -177,7 +178,7 @@ class _PauliEigenState(_NamedOneQubitState):
         return f'cirq.{self._symbol}.basis[{self.eigenvalue:+d}]'
 
     @abc.abstractmethod
-    def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
+    def stabilized_by(self) -> Tuple[int, cirq.Pauli]:
         pass
 
     def __eq__(self, other) -> bool:
@@ -205,7 +206,7 @@ class _XEigenState(_PauliEigenState):
         # coverage: ignore
         raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
 
-    def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
+    def stabilized_by(self) -> Tuple[int, cirq.Pauli]:
         # Prevent circular import from `value.value_equality`
         from cirq import ops
 
@@ -223,7 +224,7 @@ class _YEigenState(_PauliEigenState):
         # coverage: ignore
         raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
 
-    def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
+    def stabilized_by(self) -> Tuple[int, cirq.Pauli]:
         from cirq import ops
 
         return self.eigenvalue, ops.Y
@@ -240,7 +241,7 @@ class _ZEigenState(_PauliEigenState):
         # coverage: ignore
         raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
 
-    def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
+    def stabilized_by(self) -> Tuple[int, cirq.Pauli]:
         from cirq import ops
 
         return self.eigenvalue, ops.Z

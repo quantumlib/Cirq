@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A no-qubit global phase operation."""
+from __future__ import annotations
 from typing import Any, Dict, Tuple, TYPE_CHECKING
 
 import numpy as np
@@ -31,10 +32,10 @@ class GlobalPhaseOperation(raw_types.Operation):
         self.coefficient = coefficient
 
     @property
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
+    def qubits(self) -> Tuple[cirq.Qid, ...]:
         return ()
 
-    def with_qubits(self, *new_qubits) -> 'GlobalPhaseOperation':
+    def with_qubits(self, *new_qubits) -> GlobalPhaseOperation:
         if new_qubits:
             raise ValueError(f'{self!r} applies to 0 qubits but new_qubits={new_qubits!r}.')
         return self

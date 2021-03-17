@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Dict, List
 
 import numpy as np
@@ -26,7 +27,7 @@ from cirq.work import sampler
 class StabilizerSampler(sampler.Sampler):
     """An efficient sampler for stabilizer circuits."""
 
-    def __init__(self, *, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+    def __init__(self, *, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
         """
         Args:
             seed: The random seed or generator to use when sampling.
@@ -36,10 +37,10 @@ class StabilizerSampler(sampler.Sampler):
 
     def run_sweep(
         self,
-        program: 'cirq.Circuit',
-        params: 'cirq.Sweepable',
+        program: cirq.Circuit,
+        params: cirq.Sweepable,
         repetitions: int = 1,
-    ) -> List['cirq.Result']:
+    ) -> List[cirq.Result]:
         results: List[cirq.Result] = []
         for param_resolver in cirq.to_resolvers(params):
             resolved_circuit = cirq.resolve_parameters(program, param_resolver)

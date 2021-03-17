@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 import json
 import urllib.parse
 from typing import (
@@ -47,12 +48,12 @@ if TYPE_CHECKING:
 def quirk_url_to_circuit(
     quirk_url: str,
     *,
-    qubits: Optional[Sequence['cirq.Qid']] = None,
+    qubits: Optional[Sequence[cirq.Qid]] = None,
     extra_cell_makers: Union[
-        Dict[str, 'cirq.Gate'], Iterable['cirq.interop.quirk.cells.CellMaker']
+        Dict[str, cirq.Gate], Iterable[cirq.interop.quirk.cells.CellMaker]
     ] = (),
     max_operation_count: int = 10 ** 6,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Parses a Cirq circuit out of a Quirk URL.
 
     Args:
@@ -149,13 +150,13 @@ def quirk_url_to_circuit(
 def quirk_json_to_circuit(
     data: dict,
     *,
-    qubits: Optional[Sequence['cirq.Qid']] = None,
+    qubits: Optional[Sequence[cirq.Qid]] = None,
     extra_cell_makers: Union[
-        Dict[str, 'cirq.Gate'], Iterable['cirq.interop.quirk.cells.CellMaker']
+        Dict[str, cirq.Gate], Iterable[cirq.interop.quirk.cells.CellMaker]
     ] = (),
     quirk_url: Optional[str] = None,
     max_operation_count: int = 10 ** 6,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Constructs a Cirq circuit from Quirk's JSON format.
 
     Args:
@@ -237,7 +238,7 @@ def quirk_json_to_circuit(
     if qubits is not None:
         qs = cast(Sequence['cirq.Qid'], qubits)
 
-        def map_qubit(qubit: 'cirq.Qid') -> 'cirq.Qid':
+        def map_qubit(qubit: cirq.Qid) -> cirq.Qid:
             q = cast(devices.LineQubit, qubit)
             if q.x >= len(qs):
                 raise IndexError(
@@ -341,7 +342,7 @@ def _register_custom_gate(gate_json: Any, registry: Dict[str, CellMaker]):
         )
 
 
-def _init_ops(data: Dict[str, Any]) -> 'cirq.OP_TREE':
+def _init_ops(data: Dict[str, Any]) -> cirq.OP_TREE:
     if 'init' not in data:
         return []
     init = data['init']

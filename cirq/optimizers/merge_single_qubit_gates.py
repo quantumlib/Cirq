@@ -14,6 +14,7 @@
 
 """An optimization pass that combines adjacent single-qubit rotations."""
 
+from __future__ import annotations
 from typing import Optional, Callable, List, TYPE_CHECKING
 
 import numpy as np
@@ -110,7 +111,7 @@ def merge_single_qubit_gates_into_phased_x_z(circuit: circuits.Circuit, atol: fl
             negligible gates to be dropped, smaller values increase accuracy.
     """
 
-    def synth(qubit: 'cirq.Qid', matrix: np.ndarray) -> List[ops.Operation]:
+    def synth(qubit: cirq.Qid, matrix: np.ndarray) -> List[ops.Operation]:
         out_gates = decompositions.single_qubit_matrix_to_phased_x_z(matrix, atol)
         return [gate(qubit) for gate in out_gates]
 
@@ -132,7 +133,7 @@ def merge_single_qubit_gates_into_phxz(
             negligible gates to be dropped, smaller values increase accuracy.
     """
 
-    def synth(qubit: 'cirq.Qid', matrix: np.ndarray) -> List[ops.Operation]:
+    def synth(qubit: cirq.Qid, matrix: np.ndarray) -> List[ops.Operation]:
         gate = decompositions.single_qubit_matrix_to_phxz(matrix, atol)
         return [gate(qubit)] if gate else []
 

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from cirq.google.line.placement import greedy
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
 
 
 def line_on_device(
-    device: 'cirq.google.XmonDevice',
+    device: cirq.google.XmonDevice,
     length: int,
     method: LinePlacementStrategy = greedy.GreedySequenceSearchStrategy(),
 ) -> GridQubitLineTuple:

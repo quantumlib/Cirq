@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 from typing import (
     cast,
     Dict,
@@ -54,13 +55,13 @@ class MeasureInfo:
     """
 
     key: str
-    qubits: List['cirq.GridQubit']
+    qubits: List[cirq.GridQubit]
     slot: int
     invert_mask: List[bool]
     tags: List[Hashable]
 
 
-def find_measurements(program: 'cirq.Circuit') -> List[MeasureInfo]:
+def find_measurements(program: cirq.Circuit) -> List[MeasureInfo]:
     """Find measurements in the given program (circuit).
 
     Returns:
@@ -83,7 +84,7 @@ def find_measurements(program: 'cirq.Circuit') -> List[MeasureInfo]:
     return measurements
 
 
-def _circuit_measurements(circuit: 'cirq.Circuit') -> Iterator[MeasureInfo]:
+def _circuit_measurements(circuit: cirq.Circuit) -> Iterator[MeasureInfo]:
     for i, moment in enumerate(circuit):
         for op in moment:
             if isinstance(op.gate, ops.MeasurementGate):
@@ -96,7 +97,7 @@ def _circuit_measurements(circuit: 'cirq.Circuit') -> Iterator[MeasureInfo]:
                 )
 
 
-def _grid_qubits(op: 'cirq.Operation') -> List['cirq.GridQubit']:
+def _grid_qubits(op: cirq.Operation) -> List[cirq.GridQubit]:
     if not all(isinstance(q, devices.GridQubit) for q in op.qubits):
         raise ValueError(f'Expected GridQubits: {op.qubits}')
     return cast(List['cirq.GridQubit'], list(op.qubits))

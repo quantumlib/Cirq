@@ -14,6 +14,7 @@
 
 """Basic types defining qubits, gates, and operations."""
 
+from __future__ import annotations
 import re
 from typing import (
     AbstractSet,
@@ -51,7 +52,7 @@ class GateOperation(raw_types.Operation):
     Objects of this type are immutable.
     """
 
-    def __init__(self, gate: 'cirq.Gate', qubits: Sequence['cirq.Qid']) -> None:
+    def __init__(self, gate: cirq.Gate, qubits: Sequence[cirq.Qid]) -> None:
         """
         Args:
             gate: The gate to apply.
@@ -62,19 +63,19 @@ class GateOperation(raw_types.Operation):
         self._qubits = tuple(qubits)
 
     @property
-    def gate(self) -> 'cirq.Gate':
+    def gate(self) -> cirq.Gate:
         """The gate applied by the operation."""
         return self._gate
 
     @property
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
+    def qubits(self) -> Tuple[cirq.Qid, ...]:
         """The qubits targeted by the operation."""
         return self._qubits
 
-    def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
+    def with_qubits(self: TSelf, *new_qubits: cirq.Qid) -> TSelf:
         return cast(TSelf, self.gate.on(*new_qubits))
 
-    def with_gate(self, new_gate: 'cirq.Gate') -> 'cirq.Operation':
+    def with_gate(self, new_gate: cirq.Gate) -> cirq.Operation:
         if self.gate is new_gate:
             # As GateOperation is immutable, this can return the original.
             return self
@@ -116,12 +117,12 @@ class GateOperation(raw_types.Operation):
 
     def _group_interchangeable_qubits(
         self,
-    ) -> Tuple[Union['cirq.Qid', Tuple[int, FrozenSet['cirq.Qid']]], ...]:
+    ) -> Tuple[Union[cirq.Qid, Tuple[int, FrozenSet[cirq.Qid]]], ...]:
 
         if not isinstance(self.gate, gate_features.InterchangeableQubitsGate):
             return self.qubits
 
-        groups: Dict[int, List['cirq.Qid']] = {}
+        groups: Dict[int, List[cirq.Qid]] = {}
         for i, q in enumerate(self.qubits):
             k = self.gate.qubit_index_to_equivalence_group_key(i)
             if k not in groups:
@@ -138,7 +139,7 @@ class GateOperation(raw_types.Operation):
     def _num_qubits_(self):
         return len(self._qubits)
 
-    def _decompose_(self) -> 'cirq.OP_TREE':
+    def _decompose_(self) -> cirq.OP_TREE:
         return protocols.decompose_once_with_qubits(self.gate, self.qubits, NotImplemented)
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
@@ -148,7 +149,7 @@ class GateOperation(raw_types.Operation):
         return NotImplemented
 
     def _apply_unitary_(
-        self, args: 'protocols.ApplyUnitaryArgs'
+        self, args: protocols.ApplyUnitaryArgs
     ) -> Union[np.ndarray, None, NotImplementedType]:
         getter = getattr(self.gate, '_apply_unitary_', None)
         if getter is not None:
@@ -234,9 +235,7 @@ class GateOperation(raw_types.Operation):
         resolved_gate = protocols.resolve_parameters(self.gate, resolver, recursive)
         return self.with_gate(resolved_gate)
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         return protocols.circuit_diagram_info(self.gate, args, NotImplemented)
 
     def _decompose_into_clifford_(self):
@@ -251,13 +250,13 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'GateOperation':
+    def _phase_by_(self, phase_turns: float, qubit_index: int) -> GateOperation:
         phased_gate = protocols.phase_by(self.gate, phase_turns, qubit_index, default=None)
         if phased_gate is None:
             return NotImplemented
         return GateOperation(phased_gate, self._qubits)
 
-    def __pow__(self, exponent: Any) -> 'cirq.Operation':
+    def __pow__(self, exponent: Any) -> cirq.Operation:
         """Raise gate to a power, then reapply to the same qubits.
 
         Only works if the gate implements cirq.ExtrapolatableEffect.
@@ -288,10 +287,10 @@ class GateOperation(raw_types.Operation):
     def __rmul__(self, other: Any) -> Any:
         return self.gate._rmul_with_qubits(self._qubits, other)
 
-    def _qasm_(self, args: 'protocols.QasmArgs') -> Optional[str]:
+    def _qasm_(self, args: protocols.QasmArgs) -> Optional[str]:
         return protocols.qasm(self.gate, args=args, qubits=self.qubits, default=None)
 
-    def _quil_(self, formatter: 'protocols.QuilFormatter') -> Optional[str]:
+    def _quil_(self, formatter: protocols.QuilFormatter) -> Optional[str]:
         return protocols.quil(self.gate, qubits=self.qubits, formatter=formatter)
 
     def _equal_up_to_global_phase_(

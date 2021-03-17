@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Any, Dict, Union
 import numpy as np
 
@@ -85,7 +86,7 @@ class StabilizerStateChForm:
     def _value_equality_values_(self) -> Any:
         return (self.n, self.G, self.F, self.M, self.gamma, self.v, self.s, self.omega)
 
-    def copy(self) -> 'cirq.StabilizerStateChForm':
+    def copy(self) -> cirq.StabilizerStateChForm:
         copy = StabilizerStateChForm(self.n)
 
         copy.G = self.G.copy()

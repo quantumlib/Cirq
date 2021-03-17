@@ -12,6 +12,7 @@
 # limitations under the License.
 """A `cirq.Sampler` implementation for the IonQ API."""
 
+from __future__ import annotations
 from typing import List, Optional, TYPE_CHECKING
 
 from cirq import protocols, study, work
@@ -41,9 +42,9 @@ class Sampler(work.Sampler):
 
     def __init__(
         self,
-        service: 'cirq.ionq.Service',
+        service: cirq.ionq.Service,
         target: Optional[str],
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ):
         """Construct the sampler.
 
@@ -63,10 +64,10 @@ class Sampler(work.Sampler):
 
     def run_sweep(
         self,
-        program: 'cirq.Circuit',
-        params: 'cirq.Sweepable',
+        program: cirq.Circuit,
+        params: cirq.Sweepable,
         repetitions: int = 1,
-    ) -> List['cirq.Result']:
+    ) -> List[cirq.Result]:
         """Runs a sweep for the given Circuit.
 
         Note that this creates jobs for each of the sweeps in the given sweepable, and then

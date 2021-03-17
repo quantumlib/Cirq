@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import DefaultDict, Dict, Sequence, TYPE_CHECKING
 
 import abc
@@ -45,7 +46,7 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def device(self) -> 'cirq.Device':
+    def device(self) -> cirq.Device:
         """The device for which the executed acquaintance strategy should be
         valid.
         """
@@ -57,8 +58,8 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_operations(
-        self, indices: Sequence[LogicalIndex], qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.OP_TREE':
+        self, indices: Sequence[LogicalIndex], qubits: Sequence[cirq.Qid]
+    ) -> cirq.OP_TREE:
         """Gets the logical operations to apply to qubits."""
 
     def __call__(self, *args, **kwargs):
@@ -73,7 +74,7 @@ class StrategyExecutor(circuits.PointOptimizer):
         self.execution_strategy = execution_strategy
         self.mapping = execution_strategy.initial_mapping.copy()
 
-    def __call__(self, strategy: 'cirq.Circuit'):
+    def __call__(self, strategy: cirq.Circuit):
         if not is_acquaintance_strategy(strategy):
             raise TypeError('not is_acquaintance_strategy(strategy)')
         expose_acquaintance_gates(strategy)
@@ -81,7 +82,7 @@ class StrategyExecutor(circuits.PointOptimizer):
         super().optimize_circuit(strategy)
         return self.mapping.copy()
 
-    def optimization_at(self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'):
+    def optimization_at(self, circuit: cirq.Circuit, index: int, op: cirq.Operation):
         if isinstance(op.gate, AcquaintanceOpportunityGate):
             logical_indices = tuple(self.mapping[q] for q in op.qubits)
             logical_operations = self.execution_strategy.get_operations(logical_indices, op.qubits)
@@ -107,17 +108,13 @@ class AcquaintanceOperation(ops.GateOperation):
     logical indices on a particular set of physical qubits.
     """
 
-    def __init__(
-        self, qubits: Sequence['cirq.Qid'], logical_indices: Sequence[LogicalIndex]
-    ) -> None:
+    def __init__(self, qubits: Sequence[cirq.Qid], logical_indices: Sequence[LogicalIndex]) -> None:
         if len(logical_indices) != len(qubits):
             raise ValueError('len(logical_indices) != len(qubits)')
         super().__init__(AcquaintanceOpportunityGate(num_qubits=len(qubits)), qubits)
         self.logical_indices: LogicalIndexSequence = logical_indices
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         wire_symbols = tuple(f'({i})' for i in self.logical_indices)
         return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
@@ -130,7 +127,7 @@ class GreedyExecutionStrategy(ExecutionStrategy):
     """
 
     def __init__(
-        self, gates: LogicalGates, initial_mapping: LogicalMapping, device: 'cirq.Device' = None
+        self, gates: LogicalGates, initial_mapping: LogicalMapping, device: cirq.Device = None
     ) -> None:
         """
         Args:
@@ -151,12 +148,12 @@ class GreedyExecutionStrategy(ExecutionStrategy):
         return self._initial_mapping
 
     @property
-    def device(self) -> 'cirq.Device':
+    def device(self) -> cirq.Device:
         return self._device
 
     def get_operations(
-        self, indices: Sequence[LogicalIndex], qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.OP_TREE':
+        self, indices: Sequence[LogicalIndex], qubits: Sequence[cirq.Qid]
+    ) -> cirq.OP_TREE:
         index_set = frozenset(indices)
         if index_set in self.index_set_to_gates:
             gates = self.index_set_to_gates.pop(index_set)

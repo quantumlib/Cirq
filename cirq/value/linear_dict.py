@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Linear combination represented as mapping of things to coefficients."""
+from __future__ import annotations
 import numbers
 from typing import (
     Any,
@@ -123,14 +124,14 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         if not self._is_valid(vector):
             raise ValueError(f'{vector} is not compatible with linear combination {self}')
 
-    def clean(self: 'TSelf', *, atol: float = 1e-9) -> 'TSelf':
+    def clean(self: TSelf, *, atol: float = 1e-9) -> TSelf:
         """Remove terms with coefficients of absolute value atol or less."""
         negligible = [v for v, c in self._terms.items() if abs(c) <= atol]
         for v in negligible:
             del self._terms[v]
         return self
 
-    def copy(self: 'TSelf') -> 'TSelf':
+    def copy(self: TSelf) -> TSelf:
         factory = type(self)
         return factory(self._terms.copy())
 
@@ -206,19 +207,19 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
     def __len__(self) -> int:
         return len([v for v, c in self._terms.items() if c != 0])
 
-    def __iadd__(self: 'TSelf', other: 'TSelf') -> 'TSelf':
+    def __iadd__(self: TSelf, other: TSelf) -> TSelf:
         for vector, other_coefficient in other.items():
             old_coefficient = self._terms.get(vector, 0)
             new_coefficient = old_coefficient + other_coefficient
             self[vector] = new_coefficient
         return self.clean(atol=0)
 
-    def __add__(self: 'TSelf', other: 'TSelf') -> 'TSelf':
+    def __add__(self: TSelf, other: TSelf) -> TSelf:
         result = self.copy()
         result += other
         return result
 
-    def __isub__(self: 'TSelf', other: 'TSelf') -> 'TSelf':
+    def __isub__(self: TSelf, other: TSelf) -> TSelf:
         for vector, other_coefficient in other.items():
             old_coefficient = self._terms.get(vector, 0)
             new_coefficient = old_coefficient - other_coefficient
@@ -226,30 +227,30 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         self.clean(atol=0)
         return self
 
-    def __sub__(self: 'TSelf', other: 'TSelf') -> 'TSelf':
+    def __sub__(self: TSelf, other: TSelf) -> TSelf:
         result = self.copy()
         result -= other
         return result
 
-    def __neg__(self: 'TSelf') -> 'TSelf':
+    def __neg__(self: TSelf) -> TSelf:
         factory = type(self)
         return factory({v: -c for v, c in self.items()})
 
-    def __imul__(self: 'TSelf', a: Scalar) -> 'TSelf':
+    def __imul__(self: TSelf, a: Scalar) -> TSelf:
         for vector in self:
             self._terms[vector] *= a
         self.clean(atol=0)
         return self
 
-    def __mul__(self: 'TSelf', a: Scalar) -> 'TSelf':
+    def __mul__(self: TSelf, a: Scalar) -> TSelf:
         result = self.copy()
         result *= a
         return result
 
-    def __rmul__(self: 'TSelf', a: Scalar) -> 'TSelf':
+    def __rmul__(self: TSelf, a: Scalar) -> TSelf:
         return self.__mul__(a)
 
-    def __truediv__(self: 'TSelf', a: Scalar) -> 'TSelf':
+    def __truediv__(self: TSelf, a: Scalar) -> TSelf:
         return self.__mul__(1 / a)
 
     def __bool__(self) -> bool:

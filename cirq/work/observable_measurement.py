@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import dataclasses
 import itertools
 from typing import Iterable, List, Tuple, TYPE_CHECKING, Sequence, Dict
@@ -31,10 +32,10 @@ if TYPE_CHECKING:
 
 
 def _with_parameterized_layers(
-    circuit: 'cirq.Circuit',
-    qubits: Sequence['cirq.Qid'],
+    circuit: cirq.Circuit,
+    qubits: Sequence[cirq.Qid],
     needs_init_layer: bool,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Return a copy of the input circuit with parameterized single-qubit rotations.
 
     These rotations flank the circuit: the initial two layers of X and Y gates
@@ -60,7 +61,7 @@ def _with_parameterized_layers(
     return total_circuit
 
 
-_OBS_TO_PARAM_VAL: Dict[Tuple['cirq.Pauli', bool], Tuple[float, float]] = {
+_OBS_TO_PARAM_VAL: Dict[Tuple[cirq.Pauli, bool], Tuple[float, float]] = {
     (ops.X, False): (0, -1 / 2),
     (ops.X, True): (0, +1 / 2),
     (ops.Y, False): (1 / 2, 0),
@@ -72,7 +73,7 @@ _OBS_TO_PARAM_VAL: Dict[Tuple['cirq.Pauli', bool], Tuple[float, float]] = {
 second element in the key is whether to measure in the positive or negative (flipped) basis
 for readout symmetrization."""
 
-_STATE_TO_PARAM_VAL: Dict['_NamedOneQubitState', Tuple[float, float]] = {
+_STATE_TO_PARAM_VAL: Dict[_NamedOneQubitState, Tuple[float, float]] = {
     value.KET_PLUS: (0, +1 / 2),
     value.KET_MINUS: (0, -1 / 2),
     value.KET_IMAG: (-1 / 2, 0),
@@ -86,7 +87,7 @@ _STATE_TO_PARAM_VAL: Dict['_NamedOneQubitState', Tuple[float, float]] = {
 def _get_params_for_setting(
     setting: InitObsSetting,
     flips: Iterable[bool],
-    qubits: Sequence['cirq.Qid'],
+    qubits: Sequence[cirq.Qid],
     needs_init_layer: bool,
 ) -> Dict[str, float]:
     """Return the parameter dictionary for the given setting.
@@ -127,9 +128,9 @@ def _get_params_for_setting(
 
 def _pad_setting(
     max_setting: InitObsSetting,
-    qubits: List['cirq.Qid'],
+    qubits: List[cirq.Qid],
     pad_init_state_with=value.KET_ZERO,
-    pad_obs_with: 'cirq.Gate' = ops.Z,
+    pad_obs_with: cirq.Gate = ops.Z,
 ) -> InitObsSetting:
     """Pad `max_setting`'s `init_state` and `observable` with `pad_xx_with` operations
     (defaults:  |0> and Z) so each max_setting has the same qubits. We need this
@@ -160,7 +161,7 @@ class _FlippyMeasSpec:
 
     meas_spec: _MeasurementSpec
     flips: np.ndarray
-    qubits: Sequence['cirq.Qid']
+    qubits: Sequence[cirq.Qid]
 
     def param_tuples(self, *, needs_init_layer=True):
         yield from _get_params_for_setting(
@@ -175,7 +176,7 @@ class _FlippyMeasSpec:
 def _subdivide_meas_specs(
     meas_specs: Iterable[_MeasurementSpec],
     repetitions: int,
-    qubits: Sequence['cirq.Qid'],
+    qubits: Sequence[cirq.Qid],
     readout_symmetrization: bool,
 ) -> Tuple[List[_FlippyMeasSpec], int]:
     """Split measurement specs into sub-jobs for readout symmetrization

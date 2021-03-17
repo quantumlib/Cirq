@@ -12,6 +12,7 @@
 # limitations under the License.
 """Service to access IonQs API."""
 
+from __future__ import annotations
 import datetime
 import os
 
@@ -88,12 +89,12 @@ class Service:
 
     def run(
         self,
-        circuit: 'cirq.Circuit',
+        circuit: cirq.Circuit,
         repetitions: int,
         name: Optional[str] = None,
         target: Optional[str] = None,
         param_resolver: study.ParamResolverOrSimilarType = study.ParamResolver({}),
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> study.Result:
         """Run the given circuit on the IonQ API.
 
@@ -118,7 +119,7 @@ class Service:
             sim_result = cast(results.SimulatorResult, result)
             return sim_result.to_cirq_result(params=study.ParamResolver(param_resolver), seed=seed)
 
-    def sampler(self, target: Optional[str] = None, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+    def sampler(self, target: Optional[str] = None, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
         """Returns a `cirq.Sampler` object for accessing the sampler interface.
 
         Args:
@@ -135,7 +136,7 @@ class Service:
 
     def create_job(
         self,
-        circuit: 'cirq.Circuit',
+        circuit: cirq.Circuit,
         repetitions: int = 100,
         name: Optional[str] = None,
         target: Optional[str] = None,

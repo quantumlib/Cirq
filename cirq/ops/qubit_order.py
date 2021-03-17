@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+from __future__ import annotations
 from typing import (
     Any,
     Callable,
@@ -51,8 +52,8 @@ class QubitOrder:
 
     @staticmethod
     def explicit(
-        fixed_qubits: Iterable[raw_types.Qid], fallback: Optional['QubitOrder'] = None
-    ) -> 'QubitOrder':
+        fixed_qubits: Iterable[raw_types.Qid], fallback: Optional[QubitOrder] = None
+    ) -> QubitOrder:
         """A basis that contains exactly the given qubits in the given order.
 
         Args:
@@ -81,7 +82,7 @@ class QubitOrder:
         return QubitOrder(func)
 
     @staticmethod
-    def sorted_by(key: Callable[[raw_types.Qid], Any]) -> 'QubitOrder':
+    def sorted_by(key: Callable[[raw_types.Qid], Any]) -> QubitOrder:
         """A basis that orders qubits ascending based on a key function.
 
         Args:
@@ -109,7 +110,7 @@ class QubitOrder:
         return self._explicit_func(qubits)
 
     @staticmethod
-    def as_qubit_order(val: 'qubit_order_or_list.QubitOrderOrList') -> 'QubitOrder':
+    def as_qubit_order(val: qubit_order_or_list.QubitOrderOrList) -> QubitOrder:
         """Converts a value into a basis.
 
         Args:
@@ -128,7 +129,7 @@ class QubitOrder:
         self,
         internalize: Callable[[TExternalQubit], TInternalQubit],
         externalize: Callable[[TInternalQubit], TExternalQubit],
-    ) -> 'QubitOrder':
+    ) -> QubitOrder:
         """Transforms the Basis so that it applies to wrapped qubits.
 
         Args:

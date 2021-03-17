@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 import fractions
 from typing import (
     AbstractSet,
@@ -127,7 +128,7 @@ class EigenGate(raw_types.Gate):
         return self._global_shift
 
     # virtual method
-    def _with_exponent(self: TSelf, exponent: value.TParamVal) -> 'EigenGate':
+    def _with_exponent(self: TSelf, exponent: value.TParamVal) -> EigenGate:
         """Return the same kind of gate, but with a different exponent.
 
         Child classes should override this method if they have an __init__
@@ -140,7 +141,7 @@ class EigenGate(raw_types.Gate):
         # pylint: enable=unexpected-keyword-arg
 
     def _diagram_exponent(
-        self, args: 'protocols.CircuitDiagramInfoArgs', *, ignore_global_phase: bool = True
+        self, args: protocols.CircuitDiagramInfoArgs, *, ignore_global_phase: bool = True
     ):
         """The exponent to use in circuit diagrams.
 
@@ -196,7 +197,7 @@ class EigenGate(raw_types.Gate):
 
     def _format_exponent_as_angle(
         self,
-        args: 'protocols.CircuitDiagramInfoArgs',
+        args: protocols.CircuitDiagramInfoArgs,
         order: int = 2,
     ) -> str:
         """Returns string with exponent expressed as angle in radians.
@@ -295,7 +296,7 @@ class EigenGate(raw_types.Gate):
         real_periods = [abs(2 / e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
-    def __pow__(self: TSelf, exponent: Union[float, sympy.Symbol]) -> 'EigenGate':
+    def __pow__(self: TSelf, exponent: Union[float, sympy.Symbol]) -> EigenGate:
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented
@@ -349,7 +350,7 @@ class EigenGate(raw_types.Gate):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self._exponent)
 
-    def _resolve_parameters_(self: TSelf, param_resolver, recursive: bool) -> 'EigenGate':
+    def _resolve_parameters_(self: TSelf, param_resolver, recursive: bool) -> EigenGate:
         return self._with_exponent(exponent=param_resolver.value_of(self._exponent, recursive))
 
     def _equal_up_to_global_phase_(self, other, atol):

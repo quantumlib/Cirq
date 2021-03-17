@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import FrozenSet, Sequence, Set, TYPE_CHECKING
 
 from cirq import circuits, devices
@@ -39,16 +40,16 @@ class LogicalAnnotator(ExecutionStrategy):
         return self._initial_mapping
 
     @property
-    def device(self) -> 'cirq.Device':
+    def device(self) -> cirq.Device:
         return devices.UNCONSTRAINED_DEVICE
 
     def get_operations(
-        self, indices: Sequence[LogicalIndex], qubits: Sequence['cirq.Qid']
-    ) -> 'cirq.OP_TREE':
+        self, indices: Sequence[LogicalIndex], qubits: Sequence[cirq.Qid]
+    ) -> cirq.OP_TREE:
         yield AcquaintanceOperation(qubits, indices)
 
 
-def get_acquaintance_dag(strategy: 'cirq.Circuit', initial_mapping: LogicalMapping):
+def get_acquaintance_dag(strategy: cirq.Circuit, initial_mapping: LogicalMapping):
     strategy = strategy.copy()
     expose_acquaintance_gates(strategy)
     LogicalAnnotator(initial_mapping)(strategy)
@@ -62,7 +63,7 @@ def get_acquaintance_dag(strategy: 'cirq.Circuit', initial_mapping: LogicalMappi
 
 
 def get_logical_acquaintance_opportunities(
-    strategy: 'cirq.Circuit', initial_mapping: LogicalMapping
+    strategy: cirq.Circuit, initial_mapping: LogicalMapping
 ) -> Set[FrozenSet[LogicalIndex]]:
     acquaintance_dag = get_acquaintance_dag(strategy, initial_mapping)
     logical_acquaintance_opportunities = set()

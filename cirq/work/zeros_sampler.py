@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import abc
 from typing import Dict, List, TYPE_CHECKING
 
@@ -37,7 +38,7 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
 
     def run_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: cirq.Circuit,
         params: study.Sweepable,
         repetitions: int = 1,
     ) -> List[study.Result]:

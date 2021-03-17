@@ -13,6 +13,7 @@
 # limitations under the License.
 """Code to handle density matrices."""
 
+from __future__ import annotations
 from typing import List, Optional, TYPE_CHECKING, Tuple, Sequence
 
 import numpy as np
@@ -29,7 +30,7 @@ def sample_density_matrix(
     *,  # Force keyword arguments
     qid_shape: Optional[Tuple[int, ...]] = None,
     repetitions: int = 1,
-    seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> np.ndarray:
     """Samples repeatedly from measurements in the computational basis.
 
@@ -95,7 +96,7 @@ def measure_density_matrix(
     indices: Sequence[int],
     qid_shape: Optional[Tuple[int, ...]] = None,
     out: np.ndarray = None,
-    seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> Tuple[List[int], np.ndarray]:
     """Performs a measurement of the density matrix in the computational basis.
 

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Dict, List, Optional
 
 import numpy as np
@@ -22,7 +23,7 @@ from cirq import quirk_url_to_circuit
 
 def assert_url_to_circuit_returns(
     json_text: str,
-    circuit: 'cirq.Circuit' = None,
+    circuit: cirq.Circuit = None,
     *,
     unitary: Optional[np.ndarray] = None,
     diagram: Optional[str] = None,

@@ -22,6 +22,7 @@ https://gateway-portal.aqt.eu/
 
 """
 
+from __future__ import annotations
 import json
 import time
 import uuid
@@ -177,7 +178,7 @@ class AQTSampler(Sampler):
         return measurements
 
     def run_sweep(
-        self, program: 'cirq.Circuit', params: study.Sweepable, repetitions: int = 1
+        self, program: cirq.Circuit, params: study.Sweepable, repetitions: int = 1
     ) -> List[study.Result]:
         """Samples from the given Circuit.
 

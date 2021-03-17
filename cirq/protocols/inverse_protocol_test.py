@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import pytest
 
 import cirq
@@ -32,7 +33,7 @@ class ReturnsFive:
 
 
 class SelfInverse:
-    def __pow__(self, exponent) -> 'SelfInverse':
+    def __pow__(self, exponent) -> SelfInverse:
         return self
 
 

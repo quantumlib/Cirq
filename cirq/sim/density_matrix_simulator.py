@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Simulator for density matrices that simulates noisy quantum circuits."""
+from __future__ import annotations
 import collections
 from typing import Any, Dict, Iterator, List, TYPE_CHECKING, Tuple, Type, Union
 
@@ -115,8 +116,8 @@ class DensityMatrixSimulator(
         self,
         *,
         dtype: Type[np.number] = np.complex64,
-        noise: 'cirq.NOISE_MODEL_LIKE' = None,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        noise: cirq.NOISE_MODEL_LIKE = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
         ignore_measurement_results: bool = False,
     ):
         """Density matrix simulator.
@@ -233,10 +234,10 @@ class DensityMatrixSimulator(
         self,
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,
-        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'],
+        initial_state: Union[np.ndarray, cirq.STATE_VECTOR_LIKE],
         all_measurements_are_terminal=False,
         is_raw_state=False,
-    ) -> Iterator['DensityMatrixStepResult']:
+    ) -> Iterator[DensityMatrixStepResult]:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         qid_shape = protocols.qid_shape(qubits)
         qubit_map = {q: i for i, q in enumerate(qubits)}
@@ -293,8 +294,8 @@ class DensityMatrixSimulator(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'DensityMatrixSimulatorState',
-    ) -> 'DensityMatrixTrialResult':
+        final_simulator_state: DensityMatrixSimulatorState,
+    ) -> DensityMatrixTrialResult:
         return DensityMatrixTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
@@ -337,7 +338,7 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
     def _qid_shape_(self):
         return self._qid_shape
 
-    def _simulator_state(self) -> 'DensityMatrixSimulatorState':
+    def _simulator_state(self) -> DensityMatrixSimulatorState:
         return DensityMatrixSimulatorState(self._density_matrix, self._qubit_map)
 
     def set_density_matrix(self, density_matrix_repr: Union[int, np.ndarray]):
@@ -403,7 +404,7 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
         self,
         qubits: List[ops.Qid],
         repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
         indices = [self._qubit_map[q] for q in qubits]
         return density_matrix_utils.sample_density_matrix(

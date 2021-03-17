@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Any, Dict, Iterable, Optional, Tuple, Sequence, TYPE_CHECKING, List
 
 import numpy as np
@@ -72,7 +73,7 @@ class MeasurementGate(raw_types.Gate):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
-    def with_key(self, key: str) -> 'MeasurementGate':
+    def with_key(self, key: str) -> MeasurementGate:
         """Creates a measurement gate with a new key but otherwise identical."""
         return MeasurementGate(
             self.num_qubits(), key=key, invert_mask=self.invert_mask, qid_shape=self._qid_shape
@@ -83,7 +84,7 @@ class MeasurementGate(raw_types.Gate):
             return self
         return self.with_key(key_map[self.key])
 
-    def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
+    def with_bits_flipped(self, *bit_positions: int) -> MeasurementGate:
         """Toggles whether or not the measurement inverts various outputs."""
         old_mask = self.invert_mask or ()
         n = max(len(old_mask) - 1, *bit_positions) + 1
@@ -124,9 +125,7 @@ class MeasurementGate(raw_types.Gate):
     def _has_channel_(self):
         return True
 
-    def _circuit_diagram_info_(
-        self, args: 'cirq.CircuitDiagramInfoArgs'
-    ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
         symbols = ['M'] * self.num_qubits()
 
         # Show which output bits are negated.
@@ -141,7 +140,7 @@ class MeasurementGate(raw_types.Gate):
 
         return protocols.CircuitDiagramInfo(tuple(symbols))
 
-    def _qasm_(self, args: 'cirq.QasmArgs', qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
+    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]) -> Optional[str]:
         if not all(d == 2 for d in self._qid_shape):
             return NotImplemented
         args.validate_version('2.0')
@@ -155,9 +154,7 @@ class MeasurementGate(raw_types.Gate):
             lines.append(args.format('measure {0} -> {1:meas}[{2}];\n', qubit, self.key, i))
         return ''.join(lines)
 
-    def _quil_(
-        self, qubits: Tuple['cirq.Qid', ...], formatter: 'cirq.QuilFormatter'
-    ) -> Optional[str]:
+    def _quil_(self, qubits: Tuple[cirq.Qid, ...], formatter: cirq.QuilFormatter) -> Optional[str]:
         if not all(d == 2 for d in self._qid_shape):
             return NotImplemented
         invert_mask = self.invert_mask
@@ -172,7 +169,7 @@ class MeasurementGate(raw_types.Gate):
             lines.append(formatter.format('MEASURE {0} {1:meas}[{2}]\n', qubit, self.key, i))
         return ''.join(lines)
 
-    def _op_repr_(self, qubits: Sequence['cirq.Qid']) -> str:
+    def _op_repr_(self, qubits: Sequence[cirq.Qid]) -> str:
         args = list(repr(q) for q in qubits)
         if self.key != _default_measurement_key(qubits):
             args.append(f'key={self.key!r}')

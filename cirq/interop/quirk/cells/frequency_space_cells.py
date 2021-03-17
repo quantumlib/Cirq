@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 from typing import Iterator, Callable
 
 import sympy
@@ -45,9 +46,7 @@ def generate_all_frequency_space_cell_makers() -> Iterator[CellMaker]:
     )
 
 
-def _family(
-    identifier_prefix: str, gate_maker: Callable[[int], 'cirq.Gate']
-) -> Iterator[CellMaker]:
+def _family(identifier_prefix: str, gate_maker: Callable[[int], cirq.Gate]) -> Iterator[CellMaker]:
     f = lambda args: ExplicitOperationsCell([gate_maker(len(args.qubits)).on(*args.qubits)])
     yield CellMaker(identifier_prefix, 1, f)
     for i in CELL_SIZES:

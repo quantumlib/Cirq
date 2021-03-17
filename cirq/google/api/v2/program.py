@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
 GRID_QUBIT_ID_PATTERN = r'^q?(-?\d+)_(-?\d+)$'
 
 
-def qubit_to_proto_id(q: 'cirq.Qid') -> str:
+def qubit_to_proto_id(q: cirq.Qid) -> str:
     """Return a proto id for a `cirq.Qid`.
 
     For `cirq.GridQubit`s this id `{row}_{col}` where `{row}` is the integer
@@ -42,7 +43,7 @@ def qubit_to_proto_id(q: 'cirq.Qid') -> str:
         raise ValueError(f'Qubits of type {type(q)} do not support proto id')
 
 
-def qubit_from_proto_id(proto_id: str) -> 'cirq.Qid':
+def qubit_from_proto_id(proto_id: str) -> cirq.Qid:
     """Return a `cirq.Qid` for a proto id.
 
     Proto IDs of the form {int}_{int} are parsed as GridQubits.
@@ -78,7 +79,7 @@ def qubit_from_proto_id(proto_id: str) -> 'cirq.Qid':
     return named_q
 
 
-def grid_qubit_from_proto_id(proto_id: str) -> 'cirq.GridQubit':
+def grid_qubit_from_proto_id(proto_id: str) -> cirq.GridQubit:
     """Parse a proto id to a `cirq.GridQubit`.
 
     Proto ids for grid qubits are of the form `{row}_{col}` where `{row}` is
@@ -104,7 +105,7 @@ def grid_qubit_from_proto_id(proto_id: str) -> 'cirq.GridQubit':
     return devices.GridQubit(row=int(row), col=int(col))
 
 
-def line_qubit_from_proto_id(proto_id: str) -> 'cirq.LineQubit':
+def line_qubit_from_proto_id(proto_id: str) -> cirq.LineQubit:
     """Parse a proto id to a `cirq.LineQubit`.
 
     Proto ids for line qubits are integer strings representing the `x`
@@ -125,7 +126,7 @@ def line_qubit_from_proto_id(proto_id: str) -> 'cirq.LineQubit':
         raise ValueError(f'Line qubit proto id must be an int but was {proto_id}')
 
 
-def named_qubit_from_proto_id(proto_id: str) -> 'cirq.NamedQubit':
+def named_qubit_from_proto_id(proto_id: str) -> cirq.NamedQubit:
     """Parse a proto id to a `cirq.NamedQubit'
 
     This simply returns a `cirq.NamedQubit` with a name equal to `proto_id`.

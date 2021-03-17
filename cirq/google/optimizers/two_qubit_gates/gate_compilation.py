@@ -1,5 +1,6 @@
 """Attempt to tabulate single qubit gates required to generate a target 2Q gate
 with a product A k A."""
+from __future__ import annotations
 from functools import reduce
 from typing import Tuple, Sequence, List, NamedTuple, TYPE_CHECKING
 
@@ -305,7 +306,7 @@ def gate_product_tabulation(
     *,
     sample_scaling: int = 50,
     allow_missed_points: bool = True,
-    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    random_state: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
 ) -> GateTabulation:
     r"""Generate a GateTabulation for a base two qubit unitary.
 

@@ -23,6 +23,7 @@ In order to run on must have access to the Quantum Engine API. Access to this
 API is (as of June 22, 2018) restricted to invitation only.
 """
 
+from __future__ import annotations
 import datetime
 import enum
 import os
@@ -80,7 +81,7 @@ class EngineContext:
         proto_version: Optional[ProtoVersion] = None,
         service_args: Optional[Dict] = None,
         verbose: Optional[bool] = None,
-        client: 'Optional[engine_client.EngineClient]' = None,
+        client: Optional[engine_client.EngineClient] = None,
         timeout: Optional[int] = None,
     ) -> None:
         """Context and client for using Quantum Engine.
@@ -107,7 +108,7 @@ class EngineContext:
         self.client = client
         self.timeout = timeout
 
-    def copy(self) -> 'EngineContext':
+    def copy(self) -> EngineContext:
         return EngineContext(proto_version=self.proto_version, client=self.client)
 
     def _value_equality_values_(self):
@@ -177,7 +178,7 @@ class Engine:
 
     def run(
         self,
-        program: 'cirq.Circuit',
+        program: cirq.Circuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         param_resolver: study.ParamResolver = study.ParamResolver({}),
@@ -238,7 +239,7 @@ class Engine:
 
     def run_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: cirq.Circuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params: study.Sweepable = None,
@@ -299,7 +300,7 @@ class Engine:
 
     def run_batch(
         self,
-        programs: List['cirq.Circuit'],
+        programs: List[cirq.Circuit],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         params_list: List[study.Sweepable] = None,
@@ -376,7 +377,7 @@ class Engine:
 
     def run_calibration(
         self,
-        layers: List['cirq.google.CalibrationLayer'],
+        layers: List[cirq.google.CalibrationLayer],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         processor_id: str = None,
@@ -449,7 +450,7 @@ class Engine:
 
     def create_program(
         self,
-        program: 'cirq.Circuit',
+        program: cirq.Circuit,
         program_id: Optional[str] = None,
         gate_set: Optional[sgs.SerializableGateSet] = None,
         description: Optional[str] = None,
@@ -492,7 +493,7 @@ class Engine:
 
     def create_batch_program(
         self,
-        programs: List['cirq.Circuit'],
+        programs: List[cirq.Circuit],
         program_id: Optional[str] = None,
         gate_set: Optional[sgs.SerializableGateSet] = None,
         description: Optional[str] = None,
@@ -538,7 +539,7 @@ class Engine:
 
     def create_calibration_program(
         self,
-        layers: List['cirq.google.CalibrationLayer'],
+        layers: List[cirq.google.CalibrationLayer],
         program_id: Optional[str] = None,
         gate_set: Optional[sgs.SerializableGateSet] = None,
         description: Optional[str] = None,
@@ -595,7 +596,7 @@ class Engine:
         )
 
     def _serialize_program(
-        self, program: 'cirq.Circuit', gate_set: sgs.SerializableGateSet
+        self, program: cirq.Circuit, gate_set: sgs.SerializableGateSet
     ) -> any_pb2.Any:
         if not isinstance(program, circuits.Circuit):
             raise TypeError(f'Unrecognized program type: {type(program)}')
@@ -607,7 +608,7 @@ class Engine:
         else:
             raise ValueError(f'invalid program proto version: {self.context.proto_version}')
 
-    def _pack_any(self, message: 'google.protobuf.Message') -> any_pb2.Any:
+    def _pack_any(self, message: google.protobuf.Message) -> any_pb2.Any:
         """Packs a message into an Any proto.
 
         Returns the packed Any proto.
@@ -798,7 +799,7 @@ def get_engine_device(
     processor_id: str,
     project_id: Optional[str] = None,
     gatesets: Iterable[sgs.SerializableGateSet] = (),
-) -> 'cirq.Device':
+) -> cirq.Device:
     """Returns a `Device` object for a given processor.
 
     This is a short-cut for creating an engine object, getting the
@@ -812,7 +813,7 @@ def get_engine_device(
 def get_engine_calibration(
     processor_id: str,
     project_id: Optional[str] = None,
-) -> Optional['cirq.google.Calibration']:
+) -> Optional[cirq.google.Calibration]:
     """Returns calibration metrics for a given processor.
 
     This is a short-cut for creating an engine object, getting the

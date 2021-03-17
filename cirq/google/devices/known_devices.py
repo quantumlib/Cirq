@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import Any, Collection, Dict, Optional, Iterable, List, Set, Tuple, TYPE_CHECKING
 
 from cirq._doc import document
@@ -81,7 +82,7 @@ def create_device_proto_from_diagram(
 
     # Create a list of all adjacent pairs on the grid for two-qubit gates.
     qubit_set = frozenset(qubits)
-    pairs: List[Tuple['cirq.Qid', 'cirq.Qid']] = []
+    pairs: List[Tuple[cirq.Qid, cirq.Qid]] = []
     for qubit in qubits:
         for neighbor in sorted(qubit.neighbors()):
             if neighbor > qubit and neighbor in qubit_set:
@@ -91,8 +92,8 @@ def create_device_proto_from_diagram(
 
 
 def create_device_proto_for_qubits(
-    qubits: Collection['cirq.Qid'],
-    pairs: Collection[Tuple['cirq.Qid', 'cirq.Qid']],
+    qubits: Collection[cirq.Qid],
+    pairs: Collection[Tuple[cirq.Qid, cirq.Qid]],
     gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
     durations_picos: Optional[Dict[str, int]] = None,
     out: Optional[device_pb2.DeviceSpecification] = None,

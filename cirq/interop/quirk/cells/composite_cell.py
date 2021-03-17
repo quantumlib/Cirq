@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import (
     List,
     TYPE_CHECKING,
@@ -79,7 +80,7 @@ class CompositeCell(Cell):
     def gate_count(self) -> int:
         return self._gate_count
 
-    def _transform_cells(self, func: Callable[[Cell], Cell]) -> 'CompositeCell':
+    def _transform_cells(self, func: Callable[[Cell], Cell]) -> CompositeCell:
         return CompositeCell(
             height=self.height,
             # It is important that this is a generator instead of a list!
@@ -96,18 +97,16 @@ class CompositeCell(Cell):
             self._sub_cell_cols_generator = list(self._sub_cell_cols_generator)
         return cast(List[List[Optional[Cell]]], self._sub_cell_cols_generator)
 
-    def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
+    def with_line_qubits_mapped_to(self, qubits: List[cirq.Qid]) -> Cell:
         return self._transform_cells(lambda cell: cell.with_line_qubits_mapped_to(qubits))
 
-    def with_input(
-        self, letter: str, register: Union[Sequence['cirq.Qid'], int]
-    ) -> 'CompositeCell':
+    def with_input(self, letter: str, register: Union[Sequence[cirq.Qid], int]) -> CompositeCell:
         return self._transform_cells(lambda cell: cell.with_input(letter, register))
 
-    def controlled_by(self, qubit: 'cirq.Qid') -> 'CompositeCell':
+    def controlled_by(self, qubit: cirq.Qid) -> CompositeCell:
         return self._transform_cells(lambda cell: cell.controlled_by(qubit))
 
-    def circuit(self) -> 'cirq.Circuit':
+    def circuit(self) -> cirq.Circuit:
         result = circuits.Circuit()
         for col in self._sub_cell_cols_sealed():
             body = circuits.Circuit(cell.operations() for cell in col if cell is not None)
@@ -120,7 +119,7 @@ class CompositeCell(Cell):
                 result += basis_change ** -1
         return result
 
-    def operations(self) -> 'cirq.OP_TREE':
+    def operations(self) -> cirq.OP_TREE:
         return self.circuit()
 
 

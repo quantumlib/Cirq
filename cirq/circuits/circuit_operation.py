@@ -18,6 +18,7 @@ applied as part of a larger circuit, a CircuitOperation will execute all
 component operations in order, including any nested CircuitOperations.
 """
 
+from __future__ import annotations
 from typing import TYPE_CHECKING, AbstractSet, Callable, Dict, List, Optional, Tuple, Union
 
 import dataclasses
@@ -98,9 +99,9 @@ class CircuitOperation(ops.Operation):
 
     _hash: Optional[int] = dataclasses.field(default=None, init=False)
 
-    circuit: 'cirq.FrozenCircuit'
+    circuit: cirq.FrozenCircuit
     repetitions: int = 1
-    qubit_map: Dict['cirq.Qid', 'cirq.Qid'] = dataclasses.field(default_factory=dict)
+    qubit_map: Dict[cirq.Qid, cirq.Qid] = dataclasses.field(default_factory=dict)
     measurement_key_map: Dict[str, str] = dataclasses.field(default_factory=dict)
     param_resolver: study.ParamResolver = study.ParamResolver()
     repetition_ids: Optional[List[str]] = dataclasses.field(default=None)
@@ -151,14 +152,14 @@ class CircuitOperation(ops.Operation):
         # Ensure that param_resolver is converted to an actual ParamResolver.
         object.__setattr__(self, 'param_resolver', study.ParamResolver(self.param_resolver))
 
-    def base_operation(self) -> 'CircuitOperation':
+    def base_operation(self) -> CircuitOperation:
         """Returns a copy of this operation with only the wrapped circuit.
 
         Key and qubit mappings, parameter values, and repetitions are not copied.
         """
         return CircuitOperation(self.circuit)
 
-    def replace(self, **changes) -> 'CircuitOperation':
+    def replace(self, **changes) -> CircuitOperation:
         """Returns a copy of this operation with the specified changes."""
         return dataclasses.replace(self, **changes)
 
@@ -177,7 +178,7 @@ class CircuitOperation(ops.Operation):
     # Methods for getting post-mapping properties of the contained circuit.
 
     @property
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
+    def qubits(self) -> Tuple[cirq.Qid, ...]:
         """Returns the qubits operated on by this object."""
         ordered_qubits = ops.QubitOrder.DEFAULT.order_for(self.circuit.all_qubits())
         return tuple(self.qubit_map.get(q, q) for q in ordered_qubits)
@@ -205,7 +206,7 @@ class CircuitOperation(ops.Operation):
             )
         }
 
-    def _decompose_(self) -> 'cirq.OP_TREE':
+    def _decompose_(self) -> cirq.OP_TREE:
         result = self.circuit.unfreeze()
         result = result.transform_qubits(lambda q: self.qubit_map.get(q, q))
         if self.repetitions < 0:
@@ -351,7 +352,7 @@ class CircuitOperation(ops.Operation):
         self,
         repetitions: Optional[INT_TYPE] = None,
         repetition_ids: Optional[List[str]] = None,
-    ) -> 'CircuitOperation':
+    ) -> CircuitOperation:
         """Returns a copy of this operation repeated 'repetitions' times.
          Each repetition instance will be identified by a single repetition_id.
 
@@ -406,16 +407,16 @@ class CircuitOperation(ops.Operation):
 
         return self.replace(repetitions=final_repetitions, repetition_ids=repetition_ids)
 
-    def __pow__(self, power: int) -> 'CircuitOperation':
+    def __pow__(self, power: int) -> CircuitOperation:
         return self.repeat(power)
 
-    def with_repetition_ids(self, repetition_ids: List[str]) -> 'CircuitOperation':
+    def with_repetition_ids(self, repetition_ids: List[str]) -> CircuitOperation:
         return self.replace(repetition_ids=repetition_ids)
 
     def with_qubit_mapping(
         self,
-        qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
-    ) -> 'CircuitOperation':
+        qubit_map: Union[Dict[cirq.Qid, cirq.Qid], Callable[[cirq.Qid], cirq.Qid]],
+    ) -> CircuitOperation:
         """Returns a copy of this operation with an updated qubit mapping.
 
         Users should pass either 'qubit_map' or 'transform' to this method.
@@ -454,7 +455,7 @@ class CircuitOperation(ops.Operation):
             )
         return new_op
 
-    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'CircuitOperation':
+    def with_qubits(self, *new_qubits: cirq.Qid) -> CircuitOperation:
         """Returns a copy of this operation with an updated qubit mapping.
 
         Args:
@@ -474,7 +475,7 @@ class CircuitOperation(ops.Operation):
             raise ValueError(f'Expected {expected} qubits, got {len(new_qubits)}.')
         return self.with_qubit_mapping(dict(zip(self.qubits, new_qubits)))
 
-    def with_measurement_key_mapping(self, key_map: Dict[str, str]) -> 'CircuitOperation':
+    def with_measurement_key_mapping(self, key_map: Dict[str, str]) -> CircuitOperation:
         """Returns a copy of this operation with an updated key mapping.
 
         Args:
@@ -506,10 +507,10 @@ class CircuitOperation(ops.Operation):
             )
         return new_op
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> 'CircuitOperation':
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]) -> CircuitOperation:
         return self.with_measurement_key_mapping(key_map)
 
-    def with_params(self, param_values: study.ParamResolverOrSimilarType) -> 'CircuitOperation':
+    def with_params(self, param_values: study.ParamResolverOrSimilarType) -> CircuitOperation:
         """Returns a copy of this operation with an updated ParamResolver.
 
         Note that any resulting parameter mappings with no corresponding
@@ -534,8 +535,8 @@ class CircuitOperation(ops.Operation):
 
     # TODO: handle recursive parameter resolution gracefully
     def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'CircuitOperation':
+        self, param_resolver: cirq.ParamResolver, recursive: bool
+    ) -> CircuitOperation:
         if recursive:
             raise ValueError(
                 'Recursive resolution of CircuitOperation parameters is prohibited. '

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 from typing import (
     Any,
     Dict,
@@ -245,7 +246,7 @@ class CrossEntropyResultDict(Mapping[Tuple['cirq.Qid', ...], CrossEntropyResult]
             result for that tuple.
     """
 
-    results: Dict[Tuple['cirq.Qid', ...], CrossEntropyResult]
+    results: Dict[Tuple[cirq.Qid, ...], CrossEntropyResult]
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
@@ -255,14 +256,14 @@ class CrossEntropyResultDict(Mapping[Tuple['cirq.Qid', ...], CrossEntropyResult]
 
     @classmethod
     def _from_json_dict_(
-        cls, results: List[Tuple[List['cirq.Qid'], CrossEntropyResult]], **kwargs
-    ) -> 'CrossEntropyResultDict':
+        cls, results: List[Tuple[List[cirq.Qid], CrossEntropyResult]], **kwargs
+    ) -> CrossEntropyResultDict:
         return cls(results={tuple(qubits): result for qubits, result in results})
 
     def __repr__(self) -> str:
         return f'cirq.experiments.CrossEntropyResultDict(results={self.results!r})'
 
-    def __getitem__(self, key: Tuple['cirq.Qid', ...]) -> CrossEntropyResult:
+    def __getitem__(self, key: Tuple[cirq.Qid, ...]) -> CrossEntropyResult:
         return self.results[key]
 
     def __iter__(self):

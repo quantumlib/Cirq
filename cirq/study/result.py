@@ -13,6 +13,7 @@
 # limitations under the License.
 """Defines trial results."""
 
+from __future__ import annotations
 from typing import (
     Any,
     Callable,
@@ -131,7 +132,7 @@ class Result:
         *,  # Forces keyword args.
         params: resolver.ParamResolver,
         measurements: Dict[str, np.ndarray],
-    ) -> 'Result':
+    ) -> Result:
         """Packages runs of a single parameterized circuit into a Result.
 
         Args:
@@ -292,7 +293,7 @@ class Result:
     def _measurement_shape(self):
         return self.params, {k: v.shape[1] for k, v in self.measurements.items()}
 
-    def __add__(self, other: 'cirq.Result') -> 'cirq.Result':
+    def __add__(self, other: cirq.Result) -> cirq.Result:
         if not isinstance(other, type(self)):
             return NotImplemented
         if self._measurement_shape() != other._measurement_shape():

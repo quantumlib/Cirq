@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import collections
 from typing import cast, Dict, Optional, Union, TYPE_CHECKING
 
@@ -29,8 +30,8 @@ class PauliSumCollector(collector.Collector):
 
     def __init__(
         self,
-        circuit: 'cirq.Circuit',
-        observable: 'cirq.PauliSumLike',
+        circuit: cirq.Circuit,
+        observable: cirq.PauliSumLike,
         *,
         samples_per_term: int,
         max_samples_per_job: int = 1000000,
@@ -62,7 +63,7 @@ class PauliSumCollector(collector.Collector):
         self._samples_per_term = samples_per_term
         self._total_samples_requested = 0
 
-    def next_job(self) -> Optional['cirq.CircuitSampleJob']:
+    def next_job(self) -> Optional[cirq.CircuitSampleJob]:
         i = self._total_samples_requested // self._samples_per_term
         if i >= len(self._pauli_coef_terms):
             return None
@@ -76,7 +77,7 @@ class PauliSumCollector(collector.Collector):
             tag=pauli,
         )
 
-    def on_job_result(self, job: 'cirq.CircuitSampleJob', result: 'cirq.Result'):
+    def on_job_result(self, job: cirq.CircuitSampleJob, result: cirq.Result):
         job_id = cast(ops.PauliString, job.tag)
         parities = result.histogram(key='out', fold_func=lambda bits: np.sum(bits) % 2)
         self._zeros[job_id] += parities[0]
@@ -98,8 +99,8 @@ class PauliSumCollector(collector.Collector):
 
 
 def _circuit_plus_pauli_string_measurements(
-    circuit: 'cirq.Circuit', pauli_string: 'cirq.PauliString'
-) -> 'cirq.Circuit':
+    circuit: cirq.Circuit, pauli_string: cirq.PauliString
+) -> cirq.Circuit:
     """A circuit measuring the given observable at the end of the given circuit."""
     assert pauli_string
     circuit = circuit.copy()

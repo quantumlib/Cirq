@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 import numpy as np
 import pytest
 import sympy
@@ -53,7 +54,7 @@ def test_sample():
 
 
 class OnlyMeasurementsDevice(cirq.Device):
-    def validate_operation(self, operation: 'cirq.Operation') -> None:
+    def validate_operation(self, operation: cirq.Operation) -> None:
         if not cirq.is_measurement(operation):
             raise ValueError(f'{operation} is not a measurement and this device only measures!')
 
