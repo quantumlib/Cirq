@@ -239,14 +239,21 @@ def test_custom_sympy_pass_through():
         def _resolved_value_(self):
             return NotImplemented
 
+    class Baz:
+        def _resolved_value_(self):
+            return 'Baz'
+
     foo = Foo()
     bar = Bar()
+    baz = Baz()
 
     a = sympy.Symbol('a')
     b = sympy.Symbol('b')
-    r = cirq.ParamResolver({a: foo, b: bar})
+    c = sympy.Symbol('c')
+    r = cirq.ParamResolver({a: foo, b: bar, c: baz})
     assert r.value_of(a) is foo
     assert r.value_of(b) is b
+    assert r.value_of(c) == 'Baz'
 
 
 def test_compose():
