@@ -334,9 +334,9 @@ def _import_multiple_deprecated():
 
 
 def _new_module_in_different_parent():
-    from cirq.testing._compat_test_data.fake_google import engine
+    from cirq.testing._compat_test_data.fake_ops import raw_types
 
-    assert engine
+    assert raw_types
 
 
 def _find_spec_deprecated_multiple_times():
@@ -356,7 +356,7 @@ def _import_parent_use_constant_from_deprecated():
     import cirq.testing._compat_test_data
 
     # the parent should have fake_a set on it as an attribute - just like
-    # a regular module import (e.g. cirq.google)
+    # a regular module import (e.g. cirq.ops)
     # should have a DUPE_CONSTANT as its imported from the dupe submodule
     assert cirq.testing._compat_test_data.fake_a.DUPE_CONSTANT == False
 
@@ -399,9 +399,9 @@ _fake_b_deprecation_msg = [
 ] + _deprecation_origin
 
 # see cirq_compat_test_data/__init__.py for the setup code
-_fake_google_deprecation_msg = [
-    'fake_google was used but is deprecated',
-    'Use cirq.google instead',
+_fake_ops_deprecation_msg = [
+    'fake_ops was used but is deprecated',
+    'Use cirq.ops instead',
 ] + _deprecation_origin
 
 
@@ -461,7 +461,7 @@ def subprocess_context(test_func):
         (_import_deprecated_first_new_second, [_fake_a_deprecation_msg]),
         (_import_new_first_deprecated_second, [_fake_a_deprecation_msg]),
         (_import_multiple_deprecated, [_fake_a_deprecation_msg, _fake_b_deprecation_msg]),
-        (_new_module_in_different_parent, [_fake_google_deprecation_msg]),
+        (_new_module_in_different_parent, [_fake_ops_deprecation_msg]),
         # ignore the frame requirement - as we are using find_spec from importlib, it
         # is detected as an "internal" frame by warnings
         (_find_spec_deprecated_multiple_times, [_fake_a_deprecation_msg[:-1]]),
@@ -509,8 +509,8 @@ def test_same_name_submodule_earlier_in_subtree():
     during module spec resolution, dupe number 2 is going to get resolved.
 
     You might wonder where this comes up in cirq. There was a bug where the lookup path was not in
-    the right order. The motivating example is cirq.google.calibration vs the
-    cirq.google.engine.calibration packages. The wrong resolution resulted in false circular
+    the right order. The motivating example is cirq.ops.calibration vs the
+    cirq.ops.engine.calibration packages. The wrong resolution resulted in false circular
     imports!
     """
     subprocess_context(_test_same_name_submodule_earlier_in_subtree_inner)()
