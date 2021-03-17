@@ -35,7 +35,8 @@ document(
     """Something that can be used to turn parameters into values.""",
 )
 
-RecursionFlag = object()
+# Used to mark values that are being resolved recursively to detect loops.
+_RecursionFlag = object()
 
 
 class ParamResolver:
@@ -169,13 +170,13 @@ class ParamResolver:
         # single symbol, since combinations are handled earlier in the method.
         if value in self._deep_eval_map:
             v = self._deep_eval_map[value]
-            if v is not RecursionFlag:
+            if v is not _RecursionFlag:
                 return v
             raise RecursionError('Evaluation of {value} indirectly contains itself.')
 
         # There isn't a full evaluation for 'value' yet. Until it's ready,
         # map value to None to identify loops in component evaluation.
-        self._deep_eval_map[value] = RecursionFlag
+        self._deep_eval_map[value] = _RecursionFlag
 
         v = self.value_of(value, recursive=False)
         if v == value:
