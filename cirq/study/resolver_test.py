@@ -197,14 +197,14 @@ def test_unbound_recursion_halted():
     b = sympy.Symbol('b')
     c = sympy.Symbol('c')
 
-    # # Non-recursive resolution ignores loops
-    # r = cirq.ParamResolver({a: b, b: a})
-    # assert r.value_of(a, recursive=False) == b
-    # assert r.value_of(r.value_of(a, recursive=False), recursive=False) == a
-    #
-    # # Self-definition is OK (this is a terminal symbol)
-    # r = cirq.ParamResolver({a: a})
-    # assert r.value_of(a) == a
+    # Non-recursive resolution ignores loops
+    r = cirq.ParamResolver({a: b, b: a})
+    assert r.value_of(a, recursive=False) == b
+    assert r.value_of(r.value_of(a, recursive=False), recursive=False) == a
+
+    # Self-definition is OK (this is a terminal symbol)
+    r = cirq.ParamResolver({a: a})
+    assert r.value_of(a) == a
 
     r = cirq.ParamResolver({a: a + 1})
     with pytest.raises(RecursionError):
