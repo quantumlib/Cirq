@@ -372,6 +372,7 @@ from cirq.sim import (
     sample_state_vector,
     sample_sweep,
     SimulatesAmplitudes,
+    SimulatesExpectationValues,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesIntermediateStateVector,
