@@ -45,7 +45,7 @@ class OpSerializer(abc.ABC):
         """
 
     @property  # type: ignore
-    @deprecated(deadline='v0.12.0', fix='Use internal_type instead.')
+    @deprecated(deadline='v0.12', fix='Use internal_type instead.')
     def gate_type(self) -> Type:
         return self.internal_type
 
@@ -58,7 +58,7 @@ class OpSerializer(abc.ABC):
         """
 
     @property  # type: ignore
-    @deprecated(deadline='v0.12.0', fix='Use serialized_id instead.')
+    @deprecated(deadline='v0.12', fix='Use serialized_id instead.')
     def serialized_gate_id(self) -> str:
         return self.serialized_id
 
@@ -330,23 +330,23 @@ class CircuitOpSerializer(OpSerializer):
 
         if op.repetition_ids:
             for rep_id in op.repetition_ids:
-                msg.repetition_spec.rep_ids.ids.append(rep_id)
+                msg.repetition_specification.repetition_ids.ids.append(rep_id)
         else:
-            msg.repetition_spec.rep_count = op.repetitions
+            msg.repetition_specification.repetition_count = op.repetitions
 
         for q1, q2 in op.qubit_map.items():
-            pair = msg.qubit_map.pairs.add()
-            pair.first.id = v2.qubit_to_proto_id(q1)
-            pair.second.id = v2.qubit_to_proto_id(q2)
+            entry = msg.qubit_map.entries.add()
+            entry.key.id = v2.qubit_to_proto_id(q1)
+            entry.value.id = v2.qubit_to_proto_id(q2)
 
         for mk1, mk2 in op.measurement_key_map.items():
-            pair = msg.measurement_key_map.pairs.add()
-            pair.first.str_key = mk1
-            pair.second.str_key = mk2
+            entry = msg.measurement_key_map.entries.add()
+            entry.key.string_key = mk1
+            entry.value.string_key = mk2
 
         for p1, p2 in op.param_resolver.param_dict.items():
-            pair = msg.arg_map.pairs.add()
-            arg_to_proto(p1, out=pair.first, arg_function_language=arg_function_language)
-            arg_to_proto(p2, out=pair.second, arg_function_language=arg_function_language)
+            entry = msg.arg_map.entries.add()
+            arg_to_proto(p1, out=entry.key, arg_function_language=arg_function_language)
+            arg_to_proto(p2, out=entry.value, arg_function_language=arg_function_language)
 
         return msg

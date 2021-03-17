@@ -13,6 +13,7 @@
 # limitations under the License.
 """Support for serializing and deserializing cirq.google.api.v2 protos."""
 
+from itertools import chain
 from typing import (
     Any,
     Dict,
@@ -32,9 +33,6 @@ from cirq.google.api import v2
 
 if TYPE_CHECKING:
     import cirq
-
-# Fake gate ID used to trigger deserialization of generic operations.
-FALLBACK_TO_GENERIC = 'fallback_to_generic'
 
 
 class SerializableGateSet:
@@ -93,7 +91,7 @@ class SerializableGateSet:
             deserializers=[*self.deserializers.values(), *deserializers],
         )
 
-    @deprecated(deadline='v0.12.0', fix='Use with_added_types instead.')
+    @deprecated(deadline='v0.12', fix='Use with_added_types instead.')
     def with_added_gates(
         self,
         *,
@@ -110,7 +108,7 @@ class SerializableGateSet:
     def supported_internal_types(self) -> Tuple:
         return tuple(self.serializers.keys())
 
-    @deprecated(deadline='v0.12.0', fix='Use supported_internal_types instead.')
+    @deprecated(deadline='v0.12', fix='Use supported_internal_types instead.')
     def supported_gate_types(self) -> Tuple:
         return self.supported_internal_types()
 
@@ -130,7 +128,7 @@ class SerializableGateSet:
         )
 
     @deprecated_parameter(
-        deadline='v0.12.0',
+        deadline='v0.12',
         fix='Use use_constants instead.',
         parameter_desc='keyword use_constants_table_for_tokens',
         match=lambda args, kwargs: 'use_constants_table_for_tokens' in kwargs,
@@ -182,7 +180,27 @@ class SerializableGateSet:
     def serialize_op(
         self,
         op: 'cirq.Operation',
-        msg: Optional[v2.program_pb2.GenericOperation] = None,
+        msg: Union[None, v2.program_pb2.Operation, v2.program_pb2.CircuitOperation] = None,
+        **kwargs,
+    ) -> Union[v2.program_pb2.Operation, v2.program_pb2.CircuitOperation]:
+        """Disambiguation for operation serialization."""
+        if msg is None:
+            if op.gate is not None:
+                return self.serialize_gate_op(op, msg, **kwargs)
+            if hasattr(op.untagged, 'circuit'):
+                return self.serialize_circuit_op(op, msg, **kwargs)
+            raise ValueError(f'Operation is of an unrecognized type: {op!r}')
+
+        if isinstance(msg, v2.program_pb2.Operation):
+            return self.serialize_gate_op(op, msg, **kwargs)
+        if isinstance(msg, v2.program_pb2.CircuitOperation):
+            return self.serialize_circuit_op(op, msg, **kwargs)
+        raise ValueError(f'Operation proto is of an unrecognized type: {msg!r}')
+
+    def serialize_gate_op(
+        self,
+        op: 'cirq.Operation',
+        msg: Optional[v2.program_pb2.Operation] = None,
         *,
         arg_function_language: Optional[str] = '',
         constants: Optional[List[v2.program_pb2.Constant]] = None,
@@ -194,39 +212,8 @@ class SerializableGateSet:
             op: The operation to serialize.
 
         Returns:
-            A dictionary corresponds to the cirq.google.api.v2.Operation proto.
+            The cirq.google.api.v2.Operation proto.
         """
-        circuit = getattr(op.untagged, 'circuit', None)
-        if circuit is not None:
-            if constants is None or raw_constants is None:
-                raise ValueError(
-                    'CircuitOp serialization requires a constants list and a corresponding '
-                    'list of pre-serialization values (raw_constants).'
-                )
-            if circuits.FrozenCircuit in self.serializers:
-                serializer = self.serializers[circuits.FrozenCircuit][0]
-                if circuit not in raw_constants:
-                    subcircuit_msg = v2.program_pb2.Circuit()
-                    self._serialize_circuit(
-                        circuit,
-                        subcircuit_msg,
-                        arg_function_language=arg_function_language,
-                        constants=constants,
-                        raw_constants=raw_constants,
-                    )
-                    constants.append(v2.program_pb2.Constant(circuit_value=subcircuit_msg))
-                    raw_constants.append(circuit)
-                proto_msg = serializer.to_proto(
-                    op,
-                    msg.circuit_operation if msg else None,
-                    arg_function_language=arg_function_language,
-                    constants=constants,
-                    raw_constants=raw_constants,
-                )
-                if proto_msg is not None:
-                    return proto_msg
-            raise ValueError(f'Cannot serialize CircuitOperation {op!r}')
-
         gate_type = type(op.gate)
         for gate_type_mro in gate_type.mro():
             # Check all super classes in method resolution order.
@@ -236,7 +223,7 @@ class SerializableGateSet:
                 for serializer in self.serializers[gate_type_mro]:
                     proto_msg = serializer.to_proto(
                         op,
-                        msg.operation if msg else None,
+                        msg,
                         arg_function_language=arg_function_language,
                         constants=constants,
                         raw_constants=raw_constants,
@@ -244,6 +231,53 @@ class SerializableGateSet:
                     if proto_msg is not None:
                         return proto_msg
         raise ValueError(f'Cannot serialize op {op!r} of type {gate_type}')
+
+    def serialize_circuit_op(
+        self,
+        op: 'cirq.Operation',
+        msg: Optional[v2.program_pb2.CircuitOperation] = None,
+        *,
+        arg_function_language: Optional[str] = '',
+        constants: Optional[List[v2.program_pb2.Constant]] = None,
+        raw_constants: Optional[List[Any]] = None,
+    ) -> Union[v2.program_pb2.Operation, v2.program_pb2.CircuitOperation]:
+        """Serialize a CircuitOperation to cirq.google.api.v2.CircuitOperation proto.
+
+        Args:
+            op: The circuit operation to serialize.
+
+        Returns:
+            The cirq.google.api.v2.CircuitOperation proto.
+        """
+        circuit = getattr(op.untagged, 'circuit', None)
+        if constants is None or raw_constants is None:
+            raise ValueError(
+                'CircuitOp serialization requires a constants list and a corresponding '
+                'list of pre-serialization values (raw_constants).'
+            )
+        if circuits.FrozenCircuit in self.serializers:
+            serializer = self.serializers[circuits.FrozenCircuit][0]
+            if circuit not in raw_constants:
+                subcircuit_msg = v2.program_pb2.Circuit()
+                self._serialize_circuit(
+                    circuit,
+                    subcircuit_msg,
+                    arg_function_language=arg_function_language,
+                    constants=constants,
+                    raw_constants=raw_constants,
+                )
+                constants.append(v2.program_pb2.Constant(circuit_value=subcircuit_msg))
+                raw_constants.append(circuit)
+            proto_msg = serializer.to_proto(
+                op,
+                msg,
+                arg_function_language=arg_function_language,
+                constants=constants,
+                raw_constants=raw_constants,
+            )
+            if proto_msg is not None:
+                return proto_msg
+        raise ValueError(f'Cannot serialize CircuitOperation {op!r}')
 
     def deserialize(
         self, proto: v2.program_pb2.Program, device: Optional['cirq.Device'] = None
@@ -303,25 +337,17 @@ class SerializableGateSet:
         operation_proto: Union[
             v2.program_pb2.Operation,
             v2.program_pb2.CircuitOperation,
-            v2.program_pb2.GenericOperation,
         ],
         **kwargs,
     ) -> 'cirq.Operation':
         """Disambiguation for operation deserialization."""
-        if isinstance(operation_proto, v2.program_pb2.GenericOperation):
-            which = operation_proto.WhichOneof('op')
-            if which == 'operation':
-                return self.deserialize_gate_op(operation_proto.operation, **kwargs)
-            if which == 'circuit_operation':
-                return self.deserialize_circuit_op(operation_proto.circuit_operation, **kwargs)
-
         if isinstance(operation_proto, v2.program_pb2.Operation):
             return self.deserialize_gate_op(operation_proto, **kwargs)
 
         if isinstance(operation_proto, v2.program_pb2.CircuitOperation):
             return self.deserialize_circuit_op(operation_proto, **kwargs)
 
-        raise ValueError('Generic operation has no operation.')
+        raise ValueError(f'Operation proto has unknown type: {type(operation_proto)}.')
 
     def deserialize_gate_op(
         self,
@@ -408,21 +434,17 @@ class SerializableGateSet:
         for moment in circuit:
             moment_proto = msg.moments.add()
             for op in moment:
-                gen_op_pb = moment_proto.generic_operations.add()
+                if isinstance(op.untagged, circuits.CircuitOperation):
+                    op_pb = moment_proto.circuit_operations.add()
+                else:
+                    op_pb = moment_proto.operations.add()
                 self.serialize_op(
                     op,
-                    gen_op_pb,
+                    op_pb,
                     arg_function_language=arg_function_language,
                     constants=constants,
                     raw_constants=raw_constants,
                 )
-                op_pb = moment_proto.operations.add()
-                which = gen_op_pb.WhichOneof('op')
-                if which == 'operation':
-                    op_pb.CopyFrom(gen_op_pb.operation)
-                elif which == 'circuit_operation':
-                    # Enables fallback to generic ops in deserialization.
-                    op_pb.gate.id = FALLBACK_TO_GENERIC
 
     def _deserialize_circuit(
         self,
@@ -435,9 +457,7 @@ class SerializableGateSet:
         moments = []
         for i, moment_proto in enumerate(circuit_proto.moments):
             moment_ops = []
-            try_generic = False
-            print('trying basic ops')
-            for op in moment_proto.operations:
+            for op in chain(moment_proto.operations, moment_proto.circuit_operations):
                 try:
                     moment_ops.append(
                         self.deserialize_op(
@@ -448,35 +468,12 @@ class SerializableGateSet:
                         )
                     )
                 except ValueError as ex:
-                    if op.gate.id == FALLBACK_TO_GENERIC:
-                        try_generic = True
-                    else:
-                        raise ValueError(
-                            f'Failed to deserialize circuit. '
-                            f'There was a problem in moment {i} '
-                            f'handling an operation with the '
-                            f'following proto:\n{op}'
-                        ) from ex
-            if try_generic:
-                print('trying generic')
-                moment_ops = []
-                for gen_op in moment_proto.generic_operations:
-                    try:
-                        moment_ops.append(
-                            self.deserialize_op(
-                                gen_op,
-                                arg_function_language=arg_function_language,
-                                constants=constants,
-                                raw_constants=raw_constants,
-                            )
-                        )
-                    except ValueError as ex:
-                        raise ValueError(
-                            f'Failed to deserialize circuit. '
-                            f'There was a problem in moment {i} '
-                            f'handling a generic operation with the '
-                            f'following proto:\n{gen_op}'
-                        ) from ex
+                    raise ValueError(
+                        f'Failed to deserialize circuit. '
+                        f'There was a problem in moment {i} '
+                        f'handling an operation with the '
+                        f'following proto:\n{op}'
+                    ) from ex
             moments.append(ops.Moment(moment_ops))
         return circuits.Circuit(moments)
 

@@ -48,7 +48,7 @@ class OpDeserializer(abc.ABC):
         """
 
     @property  # type: ignore
-    @deprecated(deadline='v0.12.0', fix='Use serialized_id instead.')
+    @deprecated(deadline='v0.12', fix='Use serialized_id instead.')
     def serialized_gate_id(self) -> str:
         return self.serialized_id
 
@@ -226,27 +226,32 @@ class CircuitOpDeserializer(OpDeserializer):
                 f'but it has type {type(circuit)} in the raw_constants list.'
             )
 
-        if not proto.repetition_spec.rep_ids.ids:
+        which_rep_spec = proto.repetition_specification.WhichOneof('repetition_value')
+        if which_rep_spec == "repetition_count":
             rep_ids = None
-            repetitions = proto.repetition_spec.rep_count
-        else:
-            rep_ids = proto.repetition_spec.rep_ids.ids
+            repetitions = proto.repetition_specification.repetition_count
+        elif which_rep_spec == "repetition_ids":
+            rep_ids = proto.repetition_specification.repetition_ids.ids
             repetitions = len(rep_ids)
+        else:
+            rep_ids = None
+            repetitions = 1
 
         qubit_map = {
-            v2.qubit_from_proto_id(pair.first.id): v2.qubit_from_proto_id(pair.second.id)
-            for pair in proto.qubit_map.pairs
+            v2.qubit_from_proto_id(entry.key.id): v2.qubit_from_proto_id(entry.value.id)
+            for entry in proto.qubit_map.entries
         }
         measurement_key_map = {
-            pair.first.str_key: pair.second.str_key for pair in proto.measurement_key_map.pairs
+            entry.key.string_key: entry.value.string_key
+            for entry in proto.measurement_key_map.entries
         }
         arg_map = {
             arg_func_langs.arg_from_proto(
-                pair.first, arg_function_language=arg_function_language
+                entry.key, arg_function_language=arg_function_language
             ): arg_func_langs.arg_from_proto(
-                pair.second, arg_function_language=arg_function_language
+                entry.value, arg_function_language=arg_function_language
             )
-            for pair in proto.arg_map.pairs
+            for entry in proto.arg_map.entries
         }
 
         for arg in arg_map.keys():

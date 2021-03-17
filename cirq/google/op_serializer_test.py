@@ -408,8 +408,7 @@ def test_token_serialization_with_constant_reference(constants, expected_index, 
 
 
 def default_circuit_proto():
-    genop1 = v2.program_pb2.GenericOperation()
-    op1 = genop1.operation
+    op1 = v2.program_pb2.Operation()
     op1.gate.id = 'x_pow'
     op1.args['half_turns'].arg_value.string_value = 'k'
     op1.qubits.add().id = '1_1'
@@ -419,7 +418,6 @@ def default_circuit_proto():
         moments=[
             v2.program_pb2.Moment(
                 operations=[op1],
-                generic_operations=[genop1],
             ),
         ],
     )
@@ -482,27 +480,27 @@ def test_circuit_op_to_proto():
     constants = [v2.program_pb2.Constant(circuit_value=default_circuit_proto())]
     raw_constants = [default_circuit()]
 
-    repetition_spec = v2.program_pb2.RepetitionSpec()
-    repetition_spec.rep_count = 1
+    repetition_spec = v2.program_pb2.RepetitionSpecification()
+    repetition_spec.repetition_count = 1
 
     qubit_map = v2.program_pb2.QubitMapping()
-    q_p1 = qubit_map.pairs.add()
-    q_p1.first.id = '1_1'
-    q_p1.second.id = '1_2'
+    q_p1 = qubit_map.entries.add()
+    q_p1.key.id = '1_1'
+    q_p1.value.id = '1_2'
 
     measurement_key_map = v2.program_pb2.MeasurementKeyMapping()
-    meas_p1 = measurement_key_map.pairs.add()
-    meas_p1.first.str_key = 'm'
-    meas_p1.second.str_key = 'results'
+    meas_p1 = measurement_key_map.entries.add()
+    meas_p1.key.string_key = 'm'
+    meas_p1.value.string_key = 'results'
 
     arg_map = v2.program_pb2.ArgMapping()
-    arg_p1 = arg_map.pairs.add()
-    arg_p1.first.arg_value.string_value = 'k'
-    arg_p1.second.arg_value.float_value = 1.0
+    arg_p1 = arg_map.entries.add()
+    arg_p1.key.arg_value.string_value = 'k'
+    arg_p1.value.arg_value.float_value = 1.0
 
     expected = v2.program_pb2.CircuitOperation(
         circuit_constant_index=0,
-        repetition_spec=repetition_spec,
+        repetition_specification=repetition_spec,
         qubit_map=qubit_map,
         measurement_key_map=measurement_key_map,
         arg_map=arg_map,
