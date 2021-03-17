@@ -15,6 +15,7 @@
 """Tests for engine."""
 import os
 from unittest import mock
+import time
 import numpy as np
 import pytest
 
@@ -262,6 +263,17 @@ results: [{
         v2.calibration_pb2.FocusedCalibrationResult(),
     )
 )
+
+
+def test_make_random_id():
+    with mock.patch('random.choice', return_value='A'):
+        random_id = cg.engine.engine._make_random_id('prefix-', length=4)
+        assert random_id[:11] == 'prefix-AAAA'
+    random_id = cg.engine.engine._make_random_id('prefix-')
+    time.sleep(1)
+    random_id2 = cg.engine.engine._make_random_id('prefix-')
+    # Verify program id generate distinct even if random is seeded
+    assert random_id != random_id2
 
 
 @pytest.fixture(scope='session', autouse=True)

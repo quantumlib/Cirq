@@ -267,7 +267,7 @@ class CircuitOperation(ops.Operation):
 
     def __str__(self):
         # TODO: support out-of-line subcircuit definition in string format.
-        header = self.circuit.serialization_key() + ':'
+        header = self.circuit.diagram_name() + ':'
         msg_lines = str(self.circuit).split('\n')
         msg_width = max([len(header) - 4] + [len(line) for line in msg_lines])
         circuit_msg = '\n'.join(

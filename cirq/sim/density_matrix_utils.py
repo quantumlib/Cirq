@@ -17,21 +17,10 @@ from typing import List, Optional, TYPE_CHECKING, Tuple
 
 import numpy as np
 
-from cirq import linalg, qis, value
-from cirq._compat import deprecated
+from cirq import linalg, value
 
 if TYPE_CHECKING:
     import cirq
-
-
-@deprecated(deadline='v0.9', fix='Use cirq.to_valid_density_matrix instead.')
-def to_valid_density_matrix(*args, **kwargs):
-    return qis.to_valid_density_matrix(*args, **kwargs)
-
-
-@deprecated(deadline='v0.9', fix='Use cirq.von_neumann_entropy instead.')
-def von_neumann_entropy(*args, **kwargs):
-    return qis.von_neumann_entropy(*args, **kwargs)
 
 
 def sample_density_matrix(
@@ -73,7 +62,7 @@ def sample_density_matrix(
             of qubits corresponding to the density matrix.
     """
     if repetitions < 0:
-        raise ValueError('Number of repetitions cannot be negative. Was {}'.format(repetitions))
+        raise ValueError(f'Number of repetitions cannot be negative. Was {repetitions}')
     if qid_shape is None:
         num_qubits = _validate_num_qubits(density_matrix)
         qid_shape = (2,) * num_qubits
@@ -247,11 +236,11 @@ def _validate_density_matrix_qid_shape(
             )
         return qid_shape
     if len(shape) % 2 != 0:
-        raise ValueError('Tensor was not square. Shape was {}'.format(shape))
+        raise ValueError(f'Tensor was not square. Shape was {shape}')
     left_shape = shape[: len(shape) // 2]
     right_shape = shape[len(shape) // 2 :]
     if left_shape != right_shape:
-        raise ValueError("Tensor's left and right shape are not equal. Shape was {}".format(shape))
+        raise ValueError(f"Tensor's left and right shape are not equal. Shape was {shape}")
     return left_shape
 
 
@@ -266,7 +255,7 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     row_size = np.prod(shape[:half_index]) if len(shape) != 0 else 0
     col_size = np.prod(shape[half_index:]) if len(shape) != 0 else 0
     if row_size != col_size:
-        raise ValueError('Matrix was not square. Shape was {}'.format(shape))
+        raise ValueError(f'Matrix was not square. Shape was {shape}')
     if row_size & (row_size - 1):
         raise ValueError(
             'Matrix could not be shaped into a square matrix with dimensions '
@@ -283,9 +272,9 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
 def _indices_shape(qid_shape: Tuple[int, ...], indices: List[int]) -> Tuple[int, ...]:
     """Validates that the indices have values within range of `len(qid_shape)`."""
     if any(index < 0 for index in indices):
-        raise IndexError('Negative index in indices: {}'.format(indices))
+        raise IndexError(f'Negative index in indices: {indices}')
     if any(index >= len(qid_shape) for index in indices):
         raise IndexError(
-            'Out of range indices, must be less than number of qubits but was {}'.format(indices)
+            f'Out of range indices, must be less than number of qubits but was {indices}'
         )
     return tuple(qid_shape[i] for i in indices)

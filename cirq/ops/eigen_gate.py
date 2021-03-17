@@ -112,7 +112,7 @@ class EigenGate(raw_types.Gate):
         """
         if isinstance(exponent, complex):
             if exponent.imag:
-                raise ValueError("Gate exponent must be real. Invalid Value: {}".format(exponent))
+                raise ValueError(f"Gate exponent must be real. Invalid Value: {exponent}")
             exponent = exponent.real
         self._exponent = exponent
         self._global_shift = global_shift

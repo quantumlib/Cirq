@@ -76,13 +76,13 @@ def pauli_expansion(
     # Don't attempt to derive the pauli expansion if this is a qudit gate
     if not all(d == 2 for d in qid_shape_protocol.qid_shape(val, default=())):
         if default is RaiseTypeErrorIfNotProvided:
-            raise TypeError('No Pauli expansion for object {} of type {}'.format(val, type(val)))
+            raise TypeError(f'No Pauli expansion for object {val} of type {type(val)}')
         return default
 
     matrix = unitary_protocol.unitary(val, default=None)
     if matrix is None:
         if default is RaiseTypeErrorIfNotProvided:
-            raise TypeError('No Pauli expansion for object {} of type {}'.format(val, type(val)))
+            raise TypeError(f'No Pauli expansion for object {val} of type {type(val)}')
         return default
 
     num_qubits = matrix.shape[0].bit_length() - 1

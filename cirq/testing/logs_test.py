@@ -46,7 +46,7 @@ def test_assert_logs_valid_single_logs():
 def test_assert_logs_invalid_single_logs():
     match = (
         '^dog expected to appear in log messages but it was not found. '
-        'Logs messages: \\[\'orange apple fruit\'\\].$'
+        'Log messages: \\[\'orange apple fruit\'\\].$'
     )
     with pytest.raises(AssertionError, match=match):
         with cirq.testing.assert_logs('dog'):
@@ -85,13 +85,12 @@ def test_assert_logs_valid_multiple_logs():
 
 
 def test_assert_logs_invalid_multiple_logs():
-    match = '^Expected 1 log message but got 2.$'
-    with pytest.raises(AssertionError, match='^Expected 1 log message but got 2.$'):
+    with pytest.raises(AssertionError, match='^Expected 1 log message but got 2. Log messages.*$'):
         with cirq.testing.assert_logs('dog'):
             logging.error('orange apple fruit')
             logging.error('dog')
 
-    with pytest.raises(AssertionError, match='^Expected 2 log message but got 3.$'):
+    with pytest.raises(AssertionError, match='^Expected 2 log message but got 3. Log messages.*$'):
         with cirq.testing.assert_logs('dog', count=2):
             logging.error('orange apple fruit')
             logging.error('other')
@@ -99,7 +98,7 @@ def test_assert_logs_invalid_multiple_logs():
 
     match = (
         '^dog expected to appear in log messages but it was not found. '
-        'Logs messages: \\[\'orange\', \'other\', \'whatever\'\\].$'
+        'Log messages: \\[\'orange\', \'other\', \'whatever\'\\].$'
     )
     with pytest.raises(AssertionError, match=match):
         with cirq.testing.assert_logs('dog', count=3):
@@ -109,7 +108,7 @@ def test_assert_logs_invalid_multiple_logs():
 
 
 def test_assert_logs_log_level():
-    # Default is warning
+    # Default minlevel is WARNING, max level CRITICAL
     with cirq.testing.assert_logs('apple'):
         logging.error('orange apple fruit')
         logging.debug('should not')
@@ -119,10 +118,33 @@ def test_assert_logs_log_level():
         logging.error('orange apple fruit')
         logging.debug('should not')
         logging.info('count')
-    with cirq.testing.assert_logs('apple', level=logging.INFO, count=2):
+    with cirq.testing.assert_logs('apple', min_level=logging.INFO, count=2):
         logging.error('orange apple fruit')
         logging.debug('should not')
         logging.info('count')
+
+    with cirq.testing.assert_logs('info only 1', min_level=logging.INFO, max_level=logging.INFO):
+        with cirq.testing.assert_logs(
+            'info warning 1', min_level=logging.WARNING, max_level=logging.WARNING
+        ):
+            logging.info("info only 1")
+            logging.warning("info warning 1")
+
+
+def test_invalid_levels():
+    with pytest.raises(ValueError, match="min_level.*max_level"):
+        cirq.testing.assert_logs("test", min_level=logging.CRITICAL, max_level=logging.WARNING)
+
+
+def test_deprecated():
+    with cirq.testing.assert_deprecated(
+        'level parameter of assert_logs was used but is deprecated',
+        'use min_level instead',
+        deadline="v0.12",
+    ):
+        # pylint: disable=unexpected-keyword-arg
+        with cirq.testing.assert_logs("hello critical", level=logging.CRITICAL):
+            logging.critical("hello critical")
 
 
 def test_assert_logs_warnings():
@@ -140,6 +162,8 @@ def test_assert_logs_warnings():
             logging.error('orange apple fruit')
             warnings.warn('warn')
 
-        with pytest.raises(AssertionError, match='^Expected 1 log message but got 0.$'):
+        with pytest.raises(
+            AssertionError, match='^Expected 1 log message but got 0. Log messages.*$'
+        ):
             with cirq.testing.assert_logs('apple', capture_warnings=False):
                 warnings.warn('orange apple fruit')
