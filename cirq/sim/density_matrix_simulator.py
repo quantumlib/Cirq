@@ -12,27 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Simulator for density matrices that simulates noisy quantum circuits."""
-
 import collections
-
 from typing import Any, Dict, Iterator, List, TYPE_CHECKING, Tuple, Type, Union
 
 import numpy as np
 
 from cirq import circuits, ops, protocols, qis, study, value, devices
-from cirq.sim import density_matrix_utils, simulator
+from cirq.ops import flatten_to_ops
+from cirq.sim import density_matrix_utils, simulator, act_on_density_matrix_args
 from cirq.sim.simulator import check_all_resolved, split_into_matching_protocol_then_general
 
 if TYPE_CHECKING:
-    from typing import Tuple
     import cirq
-
-
-class _StateAndBuffers:
-    def __init__(self, num_qubits: int, tensor: np.ndarray):
-        self.num_qubits = num_qubits
-        self.tensor = tensor
-        self.buffers = [np.empty_like(tensor) for _ in range(3)]
 
 
 class DensityMatrixSimulator(
@@ -238,26 +229,6 @@ class DensityMatrixSimulator(
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
 
-    def _apply_op_channel(
-        self, op: ops.Operation, state: _StateAndBuffers, indices: List[int]
-    ) -> None:
-        """Apply channel to state."""
-        result = protocols.apply_channel(
-            op,
-            args=protocols.ApplyChannelArgs(
-                target_tensor=state.tensor,
-                out_buffer=state.buffers[0],
-                auxiliary_buffer0=state.buffers[1],
-                auxiliary_buffer1=state.buffers[2],
-                left_axes=indices,
-                right_axes=[e + state.num_qubits for e in indices],
-            ),
-        )
-        for i in range(3):
-            if result is state.buffers[i]:
-                state.buffers[i] = state.tensor
-        state.tensor = result
-
     def _base_iterator(
         self,
         circuit: circuits.Circuit,
@@ -265,7 +236,7 @@ class DensityMatrixSimulator(
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'],
         all_measurements_are_terminal=False,
         is_raw_state=False,
-    ) -> Iterator:
+    ) -> Iterator['DensityMatrixStepResult']:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         qid_shape = protocols.qid_shape(qubits)
         qubit_map = {q: i for i, q in enumerate(qubits)}
@@ -278,74 +249,45 @@ class DensityMatrixSimulator(
         )
         if np.may_share_memory(initial_matrix, initial_state):
             initial_matrix = initial_matrix.copy()
-        measured = collections.defaultdict(bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
+
         if len(circuit) == 0:
             yield DensityMatrixStepResult(initial_matrix, {}, qubit_map, self._dtype)
             return
 
-        state = _StateAndBuffers(
-            len(qid_shape),
-            initial_matrix.reshape(qid_shape * 2) if not is_raw_state else initial_matrix,
+        tensor = initial_matrix.reshape(qid_shape * 2)
+        sim_state = act_on_density_matrix_args.ActOnDensityMatrixArgs(
+            target_tensor=tensor,
+            available_buffer=[np.empty_like(tensor) for _ in range(3)],
+            axes=[],
+            qid_shape=qid_shape,
+            prng=self._prng,
+            log_of_measurement_results={},
         )
 
-        def on_stuck(bad_op: ops.Operation):
-            return TypeError(
-                "Can't simulate operations that don't implement "
-                "SupportsUnitary, SupportsConsistentApplyUnitary, "
-                "SupportsMixture, SupportsChannel or is a measurement: {!r}".format(bad_op)
-            )
-
-        def keep(potential_op: ops.Operation) -> bool:
-            return protocols.has_channel(potential_op, allow_decompose=False) or isinstance(
-                potential_op.gate, ops.MeasurementGate
-            )
-
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
-
+        measured = collections.defaultdict(bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
         for moment in noisy_moments:
-            measurements = collections.defaultdict(list)  # type: Dict[str, List[int]]
-
-            channel_ops_and_measurements = protocols.decompose(
-                moment, keep=keep, on_stuck_raise=on_stuck
-            )
-
-            for op in channel_ops_and_measurements:
-                indices = [qubit_map[qubit] for qubit in op.qubits]
+            for op in flatten_to_ops(moment):
                 # TODO: support more general measurements.
-                # Github issue: https://github.com/quantumlib/Cirq/issues/1357
+                # Github issue: https://github.com/quantumlib/Cirq/issues/3566
                 if all_measurements_are_terminal and measured[op.qubits]:
                     continue
-                if isinstance(op.gate, ops.MeasurementGate):
+                if protocols.is_measurement(op):
                     measured[op.qubits] = True
-                    meas = op.gate
                     if all_measurements_are_terminal:
                         continue
                     if self._ignore_measurement_results:
-                        for i, q in enumerate(op.qubits):
-                            self._apply_op_channel(ops.phase_damp(1).on(q), state, [indices[i]])
-                    else:
-                        invert_mask = meas.full_invert_mask()
-                        # Measure updates inline.
-                        bits, _ = density_matrix_utils.measure_density_matrix(
-                            state.tensor,
-                            indices,
-                            qid_shape=qid_shape,
-                            out=state.tensor,
-                            seed=self._prng,
-                        )
-                        corrected = [
-                            bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)
-                        ]
-                        key = protocols.measurement_key(meas)
-                        measurements[key].extend(corrected)
-                else:
-                    self._apply_op_channel(op, state, indices)
+                        op = ops.phase_damp(1).on(*op.qubits)
+                sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
+                protocols.act_on(op, sim_state)
+
             yield DensityMatrixStepResult(
-                density_matrix=state.tensor,
-                measurements=measurements,
+                density_matrix=sim_state.target_tensor,
+                measurements=dict(sim_state.log_of_measurement_results),
                 qubit_map=qubit_map,
                 dtype=self._dtype,
             )
+            sim_state.log_of_measurement_results.clear()
 
     def _create_simulator_trial_result(
         self,
