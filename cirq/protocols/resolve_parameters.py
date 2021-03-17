@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import numbers
-from typing import AbstractSet, Any, TYPE_CHECKING
+from typing import AbstractSet, Any, cast, TYPE_CHECKING, TypeVar
 
 import sympy
 from typing_extensions import Protocol
@@ -23,6 +23,9 @@ from cirq._doc import doc_private
 
 if TYPE_CHECKING:
     import cirq
+
+
+T = TypeVar('T')
 
 
 class SupportsParameterization(Protocol):
@@ -45,7 +48,7 @@ class SupportsParameterization(Protocol):
         """
 
     @doc_private
-    def _resolve_parameters_(self: Any, param_resolver: 'cirq.ParamResolver', recursive: bool):
+    def _resolve_parameters_(self: T, param_resolver: 'cirq.ParamResolver', recursive: bool) -> T:
         """Resolve the parameters in the effect."""
 
 
@@ -130,8 +133,8 @@ def parameter_symbols(val: Any) -> AbstractSet[sympy.Symbol]:
 
 
 def resolve_parameters(
-    val: Any, param_resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool = True
-):
+    val: T, param_resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool = True
+) -> T:
     """Resolves symbol parameters in the effect using the param resolver.
 
     This function will use the `_resolve_parameters_` magic method
@@ -149,6 +152,12 @@ def resolve_parameters(
         replaced with floats or terminal symbols according to the
         given ParamResolver. If `val` has no `_resolve_parameters_`
         method or if it returns NotImplemented, `val` itself is returned.
+        Note that in some cases, such as when directly resolving a sympy
+        Symbol, the return type could differ from the input type; however,
+        for the much more common case of resolving parameters on cirq
+        objects (or if resolving a Union[Symbol, float] instead of just a
+        Symbol), the return type will be the same as val so we reflect
+        that in the type signature of this protocol function.
 
     Raises:
         RecursionError if the ParamResolver detects a loop in resolution.
@@ -160,10 +169,13 @@ def resolve_parameters(
 
     # Ensure it is a dictionary wrapped in a ParamResolver.
     param_resolver = study.ParamResolver(param_resolver)
+
+    # Handle special cases for sympy expressions and sequences.
+    # These may not in fact preserve types, but we pretend they do by casting.
     if isinstance(val, sympy.Basic):
-        return param_resolver.value_of(val, recursive)
+        return cast(T, param_resolver.value_of(val, recursive))
     if isinstance(val, (list, tuple)):
-        return type(val)(resolve_parameters(e, param_resolver, recursive) for e in val)
+        return cast(T, type(val)(resolve_parameters(e, param_resolver, recursive) for e in val))
 
     getter = getattr(val, '_resolve_parameters_', None)
     if getter is None:
