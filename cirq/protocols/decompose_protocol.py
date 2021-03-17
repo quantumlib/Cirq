@@ -181,7 +181,7 @@ def decompose(
             returns `None`, non-decomposable operations are simply silently
             kept. `on_stuck_raise` defaults to a `ValueError` describing the
             unwanted non-decomposable operation.
-        preserve_structure: Prevents structural elements (i.e. subcircuits)
+        preserve_structure: Prevents subcircuits (i.e. `CircuitOperation`s)
             from being decomposed, but decomposes their contents. If this is
             True, 'intercepting_decomposer' cannot be specified.
 
