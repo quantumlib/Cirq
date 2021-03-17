@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Union, Tuple
+from typing import List, Tuple
 import re
 
 import numpy as np
@@ -21,7 +21,6 @@ import sympy
 
 import cirq
 from cirq import value
-from cirq.ops import eigen_gate
 from cirq.testing import assert_has_consistent_trace_distance_bound
 
 

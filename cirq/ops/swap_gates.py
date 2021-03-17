@@ -21,7 +21,7 @@ Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.ISWAP**0.5). See the definition in EigenGate.
 """
 
-from typing import Optional, Tuple, TYPE_CHECKING, List, Union
+from typing import Optional, Tuple, TYPE_CHECKING, List
 
 import numpy as np
 import sympy

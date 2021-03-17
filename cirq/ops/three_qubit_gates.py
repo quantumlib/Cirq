@@ -14,7 +14,7 @@
 
 """Common quantum gates that target three qubits."""
 
-from typing import AbstractSet, Any, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import AbstractSet, Any, List, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 import sympy

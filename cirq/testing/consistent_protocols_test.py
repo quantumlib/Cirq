@@ -21,7 +21,6 @@ import sympy
 
 import cirq
 from cirq._compat import proper_repr
-from cirq.ops import eigen_gate
 from cirq.type_workarounds import NotImplementedType
 
 
