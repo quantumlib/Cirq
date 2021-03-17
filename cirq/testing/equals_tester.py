@@ -38,7 +38,7 @@ class EqualsTester:
         eq = v1 == v2
         ne = v1 != v2
 
-        assert eq != ne, "__eq__ is inconsistent with __ne__ between {!r} and {!r}".format(v1, v2)
+        assert eq != ne, f"__eq__ is inconsistent with __ne__ between {v1!r} and {v2!r}"
         return eq
 
     def _verify_equality_group(self, *group_items: Any):
@@ -62,7 +62,7 @@ class EqualsTester:
         # Within-group items must be equal.
         for v1, v2 in itertools.product(group_items, group_items):
             same = EqualsTester._eq_check(v1, v2)
-            assert same or v1 is not v2, "{!r} isn't equal to itself!".format(v1)
+            assert same or v1 is not v2, f"{v1!r} isn't equal to itself!"
             assert (
                 same
             ), "{!r} and {!r} can't be in the same equality group. They're not equal.".format(

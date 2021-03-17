@@ -14,6 +14,7 @@
 """Code for generating random quantum circuits."""
 
 import dataclasses
+import itertools
 from typing import (
     Any,
     Callable,
@@ -25,18 +26,26 @@ from typing import (
     TYPE_CHECKING,
     Tuple,
     Union,
+    Optional,
+    cast,
+    Iterator,
 )
+
+import networkx as nx
+import numpy as np
 
 from cirq import circuits, devices, ops, protocols, value
 from cirq._doc import document
 
 if TYPE_CHECKING:
-    import numpy as np
     import cirq
+
+QidPairT = Tuple['cirq.Qid', 'cirq.Qid']
+GridQubitPairT = Tuple['cirq.GridQubit', 'cirq.GridQubit']
 
 
 @dataclasses.dataclass(frozen=True)
-class GridInteractionLayer(Container[Tuple[devices.GridQubit, devices.GridQubit]]):
+class GridInteractionLayer(Container[GridQubitPairT]):
     """A layer of aligned or staggered two-qubit interactions on a grid.
 
     Layers of this type have two different basic structures,
@@ -137,6 +146,21 @@ document(
     """,
 )
 
+HALF_GRID_STAGGERED_PATTERN = (
+    GridInteractionLayer(col_offset=0, vertical=True, stagger=True),  # A
+    GridInteractionLayer(col_offset=1, vertical=True, stagger=True),  # B
+    GridInteractionLayer(col_offset=1, vertical=False, stagger=True),  # C
+    GridInteractionLayer(col_offset=0, vertical=False, stagger=True),  # D
+)
+document(
+    HALF_GRID_STAGGERED_PATTERN,
+    """A pattern that is half of GRID_STAGGERED_PATTERN.
+
+    It activates each link in a grid once in a staggered way permits
+    easier simulation.
+    """,
+)
+
 GRID_ALIGNED_PATTERN = (
     GridInteractionLayer(col_offset=0, vertical=False, stagger=False),  # E
     GridInteractionLayer(col_offset=1, vertical=False, stagger=False),  # F
@@ -217,6 +241,310 @@ def random_rotations_between_two_qubit_circuit(
     return circuit
 
 
+def generate_library_of_2q_circuits(
+    n_library_circuits: int,
+    two_qubit_gate: 'cirq.Gate',
+    *,
+    max_cycle_depth: int = 100,
+    q0: 'cirq.Qid' = devices.LineQubit(0),
+    q1: 'cirq.Qid' = devices.LineQubit(1),
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+) -> List['cirq.Circuit']:
+    """Generate a library of two-qubit Circuits.
+
+    For single-qubit gates, this uses PhasedXZGates where the axis-in-XY-plane is one
+    of eight eighth turns and the Z rotation angle is one of eight eighth turns. This
+    provides 8*8=64 total choices, each implementable with one PhasedXZGate. This is
+    appropriate for architectures with microwave single-qubit control.
+
+    Args:
+        n_library_circuits: The number of circuits to generate.
+        two_qubit_gate: The two qubit gate to use in the circuits.
+        max_cycle_depth: The maximum cycle_depth in the circuits to generate. If you are using XEB,
+            this must be greater than or equal to the maximum value in `cycle_depths`.
+        q0: The first qubit to use when constructing the circuits.
+        q1: The second qubit to use when constructing the circuits
+        random_state: A random state or seed used to deterministically sample the random circuits.
+    """
+    rs = value.parse_random_state(random_state)
+    exponents = np.linspace(0, 7 / 4, 8)
+    single_qubit_gates = [
+        ops.PhasedXZGate(x_exponent=0.5, z_exponent=z, axis_phase_exponent=a)
+        for a, z in itertools.product(exponents, repeat=2)
+    ]
+    return [
+        random_rotations_between_two_qubit_circuit(
+            q0,
+            q1,
+            depth=max_cycle_depth,
+            two_qubit_op_factory=lambda a, b, _: two_qubit_gate(a, b),
+            single_qubit_gates=single_qubit_gates,
+            seed=rs,
+        )
+        for _ in range(n_library_circuits)
+    ]
+
+
+def _get_active_pairs(graph: nx.Graph, grid_layer: GridInteractionLayer):
+    """Extract pairs of qubits from a device graph and a GridInteractionLayer."""
+    for edge in graph.edges:
+        if edge in grid_layer:
+            yield edge
+
+
+@dataclasses.dataclass(frozen=True)
+class CircuitLibraryCombination:
+    """For a given layer (specifically, a set of pairs of qubits), `combinations` is a 2d array
+    of shape (n_combinations, len(pairs)) where each row represents a combination (with replacement)
+    of two-qubit circuits. The actual values are indices into a list of library circuits.
+
+    `layer` is used for record-keeping. This is the GridInteractionLayer if using
+    `get_random_combinations_for_device`, the Moment if using
+    `get_random_combinations_for_layer_circuit` and ommitted if using
+    `get_random_combinations_for_pairs`.
+    """
+
+    layer: Optional[Any]
+    combinations: np.array
+    pairs: List[QidPairT]
+
+
+def _get_random_combinations(
+    n_library_circuits: int,
+    n_combinations: int,
+    *,
+    pair_gen: Iterator[Tuple[List[QidPairT], Any]],
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+) -> List[CircuitLibraryCombination]:
+    """For qubit pairs, prepare a set of combinations to efficiently sample
+    parallel two-qubit XEB circuits.
+
+    This helper function should be called by one of
+    `get_random_comibations_for_device`,
+    `get_random_combinations_for_layer_circuit`, or
+    `get_random_combinations_for_pairs` which define
+    appropriate `pair_gen` arguments.
+
+    Args:
+        n_library_circuits: The number of circuits in your library. Likely the value
+            passed to `generate_library_of_2q_circuits`.
+        n_combinations: The number of combinations (with replacement) to generate
+            using the library circuits. Since this function returns a
+            `CircuitLibraryCombination`, the combinations will be represented
+            by indexes between 0 and `n_library_circuits-1` instead of the circuits
+            themselves. The more combinations, the more precise of an estimate for XEB
+            fidelity estimation, but a corresponding increase in the number of circuits
+            you must sample.
+        pair_gen: A generator that yields tuples of (pairs, layer_meta) where pairs is a list
+            of qubit pairs and layer_meta is additional data describing the "layer" assigned
+            to the CircuitLibraryCombination.layer field.
+        random_state: A random-state-like object to seed the random combination generation.
+
+    Returns:
+        A list of `CircuitLibraryCombination`, each corresponding to a layer
+        generated from `pair_gen`. Each object has a `combinations` matrix of circuit
+        indices of shape `(n_combinations, len(pairs))`. This
+        returned list can be provided to `sample_2q_xeb_circuits` to efficiently
+        sample parallel XEB circuits.
+    """
+    rs = value.parse_random_state(random_state)
+
+    combinations_by_layer = []
+    for pairs, layer in pair_gen:
+        combinations = rs.randint(0, n_library_circuits, size=(n_combinations, len(pairs)))
+        combinations_by_layer.append(
+            CircuitLibraryCombination(layer=layer, combinations=combinations, pairs=pairs)
+        )
+    return combinations_by_layer
+
+
+def get_random_combinations_for_device(
+    n_library_circuits: int,
+    n_combinations: int,
+    device_graph: nx.Graph,
+    *,
+    pattern: Sequence[GridInteractionLayer] = HALF_GRID_STAGGERED_PATTERN,
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+) -> List[CircuitLibraryCombination]:
+    """For a given device, prepare a set of combinations to efficiently sample
+    parallel two-qubit XEB circuits.
+
+    Args:
+        n_library_circuits: The number of circuits in your library. Likely the value
+            passed to `generate_library_of_2q_circuits`.
+        n_combinations: The number of combinations (with replacement) to generate
+            using the library circuits. Since this function returns a
+            `CircuitLibraryCombination`, the combinations will be represented
+            by indexes between 0 and `n_library_circuits-1` instead of the circuits
+            themselves. The more combinations, the more precise of an estimate for XEB
+            fidelity estimation, but a corresponding increase in the number of circuits
+            you must sample.
+        device_graph: A graph whose nodes are qubits and whose edges represent
+            the possibility of doing a two-qubit gate. This combined with the
+            `pattern` argument determines which two qubit pairs are activated
+            when.
+        pattern: A sequence of `GridInteractionLayer`, each of which has
+            a particular set of qubits that are activated simultaneously. These
+            pairs of qubits are deduced by combining this argument with `device_graph`.
+        random_state: A random-state-like object to seed the random combination generation.
+
+    Returns:
+        A list of `CircuitLibraryCombination`, each corresponding to an interaction
+        layer in `pattern` where there is a non-zero number of pairs which would be activated.
+        Each object has a `combinations` matrix of circuit
+        indices of shape `(n_combinations, len(pairs))` where `len(pairs)` may
+        be different for each entry (i.e. for each layer in `pattern`). This
+        returned list can be provided to `sample_2q_xeb_circuits` to efficiently
+        sample parallel XEB circuits.
+    """
+
+    def pair_gen():
+        for layer in pattern:
+            pairs = sorted(_get_active_pairs(device_graph, layer))
+            if len(pairs) == 0:
+                continue
+
+            yield pairs, layer
+
+    return _get_random_combinations(
+        n_library_circuits=n_library_circuits,
+        n_combinations=n_combinations,
+        random_state=random_state,
+        pair_gen=pair_gen(),
+    )
+
+
+def get_random_combinations_for_pairs(
+    n_library_circuits: int,
+    n_combinations: int,
+    all_pairs: List[List[QidPairT]],
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+) -> List[CircuitLibraryCombination]:
+    """For an explicit nested list of pairs, prepare a set of combinations to efficiently sample
+    parallel two-qubit XEB circuits.
+
+    Args:
+        n_library_circuits: The number of circuits in your library. Likely the value
+            passed to `generate_library_of_2q_circuits`.
+        n_combinations: The number of combinations (with replacement) to generate
+            using the library circuits. Since this function returns a
+            `CircuitLibraryCombination`, the combinations will be represented
+            by indexes between 0 and `n_library_circuits-1` instead of the circuits
+            themselves. The more combinations, the more precise of an estimate for XEB
+            fidelity estimation, but a corresponding increase in the number of circuits
+            you must sample.
+        all_pairs: A nested list of qubit pairs. The outer list should represent a "layer"
+            where the inner pairs should all be able to be activated simultaneously.
+        random_state: A random-state-like object to seed the random combination generation.
+
+    Returns:
+        A list of `CircuitLibraryCombination`, each corresponding to an interaction
+        layer the outer list of `all_pairs`. Each object has a `combinations` matrix of circuit
+        indices of shape `(n_combinations, len(pairs))` where `len(pairs)` may
+        be different for each entry. This
+        returned list can be provided to `sample_2q_xeb_circuits` to efficiently
+        sample parallel XEB circuits.
+    """
+
+    def pair_gen():
+        for pairs in all_pairs:
+            yield pairs, None
+
+    return _get_random_combinations(
+        n_library_circuits=n_library_circuits,
+        n_combinations=n_combinations,
+        random_state=random_state,
+        pair_gen=pair_gen(),
+    )
+
+
+def _pairs_from_moment(moment: 'cirq.Moment') -> List[QidPairT]:
+    """Helper function in `get_random_combinations_for_layer_circuit` pair generator.
+
+    The moment should contain only two qubit operations, which define a list of qubit pairs.
+    """
+    pairs: List[QidPairT] = []
+    for op in moment.operations:
+        if len(op.qubits) != 2:
+            raise ValueError("Layer circuit contains non-2-qubit operations.")
+        qpair = cast(QidPairT, op.qubits)
+        pairs.append(qpair)
+    return pairs
+
+
+def get_random_combinations_for_layer_circuit(
+    n_library_circuits: int,
+    n_combinations: int,
+    layer_circuit: 'cirq.Circuit',
+    random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+) -> List[CircuitLibraryCombination]:
+    """For a layer circuit, prepare a set of combinations to efficiently sample
+    parallel two-qubit XEB circuits.
+
+    Args:
+        n_library_circuits: The number of circuits in your library. Likely the value
+            passed to `generate_library_of_2q_circuits`.
+        n_combinations: The number of combinations (with replacement) to generate
+            using the library circuits. Since this function returns a
+            `CircuitLibraryCombination`, the combinations will be represented
+            by indexes between 0 and `n_library_circuits-1` instead of the circuits
+            themselves. The more combinations, the more precise of an estimate for XEB
+            fidelity estimation, but a corresponding increase in the number of circuits
+            you must sample.
+        layer_circuit: A calibration-style circuit where each Moment represents a layer.
+            Two qubit operations indicate the pair should be activated. This circuit should
+            only contain Moments which only contain two-qubit operations.
+        random_state: A random-state-like object to seed the random combination generation.
+
+    Returns:
+        A list of `CircuitLibraryCombination`, each corresponding to a moment in `layer_circuit`.
+        Each object has a `combinations` matrix of circuit
+        indices of shape `(n_combinations, len(pairs))` where `len(pairs)` may
+        be different for each entry (i.e. for moment). This
+        returned list can be provided to `sample_2q_xeb_circuits` to efficiently
+        sample parallel XEB circuits.
+    """
+
+    def pair_gen():
+        for moment in layer_circuit.moments:
+            yield _pairs_from_moment(moment), moment
+
+    return _get_random_combinations(
+        n_library_circuits=n_library_circuits,
+        n_combinations=n_combinations,
+        random_state=random_state,
+        pair_gen=pair_gen(),
+    )
+
+
+def get_grid_interaction_layer_circuit(
+    device_graph: nx.Graph,
+    pattern: Sequence[GridInteractionLayer] = HALF_GRID_STAGGERED_PATTERN,
+    two_qubit_gate=ops.ISWAP ** 0.5,
+) -> 'cirq.Circuit':
+    """Create a circuit representation of a grid interaction pattern on a given device topology.
+
+    The resulting circuit is deterministic, of depth len(pattern), and consists of `two_qubit_gate`
+    applied to each pair in `pattern` restricted to available connections in `device_graph`.
+
+    Args:
+        device_graph: A graph whose nodes are qubits and whose edges represent the possibility of
+            doing a two-qubit gate. This combined with the `pattern` argument determines which
+            two qubit pairs are activated when.
+        pattern: A sequence of `GridInteractionLayer`, each of which has a particular set of
+            qubits that are activated simultaneously. These pairs of qubits are deduced by
+            combining this argument with `device_graph`.
+        two_qubit_gate: The two qubit gate to use in constructing the circuit layers.
+    """
+    moments = []
+    for layer in pattern:
+        pairs = sorted(_get_active_pairs(device_graph, layer))
+        if len(pairs) == 0:
+            continue
+        moments += [ops.Moment(two_qubit_gate.on(*pair) for pair in pairs)]
+    return circuits.Circuit(moments)
+
+
 def random_rotations_between_grid_interaction_layers_circuit(
     qubits: Iterable['cirq.GridQubit'],
     depth: int,
@@ -292,7 +620,7 @@ def random_rotations_between_grid_interaction_layers_circuit(
 
 def _coupled_qubit_pairs(
     qubits: List['cirq.GridQubit'],
-) -> List[Tuple['cirq.GridQubit', 'cirq.GridQubit']]:
+) -> List[GridQubitPairT]:
     pairs = []
     qubit_set = set(qubits)
     for qubit in qubits:
@@ -359,7 +687,7 @@ def _single_qubit_gates_arg_to_factory(
 
 
 def _two_qubit_layer(
-    coupled_qubit_pairs: List[Tuple['cirq.GridQubit', 'cirq.GridQubit']],
+    coupled_qubit_pairs: List[GridQubitPairT],
     two_qubit_op_factory: Callable[
         ['cirq.GridQubit', 'cirq.GridQubit', 'np.random.RandomState'], 'cirq.OP_TREE'
     ],

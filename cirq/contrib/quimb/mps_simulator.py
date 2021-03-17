@@ -19,43 +19,72 @@ https://arxiv.org/abs/2002.07730
 
 import collections
 import math
-from typing import Any, Dict, List, Iterator, Sequence, Set
+from typing import Any, Dict, List, Iterator, Optional, Sequence, Set, TYPE_CHECKING
 
+import dataclasses
 import numpy as np
 import quimb.tensor as qtn
 
-import cirq
-from cirq import circuits, study, ops, protocols, value
+from cirq import circuits, devices, study, ops, protocols, value
+from cirq.ops import flatten_to_ops
 from cirq.sim import simulator
 
+if TYPE_CHECKING:
+    import cirq
 
-class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateState):
+
+@dataclasses.dataclass(frozen=True)
+class MPSOptions:
+    # Some of these parameters are fed directly to Quimb so refer to the documentation for detail:
+    # https://quimb.readthedocs.io/en/latest/_autosummary/ \
+    #       quimb.tensor.tensor_core.html#quimb.tensor.tensor_core.tensor_split
+
+    # How to split the tensor. Refer to the Quimb documentation for the exact meaning.
+    method: str = 'svds'
+    # If integer, the maxmimum number of singular values to keep, regardless of ``cutoff``.
+    max_bond: Optional[int] = None
+    # Method with which to apply the cutoff threshold. Refer to the Quimb documentation.
+    cutoff_mode: str = 'rsum2'
+    # The threshold below which to discard singular values. Refer to the Quimb documentation.
+    cutoff: float = 1e-6
+    # Because the computation is approximate, the sum of the probabilities is not 1.0. This
+    # parameter is the absolute deviation from 1.0 that is allowed.
+    sum_prob_atol: float = 1e-3
+
+
+class MPSSimulator(
+    simulator.SimulatesSamples,
+    simulator.SimulatesIntermediateState[
+        'cirq.contrib.quimb.mps_simulator.MPSSimulatorStepResult',
+        'cirq.contrib.quimb.mps_simulator.MPSTrialResult',
+        'cirq.contrib.quimb.mps_simulator.MPSState',
+    ],
+):
     """An efficient simulator for MPS circuits."""
 
     def __init__(
         self,
+        noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-        rsum2_cutoff: float = 1e-3,
-        sum_prob_atol: float = 1e-3,
+        simulation_options: 'cirq.contrib.quimb.mps_simulator.MPSOptions' = MPSOptions(),
+        grouping: Optional[Dict['cirq.Qid', int]] = None,
     ):
         """Creates instance of `MPSSimulator`.
 
         Args:
+            noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
-            rsum2_cutoff: We drop singular values so that the sum of the
-                square of the dropped singular values divided by the sum of the
-                square of all the singular values is less than rsum2_cutoff.
-                This is related to the fidelity of the computation. If we have
-                N 2D gates, then the estimated fidelity is
-                (1 - rsum2_cutoff) ** N.
-            sum_prob_atol: Because the computation is approximate, the sum of
-                the probabilities is not 1.0. This parameter is the absolute
-                deviation from 1.0 that is allowed.
+            simulation_options: Numerical options for the simulation.
+            grouping: How to group qubits together, if None all are individual.
         """
         self.init = True
-        self._prng = value.parse_random_state(seed)
-        self.rsum2_cutoff = rsum2_cutoff
-        self.sum_prob_atol = sum_prob_atol
+        noise_model = devices.NoiseModel.from_noise_model_like(noise)
+        if not protocols.has_mixture(noise_model):
+            raise ValueError(f'noise must be unitary or mixture but was {noise_model}')
+        self.noise = noise_model
+        self.prng = value.parse_random_state(seed)
+        self.simulation_options = simulation_options
+        self.grouping = grouping
 
     def _base_iterator(
         self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
@@ -81,58 +110,35 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
             yield MPSSimulatorStepResult(
                 measurements={},
                 state=MPSState(
-                    qubit_map, self.rsum2_cutoff, self.sum_prob_atol, initial_state=initial_state
+                    qubit_map,
+                    self.simulation_options,
+                    self.grouping,
+                    initial_state=initial_state,
                 ),
             )
             return
 
         state = MPSState(
-            qubit_map, self.rsum2_cutoff, self.sum_prob_atol, initial_state=initial_state
+            qubit_map,
+            self.simulation_options,
+            self.grouping,
+            initial_state=initial_state,
         )
 
-        for moment in circuit:
+        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
+        for op_tree in noisy_moments:
             measurements: Dict[str, List[int]] = collections.defaultdict(list)
 
-            for op in moment:
+            for op in flatten_to_ops(op_tree):
                 if isinstance(op.gate, ops.MeasurementGate):
                     key = str(protocols.measurement_key(op))
-                    measurements[key].extend(state.perform_measurement(op.qubits, self._prng))
-                elif protocols.has_unitary(op):
-                    state.apply_unitary(op)
+                    measurements[key].extend(state.perform_measurement(op.qubits, self.prng))
+                elif protocols.has_mixture(op):
+                    state.apply_op(op, self.prng)
                 else:
                     raise NotImplementedError(f"Unrecognized operation: {op!r}")
 
             yield MPSSimulatorStepResult(measurements=measurements, state=state)
-
-    def _simulator_iterator(
-        self,
-        circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver,
-        qubit_order: ops.QubitOrderOrList,
-        initial_state: int,
-    ) -> Iterator['cirq.contrib.quimb.mps_simulator.MPSSimulatorStepResult']:
-        """Iterator over MPSSimulatorStepResult from Moments of a Circuit
-
-        Args:
-            circuit: The circuit to simulate.
-            param_resolver: A ParamResolver for determining values of
-                Symbols.
-            qubit_order: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
-            initial_state: The initial state for the simulation. The form of
-                this state depends on the simulation implementation. See
-                documentation of the implementing class for details.
-
-        Returns:
-            An interator over all the results.
-        """
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        self._check_all_resolved(resolved_circuit)
-        actual_initial_state = 0 if initial_state is None else initial_state
-
-        return self._base_iterator(resolved_circuit, qubit_order, actual_initial_state)
 
     def _create_simulator_trial_result(
         self,
@@ -178,9 +184,6 @@ class MPSSimulator(simulator.SimulatesSamples, simulator.SimulatesIntermediateSt
         self._check_all_resolved(resolved_circuit)
 
         measurements = {}  # type: Dict[str, List[np.ndarray]]
-        if repetitions == 0:
-            for _, op, _ in resolved_circuit.findall_operations_with_gate_type(ops.MeasurementGate):
-                measurements[protocols.measurement_key(op)] = np.empty([0, 1])
 
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
@@ -228,7 +231,7 @@ class MPSTrialResult(simulator.SimulationTrialResult):
         return f'measurements: {samples}\noutput state: {final}'
 
 
-class MPSSimulatorStepResult(simulator.StepResult):
+class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
     """A `StepResult` that can perform measurements."""
 
     def __init__(self, state, measurements):
@@ -289,36 +292,34 @@ class MPSState:
     def __init__(
         self,
         qubit_map: Dict['cirq.Qid', int],
-        rsum2_cutoff: float,
-        sum_prob_atol: float,
+        simulation_options: 'cirq.contrib.quimb.mps_simulator.MPSOptions' = MPSOptions(),
+        grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
     ):
         """Creates and MPSState
 
         Args:
             qubit_map: A map from Qid to an integer that uniquely identifies it.
-            rsum2_cutoff: We drop singular values so that the sum of the
-                square of the dropped singular values divided by the sum of the
-                square of all the singular values is less than rsum2_cutoff.
-                This is related to the fidelity of the computation. If we have
-                N 2D gates, then the estimated fidelity is
-                (1 - rsum2_cutoff) ** N.
-            sum_prob_atol: Because the computation is approximate, the sum of
-                the probabilities is not 1.0. This parameter is the absolute
-                deviation from 1.0 that is allowed.
+            simulation_options: Numerical options for the simulation.
+            grouping: How to group qubits together, if None all are individual.
             initial_state: An integer representing the initial state.
         """
         self.qubit_map = qubit_map
+        self.grouping = qubit_map if grouping is None else grouping
+        if self.grouping.keys() != self.qubit_map.keys():
+            raise ValueError('Grouping must cover exactly the qubits.')
         self.M = []
+        for _ in range(max(self.grouping.values()) + 1):
+            self.M.append(qtn.Tensor())
 
         # The order of the qubits matters, because the state |01> is different from |10>. Since
         # Quimb uses strings to name tensor indices, we want to be able to sort them too. If we are
         # working with, say, 123 qubits then we want qubit 3 to come before qubit 100, but then
         # we want write the string '003' which comes before '100' in lexicographic order. The code
         # below is just simple string formatting.
-        max_num_digits = len('{}'.format(max(qubit_map.values())))
-        self.format_i = 'i_{{:0{}}}'.format(max_num_digits)
-        self.format_mu = 'mu_{{:0{}}}_{{:0{}}}'.format(max_num_digits, max_num_digits)
+        max_num_digits = len(f'{max(qubit_map.values())}')
+        self.format_i = f'i_{{:0{max_num_digits}}}'
+        self.format_mu = 'mu_{}_{}'
 
         # TODO(tonybruguier): Instead of relying on sortable indices could you keep a parallel
         # mapping of e.g. qubit to string-index and do all "logic" on the qubits themselves and
@@ -326,18 +327,18 @@ class MPSState:
 
         # TODO(tonybruguier): Refactor out so that the code below can also be used by
         # circuit_to_tensors in cirq.contrib.quimb.state_vector.
+
         for qubit in reversed(list(qubit_map.keys())):
             d = qubit.dimension
             x = np.zeros(d)
             x[initial_state % d] = 1.0
 
             i = qubit_map[qubit]
-            self.M.append(qtn.Tensor(x, inds=(self.i_str(i),)))
+            n = self.grouping[qubit]
+            self.M[n] @= qtn.Tensor(x, inds=(self.i_str(i),))
             initial_state = initial_state // d
-        self.M = self.M[::-1]
-        self.rsum2_cutoff = rsum2_cutoff
-        self.sum_prob_atol = sum_prob_atol
-        self.num_svd_splits = 0
+        self.simulation_options = simulation_options
+        self.estimated_gate_error_list: List[float] = []
 
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.
@@ -355,12 +356,12 @@ class MPSState:
         return str(qtn.TensorNetwork(self.M))
 
     def _value_equality_values_(self) -> Any:
-        return self.qubit_map, self.M, self.rsum2_cutoff, self.sum_prob_atol
+        return self.qubit_map, self.M, self.simulation_options, self.grouping
 
     def copy(self) -> 'MPSState':
-        state = MPSState(self.qubit_map, self.rsum2_cutoff, self.sum_prob_atol)
+        state = MPSState(self.qubit_map, self.simulation_options, self.grouping)
         state.M = [x.copy() for x in self.M]
-        state.num_svd_splits = self.num_svd_splits
+        state.estimated_gate_error_list = self.estimated_gate_error_list
         return state
 
     def state_vector(self) -> np.ndarray:
@@ -418,7 +419,7 @@ class MPSState:
         """An alias for the state vector."""
         return self.state_vector()
 
-    def apply_unitary(self, op: 'cirq.Operation'):
+    def apply_op(self, op: 'cirq.Operation', prng: np.random.RandomState):
         """Applies a unitary operation, mutating the object to represent the new state.
 
         op:
@@ -426,52 +427,69 @@ class MPSState:
             and 2- qubit operations are currently supported.
         """
 
-        U = protocols.unitary(op).reshape([qubit.dimension for qubit in op.qubits] * 2)
+        old_inds = tuple([self.i_str(self.qubit_map[qubit]) for qubit in op.qubits])
+        new_inds = tuple(['new_' + old_ind for old_ind in old_inds])
+
+        if protocols.has_unitary(op):
+            U = protocols.unitary(op)
+        else:
+            mixtures = protocols.mixture(op)
+            mixture_idx = int(prng.choice(len(mixtures), p=[mixture[0] for mixture in mixtures]))
+            U = mixtures[mixture_idx][1]
+        U = qtn.Tensor(
+            U.reshape([qubit.dimension for qubit in op.qubits] * 2), inds=(new_inds + old_inds)
+        )
 
         # TODO(tonybruguier): Explore using the Quimb's tensor network natively.
 
         if len(op.qubits) == 1:
-            n = self.qubit_map[op.qubits[0]]
+            n = self.grouping[op.qubits[0]]
 
-            old_n = self.i_str(n)
-            new_n = 'new_' + old_n
-
-            U = qtn.Tensor(U, inds=(new_n, old_n))
-            self.M[n] = (U @ self.M[n]).reindex({new_n: old_n})
+            self.M[n] = (U @ self.M[n]).reindex({new_inds[0]: old_inds[0]})
         elif len(op.qubits) == 2:
-            self.num_svd_splits += 1
+            n, p = [self.grouping[qubit] for qubit in op.qubits]
 
-            n, p = [self.qubit_map[qubit] for qubit in op.qubits]
+            if n == p:
+                self.M[n] = (U @ self.M[n]).reindex(
+                    {new_inds[0]: old_inds[0], new_inds[1]: old_inds[1]}
+                )
+            else:
+                # This is the index on which we do the contraction. We need to add it iff it's
+                # the first time that we do the joining for that specific pair.
+                mu_ind = self.mu_str(n, p)
+                if mu_ind not in self.M[n].inds:
+                    self.M[n].new_ind(mu_ind)
+                if mu_ind not in self.M[p].inds:
+                    self.M[p].new_ind(mu_ind)
 
-            old_n = self.i_str(n)
-            old_p = self.i_str(p)
-            new_n = 'new_' + old_n
-            new_p = 'new_' + old_p
+                T = U @ self.M[n] @ self.M[p]
 
-            U = qtn.Tensor(U, inds=(new_n, new_p, old_n, old_p))
+                left_inds = tuple(set(T.inds) & set(self.M[n].inds)) + (new_inds[0],)
+                X, Y = T.split(
+                    left_inds,
+                    method=self.simulation_options.method,
+                    max_bond=self.simulation_options.max_bond,
+                    cutoff=self.simulation_options.cutoff,
+                    cutoff_mode=self.simulation_options.cutoff_mode,
+                    get='tensors',
+                    absorb='both',
+                    bond_ind=mu_ind,
+                )
 
-            # This is the index on which we do the contraction. We need to add it iff it's the first
-            # time that we do the joining for that specific pair.
-            mu_ind = self.mu_str(n, p)
-            if mu_ind not in self.M[n].inds:
-                self.M[n].new_ind(mu_ind)
-            if mu_ind not in self.M[p].inds:
-                self.M[p].new_ind(mu_ind)
+                # Equations (13), (14), and (15):
+                # TODO(tonybruguier): When Quimb 2.0.0 is released, the split()
+                # function should have a 'renorm' that, when set to None, will
+                # allow to compute e_n exactly as:
+                # np.sum(abs((X @ Y).data) ** 2).real / np.sum(abs(T) ** 2).real
+                #
+                # The renormalization would then have to be done manually.
+                #
+                # However, for now, e_n are just the estimated value.
+                e_n = self.simulation_options.cutoff
+                self.estimated_gate_error_list.append(e_n)
 
-            T = U @ self.M[n] @ self.M[p]
-
-            left_inds = tuple(set(T.inds) & set(self.M[n].inds)) + (new_n,)
-            X, Y = T.split(
-                left_inds,
-                cutoff=self.rsum2_cutoff,
-                cutoff_mode='rsum2',
-                get='tensors',
-                absorb='both',
-                bond_ind=mu_ind,
-            )
-
-            self.M[n] = X.reindex({new_n: old_n})
-            self.M[p] = Y.reindex({new_p: old_p})
+                self.M[n] = X.reindex({new_inds[0]: old_inds[0]})
+                self.M[p] = Y.reindex({new_inds[1]: old_inds[1]})
         else:
             # NOTE(tonybruguier): There could be a way to handle higher orders. I think this could
             # involve HOSVDs:
@@ -489,14 +507,15 @@ class MPSState:
 
         # The computation below is done for numerical stability, instead of directly using the
         # formula:
-        # estimated_fidelity = (1 - self.rsum2_cutoff) ** self.num_svd_splits
-        estimated_fidelity = 1.0 + np.expm1(np.log1p(-self.rsum2_cutoff) * self.num_svd_splits)
+        # estimated_fidelity = \prod_i (1 - estimated_gate_error_list_i)
+        estimated_fidelity = 1.0 + np.expm1(
+            sum(np.log1p(-x) for x in self.estimated_gate_error_list)
+        )
         estimated_fidelity = round(estimated_fidelity, ndigits=3)
 
         return {
             "num_coefs_used": num_coefs_used,
             "memory_bytes": memory_bytes,
-            "num_svd_splits": self.num_svd_splits,
             "estimated_fidelity": estimated_fidelity,
         }
 
@@ -528,8 +547,8 @@ class MPSState:
 
             # Because the computation is approximate, the probabilities do not
             # necessarily add up to 1.0, and thus we re-normalize them.
-            if abs(sum_probs - 1.0) > self.sum_prob_atol:
-                raise ValueError('Sum of probabilities exceeds tolerance: {}'.format(sum_probs))
+            if abs(sum_probs - 1.0) > self.simulation_options.sum_prob_atol:
+                raise ValueError(f'Sum of probabilities exceeds tolerance: {sum_probs}')
             norm_probs = [x / sum_probs for x in probs]
 
             d = qubit.dimension

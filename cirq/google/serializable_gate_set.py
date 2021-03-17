@@ -167,7 +167,7 @@ class SerializableGateSet:
                     )
                     if proto_msg is not None:
                         return proto_msg
-        raise ValueError('Cannot serialize op {!r} of type {}'.format(op, gate_type))
+        raise ValueError(f'Cannot serialize op {op!r} of type {gate_type}')
 
     def deserialize(
         self, proto: v2.program_pb2.Program, device: Optional['cirq.Device'] = None
@@ -294,7 +294,7 @@ class SerializableGateSet:
         result = []
         for scheduled_op_proto in schedule_proto.scheduled_operations:
             if not scheduled_op_proto.HasField('operation'):
-                raise ValueError('Scheduled op missing an operation {}'.format(scheduled_op_proto))
+                raise ValueError(f'Scheduled op missing an operation {scheduled_op_proto}')
             result.append(
                 self.deserialize_op(
                     scheduled_op_proto.operation, arg_function_language=arg_function_language

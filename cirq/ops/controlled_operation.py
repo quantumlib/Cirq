@@ -61,9 +61,7 @@ class ControlledOperation(raw_types.Operation):
         # Verify control values not out of bounds
         for q, val in zip(controls, self.control_values):
             if not all(0 <= v < q.dimension for v in val):
-                raise ValueError(
-                    'Control values <{!r}> outside of range for qubit <{!r}>.'.format(val, q)
-                )
+                raise ValueError(f'Control values <{val!r}> outside of range for qubit <{q!r}>.')
 
         if not isinstance(sub_operation, ControlledOperation):
             self.controls = tuple(controls)
@@ -234,7 +232,7 @@ class ControlledOperation(raw_types.Operation):
         def get_symbol(vals):
             if tuple(vals) == (1,):
                 return '@'
-            return '({})'.format(','.join(map(str, vals)))
+            return f"({','.join(map(str, vals))})"
 
         wire_symbols = (*(get_symbol(vals) for vals in self.control_values), *sub_info.wire_symbols)
         return protocols.CircuitDiagramInfo(

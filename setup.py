@@ -62,7 +62,7 @@ setup(
     url='http://github.com/quantumlib/cirq',
     author='The Cirq Developers',
     author_email='cirq@googlegroups.com',
-    python_requires=('>=3.7.0'),
+    python_requires=('>=3.6.0'),
     install_requires=requirements,
     extras_require={
         'contrib': contrib_requirements,
@@ -76,6 +76,7 @@ setup(
         'cirq': ['py.typed'],
         'cirq.google.api.v1': ['*.proto', '*.pyi'],
         'cirq.google.api.v2': ['*.proto', '*.pyi'],
+        'cirq.google.json_test_data': ['*'],
         'cirq.protocols.json_test_data': ['*'],
     },
 )

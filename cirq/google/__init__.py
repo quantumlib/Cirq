@@ -33,10 +33,13 @@ from cirq.google.calibration import (
     SQRT_ISWAP_PARAMETERS,
     THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     make_zeta_chi_gamma_compensation_for_moments,
-    prepare_floquet_characterization_for_circuit,
+    make_zeta_chi_gamma_compensation_for_operations,
+    merge_matching_results,
+    prepare_floquet_characterization_for_moments,
     prepare_floquet_characterization_for_moment,
+    prepare_floquet_characterization_for_operations,
     run_calibrations,
-    run_floquet_characterization_for_circuit,
+    run_floquet_characterization_for_moments,
     run_zeta_chi_gamma_compensation_for_moments,
     try_convert_sqrt_iswap_to_fsim,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -56,7 +59,6 @@ from cirq.google.engine import (
     CalibrationLayer,
     CalibrationResult,
     Engine,
-    engine_from_environment,
     EngineJob,
     EngineProgram,
     EngineProcessor,
@@ -113,6 +115,8 @@ from cirq.google.op_serializer import (
 from cirq.google.serializable_gate_set import (
     SerializableGateSet,
 )
+
+from cirq.google import experimental
 
 
 def _register_resolver() -> None:

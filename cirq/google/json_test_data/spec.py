@@ -7,7 +7,7 @@ from cirq.testing.json import ModuleJsonTestSpec
 
 TestSpec = ModuleJsonTestSpec(
     name="cirq.google",
-    packages=[cirq.google],
+    packages=[cirq.google, cirq.google.experimental],
     test_data_path=pathlib.Path(__file__).parent,
     not_yet_serializable=[
         'FSIM_GATESET',
@@ -42,9 +42,11 @@ TestSpec = ModuleJsonTestSpec(
         'GateOpDeserializer',
         'GreedySequenceSearchStrategy',
         'PhasedFSimEngineSimulator',
+        'PerQubitDepolarizingWithDampedReadoutNoiseModel',
         'SerializingArg',
         'THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
         'QuantumEngineSampler',
     ],
     resolver_cache=_class_resolver_dictionary(),
+    deprecated={},
 )

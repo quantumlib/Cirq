@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import datetime
+import contextlib
 
 import datetime
 import io
@@ -297,7 +297,7 @@ def test_sympy():
     assert_json_roundtrip_works(4 * t + 3 * s + 2)
 
 
-class SBKImpl:
+class SBKImpl(cirq.SerializableByKey):
     """A test implementation of SerializableByKey."""
 
     def __init__(
@@ -330,9 +330,6 @@ class SBKImpl:
             "data_tuple": self.data_tuple,
             "data_dict": self.data_dict,
         }
-
-    def _serialization_key_(self):
-        return self.name
 
     @classmethod
     def _from_json_dict_(cls, name, data_list, data_tuple, data_dict, **kwargs):
@@ -371,7 +368,7 @@ def test_context_serialization():
         final_obj
         == """{
       "cirq_type": "_SerializedKey",
-      "key": "sbki_dict"
+      "key": 4
     }"""
     )
 
@@ -382,15 +379,17 @@ def test_context_serialization():
     assert_json_roundtrip_works(dict_sbki, resolvers=test_resolvers)
 
     assert sbki_list != json_serialization._SerializedKey(sbki_list)
+
+    # Serialization keys have unique suffixes.
     sbki_other_list = SBKImpl('sbki_list', data_list=[sbki_list])
-    with pytest.raises(ValueError, match='different objects with the same serialization key'):
-        _ = cirq.to_json(sbki_other_list)
+    assert_json_roundtrip_works(sbki_other_list, resolvers=test_resolvers)
 
 
 def test_internal_serializer_types():
     sbki = SBKImpl('test_key')
-    test_key = json_serialization._SerializedKey(sbki)
-    test_context = json_serialization._SerializedContext(sbki)
+    key = 1
+    test_key = json_serialization._SerializedKey(key)
+    test_context = json_serialization._SerializedContext(sbki, 1)
     test_serialization = json_serialization._ContextualSerialization(sbki)
 
     key_json = test_key._json_dict_()
@@ -415,6 +414,12 @@ def test_internal_serializer_types():
     ],
 )
 def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls):
+    if cirq_obj_name == "SerializableByKey":
+        pytest.skip(
+            "SerializableByKey does not follow common serialization rules. "
+            "It is tested separately in test_context_serialization."
+        )
+
     if cirq_obj_name in mod_spec.not_yet_serializable:
         return pytest.xfail(reason="Not serializable (yet)")
 
@@ -424,6 +429,7 @@ def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: st
     rel_resolver_cache_path = f"{mod_path}/json_resolver_cache.py"
     json_path = test_data_path / f'{cirq_obj_name}.json'
     json_path2 = test_data_path / f'{cirq_obj_name}.json_inward'
+    deprecation_deadline = mod_spec.deprecated.get(cirq_obj_name)
 
     if not json_path.exists() and not json_path2.exists():
         # coverage: ignore
@@ -466,7 +472,7 @@ def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: st
 
     repr_file = test_data_path / f'{cirq_obj_name}.repr'
     if repr_file.exists() and cls is not None:
-        objs = _eval_repr_data_file(repr_file)
+        objs = _eval_repr_data_file(repr_file, deprecation_deadline=deprecation_deadline)
         if not isinstance(objs, list):
             objs = [objs]
 
@@ -510,19 +516,26 @@ def test_to_from_json_gzip():
         _ = cirq.read_json_gzip()
 
 
-def _eval_repr_data_file(path: pathlib.Path):
-    return eval(
-        path.read_text(),
-        {
-            'cirq': cirq,
-            'datetime': datetime,
-            'pd': pd,
-            'sympy': sympy,
-            'np': np,
-            'datetime': datetime,
-        },
-        {},
+def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]):
+    ctx_manager = (
+        cirq.testing.assert_deprecated(deadline=deprecation_deadline, count=None)
+        if deprecation_deadline
+        else contextlib.suppress()
     )
+    with ctx_manager:
+        obj = eval(
+            path.read_text(),
+            {
+                'cirq': cirq,
+                'datetime': datetime,
+                'pd': pd,
+                'sympy': sympy,
+                'np': np,
+                'datetime': datetime,
+            },
+            {},
+        )
+    return obj
 
 
 def assert_repr_and_json_test_data_agree(
@@ -530,6 +543,7 @@ def assert_repr_and_json_test_data_agree(
     repr_path: pathlib.Path,
     json_path: pathlib.Path,
     inward_only: bool,
+    deprecation_deadline: Optional[str],
 ):
     if not repr_path.exists() and not json_path.exists():
         return
@@ -539,7 +553,13 @@ def assert_repr_and_json_test_data_agree(
 
     try:
         json_from_file = json_path.read_text()
-        json_obj = cirq.read_json(json_text=json_from_file)
+        ctx_manager = (
+            cirq.testing.assert_deprecated(deadline=deprecation_deadline, count=None)
+            if deprecation_deadline
+            else contextlib.suppress()
+        )
+        with ctx_manager:
+            json_obj = cirq.read_json(json_text=json_from_file)
     except ValueError as ex:  # coverage: ignore
         # coverage: ignore
         if "Could not resolve type" in str(ex):
@@ -552,13 +572,16 @@ def assert_repr_and_json_test_data_agree(
                 f" `_class_resolver_dictionary` method in {rel_resolver_cache_path}?"
             )
         else:
-            raise ValueError
+            raise ValueError(f"deprecation: {deprecation_deadline} - got error: {ex}")
+    except AssertionError as ex:  # coverage: ignore
+        # coverage: ignore
+        raise ex
     except Exception as ex:  # coverage: ignore
         # coverage: ignore
         raise IOError(f'Failed to parse test json data from {rel_json_path}.') from ex
 
     try:
-        repr_obj = _eval_repr_data_file(repr_path)
+        repr_obj = _eval_repr_data_file(repr_path, deprecation_deadline)
     except Exception as ex:  # coverage: ignore
         # coverage: ignore
         raise IOError(f'Failed to parse test repr data from {rel_repr_path}.') from ex
@@ -593,20 +616,23 @@ def assert_repr_and_json_test_data_agree(
 
 
 @pytest.mark.parametrize(
-    'mod_spec, key', [(m, key) for m in MODULE_TEST_SPECS for key in m.all_test_data_keys()]
+    'mod_spec, abs_path',
+    [(m, abs_path) for m in MODULE_TEST_SPECS for abs_path in m.all_test_data_keys()],
 )
-def test_json_and_repr_data(mod_spec: ModuleJsonTestSpec, key: str):
+def test_json_and_repr_data(mod_spec: ModuleJsonTestSpec, abs_path: str):
     assert_repr_and_json_test_data_agree(
         mod_spec=mod_spec,
-        repr_path=pathlib.Path(f'{key}.repr'),
-        json_path=pathlib.Path(f'{key}.json'),
+        repr_path=pathlib.Path(f'{abs_path}.repr'),
+        json_path=pathlib.Path(f'{abs_path}.json'),
         inward_only=False,
+        deprecation_deadline=mod_spec.deprecated.get(os.path.basename(abs_path)),
     )
     assert_repr_and_json_test_data_agree(
         mod_spec=mod_spec,
-        repr_path=pathlib.Path(f'{key}.repr_inward'),
-        json_path=pathlib.Path(f'{key}.json_inward'),
+        repr_path=pathlib.Path(f'{abs_path}.repr_inward'),
+        json_path=pathlib.Path(f'{abs_path}.json_inward'),
         inward_only=True,
+        deprecation_deadline=mod_spec.deprecated.get(os.path.basename(abs_path)),
     )
 
 

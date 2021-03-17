@@ -27,16 +27,19 @@ from cirq.google.calibration.phased_fsim import (
     SQRT_ISWAP_PARAMETERS,
     THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    merge_matching_results,
 )
 
 from cirq.google.calibration.workflow import (
     CircuitWithCalibration,
     FSimPhaseCorrections,
     make_zeta_chi_gamma_compensation_for_moments,
-    prepare_floquet_characterization_for_circuit,
+    make_zeta_chi_gamma_compensation_for_operations,
+    prepare_floquet_characterization_for_moments,
     prepare_floquet_characterization_for_moment,
+    prepare_floquet_characterization_for_operations,
     run_calibrations,
-    run_floquet_characterization_for_circuit,
+    run_floquet_characterization_for_moments,
     run_zeta_chi_gamma_compensation_for_moments,
     try_convert_sqrt_iswap_to_fsim,
 )

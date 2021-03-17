@@ -20,7 +20,6 @@ import numpy as np
 
 from cirq import protocols
 from cirq.linalg import predicates
-from cirq._compat import deprecated, deprecated_parameter
 
 # This is a special indicator value used by the `sub_state_vector` method to
 # determine whether or not the caller provided a 'default' argument. It must be
@@ -327,16 +326,6 @@ def partial_trace(tensor: np.ndarray, keep_indices: List[int]) -> np.ndarray:
     return np.einsum(tensor, left_indices + right_indices)
 
 
-@deprecated_parameter(
-    deadline='v0.10.0',
-    fix='Use state_vector instead.',
-    parameter_desc='wavefunction',
-    match=lambda args, kwargs: 'wavefunction' in kwargs,
-    rewrite=lambda args, kwargs: (
-        args,
-        {('state_vector' if k == 'wavefunction' else k): v for k, v in kwargs.items()},
-    ),
-)
 def partial_trace_of_state_vector_as_mixture(
     state_vector: np.ndarray, keep_indices: List[int], *, atol: Union[int, float] = 1e-8
 ) -> Tuple[Tuple[float, np.ndarray], ...]:
@@ -389,21 +378,6 @@ def partial_trace_of_state_vector_as_mixture(
     return tuple([(float(p[0]), p[1]) for p in mixture if not protocols.approx_eq(p[0], 0.0)])
 
 
-@deprecated(deadline='v0.10.0', fix='Use `cirq.partial_trace_of_state_vector_as_mixture` instead.')
-def wavefunction_partial_trace_as_mixture(*args, **kwargs):
-    return partial_trace_of_state_vector_as_mixture(*args, **kwargs)
-
-
-@deprecated_parameter(
-    deadline='v0.10.0',
-    fix='Use state_vector instead.',
-    parameter_desc='wavefunction',
-    match=lambda args, kwargs: 'wavefunction' in kwargs,
-    rewrite=lambda args, kwargs: (
-        args,
-        {('state_vector' if k == 'wavefunction' else k): v for k, v in kwargs.items()},
-    ),
-)
 def sub_state_vector(
     state_vector: np.ndarray,
     keep_indices: List[int],
@@ -475,7 +449,7 @@ def sub_state_vector(
     if not np.isclose(np.linalg.norm(state_vector), 1):
         raise ValueError("Input state must be normalized.")
     if len(set(keep_indices)) != len(keep_indices):
-        raise ValueError("keep_indices were {} but must be unique.".format(keep_indices))
+        raise ValueError(f"keep_indices were {keep_indices} but must be unique.")
     if any([ind >= n_qubits for ind in keep_indices]):
         raise ValueError("keep_indices {} are an invalid subset of the input state vector.")
 
@@ -501,11 +475,6 @@ def sub_state_vector(
         "Input state vector could not be factored into pure state over "
         "indices {}".format(keep_indices)
     )
-
-
-@deprecated(deadline='v0.10.0', fix='Use `cirq.sub_state_vector` instead.')
-def subwavefunction(*args, **kwargs):
-    return sub_state_vector(*args, **kwargs)
 
 
 def to_special(u: np.ndarray) -> np.ndarray:

@@ -15,6 +15,7 @@ from typing import (
     Any,
     Callable,
     Dict,
+    Iterable,
     List,
     MutableMapping,
     Optional,
@@ -32,7 +33,18 @@ import re
 import numpy as np
 
 from cirq.circuits import Circuit
-from cirq.ops import FSimGate, Gate, ISwapPowGate, PhasedFSimGate, PhasedISwapPowGate, Qid
+from cirq.ops import (
+    FSimGate,
+    Gate,
+    ISwapPowGate,
+    Moment,
+    Operation,
+    PhasedFSimGate,
+    PhasedISwapPowGate,
+    Qid,
+    TwoQubitGate,
+    rz,
+)
 from cirq.google.api import v2
 from cirq.google.engine import CalibrationLayer, CalibrationResult
 
@@ -50,6 +62,31 @@ T = TypeVar('T')
 # Workaround for: https://github.com/python/mypy/issues/5858
 def lru_cache_typesafe(func: Callable[..., T]) -> T:
     return functools.lru_cache(maxsize=None)(func)  # type: ignore
+
+
+def _create_pairs_from_moment(moment: Moment) -> Tuple[Tuple[Tuple[Qid, Qid], ...], Gate]:
+    """Creates instantiation parameters from a Moment.
+
+    Given a moment, creates a tuple of pairs of qubits and the
+    gate for instantiation of a sub-class of PhasedFSimCalibrationRequest,
+    Sub-classes of PhasedFSimCalibrationRequest can call this function
+    to implement a from_moment function.
+    """
+    gate = None
+    pairs: List[Tuple[Qid, Qid]] = []
+    for op in moment:
+        if op.gate is None:
+            raise ValueError('All gates in request object must be two qubit gates: {op}')
+        if gate is None:
+            gate = op.gate
+        elif gate != op.gate:
+            raise ValueError('All gates in request object must be identical {gate}!={op.gate}')
+        if len(op.qubits) != 2:
+            raise ValueError('All gates in request object must be two qubit gates: {op}')
+        pairs.append((op.qubits[0], op.qubits[1]))
+    if gate is None:
+        raise ValueError('No gates found to create request {moment}')
+    return tuple(pairs), gate
 
 
 @json_serializable_dataclass(frozen=True)
@@ -250,6 +287,50 @@ class PhasedFSimCalibrationResult:
         }
 
 
+def merge_matching_results(
+    results: Iterable[PhasedFSimCalibrationResult],
+) -> Optional[PhasedFSimCalibrationResult]:
+    """Merges a collection of results into a single result.
+
+    Args:
+        results: List of results to merge. They must be compatible with each other: all gate and
+            options fields must be equal and every characterized pair must be present only in one of
+            the characterizations.
+
+    Returns:
+        New PhasedFSimCalibrationResult that contains all the parameters from every result in
+        results or None when the results list is empty.
+    """
+    all_parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization] = {}
+    common_gate = None
+    common_options = None
+    for result in results:
+        if common_gate is None:
+            common_gate = result.gate
+        elif common_gate != result.gate:
+            raise ValueError(
+                f'Only matching results can be merged, got gates {common_gate} and {result.gate}'
+            )
+
+        if common_options is None:
+            common_options = result.options
+        elif common_options != result.options:
+            raise ValueError(
+                f'Only matching results can be merged, got options {common_options} and '
+                f'{result.options}'
+            )
+
+        if not all_parameters.keys().isdisjoint(result.parameters):
+            raise ValueError(f'Only results with disjoint parameters sets can be merged')
+
+        all_parameters.update(result.parameters)
+
+    if common_gate is None or common_options is None:
+        return None
+
+    return PhasedFSimCalibrationResult(all_parameters, common_gate, common_options)
+
+
 # We have to relax a mypy constraint, see https://github.com/python/mypy/issues/5374
 @dataclasses.dataclass(frozen=True)  # type: ignore
 class PhasedFSimCalibrationRequest(abc.ABC):
@@ -364,6 +445,18 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
     options: FloquetPhasedFSimCalibrationOptions
 
+    @classmethod
+    def from_moment(cls, moment: Moment, options: FloquetPhasedFSimCalibrationOptions):
+        """Creates a FloquetPhasedFSimCalibrationRequest from a Moment.
+
+        Given a `Moment` object, this function extracts out the pairs of
+        qubits and the `Gate` used to create a `FloquetPhasedFSimCalibrationRequest`
+        object.  The moment must contain only identical two-qubit FSimGates.
+        If dissimilar gates are passed in, a ValueError is raised.
+        """
+        pairs, gate = _create_pairs_from_moment(moment)
+        return cls(pairs, gate, options)
+
     def to_calibration_layer(self) -> CalibrationLayer:
         circuit = Circuit([self.gate.on(*pair) for pair in self.pairs])
         return CalibrationLayer(
@@ -434,15 +527,102 @@ class IncompatibleMomentError(Exception):
     """Error that occurs when a moment is not supported by a calibration routine."""
 
 
-def try_convert_sqrt_iswap_to_fsim(gate: Gate) -> Optional[FSimGate]:
+@dataclasses.dataclass(frozen=True)
+class PhaseCalibratedFSimGate:
+    """Association of a user gate with gate to calibrate.
+
+    This association stores information regarding rotation of the calibrated FSim gate by
+    phase_exponent p:
+
+        (Z^-p ⊗ Z^p) FSim (Z^p ⊗ Z^-p).
+
+    The rotation should be reflected back during the compilation after the gate is calibrated and
+    is equivalent to the shift of -2πp in the χ angle of PhasedFSimGate.
+
+    Attributes:
+        engine_gate: Gate that should be used for calibration purposes.
+        phase_exponent: Phase rotation exponent p.
+    """
+
+    engine_gate: FSimGate
+    phase_exponent: float
+
+    def as_characterized_phased_fsim_gate(
+        self, parameters: PhasedFSimCharacterization
+    ) -> PhasedFSimGate:
+        """Creates a PhasedFSimGate which represents the characterized engine_gate but includes
+        deviations in unitary parameters.
+
+        Args:
+            parameters: The results of characterization of the engine gate.
+
+        Returns:
+            Instance of PhasedFSimGate that executes a gate according to the characterized
+            parameters of the engine_gate.
+        """
+        return PhasedFSimGate(
+            theta=parameters.theta,
+            zeta=parameters.zeta,
+            chi=parameters.chi - 2 * np.pi * self.phase_exponent,
+            gamma=parameters.gamma,
+            phi=parameters.phi,
+        )
+
+    def with_zeta_chi_gamma_compensated(
+        self,
+        qubits: Tuple[Qid, Qid],
+        parameters: PhasedFSimCharacterization,
+        *,
+        engine_gate: Optional[TwoQubitGate] = None,
+    ) -> Tuple[Tuple[Operation, ...], ...]:
+        """Creates a composite operation that compensates for zeta, chi and gamma angles of the
+        characterization.
+
+        Args:
+            qubits: Qubits that the gate should act on.
+            parameters: The results of characterization of the engine gate.
+            engine_gate: TwoQubitGate that represents the engine gate. When None, the internal
+                engine_gate of this instance is used. This argument is useful for testing
+                purposes.
+
+        Returns:
+            Tuple of tuple of operations that describe the compensated gate. The first index
+            iterates over moments of the composed operation.
+        """
+        assert parameters.zeta is not None, "Zeta value must not be None"
+        zeta = parameters.zeta
+
+        assert parameters.gamma is not None, "Gamma value must not be None"
+        gamma = parameters.gamma
+
+        assert parameters.chi is not None, "Chi value must not be None"
+        chi = parameters.chi + 2 * np.pi * self.phase_exponent
+
+        if engine_gate is None:
+            engine_gate = self.engine_gate
+
+        a, b = qubits
+
+        alpha = 0.5 * (zeta + chi)
+        beta = 0.5 * (zeta - chi)
+
+        return (
+            (rz(0.5 * gamma - alpha).on(a), rz(0.5 * gamma + alpha).on(b)),
+            (engine_gate.on(a, b),),
+            (rz(0.5 * gamma - beta).on(a), rz(0.5 * gamma + beta).on(b)),
+        )
+
+
+def try_convert_sqrt_iswap_to_fsim(gate: Gate) -> Optional[PhaseCalibratedFSimGate]:
     """Converts an equivalent gate to FSimGate(theta=π/4, phi=0) if possible.
 
     Args:
         gate: Gate to verify.
 
     Returns:
-        FSimGate(theta=π/4, phi=0) if provided gate either  FSimGate, ISWapPowGate, PhasedFSimGate
-        or PhasedISwapPowGate that is equivalent to FSimGate(theta=π/4, phi=0). None otherwise.
+        FSimGateCalibration with engine_gate FSimGate(theta=π/4, phi=0) if the provided gate is
+        either FSimGate, ISWapPowGate, PhasedFSimGate or PhasedISwapPowGate that is equivalent to
+        FSimGate(theta=±π/4, phi=0). None otherwise.
     """
     if isinstance(gate, FSimGate):
         if not np.isclose(gate.phi, 0.0):
@@ -466,7 +646,11 @@ def try_convert_sqrt_iswap_to_fsim(gate: Gate) -> Optional[FSimGate]:
     else:
         return None
 
-    if np.isclose(angle, np.pi / 4):
-        return FSimGate(theta=np.pi / 4, phi=0.0)
+    angle_canonical = angle % (2 * np.pi)
+
+    if np.isclose(angle_canonical, np.pi / 4):
+        return PhaseCalibratedFSimGate(FSimGate(theta=np.pi / 4, phi=0.0), 0.0)
+    elif np.isclose(angle_canonical, 7 * np.pi / 4):
+        return PhaseCalibratedFSimGate(FSimGate(theta=np.pi / 4, phi=0.0), 0.5)
 
     return None

@@ -13,6 +13,15 @@
 # limitations under the License.
 
 """Base simulation classes and generic simulators."""
+from typing import Tuple, Dict
+
+from cirq.sim.act_on_args import (
+    ActOnArgs,
+)
+
+from cirq.sim.act_on_density_matrix_args import (
+    ActOnDensityMatrixArgs,
+)
 
 from cirq.sim.act_on_state_vector_args import (
     ActOnStateVectorArgs,
@@ -21,8 +30,6 @@ from cirq.sim.act_on_state_vector_args import (
 from cirq.sim.density_matrix_utils import (
     measure_density_matrix,
     sample_density_matrix,
-    to_valid_density_matrix,
-    von_neumann_entropy,
 )
 
 from cirq.sim.density_matrix_simulator import (
@@ -36,7 +43,6 @@ from cirq.sim.mux import (
     CIRCUIT_LIKE,
     final_density_matrix,
     final_state_vector,
-    final_wavefunction,
     sample,
     sample_sweep,
 )
@@ -57,24 +63,15 @@ from cirq.sim.sparse_simulator import (
 
 from cirq.sim.state_vector_simulator import (
     SimulatesIntermediateStateVector,
-    SimulatesIntermediateWaveFunction,
     StateVectorSimulatorState,
     StateVectorStepResult,
     StateVectorTrialResult,
-    WaveFunctionSimulatorState,
-    WaveFunctionStepResult,
-    WaveFunctionTrialResult,
 )
 
 from cirq.sim.state_vector import (
-    bloch_vector_from_state_vector,
-    density_matrix_from_state_vector,
-    dirac_notation,
     measure_state_vector,
     sample_state_vector,
     StateVectorMixin,
-    to_valid_state_vector,
-    validate_normalized_state,
 )
 
 from cirq.sim.clifford import (
@@ -89,15 +86,12 @@ from cirq.sim.clifford import (
     CliffordSimulatorStepResult,
 )
 
-# Deprecated
 # pylint: disable=wrong-import-order
-
-from cirq.qis import STATE_VECTOR_LIKE
-
 import sys as _sys
-from cirq._compat import wrap_module as _wrap_module
+from cirq._compat import deprecate_attributes as _deprecate_attributes
 
-deprecated_constants = {
-    'STATE_VECTOR_LIKE': ('v0.9', 'Use cirq.STATE_VECTOR_LIKE instead'),
+deprecated_constants: Dict[str, Tuple[str, str]] = {
+    # currently none, you can use this to deprecate constants, for example like this:
+    # 'STATE_VECTOR_LIKE': ('v0.9', 'Use cirq.STATE_VECTOR_LIKE instead'),
 }
-_sys.modules[__name__] = _wrap_module(_sys.modules[__name__], deprecated_constants)
+_sys.modules[__name__] = _deprecate_attributes(_sys.modules[__name__], deprecated_constants)

@@ -20,6 +20,7 @@ Moment the Operations must all act on distinct Qubits.
 """
 
 from collections import defaultdict
+import enum
 from itertools import groupby
 import math
 
@@ -50,12 +51,13 @@ import numpy as np
 
 from cirq import devices, ops, protocols, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
+from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.quil_output import QuilOutput
 from cirq.type_workarounds import NotImplementedType
-from cirq._compat import deprecated, deprecated_parameter
+from cirq._compat import deprecated_parameter
 import cirq._version
 
 if TYPE_CHECKING:
@@ -64,6 +66,14 @@ if TYPE_CHECKING:
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='AbstractCircuit')
 INT_TYPE = Union[int, np.integer]
+
+
+class Alignment(enum.Enum):
+    LEFT = 1
+    RIGHT = 2
+
+    def __repr__(self) -> str:
+        return f'cirq.Alignment.{self.name}'
 
 
 class AbstractCircuit(abc.ABC):
@@ -121,29 +131,30 @@ class AbstractCircuit(abc.ABC):
             return self
         return FrozenCircuit(self, strategy=InsertStrategy.EARLIEST, device=self.device)
 
-    def unfreeze(self) -> 'cirq.Circuit':
+    def unfreeze(self, copy: bool = True) -> 'cirq.Circuit':
         """Creates a Circuit from this circuit.
 
-        If 'self' is a Circuit, this returns a copy of that circuit.
+        Args:
+            copy: If True and 'self' is a Circuit, returns a copy that circuit.
         """
         if isinstance(self, Circuit):
-            return Circuit.copy(self)
+            return Circuit.copy(self) if copy else self
         return Circuit(self, strategy=InsertStrategy.EARLIEST, device=self.device)
 
     def __bool__(self):
         return bool(self.moments)
 
     def __eq__(self, other):
-        if not isinstance(other, type(self)):
+        if not isinstance(other, AbstractCircuit):
             return NotImplemented
-        return self.moments == other.moments and self.device == other.device
+        return tuple(self.moments) == tuple(other.moments) and self.device == other.device
 
     def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
-        if not isinstance(other, type(self)):
+        if not isinstance(other, AbstractCircuit):
             return NotImplemented
         return (
-            cirq.protocols.approx_eq(self.moments, other.moments, atol=atol)
+            cirq.protocols.approx_eq(tuple(self.moments), tuple(other.moments), atol=atol)
             and self.device == other.device
         )
 
@@ -272,7 +283,7 @@ class AbstractCircuit(abc.ABC):
         if max_distance is None:
             max_distance = max_circuit_distance
         elif max_distance < 0:
-            raise ValueError('Negative max_distance: {}'.format(max_distance))
+            raise ValueError(f'Negative max_distance: {max_distance}')
         else:
             max_distance = min(max_distance, max_circuit_distance)
 
@@ -331,7 +342,7 @@ class AbstractCircuit(abc.ABC):
         if max_distance is None:
             max_distance = len(self.moments)
         elif max_distance < 0:
-            raise ValueError('Negative max_distance: {}'.format(max_distance))
+            raise ValueError(f'Negative max_distance: {max_distance}')
         else:
             max_distance = min(end_moment_index, max_distance)
 
@@ -763,16 +774,18 @@ class AbstractCircuit(abc.ABC):
             given predicate are terminal. Also checks within any CircuitGates
             the circuit may contain.
         """
+        from cirq.circuits import CircuitOperation
+
         if not all(
             self.next_moment_operating_on(op.qubits, i + 1) is None
             for (i, op) in self.findall_operations(predicate)
-            if _get_op_circuit(op) is None
+            if not isinstance(op.untagged, CircuitOperation)
         ):
             return False
 
         for i, moment in enumerate(self.moments):
             for op in moment.operations:
-                circuit = _get_op_circuit(op)
+                circuit = getattr(op.untagged, 'circuit', None)
                 if circuit is None:
                     continue
                 if not circuit.are_all_matches_terminal(predicate):
@@ -803,16 +816,18 @@ class AbstractCircuit(abc.ABC):
             given predicate are terminal. Also checks within any CircuitGates
             the circuit may contain.
         """
+        from cirq.circuits import CircuitOperation
+
         if any(
             self.next_moment_operating_on(op.qubits, i + 1) is None
             for (i, op) in self.findall_operations(predicate)
-            if _get_op_circuit(op) is None
+            if not isinstance(op.untagged, CircuitOperation)
         ):
             return True
 
         for i, moment in reversed(list(enumerate(self.moments))):
             for op in moment.operations:
-                circuit = _get_op_circuit(op)
+                circuit = getattr(op.untagged, 'circuit', None)
                 if circuit is None:
                     continue
                 if not circuit.are_any_matches_terminal(predicate):
@@ -1048,24 +1063,6 @@ class AbstractCircuit(abc.ABC):
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((state_len,))
 
-    @deprecated(deadline='v0.10.0', fix='Use final_state_vector instead.')
-    def final_wavefunction(
-        self,
-        initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
-        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-        qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
-        ignore_terminal_measurements: bool = True,
-        dtype: Type[np.number] = np.complex128,
-    ) -> np.ndarray:
-        """Deprecated. Please use `final_state_vector`."""
-        return self.final_state_vector(
-            initial_state=initial_state,
-            qubit_order=qubit_order,
-            qubits_that_should_be_present=qubits_that_should_be_present,
-            ignore_terminal_measurements=ignore_terminal_measurements,
-            dtype=dtype,
-        )
-
     def to_text_diagram(
         self,
         *,
@@ -1195,7 +1192,7 @@ class AbstractCircuit(abc.ABC):
                 register.
         """
         if header is None:
-            header = 'Generated from Cirq v{}'.format(cirq._version.__version__)
+            header = f'Generated from Cirq v{cirq._version.__version__}'
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return QasmOutput(
             operations=self.all_operations(),
@@ -1257,6 +1254,181 @@ class AbstractCircuit(abc.ABC):
     @classmethod
     def _from_json_dict_(cls, moments, device, **kwargs):
         return cls(moments, strategy=InsertStrategy.EARLIEST, device=device)
+
+    def zip(
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
+    ) -> 'cirq.AbstractCircuit':
+        """Combines operations from circuits in a moment-by-moment fashion.
+
+        Moment k of the resulting circuit will have all operations from moment
+        k of each of the given circuits.
+
+        When the given circuits have different lengths, the shorter circuits are
+        implicitly padded with empty moments. This differs from the behavior of
+        python's built-in zip function, which would instead truncate the longer
+        circuits.
+
+        The zipped circuits can't have overlapping operations occurring at the
+        same moment index.
+
+        Args:
+            circuits: The circuits to merge together.
+
+        Returns:
+            The merged circuit.
+
+        Raises:
+            ValueError:
+                The zipped circuits have overlapping operations occurring at the
+                same moment index.
+
+        Examples:
+            >>> import cirq
+            >>> a, b, c, d = cirq.LineQubit.range(4)
+            >>> circuit1 = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
+            >>> circuit2 = cirq.Circuit(cirq.X(c), cirq.Y(c), cirq.Z(c))
+            >>> circuit3 = cirq.Circuit(cirq.Moment(), cirq.Moment(cirq.S(d)))
+            >>> print(circuit1.zip(circuit2))
+            0: ───H───@───────
+                      │
+            1: ───────X───────
+            <BLANKLINE>
+            2: ───X───Y───Z───
+            >>> print(circuit1.zip(circuit2, circuit3))
+            0: ───H───@───────
+                      │
+            1: ───────X───────
+            <BLANKLINE>
+            2: ───X───Y───Z───
+            <BLANKLINE>
+            3: ───────S───────
+            >>> print(cirq.Circuit.zip(circuit3, circuit2, circuit1))
+            0: ───H───@───────
+                      │
+            1: ───────X───────
+            <BLANKLINE>
+            2: ───X───Y───Z───
+            <BLANKLINE>
+            3: ───────S───────
+        """
+        n = max([len(c) for c in circuits], default=0)
+
+        if isinstance(align, str):
+            align = Alignment[align.upper()]
+
+        result = cirq.Circuit()
+        for k in range(n):
+            try:
+                if align == Alignment.LEFT:
+                    moment = cirq.Moment(c[k] for c in circuits if k < len(c))
+                else:
+                    moment = cirq.Moment(c[len(c) - n + k] for c in circuits if len(c) - n + k >= 0)
+                result.append(moment)
+            except ValueError as ex:
+                raise ValueError(
+                    f"Overlapping operations between zipped circuits at moment index {k}.\n{ex}"
+                ) from ex
+        return result
+
+    def tetris_concat(
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
+    ) -> 'cirq.AbstractCircuit':
+        """Concatenates circuits while overlapping them if possible.
+
+        Starts with the first circuit (index 0), then iterates over the other
+        circuits while folding them in. To fold two circuits together, they
+        are placed one after the other and then moved inward until just before
+        their operations would collide. If any of the circuits do not share
+        qubits and so would not collide, the starts or ends of the circuits will
+        be aligned, acording to the given align parameter.
+
+        Beware that this method is *not* associative. For example:
+
+            >>> a, b = cirq.LineQubit.range(2)
+            >>> A = cirq.Circuit(cirq.H(a))
+            >>> B = cirq.Circuit(cirq.H(b))
+            >>> f = cirq.Circuit.tetris_concat
+            >>> f(f(A, B), A) == f(A, f(B, A))
+            False
+            >>> len(f(f(f(A, B), A), B)) == len(f(f(A, f(B, A)), B))
+            False
+
+        Args:
+            circuits: The circuits to concatenate.
+            stop_at_first_alignment: Defaults to false. When true, the circuits
+                are never overlapped more than needed to align their starts (in
+                case the left circuit is smaller) or to align their ends (in
+                case the right circuit is smaller). When false, the smaller
+                circuit can be pushed deeper into the larger circuit, past the
+                first time their starts or ends align, until the second time
+                their starts or ends align.
+
+        Returns:
+            The concatenated and overlapped circuit.
+        """
+        if len(circuits) == 0:
+            return Circuit()
+        n_acc = len(circuits[0])
+
+        if isinstance(align, str):
+            align = Alignment[align.upper()]
+
+        # Allocate a buffer large enough to append and prepend all the circuits.
+        pad_len = sum(len(c) for c in circuits) - n_acc
+        buffer = np.zeros(shape=pad_len * 2 + n_acc, dtype=np.object)
+
+        # Put the initial circuit in the center of the buffer.
+        offset = pad_len
+        buffer[offset : offset + n_acc] = circuits[0].moments
+
+        # Accumulate all the circuits into the buffer.
+        for k in range(1, len(circuits)):
+            offset, n_acc = _tetris_concat_helper(offset, n_acc, buffer, circuits[k].moments, align)
+
+        return cirq.Circuit(buffer[offset : offset + n_acc])
+
+
+def _overlap_collision_time(
+    c1: Sequence['cirq.Moment'], c2: Sequence['cirq.Moment'], align: 'cirq.Alignment'
+) -> int:
+    # Tracks the first used moment index for each qubit in c2.
+    # Tracks the complementary last used moment index for each qubit in c1.
+    seen_times: Dict['cirq.Qid', int] = {}
+
+    # Start scanning from end of first and start of second.
+    upper_bound = len(c1) if align == Alignment.LEFT else len(c2)
+    t = 0
+    while t < upper_bound:
+        if t < len(c2):
+            for op in c2[t]:
+                for q in op.qubits:
+                    # Record time but check if qubit already seen on other side.
+                    k2 = seen_times.setdefault(q, t)
+                    if k2 < 0:
+                        # Use this qubit collision to bound the collision time.
+                        upper_bound = min(upper_bound, t + ~k2)
+        if t < len(c1):
+            for op in c1[-1 - t]:
+                for q in op.qubits:
+                    # Record time but check if qubit already seen on other side.
+                    # Note t is bitwise complemented to pack in left-vs-right origin data.
+                    k2 = seen_times.setdefault(q, ~t)
+                    if k2 >= 0:
+                        # Use this qubit collision to bound the collision time.
+                        upper_bound = min(upper_bound, t + k2)
+        t += 1
+    return upper_bound
+
+
+def _tetris_concat_helper(
+    c1_offset: int, n1: int, buf: np.ndarray, c2: Sequence['cirq.Moment'], align: 'cirq.Alignment'
+) -> Tuple[int, int]:
+    n2 = len(c2)
+    shift = _overlap_collision_time(buf[c1_offset : c1_offset + n1], c2, align)
+    c2_offset = c1_offset + n1 - shift
+    for k in range(n2):
+        buf[k + c2_offset] = (buf[k + c2_offset] or ops.Moment()) + c2[k]
+    return min(c1_offset, c2_offset), max(n1, n2, n1 + n2 - shift)
 
 
 class Circuit(AbstractCircuit):
@@ -1503,8 +1675,22 @@ class Circuit(AbstractCircuit):
             device=new_device,
         )
 
+    def tetris_concat(
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
+    ) -> 'cirq.Circuit':
+        return AbstractCircuit.tetris_concat(*circuits, align=align).unfreeze(copy=False)
+
+    tetris_concat.__doc__ = AbstractCircuit.tetris_concat.__doc__
+
+    def zip(
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
+    ) -> 'cirq.Circuit':
+        return AbstractCircuit.zip(*circuits, align=align).unfreeze(copy=False)
+
+    zip.__doc__ = AbstractCircuit.zip.__doc__
+
     @deprecated_parameter(
-        deadline='v0.11.0',
+        deadline='v0.11',
         fix='Use qubit_map instead.',
         parameter_desc='positional func',
         match=lambda args, kwargs: 'func' in kwargs,
@@ -1598,7 +1784,7 @@ class Circuit(AbstractCircuit):
                 splitter_index, op, InsertStrategy.INLINE
             )
 
-        raise ValueError('Unrecognized append strategy: {}'.format(strategy))
+        raise ValueError(f'Unrecognized append strategy: {strategy}')
 
     def _can_add_op_at(self, moment_index: int, operation: 'cirq.Operation') -> bool:
         if not 0 <= moment_index < len(self._moments):
@@ -1686,7 +1872,7 @@ class Circuit(AbstractCircuit):
             IndexError: Bad inline_start and/or inline_end.
         """
         if not 0 <= start <= end <= len(self):
-            raise IndexError('Bad insert indices: [{}, {})'.format(start, end))
+            raise IndexError(f'Bad insert indices: [{start}, {end})')
 
         flat_ops = list(ops.flatten_to_ops(operations))
         for op in flat_ops:
@@ -1812,73 +1998,6 @@ class Circuit(AbstractCircuit):
                 self._moments[moment_index].operations + tuple(new_ops)
             )
 
-    def zip(*circuits):
-        """Combines operations from circuits in a moment-by-moment fashion.
-
-        Moment k of the resulting circuit will have all operations from moment
-        k of each of the given circuits.
-
-        When the given circuits have different lengths, the shorter circuits are
-        implicitly padded with empty moments. This differs from the behavior of
-        python's built-in zip function, which would instead truncate the longer
-        circuits.
-
-        The zipped circuits can't have overlapping operations occurring at the
-        same moment index.
-
-        Args:
-            circuits: The circuits to merge together.
-
-        Returns:
-            The merged circuit.
-
-        Raises:
-            ValueError:
-                The zipped circuits have overlapping operations occurring at the
-                same moment index.
-
-        Examples:
-            >>> import cirq
-            >>> a, b, c, d = cirq.LineQubit.range(4)
-            >>> circuit1 = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
-            >>> circuit2 = cirq.Circuit(cirq.X(c), cirq.Y(c), cirq.Z(c))
-            >>> circuit3 = cirq.Circuit(cirq.Moment(), cirq.Moment(cirq.S(d)))
-            >>> print(circuit1.zip(circuit2))
-            0: ───H───@───────
-                      │
-            1: ───────X───────
-            <BLANKLINE>
-            2: ───X───Y───Z───
-            >>> print(circuit1.zip(circuit2, circuit3))
-            0: ───H───@───────
-                      │
-            1: ───────X───────
-            <BLANKLINE>
-            2: ───X───Y───Z───
-            <BLANKLINE>
-            3: ───────S───────
-            >>> print(cirq.Circuit.zip(circuit3, circuit2, circuit1))
-            0: ───H───@───────
-                      │
-            1: ───────X───────
-            <BLANKLINE>
-            2: ───X───Y───Z───
-            <BLANKLINE>
-            3: ───────S───────
-        """
-        circuits = list(circuits)
-        n = max([len(c) for c in circuits], default=0)
-
-        result = cirq.Circuit()
-        for k in range(n):
-            try:
-                result.append(cirq.Moment(c[k] for c in circuits if k < len(c)))
-            except ValueError as ex:
-                raise ValueError(
-                    f"Overlapping operations between zipped circuits at moment index {k}.\n{ex}"
-                ) from ex
-        return result
-
     def insert_at_frontier(
         self, operations: 'cirq.OP_TREE', start: int, frontier: Dict['cirq.Qid', int] = None
     ) -> Dict['cirq.Qid', int]:
@@ -1930,7 +2049,7 @@ class Circuit(AbstractCircuit):
         copy = self.copy()
         for i, op in removals:
             if op not in copy._moments[i].operations:
-                raise ValueError("Can't remove {} @ {} because it doesn't exist.".format(op, i))
+                raise ValueError(f"Can't remove {op} @ {i} because it doesn't exist.")
             copy._moments[i] = ops.Moment(
                 old_op for old_op in copy._moments[i].operations if op != old_op
             )
@@ -2087,15 +2206,6 @@ class Circuit(AbstractCircuit):
         return c_noisy
 
 
-def _get_op_circuit(op: ops.Operation) -> Optional['cirq.FrozenCircuit']:
-    """Retrieves the circuit contained by an operation, if there is one."""
-    from cirq.circuits import CircuitOperation
-
-    while isinstance(op, ops.TaggedOperation):
-        op = op.sub_operation
-    return op.circuit if isinstance(op, CircuitOperation) else None
-
-
 def _resolve_operations(
     operations: Iterable['cirq.Operation'], param_resolver: 'cirq.ParamResolver', recursive: bool
 ) -> List['cirq.Operation']:
@@ -2162,14 +2272,7 @@ def _draw_moment_in_diagram(
         if x > max_x:
             max_x = x
 
-    global_phase: Optional[complex] = None
-    tags: List[Any] = []
-    for op in moment:
-        if isinstance(op.untagged, ops.GlobalPhaseOperation):
-            tags.extend(op.tags)
-            if global_phase is None:
-                global_phase = complex(1)
-            global_phase *= complex(op.untagged.coefficient)
+    global_phase, tags = _get_global_phase_and_tags_for_ops(moment)
 
     # Print out global phase, unless it's 1 (phase of 0pi) or it's the only op.
     if global_phase and (global_phase != 1 or not non_global_ops):
@@ -2188,12 +2291,36 @@ def _draw_moment_in_diagram(
         moment_groups.append((x0, max_x))
 
 
+def _get_global_phase_and_tags_for_op(op: 'cirq.Operation') -> Tuple[Optional[complex], List[Any]]:
+    if isinstance(op.untagged, ops.GlobalPhaseOperation):
+        return complex(op.untagged.coefficient), list(op.tags)
+    elif isinstance(op.untagged, CircuitOperation):
+        op_phase, op_tags = _get_global_phase_and_tags_for_ops(op.untagged.circuit.all_operations())
+        return op_phase, list(op.tags) + op_tags
+    else:
+        return None, []
+
+
+def _get_global_phase_and_tags_for_ops(op_list: Any) -> Tuple[Optional[complex], List[Any]]:
+    global_phase: Optional[complex] = None
+    tags: List[Any] = []
+    for op in op_list:
+        op_phase, op_tags = _get_global_phase_and_tags_for_op(op)
+        if op_phase:
+            if global_phase is None:
+                global_phase = complex(1)
+            global_phase *= op_phase
+        if op_tags:
+            tags.extend(op_tags)
+    return global_phase, tags
+
+
 def _formatted_phase(coefficient: complex, unicode: bool, precision: Optional[int]) -> str:
     h = math.atan2(coefficient.imag, coefficient.real) / math.pi
     unit = 'π' if unicode else 'pi'
     if h == 1:
         return unit
-    return '{{:.{}}}'.format(precision).format(h) + unit
+    return f'{{:.{precision}}}'.format(h) + unit
 
 
 def _draw_moment_groups_in_diagram(
@@ -2259,7 +2386,7 @@ def _apply_unitary_circuit(
     buffer = np.empty_like(state)
 
     def on_stuck(bad_op):
-        return TypeError('Operation without a known matrix or decomposition: {!r}'.format(bad_op))
+        return TypeError(f'Operation without a known matrix or decomposition: {bad_op!r}')
 
     unitary_ops = protocols.decompose(
         circuit.all_operations(),
@@ -2282,7 +2409,7 @@ def _decompose_measurement_inversions(op: 'cirq.Operation') -> 'cirq.OP_TREE':
 def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:
     block = '\n'.join([repr(op) + ',' for op in items])
     indented = '    ' + '\n    '.join(block.split('\n'))
-    return '[\n{}\n]'.format(indented)
+    return f'[\n{indented}\n]'
 
 
 TIn = TypeVar('TIn')

@@ -22,7 +22,7 @@ from cirq.testing import consistent_qasm as cq
 
 
 def _make_qubits(n):
-    return [cirq.NamedQubit('q{}'.format(i)) for i in range(n)]
+    return [cirq.NamedQubit(f'q{i}') for i in range(n)]
 
 
 def test_u_gate_repr():

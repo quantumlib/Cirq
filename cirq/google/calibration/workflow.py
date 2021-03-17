@@ -11,13 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union, cast
+from typing import Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple, Union, cast
 
 import dataclasses
-from itertools import zip_longest
-
+import itertools
 
 from cirq.circuits import Circuit
+from cirq.experiments import HALF_GRID_STAGGERED_PATTERN
 from cirq.ops import (
     FSimGate,
     Gate,
@@ -27,22 +27,27 @@ from cirq.ops import (
     Operation,
     Qid,
     SingleQubitGate,
-    rz,
+    WaitGate,
 )
 from cirq.google.calibration.engine_simulator import PhasedFSimEngineSimulator
 from cirq.google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
+    PhaseCalibratedFSimGate,
     IncompatibleMomentError,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    merge_matching_results,
     try_convert_sqrt_iswap_to_fsim,
 )
 from cirq.google.engine import Engine
 from cirq.google.serializable_gate_set import SerializableGateSet
+
+
+_CALIBRATION_IRRELEVANT_GATES = MeasurementGate, SingleQubitGate, WaitGate
 
 
 @dataclasses.dataclass(frozen=True)
@@ -56,13 +61,15 @@ class CircuitWithCalibration:
     """
 
     circuit: Circuit
-    moment_to_calibration: List[Optional[int]]
+    moment_to_calibration: Sequence[Optional[int]]
 
 
 def prepare_floquet_characterization_for_moment(
     moment: Moment,
     options: FloquetPhasedFSimCalibrationOptions,
-    gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
+    gates_translator: Callable[
+        [Gate], Optional[PhaseCalibratedFSimGate]
+    ] = try_convert_sqrt_iswap_to_fsim,
     canonicalize_pairs: bool = False,
     sort_pairs: bool = False,
 ) -> Optional[FloquetPhasedFSimCalibrationRequest]:
@@ -86,9 +93,44 @@ def prepare_floquet_characterization_for_moment(
         IncompatibleMomentError when a moment contains operations other than the operations matched
         by gates_translator, or it mixes a single qubit and two qubit gates.
     """
+    pairs_and_gate = _list_moment_pairs_to_characterize(
+        moment, gates_translator, canonicalize_pairs=canonicalize_pairs, permit_mixed_moments=False
+    )
+    if pairs_and_gate is None:
+        return None
 
-    measurement = False
-    single_qubit = False
+    pairs, gate = pairs_and_gate
+    return FloquetPhasedFSimCalibrationRequest(
+        pairs=tuple(sorted(pairs) if sort_pairs else pairs), gate=gate, options=options
+    )
+
+
+def _list_moment_pairs_to_characterize(
+    moment: Moment,
+    gates_translator: Callable[[Gate], Optional[PhaseCalibratedFSimGate]],
+    canonicalize_pairs: bool,
+    permit_mixed_moments: bool,
+) -> Optional[Tuple[List[Tuple[Qid, Qid]], Gate]]:
+    """Describes a given moment in terms of a Floquet characterization request.
+
+    Args:
+        moment: Moment to characterize.
+        gates_translator: Function that translates a gate to a supported FSimGate which will undergo
+            characterization.
+        canonicalize_pairs: Whether to sort each of the qubit pair so that the first qubit
+            is always lower than the second.
+        permit_mixed_moments: Whether to allow a mix of two-qubit gates with other irrelevant
+            single-qubit gates.
+
+    Returns:
+        Tuple with list of pairs to characterize and gate that should be used for characterization,
+        or None when no gate to characterize exists in a given moment.
+
+    Raises:
+        IncompatibleMomentError when a moment contains operations other than the operations matched
+        by gates_translator, or it mixes a single qubit and two qubit gates.
+    """
+    other_operation = False
     gate: Optional[FSimGate] = None
     pairs = []
 
@@ -96,23 +138,23 @@ def prepare_floquet_characterization_for_moment(
         if not isinstance(op, GateOperation):
             raise IncompatibleMomentError('Moment contains operation different than GateOperation')
 
-        if isinstance(op.gate, MeasurementGate):
-            measurement = True
-        elif isinstance(op.gate, SingleQubitGate):
-            single_qubit = True
+        if isinstance(op.gate, _CALIBRATION_IRRELEVANT_GATES):
+            other_operation = True
         else:
-            translated_gate = gates_translator(op.gate)
-            if translated_gate is None:
+            translated = gates_translator(op.gate)
+            if translated is None:
                 raise IncompatibleMomentError(
                     f'Moment {moment} contains unsupported non-single qubit operation {op}'
                 )
-            elif gate is not None and gate != translated_gate:
+
+            if gate is not None and gate != translated.engine_gate:
                 raise IncompatibleMomentError(
                     f'Moment {moment} contains operations resolved to two different gates {gate} '
-                    f'and {translated_gate}'
+                    f'and {translated.engine_gate}'
                 )
             else:
-                gate = translated_gate
+                gate = translated.engine_gate
+
             pair = cast(
                 Tuple[Qid, Qid], tuple(sorted(op.qubits) if canonicalize_pairs else op.qubits)
             )
@@ -121,30 +163,38 @@ def prepare_floquet_characterization_for_moment(
     if gate is None:
         # Either empty, single-qubit or measurement moment.
         return None
-
-    if gate is not None and (measurement or single_qubit):
+    elif not permit_mixed_moments and other_operation:
         raise IncompatibleMomentError(
-            f'Moment contains mixed two-qubit operations and '
-            f'single-qubit operations or measurement operations.'
+            f'Moment contains mixed two-qubit operations and either single-qubit measurement or '
+            f'wait operations.'
         )
 
-    return FloquetPhasedFSimCalibrationRequest(
-        pairs=tuple(sorted(pairs) if sort_pairs else pairs), gate=gate, options=options
-    )
+    return pairs, gate
 
 
-def prepare_floquet_characterization_for_circuit(
+def prepare_floquet_characterization_for_moments(
     circuit: Circuit,
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-    gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
+    gates_translator: Callable[
+        [Gate], Optional[PhaseCalibratedFSimGate]
+    ] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
     initial: Optional[Sequence[FloquetPhasedFSimCalibrationRequest]] = None,
 ) -> Tuple[CircuitWithCalibration, List[FloquetPhasedFSimCalibrationRequest]]:
     """Extracts a minimal set of Floquet characterization requests necessary to characterize given
     circuit.
 
-    The circuit can only be composed of single qubit operations, measurement operations and
-    operations supported by gates_translator.
+    This variant of prepare method works on moments of the circuit and assumes that all the
+    two-qubit gates to calibrate are not mixed with other gates in a moment. The method groups
+    together moments of similar structure to minimize the number of characterizations requested.
+
+    If merge_subsets parameter is True then the method tries to merge moments into the other moments
+    listed previously if they can be characterized together (they have no conflicting operations).
+    If merge_subsets is False then only moments of exactly the same structure are characterized
+    together.
+
+    The circuit can only be composed of single qubit operations, wait operations, measurement
+    operations and operations supported by gates_translator.
 
     Args:
         circuit: Circuit to characterize.
@@ -194,6 +244,120 @@ def prepare_floquet_characterization_for_circuit(
             allocations.append(None)
 
     return CircuitWithCalibration(circuit, allocations), calibrations
+
+
+def prepare_floquet_characterization_for_operations(
+    circuit: Union[Circuit, Iterable[Circuit]],
+    options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    gates_translator: Callable[
+        [Gate], Optional[PhaseCalibratedFSimGate]
+    ] = try_convert_sqrt_iswap_to_fsim,
+    permit_mixed_moments: bool = False,
+) -> List[FloquetPhasedFSimCalibrationRequest]:
+    """Extracts a minimal set of Floquet characterization requests necessary to characterize all the
+    operations within a circuit(s).
+
+    This variant of prepare method works on two-qubit operations of the circuit. The method extracts
+    all the operations and groups them in a way to minimize the number of characterizations
+    requested, depending on the connectivity.
+
+    Contrary to prepare_floquet_characterization_for_moments, this method ignores moments structure
+    and is less accurate because certain errors caused by cross-talks are ignored.
+
+    The major advantage of this method is that the number of generated characterization requests is
+    bounded by four for grid-like devices, where for the
+    prepare_floquet_characterization_for_moments the number of characterizations is bounded by
+    number of moments in a circuit.
+
+    The circuit can only be composed of single qubit operations, wait operations, measurement
+    operations and operations supported by gates_translator.
+
+    Args:
+        circuit: Circuit or circuits to characterize. Only circuits with qubits of type GridQubit
+            that can be covered by HALF_GRID_STAGGERED_PATTERN are supported
+        options: Options that are applied to each characterized gate within a moment. Defaults
+            to all_except_for_chi_options which is the broadest currently supported choice.
+        gates_translator: Function that translates a gate to a supported FSimGate which will undergo
+            characterization. Defaults to sqrt_iswap_gates_translator.
+        permit_mixed_moments: Whether to allow a mix of two-qubit gates with other irrelevant
+            single-qubit gates.
+
+    Returns:
+        List of PhasedFSimCalibrationRequest for each group of operations to characterize.
+
+    Raises:
+        IncompatibleMomentError when circuit contains a moment with operations other than the
+        operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
+    """
+
+    circuits = [circuit] if isinstance(circuit, Circuit) else circuit
+    pairs, gate = _extract_all_pairs_to_characterize(
+        circuits, gates_translator, permit_mixed_moments
+    )
+
+    if gate is None:
+        return []
+
+    characterizations = []
+    for pattern in HALF_GRID_STAGGERED_PATTERN:
+        pattern_pairs = [pair for pair in pairs if pair in pattern]
+        if pattern_pairs:
+            characterizations.append(
+                FloquetPhasedFSimCalibrationRequest(
+                    pairs=tuple(sorted(pattern_pairs)), gate=gate, options=options
+                )
+            )
+
+    if sum((len(characterization.pairs) for characterization in characterizations)) != len(pairs):
+        raise ValueError('Unable to cover all interactions with HALF_GRID_STAGGERED_PATTERN')
+
+    return characterizations
+
+
+def _extract_all_pairs_to_characterize(
+    circuits: Iterable[Circuit],
+    gates_translator: Callable[[Gate], Optional[PhaseCalibratedFSimGate]],
+    permit_mixed_moments: bool,
+) -> Tuple[Set[Tuple[Qid, Qid]], Optional[Gate]]:
+    """Extracts the set of all two-qubit operations from the circuits.
+
+    Args:
+        circuits: Circuits to extract the operations from.
+        gates_translator: Function that translates a gate to a supported FSimGate which will undergo
+            characterization.
+        permit_mixed_moments: Whether to allow a mix of two-qubit gates with other irrelevant
+            single-qubit gates.
+
+    Returns:
+        Tuple with set of all two-qubit interacting pairs and a common gate that represents those
+        interactions. The gate can be used for characterization purposes. If no interactions are
+        present the gate is None.
+    """
+
+    all_pairs = set()
+    common_gate = None
+    for circuit in circuits:
+        for moment in circuit:
+            pairs_and_gate = _list_moment_pairs_to_characterize(
+                moment,
+                gates_translator,
+                canonicalize_pairs=True,
+                permit_mixed_moments=permit_mixed_moments,
+            )
+
+            if pairs_and_gate is not None:
+                pairs, gate = pairs_and_gate
+
+                if common_gate is None:
+                    common_gate = gate
+                elif common_gate != gate:
+                    raise ValueError(
+                        f'Only a single type of gate is supported, got {gate} and {common_gate}'
+                    )
+
+                all_pairs.update(pairs)
+
+    return all_pairs, common_gate
 
 
 def _append_into_calibrations_if_missing(
@@ -355,9 +519,11 @@ def run_calibrations(
 def make_zeta_chi_gamma_compensation_for_moments(
     circuit_with_calibration: CircuitWithCalibration,
     characterizations: List[PhasedFSimCalibrationResult],
-    gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
+    gates_translator: Callable[
+        [Gate], Optional[PhaseCalibratedFSimGate]
+    ] = try_convert_sqrt_iswap_to_fsim,
 ) -> CircuitWithCalibration:
-    """Compensates circuit against errors in zeta, chi and gamma angles.
+    """Compensates circuit moments against errors in zeta, chi and gamma angles.
 
     This method creates a new circuit with a single-qubit Z gates added in a such way so that
     zeta, chi and gamma angles discovered by characterizations are cancelled-out and set to 0.
@@ -381,6 +547,74 @@ def make_zeta_chi_gamma_compensation_for_moments(
         The moment to calibration mapping is updated for the new circuit so that successive
         calibrations could be applied.
     """
+    return _make_zeta_chi_gamma_compensation(
+        circuit_with_calibration, characterizations, gates_translator, permit_mixed_moments=False
+    )
+
+
+def make_zeta_chi_gamma_compensation_for_operations(
+    circuit: Circuit,
+    characterizations: List[PhasedFSimCalibrationResult],
+    gates_translator: Callable[
+        [Gate], Optional[PhaseCalibratedFSimGate]
+    ] = try_convert_sqrt_iswap_to_fsim,
+    permit_mixed_moments: bool = False,
+) -> Circuit:
+    """Compensates circuit operations against errors in zeta, chi and gamma angles.
+
+    This method creates a new circuit with a single-qubit Z gates added in a such way so that
+    zeta, chi and gamma angles discovered by characterizations are cancelled-out and set to 0.
+
+    Contrary to make_zeta_chi_gamma_compensation_for_moments this method does not match
+    characterizations to the moment structure of the circuits and thus is less accurate because
+    some errors caused by cross-talks are not mitigated.
+
+    The major advantage of this method over make_zeta_chi_gamma_compensation_for_moments is that it
+    can work with arbitrary set of characterizations that cover all the interactions of the circuit
+    (up to assumptions of merge_matching_results method). In particular, for grid-like devices the
+    number of characterizations is bounded by four, where in the case of
+    make_zeta_chi_gamma_compensation_for_moments the number of characterizations is bounded by
+    number of moments in a circuit.
+
+    This function preserves a moment structure of the circuit. All single qubit gates appear on new
+    moments in the final circuit.
+
+    Args:
+        circuit: Circuit to calibrate.
+        characterizations: List of characterization results (likely returned from run_calibrations).
+            All the characterizations must be compatible in sense of merge_matching_results, they
+            will be merged together.
+        gates_translator: Function that translates a gate to a supported FSimGate which will undergo
+            characterization. Defaults to sqrt_iswap_gates_translator.
+        permit_mixed_moments: Whether to allow mixing single-qubit and two-qubit gates in a single
+            moment.
+
+    Returns:
+        Calibrated circuit with a single-qubit Z gates added which compensates for the true gates
+        imperfections.
+    """
+
+    characterization = merge_matching_results(characterizations)
+    moment_to_calibration = [0] * len(circuit)
+    calibrated = _make_zeta_chi_gamma_compensation(
+        CircuitWithCalibration(circuit, moment_to_calibration),
+        [characterization] if characterization is not None else [],
+        gates_translator,
+        permit_mixed_moments=permit_mixed_moments,
+    )
+    return calibrated.circuit
+
+
+def _make_zeta_chi_gamma_compensation(
+    circuit_with_calibration: CircuitWithCalibration,
+    characterizations: List[PhasedFSimCalibrationResult],
+    gates_translator: Callable[[Gate], Optional[PhaseCalibratedFSimGate]],
+    permit_mixed_moments: bool,
+) -> CircuitWithCalibration:
+
+    if permit_mixed_moments:
+        raise NotImplementedError('Mixed moments compensation ist supported yet')
+
     if len(circuit_with_calibration.circuit) != len(circuit_with_calibration.moment_to_calibration):
         raise ValueError('Moment allocations does not match circuit length')
 
@@ -404,13 +638,13 @@ def make_zeta_chi_gamma_compensation_for_moments(
                     'Moment contains operation different than GateOperation'
                 )
 
-            if isinstance(op.gate, (MeasurementGate, SingleQubitGate)):
+            if isinstance(op.gate, _CALIBRATION_IRRELEVANT_GATES):
                 other.append(op)
                 continue
 
             a, b = op.qubits
-            translated_gate = gates_translator(op.gate)
-            if translated_gate is None:
+            translated = gates_translator(op.gate)
+            if translated is None:
                 raise IncompatibleMomentError(
                     f'Moment {moment} contains unsupported non-single qubit operation {op}'
                 )
@@ -424,7 +658,10 @@ def make_zeta_chi_gamma_compensation_for_moments(
             pair_parameters = pair_parameters.merge_with(default_phases)
 
             corrections = FSimPhaseCorrections.from_characterization(
-                (a, b), translated_gate, pair_parameters, characterization_index
+                (a, b),
+                translated,
+                pair_parameters,
+                characterization_index,
             )
             decompositions.append(corrections.operations)
 
@@ -441,7 +678,7 @@ def make_zeta_chi_gamma_compensation_for_moments(
             compensated += Moment(other)
             compensated_moment_to_calibration.append(characterization_index)
         elif decompositions:
-            for operations in zip_longest(*decompositions, fillvalue=()):
+            for operations in itertools.zip_longest(*decompositions, fillvalue=()):
                 compensated += Moment(operations)
             assert new_moment_moment_to_calibration is not None  # Required for mypy
             compensated_moment_to_calibration += new_moment_moment_to_calibration
@@ -467,7 +704,7 @@ class FSimPhaseCorrections:
     def from_characterization(
         cls,
         qubits: Tuple[Qid, Qid],
-        gate: FSimGate,
+        gate_calibration: PhaseCalibratedFSimGate,
         parameters: PhasedFSimCharacterization,
         characterization_index: Optional[int],
     ) -> 'FSimPhaseCorrections':
@@ -476,29 +713,12 @@ class FSimPhaseCorrections:
 
         Args:
             qubits: Qubits that the gate should act on.
-            gate: Original, imperfect gate that is supposed to run on the hardware.
+            gate_calibration: Original, imperfect gate that is supposed to run on the hardware
+                together with phase information.
             parameters: The real parameters of the supplied gate.
             characterization_index: characterization index to use at each moment with gate.
         """
-        assert parameters.zeta is not None, "Zeta value must not be None"
-        zeta = parameters.zeta
-
-        assert parameters.gamma is not None, "Gamma value must not be None"
-        gamma = parameters.gamma
-
-        assert parameters.chi is not None, "Chi value must not be None"
-        chi = parameters.chi
-
-        a, b = qubits
-        alpha = 0.5 * (zeta + chi)
-        beta = 0.5 * (zeta - chi)
-
-        operations = (
-            (rz(0.5 * gamma - alpha).on(a), rz(0.5 * gamma + alpha).on(b)),
-            (gate.on(a, b),),
-            (rz(0.5 * gamma - beta).on(a), rz(0.5 * gamma + beta).on(b)),
-        )
-
+        operations = gate_calibration.with_zeta_chi_gamma_compensated(qubits, parameters)
         moment_to_calibration = [None, characterization_index, None]
 
         return cls(operations, moment_to_calibration)
@@ -507,21 +727,23 @@ class FSimPhaseCorrections:
         return Circuit(self.operations)
 
 
-def run_floquet_characterization_for_circuit(
+def run_floquet_characterization_for_moments(
     circuit: Circuit,
     engine: Union[Engine, PhasedFSimEngineSimulator],
     processor_id: Optional[str] = None,
     gate_set: Optional[SerializableGateSet] = None,
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-    gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
+    gates_translator: Callable[
+        [Gate], Optional[PhaseCalibratedFSimGate]
+    ] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
 ) -> Tuple[CircuitWithCalibration, List[PhasedFSimCalibrationResult]]:
     """Extracts moments within a circuit to characterize and characterizes them against engine.
 
-    The method calls floquet_characterization_for_circuit to extract moments to characterize and
-    run_characterizations to characterize them.
+    The method calls prepare_floquet_characterization_for_moments to extract moments to characterize
+    and run_calibrations to characterize them.
 
     Args:
         circuit: Circuit to characterize.
@@ -554,7 +776,7 @@ def run_floquet_characterization_for_circuit(
         IncompatibleMomentError when circuit contains a moment with operations other than the
         operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
     """
-    circuit_calibration, requests = prepare_floquet_characterization_for_circuit(
+    circuit_calibration, requests = prepare_floquet_characterization_for_moments(
         circuit, options, gates_translator, merge_subsets=merge_subsets
     )
     results = run_calibrations(
@@ -576,13 +798,20 @@ def run_zeta_chi_gamma_compensation_for_moments(
     options: FloquetPhasedFSimCalibrationOptions = (
         THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION
     ),
-    gates_translator: Callable[[Gate], Optional[FSimGate]] = try_convert_sqrt_iswap_to_fsim,
+    gates_translator: Callable[
+        [Gate], Optional[PhaseCalibratedFSimGate]
+    ] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
 ) -> Tuple[CircuitWithCalibration, List[PhasedFSimCalibrationResult]]:
     """Compensates circuit against errors in zeta, chi and gamma angles by running calibrations on
     the engine.
+
+    The method calls prepare_floquet_characterization_for_moments to extract moments to
+    characterize, run_calibrations to characterize them and
+    make_zeta_chi_gamma_compensation_for_moments to compensate the circuit with characterization
+    data.
 
     Args:
         circuit: Circuit to characterize and calibrate.
@@ -614,7 +843,7 @@ def run_zeta_chi_gamma_compensation_for_moments(
             calibrations could be applied.
           - List of characterizations results that were obtained in order to calibrate the circuit.
     """
-    circuit_with_calibration, requests = prepare_floquet_characterization_for_circuit(
+    circuit_with_calibration, requests = prepare_floquet_characterization_for_moments(
         circuit, options, gates_translator, merge_subsets=merge_subsets
     )
     characterizations = run_calibrations(

@@ -236,7 +236,7 @@ class _ParamFlattener(resolver.ParamResolver):
     def default_get_param_name(val: sympy.Basic) -> str:
         if isinstance(val, sympy.Symbol):
             return val.name
-        return '<{!s}>'.format(val)
+        return f'<{val!s}>'
 
     def _next_symbol(self, val: sympy.Basic) -> sympy.Symbol:
         name = self.get_param_name(val)
@@ -245,7 +245,7 @@ class _ParamFlattener(resolver.ParamResolver):
         collision = 0
         while symbol in self._taken_symbols:
             collision += 1
-            symbol = sympy.Symbol('{}_{}'.format(name, collision))
+            symbol = sympy.Symbol(f'{name}_{collision}')
         return symbol
 
     def value_of(

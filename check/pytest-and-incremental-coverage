@@ -56,8 +56,7 @@ check/pytest . \
     --actually-quiet \
     --cov \
     --cov-report=annotate \
-    --cov-config=dev_tools/conf/.coveragerc \
-    --benchmark-skip
+    --cov-config=dev_tools/conf/.coveragerc
 pytest_result=$?
 
 # Analyze coverage files.
