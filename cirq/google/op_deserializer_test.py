@@ -21,6 +21,7 @@ from google.protobuf import json_format
 import cirq
 import cirq.google as cg
 from cirq.google.api import v2
+from cirq.testing import assert_deprecated
 
 
 def op_proto(json_dict: Dict) -> v2.program_pb2.Operation:
@@ -58,7 +59,7 @@ def test_deprecated_fields():
         gate_constructor=GateWithAttribute,
         args=[],
     )
-    with pytest.warns(DeprecationWarning, match='Use serialized_id'):
+    with assert_deprecated('Use serialized_id', deadline='v0.12'):
         assert deserializer.serialized_gate_id == deserializer.serialized_id
 
 

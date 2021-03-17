@@ -196,9 +196,9 @@ class GateOpSerializer(OpSerializer):
         """
 
         gate = op.gate
-        if not isinstance(gate, self._gate_type):
+        if not isinstance(gate, self.internal_type):
             raise ValueError(
-                f'Gate of type {type(gate)} but serializer expected type {self.gate_type}'
+                f'Gate of type {type(gate)} but serializer expected type {self.internal_type}'
             )
 
         if not self._can_serialize_predicate(op):

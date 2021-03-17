@@ -20,6 +20,7 @@ from google.protobuf import json_format
 import cirq
 import cirq.google as cg
 from cirq.google.api import v2
+from cirq.testing import assert_deprecated
 
 X_SERIALIZER = cg.GateOpSerializer(
     gate_type=cirq.XPowGate,
@@ -77,14 +78,27 @@ MY_GATE_SET = cg.SerializableGateSet(
 )
 
 
+def test_deprecated_methods():
+    with assert_deprecated('Use supported_internal_types', deadline='v0.12'):
+        _ = MY_GATE_SET.supported_gate_types()
+
+    with assert_deprecated('Use with_added_types', deadline='v0.12'):
+        _ = MY_GATE_SET.with_added_gates()
+
+    with assert_deprecated('Use use_constants', deadline='v0.12'):
+        # pylint: disable=unexpected-keyword-arg
+        _ = MY_GATE_SET.serialize(cirq.Circuit(), use_constants_table_for_tokens=True)
+        # pylint: enable=unexpected-keyword-arg
+
+
 def op_proto(json: Dict) -> v2.program_pb2.Operation:
     op = v2.program_pb2.Operation()
     json_format.ParseDict(json, op)
     return op
 
 
-def test_supported_gate_types():
-    assert MY_GATE_SET.supported_gate_types() == (cirq.XPowGate, cirq.FrozenCircuit)
+def test_supported_internal_types():
+    assert MY_GATE_SET.supported_internal_types() == (cirq.XPowGate, cirq.FrozenCircuit)
 
 
 def test_is_supported():
@@ -553,14 +567,14 @@ def test_multiple_serializers():
     assert gate_set.serialize_op(cirq.X(q0) ** 0.5).gate.id == 'x_pow'
 
 
-def test_gateset_with_added_gates():
+def test_gateset_with_added_types():
     q = cirq.GridQubit(1, 1)
     x_gateset = cg.SerializableGateSet(
         gate_set_name='x',
         serializers=[X_SERIALIZER],
         deserializers=[X_DESERIALIZER],
     )
-    xy_gateset = x_gateset.with_added_gates(
+    xy_gateset = x_gateset.with_added_types(
         gate_set_name='xy',
         serializers=[Y_SERIALIZER],
         deserializers=[Y_DESERIALIZER],
@@ -588,7 +602,7 @@ def test_gateset_with_added_gates():
     assert xy_gateset.deserialize_op(proto) == expected_gate
 
 
-def test_gateset_with_added_gates_again():
+def test_gateset_with_added_types_again():
     """Verify that adding a serializer twice doesn't mess anything up."""
     q = cirq.GridQubit(2, 2)
     x_gateset = cg.SerializableGateSet(
@@ -596,7 +610,7 @@ def test_gateset_with_added_gates_again():
         serializers=[X_SERIALIZER],
         deserializers=[X_DESERIALIZER],
     )
-    xx_gateset = x_gateset.with_added_gates(
+    xx_gateset = x_gateset.with_added_types(
         gate_set_name='xx',
         serializers=[X_SERIALIZER],
         deserializers=[X_DESERIALIZER],

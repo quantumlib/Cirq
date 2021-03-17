@@ -134,7 +134,7 @@ def create_device_proto_for_qubits(
         gate_ids: Set[str] = set()
         for internal_type in gate_set.serializers:
             for serializer in gate_set.serializers[internal_type]:
-                gate_id = serializer.serialized_gate_id
+                gate_id = serializer.serialized_id
                 if gate_id in gate_ids:
                     # Only add each type once
                     continue
