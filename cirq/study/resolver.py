@@ -14,7 +14,8 @@
 
 """Resolves ParameterValues to assigned values."""
 import numbers
-from typing import Any, Dict, Iterator, Optional, Protocol, TYPE_CHECKING, Union, cast
+from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
+from typing_extensions import Protocol
 import numpy as np
 import sympy
 from sympy.core import numbers as sympy_numbers
