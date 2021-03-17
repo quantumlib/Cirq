@@ -245,8 +245,8 @@ def _sympy_pass_through(val: Any) -> Optional[Any]:
     if val == sympy.pi:
         return np.pi
 
-    getter = getattr(val, '_sympy_pass_through_', None)
+    getter = getattr(val, '_resolver_value_', None)
     result = NotImplemented if getter is None else getter()
-    if result is not NotImplemented and result:
+    if result is not NotImplemented:
         return val
     return None
