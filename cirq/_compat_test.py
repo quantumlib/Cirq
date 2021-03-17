@@ -581,13 +581,19 @@ def test_loader_failure():
         DeprecatedModuleLoader(FakeLoader(), "old", "new").exec_module(module)
 
 
-def test_loader_module_repr():
-    class FakeLoader(importlib.abc.Loader):
+def test_loader_wrappers():
+    hello_module = types.ModuleType("hello")
+
+    class StubLoader(importlib.abc.Loader):
         def module_repr(self, module: ModuleType) -> str:
             return "hello"
 
+        def load_module(self, fullname: str) -> ModuleType:
+            return hello_module
+
     module = types.ModuleType("old")
-    assert DeprecatedModuleLoader(FakeLoader(), "old", "new").module_repr(module) == "hello"
+    assert DeprecatedModuleLoader(StubLoader(), "old", "new").module_repr(module) == "hello"
+    assert DeprecatedModuleLoader(StubLoader(), "old", "new").load_module("test") == hello_module
 
 
 def test_invalidate_caches():
