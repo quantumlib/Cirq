@@ -99,7 +99,6 @@ def _warn_or_error(msg):
 
     # we have to dynamically count the non-internal frames
     # due to the potentially multiple nested module wrappers
-    # for some weird reason unix vs windows frame counting differs!
     stack_level = 1
     for filename, _, _, _ in reversed(traceback.extract_stack()):
         if not _is_internal(filename) and "_compat.py" not in filename:
