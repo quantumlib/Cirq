@@ -65,7 +65,7 @@ class ProtoVersion(enum.Enum):
 def _make_random_id(prefix: str, length: int = 16):
     random_digits = [random.choice(string.ascii_uppercase + string.digits) for _ in range(length)]
     suffix = ''.join(random_digits)
-    suffix += datetime.date.today().strftime('%y%m%d')
+    suffix += datetime.date.today().strftime('%y%m%d-%H%M%S')
     return f'{prefix}{suffix}'
 
 
