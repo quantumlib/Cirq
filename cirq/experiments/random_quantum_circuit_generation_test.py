@@ -257,7 +257,7 @@ def _cz_with_adjacent_z_rotations(
     yield cirq.Z(b) ** z_exponents[3]
 
 
-class TestSycamoreGate(cirq.FSimGate):
+class FakeSycamoreGate(cirq.FSimGate):
     def __init__(self):
         super().__init__(theta=np.pi / 2, phi=np.pi / 6)
 
@@ -283,7 +283,7 @@ class TestSycamoreGate(cirq.FSimGate):
         (
             cirq.GridQubit.rect(4, 3),
             20,
-            lambda a, b, _: TestSycamoreGate()(a, b),
+            lambda a, b, _: FakeSycamoreGate()(a, b),
             cirq.experiments.HALF_GRID_STAGGERED_PATTERN,
             (cirq.X ** 0.5, cirq.Y ** 0.5, cirq.Z ** 0.5),
             True,

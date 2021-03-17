@@ -20,7 +20,6 @@ from typing import List, Type, Dict, Iterator, Tuple, Set
 
 import numpy as np
 import pandas as pd
-from cirq import _import
 
 import cirq
 from cirq._import import ModuleType
@@ -119,17 +118,16 @@ class ModuleJsonTestSpec:
 
 
 def spec_for(module_name: str) -> ModuleJsonTestSpec:
-    if not _import.module_exists(module=module_name):
-        raise ModuleNotFoundError(f"{module_name} not found (or it is a namespace package)")
+    import importlib.util
+
+    if importlib.util.find_spec(module_name) is None:
+        raise ModuleNotFoundError(f"{module_name} not found")
 
     test_module_name = f"{module_name}.json_test_data"
-    if not _import.module_exists(module=test_module_name):
+    if importlib.util.find_spec(test_module_name) is None:
         raise ValueError(
             f"{module_name} module is missing json_test_data package, please set it up."
         )
-
-    import importlib
-
     test_module = importlib.import_module(test_module_name)
 
     if not hasattr(test_module, "TestSpec"):

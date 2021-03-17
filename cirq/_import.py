@@ -167,21 +167,3 @@ def delay_import(module_name: str):
     delay = False
     for module in execute_list:
         module.__loader__.exec_module(module)  # Calls back into wrap_func
-
-
-def module_exists(*, module: str) -> bool:
-    """Returns `True` if the given module is importable.
-
-    Args:
-        module: the name of the module to check
-    Returns:
-        `True` if the given module is importable.
-    """
-    import importlib.util
-
-    spec = importlib.util.find_spec(module)
-    # namespace packages have spec.origin set to None
-    # see https://docs.python.org/3/library/importlib.html#importlib.machinery.ModuleSpec.origin
-    # and https://docs.python.org/3.6/library/importlib.html#importlib.machinery.ModuleSpec.origin
-    # for 3.6 (for which 'namespace' is the value)
-    return spec is not None and spec.origin is not None and spec.origin != 'namespace'
