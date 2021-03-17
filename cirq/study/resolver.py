@@ -14,12 +14,12 @@
 
 """Resolves ParameterValues to assigned values."""
 import numbers
-from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
+from typing import Any, Dict, Iterator, Optional, Protocol, TYPE_CHECKING, Union, cast
 import numpy as np
 import sympy
 from sympy.core import numbers as sympy_numbers
 from cirq._compat import proper_repr
-from cirq._doc import document
+from cirq._doc import document, doc_private
 
 if TYPE_CHECKING:
     import cirq
@@ -235,6 +235,16 @@ class ParamResolver:
     @classmethod
     def _from_json_dict_(cls, param_dict, **kwargs):
         return cls(dict(param_dict))
+
+
+class ResolvableValue(Protocol):
+    @doc_private
+    def _resolver_value_(self) -> Any:
+        """Returns a resolved value during parameter resolution.
+
+        Use this to mark a custom type as "resolved", instead of requiring
+        further parsing like we do with Sympy symbols.
+        """
 
 
 def _sympy_pass_through(val: Any) -> Any:
