@@ -230,7 +230,7 @@ def test_resolve_unknown_type():
     assert r.value_of(cirq.X) == cirq.X
 
 
-def test_custom_sympy_pass_through():
+def test_custom_resolved_value():
     class Foo:
         def _resolved_value_(self):
             return self
