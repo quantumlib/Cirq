@@ -18,6 +18,18 @@ _compat.deprecated_submodule(
     create_attribute=True,
 )
 
+# simulates a rename of a child module with same prefix
+# this prefix will collide with multiple "old" and new prefixes here
+# module_ -> module_a
+_compat.deprecated_submodule(
+    new_module_name=f"{__name__}.module_a",
+    old_parent=__name__,
+    old_child="module_",
+    deadline="v0.20",
+    create_attribute=False,
+)
+
+
 # simulates a move of sub module to one below
 # fake_b -> module_a.module_b
 _compat.deprecated_submodule(
@@ -25,7 +37,7 @@ _compat.deprecated_submodule(
     old_parent=__name__,
     old_child="fake_b",
     deadline="v0.20",
-    create_attribute=True,
+    create_attribute=False,
 )
 
 # simulates a move of fake_ops child module to a different parent
@@ -35,7 +47,7 @@ _compat.deprecated_submodule(
     old_parent=__name__,
     old_child="fake_ops",
     deadline="v0.20",
-    create_attribute=True,
+    create_attribute=False,
 )
 
 
@@ -47,7 +59,7 @@ _compat.deprecated_submodule(
     old_parent=__name__,
     old_child="fake_freezegun",
     deadline="v0.20",
-    create_attribute=True,
+    create_attribute=False,
 )
 
 # simulates a move of this module
@@ -58,5 +70,21 @@ _compat.deprecated_submodule(
     old_parent=__name__,
     old_child="fake_c",
     deadline="v0.20",
-    create_attribute=True,
+    create_attribute=False,
+)
+
+
+# this is admittedly contrived
+# simulates a move of fake_child to a repeated substructure
+# cirq.testing._compat_test_data.repeated_child ->
+# cirq.testing._compat_test_data.repeated
+# now...repeated has also a submodule named cirq.testing._compat_test_data.repeated_child.child
+# which adds to
+# cirq.testing._compat_test_data.repeated_child.cirq.testing._compat_test_data.repeated_child.child
+_compat.deprecated_submodule(
+    new_module_name=f"{__name__}.repeated",
+    old_parent=__name__,
+    old_child="repeated_child",
+    deadline="v0.20",
+    create_attribute=False,
 )

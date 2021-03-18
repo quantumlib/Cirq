@@ -351,11 +351,11 @@ class DeprecatedModuleLoader(importlib.abc.Loader):
 
             try:
                 return method(module)
-            except Exception as ex:
+            except BaseException:
                 # if there's an error, we atomically remove both
                 del sys.modules[self.new_module_name]
                 del sys.modules[self.old_module_name]
-                raise ex
+                raise
 
         return exec_module
 
@@ -364,6 +364,8 @@ def _is_internal(filename: str) -> bool:
     """Returns whether filename is internal to python.
 
     This is similar to how the built-in warnings module differentiates frames from internal modules.
+    It is specific to CPython - see
+    https://github.com/python/cpython/blob/41ec17e45d54473d32f543396293256f1581e44d/Lib/warnings.py#L275.
     """
     return 'importlib' in filename and '_bootstrap' in filename
 
@@ -433,19 +435,24 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname: str, path: Any = None, target: Any = None) -> Any:
         """Finds the specification of a module.
 
-        This is an implementation of the
+        This is an implementation of the importlib.abc.MetaPathFinder.find_spec method.
+        See https://docs.python.org/3/library/importlib.html#importlib.abc.MetaPathFinder.
+
         Args:
-            fullname: name of the module
-            path: if presented, this is the parent module's submodule search path
+            fullname: name of the module.
+            path: if presented, this is the parent module's submodule search path.
+            target: When passed in, target is a module object that the finder may use to make a more
+                educated guess about what spec to return. We don't use it here, just pass it along
+                to the wrapped finder.
         """
-        if not fullname.startswith(self.old_module_name):
+        if fullname != self.old_module_name and not fullname.startswith(self.old_module_name + "."):
             # if we are not interested in it, then just pass through to the wrapped finder
             return self.finder.find_spec(fullname, path, target)
 
         # warn for deprecation
         _deduped_module_warn_or_error(self.old_module_name, self.new_module_name, self.deadline)
 
-        new_fullname = fullname.replace(self.old_module_name, self.new_module_name)
+        new_fullname = self.new_module_name + fullname[len(self.old_module_name) :]
 
         # find the corresponding spec in the new structure
         if fullname == self.old_module_name:
@@ -465,7 +472,7 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
             spec.name = fullname
             # some loaders do a check to ensure the module's name is the same
             # as the loader was created for
-            if hasattr(spec.loader, "name") and getattr(spec.loader, "name") == new_fullname:
+            if getattr(spec.loader, "name", None) == new_fullname:
                 setattr(spec.loader, "name", fullname)
             spec.loader = DeprecatedModuleLoader(spec.loader, fullname, new_fullname)
         return spec
@@ -499,9 +506,9 @@ def deprecated_submodule(
     old_module_name = f"{old_parent}.{old_child}"
 
     new_module_spec = importlib.util.find_spec(new_module_name)
-    new_module = importlib.import_module(new_module_name)
 
     if create_attribute:
+        new_module = importlib.import_module(new_module_name)
         _setup_deprecated_submodule_attribute(
             new_module_name, old_parent, old_child, deadline, new_module
         )
@@ -525,8 +532,6 @@ def _setup_deprecated_submodule_attribute(
     setattr(parent_module, old_child, new_module)
 
     class Wrapped(ModuleType):
-        __dict__ = parent_module.__dict__
-
         def __getattr__(self, name):
             if name == old_child:
                 _deduped_module_warn_or_error(
