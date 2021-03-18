@@ -168,7 +168,7 @@ class QasmOutput:
         version: str = '2.0',
     ) -> None:
         """Representation of a circuit in QASM format.
-        
+
         Args:
             operations: An operation or tree of operations to insert.
             qubits: The qubits used in the operations.
