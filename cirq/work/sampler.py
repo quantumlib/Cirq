@@ -13,9 +13,10 @@
 # limitations under the License.
 """Abstract base class for things sampling quantum circuits."""
 
-from typing import List, Optional, TYPE_CHECKING, Union
+from typing import Dict, List, Optional, TYPE_CHECKING, Union
 import abc
 
+import numpy as np
 import pandas as pd
 
 from cirq import ops, study
@@ -24,9 +25,45 @@ from cirq.work.observable_measurement import (
     _get_params_for_setting,
     _with_parameterized_layers,
 )
+from cirq.work.observable_measurement_data import (
+    _stats_from_measurements,
+)
 
 if TYPE_CHECKING:
     import cirq
+
+
+def get_samples_mask_for_parameterization(
+    samples: pd.DataFrame,
+    param_resolver: 'cirq.ParamResolverOrSimilarType',
+    mask: Optional[pd.Series] = None,
+) -> pd.Series:
+    """Generates a 'mask' for a given parameterization of a sample.
+
+    Results for the given parameterization can be extracted with:
+
+        samples.loc[series, measure_key]
+
+    where 'series' is the output of this function and 'measure_key' is the
+    measurement key to extract results for.
+
+    Args:
+        samples: a pandas DataFrame containing sampling results and their
+            associated parameterizations.
+        param_resolver: the specific parameterization of 'samples' to create a
+            mask for.
+        mask: a base mask to generate from. Any indices excluded by this mask
+            will be excluded by the final mask. If this is left unspecified,
+            it defaults to a blank mask (include-all).
+            Using a previous result of this method as the 'mask' for
+            subsequent calls allows construction of a complete mask from
+            multiple partial parameterizations of the sampling results.
+    """
+    series = mask if mask is not None else np.ones(len(samples), dtype=bool)
+    pr = study.ParamResolver(param_resolver)
+    for k in pr:
+        series = series & (samples[k] == pr.value_of(k))
+    return series
 
 
 class Sampler(metaclass=abc.ABCMeta):
@@ -149,6 +186,17 @@ class Sampler(metaclass=abc.ABCMeta):
     ) -> List[List[float]]:
         """Calculates estimated expectation values from samples of a circuit.
 
+        This is a minimal implementation for measuring observables, and is best
+        reserved for simple use cases. For more complex use cases, consider
+        upgrading to `cirq/work/observable_measurement.py`. Additional features
+        provided by that toolkit include:
+            - Chunking of submissions to support more than (max_shots) from
+              Quantum Engine
+            - Checkpointing so you don't lose your work halfway through a job
+            - Measuring to a variance tolerance rather than a pre-specified
+              number of repetitions
+            - Readout error symmetrization and mitigation
+
         This method can be run on any device or simulator that supports circuit
         sampling. Compare with `simulate_expectation_values` in simulator.py,
         which is limited to simulators but provides exact results.
@@ -194,7 +242,10 @@ class Sampler(metaclass=abc.ABCMeta):
 
         obs_pstrings: List[ops.PauliString] = []
         for psum in psums:
-            pstring_aggregate = {}
+            # This dict will be the PAULI_STRING_LIKE for a new PauliString
+            # representing this PauliSum. The PauliString is necessary for
+            # compatibility with `observables_to_settings`.
+            pstring_aggregate: Dict['cirq.Qid', 'cirq.PAULI_GATE_LIKE'] = {}
             for pstring in psum:
                 pstring_aggregate.update(pstring.items())
             obs_pstrings.append(ops.PauliString(pstring_aggregate))
@@ -229,32 +280,25 @@ class Sampler(metaclass=abc.ABCMeta):
         results: List[List[float]] = [[0] * len(psums) for _ in range(num_input_param_values)]
 
         for max_setting, grouped_settings in sampling_groups.items():
-            ev_params = sampling_params[max_setting]
-            # A set of num_samples integer-packed results for this setting.
-            series = [True] * len(samples)
-            for k, v in ev_params.items():
-                series = series & (samples[k] == v)
+            # Filter 'samples' down to results matching each 'max_setting'.
+            series = get_samples_mask_for_parameterization(samples, sampling_params[max_setting])
 
             for sweep_idx, pr in enumerate(study.to_resolvers(input_params)):
-                subseries = series
-                for k in pr:
-                    subseries = subseries & (samples[k] == pr.value_of(k))
-                int_results = samples.loc[subseries, 'z']
+                # Filter 'series' down to results matching each sweep.
+                subseries = get_samples_mask_for_parameterization(samples, pr, series)
+                bitstrings = np.asarray(
+                    [
+                        list(np.binary_repr(intval).zfill(num_qubits))
+                        for intval in samples.loc[subseries, 'z']
+                    ],
+                    dtype=np.uint8,
+                )
                 for setting in grouped_settings:
                     obs_idx = obs_settings.index(setting)
-                    psum = psums[obs_idx]
-                    ev = 0
-                    for pstr in psum:
-                        sum_val = 0
-                        for int_result in int_results:
-                            val = 1
-                            for q in pstr.qubits:
-                                bit_idx = num_qubits - qmap[q] - 1
-                                if (int_result >> bit_idx) & 1:
-                                    val *= -1
-                            sum_val += val
-                        ev += sum_val * pstr.coefficient
-                    results[sweep_idx][obs_idx] = ev / num_samples
+                    results[sweep_idx][obs_idx] = sum(
+                        _stats_from_measurements(bitstrings, qmap, pstr, atol=1e-8)[0]
+                        for pstr in psums[obs_idx]
+                    )
 
         return results
 
