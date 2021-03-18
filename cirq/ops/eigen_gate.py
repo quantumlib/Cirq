@@ -368,9 +368,11 @@ class EigenGate(raw_types.Gate):
         self_without_phase = self._with_exponent(self.exponent)
         self_without_phase._global_shift = 0
         self_without_exp_or_phase = self_without_phase._with_exponent(0)
+        self_without_exp_or_phase._global_shift = 0
         other_without_phase = other._with_exponent(other.exponent)
         other_without_phase._global_shift = 0
         other_without_exp_or_phase = other_without_phase._with_exponent(0)
+        other_without_exp_or_phase._global_shift = 0
         if not protocols.approx_eq(
             self_without_exp_or_phase, other_without_exp_or_phase, atol=atol
         ):
