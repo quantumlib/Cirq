@@ -26,7 +26,6 @@ pyquil~=2.21.0
 
 # For verifying behavior of qasm output.
 qiskit-aer~=0.7.6
-qiskit-terra~=0.15.2
 
 # For generating notebooks in documentation
 ipython

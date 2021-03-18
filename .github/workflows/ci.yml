@@ -1,6 +1,6 @@
 name: Continuous Integration
 
-on: [pull_request]
+on: [ pull_request ]
 
 jobs:
   quick_test:
@@ -104,7 +104,7 @@ jobs:
     name: Pytest (cirq-only) Ubuntu
     strategy:
       matrix:
-        python-version: [ '3.6', '3.8' ]
+        python-version: '3.8'
     runs-on: ubuntu-16.04
     steps:
       - uses: actions/checkout@v2
@@ -125,7 +125,7 @@ jobs:
     strategy:
       matrix:
         # TODO(#3800): remove 3.6 when Colab switches to 3.7
-        python-version: ['3.6', '3.7', '3.8']
+        python-version: [ '3.6', '3.7', '3.8' ]
     runs-on: ubuntu-16.04
     steps:
       - uses: actions/checkout@v2
@@ -198,7 +198,7 @@ jobs:
     name: Pytest Windows
     strategy:
       matrix:
-        python-version: ['3.7', '3.8']
+        python-version: [ '3.7', '3.8' ]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -217,7 +217,7 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: ['3.7', '3.8']
+        python-version: [ '3.7', '3.8' ]
     runs-on: macos-10.15
     steps:
       - uses: actions/checkout@v2
