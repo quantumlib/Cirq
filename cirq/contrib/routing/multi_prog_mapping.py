@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
 This module implements a multi-program mapping algorithm that is introduced in https://arxiv.org/abs/2004.12854.
 To improve overall throughput and resource utilization, we can map muliple programs to a specific quantum chip at the same time. 
@@ -19,7 +20,6 @@ The first one is the Community Detection Assisted Partition (CDAP) algorithm, wh
 concurrent quantum programs by considering both physical typology (device graph) and the error rates (calibration data), 
 avoiding the waste of robust resources. The second one is the X-SWAP scheme that enables inter-program SWAP operations besides 
 intra-program SWAPs to reduce the SWAP overheads.
- 
 """
 
 import itertools
@@ -74,8 +74,8 @@ class HierarchyTree:
 
     def compute_F(
         self,
-        community1: List[ops.Qid],
-        community2: List[ops.Qid],
+        community1: List[cirq.Qid],
+        community2: List[cirq.Qid],
         q1: float,
         q2: float,
         fidelity: float,
