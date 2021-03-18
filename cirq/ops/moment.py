@@ -133,6 +133,16 @@ class Moment:
             return self.__getitem__(qubit)
         else:
             return None
+   
+    def single_gate_in_moment(self) -> Optional['cirq.Gate']:
+        target = None
+        if self.operations:
+            return None
+        target = self.operations[0].gate 
+        for op in self.operations:
+            if op.gate != target:
+                return None
+        return target
 
     def with_operation(self, operation: 'cirq.Operation') -> 'cirq.Moment':
         """Returns an equal moment, but with the given op added.

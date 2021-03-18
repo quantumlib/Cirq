@@ -169,6 +169,22 @@ def test_operation_at():
     assert cirq.Moment([cirq.CZ(a, b), cirq.X(c)]).operation_at(a) == cirq.CZ(a, b)
 
 
+def test_single_gate_in_moment():
+    a,b,c = cirq.LineQubit.range(3)
+
+    moment = cirq.Moment(cirq.X(a))
+    assert moment.single_gate_in_moment() == cirq.X
+
+    moment = cirq.Moment(cirq.X(a),cirq.X(b),cirq.X(c))
+    assert moment.single_gate_in_moment() == cirq.X
+
+    moment = cirq.Moment(cirq.X(a), cirq.H(b))
+    assert moment.single_gate_in_moment() == None
+
+    moment = cirq.Moment()
+    assert moment.single_gate_in_moment() == None
+
+
 def test_with_operation():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
