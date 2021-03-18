@@ -14,7 +14,7 @@
 """A protocol for implementing high performance clifford tableau evolutions
  for Clifford Simulator."""
 
-from typing import Any, Dict, Iterable, TYPE_CHECKING
+from typing import Any, Dict, Iterable, TYPE_CHECKING, List
 
 import numpy as np
 
@@ -22,13 +22,14 @@ from cirq.ops import common_gates
 from cirq.ops import pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
+from cirq.sim.act_on_args import ActOnArgs
 from cirq.sim.clifford.clifford_tableau import CliffordTableau
 
 if TYPE_CHECKING:
     import cirq
 
 
-class ActOnCliffordTableauArgs:
+class ActOnCliffordTableauArgs(ActOnArgs):
     """State and context for an operation acting on a clifford tableau.
     There are two common ways to act on this object:
     1. Directly edit the `tableau` property, which is storing the clifford
@@ -55,22 +56,8 @@ class ActOnCliffordTableauArgs:
                 being recorded into. Edit it easily by calling
                 `ActOnCliffordTableauArgs.record_measurement_result`.
         """
+        super().__init__(axes, prng, log_of_measurement_results)
         self.tableau = tableau
-        self.axes = tuple(axes)
-        self.prng = prng
-        self.log_of_measurement_results = log_of_measurement_results
-
-    def record_measurement_result(self, key: str, value: Any):
-        """Adds a measurement result to the log.
-        Args:
-            key: The key the measurement result should be logged under. Note
-                that operations should only store results under keys they have
-                declared in a `_measurement_keys_` method.
-            value: The value to log for the measurement.
-        """
-        if key in self.log_of_measurement_results:
-            raise ValueError(f"Measurement already logged to key {key!r}")
-        self.log_of_measurement_results[key] = value
 
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
         strats = []
@@ -85,6 +72,10 @@ class ActOnCliffordTableauArgs:
             assert result is NotImplemented, str(result)
 
         return NotImplemented
+
+    def _perform_measurement(self) -> List[int]:
+        """Returns the measurement from the tableau."""
+        return [self.tableau._measure(q, self.prng) for q in self.axes]
 
 
 def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
