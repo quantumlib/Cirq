@@ -319,11 +319,13 @@ class DeprecatedModuleLoader(importlib.abc.Loader):
         """
         self.loader = loader
         if hasattr(loader, 'exec_module'):
-            setattr(self, 'exec_module', self._wrap_exec_module(loader.exec_module))
+            # mypy#2427
+            self.exec_module = self._wrap_exec_module(loader.exec_module)  # type: ignore
         # while this is rare and load_module was deprecated in 3.4
         # in older environments this line makes them work as well
         if hasattr(loader, 'load_module'):
-            setattr(self, 'load_module', loader.load_module)
+            # mypy#2427
+            self.load_module = loader.load_module  # type: ignore
         self.old_module_name = old_module_name
         self.new_module_name = new_module_name
 
@@ -430,7 +432,8 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
             def invalidate_caches() -> None:
                 return self.finder.invalidate_caches()
 
-            setattr(self, "invalidate_caches", invalidate_caches)
+            # mypy#2427
+            self.invalidate_caches = invalidate_caches  # type: ignore
 
     def find_spec(self, fullname: str, path: Any = None, target: Any = None) -> Any:
         """Finds the specification of a module.
