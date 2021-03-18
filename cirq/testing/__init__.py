@@ -63,6 +63,10 @@ from cirq.testing.consistent_specified_has_unitary import (
     assert_specifies_has_unitary_if_unitary,
 )
 
+from cirq.testing.devices import (
+    ValidatingTestDevice,
+)
+
 from cirq.testing.equals_tester import (
     EqualsTester,
 )
