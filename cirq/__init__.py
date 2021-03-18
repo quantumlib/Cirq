@@ -350,7 +350,9 @@ from cirq.qis import (
 )
 
 from cirq.sim import (
+    ActOnArgs,
     ActOnCliffordTableauArgs,
+    ActOnDensityMatrixArgs,
     ActOnStabilizerCHFormArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,
@@ -373,6 +375,7 @@ from cirq.sim import (
     sample_state_vector,
     sample_sweep,
     SimulatesAmplitudes,
+    SimulatesExpectationValues,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesIntermediateStateVector,

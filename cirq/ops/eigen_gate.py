@@ -22,6 +22,7 @@ from typing import (
     NamedTuple,
     Optional,
     Tuple,
+    TYPE_CHECKING,
     TypeVar,
     Union,
 )
@@ -36,6 +37,8 @@ from cirq import value, protocols
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
+if TYPE_CHECKING:
+    import cirq
 
 TSelf = TypeVar('TSelf', bound='EigenGate')
 
@@ -349,8 +352,8 @@ class EigenGate(raw_types.Gate):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self._exponent)
 
-    def _resolve_parameters_(self: TSelf, param_resolver, recursive: bool) -> 'EigenGate':
-        return self._with_exponent(exponent=param_resolver.value_of(self._exponent, recursive))
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'EigenGate':
+        return self._with_exponent(exponent=resolver.value_of(self._exponent, recursive))
 
     def _equal_up_to_global_phase_(self, other, atol):
         if not isinstance(other, EigenGate):
