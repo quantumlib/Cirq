@@ -64,7 +64,6 @@ _compat.deprecated_submodule(
 
 # simulates a move of this module
 # fake_c -> module_a.module_b.module_c
-# but this won't create an attribute!
 _compat.deprecated_submodule(
     new_module_name=f"{__name__}.module_a.module_b.module_c",
     old_parent=__name__,

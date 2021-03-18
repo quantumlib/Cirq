@@ -450,6 +450,7 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
         """
         if fullname != self.old_module_name and not fullname.startswith(self.old_module_name + "."):
             # if we are not interested in it, then just pass through to the wrapped finder
+            print(f"{self} delegate find_spec({fullname})")
             return self.finder.find_spec(fullname, path, target)
 
         # warn for deprecation
@@ -459,7 +460,11 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
 
         # find the corresponding spec in the new structure
         if fullname == self.old_module_name:
-            spec = self.new_module_spec
+            spec = self.finder.find_spec(
+                new_fullname,
+                path=None,
+                target=None,
+            )
         else:
             # we are finding a submodule of the deprecated module
             spec = self.finder.find_spec(
@@ -467,6 +472,14 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
                 path=path,
                 target=target,
             )
+        f = self
+        finders = f"{f} > "
+        while isinstance(f, DeprecatedModuleFinder):
+            f = f.finder
+            finders += f" > {f}"
+
+        print(f"[{finders} | {fullname} -> {new_fullname} {path} {target}]")
+        print(spec, ' vs ', self.new_module_name)
 
         # if the spec exists, return the DeprecatedModuleLoader that will do the loading as well
         # as set the alias(es) in sys.modules as necessary
@@ -479,6 +492,9 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
                 setattr(spec.loader, "name", fullname)
             spec.loader = DeprecatedModuleLoader(spec.loader, fullname, new_fullname)
         return spec
+
+    def __str__(self) -> str:
+        return f"DMF({id(self)})"
 
 
 def deprecated_submodule(
