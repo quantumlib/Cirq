@@ -352,9 +352,7 @@ class EigenGate(raw_types.Gate):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self._exponent)
 
-    def _resolve_parameters_(
-        self: TSelf, resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'EigenGate':
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'EigenGate':
         return self._with_exponent(exponent=resolver.value_of(self._exponent, recursive))
 
     def _equal_up_to_global_phase_(self, other, atol):
