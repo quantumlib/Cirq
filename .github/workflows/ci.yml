@@ -102,15 +102,12 @@ jobs:
         run: check/nbformat
   cirq-only:
     name: Pytest (cirq-only) Ubuntu
-    strategy:
-      matrix:
-        python-version: '3.8'
     runs-on: ubuntu-16.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
         run: |
