@@ -17,7 +17,7 @@ The gate is used to create a 4x4 matrix with the diagonal elements
 passed as a list.
 """
 
-from typing import AbstractSet, Any, Tuple, List, Optional, TYPE_CHECKING
+from typing import AbstractSet, Any, Tuple, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 import sympy
 
@@ -26,7 +26,6 @@ from cirq._compat import proper_repr
 from cirq.ops import gate_features
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 
@@ -34,7 +33,7 @@ if TYPE_CHECKING:
 class TwoQubitDiagonalGate(gate_features.TwoQubitGate):
     """A gate given by a diagonal 4\\times 4 matrix."""
 
-    def __init__(self, diag_angles_radians: List[value.TParamVal]) -> None:
+    def __init__(self, diag_angles_radians: Sequence[value.TParamVal]) -> None:
         r"""A two qubit gate with only diagonal elements.
 
         This gate's off-diagonal elements are zero and it's on diagonal

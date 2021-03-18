@@ -15,6 +15,7 @@
 """Resolves ParameterValues to assigned values."""
 import numbers
 from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
+
 import numpy as np
 import sympy
 from sympy.core import numbers as sympy_numbers
@@ -33,6 +34,9 @@ document(
     ParamResolverOrSimilarType,  # type: ignore
     """Something that can be used to turn parameters into values.""",
 )
+
+# Used to mark values that are being resolved recursively to detect loops.
+_RecursionFlag = object()
 
 
 class ParamResolver:
@@ -96,8 +100,8 @@ class ParamResolver:
         """
 
         # Input is a pass through type, no resolution needed: return early
-        v = _sympy_pass_through(value)
-        if v is not None:
+        v = _resolve_value(value)
+        if v is not NotImplemented:
             return v
 
         # Handles 2 cases:
@@ -106,8 +110,8 @@ class ParamResolver:
         # In both cases, return it directly.
         if value in self.param_dict:
             param_value = self.param_dict[value]
-            v = _sympy_pass_through(param_value)
-            if v is not None:
+            v = _resolve_value(param_value)
+            if v is not NotImplemented:
                 return v
 
         # Input is a string and is not in the dictionary.
@@ -121,8 +125,8 @@ class ParamResolver:
         # in the dictionary ({'a': 1.0}).  Return it.
         if isinstance(value, sympy.Symbol) and value.name in self.param_dict:
             param_value = self.param_dict[value.name]
-            v = _sympy_pass_through(param_value)
-            if v is not None:
+            v = _resolve_value(param_value)
+            if v is not NotImplemented:
                 return v
 
         # The following resolves common sympy expressions
@@ -166,13 +170,13 @@ class ParamResolver:
         # single symbol, since combinations are handled earlier in the method.
         if value in self._deep_eval_map:
             v = self._deep_eval_map[value]
-            if v is not None:
+            if v is not _RecursionFlag:
                 return v
             raise RecursionError('Evaluation of {value} indirectly contains itself.')
 
         # There isn't a full evaluation for 'value' yet. Until it's ready,
         # map value to None to identify loops in component evaluation.
-        self._deep_eval_map[value] = None
+        self._deep_eval_map[value] = _RecursionFlag
 
         v = self.value_of(value, recursive=False)
         if v == value:
@@ -235,7 +239,7 @@ class ParamResolver:
         return cls(dict(param_dict))
 
 
-def _sympy_pass_through(val: Any) -> Optional[Any]:
+def _resolve_value(val: Any) -> Any:
     if isinstance(val, numbers.Number) and not isinstance(val, sympy.Basic):
         return val
     if isinstance(val, sympy_numbers.IntegerConstant):
@@ -244,4 +248,7 @@ def _sympy_pass_through(val: Any) -> Optional[Any]:
         return val.p / val.q
     if val == sympy.pi:
         return np.pi
-    return None
+
+    getter = getattr(val, '_resolved_value_', None)
+    result = NotImplemented if getter is None else getter()
+    return result
