@@ -170,7 +170,7 @@ class QasmOutput:
         """Representation of a circuit in QASM format.
 
         Args:
-            operations: An operation or tree of operations to insert.
+            operations: Tree of operations to insert.
             qubits: The qubits used in the operations.
             header: A multi-line string that is placed in a comment at the top
                 of the QASM. Defaults to a cirq version specifier.
