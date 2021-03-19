@@ -454,6 +454,7 @@ class XSWAP:
         """
 
         cir_dags = []
+        singleq_gates = []
         for c in self.desc_program_circuits:
             # Remove single qubit gates before creating dag
             singleq_gates = list(c.findall_operations_with_gate_type(self.twoQ_gate_type))
@@ -521,7 +522,7 @@ class XSWAP:
             if len(nodes) == 0:
                 counter = counter + 1
         if counter == len(cir_dags):
-            return None
+            return []
         # Set of nodes
         flayers = []
         for dag in cir_dags:
@@ -806,7 +807,7 @@ class XSWAP:
         self.initial_mapping()
 
         flayers = self.generate_front_layers(dags)
-        while flayers != None:
+        while len(flayers) != 0:
             # Solve hardware-compliant gates
             # i specify program index
             require_swap = 0
