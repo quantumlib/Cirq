@@ -440,31 +440,6 @@ def _type_repr_in_deprecated_module():
     assert repr(mod_a.SampleType) == expected_repr
 
 
-def _inspect_members():
-    """to ensure that create_attribute=True keeps the dir(module) intact"""
-
-    import cirq.testing._compat_test_data as mod
-
-    import inspect
-
-    assert [n for n, _ in inspect.getmembers(mod)] == [
-        '__builtins__',
-        '__cached__',
-        '__doc__',
-        '__file__',
-        '__loader__',
-        '__name__',
-        '__package__',
-        '__path__',
-        '__spec__',
-        '_compat',
-        'fake_a',
-        'info',
-        'module_a',
-        'sys',
-    ]
-
-
 old_parent = 'cirq.testing._compat_test_data'
 
 # this is where the deprecation error should show where the deprecated usage
@@ -555,7 +530,6 @@ def subprocess_context(test_func):
         (_from_deprecated_import_sub_of_sub, [_fake_a_deprecation_msg]),
         (_repeated_import_path, [_repeated_child_deprecation_msg]),
         (_type_repr_in_deprecated_module, [_fake_a_deprecation_msg]),
-        (_inspect_members, [_fake_a_deprecation_msg[:-1] + ['inspect.py']]),
     ],
 )
 def test_deprecated_module(outdated_method, deprecation_messages):
@@ -734,3 +708,16 @@ def test_subprocess_test_failure():
 
 def _test_subprocess_test_failure_inner():
     raise ValueError('this fails')
+
+
+def test_dir_is_still_valid():
+    subprocess_context(_dir_is_still_valid_inner)()
+
+
+def _dir_is_still_valid_inner():
+    """to ensure that create_attribute=True keeps the dir(module) intact"""
+
+    import cirq.testing._compat_test_data as mod
+
+    for m in ['fake_a', 'info', 'module_a', 'sys']:
+        assert m in dir(mod)
