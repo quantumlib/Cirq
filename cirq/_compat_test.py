@@ -276,19 +276,19 @@ def test_deprecated_class():
 
 
 def _from_parent_import_deprecated():
-    from cirq.testing._compat_test_data import fake_a
+    from cirq.testing._compat_test_data import fake_a  # type: ignore
 
     assert fake_a.MODULE_A_ATTRIBUTE == "module_a"
 
 
 def _import_deprecated_assert_sub():
-    import cirq.testing._compat_test_data.fake_a
+    import cirq.testing._compat_test_data.fake_a  # type: ignore
 
     assert cirq.testing._compat_test_data.fake_a.module_b.MODULE_B_ATTRIBUTE == "module_b"
 
 
 def _from_deprecated_import_sub():
-    from cirq.testing._compat_test_data.fake_a import module_b
+    from cirq.testing._compat_test_data.fake_a import module_b  # type: ignore
 
     assert module_b.MODULE_B_ATTRIBUTE == "module_b"
 
@@ -349,7 +349,7 @@ def _from_deprecated_import_sub_of_sub():
     from cirq.testing._compat_test_data.module_a.module_b import module_c
 
     assert module_c.MODULE_C_ATTRIBUTE == "module_c"
-    from cirq.testing._compat_test_data.fake_a.module_b import module_c
+    from cirq.testing._compat_test_data.fake_a.module_b import module_c  # type: ignore
 
     assert module_c.MODULE_C_ATTRIBUTE == "module_c"
 
@@ -359,16 +359,16 @@ def _import_multiple_deprecated():
     from cirq.testing._compat_test_data.module_a.module_b import module_c
 
     assert module_c.MODULE_C_ATTRIBUTE == "module_c"
-    from cirq.testing._compat_test_data.fake_a.module_b import module_c
+    from cirq.testing._compat_test_data.fake_a.module_b import module_c  # type: ignore
 
     assert module_c.MODULE_C_ATTRIBUTE == "module_c"
-    from cirq.testing._compat_test_data.fake_b import module_c
+    from cirq.testing._compat_test_data.fake_b import module_c  # type: ignore
 
     assert module_c.MODULE_C_ATTRIBUTE == "module_c"
 
 
 def _new_module_in_different_parent():
-    from cirq.testing._compat_test_data.fake_ops import raw_types
+    from cirq.testing._compat_test_data.fake_ops import raw_types  # type: ignore
 
     assert raw_types.Qid == cirq.Qid
 
@@ -401,20 +401,20 @@ def _import_parent_use_constant_from_deprecated_module_attribute():
 def _import_deprecated_sub_use_constant():
     """to ensure that submodule initializations set attributes correctly"""
     # sets up the DeprecationFinders
-    import cirq.testing._compat_test_data.fake_a.dupe
+    import cirq.testing._compat_test_data.fake_a.dupe  # type: ignore
 
     # should have a DUPE_CONSTANT as its defined on it, set to False
     assert cirq.testing._compat_test_data.fake_a.dupe.DUPE_CONSTANT == False
 
 
 def _import_deprecated_same_name_in_earlier_subtree():
-    from cirq.testing._compat_test_data.fake_a.sub.subsub.dupe import DUPE_CONSTANT
+    from cirq.testing._compat_test_data.fake_a.sub.subsub.dupe import DUPE_CONSTANT  # type: ignore
 
     assert DUPE_CONSTANT
 
 
 def _import_top_level_deprecated():
-    from cirq.testing._compat_test_data.fake_freezegun import api
+    from cirq.testing._compat_test_data.fake_freezegun import api  # type: ignore
     import time
 
     assert api.real_time == time.time
@@ -424,8 +424,8 @@ def _repeated_import_path():
     """to ensure that the highly unlikely repeated subpath import doesn't interfere"""
 
     # pylint: disable=line-too-long
-    from cirq.testing._compat_test_data.repeated_child.cirq.testing._compat_test_data.repeated_child import (
-        child,
+    from cirq.testing._compat_test_data.repeated_child.cirq.testing._compat_test_data.repeated_child import (  # type: ignore
+        child,  # type: ignore
     )
 
     assert child.CHILD_ATTRIBUTE == "child"
