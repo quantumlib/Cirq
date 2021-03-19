@@ -80,9 +80,8 @@ def test_op_roundtrip():
         text_should_be="""{
   "cirq_type": "GateOperation",
   "gate": {
-    "cirq_type": "XPowGate",
-    "exponent": 0.03915211600060625,
-    "global_shift": -0.5
+    "cirq_type": "Rx",
+    "rads": 0.123
   },
   "qubits": [
     {

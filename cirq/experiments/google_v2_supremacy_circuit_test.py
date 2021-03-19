@@ -45,6 +45,7 @@ def test_google_v2_supremacy_circuit():
 
 
 def test_google_v2_supremacy_bristlecone():
+    pytest.importorskip("cirq.google")
     # Check instance consistency
     c = supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_bristlecone(
         n_rows=11, cz_depth=8, seed=0
@@ -71,6 +72,7 @@ def test_google_v2_supremacy_bristlecone():
 
 
 def test_n_rows_less_than_2():
+    pytest.importorskip("cirq.google")
     with pytest.raises(AssertionError):
         supremacy_v2.generate_boixo_2018_supremacy_circuits_v2_bristlecone(
             n_rows=1, cz_depth=0, seed=0

@@ -65,7 +65,7 @@ def _gen_gray_code(n: int) -> Iterator[Tuple[int, int]]:
 class DiagonalGate(raw_types.Gate):
     """A gate given by a diagonal (2^n)\\times(2^n) matrix."""
 
-    def __init__(self, diag_angles_radians: List[value.TParamVal]) -> None:
+    def __init__(self, diag_angles_radians: Sequence[value.TParamVal]) -> None:
         r"""A n-qubit gate with only diagonal elements.
 
         This gate's off-diagonal elements are zero and it's on diagonal
@@ -90,10 +90,10 @@ class DiagonalGate(raw_types.Gate):
         }
 
     def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolver', recursive: bool
+        self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'DiagonalGate':
         return DiagonalGate(
-            protocols.resolve_parameters(self._diag_angles_radians, param_resolver, recursive)
+            protocols.resolve_parameters(self._diag_angles_radians, resolver, recursive)
         )
 
     def _has_unitary_(self) -> bool:

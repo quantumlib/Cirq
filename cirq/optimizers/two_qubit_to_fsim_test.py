@@ -26,7 +26,6 @@ UNITARY_OBJS = [
 
 FEASIBLE_FSIM_GATES = [
     cirq.ISWAP,
-    cirq.google.SYC,
     cirq.FSimGate(np.pi / 2, 0),
     cirq.FSimGate(-np.pi / 2, 0),
     cirq.FSimGate(np.pi / 2, np.pi / 6),
