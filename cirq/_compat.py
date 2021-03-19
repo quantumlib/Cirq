@@ -480,11 +480,6 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
                 path=path,
                 target=target,
             )
-        f = self
-        finders = f"{f} > "
-        while isinstance(f, DeprecatedModuleFinder):
-            f = f.finder
-            finders += f" > {f}"
 
         # if the spec exists, return the DeprecatedModuleLoader that will do the loading as well
         # as set the alias(es) in sys.modules as necessary
@@ -497,9 +492,6 @@ class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
                 setattr(spec.loader, "name", fullname)
             spec.loader = DeprecatedModuleLoader(spec.loader, fullname, new_fullname)
         return spec
-
-    def __str__(self) -> str:
-        return f"DMF({id(self)} - {self.old_module_name} -> {self.new_module_name})"
 
 
 def deprecated_submodule(
