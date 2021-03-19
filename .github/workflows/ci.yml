@@ -1,6 +1,6 @@
 name: Continuous Integration
 
-on: [pull_request]
+on: [ pull_request ]
 
 jobs:
   quick_test:
@@ -100,12 +100,29 @@ jobs:
           architecture: 'x64'
       - name: Doc check
         run: check/nbformat
+  cirq-only:
+    name: Pytest (cirq-only) Ubuntu
+    runs-on: ubuntu-16.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.8'
+          architecture: 'x64'
+      - name: Install requirements
+        run: |
+          pip install -r requirements.txt
+          pip install -r dev_tools/conf/pip-list-dev-tools.txt
+          # TODO: move to requirements.txt after #3704
+          pip install codeowners==0.1.2 # linux only package
+      - name: Pytest check
+        run: check/pytest --cirq-only --ignore=cirq/contrib --actually-quiet
   pytest:
     name: Pytest Ubuntu
     strategy:
       matrix:
         # TODO(#3800): remove 3.6 when Colab switches to 3.7
-        python-version: ['3.6', '3.7', '3.8']
+        python-version: [ '3.6', '3.7', '3.8' ]
     runs-on: ubuntu-16.04
     steps:
       - uses: actions/checkout@v2
@@ -178,7 +195,7 @@ jobs:
     name: Pytest Windows
     strategy:
       matrix:
-        python-version: ['3.7', '3.8']
+        python-version: [ '3.7', '3.8' ]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -197,7 +214,7 @@ jobs:
     name: Pytest MacOS
     strategy:
       matrix:
-        python-version: ['3.7', '3.8']
+        python-version: [ '3.7', '3.8' ]
     runs-on: macos-10.15
     steps:
       - uses: actions/checkout@v2
