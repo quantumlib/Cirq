@@ -2170,12 +2170,10 @@ class Circuit(AbstractCircuit):
             if 0 <= k < len(self._moments):
                 self._moments[k] = self._moments[k].without_operations_touching(qubits)
 
-    def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolver', recursive: bool
-    ) -> 'Circuit':
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'Circuit':
         resolved_moments = []
         for moment in self:
-            resolved_operations = _resolve_operations(moment.operations, param_resolver, recursive)
+            resolved_operations = _resolve_operations(moment.operations, resolver, recursive)
             new_moment = ops.Moment(resolved_operations)
             resolved_moments.append(new_moment)
         resolved_circuit = Circuit(resolved_moments, device=self.device)

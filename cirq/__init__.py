@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from logging import warning
 
 from cirq import _import
 
@@ -51,7 +52,6 @@ from cirq import (
     interop,
     # Applications
     experiments,
-    google,
     # Extra (nothing should depend on these)
     testing,
 )
@@ -260,6 +260,9 @@ from cirq.ops import (
     reset,
     ResetChannel,
     riswap,
+    Rx,
+    Ry,
+    Rz,
     rx,
     ry,
     rz,
@@ -348,7 +351,9 @@ from cirq.qis import (
 )
 
 from cirq.sim import (
+    ActOnArgs,
     ActOnCliffordTableauArgs,
+    ActOnDensityMatrixArgs,
     ActOnStabilizerCHFormArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,
@@ -371,6 +376,7 @@ from cirq.sim import (
     sample_state_vector,
     sample_sweep,
     SimulatesAmplitudes,
+    SimulatesExpectationValues,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesIntermediateStateVector,
@@ -559,11 +565,16 @@ from cirq.work import (
 # Unflattened sub-modules.
 
 from cirq import (
-    google,
     ionq,
     pasqal,
     testing,
 )
+
+try:
+    from cirq import google
+except ImportError as ex:
+    # coverage: ignore
+    warning("Can't import cirq.google: ", ex)
 
 
 def _register_resolver() -> None:
