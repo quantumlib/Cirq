@@ -136,9 +136,7 @@ def test_xeb_to_calibration_layer():
         args={
             'n_library_circuits': 22,
             'n_combinations': 10,
-            'cycle_min': 3,
-            'cycle_max': 100,
-            'cycle_step': 20,
+            'cycle_depths': '5_25_50_100_200_300',
             'fatol': 5e-3,
             'xatol': 5e-3,
             'characterize_theta': True,

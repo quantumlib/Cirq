@@ -63,6 +63,8 @@ else:
 
 _FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
 _XEB_PHASED_FSIM_HANDLER_NAME = 'xeb_phased_fsim_characterization'
+_DEFAULT_XEB_CYCLE_DEPTHS = (5, 25, 50, 100, 200, 300)
+
 T = TypeVar('T')
 
 RequestT = TypeVar('RequestT', bound='PhasedFSimCalibrationRequest')
@@ -406,13 +408,8 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
             This parameter controls the number of random combinations of the two-qubit random
             circuits we execute. Higher values increase the precision of estimates but linearly
             increase experimental runtime.
-        cycle_min: We run the random circuits at a variety of cycle depths to fit an exponential
-            decay in the fidelity. This is the minimum number of cycles to execute for each
-            combination. The number of cycles is given as range(cycle_min, cycle_max, cycle_step)
-        cycle_max: The maximum number of cycles to execute for each combinations. The number of
-            cycles is given as range(cycle_min, cycle_max, cycle_step)
-        cycle_step: The increment in cycle depths. The number of cycles is given as
-            range(cycle_min, cycle_max, cycle_step).
+        cycle_depths: We run the random circuits at these cycle depths to fit an exponential
+            decay in the fidelity.
         fatol: The absolute convergence tolerance for the objective function evaluation in
             the Nelder-Mead optimization. This controls the runtime of the classical
             characterization optimization loop.
@@ -426,9 +423,7 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
 
     n_library_circuits: int = 20
     n_combinations: int = 10
-    cycle_min: int = 3
-    cycle_max: int = 100
-    cycle_step: int = 20
+    cycle_depths: Tuple[int, ...] = _DEFAULT_XEB_CYCLE_DEPTHS
     fatol: Optional[float] = 5e-3
     xatol: Optional[float] = 5e-3
 
@@ -440,9 +435,7 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         args: Dict[str, Any] = {
             'n_library_circuits': self.n_library_circuits,
             'n_combinations': self.n_combinations,
-            'cycle_min': self.cycle_min,
-            'cycle_max': self.cycle_max,
-            'cycle_step': self.cycle_step,
+            'cycle_depths': '_'.join(f'{cd:d}' for cd in self.cycle_depths),
         }
         if self.fatol is not None:
             args['fatol'] = self.fatol

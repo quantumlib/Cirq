@@ -80,26 +80,10 @@ args {
   }
 }
 args {
-  key: "cycle_max"
+  key: "cycle_depths"
   value {
     arg_value {
-      float_value: 100.0
-    }
-  }
-}
-args {
-  key: "cycle_min"
-  value {
-    arg_value {
-      float_value: 3.0
-    }
-  }
-}
-args {
-  key: "cycle_step"
-  value {
-    arg_value {
-      float_value: 20.0
+      string_value: "5_25_50_100_200_300"
     }
   }
 }
