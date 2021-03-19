@@ -14,11 +14,15 @@
 
 """Workarounds for compatibility issues between versions and libraries."""
 import functools
+import importlib
+from importlib.machinery import ModuleSpec
 import os
 import re
+import sys
+import traceback
 import warnings
 from types import ModuleType
-from typing import Any, Callable, Optional, Dict, Tuple, Type
+from typing import Any, Callable, Optional, Dict, Tuple, Type, Set
 
 import numpy as np
 import pandas as pd
@@ -93,10 +97,19 @@ def _warn_or_error(msg):
     if called_from_test and not deprecation_allowed:
         raise ValueError(f"Cirq should not use deprecated functionality: {msg}")
 
+    # we have to dynamically count the non-internal frames
+    # due to the potentially multiple nested module wrappers
+    stack_level = 1
+    for filename, _, _, _ in reversed(traceback.extract_stack()):
+        if not _is_internal(filename) and "_compat.py" not in filename:
+            break
+        if "_compat.py" in filename:
+            stack_level += 1
+
     warnings.warn(
         msg,
         DeprecationWarning,
-        stacklevel=3,
+        stacklevel=stack_level,
     )
 
 
@@ -285,3 +298,256 @@ def deprecate_attributes(module: ModuleType, deprecated_attributes: Dict[str, Tu
             return getattr(module, name)
 
     return Wrapped(module.__name__, module.__doc__)
+
+
+class DeprecatedModuleLoader(importlib.abc.Loader):
+    """A Loader for deprecated modules.
+
+    It wraps an existing Loader instance, to which it delegates the loading. On top of that
+    it ensures that the sys.modules cache has both the deprecated module's name and the
+    new module's name pointing to the same exact ModuleType instance.
+
+    Args:
+        loader: the loader to be wrapped
+        old_module_name: the deprecated module's fully qualified name
+        new_module_name: the new module's fully qualified name
+    """
+
+    def __init__(self, loader: Any, old_module_name: str, new_module_name: str):
+        """A module loader that uses an existing module loader and intercepts
+        the execution of a module.
+        """
+        self.loader = loader
+        if hasattr(loader, 'exec_module'):
+            # mypy#2427
+            self.exec_module = self._wrap_exec_module(loader.exec_module)  # type: ignore
+        # while this is rare and load_module was deprecated in 3.4
+        # in older environments this line makes them work as well
+        if hasattr(loader, 'load_module'):
+            # mypy#2427
+            self.load_module = loader.load_module  # type: ignore
+        self.old_module_name = old_module_name
+        self.new_module_name = new_module_name
+
+    def create_module(self, spec: ModuleSpec) -> ModuleType:
+        return self.loader.create_module(spec)
+
+    def module_repr(self, module: ModuleType) -> str:
+        return self.loader.module_repr(module)
+
+    def _wrap_exec_module(self, method: Any) -> Any:
+        def exec_module(module: ModuleType) -> None:
+            assert module.__name__ == self.old_module_name, (
+                f"DeprecatedModuleLoader for {self.old_module_name} was asked to "
+                f"load {module.__name__}"
+            )
+            # check for new_module whether it was loaded
+            if self.new_module_name in sys.modules:
+                # found it - no need to load the module again
+                sys.modules[self.old_module_name] = sys.modules[self.new_module_name]
+                return
+
+            # now we know we have to initialize the module
+            sys.modules[self.old_module_name] = module
+            sys.modules[self.new_module_name] = module
+
+            try:
+                return method(module)
+            except BaseException:
+                # if there's an error, we atomically remove both
+                del sys.modules[self.new_module_name]
+                del sys.modules[self.old_module_name]
+                raise
+
+        return exec_module
+
+
+def _is_internal(filename: str) -> bool:
+    """Returns whether filename is internal to python.
+
+    This is similar to how the built-in warnings module differentiates frames from internal modules.
+    It is specific to CPython - see
+    https://github.com/python/cpython/blob/41ec17e45d54473d32f543396293256f1581e44d/Lib/warnings.py#L275.
+    """
+    return 'importlib' in filename and '_bootstrap' in filename
+
+
+_warned: Set[str] = set()
+
+
+def _deduped_module_warn_or_error(old_module_name, new_module_name, deadline):
+    if old_module_name in _warned:
+        return
+
+    _warned.add(old_module_name)
+
+    _warn_or_error(
+        f"{old_module_name} was used but is deprecated.\n "
+        f"it will be removed in cirq {deadline}.\n "
+        f"Use {new_module_name} instead.\n",
+    )
+
+
+class DeprecatedModuleFinder(importlib.abc.MetaPathFinder):
+    """A module finder to handle deprecated module references.
+
+    It sends a deprecation warning when a deprecated module is asked to be found.
+    It is meant to be used as a wrapper around existing MetaPathFinder instances.
+
+    Args:
+        finder: the finder to wrap.
+        new_module_name: the new module's fully qualified name
+        old_module_name: the deprecated module's fully qualified name
+        deadline: the deprecation deadline
+    """
+
+    def __init__(
+        self,
+        finder: Any,
+        new_module_name: str,
+        old_module_name: str,
+        deadline: str,
+    ):
+        """An aliasing module finder that uses an existing module finder to find a python
+        module spec and intercept the execution of matching modules.
+        """
+        self.finder = finder
+        self.new_module_name = new_module_name
+        self.old_module_name = old_module_name
+        self.deadline = deadline
+        # to cater for metadata path finders
+        # https://docs.python.org/3/library/importlib.metadata.html#extending-the-search-algorithm
+        if hasattr(finder, "find_distributions"):
+
+            def find_distributions(context):
+                return self.finder.find_distributions(context)
+
+            self.find_distributions = find_distributions
+        if hasattr(finder, "invalidate_caches"):
+
+            def invalidate_caches() -> None:
+                return self.finder.invalidate_caches()
+
+            # mypy#2427
+            self.invalidate_caches = invalidate_caches  # type: ignore
+
+    def find_spec(self, fullname: str, path: Any = None, target: Any = None) -> Any:
+        """Finds the specification of a module.
+
+        This is an implementation of the importlib.abc.MetaPathFinder.find_spec method.
+        See https://docs.python.org/3/library/importlib.html#importlib.abc.MetaPathFinder.
+
+        Args:
+            fullname: name of the module.
+            path: if presented, this is the parent module's submodule search path.
+            target: When passed in, target is a module object that the finder may use to make a more
+                educated guess about what spec to return. We don't use it here, just pass it along
+                to the wrapped finder.
+        """
+        if fullname != self.old_module_name and not fullname.startswith(self.old_module_name + "."):
+            # if we are not interested in it, then just pass through to the wrapped finder
+            return self.finder.find_spec(fullname, path, target)
+
+        # warn for deprecation
+        _deduped_module_warn_or_error(self.old_module_name, self.new_module_name, self.deadline)
+
+        new_fullname = self.new_module_name + fullname[len(self.old_module_name) :]
+
+        # find the corresponding spec in the new structure
+        if fullname == self.old_module_name:
+            # this is the first time the deprecated module is being found
+            # which means that the new parent needs to be found first and under
+            # the new parent's path, we should be able to find the new name of
+            # the deprecated module
+            # this code is heavily inspired by importlib.util.find_spec
+            parent_name = new_fullname.rpartition('.')[0]
+            if parent_name:
+                parent = __import__(parent_name, fromlist=['__path__'])
+                # note that compared to importlib.util.find_spec we don't handle
+                # AttributeError here because it is not expected to happen in case
+                # of a DeprecatedModuleLoader - the new parent should exist and be
+                # a proper package
+                parent_path = parent.__path__
+            else:
+                parent_path = None
+            spec = self.finder.find_spec(new_fullname, parent_path, None)
+        else:
+            # we are finding a submodule of the parent of the deprecated module,
+            # which means that the parent was already found, and thus, `path` is
+            # correctly pointing to the module's parent in the new hierarchy
+            spec = self.finder.find_spec(
+                new_fullname,
+                path=path,
+                target=target,
+            )
+
+        # if the spec exists, return the DeprecatedModuleLoader that will do the loading as well
+        # as set the alias(es) in sys.modules as necessary
+        if spec is not None:
+            # change back the name to the deprecated module name
+            spec.name = fullname
+            # some loaders do a check to ensure the module's name is the same
+            # as the loader was created for
+            if getattr(spec.loader, "name", None) == new_fullname:
+                setattr(spec.loader, "name", fullname)
+            spec.loader = DeprecatedModuleLoader(spec.loader, fullname, new_fullname)
+        return spec
+
+
+def deprecated_submodule(
+    *, new_module_name: str, old_parent: str, old_child: str, deadline: str, create_attribute: bool
+):
+    """Creates a deprecated module reference recursively for a module.
+
+    For `new_module_name` (e.g. cirq_google) creates an alias (e.g cirq.google) in Python's module
+    cache. It also recursively checks for the already imported submodules (e.g. cirq_google.api) and
+    creates the alias for them too (e.g. cirq.google.api). With this method it is possible to create
+    an alias that really looks like a module, e.g you can do things like
+    `from cirq.google import api` - which would be otherwise impossible.
+
+    Note that this method will execute `new_module_name` in order to ensure that it is in the module
+    cache.
+
+    Args:
+        new_module_name: absolute module name for the new module
+        old_parent: the current module that had the original submodule
+        old_child: the submodule that is being relocated
+        create_attribute: if True, the submodule will be added as a deprecated attribute to the
+            old_parent module
+    Returns:
+        None
+    """
+    _validate_deadline(deadline)
+
+    old_module_name = f"{old_parent}.{old_child}"
+
+    if create_attribute:
+        new_module = importlib.import_module(new_module_name)
+        _setup_deprecated_submodule_attribute(
+            new_module_name, old_parent, old_child, deadline, new_module
+        )
+
+    def wrap(finder: Any) -> Any:
+        if not hasattr(finder, 'find_spec'):
+            return finder
+        # this is just to make mypy not complain about the type of new_module_spec being Optional
+        return DeprecatedModuleFinder(finder, new_module_name, old_module_name, deadline)
+
+    sys.meta_path = [wrap(finder) for finder in sys.meta_path]
+
+
+def _setup_deprecated_submodule_attribute(
+    new_module_name: str, old_parent: str, old_child: str, deadline: str, new_module: ModuleType
+):
+    parent_module = sys.modules[old_parent]
+    setattr(parent_module, old_child, new_module)
+
+    class Wrapped(ModuleType):
+        def __getattr__(self, name):
+            if name == old_child:
+                _deduped_module_warn_or_error(
+                    f"{old_parent}.{old_child}", new_module_name, deadline
+                )
+            return getattr(parent_module, name)
+
+    sys.modules[old_parent] = Wrapped(parent_module.__name__, parent_module.__doc__)
