@@ -1,13 +1,13 @@
 # Copyright 2019 The Cirq Developers
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an 'AS IS' BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
@@ -123,10 +123,10 @@ def test_deprecated():
     ):
         assert old_func(1, 2) == 3
 
-    with pytest.raises(ValueError, match="Cirq should not use deprecated functionality"):
+    with pytest.raises(ValueError, match='Cirq should not use deprecated functionality'):
         old_func(1, 2)
 
-    with pytest.raises(AssertionError, match="deadline should match vX.Y"):
+    with pytest.raises(AssertionError, match='deadline should match vX.Y'):
         # pylint: disable=unused-variable
         # coverage: ignore
         @deprecated(deadline='invalid', fix='Roll some dice.')
@@ -166,14 +166,14 @@ def test_deprecated_parameter():
         # pylint: enable=no-value-for-parameter
         # pylint: enable=unexpected-keyword-arg
 
-    with pytest.raises(ValueError, match="Cirq should not use deprecated functionality"):
+    with pytest.raises(ValueError, match='Cirq should not use deprecated functionality'):
         # pylint: disable=unexpected-keyword-arg
         # pylint: disable=no-value-for-parameter
         f(double_count=1)
         # pylint: enable=no-value-for-parameter
         # pylint: enable=unexpected-keyword-arg
 
-    with pytest.raises(AssertionError, match="deadline should match vX.Y"):
+    with pytest.raises(AssertionError, match='deadline should match vX.Y'):
 
         @deprecated_parameter(
             deadline='invalid',
@@ -199,7 +199,7 @@ def test_wrap_module():
     assert 'bar' in my_module.__dict__
     assert 'zoo' not in my_module.__dict__
 
-    with pytest.raises(AssertionError, match="deadline should match vX.Y"):
+    with pytest.raises(AssertionError, match='deadline should match vX.Y'):
         deprecate_attributes(my_module, {'foo': ('invalid', 'use bar instead')})
 
     wrapped = deprecate_attributes(my_module, {'foo': ('v0.6', 'use bar instead')})
@@ -221,7 +221,7 @@ def test_wrap_module():
     ):
         _ = wrapped.foo
 
-    with pytest.raises(ValueError, match="Cirq should not use deprecated functionality"):
+    with pytest.raises(ValueError, match='Cirq should not use deprecated functionality'):
         _ = wrapped.foo
 
     with cirq.testing.assert_logs(count=0):
@@ -238,37 +238,37 @@ def test_deprecated_class():
             return self._a
 
         def __repr__(self):
-            return f"NewClass: {self.a}"
+            return f'NewClass: {self.a}'
 
         @classmethod
         def hello(cls):
-            return f"hello {cls}"
+            return f'hello {cls}'
 
-    @deprecated_class(deadline="v1.2", fix="theFix", name="foo")
+    @deprecated_class(deadline='v1.2', fix='theFix', name='foo')
     class OldClass(NewClass):
         """The OldClass docs"""
 
-    assert OldClass.__doc__.startswith("THIS CLASS IS DEPRECATED")
-    assert "OldClass docs" in OldClass.__doc__
+    assert OldClass.__doc__.startswith('THIS CLASS IS DEPRECATED')
+    assert 'OldClass docs' in OldClass.__doc__
 
     with cirq.testing.assert_deprecated(
         '_compat_test.py:',
         'foo was used but is deprecated',
         'will be removed in cirq v1.2',
         'theFix',
-        deadline="v1.2",
+        deadline='v1.2',
     ):
-        old_obj = OldClass("1")
-        assert repr(old_obj) == "NewClass: 1"
-        assert "OldClass" in old_obj.hello()
+        old_obj = OldClass('1')
+        assert repr(old_obj) == 'NewClass: 1'
+        assert 'OldClass' in old_obj.hello()
 
-    with pytest.raises(ValueError, match="Cirq should not use deprecated functionality"):
-        OldClass("1")
+    with pytest.raises(ValueError, match='Cirq should not use deprecated functionality'):
+        OldClass('1')
 
-    with pytest.raises(AssertionError, match="deadline should match vX.Y"):
+    with pytest.raises(AssertionError, match='deadline should match vX.Y'):
         # pylint: disable=unused-variable
         # coverage: ignore
-        @deprecated_class(deadline="invalid", fix="theFix", name="foo")
+        @deprecated_class(deadline='invalid', fix='theFix', name='foo')
         class BadlyDeprecatedClass(NewClass):
             ...
 
@@ -278,19 +278,19 @@ def test_deprecated_class():
 def _from_parent_import_deprecated():
     from cirq.testing._compat_test_data import fake_a  # type: ignore
 
-    assert fake_a.MODULE_A_ATTRIBUTE == "module_a"
+    assert fake_a.MODULE_A_ATTRIBUTE == 'module_a'
 
 
 def _import_deprecated_assert_sub():
     import cirq.testing._compat_test_data.fake_a  # type: ignore
 
-    assert cirq.testing._compat_test_data.fake_a.module_b.MODULE_B_ATTRIBUTE == "module_b"
+    assert cirq.testing._compat_test_data.fake_a.module_b.MODULE_B_ATTRIBUTE == 'module_b'
 
 
 def _from_deprecated_import_sub():
     from cirq.testing._compat_test_data.fake_a import module_b  # type: ignore
 
-    assert module_b.MODULE_B_ATTRIBUTE == "module_b"
+    assert module_b.MODULE_B_ATTRIBUTE == 'module_b'
 
 
 def _import_deprecated_first_new_second():
@@ -298,12 +298,12 @@ def _import_deprecated_first_new_second():
 
     Note that the single execution of _compat_test_data and module_a is asserted
     in _test_deprecated_module_inner by counting the INFO messages emitted by
-    the modules ("init:compat_test_data" and "init:module_a").
+    the modules ('init:compat_test_data' and 'init:module_a').
     """
 
     from cirq.testing._compat_test_data.fake_a import module_b
 
-    assert module_b.MODULE_B_ATTRIBUTE == "module_b"
+    assert module_b.MODULE_B_ATTRIBUTE == 'module_b'
 
     # the DeprecatedModuleLoader should set the refs for both modules
     assert 'cirq.testing._compat_test_data.fake_a' in sys.modules
@@ -316,7 +316,7 @@ def _import_deprecated_first_new_second():
 
     from cirq.testing._compat_test_data.module_a import module_b
 
-    assert module_b.MODULE_B_ATTRIBUTE == "module_b"
+    assert module_b.MODULE_B_ATTRIBUTE == 'module_b'
 
 
 def _import_new_first_deprecated_second():
@@ -327,7 +327,7 @@ def _import_new_first_deprecated_second():
     """
     from cirq.testing._compat_test_data.module_a import module_b
 
-    assert module_b.MODULE_B_ATTRIBUTE == "module_b"
+    assert module_b.MODULE_B_ATTRIBUTE == 'module_b'
 
     # the DeprecatedModuleLoader should set the ref only for module_a
     assert 'cirq.testing._compat_test_data.fake_a' not in sys.modules
@@ -341,30 +341,30 @@ def _import_new_first_deprecated_second():
         == sys.modules['cirq.testing._compat_test_data.module_a']
     )
 
-    assert module_b.MODULE_B_ATTRIBUTE == "module_b"
+    assert module_b.MODULE_B_ATTRIBUTE == 'module_b'
 
 
 def _from_deprecated_import_sub_of_sub():
     """Ensures that the deprecation warning level is correct."""
     from cirq.testing._compat_test_data.module_a.module_b import module_c
 
-    assert module_c.MODULE_C_ATTRIBUTE == "module_c"
+    assert module_c.MODULE_C_ATTRIBUTE == 'module_c'
     from cirq.testing._compat_test_data.fake_a.module_b import module_c  # type: ignore
 
-    assert module_c.MODULE_C_ATTRIBUTE == "module_c"
+    assert module_c.MODULE_C_ATTRIBUTE == 'module_c'
 
 
 def _import_multiple_deprecated():
     """Ensures that multiple deprecations play well together."""
     from cirq.testing._compat_test_data.module_a.module_b import module_c
 
-    assert module_c.MODULE_C_ATTRIBUTE == "module_c"
+    assert module_c.MODULE_C_ATTRIBUTE == 'module_c'
     from cirq.testing._compat_test_data.fake_a.module_b import module_c  # type: ignore
 
-    assert module_c.MODULE_C_ATTRIBUTE == "module_c"
+    assert module_c.MODULE_C_ATTRIBUTE == 'module_c'
     from cirq.testing._compat_test_data.fake_b import module_c  # type: ignore
 
-    assert module_c.MODULE_C_ATTRIBUTE == "module_c"
+    assert module_c.MODULE_C_ATTRIBUTE == 'module_c'
 
 
 def _new_module_in_different_parent():
@@ -379,9 +379,9 @@ def _find_spec_deprecated_multiple_times():
     import importlib.util
 
     # first import, the loader is the regular loader on the spec
-    assert importlib.util.find_spec("cirq.testing._compat_test_data.fake_a")
+    assert importlib.util.find_spec('cirq.testing._compat_test_data.fake_a')
     # second import it might be the aliasing loader already
-    assert importlib.util.find_spec("cirq.testing._compat_test_data.fake_a")
+    assert importlib.util.find_spec('cirq.testing._compat_test_data.fake_a')
 
 
 def _import_parent_use_constant_from_deprecated_module_attribute():
@@ -394,8 +394,8 @@ def _import_parent_use_constant_from_deprecated_module_attribute():
     # should have a DUPE_CONSTANT as its imported from the dupe submodule
     assert cirq.testing._compat_test_data.fake_a.DUPE_CONSTANT == False
 
-    assert "module_a for module deprecation tests" in cirq.testing._compat_test_data.fake_a.__doc__
-    assert "Test module for deprecation testing" in cirq.testing._compat_test_data.__doc__
+    assert 'module_a for module deprecation tests' in cirq.testing._compat_test_data.fake_a.__doc__
+    assert 'Test module for deprecation testing' in cirq.testing._compat_test_data.__doc__
 
 
 def _import_deprecated_sub_use_constant():
@@ -428,7 +428,7 @@ def _repeated_import_path():
         child,  # type: ignore
     )
 
-    assert child.CHILD_ATTRIBUTE == "child"
+    assert child.CHILD_ATTRIBUTE == 'child'
 
 
 def _type_repr_in_deprecated_module():
@@ -491,7 +491,7 @@ def subprocess_context(test_func):
     """Ensures that sys.modules changes in subprocesses won't impact the parent process."""
     import os
 
-    ctx = multiprocessing.get_context("spawn" if os.name == 'nt' else "fork")
+    ctx = multiprocessing.get_context('spawn' if os.name == 'nt' else 'fork')
 
     exception = ctx.Queue()
 
@@ -505,7 +505,7 @@ def subprocess_context(test_func):
         if result:
             # coverage: ignore
             ex_type, msg, ex_trace = result
-            pytest.fail(f"{ex_type}: {msg}\n{ex_trace}")
+            pytest.fail(f'{ex_type}: {msg}\n{ex_trace}')
 
     return isolated_func
 
@@ -521,7 +521,7 @@ def subprocess_context(test_func):
         (_import_multiple_deprecated, [_fake_a_deprecation_msg, _fake_b_deprecation_msg]),
         (_new_module_in_different_parent, [_fake_ops_deprecation_msg]),
         # ignore the frame requirement - as we are using find_spec from importlib, it
-        # is detected as an "internal" frame by warnings
+        # is detected as an 'internal' frame by warnings
         (_find_spec_deprecated_multiple_times, [_fake_a_deprecation_msg[:-1]]),
         (_import_parent_use_constant_from_deprecated_module_attribute, [_fake_a_deprecation_msg]),
         (_import_deprecated_sub_use_constant, [_fake_a_deprecation_msg]),
@@ -541,20 +541,20 @@ def _test_deprecated_module_inner(outdated_method, deprecation_messages):
     import cirq
 
     with cirq.testing.assert_logs(
-        "init:compat_test_data",
-        "init:module_a",
+        'init:compat_test_data',
+        'init:module_a',
         min_level=logging.INFO,
         max_level=logging.INFO,
         count=2,
     ):
         with cirq.testing.assert_deprecated(
             *[msg for dep in deprecation_messages for msg in dep],
-            deadline="v0.20",
+            deadline='v0.20',
             count=len(deprecation_messages),
         ):
             import warnings
 
-            warnings.simplefilter("always")
+            warnings.simplefilter('always')
             outdated_method()
 
 
@@ -602,7 +602,7 @@ def _test_metadata_search_path_inner():
         # importlib_metadata for python <3.8
         import importlib_metadata as m
 
-    assert m.metadata("flynt")
+    assert m.metadata('flynt')
 
 
 def test_type_repr_in_new_module():
@@ -621,12 +621,12 @@ def _test_type_repr_in_new_module_inner():
 
 
 def test_deprecated_module_deadline_validation():
-    with pytest.raises(AssertionError, match="deadline should match vX.Y"):
+    with pytest.raises(AssertionError, match='deadline should match vX.Y'):
         deprecated_submodule(
-            new_module_name="new",
-            old_parent="old_p",
-            old_child="old_ch",
-            deadline="invalid",
+            new_module_name='new',
+            old_parent='old_p',
+            old_child='old_ch',
+            deadline='invalid',
             create_attribute=False,
         )
 
@@ -667,26 +667,26 @@ def test_loader_cleanup_on_failure():
             raise KeyboardInterrupt()
 
     with pytest.raises(KeyboardInterrupt):
-        module = types.ModuleType("old")
-        DeprecatedModuleLoader(FakeLoader(), "old", "new").exec_module(module)
+        module = types.ModuleType('old')
+        DeprecatedModuleLoader(FakeLoader(), 'old', 'new').exec_module(module)
 
-    assert "old" not in sys.modules
-    assert "new" not in sys.modules
+    assert 'old' not in sys.modules
+    assert 'new' not in sys.modules
 
 
 def test_loader_wrappers():
-    hello_module = types.ModuleType("hello")
+    hello_module = types.ModuleType('hello')
 
     class StubLoader(importlib.abc.Loader):
         def module_repr(self, module: ModuleType) -> str:
-            return "hello"
+            return 'hello'
 
         def load_module(self, fullname: str) -> ModuleType:
             return hello_module
 
-    module = types.ModuleType("old")
-    assert DeprecatedModuleLoader(StubLoader(), "old", "new").module_repr(module) == "hello"
-    assert DeprecatedModuleLoader(StubLoader(), "old", "new").load_module("test") == hello_module
+    module = types.ModuleType('old')
+    assert DeprecatedModuleLoader(StubLoader(), 'old', 'new').module_repr(module) == 'hello'
+    assert DeprecatedModuleLoader(StubLoader(), 'old', 'new').load_module('test') == hello_module
 
 
 def test_invalidate_caches():
@@ -697,14 +697,14 @@ def test_invalidate_caches():
             nonlocal called
             called = True
 
-    DeprecatedModuleFinder(FakeFinder(), "new", "old", "v0.1").invalidate_caches()
+    DeprecatedModuleFinder(FakeFinder(), 'new', 'old', 'v0.1').invalidate_caches()
     assert called
 
 
 def test_subprocess_test_failure():
-    with pytest.raises(Failed, match="ValueError.*this fails"):
+    with pytest.raises(Failed, match='ValueError.*this fails'):
         subprocess_context(_test_subprocess_test_failure_inner)()
 
 
 def _test_subprocess_test_failure_inner():
-    raise ValueError("this fails")
+    raise ValueError('this fails')
