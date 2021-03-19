@@ -108,10 +108,10 @@ class GoodGate(cirq.SingleQubitGate):
     def _parameter_names_(self) -> AbstractSet[str]:
         return cirq.parameter_names(self.exponent) | cirq.parameter_names(self.phase_exponent)
 
-    def _resolve_parameters_(self, param_resolver, recursive) -> 'GoodGate':
+    def _resolve_parameters_(self, resolver, recursive) -> 'GoodGate':
         return GoodGate(
-            phase_exponent=param_resolver.value_of(self.phase_exponent, recursive),
-            exponent=param_resolver.value_of(self.exponent, recursive),
+            phase_exponent=resolver.value_of(self.phase_exponent, recursive),
+            exponent=resolver.value_of(self.exponent, recursive),
         )
 
     def _identity_tuple(self):

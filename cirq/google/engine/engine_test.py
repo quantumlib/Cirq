@@ -272,6 +272,8 @@ def test_make_random_id():
     random_id = cg.engine.engine._make_random_id('prefix-')
     time.sleep(1)
     random_id2 = cg.engine.engine._make_random_id('prefix-')
+    # Verify %H%M%S is populated
+    assert random_id[-7:] != '-000000' or random_id2[-7:] != '-000000'
     # Verify program id generate distinct even if random is seeded
     assert random_id != random_id2
 

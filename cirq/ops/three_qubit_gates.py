@@ -194,7 +194,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         }
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
+        self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'ThreeQubitDiagonalGate':
         return self.__class__(
             [
