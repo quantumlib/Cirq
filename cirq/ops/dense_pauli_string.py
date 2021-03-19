@@ -170,7 +170,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self.coefficient)
 
-    def _resolve_parameters_(self, resolver, recursive):
+    def _resolve_parameters_(self: TCls, resolver: 'cirq.ParamResolver', recursive: bool) -> TCls:
         return self.copy(
             coefficient=protocols.resolve_parameters(self.coefficient, resolver, recursive)
         )
@@ -350,10 +350,10 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def copy(
-        self,
+        self: TCls,
         coefficient: Optional[complex] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
-    ) -> 'BaseDensePauliString':
+    ) -> TCls:
         """Returns a copy with possibly modified contents.
 
         Args:
