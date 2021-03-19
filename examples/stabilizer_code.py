@@ -1,6 +1,6 @@
-import cirq
-
 import numpy as np
+
+import cirq
 
 # Based on:
 # Stabilizer Codes and Quantum Error Correction
@@ -65,12 +65,12 @@ class StabilitizerCode(object):
         _ = _GaussianElimination(M, r, n - k, n + r, 2 * n)
 
         # Get matrix sub-components, as per equation 4.3:
-        A1 = M[0:r, r : (n - k)]
+        # A1 = M[0:r, r : (n - k)]
         A2 = M[0:r, (n - k) : n]
-        B = M[0:r, n : (n + r)]
+        # B = M[0:r, n : (n + r)]
         C1 = M[0:r, (n + r) : (2 * n - k)]
         C2 = M[0:r, (2 * n - k) : (2 * n)]
-        D = M[r : (2 * r), n : (n + r)]
+        # D = M[r : (2 * r), n : (n + r)]
         E = M[r : (2 * r), (2 * n - k) : (2 * n)]
 
         X = np.concatenate(
