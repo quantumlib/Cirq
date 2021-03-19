@@ -697,7 +697,7 @@ def test_invalidate_caches():
             nonlocal called
             called = True
 
-    DeprecatedModuleFinder(FakeFinder(), "new", None, "old", "v0.1").invalidate_caches()
+    DeprecatedModuleFinder(FakeFinder(), "new", "old", "v0.1").invalidate_caches()
     assert called
 
 
