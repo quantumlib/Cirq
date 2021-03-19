@@ -1,0 +1,1 @@
+CHILD_ATTRIBUTE = "child"

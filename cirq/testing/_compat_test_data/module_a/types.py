@@ -1,0 +1,2 @@
+class SampleType:
+    pass
