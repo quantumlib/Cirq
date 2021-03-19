@@ -33,7 +33,7 @@ class StabilitizerCode(object):
                 pivot_rows, pivot_cols = np.nonzero(M[i:max_row, j:max_col])
 
                 if pivot_rows.size == 0:
-                    break
+                    break  # coverage: ignore
 
                 pi = pivot_rows[0]
                 pj = pivot_cols[0]
@@ -133,10 +133,12 @@ class StabilitizerCode(object):
         # Equation 4.8:
         for r, x in enumerate(self.X):
             for j in range(self.r, self.n - self.k):
-                if x[j] == 'X' or x[j] == 'Y':
-                    circuit.append(
-                        cirq.ControlledOperation([qubits[self.n - self.k + r]], cirq.X(qubits[j]))
-                    )
+                if x[j] == 'X' or x[j] == 'Y':  # coverage: ignore
+                    circuit.append(  # coverage: ignore
+                        cirq.ControlledOperation(  # coverage: ignore
+                            [qubits[self.n - self.k + r]], cirq.X(qubits[j])  # coverage: ignore
+                        )  # coverage: ignore
+                    )  # coverage: ignore
 
         gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z}
 
