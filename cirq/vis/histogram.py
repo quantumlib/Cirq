@@ -59,7 +59,7 @@ def integrated_histogram(
             values. All nans will be removed.
         ax: The axis to plot on. If None, we generate one.
         cdf_on_x: If True, flip the axes compared the above example.
-        axis_label: Label for x axis (y-axis if cds_on_x is True).
+        axis_label: Label for x axis (y-axis if cdf_on_x is True).
         semilog: If True, force the x-axis to be logarithmic.
         median_line: If True, draw a vertical line on the median value.
         median_label: If drawing median line, optional label for it.
