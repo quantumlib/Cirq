@@ -30,6 +30,7 @@ def test_integrated_histogram(data):
         color='r',
         label='line label',
         cdf_on_x=True,
+        hide_zero=False,
     )
     assert ax.get_title() == 'Test Plot'
     assert ax.get_ylabel() == 'Y Axis Label'

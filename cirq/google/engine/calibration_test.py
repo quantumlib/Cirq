@@ -210,6 +210,6 @@ def test_calibration_plot_histograms():
 
 def test_calibration_plot():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    _, axs = calibration.plot('two_qubit_xeb', mpl.pyplot.figure())
+    _, axs = calibration.plot('two_qubit_xeb')
     assert axs[0].get_title() == 'Two Qubit Xeb'
     assert len(axs[1].get_lines()) == 2
