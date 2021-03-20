@@ -115,7 +115,7 @@ class ControlledGate(raw_types.Gate):
 
     def on(self, *qubits: 'cirq.Qid') -> cop.ControlledOperation:
         if len(qubits) == 0:
-            raise ValueError("Applied a gate to an empty set of qubits. Gate: {!r}".format(self))
+            raise ValueError(f"Applied a gate to an empty set of qubits. Gate: {self!r}")
         self.validate_args(qubits)
         return cop.ControlledOperation(
             qubits[: self.num_controls()],
@@ -172,8 +172,10 @@ class ControlledGate(raw_types.Gate):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self.sub_gate)
 
-    def _resolve_parameters_(self, param_resolver, recursive):
-        new_sub_gate = protocols.resolve_parameters(self.sub_gate, param_resolver, recursive)
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'ControlledGate':
+        new_sub_gate = protocols.resolve_parameters(self.sub_gate, resolver, recursive)
         return ControlledGate(
             new_sub_gate,
             self.num_controls(),
@@ -213,7 +215,7 @@ class ControlledGate(raw_types.Gate):
         def get_symbol(vals):
             if tuple(vals) == (1,):
                 return '@'
-            return '({})'.format(','.join(map(str, vals)))
+            return f"({','.join(map(str, vals))})"
 
         return protocols.CircuitDiagramInfo(
             wire_symbols=(

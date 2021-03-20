@@ -20,18 +20,13 @@ import pytest
 import cirq
 from cirq import ops
 from cirq.devices.noise_model import validate_all_measurements
+from cirq.testing import assert_equivalent_op_tree
 
 
-def _assert_equivalent_op_tree(x: cirq.OP_TREE, y: cirq.OP_TREE):
-    a = list(cirq.flatten_op_tree(x))
-    b = list(cirq.flatten_op_tree(y))
-    assert a == b
-
-
-def _assert_equivalent_op_tree_sequence(x: Sequence[cirq.OP_TREE], y: Sequence[cirq.OP_TREE]):
+def assert_equivalent_op_tree_sequence(x: Sequence[cirq.OP_TREE], y: Sequence[cirq.OP_TREE]):
     assert len(x) == len(y)
     for a, b in zip(x, y):
-        _assert_equivalent_op_tree(a, b)
+        assert_equivalent_op_tree(a, b)
 
 
 def test_requires_one_override():
@@ -58,11 +53,11 @@ def test_infers_other_methods():
             return result
 
     a = NoiseModelWithNoisyMomentListMethod()
-    _assert_equivalent_op_tree(a.noisy_operation(cirq.H(q)), cirq.X(q).with_tags(ops.VirtualTag()))
-    _assert_equivalent_op_tree(
+    assert_equivalent_op_tree(a.noisy_operation(cirq.H(q)), cirq.X(q).with_tags(ops.VirtualTag()))
+    assert_equivalent_op_tree(
         a.noisy_moment(cirq.Moment([cirq.H(q)]), [q]), cirq.X(q).with_tags(ops.VirtualTag())
     )
-    _assert_equivalent_op_tree_sequence(
+    assert_equivalent_op_tree_sequence(
         a.noisy_moments([cirq.Moment(), cirq.Moment([cirq.H(q)])], [q]),
         [[], cirq.X(q).with_tags(ops.VirtualTag())],
     )
@@ -72,11 +67,11 @@ def test_infers_other_methods():
             return [y.with_tags(ops.VirtualTag()) for y in cirq.Y.on_each(*moment.qubits)]
 
     b = NoiseModelWithNoisyMomentMethod()
-    _assert_equivalent_op_tree(b.noisy_operation(cirq.H(q)), cirq.Y(q).with_tags(ops.VirtualTag()))
-    _assert_equivalent_op_tree(
+    assert_equivalent_op_tree(b.noisy_operation(cirq.H(q)), cirq.Y(q).with_tags(ops.VirtualTag()))
+    assert_equivalent_op_tree(
         b.noisy_moment(cirq.Moment([cirq.H(q)]), [q]), cirq.Y(q).with_tags(ops.VirtualTag())
     )
-    _assert_equivalent_op_tree_sequence(
+    assert_equivalent_op_tree_sequence(
         b.noisy_moments([cirq.Moment(), cirq.Moment([cirq.H(q)])], [q]),
         [[], cirq.Y(q).with_tags(ops.VirtualTag())],
     )
@@ -86,11 +81,11 @@ def test_infers_other_methods():
             return cirq.Z(operation.qubits[0]).with_tags(ops.VirtualTag())
 
     c = NoiseModelWithNoisyOperationMethod()
-    _assert_equivalent_op_tree(c.noisy_operation(cirq.H(q)), cirq.Z(q).with_tags(ops.VirtualTag()))
-    _assert_equivalent_op_tree(
+    assert_equivalent_op_tree(c.noisy_operation(cirq.H(q)), cirq.Z(q).with_tags(ops.VirtualTag()))
+    assert_equivalent_op_tree(
         c.noisy_moment(cirq.Moment([cirq.H(q)]), [q]), cirq.Z(q).with_tags(ops.VirtualTag())
     )
-    _assert_equivalent_op_tree_sequence(
+    assert_equivalent_op_tree_sequence(
         c.noisy_moments([cirq.Moment(), cirq.Moment([cirq.H(q)])], [q]),
         [[], cirq.Z(q).with_tags(ops.VirtualTag())],
     )
@@ -155,8 +150,8 @@ def test_noise_composition():
     merge(actual_zs)
     merge(actual_sz)
     merge(expected_circuit)
-    _assert_equivalent_op_tree(actual_zs, actual_sz)
-    _assert_equivalent_op_tree(actual_zs, expected_circuit)
+    assert_equivalent_op_tree(actual_zs, actual_sz)
+    assert_equivalent_op_tree(actual_zs, expected_circuit)
 
 
 def test_constant_qubit_noise_repr():

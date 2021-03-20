@@ -248,7 +248,7 @@ class ArithmeticCell(Cell):
 def _indented_list_lines_repr(items: Sequence[Any]) -> str:
     block = '\n'.join([repr(op) + ',' for op in items])
     indented = '        ' + '\n        '.join(block.split('\n'))
-    return '[\n{}\n    ]'.format(indented)
+    return f'[\n{indented}\n    ]'
 
 
 def _generate_helper() -> Iterator[CellMaker]:

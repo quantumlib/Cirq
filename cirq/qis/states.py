@@ -712,7 +712,7 @@ def validate_normalized_state_vector(
         )
     norm = np.sum(np.abs(state_vector) ** 2)
     if not np.isclose(norm, 1, atol=atol):
-        raise ValueError('State_vector is not normalized instead had norm {}'.format(norm))
+        raise ValueError(f'State_vector is not normalized instead had norm {norm}')
 
 
 def validate_qid_shape(
@@ -742,10 +742,10 @@ def validate_qid_shape(
 def validate_indices(num_qubits: int, indices: Sequence[int]) -> None:
     """Validates that the indices have values within range of num_qubits."""
     if any(index < 0 for index in indices):
-        raise IndexError('Negative index in indices: {}'.format(indices))
+        raise IndexError(f'Negative index in indices: {indices}')
     if any(index >= num_qubits for index in indices):
         raise IndexError(
-            'Out of range indices, must be less than number of qubits but was {}'.format(indices)
+            f'Out of range indices, must be less than number of qubits but was {indices}'
         )
 
 

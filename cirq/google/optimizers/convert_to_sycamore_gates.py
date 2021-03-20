@@ -222,7 +222,7 @@ def known_two_q_operations_to_sycamore_operations(
         else:
             return decompose_arbitrary_into_syc_analytic(qubit_a, qubit_b, op)
     else:
-        raise ValueError("Unrecognized gate: {!r}".format(op))
+        raise ValueError(f"Unrecognized gate: {op!r}")
 
 
 def decompose_phased_iswap_into_syc(phase_exponent: float, a: ops.Qid, b: ops.Qid) -> ops.OP_TREE:

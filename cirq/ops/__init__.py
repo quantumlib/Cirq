@@ -58,6 +58,9 @@ from cirq.ops.common_gates import (
     CZPowGate,
     H,
     HPowGate,
+    Rx,
+    Ry,
+    Rz,
     rx,
     ry,
     rz,
@@ -70,6 +73,10 @@ from cirq.ops.common_gates import (
 
 from cirq.ops.controlled_gate import (
     ControlledGate,
+)
+
+from cirq.ops.diagonal_gate import (
+    DiagonalGate,
 )
 
 from cirq.ops.eigen_gate import (

@@ -50,17 +50,17 @@ def _format_coefficient(format_spec: str, coefficient: Scalar) -> str:
     if float(real_str) == 0:
         return imag_str + 'j'
     if real_str[0] == '-' and imag_str[0] == '-':
-        return '-({}+{}j)'.format(real_str[1:], imag_str[1:])
+        return f'-({real_str[1:]}+{imag_str[1:]}j)'
     if imag_str[0] in ['+', '-']:
-        return '({}{}j)'.format(real_str, imag_str)
-    return '({}+{}j)'.format(real_str, imag_str)
+        return f'({real_str}{imag_str}j)'
+    return f'({real_str}+{imag_str}j)'
 
 
 def _format_term(format_spec: str, vector: TVector, coefficient: Scalar) -> str:
     coefficient_str = _format_coefficient(format_spec, coefficient)
     if not coefficient_str:
         return coefficient_str
-    result = '{}*{!s}'.format(coefficient_str, vector)
+    result = f'{coefficient_str}*{vector!s}'
     if result[0] in ['+', '-']:
         return result
     return '+' + result
@@ -121,7 +121,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
 
     def _check_vector_valid(self, vector: TVector) -> None:
         if not self._is_valid(vector):
-            raise ValueError('{} is not compatible with linear combination {}'.format(vector, self))
+            raise ValueError(f'{vector} is not compatible with linear combination {self}')
 
     def clean(self: 'TSelf', *, atol: float = 1e-9) -> 'TSelf':
         """Remove terms with coefficients of absolute value atol or less."""
@@ -296,7 +296,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
     def __repr__(self) -> str:
         coefficients = dict(self)
         class_name = self.__class__.__name__
-        return 'cirq.{}({!r})'.format(class_name, coefficients)
+        return f'cirq.{class_name}({coefficients!r})'
 
     def __str__(self) -> str:
         return self.__format__('.3f')
@@ -304,7 +304,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         if cycle:
             class_name = self.__class__.__name__
-            p.text('{}(...)'.format(class_name))
+            p.text(f'{class_name}(...)')
         else:
             p.text(str(self))
 

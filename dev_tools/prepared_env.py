@@ -86,7 +86,7 @@ class PreparedEnv:
                 a 201 code indicating success in the expected way.
         """
         if state not in ['error', 'failure', 'pending', 'success']:
-            raise ValueError('Unrecognized state: {!r}'.format(state))
+            raise ValueError(f'Unrecognized state: {state!r}')
 
         if self.repository is None or self.repository.access_token is None:
             return

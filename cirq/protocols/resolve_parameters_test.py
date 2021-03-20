@@ -118,7 +118,7 @@ def test_parameter_names():
 )
 def test_skips_empty_resolution(resolve_fn):
     class Tester:
-        def _resolve_parameters_(self, param_resolver, recursive):
+        def _resolve_parameters_(self, resolver, recursive):
             return 5
 
     t = Tester()
@@ -154,8 +154,8 @@ def test_backwards_compatible():
         def __init__(self, *syms):
             self.syms = [*syms]
 
-        def _resolve_parameters_(self, pr):
-            return sum([cirq.resolve_parameters(s, pr) for s in self.syms])
+        def _resolve_parameters_(self, resolver):
+            return sum([cirq.resolve_parameters(s, resolver) for s in self.syms])
 
     ssum = SymbolSum(a, b, c)
     assert cirq.resolve_parameters(ssum, resolver) == 10

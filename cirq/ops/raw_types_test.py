@@ -33,10 +33,10 @@ class ValidQubit(cirq.Qid):
         return self._name
 
     def __repr__(self):
-        return 'ValidQubit({!r})'.format(self._name)
+        return f'ValidQubit({self._name!r})'
 
     def __str__(self):
-        return 'TQ_{!s}'.format(self._name)
+        return f'TQ_{self._name!s}'
 
 
 class ValidQid(cirq.Qid):
@@ -658,7 +658,9 @@ class ParameterizableTag:
     def _parameter_names_(self) -> AbstractSet[str]:
         return cirq.parameter_names(self.value)
 
-    def _resolve_parameters_(self, resolver, recursive) -> 'ParameterizableTag':
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'ParameterizableTag':
         return ParameterizableTag(cirq.resolve_parameters(self.value, resolver, recursive))
 
 

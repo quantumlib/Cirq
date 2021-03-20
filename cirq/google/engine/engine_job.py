@@ -240,7 +240,7 @@ class EngineJob:
             return v2_run_context.parameter_sweeps[0].repetitions, [
                 v2.sweep_from_proto(s.sweep) for s in v2_run_context.parameter_sweeps
             ]
-        raise ValueError('unsupported run_context type: {}'.format(run_context_type))
+        raise ValueError(f'unsupported run_context type: {run_context_type}')
 
     def get_processor(self) -> 'Optional[engine_processor.EngineProcessor]':
         """Returns the EngineProcessor for the processor the job is/was run on,
@@ -326,7 +326,7 @@ class EngineJob:
                 self._batched_results = self._get_batch_results_v2(v2_parsed_result)
                 self._results = self._flatten(self._batched_results)
             else:
-                raise ValueError('invalid result proto version: {}'.format(result_type))
+                raise ValueError(f'invalid result proto version: {result_type}')
         return self._results
 
     def calibration_results(self):
@@ -341,9 +341,7 @@ class EngineJob:
             result = self._wait_for_result()
             result_type = result.type_url[len(engine_base.TYPE_PREFIX) :]
             if result_type != 'cirq.google.api.v2.FocusedCalibrationResult':
-                raise ValueError(
-                    'Did not find calibration results, instead found: {}'.format(result_type)
-                )
+                raise ValueError(f'Did not find calibration results, instead found: {result_type}')
             parsed_val = v2.calibration_pb2.FocusedCalibrationResult.FromString(result.value)
             cal_results = []
             for layer in parsed_val.results:
