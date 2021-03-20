@@ -193,8 +193,9 @@ def test_calibration_heatmap():
 
 def test_calibration_plot_histograms():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    axs = calibration.plot_histograms(['t1', 'two_qubit_xeb'], labels=['T1', 'XEB'])
-    assert len(axs.get_lines()) == 4
+    _, ax = mpl.pyplot.subplots(1, 1)
+    calibration.plot_histograms(['t1', 'two_qubit_xeb'], ax, labels=['T1', 'XEB'])
+    assert len(ax.get_lines()) == 4
 
     with pytest.raises(ValueError, match="single metric values.*multi_value"):
         multi_qubit_data = Merge(
@@ -209,6 +210,6 @@ def test_calibration_plot_histograms():
 
 def test_calibration_plot():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    _, axs = calibration.ax.plot('two_qubit_xeb')
+    _, axs = calibration.plot('two_qubit_xeb', mpl.pyplot.figure())
     assert axs[0].get_title() == 'Two Qubit Xeb'
-    assert axs[1].get_lines() == 2
+    assert len(axs[1].get_lines()) == 2
