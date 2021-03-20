@@ -300,7 +300,7 @@ def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
             uncovered_count += len(uncovered_lines)
             print(
                 shell_tools.highlight(
-                    '************* {} ({} uncovered)'.format(changed_file, len(uncovered_lines)),
+                    f'************* {changed_file} ({len(uncovered_lines)} uncovered)',
                     color_code=shell_tools.RED,
                 )
             )
@@ -318,7 +318,7 @@ def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
     if uncovered_count:
         print(
             shell_tools.highlight(
-                'Found {} uncovered touched lines.'.format(uncovered_count),
+                f'Found {uncovered_count} uncovered touched lines.',
                 color_code=shell_tools.RED,
             )
         )

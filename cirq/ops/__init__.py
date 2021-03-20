@@ -58,6 +58,9 @@ from cirq.ops.common_gates import (
     CZPowGate,
     H,
     HPowGate,
+    Rx,
+    Ry,
+    Rz,
     rx,
     ry,
     rz,
@@ -72,6 +75,10 @@ from cirq.ops.controlled_gate import (
     ControlledGate,
 )
 
+from cirq.ops.diagonal_gate import (
+    DiagonalGate,
+)
+
 from cirq.ops.eigen_gate import (
     EigenGate,
 )
@@ -79,7 +86,6 @@ from cirq.ops.eigen_gate import (
 from cirq.ops.fourier_transform import (
     PhaseGradientGate,
     qft,
-    QFT,
     QuantumFourierTransformGate,
 )
 
@@ -114,6 +120,10 @@ from cirq.ops.linear_combinations import (
     LinearCombinationOfOperations,
     PauliSum,
     PauliSumLike,
+)
+
+from cirq.ops.pauli_sum_exponential import (
+    PauliSumExponential,
 )
 
 from cirq.ops.parallel_gate_operation import (

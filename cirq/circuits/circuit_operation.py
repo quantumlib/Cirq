@@ -267,7 +267,7 @@ class CircuitOperation(ops.Operation):
 
     def __str__(self):
         # TODO: support out-of-line subcircuit definition in string format.
-        header = self.circuit.serialization_key() + ':'
+        header = self.circuit.diagram_name() + ':'
         msg_lines = str(self.circuit).split('\n')
         msg_width = max([len(header) - 4] + [len(line) for line in msg_lines])
         circuit_msg = '\n'.join(
@@ -534,11 +534,11 @@ class CircuitOperation(ops.Operation):
 
     # TODO: handle recursive parameter resolution gracefully
     def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolver', recursive: bool
+        self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'CircuitOperation':
         if recursive:
             raise ValueError(
                 'Recursive resolution of CircuitOperation parameters is prohibited. '
                 'Use "recursive=False" to prevent this error.'
             )
-        return self.with_params(param_resolver.param_dict)
+        return self.with_params(resolver.param_dict)

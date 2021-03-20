@@ -20,7 +20,6 @@ import sympy
 import cirq
 from cirq import value, _compat
 from cirq.ops import raw_types
-from cirq._compat import deprecated
 
 
 @value.value_equality
@@ -147,7 +146,9 @@ class PhaseGradientGate(raw_types.Gate):
     def _parameter_names_(self) -> AbstractSet[str]:
         return cirq.parameter_names(self.exponent)
 
-    def _resolve_parameters_(self, resolver, recursive):
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'PhaseGradientGate':
         new_exponent = cirq.resolve_parameters(self.exponent, resolver, recursive)
         if new_exponent is self.exponent:
             return self
@@ -200,8 +201,3 @@ def qft(
     if inverse:
         result = cirq.inverse(result)
     return result
-
-
-@deprecated(deadline='v0.10.0', fix='Use cirq.qft instead.')
-def QFT(*args, **kwargs):
-    return qft(*args, **kwargs)

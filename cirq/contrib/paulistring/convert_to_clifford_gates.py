@@ -94,7 +94,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
 
     def _on_stuck_raise(self, op: ops.Operation):
         if len(op.qubits) == 1 and protocols.has_unitary(op):
-            raise ValueError('Single qubit operation is not in the Clifford group: {!r}'.format(op))
+            raise ValueError(f'Single qubit operation is not in the Clifford group: {op!r}')
 
         raise TypeError(
             "Don't know how to work with {!r}. "

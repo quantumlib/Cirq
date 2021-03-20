@@ -30,9 +30,11 @@ message Program {
 
 // Constants, such as long strings, that are used throughout the circuit.
 // These constants can be stored here to save space.
-// Currently only supports strings, but could support other objects later.
 message Constant {
-  string string_value = 1;
+  oneof const_value {
+    string string_value = 1;
+    Circuit circuit_value = 2;
+  }
 }
 
 
@@ -57,13 +59,17 @@ message Circuit {
   repeated Moment moments = 2;
 }
 
-// A moment is a collection of operations that operate on a disjoint set of
-// qubits. Conceptually a moment represents operations that all occurring
-// the same finite period of time.
+// A moment is a collection of operations and circuit operations that operate
+// on a disjoint set of qubits. Conceptually, a moment represents operations
+// that all occur in the same finite period of time.
 message Moment {
-  // All of the operations in the moment. Each operation must act on different
-  // qubits.
+  // All of the gate operations in the moment. Each operation and circuit
+  // operation must act on different qubits.
   repeated Operation operations = 1;
+
+  // All of the circuit operations in the moment. Each operation and circuit
+  // operation must act on different qubits.
+  repeated CircuitOperation circuit_operations = 2;
 }
 
 // The quantum circuit, specified as a series of operations at specific
@@ -197,4 +203,98 @@ message ArgFunction {
 
   // The arguments to the function.
   repeated Arg args = 2;
+}
+
+// An operation that applies a modified version of a reference circuit. The
+// circuit is stored in the top-level Constants table; the mappings in this
+// object specify how that circuit should be modified for this operation.
+//
+// Multiple CircuitOperations may reference the same base circuit even if their
+// mappings of that circuit are different.
+message CircuitOperation {
+  // The index of the circuit in the top-level constant table.
+  int32 circuit_constant_index = 1;
+
+  // Specifier for repetitions of the circuit, which contains either a number
+  // of repetitions or a list of repetition IDs.
+  RepetitionSpecification repetition_specification = 2;
+
+  // Map from qubits in the "inner" circuit (referenced by
+  // circuit_constant_index) to qubits in the "outer" circuit (the one that
+  // contains this operation).
+  QubitMapping qubit_map = 3;
+
+  // Map of measurement keys in the "inner" circuit (referenced by
+  // circuit_constant_index) to measurement keys in the "outer" circuit (the
+  // one that contains this operation).
+  MeasurementKeyMapping measurement_key_map = 4;
+
+  // Map of args in the "inner" circuit (referenced by circuit_constant_index)
+  // to args in the "outer" circuit (the one that contains this operation).
+  ArgMapping arg_map = 5;
+}
+
+// A description of the repetitions of a subcircuit. IDs are used as suffixes
+// for measurements in the repeated subcircuit; if repetition_count is given
+// instead, the IDs will simply be the integers [0..N-1].
+message RepetitionSpecification {
+  // An ordered list of IDs for a sequence of repetitions.
+  message RepetitionIds {
+    repeated string ids = 1;
+  }
+
+  oneof repetition_value {
+    // A list of unique IDs, one per repetition of the subcircuit.
+    RepetitionIds repetition_ids = 1;
+
+    // An integer number of repetitions to perform.
+    int32 repetition_count = 2;
+  }
+}
+
+// A mapping of qubits from one value to another. All mappings are applied
+// simultaneously and independently; for example, [(a, b), (b, a)] will swap
+// qubits a and b.
+message QubitMapping {
+  // Indicates that qubit "key" should be replaced with "value".
+  message Entry {
+    Qubit key = 1;
+    Qubit value = 2;
+  }
+
+  // A list of qubit mappings to apply.
+  repeated Entry entries = 1;
+}
+
+// A key for matching a measurement event to its results.
+message MeasurementKey {
+  string string_key = 1;
+}
+
+// A mapping of measurement keys from one value to another. All mappings are
+// applied simultaneously and independently; for example, [(a, b), (b, a)] will
+// swap measurement keys a and b.
+message MeasurementKeyMapping {
+  // Indicates that measurement key "key" should be replaced with "value".
+  message Entry {
+    MeasurementKey key = 1;
+    MeasurementKey value = 2;
+  }
+
+  // A list of measurement key mappings to apply.
+  repeated Entry entries = 1;
+}
+
+// A mapping of args from one value to another. All mappings are applied
+// simultaneously and independently; for example, [(a, b), (b, a)] will swap
+// args a and b.
+message ArgMapping {
+  // Indicates that arg "key" should be replaced with "value".
+  message Entry {
+    Arg key = 1;
+    Arg value = 2;
+  }
+
+  // A list of arg mappings to apply.
+  repeated Entry entries = 1;
 }

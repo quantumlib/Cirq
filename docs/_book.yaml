@@ -67,6 +67,13 @@ upper_tabs:
         path: /cirq/custom_gates
       - title: "Operators and observables"
         path: /cirq/operators_and_observables
+      - title: "Issues / requests / questions"
+        path: /cirq/support
+
+      ### Visualizations
+      - heading: "Visualization"
+      - title: "Heatmaps"
+        path: /cirq/visualization/heatmaps
 
       ####  Contributor Guide  ####
       - heading: "Contributor guide"
@@ -166,11 +173,18 @@ upper_tabs:
         path: /cirq/tutorials/google/start
       - title: "Floquet calibration"
         path: /cirq/tutorials/google/floquet
+      - title: "Visualizing Calibration Metrics"
+        path: /cirq/tutorials/google/visualizing_calibration_metrics
 
       ####  AQT HARDWARE  ####
       - heading: "AQT hardware"
       - title: "Getting started with AQT hardware"
         path: /cirq/tutorials/aqt/getting_started
+
+      ####  IONQ HARDWARE ####
+      - heading: "IonQ hardware"
+      - title: "Getting started with IonQ hardware"
+        path: /cirq/tutorials/ionq/getting_started
 
       ####  PASQAL HARDWARE  ####
       - heading: "Pasqal hardware"

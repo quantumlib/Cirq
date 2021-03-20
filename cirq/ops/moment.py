@@ -66,13 +66,6 @@ class Moment:
             are no such operations, returns an empty Moment.
     """
 
-    @deprecated_parameter(
-        deadline='v0.9',
-        fix='Don\'t specify a keyword.',
-        match=lambda _, kwargs: 'operations' in kwargs,
-        parameter_desc='operations',
-        rewrite=lambda args, kwargs: (args + (kwargs['operations'],), {}),
-    )
     def __init__(self, *contents: 'cirq.OP_TREE') -> None:
         """Constructs a moment with the given operations.
 
@@ -93,7 +86,7 @@ class Moment:
             for q in op.qubits:
                 # Check that operations don't overlap.
                 if q in self._qubit_to_op:
-                    raise ValueError('Overlapping operations: {}'.format(self.operations))
+                    raise ValueError(f'Overlapping operations: {self.operations}')
                 self._qubit_to_op[q] = op
 
         self._qubits = frozenset(self._qubit_to_op.keys())
@@ -151,7 +144,7 @@ class Moment:
             The new moment.
         """
         if any(q in self._qubits for q in operation.qubits):
-            raise ValueError('Overlapping operations: {}'.format(operation))
+            raise ValueError(f'Overlapping operations: {operation}')
 
         # Use private variables to facilitate a quick copy.
         m = Moment()
@@ -178,7 +171,7 @@ class Moment:
         qubits = set(self._qubits)
         for op in op_tree.flatten_to_ops(contents):
             if any(q in qubits for q in op.qubits):
-                raise ValueError('Overlapping operations: {}'.format(op))
+                raise ValueError(f'Overlapping operations: {op}')
             operations.append(op)
             qubits.update(op.qubits)
 
@@ -280,7 +273,7 @@ class Moment:
         return self.to_text_diagram()
 
     @deprecated_parameter(
-        deadline='v0.11.0',
+        deadline='v0.11',
         fix='Use qubit_map instead.',
         parameter_desc='positional func',
         match=lambda args, kwargs: 'func' in kwargs,
