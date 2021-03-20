@@ -543,6 +543,8 @@ def _setup_deprecated_submodule_attribute(
     setattr(parent_module, old_child, new_module)
 
     class Wrapped(ModuleType):
+        __dict__ = parent_module.__dict__
+
         def __getattr__(self, name):
             if name == old_child:
                 _deduped_module_warn_or_error(

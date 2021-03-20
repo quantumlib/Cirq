@@ -708,3 +708,16 @@ def test_subprocess_test_failure():
 
 def _test_subprocess_test_failure_inner():
     raise ValueError('this fails')
+
+
+def test_dir_is_still_valid():
+    subprocess_context(_dir_is_still_valid_inner)()
+
+
+def _dir_is_still_valid_inner():
+    """to ensure that create_attribute=True keeps the dir(module) intact"""
+
+    import cirq.testing._compat_test_data as mod
+
+    for m in ['fake_a', 'info', 'module_a', 'sys']:
+        assert m in dir(mod)
