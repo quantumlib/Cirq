@@ -1,4 +1,4 @@
-# Copyright 2021 The Cirq developers
+# Copyright 2020 The Cirq developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -161,9 +161,9 @@ def _aggregate_n_repetitions(next_chunk_repetitions: Set[int]) -> int:
 
     reps = max(next_chunk_repetitions)
     warnings.warn(
-        "Your stopping criteria recommended a various numbers of "
-        "repetitions to perform next. So we can submit as a single "
-        "sweep, we will be taking the maximum of {}".format(reps)
+        f"The stopping criteria specified a various numbers of "
+        f"repetitions to perform next. To be able to submit as a single "
+        f"sweep, the largest value will be used: {reps}."
     )
     return reps
 
@@ -278,30 +278,6 @@ def _to_sweep(param_tuples):
     return to_sweep
 
 
-def _get_qubits(max_settings: Iterable[InitObsSetting]):
-    """Helper function to find all the qubits in a suite of settings used
-    in `measure_grouped_settings`.
-
-    Qubits are returned in sorted order.
-    """
-    qubits = set()
-    for max_setting in max_settings:
-        max_in_st = max_setting.init_state
-        qubits |= set(max_in_st.qubits)
-    return sorted(qubits)
-
-
-def _determine_needs_init_layer(init_state: value.ProductState):
-    """Helper function to determine whether we need the initial layer of
-    rotations used in `measure_grouped_settings`.
-    """
-    for _, st in init_state:
-        if st != value.KET_ZERO:
-            return True
-
-    return False
-
-
 def measure_grouped_settings(
     circuit: 'cirq.Circuit',
     grouped_settings: Dict[InitObsSetting, List[InitObsSetting]],
@@ -337,13 +313,12 @@ def measure_grouped_settings(
             in `circuit`. The total sweep is the product of the circuit sweep
             with parameter settings for the single-qubit basis-change rotations.
     """
-
-    qubits = _get_qubits(grouped_settings.keys())
+    qubits = sorted({q for ms in grouped_settings.keys() for q in ms.init_state.qubits})
     qubit_to_index = {q: i for i, q in enumerate(qubits)}
 
     needs_init_layer = False
     for max_setting in grouped_settings.keys():
-        if _determine_needs_init_layer(max_setting.init_state):
+        if any(st is not value.KET_ZERO for _, st in max_setting.init_state):
             needs_init_layer = True
             break
 
@@ -352,11 +327,7 @@ def measure_grouped_settings(
         _pad_setting(max_setting, qubits): settings
         for max_setting, settings in grouped_settings.items()
     }
-
-    if circuit_sweep is None:
-        circuit_sweep = study.UnitSweep
-    else:
-        circuit_sweep = study.to_sweep(circuit_sweep)
+    circuit_sweep = study.UnitSweep if circuit_sweep is None else study.to_sweep(circuit_sweep)
 
     # meas_spec provides a key for accumulators.
     # meas_specs_todo is a mutable list. We will pop things from it as various
@@ -400,14 +371,15 @@ def measure_grouped_settings(
             for flippy_ms in flippy_meas_specs
         ]
         resolved_params = _to_sweep(resolved_params)
-        total_samples = repetitions * len(resolved_params)
-        print("Total samples", total_samples)
 
         results = sampler.run_sweep(
             program=measurement_param_circuit, params=resolved_params, repetitions=repetitions
         )
 
-        assert len(results) == len(flippy_meas_specs)
+        assert len(results) == len(
+            flippy_meas_specs
+        ), 'Not as many results received as sweeps requested!'
+
         for flippy_ms, result in zip(flippy_meas_specs, results):
             accumulator = accumulators[flippy_ms.meas_spec]
             bitstrings = np.logical_xor(flippy_ms.flips, result.measurements['z'])
