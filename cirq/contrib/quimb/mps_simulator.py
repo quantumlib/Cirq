@@ -107,6 +107,7 @@ class MPSSimulator(
                 measurements={},
                 state=MPSState(
                     qubit_map,
+                    self.prng,
                     self.simulation_options,
                     self.grouping,
                     initial_state=initial_state,
@@ -116,6 +117,7 @@ class MPSSimulator(
 
         state = MPSState(
             qubit_map,
+            self.prng,
             self.simulation_options,
             self.grouping,
             initial_state=initial_state,
@@ -126,11 +128,11 @@ class MPSSimulator(
             measurements: Dict[str, List[int]] = collections.defaultdict(list)
 
             for op in flatten_to_ops(op_tree):
-                if isinstance(op.gate, ops.MeasurementGate):
+                if protocols.is_measurement(op):
                     key = str(protocols.measurement_key(op))
                     measurements[key].extend(state.perform_measurement(op.qubits, self.prng))
                 elif protocols.has_mixture(op):
-                    state.apply_op(op, self.prng)
+                    protocols.act_on(op, state)
                 else:
                     raise NotImplementedError(f"Unrecognized operation: {op!r}")
 
@@ -288,6 +290,7 @@ class MPSState:
     def __init__(
         self,
         qubit_map: Dict['cirq.Qid', int],
+        prng: np.random.RandomState,
         simulation_options: MPSOptions = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
@@ -296,6 +299,7 @@ class MPSState:
 
         Args:
             qubit_map: A map from Qid to an integer that uniquely identifies it.
+            prng: A random number generator, used to simulate measurements.
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
             initial_state: An integer representing the initial state.
@@ -335,6 +339,7 @@ class MPSState:
             initial_state = initial_state // d
         self.simulation_options = simulation_options
         self.estimated_gate_error_list: List[float] = []
+        self.prng = prng
 
     def i_str(self, i: int) -> str:
         # Returns the index name for the i'th qid.
@@ -355,7 +360,7 @@ class MPSState:
         return self.qubit_map, self.M, self.simulation_options, self.grouping
 
     def copy(self) -> 'MPSState':
-        state = MPSState(self.qubit_map, self.simulation_options, self.grouping)
+        state = MPSState(self.qubit_map, self.prng, self.simulation_options, self.grouping)
         state.M = [x.copy() for x in self.M]
         state.estimated_gate_error_list = self.estimated_gate_error_list
         return state
@@ -415,7 +420,7 @@ class MPSState:
         """An alias for the state vector."""
         return self.state_vector()
 
-    def apply_op(self, op: 'cirq.Operation', prng: np.random.RandomState):
+    def _act_on_fallback_(self, op: Any, allow_decompose: bool):
         """Applies a unitary operation, mutating the object to represent the new state.
 
         op:
@@ -430,7 +435,9 @@ class MPSState:
             U = protocols.unitary(op)
         else:
             mixtures = protocols.mixture(op)
-            mixture_idx = int(prng.choice(len(mixtures), p=[mixture[0] for mixture in mixtures]))
+            mixture_idx = int(
+                self.prng.choice(len(mixtures), p=[mixture[0] for mixture in mixtures])
+            )
             U = mixtures[mixture_idx][1]
         U = qtn.Tensor(
             U.reshape([qubit.dimension for qubit in op.qubits] * 2), inds=(new_inds + old_inds)
@@ -494,6 +501,7 @@ class MPSState:
             # TODO(tonybruguier): Evaluate whether it's even useful to implement and learn more
             # about HOSVDs.
             raise ValueError('Can only handle 1 and 2 qubit operations')
+        return True
 
     def estimation_stats(self):
         "Returns some statistics about the memory usage and quality of the approximation."
