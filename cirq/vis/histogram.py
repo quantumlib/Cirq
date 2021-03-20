@@ -28,7 +28,7 @@ def integrated_histogram(
     median_label: Optional[str] = 'median',
     mean_line: bool = False,
     mean_label: Optional[str] = 'mean',
-    hide_zero: bool = True,
+    show_zero: bool = False,
     title: Optional[str] = None,
     **kwargs,
 ) -> plt.Axes:
@@ -55,21 +55,24 @@ def integrated_histogram(
     is the cumulative distribution function (cdf) for this pdf.
 
     Args:
-        data: Data to histogram. If the data is a mapping, we histogram the
+        data: Data to histogram. If the data is a `Mapping`, we histogram the
             values. All nans will be removed.
         ax: The axis to plot on. If None, we generate one.
         cdf_on_x: If True, flip the axes compared the above example.
-        axis_label: Label for x axis.
+        axis_label: Label for x axis (y-axis if cds_on_x is True).
         semilog: If True, force the x-axis to be logarithmic.
         median_line: If True, draw a vertical line on the median value.
         median_label: If drawing median line, optional label for it.
         mean_line: If True, draw a vertical line on the mean value.
         mean_label: If drawing mean line, optional label for it.
-        **plot_options: Kwargs to forward to `ax.step()`. Some examples are
+        title: Title of the plot. If None, we assign "N={len(data)}".
+        show_zero: If True, moves the step plot up by one unit by prepending 0
+            to the data.
+        **kwargs: Kwargs to forward to `ax.step()`. Some examples are
             color: Color of the line.
             linestyle: Linestyle to use for the plot.
-            lw: linewidth for integrated histogram
-            ms: marker size for a histogram trace
+            lw: linewidth for integrated histogram.
+            ms: marker size for a histogram trace.
             label: An optional label which can be used in a legend.
 
 
@@ -86,7 +89,7 @@ def integrated_histogram(
     data = [d for d in data if not np.isnan(d)]
     n = len(data)
 
-    if not hide_zero:
+    if not show_zero:
         bin_values = np.linspace(0, 1, n + 1)
         parameter_values = sorted(np.concatenate(([0], data)))
     else:
@@ -100,41 +103,36 @@ def integrated_histogram(
         "ms": 0.0,
     }
     plot_options.update(kwargs)
+
     if cdf_on_x:
         ax.step(bin_values, parameter_values, **plot_options)
-        setsemilog = ax.semilogy
-        setlim = ax.set_xlim
-        setticks = ax.set_xticks
-        setline = ax.axhline
-        cdflabel = ax.set_xlabel
-        axlabel = ax.set_ylabel
-
     else:
         ax.step(parameter_values, bin_values, **plot_options)
-        setsemilog = ax.semilogx
-        setlim = ax.set_ylim
-        setticks = ax.set_yticks
-        setline = ax.axvline
-        cdflabel = ax.set_ylabel
-        axlabel = ax.set_xlabel
+
+    set_semilog = ax.semilogy if cdf_on_x else ax.semilogx
+    set_lim = ax.set_xlim if cdf_on_x else ax.set_ylim
+    set_ticks = ax.set_xticks if cdf_on_x else ax.set_yticks
+    set_line = ax.axhline if cdf_on_x else ax.axvline
+    cdf_label = ax.set_xlabel if cdf_on_x else ax.set_ylabel
+    ax_label = ax.set_ylabel if cdf_on_x else ax.set_xlabel
 
     if not title:
         title = f'N={n}'
     ax.set_title(title)
 
     if semilog:
-        setsemilog()
-    setlim(0, 1)
-    setticks([0.0, 0.25, 0.5, 0.75, 1.0])
+        set_semilog()
+    set_lim(0, 1)
+    set_ticks([0.0, 0.25, 0.5, 0.75, 1.0])
     ax.grid(True)
-    cdflabel('Integrated histogram')
+    cdf_label('Integrated histogram')
     if axis_label:
-        axlabel(axis_label)
+        ax_label(axis_label)
     if 'label' in plot_options:
         ax.legend()
 
     if median_line:
-        setline(
+        set_line(
             np.median(data),
             linestyle='--',
             color=plot_options['color'],
@@ -142,7 +140,7 @@ def integrated_histogram(
             label=median_label,
         )
     if mean_line:
-        setline(
+        set_line(
             np.mean(data), linestyle='-.', color=plot_options['color'], alpha=0.5, label=mean_label
         )
     if show_plot:
