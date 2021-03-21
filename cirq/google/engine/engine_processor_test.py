@@ -554,6 +554,24 @@ def test_get_schedule_filter_by_time_slot(list_time_slots):
     )
 
 
+def _allow_deprecated_freezegun(func):
+    # a local hack, as freeze_time walks through all the sys.modules, and retrieves all the
+    # attributes for all modules when it reaches deprecated module attributes, we throw an error
+    # as the deprecation module thinks Cirq is using something deprecated. This hack SHOULD NOT be
+    # used elsewhere, it is specific to freezegun functionality.
+    def wrapper(*args, **kwargs):
+        import os
+        from cirq.testing.deprecation import ALLOW_DEPRECATION_IN_TEST
+        os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
+        try:
+            return func(*args, **kwargs)
+        finally:
+            del os.environ[ALLOW_DEPRECATION_IN_TEST]
+
+    return wrapper
+
+
+@_allow_deprecated_freezegun
 @freezegun.freeze_time()
 @mock.patch('cirq.google.engine.engine_client.EngineClient.list_time_slots')
 def test_get_schedule_time_filter_behavior(list_time_slots):
@@ -597,6 +615,7 @@ def test_get_schedule_time_filter_behavior(list_time_slots):
     list_time_slots.assert_called_with('proj', 'p0', f'start_time < {utc_ts}')
 
 
+@_allow_deprecated_freezegun
 @freezegun.freeze_time()
 @mock.patch('cirq.google.engine.engine_client.EngineClient.list_reservations')
 def test_list_reservations_time_filter_behavior(list_reservations):
