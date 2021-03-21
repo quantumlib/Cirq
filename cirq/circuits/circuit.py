@@ -1421,7 +1421,7 @@ class AbstractCircuit(abc.ABC):
         self: CIRCUIT_TYPE, with_qubits: Iterable['cirq.Qid']
     ) -> Iterable[CIRCUIT_TYPE]:
         if not frozenset(with_qubits) < self.all_qubits():
-            raise ValueError('Unknown qubits:{}'.format(with_qubits))
+            raise ValueError(f'Unknown qubits:{with_qubits}')
         qubit_factors = self.get_qubit_factors()
         if len(qubit_factors) == 1:
             return (self,)
