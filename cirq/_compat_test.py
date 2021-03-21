@@ -17,6 +17,7 @@ import multiprocessing
 import sys
 import traceback
 import types
+import warnings
 from types import ModuleType
 from typing import Callable
 
@@ -505,7 +506,11 @@ def subprocess_context(test_func):
         if result:
             # coverage: ignore
             ex_type, msg, ex_trace = result
-            pytest.fail(f'{ex_type}: {msg}\n{ex_trace}')
+            if ex_type == "Skipped":
+                warnings.warn(f"Skipping: {ex_type}: {msg}\n{ex_trace}")
+                pytest.skip(f'{ex_type}: {msg}\n{ex_trace}')
+            else:
+                pytest.fail(f'{ex_type}: {msg}\n{ex_trace}')
 
     return isolated_func
 
@@ -600,7 +605,7 @@ def _test_metadata_search_path_inner():
     except:  # coverage: ignore
         # coverage: ignore
         # importlib_metadata for python <3.8
-        import importlib_metadata as m
+        m = pytest.importorskip("importlib_metadata")
 
     assert m.metadata('flynt')
 
