@@ -109,6 +109,7 @@ class AbstractCircuit(abc.ABC):
     *   to_quil
     *   to_qasm
     *   save_qasm
+    *   get_qubit_factors
     """
 
     @property
@@ -1388,6 +1389,48 @@ class AbstractCircuit(abc.ABC):
 
         return cirq.Circuit(buffer[offset : offset + n_acc])
 
+    def get_qubit_factors(self) -> List[Set['cirq.Qid']]:
+        """
+        Divide circuit's qubits into qubit factors such that there are
+        no entangling gates between the qubits belonging to different factors.
+        If this is not possible, a sequence with a single factor (the whole set of
+        circuit's qubits) will be returned.
+        """
+        uf = networkx.utils.UnionFind(self.all_qubits())
+        for op in self.all_operations():
+            if len(op.qubits) > 1:
+                uf.union(*op.qubits)
+        return sorted(uf.to_sets(), key=min)
+
+    def factorize(self: CIRCUIT_TYPE) -> Iterable[CIRCUIT_TYPE]:
+        """Factorize circuit into a sequence of circuits, if it's possible (i.e. if
+        the circuit qubits can be divided into two or more groups of qubits
+        such that there are no entangling gates between them).
+        If this is not possible, will return the set consisting of the single
+        circuit (this one).
+        """
+
+        qubit_factors = self.get_qubit_factors()
+        if len(qubit_factors) == 1:
+            return (self,)
+        return (
+            self._with_sliced_moments([m[qubits] for m in self.moments]) for qubits in qubit_factors
+        )
+
+    def slice_by_qubit(
+        self: CIRCUIT_TYPE, with_qubits: Iterable['cirq.Qid']
+    ) -> Iterable[CIRCUIT_TYPE]:
+        if not frozenset(with_qubits) < self.all_qubits():
+            raise ValueError('Unknown qubits:{}'.format(with_qubits))
+        qubit_factors = self.get_qubit_factors()
+        if len(qubit_factors) == 1:
+            return (self,)
+        return [
+            self._with_sliced_moments([m[qubits] for m in self.moments])
+            for qubits in qubit_factors
+            if qubits.intersection(with_qubits)
+        ]
+
 
 def _overlap_collision_time(
     c1: Sequence['cirq.Moment'], c2: Sequence['cirq.Moment'], align: 'cirq.Alignment'
@@ -1461,6 +1504,7 @@ class Circuit(AbstractCircuit):
     *   to_quil
     *   to_qasm
     *   save_qasm
+    *   get_qubit_factors
 
     Methods for mutation:
 
@@ -1504,6 +1548,10 @@ class Circuit(AbstractCircuit):
 
     and mutated,
     *    `circuit[1:7] = [Moment(...)]`
+
+    and factorized,
+    *   `circuit.factorize()` returns a sequence of Circuits which represent
+            independent 'factors' of the original Circuit.
     """
 
     def __init__(
@@ -2203,34 +2251,6 @@ class Circuit(AbstractCircuit):
             # Keep moments aligned
             c_noisy += Circuit(op_tree)
         return c_noisy
-
-    def factorize(self, with_qubits: Iterable['cirq.Qid'] = None) -> Iterable['cirq.Circuit']:
-        """Factorize circuit into a set of circuits, if it's possible (i.e. if
-        the circuit qubits can be divided into two or more groups of qubits
-        such that there are no entangling gates between them).
-
-        If this is not possible, will return the set consisting of the single
-        circuit (this one).
-
-        Args:
-            with_qubits: If set, will only return factors containing these
-            qubits. They must be present in the circuit.
-        """
-        if not with_qubits is None and not frozenset(with_qubits) < self.all_qubits():
-            raise ValueError('Unknown qubit.')
-
-        uf = networkx.utils.UnionFind(self.all_qubits())
-        for op in self.all_operations():
-            if len(op.qubits) > 1:
-                uf.union(*op.qubits)
-        qubit_sets = sorted(uf.to_sets(), key=min)
-
-        if len(qubit_sets) == 1:
-            return (self,)
-        if not with_qubits is None:
-            qubit_sets = [qs for qs in qubit_sets if qs.intersection(with_qubits)]
-
-        return (Circuit(m[qubits] for m in self.moments) for qubits in qubit_sets)
 
 
 def _resolve_operations(
