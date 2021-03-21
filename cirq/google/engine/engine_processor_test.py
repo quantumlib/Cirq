@@ -562,6 +562,7 @@ def _allow_deprecated_freezegun(func):
     def wrapper(*args, **kwargs):
         import os
         from cirq.testing.deprecation import ALLOW_DEPRECATION_IN_TEST
+
         os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
         try:
             return func(*args, **kwargs)
