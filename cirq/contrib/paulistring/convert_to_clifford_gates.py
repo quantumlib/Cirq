@@ -115,6 +115,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
     ) -> Optional[PointOptimizationSummary]:
         converted = self.convert(op)
         if converted is op:
+            # coverage: ignore
             return None
 
         return PointOptimizationSummary(

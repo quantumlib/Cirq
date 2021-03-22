@@ -122,6 +122,7 @@ class MeasurementGate(raw_types.Gate):
         return tuple(delta(i) for i in range(size))
 
     def _has_channel_(self):
+        # coverage: ignore
         return True
 
     def _circuit_diagram_info_(

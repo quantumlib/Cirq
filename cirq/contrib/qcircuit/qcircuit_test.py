@@ -57,6 +57,7 @@ def test_fallback_diagram():
             self._qubits = qubits
 
         def with_qubits(self, *new_qubits):
+            # coverage: ignore
             return MagicOp(*new_qubits)
 
         @property

@@ -134,6 +134,7 @@ def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
     if allow_decompose:
         operations, _, _ = _try_decompose_into_operations_and_qubits(val)
         if operations is not None:
+            # coverage: ignore
             return all(has_mixture(val) for val in operations)
 
     # No _has_mixture_ or _has_unitary_ function, use _mixture_ instead.

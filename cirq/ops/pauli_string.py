@@ -273,6 +273,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             )
 
         if isinstance(other, raw_types.Operation) and isinstance(other.gate, identity.IdentityGate):
+            # coverage: ignore
             return self
 
         # Note: PauliString case handled by __mul__.
@@ -959,6 +960,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                     cast(TKey, op.qubits[1]),
                     after_to_before=after_to_before,
                 )
+        # coverage: ignore
         raise TypeError('Unsupported operation: {!r}'.format(op))
 
     @staticmethod
@@ -969,6 +971,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         after_to_before: bool = False,
     ) -> bool:
         if qubit not in pauli_map:
+            # coverage: ignore
             return False
         if not after_to_before:
             gate **= -1

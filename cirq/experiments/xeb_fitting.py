@@ -497,10 +497,15 @@ def _fit_exponential_decay(
 
 def _one_unique(df, name, default):
     """Helper function to assert that there's one unique value in a column and return it."""
+    # coverage: ignore
     if name not in df.columns:
+        # coverage: ignore
         return default
+    # coverage: ignore
     vals = df[name].unique()
+    # coverage: ignore
     assert len(vals) == 1, name
+    # coverage: ignore
     return vals[0]
 
 

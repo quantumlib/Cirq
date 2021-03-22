@@ -301,6 +301,7 @@ class EigenGate(raw_types.Gate):
     def __pow__(self: TSelf, exponent: Union[float, sympy.Symbol]) -> 'EigenGate':
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
+            # coverage: ignore
             return NotImplemented
         return self._with_exponent(exponent=new_exponent)
 

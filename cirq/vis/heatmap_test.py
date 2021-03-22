@@ -227,9 +227,13 @@ def test_non_float_values(ax, format_string):
         if isinstance(artist, mpl.text.Text):
             col, row = artist.get_position()
             if (row, col) in test_value_map:
+                # coverage: ignore
                 foo = test_value_map[(row, col)]
+                # coverage: ignore
                 actual_text = artist.get_text()
+                # coverage: ignore
                 expected_text = format(foo, format_string)
+                # coverage: ignore
                 assert actual_text == expected_text
 
 

@@ -69,6 +69,7 @@ def test_equivalent_to_builtin_mul():
             if type(a) == type(b) == RMulReturnsSix:
                 # Python doesn't do __rmul__ if __mul__ failed and
                 # type(a) == type(b). But we do.
+                # coverage: ignore
                 continue
 
             c = cirq.mul(a, b, default=None)

@@ -202,6 +202,7 @@ class ParamResolver:
         return bool(self.param_dict)
 
     def __getitem__(self, key: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':
+        # coverage: ignore
         return self.value_of(key)
 
     def __hash__(self) -> int:

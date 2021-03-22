@@ -88,6 +88,7 @@ class XXPowGate(
         from cirq.ops.pauli_interaction_gate import PauliInteractionGate
 
         if self.exponent % 2 == 0:
+            # coverage: ignore
             return []
         if self.exponent % 2 == 0.5:
             return [
@@ -199,6 +200,7 @@ class YYPowGate(
         from cirq.ops.pauli_interaction_gate import PauliInteractionGate
 
         if self.exponent % 2 == 0:
+            # coverage: ignore
             return []
         if self.exponent % 2 == 0.5:
             return [

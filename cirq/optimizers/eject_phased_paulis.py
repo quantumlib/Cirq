@@ -318,7 +318,9 @@ def _try_get_known_phased_pauli(
         e = gate.exponent
         p = gate.phase_exponent
     elif isinstance(gate, ops.YPowGate):
+        # coverage: ignore
         e = gate.exponent
+        # coverage: ignore
         p = 0.5
     elif isinstance(gate, ops.XPowGate):
         e = gate.exponent

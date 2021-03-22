@@ -106,16 +106,27 @@ def _group_similar(items: List[T], comparer: Callable[[T, T], bool]) -> List[Lis
     Returns:
       A list of groups of items.
     """
+    # coverage: ignore
     groups: List[List[T]] = []
+    # coverage: ignore
     used: Set[int] = set()
+    # coverage: ignore
     for i in range(len(items)):
+        # coverage: ignore
         if i not in used:
+            # coverage: ignore
             group = [items[i]]
+            # coverage: ignore
             for j in range(i + 1, len(items)):
+                # coverage: ignore
                 if j not in used and comparer(items[i], items[j]):
+                    # coverage: ignore
                     used.add(j)
+                    # coverage: ignore
                     group.append(items[j])
+            # coverage: ignore
             groups.append(group)
+    # coverage: ignore
     return groups
 
 

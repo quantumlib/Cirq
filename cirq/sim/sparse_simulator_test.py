@@ -679,6 +679,7 @@ def test_invalid_run_no_unitary():
 def test_allocates_new_state():
     class NoUnitary(cirq.SingleQubitGate):
         def _has_unitary_(self):
+            # coverage: ignore
             return True
 
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
@@ -700,6 +701,7 @@ def test_does_not_modify_initial_state():
 
     class InPlaceUnitary(cirq.SingleQubitGate):
         def _has_unitary_(self):
+            # coverage: ignore
             return True
 
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):

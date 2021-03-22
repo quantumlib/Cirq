@@ -76,6 +76,7 @@ class Sweep(metaclass=abc.ABCMeta):
         else:
             factors.append(self)
         if isinstance(other, Product):
+            # coverage: ignore
             factors.extend(other.factors)
         elif isinstance(other, Sweep):
             factors.append(other)
@@ -90,6 +91,7 @@ class Sweep(metaclass=abc.ABCMeta):
         else:
             sweeps.append(self)
         if isinstance(other, Zip):
+            # coverage: ignore
             sweeps.extend(other.sweeps)
         elif isinstance(other, Sweep):
             sweeps.append(other)
@@ -226,6 +228,7 @@ class Product(Sweep):
 
     def __len__(self) -> int:
         if not self.factors:
+            # coverage: ignore
             return 0
         length = 1
         for factor in self.factors:
@@ -250,6 +253,7 @@ class Product(Sweep):
 
     def __str__(self) -> str:
         if not self.factors:
+            # coverage: ignore
             return 'Product()'
         factor_strs = []
         for factor in self.factors:
@@ -290,6 +294,7 @@ class Zip(Sweep):
 
     def __len__(self) -> int:
         if not self.sweeps:
+            # coverage: ignore
             return 0
         return min(len(sweep) for sweep in self.sweeps)
 
@@ -304,6 +309,7 @@ class Zip(Sweep):
 
     def __str__(self) -> str:
         if not self.sweeps:
+            # coverage: ignore
             return 'Zip()'
         return ' + '.join(str(s) if isinstance(s, Product) else repr(s) for s in self.sweeps)
 

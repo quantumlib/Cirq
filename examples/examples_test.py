@@ -53,6 +53,7 @@ def test_example_runs_deutsch():
 
 
 def test_example_runs_hello_line():
+    # coverage: ignore
     pytest.importorskip("cirq.google")
     examples.place_on_bristlecone.main()
 
@@ -74,6 +75,7 @@ def test_example_runs_quantum_fourier_transform():
 
 
 def test_example_runs_bcs_mean_field():
+    # coverage: ignore
     pytest.importorskip("cirq.google")
     examples.bcs_mean_field.main()
 
@@ -91,6 +93,7 @@ def test_example_runs_phase_estimator():
 
 
 def test_example_heatmaps():
+    # coverage: ignore
     pytest.importorskip("cirq.google")
     plt.switch_backend('agg')
     examples.heatmaps.main()

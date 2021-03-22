@@ -225,10 +225,13 @@ def _fidelity_state_vectors_or_density_matrices(state1: np.ndarray, state2: np.n
         eigs = scipy.linalg.eigvalsh(state1_sqrt @ state2 @ state1_sqrt)
         trace = np.sum(np.sqrt(np.abs(eigs)))
         return trace ** 2
+    # coverage: ignore
     raise ValueError(
+        # coverage: ignore
         'The given arrays must be one- or two-dimensional. '
+        # coverage: ignore
         f'Got shapes {state1.shape} and {state2.shape}.'
-    )
+    ) # coverage: ignore
 
 
 @deprecated_parameter(

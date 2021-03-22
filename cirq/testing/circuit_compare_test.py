@@ -310,6 +310,7 @@ def test_assert_has_consistent_apply_unitary():
             return args.available_buffer
 
         def _unitary_(self):
+            # coverage: ignore
             return np.eye(2)
 
         def _num_qubits_(self):
@@ -343,6 +344,7 @@ def test_assert_has_consistent_apply_unitary():
             return args.available_buffer
 
         def _unitary_(self):
+            # coverage: ignore
             return np.array([[0, 1], [1, 0]])
 
         def _num_qubits_(self):

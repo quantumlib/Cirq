@@ -59,6 +59,7 @@ class CircularShiftGate(PermutationGate):
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
         if args.known_qubit_count is None:
+            # coverage: ignore
             return NotImplemented
         direction_symbols = ('╲', '╱') if args.use_unicode_characters else ('\\', '/')
         wire_symbols = tuple(

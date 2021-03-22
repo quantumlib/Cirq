@@ -146,6 +146,7 @@ class Duration:
         if other_duration is not None:
             return self._picos / other_duration._picos
 
+        # coverage: ignore
         return NotImplemented
 
     def __eq__(self, other):

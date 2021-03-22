@@ -67,6 +67,7 @@ class PeriodicValue:
 
         # self.value = value % period in __init__() creates a Mod
         if isinstance(other.value, sympy.Mod):
+            # coverage: ignore
             return self.value == other.value
         # Periods must be exactly equal to avoid drift of normalized value when
         # original value increases.

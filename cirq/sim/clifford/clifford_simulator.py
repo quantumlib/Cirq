@@ -329,15 +329,23 @@ class CliffordState:
     def perform_measurement(
         self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
     ):
+        # coverage: ignore
         results = []
 
+        # coverage: ignore
         if collapse_state_vector:
+            # coverage: ignore
             state = self
         else:
+            # coverage: ignore
             state = self.copy()
 
+        # coverage: ignore
         for qubit in qubits:
+            # coverage: ignore
             result = state.ch_form._measure(self.qubit_map[qubit], prng)
+            # coverage: ignore
             results.append(result)
 
+        # coverage: ignore
         return results

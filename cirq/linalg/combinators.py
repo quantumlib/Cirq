@@ -148,6 +148,7 @@ def block_diag(*blocks: np.ndarray) -> np.ndarray:
     """
     for b in blocks:
         if b.shape[0] != b.shape[1]:
+            # coverage: ignore
             raise ValueError('Blocks must be square.')
 
     if not blocks:

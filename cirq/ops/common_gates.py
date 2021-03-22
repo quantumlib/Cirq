@@ -239,6 +239,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     @property
     def phase_exponent(self):
+        # coverage: ignore
         return 0.0
 
     def _phase_by_(self, phase_turns, qubit_index):
@@ -460,6 +461,7 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     @property
     def phase_exponent(self):
+        # coverage: ignore
         return 0.5
 
     def _phase_by_(self, phase_turns, qubit_index):
@@ -1229,6 +1231,7 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         if self.exponent % 2 == 1:
             return PauliInteractionGate.CNOT.on(*qubits)
         if self.exponent % 2 == 0:
+            # coverage: ignore
             return []
         return NotImplemented
 

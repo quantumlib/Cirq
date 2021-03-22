@@ -510,6 +510,7 @@ def _attempt_value_to_pauli_index(v: Any) -> Optional[Tuple[int, int]]:
         return None
 
     if not isinstance(v.gate, pauli_gates.Pauli):
+        # coverage: ignore
         return None
 
     q = v.qubits[0]

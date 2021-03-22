@@ -107,6 +107,7 @@ class IonDevice(devices.Device):
             other_op.gate,
             (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate, ops.MeasurementGate, ops.ZPowGate),
         ):
+            # coverage: ignore
             return False
 
         return any(q == p for q in XXPow_op.qubits for p in other_op.qubits)

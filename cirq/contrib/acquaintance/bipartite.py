@@ -107,6 +107,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
 
     def permutation(self) -> Dict[int, int]:
         if self.num_qubits() != 2 * self.part_size:
+            # coverage: ignore
             raise ValueError('qubit_count != 2 * self.part_size')
         if self.subgraph == BipartiteGraphType.MATCHING:
             return dict(

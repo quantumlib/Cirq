@@ -47,8 +47,11 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
         remaining_shape = list(qid_shape)
         controls = getattr(val, 'control_qubits', None)
         if controls is not None:
+            # coverage: ignore
             for i, q in zip(reversed(range(len(controls))), reversed(controls)):
+                # coverage: ignore
                 if q is not None:
+                    # coverage: ignore
                     remaining_shape.pop(i)
         qubits = devices.LineQid.for_qid_shape(remaining_shape)
         op = val.on(*qubits)

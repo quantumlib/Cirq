@@ -295,6 +295,7 @@ class QasmOutput:
                 return NotImplemented
 
             if len(op.qubits) == 1:
+                # coverage: ignore
                 return QasmUGate.from_matrix(mat).on(*op.qubits)
             return QasmTwoQubitGate.from_matrix(mat).on(*op.qubits)
 

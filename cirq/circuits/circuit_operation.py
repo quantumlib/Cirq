@@ -290,6 +290,7 @@ class CircuitOperation(ops.Operation):
             args.append(f'repetition_ids={self.repetition_ids}')
         elif self.repetitions != 1:
             # Only add loops if we haven't added repetition_ids.
+            # coverage: ignore
             args.append(f'loops={self.repetitions}')
         if not args:
             return f'{header}\n{circuit_msg}'

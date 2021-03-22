@@ -32,6 +32,7 @@ class GoodGateExplicitPauliExpansion(cirq.SingleQubitGate):
 
 class GoodGateNoPauliExpansion(cirq.Gate):
     def num_qubits(self) -> int:
+        # coverage: ignore
         return 4
 
 

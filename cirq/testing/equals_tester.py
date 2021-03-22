@@ -143,4 +143,5 @@ class _ClassUnknownToSubjects:
         return not self == other
 
     def __hash__(self):
+        # coverage: ignore
         return hash(_ClassUnknownToSubjects)

@@ -101,6 +101,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
     def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'PhasedXPowGate':
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
+            # coverage: ignore
             return NotImplemented
         return PhasedXPowGate(
             phase_exponent=self._phase_exponent,

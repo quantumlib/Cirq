@@ -85,56 +85,91 @@ class CliffordTableau:
         return state
 
     def __repr__(self) -> str:
+        # coverage: ignore
         stabilizers = ", ".join([repr(stab) for stab in self.stabilizers()])
+        # coverage: ignore
         return f'stabilizers: [{stabilizers}]'
 
     def __str__(self) -> str:
+        # coverage: ignore
         string = ''
 
+        # coverage: ignore
         for i in range(self.n, 2 * self.n):
+            # coverage: ignore
             string += '- ' if self.rs[i] else '+ '
 
+            # coverage: ignore
             for k in range(0, self.n):
+                # coverage: ignore
                 if self.xs[i, k] & (not self.zs[i, k]):
+                    # coverage: ignore
                     string += 'X '
+                # coverage: ignore
                 elif (not self.xs[i, k]) & self.zs[i, k]:
+                    # coverage: ignore
                     string += 'Z '
+                # coverage: ignore
                 elif self.xs[i, k] & self.zs[i, k]:
+                    # coverage: ignore
                     string += 'Y '
                 else:
+                    # coverage: ignore
                     string += 'I '
 
+            # coverage: ignore
             if i < 2 * self.n - 1:
+                # coverage: ignore
                 string += '\n'
 
+        # coverage: ignore
         return string
 
     def _str_full_(self) -> str:
+        # coverage: ignore
         string = ''
 
+        # coverage: ignore
         string += 'stable' + ' ' * max(self.n * 2 - 3, 1)
+        # coverage: ignore
         string += '| destable\n'
+        # coverage: ignore
         string += '-' * max(7, self.n * 2 + 3) + '+' + '-' * max(10, self.n * 2 + 4) + '\n'
 
+        # coverage: ignore
         for j in range(self.n):
+            # coverage: ignore
             for i in [j + self.n, j]:
+                # coverage: ignore
                 string += '- ' if self.rs[i] else '+ '
 
+                # coverage: ignore
                 for k in range(0, self.n):
+                    # coverage: ignore
                     if self.xs[i, k] & (not self.zs[i, k]):
+                        # coverage: ignore
                         string += 'X%d' % k
+                    # coverage: ignore
                     elif (not self.xs[i, k]) & self.zs[i, k]:
+                        # coverage: ignore
                         string += 'Z%d' % k
+                    # coverage: ignore
                     elif self.xs[i, k] & self.zs[i, k]:
+                        # coverage: ignore
                         string += 'Y%d' % k
                     else:
+                        # coverage: ignore
                         string += '  '
 
+                # coverage: ignore
                 if i == j + self.n:
+                    # coverage: ignore
                     string += ' ' * max(0, 4 - self.n * 2) + ' | '
 
+            # coverage: ignore
             string += '\n'
 
+        # coverage: ignore
         return string
 
     def _rowsum(self, q1, q2):
@@ -146,8 +181,10 @@ class CliffordTableau:
             if not x1 and not z1:
                 return 0
             elif x1 and z1:
+                # coverage: ignore
                 return int(z2) - int(x2)
             elif x1 and not z1:
+                # coverage: ignore
                 return int(z2) * (2 * int(x2) - 1)
             else:
                 return int(x2) * (1 - 2 * int(z2))
@@ -223,6 +260,7 @@ class CliffordTableau:
         else:
             for i in range(2 * self.n):
                 if i != p and self.xs[i, q]:
+                    # coverage: ignore
                     self._rowsum(i, p)
 
             self.xs[p - self.n, :] = self.xs[p, :]

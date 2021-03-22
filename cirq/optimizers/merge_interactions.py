@@ -126,6 +126,7 @@ class MergeInteractions(circuits.PointOptimizer):
         if op.qubits == (q2,):
             return np.kron(np.eye(2), matrix)
 
+        # coverage: ignore
         return None
 
     def _scan_two_qubit_ops_into_matrix(

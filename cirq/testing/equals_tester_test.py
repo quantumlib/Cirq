@@ -115,6 +115,7 @@ def test_fails_when_forgot_type_check():
             return not self == other
 
         def __hash__(self):
+            # coverage: ignore
             return hash(self.x)
 
     with pytest.raises(AttributeError, match="has no attribute 'x'"):
@@ -191,6 +192,7 @@ def test_fails_when_ne_is_inconsistent_due_to_not_implemented():
 
         def __eq__(self, other):
             if not isinstance(other, type(self)):
+                # coverage: ignore
                 return NotImplemented
             return self.x == other.x
 
@@ -198,6 +200,7 @@ def test_fails_when_ne_is_inconsistent_due_to_not_implemented():
             return NotImplemented
 
         def __hash__(self):
+            # coverage: ignore
             return hash(self.x)
 
     with pytest.raises(AssertionError, match='inconsistent'):
@@ -213,6 +216,7 @@ def test_fails_when_not_reflexive():
 
         def __eq__(self, other):
             if other is not self:
+                # coverage: ignore
                 return NotImplemented
             return False
 
@@ -232,6 +236,7 @@ def test_fails_when_not_commutative():
 
         def __eq__(self, other):
             if not isinstance(other, type(self)):
+                # coverage: ignore
                 return NotImplemented
             return self.x <= other.x
 

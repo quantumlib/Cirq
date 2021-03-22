@@ -87,15 +87,23 @@ class RabiResult:
         Returns:
             The plt.Axes containing the plot.
         """
+        # coverage: ignore
         show_plot = not ax
+        # coverage: ignore
         if not ax:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+        # coverage: ignore
         ax.set_ylim([0, 1])
+        # coverage: ignore
         ax.plot(self._rabi_angles, self._excited_state_probs, 'ro-', **plot_kwargs)
+        # coverage: ignore
         ax.set_xlabel(r"Rabi Angle (Radian)")
+        # coverage: ignore
         ax.set_ylabel('Excited State Probability')
+        # coverage: ignore
         if show_plot:
             fig.show()
+        # coverage: ignore
         return ax
 
 
@@ -132,15 +140,23 @@ class RandomizedBenchMarkResult:
         Returns:
             The plt.Axes containing the plot.
         """
+        # coverage: ignore
         show_plot = not ax
+        # coverage: ignore
         if not ax:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+        # coverage: ignore
         ax.set_ylim([0, 1])
+        # coverage: ignore
         ax.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro-', **plot_kwargs)
+        # coverage: ignore
         ax.set_xlabel(r"Number of Cliffords")
+        # coverage: ignore
         ax.set_ylabel('Ground State Probability')
+        # coverage: ignore
         if show_plot:
             fig.show()
+        # coverage: ignore
         return ax
 
 
@@ -180,35 +196,62 @@ class TomographyResult:
             fig, axes = plt.subplots(1, 2, figsize=(12.0, 5.0), subplot_kw={'projection': '3d'})
         elif len(axes) != 2:
             raise ValueError('A TomographyResult needs 2 axes to plot.')
+        # coverage: ignore
         mat = self._density_matrix
+        # coverage: ignore
         a, _ = mat.shape
+        # coverage: ignore
         num_qubits = int(np.log2(a))
+        # coverage: ignore
         state_labels = [[0, 1]] * num_qubits
+        # coverage: ignore
         kets = []
+        # coverage: ignore
         for label in itertools.product(*state_labels):
+            # coverage: ignore
             kets.append('|' + str(list(label))[1:-1] + '>')
+        # coverage: ignore
         mat_re = np.real(mat)
+        # coverage: ignore
         mat_im = np.imag(mat)
+        # coverage: ignore
         _matrix_bar_plot(
+            # coverage: ignore
             mat_re,
+            # coverage: ignore
             r'Real($\rho$)',
+            # coverage: ignore
             axes[0],
+            # coverage: ignore
             kets,
+            # coverage: ignore
             'Density Matrix (Real Part)',
+            # coverage: ignore
             ylim=(-1, 1),
+            # coverage: ignore
             **plot_kwargs,
-        )
+        ) # coverage: ignore
+        # coverage: ignore
         _matrix_bar_plot(
+            # coverage: ignore
             mat_im,
+            # coverage: ignore
             r'Imaginary($\rho$)',
+            # coverage: ignore
             axes[1],
+            # coverage: ignore
             kets,
+            # coverage: ignore
             'Density Matrix (Imaginary Part)',
+            # coverage: ignore
             ylim=(-1, 1),
+            # coverage: ignore
             **plot_kwargs,
-        )
+        ) # coverage: ignore
+        # coverage: ignore
         if show_plot:
             fig.show()
+        # coverage: ignore
         return axes
 
 
@@ -629,29 +672,48 @@ def _matrix_bar_plot(
     ylim: Tuple[int, int] = (-1, 1),
     **bar3d_kwargs: Any,
 ) -> None:
+    # coverage: ignore
     num_rows, num_cols = mat.shape
+    # coverage: ignore
     indices = np.meshgrid(range(num_cols), range(num_rows))
+    # coverage: ignore
     x_indices = np.array(indices[1]).flatten()
+    # coverage: ignore
     y_indices = np.array(indices[0]).flatten()
+    # coverage: ignore
     z_indices = np.zeros(mat.size)
 
+    # coverage: ignore
     dx = np.ones(mat.size) * 0.3
+    # coverage: ignore
     dy = np.ones(mat.size) * 0.3
+    # coverage: ignore
     dz = mat.flatten()
+    # coverage: ignore
     ax.bar3d(
+        # coverage: ignore
         x_indices, y_indices, z_indices, dx, dy, dz, color='#ff0080', alpha=1.0, **bar3d_kwargs
-    )
+    ) # coverage: ignore
 
+    # coverage: ignore
     ax.set_zlabel(z_label)
+    # coverage: ignore
     ax.set_zlim3d(ylim[0], ylim[1])
 
+    # coverage: ignore
     if kets is not None:
+        # coverage: ignore
         ax.set_xticks(np.arange(num_cols) + 0.15)
+        # coverage: ignore
         ax.set_yticks(np.arange(num_rows) + 0.15)
+        # coverage: ignore
         ax.set_xticklabels(kets)
+        # coverage: ignore
         ax.set_yticklabels(kets)
 
+    # coverage: ignore
     if title is not None:
+        # coverage: ignore
         ax.set_title(title)
 
 
