@@ -21,6 +21,7 @@ from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     from cirq.study import result
+    import matplotlib.pyplot as plt
 
 
 @deprecated(

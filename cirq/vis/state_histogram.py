@@ -14,7 +14,7 @@
 
 """Tool to visualize the results of a study."""
 
-from typing import TYPE_CHECKING, Union, Optional
+from typing import Union, Optional
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -49,8 +49,8 @@ def plot_state_histogram(
     result.
 
     Args:
-        values: The histogram values to plot. If `result.Result` is passed, the values are computed by calling
-        `get_state_histogram`.
+        values: The histogram values to plot. If `result.Result` is passed, the
+                values are computed by calling `get_state_histogram`.
 
     Returns:
         The axis that was plotted on.
