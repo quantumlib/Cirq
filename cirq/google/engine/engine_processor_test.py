@@ -563,8 +563,10 @@ def _allow_deprecated_freezegun(func):
         import os
         from cirq.testing.deprecation import ALLOW_DEPRECATION_IN_TEST
 
-        orig_exist, orig_value = (ALLOW_DEPRECATION_IN_TEST in os.environ,
-                                  os.environ.get(ALLOW_DEPRECATION_IN_TEST, None))
+        orig_exist, orig_value = (
+            ALLOW_DEPRECATION_IN_TEST in os.environ,
+            os.environ.get(ALLOW_DEPRECATION_IN_TEST, None),
+        )
 
         os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
         try:

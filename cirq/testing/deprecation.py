@@ -51,6 +51,10 @@ def assert_deprecated(*msgs: str, deadline: str, count: Optional[int] = 1):
             messages have to equal count.
     """
 
+    orig_exist, orig_value = (
+        ALLOW_DEPRECATION_IN_TEST in os.environ,
+        os.environ.get(ALLOW_DEPRECATION_IN_TEST, None),
+    )
     os.environ[ALLOW_DEPRECATION_IN_TEST] = 'True'
     try:
         with assert_logs(
@@ -62,7 +66,10 @@ def assert_deprecated(*msgs: str, deadline: str, count: Optional[int] = 1):
             yield True
     finally:
         try:
-            del os.environ[ALLOW_DEPRECATION_IN_TEST]
+            if orig_exist:
+                os.environ[ALLOW_DEPRECATION_IN_TEST] = orig_value
+            else:
+                del os.environ[ALLOW_DEPRECATION_IN_TEST]
         except:
             # this is only for nested deprecation checks
             pass
