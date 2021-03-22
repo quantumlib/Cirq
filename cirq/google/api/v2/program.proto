@@ -276,13 +276,13 @@ message MeasurementKey {
 // swap measurement keys a and b.
 message MeasurementKeyMapping {
   // Indicates that measurement key "key" should be replaced with "value".
-  message MeasurementKeyEntry {
+  message MeasurementKeyMappingEntry {
     MeasurementKey key = 1;
     MeasurementKey value = 2;
   }
 
   // A list of measurement key mappings to apply.
-  repeated MeasurementKey entries = 1;
+  repeated MeasurementKeyMappingEntry entries = 1;
 }
 
 // A mapping of args from one value to another. All mappings are applied
