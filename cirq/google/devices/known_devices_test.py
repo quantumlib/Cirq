@@ -499,12 +499,12 @@ def test_sycamore_grid_layout():
 
 
 def test_proto_with_circuitop():
-    circuitop_gateset = cg.serializable_gate_set.SerializableGateSet(
+    circuitop_gateset = cirq.google.serializable_gate_set.SerializableGateSet(
         gate_set_name='circuitop_gateset',
         serializers=[cgc.CIRCUIT_OP_SERIALIZER],
         deserializers=[cgc.CIRCUIT_OP_DESERIALIZER],
     )
-    circuitop_proto = cg.devices.known_devices.create_device_proto_from_diagram(
+    circuitop_proto = cirq.google.devices.known_devices.create_device_proto_from_diagram(
         "aa\naa",
         [circuitop_gateset],
     )
