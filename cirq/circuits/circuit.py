@@ -2004,8 +2004,8 @@ class Circuit(AbstractCircuit):
         """Inserts operations inline at frontier.
 
         Args:
-            operations: the operations to insert
-            start: the moment at which to start inserting the operations
+            operations: The operations to insert.
+            start: The moment at which to start inserting the operations.
             frontier: frontier[q] is the earliest moment in which an operation
                 acting on qubit q can be placed.
         """
