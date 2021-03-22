@@ -70,6 +70,11 @@ upper_tabs:
       - title: "Issues / requests / questions"
         path: /cirq/support
 
+      ### Visualizations
+      - heading: "Visualization"
+      - title: "Heatmaps"
+        path: /cirq/visualization/heatmaps
+
       ####  Contributor Guide  ####
       - heading: "Contributor guide"
       - title: "Contribute"
@@ -168,6 +173,8 @@ upper_tabs:
         path: /cirq/tutorials/google/start
       - title: "Floquet calibration"
         path: /cirq/tutorials/google/floquet
+      - title: "Visualizing Calibration Metrics"
+        path: /cirq/tutorials/google/visualizing_calibration_metrics
 
       ####  AQT HARDWARE  ####
       - heading: "AQT hardware"

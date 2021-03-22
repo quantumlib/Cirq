@@ -48,7 +48,7 @@ class SupportsParameterization(Protocol):
         """
 
     @doc_private
-    def _resolve_parameters_(self: T, param_resolver: 'cirq.ParamResolver', recursive: bool) -> T:
+    def _resolve_parameters_(self: T, resolver: 'cirq.ParamResolver', recursive: bool) -> T:
         """Resolve the parameters in the effect."""
 
 
