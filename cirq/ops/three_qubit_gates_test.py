@@ -202,7 +202,7 @@ def test_identity_multiplication():
     ],
 )
 def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
-    ops = tuple(cirq.flatten_op_tree(cirq.google.ConvertToXmonGates().convert(op)))
+    ops = tuple(cirq.flatten_op_tree(cirq.decompose(op)))
     two_cost = len([e for e in ops if len(e.qubits) == 2])
     over_cost = len([e for e in ops if len(e.qubits) > 2])
     assert over_cost == 0
@@ -222,11 +222,11 @@ def test_decomposition_respects_locality(gate):
     a = cirq.GridQubit(0, 0)
     b = cirq.GridQubit(1, 0)
     c = cirq.GridQubit(0, 1)
-
+    dev = cirq.testing.ValidatingTestDevice(qubits={a, b, c}, validate_locality=True)
     for x, y, z in itertools.permutations([a, b, c]):
         circuit = cirq.Circuit(gate(x, y, z))
-        cirq.google.ConvertToXmonGates().optimize_circuit(circuit)
-        cirq.google.Foxtail.validate_circuit(circuit)
+        circuit = cirq.Circuit(cirq.decompose(circuit))
+        dev.validate_circuit(circuit)
 
 
 def test_diagram():
