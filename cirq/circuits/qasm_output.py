@@ -167,6 +167,18 @@ class QasmOutput:
         precision: int = 10,
         version: str = '2.0',
     ) -> None:
+        """Representation of a circuit in QASM format.
+
+        Args:
+            operations: Tree of operations to insert.
+            qubits: The qubits used in the operations.
+            header: A multi-line string that is placed in a comment at the top
+                of the QASM.
+            precision: The number of digits after the decimal to show for
+                numbers in the QASM code.
+            version: The QASM version to target. Objects may return different
+                QASM depending on version.
+        """
         self.operations = tuple(ops.flatten_to_ops(operations))
         self.qubits = qubits
         self.header = header
