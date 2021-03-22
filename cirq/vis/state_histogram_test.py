@@ -72,7 +72,7 @@ def test_plot_state_histogram():
     )
     r = cirq.sample(c, repetitions=5)
     expected_values = [0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0]
-    fig, (ax1, ax2) = plt.subplots(1, 2)
+    _, (ax1, ax2) = plt.subplots(1, 2)
     state_histogram.plot_state_histogram(r, ax1)
     state_histogram.plot_state_histogram(expected_values, ax2)
     for r1, r2 in zip(ax1.get_children(), ax2.get_children()):
@@ -87,7 +87,7 @@ def test_plot_state_histogram_deprecation():
         'use cirq.vis.plot_state_histogram or cirq.vis.get_state_histogram instead',
         deadline="v0.12",
     ):
-        fig, ax = plt.subplots(1, 1)
+        _, ax = plt.subplots(1, 1)
         simulator = cirq.Simulator()
         q = cirq.NamedQubit("a")
         circuit = cirq.Circuit([cirq.X(q), cirq.measure(q)])
