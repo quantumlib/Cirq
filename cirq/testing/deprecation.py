@@ -67,7 +67,9 @@ def assert_deprecated(*msgs: str, deadline: str, count: Optional[int] = 1):
     finally:
         try:
             if orig_exist:
-                os.environ[ALLOW_DEPRECATION_IN_TEST] = orig_value
+                # mypy can't resolve that orig_exist ensures that orig_value
+                # of type Optional[str] can't be None
+                os.environ[ALLOW_DEPRECATION_IN_TEST] = orig_value # type: ignore
             else:
                 del os.environ[ALLOW_DEPRECATION_IN_TEST]
         except:
