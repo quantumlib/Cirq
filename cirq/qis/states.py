@@ -367,6 +367,9 @@ def infer_qid_shape(*states: 'cirq.QUANTUM_STATE_LIKE') -> Tuple[int, ...]:
         ValueError: The qid shape of the given states is ambiguous.
         ValueError: Failed to infer the qid shape of the given states.
     """
+    if not states:
+        raise ValueError('No states were specified.')
+
     integer_states: List[int] = []
     non_integer_states: List[_NON_INT_STATE_LIKE] = []
     for state in states:
@@ -375,12 +378,9 @@ def infer_qid_shape(*states: 'cirq.QUANTUM_STATE_LIKE') -> Tuple[int, ...]:
         else:
             non_integer_states.append(state)
 
-    # if all states are specified as integers, the shape is ambiguous
+    # if all states are specified as integers, use the minimal possible dimensions
     if not non_integer_states:
-        raise ValueError(
-            'The qid shape of the given states is ambiguous, '
-            'since all states were specified as integers.'
-        )
+        return (max(integer_states) + 1,)
 
     # attempt to infer qid shape from non-integer states
     potential_shapes = _potential_qid_shapes(non_integer_states[0])

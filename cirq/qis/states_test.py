@@ -233,14 +233,17 @@ def test_infer_qid_shape():
 
     assert cirq.qis.infer_qid_shape(state_tensor_2, density_matrix_2) == (1, 2, 3, 4)
 
+    assert cirq.qis.infer_qid_shape(computational_basis_state_4) == (10,)
+    assert cirq.qis.infer_qid_shape(15, 7, 22, 4) == (23,)
+
+    with pytest.raises(ValueError, match='No states were specified'):
+        _ = cirq.qis.infer_qid_shape()
+
     with pytest.raises(ValueError, match='Failed'):
         _ = cirq.qis.infer_qid_shape(computational_basis_state_1, computational_basis_state_5)
 
     with pytest.raises(ValueError, match='ambiguous'):
         _ = cirq.qis.infer_qid_shape(computational_basis_state_1)
-
-    with pytest.raises(ValueError, match='ambiguous'):
-        _ = cirq.qis.infer_qid_shape(computational_basis_state_4)
 
     with pytest.raises(ValueError, match='ambiguous'):
         _ = cirq.qis.infer_qid_shape(state_tensor_1)
