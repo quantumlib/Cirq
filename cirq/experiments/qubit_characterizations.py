@@ -698,7 +698,8 @@ def _matrix_bar_plot(
         dy,
         dz,
         color='#ff0080',
-        alpha=1.0, **bar3d_kwargs,
+        alpha=1.0,
+        **bar3d_kwargs,
     )  # coverage: ignore
 
     # coverage: ignore
