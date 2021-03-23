@@ -230,7 +230,7 @@ class TomographyResult:
             ylim=(-1, 1),
             # coverage: ignore
             **plot_kwargs,
-        ) # coverage: ignore
+        )  # coverage: ignore
         # coverage: ignore
         _matrix_bar_plot(
             # coverage: ignore
@@ -247,7 +247,7 @@ class TomographyResult:
             ylim=(-1, 1),
             # coverage: ignore
             **plot_kwargs,
-        ) # coverage: ignore
+        )  # coverage: ignore
         # coverage: ignore
         if show_plot:
             fig.show()
@@ -691,9 +691,15 @@ def _matrix_bar_plot(
     dz = mat.flatten()
     # coverage: ignore
     ax.bar3d(
-        # coverage: ignore
-        x_indices, y_indices, z_indices, dx, dy, dz, color='#ff0080', alpha=1.0, **bar3d_kwargs
-    ) # coverage: ignore
+        x_indices,
+        y_indices,
+        z_indices,
+        dx,
+        dy,
+        dz,
+        color='#ff0080',
+        alpha=1.0, **bar3d_kwargs
+    )  # coverage: ignore
 
     # coverage: ignore
     ax.set_zlabel(z_label)

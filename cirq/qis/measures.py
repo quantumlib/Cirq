@@ -231,7 +231,7 @@ def _fidelity_state_vectors_or_density_matrices(state1: np.ndarray, state2: np.n
         'The given arrays must be one- or two-dimensional. '
         # coverage: ignore
         f'Got shapes {state1.shape} and {state2.shape}.'
-    ) # coverage: ignore
+    )  # coverage: ignore
 
 
 @deprecated_parameter(
