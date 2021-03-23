@@ -247,6 +247,15 @@ def quantum_state(
                 'the qid_shape argument.'
             )
         dim = np.prod(qid_shape, dtype=int)
+        if not 0 <= state < dim:
+            raise ValueError(
+                f'Computational basis state is out of range.\n'
+                f'\n'
+                f'state={state!r}\n'
+                f'MIN_STATE=0\n'
+                f'MAX_STATE=product(qid_shape)-1={dim-1}\n'
+                f'qid_shape={qid_shape!r}\n'
+            )
         if dtype is None:
             dtype = DEFAULT_COMPLEX_DTYPE
         data = one_hot(index=state, shape=(dim,), dtype=dtype)
@@ -254,8 +263,8 @@ def quantum_state(
         data = np.array(state, copy=False)
         if qid_shape is None:
             qid_shape = infer_qid_shape(state)
-        if data.ndim == 1:
-            if len(qid_shape) == np.prod(qid_shape, dtype=int) and data.dtype.kind != 'c':
+        if data.ndim == 1 and data.dtype.kind != 'c':
+            if len(qid_shape) == np.prod(qid_shape, dtype=int):
                 raise ValueError(
                     'Because len(qid_shape) == product(qid_shape), it is '
                     'ambiguous whether the given state contains '
@@ -778,7 +787,14 @@ def to_valid_state_vector(
 
     # Check shape.
     if num_qubits is None and qid_shape is None:
-        raise ValueError('Must specify `num_qubits` or `qid_shape`.')
+        try:
+            qid_shape = infer_qid_shape(state_rep)
+        except:
+            raise ValueError(
+                'Failed to infer the qid shape of the given state. '
+                'Please specify the qid shape explicitly using either the '
+                '`num_qubits` or `qid_shape` argument.'
+            )
     if qid_shape is None:
         qid_shape = (2,) * cast(int, num_qubits)
     else:
@@ -791,88 +807,10 @@ def to_valid_state_vector(
             'qid_shape is <{!r}>.'.format(num_qubits, qid_shape)
         )
 
-    tensor = _state_like_to_state_tensor(
-        state_like=state_rep, qid_shape=qid_shape, dtype=dtype, atol=atol
-    )
-    return tensor.reshape(tensor.size)  # Flatten.
-
-
-def _state_like_to_state_tensor(
-    *,
-    state_like: 'cirq.STATE_VECTOR_LIKE',
-    qid_shape: Tuple[int, ...],
-    dtype: Optional[Type[np.number]],
-    atol: float,
-) -> np.ndarray:
-
-    if isinstance(state_like, int):
-        return _computational_basis_state_to_state_tensor(
-            state_rep=state_like, qid_shape=qid_shape, dtype=dtype
-        )
-
-    if isinstance(state_like, value.ProductState):
-        return state_like.state_vector()
-
-    if isinstance(state_like, Sequence):
-        converted = np.array(state_like)
-        if converted.shape:
-            state_like = converted
-    if isinstance(state_like, np.ndarray):
-        prod = np.prod(qid_shape, dtype=int)
-
-        if len(qid_shape) == prod and state_like.dtype.kind != 'c':
-            raise ValueError(
-                'Because len(qid_shape) == product(qid_shape), it is '
-                'ambiguous whether the given `state_like` contains '
-                'state vector amplitudes or per-qudit computational basis '
-                'values. In this situation you are required to pass '
-                'in a state vector that is a numpy array with a complex '
-                'dtype.'
-            )
-
-        if state_like.shape == (prod,) or state_like.shape == qid_shape:
-            return _amplitudes_to_validated_state_tensor(
-                state_vector=state_like, qid_shape=qid_shape, dtype=dtype, atol=atol
-            )
-
-        if state_like.shape == (len(qid_shape),):
-            return _qudit_values_to_state_tensor(
-                state_vector=state_like, qid_shape=qid_shape, dtype=dtype
-            )
-
-        raise ValueError(
-            '`state_like` was convertible to a numpy array, but its '
-            'shape was neither the shape of a list of computational basis '
-            'values (`len(qid_shape)`) nor the shape of a list or tensor of '
-            'state vector amplitudes (`qid_shape` or `(product(qid_shape),)`.\n'
-            '\n'
-            f'qid_shape={qid_shape!r}\n'
-            f'np.array(state_like).shape={state_like.shape}\n'
-            f'np.array(state_like)={state_like}\n'
-        )
-
-    raise TypeError(
-        f'Unrecognized type of STATE_LIKE. The given `state_like` was '
-        f'not a computational basis value, list of computational basis values, '
-        f'list of amplitudes, or tensor of amplitudes.\n'
-        f'\n'
-        f'type(state_like)={type(state_like)}\n'
-        f'qid_shape={qid_shape!r}'
-    )
-
-
-def _amplitudes_to_validated_state_tensor(
-    *,
-    state_vector: np.ndarray,
-    qid_shape: Tuple[int, ...],
-    dtype: Optional[Type[np.number]],
-    atol: float,
-) -> np.ndarray:
-    if dtype is None:
-        dtype = DEFAULT_COMPLEX_DTYPE
-    result = np.array(state_vector, dtype=dtype).reshape(qid_shape)
-    validate_normalized_state_vector(result, qid_shape=qid_shape, dtype=dtype, atol=atol)
-    return result
+    if isinstance(state_rep, np.ndarray):
+        state_rep = np.copy(state_rep)
+    state = quantum_state(state_rep, qid_shape, validate=True, dtype=dtype, atol=atol)
+    return cast(np.ndarray, state.state_vector())
 
 
 def _qudit_values_to_state_tensor(
@@ -904,24 +842,6 @@ def _qudit_values_to_state_tensor(
     if dtype is None:
         dtype = DEFAULT_COMPLEX_DTYPE
     return one_hot(index=tuple(int(e) for e in state_vector), shape=qid_shape, dtype=dtype)
-
-
-def _computational_basis_state_to_state_tensor(
-    *, state_rep: int, qid_shape: Tuple[int, ...], dtype: Optional[Type[np.number]]
-) -> np.ndarray:
-    n = np.prod(qid_shape, dtype=int)
-    if not 0 <= state_rep < n:
-        raise ValueError(
-            f'Computational basis state is out of range.\n'
-            f'\n'
-            f'state={state_rep!r}\n'
-            f'MIN_STATE=0\n'
-            f'MAX_STATE=product(qid_shape)-1={n-1}\n'
-            f'qid_shape={qid_shape!r}\n'
-        )
-    if dtype is None:
-        dtype = DEFAULT_COMPLEX_DTYPE
-    return one_hot(index=state_rep, shape=n, dtype=dtype).reshape(qid_shape)
 
 
 def validate_normalized_state_vector(
