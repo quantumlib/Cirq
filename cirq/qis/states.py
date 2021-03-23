@@ -381,8 +381,8 @@ def infer_qid_shape(*states: 'cirq.QUANTUM_STATE_LIKE') -> Tuple[int, ...]:
     if qid_shape is None:
         raise ValueError(
             'Failed to infer the qid shape of the given states. '
-            'Either there is no compatible qid shape for the given states, or there is one '
-            'but the heuristic failed to find it.'
+            'If you think there is an unambiguous result for this case, please raise '
+            'an issue at https://github.com/quantumlib/Cirq.'
         )
 
     # check if the shape is compatible with the states specified as integers
