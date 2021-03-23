@@ -257,13 +257,13 @@ message RepetitionSpecification {
 // qubits a and b.
 message QubitMapping {
   // Indicates that qubit "key" should be replaced with "value".
-  message Entry {
+  message QubitEntry {
     Qubit key = 1;
     Qubit value = 2;
   }
 
   // A list of qubit mappings to apply.
-  repeated Entry entries = 1;
+  repeated QubitEntry entries = 1;
 }
 
 // A key for matching a measurement event to its results.
@@ -276,13 +276,13 @@ message MeasurementKey {
 // swap measurement keys a and b.
 message MeasurementKeyMapping {
   // Indicates that measurement key "key" should be replaced with "value".
-  message Entry {
+  message MeasurementKeyEntry {
     MeasurementKey key = 1;
     MeasurementKey value = 2;
   }
 
   // A list of measurement key mappings to apply.
-  repeated Entry entries = 1;
+  repeated MeasurementKeyEntry entries = 1;
 }
 
 // A mapping of args from one value to another. All mappings are applied
@@ -290,11 +290,11 @@ message MeasurementKeyMapping {
 // args a and b.
 message ArgMapping {
   // Indicates that arg "key" should be replaced with "value".
-  message Entry {
+  message ArgEntry {
     Arg key = 1;
     Arg value = 2;
   }
 
   // A list of arg mappings to apply.
-  repeated Entry entries = 1;
+  repeated ArgEntry entries = 1;
 }
