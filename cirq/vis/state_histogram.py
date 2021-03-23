@@ -22,6 +22,15 @@ import cirq.study.result as result
 
 
 def get_state_histogram(result: 'result.Result') -> np.ndarray:
+    """Computes a state histogram from a single result with repetitions.
+
+    Args:
+        result: The trial result containing measurement results from which the
+                state histogram should be computed.
+
+    Returns:
+        The state histogram (a numpy array) corresponding to the trial result.
+    """
     num_qubits = sum([value.shape[1] for value in result.measurements.values()])
     states = 2 ** num_qubits
     values = np.zeros(states)
@@ -43,14 +52,14 @@ def get_state_histogram(result: 'result.Result') -> np.ndarray:
 def plot_state_histogram(
     values: Union['result.Result', np.ndarray], ax: Optional['plt.Axis'] = None
 ) -> 'plt.Axis':
-    """Plot the state histogram from a single result with repetitions.
-
-    States is a bitstring representation of all the qubit states in a single
-    result.
+    """Plot the state histogram from either a single result with repetitions or
+       a histogram of measurement results computed using `get_state_histogram`.
 
     Args:
         values: The histogram values to plot. If `result.Result` is passed, the
                 values are computed by calling `get_state_histogram`.
+        ax:     The Axes to plot on. If not given, a new figure is created,
+                plotted on, and shown.
 
     Returns:
         The axis that was plotted on.
