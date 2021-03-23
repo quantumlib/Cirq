@@ -23,6 +23,7 @@ import functools
 import glob
 import os
 import subprocess
+from logging import warning
 from typing import Set
 
 import pytest
@@ -45,8 +46,12 @@ SKIP_NOTEBOOKS = [
 
 
 def _list_all_notebooks() -> Set[str]:
-    output = subprocess.check_output(['git', 'ls-files', '*.ipynb'])
-    return set(output.decode('utf-8').splitlines())
+    try:
+        output = subprocess.check_output(['git', 'ls-files', '*.ipynb'])
+        return set(output.decode('utf-8').splitlines())
+    except subprocess.CalledProcessError as ex:
+        warning("It seems that tests are run from not a git repo, notebook tests are skipped", ex)
+        return set()
 
 
 def _tested_notebooks():

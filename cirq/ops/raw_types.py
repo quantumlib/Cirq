@@ -690,7 +690,9 @@ class TaggedOperation(Operation):
         tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
         return protocols.parameter_names(self.sub_operation) | tag_params
 
-    def _resolve_parameters_(self, resolver, recursive):
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'TaggedOperation':
         resolved_op = protocols.resolve_parameters(self.sub_operation, resolver, recursive)
         resolved_tags = (
             protocols.resolve_parameters(tag, resolver, recursive) for tag in self._tags

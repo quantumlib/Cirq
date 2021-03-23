@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AbstractSet, Sequence, Union
+from typing import AbstractSet, Sequence, Union, List, Tuple
 
 import pytest
 
@@ -108,10 +108,10 @@ class GoodGate(cirq.SingleQubitGate):
     def _parameter_names_(self) -> AbstractSet[str]:
         return cirq.parameter_names(self.exponent) | cirq.parameter_names(self.phase_exponent)
 
-    def _resolve_parameters_(self, param_resolver, recursive) -> 'GoodGate':
+    def _resolve_parameters_(self, resolver, recursive) -> 'GoodGate':
         return GoodGate(
-            phase_exponent=param_resolver.value_of(self.phase_exponent, recursive),
-            exponent=param_resolver.value_of(self.exponent, recursive),
+            phase_exponent=resolver.value_of(self.phase_exponent, recursive),
+            exponent=resolver.value_of(self.exponent, recursive),
         )
 
     def _identity_tuple(self):
@@ -187,7 +187,7 @@ class BadGateRepr(GoodGate):
 
 
 class GoodEigenGate(cirq.EigenGate, cirq.SingleQubitGate):
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (0, np.diag([1, 0])),
             (1, np.diag([0, 1])),

@@ -69,7 +69,9 @@ class RandomGateChannel(raw_types.Gate):
             self.sub_gate
         )
 
-    def _resolve_parameters_(self, resolver, recursive):
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'RandomGateChannel':
         return RandomGateChannel(
             sub_gate=protocols.resolve_parameters(self.sub_gate, resolver, recursive),
             probability=protocols.resolve_parameters(self.probability, resolver, recursive),

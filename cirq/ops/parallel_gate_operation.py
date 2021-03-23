@@ -113,7 +113,9 @@ class ParallelGateOperation(raw_types.Operation):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self.gate)
 
-    def _resolve_parameters_(self, resolver, recursive):
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'ParallelGateOperation':
         resolved_gate = protocols.resolve_parameters(self.gate, resolver, recursive)
         return self.with_gate(resolved_gate)
 

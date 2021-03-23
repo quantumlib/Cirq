@@ -223,33 +223,8 @@ class MeasurementGate(raw_types.Gate):
     def _act_on_(self, args: Any) -> bool:
         from cirq import sim
 
-        if isinstance(args, sim.ActOnStateVectorArgs):
-
-            invert_mask = self.full_invert_mask()
-            bits, _ = sim.measure_state_vector(
-                args.target_tensor,
-                args.axes,
-                out=args.target_tensor,
-                qid_shape=args.target_tensor.shape,
-                seed=args.prng,
-            )
-            corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
-            args.record_measurement_result(self.key, corrected)
-
-            return True
-
-        if isinstance(args, sim.clifford.ActOnCliffordTableauArgs):
-            invert_mask = self.full_invert_mask()
-            bits = [args.tableau._measure(q, args.prng) for q in args.axes]
-            corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
-            args.record_measurement_result(self.key, corrected)
-            return True
-
-        if isinstance(args, sim.clifford.ActOnStabilizerCHFormArgs):
-            invert_mask = self.full_invert_mask()
-            bits = [args.state._measure(q, args.prng) for q in args.axes]
-            corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
-            args.record_measurement_result(self.key, corrected)
+        if isinstance(args, sim.ActOnArgs):
+            args.measure(self.key, self.full_invert_mask())
             return True
 
         return NotImplemented

@@ -87,64 +87,12 @@ def test_executor_explicit():
     ct.assert_has_diagram(circuit, expected_text_diagram)
 
 
-class DiagonalGate(cirq.Gate):
-    def __init__(self, num_qubits: int, diagonal: np.ndarray) -> None:
-        dimension = 2 ** num_qubits
-        if diagonal.shape != (dimension,) or not np.allclose(
-            np.absolute(diagonal), np.ones(dimension)
-        ):
-            raise ValueError(
-                'Diagonal must be an (2**num_qubits)-dimensional vector with unit-norm entries.'
-            )
-        self._num_qubits = num_qubits
-        self.diagonal = diagonal
-
-    def _unitary_(self) -> np.ndarray:
-        return np.diag(self.diagonal)
-
-    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs):
-        qubit_count = len(self.diagonal).bit_length() - 1
-        assert args.known_qubit_count is None or args.known_qubit_count == qubit_count
-        return ('Diag',) * qubit_count
-
-    def num_qubits(self) -> int:
-        return self._num_qubits
-
-    @staticmethod
-    def random(num_qubits: int):
-        dimension = 2 ** num_qubits
-        diagonal = np.exp(2j * np.pi * np.random.random(dimension))
-        return DiagonalGate(num_qubits, diagonal)
-
-
-def test_diagonal_gate():
-    with pytest.raises(ValueError):
-        diagonal = np.exp(2j * np.pi * np.random.random(5))
-        DiagonalGate(2, diagonal)
-    with pytest.raises(ValueError):
-        diagonal = np.ndarray(range(4))
-        DiagonalGate(2, diagonal)
-    gate = DiagonalGate.random(2)
-    assert cirq.circuit_diagram_info(gate) == cirq.CircuitDiagramInfo(wire_symbols=('Diag', 'Diag'))
-
-    qubits = cirq.LineQubit.range(2)
-    gate = DiagonalGate.random(2)
-    circuit = cirq.Circuit([gate(*qubits)])
-    actual_text_diagram = circuit.to_text_diagram()
-    expected_text_diagram = """
-0: ───Diag───
-      │
-1: ───Diag───
-    """.strip()
-    assert actual_text_diagram == expected_text_diagram
-
-
 def random_diagonal_gates(
     num_qubits: int, acquaintance_size: int
 ) -> Dict[Tuple[cirq.Qid, ...], cirq.Gate]:
 
     return {
-        Q: DiagonalGate.random(acquaintance_size)
+        Q: cirq.DiagonalGate(np.random.random(2 ** acquaintance_size))
         for Q in combinations(cirq.LineQubit.range(num_qubits), acquaintance_size)
     }
 

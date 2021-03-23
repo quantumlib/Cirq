@@ -54,11 +54,7 @@ class MPSOptions:
 
 class MPSSimulator(
     simulator.SimulatesSamples,
-    simulator.SimulatesIntermediateState[
-        'cirq.contrib.quimb.mps_simulator.MPSSimulatorStepResult',
-        'cirq.contrib.quimb.mps_simulator.MPSTrialResult',
-        'cirq.contrib.quimb.mps_simulator.MPSState',
-    ],
+    simulator.SimulatesIntermediateState['MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState'],
 ):
     """An efficient simulator for MPS circuits."""
 
@@ -66,7 +62,7 @@ class MPSSimulator(
         self,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-        simulation_options: 'cirq.contrib.quimb.mps_simulator.MPSOptions' = MPSOptions(),
+        simulation_options: MPSOptions = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
     ):
         """Creates instance of `MPSSimulator`.
@@ -88,7 +84,7 @@ class MPSSimulator(
 
     def _base_iterator(
         self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
-    ) -> Iterator['cirq.contrib.quimb.mps_simulator.MPSSimulatorStepResult']:
+    ) -> Iterator['MPSSimulatorStepResult']:
         """Iterator over MPSSimulatorStepResult from Moments of a Circuit
 
         Args:
@@ -144,8 +140,8 @@ class MPSSimulator(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.contrib.quimb.mps_simulator.MPSState',
-    ) -> 'cirq.contrib.quimb.mps_simulator.MPSTrialResult':
+        final_simulator_state: 'MPSState',
+    ) -> 'MPSTrialResult':
         """Creates a single trial results with the measurements.
 
         Args:
@@ -183,7 +179,7 @@ class MPSSimulator(
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         self._check_all_resolved(resolved_circuit)
 
-        measurements = {}  # type: Dict[str, List[np.ndarray]]
+        measurements: Dict[str, List[np.ndarray]] = {}
 
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
@@ -292,7 +288,7 @@ class MPSState:
     def __init__(
         self,
         qubit_map: Dict['cirq.Qid', int],
-        simulation_options: 'cirq.contrib.quimb.mps_simulator.MPSOptions' = MPSOptions(),
+        simulation_options: MPSOptions = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
     ):
