@@ -14,7 +14,7 @@
 import os
 from collections import defaultdict
 from random import randint, random, sample, randrange
-from typing import Tuple, cast, AbstractSet
+from typing import Tuple, cast, AbstractSet, Optional
 
 import numpy as np
 import pytest
@@ -22,7 +22,7 @@ import sympy
 
 import cirq
 import cirq.testing
-from cirq import ops
+from cirq import ops, PointOptimizationSummary, Circuit
 
 
 class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
@@ -993,7 +993,9 @@ def test_insert_at_frontier():
             super().__init__()
             self.replacer = replacer
 
-        def optimization_at(self, circuit, index, op):
+        def optimization_at(
+            self, circuit: Circuit, index: int, op: 'cirq.Operation'
+        ) -> Optional[PointOptimizationSummary]:
             new_ops = self.replacer(op)
             return cirq.PointOptimizationSummary(
                 clear_span=1, clear_qubits=op.qubits, new_operations=new_ops

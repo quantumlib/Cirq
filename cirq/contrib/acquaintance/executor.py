@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import DefaultDict, Dict, Sequence, TYPE_CHECKING
+from typing import DefaultDict, Dict, Sequence, TYPE_CHECKING, Optional
 
 import abc
 from collections import defaultdict
 
-from cirq import circuits, devices, ops, protocols
+from cirq import circuits, devices, ops, protocols, PointOptimizationSummary
 
 from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
 from cirq.contrib.acquaintance.devices import is_acquaintance_strategy
@@ -81,7 +81,9 @@ class StrategyExecutor(circuits.PointOptimizer):
         super().optimize_circuit(strategy)
         return self.mapping.copy()
 
-    def optimization_at(self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'):
+    def optimization_at(
+        self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'
+    ) -> Optional[PointOptimizationSummary]:
         if isinstance(op.gate, AcquaintanceOpportunityGate):
             logical_indices = tuple(self.mapping[q] for q in op.qubits)
             logical_operations = self.execution_strategy.get_operations(logical_indices, op.qubits)
@@ -93,7 +95,7 @@ class StrategyExecutor(circuits.PointOptimizer):
 
         if isinstance(op, ops.GateOperation) and isinstance(op.gate, PermutationGate):
             op.gate.update_mapping(self.mapping, op.qubits)
-            return
+            return None
 
         raise TypeError(
             'Can only execute a strategy consisting of gates that '
