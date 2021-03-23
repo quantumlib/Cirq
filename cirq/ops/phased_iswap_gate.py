@@ -111,7 +111,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     def _eigen_shifts(self) -> List[float]:
         return [0.0, +0.5, -0.5]
 
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         phase = np.exp(1j * np.pi * self.phase_exponent)
         phase_matrix = np.diag([1, phase, phase.conjugate(), 1])
         inverse_phase_matrix = np.conjugate(phase_matrix)

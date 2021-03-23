@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='cirq.google.api.v2',
   syntax='proto3',
   serialized_options=_b('\n\035com.google.cirq.google.api.v2B\014ProgramProtoP\001'),
-  serialized_pb=_b('\n cirq/google/api/v2/program.proto\x12\x12\x63irq.google.api.v2\"\xd7\x01\n\x07Program\x12.\n\x08language\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.Language\x12.\n\x07\x63ircuit\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.CircuitH\x00\x12\x30\n\x08schedule\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.ScheduleH\x00\x12/\n\tconstants\x18\x04 \x03(\x0b\x32\x1c.cirq.google.api.v2.ConstantB\t\n\x07program\"g\n\x08\x43onstant\x12\x16\n\x0cstring_value\x18\x01 \x01(\tH\x00\x12\x34\n\rcircuit_value\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.CircuitH\x00\x42\r\n\x0b\x63onst_value\"\xd4\x01\n\x07\x43ircuit\x12K\n\x13scheduling_strategy\x18\x01 \x01(\x0e\x32..cirq.google.api.v2.Circuit.SchedulingStrategy\x12+\n\x07moments\x18\x02 \x03(\x0b\x32\x1a.cirq.google.api.v2.Moment\"O\n\x12SchedulingStrategy\x12#\n\x1fSCHEDULING_STRATEGY_UNSPECIFIED\x10\x00\x12\x14\n\x10MOMENT_BY_MOMENT\x10\x01\"}\n\x06Moment\x12\x31\n\noperations\x18\x01 \x03(\x0b\x32\x1d.cirq.google.api.v2.Operation\x12@\n\x12\x63ircuit_operations\x18\x02 \x03(\x0b\x32$.cirq.google.api.v2.CircuitOperation\"P\n\x08Schedule\x12\x44\n\x14scheduled_operations\x18\x03 \x03(\x0b\x32&.cirq.google.api.v2.ScheduledOperation\"`\n\x12ScheduledOperation\x12\x30\n\toperation\x18\x01 \x01(\x0b\x32\x1d.cirq.google.api.v2.Operation\x12\x18\n\x10start_time_picos\x18\x02 \x01(\x03\";\n\x08Language\x12\x10\n\x08gate_set\x18\x01 \x01(\t\x12\x1d\n\x15\x61rg_function_language\x18\x02 \x01(\t\"\x9b\x02\n\tOperation\x12&\n\x04gate\x18\x01 \x01(\x0b\x32\x18.cirq.google.api.v2.Gate\x12\x35\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\'.cirq.google.api.v2.Operation.ArgsEntry\x12)\n\x06qubits\x18\x03 \x03(\x0b\x32\x19.cirq.google.api.v2.Qubit\x12\x15\n\x0btoken_value\x18\x04 \x01(\tH\x00\x12\x1e\n\x14token_constant_index\x18\x05 \x01(\x05H\x00\x1a\x44\n\tArgsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg:\x02\x38\x01\x42\x07\n\x05token\"\x12\n\x04Gate\x12\n\n\x02id\x18\x01 \x01(\t\"\x13\n\x05Qubit\x12\n\n\x02id\x18\x02 \x01(\t\"\x9c\x01\n\x03\x41rg\x12\x31\n\targ_value\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.ArgValueH\x00\x12\x10\n\x06symbol\x18\x02 \x01(\tH\x00\x12/\n\x04\x66unc\x18\x03 \x01(\x0b\x32\x1f.cirq.google.api.v2.ArgFunctionH\x00\x12\x18\n\x0e\x63onstant_index\x18\x04 \x01(\x05H\x00\x42\x05\n\x03\x61rg\"\x9a\x01\n\x08\x41rgValue\x12\x15\n\x0b\x66loat_value\x18\x01 \x01(\x02H\x00\x12:\n\x0b\x62ool_values\x18\x02 \x01(\x0b\x32#.cirq.google.api.v2.RepeatedBooleanH\x00\x12\x16\n\x0cstring_value\x18\x03 \x01(\tH\x00\x12\x16\n\x0c\x64ouble_value\x18\x04 \x01(\x01H\x00\x42\x0b\n\targ_value\"!\n\x0fRepeatedBoolean\x12\x0e\n\x06values\x18\x01 \x03(\x08\"B\n\x0b\x41rgFunction\x12\x0c\n\x04type\x18\x01 \x01(\t\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.google.api.v2.Arg\"\xaf\x02\n\x10\x43ircuitOperation\x12\x1e\n\x16\x63ircuit_constant_index\x18\x01 \x01(\x05\x12M\n\x18repetition_specification\x18\x02 \x01(\x0b\x32+.cirq.google.api.v2.RepetitionSpecification\x12\x33\n\tqubit_map\x18\x03 \x01(\x0b\x32 .cirq.google.api.v2.QubitMapping\x12\x46\n\x13measurement_key_map\x18\x04 \x01(\x0b\x32).cirq.google.api.v2.MeasurementKeyMapping\x12/\n\x07\x61rg_map\x18\x05 \x01(\x0b\x32\x1e.cirq.google.api.v2.ArgMapping\"\xbc\x01\n\x17RepetitionSpecification\x12S\n\x0erepetition_ids\x18\x01 \x01(\x0b\x32\x39.cirq.google.api.v2.RepetitionSpecification.RepetitionIdsH\x00\x12\x1a\n\x10repetition_count\x18\x02 \x01(\x05H\x00\x1a\x1c\n\rRepetitionIds\x12\x0b\n\x03ids\x18\x01 \x03(\tB\x12\n\x10repetition_value\"\xa2\x01\n\x0cQubitMapping\x12\x37\n\x07\x65ntries\x18\x01 \x03(\x0b\x32&.cirq.google.api.v2.QubitMapping.Entry\x1aY\n\x05\x45ntry\x12&\n\x03key\x18\x01 \x01(\x0b\x32\x19.cirq.google.api.v2.Qubit\x12(\n\x05value\x18\x02 \x01(\x0b\x32\x19.cirq.google.api.v2.Qubit\"$\n\x0eMeasurementKey\x12\x12\n\nstring_key\x18\x01 \x01(\t\"\xc6\x01\n\x15MeasurementKeyMapping\x12@\n\x07\x65ntries\x18\x01 \x03(\x0b\x32/.cirq.google.api.v2.MeasurementKeyMapping.Entry\x1ak\n\x05\x45ntry\x12/\n\x03key\x18\x01 \x01(\x0b\x32\".cirq.google.api.v2.MeasurementKey\x12\x31\n\x05value\x18\x02 \x01(\x0b\x32\".cirq.google.api.v2.MeasurementKey\"\x9a\x01\n\nArgMapping\x12\x35\n\x07\x65ntries\x18\x01 \x03(\x0b\x32$.cirq.google.api.v2.ArgMapping.Entry\x1aU\n\x05\x45ntry\x12$\n\x03key\x18\x01 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.ArgB/\n\x1d\x63om.google.cirq.google.api.v2B\x0cProgramProtoP\x01\x62\x06proto3')
+  serialized_pb=_b('\n cirq/google/api/v2/program.proto\x12\x12\x63irq.google.api.v2\"\xd7\x01\n\x07Program\x12.\n\x08language\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.Language\x12.\n\x07\x63ircuit\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.CircuitH\x00\x12\x30\n\x08schedule\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.ScheduleH\x00\x12/\n\tconstants\x18\x04 \x03(\x0b\x32\x1c.cirq.google.api.v2.ConstantB\t\n\x07program\"g\n\x08\x43onstant\x12\x16\n\x0cstring_value\x18\x01 \x01(\tH\x00\x12\x34\n\rcircuit_value\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.CircuitH\x00\x42\r\n\x0b\x63onst_value\"\xd4\x01\n\x07\x43ircuit\x12K\n\x13scheduling_strategy\x18\x01 \x01(\x0e\x32..cirq.google.api.v2.Circuit.SchedulingStrategy\x12+\n\x07moments\x18\x02 \x03(\x0b\x32\x1a.cirq.google.api.v2.Moment\"O\n\x12SchedulingStrategy\x12#\n\x1fSCHEDULING_STRATEGY_UNSPECIFIED\x10\x00\x12\x14\n\x10MOMENT_BY_MOMENT\x10\x01\"}\n\x06Moment\x12\x31\n\noperations\x18\x01 \x03(\x0b\x32\x1d.cirq.google.api.v2.Operation\x12@\n\x12\x63ircuit_operations\x18\x02 \x03(\x0b\x32$.cirq.google.api.v2.CircuitOperation\"P\n\x08Schedule\x12\x44\n\x14scheduled_operations\x18\x03 \x03(\x0b\x32&.cirq.google.api.v2.ScheduledOperation\"`\n\x12ScheduledOperation\x12\x30\n\toperation\x18\x01 \x01(\x0b\x32\x1d.cirq.google.api.v2.Operation\x12\x18\n\x10start_time_picos\x18\x02 \x01(\x03\";\n\x08Language\x12\x10\n\x08gate_set\x18\x01 \x01(\t\x12\x1d\n\x15\x61rg_function_language\x18\x02 \x01(\t\"\x9b\x02\n\tOperation\x12&\n\x04gate\x18\x01 \x01(\x0b\x32\x18.cirq.google.api.v2.Gate\x12\x35\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\'.cirq.google.api.v2.Operation.ArgsEntry\x12)\n\x06qubits\x18\x03 \x03(\x0b\x32\x19.cirq.google.api.v2.Qubit\x12\x15\n\x0btoken_value\x18\x04 \x01(\tH\x00\x12\x1e\n\x14token_constant_index\x18\x05 \x01(\x05H\x00\x1a\x44\n\tArgsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg:\x02\x38\x01\x42\x07\n\x05token\"\x12\n\x04Gate\x12\n\n\x02id\x18\x01 \x01(\t\"\x13\n\x05Qubit\x12\n\n\x02id\x18\x02 \x01(\t\"\x9c\x01\n\x03\x41rg\x12\x31\n\targ_value\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.ArgValueH\x00\x12\x10\n\x06symbol\x18\x02 \x01(\tH\x00\x12/\n\x04\x66unc\x18\x03 \x01(\x0b\x32\x1f.cirq.google.api.v2.ArgFunctionH\x00\x12\x18\n\x0e\x63onstant_index\x18\x04 \x01(\x05H\x00\x42\x05\n\x03\x61rg\"\x9a\x01\n\x08\x41rgValue\x12\x15\n\x0b\x66loat_value\x18\x01 \x01(\x02H\x00\x12:\n\x0b\x62ool_values\x18\x02 \x01(\x0b\x32#.cirq.google.api.v2.RepeatedBooleanH\x00\x12\x16\n\x0cstring_value\x18\x03 \x01(\tH\x00\x12\x16\n\x0c\x64ouble_value\x18\x04 \x01(\x01H\x00\x42\x0b\n\targ_value\"!\n\x0fRepeatedBoolean\x12\x0e\n\x06values\x18\x01 \x03(\x08\"B\n\x0b\x41rgFunction\x12\x0c\n\x04type\x18\x01 \x01(\t\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.google.api.v2.Arg\"\xaf\x02\n\x10\x43ircuitOperation\x12\x1e\n\x16\x63ircuit_constant_index\x18\x01 \x01(\x05\x12M\n\x18repetition_specification\x18\x02 \x01(\x0b\x32+.cirq.google.api.v2.RepetitionSpecification\x12\x33\n\tqubit_map\x18\x03 \x01(\x0b\x32 .cirq.google.api.v2.QubitMapping\x12\x46\n\x13measurement_key_map\x18\x04 \x01(\x0b\x32).cirq.google.api.v2.MeasurementKeyMapping\x12/\n\x07\x61rg_map\x18\x05 \x01(\x0b\x32\x1e.cirq.google.api.v2.ArgMapping\"\xbc\x01\n\x17RepetitionSpecification\x12S\n\x0erepetition_ids\x18\x01 \x01(\x0b\x32\x39.cirq.google.api.v2.RepetitionSpecification.RepetitionIdsH\x00\x12\x1a\n\x10repetition_count\x18\x02 \x01(\x05H\x00\x1a\x1c\n\rRepetitionIds\x12\x0b\n\x03ids\x18\x01 \x03(\tB\x12\n\x10repetition_value\"\xac\x01\n\x0cQubitMapping\x12<\n\x07\x65ntries\x18\x01 \x03(\x0b\x32+.cirq.google.api.v2.QubitMapping.QubitEntry\x1a^\n\nQubitEntry\x12&\n\x03key\x18\x01 \x01(\x0b\x32\x19.cirq.google.api.v2.Qubit\x12(\n\x05value\x18\x02 \x01(\x0b\x32\x19.cirq.google.api.v2.Qubit\"$\n\x0eMeasurementKey\x12\x12\n\nstring_key\x18\x01 \x01(\t\"\xe2\x01\n\x15MeasurementKeyMapping\x12N\n\x07\x65ntries\x18\x01 \x03(\x0b\x32=.cirq.google.api.v2.MeasurementKeyMapping.MeasurementKeyEntry\x1ay\n\x13MeasurementKeyEntry\x12/\n\x03key\x18\x01 \x01(\x0b\x32\".cirq.google.api.v2.MeasurementKey\x12\x31\n\x05value\x18\x02 \x01(\x0b\x32\".cirq.google.api.v2.MeasurementKey\"\xa0\x01\n\nArgMapping\x12\x38\n\x07\x65ntries\x18\x01 \x03(\x0b\x32\'.cirq.google.api.v2.ArgMapping.ArgEntry\x1aX\n\x08\x41rgEntry\x12$\n\x03key\x18\x01 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.ArgB/\n\x1d\x63om.google.cirq.google.api.v2B\x0cProgramProtoP\x01\x62\x06proto3')
 )
 
 
@@ -798,22 +798,22 @@ _REPETITIONSPECIFICATION = _descriptor.Descriptor(
 )
 
 
-_QUBITMAPPING_ENTRY = _descriptor.Descriptor(
-  name='Entry',
-  full_name='cirq.google.api.v2.QubitMapping.Entry',
+_QUBITMAPPING_QUBITENTRY = _descriptor.Descriptor(
+  name='QubitEntry',
+  full_name='cirq.google.api.v2.QubitMapping.QubitEntry',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='key', full_name='cirq.google.api.v2.QubitMapping.Entry.key', index=0,
+      name='key', full_name='cirq.google.api.v2.QubitMapping.QubitEntry.key', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='value', full_name='cirq.google.api.v2.QubitMapping.Entry.value', index=1,
+      name='value', full_name='cirq.google.api.v2.QubitMapping.QubitEntry.value', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -831,8 +831,8 @@ _QUBITMAPPING_ENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2279,
-  serialized_end=2368,
+  serialized_start=2284,
+  serialized_end=2378,
 )
 
 _QUBITMAPPING = _descriptor.Descriptor(
@@ -852,7 +852,7 @@ _QUBITMAPPING = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_QUBITMAPPING_ENTRY, ],
+  nested_types=[_QUBITMAPPING_QUBITENTRY, ],
   enum_types=[
   ],
   serialized_options=None,
@@ -862,7 +862,7 @@ _QUBITMAPPING = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=2206,
-  serialized_end=2368,
+  serialized_end=2378,
 )
 
 
@@ -892,27 +892,27 @@ _MEASUREMENTKEY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2370,
-  serialized_end=2406,
+  serialized_start=2380,
+  serialized_end=2416,
 )
 
 
-_MEASUREMENTKEYMAPPING_ENTRY = _descriptor.Descriptor(
-  name='Entry',
-  full_name='cirq.google.api.v2.MeasurementKeyMapping.Entry',
+_MEASUREMENTKEYMAPPING_MEASUREMENTKEYENTRY = _descriptor.Descriptor(
+  name='MeasurementKeyEntry',
+  full_name='cirq.google.api.v2.MeasurementKeyMapping.MeasurementKeyEntry',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='key', full_name='cirq.google.api.v2.MeasurementKeyMapping.Entry.key', index=0,
+      name='key', full_name='cirq.google.api.v2.MeasurementKeyMapping.MeasurementKeyEntry.key', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='value', full_name='cirq.google.api.v2.MeasurementKeyMapping.Entry.value', index=1,
+      name='value', full_name='cirq.google.api.v2.MeasurementKeyMapping.MeasurementKeyEntry.value', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -930,8 +930,8 @@ _MEASUREMENTKEYMAPPING_ENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2500,
-  serialized_end=2607,
+  serialized_start=2524,
+  serialized_end=2645,
 )
 
 _MEASUREMENTKEYMAPPING = _descriptor.Descriptor(
@@ -951,7 +951,7 @@ _MEASUREMENTKEYMAPPING = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_MEASUREMENTKEYMAPPING_ENTRY, ],
+  nested_types=[_MEASUREMENTKEYMAPPING_MEASUREMENTKEYENTRY, ],
   enum_types=[
   ],
   serialized_options=None,
@@ -960,27 +960,27 @@ _MEASUREMENTKEYMAPPING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2409,
-  serialized_end=2607,
+  serialized_start=2419,
+  serialized_end=2645,
 )
 
 
-_ARGMAPPING_ENTRY = _descriptor.Descriptor(
-  name='Entry',
-  full_name='cirq.google.api.v2.ArgMapping.Entry',
+_ARGMAPPING_ARGENTRY = _descriptor.Descriptor(
+  name='ArgEntry',
+  full_name='cirq.google.api.v2.ArgMapping.ArgEntry',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='key', full_name='cirq.google.api.v2.ArgMapping.Entry.key', index=0,
+      name='key', full_name='cirq.google.api.v2.ArgMapping.ArgEntry.key', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='value', full_name='cirq.google.api.v2.ArgMapping.Entry.value', index=1,
+      name='value', full_name='cirq.google.api.v2.ArgMapping.ArgEntry.value', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -998,8 +998,8 @@ _ARGMAPPING_ENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2679,
-  serialized_end=2764,
+  serialized_start=2720,
+  serialized_end=2808,
 )
 
 _ARGMAPPING = _descriptor.Descriptor(
@@ -1019,7 +1019,7 @@ _ARGMAPPING = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_ARGMAPPING_ENTRY, ],
+  nested_types=[_ARGMAPPING_ARGENTRY, ],
   enum_types=[
   ],
   serialized_options=None,
@@ -1028,8 +1028,8 @@ _ARGMAPPING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2610,
-  serialized_end=2764,
+  serialized_start=2648,
+  serialized_end=2808,
 )
 
 _PROGRAM.fields_by_name['language'].message_type = _LANGUAGE
@@ -1107,18 +1107,18 @@ _REPETITIONSPECIFICATION.fields_by_name['repetition_ids'].containing_oneof = _RE
 _REPETITIONSPECIFICATION.oneofs_by_name['repetition_value'].fields.append(
   _REPETITIONSPECIFICATION.fields_by_name['repetition_count'])
 _REPETITIONSPECIFICATION.fields_by_name['repetition_count'].containing_oneof = _REPETITIONSPECIFICATION.oneofs_by_name['repetition_value']
-_QUBITMAPPING_ENTRY.fields_by_name['key'].message_type = _QUBIT
-_QUBITMAPPING_ENTRY.fields_by_name['value'].message_type = _QUBIT
-_QUBITMAPPING_ENTRY.containing_type = _QUBITMAPPING
-_QUBITMAPPING.fields_by_name['entries'].message_type = _QUBITMAPPING_ENTRY
-_MEASUREMENTKEYMAPPING_ENTRY.fields_by_name['key'].message_type = _MEASUREMENTKEY
-_MEASUREMENTKEYMAPPING_ENTRY.fields_by_name['value'].message_type = _MEASUREMENTKEY
-_MEASUREMENTKEYMAPPING_ENTRY.containing_type = _MEASUREMENTKEYMAPPING
-_MEASUREMENTKEYMAPPING.fields_by_name['entries'].message_type = _MEASUREMENTKEYMAPPING_ENTRY
-_ARGMAPPING_ENTRY.fields_by_name['key'].message_type = _ARG
-_ARGMAPPING_ENTRY.fields_by_name['value'].message_type = _ARG
-_ARGMAPPING_ENTRY.containing_type = _ARGMAPPING
-_ARGMAPPING.fields_by_name['entries'].message_type = _ARGMAPPING_ENTRY
+_QUBITMAPPING_QUBITENTRY.fields_by_name['key'].message_type = _QUBIT
+_QUBITMAPPING_QUBITENTRY.fields_by_name['value'].message_type = _QUBIT
+_QUBITMAPPING_QUBITENTRY.containing_type = _QUBITMAPPING
+_QUBITMAPPING.fields_by_name['entries'].message_type = _QUBITMAPPING_QUBITENTRY
+_MEASUREMENTKEYMAPPING_MEASUREMENTKEYENTRY.fields_by_name['key'].message_type = _MEASUREMENTKEY
+_MEASUREMENTKEYMAPPING_MEASUREMENTKEYENTRY.fields_by_name['value'].message_type = _MEASUREMENTKEY
+_MEASUREMENTKEYMAPPING_MEASUREMENTKEYENTRY.containing_type = _MEASUREMENTKEYMAPPING
+_MEASUREMENTKEYMAPPING.fields_by_name['entries'].message_type = _MEASUREMENTKEYMAPPING_MEASUREMENTKEYENTRY
+_ARGMAPPING_ARGENTRY.fields_by_name['key'].message_type = _ARG
+_ARGMAPPING_ARGENTRY.fields_by_name['value'].message_type = _ARG
+_ARGMAPPING_ARGENTRY.containing_type = _ARGMAPPING
+_ARGMAPPING.fields_by_name['entries'].message_type = _ARGMAPPING_ARGENTRY
 DESCRIPTOR.message_types_by_name['Program'] = _PROGRAM
 DESCRIPTOR.message_types_by_name['Constant'] = _CONSTANT
 DESCRIPTOR.message_types_by_name['Circuit'] = _CIRCUIT
@@ -1271,10 +1271,10 @@ _sym_db.RegisterMessage(RepetitionSpecification.RepetitionIds)
 
 QubitMapping = _reflection.GeneratedProtocolMessageType('QubitMapping', (_message.Message,), {
 
-  'Entry' : _reflection.GeneratedProtocolMessageType('Entry', (_message.Message,), {
-    'DESCRIPTOR' : _QUBITMAPPING_ENTRY,
+  'QubitEntry' : _reflection.GeneratedProtocolMessageType('QubitEntry', (_message.Message,), {
+    'DESCRIPTOR' : _QUBITMAPPING_QUBITENTRY,
     '__module__' : 'cirq.google.api.v2.program_pb2'
-    # @@protoc_insertion_point(class_scope:cirq.google.api.v2.QubitMapping.Entry)
+    # @@protoc_insertion_point(class_scope:cirq.google.api.v2.QubitMapping.QubitEntry)
     })
   ,
   'DESCRIPTOR' : _QUBITMAPPING,
@@ -1282,7 +1282,7 @@ QubitMapping = _reflection.GeneratedProtocolMessageType('QubitMapping', (_messag
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.QubitMapping)
   })
 _sym_db.RegisterMessage(QubitMapping)
-_sym_db.RegisterMessage(QubitMapping.Entry)
+_sym_db.RegisterMessage(QubitMapping.QubitEntry)
 
 MeasurementKey = _reflection.GeneratedProtocolMessageType('MeasurementKey', (_message.Message,), {
   'DESCRIPTOR' : _MEASUREMENTKEY,
@@ -1293,10 +1293,10 @@ _sym_db.RegisterMessage(MeasurementKey)
 
 MeasurementKeyMapping = _reflection.GeneratedProtocolMessageType('MeasurementKeyMapping', (_message.Message,), {
 
-  'Entry' : _reflection.GeneratedProtocolMessageType('Entry', (_message.Message,), {
-    'DESCRIPTOR' : _MEASUREMENTKEYMAPPING_ENTRY,
+  'MeasurementKeyEntry' : _reflection.GeneratedProtocolMessageType('MeasurementKeyEntry', (_message.Message,), {
+    'DESCRIPTOR' : _MEASUREMENTKEYMAPPING_MEASUREMENTKEYENTRY,
     '__module__' : 'cirq.google.api.v2.program_pb2'
-    # @@protoc_insertion_point(class_scope:cirq.google.api.v2.MeasurementKeyMapping.Entry)
+    # @@protoc_insertion_point(class_scope:cirq.google.api.v2.MeasurementKeyMapping.MeasurementKeyEntry)
     })
   ,
   'DESCRIPTOR' : _MEASUREMENTKEYMAPPING,
@@ -1304,14 +1304,14 @@ MeasurementKeyMapping = _reflection.GeneratedProtocolMessageType('MeasurementKey
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.MeasurementKeyMapping)
   })
 _sym_db.RegisterMessage(MeasurementKeyMapping)
-_sym_db.RegisterMessage(MeasurementKeyMapping.Entry)
+_sym_db.RegisterMessage(MeasurementKeyMapping.MeasurementKeyEntry)
 
 ArgMapping = _reflection.GeneratedProtocolMessageType('ArgMapping', (_message.Message,), {
 
-  'Entry' : _reflection.GeneratedProtocolMessageType('Entry', (_message.Message,), {
-    'DESCRIPTOR' : _ARGMAPPING_ENTRY,
+  'ArgEntry' : _reflection.GeneratedProtocolMessageType('ArgEntry', (_message.Message,), {
+    'DESCRIPTOR' : _ARGMAPPING_ARGENTRY,
     '__module__' : 'cirq.google.api.v2.program_pb2'
-    # @@protoc_insertion_point(class_scope:cirq.google.api.v2.ArgMapping.Entry)
+    # @@protoc_insertion_point(class_scope:cirq.google.api.v2.ArgMapping.ArgEntry)
     })
   ,
   'DESCRIPTOR' : _ARGMAPPING,
@@ -1319,7 +1319,7 @@ ArgMapping = _reflection.GeneratedProtocolMessageType('ArgMapping', (_message.Me
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.ArgMapping)
   })
 _sym_db.RegisterMessage(ArgMapping)
-_sym_db.RegisterMessage(ArgMapping.Entry)
+_sym_db.RegisterMessage(ArgMapping.ArgEntry)
 
 
 DESCRIPTOR._options = None
