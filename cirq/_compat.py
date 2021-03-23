@@ -345,10 +345,12 @@ class DeprecatedModuleLoader(importlib.abc.Loader):
                 return sys.modules[self.old_module_name]
             method(self.new_module_name)
             # https://docs.python.org/3.5/library/importlib.html#importlib.abc.Loader.load_module
-            assert self.new_module_name in sys.modules, (f"Wrapped loader {self.loader} was "
-                                                         f"expected to insert "
-                                                         f"{self.new_module_name} in sys.modules "
-                                                         f"but it did not.")
+            assert self.new_module_name in sys.modules, (
+                f"Wrapped loader {self.loader} was "
+                f"expected to insert "
+                f"{self.new_module_name} in sys.modules "
+                f"but it did not."
+            )
             sys.modules[self.old_module_name] = sys.modules[self.new_module_name]
             return sys.modules[self.old_module_name]
 
