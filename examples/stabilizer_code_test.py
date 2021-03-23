@@ -51,12 +51,12 @@ def test_errors():
 
 def test_imperfect_code():
     # Also known as the bit-flip code.
-    seven_qubit_code = sc.StabilizerCode(group_generators=['ZZI', 'ZIZ'], allowed_errors=['X'])
+    bit_flip_code = sc.StabilizerCode(group_generators=['ZZI', 'ZIZ'], allowed_errors=['X'])
 
-    for error_gate in [cirq.X]:
-        for error_loc in range(seven_qubit_code.n):
-            for input_val in [0, 1]:
+    for input_val in [0, 1]:
+        for error_gate in [cirq.X, cirq.Z]:
+            for error_loc in range(bit_flip_code.n):
                 assert (
-                    encode_corrupt_correct(seven_qubit_code, input_val, error_gate, error_loc)
+                    encode_corrupt_correct(bit_flip_code, input_val, error_gate, error_loc)
                     == input_val
                 )

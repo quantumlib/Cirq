@@ -9,6 +9,11 @@ import cirq
 
 
 def _BuildByCode(mat):
+    """
+    Takes into input a matrix of Boolean interpreted as row-vectors, each having dimension 2 * n.
+    The matrix is converted into another matrix with as many rows, but this time the vectors
+    contain the letters I, X, Y, and Z representing Pauli operators.
+    """
     out = []
     n = mat.shape[1] // 2
     for i in range(mat.shape[0]):
@@ -26,7 +31,27 @@ def _BuildByCode(mat):
     return out
 
 
+# It was considered to use scipy.linalg.lu but it seems to be only for real numbers and does
+# not allow to restrict only on a section of the matrix.
 def _GaussianElimination(M, min_row, max_row, min_col, max_col):
+    """
+    Performs a Gaussian elemination of the input matrix and transforms it into its reduced row
+    echelon form. The elimination is done only on a sub-section of the matrix (specified) by
+    ranges of rows and columns. The matrix elements are integers {0, 1} interpreted as elements
+    of GF(2).
+
+    In short, this is the implementation of section 4.1 of the thesis.
+
+    Args:
+        M: The input/output matrix
+        min_row: The minimum row (inclusive) where the perform the elimination.
+        max_row: The maximum row (exclusive) where the perform the elimination.
+        min_col: The minimum column (inclusive) where the perform the elimination.
+        max_col: The maximum column (exclusive) where the perform the elimination.
+
+    Returns:
+        The rank of the matrix.
+    """
     max_rank = min(max_row - min_row, max_col - min_col)
 
     rank = 0
@@ -70,7 +95,10 @@ class StabilizerCode(object):
         n = len(group_generators[0])
         k = n - len(group_generators)
 
-        # Build the matrix defined in section 3.4
+        # Build the matrix defined in section 3.4. Each row corresponds to one generator of the
+        # code, which is a vector of dimension n. The elements of the vectors are Pauli matrices
+        # encoded as I, X, Y, or Z. However, as described in the thesis, we encode the Pauli
+        # vector of 2*n Booleans.
         M = np.zeros((n - k, 2 * n), np.int8)
         for i, group_generator in enumerate(group_generators):
             for j, c in enumerate(group_generator):
@@ -89,8 +117,8 @@ class StabilizerCode(object):
         # B = M[0:r, n : (n + r)]
         C1 = M[0:r, (n + r) : (2 * n - k)]
         C2 = M[0:r, (2 * n - k) : (2 * n)]
-        # D = M[r : (2 * n), n : (n + r)]
-        E = M[r : (2 * n), (2 * n - k) : (2 * n)]
+        # D = M[r : (n - k), n : (n + r)]
+        E = M[r : (n - k), (2 * n - k) : (2 * n)]
 
         X = np.concatenate(
             [
@@ -131,6 +159,16 @@ class StabilizerCode(object):
                 self.syndromes_to_corrections[syndrome] = (op, qid)
 
     def encode(self, qubits):
+        """
+        Creates a circuit that encodes the qubits using the code words.
+
+        Args:
+            qubits: The list of qubits where to encode the message. This should be a vector of
+            length self.n where the last self.k qubits are the un-encoded qubits.
+
+        Returns:
+            A circuit where the self.n qubits are the encoded qubits.
+        """
         circuit = cirq.Circuit()
 
         # Equation 4.8:
@@ -161,22 +199,39 @@ class StabilizerCode(object):
         return circuit
 
     def correct(self, qubits, ancillas):
-        # We set the ancillas so that measuring them directly would be the same
-        # as measuring the qubits with Pauli strings. In other words, we store
-        # the syndrome inside the ancillas.
+        """
+        Creates a correction circuit by computing the syndrom on the ancillas, and then using this
+        syndrome to correct the qubits.correct
 
+        Args:
+            qubits: a vector of self.n qubits that contains (potentially corrupted) code words
+            ancillas: a vector of self.n - self.k qubits that are set to zero and will contain the
+                syndrome once the circuit is applied.
+
+        Returns:
+            The circuit that both computes the syndrome and uses this syndrome to correct errors.
+        """
         circuit = cirq.Circuit()
 
         gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z}
 
+        # We set the ancillas so that measuring them directly would be the same
+        # as measuring the qubits with Pauli strings. In other words, we store
+        # the syndrome inside the ancillas.
         for r in range(self.n - self.k):
-            circuit.append(cirq.H(ancillas[r]))
             for n in range(self.n):
-                if self.M[r][n] == 'I':
-                    continue
-                op = gate_dict[self.M[r][n]]
-                circuit.append(cirq.ControlledOperation([ancillas[r]], op(qubits[n])))
-            circuit.append(cirq.H(ancillas[r]))
+                if self.M[r][n] == 'Z':
+                    circuit.append(cirq.ControlledOperation([qubits[n]], cirq.X(ancillas[r])))
+                elif self.M[r][n] == 'X':
+                    circuit.append(cirq.H(qubits[n]))
+                    circuit.append(cirq.ControlledOperation([qubits[n]], cirq.X(ancillas[r])))
+                    circuit.append(cirq.H(qubits[n]))
+                elif self.M[r][n] == 'Y':
+                    circuit.append(cirq.S(qubits[n]) ** -1)
+                    circuit.append(cirq.H(qubits[n]))
+                    circuit.append(cirq.ControlledOperation([qubits[n]], cirq.X(ancillas[r])))
+                    circuit.append(cirq.H(qubits[n]))
+                    circuit.append(cirq.S(qubits[n]))
 
         # At this stage, the ancillas are equal to the syndrome. Now, we apply
         # the errors back to correct the code.
@@ -199,6 +254,17 @@ class StabilizerCode(object):
         return circuit
 
     def decode(self, qubits, ancillas, state_vector):
+        """
+        Computes the output of the circuit by projecting onto the \bar{Z}.
+
+        Args:
+            qubit: the qubits where the (now corrected) code words are stored.
+            ancillas: the qubits where the syndrome is stored
+            state_vector: a vector containing the state of the entire circuit
+
+        Returns:
+            The decoded and measured code words.
+        """
         qubit_map = {qubit: i for i, qubit in enumerate(qubits + ancillas)}
 
         decoded = []
