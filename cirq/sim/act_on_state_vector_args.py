@@ -157,7 +157,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
 
     def _perform_measurement(self) -> List[int]:
-        """Delegates the call to measure the density matrix."""
+        """Delegates the call to measure the state vector."""
         bits, _ = sim.measure_state_vector(
             self.target_tensor,
             self.axes,

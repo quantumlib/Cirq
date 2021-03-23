@@ -280,7 +280,9 @@ output state: TensorNetwork([
 
 def test_empty_step_result():
     q0 = cirq.LineQubit(0)
-    state = ccq.mps_simulator.MPSState(qubit_map={q0: 0}, prng=value.parse_random_state(0), axes=[], log_of_measurement_results={})
+    state = ccq.mps_simulator.MPSState(
+        qubit_map={q0: 0}, prng=value.parse_random_state(0), axes=[], log_of_measurement_results={}
+    )
     step_result = ccq.mps_simulator.MPSSimulatorStepResult(state, measurements={'0': [1]})
     assert (
         str(step_result)
