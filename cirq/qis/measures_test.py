@@ -165,6 +165,13 @@ def test_fidelity_product_states():
         )
 
 
+def test_fidelity_fail_inference():
+    state_vector = cirq.one_hot(shape=(4,), dtype=np.complex128)
+    state_tensor = np.reshape(state_vector, (2, 2))
+    with pytest.raises(ValueError, match='qid shape'):
+        _ = cirq.fidelity(state_tensor, 4)
+
+
 def test_fidelity_bad_shape():
     with pytest.raises(ValueError, match='Invalid quantum state'):
         _ = cirq.fidelity(np.array([[[1.0]]]), np.array([[[1.0]]]), qid_shape=(1,))

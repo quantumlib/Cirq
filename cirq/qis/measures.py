@@ -133,7 +133,13 @@ def fidelity(
 
     # Use QuantumState machinery for the general case
     if qid_shape is None:
-        qid_shape = infer_qid_shape(state1, state2)
+        try:
+            qid_shape = infer_qid_shape(state1, state2)
+        except:
+            raise ValueError(
+                'Failed to infer the qid shape of the given states. '
+                'Please specify the qid shape explicitly using the `qid_shape` argument.'
+            )
     state1 = quantum_state(state1, qid_shape=qid_shape, validate=validate, atol=atol)
     state2 = quantum_state(state2, qid_shape=qid_shape, validate=validate, atol=atol)
     state1 = state1.density_matrix() if state1._is_density_matrix() else state1.state_vector()
@@ -160,7 +166,7 @@ def _numpy_arrays_to_state_vectors_or_density_matrices(
             if qid_shape is None:
                 # Ambiguous whether state tensor or density matrix
                 raise ValueError(
-                    'The qid shape of the given states is ambiguous.'
+                    'The qid shape of the given states is ambiguous. '
                     'Try specifying the qid shape explicitly or '
                     'using a wrapper function like cirq.density_matrix.'
                 )
