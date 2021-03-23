@@ -86,7 +86,7 @@ def test_plot_state_histogram_deprecation():
         'It will be removed in cirq v0.12.\n'
         'use cirq.vis.plot_state_histogram or cirq.vis.get_state_histogram instead',
         deadline="v0.12",
-        count=2,  # The second warning is due to matplotlib.
+        count=None,  # Another warning is due to matplotlib.
     ):
         simulator = cirq.Simulator()
         q = cirq.NamedQubit("a")
