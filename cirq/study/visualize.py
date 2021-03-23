@@ -16,7 +16,6 @@
 
 from typing import TYPE_CHECKING, Optional
 import numpy as np
-import cirq.vis as vis
 from cirq._compat import deprecated
 
 if TYPE_CHECKING:
@@ -41,6 +40,9 @@ def plot_state_histogram(result: 'result.Result', ax: Optional['plt.Axis'] = Non
     Returns:
         The histogram. A list of values plotted on the y-axis.
     """
+    # Needed to avoid circular imports.
+    import cirq.vis as vis
+
     values = vis.get_state_histogram(result)
     vis.plot_state_histogram(values, ax)
     return values
