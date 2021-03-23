@@ -14,7 +14,7 @@
 
 """Quantum gates that phase with respect to product-of-pauli observables."""
 
-from typing import Optional, Tuple, Union, TYPE_CHECKING
+from typing import List, Optional, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -61,7 +61,7 @@ class XXPowGate(
     this class.
     """
 
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (
                 0.0,
@@ -170,7 +170,7 @@ class YYPowGate(
         $$
     """
 
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (
                 0.0,
@@ -277,7 +277,7 @@ class ZZPowGate(
             exponent=-2 * self.exponent, global_shift=-self.global_shift / 2
         )(qubits[0], qubits[1])
 
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (0, np.diag([1, 0, 0, 1])),
             (1, np.diag([0, 1, 1, 0])),
