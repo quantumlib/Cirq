@@ -54,9 +54,15 @@ def test_imperfect_code():
     bit_flip_code = sc.StabilizerCode(group_generators=['ZZI', 'ZIZ'], allowed_errors=['X'])
 
     for input_val in [0, 1]:
-        for error_gate in [cirq.X, cirq.Z]:
+        for error_gate in [cirq.X]:
             for error_loc in range(bit_flip_code.n):
                 assert (
                     encode_corrupt_correct(bit_flip_code, input_val, error_gate, error_loc)
                     == input_val
                 )
+
+    # NOTE(tonybruguier): Even though the state vector shows that we cannot correct the error,
+    # the decoded qubit is incorrect but only because it has the wrong phase. Since the Pauli
+    # string measurement doesn't capture the phase it doesn't detect the error.
+    # TODO(tonybruguier): Have a unit test that captures the fact that this code cannot correct
+    # phase errors.
