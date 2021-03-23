@@ -44,7 +44,7 @@ class CCZPowGate(
     The matrix of `CCZ**t` is `diag(1, 1, 1, 1, 1, 1, 1, exp(i pi t))`.
     """
 
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (0, np.diag([1, 1, 1, 1, 1, 1, 1, 0])),
             (1, np.diag([0, 0, 0, 0, 0, 0, 0, 1])),
@@ -194,7 +194,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         }
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
+        self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'ThreeQubitDiagonalGate':
         return self.__class__(
             [
@@ -333,7 +333,7 @@ class CCXPowGate(
     is the matrix of `X**t`.
     """
 
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (0, linalg.block_diag(np.diag([1, 1, 1, 1, 1, 1]), np.array([[0.5, 0.5], [0.5, 0.5]]))),
             (

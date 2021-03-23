@@ -14,7 +14,7 @@
 import os
 from collections import defaultdict
 from random import randint, random, sample, randrange
-from typing import Tuple, cast, AbstractSet
+from typing import Tuple
 
 import numpy as np
 import pytest
@@ -23,6 +23,46 @@ import sympy
 import cirq
 import cirq.testing
 from cirq import ops
+from cirq.testing.devices import ValidatingTestDevice
+
+
+class _Foxy(ValidatingTestDevice):
+    def can_add_operation_into_moment(
+        self, operation: 'ops.Operation', moment: 'ops.Moment'
+    ) -> bool:
+        if not super().can_add_operation_into_moment(operation, moment):
+            return False
+        # a fake rule for ensuring that no two CZs are executed at the same moment.
+        # this will ensure that CZs are always in separate moments in this device
+        return not (
+            isinstance(operation.gate, ops.CZPowGate)
+            and any(isinstance(op.gate, ops.CZPowGate) for op in moment.operations)
+        )
+
+
+FOXY = _Foxy(
+    allowed_qubit_types=(cirq.GridQubit,),
+    allowed_gates=(
+        ops.CZPowGate,
+        ops.XPowGate,
+        ops.YPowGate,
+        ops.ZPowGate,
+    ),
+    qubits=set(cirq.GridQubit.rect(2, 7)),
+    name=f'{__name__}.FOXY',
+    auto_decompose_gates=(ops.CCXPowGate,),
+    validate_locality=True,
+)
+
+
+BCONE = ValidatingTestDevice(
+    allowed_qubit_types=(cirq.GridQubit,),
+    allowed_gates=(ops.XPowGate,),
+    qubits={
+        cirq.GridQubit(0, 6),
+    },
+    name=f'{__name__}.BCONE',
+)
 
 
 class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
@@ -341,7 +381,7 @@ def test_repr(circuit_cls):
 
     c = circuit_cls(device=FOXY)
     cirq.testing.assert_equivalent_repr(c)
-    assert repr(c) == f'cirq.{circuit_cls.__name__}(device=cirq.circuits.circuit_test.FOXY)'
+    assert repr(c) == f'cirq.{circuit_cls.__name__}(device={repr(FOXY)})'
 
     c = circuit_cls(cirq.Z(cirq.GridQubit(0, 0)), device=FOXY)
     cirq.testing.assert_equivalent_repr(c)
@@ -351,7 +391,7 @@ def test_repr(circuit_cls):
     cirq.Moment(
         cirq.Z(cirq.GridQubit(0, 0)),
     ),
-], device=cirq.circuits.circuit_test.FOXY)"""
+], device={repr(FOXY)})"""
     )
 
 
@@ -582,81 +622,6 @@ def test_concatenate_with_device():
     with pytest.raises(ValueError):
         _ = cone + unr
     assert len(cone) == 0
-
-
-class ValidatingTestDevice(cirq.Device):
-    """A fake device that was created to ensure certain Device validation features are
-    leveraged in Circuit functions. It contains the minimum set of features that tests
-    require. Feel free to extend the features here as needed."""
-
-    def __init__(
-        self,
-        allowed_qubit_types: Tuple[type, ...],
-        allowed_gates: Tuple[type, ...],
-        qubits: AbstractSet[cirq.Qid],
-        name: str,
-    ):
-        self.allowed_qubit_types = allowed_qubit_types
-        self.allowed_gates = allowed_gates
-        self.qubits = qubits
-        self._repr = name
-
-    def validate_operation(self, operation: cirq.Operation) -> None:
-        # This is pretty close to what the cirq.google.XmonDevice has for validation
-        for q in operation.qubits:
-            if not isinstance(q, self.allowed_qubit_types):
-                raise ValueError(f"Unsupported qubit type: {type(q)!r}")
-            if q not in self.qubits:
-                raise ValueError(f'Qubit not on device: {q!r}')
-        if not isinstance(operation.gate, self.allowed_gates):
-            raise ValueError(f"Unsupported gate type: {operation.gate!r}")
-        if len(operation.qubits) == 2 and not isinstance(operation.gate, ops.MeasurementGate):
-            p, q = operation.qubits
-            if not cast(cirq.GridQubit, p).is_adjacent(q):
-                raise ValueError(f'Non-local interaction: {operation!r}.')
-
-    def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
-        # a fake decomposer for only TOFFOLI gates
-        if isinstance(operation.gate, cirq.CCXPowGate):
-            return cirq.decompose(operation)
-        return operation
-
-    def can_add_operation_into_moment(
-        self, operation: 'cirq.Operation', moment: 'cirq.Moment'
-    ) -> bool:
-        if not super().can_add_operation_into_moment(operation, moment):
-            return False
-        # a fake rule for ensuring that no two CZs are executed at the same moment.
-        # this will ensure that CZs are always in separate moments in this device11
-        return not (
-            isinstance(operation.gate, cirq.CZPowGate)
-            and any(isinstance(op.gate, cirq.CZPowGate) for op in moment.operations)
-        )
-
-    def __repr__(self):
-        return self._repr
-
-
-FOXY = ValidatingTestDevice(
-    allowed_qubit_types=(cirq.GridQubit,),
-    allowed_gates=(
-        ops.CZPowGate,
-        ops.XPowGate,
-        ops.YPowGate,
-        ops.ZPowGate,
-    ),
-    qubits=set(cirq.GridQubit.rect(2, 7)),
-    name='cirq.circuits.circuit_test.FOXY',
-)
-
-BCONE = ValidatingTestDevice(
-    allowed_qubit_types=(cirq.GridQubit,),
-    allowed_gates=(cirq.XPowGate,),
-    qubits={
-        cirq.GridQubit(0, 6),
-    },
-    name='cirq.circuits.circuit_test.BCONE',
-)
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])

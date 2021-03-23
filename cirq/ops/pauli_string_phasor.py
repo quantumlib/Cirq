@@ -156,11 +156,13 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
             self.exponent_pos
         )
 
-    def _resolve_parameters_(self, param_resolver, recursive) -> 'PauliStringPhasor':
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'PauliStringPhasor':
         return PauliStringPhasor(
             self.pauli_string,
-            exponent_neg=param_resolver.value_of(self.exponent_neg, recursive),
-            exponent_pos=param_resolver.value_of(self.exponent_pos, recursive),
+            exponent_neg=resolver.value_of(self.exponent_neg, recursive),
+            exponent_pos=resolver.value_of(self.exponent_pos, recursive),
         )
 
     def pass_operations_over(
