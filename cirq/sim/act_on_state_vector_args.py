@@ -167,6 +167,15 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
         return bits
 
+    def copy(self):
+        return ActOnStateVectorArgs(
+            self.target_tensor.copy(),
+            self.available_buffer.copy(),
+            [a for a in self.axes],
+            self.prng,
+            self.log_of_measurement_results.copy(),
+        )
+
 
 def _strat_act_on_state_vector_from_apply_unitary(
     unitary_value: Any,

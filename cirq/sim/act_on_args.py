@@ -13,12 +13,14 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
-from typing import Any, Iterable, Dict, List
+from typing import Any, Iterable, Dict, List, TypeVar
 
 import numpy as np
 
 from cirq import protocols
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
+
+TSelf = TypeVar('TSelf', bound='ActOnArgs')
 
 
 class ActOnArgs:
@@ -63,6 +65,10 @@ class ActOnArgs:
     def _perform_measurement(self) -> List[int]:
         """Child classes that perform measurements should implement this with
         the implementation."""
+
+    @abc.abstractmethod
+    def copy(self: TSelf) -> TSelf:
+        """Creates a copy of the object."""
 
 
 def strat_act_on_from_apply_decompose(

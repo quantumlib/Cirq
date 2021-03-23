@@ -92,6 +92,16 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         )
         return bits
 
+    def copy(self):
+        return ActOnDensityMatrixArgs(
+            self.target_tensor.copy(),
+            [b.copy() for b in self.available_buffer],
+            [a for a in self.axes],
+            self.qid_shape,
+            self.prng,
+            self.log_of_measurement_results.copy(),
+        )
+
 
 def _strat_apply_channel_to_state(
     action: Any,

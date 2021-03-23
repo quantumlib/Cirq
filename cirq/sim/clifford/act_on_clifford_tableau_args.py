@@ -77,6 +77,14 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         """Returns the measurement from the tableau."""
         return [self.tableau._measure(q, self.prng) for q in self.axes]
 
+    def copy(self):
+        return ActOnCliffordTableauArgs(
+            self.tableau.copy(),
+            [a for a in self.axes],
+            self.prng,
+            self.log_of_measurement_results.copy(),
+        )
+
 
 def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
     val: Any, args: 'cirq.ActOnCliffordTableauArgs'

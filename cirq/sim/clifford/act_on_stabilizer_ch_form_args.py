@@ -72,6 +72,14 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         """Returns the measurement from the stabilizer state form."""
         return [self.state._measure(q, self.prng) for q in self.axes]
 
+    def copy(self):
+        return ActOnStabilizerCHFormArgs(
+            self.state.copy(),
+            [a for a in self.axes],
+            self.prng,
+            self.log_of_measurement_results.copy(),
+        )
+
 
 def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
     val: Any, args: 'cirq.ActOnStabilizerCHFormArgs'
