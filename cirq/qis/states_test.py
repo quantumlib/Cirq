@@ -196,7 +196,7 @@ def test_infer_qid_shape():
     product_state_1 = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1)
 
     assert (
-        cirq.infer_qid_shape(
+        cirq.qis.infer_qid_shape(
             computational_basis_state_1,
             state_vector_1,
             state_tensor_1,
@@ -207,7 +207,7 @@ def test_infer_qid_shape():
     )
 
     assert (
-        cirq.infer_qid_shape(
+        cirq.qis.infer_qid_shape(
             product_state_1,
             density_matrix_1,
             state_tensor_1,
@@ -218,7 +218,7 @@ def test_infer_qid_shape():
     )
 
     assert (
-        cirq.infer_qid_shape(
+        cirq.qis.infer_qid_shape(
             computational_basis_state_1,
             computational_basis_state_2,
             computational_basis_state_4,
@@ -227,38 +227,38 @@ def test_infer_qid_shape():
         == (1, 2, 3, 4)
     )
 
-    assert cirq.infer_qid_shape(state_vector_2, density_matrix_2, computational_basis_state_4) == (
-        24,
-    )
+    assert cirq.qis.infer_qid_shape(
+        state_vector_2, density_matrix_2, computational_basis_state_4
+    ) == (24,)
 
-    assert cirq.infer_qid_shape(state_tensor_2, density_matrix_2) == (1, 2, 3, 4)
-
-    with pytest.raises(ValueError, match='Failed'):
-        _ = cirq.infer_qid_shape(computational_basis_state_1, computational_basis_state_5)
-
-    with pytest.raises(ValueError, match='ambiguous'):
-        _ = cirq.infer_qid_shape(computational_basis_state_1)
-
-    with pytest.raises(ValueError, match='ambiguous'):
-        _ = cirq.infer_qid_shape(computational_basis_state_4)
-
-    with pytest.raises(ValueError, match='ambiguous'):
-        _ = cirq.infer_qid_shape(state_tensor_1)
-
-    with pytest.raises(ValueError, match='ambiguous'):
-        _ = cirq.infer_qid_shape(density_matrix_1)
-
-    with pytest.raises(ValueError, match='ambiguous'):
-        _ = cirq.infer_qid_shape(computational_basis_state_1, computational_basis_state_2)
+    assert cirq.qis.infer_qid_shape(state_tensor_2, density_matrix_2) == (1, 2, 3, 4)
 
     with pytest.raises(ValueError, match='Failed'):
-        _ = cirq.infer_qid_shape(state_vector_1, computational_basis_state_4)
+        _ = cirq.qis.infer_qid_shape(computational_basis_state_1, computational_basis_state_5)
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.qis.infer_qid_shape(computational_basis_state_1)
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.qis.infer_qid_shape(computational_basis_state_4)
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.qis.infer_qid_shape(state_tensor_1)
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.qis.infer_qid_shape(density_matrix_1)
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.qis.infer_qid_shape(computational_basis_state_1, computational_basis_state_2)
+
+    with pytest.raises(ValueError, match='Failed'):
+        _ = cirq.qis.infer_qid_shape(state_vector_1, computational_basis_state_4)
 
     with pytest.raises(ValueError, match='Failed to infer'):
-        _ = cirq.infer_qid_shape(state_vector_1, state_vector_2)
+        _ = cirq.qis.infer_qid_shape(state_vector_1, state_vector_2)
 
     with pytest.raises(ValueError, match='Failed to infer'):
-        _ = cirq.infer_qid_shape(computational_basis_state_3, state_tensor_2)
+        _ = cirq.qis.infer_qid_shape(computational_basis_state_3, state_tensor_2)
 
 
 @pytest.mark.parametrize('global_phase', (1, 1j, np.exp(1j)))
