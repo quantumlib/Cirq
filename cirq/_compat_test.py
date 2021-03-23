@@ -681,7 +681,7 @@ def test_loader_cleanup_on_failure():
 
 
 def test_loader_create_module():
-    class EmptyLoader:
+    class EmptyLoader(importlib.abc.Loader):
         pass
 
     dml = DeprecatedModuleLoader(EmptyLoader(), 'old', 'new')
