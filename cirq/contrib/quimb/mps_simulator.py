@@ -17,7 +17,6 @@ This is based on this paper:
 https://arxiv.org/abs/2002.07730
 """
 
-import collections
 import math
 from typing import Any, Dict, List, Iterator, Optional, Sequence, Set, TYPE_CHECKING, Iterable
 
