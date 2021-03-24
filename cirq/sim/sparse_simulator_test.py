@@ -89,7 +89,7 @@ def test_run_bit_flips(dtype):
 def test_run_measure_at_end_no_repetitions(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, 'iterate_circuit', wraps=simulator.iterate_circuit) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -114,7 +114,7 @@ def test_run_repetitions_terminal_measurement_stochastic():
 def test_run_repetitions_measure_at_end(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, 'iterate_circuit', wraps=simulator.iterate_circuit) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -131,7 +131,7 @@ def test_run_repetitions_measure_at_end(dtype):
 def test_run_invert_mask_measure_not_terminal(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, 'iterate_circuit', wraps=simulator.iterate_circuit) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -151,7 +151,7 @@ def test_run_invert_mask_measure_not_terminal(dtype):
 def test_run_partial_invert_mask_measure_not_terminal(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, 'iterate_circuit', wraps=simulator.iterate_circuit) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -171,7 +171,7 @@ def test_run_partial_invert_mask_measure_not_terminal(dtype):
 def test_run_measurement_not_terminal_no_repetitions(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, 'iterate_circuit', wraps=simulator.iterate_circuit) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -194,7 +194,7 @@ def test_run_measurement_not_terminal_no_repetitions(dtype):
 def test_run_repetitions_measurement_not_terminal(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, 'iterate_circuit', wraps=simulator.iterate_circuit) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(

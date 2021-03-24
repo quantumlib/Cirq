@@ -182,11 +182,12 @@ class Simulator(
             if protocols.has_unitary(self.noise)
             else (resolved_circuit[0:0], resolved_circuit)
         )
+        acton_args = self.create_act_on_args(unitary_prefix, qubit_order, 0)
         step_result = None
-        for step_result in self._base_iterator(
+        for step_result in self.iterate_circuit(
             circuit=unitary_prefix,
             qubit_order=qubit_order,
-            initial_state=0,
+            sim_state=acton_args,
         ):
             pass
         assert step_result is not None
@@ -201,10 +202,8 @@ class Simulator(
                 seed=self._prng,
             )
 
-        qid_shape = protocols.qid_shape(qubit_order)
-        intermediate_state = step_result.state_vector().reshape(qid_shape)
         return self._brute_force_samples(
-            initial_state=intermediate_state,
+            acton_args=acton_args,
             circuit=general_suffix,
             repetitions=repetitions,
             qubit_order=qubit_order,
@@ -212,7 +211,7 @@ class Simulator(
 
     def _brute_force_samples(
         self,
-        initial_state: np.ndarray,
+        acton_args: act_on_state_vector_args.ActOnStateVectorArgs,
         circuit: circuits.Circuit,
         qubit_order: 'cirq.QubitOrderOrList',
         repetitions: int,
@@ -221,8 +220,8 @@ class Simulator(
 
         measurements: DefaultDict[str, List[np.ndarray]] = collections.defaultdict(list)
         for _ in range(repetitions):
-            all_step_results = self._base_iterator(
-                circuit, initial_state=initial_state, qubit_order=qubit_order
+            all_step_results = self.iterate_circuit(
+                circuit, sim_state=acton_args.copy(), qubit_order=qubit_order
             )
 
             for step_result in all_step_results:

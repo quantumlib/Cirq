@@ -181,14 +181,13 @@ class DensityMatrixSimulator(
             pass
         assert step_result is not None
 
-        intermediate_state = acton_args.copy()
         if general_suffix.are_all_measurements_terminal() and not any(
             general_suffix.findall_operations(lambda op: isinstance(op, circuits.CircuitOperation))
         ):
             return self._run_sweep_sample(
-                general_suffix, repetitions, qubit_order, intermediate_state
+                general_suffix, repetitions, qubit_order, acton_args
             )
-        return self._run_sweep_repeat(general_suffix, repetitions, qubit_order, intermediate_state)
+        return self._run_sweep_repeat(general_suffix, repetitions, qubit_order, acton_args)
 
     def _run_sweep_sample(
         self,

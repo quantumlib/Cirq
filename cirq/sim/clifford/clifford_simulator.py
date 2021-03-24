@@ -184,7 +184,7 @@ class CliffordTrialResult(simulator.SimulationTrialResult):
 class CliffordSimulatorStepResult(simulator.StepResult['CliffordState']):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
-    def __init__(self, state, measurements):
+    def __init__(self, state: 'CliffordState', measurements):
         """Results of a step of the simulator.
         Attributes:
             state: A CliffordState
