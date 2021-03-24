@@ -14,7 +14,7 @@
 import os
 from collections import defaultdict
 from random import randint, random, sample, randrange
-from typing import Tuple
+from typing import Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 import pytest
@@ -63,6 +63,10 @@ BCONE = ValidatingTestDevice(
     },
     name=f'{__name__}.BCONE',
 )
+
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
@@ -958,7 +962,9 @@ def test_insert_at_frontier():
             super().__init__()
             self.replacer = replacer
 
-        def optimization_at(self, circuit, index, op):
+        def optimization_at(
+            self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'
+        ) -> Optional['cirq.PointOptimizationSummary']:
             new_ops = self.replacer(op)
             return cirq.PointOptimizationSummary(
                 clear_span=1, clear_qubits=op.qubits, new_operations=new_ops

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import AbstractSet, Sequence, Union
+from typing import AbstractSet, Sequence, Union, List, Tuple
 
 import pytest
 
@@ -187,7 +187,7 @@ class BadGateRepr(GoodGate):
 
 
 class GoodEigenGate(cirq.EigenGate, cirq.SingleQubitGate):
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (0, np.diag([1, 0])),
             (1, np.diag([0, 1])),

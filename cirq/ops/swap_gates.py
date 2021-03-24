@@ -21,7 +21,7 @@ Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.ISWAP**0.5). See the definition in EigenGate.
 """
 
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import Optional, Tuple, TYPE_CHECKING, List
 
 import numpy as np
 import sympy
@@ -66,7 +66,7 @@ class SwapPowGate(
         )
         yield common_gates.CNOT(a, b)
 
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         # yapf: disable
         return [
             (0, np.array([[1, 0,   0,   0],
@@ -210,7 +210,7 @@ class ISwapPowGate(
         https://quantumcomputing.stackexchange.com/questions/2594/
     """
 
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         # yapf: disable
         return [
             (0, np.diag([1, 0, 0, 1])),
