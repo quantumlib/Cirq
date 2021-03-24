@@ -103,14 +103,20 @@ class CliffordSimulator(
             qubit_order: ops.QubitOrderOrList,
             ch_form_args: clifford.ActOnStabilizerCHFormArgs,
     ):
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
+        qubit_map = {q: i for i, q in enumerate(qubits)}
+
+        def create_state():
+            state = CliffordState(qubit_map)
+            state.ch_form = ch_form_args.state.copy()
+            return state
+
         if len(circuit) == 0:
             yield CliffordSimulatorStepResult(
-                measurements=ch_form_args.log_of_measurement_results, state=ch_form_args.state
+                measurements=ch_form_args.log_of_measurement_results, state=create_state()
             )
             return
 
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        qubit_map = {q: i for i, q in enumerate(qubits)}
         for moment in circuit:
             ch_form_args.log_of_measurement_results = {}
 
@@ -124,7 +130,7 @@ class CliffordSimulator(
                     )  # type: ignore
 
             yield CliffordSimulatorStepResult(
-                measurements=ch_form_args.log_of_measurement_results, state=ch_form_args.state
+                measurements=ch_form_args.log_of_measurement_results, state=create_state()
             )
 
     def _create_simulator_trial_result(

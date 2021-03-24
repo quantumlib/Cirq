@@ -710,7 +710,7 @@ def test_simulate_moment_steps_empty_circuit(dtype):
     for step in simulator.simulate_moment_steps(circuit):
         pass
     assert step._simulator_state() == cirq.DensityMatrixSimulatorState(
-        density_matrix=np.array([[1]]), qubit_map={}
+        density_matrix=np.array(1,), qubit_map={}
     )
 
 
