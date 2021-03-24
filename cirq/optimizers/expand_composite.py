@@ -14,13 +14,16 @@
 
 """An optimizer that expands composite operations via `cirq.decompose`."""
 
-from typing import Callable
+from typing import Callable, Optional, TYPE_CHECKING
 
 from cirq import ops, protocols
 from cirq.circuits.optimization_pass import (
     PointOptimizer,
     PointOptimizationSummary,
 )
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class ExpandComposite(PointOptimizer):
@@ -41,7 +44,9 @@ class ExpandComposite(PointOptimizer):
         super().__init__()
         self.no_decomp = no_decomp
 
-    def optimization_at(self, circuit, index, op):
+    def optimization_at(
+        self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'
+    ) -> Optional['cirq.PointOptimizationSummary']:
         decomposition = protocols.decompose(op, keep=self.no_decomp, on_stuck_raise=None)
         if decomposition == [op]:
             return None
