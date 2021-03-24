@@ -1,0 +1,1 @@
+cirq.Ry(rads=np.pi*0.25)
