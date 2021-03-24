@@ -162,10 +162,12 @@ upper_tabs:
 
       ####  ADVANCED  ####
       - heading: "Advanced"
-      - title: "Hidden linear function problem"
-        path: /cirq/tutorials/hidden_linear_function
       - title: "Rabi oscillation experiment"
         path: /cirq/tutorials/rabi_oscillations
+      - title: "Parallel XEB"
+        path: /cirq/qcvv/parallel_xeb
+      - title: "Hidden linear function problem"
+        path: /cirq/tutorials/hidden_linear_function
       - title: "Shor's algorithm"
         path: /cirq/tutorials/shor
 
