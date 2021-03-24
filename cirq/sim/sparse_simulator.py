@@ -251,10 +251,10 @@ class Simulator(
         )
 
     def iterate_circuit(
-            self,
-            circuit: circuits.Circuit,
-            qubit_order: ops.QubitOrderOrList,
-            sim_state: act_on_state_vector_args.ActOnStateVectorArgs,
+        self,
+        circuit: circuits.Circuit,
+        qubit_order: ops.QubitOrderOrList,
+        sim_state: act_on_state_vector_args.ActOnStateVectorArgs,
     ):
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         qubit_map = {q: i for i, q in enumerate(qubits)}

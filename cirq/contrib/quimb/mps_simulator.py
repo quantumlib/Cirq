@@ -54,7 +54,9 @@ class MPSOptions:
 
 class MPSSimulator(
     simulator.SimulatesSamples,
-    simulator.SimulatesIntermediateState['MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState', 'MPSState'],
+    simulator.SimulatesIntermediateState[
+        'MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState', 'MPSState'
+    ],
 ):
     """An efficient simulator for MPS circuits."""
 
@@ -116,10 +118,10 @@ class MPSSimulator(
         )
 
     def iterate_circuit(
-            self,
-            circuit: circuits.Circuit,
-            qubit_order: ops.QubitOrderOrList,
-            state: 'MPSState',
+        self,
+        circuit: circuits.Circuit,
+        qubit_order: ops.QubitOrderOrList,
+        state: 'MPSState',
     ):
         if len(circuit) == 0:
             yield MPSSimulatorStepResult(measurements=state.log_of_measurement_results, state=state)

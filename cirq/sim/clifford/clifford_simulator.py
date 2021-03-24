@@ -45,7 +45,10 @@ from cirq.sim.simulator import check_all_resolved
 class CliffordSimulator(
     simulator.SimulatesSamples,
     simulator.SimulatesIntermediateState[
-        'CliffordSimulatorStepResult', 'CliffordTrialResult', 'CliffordState', clifford.ActOnStabilizerCHFormArgs,
+        'CliffordSimulatorStepResult',
+        'CliffordTrialResult',
+        'CliffordState',
+        clifford.ActOnStabilizerCHFormArgs,
     ],
 ):
     """An efficient simulator for Clifford circuits."""
@@ -98,10 +101,10 @@ class CliffordSimulator(
         )
 
     def iterate_circuit(
-            self,
-            circuit: circuits.Circuit,
-            qubit_order: ops.QubitOrderOrList,
-            ch_form_args: clifford.ActOnStabilizerCHFormArgs,
+        self,
+        circuit: circuits.Circuit,
+        qubit_order: ops.QubitOrderOrList,
+        ch_form_args: clifford.ActOnStabilizerCHFormArgs,
     ):
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         qubit_map = {q: i for i, q in enumerate(qubits)}

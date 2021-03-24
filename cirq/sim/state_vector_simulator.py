@@ -34,7 +34,10 @@ class SimulatesIntermediateStateVector(
     Generic[TStateVectorStepResult],
     simulator.SimulatesAmplitudes,
     simulator.SimulatesIntermediateState[
-        TStateVectorStepResult, 'StateVectorTrialResult', 'StateVectorSimulatorState', ActOnStateVectorArgs
+        TStateVectorStepResult,
+        'StateVectorTrialResult',
+        'StateVectorSimulatorState',
+        ActOnStateVectorArgs,
     ],
     metaclass=abc.ABCMeta,
 ):
