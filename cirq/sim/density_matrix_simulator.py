@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 class DensityMatrixSimulator(
     simulator.SimulatesSamples,
     simulator.SimulatesIntermediateState[
-        'DensityMatrixStepResult', 'DensityMatrixTrialResult', 'DensityMatrixSimulatorState'
+        'DensityMatrixStepResult', 'DensityMatrixTrialResult', 'DensityMatrixSimulatorState', act_on_density_matrix_args.ActOnDensityMatrixArgs,
     ],
 ):
     """A simulator for density matrices and noisy quantum circuits.
@@ -232,33 +232,24 @@ class DensityMatrixSimulator(
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
 
-    def _base_iterator(
+    def create_act_on_args(
         self,
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'],
-        all_measurements_are_terminal=False,
-        is_raw_state=False,
-    ) -> Iterator['DensityMatrixStepResult']:
+    ):
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         qid_shape = protocols.qid_shape(qubits)
-        qubit_map = {q: i for i, q in enumerate(qubits)}
         initial_matrix = (
             qis.to_valid_density_matrix(
                 initial_state, len(qid_shape), qid_shape=qid_shape, dtype=self._dtype
             )
-            if not is_raw_state
-            else initial_state
         )
         if np.may_share_memory(initial_matrix, initial_state):
             initial_matrix = initial_matrix.copy()
 
-        if len(circuit) == 0:
-            yield DensityMatrixStepResult(initial_matrix, {}, qubit_map, self._dtype)
-            return
-
         tensor = initial_matrix.reshape(qid_shape * 2)
-        sim_state = act_on_density_matrix_args.ActOnDensityMatrixArgs(
+        return act_on_density_matrix_args.ActOnDensityMatrixArgs(
             target_tensor=tensor,
             available_buffer=[np.empty_like(tensor) for _ in range(3)],
             axes=[],
@@ -267,6 +258,15 @@ class DensityMatrixSimulator(
             log_of_measurement_results={},
         )
 
+    def iterate_circuit(
+            self,
+            circuit: circuits.Circuit,
+            qubit_order: ops.QubitOrderOrList,
+            sim_state: act_on_density_matrix_args.ActOnDensityMatrixArgs,
+            all_measurements_are_terminal: bool
+    ):
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
+        qubit_map = {q: i for i, q in enumerate(qubits)}
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
         measured = collections.defaultdict(bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
         for moment in noisy_moments:

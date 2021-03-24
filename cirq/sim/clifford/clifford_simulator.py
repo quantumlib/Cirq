@@ -45,7 +45,7 @@ from cirq.sim.simulator import check_all_resolved
 class CliffordSimulator(
     simulator.SimulatesSamples,
     simulator.SimulatesIntermediateState[
-        'CliffordSimulatorStepResult', 'CliffordTrialResult', 'CliffordState'
+        'CliffordSimulatorStepResult', 'CliffordTrialResult', 'CliffordState', clifford.ActOnStabilizerCHFormArgs,
     ],
 ):
     """An efficient simulator for Clifford circuits."""
@@ -65,9 +65,12 @@ class CliffordSimulator(
         # TODO: support more general Pauli measurements
         return protocols.has_stabilizer_effect(op)
 
-    def _base_iterator(
-        self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
-    ) -> Iterator['cirq.CliffordSimulatorStepResult']:
+    def create_act_on_args(
+        self,
+        circuit: circuits.Circuit,
+        qubit_order: ops.QubitOrderOrList,
+        initial_state: int,
+    ):
         """Iterator over CliffordSimulatorStepResult from Moments of a Circuit
 
         Args:
@@ -93,19 +96,27 @@ class CliffordSimulator(
             return
 
         state = CliffordState(qubit_map, initial_state=initial_state)
-        ch_form_args = clifford.ActOnStabilizerCHFormArgs(
+        return clifford.ActOnStabilizerCHFormArgs(
             state.ch_form,
             [],
             self._prng,
             {},
         )
 
+    def iterate_circuit(
+            self,
+            circuit: circuits.Circuit,
+            qubit_order: ops.QubitOrderOrList,
+            ch_form_args: clifford.ActOnStabilizerCHFormArgs,
+    ):
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
+        qubit_map = {q: i for i, q in enumerate(qubits)}
         for moment in circuit:
             ch_form_args.log_of_measurement_results = {}
 
             for op in moment:
                 try:
-                    ch_form_args.axes = tuple(state.qubit_map[i] for i in op.qubits)
+                    ch_form_args.axes = tuple(qubit_map[i] for i in op.qubits)
                     act_on(op, ch_form_args)
                 except TypeError:
                     raise NotImplementedError(
@@ -113,7 +124,7 @@ class CliffordSimulator(
                     )  # type: ignore
 
             yield CliffordSimulatorStepResult(
-                measurements=ch_form_args.log_of_measurement_results, state=state
+                measurements=ch_form_args.log_of_measurement_results, state=ch_form_args.state
             )
 
     def _create_simulator_trial_result(

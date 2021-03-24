@@ -230,12 +230,12 @@ class Simulator(
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
 
-    def _base_iterator(
+    def create_act_on_args(
         self,
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,
         initial_state: 'cirq.STATE_VECTOR_LIKE',
-    ) -> Iterator['SparseSimulatorStep']:
+    ):
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         num_qubits = len(qubits)
         qid_shape = protocols.qid_shape(qubits)
@@ -246,7 +246,7 @@ class Simulator(
         if len(circuit) == 0:
             yield SparseSimulatorStep(state, {}, qubit_map, self._dtype)
 
-        sim_state = act_on_state_vector_args.ActOnStateVectorArgs(
+        return act_on_state_vector_args.ActOnStateVectorArgs(
             target_tensor=np.reshape(state, qid_shape),
             available_buffer=np.empty(qid_shape, dtype=self._dtype),
             axes=[],
@@ -254,6 +254,14 @@ class Simulator(
             log_of_measurement_results={},
         )
 
+    def iterate_circuit(
+            self,
+            circuit: circuits.Circuit,
+            qubit_order: ops.QubitOrderOrList,
+            sim_state: act_on_state_vector_args.ActOnStateVectorArgs,
+    ):
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
+        qubit_map = {q: i for i, q in enumerate(qubits)}
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
         for op_tree in noisy_moments:
             for op in flatten_to_ops(op_tree):

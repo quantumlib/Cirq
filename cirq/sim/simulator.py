@@ -51,6 +51,7 @@ import numpy as np
 
 from cirq import circuits, ops, protocols, study, value, work
 from cirq._compat import deprecated
+from cirq.sim.act_on_args import ActOnArgs
 
 if TYPE_CHECKING:
     import cirq
@@ -59,6 +60,7 @@ if TYPE_CHECKING:
 TStepResult = TypeVar('TStepResult', bound='StepResult')
 TSimulationTrialResult = TypeVar('TSimulationTrialResult', bound='SimulationTrialResult')
 TSimulatorState = TypeVar('TSimulatorState')
+TActOnArgs = TypeVar('TActOnArgs', bound=ActOnArgs)
 
 
 class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
@@ -374,7 +376,7 @@ class SimulatesFinalState(Generic[TSimulationTrialResult], metaclass=abc.ABCMeta
 
 
 class SimulatesIntermediateState(
-    Generic[TStepResult, TSimulationTrialResult, TSimulatorState],
+    Generic[TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs],
     SimulatesFinalState[TSimulationTrialResult],
     metaclass=abc.ABCMeta,
 ):
@@ -503,7 +505,6 @@ class SimulatesIntermediateState(
         """
         return self.simulate_moment_steps(circuit, param_resolver, qubit_order, initial_state)
 
-    @abc.abstractmethod
     def _base_iterator(
         self,
         circuit: circuits.Circuit,
@@ -526,7 +527,52 @@ class SimulatesIntermediateState(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
-        raise NotImplementedError()
+        acton_args = self.create_act_on_args(circuit, qubit_order, initial_state)
+        return self.iterate_circuit(circuit, qubit_order, acton_args)
+
+    @abc.abstractmethod
+    def create_act_on_args(
+        self,
+        circuit: circuits.Circuit,
+        qubit_order: ops.QubitOrderOrList,
+        initial_state: Any,
+    ) -> TActOnArgs:
+        """Creates the `act_on` state for a simulator.
+
+        Args:
+            circuit: The circuit to simulate.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
+                documentation of the implementing class for details.
+
+        Returns:
+            `act_on_args` for the simulator.
+        """
+
+    @abc.abstractmethod
+    def iterate_circuit(
+        self,
+        circuit: circuits.Circuit,
+        qubit_order: ops.QubitOrderOrList,
+        initial_state: TActOnArgs,
+    ) -> Iterator[TStepResult]:
+        """Iterator over StepResult from Moments of a Circuit.
+
+        Args:
+            circuit: The circuit to simulate.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
+                documentation of the implementing class for details.
+
+        Yields:
+            StepResults from simulating a Moment of the Circuit.
+        """
 
     @abc.abstractmethod
     def _create_simulator_trial_result(

@@ -54,7 +54,7 @@ class MPSOptions:
 
 class MPSSimulator(
     simulator.SimulatesSamples,
-    simulator.SimulatesIntermediateState['MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState'],
+    simulator.SimulatesIntermediateState['MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState', 'MPSState'],
 ):
     """An efficient simulator for MPS circuits."""
 
@@ -82,9 +82,12 @@ class MPSSimulator(
         self.simulation_options = simulation_options
         self.grouping = grouping
 
-    def _base_iterator(
-        self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
-    ) -> Iterator['MPSSimulatorStepResult']:
+    def create_act_on_args(
+        self,
+        circuit: circuits.Circuit,
+        qubit_order: ops.QubitOrderOrList,
+        initial_state: int,
+    ):
         """Iterator over MPSSimulatorStepResult from Moments of a Circuit
 
         Args:
@@ -117,7 +120,7 @@ class MPSSimulator(
             )
             return
 
-        state = MPSState(
+        return MPSState(
             qubit_map,
             [],
             self.prng,
@@ -127,11 +130,17 @@ class MPSSimulator(
             initial_state=initial_state,
         )
 
+    def iterate_circuit(
+            self,
+            circuit: circuits.Circuit,
+            qubit_order: ops.QubitOrderOrList,
+            state: 'MPSState',
+    ):
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
         for op_tree in noisy_moments:
             for op in flatten_to_ops(op_tree):
                 if protocols.is_measurement(op) or protocols.has_mixture(op):
-                    state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
+                    state.axes = tuple(state.qubit_map[qubit] for qubit in op.qubits)
                     protocols.act_on(op, state)
                 else:
                     raise NotImplementedError(f"Unrecognized operation: {op!r}")
