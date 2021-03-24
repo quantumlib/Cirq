@@ -16,11 +16,17 @@
 
 from typing import TYPE_CHECKING
 import numpy as np
+from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     from cirq.study import result
 
 
+@deprecated(
+    deadline="v0.12",
+    fix="use cirq.vis.plot_state_histogram or cirq.vis.get_state_histogram instead",
+    name="cirq.study.visualize.plot_state_histogram",
+)
 def plot_state_histogram(result: 'result.Result') -> np.ndarray:
     """Plot the state histogram from a single result with repetitions.
 
@@ -33,32 +39,9 @@ def plot_state_histogram(result: 'result.Result') -> np.ndarray:
     Returns:
         The histogram. A list of values plotted on the y-axis.
     """
+    # Needed to avoid circular imports.
+    import cirq.vis as vis
 
-    # pyplot import is deferred because it requires a system dependency
-    # (python3-tk) that `python -m pip install cirq` can't handle for the user.
-    # This allows cirq to be usable without python3-tk.
-    import matplotlib.pyplot as plt
-
-    num_qubits = sum([value.shape[1] for value in result.measurements.values()])
-    states = 2 ** num_qubits
-    values = np.zeros(states)
-    # measurements is a dict of {measurement gate key:
-    #                            array(repetitions, boolean result)}
-    # Convert this to an array of repetitions, each with an array of booleans.
-    # e.g. {q1: array([[True, True]]), q2: array([[False, False]])}
-    #      --> array([[True, False], [True, False]])
-    measurement_by_result = np.hstack(list(result.measurements.values()))
-
-    for meas in measurement_by_result:
-        # Convert each array of booleans to a string representation.
-        # e.g. [True, False] -> [1, 0] -> '10' -> 2
-        state_ind = int(''.join([str(x) for x in [int(x) for x in meas]]), 2)
-        values[state_ind] += 1
-
-    plot_labels = [bin(x)[2:].zfill(num_qubits) for x in range(states)]
-    plt.bar(np.arange(states), values, tick_label=plot_labels)
-    plt.xlabel('qubit state')
-    plt.ylabel('result count')
-    plt.show()
-
+    values = vis.get_state_histogram(result)
+    vis.plot_state_histogram(values)
     return values
