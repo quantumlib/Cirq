@@ -148,6 +148,8 @@ upper_tabs:
       - heading: "Beginner"
       - title: "Basics"
         path: /cirq/tutorials/basics
+      - title: "Heatmaps"
+        path: /cirq/tutorials/heatmaps
 
       ####  INTERMEDIATE  ####
       - heading: "Intermediate"
