@@ -48,4 +48,5 @@ TestSpec = ModuleJsonTestSpec(
         'QuantumEngineSampler',
     ],
     resolver_cache=_class_resolver_dictionary(),
+    deprecated={},
 )

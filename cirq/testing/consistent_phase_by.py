@@ -53,5 +53,5 @@ def assert_phase_by_is_consistent_with_unitary(val: Any):
                 actual,
                 expected,
                 atol=1e-8,
-                err_msg='Phased unitary was incorrect for index #{}'.format(i),
+                err_msg=f'Phased unitary was incorrect for index #{i}',
             )

@@ -14,11 +14,27 @@
 """Helper for testing python logging statements."""
 
 import logging
-from typing import ContextManager, List
+from typing import ContextManager, List, Optional
+
+from cirq._compat import deprecated_parameter
 
 
+@deprecated_parameter(
+    deadline="v0.12",
+    fix="use min_level instead",
+    parameter_desc="level",
+    match=lambda args, kwargs: 'level' in kwargs,
+    rewrite=lambda args, kwargs: (
+        args,
+        {('min_level' if k == 'level' else k): v for k, v in kwargs.items()},
+    ),
+)
 def assert_logs(
-    *matches: str, count: int = 1, level: int = logging.WARNING, capture_warnings: bool = True
+    *matches: str,
+    count: Optional[int] = 1,
+    min_level: int = logging.WARNING,
+    max_level: int = logging.CRITICAL,
+    capture_warnings: bool = True,
 ) -> ContextManager[List[logging.LogRecord]]:
     """A context manager for testing logging and warning events.
 
@@ -37,11 +53,15 @@ def assert_logs(
     Args:
         matches: Each of these is checked to see if they match, as a substring,
             any of the captures log messages.
-        count: The expected number of messages in logs. Defaults to 1.
-        level: The level at which to capture the logs. See the python logging
+        count: The expected number of messages in logs. Defaults to 1. If None is passed in counts
+            are not checked.
+        min_level: The minimum level at which to capture the logs. See the python logging
             module for valid levels. By default this captures at the
-            `logging.WARNING` level, so this does not capture `logging.INFO`
+            `logging.WARNING` level and above, so this does not capture `logging.INFO`
             or `logging.DEBUG` logs by default.
+        max_level: The maxium level at which to capture the logs. See the python logging
+            module for valid levels. By default this captures to the `logging.CRITICAL` level
+            thus, all the errors and critical messages will be captured as well.
         capture_warnings: Whether warnings from the python's `warnings` module
             are redirected to the logging system and captured.
 
@@ -50,16 +70,21 @@ def assert_logs(
         for code executed within the entered context. This ContextManager
         checks that the asserts for the logs are true on exit.
     """
+    if min_level > max_level:
+        raise ValueError("min_level should be less than or equal to max_level")
     records = []
 
     class Handler(logging.Handler):
         def emit(self, record):
-            records.append(record)
+            # filter only the interesting ones
+            if max_level >= record.levelno >= min_level:
+                records.append(record)
 
         def __enter__(self):
             logging.captureWarnings(capture_warnings)
             logger = logging.getLogger()
-            logger.setLevel(level)
+            # we capture all the logs
+            logger.setLevel(logging.DEBUG)
             logger.addHandler(self)
             return records
 
@@ -67,12 +92,15 @@ def assert_logs(
             logging.getLogger().removeHandler(self)
             if capture_warnings:
                 logging.captureWarnings(False)
-            assert len(records) == count, f'Expected {count} log message but got {len(records)}.'
             msgs = [record.getMessage() for record in records]
+
+            assert count is None or len(records) == count, (
+                f'Expected {count} log message but ' f'got {len(records)}. Log messages: ' f'{msgs}'
+            )
             for match in matches:
                 assert match in ''.join(msgs), (
                     f'{match} expected to appear in log messages but it was '
-                    f'not found. Logs messages: {msgs}.'
+                    f'not found. Log messages: {msgs}.'
                 )
 
     return Handler()

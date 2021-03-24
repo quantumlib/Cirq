@@ -63,6 +63,10 @@ from cirq.testing.consistent_specified_has_unitary import (
     assert_specifies_has_unitary_if_unitary,
 )
 
+from cirq.testing.devices import (
+    ValidatingTestDevice,
+)
+
 from cirq.testing.equals_tester import (
     EqualsTester,
 )
@@ -108,3 +112,9 @@ from cirq.testing.random_circuit import (
 from cirq.testing.sample_circuits import (
     nonoptimal_toffoli_circuit,
 )
+
+from cirq.testing.deprecation import (
+    assert_deprecated,
+)
+
+from cirq.testing.op_tree import assert_equivalent_op_tree

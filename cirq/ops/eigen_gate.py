@@ -22,6 +22,7 @@ from typing import (
     NamedTuple,
     Optional,
     Tuple,
+    TYPE_CHECKING,
     TypeVar,
     Union,
 )
@@ -36,6 +37,8 @@ from cirq import value, protocols
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
+if TYPE_CHECKING:
+    import cirq
 
 TSelf = TypeVar('TSelf', bound='EigenGate')
 
@@ -112,7 +115,7 @@ class EigenGate(raw_types.Gate):
         """
         if isinstance(exponent, complex):
             if exponent.imag:
-                raise ValueError("Gate exponent must be real. Invalid Value: {}".format(exponent))
+                raise ValueError(f"Gate exponent must be real. Invalid Value: {exponent}")
             exponent = exponent.real
         self._exponent = exponent
         self._global_shift = global_shift
@@ -349,8 +352,8 @@ class EigenGate(raw_types.Gate):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self._exponent)
 
-    def _resolve_parameters_(self: TSelf, param_resolver, recursive: bool) -> 'EigenGate':
-        return self._with_exponent(exponent=param_resolver.value_of(self._exponent, recursive))
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'EigenGate':
+        return self._with_exponent(exponent=resolver.value_of(self._exponent, recursive))
 
     def _equal_up_to_global_phase_(self, other, atol):
         if not isinstance(other, EigenGate):
@@ -365,9 +368,11 @@ class EigenGate(raw_types.Gate):
         self_without_phase = self._with_exponent(self.exponent)
         self_without_phase._global_shift = 0
         self_without_exp_or_phase = self_without_phase._with_exponent(0)
+        self_without_exp_or_phase._global_shift = 0
         other_without_phase = other._with_exponent(other.exponent)
         other_without_phase._global_shift = 0
         other_without_exp_or_phase = other_without_phase._with_exponent(0)
+        other_without_exp_or_phase._global_shift = 0
         if not protocols.approx_eq(
             self_without_exp_or_phase, other_without_exp_or_phase, atol=atol
         ):

@@ -479,6 +479,9 @@ def test_json_roundtrip():
     state.apply_unitary(cirq.X(q0))
     state.apply_unitary(cirq.H(q1))
 
+    with pytest.raises(ValueError, match='T cannot be run with Clifford simulator.'):
+        state.apply_unitary(cirq.T(q1))
+
     # Roundtrip serialize, then deserialize.
     state_roundtrip = cirq.CliffordState._from_json_dict_(**state._json_dict_())
 
@@ -512,10 +515,14 @@ def test_deprecated():
     q = cirq.LineQubit(0)
     clifford_state = cirq.CliffordState({q: 0})
 
-    with cirq.testing.assert_logs('stabilizers', 'CliffordTableau', 'deprecated'):
+    with cirq.testing.assert_deprecated(
+        'stabilizers', 'CliffordTableau', 'deprecated', deadline="v0.11"
+    ):
         _ = clifford_state.stabilizers()
 
-    with cirq.testing.assert_logs('destabilizers', 'CliffordTableau', 'deprecated'):
+    with cirq.testing.assert_deprecated(
+        'destabilizers', 'CliffordTableau', 'deprecated', deadline="v0.11"
+    ):
         _ = clifford_state.destabilizers()
 
 

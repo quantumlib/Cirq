@@ -151,7 +151,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         return {name for gate in self.keys() for name in protocols.parameter_names(gate)}
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
+        self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'LinearCombinationOfGates':
         return self.__class__(
             {
@@ -266,7 +266,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         return {name for op in self.keys() for name in protocols.parameter_names(op)}
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
+        self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'LinearCombinationOfOperations':
         return self.__class__(
             {
@@ -401,6 +401,16 @@ class PauliSum:
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
         qs = {q for k in self._linear_dict.keys() for q, _ in k}
         return tuple(sorted(qs))
+
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'PauliSum':
+        qubits = self.qubits
+        if len(new_qubits) != len(qubits):
+            raise ValueError('Incorrect number of qubits for PauliSum.')
+        qubit_map = dict(zip(qubits, new_qubits))
+        new_pauli_strings = []
+        for pauli_string in self:
+            new_pauli_strings.append(pauli_string.map_qubits(qubit_map))
+        return PauliSum.from_pauli_strings(new_pauli_strings)
 
     def copy(self) -> 'PauliSum':
         factory = type(self)

@@ -19,16 +19,18 @@ https://arxiv.org/abs/2002.07730
 
 import collections
 import math
-from typing import Any, Dict, List, Iterator, Optional, Sequence, Set
+from typing import Any, Dict, List, Iterator, Optional, Sequence, Set, TYPE_CHECKING
 
 import dataclasses
 import numpy as np
 import quimb.tensor as qtn
 
-import cirq
 from cirq import circuits, devices, study, ops, protocols, value
 from cirq.ops import flatten_to_ops
 from cirq.sim import simulator
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @dataclasses.dataclass(frozen=True)
@@ -52,11 +54,7 @@ class MPSOptions:
 
 class MPSSimulator(
     simulator.SimulatesSamples,
-    simulator.SimulatesIntermediateState[
-        'cirq.contrib.quimb.mps_simulator.MPSSimulatorStepResult',
-        'cirq.contrib.quimb.mps_simulator.MPSTrialResult',
-        'cirq.contrib.quimb.mps_simulator.MPSState',
-    ],
+    simulator.SimulatesIntermediateState['MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState'],
 ):
     """An efficient simulator for MPS circuits."""
 
@@ -64,7 +62,7 @@ class MPSSimulator(
         self,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-        simulation_options: 'cirq.contrib.quimb.mps_simulator.MPSOptions' = MPSOptions(),
+        simulation_options: MPSOptions = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
     ):
         """Creates instance of `MPSSimulator`.
@@ -78,7 +76,7 @@ class MPSSimulator(
         self.init = True
         noise_model = devices.NoiseModel.from_noise_model_like(noise)
         if not protocols.has_mixture(noise_model):
-            raise ValueError('noise must be unitary or mixture but was {}'.format(noise_model))
+            raise ValueError(f'noise must be unitary or mixture but was {noise_model}')
         self.noise = noise_model
         self.prng = value.parse_random_state(seed)
         self.simulation_options = simulation_options
@@ -86,7 +84,7 @@ class MPSSimulator(
 
     def _base_iterator(
         self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
-    ) -> Iterator['cirq.contrib.quimb.mps_simulator.MPSSimulatorStepResult']:
+    ) -> Iterator['MPSSimulatorStepResult']:
         """Iterator over MPSSimulatorStepResult from Moments of a Circuit
 
         Args:
@@ -138,42 +136,12 @@ class MPSSimulator(
 
             yield MPSSimulatorStepResult(measurements=measurements, state=state)
 
-    def _simulator_iterator(
-        self,
-        circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver,
-        qubit_order: ops.QubitOrderOrList,
-        initial_state: int,
-    ) -> Iterator['cirq.contrib.quimb.mps_simulator.MPSSimulatorStepResult']:
-        """Iterator over MPSSimulatorStepResult from Moments of a Circuit
-
-        Args:
-            circuit: The circuit to simulate.
-            param_resolver: A ParamResolver for determining values of
-                Symbols.
-            qubit_order: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
-            initial_state: The initial state for the simulation. The form of
-                this state depends on the simulation implementation. See
-                documentation of the implementing class for details.
-
-        Returns:
-            An interator over all the results.
-        """
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        self._check_all_resolved(resolved_circuit)
-        actual_initial_state = 0 if initial_state is None else initial_state
-
-        return self._base_iterator(resolved_circuit, qubit_order, actual_initial_state)
-
     def _create_simulator_trial_result(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'cirq.contrib.quimb.mps_simulator.MPSState',
-    ) -> 'cirq.contrib.quimb.mps_simulator.MPSTrialResult':
+        final_simulator_state: 'MPSState',
+    ) -> 'MPSTrialResult':
         """Creates a single trial results with the measurements.
 
         Args:
@@ -211,10 +179,7 @@ class MPSSimulator(
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         self._check_all_resolved(resolved_circuit)
 
-        measurements = {}  # type: Dict[str, List[np.ndarray]]
-        if repetitions == 0:
-            for _, op, _ in resolved_circuit.findall_operations_with_gate_type(ops.MeasurementGate):
-                measurements[protocols.measurement_key(op)] = np.empty([0, 1])
+        measurements: Dict[str, List[np.ndarray]] = {}
 
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
@@ -323,7 +288,7 @@ class MPSState:
     def __init__(
         self,
         qubit_map: Dict['cirq.Qid', int],
-        simulation_options: 'cirq.contrib.quimb.mps_simulator.MPSOptions' = MPSOptions(),
+        simulation_options: MPSOptions = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
     ):
@@ -348,8 +313,8 @@ class MPSState:
         # working with, say, 123 qubits then we want qubit 3 to come before qubit 100, but then
         # we want write the string '003' which comes before '100' in lexicographic order. The code
         # below is just simple string formatting.
-        max_num_digits = len('{}'.format(max(qubit_map.values())))
-        self.format_i = 'i_{{:0{}}}'.format(max_num_digits)
+        max_num_digits = len(f'{max(qubit_map.values())}')
+        self.format_i = f'i_{{:0{max_num_digits}}}'
         self.format_mu = 'mu_{}_{}'
 
         # TODO(tonybruguier): Instead of relying on sortable indices could you keep a parallel
@@ -579,7 +544,7 @@ class MPSState:
             # Because the computation is approximate, the probabilities do not
             # necessarily add up to 1.0, and thus we re-normalize them.
             if abs(sum_probs - 1.0) > self.simulation_options.sum_prob_atol:
-                raise ValueError('Sum of probabilities exceeds tolerance: {}'.format(sum_probs))
+                raise ValueError(f'Sum of probabilities exceeds tolerance: {sum_probs}')
             norm_probs = [x / sum_probs for x in probs]
 
             d = qubit.dimension

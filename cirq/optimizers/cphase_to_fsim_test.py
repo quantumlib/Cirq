@@ -8,11 +8,16 @@ import sympy
 import cirq
 
 
+class FakeSycamoreGate(cirq.FSimGate):
+    def __init__(self):
+        super().__init__(theta=np.pi / 2, phi=np.pi / 6)
+
+
 def test_parameterized_gates():
     t = sympy.Symbol('t')
     with pytest.raises(ValueError):
         cphase_gate = cirq.CZPowGate(exponent=t)
-        fsim_gate = cirq.google.SYC
+        fsim_gate = FakeSycamoreGate()
         cirq.decompose_cphase_into_two_fsim(cphase_gate, fsim_gate=fsim_gate)
 
     with pytest.raises(ValueError):
@@ -29,18 +34,19 @@ def test_parameterized_gates():
 def test_invalid_qubits():
     with pytest.raises(ValueError):
         cirq.decompose_cphase_into_two_fsim(
-            cphase_gate=cirq.CZ, fsim_gate=cirq.google.SYC, qubits=cirq.LineQubit.range(3)
+            cphase_gate=cirq.CZ, fsim_gate=FakeSycamoreGate(), qubits=cirq.LineQubit.range(3)
         )
 
 
 def test_circuit_structure():
-    ops = cirq.decompose_cphase_into_two_fsim(cirq.CZ, fsim_gate=cirq.google.SYC)
+    syc = FakeSycamoreGate()
+    ops = cirq.decompose_cphase_into_two_fsim(cirq.CZ, fsim_gate=syc)
     num_interaction_moments = 0
     for op in ops:
         assert len(op.qubits) in (0, 1, 2)
         if len(op.qubits) == 2:
             num_interaction_moments += 1
-            assert isinstance(op.gate, cirq.google.SycamoreGate)
+            assert isinstance(op.gate, FakeSycamoreGate)
     assert num_interaction_moments == 2
 
 
@@ -56,7 +62,7 @@ def assert_decomposition_valid(cphase_gate, fsim_gate):
 )
 def test_decomposition_to_sycamore_gate(exponent):
     cphase_gate = cirq.CZPowGate(exponent=exponent)
-    assert_decomposition_valid(cphase_gate, cirq.google.SYC)
+    assert_decomposition_valid(cphase_gate, FakeSycamoreGate())
 
 
 @pytest.mark.parametrize(

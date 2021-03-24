@@ -1042,6 +1042,25 @@ def test_pauli_sum_qubits(psum, expected_qubits):
     assert psum.qubits == expected_qubits
 
 
+@pytest.mark.parametrize(
+    'psum, expected_psum',
+    (
+        (cirq.Z(q0) + cirq.Y(q0), cirq.Z(q1) + cirq.Y(q0)),
+        (2 * cirq.X(q0) + 3 * cirq.Y(q2), 2 * cirq.X(q1) + 3 * cirq.Y(q3)),
+        (
+            cirq.X(q0) * cirq.Y(q1) + cirq.Y(q1) * cirq.Z(q3),
+            cirq.X(q1) * cirq.Y(q2) + cirq.Y(q2) * cirq.Z(q3),
+        ),
+    ),
+)
+def test_pauli_sum_with_qubits(psum, expected_psum):
+    if len(expected_psum.qubits) == len(psum.qubits):
+        assert psum.with_qubits(*expected_psum.qubits) == expected_psum
+    else:
+        with pytest.raises(ValueError, match='number'):
+            psum.with_qubits(*expected_psum.qubits)
+
+
 def test_pauli_sum_from_single_pauli():
     q = cirq.LineQubit.range(2)
     psum1 = cirq.X(q[0]) + cirq.Y(q[1])
@@ -1164,7 +1183,7 @@ def test_pauli_sum_formatting():
     assert str(paulisum2) == '1.000*X(0)*X(1)+1.000*Z(0)'
     paulisum3 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0]) * cirq.Z(q[1])
     assert str(paulisum3) == '1.000*X(0)*X(1)+1.000*Z(0)*Z(1)'
-    assert "{:.0f}".format(paulisum3) == '1*X(0)*X(1)+1*Z(0)*Z(1)'
+    assert f"{paulisum3:.0f}" == '1*X(0)*X(1)+1*Z(0)*Z(1)'
 
     empty = cirq.PauliSum.from_pauli_strings([])
     assert str(empty) == "0.000"

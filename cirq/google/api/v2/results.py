@@ -76,7 +76,7 @@ def find_measurements(program: 'cirq.Circuit') -> List[MeasureInfo]:
 
     for m in measure_iter:
         if m.key in keys:
-            raise ValueError('Duplicate measurement key: {}'.format(m.key))
+            raise ValueError(f'Duplicate measurement key: {m.key}')
         keys.add(m.key)
         measurements.append(m)
 
@@ -98,7 +98,7 @@ def _circuit_measurements(circuit: 'cirq.Circuit') -> Iterator[MeasureInfo]:
 
 def _grid_qubits(op: 'cirq.Operation') -> List['cirq.GridQubit']:
     if not all(isinstance(q, devices.GridQubit) for q in op.qubits):
-        raise ValueError('Expected GridQubits: {}'.format(op.qubits))
+        raise ValueError(f'Expected GridQubits: {op.qubits}')
     return cast(List['cirq.GridQubit'], list(op.qubits))
 
 
@@ -207,7 +207,7 @@ def _trial_sweep_from_proto(
             for qmr in mr.qubit_measurement_results:
                 qubit = v2.grid_qubit_from_proto_id(qmr.qubit.id)
                 if qubit in qubit_results:
-                    raise ValueError('qubit already exists: {}'.format(qubit))
+                    raise ValueError(f'qubit already exists: {qubit}')
                 qubit_results[qubit] = unpack_bits(qmr.results, msg.repetitions)
             if measure_map:
                 ordered_results = [qubit_results[qubit] for qubit in measure_map[mr.key].qubits]

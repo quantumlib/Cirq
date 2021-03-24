@@ -136,9 +136,6 @@ class CliffordSimulator(
         check_all_resolved(resolved_circuit)
 
         measurements = {}  # type: Dict[str, List[np.ndarray]]
-        if repetitions == 0:
-            for _, op, _ in resolved_circuit.findall_operations_with_gate_type(ops.MeasurementGate):
-                measurements[protocols.measurement_key(op)] = np.empty([0, 1])
 
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
@@ -277,13 +274,13 @@ class CliffordState:
     def to_numpy(self) -> np.ndarray:
         return self.ch_form.to_state_vector()
 
-    @deprecated(deadline='v0.11.0', fix='use CliffordTableau instead')
+    @deprecated(deadline='v0.11', fix='use CliffordTableau instead')
     def stabilizers(self) -> List[DensePauliString]:
         """Returns the stabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi>"""
         return []
 
-    @deprecated(deadline='v0.11.0', fix='use CliffordTableau instead')
+    @deprecated(deadline='v0.11', fix='use CliffordTableau instead')
     def destabilizers(self) -> List[DensePauliString]:
         """Returns the destabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
@@ -301,7 +298,7 @@ class CliffordState:
             act_on(op, ch_form_args)
         except TypeError:
             raise ValueError(
-                '%s cannot be run with Clifford simulator.' % str(op.gate)
+                f'{str(op.gate)} cannot be run with Clifford simulator.'
             )  # type: ignore
         return
 
@@ -328,7 +325,7 @@ class CliffordState:
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(state.ch_form, qids, prng, measurements)
         act_on(op, ch_form_args)
 
-    @deprecated(deadline='v0.11.0', fix='Use the apply_measurement instead')
+    @deprecated(deadline='v0.11', fix='Use the apply_measurement instead')
     def perform_measurement(
         self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
     ):
