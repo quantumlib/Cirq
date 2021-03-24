@@ -171,16 +171,17 @@ class DensityMatrixSimulator(
         prefix, general_suffix = split_into_matching_protocol_then_general(
             resolved_circuit, lambda op: not protocols.is_measurement(op)
         )
+        acton_args = self.create_act_on_args(prefix, qubit_order, 0)
         step_result = None
-        for step_result in self._base_iterator(
+        for step_result in self.iterate_circuit(
             circuit=prefix,
             qubit_order=qubit_order,
-            initial_state=0,
+            sim_state=acton_args,
         ):
             pass
         assert step_result is not None
 
-        intermediate_state = step_result._density_matrix
+        intermediate_state = acton_args.copy()
         if general_suffix.are_all_measurements_terminal() and not any(
             general_suffix.findall_operations(lambda op: isinstance(op, circuits.CircuitOperation))
         ):
@@ -194,14 +195,13 @@ class DensityMatrixSimulator(
         circuit: circuits.Circuit,
         repetitions: int,
         qubit_order: ops.QubitOrderOrList,
-        intermediate_state: np.ndarray,
+        acton_args: act_on_density_matrix_args.ActOnDensityMatrixArgs,
     ) -> Dict[str, np.ndarray]:
-        for step_result in self._base_iterator(
+        for step_result in self.iterate_circuit(
             circuit=circuit,
             qubit_order=qubit_order,
-            initial_state=intermediate_state,
+            sim_state=acton_args,
             all_measurements_are_terminal=True,
-            is_raw_state=True,
         ):
             pass
         measurement_ops = [
@@ -214,16 +214,15 @@ class DensityMatrixSimulator(
         circuit: circuits.Circuit,
         repetitions: int,
         qubit_order: ops.QubitOrderOrList,
-        intermediate_state: np.ndarray,
+        acton_args: act_on_density_matrix_args.ActOnDensityMatrixArgs,
     ) -> Dict[str, np.ndarray]:
         measurements = {}  # type: Dict[str, List[np.ndarray]]
 
         for _ in range(repetitions):
-            all_step_results = self._base_iterator(
+            all_step_results = self.iterate_circuit(
                 circuit,
                 qubit_order=qubit_order,
-                initial_state=intermediate_state,
-                is_raw_state=True,
+                sim_state=acton_args.copy(),
             )
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
@@ -263,7 +262,7 @@ class DensityMatrixSimulator(
             circuit: circuits.Circuit,
             qubit_order: ops.QubitOrderOrList,
             sim_state: act_on_density_matrix_args.ActOnDensityMatrixArgs,
-            all_measurements_are_terminal: bool
+            all_measurements_are_terminal: bool = False,
     ):
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         qubit_map = {q: i for i, q in enumerate(qubits)}

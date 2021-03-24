@@ -89,12 +89,6 @@ class CliffordSimulator(
 
         qubit_map = {q: i for i, q in enumerate(qubits)}
 
-        if len(circuit) == 0:
-            yield CliffordSimulatorStepResult(
-                measurements={}, state=CliffordState(qubit_map, initial_state=initial_state)
-            )
-            return
-
         state = CliffordState(qubit_map, initial_state=initial_state)
         return clifford.ActOnStabilizerCHFormArgs(
             state.ch_form,

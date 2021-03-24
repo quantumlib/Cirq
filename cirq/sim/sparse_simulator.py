@@ -239,12 +239,9 @@ class Simulator(
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         num_qubits = len(qubits)
         qid_shape = protocols.qid_shape(qubits)
-        qubit_map = {q: i for i, q in enumerate(qubits)}
         state = qis.to_valid_state_vector(
             initial_state, num_qubits, qid_shape=qid_shape, dtype=self._dtype
         )
-        if len(circuit) == 0:
-            yield SparseSimulatorStep(state, {}, qubit_map, self._dtype)
 
         return act_on_state_vector_args.ActOnStateVectorArgs(
             target_tensor=np.reshape(state, qid_shape),

@@ -515,8 +515,6 @@ class SimulatesIntermediateState(
 
         Args:
             circuit: The circuit to simulate.
-            param_resolver: A ParamResolver for determining values of
-                Symbols.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.

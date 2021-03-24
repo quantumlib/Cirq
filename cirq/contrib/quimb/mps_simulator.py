@@ -105,21 +105,6 @@ class MPSSimulator(
 
         qubit_map = {q: i for i, q in enumerate(qubits)}
 
-        if len(circuit) == 0:
-            yield MPSSimulatorStepResult(
-                measurements={},
-                state=MPSState(
-                    qubit_map,
-                    [],
-                    self.prng,
-                    {},
-                    self.simulation_options,
-                    self.grouping,
-                    initial_state=initial_state,
-                ),
-            )
-            return
-
         return MPSState(
             qubit_map,
             [],
