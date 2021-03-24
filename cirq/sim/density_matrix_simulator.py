@@ -266,6 +266,15 @@ class DensityMatrixSimulator(
     ):
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         qubit_map = {q: i for i, q in enumerate(qubits)}
+        if len(circuit) == 0:
+            yield DensityMatrixStepResult(
+                density_matrix=sim_state.target_tensor,
+                measurements=dict(sim_state.log_of_measurement_results),
+                qubit_map=qubit_map,
+                dtype=self._dtype,
+            )
+            return
+
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
         measured = collections.defaultdict(bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
         for moment in noisy_moments:

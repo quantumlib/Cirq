@@ -259,6 +259,15 @@ class Simulator(
     ):
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         qubit_map = {q: i for i, q in enumerate(qubits)}
+        if len(circuit) == 0:
+            yield SparseSimulatorStep(
+                state_vector=sim_state.target_tensor,
+                measurements=dict(sim_state.log_of_measurement_results),
+                qubit_map=qubit_map,
+                dtype=self._dtype,
+            )
+            return
+
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
         for op_tree in noisy_moments:
             for op in flatten_to_ops(op_tree):

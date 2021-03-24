@@ -121,6 +121,10 @@ class MPSSimulator(
             qubit_order: ops.QubitOrderOrList,
             state: 'MPSState',
     ):
+        if len(circuit) == 0:
+            yield MPSSimulatorStepResult(measurements=state.log_of_measurement_results, state=state)
+            return
+
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
         for op_tree in noisy_moments:
             for op in flatten_to_ops(op_tree):

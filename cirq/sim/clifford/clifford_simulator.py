@@ -103,6 +103,12 @@ class CliffordSimulator(
             qubit_order: ops.QubitOrderOrList,
             ch_form_args: clifford.ActOnStabilizerCHFormArgs,
     ):
+        if len(circuit) == 0:
+            yield CliffordSimulatorStepResult(
+                measurements=ch_form_args.log_of_measurement_results, state=ch_form_args.state
+            )
+            return
+
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         qubit_map = {q: i for i, q in enumerate(qubits)}
         for moment in circuit:
