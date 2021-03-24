@@ -15,6 +15,7 @@ import os
 
 import pytest
 import numpy as np
+import pandas as pd
 from google.protobuf import text_format
 
 import cirq
@@ -33,6 +34,8 @@ from cirq.google.calibration.phased_fsim import (
     try_convert_sqrt_iswap_to_fsim,
     XEBPhasedFSimCalibrationRequest,
     XEBPhasedFSimCalibrationOptions,
+    _parse_xeb_fidelities_df,
+    _parse_characterized_angles,
 )
 
 
@@ -276,6 +279,58 @@ def test_floquet_parse_result():
     )
 
 
+def _load_xeb_results_textproto() -> cirq.google.CalibrationResult:
+    with open(os.path.dirname(__file__) + '/test_data/xeb_results.textproto') as f:
+        metrics_snapshot = text_format.Parse(
+            f.read(), cirq.google.api.v2.metrics_pb2.MetricsSnapshot()
+        )
+
+    return cirq.google.CalibrationResult(
+        code=cirq.google.api.v2.calibration_pb2.SUCCESS,
+        error_message=None,
+        token=None,
+        valid_until=None,
+        metrics=cirq.google.Calibration(metrics_snapshot),
+    )
+
+
+def test_xeb_parse_fidelities():
+    result = _load_xeb_results_textproto()
+    metrics = result.metrics
+    df = _parse_xeb_fidelities_df(metrics, 'initial_fidelities')
+    should_be = pd.DataFrame(
+        {
+            'cycle_depth': [5, 5, 25, 25],
+            'layer_i': [0, 0, 0, 0],
+            'pair_i': [0, 1, 0, 1],
+            'fidelity': [0.99, 0.99, 0.88, 0.88],
+        }
+    )
+    pd.testing.assert_frame_equal(df, should_be)
+
+    df = _parse_xeb_fidelities_df(metrics, 'final_fidelities')
+    should_be = pd.DataFrame(
+        {
+            'cycle_depth': [5, 5, 25, 25],
+            'layer_i': [0, 0, 0, 0],
+            'pair_i': [0, 1, 0, 1],
+            'fidelity': [0.99, 0.99, 0.98, 0.98],
+        }
+    )
+    pd.testing.assert_frame_equal(df, should_be)
+
+
+def test_xeb_parse_angles():
+    q0, q1, q2, q3 = [cirq.GridQubit(0, index) for index in range(4)]
+    result = _load_xeb_results_textproto()
+    metrics = result.metrics
+    angles = _parse_characterized_angles(metrics, 'characterized_angles')
+    assert angles == {
+        (q0, q1): {'theta': -0.7853981, 'phi': 0.0},
+        (q2, q3): {'theta': -0.7853981, 'phi': 0.0},
+    }
+
+
 def test_xeb_parse_result():
     q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
     gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
@@ -308,8 +363,8 @@ def test_xeb_parse_result():
 
     assert request.parse_result(result) == PhasedFSimCalibrationResult(
         parameters={
-            (q_00, q_01): PhasedFSimCharacterization(phi=-0.009375),
-            (q_02, q_03): PhasedFSimCharacterization(phi=-0.00625),
+            (q_00, q_01): PhasedFSimCharacterization(phi=0.0, theta=-0.7853981),
+            (q_02, q_03): PhasedFSimCharacterization(phi=0.0, theta=-0.7853981),
         },
         gate=gate,
         options=request.options,

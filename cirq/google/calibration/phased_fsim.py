@@ -28,6 +28,7 @@ from typing import (
     TypeVar,
     TYPE_CHECKING,
     Generic,
+    Union,
 )
 
 import numpy as np
@@ -631,70 +632,61 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         }
 
 
-def _parse_xeb_fidelities_df(targets, values) -> pd.DataFrame:
-    """Parse a fidelities DataFrame from targets and values in a Metric proto."""
-    # dict(zip(targets, values)) is a mapping to values where the keys are all unique.
-    # The prefix of a given key, e.g. 4_3_23_qubit_0_1 is a stringified version of the
-    # "index" for the dataframe. Here, it is (layer_i, pair_i, cycle_depth). We do an
-    # initial parse and put into `records`, which is keyed by the index value.
-    records: Dict[Tuple[int, int, int], Dict[str, Any]] = collections.defaultdict(dict)
-    for target, val in zip(targets, values):
-        ma = re.match(r'(\d+)_(\d+)_(\d+)_(\w+)', target)
-        assert ma is not None, str(ma)
-        layer_i = int(ma.group(1))
-        pair_i = int(ma.group(2))
-        cycle_depth = int(ma.group(3))
-        key = ma.group(4)
-        if key.startswith('qubit_'):
-            val = v2.qubit_from_proto_id(val)
+def _get_labeled_int(key: str, s: str):
+    ma = re.match(rf'{key}_(\d+)', s)
+    if ma is None:
+        raise ValueError(f"Could not parse {key} value for {s}")
+    return int(ma.group(1))
 
-        records[layer_i, pair_i, cycle_depth][key] = val
 
-    # To construct the dataframe, we flatten the `records` dictionary to a flat list of
-    # entries. Each entry learns its index value (layer_i, pair_i, cycle_depth).
-    flat_records = []
-    for (layer_i, pair_i, cycle_depth), record in records.items():
-        record['layer_i'] = layer_i
-        record['pair_i'] = pair_i
-        record['cycle_depth'] = cycle_depth
-        record['pair'] = record['qubit_a'], record['qubit_b']
-        del record['qubit_a']
-        del record['qubit_b']
-        flat_records.append(record)
-    return pd.DataFrame(flat_records)
+def _parse_xeb_fidelities_df(metrics: 'cirq.google.Calibration', super_name: str) -> pd.DataFrame:
+    """Parse a fidelities DataFrame from Metric protos.
+
+    Args:
+        metrics: The metrics from a CalibrationResult
+        super_name: The metric name prefix. We will extract information for metrics named like
+            "{super_name}_depth_{depth}", so you can have multiple independent DataFrames in
+            one CalibrationResult.
+    """
+    records: List[Dict[str, Union[int, float]]] = []
+    for metric_name in metrics.keys():
+        ma = re.match(fr'{super_name}_depth_(\d+)', metric_name)
+        if ma is None:
+            continue
+
+        for (layer_str, pair_str, qa, qb), (value,) in metrics[metric_name].items():
+            records.append(
+                {
+                    'cycle_depth': int(ma.group(1)),
+                    'layer_i': _get_labeled_int('layer', layer_str),
+                    'pair_i': _get_labeled_int('pair', pair_str),
+                    'fidelity': value,
+                }
+            )
+    return pd.DataFrame(records)
 
 
 def _parse_characterized_angles(
-    targets, values
+    metrics: 'cirq.google.Calibration',
+    super_name: str,
 ) -> Dict[Tuple['cirq.Qid', 'cirq.Qid'], Dict[str, float]]:
-    """Parses a characterized angle dictionary"""
+    """Parses characterized angles fomr Metric protos.
 
-    # dict(zip(targets, values)) is a mapping to values where the keys are all unique.
-    # The prefix of a given key, e.g. 9_qubit_0_1 is a stringified version of the
-    # "index" for the dataframe. Here, it is `pair_i`. We do an
-    # initial parse and put into `records`, which is keyed by the index value.
-    records: Dict[int, Dict[str, Any]] = collections.defaultdict(dict)
-    for target, val in zip(targets, values):
-        ma = re.match(r'(\d+)_(\w+)', target)
-        assert ma is not None, str(ma)
-        pair_i = int(ma.group(1))
-        key = ma.group(2)
-        if key.startswith('qubit_'):
-            val = v2.qubit_from_proto_id(val)
-        records[pair_i][key] = val
+    Args:
+        metrics: The metrics from a CalibrationResult
+        super_name: The metric name prefix. We extract angle names as "{super_name}_{angle_name}".
+    """
 
-    # To construct the actual return value, we switch from using a pair index key
-    # to the actual qubits and make sure the value is (just) a mapping from angle
-    # names to values.
-    final_params = {}
-    for record in records.values():
-        qa, qb = record['qubit_a'], record['qubit_b']
-        del record['qubit_a']
-        del record['qubit_b']
-        assert all(k.endswith('_est') for k in record.keys())
+    records: Dict[Tuple['cirq.Qid', 'cirq.Qid'], Dict[str, float]] = collections.defaultdict(dict)
+    for metric_name in metrics.keys():
+        ma = re.match(fr'{super_name}_(\w+)', metric_name)
+        if ma is None:
+            continue
 
-        final_params[qa, qb] = {k.rstrip('_est'): v for k, v in record.items()}
-    return final_params
+        angle_name = ma.group(1)
+        for (qa, qb), (value,) in metrics[metric_name].items():
+            records[qa, qb][angle_name] = value
+    return dict(records)
 
 
 @json_serializable_dataclass(frozen=True)
@@ -710,23 +702,18 @@ class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         )
 
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
-        for metric_name, metric in result.metrics.items():
-            # For some reason, the metric proto gets turned into a length-1 dictionary
-            # where the key is all the targets and value is all the values
-            assert len(metric) == 1
-            targets, values = list(metric.items())[0]
 
-            # pylint: disable=unused-variable
-            if metric_name == 'initial_fidelities_by_depth':
-                initial_fids = _parse_xeb_fidelities_df(targets, values)
-            elif metric_name == 'final_fidelities_by_depth':
-                final_fids = _parse_xeb_fidelities_df(targets, values)
-            elif metric_name == 'characterized_angles':
-                final_params = {
-                    pair: PhasedFSimCharacterization(**angles)
-                    for pair, angles in _parse_characterized_angles(targets, values).items()
-                }
-            # pylint: enable=unused-variable
+        # pylint: disable=unused-variable
+        initial_fids = _parse_xeb_fidelities_df(result.metrics, 'initial_fidelities')
+        final_fids = _parse_xeb_fidelities_df(result.metrics, 'final_fidelities')
+        # pylint: enable=unused-variable
+
+        final_params = {
+            pair: PhasedFSimCharacterization(**angles)
+            for pair, angles in _parse_characterized_angles(
+                result.metrics, 'characterized_angles'
+            ).items()
+        }
 
         # TODO: Return initial_fids, final_fids somehow.
         return PhasedFSimCalibrationResult(

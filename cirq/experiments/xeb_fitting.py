@@ -331,7 +331,12 @@ def characterize_phased_fsim_parameters_with_xeb(
     optimization_result = scipy.optimize.minimize(
         _mean_infidelity,
         x0=x0,
-        options={'initial_simplex': initial_simplex, 'xatol': xatol, 'fatol': fatol},
+        options={
+            'initial_simplex': initial_simplex,
+            'xatol': xatol,
+            'fatol': fatol,
+            'maxiter': maxiter,
+        },
         method='nelder-mead',
     )
 
