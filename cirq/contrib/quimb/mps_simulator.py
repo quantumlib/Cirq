@@ -17,10 +17,10 @@ This is based on this paper:
 https://arxiv.org/abs/2002.07730
 """
 
-import math
-from typing import Any, Dict, List, Iterator, Optional, Sequence, Set, TYPE_CHECKING, Iterable
-
 import dataclasses
+import math
+from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iterable
+
 import numpy as np
 import quimb.tensor as qtn
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 """Simulator for density matrices that simulates noisy quantum circuits."""
 import collections
-from typing import Any, Dict, Iterator, List, TYPE_CHECKING, Tuple, Type, Union
+from typing import Any, Dict, List, TYPE_CHECKING, Tuple, Type, Union
 
 import numpy as np
 
