@@ -17,9 +17,6 @@ import numpy as np
 import sympy
 
 from cirq import ops, circuits, protocols
-from cirq.circuits.optimization_pass import (
-    PointOptimizationSummary,
-)
 
 
 if TYPE_CHECKING:
@@ -110,7 +107,7 @@ class ConvertToSqrtIswapGates(circuits.PointOptimizer):
 
     def optimization_at(
         self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'
-    ) -> Optional[PointOptimizationSummary]:
+    ) -> Optional['cirq.PointOptimizationSummary']:
         if isinstance(op.gate, ops.MatrixGate) and len(op.qubits) == 1:
             return None
 

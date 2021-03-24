@@ -46,7 +46,7 @@ class ExpandComposite(PointOptimizer):
 
     def optimization_at(
         self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'
-    ) -> Optional[PointOptimizationSummary]:
+    ) -> Optional['cirq.PointOptimizationSummary']:
         decomposition = protocols.decompose(op, keep=self.no_decomp, on_stuck_raise=None)
         if decomposition == [op]:
             return None

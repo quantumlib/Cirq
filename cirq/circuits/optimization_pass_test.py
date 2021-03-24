@@ -11,11 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional, TYPE_CHECKING, Set, List, cast
+from typing import Optional, TYPE_CHECKING, Set, List
 
 import pytest
 import cirq
-from cirq import PointOptimizer, PointOptimizationSummary, Circuit, Operation
+from cirq import PointOptimizer, PointOptimizationSummary, Operation
 from cirq.testing import EqualsTester
 
 if TYPE_CHECKING:
@@ -62,8 +62,8 @@ class ReplaceWithXGates(PointOptimizer):
     """
 
     def optimization_at(
-        self, circuit: Circuit, index: int, op: 'cirq.Operation'
-    ) -> Optional[PointOptimizationSummary]:
+        self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'
+    ) -> Optional['cirq.PointOptimizationSummary']:
         end = index + 1
         new_ops = [cirq.X(q) for q in op.qubits]
         done = False
@@ -156,12 +156,10 @@ def test_point_optimizer_raises_on_gates_changing_qubits():
         """Changes all single qubit operations to act on LineQubit(42)"""
 
         def optimization_at(
-            self, circuit: Circuit, index: int, op: 'cirq.Operation'
-        ) -> Optional[PointOptimizationSummary]:
-            if len(op.qubits) == 1:
-                op = cast(cirq.GateOperation, op)
+            self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'
+        ) -> Optional['cirq.PointOptimizationSummary']:
+            if len(op.qubits) == 1 and isinstance(op, cirq.GateOperation):
                 new_op = op.gate(cirq.LineQubit(42))
-                print(type(new_op))
                 return cirq.PointOptimizationSummary(
                     clear_span=1, clear_qubits=op.qubits, new_operations=new_op
                 )

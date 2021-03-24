@@ -92,7 +92,7 @@ class ConvertToXmonGates(PointOptimizer):
 
     def optimization_at(
         self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'
-    ) -> Optional[PointOptimizationSummary]:
+    ) -> Optional['cirq.PointOptimizationSummary']:
         converted = self.convert(op)
         if len(converted) == 1 and converted[0] is op:
             return None
