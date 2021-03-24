@@ -1,12 +1,24 @@
+from typing import cast, List, Optional
+
 import cirq
 
 import examples.stabilizer_code as sc
 
 
-def encode_corrupt_correct(code, input_val, error_gate, error_loc):
+def encode_corrupt_correct(
+    code: sc.StabilizerCode,
+    input_val: int,
+    error_gate: Optional[cirq.SingleQubitCliffordGate],
+    error_loc: int,
+):
     circuit = cirq.Circuit()
-    qubits = [cirq.NamedQubit(str(i)) for i in range(code.n - code.k)] + [cirq.NamedQubit('c')]
-    ancillas = [cirq.NamedQubit(f"d{i}") for i in range(code.n - code.k)]
+    qubits: List[cirq.Qid] = cast(
+        List[cirq.Qid],
+        [cirq.NamedQubit(str(i)) for i in range(code.n - code.k)] + [cirq.NamedQubit('c')],
+    )
+    ancillas: List[cirq.Qid] = cast(
+        List[cirq.Qid], [cirq.NamedQubit(f"d{i}") for i in range(code.n - code.k)]
+    )
 
     circuit += code.encode(qubits)
 

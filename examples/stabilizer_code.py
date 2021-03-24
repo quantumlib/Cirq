@@ -1,4 +1,5 @@
 import numpy as np
+from typing import List
 
 import cirq
 
@@ -8,7 +9,7 @@ import cirq
 # https://thesis.library.caltech.edu/2900/2/THESIS.pdf
 
 
-def _BuildByCode(mat):
+def _BuildByCode(mat: np.ndarray) -> List[str]:
     """
     Takes into input a matrix of Boolean interpreted as row-vectors, each having dimension 2 * n.
     The matrix is converted into another matrix with as many rows, but this time the vectors
@@ -33,7 +34,9 @@ def _BuildByCode(mat):
 
 # It was considered to use scipy.linalg.lu but it seems to be only for real numbers and does
 # not allow to restrict only on a section of the matrix.
-def _GaussianElimination(M, min_row, max_row, min_col, max_col):
+def _GaussianElimination(
+    M: np.ndarray, min_row: int, max_row: int, min_col: int, max_col: int
+) -> int:
     """
     Performs a Gaussian elemination of the input matrix and transforms it into its reduced row
     echelon form. The elimination is done only on a sub-section of the matrix (specified) by
@@ -91,7 +94,7 @@ def _GaussianElimination(M, min_row, max_row, min_col, max_col):
 
 
 class StabilizerCode(object):
-    def __init__(self, group_generators, allowed_errors):
+    def __init__(self, group_generators: List[str], allowed_errors: List[str]):
         n = len(group_generators[0])
         k = n - len(group_generators)
 
@@ -108,7 +111,7 @@ class StabilizerCode(object):
                     M[i, n + j] = 1
 
         # Performing the Gaussian elimination as in section 4.1
-        r = _GaussianElimination(M, 0, n - k, 0, n)
+        r: int = _GaussianElimination(M, 0, n - k, 0, n)
         _ = _GaussianElimination(M, r, n - k, n + r, 2 * n)
 
         # Get matrix sub-components, as per equation 4.3:
@@ -142,12 +145,12 @@ class StabilizerCode(object):
             axis=1,
         )
 
-        self.n = n
-        self.k = k
-        self.r = r
-        self.M = _BuildByCode(M)
-        self.X = _BuildByCode(X)
-        self.Z = _BuildByCode(Z)
+        self.n: int = n
+        self.k: int = k
+        self.r: int = r
+        self.M: List[str] = _BuildByCode(M)
+        self.X: List[str] = _BuildByCode(X)
+        self.Z: List[str] = _BuildByCode(Z)
         self.syndromes_to_corrections = {}
 
         for qid in range(self.n):
@@ -158,7 +161,7 @@ class StabilizerCode(object):
                 )
                 self.syndromes_to_corrections[syndrome] = (op, qid)
 
-    def encode(self, qubits):
+    def encode(self, qubits: List[cirq.Qid]) -> cirq.Circuit:
         """
         Creates a circuit that encodes the qubits using the code words.
 
@@ -198,7 +201,7 @@ class StabilizerCode(object):
 
         return circuit
 
-    def correct(self, qubits, ancillas):
+    def correct(self, qubits: List[cirq.Qid], ancillas: List[cirq.Qid]) -> cirq.Circuit:
         """
         Creates a correction circuit by computing the syndrom on the ancillas, and then using this
         syndrome to correct the qubits.correct
@@ -253,7 +256,7 @@ class StabilizerCode(object):
 
         return circuit
 
-    def decode(self, qubits, ancillas, state_vector):
+    def decode(self, qubits: List[cirq.Qid], ancillas: List[cirq.Qid], state_vector) -> List[int]:
         """
         Computes the output of the circuit by projecting onto the \bar{Z}.
 
@@ -269,7 +272,7 @@ class StabilizerCode(object):
 
         decoded = []
         for z in self.Z:
-            pauli_string = cirq.PauliString(dict(zip(qubits, z)))
+            pauli_string: cirq.PauliString = cirq.PauliString(dict(zip(qubits, z)))
             trace = pauli_string.expectation_from_state_vector(state_vector, qubit_map)
             decoded.append(round((1 - trace.real) / 2))
         return decoded
