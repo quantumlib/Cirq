@@ -278,6 +278,15 @@ def _to_sweep(param_tuples):
     return to_sweep
 
 
+def _needs_init_layer(grouped_settings: Dict[InitObsSetting, List[InitObsSetting]]) -> bool:
+    """Helper function to go through init_states and determine if any of them need an
+    initialization layer of single-qubit gates."""
+    for max_setting in grouped_settings.keys():
+        if any(st is not value.KET_ZERO for _, st in max_setting.init_state):
+            return True
+    return False
+
+
 def measure_grouped_settings(
     circuit: 'cirq.Circuit',
     grouped_settings: Dict[InitObsSetting, List[InitObsSetting]],
@@ -316,12 +325,7 @@ def measure_grouped_settings(
     qubits = sorted({q for ms in grouped_settings.keys() for q in ms.init_state.qubits})
     qubit_to_index = {q: i for i, q in enumerate(qubits)}
 
-    needs_init_layer = False
-    for max_setting in grouped_settings.keys():
-        if any(st is not value.KET_ZERO for _, st in max_setting.init_state):
-            needs_init_layer = True
-            break
-
+    needs_init_layer = _needs_init_layer(grouped_settings)
     measurement_param_circuit = _with_parameterized_layers(circuit, qubits, needs_init_layer)
     grouped_settings = {
         _pad_setting(max_setting, qubits): settings
