@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,13 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq
-import cirq.testing
+"""Noise models for Google devices."""
 
-
-def test_deprecated():
-    with cirq.testing.assert_logs('cirq.eye_tensor', 'deprecated'):
-        _ = cirq.linalg.eye_tensor((1,), dtype=float)
-
-    with cirq.testing.assert_logs('cirq.one_hot', 'deprecated'):
-        _ = cirq.linalg.one_hot(shape=(1,), dtype=float)
+from cirq.google.experimental.noise_models.noise_models import (
+    PerQubitDepolarizingWithDampedReadoutNoiseModel,
+    simple_noise_from_calibration_metrics,
+)

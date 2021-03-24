@@ -352,7 +352,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.out == (
         'INTERCEPTED check/pytest '
         '. --actually-quiet --cov --cov-report=annotate '
-        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
+        '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py HEAD\n'
     )
@@ -376,7 +376,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.out == (
         'INTERCEPTED check/pytest '
         '. --actually-quiet --cov --cov-report=annotate '
-        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
+        '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py master\n'
     )
@@ -392,7 +392,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.out == (
         'INTERCEPTED check/pytest '
         '. --actually-quiet --cov --cov-report=annotate '
-        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
+        '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py origin/master\n'
     )
@@ -408,7 +408,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.out == (
         'INTERCEPTED check/pytest '
         '. --actually-quiet --cov --cov-report=annotate '
-        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
+        '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py upstream/master\n'
     )
@@ -424,7 +424,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.out == (
         'INTERCEPTED check/pytest '
         '. --actually-quiet --cov --cov-report=annotate '
-        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
+        '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py upstream/master\n'
     )
@@ -452,7 +452,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.out == (
         'INTERCEPTED check/pytest '
         '. --actually-quiet --cov --cov-report=annotate '
-        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
+        '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py HEAD\n'
     )
@@ -468,7 +468,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.out == (
         'INTERCEPTED check/pytest '
         '. --actually-quiet --cov --cov-report=annotate '
-        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
+        '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py master\n'
     )
@@ -491,7 +491,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.out.startswith(
         'INTERCEPTED check/pytest '
         '. --actually-quiet --cov --cov-report=annotate '
-        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
+        '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py '
     )

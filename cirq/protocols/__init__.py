@@ -95,9 +95,7 @@ from cirq.protocols.measurement_key_protocol import (
 )
 from cirq.protocols.mixture_protocol import (
     has_mixture,
-    has_mixture_channel,
     mixture,
-    mixture_channel,
     SupportsMixture,
     validate_mixture,
 )

@@ -14,7 +14,7 @@
 import os
 from collections import defaultdict
 from random import randint, random, sample, randrange
-from typing import Tuple, cast, AbstractSet, Iterable
+from typing import Tuple, cast, AbstractSet
 
 import numpy as np
 import pytest
@@ -36,6 +36,11 @@ class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
 
 
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
+
+
+def test_alignment():
+    assert repr(cirq.Alignment.LEFT) == 'cirq.Alignment.LEFT'
+    assert repr(cirq.Alignment.RIGHT) == 'cirq.Alignment.RIGHT'
 
 
 def test_insert_moment_types():
@@ -4345,14 +4350,6 @@ def test_all_measurement_keys(circuit_cls):
     )
 
 
-@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
-def test_deprecated(circuit_cls):
-    q = cirq.NamedQubit('q')
-    circuit = circuit_cls([cirq.H(q)])
-    with cirq.testing.assert_logs('final_state_vector', 'deprecated'):
-        _ = circuit.final_wavefunction()
-
-
 def test_zip():
     a, b, c, d = cirq.LineQubit.range(4)
 
@@ -4413,6 +4410,33 @@ def test_zip():
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_zip_alignment(circuit_cls):
+    a, b, c = cirq.LineQubit.range(3)
+
+    circuit1 = circuit_cls([cirq.H(a)] * 5)
+    circuit2 = circuit_cls([cirq.H(b)] * 3)
+    circuit3 = circuit_cls([cirq.H(c)] * 2)
+
+    c_start = circuit_cls.zip(circuit1, circuit2, circuit3, align='LEFT')
+    assert c_start == circuit_cls(
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+        cirq.Moment(cirq.H(a), cirq.H(b)),
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.H(a)),
+    )
+
+    c_end = circuit_cls.zip(circuit1, circuit2, circuit3, align='RIGHT')
+    assert c_end == circuit_cls(
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.H(a)),
+        cirq.Moment(cirq.H(a), cirq.H(b)),
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+        cirq.Moment(cirq.H(a), cirq.H(b), cirq.H(c)),
+    )
+
+
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_repr_html_escaping(circuit_cls):
     class TestGate(cirq.Gate):
         def num_qubits(self):
@@ -4432,3 +4456,169 @@ def test_repr_html_escaping(circuit_cls):
 
     # Escaping Special Characters in Qubit names.
     assert '|c&gt;' in circuit._repr_html_()
+
+
+def test_tetris_concat():
+    a, b = cirq.LineQubit.range(2)
+    empty = cirq.Circuit()
+
+    assert cirq.Circuit.tetris_concat(empty, empty) == empty
+    assert cirq.Circuit.tetris_concat() == empty
+    assert empty.tetris_concat(empty) == empty
+    assert empty.tetris_concat(empty, empty) == empty
+
+    ha = cirq.Circuit(cirq.H(a))
+    hb = cirq.Circuit(cirq.H(b))
+    assert ha.tetris_concat(hb) == ha.zip(hb)
+
+    assert ha.tetris_concat(empty) == ha
+    assert empty.tetris_concat(ha) == ha
+
+    hac = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
+    assert hac.tetris_concat(hb) == hac + hb
+    assert hb.tetris_concat(hac) == hb.zip(hac)
+
+    zig = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.H(b))
+    assert zig.tetris_concat(zig) == cirq.Circuit(
+        cirq.H(a), cirq.CNOT(a, b), cirq.Moment(cirq.H(a), cirq.H(b)), cirq.CNOT(a, b), cirq.H(b)
+    )
+
+    zag = cirq.Circuit(cirq.H(a), cirq.H(a), cirq.CNOT(a, b), cirq.H(b), cirq.H(b))
+    assert zag.tetris_concat(zag) == cirq.Circuit(
+        cirq.H(a),
+        cirq.H(a),
+        cirq.CNOT(a, b),
+        cirq.Moment(cirq.H(a), cirq.H(b)),
+        cirq.Moment(cirq.H(a), cirq.H(b)),
+        cirq.CNOT(a, b),
+        cirq.H(b),
+        cirq.H(b),
+    )
+
+    space = cirq.Circuit(cirq.Moment()) * 10
+    f = cirq.Circuit.tetris_concat
+    assert len(f(space, ha)) == 10
+    assert len(f(space, ha, ha, ha)) == 10
+    assert len(f(space, f(ha, ha, ha))) == 10
+    assert len(f(space, ha, align='LEFT')) == 10
+    assert len(f(space, ha, ha, ha, align='RIGHT')) == 12
+    assert len(f(space, f(ha, ha, ha, align='LEFT'))) == 10
+    assert len(f(space, f(ha, ha, ha, align='RIGHT'))) == 10
+    assert len(f(space, f(ha, ha, ha), align='LEFT')) == 10
+    assert len(f(space, f(ha, ha, ha), align='RIGHT')) == 10
+
+    # L shape overlap (vary c1).
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 4),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 1),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+    assert 8 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 6),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+    assert 9 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 7),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+
+    # L shape overlap (vary c2).
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 5, cirq.CZ(a, b)),
+        )
+    )
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 4, cirq.CZ(a, b)),
+        )
+    )
+    assert 7 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 1, cirq.CZ(a, b)),
+        )
+    )
+    assert 8 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 6, cirq.CZ(a, b)),
+        )
+    )
+    assert 9 == len(
+        f(
+            cirq.Circuit(cirq.CZ(a, b), [cirq.H(a)] * 5),
+            cirq.Circuit([cirq.H(b)] * 7, cirq.CZ(a, b)),
+        )
+    )
+
+    # When scanning sees a possible hit, continues scanning for earlier hit.
+    assert 10 == len(
+        f(
+            cirq.Circuit(
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(cirq.H(a)),
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(cirq.H(b)),
+            ),
+            cirq.Circuit(
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(),
+                cirq.Moment(cirq.H(a)),
+                cirq.Moment(),
+                cirq.Moment(cirq.H(b)),
+            ),
+        )
+    )
+    # Correct tie breaker when one operation sees two possible hits.
+    for cz_order in [cirq.CZ(a, b), cirq.CZ(b, a)]:
+        assert 3 == len(
+            f(
+                cirq.Circuit(
+                    cirq.Moment(cz_order),
+                    cirq.Moment(),
+                    cirq.Moment(),
+                ),
+                cirq.Circuit(
+                    cirq.Moment(cirq.H(a)),
+                    cirq.Moment(cirq.H(b)),
+                ),
+            )
+        )
+
+    # Types.
+    v = ha.freeze().tetris_concat(empty)
+    assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
+    v = ha.tetris_concat(empty.freeze())
+    assert type(v) is cirq.Circuit and v == ha
+    v = ha.freeze().tetris_concat(empty)
+    assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
+    v = cirq.Circuit.tetris_concat(ha, empty)
+    assert type(v) is cirq.Circuit and v == ha
+    v = cirq.FrozenCircuit.tetris_concat(ha, empty)
+    assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
