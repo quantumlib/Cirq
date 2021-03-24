@@ -11,11 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Optional, TYPE_CHECKING, Set, List
 
 import pytest
 import cirq
-from cirq import PointOptimizer, PointOptimizationSummary
+from cirq import PointOptimizer, PointOptimizationSummary, Operation
 from cirq.testing import EqualsTester
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def test_equality():
@@ -57,7 +61,9 @@ class ReplaceWithXGates(PointOptimizer):
     operation's qubits.
     """
 
-    def optimization_at(self, circuit, index, op):
+    def optimization_at(
+        self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'
+    ) -> Optional['cirq.PointOptimizationSummary']:
         end = index + 1
         new_ops = [cirq.X(q) for q in op.qubits]
         done = False
@@ -65,10 +71,10 @@ class ReplaceWithXGates(PointOptimizer):
             n = circuit.next_moment_operating_on(op.qubits, end)
             if n is None:
                 break
-            next_ops = {circuit.operation_at(q, n) for q in op.qubits}
-            next_ops = [e for e in next_ops if e]
-            next_ops = sorted(next_ops, key=lambda e: str(e.qubits))
-            for next_op in next_ops:
+            next_ops: Set[Optional[Operation]] = {circuit.operation_at(q, n) for q in op.qubits}
+            next_ops_list: List[Operation] = [e for e in next_ops if e]
+            next_ops_sorted = sorted(next_ops_list, key=lambda e: str(e.qubits))
+            for next_op in next_ops_sorted:
                 if next_op:
                     if set(next_op.qubits).issubset(op.qubits):
                         end = n + 1
@@ -149,14 +155,19 @@ def test_point_optimizer_raises_on_gates_changing_qubits():
     class EverythingIs42(cirq.PointOptimizer):
         """Changes all single qubit operations to act on LineQubit(42)"""
 
-        def optimization_at(self, circuit, index, op):
-            if len(op.qubits) == 1:
+        def optimization_at(
+            self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'
+        ) -> Optional['cirq.PointOptimizationSummary']:
+            new_op = op
+            if len(op.qubits) == 1 and isinstance(op, cirq.GateOperation):
                 new_op = op.gate(cirq.LineQubit(42))
-                return cirq.PointOptimizationSummary(
-                    clear_span=1, clear_qubits=op.qubits, new_operations=new_op
-                )
+
+            return cirq.PointOptimizationSummary(
+                clear_span=1, clear_qubits=op.qubits, new_operations=new_op
+            )
 
     c = cirq.Circuit(cirq.X(cirq.LineQubit(0)), cirq.X(cirq.LineQubit(1)))
+
     with pytest.raises(ValueError, match='new qubits'):
         EverythingIs42().optimize_circuit(c)
 
