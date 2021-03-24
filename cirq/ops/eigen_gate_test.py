@@ -105,8 +105,6 @@ def test_eq():
 
     eq.add_equality_group(CExpZinGate(2.5))
     eq.add_equality_group(CExpZinGate(2.25))
-    eq.make_equality_group(lambda: 'a')
-    eq.add_equality_group('b')
 
     eq.add_equality_group(ZGateDef(exponent=0.5, global_shift=0.0))
     eq.add_equality_group(ZGateDef(exponent=-0.5, global_shift=0.0))
