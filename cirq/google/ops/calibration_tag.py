@@ -39,7 +39,9 @@ class CalibrationTag:
         return protocols.obj_to_dict_helper(self, ['token'])
 
     def __eq__(self, other) -> bool:
-        return isinstance(other, CalibrationTag) and self.token == other.token
+        if not isinstance(other, CalibrationTag):
+            return NotImplemented
+        return self.token == other.token
 
     def __hash__(self) -> int:
         return hash(self.token)

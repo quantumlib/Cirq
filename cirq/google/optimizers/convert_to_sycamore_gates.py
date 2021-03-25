@@ -17,6 +17,7 @@ import math
 import numpy as np
 import scipy.linalg
 from cirq import circuits, google, linalg, ops, optimizers, protocols
+
 from cirq.google.ops import SycamoreGate
 from cirq.google.optimizers.two_qubit_gates.gate_compilation import GateTabulation
 
@@ -129,7 +130,9 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
             on_stuck_raise=None if self.ignore_failures else on_stuck_raise,
         )
 
-    def optimization_at(self, circuit, index, op):
+    def optimization_at(
+        self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'
+    ) -> Optional['cirq.PointOptimizationSummary']:
         if not isinstance(op, ops.GateOperation):
             return None
 
@@ -144,6 +147,8 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
                 ops_in_front = list({circuit.operation_at(q, next_index) for q in op.qubits})
                 if len(ops_in_front) == 1 and isinstance(ops_in_front[0], ops.GateOperation):
                     gate2 = ops_in_front[0].gate
+            else:
+                next_index = 0
 
             if isinstance(gate, ops.SwapPowGate) and isinstance(gate2, ops.ZZPowGate):
                 rads = gate2.exponent * np.pi / 2
