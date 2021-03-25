@@ -60,10 +60,10 @@ def make_final_quantum_teleportation_circuit(meas_alice, meas_msg):
     # Uses the two classical bits from the Bell measurement to recover the
     # original quantum Message on Bob's entangled qubit.
     if meas_alice:
-        circuit.append(cirq.X(bob))
+        circuit.append(cirq.X(bob))  # coverage: ignore
 
     if meas_msg:
-        circuit.append(cirq.Z(bob))
+        circuit.append(cirq.Z(bob))  # coverage: ignore
 
     return circuit
 
