@@ -31,8 +31,9 @@ class SupportsMeasurementKey(Protocol):
 
     Measurement keys are used in referencing the results of a measurement.
 
-    Users are free to implement either `_measurement_key_` returning one string
-    or `_measurement_keys_` returning an iterable of strings.
+    Users are free to implement either `_measurement_key_` returning one
+    TMeasurementKey or `_measurement_keys_` returning an iterable of
+    TMeasurementKeys.
 
     Note: Measurements, in contrast to general quantum channels, are
     distinguished by the recording of the quantum operation that occurred.
@@ -70,6 +71,9 @@ class SupportsMeasurementKey(Protocol):
         """Return a copy of this object with the measurement keys remapped.
 
         This method allows measurement keys to be reassigned at runtime.
+        Tuple keys cannot be reassigned, only the last element of the tuple
+        can be remapped to some other string. Hence this method only accepts
+        string->string Dictionaries.
         """
 
 
@@ -123,7 +127,7 @@ def measurement_keys(
 
     Returns:
         The measurement keys of the value. If the value has no measurement,
-        the result is the empty tuple.
+        the result is the empty set.
     """
     getter = getattr(val, '_measurement_keys_', None)
     result = NotImplemented if getter is None else getter()
@@ -157,6 +161,9 @@ def with_measurement_key_mapping(val: Any, key_map: Dict[str, str]):
 
     This method can be used to reassign measurement keys at runtime, or to
     assign measurement keys from a higher-level object (such as a Circuit).
+    Tuple keys cannot be reassigned, only the last element of the tuple can be
+    remapped to some other string. Hence this method only accepts string->string
+    Dictionaries.
     """
     if not all(isinstance(key, str) for key in key_map.keys()) or not all(
         isinstance(value, str) for value in key_map.values()

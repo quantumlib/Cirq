@@ -40,6 +40,7 @@ if TYPE_CHECKING:
     import cirq
 
 T = TypeVar('T')
+# Allowed types for use in querying the Results object, for e.g. through the histogram method.
 TMeasurementQueryKey = Union[str, Tuple[str], 'cirq.Qid', Iterable['cirq.Qid']]
 
 
