@@ -170,12 +170,12 @@ def test_operation_at():
 
 
 def test_single_gate_in_moment():
-    a,b,c = cirq.LineQubit.range(3)
+    a, b, c = cirq.LineQubit.range(3)
 
     moment = cirq.Moment(cirq.X(a))
     assert moment.single_gate_in_moment() == cirq.X
 
-    moment = cirq.Moment(cirq.X(a),cirq.X(b),cirq.X(c))
+    moment = cirq.Moment(cirq.X(a), cirq.X(b), cirq.X(c))
     assert moment.single_gate_in_moment() == cirq.X
 
     moment = cirq.Moment(cirq.X(a), cirq.H(b))
