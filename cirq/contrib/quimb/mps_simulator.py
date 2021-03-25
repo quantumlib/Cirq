@@ -107,9 +107,7 @@ class MPSSimulator(
                 measurements={},
                 state=MPSState(
                     qubit_map,
-                    [],
                     self.prng,
-                    {},
                     self.simulation_options,
                     self.grouping,
                     initial_state=initial_state,
@@ -119,9 +117,7 @@ class MPSSimulator(
 
         state = MPSState(
             qubit_map,
-            [],
             self.prng,
-            {},
             self.simulation_options,
             self.grouping,
             initial_state=initial_state,
@@ -291,12 +287,12 @@ class MPSState(ActOnArgs):
     def __init__(
         self,
         qubit_map: Dict['cirq.Qid', int],
-        axes: Iterable[int],
         prng: np.random.RandomState,
-        log_of_measurement_results: Dict[str, Any],
         simulation_options: MPSOptions = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
+        axes: Iterable[int] = None,
+        log_of_measurement_results: Dict[str, Any] = None,
     ):
         """Creates and MPSState
 
@@ -306,8 +302,12 @@ class MPSState(ActOnArgs):
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
             initial_state: An integer representing the initial state.
+            axes: The indices of axes corresponding to the qubits that the
+                operation is supposed to act upon.
+            log_of_measurement_results: A mutable object that measurements are
+                being recorded into.
         """
-        super().__init__(axes, prng, log_of_measurement_results)
+        super().__init__(prng, axes, log_of_measurement_results)
         self.qubit_map = qubit_map
         self.grouping = qubit_map if grouping is None else grouping
         if self.grouping.keys() != self.qubit_map.keys():
@@ -365,9 +365,7 @@ class MPSState(ActOnArgs):
     def copy(self) -> 'MPSState':
         state = MPSState(
             self.qubit_map,
-            self.axes,
             self.prng,
-            self.log_of_measurement_results,
             self.simulation_options,
             self.grouping,
         )
@@ -430,7 +428,7 @@ class MPSState(ActOnArgs):
         """An alias for the state vector."""
         return self.state_vector()
 
-    def _act_on_fallback_(self, op: Any, allow_decompose: bool):
+    def apply_op(self, op: 'cirq.Operation', prng: np.random.RandomState):
         """Applies a unitary operation, mutating the object to represent the new state.
 
         op:
@@ -445,9 +443,7 @@ class MPSState(ActOnArgs):
             U = protocols.unitary(op)
         else:
             mixtures = protocols.mixture(op)
-            mixture_idx = int(
-                self.prng.choice(len(mixtures), p=[mixture[0] for mixture in mixtures])
-            )
+            mixture_idx = int(prng.choice(len(mixtures), p=[mixture[0] for mixture in mixtures]))
             U = mixtures[mixture_idx][1]
         U = qtn.Tensor(
             U.reshape([qubit.dimension for qubit in op.qubits] * 2), inds=(new_inds + old_inds)
@@ -512,6 +508,10 @@ class MPSState(ActOnArgs):
             # about HOSVDs.
             raise ValueError('Can only handle 1 and 2 qubit operations')
         return True
+
+    def _act_on_fallback_(self, op: Any, allow_decompose: bool):
+        """Delegates the action to self.apply_op"""
+        return self.apply_op(op, self.prng)
 
     def estimation_stats(self):
         "Returns some statistics about the memory usage and quality of the approximation."

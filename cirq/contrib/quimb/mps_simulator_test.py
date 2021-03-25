@@ -260,8 +260,6 @@ def test_trial_result_str():
         qubit_map={q0: 0},
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(),
-        axes=[],
-        log_of_measurement_results={},
     )
     assert (
         str(
@@ -280,9 +278,7 @@ output state: TensorNetwork([
 
 def test_empty_step_result():
     q0 = cirq.LineQubit(0)
-    state = ccq.mps_simulator.MPSState(
-        qubit_map={q0: 0}, prng=value.parse_random_state(0), axes=[], log_of_measurement_results={}
-    )
+    state = ccq.mps_simulator.MPSState(qubit_map={q0: 0}, prng=value.parse_random_state(0))
     step_result = ccq.mps_simulator.MPSSimulatorStepResult(state, measurements={'0': [1]})
     assert (
         str(step_result)
@@ -299,22 +295,16 @@ def test_state_equal():
         qubit_map={q0: 0},
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1e-3, sum_prob_atol=1e-3),
-        axes=[],
-        log_of_measurement_results={},
     )
     state1a = ccq.mps_simulator.MPSState(
         qubit_map={q1: 0},
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1e-3, sum_prob_atol=1e-3),
-        axes=[],
-        log_of_measurement_results={},
     )
     state1b = ccq.mps_simulator.MPSState(
         qubit_map={q1: 0},
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1729.0, sum_prob_atol=1e-3),
-        axes=[],
-        log_of_measurement_results={},
     )
     assert state0 == state0
     assert state0 != state1a
@@ -343,8 +333,6 @@ def test_tensor_index_names():
     state = ccq.mps_simulator.MPSState(
         qubit_map,
         prng=value.parse_random_state(0),
-        axes=[],
-        log_of_measurement_results={},
     )
 
     assert state.i_str(0) == "i_00"
