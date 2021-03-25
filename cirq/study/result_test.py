@@ -38,37 +38,39 @@ def test_str():
     result = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
-            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]]),
+            ('a', 'b'): np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]]),
             'c': np.array([[0], [0], [1], [0], [1]]),
         },
     )
-    assert str(result) == 'ab=00010, 11101\nc=00101'
+    assert str(result) == '(\'a\', \'b\')=00010, 11101\nc=00101'
 
     result = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
-            'ab': np.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]),
+            ('a', 'b'): np.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]),
             'c': np.array([[0], [1], [2], [3], [4]]),
         },
     )
-    assert str(result) == 'ab=13579, 2 4 6 8 10\nc=01234'
+    assert str(result) == '(\'a\', \'b\')=13579, 2 4 6 8 10\nc=01234'
 
 
 def test_df():
     result = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
-            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=np.bool),
+            ('a', 'b'): np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=np.bool),
             'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool),
         },
     )
-    remove_end_measurements = pd.DataFrame(data={'ab': [1, 1, 2], 'c': [0, 1, 0]}, index=[1, 2, 3])
+    remove_end_measurements = pd.DataFrame(
+        data={('a', 'b'): [1, 1, 2], 'c': [0, 1, 0]}, index=[1, 2, 3]
+    )
 
     pd.testing.assert_frame_equal(result.data.iloc[1:-1], remove_end_measurements)
 
     # Frequency counting.
     df = result.data
-    assert len(df[df['ab'] == 1]) == 4
+    assert len(df[df[('a', 'b')] == 1]) == 4
     assert df.c.value_counts().to_dict() == {0: 3, 1: 2}
 
 
@@ -76,16 +78,16 @@ def test_histogram():
     result = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
-            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=np.bool),
+            ('a', 'b'): np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=np.bool),
             'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool),
         },
     )
 
-    assert result.histogram(key='ab') == collections.Counter({1: 4, 2: 1})
-    assert result.histogram(key='ab', fold_func=tuple) == collections.Counter(
+    assert result.histogram(key=('a', 'b')) == collections.Counter({1: 4, 2: 1})
+    assert result.histogram(key=('a', 'b'), fold_func=tuple) == collections.Counter(
         {(False, True): 4, (True, False): 1}
     )
-    assert result.histogram(key='ab', fold_func=lambda e: None) == collections.Counter(
+    assert result.histogram(key=('a', 'b'), fold_func=lambda e: None) == collections.Counter(
         {
             None: 5,
         }
@@ -97,12 +99,12 @@ def test_multi_measurement_histogram():
     result = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
-            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=np.bool),
+            ('a', 'b'): np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=np.bool),
             'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool),
         },
     )
 
-    assert result.multi_measurement_histogram(keys=['ab']) == collections.Counter(
+    assert result.multi_measurement_histogram(keys=[('a', 'b')]) == collections.Counter(
         {
             (1,): 4,
             (2,): 1,
@@ -114,7 +116,7 @@ def test_multi_measurement_histogram():
             (1,): 2,
         }
     )
-    assert result.multi_measurement_histogram(keys=['ab', 'c']) == collections.Counter(
+    assert result.multi_measurement_histogram(keys=[('a', 'b'), 'c']) == collections.Counter(
         {
             (
                 1,
@@ -139,14 +141,14 @@ def test_multi_measurement_histogram():
         }
     )
     assert result.multi_measurement_histogram(
-        keys=['ab'], fold_func=lambda e: None
+        keys=[('a', 'b')], fold_func=lambda e: None
     ) == collections.Counter(
         {
             None: 5,
         }
     )
     assert result.multi_measurement_histogram(
-        keys=['ab', 'c'], fold_func=lambda e: None
+        keys=[('a', 'b'), 'c'], fold_func=lambda e: None
     ) == collections.Counter(
         {
             None: 5,
@@ -154,7 +156,7 @@ def test_multi_measurement_histogram():
     )
 
     assert result.multi_measurement_histogram(
-        keys=['ab', 'c'], fold_func=lambda e: tuple(tuple(f) for f in e)
+        keys=[('a', 'b'), 'c'], fold_func=lambda e: tuple(tuple(f) for f in e)
     ) == collections.Counter(
         {
             ((False, True), (False,)): 2,
@@ -264,7 +266,7 @@ def test_text_diagram_jupyter():
     result = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
-            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=np.bool),
+            ('a', 'b'): np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=np.bool),
             'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool),
         },
     )
@@ -279,7 +281,7 @@ def test_text_diagram_jupyter():
 
     p = FakePrinter()
     result._repr_pretty_(p, False)
-    assert p.text_pretty == 'ab=00010, 11101\nc=00101'
+    assert p.text_pretty == '(\'a\', \'b\')=00010, 11101\nc=00101'
 
     # Test cycle handling
     p = FakePrinter()

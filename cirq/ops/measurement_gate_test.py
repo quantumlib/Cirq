@@ -32,6 +32,8 @@ def test_measure_init(num_qubits):
         cirq.MeasurementGate(5, qid_shape=(1, 2))
     with pytest.raises(ValueError, match='Specify either'):
         cirq.MeasurementGate()
+    with pytest.raises(TypeError, match='Wrong type for measurement key'):
+        cirq.MeasurementGate(3, key=('a', 'b'))
 
 
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
@@ -80,8 +82,12 @@ def test_measurement_full_invert_mask():
 def test_measurement_with_key(use_protocol, gate):
     if use_protocol:
         gate1 = cirq.with_measurement_key_mapping(gate, {'a': 'b'})
+        with pytest.raises(TypeError, match='elements of the key_map need to be str'):
+            _ = cirq.with_measurement_key_mapping(gate, {'a': ('a', 'b')})
     else:
         gate1 = gate.with_key('b')
+        with pytest.raises(TypeError, match='Wrong type for measurement key'):
+            _ = gate.with_key(('a', 'b'))
     assert gate1.key == 'b'
     assert gate1.num_qubits() == gate.num_qubits()
     assert gate1.invert_mask == gate.invert_mask

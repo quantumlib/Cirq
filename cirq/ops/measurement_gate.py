@@ -64,7 +64,10 @@ class MeasurementGate(raw_types.Gate):
         self._qid_shape = qid_shape
         if len(self._qid_shape) != num_qubits:
             raise ValueError('len(qid_shape) != num_qubits')
-        self.key = key
+        if isinstance(key, str):
+            self.key = key
+        else:
+            raise TypeError('Wrong type for measurement key. MeasurementGate only accepts str key')
         self.invert_mask = invert_mask or ()
         if self.invert_mask is not None and len(self.invert_mask) > self.num_qubits():
             raise ValueError('len(invert_mask) > num_qubits')

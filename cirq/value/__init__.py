@@ -72,6 +72,7 @@ from cirq.value.timestamp import (
 from cirq.value.type_alias import (
     TParamKey,
     TParamVal,
+    TMeasurementKey,
 )
 
 from cirq.value.value_equality_attr import (

@@ -110,7 +110,7 @@ class QPUResult:
                 'Can convert to cirq results only if the circuit had measurement gates '
                 'with measurement keys.'
             )
-        measurements = {}
+        measurements: Dict[value.TMeasurementKey, np.ndarray] = {}
         for key, targets in self.measurement_dict().items():
             qpu_results = list(self.counts(key).elements())
             measurements[key] = np.array(
@@ -241,7 +241,7 @@ class SimulatorResult:
                 'with measurement keys.'
             )
         rand = value.parse_random_state(seed)
-        measurements = {}
+        measurements: Dict[value.TMeasurementKey, np.ndarray] = {}
         values, weights = zip(*list(self.probabilities().items()))
         indices = rand.choice(
             range(len(values)), p=weights, size=override_repetitions or self.repetitions()

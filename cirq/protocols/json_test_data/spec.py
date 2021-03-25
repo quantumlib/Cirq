@@ -161,6 +161,7 @@ TestSpec = ModuleJsonTestSpec(
         'Sweepable',
         'TParamKey',
         'TParamVal',
+        'TMeasurementKey',
         'ParamDictType',
         # utility:
         'CliffordSimulator',

@@ -32,6 +32,7 @@ from cirq import circuits
 from cirq import devices
 from cirq import ops
 from cirq import study
+from cirq import value
 
 if TYPE_CHECKING:
     import cirq
@@ -201,7 +202,7 @@ def _trial_sweep_from_proto(
 
     trial_sweep: List[study.Result] = []
     for pr in msg.parameterized_results:
-        m_data: Dict[str, np.ndarray] = {}
+        m_data: Dict[value.TMeasurementKey, np.ndarray] = {}
         for mr in pr.measurement_results:
             qubit_results: OrderedDict[devices.GridQubit, np.ndarray] = OrderedDict()
             for qmr in mr.qubit_measurement_results:

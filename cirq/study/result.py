@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     import cirq
 
 T = TypeVar('T')
-TMeasurementKey = Union[str, 'cirq.Qid', Iterable['cirq.Qid']]
+TMeasurementQueryKey = Union[str, Tuple[str], 'cirq.Qid', Iterable['cirq.Qid']]
 
 
 def _tuple_of_big_endian_int(bit_groups: Iterable[Any]) -> Tuple[int, ...]:
@@ -62,9 +62,9 @@ def _bitstring(vals: Iterable[Any]) -> str:
     return separator.join(str_list)
 
 
-def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]) -> str:
+def _keyed_repeated_bitstrings(vals: Dict[value.TMeasurementKey, np.ndarray]) -> str:
     keyed_bitstrings = []
-    for key in sorted(vals.keys()):
+    for key in vals.keys():
         reps = vals[key]
         n = 0 if len(reps) == 0 else len(reps[0])
         all_bits = ', '.join(_bitstring(reps[:, i]) for i in range(n))
@@ -72,8 +72,8 @@ def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]) -> str:
     return '\n'.join(keyed_bitstrings)
 
 
-def _key_to_str(key: TMeasurementKey) -> str:
-    if isinstance(key, str):
+def _key_to_str(key: TMeasurementQueryKey) -> value.TMeasurementKey:
+    if isinstance(key, (str, tuple)):
         return key
     if isinstance(key, ops.Qid):
         return str(key)
@@ -97,7 +97,7 @@ class Result:
         self,
         *,  # Forces keyword args.
         params: resolver.ParamResolver,
-        measurements: Dict[str, np.ndarray],
+        measurements: Dict[value.TMeasurementKey, np.ndarray],
     ) -> None:
         """
         Args:
@@ -130,7 +130,7 @@ class Result:
     def from_single_parameter_set(
         *,  # Forces keyword args.
         params: resolver.ParamResolver,
-        measurements: Dict[str, np.ndarray],
+        measurements: Dict[value.TMeasurementKey, np.ndarray],
     ) -> 'Result':
         """Packages runs of a single parameterized circuit into a Result.
 
@@ -145,7 +145,7 @@ class Result:
         return Result(params=params, measurements=measurements)
 
     @property
-    def measurements(self) -> Dict[str, np.ndarray]:
+    def measurements(self) -> Dict[value.TMeasurementKey, np.ndarray]:
         return self._measurements
 
     @property
@@ -159,7 +159,7 @@ class Result:
     def multi_measurement_histogram(  # type: ignore
         self,
         *,  # Forces keyword args.
-        keys: Iterable[TMeasurementKey],
+        keys: Iterable[TMeasurementQueryKey],
         fold_func: Callable[[Tuple], T] = cast(Callable[[Tuple], T], _tuple_of_big_endian_int),
     ) -> collections.Counter:
         """Counts the number of times combined measurement results occurred.
@@ -221,7 +221,7 @@ class Result:
     def histogram(  # type: ignore
         self,
         *,  # Forces keyword args.
-        key: TMeasurementKey,
+        key: TMeasurementQueryKey,
         fold_func: Callable[[Tuple], T] = cast(Callable[[Tuple], T], value.big_endian_bits_to_int),
     ) -> collections.Counter:
         """Counts the number of times a measurement result occurred.
@@ -300,7 +300,7 @@ class Result:
                 'TrialResults do not have the same parameters or do '
                 'not have the same measurement keys.'
             )
-        all_measurements: Dict[str, np.ndarray] = {}
+        all_measurements: Dict[value.TMeasurementKey, np.ndarray] = {}
         for key in other.measurements:
             all_measurements[key] = np.append(
                 self.measurements[key], other.measurements[key], axis=0

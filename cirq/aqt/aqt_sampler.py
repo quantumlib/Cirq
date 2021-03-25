@@ -207,7 +207,7 @@ class AQTSampler(Sampler):
                 json_str=json_str, id_str=id_str, repetitions=repetitions, num_qubits=num_qubits
             )
             results = results.astype(bool)
-            res_dict = {meas_name: results}
+            res_dict = {meas_name: results}  # type: Dict[cirq.TMeasurementKey, np.ndarray]
             trial_results.append(study.Result(params=param_resolver, measurements=res_dict))
         return trial_results
 

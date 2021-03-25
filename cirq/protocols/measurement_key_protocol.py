@@ -17,6 +17,7 @@ from typing import AbstractSet, Any, Dict, Iterable
 
 from typing_extensions import Protocol
 
+from cirq import value
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 
@@ -47,7 +48,7 @@ class SupportsMeasurementKey(Protocol):
     """
 
     @doc_private
-    def _measurement_key_(self) -> str:
+    def _measurement_key_(self) -> value.TMeasurementKey:
         """Return the key that will be used to identify this measurement.
 
         When a measurement occurs, either on hardware, or in a simulation,
@@ -56,7 +57,7 @@ class SupportsMeasurementKey(Protocol):
         """
 
     @doc_private
-    def _measurement_keys_(self) -> Iterable[str]:
+    def _measurement_keys_(self) -> Iterable[value.TMeasurementKey]:
         """Return the keys for measurements performed by the receiving object.
 
         When a measurement occurs, either on hardware, or in a simulation,
@@ -106,7 +107,9 @@ def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
     raise TypeError(f"Object of type '{type(val)}' had no measurement keys.")
 
 
-def measurement_keys(val: Any, *, allow_decompose: bool = True) -> AbstractSet[str]:
+def measurement_keys(
+    val: Any, *, allow_decompose: bool = True
+) -> AbstractSet[value.TMeasurementKey]:
     """Gets the measurement keys of measurements within the given value.
 
     Args:
@@ -155,5 +158,12 @@ def with_measurement_key_mapping(val: Any, key_map: Dict[str, str]):
     This method can be used to reassign measurement keys at runtime, or to
     assign measurement keys from a higher-level object (such as a Circuit).
     """
+    if not all(isinstance(key, str) for key in key_map.keys()) or not all(
+        isinstance(value, str) for value in key_map.values()
+    ):
+        raise TypeError(
+            "The elements of the key_map need to be str. If you are looking to rename tuple keys, "
+            "you may rename only the last element of the tuple individually."
+        )
     getter = getattr(val, '_with_measurement_key_mapping_', None)
     return NotImplemented if getter is None else getter(key_map)

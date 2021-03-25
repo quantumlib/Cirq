@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
+from typing import Tuple, Union
 import sympy
 
 from cirq._doc import document
@@ -27,3 +27,6 @@ TParamVal = Union[float, sympy.Basic]
 document(
     TParamVal, """A value that a parameter resolver may return for a parameter."""  # type: ignore
 )
+
+TMeasurementKey = Union[str, Tuple[str]]
+document(TMeasurementKey, """An identifier for a particular measurement""")  # type: ignore

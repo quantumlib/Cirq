@@ -22,11 +22,20 @@ def test_measurement_key():
         def _measurement_key_(self):
             return 'door locker'
 
+    class ReturnsTuple:
+        def _measurement_key_(self):
+            return ('door', 'locker')
+
     assert cirq.measurement_key(ReturnsStr()) == 'door locker'
+    assert cirq.measurement_key(ReturnsTuple()) == ('door', 'locker')
 
     assert cirq.measurement_key(ReturnsStr(), None) == 'door locker'
     assert cirq.measurement_key(ReturnsStr(), NotImplemented) == 'door locker'
     assert cirq.measurement_key(ReturnsStr(), 'a') == 'door locker'
+
+    assert cirq.measurement_key(ReturnsTuple(), None) == ('door', 'locker')
+    assert cirq.measurement_key(ReturnsTuple(), NotImplemented) == ('door', 'locker')
+    assert cirq.measurement_key(ReturnsTuple(), 'a') == ('door', 'locker')
 
 
 def test_measurement_key_no_method():
@@ -46,6 +55,7 @@ def test_measurement_key_no_method():
     assert cirq.measurement_key(NoMethod(), None) is None
     assert cirq.measurement_key(NoMethod(), NotImplemented) is NotImplemented
     assert cirq.measurement_key(NoMethod(), 'a') == 'a'
+    assert cirq.measurement_key(NoMethod(), ('a', 'b')) == ('a', 'b')
 
     assert cirq.measurement_key(cirq.X, None) is None
     assert cirq.measurement_key(cirq.X(cirq.LineQubit(0)), None) is None
@@ -62,12 +72,18 @@ def test_measurement_key_not_implemented():
     assert cirq.measurement_key(ReturnsNotImplemented(), None) is None
     assert cirq.measurement_key(ReturnsNotImplemented(), NotImplemented) is NotImplemented
     assert cirq.measurement_key(ReturnsNotImplemented(), 'a') == 'a'
+    assert cirq.measurement_key(ReturnsNotImplemented(), ('a', 'b')) == ('a', 'b')
 
 
 def test_is_measurement():
+    class ReturnsTuple:
+        def _measurement_key_(self):
+            return ('a', 'b')
+
     q = cirq.NamedQubit('q')
     assert cirq.is_measurement(cirq.measure(q))
     assert cirq.is_measurement(cirq.MeasurementGate(num_qubits=1, key='b'))
+    assert cirq.is_measurement(ReturnsTuple())
 
     assert not cirq.is_measurement(cirq.X(q))
     assert not cirq.is_measurement(cirq.X)
@@ -85,14 +101,25 @@ def test_is_measurement():
 
 
 def test_measurement_keys():
+    class ReturnsTuple(cirq.Gate):
+        def __init__(self, key: str):
+            self.key = key
+
+        def _measurement_key_(self):
+            return (self.key, 'nested')
+
+        def num_qubits(self) -> int:
+            return 1
+
     class Composite(cirq.Gate):
         def _decompose_(self, qubits):
             yield cirq.measure(qubits[0], key='inner1')
             yield cirq.measure(qubits[1], key='inner2')
+            yield ReturnsTuple(key='inner').on(qubits[2])
             yield cirq.reset(qubits[0])
 
         def num_qubits(self) -> int:
-            return 2
+            return 3
 
     class MeasurementKeysGate(cirq.Gate):
         def _measurement_keys_(self):
@@ -101,11 +128,15 @@ def test_measurement_keys():
         def num_qubits(self) -> int:
             return 1
 
-    a, b = cirq.LineQubit.range(2)
-    assert cirq.measurement_keys(Composite()) == {'inner1', 'inner2'}
-    assert cirq.measurement_keys(Composite().on(a, b)) == {'inner1', 'inner2'}
+    a, b, c = cirq.LineQubit.range(3)
+    assert cirq.measurement_keys(Composite()) == {'inner1', 'inner2', ('inner', 'nested')}
+    assert cirq.measurement_keys(Composite().on(a, b, c)) == {
+        'inner1',
+        'inner2',
+        ('inner', 'nested'),
+    }
     assert cirq.measurement_keys(Composite(), allow_decompose=False) == set()
-    assert cirq.measurement_keys(Composite().on(a, b), allow_decompose=False) == set()
+    assert cirq.measurement_keys(Composite().on(a, b, c), allow_decompose=False) == set()
 
     assert cirq.measurement_keys(None) == set()
     assert cirq.measurement_keys([]) == set()
@@ -116,10 +147,20 @@ def test_measurement_keys():
     assert cirq.measurement_keys(cirq.X, allow_decompose=False) == set()
     assert cirq.measurement_keys(cirq.measure(a, key='out')) == {'out'}
     assert cirq.measurement_keys(cirq.measure(a, key='out'), allow_decompose=False) == {'out'}
+    assert cirq.measurement_keys(ReturnsTuple(key='out')) == {('out', 'nested')}
+    assert cirq.measurement_keys(ReturnsTuple(key='out').on(a)) == {('out', 'nested')}
+    assert cirq.measurement_keys(ReturnsTuple(key='out'), allow_decompose=False) == {
+        ('out', 'nested')
+    }
+    assert cirq.measurement_keys(ReturnsTuple(key='out').on(a), allow_decompose=False) == {
+        ('out', 'nested')
+    }
 
     assert cirq.measurement_keys(
-        cirq.Circuit(cirq.measure(a, key='a'), cirq.measure(b, key='2'))
-    ) == {'a', '2'}
+        cirq.Circuit(
+            cirq.measure(a, key='a'), cirq.measure(b, key='2'), ReturnsTuple(key='inner').on(c)
+        )
+    ) == {'a', '2', ('inner', 'nested')}
     assert cirq.measurement_keys(MeasurementKeysGate()) == {'a', 'b'}
     assert cirq.measurement_keys(MeasurementKeysGate().on(a)) == {'a', 'b'}
 
@@ -154,6 +195,12 @@ def test_measurement_key_mapping():
 
     with pytest.raises(ValueError):
         cirq.with_measurement_key_mapping(mkg_ab, {'a': 'c'})
+
+    with pytest.raises(TypeError):
+        cirq.with_measurement_key_mapping(mkg_ab, {('a', 'b'): 'c'})
+
+    with pytest.raises(TypeError):
+        cirq.with_measurement_key_mapping(mkg_ab, {'a': ('b', 'c')})
 
     assert cirq.with_measurement_key_mapping(cirq.X, {'a': 'c'}) is NotImplemented
 

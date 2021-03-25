@@ -58,7 +58,7 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
         """
         if self.device:
             self.device.validate_circuit(program)
-        measurements = {}  # type: Dict[str, np.ndarray]
+        measurements = {}  # type: Dict[cirq.TMeasurementKey, np.ndarray]
         for op in program.all_operations():
             key = protocols.measurement_key(op, default=None)
             if key is not None:
