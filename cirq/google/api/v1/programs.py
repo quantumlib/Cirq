@@ -221,7 +221,7 @@ def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
 
 def unpack_results(
     data: bytes, repetitions: int, key_sizes: Sequence[Tuple[str, int]]
-) -> Dict[str, np.ndarray]:
+) -> Dict[value.TMeasurementKey, np.ndarray]:
     """Unpack data from a bitstring into individual measurement results.
 
     Args:
@@ -242,7 +242,7 @@ def unpack_results(
     bits = np.unpackbits(byte_arr, axis=1)[:, ::-1].reshape(-1).astype(bool)
     bits = bits[:total_bits].reshape((repetitions, bits_per_rep))
 
-    results = {}
+    results: Dict[value.TMeasurementKey, np.ndarray] = {}
     ofs = 0
     for key, size in key_sizes:
         results[key] = bits[:, ofs : ofs + size]

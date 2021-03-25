@@ -25,8 +25,10 @@ from cirq.google.engine.result_type import ResultType
 from cirq.google.api import v1, v2
 
 if TYPE_CHECKING:
+    import numpy as np
     import datetime
     import cirq.google.engine.engine as engine_base
+    import cirq
     from cirq.google.engine.engine import engine_program
     from cirq.google.engine.engine import engine_processor
 
@@ -364,9 +366,7 @@ class EngineJob:
             key_sizes = [(m.key, len(m.qubits)) for m in sweep_result.measurement_keys]
             for result in sweep_result.parameterized_results:
                 data = result.measurement_results
-                measurements = v1.unpack_results(
-                    data, sweep_repetitions, key_sizes
-                )  # type: Dict[value.TMeasurementKey, numpy.ndarray]
+                measurements = v1.unpack_results(data, sweep_repetitions, key_sizes)
 
                 trial_results.append(
                     study.Result.from_single_parameter_set(

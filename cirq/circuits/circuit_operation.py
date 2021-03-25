@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING, AbstractSet, Callable, Dict, List, Optional, T
 import dataclasses
 import numpy as np
 
-from cirq import circuits, ops, protocols, study
+from cirq import circuits, ops, protocols, study, value
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
@@ -188,12 +188,10 @@ class CircuitOperation(ops.Operation):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return tuple(q.dimension for q in self.qubits)
 
-    def _measurement_keys_(self) -> AbstractSet[str]:
-        circuit_keys = self.circuit.all_measurement_keys()
+    def _measurement_keys_(self) -> AbstractSet[value.TMeasurementKey]:
+        circuit_keys: List[str] = [str(key) for key in self.circuit.all_measurement_keys()]
         if self.repetition_ids is not None:
-            circuit_keys = cartesian_product_of_string_lists(
-                self.repetition_ids, list(circuit_keys)
-            )
+            circuit_keys = cartesian_product_of_string_lists(self.repetition_ids, circuit_keys)
         return {remap_maybe_indexed_key(self.measurement_key_map, key) for key in circuit_keys}
 
     def _parameter_names_(self) -> AbstractSet[str]:
@@ -234,8 +232,8 @@ class CircuitOperation(ops.Operation):
                     # For a non-CircuitOperation measurement, prefix the current repetition_id
                     # to the children measurement keys. Implemented by creating a mapping and
                     # using the with_measurement_key_mapping protocol.
-                    key_map = {
-                        key: f'{MEASUREMENT_KEY_SEPARATOR.join([parent_id, key])}'
+                    key_map: Dict[str, str] = {
+                        str(key): f'{MEASUREMENT_KEY_SEPARATOR.join([parent_id, str(key)])}'
                         for key in protocols.measurement_keys(op)
                     }
                     ops.append(
@@ -491,7 +489,7 @@ class CircuitOperation(ops.Operation):
         """
         new_map = {}
         for k in self.circuit.all_measurement_keys():
-            k = get_unindexed_key(k)
+            k = get_unindexed_key(str(k))
             k_new = self.measurement_key_map.get(k, k)
             k_new = key_map.get(k_new, k_new)
             if k_new != k:

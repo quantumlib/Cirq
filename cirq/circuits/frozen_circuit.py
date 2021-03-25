@@ -26,7 +26,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import devices, ops, protocols
+from cirq import devices, ops, protocols, value
 from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.type_workarounds import NotImplementedType
@@ -73,7 +73,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         self._all_qubits: Optional[FrozenSet['cirq.Qid']] = None
         self._all_operations: Optional[Tuple[ops.Operation, ...]] = None
         self._has_measurements: Optional[bool] = None
-        self._all_measurement_keys: Optional[AbstractSet[str]] = None
+        self._all_measurement_keys: Optional[AbstractSet[value.TMeasurementKey]] = None
         self._are_all_measurements_terminal: Optional[bool] = None
 
     @property
@@ -124,7 +124,7 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             self._has_measurements = super().has_measurements()
         return self._has_measurements
 
-    def all_measurement_keys(self) -> AbstractSet[str]:
+    def all_measurement_keys(self) -> AbstractSet[value.TMeasurementKey]:
         if self._all_measurement_keys is None:
             self._all_measurement_keys = super().all_measurement_keys()
         return self._all_measurement_keys

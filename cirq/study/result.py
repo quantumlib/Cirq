@@ -75,7 +75,7 @@ def _keyed_repeated_bitstrings(vals: Dict[value.TMeasurementKey, np.ndarray]) ->
 
 def _key_to_str(key: TMeasurementQueryKey) -> value.TMeasurementKey:
     if isinstance(key, (str, tuple)):
-        return key
+        return key  # type: ignore
     if isinstance(key, ops.Qid):
         return str(key)
     return ','.join(str(q) for q in key)
