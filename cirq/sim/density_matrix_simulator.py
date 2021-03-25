@@ -174,9 +174,9 @@ class DensityMatrixSimulator(
         prefix, general_suffix = split_into_matching_protocol_then_general(
             resolved_circuit, lambda op: not protocols.is_measurement(op)
         )
-        acton_args = self.create_act_on_args(prefix, qubit_order, 0)
+        acton_args = self._create_act_on_args(prefix, qubit_order, 0)
         step_result = None
-        for step_result in self.iterate_circuit(
+        for step_result in self._core_iterator(
             circuit=prefix,
             qubit_order=qubit_order,
             sim_state=acton_args,
@@ -197,7 +197,7 @@ class DensityMatrixSimulator(
         qubit_order: ops.QubitOrderOrList,
         acton_args: act_on_density_matrix_args.ActOnDensityMatrixArgs,
     ) -> Dict[str, np.ndarray]:
-        for step_result in self.iterate_circuit(
+        for step_result in self._core_iterator(
             circuit=circuit,
             qubit_order=qubit_order,
             sim_state=acton_args,
@@ -219,7 +219,7 @@ class DensityMatrixSimulator(
         measurements = {}  # type: Dict[str, List[np.ndarray]]
 
         for _ in range(repetitions):
-            all_step_results = self.iterate_circuit(
+            all_step_results = self._core_iterator(
                 circuit,
                 qubit_order=qubit_order,
                 sim_state=acton_args.copy(),
@@ -231,7 +231,7 @@ class DensityMatrixSimulator(
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
 
-    def create_act_on_args(
+    def _create_act_on_args(
         self,
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,
@@ -255,7 +255,7 @@ class DensityMatrixSimulator(
             log_of_measurement_results={},
         )
 
-    def iterate_circuit(
+    def _core_iterator(
         self,
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,

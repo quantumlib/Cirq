@@ -84,7 +84,7 @@ class MPSSimulator(
         self.simulation_options = simulation_options
         self.grouping = grouping
 
-    def create_act_on_args(
+    def _create_act_on_args(
         self,
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,
@@ -115,7 +115,7 @@ class MPSSimulator(
             initial_state=initial_state,
         )
 
-    def iterate_circuit(
+    def _core_iterator(
         self,
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,

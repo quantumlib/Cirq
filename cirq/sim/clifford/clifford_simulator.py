@@ -68,7 +68,7 @@ class CliffordSimulator(
         # TODO: support more general Pauli measurements
         return protocols.has_stabilizer_effect(op)
 
-    def create_act_on_args(
+    def _create_act_on_args(
         self,
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,
@@ -100,7 +100,7 @@ class CliffordSimulator(
             {},
         )
 
-    def iterate_circuit(
+    def _core_iterator(
         self,
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,

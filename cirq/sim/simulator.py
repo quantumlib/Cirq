@@ -525,11 +525,11 @@ class SimulatesIntermediateState(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
-        acton_args = self.create_act_on_args(circuit, qubit_order, initial_state)
-        return self.iterate_circuit(circuit, qubit_order, acton_args)
+        acton_args = self._create_act_on_args(circuit, qubit_order, initial_state)
+        return self._core_iterator(circuit, qubit_order, acton_args)
 
     @abc.abstractmethod
-    def create_act_on_args(
+    def _create_act_on_args(
         self,
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,
@@ -551,7 +551,7 @@ class SimulatesIntermediateState(
         """
 
     @abc.abstractmethod
-    def iterate_circuit(
+    def _core_iterator(
         self,
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,

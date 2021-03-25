@@ -269,9 +269,7 @@ def test_run_qudit_channel(dtype):
 def test_run_measure_at_end_no_repetitions(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    with mock.patch.object(
-        simulator, 'iterate_circuit', wraps=simulator.iterate_circuit
-    ) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -289,9 +287,7 @@ def test_run_measure_at_end_no_repetitions(dtype):
 def test_run_repetitions_measure_at_end(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    with mock.patch.object(
-        simulator, 'iterate_circuit', wraps=simulator.iterate_circuit
-    ) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -307,9 +303,7 @@ def test_run_repetitions_measure_at_end(dtype):
 def test_run_qudits_repetitions_measure_at_end(dtype):
     q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    with mock.patch.object(
-        simulator, 'iterate_circuit', wraps=simulator.iterate_circuit
-    ) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1, 2]:
                 circuit = cirq.Circuit(
@@ -327,9 +321,7 @@ def test_run_qudits_repetitions_measure_at_end(dtype):
 def test_run_measurement_not_terminal_no_repetitions(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    with mock.patch.object(
-        simulator, 'iterate_circuit', wraps=simulator.iterate_circuit
-    ) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -352,9 +344,7 @@ def test_run_measurement_not_terminal_no_repetitions(dtype):
 def test_run_repetitions_measurement_not_terminal(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    with mock.patch.object(
-        simulator, 'iterate_circuit', wraps=simulator.iterate_circuit
-    ) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -375,9 +365,7 @@ def test_run_repetitions_measurement_not_terminal(dtype):
 def test_run_qudits_repetitions_measurement_not_terminal(dtype):
     q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    with mock.patch.object(
-        simulator, 'iterate_circuit', wraps=simulator.iterate_circuit
-    ) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1, 2]:
                 circuit = cirq.Circuit(
@@ -1319,9 +1307,7 @@ def test_nonmeasuring_subcircuits_do_not_cause_sweep_repeat():
         cirq.measure(q, key='x'),
     )
     simulator = cirq.DensityMatrixSimulator()
-    with mock.patch.object(
-        simulator, 'iterate_circuit', wraps=simulator.iterate_circuit
-    ) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         simulator.run(circuit, repetitions=10)
         assert mock_sim.call_count == 2
 
@@ -1333,9 +1319,7 @@ def test_measuring_subcircuits_cause_sweep_repeat():
         cirq.measure(q, key='x'),
     )
     simulator = cirq.DensityMatrixSimulator()
-    with mock.patch.object(
-        simulator, 'iterate_circuit', wraps=simulator.iterate_circuit
-    ) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         simulator.run(circuit, repetitions=10)
         assert mock_sim.call_count == 11
 

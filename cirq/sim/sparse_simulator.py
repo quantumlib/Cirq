@@ -181,9 +181,9 @@ class Simulator(
             if protocols.has_unitary(self.noise)
             else (resolved_circuit[0:0], resolved_circuit)
         )
-        acton_args = self.create_act_on_args(unitary_prefix, qubit_order, 0)
+        acton_args = self._create_act_on_args(unitary_prefix, qubit_order, 0)
         step_result = None
-        for step_result in self.iterate_circuit(
+        for step_result in self._core_iterator(
             circuit=unitary_prefix,
             qubit_order=qubit_order,
             sim_state=acton_args,
@@ -219,7 +219,7 @@ class Simulator(
 
         measurements: DefaultDict[str, List[np.ndarray]] = collections.defaultdict(list)
         for _ in range(repetitions):
-            all_step_results = self.iterate_circuit(
+            all_step_results = self._core_iterator(
                 circuit, sim_state=acton_args.copy(), qubit_order=qubit_order
             )
 
@@ -228,7 +228,7 @@ class Simulator(
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
 
-    def create_act_on_args(
+    def _create_act_on_args(
         self,
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,
@@ -249,7 +249,7 @@ class Simulator(
             log_of_measurement_results={},
         )
 
-    def iterate_circuit(
+    def _core_iterator(
         self,
         circuit: circuits.Circuit,
         qubit_order: ops.QubitOrderOrList,
