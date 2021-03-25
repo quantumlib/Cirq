@@ -395,14 +395,23 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         converted = _convert_to_circuit_with_drift(self, circuit)
         return self._simulator._run(converted, param_resolver, repetitions)
 
-    def _base_iterator(
+    def _core_iterator(
         self,
         circuit: Circuit,
-        qubit_order: QubitOrderOrList,
         initial_state: Any,
+        qubit_order: QubitOrderOrList,
     ) -> Iterator[StateVectorStepResult]:
         converted = _convert_to_circuit_with_drift(self, circuit)
-        return self._simulator._base_iterator(converted, qubit_order, initial_state)
+        return self._simulator._core_iterator(converted, initial_state, qubit_order)
+
+    def _create_act_on_args(
+        self,
+        circuit: Circuit,
+        initial_state: Any,
+        qubit_order: QubitOrderOrList,
+    ) -> Iterator[StateVectorStepResult]:
+        converted = _convert_to_circuit_with_drift(self, circuit)
+        return self._simulator._create_act_on_args(converted, initial_state, qubit_order)
 
 
 class _PhasedFSimConverter(PointOptimizer):
