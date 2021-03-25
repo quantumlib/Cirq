@@ -14,12 +14,14 @@
 
 import dataclasses
 import itertools
-from typing import Iterable, List, Tuple, TYPE_CHECKING, Sequence, Dict
+import warnings
+from typing import Iterable, Dict, List, Tuple, TYPE_CHECKING, Set, Sequence
 
 import numpy as np
 import sympy
 
-from cirq import circuits, ops, value
+from cirq import circuits, study, ops, value
+from cirq.work.observable_measurement_data import BitstringAccumulator
 from cirq.work.observable_settings import (
     InitObsSetting,
     _MeasurementSpec,
@@ -150,6 +152,62 @@ def _pad_setting(
     return InitObsSetting(init_state=init_state, observable=obs)
 
 
+def _aggregate_n_repetitions(next_chunk_repetitions: Set[int]) -> int:
+    """In the future, we will allow each accumulator to request a different number
+    of repetitions for the next chunk. For batching efficiency, we take the
+    max and issue a warning in this case."""
+    if len(next_chunk_repetitions) == 1:
+        return list(next_chunk_repetitions)[0]
+
+    reps = max(next_chunk_repetitions)
+    warnings.warn(
+        f"The stopping criteria specified a various numbers of "
+        f"repetitions to perform next. To be able to submit as a single "
+        f"sweep, the largest value will be used: {reps}."
+    )
+    return reps
+
+
+def _repetitions_to_do(accumulator: BitstringAccumulator, desired_reps: int) -> int:
+    """Stub function to chunk desired repetitions into groups of 10,000."""
+    done = accumulator.n_repetitions
+    todo = desired_reps - done
+    if todo <= 0:
+        return 0
+
+    to_do_next = min(10_000, todo)
+    return to_do_next
+
+
+def _check_meas_specs_still_todo(
+    meas_specs: List[_MeasurementSpec],
+    accumulators: Dict[_MeasurementSpec, BitstringAccumulator],
+    desired_repetitions: int,
+) -> Tuple[List[_MeasurementSpec], int]:
+    """Filter `meas_specs` in case some are done.
+
+    In the sampling loop in `measure_grouped_settings`, we submit
+    each `meas_spec` in chunks. This function contains the logic for
+    removing `meas_spec`s from the loop if they are done.
+    """
+    still_todo = []
+    repetitions: Set[int] = set()
+    for meas_spec in meas_specs:
+        accumulator = accumulators[meas_spec]
+        more_repetitions = _repetitions_to_do(accumulator, desired_reps=desired_repetitions)
+        if more_repetitions == 0:
+            continue
+
+        repetitions.add(more_repetitions)
+        still_todo.append(meas_spec)
+
+    if len(still_todo) == 0:
+        return still_todo, 0
+
+    reps = _aggregate_n_repetitions(repetitions)
+    return still_todo, reps
+
+
 @dataclasses.dataclass(frozen=True)
 class _FlippyMeasSpec:
     """Internally, each MeasurementSpec class is split into two
@@ -211,3 +269,124 @@ def _subdivide_meas_specs(
         repetitions //= 2
 
     return flippy_mspecs, repetitions
+
+
+def _to_sweep(param_tuples):
+    """Turn param tuples into a sweep."""
+    to_sweep = [dict(pt) for pt in param_tuples]
+    to_sweep = study.to_sweep(to_sweep)
+    return to_sweep
+
+
+def _needs_init_layer(grouped_settings: Dict[InitObsSetting, List[InitObsSetting]]) -> bool:
+    """Helper function to go through init_states and determine if any of them need an
+    initialization layer of single-qubit gates."""
+    for max_setting in grouped_settings.keys():
+        if any(st is not value.KET_ZERO for _, st in max_setting.init_state):
+            return True
+    return False
+
+
+def measure_grouped_settings(
+    circuit: 'cirq.Circuit',
+    grouped_settings: Dict[InitObsSetting, List[InitObsSetting]],
+    sampler: 'cirq.Sampler',
+    desired_repetitions: int,
+    *,
+    readout_symmetrization: bool = False,
+    circuit_sweep: 'cirq.study.sweepable.SweepLike' = None,
+) -> List[BitstringAccumulator]:
+    """Measure a suite of grouped InitObsSetting settings.
+
+    This is a low-level API for accessing the observable measurement
+    framework. See also `measure_observables` and `measure_observables_df`.
+
+    Args:
+        circuit: The circuit. This can contain parameters, in which case
+            you should also specify `circuit_sweep`.
+        grouped_settings: A series of setting groups expressed as a dictionary.
+            The key is the max-weight setting used for preparing single-qubit
+            basis-change rotations. The value is a list of settings
+            compatible with the maximal setting you desire to measure.
+            Automated routing algorithms like `group_settings_greedy` can
+            be used to construct this input.
+        sampler: A sampler.
+        desired_repetitions: How many repetitions per observable.
+        readout_symmetrization: If set to True, each `meas_spec` will be
+            split into two runs: one normal and one where a bit flip is
+            incorporated prior to measurement. In the latter case, the
+            measured bit will be flipped back classically and accumulated
+            together. This causes readout error to appear symmetric,
+            p(0|0) = p(1|1).
+        circuit_sweep: Additional parameter sweeps for parameters contained
+            in `circuit`. The total sweep is the product of the circuit sweep
+            with parameter settings for the single-qubit basis-change rotations.
+    """
+    qubits = sorted({q for ms in grouped_settings.keys() for q in ms.init_state.qubits})
+    qubit_to_index = {q: i for i, q in enumerate(qubits)}
+
+    needs_init_layer = _needs_init_layer(grouped_settings)
+    measurement_param_circuit = _with_parameterized_layers(circuit, qubits, needs_init_layer)
+    grouped_settings = {
+        _pad_setting(max_setting, qubits): settings
+        for max_setting, settings in grouped_settings.items()
+    }
+    circuit_sweep = study.UnitSweep if circuit_sweep is None else study.to_sweep(circuit_sweep)
+
+    # meas_spec provides a key for accumulators.
+    # meas_specs_todo is a mutable list. We will pop things from it as various
+    # specs are measured to the satisfaction of the stopping criteria
+    accumulators = {}
+    meas_specs_todo = []
+    for max_setting, circuit_params in itertools.product(
+        grouped_settings.keys(), circuit_sweep.param_tuples()
+    ):
+        # The type annotation for Param is just `Iterable`.
+        # We make sure that it's truly a tuple.
+        circuit_params = dict(circuit_params)
+
+        meas_spec = _MeasurementSpec(max_setting=max_setting, circuit_params=circuit_params)
+        accumulator = BitstringAccumulator(
+            meas_spec=meas_spec,
+            simul_settings=grouped_settings[max_setting],
+            qubit_to_index=qubit_to_index,
+        )
+        accumulators[meas_spec] = accumulator
+        meas_specs_todo += [meas_spec]
+
+    while True:
+        meas_specs_todo, repetitions = _check_meas_specs_still_todo(
+            meas_specs=meas_specs_todo,
+            accumulators=accumulators,
+            desired_repetitions=desired_repetitions,
+        )
+        if len(meas_specs_todo) == 0:
+            break
+
+        flippy_meas_specs, repetitions = _subdivide_meas_specs(
+            meas_specs=meas_specs_todo,
+            repetitions=repetitions,
+            qubits=qubits,
+            readout_symmetrization=readout_symmetrization,
+        )
+
+        resolved_params = [
+            flippy_ms.param_tuples(needs_init_layer=needs_init_layer)
+            for flippy_ms in flippy_meas_specs
+        ]
+        resolved_params = _to_sweep(resolved_params)
+
+        results = sampler.run_sweep(
+            program=measurement_param_circuit, params=resolved_params, repetitions=repetitions
+        )
+
+        assert len(results) == len(
+            flippy_meas_specs
+        ), 'Not as many results received as sweeps requested!'
+
+        for flippy_ms, result in zip(flippy_meas_specs, results):
+            accumulator = accumulators[flippy_ms.meas_spec]
+            bitstrings = np.logical_xor(flippy_ms.flips, result.measurements['z'])
+            accumulator.consume_results(bitstrings.astype(np.uint8, casting='safe'))
+
+    return list(accumulators.values())
