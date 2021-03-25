@@ -525,26 +525,26 @@ class SimulatesIntermediateState(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
-        acton_args = self._create_act_on_args(circuit, qubit_order, initial_state)
-        return self._core_iterator(circuit, qubit_order, acton_args)
+        acton_args = self._create_act_on_args(circuit, initial_state, qubit_order)
+        return self._core_iterator(circuit, acton_args, qubit_order)
 
     @abc.abstractmethod
     def _create_act_on_args(
         self,
         circuit: circuits.Circuit,
-        qubit_order: ops.QubitOrderOrList,
         initial_state: Any,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> TActOnArgs:
         """Creates the ActOnArgs state for a simulator.
 
         Args:
             circuit: The circuit to simulate.
-            qubit_order: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
             initial_state: The initial state for the simulation. The form of
                 this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
 
         Returns:
             ActOnArgs for the simulator.
@@ -554,19 +554,19 @@ class SimulatesIntermediateState(
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
-        qubit_order: ops.QubitOrderOrList,
         initial_state: TActOnArgs,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
         Args:
             circuit: The circuit to simulate.
-            qubit_order: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
             initial_state: The initial args for the simulation. The form of
                 this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
 
         Yields:
             StepResults from simulating a Moment of the Circuit.

@@ -87,18 +87,18 @@ class MPSSimulator(
     def _create_act_on_args(
         self,
         circuit: circuits.Circuit,
-        qubit_order: ops.QubitOrderOrList,
         initial_state: int,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ):
         """Creates MPSState args for simulating the Circuit.
 
         Args:
             circuit: The circuit to simulate.
+            initial_state: The initial state for the simulation in the
+                computational basis. Represented as a big endian int.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            initial_state: The initial state for the simulation in the
-                computational basis. Represented as a big endian int.
 
         Returns:
             MPSState args for simulating the Circuit.
@@ -118,18 +118,18 @@ class MPSSimulator(
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
-        qubit_order: ops.QubitOrderOrList,
         state: 'MPSState',
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ):
         """Iterator over MPSSimulatorStepResult from Moments of a Circuit
 
         Args:
             circuit: The circuit to simulate.
+            state: The initial state args for the simulation in the
+                computational basis.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            state: The initial state args for the simulation in the
-                computational basis.
 
         Yields:
             MPSStepResult from simulating a Moment of the Circuit.

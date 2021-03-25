@@ -103,14 +103,14 @@ def main(seed=None):
     )
 
     # Run the initial part of the simulation (Alice) and measure.
-    args = sim._create_act_on_args(circuit, cirq.QubitOrder.DEFAULT, 0)
-    initial_results = list(sim._core_iterator(circuit, cirq.QubitOrder.DEFAULT, args))
+    args = sim._create_act_on_args(circuit, 0)
+    initial_results = list(sim._core_iterator(circuit, args))
     meas_alice = initial_results[3].measurements['alice'] == [1]
     meas_msg = initial_results[4].measurements['msg'] == [1]
 
     # Run the final part of the simulation (Bob).
     final_circuit = make_final_quantum_teleportation_circuit(meas_alice, meas_msg)
-    *_, final_results = sim._core_iterator(final_circuit, cirq.QubitOrder.DEFAULT, args)
+    *_, final_results = sim._core_iterator(final_circuit, args)
 
     print("\nBloch Sphere of Qubit 2 at Final State:")
     # Prints the Bloch Sphere of Bob's entangled qubit at the final state.

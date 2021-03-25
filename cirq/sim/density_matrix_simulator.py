@@ -174,12 +174,12 @@ class DensityMatrixSimulator(
         prefix, general_suffix = split_into_matching_protocol_then_general(
             resolved_circuit, lambda op: not protocols.is_measurement(op)
         )
-        acton_args = self._create_act_on_args(prefix, qubit_order, 0)
+        acton_args = self._create_act_on_args(prefix, 0, qubit_order)
         step_result = None
         for step_result in self._core_iterator(
             circuit=prefix,
-            qubit_order=qubit_order,
             sim_state=acton_args,
+            qubit_order=qubit_order,
         ):
             pass
         assert step_result is not None
@@ -199,8 +199,8 @@ class DensityMatrixSimulator(
     ) -> Dict[str, np.ndarray]:
         for step_result in self._core_iterator(
             circuit=circuit,
-            qubit_order=qubit_order,
             sim_state=acton_args,
+            qubit_order=qubit_order,
             all_measurements_are_terminal=True,
         ):
             pass
@@ -221,8 +221,8 @@ class DensityMatrixSimulator(
         for _ in range(repetitions):
             all_step_results = self._core_iterator(
                 circuit,
-                qubit_order=qubit_order,
                 sim_state=acton_args.copy(),
+                qubit_order=qubit_order,
             )
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
@@ -234,18 +234,18 @@ class DensityMatrixSimulator(
     def _create_act_on_args(
         self,
         circuit: circuits.Circuit,
-        qubit_order: ops.QubitOrderOrList,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'],
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ):
         """Creates the ActOnDensityMatrixArgs for a circuit.
 
         Args:
             circuit: The circuit to simulate.
+            initial_state: The initial state for the simulation in the
+                computational basis.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            initial_state: The initial state for the simulation in the
-                computational basis.
 
         Returns:
             ActOnDensityMatrixArgs for the circuit.
@@ -271,19 +271,19 @@ class DensityMatrixSimulator(
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
-        qubit_order: ops.QubitOrderOrList,
         sim_state: act_on_density_matrix_args.ActOnDensityMatrixArgs,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         all_measurements_are_terminal: bool = False,
     ):
         """Iterator over DensityMatrixStepResult from Moments of a Circuit
 
         Args:
             circuit: The circuit to simulate.
+            sim_state: The initial state args for the simulation in the
+                computational basis.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            sim_state: The initial state args for the simulation in the
-                computational basis.
             all_measurements_are_terminal: Indicator that all measurements
                 are terminal, allowing optimization.
 

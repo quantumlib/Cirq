@@ -181,12 +181,12 @@ class Simulator(
             if protocols.has_unitary(self.noise)
             else (resolved_circuit[0:0], resolved_circuit)
         )
-        acton_args = self._create_act_on_args(unitary_prefix, qubit_order, 0)
+        acton_args = self._create_act_on_args(unitary_prefix, 0, qubit_order)
         step_result = None
         for step_result in self._core_iterator(
             circuit=unitary_prefix,
-            qubit_order=qubit_order,
             sim_state=acton_args,
+            qubit_order=qubit_order,
         ):
             pass
         assert step_result is not None
@@ -231,18 +231,18 @@ class Simulator(
     def _create_act_on_args(
         self,
         circuit: circuits.Circuit,
-        qubit_order: ops.QubitOrderOrList,
         initial_state: 'cirq.STATE_VECTOR_LIKE',
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ):
         """Creates the ActOnStateVectorArgs for a circuit.
 
         Args:
             circuit: The circuit to simulate.
+            initial_state: The initial state for the simulation in the
+                computational basis.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            initial_state: The initial state for the simulation in the
-                computational basis.
 
         Returns:
             ActOnStateVectorArgs for the circuit.
@@ -265,18 +265,18 @@ class Simulator(
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
-        qubit_order: ops.QubitOrderOrList,
         sim_state: act_on_state_vector_args.ActOnStateVectorArgs,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ):
         """Iterator over SparseSimulatorStep from Moments of a Circuit
 
         Args:
             circuit: The circuit to simulate.
+            sim_state: The initial state args for the simulation in the
+                computational basis.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            sim_state: The initial state args for the simulation in the
-                computational basis.
 
         Yields:
             SparseSimulatorStep from simulating a Moment of the Circuit.
