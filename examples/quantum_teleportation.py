@@ -49,8 +49,8 @@ def make_quantum_teleportation_circuit(ranX, ranY):
     circuit.append([cirq.X(msg) ** ranX, cirq.Y(msg) ** ranY])
     # Bell measurement of the Message and Alice's entangled qubit.
     circuit.append([cirq.CNOT(msg, alice), cirq.H(msg)])
-    circuit.append(cirq.measure(alice, key='a'))
-    circuit.append(cirq.measure(msg, key='m'))
+    circuit.append(cirq.measure(alice, key='alice'))
+    circuit.append(cirq.measure(msg, key='msg'))
     return circuit
 
 
@@ -85,13 +85,14 @@ def main(seed=None):
 
     sim = cirq.Simulator(seed=seed)
 
-    print("\nBloch Sphere of Message After Random X and Y Gates:")
-    # Prints the Bloch Sphere of the Message after the X and Y gates.
     # Run a simple simulation that applies the random X and Y gates that
     # create our message.
     q0 = cirq.LineQubit(0)
     message = sim.simulate(cirq.Circuit([cirq.X(q0) ** ranX, cirq.Y(q0) ** ranY]))
     expected = cirq.bloch_vector_from_state_vector(message.final_state_vector, 0)
+
+    print("\nBloch Sphere of Message After Random X and Y Gates:")
+    # Prints the Bloch Sphere of the Message after the X and Y gates.
     print(
         "x: ",
         np.around(expected[0], 4),
@@ -101,18 +102,19 @@ def main(seed=None):
         np.around(expected[2], 4),
     )
 
+    # Run the initial part of the simulation (Alice) and measure.
     args = sim._create_act_on_args(circuit, cirq.QubitOrder.DEFAULT, 0)
-    result = list(sim._core_iterator(circuit, cirq.QubitOrder.DEFAULT, args))
-    meas_alice = result[3].measurements['a'] == [1]
-    meas_msg = result[4].measurements['m'] == [1]
-    final_circuit = make_final_quantum_teleportation_circuit(meas_alice, meas_msg)
+    initial_results = list(sim._core_iterator(circuit, cirq.QubitOrder.DEFAULT, args))
+    meas_alice = initial_results[3].measurements['alice'] == [1]
+    meas_msg = initial_results[4].measurements['msg'] == [1]
 
-    final_result = list(sim._core_iterator(final_circuit, cirq.QubitOrder.DEFAULT, args))
-    final_r = final_result[len(final_result) - 1]
+    # Run the final part of the simulation (Bob).
+    final_circuit = make_final_quantum_teleportation_circuit(meas_alice, meas_msg)
+    *_, final_results = sim._core_iterator(final_circuit, cirq.QubitOrder.DEFAULT, args)
 
     print("\nBloch Sphere of Qubit 2 at Final State:")
     # Prints the Bloch Sphere of Bob's entangled qubit at the final state.
-    teleported = cirq.bloch_vector_from_state_vector(final_r.state_vector(), 2)
+    teleported = cirq.bloch_vector_from_state_vector(final_results.state_vector(), 2)
     print(
         "x: ",
         np.around(teleported[0], 4),
