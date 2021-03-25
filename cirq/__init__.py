@@ -546,7 +546,12 @@ from cirq.neutral_atoms import (
     NeutralAtomDevice,
 )
 
-from cirq.vis import Heatmap, TwoQubitInteractionHeatmap, integrated_histogram
+from cirq.vis import (
+    Heatmap,
+    TwoQubitInteractionHeatmap,
+    get_state_histogram,
+    integrated_histogram,
+)
 
 from cirq.work import (
     CircuitSampleJob,

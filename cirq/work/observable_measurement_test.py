@@ -17,11 +17,14 @@ import pytest
 
 import cirq
 import cirq.work as cw
+from cirq.work import _MeasurementSpec
 from cirq.work.observable_measurement import (
     _with_parameterized_layers,
     _get_params_for_setting,
     _pad_setting,
     _subdivide_meas_specs,
+    _aggregate_n_repetitions,
+    _check_meas_specs_still_todo,
 )
 
 
@@ -187,3 +190,88 @@ def test_subdivide_meas_specs():
         ('beta', 0.123),
         ('gamma', 0.456),
     ]
+
+
+def test_aggregate_n_repetitions():
+    with pytest.warns(UserWarning):
+        reps = _aggregate_n_repetitions({5, 6})
+    assert reps == 6
+
+
+def test_meas_specs_still_todo():
+    q0, q1 = cirq.LineQubit.range(2)
+    setting = cw.InitObsSetting(
+        init_state=cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1), observable=cirq.X(q0) * cirq.Y(q1)
+    )
+    meas_spec = _MeasurementSpec(
+        max_setting=setting,
+        circuit_params={
+            'beta': 0.123,
+            'gamma': 0.456,
+        },
+    )
+    bsa = cw.BitstringAccumulator(
+        meas_spec, [], {q: i for i, q in enumerate(cirq.LineQubit.range(3))}
+    )
+
+    # 1. before taking any data
+    still_todo, reps = _check_meas_specs_still_todo(
+        meas_specs=[meas_spec], accumulators={meas_spec: bsa}, desired_repetitions=1_000
+    )
+    assert still_todo == [meas_spec]
+    assert reps == 1_000
+
+    # 2. After taking a mocked-out 997 shots.
+    bsa.consume_results(np.zeros((997, 3), dtype=np.uint8))
+    still_todo, reps = _check_meas_specs_still_todo(
+        meas_specs=[meas_spec], accumulators={meas_spec: bsa}, desired_repetitions=1_000
+    )
+    assert still_todo == [meas_spec]
+    assert reps == 3
+
+    # 3. After taking the final 3 shots
+    bsa.consume_results(np.zeros((reps, 3), dtype=np.uint8))
+    still_todo, reps = _check_meas_specs_still_todo(
+        meas_specs=[meas_spec], accumulators={meas_spec: bsa}, desired_repetitions=1_000
+    )
+    assert still_todo == []
+    assert reps == 0
+
+
+@pytest.mark.parametrize('with_circuit_sweep', (True, False))
+def test_measure_grouped_settings(with_circuit_sweep):
+    qubits = cirq.LineQubit.range(1)
+    (q,) = qubits
+    tests = [
+        (cirq.KET_ZERO, cirq.Z, 1),
+        (cirq.KET_ONE, cirq.Z, -1),
+        (cirq.KET_PLUS, cirq.X, 1),
+        (cirq.KET_MINUS, cirq.X, -1),
+        (cirq.KET_IMAG, cirq.Y, 1),
+        (cirq.KET_MINUS_IMAG, cirq.Y, -1),
+    ]
+    if with_circuit_sweep:
+        ss = cirq.Linspace('a', 0, 1, 12)
+    else:
+        ss = None
+
+    for init, obs, coef in tests:
+        setting = cw.InitObsSetting(
+            init_state=init(q),
+            observable=obs(q),
+        )
+        grouped_settings = {setting: [setting]}
+        circuit = cirq.Circuit(cirq.I.on_each(*qubits))
+        results = cw.measure_grouped_settings(
+            circuit=circuit,
+            grouped_settings=grouped_settings,
+            sampler=cirq.Simulator(),
+            desired_repetitions=1_000,
+            circuit_sweep=ss,
+        )
+        if with_circuit_sweep:
+            for result in results:
+                assert result.means() == [coef]
+        else:
+            (result,) = results  # one group
+            assert result.means() == [coef]

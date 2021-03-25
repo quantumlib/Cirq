@@ -55,7 +55,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 being recorded into. Edit it easily by calling
                 `ActOnStateVectorArgs.record_measurement_result`.
         """
-        super().__init__(axes, prng, log_of_measurement_results)
+        super().__init__(prng, axes, log_of_measurement_results)
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
         self.qid_shape = qid_shape

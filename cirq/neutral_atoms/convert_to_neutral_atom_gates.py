@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List
+from typing import List, Optional, TYPE_CHECKING
 
 from cirq import ops, protocols
 from cirq.circuits.optimization_pass import (
@@ -19,6 +19,9 @@ from cirq.circuits.optimization_pass import (
     PointOptimizer,
 )
 from cirq import optimizers
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class ConvertToNeutralAtomGates(PointOptimizer):
@@ -76,7 +79,9 @@ class ConvertToNeutralAtomGates(PointOptimizer):
             on_stuck_raise=None if self.ignore_failures else on_stuck_raise,
         )
 
-    def optimization_at(self, circuit, index, op):
+    def optimization_at(
+        self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'
+    ) -> Optional['cirq.PointOptimizationSummary']:
         converted = self.convert(op)
         if len(converted) == 1 and converted[0] is op:
             return None

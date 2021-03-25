@@ -53,7 +53,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
                 being recorded into. Edit it easily by calling
                 `ActOnStabilizerCHFormArgs.record_measurement_result`.
         """
-        super().__init__(axes, prng, log_of_measurement_results)
+        super().__init__(prng, axes, log_of_measurement_results)
         self.state = state
 
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
