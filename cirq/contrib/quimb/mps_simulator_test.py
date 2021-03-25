@@ -503,7 +503,7 @@ def test_state_act_on_args_initializer():
         qubit_map={cirq.LineQubit(0): 0},
         prng=np.random.RandomState(0),
         axes=[2],
-        log_of_measurement_results={'test': 4}
+        log_of_measurement_results={'test': 4},
     )
     assert s.axes == (2,)
     assert s.log_of_measurement_results == {'test': 4}
