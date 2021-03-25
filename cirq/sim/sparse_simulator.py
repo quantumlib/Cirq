@@ -234,6 +234,19 @@ class Simulator(
         qubit_order: ops.QubitOrderOrList,
         initial_state: 'cirq.STATE_VECTOR_LIKE',
     ):
+        """Creates the ActOnStateVectorArgs for a circuit.
+
+        Args:
+            circuit: The circuit to simulate.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation in the
+                computational basis.
+
+        Returns:
+            ActOnStateVectorArgs for the circuit.
+        """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         num_qubits = len(qubits)
         qid_shape = protocols.qid_shape(qubits)
@@ -255,6 +268,19 @@ class Simulator(
         qubit_order: ops.QubitOrderOrList,
         sim_state: act_on_state_vector_args.ActOnStateVectorArgs,
     ):
+        """Iterator over SparseSimulatorStep from Moments of a Circuit
+
+        Args:
+            circuit: The circuit to simulate.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            sim_state: The initial state args for the simulation in the
+                computational basis.
+
+        Yields:
+            SparseSimulatorStep from simulating a Moment of the Circuit.
+        """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         qubit_map = {q: i for i, q in enumerate(qubits)}
         if len(circuit) == 0:

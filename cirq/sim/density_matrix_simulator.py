@@ -237,6 +237,19 @@ class DensityMatrixSimulator(
         qubit_order: ops.QubitOrderOrList,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'],
     ):
+        """Creates the ActOnDensityMatrixArgs for a circuit.
+
+        Args:
+            circuit: The circuit to simulate.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation in the
+                computational basis.
+
+        Returns:
+            ActOnDensityMatrixArgs for the circuit.
+        """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         qid_shape = protocols.qid_shape(qubits)
         initial_matrix = qis.to_valid_density_matrix(
@@ -262,6 +275,21 @@ class DensityMatrixSimulator(
         sim_state: act_on_density_matrix_args.ActOnDensityMatrixArgs,
         all_measurements_are_terminal: bool = False,
     ):
+        """Iterator over DensityMatrixStepResult from Moments of a Circuit
+
+        Args:
+            circuit: The circuit to simulate.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            sim_state: The initial state args for the simulation in the
+                computational basis.
+            all_measurements_are_terminal: Indicator that all measurements
+                are terminal, allowing optimization.
+
+        Yields:
+            DensityMatrixStepResult from simulating a Moment of the Circuit.
+        """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         qubit_map = {q: i for i, q in enumerate(qubits)}
         if len(circuit) == 0:

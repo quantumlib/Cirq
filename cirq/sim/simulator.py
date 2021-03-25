@@ -535,7 +535,7 @@ class SimulatesIntermediateState(
         qubit_order: ops.QubitOrderOrList,
         initial_state: Any,
     ) -> TActOnArgs:
-        """Creates the `act_on` state for a simulator.
+        """Creates the ActOnArgs state for a simulator.
 
         Args:
             circuit: The circuit to simulate.
@@ -547,7 +547,7 @@ class SimulatesIntermediateState(
                 documentation of the implementing class for details.
 
         Returns:
-            `act_on_args` for the simulator.
+            ActOnArgs for the simulator.
         """
 
     @abc.abstractmethod
@@ -564,7 +564,7 @@ class SimulatesIntermediateState(
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            initial_state: The initial state for the simulation. The form of
+            initial_state: The initial args for the simulation. The form of
                 this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
 

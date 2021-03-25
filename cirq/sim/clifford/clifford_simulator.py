@@ -74,7 +74,7 @@ class CliffordSimulator(
         qubit_order: ops.QubitOrderOrList,
         initial_state: int,
     ):
-        """Iterator over CliffordSimulatorStepResult from Moments of a Circuit
+        """Creates the ActOnStabilizerChFormArgs for a circuit.
 
         Args:
             circuit: The circuit to simulate.
@@ -84,9 +84,8 @@ class CliffordSimulator(
             initial_state: The initial state for the simulation in the
                 computational basis. Represented as a big endian int.
 
-
-        Yields:
-            CliffordStepResult from simulating a Moment of the Circuit.
+        Returns:
+            ActOnStabilizerChFormArgs for the circuit.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
 
@@ -106,6 +105,19 @@ class CliffordSimulator(
         qubit_order: ops.QubitOrderOrList,
         ch_form_args: clifford.ActOnStabilizerCHFormArgs,
     ):
+        """Iterator over CliffordSimulatorStepResult from Moments of a Circuit
+
+        Args:
+            circuit: The circuit to simulate.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            ch_form_args: The initial state args for the simulation in the
+                computational basis.
+
+        Yields:
+            CliffordStepResult from simulating a Moment of the Circuit.
+        """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         qubit_map = {q: i for i, q in enumerate(qubits)}
 
