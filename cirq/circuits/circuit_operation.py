@@ -234,15 +234,13 @@ class CircuitOperation(ops.Operation):
                     # For a non-CircuitOperation measurement, prefix the current repetition_id
                     # to the children measurement keys. Implemented by creating a mapping and
                     # using the with_measurement_key_mapping protocol.
+                    key_map = {
+                        key: f'{MEASUREMENT_KEY_SEPARATOR.join([parent_id, key])}'
+                        for key in protocols.measurement_keys(op)
+                    }
                     ops.append(
-                        protocols.with_measurement_key_mapping(
-                            op,
-                            key_map={
-                                key: f'{MEASUREMENT_KEY_SEPARATOR.join([parent_id, key])}'
-                                for key in protocols.measurement_keys(op)
-                            },
-                        )
-                    )
+                        protocols.with_measurement_key_mapping(op, key_map=key_map)
+                    )  # type: ignore
                 else:
                     ops.append(op)
         return ops

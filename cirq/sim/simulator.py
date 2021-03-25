@@ -754,7 +754,7 @@ def _verify_unique_measurement_keys(circuit: circuits.Circuit):
         key for op in ops.flatten_op_tree(iter(circuit)) for key in protocols.measurement_keys(op)
     )
     if result:
-        duplicates = [k for k, v in result.most_common() if v > 1]
+        duplicates = [str(k) for k, v in result.most_common() if v > 1]
         if duplicates:
             raise ValueError(f"Measurement key {','.join(duplicates)} repeated")
 

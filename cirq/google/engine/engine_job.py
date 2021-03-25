@@ -366,7 +366,7 @@ class EngineJob:
                 data = result.measurement_results
                 measurements = v1.unpack_results(
                     data, sweep_repetitions, key_sizes
-                )  # type: Dict[cirq.TMeasurementKey, np.ndarray]
+                )  # type: Dict[value.TMeasurementKey, numpy.ndarray]
 
                 trial_results.append(
                     study.Result.from_single_parameter_set(

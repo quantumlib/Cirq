@@ -49,7 +49,7 @@ import abc
 import html
 import numpy as np
 
-from cirq import devices, ops, protocols, qis
+from cirq import devices, ops, protocols, value, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -885,7 +885,7 @@ class AbstractCircuit(abc.ABC):
         qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(self.all_qubits())
         return protocols.qid_shape(qids)
 
-    def all_measurement_keys(self) -> AbstractSet[str]:
+    def all_measurement_keys(self) -> AbstractSet[value.TMeasurementKey]:
         return protocols.measurement_keys(self)
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
@@ -2132,7 +2132,7 @@ class Circuit(AbstractCircuit):
         shift = 0
         # Note: python `sorted` is guaranteed to be stable. This matters.
         insertions = sorted(insertions, key=lambda e: e[0])
-        groups = _group_until_different(insertions, key=lambda e: e[0], value=lambda e: e[1])
+        groups = _group_until_different(insertions, key=lambda e: e[0], value_map=lambda e: e[1])
         for i, group in groups:
             insert_index = i + shift
             next_index = copy.insert(insert_index, reversed(group), InsertStrategy.EARLIEST)
@@ -2425,12 +2425,12 @@ def _group_until_different(
 
 @overload
 def _group_until_different(
-    items: Iterable[TIn], key: Callable[[TIn], TKey], value: Callable[[TIn], TOut]
+    items: Iterable[TIn], key: Callable[[TIn], TKey], value_map: Callable[[TIn], TOut]
 ) -> Iterable[Tuple[TKey, List[TOut]]]:
     pass
 
 
-def _group_until_different(items: Iterable[TIn], key: Callable[[TIn], TKey], value=lambda e: e):
+def _group_until_different(items: Iterable[TIn], key: Callable[[TIn], TKey], value_map=lambda e: e):
     """Groups runs of items that are identical according to a keying function.
 
     Args:
@@ -2453,4 +2453,4 @@ def _group_until_different(items: Iterable[TIn], key: Callable[[TIn], TKey], val
     Yields:
         Tuples containing the group key and item values.
     """
-    return ((k, [value(i) for i in v]) for (k, v) in groupby(items, key))
+    return ((k, [value_map(i) for i in v]) for (k, v) in groupby(items, key))
