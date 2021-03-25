@@ -89,10 +89,10 @@ def main(seed=None):
     # create our message.
     q0 = cirq.LineQubit(0)
     message = sim.simulate(cirq.Circuit([cirq.X(q0) ** ranX, cirq.Y(q0) ** ranY]))
-    expected = cirq.bloch_vector_from_state_vector(message.final_state_vector, 0)
 
     print("\nBloch Sphere of Message After Random X and Y Gates:")
     # Prints the Bloch Sphere of the Message after the X and Y gates.
+    expected = cirq.bloch_vector_from_state_vector(message.final_state_vector, 0)
     print(
         "x: ",
         np.around(expected[0], 4),
