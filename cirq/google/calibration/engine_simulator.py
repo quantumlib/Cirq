@@ -3,7 +3,6 @@ from typing import (
     Callable,
     Dict,
     Iterable,
-    Iterator,
     List,
     Optional,
     Sequence,
@@ -14,6 +13,16 @@ from typing import (
 import numpy as np
 
 from cirq.circuits import Circuit, PointOptimizer, PointOptimizationSummary
+from cirq.google.calibration.phased_fsim import (
+    FloquetPhasedFSimCalibrationRequest,
+    PhaseCalibratedFSimGate,
+    IncompatibleMomentError,
+    PhasedFSimCalibrationRequest,
+    PhasedFSimCalibrationResult,
+    PhasedFSimCharacterization,
+    SQRT_ISWAP_PARAMETERS,
+    try_convert_sqrt_iswap_to_fsim,
+)
 from cirq.ops import (
     FSimGate,
     Gate,
@@ -30,22 +39,9 @@ from cirq.sim import (
     Simulator,
     SimulatesSamples,
     SimulatesIntermediateStateVector,
-    StateVectorStepResult,
 )
 from cirq.study import ParamResolver
 from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
-
-from cirq.google.calibration.phased_fsim import (
-    FloquetPhasedFSimCalibrationRequest,
-    PhaseCalibratedFSimGate,
-    IncompatibleMomentError,
-    PhasedFSimCalibrationRequest,
-    PhasedFSimCalibrationResult,
-    PhasedFSimCharacterization,
-    SQRT_ISWAP_PARAMETERS,
-    try_convert_sqrt_iswap_to_fsim,
-)
-
 
 ParametersDriftGenerator = Callable[[Qid, Qid, FSimGate], PhasedFSimCharacterization]
 PhasedFsimDictParameters = Dict[
