@@ -340,7 +340,7 @@ class BitstringAccumulator:
 
     def __eq__(self, other):
         if not isinstance(other, BitstringAccumulator):
-            return False
+            return NotImplemented
 
         if (
             self.max_setting != other.max_setting
