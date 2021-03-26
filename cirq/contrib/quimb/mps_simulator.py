@@ -17,9 +17,8 @@ This is based on this paper:
 https://arxiv.org/abs/2002.07730
 """
 
-import collections
 import math
-from typing import Any, Dict, List, Iterator, Optional, Sequence, Set, TYPE_CHECKING
+from typing import Any, Dict, List, Iterator, Optional, Sequence, Set, TYPE_CHECKING, Iterable
 
 import dataclasses
 import numpy as np
@@ -28,6 +27,7 @@ import quimb.tensor as qtn
 from cirq import circuits, devices, study, ops, protocols, value
 from cirq.ops import flatten_to_ops
 from cirq.sim import simulator
+from cirq.sim.act_on_args import ActOnArgs
 
 if TYPE_CHECKING:
     import cirq
@@ -107,6 +107,7 @@ class MPSSimulator(
                 measurements={},
                 state=MPSState(
                     qubit_map,
+                    self.prng,
                     self.simulation_options,
                     self.grouping,
                     initial_state=initial_state,
@@ -116,6 +117,7 @@ class MPSSimulator(
 
         state = MPSState(
             qubit_map,
+            self.prng,
             self.simulation_options,
             self.grouping,
             initial_state=initial_state,
@@ -123,18 +125,15 @@ class MPSSimulator(
 
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
         for op_tree in noisy_moments:
-            measurements: Dict[str, List[int]] = collections.defaultdict(list)
-
             for op in flatten_to_ops(op_tree):
-                if isinstance(op.gate, ops.MeasurementGate):
-                    key = str(protocols.measurement_key(op))
-                    measurements[key].extend(state.perform_measurement(op.qubits, self.prng))
-                elif protocols.has_mixture(op):
-                    state.apply_op(op, self.prng)
+                if protocols.is_measurement(op) or protocols.has_mixture(op):
+                    state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
+                    protocols.act_on(op, state)
                 else:
                     raise NotImplementedError(f"Unrecognized operation: {op!r}")
 
-            yield MPSSimulatorStepResult(measurements=measurements, state=state)
+            yield MPSSimulatorStepResult(measurements=state.log_of_measurement_results, state=state)
+            state.log_of_measurement_results.clear()
 
     def _create_simulator_trial_result(
         self,
@@ -282,24 +281,33 @@ class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
 
 
 @value.value_equality
-class MPSState:
+class MPSState(ActOnArgs):
     """A state of the MPS simulation."""
 
     def __init__(
         self,
         qubit_map: Dict['cirq.Qid', int],
+        prng: np.random.RandomState,
         simulation_options: MPSOptions = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
         initial_state: int = 0,
+        axes: Iterable[int] = None,
+        log_of_measurement_results: Dict[str, Any] = None,
     ):
         """Creates and MPSState
 
         Args:
             qubit_map: A map from Qid to an integer that uniquely identifies it.
+            prng: A random number generator, used to simulate measurements.
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
             initial_state: An integer representing the initial state.
+            axes: The indices of axes corresponding to the qubits that the
+                operation is supposed to act upon.
+            log_of_measurement_results: A mutable object that measurements are
+                being recorded into.
         """
+        super().__init__(prng, axes, log_of_measurement_results)
         self.qubit_map = qubit_map
         self.grouping = qubit_map if grouping is None else grouping
         if self.grouping.keys() != self.qubit_map.keys():
@@ -355,7 +363,12 @@ class MPSState:
         return self.qubit_map, self.M, self.simulation_options, self.grouping
 
     def copy(self) -> 'MPSState':
-        state = MPSState(self.qubit_map, self.simulation_options, self.grouping)
+        state = MPSState(
+            self.qubit_map,
+            self.prng,
+            self.simulation_options,
+            self.grouping,
+        )
         state.M = [x.copy() for x in self.M]
         state.estimated_gate_error_list = self.estimated_gate_error_list
         return state
@@ -494,6 +507,11 @@ class MPSState:
             # TODO(tonybruguier): Evaluate whether it's even useful to implement and learn more
             # about HOSVDs.
             raise ValueError('Can only handle 1 and 2 qubit operations')
+        return True
+
+    def _act_on_fallback_(self, op: Any, allow_decompose: bool):
+        """Delegates the action to self.apply_op"""
+        return self.apply_op(op, self.prng)
 
     def estimation_stats(self):
         "Returns some statistics about the memory usage and quality of the approximation."
@@ -563,3 +581,9 @@ class MPSState:
             results.append(result)
 
         return results
+
+    def _perform_measurement(self) -> List[int]:
+        """Measures the axes specified by the simulator."""
+        qubit_map_inv = {v: k for k, v in self.qubit_map.items()}
+        qubits = [qubit_map_inv[key] for key in self.axes]
+        return self.perform_measurement(qubits, self.prng)
