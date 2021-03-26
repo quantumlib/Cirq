@@ -335,7 +335,6 @@ def characterize_phased_fsim_parameters_with_xeb(
             'initial_simplex': initial_simplex,
             'xatol': xatol,
             'fatol': fatol,
-            'maxiter': maxiter,
         },
         method='nelder-mead',
     )

@@ -2,9 +2,14 @@
   "cirq_type": "XEBPhasedFSimCalibrationOptions",
   "n_library_circuits": 20,
   "n_combinations": 10,
-  "cycle_min": 3,
-  "cycle_max": 100,
-  "cycle_step": 20,
+  "cycle_depths": [
+    5,
+    25,
+    50,
+    100,
+    200,
+    300
+  ],
   "fatol": 0.005,
   "xatol": 0.005,
   "fsim_options": {

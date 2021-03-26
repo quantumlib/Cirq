@@ -295,6 +295,9 @@ def _load_xeb_results_textproto() -> cirq.google.CalibrationResult:
 
 
 def test_xeb_parse_fidelities():
+    q0, q1, q2, q3 = [cirq.GridQubit(0, index) for index in range(4)]
+    pair0 = (q0, q1)
+    pair1 = (q2, q3)
     result = _load_xeb_results_textproto()
     metrics = result.metrics
     df = _parse_xeb_fidelities_df(metrics, 'initial_fidelities')
@@ -304,6 +307,7 @@ def test_xeb_parse_fidelities():
             'layer_i': [0, 0, 0, 0],
             'pair_i': [0, 1, 0, 1],
             'fidelity': [0.99, 0.99, 0.88, 0.88],
+            'pair': [pair0, pair1, pair0, pair1],
         }
     )
     pd.testing.assert_frame_equal(df, should_be)
@@ -315,9 +319,53 @@ def test_xeb_parse_fidelities():
             'layer_i': [0, 0, 0, 0],
             'pair_i': [0, 1, 0, 1],
             'fidelity': [0.99, 0.99, 0.98, 0.98],
+            'pair': [pair0, pair1, pair0, pair1],
         }
     )
     pd.testing.assert_frame_equal(df, should_be)
+
+
+def test_xeb_parse_bad_fidelities():
+    metrics = cirq.google.Calibration(
+        metrics={
+            'initial_fidelities_depth_5': {
+                ('layer_0', 'pair_0', cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)): [1.0],
+            }
+        }
+    )
+    df = _parse_xeb_fidelities_df(metrics, 'initial_fidelities')
+    pd.testing.assert_frame_equal(
+        df,
+        pd.DataFrame(
+            {
+                'cycle_depth': [5],
+                'layer_i': [0],
+                'pair_i': [0],
+                'fidelity': [1.0],
+                'pair': [(cirq.GridQubit(0, 0), cirq.GridQubit(1, 1))],
+            }
+        ),
+    )
+
+    metrics = cirq.google.Calibration(
+        metrics={
+            'initial_fidelities_depth_5x': {
+                ('layer_0', 'pair_0', '0_0', '1_1'): [1.0],
+            }
+        }
+    )
+    df = _parse_xeb_fidelities_df(metrics, 'initial_fidelities')
+    assert len(df) == 0, 'bad metric name ignored'
+
+    metrics = cirq.google.Calibration(
+        metrics={
+            'initial_fidelities_depth_5': {
+                ('bad_name_0', 'pair_0', '0_0', '1_1'): [1.0],
+            }
+        }
+    )
+    with pytest.raises(ValueError, match=r'Could not parse layer value for bad_name_0'):
+        _parse_xeb_fidelities_df(metrics, 'initial_fidelities')
 
 
 def test_xeb_parse_angles():
@@ -348,19 +396,7 @@ def test_xeb_parse_result():
         ),
     )
 
-    with open(os.path.dirname(__file__) + '/test_data/xeb_results.textproto') as f:
-        metrics_snapshot = text_format.Parse(
-            f.read(), cirq.google.api.v2.metrics_pb2.MetricsSnapshot()
-        )
-
-    result = cirq.google.CalibrationResult(
-        code=cirq.google.api.v2.calibration_pb2.SUCCESS,
-        error_message=None,
-        token=None,
-        valid_until=None,
-        metrics=cirq.google.Calibration(metrics_snapshot),
-    )
-
+    result = _load_xeb_results_textproto()
     assert request.parse_result(result) == PhasedFSimCalibrationResult(
         parameters={
             (q_00, q_01): PhasedFSimCharacterization(phi=0.0, theta=-0.7853981),

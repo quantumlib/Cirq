@@ -453,6 +453,12 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     ) -> 'XEBPhasedFSimCalibrationRequest':
         return XEBPhasedFSimCalibrationRequest(pairs=pairs, gate=gate, options=self)
 
+    @classmethod
+    def _from_json_dict_(cls, **kwargs):
+        del kwargs['cirq_type']
+        kwargs['cycle_depths'] = tuple(kwargs['cycle_depths'])
+        return cls(**kwargs)
+
 
 @json_serializable_dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
@@ -633,7 +639,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
 
 def _get_labeled_int(key: str, s: str):
-    ma = re.match(rf'{key}_(\d+)', s)
+    ma = re.match(rf'{key}_(\d+)$', s)
     if ma is None:
         raise ValueError(f"Could not parse {key} value for {s}")
     return int(ma.group(1))
@@ -650,7 +656,7 @@ def _parse_xeb_fidelities_df(metrics: 'cirq.google.Calibration', super_name: str
     """
     records: List[Dict[str, Union[int, float]]] = []
     for metric_name in metrics.keys():
-        ma = re.match(fr'{super_name}_depth_(\d+)', metric_name)
+        ma = re.match(fr'{super_name}_depth_(\d+)$', metric_name)
         if ma is None:
             continue
 
@@ -661,6 +667,7 @@ def _parse_xeb_fidelities_df(metrics: 'cirq.google.Calibration', super_name: str
                     'layer_i': _get_labeled_int('layer', layer_str),
                     'pair_i': _get_labeled_int('pair', pair_str),
                     'fidelity': value,
+                    'pair': (qa, qb),
                 }
             )
     return pd.DataFrame(records)
@@ -679,7 +686,7 @@ def _parse_characterized_angles(
 
     records: Dict[Tuple['cirq.Qid', 'cirq.Qid'], Dict[str, float]] = collections.defaultdict(dict)
     for metric_name in metrics.keys():
-        ma = re.match(fr'{super_name}_(\w+)', metric_name)
+        ma = re.match(fr'{super_name}_(\w+)$', metric_name)
         if ma is None:
             continue
 
