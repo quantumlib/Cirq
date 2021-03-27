@@ -83,7 +83,7 @@ def _GaussianElimination(
         M[:, [(j + pj), j]] = M[:, [j, (j + pj)]]
 
         # Since the columns in the left and right half of the matrix represent the same qubit, we
-        # also need to swap then corresponding column in the other hald
+        # also need to swap the corresponding column in the other half.
         j_other_half = (j + n) % (2 * n)
         M[:, [(j_other_half + pj), j_other_half]] = M[:, [j_other_half, (j_other_half + pj)]]
 
