@@ -199,6 +199,8 @@ class StabilizerCode(object):
         # https://cs269q.stanford.edu/projects2019/stabilizer_code_report_Y.pdf
         for r, x in enumerate(self.logical_Xs):
             for j in range(self.r, self.n - self.k):
+                # By constructions, the first r rows can never contain a Z, as
+                # r is defined by the Gaussian elimination as the rank.
                 if x[j] == 'X' or x[j] == 'Y':
                     circuit.append(
                         cirq.ControlledOperation(
@@ -210,6 +212,20 @@ class StabilizerCode(object):
 
         for r in range(self.r):
             circuit.append(cirq.H(qubits[r]))
+
+            # Let's consider the first stabilizer:
+            # The reason for adding S gate is Y gate we used is the complex format (i.e. to
+            # make it Hermitian). It has following four cases: (ignore the phase factor)
+            # (I+X@P_2...P_k)|0...0> = |0...0> + |1>|\psi>
+            # (I+Y@P_2...P_k)|0...0> = |0...0> + i|1>|\psi>
+            # The other forms are not possible in the standard form, by construction.
+
+            # The first case means we need [1,1] vector and controlled gates and in the
+            # second case we need [1, i] vector and controlled gates. Corresponding, it is
+            # the first column of H and the first column of SH respectively.
+
+            # For the other stabilizers, the process can be repeated, as by definition they
+            # commute.
 
             if self.M[r][r] == 'Y' or self.M[r][r] == 'Z':
                 circuit.append(cirq.S(qubits[r]))
