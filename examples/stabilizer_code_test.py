@@ -1,5 +1,6 @@
-import pytest
 from typing import cast, List, Optional
+
+import pytest
 
 import cirq
 
