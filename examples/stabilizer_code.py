@@ -8,6 +8,9 @@ import cirq
 # Stabilizer Codes and Quantum Error Correction
 # Daniel Gottesman
 # https://thesis.library.caltech.edu/2900/2/THESIS.pdf
+#
+# However, there were some mistakes in the thesis:
+# https://www2.perimeterinstitute.ca/personal/dgottesman/thesis-errata.html
 
 
 def _BuildByCode(mat: np.ndarray) -> List[str]:
@@ -56,6 +59,9 @@ def _GaussianElimination(
     Returns:
         The rank of the matrix.
     """
+    assert M.shape[1] % 2 == 0
+    n = M.shape[1] // 2
+
     max_rank = min(max_row - min_row, max_col - min_col)
 
     rank = 0
@@ -70,9 +76,16 @@ def _GaussianElimination(
         pi = pivot_rows[0]
         pj = pivot_cols[0]
 
-        # Swap the rows and columns:
+        # Swap the rows:
         M[[i, i + pi]] = M[[i + pi, i]]
+
+        # Swap the columns:
         M[:, [(j + pj), j]] = M[:, [j, (j + pj)]]
+
+        # Since the columns in the left and right half of the matrix represent the same qubit, we
+        # also need to swap then corresponding column in the other hald
+        j_other_half = (j + n) % (2 * n)
+        M[:, [(j_other_half + pj), j_other_half]] = M[:, [j_other_half, (j_other_half + pj)]]
 
         # Do the elimination.
         for k in range(i + 1, max_row):
@@ -130,8 +143,7 @@ class StabilizerCode(object):
                 E.T,
                 np.eye(k, dtype=np.int8),
                 np.mod(E.T @ C1.T + C2.T, 2),
-                np.zeros((k, n - k - r), np.int8),
-                np.zeros((k, k), np.int8),
+                np.zeros((k, n - r), np.int8),
             ],
             axis=1,
         )
@@ -150,8 +162,9 @@ class StabilizerCode(object):
         self.k: int = k
         self.r: int = r
         self.M: List[str] = _BuildByCode(M)
-        self.X: List[str] = _BuildByCode(X)
-        self.Z: List[str] = _BuildByCode(Z)
+        self.logical_Xs: List[str] = _BuildByCode(X)
+        self.logical_Zs: List[str] = _BuildByCode(Z)
+
         self.syndromes_to_corrections = {}
 
         for qid in range(self.n):
@@ -162,25 +175,35 @@ class StabilizerCode(object):
                 )
                 self.syndromes_to_corrections[syndrome] = (op, qid)
 
-    def encode(self, qubits: List[cirq.Qid]) -> cirq.Circuit:
+    def encode(
+        self, additional_qubits: List[cirq.Qid], unencoded_qubits: List[cirq.Qid]
+    ) -> cirq.Circuit:
         """
         Creates a circuit that encodes the qubits using the code words.
 
         Args:
-            qubits: The list of qubits where to encode the message. This should be a vector of
-            length self.n where the last self.k qubits are the un-encoded qubits.
+            additional_qubits: The list of self.n - self.k qubits needed to encode the qubit.
+            unencoded_qubits: The list of self.k qubits that contain the original message.
 
         Returns:
             A circuit where the self.n qubits are the encoded qubits.
         """
+        assert len(additional_qubits) == self.n - self.k
+        assert len(unencoded_qubits) == self.k
+        qubits = additional_qubits + unencoded_qubits
+
         circuit = cirq.Circuit()
 
         # Equation 4.8:
-        for r, x in enumerate(self.X):
+        # This follows the improvements of:
+        # https://cs269q.stanford.edu/projects2019/stabilizer_code_report_Y.pdf
+        for r, x in enumerate(self.logical_Xs):
             for j in range(self.r, self.n - self.k):
                 if x[j] == 'X' or x[j] == 'Y':
                     circuit.append(
-                        cirq.ControlledOperation([qubits[self.n - self.k + r]], cirq.X(qubits[j]))
+                        cirq.ControlledOperation(
+                            [unencoded_qubits[r]], cirq.X(additional_qubits[j])
+                        )
                     )
 
         gate_dict = {'X': cirq.X, 'Y': cirq.Y, 'Z': cirq.Z}
@@ -204,7 +227,7 @@ class StabilizerCode(object):
 
     def correct(self, qubits: List[cirq.Qid], ancillas: List[cirq.Qid]) -> cirq.Circuit:
         """
-        Creates a correction circuit by computing the syndrom on the ancillas, and then using this
+        Creates a correction circuit by computing the syndrome on the ancillas, and then using this
         syndrome to correct the qubits.correct
 
         Args:
@@ -272,7 +295,7 @@ class StabilizerCode(object):
         qubit_map = {qubit: i for i, qubit in enumerate(qubits + ancillas)}
 
         decoded = []
-        for z in self.Z:
+        for z in self.logical_Zs:
             pauli_string: cirq.PauliString = cirq.PauliString(dict(zip(qubits, z)))
             trace = pauli_string.expectation_from_state_vector(state_vector, qubit_map)
             decoded.append(round((1 - trace.real) / 2))
