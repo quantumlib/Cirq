@@ -34,38 +34,88 @@ x:  0.2706 y:  -0.7071 z:  0.6533
 """
 
 import random
+from typing import Tuple
+
 import numpy as np
 import cirq
-
-msg, alice, bob = cirq.LineQubit.range(3)
-
-
-def make_quantum_teleportation_circuit(ranX, ranY):
-    circuit = cirq.Circuit()
-
-    # Creates Bell state to be shared between Alice and Bob.
-    circuit.append([cirq.H(alice), cirq.CNOT(alice, bob)])
-    # Creates a random state for the Message.
-    circuit.append([cirq.X(msg) ** ranX, cirq.Y(msg) ** ranY])
-    # Bell measurement of the Message and Alice's entangled qubit.
-    circuit.append([cirq.CNOT(msg, alice), cirq.H(msg)])
-    circuit.append(cirq.measure(alice, key='alice'))
-    circuit.append(cirq.measure(msg, key='msg'))
-    return circuit
+from cirq.sim.simulator import (
+    TStepResult,
+    SimulatesIntermediateState,
+    TSimulationTrialResult,
+    TSimulatorState,
+    TActOnArgs,
+)
 
 
-def make_final_quantum_teleportation_circuit(meas_alice, meas_msg):
-    circuit = cirq.Circuit()
-    circuit.append(cirq.identity_each(msg, alice, bob))
-    # Uses the two classical bits from the Bell measurement to recover the
-    # original quantum Message on Bob's entangled qubit.
+def _print_bloch(vector):
+    print(
+        'x: ',
+        np.around(vector[0], 4),
+        'y: ',
+        np.around(vector[1], 4),
+        'z: ',
+        np.around(vector[2], 4),
+    )
+
+
+def _run(
+    sim: SimulatesIntermediateState[
+        TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs
+    ]
+) -> Tuple[TSimulationTrialResult, TStepResult]:
+    # Initialize our qubit state space.
+    msg, alice, bob = qubits = cirq.LineQubit.range(3)
+    qubit_order = cirq.QubitOrder.as_qubit_order(qubits)
+
+    # First we create a bell state circuit and simulate it on the qubits.
+    bell_circuit = cirq.Circuit(cirq.H(alice), cirq.CNOT(alice, bob))
+    args = sim._create_act_on_args(bell_circuit, 0, qubit_order)
+    list(sim._core_iterator(bell_circuit, args, qubit_order))
+    print('\nBell Circuit:')
+    print(bell_circuit)
+
+    # Second we randomize the message qubit.
+    rand_x = random.random()
+    rand_y = random.random()
+    msg_circuit = cirq.Circuit(
+        cirq.X(msg) ** rand_x,
+        cirq.Y(msg) ** rand_y,
+    )
+    list(sim._core_iterator(msg_circuit, args, qubit_order))
+    print('\nMessage Circuit:')
+    print(msg_circuit)
+
+    # Now we measure on Alice's side
+    alice_circuit = cirq.Circuit(
+        cirq.CNOT(msg, alice),
+        cirq.H(msg),
+        cirq.measure(alice, key='alice'),
+        cirq.measure(msg, key='msg'),
+    )
+    alice_results = list(sim._core_iterator(alice_circuit, args, qubit_order))
+    meas_alice = alice_results[1].measurements['alice'] == [1]
+    meas_msg = alice_results[2].measurements['msg'] == [1]
+    print('\nAlice Circuit:')
+    print(alice_circuit)
+    print(f'meas_alice={meas_alice}')
+    print(f'meas_msg={meas_msg}')
+
+    # Finally we construct Bob's circuit based on Alice's measurements
+    bob_circuit = cirq.Circuit()
     if meas_alice:
-        circuit.append(cirq.X(bob))  # coverage: ignore
+        bob_circuit.append(cirq.X(bob))  # coverage: ignore
 
     if meas_msg:
-        circuit.append(cirq.Z(bob))  # coverage: ignore
+        bob_circuit.append(cirq.Z(bob))  # coverage: ignore
 
-    return circuit
+    *_, final_results = sim._core_iterator(bob_circuit, args, qubit_order)
+    print('\nBob Circuit:')
+    print(bob_circuit)
+
+    # We simulate our message circuit separately for comparison
+    message = sim.simulate(msg_circuit)
+
+    return message, final_results
 
 
 def main(seed=None):
@@ -76,53 +126,27 @@ def main(seed=None):
     """
     random.seed(seed)
 
-    ranX = random.random()
-    ranY = random.random()
-    circuit = make_quantum_teleportation_circuit(ranX, ranY)
+    # Run with density matrix simulator
+    print('***Run with density matrix simulator***')
+    sim = cirq.DensityMatrixSimulator(seed=seed)
+    message, final_results = _run(sim)
+    print('\nBloch Sphere of Message After Random X and Y Gates:')
+    expected = cirq.bloch_vector_from_state_vector(message.final_density_matrix, 0)
+    _print_bloch(expected)
+    print('\nBloch Sphere of Qubit 2 at Final State:')
+    teleported = cirq.bloch_vector_from_state_vector(final_results._density_matrix, 2)
+    _print_bloch(teleported)
 
-    print("Circuit:")
-    print(circuit)
-
+    # Run with sparse simulator
+    print('\n\n\n\n\n***Run with sparse simulator***')
     sim = cirq.Simulator(seed=seed)
-
-    # Run a simple simulation that applies the random X and Y gates that
-    # create our message.
-    q0 = cirq.LineQubit(0)
-    message = sim.simulate(cirq.Circuit([cirq.X(q0) ** ranX, cirq.Y(q0) ** ranY]))
-
-    print("\nBloch Sphere of Message After Random X and Y Gates:")
-    # Prints the Bloch Sphere of the Message after the X and Y gates.
+    message, final_results = _run(sim)
+    print('\nBloch Sphere of Message After Random X and Y Gates:')
     expected = cirq.bloch_vector_from_state_vector(message.final_state_vector, 0)
-    print(
-        "x: ",
-        np.around(expected[0], 4),
-        "y: ",
-        np.around(expected[1], 4),
-        "z: ",
-        np.around(expected[2], 4),
-    )
-
-    # Run the initial part of the simulation (Alice) and measure.
-    args = sim._create_act_on_args(circuit, 0)
-    initial_results = list(sim._core_iterator(circuit, args))
-    meas_alice = initial_results[3].measurements['alice'] == [1]
-    meas_msg = initial_results[4].measurements['msg'] == [1]
-
-    # Run the final part of the simulation (Bob).
-    final_circuit = make_final_quantum_teleportation_circuit(meas_alice, meas_msg)
-    *_, final_results = sim._core_iterator(final_circuit, args)
-
-    print("\nBloch Sphere of Qubit 2 at Final State:")
-    # Prints the Bloch Sphere of Bob's entangled qubit at the final state.
+    _print_bloch(expected)
+    print('\nBloch Sphere of Qubit 2 at Final State:')
     teleported = cirq.bloch_vector_from_state_vector(final_results.state_vector(), 2)
-    print(
-        "x: ",
-        np.around(teleported[0], 4),
-        "y: ",
-        np.around(teleported[1], 4),
-        "z: ",
-        np.around(teleported[2], 4),
-    )
+    _print_bloch(teleported)
 
     return expected, teleported
 
