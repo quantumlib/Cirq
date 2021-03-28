@@ -64,13 +64,13 @@ def _run(
     ]
 ) -> Tuple[TSimulationTrialResult, TStepResult]:
     # Initialize our qubit state space.
-    msg, alice, bob = qubits = cirq.LineQubit.range(3)
-    qubit_order = cirq.QubitOrder.as_qubit_order(qubits)
+    msg, alice, bob = cirq.LineQubit.range(3)
+    qubits = (msg, alice, bob)
+    args = sim._create_act_on_args(0, qubits)
 
     # First we create a bell state circuit and simulate it on the qubits.
     bell_circuit = cirq.Circuit(cirq.H(alice), cirq.CNOT(alice, bob))
-    args = sim._create_act_on_args(bell_circuit, 0, qubit_order)
-    list(sim._core_iterator(bell_circuit, args, qubit_order))
+    list(sim._core_iterator(bell_circuit, args, qubits))
     print('\nBell Circuit:')
     print(bell_circuit)
 
@@ -81,7 +81,7 @@ def _run(
         cirq.X(msg) ** rand_x,
         cirq.Y(msg) ** rand_y,
     )
-    list(sim._core_iterator(msg_circuit, args, qubit_order))
+    list(sim._core_iterator(msg_circuit, args, qubits))
     print('\nMessage Circuit:')
     print(msg_circuit)
 
@@ -92,7 +92,7 @@ def _run(
         cirq.measure(alice, key='alice'),
         cirq.measure(msg, key='msg'),
     )
-    alice_results = list(sim._core_iterator(alice_circuit, args, qubit_order))
+    alice_results = list(sim._core_iterator(alice_circuit, args, qubits))
     meas_alice = alice_results[1].measurements['alice'] == [1]
     meas_msg = alice_results[2].measurements['msg'] == [1]
     print('\nAlice Circuit:')
@@ -108,7 +108,7 @@ def _run(
     if meas_msg:
         bob_circuit.append(cirq.Z(bob))  # coverage: ignore
 
-    *_, final_results = sim._core_iterator(bob_circuit, args, qubit_order)
+    *_, final_results = sim._core_iterator(bob_circuit, args, qubits)
     print('\nBob Circuit:')
     print(bob_circuit)
 

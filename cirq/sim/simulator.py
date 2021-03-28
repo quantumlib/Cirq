@@ -525,24 +525,23 @@ class SimulatesIntermediateState(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
-        acton_args = self._create_act_on_args(circuit, initial_state, qubit_order)
-        return self._core_iterator(circuit, acton_args, qubit_order)
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
+        acton_args = self._create_act_on_args(initial_state, qubits)
+        return self._core_iterator(circuit, acton_args, qubits)
 
     @abc.abstractmethod
     def _create_act_on_args(
         self,
-        circuit: circuits.Circuit,
         initial_state: Any,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        qubits: Tuple['cirq.Qid', ...],
     ) -> TActOnArgs:
         """Creates the ActOnArgs state for a simulator.
 
         Args:
-            circuit: The circuit to simulate.
             initial_state: The initial state for the simulation. The form of
                 this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
-            qubit_order: Determines the canonical ordering of the qubits. This
+            qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
 
@@ -555,7 +554,7 @@ class SimulatesIntermediateState(
         self,
         circuit: circuits.Circuit,
         initial_state: TActOnArgs,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        qubits: Tuple['cirq.Qid', ...],
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
@@ -564,7 +563,7 @@ class SimulatesIntermediateState(
             initial_state: The initial args for the simulation. The form of
                 this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
-            qubit_order: Determines the canonical ordering of the qubits. This
+            qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
 

@@ -30,8 +30,6 @@ from cirq.ops import (
     Operation,
     PhasedFSimGate,
     Qid,
-    QubitOrder,
-    QubitOrderOrList,
     SingleQubitGate,
     WaitGate,
 )
@@ -396,19 +394,17 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         self,
         circuit: Circuit,
         initial_state: Any,
-        qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+        qubits: Tuple[Qid, ...],
     ):
         converted = _convert_to_circuit_with_drift(self, circuit)
-        return self._simulator._core_iterator(converted, initial_state, qubit_order)
+        return self._simulator._core_iterator(converted, initial_state, qubits)
 
     def _create_act_on_args(
         self,
-        circuit: Circuit,
-        initial_state: Any,
-        qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+        initial_state: int,
+        qubits: Tuple[Qid, ...],
     ):
-        converted = _convert_to_circuit_with_drift(self, circuit)
-        return self._simulator._create_act_on_args(converted, initial_state, qubit_order)
+        return self._simulator._create_act_on_args(initial_state, qubits)
 
 
 class _PhasedFSimConverter(PointOptimizer):

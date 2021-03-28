@@ -24,6 +24,7 @@ from typing import (
     DefaultDict,
     Union,
     cast,
+    Tuple,
 )
 
 import numpy as np
@@ -172,7 +173,8 @@ class Simulator(
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         check_all_resolved(resolved_circuit)
-        qubit_order = sorted(resolved_circuit.all_qubits())
+        qubits = tuple(sorted(resolved_circuit.all_qubits()))
+        acton_args = self._create_act_on_args(0, qubits)
 
         # Simulate as many unitary operations as possible before having to
         # repeat work for each sample.
@@ -181,12 +183,11 @@ class Simulator(
             if protocols.has_unitary(self.noise)
             else (resolved_circuit[0:0], resolved_circuit)
         )
-        acton_args = self._create_act_on_args(unitary_prefix, 0, qubit_order)
         step_result = None
         for step_result in self._core_iterator(
             circuit=unitary_prefix,
             sim_state=acton_args,
-            qubit_order=qubit_order,
+            qubits=qubits,
         ):
             pass
         assert step_result is not None
@@ -205,14 +206,14 @@ class Simulator(
             acton_args=acton_args,
             circuit=general_suffix,
             repetitions=repetitions,
-            qubit_order=qubit_order,
+            qubits=qubits,
         )
 
     def _brute_force_samples(
         self,
         acton_args: act_on_state_vector_args.ActOnStateVectorArgs,
         circuit: circuits.Circuit,
-        qubit_order: 'cirq.QubitOrderOrList',
+        qubits: Tuple['cirq.Qid', ...],
         repetitions: int,
     ) -> Dict[str, np.ndarray]:
         """Repeatedly simulate a circuit in order to produce samples."""
@@ -220,7 +221,7 @@ class Simulator(
         measurements: DefaultDict[str, List[np.ndarray]] = collections.defaultdict(list)
         for _ in range(repetitions):
             all_step_results = self._core_iterator(
-                circuit, sim_state=acton_args.copy(), qubit_order=qubit_order
+                circuit, sim_state=acton_args.copy(), qubits=qubits
             )
 
             for step_result in all_step_results:
@@ -230,24 +231,21 @@ class Simulator(
 
     def _create_act_on_args(
         self,
-        circuit: circuits.Circuit,
         initial_state: 'cirq.STATE_VECTOR_LIKE',
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        qubits: Tuple['cirq.Qid', ...],
     ):
         """Creates the ActOnStateVectorArgs for a circuit.
 
         Args:
-            circuit: The circuit to simulate.
             initial_state: The initial state for the simulation in the
                 computational basis.
-            qubit_order: Determines the canonical ordering of the qubits. This
+            qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
 
         Returns:
             ActOnStateVectorArgs for the circuit.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         num_qubits = len(qubits)
         qid_shape = protocols.qid_shape(qubits)
         state = qis.to_valid_state_vector(
@@ -266,7 +264,7 @@ class Simulator(
         self,
         circuit: circuits.Circuit,
         sim_state: act_on_state_vector_args.ActOnStateVectorArgs,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        qubits: Tuple['cirq.Qid', ...],
     ):
         """Iterator over SparseSimulatorStep from Moments of a Circuit
 
@@ -274,14 +272,13 @@ class Simulator(
             circuit: The circuit to simulate.
             sim_state: The initial state args for the simulation in the
                 computational basis.
-            qubit_order: Determines the canonical ordering of the qubits. This
+            qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
 
         Yields:
             SparseSimulatorStep from simulating a Moment of the Circuit.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         qubit_map = {q: i for i, q in enumerate(qubits)}
         if len(circuit) == 0:
             yield SparseSimulatorStep(

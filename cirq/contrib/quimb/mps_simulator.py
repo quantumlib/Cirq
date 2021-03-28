@@ -19,7 +19,7 @@ https://arxiv.org/abs/2002.07730
 
 import dataclasses
 import math
-from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iterable
+from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iterable, Tuple
 
 import numpy as np
 import quimb.tensor as qtn
@@ -86,25 +86,21 @@ class MPSSimulator(
 
     def _create_act_on_args(
         self,
-        circuit: circuits.Circuit,
         initial_state: int,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        qubits: Tuple['cirq.Qid', ...],
     ):
         """Creates MPSState args for simulating the Circuit.
 
         Args:
-            circuit: The circuit to simulate.
             initial_state: The initial state for the simulation in the
                 computational basis. Represented as a big endian int.
-            qubit_order: Determines the canonical ordering of the qubits. This
+            qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
 
         Returns:
             MPSState args for simulating the Circuit.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-
         qubit_map = {q: i for i, q in enumerate(qubits)}
 
         return MPSState(
@@ -119,7 +115,7 @@ class MPSSimulator(
         self,
         circuit: circuits.Circuit,
         state: 'MPSState',
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        qubits: Tuple['cirq.Qid', ...],
     ):
         """Iterator over MPSSimulatorStepResult from Moments of a Circuit
 
@@ -127,7 +123,7 @@ class MPSSimulator(
             circuit: The circuit to simulate.
             state: The initial state args for the simulation in the
                 computational basis.
-            qubit_order: Determines the canonical ordering of the qubits. This
+            qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
 

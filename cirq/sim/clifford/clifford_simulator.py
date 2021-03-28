@@ -29,7 +29,7 @@ The quantum state is specified in two forms:
     to state vector amplitudes.
 """
 
-from typing import Any, Dict, List, Sequence
+from typing import Any, Dict, List, Sequence, Tuple
 
 import numpy as np
 
@@ -70,25 +70,21 @@ class CliffordSimulator(
 
     def _create_act_on_args(
         self,
-        circuit: circuits.Circuit,
         initial_state: int,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        qubits: Tuple['cirq.Qid', ...],
     ):
         """Creates the ActOnStabilizerChFormArgs for a circuit.
 
         Args:
-            circuit: The circuit to simulate.
             initial_state: The initial state for the simulation in the
                 computational basis. Represented as a big endian int.
-            qubit_order: Determines the canonical ordering of the qubits. This
+            qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
 
         Returns:
             ActOnStabilizerChFormArgs for the circuit.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-
         qubit_map = {q: i for i, q in enumerate(qubits)}
 
         state = CliffordState(qubit_map, initial_state=initial_state)
@@ -103,7 +99,7 @@ class CliffordSimulator(
         self,
         circuit: circuits.Circuit,
         ch_form_args: clifford.ActOnStabilizerCHFormArgs,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        qubits: Tuple['cirq.Qid', ...],
     ):
         """Iterator over CliffordSimulatorStepResult from Moments of a Circuit
 
@@ -111,14 +107,13 @@ class CliffordSimulator(
             circuit: The circuit to simulate.
             ch_form_args: The initial state args for the simulation in the
                 computational basis.
-            qubit_order: Determines the canonical ordering of the qubits. This
+            qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
 
         Yields:
             CliffordStepResult from simulating a Moment of the Circuit.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         qubit_map = {q: i for i, q in enumerate(qubits)}
 
         def create_state():
