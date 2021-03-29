@@ -369,8 +369,8 @@ class SparseSimulatorStep(
 
         One can pass a valid full state to this method by passing a numpy
         array. Or, alternatively, one can pass an integer, and then the state
-        will be set lie entirely in the computation basis state for the binary
-        expansion of the passed integer.
+        will be set to lie entirely in the computation basis state for the
+        binary expansion of the passed integer.
 
         Args:
             state: If an int, the state vector set is the state vector
