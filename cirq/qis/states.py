@@ -505,7 +505,7 @@ def to_valid_state_vector(
 
     Args:
         state_rep: If an int, the state vector returned is the state vector
-            corresponding to a computational basis state. If an numpy array
+            corresponding to a computational basis state. If a numpy array
             this is the full state vector. Both of these are validated for
             the given number of qubits, and the state must be properly
             normalized and of the appropriate dtype.
@@ -763,7 +763,7 @@ def to_valid_density_matrix(
     or a computational basis state as a representation of a state.
 
     Args:
-        density_matrix_rep: If an numpy array, if it is of rank 2 (a matrix),
+        density_matrix_rep: If a numpy array, if it is of rank 2 (a matrix),
             then this is the density matrix. If it is a numpy array of rank 1
             (a vector) then this is a state vector. If this is an int,
             then this is the computation basis state.
