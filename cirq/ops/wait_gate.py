@@ -138,9 +138,9 @@ def wait(
         *target: The qubits that should wait.
         value: Wait duration (see Duration).
         picos: Picoseconds to wait (see Duration).
-        nanos: Picoseconds to wait (see Duration).
-        micros: Picoseconds to wait (see Duration).
-        millis: Picoseconds to wait (see Duration).
+        nanos: Nanoseconds to wait (see Duration).
+        micros: Microseconds to wait (see Duration).
+        millis: Milliseconds to wait (see Duration).
     """
     return WaitGate(
         duration=value.Duration(
