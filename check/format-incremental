@@ -110,8 +110,7 @@ if (( only_print == 1 )); then
     flynt_args+=("--dry-run")
 fi
 
-# TODO: Remove '-e cirq/ops/pauli_string.py' once the line is covered (https://github.com/quantumlib/Cirq/issues/3804)
-flynt ${format_files} "${flynt_args[@]}"  -e cirq/ops/pauli_string.py
+flynt ${format_files} "${flynt_args[@]}"
 FLYNTSTATUS=$?
 
 echo "Running the black formatter..."
