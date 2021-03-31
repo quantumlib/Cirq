@@ -593,7 +593,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             Measurement results with True corresponding to the ``|1⟩`` state.
             The outer list is for repetitions, and the inner corresponds to
             measurements ordered by the supplied qubits. These lists
-            are wrapped as an numpy ndarray.
+            are wrapped as a numpy ndarray.
         """
         raise NotImplementedError()
 
