@@ -299,6 +299,7 @@ def test_sympy():
     assert_json_roundtrip_works(sympy.E)
     assert_json_roundtrip_works(sympy.EulerGamma)
 
+
 class SBKImpl(cirq.SerializableByKey):
     """A test implementation of SerializableByKey."""
 
