@@ -295,6 +295,9 @@ def test_sympy():
     assert_json_roundtrip_works(t * 2)
     assert_json_roundtrip_works(4 * t + 3 * s + 2)
 
+    assert_json_roundtrip_works(sympy.pi)
+    assert_json_roundtrip_works(sympy.E)
+    assert_json_roundtrip_works(sympy.EulerGamma)
 
 class SBKImpl(cirq.SerializableByKey):
     """A test implementation of SerializableByKey."""
@@ -704,16 +707,3 @@ def test_json_serializable_dataclass_namespace():
             return QuantumVolumeParams
 
     assert_json_roundtrip_works(qvp, resolvers=[custom_resolver] + cirq.DEFAULT_RESOLVERS)
-
-
-def test_sympy_NumberSymbol_serialization():
-    def _test_json(symbol, name):
-        serialized = cirq.to_json(symbol)
-        expected = json.dumps({"cirq_type": name}).replace('{', '{\n  ').replace('}', '\n}')
-        assert serialized == expected
-        assert cirq.read_json(json_text=serialized) == symbol
-
-    symbols = [sympy.pi, sympy.E, sympy.EulerGamma]
-    names = ['sympy.pi', 'sympy.E', 'sympy.EulerGamma']
-    for symbol, name in zip(symbols, names):
-        _test_json(symbol, name)
