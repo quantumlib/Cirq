@@ -80,7 +80,7 @@ class Qid(metaclass=abc.ABCMeta):
         """
         if dimension < 1:
             raise ValueError(
-                'Wrong qid dimension. Expected a positive integer but got {}.'.format(dimension)
+                f'Wrong qid dimension. Expected a positive integer but got {dimension}.'
             )
 
     def with_dimension(self, dimension: int) -> 'Qid':
@@ -690,7 +690,9 @@ class TaggedOperation(Operation):
         tag_params = {name for tag in self.tags for name in protocols.parameter_names(tag)}
         return protocols.parameter_names(self.sub_operation) | tag_params
 
-    def _resolve_parameters_(self, resolver, recursive):
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'TaggedOperation':
         resolved_op = protocols.resolve_parameters(self.sub_operation, resolver, recursive)
         resolved_tags = (
             protocols.resolve_parameters(tag, resolver, recursive) for tag in self._tags
@@ -796,5 +798,5 @@ def _validate_qid_shape(val: Any, qubits: Sequence['cirq.Qid']) -> None:
         )
     if len(set(qubits)) != len(qubits):
         raise ValueError(
-            'Duplicate qids for <{!r}>. Expected unique qids but got <{!r}>.'.format(val, qubits)
+            f'Duplicate qids for <{val!r}>. Expected unique qids but got <{qubits!r}>.'
         )

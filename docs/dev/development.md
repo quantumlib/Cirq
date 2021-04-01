@@ -13,10 +13,22 @@ git clone git@github.com:quantumlib/cirq.git
 cd Cirq
 ```
 
-To do your development in a Docker image, you can build one with Cirq/dev_tools/Dockerfile or pull an existing image:
+## Recommended git setup
+
+The following command will setup large refactoring revisions to be ignored, when using git blame.
+
+```
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
+Note that if you are using PyCharm, you might have to Restart & Invalidate Caches to have the change being picked up. 
+
+## Docker
+
+To do your development in a Docker image, you can build one with our `Dockerfile`.
 ```bash
-    docker pull quantumlib/cirq:dev
-    docker run -it quantumlib/cirq:dev python -c "import cirq; print(cirq.google.Foxtail)"
+    docker build -t cirq .
+    docker run -it cirq python -c "import cirq; print(cirq.google.Foxtail)"
 ```
 
 

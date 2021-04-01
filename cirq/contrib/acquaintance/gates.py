@@ -331,7 +331,7 @@ class SwapNetworkGate(PermutationGate):
     ) -> 'cirq.CircuitDiagramInfo':
         wire_symbol = '×' if args.use_unicode_characters else 'swap'
         wire_symbols = tuple(
-            wire_symbol + '({},{})'.format(part_index, qubit_index)
+            wire_symbol + f'({part_index},{qubit_index})'
             for part_index, part_len in enumerate(self.part_lens)
             for qubit_index in range(part_len)
         )

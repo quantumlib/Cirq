@@ -171,9 +171,9 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
         return self.unfreeze().with_device(new_device, qubit_mapping).freeze()
 
     def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolver', recursive: bool
+        self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'FrozenCircuit':
-        return self.unfreeze()._resolve_parameters_(param_resolver, recursive).freeze()
+        return self.unfreeze()._resolve_parameters_(resolver, recursive).freeze()
 
     def tetris_concat(
         *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT

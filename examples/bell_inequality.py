@@ -68,7 +68,7 @@ def main():
     # Run simulations.
     print()
     repetitions = 75
-    print('Simulating {} repetitions...'.format(repetitions))
+    print(f'Simulating {repetitions} repetitions...')
     result = cirq.Simulator().run(program=circuit, repetitions=repetitions)
 
     # Collect results.
@@ -87,7 +87,7 @@ def main():
     print('x:', bitstring(x))
     print('y:', bitstring(y))
     print('(a XOR b) == (x AND y):\n  ', bitstring(outcomes))
-    print('Win rate: {}%'.format(win_percent))
+    print(f'Win rate: {win_percent}%')
 
 
 def make_bell_test_circuit():

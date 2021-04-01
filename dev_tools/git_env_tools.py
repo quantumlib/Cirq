@@ -49,7 +49,7 @@ def _git_fetch_for_comparison(
     actual_id = ''
     base_id = ''
     for depth in [10, 100, 1000, None]:
-        depth_str = '' if depth is None else '--depth={}'.format(depth)
+        depth_str = '' if depth is None else f'--depth={depth}'
 
         shell_tools.run_cmd(
             'git',
@@ -102,7 +102,7 @@ def fetch_github_pull_request(
         Commit ids corresponding to content to test/compare.
     """
 
-    branch = 'pull/{}/head'.format(pull_request_number)
+    branch = f'pull/{pull_request_number}/head'
     os.chdir(destination_directory)
     print('chdir', destination_directory, file=sys.stderr)
 

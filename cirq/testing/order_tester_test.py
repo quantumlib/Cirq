@@ -59,7 +59,7 @@ class MockValue:
         return self._ge(self, other)
 
     def __repr__(self):
-        return 'MockValue(val={!r}, ...)'.format(self.val)
+        return f'MockValue(val={self.val!r}, ...)'
 
 
 def test_add_ordering_group_correct():

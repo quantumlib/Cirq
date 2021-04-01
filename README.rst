@@ -32,6 +32,8 @@ Documentation for the latest **stable** version of cirq (what you get if you ``p
 - `Documentation <https://quantumai.google/cirq>`_
 - `Tutorials <https://quantumai.google/cirq/tutorials>`_
 
+For a comprehensive list all of the interactive Jupyter Notebooks in our repo (including the ones not yet published to the site) open our repo in `Colab <https://colab.research.google.com/github/quantumlib/Cirq>`_.
+
 For the latest news regarding Cirq, sign up to the `Cirq-announce email list <https://groups.google.com/forum/#!forum/cirq-announce>`__!
 
 

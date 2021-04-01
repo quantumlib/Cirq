@@ -1,15 +1,14 @@
 """Tests for the Quantum Volume benchmarker."""
 
-from unittest.mock import Mock, MagicMock
-import io
-import numpy as np
+import pytest
+
 from examples.advanced import quantum_volume
-import cirq
 
 
 def test_main_loop():
     """Test that the main loop is able to run without erring."""
     # Keep test from taking a long time by lowering repetitions.
+    pytest.importorskip("cirq.google")
     args = '--num_qubits 5 --depth 5 --num_circuits 1  --routes 3'.split()
     quantum_volume.main(**quantum_volume.parse_arguments(args))
 

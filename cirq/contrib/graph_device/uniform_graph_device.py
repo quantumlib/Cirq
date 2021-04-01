@@ -52,7 +52,7 @@ def uniform_undirected_linear_device(
     """
 
     if edge_labels and (min(edge_labels) < 1):
-        raise ValueError('edge sizes {} must be at least 1.'.format(tuple(edge_labels.keys())))
+        raise ValueError(f'edge sizes {tuple(edge_labels.keys())} must be at least 1.')
 
     device = UndirectedGraphDevice()
     for arity, label in edge_labels.items():

@@ -593,7 +593,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
             Measurement results with True corresponding to the ``|1⟩`` state.
             The outer list is for repetitions, and the inner corresponds to
             measurements ordered by the supplied qubits. These lists
-            are wrapped as an numpy ndarray.
+            are wrapped as a numpy ndarray.
         """
         raise NotImplementedError()
 
@@ -743,13 +743,9 @@ def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:
         for q, i in qubit_map.items():
             qid_shape[i] = q.dimension
     except IndexError:
-        raise ValueError(
-            'Invalid qubit_map. Qubit index out of bounds. Map is <{!r}>.'.format(qubit_map)
-        )
+        raise ValueError(f'Invalid qubit_map. Qubit index out of bounds. Map is <{qubit_map!r}>.')
     if -1 in qid_shape:
-        raise ValueError(
-            'Invalid qubit_map. Duplicate qubit index. Map is <{!r}>.'.format(qubit_map)
-        )
+        raise ValueError(f'Invalid qubit_map. Duplicate qubit index. Map is <{qubit_map!r}>.')
     return tuple(qid_shape)
 
 
@@ -760,7 +756,7 @@ def _verify_unique_measurement_keys(circuit: circuits.Circuit):
     if result:
         duplicates = [k for k, v in result.most_common() if v > 1]
         if duplicates:
-            raise ValueError('Measurement key {} repeated'.format(",".join(duplicates)))
+            raise ValueError(f"Measurement key {','.join(duplicates)} repeated")
 
 
 def check_all_resolved(circuit):
