@@ -53,7 +53,7 @@ class SwapNetwork:
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, type(self)):
-            return False
+            return NotImplemented
         return self.circuit == other.circuit and self.initial_mapping == other.initial_mapping
 
     @property

@@ -215,7 +215,9 @@ class Product(Sweep):
         self.factors = factors
 
     def __eq__(self, other):
-        return isinstance(other, Product) and self.factors == other.factors
+        if not isinstance(other, Product):
+            return NotImplemented
+        return self.factors == other.factors
 
     def __hash__(self):
         return hash(tuple(self.factors))
@@ -279,7 +281,9 @@ class Zip(Sweep):
         self.sweeps = sweeps
 
     def __eq__(self, other):
-        return isinstance(other, Zip) and self.sweeps == other.sweeps
+        if not isinstance(other, Zip):
+            return NotImplemented
+        return self.sweeps == other.sweeps
 
     def __hash__(self) -> int:
         return hash(tuple(self.sweeps))

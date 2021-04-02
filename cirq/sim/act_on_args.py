@@ -26,9 +26,9 @@ class ActOnArgs:
 
     def __init__(
         self,
-        axes: Iterable[int],
         prng: np.random.RandomState,
-        log_of_measurement_results: Dict[str, Any],
+        axes: Iterable[int] = None,
+        log_of_measurement_results: Dict[str, Any] = None,
     ):
         """
         Args:
@@ -40,6 +40,10 @@ class ActOnArgs:
                 being recorded into. Edit it easily by calling
                 `ActOnStateVectorArgs.record_measurement_result`.
         """
+        if axes is None:
+            axes = []
+        if log_of_measurement_results is None:
+            log_of_measurement_results = {}
         self.axes = tuple(axes)
         self.prng = prng
         self.log_of_measurement_results = log_of_measurement_results

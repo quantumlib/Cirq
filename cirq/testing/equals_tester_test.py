@@ -76,7 +76,9 @@ def test_add_equality_group_bad_hash():
             self._h = h
 
         def __eq__(self, other):
-            return isinstance(other, KeyHash) and self._k == other._k
+            if not isinstance(other, KeyHash):
+                return NotImplemented
+            return self._k == other._k
 
         def __ne__(self, other):
             return not self == other
@@ -250,3 +252,87 @@ def test_works_on_types():
     eq.add_equality_group(object)
     eq.add_equality_group(int)
     eq.add_equality_group(object())
+
+
+def test_returns_not_implemented_for_other_types():
+    # First we demonstrate an example of the problem.
+
+    # FirstClass is the class that is broken.
+    # It returns False when it should return NotImplemented when its __eq__ is called
+    # on a class it does not recognize.
+    class FirstClass:
+        def __init__(self, val):
+            self.val = val
+
+        def __eq__(self, other):
+            if not isinstance(other, FirstClass):
+                return False
+            return self.val == other.val
+
+    # So, for example, here is a class that we want to be equal to FirstClass.
+    class SecondClass:
+        def __init__(self, val):
+            self.val = val
+
+        def __eq__(self, other):
+            if isinstance(other, (FirstClass, SecondClass)):
+                return self.val == other.val
+            # Ignore coverage, this is just for illustrative purposes.
+            return NotImplemented  # coverage: ignore
+
+    # But we see that this does not work because it fails commutativity of ==
+    assert SecondClass("a") == FirstClass("a")
+    assert FirstClass("a") != SecondClass("a")
+
+    # The problem is that in the second case FirstClass should return NotImplemented, which
+    # will then cause the == call to check whether SecondClass is equal to FirstClass.
+
+    # So if we had done this correctly we would have instead of FirstClass and SecondClass,
+    # ThirdClass and FourthClass, respectively.
+    class ThirdClass:
+        def __init__(self, val):
+            self.val = val
+
+        def __eq__(self, other):
+            if not isinstance(other, ThirdClass):
+                return NotImplemented
+            return self.val == other.val
+
+    class FourthClass:
+        def __init__(self, val):
+            self.val = val
+
+        def __eq__(self, other):
+            if isinstance(other, (ThirdClass, FourthClass)):
+                return self.val == other.val
+            # Ignore coverage, this is just for illustrative purposes.
+            return NotImplemented  # coverage: ignore
+
+    # We see this is fixed:
+    assert ThirdClass("a") == FourthClass("a")
+    assert FourthClass("a") == ThirdClass("a")
+
+    # Now test that EqualsTester catches this.
+    eq = EqualsTester()
+
+    with pytest.raises(AssertionError, match="NotImplemented"):
+        eq.add_equality_group(FirstClass("a"), FirstClass("a"))
+
+    eq = EqualsTester()
+    eq.add_equality_group(ThirdClass("a"), ThirdClass("a"))
+
+
+def test_not_implemented_error():
+    # Common bug is to return NotImplementedError instead of NotImplemented.
+    class NotImplementedErrorCase:
+        def __init__(self, val):
+            self.val = val
+
+        def __eq__(self, other):
+            if not isinstance(other, NotImplementedErrorCase):
+                return NotImplementedError
+            return self.val == other.val
+
+    eq = EqualsTester()
+    with pytest.raises(AssertionError, match="NotImplemented"):
+        eq.add_equality_group(NotImplementedErrorCase("a"), NotImplementedErrorCase("a"))
