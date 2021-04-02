@@ -28,6 +28,7 @@ from typing import (
     AbstractSet,
     Any,
     Callable,
+    Collection,
     cast,
     Dict,
     FrozenSet,
@@ -109,7 +110,7 @@ class AbstractCircuit(abc.ABC):
     *   to_quil
     *   to_qasm
     *   save_qasm
-    *   get_qubit_factors
+    *   get_independent_qubit_sets
     """
 
     @property
@@ -1389,47 +1390,125 @@ class AbstractCircuit(abc.ABC):
 
         return cirq.Circuit(buffer[offset : offset + n_acc])
 
-    def get_qubit_factors(self) -> List[Set['cirq.Qid']]:
-        """
-        Divide circuit's qubits into qubit factors such that there are
-        no entangling gates between the qubits belonging to different factors.
+    def get_independent_qubit_sets(self) -> List[Set['cirq.Qid']]:
+        """Divide circuit's qubits into independent qubit sets.
+
+        Independent qubit sets are the qubit sets such that there are
+        no entangling gates between qubits belonging to different sets.
         If this is not possible, a sequence with a single factor (the whole set of
-        circuit's qubits) will be returned.
+        circuit's qubits) is returned.
+
+        >>> q0, q1, q2 = cirq.LineQubit.range(3)
+        >>> circuit = cirq.Circuit()
+        >>> circuit.append(cirq.Moment(cirq.H(q2)))
+        >>> circuit.append(cirq.Moment(cirq.CZ(q0,q1)))
+        >>> circuit.append(cirq.H(q0))
+        >>> print(circuit)
+        0: ───────@───H───
+                  │
+        1: ───────@───────
+        <BLANKLINE>
+        2: ───H───────────
+        >>> circuit.get_independent_qubit_sets()
+        [{cirq.LineQubit(0), cirq.LineQubit(1)}, {cirq.LineQubit(2)}]
+
+        Returns:
+            The list of independent qubit sets.
+
         """
         uf = networkx.utils.UnionFind(self.all_qubits())
         for op in self.all_operations():
             if len(op.qubits) > 1:
                 uf.union(*op.qubits)
-        return sorted(uf.to_sets(), key=min)
+        return sorted(sorted([qs for qs in uf.to_sets()]), key=min)
 
     def factorize(self: CIRCUIT_TYPE) -> Iterable[CIRCUIT_TYPE]:
-        """Factorize circuit into a sequence of circuits, if it's possible (i.e. if
-        the circuit qubits can be divided into two or more groups of qubits
-        such that there are no entangling gates between them).
-        If this is not possible, will return the set consisting of the single
+        """Factorize circuit into a sequence of independent circuits (factors).
+
+        Factorization is possible when the circuit's qubits can be divided
+        into two or more independent qubit sets. Preserves the moments from
+        the original circuit.
+        If this is not possible, returns the set consisting of the single
         circuit (this one).
+
+        >>> q0, q1, q2 = cirq.LineQubit.range(3)
+        >>> circuit = cirq.Circuit()
+        >>> circuit.append(cirq.Moment(cirq.H(q2)))
+        >>> circuit.append(cirq.Moment(cirq.CZ(q0,q1)))
+        >>> circuit.append(cirq.H(q0))
+        >>> print(circuit)
+        0: ───────@───H───
+                  │
+        1: ───────@───────
+        <BLANKLINE>
+        2: ───H───────────
+        >>> for i, f in enumerate(circuit.factorize()):
+        ...     print("Factor {}".format(i))
+        ...     print(f)
+        ...
+        Factor 0
+        0: ───────@───H───
+                  │
+        1: ───────@───────
+        Factor 1
+        2: ───H───────────
+
+        Returns:
+            The sequence of circuits, each including only the qubits from one
+            independent qubit set.
+
         """
 
-        qubit_factors = self.get_qubit_factors()
+        qubit_factors = self.get_independent_qubit_sets()
         if len(qubit_factors) == 1:
             return (self,)
         return (
             self._with_sliced_moments([m[qubits] for m in self.moments]) for qubits in qubit_factors
         )
 
-    def slice_by_qubit(
-        self: CIRCUIT_TYPE, with_qubits: Iterable['cirq.Qid']
-    ) -> Iterable[CIRCUIT_TYPE]:
+    def slice_by_qubits(self: CIRCUIT_TYPE, with_qubits: Collection['cirq.Qid']) -> CIRCUIT_TYPE:
+        """Retuns part of the circuit entangled with the given qubits.
+
+        If a circuit can be split into independent factors, that means only
+        returning the factors which contain at least one of the given qubits.
+
+        If a circuit cannot be factorized into independent qubit sets, returns
+        the whole circuit.
+
+        >>> q0, q1, q2 = cirq.LineQubit.range(3)
+        >>> circuit = cirq.Circuit()
+        >>> circuit.append(cirq.Moment(cirq.H(q2)))
+        >>> circuit.append(cirq.Moment(cirq.CZ(q0,q1)))
+        >>> circuit.append(cirq.H(q0))
+        >>> print(circuit)
+        0: ───────@───H───
+                  │
+        1: ───────@───────
+        <BLANKLINE>
+        2: ───H───────────
+        >>> print(circuit.slice_by_qubits([q1]))
+        0: ───────@───H───
+                  │
+        1: ───────@───────
+
+        Args:
+            with_qubits: Qubits for which the 'circuit slice' should be created.
+
+        Returns:
+            The circuit, including only the qubits which are entangled with the
+            provided qubits.
+
+        """
+
         if not frozenset(with_qubits) < self.all_qubits():
             raise ValueError(f'Unknown qubits:{with_qubits}')
-        qubit_factors = self.get_qubit_factors()
+        qubit_factors = self.get_independent_qubit_sets()
         if len(qubit_factors) == 1:
-            return (self,)
-        return [
-            self._with_sliced_moments([m[qubits] for m in self.moments])
-            for qubits in qubit_factors
-            if qubits.intersection(with_qubits)
+            return self
+        qubits_in_slice = [
+            q for qubits in qubit_factors for q in qubits if qubits.intersection(with_qubits)
         ]
+        return self._with_sliced_moments([m[qubits_in_slice] for m in self.moments])
 
 
 def _overlap_collision_time(
@@ -1504,7 +1583,7 @@ class Circuit(AbstractCircuit):
     *   to_quil
     *   to_qasm
     *   save_qasm
-    *   get_qubit_factors
+    *   get_independent_qubit_sets
 
     Methods for mutation:
 

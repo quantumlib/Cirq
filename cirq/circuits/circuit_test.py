@@ -4700,7 +4700,7 @@ def test_slice_by_qubit_large_circuit_one_factor():
         circuit.append(cirq.Moment(cirq.CZ(qubits[a], qubits[b]) for (a, b) in pairs))
     circuit.append(cirq.Moment(cirq.Y(q) for q in qubits))
     # expect 1 factor
-    factors = list(circuit.slice_by_qubit((qubits[0],)))
+    circuit_slice = circuit.slice_by_qubits((qubits[0],))
     desired = """
 (0, 0): ───X───@───────Y───
                │
@@ -4708,8 +4708,7 @@ def test_slice_by_qubit_large_circuit_one_factor():
                │   │
 (0, 2): ───X───@───@───Y───
 """
-    assert len(factors) == 1
-    cirq.testing.assert_has_diagram(factors[0], desired)
+    cirq.testing.assert_has_diagram(circuit_slice, desired)
 
 
 def test_slice_by_qubit_large_circuit_two_factors():
@@ -4720,23 +4719,18 @@ def test_slice_by_qubit_large_circuit_two_factors():
     for pairs in pairset:
         circuit.append(cirq.Moment(cirq.CZ(qubits[a], qubits[b]) for (a, b) in pairs))
     circuit.append(cirq.Moment(cirq.Y(q) for q in qubits))
-    # expect 2 factors
-    factors = list(circuit.slice_by_qubit((qubits[0], qubits[5])))
-    desired = [
-        """
+    # expect a circuit combined from 2 factors from the original circuit.
+    circuit_slice = circuit.slice_by_qubits((qubits[0], qubits[5]))
+    desired = """
 (0, 0): ───X───@───────Y───
                │
 (0, 1): ───X───┼───@───Y───
                │   │
 (0, 2): ───X───@───@───Y───
-""",
-        """
+
 (1, 2): ───X───────────Y───
-""",
-    ]
-    assert len(factors) == 2
-    for f, d in zip(factors, desired):
-        cirq.testing.assert_has_diagram(f, d)
+"""
+    cirq.testing.assert_has_diagram(circuit_slice, desired)
 
 
 def test_factorize_simple_circuit_unknown_qubit():
@@ -4744,7 +4738,7 @@ def test_factorize_simple_circuit_unknown_qubit():
     q0, q1, q2, qu = cirq.LineQubit.range(4)
     circuit.append([cirq.H(q1), cirq.CZ(q0, q1), cirq.H(q2), cirq.H(q0), cirq.H(q0)])
     with pytest.raises(ValueError, match='Unknown qubits'):
-        circuit.slice_by_qubit((qu,))
+        circuit.slice_by_qubits((qu,))
 
 
 def test_slice_by_qubit_one_factor():
@@ -4753,9 +4747,8 @@ def test_slice_by_qubit_one_factor():
     circuit.append(
         [cirq.Moment([cirq.CZ(q0, q1), cirq.H(q2)]), cirq.Moment([cirq.H(q0), cirq.CZ(q1, q2)])]
     )
-    factors = list(circuit.slice_by_qubit([q0]))
-    assert len(factors) == 1
-    assert factors[0] == circuit
+    circuit_slice = circuit.slice_by_qubits([q0])
+    assert circuit_slice == circuit
     desired = """
 0: ───@───H───
       │
@@ -4763,4 +4756,4 @@ def test_slice_by_qubit_one_factor():
           │
 2: ───H───@───
 """
-    cirq.testing.assert_has_diagram(factors[0], desired)
+    cirq.testing.assert_has_diagram(circuit_slice, desired)
