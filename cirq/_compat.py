@@ -117,6 +117,16 @@ def _validate_deadline(deadline: str):
     assert re.match(DEADLINE_REGEX, deadline), "deadline should match vX.Y"
 
 
+def deprecation_warning(deprecation: str, deadline:str, fix: str):
+    _validate_deadline(deadline)
+
+    _warn_or_error(
+                f'{deprecation}.\n'
+                f'It will be removed in cirq {deadline}.\n'
+                f'{fix}\n'
+            )
+
+
 def deprecated(
     *, deadline: str, fix: str, name: Optional[str] = None
 ) -> Callable[[Callable], Callable]:

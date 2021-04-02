@@ -15,6 +15,8 @@
 import abc
 from typing import TYPE_CHECKING, Optional, AbstractSet
 
+from cirq._compat import deprecation_warning
+
 if TYPE_CHECKING:
     import cirq
 
@@ -38,6 +40,11 @@ class Device(metaclass=abc.ABCMeta):
         # method was defined.
         for name in ['qubits', '_qubits']:
             if hasattr(self, name):
+                deprecation_warning(
+                    f"{type(self)} class implements {name} method, which is deprecated",
+                    deadline="v0.12",
+                    fix="Implement qubit_set instead",
+                )
                 val = getattr(self, name)
                 if callable(val):
                     val = val()
