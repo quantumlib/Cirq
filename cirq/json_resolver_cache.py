@@ -156,5 +156,8 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'sympy.Float': lambda approx: sympy.Float(approx),
         'sympy.Integer': sympy.Integer,
         'sympy.Rational': sympy.Rational,
+        'sympy.pi': lambda: sympy.pi,
+        'sympy.E': lambda: sympy.E,
+        'sympy.EulerGamma': lambda: sympy.EulerGamma,
         'complex': complex,
     }
