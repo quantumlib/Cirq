@@ -49,8 +49,12 @@ def test_circuit(boolean_expr, expected):
     name_to_id = hr.get_name_to_id([boolean])
     hamiltonian = hr.build_hamiltonian_from_boolean(boolean, name_to_id)
 
+    qubits = [cirq.NamedQubit(name) for name in name_to_id.keys()]
+    circuit = cirq.Circuit()
+    circuit.append(cirq.H.on_each(*qubits))
+
     theta = 0.1 * math.pi
-    circuit, qubits = hr.build_circuit_from_hamiltonians([hamiltonian], name_to_id, theta)
+    circuit += hr.build_circuit_from_hamiltonians([hamiltonian], qubits, theta)
 
     phi = cirq.Simulator().simulate(circuit, qubit_order=qubits, initial_state=0).state_vector()
     actual = np.arctan2(phi.real, phi.imag) - math.pi / 2.0 > 0.0
