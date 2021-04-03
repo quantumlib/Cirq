@@ -170,7 +170,7 @@ class DensityMatrixSimulator(
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         check_all_resolved(resolved_circuit)
         qubits = tuple(sorted(resolved_circuit.all_qubits()))
-        acton_args = self._create_act_on_args(0, qubits)
+        acton_args = self.create_act_on_args(0, qubits)
 
         prefix, general_suffix = split_into_matching_protocol_then_general(
             resolved_circuit, lambda op: not protocols.is_measurement(op)
@@ -231,7 +231,7 @@ class DensityMatrixSimulator(
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
 
-    def _create_act_on_args(
+    def create_act_on_args(
         self,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'],
         qubits: Tuple['cirq.Qid', ...],

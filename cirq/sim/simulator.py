@@ -412,8 +412,9 @@ class SimulatesIntermediateState(
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            initial_state: The initial state for the simulation. The form of
-                this state depends on the simulation implementation. See
+            initial_state: The initial state for the simulation. This can be
+                either a raw state or a `TActOnArgs`. The form of the
+                raw state depends on the simulation implementation. See
                 documentation of the implementing class for details.
 
         Returns:
@@ -457,8 +458,9 @@ class SimulatesIntermediateState(
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            initial_state: The initial state for the simulation. The form of
-                this state depends on the simulation implementation. See
+            initial_state: The initial state for the simulation. This can be
+                either a raw state or a `TActOnArgs`. The form of the
+                raw state depends on the simulation implementation. See
                 documentation of the implementing class for details.
 
         Returns:
@@ -513,6 +515,12 @@ class SimulatesIntermediateState(
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
+        This is a thin wrapper around `create_acton_args` and `_core_iterator`.
+        Overriding this method was the old way of creating a circuit iterator,
+        and this method is planned to be formally put on the deprecation path.
+        Going forward, override the aforementioned two methods in custom
+        simulators.
+
         Args:
             circuit: The circuit to simulate.
             qubit_order: Determines the canonical ordering of the qubits. This
@@ -526,16 +534,21 @@ class SimulatesIntermediateState(
             StepResults from simulating a Moment of the Circuit.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        acton_args = self._create_act_on_args(initial_state, qubits)
+        acton_args = (
+            initial_state
+            if isinstance(initial_state, ActOnArgs)
+            else self.create_act_on_args(initial_state, qubits)
+        )
         return self._core_iterator(circuit, acton_args, qubits)
 
-    @abc.abstractmethod
-    def _create_act_on_args(
+    def create_act_on_args(
         self,
         initial_state: Any,
         qubits: Tuple['cirq.Qid', ...],
     ) -> TActOnArgs:
         """Creates the ActOnArgs state for a simulator.
+
+        Custom simulators should implement this method.
 
         Args:
             initial_state: The initial state for the simulation. The form of
@@ -548,8 +561,8 @@ class SimulatesIntermediateState(
         Returns:
             ActOnArgs for the simulator.
         """
+        raise NotImplementedError()
 
-    @abc.abstractmethod
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
@@ -557,6 +570,8 @@ class SimulatesIntermediateState(
         qubits: Tuple['cirq.Qid', ...],
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
+
+        Custom simulators should implement this method.
 
         Args:
             circuit: The circuit to simulate.
@@ -570,6 +585,7 @@ class SimulatesIntermediateState(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def _create_simulator_trial_result(

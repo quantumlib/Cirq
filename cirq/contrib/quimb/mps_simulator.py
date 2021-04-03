@@ -84,7 +84,7 @@ class MPSSimulator(
         self.simulation_options = simulation_options
         self.grouping = grouping
 
-    def _create_act_on_args(
+    def create_act_on_args(
         self,
         initial_state: int,
         qubits: Tuple['cirq.Qid', ...],

@@ -66,11 +66,11 @@ def _run(
     # Initialize our qubit state space.
     msg, alice, bob = cirq.LineQubit.range(3)
     qubits = (msg, alice, bob)
-    args = sim._create_act_on_args(0, qubits)
+    args = sim.create_act_on_args(0, qubits)
 
     # First we create a bell state circuit and simulate it on the qubits.
     bell_circuit = cirq.Circuit(cirq.H(alice), cirq.CNOT(alice, bob))
-    list(sim._core_iterator(bell_circuit, args, qubits))
+    list(sim.simulate_moment_steps(bell_circuit, None, qubits, args))
     print('\nBell Circuit:')
     print(bell_circuit)
 
@@ -81,7 +81,7 @@ def _run(
         cirq.X(msg) ** rand_x,
         cirq.Y(msg) ** rand_y,
     )
-    list(sim._core_iterator(msg_circuit, args, qubits))
+    list(sim.simulate_moment_steps(msg_circuit, None, qubits, args))
     print('\nMessage Circuit:')
     print(msg_circuit)
 
@@ -89,26 +89,26 @@ def _run(
     alice_circuit = cirq.Circuit(
         cirq.CNOT(msg, alice),
         cirq.H(msg),
-        cirq.measure(alice, key='alice'),
-        cirq.measure(msg, key='msg'),
+        cirq.measure(alice, key='x_fixup'),
+        cirq.measure(msg, key='z_fixup'),
     )
-    alice_results = list(sim._core_iterator(alice_circuit, args, qubits))
-    meas_alice = alice_results[1].measurements['alice'] == [1]
-    meas_msg = alice_results[2].measurements['msg'] == [1]
+    alice_results = list(sim.simulate_moment_steps(alice_circuit, None, qubits, args))
+    x_fixup = alice_results[1].measurements['x_fixup'] == [1]
+    z_fixup = alice_results[2].measurements['z_fixup'] == [1]
     print('\nAlice Circuit:')
     print(alice_circuit)
-    print(f'meas_alice={meas_alice}')
-    print(f'meas_msg={meas_msg}')
+    print(f'x_fixup={x_fixup}')
+    print(f'z_fixup={z_fixup}')
 
     # Finally we construct Bob's circuit based on Alice's measurements
     bob_circuit = cirq.Circuit()
-    if meas_alice:
+    if x_fixup:
         bob_circuit.append(cirq.X(bob))  # coverage: ignore
 
-    if meas_msg:
+    if z_fixup:
         bob_circuit.append(cirq.Z(bob))  # coverage: ignore
 
-    *_, final_results = sim._core_iterator(bob_circuit, args, qubits)
+    *_, final_results = sim.simulate_moment_steps(bob_circuit, None, qubits, args)
     print('\nBob Circuit:')
     print(bob_circuit)
 

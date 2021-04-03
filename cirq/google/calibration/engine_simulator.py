@@ -399,12 +399,12 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         converted = _convert_to_circuit_with_drift(self, circuit)
         return self._simulator._core_iterator(converted, initial_state, qubits)
 
-    def _create_act_on_args(
+    def create_act_on_args(
         self,
         initial_state: int,
         qubits: Tuple[Qid, ...],
     ):
-        return self._simulator._create_act_on_args(initial_state, qubits)
+        return self._simulator.create_act_on_args(initial_state, qubits)
 
 
 class _PhasedFSimConverter(PointOptimizer):
