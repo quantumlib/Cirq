@@ -116,9 +116,9 @@ def build_hamiltonian_from_boolean(boolean_expr, name_to_id) -> HamiltonianList:
 
 def get_name_to_id(boolean_exprs):
     # For run-to-run identicalness, we sort the symbol name lexicographically.
-    symbol_names = sorted(
+    symbol_names = sorted({
         symbol.name for boolean_expr in boolean_exprs for symbol in boolean_expr.free_symbols
-    )
+    })
     return {symbol_name: i for i, symbol_name in enumerate(symbol_names)}
 
 
