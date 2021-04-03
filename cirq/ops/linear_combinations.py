@@ -452,7 +452,7 @@ class PauliSum:
         See `PauliString.expectation_from_state_vector`.
 
         Args:
-            state: An array representing a valid state vector.
+            state_vector: An array representing a valid state vector.
             qubit_map: A map from all qubits used in this PauliSum to the
                 indices of the qubits that `state_vector` is defined over.
             atol: Absolute numerical tolerance.

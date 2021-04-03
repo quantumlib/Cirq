@@ -302,7 +302,9 @@ class SimulatesExpectationValues(metaclass=abc.ABCMeta):
         """
 
 
-class SimulatesFinalState(Generic[TSimulationTrialResult], metaclass=abc.ABCMeta):
+class SimulatesFinalState(
+    Generic[TSimulationTrialResult], SimulatesExpectationValues, metaclass=abc.ABCMeta
+):
     """Simulator that allows access to the simulator's final state.
 
     Implementors of this interface should implement the simulate_sweep
@@ -371,6 +373,34 @@ class SimulatesFinalState(Generic[TSimulationTrialResult], metaclass=abc.ABCMeta
             possible parameter resolver.
         """
         raise NotImplementedError()
+
+    def simulate_expectation_values_sweep(
+        self,
+        program: 'cirq.Circuit',
+        observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
+        params: 'study.Sweepable',
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        initial_state: Any = None,
+        permit_terminal_measurements: bool = False,
+    ) -> List[List[float]]:
+        if not permit_terminal_measurements and program.are_any_measurements_terminal():
+            raise ValueError(
+                'Provided circuit has terminal measurements, which may '
+                'skew expectation values. If this is intentional, set '
+                'permit_terminal_measurements=True.'
+            )
+        swept_evs = []
+        qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
+        qmap = {q: i for i, q in enumerate(qubit_order.order_for(program.all_qubits()))}
+        if not isinstance(observables, List):
+            observables = [observables]
+        pslist = [ops.PauliSum.wrap(pslike) for pslike in observables]
+        for param_resolver in study.to_resolvers(params):
+            result = self.simulate(
+                program, param_resolver, qubit_order=qubit_order, initial_state=initial_state
+            )
+            swept_evs.append([result.expectation_from_state(obs) for obs in pslist])
+        return swept_evs
 
 
 class SimulatesIntermediateState(
@@ -735,6 +765,12 @@ class SimulationTrialResult:
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return _qubit_map_to_shape(self.qubit_map)
+
+    def expectation_from_state(self, obs: 'cirq.PauliSum'):
+        """Subclasses can implement this to allow expectation values derived
+        from the final state.
+        """
+        raise NotImplementedError()
 
 
 def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:

@@ -193,3 +193,6 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
             f'measurements={self.measurements!r}, '
             f'final_simulator_state={self._final_simulator_state!r})'
         )
+
+    def expectation_from_state(self, obs: 'cirq.PauliSum'):
+        return obs.expectation_from_state_vector(self.final_state_vector, self.qubit_map)

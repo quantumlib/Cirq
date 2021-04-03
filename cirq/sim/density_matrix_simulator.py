@@ -515,3 +515,6 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
             f'params={self.params!r}, measurements={self.measurements!r}, '
             f'final_simulator_state={self._final_simulator_state!r})'
         )
+
+    def expectation_from_state(self, obs: 'cirq.PauliSum'):
+        return obs.expectation_from_density_matrix(self.final_density_matrix, self.qubit_map)
