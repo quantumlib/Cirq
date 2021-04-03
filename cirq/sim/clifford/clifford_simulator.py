@@ -49,7 +49,6 @@ class CliffordSimulator(
         'CliffordState',
         clifford.ActOnStabilizerCHFormArgs,
     ],
-    simulator.SimulatesSamples,
 ):
     """An efficient simulator for Clifford circuits."""
 
@@ -116,29 +115,6 @@ class CliffordSimulator(
         return CliffordTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
-
-    def _run(
-        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
-    ) -> Dict[str, List[np.ndarray]]:
-
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        check_all_resolved(resolved_circuit)
-
-        measurements = {}  # type: Dict[str, List[np.ndarray]]
-
-        for _ in range(repetitions):
-            all_step_results = self._base_iterator(
-                resolved_circuit, qubit_order=ops.QubitOrder.DEFAULT, initial_state=0
-            )
-
-            for step_result in all_step_results:
-                for k, v in step_result.measurements.items():
-                    if not k in measurements:
-                        measurements[k] = []
-                    measurements[k].append(np.array(v, dtype=bool))
-
-        return {k: np.array(v) for k, v in measurements.items()}
 
 
 class CliffordTrialResult(simulator.SimulationTrialResult):

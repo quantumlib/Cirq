@@ -44,7 +44,6 @@ if TYPE_CHECKING:
 
 class Simulator(
     state_vector_simulator.SimulatesIntermediateStateVector['SparseSimulatorStep'],
-    simulator.SimulatesSamples,
     simulator.SimulatesExpectationValues,
 ):
     """A sparse matrix state vector simulator that uses numpy.
@@ -166,69 +165,6 @@ class Simulator(
             noise=noise,
             seed=seed,
         )
-
-    def _run(
-        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
-    ) -> Dict[str, np.ndarray]:
-        """See definition in `cirq.SimulatesSamples`."""
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        check_all_resolved(resolved_circuit)
-        qubits = tuple(sorted(resolved_circuit.all_qubits()))
-        acton_args = self.create_act_on_args(0, qubits)
-
-        # Simulate as many unitary operations as possible before having to
-        # repeat work for each sample.
-        unitary_prefix, general_suffix = (
-            split_into_matching_protocol_then_general(resolved_circuit, protocols.has_unitary)
-            if protocols.has_unitary(self.noise)
-            else (resolved_circuit[0:0], resolved_circuit)
-        )
-        step_result = None
-        for step_result in self._core_iterator(
-            circuit=unitary_prefix,
-            initial_state=acton_args,
-            qubits=qubits,
-        ):
-            pass
-        assert step_result is not None
-
-        # When an otherwise unitary circuit ends with non-demolition computation
-        # basis measurements, we can sample the results more efficiently.
-        general_ops = list(general_suffix.all_operations())
-        if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
-            return step_result.sample_measurement_ops(
-                measurement_ops=cast(List[ops.GateOperation], general_ops),
-                repetitions=repetitions,
-                seed=self._prng,
-            )
-
-        return self._brute_force_samples(
-            acton_args=acton_args,
-            circuit=general_suffix,
-            repetitions=repetitions,
-            qubits=qubits,
-        )
-
-    def _brute_force_samples(
-        self,
-        acton_args: act_on_state_vector_args.ActOnStateVectorArgs,
-        circuit: circuits.Circuit,
-        qubits: Tuple['cirq.Qid', ...],
-        repetitions: int,
-    ) -> Dict[str, np.ndarray]:
-        """Repeatedly simulate a circuit in order to produce samples."""
-
-        measurements: DefaultDict[str, List[np.ndarray]] = collections.defaultdict(list)
-        for _ in range(repetitions):
-            all_step_results = self._core_iterator(
-                circuit, initial_state=acton_args.copy(), qubits=qubits
-            )
-
-            for step_result in all_step_results:
-                for k, v in step_result.measurements.items():
-                    measurements[k].append(np.array(v, dtype=np.uint8))
-        return {k: np.array(v) for k, v in measurements.items()}
 
     def create_act_on_args(
         self,

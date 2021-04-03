@@ -35,7 +35,6 @@ from cirq.ops import (
 )
 from cirq.sim import (
     Simulator,
-    SimulatesSamples,
     SimulatesIntermediateStateVector,
 )
 from cirq.study import ParamResolver
@@ -47,7 +46,7 @@ PhasedFsimDictParameters = Dict[
 ]
 
 
-class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVector):
+class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector):
     """Wrapper on top of cirq.Simulator that allows to simulate calibration requests.
 
     This simulator introduces get_calibrations which allows to simulate

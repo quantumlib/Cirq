@@ -25,7 +25,6 @@ import numpy as np
 import quimb.tensor as qtn
 
 from cirq import circuits, devices, study, ops, protocols, value
-from cirq.ops import flatten_to_ops
 from cirq.sim import simulator
 from cirq.sim.act_on_args import ActOnArgs
 
@@ -56,7 +55,6 @@ class MPSSimulator(
     simulator.SimulatesIntermediateState[
         'MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState', 'MPSState'
     ],
-    simulator.SimulatesSamples,
 ):
     """An efficient simulator for MPS circuits."""
 
@@ -144,52 +142,6 @@ class MPSSimulator(
         return MPSTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
-
-    def _run(
-        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
-    ) -> Dict[str, List[np.ndarray]]:
-        """Repeats measurements multiple times.
-
-        Args:
-            circuit: The circuit to simulate.
-            param_resolver: A ParamResolver for determining values of
-                Symbols.
-            repetitions: How many measurements to perform
-            final_simulator_state: The final state of the simulator.
-
-        Returns:
-            A dictionay of measurement key (e.g. qubit) to a list of arrays that
-            are the measurements.
-        """
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        self._check_all_resolved(resolved_circuit)
-
-        measurements: Dict[str, List[np.ndarray]] = {}
-
-        for _ in range(repetitions):
-            all_step_results = self._base_iterator(
-                resolved_circuit, qubit_order=ops.QubitOrder.DEFAULT, initial_state=0
-            )
-
-            for step_result in all_step_results:
-                for k, v in step_result.measurements.items():
-                    if not k in measurements:
-                        measurements[k] = []
-                    measurements[k].append(np.array(v, dtype=int))
-
-        return {k: np.array(v) for k, v in measurements.items()}
-
-    def _check_all_resolved(self, circuit):
-        """Raises if the circuit contains unresolved symbols."""
-        if protocols.is_parameterized(circuit):
-            unresolved = [
-                op for moment in circuit for op in moment if protocols.is_parameterized(op)
-            ]
-            raise ValueError(
-                'Circuit contains ops whose symbols were not specified in '
-                'parameter sweep. Ops: {}'.format(unresolved)
-            )
 
 
 class MPSTrialResult(simulator.SimulationTrialResult):

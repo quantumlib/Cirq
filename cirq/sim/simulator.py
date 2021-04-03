@@ -379,6 +379,7 @@ class SimulatesFinalState(Generic[TSimulationTrialResult], metaclass=abc.ABCMeta
 class SimulatesIntermediateState(
     Generic[TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs],
     SimulatesFinalState[TSimulationTrialResult],
+    SimulatesSamples,
     metaclass=abc.ABCMeta,
 ):
     """A SimulatesFinalState that simulates a circuit by moments.
@@ -689,6 +690,79 @@ class SimulatesIntermediateState(
             The SimulationTrialResult.
         """
         raise NotImplementedError()
+
+    def _run(
+        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
+    ) -> Dict[str, np.ndarray]:
+        """See definition in `cirq.SimulatesSamples`."""
+        if self._ignore_measurement_results:
+            raise ValueError("run() is not supported when ignore_measurement_results = True")
+
+        param_resolver = param_resolver or study.ParamResolver({})
+        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        check_all_resolved(resolved_circuit)
+        qubits = tuple(sorted(resolved_circuit.all_qubits()))
+        acton_args = self.create_act_on_args(0, qubits)
+
+        prefix, general_suffix = (
+            split_into_matching_protocol_then_general(resolved_circuit, protocols.has_unitary)
+            if protocols.has_unitary(self.noise)
+            else (resolved_circuit[0:0], resolved_circuit)
+        )
+        step_result = None
+        for step_result in self._core_iterator(
+            circuit=prefix,
+            initial_state=acton_args,
+            qubits=qubits,
+        ):
+            pass
+        assert step_result is not None
+
+        general_ops = list(general_suffix.all_operations())
+        if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
+            return self._run_sweep_sample(general_suffix, repetitions, qubits, acton_args)
+        return self._run_sweep_repeat(general_suffix, repetitions, qubits, acton_args)
+
+    def _run_sweep_sample(
+        self,
+        circuit: circuits.Circuit,
+        repetitions: int,
+        qubits: Tuple['cirq.Qid', ...],
+        acton_args: TActOnArgs,
+    ) -> Dict[str, np.ndarray]:
+        for step_result in self._core_iterator(
+            circuit=circuit,
+            initial_state=acton_args,
+            qubits=qubits,
+            all_measurements_are_terminal=True,
+        ):
+            pass
+        measurement_ops = [
+            op for _, op, _ in circuit.findall_operations_with_gate_type(ops.MeasurementGate)
+        ]
+        return step_result.sample_measurement_ops(measurement_ops, repetitions, seed=self._prng)
+
+    def _run_sweep_repeat(
+        self,
+        circuit: circuits.Circuit,
+        repetitions: int,
+        qubits: Tuple['cirq.Qid', ...],
+        acton_args: TActOnArgs,
+    ) -> Dict[str, np.ndarray]:
+        measurements = {}  # type: Dict[str, List[np.ndarray]]
+
+        for _ in range(repetitions):
+            all_step_results = self._core_iterator(
+                circuit,
+                initial_state=acton_args.copy(),
+                qubits=qubits,
+            )
+            for step_result in all_step_results:
+                for k, v in step_result.measurements.items():
+                    if not k in measurements:
+                        measurements[k] = []
+                    measurements[k].append(np.array(v, dtype=np.uint8))
+        return {k: np.array(v) for k, v in measurements.items()}
 
 
 class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
