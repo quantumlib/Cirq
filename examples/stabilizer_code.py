@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 
@@ -107,8 +107,62 @@ def _GaussianElimination(
     return rank
 
 
+def _transfer_to_standard_form(
+    M: np.array, n: int, k: int
+) -> Tuple[np.array, np.array, np.array, int]:
+    """
+    Puts the stabilizer matrix in its standardized form, as in section 4.1 of the thesis.
+
+    Args:
+        M: The stabilizier matrix, to be standardized.
+        n: Dimension of the code words.
+        k: Dimension of the message words.
+
+    Returns:
+        The standardized matrix.
+        The logical Xs.
+        The logical Zs.
+        The rank of the matrix.
+    """
+
+    # Performing the Gaussian elimination as in section 4.1
+    r: int = _GaussianElimination(M, 0, n - k, 0, n)
+    _ = _GaussianElimination(M, r, n - k, n + r, 2 * n)
+
+    # Get matrix sub-components, as per equation 4.3:
+    # A1 = M[0:r, r : (n - k)]
+    A2 = M[0:r, (n - k) : n]
+    # B = M[0:r, n : (n + r)]
+    C1 = M[0:r, (n + r) : (2 * n - k)]
+    C2 = M[0:r, (2 * n - k) : (2 * n)]
+    # D = M[r : (n - k), n : (n + r)]
+    E = M[r : (n - k), (2 * n - k) : (2 * n)]
+
+    X = np.concatenate(
+        [
+            np.zeros((k, r), dtype=np.int8),
+            E.T,
+            np.eye(k, dtype=np.int8),
+            np.mod(E.T @ C1.T + C2.T, 2),
+            np.zeros((k, n - r), np.int8),
+        ],
+        axis=1,
+    )
+
+    Z = np.concatenate(
+        [
+            np.zeros((k, n), dtype=np.int8),
+            A2.T,
+            np.zeros((k, n - k - r), dtype=np.int8),
+            np.eye(k, dtype=np.int8),
+        ],
+        axis=1,
+    )
+    return M, X, Z, r
+
+
 class StabilizerCode(object):
-    def __init__(self, group_generators: List[str], allowed_errors: List[str]):
+    def __init__(self, group_generators: List[str], correctable_errors: List[str]):
         n = len(group_generators[0])
         k = n - len(group_generators)
 
@@ -124,39 +178,7 @@ class StabilizerCode(object):
                 elif c == 'Z' or c == 'Y':
                     M[i, n + j] = 1
 
-        # Performing the Gaussian elimination as in section 4.1
-        r: int = _GaussianElimination(M, 0, n - k, 0, n)
-        _ = _GaussianElimination(M, r, n - k, n + r, 2 * n)
-
-        # Get matrix sub-components, as per equation 4.3:
-        # A1 = M[0:r, r : (n - k)]
-        A2 = M[0:r, (n - k) : n]
-        # B = M[0:r, n : (n + r)]
-        C1 = M[0:r, (n + r) : (2 * n - k)]
-        C2 = M[0:r, (2 * n - k) : (2 * n)]
-        # D = M[r : (n - k), n : (n + r)]
-        E = M[r : (n - k), (2 * n - k) : (2 * n)]
-
-        X = np.concatenate(
-            [
-                np.zeros((k, r), dtype=np.int8),
-                E.T,
-                np.eye(k, dtype=np.int8),
-                np.mod(E.T @ C1.T + C2.T, 2),
-                np.zeros((k, n - r), np.int8),
-            ],
-            axis=1,
-        )
-
-        Z = np.concatenate(
-            [
-                np.zeros((k, n), dtype=np.int8),
-                A2.T,
-                np.zeros((k, n - k - r), dtype=np.int8),
-                np.eye(k, dtype=np.int8),
-            ],
-            axis=1,
-        )
+        M, X, Z, r = _transfer_to_standard_form(M, n, k)
 
         self.n: int = n
         self.k: int = k
@@ -168,7 +190,7 @@ class StabilizerCode(object):
         self.syndromes_to_corrections = {}
 
         for qid in range(self.n):
-            for op in allowed_errors:
+            for op in correctable_errors:
                 syndrome = tuple(
                     1 if self.M[r][qid] == 'I' or self.M[r][qid] == op else -1
                     for r in range(self.n - self.k)
