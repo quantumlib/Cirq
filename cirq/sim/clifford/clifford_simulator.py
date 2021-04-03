@@ -43,13 +43,13 @@ from cirq.sim.simulator import check_all_resolved
 
 
 class CliffordSimulator(
-    simulator.SimulatesSamples,
     simulator.SimulatesIntermediateState[
         'CliffordSimulatorStepResult',
         'CliffordTrialResult',
         'CliffordState',
         clifford.ActOnStabilizerCHFormArgs,
     ],
+    simulator.SimulatesSamples,
 ):
     """An efficient simulator for Clifford circuits."""
 
@@ -60,7 +60,7 @@ class CliffordSimulator(
             seed: The random seed to use for this simulator.
         """
         self.init = True
-        self._prng = value.parse_random_state(seed)
+        super().__init__(seed=seed)
 
     @staticmethod
     def is_supported_operation(op: 'cirq.Operation') -> bool:
@@ -95,53 +95,16 @@ class CliffordSimulator(
             {},
         )
 
-    def _core_iterator(
-        self,
-        circuit: circuits.Circuit,
-        ch_form_args: clifford.ActOnStabilizerCHFormArgs,
-        qubits: Tuple['cirq.Qid', ...],
+    def _create_step_result(
+            self,
+            sim_state: clifford.ActOnStabilizerCHFormArgs,
+            qubit_map: Dict['cirq.Qid', int],
     ):
-        """Iterator over CliffordSimulatorStepResult from Moments of a Circuit
-
-        Args:
-            circuit: The circuit to simulate.
-            ch_form_args: The initial state args for the simulation in the
-                computational basis.
-            qubits: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
-
-        Yields:
-            CliffordStepResult from simulating a Moment of the Circuit.
-        """
-        qubit_map = {q: i for i, q in enumerate(qubits)}
-
-        def create_state():
-            state = CliffordState(qubit_map)
-            state.ch_form = ch_form_args.state.copy()
-            return state
-
-        if len(circuit) == 0:
-            yield CliffordSimulatorStepResult(
-                measurements=ch_form_args.log_of_measurement_results, state=create_state()
-            )
-            return
-
-        for moment in circuit:
-            ch_form_args.log_of_measurement_results = {}
-
-            for op in moment:
-                try:
-                    ch_form_args.axes = tuple(qubit_map[i] for i in op.qubits)
-                    act_on(op, ch_form_args)
-                except TypeError:
-                    raise NotImplementedError(
-                        f"CliffordSimulator doesn't support {op!r}"
-                    )  # type: ignore
-
-            yield CliffordSimulatorStepResult(
-                measurements=ch_form_args.log_of_measurement_results, state=create_state()
-            )
+        state = CliffordState(qubit_map)
+        state.ch_form = sim_state.state.copy()
+        return CliffordSimulatorStepResult(
+            measurements=sim_state.log_of_measurement_results, state=state
+        )
 
     def _create_simulator_trial_result(
         self,

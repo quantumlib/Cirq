@@ -17,8 +17,7 @@ from typing import Any, Dict, List, TYPE_CHECKING, Tuple, Type, Union
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, qis, study, value, devices
-from cirq.ops import flatten_to_ops
+from cirq import circuits, ops, protocols, qis, study, value
 from cirq.sim import density_matrix_utils, simulator, act_on_density_matrix_args
 from cirq.sim.simulator import check_all_resolved, split_into_matching_protocol_then_general
 
@@ -27,13 +26,13 @@ if TYPE_CHECKING:
 
 
 class DensityMatrixSimulator(
-    simulator.SimulatesSamples,
     simulator.SimulatesIntermediateState[
         'DensityMatrixStepResult',
         'DensityMatrixTrialResult',
         'DensityMatrixSimulatorState',
         act_on_density_matrix_args.ActOnDensityMatrixArgs,
     ],
+    simulator.SimulatesSamples,
 ):
     """A simulator for density matrices and noisy quantum circuits.
 
@@ -151,13 +150,12 @@ class DensityMatrixSimulator(
                when `ignore_measurement_results` has been set to True
                (for more see https://github.com/quantumlib/Cirq/issues/2777).
         """
-        if dtype not in {np.complex64, np.complex128}:
-            raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
-
-        self._dtype = dtype
-        self._prng = value.parse_random_state(seed)
-        self.noise = devices.NoiseModel.from_noise_model_like(noise)
-        self._ignore_measurement_results = ignore_measurement_results
+        super().__init__(
+            dtype=dtype,
+            noise=noise,
+            seed=seed,
+            ignore_measurement_results=ignore_measurement_results,
+        )
 
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
@@ -178,7 +176,7 @@ class DensityMatrixSimulator(
         step_result = None
         for step_result in self._core_iterator(
             circuit=prefix,
-            sim_state=acton_args,
+            initial_state=acton_args,
             qubits=qubits,
         ):
             pass
@@ -199,7 +197,7 @@ class DensityMatrixSimulator(
     ) -> Dict[str, np.ndarray]:
         for step_result in self._core_iterator(
             circuit=circuit,
-            sim_state=acton_args,
+            initial_state=acton_args,
             qubits=qubits,
             all_measurements_are_terminal=True,
         ):
@@ -221,7 +219,7 @@ class DensityMatrixSimulator(
         for _ in range(repetitions):
             all_step_results = self._core_iterator(
                 circuit,
-                sim_state=acton_args.copy(),
+                initial_state=acton_args.copy(),
                 qubits=qubits,
             )
             for step_result in all_step_results:
@@ -265,62 +263,17 @@ class DensityMatrixSimulator(
             log_of_measurement_results={},
         )
 
-    def _core_iterator(
-        self,
-        circuit: circuits.Circuit,
-        sim_state: act_on_density_matrix_args.ActOnDensityMatrixArgs,
-        qubits: Tuple['cirq.Qid', ...],
-        all_measurements_are_terminal: bool = False,
+    def _create_step_result(
+            self,
+            sim_state: act_on_density_matrix_args.ActOnDensityMatrixArgs,
+            qubit_map: Dict['cirq.Qid', int],
     ):
-        """Iterator over DensityMatrixStepResult from Moments of a Circuit
-
-        Args:
-            circuit: The circuit to simulate.
-            sim_state: The initial state args for the simulation in the
-                computational basis.
-            qubits: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
-            all_measurements_are_terminal: Indicator that all measurements
-                are terminal, allowing optimization.
-
-        Yields:
-            DensityMatrixStepResult from simulating a Moment of the Circuit.
-        """
-        qubit_map = {q: i for i, q in enumerate(qubits)}
-        if len(circuit) == 0:
-            yield DensityMatrixStepResult(
+        return DensityMatrixStepResult(
                 density_matrix=sim_state.target_tensor,
                 measurements=dict(sim_state.log_of_measurement_results),
                 qubit_map=qubit_map,
                 dtype=self._dtype,
             )
-            return
-
-        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
-        measured = collections.defaultdict(bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
-        for moment in noisy_moments:
-            for op in flatten_to_ops(moment):
-                # TODO: support more general measurements.
-                # Github issue: https://github.com/quantumlib/Cirq/issues/3566
-                if all_measurements_are_terminal and measured[op.qubits]:
-                    continue
-                if protocols.is_measurement(op):
-                    measured[op.qubits] = True
-                    if all_measurements_are_terminal:
-                        continue
-                    if self._ignore_measurement_results:
-                        op = ops.phase_damp(1).on(*op.qubits)
-                sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
-                protocols.act_on(op, sim_state)
-
-            yield DensityMatrixStepResult(
-                density_matrix=sim_state.target_tensor,
-                measurements=dict(sim_state.log_of_measurement_results),
-                qubit_map=qubit_map,
-                dtype=self._dtype,
-            )
-            sim_state.log_of_measurement_results.clear()
 
     def _create_simulator_trial_result(
         self,

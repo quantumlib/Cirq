@@ -41,7 +41,7 @@ from typing import (
     cast,
     Callable,
     TypeVar,
-    Generic,
+    Generic, Type,
 )
 
 import abc
@@ -49,7 +49,7 @@ import collections
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, study, value, work
+from cirq import circuits, ops, protocols, study, value, work, devices
 from cirq._compat import deprecated
 from cirq.sim.act_on_args import ActOnArgs
 
@@ -393,6 +393,51 @@ class SimulatesIntermediateState(
     a state vector.
     """
 
+    def __init__(
+        self,
+        *,
+        dtype: Type[np.number] = np.complex64,
+        noise: 'cirq.NOISE_MODEL_LIKE' = None,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        ignore_measurement_results: bool = False,
+    ):
+        """Density matrix simulator.
+
+        Args:
+           dtype: The `numpy.dtype` used by the simulation. One of
+               `numpy.complex64` or `numpy.complex128`
+           noise: A noise model to apply while simulating.
+           seed: The random seed to use for this simulator.
+           ignore_measurement_results: if True, then the simulation
+               will treat measurement as dephasing instead of collapsing
+               process.
+
+               Example:
+               >>> (q0,) = cirq.LineQubit.range(1)
+               >>> circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
+
+               Default case (ignore_measurement_results = False):
+               >>> simulator = cirq.DensityMatrixSimulator()
+               >>> result = simulator.run(circuit)
+
+               The measurement result will be strictly one of 0 or 1.
+
+               In the other case:
+               >>> simulator = cirq.DensityMatrixSimulator(
+               ...     ignore_measurement_results = True)
+
+               will raise a `ValueError` exception if you call `simulator.run`
+               when `ignore_measurement_results` has been set to True
+               (for more see https://github.com/quantumlib/Cirq/issues/2777).
+        """
+        if dtype not in {np.complex64, np.complex128}:
+            raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
+
+        self._dtype = dtype
+        self._prng = value.parse_random_state(seed)
+        self.noise = devices.NoiseModel.from_noise_model_like(noise)
+        self._ignore_measurement_results = ignore_measurement_results
+
     def simulate_sweep(
         self,
         program: 'cirq.Circuit',
@@ -564,12 +609,12 @@ class SimulatesIntermediateState(
         """
         raise NotImplementedError()
 
-    @abc.abstractmethod
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
         initial_state: TActOnArgs,
         qubits: Tuple['cirq.Qid', ...],
+        all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
@@ -587,6 +632,41 @@ class SimulatesIntermediateState(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
+        qubit_map = {q: i for i, q in enumerate(qubits)}
+        if len(circuit) == 0:
+            yield self._create_step_result(initial_state, qubit_map)
+            return
+
+        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
+        measured = collections.defaultdict(bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
+        for moment in noisy_moments:
+            for op in ops.flatten_to_ops(moment):
+                try:
+                    # TODO: support more general measurements.
+                    # Github issue: https://github.com/quantumlib/Cirq/issues/3566
+                    if all_measurements_are_terminal and measured[op.qubits]:
+                        continue
+                    if protocols.is_measurement(op):
+                        measured[op.qubits] = True
+                        if all_measurements_are_terminal:
+                            continue
+                        if self._ignore_measurement_results:
+                            op = ops.phase_damp(1).on(*op.qubits)
+                    initial_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
+                    protocols.act_on(op, initial_state)
+                except TypeError:
+                    raise TypeError(
+                        f"{self.__class__.__name__} doesn't support {op!r}"
+                    )  # type: ignore
+
+            yield self._create_step_result(initial_state, qubit_map)
+            initial_state.log_of_measurement_results.clear()
+
+    def _create_step_result(
+        self,
+        initial_state: TActOnArgs,
+        qubit_map: Dict['cirq.Qid', int],
+    ) -> TStepResult:
         raise NotImplementedError()
 
     @abc.abstractmethod

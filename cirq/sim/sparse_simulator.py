@@ -29,8 +29,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, qis, study, value, devices
-from cirq.ops import flatten_to_ops
+from cirq import circuits, ops, protocols, qis, study, devices
 from cirq.sim import (
     simulator,
     state_vector,
@@ -44,8 +43,8 @@ if TYPE_CHECKING:
 
 
 class Simulator(
-    simulator.SimulatesSamples,
     state_vector_simulator.SimulatesIntermediateStateVector['SparseSimulatorStep'],
+    simulator.SimulatesSamples,
     simulator.SimulatesExpectationValues,
 ):
     """A sparse matrix state vector simulator that uses numpy.
@@ -159,12 +158,14 @@ class Simulator(
         """
         if np.dtype(dtype).kind != 'c':
             raise ValueError(f'dtype must be a complex type but was {dtype}')
-        self._dtype = dtype
-        self._prng = value.parse_random_state(seed)
         noise_model = devices.NoiseModel.from_noise_model_like(noise)
         if not protocols.has_mixture(noise_model):
             raise ValueError(f'noise must be unitary or mixture but was {noise_model}')
-        self.noise = noise_model
+        super().__init__(
+            dtype=dtype,
+            noise=noise,
+            seed=seed,
+        )
 
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
@@ -186,7 +187,7 @@ class Simulator(
         step_result = None
         for step_result in self._core_iterator(
             circuit=unitary_prefix,
-            sim_state=acton_args,
+            initial_state=acton_args,
             qubits=qubits,
         ):
             pass
@@ -221,7 +222,7 @@ class Simulator(
         measurements: DefaultDict[str, List[np.ndarray]] = collections.defaultdict(list)
         for _ in range(repetitions):
             all_step_results = self._core_iterator(
-                circuit, sim_state=acton_args.copy(), qubits=qubits
+                circuit, initial_state=acton_args.copy(), qubits=qubits
             )
 
             for step_result in all_step_results:
@@ -260,48 +261,17 @@ class Simulator(
             log_of_measurement_results={},
         )
 
-    def _core_iterator(
-        self,
-        circuit: circuits.Circuit,
-        sim_state: act_on_state_vector_args.ActOnStateVectorArgs,
-        qubits: Tuple['cirq.Qid', ...],
+    def _create_step_result(
+            self,
+            sim_state: act_on_state_vector_args.ActOnStateVectorArgs,
+            qubit_map: Dict['cirq.Qid', int],
     ):
-        """Iterator over SparseSimulatorStep from Moments of a Circuit
-
-        Args:
-            circuit: The circuit to simulate.
-            sim_state: The initial state args for the simulation in the
-                computational basis.
-            qubits: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
-
-        Yields:
-            SparseSimulatorStep from simulating a Moment of the Circuit.
-        """
-        qubit_map = {q: i for i, q in enumerate(qubits)}
-        if len(circuit) == 0:
-            yield SparseSimulatorStep(
+            return SparseSimulatorStep(
                 state_vector=sim_state.target_tensor,
                 measurements=dict(sim_state.log_of_measurement_results),
                 qubit_map=qubit_map,
                 dtype=self._dtype,
             )
-            return
-
-        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
-        for op_tree in noisy_moments:
-            for op in flatten_to_ops(op_tree):
-                sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
-                protocols.act_on(op, sim_state)
-
-            yield SparseSimulatorStep(
-                state_vector=sim_state.target_tensor,
-                measurements=dict(sim_state.log_of_measurement_results),
-                qubit_map=qubit_map,
-                dtype=self._dtype,
-            )
-            sim_state.log_of_measurement_results.clear()
 
     def simulate_expectation_values_sweep(
         self,

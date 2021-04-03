@@ -53,10 +53,10 @@ class MPSOptions:
 
 
 class MPSSimulator(
-    simulator.SimulatesSamples,
     simulator.SimulatesIntermediateState[
         'MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState', 'MPSState'
     ],
+    simulator.SimulatesSamples,
 ):
     """An efficient simulator for MPS circuits."""
 
@@ -79,10 +79,12 @@ class MPSSimulator(
         noise_model = devices.NoiseModel.from_noise_model_like(noise)
         if not protocols.has_mixture(noise_model):
             raise ValueError(f'noise must be unitary or mixture but was {noise_model}')
-        self.noise = noise_model
-        self.prng = value.parse_random_state(seed)
         self.simulation_options = simulation_options
         self.grouping = grouping
+        super().__init__(
+            noise=noise,
+            seed=seed,
+        )
 
     def create_act_on_args(
         self,
@@ -105,46 +107,18 @@ class MPSSimulator(
 
         return MPSState(
             qubit_map,
-            self.prng,
+            self._prng,
             self.simulation_options,
             self.grouping,
             initial_state=initial_state,
         )
 
-    def _core_iterator(
-        self,
-        circuit: circuits.Circuit,
-        state: 'MPSState',
-        qubits: Tuple['cirq.Qid', ...],
+    def _create_step_result(
+            self,
+            sim_state: 'MPSState',
+            qubit_map: Dict['cirq.Qid', int],
     ):
-        """Iterator over MPSSimulatorStepResult from Moments of a Circuit
-
-        Args:
-            circuit: The circuit to simulate.
-            state: The initial state args for the simulation in the
-                computational basis.
-            qubits: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
-
-        Yields:
-            MPSStepResult from simulating a Moment of the Circuit.
-        """
-        if len(circuit) == 0:
-            yield MPSSimulatorStepResult(measurements=state.log_of_measurement_results, state=state)
-            return
-
-        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
-        for op_tree in noisy_moments:
-            for op in flatten_to_ops(op_tree):
-                if protocols.is_measurement(op) or protocols.has_mixture(op):
-                    state.axes = tuple(state.qubit_map[qubit] for qubit in op.qubits)
-                    protocols.act_on(op, state)
-                else:
-                    raise NotImplementedError(f"Unrecognized operation: {op!r}")
-
-            yield MPSSimulatorStepResult(measurements=state.log_of_measurement_results, state=state)
-            state.log_of_measurement_results.clear()
+        return MPSSimulatorStepResult(measurements=sim_state.log_of_measurement_results, state=sim_state)
 
     def _create_simulator_trial_result(
         self,
