@@ -395,9 +395,12 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         circuit: Circuit,
         initial_state: Any,
         qubits: Tuple[Qid, ...],
+        all_measurements_are_terminal: bool = False,
     ):
         converted = _convert_to_circuit_with_drift(self, circuit)
-        return self._simulator._core_iterator(converted, initial_state, qubits)
+        return self._simulator._core_iterator(
+            converted, initial_state, qubits, all_measurements_are_terminal
+        )
 
     def create_act_on_args(
         self,
