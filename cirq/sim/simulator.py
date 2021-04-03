@@ -541,6 +541,7 @@ class SimulatesIntermediateState(
         )
         return self._core_iterator(circuit, acton_args, qubits)
 
+    @abc.abstractmethod
     def create_act_on_args(
         self,
         initial_state: Any,
@@ -563,6 +564,7 @@ class SimulatesIntermediateState(
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
