@@ -21,14 +21,14 @@ import examples.hamiltonian_representation as hr
 )
 def test_build_hamiltonian_from_boolean(boolean_expr, hamiltonian):
     boolean = parse_expr(boolean_expr)
-    name_to_id = hr.get_name_to_id(boolean)
+    name_to_id = hr.get_name_to_id([boolean])
     actual = hr.build_hamiltonian_from_boolean(boolean, name_to_id)
     assert hamiltonian == str(actual)
 
 
 def test_unsupported_op():
     not_a_boolean = parse_expr('x * x')
-    name_to_id = hr.get_name_to_id(not_a_boolean)
+    name_to_id = hr.get_name_to_id([not_a_boolean])
     with pytest.raises(ValueError, match='Unsupported type'):
         hr.build_hamiltonian_from_boolean(not_a_boolean, name_to_id)
 
@@ -46,11 +46,11 @@ def test_unsupported_op():
 )
 def test_circuit(boolean_expr, expected):
     boolean = parse_expr(boolean_expr)
-    name_to_id = hr.get_name_to_id(boolean)
+    name_to_id = hr.get_name_to_id([boolean])
     hamiltonian = hr.build_hamiltonian_from_boolean(boolean, name_to_id)
 
     theta = 0.1 * math.pi
-    circuit, qubits = hr.build_circuit_from_hamiltonian(hamiltonian, name_to_id, theta)
+    circuit, qubits = hr.build_circuit_from_hamiltonians([hamiltonian], name_to_id, theta)
 
     phi = cirq.Simulator().simulate(circuit, qubit_order=qubits, initial_state=0).state_vector()
     actual = np.arctan2(phi.real, phi.imag) - math.pi / 2.0 > 0.0
