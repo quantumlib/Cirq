@@ -116,18 +116,14 @@ def build_hamiltonian_from_boolean(boolean_expr, name_to_id) -> HamiltonianList:
 
 def get_name_to_id(boolean_exprs):
     # For run-to-run identicalness, we sort the symbol name lexicographically.
-    symbol_names = sorted({
-        symbol.name for boolean_expr in boolean_exprs for symbol in boolean_expr.free_symbols
-    })
+    symbol_names = sorted(
+        {symbol.name for boolean_expr in boolean_exprs for symbol in boolean_expr.free_symbols}
+    )
     return {symbol_name: i for i, symbol_name in enumerate(symbol_names)}
 
 
-def build_circuit_from_hamiltonians(hamiltonians, name_to_id, theta):
-    qubits = [cirq.NamedQubit(name) for name in name_to_id.keys()]
+def build_circuit_from_hamiltonians(hamiltonians, qubits, theta):
     circuit = cirq.Circuit()
-
-    circuit.append(cirq.H.on_each(*qubits))
-
     for hamiltonian in hamiltonians:
         for h, w in hamiltonian.hamiltonians.items():
             for i in range(1, len(h)):
@@ -139,4 +135,4 @@ def build_circuit_from_hamiltonians(hamiltonians, name_to_id, theta):
             for i in range(1, len(h)):
                 circuit.append(cirq.CNOT(qubits[h[i]], qubits[h[0]]))
 
-    return circuit, qubits
+    return circuit
