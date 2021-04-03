@@ -535,7 +535,7 @@ class SimulatesIntermediateState(
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         acton_args = (
-            initial_state
+            cast(TActOnArgs, initial_state)
             if isinstance(initial_state, ActOnArgs)
             else self.create_act_on_args(initial_state, qubits)
         )
