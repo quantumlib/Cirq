@@ -46,7 +46,7 @@ def encode_corrupt_correct(
 def test_no_error():
     # Table 3.2.
     five_qubit_code = sc.StabilizerCode(
-        group_generators=['XZZXI', 'IXZZX', 'XIXZZ', 'ZXIXZ'], allowed_errors=['X', 'Z']
+        group_generators=['XZZXI', 'IXZZX', 'XIXZZ', 'ZXIXZ'], correctable_errors=['X', 'Z']
     )
 
     for input_val in [0, 1]:
@@ -63,7 +63,7 @@ def test_no_error():
     ],
 )
 def test_errors(group_generators):
-    code = sc.StabilizerCode(group_generators=group_generators, allowed_errors=['X', 'Z'])
+    code = sc.StabilizerCode(group_generators=group_generators, correctable_errors=['X', 'Z'])
 
     for input_val in [0, 1]:
         for error_gate in [cirq.X, cirq.Z]:
@@ -73,7 +73,7 @@ def test_errors(group_generators):
 
 def test_imperfect_code():
     # Also known as the bit-flip code.
-    bit_flip_code = sc.StabilizerCode(group_generators=['ZZI', 'ZIZ'], allowed_errors=['X'])
+    bit_flip_code = sc.StabilizerCode(group_generators=['ZZI', 'ZIZ'], correctable_errors=['X'])
 
     for input_val in [0, 1]:
         for error_gate in [cirq.X]:
