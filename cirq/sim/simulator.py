@@ -41,7 +41,8 @@ from typing import (
     cast,
     Callable,
     TypeVar,
-    Generic, Type,
+    Generic,
+    Type,
 )
 
 import abc

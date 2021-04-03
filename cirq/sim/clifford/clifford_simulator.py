@@ -96,9 +96,9 @@ class CliffordSimulator(
         )
 
     def _create_step_result(
-            self,
-            sim_state: clifford.ActOnStabilizerCHFormArgs,
-            qubit_map: Dict['cirq.Qid', int],
+        self,
+        sim_state: clifford.ActOnStabilizerCHFormArgs,
+        qubit_map: Dict['cirq.Qid', int],
     ):
         state = CliffordState(qubit_map)
         state.ch_form = sim_state.state.copy()

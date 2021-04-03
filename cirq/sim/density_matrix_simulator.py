@@ -264,16 +264,16 @@ class DensityMatrixSimulator(
         )
 
     def _create_step_result(
-            self,
-            sim_state: act_on_density_matrix_args.ActOnDensityMatrixArgs,
-            qubit_map: Dict['cirq.Qid', int],
+        self,
+        sim_state: act_on_density_matrix_args.ActOnDensityMatrixArgs,
+        qubit_map: Dict['cirq.Qid', int],
     ):
         return DensityMatrixStepResult(
-                density_matrix=sim_state.target_tensor,
-                measurements=dict(sim_state.log_of_measurement_results),
-                qubit_map=qubit_map,
-                dtype=self._dtype,
-            )
+            density_matrix=sim_state.target_tensor,
+            measurements=dict(sim_state.log_of_measurement_results),
+            qubit_map=qubit_map,
+            dtype=self._dtype,
+        )
 
     def _create_simulator_trial_result(
         self,

@@ -262,16 +262,16 @@ class Simulator(
         )
 
     def _create_step_result(
-            self,
-            sim_state: act_on_state_vector_args.ActOnStateVectorArgs,
-            qubit_map: Dict['cirq.Qid', int],
+        self,
+        sim_state: act_on_state_vector_args.ActOnStateVectorArgs,
+        qubit_map: Dict['cirq.Qid', int],
     ):
-            return SparseSimulatorStep(
-                state_vector=sim_state.target_tensor,
-                measurements=dict(sim_state.log_of_measurement_results),
-                qubit_map=qubit_map,
-                dtype=self._dtype,
-            )
+        return SparseSimulatorStep(
+            state_vector=sim_state.target_tensor,
+            measurements=dict(sim_state.log_of_measurement_results),
+            qubit_map=qubit_map,
+            dtype=self._dtype,
+        )
 
     def simulate_expectation_values_sweep(
         self,
