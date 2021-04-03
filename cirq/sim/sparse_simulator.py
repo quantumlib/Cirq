@@ -16,14 +16,12 @@
 
 import collections
 from typing import (
-    Any,
     Dict,
     Iterator,
     List,
     Type,
     TYPE_CHECKING,
     DefaultDict,
-    Union,
     cast,
 )
 

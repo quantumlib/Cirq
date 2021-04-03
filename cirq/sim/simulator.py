@@ -391,7 +391,6 @@ class SimulatesFinalState(
             )
         swept_evs = []
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
-        qmap = {q: i for i, q in enumerate(qubit_order.order_for(program.all_qubits()))}
         if not isinstance(observables, List):
             observables = [observables]
         pslist = [ops.PauliSum.wrap(pslike) for pslike in observables]
