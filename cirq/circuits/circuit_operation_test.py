@@ -102,6 +102,24 @@ def test_invalid_measurement_keys():
     _ = cirq.CircuitOperation(circuit, measurement_key_map={'m:a': 'ma'})
 
 
+def test_invalid_qubit_mapping():
+    q = cirq.LineQubit(0)
+    q3 = cirq.LineQid(1, dimension=3)
+
+    # Invalid qid remapping dict in constructor
+    with pytest.raises(ValueError, match='Qid dimension conflict'):
+        _ = cirq.CircuitOperation(cirq.FrozenCircuit(), qubit_map={q: q3})
+
+    # Invalid qid remapping dict in with_qubit_mapping call
+    c_op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q)))
+    with pytest.raises(ValueError, match='Qid dimension conflict'):
+        _ = c_op.with_qubit_mapping({q: q3})
+
+    # Invalid qid remapping function in with_qubit_mapping call
+    with pytest.raises(ValueError, match='Qid dimension conflict'):
+        _ = c_op.with_qubit_mapping(lambda q: q3)
+
+
 def test_circuit_sharing():
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.FrozenCircuit(
