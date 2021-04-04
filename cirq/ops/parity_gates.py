@@ -57,8 +57,8 @@ class XXPowGate(
         f = e^{\frac{i \pi t}{2}}.
         $$
 
-    See also: `cirq.MSGate` (the Mølmer–Sørensen gate), which is implemented via
-    this class.
+    See also: `cirq.ion.ion_gates.MSGate` (the Mølmer–Sørensen gate), which is
+    implemented via this class.
     """
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
