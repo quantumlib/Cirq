@@ -39,9 +39,8 @@ class HamiltonianList:
         hamiltonians = self.hamiltonians.copy()
         for h, w in other.hamiltonians.items():
             if h not in hamiltonians:
-                hamiltonians[h] = sign * w
-            else:
-                hamiltonians[h] += sign * w
+                hamiltonians[h] = 0
+            hamiltonians[h] += sign * w
         return HamiltonianList(hamiltonians)
 
     def __rmul__(self, other: float):
@@ -54,10 +53,8 @@ class HamiltonianList:
                 h = tuple(set(h1).symmetric_difference(h2))
                 w = w1 * w2
                 if h not in hamiltonians:
-                    hamiltonians[h] = w
-                else:
-                    breakpoint()
-                    hamiltonians[h] += w
+                    hamiltonians[h] = 0
+                hamiltonians[h] += w
         return HamiltonianList(hamiltonians)
 
     @staticmethod
