@@ -25,7 +25,7 @@ class HamiltonianList:
     def __str__(self):
         # For run-to-run identicalness, we sort the keys lexicographically.
         return "; ".join(
-            "%.2f.%s" % (self.hamiltonians[h], ".".join("Z_%d" % (d) for d in h) if h else 'I')
+            f"{self.hamiltonians[h]:.2f}.{'.'.join('Z_%d' % d for d in h) if h else 'I'}"
             for h in sorted(self.hamiltonians)
         )
 
@@ -56,6 +56,7 @@ class HamiltonianList:
                 if h not in hamiltonians:
                     hamiltonians[h] = w
                 else:
+                    breakpoint()
                     hamiltonians[h] += w
         return HamiltonianList(hamiltonians)
 
