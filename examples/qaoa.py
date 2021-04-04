@@ -18,7 +18,7 @@ def brute_force(graph, n):
     return max(np.round(vals))
 
 
-def qaoa(booleans, repetitions=10, maxiter=250, p=5):
+def qaoa(booleans, repetitions, maxiter, p):
     name_to_id = hr.get_name_to_id(booleans)
     hamiltonians = [hr.build_hamiltonian_from_boolean(boolean, name_to_id) for boolean in booleans]
     qubits = [cirq.NamedQubit(name) for name in name_to_id.keys()]
@@ -52,7 +52,7 @@ def qaoa(booleans, repetitions=10, maxiter=250, p=5):
     scipy.optimize.minimize(f, x0, method='COBYLA', options={'maxiter': maxiter, 'disp': True})
 
 
-def main():
+def main(repetitions=10, maxiter=250, p=5):
     # Set problem parameters
     n = 6
 
@@ -65,7 +65,7 @@ def main():
     # Build the boolean expressions
     booleans = [parse_expr(f"x{i} ^ x{j}") for i, j in graph.edges]
 
-    qaoa(booleans)
+    qaoa(booleans, repetitions=repetitions, maxiter=maxiter, p=p)
 
 
 if __name__ == '__main__':
