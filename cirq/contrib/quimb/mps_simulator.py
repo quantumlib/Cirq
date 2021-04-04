@@ -225,6 +225,9 @@ class MPSTrialResult(simulator.SimulationTrialResult):
         final = self._final_simulator_state
         return f'measurements: {samples}\noutput state: {final}'
 
+    def expectation_from_state(self, obs: 'cirq.PauliSum'):
+        return obs.expectation_from_state_vector(self.final_state.state_vector(), self.qubit_map)
+
 
 class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
     """A `StepResult` that can perform measurements."""
