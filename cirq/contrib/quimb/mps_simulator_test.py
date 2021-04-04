@@ -507,8 +507,8 @@ def test_state_act_on_args_initializer():
     )
     assert s.axes == (2,)
     assert s.log_of_measurement_results == {'test': 4}
-    
-    
+
+
 def test_simulate_expectation_values():
     # Compare with test_expectation_from_state_vector_two_qubit_states
     # in file: cirq/ops/linear_combinations_test.py
