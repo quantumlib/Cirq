@@ -560,7 +560,7 @@ class SimulatesIntermediateState(
                 ordering of the computational basis states.
 
         Returns:
-            ActOnArgs for the simulator.
+            The ActOnArgs for the simulator.
         """
         raise NotImplementedError()
 
