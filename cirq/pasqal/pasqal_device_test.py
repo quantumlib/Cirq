@@ -301,4 +301,4 @@ def test_edges():
             TwoDQubit(3, 6),
         ],
     )
-    assert len(dev.edges) == 5
+    assert len(dev1.edges) == 5
