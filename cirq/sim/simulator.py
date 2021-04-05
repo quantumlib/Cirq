@@ -27,6 +27,8 @@ Simulator types include:
         as the simulation iterates through the moments of a cirq.
 """
 
+import abc
+import collections
 from typing import (
     Any,
     Dict,
@@ -44,9 +46,6 @@ from typing import (
     Generic,
     Type,
 )
-
-import abc
-import collections
 
 import numpy as np
 
@@ -403,34 +402,17 @@ class SimulatesIntermediateState(
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         ignore_measurement_results: bool = False,
     ):
-        """Density matrix simulator.
+        """Initializes the simulator.
 
         Args:
            dtype: The `numpy.dtype` used by the simulation. One of
                `numpy.complex64` or `numpy.complex128`
            noise: A noise model to apply while simulating.
            seed: The random seed to use for this simulator.
-           ignore_measurement_results: if True, then the simulation
+           ignore_measurement_results: If True, then the simulation
                will treat measurement as dephasing instead of collapsing
-               process.
-
-               Example:
-               >>> (q0,) = cirq.LineQubit.range(1)
-               >>> circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
-
-               Default case (ignore_measurement_results = False):
-               >>> simulator = cirq.DensityMatrixSimulator()
-               >>> result = simulator.run(circuit)
-
-               The measurement result will be strictly one of 0 or 1.
-
-               In the other case:
-               >>> simulator = cirq.DensityMatrixSimulator(
-               ...     ignore_measurement_results = True)
-
-               will raise a `ValueError` exception if you call `simulator.run`
-               when `ignore_measurement_results` has been set to True
-               (for more see https://github.com/quantumlib/Cirq/issues/2777).
+               process. This is only applicable to simulators that can
+               model dephasing.
         """
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
@@ -669,6 +651,17 @@ class SimulatesIntermediateState(
         initial_state: TActOnArgs,
         qubit_map: Dict['cirq.Qid', int],
     ) -> TStepResult:
+        """This method should be implemented to create a step result.
+
+        Args:
+            initial_state: The TActOnArgs for this trial.
+            qubit_map: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+
+        Returns:
+            The StepResult.
+        """
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -743,7 +736,7 @@ class SimulatesIntermediateState(
             )
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
-                    if not k in measurements:
+                    if k not in measurements:
                         measurements[k] = []
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
