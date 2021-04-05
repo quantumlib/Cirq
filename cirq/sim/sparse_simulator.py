@@ -175,7 +175,7 @@ class Simulator(
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         check_all_resolved(resolved_circuit)
         qubits = tuple(sorted(resolved_circuit.all_qubits()))
-        acton_args = self.create_act_on_args(0, qubits)
+        act_on_args = self.create_act_on_args(0, qubits)
 
         # Simulate as many unitary operations as possible before having to
         # repeat work for each sample.
@@ -187,7 +187,7 @@ class Simulator(
         step_result = None
         for step_result in self._core_iterator(
             circuit=unitary_prefix,
-            initial_state=acton_args,
+            initial_state=act_on_args,
             qubits=qubits,
         ):
             pass
@@ -204,7 +204,7 @@ class Simulator(
             )
 
         return self._brute_force_samples(
-            acton_args=acton_args,
+            act_on_args=act_on_args,
             circuit=general_suffix,
             repetitions=repetitions,
             qubits=qubits,
@@ -212,7 +212,7 @@ class Simulator(
 
     def _brute_force_samples(
         self,
-        acton_args: act_on_state_vector_args.ActOnStateVectorArgs,
+        act_on_args: act_on_state_vector_args.ActOnStateVectorArgs,
         circuit: circuits.Circuit,
         qubits: Tuple['cirq.Qid', ...],
         repetitions: int,
@@ -222,7 +222,7 @@ class Simulator(
         measurements: DefaultDict[str, List[np.ndarray]] = collections.defaultdict(list)
         for _ in range(repetitions):
             all_step_results = self._core_iterator(
-                circuit, initial_state=acton_args.copy(), qubits=qubits
+                circuit, initial_state=act_on_args.copy(), qubits=qubits
             )
 
             for step_result in all_step_results:

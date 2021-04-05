@@ -80,7 +80,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
     def copy(self):
         return ActOnCliffordTableauArgs(
             self.tableau.copy(),
-            [a for a in self.axes],
+            self.axes,
             self.prng,
             self.log_of_measurement_results.copy(),
         )
