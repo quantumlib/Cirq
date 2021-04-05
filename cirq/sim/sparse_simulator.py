@@ -14,29 +14,25 @@
 
 """A simulator that uses numpy's einsum for sparse matrix operations."""
 
-import collections
 from typing import (
     Any,
     Dict,
     List,
     Type,
     TYPE_CHECKING,
-    DefaultDict,
     Union,
-    cast,
     Tuple,
 )
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, qis, study, devices
+from cirq import ops, protocols, qis, study, devices
 from cirq.sim import (
     simulator,
     state_vector,
     state_vector_simulator,
     act_on_state_vector_args,
 )
-from cirq.sim.simulator import check_all_resolved, split_into_matching_protocol_then_general
 
 if TYPE_CHECKING:
     import cirq

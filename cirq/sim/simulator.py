@@ -562,7 +562,7 @@ class SimulatesIntermediateState(
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
-        This is a thin wrapper around `create_acton_args` and `_core_iterator`.
+        This is a thin wrapper around `create_act_on_args` and `_core_iterator`.
         Overriding this method was the old way of creating a circuit iterator,
         and this method is planned to be formally put on the deprecation path.
         Going forward, override the aforementioned two methods in custom
@@ -581,12 +581,12 @@ class SimulatesIntermediateState(
             StepResults from simulating a Moment of the Circuit.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        acton_args = (
+        act_on_args = (
             cast(TActOnArgs, initial_state)
             if isinstance(initial_state, ActOnArgs)
             else self.create_act_on_args(initial_state, qubits)
         )
-        return self._core_iterator(circuit, acton_args, qubits)
+        return self._core_iterator(circuit, act_on_args, qubits)
 
     @abc.abstractmethod
     def create_act_on_args(
@@ -607,7 +607,7 @@ class SimulatesIntermediateState(
                 ordering of the computational basis states.
 
         Returns:
-            ActOnArgs for the simulator.
+            The ActOnArgs for this simulator.
         """
         raise NotImplementedError()
 
@@ -702,7 +702,7 @@ class SimulatesIntermediateState(
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         check_all_resolved(resolved_circuit)
         qubits = tuple(sorted(resolved_circuit.all_qubits()))
-        acton_args = self.create_act_on_args(0, qubits)
+        act_on_args = self.create_act_on_args(0, qubits)
 
         prefix, general_suffix = (
             split_into_matching_protocol_then_general(resolved_circuit, protocols.has_unitary)
@@ -712,7 +712,7 @@ class SimulatesIntermediateState(
         step_result = None
         for step_result in self._core_iterator(
             circuit=prefix,
-            initial_state=acton_args,
+            initial_state=act_on_args,
             qubits=qubits,
         ):
             pass
@@ -720,19 +720,19 @@ class SimulatesIntermediateState(
 
         general_ops = list(general_suffix.all_operations())
         if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
-            return self._run_sweep_sample(general_suffix, repetitions, qubits, acton_args)
-        return self._run_sweep_repeat(general_suffix, repetitions, qubits, acton_args)
+            return self._run_sweep_sample(general_suffix, repetitions, qubits, act_on_args)
+        return self._run_sweep_repeat(general_suffix, repetitions, qubits, act_on_args)
 
     def _run_sweep_sample(
         self,
         circuit: circuits.Circuit,
         repetitions: int,
         qubits: Tuple['cirq.Qid', ...],
-        acton_args: TActOnArgs,
+        act_on_args: TActOnArgs,
     ) -> Dict[str, np.ndarray]:
         for step_result in self._core_iterator(
             circuit=circuit,
-            initial_state=acton_args,
+            initial_state=act_on_args,
             qubits=qubits,
             all_measurements_are_terminal=True,
         ):
@@ -747,14 +747,14 @@ class SimulatesIntermediateState(
         circuit: circuits.Circuit,
         repetitions: int,
         qubits: Tuple['cirq.Qid', ...],
-        acton_args: TActOnArgs,
+        act_on_args: TActOnArgs,
     ) -> Dict[str, np.ndarray]:
         measurements = {}  # type: Dict[str, List[np.ndarray]]
 
         for _ in range(repetitions):
             all_step_results = self._core_iterator(
                 circuit,
-                initial_state=acton_args.copy(),
+                initial_state=act_on_args.copy(),
                 qubits=qubits,
             )
             for step_result in all_step_results:
