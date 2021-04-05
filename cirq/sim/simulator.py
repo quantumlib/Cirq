@@ -720,27 +720,11 @@ class SimulatesIntermediateState(
 
         general_ops = list(general_suffix.all_operations())
         if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
-            return self._run_sweep_sample(general_suffix, repetitions, qubits, act_on_args)
+            measurement_ops = [
+                op for _, op, _ in circuit.findall_operations_with_gate_type(ops.MeasurementGate)
+            ]
+            return step_result.sample_measurement_ops(measurement_ops, repetitions, seed=self._prng)
         return self._run_sweep_repeat(general_suffix, repetitions, qubits, act_on_args)
-
-    def _run_sweep_sample(
-        self,
-        circuit: circuits.Circuit,
-        repetitions: int,
-        qubits: Tuple['cirq.Qid', ...],
-        act_on_args: TActOnArgs,
-    ) -> Dict[str, np.ndarray]:
-        for step_result in self._core_iterator(
-            circuit=circuit,
-            initial_state=act_on_args,
-            qubits=qubits,
-            all_measurements_are_terminal=True,
-        ):
-            pass
-        measurement_ops = [
-            op for _, op, _ in circuit.findall_operations_with_gate_type(ops.MeasurementGate)
-        ]
-        return step_result.sample_measurement_ops(measurement_ops, repetitions, seed=self._prng)
 
     def _run_sweep_repeat(
         self,
