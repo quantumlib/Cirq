@@ -324,6 +324,42 @@ def test_clifford_circuit():
     )
 
 
+def test_clifford_circuit_expectation_value():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit()
+
+    np.random.seed(0)
+
+    for _ in range(100):
+        x = np.random.randint(7)
+
+        if x == 0:
+            circuit.append(cirq.X(np.random.choice((q0, q1))))
+        elif x == 1:
+            circuit.append(cirq.Z(np.random.choice((q0, q1))))
+        elif x == 2:
+            circuit.append(cirq.Y(np.random.choice((q0, q1))))
+        elif x == 3:
+            circuit.append(cirq.S(np.random.choice((q0, q1))))
+        elif x == 4:
+            circuit.append(cirq.H(np.random.choice((q0, q1))))
+        elif x == 5:
+            circuit.append(cirq.CNOT(q0, q1))
+        elif x == 6:
+            circuit.append(cirq.CZ(q0, q1))
+
+    clifford_simulator = cirq.CliffordSimulator()
+    state_vector_simulator = cirq.Simulator()
+
+    psum1 = cirq.Z(q0) + 3.2 * cirq.Z(q1)
+    psum2 = -1 * cirq.X(q0) + 2 * cirq.X(q1)
+    np.testing.assert_almost_equal(
+        clifford_simulator.simulate_expectation_values(circuit, [psum1, psum2]),
+        state_vector_simulator.simulate_expectation_values(circuit, [psum1, psum2]),
+        decimal=5,
+    )
+
+
 @pytest.mark.parametrize("qubits", [cirq.LineQubit.range(2), cirq.LineQubit.range(4)])
 def test_clifford_circuit_2(qubits):
     circuit = cirq.Circuit()
