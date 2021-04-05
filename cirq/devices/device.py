@@ -13,7 +13,9 @@
 # limitations under the License.
 
 import abc
-from typing import TYPE_CHECKING, Optional, AbstractSet
+from typing import TYPE_CHECKING, Optional, AbstractSet, Tuple, List, cast
+from cirq.devices.grid_qubit import _BaseGridQid
+from cirq.devices.line_qubit import _BaseLineQid
 
 if TYPE_CHECKING:
     import cirq
@@ -45,6 +47,43 @@ class Device(metaclass=abc.ABCMeta):
 
         # Default to the qubits being unknown.
         return None
+
+    @property
+    def edges(self) -> Optional[List[Tuple['cirq.Qid', 'cirq.Qid']]]:
+        """Returns a list of qubit edges on the device, if possible.
+
+        This property can be overridden in child classes for special handling.
+        The default handling is: GridQids and LineQids will have neighbors as
+        edges, and others will be fully connected.
+
+        Returns:
+            If the device has a finite set of qubits, then a list of all edges
+            on the device is returned.
+
+            If the device has no well defined finite set of qubits (e.g.
+            `cirq.UnconstrainedDevice` has this property), then `None` is
+            returned.
+        """
+        qs = self.qubit_set()
+        if qs is None:
+            return None
+        if all(isinstance(q, _BaseGridQid) for q in qs):
+            return [
+                (q, q2)
+                for q in [cast(_BaseGridQid, q) for q in qs]
+                for q2 in [q + (0, 1), q + (1, 0)]
+                if q2 in qs
+            ]
+        if all(isinstance(q, _BaseGridQid) for q in qs):
+            return [
+                (q, q2)
+                for q in [cast(_BaseGridQid, q) for q in qs]
+                for q2 in [q + (0, 1), q + (1, 0)]
+                if q2 in qs
+            ]
+        if all(isinstance(q, _BaseLineQid) for q in qs):
+            return [(q, q + 1) for q in [cast(_BaseLineQid, q) for q in qs] if q + 1 in qs]
+        return [(q, q2) for q in qs for q2 in qs if q < q2]
 
     def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         """Returns a device-valid decomposition for the given operation.

@@ -278,3 +278,17 @@ def test_to_json():
         "control_radius": 2,
         "qubits": [cirq.pasqal.TwoDQubit(0, 0)],
     }
+
+
+def test_edges():
+    dev = PasqalVirtualDevice(
+        0,
+        qubits=[
+            ThreeDQubit(0, 0, 0),
+            ThreeDQubit(1, 0, 0),
+            ThreeDQubit(0, 1, 0),
+            ThreeDQubit(1, 1, 0),
+            ThreeDQubit(1, 1, 1),
+        ],
+    )
+    assert len(dev.edges) == 5

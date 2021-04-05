@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, cast, FrozenSet, Iterable, Optional, Set, TYPE_CHECKING
+from typing import Any, cast, FrozenSet, Iterable, Optional, Set, TYPE_CHECKING, Tuple, List
 
 from cirq import circuits, value, devices, ops, protocols
 from cirq.ion import convert_to_ion_gates
@@ -51,6 +51,16 @@ class IonDevice(devices.Device):
 
     def qubit_set(self) -> FrozenSet['cirq.LineQubit']:
         return self.qubits
+
+    @property
+    def edges(self) -> List[Tuple['cirq.Qid', 'cirq.Qid']]:
+        """Qubits have all-to-all connectivity, so returns all pairs.
+
+        Returns:
+            All qubit pairs on the device.
+        """
+        qs = self.qubits
+        return [(q, q2) for q in qs for q2 in qs if q < q2]
 
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
         return convert_to_ion_gates.ConvertToIonGates().convert_one(operation)

@@ -448,3 +448,7 @@ def test_sycamore23_str():
                                     │
                                     (9, 4)"""
     )
+
+
+def test_sycamore23_edges():
+    assert len(cg.Sycamore23.edges) == 32

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import FrozenSet, Callable, List, Sequence, Any, Union, Dict
+from typing import FrozenSet, Callable, List, Sequence, Any, Union, Dict, Optional, Tuple, cast
 import numpy as np
 
 import cirq
@@ -360,6 +360,35 @@ class PasqalVirtualDevice(PasqalDevice):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return cirq.protocols.obj_to_dict_helper(self, ['control_radius', 'qubits'])
+
+    @property
+    def edges(self) -> List[Tuple['cirq.Qid', 'cirq.Qid']]:
+        """Returns a list of qubit edges on the device.
+
+        Returns:
+            All qubit pairs that are separated by a distance of 1 in a single
+            dimension.
+        """
+        qs = self.qubits
+        if all(isinstance(q, TwoDQubit) for q in qs):
+            return [
+                (q, q2)
+                for q in [cast(TwoDQubit, q) for q in qs]
+                for q2 in [TwoDQubit(q.x + 1, q.y), TwoDQubit(q.x, q.y + 1)]
+                if q2 in qs
+            ]
+        if all(isinstance(q, ThreeDQubit) for q in qs):
+            return [
+                (q, q2)
+                for q in [cast(ThreeDQubit, q) for q in qs]
+                for q2 in [
+                    ThreeDQubit(q.x + 1, q.y, q.z),
+                    ThreeDQubit(q.x, q.y + 1, q.z),
+                    ThreeDQubit(q.x, q.y, q.z + 1),
+                ]
+                if q2 in qs
+            ]
+        return cast(List[Tuple['cirq.Qid', 'cirq.Qid']], super().edges)
 
 
 class PasqalConverter(cirq.neutral_atoms.ConvertToNeutralAtomGates):

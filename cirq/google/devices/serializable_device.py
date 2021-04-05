@@ -251,6 +251,25 @@ class SerializableDevice(devices.Device):
 
         return super().__str__()
 
+    @property
+    def edges(self) -> List[Tuple['cirq.Qid', 'cirq.Qid']]:
+        """Returns a list of qubit edges on the device, defined by the gate
+        definitions.
+
+        Returns:
+            The list of qubit edges on the device.
+        """
+        return list(
+            {
+                cast(Tuple['cirq.Qid', 'cirq.Qid'], pair)
+                for gate_defs in self.gate_definitions.values()
+                for gate_def in gate_defs
+                if gate_def.number_of_qubits == 2
+                for pair in gate_def.target_set
+                if len(pair) == 2 and pair[0] < pair[1]
+            }
+        )
+
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Creates ASCII diagram for Jupyter, IPython, etc."""
         # There should never be a cycle, but just in case use the default repr.
