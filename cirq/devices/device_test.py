@@ -45,3 +45,16 @@ def test_edges():
     assert len(QubitFieldDevice(cirq.LineQubit.range(10)).edges) == 9
     assert len(QubitFieldDevice(cirq.GridQubit.rect(10, 10)).edges) == 180
     assert len(QubitFieldDevice([cirq.NamedQubit(str(s)) for s in range(10)]).edges) == 45
+
+
+def test_edge():
+    e1 = cirq.QidPair(cirq.LineQubit(1), cirq.LineQubit(0))
+    e2 = cirq.QidPair(cirq.LineQubit(0), cirq.LineQubit(1))
+    e3 = cirq.QidPair(cirq.LineQubit(2), cirq.LineQubit(3))
+    assert e1 == e2
+    assert e2 != e3
+
+    set1 = frozenset([e1, e2])
+    set2 = frozenset([e2, e3])
+    assert len(set1) == 1
+    assert len(set2) == 2

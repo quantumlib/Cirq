@@ -119,6 +119,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'PhasedXPowGate': cirq.PhasedXPowGate,
         'PhasedXZGate': cirq.PhasedXZGate,
         'RandomGateChannel': cirq.RandomGateChannel,
+        'QidPair': cirq.QidPair,
         'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
         'ResetChannel': cirq.ResetChannel,
         'SingleQubitMatrixGate': single_qubit_matrix_gate,
