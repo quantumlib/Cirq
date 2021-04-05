@@ -156,11 +156,11 @@ class QidPair:
         return self.qids
 
     def __repr__(self):
-        return f'cirq.QidPair({repr(self.qids)[11:-2]})'
+        return f'cirq.QidPair({repr(sorted(self.qids))[1:-1]})'
 
     def _json_dict_(self):
         return {
-            'qids': list(self.qids),
+            'qids': sorted(self.qids),
             'cirq_type': self.__class__.__name__,
         }
 
