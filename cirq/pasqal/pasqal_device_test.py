@@ -282,13 +282,23 @@ def test_to_json():
 
 def test_edges():
     dev = PasqalVirtualDevice(
-        0,
+        1,
         qubits=[
             ThreeDQubit(0, 0, 0),
             ThreeDQubit(1, 0, 0),
             ThreeDQubit(0, 1, 0),
             ThreeDQubit(1, 1, 0),
             ThreeDQubit(1, 1, 1),
+        ],
+    )
+    assert len(dev.edges) == 5
+    dev1 = PasqalVirtualDevice(
+        5,
+        qubits=[
+            TwoDQubit(0, 0),
+            TwoDQubit(3, 2),
+            TwoDQubit(3, 4),
+            TwoDQubit(3, 6),
         ],
     )
     assert len(dev.edges) == 5
