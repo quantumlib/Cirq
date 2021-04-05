@@ -52,8 +52,7 @@ class IonDevice(devices.Device):
     def qubit_set(self) -> FrozenSet['cirq.LineQubit']:
         return self.qubits
 
-    @property
-    def edges(self) -> FrozenSet['cirq.QidPair']:
+    def edge_set(self) -> FrozenSet['cirq.QidPair']:
         """Qubits have all-to-all connectivity, so returns all pairs.
 
         Returns:

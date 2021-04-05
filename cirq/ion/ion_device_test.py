@@ -201,4 +201,4 @@ def test_qubit_set():
 
 
 def test_edges():
-    assert len(ion_device(10).edges) == 45
+    assert len(ion_device(10).edge_set()) == 45

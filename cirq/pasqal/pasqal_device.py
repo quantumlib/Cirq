@@ -362,8 +362,7 @@ class PasqalVirtualDevice(PasqalDevice):
     def _json_dict_(self) -> Dict[str, Any]:
         return cirq.protocols.obj_to_dict_helper(self, ['control_radius', 'qubits'])
 
-    @property
-    def edges(self) -> FrozenSet['cirq.QidPair']:
+    def edge_set(self) -> FrozenSet['cirq.QidPair']:
         """Returns a list of qubit edges on the device.
 
         Returns:

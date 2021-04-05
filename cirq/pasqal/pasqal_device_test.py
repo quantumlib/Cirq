@@ -291,7 +291,7 @@ def test_edges():
             ThreeDQubit(1, 1, 1),
         ],
     )
-    assert len(dev.edges) == 5
+    assert len(dev.edge_set()) == 5
     dev1 = PasqalVirtualDevice(
         5,
         qubits=[
@@ -301,4 +301,4 @@ def test_edges():
             TwoDQubit(3, 6),
         ],
     )
-    assert len(dev1.edges) == 5
+    assert len(dev1.edge_set()) == 5

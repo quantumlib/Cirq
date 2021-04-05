@@ -50,8 +50,7 @@ class Device(metaclass=abc.ABCMeta):
         # Default to the qubits being unknown.
         return None
 
-    @property
-    def edges(self) -> Optional[FrozenSet['cirq.QidPair']]:
+    def edge_set(self) -> Optional[FrozenSet['cirq.QidPair']]:
         """Returns a set of qubit edges on the device, if possible.
 
         This property can be overridden in child classes for special handling.

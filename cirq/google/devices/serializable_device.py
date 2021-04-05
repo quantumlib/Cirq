@@ -251,8 +251,7 @@ class SerializableDevice(devices.Device):
 
         return super().__str__()
 
-    @property
-    def edges(self) -> FrozenSet['cirq.QidPair']:
+    def edge_set(self) -> FrozenSet['cirq.QidPair']:
         """Returns a list of qubit edges on the device, defined by the gate
         definitions.
 
