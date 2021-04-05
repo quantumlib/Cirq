@@ -74,13 +74,6 @@ class Device(metaclass=abc.ABCMeta):
                 for q2 in [q + (0, 1), q + (1, 0)]
                 if q2 in qs
             ]
-        if all(isinstance(q, _BaseGridQid) for q in qs):
-            return [
-                (q, q2)
-                for q in [cast(_BaseGridQid, q) for q in qs]
-                for q2 in [q + (0, 1), q + (1, 0)]
-                if q2 in qs
-            ]
         if all(isinstance(q, _BaseLineQid) for q in qs):
             return [(q, q + 1) for q in [cast(_BaseLineQid, q) for q in qs] if q + 1 in qs]
         return [(q, q2) for q in qs for q2 in qs if q < q2]
