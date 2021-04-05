@@ -367,8 +367,7 @@ class PasqalVirtualDevice(PasqalDevice):
         """Returns a list of qubit edges on the device.
 
         Returns:
-            All qubit pairs that are separated by a distance of 1 in a single
-            dimension.
+            All qubit pairs that are less or equal to the control radius apart.
         """
         qs = self.qubits
         return [
