@@ -171,7 +171,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         return ActOnStateVectorArgs(
             self.target_tensor.copy(),
             self.available_buffer.copy(),
-            [a for a in self.axes],
+            self.axes,
             self.prng,
             self.log_of_measurement_results.copy(),
         )

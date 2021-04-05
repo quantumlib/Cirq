@@ -96,7 +96,6 @@ def test_copy():
     assert args is not args1
     assert args.tableau is not args1.tableau
     assert args.tableau == args1.tableau
-    assert args.axes is not args1.axes
     assert args.axes == args1.axes
     assert args.prng is args1.prng
     assert args.log_of_measurement_results is not args1.log_of_measurement_results

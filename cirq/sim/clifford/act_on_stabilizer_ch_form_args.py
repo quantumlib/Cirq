@@ -75,7 +75,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
     def copy(self):
         return ActOnStabilizerCHFormArgs(
             self.state.copy(),
-            [a for a in self.axes],
+            self.axes,
             self.prng,
             self.log_of_measurement_results.copy(),
         )

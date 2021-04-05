@@ -120,7 +120,6 @@ def test_copy():
     assert args is not args1
     assert args.state is not args1.state
     np.testing.assert_equal(args.state.state_vector(), args1.state.state_vector())
-    assert args.axes is not args1.axes
     assert args.axes == args1.axes
     assert args.prng is args1.prng
     assert args.log_of_measurement_results is not args1.log_of_measurement_results

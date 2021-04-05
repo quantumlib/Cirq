@@ -170,7 +170,7 @@ class DensityMatrixSimulator(
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         check_all_resolved(resolved_circuit)
         qubits = tuple(sorted(resolved_circuit.all_qubits()))
-        acton_args = self.create_act_on_args(0, qubits)
+        act_on_args = self.create_act_on_args(0, qubits)
 
         prefix, general_suffix = split_into_matching_protocol_then_general(
             resolved_circuit, lambda op: not protocols.is_measurement(op)
@@ -178,7 +178,7 @@ class DensityMatrixSimulator(
         step_result = None
         for step_result in self._core_iterator(
             circuit=prefix,
-            sim_state=acton_args,
+            sim_state=act_on_args,
             qubits=qubits,
         ):
             pass
@@ -187,19 +187,19 @@ class DensityMatrixSimulator(
         if general_suffix.are_all_measurements_terminal() and not any(
             general_suffix.findall_operations(lambda op: isinstance(op, circuits.CircuitOperation))
         ):
-            return self._run_sweep_sample(general_suffix, repetitions, qubits, acton_args)
-        return self._run_sweep_repeat(general_suffix, repetitions, qubits, acton_args)
+            return self._run_sweep_sample(general_suffix, repetitions, qubits, act_on_args)
+        return self._run_sweep_repeat(general_suffix, repetitions, qubits, act_on_args)
 
     def _run_sweep_sample(
         self,
         circuit: circuits.Circuit,
         repetitions: int,
         qubits: Tuple['cirq.Qid', ...],
-        acton_args: act_on_density_matrix_args.ActOnDensityMatrixArgs,
+        act_on_args: act_on_density_matrix_args.ActOnDensityMatrixArgs,
     ) -> Dict[str, np.ndarray]:
         for step_result in self._core_iterator(
             circuit=circuit,
-            sim_state=acton_args,
+            sim_state=act_on_args,
             qubits=qubits,
             all_measurements_are_terminal=True,
         ):
@@ -214,14 +214,14 @@ class DensityMatrixSimulator(
         circuit: circuits.Circuit,
         repetitions: int,
         qubits: Tuple['cirq.Qid', ...],
-        acton_args: act_on_density_matrix_args.ActOnDensityMatrixArgs,
+        act_on_args: act_on_density_matrix_args.ActOnDensityMatrixArgs,
     ) -> Dict[str, np.ndarray]:
         measurements = {}  # type: Dict[str, List[np.ndarray]]
 
         for _ in range(repetitions):
             all_step_results = self._core_iterator(
                 circuit,
-                sim_state=acton_args.copy(),
+                sim_state=act_on_args.copy(),
                 qubits=qubits,
             )
             for step_result in all_step_results:
