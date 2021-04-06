@@ -324,6 +324,10 @@ def partial_trace(tensor: np.ndarray, keep_indices: List[int]) -> np.ndarray:
     return np.einsum(tensor, left_indices + right_indices)
 
 
+class UnfactorizableStateVectorError(ValueError):
+    pass
+
+
 def partial_trace_of_state_vector_as_mixture(
     state_vector: np.ndarray, keep_indices: List[int], *, atol: Union[int, float] = 1e-8
 ) -> Tuple[Tuple[float, np.ndarray], ...]:
@@ -360,7 +364,7 @@ def partial_trace_of_state_vector_as_mixture(
             state_vector, keep_indices, default=RaiseValueErrorIfNotProvided, atol=atol
         )
         return ((1.0, state),)
-    except ValueError:
+    except UnfactorizableStateVectorError:
         pass
 
     # Fall back to a (non-unique) mixture representation.
@@ -473,7 +477,7 @@ def sub_state_vector(
     if default is not RaiseValueErrorIfNotProvided:
         return default
 
-    raise ValueError(
+    raise UnfactorizableStateVectorError(
         "Input state vector could not be factored into pure state over "
         "indices {}".format(keep_indices)
     )

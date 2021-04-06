@@ -338,7 +338,7 @@ class AxisAngleDecomposition:
 
     def __str__(self) -> str:
         axis_terms = '+'.join(
-            '{:.3g}*{}'.format(e, a) if e < 0.9999 else a
+            f'{e:.3g}*{a}' if e < 0.9999 else a
             for e, a in zip(self.axis, ['X', 'Y', 'Z'])
             if abs(e) >= 1e-8
         ).replace('+-', '-')
