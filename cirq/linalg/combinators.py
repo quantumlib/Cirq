@@ -133,7 +133,7 @@ def dot(*values: Union[float, complex, np.ndarray]) -> Union[float, complex, np.
     return result
 
 
-def _merge_dtypes(dtype1: DTypeLike, dtype2: DTypeLike) -> np.dtype:
+def _merge_dtypes(dtype1: 'DTypeLike', dtype2: 'DTypeLike') -> np.dtype:
     return (np.zeros(0, dtype1) + np.zeros(0, dtype2)).dtype
 
 
