@@ -72,7 +72,7 @@ class XmonDevice(devices.Device):
         if isinstance(operation.gate, ops.ZPowGate):
             # Z gates are performed in the control software.
             return value.Duration()
-        raise ValueError('Unsupported gate type: {!r}'.format(operation))
+        raise ValueError(f'Unsupported gate type: {operation!r}')
 
     @classmethod
     def is_supported_gate(cls, gate: 'cirq.Gate'):
@@ -96,24 +96,24 @@ class XmonDevice(devices.Device):
             ValueError: Unsupported gate.
         """
         if not self.is_supported_gate(gate):
-            raise ValueError('Unsupported gate type: {!r}'.format(gate))
+            raise ValueError(f'Unsupported gate type: {gate!r}')
 
     def validate_operation(self, operation: 'cirq.Operation'):
         if not isinstance(operation, ops.GateOperation):
-            raise ValueError('Unsupported operation: {!r}'.format(operation))
+            raise ValueError(f'Unsupported operation: {operation!r}')
 
         self.validate_gate(operation.gate)
 
         for q in operation.qubits:
             if not isinstance(q, GridQubit):
-                raise ValueError('Unsupported qubit type: {!r}'.format(q))
+                raise ValueError(f'Unsupported qubit type: {q!r}')
             if q not in self.qubits:
-                raise ValueError('Qubit not on device: {!r}'.format(q))
+                raise ValueError(f'Qubit not on device: {q!r}')
 
         if len(operation.qubits) == 2 and not isinstance(operation.gate, ops.MeasurementGate):
             p, q = operation.qubits
             if not cast(GridQubit, p).is_adjacent(q):
-                raise ValueError('Non-local interaction: {!r}.'.format(operation))
+                raise ValueError(f'Non-local interaction: {operation!r}.')
 
     def _check_if_exp11_operation_interacts_with_any(
         self, exp11_op: 'cirq.GateOperation', others: Iterable['cirq.GateOperation']
@@ -147,7 +147,7 @@ class XmonDevice(devices.Device):
                     if other is not op and self._check_if_exp11_operation_interacts(
                         cast(ops.GateOperation, op), cast(ops.GateOperation, other)
                     ):
-                        raise ValueError('Adjacent Exp11 operations: {}.'.format(moment))
+                        raise ValueError(f'Adjacent Exp11 operations: {moment}.')
 
     def can_add_operation_into_moment(
         self, operation: 'cirq.Operation', moment: 'cirq.Moment'
@@ -205,5 +205,5 @@ def _verify_unique_measurement_keys(operations: Iterable['cirq.Operation']):
         if protocols.is_measurement(op):
             key = protocols.measurement_key(op)
             if key in seen:
-                raise ValueError('Measurement key {} repeated'.format(key))
+                raise ValueError(f'Measurement key {key} repeated')
             seen.add(key)

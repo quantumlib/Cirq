@@ -26,13 +26,13 @@ _CALIBRATION_DATA = Merge(
     """
     timestamp_ms: 1562544000021,
     metrics: [{
-        name: 'xeb',
+        name: 'two_qubit_xeb',
         targets: ['0_0', '0_1'],
         values: [{
             double_val: .9999
         }]
     }, {
-        name: 'xeb',
+        name: 'two_qubit_xeb',
         targets: ['0_0', '1_0'],
         values: [{
             double_val: .9998
@@ -92,7 +92,7 @@ def test_calibration_metrics_dictionary():
 
 def test_calibration_str():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    assert str(calibration) == "Calibration(keys=['globalMetric', 't1', 'xeb'])"
+    assert str(calibration) == "Calibration(keys=['globalMetric', 't1', 'two_qubit_xeb'])"
 
 
 def test_calibration_repr():
@@ -163,11 +163,13 @@ def test_calibration_heatmap():
     figure = mpl.figure.Figure()
     axes = figure.add_subplot(111)
     heatmap.plot(axes)
+    assert axes.get_title() == 'T1'
 
-    heatmap = calibration.heatmap('xeb')
+    heatmap = calibration.heatmap('two_qubit_xeb')
     figure = mpl.figure.Figure()
     axes = figure.add_subplot(999)
     heatmap.plot(axes)
+    assert axes.get_title() == 'Two Qubit Xeb'
 
     with pytest.raises(ValueError, match="one or two qubits.*multi_qubit"):
         multi_qubit_data = Merge(
@@ -187,3 +189,27 @@ def test_calibration_heatmap():
             v2.metrics_pb2.MetricsSnapshot(),
         )
         cg.Calibration(multi_qubit_data).heatmap('multi_value')
+
+
+def test_calibration_plot_histograms():
+    calibration = cg.Calibration(_CALIBRATION_DATA)
+    _, ax = mpl.pyplot.subplots(1, 1)
+    calibration.plot_histograms(['t1', 'two_qubit_xeb'], ax, labels=['T1', 'XEB'])
+    assert len(ax.get_lines()) == 4
+
+    with pytest.raises(ValueError, match="single metric values.*multi_value"):
+        multi_qubit_data = Merge(
+            """metrics: [{
+                name: 'multi_value',
+                targets: ['0_0'],
+                values: [{double_val: 0.999}, {double_val: 0.001}]}]""",
+            v2.metrics_pb2.MetricsSnapshot(),
+        )
+        cg.Calibration(multi_qubit_data).plot_histograms('multi_value')
+
+
+def test_calibration_plot():
+    calibration = cg.Calibration(_CALIBRATION_DATA)
+    _, axs = calibration.plot('two_qubit_xeb')
+    assert axs[0].get_title() == 'Two Qubit Xeb'
+    assert len(axs[1].get_lines()) == 2

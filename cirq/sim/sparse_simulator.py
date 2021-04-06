@@ -158,12 +158,12 @@ class Simulator(
             seed: The random seed to use for this simulator.
         """
         if np.dtype(dtype).kind != 'c':
-            raise ValueError('dtype must be a complex type but was {}'.format(dtype))
+            raise ValueError(f'dtype must be a complex type but was {dtype}')
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
         noise_model = devices.NoiseModel.from_noise_model_like(noise)
         if not protocols.has_mixture(noise_model):
-            raise ValueError('noise must be unitary or mixture but was {}'.format(noise_model))
+            raise ValueError(f'noise must be unitary or mixture but was {noise_model}')
         self.noise = noise_model
 
     def _run(
@@ -365,6 +365,18 @@ class SparseSimulatorStep(
         return vector.copy() if copy else vector
 
     def set_state_vector(self, state: 'cirq.STATE_VECTOR_LIKE'):
+        """Set the state vector.
+
+        One can pass a valid full state to this method by passing a numpy
+        array. Or, alternatively, one can pass an integer, and then the state
+        will be set to lie entirely in the computation basis state for the
+        binary expansion of the passed integer.
+
+        Args:
+            state: If an int, the state vector set is the state vector
+                corresponding to a computational basis state. If a numpy
+                array this is the full state vector.
+        """
         update_state = qis.to_valid_state_vector(
             state, len(self.qubit_map), qid_shape=protocols.qid_shape(self, None), dtype=self._dtype
         )

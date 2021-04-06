@@ -301,7 +301,7 @@ def classify_pr_status_check_state(pr: PullRequestDetails) -> Optional[bool]:
     elif state == 'pending':
         has_pending = True
     elif state != 'success':
-        raise RuntimeError('Unrecognized status state: {!r}'.format(state))
+        raise RuntimeError(f'Unrecognized status state: {state!r}')
 
     check_data = get_pr_checks(pr)
     for check in check_data['check_runs']:
@@ -529,7 +529,7 @@ def attempt_sync_with_master(pr: PullRequestDetails) -> Union[bool, CannotAutome
 
     if response.status_code == 201:
         # Merge succeeded.
-        log('Synced #{} ({!r}) with master.'.format(pr.pull_id, pr.title))
+        log(f'Synced #{pr.pull_id} ({pr.title!r}) with master.')
         return True
 
     if response.status_code == 204:
@@ -563,7 +563,7 @@ def attempt_squash_merge(pr: PullRequestDetails) -> Union[bool, CannotAutomergeE
         pr.repo.organization, pr.repo.name, pr.pull_id, pr.repo.access_token
     )
     data = {
-        'commit_title': '{} (#{})'.format(pr.title, pr.pull_id),
+        'commit_title': f'{pr.title} (#{pr.pull_id})',
         'commit_message': pr.body,
         'sha': pr.branch_sha,
         'merge_method': 'squash',
@@ -572,7 +572,7 @@ def attempt_squash_merge(pr: PullRequestDetails) -> Union[bool, CannotAutomergeE
 
     if response.status_code == 200:
         # Merge succeeded.
-        log('Merged PR#{} ({!r}):\n{}\n'.format(pr.pull_id, pr.title, indent(pr.body)))
+        log(f'Merged PR#{pr.pull_id} ({pr.title!r}):\n{indent(pr.body)}\n')
         return True
 
     if response.status_code == 405:
@@ -583,7 +583,7 @@ def attempt_squash_merge(pr: PullRequestDetails) -> Union[bool, CannotAutomergeE
         return False
 
     raise RuntimeError(
-        'Merge failed. Code: {}. Content: {!r}.'.format(response.status_code, response.content)
+        f'Merge failed. Code: {response.status_code}. Content: {response.content!r}.'
     )
 
 
@@ -595,7 +595,7 @@ def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
 
     open_pulls = list_open_pull_requests(pr.repo, base_branch=pr.branch_name)
     if any(open_pulls):
-        log('Not deleting branch {!r}. It is used elsewhere.'.format(pr.branch_name))
+        log(f'Not deleting branch {pr.branch_name!r}. It is used elsewhere.')
         return False
 
     remote = pr.remote_repo
@@ -614,10 +614,10 @@ def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
 
     if response.status_code == 204:
         # Delete succeeded.
-        log('Deleted branch {!r}.'.format(pr.branch_name))
+        log(f'Deleted branch {pr.branch_name!r}.')
         return True
 
-    log('Delete failed. Code: {}. Content: {!r}.'.format(response.status_code, response.content))
+    log(f'Delete failed. Code: {response.status_code}. Content: {response.content!r}.')
     return False
 
 
@@ -769,9 +769,9 @@ def find_problem_with_automergeability_of_pr(
 
 
 def cannot_merge_pr(pr: PullRequestDetails, reason: CannotAutomergeError):
-    log('Cancelled automerge of PR#{} ({!r}): {}'.format(pr.pull_id, pr.title, reason.args[0]))
+    log(f'Cancelled automerge of PR#{pr.pull_id} ({pr.title!r}): {reason.args[0]}')
 
-    add_comment(pr.repo, pr.pull_id, 'Automerge cancelled: {}'.format(reason))
+    add_comment(pr.repo, pr.pull_id, f'Automerge cancelled: {reason}')
 
     for label in AUTO_MERGE_LABELS:
         if pr.has_label(label):
@@ -875,7 +875,7 @@ def pick_head_pr(active_prs: List[PullRequestDetails]) -> Optional[PullRequestDe
             return pr
 
     promoted = max(active_prs, key=merge_desirability)
-    log('Front of queue: PR#{} ({!r})'.format(promoted.pull_id, promoted.title))
+    log(f'Front of queue: PR#{promoted.pull_id} ({promoted.title!r})')
     add_labels_to_pr(promoted.repo, promoted.pull_id, HEAD_AUTO_MERGE_LABEL)
     return promoted
 
@@ -911,9 +911,7 @@ def main():
     access_token = os.getenv(ACCESS_TOKEN_ENV_VARIABLE)
     if not access_token:
         project_id = 'cirq-infra'
-        print(
-            '{} not set. Trying secret manager.'.format(ACCESS_TOKEN_ENV_VARIABLE), file=sys.stderr
-        )
+        print(f'{ACCESS_TOKEN_ENV_VARIABLE} not set. Trying secret manager.', file=sys.stderr)
         client = secretmanager_v1beta1.SecretManagerServiceClient()
         secret_name = f'projects/{project_id}/secrets/cirq-bot-api-key/versions/1'
         response = client.access_secret_version(name=secret_name)

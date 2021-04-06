@@ -102,6 +102,24 @@ def test_invalid_measurement_keys():
     _ = cirq.CircuitOperation(circuit, measurement_key_map={'m:a': 'ma'})
 
 
+def test_invalid_qubit_mapping():
+    q = cirq.LineQubit(0)
+    q3 = cirq.LineQid(1, dimension=3)
+
+    # Invalid qid remapping dict in constructor
+    with pytest.raises(ValueError, match='Qid dimension conflict'):
+        _ = cirq.CircuitOperation(cirq.FrozenCircuit(), qubit_map={q: q3})
+
+    # Invalid qid remapping dict in with_qubit_mapping call
+    c_op = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.X(q)))
+    with pytest.raises(ValueError, match='Qid dimension conflict'):
+        _ = c_op.with_qubit_mapping({q: q3})
+
+    # Invalid qid remapping function in with_qubit_mapping call
+    with pytest.raises(ValueError, match='Qid dimension conflict'):
+        _ = c_op.with_qubit_mapping(lambda q: q3)
+
+
 def test_circuit_sharing():
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.FrozenCircuit(
@@ -305,6 +323,23 @@ def test_string_format():
         == f"""\
 {op0.circuit.diagram_name()}:
 [                         ]"""
+    )
+
+    fc0_global_phase_inner = cirq.FrozenCircuit(
+        cirq.GlobalPhaseOperation(1j), cirq.GlobalPhaseOperation(1j)
+    )
+    op0_global_phase_inner = cirq.CircuitOperation(fc0_global_phase_inner)
+    fc0_global_phase_outer = cirq.FrozenCircuit(
+        op0_global_phase_inner, cirq.GlobalPhaseOperation(1j)
+    )
+    op0_global_phase_outer = cirq.CircuitOperation(fc0_global_phase_outer)
+    assert (
+        str(op0_global_phase_outer)
+        == f"""\
+{op0_global_phase_outer.circuit.diagram_name()}:
+[                         ]
+[                         ]
+[ global phase:   -0.5π   ]"""
     )
 
     fc1 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, z), cirq.measure(x, y, z, key='m'))

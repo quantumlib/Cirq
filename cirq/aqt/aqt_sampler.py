@@ -171,7 +171,7 @@ class AQTSampler(Sampler):
         measurements_int = data['samples']
         measurements = np.zeros((len(measurements_int), num_qubits))
         for i, result_int in enumerate(measurements_int):
-            measurement_int_bin = format(result_int, '0{}b'.format(num_qubits))
+            measurement_int_bin = format(result_int, f'0{num_qubits}b')
             for j in range(num_qubits):
                 measurements[i, j] = int(measurement_int_bin[j])
         return measurements

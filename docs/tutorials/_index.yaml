@@ -108,6 +108,11 @@ landing_page:
         path: https://github.com/quantumlib/Cirq/blob/master/examples/superdense_coding.py
         icon:
           name: code
+      - heading: Heatmaps
+        description: Visualize single qubit and two-qubit interaction metrics
+        path: https://github.com/quantumlib/Cirq/blob/master/examples/heatmaps.py
+        icon:
+          name: code
 
     - heading: Intermediate
       items:

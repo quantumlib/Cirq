@@ -505,7 +505,7 @@ def to_valid_state_vector(
 
     Args:
         state_rep: If an int, the state vector returned is the state vector
-            corresponding to a computational basis state. If an numpy array
+            corresponding to a computational basis state. If a numpy array
             this is the full state vector. Both of these are validated for
             the given number of qubits, and the state must be properly
             normalized and of the appropriate dtype.
@@ -712,7 +712,7 @@ def validate_normalized_state_vector(
         )
     norm = np.sum(np.abs(state_vector) ** 2)
     if not np.isclose(norm, 1, atol=atol):
-        raise ValueError('State_vector is not normalized instead had norm {}'.format(norm))
+        raise ValueError(f'State_vector is not normalized instead had norm {norm}')
 
 
 def validate_qid_shape(
@@ -742,10 +742,10 @@ def validate_qid_shape(
 def validate_indices(num_qubits: int, indices: Sequence[int]) -> None:
     """Validates that the indices have values within range of num_qubits."""
     if any(index < 0 for index in indices):
-        raise IndexError('Negative index in indices: {}'.format(indices))
+        raise IndexError(f'Negative index in indices: {indices}')
     if any(index >= num_qubits for index in indices):
         raise IndexError(
-            'Out of range indices, must be less than number of qubits but was {}'.format(indices)
+            f'Out of range indices, must be less than number of qubits but was {indices}'
         )
 
 
@@ -763,7 +763,7 @@ def to_valid_density_matrix(
     or a computational basis state as a representation of a state.
 
     Args:
-        density_matrix_rep: If an numpy array, if it is of rank 2 (a matrix),
+        density_matrix_rep: If a numpy array, if it is of rank 2 (a matrix),
             then this is the density matrix. If it is a numpy array of rank 1
             (a vector) then this is a state vector. If this is an int,
             then this is the computation basis state.
