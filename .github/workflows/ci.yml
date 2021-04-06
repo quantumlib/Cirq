@@ -59,8 +59,8 @@ jobs:
         run: cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy xargs pip install
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Type check
-        run: check/mypy --next
+      - name: Type check (for logging only)
+        run: check/mypy --next || true
   changed_files:
     name: Changed files test
     runs-on: ubuntu-16.04
