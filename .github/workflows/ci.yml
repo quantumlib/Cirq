@@ -41,7 +41,9 @@ jobs:
           python-version: '3.7'
           architecture: 'x64'
       - name: Install mypy
-        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | sed 's/\#.*$//' | xargs pip install
+        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy xargs pip install
+      - name: Install dependencies
+        run: pip install -r requirements.txt
       - name: Type check
         run: check/mypy
   mypy-next:
@@ -54,7 +56,9 @@ jobs:
           python-version: '3.7'
           architecture: 'x64'
       - name: Install mypy
-        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | sed 's/\#.*$//' | xargs pip install
+        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy xargs pip install
+      - name: Install dependencies
+        run: pip install -r requirements.txt
       - name: Type check
         run: check/mypy --next
   changed_files:

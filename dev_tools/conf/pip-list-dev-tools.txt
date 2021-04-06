@@ -40,7 +40,3 @@ freezegun~=0.3.15
 
 # for python 3.7 and below needs to be installed
 importlib-metadata; python_version < '3.8'
-
-# Install packages with mypy information. The comments are necessary so the
-# CI code will grep for "mypy"
-numpy  # mypy
