@@ -37,3 +37,7 @@ rstcheck~=3.3.1
 
 # For testing time specific logic
 freezegun~=0.3.15
+
+# Install packages with mypy information. The comments are necessary so the
+# CI code will grep for "mypy"
+numpy  # mypy
