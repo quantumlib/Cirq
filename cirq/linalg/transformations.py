@@ -14,7 +14,7 @@
 
 """Utility methods for transforming matrices or vectors."""
 
-from typing import Tuple, Optional, Sequence, List, Union, TypeVar
+from typing import Tuple, Optional, Sequence, List, Union
 
 import numpy as np
 
@@ -27,8 +27,6 @@ from cirq.linalg import predicates
 # case. It is checked for using `is`, so it won't have a false positive if the
 # user provides a different np.array([]) value.
 RaiseValueErrorIfNotProvided = np.array([])  # type: np.ndarray
-
-TDefault = TypeVar('TDefault')
 
 
 def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
@@ -357,9 +355,13 @@ def partial_trace_of_state_vector_as_mixture(
     """
 
     # Attempt to do efficient state factoring.
-    state = sub_state_vector(state_vector, keep_indices, default=None, atol=atol)
-    if state is not None:
+    try:
+        state = sub_state_vector(
+            state_vector, keep_indices, default=RaiseValueErrorIfNotProvided, atol=atol
+        )
         return ((1.0, state),)
+    except ValueError:
+        pass
 
     # Fall back to a (non-unique) mixture representation.
     keep_dims = 1 << len(keep_indices)
@@ -382,7 +384,7 @@ def sub_state_vector(
     state_vector: np.ndarray,
     keep_indices: List[int],
     *,
-    default: TDefault = RaiseValueErrorIfNotProvided,
+    default: np.ndarray = RaiseValueErrorIfNotProvided,
     atol: Union[int, float] = 1e-8,
 ) -> np.ndarray:
     r"""Attempts to factor a state vector into two parts and return one of them.

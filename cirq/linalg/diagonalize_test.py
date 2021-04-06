@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import random
-from typing import Tuple, Optional
+from typing import Tuple, Optional, cast
 
 import numpy as np
 import pytest
@@ -54,8 +54,8 @@ def random_bi_diagonalizable_pair(
     s = random_real_diagonal_matrix(n, d1)
     z = random_real_diagonal_matrix(n, d2)
     v = cirq.testing.random_orthogonal(n)
-    a = cirq.dot(u, s, v)
-    b = cirq.dot(u, z, v)
+    a = cast(np.ndarray, cirq.dot(u, s, v))
+    b = cast(np.ndarray, cirq.dot(u, z, v))
     return a, b
 
 

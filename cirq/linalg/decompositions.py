@@ -29,6 +29,7 @@ from typing import (
     TYPE_CHECKING,
     TypeVar,
     Union,
+    cast,
 )
 
 import matplotlib.pyplot as plt
@@ -121,7 +122,7 @@ def _group_similar(items: List[T], comparer: Callable[[T, T], bool]) -> List[Lis
 
 def unitary_eig(
     matrix: np.ndarray, check_preconditions: bool = True, atol: float = 1e-8
-) -> Tuple[np.array, np.ndarray]:
+) -> Tuple[np.ndarray, np.ndarray]:
     """Gives the guaranteed unitary eigendecomposition of a normal matrix.
 
     All hermitian and unitary matrices are normal matrices. This method was
@@ -249,7 +250,7 @@ def so4_to_magic_su2s(
         if mat.shape != (4, 4) or not predicates.is_special_orthogonal(mat, atol=atol, rtol=rtol):
             raise ValueError('mat must be 4x4 special orthogonal.')
 
-    ab = combinators.dot(MAGIC, mat, MAGIC_CONJ_T)
+    ab = cast(np.ndarray, combinators.dot(MAGIC, mat, MAGIC_CONJ_T))
     _, a, b = kron_factor_4x4_to_2x2s(ab)
 
     return a, b
@@ -512,12 +513,15 @@ class KakDecomposition:
         y_mat = np.array([[0, -1j], [1j, 0]])
         z_mat = np.array([[1, 0], [0, -1]])
 
-        return self.global_phase * combinators.dot(
-            after,
-            interaction_matrix(z_mat, z),
-            interaction_matrix(y_mat, y),
-            interaction_matrix(x_mat, x),
-            before,
+        return self.global_phase * cast(
+            np.ndarray,
+            combinators.dot(
+                after,
+                interaction_matrix(z_mat, z),
+                interaction_matrix(y_mat, y),
+                interaction_matrix(x_mat, x),
+                before,
+            ),
         )
 
     def _decompose_(self, qubits):
@@ -648,11 +652,13 @@ def scatter_plot_normalized_kak_interaction_coefficients(
 
     # parse input and extract KAK vector
     if not isinstance(interactions, np.ndarray):
-        interactions = [
+        interactions_np: Union[List[np.ndarray], np.ndarray] = [
             a if isinstance(a, np.ndarray) else protocols.unitary(a) for a in interactions
         ]
+    else:
+        interactions_np = interactions
 
-    points = kak_vector(interactions) * 4 / np.pi
+    points = kak_vector(interactions_np) * 4 / np.pi
 
     ax.scatter(*coord_transform(points), **kwargs)
     ax.set_xlim(0, +1)
