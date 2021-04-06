@@ -374,7 +374,7 @@ class DensePauliString(BaseDensePauliString):
     def copy(
         self,
         coefficient: Optional[complex] = None,
-        pauli_mask: Union[None, Iterable[int], np.ndarray] = None,
+        pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> 'DensePauliString':
         if pauli_mask is None and (coefficient is None or coefficient == self.coefficient):
             return self
@@ -446,7 +446,7 @@ class MutableDensePauliString(BaseDensePauliString):
     def copy(
         self,
         coefficient: Optional[complex] = None,
-        pauli_mask: Union[None, Iterable[int], np.ndarray] = None,
+        pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> 'MutableDensePauliString':
         return MutableDensePauliString(
             coefficient=self.coefficient if coefficient is None else coefficient,
@@ -549,5 +549,5 @@ def _vectorized_pauli_mul_phase(
     t -= 1
 
     # Result is i raised to the sum of the per-term phase exponents.
-    s = int(np.sum(t, dtype=np.uint8) & 3)
+    s = int(np.sum(t, dtype=np.uint8).item() & 3)
     return 1j ** s

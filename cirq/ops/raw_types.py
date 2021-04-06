@@ -552,7 +552,7 @@ class Operation(metaclass=abc.ABCMeta):
 
         m12 = protocols.unitary_protocol.unitary(circuit12, default=None)
         m21 = protocols.unitary_protocol.unitary(circuit21, default=None)
-        if m12 is None:
+        if m12 is None or m21 is None:
             return NotImplemented
 
         return np.allclose(m12, m21, atol=atol)
