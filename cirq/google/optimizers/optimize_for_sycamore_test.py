@@ -19,19 +19,34 @@ import cirq
 import cirq.google as cg
 
 
-@pytest.mark.parametrize(
-    'optimizer_type, gateset',
-    [
-        ('sqrt_iswap', cg.SQRT_ISWAP_GATESET),
-        ('sycamore', cg.SYC_GATESET),
-        ('xmon', cg.XMON),
-        ('xmon_partial_cz', cg.XMON),
-    ],
-)
+_OPTIMIZERS_AND_GATESETS = [
+    ('sqrt_iswap', cg.SQRT_ISWAP_GATESET),
+    ('sycamore', cg.SYC_GATESET),
+    ('xmon', cg.XMON),
+    ('xmon_partial_cz', cg.XMON),
+]
+
+
+@pytest.mark.parametrize('optimizer_type, gateset', _OPTIMIZERS_AND_GATESETS)
 def test_optimizer_output_gates_are_supported(optimizer_type, gateset):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(
         cirq.CZ(q0, q1), cirq.X(q0) ** 0.2, cirq.Z(q1) ** 0.2, cirq.measure(q0, q1, key='m')
+    )
+    new_circuit = cg.optimized_for_sycamore(circuit, optimizer_type=optimizer_type)
+    for moment in new_circuit:
+        for op in moment:
+            assert gateset.is_supported_operation(op)
+
+
+@pytest.mark.parametrize('optimizer_type, gateset', _OPTIMIZERS_AND_GATESETS)
+def test_optimize_large_measurement_gates(optimizer_type, gateset):
+    qubits = cirq.LineQubit.range(53)
+    circuit = cirq.Circuit(
+        cirq.X.on_each(qubits),
+        [cirq.CZ(qubits[i], qubits[i + 1]) for i in range(0, len(qubits) - 1, 2)],
+        [cirq.CZ(qubits[i], qubits[i + 1]) for i in range(1, len(qubits) - 1, 2)],
+        cirq.measure(*qubits, key='m'),
     )
     new_circuit = cg.optimized_for_sycamore(circuit, optimizer_type=optimizer_type)
     for moment in new_circuit:
