@@ -42,8 +42,25 @@ jobs:
           architecture: 'x64'
       - name: Install mypy
         run: cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
+      - name: Install dependencies
+        run: pip install -r requirements.txt
       - name: Type check
         run: check/mypy
+  mypy-next:
+    name: Type check (next)
+    runs-on: ubuntu-16.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.7'
+          architecture: 'x64'
+      - name: Install mypy
+        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Type check (for logging only)
+        run: check/mypy --next || true
   changed_files:
     name: Changed files test
     runs-on: ubuntu-16.04
