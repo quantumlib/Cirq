@@ -17,6 +17,8 @@ class HamiltonianList:
     """A container class of Boolean function as equation (2) or [1]"""
 
     def __init__(self, hamiltonians: Dict[Tuple[int, ...], float]):
+        # The representation is Tuple[int, ...] to weights. The tuple contains the integers of
+        # where Z_i is present. For example, Z_0.Z_3 would be (0, 3), and I is the empty tuple.
         self.hamiltonians = {h: w for h, w in hamiltonians.items() if math.fabs(w) > 1e-12}
 
     def __str__(self):
