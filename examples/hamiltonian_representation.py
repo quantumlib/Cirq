@@ -7,13 +7,10 @@ from sympy.core.symbol import Symbol
 import cirq
 
 # References:
-# [1] On the representation of Boolean and real functions as Hamil tonians for quantum computing
-#     by StuartHadfield
+# [1] On the representation of Boolean and real functions as Hamiltonians for quantum computing
+#     by Stuart Hadfield
 # [2] https://www.youtube.com/watch?v=AOKM9BkweVU is a useful intro
 # [3] https://github.com/rsln-s/IEEE_QW_2020/blob/master/Slides.pdf
-
-# TODO(tonybruguier): Hook up this code with the QAOA example so that we can solve generic problems
-# instead of just the max-cut example.
 
 
 class HamiltonianList:
@@ -50,7 +47,7 @@ class HamiltonianList:
         hamiltonians = {}
         for h1, w1 in self.hamiltonians.items():
             for h2, w2 in other.hamiltonians.items():
-                h = tuple(set(h1).symmetric_difference(h2))
+                h = tuple(sorted(set(h1).symmetric_difference(h2)))
                 w = w1 * w2
                 if h not in hamiltonians:
                     hamiltonians[h] = 0
