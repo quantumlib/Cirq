@@ -91,7 +91,7 @@ args {
   key: "fatol"
   value {
     arg_value {
-      float_value: 0.004999999888241291
+      float_value: 0.005
     }
   }
 }
@@ -139,7 +139,7 @@ args {
   key: "xatol"
   value {
     arg_value {
-      float_value: 0.004999999888241291
+      float_value: 0.005
     }
   }
 }
