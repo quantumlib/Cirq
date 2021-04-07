@@ -18,7 +18,8 @@ The gate is used to create a (2^n)x(2^n) matrix with the diagonal elements
 passed as a list.
 """
 
-from typing import AbstractSet, Any, Tuple, Iterator, List, Sequence, TYPE_CHECKING, Union, Optional
+from typing import AbstractSet, Any, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+
 import numpy as np
 import sympy
 
