@@ -29,11 +29,13 @@ from typing import (
     TYPE_CHECKING,
     Generic,
     Union,
+    cast,
 )
 
 import numpy as np
 import pandas as pd
 
+from cirq.devices import GridQubit
 from cirq.circuits import Circuit
 from cirq.experiments.xeb_fitting import (
     XEBPhasedFSimCharacterizationOptions,
@@ -654,7 +656,7 @@ def _parse_xeb_fidelities_df(metrics: 'cirq.google.Calibration', super_name: str
             "{super_name}_depth_{depth}", so you can have multiple independent DataFrames in
             one CalibrationResult.
     """
-    records: List[Dict[str, Union[int, float]]] = []
+    records: List[Dict[str, Union[int, float, Tuple['cirq.Qid', 'cirq.Qid']]]] = []
     for metric_name in metrics.keys():
         ma = re.match(fr'{super_name}_depth_(\d+)$', metric_name)
         if ma is None:
@@ -664,10 +666,10 @@ def _parse_xeb_fidelities_df(metrics: 'cirq.google.Calibration', super_name: str
             records.append(
                 {
                     'cycle_depth': int(ma.group(1)),
-                    'layer_i': _get_labeled_int('layer', layer_str),
-                    'pair_i': _get_labeled_int('pair', pair_str),
-                    'fidelity': value,
-                    'pair': (qa, qb),
+                    'layer_i': _get_labeled_int('layer', cast(str, layer_str)),
+                    'pair_i': _get_labeled_int('pair', cast(str, pair_str)),
+                    'fidelity': cast(float, value),
+                    'pair': (cast(GridQubit, qa), cast(GridQubit, qb)),
                 }
             )
     return pd.DataFrame(records)
@@ -692,6 +694,9 @@ def _parse_characterized_angles(
 
         angle_name = ma.group(1)
         for (qa, qb), (value,) in metrics[metric_name].items():
+            qa = cast(GridQubit, qa)
+            qb = cast(GridQubit, qb)
+            value = cast(float, value)
             records[qa, qb][angle_name] = value
     return dict(records)
 
