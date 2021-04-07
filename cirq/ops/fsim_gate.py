@@ -137,11 +137,11 @@ class FSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGa
         )
 
     def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolver', recursive: bool
+        self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'cirq.FSimGate':
         return FSimGate(
-            protocols.resolve_parameters(self.theta, param_resolver, recursive),
-            protocols.resolve_parameters(self.phi, param_resolver, recursive),
+            protocols.resolve_parameters(self.theta, resolver, recursive),
+            protocols.resolve_parameters(self.phi, resolver, recursive),
         )
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> Optional[np.ndarray]:
@@ -364,14 +364,14 @@ class PhasedFSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQu
         )
 
     def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolver', recursive: bool
+        self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'cirq.PhasedFSimGate':
         return PhasedFSimGate(
-            protocols.resolve_parameters(self.theta, param_resolver, recursive),
-            protocols.resolve_parameters(self.zeta, param_resolver, recursive),
-            protocols.resolve_parameters(self.chi, param_resolver, recursive),
-            protocols.resolve_parameters(self.gamma, param_resolver, recursive),
-            protocols.resolve_parameters(self.phi, param_resolver, recursive),
+            protocols.resolve_parameters(self.theta, resolver, recursive),
+            protocols.resolve_parameters(self.zeta, resolver, recursive),
+            protocols.resolve_parameters(self.chi, resolver, recursive),
+            protocols.resolve_parameters(self.gamma, resolver, recursive),
+            protocols.resolve_parameters(self.phi, resolver, recursive),
         )
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs') -> Optional[np.ndarray]:

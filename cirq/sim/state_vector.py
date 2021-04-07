@@ -189,7 +189,7 @@ def sample_state_vector(
         Measurement results with True corresponding to the ``|1⟩`` state.
         The outer list is for repetitions, and the inner corresponds to
         measurements ordered by the supplied qubits. These lists
-        are wrapped as an numpy ndarray.
+        are wrapped as a numpy ndarray.
 
     Raises:
         ValueError: ``repetitions`` is less than one or size of `state_vector`
@@ -254,7 +254,7 @@ def measure_state_vector(
         seed: A seed for the pseudorandom number generator.
 
     Returns:
-        A tuple of a list and an numpy array. The list is an array of booleans
+        A tuple of a list and a numpy array. The list is an array of booleans
         corresponding to the measurement values (ordered by the indices). The
         numpy array is the post measurement state vector. This state vector has
         the same shape and dtype as the input `state_vector`.

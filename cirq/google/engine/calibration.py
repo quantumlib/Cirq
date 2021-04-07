@@ -15,9 +15,12 @@
 
 from collections import abc, defaultdict
 import datetime
+from itertools import cycle
 
-from typing import Any, Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING, Union, Sequence
 
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import google.protobuf.json_format as json_format
 from cirq import devices, vis
 from cirq.google.api import v2
@@ -252,3 +255,77 @@ class Calibration(abc.Mapping):
             'Heatmaps are only supported if all the targets in a metric are one or two qubits.'
             + f'{key} has target qubits {value_map.keys()}'
         )
+
+    def plot_histograms(
+        self,
+        keys: Sequence[str],
+        ax: Optional[plt.Axes] = None,
+        *,
+        labels: Optional[Sequence[str]] = None,
+    ) -> plt.Axes:
+        """Plots integrated histograms of metric values corresponding to keys
+
+        Args:
+            keys: List of metric keys for which an integrated histogram should be plot
+            ax: The axis to plot on. If None, we generate one.
+
+        Returns:
+            The axis that was plotted on.
+
+        Raises:
+            ValueError if the metric values are not single floats.
+        """
+        show_plot = not ax
+        if not ax:
+            fig, ax = plt.subplots(1, 1)
+
+        if isinstance(keys, str):
+            keys = [keys]
+        if not labels:
+            labels = keys
+        colors = ['b', 'r', 'k', 'g', 'c', 'm']
+        for key, label, color in zip(keys, labels, cycle(colors)):
+            metrics = self[key]
+            if not all(len(k) == 1 for k in metrics.values()):
+                raise ValueError(
+                    'Histograms are only supported if all values in a metric '
+                    + 'are single metric values.'
+                    + f'{key} has metric values {metrics.values()}'
+                )
+            vis.integrated_histogram(
+                [self.value_to_float(v) for v in metrics.values()],
+                ax,
+                label=label,
+                color=color,
+                title=key.replace('_', ' ').title(),
+            )
+        if show_plot:
+            fig.show()
+
+        return ax
+
+    def plot(
+        self, key: str, fig: Optional[mpl.figure.Figure] = None
+    ) -> Tuple[mpl.figure.Figure, List[plt.Axes]]:
+        """Plots a heatmap and an integrated histogram for the given key.
+
+        Args:
+            key: The metric key to plot a heatmap and integrated histogram for.
+            fig: The figure to plot on. If none, we generate one.
+
+        Returns:
+            The figure and list of axis that was plotted on.
+
+        Raises:
+            ValueError if the key is not for one/two qubits metric or the metric
+            values are not single floats.
+        """
+        show_plot = not fig
+        if not fig:
+            fig = plt.figure()
+        axs = fig.subplots(1, 2)
+        self.heatmap(key).plot(axs[0])
+        self.plot_histograms(key, axs[1])
+        if show_plot:
+            fig.show()
+        return fig, axs

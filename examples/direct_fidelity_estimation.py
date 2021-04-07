@@ -50,7 +50,6 @@ def build_circuit() -> Tuple[cirq.Circuit, List[cirq.Qid]]:
 
 
 def compute_characteristic_function(
-    circuit: cirq.Circuit,
     pauli_string: cirq.PauliString,
     qubits: List[cirq.Qid],
     density_matrix: np.ndarray,
@@ -270,9 +269,7 @@ def _estimate_pauli_traces_general(
     pauli_traces: List[PauliTrace] = []
     for P_i in dense_operators:
         pauli_string: cirq.PauliString[cirq.Qid] = cirq.PauliString(dict(zip(qubits, P_i)))
-        rho_i, Pr_i = compute_characteristic_function(
-            circuit, pauli_string, qubits, clean_density_matrix
-        )
+        rho_i, Pr_i = compute_characteristic_function(pauli_string, qubits, clean_density_matrix)
         pauli_traces.append(PauliTrace(P_i=pauli_string, rho_i=rho_i, Pr_i=Pr_i))
     return pauli_traces
 
@@ -445,7 +442,7 @@ def direct_fidelity_estimation(
             )
         else:
             sigma_i, _ = compute_characteristic_function(
-                circuit, measure_pauli_string, qubits, noisy_density_matrix
+                measure_pauli_string, qubits, noisy_density_matrix
             )
 
         trial_results.append(Result(pauli_trace=pauli_trace, sigma_i=sigma_i))

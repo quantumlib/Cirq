@@ -80,9 +80,8 @@ def test_op_roundtrip():
         text_should_be="""{
   "cirq_type": "GateOperation",
   "gate": {
-    "cirq_type": "XPowGate",
-    "exponent": 0.03915211600060625,
-    "global_shift": -0.5
+    "cirq_type": "Rx",
+    "rads": 0.123
   },
   "qubits": [
     {
@@ -295,6 +294,10 @@ def test_sympy():
     # Linear combinations.
     assert_json_roundtrip_works(t * 2)
     assert_json_roundtrip_works(4 * t + 3 * s + 2)
+
+    assert_json_roundtrip_works(sympy.pi)
+    assert_json_roundtrip_works(sympy.E)
+    assert_json_roundtrip_works(sympy.EulerGamma)
 
 
 class SBKImpl(cirq.SerializableByKey):
@@ -518,7 +521,7 @@ def test_to_from_json_gzip():
 
 def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]):
     ctx_manager = (
-        cirq.testing.assert_deprecated(deadline=deprecation_deadline, allow_multiple_warnings=True)
+        cirq.testing.assert_deprecated(deadline=deprecation_deadline, count=None)
         if deprecation_deadline
         else contextlib.suppress()
     )
@@ -554,9 +557,7 @@ def assert_repr_and_json_test_data_agree(
     try:
         json_from_file = json_path.read_text()
         ctx_manager = (
-            cirq.testing.assert_deprecated(
-                deadline=deprecation_deadline, allow_multiple_warnings=True
-            )
+            cirq.testing.assert_deprecated(deadline=deprecation_deadline, count=None)
             if deprecation_deadline
             else contextlib.suppress()
         )

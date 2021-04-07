@@ -189,3 +189,27 @@ def test_calibration_heatmap():
             v2.metrics_pb2.MetricsSnapshot(),
         )
         cg.Calibration(multi_qubit_data).heatmap('multi_value')
+
+
+def test_calibration_plot_histograms():
+    calibration = cg.Calibration(_CALIBRATION_DATA)
+    _, ax = mpl.pyplot.subplots(1, 1)
+    calibration.plot_histograms(['t1', 'two_qubit_xeb'], ax, labels=['T1', 'XEB'])
+    assert len(ax.get_lines()) == 4
+
+    with pytest.raises(ValueError, match="single metric values.*multi_value"):
+        multi_qubit_data = Merge(
+            """metrics: [{
+                name: 'multi_value',
+                targets: ['0_0'],
+                values: [{double_val: 0.999}, {double_val: 0.001}]}]""",
+            v2.metrics_pb2.MetricsSnapshot(),
+        )
+        cg.Calibration(multi_qubit_data).plot_histograms('multi_value')
+
+
+def test_calibration_plot():
+    calibration = cg.Calibration(_CALIBRATION_DATA)
+    _, axs = calibration.plot('two_qubit_xeb')
+    assert axs[0].get_title() == 'Two Qubit Xeb'
+    assert len(axs[1].get_lines()) == 2

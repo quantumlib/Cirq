@@ -13,7 +13,7 @@
 # limitations under the License.
 """Code to handle density matrices."""
 
-from typing import List, Optional, TYPE_CHECKING, Tuple
+from typing import List, Optional, TYPE_CHECKING, Tuple, Sequence
 
 import numpy as np
 
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 def sample_density_matrix(
     density_matrix: np.ndarray,
-    indices: List[int],
+    indices: Sequence[int],
     *,  # Force keyword arguments
     qid_shape: Optional[Tuple[int, ...]] = None,
     repetitions: int = 1,
@@ -53,7 +53,7 @@ def sample_density_matrix(
         Measurement results with True corresponding to the ``|1⟩`` state.
         The outer list is for repetitions, and the inner corresponds to
         measurements ordered by the supplied qubits. These lists
-        are wrapped as an numpy ndarray.
+        are wrapped as a numpy ndarray.
 
     Raises:
         ValueError: ``repetitions`` is less than one or size of ``matrix`` is
@@ -92,7 +92,7 @@ def sample_density_matrix(
 
 def measure_density_matrix(
     density_matrix: np.ndarray,
-    indices: List[int],
+    indices: Sequence[int],
     qid_shape: Optional[Tuple[int, ...]] = None,
     out: np.ndarray = None,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
@@ -123,7 +123,7 @@ def measure_density_matrix(
         seed: A seed for the pseudorandom number generator.
 
     Returns:
-        A tuple of a list and an numpy array. The list is an array of booleans
+        A tuple of a list and a numpy array. The list is an array of booleans
         corresponding to the measurement values (ordered by the indices). The
         numpy array is the post measurement matrix. This matrix has the same
         shape and dtype as the input matrix.
@@ -187,7 +187,7 @@ def measure_density_matrix(
 
 
 def _probs(
-    density_matrix: np.ndarray, indices: List[int], qid_shape: Tuple[int, ...]
+    density_matrix: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]
 ) -> np.ndarray:
     """Returns the probabilities for a measurement on the given indices."""
     # Only diagonal elements matter.
@@ -269,7 +269,7 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     return int(row_size).bit_length() - 1
 
 
-def _indices_shape(qid_shape: Tuple[int, ...], indices: List[int]) -> Tuple[int, ...]:
+def _indices_shape(qid_shape: Tuple[int, ...], indices: Sequence[int]) -> Tuple[int, ...]:
     """Validates that the indices have values within range of `len(qid_shape)`."""
     if any(index < 0 for index in indices):
         raise IndexError(f'Negative index in indices: {indices}')

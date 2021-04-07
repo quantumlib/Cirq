@@ -172,8 +172,10 @@ class ControlledGate(raw_types.Gate):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self.sub_gate)
 
-    def _resolve_parameters_(self, param_resolver, recursive):
-        new_sub_gate = protocols.resolve_parameters(self.sub_gate, param_resolver, recursive)
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'ControlledGate':
+        new_sub_gate = protocols.resolve_parameters(self.sub_gate, resolver, recursive)
         return ControlledGate(
             new_sub_gate,
             self.num_controls(),
