@@ -652,13 +652,13 @@ def scatter_plot_normalized_kak_interaction_coefficients(
 
     # parse input and extract KAK vector
     if not isinstance(interactions, np.ndarray):
-        interactions_np: Union[List[np.ndarray], np.ndarray] = [
+        interactions_extracted: List[np.ndarray] = [
             a if isinstance(a, np.ndarray) else protocols.unitary(a) for a in interactions
         ]
     else:
-        interactions_np = interactions
+        interactions_extracted = [interactions]
 
-    points = kak_vector(interactions_np) * 4 / np.pi
+    points = kak_vector(interactions_extracted) * 4 / np.pi
 
     ax.scatter(*coord_transform(points), **kwargs)
     ax.set_xlim(0, +1)
