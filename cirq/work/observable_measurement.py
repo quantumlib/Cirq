@@ -22,6 +22,7 @@ import numpy as np
 import sympy
 
 from cirq import circuits, study, ops, value
+from cirq._doc import document
 from cirq.protocols import json_serializable_dataclass
 from cirq.work.observable_measurement_data import BitstringAccumulator
 from cirq.work.observable_settings import (
@@ -34,6 +35,14 @@ if TYPE_CHECKING:
     from cirq.value.product_state import _NamedOneQubitState
 
 MAX_REPETITIONS_PER_JOB = 3_000_000
+document(
+    MAX_REPETITIONS_PER_JOB,
+    """The maximum repetitions allowed in a single batch job. 
+
+    This depends on the Sampler executing your batch job. It is set to be
+    tens of minutes assuming ~kilosamples per second. 
+    """,
+)
 
 
 def _with_parameterized_layers(
