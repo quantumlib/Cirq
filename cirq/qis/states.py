@@ -682,7 +682,7 @@ def validate_normalized_state_vector(
     state_vector: np.ndarray,
     *,  # Force keyword arguments
     qid_shape: Tuple[int, ...],
-    dtype: Optional[Type[np.number]] = None,
+    dtype: Optional[np.dtype] = None,
     atol: float = 1e-7,
 ) -> None:
     """Checks that the given state vector is valid.
@@ -754,7 +754,7 @@ def to_valid_density_matrix(
     num_qubits: Optional[int] = None,
     *,  # Force keyword arguments
     qid_shape: Optional[Tuple[int, ...]] = None,
-    dtype: Optional[Type[np.number]] = None,
+    dtype: Optional[np.dtype] = None,
     atol: float = 1e-7,
 ) -> np.ndarray:
     """Verifies the density_matrix_rep is valid and converts it to ndarray form.
@@ -888,9 +888,7 @@ def one_hot(
     return result
 
 
-def eye_tensor(
-    half_shape: Tuple[int, ...], *, dtype: Type[np.number]  # Force keyword args
-) -> np.array:
+def eye_tensor(half_shape: Tuple[int, ...], *, dtype: np.dtype) -> np.ndarray:
     """Returns an identity matrix reshaped into a tensor.
 
     Args:
@@ -902,6 +900,6 @@ def eye_tensor(
     Returns:
         The created numpy array with shape `half_shape + half_shape`.
     """
-    identity = np.eye(np.prod(half_shape, dtype=int), dtype=dtype)
+    identity = np.eye(np.prod(half_shape, dtype=int).item(), dtype=dtype)
     identity.shape = half_shape * 2
     return identity

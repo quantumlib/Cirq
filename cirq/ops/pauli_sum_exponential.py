@@ -104,7 +104,7 @@ class PauliSumExponential:
         """
         if protocols.is_parameterized(self._exponent):
             raise ValueError("Exponent should not parameterized.")
-        ret = 1
+        ret = np.ones(1)
         for pauli_string_exp in self:
             ret = np.kron(ret, protocols.unitary(pauli_string_exp))
         return ret
