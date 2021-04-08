@@ -101,8 +101,7 @@ class VarianceStoppingCriteria(StoppingCriteria):
 
         cov = accumulator.covariance()
         n_terms = cov.shape[0]
-        ones = np.ones(n_terms)
-        sum_variance = ones @ cov @ ones.T
+        sum_variance = np.sum(cov)
         var_of_the_e = sum_variance / len(accumulator.bitstrings)
         vpt = var_of_the_e / n_terms
 
