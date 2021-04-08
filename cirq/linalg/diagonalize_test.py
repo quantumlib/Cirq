@@ -54,8 +54,8 @@ def random_bi_diagonalizable_pair(
     s = random_real_diagonal_matrix(n, d1)
     z = random_real_diagonal_matrix(n, d2)
     v = cirq.testing.random_orthogonal(n)
-    a = cast(np.ndarray, cirq.dot(u, s, v))
-    b = cast(np.ndarray, cirq.dot(u, z, v))
+    a = cirq.dot(u, s, v)
+    b = cirq.dot(u, z, v)
     return a, b
 
 
