@@ -13,7 +13,7 @@
 # limitations under the License.
 """Measures on and between quantum states and operations."""
 
-from typing import Optional, TYPE_CHECKING, Tuple, cast
+from typing import Optional, TYPE_CHECKING, Tuple
 
 import numpy as np
 import scipy
@@ -138,16 +138,8 @@ def fidelity(
         )
     state1 = quantum_state(state1, qid_shape=qid_shape, validate=validate, atol=atol)
     state2 = quantum_state(state2, qid_shape=qid_shape, validate=validate, atol=atol)
-    state1_arr = (
-        state1.density_matrix()
-        if state1._is_density_matrix()
-        else cast(np.ndarray, state1.state_vector())
-    )
-    state2_arr = (
-        state2.density_matrix()
-        if state2._is_density_matrix()
-        else cast(np.ndarray, state2.state_vector())
-    )
+    state1_arr = state1.state_or_density_array()
+    state2_arr = state2.state_or_density_array()
     return _fidelity_state_vectors_or_density_matrices(state1_arr, state2_arr)
 
 

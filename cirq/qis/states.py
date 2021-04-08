@@ -136,8 +136,20 @@ class QuantumState:
         (a two-dimensional array).
         """
         if not self._is_density_matrix():
-            state_vector = cast(np.ndarray, self.state_vector())
+            state_vector = self.state_vector()
+            assert state_vector is not None, 'only None if _is_density_matrix'
             return np.outer(state_vector, np.conj(state_vector))
+        return self.data
+
+    def state_or_density_array(self) -> np.ndarray:
+        """Return the state vector or density matrix of this state.
+
+        If the state is a denity matrix, return the density matrix. Otherwise, return the state
+        vector.
+        """
+        state_vector = self.state_vector()
+        if state_vector is not None:
+            return state_vector
         return self.data
 
     def _is_density_matrix(self) -> bool:
@@ -159,8 +171,10 @@ class QuantumState:
         is_state_vector = self.data.shape == (self._dim,)
         is_state_tensor = self.data.shape == self.qid_shape
         if is_state_vector or is_state_tensor:
+            state_vector = self.state_vector()
+            assert state_vector is not None
             validate_normalized_state_vector(
-                cast(np.ndarray, self.state_vector()),
+                state_vector,
                 qid_shape=self.qid_shape,
                 dtype=dtype,
                 atol=atol,
