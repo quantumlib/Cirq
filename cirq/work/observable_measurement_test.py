@@ -313,12 +313,24 @@ def test_meas_spec_still_todo_bad_spec():
         )
 
 
-def test_meas_spec_still_todo_lots_of_params(monkeypatch):
+def test_meas_spec_still_todo_too_many_params(monkeypatch):
     monkeypatch.setattr(cw.observable_measurement, 'MAX_REPETITIONS_PER_JOB', 30_000)
     bsa, meas_spec = _set_up_meas_specs_for_testing()
     lots_of_meas_spec = [meas_spec] * 3_001
     stop = cw.RepetitionsStoppingCriteria(10_000)
     with pytest.raises(ValueError, match='too many parameter settings'):
+        _, _ = _check_meas_specs_still_todo(
+            meas_specs=lots_of_meas_spec,
+            accumulators={meas_spec: bsa},
+            stopping_criteria=stop,
+        )
+
+def test_meas_spec_still_todo_lots_of_params(monkeypatch):
+    monkeypatch.setattr(cw.observable_measurement, 'MAX_REPETITIONS_PER_JOB', 30_000)
+    bsa, meas_spec = _set_up_meas_specs_for_testing()
+    lots_of_meas_spec = [meas_spec] * 4
+    stop = cw.RepetitionsStoppingCriteria(10_000)
+    with pytest.warns(UserWarning, match='will be throttled from 10000 to 7500'):
         _, _ = _check_meas_specs_still_todo(
             meas_specs=lots_of_meas_spec,
             accumulators={meas_spec: bsa},

@@ -267,7 +267,6 @@ def _check_meas_specs_still_todo(
                 "Consider fewer sweeps or manually splitting sweeps into multiple jobs."
             )
 
-        # coverage: ignore
         warnings.warn(
             f"The number of requested sweep parameters is high. To avoid a batched job with more "
             f"than {MAX_REPETITIONS_PER_JOB} shots, the number of shots per call to run_sweep "
