@@ -313,11 +313,10 @@ def test_meas_spec_still_todo_bad_spec():
         )
 
 
-def test_meas_spec_still_todo_lots_of_params():
-    # This test is fairly slow (1.5s) because we need at least 300_001 measurement specs
-    # to trigger the exception being tested.
+def test_meas_spec_still_todo_lots_of_params(monkeypatch):
+    monkeypatch.setattr(cw.observable_measurement, 'MAX_REPETITIONS_PER_JOB', 30_000)
     bsa, meas_spec = _set_up_meas_specs_for_testing()
-    lots_of_meas_spec = [meas_spec] * 300_001
+    lots_of_meas_spec = [meas_spec] * 3_001
     stop = cw.RepetitionsStoppingCriteria(10_000)
     with pytest.raises(ValueError, match='too many parameter settings'):
         _, _ = _check_meas_specs_still_todo(
