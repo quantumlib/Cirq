@@ -505,7 +505,7 @@ def to_valid_state_vector(
 
     Args:
         state_rep: If an int, the state vector returned is the state vector
-            corresponding to a computational basis state. If an numpy array
+            corresponding to a computational basis state. If a numpy array
             this is the full state vector. Both of these are validated for
             the given number of qubits, and the state must be properly
             normalized and of the appropriate dtype.
@@ -682,7 +682,7 @@ def validate_normalized_state_vector(
     state_vector: np.ndarray,
     *,  # Force keyword arguments
     qid_shape: Tuple[int, ...],
-    dtype: Optional[Type[np.number]] = None,
+    dtype: Optional[np.dtype] = None,
     atol: float = 1e-7,
 ) -> None:
     """Checks that the given state vector is valid.
@@ -754,7 +754,7 @@ def to_valid_density_matrix(
     num_qubits: Optional[int] = None,
     *,  # Force keyword arguments
     qid_shape: Optional[Tuple[int, ...]] = None,
-    dtype: Optional[Type[np.number]] = None,
+    dtype: Optional[np.dtype] = None,
     atol: float = 1e-7,
 ) -> np.ndarray:
     """Verifies the density_matrix_rep is valid and converts it to ndarray form.
@@ -763,7 +763,7 @@ def to_valid_density_matrix(
     or a computational basis state as a representation of a state.
 
     Args:
-        density_matrix_rep: If an numpy array, if it is of rank 2 (a matrix),
+        density_matrix_rep: If a numpy array, if it is of rank 2 (a matrix),
             then this is the density matrix. If it is a numpy array of rank 1
             (a vector) then this is a state vector. If this is an int,
             then this is the computation basis state.
@@ -888,9 +888,7 @@ def one_hot(
     return result
 
 
-def eye_tensor(
-    half_shape: Tuple[int, ...], *, dtype: Type[np.number]  # Force keyword args
-) -> np.array:
+def eye_tensor(half_shape: Tuple[int, ...], *, dtype: np.dtype) -> np.ndarray:
     """Returns an identity matrix reshaped into a tensor.
 
     Args:
@@ -902,6 +900,6 @@ def eye_tensor(
     Returns:
         The created numpy array with shape `half_shape + half_shape`.
     """
-    identity = np.eye(np.prod(half_shape, dtype=int), dtype=dtype)
+    identity = np.eye(np.prod(half_shape, dtype=int).item(), dtype=dtype)
     identity.shape = half_shape * 2
     return identity

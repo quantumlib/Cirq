@@ -18,7 +18,8 @@ The gate is used to create a (2^n)x(2^n) matrix with the diagonal elements
 passed as a list.
 """
 
-from typing import AbstractSet, Any, Tuple, Iterator, List, Sequence, TYPE_CHECKING, Union
+from typing import AbstractSet, Any, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+
 import numpy as np
 import sympy
 
@@ -30,7 +31,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _fast_walsh_hadamard_transform(a: Tuple[Any, ...]) -> np.array:
+def _fast_walsh_hadamard_transform(a: Tuple[Any, ...]) -> np.ndarray:
     """Fast Walsh–Hadamard Transform of an array."""
     h = 1
     a_ = np.array(a)
@@ -99,7 +100,7 @@ class DiagonalGate(raw_types.Gate):
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
 
-    def _unitary_(self) -> np.ndarray:
+    def _unitary_(self) -> Optional[np.ndarray]:
         if self._is_parameterized_():
             return None
         return np.diag([np.exp(1j * angle) for angle in self._diag_angles_radians])
