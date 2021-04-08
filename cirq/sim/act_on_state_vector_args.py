@@ -181,6 +181,22 @@ class ActOnStateVectorArgs(ActOnArgs):
             log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
 
+    def join(self, other: 'cirq.ActOnStateVectorArgs') -> 'cirq.ActOnStateVectorArgs':
+        target_tensor = np.kron(self.target_tensor, other.target_tensor)\
+            .reshape(self.target_tensor.shape + other.target_tensor.shape)
+        buffer = np.empty_like(target_tensor)
+        offset = len(self.target_tensor.shape)
+        axes = self.axes + tuple(a + offset for a in other.axes)
+        logs = self.log_of_measurement_results.copy()
+        logs.update(other.log_of_measurement_results)
+        return ActOnStateVectorArgs(
+            target_tensor,
+            buffer,
+            axes,
+            self.prng,
+            logs,
+        )
+
 
 def _strat_act_on_state_vector_from_apply_unitary(
     unitary_value: Any,

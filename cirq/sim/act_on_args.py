@@ -85,6 +85,10 @@ class ActOnArgs:
     def copy(self: TSelf) -> TSelf:
         """Creates a copy of the object."""
 
+    def join(self: TSelf, other: TSelf) -> TSelf:
+        """Joins two state spaces together."""
+        raise NotImplementedError()
+
 
 def strat_act_on_from_apply_decompose(
     val: Any,
