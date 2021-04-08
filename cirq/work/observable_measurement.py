@@ -211,9 +211,8 @@ def _pad_setting(
 
 
 def _aggregate_n_repetitions(next_chunk_repetitions: Set[int]) -> int:
-    """Each stopping criteria can request a different number
-    of repetitions for the next chunk. For batching efficiency, we take the
-    max and issue a warning in this case."""
+    """A stopping criteria can request a different number of more_repetitions for each
+    measurement spec. For batching efficiency, we take the max and issue a warning in this case."""
     if len(next_chunk_repetitions) == 1:
         return list(next_chunk_repetitions)[0]
 
