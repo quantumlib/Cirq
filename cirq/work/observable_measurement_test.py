@@ -227,10 +227,10 @@ def test_variance_stopping_criteria():
     acc.consume_results(rs.choice([0, 1], size=(10_000, 5)).astype(np.uint8))
     assert stop.more_repetitions(acc) == 0
 
+
 class _WildVarianceStoppingCriteria(StoppingCriteria):
     def __init__(self):
         self._state = 0
-
 
     def more_repetitions(self, accumulator: BitstringAccumulator) -> int:
         """Ignore everything, request either 5 or 6 repetitions."""
@@ -242,16 +242,15 @@ def test_variance_stopping_criteria_aggregate_n_repetitions():
     stop = _WildVarianceStoppingCriteria()
     acc1 = _MockBitstringAccumulator()
     acc2 = _MockBitstringAccumulator()
-    accumulators = {
-        'FakeMeasSpec1': acc1,
-        'FakeMeasSpec2': acc2
-    }
+    accumulators = {'FakeMeasSpec1': acc1, 'FakeMeasSpec2': acc2}
     with pytest.warns(UserWarning, match='the largest value will be used: 6.'):
-        still_todo, reps = _check_meas_specs_still_todo(meas_specs=sorted(accumulators.keys()), accumulators=accumulators, stopping_criteria=stop)
+        still_todo, reps = _check_meas_specs_still_todo(
+            meas_specs=sorted(accumulators.keys()),
+            accumulators=accumulators,
+            stopping_criteria=stop,
+        )
     assert still_todo == ['FakeMeasSpec1', 'FakeMeasSpec2']
     assert reps == 6
-
-
 
 
 def test_repetitions_stopping_criteria():
@@ -350,6 +349,7 @@ def test_meas_spec_still_todo_too_many_params(monkeypatch):
             accumulators={meas_spec: bsa},
             stopping_criteria=stop,
         )
+
 
 def test_meas_spec_still_todo_lots_of_params(monkeypatch):
     monkeypatch.setattr(cw.observable_measurement, 'MAX_REPETITIONS_PER_JOB', 30_000)
