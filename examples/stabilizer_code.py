@@ -197,7 +197,6 @@ class StabilizerCode(object):
                     for r in range(self.n - self.k)
                 )
                 self.syndromes_to_corrections[syndrome] = (op, qid)
-        breakpoint()
 
     def encode(
         self, additional_qubits: List[cirq.Qid], unencoded_qubits: List[cirq.Qid]
