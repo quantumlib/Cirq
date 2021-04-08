@@ -112,14 +112,16 @@ class PauliInteractionGate(
     def _circuit_diagram_info_(
         self, args: 'cirq.CircuitDiagramInfoArgs'
     ) -> 'cirq.CircuitDiagramInfo':
-        labels = cast(
-            Dict[pauli_gates.Pauli, np.ndarray],
-            {pauli_gates.X: 'X', pauli_gates.Y: 'Y', pauli_gates.Z: '@'},
-        )
+        labels: Dict['cirq.Pauli', str] = {
+            pauli_gates.X: 'X',
+            pauli_gates.Y: 'Y',
+            pauli_gates.Z: '@',
+        }
         l0 = labels[self.pauli0]
         l1 = labels[self.pauli1]
         # Add brackets around letter if inverted
-        l0, l1 = (f'(-{l})' if inv else l for l, inv in ((l0, self.invert0), (l1, self.invert1)))
+        l0 = f'(-{l0})' if self.invert0 else l0
+        l1 = f'(-{l1})' if self.invert1 else l1
         return protocols.CircuitDiagramInfo(
             wire_symbols=(l0, l1), exponent=self._diagram_exponent(args)
         )
