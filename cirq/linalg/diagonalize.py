@@ -200,7 +200,7 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
     base_diag = base_diag[:rank, :rank]
 
     # Try diagonalizing the second matrix with the same factors as the first.
-    semi_corrected = base_left.T.dot(np.real(mat2)).dot(base_right.T)
+    semi_corrected = combinators.dot(base_left.T, np.real(mat2), base_right.T)
 
     # Fix up the part of the second matrix's diagonalization that's matched
     # against non-zero diagonal entries in the first matrix's diagonalization
@@ -218,8 +218,8 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
     # Merge the fixup factors into the initial diagonalization.
     left_adjust = combinators.block_diag(overlap_adjust, extra_left_adjust)
     right_adjust = combinators.block_diag(overlap_adjust.T, extra_right_adjust)
-    left = cast(np.ndarray, left_adjust.T.dot(base_left.T))
-    right = cast(np.ndarray, base_right.T.dot(right_adjust.T))
+    left = np.dot(left_adjust.T, base_left.T)
+    right = np.dot(base_right.T, right_adjust.T)
 
     return left, right
 
