@@ -138,8 +138,8 @@ def fidelity(
         )
     state1 = quantum_state(state1, qid_shape=qid_shape, validate=validate, atol=atol)
     state2 = quantum_state(state2, qid_shape=qid_shape, validate=validate, atol=atol)
-    state1_arr = state1.state_or_density_array()
-    state2_arr = state2.state_or_density_array()
+    state1_arr = state1.state_vector_or_density_matrix()
+    state2_arr = state2.state_vector_or_density_matrix()
     return _fidelity_state_vectors_or_density_matrices(state1_arr, state2_arr)
 
 

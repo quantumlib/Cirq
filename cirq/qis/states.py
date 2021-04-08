@@ -141,7 +141,7 @@ class QuantumState:
             return np.outer(state_vector, np.conj(state_vector))
         return self.data
 
-    def state_or_density_array(self) -> np.ndarray:
+    def state_vector_or_density_matrix(self) -> np.ndarray:
         """Return the state vector or density matrix of this state.
 
         If the state is a denity matrix, return the density matrix. Otherwise, return the state
