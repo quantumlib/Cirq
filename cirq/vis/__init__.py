@@ -15,5 +15,10 @@
 """Visualization utilities."""
 
 from cirq.vis.heatmap import Heatmap
+from cirq.vis.heatmap import TwoQubitInteractionHeatmap
+
+from cirq.vis.histogram import integrated_histogram
+
+from cirq.vis.state_histogram import get_state_histogram, plot_state_histogram
 
 from cirq.vis.vis_utils import relative_luminance

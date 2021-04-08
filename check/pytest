@@ -22,10 +22,20 @@ ACTUALLY_QUIET=""
 for arg in $@; do
     if [[ "${arg}" == "--actually-quiet" ]]; then
         ACTUALLY_QUIET=1
+    elif [[ "${arg}" == "--cirq-only" ]]; then
+        tmp_dir=$(mktemp -d "/tmp/cirq-pytest.XXXXXXXXXXXXXXXX")
+        cp -R ./* ${tmp_dir}/
+        cp -R ./.github ${tmp_dir}/
+        cp -R ./.git ${tmp_dir}/
+        cd ${tmp_dir}
+        rm -rf cirq/google
+        trap "{ rm -rf ${tmp_dir}; }" EXIT
     else
         PYTEST_ARGS+=("${arg}")
     fi
 done
+
+
 
 if [ -z "${ACTUALLY_QUIET}" ]; then
     pytest "${PYTEST_ARGS[@]}"

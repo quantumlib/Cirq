@@ -65,8 +65,8 @@ class WaitGate(raw_types.Gate):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self.duration)
 
-    def _resolve_parameters_(self, param_resolver, recursive):
-        return WaitGate(protocols.resolve_parameters(self.duration, param_resolver, recursive))
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolver', recursive: bool) -> 'WaitGate':
+        return WaitGate(protocols.resolve_parameters(self.duration, resolver, recursive))
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
@@ -138,9 +138,9 @@ def wait(
         *target: The qubits that should wait.
         value: Wait duration (see Duration).
         picos: Picoseconds to wait (see Duration).
-        nanos: Picoseconds to wait (see Duration).
-        micros: Picoseconds to wait (see Duration).
-        millis: Picoseconds to wait (see Duration).
+        nanos: Nanoseconds to wait (see Duration).
+        micros: Microseconds to wait (see Duration).
+        millis: Milliseconds to wait (see Duration).
     """
     return WaitGate(
         duration=value.Duration(

@@ -34,4 +34,4 @@ class GithubRepository:
 
     def as_remote(self) -> str:
         """Returns a string identifying the location of this repository."""
-        return 'git@github.com:{}/{}.git'.format(self.organization, self.name)
+        return f'git@github.com:{self.organization}/{self.name}.git'

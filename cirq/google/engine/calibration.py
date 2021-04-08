@@ -15,9 +15,12 @@
 
 from collections import abc, defaultdict
 import datetime
+from itertools import cycle
 
-from typing import Any, Dict, Iterator, List, Optional, SupportsFloat, Tuple, TYPE_CHECKING, Union
+from typing import Any, Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING, Union, Sequence
 
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import google.protobuf.json_format as json_format
 from cirq import devices, vis
 from cirq.google.api import v2
@@ -100,9 +103,9 @@ class Calibration(abc.Mapping):
         be an empty tuple.
         """
         if not isinstance(key, str):
-            raise TypeError('Calibration metrics only have string keys. Key was {}'.format(key))
+            raise TypeError(f'Calibration metrics only have string keys. Key was {key}')
         if key not in self._metric_dict:
-            raise KeyError('Metric named {} not in calibration'.format(key))
+            raise KeyError(f'Metric named {key} not in calibration')
         return self._metric_dict[key]
 
     def __iter__(self) -> Iterator:
@@ -186,14 +189,27 @@ class Calibration(abc.Mapping):
     def key_to_qubit(target: METRIC_KEY) -> devices.GridQubit:
         """Returns a single qubit from a metric key.
 
-        If the metric key is multiple qubits, return the first one.
-
         Raises:
            ValueError if the metric key is a tuple of strings.
         """
         if target and isinstance(target, tuple) and isinstance(target[0], devices.GridQubit):
             return target[0]
-        raise ValueError(f'The metric target {target} was not a qubit.')
+        raise ValueError(f'The metric target {target} was not a tuple of qubits')
+
+    @staticmethod
+    def key_to_qubits(target: METRIC_KEY) -> Tuple[devices.GridQubit, ...]:
+        """Returns a tuple of qubits from a metric key.
+
+        Raises:
+           ValueError if the metric key is a tuple of strings.
+        """
+        if (
+            target
+            and isinstance(target, tuple)
+            and all(isinstance(q, devices.GridQubit) for q in target)
+        ):
+            return target  # type: ignore
+        raise ValueError(f'The metric target {target} was not a tuple of grid qubits.')
 
     @staticmethod
     def value_to_float(value: METRIC_VALUE) -> float:
@@ -221,17 +237,95 @@ class Calibration(abc.Mapping):
             A `cirq.Heatmap` for the metric.
 
         Raises:
-            AssertionError if the heatmap is not for single qubits or the metric
+            ValueError if the heatmap is not for one/two qubits or the metric
             values are not single floats.
         """
         metrics = self[key]
-        assert all(
-            len(k) == 1 for k in metrics.keys()
-        ), 'Heatmaps are only supported if all the targets in a metric are single qubits.'
-        assert all(
-            len(k) == 1 for k in metrics.values()
-        ), 'Heatmaps are only supported if all the values in a metric are single metric values.'
-        value_map: Dict['cirq.GridQubit', SupportsFloat] = {
-            self.key_to_qubit(target): float(value) for target, (value,) in metrics.items()
-        }
-        return vis.Heatmap(value_map)
+        if not all(len(k) == 1 for k in metrics.values()):
+            raise ValueError(
+                'Heatmaps are only supported if all values in a metric are single metric values.'
+                + f'{key} has metric values {metrics.values()}'
+            )
+        value_map = {self.key_to_qubits(k): self.value_to_float(v) for k, v in metrics.items()}
+        if all(len(k) == 1 for k in value_map.keys()):
+            return vis.Heatmap(value_map, title=key.replace('_', ' ').title())
+        elif all(len(k) == 2 for k in value_map.keys()):
+            return vis.TwoQubitInteractionHeatmap(value_map, title=key.replace('_', ' ').title())
+        raise ValueError(
+            'Heatmaps are only supported if all the targets in a metric are one or two qubits.'
+            + f'{key} has target qubits {value_map.keys()}'
+        )
+
+    def plot_histograms(
+        self,
+        keys: Sequence[str],
+        ax: Optional[plt.Axes] = None,
+        *,
+        labels: Optional[Sequence[str]] = None,
+    ) -> plt.Axes:
+        """Plots integrated histograms of metric values corresponding to keys
+
+        Args:
+            keys: List of metric keys for which an integrated histogram should be plot
+            ax: The axis to plot on. If None, we generate one.
+
+        Returns:
+            The axis that was plotted on.
+
+        Raises:
+            ValueError if the metric values are not single floats.
+        """
+        show_plot = not ax
+        if not ax:
+            fig, ax = plt.subplots(1, 1)
+
+        if isinstance(keys, str):
+            keys = [keys]
+        if not labels:
+            labels = keys
+        colors = ['b', 'r', 'k', 'g', 'c', 'm']
+        for key, label, color in zip(keys, labels, cycle(colors)):
+            metrics = self[key]
+            if not all(len(k) == 1 for k in metrics.values()):
+                raise ValueError(
+                    'Histograms are only supported if all values in a metric '
+                    + 'are single metric values.'
+                    + f'{key} has metric values {metrics.values()}'
+                )
+            vis.integrated_histogram(
+                [self.value_to_float(v) for v in metrics.values()],
+                ax,
+                label=label,
+                color=color,
+                title=key.replace('_', ' ').title(),
+            )
+        if show_plot:
+            fig.show()
+
+        return ax
+
+    def plot(
+        self, key: str, fig: Optional[mpl.figure.Figure] = None
+    ) -> Tuple[mpl.figure.Figure, List[plt.Axes]]:
+        """Plots a heatmap and an integrated histogram for the given key.
+
+        Args:
+            key: The metric key to plot a heatmap and integrated histogram for.
+            fig: The figure to plot on. If none, we generate one.
+
+        Returns:
+            The figure and list of axis that was plotted on.
+
+        Raises:
+            ValueError if the key is not for one/two qubits metric or the metric
+            values are not single floats.
+        """
+        show_plot = not fig
+        if not fig:
+            fig = plt.figure()
+        axs = fig.subplots(1, 2)
+        self.heatmap(key).plot(axs[0])
+        self.plot_histograms(key, axs[1])
+        if show_plot:
+            fig.show()
+        return fig, axs

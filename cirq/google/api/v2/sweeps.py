@@ -65,7 +65,7 @@ def sweep_to_proto(
         for key in sweep_dict:
             sweep_to_proto(sweeps.Points(key, sweep_dict[key]), out=out.sweep_function.sweeps.add())
     else:
-        raise ValueError('cannot convert to v2 Sweep proto: {}'.format(sweep))
+        raise ValueError(f'cannot convert to v2 Sweep proto: {sweep}')
     return out
 
 
@@ -82,7 +82,7 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> sweeps.Sweep:
         if func_type == run_context_pb2.SweepFunction.ZIP:
             return sweeps.Zip(*factors)
 
-        raise ValueError('invalid sweep function type: {}'.format(func_type))
+        raise ValueError(f'invalid sweep function type: {func_type}')
     if which == 'single_sweep':
         key = msg.single_sweep.parameter_key
         if msg.single_sweep.WhichOneof('sweep') == 'linspace':
@@ -95,7 +95,7 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> sweeps.Sweep:
         if msg.single_sweep.WhichOneof('sweep') == 'points':
             return sweeps.Points(key=key, points=msg.single_sweep.points.points)
 
-        raise ValueError('single sweep type not set: {}'.format(msg))
+        raise ValueError(f'single sweep type not set: {msg}')
 
     # coverage: ignore
-    raise ValueError('sweep type not set: {}'.format(msg))
+    raise ValueError(f'sweep type not set: {msg}')

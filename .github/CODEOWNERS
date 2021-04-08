@@ -9,3 +9,4 @@
 **/pasqal/**/*.* @HGSilveri @quantumlib/cirq-maintainers @vtomole @cduck
 
 cirq/experiments/**/*.* @mrwojtek @quantumlib/cirq-maintainers @vtomole @cduck
+cirq/docs/qcvv/**/*.* @mrwojtek @quantumlib/cirq-maintainers @vtomole @cduck

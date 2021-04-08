@@ -61,5 +61,5 @@ class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
         exponent: Any = 1,
     ) -> 'cirq.CircuitDiagramInfo':
         qubits = self.qubits if args.known_qubits is None else args.known_qubits
-        syms = tuple('[{}]'.format(self.pauli_string[qubit]) for qubit in qubits)
+        syms = tuple(f'[{self.pauli_string[qubit]}]' for qubit in qubits)
         return protocols.CircuitDiagramInfo(wire_symbols=syms, exponent=exponent)

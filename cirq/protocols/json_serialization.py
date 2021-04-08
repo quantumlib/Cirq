@@ -148,7 +148,7 @@ def obj_to_dict_helper(
             class name via a dot (.)
     """
     if namespace is not None:
-        prefix = '{}.'.format(namespace)
+        prefix = f'{namespace}.'
     else:
         prefix = ''
 
@@ -235,6 +235,7 @@ class CirqEncoder(json.JSONEncoder):
         # Sympy object? (Must come before general number checks.)
         # TODO: More support for sympy
         # Github issue: https://github.com/quantumlib/Cirq/issues/2014
+
         if isinstance(o, sympy.Symbol):
             return obj_to_dict_helper(o, ['name'], namespace='sympy')
 
@@ -253,6 +254,18 @@ class CirqEncoder(json.JSONEncoder):
                 'p': o.p,
                 'q': o.q,
             }
+
+        if isinstance(o, sympy.NumberSymbol):
+            # check if `o` is a numeric symbol,
+            # i.e. one of the transcendental numbers
+            # sympy.pi, sympy.E or sympy.EulerGamma
+            # (note that these are singletons).
+            if o is sympy.pi:
+                return {'cirq_type': 'sympy.pi'}
+            if o is sympy.E:
+                return {'cirq_type': 'sympy.E'}
+            if o is sympy.EulerGamma:
+                return {'cirq_type': 'sympy.EulerGamma'}
 
         # A basic number object?
         if isinstance(o, numbers.Integral):
@@ -317,9 +330,7 @@ def _cirq_object_hook(d, resolvers: Sequence[JsonResolver], context_map: Dict[st
         if cls is not None:
             break
     else:
-        raise ValueError(
-            "Could not resolve type '{}' during deserialization".format(d['cirq_type'])
-        )
+        raise ValueError(f"Could not resolve type '{d['cirq_type']}' during deserialization")
 
     from_json_dict = getattr(cls, '_from_json_dict_', None)
     if from_json_dict is not None:
@@ -330,15 +341,12 @@ def _cirq_object_hook(d, resolvers: Sequence[JsonResolver], context_map: Dict[st
 
 
 class SerializableByKey(SupportsJSON):
-    """Protocol for objects that can be serialized to a key + context."""
+    """Protocol for objects that can be serialized to a key + context.
 
-    @doc_private
-    def _serialization_name_(self) -> str:
-        """Returns a human-readable string identifier for this object.
-
-        This identifier need not be globally unique; a unique suffix will be
-        dynamically generated to create the serialization key for this object.
-        """
+    In serialization, objects that inherit from this type will only be fully
+    defined once (the "context"). Thereafter, a unique integer key will be used
+    to identify that object.
+    """
 
 
 class _SerializedKey(SupportsJSON):
@@ -374,8 +382,8 @@ class _SerializedContext(SupportsJSON):
     the original `obj` for this type.
     """
 
-    def __init__(self, obj: SerializableByKey, suffix: int):
-        self.key = f'{obj._serialization_name_()}_{suffix}'
+    def __init__(self, obj: SerializableByKey, uid: int):
+        self.key = uid
         self.obj = obj
 
     def _json_dict_(self):
@@ -426,7 +434,7 @@ class _ContextualSerialization(SupportsJSON):
 
 def has_serializable_by_keys(obj: Any) -> bool:
     """Returns true if obj contains one or more SerializableByKey objects."""
-    if hasattr(obj, '_serialization_name_'):
+    if isinstance(obj, SerializableByKey):
         return True
     json_dict = getattr(obj, '_json_dict_', lambda: None)()
     if isinstance(json_dict, Dict):
@@ -444,10 +452,11 @@ def get_serializable_by_keys(obj: Any) -> List[SerializableByKey]:
     """Returns all SerializableByKeys contained by obj.
 
     Objects are ordered such that nested objects appear before the object they
-    are nested inside. This is required to ensure
+    are nested inside. This is required to ensure SerializableByKeys are only
+    fully defined once in serialization.
     """
     result = []
-    if hasattr(obj, '_serialization_name_'):
+    if isinstance(obj, SerializableByKey):
         result.append(obj)
     json_dict = getattr(obj, '_json_dict_', lambda: None)()
     if isinstance(json_dict, Dict):
@@ -515,7 +524,7 @@ def to_json(
             seen: Set[str] = set()
 
             def default(self, o):
-                if not hasattr(o, '_serialization_name_'):
+                if not isinstance(o, SerializableByKey):
                     return super().default(o)
                 for candidate in obj.object_dag[:-1]:
                     if candidate.obj == o:

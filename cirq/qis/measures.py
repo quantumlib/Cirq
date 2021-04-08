@@ -232,7 +232,7 @@ def _fidelity_state_vectors_or_density_matrices(state1: np.ndarray, state2: np.n
 
 
 @deprecated_parameter(
-    deadline='v0.11.0',
+    deadline='v0.11',
     fix='Use state instead.',
     parameter_desc='density_matrix',
     match=lambda args, kwargs: 'density_matrix' in kwargs,

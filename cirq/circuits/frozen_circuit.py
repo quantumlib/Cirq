@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """An immutable version of the Circuit data structure."""
-import functools
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
@@ -27,8 +26,8 @@ from typing import (
 
 import numpy as np
 
-from cirq import devices, ops
-from cirq.circuits import AbstractCircuit, Circuit
+from cirq import devices, ops, protocols
+from cirq.circuits import AbstractCircuit, Alignment, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.type_workarounds import NotImplementedType
 
@@ -36,7 +35,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-class FrozenCircuit(AbstractCircuit):
+class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
     """An immutable version of the Circuit data structure.
 
     FrozenCircuits are immutable (and therefore hashable), but otherwise behave
@@ -88,8 +87,8 @@ class FrozenCircuit(AbstractCircuit):
     def __hash__(self):
         return hash((self.moments, self.device))
 
-    def serialization_key(self):
-        # TODO: use this key in serialization and support user-specified keys.
+    def diagram_name(self):
+        """Name used to represent this in circuit diagrams."""
         key = hash(self) & 0xFFFF_FFFF_FFFF_FFFF
         return f'Circuit_0x{key:016x}'
 
@@ -172,17 +171,23 @@ class FrozenCircuit(AbstractCircuit):
         return self.unfreeze().with_device(new_device, qubit_mapping).freeze()
 
     def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolver', recursive: bool
+        self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'FrozenCircuit':
-        return self.unfreeze()._resolve_parameters_(param_resolver, recursive).freeze()
+        return self.unfreeze()._resolve_parameters_(resolver, recursive).freeze()
 
-    @functools.wraps(Circuit.tetris_concat)  # Inherit doc string.
     def tetris_concat(
-        *circuits: 'cirq.AbstractCircuit', stop_at_first_alignment: bool = False
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
     ) -> 'cirq.FrozenCircuit':
-        return Circuit.tetris_concat(
-            *circuits, stop_at_first_alignment=stop_at_first_alignment
-        ).freeze()
+        return AbstractCircuit.tetris_concat(*circuits, align=align).freeze()
+
+    tetris_concat.__doc__ = AbstractCircuit.tetris_concat.__doc__
+
+    def zip(
+        *circuits: 'cirq.AbstractCircuit', align: Union['cirq.Alignment', str] = Alignment.LEFT
+    ) -> 'cirq.FrozenCircuit':
+        return AbstractCircuit.zip(*circuits, align=align).freeze()
+
+    zip.__doc__ = AbstractCircuit.zip.__doc__
 
     def to_op(self):
         """Creates a CircuitOperation wrapping this circuit."""

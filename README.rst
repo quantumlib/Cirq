@@ -23,14 +23,16 @@ Installation and Documentation
 
 Cirq documentation is available at `quantumai.google/cirq <https://quantumai.google/cirq>`_.
 
-Documentation for the latest **pre-release** version of cirq (tracks the repository's master branch; what you get if you ``pip install --pre cirq``), is available at `cirq.readthedocs.io/latest <https://quantumai.google/cirq/>`_.
+Documentation for the latest **pre-release** version of cirq (tracks the repository's master branch; what you get if you ``pip install --pre cirq``), is available at `here <https://quantumai.google/reference/python/cirq/all_symbols?version=nightly>`__.
 
-Documentation for the latest **stable** version of cirq (what you get if you ``pip install cirq``) is available at `cirq.readthedocs.io/stable <https://quantumai.google/cirq/>`_.
+Documentation for the latest **stable** version of cirq (what you get if you ``pip install cirq``) is available at `here <https://quantumai.google/reference/python/cirq/all_symbols>`__.
 
 
 - `Installation <https://quantumai.google/cirq/install>`_
 - `Documentation <https://quantumai.google/cirq>`_
 - `Tutorials <https://quantumai.google/cirq/tutorials>`_
+
+For a comprehensive list all of the interactive Jupyter Notebooks in our repo (including the ones not yet published to the site) open our repo in `Colab <https://colab.research.google.com/github/quantumlib/Cirq>`_.
 
 For the latest news regarding Cirq, sign up to the `Cirq-announce email list <https://groups.google.com/forum/#!forum/cirq-announce>`__!
 

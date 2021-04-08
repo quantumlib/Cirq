@@ -190,7 +190,7 @@ class MultiH(cirq.Gate):
         assert args.known_qubits is not None
 
         return protocols.CircuitDiagramInfo(
-            wire_symbols=tuple('H({})'.format(q) for q in args.known_qubits), connected=True
+            wire_symbols=tuple(f'H({q})' for q in args.known_qubits), connected=True
         )
 
 

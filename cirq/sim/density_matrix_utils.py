@@ -13,30 +13,19 @@
 # limitations under the License.
 """Code to handle density matrices."""
 
-from typing import List, Optional, TYPE_CHECKING, Tuple
+from typing import List, Optional, TYPE_CHECKING, Tuple, Sequence
 
 import numpy as np
 
-from cirq import linalg, qis, value
-from cirq._compat import deprecated
+from cirq import linalg, value
 
 if TYPE_CHECKING:
     import cirq
 
 
-@deprecated(deadline='v0.9', fix='Use cirq.to_valid_density_matrix instead.')
-def to_valid_density_matrix(*args, **kwargs):
-    return qis.to_valid_density_matrix(*args, **kwargs)
-
-
-@deprecated(deadline='v0.9', fix='Use cirq.von_neumann_entropy instead.')
-def von_neumann_entropy(*args, **kwargs):
-    return qis.von_neumann_entropy(*args, **kwargs)
-
-
 def sample_density_matrix(
     density_matrix: np.ndarray,
-    indices: List[int],
+    indices: Sequence[int],
     *,  # Force keyword arguments
     qid_shape: Optional[Tuple[int, ...]] = None,
     repetitions: int = 1,
@@ -64,7 +53,7 @@ def sample_density_matrix(
         Measurement results with True corresponding to the ``|1⟩`` state.
         The outer list is for repetitions, and the inner corresponds to
         measurements ordered by the supplied qubits. These lists
-        are wrapped as an numpy ndarray.
+        are wrapped as a numpy ndarray.
 
     Raises:
         ValueError: ``repetitions`` is less than one or size of ``matrix`` is
@@ -73,7 +62,7 @@ def sample_density_matrix(
             of qubits corresponding to the density matrix.
     """
     if repetitions < 0:
-        raise ValueError('Number of repetitions cannot be negative. Was {}'.format(repetitions))
+        raise ValueError(f'Number of repetitions cannot be negative. Was {repetitions}')
     if qid_shape is None:
         num_qubits = _validate_num_qubits(density_matrix)
         qid_shape = (2,) * num_qubits
@@ -103,7 +92,7 @@ def sample_density_matrix(
 
 def measure_density_matrix(
     density_matrix: np.ndarray,
-    indices: List[int],
+    indices: Sequence[int],
     qid_shape: Optional[Tuple[int, ...]] = None,
     out: np.ndarray = None,
     seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
@@ -134,7 +123,7 @@ def measure_density_matrix(
         seed: A seed for the pseudorandom number generator.
 
     Returns:
-        A tuple of a list and an numpy array. The list is an array of booleans
+        A tuple of a list and a numpy array. The list is an array of booleans
         corresponding to the measurement values (ordered by the indices). The
         numpy array is the post measurement matrix. This matrix has the same
         shape and dtype as the input matrix.
@@ -198,7 +187,7 @@ def measure_density_matrix(
 
 
 def _probs(
-    density_matrix: np.ndarray, indices: List[int], qid_shape: Tuple[int, ...]
+    density_matrix: np.ndarray, indices: Sequence[int], qid_shape: Tuple[int, ...]
 ) -> np.ndarray:
     """Returns the probabilities for a measurement on the given indices."""
     # Only diagonal elements matter.
@@ -247,11 +236,11 @@ def _validate_density_matrix_qid_shape(
             )
         return qid_shape
     if len(shape) % 2 != 0:
-        raise ValueError('Tensor was not square. Shape was {}'.format(shape))
+        raise ValueError(f'Tensor was not square. Shape was {shape}')
     left_shape = shape[: len(shape) // 2]
     right_shape = shape[len(shape) // 2 :]
     if left_shape != right_shape:
-        raise ValueError("Tensor's left and right shape are not equal. Shape was {}".format(shape))
+        raise ValueError(f"Tensor's left and right shape are not equal. Shape was {shape}")
     return left_shape
 
 
@@ -266,7 +255,7 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     row_size = np.prod(shape[:half_index]) if len(shape) != 0 else 0
     col_size = np.prod(shape[half_index:]) if len(shape) != 0 else 0
     if row_size != col_size:
-        raise ValueError('Matrix was not square. Shape was {}'.format(shape))
+        raise ValueError(f'Matrix was not square. Shape was {shape}')
     if row_size & (row_size - 1):
         raise ValueError(
             'Matrix could not be shaped into a square matrix with dimensions '
@@ -280,12 +269,12 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     return int(row_size).bit_length() - 1
 
 
-def _indices_shape(qid_shape: Tuple[int, ...], indices: List[int]) -> Tuple[int, ...]:
+def _indices_shape(qid_shape: Tuple[int, ...], indices: Sequence[int]) -> Tuple[int, ...]:
     """Validates that the indices have values within range of `len(qid_shape)`."""
     if any(index < 0 for index in indices):
-        raise IndexError('Negative index in indices: {}'.format(indices))
+        raise IndexError(f'Negative index in indices: {indices}')
     if any(index >= len(qid_shape) for index in indices):
         raise IndexError(
-            'Out of range indices, must be less than number of qubits but was {}'.format(indices)
+            f'Out of range indices, must be less than number of qubits but was {indices}'
         )
     return tuple(qid_shape[i] for i in indices)

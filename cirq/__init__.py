@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from logging import warning
 
 from cirq import _import
 
@@ -51,7 +52,6 @@ from cirq import (
     interop,
     # Applications
     experiments,
-    google,
     # Extra (nothing should depend on these)
     testing,
 )
@@ -66,6 +66,7 @@ from cirq._version import (
 
 from cirq.circuits import (
     AbstractCircuit,
+    Alignment,
     Circuit,
     CircuitDag,
     CircuitOperation,
@@ -157,13 +158,11 @@ from cirq.linalg import (
     reflection_matrix_pow,
     slice_for_qubits_equal_to,
     so4_to_magic_su2s,
-    subwavefunction,
     sub_state_vector,
     targeted_conjugate_about,
     targeted_left_multiply,
     to_special,
     unitary_eig,
-    wavefunction_partial_trace_as_mixture,
 )
 
 from cirq.ops import (
@@ -195,6 +194,7 @@ from cirq.ops import (
     DensePauliString,
     depolarize,
     DepolarizingChannel,
+    DiagonalGate,
     EigenGate,
     flatten_op_tree,
     flatten_to_ops,
@@ -238,6 +238,7 @@ from cirq.ops import (
     PauliStringGateOperation,
     PauliStringPhasor,
     PauliSum,
+    PauliSumExponential,
     PauliSumLike,
     PauliTransform,
     phase_damp,
@@ -251,7 +252,6 @@ from cirq.ops import (
     PhaseFlipChannel,
     RandomGateChannel,
     qft,
-    QFT,
     Qid,
     QuantumFourierTransformGate,
     QubitOrder,
@@ -260,6 +260,9 @@ from cirq.ops import (
     reset,
     ResetChannel,
     riswap,
+    Rx,
+    Ry,
+    Rz,
     rx,
     ry,
     rz,
@@ -303,7 +306,6 @@ from cirq.optimizers import (
     decompose_multi_controlled_x,
     decompose_multi_controlled_rotation,
     decompose_two_qubit_interaction_into_four_fsim_gates,
-    decompose_two_qubit_interaction_into_four_fsim_gates_via_b,
     DropEmptyMoments,
     DropNegligible,
     EjectPhasedPaulis,
@@ -342,14 +344,15 @@ from cirq.qis import (
     to_valid_state_vector,
     validate_density_matrix,
     validate_indices,
-    validate_normalized_state,
     validate_normalized_state_vector,
     validate_qid_shape,
     von_neumann_entropy,
 )
 
 from cirq.sim import (
+    ActOnArgs,
     ActOnCliffordTableauArgs,
+    ActOnDensityMatrixArgs,
     ActOnStabilizerCHFormArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,
@@ -367,16 +370,15 @@ from cirq.sim import (
     measure_state_vector,
     final_density_matrix,
     final_state_vector,
-    final_wavefunction,
     sample,
     sample_density_matrix,
     sample_state_vector,
     sample_sweep,
     SimulatesAmplitudes,
+    SimulatesExpectationValues,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesIntermediateStateVector,
-    SimulatesIntermediateWaveFunction,
     SimulatesSamples,
     SimulationTrialResult,
     Simulator,
@@ -387,9 +389,6 @@ from cirq.sim import (
     StateVectorStepResult,
     StateVectorTrialResult,
     StepResult,
-    WaveFunctionSimulatorState,
-    WaveFunctionStepResult,
-    WaveFunctionTrialResult,
 )
 
 from cirq.study import (
@@ -472,7 +471,6 @@ from cirq.protocols import (
     equal_up_to_global_phase,
     has_channel,
     has_mixture,
-    has_mixture_channel,
     has_stabilizer_effect,
     has_unitary,
     inverse,
@@ -483,7 +481,6 @@ from cirq.protocols import (
     measurement_key,
     measurement_keys,
     mixture,
-    mixture_channel,
     mul,
     num_qubits,
     parameter_names,
@@ -500,6 +497,7 @@ from cirq.protocols import (
     read_json,
     resolve_parameters,
     resolve_parameters_once,
+    SerializableByKey,
     SupportsActOn,
     SupportsApplyChannel,
     SupportsApplyMixture,
@@ -550,6 +548,9 @@ from cirq.neutral_atoms import (
 
 from cirq.vis import (
     Heatmap,
+    TwoQubitInteractionHeatmap,
+    get_state_histogram,
+    integrated_histogram,
 )
 
 from cirq.work import (
@@ -565,11 +566,16 @@ from cirq.work import (
 # Unflattened sub-modules.
 
 from cirq import (
-    google,
     ionq,
     pasqal,
     testing,
 )
+
+try:
+    from cirq import google
+except ImportError as ex:
+    # coverage: ignore
+    warning("Can't import cirq.google: ", ex)
 
 
 def _register_resolver() -> None:

@@ -20,35 +20,9 @@ import numpy as np
 
 from cirq import linalg, ops, qis, value
 from cirq.sim import simulator
-from cirq._compat import deprecated, deprecated_parameter
 
 if TYPE_CHECKING:
     import cirq
-
-
-@deprecated(deadline='v0.9', fix='Use cirq.bloch_vector_from_state_vector instead.')
-def bloch_vector_from_state_vector(*args, **kwargs):
-    return qis.bloch_vector_from_state_vector(*args, **kwargs)
-
-
-@deprecated(deadline='v0.9', fix='Use cirq.density_matrix_from_state_vector instead.')
-def density_matrix_from_state_vector(*args, **kwargs):
-    return qis.density_matrix_from_state_vector(*args, **kwargs)
-
-
-@deprecated(deadline='v0.9', fix='Use cirq.dirac_notation instead.')
-def dirac_notation(*args, **kwargs):
-    return qis.dirac_notation(*args, **kwargs)
-
-
-@deprecated(deadline='v0.9', fix='Use cirq.to_valid_state_vector instead.')
-def to_valid_state_vector(*args, **kwargs):
-    return qis.to_valid_state_vector(*args, **kwargs)
-
-
-@deprecated(deadline='v0.10', fix='Use cirq.validate_normalized_state_vector instead.')
-def validate_normalized_state(*args, **kwargs):
-    return qis.validate_normalized_state_vector(*args, **kwargs)
 
 
 # For backwards compatibility and to make mypy happy:
@@ -185,16 +159,6 @@ class StateVectorMixin:
         )
 
 
-@deprecated_parameter(
-    deadline='v0.10.0',
-    fix='Use state_vector instead.',
-    parameter_desc='state',
-    match=lambda args, kwargs: 'state' in kwargs,
-    rewrite=lambda args, kwargs: (
-        args,
-        {('state_vector' if k == 'state' else k): v for k, v in kwargs.items()},
-    ),
-)
 def sample_state_vector(
     state_vector: np.ndarray,
     indices: List[int],
@@ -225,7 +189,7 @@ def sample_state_vector(
         Measurement results with True corresponding to the ``|1⟩`` state.
         The outer list is for repetitions, and the inner corresponds to
         measurements ordered by the supplied qubits. These lists
-        are wrapped as an numpy ndarray.
+        are wrapped as a numpy ndarray.
 
     Raises:
         ValueError: ``repetitions`` is less than one or size of `state_vector`
@@ -234,7 +198,7 @@ def sample_state_vector(
             of qubits corresponding to the state.
     """
     if repetitions < 0:
-        raise ValueError('Number of repetitions cannot be negative. Was {}'.format(repetitions))
+        raise ValueError(f'Number of repetitions cannot be negative. Was {repetitions}')
     shape = qis.validate_qid_shape(state_vector, qid_shape)
     num_qubits = len(shape)
     qis.validate_indices(num_qubits, indices)
@@ -259,16 +223,6 @@ def sample_state_vector(
     )
 
 
-@deprecated_parameter(
-    deadline='v0.10.0',
-    fix='Use state_vector instead.',
-    parameter_desc='state',
-    match=lambda args, kwargs: 'state' in kwargs,
-    rewrite=lambda args, kwargs: (
-        args,
-        {('state_vector' if k == 'state' else k): v for k, v in kwargs.items()},
-    ),
-)
 def measure_state_vector(
     state_vector: np.ndarray,
     indices: Sequence[int],
@@ -300,7 +254,7 @@ def measure_state_vector(
         seed: A seed for the pseudorandom number generator.
 
     Returns:
-        A tuple of a list and an numpy array. The list is an array of booleans
+        A tuple of a list and a numpy array. The list is an array of booleans
         corresponding to the measurement values (ordered by the indices). The
         numpy array is the post measurement state vector. This state vector has
         the same shape and dtype as the input `state_vector`.

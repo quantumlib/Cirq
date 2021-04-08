@@ -6,6 +6,7 @@ import pytest
 import sympy
 
 import cirq
+from cirq import value
 import cirq.contrib.quimb as ccq
 import cirq.experiments.google_v2_supremacy_circuit as supremacy_v2
 
@@ -256,7 +257,9 @@ def test_measurement_str():
 def test_trial_result_str():
     q0 = cirq.LineQubit(0)
     final_simulator_state = ccq.mps_simulator.MPSState(
-        qubit_map={q0: 0}, simulation_options=ccq.mps_simulator.MPSOptions()
+        qubit_map={q0: 0},
+        prng=value.parse_random_state(0),
+        simulation_options=ccq.mps_simulator.MPSOptions(),
     )
     assert (
         str(
@@ -275,7 +278,7 @@ output state: TensorNetwork([
 
 def test_empty_step_result():
     q0 = cirq.LineQubit(0)
-    state = ccq.mps_simulator.MPSState(qubit_map={q0: 0})
+    state = ccq.mps_simulator.MPSState(qubit_map={q0: 0}, prng=value.parse_random_state(0))
     step_result = ccq.mps_simulator.MPSSimulatorStepResult(state, measurements={'0': [1]})
     assert (
         str(step_result)
@@ -290,14 +293,17 @@ def test_state_equal():
     q0, q1 = cirq.LineQubit.range(2)
     state0 = ccq.mps_simulator.MPSState(
         qubit_map={q0: 0},
+        prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1e-3, sum_prob_atol=1e-3),
     )
     state1a = ccq.mps_simulator.MPSState(
         qubit_map={q1: 0},
+        prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1e-3, sum_prob_atol=1e-3),
     )
     state1b = ccq.mps_simulator.MPSState(
         qubit_map={q1: 0},
+        prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1729.0, sum_prob_atol=1e-3),
     )
     assert state0 == state0
@@ -324,7 +330,10 @@ def test_supremacy_equal_more_cols():
 def test_tensor_index_names():
     qubits = cirq.LineQubit.range(12)
     qubit_map = {qubit: i for i, qubit in enumerate(qubits)}
-    state = ccq.mps_simulator.MPSState(qubit_map)
+    state = ccq.mps_simulator.MPSState(
+        qubit_map,
+        prng=value.parse_random_state(0),
+    )
 
     assert state.i_str(0) == "i_00"
     assert state.i_str(11) == "i_11"
@@ -438,6 +447,42 @@ def test_run_parameters_not_resolved():
         _ = simulator.run_sweep(circuit, cirq.ParamResolver({}))
 
 
+def test_deterministic_gate_noise():
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.I(q), cirq.measure(q))
+
+    simulator1 = ccq.mps_simulator.MPSSimulator(noise=cirq.X)
+    result1 = simulator1.run(circuit, repetitions=10)
+
+    simulator2 = ccq.mps_simulator.MPSSimulator(noise=cirq.X)
+    result2 = simulator2.run(circuit, repetitions=10)
+
+    assert result1 == result2
+
+    simulator3 = ccq.mps_simulator.MPSSimulator(noise=cirq.Z)
+    result3 = simulator3.run(circuit, repetitions=10)
+
+    assert result1 != result3
+
+
+def test_nondeterministic_mixture_noise():
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.I(q), cirq.measure(q))
+
+    simulator = ccq.mps_simulator.MPSSimulator(
+        noise=cirq.ConstantQubitNoiseModel(cirq.depolarize(0.5))
+    )
+    result1 = simulator.run(circuit, repetitions=50)
+    result2 = simulator.run(circuit, repetitions=50)
+
+    assert result1 != result2
+
+
+def test_unsupported_noise_fails():
+    with pytest.raises(ValueError, match='noise must be unitary or mixture but was'):
+        ccq.mps_simulator.MPSSimulator(noise=cirq.amplitude_damp(0.5))
+
+
 def test_state_copy():
     sim = ccq.mps_simulator.MPSSimulator()
 
@@ -451,3 +496,14 @@ def test_state_copy():
         assert len(x) == len(y)
         for i in range(len(x)):
             assert not np.shares_memory(x[i], y[i])
+
+
+def test_state_act_on_args_initializer():
+    s = ccq.mps_simulator.MPSState(
+        qubit_map={cirq.LineQubit(0): 0},
+        prng=np.random.RandomState(0),
+        axes=[2],
+        log_of_measurement_results={'test': 4},
+    )
+    assert s.axes == (2,)
+    assert s.log_of_measurement_results == {'test': 4}

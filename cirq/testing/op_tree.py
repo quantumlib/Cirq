@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,13 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq
-import cirq.testing
+from cirq import ops
 
 
-def test_deprecated():
-    with cirq.testing.assert_logs('cirq.eye_tensor', 'deprecated'):
-        _ = cirq.linalg.eye_tensor((1,), dtype=float)
+def assert_equivalent_op_tree(x: ops.OP_TREE, y: ops.OP_TREE):
+    """Ensures that the two OP_TREEs are equivalent.
 
-    with cirq.testing.assert_logs('cirq.one_hot', 'deprecated'):
-        _ = cirq.linalg.one_hot(shape=(1,), dtype=float)
+    Args:
+        x: OP_TREE one
+        y: OP_TREE two
+    Returns:
+        None
+    Raises:
+         AssertionError if x != y
+    """
+
+    a = list(ops.flatten_op_tree(x))
+    b = list(ops.flatten_op_tree(y))
+    assert a == b
