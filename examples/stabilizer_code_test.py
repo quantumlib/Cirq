@@ -1,5 +1,6 @@
 from typing import cast, List, Optional
 
+import numpy as np
 import pytest
 
 import cirq
@@ -34,13 +35,24 @@ def encode_corrupt_correct(
 
     circuit += code.correct(qubits, ancillas)
 
-    results = cirq.Simulator().simulate(
-        circuit, qubit_order=(qubits + ancillas), initial_state=(input_val * 2 ** len(ancillas))
+    state_vector = (
+        cirq.Simulator()
+        .simulate(
+            circuit, qubit_order=(qubits + ancillas), initial_state=(input_val * 2 ** len(ancillas))
+        )
+        .state_vector()
     )
 
-    decoded = code.decode(qubits, ancillas, results.state_vector())
+    decoded = code.decode(qubits, ancillas, state_vector)
 
-    return decoded[0]
+    # Trace out the syndrome out of the state.
+    nq = len(qubits)
+    na = len(ancillas)
+    traced_out_state = np.sum(
+        state_vector.reshape((2,) * (nq + na)), axis=tuple(range(nq, nq + na))
+    ).reshape(-1)
+
+    return decoded[0], traced_out_state
 
 
 def test_no_error():
@@ -50,7 +62,10 @@ def test_no_error():
     )
 
     for input_val in [0, 1]:
-        assert encode_corrupt_correct(five_qubit_code, input_val, None, None) == input_val
+        decoded, _ = encode_corrupt_correct(
+            five_qubit_code, input_val, error_gate=None, error_loc=None
+        )
+        assert decoded == input_val
 
 
 @pytest.mark.parametrize(
@@ -66,9 +81,17 @@ def test_errors(group_generators):
     code = sc.StabilizerCode(group_generators=group_generators, correctable_errors=['X', 'Z'])
 
     for input_val in [0, 1]:
+        _, traced_out_state_no_error = encode_corrupt_correct(
+            code, input_val, error_gate=None, error_loc=None
+        )
+
         for error_gate in [cirq.X, cirq.Z]:
             for error_loc in range(code.n):
-                assert encode_corrupt_correct(code, input_val, error_gate, error_loc) == input_val
+                decoded, traced_out_state = encode_corrupt_correct(
+                    code, input_val, error_gate, error_loc
+                )
+                assert decoded == input_val
+                np.testing.assert_allclose(traced_out_state_no_error, traced_out_state, atol=1e-6)
 
 
 def test_imperfect_code():
@@ -76,15 +99,26 @@ def test_imperfect_code():
     bit_flip_code = sc.StabilizerCode(group_generators=['ZZI', 'ZIZ'], correctable_errors=['X'])
 
     for input_val in [0, 1]:
+        _, traced_out_state_no_error = encode_corrupt_correct(
+            bit_flip_code, input_val, error_gate=None, error_loc=None
+        )
+
         for error_gate in [cirq.X]:
             for error_loc in range(bit_flip_code.n):
-                assert (
-                    encode_corrupt_correct(bit_flip_code, input_val, error_gate, error_loc)
-                    == input_val
+                decoded, traced_out_state = encode_corrupt_correct(
+                    bit_flip_code, input_val, error_gate, error_loc
                 )
+                assert decoded == input_val
+                np.testing.assert_allclose(traced_out_state_no_error, traced_out_state, atol=1e-6)
 
-    # NOTE(tonybruguier): Even though the state vector shows that we cannot correct the error,
-    # the decoded qubit is incorrect but only because it has the wrong phase. Since the Pauli
-    # string measurement doesn't capture the phase it doesn't detect the error.
-    # TODO(tonybruguier): Have a unit test that captures the fact that this code cannot correct
-    # phase errors.
+    # Test that we cannot correct a Z error. In this case, they manifest as a phase error, so we
+    # test the state vectors.
+    _, traced_out_state_no_error = encode_corrupt_correct(
+        bit_flip_code, input_val=1, error_gate=None, error_loc=None
+    )
+    _, traced_out_state_z1_error = encode_corrupt_correct(
+        bit_flip_code, input_val=1, error_gate=cirq.Z, error_loc=1
+    )
+
+    with np.testing.assert_raises(AssertionError):
+        np.testing.assert_allclose(traced_out_state_no_error, traced_out_state_z1_error, atol=1e-6)

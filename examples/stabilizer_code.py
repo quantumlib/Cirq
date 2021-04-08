@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -11,27 +11,31 @@ import cirq
 #
 # However, there were some mistakes in the thesis:
 # https://www2.perimeterinstitute.ca/personal/dgottesman/thesis-errata.html
+#
+# An alternative explanation can be found in exercises 10.3 and 10.4 of
+# "Quantum Computation and Quantum Information" by Michael Nielsen and Isaac Chuang.
 
 
 def _BuildByCode(mat: np.ndarray) -> List[str]:
-    """
+    """Transforms a matrix of Booleans into a list of Pauli strings.
+
     Takes into input a matrix of Boolean interpreted as row-vectors, each having dimension 2 * n.
     The matrix is converted into another matrix with as many rows, but this time the vectors
     contain the letters I, X, Y, and Z representing Pauli operators.
+
+    Args:
+        mat: The input matrix of Booleans.
+
+    Returns:
+        A list of Pauli strings.
     """
     out = []
     n = mat.shape[1] // 2
     for i in range(mat.shape[0]):
         ps = ''
         for j in range(n):
-            if mat[i, j] == 0 and mat[i, j + n] == 0:
-                ps += 'I'
-            elif mat[i, j] == 1 and mat[i, j + n] == 0:
-                ps += 'X'
-            elif mat[i, j] == 0 and mat[i, j + n] == 1:
-                ps += 'Z'
-            else:
-                ps += 'Y'
+            k = 2 * mat[i, j + n] + mat[i, j]
+            ps += "IXZY"[k]
         out.append(ps)
     return out
 
@@ -41,7 +45,8 @@ def _BuildByCode(mat: np.ndarray) -> List[str]:
 def _GaussianElimination(
     M: np.ndarray, min_row: int, max_row: int, min_col: int, max_col: int
 ) -> int:
-    """
+    """Gaussian elimination for standard form.
+
     Performs a Gaussian elemination of the input matrix and transforms it into its reduced row
     echelon form. The elimination is done only on a sub-section of the matrix (specified) by
     ranges of rows and columns. The matrix elements are integers {0, 1} interpreted as elements
@@ -99,8 +104,8 @@ def _GaussianElimination(
         i = min_row + r
         j = min_col + r
 
-        # Do the elimination.
-        for k in reversed(range(min_row, i)):
+        # Do the elimination in reverse.
+        for k in range(i - 1, min_row - 1, -1):
             if M[k, j] == 1:
                 M[k, :] = np.mod(M[i, :] + M[k, :], 2)
 
@@ -110,8 +115,7 @@ def _GaussianElimination(
 def _transfer_to_standard_form(
     M: np.array, n: int, k: int
 ) -> Tuple[np.array, np.array, np.array, int]:
-    """
-    Puts the stabilizer matrix in its standardized form, as in section 4.1 of the thesis.
+    """Puts the stabilizer matrix in its standardized form, as in section 4.1 of the thesis.
 
     Args:
         M: The stabilizier matrix, to be standardized.
@@ -130,12 +134,9 @@ def _transfer_to_standard_form(
     _ = _GaussianElimination(M, r, n - k, n + r, 2 * n)
 
     # Get matrix sub-components, as per equation 4.3:
-    # A1 = M[0:r, r : (n - k)]
     A2 = M[0:r, (n - k) : n]
-    # B = M[0:r, n : (n + r)]
     C1 = M[0:r, (n + r) : (2 * n - k)]
     C2 = M[0:r, (2 * n - k) : (2 * n)]
-    # D = M[r : (n - k), n : (n + r)]
     E = M[r : (n - k), (2 * n - k) : (2 * n)]
 
     X = np.concatenate(
@@ -187,7 +188,7 @@ class StabilizerCode(object):
         self.logical_Xs: List[str] = _BuildByCode(X)
         self.logical_Zs: List[str] = _BuildByCode(Z)
 
-        self.syndromes_to_corrections = {}
+        self.syndromes_to_corrections: Dict[Tuple[int, ...], Tuple[str, int]] = {}
 
         for qid in range(self.n):
             for op in correctable_errors:
@@ -196,12 +197,12 @@ class StabilizerCode(object):
                     for r in range(self.n - self.k)
                 )
                 self.syndromes_to_corrections[syndrome] = (op, qid)
+        breakpoint()
 
     def encode(
         self, additional_qubits: List[cirq.Qid], unencoded_qubits: List[cirq.Qid]
     ) -> cirq.Circuit:
-        """
-        Creates a circuit that encodes the qubits using the code words.
+        """Creates a circuit that encodes the qubits using the code words.
 
         Args:
             additional_qubits: The list of self.n - self.k qubits needed to encode the qubit.
@@ -264,9 +265,10 @@ class StabilizerCode(object):
         return circuit
 
     def correct(self, qubits: List[cirq.Qid], ancillas: List[cirq.Qid]) -> cirq.Circuit:
-        """
+        """Corrects the code word.
+
         Creates a correction circuit by computing the syndrome on the ancillas, and then using this
-        syndrome to correct the qubits.correct
+        syndrome to correct the qubits.
 
         Args:
             qubits: a vector of self.n qubits that contains (potentially corrupted) code words
@@ -319,8 +321,7 @@ class StabilizerCode(object):
         return circuit
 
     def decode(self, qubits: List[cirq.Qid], ancillas: List[cirq.Qid], state_vector) -> List[int]:
-        """
-        Computes the output of the circuit by projecting onto the \bar{Z}.
+        """Computes the output of the circuit by projecting onto the \bar{Z}.
 
         Args:
             qubit: the qubits where the (now corrected) code words are stored.
