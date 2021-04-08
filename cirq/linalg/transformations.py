@@ -26,7 +26,7 @@ from cirq.linalg import predicates
 # of type np.ndarray to ensure the method has the correct type signature in that
 # case. It is checked for using `is`, so it won't have a false positive if the
 # user provides a different np.array([]) value.
-RaiseValueErrorIfNotProvided = np.array([])  # type: np.ndarray
+RaiseValueErrorIfNotProvided: np.ndarray = np.array([])
 
 
 def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
@@ -324,7 +324,11 @@ def partial_trace(tensor: np.ndarray, keep_indices: List[int]) -> np.ndarray:
     return np.einsum(tensor, left_indices + right_indices)
 
 
-class UnfactorizableStateVectorError(ValueError):
+class EntangledStateError(ValueError):
+    """Raised by `sub_state_error` if the result of factoring is not a pure state
+    and `default` is not provided.
+    """
+
     pass
 
 
@@ -364,7 +368,7 @@ def partial_trace_of_state_vector_as_mixture(
             state_vector, keep_indices, default=RaiseValueErrorIfNotProvided, atol=atol
         )
         return ((1.0, state),)
-    except UnfactorizableStateVectorError:
+    except EntangledStateError:
         pass
 
     # Fall back to a (non-unique) mixture representation.
@@ -430,8 +434,10 @@ def sub_state_vector(
 
     Raises:
         ValueError: if the `state_vector` is not of the correct shape or the
-        indices are not a valid subset of the input `state_vector`'s indices, or
-        the result of factoring is not a pure state.
+            indices are not a valid subset of the input `state_vector`'s indices
+        EntangledStateError: If the result of factoring is not a pure state and
+            `default` is not provided.
+
     """
 
     if not np.log2(state_vector.size).is_integer():
@@ -477,7 +483,7 @@ def sub_state_vector(
     if default is not RaiseValueErrorIfNotProvided:
         return default
 
-    raise UnfactorizableStateVectorError(
+    raise EntangledStateError(
         "Input state vector could not be factored into pure state over "
         "indices {}".format(keep_indices)
     )

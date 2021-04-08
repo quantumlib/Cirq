@@ -29,7 +29,6 @@ from typing import (
     TYPE_CHECKING,
     TypeVar,
     Union,
-    cast,
 )
 
 import matplotlib.pyplot as plt
@@ -250,7 +249,7 @@ def so4_to_magic_su2s(
         if mat.shape != (4, 4) or not predicates.is_special_orthogonal(mat, atol=atol, rtol=rtol):
             raise ValueError('mat must be 4x4 special orthogonal.')
 
-    ab = cast(np.ndarray, combinators.dot(MAGIC, mat, MAGIC_CONJ_T))
+    ab = combinators.dot(MAGIC, mat, MAGIC_CONJ_T)
     _, a, b = kron_factor_4x4_to_2x2s(ab)
 
     return a, b
@@ -513,15 +512,12 @@ class KakDecomposition:
         y_mat = np.array([[0, -1j], [1j, 0]])
         z_mat = np.array([[1, 0], [0, -1]])
 
-        return self.global_phase * cast(
-            np.ndarray,
-            combinators.dot(
-                after,
-                interaction_matrix(z_mat, z),
-                interaction_matrix(y_mat, y),
-                interaction_matrix(x_mat, x),
-                before,
-            ),
+        return self.global_phase * combinators.dot(
+            after,
+            interaction_matrix(z_mat, z),
+            interaction_matrix(y_mat, y),
+            interaction_matrix(x_mat, x),
+            before,
         )
 
     def _decompose_(self, qubits):
