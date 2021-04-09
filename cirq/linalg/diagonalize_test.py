@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import random
-from typing import Tuple, Optional, cast
+from typing import Tuple, Optional
 
 import numpy as np
 import pytest

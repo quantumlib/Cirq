@@ -329,8 +329,6 @@ class EntangledStateError(ValueError):
     and `default` is not provided.
     """
 
-    pass
-
 
 def partial_trace_of_state_vector_as_mixture(
     state_vector: np.ndarray, keep_indices: List[int], *, atol: Union[int, float] = 1e-8
