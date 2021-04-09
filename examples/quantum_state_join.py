@@ -47,17 +47,6 @@ from cirq.sim.simulator import (
 )
 
 
-def _print_bloch(vector):
-    print(
-        'x: ',
-        np.around(vector[0], 4),
-        'y: ',
-        np.around(vector[1], 4),
-        'z: ',
-        np.around(vector[2], 4),
-    )
-
-
 def _run(
     num_qubits: int,
     circuit_length: int,
@@ -100,7 +89,7 @@ def _run(
             argses[j] = full_args
             qubitses[j] = full_qubits
         full_qubit_map = {q: i for i, q in enumerate(full_qubits)}
-        full_args.axes = tuple(full_qubit_map[q] for q in full_qubits)
+        full_args.axes = tuple(full_qubit_map[q] for q in op.qubits)
         cirq.act_on(op, full_args)
     print(time.perf_counter() - t1)
 
@@ -111,7 +100,6 @@ def _run(
             args_join = argses[j] if args_join is None else args_join.join(argses[j])
             joined.add(argses[j])
     print(time.perf_counter() - t1)
-    print(args_join.target_tensor.shape)
 
     *_, results1 = sim.simulate_moment_steps(cirq.Circuit(), None, qubits, args_join)
 
@@ -129,9 +117,8 @@ def main(seed=None):
 
     # Run with density matrix simulator
     print('***Run with density matrix simulator***')
-    sim = cirq.Simulator(seed=seed)
+    sim = cirq.DensityMatrixSimulator(seed=seed)
     results, results1 = _run(num_qubits=10, circuit_length=10, sim=sim)
-    assert np.allclose(results.state_vector(), results1.state_vector())
 
 
 if __name__ == '__main__':
