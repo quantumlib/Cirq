@@ -325,9 +325,7 @@ def partial_trace(tensor: np.ndarray, keep_indices: List[int]) -> np.ndarray:
 
 
 class EntangledStateError(ValueError):
-    """Raised by `sub_state_error` if the result of factoring is not a pure state
-    and `default` is not provided.
-    """
+    """Raised when a product state is expected, but an entangled state is provided."""
 
 
 def partial_trace_of_state_vector_as_mixture(
