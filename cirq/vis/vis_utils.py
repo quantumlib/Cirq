@@ -11,12 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
 
+if TYPE_CHECKING:
+    from numpy.typing import ArrayLike
 
-def relative_luminance(color: Sequence[float]) -> float:
+
+def relative_luminance(color: 'ArrayLike') -> float:
     """Returns the relative luminance according to W3C specification.
 
     Spec: https://www.w3.org/TR/WCAG21/#dfn-relative-luminance.
@@ -27,6 +30,6 @@ def relative_luminance(color: Sequence[float]) -> float:
     Returns:
         relative luminance of color in [0, 1].
     """
-    rgb = np.array(color[:3])
+    rgb = np.asarray(color)[:3]
     rgb = np.where(rgb <= 0.03928, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
-    return rgb.dot([0.2126, 0.7152, 0.0722])
+    return rgb.dot([0.2126, 0.7152, 0.0722]).item()
