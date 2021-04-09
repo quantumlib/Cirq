@@ -182,8 +182,9 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
 
     def join(self, other: 'cirq.ActOnStateVectorArgs') -> 'cirq.ActOnStateVectorArgs':
-        target_tensor = np.kron(self.target_tensor, other.target_tensor)\
-            .reshape(self.target_tensor.shape + other.target_tensor.shape)
+        target_tensor = np.outer(self.target_tensor, other.target_tensor).reshape(
+            self.target_tensor.shape + other.target_tensor.shape
+        )
         buffer = np.empty_like(target_tensor)
         offset = len(self.target_tensor.shape)
         axes = self.axes + tuple(a + offset for a in other.axes)
