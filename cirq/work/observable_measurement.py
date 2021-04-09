@@ -37,10 +37,10 @@ if TYPE_CHECKING:
 MAX_REPETITIONS_PER_JOB = 3_000_000
 document(
     MAX_REPETITIONS_PER_JOB,
-    """The maximum repetitions allowed in a single batch job. 
+    """The maximum repetitions allowed in a single batch job.
 
     This depends on the Sampler executing your batch job. It is set to be
-    tens of minutes assuming ~kilosamples per second. 
+    tens of minutes assuming ~kilosamples per second.
     """,
 )
 
