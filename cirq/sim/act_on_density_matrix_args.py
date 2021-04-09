@@ -110,6 +110,25 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
 
+    def join(self, other: 'cirq.ActOnDensityMatrixArgs') -> 'cirq.ActOnDensityMatrixArgs':
+        qid_shape = self.qid_shape + other.qid_shape
+        target_tensor = np.outer(self.target_tensor, other.target_tensor).reshape(
+            qid_shape * 2
+        )
+        buffer = [np.empty_like(target_tensor) for b in self.available_buffer]
+        offset = len(self.qid_shape)
+        axes = self.axes + tuple(a + offset for a in other.axes)
+        logs = self.log_of_measurement_results.copy()
+        logs.update(other.log_of_measurement_results)
+        return ActOnDensityMatrixArgs(
+            target_tensor,
+            buffer,
+            axes,
+            qid_shape,
+            self.prng,
+            logs,
+        )
+
 
 def _strat_apply_channel_to_state(
     action: Any,
