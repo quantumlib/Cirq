@@ -34,7 +34,7 @@ x:  0.2706 y:  -0.7071 z:  0.6533
 """
 import time
 import random
-from typing import Tuple
+from typing import Tuple, cast
 
 import numpy as np
 import cirq
@@ -53,7 +53,7 @@ def _run(
     sim: SimulatesIntermediateState[
         TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs
     ]
-) -> Tuple[TStepResult, TStepResult]:
+):
     # Initialize our qubit state space.
     circuit = cirq.Circuit()
     for i in range(circuit_length):
@@ -63,14 +63,15 @@ def _run(
             elif random.random() > 0.5:
                 circuit.append(cirq.Y(cirq.LineQubit(j)) ** random.random())
             else:
-                #circuit.append(cirq.Y(cirq.LineQubit(j)) ** random.random())
                 circuit.append(cirq.CX(cirq.LineQubit(j), cirq.LineQubit((j + 1) % num_qubits)))
 
     qubits = tuple(cirq.LineQubit.range(num_qubits))
     args = sim.create_act_on_args(0, qubits=qubits)
     t1 = time.perf_counter()
     *_, results = sim.simulate_moment_steps(circuit, None, qubits, args)
+    results = cast(TStepResult, results)
     print(time.perf_counter() - t1)
+    sam = results.sample(list(qubits), 10000)
 
     t1 = time.perf_counter()
     qubit_map = {q: i for i, q in enumerate(qubits)}
@@ -102,13 +103,17 @@ def _run(
     print(time.perf_counter() - t1)
 
     *_, results1 = sim.simulate_moment_steps(cirq.Circuit(), None, qubits, args_join)
-
     print(time.perf_counter() - t1)
-    return results, results1
+    sam1 = results.sample(list(qubits), 100000)
+    sam = np.transpose(sam)
+    sam1 = np.transpose(sam1)
+    for i in range(num_qubits):
+        print(sam1[i].mean())
+        print(sam[i].mean())
 
 
 def main(seed=None):
-    """Run a simple simulation of quantum teleportation.
+    """Run a random simulation with joining args.
 
     Args:
         seed: The seed to use for the simulation.
@@ -116,9 +121,12 @@ def main(seed=None):
     random.seed(seed)
 
     # Run with density matrix simulator
+    print('***Run with sparse simulator***')
+    sim = cirq.Simulator(seed=seed)
+    _run(num_qubits=22, circuit_length=10, sim=sim)
     print('***Run with density matrix simulator***')
     sim = cirq.DensityMatrixSimulator(seed=seed)
-    results, results1 = _run(num_qubits=10, circuit_length=10, sim=sim)
+    _run(num_qubits=11, circuit_length=10, sim=sim)
 
 
 if __name__ == '__main__':
