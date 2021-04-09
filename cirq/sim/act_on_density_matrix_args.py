@@ -112,9 +112,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
 
     def join(self, other: 'cirq.ActOnDensityMatrixArgs') -> 'cirq.ActOnDensityMatrixArgs':
         qid_shape = self.qid_shape + other.qid_shape
-        target_tensor = np.outer(self.target_tensor, other.target_tensor).reshape(
-            qid_shape * 2
-        )
+        target_tensor = np.outer(self.target_tensor, other.target_tensor).reshape(qid_shape * 2)
         buffer = [np.empty_like(target_tensor) for b in self.available_buffer]
         offset = len(self.qid_shape)
         axes = self.axes + tuple(a + offset for a in other.axes)
