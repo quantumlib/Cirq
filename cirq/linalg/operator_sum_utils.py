@@ -13,7 +13,7 @@
 # limitations under the License.
 """Utils for the computation of operator sum (Kraus operators)."""
 
-from typing import FrozenSet, TYPE_CHECKING
+from typing import FrozenSet, Sequence, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -25,7 +25,9 @@ if TYPE_CHECKING:
 
 
 def compute_kraus_operations(
-    initial_density_matrix: np.ndarray, noisy_circuit: 'cirq.Circuit', qubits: FrozenSet['cirq.Qid']
+    initial_density_matrix: np.ndarray,
+    noisy_circuit: 'cirq.Circuit',
+    qubits: Union[FrozenSet['cirq.Qid'], Sequence['cirq.Qid']],
 ):
     """Computes all the density (Kraus) operators from a channel
 
