@@ -20,6 +20,9 @@ import numpy as np
 from cirq.linalg.transformations import targeted_left_multiply
 from cirq import protocols
 
+if TYPE_CHECKING:
+    import cirq
+
 
 def compute_kraus_operations(
     initial_density_matrix: np.ndarray, noisy_circuit: 'cirq.Circuit', qubits: FrozenSet['cirq.Qid']
@@ -36,6 +39,7 @@ def compute_kraus_operations(
     Returns:
         A list of Kraus operators.
     """
+    qubits = sorted(qubits)
     qubit_map = {q.with_dimension(1): i for i, q in enumerate(qubits)}
 
     kraus_operations = [initial_density_matrix]
