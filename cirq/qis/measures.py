@@ -279,7 +279,7 @@ def von_neumann_entropy(
     return 0.0
 
 
-def process_fidelity(clean_circuit, noisy_circuit, qubits) -> float:
+def process_fidelity(clean_circuit: 'cirq.Circuit', noisy_circuit: 'cirq.Circuit') -> float:
     """Calculates the average fidelity of a noisy circuit.
 
     The code uses the Kraus representation for open circuits, when decomposing
@@ -296,10 +296,10 @@ def process_fidelity(clean_circuit, noisy_circuit, qubits) -> float:
     Args:
         clean_circuit: The perfect circuit (no noise, closed).
         noisy_circuit: The circuit with noise gates (open circuit).
-        qubits: The list of qubits.
     Returns:
         A scalar that is the average (process) entropy
     """
+    qubits = clean_circuit.all_qubits()
     n = len(qubits)
     d = 2 ** n
 
