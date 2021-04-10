@@ -13,7 +13,7 @@
 # limitations under the License.
 """Utils for the computation of operator sum (Kraus operators)."""
 
-from typing import FrozenSet
+from typing import FrozenSet, TYPE_CHECKING
 
 import numpy as np
 
