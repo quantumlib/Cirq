@@ -19,7 +19,7 @@ https://arxiv.org/abs/2002.07730
 
 import dataclasses
 import math
-from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iterable, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iterable, Tuple, Union
 
 import numpy as np
 import quimb.tensor as qtn
@@ -86,9 +86,9 @@ class MPSSimulator(
 
     def create_act_on_args(
         self,
-        initial_state: int,
+        initial_state: Union[int, 'MPSState'],
         qubits: Tuple['cirq.Qid', ...],
-    ):
+    ) -> 'MPSState':
         """Creates MPSState args for simulating the Circuit.
 
         Args:
@@ -101,6 +101,9 @@ class MPSSimulator(
         Returns:
             MPSState args for simulating the Circuit.
         """
+        if isinstance(initial_state, MPSState):
+            return initial_state
+
         qubit_map = {q: i for i, q in enumerate(qubits)}
 
         return MPSState(

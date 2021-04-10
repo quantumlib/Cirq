@@ -534,11 +534,7 @@ class SimulatesIntermediateState(
             StepResults from simulating a Moment of the Circuit.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        act_on_args = (
-            cast(TActOnArgs, initial_state)
-            if isinstance(initial_state, ActOnArgs)
-            else self.create_act_on_args(initial_state, qubits)
-        )
+        act_on_args = self.create_act_on_args(initial_state, qubits)
         return self._core_iterator(circuit, act_on_args, qubits)
 
     @abc.abstractmethod

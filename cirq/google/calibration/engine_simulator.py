@@ -37,6 +37,7 @@ from cirq.sim import (
     Simulator,
     SimulatesSamples,
     SimulatesIntermediateStateVector,
+    ActOnStateVectorArgs,
 )
 from cirq.study import ParamResolver
 from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
@@ -401,7 +402,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
     def create_act_on_args(
         self,
-        initial_state: int,
+        initial_state: Union[int, ActOnStateVectorArgs],
         qubits: Tuple[Qid, ...],
     ):
         return self._simulator.create_act_on_args(initial_state, qubits)

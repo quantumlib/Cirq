@@ -233,9 +233,9 @@ class DensityMatrixSimulator(
 
     def create_act_on_args(
         self,
-        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'],
+        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
         qubits: Tuple['cirq.Qid', ...],
-    ):
+    ) -> 'cirq.ActOnDensityMatrixArgs':
         """Creates the ActOnDensityMatrixArgs for a circuit.
 
         Args:
@@ -248,6 +248,9 @@ class DensityMatrixSimulator(
         Returns:
             ActOnDensityMatrixArgs for the circuit.
         """
+        if isinstance(initial_state, act_on_density_matrix_args.ActOnDensityMatrixArgs):
+            return initial_state
+
         qid_shape = protocols.qid_shape(qubits)
         initial_matrix = qis.to_valid_density_matrix(
             initial_state, len(qid_shape), qid_shape=qid_shape, dtype=self._dtype
