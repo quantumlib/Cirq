@@ -568,7 +568,7 @@ class SimulatesIntermediateState(
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
-        initial_state: TActOnArgs,
+        sim_state: TActOnArgs,
         qubits: Tuple['cirq.Qid', ...],
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
@@ -577,7 +577,7 @@ class SimulatesIntermediateState(
 
         Args:
             circuit: The circuit to simulate.
-            initial_state: The initial args for the simulation. The form of
+            sim_state: The initial args for the simulation. The form of
                 this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
             qubits: Determines the canonical ordering of the qubits. This

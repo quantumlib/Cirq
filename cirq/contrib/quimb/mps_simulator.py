@@ -114,14 +114,14 @@ class MPSSimulator(
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
-        state: 'MPSState',
+        sim_state: 'MPSState',
         qubits: Tuple['cirq.Qid', ...],
     ):
         """Iterator over MPSSimulatorStepResult from Moments of a Circuit
 
         Args:
             circuit: The circuit to simulate.
-            state: The initial state args for the simulation in the
+            sim_state: The initial state args for the simulation in the
                 computational basis.
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
@@ -131,20 +131,24 @@ class MPSSimulator(
             MPSStepResult from simulating a Moment of the Circuit.
         """
         if len(circuit) == 0:
-            yield MPSSimulatorStepResult(measurements=state.log_of_measurement_results, state=state)
+            yield MPSSimulatorStepResult(
+                measurements=sim_state.log_of_measurement_results, state=sim_state
+            )
             return
 
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
         for op_tree in noisy_moments:
             for op in flatten_to_ops(op_tree):
                 if protocols.is_measurement(op) or protocols.has_mixture(op):
-                    state.axes = tuple(state.qubit_map[qubit] for qubit in op.qubits)
-                    protocols.act_on(op, state)
+                    sim_state.axes = tuple(sim_state.qubit_map[qubit] for qubit in op.qubits)
+                    protocols.act_on(op, sim_state)
                 else:
                     raise NotImplementedError(f"Unrecognized operation: {op!r}")
 
-            yield MPSSimulatorStepResult(measurements=state.log_of_measurement_results, state=state)
-            state.log_of_measurement_results.clear()
+            yield MPSSimulatorStepResult(
+                measurements=sim_state.log_of_measurement_results, state=sim_state
+            )
+            sim_state.log_of_measurement_results.clear()
 
     def _create_simulator_trial_result(
         self,
