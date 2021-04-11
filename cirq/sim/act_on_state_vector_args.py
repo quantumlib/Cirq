@@ -191,11 +191,12 @@ class ActOnStateVectorArgs(ActOnArgs):
         logs = self.log_of_measurement_results.copy()
         logs.update(other.log_of_measurement_results)
         return ActOnStateVectorArgs(
-            target_tensor,
-            buffer,
-            axes,
-            self.prng,
-            logs,
+            target_tensor=target_tensor,
+            available_buffer=buffer,
+            qubits=self.qubits + other.qubits,
+            axes=axes,
+            prng=self.prng,
+            log_of_measurement_results=logs,
         )
 
 
