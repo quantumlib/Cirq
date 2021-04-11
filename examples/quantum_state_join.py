@@ -23,29 +23,22 @@ def _run_normal_simulation(sim, circuit: cirq.Circuit, qubits: List[cirq.Qid]) -
 def _run_join_args_simulation(
     sim, circuit: cirq.Circuit, qubits: List[cirq.Qid]
 ) -> cirq.StepResult:
-    num_qubits = len(qubits)
-    qubit_map = {q: i for i, q in enumerate(qubits)}
-    argses = [sim.create_act_on_args(0, qubits=(cirq.LineQubit(j),)) for j in range(num_qubits)]
+    argses = {q: sim.create_act_on_args(0, qubits=[q]) for q in qubits}
     for op in circuit.all_operations():
         full_args: Optional[TActOnArgs] = None
         for q in op.qubits:
             if full_args is None or q not in full_args.qubits:
-                j = qubit_map[q]
                 full_args = (
-                    argses[j] if full_args is None else cast(TActOnArgs, full_args).join(argses[j])
+                    argses[q] if full_args is None else cast(TActOnArgs, full_args).join(argses[q])
                 )
         for q in full_args.qubits:
-            j = qubit_map[q]
-            argses[j] = full_args
+            argses[q] = full_args
         full_args.axes = tuple(full_args.qubit_map[q] for q in op.qubits)
         cirq.act_on(op, full_args)
 
     args_join = None
-    joined = set()
-    for j in range(num_qubits):
-        if argses[j] not in joined:
-            args_join = argses[j] if args_join is None else args_join.join(argses[j])
-            joined.add(argses[j])
+    for args in set(argses.values()):
+        args_join = args if args_join is None else args_join.join(args)
 
     *_, results = sim.simulate_moment_steps(cirq.Circuit(), None, qubits, args_join)
     return results
