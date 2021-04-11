@@ -36,6 +36,8 @@ class DropNegligible:
         deletions: List[Tuple[int, ops.Operation]] = []
         for moment_index, moment in enumerate(circuit):
             for op in moment.operations:
-                if op is not None and protocols.trace_distance_bound(op) <= self.tolerance:
+                if protocols.is_measurement(op):
+                    continue
+                if protocols.trace_distance_bound(op) <= self.tolerance:
                     deletions.append((moment_index, op))
         circuit.batch_remove(deletions)
