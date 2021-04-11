@@ -23,24 +23,36 @@ def _run_normal_simulation(sim, circuit: cirq.Circuit, qubits: List[cirq.Qid]) -
 def _run_join_args_simulation(
     sim, circuit: cirq.Circuit, qubits: List[cirq.Qid]
 ) -> cirq.StepResult:
-    argses = {q: sim.create_act_on_args(0, qubits=[q]) for q in qubits}
+    # Initialize the ActOnArgs, one per qubit.
+    args_map = {q: sim.create_act_on_args(0, qubits=[q]) for q in qubits}
+
+    # Iterate
     for op in circuit.all_operations():
-        full_args: Optional[TActOnArgs] = None
+        # Go through the op's qubits and join any disparate ActOnArgs states
+        # into a new combined state.
+        op_args: Optional[TActOnArgs] = None
         for q in op.qubits:
-            if full_args is None or q not in full_args.qubits:
-                full_args = (
-                    argses[q] if full_args is None else cast(TActOnArgs, full_args).join(argses[q])
+            if op_args is None or q not in op_args.qubits:
+                op_args = (
+                    args_map[q]
+                    if op_args is None
+                    else cast(TActOnArgs, op_args).join(args_map[q])
                 )
-        for q in full_args.qubits:
-            argses[q] = full_args
-        full_args.axes = tuple(full_args.qubit_map[q] for q in op.qubits)
-        cirq.act_on(op, full_args)
+        # (Backfill the args map with the new value)
+        for q in op_args.qubits:
+            args_map[q] = op_args
 
-    args_join = None
-    for args in set(argses.values()):
-        args_join = args if args_join is None else args_join.join(args)
+        # Act on the args with the operation
+        op_args.axes = tuple(op_args.qubit_map[q] for q in op.qubits)
+        cirq.act_on(op, op_args)
 
-    *_, results = sim.simulate_moment_steps(cirq.Circuit(), None, qubits, args_join)
+    # Create the final ActOnArgs by joining everything together
+    final_args = None
+    for args in set(args_map.values()):
+        final_args = args if final_args is None else final_args.join(args)
+
+    # Run an empty simulation to get the results
+    *_, results = sim.simulate_moment_steps(cirq.Circuit(), None, qubits, final_args)
     return results
 
 
