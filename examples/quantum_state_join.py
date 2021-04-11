@@ -1,6 +1,6 @@
 import time
 import random
-from typing import Tuple, cast, List
+from typing import Tuple, cast, List, Optional
 
 import numpy as np
 import cirq
@@ -13,32 +13,31 @@ from cirq.sim.simulator import (
 )
 
 
-def _run_normal(sim, circuit: cirq.Circuit, qubits: List[cirq.Qid]) -> cirq.StepResult:
+def _run_normal_simulation(sim, circuit: cirq.Circuit, qubits: List[cirq.Qid]) -> cirq.StepResult:
     qubits = list(circuit.all_qubits())
     args = sim.create_act_on_args(0, qubits=qubits)
     *_, results = sim.simulate_moment_steps(circuit, None, qubits, args)
     return results
 
 
-def _run_fast(sim, circuit: cirq.Circuit, qubits: List[cirq.Qid]) -> cirq.StepResult:
+def _run_join_args_simulation(
+    sim, circuit: cirq.Circuit, qubits: List[cirq.Qid]
+) -> cirq.StepResult:
     num_qubits = len(qubits)
     qubit_map = {q: i for i, q in enumerate(qubits)}
-    qubitses = [(cirq.LineQubit(j),) for j in range(num_qubits)]
-    argses = [sim.create_act_on_args(0, qubits=qubitses[j]) for j in range(num_qubits)]
+    argses = [sim.create_act_on_args(0, qubits=(cirq.LineQubit(j),)) for j in range(num_qubits)]
     for op in circuit.all_operations():
-        full_args = None
-        full_qubits = tuple()
+        full_args: Optional[TActOnArgs] = None
         for q in op.qubits:
-            if q not in full_qubits:
+            if full_args is None or q not in full_args.qubits:
                 j = qubit_map[q]
-                full_args = argses[j] if full_args is None else full_args.join(argses[j])
-                full_qubits = full_qubits + qubitses[j]
-        for q in full_qubits:
+                full_args = (
+                    argses[j] if full_args is None else cast(TActOnArgs, full_args).join(argses[j])
+                )
+        for q in full_args.qubits:
             j = qubit_map[q]
             argses[j] = full_args
-            qubitses[j] = full_qubits
-        full_qubit_map = {q: i for i, q in enumerate(full_qubits)}
-        full_args.axes = tuple(full_qubit_map[q] for q in op.qubits)
+        full_args.axes = tuple(full_args.qubit_map[q] for q in op.qubits)
         cirq.act_on(op, full_args)
 
     args_join = None
@@ -52,13 +51,13 @@ def _run_fast(sim, circuit: cirq.Circuit, qubits: List[cirq.Qid]) -> cirq.StepRe
     return results
 
 
-def _run(
+def _run_comparison(
     num_qubits: int,
     circuit_length: int,
     cnot_freq: float,
     sim: SimulatesIntermediateState[
         TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs
-    ]
+    ],
 ):
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cirq.Circuit()
@@ -70,11 +69,11 @@ def _run(
                 circuit.append(cirq.H(cirq.LineQubit(j)) ** random.random())
 
     t1 = time.perf_counter()
-    results = _run_normal(sim, circuit, qubits)
+    results = _run_normal_simulation(sim, circuit, qubits)
     print(time.perf_counter() - t1)
 
     t1 = time.perf_counter()
-    results1 = _run_fast(sim, circuit, qubits)
+    results1 = _run_join_args_simulation(sim, circuit, qubits)
     print(time.perf_counter() - t1)
 
     sam = results.sample(qubits, 10000)
@@ -86,22 +85,14 @@ def _run(
         print(sam[i].mean())
 
 
-def main(seed=None):
-    """Run a random simulation with joining args.
-
-    Args:
-        seed: The seed to use for the simulation.
-    """
-    random.seed(seed)
-
-    # Run with density matrix simulator
+def main():
     print('***Run with sparse simulator***')
-    sim = cirq.Simulator(seed=seed)
-    _run(num_qubits=10, circuit_length=10, cnot_freq=.25, sim=sim)
+    sim = cirq.Simulator()
+    _run_comparison(num_qubits=22, circuit_length=10, cnot_freq=0.15, sim=sim)
 
     print('***Run with density matrix simulator***')
-    sim = cirq.DensityMatrixSimulator(seed=seed)
-    _run(num_qubits=11, circuit_length=10, cnot_freq=.25, sim=sim)
+    sim = cirq.DensityMatrixSimulator()
+    _run_comparison(num_qubits=11, circuit_length=10, cnot_freq=0.15, sim=sim)
 
 
 if __name__ == '__main__':
