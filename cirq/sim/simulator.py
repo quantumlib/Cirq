@@ -535,7 +535,7 @@ class SimulatesIntermediateState(
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         act_on_args = self.create_act_on_args(initial_state, qubits)
-        return self._core_iterator(circuit, act_on_args, qubits)
+        return self._core_iterator(circuit, act_on_args)
 
     @abc.abstractmethod
     def create_act_on_args(
@@ -565,7 +565,6 @@ class SimulatesIntermediateState(
         self,
         circuit: circuits.Circuit,
         sim_state: TActOnArgs,
-        qubits: Tuple['cirq.Qid', ...],
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
@@ -576,9 +575,6 @@ class SimulatesIntermediateState(
             sim_state: The initial args for the simulation. The form of
                 this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
-            qubits: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
 
         Yields:
             StepResults from simulating a Moment of the Circuit.

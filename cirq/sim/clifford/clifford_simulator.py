@@ -92,17 +92,17 @@ class CliffordSimulator(
 
         state = CliffordState(qubit_map, initial_state=initial_state)
         return clifford.ActOnStabilizerCHFormArgs(
-            state.ch_form,
-            [],
-            self._prng,
-            {},
+            state=state.ch_form,
+            axes=[],
+            prng=self._prng,
+            log_of_measurement_results={},
+            qubits=qubits,
         )
 
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
         sim_state: clifford.ActOnStabilizerCHFormArgs,
-        qubits: Tuple['cirq.Qid', ...],
     ):
         """Iterator over CliffordSimulatorStepResult from Moments of a Circuit
 
@@ -110,17 +110,13 @@ class CliffordSimulator(
             circuit: The circuit to simulate.
             sim_state: The initial state args for the simulation in the
                 computational basis.
-            qubits: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
 
         Yields:
             CliffordStepResult from simulating a Moment of the Circuit.
         """
-        qubit_map = {q: i for i, q in enumerate(qubits)}
 
         def create_state():
-            state = CliffordState(qubit_map)
+            state = CliffordState(sim_state.qubit_map)
             state.ch_form = sim_state.state.copy()
             return state
 
@@ -135,7 +131,7 @@ class CliffordSimulator(
 
             for op in moment:
                 try:
-                    sim_state.axes = tuple(qubit_map[i] for i in op.qubits)
+                    sim_state.axes = tuple(sim_state.qubit_map[i] for i in op.qubits)
                     act_on(op, sim_state)
                 except TypeError:
                     raise NotImplementedError(
