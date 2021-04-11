@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import warnings
-from typing import Any, List, Sequence
+from typing import Any, List, Sequence, Optional
 
 import numpy as np
 
@@ -81,6 +81,8 @@ qreg q[{num_qubits}];
             qasm_unitary, unitary, rtol=1e-8, atol=1e-8
         )
     except Exception as ex:
+        p_unitary: Optional[np.ndarray]
+        p_qasm_unitary: Optional[np.ndarray]
         if qasm_unitary is not None:
             p_unitary, p_qasm_unitary = linalg.match_global_phase(unitary, qasm_unitary)
         else:
