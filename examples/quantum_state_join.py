@@ -1,8 +1,9 @@
-import time
 import random
-from typing import Tuple, cast, List, Optional
+import time
+from typing import cast, List, Optional
 
 import numpy as np
+
 import cirq
 from cirq.sim.simulator import (
     TStepResult,
@@ -14,7 +15,6 @@ from cirq.sim.simulator import (
 
 
 def _run_normal_simulation(sim, circuit: cirq.Circuit, qubits: List[cirq.Qid]) -> cirq.StepResult:
-    qubits = list(circuit.all_qubits())
     args = sim.create_act_on_args(0, qubits=qubits)
     *_, results = sim.simulate_moment_steps(circuit, None, qubits, args)
     return results
