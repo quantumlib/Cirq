@@ -213,7 +213,9 @@ def test_act_on_args():
     for initial_state in range(4):
         args = mps_simulator.create_act_on_args(initial_state=initial_state, qubits=(q0, q1))
         actual = mps_simulator.simulate(circuit, qubit_order=qubit_order, initial_state=args)
-        expected = ref_simulator.simulate(circuit, qubit_order=qubit_order, initial_state=initial_state)
+        expected = ref_simulator.simulate(
+            circuit, qubit_order=qubit_order, initial_state=initial_state
+        )
         np.testing.assert_allclose(
             actual.final_state.to_numpy(), expected.final_state_vector, atol=1e-4
         )
