@@ -65,12 +65,13 @@ def plot_state_histogram(
     Args:
         data:   The histogram values to plot. Possible options are:
                 `result.Result`: Histogram is computed using
-                `get_state_histogram` and all 2 ** num_qubits values are
-                 plotted, including 0s.
+                    `get_state_histogram` and all 2 ** num_qubits values are
+                    plotted, including 0s.
                 `collections.Counter`: Only (key, value) pairs present in
-                 collection are plotted.
-                `Sequence[SupportsFloat]`: Values in input are plotted with
-                 default labels as |0> ... |n-1>.
+                    collection are plotted.
+                `Sequence[SupportsFloat]`: Values in the input sequence are
+                    plotted. i'th entry corresponds to height of the i'th
+                    bar in histogram.
         ax:      The Axes to plot on. If not given, a new figure is created,
                  plotted on, and shown.
         tick_label: Tick labels for the histogram plot in case input is not

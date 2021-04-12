@@ -91,7 +91,7 @@ def test_plot_state_histogram_collection():
     state_histogram.plot_state_histogram(r.histogram(key='0,1,2,3'), ax1)
     expected_values = [5]
     tick_label = ['7']
-    state_histogram.plot_state_histogram(expected_values, ax2, tick_label=tick_label)
+    state_histogram.plot_state_histogram(expected_values, ax2, tick_label=tick_label, xlabel=None)
     for r1, r2 in zip(ax1.get_children(), ax2.get_children()):
         if isinstance(r1, mpl.patches.Rectangle) and isinstance(r2, mpl.patches.Rectangle):
             assert str(r1) == str(r2)
