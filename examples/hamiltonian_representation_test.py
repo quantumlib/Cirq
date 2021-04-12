@@ -7,7 +7,7 @@ from sympy.parsing.sympy_parser import parse_expr
 import cirq
 import examples.hamiltonian_representation as hr
 
-# These are some of the entries of table 1.
+# These are some of the entries of table 1 of https://arxiv.org/pdf/1804.09130.pdf.
 @pytest.mark.parametrize(
     'boolean_expr,hamiltonian',
     [
@@ -45,16 +45,14 @@ def test_unsupported_op():
     ],
 )
 def test_circuit(boolean_expr, expected):
-    boolean = parse_expr(boolean_expr)
-    name_to_id = hr.get_name_to_id([boolean])
-    hamiltonian = hr.build_hamiltonian_from_boolean(boolean, name_to_id)
+    circuit_hamiltonians, qubits = hr.build_circuit_from_boolean_expressions(
+        [boolean_expr], 0.1 * math.pi
+    )
 
-    qubits = [cirq.NamedQubit(name) for name in name_to_id.keys()]
-    circuit = cirq.Circuit()
-    circuit.append(cirq.H.on_each(*qubits))
+    circuit_hadamard = cirq.Circuit()
+    circuit_hadamard.append(cirq.H.on_each(*qubits))
 
-    theta = 0.1 * math.pi
-    circuit += hr.build_circuit_from_hamiltonians([hamiltonian], qubits, theta)
+    circuit = circuit_hadamard + circuit_hamiltonians
 
     phi = cirq.Simulator().simulate(circuit, qubit_order=qubits, initial_state=0).state_vector()
     actual = np.arctan2(phi.real, phi.imag) - math.pi / 2.0 > 0.0
