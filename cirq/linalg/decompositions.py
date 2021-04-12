@@ -121,7 +121,7 @@ def _group_similar(items: List[T], comparer: Callable[[T, T], bool]) -> List[Lis
 
 def unitary_eig(
     matrix: np.ndarray, check_preconditions: bool = True, atol: float = 1e-8
-) -> Tuple[np.array, np.ndarray]:
+) -> Tuple[np.ndarray, np.ndarray]:
     """Gives the guaranteed unitary eigendecomposition of a normal matrix.
 
     All hermitian and unitary matrices are normal matrices. This method was
@@ -337,7 +337,7 @@ class AxisAngleDecomposition:
 
     def __str__(self) -> str:
         axis_terms = '+'.join(
-            '{:.3g}*{}'.format(e, a) if e < 0.9999 else a
+            f'{e:.3g}*{a}' if e < 0.9999 else a
             for e, a in zip(self.axis, ['X', 'Y', 'Z'])
             if abs(e) >= 1e-8
         ).replace('+-', '-')
@@ -648,11 +648,13 @@ def scatter_plot_normalized_kak_interaction_coefficients(
 
     # parse input and extract KAK vector
     if not isinstance(interactions, np.ndarray):
-        interactions = [
+        interactions_extracted: List[np.ndarray] = [
             a if isinstance(a, np.ndarray) else protocols.unitary(a) for a in interactions
         ]
+    else:
+        interactions_extracted = [interactions]
 
-    points = kak_vector(interactions) * 4 / np.pi
+    points = kak_vector(interactions_extracted) * 4 / np.pi
 
     ax.scatter(*coord_transform(points), **kwargs)
     ax.set_xlim(0, +1)
