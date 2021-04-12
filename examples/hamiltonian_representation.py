@@ -1,7 +1,7 @@
 from collections import defaultdict
 import functools
 import math
-from typing import DefaultDict, List, Sequence, Tuple
+from typing import DefaultDict, Dict, List, Sequence, Tuple
 
 from sympy.logic.boolalg import And, Not, Or, Xor
 from sympy.core.expr import Expr
@@ -130,7 +130,7 @@ def build_hamiltonian_from_boolean(
     raise ValueError(f'Unsupported type: {type(boolean_expr)}')
 
 
-def get_name_to_id(boolean_exprs: Sequence[Expr]) -> DefaultDict[str, int]:
+def get_name_to_id(boolean_exprs: Sequence[Expr]) -> Dict[str, int]:
     """Maps the variables to a unique integer.
 
     Args:
