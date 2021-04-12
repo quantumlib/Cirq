@@ -145,6 +145,16 @@ def get_name_to_id(boolean_exprs: Sequence[Expr]) -> Dict[str, int]:
     return {symbol_name: i for i, symbol_name in enumerate(symbol_names)}
 
 
+def _gray_code_comparator(k1, k2, flip=False):
+    max_1 = k1[-1] if k1 else -1
+    max_2 = k2[-1] if k2 else -1
+    if max_1 != max_2:
+        return -1 if (max_1 < max_2) ^ flip else 1
+    if max_1 == -1:
+        return 0
+    return _gray_code_comparator(k1[0:-1], k2[0:-1], not flip)
+
+
 def build_circuit_from_hamiltonians(
     hamiltonian_lists: List[HamiltonianList], qubits: List[cirq.NamedQubit], theta: float
 ) -> cirq.Circuit:
@@ -165,16 +175,8 @@ def build_circuit_from_hamiltonians(
 
     circuit = cirq.Circuit()
 
-    # Here we follow improvements of [4] cancelling out the CNOTs and ordering using a Gray code.
-    def _gray_code_comparator(k1, k2, flip=False):
-        max_1 = k1[-1] if k1 else -1
-        max_2 = k2[-1] if k2 else -1
-        if max_1 != max_2:
-            return -1 if (max_1 < max_2) ^ flip else 1
-        if max_1 == -1:
-            return 0
-        return _gray_code_comparator(k1[0:-1], k2[0:-1], not flip)
-
+    # Here we follow improvements of [4] cancelling out the CNOTs. The first step is to order by
+    # Gray code so that as few as possible gates are changed.
     sorted_hs = sorted(
         list(combined.hamiltonians.keys()), key=functools.cmp_to_key(_gray_code_comparator)
     )

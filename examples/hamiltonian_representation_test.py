@@ -1,4 +1,6 @@
+import functools
 import math
+import random
 
 import numpy as np
 import pytest
@@ -58,3 +60,41 @@ def test_circuit(boolean_expr, expected):
     actual = np.arctan2(phi.real, phi.imag) - math.pi / 2.0 > 0.0
 
     np.testing.assert_array_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    'n_bits, expected_hs',
+    [
+        (1, [(), (0,)]),
+        (2, [(), (0,), (0, 1), (1,)]),
+        (3, [(), (0,), (0, 1), (1,), (1, 2), (0, 1, 2), (0, 2), (2,)]),
+    ],
+)
+def test_gray_code_sorting(n_bits, expected_hs):
+    hs = []
+    for x in range(2 ** n_bits):
+        h = []
+        for i in range(n_bits):
+            if x % 2 == 1:
+                h.append(i)
+                x -= 1
+            x //= 2
+        hs.append(tuple(sorted(h)))
+    random.shuffle(hs)
+
+    sorted_hs = sorted(list(hs), key=functools.cmp_to_key(hr._gray_code_comparator))
+
+    np.testing.assert_array_equal(sorted_hs, expected_hs)
+
+
+@pytest.mark.parametrize(
+    'seq_a, seq_b, expected',
+    [
+        ((), (), 0),
+        ((), (0,), -1),
+        ((0,), (), 1),
+        ((0,), (0,), 0),
+    ],
+)
+def test_gray_code_comparison(seq_a, seq_b, expected):
+    assert hr._gray_code_comparator(seq_a, seq_b) == expected
