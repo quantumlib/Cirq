@@ -1409,8 +1409,8 @@ class AbstractCircuit(abc.ABC):
         1: ───────@───────
         <BLANKLINE>
         2: ───H───────────
-        >>> circuit.get_independent_qubit_sets()
-        [{cirq.LineQubit(0), cirq.LineQubit(1)}, {cirq.LineQubit(2)}]
+        >>> [sorted(qs) for qs in circuit.get_independent_qubit_sets()]
+        [[cirq.LineQubit(0), cirq.LineQubit(1)], [cirq.LineQubit(2)]]
 
         Returns:
             The list of independent qubit sets.
@@ -1420,7 +1420,7 @@ class AbstractCircuit(abc.ABC):
         for op in self.all_operations():
             if len(op.qubits) > 1:
                 uf.union(*op.qubits)
-        return sorted(sorted([qs for qs in uf.to_sets()]), key=min)
+        return sorted([qs for qs in uf.to_sets()], key=min)
 
     def factorize(self: CIRCUIT_TYPE) -> Iterable[CIRCUIT_TYPE]:
         """Factorize circuit into a sequence of independent circuits (factors).
