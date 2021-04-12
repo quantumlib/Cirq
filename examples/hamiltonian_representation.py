@@ -87,7 +87,7 @@ class HamiltonianList:
 
 
 def build_hamiltonian_from_boolean(
-    boolean_expr: Expr, name_to_id: DefaultDict[str, int]
+    boolean_expr: Expr, name_to_id: Dict[str, int]
 ) -> HamiltonianList:
     """Builds the Hamiltonian representation of Boolean expression as per [1]:
 
@@ -187,7 +187,7 @@ def build_circuit_from_hamiltonians(
     def _apply_cnots(h):
         circuit.append([cirq.CNOT(qubits[c], qubits[h[-1]]) for c in h[0:-1]])
 
-    previous_h = ()
+    previous_h: Tuple[int, ...] = ()
     for h in sorted_hs:
         w = combined.hamiltonians[h]
 
