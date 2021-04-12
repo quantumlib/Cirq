@@ -1,3 +1,4 @@
+import functools
 import math
 from typing import Dict, List, Sequence, Tuple
 
@@ -13,6 +14,8 @@ import cirq
 #     by Stuart Hadfield, https://arxiv.org/pdf/1804.09130.pdf
 # [2] https://www.youtube.com/watch?v=AOKM9BkweVU is a useful intro
 # [3] https://github.com/rsln-s/IEEE_QW_2020/blob/master/Slides.pdf
+# [4] Efficient quantum circuits for diagonal unitaries without ancillas by Jonathan Welch, Daniel
+#     Greenbaum, Sarah Mostame, Alán Aspuru-Guzik.
 
 
 class HamiltonianList:
@@ -44,7 +47,7 @@ class HamiltonianList:
         hamiltonians = self._hamiltonians.copy()
         for h, w in other.hamiltonians.items():
             if h not in hamiltonians:
-                hamiltonians[h] = 0
+                hamiltonians[h] = 0.0
             hamiltonians[h] += sign * w
         return HamiltonianList(hamiltonians)
 
@@ -156,15 +159,52 @@ def build_circuit_from_hamiltonians(
     Return:
         A dictionary of string (the variable name) to a unique integer.
     """
-    circuit = cirq.Circuit()
+    combined = HamiltonianList.O()
     for hamiltonian_list in hamiltonian_lists:
-        for h, w in hamiltonian_list.hamiltonians.items():
-            circuit.append([cirq.CNOT(qubits[c], qubits[h[0]]) for c in h[1:]])
+        combined += hamiltonian_list
 
-            if len(h) >= 1:
-                circuit.append(cirq.Rz(rads=(theta * w)).on(qubits[h[0]]))
+    circuit = cirq.Circuit()
 
-            circuit.append([cirq.CNOT(qubits[c], qubits[h[0]]) for c in h[1:]])
+    # Here we follow improvements of [4] cancelling out the CNOTs and ordering using a Gray code.
+    def _gray_code_comparator(k1, k2, flip=False):
+        max_1 = k1[-1] if k1 else -1
+        max_2 = k2[-1] if k2 else -1
+        if max_1 != max_2:
+            return -1 if (max_1 < max_2) ^ flip else 1
+        if max_1 == -1:
+            return 0
+        return _gray_code_comparator(k1[0:-1], k2[0:-1], not flip)
+
+    sorted_hs = sorted(
+        list(combined.hamiltonians.keys()), key=functools.cmp_to_key(_gray_code_comparator)
+    )
+
+    # Applies the CNOTs
+    def _apply_cnots(h):
+        circuit.append([cirq.CNOT(qubits[c], qubits[h[-1]]) for c in h[0:-1]])
+
+    previous_h = ()
+    for h in sorted_hs:
+        w = combined.hamiltonians[h]
+
+        # We first test whether the rotation is applied on the same qubit.
+        last_qubit_is_same = previous_h and h and previous_h[-1] == h[-1]
+        if last_qubit_is_same:
+            # Instead of applying previous_h and then h, we just apply the symmetric difference of
+            # the two CNOTs.
+            h_diff = tuple(sorted(set(previous_h).symmetric_difference(h)))
+            _apply_cnots(h_diff + (h[-1],))
+            # This would be equivalent to the lines below, but it should use fewer gates.
+        else:
+            _apply_cnots(previous_h)
+            _apply_cnots(h)
+
+        if len(h) >= 1:
+            circuit.append(cirq.Rz(rads=(theta * w)).on(qubits[h[-1]]))
+
+        previous_h = h
+
+    _apply_cnots(previous_h)
 
     return circuit
 
