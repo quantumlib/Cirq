@@ -14,11 +14,11 @@
 
 """Tool to visualize the results of a study."""
 
-from typing import Union, Optional
-import math
+from typing import Union, Optional, Sequence, SupportsFloat
 import numpy as np
 import matplotlib.pyplot as plt
 import cirq.study.result as result
+import collections
 
 
 def get_state_histogram(result: 'result.Result') -> np.ndarray:
@@ -29,37 +29,49 @@ def get_state_histogram(result: 'result.Result') -> np.ndarray:
                 state histogram should be computed.
 
     Returns:
-        The state histogram (a numpy array) corresponding to the trial result.
+        The state histogram (a numpy array of length 2 ** num_qubits)
+        corresponding to the trial result. The state histogram is computed
+        using `result.histogram()`.
     """
     num_qubits = sum([value.shape[1] for value in result.measurements.values()])
-    states = 2 ** num_qubits
-    values = np.zeros(states)
-    # measurements is a dict of {measurement gate key:
-    #                            array(repetitions, boolean result)}
-    # Convert this to an array of repetitions, each with an array of booleans.
-    # e.g. {q1: array([[True, True]]), q2: array([[False, False]])}
-    #      --> array([[True, False], [True, False]])
-    measurement_by_result = np.hstack(list(result.measurements.values()))
-
-    for meas in measurement_by_result:
-        # Convert each array of booleans to a string representation.
-        # e.g. [True, False] -> [1, 0] -> '10' -> 2
-        state_ind = int(''.join([str(x) for x in [int(x) for x in meas]]), 2)
-        values[state_ind] += 1
-    return values
+    hist = result.histogram(key=','.join(result.data.keys()))
+    data = np.zeros(2 ** num_qubits)
+    for k, v in hist.items():
+        data[k] = v
+    return data
 
 
 def plot_state_histogram(
-    values: Union['result.Result', np.ndarray], ax: Optional['plt.Axis'] = None
+    data: Union['result.Result', collections.Counter, Sequence[SupportsFloat]],
+    ax: Optional['plt.Axis'] = None,
+    *,
+    tick_label: Optional[Sequence[str]] = None,
+    xlabel: Optional[str] = 'qubit state',
+    ylabel: Optional[str] = 'result count',
+    title: Optional[str] = 'Result State Histogram',
 ) -> 'plt.Axis':
     """Plot the state histogram from either a single result with repetitions or
-       a histogram of measurement results computed using `get_state_histogram`.
+       a histogram of measurement results computed using `result.histogram()` or
+       a histogram of measurement results specified as an np.ndarray where i'th
+       entry corresponds to the histogram of state |i>
 
     Args:
-        values: The histogram values to plot. If `result.Result` is passed, the
-                values are computed by calling `get_state_histogram`.
-        ax:     The Axes to plot on. If not given, a new figure is created,
-                plotted on, and shown.
+        data:   The histogram values to plot. Possible options are:
+                `result.Result`: Histogram is computed using
+                `get_state_histogram` and all 2 ** num_qubits values are
+                 plotted, including 0s.
+                `collections.Counter`: Only (key, value) pairs present in
+                 collection are plotted.
+                `Sequence[SupportsFloat]`: Values in input are plotted with
+                 default labels as |0> ... |n-1>.
+        ax:      The Axes to plot on. If not given, a new figure is created,
+                 plotted on, and shown.
+        tick_label: Tick labels for the histogram plot. If not given, the keys
+                    of `collections.Counter` are used by default. For sequence,
+                    label for i'th entry is |i>.
+        xlabel:  Label for the x-axis.
+        ylabel:  Label for the y-axis.
+        title:   Title of the plot.
 
     Returns:
         The axis that was plotted on.
@@ -67,15 +79,17 @@ def plot_state_histogram(
     show_fig = not ax
     if not ax:
         fig, ax = plt.subplots(1, 1)
-    print(values, isinstance(values, result.Result))
-    if isinstance(values, result.Result):
-        values = get_state_histogram(values)
-    states = len(values)
-    num_qubits = math.ceil(math.log(states, 2))
-    plot_labels = [bin(x)[2:].zfill(num_qubits) for x in range(states)]
-    ax.bar(np.arange(states), values, tick_label=plot_labels)
-    ax.set_xlabel('qubit state')
-    ax.set_ylabel('result count')
+    if isinstance(data, result.Result):
+        data = get_state_histogram(data)
+    labels = np.arange(len(data))
+    if isinstance(data, collections.Counter):
+        labels, data = zip(*sorted(data.items()))
+    if not tick_label:
+        tick_label = labels
+    ax.bar(np.arange(len(data)), data, tick_label=tick_label)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
     if show_fig:
         fig.show()
     return ax
