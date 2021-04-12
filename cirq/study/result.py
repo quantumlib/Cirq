@@ -356,8 +356,8 @@ def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool
         # Do error checking here, otherwise the following logic will work
         # for both "auto" and "never".
 
-    if pack_bits == 'auto' and np.array_equal(digits, digits.astype(np.bool)):
-        return _pack_bits(digits.astype(np.bool)), True
+    if pack_bits == 'auto' and np.array_equal(digits, digits.astype(np.bool_)):
+        return _pack_bits(digits.astype(np.bool_)), True
 
     buffer = io.BytesIO()
     np.save(buffer, digits, allow_pickle=False)
@@ -404,4 +404,4 @@ def _unpack_digits(
 def _unpack_bits(packed_bits: str, dtype: str, shape: Sequence[int]) -> np.ndarray:
     bits_bytes = bytes.fromhex(packed_bits)
     bits = np.unpackbits(np.frombuffer(bits_bytes, dtype=np.uint8))
-    return bits[: np.prod(shape)].reshape(shape).astype(dtype)
+    return bits[: np.prod(shape).item()].reshape(shape).astype(dtype)
