@@ -1,13 +1,17 @@
+import concurrent
 import curses
 import os
 import subprocess
 import sys
 import time
+from concurrent.futures._base import Future
+from concurrent.futures.thread import ThreadPoolExecutor
 from dataclasses import dataclass
+from enum import Enum
 from subprocess import Popen, PIPE
 from typing import Dict, List, Sequence, Tuple
 
-import duet
+_EARLY_TERMINATE = False
 
 
 def cd_repo_root():
@@ -20,70 +24,85 @@ def cd_repo_root():
     return repo_root
 
 
+class Status(Enum):
+    """Possible results of a test."""
+
+    SUCCESS = 'success'
+    FAIL = 'fail'
+    CANCELED = 'cancel'
+
+
 @dataclass
 class Result:
     """Simple wrapper around the result of a check."""
 
-    success: bool
+    status: Enum
     stdout: str
     stderr: str
 
 
-async def run(command: List[str], varname: str, results: Dict[str, Result]):
-    """Run a check"""
-    assert varname not in results
+def run(command: List[str]):
+    """Run a check.
+
+    Args:
+        command: The list of tokens to run with `subprocess.Popen`.
+    """
     p = Popen(command, stdout=PIPE, stderr=PIPE, encoding='utf-8')
 
+    # Poll for completion.
     while True:
-        await duet.completed_future(None)
         ret = p.poll()
         if ret is not None:
             break
 
+        # ThreadPoolExecutor does not provide a way to kill threads. Any tasks that have
+        # already been submitted will run to completion. Here, we use a global variable
+        # to flag that all outstanding checks should be forcibly terminated.
+        if _EARLY_TERMINATE:
+            p.terminate()
+
+            # Return here so we can set the correct status and so it does not hang
+            # on `p.communicate()` later.
+            return Result(
+                status=Status.CANCELED,
+                stdout='',
+                stderr='',
+            )
+
     stdout, stderr = p.communicate()
-    assert varname not in results
-    results[varname] = Result(
-        success=p.returncode == 0,
+    return Result(
+        status=Status.SUCCESS if p.returncode == 0 else Status.FAIL,
         stdout=stdout,
         stderr=stderr,
     )
 
 
-class FailFastException(RuntimeError):
-    """Raised when a task has failed and we want to stop other tasks."""
-
-
-async def check(check_names: List[str], results: Dict[str, Result], fail_fast: bool):
+def check(check_names: Sequence[str], results: Dict[str, Result]) -> bool:
     """Check the status of running checks.
 
     Use ncurses WIN to nicely print a status of all the running checks.
+    Returns whether any tasks failed.
     """
     name_len = max(len(s) for s in check_names)
-    while True:
-        alldone = True
-        anyfailed = False
-        for i, name in enumerate(check_names):
+    anyfailed = False
+    for i, name in enumerate(check_names):
 
-            if name in results:
-                if results[name].success:
-                    status = 'Done!'
-                else:
-                    status = '*Fail*'
-                    anyfailed = True
+        if name in results:
+            if results[name].status == Status.SUCCESS:
+                status = 'Done!'
+            elif results[name].status == Status.FAIL:
+                status = '*Fail*'
+                anyfailed = True
             else:
-                alldone = False
-                status = '(running)'
-            WIN.addstr(i + HEADER_SIZE, 0, f'{name:{name_len}s} {status:9s}')
-
-        WIN.addstr(len(check_names) + HEADER_SIZE, 0, '')  # position cursor
-        WIN.refresh()
-        if alldone:
-            return
-
-        if fail_fast and anyfailed:
-            await duet.failed_future(FailFastException)
+                status = '(cancelled)'
         else:
-            await duet.completed_future(None)
+            status = '(running)'
+        WIN.addstr(i + HEADER_SIZE, 0, f'{name:{name_len}s} {status:9s}')
+
+    WIN.addstr(len(check_names) + HEADER_SIZE, 0, '')  # position cursor
+    WIN.refresh()
+
+    return anyfailed
 
 
 # curses global variables
@@ -91,7 +110,7 @@ HEADER_SIZE = 1
 WIN = None
 
 
-async def run_checks(
+def run_checks(
     checks: Sequence[Tuple[str, Sequence[str]]], check_names: Sequence[str], fail_fast: bool
 ) -> Dict[str, Result]:
     """Run all the checks.
@@ -100,19 +119,28 @@ async def run_checks(
 
     This function requires that `WIN` has been set up.
     """
+    global _EARLY_TERMINATE
     results: Dict[str, Result] = {}
+    futures: Dict[Future, str] = {}
     start = time.time()
-    try:
-        async with duet.new_scope() as scope:
-            for name, cmd in checks:
-                scope.spawn(run, cmd, name, results)
+    with ThreadPoolExecutor() as executor:
+        # Submit all the checks to the executor.
+        for name, cmd in checks:
+            fut = executor.submit(run, cmd)
+            futures[fut] = name
 
-            scope.spawn(check, check_names, results, fail_fast)
+        # Process the results as the become available.
+        for done in concurrent.futures.as_completed(futures):
+            result = done.result()
+            name = futures[done]
+            results[name] = result
+            anyfailed = check(check_names, results)
+            if fail_fast and anyfailed:
+                _EARLY_TERMINATE = True
+                executor.shutdown(wait=False)
+
         end = time.time()
         WIN.addstr(f'Finished in {end - start}s.\n')
-    except FailFastException:
-        end = time.time()
-        WIN.addstr(f'Stopped after {end - start}s due to failed check.\n')
 
     press_a_key = True
     if press_a_key:
@@ -127,7 +155,7 @@ def print_outputs(results: Dict[str, Result], check_names: Sequence[str]):
         if name not in results:
             continue
         result = results[name]
-        if result.success:
+        if result.status != Status.FAIL:
             continue
 
         print()
@@ -138,8 +166,8 @@ def print_outputs(results: Dict[str, Result], check_names: Sequence[str]):
             print(result.stdout)
 
 
-def print_summary(results, check_names):
-    """For all check, print a one-line summary of their status."""
+def print_summary(results: Dict[str, Result], check_names: Sequence[str]):
+    """For all checks, print a one-line summary of their status."""
     name_len = max(len(s) for s in check_names)
     for name in check_names:
         if name not in results:
@@ -147,30 +175,30 @@ def print_summary(results, check_names):
             continue
 
         result = results[name]
-        if result.success:
+        if result.status == Status.SUCCESS:
             print(f'{name:{name_len}s} - Success!')
-        else:
+        elif result.status == Status.FAIL:
             print(f'{name:{name_len}s} - *Fail*')
+        elif result.status == Status.CANCELED:
+            print(f'{name:{name_len}s} - (cancelled)')
+        else:
+            raise ValueError()
 
 
-async def main(fail_fast=True):
+def main(fail_fast=True):
     """The main function."""
     global WIN
     repo_root = cd_repo_root()
     checks = [
+        ('misc', ['check/misc']),
         ('mypy', ['check/mypy']),
         ('nbformat', ['check/nbformat']),
         ('format-incremental', ['check/format-incremental']),
-        ('misc', ['check/misc']),
         ('pylint-changed-files', ['check/pylint-changed-files']),
-        ('pylint', ['check/pylint']),
         ('pytest-changed-files', ['check/pytest-changed-files']),
-        (
-            'pytest-changed-files-and-incremental-coverage',
-            ['check/pytest-changed-files-and-incremental-coverage'],
-        ),
+        ('incremental-coverage', ['check/pytest-changed-files-and-incremental-coverage']),
+        ('pylint', ['check/pylint']),
         ('pytest', ['check/pytest']),
-        ('pytest-and-incremental-coverage', ['check/pytest-and-incremental-coverage']),
     ]
     check_names = [name for name, _ in checks]
 
@@ -184,7 +212,7 @@ async def main(fail_fast=True):
         WIN.addstr(0, 0, f'Repo root: {repo_root}')
         WIN.refresh()
 
-        results = await run_checks(checks, check_names, fail_fast)
+        results = run_checks(checks, check_names, fail_fast)
     finally:
         curses.nocbreak()
         WIN.keypad(False)
@@ -213,4 +241,4 @@ def _parse_args():
 
 
 if __name__ == '__main__':
-    duet.run(main, **_parse_args())
+    main(**_parse_args())
