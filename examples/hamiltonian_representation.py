@@ -25,12 +25,12 @@ class HamiltonianList:
     def __init__(self, hamiltonians: DefaultDict[Tuple[int, ...], float]):
         # The representation is Tuple[int, ...] to weights. The tuple contains the integers of
         # where Z_i is present. For example, Z_0.Z_3 would be (0, 3), and I is the empty tuple.
-        self._hamiltonians = defaultdict(
+        self._hamiltonians: DefaultDict[Tuple[int, ...], float] = defaultdict(
             float, {h: w for h, w in hamiltonians.items() if math.fabs(w) > 1e-12}
         )
 
     @property
-    def hamiltonians(self):
+    def hamiltonians(self) -> DefaultDict[Tuple[int, ...], float]:
         return self._hamiltonians
 
     def __repr__(self):
@@ -48,16 +48,18 @@ class HamiltonianList:
         return self._signed_add(other, -1.0)
 
     def _signed_add(self, other: 'HamiltonianList', sign: float) -> 'HamiltonianList':
-        hamiltonians = self._hamiltonians.copy()
+        hamiltonians: DefaultDict[Tuple[int, ...], float] = self._hamiltonians.copy()
         for h, w in other.hamiltonians.items():
             hamiltonians[h] += sign * w
         return HamiltonianList(hamiltonians)
 
     def __rmul__(self, other: float) -> 'HamiltonianList':
-        return HamiltonianList({k: other * w for k, w in self._hamiltonians.items()})
+        return HamiltonianList(
+            defaultdict(float, {k: other * w for k, w in self._hamiltonians.items()})
+        )
 
     def __mul__(self, other: 'HamiltonianList') -> 'HamiltonianList':
-        hamiltonians = defaultdict(float, {})
+        hamiltonians: DefaultDict[Tuple[int, ...], float] = defaultdict(float, {})
         for h1, w1 in self._hamiltonians.items():
             for h2, w2 in other.hamiltonians.items():
                 # Since we represent the Hamilonians using the indices of the Z_i, when we multiply
@@ -73,15 +75,15 @@ class HamiltonianList:
 
     @staticmethod
     def O() -> 'HamiltonianList':
-        return HamiltonianList({})
+        return HamiltonianList(defaultdict(float, {}))
 
     @staticmethod
     def I() -> 'HamiltonianList':
-        return HamiltonianList({(): 1.0})
+        return HamiltonianList(defaultdict(float, {(): 1.0}))
 
     @staticmethod
     def Z(i: int) -> 'HamiltonianList':
-        return HamiltonianList({(i,): 1.0})
+        return HamiltonianList(defaultdict(float, {(i,): 1.0}))
 
 
 def build_hamiltonian_from_boolean(
