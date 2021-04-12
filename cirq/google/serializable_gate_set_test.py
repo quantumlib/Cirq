@@ -470,7 +470,7 @@ def default_circuit():
 
 def test_serialize_circuit_op_errors():
     constants = [default_circuit_proto()]
-    raw_constants = [default_circuit()]
+    raw_constants = {default_circuit(): 0}
 
     op = cirq.CircuitOperation(default_circuit())
     with pytest.raises(ValueError, match='CircuitOp serialization requires a constants list'):
@@ -493,7 +493,7 @@ def test_serialize_circuit_op_errors():
 
 def test_deserialize_circuit_op_errors():
     constants = [default_circuit_proto()]
-    raw_constants = [default_circuit()]
+    deserialized_constants = [default_circuit()]
 
     proto = v2.program_pb2.CircuitOperation()
     proto.circuit_constant_index = 0
@@ -506,7 +506,7 @@ def test_deserialize_circuit_op_errors():
     )
     with pytest.raises(ValueError, match='Unsupported serialized CircuitOperation'):
         NO_CIRCUIT_OP_GATE_SET.deserialize_op(
-            proto, constants=constants, raw_constants=raw_constants
+            proto, constants=constants, deserialized_constants=deserialized_constants
         )
 
     BAD_CIRCUIT_DESERIALIZER = cg.GateOpDeserializer(
@@ -521,13 +521,14 @@ def test_deserialize_circuit_op_errors():
     )
     with pytest.raises(ValueError, match='Expected CircuitOpDeserializer for id "circuit"'):
         BAD_CIRCUIT_DESERIALIZER_GATE_SET.deserialize_op(
-            proto, constants=constants, raw_constants=raw_constants
+            proto, constants=constants, deserialized_constants=deserialized_constants
         )
 
 
 def test_serialize_deserialize_circuit_op():
     constants = [default_circuit_proto()]
-    raw_constants = [default_circuit()]
+    raw_constants = {default_circuit(): 0}
+    deserialized_constants = [default_circuit()]
 
     proto = v2.program_pb2.CircuitOperation()
     proto.circuit_constant_index = 0
@@ -535,7 +536,12 @@ def test_serialize_deserialize_circuit_op():
 
     op = cirq.CircuitOperation(default_circuit())
     assert proto == MY_GATE_SET.serialize_op(op, constants=constants, raw_constants=raw_constants)
-    assert MY_GATE_SET.deserialize_op(proto, constants=constants, raw_constants=raw_constants) == op
+    assert (
+        MY_GATE_SET.deserialize_op(
+            proto, constants=constants, deserialized_constants=deserialized_constants
+        )
+        == op
+    )
 
 
 def test_multiple_serializers():

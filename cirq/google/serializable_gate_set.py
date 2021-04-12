@@ -152,13 +152,19 @@ class SerializableGateSet:
 
         Args:
             program: The Circuit to serialize.
+            msg: An optional proto object to populate with the serialization
+                results.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+            use_constants: Whether to use constants in serialization. This is
+                required to be True for serializing CircuitOperations.
         """
         if msg is None:
             msg = v2.program_pb2.Program()
         msg.language.gate_set = self.gate_set_name
         if isinstance(program, circuits.Circuit):
             constants: Optional[List[v2.program_pb2.Constant]] = [] if use_constants else None
-            raw_constants: Optional[List[Any]] = [] if use_constants else None
+            raw_constants: Optional[Dict[Any, int]] = {} if use_constants else None
             self._serialize_circuit(
                 program,
                 msg.circuit,
@@ -204,12 +210,19 @@ class SerializableGateSet:
         *,
         arg_function_language: Optional[str] = '',
         constants: Optional[List[v2.program_pb2.Constant]] = None,
-        raw_constants: Optional[List[Any]] = None,
+        raw_constants: Optional[Dict[Any, int]] = None,
     ) -> v2.program_pb2.Operation:
         """Serialize an Operation to cirq.google.api.v2.Operation proto.
 
         Args:
             op: The operation to serialize.
+            msg: An optional proto object to populate with the serialization
+                results.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+            constants: The list of previously-serialized Constant protos.
+            raw_constants: A map raw objects to their respective indices in
+                `constants`.
 
         Returns:
             The cirq.google.api.v2.Operation proto.
@@ -239,12 +252,19 @@ class SerializableGateSet:
         *,
         arg_function_language: Optional[str] = '',
         constants: Optional[List[v2.program_pb2.Constant]] = None,
-        raw_constants: Optional[List[Any]] = None,
+        raw_constants: Optional[Dict[Any, int]] = None,
     ) -> Union[v2.program_pb2.Operation, v2.program_pb2.CircuitOperation]:
         """Serialize a CircuitOperation to cirq.google.api.v2.CircuitOperation proto.
 
         Args:
             op: The circuit operation to serialize.
+            msg: An optional proto object to populate with the serialization
+                results.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+            constants: The list of previously-serialized Constant protos.
+            raw_constants: A map raw objects to their respective indices in
+                `constants`.
 
         Returns:
             The cirq.google.api.v2.CircuitOperation proto.
@@ -253,7 +273,7 @@ class SerializableGateSet:
         if constants is None or raw_constants is None:
             raise ValueError(
                 'CircuitOp serialization requires a constants list and a corresponding '
-                'list of pre-serialization values (raw_constants).'
+                'map of pre-serialization values to indices (raw_constants).'
             )
         if circuits.FrozenCircuit in self.serializers:
             serializer = self.serializers[circuits.FrozenCircuit][0]
@@ -267,7 +287,7 @@ class SerializableGateSet:
                     raw_constants=raw_constants,
                 )
                 constants.append(v2.program_pb2.Constant(circuit_value=subcircuit_msg))
-                raw_constants.append(circuit)
+                raw_constants[circuit] = len(constants) - 1
             proto_msg = serializer.to_proto(
                 op,
                 msg,
@@ -303,24 +323,24 @@ class SerializableGateSet:
             )
         which = proto.WhichOneof('program')
         if which == 'circuit':
-            raw_constants: List[Any] = []
+            deserialized_constants: List[Any] = []
             for constant in proto.constants:
                 which_const = constant.WhichOneof('const_value')
                 if which_const == 'string_value':
-                    raw_constants.append(constant.string_value)
+                    deserialized_constants.append(constant.string_value)
                 elif which_const == 'circuit_value':
                     circuit = self._deserialize_circuit(
                         constant.circuit_value,
                         arg_function_language=proto.language.arg_function_language,
                         constants=proto.constants,
-                        raw_constants=raw_constants,
+                        deserialized_constants=deserialized_constants,
                     )
-                    raw_constants.append(circuit.freeze())
+                    deserialized_constants.append(circuit.freeze())
             circuit = self._deserialize_circuit(
                 proto.circuit,
                 arg_function_language=proto.language.arg_function_language,
                 constants=proto.constants,
-                raw_constants=raw_constants,
+                deserialized_constants=deserialized_constants,
             )
             return circuit if device is None else circuit.with_device(device)
         if which == 'schedule':
@@ -355,13 +375,18 @@ class SerializableGateSet:
         *,
         arg_function_language: str = '',
         constants: Optional[List[v2.program_pb2.Constant]] = None,
-        raw_constants: Optional[List[Any]] = None,
+        deserialized_constants: Optional[List[Any]] = None,
     ) -> 'cirq.Operation':
         """Deserialize an Operation from a cirq.google.api.v2.Operation.
 
         Args:
             operation_proto: A dictionary representing a
                 cirq.google.api.v2.Operation proto.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+            constants: The list of Constant protos referenced by constant
+                table indices in `proto`.
+            deserialized_constants: The deserialized contents of `constants`.
 
         Returns:
             The deserialized Operation.
@@ -381,7 +406,7 @@ class SerializableGateSet:
             operation_proto,
             arg_function_language=arg_function_language,
             constants=constants,
-            raw_constants=raw_constants,
+            deserialized_constants=deserialized_constants,
         )
 
     def deserialize_circuit_op(
@@ -390,7 +415,7 @@ class SerializableGateSet:
         *,
         arg_function_language: str = '',
         constants: Optional[List[v2.program_pb2.Constant]] = None,
-        raw_constants: Optional[List[Any]] = None,
+        deserialized_constants: Optional[List[Any]] = None,
     ) -> 'cirq.CircuitOperation':
         """Deserialize a CircuitOperation from a
             cirq.google.api.v2.CircuitOperation.
@@ -398,6 +423,11 @@ class SerializableGateSet:
         Args:
             operation_proto: A dictionary representing a
                 cirq.google.api.v2.CircuitOperation proto.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+            constants: The list of Constant protos referenced by constant
+                table indices in `proto`.
+            deserialized_constants: The deserialized contents of `constants`.
 
         Returns:
             The deserialized CircuitOperation.
@@ -418,7 +448,7 @@ class SerializableGateSet:
             operation_proto,
             arg_function_language=arg_function_language,
             constants=constants,
-            raw_constants=raw_constants,
+            deserialized_constants=deserialized_constants,
         )
 
     def _serialize_circuit(
@@ -428,7 +458,7 @@ class SerializableGateSet:
         *,
         arg_function_language: Optional[str],
         constants: Optional[List[v2.program_pb2.Constant]] = None,
-        raw_constants: Optional[List[Any]] = None,
+        raw_constants: Optional[Dict[Any, int]] = None,
     ) -> None:
         msg.scheduling_strategy = v2.program_pb2.Circuit.MOMENT_BY_MOMENT
         for moment in circuit:
@@ -452,7 +482,7 @@ class SerializableGateSet:
         *,
         arg_function_language: str,
         constants: List[v2.program_pb2.Constant],
-        raw_constants: List[Any],
+        deserialized_constants: List[Any],
     ) -> 'cirq.Circuit':
         moments = []
         for i, moment_proto in enumerate(circuit_proto.moments):
@@ -464,7 +494,7 @@ class SerializableGateSet:
                             op,
                             arg_function_language=arg_function_language,
                             constants=constants,
-                            raw_constants=raw_constants,
+                            deserialized_constants=deserialized_constants,
                         )
                     )
                 except ValueError as ex:

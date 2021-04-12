@@ -59,7 +59,7 @@ class OpDeserializer(abc.ABC):
         *,
         arg_function_language: str = '',
         constants: List[v2.program_pb2.Constant] = None,
-        raw_constants: List[Any] = None,
+        deserialized_constants: List[Any] = None,
     ) -> 'cirq.Operation':
         """Converts a proto-formatted operation into a Cirq operation.
 
@@ -69,7 +69,7 @@ class OpDeserializer(abc.ABC):
                 `Program.Language`.
             constants: The list of Constant protos referenced by constant
                 table indices in `proto`.
-            raw_constants: The deserialized equivalent of `constants`.
+            deserialized_constants: The deserialized contents of `constants`.
 
         Returns:
             The deserialized operation represented by `proto`.
@@ -156,7 +156,7 @@ class GateOpDeserializer(OpDeserializer):
         *,
         arg_function_language: str = '',
         constants: List[v2.program_pb2.Constant] = None,
-        raw_constants: List[Any] = None,  # unused
+        deserialized_constants: List[Any] = None,  # unused
     ) -> 'cirq.Operation':
         """Turns a cirq.google.api.v2.Operation proto into a GateOperation."""
         qubits = [v2.qubit_from_proto_id(q.id) for q in proto.qubits]
@@ -223,24 +223,25 @@ class CircuitOpDeserializer(OpDeserializer):
         *,
         arg_function_language: str = '',
         constants: List[v2.program_pb2.Constant] = None,
-        raw_constants: List[Any] = None,
+        deserialized_constants: List[Any] = None,
     ) -> 'cirq.CircuitOperation':
         """Turns a cirq.google.api.v2.CircuitOperation proto into a CircuitOperation."""
-        if constants is None or raw_constants is None:
+        if constants is None or deserialized_constants is None:
             raise ValueError(
                 'CircuitOp deserialization requires a constants list and a corresponding list of '
-                'post-deserialization values (raw_constants).'
+                'post-deserialization values (deserialized_constants).'
             )
-        if len(raw_constants) <= proto.circuit_constant_index:
+        if len(deserialized_constants) <= proto.circuit_constant_index:
             raise ValueError(
                 f'Constant index {proto.circuit_constant_index} in CircuitOperation '
-                f'does not appear in the raw_constants table (length {len(raw_constants)}).'
+                'does not appear in the deserialized_constants list '
+                f'(length {len(deserialized_constants)}).'
             )
-        circuit = raw_constants[proto.circuit_constant_index]
+        circuit = deserialized_constants[proto.circuit_constant_index]
         if not isinstance(circuit, circuits.FrozenCircuit):
             raise ValueError(
                 f'Constant at index {proto.circuit_constant_index} was expected to be a circuit, '
-                f'but it has type {type(circuit)} in the raw_constants list.'
+                f'but it has type {type(circuit)} in the deserialized_constants list.'
             )
 
         which_rep_spec = proto.repetition_specification.WhichOneof('repetition_value')

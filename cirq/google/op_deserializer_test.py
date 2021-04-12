@@ -372,7 +372,7 @@ def test_circuit_op_from_proto_errors():
         v2.program_pb2.Constant(string_value=DEFAULT_TOKEN),
         v2.program_pb2.Constant(circuit_value=default_circuit_proto()),
     ]
-    raw_constants = [DEFAULT_TOKEN, default_circuit()]
+    deserialized_constants = [DEFAULT_TOKEN, default_circuit()]
 
     with pytest.raises(ValueError, match='CircuitOp deserialization requires a constants list'):
         deserializer.from_proto(serialized)
@@ -381,15 +381,19 @@ def test_circuit_op_from_proto_errors():
         deserializer.from_proto(serialized, constants=constants)
 
     with pytest.raises(ValueError, match='CircuitOp deserialization requires a constants list'):
-        deserializer.from_proto(serialized, raw_constants=raw_constants)
+        deserializer.from_proto(serialized, deserialized_constants=deserialized_constants)
 
-    bad_raw_constants = [DEFAULT_TOKEN]
-    with pytest.raises(ValueError, match='does not appear in the raw_constants table'):
-        deserializer.from_proto(serialized, constants=constants, raw_constants=bad_raw_constants)
+    bad_deserialized_constants = [DEFAULT_TOKEN]
+    with pytest.raises(ValueError, match='does not appear in the deserialized_constants table'):
+        deserializer.from_proto(
+            serialized, constants=constants, deserialized_constants=bad_deserialized_constants
+        )
 
-    bad_raw_constants = [DEFAULT_TOKEN, 2]
+    bad_deserialized_constants = [DEFAULT_TOKEN, 2]
     with pytest.raises(ValueError, match='Constant at index 1 was expected to be a circuit'):
-        deserializer.from_proto(serialized, constants=constants, raw_constants=bad_raw_constants)
+        deserializer.from_proto(
+            serialized, constants=constants, deserialized_constants=bad_deserialized_constants
+        )
 
 
 def test_circuit_op_arg_key_errors():
@@ -405,10 +409,12 @@ def test_circuit_op_arg_key_errors():
         v2.program_pb2.Constant(string_value=DEFAULT_TOKEN),
         v2.program_pb2.Constant(circuit_value=default_circuit_proto()),
     ]
-    raw_constants = [DEFAULT_TOKEN, default_circuit()]
+    deserialized_constants = [DEFAULT_TOKEN, default_circuit()]
 
     with pytest.raises(ValueError, match='Invalid key parameter type'):
-        deserializer.from_proto(serialized, constants=constants, raw_constants=raw_constants)
+        deserializer.from_proto(
+            serialized, constants=constants, deserialized_constants=deserialized_constants
+        )
 
 
 def test_circuit_op_arg_val_errors():
@@ -424,10 +430,12 @@ def test_circuit_op_arg_val_errors():
         v2.program_pb2.Constant(string_value=DEFAULT_TOKEN),
         v2.program_pb2.Constant(circuit_value=default_circuit_proto()),
     ]
-    raw_constants = [DEFAULT_TOKEN, default_circuit()]
+    deserialized_constants = [DEFAULT_TOKEN, default_circuit()]
 
     with pytest.raises(ValueError, match='Invalid value parameter type'):
-        deserializer.from_proto(serialized, constants=constants, raw_constants=raw_constants)
+        deserializer.from_proto(
+            serialized, constants=constants, deserialized_constants=deserialized_constants
+        )
 
 
 @pytest.mark.parametrize('repetitions', [1, 5, ['a', 'b', 'c']])
@@ -471,9 +479,11 @@ def test_circuit_op_from_proto(repetitions):
         v2.program_pb2.Constant(string_value=DEFAULT_TOKEN),
         v2.program_pb2.Constant(circuit_value=default_circuit_proto()),
     ]
-    raw_constants = [DEFAULT_TOKEN, default_circuit()]
+    deserialized_constants = [DEFAULT_TOKEN, default_circuit()]
 
-    actual = deserializer.from_proto(serialized, constants=constants, raw_constants=raw_constants)
+    actual = deserializer.from_proto(
+        serialized, constants=constants, deserialized_constants=deserialized_constants
+    )
     expected = cirq.CircuitOperation(
         circuit=default_circuit(),
         qubit_map={cirq.GridQubit(1, 1): cirq.GridQubit(1, 2)},

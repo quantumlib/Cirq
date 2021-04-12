@@ -461,7 +461,10 @@ def test_circuit_op_to_proto_errors():
         v2.program_pb2.Constant(string_value=DEFAULT_TOKEN),
         v2.program_pb2.Constant(circuit_value=default_circuit_proto()),
     ]
-    raw_constants = [DEFAULT_TOKEN, default_circuit()]
+    raw_constants = {
+        DEFAULT_TOKEN: 0,
+        default_circuit(): 1,
+    }
 
     with pytest.raises(ValueError, match='CircuitOp serialization requires a constants list'):
         serializer.to_proto(to_serialize)
@@ -477,7 +480,7 @@ def test_circuit_op_to_proto_errors():
             v2.program_pb2.Operation(), constants=constants, raw_constants=raw_constants
         )
 
-    bad_raw_constants = [cirq.FrozenCircuit()]
+    bad_raw_constants = {cirq.FrozenCircuit(): 0}
     with pytest.raises(ValueError, match='Encountered a circuit not in the constants table'):
         serializer.to_proto(to_serialize, constants=constants, raw_constants=bad_raw_constants)
 
@@ -503,7 +506,10 @@ def test_circuit_op_to_proto(repetitions):
         v2.program_pb2.Constant(string_value=DEFAULT_TOKEN),
         v2.program_pb2.Constant(circuit_value=default_circuit_proto()),
     ]
-    raw_constants = [DEFAULT_TOKEN, default_circuit()]
+    raw_constants = {
+        DEFAULT_TOKEN: 0,
+        default_circuit(): 1,
+    }
 
     repetition_spec = v2.program_pb2.RepetitionSpecification()
     if repetition_ids is None:

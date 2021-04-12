@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from dataclasses import dataclass
-from typing import Any, Callable, List, Optional, Type, TypeVar, Union, TYPE_CHECKING
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union, TYPE_CHECKING
 
 import abc
 import numpy as np
@@ -66,11 +66,11 @@ class OpSerializer(abc.ABC):
     def to_proto(
         self,
         op,
-        msg: Optional = None,
+        msg=None,
         *,
         arg_function_language: Optional[str] = '',
         constants: List[v2.program_pb2.Constant] = None,
-        raw_constants: List[Any] = None,
+        raw_constants: Dict[Any, int] = None,
     ) -> Optional[v2.program_pb2.CircuitOperation]:
         """Converts op to proto using this serializer.
 
@@ -83,7 +83,8 @@ class OpSerializer(abc.ABC):
             arg_function_language: The `arg_function_language` field from
                 `Program.Language`.
             constants: The list of previously-serialized Constant protos.
-            raw_constants: The raw objects used to construct `constants`.
+            raw_constants: A map raw objects to their respective indices in
+                `constants`.
 
         Returns:
             The proto-serialized version of `op`. If `msg` was provided, it is
@@ -200,7 +201,7 @@ class GateOpSerializer(OpSerializer):
         *,
         arg_function_language: Optional[str] = '',
         constants: List[v2.program_pb2.Constant] = None,
-        raw_constants: List[Any] = None,
+        raw_constants: Dict[Any, int] = None,
     ) -> Optional[v2.program_pb2.Operation]:
         """Returns the cirq.google.api.v2.Operation message as a proto dict.
 
@@ -244,7 +245,7 @@ class GateOpSerializer(OpSerializer):
                             msg.token_constant_index = len(constants)
                             constants.append(constant)
                             if raw_constants is not None:
-                                raw_constants.append(tag.token)
+                                raw_constants[tag.token] = msg.token_constant_index
                     else:
                         msg.token_value = tag.token
         return msg
@@ -316,12 +317,12 @@ class CircuitOpSerializer(OpSerializer):
         *,
         arg_function_language: Optional[str] = '',
         constants: List[v2.program_pb2.Constant] = None,
-        raw_constants: List[Any] = None,
+        raw_constants: Dict[Any, int] = None,
     ) -> Optional[v2.program_pb2.CircuitOperation]:
         """Returns the cirq.google.api.v2.CircuitOperation message as a proto dict.
 
-        Note that this function requires the constants and raw_constants lists
-        to be pre-populated with the circuit in op.
+        Note that this function requires constants and raw_constants to be
+        pre-populated with the circuit in op.
         """
         if constants is None or raw_constants is None:
             raise ValueError(
@@ -334,14 +335,18 @@ class CircuitOpSerializer(OpSerializer):
 
         msg = msg or v2.program_pb2.CircuitOperation()
         try:
-            msg.circuit_constant_index = raw_constants.index(op.circuit)
-        except ValueError as err:
+            msg.circuit_constant_index = raw_constants[op.circuit]
+        except KeyError as err:
             # Circuits must be serialized prior to any CircuitOperations that use them.
             raise ValueError(
                 'Encountered a circuit not in the constants table. ' f'Full error message:\n{err}'
             )
 
-        if op.repetition_ids != circuits.circuit_operation.default_repetition_ids(op.repetitions):
+        if (
+            op.repetition_ids is not None
+            and op.repetition_ids
+            != circuits.circuit_operation.default_repetition_ids(op.repetitions)
+        ):
             for rep_id in op.repetition_ids:
                 msg.repetition_specification.repetition_ids.ids.append(rep_id)
         else:
