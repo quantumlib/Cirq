@@ -14,7 +14,7 @@
 
 """Utility methods for transforming matrices or vectors."""
 
-from typing import Tuple, Optional, Sequence, List, Union, TypeVar
+from typing import Tuple, Optional, Sequence, List, Union
 
 import numpy as np
 
@@ -26,9 +26,7 @@ from cirq.linalg import predicates
 # of type np.ndarray to ensure the method has the correct type signature in that
 # case. It is checked for using `is`, so it won't have a false positive if the
 # user provides a different np.array([]) value.
-RaiseValueErrorIfNotProvided = np.array([])  # type: np.ndarray
-
-TDefault = TypeVar('TDefault')
+RaiseValueErrorIfNotProvided: np.ndarray = np.array([])
 
 
 def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
@@ -326,6 +324,10 @@ def partial_trace(tensor: np.ndarray, keep_indices: List[int]) -> np.ndarray:
     return np.einsum(tensor, left_indices + right_indices)
 
 
+class EntangledStateError(ValueError):
+    """Raised when a product state is expected, but an entangled state is provided."""
+
+
 def partial_trace_of_state_vector_as_mixture(
     state_vector: np.ndarray, keep_indices: List[int], *, atol: Union[int, float] = 1e-8
 ) -> Tuple[Tuple[float, np.ndarray], ...]:
@@ -357,9 +359,13 @@ def partial_trace_of_state_vector_as_mixture(
     """
 
     # Attempt to do efficient state factoring.
-    state = sub_state_vector(state_vector, keep_indices, default=None, atol=atol)
-    if state is not None:
+    try:
+        state = sub_state_vector(
+            state_vector, keep_indices, default=RaiseValueErrorIfNotProvided, atol=atol
+        )
         return ((1.0, state),)
+    except EntangledStateError:
+        pass
 
     # Fall back to a (non-unique) mixture representation.
     keep_dims = 1 << len(keep_indices)
@@ -382,7 +388,7 @@ def sub_state_vector(
     state_vector: np.ndarray,
     keep_indices: List[int],
     *,
-    default: TDefault = RaiseValueErrorIfNotProvided,
+    default: np.ndarray = RaiseValueErrorIfNotProvided,
     atol: Union[int, float] = 1e-8,
 ) -> np.ndarray:
     r"""Attempts to factor a state vector into two parts and return one of them.
@@ -424,8 +430,10 @@ def sub_state_vector(
 
     Raises:
         ValueError: if the `state_vector` is not of the correct shape or the
-        indices are not a valid subset of the input `state_vector`'s indices, or
-        the result of factoring is not a pure state.
+            indices are not a valid subset of the input `state_vector`'s indices
+        EntangledStateError: If the result of factoring is not a pure state and
+            `default` is not provided.
+
     """
 
     if not np.log2(state_vector.size).is_integer():
@@ -471,7 +479,7 @@ def sub_state_vector(
     if default is not RaiseValueErrorIfNotProvided:
         return default
 
-    raise ValueError(
+    raise EntangledStateError(
         "Input state vector could not be factored into pure state over "
         "indices {}".format(keep_indices)
     )
