@@ -143,7 +143,7 @@ def get_name_to_id(boolean_exprs: Sequence[Expr]) -> Dict[str, int]:
 
 
 def build_circuit_from_hamiltonians(
-    hamiltonian_lists: List[HamiltonianList], qubits: List[cirq.Qid], theta: float
+    hamiltonian_lists: List[HamiltonianList], qubits: List[cirq.NamedQubit], theta: float
 ) -> cirq.Circuit:
     """Builds a circuit according to [1].
 
