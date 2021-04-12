@@ -64,7 +64,7 @@ class HamiltonianList:
                 h = tuple(sorted(set(h1).symmetric_difference(h2)))
                 w = w1 * w2
                 if h not in hamiltonians:
-                    hamiltonians[h] = 0
+                    hamiltonians[h] = 0.0
                 hamiltonians[h] += w
         return HamiltonianList(hamiltonians)
 
