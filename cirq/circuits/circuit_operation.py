@@ -148,6 +148,12 @@ class CircuitOperation(ops.Operation):
                         'in a CircuitOperation. Consider remapping the key using '
                         '`measurement_key_map` in the CircuitOperation constructor.'
                     )
+
+        # Disallow qid mapping dimension conflicts.
+        for q, q_new in self.qubit_map.items():
+            if q_new.dimension != q.dimension:
+                raise ValueError(f'Qid dimension conflict.\nFrom qid: {q}\nTo qid: {q_new}')
+
         # Ensure that param_resolver is converted to an actual ParamResolver.
         object.__setattr__(self, 'param_resolver', study.ParamResolver(self.param_resolver))
 
@@ -445,6 +451,8 @@ class CircuitOperation(ops.Operation):
         for q in self.circuit.all_qubits():
             q_new = transform(self.qubit_map.get(q, q))
             if q_new != q:
+                if q_new.dimension != q.dimension:
+                    raise ValueError(f'Qid dimension conflict.\nFrom qid: {q}\nTo qid: {q_new}')
                 new_map[q] = q_new
         new_op = self.replace(qubit_map=new_map)
         if len(set(new_op.qubits)) != len(set(self.qubits)):
@@ -534,11 +542,11 @@ class CircuitOperation(ops.Operation):
 
     # TODO: handle recursive parameter resolution gracefully
     def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolver', recursive: bool
+        self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'CircuitOperation':
         if recursive:
             raise ValueError(
                 'Recursive resolution of CircuitOperation parameters is prohibited. '
                 'Use "recursive=False" to prevent this error.'
             )
-        return self.with_params(param_resolver.param_dict)
+        return self.with_params(resolver.param_dict)

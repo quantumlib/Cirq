@@ -79,11 +79,11 @@ class PauliSumExponential:
         return PauliSumExponential(self._pauli_sum.with_qubits(*new_qubits), self._exponent)
 
     def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
+        self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'PauliSumExponential':
         return PauliSumExponential(
             self._pauli_sum,
-            exponent=protocols.resolve_parameters(self._exponent, param_resolver, recursive),
+            exponent=protocols.resolve_parameters(self._exponent, resolver, recursive),
         )
 
     def __iter__(self) -> Iterator['cirq.PauliStringPhasor']:
@@ -104,7 +104,7 @@ class PauliSumExponential:
         """
         if protocols.is_parameterized(self._exponent):
             raise ValueError("Exponent should not parameterized.")
-        ret = 1
+        ret = np.ones(1)
         for pauli_string_exp in self:
             ret = np.kron(ret, protocols.unitary(pauli_string_exp))
         return ret

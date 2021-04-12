@@ -17,7 +17,7 @@ The gate is used to create a 4x4 matrix with the diagonal elements
 passed as a list.
 """
 
-from typing import AbstractSet, Any, Tuple, List, Optional, TYPE_CHECKING
+from typing import AbstractSet, Any, Tuple, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 import sympy
 
@@ -26,7 +26,6 @@ from cirq._compat import proper_repr
 from cirq.ops import gate_features
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 
@@ -34,7 +33,7 @@ if TYPE_CHECKING:
 class TwoQubitDiagonalGate(gate_features.TwoQubitGate):
     """A gate given by a diagonal 4\\times 4 matrix."""
 
-    def __init__(self, diag_angles_radians: List[value.TParamVal]) -> None:
+    def __init__(self, diag_angles_radians: Sequence[value.TParamVal]) -> None:
         r"""A two qubit gate with only diagonal elements.
 
         This gate's off-diagonal elements are zero and it's on diagonal
@@ -56,16 +55,16 @@ class TwoQubitDiagonalGate(gate_features.TwoQubitGate):
         }
 
     def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolver', recursive: bool
+        self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'TwoQubitDiagonalGate':
         return TwoQubitDiagonalGate(
-            protocols.resolve_parameters(self._diag_angles_radians, param_resolver, recursive)
+            protocols.resolve_parameters(self._diag_angles_radians, resolver, recursive)
         )
 
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
 
-    def _unitary_(self) -> np.ndarray:
+    def _unitary_(self) -> Optional[np.ndarray]:
         if self._is_parameterized_():
             return None
         return np.diag([np.exp(1j * angle) for angle in self._diag_angles_radians])
@@ -84,7 +83,7 @@ class TwoQubitDiagonalGate(gate_features.TwoQubitGate):
         rounded_angles = np.array(self._diag_angles_radians)
         if args.precision is not None:
             rounded_angles = rounded_angles.round(args.precision)
-        diag_str = 'diag({})'.format(', '.join(proper_repr(angle) for angle in rounded_angles))
+        diag_str = f"diag({', '.join(proper_repr(angle) for angle in rounded_angles)})"
         return protocols.CircuitDiagramInfo((diag_str, '#2'))
 
     def __pow__(self, exponent: Any) -> 'TwoQubitDiagonalGate':

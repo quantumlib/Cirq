@@ -91,7 +91,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
             *qubits: The collection of qubits to potentially apply the gate to.
         """
         if len(qubits) != 1:
-            raise ValueError('Expected a single qubit, got <{!r}>.'.format(qubits))
+            raise ValueError(f'Expected a single qubit, got <{qubits!r}>.')
         from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation
 
         return SingleQubitPauliStringGateOperation(self, qubits[0])

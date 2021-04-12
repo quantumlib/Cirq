@@ -37,7 +37,14 @@ from dev_tools.env_tools import create_virtual_env
 # after every release we should raise a PR and empty out this list
 # note that these notebooks are still tested in dev_tools/notebook_test.py
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES = [
-    'docs/qcvv/*.ipynb',
+    # the notebook depends on new `cirq.R*` gates.
+    'docs/tutorials/educators/intro.ipynb',
+    # the notebook uses cirq.vis.integrated_histogram.
+    'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
+    # these notebooks now use cirq.contrib.calculate_quantum_volume(...device_qubits...)
+    # the device_or_qubits parameter is deprecated
+    'examples/advanced/quantum_volume_routing.ipynb',
+    'examples/advanced/quantum_volume_errors.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule

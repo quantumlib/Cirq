@@ -99,7 +99,7 @@ def is_crosstalk_graph(graph: UndirectedHypergraph) -> bool:
 
 
 def raise_crosstalk_error(*ops: ops.Operation):
-    raise ValueError('crosstalk on {}'.format(ops))
+    raise ValueError(f'crosstalk on {ops}')
 
 
 class UndirectedGraphDevice(devices.Device):
@@ -174,7 +174,7 @@ class UndirectedGraphDevice(devices.Device):
             device_edge = self.get_device_edge_from_op(operation)
         except Exception as error:
             if frozenset(operation.qubits) not in self.device_graph.edges:
-                error = ValueError('{} not in device graph edges'.format(operation.qubits))
+                error = ValueError(f'{operation.qubits} not in device graph edges')
             raise error
         device_edge.validate_operation(operation)
 

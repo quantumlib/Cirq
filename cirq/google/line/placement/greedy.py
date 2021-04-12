@@ -321,7 +321,7 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
 
         algos = greedy_search.get(self.algorithm)
         if algos is None:
-            raise ValueError("Unknown greedy search algorithm %s" % self.algorithm)
+            raise ValueError(f"Unknown greedy search algorithm {self.algorithm}")
 
         for algorithm in algos:
             sequences.append(algorithm.get_or_search())

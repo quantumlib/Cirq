@@ -170,7 +170,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def _parameter_names_(self) -> AbstractSet[str]:
         return protocols.parameter_names(self.coefficient)
 
-    def _resolve_parameters_(self, resolver, recursive):
+    def _resolve_parameters_(self: TCls, resolver: 'cirq.ParamResolver', recursive: bool) -> TCls:
         return self.copy(
             coefficient=protocols.resolve_parameters(self.coefficient, resolver, recursive)
         )
@@ -350,10 +350,10 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def copy(
-        self,
+        self: TCls,
         coefficient: Optional[complex] = None,
         pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
-    ) -> 'BaseDensePauliString':
+    ) -> TCls:
         """Returns a copy with possibly modified contents.
 
         Args:
@@ -374,7 +374,7 @@ class DensePauliString(BaseDensePauliString):
     def copy(
         self,
         coefficient: Optional[complex] = None,
-        pauli_mask: Union[None, Iterable[int], np.ndarray] = None,
+        pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> 'DensePauliString':
         if pauli_mask is None and (coefficient is None or coefficient == self.coefficient):
             return self
@@ -446,7 +446,7 @@ class MutableDensePauliString(BaseDensePauliString):
     def copy(
         self,
         coefficient: Optional[complex] = None,
-        pauli_mask: Union[None, Iterable[int], np.ndarray] = None,
+        pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None,
     ) -> 'MutableDensePauliString':
         return MutableDensePauliString(
             coefficient=self.coefficient if coefficient is None else coefficient,
@@ -549,5 +549,5 @@ def _vectorized_pauli_mul_phase(
     t -= 1
 
     # Result is i raised to the sum of the per-term phase exponents.
-    s = int(np.sum(t, dtype=np.uint8) & 3)
+    s = int(np.sum(t, dtype=np.uint8).item() & 3)
     return 1j ** s

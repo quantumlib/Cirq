@@ -148,7 +148,7 @@ def obj_to_dict_helper(
             class name via a dot (.)
     """
     if namespace is not None:
-        prefix = '{}.'.format(namespace)
+        prefix = f'{namespace}.'
     else:
         prefix = ''
 
@@ -235,6 +235,7 @@ class CirqEncoder(json.JSONEncoder):
         # Sympy object? (Must come before general number checks.)
         # TODO: More support for sympy
         # Github issue: https://github.com/quantumlib/Cirq/issues/2014
+
         if isinstance(o, sympy.Symbol):
             return obj_to_dict_helper(o, ['name'], namespace='sympy')
 
@@ -253,6 +254,18 @@ class CirqEncoder(json.JSONEncoder):
                 'p': o.p,
                 'q': o.q,
             }
+
+        if isinstance(o, sympy.NumberSymbol):
+            # check if `o` is a numeric symbol,
+            # i.e. one of the transcendental numbers
+            # sympy.pi, sympy.E or sympy.EulerGamma
+            # (note that these are singletons).
+            if o is sympy.pi:
+                return {'cirq_type': 'sympy.pi'}
+            if o is sympy.E:
+                return {'cirq_type': 'sympy.E'}
+            if o is sympy.EulerGamma:
+                return {'cirq_type': 'sympy.EulerGamma'}
 
         # A basic number object?
         if isinstance(o, numbers.Integral):
@@ -317,9 +330,7 @@ def _cirq_object_hook(d, resolvers: Sequence[JsonResolver], context_map: Dict[st
         if cls is not None:
             break
     else:
-        raise ValueError(
-            "Could not resolve type '{}' during deserialization".format(d['cirq_type'])
-        )
+        raise ValueError(f"Could not resolve type '{d['cirq_type']}' during deserialization")
 
     from_json_dict = getattr(cls, '_from_json_dict_', None)
     if from_json_dict is not None:

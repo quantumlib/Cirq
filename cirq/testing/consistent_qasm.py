@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import warnings
-from typing import Any, List, Sequence
+from typing import Any, List, Sequence, Optional
 
 import numpy as np
 
@@ -53,21 +53,19 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
         qubits = devices.LineQid.for_qid_shape(remaining_shape)
         op = val.on(*qubits)
     else:
-        raise NotImplementedError("Don't know how to test {!r}".format(val))
+        raise NotImplementedError(f"Don't know how to test {val!r}")
 
-    args = protocols.QasmArgs(qubit_id_map={q: 'q[{}]'.format(i) for i, q in enumerate(qubits)})
+    args = protocols.QasmArgs(qubit_id_map={q: f'q[{i}]' for i, q in enumerate(qubits)})
     qasm = protocols.qasm(op, args=args, default=None)
     if qasm is None:
         return
 
     num_qubits = len(qubits)
-    header = """
+    header = f"""
 OPENQASM 2.0;
 include "qelib1.inc";
-qreg q[{}];
-""".format(
-        num_qubits
-    )
+qreg q[{num_qubits}];
+"""
     qasm = header + qasm
 
     qasm_unitary = None
@@ -83,6 +81,8 @@ qreg q[{}];
             qasm_unitary, unitary, rtol=1e-8, atol=1e-8
         )
     except Exception as ex:
+        p_unitary: Optional[np.ndarray]
+        p_qasm_unitary: Optional[np.ndarray]
         if qasm_unitary is not None:
             p_unitary, p_qasm_unitary = linalg.match_global_phase(unitary, qasm_unitary)
         else:

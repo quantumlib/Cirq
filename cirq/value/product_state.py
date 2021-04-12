@@ -131,7 +131,7 @@ class ProductState:
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qubits = qubit_order.order_for(self.qubits)
 
-        mat = 1.0 + 0.0j
+        mat = np.ones(1, dtype=np.complex128)
         for qubit in qubits:
             oneq_state = self[qubit]
             state_vector = oneq_state.state_vector()
@@ -151,7 +151,7 @@ class ProductState:
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qubits = qubit_order.order_for(self.qubits)
 
-        mat = 1.0 + 0.0j
+        mat = np.ones(1, dtype=np.complex128)
         for qubit in qubits:
             oneq_state = self[qubit]
             oneq_proj = oneq_state.projector()
@@ -203,7 +203,7 @@ class _XEigenState(_PauliEigenState):
         elif self.eigenvalue == -1:
             return np.array([1, -1]) / np.sqrt(2)
         # coverage: ignore
-        raise ValueError("Bad eigenvalue: {}".format(self.eigenvalue))
+        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
 
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
         # Prevent circular import from `value.value_equality`
@@ -221,7 +221,7 @@ class _YEigenState(_PauliEigenState):
         elif self.eigenvalue == -1:
             return np.array([1, -1j]) / np.sqrt(2)
         # coverage: ignore
-        raise ValueError("Bad eigenvalue: {}".format(self.eigenvalue))
+        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
 
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
         from cirq import ops
@@ -238,7 +238,7 @@ class _ZEigenState(_PauliEigenState):
         elif self.eigenvalue == -1:
             return np.array([0, 1])
         # coverage: ignore
-        raise ValueError("Bad eigenvalue: {}".format(self.eigenvalue))
+        raise ValueError(f"Bad eigenvalue: {self.eigenvalue}")
 
     def stabilized_by(self) -> Tuple[int, 'cirq.Pauli']:
         from cirq import ops

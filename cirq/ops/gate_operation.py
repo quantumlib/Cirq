@@ -230,7 +230,9 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _resolve_parameters_(self, resolver, recursive):
+    def _resolve_parameters_(
+        self, resolver: 'cirq.ParamResolver', recursive: bool
+    ) -> 'cirq.Operation':
         resolved_gate = protocols.resolve_parameters(self.gate, resolver, recursive)
         return self.with_gate(resolved_gate)
 

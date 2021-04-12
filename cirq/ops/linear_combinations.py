@@ -151,7 +151,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         return {name for gate in self.keys() for name in protocols.parameter_names(gate)}
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
+        self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'LinearCombinationOfGates':
         return self.__class__(
             {
@@ -266,7 +266,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         return {name for op in self.keys() for name in protocols.parameter_names(op)}
 
     def _resolve_parameters_(
-        self, resolver: 'cirq.ParamResolverOrSimilarType', recursive: bool
+        self, resolver: 'cirq.ParamResolver', recursive: bool
     ) -> 'LinearCombinationOfOperations':
         return self.__class__(
             {

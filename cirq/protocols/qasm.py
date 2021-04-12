@@ -58,7 +58,7 @@ class QasmArgs(string.Formatter):
             if isinstance(value, float):
                 value = round(value, self.precision)
             if spec == 'half_turns':
-                value = 'pi*{}'.format(value) if value != 0 else '0'
+                value = f'pi*{value}' if value != 0 else '0'
                 spec = ''
         elif isinstance(value, ops.Qid):
             value = self.qubit_id_map[value]
@@ -69,7 +69,7 @@ class QasmArgs(string.Formatter):
 
     def validate_version(self, *supported_versions: str) -> None:
         if self.version not in supported_versions:
-            raise ValueError('QASM version {} output is not supported.'.format(self.version))
+            raise ValueError(f'QASM version {self.version} output is not supported.')
 
 
 class SupportsQasm(Protocol):
@@ -165,7 +165,7 @@ def qasm(
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     if method is None:
-        raise TypeError("object of type '{}' has no _qasm_ method.".format(type(val)))
+        raise TypeError(f"object of type '{type(val)}' has no _qasm_ method.")
     raise TypeError(
         "object of type '{}' does have a _qasm_ method, "
         "but it returned NotImplemented or None.".format(type(val))

@@ -95,7 +95,7 @@ def to_sweep(
     if isinstance(sweep_or_resolver_list, Iterable):
         resolver_iter = cast(Iterable[ParamResolverOrSimilarType], sweep_or_resolver_list)
         return ListSweep(resolver_iter)
-    raise TypeError('Unexpected sweep-like value: {}'.format(sweep_or_resolver_list))
+    raise TypeError(f'Unexpected sweep-like value: {sweep_or_resolver_list}')
 
 
 def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
