@@ -15,10 +15,10 @@
 """Tool to visualize the results of a study."""
 
 from typing import Union, Optional, Sequence, SupportsFloat
+import collections
 import numpy as np
 import matplotlib.pyplot as plt
 import cirq.study.result as result
-import collections
 
 
 def get_state_histogram(result: 'result.Result') -> np.ndarray:
