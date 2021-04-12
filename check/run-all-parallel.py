@@ -1,3 +1,5 @@
+# coverage: ignore
+
 import concurrent
 import curses
 import os
