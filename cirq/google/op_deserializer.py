@@ -42,9 +42,9 @@ class OpDeserializer(abc.ABC):
     @property
     @abc.abstractmethod
     def serialized_id(self) -> str:
-        """Returns the string identifier for the resulting serialized object.
+        """Returns the string identifier for the accepted serialized objects.
 
-        This value should reflect the internal_type of the serializer.
+        This ID denotes the serialization format this deserializer consumes.
         """
 
     @property  # type: ignore
@@ -61,7 +61,19 @@ class OpDeserializer(abc.ABC):
         constants: List[v2.program_pb2.Constant] = None,
         raw_constants: List[Any] = None,
     ) -> 'cirq.Operation':
-        pass
+        """Converts a proto-formatted operation into a Cirq operation.
+
+        Args:
+            proto: The proto object to be deserialized.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+            constants: The list of Constant protos referenced by constant
+                table indices in `proto`.
+            raw_constants: The deserialized equivalent of `constants`.
+
+        Returns:
+            The deserialized operation represented by `proto`.
+        """
 
 
 @dataclass(frozen=True)
@@ -219,6 +231,11 @@ class CircuitOpDeserializer(OpDeserializer):
                 'CircuitOp deserialization requires a constants list and a corresponding list of '
                 'post-deserialization values (raw_constants).'
             )
+        if len(raw_constants) <= proto.circuit_constant_index:
+            raise ValueError(
+                f'Constant index {proto.circuit_constant_index} in CircuitOperation '
+                f'does not appear in the raw_constants table (length {len(raw_constants)}).'
+            )
         circuit = raw_constants[proto.circuit_constant_index]
         if not isinstance(circuit, circuits.FrozenCircuit):
             raise ValueError(
@@ -227,10 +244,10 @@ class CircuitOpDeserializer(OpDeserializer):
             )
 
         which_rep_spec = proto.repetition_specification.WhichOneof('repetition_value')
-        if which_rep_spec == "repetition_count":
+        if which_rep_spec == 'repetition_count':
             rep_ids = None
             repetitions = proto.repetition_specification.repetition_count
-        elif which_rep_spec == "repetition_ids":
+        elif which_rep_spec == 'repetition_ids':
             rep_ids = proto.repetition_specification.repetition_ids.ids
             repetitions = len(rep_ids)
         else:
@@ -256,7 +273,6 @@ class CircuitOpDeserializer(OpDeserializer):
 
         for arg in arg_map.keys():
             if not isinstance(arg, (str, sympy.Symbol)):
-                print('whoopee')
                 raise ValueError(
                     'Invalid key parameter type in deserialized CircuitOperation. '
                     f'Expected str or sympy.Symbol, found {type(arg)}.'

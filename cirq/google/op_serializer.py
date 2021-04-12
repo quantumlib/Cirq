@@ -54,7 +54,7 @@ class OpSerializer(abc.ABC):
     def serialized_id(self) -> str:
         """Returns the string identifier for the resulting serialized object.
 
-        This value should reflect the internal_type of the serializer.
+        This ID denotes the serialization format this serializer produces.
         """
 
     @property  # type: ignore
@@ -66,7 +66,7 @@ class OpSerializer(abc.ABC):
     def to_proto(
         self,
         op,
-        msg: Optional[v2.program_pb2.CircuitOperation] = None,
+        msg: Optional = None,
         *,
         arg_function_language: Optional[str] = '',
         constants: List[v2.program_pb2.Constant] = None,
@@ -75,6 +75,19 @@ class OpSerializer(abc.ABC):
         """Converts op to proto using this serializer.
 
         If self.can_serialize_operation(op) == false, this should return None.
+
+        Args:
+            op: The Cirq operation to be serialized.
+            msg: An optional proto object to populate with the serialization
+                results.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+            constants: The list of previously-serialized Constant protos.
+            raw_constants: The raw objects used to construct `constants`.
+
+        Returns:
+            The proto-serialized version of `op`. If `msg` was provided, it is
+            the returned object.
         """
 
     @property
@@ -328,7 +341,7 @@ class CircuitOpSerializer(OpSerializer):
                 'Encountered a circuit not in the constants table. ' f'Full error message:\n{err}'
             )
 
-        if op.repetition_ids:
+        if op.repetition_ids != circuits.circuit_operation.default_repetition_ids(op.repetitions):
             for rep_id in op.repetition_ids:
                 msg.repetition_specification.repetition_ids.ids.append(rep_id)
         else:

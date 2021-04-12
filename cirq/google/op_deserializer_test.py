@@ -331,17 +331,26 @@ def test_token_with_references():
         deserializer.from_proto(serialized)
 
 
+DEFAULT_TOKEN = 'test_tag'
+
+
 def default_circuit_proto():
     op1 = v2.program_pb2.Operation()
     op1.gate.id = 'x_pow'
     op1.args['half_turns'].arg_value.string_value = 'k'
     op1.qubits.add().id = '1_1'
 
+    op2 = v2.program_pb2.Operation()
+    op2.gate.id = 'x_pow'
+    op2.args['half_turns'].arg_value.float_value = 1.0
+    op2.qubits.add().id = '1_2'
+    op2.token_constant_index = 0
+
     return v2.program_pb2.Circuit(
         scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
         moments=[
             v2.program_pb2.Moment(
-                operations=[op1],
+                operations=[op1, op2],
             ),
         ],
     )
@@ -350,16 +359,20 @@ def default_circuit_proto():
 def default_circuit():
     return cirq.FrozenCircuit(
         cirq.X(cirq.GridQubit(1, 1)) ** sympy.Symbol('k'),
+        cirq.X(cirq.GridQubit(1, 2)).with_tags(DEFAULT_TOKEN),
         cirq.measure(cirq.GridQubit(1, 1), key='m'),
     )
 
 
 def test_circuit_op_from_proto_errors():
     deserializer = cg.CircuitOpDeserializer()
-    serialized = v2.program_pb2.CircuitOperation(circuit_constant_index=0)
+    serialized = v2.program_pb2.CircuitOperation(circuit_constant_index=1)
 
-    constants = [v2.program_pb2.Constant(circuit_value=default_circuit_proto())]
-    raw_constants = [default_circuit()]
+    constants = [
+        v2.program_pb2.Constant(string_value=DEFAULT_TOKEN),
+        v2.program_pb2.Constant(circuit_value=default_circuit_proto()),
+    ]
+    raw_constants = [DEFAULT_TOKEN, default_circuit()]
 
     with pytest.raises(ValueError, match='CircuitOp deserialization requires a constants list'):
         deserializer.from_proto(serialized)
@@ -370,8 +383,12 @@ def test_circuit_op_from_proto_errors():
     with pytest.raises(ValueError, match='CircuitOp deserialization requires a constants list'):
         deserializer.from_proto(serialized, raw_constants=raw_constants)
 
-    bad_raw_constants = [2]
-    with pytest.raises(ValueError, match='Constant at index 0 was expected to be a circuit'):
+    bad_raw_constants = [DEFAULT_TOKEN]
+    with pytest.raises(ValueError, match='does not appear in the raw_constants table'):
+        deserializer.from_proto(serialized, constants=constants, raw_constants=bad_raw_constants)
+
+    bad_raw_constants = [DEFAULT_TOKEN, 2]
+    with pytest.raises(ValueError, match='Constant at index 1 was expected to be a circuit'):
         deserializer.from_proto(serialized, constants=constants, raw_constants=bad_raw_constants)
 
 
@@ -382,10 +399,13 @@ def test_circuit_op_arg_key_errors():
     p1.key.arg_value.float_value = 1.0
     p1.value.arg_value.float_value = 2.0
 
-    serialized = v2.program_pb2.CircuitOperation(circuit_constant_index=0, arg_map=arg_map)
+    serialized = v2.program_pb2.CircuitOperation(circuit_constant_index=1, arg_map=arg_map)
 
-    constants = [v2.program_pb2.Constant(circuit_value=default_circuit_proto())]
-    raw_constants = [default_circuit()]
+    constants = [
+        v2.program_pb2.Constant(string_value=DEFAULT_TOKEN),
+        v2.program_pb2.Constant(circuit_value=default_circuit_proto()),
+    ]
+    raw_constants = [DEFAULT_TOKEN, default_circuit()]
 
     with pytest.raises(ValueError, match='Invalid key parameter type'):
         deserializer.from_proto(serialized, constants=constants, raw_constants=raw_constants)
@@ -398,20 +418,31 @@ def test_circuit_op_arg_val_errors():
     p1.key.arg_value.string_value = 'k'
     p1.value.arg_value.bool_values.values.extend([True, False])
 
-    serialized = v2.program_pb2.CircuitOperation(circuit_constant_index=0, arg_map=arg_map)
+    serialized = v2.program_pb2.CircuitOperation(circuit_constant_index=1, arg_map=arg_map)
 
-    constants = [v2.program_pb2.Constant(circuit_value=default_circuit_proto())]
-    raw_constants = [default_circuit()]
+    constants = [
+        v2.program_pb2.Constant(string_value=DEFAULT_TOKEN),
+        v2.program_pb2.Constant(circuit_value=default_circuit_proto()),
+    ]
+    raw_constants = [DEFAULT_TOKEN, default_circuit()]
 
     with pytest.raises(ValueError, match='Invalid value parameter type'):
         deserializer.from_proto(serialized, constants=constants, raw_constants=raw_constants)
 
 
-def test_circuit_op_from_proto():
+@pytest.mark.parametrize('repetitions', [1, 5, ['a', 'b', 'c']])
+def test_circuit_op_from_proto(repetitions):
     deserializer = cg.CircuitOpDeserializer()
 
     repetition_spec = v2.program_pb2.RepetitionSpecification()
-    repetition_spec.repetition_count = 1
+    if isinstance(repetitions, int):
+        repetition_ids = None
+        repetition_spec.repetition_count = repetitions
+    else:
+        repetition_ids = repetitions
+        repetitions = len(repetition_ids)
+        for rep_id in repetition_ids:
+            repetition_spec.repetition_ids.ids.append(rep_id)
 
     qubit_map = v2.program_pb2.QubitMapping()
     q_p1 = qubit_map.entries.add()
@@ -429,15 +460,18 @@ def test_circuit_op_from_proto():
     arg_p1.value.arg_value.float_value = 1.0
 
     serialized = v2.program_pb2.CircuitOperation(
-        circuit_constant_index=0,
+        circuit_constant_index=1,
         repetition_specification=repetition_spec,
         qubit_map=qubit_map,
         measurement_key_map=measurement_key_map,
         arg_map=arg_map,
     )
 
-    constants = [v2.program_pb2.Constant(circuit_value=default_circuit_proto())]
-    raw_constants = [default_circuit()]
+    constants = [
+        v2.program_pb2.Constant(string_value=DEFAULT_TOKEN),
+        v2.program_pb2.Constant(circuit_value=default_circuit_proto()),
+    ]
+    raw_constants = [DEFAULT_TOKEN, default_circuit()]
 
     actual = deserializer.from_proto(serialized, constants=constants, raw_constants=raw_constants)
     expected = cirq.CircuitOperation(
@@ -445,5 +479,7 @@ def test_circuit_op_from_proto():
         qubit_map={cirq.GridQubit(1, 1): cirq.GridQubit(1, 2)},
         measurement_key_map={'m': 'results'},
         param_resolver={'k': 1.0},
+        repetitions=repetitions,
+        repetition_ids=repetition_ids,
     )
     assert actual == expected
