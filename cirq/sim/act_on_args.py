@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
-from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING
+from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING, Sequence
 
 import numpy as np
 
@@ -32,7 +32,7 @@ class ActOnArgs:
     def __init__(
         self,
         prng: np.random.RandomState,
-        qubits: Iterable['cirq.Qid'] = None,
+        qubits: Sequence['cirq.Qid'] = None,
         axes: Iterable[int] = None,
         log_of_measurement_results: Dict[str, Any] = None,
     ):

@@ -541,7 +541,7 @@ class SimulatesIntermediateState(
     def create_act_on_args(
         self,
         initial_state: Any,
-        qubits: Tuple['cirq.Qid', ...],
+        qubits: Sequence['cirq.Qid'],
     ) -> TActOnArgs:
         """Creates the ActOnArgs state for a simulator.
 

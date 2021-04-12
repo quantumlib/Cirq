@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a density matrix."""
 
-from typing import Any, Iterable, Dict, List, Tuple, TYPE_CHECKING
+from typing import Any, Iterable, Dict, List, Tuple, TYPE_CHECKING, Sequence
 
 import numpy as np
 
@@ -39,7 +39,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         qid_shape: Tuple[int, ...],
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
-        qubits: Iterable['cirq.Qid'] = None,
+        qubits: Sequence['cirq.Qid'] = None,
     ):
         """
         Args:

@@ -13,7 +13,7 @@
 # limitations under the License.
 """Simulator for density matrices that simulates noisy quantum circuits."""
 import collections
-from typing import Any, Dict, List, TYPE_CHECKING, Tuple, Union
+from typing import Any, Dict, List, TYPE_CHECKING, Tuple, Union, Sequence
 
 import numpy as np
 
@@ -230,7 +230,7 @@ class DensityMatrixSimulator(
     def create_act_on_args(
         self,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
-        qubits: Tuple['cirq.Qid', ...],
+        qubits: Sequence['cirq.Qid'],
     ) -> 'cirq.ActOnDensityMatrixArgs':
         """Creates the ActOnDensityMatrixArgs for a circuit.
 

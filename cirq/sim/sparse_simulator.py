@@ -24,7 +24,7 @@ from typing import (
     DefaultDict,
     Union,
     cast,
-    Tuple,
+    Sequence,
 )
 
 import numpy as np
@@ -227,7 +227,7 @@ class Simulator(
     def create_act_on_args(
         self,
         initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
-        qubits: Tuple['cirq.Qid', ...],
+        qubits: Sequence['cirq.Qid'],
     ):
         """Creates the ActOnStateVectorArgs for a circuit.
 

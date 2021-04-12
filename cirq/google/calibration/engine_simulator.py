@@ -402,7 +402,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
     def create_act_on_args(
         self,
         initial_state: Union[int, ActOnStateVectorArgs],
-        qubits: Tuple[Qid, ...],
+        qubits: Sequence[Qid],
     ):
         return self._simulator.create_act_on_args(initial_state, qubits)
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Iterable, Tuple, TYPE_CHECKING, Union, Dict, List
+from typing import Any, Iterable, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence
 
 import numpy as np
 
@@ -43,7 +43,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         axes: Iterable[int],
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
-        qubits: Iterable['cirq.Qid'] = None,
+        qubits: Sequence['cirq.Qid'] = None,
     ):
         """
         Args:

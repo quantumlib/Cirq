@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, TYPE_CHECKING, List
+from typing import Any, Dict, Iterable, TYPE_CHECKING, List, Sequence
 
 import numpy as np
 
@@ -40,7 +40,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         axes: Iterable[int],
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
-        qubits: Iterable['cirq.Qid'] = None,
+        qubits: Sequence['cirq.Qid'] = None,
     ):
         """Initializes with the given state and the axes for the operation.
         Args:
