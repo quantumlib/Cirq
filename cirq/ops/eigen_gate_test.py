@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import List, Tuple
 import re
 
 import numpy as np
@@ -41,7 +42,7 @@ class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
     def _with_exponent(self, exponent):
         return CExpZinGate(exponent)
 
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (0, np.diag([1, 1, 0, 0])),
             (0.5, np.diag([0, 0, 1, 0])),
@@ -54,7 +55,7 @@ class ZGateDef(cirq.EigenGate, cirq.TwoQubitGate):
     def exponent(self):
         return self._exponent
 
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (0, np.diag([1, 0])),
             (1, np.diag([0, 1])),
@@ -105,8 +106,6 @@ def test_eq():
 
     eq.add_equality_group(CExpZinGate(2.5))
     eq.add_equality_group(CExpZinGate(2.25))
-    eq.make_equality_group(lambda: sympy.Symbol('a'))
-    eq.add_equality_group(sympy.Symbol('b'))
 
     eq.add_equality_group(ZGateDef(exponent=0.5, global_shift=0.0))
     eq.add_equality_group(ZGateDef(exponent=-0.5, global_shift=0.0))
@@ -157,7 +156,7 @@ def test_period():
             self.c = c
             self.d = d
 
-        def _eigen_components(self):
+        def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
             return [
                 (self.a, np.diag([1, 0, 0, 0])),
                 (self.b, np.diag([0, 1, 0, 0])),
@@ -209,7 +208,7 @@ def test_trace_distance_bound():
             # coverage: ignore
             return 1
 
-        def _eigen_components(self):
+        def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
             return [
                 (0, np.array([[1, 0], [0, 0]])),
                 (12, np.array([[0, 0], [0, 1]])),
@@ -302,7 +301,7 @@ def test_resolve_parameters(resolve_fn):
 
 def test_diagram_period():
     class ShiftyGate(cirq.EigenGate, cirq.SingleQubitGate):
-        def _eigen_components(self):
+        def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
             raise NotImplementedError()
 
         def __init__(self, e, *shifts):
@@ -344,7 +343,7 @@ class WeightedZPowGate(cirq.EigenGate, cirq.SingleQubitGate):
 
     _value_equality_approximate_values_ = _value_equality_values_
 
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (0, np.diag([1, 0])),
             (self.weight, np.diag([0, 1])),

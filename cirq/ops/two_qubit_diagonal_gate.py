@@ -64,7 +64,7 @@ class TwoQubitDiagonalGate(gate_features.TwoQubitGate):
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
 
-    def _unitary_(self) -> np.ndarray:
+    def _unitary_(self) -> Optional[np.ndarray]:
         if self._is_parameterized_():
             return None
         return np.diag([np.exp(1j * angle) for angle in self._diag_angles_radians])

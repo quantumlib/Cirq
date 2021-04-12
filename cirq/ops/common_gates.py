@@ -23,7 +23,19 @@ This module creates Gate instances for the following gates:
 Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
 """
-from typing import Any, cast, Collection, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+
+from typing import (
+    Any,
+    cast,
+    Collection,
+    List,
+    Dict,
+    Optional,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
+    Union,
+)
 
 import numpy as np
 import sympy
@@ -133,7 +145,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         """Returns an equal-up-global-phase standardized form of the gate."""
         return XPowGate(exponent=self._exponent)
 
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (0, np.array([[0.5, 0.5], [0.5, 0.5]])),
             (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
@@ -414,7 +426,7 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             return SingleQubitCliffordGate.Y_nsqrt.on(*qubits)
         return NotImplemented
 
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (0, np.array([[0.5, -0.5j], [0.5j, 0.5]])),
             (1, np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
@@ -672,7 +684,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             )
         return result
 
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (0, np.diag([1, 0])),
             (1, np.diag([0, 1])),
@@ -835,7 +847,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     `cirq.H`, the Hadamard gate, is an instance of this gate at `exponent=1`.
     """
 
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         s = np.sqrt(2)
 
         component0 = np.array([[3 + 2 * s, 1 + s], [1 + s, 1]]) / (4 + 2 * s)
@@ -1022,7 +1034,7 @@ class CZPowGate(
             return []
         return NotImplemented
 
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (0, np.diag([1, 1, 1, 0])),
             (1, np.diag([0, 0, 0, 1])),
@@ -1238,7 +1250,7 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         yield CZ(c, t) ** self._exponent
         yield YPowGate(exponent=0.5).on(t)
 
-    def _eigen_components(self):
+    def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
             (0, np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0.5, 0.5], [0, 0, 0.5, 0.5]])),
             (1, np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0.5, -0.5], [0, 0, -0.5, 0.5]])),
