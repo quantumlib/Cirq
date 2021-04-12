@@ -64,8 +64,8 @@ def test_invalid_args():
         (grid_qubit.GridQubit(3, 2), grid_qubit.GridQubit(4, 2)): 0.004619111460557768,
         (grid_qubit.GridQubit(4, 1), grid_qubit.GridQubit(4, 2)): 0.0076079162393482835,
     }
-    with pytest.raises(ValueError, match="invalid argument.*colormap_args"):
-        heatmap.TwoQubitInteractionHeatmap(value_map, colormap_args='Greys')
+    with pytest.raises(ValueError, match="invalid argument.*colormap"):
+        heatmap.TwoQubitInteractionHeatmap(value_map, colormap='Greys')
 
 
 def test_two_qubit_nearest_neighbor(ax):
@@ -89,7 +89,9 @@ def test_cell_colors(ax, colormap_name):
     test_value_map = {(qubit,): value for qubit, value in zip(qubits, values)}
     test_row_col_map = {rc: value for rc, value in zip(row_col_list, values)}
     vmin, vmax = 1.5, 2.5
-    random_heatmap = heatmap.Heatmap(test_value_map, colormap=colormap_name, vmin=vmin, vmax=vmax)
+    random_heatmap = heatmap.Heatmap(
+        test_value_map, collection_options={'cmap': colormap_name}, vmin=vmin, vmax=vmax
+    )
     _, mesh = random_heatmap.plot(ax)
 
     colormap = mpl.cm.get_cmap(colormap_name)
@@ -205,7 +207,7 @@ def test_non_float_values(ax, format_string):
     vmin, vmax = 0.0, 1.0
     random_heatmap = heatmap.Heatmap(
         test_value_map,
-        colormap=colormap_name,
+        collection_options={'cmap': colormap_name},
         vmin=vmin,
         vmax=vmax,
         annotation_format=format_string,
