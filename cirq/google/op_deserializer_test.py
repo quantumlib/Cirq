@@ -384,7 +384,7 @@ def test_circuit_op_from_proto_errors():
         deserializer.from_proto(serialized, deserialized_constants=deserialized_constants)
 
     bad_deserialized_constants = [DEFAULT_TOKEN]
-    with pytest.raises(ValueError, match='does not appear in the deserialized_constants table'):
+    with pytest.raises(ValueError, match='does not appear in the deserialized_constants list'):
         deserializer.from_proto(
             serialized, constants=constants, deserialized_constants=bad_deserialized_constants
         )
