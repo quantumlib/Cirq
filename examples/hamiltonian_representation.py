@@ -1,11 +1,12 @@
+from collections import defaultdict
 import functools
 import math
-from typing import Dict, List, Sequence, Tuple
+from typing import DefaultDict, List, Sequence, Tuple
 
 from sympy.logic.boolalg import And, Not, Or, Xor
 from sympy.core.expr import Expr
 from sympy.core.symbol import Symbol
-from sympy.parsing.sympy_parser import parse_expr
+import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
 
@@ -21,21 +22,24 @@ import cirq
 class HamiltonianList:
     """A container class of Boolean function as equation (2) or [1]"""
 
-    def __init__(self, hamiltonians: Dict[Tuple[int, ...], float]):
+    def __init__(self, hamiltonians: DefaultDict[Tuple[int, ...], float]):
         # The representation is Tuple[int, ...] to weights. The tuple contains the integers of
         # where Z_i is present. For example, Z_0.Z_3 would be (0, 3), and I is the empty tuple.
-        self._hamiltonians = {h: w for h, w in hamiltonians.items() if math.fabs(w) > 1e-12}
+        self._hamiltonians = defaultdict(
+            float, {h: w for h, w in hamiltonians.items() if math.fabs(w) > 1e-12}
+        )
 
     @property
     def hamiltonians(self):
         return self._hamiltonians
 
-    def __str__(self):
+    def __repr__(self):
         # For run-to-run identicalness, we sort the keys lexicographically.
-        return "; ".join(
+        formatted_terms = [
             f"{self._hamiltonians[h]:.2f}.{'.'.join('Z_%d' % d for d in h) if h else 'I'}"
             for h in sorted(self._hamiltonians)
-        )
+        ]
+        return "; ".join(formatted_terms)
 
     def __add__(self, other: 'HamiltonianList') -> 'HamiltonianList':
         return self._signed_add(other, 1.0)
@@ -46,8 +50,6 @@ class HamiltonianList:
     def _signed_add(self, other: 'HamiltonianList', sign: float) -> 'HamiltonianList':
         hamiltonians = self._hamiltonians.copy()
         for h, w in other.hamiltonians.items():
-            if h not in hamiltonians:
-                hamiltonians[h] = 0.0
             hamiltonians[h] += sign * w
         return HamiltonianList(hamiltonians)
 
@@ -55,7 +57,7 @@ class HamiltonianList:
         return HamiltonianList({k: other * w for k, w in self._hamiltonians.items()})
 
     def __mul__(self, other: 'HamiltonianList') -> 'HamiltonianList':
-        hamiltonians = {}
+        hamiltonians = defaultdict(float, {})
         for h1, w1 in self._hamiltonians.items():
             for h2, w2 in other.hamiltonians.items():
                 # Since we represent the Hamilonians using the indices of the Z_i, when we multiply
@@ -66,8 +68,6 @@ class HamiltonianList:
                 # difference of the two tuples.
                 h = tuple(sorted(set(h1).symmetric_difference(h2)))
                 w = w1 * w2
-                if h not in hamiltonians:
-                    hamiltonians[h] = 0.0
                 hamiltonians[h] += w
         return HamiltonianList(hamiltonians)
 
@@ -85,7 +85,7 @@ class HamiltonianList:
 
 
 def build_hamiltonian_from_boolean(
-    boolean_expr: Expr, name_to_id: Dict[str, int]
+    boolean_expr: Expr, name_to_id: DefaultDict[str, int]
 ) -> HamiltonianList:
     """Builds the Hamiltonian representation of Boolean expression as per [1]:
 
@@ -128,7 +128,7 @@ def build_hamiltonian_from_boolean(
     raise ValueError(f'Unsupported type: {type(boolean_expr)}')
 
 
-def get_name_to_id(boolean_exprs: Sequence[Expr]) -> Dict[str, int]:
+def get_name_to_id(boolean_exprs: Sequence[Expr]) -> DefaultDict[str, int]:
     """Maps the variables to a unique integer.
 
     Args:
@@ -221,7 +221,7 @@ def build_circuit_from_boolean_expressions(boolean_exprs: Sequence[Expr], theta:
     Return:
         A dictionary of string (the variable name) to a unique integer.
     """
-    booleans = [parse_expr(boolean_expr) for boolean_expr in boolean_exprs]
+    booleans = [sympy_parser.parse_expr(boolean_expr) for boolean_expr in boolean_exprs]
     name_to_id = get_name_to_id(booleans)
 
     hamiltonians = [build_hamiltonian_from_boolean(boolean, name_to_id) for boolean in booleans]

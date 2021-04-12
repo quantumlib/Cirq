@@ -4,7 +4,7 @@ import random
 
 import numpy as np
 import pytest
-from sympy.parsing.sympy_parser import parse_expr
+import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
 import examples.hamiltonian_representation as hr
@@ -22,14 +22,14 @@ import examples.hamiltonian_representation as hr
     ],
 )
 def test_build_hamiltonian_from_boolean(boolean_expr, hamiltonian):
-    boolean = parse_expr(boolean_expr)
+    boolean = sympy_parser.parse_expr(boolean_expr)
     name_to_id = hr.get_name_to_id([boolean])
     actual = hr.build_hamiltonian_from_boolean(boolean, name_to_id)
     assert hamiltonian == str(actual)
 
 
 def test_unsupported_op():
-    not_a_boolean = parse_expr('x * x')
+    not_a_boolean = sympy_parser.parse_expr('x * x')
     name_to_id = hr.get_name_to_id([not_a_boolean])
     with pytest.raises(ValueError, match='Unsupported type'):
         hr.build_hamiltonian_from_boolean(not_a_boolean, name_to_id)
