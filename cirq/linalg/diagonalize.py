@@ -183,9 +183,9 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
             raise ValueError('mat1 must be real.')
         if np.any(np.imag(mat2) != 0):
             raise ValueError('mat2 must be real.')
-        if not predicates.is_hermitian(mat1 @ mat2.T, rtol=rtol, atol=atol):
+        if not predicates.is_hermitian(np.dot(mat1, mat2.T), rtol=rtol, atol=atol):
             raise ValueError('mat1 @ mat2.T must be symmetric.')
-        if not predicates.is_hermitian(mat1.T @ mat2, rtol=rtol, atol=atol):
+        if not predicates.is_hermitian(np.dot(mat1.T, mat2), rtol=rtol, atol=atol):
             raise ValueError('mat1.T @ mat2 must be symmetric.')
 
     # Use SVD to bi-diagonalize the first matrix.
