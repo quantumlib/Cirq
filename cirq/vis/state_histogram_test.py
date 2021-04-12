@@ -108,4 +108,5 @@ def test_plot_state_histogram_deprecation():
         simulator = cirq.Simulator()
         q = cirq.NamedQubit("a")
         circuit = cirq.Circuit([cirq.X(q), cirq.measure(q)])
-        simulator.run(program=circuit, repetitions=5)
+        result = simulator.run(program=circuit, repetitions=5)
+        cirq.study.visualize.plot_state_histogram(result)

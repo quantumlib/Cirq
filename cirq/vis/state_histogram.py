@@ -29,16 +29,24 @@ def get_state_histogram(result: 'result.Result') -> np.ndarray:
                 state histogram should be computed.
 
     Returns:
-        The state histogram (a numpy array of length 2 ** num_qubits)
-        corresponding to the trial result. The state histogram is computed
-        using `result.histogram()`.
+        The state histogram (a numpy array) corresponding to the trial result.
     """
     num_qubits = sum([value.shape[1] for value in result.measurements.values()])
-    hist = result.histogram(key=','.join(result.data.keys()))
-    data = np.zeros(2 ** num_qubits)
-    for k, v in hist.items():
-        data[k] = v
-    return data
+    states = 2 ** num_qubits
+    values = np.zeros(states)
+    # measurements is a dict of {measurement gate key:
+    #                            array(repetitions, boolean result)}
+    # Convert this to an array of repetitions, each with an array of booleans.
+    # e.g. {q1: array([[True, True]]), q2: array([[False, False]])}
+    #      --> array([[True, False], [True, False]])
+    measurement_by_result = np.hstack(list(result.measurements.values()))
+
+    for meas in measurement_by_result:
+        # Convert each array of booleans to a string representation.
+        # e.g. [True, False] -> [1, 0] -> '10' -> 2
+        state_ind = int(''.join([str(x) for x in [int(x) for x in meas]]), 2)
+        values[state_ind] += 1
+    return values
 
 
 def plot_state_histogram(
@@ -51,9 +59,8 @@ def plot_state_histogram(
     title: Optional[str] = 'Result State Histogram',
 ) -> 'plt.Axis':
     """Plot the state histogram from either a single result with repetitions or
-       a histogram of measurement results computed using `result.histogram()` or
-       a histogram of measurement results specified as an np.ndarray where i'th
-       entry corresponds to the histogram of state |i>
+       a histogram computed using `result.histogram()` or a flattened histogram
+       of measurement results computed using `get_state_histogram`.
 
     Args:
         data:   The histogram values to plot. Possible options are:
@@ -66,9 +73,9 @@ def plot_state_histogram(
                  default labels as |0> ... |n-1>.
         ax:      The Axes to plot on. If not given, a new figure is created,
                  plotted on, and shown.
-        tick_label: Tick labels for the histogram plot. If not given, the keys
-                    of `collections.Counter` are used by default. For sequence,
-                    label for i'th entry is |i>.
+        tick_label: Tick labels for the histogram plot in case input is not
+                    `collections.Counter`. By default, label for i'th entry
+                     is |i>.
         xlabel:  Label for the x-axis.
         ylabel:  Label for the y-axis.
         title:   Title of the plot.
@@ -80,13 +87,14 @@ def plot_state_histogram(
     if not ax:
         fig, ax = plt.subplots(1, 1)
     if isinstance(data, result.Result):
-        data = get_state_histogram(data)
-    labels = np.arange(len(data))
-    if isinstance(data, collections.Counter):
-        labels, data = zip(*sorted(data.items()))
+        values = get_state_histogram(data)
+    elif isinstance(data, collections.Counter):
+        tick_label, values = zip(*sorted(data.items()))
+    else:
+        values = data
     if not tick_label:
-        tick_label = labels
-    ax.bar(np.arange(len(data)), data, tick_label=tick_label)
+        tick_label = np.arange(len(values))
+    ax.bar(np.arange(len(values)), values, tick_label=tick_label)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.set_title(title)
