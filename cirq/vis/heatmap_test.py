@@ -263,9 +263,9 @@ def test_colorbar(ax, position, size, pad):
     fig1, ax1 = plt.subplots()
     random_heatmap.plot(ax1)
     fig2, ax2 = plt.subplots()
-    random_heatmap.update_config(
-        plot_colorbar=True, colorbar_position=position, colorbar_size=size, colorbar_pad=pad
-    ).plot(ax2)
+    random_heatmap.plot(
+        ax2, plot_colorbar=True, colorbar_position=position, colorbar_size=size, colorbar_pad=pad
+    )
 
     # We need to call savefig() explicitly for updating axes position since the figure
     # object has been altered in the HeatMap._plot_colorbar function.
