@@ -50,6 +50,7 @@ def test_quantum_state():
     np.testing.assert_array_equal(state.state_vector(), state_vector_1)
     np.testing.assert_array_equal(state.state_tensor(), state_tensor_1)
     np.testing.assert_array_equal(state.density_matrix(), density_matrix_1)
+    np.testing.assert_array_equal(state.state_vector_or_density_matrix(), state_vector_1)
 
     state = cirq.QuantumState(state_tensor_1, qid_shape=(2, 2))
     assert state.data is state_tensor_1
@@ -58,6 +59,7 @@ def test_quantum_state():
     np.testing.assert_array_equal(state.state_vector(), state_vector_1)
     np.testing.assert_array_equal(state.state_tensor(), state_tensor_1)
     np.testing.assert_array_equal(state.density_matrix(), density_matrix_1)
+    np.testing.assert_array_equal(state.state_vector_or_density_matrix(), state_vector_1)
 
     state = cirq.QuantumState(density_matrix_1, qid_shape=(2, 2))
     assert state.data is density_matrix_1
@@ -66,6 +68,7 @@ def test_quantum_state():
     assert state.state_vector() is None
     assert state.state_tensor() is None
     np.testing.assert_array_equal(state.density_matrix(), density_matrix_1)
+    np.testing.assert_array_equal(state.state_vector_or_density_matrix(), density_matrix_1)
 
 
 def test_quantum_state_quantum_state():

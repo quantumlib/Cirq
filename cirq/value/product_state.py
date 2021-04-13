@@ -131,7 +131,7 @@ class ProductState:
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qubits = qubit_order.order_for(self.qubits)
 
-        mat = 1.0 + 0.0j
+        mat = np.ones(1, dtype=np.complex128)
         for qubit in qubits:
             oneq_state = self[qubit]
             state_vector = oneq_state.state_vector()
@@ -151,7 +151,7 @@ class ProductState:
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qubits = qubit_order.order_for(self.qubits)
 
-        mat = 1.0 + 0.0j
+        mat = np.ones(1, dtype=np.complex128)
         for qubit in qubits:
             oneq_state = self[qubit]
             oneq_proj = oneq_state.projector()
