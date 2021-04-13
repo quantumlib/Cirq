@@ -34,6 +34,11 @@ from cirq.work.observable_measurement_data import (
     BitstringAccumulator,
     flatten_grouped_results,
 )
+from cirq.work.observable_measurement import (
+    VarianceStoppingCriteria,
+    RepetitionsStoppingCriteria,
+    measure_grouped_settings,
+)
 from cirq.work.sampler import (
     Sampler,
 )

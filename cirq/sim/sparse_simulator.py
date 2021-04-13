@@ -365,6 +365,18 @@ class SparseSimulatorStep(
         return vector.copy() if copy else vector
 
     def set_state_vector(self, state: 'cirq.STATE_VECTOR_LIKE'):
+        """Set the state vector.
+
+        One can pass a valid full state to this method by passing a numpy
+        array. Or, alternatively, one can pass an integer, and then the state
+        will be set to lie entirely in the computation basis state for the
+        binary expansion of the passed integer.
+
+        Args:
+            state: If an int, the state vector set is the state vector
+                corresponding to a computational basis state. If a numpy
+                array this is the full state vector.
+        """
         update_state = qis.to_valid_state_vector(
             state, len(self.qubit_map), qid_shape=protocols.qid_shape(self, None), dtype=self._dtype
         )

@@ -1,0 +1,5 @@
+{
+  "cirq_type": "VarianceStoppingCriteria",
+  "variance_bound": 0.001,
+  "repetitions_per_chunk": 5555
+}

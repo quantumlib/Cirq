@@ -568,6 +568,9 @@ def test_scatter_plot_normalized_kak_interaction_coefficients():
     )
     assert ax2 is ax
 
+    ax3 = cirq.scatter_plot_normalized_kak_interaction_coefficients(data[1], ax=ax)
+    assert ax3 is ax
+
 
 def _vector_kron(first: np.ndarray, second: np.ndarray) -> np.ndarray:
     """Vectorized implementation of kron for square matrices."""
