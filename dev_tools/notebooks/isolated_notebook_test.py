@@ -25,6 +25,7 @@ import os
 import subprocess
 import sys
 import warnings
+from logging import warning
 from typing import Set
 
 import pytest
@@ -73,6 +74,10 @@ PACKAGES = [
     "seaborn~=0.11.1",
     # https://github.com/nteract/papermill/issues/519
     'ipykernel==5.3.4',
+    # to ensure networkx works nicely
+    # https://github.com/networkx/networkx/issues/4718 pinned networkx 2.5.1 to 4.4.2
+    # however, jupyter brings in 5.0.6
+    'decorator<5',
 ]
 
 
@@ -90,10 +95,31 @@ def _find_base_revision():
     raise ValueError("Can't find a base revision to compare the files with.")
 
 
+def _list_all_notebooks() -> Set[str]:
+    try:
+        output = subprocess.check_output(['git', 'ls-files', '*.ipynb'])
+        all_notebooks = set(output.decode('utf-8').splitlines())
+    except subprocess.CalledProcessError as ex:
+        warning("It seems that tests are run from not a git repo, notebook tests are skipped", ex)
+        return set()
+
+    skipped_notebooks = functools.reduce(
+        lambda a, b: a.union(b), list(set(glob.glob(g, recursive=True)) for g in SKIP_NOTEBOOKS)
+    )
+
+    # sorted is important otherwise pytest-xdist will complain that
+    # the workers have different parametrization:
+    # https://github.com/pytest-dev/pytest-xdist/issues/432
+    return sorted(os.path.abspath(n) for n in all_notebooks.difference(skipped_notebooks))
+
+
 def _list_changed_notebooks() -> Set[str]:
     rev = _find_base_revision()
     output = subprocess.check_output(f'git diff --name-only {rev}'.split())
-    return set(l for l in output.decode('utf-8').splitlines() if l.endswith(".ipynb"))
+    lines = output.decode('utf-8').splitlines()
+    if any(l for l in lines if l.endswith("isolated_notebook_test.py")):
+        return _list_all_notebooks()
+    return set(l for l in lines if l.endswith(".ipynb"))
 
 
 def _tested_notebooks():
