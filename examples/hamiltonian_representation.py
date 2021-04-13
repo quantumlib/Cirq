@@ -19,7 +19,7 @@ import cirq
 #     Greenbaum, Sarah Mostame, Alán Aspuru-Guzik.
 
 
-class HamiltonianList:
+class HamiltonianPolynomial:
     """A container class of Boolean function as equation (2) or [1]"""
 
     def __init__(self, hamiltonians: DefaultDict[Tuple[int, ...], float]):
@@ -41,24 +41,24 @@ class HamiltonianList:
         ]
         return "; ".join(formatted_terms)
 
-    def __add__(self, other: 'HamiltonianList') -> 'HamiltonianList':
+    def __add__(self, other: 'HamiltonianPolynomial') -> 'HamiltonianPolynomial':
         return self._signed_add(other, 1.0)
 
-    def __sub__(self, other: 'HamiltonianList') -> 'HamiltonianList':
+    def __sub__(self, other: 'HamiltonianPolynomial') -> 'HamiltonianPolynomial':
         return self._signed_add(other, -1.0)
 
-    def _signed_add(self, other: 'HamiltonianList', sign: float) -> 'HamiltonianList':
+    def _signed_add(self, other: 'HamiltonianPolynomial', sign: float) -> 'HamiltonianPolynomial':
         hamiltonians: DefaultDict[Tuple[int, ...], float] = self._hamiltonians.copy()
         for h, w in other.hamiltonians.items():
             hamiltonians[h] += sign * w
-        return HamiltonianList(hamiltonians)
+        return HamiltonianPolynomial(hamiltonians)
 
-    def __rmul__(self, other: float) -> 'HamiltonianList':
-        return HamiltonianList(
+    def __rmul__(self, other: float) -> 'HamiltonianPolynomial':
+        return HamiltonianPolynomial(
             defaultdict(float, {k: other * w for k, w in self._hamiltonians.items()})
         )
 
-    def __mul__(self, other: 'HamiltonianList') -> 'HamiltonianList':
+    def __mul__(self, other: 'HamiltonianPolynomial') -> 'HamiltonianPolynomial':
         hamiltonians: DefaultDict[Tuple[int, ...], float] = defaultdict(float, {})
         for h1, w1 in self._hamiltonians.items():
             for h2, w2 in other.hamiltonians.items():
@@ -71,24 +71,24 @@ class HamiltonianList:
                 h = tuple(sorted(set(h1).symmetric_difference(h2)))
                 w = w1 * w2
                 hamiltonians[h] += w
-        return HamiltonianList(hamiltonians)
+        return HamiltonianPolynomial(hamiltonians)
 
     @staticmethod
-    def O() -> 'HamiltonianList':
-        return HamiltonianList(defaultdict(float, {}))
+    def O() -> 'HamiltonianPolynomial':
+        return HamiltonianPolynomial(defaultdict(float, {}))
 
     @staticmethod
-    def I() -> 'HamiltonianList':
-        return HamiltonianList(defaultdict(float, {(): 1.0}))
+    def I() -> 'HamiltonianPolynomial':
+        return HamiltonianPolynomial(defaultdict(float, {(): 1.0}))
 
     @staticmethod
-    def Z(i: int) -> 'HamiltonianList':
-        return HamiltonianList(defaultdict(float, {(i,): 1.0}))
+    def Z(i: int) -> 'HamiltonianPolynomial':
+        return HamiltonianPolynomial(defaultdict(float, {(i,): 1.0}))
 
 
 def build_hamiltonian_from_boolean(
     boolean_expr: Expr, name_to_id: Dict[str, int]
-) -> HamiltonianList:
+) -> HamiltonianPolynomial:
     """Builds the Hamiltonian representation of Boolean expression as per [1]:
 
     Args:
@@ -97,12 +97,12 @@ def build_hamiltonian_from_boolean(
             get_name_to_id().
 
     Return:
-        The HamiltonianList that represents the Boolean expression.
+        The HamiltonianPolynomial that represents the Boolean expression.
     """
     if isinstance(boolean_expr, Symbol):
         # Table 1 of [1], entry for 'x' is '1/2.I - 1/2.Z'
         i = name_to_id[boolean_expr.name]
-        return 0.5 * HamiltonianList.I() - 0.5 * HamiltonianList.Z(i)
+        return 0.5 * HamiltonianPolynomial.I() - 0.5 * HamiltonianPolynomial.Z(i)
 
     if isinstance(boolean_expr, (And, Not, Or, Xor)):
         sub_hamiltonians = [
@@ -111,18 +111,18 @@ def build_hamiltonian_from_boolean(
         ]
         # We apply the equalities of theorem 1 of [1].
         if isinstance(boolean_expr, And):
-            hamiltonian = HamiltonianList.I()
+            hamiltonian = HamiltonianPolynomial.I()
             for sub_hamiltonian in sub_hamiltonians:
                 hamiltonian = hamiltonian * sub_hamiltonian
         elif isinstance(boolean_expr, Not):
             assert len(sub_hamiltonians) == 1
-            hamiltonian = HamiltonianList.I() - sub_hamiltonians[0]
+            hamiltonian = HamiltonianPolynomial.I() - sub_hamiltonians[0]
         elif isinstance(boolean_expr, Or):
-            hamiltonian = HamiltonianList.O()
+            hamiltonian = HamiltonianPolynomial.O()
             for sub_hamiltonian in sub_hamiltonians:
                 hamiltonian = hamiltonian + sub_hamiltonian - hamiltonian * sub_hamiltonian
         elif isinstance(boolean_expr, Xor):
-            hamiltonian = HamiltonianList.O()
+            hamiltonian = HamiltonianPolynomial.O()
             for sub_hamiltonian in sub_hamiltonians:
                 hamiltonian = hamiltonian + sub_hamiltonian - 2.0 * hamiltonian * sub_hamiltonian
         return hamiltonian
@@ -158,12 +158,14 @@ def _gray_code_comparator(k1, k2, flip=False):
 
 
 def build_circuit_from_hamiltonians(
-    hamiltonian_lists: List[HamiltonianList], qubits: List[cirq.NamedQubit], theta: float
+    hamiltonian_polynomial_list: List[HamiltonianPolynomial],
+    qubits: List[cirq.NamedQubit],
+    theta: float,
 ) -> cirq.Circuit:
     """Builds a circuit according to [1].
 
     Args:
-        hamiltonian_lists: the list of Hamiltonians, typically built by calling
+        hamiltonian_polynomial_list: the list of Hamiltonians, typically built by calling
             build_hamiltonian_from_boolean().
         qubits: The list of qubits corresponding to the variables.
         theta: A single float scaling the rotations.
@@ -171,9 +173,7 @@ def build_circuit_from_hamiltonians(
     Return:
         A dictionary of string (the variable name) to a unique integer.
     """
-    combined = HamiltonianList.O()
-    for hamiltonian_list in hamiltonian_lists:
-        combined += hamiltonian_list
+    combined = sum(hamiltonian_polynomial_list, HamiltonianPolynomial.O())
 
     circuit = cirq.Circuit()
 
@@ -183,13 +183,10 @@ def build_circuit_from_hamiltonians(
         list(combined.hamiltonians.keys()), key=functools.cmp_to_key(_gray_code_comparator)
     )
 
-    # Applies the CNOTs
-    def _apply_cnots(h):
-        circuit.append([cirq.CNOT(qubits[c], qubits[h[-1]]) for c in h[0:-1]])
-
-    previous_h: Tuple[int, ...] = ()
-    for h in sorted_hs:
-        w = combined.hamiltonians[h]
+    def _apply_cnots(previous_h, h):
+        # This function applies in sequence the CNOTs from previous_h and then h. However, given
+        # that the h are sorted in Gray ordering and that some cancel each other, we can reduce the
+        # number of gates. See [4] for more details.
 
         # We first test whether the rotation is applied on the same qubit.
         last_qubit_is_same = previous_h and h and previous_h[-1] == h[-1]
@@ -197,18 +194,26 @@ def build_circuit_from_hamiltonians(
             # Instead of applying previous_h and then h, we just apply the symmetric difference of
             # the two CNOTs.
             h_diff = tuple(sorted(set(previous_h).symmetric_difference(h)))
-            _apply_cnots(h_diff + (h[-1],))
-            # This would be equivalent to the lines below, but it should use fewer gates.
+            h_diff += (h[-1],)
+            circuit.append([cirq.CNOT(qubits[c], qubits[h_diff[-1]]) for c in h_diff[0:-1]])
         else:
-            _apply_cnots(previous_h)
-            _apply_cnots(h)
+            # This is the fall-back, where we just apply the CNOTs without cancellations.
+            circuit.append([cirq.CNOT(qubits[c], qubits[previous_h[-1]]) for c in previous_h[0:-1]])
+            circuit.append([cirq.CNOT(qubits[c], qubits[h[-1]]) for c in h[0:-1]])
+
+    previous_h: Tuple[int, ...] = ()
+    for h in sorted_hs:
+        w = combined.hamiltonians[h]
+
+        _apply_cnots(previous_h, h)
 
         if len(h) >= 1:
             circuit.append(cirq.Rz(rads=(theta * w)).on(qubits[h[-1]]))
 
         previous_h = h
 
-    _apply_cnots(previous_h)
+    # Flush the last CNOTs.
+    _apply_cnots(previous_h, ())
 
     return circuit
 
@@ -226,10 +231,12 @@ def build_circuit_from_boolean_expressions(boolean_exprs: Sequence[Expr], theta:
     booleans = [sympy_parser.parse_expr(boolean_expr) for boolean_expr in boolean_exprs]
     name_to_id = get_name_to_id(booleans)
 
-    hamiltonians = [build_hamiltonian_from_boolean(boolean, name_to_id) for boolean in booleans]
+    hamiltonian_polynomial_list = [
+        build_hamiltonian_from_boolean(boolean, name_to_id) for boolean in booleans
+    ]
 
     qubits = [cirq.NamedQubit(name) for name in name_to_id.keys()]
     circuit = cirq.Circuit()
-    circuit += build_circuit_from_hamiltonians(hamiltonians, qubits, theta)
+    circuit += build_circuit_from_hamiltonians(hamiltonian_polynomial_list, qubits, theta)
 
     return circuit, qubits

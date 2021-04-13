@@ -11,7 +11,7 @@ import examples.hamiltonian_representation as hr
 
 # These are some of the entries of table 1 of https://arxiv.org/pdf/1804.09130.pdf.
 @pytest.mark.parametrize(
-    'boolean_expr,hamiltonian',
+    'boolean_expr,expected_hamiltonian_polynomial',
     [
         ('x', '0.50.I; -0.50.Z_0'),
         ('~x', '0.50.I; 0.50.Z_0'),
@@ -21,11 +21,11 @@ import examples.hamiltonian_representation as hr
         ('x0 ^ x1 ^ x2', '0.50.I; -0.50.Z_0.Z_1.Z_2'),
     ],
 )
-def test_build_hamiltonian_from_boolean(boolean_expr, hamiltonian):
+def test_build_hamiltonian_from_boolean(boolean_expr, expected_hamiltonian_polynomial):
     boolean = sympy_parser.parse_expr(boolean_expr)
     name_to_id = hr.get_name_to_id([boolean])
     actual = hr.build_hamiltonian_from_boolean(boolean, name_to_id)
-    assert hamiltonian == str(actual)
+    assert expected_hamiltonian_polynomial == str(actual)
 
 
 def test_unsupported_op():
