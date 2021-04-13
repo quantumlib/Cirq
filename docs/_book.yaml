@@ -159,8 +159,14 @@ upper_tabs:
       - heading: "Advanced"
       - title: "Rabi oscillation experiment"
         path: /cirq/tutorials/rabi_oscillations
+      - title: "Cross entropy benchmarking (XEB) theory"
+        path: /cirq/qcvv/xeb_theory
+      - title: "XEB and coherent error"
+        path: /cirq/qcvv/xeb_coherent_noise
       - title: "Parallel XEB"
         path: /cirq/qcvv/parallel_xeb
+      - title: "Isolated XEB"
+        path: /cirq/qcvv/isolated_xeb
       - title: "Hidden linear function problem"
         path: /cirq/tutorials/hidden_linear_function
       - title: "Shor's algorithm"
