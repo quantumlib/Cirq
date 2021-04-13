@@ -628,7 +628,7 @@ class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def sample(
         self,
-        qubits: List[ops.Qid],
+        qubits: Sequence[ops.Qid],
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
