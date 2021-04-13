@@ -306,3 +306,26 @@ def test_colorbar(ax, position, size, pad):
 
     plt.close(fig1)
     plt.close(fig2)
+
+
+def test_plot_updates_local_config():
+    value_map_2d = {
+        (grid_qubit.GridQubit(3, 2), grid_qubit.GridQubit(4, 2)): 0.004619111460557768,
+        (grid_qubit.GridQubit(4, 1), grid_qubit.GridQubit(4, 2)): 0.0076079162393482835,
+    }
+    value_map_1d = {
+        (grid_qubit.GridQubit(3, 2),): 0.004619111460557768,
+        (grid_qubit.GridQubit(4, 2),): 0.0076079162393482835,
+    }
+    original_title = "Two Qubit Interaction Heatmap"
+    new_title = "Temporary title for the plot"
+    for random_heatmap in [
+        heatmap.TwoQubitInteractionHeatmap(value_map_2d, title=original_title),
+        heatmap.Heatmap(value_map_1d, title=original_title),
+    ]:
+        _, ax = plt.subplots()
+        random_heatmap.plot(ax, title=new_title)
+        assert ax.get_title() == new_title
+        _, ax = plt.subplots()
+        random_heatmap.plot(ax)
+        assert ax.get_title() == original_title

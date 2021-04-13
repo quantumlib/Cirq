@@ -14,6 +14,7 @@
 from typing import Any, Dict, List, Mapping, Optional, SupportsFloat, Tuple
 from dataclasses import astuple, dataclass
 
+import copy
 import numpy as np
 from matplotlib import collections as mcoll
 import matplotlib as mpl
@@ -277,9 +278,9 @@ class Heatmap:
         Args:
             ax: the Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
-            kwargs: Updates keyword arguments passed during construction by
-                calling `self.update_config(**kwargs)` before plotting.
-                See __init__ for more details on the allowed arguments.
+            kwargs: The optional keyword arguments are used to temporarily
+                override the values present in the heatmap config. See
+                __init__ for more details on the allowed arguments.
         Returns:
             A 2-tuple ``(ax, collection)``. ``ax`` is the `plt.Axes` that
             is plotted on. ``collection`` is the collection of paths drawn and filled.
@@ -287,10 +288,12 @@ class Heatmap:
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(figsize=(8, 8))
+        original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
         collection = self._plot_on_axis(ax)
         if show_plot:
             fig.show()
+        self._config = copy.deepcopy(original_config)
         return (ax, collection)
 
 
@@ -362,10 +365,9 @@ class TwoQubitInteractionHeatmap(Heatmap):
         Args:
             ax: the Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
-            kwargs: Updates keyword arguments passed during construction by
-                calling `self.update_config(**kwargs)` before plotting.
-                See __init__ for more details on the allowed arguments.
-
+            kwargs: The optional keyword arguments are used to temporarily
+                override the values present in the heatmap config. See
+                __init__ for more details on the allowed arguments.
         Returns:
             A 2-tuple ``(ax, collection)``. ``ax`` is the `plt.Axes` that
             is plotted on. ``collection`` is the collection of paths drawn and filled.
@@ -373,6 +375,7 @@ class TwoQubitInteractionHeatmap(Heatmap):
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(figsize=(8, 8))
+        original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
         qubits = set([q for qubits in self._value_map.keys() for q in qubits])
         Heatmap({(q,): 0.0 for q in qubits}).plot(
@@ -389,4 +392,5 @@ class TwoQubitInteractionHeatmap(Heatmap):
         collection = self._plot_on_axis(ax)
         if show_plot:
             fig.show()
+        self._config = copy.deepcopy(original_config)
         return (ax, collection)
