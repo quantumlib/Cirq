@@ -10,17 +10,18 @@ import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
 
-# References:
-# [1] On the representation of Boolean and real functions as Hamiltonians for quantum computing
-#     by Stuart Hadfield, https://arxiv.org/pdf/1804.09130.pdf
-# [2] https://www.youtube.com/watch?v=AOKM9BkweVU is a useful intro
-# [3] https://github.com/rsln-s/IEEE_QW_2020/blob/master/Slides.pdf
-# [4] Efficient quantum circuits for diagonal unitaries without ancillas by Jonathan Welch, Daniel
-#     Greenbaum, Sarah Mostame, Alán Aspuru-Guzik.
-
 
 class HamiltonianPolynomial:
-    """A container class of Boolean function as equation (2) or [1]"""
+    """A container class of Boolean function as equation (2) or [1]
+
+    References:
+    [1] On the representation of Boolean and real functions as Hamiltonians for quantum computing
+        by Stuart Hadfield, https://arxiv.org/pdf/1804.09130.pdf
+    [2] https://www.youtube.com/watch?v=AOKM9BkweVU is a useful intro
+    [3] https://github.com/rsln-s/IEEE_QW_2020/blob/master/Slides.pdf
+    [4] Efficient quantum circuits for diagonal unitaries without ancillas by Jonathan Welch, Daniel
+        Greenbaum, Sarah Mostame, Alán Aspuru-Guzik, https://arxiv.org/abs/1306.3991
+    """
 
     def __init__(self, hamiltonians: DefaultDict[Tuple[int, ...], float]):
         # The representation is Tuple[int, ...] to weights. The tuple contains the integers of
