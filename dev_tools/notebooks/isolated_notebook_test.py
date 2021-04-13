@@ -98,19 +98,10 @@ def _find_base_revision():
 def _list_all_notebooks() -> Set[str]:
     try:
         output = subprocess.check_output(['git', 'ls-files', '*.ipynb'])
-        all_notebooks = set(output.decode('utf-8').splitlines())
+        return set(output.decode('utf-8').splitlines())
     except subprocess.CalledProcessError as ex:
         warning("It seems that tests are run from not a git repo, notebook tests are skipped", ex)
         return set()
-
-    skipped_notebooks = functools.reduce(
-        lambda a, b: a.union(b), list(set(glob.glob(g, recursive=True)) for g in SKIP_NOTEBOOKS)
-    )
-
-    # sorted is important otherwise pytest-xdist will complain that
-    # the workers have different parametrization:
-    # https://github.com/pytest-dev/pytest-xdist/issues/432
-    return sorted(os.path.abspath(n) for n in all_notebooks.difference(skipped_notebooks))
 
 
 def _list_changed_notebooks() -> Set[str]:
