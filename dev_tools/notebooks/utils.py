@@ -22,7 +22,7 @@ from typing import Set, List
 
 
 def list_all_notebooks() -> Set[str]:
-    """Returns the relative path to all notebooks in the git repo.
+    """Returns the relative paths to all notebooks in the git repo.
 
     In case the folder is not a git repo, it returns an empty set.
     """
