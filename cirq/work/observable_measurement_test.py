@@ -17,7 +17,7 @@ import pytest
 
 import cirq
 import cirq.work as cw
-from cirq.work import _MeasurementSpec
+from cirq.work import _MeasurementSpec, BitstringAccumulator
 from cirq.work.observable_measurement import (
     _with_parameterized_layers,
     _get_params_for_setting,
@@ -25,6 +25,7 @@ from cirq.work.observable_measurement import (
     _subdivide_meas_specs,
     _aggregate_n_repetitions,
     _check_meas_specs_still_todo,
+    StoppingCriteria,
 )
 
 
@@ -198,7 +199,78 @@ def test_aggregate_n_repetitions():
     assert reps == 6
 
 
-def test_meas_specs_still_todo():
+class _MockBitstringAccumulator(BitstringAccumulator):
+    def __init__(self):
+        super().__init__(
+            meas_spec=None,
+            simul_settings=None,
+            qubit_to_index={q: i for i, q in enumerate(cirq.LineQubit.range(5))},
+        )
+
+    def covariance(self, *, atol=1e-8) -> np.ndarray:
+        cov = np.cov(self.bitstrings.T, ddof=1)
+        assert cov.shape == (5, 5)
+        return cov / len(self.bitstrings)
+
+
+def test_variance_stopping_criteria():
+    stop = cw.VarianceStoppingCriteria(variance_bound=1e-6)
+    acc = _MockBitstringAccumulator()
+    assert stop.more_repetitions(acc) == 10_000
+    rs = np.random.RandomState(52)
+
+    # small number of results
+    acc.consume_results(rs.choice([0, 1], size=(100, 5)).astype(np.uint8))
+    assert stop.more_repetitions(acc) == 10_000
+
+    # large number of results
+    acc.consume_results(rs.choice([0, 1], size=(10_000, 5)).astype(np.uint8))
+    assert stop.more_repetitions(acc) == 0
+
+
+class _WildVarianceStoppingCriteria(StoppingCriteria):
+    def __init__(self):
+        self._state = 0
+
+    def more_repetitions(self, accumulator: BitstringAccumulator) -> int:
+        """Ignore everything, request either 5 or 6 repetitions."""
+        self._state += 1
+        return [5, 6][self._state % 2]
+
+
+def test_variance_stopping_criteria_aggregate_n_repetitions():
+    stop = _WildVarianceStoppingCriteria()
+    acc1 = _MockBitstringAccumulator()
+    acc2 = _MockBitstringAccumulator()
+    accumulators = {'FakeMeasSpec1': acc1, 'FakeMeasSpec2': acc2}
+    with pytest.warns(UserWarning, match='the largest value will be used: 6.'):
+        still_todo, reps = _check_meas_specs_still_todo(
+            meas_specs=sorted(accumulators.keys()),
+            accumulators=accumulators,
+            stopping_criteria=stop,
+        )
+    assert still_todo == ['FakeMeasSpec1', 'FakeMeasSpec2']
+    assert reps == 6
+
+
+def test_repetitions_stopping_criteria():
+    stop = cw.RepetitionsStoppingCriteria(total_repetitions=50_000)
+    acc = _MockBitstringAccumulator()
+
+    todos = [stop.more_repetitions(acc)]
+    for _ in range(6):
+        acc.consume_results(np.zeros((10_000, 5), dtype=np.uint8))
+        todos.append(stop.more_repetitions(acc))
+    assert todos == [10_000] * 5 + [0, 0]
+
+
+def test_repetitions_stopping_criteria_partial():
+    stop = cw.RepetitionsStoppingCriteria(total_repetitions=5_000, repetitions_per_chunk=1_000_000)
+    acc = _MockBitstringAccumulator()
+    assert stop.more_repetitions(acc) == 5_000
+
+
+def _set_up_meas_specs_for_testing():
     q0, q1 = cirq.LineQubit.range(2)
     setting = cw.InitObsSetting(
         init_state=cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1), observable=cirq.X(q0) * cirq.Y(q1)
@@ -213,10 +285,18 @@ def test_meas_specs_still_todo():
     bsa = cw.BitstringAccumulator(
         meas_spec, [], {q: i for i, q in enumerate(cirq.LineQubit.range(3))}
     )
+    return bsa, meas_spec
+
+
+def test_meas_specs_still_todo():
+    bsa, meas_spec = _set_up_meas_specs_for_testing()
+    stop = cw.RepetitionsStoppingCriteria(1_000)
 
     # 1. before taking any data
     still_todo, reps = _check_meas_specs_still_todo(
-        meas_specs=[meas_spec], accumulators={meas_spec: bsa}, desired_repetitions=1_000
+        meas_specs=[meas_spec],
+        accumulators={meas_spec: bsa},
+        stopping_criteria=stop,
     )
     assert still_todo == [meas_spec]
     assert reps == 1_000
@@ -224,7 +304,9 @@ def test_meas_specs_still_todo():
     # 2. After taking a mocked-out 997 shots.
     bsa.consume_results(np.zeros((997, 3), dtype=np.uint8))
     still_todo, reps = _check_meas_specs_still_todo(
-        meas_specs=[meas_spec], accumulators={meas_spec: bsa}, desired_repetitions=1_000
+        meas_specs=[meas_spec],
+        accumulators={meas_spec: bsa},
+        stopping_criteria=stop,
     )
     assert still_todo == [meas_spec]
     assert reps == 3
@@ -232,10 +314,54 @@ def test_meas_specs_still_todo():
     # 3. After taking the final 3 shots
     bsa.consume_results(np.zeros((reps, 3), dtype=np.uint8))
     still_todo, reps = _check_meas_specs_still_todo(
-        meas_specs=[meas_spec], accumulators={meas_spec: bsa}, desired_repetitions=1_000
+        meas_specs=[meas_spec],
+        accumulators={meas_spec: bsa},
+        stopping_criteria=stop,
     )
     assert still_todo == []
     assert reps == 0
+
+
+def test_meas_spec_still_todo_bad_spec():
+    bsa, meas_spec = _set_up_meas_specs_for_testing()
+
+    class BadStopping(StoppingCriteria):
+        def more_repetitions(self, accumulator: BitstringAccumulator) -> int:
+            return -23
+
+    bad_stop = BadStopping()
+    with pytest.raises(ValueError, match='positive'):
+        _, _ = _check_meas_specs_still_todo(
+            meas_specs=[meas_spec],
+            accumulators={meas_spec: bsa},
+            stopping_criteria=bad_stop,
+        )
+
+
+def test_meas_spec_still_todo_too_many_params(monkeypatch):
+    monkeypatch.setattr(cw.observable_measurement, 'MAX_REPETITIONS_PER_JOB', 30_000)
+    bsa, meas_spec = _set_up_meas_specs_for_testing()
+    lots_of_meas_spec = [meas_spec] * 3_001
+    stop = cw.RepetitionsStoppingCriteria(10_000)
+    with pytest.raises(ValueError, match='too many parameter settings'):
+        _, _ = _check_meas_specs_still_todo(
+            meas_specs=lots_of_meas_spec,
+            accumulators={meas_spec: bsa},
+            stopping_criteria=stop,
+        )
+
+
+def test_meas_spec_still_todo_lots_of_params(monkeypatch):
+    monkeypatch.setattr(cw.observable_measurement, 'MAX_REPETITIONS_PER_JOB', 30_000)
+    bsa, meas_spec = _set_up_meas_specs_for_testing()
+    lots_of_meas_spec = [meas_spec] * 4
+    stop = cw.RepetitionsStoppingCriteria(10_000)
+    with pytest.warns(UserWarning, match='will be throttled from 10000 to 7500'):
+        _, _ = _check_meas_specs_still_todo(
+            meas_specs=lots_of_meas_spec,
+            accumulators={meas_spec: bsa},
+            stopping_criteria=stop,
+        )
 
 
 @pytest.mark.parametrize('with_circuit_sweep', (True, False))
@@ -266,7 +392,7 @@ def test_measure_grouped_settings(with_circuit_sweep):
             circuit=circuit,
             grouped_settings=grouped_settings,
             sampler=cirq.Simulator(),
-            desired_repetitions=1_000,
+            stopping_criteria=cw.RepetitionsStoppingCriteria(1_000),
             circuit_sweep=ss,
         )
         if with_circuit_sweep:
