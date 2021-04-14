@@ -70,11 +70,6 @@ upper_tabs:
       - title: "Issues / requests / questions"
         path: /cirq/support
 
-      ### Visualizations
-      - heading: "Visualization"
-      - title: "Heatmaps"
-        path: /cirq/visualization/heatmaps
-
       ####  Contributor Guide  ####
       - heading: "Contributor guide"
       - title: "Contribute"
@@ -148,6 +143,8 @@ upper_tabs:
       - heading: "Beginner"
       - title: "Basics"
         path: /cirq/tutorials/basics
+      - title: "Heatmaps"
+        path: /cirq/tutorials/heatmaps
 
       ####  INTERMEDIATE  ####
       - heading: "Intermediate"
@@ -160,10 +157,18 @@ upper_tabs:
 
       ####  ADVANCED  ####
       - heading: "Advanced"
-      - title: "Hidden linear function problem"
-        path: /cirq/tutorials/hidden_linear_function
       - title: "Rabi oscillation experiment"
         path: /cirq/tutorials/rabi_oscillations
+      - title: "Cross entropy benchmarking (XEB) theory"
+        path: /cirq/qcvv/xeb_theory
+      - title: "XEB and coherent error"
+        path: /cirq/qcvv/xeb_coherent_noise
+      - title: "Parallel XEB"
+        path: /cirq/qcvv/parallel_xeb
+      - title: "Isolated XEB"
+        path: /cirq/qcvv/isolated_xeb
+      - title: "Hidden linear function problem"
+        path: /cirq/tutorials/hidden_linear_function
       - title: "Shor's algorithm"
         path: /cirq/tutorials/shor
 
