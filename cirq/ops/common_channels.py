@@ -194,10 +194,10 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
     def _approx_eq_(self, other: Any, atol: float) -> bool:
         return (
             self.num_qubits == other.num_qubits
-            and np.isclose(self.p_i, other.p_i, atol=atol)
-            and np.isclose(self.p_x, other.p_x, atol=atol)
-            and np.isclose(self.p_y, other.p_y, atol=atol)
-            and np.isclose(self.p_z, other.p_z, atol=atol)
+            and np.isclose(self.p_i, other.p_i, atol=atol).item()
+            and np.isclose(self.p_x, other.p_x, atol=atol).item()
+            and np.isclose(self.p_y, other.p_y, atol=atol).item()
+            and np.isclose(self.p_z, other.p_z, atol=atol).item()
         )
 
 
@@ -263,7 +263,7 @@ class DepolarizingChannel(gate_features.SupportsOnEachGate, raw_types.Gate):
         This channel evolves a density matrix via
 
             $$
-            \rho \rightarrow (1 - p) \rho + 1 / (4**n - 1) \sum _i P_i X P_i
+            \rho \rightarrow (1 - p) \rho + p / (4**n - 1) \sum _i P_i \rho P_i
             $$
 
         where $P_i$ are the $4^n - 1$ Pauli gates (excluding the identity).
@@ -356,7 +356,7 @@ class DepolarizingChannel(gate_features.SupportsOnEachGate, raw_types.Gate):
         return protocols.obj_to_dict_helper(self, ['p', 'n_qubits'])
 
     def _approx_eq_(self, other: Any, atol: float) -> bool:
-        return np.isclose(self.p, other.p, atol=atol) and self.n_qubits == other.n_qubits
+        return np.isclose(self.p, other.p, atol=atol).item() and self.n_qubits == other.n_qubits
 
 
 def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
@@ -372,7 +372,7 @@ def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
     This channel evolves a density matrix via
 
         $$
-        \rho \rightarrow (1 - p) \rho + 1 / (4**n - 1) \sum _i P_i X P_i
+        \rho \rightarrow (1 - p) \rho + p / (4**n - 1) \sum _i P_i \rho P_i
         $$
 
     where $P_i$ are the $4^n - 1$ Pauli gates (excluding the identity).
@@ -498,8 +498,9 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['p', 'gamma'])
 
     def _approx_eq_(self, other: Any, atol: float) -> bool:
-        return np.isclose(self.gamma, other.gamma, atol=atol) and np.isclose(
-            self.p, other.p, atol=atol
+        return (
+            np.isclose(self.gamma, other.gamma, atol=atol).item()
+            and np.isclose(self.p, other.p, atol=atol).item()
         )
 
 
@@ -628,7 +629,7 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['gamma'])
 
     def _approx_eq_(self, other: Any, atol: float) -> bool:
-        return np.isclose(self.gamma, other.gamma, atol=atol)
+        return np.isclose(self.gamma, other.gamma, atol=atol).item()
 
 
 def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
@@ -863,7 +864,7 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['gamma'])
 
     def _approx_eq_(self, other: Any, atol: float) -> bool:
-        return np.isclose(self._gamma, other._gamma, atol=atol)
+        return np.isclose(self._gamma, other._gamma, atol=atol).item()
 
 
 def phase_damp(gamma: float) -> PhaseDampingChannel:
@@ -973,7 +974,7 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['p'])
 
     def _approx_eq_(self, other: Any, atol: float) -> bool:
-        return np.isclose(self.p, other.p, atol=atol)
+        return np.isclose(self.p, other.p, atol=atol).item()
 
 
 def _phase_flip_Z() -> common_gates.ZPowGate:
@@ -1129,7 +1130,7 @@ class BitFlipChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['p'])
 
     def _approx_eq_(self, other: Any, atol: float) -> bool:
-        return np.isclose(self._p, other._p, atol=atol)
+        return np.isclose(self._p, other._p, atol=atol).item()
 
 
 def _bit_flip(p: float) -> BitFlipChannel:
