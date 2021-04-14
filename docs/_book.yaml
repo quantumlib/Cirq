@@ -74,6 +74,8 @@ upper_tabs:
       - heading: "Visualization"
       - title: "Heatmaps"
         path: /cirq/visualization/heatmaps
+      - title: "State Histograms"
+        path: /cirq/visualization/state_histograms
 
       ####  Contributor Guide  ####
       - heading: "Contributor guide"
