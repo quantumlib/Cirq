@@ -275,7 +275,7 @@ class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
 
     def sample(
         self,
-        qubits: Sequence[ops.Qid],
+        qubits: List[ops.Qid],
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:

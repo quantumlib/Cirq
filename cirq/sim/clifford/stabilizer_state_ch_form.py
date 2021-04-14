@@ -106,6 +106,7 @@ class StabilizerStateChForm:
             a = np.pad(a, [0, other.n])
             b = np.pad(b, [self.n, 0])
             return a + b
+
         copy.G = diag(self.G, other.G)
         copy.F = diag(self.F, other.F)
         copy.M = diag(self.M, other.M)
