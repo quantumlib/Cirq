@@ -292,7 +292,6 @@ class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
         return np.array(measurements, dtype=int)
 
 
-@value.value_equality
 class MPSState(ActOnArgs):
     """A state of the MPS simulation."""
 
@@ -336,7 +335,7 @@ class MPSState(ActOnArgs):
         # we want write the string '003' which comes before '100' in lexicographic order. The code
         # below is just simple string formatting.
         max_num_digits = len(f'{max(qubit_map.values())}')
-        self.format_i = f'i_{{:0{max_num_digits}}}'
+        self.format_i = 'i_{}'
         self.format_mu = 'mu_{}_{}'
 
         # TODO(tonybruguier): Instead of relying on sortable indices could you keep a parallel
@@ -385,6 +384,37 @@ class MPSState(ActOnArgs):
         )
         state.M = [x.copy() for x in self.M]
         state.estimated_gate_error_list = self.estimated_gate_error_list
+        return state
+
+    def join(self, other: 'MPSState') -> 'MPSState':
+        offset = len(self.M)
+        axes = self.axes + tuple(a + offset for a in other.axes)
+        logs = self.log_of_measurement_results.copy()
+        logs.update(other.log_of_measurement_results)
+        grouping = {k: v + offset for k, v in other.grouping.items()}
+        grouping.update(self.grouping)
+        state = MPSState(
+            qubits=self.qubits + other.qubits,
+            axes=axes,
+            prng=self.prng,
+            simulation_options=self.simulation_options,
+            log_of_measurement_results=logs,
+            grouping=grouping,
+        )
+        state.M = [x.copy() for x in (self.M + other.M)]
+        for i in range(len(state.M)):
+            if i >= offset:
+                inds_map = {}
+                for inds in state.M[i].inds:
+                    parts = str.split(inds, '_')
+                    if parts[0] == 'mu':
+                        inds_map[inds] = self.mu_str(int(parts[1]) + offset, int(parts[2]) + offset)
+                    else:
+                        inds_map[inds] = self.i_str(int(parts[1]) + offset)
+                state.M[i].reindex(inds_map, inplace=True)
+        state.estimated_gate_error_list = (
+            self.estimated_gate_error_list + other.estimated_gate_error_list
+        )
         return state
 
     def state_vector(self) -> np.ndarray:
@@ -467,11 +497,9 @@ class MPSState(ActOnArgs):
 
         if len(op.qubits) == 1:
             n = self.grouping[op.qubits[0]]
-
             self.M[n] = (U @ self.M[n]).reindex({new_inds[0]: old_inds[0]})
         elif len(op.qubits) == 2:
             n, p = [self.grouping[qubit] for qubit in op.qubits]
-
             if n == p:
                 self.M[n] = (U @ self.M[n]).reindex(
                     {new_inds[0]: old_inds[0], new_inds[1]: old_inds[1]}

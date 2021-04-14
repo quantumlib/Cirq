@@ -5,6 +5,7 @@ from typing import cast, Optional, Sequence
 import numpy as np
 
 import cirq
+from cirq.contrib.quimb import MPSSimulator
 from cirq.sim.simulator import (
     TStepResult,
     SimulatesIntermediateState,
@@ -91,16 +92,20 @@ def _run_comparison(
     results1 = _run_join_args_simulation(sim, circuit, qubits)
     print(time.perf_counter() - t1)
 
-    sam = results.sample(qubits, 10000)
-    sam1 = results1.sample(qubits, 10000)
+    sam = results.sample(qubits, 100)
+    sam1 = results1.sample(qubits, 100)
     sam = np.transpose(sam)
     sam1 = np.transpose(sam1)
     for i in range(num_qubits):
-        print(sam1[i].mean())
         print(sam[i].mean())
+        print(sam1[i].mean())
 
 
 def main():
+    print('***Run with MPS simulator***')
+    sim = MPSSimulator()
+    _run_comparison(num_qubits=50, circuit_length=10, cnot_freq=0.15, sim=sim)
+
     print('***Run with sparse simulator***')
     sim = cirq.Simulator()
     _run_comparison(num_qubits=22, circuit_length=10, cnot_freq=0.15, sim=sim)

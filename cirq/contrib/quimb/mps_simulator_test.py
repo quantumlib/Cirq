@@ -352,7 +352,7 @@ def test_tensor_index_names():
         prng=value.parse_random_state(0),
     )
 
-    assert state.i_str(0) == "i_00"
+    assert state.i_str(0) == "i_0"
     assert state.i_str(11) == "i_11"
     assert state.mu_str(0, 3) == "mu_0_3"
     assert state.mu_str(3, 0) == "mu_0_3"
