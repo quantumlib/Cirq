@@ -15,11 +15,14 @@
 """Utility methods for combining matrices."""
 
 import functools
-from typing import Union, Type
+from typing import Union, TYPE_CHECKING
 
 import numpy as np
 
 from cirq._doc import document
+
+if TYPE_CHECKING:
+    from numpy.typing import DTypeLike, ArrayLike
 
 
 def kron(*factors: Union[np.ndarray, complex, float], shape_len: int = 2) -> np.ndarray:
@@ -104,7 +107,7 @@ def kron_with_controls(*factors: Union[np.ndarray, complex, float]) -> np.ndarra
     return product
 
 
-def dot(*values: Union[float, complex, np.ndarray]) -> Union[float, complex, np.ndarray]:
+def dot(*values: 'ArrayLike') -> np.ndarray:
     """Computes the dot/matrix product of a sequence of values.
 
     Performs the computation in serial order without regard to the matrix
@@ -117,20 +120,20 @@ def dot(*values: Union[float, complex, np.ndarray]) -> Union[float, complex, np.
     Returns:
         The resulting value or matrix.
     """
+    if len(values) == 0:
+        raise ValueError("cirq.dot must be called with arguments")
 
-    if len(values) <= 1:
-        if len(values) == 0:
-            raise ValueError("cirq.dot must be called with arguments")
-        if isinstance(values[0], np.ndarray):
-            return np.array(values[0])
-        return values[0]
-    result = values[0]
+    if len(values) == 1:
+        # note: it's important that we copy input arrays.
+        return np.array(values[0])
+
+    result = np.asarray(values[0])
     for value in values[1:]:
         result = np.dot(result, value)
     return result
 
 
-def _merge_dtypes(dtype1: Type[np.number], dtype2: Type[np.number]) -> Type[np.number]:
+def _merge_dtypes(dtype1: 'DTypeLike', dtype2: 'DTypeLike') -> np.dtype:
     return (np.zeros(0, dtype1) + np.zeros(0, dtype2)).dtype
 
 
