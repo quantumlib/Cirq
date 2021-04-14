@@ -108,7 +108,7 @@ class PhasedXZGate(gate_features.SingleQubitGate):
         )
 
     @staticmethod
-    def from_matrix(mat: np.array) -> 'cirq.PhasedXZGate':
+    def from_matrix(mat: np.ndarray) -> 'cirq.PhasedXZGate':
         pre_phase, rotation, post_phase = linalg.deconstruct_single_qubit_matrix_into_angles(mat)
         pre_phase /= np.pi
         post_phase /= np.pi

@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Simulator for density matrices that simulates noisy quantum circuits."""
-import collections
-from typing import Any, Dict, List, TYPE_CHECKING, Tuple, Type, Union
+from typing import Any, Dict, List, TYPE_CHECKING, Tuple, Union, Sequence
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, qis, study, value
+from cirq import ops, protocols, qis, study, value
 from cirq.sim import density_matrix_utils, simulator, act_on_density_matrix_args
-from cirq.sim.simulator import check_all_resolved, split_into_matching_protocol_then_general
 
 if TYPE_CHECKING:
     import cirq
+    from numpy.typing import DTypeLike
 
 
 class DensityMatrixSimulator(
@@ -116,7 +115,7 @@ class DensityMatrixSimulator(
     def __init__(
         self,
         *,
-        dtype: Type[np.number] = np.complex64,
+        dtype: 'DTypeLike' = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         ignore_measurement_results: bool = False,
@@ -159,9 +158,9 @@ class DensityMatrixSimulator(
 
     def create_act_on_args(
         self,
-        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'],
-        qubits: Tuple['cirq.Qid', ...],
-    ):
+        initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
+        qubits: Sequence['cirq.Qid'],
+    ) -> 'cirq.ActOnDensityMatrixArgs':
         """Creates the ActOnDensityMatrixArgs for a circuit.
 
         Args:
@@ -174,6 +173,9 @@ class DensityMatrixSimulator(
         Returns:
             ActOnDensityMatrixArgs for the circuit.
         """
+        if isinstance(initial_state, act_on_density_matrix_args.ActOnDensityMatrixArgs):
+            return initial_state
+
         qid_shape = protocols.qid_shape(qubits)
         initial_matrix = qis.to_valid_density_matrix(
             initial_state, len(qid_shape), qid_shape=qid_shape, dtype=self._dtype
@@ -185,6 +187,7 @@ class DensityMatrixSimulator(
         return act_on_density_matrix_args.ActOnDensityMatrixArgs(
             target_tensor=tensor,
             available_buffer=[np.empty_like(tensor) for _ in range(3)],
+            qubits=qubits,
             axes=[],
             qid_shape=qid_shape,
             prng=self._prng,
@@ -231,7 +234,7 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
         density_matrix: np.ndarray,
         measurements: Dict[str, np.ndarray],
         qubit_map: Dict[ops.Qid, int],
-        dtype: Type[np.number] = np.complex64,
+        dtype: 'DTypeLike' = np.complex64,
     ):
         """DensityMatrixStepResult.
 

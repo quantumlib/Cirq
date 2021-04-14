@@ -21,7 +21,7 @@ from typing import (
     Type,
     TYPE_CHECKING,
     Union,
-    Tuple,
+    Sequence,
 )
 
 import numpy as np
@@ -164,8 +164,8 @@ class Simulator(
 
     def create_act_on_args(
         self,
-        initial_state: 'cirq.STATE_VECTOR_LIKE',
-        qubits: Tuple['cirq.Qid', ...],
+        initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
+        qubits: Sequence['cirq.Qid'],
     ):
         """Creates the ActOnStateVectorArgs for a circuit.
 
@@ -179,6 +179,9 @@ class Simulator(
         Returns:
             ActOnStateVectorArgs for the circuit.
         """
+        if isinstance(initial_state, act_on_state_vector_args.ActOnStateVectorArgs):
+            return initial_state
+
         num_qubits = len(qubits)
         qid_shape = protocols.qid_shape(qubits)
         state = qis.to_valid_state_vector(
@@ -188,6 +191,7 @@ class Simulator(
         return act_on_state_vector_args.ActOnStateVectorArgs(
             target_tensor=np.reshape(state, qid_shape),
             available_buffer=np.empty(qid_shape, dtype=self._dtype),
+            qubits=qubits,
             axes=[],
             prng=self._prng,
             log_of_measurement_results={},

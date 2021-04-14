@@ -36,6 +36,7 @@ from cirq.ops import (
 from cirq.sim import (
     Simulator,
     SimulatesIntermediateStateVector,
+    ActOnStateVectorArgs,
 )
 from cirq.study import ParamResolver
 from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
@@ -393,18 +394,17 @@ class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector):
         self,
         circuit: Circuit,
         initial_state: Any,
-        qubits: Tuple[Qid, ...],
         all_measurements_are_terminal: bool = False,
     ):
         converted = _convert_to_circuit_with_drift(self, circuit)
         return self._simulator._core_iterator(
-            converted, initial_state, qubits, all_measurements_are_terminal
+            converted, initial_state, all_measurements_are_terminal
         )
 
     def create_act_on_args(
         self,
-        initial_state: int,
-        qubits: Tuple[Qid, ...],
+        initial_state: Union[int, ActOnStateVectorArgs],
+        qubits: Sequence[Qid],
     ):
         return self._simulator.create_act_on_args(initial_state, qubits)
 

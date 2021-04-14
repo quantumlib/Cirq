@@ -62,15 +62,14 @@ def _run(
     sim: SimulatesIntermediateState[
         TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs
     ]
-) -> Tuple[TSimulationTrialResult, TStepResult]:
+) -> Tuple[TSimulationTrialResult, TSimulationTrialResult]:
     # Initialize our qubit state space.
-    msg, alice, bob = cirq.LineQubit.range(3)
-    qubits = (msg, alice, bob)
+    msg, alice, bob = qubits = cirq.LineQubit.range(3)
     args = sim.create_act_on_args(0, qubits)
 
     # First we create a bell state circuit and simulate it on the qubits.
     bell_circuit = cirq.Circuit(cirq.H(alice), cirq.CNOT(alice, bob))
-    list(sim.simulate_moment_steps(bell_circuit, None, qubits, args))
+    sim.simulate(bell_circuit, initial_state=args)
     print('\nBell Circuit:')
     print(bell_circuit)
 
@@ -81,7 +80,7 @@ def _run(
         cirq.X(msg) ** rand_x,
         cirq.Y(msg) ** rand_y,
     )
-    list(sim.simulate_moment_steps(msg_circuit, None, qubits, args))
+    sim.simulate(msg_circuit, initial_state=args)
     print('\nMessage Circuit:')
     print(msg_circuit)
 
@@ -92,9 +91,9 @@ def _run(
         cirq.measure(alice, key='x_fixup'),
         cirq.measure(msg, key='z_fixup'),
     )
-    alice_results = list(sim.simulate_moment_steps(alice_circuit, None, qubits, args))
-    x_fixup = alice_results[1].measurements['x_fixup'] == [1]
-    z_fixup = alice_results[2].measurements['z_fixup'] == [1]
+    alice_results = sim.simulate(alice_circuit, initial_state=args)
+    x_fixup = alice_results.measurements['x_fixup'] == [1]
+    z_fixup = alice_results.measurements['z_fixup'] == [1]
     print('\nAlice Circuit:')
     print(alice_circuit)
     print(f'x_fixup={x_fixup}')
@@ -108,7 +107,7 @@ def _run(
     if z_fixup:
         bob_circuit.append(cirq.Z(bob))  # coverage: ignore
 
-    *_, final_results = sim.simulate_moment_steps(bob_circuit, None, qubits, args)
+    final_results = sim.simulate(bob_circuit, initial_state=args)
     print('\nBob Circuit:')
     print(bob_circuit)
 
@@ -134,7 +133,7 @@ def main(seed=None):
     expected = cirq.bloch_vector_from_state_vector(message.final_density_matrix, 0)
     _print_bloch(expected)
     print('\nBloch Sphere of Qubit 2 at Final State:')
-    teleported = cirq.bloch_vector_from_state_vector(final_results._density_matrix, 2)
+    teleported = cirq.bloch_vector_from_state_vector(final_results.final_density_matrix, 2)
     _print_bloch(teleported)
 
     # Run with sparse simulator
@@ -145,7 +144,7 @@ def main(seed=None):
     expected = cirq.bloch_vector_from_state_vector(message.final_state_vector, 0)
     _print_bloch(expected)
     print('\nBloch Sphere of Qubit 2 at Final State:')
-    teleported = cirq.bloch_vector_from_state_vector(final_results.state_vector(), 2)
+    teleported = cirq.bloch_vector_from_state_vector(final_results.final_state_vector, 2)
     _print_bloch(teleported)
 
     return expected, teleported

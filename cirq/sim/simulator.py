@@ -563,18 +563,14 @@ class SimulatesIntermediateState(
             StepResults from simulating a Moment of the Circuit.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        act_on_args = (
-            cast(TActOnArgs, initial_state)
-            if isinstance(initial_state, ActOnArgs)
-            else self.create_act_on_args(initial_state, qubits)
-        )
-        return self._core_iterator(circuit, act_on_args, qubits)
+        act_on_args = self.create_act_on_args(initial_state, qubits)
+        return self._core_iterator(circuit, act_on_args)
 
     @abc.abstractmethod
     def create_act_on_args(
         self,
         initial_state: Any,
-        qubits: Tuple['cirq.Qid', ...],
+        qubits: Sequence['cirq.Qid'],
     ) -> TActOnArgs:
         """Creates the ActOnArgs state for a simulator.
 
@@ -596,8 +592,7 @@ class SimulatesIntermediateState(
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
-        initial_state: TActOnArgs,
-        qubits: Tuple['cirq.Qid', ...],
+        sim_state: TActOnArgs,
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
@@ -606,19 +601,15 @@ class SimulatesIntermediateState(
 
         Args:
             circuit: The circuit to simulate.
-            initial_state: The initial args for the simulation. The form of
+            sim_state: The initial args for the simulation. The form of
                 this state depends on the simulation implementation. See
                 documentation of the implementing class for details.
-            qubits: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
 
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
-        qubit_map = {q: i for i, q in enumerate(qubits)}
         if len(circuit) == 0:
-            yield self._create_step_result(initial_state, qubit_map)
+            yield self._create_step_result(sim_state, sim_state.qubit_map)
             return
 
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
@@ -636,15 +627,15 @@ class SimulatesIntermediateState(
                             continue
                         if self._ignore_measurement_results:
                             op = ops.phase_damp(1).on(*op.qubits)
-                    initial_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
-                    protocols.act_on(op, initial_state)
+                    sim_state.axes = tuple(sim_state.qubit_map[qubit] for qubit in op.qubits)
+                    protocols.act_on(op, sim_state)
                 except TypeError:
                     raise TypeError(
                         f"{self.__class__.__name__} doesn't support {op!r}"
                     )  # type: ignore
 
-            yield self._create_step_result(initial_state, qubit_map)
-            initial_state.log_of_measurement_results.clear()
+            yield self._create_step_result(sim_state, sim_state.qubit_map)
+            sim_state.log_of_measurement_results.clear()
 
     def _create_step_result(
         self,
@@ -705,8 +696,7 @@ class SimulatesIntermediateState(
         step_result = None
         for step_result in self._core_iterator(
             circuit=prefix,
-            initial_state=act_on_args,
-            qubits=qubits,
+            sim_state=act_on_args,
         ):
             pass
         assert step_result is not None
@@ -717,13 +707,12 @@ class SimulatesIntermediateState(
                 op for _, op, _ in circuit.findall_operations_with_gate_type(ops.MeasurementGate)
             ]
             return step_result.sample_measurement_ops(measurement_ops, repetitions, seed=self._prng)
-        return self._run_sweep_repeat(general_suffix, repetitions, qubits, act_on_args)
+        return self._run_sweep_repeat(general_suffix, repetitions, act_on_args)
 
     def _run_sweep_repeat(
         self,
         circuit: circuits.Circuit,
         repetitions: int,
-        qubits: Tuple['cirq.Qid', ...],
         act_on_args: TActOnArgs,
     ) -> Dict[str, np.ndarray]:
         measurements = {}  # type: Dict[str, List[np.ndarray]]
@@ -731,8 +720,7 @@ class SimulatesIntermediateState(
         for _ in range(repetitions):
             all_step_results = self._core_iterator(
                 circuit,
-                initial_state=act_on_args.copy(),
-                qubits=qubits,
+                sim_state=act_on_args.copy(),
             )
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():

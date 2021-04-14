@@ -29,7 +29,7 @@ The quantum state is specified in two forms:
     to state vector amplitudes.
 """
 
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any, Dict, List, Sequence, Union
 
 import numpy as np
 
@@ -69,9 +69,9 @@ class CliffordSimulator(
 
     def create_act_on_args(
         self,
-        initial_state: int,
-        qubits: Tuple['cirq.Qid', ...],
-    ):
+        initial_state: Union[int, clifford.ActOnStabilizerCHFormArgs],
+        qubits: Sequence['cirq.Qid'],
+    ) -> clifford.ActOnStabilizerCHFormArgs:
         """Creates the ActOnStabilizerChFormArgs for a circuit.
 
         Args:
@@ -84,14 +84,18 @@ class CliffordSimulator(
         Returns:
             ActOnStabilizerChFormArgs for the circuit.
         """
+        if isinstance(initial_state, clifford.ActOnStabilizerCHFormArgs):
+            return initial_state
+
         qubit_map = {q: i for i, q in enumerate(qubits)}
 
         state = CliffordState(qubit_map, initial_state=initial_state)
         return clifford.ActOnStabilizerCHFormArgs(
-            state.ch_form,
-            [],
-            self._prng,
-            {},
+            state=state.ch_form,
+            axes=[],
+            prng=self._prng,
+            log_of_measurement_results={},
+            qubits=qubits,
         )
 
     def _create_step_result(

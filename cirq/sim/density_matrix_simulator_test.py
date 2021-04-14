@@ -560,6 +560,20 @@ def test_simulate_initial_state(dtype):
             np.testing.assert_equal(result.final_density_matrix, expected_density_matrix)
 
 
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_simulate_act_on_args(dtype):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
+    for b0 in [0, 1]:
+        for b1 in [0, 1]:
+            circuit = cirq.Circuit((cirq.X ** b0)(q0), (cirq.X ** b1)(q1))
+            args = simulator.create_act_on_args(initial_state=1, qubits=(q0, q1))
+            result = simulator.simulate(circuit, initial_state=args)
+            expected_density_matrix = np.zeros(shape=(4, 4))
+            expected_density_matrix[b0 * 2 + 1 - b1, b0 * 2 + 1 - b1] = 1.0
+            np.testing.assert_equal(result.final_density_matrix, expected_density_matrix)
+
+
 def test_simulate_tps_initial_state():
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator()
