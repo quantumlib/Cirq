@@ -98,6 +98,23 @@ class StabilizerStateChForm:
 
         return copy
 
+    def join(self, other: 'cirq.StabilizerStateChForm') -> 'cirq.StabilizerStateChForm':
+        n = self.n + other.n
+        copy = StabilizerStateChForm(n)
+
+        def diag(a, b):
+            a = np.pad(a, [0, other.n])
+            b = np.pad(b, [self.n, 0])
+            return a + b
+        copy.G = diag(self.G, other.G)
+        copy.F = diag(self.F, other.F)
+        copy.M = diag(self.M, other.M)
+        copy.gamma = np.concatenate([self.gamma, other.gamma])
+        copy.v = np.concatenate([self.v, other.v])
+        copy.s = np.concatenate([self.s, other.s])
+        copy.omega = self.omega * other.omega
+        return copy
+
     def __str__(self) -> str:
         """Return the state vector string representation of the state."""
         return cirq.dirac_notation(self.to_state_vector())

@@ -402,16 +402,15 @@ class MPSState(ActOnArgs):
             grouping=grouping,
         )
         state.M = [x.copy() for x in (self.M + other.M)]
-        for i in range(len(state.M)):
-            if i >= offset:
-                inds_map = {}
-                for inds in state.M[i].inds:
-                    parts = str.split(inds, '_')
-                    if parts[0] == 'mu':
-                        inds_map[inds] = self.mu_str(int(parts[1]) + offset, int(parts[2]) + offset)
-                    else:
-                        inds_map[inds] = self.i_str(int(parts[1]) + offset)
-                state.M[i].reindex(inds_map, inplace=True)
+        for i in range(offset, len(state.M)):
+            inds_map = {}
+            for inds in state.M[i].inds:
+                parts = str.split(inds, '_')
+                if parts[0] == 'mu':
+                    inds_map[inds] = self.mu_str(int(parts[1]) + offset, int(parts[2]) + offset)
+                else:
+                    inds_map[inds] = self.i_str(int(parts[1]) + offset)
+            state.M[i].reindex(inds_map, inplace=True)
         state.estimated_gate_error_list = (
             self.estimated_gate_error_list + other.estimated_gate_error_list
         )

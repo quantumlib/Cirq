@@ -85,6 +85,18 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
 
+    def join(self, other: 'cirq.ActOnStabilizerCHFormArgs') -> 'cirq.ActOnStabilizerCHFormArgs':
+        offset = len(self.qubits)
+        logs = self.log_of_measurement_results.copy()
+        logs.update(other.log_of_measurement_results)
+        return ActOnStabilizerCHFormArgs(
+            state=self.state.join(other.state),
+            qubits=self.qubits + other.qubits,
+            axes=self.axes + tuple(a + offset for a in other.axes),
+            prng=self.prng,
+            log_of_measurement_results=logs,
+        )
+
 
 def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
     val: Any, args: 'cirq.ActOnStabilizerCHFormArgs'

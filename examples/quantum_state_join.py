@@ -104,7 +104,7 @@ def _run_comparison(
 def main():
     print('***Run with MPS simulator***')
     sim = MPSSimulator()
-    _run_comparison(num_qubits=50, circuit_length=10, cnot_freq=0.15, sim=sim)
+    _run_comparison(num_qubits=22, circuit_length=10, cnot_freq=0.15, sim=sim)
 
     print('***Run with sparse simulator***')
     sim = cirq.Simulator()
