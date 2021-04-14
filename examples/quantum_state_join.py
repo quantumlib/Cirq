@@ -1,6 +1,6 @@
 import random
 import time
-from typing import cast, Optional, Sequence
+from typing import cast, Optional
 
 import numpy as np
 
@@ -20,9 +20,9 @@ def _run_normal_simulation(
         TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs
     ],
     circuit: cirq.Circuit,
-    qubits: Sequence[cirq.Qid],
 ) -> cirq.StepResult:
-    args = sim.create_act_on_args(0, qubits=qubits)
+    qubits = circuit.all_qubits()
+    args = sim.create_act_on_args(0, qubits=list(qubits))
     *_, results = sim.simulate_moment_steps(circuit, None, qubits, args)
     return results
 
@@ -32,9 +32,9 @@ def _run_join_args_simulation(
         TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs
     ],
     circuit: cirq.Circuit,
-    qubits: Sequence[cirq.Qid],
 ) -> cirq.StepResult:
     # Initialize the ActOnArgs, one per qubit.
+    qubits = circuit.all_qubits()
     args_map = {q: sim.create_act_on_args(0, qubits=[q]) for q in qubits}
 
     # Iterate
@@ -68,51 +68,85 @@ def _run_join_args_simulation(
 
 
 def _run_comparison(
-    num_qubits: int,
-    circuit_length: int,
-    cnot_freq: float,
     sim: SimulatesIntermediateState[
         TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs
     ],
+    circuit: cirq.Circuit,
 ):
-    qubits = cirq.LineQubit.range(num_qubits)
-    circuit = cirq.Circuit()
-    for i in range(circuit_length):
-        for j in range(num_qubits):
-            if random.random() < cnot_freq:
-                circuit.append(cirq.CX(cirq.LineQubit(j), cirq.LineQubit((j + 1) % num_qubits)))
-            else:
-                circuit.append(cirq.H(cirq.LineQubit(j)) ** random.random())
-
     t1 = time.perf_counter()
-    results = _run_normal_simulation(sim, circuit, qubits)
+    results = _run_normal_simulation(sim, circuit)
     print(time.perf_counter() - t1)
 
     t1 = time.perf_counter()
-    results1 = _run_join_args_simulation(sim, circuit, qubits)
+    results1 = _run_join_args_simulation(sim, circuit)
     print(time.perf_counter() - t1)
 
+    qubits = list(circuit.all_qubits())
     sam = results.sample(qubits, 100)
     sam1 = results1.sample(qubits, 100)
     sam = np.transpose(sam)
     sam1 = np.transpose(sam1)
-    for i in range(num_qubits):
+    for i in range(len(qubits)):
         print(sam[i].mean())
         print(sam1[i].mean())
 
 
+def _random_circuit(
+    num_qubits: int,
+    circuit_length: int,
+    cnot_freq: float,
+):
+    circuit = cirq.Circuit()
+    for i in range(circuit_length):
+        for j in range(num_qubits):
+            if random.random() < cnot_freq:
+                circuit.append(cirq.CX(cirq.LineQubit(j), cirq.LineQubit(int(j + num_qubits / 2) % num_qubits)))
+            else:
+                circuit.append(cirq.H(cirq.LineQubit(j)) ** random.random())
+    return circuit
+
+
+def _clifford_circuit(
+    num_qubits: int,
+    circuit_length: int,
+):
+    circuit = cirq.Circuit()
+    qubits = cirq.LineQubit.range(num_qubits)
+    for _ in range(circuit_length * num_qubits):
+        x = np.random.randint(7)
+        if x == 0:
+            circuit.append(cirq.X(np.random.choice(qubits)))
+        elif x == 1:
+            circuit.append(cirq.Z(np.random.choice(qubits)))
+        elif x == 2:
+            circuit.append(cirq.Y(np.random.choice(qubits)))
+        elif x == 3:
+            circuit.append(cirq.S(np.random.choice(qubits)))
+        elif x == 4:
+            circuit.append(cirq.H(np.random.choice(qubits)))
+        elif x == 5:
+            circuit.append(cirq.CNOT(*np.random.choice(qubits, 2, replace=False)))
+        elif x == 6:
+            circuit.append(cirq.CZ(*np.random.choice(qubits, 2, replace=False)))
+    return circuit
+
+
 def main():
+    print('***Run with Clifford simulator***')
+    sim = cirq.CliffordSimulator()
+    _run_comparison(sim, _clifford_circuit(num_qubits=20, circuit_length=10))
+
     print('***Run with MPS simulator***')
     sim = MPSSimulator()
-    _run_comparison(num_qubits=22, circuit_length=10, cnot_freq=0.15, sim=sim)
+    _run_comparison(sim, _random_circuit(num_qubits=30, circuit_length=100, cnot_freq=0.5))
 
     print('***Run with sparse simulator***')
     sim = cirq.Simulator()
-    _run_comparison(num_qubits=22, circuit_length=10, cnot_freq=0.15, sim=sim)
+    _run_comparison(sim, _random_circuit(num_qubits=22, circuit_length=10, cnot_freq=0.15))
 
     print('***Run with density matrix simulator***')
     sim = cirq.DensityMatrixSimulator()
-    _run_comparison(num_qubits=11, circuit_length=10, cnot_freq=0.15, sim=sim)
+    _run_comparison(sim, _random_circuit(num_qubits=11, circuit_length=10, cnot_freq=0.15))
 
 
 if __name__ == '__main__':
