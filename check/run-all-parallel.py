@@ -1,19 +1,15 @@
 # coverage: ignore
-
-import concurrent
+import asyncio
 import curses
 import os
+import re
 import subprocess
 import sys
 import time
-from concurrent.futures._base import Future
-from concurrent.futures.thread import ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import Enum
-from subprocess import Popen, PIPE
-from typing import Dict, List, Sequence, Tuple
-
-_EARLY_TERMINATE = False
+from subprocess import PIPE
+from typing import Dict, Sequence, Tuple
 
 
 def cd_repo_root():
@@ -34,6 +30,15 @@ class Status(Enum):
     CANCELED = 'cancel'
 
 
+class MsgType(Enum):
+    """Types of messages to be collated in `run`'s Queue."""
+
+    DONE = 'done'
+    EARLY_TERMINATE = 'early_terminate'
+    STDOUT = 'stdout'
+    STDERR = 'stderr'
+
+
 @dataclass
 class Result:
     """Simple wrapper around the result of a check."""
@@ -43,43 +48,67 @@ class Result:
     stderr: str
 
 
-def run(command: List[str]):
+async def run(command: Sequence[str], early_terminate: asyncio.Event):
     """Run a check.
 
     Args:
         command: The list of tokens to run with `subprocess.Popen`.
     """
-    p = Popen(command, stdout=PIPE, stderr=PIPE, encoding='utf-8')
+    p = await asyncio.create_subprocess_exec(*command, stdout=PIPE, stderr=PIPE)
+
+    stdouts = []
+    stderrs = []
+    queue = asyncio.Queue(1)
+
+    async def drain(aiter, msgtype: MsgType):
+        async for item in aiter:
+            await queue.put((msgtype, item))
+
+    async def notifier(awaitable, msg):
+        await awaitable
+        await queue.put((msg, None))
+
+    asyncio.create_task(drain(p.stdout, MsgType.STDOUT))
+    asyncio.create_task(drain(p.stderr, MsgType.STDERR))
+    asyncio.create_task(notifier(p.wait(), MsgType.DONE))
+    asyncio.create_task(notifier(early_terminate.wait(), MsgType.EARLY_TERMINATE))
 
     # Poll for completion.
+    msgtype: MsgType
     while True:
-        ret = p.poll()
-        if ret is not None:
+        msgtype, item = await queue.get()
+        if msgtype == MsgType.DONE:
             break
-
-        # ThreadPoolExecutor does not provide a way to kill threads. Any tasks that have
-        # already been submitted will run to completion. Here, we use a global variable
-        # to flag that all outstanding checks should be forcibly terminated.
-        if _EARLY_TERMINATE:
+        if msgtype == MsgType.EARLY_TERMINATE:
             p.terminate()
 
-            # Return here so we can set the correct status and so it does not hang
-            # on `p.communicate()` later.
-            return Result(
+            # Otherwise, the pipes will be closed after the event loop is closed.
+            p._transport.close()
+
+            yield Result(
                 status=Status.CANCELED,
                 stdout='',
                 stderr='',
             )
+            return
 
-    stdout, stderr = p.communicate()
-    return Result(
+        std_out_or_err = item.decode()
+        if msgtype == MsgType.STDOUT:
+            stdouts.append(std_out_or_err)
+        elif msgtype == MsgType.STDERR:
+            stderrs.append(std_out_or_err)
+        else:
+            raise AssertionError()
+        yield std_out_or_err
+
+    yield Result(
         status=Status.SUCCESS if p.returncode == 0 else Status.FAIL,
-        stdout=stdout,
-        stderr=stderr,
+        stdout=''.join(stdouts),
+        stderr=''.join(stderrs),
     )
 
 
-def check(check_names: Sequence[str], results: Dict[str, Result]) -> bool:
+def check(check_names: Sequence[str], results: Dict[str, Result], outs: Dict[str, str]) -> bool:
     """Check the status of running checks.
 
     Use ncurses WIN to nicely print a status of all the running checks.
@@ -88,7 +117,6 @@ def check(check_names: Sequence[str], results: Dict[str, Result]) -> bool:
     name_len = max(len(s) for s in check_names)
     anyfailed = False
     for i, name in enumerate(check_names):
-
         if name in results:
             if results[name].status == Status.SUCCESS:
                 status = 'Done!'
@@ -96,10 +124,16 @@ def check(check_names: Sequence[str], results: Dict[str, Result]) -> bool:
                 status = '*Fail*'
                 anyfailed = True
             else:
-                status = '(cancelled)'
+                status = '(cancel)'
         else:
             status = '(running)'
-        WIN.addstr(i + HEADER_SIZE, 0, f'{name:{name_len}s} {status:9s}')
+        out = outs.get(name, '')
+        # https://stackoverflow.com/a/33925425
+        out = re.sub(r'(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]', '', out)
+        status_len = name_len + 1 + 9 + 1
+        chars_left = curses.COLS - status_len
+        out = out[:chars_left]
+        WIN.addstr(i + HEADER_SIZE, 0, f'{name:{name_len}s} {status:9s} {out:{chars_left}s}')
 
     WIN.addstr(len(check_names) + HEADER_SIZE, 0, '')  # position cursor
     WIN.refresh()
@@ -112,7 +146,7 @@ HEADER_SIZE = 1
 WIN = None
 
 
-def run_checks(
+async def run_checks(
     checks: Sequence[Tuple[str, Sequence[str]]], check_names: Sequence[str], fail_fast: bool
 ) -> Dict[str, Result]:
     """Run all the checks.
@@ -121,28 +155,30 @@ def run_checks(
 
     This function requires that `WIN` has been set up.
     """
-    global _EARLY_TERMINATE
     results: Dict[str, Result] = {}
-    futures: Dict[Future, str] = {}
+    outs: Dict[str, str] = {}
+    early_terminate = asyncio.Event()
     start = time.time()
-    with ThreadPoolExecutor() as executor:
-        # Submit all the checks to the executor.
-        for name, cmd in checks:
-            fut = executor.submit(run, cmd)
-            futures[fut] = name
 
-        # Process the results as the become available.
-        for done in concurrent.futures.as_completed(futures):
-            result = done.result()
-            name = futures[done]
-            results[name] = result
-            anyfailed = check(check_names, results)
+    async def drain(aiter, name):
+        async for item in aiter:
+            if isinstance(item, Result):
+                results[name] = item
+            else:
+                outs[name] = item
+
+            anyfailed = check(check_names, results, outs)
             if fail_fast and anyfailed:
-                _EARLY_TERMINATE = True
-                executor.shutdown(wait=False)
+                early_terminate.set()
 
-        end = time.time()
-        WIN.addstr(f'Finished in {end - start}s.\n')
+    fofo = [
+        asyncio.create_task(drain(run(cmd, early_terminate), name), name=name)
+        for name, cmd in checks
+    ]
+    await asyncio.gather(*fofo)
+
+    end = time.time()
+    WIN.addstr(f'Finished in {end - start}s.\n')
 
     press_a_key = True
     if press_a_key:
@@ -182,7 +218,7 @@ def print_summary(results: Dict[str, Result], check_names: Sequence[str]):
         elif result.status == Status.FAIL:
             print(f'{name:{name_len}s} - *Fail*')
         elif result.status == Status.CANCELED:
-            print(f'{name:{name_len}s} - (cancelled)')
+            print(f'{name:{name_len}s} - (cancel)')
         else:
             raise ValueError()
 
@@ -200,7 +236,10 @@ def main(fail_fast=True):
         ('pytest-changed-files', ['check/pytest-changed-files']),
         ('incremental-coverage', ['check/pytest-changed-files-and-incremental-coverage']),
         ('pylint', ['check/pylint']),
-        ('pytest', ['check/pytest']),
+        ('pytest', ['check/pytest', '-v']),
+        # ('sleep1', ['sleep', '3']),
+        # ('sleep2', ['sleep', '3']),
+        # ('echo', ['echo', 'yo']),
     ]
     check_names = [name for name, _ in checks]
 
@@ -214,8 +253,9 @@ def main(fail_fast=True):
         WIN.addstr(0, 0, f'Repo root: {repo_root}')
         WIN.refresh()
 
-        results = run_checks(checks, check_names, fail_fast)
+        results = asyncio.run(run_checks(checks, check_names, fail_fast))
     finally:
+        pass
         curses.nocbreak()
         WIN.keypad(False)
         curses.echo()
