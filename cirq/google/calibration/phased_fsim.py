@@ -668,7 +668,7 @@ def _parse_xeb_fidelities_df(metrics: 'cirq.google.Calibration', super_name: str
                     'cycle_depth': int(ma.group(1)),
                     'layer_i': _get_labeled_int('layer', cast(str, layer_str)),
                     'pair_i': _get_labeled_int('pair', cast(str, pair_str)),
-                    'fidelity': cast(float, value),
+                    'fidelity': float(value),
                     'pair': (cast(GridQubit, qa), cast(GridQubit, qb)),
                 }
             )
@@ -679,7 +679,7 @@ def _parse_characterized_angles(
     metrics: 'cirq.google.Calibration',
     super_name: str,
 ) -> Dict[Tuple['cirq.Qid', 'cirq.Qid'], Dict[str, float]]:
-    """Parses characterized angles fomr Metric protos.
+    """Parses characterized angles from Metric protos.
 
     Args:
         metrics: The metrics from a CalibrationResult
@@ -696,7 +696,7 @@ def _parse_characterized_angles(
         for (qa, qb), (value,) in metrics[metric_name].items():
             qa = cast(GridQubit, qa)
             qb = cast(GridQubit, qb)
-            value = cast(float, value)
+            value = float(value)
             records[qa, qb][angle_name] = value
     return dict(records)
 
