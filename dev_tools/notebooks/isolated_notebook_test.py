@@ -19,8 +19,6 @@
 # excercised in an isolated virtual environment for each notebook. This is also the path that is
 # tested in the devsite workflows, these tests meant to provide earlier feedback.
 
-import functools
-import glob
 import os
 import subprocess
 import sys
@@ -32,10 +30,12 @@ from filelock import FileLock
 
 from dev_tools import shell_tools
 from dev_tools.env_tools import create_virtual_env
+from dev_tools.notebooks import list_all_notebooks, filter_notebooks
 
 # these notebooks rely on features that are not released yet
 # after every release we should raise a PR and empty out this list
 # note that these notebooks are still tested in dev_tools/notebook_test.py
+
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES = [
     # the notebook depends on new `cirq.R*` gates.
     'docs/tutorials/educators/intro.ipynb',
@@ -73,6 +73,10 @@ PACKAGES = [
     "seaborn~=0.11.1",
     # https://github.com/nteract/papermill/issues/519
     'ipykernel==5.3.4',
+    # to ensure networkx works nicely
+    # https://github.com/networkx/networkx/issues/4718 pinned networkx 2.5.1 to 4.4.2
+    # however, jupyter brings in 5.0.6
+    'decorator<5',
 ]
 
 
@@ -91,37 +95,25 @@ def _find_base_revision():
 
 
 def _list_changed_notebooks() -> Set[str]:
-    rev = _find_base_revision()
-    output = subprocess.check_output(f'git diff --name-only {rev}'.split())
-    return set(l for l in output.decode('utf-8').splitlines() if l.endswith(".ipynb"))
-
-
-def _tested_notebooks():
-    changed_notebooks = set()
-
-    # It would be nicer if we could somehow automatically skip the execution of this completely,
-    # however, in order to be able to rely on parallel pytest (xdist) we need parametrization to
-    # work, thus this will be executed during the collection phase even when the notebook tests
-    # are not included (the "-m slow" flag is not passed to pytest). So, in order to not break the
-    # complete test collection phase in other tests where there is no git history (fetch-depth:1),
-    # we'll just swallow the error here with a warning.
-
     try:
-        changed_notebooks = _list_changed_notebooks()
+        rev = _find_base_revision()
+        output = subprocess.check_output(f'git diff --name-only {rev}'.split())
+        lines = output.decode('utf-8').splitlines()
+        if any(l for l in lines if l.endswith("isolated_notebook_test.py")):
+            return list_all_notebooks()
+        return set(l for l in lines if l.endswith(".ipynb"))
     except ValueError as e:
+        # It would be nicer if we could somehow automatically skip the execution of this completely,
+        # however, in order to be able to rely on parallel pytest (xdist) we need parametrization to
+        # work, thus this will be executed during the collection phase even when the notebook tests
+        # are not included (the "-m slow" flag is not passed to pytest). So, in order to not break
+        # the complete test collection phase in other tests where there is no git history
+        # (fetch-depth:1), we'll just swallow the error here with a warning.
         warnings.warn(
             f"No changed notebooks are tested "
             f"(this is expected in non-notebook tests in CI): {e}"
         )
-
-    skipped_notebooks = functools.reduce(
-        lambda a, b: a.union(b), list(set(glob.glob(g, recursive=True)) for g in SKIP_NOTEBOOKS)
-    )
-
-    # sorted is important otherwise pytest-xdist will complain that
-    # the workers have different parametrization:
-    # https://github.com/pytest-dev/pytest-xdist/issues/432
-    return sorted(os.path.abspath(n) for n in changed_notebooks.difference(skipped_notebooks))
+        return set()
 
 
 @pytest.mark.slow
@@ -151,7 +143,9 @@ def _create_base_env(proto_dir):
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("notebook_path", _tested_notebooks())
+@pytest.mark.parametrize(
+    "notebook_path", filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)
+)
 def test_notebooks_against_released_cirq(notebook_path, base_env):
     """Tests the notebooks in isolated virtual environments."""
     notebook_file = os.path.basename(notebook_path)
