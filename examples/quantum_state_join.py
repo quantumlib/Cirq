@@ -100,7 +100,7 @@ def _random_circuit(
     for i in range(circuit_length):
         for j in range(num_qubits):
             if random.random() < cnot_freq:
-                circuit.append(cirq.CX(cirq.LineQubit(j), cirq.LineQubit(int(j + num_qubits / 2) % num_qubits)))
+                circuit.append(cirq.CX(cirq.LineQubit(j), cirq.LineQubit(int(j + 1) % num_qubits)))
             else:
                 circuit.append(cirq.H(cirq.LineQubit(j)) ** random.random())
     return circuit
@@ -109,11 +109,12 @@ def _random_circuit(
 def _clifford_circuit(
     num_qubits: int,
     circuit_length: int,
+    entangle: bool,
 ):
     circuit = cirq.Circuit()
     qubits = cirq.LineQubit.range(num_qubits)
     for _ in range(circuit_length * num_qubits):
-        x = np.random.randint(7)
+        x = np.random.randint(7 if entangle else 5)
         if x == 0:
             circuit.append(cirq.X(np.random.choice(qubits)))
         elif x == 1:
@@ -134,11 +135,12 @@ def _clifford_circuit(
 def main():
     print('***Run with Clifford simulator***')
     sim = cirq.CliffordSimulator()
-    _run_comparison(sim, _clifford_circuit(num_qubits=20, circuit_length=10))
+    _run_comparison(sim, _clifford_circuit(num_qubits=50, circuit_length=100, entangle=False))
+    _run_comparison(sim, _clifford_circuit(num_qubits=50, circuit_length=100, entangle=True))
 
     print('***Run with MPS simulator***')
     sim = MPSSimulator()
-    _run_comparison(sim, _random_circuit(num_qubits=30, circuit_length=100, cnot_freq=0.5))
+    _run_comparison(sim, _random_circuit(num_qubits=22, circuit_length=10, cnot_freq=0.15))
 
     print('***Run with sparse simulator***')
     sim = cirq.Simulator()
