@@ -13,7 +13,6 @@
 # limitations under the License.
 
 """Utilities for manipulating linear operators as elements of vector space."""
-
 from typing import Dict, Tuple
 
 import numpy as np
@@ -32,7 +31,7 @@ document(PAULI_BASIS, """The four Pauli matrices (including identity) keyed by c
 
 def kron_bases(*bases: Dict[str, np.ndarray], repeat: int = 1) -> Dict[str, np.ndarray]:
     """Creates tensor product of bases."""
-    product_basis = {'': 1}
+    product_basis = {'': np.ones(1)}
     for basis in bases * repeat:
         product_basis = {
             name1 + name2: np.kron(matrix1, matrix2)
@@ -98,14 +97,14 @@ def pow_pauli_combination(
     if exponent == 0:
         return 1, 0, 0, 0
 
-    v = np.sqrt(ax * ax + ay * ay + az * az)
-    s = np.power(ai + v, exponent)
-    t = np.power(ai - v, exponent)
+    v = np.sqrt(ax * ax + ay * ay + az * az).item()
+    s = (ai + v) ** exponent
+    t = (ai - v) ** exponent
 
     ci = (s + t) / 2
     if s == t:
         # v is near zero, only one term in binomial expansion survives
-        cxyz = exponent * np.power(ai, exponent - 1)
+        cxyz = exponent * ai ** (exponent - 1)
     else:
         # v is non-zero, account for all terms of binomial expansion
         cxyz = (s - t) / 2
