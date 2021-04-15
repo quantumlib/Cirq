@@ -64,8 +64,8 @@ def test_invalid_args():
         (grid_qubit.GridQubit(3, 2), grid_qubit.GridQubit(4, 2)): 0.004619111460557768,
         (grid_qubit.GridQubit(4, 1), grid_qubit.GridQubit(4, 2)): 0.0076079162393482835,
     }
-    with pytest.raises(ValueError, match="invalid argument.*colormap_args"):
-        heatmap.TwoQubitInteractionHeatmap(value_map, colormap_args='Greys')
+    with pytest.raises(ValueError, match="invalid argument.*colormap"):
+        heatmap.TwoQubitInteractionHeatmap(value_map, colormap='Greys')
 
 
 def test_two_qubit_nearest_neighbor(ax):
@@ -89,7 +89,9 @@ def test_cell_colors(ax, colormap_name):
     test_value_map = {(qubit,): value for qubit, value in zip(qubits, values)}
     test_row_col_map = {rc: value for rc, value in zip(row_col_list, values)}
     vmin, vmax = 1.5, 2.5
-    random_heatmap = heatmap.Heatmap(test_value_map, colormap=colormap_name, vmin=vmin, vmax=vmax)
+    random_heatmap = heatmap.Heatmap(
+        test_value_map, collection_options={'cmap': colormap_name}, vmin=vmin, vmax=vmax
+    )
     _, mesh = random_heatmap.plot(ax)
 
     colormap = mpl.cm.get_cmap(colormap_name)
@@ -205,7 +207,7 @@ def test_non_float_values(ax, format_string):
     vmin, vmax = 0.0, 1.0
     random_heatmap = heatmap.Heatmap(
         test_value_map,
-        colormap=colormap_name,
+        collection_options={'cmap': colormap_name},
         vmin=vmin,
         vmax=vmax,
         annotation_format=format_string,
@@ -263,9 +265,9 @@ def test_colorbar(ax, position, size, pad):
     fig1, ax1 = plt.subplots()
     random_heatmap.plot(ax1)
     fig2, ax2 = plt.subplots()
-    random_heatmap.update_config(
-        plot_colorbar=True, colorbar_position=position, colorbar_size=size, colorbar_pad=pad
-    ).plot(ax2)
+    random_heatmap.plot(
+        ax2, plot_colorbar=True, colorbar_position=position, colorbar_size=size, colorbar_pad=pad
+    )
 
     # We need to call savefig() explicitly for updating axes position since the figure
     # object has been altered in the HeatMap._plot_colorbar function.
@@ -304,3 +306,26 @@ def test_colorbar(ax, position, size, pad):
 
     plt.close(fig1)
     plt.close(fig2)
+
+
+def test_plot_updates_local_config():
+    value_map_2d = {
+        (grid_qubit.GridQubit(3, 2), grid_qubit.GridQubit(4, 2)): 0.004619111460557768,
+        (grid_qubit.GridQubit(4, 1), grid_qubit.GridQubit(4, 2)): 0.0076079162393482835,
+    }
+    value_map_1d = {
+        (grid_qubit.GridQubit(3, 2),): 0.004619111460557768,
+        (grid_qubit.GridQubit(4, 2),): 0.0076079162393482835,
+    }
+    original_title = "Two Qubit Interaction Heatmap"
+    new_title = "Temporary title for the plot"
+    for random_heatmap in [
+        heatmap.TwoQubitInteractionHeatmap(value_map_2d, title=original_title),
+        heatmap.Heatmap(value_map_1d, title=original_title),
+    ]:
+        _, ax = plt.subplots()
+        random_heatmap.plot(ax, title=new_title)
+        assert ax.get_title() == new_title
+        _, ax = plt.subplots()
+        random_heatmap.plot(ax)
+        assert ax.get_title() == original_title
