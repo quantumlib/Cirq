@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import abc
-from typing import Any, Iterable, Iterator, List, Optional, TYPE_CHECKING, Union
+from typing import Any, Iterator, List, Optional, Tuple, TYPE_CHECKING, Union
 from typing_extensions import Protocol
 
 import duet
@@ -56,7 +56,7 @@ class CircuitSampleJob:
 
 
 class CircuitSampleJobTree(Protocol):
-    def __iter__(self) -> Iterable[Union[CircuitSampleJob, 'CircuitSampleJobTree']]:
+    def __iter__(self) -> Iterator[Union[CircuitSampleJob, 'CircuitSampleJobTree']]:
         pass
 
 
@@ -166,7 +166,7 @@ class Collector(metaclass=abc.ABCMeta):
             The collector's result after all desired samples have been
             collected.
         """
-        results = duet.AsyncCollector()
+        results = duet.AsyncCollector[Tuple[CircuitSampleJob, 'cirq.Result']]()
         job_error = None
         running_jobs = 0
         queued_jobs: List[CircuitSampleJob] = []
