@@ -42,7 +42,7 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES = [
     # the notebook uses cirq.vis.integrated_histogram.
     'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
     # the notebook uses cirq.vis.plot_state_histogram.
-    'docs/visualization/state_histograms.ipynb',
+    'docs/tutorials/state_histograms.ipynb',
     # these notebooks now use cirq.contrib.calculate_quantum_volume(...device_qubits...)
     # the device_or_qubits parameter is deprecated
     'examples/advanced/quantum_volume_routing.ipynb',
