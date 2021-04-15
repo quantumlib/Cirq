@@ -178,6 +178,8 @@ upper_tabs:
         path: /cirq/tutorials/google/start
       - title: "Floquet calibration"
         path: /cirq/tutorials/google/floquet
+      - title: "Qubit picking with Loschmidt echoes"
+        path: /cirq/tutorials/google/echoes
       - title: "Visualizing Calibration Metrics"
         path: /cirq/tutorials/google/visualizing_calibration_metrics
 
