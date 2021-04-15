@@ -293,7 +293,7 @@ class Heatmap:
         collection = self._plot_on_axis(ax)
         if show_plot:
             fig.show()
-        self._config = copy.deepcopy(original_config)
+        self._config = original_config
         return (ax, collection)
 
 
@@ -392,5 +392,5 @@ class TwoQubitInteractionHeatmap(Heatmap):
         collection = self._plot_on_axis(ax)
         if show_plot:
             fig.show()
-        self._config = copy.deepcopy(original_config)
+        self._config = original_config
         return (ax, collection)
