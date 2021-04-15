@@ -148,7 +148,7 @@ upper_tabs:
       - title: "State Histograms"
         path: /cirq/tutorials/state_histograms
 
-        ####  INTERMEDIATE  ####
+      ####  INTERMEDIATE  ####
       - heading: "Intermediate"
       - title: "Quantum variational algorithm"
         path: /cirq/tutorials/variational_algorithm
