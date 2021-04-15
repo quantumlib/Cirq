@@ -1422,7 +1422,7 @@ class AbstractCircuit(abc.ABC):
                 uf.union(*op.qubits)
         return sorted([qs for qs in uf.to_sets()], key=min)
 
-    def factorize(self: CIRCUIT_TYPE) -> Iterable[CIRCUIT_TYPE]:
+    def factorize(self: CIRCUIT_TYPE) -> Tuple[CIRCUIT_TYPE]:
         """Factorize circuit into a sequence of independent circuits (factors).
 
         Factorization is possible when the circuit's qubits can be divided
@@ -1465,50 +1465,6 @@ class AbstractCircuit(abc.ABC):
         return (
             self._with_sliced_moments([m[qubits] for m in self.moments]) for qubits in qubit_factors
         )
-
-    def slice_by_qubits(self: CIRCUIT_TYPE, with_qubits: Collection['cirq.Qid']) -> CIRCUIT_TYPE:
-        """Retuns part of the circuit entangled with the given qubits.
-
-        If a circuit can be split into independent factors, that means only
-        returning the factors which contain at least one of the given qubits.
-
-        If a circuit cannot be factorized into independent qubit sets, returns
-        the whole circuit.
-
-        >>> q0, q1, q2 = cirq.LineQubit.range(3)
-        >>> circuit = cirq.Circuit()
-        >>> circuit.append(cirq.Moment(cirq.H(q2)))
-        >>> circuit.append(cirq.Moment(cirq.CZ(q0,q1)))
-        >>> circuit.append(cirq.H(q0))
-        >>> print(circuit)
-        0: ───────@───H───
-                  │
-        1: ───────@───────
-        <BLANKLINE>
-        2: ───H───────────
-        >>> print(circuit.slice_by_qubits([q1]))
-        0: ───────@───H───
-                  │
-        1: ───────@───────
-
-        Args:
-            with_qubits: Qubits for which the 'circuit slice' should be created.
-
-        Returns:
-            The circuit, including only the qubits which are entangled with the
-            provided qubits.
-
-        """
-
-        if not frozenset(with_qubits) < self.all_qubits():
-            raise ValueError(f'Unknown qubits:{with_qubits}')
-        qubit_factors = self.get_independent_qubit_sets()
-        if len(qubit_factors) == 1:
-            return self
-        qubits_in_slice = [
-            q for qubits in qubit_factors for q in qubits if qubits.intersection(with_qubits)
-        ]
-        return self._with_sliced_moments([m[qubits_in_slice] for m in self.moments])
 
 
 def _overlap_collision_time(
