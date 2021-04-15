@@ -1462,6 +1462,11 @@ class AbstractCircuit(abc.ABC):
         qubit_factors = self.get_independent_qubit_sets()
         if len(qubit_factors) == 1:
             return (self,)
+        # Note: In general, Moment.__getitem__ returns all operations on which
+        # any of the qubits operate. However, in this case we know that all of
+        # the qubits from one factor belong to a specific independent qubit set.
+        # This makes it possible to create independent circuits based on these
+        # moments.
         return (
             self._with_sliced_moments([m[qubits] for m in self.moments]) for qubits in qubit_factors
         )
