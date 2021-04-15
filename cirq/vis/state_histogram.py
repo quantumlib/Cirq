@@ -14,8 +14,8 @@
 
 """Tool to visualize the results of a study."""
 
-from typing import Union, Optional
-import math
+from typing import Union, Optional, Sequence, SupportsFloat
+import collections
 import numpy as np
 import matplotlib.pyplot as plt
 import cirq.study.result as result
@@ -50,16 +50,36 @@ def get_state_histogram(result: 'result.Result') -> np.ndarray:
 
 
 def plot_state_histogram(
-    values: Union['result.Result', np.ndarray], ax: Optional['plt.Axis'] = None
+    data: Union['result.Result', collections.Counter, Sequence[SupportsFloat]],
+    ax: Optional['plt.Axis'] = None,
+    *,
+    tick_label: Optional[Sequence[str]] = None,
+    xlabel: Optional[str] = 'qubit state',
+    ylabel: Optional[str] = 'result count',
+    title: Optional[str] = 'Result State Histogram',
 ) -> 'plt.Axis':
     """Plot the state histogram from either a single result with repetitions or
-       a histogram of measurement results computed using `get_state_histogram`.
+       a histogram computed using `result.histogram()` or a flattened histogram
+       of measurement results computed using `get_state_histogram`.
 
     Args:
-        values: The histogram values to plot. If `result.Result` is passed, the
-                values are computed by calling `get_state_histogram`.
-        ax:     The Axes to plot on. If not given, a new figure is created,
-                plotted on, and shown.
+        data:   The histogram values to plot. Possible options are:
+                `result.Result`: Histogram is computed using
+                    `get_state_histogram` and all 2 ** num_qubits values are
+                    plotted, including 0s.
+                `collections.Counter`: Only (key, value) pairs present in
+                    collection are plotted.
+                `Sequence[SupportsFloat]`: Values in the input sequence are
+                    plotted. i'th entry corresponds to height of the i'th
+                    bar in histogram.
+        ax:      The Axes to plot on. If not given, a new figure is created,
+                 plotted on, and shown.
+        tick_label: Tick labels for the histogram plot in case input is not
+                    `collections.Counter`. By default, label for i'th entry
+                     is |i>.
+        xlabel:  Label for the x-axis.
+        ylabel:  Label for the y-axis.
+        title:   Title of the plot.
 
     Returns:
         The axis that was plotted on.
@@ -67,15 +87,18 @@ def plot_state_histogram(
     show_fig = not ax
     if not ax:
         fig, ax = plt.subplots(1, 1)
-    print(values, isinstance(values, result.Result))
-    if isinstance(values, result.Result):
-        values = get_state_histogram(values)
-    states = len(values)
-    num_qubits = math.ceil(math.log(states, 2))
-    plot_labels = [bin(x)[2:].zfill(num_qubits) for x in range(states)]
-    ax.bar(np.arange(states), values, tick_label=plot_labels)
-    ax.set_xlabel('qubit state')
-    ax.set_ylabel('result count')
+    if isinstance(data, result.Result):
+        values = get_state_histogram(data)
+    elif isinstance(data, collections.Counter):
+        tick_label, values = zip(*sorted(data.items()))
+    else:
+        values = data
+    if not tick_label:
+        tick_label = np.arange(len(values))
+    ax.bar(np.arange(len(values)), values, tick_label=tick_label)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
     if show_fig:
         fig.show()
     return ax
