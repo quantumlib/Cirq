@@ -43,7 +43,17 @@ def test_unsupported_op():
         ('x0 ^ x1', [False, True, True, False]),
         ('x0 & x1', [False, False, False, True]),
         ('x0 | x1', [False, True, True, True]),
+        ('x0 & x1 & x2', [False, False, False, False, False, False, False, True]),
+        ('x0 & x1 & ~x2', [False, False, False, False, False, False, True, False]),
         ('x0 & ~x1 & x2', [False, False, False, False, False, True, False, False]),
+        ('x0 & ~x1 & ~x2', [False, False, False, False, True, False, False, False]),
+        ('~x0 & x1 & x2', [False, False, False, True, False, False, False, False]),
+        ('~x0 & x1 & ~x2', [False, False, True, False, False, False, False, False]),
+        ('~x0 & ~x1 & x2', [False, True, False, False, False, False, False, False]),
+        ('~x0 & ~x1 & ~x2', [True, False, False, False, False, False, False, False]),
+        ('x0 ^ x1 ^ x2', [False, True, True, False, True, False, False, True]),
+        ('x0 | (x1 & x2)', [False, False, False, True, True, True, True, True]),
+        ('x0 & (x1 | x2)', [False, False, False, False, False, True, True, True]),
     ],
 )
 def test_circuit(boolean_expr, expected):
