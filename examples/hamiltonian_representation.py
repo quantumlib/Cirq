@@ -237,8 +237,6 @@ def build_circuit_from_hamiltonians(
     # Flush the last CNOTs.
     _apply_cnots(previous_h, ())
 
-    print(circuit)  # DO NOT SUBMIT
-
     return circuit
 
 

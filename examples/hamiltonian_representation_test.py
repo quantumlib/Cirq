@@ -58,6 +58,7 @@ def test_unsupported_op():
             'x0 & (x1 | x2)',
             '(x0 ^ x1 ^ x2) | (x2 ^ x3 ^ x4)',
             '(x0 ^ x2 ^ x4) | (x1 ^ x2 ^ x3)',
+            'x0 & x1 & (x2 | x3)',
         ],
         [False, True],
     ),
