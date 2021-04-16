@@ -202,8 +202,8 @@ def build_circuit_from_hamiltonians(
             # We first test whether the rotation is applied on the same qubit.
             last_qubit_is_same = ph and ch and ph[-1] == ch[-1]
             if last_qubit_is_same:
-                # Instead of applying previous_h and then h, we just apply the symmetric difference of
-                # the two CNOTs.
+                # Instead of applying previous_h and then h, we just apply the symmetric difference
+                # of the two CNOTs.
                 dh = tuple(sorted(set(ph).symmetric_difference(ch)))
                 dh += (ch[-1],)
                 cnots.extend((dh[i], dh[-1]) for i in range(len(dh) - 1))
