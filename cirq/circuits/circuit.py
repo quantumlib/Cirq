@@ -28,7 +28,6 @@ from typing import (
     AbstractSet,
     Any,
     Callable,
-    Collection,
     cast,
     Dict,
     FrozenSet,
