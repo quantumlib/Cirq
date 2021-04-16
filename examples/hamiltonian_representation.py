@@ -162,6 +162,7 @@ def build_circuit_from_hamiltonians(
     hamiltonian_polynomial_list: List[HamiltonianPolynomial],
     qubits: List[cirq.NamedQubit],
     theta: float,
+    ladder_target: bool = False,
 ) -> cirq.Circuit:
     """Builds a circuit according to [1].
 
@@ -170,6 +171,7 @@ def build_circuit_from_hamiltonians(
             build_hamiltonian_from_boolean().
         qubits: The list of qubits corresponding to the variables.
         theta: A single float scaling the rotations.
+        ladder_target: Whether to use convention of figure 7a or 7b.
 
     Return:
         A dictionary of string (the variable name) to a unique integer.
@@ -184,23 +186,33 @@ def build_circuit_from_hamiltonians(
         list(combined.hamiltonians.keys()), key=functools.cmp_to_key(_gray_code_comparator)
     )
 
-    def _apply_cnots(previous_h, h):
+    def _apply_cnots(ph: Tuple[int, ...], ch: Tuple[int, ...]):
         # This function applies in sequence the CNOTs from previous_h and then h. However, given
         # that the h are sorted in Gray ordering and that some cancel each other, we can reduce the
         # number of gates. See [4] for more details.
 
-        # We first test whether the rotation is applied on the same qubit.
-        last_qubit_is_same = previous_h and h and previous_h[-1] == h[-1]
-        if last_qubit_is_same:
-            # Instead of applying previous_h and then h, we just apply the symmetric difference of
-            # the two CNOTs.
-            h_diff = tuple(sorted(set(previous_h).symmetric_difference(h)))
-            h_diff += (h[-1],)
-            circuit.append([cirq.CNOT(qubits[c], qubits[h_diff[-1]]) for c in h_diff[0:-1]])
+        cnots = []
+
+        if ladder_target:
+            cnots.extend((ph[i], ph[i + 1]) for i in reversed(range(len(ph) - 1)))
+            cnots.extend((ch[i], ch[i + 1]) for i in range(len(ch) - 1))
+
+            # TODO(tonybruguier): Apply the simplifications of equations 9, 10, and 11.
         else:
-            # This is the fall-back, where we just apply the CNOTs without cancellations.
-            circuit.append([cirq.CNOT(qubits[c], qubits[previous_h[-1]]) for c in previous_h[0:-1]])
-            circuit.append([cirq.CNOT(qubits[c], qubits[h[-1]]) for c in h[0:-1]])
+            # We first test whether the rotation is applied on the same qubit.
+            last_qubit_is_same = ph and ch and ph[-1] == ch[-1]
+            if last_qubit_is_same:
+                # Instead of applying previous_h and then h, we just apply the symmetric difference of
+                # the two CNOTs.
+                dh = tuple(sorted(set(ph).symmetric_difference(ch)))
+                dh += (ch[-1],)
+                cnots.extend((dh[i], dh[-1]) for i in range(len(dh) - 1))
+            else:
+                # This is the fall-back, where we just apply the CNOTs without cancellations.
+                cnots.extend((ph[i], ph[-1]) for i in range(len(ph) - 1))
+                cnots.extend((ch[i], ch[-1]) for i in range(len(ch) - 1))
+
+        circuit.append(cirq.CNOT(qubits[c], qubits[t]) for c, t in cnots)
 
     previous_h: Tuple[int, ...] = ()
     for h in sorted_hs:
@@ -219,12 +231,15 @@ def build_circuit_from_hamiltonians(
     return circuit
 
 
-def build_circuit_from_boolean_expressions(boolean_exprs: Sequence[Expr], theta: float):
+def build_circuit_from_boolean_expressions(
+    boolean_exprs: Sequence[Expr], theta: float, ladder_target: bool = False
+):
     """Wrappers of all the functions to go from Boolean expressions to circuit.
 
     Args:
         boolean_exprs: The list of Sympy Boolean expressions.
-        theta: The list of thetas to scale the
+        theta: The list of thetas to scale the Hamiltonian.
+        ladder_target: Whether to use convention of figure 7a or 7b.
 
     Return:
         A dictionary of string (the variable name) to a unique integer.
@@ -238,6 +253,8 @@ def build_circuit_from_boolean_expressions(boolean_exprs: Sequence[Expr], theta:
 
     qubits = [cirq.NamedQubit(name) for name in name_to_id.keys()]
     circuit = cirq.Circuit()
-    circuit += build_circuit_from_hamiltonians(hamiltonian_polynomial_list, qubits, theta)
+    circuit += build_circuit_from_hamiltonians(
+        hamiltonian_polynomial_list, qubits, theta, ladder_target
+    )
 
     return circuit, qubits

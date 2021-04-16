@@ -1,4 +1,5 @@
 import functools
+import itertools
 import math
 import random
 
@@ -36,103 +37,48 @@ def test_unsupported_op():
 
 
 @pytest.mark.parametrize(
-    'boolean_expr, expected',
-    [
-        ('x', [False, True]),
-        ('~x', [True, False]),
-        ('x0 ^ x1', [False, True, True, False]),
-        ('x0 & x1', [False, False, False, True]),
-        ('x0 | x1', [False, True, True, True]),
-        ('x0 & x1 & x2', [False, False, False, False, False, False, False, True]),
-        ('x0 & x1 & ~x2', [False, False, False, False, False, False, True, False]),
-        ('x0 & ~x1 & x2', [False, False, False, False, False, True, False, False]),
-        ('x0 & ~x1 & ~x2', [False, False, False, False, True, False, False, False]),
-        ('~x0 & x1 & x2', [False, False, False, True, False, False, False, False]),
-        ('~x0 & x1 & ~x2', [False, False, True, False, False, False, False, False]),
-        ('~x0 & ~x1 & x2', [False, True, False, False, False, False, False, False]),
-        ('~x0 & ~x1 & ~x2', [True, False, False, False, False, False, False, False]),
-        ('x0 ^ x1 ^ x2', [False, True, True, False, True, False, False, True]),
-        ('x0 | (x1 & x2)', [False, False, False, True, True, True, True, True]),
-        ('x0 & (x1 | x2)', [False, False, False, False, False, True, True, True]),
-        (
+    'boolean_expr, ladder_target',
+    itertools.product(
+        [
+            'x',
+            '~x',
+            'x0 ^ x1',
+            'x0 & x1',
+            'x0 | x1',
+            'x0 & x1 & x2',
+            'x0 & x1 & ~x2',
+            'x0 & ~x1 & x2',
+            'x0 & ~x1 & ~x2',
+            '~x0 & x1 & x2',
+            '~x0 & x1 & ~x2',
+            '~x0 & ~x1 & x2',
+            '~x0 & ~x1 & ~x2',
+            'x0 ^ x1 ^ x2',
+            'x0 | (x1 & x2)',
+            'x0 & (x1 | x2)',
             '(x0 ^ x1 ^ x2) | (x2 ^ x3 ^ x4)',
-            [
-                False,
-                True,
-                True,
-                False,
-                True,
-                True,
-                True,
-                True,
-                True,
-                True,
-                True,
-                True,
-                True,
-                False,
-                False,
-                True,
-                True,
-                True,
-                True,
-                True,
-                True,
-                False,
-                False,
-                True,
-                False,
-                True,
-                True,
-                False,
-                True,
-                True,
-                True,
-                True,
-            ],
-        ),
-        (
             '(x0 ^ x2 ^ x4) | (x1 ^ x2 ^ x3)',
-            [
-                False,
-                True,
-                True,
-                True,
-                True,
-                True,
-                True,
-                False,
-                True,
-                True,
-                False,
-                True,
-                True,
-                False,
-                True,
-                True,
-                True,
-                False,
-                True,
-                True,
-                True,
-                True,
-                False,
-                True,
-                True,
-                True,
-                True,
-                False,
-                False,
-                True,
-                True,
-                True,
-            ],
-        ),
-    ],
+        ],
+        [False, True],
+    ),
 )
-def test_circuit(boolean_expr, expected):
+def test_circuit(boolean_expr, ladder_target):
+    # We use Sympy to evaluate the expression:
+    parsed_expr = sympy_parser.parse_expr(boolean_expr)
+    var_names = hr.get_name_to_id([parsed_expr])
+
+    n = len(var_names)
+
+    expected = []
+    for binary_inputs in itertools.product([0, 1], repeat=n):
+        subed_expr = parsed_expr
+        for var_name, binary_input in zip(var_names, binary_inputs):
+            subed_expr = subed_expr.subs(var_name, binary_input)
+        expected.append(subed_expr)
+
+    # We build a circuit and look at its output state vector:
     circuit_hamiltonians, qubits = hr.build_circuit_from_boolean_expressions(
-        [boolean_expr], 0.1 * math.pi
+        [boolean_expr], 0.1 * math.pi, ladder_target
     )
 
     circuit_hadamard = cirq.Circuit()
@@ -143,6 +89,7 @@ def test_circuit(boolean_expr, expected):
     phi = cirq.Simulator().simulate(circuit, qubit_order=qubits, initial_state=0).state_vector()
     actual = np.arctan2(phi.real, phi.imag) - math.pi / 2.0 > 0.0
 
+    # Compare the two:
     np.testing.assert_array_equal(actual, expected)
 
 
