@@ -14,6 +14,7 @@
 from typing import Any, Dict, List, Mapping, Optional, SupportsFloat, Tuple
 from dataclasses import astuple, dataclass
 
+import copy
 import numpy as np
 from matplotlib import collections as mcoll
 import matplotlib as mpl
@@ -100,7 +101,9 @@ class Heatmap:
             colorbar_pad: str, default = '2%'
             colorbar_options: Matplotlib colorbar **kwargs, default = None,
 
-            colormap: Matplotlib colormap, default = viridis
+
+            collection_options: Matplotlib PolyCollection **kwargs, default
+                                {"cmap" : "viridis"}
             vmin, vmax: colormap scaling floats, default = None
         """
         self._value_map: Mapping[QubitTuple, SupportsFloat] = value_map
@@ -113,7 +116,7 @@ class Heatmap:
                 "colorbar_position": "right",
                 "colorbar_size": "5%",
                 "colorbar_pad": "2%",
-                "colormap": "viridis",
+                "collection_options": {"cmap": "viridis"},
                 "annotation_format": ".2g",
             }
         )
@@ -130,8 +133,8 @@ class Heatmap:
             "colorbar_pad",
             "colorbar_options",
         ]
-        valid_colormap_kwargs = [
-            "colormap",
+        valid_collection_kwargs = [
+            "collection_options",
             "vmin",
             "vmax",
         ]
@@ -143,7 +146,7 @@ class Heatmap:
         ]
         valid_kwargs = (
             valid_colorbar_kwargs
-            + valid_colormap_kwargs
+            + valid_collection_kwargs
             + valid_heatmap_kwargs
             + self._extra_valid_kwargs()
         )
@@ -231,11 +234,12 @@ class Heatmap:
             text_kwargs.update(self._config.get('annotation_text_kwargs', {}))
             ax.text(x, y, annotation, **text_kwargs)
 
-    def _plot_on_axis(self, ax: plt.Axes, **collection_options: Any) -> mpl_collections.Collection:
+    def _plot_on_axis(self, ax: plt.Axes) -> mpl_collections.Collection:
         # Step-1: Convert value_map to a list of polygons to plot.
         polygon_list = self._get_polygon_units()
         collection: mpl_collections.Collection = mcoll.PolyCollection(
-            [c.polygon for c in polygon_list], cmap=self._config['colormap'], **collection_options
+            [c.polygon for c in polygon_list],
+            **self._config.get('collection_options', {}),
         )
         collection.set_clim(self._config.get('vmin'), self._config.get('vmax'))
         collection.set_array(np.array([c.value for c in polygon_list]))
@@ -268,13 +272,15 @@ class Heatmap:
         return collection
 
     def plot(
-        self, ax: Optional[plt.Axes] = None, **collection_options: Any
+        self, ax: Optional[plt.Axes] = None, **kwargs: Any
     ) -> Tuple[plt.Axes, mpl_collections.Collection]:
         """Plots the heatmap on the given Axes.
         Args:
             ax: the Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
-            collection_options: keyword arguments passed to mcoll.PolyCollection().
+            kwargs: The optional keyword arguments are used to temporarily
+                override the values present in the heatmap config. See
+                __init__ for more details on the allowed arguments.
         Returns:
             A 2-tuple ``(ax, collection)``. ``ax`` is the `plt.Axes` that
             is plotted on. ``collection`` is the collection of paths drawn and filled.
@@ -282,9 +288,12 @@ class Heatmap:
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(figsize=(8, 8))
-        collection = self._plot_on_axis(ax, **collection_options)
+        original_config = copy.deepcopy(self._config)
+        self.update_config(**kwargs)
+        collection = self._plot_on_axis(ax)
         if show_plot:
             fig.show()
+        self._config = original_config
         return (ax, collection)
 
 
@@ -350,13 +359,15 @@ class TwoQubitInteractionHeatmap(Heatmap):
         return (polygon, Point((col1 + col2) / 2.0, (row1 + row2) / 2.0))
 
     def plot(
-        self, ax: Optional[plt.Axes] = None, **collection_options: Any
+        self, ax: Optional[plt.Axes] = None, **kwargs: Any
     ) -> Tuple[plt.Axes, mpl_collections.Collection]:
         """Plots the heatmap on the given Axes.
         Args:
             ax: the Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
-            collection_options: keyword arguments passed to mcoll.PolyCollection().
+            kwargs: The optional keyword arguments are used to temporarily
+                override the values present in the heatmap config. See
+                __init__ for more details on the allowed arguments.
         Returns:
             A 2-tuple ``(ax, collection)``. ``ax`` is the `plt.Axes` that
             is plotted on. ``collection`` is the collection of paths drawn and filled.
@@ -364,14 +375,22 @@ class TwoQubitInteractionHeatmap(Heatmap):
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(figsize=(8, 8))
+        original_config = copy.deepcopy(self._config)
+        self.update_config(**kwargs)
         qubits = set([q for qubits in self._value_map.keys() for q in qubits])
-        Heatmap(
-            {(q,): 0.0 for q in qubits},
-            colormap='binary',
+        Heatmap({(q,): 0.0 for q in qubits}).plot(
+            ax=ax,
+            collection_options={
+                'cmap': 'binary',
+                'linewidths': 2,
+                'edgecolor': 'lightgrey',
+                'linestyle': 'dashed',
+            },
             plot_colorbar=False,
             annotation_format=None,
-        ).plot(ax=ax, linewidths=2, edgecolor='lightgrey', linestyle='dashed')
-        collection = self._plot_on_axis(ax, **collection_options)
+        )
+        collection = self._plot_on_axis(ax)
         if show_plot:
             fig.show()
+        self._config = original_config
         return (ax, collection)
