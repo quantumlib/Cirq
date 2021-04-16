@@ -1422,7 +1422,7 @@ class AbstractCircuit(abc.ABC):
                 uf.union(*op.qubits)
         return sorted([qs for qs in uf.to_sets()], key=min)
 
-    def factorize(self: CIRCUIT_TYPE) -> Tuple[CIRCUIT_TYPE]:
+    def factorize(self: CIRCUIT_TYPE) -> Iterable[CIRCUIT_TYPE]:
         """Factorize circuit into a sequence of independent circuits (factors).
 
         Factorization is possible when the circuit's qubits can be divided
