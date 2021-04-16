@@ -187,30 +187,39 @@ def build_circuit_from_hamiltonians(
     )
 
     def _apply_cnots(ph: Tuple[int, ...], ch: Tuple[int, ...]):
-        # This function applies in sequence the CNOTs from previous_h and then h. However, given
-        # that the h are sorted in Gray ordering and that some cancel each other, we can reduce the
-        # number of gates. See [4] for more details.
+        # This function applies in sequence the CNOTs from ph and then ch. However, given that the
+        # h are sorted in Gray ordering and that some cancel each other, we can reduce the number
+        # of gates. See [4] for more details.
 
         cnots: List[Tuple[int, int]] = []
 
         if ladder_target:
             cnots.extend((ph[i], ph[i + 1]) for i in reversed(range(len(ph) - 1)))
             cnots.extend((ch[i], ch[i + 1]) for i in range(len(ch) - 1))
-
-            # TODO(tonybruguier): Apply the simplifications of equations 9, 10, and 11.
         else:
-            # We first test whether the rotation is applied on the same qubit.
-            last_qubit_is_same = ph and ch and ph[-1] == ch[-1]
-            if last_qubit_is_same:
-                # Instead of applying previous_h and then h, we just apply the symmetric difference
-                # of the two CNOTs.
-                dh = tuple(sorted(set(ph).symmetric_difference(ch)))
-                dh += (ch[-1],)
-                cnots.extend((dh[i], dh[-1]) for i in range(len(dh) - 1))
-            else:
-                # This is the fall-back, where we just apply the CNOTs without cancellations.
-                cnots.extend((ph[i], ph[-1]) for i in range(len(ph) - 1))
-                cnots.extend((ch[i], ch[-1]) for i in range(len(ch) - 1))
+            cnots.extend((ph[i], ph[-1]) for i in range(len(ph) - 1))
+            cnots.extend((ch[i], ch[-1]) for i in range(len(ch) - 1))
+
+        found_simplification = True
+        while found_simplification:
+            # As per equations 9 and 10, if all the targets (resp. controls) are the same, the
+            # cnots commute. Further, if the control (resp. targets) are the same, the cnots can be
+            # simplified away.
+            found_simplification = False
+            for x, y in [(0, 1), (1, 0)]:
+                i = 0
+                for j in range(1, len(cnots)):
+                    if cnots[i][x] != cnots[j][x]:
+                        # The targets (resp. control) don't match, so we reset the search.
+                        i = j
+                        continue
+                    if cnots[i][y] == cnots[j][y]:
+                        # The controls (resp. targets) are the same, so we can simplify away.
+                        cnots = [cnots[k] for k in range(len(cnots)) if k != i and k != j]
+                        found_simplification = True
+                        break
+
+            # TODO(tonybruguier): Apply the simplification of equation 11.
 
         circuit.append(cirq.CNOT(qubits[c], qubits[t]) for c, t in cnots)
 
@@ -227,6 +236,8 @@ def build_circuit_from_hamiltonians(
 
     # Flush the last CNOTs.
     _apply_cnots(previous_h, ())
+
+    print(circuit)  # DO NOT SUBMIT
 
     return circuit
 
