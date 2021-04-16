@@ -191,7 +191,7 @@ def build_circuit_from_hamiltonians(
         # that the h are sorted in Gray ordering and that some cancel each other, we can reduce the
         # number of gates. See [4] for more details.
 
-        cnots = []
+        cnots: List[Tuple[int, int]] = []
 
         if ladder_target:
             cnots.extend((ph[i], ph[i + 1]) for i in reversed(range(len(ph) - 1)))
