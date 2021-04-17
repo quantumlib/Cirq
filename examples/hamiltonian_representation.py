@@ -200,8 +200,7 @@ def build_circuit_from_hamiltonians(
             cnots.extend((ph[i], ph[-1]) for i in range(len(ph) - 1))
             cnots.extend((ch[i], ch[-1]) for i in range(len(ch) - 1))
 
-        found_simplification = True
-        while found_simplification:
+        while True:
             # As per equations 9 and 10, if all the targets (resp. controls) are the same, the
             # cnots commute. Further, if the control (resp. targets) are the same, the cnots can be
             # simplified away.
@@ -219,7 +218,61 @@ def build_circuit_from_hamiltonians(
                         found_simplification = True
                         break
 
-            # TODO(tonybruguier): Apply the simplification of equation 11.
+            if found_simplification:
+                continue
+
+            # Here we apply the simplification of equation 11. Note that by flipping the control
+            # and target qubits, we have an equally valid identity:
+            # CNOT(i, j) @ CNOT(j, k) == CNOT(j, k) @ CNOT(i, k) @ CNOT(i, j)
+            # CNOT(j, i) @ CNOT(k, j) == CNOT(k, j) @ CNOT(k, i) @ CNOT(j, i)
+            #
+            # Which are represented by (x, y) = (0, 1) and (x, y) = (1, 0), respectively.
+            for x, y in [(0, 1), (1, 0)]:
+                # We investigate potential pivots sequentially.
+                for j in range(1, len(cnots) - 1):
+                    # First, we look back for as long as the targets (resp. triggers) are the same.
+                    # They all commute, so all are potential candidates for being simplified.
+                    common_A: Dict[int, int] = {}
+                    for i in range(j - 1, -1, -1):
+                        if cnots[i][y] != cnots[j][y]:
+                            break
+                        # We take a note of the trigger (resp. target).
+                        common_A[cnots[i][x]] = i
+
+                    # Next, we look forward for as long as the triggers (resp. targets) are the
+                    # same. They all commute, so all are potential candidates for being simplified.
+                    common_B: Dict[int, int] = {}
+                    for k in range(j + 1, len(cnots)):
+                        if cnots[j][x] != cnots[k][x]:
+                            break
+                        # We take a note of the target (resp. trigger).
+                        common_B[cnots[k][y]] = k
+
+                    # Among all the candidates, find if they have a match.
+                    keys = common_A.keys() & common_B.keys()
+                    for key in keys:
+                        assert common_A[key] != common_B[key]
+                        # We perform the swap which removes the pivot.
+                        new_idx: List[int] = (
+                            [idx for idx in range(0, j) if idx != common_A[key]]
+                            + [common_B[key], common_A[key]]
+                            + [idx for idx in range(j + 1, len(cnots)) if idx != common_B[key]]
+                        )
+                        # Since we removed the pivot, the length should be one fewer.
+                        assert len(new_idx) == len(cnots) - 1
+                        cnots = [cnots[idx] for idx in new_idx]
+                        found_simplification = True
+                        break
+
+                    if found_simplification:
+                        break
+                if found_simplification:
+                    break
+
+            if found_simplification:
+                continue
+
+            break
 
         circuit.append(cirq.CNOT(qubits[c], qubits[t]) for c, t in cnots)
 
