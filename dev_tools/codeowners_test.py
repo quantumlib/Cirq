@@ -18,6 +18,8 @@ CIRQ_MAINTAINERS = ('TEAM', "@quantumlib/cirq-maintainers")
 
 BASE_MAINTAINERS = {CIRQ_MAINTAINERS, ('USERNAME', "@vtomole"), ('USERNAME', "@cduck")}
 
+DOCS_MAINTAINERS = BASE_MAINTAINERS.union({('USERNAME', '@rmlarose')})
+
 GOOGLE_TEAM = {('USERNAME', "@wcourtney")}
 
 GOOGLE_MAINTAINERS = BASE_MAINTAINERS.union(GOOGLE_TEAM)
@@ -55,7 +57,8 @@ def _vendor_module_testcases(mod_name, expected_group):
         ("in/any/dir/any_file.py", BASE_MAINTAINERS),
         ("cirq/contrib/bla.py", BASE_MAINTAINERS),
         ("cirq/experiments/bla.py", QCVV_MAINTAINERS),
-        ("cirq/docs/qcvv/my_fancy_notebook.ipynb", QCVV_MAINTAINERS),
+        ("cirq/docs/qcvv/my_fancy_notebook.ipynb", QCVV_MAINTAINERS.union(DOCS_MAINTAINERS)),
+        ("cirq/docs/any/dir/any_notebook.ipynb", DOCS_MAINTAINERS),
         *_vendor_module_testcases("aqt", AQT_MAINTAINERS),
         *_vendor_module_testcases("ionq", IONQ_MAINTAINERS),
         *_vendor_module_testcases("google", GOOGLE_MAINTAINERS),

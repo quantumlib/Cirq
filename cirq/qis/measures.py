@@ -138,9 +138,9 @@ def fidelity(
         )
     state1 = quantum_state(state1, qid_shape=qid_shape, validate=validate, atol=atol)
     state2 = quantum_state(state2, qid_shape=qid_shape, validate=validate, atol=atol)
-    state1 = state1.density_matrix() if state1._is_density_matrix() else state1.state_vector()
-    state2 = state2.density_matrix() if state2._is_density_matrix() else state2.state_vector()
-    return _fidelity_state_vectors_or_density_matrices(state1, state2)
+    state1_arr = state1.state_vector_or_density_matrix()
+    state2_arr = state2.state_vector_or_density_matrix()
+    return _fidelity_state_vectors_or_density_matrices(state1_arr, state2_arr)
 
 
 def _numpy_arrays_to_state_vectors_or_density_matrices(
@@ -152,10 +152,10 @@ def _numpy_arrays_to_state_vectors_or_density_matrices(
 ) -> Tuple[np.ndarray, np.ndarray]:
     if state1.ndim > 2 or (state1.ndim == 2 and state1.shape[0] != state1.shape[1]):
         # State tensor, convert to state vector
-        state1 = np.reshape(state1, (np.prod(state1.shape),))
+        state1 = np.reshape(state1, (np.prod(state1.shape).item(),))
     if state2.ndim > 2 or (state2.ndim == 2 and state2.shape[0] != state2.shape[1]):
         # State tensor, convert to state vector
-        state2 = np.reshape(state2, (np.prod(state2.shape),))
+        state2 = np.reshape(state2, (np.prod(state2.shape).item(),))
     if state1.ndim == 2 and state2.ndim == 2:
         # Must be square matrices
         if state1.shape == state2.shape:
@@ -168,26 +168,26 @@ def _numpy_arrays_to_state_vectors_or_density_matrices(
                 )
             if state1.shape == qid_shape:
                 # State tensors, convert to state vectors
-                state1 = np.reshape(state1, (np.prod(qid_shape),))
-                state2 = np.reshape(state2, (np.prod(qid_shape),))
+                state1 = np.reshape(state1, (np.prod(qid_shape).item(),))
+                state2 = np.reshape(state2, (np.prod(qid_shape).item(),))
         elif state1.shape[0] < state2.shape[0]:
             # state1 is state tensor and state2 is density matrix.
             # Convert state1 to state vector
-            state1 = np.reshape(state1, (np.prod(state1.shape),))
+            state1 = np.reshape(state1, (np.prod(state1.shape).item(),))
         else:  # state1.shape[0] > state2.shape[0]
             # state2 is state tensor and state1 is density matrix.
             # Convert state2 to state vector
-            state2 = np.reshape(state2, (np.prod(state2.shape),))
+            state2 = np.reshape(state2, (np.prod(state2.shape).item(),))
     elif state1.ndim == 2 and state2.ndim < 2 and np.prod(state1.shape) == np.prod(state2.shape):
         # state1 is state tensor, convert to state vector
-        state1 = np.reshape(state1, (np.prod(state1.shape),))
+        state1 = np.reshape(state1, (np.prod(state1.shape).item(),))
     elif state1.ndim < 2 and state2.ndim == 2 and np.prod(state1.shape) == np.prod(state2.shape):
         # state2 is state tensor, convert to state vector
-        state2 = np.reshape(state2, (np.prod(state2.shape),))
+        state2 = np.reshape(state2, (np.prod(state2.shape).item(),))
 
     if validate:
-        dim1 = state1.shape[0] if state1.ndim == 2 else np.prod(state1.shape)
-        dim2 = state2.shape[0] if state2.ndim == 2 else np.prod(state2.shape)
+        dim1: int = state1.shape[0] if state1.ndim == 2 else np.prod(state1.shape).item()
+        dim2: int = state2.shape[0] if state2.ndim == 2 else np.prod(state2.shape).item()
         if dim1 != dim2:
             raise ValueError('Mismatched dimensions in given states: ' f'{dim1} and {dim2}.')
         if qid_shape is None:
