@@ -48,16 +48,14 @@ BLACK_FORMAT="black-nb"
 unformatted="$("$FORMAT_CMD" --test docs 2>&1 | grep "\- docs" || true)"
 black_unformatted="$("$BLACK_FORMAT" --check docs 2>&1 | grep "would be reformatted")"
 needed_changes=0
-if [ ! -z "${unformatted}" ]; then
-    if [ ! -z "${black_unformatted}" ]; then
-        needed_changes=1
-        if (( only_print == 0 )); then
-            "$BLACK_FORMAT" docs
-            "$FORMAT_CMD" docs
-        else
-            echo -e "\033[31mThe following notebooks require formatting\033[0m."
-            echo "${unformatted}"
-        fi
+if [ ! -z "${unformatted}" || ! -z "${black_unformatted}" ]; then
+    needed_changes=1
+    if (( only_print == 0 )); then
+        "$BLACK_FORMAT" docs
+        "$FORMAT_CMD" docs
+    else
+        echo -e "\033[31mThe following notebooks require formatting\033[0m."
+        echo "${unformatted}"
     fi
 fi
 
