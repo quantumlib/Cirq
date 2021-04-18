@@ -263,7 +263,7 @@ class DepolarizingChannel(gate_features.SupportsOnEachGate, raw_types.Gate):
         This channel evolves a density matrix via
 
             $$
-            \rho \rightarrow (1 - p) \rho + 1 / (4**n - 1) \sum _i P_i X P_i
+            \rho \rightarrow (1 - p) \rho + p / (4**n - 1) \sum _i P_i \rho P_i
             $$
 
         where $P_i$ are the $4^n - 1$ Pauli gates (excluding the identity).
@@ -372,7 +372,7 @@ def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
     This channel evolves a density matrix via
 
         $$
-        \rho \rightarrow (1 - p) \rho + 1 / (4**n - 1) \sum _i P_i X P_i
+        \rho \rightarrow (1 - p) \rho + p / (4**n - 1) \sum _i P_i \rho P_i
         $$
 
     where $P_i$ are the $4^n - 1$ Pauli gates (excluding the identity).

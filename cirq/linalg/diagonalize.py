@@ -183,9 +183,9 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
             raise ValueError('mat1 must be real.')
         if np.any(np.imag(mat2) != 0):
             raise ValueError('mat2 must be real.')
-        if not predicates.is_hermitian(mat1.dot(mat2.T), rtol=rtol, atol=atol):
+        if not predicates.is_hermitian(np.dot(mat1, mat2.T), rtol=rtol, atol=atol):
             raise ValueError('mat1 @ mat2.T must be symmetric.')
-        if not predicates.is_hermitian(mat1.T.dot(mat2), rtol=rtol, atol=atol):
+        if not predicates.is_hermitian(np.dot(mat1.T, mat2), rtol=rtol, atol=atol):
             raise ValueError('mat1.T @ mat2 must be symmetric.')
 
     # Use SVD to bi-diagonalize the first matrix.
@@ -200,7 +200,7 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
     base_diag = base_diag[:rank, :rank]
 
     # Try diagonalizing the second matrix with the same factors as the first.
-    semi_corrected = base_left.T.dot(np.real(mat2)).dot(base_right.T)
+    semi_corrected = combinators.dot(base_left.T, np.real(mat2), base_right.T)
 
     # Fix up the part of the second matrix's diagonalization that's matched
     # against non-zero diagonal entries in the first matrix's diagonalization
@@ -218,15 +218,15 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
     # Merge the fixup factors into the initial diagonalization.
     left_adjust = combinators.block_diag(overlap_adjust, extra_left_adjust)
     right_adjust = combinators.block_diag(overlap_adjust.T, extra_right_adjust)
-    left = left_adjust.T.dot(base_left.T)
-    right = base_right.T.dot(right_adjust.T)
+    left = np.dot(left_adjust.T, base_left.T)
+    right = np.dot(base_right.T, right_adjust.T)
 
     return left, right
 
 
 def bidiagonalize_unitary_with_special_orthogonals(
     mat: np.ndarray, *, rtol: float = 1e-5, atol: float = 1e-8, check_preconditions: bool = True
-) -> Tuple[np.ndarray, np.array, np.ndarray]:
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Finds orthogonal matrices L, R such that L @ matrix @ R is diagonal.
 
     Args:

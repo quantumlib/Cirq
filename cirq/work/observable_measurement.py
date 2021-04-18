@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
 import dataclasses
 import itertools
 import warnings
@@ -21,6 +22,8 @@ import numpy as np
 import sympy
 
 from cirq import circuits, study, ops, value
+from cirq._doc import document
+from cirq.protocols import json_serializable_dataclass
 from cirq.work.observable_measurement_data import BitstringAccumulator
 from cirq.work.observable_settings import (
     InitObsSetting,
@@ -30,6 +33,16 @@ from cirq.work.observable_settings import (
 if TYPE_CHECKING:
     import cirq
     from cirq.value.product_state import _NamedOneQubitState
+
+MAX_REPETITIONS_PER_JOB = 3_000_000
+document(
+    MAX_REPETITIONS_PER_JOB,
+    """The maximum repetitions allowed in a single batch job.
+
+    This depends on the Sampler executing your batch job. It is set to be
+    tens of minutes assuming ~kilosamples per second.
+    """,
+)
 
 
 def _with_parameterized_layers(
@@ -60,6 +73,59 @@ def _with_parameterized_layers(
         total_circuit = circuit.copy()
     total_circuit.append([x_end_mom, y_end_mom, meas_mom])
     return total_circuit
+
+
+class StoppingCriteria(abc.ABC):
+    """An abstract object that queries a BitstringAccumulator to figure out
+    whether that `meas_spec` is complete."""
+
+    @abc.abstractmethod
+    def more_repetitions(self, accumulator: BitstringAccumulator) -> int:
+        """Return the number of additional repetitions to take.
+
+        StoppingCriteria should be respectful and have some notion of a
+        maximum number of repetitions per chunk.
+        """
+
+
+@json_serializable_dataclass(frozen=True)
+class VarianceStoppingCriteria(StoppingCriteria):
+    """Stop sampling when average variance per term drops below a variance bound."""
+
+    variance_bound: float
+    repetitions_per_chunk: int = 10_000
+
+    def more_repetitions(self, accumulator: BitstringAccumulator) -> int:
+        if len(accumulator.bitstrings) == 0:
+            return self.repetitions_per_chunk
+
+        cov = accumulator.covariance()
+        n_terms = cov.shape[0]
+        sum_variance = np.sum(cov)
+        var_of_the_e = sum_variance / len(accumulator.bitstrings)
+        vpt = var_of_the_e / n_terms
+
+        if vpt <= self.variance_bound:
+            # Done
+            return 0
+        return self.repetitions_per_chunk
+
+
+@json_serializable_dataclass(frozen=True)
+class RepetitionsStoppingCriteria(StoppingCriteria):
+    """Stop sampling when the number of repetitions has been reached."""
+
+    total_repetitions: int
+    repetitions_per_chunk: int = 10_000
+
+    def more_repetitions(self, accumulator: BitstringAccumulator) -> int:
+        done = accumulator.n_repetitions
+        todo = self.total_repetitions - done
+        if todo <= 0:
+            return 0
+
+        to_do_next = min(self.repetitions_per_chunk, todo)
+        return to_do_next
 
 
 _OBS_TO_PARAM_VAL: Dict[Tuple['cirq.Pauli', bool], Tuple[float, float]] = {
@@ -153,9 +219,8 @@ def _pad_setting(
 
 
 def _aggregate_n_repetitions(next_chunk_repetitions: Set[int]) -> int:
-    """In the future, we will allow each accumulator to request a different number
-    of repetitions for the next chunk. For batching efficiency, we take the
-    max and issue a warning in this case."""
+    """A stopping criteria can request a different number of more_repetitions for each
+    measurement spec. For batching efficiency, we take the max and issue a warning in this case."""
     if len(next_chunk_repetitions) == 1:
         return list(next_chunk_repetitions)[0]
 
@@ -168,21 +233,10 @@ def _aggregate_n_repetitions(next_chunk_repetitions: Set[int]) -> int:
     return reps
 
 
-def _repetitions_to_do(accumulator: BitstringAccumulator, desired_reps: int) -> int:
-    """Stub function to chunk desired repetitions into groups of 10,000."""
-    done = accumulator.n_repetitions
-    todo = desired_reps - done
-    if todo <= 0:
-        return 0
-
-    to_do_next = min(10_000, todo)
-    return to_do_next
-
-
 def _check_meas_specs_still_todo(
     meas_specs: List[_MeasurementSpec],
     accumulators: Dict[_MeasurementSpec, BitstringAccumulator],
-    desired_repetitions: int,
+    stopping_criteria: StoppingCriteria,
 ) -> Tuple[List[_MeasurementSpec], int]:
     """Filter `meas_specs` in case some are done.
 
@@ -191,21 +245,43 @@ def _check_meas_specs_still_todo(
     removing `meas_spec`s from the loop if they are done.
     """
     still_todo = []
-    repetitions: Set[int] = set()
+    repetitions_set: Set[int] = set()
     for meas_spec in meas_specs:
         accumulator = accumulators[meas_spec]
-        more_repetitions = _repetitions_to_do(accumulator, desired_reps=desired_repetitions)
+        more_repetitions = stopping_criteria.more_repetitions(accumulator)
+
+        if more_repetitions < 0:
+            raise ValueError(
+                "Stopping criteria's `more_repetitions` should return 0 or a positive number."
+            )
         if more_repetitions == 0:
             continue
 
-        repetitions.add(more_repetitions)
+        repetitions_set.add(more_repetitions)
         still_todo.append(meas_spec)
 
     if len(still_todo) == 0:
         return still_todo, 0
 
-    reps = _aggregate_n_repetitions(repetitions)
-    return still_todo, reps
+    repetitions = _aggregate_n_repetitions(repetitions_set)
+    total_repetitions = len(still_todo) * repetitions
+    if total_repetitions > MAX_REPETITIONS_PER_JOB:
+        old_repetitions = repetitions
+        repetitions = MAX_REPETITIONS_PER_JOB // len(still_todo)
+
+        if repetitions < 10:
+            raise ValueError(
+                "You have requested too many parameter settings to batch your job effectively. "
+                "Consider fewer sweeps or manually splitting sweeps into multiple jobs."
+            )
+
+        warnings.warn(
+            f"The number of requested sweep parameters is high. To avoid a batched job with more "
+            f"than {MAX_REPETITIONS_PER_JOB} shots, the number of shots per call to run_sweep "
+            f"(per parameter value) will be throttled from {old_repetitions} to {repetitions}."
+        )
+
+    return still_todo, repetitions
 
 
 @dataclasses.dataclass(frozen=True)
@@ -291,7 +367,7 @@ def measure_grouped_settings(
     circuit: 'cirq.Circuit',
     grouped_settings: Dict[InitObsSetting, List[InitObsSetting]],
     sampler: 'cirq.Sampler',
-    desired_repetitions: int,
+    stopping_criteria: StoppingCriteria,
     *,
     readout_symmetrization: bool = False,
     circuit_sweep: 'cirq.study.sweepable.SweepLike' = None,
@@ -311,7 +387,8 @@ def measure_grouped_settings(
             Automated routing algorithms like `group_settings_greedy` can
             be used to construct this input.
         sampler: A sampler.
-        desired_repetitions: How many repetitions per observable.
+        stopping_criteria: A StoppingCriteria object that can report
+            whether enough samples have been sampled.
         readout_symmetrization: If set to True, each `meas_spec` will be
             split into two runs: one normal and one where a bit flip is
             incorporated prior to measurement. In the latter case, the
@@ -358,7 +435,7 @@ def measure_grouped_settings(
         meas_specs_todo, repetitions = _check_meas_specs_still_todo(
             meas_specs=meas_specs_todo,
             accumulators=accumulators,
-            desired_repetitions=desired_repetitions,
+            stopping_criteria=stopping_criteria,
         )
         if len(meas_specs_todo) == 0:
             break
