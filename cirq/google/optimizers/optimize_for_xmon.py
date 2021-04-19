@@ -15,16 +15,16 @@
 from typing import Callable, cast, Optional, TYPE_CHECKING
 
 from cirq import devices
-from cirq.google.optimizers import optimized_for_sycamore
+from cirq_google.optimizers import optimized_for_sycamore
 
 if TYPE_CHECKING:
-    import cirq.google
+    import cirq_google
     import cirq
 
 
 def optimized_for_xmon(
     circuit: 'cirq.Circuit',
-    new_device: Optional['cirq.google.XmonDevice'] = None,
+    new_device: Optional['cirq_google.XmonDevice'] = None,
     qubit_map: Callable[['cirq.Qid'], devices.GridQubit] = lambda e: cast(devices.GridQubit, e),
     allow_partial_czs: bool = False,
 ) -> 'cirq.Circuit':

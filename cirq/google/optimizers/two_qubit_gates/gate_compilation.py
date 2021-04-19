@@ -8,7 +8,7 @@ import numpy as np
 from cirq._compat import proper_repr, proper_eq
 
 from cirq import linalg, value
-from cirq.google.optimizers.two_qubit_gates.math_utils import (
+from cirq_google.optimizers.two_qubit_gates.math_utils import (
     kak_vector_infidelity,
     vector_kron,
     weyl_chamber_mesh,
@@ -135,7 +135,7 @@ class GateTabulation:
             numpy_single_qubit_gates.append(f"[{','.join(gate_repr)}]")
 
         return (
-            f'cirq.google.optimizers.two_qubit_gates.gate_compilation'
+            f'cirq_google.optimizers.two_qubit_gates.gate_compilation'
             f'.GateTabulation({proper_repr(self.base_gate)}, '
             f'{proper_repr(self.kak_vecs)}, '
             f'[{",".join(numpy_single_qubit_gates)}], '

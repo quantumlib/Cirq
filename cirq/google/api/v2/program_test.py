@@ -15,7 +15,7 @@
 import pytest
 
 import cirq
-import cirq.google.api.v2 as v2
+import cirq_google.api.v2 as v2
 
 
 def test_qubit_to_proto_id():

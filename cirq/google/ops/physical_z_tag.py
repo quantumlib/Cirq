@@ -35,7 +35,7 @@ class PhysicalZTag:
         return 'PhysicalZTag()'
 
     def __repr__(self) -> str:
-        return 'cirq.google.PhysicalZTag()'
+        return 'cirq_google.PhysicalZTag()'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, [])

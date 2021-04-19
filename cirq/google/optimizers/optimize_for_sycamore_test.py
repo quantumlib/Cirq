@@ -16,7 +16,7 @@ import numpy as np
 import pytest
 
 import cirq
-import cirq.google as cg
+import cirq_google as cg
 
 
 _OPTIMIZERS_AND_GATESETS = [

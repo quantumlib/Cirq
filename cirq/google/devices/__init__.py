@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.google.devices.known_devices import (
+from cirq_google.devices.known_devices import (
     Bristlecone,
     Foxtail,
     Sycamore,
     Sycamore23,
 )
 
-from cirq.google.devices.serializable_device import (
+from cirq_google.devices.serializable_device import (
     SerializableDevice,
 )
 
-from cirq.google.devices.xmon_device import (
+from cirq_google.devices.xmon_device import (
     XmonDevice,
 )

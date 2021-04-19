@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Support for serializing and deserializing cirq.google.api.v2 protos."""
+"""Support for serializing and deserializing cirq_google.api.v2 protos."""
 
 from typing import (
     Dict,
@@ -24,8 +24,8 @@ from typing import (
 )
 
 from cirq import circuits, ops
-from cirq.google import op_deserializer, op_serializer, arg_func_langs
-from cirq.google.api import v2
+from cirq_google import op_deserializer, op_serializer, arg_func_langs
+from cirq_google.api import v2
 
 if TYPE_CHECKING:
     import cirq
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 class SerializableGateSet:
     """A class for serializing and deserializing programs and operations.
 
-    This class is for cirq.google.api.v2. protos.
+    This class is for cirq_google.api.v2. protos.
     """
 
     def __init__(
@@ -110,7 +110,7 @@ class SerializableGateSet:
         arg_function_language: Optional[str] = None,
         use_constants_table_for_tokens: Optional[bool] = True,
     ) -> v2.program_pb2.Program:
-        """Serialize a Circuit to cirq.google.api.v2.Program proto.
+        """Serialize a Circuit to cirq_google.api.v2.Program proto.
 
         Args:
             program: The Circuit to serialize.
@@ -147,13 +147,13 @@ class SerializableGateSet:
         arg_function_language: Optional[str] = '',
         constants: Optional[List[v2.program_pb2.Constant]] = None,
     ) -> v2.program_pb2.Operation:
-        """Serialize an Operation to cirq.google.api.v2.Operation proto.
+        """Serialize an Operation to cirq_google.api.v2.Operation proto.
 
         Args:
             op: The operation to serialize.
 
         Returns:
-            A dictionary corresponds to the cirq.google.api.v2.Operation proto.
+            A dictionary corresponds to the cirq_google.api.v2.Operation proto.
         """
         gate_type = type(op.gate)
         for gate_type_mro in gate_type.mro():
@@ -172,10 +172,10 @@ class SerializableGateSet:
     def deserialize(
         self, proto: v2.program_pb2.Program, device: Optional['cirq.Device'] = None
     ) -> 'cirq.Circuit':
-        """Deserialize a Circuit from a cirq.google.api.v2.Program.
+        """Deserialize a Circuit from a cirq_google.api.v2.Program.
 
         Args:
-            proto: A dictionary representing a cirq.google.api.v2.Program proto.
+            proto: A dictionary representing a cirq_google.api.v2.Program proto.
             device: If the proto is for a schedule, a device is required
                 Otherwise optional.
 
@@ -215,11 +215,11 @@ class SerializableGateSet:
         arg_function_language: str = '',
         constants: Optional[List[v2.program_pb2.Constant]] = None,
     ) -> 'cirq.Operation':
-        """Deserialize an Operation from a cirq.google.api.v2.Operation.
+        """Deserialize an Operation from a cirq_google.api.v2.Operation.
 
         Args:
             operation_proto: A dictionary representing a
-                cirq.google.api.v2.Operation proto.
+                cirq_google.api.v2.Operation proto.
 
         Returns:
             The deserialized Operation.

@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 @dataclasses.dataclass
 class CalibrationLayer:
     """Python implementation of the proto found in
-    cirq.google.api.v2.calibration_pb2.FocusedCalibrationLayer for use
+    cirq_google.api.v2.calibration_pb2.FocusedCalibrationLayer for use
     in Engine calls."""
 
     calibration_type: str

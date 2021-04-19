@@ -17,9 +17,9 @@
 
 from __future__ import absolute_import
 
-from cirq.google.engine.client.quantum_v1alpha1 import QuantumEngineServiceClient
-from cirq.google.engine.client.quantum_v1alpha1 import enums
-from cirq.google.engine.client.quantum_v1alpha1 import types
+from cirq_google.engine.client.quantum_v1alpha1 import QuantumEngineServiceClient
+from cirq_google.engine.client.quantum_v1alpha1 import enums
+from cirq_google.engine.client.quantum_v1alpha1 import types
 
 
 __all__ = (

@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 import cirq
-import cirq.google
-from cirq.google.api import v2
+import cirq_google
+from cirq_google.api import v2
 
 
 @pytest.mark.parametrize('reps', range(1, 100, 7))
@@ -60,7 +60,7 @@ def test_find_measurements_with_tags():
     circuit = cirq.Circuit()
     circuit.append(
         cirq.measure(q(0, 0), q(0, 1), q(0, 2), key='k', invert_mask=[False, True, True]).with_tags(
-            cirq.google.CalibrationTag('special')
+            cirq_google.CalibrationTag('special')
         )
     )
     measurements = v2.find_measurements(circuit)
@@ -73,7 +73,7 @@ def test_find_measurements_with_tags():
         [q(0, 0), q(0, 1), q(0, 2)],
         0,
         [False, True, True],
-        [cirq.google.CalibrationTag('special')],
+        [cirq_google.CalibrationTag('special')],
     )
 
 

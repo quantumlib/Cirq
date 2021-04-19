@@ -70,7 +70,7 @@ class ConvertToXmonGates(PointOptimizer):
         Returns:
             True if the operation is native to the xmon, false otherwise.
         """
-        from cirq.google.devices import XmonDevice
+        from cirq_google.devices import XmonDevice
 
         return isinstance(op, ops.GateOperation) and XmonDevice.is_supported_gate(op.gate)
 

@@ -1,13 +1,13 @@
 import pathlib
 
-import cirq.google
-from cirq.google.json_resolver_cache import _class_resolver_dictionary
+import cirq_google
+from cirq_google.json_resolver_cache import _class_resolver_dictionary
 
 from cirq.testing.json import ModuleJsonTestSpec
 
 TestSpec = ModuleJsonTestSpec(
-    name="cirq.google",
-    packages=[cirq.google, cirq.google.experimental],
+    name="cirq_google",
+    packages=[cirq_google, cirq_google.experimental],
     test_data_path=pathlib.Path(__file__).parent,
     not_yet_serializable=[
         'FSIM_GATESET',

@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 
 import cirq
-import cirq.google
+import cirq_google
 
 
 class OtherX(cirq.SingleQubitGate):
@@ -40,7 +40,7 @@ class NonNativeGate(cirq.SingleQubitGate):
 def test_avoids_infinite_cycle_when_matrix_available():
     q = cirq.GridQubit(0, 0)
     c = cirq.Circuit(OtherX().on(q), OtherOtherX().on(q))
-    cirq.google.ConvertToXmonGates().optimize_circuit(c)
+    cirq_google.ConvertToXmonGates().optimize_circuit(c)
     cirq.testing.assert_has_diagram(c, '(0, 0): ───PhX(1)───PhX(1)───')
     cirq.protocols.decompose(c)
 
@@ -49,4 +49,4 @@ def test_bad_operation():
     qubits = cirq.GridQubit.rect(1, 3)
     c = cirq.Circuit(NonNativeGate().on(qubits[0]))
     with pytest.raises(TypeError):
-        cirq.google.ConvertToXmonGates().optimize_circuit(c)
+        cirq_google.ConvertToXmonGates().optimize_circuit(c)

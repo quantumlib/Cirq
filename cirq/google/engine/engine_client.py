@@ -21,8 +21,8 @@ import warnings
 from google.api_core.exceptions import GoogleAPICallError, NotFound
 from google.protobuf.timestamp_pb2 import Timestamp
 
-from cirq.google.engine.client import quantum
-from cirq.google.engine.client.quantum import types as qtypes
+from cirq_google.engine.client import quantum
+from cirq_google.engine.client.quantum import types as qtypes
 
 _R = TypeVar('_R')
 

@@ -14,8 +14,8 @@
 import pytest
 
 import cirq
-import cirq.google.api.v1.params as params
-from cirq.google.api.v1 import params_pb2
+import cirq_google.api.v1.params as params
+from cirq_google.api.v1 import params_pb2
 
 
 def test_gen_sweep_points():

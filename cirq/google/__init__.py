@@ -14,13 +14,13 @@
 
 """Classes for working with Google's Quantum Engine API."""
 
-from cirq.google import api
+from cirq_google import api
 
-from cirq.google.arg_func_langs import (
+from cirq_google.arg_func_langs import (
     arg_from_proto,
 )
 
-from cirq.google.calibration import (
+from cirq_google.calibration import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     CircuitWithCalibration,
     FloquetPhasedFSimCalibrationOptions,
@@ -45,7 +45,7 @@ from cirq.google.calibration import (
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
 )
 
-from cirq.google.devices import (
+from cirq_google.devices import (
     Bristlecone,
     Foxtail,
     SerializableDevice,
@@ -54,7 +54,7 @@ from cirq.google.devices import (
     XmonDevice,
 )
 
-from cirq.google.engine import (
+from cirq_google.engine import (
     Calibration,
     CalibrationLayer,
     CalibrationResult,
@@ -71,7 +71,7 @@ from cirq.google.engine import (
     get_engine_sampler,
 )
 
-from cirq.google.gate_sets import (
+from cirq_google.gate_sets import (
     XMON,
     FSIM_GATESET,
     SQRT_ISWAP_GATESET,
@@ -79,21 +79,21 @@ from cirq.google.gate_sets import (
     NAMED_GATESETS,
 )
 
-from cirq.google.line import (
+from cirq_google.line import (
     AnnealSequenceSearchStrategy,
     GreedySequenceSearchStrategy,
     line_on_device,
     LinePlacementStrategy,
 )
 
-from cirq.google.ops import (
+from cirq_google.ops import (
     CalibrationTag,
     PhysicalZTag,
     SycamoreGate,
     SYC,
 )
 
-from cirq.google.optimizers import (
+from cirq_google.optimizers import (
     ConvertToXmonGates,
     ConvertToSqrtIswapGates,
     ConvertToSycamoreGates,
@@ -102,27 +102,27 @@ from cirq.google.optimizers import (
     optimized_for_xmon,
 )
 
-from cirq.google.op_deserializer import (
+from cirq_google.op_deserializer import (
     DeserializingArg,
     GateOpDeserializer,
 )
 
-from cirq.google.op_serializer import (
+from cirq_google.op_serializer import (
     GateOpSerializer,
     SerializingArg,
 )
 
-from cirq.google.serializable_gate_set import (
+from cirq_google.serializable_gate_set import (
     SerializableGateSet,
 )
 
-from cirq.google import experimental
+from cirq_google import experimental
 
 
 def _register_resolver() -> None:
-    """Registers the cirq.google's public classes for JSON serialization."""
+    """Registers the cirq_google's public classes for JSON serialization."""
     from cirq.protocols.json_serialization import _internal_register_resolver
-    from cirq.google.json_resolver_cache import _class_resolver_dictionary
+    from cirq_google.json_resolver_cache import _class_resolver_dictionary
 
     _internal_register_resolver(_class_resolver_dictionary)
 

@@ -20,5 +20,5 @@ from google.protobuf import empty_pb2
 from google.protobuf import field_mask_pb2
 from google.protobuf import timestamp_pb2
 
-from cirq.google.engine.client.quantum_v1alpha1.proto.quantum_pb2 import *
-from cirq.google.engine.client.quantum_v1alpha1.proto.engine_pb2 import *
+from cirq_google.engine.client.quantum_v1alpha1.proto.quantum_pb2 import *
+from cirq_google.engine.client.quantum_v1alpha1.proto.engine_pb2 import *

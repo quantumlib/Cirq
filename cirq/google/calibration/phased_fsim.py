@@ -45,8 +45,8 @@ from cirq.ops import (
     TwoQubitGate,
     rz,
 )
-from cirq.google.api import v2
-from cirq.google.engine import CalibrationLayer, CalibrationResult
+from cirq_google.api import v2
+from cirq_google.engine import CalibrationLayer, CalibrationResult
 
 if TYPE_CHECKING:
     # Workaround for mypy custom dataclasses (python/mypy#5406)
@@ -341,7 +341,7 @@ class PhasedFSimCalibrationRequest(abc.ABC):
             the set.
         gate: Gate to characterize for each qubit pair from pairs. This must be a supported gate
             which can be described cirq.PhasedFSim gate. This gate must be serialized by the
-            cirq.google.SerializableGateSet used
+            cirq_google.SerializableGateSet used
     """
 
     pairs: Tuple[Tuple[Qid, Qid], ...]

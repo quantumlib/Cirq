@@ -23,9 +23,9 @@ from typing import (
 )
 from dataclasses import dataclass
 
-from cirq.google import arg_func_langs
-from cirq.google.api import v2
-from cirq.google.ops.calibration_tag import CalibrationTag
+from cirq_google import arg_func_langs
+from cirq_google.api import v2
+from cirq_google.ops.calibration_tag import CalibrationTag
 
 if TYPE_CHECKING:
     import cirq
@@ -108,7 +108,7 @@ class GateOpDeserializer:
         arg_function_language: str = '',
         constants: List[v2.program_pb2.Constant] = None,
     ) -> 'cirq.Operation':
-        """Turns a cirq.google.api.v2.Operation proto into a GateOperation."""
+        """Turns a cirq_google.api.v2.Operation proto into a GateOperation."""
         qubits = [v2.qubit_from_proto_id(q.id) for q in proto.qubits]
         args = self._args_from_proto(proto, arg_function_language=arg_function_language)
         if self.num_qubits_param is not None:

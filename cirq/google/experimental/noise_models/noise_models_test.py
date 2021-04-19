@@ -20,9 +20,9 @@ from google.protobuf.text_format import Merge
 import cirq
 from cirq import ops
 from cirq.testing import assert_equivalent_op_tree
-import cirq.google
-from cirq.google.api import v2
-from cirq.google.experimental.noise_models import (
+import cirq_google
+from cirq_google.api import v2
+from cirq_google.experimental.noise_models import (
     simple_noise_from_calibration_metrics,
 )
 
@@ -108,21 +108,21 @@ DEPOL_003 = 0.003 * 4 / 3
 
 def test_noise_from_metrics_requires_type():
     # Attempt to generate a noise model without specifying a noise type.
-    calibration = cirq.google.Calibration(_CALIBRATION_DATA)
+    calibration = cirq_google.Calibration(_CALIBRATION_DATA)
     with pytest.raises(ValueError, match='At least one error type must be specified.'):
         simple_noise_from_calibration_metrics(calibration=calibration)
 
 
 def test_noise_from_metrics_unsupported():
     # Attempt to generate a damping noise model (not yet supported).
-    calibration = cirq.google.Calibration(_CALIBRATION_DATA)
+    calibration = cirq_google.Calibration(_CALIBRATION_DATA)
     with pytest.raises(NotImplementedError, match='Gate damping is not yet supported.'):
         simple_noise_from_calibration_metrics(calibration=calibration, damping_noise=True)
 
 
 def test_per_qubit_depol_noise_from_data():
     # Generate the depolarization noise model from calibration data.
-    calibration = cirq.google.Calibration(_CALIBRATION_DATA)
+    calibration = cirq_google.Calibration(_CALIBRATION_DATA)
     noise_model = simple_noise_from_calibration_metrics(calibration=calibration, depol_noise=True)
 
     # Create the circuit and apply the noise model.
@@ -174,7 +174,7 @@ def test_per_qubit_depol_noise_from_data():
 
 def test_per_qubit_readout_error_from_data():
     # Generate the readout error noise model from calibration data.
-    calibration = cirq.google.Calibration(_CALIBRATION_DATA)
+    calibration = cirq_google.Calibration(_CALIBRATION_DATA)
     noise_model = simple_noise_from_calibration_metrics(
         calibration=calibration, readout_error_noise=True
     )
@@ -220,7 +220,7 @@ def test_per_qubit_readout_error_from_data():
 
 def test_per_qubit_readout_decay_from_data():
     # Generate the readout decay noise model from calibration data.
-    calibration = cirq.google.Calibration(_CALIBRATION_DATA)
+    calibration = cirq_google.Calibration(_CALIBRATION_DATA)
     noise_model = simple_noise_from_calibration_metrics(
         calibration=calibration, readout_decay_noise=True
     )
@@ -261,7 +261,7 @@ def test_per_qubit_readout_decay_from_data():
 
 def test_per_qubit_combined_noise_from_data():
     # Generate the combined noise model from calibration data.
-    calibration = cirq.google.Calibration(_CALIBRATION_DATA)
+    calibration = cirq_google.Calibration(_CALIBRATION_DATA)
     noise_model = simple_noise_from_calibration_metrics(
         calibration=calibration,
         depol_noise=True,

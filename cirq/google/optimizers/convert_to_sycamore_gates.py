@@ -17,9 +17,9 @@ import math
 import numpy as np
 import scipy.linalg
 from cirq import circuits, linalg, ops, optimizers, protocols
-import cirq.google as google
-from cirq.google.ops import SycamoreGate
-from cirq.google.optimizers.two_qubit_gates.gate_compilation import GateTabulation
+import cirq_google as google
+from cirq_google.ops import SycamoreGate
+from cirq_google.optimizers.two_qubit_gates.gate_compilation import GateTabulation
 
 if TYPE_CHECKING:
     import cirq
@@ -55,7 +55,7 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
                 decomposing Matrix gates. If unset, an analytic calculation is
                 used for Matrix gates. To get a GateTabulation, call the
                 gate_product_tabulation method with a base gate (in this case,
-                usually cirq.google.SYC) and a maximum infidelity.
+                usually cirq_google.SYC) and a maximum infidelity.
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
         """

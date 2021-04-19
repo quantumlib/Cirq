@@ -13,7 +13,7 @@
 # limitations under the License.
 from typing import cast
 
-from cirq.google.api.v1 import params_pb2
+from cirq_google.api.v1 import params_pb2
 from cirq.study import sweeps
 
 

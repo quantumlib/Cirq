@@ -15,8 +15,8 @@ import dataclasses
 import datetime
 from typing import Optional
 from google.protobuf import timestamp_pb2
-from cirq.google.engine.client.quantum import enums as qenums
-from cirq.google.engine.client.quantum import types as qtypes
+from cirq_google.engine.client.quantum import enums as qenums
+from cirq_google.engine.client.quantum import types as qtypes
 
 _DEFAULT_TYPE = qenums.QuantumTimeSlot.TimeSlotType.TIME_SLOT_TYPE_UNSPECIFIED
 

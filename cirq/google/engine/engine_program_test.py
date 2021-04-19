@@ -19,11 +19,11 @@ import pytest
 import numpy as np
 from google.protobuf.text_format import Merge
 import cirq
-import cirq.google as cg
-from cirq.google.api import v1, v2
-from cirq.google.engine.client.quantum_v1alpha1 import types as qtypes
-from cirq.google.engine.engine import EngineContext
-from cirq.google.engine.result_type import ResultType
+import cirq_google as cg
+from cirq_google.api import v1, v2
+from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
+from cirq_google.engine.engine import EngineContext
+from cirq_google.engine.result_type import ResultType
 
 
 def _to_any(proto):
@@ -166,7 +166,7 @@ circuit {
 )
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.create_job')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job')
 def test_run_sweeps_delegation(create_job):
     create_job.return_value = ('steve', qtypes.QuantumJob())
     program = cg.EngineProgram('my-proj', 'my-prog', EngineContext())
@@ -177,7 +177,7 @@ def test_run_sweeps_delegation(create_job):
     assert job._job == qtypes.QuantumJob()
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.create_job')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job')
 def test_run_batch_delegation(create_job):
     create_job.return_value = ('kittens', qtypes.QuantumJob())
     program = cg.EngineProgram('my-meow', 'my-meow', EngineContext(), result_type=ResultType.Batch)
@@ -188,7 +188,7 @@ def test_run_batch_delegation(create_job):
     assert job._job == qtypes.QuantumJob()
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.create_job')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job')
 def test_run_calibration_delegation(create_job):
     create_job.return_value = ('dogs', qtypes.QuantumJob())
     program = cg.EngineProgram('woof', 'woof', EngineContext(), result_type=ResultType.Calibration)
@@ -196,7 +196,7 @@ def test_run_calibration_delegation(create_job):
     assert job._job == qtypes.QuantumJob()
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.create_job')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job')
 def test_run_calibration_no_processors(create_job):
     create_job.return_value = ('dogs', qtypes.QuantumJob())
     program = cg.EngineProgram('woof', 'woof', EngineContext(), result_type=ResultType.Calibration)
@@ -204,7 +204,7 @@ def test_run_calibration_no_processors(create_job):
         _ = program.run_calibration(job_id='spot')
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.create_job')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job')
 def test_run_batch_no_sweeps(create_job):
     # Running with no sweeps is fine. Uses program's batch size to create
     # proper empty sweeps.
@@ -245,8 +245,8 @@ def test_run_in_batch_mode():
         )
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')
-@mock.patch('cirq.google.engine.engine_client.EngineClient.create_job')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_job_results')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.create_job')
 def test_run_delegation(create_job, get_results):
     create_job.return_value = (
         'steve',
@@ -296,7 +296,7 @@ def test_run_delegation(create_job, get_results):
     )
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.list_jobs')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_jobs')
 def test_list_jobs(list_jobs):
     job1 = qtypes.QuantumJob(name='projects/proj/programs/prog1/jobs/job1')
     job2 = qtypes.QuantumJob(name='projects/otherproj/programs/prog1/jobs/job2')
@@ -340,7 +340,7 @@ def test_create_time():
     assert program.create_time() == datetime.datetime(2020, 2, 12, 13, 45, 1)
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_program')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
 def test_update_time(get_program):
     program = cg.EngineProgram('a', 'b', EngineContext())
     get_program.return_value = qtypes.QuantumProgram(
@@ -350,7 +350,7 @@ def test_update_time(get_program):
     get_program.assert_called_once_with('a', 'b', False)
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_program')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
 def test_description(get_program):
     program = cg.EngineProgram(
         'a', 'b', EngineContext(), _program=qtypes.QuantumProgram(description='hello')
@@ -362,7 +362,7 @@ def test_description(get_program):
     get_program.assert_called_once_with('a', 'b', False)
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.set_program_description')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.set_program_description')
 def test_set_description(set_program_description):
     program = cg.EngineProgram('a', 'b', EngineContext())
     set_program_description.return_value = qtypes.QuantumProgram(description='world')
@@ -381,7 +381,7 @@ def test_labels():
     assert program.labels() == {'t': '1'}
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.set_program_labels')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.set_program_labels')
 def test_set_labels(set_program_labels):
     program = cg.EngineProgram('a', 'b', EngineContext())
     set_program_labels.return_value = qtypes.QuantumProgram(labels={'a': '1', 'b': '1'})
@@ -393,7 +393,7 @@ def test_set_labels(set_program_labels):
     set_program_labels.assert_called_with('a', 'b', {})
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.add_program_labels')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.add_program_labels')
 def test_add_labels(add_program_labels):
     program = cg.EngineProgram('a', 'b', EngineContext(), _program=qtypes.QuantumProgram(labels={}))
     assert program.labels() == {}
@@ -411,7 +411,7 @@ def test_add_labels(add_program_labels):
     add_program_labels.assert_called_with('a', 'b', {'a': '2', 'b': '1'})
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.remove_program_labels')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.remove_program_labels')
 def test_remove_labels(remove_program_labels):
     program = cg.EngineProgram(
         'a', 'b', EngineContext(), _program=qtypes.QuantumProgram(labels={'a': '1', 'b': '1'})
@@ -431,7 +431,7 @@ def test_remove_labels(remove_program_labels):
     remove_program_labels.assert_called_with('a', 'b', ['a', 'b', 'c'])
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_program')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
 def test_get_circuit_v1(get_program):
     program = cg.EngineProgram('a', 'b', EngineContext())
     get_program.return_value = qtypes.QuantumProgram(code=_to_any(v1.program_pb2.Program()))
@@ -440,7 +440,7 @@ def test_get_circuit_v1(get_program):
         program.get_circuit()
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_program')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
 def test_get_circuit_v2(get_program):
     circuit = cirq.Circuit(
         cirq.X(cirq.GridQubit(5, 2)) ** 0.5, cirq.measure(cirq.GridQubit(5, 2), key='result')
@@ -452,7 +452,7 @@ def test_get_circuit_v2(get_program):
     get_program.assert_called_once_with('a', 'b', True)
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_program')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
 def test_get_circuit_batch(get_program):
     circuit = cirq.Circuit(
         cirq.X(cirq.GridQubit(5, 2)) ** 0.5, cirq.measure(cirq.GridQubit(5, 2), key='result')
@@ -468,7 +468,7 @@ def test_get_circuit_batch(get_program):
     get_program.assert_called_once_with('a', 'b', True)
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_program')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
 def test_get_batch_size(get_program):
     # Has to fetch from engine if not _program specified.
     program = cg.EngineProgram('a', 'b', EngineContext(), result_type=ResultType.Batch)
@@ -498,12 +498,12 @@ def test_get_batch_size(get_program):
 @pytest.fixture(scope='session', autouse=True)
 def mock_grpc_client():
     with mock.patch(
-        'cirq.google.engine.engine_client.quantum.QuantumEngineServiceClient'
+        'cirq_google.engine.engine_client.quantum.QuantumEngineServiceClient'
     ) as _fixture:
         yield _fixture
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_program')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
 def test_get_circuit_v2_unknown_gateset(get_program):
     program = cg.EngineProgram('a', 'b', EngineContext())
     get_program.return_value = qtypes.QuantumProgram(
@@ -516,7 +516,7 @@ def test_get_circuit_v2_unknown_gateset(get_program):
         program.get_circuit()
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_program')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_program')
 def test_get_circuit_unsupported_program_type(get_program):
     program = cg.EngineProgram('a', 'b', EngineContext())
     get_program.return_value = qtypes.QuantumProgram(
@@ -527,7 +527,7 @@ def test_get_circuit_unsupported_program_type(get_program):
         program.get_circuit()
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.delete_program')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.delete_program')
 def test_delete(delete_program):
     program = cg.EngineProgram('a', 'b', EngineContext())
     program.delete()

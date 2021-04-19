@@ -4,9 +4,9 @@ import numpy as np
 import scipy.linalg
 
 import cirq
-import cirq.google
-import cirq.google.optimizers.convert_to_sycamore_gates as cgoc
-from cirq.google.optimizers.two_qubit_gates.gate_compilation import gate_product_tabulation
+import cirq_google
+import cirq_google.optimizers.convert_to_sycamore_gates as cgoc
+from cirq_google.optimizers.two_qubit_gates.gate_compilation import gate_product_tabulation
 
 _rng = cirq.value.parse_random_state(11)  # for determinism
 
@@ -35,7 +35,7 @@ def test_convert_to_sycamore_gates_swap_zz():
 
     cirq.testing.assert_same_circuits(compiled_circuit1, compiled_circuit2)
     assert (
-        len(list(compiled_circuit1.findall_operations_with_gate_type(cirq.google.SycamoreGate)))
+        len(list(compiled_circuit1.findall_operations_with_gate_type(cirq_google.SycamoreGate)))
         == 3
     )
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
@@ -233,7 +233,7 @@ def test_known_two_q_operations_to_sycamore_operations_cnot():
     # Should have decomposed into two Sycamores.
     multi_qubit_ops = [e for e in decomposed.all_operations() if len(e.qubits) > 1]
     assert len(multi_qubit_ops) == 2
-    assert all(isinstance(e.gate, cirq.google.SycamoreGate) for e in multi_qubit_ops)
+    assert all(isinstance(e.gate, cirq_google.SycamoreGate) for e in multi_qubit_ops)
 
 
 @pytest.mark.parametrize(
@@ -264,7 +264,7 @@ def test_convert_to_sycamore_equivalent_unitaries(gate):
 def test_convert_to_sycamore_tabulation():
     # A tabulation for the sycamore gate with an infidelity of .1.
     sycamore_tabulation = gate_product_tabulation(
-        cirq.unitary(cirq.google.SYC), 0.1, random_state=_rng
+        cirq.unitary(cirq_google.SYC), 0.1, random_state=_rng
     )
     qubits = [cirq.NamedQubit('a'), cirq.NamedQubit('b')]
     operation = cirq.MatrixGate(cirq.unitary(cirq.CX), qid_shape=(2, 2)).on(qubits[0], qubits[1])

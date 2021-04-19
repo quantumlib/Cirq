@@ -33,7 +33,7 @@ class CalibrationTag:
         return f'CalibrationTag({self.token!r})'
 
     def __repr__(self) -> str:
-        return f'cirq.google.CalibrationTag({self.token!r})'
+        return f'cirq_google.CalibrationTag({self.token!r})'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['token'])

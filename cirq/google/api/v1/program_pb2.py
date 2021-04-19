@@ -13,8 +13,8 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-from cirq.google.api.v1 import operations_pb2 as cirq_dot_google_dot_api_dot_v1_dot_operations__pb2
-from cirq.google.api.v1 import params_pb2 as cirq_dot_google_dot_api_dot_v1_dot_params__pb2
+from . import operations_pb2 as cirq_dot_google_dot_api_dot_v1_dot_operations__pb2
+from . import params_pb2 as cirq_dot_google_dot_api_dot_v1_dot_params__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(

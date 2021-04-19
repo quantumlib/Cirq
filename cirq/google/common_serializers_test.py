@@ -21,10 +21,10 @@ import sympy
 from google.protobuf import json_format
 
 import cirq
-import cirq.google
-import cirq.google as cg
-import cirq.google.common_serializers as cgc
-from cirq.google.api import v2
+import cirq_google
+import cirq_google as cg
+import cirq_google.common_serializers as cgc
+from cirq_google.api import v2
 
 SINGLE_QUBIT_GATE_SET = cg.serializable_gate_set.SerializableGateSet(
     gate_set_name='test_half_pi',
@@ -346,7 +346,7 @@ def test_serialize_z(gate, half_turns):
             'gate': {'id': 'z'},
             'args': {
                 'half_turns': {'arg_value': {'float_value': half_turns}},
-                'type': {'arg_value': {'string_value': cirq.google.common_serializers.PHYSICAL_Z}},
+                'type': {'arg_value': {'string_value': cirq_google.common_serializers.PHYSICAL_Z}},
             },
             'qubits': [{'id': '1_2'}],
         }
@@ -398,7 +398,7 @@ def test_deserialize_z(half_turns):
             'gate': {'id': 'z'},
             'args': {
                 'half_turns': {'arg_value': {'float_value': half_turns}},
-                'type': {'arg_value': {'string_value': cirq.google.common_serializers.VIRTUAL_Z}},
+                'type': {'arg_value': {'string_value': cirq_google.common_serializers.VIRTUAL_Z}},
             },
             'qubits': [{'id': '1_2'}],
         }
@@ -407,7 +407,7 @@ def test_deserialize_z(half_turns):
     expected = cirq.ZPowGate(exponent=half_turns)(q)
     assert SINGLE_QUBIT_GATE_SET.deserialize_op(serialized_op) == expected
 
-    serialized_op.args['type'].arg_value.string_value = cirq.google.common_serializers.PHYSICAL_Z
+    serialized_op.args['type'].arg_value.string_value = cirq_google.common_serializers.PHYSICAL_Z
     expected = cirq.ZPowGate(exponent=half_turns)(q).with_tags(cg.PhysicalZTag())
     assert SINGLE_QUBIT_GATE_SET.deserialize_op(serialized_op) == expected
 
@@ -418,7 +418,7 @@ def test_deserialize_z_parameterized():
             'gate': {'id': 'z'},
             'args': {
                 'half_turns': {'symbol': 'a'},
-                'type': {'arg_value': {'string_value': cirq.google.common_serializers.VIRTUAL_Z}},
+                'type': {'arg_value': {'string_value': cirq_google.common_serializers.VIRTUAL_Z}},
             },
             'qubits': [{'id': '1_2'}],
         }
@@ -535,7 +535,7 @@ def test_wait_gate_multi_qubit():
         (cirq.FSimGate(theta=np.pi / 2, phi=0), np.pi / 2, 0),
         (cirq.FSimGate(theta=-np.pi / 2, phi=0), -np.pi / 2, 0),
         (cirq.FSimGate(theta=-7 * np.pi / 4, phi=0), np.pi / 4, 0),
-        (cirq.google.SYC, np.pi / 2, np.pi / 6),
+        (cirq_google.SYC, np.pi / 2, np.pi / 6),
         (cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6), np.pi / 2, np.pi / 6),
         (
             cirq.FSimGate(theta=1.5707963705062866, phi=0.5235987901687622),

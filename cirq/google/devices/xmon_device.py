@@ -15,7 +15,7 @@
 from typing import Any, cast, Iterable, List, Optional, Set, TYPE_CHECKING, FrozenSet
 
 from cirq import circuits, devices, ops, protocols, value
-from cirq.google.optimizers import convert_to_xmon_gates
+from cirq_google.optimizers import convert_to_xmon_gates
 from cirq.devices.grid_qubit import GridQubit
 
 if TYPE_CHECKING:

@@ -31,15 +31,15 @@ import google.api_core.page_iterator
 import google.api_core.protobuf_helpers
 import grpc
 
-from cirq.google.engine.client.quantum_v1alpha1 import types as pb_types
-from cirq.google.engine.client.quantum_v1alpha1.gapic import enums
-from cirq.google.engine.client.quantum_v1alpha1.gapic import quantum_engine_service_client_config
-from cirq.google.engine.client.quantum_v1alpha1.gapic.transports import (
+from cirq_google.engine.client.quantum_v1alpha1 import types as pb_types
+from cirq_google.engine.client.quantum_v1alpha1.gapic import enums
+from cirq_google.engine.client.quantum_v1alpha1.gapic import quantum_engine_service_client_config
+from cirq_google.engine.client.quantum_v1alpha1.gapic.transports import (
     quantum_engine_service_grpc_transport,
 )
-from cirq.google.engine.client.quantum_v1alpha1.proto import engine_pb2
-from cirq.google.engine.client.quantum_v1alpha1.proto import engine_pb2_grpc
-from cirq.google.engine.client.quantum_v1alpha1.proto import quantum_pb2
+from cirq_google.engine.client.quantum_v1alpha1.proto import engine_pb2
+from cirq_google.engine.client.quantum_v1alpha1.proto import engine_pb2_grpc
+from cirq_google.engine.client.quantum_v1alpha1.proto import quantum_pb2
 from google.protobuf import duration_pb2
 from google.protobuf import empty_pb2
 from google.protobuf import field_mask_pb2
@@ -210,7 +210,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -218,10 +218,10 @@ class QuantumEngineServiceClient(object):
 
         Args:
             parent (str): -
-            quantum_program (Union[dict, ~cirq.google.engine.client.quantum_v1alpha1.types.QuantumProgram]): -
+            quantum_program (Union[dict, ~cirq_google.engine.client.quantum_v1alpha1.types.QuantumProgram]): -
 
                 If a dict is provided, it must be of the same form as the protobuf
-                message :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumProgram`
+                message :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumProgram`
             overwrite_existing_source_code (bool): -
             retry (Optional[google.api_core.retry.Retry]):  A retry object used
                 to retry requests. If ``None`` is specified, requests will
@@ -233,7 +233,7 @@ class QuantumEngineServiceClient(object):
                 that is provided to the method.
 
         Returns:
-            A :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumProgram` instance.
+            A :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumProgram` instance.
 
         Raises:
             google.api_core.exceptions.GoogleAPICallError: If the request
@@ -287,7 +287,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -306,7 +306,7 @@ class QuantumEngineServiceClient(object):
                 that is provided to the method.
 
         Returns:
-            A :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumProgram` instance.
+            A :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumProgram` instance.
 
         Raises:
             google.api_core.exceptions.GoogleAPICallError: If the request
@@ -360,7 +360,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -397,7 +397,7 @@ class QuantumEngineServiceClient(object):
 
         Returns:
             A :class:`~google.api_core.page_iterator.PageIterator` instance.
-            An iterable of :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumProgram` instances.
+            An iterable of :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumProgram` instances.
             You can also iterate over the pages of the response
             using its `pages` property.
 
@@ -464,7 +464,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -534,7 +534,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -542,14 +542,14 @@ class QuantumEngineServiceClient(object):
 
         Args:
             name (str): -
-            quantum_program (Union[dict, ~cirq.google.engine.client.quantum_v1alpha1.types.QuantumProgram]): -
+            quantum_program (Union[dict, ~cirq_google.engine.client.quantum_v1alpha1.types.QuantumProgram]): -
 
                 If a dict is provided, it must be of the same form as the protobuf
-                message :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumProgram`
-            update_mask (Union[dict, ~cirq.google.engine.client.quantum_v1alpha1.types.FieldMask]): -
+                message :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumProgram`
+            update_mask (Union[dict, ~cirq_google.engine.client.quantum_v1alpha1.types.FieldMask]): -
 
                 If a dict is provided, it must be of the same form as the protobuf
-                message :class:`~cirq.google.engine.client.quantum_v1alpha1.types.FieldMask`
+                message :class:`~cirq_google.engine.client.quantum_v1alpha1.types.FieldMask`
             retry (Optional[google.api_core.retry.Retry]):  A retry object used
                 to retry requests. If ``None`` is specified, requests will
                 be retried using a default configuration.
@@ -560,7 +560,7 @@ class QuantumEngineServiceClient(object):
                 that is provided to the method.
 
         Returns:
-            A :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumProgram` instance.
+            A :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumProgram` instance.
 
         Raises:
             google.api_core.exceptions.GoogleAPICallError: If the request
@@ -615,7 +615,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -623,10 +623,10 @@ class QuantumEngineServiceClient(object):
 
         Args:
             parent (str): -
-            quantum_job (Union[dict, ~cirq.google.engine.client.quantum_v1alpha1.types.QuantumJob]): -
+            quantum_job (Union[dict, ~cirq_google.engine.client.quantum_v1alpha1.types.QuantumJob]): -
 
                 If a dict is provided, it must be of the same form as the protobuf
-                message :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumJob`
+                message :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumJob`
             overwrite_existing_run_context (bool): -
             retry (Optional[google.api_core.retry.Retry]):  A retry object used
                 to retry requests. If ``None`` is specified, requests will
@@ -638,7 +638,7 @@ class QuantumEngineServiceClient(object):
                 that is provided to the method.
 
         Returns:
-            A :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumJob` instance.
+            A :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumJob` instance.
 
         Raises:
             google.api_core.exceptions.GoogleAPICallError: If the request
@@ -692,7 +692,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -711,7 +711,7 @@ class QuantumEngineServiceClient(object):
                 that is provided to the method.
 
         Returns:
-            A :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumJob` instance.
+            A :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumJob` instance.
 
         Raises:
             google.api_core.exceptions.GoogleAPICallError: If the request
@@ -763,7 +763,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -800,7 +800,7 @@ class QuantumEngineServiceClient(object):
 
         Returns:
             A :class:`~google.api_core.page_iterator.PageIterator` instance.
-            An iterable of :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumJob` instances.
+            An iterable of :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumJob` instances.
             You can also iterate over the pages of the response
             using its `pages` property.
 
@@ -866,7 +866,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -934,7 +934,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -942,14 +942,14 @@ class QuantumEngineServiceClient(object):
 
         Args:
             name (str): -
-            quantum_job (Union[dict, ~cirq.google.engine.client.quantum_v1alpha1.types.QuantumJob]): -
+            quantum_job (Union[dict, ~cirq_google.engine.client.quantum_v1alpha1.types.QuantumJob]): -
 
                 If a dict is provided, it must be of the same form as the protobuf
-                message :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumJob`
-            update_mask (Union[dict, ~cirq.google.engine.client.quantum_v1alpha1.types.FieldMask]): -
+                message :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumJob`
+            update_mask (Union[dict, ~cirq_google.engine.client.quantum_v1alpha1.types.FieldMask]): -
 
                 If a dict is provided, it must be of the same form as the protobuf
-                message :class:`~cirq.google.engine.client.quantum_v1alpha1.types.FieldMask`
+                message :class:`~cirq_google.engine.client.quantum_v1alpha1.types.FieldMask`
             retry (Optional[google.api_core.retry.Retry]):  A retry object used
                 to retry requests. If ``None`` is specified, requests will
                 be retried using a default configuration.
@@ -960,7 +960,7 @@ class QuantumEngineServiceClient(object):
                 that is provided to the method.
 
         Returns:
-            A :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumJob` instance.
+            A :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumJob` instance.
 
         Raises:
             google.api_core.exceptions.GoogleAPICallError: If the request
@@ -1013,7 +1013,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -1080,7 +1080,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -1116,7 +1116,7 @@ class QuantumEngineServiceClient(object):
 
         Returns:
             A :class:`~google.api_core.page_iterator.PageIterator` instance.
-            An iterable of :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumJobEvent` instances.
+            An iterable of :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumJobEvent` instances.
             You can also iterate over the pages of the response
             using its `pages` property.
 
@@ -1181,7 +1181,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -1199,7 +1199,7 @@ class QuantumEngineServiceClient(object):
                 that is provided to the method.
 
         Returns:
-            A :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumResult` instance.
+            A :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumResult` instance.
 
         Raises:
             google.api_core.exceptions.GoogleAPICallError: If the request
@@ -1252,7 +1252,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -1289,7 +1289,7 @@ class QuantumEngineServiceClient(object):
 
         Returns:
             A :class:`~google.api_core.page_iterator.PageIterator` instance.
-            An iterable of :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumProcessor` instances.
+            An iterable of :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumProcessor` instances.
             You can also iterate over the pages of the response
             using its `pages` property.
 
@@ -1355,7 +1355,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -1373,7 +1373,7 @@ class QuantumEngineServiceClient(object):
                 that is provided to the method.
 
         Returns:
-            A :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumProcessor` instance.
+            A :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumProcessor` instance.
 
         Raises:
             google.api_core.exceptions.GoogleAPICallError: If the request
@@ -1426,7 +1426,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -1463,7 +1463,7 @@ class QuantumEngineServiceClient(object):
 
         Returns:
             A :class:`~google.api_core.page_iterator.PageIterator` instance.
-            An iterable of :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumCalibration` instances.
+            An iterable of :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumCalibration` instances.
             You can also iterate over the pages of the response
             using its `pages` property.
 
@@ -1529,7 +1529,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -1547,7 +1547,7 @@ class QuantumEngineServiceClient(object):
                 that is provided to the method.
 
         Returns:
-            A :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumCalibration` instance.
+            A :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumCalibration` instance.
 
         Raises:
             google.api_core.exceptions.GoogleAPICallError: If the request
@@ -1599,7 +1599,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -1607,10 +1607,10 @@ class QuantumEngineServiceClient(object):
 
         Args:
             parent (str): -
-            quantum_reservation (Union[dict, ~cirq.google.engine.client.quantum_v1alpha1.types.QuantumReservation]): -
+            quantum_reservation (Union[dict, ~cirq_google.engine.client.quantum_v1alpha1.types.QuantumReservation]): -
 
                 If a dict is provided, it must be of the same form as the protobuf
-                message :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumReservation`
+                message :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumReservation`
             retry (Optional[google.api_core.retry.Retry]):  A retry object used
                 to retry requests. If ``None`` is specified, requests will
                 be retried using a default configuration.
@@ -1621,7 +1621,7 @@ class QuantumEngineServiceClient(object):
                 that is provided to the method.
 
         Returns:
-            A :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumReservation` instance.
+            A :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumReservation` instance.
 
         Raises:
             google.api_core.exceptions.GoogleAPICallError: If the request
@@ -1673,7 +1673,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -1691,7 +1691,7 @@ class QuantumEngineServiceClient(object):
                 that is provided to the method.
 
         Returns:
-            A :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumReservation` instance.
+            A :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumReservation` instance.
 
         Raises:
             google.api_core.exceptions.GoogleAPICallError: If the request
@@ -1742,7 +1742,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -1808,7 +1808,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -1826,7 +1826,7 @@ class QuantumEngineServiceClient(object):
                 that is provided to the method.
 
         Returns:
-            A :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumReservation` instance.
+            A :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumReservation` instance.
 
         Raises:
             google.api_core.exceptions.GoogleAPICallError: If the request
@@ -1879,7 +1879,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -1916,7 +1916,7 @@ class QuantumEngineServiceClient(object):
 
         Returns:
             A :class:`~google.api_core.page_iterator.PageIterator` instance.
-            An iterable of :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumReservation` instances.
+            An iterable of :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumReservation` instances.
             You can also iterate over the pages of the response
             using its `pages` property.
 
@@ -1984,7 +1984,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -1992,14 +1992,14 @@ class QuantumEngineServiceClient(object):
 
         Args:
             name (str): -
-            quantum_reservation (Union[dict, ~cirq.google.engine.client.quantum_v1alpha1.types.QuantumReservation]): -
+            quantum_reservation (Union[dict, ~cirq_google.engine.client.quantum_v1alpha1.types.QuantumReservation]): -
 
                 If a dict is provided, it must be of the same form as the protobuf
-                message :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumReservation`
-            update_mask (Union[dict, ~cirq.google.engine.client.quantum_v1alpha1.types.FieldMask]): -
+                message :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumReservation`
+            update_mask (Union[dict, ~cirq_google.engine.client.quantum_v1alpha1.types.FieldMask]): -
 
                 If a dict is provided, it must be of the same form as the protobuf
-                message :class:`~cirq.google.engine.client.quantum_v1alpha1.types.FieldMask`
+                message :class:`~cirq_google.engine.client.quantum_v1alpha1.types.FieldMask`
             retry (Optional[google.api_core.retry.Retry]):  A retry object used
                 to retry requests. If ``None`` is specified, requests will
                 be retried using a default configuration.
@@ -2010,7 +2010,7 @@ class QuantumEngineServiceClient(object):
                 that is provided to the method.
 
         Returns:
-            A :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumReservation` instance.
+            A :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumReservation` instance.
 
         Raises:
             google.api_core.exceptions.GoogleAPICallError: If the request
@@ -2063,7 +2063,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -2075,8 +2075,8 @@ class QuantumEngineServiceClient(object):
             ...     pass
 
         Args:
-            requests (iterator[dict|cirq.google.engine.client.quantum_v1alpha1.proto.engine_pb2.QuantumRunStreamRequest]): The input objects. If a dict is provided, it must be of the
-                same form as the protobuf message :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumRunStreamRequest`
+            requests (iterator[dict|cirq_google.engine.client.quantum_v1alpha1.proto.engine_pb2.QuantumRunStreamRequest]): The input objects. If a dict is provided, it must be of the
+                same form as the protobuf message :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumRunStreamRequest`
             retry (Optional[google.api_core.retry.Retry]):  A retry object used
                 to retry requests. If ``None`` is specified, requests will
                 be retried using a default configuration.
@@ -2087,7 +2087,7 @@ class QuantumEngineServiceClient(object):
                 that is provided to the method.
 
         Returns:
-            Iterable[~cirq.google.engine.client.quantum_v1alpha1.types.QuantumRunStreamResponse].
+            Iterable[~cirq_google.engine.client.quantum_v1alpha1.types.QuantumRunStreamResponse].
 
         Raises:
             google.api_core.exceptions.GoogleAPICallError: If the request
@@ -2124,7 +2124,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -2161,7 +2161,7 @@ class QuantumEngineServiceClient(object):
 
         Returns:
             A :class:`~google.api_core.page_iterator.PageIterator` instance.
-            An iterable of :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumReservationGrant` instances.
+            An iterable of :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumReservationGrant` instances.
             You can also iterate over the pages of the response
             using its `pages` property.
 
@@ -2230,7 +2230,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -2240,10 +2240,10 @@ class QuantumEngineServiceClient(object):
             name (str): -
             source_project_id (str): -
             target_project_id (str): -
-            duration (Union[dict, ~cirq.google.engine.client.quantum_v1alpha1.types.Duration]): -
+            duration (Union[dict, ~cirq_google.engine.client.quantum_v1alpha1.types.Duration]): -
 
                 If a dict is provided, it must be of the same form as the protobuf
-                message :class:`~cirq.google.engine.client.quantum_v1alpha1.types.Duration`
+                message :class:`~cirq_google.engine.client.quantum_v1alpha1.types.Duration`
             retry (Optional[google.api_core.retry.Retry]):  A retry object used
                 to retry requests. If ``None`` is specified, requests will
                 be retried using a default configuration.
@@ -2254,7 +2254,7 @@ class QuantumEngineServiceClient(object):
                 that is provided to the method.
 
         Returns:
-            A :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumReservationGrant` instance.
+            A :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumReservationGrant` instance.
 
         Raises:
             google.api_core.exceptions.GoogleAPICallError: If the request
@@ -2310,7 +2310,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -2347,7 +2347,7 @@ class QuantumEngineServiceClient(object):
 
         Returns:
             A :class:`~google.api_core.page_iterator.PageIterator` instance.
-            An iterable of :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumReservationBudget` instances.
+            An iterable of :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumReservationBudget` instances.
             You can also iterate over the pages of the response
             using its `pages` property.
 
@@ -2415,7 +2415,7 @@ class QuantumEngineServiceClient(object):
         -
 
         Example:
-            >>> from cirq.google.engine.client import quantum_v1alpha1
+            >>> from cirq_google.engine.client import quantum_v1alpha1
             >>>
             >>> client = quantum_v1alpha1.QuantumEngineServiceClient()
             >>>
@@ -2452,7 +2452,7 @@ class QuantumEngineServiceClient(object):
 
         Returns:
             A :class:`~google.api_core.page_iterator.PageIterator` instance.
-            An iterable of :class:`~cirq.google.engine.client.quantum_v1alpha1.types.QuantumTimeSlot` instances.
+            An iterable of :class:`~cirq_google.engine.client.quantum_v1alpha1.types.QuantumTimeSlot` instances.
             You can also iterate over the pages of the response
             using its `pages` property.
 

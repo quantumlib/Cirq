@@ -18,10 +18,10 @@ import pytest
 from google.api_core import exceptions
 from google.protobuf.field_mask_pb2 import FieldMask
 from google.protobuf.timestamp_pb2 import Timestamp
-from cirq.google.engine.engine_client import EngineClient, EngineException
-from cirq.google.engine.client import quantum
-from cirq.google.engine.client.quantum_v1alpha1 import enums as qenums
-from cirq.google.engine.client.quantum_v1alpha1 import types as qtypes
+from cirq_google.engine.engine_client import EngineClient, EngineException
+from cirq_google.engine.client import quantum
+from cirq_google.engine.client.quantum_v1alpha1 import enums as qenums
+from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
 
 
 def setup_mock_(client_constructor):

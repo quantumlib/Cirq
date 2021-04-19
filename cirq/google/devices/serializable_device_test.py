@@ -19,12 +19,12 @@ import unittest.mock as mock
 import pytest
 
 import cirq
-import cirq.google
-import cirq.google as cg
-import cirq.google.api.v2 as v2
-import cirq.google.api.v2.device_pb2 as device_pb2
-import cirq.google.common_serializers as cgc
-import cirq.google.devices.known_devices as cgdk
+import cirq_google
+import cirq_google as cg
+import cirq_google.api.v2 as v2
+import cirq_google.api.v2.device_pb2 as device_pb2
+import cirq_google.common_serializers as cgc
+import cirq_google.devices.known_devices as cgdk
 
 _JUST_CZ = cg.SerializableGateSet(
     gate_set_name='cz_gate_set',
@@ -315,18 +315,18 @@ def test_mixing_types():
 
 
 def test_multiple_gatesets():
-    halfPiGateSet = cirq.google.serializable_gate_set.SerializableGateSet(
+    halfPiGateSet = cirq_google.serializable_gate_set.SerializableGateSet(
         gate_set_name='half_pi_gateset',
         serializers=cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS,
         deserializers=cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
     )
-    allAnglesGateSet = cirq.google.serializable_gate_set.SerializableGateSet(
+    allAnglesGateSet = cirq_google.serializable_gate_set.SerializableGateSet(
         gate_set_name='all_angles_gateset',
         serializers=cgc.SINGLE_QUBIT_SERIALIZERS,
         deserializers=cgc.SINGLE_QUBIT_DESERIALIZERS,
     )
     durations_dict = {'xy_pi': 20_000, 'xy_half_pi': 20_000, 'xy': 20_000}
-    spec = cirq.google.devices.known_devices.create_device_proto_from_diagram(
+    spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
         "aa\naa", [allAnglesGateSet, halfPiGateSet], durations_dict
     )
     dev = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[allAnglesGateSet, halfPiGateSet])
@@ -346,7 +346,7 @@ def test_half_pi_takes_half_duration():
     gate perform correctly.  In this case, we set the XPowGate to be
     half the duration of the full exponent and make sure it still works.
     """
-    half_pi_gs = cirq.google.serializable_gate_set.SerializableGateSet(
+    half_pi_gs = cirq_google.serializable_gate_set.SerializableGateSet(
         gate_set_name='half_pi',
         serializers=[
             *cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS,
@@ -359,7 +359,7 @@ def test_half_pi_takes_half_duration():
         'xy_pi': 20_000,
         'xy_half_pi': 10_000,
     }
-    spec = cirq.google.devices.known_devices.create_device_proto_from_diagram(
+    spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
         "aa\naa", [half_pi_gs], durations_dict
     )
 
@@ -377,7 +377,7 @@ def test_multiple_fsim_gatesets():
     gate perform correctly.  In this case, we set the XPowGate to be
     half the duration of the full exponent and make sure it still works.
     """
-    half_pi_gs = cirq.google.serializable_gate_set.SerializableGateSet(
+    half_pi_gs = cirq_google.serializable_gate_set.SerializableGateSet(
         gate_set_name='half_pi',
         serializers=[
             *cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS,
@@ -390,7 +390,7 @@ def test_multiple_fsim_gatesets():
         'xy_pi': 20_000,
         'xy_half_pi': 10_000,
     }
-    spec = cirq.google.devices.known_devices.create_device_proto_from_diagram(
+    spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
         "aa\naa", [half_pi_gs], durations_dict
     )
 
@@ -404,7 +404,7 @@ def test_multiple_fsim_gatesets():
 
 
 def test_serializable_device_str_grid_qubits():
-    spec = cirq.google.devices.known_devices.create_device_proto_from_diagram(
+    spec = cirq_google.devices.known_devices.create_device_proto_from_diagram(
         "aa\naa", [cg.SYC_GATESET]
     )
     device = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[cg.SYC_GATESET])

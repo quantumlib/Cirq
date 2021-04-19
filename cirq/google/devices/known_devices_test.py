@@ -15,9 +15,9 @@ import numpy as np
 import pytest
 
 import cirq
-import cirq.google
-import cirq.google.common_serializers as cgc
-import cirq.google.devices.known_devices as known_devices
+import cirq_google
+import cirq_google.common_serializers as cgc
+import cirq_google.devices.known_devices as known_devices
 
 
 def test_foxtail_qubits():
@@ -25,7 +25,7 @@ def test_foxtail_qubits():
     for i in range(0, 2):
         for j in range(0, 11):
             expected_qubits.append(cirq.GridQubit(i, j))
-    assert set(expected_qubits) == cirq.google.Foxtail.qubits
+    assert set(expected_qubits) == cirq_google.Foxtail.qubits
 
 
 def test_foxtail_device_proto():
@@ -301,7 +301,7 @@ valid_targets {
 
 
 def test_multiple_gate_sets():
-    halfPiGateSet = cirq.google.serializable_gate_set.SerializableGateSet(
+    halfPiGateSet = cirq_google.serializable_gate_set.SerializableGateSet(
         gate_set_name='half_pi_gateset',
         serializers=[*cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS, cgc.MEASUREMENT_SERIALIZER],
         deserializers=[*cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS, cgc.MEASUREMENT_DESERIALIZER],
@@ -314,7 +314,7 @@ def test_multiple_gate_sets():
         'meas': 14_141,
     }
     test_proto = known_devices.create_device_proto_from_diagram(
-        "aa\naa", [cirq.google.gate_sets.XMON, halfPiGateSet], durations_dict
+        "aa\naa", [cirq_google.gate_sets.XMON, halfPiGateSet], durations_dict
     )
     assert (
         str(test_proto)
@@ -457,21 +457,21 @@ valid_targets {
 
 
 def test_json_dict():
-    assert cirq.google.Foxtail._json_dict_() == {
+    assert cirq_google.Foxtail._json_dict_() == {
         'cirq_type': '_NamedConstantXmonDevice',
-        'constant': 'cirq.google.Foxtail',
+        'constant': 'cirq_google.Foxtail',
     }
 
-    assert cirq.google.Bristlecone._json_dict_() == {
+    assert cirq_google.Bristlecone._json_dict_() == {
         'cirq_type': '_NamedConstantXmonDevice',
-        'constant': 'cirq.google.Bristlecone',
+        'constant': 'cirq_google.Bristlecone',
     }
 
     with pytest.raises(ValueError, match='xmon device name'):
         known_devices._NamedConstantXmonDevice._from_json_dict_('the_unknown_fiddler')
 
 
-@pytest.mark.parametrize('device', [cirq.google.Sycamore, cirq.google.Sycamore23])
+@pytest.mark.parametrize('device', [cirq_google.Sycamore, cirq_google.Sycamore23])
 def test_sycamore_devices(device):
     q0 = cirq.GridQubit(5, 3)
     q1 = cirq.GridQubit(5, 4)
@@ -489,26 +489,26 @@ def test_sycamore_grid_layout():
     q1 = cirq.GridQubit(5, 6)
     syc = cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6)(q0, q1)
     sqrt_iswap = cirq.FSimGate(theta=np.pi / 4, phi=0)(q0, q1)
-    cirq.google.Sycamore.validate_operation(syc)
-    cirq.google.Sycamore.validate_operation(sqrt_iswap)
+    cirq_google.Sycamore.validate_operation(syc)
+    cirq_google.Sycamore.validate_operation(sqrt_iswap)
 
     with pytest.raises(ValueError):
-        cirq.google.Sycamore23.validate_operation(syc)
+        cirq_google.Sycamore23.validate_operation(syc)
     with pytest.raises(ValueError):
-        cirq.google.Sycamore23.validate_operation(sqrt_iswap)
+        cirq_google.Sycamore23.validate_operation(sqrt_iswap)
 
 
 def test_proto_with_waitgate():
-    wait_gateset = cirq.google.serializable_gate_set.SerializableGateSet(
+    wait_gateset = cirq_google.serializable_gate_set.SerializableGateSet(
         gate_set_name='wait_gateset',
         serializers=[cgc.WAIT_GATE_SERIALIZER],
         deserializers=[cgc.WAIT_GATE_DESERIALIZER],
     )
-    wait_proto = cirq.google.devices.known_devices.create_device_proto_from_diagram(
+    wait_proto = cirq_google.devices.known_devices.create_device_proto_from_diagram(
         "aa\naa",
         [wait_gateset],
     )
-    wait_device = cirq.google.SerializableDevice.from_proto(
+    wait_device = cirq_google.SerializableDevice.from_proto(
         proto=wait_proto, gate_sets=[wait_gateset]
     )
     q0 = cirq.GridQubit(1, 1)
@@ -562,7 +562,7 @@ valid_targets {
 
 
 def test_adding_gates_multiple_times():
-    waiting_for_godot = cirq.google.serializable_gate_set.SerializableGateSet(
+    waiting_for_godot = cirq_google.serializable_gate_set.SerializableGateSet(
         gate_set_name='wait_gateset',
         serializers=[cgc.WAIT_GATE_SERIALIZER, cgc.WAIT_GATE_SERIALIZER, cgc.WAIT_GATE_SERIALIZER],
         deserializers=[
@@ -571,11 +571,11 @@ def test_adding_gates_multiple_times():
             cgc.WAIT_GATE_DESERIALIZER,
         ],
     )
-    wait_proto = cirq.google.devices.known_devices.create_device_proto_from_diagram(
+    wait_proto = cirq_google.devices.known_devices.create_device_proto_from_diagram(
         "aa",
         [waiting_for_godot],
     )
-    wait_device = cirq.google.SerializableDevice.from_proto(
+    wait_device = cirq_google.SerializableDevice.from_proto(
         proto=wait_proto, gate_sets=[waiting_for_godot]
     )
     q0 = cirq.GridQubit(0, 0)

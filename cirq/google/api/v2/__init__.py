@@ -13,7 +13,7 @@
 # limitations under the License.
 """Data format v2 for google api."""
 
-from cirq.google.api.v2 import (
+from cirq_google.api.v2 import (
     batch_pb2,
     calibration_pb2,
     device_pb2,
@@ -23,7 +23,7 @@ from cirq.google.api.v2 import (
     run_context_pb2,
 )
 
-from cirq.google.api.v2.program import (
+from cirq_google.api.v2.program import (
     grid_qubit_from_proto_id,
     line_qubit_from_proto_id,
     named_qubit_from_proto_id,
@@ -31,7 +31,7 @@ from cirq.google.api.v2.program import (
     qubit_to_proto_id,
 )
 
-from cirq.google.api.v2.results import (
+from cirq_google.api.v2.results import (
     MeasureInfo,
     find_measurements,
     pack_bits,
@@ -40,7 +40,7 @@ from cirq.google.api.v2.results import (
     results_to_proto,
 )
 
-from cirq.google.api.v2.sweeps import (
+from cirq_google.api.v2.sweeps import (
     sweep_from_proto,
     sweep_to_proto,
 )

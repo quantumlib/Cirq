@@ -4,8 +4,8 @@ import pytest
 import sympy
 
 import cirq
-import cirq.google.optimizers.convert_to_sqrt_iswap as cgoc
-import cirq.google as cig
+import cirq_google.optimizers.convert_to_sqrt_iswap as cgoc
+import cirq_google as cig
 
 
 def _unitaries_allclose(circuit1, circuit2):

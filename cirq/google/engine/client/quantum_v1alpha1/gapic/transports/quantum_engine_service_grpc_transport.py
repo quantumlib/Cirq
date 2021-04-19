@@ -17,7 +17,7 @@
 
 import google.api_core.grpc_helpers
 
-from cirq.google.engine.client.quantum_v1alpha1.proto import engine_pb2_grpc
+from cirq_google.engine.client.quantum_v1alpha1.proto import engine_pb2_grpc
 
 
 class QuantumEngineServiceGrpcTransport(object):

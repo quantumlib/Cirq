@@ -15,7 +15,7 @@
 import pytest
 
 import cirq
-import cirq.google as cg
+import cirq_google as cg
 
 from cirq.testing import (
     assert_circuits_with_terminal_measurements_are_equivalent,

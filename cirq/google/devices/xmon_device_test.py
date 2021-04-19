@@ -15,7 +15,7 @@
 import pytest
 
 import cirq
-import cirq.google as cg
+import cirq_google as cg
 
 
 def square_device(width: int, height: int, holes=()) -> cg.XmonDevice:

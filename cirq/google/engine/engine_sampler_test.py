@@ -17,8 +17,8 @@ from unittest import mock
 import pytest
 
 import cirq
-import cirq.google as cg
-import cirq.google.engine.client.quantum
+import cirq_google as cg
+import cirq_google.engine.client.quantum
 
 
 def test_run_circuit():
@@ -125,7 +125,7 @@ def test_engine_sampler_engine_property():
 
 def test_get_engine_sampler_explicit_project_id(monkeypatch):
     with mock.patch.object(
-        cirq.google.engine.client.quantum, 'QuantumEngineServiceClient', autospec=True
+        cirq_google.engine.client.quantum, 'QuantumEngineServiceClient', autospec=True
     ):
         sampler = cg.get_engine_sampler(
             processor_id='hi mom', gate_set_name='sqrt_iswap', project_id='myproj'
@@ -140,7 +140,7 @@ def test_get_engine_sampler(monkeypatch):
     monkeypatch.setenv('GOOGLE_CLOUD_PROJECT', 'myproj')
 
     with mock.patch.object(
-        cirq.google.engine.client.quantum, 'QuantumEngineServiceClient', autospec=True
+        cirq_google.engine.client.quantum, 'QuantumEngineServiceClient', autospec=True
     ):
         sampler = cg.get_engine_sampler(processor_id='hi mom', gate_set_name='sqrt_iswap')
     assert hasattr(sampler, 'run_sweep')

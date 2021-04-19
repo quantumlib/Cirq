@@ -20,20 +20,20 @@ from cirq.protocols.json_serialization import ObjectFactory
 
 @functools.lru_cache(maxsize=1)
 def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
-    import cirq.google
-    from cirq.google.devices.known_devices import _NamedConstantXmonDevice
+    import cirq_google
+    from cirq_google.devices.known_devices import _NamedConstantXmonDevice
 
     return {
         '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
-        'Calibration': cirq.google.Calibration,
-        'CalibrationTag': cirq.google.CalibrationTag,
-        'CalibrationLayer': cirq.google.CalibrationLayer,
-        'CalibrationResult': cirq.google.CalibrationResult,
-        'SycamoreGate': cirq.google.SycamoreGate,
-        'GateTabulation': cirq.google.GateTabulation,
-        'PhysicalZTag': cirq.google.PhysicalZTag,
-        'FloquetPhasedFSimCalibrationOptions': cirq.google.FloquetPhasedFSimCalibrationOptions,
-        'FloquetPhasedFSimCalibrationRequest': cirq.google.FloquetPhasedFSimCalibrationRequest,
-        'PhasedFSimCalibrationResult': cirq.google.PhasedFSimCalibrationResult,
-        'PhasedFSimCharacterization': cirq.google.PhasedFSimCharacterization,
+        'Calibration': cirq_google.Calibration,
+        'CalibrationTag': cirq_google.CalibrationTag,
+        'CalibrationLayer': cirq_google.CalibrationLayer,
+        'CalibrationResult': cirq_google.CalibrationResult,
+        'SycamoreGate': cirq_google.SycamoreGate,
+        'GateTabulation': cirq_google.GateTabulation,
+        'PhysicalZTag': cirq_google.PhysicalZTag,
+        'FloquetPhasedFSimCalibrationOptions': cirq_google.FloquetPhasedFSimCalibrationOptions,
+        'FloquetPhasedFSimCalibrationRequest': cirq_google.FloquetPhasedFSimCalibrationRequest,
+        'PhasedFSimCalibrationResult': cirq_google.PhasedFSimCalibrationResult,
+        'PhasedFSimCharacterization': cirq_google.PhasedFSimCharacterization,
     }

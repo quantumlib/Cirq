@@ -23,11 +23,11 @@ from google.protobuf import any_pb2
 from google.protobuf.text_format import Merge
 
 import cirq
-import cirq.google
-import cirq.google as cg
-from cirq.google.api import v1, v2
-from cirq.google.engine.engine import EngineContext
-from cirq.google.engine.client.quantum_v1alpha1 import types as qtypes
+import cirq_google
+import cirq_google as cg
+from cirq_google.api import v1, v2
+from cirq_google.engine.engine import EngineContext
+from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
 
 _CIRCUIT = cirq.Circuit(
     cirq.X(cirq.GridQubit(5, 2)) ** 0.5, cirq.measure(cirq.GridQubit(5, 2), key='result')
@@ -282,12 +282,12 @@ def test_make_random_id():
 @pytest.fixture(scope='session', autouse=True)
 def mock_grpc_client():
     with mock.patch(
-        'cirq.google.engine.engine_client.quantum.QuantumEngineServiceClient'
+        'cirq_google.engine.engine_client.quantum.QuantumEngineServiceClient'
     ) as _fixture:
         yield _fixture
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient')
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
 def test_create_context(client):
     with pytest.raises(ValueError, match='specify service_args and verbose or client'):
         EngineContext(cg.engine.engine.ProtoVersion.V1, {'args': 'test'}, True, mock.Mock())
@@ -303,7 +303,7 @@ def test_create_context(client):
     assert context.copy() == context
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient')
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
 def test_create_engine(client):
     with pytest.raises(
         ValueError, match='provide context or proto_version, service_args and verbose'
@@ -353,7 +353,7 @@ def setup_run_circuit_with_result_(client, result):
     client().get_job_results.return_value = qtypes.QuantumResult(result=result)
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient')
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
 def test_run_circuit(client):
     setup_run_circuit_with_result_(client, _A_RESULT)
 
@@ -422,7 +422,7 @@ def test_unsupported_program_type():
         engine.run(program="this isn't even the right type of thing!", gate_set=cg.XMON)
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient')
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
 def test_run_circuit_failed(client):
     client().create_program.return_value = (
         'prog',
@@ -452,7 +452,7 @@ def test_run_circuit_failed(client):
         engine.run(program=_CIRCUIT, gate_set=cg.XMON)
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient')
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
 def test_run_circuit_failed_missing_processor_name(client):
     client().create_program.return_value = (
         'prog',
@@ -481,7 +481,7 @@ def test_run_circuit_failed_missing_processor_name(client):
         engine.run(program=_CIRCUIT, gate_set=cg.XMON)
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient')
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
 def test_run_circuit_cancelled(client):
     client().create_program.return_value = (
         'prog',
@@ -508,7 +508,7 @@ def test_run_circuit_cancelled(client):
         engine.run(program=_CIRCUIT, gate_set=cg.XMON)
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient')
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
 @mock.patch('time.sleep', return_value=None)
 def test_run_circuit_timeout(patched_time_sleep, client):
     client().create_program.return_value = (
@@ -533,7 +533,7 @@ def test_run_circuit_timeout(patched_time_sleep, client):
         engine.run(program=_CIRCUIT, gate_set=cg.XMON)
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient')
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
 def test_run_sweep_params(client):
     setup_run_circuit_with_result_(client, _RESULTS)
 
@@ -564,7 +564,7 @@ def test_run_sweep_params(client):
     client().get_job_results.assert_called_once()
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient')
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
 def test_run_multiple_times(client):
     setup_run_circuit_with_result_(client, _RESULTS)
 
@@ -595,7 +595,7 @@ def test_run_multiple_times(client):
     assert client().get_job_results.call_count == 2
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient')
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
 def test_run_sweep_v2(client):
     setup_run_circuit_with_result_(client, _RESULTS_V2)
 
@@ -624,7 +624,7 @@ def test_run_sweep_v2(client):
     client().get_job_results.assert_called_once()
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient')
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
 def test_run_batch(client):
     setup_run_circuit_with_result_(client, _BATCH_RESULTS_V2)
 
@@ -662,7 +662,7 @@ def test_run_batch(client):
     client().get_job_results.assert_called_once()
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient')
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
 def test_run_batch_no_params(client):
     # OK to run with no params, it should use empty sweeps for each
     # circuit.
@@ -729,7 +729,7 @@ def test_bad_sweep_proto():
         program.run_sweep()
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient')
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
 def test_run_calibration(client):
     setup_run_circuit_with_result_(client, _CALIBRATION_RESULTS_V2)
 
@@ -798,7 +798,7 @@ def test_run_calibration_validation_fails():
         )
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient')
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
 def test_bad_result_proto(client):
     result = any_pb2.Any()
     result.CopyFrom(_RESULTS_V2)
@@ -827,7 +827,7 @@ def test_get_program():
     assert cg.Engine(project_id='proj').get_program('prog').program_id == 'prog'
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.list_programs')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_programs')
 def test_list_programs(list_programs):
     prog1 = qtypes.QuantumProgram(name='projects/proj/programs/prog-YBGR48THF3JHERZW200804')
     prog2 = qtypes.QuantumProgram(name='projects/otherproj/programs/prog-V3ZRTV6TTAFNTYJV200804')
@@ -843,7 +843,7 @@ def test_list_programs(list_programs):
     ]
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient')
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
 def test_create_program(client):
     client().create_program.return_value = ('prog', qtypes.QuantumProgram())
     result = cg.Engine(project_id='proj').create_program(_CIRCUIT, 'prog', gate_set=cg.XMON)
@@ -851,7 +851,7 @@ def test_create_program(client):
     assert result.program_id == 'prog'
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.list_jobs')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_jobs')
 def test_list_jobs(list_jobs):
     job1 = qtypes.QuantumJob(name='projects/proj/programs/prog1/jobs/job1')
     job2 = qtypes.QuantumJob(name='projects/proj/programs/prog2/jobs/job2')
@@ -873,7 +873,7 @@ def test_list_jobs(list_jobs):
     ]
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.list_processors')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_processors')
 def test_list_processors(list_processors):
     processor1 = qtypes.QuantumProcessor(name='projects/proj/processors/xmonsim')
     processor2 = qtypes.QuantumProcessor(name='projects/proj/processors/gmonsim')
@@ -888,7 +888,7 @@ def test_get_processor():
     assert cg.Engine(project_id='proj').get_processor('xmonsim').processor_id == 'xmonsim'
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient')
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
 def test_sampler(client):
     setup_run_circuit_with_result_(client, _RESULTS)
 
@@ -905,7 +905,7 @@ def test_sampler(client):
     assert client().create_program.call_args[0][0] == 'proj'
 
 
-@mock.patch('cirq.google.engine.client.quantum.QuantumEngineServiceClient')
+@mock.patch('cirq_google.engine.client.quantum.QuantumEngineServiceClient')
 def test_get_engine(build):
     # Default project id present.
     with mock.patch.dict(
@@ -915,17 +915,17 @@ def test_get_engine(build):
         },
         clear=True,
     ):
-        eng = cirq.google.get_engine()
+        eng = cirq_google.get_engine()
         assert eng.project_id == 'project!'
 
     # Nothing present.
     with mock.patch.dict(os.environ, {}, clear=True):
         with pytest.raises(EnvironmentError, match='GOOGLE_CLOUD_PROJECT'):
-            _ = cirq.google.get_engine()
-        _ = cirq.google.get_engine('project!')
+            _ = cirq_google.get_engine()
+        _ = cirq_google.get_engine('project!')
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_processor')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
 def test_get_engine_device(get_processor):
     device_spec = _to_any(
         Merge(
@@ -961,7 +961,7 @@ valid_targets: [{
     )
 
     get_processor.return_value = qtypes.QuantumProcessor(device_spec=device_spec)
-    device = cirq.google.get_engine_device('rainbow', 'project', gatesets=[gate_set])
+    device = cirq_google.get_engine_device('rainbow', 'project', gatesets=[gate_set])
     assert set(device.qubits) == {cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)}
     device.validate_operation(cirq.X(cirq.GridQubit(0, 0)))
     with pytest.raises(ValueError):
@@ -997,10 +997,10 @@ _CALIBRATION = qtypes.QuantumCalibration(
 )
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_current_calibration')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_current_calibration')
 def test_get_engine_calibration(get_current_calibration):
     get_current_calibration.return_value = _CALIBRATION
-    calibration = cirq.google.get_engine_calibration('rainbow', 'project')
+    calibration = cirq_google.get_engine_calibration('rainbow', 'project')
     assert calibration.timestamp == 1562544000021
     assert set(calibration.keys()) == {'t1', 'globalMetric'}
     assert calibration['t1'][(cirq.GridQubit(0, 0),)] == [321.0]

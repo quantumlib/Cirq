@@ -14,9 +14,9 @@
 
 from unittest import mock
 import cirq
-import cirq.google as cg
-from cirq.google import line_on_device
-from cirq.google.line.placement import GridQubitLineTuple
+import cirq_google as cg
+from cirq_google import line_on_device
+from cirq_google.line.placement import GridQubitLineTuple
 
 
 def test_anneal_method_calls_anneal_search():

@@ -1,6 +1,6 @@
 from matplotlib import pyplot as plt
 
-from cirq.google.optimizers.two_qubit_gates import example
+from cirq_google.optimizers.two_qubit_gates import example
 
 
 def test_gate_compilation_example():

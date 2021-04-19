@@ -16,11 +16,11 @@ from typing import Any, Collection, Dict, Optional, Iterable, List, Set, Tuple, 
 
 from cirq._doc import document
 from cirq.devices import GridQubit
-from cirq.google import gate_sets, serializable_gate_set
-from cirq.google.api import v2
-from cirq.google.api.v2 import device_pb2
-from cirq.google.devices.serializable_device import SerializableDevice
-from cirq.google.devices.xmon_device import XmonDevice
+from cirq_google import gate_sets, serializable_gate_set
+from cirq_google.api import v2
+from cirq_google.api.v2 import device_pb2
+from cirq_google.devices.serializable_device import SerializableDevice
+from cirq_google.devices.xmon_device import XmonDevice
 from cirq.ops import MeasurementGate, SingleQubitGate, WaitGate
 from cirq.value import Duration
 
@@ -211,7 +211,7 @@ class _NamedConstantXmonDevice(XmonDevice):
 
 
 Foxtail = _NamedConstantXmonDevice(
-    'cirq.google.Foxtail',
+    'cirq_google.Foxtail',
     measurement_duration=Duration(nanos=4000),
     exp_w_duration=Duration(nanos=20),
     exp_11_duration=Duration(nanos=50),
@@ -255,7 +255,7 @@ ABCDEFGHIJKL
 """
 
 Bristlecone = _NamedConstantXmonDevice(
-    'cirq.google.Bristlecone',
+    'cirq_google.Bristlecone',
     measurement_duration=Duration(nanos=4000),
     exp_w_duration=Duration(nanos=20),
     exp_11_duration=Duration(nanos=50),

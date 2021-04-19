@@ -17,7 +17,7 @@ from typing import Dict, Sequence, TYPE_CHECKING
 
 from cirq import devices, value, ops
 from cirq.devices.noise_model import validate_all_measurements
-from cirq.google import engine
+from cirq_google import engine
 
 if TYPE_CHECKING:
     import cirq

@@ -29,8 +29,8 @@ from typing import (
 )
 
 from cirq import circuits, devices
-from cirq.google import serializable_gate_set
-from cirq.google.api import v2
+from cirq_google import serializable_gate_set
+from cirq_google.api import v2
 from cirq.value import Duration
 
 if TYPE_CHECKING:

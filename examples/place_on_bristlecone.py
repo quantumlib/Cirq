@@ -57,12 +57,12 @@ Xmon circuit:
 """
 
 import cirq
-import cirq.google
+import cirq_google
 
 
 def main():
     print("Length 10 line on Bristlecone:")
-    line = cirq.google.line_on_device(cirq.google.Bristlecone, length=10)
+    line = cirq_google.line_on_device(cirq_google.Bristlecone, length=10)
     print(line)
 
     print("Initial circuit:")
@@ -78,8 +78,8 @@ def main():
 
     print()
     print("Xmon circuit:")
-    translated = cirq.google.optimized_for_xmon(
-        circuit=circuit, new_device=cirq.google.Bristlecone, qubit_map=lambda q: line[q.x]
+    translated = cirq_google.optimized_for_xmon(
+        circuit=circuit, new_device=cirq_google.Bristlecone, qubit_map=lambda q: line[q.x]
     )
     print(translated)
 

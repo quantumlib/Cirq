@@ -21,11 +21,11 @@ from google.protobuf.duration_pb2 import Duration
 from google.protobuf.text_format import Merge
 from google.protobuf.timestamp_pb2 import Timestamp
 import cirq
-import cirq.google as cg
-from cirq.google.api import v2
-from cirq.google.engine.engine import EngineContext
-from cirq.google.engine.client.quantum_v1alpha1 import enums as qenums
-from cirq.google.engine.client.quantum_v1alpha1 import types as qtypes
+import cirq_google as cg
+from cirq_google.api import v2
+from cirq_google.engine.engine import EngineContext
+from cirq_google.engine.client.quantum_v1alpha1 import enums as qenums
+from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
 
 
 def _to_any(proto):
@@ -127,7 +127,7 @@ _GATE_SET = cg.SerializableGateSet(
 @pytest.fixture(scope='session', autouse=True)
 def mock_grpc_client():
     with mock.patch(
-        'cirq.google.engine.engine_client.quantum.QuantumEngineServiceClient'
+        'cirq_google.engine.engine_client.quantum.QuantumEngineServiceClient'
     ) as _fixture:
         yield _fixture
 
@@ -137,7 +137,7 @@ def test_engine():
     assert processor.engine().project_id == 'a'
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_processor')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
 def test_health(get_processor):
     get_processor.return_value = qtypes.QuantumProcessor(health=qtypes.QuantumProcessor.Health.OK)
     processor = cg.EngineProcessor(
@@ -149,7 +149,7 @@ def test_health(get_processor):
     assert processor.health() == 'OK'
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_processor')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
 def test_expected_down_time(get_processor):
     processor = cg.EngineProcessor('a', 'p', EngineContext(), _processor=qtypes.QuantumProcessor())
     assert not processor.expected_down_time()
@@ -235,7 +235,7 @@ def test_get_missing_device():
         _ = processor.get_device(gate_sets=[_GATE_SET])
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.list_calibrations')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_calibrations')
 def test_list_calibrations(list_calibrations):
     list_calibrations.return_value = [_CALIBRATION]
     processor = cg.EngineProcessor('a', 'p', EngineContext())
@@ -255,7 +255,7 @@ def test_list_calibrations(list_calibrations):
     )
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_calibration')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_calibration')
 def test_get_calibration(get_calibration):
     get_calibration.return_value = _CALIBRATION
     processor = cg.EngineProcessor('a', 'p', EngineContext())
@@ -265,7 +265,7 @@ def test_get_calibration(get_calibration):
     get_calibration.assert_called_once_with('a', 'p', 1562544000021)
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_current_calibration')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_current_calibration')
 def test_current_calibration(get_current_calibration):
     get_current_calibration.return_value = _CALIBRATION
     processor = cg.EngineProcessor('a', 'p', EngineContext())
@@ -275,7 +275,7 @@ def test_current_calibration(get_current_calibration):
     get_current_calibration.assert_called_once_with('a', 'p')
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_current_calibration')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_current_calibration')
 def test_missing_latest_calibration(get_current_calibration):
     get_current_calibration.return_value = None
     processor = cg.EngineProcessor('a', 'p', EngineContext())
@@ -283,7 +283,7 @@ def test_missing_latest_calibration(get_current_calibration):
     get_current_calibration.assert_called_once_with('a', 'p')
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.create_reservation')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.create_reservation')
 def test_create_reservation(create_reservation):
     name = 'projects/proj/processors/p0/reservations/psherman-wallaby-way'
     result = qtypes.QuantumReservation(
@@ -308,7 +308,7 @@ def test_create_reservation(create_reservation):
     )
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.delete_reservation')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.delete_reservation')
 def test_delete_reservation(delete_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
     result = qtypes.QuantumReservation(
@@ -323,7 +323,7 @@ def test_delete_reservation(delete_reservation):
     delete_reservation.assert_called_once_with('proj', 'p0', 'rid')
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.cancel_reservation')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.cancel_reservation')
 def test_cancel_reservation(cancel_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
     result = qtypes.QuantumReservation(
@@ -338,8 +338,8 @@ def test_cancel_reservation(cancel_reservation):
     cancel_reservation.assert_called_once_with('proj', 'p0', 'rid')
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_reservation')
-@mock.patch('cirq.google.engine.engine_client.EngineClient.delete_reservation')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.delete_reservation')
 def test_remove_reservation_delete(delete_reservation, get_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
     now = int(datetime.datetime.now().timestamp())
@@ -361,8 +361,8 @@ def test_remove_reservation_delete(delete_reservation, get_reservation):
     delete_reservation.assert_called_once_with('proj', 'p0', 'rid')
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_reservation')
-@mock.patch('cirq.google.engine.engine_client.EngineClient.cancel_reservation')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.cancel_reservation')
 def test_remove_reservation_cancel(cancel_reservation, get_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
     now = int(datetime.datetime.now().timestamp())
@@ -384,7 +384,7 @@ def test_remove_reservation_cancel(cancel_reservation, get_reservation):
     cancel_reservation.assert_called_once_with('proj', 'p0', 'rid')
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_reservation')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation')
 def test_remove_reservation_not_found(get_reservation):
     get_reservation.return_value = None
     processor = cg.EngineProcessor(
@@ -397,8 +397,8 @@ def test_remove_reservation_not_found(get_reservation):
         processor.remove_reservation('rid')
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_processor')
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_reservation')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_processor')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation')
 def test_remove_reservation_failures(get_reservation, get_processor):
     name = 'projects/proj/processors/p0/reservations/rid'
     now = int(datetime.datetime.now().timestamp())
@@ -422,7 +422,7 @@ def test_remove_reservation_failures(get_reservation, get_processor):
         processor.remove_reservation('rid')
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.get_reservation')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.get_reservation')
 def test_get_reservation(get_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
     result = qtypes.QuantumReservation(
@@ -437,7 +437,7 @@ def test_get_reservation(get_reservation):
     get_reservation.assert_called_once_with('proj', 'p0', 'rid')
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.update_reservation')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.update_reservation')
 def test_update_reservation(update_reservation):
     name = 'projects/proj/processors/p0/reservations/rid'
     result = qtypes.QuantumReservation(
@@ -456,7 +456,7 @@ def test_update_reservation(update_reservation):
     )
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.list_reservations')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations')
 def test_list_reservation(list_reservations):
     name = 'projects/proj/processors/p0/reservations/rid'
     results = [
@@ -486,7 +486,7 @@ def test_list_reservation(list_reservations):
     )
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.list_time_slots')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots')
 def test_get_schedule(list_time_slots):
     results = [
         qtypes.QuantumTimeSlot(
@@ -522,7 +522,7 @@ def test_get_schedule(list_time_slots):
     )
 
 
-@mock.patch('cirq.google.engine.engine_client.EngineClient.list_time_slots')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots')
 def test_get_schedule_filter_by_time_slot(list_time_slots):
     results = [
         qtypes.QuantumTimeSlot(
@@ -585,7 +585,7 @@ def _allow_deprecated_freezegun(func):
 
 @_allow_deprecated_freezegun
 @freezegun.freeze_time()
-@mock.patch('cirq.google.engine.engine_client.EngineClient.list_time_slots')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_time_slots')
 def test_get_schedule_time_filter_behavior(list_time_slots):
     list_time_slots.return_value = []
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
@@ -629,7 +629,7 @@ def test_get_schedule_time_filter_behavior(list_time_slots):
 
 @_allow_deprecated_freezegun
 @freezegun.freeze_time()
-@mock.patch('cirq.google.engine.engine_client.EngineClient.list_reservations')
+@mock.patch('cirq_google.engine.engine_client.EngineClient.list_reservations')
 def test_list_reservations_time_filter_behavior(list_reservations):
     list_reservations.return_value = []
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())

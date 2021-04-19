@@ -15,7 +15,7 @@
 from typing import Optional, Dict, List
 
 from cirq import value
-from cirq.google.api.v2 import run_context_pb2
+from cirq_google.api.v2 import run_context_pb2
 from cirq.study import sweeps
 
 

@@ -18,7 +18,7 @@ import pytest
 import sympy
 
 import cirq
-from cirq.google.api import v2
+from cirq_google.api import v2
 from cirq.study import sweeps
 
 

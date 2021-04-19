@@ -17,9 +17,9 @@ import pytest
 from google.protobuf import json_format
 
 import cirq
-import cirq.google
-import cirq.google as cg
-from cirq.google.api import v2
+import cirq_google
+import cirq_google as cg
+from cirq_google.api import v2
 
 X_SERIALIZER = cg.GateOpSerializer(
     gate_type=cirq.XPowGate,
@@ -512,4 +512,4 @@ def test_deserialize_no_operation():
         ),
     )
     with pytest.raises(ValueError, match='operation'):
-        MY_GATE_SET.deserialize(proto, cirq.google.Bristlecone)
+        MY_GATE_SET.deserialize(proto, cirq_google.Bristlecone)

@@ -15,7 +15,7 @@
 import pytest
 
 import cirq
-from cirq.google.line.placement.sequence import GridQubitLineTuple, NotFoundError
+from cirq_google.line.placement.sequence import GridQubitLineTuple, NotFoundError
 
 
 def test_best_of_gets_longest_needs_minimum():

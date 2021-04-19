@@ -6,12 +6,12 @@ from unittest import mock
 import numpy as np
 import pytest
 
-import cirq.google
-from cirq.google.calibration.engine_simulator import (
+import cirq_google
+from cirq_google.calibration.engine_simulator import (
     PhasedFSimEngineSimulator,
     SQRT_ISWAP_PARAMETERS,
 )
-from cirq.google.calibration import (
+from cirq_google.calibration import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
     IncompatibleMomentError,
@@ -24,10 +24,10 @@ import cirq
 
 
 class TestPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
-    def to_calibration_layer(self) -> cirq.google.CalibrationLayer:
+    def to_calibration_layer(self) -> cirq_google.CalibrationLayer:
         return NotImplemented
 
-    def parse_result(self, result: cirq.google.CalibrationResult) -> PhasedFSimCalibrationResult:
+    def parse_result(self, result: cirq_google.CalibrationResult) -> PhasedFSimCalibrationResult:
         return NotImplemented
 
 
@@ -40,20 +40,20 @@ def test_test_calibration_request():
 
     assert request.to_calibration_layer() is NotImplemented
 
-    result = mock.MagicMock(spec=cirq.google.CalibrationResult)
+    result = mock.MagicMock(spec=cirq_google.CalibrationResult)
     assert request.parse_result(result) is NotImplemented
 
 
 def test_floquet_get_calibrations() -> None:
 
-    parameters_ab = cirq.google.PhasedFSimCharacterization(
+    parameters_ab = cirq_google.PhasedFSimCharacterization(
         theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
     )
-    parameters_bc = cirq.google.PhasedFSimCharacterization(
+    parameters_bc = cirq_google.PhasedFSimCharacterization(
         theta=0.8, zeta=-0.5, chi=-0.4, gamma=-0.3, phi=-0.2
     )
     parameters_cd_dict = {'theta': 0.1, 'zeta': 0.2, 'chi': 0.3, 'gamma': 0.4, 'phi': 0.5}
-    parameters_cd = cirq.google.PhasedFSimCharacterization(**parameters_cd_dict)
+    parameters_cd = cirq_google.PhasedFSimCharacterization(**parameters_cd_dict)
 
     a, b, c, d = cirq.LineQubit.range(4)
     engine_simulator = PhasedFSimEngineSimulator.create_from_dictionary_sqrt_iswap(
@@ -65,12 +65,12 @@ def test_floquet_get_calibrations() -> None:
     results = engine_simulator.get_calibrations(requests)
 
     assert results == [
-        cirq.google.PhasedFSimCalibrationResult(
+        cirq_google.PhasedFSimCalibrationResult(
             gate=cirq.FSimGate(np.pi / 4, 0.0),
             parameters={(a, b): parameters_ab, (c, d): parameters_cd},
             options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
         ),
-        cirq.google.PhasedFSimCalibrationResult(
+        cirq_google.PhasedFSimCalibrationResult(
             gate=cirq.FSimGate(np.pi / 4, 0.0),
             parameters={(b, c): parameters_bc},
             options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -80,7 +80,7 @@ def test_floquet_get_calibrations() -> None:
 
 def test_floquet_get_calibrations_when_invalid_request_fails() -> None:
 
-    parameters_ab = cirq.google.PhasedFSimCharacterization(
+    parameters_ab = cirq_google.PhasedFSimCharacterization(
         theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
     )
 
@@ -232,10 +232,10 @@ def test_with_random_gaussian_sqrt_iswap_fails_with_invalid_mean() -> None:
 
 
 def test_from_dictionary_sqrt_iswap_simulates_correctly() -> None:
-    parameters_ab = cirq.google.PhasedFSimCharacterization(
+    parameters_ab = cirq_google.PhasedFSimCharacterization(
         theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
     )
-    parameters_bc = cirq.google.PhasedFSimCharacterization(
+    parameters_bc = cirq_google.PhasedFSimCharacterization(
         theta=0.8, zeta=-0.5, chi=-0.4, gamma=-0.3, phi=-0.2
     )
     parameters_cd_dict = {'theta': 0.1, 'zeta': 0.2, 'chi': 0.3, 'gamma': 0.4, 'phi': 0.5}
@@ -285,7 +285,7 @@ def test_from_dictionary_sqrt_iswap_ideal_when_missing_gate_fails() -> None:
 
 
 def test_from_dictionary_sqrt_iswap_ideal_when_missing_parameter_fails() -> None:
-    parameters_ab = cirq.google.PhasedFSimCharacterization(theta=0.8, zeta=-0.5, chi=-0.4)
+    parameters_ab = cirq_google.PhasedFSimCharacterization(theta=0.8, zeta=-0.5, chi=-0.4)
 
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.FSimGate(np.pi / 4, 0.0).on(a, b))
@@ -299,10 +299,10 @@ def test_from_dictionary_sqrt_iswap_ideal_when_missing_parameter_fails() -> None
 
 
 def test_from_dictionary_sqrt_iswap_ideal_when_missing_simulates_correctly() -> None:
-    parameters_ab = cirq.google.PhasedFSimCharacterization(
+    parameters_ab = cirq_google.PhasedFSimCharacterization(
         theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
     )
-    parameters_bc = cirq.google.PhasedFSimCharacterization(theta=0.8, zeta=-0.5, chi=-0.4)
+    parameters_bc = cirq_google.PhasedFSimCharacterization(theta=0.8, zeta=-0.5, chi=-0.4)
 
     a, b, c, d = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(
@@ -341,7 +341,7 @@ def test_from_dictionary_sqrt_iswap_ideal_when_missing_simulates_correctly() -> 
 
 def test_from_dictionary_sqrt_iswap_fails_when_invalid_parameters() -> None:
     a, b = cirq.LineQubit.range(2)
-    parameters_ab = cirq.google.PhasedFSimCharacterization(
+    parameters_ab = cirq_google.PhasedFSimCharacterization(
         theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
     )
 
@@ -352,13 +352,13 @@ def test_from_dictionary_sqrt_iswap_fails_when_invalid_parameters() -> None:
 
 
 def test_from_characterizations_sqrt_iswap_simulates_correctly() -> None:
-    parameters_ab = cirq.google.PhasedFSimCharacterization(
+    parameters_ab = cirq_google.PhasedFSimCharacterization(
         theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
     )
-    parameters_bc = cirq.google.PhasedFSimCharacterization(
+    parameters_bc = cirq_google.PhasedFSimCharacterization(
         theta=0.8, zeta=-0.5, chi=-0.4, gamma=-0.3, phi=-0.2
     )
-    parameters_cd = cirq.google.PhasedFSimCharacterization(
+    parameters_cd = cirq_google.PhasedFSimCharacterization(
         theta=0.1, zeta=0.2, chi=0.3, gamma=0.4, phi=0.5
     )
 
@@ -383,12 +383,12 @@ def test_from_characterizations_sqrt_iswap_simulates_correctly() -> None:
 
     engine_simulator = PhasedFSimEngineSimulator.create_from_characterizations_sqrt_iswap(
         characterizations=[
-            cirq.google.PhasedFSimCalibrationResult(
+            cirq_google.PhasedFSimCalibrationResult(
                 gate=cirq.FSimGate(np.pi / 4, 0.0),
                 parameters={(a, b): parameters_ab, (c, d): parameters_cd},
                 options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
             ),
-            cirq.google.PhasedFSimCalibrationResult(
+            cirq_google.PhasedFSimCalibrationResult(
                 gate=cirq.FSimGate(np.pi / 4, 0.0),
                 parameters={(c, b): parameters_bc.parameters_for_qubits_swapped()},
                 options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -403,10 +403,10 @@ def test_from_characterizations_sqrt_iswap_simulates_correctly() -> None:
 
 
 def test_from_characterizations_sqrt_iswap_when_invalid_arguments_fails() -> None:
-    parameters_ab = cirq.google.PhasedFSimCharacterization(
+    parameters_ab = cirq_google.PhasedFSimCharacterization(
         theta=0.6, zeta=0.5, chi=0.4, gamma=0.3, phi=0.2
     )
-    parameters_bc = cirq.google.PhasedFSimCharacterization(
+    parameters_bc = cirq_google.PhasedFSimCharacterization(
         theta=0.8, zeta=-0.5, chi=-0.4, gamma=-0.3, phi=-0.2
     )
 
@@ -415,12 +415,12 @@ def test_from_characterizations_sqrt_iswap_when_invalid_arguments_fails() -> Non
     with pytest.raises(ValueError):
         PhasedFSimEngineSimulator.create_from_characterizations_sqrt_iswap(
             characterizations=[
-                cirq.google.PhasedFSimCalibrationResult(
+                cirq_google.PhasedFSimCalibrationResult(
                     gate=cirq.FSimGate(np.pi / 4, 0.0),
                     parameters={(a, b): parameters_ab},
                     options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
                 ),
-                cirq.google.PhasedFSimCalibrationResult(
+                cirq_google.PhasedFSimCalibrationResult(
                     gate=cirq.FSimGate(np.pi / 4, 0.0),
                     parameters={(a, b): parameters_bc},
                     options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -431,7 +431,7 @@ def test_from_characterizations_sqrt_iswap_when_invalid_arguments_fails() -> Non
     with pytest.raises(ValueError):
         PhasedFSimEngineSimulator.create_from_characterizations_sqrt_iswap(
             characterizations=[
-                cirq.google.PhasedFSimCalibrationResult(
+                cirq_google.PhasedFSimCalibrationResult(
                     gate=cirq.FSimGate(np.pi / 4, 0.2),
                     parameters={(a, b): parameters_ab},
                     options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,

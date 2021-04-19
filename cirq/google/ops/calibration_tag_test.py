@@ -12,27 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import cirq
-import cirq.google
+import cirq_google
 
 
 def test_equality():
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(cirq.google.CalibrationTag('blah'), cirq.google.CalibrationTag('blah'))
-    eq.add_equality_group(cirq.google.CalibrationTag('blah2'))
+    eq.add_equality_group(cirq_google.CalibrationTag('blah'), cirq_google.CalibrationTag('blah'))
+    eq.add_equality_group(cirq_google.CalibrationTag('blah2'))
 
 
 def test_hash():
     s = set()
-    s.add(cirq.google.CalibrationTag('foo'))
+    s.add(cirq_google.CalibrationTag('foo'))
     assert len(s) == 1
-    s.add(cirq.google.CalibrationTag('foo'))
+    s.add(cirq_google.CalibrationTag('foo'))
     assert len(s) == 1
-    s.add(cirq.google.CalibrationTag('bar'))
+    s.add(cirq_google.CalibrationTag('bar'))
     assert len(s) == 2
 
 
 def test_str_repr():
-    example_tag = cirq.google.CalibrationTag('foo')
+    example_tag = cirq_google.CalibrationTag('foo')
     assert str(example_tag) == 'CalibrationTag(\'foo\')'
-    assert repr(example_tag) == 'cirq.google.CalibrationTag(\'foo\')'
-    cirq.testing.assert_equivalent_repr(example_tag, setup_code=('import cirq\nimport cirq.google'))
+    assert repr(example_tag) == 'cirq_google.CalibrationTag(\'foo\')'
+    cirq.testing.assert_equivalent_repr(example_tag, setup_code=('import cirq\nimport cirq_google'))

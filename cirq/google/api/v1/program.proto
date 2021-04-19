@@ -1,7 +1,7 @@
 syntax = "proto3";
 
-import "cirq/google/api/v1/operations.proto";
-import "cirq/google/api/v1/params.proto";
+import "cirq_google/api/v1/operations.proto";
+import "cirq_google/api/v1/params.proto";
 
 package cirq.google.api.v1;
 

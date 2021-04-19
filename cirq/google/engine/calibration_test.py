@@ -19,8 +19,8 @@ import matplotlib as mpl
 from google.protobuf.text_format import Merge
 
 import cirq
-import cirq.google as cg
-from cirq.google.api import v2
+import cirq_google as cg
+from cirq_google.api import v2
 
 _CALIBRATION_DATA = Merge(
     """
@@ -97,7 +97,7 @@ def test_calibration_str():
 
 def test_calibration_repr():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    cirq.testing.assert_equivalent_repr(calibration, setup_code="import cirq\nimport cirq.google")
+    cirq.testing.assert_equivalent_repr(calibration, setup_code="import cirq\nimport cirq_google")
 
 
 def test_calibration_timestamp_str():

@@ -18,10 +18,10 @@ from typing import Any, Callable, List, Optional, Type, TypeVar, Union, TYPE_CHE
 import numpy as np
 
 from cirq import ops
-from cirq.google.api import v2
-from cirq.google import arg_func_langs
-from cirq.google.arg_func_langs import arg_to_proto
-from cirq.google.ops.calibration_tag import CalibrationTag
+from cirq_google.api import v2
+from cirq_google import arg_func_langs
+from cirq_google.arg_func_langs import arg_to_proto
+from cirq_google.ops.calibration_tag import CalibrationTag
 
 if TYPE_CHECKING:
     import cirq
@@ -112,7 +112,7 @@ class GateOpSerializer:
         arg_function_language: Optional[str] = '',
         constants: List[v2.program_pb2.Constant] = None,
     ) -> Optional[v2.program_pb2.Operation]:
-        """Returns the cirq.google.api.v2.Operation message as a proto dict.
+        """Returns the cirq_google.api.v2.Operation message as a proto dict.
 
         Note that this function may modify the constant list if it adds
         tokens to the circuit's constant table.

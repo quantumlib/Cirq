@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.google.calibration.engine_simulator import (
+from cirq_google.calibration.engine_simulator import (
     PhasedFSimEngineSimulator,
 )
 
-from cirq.google.calibration.phased_fsim import (
+from cirq_google.calibration.phased_fsim import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
@@ -30,7 +30,7 @@ from cirq.google.calibration.phased_fsim import (
     merge_matching_results,
 )
 
-from cirq.google.calibration.workflow import (
+from cirq_google.calibration.workflow import (
     CircuitWithCalibration,
     FSimPhaseCorrections,
     make_zeta_chi_gamma_compensation_for_moments,

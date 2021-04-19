@@ -16,16 +16,16 @@ import datetime
 from typing import Iterable, List, Optional, TYPE_CHECKING, Union
 from pytz import utc
 
-from cirq.google.engine.client.quantum import types as qtypes
-from cirq.google.engine.client.quantum import enums as qenums
-from cirq.google import serializable_gate_set
-from cirq.google.api import v2
-from cirq.google.devices import serializable_device
-from cirq.google.engine import calibration
-from cirq.google.engine.engine_timeslot import EngineTimeSlot
+from cirq_google.engine.client.quantum import types as qtypes
+from cirq_google.engine.client.quantum import enums as qenums
+from cirq_google import serializable_gate_set
+from cirq_google.api import v2
+from cirq_google.devices import serializable_device
+from cirq_google.engine import calibration
+from cirq_google.engine.engine_timeslot import EngineTimeSlot
 
 if TYPE_CHECKING:
-    import cirq.google.engine.engine as engine_base
+    import cirq_google.engine.engine as engine_base
     import cirq
 
 
@@ -63,7 +63,7 @@ class EngineProcessor:
         Returns:
             The program's parent Engine.
         """
-        import cirq.google.engine.engine as engine_base
+        import cirq_google.engine.engine as engine_base
 
         return engine_base.Engine(self.project_id, context=self.context)
 

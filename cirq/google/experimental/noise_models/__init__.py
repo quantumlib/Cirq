@@ -14,7 +14,7 @@
 
 """Noise models for Google devices."""
 
-from cirq.google.experimental.noise_models.noise_models import (
+from cirq_google.experimental.noise_models.noise_models import (
     PerQubitDepolarizingWithDampedReadoutNoiseModel,
     simple_noise_from_calibration_metrics,
 )

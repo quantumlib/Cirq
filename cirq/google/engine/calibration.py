@@ -23,7 +23,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import google.protobuf.json_format as json_format
 from cirq import devices, vis
-from cirq.google.api import v2
+from cirq_google.api import v2
 
 if TYPE_CHECKING:
     import cirq
@@ -118,7 +118,7 @@ class Calibration(abc.Mapping):
         return f'Calibration(keys={list(sorted(self.keys()))})'
 
     def __repr__(self) -> str:
-        return f'cirq.google.Calibration(metrics={dict(self._metric_dict)!r})'
+        return f'cirq_google.Calibration(metrics={dict(self._metric_dict)!r})'
 
     def to_proto(self) -> v2.metrics_pb2.MetricsSnapshot:
         """Reconstruct the protobuf message represented by this class."""

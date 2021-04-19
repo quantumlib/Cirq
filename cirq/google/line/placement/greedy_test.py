@@ -17,9 +17,9 @@ from unittest import mock
 import pytest
 
 import cirq
-import cirq.google as cg
-from cirq.google.line.placement import greedy
-from cirq.google.line.placement.sequence import (
+import cirq_google as cg
+from cirq_google.line.placement import greedy
+from cirq_google.line.placement.sequence import (
     GridQubitLineTuple,
     NotFoundError,
 )
@@ -464,8 +464,8 @@ def test_greedy_search_method_fails_when_unknown():
         method.place_line(_create_device(qubits), length)
 
 
-@mock.patch('cirq.google.line.placement.greedy._PickLargestArea')
-@mock.patch('cirq.google.line.placement.greedy._PickFewestNeighbors')
+@mock.patch('cirq_google.line.placement.greedy._PickLargestArea')
+@mock.patch('cirq_google.line.placement.greedy._PickFewestNeighbors')
 def test_greedy_search_method_calls_largest_only(minimal, largest):
     q00 = cirq.GridQubit(0, 0)
     q01 = cirq.GridQubit(0, 1)
@@ -481,8 +481,8 @@ def test_greedy_search_method_calls_largest_only(minimal, largest):
     minimal.return_value.get_or_search.assert_not_called()
 
 
-@mock.patch('cirq.google.line.placement.greedy._PickLargestArea')
-@mock.patch('cirq.google.line.placement.greedy._PickFewestNeighbors')
+@mock.patch('cirq_google.line.placement.greedy._PickLargestArea')
+@mock.patch('cirq_google.line.placement.greedy._PickFewestNeighbors')
 def test_greedy_search_method_calls_minimal_only(minimal, largest):
     q00 = cirq.GridQubit(0, 0)
     q01 = cirq.GridQubit(0, 1)

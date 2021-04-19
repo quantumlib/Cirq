@@ -26,8 +26,8 @@ from collections import OrderedDict
 import dataclasses
 import numpy as np
 
-from cirq.google.api import v2
-from cirq.google.api.v2 import result_pb2
+from cirq_google.api import v2
+from cirq_google.api.v2 import result_pb2
 from cirq import circuits
 from cirq import devices
 from cirq import ops

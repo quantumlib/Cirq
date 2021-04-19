@@ -29,8 +29,8 @@ from cirq.ops import (
     SingleQubitGate,
     WaitGate,
 )
-from cirq.google.calibration.engine_simulator import PhasedFSimEngineSimulator
-from cirq.google.calibration.phased_fsim import (
+from cirq_google.calibration.engine_simulator import PhasedFSimEngineSimulator
+from cirq_google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
     PhaseCalibratedFSimGate,
@@ -43,8 +43,8 @@ from cirq.google.calibration.phased_fsim import (
     merge_matching_results,
     try_convert_sqrt_iswap_to_fsim,
 )
-from cirq.google.engine import Engine
-from cirq.google.serializable_gate_set import SerializableGateSet
+from cirq_google.engine import Engine
+from cirq_google.serializable_gate_set import SerializableGateSet
 
 
 _CALIBRATION_IRRELEVANT_GATES = MeasurementGate, SingleQubitGate, WaitGate
@@ -457,13 +457,13 @@ def run_calibrations(
 
     Args:
         calibrations: List of calibrations to perform described in a request object.
-        engine: cirq.google.Engine or cirq.google.PhasedFSimEngineSimulator object used for running
-            the calibrations. When cirq.google.Engine then processor_id and gate_set arguments must
+        engine: cirq_google.Engine or cirq_google.PhasedFSimEngineSimulator object used for running
+            the calibrations. When cirq_google.Engine then processor_id and gate_set arguments must
             be provided as well.
         processor_id: processor_id passed to engine.run_calibrations method. Can be None when
-            cirq.google.PhasedFSimEngineSimulator is used as an engine.
+            cirq_google.PhasedFSimEngineSimulator is used as an engine.
         gate_set: Gate set to use for characterization request. Can be None when
-            cirq.google.PhasedFSimEngineSimulator is used as an engine.
+            cirq_google.PhasedFSimEngineSimulator is used as an engine.
         max_layers_per_request: Maximum number of calibration requests issued to cirq.Engine at a
             single time. Defaults to 1.
         progress_func: Optional callback function that might be used to report the calibration
@@ -747,13 +747,13 @@ def run_floquet_characterization_for_moments(
 
     Args:
         circuit: Circuit to characterize.
-        engine: cirq.google.Engine or cirq.google.PhasedFSimEngineSimulator object used for running
-            the calibrations. When cirq.google.Engine then processor_id and gate_set arguments must
+        engine: cirq_google.Engine or cirq_google.PhasedFSimEngineSimulator object used for running
+            the calibrations. When cirq_google.Engine then processor_id and gate_set arguments must
             be provided as well.
         processor_id: processor_id passed to engine.run_calibrations method. Can be None when
-            cirq.google.PhasedFSimEngineSimulator is used as an engine.
+            cirq_google.PhasedFSimEngineSimulator is used as an engine.
         gate_set: Gate set to use for characterization request. Can be None when
-            cirq.google.PhasedFSimEngineSimulator is used as an engine.
+            cirq_google.PhasedFSimEngineSimulator is used as an engine.
         options: Options that are applied to each characterized gate within a moment. Defaults
             to all_except_for_chi_options which is the broadest currently supported choice.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo
@@ -815,13 +815,13 @@ def run_zeta_chi_gamma_compensation_for_moments(
 
     Args:
         circuit: Circuit to characterize and calibrate.
-        engine: cirq.google.Engine or cirq.google.PhasedFSimEngineSimulator object used for running
-            the calibrations. When cirq.google.Engine then processor_id and gate_set arguments must
+        engine: cirq_google.Engine or cirq_google.PhasedFSimEngineSimulator object used for running
+            the calibrations. When cirq_google.Engine then processor_id and gate_set arguments must
             be provided as well.
         processor_id: processor_id passed to engine.run_calibrations method. Can be None when
-            cirq.google.PhasedFSimEngineSimulator is used as an engine.
+            cirq_google.PhasedFSimEngineSimulator is used as an engine.
         gate_set: Gate set to use for characterization request. Can be None when
-            cirq.google.PhasedFSimEngineSimulator is used as an engine.
+            cirq_google.PhasedFSimEngineSimulator is used as an engine.
         options: Options that are applied to each characterized gate within a moment. Defaults
             to all_except_for_chi_options which is the broadest currently supported choice.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo

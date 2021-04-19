@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import cirq
-import cirq.google
+import cirq_google
 
 
 def test_equality():
-    assert cirq.google.PhysicalZTag() == cirq.google.PhysicalZTag()
-    assert hash(cirq.google.PhysicalZTag()) == hash(cirq.google.PhysicalZTag())
+    assert cirq_google.PhysicalZTag() == cirq_google.PhysicalZTag()
+    assert hash(cirq_google.PhysicalZTag()) == hash(cirq_google.PhysicalZTag())
 
 
 def test_syc_str_repr():
-    assert str(cirq.google.PhysicalZTag()) == 'PhysicalZTag()'
-    assert repr(cirq.google.PhysicalZTag()) == 'cirq.google.PhysicalZTag()'
+    assert str(cirq_google.PhysicalZTag()) == 'PhysicalZTag()'
+    assert repr(cirq_google.PhysicalZTag()) == 'cirq_google.PhysicalZTag()'
     cirq.testing.assert_equivalent_repr(
-        cirq.google.PhysicalZTag(), setup_code=('import cirq\nimport cirq.google\n')
+        cirq_google.PhysicalZTag(), setup_code=('import cirq\nimport cirq_google\n')
     )

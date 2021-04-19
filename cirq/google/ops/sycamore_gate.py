@@ -44,7 +44,7 @@ class SycamoreGate(ops.FSimGate):
         super().__init__(theta=np.pi / 2, phi=np.pi / 6)
 
     def __repr__(self) -> str:
-        return 'cirq.google.SYC'
+        return 'cirq_google.SYC'
 
     def __str__(self) -> str:
         return 'SYC'

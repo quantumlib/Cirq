@@ -15,10 +15,10 @@ from typing import TYPE_CHECKING
 
 import abc
 
-from cirq.google.line.placement.sequence import GridQubitLineTuple
+from cirq_google.line.placement.sequence import GridQubitLineTuple
 
 if TYPE_CHECKING:
-    import cirq.google
+    import cirq_google
 
 
 class LinePlacementStrategy(metaclass=abc.ABCMeta):
@@ -29,7 +29,7 @@ class LinePlacementStrategy(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def place_line(self, device: 'cirq.google.XmonDevice', length: int) -> GridQubitLineTuple:
+    def place_line(self, device: 'cirq_google.XmonDevice', length: int) -> GridQubitLineTuple:
         """Runs line sequence search.
 
         Args:

@@ -17,9 +17,9 @@ import pytest
 import sympy
 
 import cirq
-import cirq.google as cg
-import cirq.google.api.v1.programs as programs
-from cirq.google.api.v1 import operations_pb2
+import cirq_google as cg
+import cirq_google.api.v1.programs as programs
+from cirq_google.api.v1 import operations_pb2
 
 
 def assert_proto_dict_convert(gate: cirq.Gate, proto: operations_pb2.Operation, *qubits: cirq.Qid):

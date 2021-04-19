@@ -17,10 +17,10 @@ import numpy as np
 import sympy
 
 from cirq import devices, ops, protocols, value, circuits
-from cirq.google.api.v1 import operations_pb2
+from cirq_google.api.v1 import operations_pb2
 
 if TYPE_CHECKING:
-    import cirq.google
+    import cirq_google
     import cirq
 
 
@@ -168,7 +168,7 @@ def circuit_as_schedule_to_protos(circuit: 'cirq.Circuit') -> Iterator[operation
 
 
 def circuit_from_schedule_from_protos(
-    device: 'cirq.google.XmonDevice',
+    device: 'cirq_google.XmonDevice',
     ops: Iterable[operations_pb2.Operation],
 ) -> 'cirq.Circuit':
     """Convert protos into a Circuit for the given device."""

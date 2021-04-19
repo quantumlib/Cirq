@@ -34,7 +34,7 @@ from cirq.sim import (
 from cirq.study import ParamResolver
 from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
 
-from cirq.google.calibration.phased_fsim import (
+from cirq_google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationRequest,
     PhaseCalibratedFSimGate,
     IncompatibleMomentError,
@@ -56,7 +56,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
     """Wrapper on top of cirq.Simulator that allows to simulate calibration requests.
 
     This simulator introduces get_calibrations which allows to simulate
-    cirq.google.run_characterizations requests. The returned calibration results represent the
+    cirq_google.run_characterizations requests. The returned calibration results represent the
     internal state of a simulator. Circuits which are run on this simulator are modified to account
     for the changes in the unitary parameters as described by the calibration results.
 

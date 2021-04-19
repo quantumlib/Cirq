@@ -18,13 +18,13 @@ import abc
 import collections
 
 from cirq.devices import GridQubit
-from cirq.google.line.placement import place_strategy
-from cirq.google.line.placement.chip import chip_as_adjacency_list
-from cirq.google.line.placement.sequence import GridQubitLineTuple
+from cirq_google.line.placement import place_strategy
+from cirq_google.line.placement.chip import chip_as_adjacency_list
+from cirq_google.line.placement.sequence import GridQubitLineTuple
 
 if TYPE_CHECKING:
-    from cirq.google.line.placement.sequence import LineSequence
-    import cirq.google
+    from cirq_google.line.placement.sequence import LineSequence
+    import cirq_google
 
 
 class GreedySequenceSearch:
@@ -34,7 +34,7 @@ class GreedySequenceSearch:
     method.
     """
 
-    def __init__(self, device: 'cirq.google.XmonDevice', start: GridQubit) -> None:
+    def __init__(self, device: 'cirq_google.XmonDevice', start: GridQubit) -> None:
         """Greedy sequence search constructor.
 
         Args:
@@ -286,7 +286,7 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
         """
         self.algorithm = algorithm
 
-    def place_line(self, device: 'cirq.google.XmonDevice', length: int) -> GridQubitLineTuple:
+    def place_line(self, device: 'cirq_google.XmonDevice', length: int) -> GridQubitLineTuple:
         """Runs line sequence search.
 
         Args:

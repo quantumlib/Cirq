@@ -14,7 +14,7 @@
 """Classes for running against Google's Quantum Cloud Service.
 
 As an example, to run a circuit against the xmon simulator on the cloud,
-    engine = cirq.google.Engine(project_id='my-project-id')
+    engine = cirq_google.Engine(project_id='my-project-id')
     program = engine.create_program(circuit)
     result0 = program.run(params=params0, repetitions=10)
     result1 = program.run(params=params1, repetitions=10)
@@ -31,13 +31,13 @@ import string
 from typing import Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union, TYPE_CHECKING
 
 from google.protobuf import any_pb2
-from cirq.google.engine.client import quantum
-from cirq.google.engine.result_type import ResultType
+from cirq_google.engine.client import quantum
+from cirq_google.engine.result_type import ResultType
 from cirq import circuits, study, value
-from cirq.google import serializable_gate_set as sgs
-from cirq.google.api import v2
-from cirq.google.arg_func_langs import arg_to_proto
-from cirq.google.engine import (
+from cirq_google import serializable_gate_set as sgs
+from cirq_google.api import v2
+from cirq_google.arg_func_langs import arg_to_proto
+from cirq_google.engine import (
     engine_client,
     engine_program,
     engine_job,
@@ -46,7 +46,7 @@ from cirq.google.engine import (
 )
 
 if TYPE_CHECKING:
-    import cirq.google
+    import cirq_google
     import cirq
     import google.protobuf
 
@@ -377,7 +377,7 @@ class Engine:
 
     def run_calibration(
         self,
-        layers: List['cirq.google.CalibrationLayer'],
+        layers: List['cirq_google.CalibrationLayer'],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
         processor_id: str = None,
@@ -539,7 +539,7 @@ class Engine:
 
     def create_calibration_program(
         self,
-        layers: List['cirq.google.CalibrationLayer'],
+        layers: List['cirq_google.CalibrationLayer'],
         program_id: Optional[str] = None,
         gate_set: Optional[sgs.SerializableGateSet] = None,
         description: Optional[str] = None,
@@ -813,7 +813,7 @@ def get_engine_device(
 def get_engine_calibration(
     processor_id: str,
     project_id: Optional[str] = None,
-) -> Optional['cirq.google.Calibration']:
+) -> Optional['cirq_google.Calibration']:
     """Returns calibration metrics for a given processor.
 
     This is a short-cut for creating an engine object, getting the

@@ -32,7 +32,7 @@ from cirq.testing import assert_json_roundtrip_works
 from cirq.testing.json import ModuleJsonTestSpec, spec_for
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent.parent.parent
-TESTED_MODULES = ['cirq.google', 'cirq.protocols', 'non_existent_should_be_fine']
+TESTED_MODULES = ['cirq_google', 'cirq.protocols', 'non_existent_should_be_fine']
 
 
 def _get_testspecs_for_modules():
@@ -535,8 +535,8 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
             'datetime': datetime,
         }
         try:
-            import cirq.google
-            imports['cirq.google'] = cirq.google
+            import cirq_google
+            imports['cirq_google'] = cirq_google
         except ImportError:
             pass
         obj = eval(

@@ -12,7 +12,7 @@ _sym_db = _symbol_database.Default()
 
 
 from google.api import annotations_pb2 as google_dot_api_dot_annotations__pb2
-from cirq.google.engine.client.quantum_v1alpha1.proto import quantum_pb2 as google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_quantum__pb2
+from . import quantum_pb2 as google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_quantum__pb2
 from google.protobuf import duration_pb2 as google_dot_protobuf_dot_duration__pb2
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 from google.protobuf import field_mask_pb2 as google_dot_protobuf_dot_field__mask__pb2

@@ -13,15 +13,15 @@
 # limitations under the License.
 """Data format v1 for google api."""
 
-from cirq.google.api.v1 import (
+from cirq_google.api.v1 import (
     operations_pb2,
     params_pb2,
     program_pb2,
 )
 
-from cirq.google.api.v1.params import sweep_from_proto, sweep_to_proto
+from cirq_google.api.v1.params import sweep_from_proto, sweep_to_proto
 
-from cirq.google.api.v1.programs import (
+from cirq_google.api.v1.programs import (
     gate_to_proto,
     is_native_xmon_gate,
     is_native_xmon_op,

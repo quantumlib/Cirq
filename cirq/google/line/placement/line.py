@@ -13,16 +13,16 @@
 # limitations under the License.
 from typing import TYPE_CHECKING
 
-from cirq.google.line.placement import greedy
-from cirq.google.line.placement.place_strategy import LinePlacementStrategy
-from cirq.google.line.placement.sequence import GridQubitLineTuple
+from cirq_google.line.placement import greedy
+from cirq_google.line.placement.place_strategy import LinePlacementStrategy
+from cirq_google.line.placement.sequence import GridQubitLineTuple
 
 if TYPE_CHECKING:
-    import cirq.google
+    import cirq_google
 
 
 def line_on_device(
-    device: 'cirq.google.XmonDevice',
+    device: 'cirq_google.XmonDevice',
     length: int,
     method: LinePlacementStrategy = greedy.GreedySequenceSearchStrategy(),
 ) -> GridQubitLineTuple:

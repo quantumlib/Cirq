@@ -15,8 +15,8 @@ import pytest
 import numpy as np
 
 import cirq
-import cirq.google
-from cirq.google.calibration.phased_fsim import (
+import cirq_google
+from cirq_google.calibration.phased_fsim import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
@@ -91,7 +91,7 @@ def test_floquet_to_calibration_layer():
         ),
     )
 
-    assert request.to_calibration_layer() == cirq.google.CalibrationLayer(
+    assert request.to_calibration_layer() == cirq_google.CalibrationLayer(
         calibration_type='floquet_phased_fsim_characterization',
         program=cirq.Circuit([gate.on(q_00, q_01), gate.on(q_02, q_03)]),
         args={
@@ -156,15 +156,15 @@ def test_floquet_parse_result():
         ),
     )
 
-    result = cirq.google.CalibrationResult(
-        code=cirq.google.api.v2.calibration_pb2.SUCCESS,
+    result = cirq_google.CalibrationResult(
+        code=cirq_google.api.v2.calibration_pb2.SUCCESS,
         error_message=None,
         token=None,
         valid_until=None,
-        metrics=cirq.google.Calibration(
-            cirq.google.api.v2.metrics_pb2.MetricsSnapshot(
+        metrics=cirq_google.Calibration(
+            cirq_google.api.v2.metrics_pb2.MetricsSnapshot(
                 metrics=[
-                    cirq.google.api.v2.metrics_pb2.Metric(
+                    cirq_google.api.v2.metrics_pb2.Metric(
                         name='angles',
                         targets=[
                             '0_qubit_a',
@@ -179,16 +179,16 @@ def test_floquet_parse_result():
                             '1_phi_est',
                         ],
                         values=[
-                            cirq.google.api.v2.metrics_pb2.Value(str_val='0_0'),
-                            cirq.google.api.v2.metrics_pb2.Value(str_val='0_1'),
-                            cirq.google.api.v2.metrics_pb2.Value(double_val=0.1),
-                            cirq.google.api.v2.metrics_pb2.Value(double_val=0.2),
-                            cirq.google.api.v2.metrics_pb2.Value(double_val=0.3),
-                            cirq.google.api.v2.metrics_pb2.Value(str_val='0_2'),
-                            cirq.google.api.v2.metrics_pb2.Value(str_val='0_3'),
-                            cirq.google.api.v2.metrics_pb2.Value(double_val=0.4),
-                            cirq.google.api.v2.metrics_pb2.Value(double_val=0.5),
-                            cirq.google.api.v2.metrics_pb2.Value(double_val=0.6),
+                            cirq_google.api.v2.metrics_pb2.Value(str_val='0_0'),
+                            cirq_google.api.v2.metrics_pb2.Value(str_val='0_1'),
+                            cirq_google.api.v2.metrics_pb2.Value(double_val=0.1),
+                            cirq_google.api.v2.metrics_pb2.Value(double_val=0.2),
+                            cirq_google.api.v2.metrics_pb2.Value(double_val=0.3),
+                            cirq_google.api.v2.metrics_pb2.Value(str_val='0_2'),
+                            cirq_google.api.v2.metrics_pb2.Value(str_val='0_3'),
+                            cirq_google.api.v2.metrics_pb2.Value(double_val=0.4),
+                            cirq_google.api.v2.metrics_pb2.Value(double_val=0.5),
+                            cirq_google.api.v2.metrics_pb2.Value(double_val=0.6),
                         ],
                     )
                 ]
@@ -230,21 +230,21 @@ def test_floquet_parse_result_bad_metric():
             characterize_phi=True,
         ),
     )
-    result = cirq.google.CalibrationResult(
-        code=cirq.google.api.v2.calibration_pb2.SUCCESS,
+    result = cirq_google.CalibrationResult(
+        code=cirq_google.api.v2.calibration_pb2.SUCCESS,
         error_message=None,
         token=None,
         valid_until=None,
-        metrics=cirq.google.Calibration(
-            cirq.google.api.v2.metrics_pb2.MetricsSnapshot(
+        metrics=cirq_google.Calibration(
+            cirq_google.api.v2.metrics_pb2.MetricsSnapshot(
                 metrics=[
-                    cirq.google.api.v2.metrics_pb2.Metric(
+                    cirq_google.api.v2.metrics_pb2.Metric(
                         name='angles',
                         targets=[
                             '1000gerbils',
                         ],
                         values=[
-                            cirq.google.api.v2.metrics_pb2.Value(str_val='100_10'),
+                            cirq_google.api.v2.metrics_pb2.Value(str_val='100_10'),
                         ],
                     )
                 ]

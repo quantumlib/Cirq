@@ -14,25 +14,25 @@
 from typing import List, TYPE_CHECKING, Union, Optional, cast
 
 from cirq import work, circuits
-from cirq.google import engine, gate_sets
+from cirq_google import engine, gate_sets
 
 if TYPE_CHECKING:
-    import cirq.google
+    import cirq_google
     import cirq
 
 
 class QuantumEngineSampler(work.Sampler):
     """A sampler that samples from processors managed by the Quantum Engine.
 
-    Exposes a `cirq.google.Engine` instance as a `cirq.Sampler`.
+    Exposes a `cirq_google.Engine` instance as a `cirq.Sampler`.
     """
 
     def __init__(
         self,
         *,
-        engine: 'cirq.google.Engine',
+        engine: 'cirq_google.Engine',
         processor_id: Union[str, List[str]],
-        gate_set: 'cirq.google.SerializableGateSet',
+        gate_set: 'cirq_google.SerializableGateSet',
     ):
         """
         Args:
@@ -48,7 +48,7 @@ class QuantumEngineSampler(work.Sampler):
 
     def run_sweep(
         self,
-        program: Union['cirq.Circuit', 'cirq.google.EngineProgram'],
+        program: Union['cirq.Circuit', 'cirq_google.EngineProgram'],
         params: 'cirq.Sweepable',
         repetitions: int = 1,
     ) -> List['cirq.Result']:
@@ -102,13 +102,13 @@ class QuantumEngineSampler(work.Sampler):
         return super().run_batch(programs, params_list, repetitions)
 
     @property
-    def engine(self) -> 'cirq.google.Engine':
+    def engine(self) -> 'cirq_google.Engine':
         return self._engine
 
 
 def get_engine_sampler(
     processor_id: str, gate_set_name: str, project_id: Optional[str] = None
-) -> 'cirq.google.QuantumEngineSampler':
+) -> 'cirq_google.QuantumEngineSampler':
     """Get an EngineSampler assuming some sensible defaults.
 
     This uses the environment variable GOOGLE_CLOUD_PROJECT for the Engine
@@ -118,7 +118,7 @@ def get_engine_sampler(
         processor_id: Engine processor ID (from Cloud console or
             ``Engine.list_processors``).
         gate_set_name: One of ['sqrt_iswap', 'sycamore'].
-            See `cirq.google.NAMED_GATESETS`.
+            See `cirq_google.NAMED_GATESETS`.
         project_id: Optional explicit Google Cloud project id. Otherwise,
             this defaults to the environment variable GOOGLE_CLOUD_PROJECT.
             By using an environment variable, you can avoid hard-coding

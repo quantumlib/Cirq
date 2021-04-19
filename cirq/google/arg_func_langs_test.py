@@ -19,14 +19,14 @@ import sympy
 from google.protobuf import json_format
 
 import cirq
-import cirq.google
-from cirq.google.arg_func_langs import (
+import cirq_google
+from cirq_google.arg_func_langs import (
     arg_from_proto,
     arg_to_proto,
     ARG_LIKE,
     LANGUAGE_ORDER,
 )
-from cirq.google.api import v2
+from cirq_google.api import v2
 
 
 @pytest.mark.parametrize(
@@ -145,13 +145,13 @@ def test_infer_language():
     b = sympy.Symbol('b')
 
     c_linear = cirq.Circuit(cirq.X(q) ** (b - a))
-    packed = cirq.google.XMON.serialize(c_linear)
+    packed = cirq_google.XMON.serialize(c_linear)
     assert packed.language.arg_function_language == 'linear'
 
     c_empty = cirq.Circuit(cirq.X(q) ** b)
-    packed = cirq.google.XMON.serialize(c_empty)
+    packed = cirq_google.XMON.serialize(c_empty)
     assert packed.language.arg_function_language == ''
 
     c_exp = cirq.Circuit(cirq.X(q) ** (b ** a))
-    packed = cirq.google.XMON.serialize(c_exp)
+    packed = cirq_google.XMON.serialize(c_exp)
     assert packed.language.arg_function_language == 'exp'

@@ -15,10 +15,10 @@ import datetime
 
 from google.protobuf.timestamp_pb2 import Timestamp
 import cirq
-import cirq.google as cg
+import cirq_google as cg
 
-from cirq.google.engine.client.quantum import types as qtypes
-from cirq.google.engine.client.quantum import enums
+from cirq_google.engine.client.quantum import types as qtypes
+from cirq_google.engine.client.quantum import enums
 
 
 def test_timeslot_equality():

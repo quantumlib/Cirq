@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.google.line.placement import (
+from cirq_google.line.placement import (
     AnnealSequenceSearchStrategy,
     GreedySequenceSearchStrategy,
     line_on_device,

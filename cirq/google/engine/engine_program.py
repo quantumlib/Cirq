@@ -16,15 +16,15 @@ import datetime
 from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 
 from cirq import study
-from cirq.google.engine.client import quantum
-from cirq.google.engine.client.quantum import types as qtypes
-from cirq.google.engine.result_type import ResultType
-from cirq.google import gate_sets
-from cirq.google.api import v2
-from cirq.google.engine import engine_job
+from cirq_google.engine.client import quantum
+from cirq_google.engine.client.quantum import types as qtypes
+from cirq_google.engine.result_type import ResultType
+from cirq_google import gate_sets
+from cirq_google.api import v2
+from cirq_google.engine import engine_job
 
 if TYPE_CHECKING:
-    import cirq.google.engine.engine as engine_base
+    import cirq_google.engine.engine as engine_base
     from cirq import Circuit
 
 
@@ -93,7 +93,7 @@ class EngineProgram:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
         """
-        import cirq.google.engine.engine as engine_base
+        import cirq_google.engine.engine as engine_base
 
         if self.result_type != ResultType.Program:
             raise ValueError('Please use run_batch() for batch mode.')
@@ -160,7 +160,7 @@ class EngineProgram:
             ValueError: if the program was not a batch program or no processors
                 were supplied.
         """
-        import cirq.google.engine.engine as engine_base
+        import cirq_google.engine.engine as engine_base
 
         if self.result_type != ResultType.Batch:
             raise ValueError('Can only use run_batch() in batch mode.')
@@ -230,7 +230,7 @@ class EngineProgram:
         Returns:
             An EngineJob.  Results can be accessed with calibration_results().
         """
-        import cirq.google.engine.engine as engine_base
+        import cirq_google.engine.engine as engine_base
 
         if not job_id:
             job_id = engine_base._make_random_id('calibration-')
@@ -304,7 +304,7 @@ class EngineProgram:
         sweeps: List[study.Sweep],
         repetitions: int,
     ) -> qtypes.any_pb2.Any:
-        import cirq.google.engine.engine as engine_base
+        import cirq_google.engine.engine as engine_base
 
         context = qtypes.any_pb2.Any()
         proto_version = self.context.proto_version
@@ -326,7 +326,7 @@ class EngineProgram:
         Returns:
             The program's parent Engine.
         """
-        import cirq.google.engine.engine as engine_base
+        import cirq_google.engine.engine as engine_base
 
         return engine_base.Engine(self.project_id, context=self.context)
 
@@ -495,7 +495,7 @@ class EngineProgram:
             raise ValueError(
                 f'Program was not a batch program but instead was of type {self.result_type}.'
             )
-        import cirq.google.engine.engine as engine_base
+        import cirq_google.engine.engine as engine_base
 
         if not self._program or not self._program.HasField('code'):
             self._program = self.context.client.get_program(self.project_id, self.program_id, True)
@@ -510,7 +510,7 @@ class EngineProgram:
     def _deserialize_program(
         code: qtypes.any_pb2.Any, program_num: Optional[int] = None
     ) -> 'Circuit':
-        import cirq.google.engine.engine as engine_base
+        import cirq_google.engine.engine as engine_base
 
         code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]
         program = None

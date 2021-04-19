@@ -18,17 +18,17 @@ import time
 from typing import Dict, Iterator, List, Optional, overload, Tuple, TYPE_CHECKING
 
 from cirq import study
-from cirq.google.engine import calibration
-from cirq.google.engine.calibration_result import CalibrationResult
-from cirq.google.engine.client import quantum
-from cirq.google.engine.result_type import ResultType
-from cirq.google.api import v1, v2
+from cirq_google.engine import calibration
+from cirq_google.engine.calibration_result import CalibrationResult
+from cirq_google.engine.client import quantum
+from cirq_google.engine.result_type import ResultType
+from cirq_google.api import v1, v2
 
 if TYPE_CHECKING:
     import datetime
-    import cirq.google.engine.engine as engine_base
-    from cirq.google.engine.engine import engine_program
-    from cirq.google.engine.engine import engine_processor
+    import cirq_google.engine.engine as engine_base
+    from cirq_google.engine.engine import engine_program
+    from cirq_google.engine.engine import engine_processor
 
 TERMINAL_STATES = [
     quantum.enums.ExecutionStatus.State.SUCCESS,
@@ -86,13 +86,13 @@ class EngineJob:
 
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object."""
-        import cirq.google.engine.engine as engine_base
+        import cirq_google.engine.engine as engine_base
 
         return engine_base.Engine(self.project_id, context=self.context)
 
     def program(self) -> 'engine_program.EngineProgram':
         """Returns the parent EngineProgram object."""
-        import cirq.google.engine.engine_program as engine_program
+        import cirq_google.engine.engine_program as engine_program
 
         return engine_program.EngineProgram(self.project_id, self.program_id, self.context)
 
@@ -224,7 +224,7 @@ class EngineJob:
     def _deserialize_run_context(
         run_context: quantum.types.any_pb2.Any,
     ) -> Tuple[int, List[study.Sweep]]:
-        import cirq.google.engine.engine as engine_base
+        import cirq_google.engine.engine as engine_base
 
         run_context_type = run_context.type_url[len(engine_base.TYPE_PREFIX) :]
         if (
@@ -248,7 +248,7 @@ class EngineJob:
         status = self._inner_job().execution_status
         if not status.processor_name:
             return None
-        import cirq.google.engine.engine_processor as engine_processor
+        import cirq_google.engine.engine_processor as engine_processor
 
         ids = self.context.client._ids_from_processor_name(status.processor_name)
         return engine_processor.EngineProcessor(ids[0], ids[1], self.context)
@@ -304,7 +304,7 @@ class EngineJob:
 
     def results(self) -> List[study.Result]:
         """Returns the job results, blocking until the job is complete."""
-        import cirq.google.engine.engine as engine_base
+        import cirq_google.engine.engine as engine_base
 
         if not self._results:
             result = self._wait_for_result()
@@ -335,7 +335,7 @@ class EngineJob:
         This function will fail if any other type of results were returned
         by the Engine.
         """
-        import cirq.google.engine.engine as engine_base
+        import cirq_google.engine.engine as engine_base
 
         if not self._calibration_results:
             result = self._wait_for_result()

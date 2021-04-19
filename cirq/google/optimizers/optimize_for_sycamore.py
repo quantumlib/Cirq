@@ -18,8 +18,8 @@ from typing import Callable, cast, List, Optional, TYPE_CHECKING
 import numpy as np
 
 from cirq import circuits, devices, optimizers, protocols
-from cirq.google import ops as cg_ops
-from cirq.google.optimizers import (
+from cirq_google import ops as cg_ops
+from cirq_google.optimizers import (
     convert_to_xmon_gates,
     ConvertToSycamoreGates,
     ConvertToSqrtIswapGates,
@@ -28,7 +28,7 @@ from cirq.google.optimizers import (
 )
 
 if TYPE_CHECKING:
-    import cirq.google
+    import cirq_google
     import cirq
 
 
@@ -116,7 +116,7 @@ def _gate_product_tabulation_cached(
 def optimized_for_sycamore(
     circuit: 'cirq.Circuit',
     *,
-    new_device: Optional['cirq.google.XmonDevice'] = None,
+    new_device: Optional['cirq_google.XmonDevice'] = None,
     qubit_map: Callable[['cirq.Qid'], devices.GridQubit] = lambda e: cast(devices.GridQubit, e),
     optimizer_type: str = 'sqrt_iswap',
     tolerance: float = 1e-5,

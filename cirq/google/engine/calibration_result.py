@@ -17,15 +17,15 @@ import datetime
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    import cirq.google
+    import cirq_google
     import cirq
-    import cirq.google.api.v2.calibration_pb2 as calibration_pb2
+    import cirq_google.api.v2.calibration_pb2 as calibration_pb2
 
 
 @dataclasses.dataclass
 class CalibrationResult:
     """Python implementation of the proto found in
-    cirq.google.api.v2.calibration_pb2.CalibrationLayerResult for use
+    cirq_google.api.v2.calibration_pb2.CalibrationLayerResult for use
     in Engine calls.
 
     Note that, if these fields are not filled out by the calibration API,
@@ -38,7 +38,7 @@ class CalibrationResult:
     error_message: Optional[str]
     token: Optional[str]
     valid_until: Optional[datetime.datetime]
-    metrics: 'cirq.google.Calibration'
+    metrics: 'cirq_google.Calibration'
 
     @classmethod
     def _from_json_dict_(
@@ -47,7 +47,7 @@ class CalibrationResult:
         error_message: Optional[str],
         token: Optional[str],
         utc_valid_until: float,
-        metrics: 'cirq.google.Calibration',
+        metrics: 'cirq_google.Calibration',
         **kwargs,
     ) -> 'CalibrationResult':
         """Magic method for the JSON serialization protocol."""
