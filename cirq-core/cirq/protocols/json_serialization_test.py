@@ -536,6 +536,7 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
         }
         try:
             import cirq_google
+
             imports['cirq_google'] = cirq_google
         except ImportError:
             pass

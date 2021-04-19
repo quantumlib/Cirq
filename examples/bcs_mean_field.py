@@ -137,6 +137,7 @@ import scipy.optimize
 import cirq
 import cirq_google
 
+
 def main():
 
     # Number of sites in the Fermi-Hubbard model (2*n_site spin orbitals)
