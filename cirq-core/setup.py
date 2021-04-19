@@ -73,6 +73,7 @@ setup(
     long_description=long_description,
     packages=cirq_packages,
     package_data={
+        'cirq': ['py.typed'],
         'cirq.protocols.json_test_data': ['*'],
     },
 )
