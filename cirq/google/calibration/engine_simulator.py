@@ -7,7 +7,8 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
-    Union, Iterator,
+    Union,
+    Iterator,
 )
 
 import numpy as np

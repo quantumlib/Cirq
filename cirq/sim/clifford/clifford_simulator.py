@@ -263,7 +263,11 @@ class CliffordState:
         self.qubit_map = qubit_map
         self.n = len(qubit_map)
 
-        self.ch_form = initial_state if isinstance(initial_state, clifford.StabilizerStateChForm) else clifford.StabilizerStateChForm(self.n, initial_state)
+        self.ch_form = (
+            initial_state
+            if isinstance(initial_state, clifford.StabilizerStateChForm)
+            else clifford.StabilizerStateChForm(self.n, initial_state)
+        )
 
     def _json_dict_(self):
         return {
