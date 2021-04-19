@@ -69,6 +69,7 @@ setup(
     long_description=long_description,
     packages=packs,
     package_data={
+        'cirq_google': ['py.typed'],
         'cirq_google.api.v2': ['*'],
         'cirq_google.api.v1': ['*'],
         'cirq_google.json_test_data': ['*'],
