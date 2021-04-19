@@ -6,6 +6,7 @@ import re
 import subprocess
 import sys
 import time
+from argparse import ArgumentParser
 from dataclasses import dataclass
 from enum import Enum
 from subprocess import PIPE
@@ -223,7 +224,7 @@ def print_summary(results: Dict[str, Result], check_names: Sequence[str]):
             raise ValueError()
 
 
-def main(fail_fast=True):
+def main(fail_fast=True, long_tests=True):
     """The main function."""
     global WIN
     repo_root = cd_repo_root()
@@ -235,12 +236,12 @@ def main(fail_fast=True):
         ('pylint-changed-files', ['check/pylint-changed-files']),
         ('pytest-changed-files', ['check/pytest-changed-files']),
         ('incremental-coverage', ['check/pytest-changed-files-and-incremental-coverage']),
-        ('pylint', ['check/pylint']),
-        ('pytest', ['check/pytest', '-v']),
-        # ('sleep1', ['sleep', '3']),
-        # ('sleep2', ['sleep', '3']),
-        # ('echo', ['echo', 'yo']),
     ]
+    if long_tests:
+        checks += [
+            ('pylint', ['check/pylint']),
+            ('pytest', ['check/pytest', '-v']),
+        ]
     check_names = [name for name, _ in checks]
 
     try:
@@ -268,18 +269,15 @@ def main(fail_fast=True):
 
 def _parse_args():
     """Parse command line arguments."""
-    if len(sys.argv) == 1:
-        # Default
-        return {'fail_fast': True}
-    if len(sys.argv) > 2:
-        raise ValueError("Unknown command line arguments")
+    parser = ArgumentParser()
+    parser.add_argument('--fail-fast', dest='fail_fast', action='store_true')
+    parser.add_argument('--no-fail-fast', dest='fail_fast', action='store_false')
+    parser.set_defaults(fail_fast=True)
 
-    if sys.argv[1] == '--fail-fast':
-        return {'fail_fast': True}
-    if sys.argv[1] == '--no-fail-fast':
-        return {'fail_fast': False}
-
-    raise ValueError("Unknown command line argument")
+    parser.add_argument('--long-tests', dest='long_tests', action='store_true')
+    parser.add_argument('--no-long-tests', dest='long_tests', action='store_false')
+    parser.set_defaults(long_tests=False)
+    return vars(parser.parse_args())
 
 
 if __name__ == '__main__':
