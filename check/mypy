@@ -20,7 +20,7 @@ for arg in $@; do
 done
 
 echo -e -n "\033[31m"
-mypy --config-file=dev_tools/conf/$config_file $@ .
+mypy --config-file=dev_tools/conf/mypy.ini $@ cirq-google/cirq_google cirq-core/cirq dev_tools
 result=$?
 echo -e -n "\033[0m"
 

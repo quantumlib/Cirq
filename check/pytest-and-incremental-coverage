@@ -51,8 +51,10 @@ else
     rev="${base}"
 fi
 
+source dev_tools/pypath
+
 # Run tests while producing coverage files.
-check/pytest . \
+check/pytest cirq-core/cirq cirq-google \
     --actually-quiet \
     --cov \
     --cov-report=annotate \
@@ -60,7 +62,7 @@ check/pytest . \
 pytest_result=$?
 
 # Analyze coverage files.
-PYTHONPATH="$(pwd)" python dev_tools/check_incremental_coverage_annotations.py "${rev}"
+python dev_tools/check_incremental_coverage_annotations.py "${rev}"
 cover_result=$?
 
 # Clean up generated coverage files.

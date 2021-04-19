@@ -23,9 +23,10 @@ IGNORED_FILE_PATTERNS = [
     r'^dev_tools/.+',  # Environment-heavy code.
     r'^rtd_docs/.+',  # Environment-heavy code.
     r'^.+_pb2(_grpc)?\.py$',  # Auto-generated protobuf code.
-    r'^setup\.py$',  # Installation code.
-    r'^cirq/google/engine/client/.+.py$',  # Generated gRPC client code.
-    r'^cirq/google/api/v1/.+.py$',  # deprecated API code
+    r'^(.+/)?setup\.py$',  # Installation code.
+    r'^(.+/)?_version\.py$',  # Installation code.
+    r'^cirq-google/cirq_google/engine/client/.+.py$',  # Generated gRPC client code.
+    r'^cirq-google/cirq_google/api/v1/.+.py$',  # deprecated API code
     r'^benchmarks/',
 ]
 IGNORED_BLOCK_PATTERNS = [

@@ -1,0 +1,11 @@
+cirq_google.FloquetPhasedFSimCalibrationRequest(
+            gate=cirq.FSimGate(theta=0.7853981633974483, phi=0.0),
+            pairs=((cirq.GridQubit(0,0), cirq.GridQubit(0,1)), (cirq.GridQubit(0,2), cirq.GridQubit(0,3))),
+            options=cirq_google.FloquetPhasedFSimCalibrationOptions(
+                characterize_theta=True,
+                characterize_zeta=True,
+                characterize_chi=False,
+                characterize_gamma=False,
+                characterize_phi=True,
+            ),
+        )
