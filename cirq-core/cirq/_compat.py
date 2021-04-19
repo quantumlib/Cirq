@@ -94,7 +94,7 @@ def _warn_or_error(msg):
     called_from_test = 'CIRQ_TESTING' in os.environ
     deprecation_allowed = ALLOW_DEPRECATION_IN_TEST in os.environ
     if called_from_test and not deprecation_allowed:
-        raise ValueError(f"Cirq should not use deprecated functionality: {msg}, {called_from_test}")
+        raise ValueError(f"Cirq should not use deprecated functionality: {msg}")
 
     # we have to dynamically count the non-internal frames
     # due to the potentially multiple nested module wrappers
