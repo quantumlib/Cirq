@@ -155,8 +155,11 @@ class DensityMatrixSimulator(
             seed=seed,
             ignore_measurement_results=ignore_measurement_results,
         )
+        if dtype not in {np.complex64, np.complex128}:
+            raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
 
-    def create_act_on_args(
+
+    def _create_act_on_args(
         self,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
         qubits: Sequence['cirq.Qid'],

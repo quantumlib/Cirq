@@ -563,11 +563,11 @@ class SimulatesIntermediateState(
             StepResults from simulating a Moment of the Circuit.
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-        act_on_args = self.create_act_on_args(initial_state, qubits)
+        act_on_args = self._create_act_on_args(initial_state, qubits)
         return self._core_iterator(circuit, act_on_args)
 
     @abc.abstractmethod
-    def create_act_on_args(
+    def _create_act_on_args(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
@@ -686,7 +686,7 @@ class SimulatesIntermediateState(
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         check_all_resolved(resolved_circuit)
         qubits = tuple(sorted(resolved_circuit.all_qubits()))
-        act_on_args = self.create_act_on_args(0, qubits)
+        act_on_args = self._create_act_on_args(0, qubits)
 
         prefix, general_suffix = (
             split_into_matching_protocol_then_general(resolved_circuit, protocols.has_unitary)

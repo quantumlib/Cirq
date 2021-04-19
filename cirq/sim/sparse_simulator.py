@@ -162,7 +162,7 @@ class Simulator(
             seed=seed,
         )
 
-    def create_act_on_args(
+    def _create_act_on_args(
         self,
         initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
         qubits: Sequence['cirq.Qid'],

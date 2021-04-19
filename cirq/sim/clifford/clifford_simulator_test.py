@@ -109,7 +109,7 @@ def test_simulate_act_on_args():
                 circuit.append(cirq.X(q1))
             circuit.append(cirq.measure(q0, q1))
 
-            args = simulator.create_act_on_args(initial_state=1, qubits=(q0, q1))
+            args = simulator._create_act_on_args(initial_state=1, qubits=(q0, q1))
             result = simulator.simulate(circuit, initial_state=args)
             expected_state = np.zeros(shape=(2, 2))
             expected_state[b0][1 - b1] = 1.0

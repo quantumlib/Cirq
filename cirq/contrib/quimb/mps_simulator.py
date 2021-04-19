@@ -84,7 +84,7 @@ class MPSSimulator(
             seed=seed,
         )
 
-    def create_act_on_args(
+    def _create_act_on_args(
         self,
         initial_state: Union[int, 'MPSState'],
         qubits: Sequence['cirq.Qid'],

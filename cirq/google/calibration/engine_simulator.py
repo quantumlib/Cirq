@@ -8,6 +8,7 @@ from typing import (
     Sequence,
     Tuple,
     Union,
+    Iterator,
 )
 
 import numpy as np
@@ -36,6 +37,7 @@ from cirq.ops import (
 from cirq.sim import (
     Simulator,
     SimulatesIntermediateStateVector,
+    StateVectorStepResult,
     ActOnStateVectorArgs,
 )
 from cirq.study import ParamResolver
@@ -393,20 +395,20 @@ class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector):
     def _core_iterator(
         self,
         circuit: Circuit,
-        initial_state: Any,
+        sim_state: Any,
         all_measurements_are_terminal: bool = False,
-    ):
+    ) -> Iterator[StateVectorStepResult]:
         converted = _convert_to_circuit_with_drift(self, circuit)
         return self._simulator._core_iterator(
-            converted, initial_state, all_measurements_are_terminal
+            converted, sim_state, all_measurements_are_terminal
         )
 
-    def create_act_on_args(
+    def _create_act_on_args(
         self,
         initial_state: Union[int, ActOnStateVectorArgs],
         qubits: Sequence[Qid],
-    ):
-        return self._simulator.create_act_on_args(initial_state, qubits)
+    ) -> ActOnStateVectorArgs:
+        return self._simulator._create_act_on_args(initial_state, qubits)
 
 
 class _PhasedFSimConverter(PointOptimizer):
