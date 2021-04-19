@@ -68,7 +68,7 @@ class CliffordSimulator(
         # TODO: support more general Pauli measurements
         return protocols.has_stabilizer_effect(op)
 
-    def create_act_on_args(
+    def _create_act_on_args(
         self,
         initial_state: Union[int, clifford.ActOnStabilizerCHFormArgs],
         qubits: Sequence['cirq.Qid'],
@@ -116,9 +116,7 @@ class CliffordSimulator(
         """
 
         def create_state():
-            state = CliffordState(sim_state.qubit_map)
-            state.ch_form = sim_state.state.copy()
-            return state
+            return CliffordState(sim_state.qubit_map, sim_state.state.copy())
 
         if len(circuit) == 0:
             yield CliffordSimulatorStepResult(
@@ -261,11 +259,11 @@ class CliffordState:
     Gates and measurements are applied to each representation in O(n^2) time.
     """
 
-    def __init__(self, qubit_map, initial_state=0):
+    def __init__(self, qubit_map, initial_state: Union[int, clifford.StabilizerStateChForm] = 0):
         self.qubit_map = qubit_map
         self.n = len(qubit_map)
 
-        self.ch_form = clifford.StabilizerStateChForm(self.n, initial_state)
+        self.ch_form = initial_state if isinstance(initial_state, clifford.StabilizerStateChForm) else clifford.StabilizerStateChForm(self.n, initial_state)
 
     def _json_dict_(self):
         return {

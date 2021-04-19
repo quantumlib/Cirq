@@ -174,7 +174,7 @@ class Simulator(
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         check_all_resolved(resolved_circuit)
         qubits = tuple(sorted(resolved_circuit.all_qubits()))
-        act_on_args = self.create_act_on_args(0, qubits)
+        act_on_args = self._create_act_on_args(0, qubits)
 
         # Simulate as many unitary operations as possible before having to
         # repeat work for each sample.
@@ -224,7 +224,7 @@ class Simulator(
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
 
-    def create_act_on_args(
+    def _create_act_on_args(
         self,
         initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
         qubits: Sequence['cirq.Qid'],
