@@ -43,7 +43,7 @@ jobs:
       - name: Install mypy
         run: cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt
       - name: Type check
         run: check/mypy
   mypy-next:
@@ -58,7 +58,7 @@ jobs:
       - name: Install mypy
         run: cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt
       - name: Type check (for logging only)
         run: check/mypy --next || true
   changed_files:
@@ -101,7 +101,7 @@ jobs:
           python-version: '3.7'
           architecture: 'x64'
       - name: Install requirements
-        run: pip install -r requirements.txt -r cirq/contrib/contrib-requirements.txt -r dev_tools/conf/pip-list-dev-tools.txt
+        run: pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt -r cirq-core/cirq/contrib/contrib-requirements.txt -r dev_tools/conf/pip-list-dev-tools.txt
       - name: RST check
         run: find . -type f -name "*.rst" | xargs rstcheck --report warning --ignore-directives autoclass,automodule
       - name: Doc check
@@ -128,12 +128,12 @@ jobs:
           architecture: 'x64'
       - name: Install requirements
         run: |
-          pip install -r requirements.txt
+          pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
           # TODO: move to requirements.txt after #3704
           pip install codeowners==0.1.2 # linux only package
       - name: Pytest check
-        run: check/pytest --cirq-only --ignore=cirq/contrib --actually-quiet
+        run: check/pytest --cirq-only --ignore=cirq-core/cirq/contrib --actually-quiet
   pytest:
     name: Pytest Ubuntu
     strategy:
@@ -152,12 +152,12 @@ jobs:
         run: pip install pip==20.2
       - name: Install requirements
         run: |
-          pip install -r requirements.txt
+          pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
           # TODO: move to requirements.txt after #3704
           pip install codeowners==0.1.2 # linux only package
       - name: Pytest check
-        run: check/pytest --ignore=cirq/contrib --actually-quiet
+        run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
   build_docs:
     name: Build docs
     runs-on: ubuntu-16.04
@@ -203,8 +203,8 @@ jobs:
           architecture: 'x64'
       - name: Install requirements
         run: |
-          pip install -r requirements.txt
-          pip install -r cirq/contrib/contrib-requirements.txt
+          pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt
+          pip install -r cirq-core/cirq/contrib/contrib-requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - name: Coverage check
         run: check/pytest-and-incremental-coverage --actually-quiet
@@ -222,10 +222,10 @@ jobs:
           architecture: 'x64'
       - name: Install requirements
         run: |
-          pip install -r requirements.txt
+          pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - name: Pytest Windows
-        run: check/pytest --ignore=cirq/contrib --actually-quiet
+        run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
         shell: bash
   macos:
     name: Pytest MacOS
@@ -241,10 +241,10 @@ jobs:
           architecture: 'x64'
       - name: Install requirements
         run: |
-          pip install -r requirements.txt
+          pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - name: Pytest check
-        run: check/pytest --ignore=cirq/contrib
+        run: check/pytest --ignore=cirq-core/cirq/contrib
   notebooks-stable:
     name: Changed Notebooks Isolated Test against Cirq stable
     runs-on: ubuntu-16.04
@@ -275,7 +275,7 @@ jobs:
           python-version: '3.7'
           architecture: 'x64'
       - name: Install requirements
-        run: pip install -r requirements.txt -r cirq/contrib/contrib-requirements.txt -r dev_tools/notebooks/requirements-notebook-tests.txt
+        run: pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt -r cirq-core/cirq/contrib/contrib-requirements.txt -r dev_tools/notebooks/requirements-notebook-tests.txt
       - name: Notebook tests
         run: check/pytest -n auto -m slow dev_tools/notebooks/notebook_test.py
       - uses: actions/upload-artifact@v2

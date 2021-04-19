@@ -221,8 +221,12 @@ upper_tabs:
     - name: "Reference"
       skip_translation: true
       contents:
+      - heading: "cirq"
       - title: "All symbols"
         path: /reference/python/cirq/all_symbols
       - include: /reference/python/cirq/_toc.yaml
-
+      - heading: "cirq-google"
+      - title: "All symbols"
+        path: /reference/python/cirq_google/all_symbols
+      - include: /reference/python/cirq_google/_toc.yaml
 - include: /_book/upper_tabs_right.yaml

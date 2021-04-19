@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+import "cirq_google/api/v2/program.proto";
+
+package cirq.google.api.v2;
+
+option java_package = "com.google.cirq.google.api.v2";
+option java_outer_classname = "ResultProto";
+option java_multiple_files = true;
+
+// The overall results of running a Program.
+message Result {
+  // The results for each ParameterSweep. These will be in the same order
+  // as the parameter_sweeps repeated field in the RunContext that generated
+  // these results.
+  repeated SweepResult sweep_results = 1;
+}
+
+// The measurement results for a particular ParameterSweep.
+message SweepResult {
+  // The total number of repetitions that were performed for this sweep.
+  // This is reported in order to make it possible to decode the bytes
+  // in the measurement results.
+  int32 repetitions = 1;
+
+  // The results along with the parameters that generated these results.
+  // These represent the expanded parameters defined int he ParameterSweep
+  // which this SweepResult corresponds to.
+  repeated ParameterizedResult parameterized_results = 2;
+}
+
+// The parameters used to generate result along with the results for this
+// set of parameters.
+message ParameterizedResult {
+  // The parameter dict that was used when generating these results.
+  ParameterDict params = 1;
+
+  // The results of the measurement. There is one of these results per
+  // measurement key in the program. Measurement keys in the program are
+  // unique.
+  repeated MeasurementResult measurement_results = 2;
+}
+
+// The results of a measurement for a specific measurement key.
+message MeasurementResult {
+  // The measurement key for the measurement.
+  string key = 1;
+
+  // For each qubit that is measured, these are the measurement results.
+  repeated QubitMeasurementResult qubit_measurement_results = 2;
+}
+
+// The result of a measurement on a single qubit.
+message QubitMeasurementResult {
+  // Which qubit was measured.
+  Qubit qubit = 1;
+
+  // These are the results of a measurement on a qubit. Measurement results are
+  // repetitions number of bits, where the repetitions are define in the
+  // sweep result message.
+  //
+  // The bytes in this field are constructed as follows:
+  //
+  // 1. The results of the measurements produce a list of bits ordered by
+  //    the round of repetition.
+  //
+  // 2. This list is broken up into blocks of 8 bits, with the final block
+  //    potentially not being a full 8 bits.
+  //
+  // 3. Each of the blocks of 8 bits is encoded into a byte, using little
+  //    endian notation. That is, the least significant bit of the byte is
+  //    the first bit of the bit string, the second-least significant
+  //    bit of the byte is the second bit of the bit string, etc. For the final
+  //    byte which may not have 8 bits, little endian encoding is still used,
+  //    but not all 8 bits may be used. This list of bytes then constitutes
+  //    the bytes in this field.
+  bytes results = 2;
+}
+
+// A point sampled during a parameter sweep.
+message ParameterDict {
+  // Maps parameter names to values.
+  map<string, float> assignments = 1;
+}
+
