@@ -1,1 +1,1 @@
-cirq.google.PhysicalZTag()
+cirq_google.PhysicalZTag()

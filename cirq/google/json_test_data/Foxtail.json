@@ -1,4 +1,4 @@
 {
   "cirq_type": "_NamedConstantXmonDevice",
-  "constant": "cirq.google.Foxtail"
+  "constant": "cirq_google.Foxtail"
 }

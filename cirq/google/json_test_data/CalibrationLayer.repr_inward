@@ -1,4 +1,4 @@
-cirq_google.CalibrationLayer(
+cirq.google.CalibrationLayer(
     calibration_type='xeb',
     program=cirq.Circuit([
         cirq.Moment(
