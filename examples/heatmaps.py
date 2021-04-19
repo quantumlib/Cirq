@@ -3,6 +3,7 @@
 import numpy as np
 
 import cirq
+import cirq.google
 
 
 def single_qubit_heatmap():

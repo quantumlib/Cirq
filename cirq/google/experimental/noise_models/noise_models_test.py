@@ -20,6 +20,7 @@ from google.protobuf.text_format import Merge
 import cirq
 from cirq import ops
 from cirq.testing import assert_equivalent_op_tree
+import cirq.google
 from cirq.google.api import v2
 from cirq.google.experimental.noise_models import (
     simple_noise_from_calibration_metrics,

@@ -57,6 +57,7 @@ Xmon circuit:
 """
 
 import cirq
+import cirq.google
 
 
 def main():

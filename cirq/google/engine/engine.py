@@ -46,6 +46,7 @@ from cirq.google.engine import (
 )
 
 if TYPE_CHECKING:
+    import cirq.google
     import cirq
     import google.protobuf
 

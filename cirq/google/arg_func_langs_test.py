@@ -19,6 +19,7 @@ import sympy
 from google.protobuf import json_format
 
 import cirq
+import cirq.google
 from cirq.google.arg_func_langs import (
     arg_from_proto,
     arg_to_proto,

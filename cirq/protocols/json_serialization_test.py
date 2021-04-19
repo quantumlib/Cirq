@@ -31,7 +31,7 @@ from cirq.protocols import json_serialization
 from cirq.testing import assert_json_roundtrip_works
 from cirq.testing.json import ModuleJsonTestSpec, spec_for
 
-REPO_ROOT = pathlib.Path(__file__).parent.parent.parent
+REPO_ROOT = pathlib.Path(__file__).parent.parent.parent.parent
 TESTED_MODULES = ['cirq.google', 'cirq.protocols', 'non_existent_should_be_fine']
 
 
@@ -526,16 +526,22 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
         else contextlib.suppress()
     )
     with ctx_manager:
+        imports = {
+            'cirq': cirq,
+            'datetime': datetime,
+            'pd': pd,
+            'sympy': sympy,
+            'np': np,
+            'datetime': datetime,
+        }
+        try:
+            import cirq.google
+            imports['cirq.google'] = cirq.google
+        except ImportError:
+            pass
         obj = eval(
             path.read_text(),
-            {
-                'cirq': cirq,
-                'datetime': datetime,
-                'pd': pd,
-                'sympy': sympy,
-                'np': np,
-                'datetime': datetime,
-            },
+            imports,
             {},
         )
     return obj

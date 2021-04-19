@@ -572,7 +572,13 @@ from cirq import (
 )
 
 try:
-    from cirq import google
+    _compat.deprecated_submodule(
+        new_module_name='cirq_google',
+        old_parent=__name__,
+        old_child='google',
+        deadline="v0.14",
+        create_attribute=True,
+    )
 except ImportError as ex:
     # coverage: ignore
     warning("Can't import cirq.google: ", ex)

@@ -15,6 +15,7 @@ import pytest
 import numpy as np
 
 import cirq
+import cirq.google
 from cirq.google.calibration.phased_fsim import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     FloquetPhasedFSimCalibrationOptions,

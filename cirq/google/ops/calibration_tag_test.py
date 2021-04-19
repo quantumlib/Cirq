@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import cirq
+import cirq.google
 
 
 def test_equality():
@@ -34,4 +35,4 @@ def test_str_repr():
     example_tag = cirq.google.CalibrationTag('foo')
     assert str(example_tag) == 'CalibrationTag(\'foo\')'
     assert repr(example_tag) == 'cirq.google.CalibrationTag(\'foo\')'
-    cirq.testing.assert_equivalent_repr(example_tag, setup_code=('import cirq\n'))
+    cirq.testing.assert_equivalent_repr(example_tag, setup_code=('import cirq\nimport cirq.google'))

@@ -18,6 +18,7 @@ from cirq import devices
 from cirq.google.optimizers import optimized_for_sycamore
 
 if TYPE_CHECKING:
+    import cirq.google
     import cirq
 
 

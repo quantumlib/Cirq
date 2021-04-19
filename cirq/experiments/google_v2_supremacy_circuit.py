@@ -136,9 +136,9 @@ def generate_boixo_2018_supremacy_circuits_v2_bristlecone(
         assert 2 <= n_rows <= 11
         max_row = n_rows - 1
         # to avoid circular dependencies
-        from cirq import google
+        import cirq.google
 
-        dev = google.Bristlecone
+        dev = cirq.google.Bristlecone
         # we need a consistent order of qubits
         qubits = list(dev.qubits)
         qubits.sort()

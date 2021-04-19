@@ -17,6 +17,7 @@ from cirq import work, circuits
 from cirq.google import engine, gate_sets
 
 if TYPE_CHECKING:
+    import cirq.google
     import cirq
 
 

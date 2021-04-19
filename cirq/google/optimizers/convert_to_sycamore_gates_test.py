@@ -4,6 +4,7 @@ import numpy as np
 import scipy.linalg
 
 import cirq
+import cirq.google
 import cirq.google.optimizers.convert_to_sycamore_gates as cgoc
 from cirq.google.optimizers.two_qubit_gates.gate_compilation import gate_product_tabulation
 

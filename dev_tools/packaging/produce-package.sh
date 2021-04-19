@@ -25,7 +25,7 @@
 #     dev_tools/packaging/produce-package.sh output_dir [version]
 ################################################################################
 
-PROJECT_NAME=cirq
+PROJECT_NAME=cirq-core/cirq
 
 set -e
 trap "{ echo -e '\033[31mFAILED\033[0m'; }" ERR
@@ -58,7 +58,15 @@ if [ ! -z "${SPECIFIED_VERSION}" ]; then
 fi
 
 # Python 3 wheel.
-echo "Producing python 3 package files..."
+echo "Producing python 3 package files."
+
+echo "cirq metapackage..."
+python3 setup.py -q bdist_wheel -d "${out_dir}"
+echo "cirq-core..."
+cd cirq-core
+python3 setup.py -q bdist_wheel -d "${out_dir}"
+echo "cirq-google..."
+cd ../cirq-google
 python3 setup.py -q bdist_wheel -d "${out_dir}"
 
 ls "${out_dir}"

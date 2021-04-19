@@ -197,9 +197,9 @@ class _NamedConstantXmonDevice(XmonDevice):
 
     @classmethod
     def _from_json_dict_(cls, constant: str, **kwargs):
-        if constant == Foxtail._repr:
+        if constant in ['cirq.google.Foxtail', Foxtail._repr]:
             return Foxtail
-        if constant == Bristlecone._repr:
+        if constant in ['cirq.google.Bristlecone', Bristlecone._repr]:
             return Bristlecone
         raise ValueError(f'Unrecognized xmon device name: {constant!r}')
 

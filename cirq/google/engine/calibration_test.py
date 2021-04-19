@@ -97,7 +97,7 @@ def test_calibration_str():
 
 def test_calibration_repr():
     calibration = cg.Calibration(_CALIBRATION_DATA)
-    cirq.testing.assert_equivalent_repr(calibration)
+    cirq.testing.assert_equivalent_repr(calibration, setup_code="import cirq\nimport cirq.google")
 
 
 def test_calibration_timestamp_str():

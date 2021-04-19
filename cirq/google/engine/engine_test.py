@@ -23,6 +23,7 @@ from google.protobuf import any_pb2
 from google.protobuf.text_format import Merge
 
 import cirq
+import cirq.google
 import cirq.google as cg
 from cirq.google.api import v1, v2
 from cirq.google.engine.engine import EngineContext

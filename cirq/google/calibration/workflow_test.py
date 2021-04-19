@@ -19,6 +19,7 @@ import numpy as np
 import pytest
 
 import cirq
+import cirq.google
 import cirq.google.calibration.workflow as workflow
 
 from cirq.google.calibration.engine_simulator import PhasedFSimEngineSimulator

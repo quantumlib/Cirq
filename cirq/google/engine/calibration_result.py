@@ -17,6 +17,7 @@ import datetime
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
+    import cirq.google
     import cirq
     import cirq.google.api.v2.calibration_pb2 as calibration_pb2
 

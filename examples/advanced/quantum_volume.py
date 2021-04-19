@@ -21,6 +21,7 @@ import argparse
 import sys
 
 import cirq
+import cirq.google
 from cirq.contrib.quantum_volume import calculate_quantum_volume
 from cirq.contrib import routing
 

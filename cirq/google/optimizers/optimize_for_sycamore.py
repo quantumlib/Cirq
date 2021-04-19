@@ -28,6 +28,7 @@ from cirq.google.optimizers import (
 )
 
 if TYPE_CHECKING:
+    import cirq.google
     import cirq
 
 

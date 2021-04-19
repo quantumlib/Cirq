@@ -1,6 +1,6 @@
 import pathlib
 
-import cirq
+import cirq.google
 from cirq.google.json_resolver_cache import _class_resolver_dictionary
 
 from cirq.testing.json import ModuleJsonTestSpec

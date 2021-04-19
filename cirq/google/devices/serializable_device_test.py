@@ -19,6 +19,7 @@ import unittest.mock as mock
 import pytest
 
 import cirq
+import cirq.google
 import cirq.google as cg
 import cirq.google.api.v2 as v2
 import cirq.google.api.v2.device_pb2 as device_pb2

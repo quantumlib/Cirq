@@ -121,6 +121,7 @@ def wrap_module_executions(
     module_name: str,
     wrap_func: Callable[[ModuleType], Optional[ModuleType]],
     after_exec: Callable[[ModuleType], None] = lambda m: None,
+    assert_meta_path_unchanged: bool = True,
 ):
     """A context manager that hooks python's import machinery within the
     context.
@@ -140,7 +141,8 @@ def wrap_module_executions(
         orig_meta_path, sys.meta_path = sys.meta_path, new_meta_path
         yield
     finally:
-        assert sys.meta_path == new_meta_path
+        if assert_meta_path_unchanged:
+            assert sys.meta_path == new_meta_path
         sys.meta_path = orig_meta_path
 
 

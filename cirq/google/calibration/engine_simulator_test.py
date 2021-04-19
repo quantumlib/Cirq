@@ -6,6 +6,7 @@ from unittest import mock
 import numpy as np
 import pytest
 
+import cirq.google
 from cirq.google.calibration.engine_simulator import (
     PhasedFSimEngineSimulator,
     SQRT_ISWAP_PARAMETERS,

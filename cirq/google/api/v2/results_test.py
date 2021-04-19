@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 import cirq
+import cirq.google
 from cirq.google.api import v2
 
 

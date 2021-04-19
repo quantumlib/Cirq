@@ -20,6 +20,7 @@ from cirq import devices, ops, protocols, value, circuits
 from cirq.google.api.v1 import operations_pb2
 
 if TYPE_CHECKING:
+    import cirq.google
     import cirq
 
 
