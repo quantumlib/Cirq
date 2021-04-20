@@ -689,8 +689,8 @@ class SimulatesIntermediateState(
         act_on_args = self._create_act_on_args(0, qubits)
 
         prefix, general_suffix = (
-            split_into_matching_protocol_then_general(resolved_circuit, protocols.has_unitary)
-            if protocols.has_unitary(self.noise)
+            split_into_matching_protocol_then_general(resolved_circuit, self._can_be_in_run_prefix)
+            if self._can_be_in_run_prefix(self.noise)
             else (resolved_circuit[0:0], resolved_circuit)
         )
         step_result = None
@@ -699,10 +699,16 @@ class SimulatesIntermediateState(
             sim_state=act_on_args,
         ):
             pass
-        assert step_result is not None
 
         general_ops = list(general_suffix.all_operations())
         if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
+            for step_result in self._core_iterator(
+                    circuit=general_suffix,
+                    sim_state=act_on_args,
+                    all_measurements_are_terminal=True,
+            ):
+                pass
+            assert step_result is not None
             return step_result.sample_measurement_ops(general_ops, repetitions, seed=self._prng)
         return self._run_sweep_repeat(general_suffix, repetitions, act_on_args)
 
@@ -725,6 +731,9 @@ class SimulatesIntermediateState(
                         measurements[k] = []
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
+
+    def _can_be_in_run_prefix(self, val: Any):
+        return protocols.has_unitary(val)
 
 
 class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):

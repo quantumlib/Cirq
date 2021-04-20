@@ -197,6 +197,9 @@ class DensityMatrixSimulator(
             log_of_measurement_results={},
         )
 
+    def _can_be_in_run_prefix(self, val: Any):
+        return not protocols.is_measurement(val)
+
     def _create_step_result(
         self,
         sim_state: act_on_density_matrix_args.ActOnDensityMatrixArgs,
