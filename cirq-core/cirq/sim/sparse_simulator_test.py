@@ -124,7 +124,7 @@ def test_run_repetitions_measure_at_end(dtype):
                 np.testing.assert_equal(result.measurements, {'0': [[b0]] * 3, '1': [[b1]] * 3})
                 assert result.repetitions == 3
         # We expect one call per b0,b1.
-        assert mock_sim.call_count == 4
+        assert mock_sim.call_count == 8
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])

@@ -296,7 +296,7 @@ def test_run_repetitions_measure_at_end(dtype):
                 result = simulator.run(circuit, repetitions=3)
                 np.testing.assert_equal(result.measurements, {'0': [[b0]] * 3, '1': [[b1]] * 3})
                 assert result.repetitions == 3
-        assert mock_sim.call_count == 4
+        assert mock_sim.call_count == 8
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -314,7 +314,7 @@ def test_run_qudits_repetitions_measure_at_end(dtype):
                     result.measurements, {'0 (d=2)': [[b0]] * 3, '1 (d=3)': [[b1]] * 3}
                 )
                 assert result.repetitions == 3
-        assert mock_sim.call_count == 6
+        assert mock_sim.call_count == 12
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -1323,7 +1323,7 @@ def test_nonmeasuring_subcircuits_do_not_cause_sweep_repeat():
     simulator = cirq.DensityMatrixSimulator()
     with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         simulator.run(circuit, repetitions=10)
-        assert mock_sim.call_count == 1
+        assert mock_sim.call_count == 2
 
 
 def test_measuring_subcircuits_cause_sweep_repeat():
