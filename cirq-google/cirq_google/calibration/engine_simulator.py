@@ -30,6 +30,7 @@ from cirq.sim import (
     SimulatesSamples,
     SimulatesIntermediateStateVector,
     StateVectorStepResult,
+    ActOnStateVectorArgs,
 )
 from cirq.study import ParamResolver
 from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
@@ -395,14 +396,20 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         converted = _convert_to_circuit_with_drift(self, circuit)
         return self._simulator._run(converted, param_resolver, repetitions)
 
-    def _base_iterator(
+    def _core_iterator(
         self,
         circuit: Circuit,
-        qubit_order: QubitOrderOrList,
-        initial_state: Any,
+        sim_state: Any,
     ) -> Iterator[StateVectorStepResult]:
         converted = _convert_to_circuit_with_drift(self, circuit)
-        return self._simulator._base_iterator(converted, qubit_order, initial_state)
+        return self._simulator._core_iterator(converted, sim_state)
+
+    def _create_act_on_args(
+        self,
+        initial_state: Union[int, ActOnStateVectorArgs],
+        qubits: Sequence[Qid],
+    ) -> ActOnStateVectorArgs:
+        return self._simulator._create_act_on_args(initial_state, qubits)
 
 
 class _PhasedFSimConverter(PointOptimizer):
