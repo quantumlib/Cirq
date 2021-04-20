@@ -31,15 +31,13 @@ The quantum state is specified in two forms:
 
 from typing import Any, Dict, List, Sequence, Union
 
-import numpy as np
-
 import cirq
-from cirq import circuits, study, ops, protocols, value
+import numpy as np
+from cirq import study, ops, protocols, value
 from cirq._compat import deprecated
 from cirq.ops.dense_pauli_string import DensePauliString
 from cirq.protocols import act_on
 from cirq.sim import clifford, simulator
-from cirq.sim.simulator import check_all_resolved
 
 
 class CliffordSimulator(

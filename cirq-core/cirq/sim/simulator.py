@@ -630,9 +630,7 @@ class SimulatesIntermediateState(
                     sim_state.axes = tuple(sim_state.qubit_map[qubit] for qubit in op.qubits)
                     protocols.act_on(op, sim_state)
                 except TypeError:
-                    raise TypeError(
-                        f"{self.__class__.__name__} doesn't support {op!r}"
-                    )  # type: ignore
+                    raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
 
             yield self._create_step_result(sim_state, sim_state.qubit_map)
             sim_state.log_of_measurement_results.clear()
@@ -709,7 +707,13 @@ class SimulatesIntermediateState(
             ):
                 pass
             assert step_result is not None
-            return step_result.sample_measurement_ops(general_ops, repetitions, seed=self._prng)
+            measurement_ops = [
+                op
+                for _, op, _ in general_suffix.findall_operations_with_gate_type(
+                    ops.MeasurementGate
+                )
+            ]
+            return step_result.sample_measurement_ops(measurement_ops, repetitions, seed=self._prng)
         return self._run_sweep_repeat(general_suffix, repetitions, act_on_args)
 
     def _run_sweep_repeat(
