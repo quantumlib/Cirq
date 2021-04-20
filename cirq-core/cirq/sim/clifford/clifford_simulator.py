@@ -30,9 +30,8 @@ The quantum state is specified in two forms:
 """
 
 from typing import Any, Dict, List, Sequence, Union
-
-import cirq
 import numpy as np
+import cirq
 from cirq import study, ops, protocols, value
 from cirq._compat import deprecated
 from cirq.ops.dense_pauli_string import DensePauliString

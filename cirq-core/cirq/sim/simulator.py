@@ -707,12 +707,7 @@ class SimulatesIntermediateState(
             ):
                 pass
             assert step_result is not None
-            measurement_ops = [
-                op
-                for _, op, _ in general_suffix.findall_operations_with_gate_type(
-                    ops.MeasurementGate
-                )
-            ]
+            measurement_ops = [cast(ops.GateOperation, op) for op in general_ops]
             return step_result.sample_measurement_ops(measurement_ops, repetitions, seed=self._prng)
         return self._run_sweep_repeat(general_suffix, repetitions, act_on_args)
 
