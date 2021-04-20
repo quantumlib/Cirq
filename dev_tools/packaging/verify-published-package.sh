@@ -72,8 +72,9 @@ trap "{ rm -rf ${tmp_dir}; }" EXIT
 # Test python 3 versions.
 for PYTHON_VERSION in python3; do
     # Prepare.
-    RUNTIME_DEPS_FILE="${REPO_ROOT}/requirements.txt"
-    CONTRIB_DEPS_FILE="${REPO_ROOT}/cirq/contrib/contrib-requirements.txt"
+    CORE_DEPS_FILE="${REPO_ROOT}/cirq-core/requirements.txt"
+    GOOGLE_DEPS_FILE="${REPO_ROOT}/cirq-google/requirements.txt"
+    CONTRIB_DEPS_FILE="${REPO_ROOT}/cirq-core/cirq/contrib/contrib-requirements.txt"
     DEV_DEPS_FILE="${REPO_ROOT}/dev_tools/conf/pip-list-dev-tools.txt"
 
     echo -e "\n\033[32m${PYTHON_VERSION}\033[0m"
@@ -83,7 +84,7 @@ for PYTHON_VERSION in python3; do
     # Install package.
     if [ "${PYPI_REPO_NAME}" == "TEST" ]; then
         echo "Pre-installing dependencies since they don't all exist in TEST pypi"
-        "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet -r "${RUNTIME_DEPS_FILE}" -r "${DEV_DEPS_FILE}"
+        "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet -r "${CORE_DEPS_FILE}" -r "${GOOGLE_DEPS_FILE}" -r "${DEV_DEPS_FILE}"
     fi
     echo Installing "${PYPI_PROJECT_NAME}==${PROJECT_VERSION} from ${PYPI_REPO_NAME} pypi"
     "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet ${PIP_FLAGS} "${PYPI_PROJECT_NAME}==${PROJECT_VERSION}"
@@ -91,6 +92,7 @@ for PYTHON_VERSION in python3; do
     # Check that code runs without dev deps.
     echo Checking that code executes
     "${tmp_dir}/${PYTHON_VERSION}/bin/python" -c "import cirq; print(cirq.google.Foxtail)"
+    "${tmp_dir}/${PYTHON_VERSION}/bin/python" -c "import cirq_google; print(cirq_google.Foxtail)"
     "${tmp_dir}/${PYTHON_VERSION}/bin/python" -c "import cirq; print(cirq.Circuit(cirq.CZ(*cirq.LineQubit.range(2))))"
 
     # Run tests.

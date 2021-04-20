@@ -47,7 +47,7 @@
 #
 ################################################################################
 
-PROJECT_NAME=cirq
+PROJECT_NAME=cirq-core/cirq
 set -e
 trap "{ echo -e '\033[31mFAILED\033[0m'; }" ERR
 
