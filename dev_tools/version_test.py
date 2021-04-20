@@ -19,14 +19,16 @@ def test_versions_are_the_same():
     packages = ["cirq-google/cirq_google"]
 
     for p in packages:
+        print(p)
         assert (
             _get_version(p) == core_version
         ), f"{p}/_version.py is different from cirq-core/cirq/_version.py!"
 
 
 def _get_version(package: str):
-    __version__ = ''
     version_file = f'{package}/_version.py'
-    exec(open(version_file).read())
-    assert __version__ is not None, f"__version__ should be defined in {version_file}"
+    resulting_locals = {}
+    exec(open(version_file).read(), globals(), resulting_locals)
+    __version__ = resulting_locals['__version__']
+    assert __version__, f"__version__ should be defined in {version_file}"
     return __version__
