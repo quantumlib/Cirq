@@ -621,7 +621,7 @@ class SimulatesIntermediateState(
                     # Github issue: https://github.com/quantumlib/Cirq/issues/3566
                     if all_measurements_are_terminal and measured[op.qubits]:
                         continue
-                    if protocols.is_measurement(op):
+                    if isinstance(op.gate, ops.MeasurementGate):
                         measured[op.qubits] = True
                         if all_measurements_are_terminal:
                             continue
@@ -702,12 +702,6 @@ class SimulatesIntermediateState(
 
         general_ops = list(general_suffix.all_operations())
         if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
-            for step_result in self._core_iterator(
-                    circuit=general_suffix,
-                    sim_state=act_on_args,
-                    all_measurements_are_terminal=True,
-            ):
-                pass
             assert step_result is not None
             return step_result.sample_measurement_ops(general_ops, repetitions, seed=self._prng)
         return self._run_sweep_repeat(general_suffix, repetitions, act_on_args)
