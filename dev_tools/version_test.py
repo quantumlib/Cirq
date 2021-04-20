@@ -20,7 +20,6 @@ def test_versions_are_the_same():
     packages = ["cirq-google/cirq_google"]
 
     for p in packages:
-        print(p)
         assert (
             _get_version(p) == core_version
         ), f"{p}/_version.py is different from cirq-core/cirq/_version.py!"
