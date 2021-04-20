@@ -13,12 +13,12 @@
 # limitations under the License.
 """Measures on and between quantum states and operations."""
 
-from typing import Optional, TYPE_CHECKING, Tuple
+from typing import Optional, TYPE_CHECKING, Sequence, Tuple
 
 import numpy as np
 import scipy
 import scipy.stats
-from cirq import value
+from cirq import protocols, value
 from cirq._compat import deprecated_parameter
 from cirq.linalg.operator_sum_utils import compute_kraus_operations
 from cirq.qis.states import (
@@ -303,9 +303,20 @@ def process_fidelity(clean_circuit: 'cirq.Circuit', noisy_circuit: 'cirq.Circuit
     n = len(qubits)
     d = 2 ** n
 
-    kraus_operations = compute_kraus_operations(
-        clean_circuit.unitary().reshape([2] * (2 * n)), noisy_circuit, qubits
-    )
+    initial_density_matrix = clean_circuit.unitary().reshape([2] * (2 * n))
+
+    qubits = sorted(qubits)
+    qubit_map = {q.with_dimension(1): i for i, q in enumerate(qubits)}
+    operations: Sequence[Tuple[Sequence[np.ndarray], Sequence[int]]] = []
+    for op in noisy_circuit.all_operations():
+        target_axes: Sequence[int] = [qubit_map[q.with_dimension(1)] for q in op.qubits]
+        op_kraus_reshaped: Sequence[np.ndarray] = [
+            np.conjugate(np.transpose(op_kraus)).reshape([2] * (len(target_axes) * 2))
+            for op_kraus in protocols.channel(op, default=None)
+        ]
+        operations.append((op_kraus_reshaped, target_axes))
+
+    kraus_operations = compute_kraus_operations(initial_density_matrix, operations)
 
     eit = [x.reshape(d, d) for x in kraus_operations]
 

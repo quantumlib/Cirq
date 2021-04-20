@@ -13,12 +13,11 @@
 # limitations under the License.
 """Utils for the computation of operator sum (Kraus operators)."""
 
-from typing import FrozenSet, Sequence, Union, TYPE_CHECKING
+from typing import Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 
 from cirq.linalg.transformations import targeted_left_multiply
-from cirq import protocols
 
 if TYPE_CHECKING:
     import cirq
@@ -26,8 +25,7 @@ if TYPE_CHECKING:
 
 def compute_kraus_operations(
     initial_density_matrix: np.ndarray,
-    noisy_circuit: 'cirq.Circuit',
-    qubits: Union[FrozenSet['cirq.Qid'], Sequence['cirq.Qid']],
+    operations: Sequence[Tuple[Sequence[np.ndarray], Sequence[int]]],
 ):
     """Computes all the density (Kraus) operators from a channel
 
@@ -35,25 +33,18 @@ def compute_kraus_operations(
 
     Args:
         initial_density_matrix: The original density matrix.
-        noisy_circuit: The (usually noisy) circuit.
-        qubits: The list of qubits.
+        operations: Tuple with first element being the operation matrice and the second the axes.
 
     Returns:
         A list of Kraus operators.
     """
-    qubits = sorted(qubits)
-    qubit_map = {q.with_dimension(1): i for i, q in enumerate(qubits)}
-
     kraus_operations = [initial_density_matrix]
-    for op in noisy_circuit.all_operations():
-        target_axes = [qubit_map[q.with_dimension(1)] for q in op.qubits]
+    for operation in operations:
+        target_axes = operation[1]
 
         next_kraus_operations = []
 
-        for op_kraus in protocols.channel(op, default=None):
-            op_kraus_reshaped = np.conjugate(np.transpose(op_kraus)).reshape(
-                [2] * (len(target_axes) * 2)
-            )
+        for op_kraus_reshaped in operation[0]:
             for kraus_operation in kraus_operations:
                 next_kraus_operation = targeted_left_multiply(
                     left_matrix=op_kraus_reshaped,
