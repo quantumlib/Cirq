@@ -186,26 +186,18 @@ def build_circuit_from_hamiltonians(
         list(combined.hamiltonians.keys()), key=functools.cmp_to_key(_gray_code_comparator)
     )
 
-    def _apply_cnots(ph: Tuple[int, ...], ch: Tuple[int, ...]):
-        # This function applies in sequence the CNOTs from ph and then ch. However, given that the
-        # h are sorted in Gray ordering and that some cancel each other, we can reduce the number
-        # of gates. See [4] for more details.
-
-        cnots: List[Tuple[int, int]] = []
-
-        if ladder_target:
-            cnots.extend((ph[i], ph[i + 1]) for i in reversed(range(len(ph) - 1)))
-            cnots.extend((ch[i], ch[i + 1]) for i in range(len(ch) - 1))
-        else:
-            cnots.extend((ph[i], ph[-1]) for i in range(len(ph) - 1))
-            cnots.extend((ch[i], ch[-1]) for i in range(len(ch) - 1))
+    def _simplify_cnots(cnots):
+        _control = 0
+        _target = 1
 
         while True:
-            # As per equations 9 and 10, if all the targets (resp. controls) are the same, the
-            # cnots commute. Further, if the control (resp. targets) are the same, the cnots can be
-            # simplified away.
+            # As per equations 9 and 10 of [4], if all the targets (resp. controls) are the same,
+            # the cnots commute. Further, if the control (resp. targets) are the same, the cnots
+            # can be simplified away:
+            # CNOT(i, j) @ CNOT(k, j) = CNOT(k, j) @ CNOT(i, j)
+            # CNOT(i, k) @ CNOT(i, j) = CNOT(i, j) @ CNOT(i, k)
             found_simplification = False
-            for x, y in [(0, 1), (1, 0)]:
+            for x, y in [(_control, _target), (_target, _control)]:
                 i = 0
                 for j in range(1, len(cnots)):
                     if cnots[i][x] != cnots[j][x]:
@@ -225,9 +217,7 @@ def build_circuit_from_hamiltonians(
             # and target qubits, we have an equally valid identity:
             # CNOT(i, j) @ CNOT(j, k) == CNOT(j, k) @ CNOT(i, k) @ CNOT(i, j)
             # CNOT(j, i) @ CNOT(k, j) == CNOT(k, j) @ CNOT(k, i) @ CNOT(j, i)
-            #
-            # Which are represented by (x, y) = (0, 1) and (x, y) = (1, 0), respectively.
-            for x, y in [(0, 1), (1, 0)]:
+            for x, y in [(_control, _target), (_target, _control)]:
                 # We investigate potential pivots sequentially.
                 for j in range(1, len(cnots) - 1):
                     # First, we look back for as long as the targets (resp. triggers) are the same.
@@ -271,8 +261,25 @@ def build_circuit_from_hamiltonians(
 
             if found_simplification:
                 continue
-
             break
+
+        return cnots
+
+    def _apply_cnots(prevh: Tuple[int, ...], currh: Tuple[int, ...]):
+        # This function applies in sequence the CNOTs from prevh and then currh. However, given
+        # that the h are sorted in Gray ordering and that some cancel each other, we can reduce
+        # the number of gates. See [4] for more details.
+
+        cnots: List[Tuple[int, int]] = []
+
+        if ladder_target:
+            cnots.extend((prevh[i], prevh[i + 1]) for i in reversed(range(len(prevh) - 1)))
+            cnots.extend((currh[i], currh[i + 1]) for i in range(len(currh) - 1))
+        else:
+            cnots.extend((prevh[i], prevh[-1]) for i in range(len(prevh) - 1))
+            cnots.extend((currh[i], currh[-1]) for i in range(len(currh) - 1))
+
+        cnots = _simplify_cnots(cnots)
 
         circuit.append(cirq.CNOT(qubits[c], qubits[t]) for c, t in cnots)
 
