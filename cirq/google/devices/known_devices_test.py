@@ -483,6 +483,40 @@ def test_sycamore_devices(device):
     assert device.duration_of(sqrt_iswap) == cirq.Duration(nanos=32)
 
 
+def test_sycamore_circuitop_device():
+    circuitop_gateset = cirq.google.serializable_gate_set.SerializableGateSet(
+        gate_set_name='circuitop_gateset',
+        serializers=[cgc.CIRCUIT_OP_SERIALIZER],
+        deserializers=[cgc.CIRCUIT_OP_DESERIALIZER],
+    )
+    gateset_list = [
+        cirq.google.gate_sets.SQRT_ISWAP_GATESET,
+        cirq.google.gate_sets.SYC_GATESET,
+        circuitop_gateset,
+    ]
+    circuitop_proto = cirq.google.devices.known_devices.create_device_proto_from_diagram(
+        known_devices._SYCAMORE23_GRID,
+        gateset_list,
+        known_devices._SYCAMORE_DURATIONS_PICOS,
+    )
+    device = cirq.google.SerializableDevice.from_proto(
+        proto=circuitop_proto,
+        gate_sets=gateset_list,
+    )
+    q0 = cirq.GridQubit(5, 3)
+    q1 = cirq.GridQubit(5, 4)
+    syc = cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6)(q0, q1)
+    sqrt_iswap = cirq.FSimGate(theta=np.pi / 4, phi=0)(q0, q1)
+    circuit_op = cirq.CircuitOperation(cirq.FrozenCircuit(syc, sqrt_iswap))
+    device.validate_operation(syc)
+    device.validate_operation(sqrt_iswap)
+    device.validate_operation(circuit_op)
+    assert device.duration_of(syc) == cirq.Duration(nanos=12)
+    assert device.duration_of(sqrt_iswap) == cirq.Duration(nanos=32)
+    # CircuitOperations don't have a set duration.
+    assert device.duration_of(circuit_op) == cirq.Duration(nanos=0)
+
+
 def test_sycamore_grid_layout():
     # Qubits on Sycamore but not on Sycamore23
     q0 = cirq.GridQubit(5, 5)

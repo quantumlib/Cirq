@@ -264,6 +264,12 @@ class SerializableDevice(devices.Device):
              the value corresponding to that key or None if no type matches
         """
         for type_key, gate_defs in self.gate_definitions.items():
+            if type_key == circuits.FrozenCircuit and isinstance(
+                op.untagged, circuits.CircuitOperation
+            ):
+                for gate_def in gate_defs:
+                    if gate_def.can_serialize_predicate(op):
+                        return gate_def
             if isinstance(op.gate, type_key):
                 for gate_def in gate_defs:
                     if gate_def.can_serialize_predicate(op):
