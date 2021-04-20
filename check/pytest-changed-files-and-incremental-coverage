@@ -83,6 +83,8 @@ if [ "${#changed_python_tests[@]}" -eq 0 ]; then
     exit 0
 fi
 
+source dev_tools/pypath
+
 # Run tests while producing coverage files.
 check/pytest "${changed_python_tests[@]}" \
     "${cov_changed_python_file_dirs[@]}" \
@@ -91,7 +93,7 @@ check/pytest "${changed_python_tests[@]}" \
 pytest_result=$?
 
 # Analyze coverage files.
-PYTHONPATH="$(pwd)" python dev_tools/check_incremental_coverage_annotations.py "${rev}"
+python dev_tools/check_incremental_coverage_annotations.py "${rev}"
 cover_result=$?
 
 # Clean up generated coverage files.

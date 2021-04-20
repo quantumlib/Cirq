@@ -1,0 +1,32 @@
+# Copyright 2021 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+def test_versions_are_the_same():
+    core_version = _get_version("cirq-core/cirq")
+
+    packages = ["cirq-google/cirq_google"]
+
+    for p in packages:
+        assert (
+            _get_version(p) == core_version
+        ), f"{p}/_version.py is different from cirq-core/cirq/_version.py!"
+
+
+def _get_version(package: str):
+    __version__ = ''
+    version_file = f'{package}/_version.py'
+    exec(open(version_file).read())
+    assert __version__ is not None, f"__version__ should be defined in {version_file}"
+    return __version__
