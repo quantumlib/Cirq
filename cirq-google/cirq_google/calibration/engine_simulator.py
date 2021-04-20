@@ -402,9 +402,7 @@ class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector):
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[StateVectorStepResult]:
         converted = _convert_to_circuit_with_drift(self, circuit)
-        return self._simulator._core_iterator(
-            converted, sim_state, all_measurements_are_terminal
-        )
+        return self._simulator._core_iterator(converted, sim_state, all_measurements_are_terminal)
 
     def _create_act_on_args(
         self,
