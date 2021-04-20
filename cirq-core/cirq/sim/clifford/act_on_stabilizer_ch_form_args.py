@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, TYPE_CHECKING, List
+from typing import Any, Dict, Iterable, TYPE_CHECKING, List, Sequence
 
 import numpy as np
 
@@ -40,11 +40,15 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         axes: Iterable[int],
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
+        qubits: Sequence['cirq.Qid'] = None,
     ):
         """Initializes with the given state and the axes for the operation.
         Args:
             state: The StabilizerStateChForm to act on. Operations are expected
                 to perform inplace edits of this object.
+            qubits: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
             prng: The pseudo random number generator to use for probabilistic
@@ -53,7 +57,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
                 being recorded into. Edit it easily by calling
                 `ActOnStabilizerCHFormArgs.record_measurement_result`.
         """
-        super().__init__(prng, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, axes, log_of_measurement_results)
         self.state = state
 
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
@@ -71,6 +75,15 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
     def _perform_measurement(self) -> List[int]:
         """Returns the measurement from the stabilizer state form."""
         return [self.state._measure(q, self.prng) for q in self.axes]
+
+    def copy(self) -> 'cirq.ActOnStabilizerCHFormArgs':
+        return ActOnStabilizerCHFormArgs(
+            state=self.state.copy(),
+            qubits=self.qubits,
+            axes=self.axes,
+            prng=self.prng,
+            log_of_measurement_results=self.log_of_measurement_results.copy(),
+        )
 
 
 def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(

@@ -205,6 +205,23 @@ def test_cnot_flipped():
         )
 
 
+def test_act_on_args():
+    q0, q1 = qubit_order = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.CNOT(q1, q0))
+    mps_simulator = ccq.mps_simulator.MPSSimulator()
+    ref_simulator = cirq.Simulator()
+    for initial_state in range(4):
+        args = mps_simulator._create_act_on_args(initial_state=initial_state, qubits=(q0, q1))
+        actual = mps_simulator.simulate(circuit, qubit_order=qubit_order, initial_state=args)
+        expected = ref_simulator.simulate(
+            circuit, qubit_order=qubit_order, initial_state=initial_state
+        )
+        np.testing.assert_allclose(
+            actual.final_state.to_numpy(), expected.final_state_vector, atol=1e-4
+        )
+        assert len(actual.measurements) == 0
+
+
 def test_three_qubits():
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.CCX(q0, q1, q2))
@@ -257,7 +274,7 @@ def test_measurement_str():
 def test_trial_result_str():
     q0 = cirq.LineQubit(0)
     final_simulator_state = ccq.mps_simulator.MPSState(
-        qubit_map={q0: 0},
+        qubits=(q0,),
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(),
     )
@@ -278,7 +295,7 @@ output state: TensorNetwork([
 
 def test_empty_step_result():
     q0 = cirq.LineQubit(0)
-    state = ccq.mps_simulator.MPSState(qubit_map={q0: 0}, prng=value.parse_random_state(0))
+    state = ccq.mps_simulator.MPSState(qubits=(q0,), prng=value.parse_random_state(0))
     step_result = ccq.mps_simulator.MPSSimulatorStepResult(state, measurements={'0': [1]})
     assert (
         str(step_result)
@@ -292,17 +309,17 @@ TensorNetwork([
 def test_state_equal():
     q0, q1 = cirq.LineQubit.range(2)
     state0 = ccq.mps_simulator.MPSState(
-        qubit_map={q0: 0},
+        qubits=(q0,),
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1e-3, sum_prob_atol=1e-3),
     )
     state1a = ccq.mps_simulator.MPSState(
-        qubit_map={q1: 0},
+        qubits=(q1,),
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1e-3, sum_prob_atol=1e-3),
     )
     state1b = ccq.mps_simulator.MPSState(
-        qubit_map={q1: 0},
+        qubits=(q1,),
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1729.0, sum_prob_atol=1e-3),
     )
@@ -500,7 +517,7 @@ def test_state_copy():
 
 def test_state_act_on_args_initializer():
     s = ccq.mps_simulator.MPSState(
-        qubit_map={cirq.LineQubit(0): 0},
+        qubits=(cirq.LineQubit(0),),
         prng=np.random.RandomState(0),
         axes=[2],
         log_of_measurement_results={'test': 4},
