@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Dict, Any
 
 
 def test_versions_are_the_same():
@@ -27,7 +28,7 @@ def test_versions_are_the_same():
 
 def _get_version(package: str):
     version_file = f'{package}/_version.py'
-    resulting_locals = {}
+    resulting_locals: Dict[str, Any] = {}
     exec(open(version_file).read(), globals(), resulting_locals)
     __version__ = resulting_locals['__version__']
     assert __version__, f"__version__ should be defined in {version_file}"
