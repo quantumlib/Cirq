@@ -703,10 +703,7 @@ class SimulatesIntermediateState(
 
         general_ops = list(general_suffix.all_operations())
         if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
-            measurement_ops = [
-                op for _, op, _ in circuit.findall_operations_with_gate_type(ops.MeasurementGate)
-            ]
-            return step_result.sample_measurement_ops(measurement_ops, repetitions, seed=self._prng)
+            return step_result.sample_measurement_ops(general_ops, repetitions, seed=self._prng)
         return self._run_sweep_repeat(general_suffix, repetitions, act_on_args)
 
     def _run_sweep_repeat(
