@@ -29,23 +29,26 @@ The quantum state is specified in two forms:
     to state vector amplitudes.
 """
 
-from typing import Any, Dict, List, Iterator, Sequence
+from typing import Any, Dict, List, Sequence, Union
 
 import numpy as np
 
 import cirq
 from cirq import circuits, study, ops, protocols, value
+from cirq._compat import deprecated
 from cirq.ops.dense_pauli_string import DensePauliString
 from cirq.protocols import act_on
 from cirq.sim import clifford, simulator
-from cirq._compat import deprecated
 from cirq.sim.simulator import check_all_resolved
 
 
 class CliffordSimulator(
     simulator.SimulatesSamples,
     simulator.SimulatesIntermediateState[
-        'CliffordSimulatorStepResult', 'CliffordTrialResult', 'CliffordState'
+        'CliffordSimulatorStepResult',
+        'CliffordTrialResult',
+        'CliffordState',
+        clifford.ActOnStabilizerCHFormArgs,
     ],
 ):
     """An efficient simulator for Clifford circuits."""
@@ -65,55 +68,76 @@ class CliffordSimulator(
         # TODO: support more general Pauli measurements
         return protocols.has_stabilizer_effect(op)
 
-    def _base_iterator(
-        self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
-    ) -> Iterator['cirq.CliffordSimulatorStepResult']:
+    def _create_act_on_args(
+        self,
+        initial_state: Union[int, clifford.ActOnStabilizerCHFormArgs],
+        qubits: Sequence['cirq.Qid'],
+    ) -> clifford.ActOnStabilizerCHFormArgs:
+        """Creates the ActOnStabilizerChFormArgs for a circuit.
+
+        Args:
+            initial_state: The initial state for the simulation in the
+                computational basis. Represented as a big endian int.
+            qubits: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+
+        Returns:
+            ActOnStabilizerChFormArgs for the circuit.
+        """
+        if isinstance(initial_state, clifford.ActOnStabilizerCHFormArgs):
+            return initial_state
+
+        qubit_map = {q: i for i, q in enumerate(qubits)}
+
+        state = CliffordState(qubit_map, initial_state=initial_state)
+        return clifford.ActOnStabilizerCHFormArgs(
+            state=state.ch_form,
+            axes=[],
+            prng=self._prng,
+            log_of_measurement_results={},
+            qubits=qubits,
+        )
+
+    def _core_iterator(
+        self,
+        circuit: circuits.Circuit,
+        sim_state: clifford.ActOnStabilizerCHFormArgs,
+    ):
         """Iterator over CliffordSimulatorStepResult from Moments of a Circuit
 
         Args:
             circuit: The circuit to simulate.
-            qubit_order: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
-            initial_state: The initial state for the simulation in the
-                computational basis. Represented as a big endian int.
-
+            sim_state: The initial state args for the simulation in the
+                computational basis.
 
         Yields:
             CliffordStepResult from simulating a Moment of the Circuit.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
 
-        qubit_map = {q: i for i, q in enumerate(qubits)}
+        def create_state():
+            return CliffordState(sim_state.qubit_map, sim_state.state.copy())
 
         if len(circuit) == 0:
             yield CliffordSimulatorStepResult(
-                measurements={}, state=CliffordState(qubit_map, initial_state=initial_state)
+                measurements=sim_state.log_of_measurement_results, state=create_state()
             )
             return
 
-        state = CliffordState(qubit_map, initial_state=initial_state)
-        ch_form_args = clifford.ActOnStabilizerCHFormArgs(
-            state.ch_form,
-            [],
-            self._prng,
-            {},
-        )
-
         for moment in circuit:
-            ch_form_args.log_of_measurement_results = {}
+            sim_state.log_of_measurement_results = {}
 
             for op in moment:
                 try:
-                    ch_form_args.axes = tuple(state.qubit_map[i] for i in op.qubits)
-                    act_on(op, ch_form_args)
+                    sim_state.axes = tuple(sim_state.qubit_map[i] for i in op.qubits)
+                    act_on(op, sim_state)
                 except TypeError:
                     raise NotImplementedError(
                         f"CliffordSimulator doesn't support {op!r}"
                     )  # type: ignore
 
             yield CliffordSimulatorStepResult(
-                measurements=ch_form_args.log_of_measurement_results, state=state
+                measurements=sim_state.log_of_measurement_results, state=create_state()
             )
 
     def _create_simulator_trial_result(
@@ -173,7 +197,7 @@ class CliffordTrialResult(simulator.SimulationTrialResult):
 class CliffordSimulatorStepResult(simulator.StepResult['CliffordState']):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
-    def __init__(self, state, measurements):
+    def __init__(self, state: 'CliffordState', measurements):
         """Results of a step of the simulator.
         Attributes:
             state: A CliffordState
@@ -235,11 +259,15 @@ class CliffordState:
     Gates and measurements are applied to each representation in O(n^2) time.
     """
 
-    def __init__(self, qubit_map, initial_state=0):
+    def __init__(self, qubit_map, initial_state: Union[int, clifford.StabilizerStateChForm] = 0):
         self.qubit_map = qubit_map
         self.n = len(qubit_map)
 
-        self.ch_form = clifford.StabilizerStateChForm(self.n, initial_state)
+        self.ch_form = (
+            initial_state
+            if isinstance(initial_state, clifford.StabilizerStateChForm)
+            else clifford.StabilizerStateChForm(self.n, initial_state)
+        )
 
     def _json_dict_(self):
         return {

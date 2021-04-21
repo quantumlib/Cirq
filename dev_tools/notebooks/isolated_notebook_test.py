@@ -45,6 +45,10 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES = [
     # the device_or_qubits parameter is deprecated
     'examples/advanced/quantum_volume_routing.ipynb',
     'examples/advanced/quantum_volume_errors.ipynb',
+    # these notebooks use cirq_google and hence depend on cirq pre-releases
+    'docs/qcvv/xeb_coherent_noise.ipynb',
+    'docs/qcvv/xeb_theory.ipynb',
+    'docs/tutorials/google/floquet.ipynb',
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
