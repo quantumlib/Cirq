@@ -137,6 +137,8 @@ If you want to pip install cirq in an editable fashion, you'll have to install i
 pip install -e ./cirq-core -e ./cirq-google
 ```
 
+Note that `pip install -e .` will install the `cirq` metapackage only, and your code changes won't 
+get picked up! 
 
 ## Protocol buffers
 
