@@ -1,0 +1,12 @@
+[
+  {
+    "cirq_type": "MeasurementKey",
+    "name": "key",
+    "allow_nested_key": false
+  },
+  {
+    "cirq_type": "MeasurementKey",
+    "name": "nested:key",
+    "allow_nested_key": true
+  }
+]

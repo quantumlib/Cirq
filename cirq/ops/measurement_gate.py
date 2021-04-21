@@ -71,11 +71,13 @@ class MeasurementGate(raw_types.Gate):
 
     @property
     def key(self) -> str:
-        return self._key.name
+        return str(self.mkey)
 
     @key.setter
     def key(self, key_str: str):
-        self._key = value.MeasurementKey(key_str)
+        # TODO: Allow nested keys only when created via some special methods. Planned in Phase 2a:
+        #   https://tinyurl.com/structured-measurement-keys#heading=h.zafcj653k11m
+        self.mkey = value.MeasurementKey(key_str, allow_nested_key=True)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
@@ -117,7 +119,7 @@ class MeasurementGate(raw_types.Gate):
         return mask
 
     def _measurement_key_(self):
-        return str(self.key)
+        return self.key
 
     def _channel_(self):
         size = np.prod(self._qid_shape, dtype=int)
