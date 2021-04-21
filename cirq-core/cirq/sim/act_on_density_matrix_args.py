@@ -13,12 +13,15 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a density matrix."""
 
-from typing import Any, Iterable, Dict, List, Tuple
+from typing import Any, Iterable, Dict, List, Tuple, TYPE_CHECKING, Sequence
 
 import numpy as np
 
 from cirq import protocols, sim
 from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class ActOnDensityMatrixArgs(ActOnArgs):
@@ -36,6 +39,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         qid_shape: Tuple[int, ...],
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
+        qubits: Sequence['cirq.Qid'] = None,
     ):
         """
         Args:
@@ -46,6 +50,9 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 `target_tensor`. Used by operations that cannot be applied to
                 `target_tensor` inline, in order to avoid unnecessary
                 allocations.
+            qubits: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
             qid_shape: The shape of the target tensor.
@@ -55,7 +62,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 being recorded into. Edit it easily by calling
                 `ActOnStateVectorArgs.record_measurement_result`.
         """
-        super().__init__(prng, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, axes, log_of_measurement_results)
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
         self.qid_shape = qid_shape
@@ -91,6 +98,17 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             seed=self.prng,
         )
         return bits
+
+    def copy(self) -> 'cirq.ActOnDensityMatrixArgs':
+        return ActOnDensityMatrixArgs(
+            target_tensor=self.target_tensor.copy(),
+            available_buffer=[b.copy() for b in self.available_buffer],
+            qubits=self.qubits,
+            axes=self.axes,
+            qid_shape=self.qid_shape,
+            prng=self.prng,
+            log_of_measurement_results=self.log_of_measurement_results.copy(),
+        )
 
 
 def _strat_apply_channel_to_state(

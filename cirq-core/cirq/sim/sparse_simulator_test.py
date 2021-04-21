@@ -89,7 +89,7 @@ def test_run_bit_flips(dtype):
 def test_run_measure_at_end_no_repetitions(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -114,7 +114,7 @@ def test_run_repetitions_terminal_measurement_stochastic():
 def test_run_repetitions_measure_at_end(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -131,7 +131,7 @@ def test_run_repetitions_measure_at_end(dtype):
 def test_run_invert_mask_measure_not_terminal(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -151,7 +151,7 @@ def test_run_invert_mask_measure_not_terminal(dtype):
 def test_run_partial_invert_mask_measure_not_terminal(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -171,7 +171,7 @@ def test_run_partial_invert_mask_measure_not_terminal(dtype):
 def test_run_measurement_not_terminal_no_repetitions(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -194,7 +194,7 @@ def test_run_measurement_not_terminal_no_repetitions(dtype):
 def test_run_repetitions_measurement_not_terminal(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -444,6 +444,20 @@ def test_simulate_initial_state(dtype):
         for b1 in [0, 1]:
             circuit = cirq.Circuit((cirq.X ** b0)(q0), (cirq.X ** b1)(q1))
             result = simulator.simulate(circuit, initial_state=1)
+            expected_state = np.zeros(shape=(2, 2))
+            expected_state[b0][1 - b1] = 1.0
+            np.testing.assert_equal(result.final_state_vector, np.reshape(expected_state, 4))
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_simulate_act_on_args(dtype):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.Simulator(dtype=dtype)
+    for b0 in [0, 1]:
+        for b1 in [0, 1]:
+            circuit = cirq.Circuit((cirq.X ** b0)(q0), (cirq.X ** b1)(q1))
+            args = simulator._create_act_on_args(initial_state=1, qubits=(q0, q1))
+            result = simulator.simulate(circuit, initial_state=args)
             expected_state = np.zeros(shape=(2, 2))
             expected_state[b0][1 - b1] = 1.0
             np.testing.assert_equal(result.final_state_vector, np.reshape(expected_state, 4))

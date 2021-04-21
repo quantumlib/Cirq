@@ -14,7 +14,7 @@
 """A protocol for implementing high performance clifford tableau evolutions
  for Clifford Simulator."""
 
-from typing import Any, Dict, Iterable, TYPE_CHECKING, List
+from typing import Any, Dict, Iterable, TYPE_CHECKING, List, Sequence
 
 import numpy as np
 
@@ -43,11 +43,15 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         axes: Iterable[int],
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
+        qubits: Sequence['cirq.Qid'] = None,
     ):
         """
         Args:
             tableau: The CliffordTableau to act on. Operations are expected to
                 perform inplace edits of this object.
+            qubits: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
             prng: The pseudo random number generator to use for probabilistic
@@ -56,7 +60,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
                 being recorded into. Edit it easily by calling
                 `ActOnCliffordTableauArgs.record_measurement_result`.
         """
-        super().__init__(prng, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, axes, log_of_measurement_results)
         self.tableau = tableau
 
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
@@ -76,6 +80,15 @@ class ActOnCliffordTableauArgs(ActOnArgs):
     def _perform_measurement(self) -> List[int]:
         """Returns the measurement from the tableau."""
         return [self.tableau._measure(q, self.prng) for q in self.axes]
+
+    def copy(self) -> 'cirq.ActOnCliffordTableauArgs':
+        return ActOnCliffordTableauArgs(
+            tableau=self.tableau.copy(),
+            qubits=self.qubits,
+            axes=self.axes,
+            prng=self.prng,
+            log_of_measurement_results=self.log_of_measurement_results.copy(),
+        )
 
 
 def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
