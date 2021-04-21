@@ -4,9 +4,11 @@
 # Runs pytest on the repository.
 #
 # Usage:
-#     check/pytest [--actually-quiet] [--flags for pytest] [file-paths-relative-to-repo-root]
+#     check/pytest [--actually-quiet] [--cirq-only] [--flags for pytest] [file-paths-relative-to-repo-root]
 #
 # The --actually-quiet argument filters out any progress output from pytest.
+# If --cirq-only is specified, only cirq-core tests are executed other cirq modules won't be available on the
+# PYTHONPATH, which is useful to test cirq-core's ability to function independently.
 #
 # You may specify pytest flags and specific files to test. The file paths
 # must be relative to the repository root. If no files are specified, everything
@@ -19,23 +21,23 @@ cd "$(git rev-parse --show-toplevel)"
 
 PYTEST_ARGS=()
 ACTUALLY_QUIET=""
+CIRQ_ONLY=""
 for arg in $@; do
     if [[ "${arg}" == "--actually-quiet" ]]; then
         ACTUALLY_QUIET=1
     elif [[ "${arg}" == "--cirq-only" ]]; then
-        tmp_dir=$(mktemp -d "/tmp/cirq-pytest.XXXXXXXXXXXXXXXX")
-        cp -R ./* ${tmp_dir}/
-        cp -R ./.github ${tmp_dir}/
-        cp -R ./.git ${tmp_dir}/
-        cd ${tmp_dir}
-        rm -rf cirq/google
-        trap "{ rm -rf ${tmp_dir}; }" EXIT
+        CIRQ_ONLY=1
     else
         PYTEST_ARGS+=("${arg}")
     fi
 done
 
-
+if [ -z "${CIRQ_ONLY}" ]; then
+  source dev_tools/pypath
+else
+  export PYTHONPATH=cirq-core
+  PYTEST_ARGS+=("./cirq-core")
+fi
 
 if [ -z "${ACTUALLY_QUIET}" ]; then
     pytest "${PYTEST_ARGS[@]}"

@@ -39,7 +39,7 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 repo_dir=$(git rev-parse --show-toplevel)
 cd "${repo_dir}"
 
-PROJECT_NAME=cirq
+PROJECT_NAME=cirq-core/cirq
 
 ACTUAL_VERSION_LINE=$(cat "${PROJECT_NAME}/_version.py" | tail -n 1)
 ACTUAL_VERSION=`echo $ACTUAL_VERSION_LINE | cut -d'"' -f 2`

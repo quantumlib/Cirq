@@ -21,7 +21,7 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 cd "$(git rev-parse --show-toplevel)"
 
 # Install usual requirements.
-pip install -r requirements.txt
+pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt
 
 # Install pytest related dev requirements.
 cat dev_tools/conf/pip-list-dev-tools.txt | grep pytest | xargs pip install
@@ -35,4 +35,4 @@ pip install codeowners==0.1.2 # linux only package
 
 # Install contrib requirements only if needed.
 changed=$(git diff --name-only origin/master | grep "cirq/contrib" || true)
-[ "${changed}" = "" ] || pip install -r cirq/contrib/contrib-requirements.txt
+[ "${changed}" = "" ] || pip install -r cirq-core/cirq/contrib/contrib-requirements.txt
