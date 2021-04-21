@@ -17,7 +17,6 @@ from typing import Optional, TYPE_CHECKING, Tuple
 
 import numpy as np
 import scipy
-import scipy.stats
 from cirq import value
 from cirq._compat import deprecated_parameter
 from cirq.qis.states import (
