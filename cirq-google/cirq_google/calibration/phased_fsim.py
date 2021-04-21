@@ -35,13 +35,11 @@ from typing import (
 import numpy as np
 import pandas as pd
 
-from cirq.devices import GridQubit
 from cirq.circuits import Circuit
+from cirq.devices import GridQubit
 from cirq.experiments.xeb_fitting import (
     XEBPhasedFSimCharacterizationOptions,
 )
-from cirq_google.api import v2
-from cirq_google.engine import CalibrationLayer, CalibrationResult
 from cirq.ops import (
     FSimGate,
     Gate,
@@ -54,9 +52,12 @@ from cirq.ops import (
     TwoQubitGate,
     rz,
 )
+from cirq_google.api import v2
+from cirq_google.engine import CalibrationLayer, CalibrationResult
 
 if TYPE_CHECKING:
     import cirq
+    import cirq_google
 
     # Workaround for mypy custom dataclasses (python/mypy#5406)
     from dataclasses import dataclass as json_serializable_dataclass
@@ -233,7 +234,7 @@ class PhasedFSimCalibrationOptions(abc.ABC, Generic[RequestT]):
                 pair in the set.
             gate: Gate to characterize for each qubit pair from pairs. This must be a supported gate
                 which can be described cirq.PhasedFSim gate. This gate must be serialized by the
-                cirq.google.SerializableGateSet used
+                cirq_google.SerializableGateSet used
         """
 
 
@@ -647,7 +648,7 @@ def _get_labeled_int(key: str, s: str):
     return int(ma.group(1))
 
 
-def _parse_xeb_fidelities_df(metrics: 'cirq.google.Calibration', super_name: str) -> pd.DataFrame:
+def _parse_xeb_fidelities_df(metrics: 'cirq_google.Calibration', super_name: str) -> pd.DataFrame:
     """Parse a fidelities DataFrame from Metric protos.
 
     Args:
@@ -676,7 +677,7 @@ def _parse_xeb_fidelities_df(metrics: 'cirq.google.Calibration', super_name: str
 
 
 def _parse_characterized_angles(
-    metrics: 'cirq.google.Calibration',
+    metrics: 'cirq_google.Calibration',
     super_name: str,
 ) -> Dict[Tuple['cirq.Qid', 'cirq.Qid'], Dict[str, float]]:
     """Parses characterized angles from Metric protos.

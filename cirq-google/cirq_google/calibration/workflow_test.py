@@ -204,9 +204,9 @@ def test_prepare_floquet_characterization_for_moments():
     [
         (
             WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-            cirq.google.FloquetPhasedFSimCalibrationRequest,
+            cirq_google.FloquetPhasedFSimCalibrationRequest,
         ),
-        (ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION, cirq.google.XEBPhasedFSimCalibrationRequest),
+        (ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION, cirq_google.XEBPhasedFSimCalibrationRequest),
     ],
 )
 def test_prepare_characterization_for_moments(options_cls):
@@ -268,9 +268,9 @@ def test_prepare_floquet_characterization_for_moments_merges_sub_sets():
     [
         (
             WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-            cirq.google.FloquetPhasedFSimCalibrationRequest,
+            cirq_google.FloquetPhasedFSimCalibrationRequest,
         ),
-        (ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION, cirq.google.XEBPhasedFSimCalibrationRequest),
+        (ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION, cirq_google.XEBPhasedFSimCalibrationRequest),
     ],
 )
 def test_prepare_characterization_for_moments_merges_sub_sets(options_cls):
@@ -349,9 +349,9 @@ def test_prepare_floquet_characterization_for_moments_merges_many_circuits():
     [
         (
             WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-            cirq.google.FloquetPhasedFSimCalibrationRequest,
+            cirq_google.FloquetPhasedFSimCalibrationRequest,
         ),
-        (ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION, cirq.google.XEBPhasedFSimCalibrationRequest),
+        (ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION, cirq_google.XEBPhasedFSimCalibrationRequest),
     ],
 )
 def test_prepare_characterization_for_moments_merges_many_circuits(options_cls):
@@ -435,9 +435,9 @@ def test_prepare_floquet_characterization_for_moments_does_not_merge_sub_sets_wh
     [
         (
             WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-            cirq.google.FloquetPhasedFSimCalibrationRequest,
+            cirq_google.FloquetPhasedFSimCalibrationRequest,
         ),
-        (ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION, cirq.google.XEBPhasedFSimCalibrationRequest),
+        (ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION, cirq_google.XEBPhasedFSimCalibrationRequest),
     ],
 )
 def test_prepare_characterization_for_moments_does_not_merge_sub_sets_when_disabled(options_cls):
@@ -500,9 +500,9 @@ def test_prepare_floquet_characterization_for_moments_merges_compatible_sets():
     [
         (
             WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-            cirq.google.FloquetPhasedFSimCalibrationRequest,
+            cirq_google.FloquetPhasedFSimCalibrationRequest,
         ),
-        (ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION, cirq.google.XEBPhasedFSimCalibrationRequest),
+        (ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION, cirq_google.XEBPhasedFSimCalibrationRequest),
     ],
 )
 def test_prepare_characterization_for_moments_merges_compatible_sets(options_cls):
@@ -593,9 +593,9 @@ def test_prepare_floquet_characterization_for_operations():
     [
         (
             WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
-            cirq.google.FloquetPhasedFSimCalibrationRequest,
+            cirq_google.FloquetPhasedFSimCalibrationRequest,
         ),
-        (ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION, cirq.google.XEBPhasedFSimCalibrationRequest),
+        (ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION, cirq_google.XEBPhasedFSimCalibrationRequest),
     ],
 )
 def test_prepare_characterization_for_operations(options_cls):

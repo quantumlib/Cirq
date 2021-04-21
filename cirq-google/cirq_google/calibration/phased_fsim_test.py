@@ -14,12 +14,13 @@
 import os
 import re
 
-import pytest
 import numpy as np
 import pandas as pd
+import pytest
 from google.protobuf import text_format
 
 import cirq
+import cirq_google
 from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 from cirq_google.api import v2
 from cirq_google.arg_func_langs import arg_to_proto
@@ -134,7 +135,7 @@ def test_xeb_to_calibration_layer():
         ),
     )
     layer = request.to_calibration_layer()
-    assert layer == cirq.google.CalibrationLayer(
+    assert layer == cirq_google.CalibrationLayer(
         calibration_type='xeb_phased_fsim_characterization',
         program=cirq.Circuit([gate.on(q_00, q_01), gate.on(q_02, q_03)]),
         args={
@@ -162,7 +163,7 @@ def test_xeb_to_calibration_layer():
     new_layer.calibration_type = layer.calibration_type
     for arg in layer.args:
         arg_to_proto(layer.args[arg], out=new_layer.args[arg])
-    cirq.google.SQRT_ISWAP_GATESET.serialize(layer.program, msg=new_layer.layer)
+    cirq_google.SQRT_ISWAP_GATESET.serialize(layer.program, msg=new_layer.layer)
     with open(os.path.dirname(__file__) + '/test_data/xeb_calibration_layer.textproto') as f:
         desired_textproto = f.read()
 
@@ -283,18 +284,18 @@ def test_floquet_parse_result():
     )
 
 
-def _load_xeb_results_textproto() -> cirq.google.CalibrationResult:
+def _load_xeb_results_textproto() -> cirq_google.CalibrationResult:
     with open(os.path.dirname(__file__) + '/test_data/xeb_results.textproto') as f:
         metrics_snapshot = text_format.Parse(
-            f.read(), cirq.google.api.v2.metrics_pb2.MetricsSnapshot()
+            f.read(), cirq_google.api.v2.metrics_pb2.MetricsSnapshot()
         )
 
-    return cirq.google.CalibrationResult(
-        code=cirq.google.api.v2.calibration_pb2.SUCCESS,
+    return cirq_google.CalibrationResult(
+        code=cirq_google.api.v2.calibration_pb2.SUCCESS,
         error_message=None,
         token=None,
         valid_until=None,
-        metrics=cirq.google.Calibration(metrics_snapshot),
+        metrics=cirq_google.Calibration(metrics_snapshot),
     )
 
 
@@ -330,7 +331,7 @@ def test_xeb_parse_fidelities():
 
 
 def test_xeb_parse_bad_fidelities():
-    metrics = cirq.google.Calibration(
+    metrics = cirq_google.Calibration(
         metrics={
             'initial_fidelities_depth_5': {
                 ('layer_0', 'pair_0', cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)): [1.0],
@@ -351,7 +352,7 @@ def test_xeb_parse_bad_fidelities():
         ),
     )
 
-    metrics = cirq.google.Calibration(
+    metrics = cirq_google.Calibration(
         metrics={
             'initial_fidelities_depth_5x': {
                 ('layer_0', 'pair_0', '0_0', '1_1'): [1.0],
@@ -361,7 +362,7 @@ def test_xeb_parse_bad_fidelities():
     df = _parse_xeb_fidelities_df(metrics, 'initial_fidelities')
     assert len(df) == 0, 'bad metric name ignored'
 
-    metrics = cirq.google.Calibration(
+    metrics = cirq_google.Calibration(
         metrics={
             'initial_fidelities_depth_5': {
                 ('bad_name_0', 'pair_0', '0_0', '1_1'): [1.0],

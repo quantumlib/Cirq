@@ -28,6 +28,17 @@ from typing import (
 
 from cirq.circuits import Circuit
 from cirq.experiments import HALF_GRID_STAGGERED_PATTERN
+from cirq.ops import (
+    FSimGate,
+    Gate,
+    GateOperation,
+    MeasurementGate,
+    Moment,
+    Operation,
+    Qid,
+    SingleQubitGate,
+    WaitGate,
+)
 from cirq_google.calibration.engine_simulator import PhasedFSimEngineSimulator
 from cirq_google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
@@ -46,17 +57,6 @@ from cirq_google.calibration.phased_fsim import (
 )
 from cirq_google.engine import Engine
 from cirq_google.serializable_gate_set import SerializableGateSet
-from cirq.ops import (
-    FSimGate,
-    Gate,
-    GateOperation,
-    MeasurementGate,
-    Moment,
-    Operation,
-    Qid,
-    SingleQubitGate,
-    WaitGate,
-)
 
 _CALIBRATION_IRRELEVANT_GATES = MeasurementGate, SingleQubitGate, WaitGate
 
