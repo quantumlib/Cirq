@@ -199,16 +199,22 @@ def build_circuit_from_hamiltonians(
             found_simplification = False
             for x, y in [(_control, _target), (_target, _control)]:
                 i = 0
+                qubit_to_index: Dict[int, int] = {}
                 for j in range(1, len(cnots)):
                     if cnots[i][x] != cnots[j][x]:
                         # The targets (resp. control) don't match, so we reset the search.
                         i = j
+                        qubit_to_index = {cnots[j][y]: j}
                         continue
-                    if cnots[i][y] == cnots[j][y]:
+
+                    if cnots[j][y] in qubit_to_index:
+                        k = qubit_to_index[cnots[j][y]]
                         # The controls (resp. targets) are the same, so we can simplify away.
-                        cnots = [cnots[k] for k in range(len(cnots)) if k != i and k != j]
+                        cnots = [cnots[n] for n in range(len(cnots)) if n != j and n != k]
                         found_simplification = True
                         break
+
+                    qubit_to_index[cnots[j][y]] = j
 
             if found_simplification:
                 continue

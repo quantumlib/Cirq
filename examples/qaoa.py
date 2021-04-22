@@ -1,3 +1,4 @@
+"""Runs the Quantum Approximate Optimization Algorithm on Max-Cut."""
 import itertools
 
 import numpy as np

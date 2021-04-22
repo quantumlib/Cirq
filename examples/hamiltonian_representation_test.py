@@ -76,7 +76,7 @@ def test_circuit(boolean_expr, ladder_target):
         subed_expr = parsed_expr
         for var_name, binary_input in zip(var_names, binary_inputs):
             subed_expr = subed_expr.subs(var_name, binary_input)
-        expected.append(subed_expr)
+        expected.append(bool(subed_expr))
 
     # We build a circuit and look at its output state vector:
     circuit_hamiltonians, qubits = hr.build_circuit_from_boolean_expressions(
