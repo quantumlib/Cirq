@@ -271,6 +271,10 @@ def von_neumann_entropy(
                 qid_shape = (state.shape[0],)
             validate_density_matrix(state, qid_shape=qid_shape, dtype=state.dtype, atol=atol)
         eigenvalues = np.linalg.eigvalsh(state)
+
+        # We import here to avoid a costly module level load time dependency on scipy.stats.
+        import scipy.stats
+
         return scipy.stats.entropy(np.abs(eigenvalues), base=2)
     if validate:
         _ = quantum_state(state, qid_shape=qid_shape, copy=False, validate=True, atol=atol)
