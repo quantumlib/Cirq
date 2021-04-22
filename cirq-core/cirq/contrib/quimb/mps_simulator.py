@@ -17,10 +17,10 @@ This is based on this paper:
 https://arxiv.org/abs/2002.07730
 """
 
-import math
-from typing import Any, Dict, List, Iterator, Optional, Sequence, Set, TYPE_CHECKING, Iterable
-
 import dataclasses
+import math
+from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iterable, Union
+
 import numpy as np
 import quimb.tensor as qtn
 
@@ -54,7 +54,9 @@ class MPSOptions:
 
 class MPSSimulator(
     simulator.SimulatesSamples,
-    simulator.SimulatesIntermediateState['MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState'],
+    simulator.SimulatesIntermediateState[
+        'MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState', 'MPSState'
+    ],
 ):
     """An efficient simulator for MPS circuits."""
 
@@ -82,58 +84,68 @@ class MPSSimulator(
         self.simulation_options = simulation_options
         self.grouping = grouping
 
-    def _base_iterator(
-        self, circuit: circuits.Circuit, qubit_order: ops.QubitOrderOrList, initial_state: int
-    ) -> Iterator['MPSSimulatorStepResult']:
+    def _create_act_on_args(
+        self,
+        initial_state: Union[int, 'MPSState'],
+        qubits: Sequence['cirq.Qid'],
+    ) -> 'MPSState':
+        """Creates MPSState args for simulating the Circuit.
+
+        Args:
+            initial_state: The initial state for the simulation in the
+                computational basis. Represented as a big endian int.
+            qubits: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+
+        Returns:
+            MPSState args for simulating the Circuit.
+        """
+        if isinstance(initial_state, MPSState):
+            return initial_state
+
+        return MPSState(
+            qubits=qubits,
+            prng=self.prng,
+            simulation_options=self.simulation_options,
+            grouping=self.grouping,
+            initial_state=initial_state,
+        )
+
+    def _core_iterator(
+        self,
+        circuit: circuits.Circuit,
+        sim_state: 'MPSState',
+    ):
         """Iterator over MPSSimulatorStepResult from Moments of a Circuit
 
         Args:
             circuit: The circuit to simulate.
-            qubit_order: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
-            initial_state: The initial state for the simulation in the
-                computational basis. Represented as a big endian int.
+            sim_state: The initial state args for the simulation in the
+                computational basis.
 
         Yields:
             MPSStepResult from simulating a Moment of the Circuit.
         """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
-
-        qubit_map = {q: i for i, q in enumerate(qubits)}
-
         if len(circuit) == 0:
             yield MPSSimulatorStepResult(
-                measurements={},
-                state=MPSState(
-                    qubit_map,
-                    self.prng,
-                    self.simulation_options,
-                    self.grouping,
-                    initial_state=initial_state,
-                ),
+                measurements=sim_state.log_of_measurement_results, state=sim_state
             )
             return
-
-        state = MPSState(
-            qubit_map,
-            self.prng,
-            self.simulation_options,
-            self.grouping,
-            initial_state=initial_state,
-        )
 
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
         for op_tree in noisy_moments:
             for op in flatten_to_ops(op_tree):
                 if protocols.is_measurement(op) or protocols.has_mixture(op):
-                    state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
-                    protocols.act_on(op, state)
+                    sim_state.axes = tuple(sim_state.qubit_map[qubit] for qubit in op.qubits)
+                    protocols.act_on(op, sim_state)
                 else:
                     raise NotImplementedError(f"Unrecognized operation: {op!r}")
 
-            yield MPSSimulatorStepResult(measurements=state.log_of_measurement_results, state=state)
-            state.log_of_measurement_results.clear()
+            yield MPSSimulatorStepResult(
+                measurements=sim_state.log_of_measurement_results, state=sim_state
+            )
+            sim_state.log_of_measurement_results.clear()
 
     def _create_simulator_trial_result(
         self,
@@ -286,7 +298,7 @@ class MPSState(ActOnArgs):
 
     def __init__(
         self,
-        qubit_map: Dict['cirq.Qid', int],
+        qubits: Sequence['cirq.Qid'],
         prng: np.random.RandomState,
         simulation_options: MPSOptions = MPSOptions(),
         grouping: Optional[Dict['cirq.Qid', int]] = None,
@@ -297,7 +309,9 @@ class MPSState(ActOnArgs):
         """Creates and MPSState
 
         Args:
-            qubit_map: A map from Qid to an integer that uniquely identifies it.
+            qubits: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
             prng: A random number generator, used to simulate measurements.
             simulation_options: Numerical options for the simulation.
             grouping: How to group qubits together, if None all are individual.
@@ -307,8 +321,8 @@ class MPSState(ActOnArgs):
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
         """
-        super().__init__(prng, axes, log_of_measurement_results)
-        self.qubit_map = qubit_map
+        super().__init__(prng, qubits, axes, log_of_measurement_results)
+        qubit_map = self.qubit_map
         self.grouping = qubit_map if grouping is None else grouping
         if self.grouping.keys() != self.qubit_map.keys():
             raise ValueError('Grouping must cover exactly the qubits.')
@@ -364,10 +378,10 @@ class MPSState(ActOnArgs):
 
     def copy(self) -> 'MPSState':
         state = MPSState(
-            self.qubit_map,
-            self.prng,
-            self.simulation_options,
-            self.grouping,
+            qubits=self.qubits,
+            prng=self.prng,
+            simulation_options=self.simulation_options,
+            grouping=self.grouping,
         )
         state.M = [x.copy() for x in self.M]
         state.estimated_gate_error_list = self.estimated_gate_error_list
@@ -584,6 +598,5 @@ class MPSState(ActOnArgs):
 
     def _perform_measurement(self) -> List[int]:
         """Measures the axes specified by the simulator."""
-        qubit_map_inv = {v: k for k, v in self.qubit_map.items()}
-        qubits = [qubit_map_inv[key] for key in self.axes]
+        qubits = [self.qubits[key] for key in self.axes]
         return self.perform_measurement(qubits, self.prng)

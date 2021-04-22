@@ -13,12 +13,17 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
-from typing import Any, Iterable, Dict, List
+from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING, Sequence
 
 import numpy as np
 
 from cirq import protocols
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
+
+TSelf = TypeVar('TSelf', bound='ActOnArgs')
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class ActOnArgs:
@@ -27,23 +32,31 @@ class ActOnArgs:
     def __init__(
         self,
         prng: np.random.RandomState,
+        qubits: Sequence['cirq.Qid'] = None,
         axes: Iterable[int] = None,
         log_of_measurement_results: Dict[str, Any] = None,
     ):
         """
         Args:
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
             prng: The pseudo random number generator to use for probabilistic
                 effects.
+            qubits: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            axes: The indices of axes corresponding to the qubits that the
+                operation is supposed to act upon.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into. Edit it easily by calling
                 `ActOnStateVectorArgs.record_measurement_result`.
         """
+        if qubits is None:
+            qubits = ()
         if axes is None:
-            axes = []
+            axes = ()
         if log_of_measurement_results is None:
             log_of_measurement_results = {}
+        self.qubits = tuple(qubits)
+        self.qubit_map = {q: i for i, q in enumerate(self.qubits)}
         self.axes = tuple(axes)
         self.prng = prng
         self.log_of_measurement_results = log_of_measurement_results
@@ -67,6 +80,10 @@ class ActOnArgs:
     def _perform_measurement(self) -> List[int]:
         """Child classes that perform measurements should implement this with
         the implementation."""
+
+    @abc.abstractmethod
+    def copy(self: TSelf) -> TSelf:
+        """Creates a copy of the object."""
 
 
 def strat_act_on_from_apply_decompose(

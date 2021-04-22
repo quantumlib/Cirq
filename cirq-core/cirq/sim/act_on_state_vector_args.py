@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import Any, Iterable, Tuple, TYPE_CHECKING, Union, Dict, List
+from typing import Any, Iterable, Tuple, TYPE_CHECKING, Union, Dict, List, Sequence
 
 import numpy as np
 
@@ -43,6 +43,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         axes: Iterable[int],
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
+        qubits: Sequence['cirq.Qid'] = None,
     ):
         """
         Args:
@@ -54,6 +55,9 @@ class ActOnStateVectorArgs(ActOnArgs):
                 `target_tensor` inline, in order to avoid unnecessary
                 allocations. Passing `available_buffer` into
                 `swap_target_tensor_for` will swap it for `target_tensor`.
+            qubits: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
             prng: The pseudo random number generator to use for probabilistic
@@ -62,7 +66,7 @@ class ActOnStateVectorArgs(ActOnArgs):
                 being recorded into. Edit it easily by calling
                 `ActOnStateVectorArgs.record_measurement_result`.
         """
-        super().__init__(prng, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, axes, log_of_measurement_results)
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
 
@@ -166,6 +170,16 @@ class ActOnStateVectorArgs(ActOnArgs):
             seed=self.prng,
         )
         return bits
+
+    def copy(self) -> 'cirq.ActOnStateVectorArgs':
+        return ActOnStateVectorArgs(
+            target_tensor=self.target_tensor.copy(),
+            available_buffer=self.available_buffer.copy(),
+            qubits=self.qubits,
+            axes=self.axes,
+            prng=self.prng,
+            log_of_measurement_results=self.log_of_measurement_results.copy(),
+        )
 
 
 def _strat_act_on_state_vector_from_apply_unitary(

@@ -18,13 +18,13 @@ import collections
 from typing import (
     Any,
     Dict,
-    Iterator,
     List,
     Type,
     TYPE_CHECKING,
     DefaultDict,
     Union,
     cast,
+    Sequence,
 )
 
 import numpy as np
@@ -173,7 +173,8 @@ class Simulator(
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         check_all_resolved(resolved_circuit)
-        qubit_order = sorted(resolved_circuit.all_qubits())
+        qubits = tuple(sorted(resolved_circuit.all_qubits()))
+        act_on_args = self._create_act_on_args(0, qubits)
 
         # Simulate as many unitary operations as possible before having to
         # repeat work for each sample.
@@ -183,10 +184,9 @@ class Simulator(
             else (resolved_circuit[0:0], resolved_circuit)
         )
         step_result = None
-        for step_result in self._base_iterator(
+        for step_result in self._core_iterator(
             circuit=unitary_prefix,
-            qubit_order=qubit_order,
-            initial_state=0,
+            sim_state=act_on_args,
         ):
             pass
         assert step_result is not None
@@ -201,69 +201,98 @@ class Simulator(
                 seed=self._prng,
             )
 
-        qid_shape = protocols.qid_shape(qubit_order)
-        intermediate_state = step_result.state_vector().reshape(qid_shape)
         return self._brute_force_samples(
-            initial_state=intermediate_state,
+            act_on_args=act_on_args,
             circuit=general_suffix,
             repetitions=repetitions,
-            qubit_order=qubit_order,
         )
 
     def _brute_force_samples(
         self,
-        initial_state: np.ndarray,
+        act_on_args: act_on_state_vector_args.ActOnStateVectorArgs,
         circuit: circuits.Circuit,
-        qubit_order: 'cirq.QubitOrderOrList',
         repetitions: int,
     ) -> Dict[str, np.ndarray]:
         """Repeatedly simulate a circuit in order to produce samples."""
 
         measurements: DefaultDict[str, List[np.ndarray]] = collections.defaultdict(list)
         for _ in range(repetitions):
-            all_step_results = self._base_iterator(
-                circuit, initial_state=initial_state, qubit_order=qubit_order
-            )
+            all_step_results = self._core_iterator(circuit, sim_state=act_on_args.copy())
 
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
 
-    def _base_iterator(
+    def _create_act_on_args(
         self,
-        circuit: circuits.Circuit,
-        qubit_order: ops.QubitOrderOrList,
-        initial_state: 'cirq.STATE_VECTOR_LIKE',
-    ) -> Iterator['SparseSimulatorStep']:
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
+        initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
+        qubits: Sequence['cirq.Qid'],
+    ):
+        """Creates the ActOnStateVectorArgs for a circuit.
+
+        Args:
+            initial_state: The initial state for the simulation in the
+                computational basis.
+            qubits: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+
+        Returns:
+            ActOnStateVectorArgs for the circuit.
+        """
+        if isinstance(initial_state, act_on_state_vector_args.ActOnStateVectorArgs):
+            return initial_state
+
         num_qubits = len(qubits)
         qid_shape = protocols.qid_shape(qubits)
-        qubit_map = {q: i for i, q in enumerate(qubits)}
         state = qis.to_valid_state_vector(
             initial_state, num_qubits, qid_shape=qid_shape, dtype=self._dtype
         )
-        if len(circuit) == 0:
-            yield SparseSimulatorStep(state, {}, qubit_map, self._dtype)
 
-        sim_state = act_on_state_vector_args.ActOnStateVectorArgs(
+        return act_on_state_vector_args.ActOnStateVectorArgs(
             target_tensor=np.reshape(state, qid_shape),
             available_buffer=np.empty(qid_shape, dtype=self._dtype),
+            qubits=qubits,
             axes=[],
             prng=self._prng,
             log_of_measurement_results={},
         )
 
+    def _core_iterator(
+        self,
+        circuit: circuits.Circuit,
+        sim_state: act_on_state_vector_args.ActOnStateVectorArgs,
+    ):
+        """Iterator over SparseSimulatorStep from Moments of a Circuit
+
+        Args:
+            circuit: The circuit to simulate.
+            sim_state: The initial state args for the simulation in the
+                computational basis.
+
+        Yields:
+            SparseSimulatorStep from simulating a Moment of the Circuit.
+        """
+        if len(circuit) == 0:
+            yield SparseSimulatorStep(
+                state_vector=sim_state.target_tensor,
+                measurements=dict(sim_state.log_of_measurement_results),
+                qubit_map=sim_state.qubit_map,
+                dtype=self._dtype,
+            )
+            return
+
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
         for op_tree in noisy_moments:
             for op in flatten_to_ops(op_tree):
-                sim_state.axes = tuple(qubit_map[qubit] for qubit in op.qubits)
+                sim_state.axes = tuple(sim_state.qubit_map[qubit] for qubit in op.qubits)
                 protocols.act_on(op, sim_state)
 
             yield SparseSimulatorStep(
                 state_vector=sim_state.target_tensor,
                 measurements=dict(sim_state.log_of_measurement_results),
-                qubit_map=qubit_map,
+                qubit_map=sim_state.qubit_map,
                 dtype=self._dtype,
             )
             sim_state.log_of_measurement_results.clear()
