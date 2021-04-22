@@ -14,7 +14,6 @@
 """Tests for measures."""
 import numpy as np
 import pytest
-import scipy.stats
 
 import cirq
 
@@ -207,7 +206,10 @@ def test_von_neumann_entropy():
     probs = np.random.exponential(size=N)
     probs /= np.sum(probs)
     mat = U @ (probs * U).T.conj()
-    np.testing.assert_allclose(cirq.von_neumann_entropy(mat), scipy.stats.entropy(probs, base=2))
+
+    np.testing.assert_allclose(
+        cirq.von_neumann_entropy(mat), -np.sum(probs * np.log(probs) / np.log(2))
+    )
     # QuantumState object
     assert (
         cirq.von_neumann_entropy(cirq.quantum_state(np.array([[0.5, 0], [0, 0.5]]), qid_shape=(2,)))
