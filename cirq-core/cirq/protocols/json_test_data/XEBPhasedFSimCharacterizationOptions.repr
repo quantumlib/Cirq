@@ -1,0 +1,1 @@
+cirq.experiments.XEBPhasedFSimCharacterizationOptions(characterize_theta=True, characterize_zeta=True, characterize_chi=True, characterize_gamma=True, characterize_phi=True, theta_default=0.0, zeta_default=0.0, chi_default=0.0, gamma_default=0.0, phi_default=0.0)

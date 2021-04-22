@@ -136,10 +136,11 @@ def test_benchmark_2q_xeb_fidelities_vectorized():
     pd.testing.assert_frame_equal(df_old, df)
 
 
-def test_parameterize_phased_fsim_circuit():
+@pytest.mark.parametrize('gate', [SQRT_ISWAP, cirq.FSimGate(np.pi / 4, 0)])
+def test_parameterize_phased_fsim_circuit(gate):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = rqcg.random_rotations_between_two_qubit_circuit(
-        q0, q1, depth=3, two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP(a, b), seed=52
+        q0, q1, depth=3, two_qubit_op_factory=lambda a, b, _: gate(a, b), seed=52
     )
 
     p_circuit = parameterize_circuit(circuit, SqrtISwapXEBOptions())

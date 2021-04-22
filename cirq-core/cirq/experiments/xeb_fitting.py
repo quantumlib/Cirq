@@ -37,6 +37,11 @@ if TYPE_CHECKING:
     import cirq
     import multiprocessing
 
+    # Workaround for mypy custom dataclasses (python/mypy#5406)
+    from dataclasses import dataclass as json_serializable_dataclass
+else:
+    from cirq.protocols import json_serializable_dataclass
+
 THETA_SYMBOL, ZETA_SYMBOL, CHI_SYMBOL, GAMMA_SYMBOL, PHI_SYMBOL = sympy.symbols(
     'theta zeta chi gamma phi'
 )
@@ -132,7 +137,7 @@ class XEBCharacterizationOptions(ABC):
 
 
 # mypy issue: https://github.com/python/mypy/issues/5374
-@dataclass(frozen=True)  # type: ignore
+@json_serializable_dataclass(frozen=True)  # type: ignore
 class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
     """Options for calibrating a PhasedFSim-like gate using XEB.
 
@@ -158,11 +163,11 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
     characterize_gamma: bool = True
     characterize_phi: bool = True
 
-    theta_default: float = 0
-    zeta_default: float = 0
-    chi_default: float = 0
-    gamma_default: float = 0
-    phi_default: float = 0
+    theta_default: float = 0.0
+    zeta_default: float = 0.0
+    chi_default: float = 0.0
+    gamma_default: float = 0.0
+    phi_default: float = 0.0
 
     def get_initial_simplex_and_names(
         self, initial_simplex_step_size: float = 0.1
@@ -214,6 +219,14 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
         phi = PHI_SYMBOL if self.characterize_phi else self.phi_default
         return ops.PhasedFSimGate(theta=theta, zeta=zeta, chi=chi, gamma=gamma, phi=phi)
 
+    @staticmethod
+    def should_parameterize(op: 'cirq.Operation') -> bool:
+        if isinstance(op.gate, (ops.PhasedFSimGate, ops.FSimGate)):
+            return True
+        if op.gate == SQRT_ISWAP:
+            return True
+        return False
+
 
 @dataclass(frozen=True)
 class SqrtISwapXEBOptions(XEBPhasedFSimCharacterizationOptions):
@@ -224,10 +237,6 @@ class SqrtISwapXEBOptions(XEBPhasedFSimCharacterizationOptions):
     """
 
     theta_default: float = -np.pi / 4
-
-    @staticmethod
-    def should_parameterize(op: 'cirq.Operation') -> bool:
-        return op.gate == SQRT_ISWAP
 
 
 def parameterize_circuit(
@@ -322,7 +331,11 @@ def characterize_phased_fsim_parameters_with_xeb(
     optimization_result = scipy.optimize.minimize(
         _mean_infidelity,
         x0=x0,
-        options={'initial_simplex': initial_simplex, 'xatol': xatol, 'fatol': fatol},
+        options={
+            'initial_simplex': initial_simplex,
+            'xatol': xatol,
+            'fatol': fatol,
+        },
         method='nelder-mead',
     )
 

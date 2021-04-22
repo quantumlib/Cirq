@@ -1,0 +1,28 @@
+{
+  "cirq_type": "XEBPhasedFSimCalibrationOptions",
+  "n_library_circuits": 20,
+  "n_combinations": 10,
+  "cycle_depths": [
+    5,
+    25,
+    50,
+    100,
+    200,
+    300
+  ],
+  "fatol": 0.005,
+  "xatol": 0.005,
+  "fsim_options": {
+    "cirq_type": "XEBPhasedFSimCharacterizationOptions",
+    "characterize_theta": true,
+    "characterize_zeta": true,
+    "characterize_chi": true,
+    "characterize_gamma": true,
+    "characterize_phi": true,
+    "theta_default": 0.0,
+    "zeta_default": 0.0,
+    "chi_default": 0.0,
+    "gamma_default": 0.0,
+    "phi_default": 0.0
+  }
+}
