@@ -11,11 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import pytest
+import os
+import re
+
 import numpy as np
+import pandas as pd
+import pytest
+from google.protobuf import text_format
 
 import cirq
 import cirq_google
+from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
+from cirq_google.api import v2
+from cirq_google.arg_func_langs import arg_to_proto
 from cirq_google.calibration.phased_fsim import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     FloquetPhasedFSimCalibrationOptions,
@@ -26,6 +34,10 @@ from cirq_google.calibration.phased_fsim import (
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     merge_matching_results,
     try_convert_sqrt_iswap_to_fsim,
+    XEBPhasedFSimCalibrationRequest,
+    XEBPhasedFSimCalibrationOptions,
+    _parse_xeb_fidelities_df,
+    _parse_characterized_angles,
 )
 
 
@@ -103,6 +115,62 @@ def test_floquet_to_calibration_layer():
             'readout_corrections': True,
         },
     )
+
+
+def test_xeb_to_calibration_layer():
+    q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
+    gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+    request = XEBPhasedFSimCalibrationRequest(
+        gate=gate,
+        pairs=((q_00, q_01), (q_02, q_03)),
+        options=XEBPhasedFSimCalibrationOptions(
+            n_library_circuits=22,
+            fsim_options=XEBPhasedFSimCharacterizationOptions(
+                characterize_theta=True,
+                characterize_zeta=True,
+                characterize_chi=False,
+                characterize_gamma=False,
+                characterize_phi=True,
+            ),
+        ),
+    )
+    layer = request.to_calibration_layer()
+    assert layer == cirq_google.CalibrationLayer(
+        calibration_type='xeb_phased_fsim_characterization',
+        program=cirq.Circuit([gate.on(q_00, q_01), gate.on(q_02, q_03)]),
+        args={
+            'n_library_circuits': 22,
+            'n_combinations': 10,
+            'cycle_depths': '5_25_50_100_200_300',
+            'fatol': 5e-3,
+            'xatol': 5e-3,
+            'characterize_theta': True,
+            'characterize_zeta': True,
+            'characterize_chi': False,
+            'characterize_gamma': False,
+            'characterize_phi': True,
+            'theta_default': 0.0,
+            'zeta_default': 0.0,
+            'chi_default': 0.0,
+            'gamma_default': 0.0,
+            'phi_default': 0.0,
+        },
+    )
+
+    # Serialize to proto
+    calibration = v2.calibration_pb2.FocusedCalibration()
+    new_layer = calibration.layers.add()
+    new_layer.calibration_type = layer.calibration_type
+    for arg in layer.args:
+        arg_to_proto(layer.args[arg], out=new_layer.args[arg])
+    cirq_google.SQRT_ISWAP_GATESET.serialize(layer.program, msg=new_layer.layer)
+    with open(os.path.dirname(__file__) + '/test_data/xeb_calibration_layer.textproto') as f:
+        desired_textproto = f.read()
+
+    layer_str = str(new_layer)
+    # Fix precision issues
+    layer_str = re.sub(r'0.004999\d+', '0.005', layer_str)
+    assert layer_str == desired_textproto
 
 
 def test_from_moment():
@@ -213,6 +281,134 @@ def test_floquet_parse_result():
             characterize_gamma=False,
             characterize_phi=True,
         ),
+    )
+
+
+def _load_xeb_results_textproto() -> cirq_google.CalibrationResult:
+    with open(os.path.dirname(__file__) + '/test_data/xeb_results.textproto') as f:
+        metrics_snapshot = text_format.Parse(
+            f.read(), cirq_google.api.v2.metrics_pb2.MetricsSnapshot()
+        )
+
+    return cirq_google.CalibrationResult(
+        code=cirq_google.api.v2.calibration_pb2.SUCCESS,
+        error_message=None,
+        token=None,
+        valid_until=None,
+        metrics=cirq_google.Calibration(metrics_snapshot),
+    )
+
+
+def test_xeb_parse_fidelities():
+    q0, q1, q2, q3 = [cirq.GridQubit(0, index) for index in range(4)]
+    pair0 = (q0, q1)
+    pair1 = (q2, q3)
+    result = _load_xeb_results_textproto()
+    metrics = result.metrics
+    df = _parse_xeb_fidelities_df(metrics, 'initial_fidelities')
+    should_be = pd.DataFrame(
+        {
+            'cycle_depth': [5, 5, 25, 25],
+            'layer_i': [0, 0, 0, 0],
+            'pair_i': [0, 1, 0, 1],
+            'fidelity': [0.99, 0.99, 0.88, 0.88],
+            'pair': [pair0, pair1, pair0, pair1],
+        }
+    )
+    pd.testing.assert_frame_equal(df, should_be)
+
+    df = _parse_xeb_fidelities_df(metrics, 'final_fidelities')
+    should_be = pd.DataFrame(
+        {
+            'cycle_depth': [5, 5, 25, 25],
+            'layer_i': [0, 0, 0, 0],
+            'pair_i': [0, 1, 0, 1],
+            'fidelity': [0.99, 0.99, 0.98, 0.98],
+            'pair': [pair0, pair1, pair0, pair1],
+        }
+    )
+    pd.testing.assert_frame_equal(df, should_be)
+
+
+def test_xeb_parse_bad_fidelities():
+    metrics = cirq_google.Calibration(
+        metrics={
+            'initial_fidelities_depth_5': {
+                ('layer_0', 'pair_0', cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)): [1.0],
+            }
+        }
+    )
+    df = _parse_xeb_fidelities_df(metrics, 'initial_fidelities')
+    pd.testing.assert_frame_equal(
+        df,
+        pd.DataFrame(
+            {
+                'cycle_depth': [5],
+                'layer_i': [0],
+                'pair_i': [0],
+                'fidelity': [1.0],
+                'pair': [(cirq.GridQubit(0, 0), cirq.GridQubit(1, 1))],
+            }
+        ),
+    )
+
+    metrics = cirq_google.Calibration(
+        metrics={
+            'initial_fidelities_depth_5x': {
+                ('layer_0', 'pair_0', '0_0', '1_1'): [1.0],
+            }
+        }
+    )
+    df = _parse_xeb_fidelities_df(metrics, 'initial_fidelities')
+    assert len(df) == 0, 'bad metric name ignored'
+
+    metrics = cirq_google.Calibration(
+        metrics={
+            'initial_fidelities_depth_5': {
+                ('bad_name_0', 'pair_0', '0_0', '1_1'): [1.0],
+            }
+        }
+    )
+    with pytest.raises(ValueError, match=r'Could not parse layer value for bad_name_0'):
+        _parse_xeb_fidelities_df(metrics, 'initial_fidelities')
+
+
+def test_xeb_parse_angles():
+    q0, q1, q2, q3 = [cirq.GridQubit(0, index) for index in range(4)]
+    result = _load_xeb_results_textproto()
+    metrics = result.metrics
+    angles = _parse_characterized_angles(metrics, 'characterized_angles')
+    assert angles == {
+        (q0, q1): {'theta': -0.7853981, 'phi': 0.0},
+        (q2, q3): {'theta': -0.7853981, 'phi': 0.0},
+    }
+
+
+def test_xeb_parse_result():
+    q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
+    gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
+    request = XEBPhasedFSimCalibrationRequest(
+        gate=gate,
+        pairs=((q_00, q_01), (q_02, q_03)),
+        options=XEBPhasedFSimCalibrationOptions(
+            fsim_options=XEBPhasedFSimCharacterizationOptions(
+                characterize_theta=False,
+                characterize_zeta=False,
+                characterize_chi=False,
+                characterize_gamma=False,
+                characterize_phi=True,
+            )
+        ),
+    )
+
+    result = _load_xeb_results_textproto()
+    assert request.parse_result(result) == PhasedFSimCalibrationResult(
+        parameters={
+            (q_00, q_01): PhasedFSimCharacterization(phi=0.0, theta=-0.7853981),
+            (q_02, q_03): PhasedFSimCharacterization(phi=0.0, theta=-0.7853981),
+        },
+        gate=gate,
+        options=request.options,
     )
 
 
