@@ -1,0 +1,34 @@
+{
+  "cirq_type": "CalibrationLayer",
+  "calibration_type": "xeb",
+  "program": {
+    "cirq_type": "Circuit",
+    "moments": [
+      {
+        "cirq_type": "Moment",
+        "operations": [
+          {
+            "cirq_type": "SingleQubitPauliStringGateOperation",
+            "pauli": {
+              "cirq_type": "_PauliX",
+              "exponent": 1.0,
+              "global_shift": 0.0
+            },
+            "qubit": {
+              "cirq_type": "GridQubit",
+              "row": 1,
+              "col": 1
+            }
+          }
+        ]
+      }
+    ],
+    "device": {
+      "cirq_type": "_UnconstrainedDevice"
+    }
+  },
+  "args": {
+    "type": "full",
+    "samples": 100
+  }
+}
