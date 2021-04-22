@@ -247,11 +247,19 @@ class PhasedFSimCalibrationResult:
             quibts a and b either only (a, b) or only (b, a) is present.
         gate: Characterized gate for each qubit pair. This is copied from the matching
             PhasedFSimCalibrationRequest and is included to preserve execution context.
+        options: The options used to gather this result.
+        initial_fids: The circuit fidelities by depth before characterization of the PhasedFSim.
+            Not all characterization techniques can report this.
+        final_fids: The circuit fidelities by depth after characterization of the PhasedFSim.
+            Not all characterization techniques can report this.
+
     """
 
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
     gate: Gate
     options: PhasedFSimCalibrationOptions
+    initial_fids: Optional[pd.DataFrame] = None
+    final_fids: Optional[pd.DataFrame] = None
 
     def override(self, parameters: PhasedFSimCharacterization) -> 'PhasedFSimCalibrationResult':
         """Creates the new results with certain parameters overridden for all characterizations.

@@ -221,11 +221,7 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
 
     @staticmethod
     def should_parameterize(op: 'cirq.Operation') -> bool:
-        if isinstance(op.gate, (ops.PhasedFSimGate, ops.FSimGate)):
-            return True
-        if op.gate == SQRT_ISWAP:
-            return True
-        return False
+        return isinstance(op.gate, (ops.PhasedFSimGate, ops.ISwapPowGate, ops.FSimGate))
 
 
 @dataclass(frozen=True)
