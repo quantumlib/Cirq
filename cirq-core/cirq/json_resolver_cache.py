@@ -141,6 +141,10 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'VirtualTag': cirq.VirtualTag,
         'WaitGate': cirq.WaitGate,
         '_QubitAsQid': raw_types._QubitAsQid,
+        # The formatter keeps putting this back
+        # pylint: disable=line-too-long
+        'XEBPhasedFSimCharacterizationOptions': cirq.experiments.XEBPhasedFSimCharacterizationOptions,
+        # pylint: enable=line-too-long
         'XPowGate': cirq.XPowGate,
         'XXPowGate': cirq.XXPowGate,
         'YPowGate': cirq.YPowGate,
