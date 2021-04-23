@@ -16,7 +16,7 @@ import cirq
 # "Quantum Computation and Quantum Information" by Michael Nielsen and Isaac Chuang.
 
 
-def _BuildByCode(mat: np.ndarray) -> List[str]:
+def _build_by_code(mat: np.ndarray) -> List[str]:
     """Transforms a matrix of Booleans into a list of Pauli strings.
 
     Takes into input a matrix of Boolean interpreted as row-vectors, each having dimension 2 * n.
@@ -42,7 +42,7 @@ def _BuildByCode(mat: np.ndarray) -> List[str]:
 
 # It was considered to use scipy.linalg.lu but it seems to be only for real numbers and does
 # not allow to restrict only on a section of the matrix.
-def _GaussianElimination(
+def _gaussian_elimination(
     M: np.ndarray, min_row: int, max_row: int, min_col: int, max_col: int
 ) -> int:
     """Gaussian elimination for standard form.
@@ -130,8 +130,8 @@ def _transfer_to_standard_form(
     """
 
     # Performing the Gaussian elimination as in section 4.1
-    r: int = _GaussianElimination(M, 0, n - k, 0, n)
-    _ = _GaussianElimination(M, r, n - k, n + r, 2 * n)
+    r: int = _gaussian_elimination(M, 0, n - k, 0, n)
+    _ = _gaussian_elimination(M, r, n - k, n + r, 2 * n)
 
     # Get matrix sub-components, as per equation 4.3:
     A2 = M[0:r, (n - k) : n]
@@ -184,9 +184,9 @@ class StabilizerCode(object):
         self.n: int = n
         self.k: int = k
         self.r: int = r
-        self.M: List[str] = _BuildByCode(M)
-        self.logical_Xs: List[str] = _BuildByCode(X)
-        self.logical_Zs: List[str] = _BuildByCode(Z)
+        self.M: List[str] = _build_by_code(M)
+        self.logical_Xs: List[str] = _build_by_code(X)
+        self.logical_Zs: List[str] = _build_by_code(Z)
 
         self.syndromes_to_corrections: Dict[Tuple[int, ...], Tuple[str, int]] = {}
 
