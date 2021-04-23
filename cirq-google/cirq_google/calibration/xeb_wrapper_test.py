@@ -19,8 +19,12 @@ import cirq
 import cirq_google as cg
 from cirq.experiments import random_rotations_between_grid_interaction_layers_circuit
 from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
-from cirq_google.calibration.phased_fsim import XEBPhasedFSimCalibrationOptions
-from cirq_google.calibration.xeb_wrapper import run_calibration
+from cirq_google.calibration.phased_fsim import (
+    XEBPhasedFSimCalibrationOptions,
+    LocalXEBPhasedFSimCalibrationOptions,
+    LocalXEBPhasedFSimCalibrationRequest,
+)
+from cirq_google.calibration.xeb_wrapper import run_local_xeb_calibration
 
 SQRT_ISWAP = cirq.ISWAP ** -0.5
 
@@ -28,9 +32,6 @@ import scipy.optimize
 import scipy.optimize._minimize
 
 
-# Necessary for the monkeypatching to work.
-import multiprocessing
-multiprocessing.set_start_method('fork', force=True)
 
 def minimize_patch(fun, x0, args=(), method=None, jac=None, hess=None,
                    hessp=None, bounds=None, constraints=(), tol=None,
@@ -48,7 +49,6 @@ def minimize_patch(fun, x0, args=(), method=None, jac=None, hess=None,
 
 def test_run_calibration(monkeypatch):
     monkeypatch.setattr('cirq.experiments.xeb_fitting.scipy.optimize.minimize', minimize_patch)
-    _old_minimize = scipy.optimize.minimize
     qubit_indices = [
         (0, 5), (0, 6), (1, 6), (2, 6),
     ]
@@ -56,14 +56,14 @@ def test_run_calibration(monkeypatch):
     sampler = cirq.ZerosSampler()
 
     circuits = [random_rotations_between_grid_interaction_layers_circuit(
-        qubits,
-        depth=depth,
-        two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP.on(a, b),
-        pattern=cirq.experiments.GRID_ALIGNED_PATTERN,
-        seed=10,
+            qubits,
+            depth=depth,
+            two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP.on(a, b),
+            pattern=cirq.experiments.GRID_ALIGNED_PATTERN,
+            seed=10,
     ) for depth in [5, 10]]
 
-    options = XEBPhasedFSimCalibrationOptions(
+    options = LocalXEBPhasedFSimCalibrationOptions(
         fsim_options=XEBPhasedFSimCharacterizationOptions(
             characterize_zeta=True,
             characterize_gamma=True,
@@ -72,25 +72,23 @@ def test_run_calibration(monkeypatch):
             characterize_phi=False,
             theta_default=np.pi / 4,
         ),
+        n_processes=1,
     )
 
     characterization_requests = []
     for circuit in circuits:
-        characterized_circuit, characterization_requests = \
-            cg.prepare_characterization_for_moments(
-                circuit, options=options,
-                initial=characterization_requests)
+        characterized_circuit, characterization_requests = cg.prepare_characterization_for_moments(
+            circuit, options=options, initial=characterization_requests
+        )
     assert len(characterization_requests) == 2
+    for cr in characterization_requests:
+        assert isinstance(cr, LocalXEBPhasedFSimCalibrationRequest)
 
     print('1', flush=True)
-    characterizations = [
-        run_calibration(request, sampler)
-        for request in characterization_requests
-    ]
+    characterizations = [run_local_xeb_calibration(request, sampler) for request in characterization_requests]
     print(characterizations)
 
     final_params = dict()
     for c in characterizations:
         final_params.update(c.parameters)
     assert len(final_params) == 3  # pairs
-

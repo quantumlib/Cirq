@@ -24,6 +24,7 @@ from typing import (
     Tuple,
     Union,
     cast,
+    TYPE_CHECKING,
 )
 
 from cirq.circuits import Circuit
@@ -54,9 +55,14 @@ from cirq_google.calibration.phased_fsim import (
     try_convert_sqrt_iswap_to_fsim,
     PhasedFSimCalibrationOptions,
     RequestT,
+    LocalXEBPhasedFSimCalibrationRequest,
 )
+from cirq_google.calibration.xeb_wrapper import run_local_xeb_calibration
 from cirq_google.engine import Engine
 from cirq_google.serializable_gate_set import SerializableGateSet
+
+if TYPE_CHECKING:
+    import cirq
 
 _CALIBRATION_IRRELEVANT_GATES = MeasurementGate, SingleQubitGate, WaitGate
 
@@ -599,8 +605,55 @@ def _merge_into_calibrations(
     return index
 
 
+def _run_calibrations_via_engine(
+    calibration_requests: Sequence[PhasedFSimCalibrationRequest],
+    engine: Engine,
+    processor_id: str,
+    gate_set: SerializableGateSet,
+    max_layers_per_request: int = 1,
+    progress_func: Optional[Callable[[int, int], None]] = None,
+):
+    """Helper function for run_calibrations.
+
+    This batches and runs calibration requests the normal way: by using engine.run_calibration.
+    This function assumes that all inputs have been validated (by `run_calibrations`).
+    """
+    results = []
+    nested_calibration_layers = [
+        [
+            calibration.to_calibration_layer()
+            for calibration in calibration_requests[offset : offset + max_layers_per_request]
+        ]
+        for offset in range(0, len(calibration_requests), max_layers_per_request)
+    ]
+
+    for cal_layers in nested_calibration_layers:
+        job = engine.run_calibration(cal_layers, processor_id=processor_id, gate_set=gate_set)
+        request_results = job.calibration_results()
+        results += [
+            calibration.parse_result(result)
+            for calibration, result in zip(calibration_requests, request_results)
+        ]
+        if progress_func:
+            progress_func(len(results), len(calibration_requests))
+    return results
+
+
+def _run_local_calibrations_via_sampler(
+    calibration_requests: Sequence[PhasedFSimCalibrationRequest],
+    sampler: 'cirq.Sampler',
+):
+    """Helper function used by `run_calibrations` to run Local calibrations with a Sampler."""
+    return [
+        run_local_xeb_calibration(
+            cast(LocalXEBPhasedFSimCalibrationRequest, calibration_request), sampler
+        )
+        for calibration_request in calibration_requests
+    ]
+
+
 def run_calibrations(
-    calibrations: Sequence[PhasedFSimCalibrationRequest],
+    calibration_requests: Sequence[PhasedFSimCalibrationRequest],
     engine: Union[Engine, PhasedFSimEngineSimulator],
     processor_id: Optional[str] = None,
     gate_set: Optional[SerializableGateSet] = None,
@@ -610,7 +663,7 @@ def run_calibrations(
     """Runs calibration requests on the Engine.
 
     Args:
-        calibrations: List of calibrations to perform described in a request object.
+        calibration_requests: List of calibrations to perform described in a request object.
         engine: cirq_google.Engine or cirq_google.PhasedFSimEngineSimulator object used for running
             the calibrations. When cirq_google.Engine then processor_id and gate_set arguments must
             be provided as well.
@@ -633,41 +686,44 @@ def run_calibrations(
             f'given'
         )
 
-    if not calibrations:
+    if not calibration_requests:
         return []
+
+    calibration_request_types = set(type(cr) for cr in calibration_requests)
+    if len(calibration_request_types) > 1:
+        raise ValueError("All calibrations must be of the same type.")
+    (calibration_request_type,) = calibration_request_types
 
     if isinstance(engine, Engine):
         if processor_id is None:
-            raise ValueError('processor_id must be provided when running on the engine')
+            raise ValueError('processor_id must be provided when using an Engine')
         if gate_set is None:
-            raise ValueError('gate_set must be provided when running on the engine')
+            raise ValueError('gate_set must be provided when using an Engine')
 
-        results = []
+        if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
+            sampler = engine.sampler(processor_id=processor_id, gate_set=gate_set)
+            return _run_local_calibrations_via_sampler(calibration_requests, sampler)
 
-        requests = [
-            [
-                calibration.to_calibration_layer()
-                for calibration in calibrations[offset : offset + max_layers_per_request]
-            ]
-            for offset in range(0, len(calibrations), max_layers_per_request)
-        ]
+        return _run_calibrations_via_engine(
+            calibration_requests,
+            engine,
+            processor_id,
+            gate_set,
+            max_layers_per_request,
+            progress_func,
+        )
 
-        for request in requests:
-            job = engine.run_calibration(request, processor_id=processor_id, gate_set=gate_set)
-            request_results = job.calibration_results()
-            results += [
-                calibration.parse_result(result)
-                for calibration, result in zip(calibrations, request_results)
-            ]
-            if progress_func:
-                progress_func(len(results), len(calibrations))
+    if isinstance(engine, PhasedFSimEngineSimulator):
+        return engine.get_calibrations(calibration_requests)
 
-    elif isinstance(engine, PhasedFSimEngineSimulator):
-        results = engine.get_calibrations(calibrations)
-    else:
-        raise ValueError(f'Unsupported engine type {type(engine)}')
+    if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
+        return _run_local_calibrations_via_sampler(
+            calibration_requests, sampler=cast('cirq.Sampler', engine)
+        )
 
-    return results
+    raise ValueError(
+        f'Unsupported engine/request combinations: {engine} cannot run {calibration_requests}'
+    )
 
 
 def make_zeta_chi_gamma_compensation_for_moments(
@@ -1001,7 +1057,7 @@ def run_zeta_chi_gamma_compensation_for_moments(
         circuit, options, gates_translator, merge_subsets=merge_subsets
     )
     characterizations = run_calibrations(
-        calibrations=requests,
+        calibration_requests=requests,
         engine=engine,
         processor_id=processor_id,
         gate_set=gate_set,

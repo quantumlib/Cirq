@@ -11,24 +11,39 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import contextlib
 import multiprocessing
+from typing import Optional, Union
 
 import cirq
 import cirq.experiments.random_quantum_circuit_generation as rqcg
 import cirq.experiments.xeb_fitting as xebf
 import cirq.experiments.xeb_sampling as xebsamp
 from cirq_google.calibration.phased_fsim import (
-    XEBPhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
-    PhasedFSimCharacterization, XEBPhasedFSimCalibrationOptions,
+    PhasedFSimCharacterization,
+    LocalXEBPhasedFSimCalibrationRequest,
+    LocalXEBPhasedFSimCalibrationOptions,
 )
 
 
-def run_calibration(
-        calibration: XEBPhasedFSimCalibrationRequest,
-        sampler: 'cirq.Sampler',
+@contextlib.contextmanager
+def _maybe_multiprocessing_pool(
+    n_processes: Optional[int] = None,
+) -> Union['multiprocessing.Pool', None]:
+    if n_processes == 1:
+        yield None
+        return
+
+    with multiprocessing.Pool(processes=n_processes) as pool:
+        yield pool
+
+
+def run_local_xeb_calibration(
+    calibration: LocalXEBPhasedFSimCalibrationRequest,
+    sampler: 'cirq.Sampler',
 ) -> PhasedFSimCalibrationResult:
-    options: XEBPhasedFSimCalibrationOptions = calibration.options
+    options: LocalXEBPhasedFSimCalibrationOptions = calibration.options
     circuit = cirq.Circuit([calibration.gate.on(*pair) for pair in calibration.pairs])
 
     # 2. Set up XEB experiment
@@ -36,7 +51,7 @@ def run_calibration(
     circuits = rqcg.generate_library_of_2q_circuits(
         n_library_circuits=options.n_library_circuits,
         two_qubit_gate=calibration.gate,
-        max_cycle_depth=max(cycle_depths)
+        max_cycle_depth=max(cycle_depths),
     )
     combs_by_layer = rqcg.get_random_combinations_for_layer_circuit(
         n_library_circuits=len(circuits),
@@ -61,7 +76,7 @@ def run_calibration(
 
     # 5. Characterize by fitting angles.
     pcircuits = [xebf.parameterize_circuit(circuit, options.fsim_options) for circuit in circuits]
-    with multiprocessing.Pool() as pool:
+    with _maybe_multiprocessing_pool(n_processes=options.n_processes) as pool:
         char_results = xebf.characterize_phased_fsim_parameters_with_xeb_by_pair(
             sampled_df=sampled_df,
             parameterized_circuits=pcircuits,

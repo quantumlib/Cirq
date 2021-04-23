@@ -472,6 +472,19 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
 
 
 @json_serializable_dataclass(frozen=True)
+class LocalXEBPhasedFSimCalibrationOptions(XEBPhasedFSimCalibrationOptions):
+
+    n_processes: Optional[int] = None
+
+    def create_phased_fsim_request(
+        self,
+        pairs: Tuple[Tuple[Qid, Qid], ...],
+        gate: Gate,
+    ) -> 'LocalXEBPhasedFSimCalibrationRequest':
+        return LocalXEBPhasedFSimCalibrationRequest(pairs=pairs, gate=gate, options=self)
+
+
+@json_serializable_dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     """Options specific to Floquet PhasedFSimCalibration.
 
@@ -708,6 +721,17 @@ def _parse_characterized_angles(
             value = float(value)
             records[qa, qb][angle_name] = value
     return dict(records)
+
+
+@json_serializable_dataclass(frozen=True)
+class LocalXEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
+    options: LocalXEBPhasedFSimCalibrationOptions
+
+    def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+        raise NotImplementedError('Not applicable for local')
+
+    def to_calibration_layer(self) -> CalibrationLayer:
+        raise NotImplementedError('Not applicable for local')
 
 
 @json_serializable_dataclass(frozen=True)
