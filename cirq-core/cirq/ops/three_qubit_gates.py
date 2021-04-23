@@ -596,7 +596,10 @@ CCNotPowGate = CCXPowGate
 CCX = TOFFOLI = CCNOT = CCXPowGate()
 document(
     CCX,
-    """The TOFFOLI gate.
+    """The TOFFOLI gate, also known as the Controlled-Controlled-X gate.
+
+    If the first two qubits are in the |11⟩ state, this flips the third qubit
+    in the computational basis, otherwise this applies identity to the third qubit.
 
     The `exponent=1` instance of `cirq.CCXPowGate`.
 
@@ -617,7 +620,10 @@ document(
 CSWAP = FREDKIN = CSwapGate()
 document(
     CSWAP,
-    """The Controlled Swap gate.
+    """The Controlled Swap gate, also known as the Fredkin gate.
+
+    If the first qubit is |1⟩, this applies a SWAP between the second and third qubit,
+    otherwise it acts as identity on the second and third qubit.
 
     An instance of `cirq.CSwapGate`.
 

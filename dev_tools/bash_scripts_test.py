@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Iterable
 from dev_tools import shell_tools
 
 if TYPE_CHECKING:
-    import _pytest
+    import _pytest.tmpdir
 
 
 def only_on_posix(func):
