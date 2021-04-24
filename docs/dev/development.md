@@ -129,6 +129,17 @@ See the previous section for instructions.
     add2virtualenv ./
     ```
 
+## Editable installs 
+
+If you want to pip install cirq in an editable fashion, you'll have to install it per module, e.g.: 
+
+```
+pip install -e ./cirq-core -e ./cirq-google
+```
+
+Note that `pip install -e .` will install the `cirq` metapackage only, and your code changes won't 
+get picked up! 
+
 ## Protocol buffers
 
 [Protocol buffers](https://developers.google.com/protocol-buffers) are used in Cirq for converting circuits, gates, and other objects into a standard form that can be written and read by other programs.
