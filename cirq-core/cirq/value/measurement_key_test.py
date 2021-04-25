@@ -36,11 +36,11 @@ def test_nested_key():
 
 def test_eq_and_hash():
     class SomeRandomClass:
-        def __init__(self, input):
-            self.input = input
+        def __init__(self, some_str):
+            self.some_str = some_str
 
         def __str__(self):
-            return self.input  # coverage: ignore
+            return self.some_str  # coverage: ignore
 
     mkey = cirq.MeasurementKey('key')
     assert mkey == 'key'
