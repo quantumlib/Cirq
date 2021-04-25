@@ -48,10 +48,7 @@ def _assert_no_collision(gate) -> None:
 
 
 def _all_rotations():
-    for (
-        pauli,
-        flip,
-    ) in itertools.product(_paulis, _bools):
+    for (pauli, flip,) in itertools.product(_paulis, _bools):
         yield cirq.PauliTransform(pauli, flip)
 
 
@@ -368,9 +365,7 @@ def test_y_rotation(gate, trans_y):
 def test_decompose(gate, gate_equiv):
     q0 = cirq.NamedQubit('q0')
     mat = cirq.Circuit(gate(q0)).unitary()
-    mat_check = cirq.Circuit(
-        gate_equiv(q0),
-    ).unitary()
+    mat_check = cirq.Circuit(gate_equiv(q0),).unitary()
     assert_allclose_up_to_global_phase(mat, mat_check, rtol=1e-7, atol=1e-7)
 
 
@@ -423,23 +418,14 @@ def test_commutes_single_qubit_gate(gate, other):
     q0 = cirq.NamedQubit('q0')
     gate_op = gate(q0)
     other_op = other(q0)
-    mat = cirq.Circuit(
-        gate_op,
-        other_op,
-    ).unitary()
-    mat_swap = cirq.Circuit(
-        other_op,
-        gate_op,
-    ).unitary()
+    mat = cirq.Circuit(gate_op, other_op,).unitary()
+    mat_swap = cirq.Circuit(other_op, gate_op,).unitary()
     commutes = cirq.commutes(gate, other)
     commutes_check = cirq.allclose_up_to_global_phase(mat, mat_swap)
     assert commutes == commutes_check
 
     # Test after switching order
-    mat_swap = cirq.Circuit(
-        gate.equivalent_gate_before(other)(q0),
-        gate_op,
-    ).unitary()
+    mat_swap = cirq.Circuit(gate.equivalent_gate_before(other)(q0), gate_op,).unitary()
     assert_allclose_up_to_global_phase(mat, mat_swap, rtol=1e-7, atol=1e-7)
 
 
@@ -450,14 +436,8 @@ def test_commutes_single_qubit_gate(gate, other):
 def test_commutes_pauli(gate, pauli, half_turns):
     pauli_gate = pauli ** half_turns
     q0 = cirq.NamedQubit('q0')
-    mat = cirq.Circuit(
-        gate(q0),
-        pauli_gate(q0),
-    ).unitary()
-    mat_swap = cirq.Circuit(
-        pauli_gate(q0),
-        gate(q0),
-    ).unitary()
+    mat = cirq.Circuit(gate(q0), pauli_gate(q0),).unitary()
+    mat_swap = cirq.Circuit(pauli_gate(q0), gate(q0),).unitary()
     commutes = cirq.commutes(gate, pauli)
     commutes_check = cirq.allclose_up_to_global_phase(mat, mat_swap)
     assert commutes == commutes_check
@@ -517,3 +497,16 @@ def test_from_unitary_not_clifford():
     # Not a Clifford gate.
     u = cirq.unitary(cirq.T)
     assert cirq.SingleQubitCliffordGate.from_unitary(u) is None
+
+
+@pytest.mark.parametrize('trans_x,trans_z', _all_rotation_pairs())
+def test_to_phased_xz_gate(trans_x, trans_z):
+    gate = cirq.SingleQubitCliffordGate.from_xz_map(trans_x, trans_z)
+    actual_phased_xz_gate = gate.to_phased_xz_gate()._canonical()
+    expect_phased_xz_gates = cirq.PhasedXZGate.from_matrix(cirq.unitary(gate))
+
+    assert np.isclose(actual_phased_xz_gate.x_exponent, expect_phased_xz_gates.x_exponent)
+    assert np.isclose(actual_phased_xz_gate.z_exponent, expect_phased_xz_gates.z_exponent)
+    assert np.isclose(
+        actual_phased_xz_gate.axis_phase_exponent, expect_phased_xz_gates.axis_phase_exponent
+    )
