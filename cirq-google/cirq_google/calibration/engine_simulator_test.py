@@ -36,6 +36,7 @@ def test_test_calibration_request():
     request = TestPhasedFSimCalibrationRequest(
         gate=cirq.FSimGate(np.pi / 4, 0.5),
         pairs=((a, b),),
+        options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     )
 
     assert request.to_calibration_layer() is NotImplemented
@@ -106,6 +107,7 @@ def test_floquet_get_calibrations_when_invalid_request_fails() -> None:
                 TestPhasedFSimCalibrationRequest(
                     gate=cirq.FSimGate(np.pi / 4, 0.5),
                     pairs=((a, b),),
+                    options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
                 )
             ]
         )
