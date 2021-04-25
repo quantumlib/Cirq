@@ -50,7 +50,9 @@ class MeasurementKey:
             )
 
     def __eq__(self, other) -> bool:
-        return str(self) == str(other)
+        if isinstance(other, (MeasurementKey, str)):
+            return str(self) == str(other)
+        return NotImplemented
 
     def __repr__(self):
         return f'cirq.MeasurementKey(name={self.name})'

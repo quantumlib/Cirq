@@ -35,6 +35,13 @@ def test_nested_key():
 
 
 def test_eq_and_hash():
+    class SomeRandomClass:
+        def __init__(self, input):
+            self.input = input
+
+        def __str__(self):
+            return self.input  # coverage: ignore
+
     mkey = cirq.MeasurementKey('key')
     assert mkey == 'key'
     assert hash(mkey) == hash('key')
@@ -48,6 +55,8 @@ def test_eq_and_hash():
     assert hash(mkey3) == hash(mkey)
     nested_key = cirq.MeasurementKey('nested:key', allow_nested_key=True)
     assert nested_key == 'nested:key'
+    non_str_or_measurement_key = SomeRandomClass('key')
+    assert mkey != non_str_or_measurement_key
 
 
 @pytest.mark.parametrize(
