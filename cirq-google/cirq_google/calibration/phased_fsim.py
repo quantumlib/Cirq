@@ -481,7 +481,7 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
             readout errors are checked and when any of the pairs reports an error above the
             threshold, the calibration will fail. This value is a sanity check to determine if
             calibration is reasonable and allows for quick termination if it is not. Set to 1.0 to
-            disable readout error checks and None to used default, device-specific thresholds.
+            disable readout error checks and None to use default, device-specific thresholds.
     """
 
     characterize_theta: bool
