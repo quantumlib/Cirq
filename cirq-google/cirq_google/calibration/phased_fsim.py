@@ -248,8 +248,8 @@ class PhasedFSimCalibrationResult:
         gate: Characterized gate for each qubit pair. This is copied from the matching
             PhasedFSimCalibrationRequest and is included to preserve execution context.
         project_id: Google's job project id.
-        program_id: Google's job project id.
-        job_id: Google's job project id.
+        program_id: Google's job program id.
+        job_id: Google's job job id.
     """
 
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
@@ -325,7 +325,8 @@ class PhasedFSimCalibrationResult:
         engine = Engine(project_id=self.project_id)
         return engine.get_program(self.program_id).get_job(self.job_id)
 
-    @property
+    # Workaround for: https://github.com/python/mypy/issues/1362
+    @property  # type: ignore
     @lru_cache_typesafe
     def engine_calibration(self) -> Optional[Calibration]:
         """The underlying device calibration that was used for this user-specific calibration.
