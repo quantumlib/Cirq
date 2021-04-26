@@ -584,7 +584,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
     def to_calibration_layer(self) -> CalibrationLayer:
         circuit = Circuit([self.gate.on(*pair) for pair in self.pairs])
-        args = {
+        args: Dict[str, Any] = {
             'est_theta': self.options.characterize_theta,
             'est_zeta': self.options.characterize_zeta,
             'est_chi': self.options.characterize_chi,
