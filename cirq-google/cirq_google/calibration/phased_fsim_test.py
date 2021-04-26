@@ -14,10 +14,10 @@
 import os
 import re
 
-import mock
 import numpy as np
 import pandas as pd
 import pytest
+from unittest import mock
 from google.protobuf import text_format
 
 import cirq
