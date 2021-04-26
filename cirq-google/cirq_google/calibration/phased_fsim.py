@@ -53,7 +53,7 @@ from cirq.ops import (
     rz,
 )
 from cirq_google.api import v2
-from cirq_google.engine import CalibrationLayer, CalibrationResult
+from cirq_google.engine import Calibration, CalibrationLayer, CalibrationResult, Engine, EngineJob
 
 if TYPE_CHECKING:
     import cirq
@@ -247,11 +247,38 @@ class PhasedFSimCalibrationResult:
             quibts a and b either only (a, b) or only (b, a) is present.
         gate: Characterized gate for each qubit pair. This is copied from the matching
             PhasedFSimCalibrationRequest and is included to preserve execution context.
+        project_id: Google's job project id.
+        program_id: Google's job project id.
+        job_id: Google's job project id.
     """
 
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
     gate: Gate
     options: PhasedFSimCalibrationOptions
+    project_id: Optional[str] = None
+    program_id: Optional[str] = None
+    job_id: Optional[str] = None
+    _hash: int = 0
+
+    def __post_init__(self):
+        # Workaround on inability to specify the parameters attribute as an immutable dictionary.
+        object.__setattr__(
+            self,
+            '_hash',
+            hash(
+                (
+                    frozenset(self.parameters.items()),
+                    self.gate,
+                    self.options,
+                    self.project_id,
+                    self.program_id,
+                    self.job_id,
+                )
+            ),
+        )
+
+    def __hash__(self) -> int:
+        return self._hash
 
     def override(self, parameters: PhasedFSimCharacterization) -> 'PhasedFSimCalibrationResult':
         """Creates the new results with certain parameters overridden for all characterizations.
@@ -284,6 +311,33 @@ class PhasedFSimCalibrationResult:
         else:
             return None
 
+    # Workaround for: https://github.com/python/mypy/issues/1362
+    @property  # type: ignore
+    @lru_cache_typesafe
+    def engine_job(self) -> Optional[EngineJob]:
+        """The cirq_google.EngineJob associated with this calibration request.
+
+        Available only when project_id, program_id and job_id attributes are present.
+        """
+        if not self.project_id or not self.program_id or not self.job_id:
+            return None
+
+        engine = Engine(project_id=self.project_id)
+        return engine.get_program(self.program_id).get_job(self.job_id)
+
+    @property
+    @lru_cache_typesafe
+    def engine_calibration(self) -> Optional[Calibration]:
+        """The underlying device calibration that was used for this user-specific calibration.
+
+        This is a cached property that triggers a network call at the first use.
+        """
+        job = self.engine_job
+        if job is None:
+            return None
+
+        return job.get_calibration()
+
     @classmethod
     def _create_parameters_dict(
         cls,
@@ -315,6 +369,9 @@ class PhasedFSimCalibrationResult:
             'gate': self.gate,
             'parameters': [(q_a, q_b, params) for (q_a, q_b), params in self.parameters.items()],
             'options': self.options,
+            'project_id': self.project_id,
+            'program_id': self.program_id,
+            'job_id': self.job_id,
         }
 
 
@@ -393,7 +450,9 @@ class PhasedFSimCalibrationRequest(abc.ABC):
         """Encodes this characterization request in a CalibrationLayer object."""
 
     @abc.abstractmethod
-    def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+    def parse_result(
+        self, result: CalibrationResult, job: Optional[EngineJob] = None
+    ) -> PhasedFSimCalibrationResult:
         """Decodes the characterization result issued for this request."""
 
 
@@ -591,7 +650,9 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             },
         )
 
-    def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+    def parse_result(
+        self, result: CalibrationResult, job: Optional[EngineJob] = None
+    ) -> PhasedFSimCalibrationResult:
         decoded: Dict[int, Dict[str, Any]] = collections.defaultdict(lambda: {})
         for keys, values in result.metrics['angles'].items():
             for key, value in zip(keys, values):
@@ -614,7 +675,14 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
                 phi=data.get('phi_est', None),
             )
 
-        return PhasedFSimCalibrationResult(parameters=parsed, gate=self.gate, options=self.options)
+        return PhasedFSimCalibrationResult(
+            parameters=parsed,
+            gate=self.gate,
+            options=self.options,
+            project_id=None if job is None else job.project_id,
+            program_id=None if job is None else job.program_id,
+            job_id=None if job is None else job.job_id,
+        )
 
     @classmethod
     def _from_json_dict_(
@@ -714,7 +782,9 @@ class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             args=self.options.to_args(),
         )
 
-    def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+    def parse_result(
+        self, result: CalibrationResult, job: Optional[EngineJob] = None
+    ) -> PhasedFSimCalibrationResult:
 
         # pylint: disable=unused-variable
         initial_fids = _parse_xeb_fidelities_df(result.metrics, 'initial_fidelities')
@@ -730,7 +800,12 @@ class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
         # TODO: Return initial_fids, final_fids somehow.
         return PhasedFSimCalibrationResult(
-            parameters=final_params, gate=self.gate, options=self.options
+            parameters=final_params,
+            gate=self.gate,
+            options=self.options,
+            project_id=None if job is None else job.project_id,
+            program_id=None if job is None else job.program_id,
+            job_id=None if job is None else job.job_id,
         )
 
     @classmethod

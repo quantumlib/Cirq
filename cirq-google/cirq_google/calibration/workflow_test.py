@@ -773,7 +773,7 @@ def test_make_zeta_chi_gamma_compensation_for_operations_permit_mixed_moments():
         )
 
 
-def test_run_characterization():
+def test_run_calibrations():
     q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
     gate = cirq.FSimGate(theta=np.pi / 4, phi=0.0)
 
@@ -829,7 +829,7 @@ def test_run_characterization():
         ),
     )
 
-    job = cirq_google.engine.EngineJob('', '', '', None)
+    job = cirq_google.engine.EngineJob('project_id', 'program_id', 'job_id', None)
     job._calibration_results = [result]
 
     engine = mock.MagicMock(spec=cirq_google.Engine)
@@ -862,6 +862,9 @@ def test_run_characterization():
                 characterize_gamma=False,
                 characterize_phi=True,
             ),
+            project_id='project_id',
+            program_id='program_id',
+            job_id='job_id',
         )
     ]
 
@@ -869,11 +872,11 @@ def test_run_characterization():
     assert progress_calls == [(1, 1)]
 
 
-def test_run_characterization_empty():
+def test_run_calibrations_empty():
     assert workflow.run_calibrations([], None, 'qproc', cirq_google.FSIM_GATESET) == []
 
 
-def test_run_characterization_fails_when_invalid_arguments():
+def test_run_calibrations_fails_when_invalid_arguments():
     with pytest.raises(ValueError):
         assert workflow.run_calibrations(
             [], None, 'qproc', cirq_google.FSIM_GATESET, max_layers_per_request=0
@@ -896,7 +899,7 @@ def test_run_characterization_fails_when_invalid_arguments():
         assert workflow.run_calibrations([request], 0, 'qproc', cirq_google.FSIM_GATESET)
 
 
-def test_run_characterization_with_simulator():
+def test_run_calibrations_with_simulator():
     q_00, q_01, q_02, q_03 = [cirq.GridQubit(0, index) for index in range(4)]
     gate = SQRT_ISWAP_GATE
 
@@ -952,7 +955,7 @@ def test_run_floquet_characterization_for_moments():
         characterize_phi=True,
     )
 
-    job = cirq_google.engine.EngineJob('', '', '', None)
+    job = cirq_google.engine.EngineJob('project_id', 'program_id', 'job_id', None)
     job._calibration_results = [
         cirq_google.CalibrationResult(
             code=cirq_google.api.v2.calibration_pb2.SUCCESS,
@@ -1014,6 +1017,9 @@ def test_run_floquet_characterization_for_moments():
             },
             gate=gate,
             options=options,
+            project_id='project_id',
+            program_id='program_id',
+            job_id='job_id',
         )
     ]
     assert circuit_with_calibration.circuit == circuit
