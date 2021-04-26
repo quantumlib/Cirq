@@ -463,6 +463,9 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         return cls(**kwargs)
 
 
+DEFAULT_READOUT_ERROR_TOLERANCE = 0.4
+
+
 @json_serializable_dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     """Options specific to Floquet PhasedFSimCalibration.
@@ -476,6 +479,12 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         characterize_chi: Whether to characterize χ angle.
         characterize_gamma: Whether to characterize γ angle.
         characterize_phi: Whether to characterize φ angle.
+        readout_error_tolerance: Threshold for pairwise-correlated readout errors above which the
+            calibration will report to fail. Just before each calibration all pairwise two-qubit
+            readout errors are checked and when any of the pairs reports an error above the
+            threshold, the calibration will fail. This value is a sanity check to determine if
+            calibration is reasonable and allows for quick termination if it is not. Set to 1.0 to
+            disable readout error checks.
     """
 
     characterize_theta: bool
@@ -483,6 +492,7 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     characterize_chi: bool
     characterize_gamma: bool
     characterize_phi: bool
+    readout_error_tolerance: float = DEFAULT_READOUT_ERROR_TOLERANCE
 
     def zeta_chi_gamma_correction_override(self) -> PhasedFSimCharacterization:
         """Gives a PhasedFSimCharacterization that can be used to override characterization after
@@ -588,6 +598,10 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
                 'est_phi': self.options.characterize_phi,
                 # Experimental option that should always be set to True.
                 'readout_corrections': True,
+                'readout_error_tolerance': self.options.readout_error_tolerance,
+                'correlated_readout_error_tolerance': _correlated_from_readout_tolerance(
+                    self.options.readout_error_tolerance
+                ),
             },
         )
 
@@ -639,6 +653,10 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             'gate': self.gate,
             'options': self.options,
         }
+
+
+def _correlated_from_readout_tolerance(readout_tolerance: float) -> float:
+    return max(0.0, min(1.0, 7 / 6 * readout_tolerance - 1 / 6))
 
 
 def _get_labeled_int(key: str, s: str):

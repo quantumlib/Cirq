@@ -113,6 +113,8 @@ def test_floquet_to_calibration_layer():
             'est_gamma': False,
             'est_phi': True,
             'readout_corrections': True,
+            'readout_error_tolerance': 0.4,
+            'correlated_readout_error_tolerance': 7 / 6 * 0.4 - 1 / 6,
         },
     )
 
