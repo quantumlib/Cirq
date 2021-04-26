@@ -14,6 +14,7 @@
 import os
 import re
 
+import mock
 import numpy as np
 import pandas as pd
 import pytest
@@ -722,7 +723,8 @@ def test_result_override():
     )
 
 
-def test_result_engine_job():
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
+def test_result_engine_job(_client):
     result = PhasedFSimCalibrationResult(
         parameters={},
         gate=cirq.FSimGate(theta=np.pi / 4, phi=0.0),
@@ -747,7 +749,8 @@ def test_result_engine_job_none():
     assert result.engine_job is None
 
 
-def test_result_engine_calibration():
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
+def test_result_engine_calibration(_client):
     result = PhasedFSimCalibrationResult(
         parameters={},
         gate=cirq.FSimGate(theta=np.pi / 4, phi=0.0),
