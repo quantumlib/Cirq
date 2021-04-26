@@ -640,7 +640,7 @@ def run_calibrations(
         return []
 
     if isinstance(sampler, Engine):
-        engine = sampler
+        engine: Optional[Engine] = sampler
     elif isinstance(sampler, QuantumEngineSampler):
         engine = sampler.engine
     else:
