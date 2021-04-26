@@ -463,9 +463,6 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         return cls(**kwargs)
 
 
-DEFAULT_READOUT_ERROR_TOLERANCE = 0.4
-
-
 @json_serializable_dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     """Options specific to Floquet PhasedFSimCalibration.
@@ -484,7 +481,7 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
             readout errors are checked and when any of the pairs reports an error above the
             threshold, the calibration will fail. This value is a sanity check to determine if
             calibration is reasonable and allows for quick termination if it is not. Set to 1.0 to
-            disable readout error checks.
+            disable readout error checks and None to used default, device-specific thresholds.
     """
 
     characterize_theta: bool
@@ -492,7 +489,7 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     characterize_chi: bool
     characterize_gamma: bool
     characterize_phi: bool
-    readout_error_tolerance: float = DEFAULT_READOUT_ERROR_TOLERANCE
+    readout_error_tolerance: Optional[float] = None
 
     def zeta_chi_gamma_correction_override(self) -> PhasedFSimCharacterization:
         """Gives a PhasedFSimCharacterization that can be used to override characterization after
@@ -587,22 +584,24 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
     def to_calibration_layer(self) -> CalibrationLayer:
         circuit = Circuit([self.gate.on(*pair) for pair in self.pairs])
+        args = {
+            'est_theta': self.options.characterize_theta,
+            'est_zeta': self.options.characterize_zeta,
+            'est_chi': self.options.characterize_chi,
+            'est_gamma': self.options.characterize_gamma,
+            'est_phi': self.options.characterize_phi,
+            # Experimental option that should always be set to True.
+            'readout_corrections': True,
+        }
+        if self.options.readout_error_tolerance is not None:
+            args['readout_error_tolerance'] = self.options.readout_error_tolerance
+            args['correlated_readout_error_tolerance'] = _correlated_from_readout_tolerance(
+                self.options.readout_error_tolerance
+            )
         return CalibrationLayer(
             calibration_type=_FLOQUET_PHASED_FSIM_HANDLER_NAME,
             program=circuit,
-            args={
-                'est_theta': self.options.characterize_theta,
-                'est_zeta': self.options.characterize_zeta,
-                'est_chi': self.options.characterize_chi,
-                'est_gamma': self.options.characterize_gamma,
-                'est_phi': self.options.characterize_phi,
-                # Experimental option that should always be set to True.
-                'readout_corrections': True,
-                'readout_error_tolerance': self.options.readout_error_tolerance,
-                'correlated_readout_error_tolerance': _correlated_from_readout_tolerance(
-                    self.options.readout_error_tolerance
-                ),
-            },
+            args=args,
         )
 
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
