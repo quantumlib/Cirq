@@ -613,14 +613,13 @@ def run_calibrations(
     Args:
         calibrations: List of calibrations to perform described in a request object.
         sampler: cirq_google.Engine or cirq.Sampler object used for running the calibrations. When
-            instance of cirq_google.Engine or cirq_google.QuantumEngineSampler is passed then the
-            calibrations are issued against a Google's quantum device and processor_id with gate_set
-            arguments must be provided as well. The only other sampler supported for simulation
-            purposes is cirq_google.PhasedFSimEngineSimulator.
-        processor_id: processor_id passed to engine.run_calibrations method. Can be None when not
-            engine-like sampler is used.
-        gate_set: Gate set to use for characterization request. Can be None when not engine-like
-            sampler is used.
+            sampler is cirq_google.Engine or cirq_google.QuantumEngineSampler object then the
+            calibrations are issued against a Google's quantum device. The only other sampler
+            supported for simulation purposes is cirq_google.PhasedFSimEngineSimulator.
+        processor_id: Used when sampler is cirq_google.Engine object and passed to
+            cirq_google.Engine.run_calibrations method.
+        gate_set: Used when sampler is cirq_google.Engine object and passed to
+            cirq_google.Engine.run_calibrations method.
         max_layers_per_request: Maximum number of calibration requests issued to cirq.Engine at a
             single time. Defaults to 1.
         progress_func: Optional callback function that might be used to report the calibration
@@ -643,6 +642,8 @@ def run_calibrations(
         engine: Optional[Engine] = sampler
     elif isinstance(sampler, QuantumEngineSampler):
         engine = sampler.engine
+        (processor_id,) = sampler._processor_ids
+        gate_set = sampler._gate_set
     else:
         engine = None
 
@@ -912,14 +913,13 @@ def run_floquet_characterization_for_moments(
     Args:
         circuit: Circuit to characterize.
         sampler: cirq_google.Engine or cirq.Sampler object used for running the calibrations. When
-            instance of cirq_google.Engine or cirq_google.QuantumEngineSampler is passed then the
-            calibrations are issued against a Google's quantum device and processor_id with gate_set
-            arguments must be provided as well. The only other sampler supported for simulation
-            purposes is cirq_google.PhasedFSimEngineSimulator.
-        processor_id: processor_id passed to engine.run_calibrations method. Can be None when not
-            engine-like sampler is used.
-        gate_set: Gate set to use for characterization request. Can be None when not engine-like
-            sampler is used.
+            sampler is cirq_google.Engine or cirq_google.QuantumEngineSampler object then the
+            calibrations are issued against a Google's quantum device. The only other sampler
+            supported for simulation purposes is cirq_google.PhasedFSimEngineSimulator.
+        processor_id: Used when sampler is cirq_google.Engine object and passed to
+            cirq_google.Engine.run_calibrations method.
+        gate_set: Used when sampler is cirq_google.Engine object and passed to
+            cirq_google.Engine.run_calibrations method.
         options: Options that are applied to each characterized gate within a moment. Defaults
             to all_except_for_chi_options which is the broadest currently supported choice.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo
@@ -982,14 +982,13 @@ def run_zeta_chi_gamma_compensation_for_moments(
     Args:
         circuit: Circuit to characterize and calibrate.
         sampler: cirq_google.Engine or cirq.Sampler object used for running the calibrations. When
-            instance of cirq_google.Engine or cirq_google.QuantumEngineSampler is passed then the
-            calibrations are issued against a Google's quantum device and processor_id with gate_set
-            arguments must be provided as well. The only other sampler supported for simulation
-            purposes is cirq_google.PhasedFSimEngineSimulator.
-        processor_id: processor_id passed to engine.run_calibrations method. Can be None when not
-            engine-like sampler is used.
-        gate_set: Gate set to use for characterization request. Can be None when not engine-like
-            sampler is used.
+            sampler is cirq_google.Engine or cirq_google.QuantumEngineSampler object then the
+            calibrations are issued against a Google's quantum device. The only other sampler
+            supported for simulation purposes is cirq_google.PhasedFSimEngineSimulator.
+        processor_id: Used when sampler is cirq_google.Engine object and passed to
+            cirq_google.Engine.run_calibrations method.
+        gate_set: Used when sampler is cirq_google.Engine object and passed to
+            cirq_google.Engine.run_calibrations method.
         options: Options that are applied to each characterized gate within a moment. Defaults
             to all_except_for_chi_options which is the broadest currently supported choice.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo
