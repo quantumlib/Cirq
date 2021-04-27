@@ -25,8 +25,8 @@ for arg in "$@"; do
 done
 
 # Get the working directory to the repo root.
-cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "$(git rev-parse --show-toplevel)"
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" || exit
+cd "$(git rev-parse --show-toplevel)" || exit
 
 # Install a pinned version of tf-docs
 TF_DOCS_COMMIT=b3dc8a922d8bdc6e998a8ad4f4953359dc6e576a
@@ -48,7 +48,7 @@ BLACK_FORMAT="black-nb"
 unformatted="$("$FORMAT_CMD" --test docs 2>&1 | grep "\- docs" || true)"
 black_unformatted="$("$BLACK_FORMAT" --check docs 2>&1 | grep "would be reformatted")"
 needed_changes=0
-if [ ! -z "${unformatted}" || ! -z "${black_unformatted}" ]; then
+if [ -n "${unformatted}" ] || [ -n "${black_unformatted}" ]; then
     needed_changes=1
     if (( only_print == 0 )); then
         "$BLACK_FORMAT" docs
