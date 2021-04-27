@@ -430,6 +430,7 @@ from cirq.value import (
     Duration,
     DURATION_LIKE,
     LinearDict,
+    MeasurementKey,
     PeriodicValue,
     RANDOM_STATE_OR_SEED_LIKE,
     Timestamp,
