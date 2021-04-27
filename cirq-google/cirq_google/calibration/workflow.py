@@ -278,7 +278,7 @@ def prepare_characterization_for_moments(
         )
     else:
         circuits_with_calibration = []
-        requests = initial
+        requests = list(initial)
         for one_circuit in circuit:
             circuit_with_calibration, requests = _prepare_characterization_for_circuit_moments(
                 one_circuit, options, gates_translator, merge_subsets, requests
@@ -294,7 +294,7 @@ def _prepare_characterization_for_circuit_moments(
     merge_subsets: bool,
     initial: Sequence[RequestT],
 ) -> Tuple[CircuitWithCalibration, List[RequestT]]:
-    allocations = []
+    allocations: List[Optional[int]] = []
     calibrations = list(initial)
     pairs_map = {calibration.pairs: index for index, calibration in enumerate(calibrations)}
 
