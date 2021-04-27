@@ -269,6 +269,9 @@ def prepare_characterization_for_moments(
         IncompatibleMomentError when circuit contains a moment with operations other than the
         operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
     """
+    if initial is None:
+        initial = []
+
     if isinstance(circuit, Circuit):
         return _prepare_characterization_for_circuit_moments(
             circuit, options, gates_translator, merge_subsets, initial
@@ -289,16 +292,11 @@ def _prepare_characterization_for_circuit_moments(
     options: PhasedFSimCalibrationOptions[RequestT],
     gates_translator: Callable[[Gate], Optional[PhaseCalibratedFSimGate]],
     merge_subsets: bool,
-    initial: Optional[Sequence[RequestT]],
+    initial: Sequence[RequestT],
 ) -> Tuple[CircuitWithCalibration, List[RequestT]]:
-    if initial is None:
-        allocations: List[Optional[int]] = []
-        calibrations: List[RequestT] = []
-        pairs_map: Dict[Tuple[Tuple[Qid, Qid], ...], int] = {}
-    else:
-        allocations = []
-        calibrations = list(initial)
-        pairs_map = {calibration.pairs: index for index, calibration in enumerate(calibrations)}
+    allocations = []
+    calibrations = list(initial)
+    pairs_map = {calibration.pairs: index for index, calibration in enumerate(calibrations)}
 
     for moment in circuit:
         calibration = prepare_characterization_for_moment(
@@ -368,12 +366,15 @@ def prepare_floquet_characterization_for_moments(
         IncompatibleMomentError when circuit contains a moment with operations other than the
         operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
     """
-    return prepare_characterization_for_moments(
-        circuit=circuit,
-        options=options,
-        gates_translator=gates_translator,
-        merge_subsets=merge_subsets,
-        initial=initial,
+    return cast(
+        Tuple[CircuitWithCalibration, List[FloquetPhasedFSimCalibrationRequest]],
+        prepare_characterization_for_moments(
+            circuit=circuit,
+            options=options,
+            gates_translator=gates_translator,
+            merge_subsets=merge_subsets,
+            initial=initial,
+        ),
     )
 
 
