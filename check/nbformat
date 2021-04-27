@@ -31,31 +31,27 @@ cd "$(git rev-parse --show-toplevel)" || exit
 # Install a pinned version of tf-docs
 TF_DOCS_COMMIT=b3dc8a922d8bdc6e998a8ad4f4953359dc6e576a
 TF_DOCS_INSTALLED="$(pip list | grep -c "$TF_DOCS_COMMIT")"
-BLACK_INSTALLED="$(pip list | grep -c 'black-nb')"
 
 if [ "$TF_DOCS_INSTALLED" != "1" ]; then
   pip install -U git+https://github.com/tensorflow/docs@$TF_DOCS_COMMIT
 fi
 
-if [ "$BLACK_INSTALLED" != "1" ]; then
-    pip install -U black-nb
-fi
-
 FORMAT_CMD="python3 -m tensorflow_docs.tools.nbfmt --indent=1"
-BLACK_FORMAT="black-nb"
+TFDOCS_FORMAT="black-nb"
 
 # Test the notebooks
+black_unformatted="$("$TFDOCS_FORMAT" --check docs 2>&1 | grep "would be reformatted")"
 unformatted="$("$FORMAT_CMD" --test docs 2>&1 | grep "\- docs" || true)"
-black_unformatted="$("$BLACK_FORMAT" --check docs 2>&1 | grep "would be reformatted")"
 needed_changes=0
 if [ -n "${unformatted}" ] || [ -n "${black_unformatted}" ]; then
     needed_changes=1
     if (( only_print == 0 )); then
-        "$BLACK_FORMAT" docs
+        "$TFDOCS_FORMAT" docs
         "$FORMAT_CMD" docs
     else
         echo -e "\033[31mThe following notebooks require formatting\033[0m."
         echo "${unformatted}"
+        echo "${black_unformatted}"
     fi
 fi
 
