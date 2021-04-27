@@ -23,31 +23,15 @@ MEASUREMENT_KEY_SEPARATOR = ':'
 class MeasurementKey:
     """A class representing a Measurement Key.
 
-    Wraps a string key and provides validation. If you just want the string measurement key, simply
-    call `str()` on this.
-    TODO: Change allow_nested_key to is_nested_key when the nested key callers start interacting
-        with `MeasurementKey` directly. That way we can have tighter validation and won't need to
-        store allow_nested_key, is_nested_key can just be derived from name itself. This will
-        happen in Phase 2a detailed at
-        https://tinyurl.com/structured-measurement-keys#heading=h.zafcj653k11m
+    Wraps a string key. If you just want the string measurement key, simply call `str()` on this.
 
     Args:
         name: The string representation of the key.
-        allow_nested_key: Whether nesting-defining separators are allowed in the key name.
     """
 
     _hash: Optional[int] = dataclasses.field(default=None, init=False)
 
     name: str
-    allow_nested_key: bool = False
-
-    def __post_init__(self):
-        if not self.allow_nested_key and MEASUREMENT_KEY_SEPARATOR in self.name:
-            raise ValueError(
-                f'Measurement key {self.name} invalid. "{MEASUREMENT_KEY_SEPARATOR}" is not '
-                'allowed in measurement key constructor. If you want to use this character to '
-                'specify nested measurement keys, set the allow_nested_key option.'
-            )
 
     def __eq__(self, other) -> bool:
         if isinstance(other, (MeasurementKey, str)):
@@ -69,16 +53,12 @@ class MeasurementKey:
         return {
             'cirq_type': 'MeasurementKey',
             'name': self.name,
-            # allow_nested_key needs to be serialized to allow bypassing separator validation when
-            # de-serializing.
-            'allow_nested_key': self.allow_nested_key,
         }
 
     @classmethod
     def _from_json_dict_(
         cls,
         name,
-        allow_nested_key,
         **kwargs,
     ):
-        return cls(name, allow_nested_key)
+        return cls(name)

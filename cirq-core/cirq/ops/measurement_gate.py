@@ -75,9 +75,7 @@ class MeasurementGate(raw_types.Gate):
 
     @key.setter
     def key(self, key_str: str):
-        # TODO: Allow nested keys only when created via some special methods. Planned in Phase 2a
-        #   of https://tinyurl.com/structured-measurement-keys#heading=h.zafcj653k11m
-        self.mkey = value.MeasurementKey(key_str, allow_nested_key=True)
+        self.mkey = value.MeasurementKey(key_str)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape

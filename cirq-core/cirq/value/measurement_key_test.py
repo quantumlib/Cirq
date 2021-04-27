@@ -25,13 +25,8 @@ def test_empty_init():
 
 
 def test_nested_key():
-    with pytest.raises(ValueError, match='not allowed .* set the allow_nested_key'):
-        _ = cirq.MeasurementKey('nested:key')
-    with pytest.raises(ValueError, match='not allowed .* set the allow_nested_key'):
-        _ = cirq.MeasurementKey('nested:key', allow_nested_key=False)
-    nested_key = cirq.MeasurementKey('nested:key', allow_nested_key=True)
+    nested_key = cirq.MeasurementKey('nested:key')
     assert nested_key.name == 'nested:key'
-    assert nested_key.allow_nested_key
 
 
 def test_eq_and_hash():
@@ -45,52 +40,22 @@ def test_eq_and_hash():
     mkey = cirq.MeasurementKey('key')
     assert mkey == 'key'
     assert hash(mkey) == hash('key')
-    mkey2 = cirq.MeasurementKey('key', allow_nested_key=False)
-    assert mkey2 == 'key'
-    assert mkey2 == mkey
-    assert hash(mkey2) == hash(mkey)
-    mkey3 = cirq.MeasurementKey('key', allow_nested_key=True)
-    assert mkey3 == 'key'
-    assert mkey3 == mkey
-    assert hash(mkey3) == hash(mkey)
-    nested_key = cirq.MeasurementKey('nested:key', allow_nested_key=True)
+    nested_key = cirq.MeasurementKey('nested:key')
     assert nested_key == 'nested:key'
     non_str_or_measurement_key = SomeRandomClass('key')
     assert mkey != non_str_or_measurement_key
 
 
-@pytest.mark.parametrize(
-    'key_string, allow_nested_key',
-    [
-        ('key', None),
-        ('key', False),
-        ('key', True),
-        ('nested:key', True),
-    ],
-)
-def test_str(key_string, allow_nested_key):
-    if allow_nested_key is not None:
-        mkey = cirq.MeasurementKey(key_string, allow_nested_key)
-    else:
-        mkey = cirq.MeasurementKey(key_string)
+@pytest.mark.parametrize('key_string', ['key', 'nested:key'])
+def test_str(key_string):
+    mkey = cirq.MeasurementKey(key_string)
     assert str(mkey) == key_string
     assert str(mkey) == mkey
 
 
-@pytest.mark.parametrize(
-    'key_string, allow_nested_key',
-    [
-        ('key', None),
-        ('key', False),
-        ('key', True),
-        ('nested:key', True),
-    ],
-)
-def test_repr(key_string, allow_nested_key):
-    if allow_nested_key is not None:
-        mkey = cirq.MeasurementKey(key_string, allow_nested_key)
-    else:
-        mkey = cirq.MeasurementKey(key_string)
+@pytest.mark.parametrize('key_string', ['key', 'nested:key'])
+def test_repr(key_string):
+    mkey = cirq.MeasurementKey(key_string)
     assert repr(mkey) == f'cirq.MeasurementKey(name={key_string})'
 
 
@@ -99,11 +64,9 @@ def test_json_dict():
     assert mkey._json_dict_() == {
         'cirq_type': 'MeasurementKey',
         'name': 'key',
-        'allow_nested_key': False,
     }
-    mkey = cirq.MeasurementKey('nested:key', True)
+    mkey = cirq.MeasurementKey('nested:key')
     assert mkey._json_dict_() == {
         'cirq_type': 'MeasurementKey',
         'name': 'nested:key',
-        'allow_nested_key': True,
     }
