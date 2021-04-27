@@ -39,6 +39,7 @@ from cirq.ops import (
     SingleQubitGate,
     WaitGate,
 )
+from cirq.work import Sampler
 from cirq_google.calibration.engine_simulator import PhasedFSimEngineSimulator
 from cirq_google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
@@ -55,7 +56,7 @@ from cirq_google.calibration.phased_fsim import (
     PhasedFSimCalibrationOptions,
     RequestT,
 )
-from cirq_google.engine import Engine
+from cirq_google.engine import Engine, QuantumEngineSampler
 from cirq_google.serializable_gate_set import SerializableGateSet
 
 _CALIBRATION_IRRELEVANT_GATES = MeasurementGate, SingleQubitGate, WaitGate
@@ -601,7 +602,7 @@ def _merge_into_calibrations(
 
 def run_calibrations(
     calibrations: Sequence[PhasedFSimCalibrationRequest],
-    engine: Union[Engine, PhasedFSimEngineSimulator],
+    sampler: Union[Engine, Sampler],
     processor_id: Optional[str] = None,
     gate_set: Optional[SerializableGateSet] = None,
     max_layers_per_request: int = 1,
@@ -611,13 +612,14 @@ def run_calibrations(
 
     Args:
         calibrations: List of calibrations to perform described in a request object.
-        engine: cirq_google.Engine or cirq_google.PhasedFSimEngineSimulator object used for running
-            the calibrations. When cirq_google.Engine then processor_id and gate_set arguments must
-            be provided as well.
-        processor_id: processor_id passed to engine.run_calibrations method. Can be None when
-            cirq_google.PhasedFSimEngineSimulator is used as an engine.
-        gate_set: Gate set to use for characterization request. Can be None when
-            cirq_google.PhasedFSimEngineSimulator is used as an engine.
+        sampler: cirq_google.Engine or cirq.Sampler object used for running the calibrations. When
+            sampler is cirq_google.Engine or cirq_google.QuantumEngineSampler object then the
+            calibrations are issued against a Google's quantum device. The only other sampler
+            supported for simulation purposes is cirq_google.PhasedFSimEngineSimulator.
+        processor_id: Used when sampler is cirq_google.Engine object and passed to
+            cirq_google.Engine.run_calibrations method.
+        gate_set: Used when sampler is cirq_google.Engine object and passed to
+            cirq_google.Engine.run_calibrations method.
         max_layers_per_request: Maximum number of calibration requests issued to cirq.Engine at a
             single time. Defaults to 1.
         progress_func: Optional callback function that might be used to report the calibration
@@ -636,7 +638,16 @@ def run_calibrations(
     if not calibrations:
         return []
 
-    if isinstance(engine, Engine):
+    if isinstance(sampler, Engine):
+        engine: Optional[Engine] = sampler
+    elif isinstance(sampler, QuantumEngineSampler):
+        engine = sampler.engine
+        (processor_id,) = sampler._processor_ids
+        gate_set = sampler._gate_set
+    else:
+        engine = None
+
+    if engine is not None:
         if processor_id is None:
             raise ValueError('processor_id must be provided when running on the engine')
         if gate_set is None:
@@ -662,10 +673,10 @@ def run_calibrations(
             if progress_func:
                 progress_func(len(results), len(calibrations))
 
-    elif isinstance(engine, PhasedFSimEngineSimulator):
-        results = engine.get_calibrations(calibrations)
+    elif isinstance(sampler, PhasedFSimEngineSimulator):
+        results = sampler.get_calibrations(calibrations)
     else:
-        raise ValueError(f'Unsupported engine type {type(engine)}')
+        raise ValueError(f'Unsupported sampler type {type(sampler)}')
 
     return results
 
@@ -883,7 +894,7 @@ class FSimPhaseCorrections:
 
 def run_floquet_characterization_for_moments(
     circuit: Circuit,
-    engine: Union[Engine, PhasedFSimEngineSimulator],
+    sampler: Union[Engine, Sampler],
     processor_id: Optional[str] = None,
     gate_set: Optional[SerializableGateSet] = None,
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -901,13 +912,14 @@ def run_floquet_characterization_for_moments(
 
     Args:
         circuit: Circuit to characterize.
-        engine: cirq_google.Engine or cirq_google.PhasedFSimEngineSimulator object used for running
-            the calibrations. When cirq_google.Engine then processor_id and gate_set arguments must
-            be provided as well.
-        processor_id: processor_id passed to engine.run_calibrations method. Can be None when
-            cirq_google.PhasedFSimEngineSimulator is used as an engine.
-        gate_set: Gate set to use for characterization request. Can be None when
-            cirq_google.PhasedFSimEngineSimulator is used as an engine.
+        sampler: cirq_google.Engine or cirq.Sampler object used for running the calibrations. When
+            sampler is cirq_google.Engine or cirq_google.QuantumEngineSampler object then the
+            calibrations are issued against a Google's quantum device. The only other sampler
+            supported for simulation purposes is cirq_google.PhasedFSimEngineSimulator.
+        processor_id: Used when sampler is cirq_google.Engine object and passed to
+            cirq_google.Engine.run_calibrations method.
+        gate_set: Used when sampler is cirq_google.Engine object and passed to
+            cirq_google.Engine.run_calibrations method.
         options: Options that are applied to each characterized gate within a moment. Defaults
             to all_except_for_chi_options which is the broadest currently supported choice.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo
@@ -935,7 +947,7 @@ def run_floquet_characterization_for_moments(
     )
     results = run_calibrations(
         requests,
-        engine,
+        sampler,
         processor_id,
         gate_set,
         max_layers_per_request=max_layers_per_request,
@@ -946,7 +958,7 @@ def run_floquet_characterization_for_moments(
 
 def run_zeta_chi_gamma_compensation_for_moments(
     circuit: Circuit,
-    engine: Union[Engine, PhasedFSimEngineSimulator],
+    sampler: Union[Engine, Sampler],
     processor_id: Optional[str] = None,
     gate_set: Optional[SerializableGateSet] = None,
     options: FloquetPhasedFSimCalibrationOptions = (
@@ -969,13 +981,14 @@ def run_zeta_chi_gamma_compensation_for_moments(
 
     Args:
         circuit: Circuit to characterize and calibrate.
-        engine: cirq_google.Engine or cirq_google.PhasedFSimEngineSimulator object used for running
-            the calibrations. When cirq_google.Engine then processor_id and gate_set arguments must
-            be provided as well.
-        processor_id: processor_id passed to engine.run_calibrations method. Can be None when
-            cirq_google.PhasedFSimEngineSimulator is used as an engine.
-        gate_set: Gate set to use for characterization request. Can be None when
-            cirq_google.PhasedFSimEngineSimulator is used as an engine.
+        sampler: cirq_google.Engine or cirq.Sampler object used for running the calibrations. When
+            sampler is cirq_google.Engine or cirq_google.QuantumEngineSampler object then the
+            calibrations are issued against a Google's quantum device. The only other sampler
+            supported for simulation purposes is cirq_google.PhasedFSimEngineSimulator.
+        processor_id: Used when sampler is cirq_google.Engine object and passed to
+            cirq_google.Engine.run_calibrations method.
+        gate_set: Used when sampler is cirq_google.Engine object and passed to
+            cirq_google.Engine.run_calibrations method.
         options: Options that are applied to each characterized gate within a moment. Defaults
             to all_except_for_chi_options which is the broadest currently supported choice.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo
@@ -1001,10 +1014,10 @@ def run_zeta_chi_gamma_compensation_for_moments(
         circuit, options, gates_translator, merge_subsets=merge_subsets
     )
     characterizations = run_calibrations(
-        calibrations=requests,
-        engine=engine,
-        processor_id=processor_id,
-        gate_set=gate_set,
+        requests,
+        sampler,
+        processor_id,
+        gate_set,
         max_layers_per_request=max_layers_per_request,
         progress_func=progress_func,
     )
