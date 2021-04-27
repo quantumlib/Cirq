@@ -1,0 +1,24 @@
+{
+  "cirq_type": "TaggedOperation",
+  "sub_operation":
+  {
+    "cirq_type": "SingleQubitPauliStringGateOperation",
+    "pauli":
+    {
+      "cirq_type": "_PauliX",
+      "exponent": 1.0,
+      "global_shift": 0.0
+    },
+    "qubit": {
+      "cirq_type": "NamedQubit",
+      "name": "q1"
+    }
+  },
+  "tags":
+  [
+    "tag1",
+    {
+      "cirq_type": "VirtualTag"
+    }
+  ]
+}

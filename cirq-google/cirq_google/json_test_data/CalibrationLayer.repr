@@ -1,0 +1,8 @@
+cirq_google.CalibrationLayer(
+    calibration_type='xeb',
+    program=cirq.Circuit([
+        cirq.Moment(
+            cirq.X(cirq.GridQubit(1, 1)),
+        ),
+    ]),
+    args={'type': 'full', 'samples': 100})

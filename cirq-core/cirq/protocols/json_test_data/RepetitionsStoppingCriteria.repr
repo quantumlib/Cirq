@@ -1,0 +1,1 @@
+cirq.work.RepetitionsStoppingCriteria(total_repetitions=1000000, repetitions_per_chunk=10000)

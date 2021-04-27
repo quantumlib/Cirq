@@ -23,9 +23,11 @@ IGNORED_FILE_PATTERNS = [
     r'^dev_tools/.+',  # Environment-heavy code.
     r'^rtd_docs/.+',  # Environment-heavy code.
     r'^.+_pb2(_grpc)?\.py$',  # Auto-generated protobuf code.
-    r'^setup\.py$',  # Installation code.
-    r'^cirq/google/engine/client/.+.py$',  # Generated gRPC client code.
-    r'^cirq/google/api/v1/.+.py$',  # deprecated API code
+    r'^(.+/)?setup\.py$',  # Installation code.
+    r'^(.+/)?_version\.py$',  # Installation code.
+    r'^cirq-google/cirq_google/engine/client/.+.py$',  # Generated gRPC client code.
+    r'^cirq-google/cirq_google/api/v1/.+.py$',  # deprecated API code
+    r'^benchmarks/',
 ]
 IGNORED_BLOCK_PATTERNS = [
     r'^\s*if TYPE_CHECKING:$',  # imports needed only while type-checking.
@@ -299,7 +301,7 @@ def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
             uncovered_count += len(uncovered_lines)
             print(
                 shell_tools.highlight(
-                    '************* {} ({} uncovered)'.format(changed_file, len(uncovered_lines)),
+                    f'************* {changed_file} ({len(uncovered_lines)} uncovered)',
                     color_code=shell_tools.RED,
                 )
             )
@@ -317,7 +319,7 @@ def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
     if uncovered_count:
         print(
             shell_tools.highlight(
-                'Found {} uncovered touched lines.'.format(uncovered_count),
+                f'Found {uncovered_count} uncovered touched lines.',
                 color_code=shell_tools.RED,
             )
         )

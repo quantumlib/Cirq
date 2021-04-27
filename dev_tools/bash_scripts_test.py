@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Iterable
 from dev_tools import shell_tools
 
 if TYPE_CHECKING:
-    import _pytest
+    import _pytest.tmpdir
 
 
 def only_on_posix(func):
@@ -68,6 +68,8 @@ git config --local user.name 'Me'
 git config --local user.email '<>'
 git commit -m init --allow-empty --quiet --no-gpg-sign
 {}
+mkdir -p dev_tools
+touch dev_tools/pypath
 chmod +x ./test-script.sh
 ./test-script.sh {}
 """.format(
@@ -178,7 +180,9 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
         'echo x > __init__.py\n',
     )
     assert result.exit_code == 0
-    assert result.out == ('INTERCEPTED pytest cirq/protocols/json_serialization_test.py\n')
+    assert result.out == (
+        'INTERCEPTED pytest cirq-core/cirq/protocols/json_serialization_test.py\n'
+    )
     assert (
         result.err.split()
         == (
@@ -351,8 +355,8 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '. --actually-quiet --cov --cov-report=annotate '
-        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
+        '--actually-quiet --cov --cov-report=annotate '
+        '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py HEAD\n'
     )
@@ -375,8 +379,8 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '. --actually-quiet --cov --cov-report=annotate '
-        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
+        '--actually-quiet --cov --cov-report=annotate '
+        '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py master\n'
     )
@@ -391,8 +395,8 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '. --actually-quiet --cov --cov-report=annotate '
-        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
+        '--actually-quiet --cov --cov-report=annotate '
+        '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py origin/master\n'
     )
@@ -407,8 +411,8 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '. --actually-quiet --cov --cov-report=annotate '
-        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
+        '--actually-quiet --cov --cov-report=annotate '
+        '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py upstream/master\n'
     )
@@ -423,8 +427,8 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '. --actually-quiet --cov --cov-report=annotate '
-        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
+        '--actually-quiet --cov --cov-report=annotate '
+        '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py upstream/master\n'
     )
@@ -451,8 +455,8 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '. --actually-quiet --cov --cov-report=annotate '
-        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
+        '--actually-quiet --cov --cov-report=annotate '
+        '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py HEAD\n'
     )
@@ -467,8 +471,8 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED check/pytest '
-        '. --actually-quiet --cov --cov-report=annotate '
-        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
+        '--actually-quiet --cov --cov-report=annotate '
+        '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py master\n'
     )
@@ -490,8 +494,8 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out.startswith(
         'INTERCEPTED check/pytest '
-        '. --actually-quiet --cov --cov-report=annotate '
-        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
+        '--actually-quiet --cov --cov-report=annotate '
+        '--cov-config=dev_tools/conf/.coveragerc\n'
         'INTERCEPTED python '
         'dev_tools/check_incremental_coverage_annotations.py '
     )
@@ -551,6 +555,7 @@ def test_incremental_format_branch_selection(tmpdir_factory):
     )
     assert result.exit_code == 1
     assert result.out == ''
+
     assert 'No default revision found to compare against' in result.err
 
     # Works when ambiguous between revision and file.
@@ -676,7 +681,7 @@ def test_pylint_changed_files_file_selection(tmpdir_factory):
         script_file='check/pylint-changed-files',
         tmpdir_factory=tmpdir_factory,
         arg='HEAD~1',
-        setup='mkdir cirq dev_tools examples ignore\n'
+        setup='mkdir -p cirq dev_tools examples ignore\n'
         'touch cirq/file.py dev_tools/file.py examples/file.py\n'
         'touch ignore/ignore.py\n'
         'git add -A\n'

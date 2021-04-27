@@ -19,10 +19,11 @@ Output:
 
 import argparse
 import sys
-from typing import Optional, List, cast, Callable, Dict, Tuple
 
-from cirq.contrib.quantum_volume import calculate_quantum_volume
 import cirq
+import cirq_google
+from cirq.contrib.quantum_volume import calculate_quantum_volume
+from cirq.contrib import routing
 
 
 def main(*, num_qubits: int, depth: int, num_circuits: int, seed: int, routes: int):
@@ -38,8 +39,8 @@ def main(*, num_qubits: int, depth: int, num_circuits: int, seed: int, routes: i
 
     Returns: Pass-through from calculate_quantum_volume.
     """
-    device = cirq.google.Bristlecone
-    compiler = lambda circuit: cirq.google.optimized_for_xmon(circuit=circuit, new_device=device)
+    device = cirq_google.Bristlecone
+    compiler = lambda circuit: cirq_google.optimized_for_xmon(circuit=circuit, new_device=device)
     noisy = cirq.DensityMatrixSimulator(
         noise=cirq.ConstantQubitNoiseModel(qubit_noise_gate=cirq.DepolarizingChannel(p=0.005))
     )
@@ -48,7 +49,7 @@ def main(*, num_qubits: int, depth: int, num_circuits: int, seed: int, routes: i
         depth=depth,
         num_circuits=num_circuits,
         random_state=seed,
-        device_or_qubits=device,
+        device_graph=routing.gridqubits_to_graph_device(device.qubits),
         samplers=[cirq.Simulator(), noisy],
         routing_attempts=routes,
         compiler=compiler,
