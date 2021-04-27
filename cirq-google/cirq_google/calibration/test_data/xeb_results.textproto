@@ -1,0 +1,113 @@
+timestamp_ms: 1616621454164
+metrics {
+  name: "initial_fidelities_depth_5"
+  targets: "layer_0"
+  targets: "pair_0"
+  targets: "0_0"
+  targets: "0_1"
+  values {
+    double_val: 0.99
+  }
+}
+metrics {
+  name: "initial_fidelities_depth_25"
+  targets: "layer_0"
+  targets: "pair_0"
+  targets: "0_0"
+  targets: "0_1"
+  values {
+    double_val: 0.88
+  }
+}
+metrics {
+  name: "initial_fidelities_depth_5"
+  targets: "layer_0"
+  targets: "pair_1"
+  targets: "0_2"
+  targets: "0_3"
+  values {
+    double_val: 0.99
+  }
+}
+metrics {
+  name: "initial_fidelities_depth_25"
+  targets: "layer_0"
+  targets: "pair_1"
+  targets: "0_2"
+  targets: "0_3"
+  values {
+    double_val: 0.88
+  }
+}
+metrics {
+  name: "final_fidelities_depth_5"
+  targets: "layer_0"
+  targets: "pair_0"
+  targets: "0_0"
+  targets: "0_1"
+  values {
+    double_val: 0.99
+  }
+}
+metrics {
+  name: "final_fidelities_depth_25"
+  targets: "layer_0"
+  targets: "pair_0"
+  targets: "0_0"
+  targets: "0_1"
+  values {
+    double_val: 0.98
+  }
+}
+metrics {
+  name: "final_fidelities_depth_5"
+  targets: "layer_0"
+  targets: "pair_1"
+  targets: "0_2"
+  targets: "0_3"
+  values {
+    double_val: 0.99
+  }
+}
+metrics {
+  name: "final_fidelities_depth_25"
+  targets: "layer_0"
+  targets: "pair_1"
+  targets: "0_2"
+  targets: "0_3"
+  values {
+    double_val: 0.98
+  }
+}
+metrics {
+  name: "characterized_angles_theta"
+  targets: "0_0"
+  targets: "0_1"
+  values {
+    double_val: -0.7853981
+  }
+}
+metrics {
+  name: "characterized_angles_phi"
+  targets: "0_0"
+  targets: "0_1"
+  values {
+    double_val: 0.0
+  }
+}
+metrics {
+  name: "characterized_angles_theta"
+  targets: "0_2"
+  targets: "0_3"
+  values {
+    double_val: -0.7853981
+  }
+}
+metrics {
+  name: "characterized_angles_phi"
+  targets: "0_2"
+  targets: "0_3"
+  values {
+    double_val: 0.0
+  }
+}

@@ -63,7 +63,7 @@ changed=$(git diff --name-only ${rev} -- \
 )
 if git diff --name-only "${rev}" -- | grep "__init__\.py$" > /dev/null; then
   # Include global API tests when an __init__ file is touched.
-  changed+=('cirq/protocols/json_serialization_test.py')
+  changed+=('cirq-core/cirq/protocols/json_serialization_test.py')
 fi
 num_changed=$(echo -e "${changed[@]}" | wc -w)
 
@@ -72,4 +72,7 @@ echo "Found ${num_changed} test files associated with changes." >&2
 if [ "${num_changed}" -eq 0 ]; then
     exit 0
 fi
+
+source dev_tools/pypath
+
 pytest ${rest} ${changed[@]}
