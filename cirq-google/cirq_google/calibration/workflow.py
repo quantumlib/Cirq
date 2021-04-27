@@ -224,7 +224,7 @@ def _list_moment_pairs_to_characterize(
 
 
 def prepare_characterization_for_moments(
-    circuit: Circuit,
+    circuit: Union[Circuit, List[Circuit]],
     options: PhasedFSimCalibrationOptions[RequestT],
     *,
     gates_translator: Callable[
@@ -232,7 +232,7 @@ def prepare_characterization_for_moments(
     ] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
     initial: Optional[Sequence[RequestT]] = None,
-) -> Tuple[CircuitWithCalibration, List[RequestT]]:
+) -> Tuple[Union[CircuitWithCalibration, List[CircuitWithCalibration]], List[RequestT]]:
     """Extracts a minimal set of characterization requests necessary to characterize given circuit.
 
     This prepare method works on moments of the circuit and assumes that all the
@@ -243,7 +243,7 @@ def prepare_characterization_for_moments(
     operations and operations supported by gates_translator.
 
     Args:
-        circuit: Circuit to characterize.
+        circuit: Circuit or list of circuits to characterize.
         options: Options that are applied to each characterized gate within a moment.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo
             characterization. Defaults to sqrt_iswap_gates_translator.
@@ -259,7 +259,9 @@ def prepare_characterization_for_moments(
     Returns:
         circuit_with_calibration:
             The circuit and its mapping from moments to indices into the list of calibration
-            requests (the second returned value).
+            requests (the second returned value). When list of circuits was passed on input, this
+            will be a list of CircuitWithCalibration objects corresponding to each circuit on the
+            input list.
         calibrations:
             A list of calibration requests for each characterized moment.
 
@@ -267,6 +269,28 @@ def prepare_characterization_for_moments(
         IncompatibleMomentError when circuit contains a moment with operations other than the
         operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
     """
+    if isinstance(circuit, Circuit):
+        return _prepare_characterization_for_circuit_moments(
+            circuit, options, gates_translator, merge_subsets, initial
+        )
+    else:
+        circuits_with_calibration = []
+        requests = initial
+        for one_circuit in circuit:
+            circuit_with_calibration, requests = _prepare_characterization_for_circuit_moments(
+                one_circuit, options, gates_translator, merge_subsets, requests
+            )
+            circuits_with_calibration.append(circuit_with_calibration)
+        return circuits_with_calibration, requests
+
+
+def _prepare_characterization_for_circuit_moments(
+    circuit: Circuit,
+    options: PhasedFSimCalibrationOptions[RequestT],
+    gates_translator: Callable[[Gate], Optional[PhaseCalibratedFSimGate]],
+    merge_subsets: bool,
+    initial: Optional[Sequence[RequestT]],
+) -> Tuple[CircuitWithCalibration, List[RequestT]]:
     if initial is None:
         allocations: List[Optional[int]] = []
         calibrations: List[RequestT] = []
