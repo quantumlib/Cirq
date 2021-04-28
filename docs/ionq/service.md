@@ -1,13 +1,13 @@
 # IonQ API Service
 
 IonQ's API provides a way to execute quantum circuits on IonQ's trapped ion quantum computers
-or on cloud based simulators.  As of January 2021 this access is restricted to partners.
+or on cloud based simulators.  As of April 2021 this access is restricted to partners.
 See [Access and Authentication](access.md) for details of access.
 
 ## Service class
 
 The main entrance for accessing IonQ's API are instances of the `cirq.ionq.Service` class.
-These objects can need to be initialized with the remote host url and api key, see
+These objects need to be initialized with an api key, see
 [Access and Authentication](access.md) for details.
 
 The basic flow of running a quantum circuit in a blocking manner is
@@ -30,10 +30,10 @@ circuit = cirq.Circuit(
 )
 
 # Create a ionq.Service object.
-# Replace REMOTE_HOST and API_KEY with your values.
-# Or alternatively if you have the IONQ_REMOTE_HOST and IONQ_API_KEY
-# environment variables set, you can omit specifying these parameters.
-service = ionq.Service(remote_host=REMOTE_HOST, api_key=API_KEY)
+# Replace API_KEY with your api key.
+# Or alternatively if you have the IONQ_API_KEY environment
+# variables set, you can omit specifying thee api_key parameters.
+service = ionq.Service(api_key=API_KEY)
 
 # Run a program against the service. This method will block execution
 # until the result is returned and periodically polls the IonQ API.
