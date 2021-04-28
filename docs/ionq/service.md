@@ -7,7 +7,7 @@ See [Access and Authentication](access.md) for details of access.
 ## Service class
 
 The main entrance for accessing IonQ's API are instances of the `cirq.ionq.Service` class.
-These objects can need to be initialized with an api key, see
+These objects need to be initialized with an api key, see
 [Access and Authentication](access.md) for details.
 
 The basic flow of running a quantum circuit in a blocking manner is

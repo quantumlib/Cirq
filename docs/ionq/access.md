@@ -18,7 +18,7 @@ import cirq.ionq as ionq
 service = ionq.Service(api_key='tomyheart')
 ```
 
-Alternatively, you can use environment variables to set this value. These environment variables for the api key is `IONQ_API_KEY`.  Details of how to set environment variables vary by operating system.  For example in bash, you would do
+Alternatively, you can use environment variables to set this value. These environment variable for the api key is `IONQ_API_KEY`.  Details of how to set environment variables vary by operating system.  For example in bash, you would do
 ```bash
 export IONQ_API_KEY=tomyheart
 ```
