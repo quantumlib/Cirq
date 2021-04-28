@@ -38,6 +38,8 @@ from cirq_google.calibration.phased_fsim import (
     ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION,
     LocalXEBPhasedFSimCalibrationRequest,
     LocalXEBPhasedFSimCalibrationOptions,
+    XEBPhasedFSimCalibrationRequest,
+    XEBPhasedFSimCalibrationOptions,
 )
 
 SQRT_ISWAP_INV_PARAMETERS = cirq_google.PhasedFSimCharacterization(
@@ -1347,7 +1349,13 @@ def test_run_zeta_chi_gamma_calibration_for_moments_no_chi() -> None:
     )
 
 
-def test_run_local(monkeypatch):
+_MOCK_ENGINE_SAMPLER = mock.MagicMock(
+    spec=cirq_google.QuantumEngineSampler, _processor_ids=['my_fancy_processor'], _gate_set='test'
+)
+
+
+@pytest.mark.parametrize('sampler_engine', [cirq.Simulator, _MOCK_ENGINE_SAMPLER])
+def test_run_local(sampler_engine, monkeypatch):
     called_times = 0
 
     def myfunc(
@@ -1356,7 +1364,7 @@ def test_run_local(monkeypatch):
     ):
         nonlocal called_times
         assert isinstance(calibration, LocalXEBPhasedFSimCalibrationRequest)
-        assert isinstance(sampler, cirq.Sampler)
+        assert sampler is not None
         called_times += 1
         return []
 
@@ -1370,7 +1378,6 @@ def test_run_local(monkeypatch):
         (2, 6),
     ]
     qubits = [cirq.GridQubit(*idx) for idx in qubit_indices]
-    sampler = cirq.Simulator()
 
     circuits = [
         random_rotations_between_grid_interaction_layers_circuit(
@@ -1397,15 +1404,23 @@ def test_run_local(monkeypatch):
 
     characterization_requests = []
     for circuit in circuits:
-        (
-            characterized_circuit,
-            characterization_requests,
-        ) = workflow.prepare_characterization_for_moments(
+        _, characterization_requests = workflow.prepare_characterization_for_moments(
             circuit, options=options, initial=characterization_requests
         )
     assert len(characterization_requests) == 2
     for cr in characterization_requests:
         assert isinstance(cr, LocalXEBPhasedFSimCalibrationRequest)
 
-    workflow.run_calibrations(characterization_requests, sampler)
+    workflow.run_calibrations(characterization_requests, sampler_engine)
     assert called_times == 2
+
+
+def test_multiple_calibration_types_error():
+    r1 = LocalXEBPhasedFSimCalibrationRequest(
+        pairs=[], gate=None, options=LocalXEBPhasedFSimCalibrationOptions()
+    )
+    r2 = XEBPhasedFSimCalibrationRequest(
+        pairs=[], gate=None, options=XEBPhasedFSimCalibrationOptions()
+    )
+    with pytest.raises(ValueError, match=r'must be of the same type\.'):
+        workflow.run_calibrations([r1, r2], cirq.Simulator())

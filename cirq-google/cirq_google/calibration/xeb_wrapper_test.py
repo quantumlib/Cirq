@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import multiprocessing.pool
+
 import numpy as np
 import pandas as pd
+import scipy.optimize
+import scipy.optimize._minimize
 
 import cirq
 import cirq_google as cg
@@ -23,12 +27,12 @@ from cirq_google.calibration.phased_fsim import (
     LocalXEBPhasedFSimCalibrationOptions,
     LocalXEBPhasedFSimCalibrationRequest,
 )
-from cirq_google.calibration.xeb_wrapper import run_local_xeb_calibration
+from cirq_google.calibration.xeb_wrapper import (
+    run_local_xeb_calibration,
+    _maybe_multiprocessing_pool,
+)
 
 SQRT_ISWAP = cirq.ISWAP ** -0.5
-
-import scipy.optimize
-import scipy.optimize._minimize
 
 
 def minimize_patch(
@@ -102,7 +106,7 @@ def test_run_calibration(monkeypatch):
 
     characterization_requests = []
     for circuit in circuits:
-        characterized_circuit, characterization_requests = cg.prepare_characterization_for_moments(
+        _, characterization_requests = cg.prepare_characterization_for_moments(
             circuit, options=options, initial=characterization_requests
         )
     assert len(characterization_requests) == 2
@@ -117,3 +121,11 @@ def test_run_calibration(monkeypatch):
     for c in characterizations:
         final_params.update(c.parameters)
     assert len(final_params) == 3  # pairs
+
+
+def test_maybe_pool():
+    with _maybe_multiprocessing_pool(1) as pool:
+        assert pool is None
+
+    with _maybe_multiprocessing_pool(2) as pool:
+        assert isinstance(pool, multiprocessing.pool.Pool)
