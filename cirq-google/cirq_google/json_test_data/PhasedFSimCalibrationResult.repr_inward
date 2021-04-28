@@ -13,6 +13,6 @@ cirq.google.PhasedFSimCalibrationResult(
                 characterize_zeta=True,
                 characterize_chi=False,
                 characterize_gamma=False,
-                characterize_phi=True
+                characterize_phi=True,
             ),
         )
