@@ -69,11 +69,11 @@ def run_local_xeb_calibration(
     )
 
     # 4. Initial fidelities
-    initial_fids = xebf.benchmark_2q_xeb_fidelities(
-        sampled_df=sampled_df,
-        circuits=circuits,
-        cycle_depths=cycle_depths,
-    )
+    # initial_fids = xebf.benchmark_2q_xeb_fidelities(
+    #     sampled_df=sampled_df,
+    #     circuits=circuits,
+    #     cycle_depths=cycle_depths,
+    # )
 
     # 5. Characterize by fitting angles.
     pcircuits = [xebf.parameterize_circuit(circuit, options.fsim_options) for circuit in circuits]
@@ -97,6 +97,6 @@ def run_local_xeb_calibration(
         },
         gate=calibration.gate,
         options=options,
-        initial_fids=initial_fids,
-        final_fids=char_results.fidelities_df,
+        # initial_fids=initial_fids,
+        # final_fids=char_results.fidelities_df,
     )
