@@ -224,7 +224,7 @@ def _list_moment_pairs_to_characterize(
 
 
 def prepare_characterization_for_moments(
-    circuit: Union[Circuit, List[Circuit]],
+    circuits: Union[Circuit, List[Circuit]],
     options: PhasedFSimCalibrationOptions[RequestT],
     *,
     gates_translator: Callable[
@@ -243,7 +243,7 @@ def prepare_characterization_for_moments(
     operations and operations supported by gates_translator.
 
     Args:
-        circuit: Circuit or list of circuits to characterize.
+        circuits: Circuit or list of circuits to characterize.
         options: Options that are applied to each characterized gate within a moment.
         gates_translator: Function that translates a gate to a supported FSimGate which will undergo
             characterization. Defaults to sqrt_iswap_gates_translator.
@@ -272,16 +272,16 @@ def prepare_characterization_for_moments(
     if initial is None:
         initial = []
 
-    if isinstance(circuit, Circuit):
+    if isinstance(circuits, Circuit):
         return _prepare_characterization_for_circuit_moments(
-            circuit, options, gates_translator, merge_subsets, initial
+            circuits, options, gates_translator, merge_subsets, initial
         )
     else:
         circuits_with_calibration = []
         requests = list(initial)
-        for one_circuit in circuit:
+        for circuit in circuits:
             circuit_with_calibration, requests = _prepare_characterization_for_circuit_moments(
-                one_circuit, options, gates_translator, merge_subsets, requests
+                circuit, options, gates_translator, merge_subsets, requests
             )
             circuits_with_calibration.append(circuit_with_calibration)
         return circuits_with_calibration, requests
