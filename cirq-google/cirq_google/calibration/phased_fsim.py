@@ -247,11 +247,19 @@ class PhasedFSimCalibrationResult:
             quibts a and b either only (a, b) or only (b, a) is present.
         gate: Characterized gate for each qubit pair. This is copied from the matching
             PhasedFSimCalibrationRequest and is included to preserve execution context.
+        options: The options used to gather this result.
+        initial_fids: The circuit fidelities by depth before characterization of the PhasedFSim.
+            Not all characterization techniques can report this.
+        final_fids: The circuit fidelities by depth after characterization of the PhasedFSim.
+            Not all characterization techniques can report this.
+
     """
 
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
     gate: Gate
     options: PhasedFSimCalibrationOptions
+    initial_fids: Optional[pd.DataFrame] = None
+    final_fids: Optional[pd.DataFrame] = None
 
     def override(self, parameters: PhasedFSimCharacterization) -> 'PhasedFSimCalibrationResult':
         """Creates the new results with certain parameters overridden for all characterizations.
@@ -461,6 +469,19 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         del kwargs['cirq_type']
         kwargs['cycle_depths'] = tuple(kwargs['cycle_depths'])
         return cls(**kwargs)
+
+
+@json_serializable_dataclass(frozen=True)
+class LocalXEBPhasedFSimCalibrationOptions(XEBPhasedFSimCalibrationOptions):
+
+    n_processes: Optional[int] = None
+
+    def create_phased_fsim_request(
+        self,
+        pairs: Tuple[Tuple[Qid, Qid], ...],
+        gate: Gate,
+    ) -> 'LocalXEBPhasedFSimCalibrationRequest':
+        return LocalXEBPhasedFSimCalibrationRequest(pairs=pairs, gate=gate, options=self)
 
 
 @json_serializable_dataclass(frozen=True)
@@ -700,6 +721,17 @@ def _parse_characterized_angles(
             value = float(value)
             records[qa, qb][angle_name] = value
     return dict(records)
+
+
+@json_serializable_dataclass(frozen=True)
+class LocalXEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
+    options: LocalXEBPhasedFSimCalibrationOptions
+
+    def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+        raise NotImplementedError('Not applicable for local')
+
+    def to_calibration_layer(self) -> CalibrationLayer:
+        raise NotImplementedError('Not applicable for local')
 
 
 @json_serializable_dataclass(frozen=True)
