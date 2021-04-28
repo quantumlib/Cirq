@@ -47,6 +47,7 @@ from typing import (
 
 import abc
 import html
+import networkx
 import numpy as np
 
 from cirq import devices, ops, protocols, qis
@@ -108,6 +109,7 @@ class AbstractCircuit(abc.ABC):
     *   to_quil
     *   to_qasm
     *   save_qasm
+    *   get_independent_qubit_sets
     """
 
     @property
@@ -1387,6 +1389,87 @@ class AbstractCircuit(abc.ABC):
 
         return cirq.Circuit(buffer[offset : offset + n_acc])
 
+    def get_independent_qubit_sets(self) -> List[Set['cirq.Qid']]:
+        """Divide circuit's qubits into independent qubit sets.
+
+        Independent qubit sets are the qubit sets such that there are
+        no entangling gates between qubits belonging to different sets.
+        If this is not possible, a sequence with a single factor (the whole set of
+        circuit's qubits) is returned.
+
+        >>> q0, q1, q2 = cirq.LineQubit.range(3)
+        >>> circuit = cirq.Circuit()
+        >>> circuit.append(cirq.Moment(cirq.H(q2)))
+        >>> circuit.append(cirq.Moment(cirq.CZ(q0,q1)))
+        >>> circuit.append(cirq.H(q0))
+        >>> print(circuit)
+        0: ───────@───H───
+                  │
+        1: ───────@───────
+        <BLANKLINE>
+        2: ───H───────────
+        >>> [sorted(qs) for qs in circuit.get_independent_qubit_sets()]
+        [[cirq.LineQubit(0), cirq.LineQubit(1)], [cirq.LineQubit(2)]]
+
+        Returns:
+            The list of independent qubit sets.
+
+        """
+        uf = networkx.utils.UnionFind(self.all_qubits())
+        for op in self.all_operations():
+            if len(op.qubits) > 1:
+                uf.union(*op.qubits)
+        return sorted([qs for qs in uf.to_sets()], key=min)
+
+    def factorize(self: CIRCUIT_TYPE) -> Iterable[CIRCUIT_TYPE]:
+        """Factorize circuit into a sequence of independent circuits (factors).
+
+        Factorization is possible when the circuit's qubits can be divided
+        into two or more independent qubit sets. Preserves the moments from
+        the original circuit.
+        If this is not possible, returns the set consisting of the single
+        circuit (this one).
+
+        >>> q0, q1, q2 = cirq.LineQubit.range(3)
+        >>> circuit = cirq.Circuit()
+        >>> circuit.append(cirq.Moment(cirq.H(q2)))
+        >>> circuit.append(cirq.Moment(cirq.CZ(q0,q1)))
+        >>> circuit.append(cirq.H(q0))
+        >>> print(circuit)
+        0: ───────@───H───
+                  │
+        1: ───────@───────
+        <BLANKLINE>
+        2: ───H───────────
+        >>> for i, f in enumerate(circuit.factorize()):
+        ...     print("Factor {}".format(i))
+        ...     print(f)
+        ...
+        Factor 0
+        0: ───────@───H───
+                  │
+        1: ───────@───────
+        Factor 1
+        2: ───H───────────
+
+        Returns:
+            The sequence of circuits, each including only the qubits from one
+            independent qubit set.
+
+        """
+
+        qubit_factors = self.get_independent_qubit_sets()
+        if len(qubit_factors) == 1:
+            return (self,)
+        # Note: In general, Moment.__getitem__ returns all operations on which
+        # any of the qubits operate. However, in this case we know that all of
+        # the qubits from one factor belong to a specific independent qubit set.
+        # This makes it possible to create independent circuits based on these
+        # moments.
+        return (
+            self._with_sliced_moments([m[qubits] for m in self.moments]) for qubits in qubit_factors
+        )
+
 
 def _overlap_collision_time(
     c1: Sequence['cirq.Moment'], c2: Sequence['cirq.Moment'], align: 'cirq.Alignment'
@@ -1460,6 +1543,7 @@ class Circuit(AbstractCircuit):
     *   to_quil
     *   to_qasm
     *   save_qasm
+    *   get_independent_qubit_sets
 
     Methods for mutation:
 
@@ -1503,6 +1587,10 @@ class Circuit(AbstractCircuit):
 
     and mutated,
     *    `circuit[1:7] = [Moment(...)]`
+
+    and factorized,
+    *   `circuit.factorize()` returns a sequence of Circuits which represent
+            independent 'factors' of the original Circuit.
     """
 
     def __init__(
