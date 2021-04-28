@@ -726,7 +726,7 @@ def run_calibrations(
 
     if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
         return _run_local_calibrations_via_sampler(
-            calibration_requests, sampler=cast(Sampler, engine)
+            calibration_requests, sampler=cast(Sampler, sampler)
         )
 
     if isinstance(sampler, PhasedFSimEngineSimulator):

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import numpy as np
-
+import pandas as pd
 
 import cirq
 import cirq_google as cg
@@ -36,7 +36,6 @@ import scipy.optimize._minimize
 def minimize_patch(fun, x0, args=(), method=None, jac=None, hess=None,
                    hessp=None, bounds=None, constraints=(), tol=None,
                    callback=None, options=None):
-    print('patching worked', flush=True)
     assert method == 'nelder-mead'
 
     return scipy.optimize.OptimizeResult(
@@ -45,23 +44,34 @@ def minimize_patch(fun, x0, args=(), method=None, jac=None, hess=None,
         message='monkeypatched', x=x0.copy(), final_simplex=None)
 
 
+def benchmark_patch(*args, **kwargs):
+    return pd.DataFrame()
 
 
 def test_run_calibration(monkeypatch):
     monkeypatch.setattr('cirq.experiments.xeb_fitting.scipy.optimize.minimize', minimize_patch)
+    monkeypatch.setattr(
+        'cirq_google.calibration.xeb_wrapper.xebf.benchmark_2q_xeb_fidelities', benchmark_patch
+    )
     qubit_indices = [
-        (0, 5), (0, 6), (1, 6), (2, 6),
+        (0, 5),
+        (0, 6),
+        (1, 6),
+        (2, 6),
     ]
     qubits = [cirq.GridQubit(*idx) for idx in qubit_indices]
     sampler = cirq.ZerosSampler()
 
-    circuits = [random_rotations_between_grid_interaction_layers_circuit(
+    circuits = [
+        random_rotations_between_grid_interaction_layers_circuit(
             qubits,
             depth=depth,
             two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP.on(a, b),
             pattern=cirq.experiments.GRID_ALIGNED_PATTERN,
             seed=10,
-    ) for depth in [5, 10]]
+        )
+        for depth in [5, 10]
+    ]
 
     options = LocalXEBPhasedFSimCalibrationOptions(
         fsim_options=XEBPhasedFSimCharacterizationOptions(
@@ -84,9 +94,9 @@ def test_run_calibration(monkeypatch):
     for cr in characterization_requests:
         assert isinstance(cr, LocalXEBPhasedFSimCalibrationRequest)
 
-    print('1', flush=True)
-    characterizations = [run_local_xeb_calibration(request, sampler) for request in characterization_requests]
-    print(characterizations)
+    characterizations = [
+        run_local_xeb_calibration(request, sampler) for request in characterization_requests
+    ]
 
     final_params = dict()
     for c in characterizations:

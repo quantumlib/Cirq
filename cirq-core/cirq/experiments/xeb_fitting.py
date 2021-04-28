@@ -54,7 +54,7 @@ def benchmark_2q_xeb_fidelities(
     cycle_depths: Sequence[int],
     param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
     pool: Optional['multiprocessing.pool.Pool'] = None,
-):
+) -> pd.DataFrame:
     """Simulate and benchmark two-qubit XEB circuits.
 
     This uses the estimator from

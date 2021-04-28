@@ -21,6 +21,11 @@ import pytest
 import cirq
 import cirq_google
 import cirq_google.calibration.workflow as workflow
+import cirq_google.calibration.xeb_wrapper
+from cirq.experiments import (
+    random_rotations_between_grid_interaction_layers_circuit,
+    XEBPhasedFSimCharacterizationOptions,
+)
 
 from cirq_google.calibration.engine_simulator import PhasedFSimEngineSimulator
 from cirq_google.calibration.phased_fsim import (
@@ -32,6 +37,8 @@ from cirq_google.calibration.phased_fsim import (
     PhasedFSimCalibrationResult,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION,
+    LocalXEBPhasedFSimCalibrationRequest,
+    LocalXEBPhasedFSimCalibrationOptions,
 )
 
 
@@ -1340,3 +1347,67 @@ def test_run_zeta_chi_gamma_calibration_for_moments_no_chi() -> None:
         engine_simulator.final_state_vector(calibrated_circuit.circuit),
         cirq.final_state_vector(circuit),
     )
+
+
+def test_run_local(monkeypatch):
+    called_times = 0
+
+    def myfunc(
+        calibration: LocalXEBPhasedFSimCalibrationRequest,
+        sampler: 'cirq.Sampler',
+    ):
+        nonlocal called_times
+        assert isinstance(calibration, LocalXEBPhasedFSimCalibrationRequest)
+        assert isinstance(sampler, cirq.Sampler)
+        called_times += 1
+        return []
+
+    # Note: you must patch specifically the function imported into `workflow`.
+    monkeypatch.setattr('cirq_google.calibration.workflow.run_local_xeb_calibration', myfunc)
+
+    qubit_indices = [
+        (0, 5),
+        (0, 6),
+        (1, 6),
+        (2, 6),
+    ]
+    qubits = [cirq.GridQubit(*idx) for idx in qubit_indices]
+    sampler = cirq.Simulator()
+
+    circuits = [
+        random_rotations_between_grid_interaction_layers_circuit(
+            qubits,
+            depth=depth,
+            two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP_INV_GATE.on(a, b),
+            pattern=cirq.experiments.GRID_ALIGNED_PATTERN,
+            seed=10,
+        )
+        for depth in [5, 10]
+    ]
+
+    options = LocalXEBPhasedFSimCalibrationOptions(
+        fsim_options=XEBPhasedFSimCharacterizationOptions(
+            characterize_zeta=True,
+            characterize_gamma=True,
+            characterize_chi=True,
+            characterize_theta=False,
+            characterize_phi=False,
+            theta_default=np.pi / 4,
+        ),
+        n_processes=1,
+    )
+
+    characterization_requests = []
+    for circuit in circuits:
+        (
+            characterized_circuit,
+            characterization_requests,
+        ) = workflow.prepare_characterization_for_moments(
+            circuit, options=options, initial=characterization_requests
+        )
+    assert len(characterization_requests) == 2
+    for cr in characterization_requests:
+        assert isinstance(cr, LocalXEBPhasedFSimCalibrationRequest)
+
+    workflow.run_calibrations(characterization_requests, sampler)
+    assert called_times == 2
