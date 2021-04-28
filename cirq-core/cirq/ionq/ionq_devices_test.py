@@ -38,9 +38,9 @@ VALID_GATES = (
     cirq.YY ** 0.5,
     cirq.ZZ ** 0.5,
     cirq.SWAP,
-    cirq.MeasurementGate(num_qubits=1),
-    cirq.MeasurementGate(num_qubits=2),
-    cirq.MeasurementGate(num_qubits=10),
+    cirq.MeasurementGate(num_qubits=1, key='a'),
+    cirq.MeasurementGate(num_qubits=2, key='b'),
+    cirq.MeasurementGate(num_qubits=10, key='c'),
 )
 
 
