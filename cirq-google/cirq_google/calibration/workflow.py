@@ -369,8 +369,8 @@ def prepare_floquet_characterization_for_moments(
     return cast(
         Tuple[CircuitWithCalibration, List[FloquetPhasedFSimCalibrationRequest]],
         prepare_characterization_for_moments(
-            circuit=circuit,
-            options=options,
+            circuit,
+            options,
             gates_translator=gates_translator,
             merge_subsets=merge_subsets,
             initial=initial,
