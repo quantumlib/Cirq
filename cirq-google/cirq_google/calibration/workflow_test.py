@@ -11,10 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
-
-from unittest import mock
 import itertools
+from typing import Optional
+from unittest import mock
+
 import numpy as np
 import pytest
 
@@ -26,7 +26,6 @@ from cirq.experiments import (
     random_rotations_between_grid_interaction_layers_circuit,
     XEBPhasedFSimCharacterizationOptions,
 )
-
 from cirq_google.calibration.engine_simulator import PhasedFSimEngineSimulator
 from cirq_google.calibration.phased_fsim import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -40,7 +39,6 @@ from cirq_google.calibration.phased_fsim import (
     LocalXEBPhasedFSimCalibrationRequest,
     LocalXEBPhasedFSimCalibrationOptions,
 )
-
 
 SQRT_ISWAP_INV_PARAMETERS = cirq_google.PhasedFSimCharacterization(
     theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0

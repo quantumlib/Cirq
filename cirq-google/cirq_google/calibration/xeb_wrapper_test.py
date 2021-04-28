@@ -20,7 +20,6 @@ import cirq_google as cg
 from cirq.experiments import random_rotations_between_grid_interaction_layers_circuit
 from cirq.experiments.xeb_fitting import XEBPhasedFSimCharacterizationOptions
 from cirq_google.calibration.phased_fsim import (
-    XEBPhasedFSimCalibrationOptions,
     LocalXEBPhasedFSimCalibrationOptions,
     LocalXEBPhasedFSimCalibrationRequest,
 )
@@ -32,16 +31,32 @@ import scipy.optimize
 import scipy.optimize._minimize
 
 
-
-def minimize_patch(fun, x0, args=(), method=None, jac=None, hess=None,
-                   hessp=None, bounds=None, constraints=(), tol=None,
-                   callback=None, options=None):
+def minimize_patch(
+    fun,
+    x0,
+    args=(),
+    method=None,
+    jac=None,
+    hess=None,
+    hessp=None,
+    bounds=None,
+    constraints=(),
+    tol=None,
+    callback=None,
+    options=None,
+):
     assert method == 'nelder-mead'
 
     return scipy.optimize.OptimizeResult(
-        fun=0, nit=0, nfev=0,
-        status=0, success=True,
-        message='monkeypatched', x=x0.copy(), final_simplex=None)
+        fun=0,
+        nit=0,
+        nfev=0,
+        status=0,
+        success=True,
+        message='monkeypatched',
+        x=x0.copy(),
+        final_simplex=None,
+    )
 
 
 def benchmark_patch(*args, **kwargs):
