@@ -23,7 +23,6 @@ from typing import (
     Set,
     TYPE_CHECKING,
     Tuple,
-    Type,
     Union,
 )
 import itertools
