@@ -59,7 +59,6 @@ from cirq_google.calibration.phased_fsim import (
     LocalXEBPhasedFSimCalibrationRequest,
 )
 from cirq_google.calibration.xeb_wrapper import run_local_xeb_calibration
-from cirq_google.engine import Engine
 from cirq_google.engine import Engine, QuantumEngineSampler
 from cirq_google.serializable_gate_set import SerializableGateSet
 
@@ -725,15 +724,13 @@ def run_calibrations(
             progress_func,
         )
 
-    elif calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
+    if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
         return _run_local_calibrations_via_sampler(
-            calibration_requests, sampler=cast('cirq.Sampler', engine)
+            calibration_requests, sampler=cast(Sampler, engine)
         )
 
-    elif isinstance(sampler, PhasedFSimEngineSimulator):
-        results = sampler.get_calibrations(calibrations_requests)
-    else:
-        raise ValueError(f'Unsupported sampler type {type(sampler)}')
+    if isinstance(sampler, PhasedFSimEngineSimulator):
+        return sampler.get_calibrations(calibration_requests)
 
     raise ValueError(
         f'Unsupported engine/request combinations: {engine} cannot run {calibration_requests}'
