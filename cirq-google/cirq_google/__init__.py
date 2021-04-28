@@ -32,7 +32,7 @@ from cirq_google.calibration import (
     PhasedFSimEngineSimulator,
     XEBPhasedFSimCalibrationOptions,
     XEBPhasedFSimCalibrationRequest,
-    SQRT_ISWAP_PARAMETERS,
+    SQRT_ISWAP_INV_PARAMETERS,
     THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     make_zeta_chi_gamma_compensation_for_moments,
     make_zeta_chi_gamma_compensation_for_operations,

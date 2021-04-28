@@ -17,7 +17,7 @@ TestSpec = ModuleJsonTestSpec(
         'SerializableDevice',
         'SerializableGateSet',
         'SQRT_ISWAP_GATESET',
-        'SQRT_ISWAP_PARAMETERS',
+        'SQRT_ISWAP_INV_PARAMETERS',
         'ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
         'WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION',
         'XmonDevice',

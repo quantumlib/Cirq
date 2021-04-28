@@ -41,6 +41,10 @@ from cirq.value.linear_dict import (
     Scalar,
 )
 
+from cirq.value.measurement_key import (
+    MeasurementKey,
+)
+
 from cirq.value.probability import (
     validate_probability,
 )
