@@ -11,17 +11,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, List, Mapping, Optional, SupportsFloat, Tuple
+from typing import (
+    Any,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    overload,
+    Sequence,
+    SupportsFloat,
+    Tuple,
+    Union,
+)
 from dataclasses import astuple, dataclass
 
 import copy
 import numpy as np
-from matplotlib import collections as mcoll
 import matplotlib as mpl
+import matplotlib.collections as mpl_collections
 import matplotlib.pyplot as plt
-from matplotlib import collections as mpl_collections
 from mpl_toolkits import axes_grid1
-from matplotlib.patches import Polygon
 
 from cirq._compat import deprecated
 from cirq.devices import grid_qubit
@@ -38,6 +47,8 @@ def relative_luminance(color: np.ndarray) -> float:
 
 
 QubitTuple = Tuple[grid_qubit.GridQubit, ...]
+
+Polygon = Sequence[Tuple[float, float]]
 
 
 @dataclass
@@ -57,7 +68,7 @@ class PolygonUnit:
     For two (grid) qubit interaction heatmaps, the polygon is a hexagon.
 
     Args:
-        polygon: The polygon to plot.
+        polygon: Vertices of the polygon to plot.
         value: The value for the heatmap coloring.
         center: The center point of the polygon where annotation text should be printed.
         annot: The annotation string to print on the coupler.
@@ -73,7 +84,22 @@ class PolygonUnit:
 class Heatmap:
     """Distribution of a value in 2D qubit lattice as a color map."""
 
+    # pylint: disable=function-redefined
+    @overload
     def __init__(self, value_map: Mapping[QubitTuple, SupportsFloat], **kwargs):
+        pass
+
+    @overload
+    def __init__(self, value_map: Mapping[grid_qubit.GridQubit, SupportsFloat], **kwargs):
+        pass
+
+    def __init__(
+        self,
+        value_map: Union[
+            Mapping[QubitTuple, SupportsFloat], Mapping[grid_qubit.GridQubit, SupportsFloat]
+        ],
+        **kwargs,
+    ):
         """2D qubit grid Heatmaps
 
         Draw 2D qubit grid heatmap with Matplotlib with parameters to configure the properties of
@@ -81,8 +107,8 @@ class Heatmap:
 
         Args:
             value_map: dictionary
-                A dictionary of QubitTuples as keys and corresponding magnitude as float values. It
-                corresponds to the data which should be plotted as a heatmap.
+                A dictionary of qubits or QubitTuples as keys and corresponding magnitude as float
+                values. It corresponds to the data which should be plotted as a heatmap.
 
             title: str, default = None
             plot_colorbar: bool, default = True
@@ -106,7 +132,9 @@ class Heatmap:
                                 {"cmap" : "viridis"}
             vmin, vmax: colormap scaling floats, default = None
         """
-        self._value_map: Mapping[QubitTuple, SupportsFloat] = value_map
+        self._value_map: Mapping[QubitTuple, SupportsFloat] = {
+            k if isinstance(k, tuple) else (k,): v for k, v in value_map.items()
+        }
         self._validate_kwargs(kwargs)
         if '_config' not in self.__dict__:
             self._config: Dict[str, Any] = {}
@@ -121,6 +149,8 @@ class Heatmap:
             }
         )
         self._config.update(kwargs)
+
+    # pylint: enable=function-redefined
 
     def _extra_valid_kwargs(self) -> List[str]:
         return []
@@ -162,7 +192,7 @@ class Heatmap:
 
     def _qubits_to_polygon(self, qubits: QubitTuple) -> Tuple[Polygon, Point]:
         qubit = qubits[0]
-        x, y = map(float, (qubit.row, qubit.col))
+        x, y = float(qubit.row), float(qubit.col)
         return (
             [
                 (y - 0.5, x - 0.5),
@@ -237,7 +267,7 @@ class Heatmap:
     def _plot_on_axis(self, ax: plt.Axes) -> mpl_collections.Collection:
         # Step-1: Convert value_map to a list of polygons to plot.
         polygon_list = self._get_polygon_units()
-        collection: mpl_collections.Collection = mcoll.PolyCollection(
+        collection: mpl_collections.Collection = mpl_collections.PolyCollection(
             [c.polygon for c in polygon_list],
             **self._config.get('collection_options', {}),
         )
@@ -378,7 +408,7 @@ class TwoQubitInteractionHeatmap(Heatmap):
         original_config = copy.deepcopy(self._config)
         self.update_config(**kwargs)
         qubits = set([q for qubits in self._value_map.keys() for q in qubits])
-        Heatmap({(q,): 0.0 for q in qubits}).plot(
+        Heatmap({q: 0.0 for q in qubits}).plot(
             ax=ax,
             collection_options={
                 'cmap': 'binary',
