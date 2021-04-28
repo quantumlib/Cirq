@@ -9,7 +9,7 @@ import pytest
 import cirq_google
 from cirq_google.calibration.engine_simulator import (
     PhasedFSimEngineSimulator,
-    SQRT_ISWAP_PARAMETERS,
+    SQRT_ISWAP_INV_PARAMETERS,
 )
 from cirq_google.calibration import (
     FloquetPhasedFSimCalibrationOptions,
@@ -23,7 +23,7 @@ from cirq_google.calibration import (
 import cirq
 
 
-class TestPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
+class DummyPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     def to_calibration_layer(self) -> cirq_google.CalibrationLayer:
         return NotImplemented
 
@@ -33,7 +33,7 @@ class TestPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
 def test_test_calibration_request():
     a, b = cirq.LineQubit.range(2)
-    request = TestPhasedFSimCalibrationRequest(
+    request = DummyPhasedFSimCalibrationRequest(
         gate=cirq.FSimGate(np.pi / 4, 0.5),
         pairs=((a, b),),
         options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -104,7 +104,7 @@ def test_floquet_get_calibrations_when_invalid_request_fails() -> None:
     with pytest.raises(ValueError):
         engine_simulator.get_calibrations(
             [
-                TestPhasedFSimCalibrationRequest(
+                DummyPhasedFSimCalibrationRequest(
                     gate=cirq.FSimGate(np.pi / 4, 0.5),
                     pairs=((a, b),),
                     options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -164,7 +164,7 @@ def test_ideal_sqrt_iswap_simulates_correctly_invalid_circuit_fails() -> None:
 
 def test_with_random_gaussian_sqrt_iswap_simulates_correctly() -> None:
     engine_simulator = PhasedFSimEngineSimulator.create_with_random_gaussian_sqrt_iswap(
-        mean=SQRT_ISWAP_PARAMETERS,
+        mean=SQRT_ISWAP_INV_PARAMETERS,
         sigma=PhasedFSimCharacterization(theta=0.02, zeta=0.05, chi=0.05, gamma=None, phi=0.02),
     )
 
@@ -217,7 +217,7 @@ def test_with_random_gaussian_runs_correctly() -> None:
 
     simulator = cirq.Simulator()
     engine_simulator = PhasedFSimEngineSimulator.create_with_random_gaussian_sqrt_iswap(
-        SQRT_ISWAP_PARAMETERS, simulator=simulator
+        SQRT_ISWAP_INV_PARAMETERS, simulator=simulator
     )
 
     actual = engine_simulator.run(circuit, repetitions=20000).measurements['z']
@@ -319,12 +319,12 @@ def test_from_dictionary_sqrt_iswap_ideal_when_missing_simulates_correctly() -> 
             [cirq.X(a), cirq.X(c)],
             [
                 cirq.PhasedFSimGate(**parameters_ab.asdict()).on(a, b),
-                cirq.PhasedFSimGate(**SQRT_ISWAP_PARAMETERS.asdict()).on(c, d),
+                cirq.PhasedFSimGate(**SQRT_ISWAP_INV_PARAMETERS.asdict()).on(c, d),
             ],
             [
-                cirq.PhasedFSimGate(**parameters_bc.merge_with(SQRT_ISWAP_PARAMETERS).asdict()).on(
-                    b, c
-                )
+                cirq.PhasedFSimGate(
+                    **parameters_bc.merge_with(SQRT_ISWAP_INV_PARAMETERS).asdict()
+                ).on(b, c)
             ],
         ]
     )

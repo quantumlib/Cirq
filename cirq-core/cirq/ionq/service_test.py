@@ -181,5 +181,8 @@ def test_service_remote_host_via_env():
 def test_service_no_param_or_env_variable():
     with pytest.raises(EnvironmentError):
         _ = ionq.Service(remote_host='http://example.com')
-    with pytest.raises(EnvironmentError):
-        _ = ionq.Service(api_key='tomyheart')
+
+
+def test_service_no_url_default():
+    service = ionq.Service(api_key='tomyheart')
+    assert service.remote_host == 'https://api.ionq.co/v0.1'
