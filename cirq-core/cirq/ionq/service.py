@@ -48,7 +48,7 @@ class Service:
         Args:
             remote_host: The location of the api in the form of an url. If this is None,
                 then this instance will use the environment variable `IONQ_REMOTE_HOST`. If that
-                variable is not set, then this use `https://api.ionq.co/{api_version}` where
+                variable is not set, then this uses `https://api.ionq.co/{api_version}`, where
                 `{api_version}` is the `api_version` specified below.
             api_key: A string key which allows access to the api. If this is None,
                 then this instance will use the environment variable  `IONQ_API_KEY`. If that
@@ -65,20 +65,15 @@ class Service:
             EnvironmentError: if the `api_key` is None and has no corresponding environment
                 variable set.
         """
-
-        def init_possibly_from_env(param, env_name, var_name):
-            param = param or os.getenv(env_name)
-            if not param:
-                raise EnvironmentError(
-                    f'Parameter {var_name} was not specified and the environment variable '
-                    f'{env_name} was also not set.'
-                )
-            return param
-
         self.remote_host = (
             remote_host or os.getenv('IONQ_REMOTE_HOST') or f'https://api.ionq.co/{api_version}'
         )
-        self.api_key = init_possibly_from_env(api_key, 'IONQ_API_KEY', 'api_key')
+        self.api_key = api_key or os.getenv('IONQ_API_KEY')
+        if not self.api_key:
+            raise EnvironmentError(
+                f'Parameter api_key was not specified and the environment variable '
+                f'IONQ_API_KEY was also not set.'
+            )
 
         self._client = ionq_client._IonQClient(
             remote_host=self.remote_host,
