@@ -1,14 +1,15 @@
 # Devices
 
-``Device`` is an abstract concept in Cirq, that can represent constraints of an actual quantum processor. 
-This page describes this abstract concept. 
+``Device`` is an abstract concept in Cirq, that can represent constraints of an actual quantum processor.
+This page describes this abstract concept.
 
-If you are looking for ways of running quantum algorithms, take a look at 
+If you are looking for ways of running quantum algorithms, take a look at
  - [Simulation](simulation.ipynb), that is available on any computer
- - Quantum processors, that are provided by different Quantum Service Providers: 
+ - Quantum processors, that are provided by different Quantum Service Providers:
     - [Google Quantum Computing Service](tutorials/google/start.ipynb)
     - [Alpine Quantum Technologies](tutorials/aqt/getting_started.ipynb)
-    - [Pasqal](tutorials/pasqal/getting_started.ipynb) 
+    - [Pasqal](tutorials/pasqal/getting_started.ipynb)
+    - [IonQ](tutorials/ionq/getting_started.ipynb)
 
 ## The `cirq.Device` class
 
@@ -53,7 +54,7 @@ next-nearest-neighbors is not valid:
 device = Xmon10Device()
 circuit = cirq.Circuit()
 circuit.append([cirq.CZ(device.qubits[0], device.qubits[2])])
-try: 
+try:
   device.validate_circuit(circuit)
 except ValueError as e:
   print(e)

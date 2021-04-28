@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Tool to generate external api_docs for Cirq (Shameless copy from TFQ)."""
+"""Tool to generate external api_docs for Cirq.
 
+This version is for the stable docs building that uses the v0.10 monolithic cirq
+module. This will be replaced with build_api_docs_multi_module.py after v0.11 is
+released.
+"""
 import os
 import types
 
