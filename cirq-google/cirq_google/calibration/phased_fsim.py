@@ -480,7 +480,7 @@ class LocalXEBPhasedFSimCalibrationOptions(XEBPhasedFSimCalibrationOptions):
         self,
         pairs: Tuple[Tuple[Qid, Qid], ...],
         gate: Gate,
-    ) -> 'LocalXEBPhasedFSimCalibrationRequest':
+    ):
         return LocalXEBPhasedFSimCalibrationRequest(pairs=pairs, gate=gate, options=self)
 
 

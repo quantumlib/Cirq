@@ -13,7 +13,8 @@
 # limitations under the License.
 import contextlib
 import multiprocessing
-from typing import Optional, Union
+import multiprocessing.pool
+from typing import Optional, Union, Iterator
 
 import cirq
 import cirq.experiments.random_quantum_circuit_generation as rqcg
@@ -30,7 +31,7 @@ from cirq_google.calibration.phased_fsim import (
 @contextlib.contextmanager
 def _maybe_multiprocessing_pool(
     n_processes: Optional[int] = None,
-) -> Union['multiprocessing.Pool', None]:
+) -> Iterator[Union['multiprocessing.pool.Pool', None]]:
     if n_processes == 1:
         yield None
         return
@@ -76,6 +77,8 @@ def run_local_xeb_calibration(
 
     # 5. Characterize by fitting angles.
     pcircuits = [xebf.parameterize_circuit(circuit, options.fsim_options) for circuit in circuits]
+    fatol = options.fatol if options.fatol is not None else 5e-3
+    xatol = options.xatol if options.xatol is not None else 5e-3
     with _maybe_multiprocessing_pool(n_processes=options.n_processes) as pool:
         char_results = xebf.characterize_phased_fsim_parameters_with_xeb_by_pair(
             sampled_df=sampled_df,
@@ -83,8 +86,8 @@ def run_local_xeb_calibration(
             cycle_depths=cycle_depths,
             options=options.fsim_options,
             pool=pool,
-            fatol=options.fatol,
-            xatol=options.xatol,
+            fatol=fatol,
+            xatol=xatol,
         )
 
     return PhasedFSimCalibrationResult(
