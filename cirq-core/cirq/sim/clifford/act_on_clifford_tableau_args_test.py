@@ -82,3 +82,21 @@ def test_cannot_act():
 
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(NoDetailsSingleQubitGate(), args)
+
+
+def test_copy():
+    args = cirq.ActOnCliffordTableauArgs(
+        tableau=cirq.CliffordTableau(num_qubits=3),
+        axes=[1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    args1 = args.copy()
+    assert isinstance(args1, cirq.ActOnCliffordTableauArgs)
+    assert args is not args1
+    assert args.tableau is not args1.tableau
+    assert args.tableau == args1.tableau
+    assert args.axes == args1.axes
+    assert args.prng is args1.prng
+    assert args.log_of_measurement_results is not args1.log_of_measurement_results
+    assert args.log_of_measurement_results == args.log_of_measurement_results

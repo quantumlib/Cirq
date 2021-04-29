@@ -118,47 +118,26 @@ def test_same_partial_trace():
     qubit_order = cirq.LineQubit.range(2)
     q0, q1 = qubit_order
 
-    angles = [0.0, 0.20160913, math.pi / 3.0, math.pi / 2.0, math.pi]
+    mps_simulator = ccq.mps_simulator.MPSSimulator()
 
-    gate_cls = [cirq.rx, cirq.ry, cirq.rz]
+    for _ in range(50):
+        for initial_state in range(4):
+            circuit = cirq.testing.random_circuit(qubit_order, 3, 0.9)
+            expected_density_matrix = cirq.final_density_matrix(
+                circuit, qubit_order=qubit_order, initial_state=initial_state
+            )
+            expected_partial_trace = cirq.partial_trace(
+                expected_density_matrix.reshape(2, 2, 2, 2), keep_indices=[0]
+            )
 
-    for angle_0 in angles:
-        for gate_0 in gate_cls:
-            for angle_1 in angles:
-                for gate_1 in gate_cls:
-                    for use_cnot in [False, True]:
-                        op0 = gate_0(angle_0)
-                        op1 = gate_1(angle_1)
+            final_state = mps_simulator.simulate(
+                circuit, qubit_order=qubit_order, initial_state=initial_state
+            ).final_state
+            actual_density_matrix = final_state.partial_trace([q0, q1])
+            actual_partial_trace = final_state.partial_trace([q0])
 
-                        circuit = cirq.Circuit()
-                        circuit.append(op0(q0))
-                        if use_cnot:
-                            circuit.append(cirq.qft(q0, q1))
-                        circuit.append(op1(q1))
-                        if use_cnot:
-                            circuit.append(cirq.qft(q1, q0))
-
-                        for initial_state in range(4):
-                            expected_density_matrix = cirq.final_density_matrix(
-                                circuit, qubit_order=qubit_order, initial_state=initial_state
-                            )
-                            expected_partial_trace = cirq.partial_trace(
-                                expected_density_matrix.reshape(2, 2, 2, 2), keep_indices=[0]
-                            )
-
-                            mps_simulator = ccq.mps_simulator.MPSSimulator()
-                            final_state = mps_simulator.simulate(
-                                circuit, qubit_order=qubit_order, initial_state=initial_state
-                            ).final_state
-                            actual_density_matrix = final_state.partial_trace([q0, q1])
-                            actual_partial_trace = final_state.partial_trace([q0])
-
-                            np.testing.assert_allclose(
-                                actual_density_matrix, expected_density_matrix, atol=1e-4
-                            )
-                            np.testing.assert_allclose(
-                                actual_partial_trace, expected_partial_trace, atol=1e-4
-                            )
+            np.testing.assert_allclose(actual_density_matrix, expected_density_matrix, atol=1e-4)
+            np.testing.assert_allclose(actual_partial_trace, expected_partial_trace, atol=1e-4)
 
 
 def test_probs_dont_sum_up_to_one():
@@ -203,6 +182,23 @@ def test_cnot_flipped():
         assert_same_output_as_dense(
             circuit=circuit, qubit_order=[q0, q1], initial_state=initial_state
         )
+
+
+def test_act_on_args():
+    q0, q1 = qubit_order = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.CNOT(q1, q0))
+    mps_simulator = ccq.mps_simulator.MPSSimulator()
+    ref_simulator = cirq.Simulator()
+    for initial_state in range(4):
+        args = mps_simulator._create_act_on_args(initial_state=initial_state, qubits=(q0, q1))
+        actual = mps_simulator.simulate(circuit, qubit_order=qubit_order, initial_state=args)
+        expected = ref_simulator.simulate(
+            circuit, qubit_order=qubit_order, initial_state=initial_state
+        )
+        np.testing.assert_allclose(
+            actual.final_state.to_numpy(), expected.final_state_vector, atol=1e-4
+        )
+        assert len(actual.measurements) == 0
 
 
 def test_three_qubits():
@@ -257,7 +253,7 @@ def test_measurement_str():
 def test_trial_result_str():
     q0 = cirq.LineQubit(0)
     final_simulator_state = ccq.mps_simulator.MPSState(
-        qubit_map={q0: 0},
+        qubits=(q0,),
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(),
     )
@@ -278,7 +274,7 @@ output state: TensorNetwork([
 
 def test_empty_step_result():
     q0 = cirq.LineQubit(0)
-    state = ccq.mps_simulator.MPSState(qubit_map={q0: 0}, prng=value.parse_random_state(0))
+    state = ccq.mps_simulator.MPSState(qubits=(q0,), prng=value.parse_random_state(0))
     step_result = ccq.mps_simulator.MPSSimulatorStepResult(state, measurements={'0': [1]})
     assert (
         str(step_result)
@@ -292,17 +288,17 @@ TensorNetwork([
 def test_state_equal():
     q0, q1 = cirq.LineQubit.range(2)
     state0 = ccq.mps_simulator.MPSState(
-        qubit_map={q0: 0},
+        qubits=(q0,),
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1e-3, sum_prob_atol=1e-3),
     )
     state1a = ccq.mps_simulator.MPSState(
-        qubit_map={q1: 0},
+        qubits=(q1,),
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1e-3, sum_prob_atol=1e-3),
     )
     state1b = ccq.mps_simulator.MPSState(
-        qubit_map={q1: 0},
+        qubits=(q1,),
         prng=value.parse_random_state(0),
         simulation_options=ccq.mps_simulator.MPSOptions(cutoff=1729.0, sum_prob_atol=1e-3),
     )
@@ -500,7 +496,7 @@ def test_state_copy():
 
 def test_state_act_on_args_initializer():
     s = ccq.mps_simulator.MPSState(
-        qubit_map={cirq.LineQubit(0): 0},
+        qubits=(cirq.LineQubit(0),),
         prng=np.random.RandomState(0),
         axes=[2],
         log_of_measurement_results={'test': 4},

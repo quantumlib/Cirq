@@ -269,7 +269,7 @@ def test_run_qudit_channel(dtype):
 def test_run_measure_at_end_no_repetitions(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -287,7 +287,7 @@ def test_run_measure_at_end_no_repetitions(dtype):
 def test_run_repetitions_measure_at_end(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -303,7 +303,7 @@ def test_run_repetitions_measure_at_end(dtype):
 def test_run_qudits_repetitions_measure_at_end(dtype):
     q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1, 2]:
                 circuit = cirq.Circuit(
@@ -321,7 +321,7 @@ def test_run_qudits_repetitions_measure_at_end(dtype):
 def test_run_measurement_not_terminal_no_repetitions(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -344,7 +344,7 @@ def test_run_measurement_not_terminal_no_repetitions(dtype):
 def test_run_repetitions_measurement_not_terminal(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
                 circuit = cirq.Circuit(
@@ -365,7 +365,7 @@ def test_run_repetitions_measurement_not_terminal(dtype):
 def test_run_qudits_repetitions_measurement_not_terminal(dtype):
     q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1, 2]:
                 circuit = cirq.Circuit(
@@ -560,6 +560,20 @@ def test_simulate_initial_state(dtype):
             np.testing.assert_equal(result.final_density_matrix, expected_density_matrix)
 
 
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_simulate_act_on_args(dtype):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
+    for b0 in [0, 1]:
+        for b1 in [0, 1]:
+            circuit = cirq.Circuit((cirq.X ** b0)(q0), (cirq.X ** b1)(q1))
+            args = simulator._create_act_on_args(initial_state=1, qubits=(q0, q1))
+            result = simulator.simulate(circuit, initial_state=args)
+            expected_density_matrix = np.zeros(shape=(4, 4))
+            expected_density_matrix[b0 * 2 + 1 - b1, b0 * 2 + 1 - b1] = 1.0
+            np.testing.assert_equal(result.final_density_matrix, expected_density_matrix)
+
+
 def test_simulate_tps_initial_state():
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator()
@@ -710,7 +724,10 @@ def test_simulate_moment_steps_empty_circuit(dtype):
     for step in simulator.simulate_moment_steps(circuit):
         pass
     assert step._simulator_state() == cirq.DensityMatrixSimulatorState(
-        density_matrix=np.array([[1]]), qubit_map={}
+        density_matrix=np.array(
+            1,
+        ),
+        qubit_map={},
     )
 
 
@@ -1304,7 +1321,7 @@ def test_nonmeasuring_subcircuits_do_not_cause_sweep_repeat():
         cirq.measure(q, key='x'),
     )
     simulator = cirq.DensityMatrixSimulator()
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         simulator.run(circuit, repetitions=10)
         assert mock_sim.call_count == 2
 
@@ -1316,7 +1333,7 @@ def test_measuring_subcircuits_cause_sweep_repeat():
         cirq.measure(q, key='x'),
     )
     simulator = cirq.DensityMatrixSimulator()
-    with mock.patch.object(simulator, '_base_iterator', wraps=simulator._base_iterator) as mock_sim:
+    with mock.patch.object(simulator, '_core_iterator', wraps=simulator._core_iterator) as mock_sim:
         simulator.run(circuit, repetitions=10)
         assert mock_sim.call_count == 11
 

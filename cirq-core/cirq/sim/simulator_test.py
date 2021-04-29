@@ -25,12 +25,13 @@ from cirq.sim.simulator import (
     TSimulatorState,
     SimulatesIntermediateState,
     SimulationTrialResult,
+    TActOnArgs,
 )
 
 
 class SimulatesIntermediateStateImpl(
-    Generic[TStepResult, TSimulatorState],
-    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TSimulatorState],
+    Generic[TStepResult, TSimulatorState, TActOnArgs],
+    SimulatesIntermediateState[TStepResult, 'SimulationTrialResult', TSimulatorState, TActOnArgs],
     metaclass=abc.ABCMeta,
 ):
     """A SimulatesIntermediateState that uses the default SimulationTrialResult type."""

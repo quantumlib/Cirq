@@ -21,6 +21,7 @@ import numpy as np
 
 from cirq import ops, study, value
 from cirq.sim import simulator, state_vector
+from cirq.sim.act_on_state_vector_args import ActOnStateVectorArgs
 
 if TYPE_CHECKING:
     import cirq
@@ -33,7 +34,10 @@ class SimulatesIntermediateStateVector(
     Generic[TStateVectorStepResult],
     simulator.SimulatesAmplitudes,
     simulator.SimulatesIntermediateState[
-        TStateVectorStepResult, 'StateVectorTrialResult', 'StateVectorSimulatorState'
+        TStateVectorStepResult,
+        'StateVectorTrialResult',
+        'StateVectorSimulatorState',
+        ActOnStateVectorArgs,
     ],
     metaclass=abc.ABCMeta,
 ):
