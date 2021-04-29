@@ -232,7 +232,6 @@ def test_builtins():
 def test_numpy():
     x = np.ones(1)[0]
 
-    assert_json_roundtrip_works(x.astype(np.bool))
     assert_json_roundtrip_works(x.astype(np.int8))
     assert_json_roundtrip_works(x.astype(np.int16))
     assert_json_roundtrip_works(x.astype(np.int32))

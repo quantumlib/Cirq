@@ -154,6 +154,8 @@ upper_tabs:
         path: /cirq/tutorials/qaoa
       - title: "Quantum walks"
         path: /cirq/tutorials/quantum_walks
+      - title: "Fourier Checking"
+        path: /cirq/tutorials/fourier_checking
 
       ####  ADVANCED  ####
       - heading: "Advanced"
