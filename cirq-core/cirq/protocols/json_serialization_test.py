@@ -14,6 +14,7 @@
 import contextlib
 
 import datetime
+import importlib
 import io
 import json
 import os
@@ -409,7 +410,14 @@ def test_internal_serializer_types():
 
 
 def _list_public_classes_for_tested_modules():
-    with cirq.testing.assert_deprecated("cirq.google", deadline="v0.14"):
+    cirq_google_on_path = importlib.util.find_spec("cirq_google") is not None
+
+    ctx_manager = (
+        cirq.testing.assert_deprecated("cirq.google", deadline="v0.14")
+        if cirq_google_on_path
+        else contextlib.suppress()
+    )
+    with ctx_manager:
         return [
             (mod_spec, o, n)
             for mod_spec in MODULE_TEST_SPECS
