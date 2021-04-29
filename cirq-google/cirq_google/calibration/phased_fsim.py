@@ -362,6 +362,10 @@ def merge_matching_results(
     return PhasedFSimCalibrationResult(all_parameters, common_gate, common_options)
 
 
+class PhasedFSimCalibrationError(Exception):
+    """Error that indicates the calibration failure."""
+
+
 # We have to relax a mypy constraint, see https://github.com/python/mypy/issues/5374
 @dataclasses.dataclass(frozen=True)  # type: ignore
 class PhasedFSimCalibrationRequest(abc.ABC):
@@ -592,6 +596,9 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         )
 
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+        if result.code != v2.calibration_pb2.SUCCESS:
+            raise PhasedFSimCalibrationError(result.error_message)
+
         decoded: Dict[int, Dict[str, Any]] = collections.defaultdict(lambda: {})
         for keys, values in result.metrics['angles'].items():
             for key, value in zip(keys, values):
@@ -715,6 +722,8 @@ class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         )
 
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+        if result.code != v2.calibration_pb2.SUCCESS:
+            raise PhasedFSimCalibrationError(result.error_message)
 
         # pylint: disable=unused-variable
         initial_fids = _parse_xeb_fidelities_df(result.metrics, 'initial_fidelities')
