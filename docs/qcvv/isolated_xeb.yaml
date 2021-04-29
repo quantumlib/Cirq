@@ -1,0 +1,4 @@
+depth: 10
+repetitions: 100
+n_library_circuits: 1
+maxfev: 1

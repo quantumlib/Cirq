@@ -155,6 +155,9 @@ def test_notebooks_against_released_cirq(notebook_path, base_env):
     notebook_file = os.path.basename(notebook_path)
     notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
+    notebook_test_yaml_file = os.path.splitext(notebook_path)[0] + '.yaml'
+    yaml_flag = f'-f {notebook_test_yaml_file}' if os.path.exists(notebook_test_yaml_file) else ''
+
     tmpdir, proto_dir = base_env
 
     notebook_file = os.path.basename(notebook_path)
@@ -166,7 +169,7 @@ mkdir -p out/{notebook_rel_dir}
 {proto_dir}/bin/virtualenv-clone {proto_dir} {notebook_env}
 cd {notebook_env}
 . ./bin/activate
-papermill {notebook_path} {os.getcwd()}/{out_path}"""
+papermill {notebook_path} {os.getcwd()}/{out_path} {yaml_flag}"""
     _, stderr, status = shell_tools.run_shell(
         cmd=cmd,
         log_run_to_stderr=False,

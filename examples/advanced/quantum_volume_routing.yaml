@@ -1,0 +1,4 @@
+routing_attempts:
+    - 1
+    - 10
+repetitions: 100

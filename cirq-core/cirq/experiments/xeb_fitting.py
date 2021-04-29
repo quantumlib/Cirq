@@ -62,7 +62,7 @@ def benchmark_2q_xeb_fidelities(
     adapted for use on pandas DataFrames for efficient vectorized operation.
 
     Args:
-         sampled_df: The sampled results to benchmark. This is likely produced by a call to
+        sampled_df: The sampled results to benchmark. This is likely produced by a call to
             `sample_2q_xeb_circuits`.
         circuits: The library of circuits corresponding to the sampled results in `sampled_df`.
         cycle_depths: The sequence of cycle depths to simulate the circuits.
@@ -284,6 +284,7 @@ def characterize_phased_fsim_parameters_with_xeb(
     initial_simplex_step_size: float = 0.1,
     xatol: float = 1e-3,
     fatol: float = 1e-3,
+    maxfev: Optional[int] = None,
     verbose: bool = True,
     pool: Optional['multiprocessing.pool.Pool'] = None,
 ) -> XEBCharacterizationResult:
@@ -328,14 +329,17 @@ def characterize_phased_fsim_parameters_with_xeb(
             print(f"Loss: {loss:7.3g}", flush=True)
         return loss
 
+    options = {
+        'initial_simplex': initial_simplex,
+        'xatol': xatol,
+        'fatol': fatol,
+    }
+    if maxfev:
+        options['maxfev'] = maxfev
     optimization_result = scipy.optimize.minimize(
         _mean_infidelity,
         x0=x0,
-        options={
-            'initial_simplex': initial_simplex,
-            'xatol': xatol,
-            'fatol': fatol,
-        },
+        options=options,
         method='nelder-mead',
     )
 
@@ -361,6 +365,7 @@ class _CharacterizePhasedFsimParametersWithXebClosure:
     initial_simplex_step_size: float = 0.1
     xatol: float = 1e-3
     fatol: float = 1e-3
+    maxfev: Optional[int] = None
 
     def __call__(self, sampled_df) -> XEBCharacterizationResult:
         return characterize_phased_fsim_parameters_with_xeb(
@@ -371,6 +376,7 @@ class _CharacterizePhasedFsimParametersWithXebClosure:
             initial_simplex_step_size=self.initial_simplex_step_size,
             xatol=self.xatol,
             fatol=self.fatol,
+            maxfev=self.maxfev,
             verbose=False,
             pool=None,
         )
@@ -384,6 +390,7 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
     initial_simplex_step_size: float = 0.1,
     xatol: float = 1e-3,
     fatol: float = 1e-3,
+    maxfev: int = None,
     pool: Optional['multiprocessing.pool.Pool'] = None,
 ) -> XEBCharacterizationResult:
     """Run a classical optimization to fit phased fsim parameters to experimental data, and
@@ -419,6 +426,7 @@ def characterize_phased_fsim_parameters_with_xeb_by_pair(
         initial_simplex_step_size=initial_simplex_step_size,
         xatol=xatol,
         fatol=fatol,
+        maxfev=maxfev,
     )
     subselected_dfs = [sampled_df[sampled_df['pair'] == pair] for pair in pairs]
     if pool is not None:

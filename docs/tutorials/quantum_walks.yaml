@@ -1,0 +1,4 @@
+number_qubits: 3
+iterator: 2
+sample_number: 100
+max_classical_steps: 1000
