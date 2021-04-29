@@ -329,17 +329,17 @@ def characterize_phased_fsim_parameters_with_xeb(
             print(f"Loss: {loss:7.3g}", flush=True)
         return loss
 
-    options = {
+    min_options = {
         'initial_simplex': initial_simplex,
         'xatol': xatol,
         'fatol': fatol,
     }
     if maxfev:
-        options['maxfev'] = maxfev
+        min_options['maxfev'] = maxfev
     optimization_result = scipy.optimize.minimize(
         _mean_infidelity,
         x0=x0,
-        options=options,
+        options=min_options,
         method='nelder-mead',
     )
 
