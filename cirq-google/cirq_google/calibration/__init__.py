@@ -21,6 +21,7 @@ from cirq_google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationOptions,
     FloquetPhasedFSimCalibrationRequest,
     IncompatibleMomentError,
+    PhasedFSimCalibrationOptions,
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
