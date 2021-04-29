@@ -1,0 +1,14 @@
+# Runtime requirements for the python 3 version of cirq.
+
+# for python 3.6 and below dataclasses needs to be installed
+dataclasses; python_version < '3.7'
+
+matplotlib~=3.0
+networkx~=2.4
+numpy~=1.16
+pandas
+requests~=2.18
+sortedcontainers~=2.0
+scipy
+sympy
+typing_extensions
