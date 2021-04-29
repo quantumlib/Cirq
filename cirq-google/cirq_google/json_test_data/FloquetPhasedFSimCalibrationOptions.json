@@ -4,5 +4,6 @@
   "characterize_zeta": true,
   "characterize_chi": false,
   "characterize_gamma": true,
-  "characterize_phi": false
+  "characterize_phi": false,
+  "readout_error_tolerance": 0.4
 }
