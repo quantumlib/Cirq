@@ -594,7 +594,9 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             'readout_corrections': True,
         }
         if self.options.readout_error_tolerance is not None:
+            # Maximum error of the diagonal elements of the two-qubit readout confusion matrix.
             args['readout_error_tolerance'] = self.options.readout_error_tolerance
+            # Maximum error of the off-diagonal elements of the two-qubit readout confusion matrix.
             args['correlated_readout_error_tolerance'] = _correlated_from_readout_tolerance(
                 self.options.readout_error_tolerance
             )
@@ -655,6 +657,10 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
 
 def _correlated_from_readout_tolerance(readout_tolerance: float) -> float:
+    """Heuristic formula for the off-diagonal confusion matrix error thresholds.
+
+    This is chosen to return 0.3 for readout_tolerance = 0.4 and 1.0 for readout_tolerance = 1.0.
+    """
     return max(0.0, min(1.0, 7 / 6 * readout_tolerance - 1 / 6))
 
 
