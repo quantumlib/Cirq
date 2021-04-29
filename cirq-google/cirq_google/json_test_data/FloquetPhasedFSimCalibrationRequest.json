@@ -37,6 +37,7 @@
     "characterize_zeta": true,
     "characterize_chi": false,
     "characterize_gamma": false,
-    "characterize_phi": true
+    "characterize_phi": true,
+    "readout_error_tolerance": 0.4
   }
 }
