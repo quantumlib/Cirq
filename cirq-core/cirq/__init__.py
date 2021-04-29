@@ -510,6 +510,7 @@ from cirq.study import (
     Product,
     Sweep,
     Sweepable,
+    SymbolFunc,
     to_resolvers,
     to_sweep,
     to_sweeps,

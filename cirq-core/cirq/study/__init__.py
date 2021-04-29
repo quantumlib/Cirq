@@ -27,6 +27,11 @@ from cirq.study.resolver import (
     ParamResolverOrSimilarType,
 )
 
+from cirq.study.result import (
+    ResultDict,
+    Result,
+)
+
 from cirq.study.sweepable import (
     Sweepable,
     to_resolvers,
@@ -46,7 +51,4 @@ from cirq.study.sweeps import (
     dict_to_zip_sweep,
 )
 
-from cirq.study.result import (
-    ResultDict,
-    Result,
-)
+from cirq.study.symbol_func import SymbolFunc
