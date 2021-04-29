@@ -19,7 +19,7 @@ class PhasedXZGate(gate_features.SingleQubitGate):
     The above expression is a matrix multiplication with time going to the left.
     In quantum circuit notation, this operation decomposes into this circuit:
 
-    ───Z^(-a)──X^x──Z^a────Z^z───$
+    ───Z^(-a)──X^x──Z^a────Z^z───
 
     The axis phase exponent (a) decides which axis in the XY plane to rotate
     around. The amount of rotation around that axis is decided by the x
