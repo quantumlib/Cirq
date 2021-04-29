@@ -387,11 +387,29 @@ class SimulatesIntermediateState(
     state at the end of a circuit, a SimulatesIntermediateState can
     simulate stepping through the moments of a circuit.
 
-    Implementors of this interface should implement the _base_iterator
-    method.
+    Most implementors of this interface should implement the
+    `_create_act_on_args` and `_create_step_result` methods. The first one
+    creates the simulator's quantum state representation at the beginning of
+    the simulation. The second creates the step result emitted after each
+    `Moment` in the simulation.
+
+    Iteration in the subclass is handled by the `_core_iterator` implementation
+    here, which handles moment stepping, application of operations, measurement
+    collection, and creation of noise. Simulators with more advanced needs can
+    override the implementation if necessary.
+
+    Sampling is handled by the implementation of `_run`. This implementation
+    iterates the circuit to create a final step result, and samples that
+    result when possible. If not possible, due to noise or classical
+    probabilities on a state vector, the implementation attempts to fully
+    iterate the unitary prefix once, then only repeat the non-unitary
+    suffix from copies of the state obtained by the prefix. If more advanced
+    functionality is required, then the `_run` method can be overridden.
 
     Note that state here refers to simulator state, which is not necessarily
-    a state vector.
+    a state vector. The included simulators and corresponding states are state
+    vector, density matrix, Clifford, and MPS. Each of these use the default
+    `_core_iterator` and `_run` methods.
     """
 
     def __init__(
@@ -544,11 +562,11 @@ class SimulatesIntermediateState(
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
-        This is a thin wrapper around `create_act_on_args` and `_core_iterator`.
+        A thin wrapper around `_create_act_on_args` and `_core_iterator`.
         Overriding this method was the old way of creating a circuit iterator,
         and this method is planned to be formally put on the deprecation path.
-        Going forward, override the aforementioned two methods in custom
-        simulators.
+        Going forward, override the `_create_act_on_args` and
+        `_create_step_result` methods as described in the class overview.
 
         Args:
             circuit: The circuit to simulate.
@@ -709,19 +727,11 @@ class SimulatesIntermediateState(
             assert step_result is not None
             measurement_ops = [cast(ops.GateOperation, op) for op in general_ops]
             return step_result.sample_measurement_ops(measurement_ops, repetitions, seed=self._prng)
-        return self._run_sweep_repeat(general_suffix, repetitions, act_on_args)
 
-    def _run_sweep_repeat(
-        self,
-        circuit: circuits.Circuit,
-        repetitions: int,
-        act_on_args: TActOnArgs,
-    ) -> Dict[str, np.ndarray]:
-        measurements = {}  # type: Dict[str, List[np.ndarray]]
-
+        measurements: Dict[str, List[np.ndarray]] = {}
         for _ in range(repetitions):
             all_step_results = self._core_iterator(
-                circuit,
+                general_suffix,
                 sim_state=act_on_args.copy(),
             )
             for step_result in all_step_results:
@@ -732,6 +742,25 @@ class SimulatesIntermediateState(
         return {k: np.array(v) for k, v in measurements.items()}
 
     def _can_be_in_run_prefix(self, val: Any):
+        """Determines what should be put in the prefix in `_run`
+
+        The `_run` method has an optimization that reduces repetition by
+        splitting the circuit into a prefix that is pure with respect to the
+        state representation, and only executing that once per sample set. For
+        state vectors, any unitary operation is pure, and we make this the
+        default here. For density matrices, any non-measurement operation can
+        be represented wholely in the matrix, and thus this method is
+        overridden there to enable greater optimization there.
+
+        Custom simulators can override this method appropriately.
+
+        Args:
+            val: An operation or noise model to test for purity within the
+                state representation.
+
+        Returns:
+            A boolean representing whether the value can be added to the
+            `_run` prefix."""
         return protocols.has_unitary(val)
 
 
