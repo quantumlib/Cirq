@@ -26,30 +26,24 @@ U = cirq.testing.random_unitary(N)
 
 
 def test_fidelity_symmetric():
+    np.testing.assert_allclose(cirq.fidelity(VEC1, VEC2), cirq.fidelity(VEC2, VEC1))
+    np.testing.assert_allclose(cirq.fidelity(VEC1, MAT1), cirq.fidelity(MAT1, VEC1))
     np.testing.assert_allclose(
-        cirq.fidelity(VEC1, VEC2, qid_shape=(15,)), cirq.fidelity(VEC2, VEC1, qid_shape=(15,))
-    )
-    np.testing.assert_allclose(
-        cirq.fidelity(VEC1, MAT1, qid_shape=(15,)), cirq.fidelity(MAT1, VEC1, qid_shape=(15,))
-    )
-    np.testing.assert_allclose(
-        cirq.fidelity(cirq.density_matrix(MAT1), MAT2, qid_shape=(15,)),
-        cirq.fidelity(cirq.density_matrix(MAT2), MAT1, qid_shape=(15,)),
+        cirq.fidelity(cirq.density_matrix(MAT1), MAT2),
+        cirq.fidelity(cirq.density_matrix(MAT2), MAT1),
     )
 
 
 def test_fidelity_between_zero_and_one():
-    assert 0 <= cirq.fidelity(VEC1, VEC2, qid_shape=(15,)) <= 1
-    assert 0 <= cirq.fidelity(VEC1, MAT1, qid_shape=(15,)) <= 1
-    assert 0 <= cirq.fidelity(cirq.density_matrix(MAT1), MAT2, qid_shape=(15,)) <= 1
+    assert 0 <= cirq.fidelity(VEC1, VEC2) <= 1
+    assert 0 <= cirq.fidelity(VEC1, MAT1) <= 1
+    assert 0 <= cirq.fidelity(cirq.density_matrix(MAT1), MAT2) <= 1
 
 
 def test_fidelity_invariant_under_unitary_transformation():
     np.testing.assert_allclose(
-        cirq.fidelity(cirq.density_matrix(MAT1), MAT2, qid_shape=(15,)),
-        cirq.fidelity(
-            cirq.density_matrix(U @ MAT1 @ U.T.conj()), U @ MAT2 @ U.T.conj(), qid_shape=(15,)
-        ),
+        cirq.fidelity(cirq.density_matrix(MAT1), MAT2),
+        cirq.fidelity(cirq.density_matrix(U @ MAT1 @ U.T.conj()), U @ MAT2 @ U.T.conj()),
     )
 
 
@@ -75,22 +69,22 @@ def test_fidelity_known_values():
     mat2 = cirq.density_matrix(np.outer(vec2, vec2.conj()))
     mat3 = 0.3 * mat1.density_matrix() + 0.7 * mat2.density_matrix()
 
-    np.testing.assert_allclose(cirq.fidelity(vec1, vec1, qid_shape=(4,)), 1)
-    np.testing.assert_allclose(cirq.fidelity(vec2, vec2, qid_shape=(4,)), 1)
-    np.testing.assert_allclose(cirq.fidelity(vec1, vec3, qid_shape=(4,)), 0.25)
-    np.testing.assert_allclose(cirq.fidelity(vec1, tensor1, qid_shape=(4,)), 1)
-    np.testing.assert_allclose(cirq.fidelity(tensor1, vec1, qid_shape=(2, 2)), 1)
-    np.testing.assert_allclose(cirq.fidelity(mat1, mat1, qid_shape=(2, 2)), 1)
-    np.testing.assert_allclose(cirq.fidelity(mat2, mat2, qid_shape=(2, 2)), 1)
-    np.testing.assert_allclose(cirq.fidelity(vec1, mat1, qid_shape=(2, 2)), 1)
-    np.testing.assert_allclose(cirq.fidelity(mat2, vec2, qid_shape=(2, 2)), 1)
-    np.testing.assert_allclose(cirq.fidelity(vec1, vec2, qid_shape=(4,)), 0)
-    np.testing.assert_allclose(cirq.fidelity(vec1, mat2, qid_shape=(2, 2)), 0)
-    np.testing.assert_allclose(cirq.fidelity(mat1, vec2, qid_shape=(2, 2)), 0)
-    np.testing.assert_allclose(cirq.fidelity(vec1, mat3, qid_shape=(2, 2)), 0.3)
-    np.testing.assert_allclose(cirq.fidelity(tensor1, mat3, qid_shape=(2, 2)), 0.3)
-    np.testing.assert_allclose(cirq.fidelity(mat3, tensor1, qid_shape=(2, 2)), 0.3)
-    np.testing.assert_allclose(cirq.fidelity(mat3, vec2, qid_shape=(2, 2)), 0.7)
+    np.testing.assert_allclose(cirq.fidelity(vec1, vec1), 1)
+    np.testing.assert_allclose(cirq.fidelity(vec2, vec2), 1)
+    np.testing.assert_allclose(cirq.fidelity(vec1, vec3), 0.25)
+    np.testing.assert_allclose(cirq.fidelity(vec1, tensor1), 1)
+    np.testing.assert_allclose(cirq.fidelity(tensor1, vec1), 1)
+    np.testing.assert_allclose(cirq.fidelity(mat1, mat1), 1)
+    np.testing.assert_allclose(cirq.fidelity(mat2, mat2), 1)
+    np.testing.assert_allclose(cirq.fidelity(vec1, mat1), 1)
+    np.testing.assert_allclose(cirq.fidelity(mat2, vec2), 1)
+    np.testing.assert_allclose(cirq.fidelity(vec1, vec2), 0)
+    np.testing.assert_allclose(cirq.fidelity(vec1, mat2), 0)
+    np.testing.assert_allclose(cirq.fidelity(mat1, vec2), 0)
+    np.testing.assert_allclose(cirq.fidelity(vec1, mat3), 0.3)
+    np.testing.assert_allclose(cirq.fidelity(tensor1, mat3), 0.3)
+    np.testing.assert_allclose(cirq.fidelity(mat3, tensor1), 0.3)
+    np.testing.assert_allclose(cirq.fidelity(mat3, vec2), 0.7)
 
 
 def test_fidelity_numpy_arrays():
@@ -168,6 +162,13 @@ def test_fidelity_product_states():
             cirq.KET_PLUS(a) * cirq.KET_MINUS(b),
             qid_shape=(4,),
         )
+
+
+def test_fidelity_fail_inference():
+    state_vector = cirq.one_hot(shape=(4,), dtype=np.complex128)
+    state_tensor = np.reshape(state_vector, (2, 2))
+    with pytest.raises(ValueError, match='Please specify'):
+        _ = cirq.fidelity(state_tensor, 4)
 
 
 def test_fidelity_bad_shape():
