@@ -24,7 +24,7 @@ from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iter
 import numpy as np
 import quimb.tensor as qtn
 
-from cirq import circuits, devices, study, ops, protocols, value
+from cirq import devices, study, ops, protocols, value
 from cirq.sim import simulator
 from cirq.sim.act_on_args import ActOnArgs
 
