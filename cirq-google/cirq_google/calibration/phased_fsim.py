@@ -596,7 +596,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         )
 
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
-        if not result.code != v2.calibration_pb2.SUCCESS:
+        if result.code != v2.calibration_pb2.SUCCESS:
             raise PhasedFSimCalibrationError(result.error_message)
 
         decoded: Dict[int, Dict[str, Any]] = collections.defaultdict(lambda: {})
@@ -722,7 +722,7 @@ class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         )
 
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
-        if not result.code != v2.calibration_pb2.SUCCESS:
+        if result.code != v2.calibration_pb2.SUCCESS:
             raise PhasedFSimCalibrationError(result.error_message)
 
         # pylint: disable=unused-variable
