@@ -1,4 +1,5 @@
 from typing import (
+    Any,
     Callable,
     Dict,
     Iterable,
@@ -7,7 +8,6 @@ from typing import (
     Sequence,
     Tuple,
     Union,
-    Any,
 )
 
 import numpy as np
@@ -32,7 +32,7 @@ from cirq.sim import (
     StateVectorTrialResult,
     ActOnStateVectorArgs,
 )
-from cirq.study import Sweepable, Result, ParamResolverOrSimilarType
+from cirq.study import ParamResolverOrSimilarType, Result, Sweepable
 from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
 from cirq_google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationRequest,
