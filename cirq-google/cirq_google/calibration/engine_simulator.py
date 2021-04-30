@@ -26,11 +26,11 @@ from cirq.ops import (
     WaitGate,
 )
 from cirq.sim import (
+    ActOnStateVectorArgs,
     Simulator,
     SimulatesIntermediateStateVector,
     SparseSimulatorStep,
     StateVectorTrialResult,
-    ActOnStateVectorArgs,
 )
 from cirq.study import ParamResolverOrSimilarType, Result, Sweepable
 from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
