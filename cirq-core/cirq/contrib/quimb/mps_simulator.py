@@ -25,7 +25,7 @@ import numpy as np
 import quimb.tensor as qtn
 
 from cirq import devices, study, ops, protocols, value
-from cirq.sim import simulator
+from cirq.sim import simulator, simulation_engine
 from cirq.sim.act_on_args import ActOnArgs
 
 if TYPE_CHECKING:
@@ -52,7 +52,7 @@ class MPSOptions:
 
 
 class MPSSimulator(
-    simulator.SimulatesIntermediateState[
+    simulation_engine.SimulationEngine[
         'MPSSimulatorStepResult', 'MPSTrialResult', 'MPSState', 'MPSState'
     ],
 ):

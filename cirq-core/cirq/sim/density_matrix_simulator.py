@@ -17,7 +17,7 @@ from typing import Any, Dict, List, TYPE_CHECKING, Tuple, Union, Sequence
 import numpy as np
 
 from cirq import ops, protocols, qis, study, value
-from cirq.sim import density_matrix_utils, simulator, act_on_density_matrix_args
+from cirq.sim import density_matrix_utils, simulator, act_on_density_matrix_args, simulation_engine
 
 if TYPE_CHECKING:
     import cirq
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 
 class DensityMatrixSimulator(
-    simulator.SimulatesIntermediateState[
+    simulation_engine.SimulationEngine[
         'DensityMatrixStepResult',
         'DensityMatrixTrialResult',
         'DensityMatrixSimulatorState',

@@ -20,7 +20,7 @@ from typing import Any, Dict, Sequence, TYPE_CHECKING, Tuple, Generic, TypeVar, 
 import numpy as np
 
 from cirq import ops, study, value
-from cirq.sim import simulator, state_vector
+from cirq.sim import simulator, state_vector, simulation_engine
 from cirq.sim.act_on_state_vector_args import ActOnStateVectorArgs
 
 if TYPE_CHECKING:
@@ -32,7 +32,7 @@ TStateVectorStepResult = TypeVar('TStateVectorStepResult', bound='StateVectorSte
 
 class SimulatesIntermediateStateVector(
     Generic[TStateVectorStepResult],
-    simulator.SimulatesIntermediateState[
+    simulation_engine.SimulationEngine[
         TStateVectorStepResult,
         'StateVectorTrialResult',
         'StateVectorSimulatorState',

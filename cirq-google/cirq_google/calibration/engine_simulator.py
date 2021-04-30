@@ -21,7 +21,6 @@ from cirq.ops import (
     Operation,
     PhasedFSimGate,
     Qid,
-    QubitOrderOrList,
     SingleQubitGate,
     WaitGate,
 )
@@ -410,6 +409,13 @@ class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector):
         qubits: Sequence[Qid],
     ) -> ActOnStateVectorArgs:
         return self._simulator._create_act_on_args(initial_state, qubits)
+
+    def _create_step_result(
+        self,
+        initial_state: ActOnStateVectorArgs,
+        qubit_map: Dict[Qid, int],
+    ) -> StateVectorStepResult:
+        return self._simulator._create_step_result(initial_state, qubit_map)
 
 
 class _PhasedFSimConverter(PointOptimizer):

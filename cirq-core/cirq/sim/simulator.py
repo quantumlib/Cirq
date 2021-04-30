@@ -378,7 +378,6 @@ class SimulatesFinalState(Generic[TSimulationTrialResult], metaclass=abc.ABCMeta
 class SimulatesIntermediateState(
     Generic[TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs],
     SimulatesFinalState[TSimulationTrialResult],
-    SimulatesSamples,
     metaclass=abc.ABCMeta,
 ):
     """A SimulatesFinalState that simulates a circuit by moments.
@@ -387,58 +386,12 @@ class SimulatesIntermediateState(
     state at the end of a circuit, a SimulatesIntermediateState can
     simulate stepping through the moments of a circuit.
 
-    Most implementors of this interface should implement the
-    `_create_act_on_args` and `_create_step_result` methods. The first one
-    creates the simulator's quantum state representation at the beginning of
-    the simulation. The second creates the step result emitted after each
-    `Moment` in the simulation.
-
-    Iteration in the subclass is handled by the `_core_iterator` implementation
-    here, which handles moment stepping, application of operations, measurement
-    collection, and creation of noise. Simulators with more advanced needs can
-    override the implementation if necessary.
-
-    Sampling is handled by the implementation of `_run`. This implementation
-    iterates the circuit to create a final step result, and samples that
-    result when possible. If not possible, due to noise or classical
-    probabilities on a state vector, the implementation attempts to fully
-    iterate the unitary prefix once, then only repeat the non-unitary
-    suffix from copies of the state obtained by the prefix. If more advanced
-    functionality is required, then the `_run` method can be overridden.
+    Implementors of this interface should implement the _base_iterator
+    method.
 
     Note that state here refers to simulator state, which is not necessarily
-    a state vector. The included simulators and corresponding states are state
-    vector, density matrix, Clifford, and MPS. Each of these use the default
-    `_core_iterator` and `_run` methods.
+    a state vector.
     """
-
-    def __init__(
-        self,
-        *,
-        dtype: Type[np.number] = np.complex64,
-        noise: 'cirq.NOISE_MODEL_LIKE' = None,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-        ignore_measurement_results: bool = False,
-    ):
-        """Initializes the simulator.
-
-        Args:
-           dtype: The `numpy.dtype` used by the simulation. One of
-               `numpy.complex64` or `numpy.complex128`
-           noise: A noise model to apply while simulating.
-           seed: The random seed to use for this simulator.
-           ignore_measurement_results: If True, then the simulation
-               will treat measurement as dephasing instead of collapsing
-               process. This is only applicable to simulators that can
-               model dephasing.
-        """
-        if dtype not in {np.complex64, np.complex128}:
-            raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
-
-        self._dtype = dtype
-        self._prng = value.parse_random_state(seed)
-        self.noise = devices.NoiseModel.from_noise_model_like(noise)
-        self._ignore_measurement_results = ignore_measurement_results
 
     def simulate_sweep(
         self,
@@ -562,11 +515,11 @@ class SimulatesIntermediateState(
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
-        A thin wrapper around `_create_act_on_args` and `_core_iterator`.
+        This is a thin wrapper around `create_act_on_args` and `_core_iterator`.
         Overriding this method was the old way of creating a circuit iterator,
         and this method is planned to be formally put on the deprecation path.
-        Going forward, override the `_create_act_on_args` and
-        `_create_step_result` methods as described in the class overview.
+        Going forward, override the aforementioned two methods in custom
+        simulators.
 
         Args:
             circuit: The circuit to simulate.
@@ -607,11 +560,11 @@ class SimulatesIntermediateState(
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
         sim_state: TActOnArgs,
-        all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
@@ -626,50 +579,6 @@ class SimulatesIntermediateState(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
-        if len(circuit) == 0:
-            yield self._create_step_result(sim_state, sim_state.qubit_map)
-            return
-
-        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
-        measured = collections.defaultdict(bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
-        for moment in noisy_moments:
-            for op in ops.flatten_to_ops(moment):
-                try:
-                    # TODO: support more general measurements.
-                    # Github issue: https://github.com/quantumlib/Cirq/issues/3566
-                    if all_measurements_are_terminal and measured[op.qubits]:
-                        continue
-                    if isinstance(op.gate, ops.MeasurementGate):
-                        measured[op.qubits] = True
-                        if all_measurements_are_terminal:
-                            continue
-                        if self._ignore_measurement_results:
-                            op = ops.phase_damp(1).on(*op.qubits)
-                    sim_state.axes = tuple(sim_state.qubit_map[qubit] for qubit in op.qubits)
-                    protocols.act_on(op, sim_state)
-                except TypeError:
-                    raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
-
-            yield self._create_step_result(sim_state, sim_state.qubit_map)
-            sim_state.log_of_measurement_results.clear()
-
-    def _create_step_result(
-        self,
-        initial_state: TActOnArgs,
-        qubit_map: Dict['cirq.Qid', int],
-    ) -> TStepResult:
-        """This method should be implemented to create a step result.
-
-        Args:
-            initial_state: The TActOnArgs for this trial.
-            qubit_map: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
-
-        Returns:
-            The StepResult.
-        """
-        raise NotImplementedError()
 
     @abc.abstractmethod
     def _create_simulator_trial_result(
@@ -690,78 +599,6 @@ class SimulatesIntermediateState(
             The SimulationTrialResult.
         """
         raise NotImplementedError()
-
-    def _run(
-        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
-    ) -> Dict[str, np.ndarray]:
-        """See definition in `cirq.SimulatesSamples`."""
-        if self._ignore_measurement_results:
-            raise ValueError("run() is not supported when ignore_measurement_results = True")
-
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        check_all_resolved(resolved_circuit)
-        qubits = tuple(sorted(resolved_circuit.all_qubits()))
-        act_on_args = self._create_act_on_args(0, qubits)
-
-        prefix, general_suffix = (
-            split_into_matching_protocol_then_general(resolved_circuit, self._can_be_in_run_prefix)
-            if self._can_be_in_run_prefix(self.noise)
-            else (resolved_circuit[0:0], resolved_circuit)
-        )
-        step_result = None
-        for step_result in self._core_iterator(
-            circuit=prefix,
-            sim_state=act_on_args,
-        ):
-            pass
-
-        general_ops = list(general_suffix.all_operations())
-        if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
-            for step_result in self._core_iterator(
-                circuit=general_suffix,
-                sim_state=act_on_args,
-                all_measurements_are_terminal=True,
-            ):
-                pass
-            assert step_result is not None
-            measurement_ops = [cast(ops.GateOperation, op) for op in general_ops]
-            return step_result.sample_measurement_ops(measurement_ops, repetitions, seed=self._prng)
-
-        measurements: Dict[str, List[np.ndarray]] = {}
-        for _ in range(repetitions):
-            all_step_results = self._core_iterator(
-                general_suffix,
-                sim_state=act_on_args.copy(),
-            )
-            for step_result in all_step_results:
-                for k, v in step_result.measurements.items():
-                    if k not in measurements:
-                        measurements[k] = []
-                    measurements[k].append(np.array(v, dtype=np.uint8))
-        return {k: np.array(v) for k, v in measurements.items()}
-
-    def _can_be_in_run_prefix(self, val: Any):
-        """Determines what should be put in the prefix in `_run`
-
-        The `_run` method has an optimization that reduces repetition by
-        splitting the circuit into a prefix that is pure with respect to the
-        state representation, and only executing that once per sample set. For
-        state vectors, any unitary operation is pure, and we make this the
-        default here. For density matrices, any non-measurement operation can
-        be represented wholely in the matrix, and thus this method is
-        overridden there to enable greater optimization there.
-
-        Custom simulators can override this method appropriately.
-
-        Args:
-            val: An operation or noise model to test for purity within the
-                state representation.
-
-        Returns:
-            A boolean representing whether the value can be added to the
-            `_run` prefix."""
-        return protocols.has_unitary(val)
 
 
 class StepResult(Generic[TSimulatorState], metaclass=abc.ABCMeta):
