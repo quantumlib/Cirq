@@ -122,7 +122,7 @@ def test_unsupported_function_language():
     [
         ((True, False), {'arg_value': {'bool_values': {'values': [True, False]}}}),
         (
-            np.array([True, False], dtype=np.bool),
+            np.array([True, False], dtype=bool),
             {'arg_value': {'bool_values': {'values': [True, False]}}},
         ),
     ],

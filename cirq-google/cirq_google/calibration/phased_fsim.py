@@ -363,6 +363,10 @@ def merge_matching_results(
     return PhasedFSimCalibrationResult(all_parameters, common_gate, common_options)
 
 
+class PhasedFSimCalibrationError(Exception):
+    """Error that indicates the calibration failure."""
+
+
 # We have to relax a mypy constraint, see https://github.com/python/mypy/issues/5374
 @dataclasses.dataclass(frozen=True)  # type: ignore
 class PhasedFSimCalibrationRequest(abc.ABC):
@@ -523,6 +527,12 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         characterize_chi: Whether to characterize χ angle.
         characterize_gamma: Whether to characterize γ angle.
         characterize_phi: Whether to characterize φ angle.
+        readout_error_tolerance: Threshold for pairwise-correlated readout errors above which the
+            calibration will report to fail. Just before each calibration all pairwise two-qubit
+            readout errors are checked and when any of the pairs reports an error above the
+            threshold, the calibration will fail. This value is a sanity check to determine if
+            calibration is reasonable and allows for quick termination if it is not. Set to 1.0 to
+            disable readout error checks and None to use default, device-specific thresholds.
     """
 
     characterize_theta: bool
@@ -530,6 +540,7 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     characterize_chi: bool
     characterize_gamma: bool
     characterize_phi: bool
+    readout_error_tolerance: Optional[float] = None
 
     def zeta_chi_gamma_correction_override(self) -> PhasedFSimCharacterization:
         """Gives a PhasedFSimCharacterization that can be used to override characterization after
@@ -624,21 +635,32 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
     def to_calibration_layer(self) -> CalibrationLayer:
         circuit = Circuit([self.gate.on(*pair) for pair in self.pairs])
+        args: Dict[str, Any] = {
+            'est_theta': self.options.characterize_theta,
+            'est_zeta': self.options.characterize_zeta,
+            'est_chi': self.options.characterize_chi,
+            'est_gamma': self.options.characterize_gamma,
+            'est_phi': self.options.characterize_phi,
+            # Experimental option that should always be set to True.
+            'readout_corrections': True,
+        }
+        if self.options.readout_error_tolerance is not None:
+            # Maximum error of the diagonal elements of the two-qubit readout confusion matrix.
+            args['readout_error_tolerance'] = self.options.readout_error_tolerance
+            # Maximum error of the off-diagonal elements of the two-qubit readout confusion matrix.
+            args['correlated_readout_error_tolerance'] = _correlated_from_readout_tolerance(
+                self.options.readout_error_tolerance
+            )
         return CalibrationLayer(
             calibration_type=_FLOQUET_PHASED_FSIM_HANDLER_NAME,
             program=circuit,
-            args={
-                'est_theta': self.options.characterize_theta,
-                'est_zeta': self.options.characterize_zeta,
-                'est_chi': self.options.characterize_chi,
-                'est_gamma': self.options.characterize_gamma,
-                'est_phi': self.options.characterize_phi,
-                # Experimental option that should always be set to True.
-                'readout_corrections': True,
-            },
+            args=args,
         )
 
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+        if result.code != v2.calibration_pb2.SUCCESS:
+            raise PhasedFSimCalibrationError(result.error_message)
+
         decoded: Dict[int, Dict[str, Any]] = collections.defaultdict(lambda: {})
         for keys, values in result.metrics['angles'].items():
             for key, value in zip(keys, values):
@@ -686,6 +708,14 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             'gate': self.gate,
             'options': self.options,
         }
+
+
+def _correlated_from_readout_tolerance(readout_tolerance: float) -> float:
+    """Heuristic formula for the off-diagonal confusion matrix error thresholds.
+
+    This is chosen to return 0.3 for readout_tolerance = 0.4 and 1.0 for readout_tolerance = 1.0.
+    """
+    return max(0.0, min(1.0, 7 / 6 * readout_tolerance - 1 / 6))
 
 
 def _get_labeled_int(key: str, s: str):
@@ -790,6 +820,8 @@ class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         )
 
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+        if result.code != v2.calibration_pb2.SUCCESS:
+            raise PhasedFSimCalibrationError(result.error_message)
 
         # pylint: disable=unused-variable
         initial_fids = _parse_xeb_fidelities_df(result.metrics, 'initial_fidelities')
