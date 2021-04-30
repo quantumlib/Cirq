@@ -27,8 +27,6 @@ Simulator types include:
         as the simulation iterates through the moments of a cirq.
 """
 
-import abc
-import collections
 from typing import (
     Any,
     Dict,
@@ -44,12 +42,14 @@ from typing import (
     Callable,
     TypeVar,
     Generic,
-    Type,
 )
+
+import abc
+import collections
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, study, value, work, devices
+from cirq import circuits, ops, protocols, study, value, work
 from cirq._compat import deprecated
 from cirq.sim.act_on_args import ActOnArgs
 
@@ -579,6 +579,7 @@ class SimulatesIntermediateState(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def _create_simulator_trial_result(
