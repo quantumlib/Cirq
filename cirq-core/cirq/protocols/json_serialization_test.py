@@ -14,6 +14,7 @@
 import contextlib
 
 import datetime
+import importlib
 import io
 import json
 import os
@@ -407,13 +408,25 @@ def test_internal_serializer_types():
         _ = json_serialization._ContextualSerialization._from_json_dict_(**serialization_json)
 
 
+def _list_public_classes_for_tested_modules():
+    cirq_google_on_path = importlib.util.find_spec("cirq_google") is not None
+
+    ctx_manager = (
+        cirq.testing.assert_deprecated("cirq.google", deadline="v0.14")
+        if cirq_google_on_path
+        else contextlib.suppress()
+    )
+    with ctx_manager:
+        return [
+            (mod_spec, o, n)
+            for mod_spec in MODULE_TEST_SPECS
+            for (o, n) in mod_spec.find_classes_that_should_serialize()
+        ]
+
+
 @pytest.mark.parametrize(
     'mod_spec,cirq_obj_name,cls',
-    [
-        (mod_spec, o, n)
-        for mod_spec in MODULE_TEST_SPECS
-        for (o, n) in mod_spec.find_classes_that_should_serialize()
-    ],
+    _list_public_classes_for_tested_modules(),
 )
 def test_json_test_data_coverage(mod_spec: ModuleJsonTestSpec, cirq_obj_name: str, cls):
     if cirq_obj_name == "SerializableByKey":
