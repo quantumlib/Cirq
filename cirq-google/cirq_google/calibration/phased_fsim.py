@@ -837,7 +837,9 @@ class LocalXEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
     options: LocalXEBPhasedFSimCalibrationOptions
 
-    def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+    def parse_result(
+        self, result: CalibrationResult, job: Optional[EngineJob] = None
+    ) -> PhasedFSimCalibrationResult:
         raise NotImplementedError('Not applicable for local calibrations')
 
     def to_calibration_layer(self) -> CalibrationLayer:
