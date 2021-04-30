@@ -1,9 +1,7 @@
 from typing import (
-    Any,
     Callable,
     Dict,
     Iterable,
-    Iterator,
     List,
     Optional,
     Sequence,
@@ -30,9 +28,8 @@ from cirq.sim import (
     StateVectorStepResult,
     ActOnStateVectorArgs,
 )
-from cirq.study import ParamResolver
+from cirq.study import Sweepable, Result
 from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
-
 from cirq_google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationRequest,
     PhaseCalibratedFSimGate,
@@ -43,7 +40,6 @@ from cirq_google.calibration.phased_fsim import (
     SQRT_ISWAP_INV_PARAMETERS,
     try_convert_sqrt_iswap_to_fsim,
 )
-
 
 ParametersDriftGenerator = Callable[[Qid, Qid, FSimGate], PhasedFSimCharacterization]
 PhasedFsimDictParameters = Dict[
@@ -389,11 +385,14 @@ class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector):
 
         return gate_calibration.as_characterized_phased_fsim_gate(parameters)
 
-    def _run(
-        self, circuit: Circuit, param_resolver: ParamResolver, repetitions: int
-    ) -> Dict[str, np.ndarray]:
-        converted = _convert_to_circuit_with_drift(self, circuit)
-        return self._simulator._run(converted, param_resolver, repetitions)
+    def run_sweep(
+        self,
+        program: Circuit,
+        params: Sweepable,
+        repetitions: int = 1,
+    ) -> List[Result]:
+        converted = _convert_to_circuit_with_drift(self, program)
+        return self._simulator.run_sweep(converted, params, repetitions)
 
     def simulate(
         self, program: Circuit
