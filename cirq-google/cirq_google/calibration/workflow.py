@@ -654,7 +654,7 @@ def _run_local_calibrations_via_sampler(
 
 
 def run_calibrations(
-    calibration_requests: Sequence[PhasedFSimCalibrationRequest],
+    calibrations: Sequence[PhasedFSimCalibrationRequest],
     sampler: Union[Engine, Sampler],
     processor_id: Optional[str] = None,
     gate_set: Optional[SerializableGateSet] = None,
@@ -664,7 +664,7 @@ def run_calibrations(
     """Runs calibration requests on the Engine.
 
     Args:
-        calibration_requests: List of calibrations to perform described in a request object.
+        calibrations: List of calibrations to perform described in a request object.
         sampler: cirq_google.Engine or cirq.Sampler object used for running the calibrations. When
             sampler is cirq_google.Engine or cirq_google.QuantumEngineSampler object then the
             calibrations are issued against a Google's quantum device. The only other sampler
@@ -688,12 +688,14 @@ def run_calibrations(
             f'given'
         )
 
-    if not calibration_requests:
+    if not calibrations:
         return []
 
-    calibration_request_types = set(type(cr) for cr in calibration_requests)
+    calibration_request_types = set(type(cr) for cr in calibrations)
     if len(calibration_request_types) > 1:
-        raise ValueError("All calibrations must be of the same type.")
+        raise ValueError(
+            f"All calibrations must be of the same type. You gave: {calibration_request_types}"
+        )
     (calibration_request_type,) = calibration_request_types
 
     if isinstance(sampler, Engine):
@@ -707,16 +709,16 @@ def run_calibrations(
 
     if engine is not None:
         if processor_id is None:
-            raise ValueError('processor_id must be provided when using an Engine')
+            raise ValueError('processor_id must be provided.')
         if gate_set is None:
-            raise ValueError('gate_set must be provided when using an Engine')
+            raise ValueError('gate_set must be provided.')
 
         if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
             sampler = engine.sampler(processor_id=processor_id, gate_set=gate_set)
-            return _run_local_calibrations_via_sampler(calibration_requests, sampler)
+            return _run_local_calibrations_via_sampler(calibrations, sampler)
 
         return _run_calibrations_via_engine(
-            calibration_requests,
+            calibrations,
             engine,
             processor_id,
             gate_set,
@@ -725,15 +727,14 @@ def run_calibrations(
         )
 
     if calibration_request_type == LocalXEBPhasedFSimCalibrationRequest:
-        return _run_local_calibrations_via_sampler(
-            calibration_requests, sampler=cast(Sampler, sampler)
-        )
+        return _run_local_calibrations_via_sampler(calibrations, sampler=cast(Sampler, sampler))
 
     if isinstance(sampler, PhasedFSimEngineSimulator):
-        return sampler.get_calibrations(calibration_requests)
+        return sampler.get_calibrations(calibrations)
 
     raise ValueError(
-        f'Unsupported engine/request combinations: {engine} cannot run {calibration_requests}'
+        f'Unsupported sampler/request combination: Sampler {sampler} cannot run '
+        f'calibration request of type {calibration_request_type}'
     )
 
 
@@ -1070,7 +1071,7 @@ def run_zeta_chi_gamma_compensation_for_moments(
         circuit, options, gates_translator, merge_subsets=merge_subsets
     )
     characterizations = run_calibrations(
-        calibration_requests=requests,
+        calibrations=requests,
         sampler=sampler,
         processor_id=processor_id,
         gate_set=gate_set,

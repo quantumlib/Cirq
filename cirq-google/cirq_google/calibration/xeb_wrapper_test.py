@@ -35,7 +35,7 @@ from cirq_google.calibration.xeb_wrapper import (
 SQRT_ISWAP = cirq.ISWAP ** -0.5
 
 
-def minimize_patch(
+def _minimize_patch(
     fun,
     x0,
     args=(),
@@ -63,14 +63,14 @@ def minimize_patch(
     )
 
 
-def benchmark_patch(*args, **kwargs):
+def _benchmark_patch(*args, **kwargs):
     return pd.DataFrame()
 
 
 def test_run_calibration(monkeypatch):
-    monkeypatch.setattr('cirq.experiments.xeb_fitting.scipy.optimize.minimize', minimize_patch)
+    monkeypatch.setattr('cirq.experiments.xeb_fitting.scipy.optimize.minimize', _minimize_patch)
     monkeypatch.setattr(
-        'cirq_google.calibration.xeb_wrapper.xebf.benchmark_2q_xeb_fidelities', benchmark_patch
+        'cirq_google.calibration.xeb_wrapper.xebf.benchmark_2q_xeb_fidelities', _benchmark_patch
     )
     qubit_indices = [
         (0, 5),

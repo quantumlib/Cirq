@@ -32,6 +32,8 @@ from cirq_google.calibration.phased_fsim import (
 def _maybe_multiprocessing_pool(
     n_processes: Optional[int] = None,
 ) -> Iterator[Union['multiprocessing.pool.Pool', None]]:
+    """Yield a multiprocessing.Pool as a context manager, unless n_processes=1; then yield None,
+    which should disable multiprocessing in XEB apis."""
     if n_processes == 1:
         yield None
         return
@@ -44,6 +46,14 @@ def run_local_xeb_calibration(
     calibration: LocalXEBPhasedFSimCalibrationRequest,
     sampler: 'cirq.Sampler',
 ) -> PhasedFSimCalibrationResult:
+    """Run a calibration request using `cirq.experiments` XEB utilities and a sampler rather
+    than `Engine.run_calibrations`.
+
+    Args:
+        calibration: A LocalXEBPhasedFSimCalibration request describing the XEB characterization
+            to carry out.
+        sampler: A sampler to execute circuits.
+    """
     options: LocalXEBPhasedFSimCalibrationOptions = calibration.options
     circuit = cirq.Circuit([calibration.gate.on(*pair) for pair in calibration.pairs])
 
@@ -97,6 +107,4 @@ def run_local_xeb_calibration(
         },
         gate=calibration.gate,
         options=options,
-        # initial_fids=initial_fids,
-        # final_fids=char_results.fidelities_df,
     )
