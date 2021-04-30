@@ -54,8 +54,5 @@
     "characterize_chi": false,
     "characterize_gamma": false,
     "characterize_phi": true
-  },
-  "project_id": "project_id",
-  "program_id": "program_id",
-  "job_id": "job_id"
+  }
 }
