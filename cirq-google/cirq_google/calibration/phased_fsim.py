@@ -238,7 +238,7 @@ class PhasedFSimCalibrationOptions(abc.ABC, Generic[RequestT]):
         """
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass
 class PhasedFSimCalibrationResult:
     """The PhasedFSimGate characterization result.
 
@@ -258,27 +258,8 @@ class PhasedFSimCalibrationResult:
     project_id: Optional[str] = None
     program_id: Optional[str] = None
     job_id: Optional[str] = None
-    _hash: int = 0
-
-    def __post_init__(self):
-        # Workaround on inability to specify the parameters attribute as an immutable dictionary.
-        object.__setattr__(
-            self,
-            '_hash',
-            hash(
-                (
-                    frozenset(self.parameters.items()),
-                    self.gate,
-                    self.options,
-                    self.project_id,
-                    self.program_id,
-                    self.job_id,
-                )
-            ),
-        )
-
-    def __hash__(self) -> int:
-        return self._hash
+    _engine_job: Optional[EngineJob] = None
+    _calibration: Optional[Calibration] = None
 
     def override(self, parameters: PhasedFSimCharacterization) -> 'PhasedFSimCalibrationResult':
         """Creates the new results with certain parameters overridden for all characterizations.
@@ -311,33 +292,26 @@ class PhasedFSimCalibrationResult:
         else:
             return None
 
-    # Workaround for: https://github.com/python/mypy/issues/1362
-    @property  # type: ignore
-    @lru_cache_typesafe
+    @property
     def engine_job(self) -> Optional[EngineJob]:
         """The cirq_google.EngineJob associated with this calibration request.
 
         Available only when project_id, program_id and job_id attributes are present.
         """
-        if not self.project_id or not self.program_id or not self.job_id:
-            return None
+        if self._engine_job is None and self.project_id and self.program_id and self.job_id:
+            engine = Engine(project_id=self.project_id)
+            self._engine_job = engine.get_program(self.program_id).get_job(self.job_id)
+        return self._engine_job
 
-        engine = Engine(project_id=self.project_id)
-        return engine.get_program(self.program_id).get_job(self.job_id)
-
-    # Workaround for: https://github.com/python/mypy/issues/1362
-    @property  # type: ignore
-    @lru_cache_typesafe
+    @property
     def engine_calibration(self) -> Optional[Calibration]:
         """The underlying device calibration that was used for this user-specific calibration.
 
         This is a cached property that triggers a network call at the first use.
         """
-        job = self.engine_job
-        if job is None:
-            return None
-
-        return job.get_calibration()
+        if self._calibration is None and self.engine_job is not None:
+            self._calibration = self.engine_job.get_calibration()
+        return self._calibration
 
     @classmethod
     def _create_parameters_dict(
