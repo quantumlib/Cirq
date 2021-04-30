@@ -396,7 +396,7 @@ class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector[SparseSimulator
         repetitions: int = 1,
     ) -> List[Result]:
         converted = _convert_to_circuit_with_drift(self, program)
-        return self._simulator.run_sweep(converted, params, repetitions)
+        return super().run_sweep(converted, params, repetitions)
 
     def simulate(
         self,
@@ -406,7 +406,7 @@ class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector[SparseSimulator
         initial_state: Any = None,
     ) -> StateVectorTrialResult:
         converted = _convert_to_circuit_with_drift(self, program)
-        return self._simulator.simulate(converted, param_resolver, qubit_order, initial_state)
+        return super().simulate(converted, param_resolver, qubit_order, initial_state)
 
     def _create_act_on_args(
         self,
