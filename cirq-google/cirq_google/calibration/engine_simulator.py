@@ -26,6 +26,7 @@ from cirq.sim import (
     Simulator,
     SimulatesIntermediateStateVector,
     StateVectorStepResult,
+    StateVectorTrialResult,
     ActOnStateVectorArgs,
 )
 from cirq.study import Sweepable, Result
@@ -394,9 +395,7 @@ class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector):
         converted = _convert_to_circuit_with_drift(self, program)
         return self._simulator.run_sweep(converted, params, repetitions)
 
-    def simulate(
-        self, program: Circuit
-    ) -> Dict[str, np.ndarray]:
+    def simulate(self, program: Circuit) -> StateVectorTrialResult:
         converted = _convert_to_circuit_with_drift(self, program)
         return self._simulator.simulate(converted)
 
