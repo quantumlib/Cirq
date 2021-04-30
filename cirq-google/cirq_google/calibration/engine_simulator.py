@@ -27,8 +27,8 @@ from cirq.ops import (
 )
 from cirq.sim import (
     ActOnStateVectorArgs,
-    Simulator,
     SimulatesIntermediateStateVector,
+    Simulator,
     SparseSimulatorStep,
     StateVectorTrialResult,
 )
