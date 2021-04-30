@@ -34,16 +34,17 @@ Example output:
 
 # Learn more about quantum computing
 
-In case you would like to learn more about Quantum Computing, check out our [education page](/education). 
+In case you would like to learn more about Quantum Computing, check out our [education page](/education).
 
 # Hardware vs simulation
 
 There are two main ways of running quantum algorithms using Cirq:
  - [Simulation](simulation.ipynb) is available on any computer.
- - Quantum processors are provided by different Quantum Service Providers: 
+ - Quantum processors are provided by different Quantum Service Providers:
     - [Google Quantum Computing Service](tutorials/google/start.ipynb)
     - [Alpine Quantum Technologies](tutorials/aqt/getting_started.ipynb)
-    - [Pasqal](tutorials/pasqal/getting_started.ipynb) 
+    - [Pasqal](tutorials/pasqal/getting_started.ipynb)
+    - [IonQ](tutorials/ionq/getting_started.ipynb)
 
 # Next steps
 
