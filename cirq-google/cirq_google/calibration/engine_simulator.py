@@ -7,6 +7,7 @@ from typing import (
     Sequence,
     Tuple,
     Union,
+    Any,
 )
 
 import numpy as np
@@ -19,6 +20,8 @@ from cirq.ops import (
     Operation,
     PhasedFSimGate,
     Qid,
+    QubitOrder,
+    QubitOrderOrList,
     SingleQubitGate,
     WaitGate,
 )
@@ -29,7 +32,7 @@ from cirq.sim import (
     StateVectorTrialResult,
     ActOnStateVectorArgs,
 )
-from cirq.study import Sweepable, Result
+from cirq.study import Sweepable, Result, ParamResolverOrSimilarType
 from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
 from cirq_google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationRequest,
@@ -395,9 +398,15 @@ class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector[SparseSimulator
         converted = _convert_to_circuit_with_drift(self, program)
         return self._simulator.run_sweep(converted, params, repetitions)
 
-    def simulate(self, program: Circuit) -> StateVectorTrialResult:
+    def simulate(
+        self,
+        program: Circuit,
+        param_resolver: ParamResolverOrSimilarType = None,
+        qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+        initial_state: Any = None,
+    ) -> StateVectorTrialResult:
         converted = _convert_to_circuit_with_drift(self, program)
-        return self._simulator.simulate(converted)
+        return self._simulator.simulate(converted, param_resolver, qubit_order, initial_state)
 
     def _create_act_on_args(
         self,
