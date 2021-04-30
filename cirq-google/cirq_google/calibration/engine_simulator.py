@@ -82,6 +82,7 @@ class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector):
             gates_translator: Function that translates a gate to a supported FSimGate which will
                 undergo characterization.
         """
+        super().__init__()
         self._simulator = simulator
         self._drift_generator = drift_generator
         self._drifted_parameters: Dict[Tuple[Qid, Qid, FSimGate], PhasedFSimCharacterization] = {}
@@ -394,14 +395,11 @@ class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector):
         converted = _convert_to_circuit_with_drift(self, circuit)
         return self._simulator._run(converted, param_resolver, repetitions)
 
-    def _core_iterator(
-        self,
-        circuit: Circuit,
-        sim_state: Any,
-        all_measurements_are_terminal: bool = False,
-    ) -> Iterator[StateVectorStepResult]:
-        converted = _convert_to_circuit_with_drift(self, circuit)
-        return self._simulator._core_iterator(converted, sim_state, all_measurements_are_terminal)
+    def simulate(
+        self, program: Circuit
+    ) -> Dict[str, np.ndarray]:
+        converted = _convert_to_circuit_with_drift(self, program)
+        return self._simulator.simulate(converted)
 
     def _create_act_on_args(
         self,
