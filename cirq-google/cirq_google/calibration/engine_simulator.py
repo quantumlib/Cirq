@@ -25,7 +25,7 @@ from cirq.ops import (
 from cirq.sim import (
     Simulator,
     SimulatesIntermediateStateVector,
-    StateVectorStepResult,
+    SparseSimulatorStep,
     StateVectorTrialResult,
     ActOnStateVectorArgs,
 )
@@ -48,7 +48,7 @@ PhasedFsimDictParameters = Dict[
 ]
 
 
-class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector):
+class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector[SparseSimulatorStep]):
     """Wrapper on top of cirq.Simulator that allows to simulate calibration requests.
 
     This simulator introduces get_calibrations which allows to simulate
@@ -410,7 +410,7 @@ class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector):
         self,
         initial_state: ActOnStateVectorArgs,
         qubit_map: Dict[Qid, int],
-    ) -> StateVectorStepResult:
+    ) -> SparseSimulatorStep:
         return self._simulator._create_step_result(initial_state, qubit_map)
 
 
