@@ -42,6 +42,7 @@ from cirq.value.linear_dict import (
 )
 
 from cirq.value.measurement_key import (
+    MEASUREMENT_KEY_SEPARATOR,
     MeasurementKey,
 )
 
