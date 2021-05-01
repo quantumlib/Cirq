@@ -107,8 +107,7 @@ class SimulationEngine(
         """Initializes the simulator.
 
         Args:
-           dtype: The `numpy.dtype` used by the simulation. One of
-               `numpy.complex64` or `numpy.complex128`
+           dtype: The `numpy.dtype` used by the simulation.
            noise: A noise model to apply while simulating.
            seed: The random seed to use for this simulator.
            ignore_measurement_results: If True, then the simulation
@@ -116,9 +115,6 @@ class SimulationEngine(
                process. This is only applicable to simulators that can
                model dephasing.
         """
-        if dtype not in {np.complex64, np.complex128}:
-            raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
-
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
         self.noise = devices.NoiseModel.from_noise_model_like(noise)
@@ -173,13 +169,13 @@ class SimulationEngine(
     @abc.abstractmethod
     def _create_step_result(
         self,
-        initial_state: TActOnArgs,
+        sim_state: TActOnArgs,
         qubit_map: Dict['cirq.Qid', int],
     ) -> TStepResult:
         """This method should be implemented to create a step result.
 
         Args:
-            initial_state: The TActOnArgs for this trial.
+            sim_state: The TActOnArgs for this trial.
             qubit_map: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.

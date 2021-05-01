@@ -417,10 +417,10 @@ class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector[SparseSimulator
 
     def _create_step_result(
         self,
-        initial_state: ActOnStateVectorArgs,
+        sim_state: ActOnStateVectorArgs,
         qubit_map: Dict[Qid, int],
     ) -> SparseSimulatorStep:
-        return self._simulator._create_step_result(initial_state, qubit_map)
+        return self._simulator._create_step_result(sim_state, qubit_map)
 
 
 class _PhasedFSimConverter(PointOptimizer):

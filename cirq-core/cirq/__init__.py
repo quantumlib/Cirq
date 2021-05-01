@@ -380,6 +380,7 @@ from cirq.sim import (
     SimulatesIntermediateState,
     SimulatesIntermediateStateVector,
     SimulatesSamples,
+    SimulationEngine,
     SimulationTrialResult,
     Simulator,
     SparseSimulatorStep,
