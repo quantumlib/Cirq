@@ -11,17 +11,31 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from typing import List, Dict, Any, Sequence
-
 import numpy as np
-
 import cirq
-from cirq.sim.act_on_args import TSelf
-from cirq.sim.simulator import TSimulatorState
 
 
-class CountingStepResult(cirq.StepResult):
+class CountingActOnArgs(cirq.ActOnArgs):
+    count = 0
+
+    def _perform_measurement(self) -> List[int]:
+        pass
+
+    def copy(self) -> 'CountingActOnArgs':
+        pass
+
+
+class CountingStepResult(cirq.StepResult[int]):
+    def __init__(
+        self,
+        sim_state: CountingActOnArgs,
+        qubit_map: Dict[cirq.Qid, int],
+    ):
+        super().__init__()
+        self.sim_state = sim_state
+        self.qubit_map = qubit_map
+
     def sample(
         self,
         qubits: List[cirq.Qid],
@@ -30,20 +44,18 @@ class CountingStepResult(cirq.StepResult):
     ) -> np.ndarray:
         pass
 
-    def _simulator_state(self) -> TSimulatorState:
-        pass
+    def _simulator_state(self) -> int:
+        return self.sim_state.count
 
 
 class CountingTrialResult(cirq.SimulationTrialResult):
-    pass
-
-
-class CountingActOnArgs(cirq.ActOnArgs):
-    def _perform_measurement(self) -> List[int]:
-        pass
-
-    def copy(self: TSelf) -> TSelf:
-        pass
+    def __init__(
+        self,
+        params: cirq.ParamResolver,
+        measurements: Dict[str, np.ndarray],
+        final_simulator_state: Any,
+    ):
+        super().__init__(params, measurements, final_simulator_state)
 
 
 class CountingSimulator(
@@ -69,9 +81,10 @@ class CountingSimulator(
         sim_state: CountingActOnArgs,
         qubit_map: Dict[cirq.Qid, int],
     ) -> CountingStepResult:
-        return CountingStepResult()
+        return CountingStepResult(sim_state, qubit_map)
 
 
 def test_empty_circuit():
     c = CountingSimulator()
-    c.simulate()
+    r: CountingTrialResult = c.simulate(cirq.Circuit())
+    assert r._final_simulator_state == 0
