@@ -11,4 +11,4 @@ ipykernel==5.3.4
 # assumed to be part of colab
 seaborn~=0.11.1
 
-ipython~=7.22
+ipython==7.22
