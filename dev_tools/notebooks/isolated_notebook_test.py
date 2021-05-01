@@ -161,12 +161,15 @@ def test_notebooks_against_released_cirq(notebook_path, base_env):
     dir_name = notebook_file.rstrip(".ipynb")
 
     notebook_env = os.path.join(tmpdir, f"{dir_name}")
+
+    rewritten_notebook_descriptor, rewritten_notebook_path = rewrite_notebook(notebook_path)
+
     cmd = f"""
 mkdir -p out/{notebook_rel_dir}
 {proto_dir}/bin/virtualenv-clone {proto_dir} {notebook_env}
 cd {notebook_env}
 . ./bin/activate
-papermill {notebook_path} {os.getcwd()}/{out_path}"""
+papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
     _, stderr, status = shell_tools.run_shell(
         cmd=cmd,
         log_run_to_stderr=False,
@@ -182,3 +185,6 @@ papermill {notebook_path} {os.getcwd()}/{out_path}"""
             f"notebook (in Github Actions, you can download it from the workflow artifact"
             f" 'notebook-outputs')"
         )
+
+    if rewritten_notebook_descriptor:
+        os.close(rewritten_notebook_descriptor)
