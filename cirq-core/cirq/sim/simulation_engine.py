@@ -120,6 +120,46 @@ class SimulationEngine(
         self.noise = devices.NoiseModel.from_noise_model_like(noise)
         self._ignore_measurement_results = ignore_measurement_results
 
+    @abc.abstractmethod
+    def _create_step_result(
+        self,
+        sim_state: TActOnArgs,
+        qubit_map: Dict['cirq.Qid', int],
+    ) -> TStepResult:
+        """This method should be implemented to create a step result.
+
+        Args:
+            sim_state: The TActOnArgs for this trial.
+            qubit_map: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+
+        Returns:
+            The StepResult.
+        """
+
+    def _can_be_in_run_prefix(self, val: Any):
+        """Determines what should be put in the prefix in `_run`
+
+        The `_run` method has an optimization that reduces repetition by
+        splitting the circuit into a prefix that is pure with respect to the
+        state representation, and only executing that once per sample set. For
+        state vectors, any unitary operation is pure, and we make this the
+        default here. For density matrices, any non-measurement operation can
+        be represented wholely in the matrix, and thus this method is
+        overridden there to enable greater optimization there.
+
+        Custom simulators can override this method appropriately.
+
+        Args:
+            val: An operation or noise model to test for purity within the
+                state representation.
+
+        Returns:
+            A boolean representing whether the value can be added to the
+            `_run` prefix."""
+        return protocols.has_unitary(val)
+
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
@@ -144,7 +184,7 @@ class SimulationEngine(
             return
 
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
-        measured = collections.defaultdict(bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
+        measured: Dict[Tuple[cirq.Qid, ...], bool] = collections.defaultdict(bool)
         for moment in noisy_moments:
             for op in ops.flatten_to_ops(moment):
                 try:
@@ -165,25 +205,6 @@ class SimulationEngine(
 
             yield self._create_step_result(sim_state, sim_state.qubit_map)
             sim_state.log_of_measurement_results.clear()
-
-    @abc.abstractmethod
-    def _create_step_result(
-        self,
-        sim_state: TActOnArgs,
-        qubit_map: Dict['cirq.Qid', int],
-    ) -> TStepResult:
-        """This method should be implemented to create a step result.
-
-        Args:
-            sim_state: The TActOnArgs for this trial.
-            qubit_map: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
-
-        Returns:
-            The StepResult.
-        """
-        raise NotImplementedError()
 
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
@@ -234,25 +255,3 @@ class SimulationEngine(
                         measurements[k] = []
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
-
-    def _can_be_in_run_prefix(self, val: Any):
-        """Determines what should be put in the prefix in `_run`
-
-        The `_run` method has an optimization that reduces repetition by
-        splitting the circuit into a prefix that is pure with respect to the
-        state representation, and only executing that once per sample set. For
-        state vectors, any unitary operation is pure, and we make this the
-        default here. For density matrices, any non-measurement operation can
-        be represented wholely in the matrix, and thus this method is
-        overridden there to enable greater optimization there.
-
-        Custom simulators can override this method appropriately.
-
-        Args:
-            val: An operation or noise model to test for purity within the
-                state representation.
-
-        Returns:
-            A boolean representing whether the value can be added to the
-            `_run` prefix."""
-        return protocols.has_unitary(val)
