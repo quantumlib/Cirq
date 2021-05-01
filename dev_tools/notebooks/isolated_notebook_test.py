@@ -30,7 +30,7 @@ from filelock import FileLock
 
 from dev_tools import shell_tools
 from dev_tools.env_tools import create_virtual_env
-from dev_tools.notebooks import list_all_notebooks, filter_notebooks
+from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_notebook
 
 # these notebooks rely on features that are not released yet
 # after every release we should raise a PR and empty out this list
