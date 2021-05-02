@@ -24,11 +24,20 @@ class CountingActOnArgs(cirq.ActOnArgs):
     measurement_count = 0
 
     def _perform_measurement(self) -> List[int]:
+        self.gate_count += 1
         self.measurement_count += 1
-        return [0]
+        return [self.gate_count]
 
     def copy(self) -> 'CountingActOnArgs':
-        pass
+        args = CountingActOnArgs(
+            qubits=self.qubits,
+            axes=self.axes,
+            prng=self.prng,
+            log_of_measurement_results=self.log_of_measurement_results.copy(),
+        )
+        args.gate_count = self.gate_count
+        args.measurement_count = self.measurement_count
+        return args
 
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
         self.gate_count += 1
@@ -41,7 +50,7 @@ class CountingStepResult(cirq.StepResult[CountingActOnArgs]):
         sim_state: CountingActOnArgs,
         qubit_map: Dict[cirq.Qid, int],
     ):
-        super().__init__()
+        super().__init__(measurements=sim_state.log_of_measurement_results.copy())
         self.sim_state = sim_state
         self.qubit_map = qubit_map
 
@@ -119,7 +128,7 @@ def test_simulate_one_gate_circuit():
 def test_simulate_one_measurement_circuit():
     sim = CountingSimulator()
     r = sim.simulate(cirq.Circuit(cirq.measure(q0)))
-    assert r._final_simulator_state.gate_count == 0
+    assert r._final_simulator_state.gate_count == 1
     assert r._final_simulator_state.measurement_count == 1
 
 
@@ -138,7 +147,7 @@ def test_noise_applied():
 def test_noise_applied_measurement_gate():
     sim = CountingSimulator(noise=cirq.X)
     r = sim.simulate(cirq.Circuit(cirq.measure(q0)))
-    assert r._final_simulator_state.gate_count == 1
+    assert r._final_simulator_state.gate_count == 2
     assert r._final_simulator_state.measurement_count == 1
 
 
@@ -155,4 +164,16 @@ def test_cannot_act():
 def test_run_one_gate_circuit():
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0)))
-    assert r.measurements['0'] == [[0]]
+    assert r.measurements['0'] == [[2]]
+
+
+def test_run_one_gate_circuit_noise():
+    sim = CountingSimulator(noise=cirq.X)
+    r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0)))
+    assert r.measurements['0'] == [[3]]
+
+
+def test_run_non_unitary_circuit():
+    sim = CountingSimulator()
+    r = sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)))
+    assert r.measurements['0'] == [[2]]
