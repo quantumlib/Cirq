@@ -46,7 +46,7 @@ def t1_decay(
         num_points: The number of evenly spaced delays to test.
         max_delay: The largest delay to test.
         min_delay: The smallest delay to test. Defaults to no delay.
-        repetitions: The number of repetitions of the circuit for each delay.
+        repetitions: The number of repetitions of the circuit for each delay
 
     Returns:
         A T1DecayResult object that stores and can plot the data.
