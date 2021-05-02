@@ -77,6 +77,8 @@ PACKAGES = [
     "seaborn~=0.11.1",
     # https://github.com/nteract/papermill/issues/519
     'ipykernel==5.3.4',
+    # https://github.com/ipython/ipython/issues/12941
+    'ipython==7.22',
     # to ensure networkx works nicely
     # https://github.com/networkx/networkx/issues/4718 pinned networkx 2.5.1 to 4.4.2
     # however, jupyter brings in 5.0.6
