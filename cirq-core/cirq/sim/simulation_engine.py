@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,20 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Abstract base classes for different types of simulators.
-
-Simulator types include:
-
-    SimulatesSamples: mimics the interface of quantum hardware.
-
-    SimulatesAmplitudes: computes amplitudes of desired bitstrings in the
-        final state of the simulation.
-
-    SimulatesFinalState: allows access to the final state of the simulation.
-
-    SimulatesIntermediateState: allows for access to the state of the simulation
-        as the simulation iterates through the moments of a cirq.
-"""
+"""Batteries-included class for Cirq's built-in simulators."""
 
 import abc
 import collections
@@ -66,10 +53,6 @@ class SimulationEngine(
     metaclass=abc.ABCMeta,
 ):
     """A base class for the built-in simulators.
-
-    Whereas a general SimulatesFinalState may return the entire simulator
-    state at the end of a circuit, a SimulatesIntermediateState can
-    simulate stepping through the moments of a circuit.
 
     Most implementors of this interface should implement the
     `_create_act_on_args` and `_create_step_result` methods. The first one
@@ -166,9 +149,7 @@ class SimulationEngine(
         sim_state: TActOnArgs,
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
-        """Iterator over StepResult from Moments of a Circuit.
-
-        Custom simulators should implement this method.
+        """Standard iterator over StepResult from Moments of a Circuit.
 
         Args:
             circuit: The circuit to simulate.
