@@ -82,7 +82,6 @@ from cirq.sim.clifford import (
     StabilizerStateChForm,
     CliffordSimulator,
     CliffordState,
-    CliffordTableau,
     CliffordTrialResult,
     CliffordSimulatorStepResult,
 )

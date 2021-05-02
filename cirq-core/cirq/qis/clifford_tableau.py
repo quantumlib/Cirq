@@ -41,19 +41,48 @@ class CliffordTableau:
         """
         self.n = num_qubits
 
-        self.rs = np.zeros(2 * self.n + 1, dtype=bool)
+        # The last row (`2n+1`-th row) is the scratch row used in _measurement
+        # computation process only. It should not be exposed to external usage.
+        self._rs = np.zeros(2 * self.n + 1, dtype=bool)
 
         for (i, val) in enumerate(
             big_endian_int_to_digits(initial_state, digit_count=num_qubits, base=2)
         ):
-            self.rs[self.n + i] = bool(val)
+            self._rs[self.n + i] = bool(val)
 
-        self.xs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
-        self.zs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
+        self._xs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
+        self._zs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
 
         for i in range(self.n):
-            self.xs[i, i] = True
-            self.zs[self.n + i, i] = True
+            self._xs[i, i] = True
+            self._zs[self.n + i, i] = True
+
+    @property
+    def xs(self):
+        return self._xs[:-1, :]
+
+    @property
+    def zs(self):
+        return self._zs[:-1, :]
+
+    @property
+    def rs(self):
+        return self._rs[:-1]
+
+    @xs.setter
+    def xs(self, xs):
+        assert np.shape(xs) == (2 * self.n, self.n)
+        self._xs[:-1, :] = np.array(xs).astype(bool)
+
+    @zs.setter
+    def zs(self, zs):
+        assert np.shape(zs) == (2 * self.n, self.n)
+        self._zs[:-1, :] = np.array(zs).astype(bool)
+
+    @rs.setter
+    def rs(self, rs):
+        assert np.shape(rs) == (2 * self.n,)
+        self._rs[:-1] = np.array(rs).astype(bool)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['n', 'rs', 'xs', 'zs'])
@@ -61,10 +90,17 @@ class CliffordTableau:
     @classmethod
     def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
         state = cls(n)
-        state.rs = np.array(rs)
-        state.xs = np.array(xs)
-        state.zs = np.array(zs)
+        state.rs = np.array(rs).astype(bool)
+        state.xs = np.array(xs).astype(bool)
+        state.zs = np.array(zs).astype(bool)
         return state
+
+    def _validate(self) -> bool:
+        """Check if the Clifford Tabluea satisfies the symplectic property."""
+        table = np.concatenate([self.xs, self.zs], axis=1)
+        perm = list(range(self.n, 2 * self.n)) + list(range(self.n))
+        skew_eye = np.eye(2 * self.n, dtype=int)[perm]
+        return np.array_equal(np.mod(table.T.dot(skew_eye).dot(table), 2), skew_eye)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -152,16 +188,16 @@ class CliffordTableau:
             else:
                 return int(x2) * (1 - 2 * int(z2))
 
-        r = 2 * int(self.rs[q1]) + 2 * int(self.rs[q2])
+        r = 2 * int(self._rs[q1]) + 2 * int(self._rs[q2])
         for j in range(self.n):
-            r += g(self.xs[q2, j], self.zs[q2, j], self.xs[q1, j], self.zs[q1, j])
+            r += g(self._xs[q2, j], self._zs[q2, j], self._xs[q1, j], self._zs[q1, j])
 
         r %= 4
 
-        self.rs[q1] = bool(r)
+        self._rs[q1] = bool(r)
 
-        self.xs[q1, :] ^= self.xs[q2, :]
-        self.zs[q1, :] ^= self.zs[q2, :]
+        self._xs[q1, :] ^= self._xs[q2, :]
+        self._zs[q1, :] ^= self._zs[q2, :]
 
     def _row_to_dense_pauli(self, i: int) -> DensePauliString:
         """
@@ -198,7 +234,7 @@ class CliffordTableau:
         generators above generate the full Pauli group on n qubits."""
         return [self._row_to_dense_pauli(i) for i in range(0, self.n)]
 
-    def _measure(self, q, prng: np.random.RandomState):
+    def _measure(self, q, prng: np.random.RandomState) -> int:
         """Performs a projective measurement on the q'th qubit.
 
         Returns: the result (0 or 1) of the measurement.
@@ -211,29 +247,28 @@ class CliffordTableau:
                 break
 
         if is_commuting:
-            self.xs[2 * self.n, :] = False
-            self.zs[2 * self.n, :] = False
-            self.rs[2 * self.n] = False
+            self._xs[2 * self.n, :] = False
+            self._zs[2 * self.n, :] = False
+            self._rs[2 * self.n] = False
 
             for i in range(self.n):
                 if self.xs[i, q]:
                     self._rowsum(2 * self.n, self.n + i)
-            return int(self.rs[2 * self.n])
+            return int(self._rs[2 * self.n])
 
-        else:
-            for i in range(2 * self.n):
-                if i != p and self.xs[i, q]:
-                    self._rowsum(i, p)
+        for i in range(2 * self.n):
+            if i != p and self.xs[i, q]:
+                self._rowsum(i, p)
 
-            self.xs[p - self.n, :] = self.xs[p, :]
-            self.zs[p - self.n, :] = self.zs[p, :]
-            self.rs[p - self.n] = self.rs[p]
+        self.xs[p - self.n, :] = self.xs[p, :].copy()
+        self.zs[p - self.n, :] = self.zs[p, :].copy()
+        self.rs[p - self.n] = self.rs[p]
 
-            self.xs[p, :] = False
-            self.zs[p, :] = False
+        self.xs[p, :] = False
+        self.zs[p, :] = False
 
-            self.zs[p, q] = True
+        self.zs[p, q] = True
 
-            self.rs[p] = bool(prng.randint(2))
+        self.rs[p] = bool(prng.randint(2))
 
-            return int(self.rs[p])
+        return int(self.rs[p])
