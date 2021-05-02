@@ -14,6 +14,6 @@
 
 # Replacements to apply during testing. See devtools/notebook_test.py for syntax.
 
-iterator = 30->iterator = 2
-sample_number = 5000->sample_number=100
+iterator = 30->iterator = 1
+sample_number = 5000->sample_number=10
 run_range = \[50, 100, 500, 1000, 5000, 10000\]->run_range = [50]

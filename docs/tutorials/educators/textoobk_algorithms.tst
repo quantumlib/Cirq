@@ -14,6 +14,4 @@
 
 # Replacements to apply during testing. See devtools/notebook_test.py for syntax.
 
-num_rounds = 1000->num_rounds = 2
-N = 128->N = 4
-samples = 1000->samples = 2
+max_nvals = 16->max_nvals = 2
