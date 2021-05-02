@@ -24,7 +24,6 @@ class CountingActOnArgs(cirq.ActOnArgs):
     measurement_count = 0
 
     def _perform_measurement(self) -> List[int]:
-        self.gate_count += 1
         self.measurement_count += 1
         return [self.gate_count]
 
@@ -128,7 +127,7 @@ def test_simulate_one_gate_circuit():
 def test_simulate_one_measurement_circuit():
     sim = CountingSimulator()
     r = sim.simulate(cirq.Circuit(cirq.measure(q0)))
-    assert r._final_simulator_state.gate_count == 1
+    assert r._final_simulator_state.gate_count == 0
     assert r._final_simulator_state.measurement_count == 1
 
 
@@ -147,7 +146,7 @@ def test_noise_applied():
 def test_noise_applied_measurement_gate():
     sim = CountingSimulator(noise=cirq.X)
     r = sim.simulate(cirq.Circuit(cirq.measure(q0)))
-    assert r._final_simulator_state.gate_count == 2
+    assert r._final_simulator_state.gate_count == 1
     assert r._final_simulator_state.measurement_count == 1
 
 
@@ -163,17 +162,33 @@ def test_cannot_act():
 
 def test_run_one_gate_circuit():
     sim = CountingSimulator()
-    r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0)))
-    assert r.measurements['0'] == [[2]]
+    r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0)), repetitions=2)
+    assert np.allclose(r.measurements['0'], [[1], [1]])
 
 
 def test_run_one_gate_circuit_noise():
     sim = CountingSimulator(noise=cirq.X)
-    r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0)))
-    assert r.measurements['0'] == [[3]]
+    r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0)), repetitions=2)
+    assert np.allclose(r.measurements['0'], [[2], [2]])
 
 
 def test_run_non_unitary_circuit():
     sim = CountingSimulator()
-    r = sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)))
-    assert r.measurements['0'] == [[2]]
+    r = sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)), repetitions=2)
+    assert np.allclose(r.measurements['0'], [[1], [1]])
+
+
+def test_run_non_unitary_circuit_non_unitary_state():
+    class DensityCountingSimulator(CountingSimulator):
+        def _can_be_in_run_prefix(self, val):
+            return not cirq.is_measurement(val)
+
+    sim = DensityCountingSimulator()
+    r = sim.run(cirq.Circuit(cirq.phase_damp(1).on(q0), cirq.measure(q0)), repetitions=2)
+    assert np.allclose(r.measurements['0'], [[1], [1]])
+
+
+def test_run_non_terminal_measurement():
+    sim = CountingSimulator()
+    r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0), cirq.X(q0)), repetitions=2)
+    assert np.allclose(r.measurements['0'], [[1], [1]])
