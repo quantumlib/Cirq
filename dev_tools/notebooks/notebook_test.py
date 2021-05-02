@@ -51,9 +51,9 @@ def test_notebooks_against_released_cirq(notebook_path):
 
     Specifically for a notebook file notebook.ipynb, one can supply a file notebook.tst which
     contains the substitutes.  The substitutions are provide in the form `pattern->replacement`
-    where the pattern is what is matched and replaced. While the pattern is compiled, it is
-    considered best practice to not sure complicated regular expressions.  Lines in this file that
-    do not have `->` are ignored.
+    where the pattern is what is matched and replaced. While the pattern is compiled as a
+    regular expression, it is considered best practice to not use complicated regular expressions.
+    Lines in this file that do not have `->` are ignored.
     """
     notebook_file = os.path.basename(notebook_path)
     notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))

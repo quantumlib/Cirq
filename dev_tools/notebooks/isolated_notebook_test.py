@@ -153,7 +153,17 @@ def _create_base_env(proto_dir):
     "notebook_path", filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)
 )
 def test_notebooks_against_released_cirq(notebook_path, base_env):
-    """Tests the notebooks in isolated virtual environments."""
+    """Tests the notebooks in isolated virtual environments.
+
+    In order to speed up the execution of these tests an auxiliary file may be supplied which
+    performs substitutions on the notebook to make it faster.
+
+    Specifically for a notebook file notebook.ipynb, one can supply a file notebook.tst which
+    contains the substitutes.  The substitutions are provide in the form `pattern->replacement`
+    where the pattern is what is matched and replaced. While the pattern is compiled as a
+    regular expression, it is considered best practice to not use complicated regular expressions.
+    Lines in this file that do not have `->` are ignored.
+    """
     notebook_file = os.path.basename(notebook_path)
     notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"

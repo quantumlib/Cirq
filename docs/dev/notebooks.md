@@ -37,12 +37,15 @@ See the [`dev_tools/notebooks`](https://github.com/quantumlib/Cirq/tree/master/d
 - [notebook_test.py](https://github.com/quantumlib/Cirq/blob/master/dev_tools/notebooks/notebook_test.py) - to test notebooks against the current branch
 - [isolated_notebook_test.py](https://github.com/quantumlib/Cirq/blob/master/dev_tools/notebooks/isolated_notebook_test.py) - to test notebooks against the latest released version of Cirq.
 
-In order to speed up the execution of these tests an auxiliary file may be supplied which performs substitutions on the notebook to make it faster.
+In order to speed up the execution of these tests an auxiliary file may be supplied which performs substitutions on the notebook to make it faster (for example it is often useful
+to reduce the number of repetitions in sampling from a simulator).
 
-Specifically for a notebook file notebook.ipynb, one can supply a file notebook.tst which contains the substitutes.
-The substitutions are provide in the form `pattern->replacement` where the pattern is what is matched and replaced.
+Tod do this, for a notebook file notebook.ipynb, one can supply a file notebook.tst which contains the substitutes.
+The substitutions are provide in the form `pattern->replacement` where the pattern is what is matched and will be replaced.
 While the pattern is compiled, it is considered best practice to not sure complicated regular expressions.
-Lines in this file that do not have `->` are ignored.
+Lines in this file that do not have `->` are ignored.  Note that because the pattern is
+compiled, it may be necessary to escape the pattern, however it is best to try to avoid
+such complicated expressions.
 
 
 ## Notebooks with external dependencies
