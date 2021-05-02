@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dev_tools.notebooks.utils import (
-    filter_notebooks,
-    list_all_notebooks,
-    rewrite_notebook,
-)
+# Replacements to apply during testing. See devtools/notebook_test.py for syntax.
+
+iterator = 30->iterator = 1
+sample_number = 5000->sample_number=10
+run_range = \[50, 100, 500, 1000, 5000, 10000\]->run_range = [50]

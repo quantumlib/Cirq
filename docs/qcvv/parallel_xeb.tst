@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dev_tools.notebooks.utils import (
-    filter_notebooks,
-    list_all_notebooks,
-    rewrite_notebook,
-)
+# Replacements to apply during testing. See devtools/notebook_test.py for syntax.
+
+n_library_circuits=20->n_library_circuits=1
+max_depth = 100->max_depth = 12
+n_combinations=10->n_combinations=1
+repetitions=10_000->repetitions=10
+fatol=1e-2->fatol=10
+xatol=1e-2->xatol=10

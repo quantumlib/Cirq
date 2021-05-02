@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dev_tools.notebooks.utils import (
-    filter_notebooks,
-    list_all_notebooks,
-    rewrite_notebook,
-)
+# Replacements to apply during testing. See devtools/notebook_test.py for syntax.
+
+max_qubits = 6->max_qubits = 4
+max_moments = 500->max_moments = 10

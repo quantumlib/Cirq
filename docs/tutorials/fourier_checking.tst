@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dev_tools.notebooks.utils import (
-    filter_notebooks,
-    list_all_notebooks,
-    rewrite_notebook,
-)
+# Replacements to apply during testing. See devtools/notebook_test.py for syntax.
+
+num_rounds = 1000->num_rounds = 2
+N = 128->N = 4
+samples = 1000->samples = 2
