@@ -25,7 +25,7 @@ class CountingActOnArgs(cirq.ActOnArgs):
 
     def _perform_measurement(self) -> List[int]:
         self.measurement_count += 1
-        return []
+        return [0]
 
     def copy(self) -> 'CountingActOnArgs':
         pass
@@ -51,7 +51,10 @@ class CountingStepResult(cirq.StepResult[CountingActOnArgs]):
         repetitions: int = 1,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
-        pass
+        measurements: List[List[int]] = []
+        for _ in range(repetitions):
+            measurements.append(self.sim_state._perform_measurement())
+        return np.array(measurements, dtype=int)
 
     def _simulator_state(self) -> CountingActOnArgs:
         return self.sim_state
@@ -95,7 +98,7 @@ class TestOp(cirq.Operation):
 
     @property
     def qubits(self):
-        return []
+        return [q0]
 
 
 q0 = cirq.LineQubit(0)
@@ -147,3 +150,9 @@ def test_cannot_act():
     sim = CountingSimulator()
     with pytest.raises(TypeError, match="CountingSimulator doesn't support .*BadOp"):
         sim.simulate(cirq.Circuit(BadOp()))
+
+
+def test_run_one_gate_circuit():
+    sim = CountingSimulator()
+    r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0)))
+    assert r.measurements['0'] == [[0]]
