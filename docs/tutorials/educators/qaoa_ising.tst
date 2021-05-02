@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dev_tools.notebooks.utils import (
-    filter_notebooks,
-    list_all_notebooks,
-    rewrite_notebook,
-)
+# Replacements to apply during testing. See devtools/notebook_test.py for syntax.
+
+num_steps = 150->num_steps = 2
+num_reps = 1000->num_reps = 10
+grid_size = 50->grid_size = 4
