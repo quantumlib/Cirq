@@ -206,7 +206,7 @@ def test_prepare_floquet_characterization_for_moments():
     assert circuit_with_calibration.moment_to_calibration == [None, 0, 1, None]
 
 
-def test_prepare_characterization_for_moments_when_many_circuits():
+def test_prepare_characterization_for_circuits_moments():
     a, b, c, d = cirq.LineQubit.range(4)
     circuit_1 = cirq.Circuit(
         [
@@ -224,7 +224,7 @@ def test_prepare_characterization_for_moments_when_many_circuits():
     )
     options = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION
 
-    circuits_with_calibration, requests = workflow.prepare_characterization_for_moments(
+    circuits_with_calibration, requests = workflow.prepare_characterization_for_circuits_moments(
         [circuit_1, circuit_2], options=options
     )
 
