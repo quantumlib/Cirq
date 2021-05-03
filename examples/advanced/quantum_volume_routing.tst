@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dev_tools.notebooks.utils import (
-    filter_notebooks,
-    list_all_notebooks,
-    rewrite_notebook,
-)
+# Replacements to apply during testing. See devtools/notebook_test.py for syntax.
+
+num_circuits = 10->num_circuits = 1
+max_routing_attempts = 100->max_routing_attempts = 5
+repetitions = 10_000->repetitions = 100

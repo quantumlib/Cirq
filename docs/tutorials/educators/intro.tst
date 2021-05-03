@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dev_tools.notebooks.utils import (
-    filter_notebooks,
-    list_all_notebooks,
-    rewrite_notebook,
-)
+# Replacements to apply during testing. See devtools/notebook_test.py for syntax.
+
+num_angles = 200->num_angles = 2
+num_points=200->num_points=2
+repetitions=1000->repetitions=2
+repetitions = 100->repetitions=2
+repetitions=10->repetitions=2
+length=100->length=4
+num_params = 5->num_params = 2
