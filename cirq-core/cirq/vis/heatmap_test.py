@@ -33,11 +33,14 @@ def ax():
     return figure.add_subplot(111)
 
 
-def test_cells_positions(ax):
+@pytest.mark.parametrize('tuple_keys', [True, False])
+def test_cells_positions(ax, tuple_keys):
     row_col_list = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     qubits = [grid_qubit.GridQubit(row, col) for (row, col) in row_col_list]
     values = np.random.random(len(qubits))
-    test_value_map = {(qubit,): value for qubit, value in zip(qubits, values)}
+    test_value_map = {
+        (qubit,) if tuple_keys else qubit: value for qubit, value in zip(qubits, values)
+    }
     _, collection = heatmap.Heatmap(test_value_map).plot(ax)
 
     found_qubits = set()

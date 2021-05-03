@@ -8,5 +8,10 @@ notebook~=6.2.0
 # https://github.com/nteract/papermill/issues/519
 ipykernel==5.3.4
 
+# https://github.com/ipython/ipython/issues/12941
+ipython==7.22
+
 # assumed to be part of colab
 seaborn~=0.11.1
+
+ipython==7.22

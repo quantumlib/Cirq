@@ -69,6 +69,14 @@ class MeasurementGate(raw_types.Gate):
         if self.invert_mask is not None and len(self.invert_mask) > self.num_qubits():
             raise ValueError('len(invert_mask) > num_qubits')
 
+    @property
+    def key(self) -> str:
+        return str(self.mkey)
+
+    @key.setter
+    def key(self, key_str: str):
+        self.mkey = value.MeasurementKey(key_str)
+
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 

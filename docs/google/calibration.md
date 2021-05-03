@@ -100,13 +100,13 @@ Each metric can be referenced by its key in the calibration object, e.g.
 
 **Note that the metric names below are subject to change without notice.**
 
-### P_00 readout error
+### Isolated P_00 readout error
 *   Metric key: single_qubit_p00_error
-*   Metric key: parallel_p00_error
 
 The p_00 is defined as the probability that the state is measured as |0⟩ after
 being prepared in the |0⟩ state.  The p_00 error is defined as one minus this
-result.
+result.  The single_qubit_p00_error is when this quantity is measured in
+isolation (only one qubit is measured at at time).
 
 There are several sources of error in this model.  This error is primarily
 composed of error in measurement (readout) of the qubit while in the ground
@@ -118,22 +118,41 @@ The single qubit error is when the readout is measured in isolation (only one
 qubit is measured at a time), while the parallel error is taken for all qubits
 at the same time.
 
-### P_11 readout error
+### Isolated P_11 readout error
 *   Metric key: single_qubit_p11_error
-*   Metric key: parallel_p11_error
 
 The p_11 is defined as the probability that the state is measured as |1⟩ after
 being prepared in the |1⟩ state.  The p_11 error is defined as one minus this
-result.
+result. The single_qubit_p11_error is when this
+quantity is measured in isolation (only one qubit is measured at at time).
 
 This is dominated by the error in measurement (readout) of the qubit, but it
 implicitly contains several different types of error.  Also possible is that the
 excited state |1⟩ was not prepared correctly or that the state decayed before
 measurement.  This error is generally expected to be higher than the P_00 error.
 
-The single qubit error is when the readout is measured in isolation (only one
-qubit is measured at a time), while the parallel error is taken for all qubits
-at the same time.
+### Parallel readout error
+*   Metric key: parallel_p00_error
+*   Metric key: parallel_p11_error
+
+
+As in the single qubit case, parallel p_00 and p_11 are defined as the
+probability that the measured state of the qubit is |0⟩ or |1⟩ given
+that the prepared state was |0⟩ or |1⟩ respectively.
+parallel_p00_error and parallel_p11_error are defined as one minus this result.
+
+The parallel_p00_error and parallel_p11_error are measured by preparing
+randomized initial states for all qubits at once where each qubit is prepared
+in either the |0⟩ or |1⟩ state randomly and all qubits are measured at the
+same time. For each initial state, we measure p_00 or p_11 depending on how a
+given qubit was prepared. We then average p_00 and p_11 for each qubit
+over initial states, taking the initial states where a given qubit was prepared
+in the |0⟩ or |1⟩ state and subsequently measured in
+the |0⟩ or |1⟩ state as a success.
+
+Parallel readout errors experience the same readout errors present in the
+single qubit case in addition to the potential for additional errors caused
+by unintended control crosstalk or interactions with other qubits.
 
 ### Readout separation error
 *   Metric key: single_qubit_readout_separation_error

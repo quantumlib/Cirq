@@ -24,7 +24,7 @@ import os
 import pytest
 
 from dev_tools import shell_tools
-from dev_tools.notebooks import filter_notebooks, list_all_notebooks
+from dev_tools.notebooks import filter_notebooks, list_all_notebooks, rewrite_notebook
 
 SKIP_NOTEBOOKS = [
     # skipping vendor notebooks as we don't have auth sorted out
@@ -44,11 +44,23 @@ SKIP_NOTEBOOKS = [
 @pytest.mark.slow
 @pytest.mark.parametrize("notebook_path", filter_notebooks(list_all_notebooks(), SKIP_NOTEBOOKS))
 def test_notebooks_against_released_cirq(notebook_path):
+    """Test that jupyter notebooks execute.
+
+    In order to speed up the execution of these tests an auxiliary file may be supplied which
+    performs substitutions on the notebook to make it faster.
+
+    Specifically for a notebook file notebook.ipynb, one can supply a file notebook.tst which
+    contains the substitutes.  The substitutions are provide in the form `pattern->replacement`
+    where the pattern is what is matched and replaced. While the pattern is compiled as a
+    regular expression, it is considered best practice to not use complicated regular expressions.
+    Lines in this file that do not have `->` are ignored.
+    """
     notebook_file = os.path.basename(notebook_path)
     notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
+    rewritten_notebook_descriptor, rewritten_notebook_path = rewrite_notebook(notebook_path)
     cmd = f"""mkdir -p out/{notebook_rel_dir}
-papermill {notebook_path} {out_path}"""
+papermill {rewritten_notebook_path} {out_path}"""
 
     _, stderr, status = shell_tools.run_shell(
         cmd=cmd,
@@ -65,3 +77,6 @@ papermill {notebook_path} {out_path}"""
             f"notebook (in Github Actions, you can download it from the workflow artifact"
             f" 'notebook-outputs')"
         )
+
+    if rewritten_notebook_descriptor:
+        os.close(rewritten_notebook_descriptor)
