@@ -30,7 +30,7 @@ from filelock import FileLock
 
 from dev_tools import shell_tools
 from dev_tools.env_tools import create_virtual_env
-from dev_tools.notebooks import list_all_notebooks, filter_notebooks
+from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_notebook
 
 # these notebooks rely on features that are not released yet
 # after every release we should raise a PR and empty out this list
@@ -77,6 +77,8 @@ PACKAGES = [
     "seaborn~=0.11.1",
     # https://github.com/nteract/papermill/issues/519
     'ipykernel==5.3.4',
+    # https://github.com/ipython/ipython/issues/12941
+    'ipython==7.22',
     # to ensure networkx works nicely
     # https://github.com/networkx/networkx/issues/4718 pinned networkx 2.5.1 to 4.4.2
     # however, jupyter brings in 5.0.6
@@ -151,7 +153,17 @@ def _create_base_env(proto_dir):
     "notebook_path", filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)
 )
 def test_notebooks_against_released_cirq(notebook_path, base_env):
-    """Tests the notebooks in isolated virtual environments."""
+    """Tests the notebooks in isolated virtual environments.
+
+    In order to speed up the execution of these tests an auxiliary file may be supplied which
+    performs substitutions on the notebook to make it faster.
+
+    Specifically for a notebook file notebook.ipynb, one can supply a file notebook.tst which
+    contains the substitutes.  The substitutions are provide in the form `pattern->replacement`
+    where the pattern is what is matched and replaced. While the pattern is compiled as a
+    regular expression, it is considered best practice to not use complicated regular expressions.
+    Lines in this file that do not have `->` are ignored.
+    """
     notebook_file = os.path.basename(notebook_path)
     notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
@@ -161,12 +173,15 @@ def test_notebooks_against_released_cirq(notebook_path, base_env):
     dir_name = notebook_file.rstrip(".ipynb")
 
     notebook_env = os.path.join(tmpdir, f"{dir_name}")
+
+    rewritten_notebook_descriptor, rewritten_notebook_path = rewrite_notebook(notebook_path)
+
     cmd = f"""
 mkdir -p out/{notebook_rel_dir}
 {proto_dir}/bin/virtualenv-clone {proto_dir} {notebook_env}
 cd {notebook_env}
 . ./bin/activate
-papermill {notebook_path} {os.getcwd()}/{out_path}"""
+papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
     _, stderr, status = shell_tools.run_shell(
         cmd=cmd,
         log_run_to_stderr=False,
@@ -182,3 +197,6 @@ papermill {notebook_path} {os.getcwd()}/{out_path}"""
             f"notebook (in Github Actions, you can download it from the workflow artifact"
             f" 'notebook-outputs')"
         )
+
+    if rewritten_notebook_descriptor:
+        os.close(rewritten_notebook_descriptor)

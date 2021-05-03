@@ -7,26 +7,19 @@ about partnerships can be found at [ionq.com/get-started](https://ionq.com/get-s
 
 ## Authentication
 
-To use Cirq with the IonQ API, two pieces of information are required.  The first is the
-url of the API frontend.  This should be specified as something like `https://example.com/`
-(the actual url will be provided to partners). The second is the API key, which is just a
-random looking string.
+To use Cirq with the IonQ API, one needs an API key.  This is a random looking string.
 
-Given that you have the remote host and the API key, there are two ways to use these to
+Given that you have the API key, there are two ways to use these to
 get an object in python to access the API. The object that you construct to access
-the API are instances of the `cirq.ionq.Service` class. You can directly use the remote host
-and API key in constructing this instances of this class. Here is an example of this pattern:
+the API are instances of the `cirq.ionq.Service` class. You can directly use the API key in constructing this instances of this class. Here is an example of this pattern:
 ```python
 import cirq.ionq as ionq
 
-service = ionq.Service(remote_host='http://example.com/', api_key='tomyheart')
+service = ionq.Service(api_key='tomyheart')
 ```
 
-Alternatively, you can use environment variables for these values. These environment variables
-are `IONQ_REMOTE_HOST` and `IONQ_API_KEY`.  Details of how to set environment variables vary
-by operating system.  For example in bash, you would do
+Alternatively, you can use environment variables to set this value. These environment variable for the api key is `IONQ_API_KEY`.  Details of how to set environment variables vary by operating system.  For example in bash, you would do
 ```bash
-export IONQ_REMOTE_HOST=http://example.com/v1
 export IONQ_API_KEY=tomyheart
 ```
 In the case that you have set these environment variables, you can just perform

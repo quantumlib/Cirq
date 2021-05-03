@@ -11,17 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional
-
-from unittest import mock
 import itertools
+from typing import Optional
+from unittest import mock
+
 import numpy as np
 import pytest
 
 import cirq
 import cirq_google
 import cirq_google.calibration.workflow as workflow
-
+import cirq_google.calibration.xeb_wrapper
+from cirq.experiments import (
+    random_rotations_between_grid_interaction_layers_circuit,
+    XEBPhasedFSimCharacterizationOptions,
+)
 from cirq_google.calibration.engine_simulator import PhasedFSimEngineSimulator
 from cirq_google.calibration.phased_fsim import (
     ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
@@ -32,8 +36,11 @@ from cirq_google.calibration.phased_fsim import (
     PhasedFSimCalibrationResult,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION,
+    LocalXEBPhasedFSimCalibrationRequest,
+    LocalXEBPhasedFSimCalibrationOptions,
+    XEBPhasedFSimCalibrationRequest,
+    XEBPhasedFSimCalibrationOptions,
 )
-
 
 SQRT_ISWAP_INV_PARAMETERS = cirq_google.PhasedFSimCharacterization(
     theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
@@ -1340,3 +1347,80 @@ def test_run_zeta_chi_gamma_calibration_for_moments_no_chi() -> None:
         engine_simulator.final_state_vector(calibrated_circuit.circuit),
         cirq.final_state_vector(circuit),
     )
+
+
+_MOCK_ENGINE_SAMPLER = mock.MagicMock(
+    spec=cirq_google.QuantumEngineSampler, _processor_ids=['my_fancy_processor'], _gate_set='test'
+)
+
+
+@pytest.mark.parametrize('sampler_engine', [cirq.Simulator, _MOCK_ENGINE_SAMPLER])
+def test_run_local(sampler_engine, monkeypatch):
+    called_times = 0
+
+    def myfunc(
+        calibration: LocalXEBPhasedFSimCalibrationRequest,
+        sampler: 'cirq.Sampler',
+    ):
+        nonlocal called_times
+        assert isinstance(calibration, LocalXEBPhasedFSimCalibrationRequest)
+        assert sampler is not None
+        called_times += 1
+        return []
+
+    # Note: you must patch specifically the function imported into `workflow`.
+    monkeypatch.setattr('cirq_google.calibration.workflow.run_local_xeb_calibration', myfunc)
+
+    qubit_indices = [
+        (0, 5),
+        (0, 6),
+        (1, 6),
+        (2, 6),
+    ]
+    qubits = [cirq.GridQubit(*idx) for idx in qubit_indices]
+
+    circuits = [
+        random_rotations_between_grid_interaction_layers_circuit(
+            qubits,
+            depth=depth,
+            two_qubit_op_factory=lambda a, b, _: SQRT_ISWAP_INV_GATE.on(a, b),
+            pattern=cirq.experiments.GRID_ALIGNED_PATTERN,
+            seed=10,
+        )
+        for depth in [5, 10]
+    ]
+
+    options = LocalXEBPhasedFSimCalibrationOptions(
+        fsim_options=XEBPhasedFSimCharacterizationOptions(
+            characterize_zeta=True,
+            characterize_gamma=True,
+            characterize_chi=True,
+            characterize_theta=False,
+            characterize_phi=False,
+            theta_default=np.pi / 4,
+        ),
+        n_processes=1,
+    )
+
+    characterization_requests = []
+    for circuit in circuits:
+        _, characterization_requests = workflow.prepare_characterization_for_moments(
+            circuit, options=options, initial=characterization_requests
+        )
+    assert len(characterization_requests) == 2
+    for cr in characterization_requests:
+        assert isinstance(cr, LocalXEBPhasedFSimCalibrationRequest)
+
+    workflow.run_calibrations(characterization_requests, sampler_engine)
+    assert called_times == 2
+
+
+def test_multiple_calibration_types_error():
+    r1 = LocalXEBPhasedFSimCalibrationRequest(
+        pairs=[], gate=None, options=LocalXEBPhasedFSimCalibrationOptions()
+    )
+    r2 = XEBPhasedFSimCalibrationRequest(
+        pairs=[], gate=None, options=XEBPhasedFSimCalibrationOptions()
+    )
+    with pytest.raises(ValueError, match=r'must be of the same type\.'):
+        workflow.run_calibrations([r1, r2], cirq.Simulator())
