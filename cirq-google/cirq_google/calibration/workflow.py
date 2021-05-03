@@ -632,7 +632,7 @@ def _run_calibrations_via_engine(
         job = engine.run_calibration(cal_layers, processor_id=processor_id, gate_set=gate_set)
         request_results = job.calibration_results()
         results += [
-            calibration.parse_result(result)
+            calibration.parse_result(result, job)
             for calibration, result in zip(calibration_requests, request_results)
         ]
         if progress_func:

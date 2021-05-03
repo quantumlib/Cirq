@@ -16,4 +16,7 @@ cirq_google.PhasedFSimCalibrationResult(
                 characterize_phi=True,
                 readout_error_tolerance=0.4,
             ),
+            project_id='project_id',
+            program_id='program_id',
+            job_id='job_id',
         )

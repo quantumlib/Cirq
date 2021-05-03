@@ -14,6 +14,7 @@
 import os
 import re
 
+from unittest import mock
 import numpy as np
 import pandas as pd
 import pytest
@@ -807,6 +808,59 @@ def test_result_override():
         gate=gate,
         options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     )
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
+def test_result_engine_job(_client):
+    result = PhasedFSimCalibrationResult(
+        parameters={},
+        gate=cirq.FSimGate(theta=np.pi / 4, phi=0.0),
+        options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+        project_id='project_id',
+        program_id='program_id',
+        job_id='job_id',
+    )
+
+    assert result.engine_job.project_id == 'project_id'
+    assert result.engine_job.program_id == 'program_id'
+    assert result.engine_job.job_id == 'job_id'
+
+
+def test_result_engine_job_none():
+    result = PhasedFSimCalibrationResult(
+        parameters={},
+        gate=cirq.FSimGate(theta=np.pi / 4, phi=0.0),
+        options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    )
+
+    assert result.engine_job is None
+
+
+@mock.patch('cirq_google.engine.engine_client.EngineClient')
+def test_result_engine_calibration(_client):
+    result = PhasedFSimCalibrationResult(
+        parameters={},
+        gate=cirq.FSimGate(theta=np.pi / 4, phi=0.0),
+        options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+        project_id='project_id',
+        program_id='program_id',
+        job_id='job_id',
+    )
+
+    test_calibration = cirq_google.Calibration()
+    result.engine_job.get_calibration = lambda: test_calibration
+
+    assert result.engine_calibration == test_calibration
+
+
+def test_result_engine_calibration_none():
+    result = PhasedFSimCalibrationResult(
+        parameters={},
+        gate=cirq.FSimGate(theta=np.pi / 4, phi=0.0),
+        options=WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+    )
+
+    assert result.engine_calibration is None
 
 
 def test_options_phase_corrected_override():
