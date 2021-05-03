@@ -267,9 +267,7 @@ def prepare_characterization_for_moments(
     Returns:
         circuit_with_calibration:
             The circuit and its mapping from moments to indices into the list of calibration
-            requests (the second returned value). When list of circuits was passed on input, this
-            will be a list of CircuitWithCalibration objects corresponding to each circuit on the
-            input list.
+            requests (the second returned value).
         calibrations:
             A list of calibration requests for each characterized moment.
 
