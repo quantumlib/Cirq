@@ -247,6 +247,7 @@ class PhasedFSimCalibrationResult:
             quibts a and b either only (a, b) or only (b, a) is present.
         gate: Characterized gate for each qubit pair. This is copied from the matching
             PhasedFSimCalibrationRequest and is included to preserve execution context.
+        options: The options used to gather this result.
     """
 
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
@@ -362,6 +363,10 @@ def merge_matching_results(
     return PhasedFSimCalibrationResult(all_parameters, common_gate, common_options)
 
 
+class PhasedFSimCalibrationError(Exception):
+    """Error that indicates the calibration failure."""
+
+
 # We have to relax a mypy constraint, see https://github.com/python/mypy/issues/5374
 @dataclasses.dataclass(frozen=True)  # type: ignore
 class PhasedFSimCalibrationRequest(abc.ABC):
@@ -464,6 +469,52 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
 
 
 @json_serializable_dataclass(frozen=True)
+class LocalXEBPhasedFSimCalibrationOptions(XEBPhasedFSimCalibrationOptions):
+    """Options for configuring a PhasedFSim calibration using a local version of XEB.
+
+    XEB uses the fidelity of random circuits to characterize PhasedFSim gates. The parameters
+    of the gate are varied by a classical optimizer to maximize the observed fidelities.
+
+    These "Local" options (corresponding to `LocalXEBPhasedFSimCalibrationRequest`) instruct
+    `cirq_google.run_calibrations` to execute XEB analysis locally (not via the quantum
+    engine). As such, `run_calibrations` can work with any `cirq.Sampler`, not just
+    `QuantumEngineSampler`.
+
+    Args:
+        n_library_circuits: The number of distinct, two-qubit random circuits to use in our
+            library of random circuits. This should be the same order of magnitude as
+            `n_combinations`.
+        n_combinations: We take each library circuit and randomly assign it to qubit pairs.
+            This parameter controls the number of random combinations of the two-qubit random
+            circuits we execute. Higher values increase the precision of estimates but linearly
+            increase experimental runtime.
+        cycle_depths: We run the random circuits at these cycle depths to fit an exponential
+            decay in the fidelity.
+        fatol: The absolute convergence tolerance for the objective function evaluation in
+            the Nelder-Mead optimization. This controls the runtime of the classical
+            characterization optimization loop.
+        xatol: The absolute convergence tolerance for the parameter estimates in
+            the Nelder-Mead optimization. This controls the runtime of the classical
+            characterization optimization loop.
+        fsim_options: An instance of `XEBPhasedFSimCharacterizationOptions` that controls aspects
+            of the PhasedFSim characterization like initial guesses and which angles to
+            characterize.
+        n_processes: The number of multiprocessing processes to analyze the XEB characterization
+            data. By default, we use a value equal to the number of CPU cores. If `1` is specified,
+            multiprocessing is not used.
+    """
+
+    n_processes: Optional[int] = None
+
+    def create_phased_fsim_request(
+        self,
+        pairs: Tuple[Tuple[Qid, Qid], ...],
+        gate: Gate,
+    ):
+        return LocalXEBPhasedFSimCalibrationRequest(pairs=pairs, gate=gate, options=self)
+
+
+@json_serializable_dataclass(frozen=True)
 class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     """Options specific to Floquet PhasedFSimCalibration.
 
@@ -476,6 +527,12 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         characterize_chi: Whether to characterize χ angle.
         characterize_gamma: Whether to characterize γ angle.
         characterize_phi: Whether to characterize φ angle.
+        readout_error_tolerance: Threshold for pairwise-correlated readout errors above which the
+            calibration will report to fail. Just before each calibration all pairwise two-qubit
+            readout errors are checked and when any of the pairs reports an error above the
+            threshold, the calibration will fail. This value is a sanity check to determine if
+            calibration is reasonable and allows for quick termination if it is not. Set to 1.0 to
+            disable readout error checks and None to use default, device-specific thresholds.
     """
 
     characterize_theta: bool
@@ -483,6 +540,7 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     characterize_chi: bool
     characterize_gamma: bool
     characterize_phi: bool
+    readout_error_tolerance: Optional[float] = None
 
     def zeta_chi_gamma_correction_override(self) -> PhasedFSimCharacterization:
         """Gives a PhasedFSimCharacterization that can be used to override characterization after
@@ -577,21 +635,32 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
     def to_calibration_layer(self) -> CalibrationLayer:
         circuit = Circuit([self.gate.on(*pair) for pair in self.pairs])
+        args: Dict[str, Any] = {
+            'est_theta': self.options.characterize_theta,
+            'est_zeta': self.options.characterize_zeta,
+            'est_chi': self.options.characterize_chi,
+            'est_gamma': self.options.characterize_gamma,
+            'est_phi': self.options.characterize_phi,
+            # Experimental option that should always be set to True.
+            'readout_corrections': True,
+        }
+        if self.options.readout_error_tolerance is not None:
+            # Maximum error of the diagonal elements of the two-qubit readout confusion matrix.
+            args['readout_error_tolerance'] = self.options.readout_error_tolerance
+            # Maximum error of the off-diagonal elements of the two-qubit readout confusion matrix.
+            args['correlated_readout_error_tolerance'] = _correlated_from_readout_tolerance(
+                self.options.readout_error_tolerance
+            )
         return CalibrationLayer(
             calibration_type=_FLOQUET_PHASED_FSIM_HANDLER_NAME,
             program=circuit,
-            args={
-                'est_theta': self.options.characterize_theta,
-                'est_zeta': self.options.characterize_zeta,
-                'est_chi': self.options.characterize_chi,
-                'est_gamma': self.options.characterize_gamma,
-                'est_phi': self.options.characterize_phi,
-                # Experimental option that should always be set to True.
-                'readout_corrections': True,
-            },
+            args=args,
         )
 
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+        if result.code != v2.calibration_pb2.SUCCESS:
+            raise PhasedFSimCalibrationError(result.error_message)
+
         decoded: Dict[int, Dict[str, Any]] = collections.defaultdict(lambda: {})
         for keys, values in result.metrics['angles'].items():
             for key, value in zip(keys, values):
@@ -639,6 +708,14 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             'gate': self.gate,
             'options': self.options,
         }
+
+
+def _correlated_from_readout_tolerance(readout_tolerance: float) -> float:
+    """Heuristic formula for the off-diagonal confusion matrix error thresholds.
+
+    This is chosen to return 0.3 for readout_tolerance = 0.4 and 1.0 for readout_tolerance = 1.0.
+    """
+    return max(0.0, min(1.0, 7 / 6 * readout_tolerance - 1 / 6))
 
 
 def _get_labeled_int(key: str, s: str):
@@ -703,7 +780,35 @@ def _parse_characterized_angles(
 
 
 @json_serializable_dataclass(frozen=True)
+class LocalXEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
+    """PhasedFSim characterization request for local cross entropy benchmarking (XEB) calibration.
+
+    A "Local" request (corresponding to `LocalXEBPhasedFSimCalibrationOptions`) instructs
+    `cirq_google.run_calibrations` to execute XEB analysis locally (not via the quantum
+    engine). As such, `run_calibrations` can work with any `cirq.Sampler`, not just
+    `QuantumEngineSampler`.
+
+    Attributes:
+        options: local-XEB-specific characterization options.
+    """
+
+    options: LocalXEBPhasedFSimCalibrationOptions
+
+    def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+        raise NotImplementedError('Not applicable for local calibrations')
+
+    def to_calibration_layer(self) -> CalibrationLayer:
+        raise NotImplementedError('Not applicable for local calibrations')
+
+
+@json_serializable_dataclass(frozen=True)
 class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
+    """PhasedFSim characterization request for cross entropy benchmarking (XEB) calibration.
+
+    Attributes:
+        options: XEB-specific characterization options.
+    """
+
     options: XEBPhasedFSimCalibrationOptions
 
     def to_calibration_layer(self) -> CalibrationLayer:
@@ -715,6 +820,8 @@ class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         )
 
     def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+        if result.code != v2.calibration_pb2.SUCCESS:
+            raise PhasedFSimCalibrationError(result.error_message)
 
         # pylint: disable=unused-variable
         initial_fids = _parse_xeb_fidelities_df(result.metrics, 'initial_fidelities')

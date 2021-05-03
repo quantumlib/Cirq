@@ -41,6 +41,7 @@ TestSpec = ModuleJsonTestSpec(
         'GateOpSerializer',
         'GateOpDeserializer',
         'GreedySequenceSearchStrategy',
+        'PhasedFSimCalibrationError',
         'PhasedFSimEngineSimulator',
         'PerQubitDepolarizingWithDampedReadoutNoiseModel',
         'SerializingArg',

@@ -1377,7 +1377,7 @@ class AbstractCircuit(abc.ABC):
 
         # Allocate a buffer large enough to append and prepend all the circuits.
         pad_len = sum(len(c) for c in circuits) - n_acc
-        buffer = np.zeros(shape=pad_len * 2 + n_acc, dtype=np.object)
+        buffer = np.zeros(shape=pad_len * 2 + n_acc, dtype=object)
 
         # Put the initial circuit in the center of the buffer.
         offset = pad_len

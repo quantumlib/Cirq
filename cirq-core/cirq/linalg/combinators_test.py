@@ -133,6 +133,6 @@ def test_block_diag_dtype():
     )
 
     assert (
-        cirq.block_diag(np.array([[1]], dtype=np.int), np.array([[2]], dtype=np.complex128)).dtype
+        cirq.block_diag(np.array([[1]], dtype=int), np.array([[2]], dtype=np.complex128)).dtype
         == np.complex128
     )
