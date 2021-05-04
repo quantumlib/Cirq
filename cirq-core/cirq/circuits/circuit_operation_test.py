@@ -382,7 +382,8 @@ cirq.CircuitOperation(
 {op2.circuit.diagram_name()}:
 [ 0: ───X───X───          ]
 [           │             ]
-[ 1: ───H───@───          ](qubit_map={{1: 2}}, parent_path=('outer', 'inner'), repetition_ids=['a', 'b', 'c'])"""
+[ 1: ───H───@───          ](qubit_map={{1: 2}}, parent_path=('outer', 'inner'),\
+ repetition_ids=['a', 'b', 'c'])"""
     )
     assert (
         repr(op2)
