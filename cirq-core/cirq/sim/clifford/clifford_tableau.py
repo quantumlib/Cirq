@@ -11,10 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import copy
 
-from cirq import qis
+from cirq.qis import clifford_tableau
 from cirq._compat import deprecated_class
 
-CliffordTableau = deprecated_class(deadline='v0.12', fix='use cirq.CliffordTableau instead')(
-    qis.CliffordTableau
-)
+
+@deprecated_class(deadline='v0.12', fix='use cirq.CliffordTableau instead')
+class CliffordTableau(clifford_tableau.CliffordTableau):
+    pass
