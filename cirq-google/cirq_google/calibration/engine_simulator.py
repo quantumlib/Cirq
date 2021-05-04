@@ -21,7 +21,6 @@ from cirq.ops import (
     Operation,
     PhasedFSimGate,
     Qid,
-    QubitOrderOrList,
     SingleQubitGate,
     WaitGate,
 )
@@ -34,7 +33,6 @@ from cirq.sim import (
 )
 from cirq.study import ParamResolver
 from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
-
 from cirq_google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationRequest,
     PhaseCalibratedFSimGate,
@@ -45,7 +43,6 @@ from cirq_google.calibration.phased_fsim import (
     SQRT_ISWAP_INV_PARAMETERS,
     try_convert_sqrt_iswap_to_fsim,
 )
-
 
 ParametersDriftGenerator = Callable[[Qid, Qid, FSimGate], PhasedFSimCharacterization]
 PhasedFsimDictParameters = Dict[

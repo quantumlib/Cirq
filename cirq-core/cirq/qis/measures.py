@@ -21,6 +21,7 @@ from cirq import value
 from cirq._compat import deprecated_parameter
 from cirq.qis.states import (
     QuantumState,
+    infer_qid_shape,
     quantum_state,
     validate_density_matrix,
     validate_normalized_state_vector,
@@ -131,10 +132,13 @@ def fidelity(
 
     # Use QuantumState machinery for the general case
     if qid_shape is None:
-        # coverage: ignore
-        raise NotImplementedError(
-            'Qid shape inference not yet implemented. Please specify the qid shape explicitly.'
-        )
+        try:
+            qid_shape = infer_qid_shape(state1, state2)
+        except:
+            raise ValueError(
+                'Failed to infer the qid shape of the given states. '
+                'Please specify the qid shape explicitly using the `qid_shape` argument.'
+            )
     state1 = quantum_state(state1, qid_shape=qid_shape, validate=validate, atol=atol)
     state2 = quantum_state(state2, qid_shape=qid_shape, validate=validate, atol=atol)
     state1_arr = state1.state_vector_or_density_matrix()
@@ -161,7 +165,7 @@ def _numpy_arrays_to_state_vectors_or_density_matrices(
             if qid_shape is None:
                 # Ambiguous whether state tensor or density matrix
                 raise ValueError(
-                    'The qid shape of the given states is ambiguous.'
+                    'The qid shape of the given states is ambiguous. '
                     'Try specifying the qid shape explicitly or '
                     'using a wrapper function like cirq.density_matrix.'
                 )

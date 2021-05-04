@@ -58,8 +58,8 @@ def test_df():
     result = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
-            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=np.bool),
-            'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool),
+            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=bool),
+            'c': np.array([[0], [0], [1], [0], [1]], dtype=bool),
         },
     )
     remove_end_measurements = pd.DataFrame(data={'ab': [1, 1, 2], 'c': [0, 1, 0]}, index=[1, 2, 3])
@@ -76,8 +76,8 @@ def test_histogram():
     result = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
-            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=np.bool),
-            'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool),
+            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=bool),
+            'c': np.array([[0], [0], [1], [0], [1]], dtype=bool),
         },
     )
 
@@ -97,8 +97,8 @@ def test_multi_measurement_histogram():
     result = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
-            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=np.bool),
-            'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool),
+            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=bool),
+            'c': np.array([[0], [0], [1], [0], [1]], dtype=bool),
         },
     )
 
@@ -187,15 +187,15 @@ def test_trial_result_addition_valid():
     a = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({'ax': 1}),
         measurements={
-            'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=np.bool),
-            'q1': np.array([[0], [0], [1]], dtype=np.bool),
+            'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=bool),
+            'q1': np.array([[0], [0], [1]], dtype=bool),
         },
     )
     b = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({'ax': 1}),
         measurements={
-            'q0': np.array([[0, 1]], dtype=np.bool),
-            'q1': np.array([[0]], dtype=np.bool),
+            'q0': np.array([[0, 1]], dtype=bool),
+            'q1': np.array([[0]], dtype=bool),
         },
     )
 
@@ -208,29 +208,29 @@ def test_trial_result_addition_invalid():
     a = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({'ax': 1}),
         measurements={
-            'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=np.bool),
-            'q1': np.array([[0], [0], [1]], dtype=np.bool),
+            'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=bool),
+            'q1': np.array([[0], [0], [1]], dtype=bool),
         },
     )
     b = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({'bad': 1}),
         measurements={
-            'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=np.bool),
-            'q1': np.array([[0], [0], [1]], dtype=np.bool),
+            'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=bool),
+            'q1': np.array([[0], [0], [1]], dtype=bool),
         },
     )
     c = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({'ax': 1}),
         measurements={
-            'bad': np.array([[0, 1], [1, 0], [0, 1]], dtype=np.bool),
-            'q1': np.array([[0], [0], [1]], dtype=np.bool),
+            'bad': np.array([[0, 1], [1, 0], [0, 1]], dtype=bool),
+            'q1': np.array([[0], [0], [1]], dtype=bool),
         },
     )
     d = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({'ax': 1}),
         measurements={
-            'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=np.bool),
-            'q1': np.array([[0, 1], [0, 1], [1, 1]], dtype=np.bool),
+            'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=bool),
+            'q1': np.array([[0, 1], [0, 1], [1, 1]], dtype=bool),
         },
     )
 
@@ -264,8 +264,8 @@ def test_text_diagram_jupyter():
     result = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
-            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=np.bool),
-            'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool),
+            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]], dtype=bool),
+            'c': np.array([[0], [0], [1], [0], [1]], dtype=bool),
         },
     )
 
