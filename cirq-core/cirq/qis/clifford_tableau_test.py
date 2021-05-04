@@ -315,3 +315,10 @@ def test_copy():
     np.testing.assert_array_equal(t.zs, new_t.zs)
 
     assert t == t.copy() == t.__copy__()
+
+
+def test_deprecated_clifford_location():
+    with cirq.testing.assert_deprecated('use cirq.CliffordTableau instead', deadline="v0.12"):
+        from cirq.sim import CliffordTableau
+
+        t = CliffordTableau(num_qubits=1)
