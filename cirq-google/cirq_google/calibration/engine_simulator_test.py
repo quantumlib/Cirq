@@ -1,4 +1,4 @@
-from typing import Iterable, Tuple
+from typing import Iterable, Optional, Tuple
 
 import collections
 from unittest import mock
@@ -27,7 +27,9 @@ class DummyPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     def to_calibration_layer(self) -> cirq_google.CalibrationLayer:
         return NotImplemented
 
-    def parse_result(self, result: cirq_google.CalibrationResult) -> PhasedFSimCalibrationResult:
+    def parse_result(
+        self, result: cirq_google.CalibrationResult, job: Optional[cirq_google.EngineJob] = None
+    ) -> PhasedFSimCalibrationResult:
         return NotImplemented
 
 

@@ -53,7 +53,7 @@ from cirq.ops import (
     rz,
 )
 from cirq_google.api import v2
-from cirq_google.engine import CalibrationLayer, CalibrationResult
+from cirq_google.engine import Calibration, CalibrationLayer, CalibrationResult, Engine, EngineJob
 
 if TYPE_CHECKING:
     import cirq
@@ -238,7 +238,7 @@ class PhasedFSimCalibrationOptions(abc.ABC, Generic[RequestT]):
         """
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass
 class PhasedFSimCalibrationResult:
     """The PhasedFSimGate characterization result.
 
@@ -248,11 +248,19 @@ class PhasedFSimCalibrationResult:
         gate: Characterized gate for each qubit pair. This is copied from the matching
             PhasedFSimCalibrationRequest and is included to preserve execution context.
         options: The options used to gather this result.
+        project_id: Google's job project id.
+        program_id: Google's job program id.
+        job_id: Google's job job id.
     """
 
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
     gate: Gate
     options: PhasedFSimCalibrationOptions
+    project_id: Optional[str] = None
+    program_id: Optional[str] = None
+    job_id: Optional[str] = None
+    _engine_job: Optional[EngineJob] = None
+    _calibration: Optional[Calibration] = None
 
     def override(self, parameters: PhasedFSimCharacterization) -> 'PhasedFSimCalibrationResult':
         """Creates the new results with certain parameters overridden for all characterizations.
@@ -285,6 +293,27 @@ class PhasedFSimCalibrationResult:
         else:
             return None
 
+    @property
+    def engine_job(self) -> Optional[EngineJob]:
+        """The cirq_google.EngineJob associated with this calibration request.
+
+        Available only when project_id, program_id and job_id attributes are present.
+        """
+        if self._engine_job is None and self.project_id and self.program_id and self.job_id:
+            engine = Engine(project_id=self.project_id)
+            self._engine_job = engine.get_program(self.program_id).get_job(self.job_id)
+        return self._engine_job
+
+    @property
+    def engine_calibration(self) -> Optional[Calibration]:
+        """The underlying device calibration that was used for this user-specific calibration.
+
+        This is a cached property that triggers a network call at the first use.
+        """
+        if self._calibration is None and self.engine_job is not None:
+            self._calibration = self.engine_job.get_calibration()
+        return self._calibration
+
     @classmethod
     def _create_parameters_dict(
         cls,
@@ -316,6 +345,9 @@ class PhasedFSimCalibrationResult:
             'gate': self.gate,
             'parameters': [(q_a, q_b, params) for (q_a, q_b), params in self.parameters.items()],
             'options': self.options,
+            'project_id': self.project_id,
+            'program_id': self.program_id,
+            'job_id': self.job_id,
         }
 
 
@@ -398,7 +430,9 @@ class PhasedFSimCalibrationRequest(abc.ABC):
         """Encodes this characterization request in a CalibrationLayer object."""
 
     @abc.abstractmethod
-    def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+    def parse_result(
+        self, result: CalibrationResult, job: Optional[EngineJob] = None
+    ) -> PhasedFSimCalibrationResult:
         """Decodes the characterization result issued for this request."""
 
 
@@ -657,7 +691,9 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             args=args,
         )
 
-    def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+    def parse_result(
+        self, result: CalibrationResult, job: Optional[EngineJob] = None
+    ) -> PhasedFSimCalibrationResult:
         if result.code != v2.calibration_pb2.SUCCESS:
             raise PhasedFSimCalibrationError(result.error_message)
 
@@ -683,7 +719,14 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
                 phi=data.get('phi_est', None),
             )
 
-        return PhasedFSimCalibrationResult(parameters=parsed, gate=self.gate, options=self.options)
+        return PhasedFSimCalibrationResult(
+            parameters=parsed,
+            gate=self.gate,
+            options=self.options,
+            project_id=None if job is None else job.project_id,
+            program_id=None if job is None else job.program_id,
+            job_id=None if job is None else job.job_id,
+        )
 
     @classmethod
     def _from_json_dict_(
@@ -794,7 +837,9 @@ class LocalXEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
     options: LocalXEBPhasedFSimCalibrationOptions
 
-    def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+    def parse_result(
+        self, result: CalibrationResult, job: Optional[EngineJob] = None
+    ) -> PhasedFSimCalibrationResult:
         raise NotImplementedError('Not applicable for local calibrations')
 
     def to_calibration_layer(self) -> CalibrationLayer:
@@ -819,7 +864,9 @@ class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             args=self.options.to_args(),
         )
 
-    def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+    def parse_result(
+        self, result: CalibrationResult, job: Optional[EngineJob] = None
+    ) -> PhasedFSimCalibrationResult:
         if result.code != v2.calibration_pb2.SUCCESS:
             raise PhasedFSimCalibrationError(result.error_message)
 
@@ -837,7 +884,12 @@ class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
         # TODO: Return initial_fids, final_fids somehow.
         return PhasedFSimCalibrationResult(
-            parameters=final_params, gate=self.gate, options=self.options
+            parameters=final_params,
+            gate=self.gate,
+            options=self.options,
+            project_id=None if job is None else job.project_id,
+            program_id=None if job is None else job.program_id,
+            job_id=None if job is None else job.job_id,
         )
 
     @classmethod
