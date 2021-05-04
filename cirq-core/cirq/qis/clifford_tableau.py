@@ -58,31 +58,31 @@ class CliffordTableau:
             self._zs[self.n + i, i] = True
 
     @property
-    def xs(self):
+    def xs(self) -> np.array:
         return self._xs[:-1, :]
 
+    @xs.setter
+    def xs(self, new_xs: np.array) -> None:
+        assert np.shape(new_xs) == (2 * self.n, self.n)
+        self._xs[:-1, :] = np.array(new_xs).astype(bool)
+
     @property
-    def zs(self):
+    def zs(self) -> np.array:
         return self._zs[:-1, :]
 
+    @zs.setter
+    def zs(self, new_zs: np.array) -> None:
+        assert np.shape(new_zs) == (2 * self.n, self.n)
+        self._zs[:-1, :] = np.array(new_zs).astype(bool)
+
     @property
-    def rs(self):
+    def rs(self) -> np.array:
         return self._rs[:-1]
 
-    @xs.setter
-    def xs(self, xs):
-        assert np.shape(xs) == (2 * self.n, self.n)
-        self._xs[:-1, :] = np.array(xs).astype(bool)
-
-    @zs.setter
-    def zs(self, zs):
-        assert np.shape(zs) == (2 * self.n, self.n)
-        self._zs[:-1, :] = np.array(zs).astype(bool)
-
     @rs.setter
-    def rs(self, rs):
-        assert np.shape(rs) == (2 * self.n,)
-        self._rs[:-1] = np.array(rs).astype(bool)
+    def rs(self, new_rs: np.array) -> None:
+        assert np.shape(new_rs) == (2 * self.n,)
+        self._rs[:-1] = np.array(new_rs).astype(bool)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['n', 'rs', 'xs', 'zs'])
@@ -112,6 +112,9 @@ class CliffordTableau:
             and np.array_equal(self.xs, other.xs)
             and np.array_equal(self.zs, other.zs)
         )
+
+    def __copy__(self) -> 'CliffordTableau':
+        return self.copy()
 
     def copy(self) -> 'CliffordTableau':
         state = CliffordTableau(self.n)

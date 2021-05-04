@@ -299,3 +299,17 @@ def test_str_full():
 +   Z1 | +   X1
 """
     assert t._str_full_() == expected_str
+
+
+def test_copy():
+    t = cirq.CliffordTableau(num_qubits=3, initial_state=3)
+    new_t = t.copy()
+
+    assert isinstance(new_t, cirq.CliffordTableau)
+    assert t is not new_t
+    assert t.rs is not new_t.rs
+    assert t.xs is not new_t.xs
+    assert t.zs is not new_t.zs
+    np.testing.assert_array_equal(t.rs, new_t.rs)
+    np.testing.assert_array_equal(t.xs, new_t.xs)
+    np.testing.assert_array_equal(t.zs, new_t.zs)

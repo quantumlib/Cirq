@@ -26,8 +26,10 @@ from cirq.value import big_endian_int_to_digits
 class CliffordTableau:
     """Tableau representation of a stabilizer state
     (based on Aaronson and Gottesman 2006).
+
     The tableau stores the stabilizer generators of
     the state using three binary arrays: xs, zs, and rs.
+
     Each row of the arrays represents a Pauli string, P, that is
     an eigenoperator of the state vector with eigenvalue one: P|psi> = |psi>.
     """
@@ -200,6 +202,7 @@ class CliffordTableau:
 
     def _measure(self, q, prng: np.random.RandomState):
         """Performs a projective measurement on the q'th qubit.
+
         Returns: the result (0 or 1) of the measurement.
         """
         is_commuting = True
