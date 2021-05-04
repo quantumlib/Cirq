@@ -313,3 +313,5 @@ def test_copy():
     np.testing.assert_array_equal(t.rs, new_t.rs)
     np.testing.assert_array_equal(t.xs, new_t.xs)
     np.testing.assert_array_equal(t.zs, new_t.zs)
+
+    assert t == t.copy() == t.__copy__()
