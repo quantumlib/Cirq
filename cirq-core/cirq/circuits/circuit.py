@@ -70,8 +70,12 @@ INT_TYPE = Union[int, np.integer]
 
 
 class Alignment(enum.Enum):
+    # Stop when left ends are lined up.
     LEFT = 1
+    # Stop when right ends are lined up.
     RIGHT = 2
+    # Stop the first time left ends are lined up or right ends are lined up.
+    FIRST = 3
 
     def __repr__(self) -> str:
         return f'cirq.Alignment.{self.name}'
@@ -1357,13 +1361,13 @@ class AbstractCircuit(abc.ABC):
 
         Args:
             circuits: The circuits to concatenate.
-            stop_at_first_alignment: Defaults to false. When true, the circuits
-                are never overlapped more than needed to align their starts (in
-                case the left circuit is smaller) or to align their ends (in
-                case the right circuit is smaller). When false, the smaller
-                circuit can be pushed deeper into the larger circuit, past the
-                first time their starts or ends align, until the second time
-                their starts or ends align.
+            align: When to stop when sliding the circuits together.
+                'left': Stop when the starts of the circuits align.
+                'right': Stop when the ends of the circuits align.
+                'first': Stop the first time either the starts or the ends align. Circuits
+                    are never overlapped more than needed to align their starts (in case
+                    the left circuit is smaller) or to align their ends (in case the right
+                    circuit is smaller)
 
         Returns:
             The concatenated and overlapped circuit.
@@ -1479,7 +1483,15 @@ def _overlap_collision_time(
     seen_times: Dict['cirq.Qid', int] = {}
 
     # Start scanning from end of first and start of second.
-    upper_bound = len(c1) if align == Alignment.LEFT else len(c2)
+    if align == Alignment.LEFT:
+        upper_bound = len(c1)
+    elif align == Alignment.RIGHT:
+        upper_bound = len(c2)
+    elif align == Alignment.FIRST:
+        upper_bound = min(len(c1), len(c2))
+    else:
+        raise NotImplementedError(f"Unrecognized alignment: {align}")
+
     t = 0
     while t < upper_bound:
         if t < len(c2):
