@@ -1364,7 +1364,10 @@ class AbstractCircuit(abc.ABC):
             align: When to stop when sliding the circuits together.
                 'left': Stop when the starts of the circuits align.
                 'right': Stop when the ends of the circuits align.
-                'first': Stop the first time either the starts or ends align.
+                'first': Stop the first time either the starts or the ends align. Circuits
+                    are never overlapped more than needed to align their starts (in case
+                    the left circuit is smaller) or to align their ends (in case the right
+                    circuit is smaller)
 
         Returns:
             The concatenated and overlapped circuit.
