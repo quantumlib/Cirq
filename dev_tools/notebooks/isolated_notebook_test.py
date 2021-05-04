@@ -62,6 +62,8 @@ SKIP_NOTEBOOKS = [
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     "examples/*fidelity*",
+    # Also skipping stabilizer code testing.
+    "examples/*stabilizer_code*",
 ] + NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES
 
 # As these notebooks run in an isolated env, we want to minimize dependencies that are
