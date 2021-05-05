@@ -396,7 +396,7 @@ class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector[SparseSimulator
         repetitions: int = 1,
     ) -> List[Result]:
         converted = _convert_to_circuit_with_drift(self, program)
-        return super().run_sweep(converted, params, repetitions)
+        return self._simulator.run_sweep(converted, params, repetitions)
 
     def simulate(
         self,
@@ -406,21 +406,23 @@ class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector[SparseSimulator
         initial_state: Any = None,
     ) -> StateVectorTrialResult:
         converted = _convert_to_circuit_with_drift(self, program)
-        return super().simulate(converted, param_resolver, qubit_order, initial_state)
+        return self._simulator.simulate(converted, param_resolver, qubit_order, initial_state)
 
     def _create_act_on_args(
         self,
         initial_state: Union[int, ActOnStateVectorArgs],
         qubits: Sequence[Qid],
     ) -> ActOnStateVectorArgs:
-        return self._simulator._create_act_on_args(initial_state, qubits)
+        # Needs an implementation since it's abstract but will never actually be called.
+        raise NotImplementedError()
 
     def _create_step_result(
         self,
         sim_state: ActOnStateVectorArgs,
         qubit_map: Dict[Qid, int],
     ) -> SparseSimulatorStep:
-        return self._simulator._create_step_result(sim_state, qubit_map)
+        # Needs an implementation since it's abstract but will never actually be called.
+        raise NotImplementedError()
 
 
 class _PhasedFSimConverter(PointOptimizer):
