@@ -11,6 +11,9 @@ import sympy.parsing.sympy_parser as sympy_parser
 import cirq
 
 
+# TODO(tonybruguier): Consider making a stand-alone gate given a Boolean expression.
+
+
 class HamiltonianPolynomial:
     """A container class of Boolean function as equation (2) or [1]
 
