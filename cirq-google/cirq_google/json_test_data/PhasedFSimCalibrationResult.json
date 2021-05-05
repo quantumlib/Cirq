@@ -55,5 +55,8 @@
     "characterize_gamma": false,
     "characterize_phi": true,
     "readout_error_tolerance": 0.4
-  }
+  },
+  "project_id": "project_id",
+  "program_id": "program_id",
+  "job_id": "job_id"
 }

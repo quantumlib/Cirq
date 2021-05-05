@@ -165,3 +165,8 @@ landing_page:
         path: https://github.com/quantumlib/Cirq/blob/master/examples/hhl.py
         icon:
           name: code
+      - heading: Stabilizer code
+        description: An illustration of quantum error correction using stabilizer code, following the PhD thesis of Daniel Gottesman.
+        path: https://github.com/quantumlib/Cirq/blob/master/examples/stabilizer_code.py
+        icon:
+          name: code
