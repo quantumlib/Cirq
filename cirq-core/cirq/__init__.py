@@ -330,6 +330,7 @@ from cirq.optimizers import (
 
 from cirq.qis import (
     bloch_vector_from_state_vector,
+    CliffordTableau,
     density_matrix,
     density_matrix_from_state_vector,
     dirac_notation,
@@ -360,7 +361,6 @@ from cirq.sim import (
     CliffordSimulator,
     CliffordState,
     CliffordSimulatorStepResult,
-    CliffordTableau,
     CliffordTrialResult,
     DensityMatrixSimulator,
     DensityMatrixSimulatorState,
@@ -430,6 +430,7 @@ from cirq.value import (
     Duration,
     DURATION_LIKE,
     LinearDict,
+    MeasurementKey,
     PeriodicValue,
     RANDOM_STATE_OR_SEED_LIKE,
     Timestamp,

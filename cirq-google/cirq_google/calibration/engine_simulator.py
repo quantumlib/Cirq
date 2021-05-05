@@ -21,7 +21,6 @@ from cirq.ops import (
     Operation,
     PhasedFSimGate,
     Qid,
-    QubitOrderOrList,
     SingleQubitGate,
     WaitGate,
 )
@@ -34,7 +33,6 @@ from cirq.sim import (
 )
 from cirq.study import ParamResolver
 from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
-
 from cirq_google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationRequest,
     PhaseCalibratedFSimGate,
@@ -42,10 +40,9 @@ from cirq_google.calibration.phased_fsim import (
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
-    SQRT_ISWAP_PARAMETERS,
+    SQRT_ISWAP_INV_PARAMETERS,
     try_convert_sqrt_iswap_to_fsim,
 )
-
 
 ParametersDriftGenerator = Callable[[Qid, Qid, FSimGate], PhasedFSimCharacterization]
 PhasedFsimDictParameters = Dict[
@@ -124,7 +121,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
     @classmethod
     def create_with_random_gaussian_sqrt_iswap(
         cls,
-        mean: PhasedFSimCharacterization = SQRT_ISWAP_PARAMETERS,
+        mean: PhasedFSimCharacterization = SQRT_ISWAP_INV_PARAMETERS,
         *,
         simulator: Optional[Simulator] = None,
         sigma: PhasedFSimCharacterization = PhasedFSimCharacterization(
@@ -228,7 +225,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                     pair_parameters = PhasedFSimCharacterization(**pair_parameters)
                 pair_parameters = pair_parameters.parameters_for_qubits_swapped()
             elif ideal_when_missing_gate:
-                pair_parameters = SQRT_ISWAP_PARAMETERS
+                pair_parameters = SQRT_ISWAP_INV_PARAMETERS
             else:
                 raise ValueError(f'Missing parameters for pair {(a, b)}')
 
@@ -238,7 +235,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                         f'Missing parameter value for pair {(a, b)}, '
                         f'parameters={pair_parameters}'
                     )
-                pair_parameters = pair_parameters.merge_with(SQRT_ISWAP_PARAMETERS)
+                pair_parameters = pair_parameters.merge_with(SQRT_ISWAP_INV_PARAMETERS)
 
             return pair_parameters
 

@@ -21,10 +21,10 @@ from cirq.devices import LineQubit
 from cirq.ops import common_gates
 from cirq.ops.dense_pauli_string import DensePauliString
 from cirq import protocols
+from cirq.qis import clifford_tableau
 from cirq.sim import act_on_state_vector_args, final_state_vector
 from cirq.sim.clifford import (
     act_on_clifford_tableau_args,
-    clifford_tableau,
     stabilizer_state_ch_form,
     act_on_stabilizer_ch_form_args,
 )
