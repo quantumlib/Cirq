@@ -93,6 +93,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'LineQubit': cirq.LineQubit,
         'LineQid': cirq.LineQid,
         'MatrixGate': cirq.MatrixGate,
+        'MeasurementKey': cirq.MeasurementKey,
         'MeasurementGate': cirq.MeasurementGate,
         '_MeasurementSpec': cirq.work._MeasurementSpec,
         'Moment': cirq.Moment,

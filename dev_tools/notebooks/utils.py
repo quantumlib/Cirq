@@ -15,8 +15,10 @@
 
 import functools
 import glob
+import re
 import os
 import subprocess
+import tempfile
 from logging import warning
 from typing import Set, List
 
@@ -55,3 +57,67 @@ def filter_notebooks(all_notebooks: Set[str], skip_list: List[str]):
     # the workers have different parametrization:
     # https://github.com/pytest-dev/pytest-xdist/issues/432
     return sorted(os.path.abspath(n) for n in all_notebooks.difference(skipped_notebooks))
+
+
+def rewrite_notebook(notebook_path):
+    """Rewrtes a notebook given an extra file describing the replacements.
+
+    This rewrites a notebook of a given path, by looking for a file corresponding to the given
+    one, but with the suffix replaced with `.tst`.
+
+    The contents of this `.tst` file are then used as replacements
+
+        * Lines in this file without `->` are ignored.
+
+        * Lines in this file with `->` are split into two (if there are mulitple `->` it is an
+        error). The first of these is compiled into a pattern match, via `re.compile`, and
+        the second is the replacement for that match.
+
+    These replacements are then applied to the notebook_path and written to a new temporary
+    file.
+
+    All replacements must be used (this is enforced as it is easy to write a replacement rule
+    which does not match).
+
+    It is the responsibility of the caller of this method to delete the new file.
+
+    Returns:
+        Tuple of a file descriptor and the file path for the rewritten file.  If no `.tst` file
+        was found, then the file descriptor is None and the path is `notebook_path`.
+
+    Raises:
+        AssertionError: If there are multiple `->` per line, or not all of the replacements
+            are used.
+    """
+    notebook_test_path = os.path.splitext(notebook_path)[0] + '.tst'
+    if not os.path.exists(notebook_test_path):
+        return None, notebook_path
+
+    # Get the rewrite rules.
+    patterns = []
+    with open(notebook_test_path, 'r') as f:
+        for line in f:
+            if '->' in line:
+                parts = line.rstrip().split('->')
+                assert len(parts) == 2, f'Replacement lines may only contain one -> but was {line}'
+                patterns.append((re.compile(parts[0]), parts[1]))
+
+    used_patterns = set()
+    with open(notebook_path, 'r') as original_file:
+        new_file_descriptor, new_file_path = tempfile.mkstemp(suffix='.ipynb')
+        with open(new_file_path, 'w') as new_file:
+            for line in original_file:
+                new_line = line
+                for pattern, replacement in patterns:
+                    new_line = pattern.sub(replacement, new_line)
+                    if new_line != line:
+                        used_patterns.add(pattern)
+                        break
+                new_file.write(new_line)
+
+    assert len(patterns) == len(used_patterns), (
+        'Not all patterns where used. Patterns not used: '
+        f'{set(x for x, _ in patterns) - used_patterns}'
+    )
+
+    return new_file_descriptor, new_file_path

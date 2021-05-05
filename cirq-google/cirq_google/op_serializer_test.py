@@ -72,7 +72,7 @@ TEST_CASES = (
     (List[bool], (True, False), {'arg_value': {'bool_values': {'values': [True, False]}}}),
     (
         List[bool],
-        np.array([True, False], dtype=np.bool),
+        np.array([True, False], dtype=bool),
         {'arg_value': {'bool_values': {'values': [True, False]}}},
     ),
     (sympy.Symbol, sympy.Symbol('x'), {'symbol': 'x'}),

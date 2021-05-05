@@ -4612,6 +4612,47 @@ def test_tetris_concat():
     assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
 
 
+def test_tetris_concat_alignment():
+    a, b = cirq.LineQubit.range(2)
+
+    assert cirq.Circuit.tetris_concat(
+        cirq.Circuit(cirq.X(a)),
+        cirq.Circuit(cirq.Y(b)) * 4,
+        cirq.Circuit(cirq.Z(a)),
+        align='first',
+    ) == cirq.Circuit(
+        cirq.Moment(cirq.X(a), cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Z(a), cirq.Y(b)),
+    )
+
+    assert cirq.Circuit.tetris_concat(
+        cirq.Circuit(cirq.X(a)),
+        cirq.Circuit(cirq.Y(b)) * 4,
+        cirq.Circuit(cirq.Z(a)),
+        align='left',
+    ) == cirq.Circuit(
+        cirq.Moment(cirq.X(a), cirq.Y(b)),
+        cirq.Moment(cirq.Z(a), cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+    )
+
+    assert cirq.Circuit.tetris_concat(
+        cirq.Circuit(cirq.X(a)),
+        cirq.Circuit(cirq.Y(b)) * 4,
+        cirq.Circuit(cirq.Z(a)),
+        align='right',
+    ) == cirq.Circuit(
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.X(a), cirq.Y(b)),
+        cirq.Moment(cirq.Z(a)),
+    )
+
+
 def test_factorize_one_factor():
     circuit = cirq.Circuit()
     q0, q1, q2 = cirq.LineQubit.range(3)
