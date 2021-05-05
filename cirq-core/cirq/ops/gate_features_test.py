@@ -18,6 +18,7 @@ from typing import Any
 import pytest
 
 import cirq
+import cirq.ops.gate_features as gate_features
 
 
 def test_single_qubit_gate_validate_args():
@@ -163,13 +164,47 @@ def test_on_each():
     with pytest.raises(ValueError):
         c.on_each([a, 'abcd'])
 
+    qubit_iterator = iter([a, b, a, b])
+    assert isinstance(qubit_iterator, Iterator)
+    assert c.on_each(qubit_iterator) == [c(a), c(b), c(a), c(b)]
+
+
+def test_on_each_multi_qubit():
+    class CustomGate(gate_features.SupportsOnEachGate, cirq.Gate):
+        def num_qubits(self) -> int:
+            return 2
+
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+    g = CustomGate()
+
+    assert g.on_each() == []
+    assert g.on_each(a, b) == [g(a, b)]
+    assert g.on_each((a, b)) == [g(a, b)]
+    assert g.on_each((a, b), (b, c)) == [g(a, b), g(b, c)]
+
+    assert g.on_each([]) == []
+    assert g.on_each([(a, b)]) == [g(a, b)]
+    assert g.on_each([(a, b), (b, c)]) == [g(a, b), g(b, c)]
+
+    with pytest.raises(ValueError, match=r'Expected Iterable\[Qid\]'):
+        g.on_each(a, (b, c))
+
+    with pytest.raises(ValueError):
+        g.on_each('abcd')
+    with pytest.raises(ValueError):
+        g.on_each(['abcd'])
+    with pytest.raises(ValueError):
+        g.on_each(('a', 'b'))
+
     def iterator(qubits):
         for i in range(len(qubits)):
             yield qubits[i]
 
-    qubit_iterator = iterator([a, b, a, b])
+    qubit_iterator = iterator([(a, b), (b, c)])
     assert isinstance(qubit_iterator, Iterator)
-    assert c.on_each(qubit_iterator) == [c(a), c(b), c(a), c(b)]
+    assert g.on_each(qubit_iterator) == [g(a, b), g(b, c)]
 
 
 def test_qasm_output_args_validate():
