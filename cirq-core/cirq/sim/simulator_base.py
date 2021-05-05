@@ -46,7 +46,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-class SimulationEngine(
+class SimulatorBase(
     Generic[TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs],
     SimulatesIntermediateState[TStepResult, TSimulationTrialResult, TSimulatorState, TActOnArgs],
     SimulatesSamples,

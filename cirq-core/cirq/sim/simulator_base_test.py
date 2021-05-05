@@ -73,7 +73,7 @@ class CountingTrialResult(cirq.SimulationTrialResult):
 
 
 class CountingSimulator(
-    cirq.SimulationEngine[
+    cirq.SimulatorBase[
         CountingStepResult, CountingTrialResult, CountingActOnArgs, CountingActOnArgs
     ]
 ):

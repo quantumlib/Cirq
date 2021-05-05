@@ -36,11 +36,11 @@ from cirq import study, ops, protocols, value
 from cirq._compat import deprecated
 from cirq.ops.dense_pauli_string import DensePauliString
 from cirq.protocols import act_on
-from cirq.sim import clifford, simulator, simulation_engine
+from cirq.sim import clifford, simulator, simulator_base
 
 
 class CliffordSimulator(
-    simulation_engine.SimulationEngine[
+    simulator_base.SimulatorBase[
         'CliffordSimulatorStepResult',
         'CliffordTrialResult',
         'CliffordState',

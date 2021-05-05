@@ -57,8 +57,8 @@ from cirq.sim.simulator import (
     StepResult,
 )
 
-from cirq.sim.simulation_engine import (
-    SimulationEngine,
+from cirq.sim.simulator_base import (
+    SimulatorBase,
 )
 
 from cirq.sim.sparse_simulator import (
