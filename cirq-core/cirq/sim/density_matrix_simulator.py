@@ -119,17 +119,20 @@ class DensityMatrixSimulator(
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         ignore_measurement_results: bool = False,
+        split_untangled_states: bool = True,
     ):
         """Density matrix simulator.
 
         Args:
-           dtype: The `numpy.dtype` used by the simulation. One of
-               `numpy.complex64` or `numpy.complex128`
-           noise: A noise model to apply while simulating.
-           seed: The random seed to use for this simulator.
-           ignore_measurement_results: if True, then the simulation
-               will treat measurement as dephasing instead of collapsing
-               process.
+            dtype: The `numpy.dtype` used by the simulation. One of
+                `numpy.complex64` or `numpy.complex128`
+            noise: A noise model to apply while simulating.
+            seed: The random seed to use for this simulator.
+            ignore_measurement_results: if True, then the simulation
+                will treat measurement as dephasing instead of collapsing
+                process.
+            split_untangled_states: Optimizes simulation by running unentangled
+                qubit sets independently and merging those states at the end.
 
                Example:
                >>> (q0,) = cirq.LineQubit.range(1)
@@ -154,12 +157,10 @@ class DensityMatrixSimulator(
             noise=noise,
             seed=seed,
             ignore_measurement_results=ignore_measurement_results,
+            split_untangled_states=split_untangled_states,
         )
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
-
-    def _supports_join(self):
-        return True
 
     def _create_act_on_arg(
         self,

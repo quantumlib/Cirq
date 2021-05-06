@@ -425,9 +425,6 @@ class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector[SparseSimulator
         # Needs an implementation since it's abstract but will never actually be called.
         raise NotImplementedError()
 
-    def _supports_join(self):
-        return self._simulator._supports_join()
-
 
 class _PhasedFSimConverter(PointOptimizer):
     def __init__(self, simulator: PhasedFSimEngineSimulator) -> None:

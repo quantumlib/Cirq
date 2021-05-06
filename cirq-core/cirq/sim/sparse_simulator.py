@@ -141,6 +141,7 @@ class Simulator(
         dtype: Type[np.number] = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        split_untangled_states: bool = True,
     ):
         """A sparse matrix simulator.
 
@@ -149,6 +150,8 @@ class Simulator(
                 `numpy.complex64` or `numpy.complex128`.
             noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
+            split_untangled_states: Optimizes simulation by running unentangled
+                qubit sets independently and merging those states at the end.
         """
         if np.dtype(dtype).kind != 'c':
             raise ValueError(f'dtype must be a complex type but was {dtype}')
@@ -159,10 +162,8 @@ class Simulator(
             dtype=dtype,
             noise=noise,
             seed=seed,
+            split_untangled_states=split_untangled_states,
         )
-
-    def _supports_join(self):
-        return True
 
     def _create_act_on_arg(
         self,

@@ -49,23 +49,29 @@ class CliffordSimulator(
 ):
     """An efficient simulator for Clifford circuits."""
 
-    def __init__(self, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+    def __init__(
+        self,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        split_untangled_states: bool = True,
+    ):
         """Creates instance of `CliffordSimulator`.
 
         Args:
             seed: The random seed to use for this simulator.
+            split_untangled_states: Optimizes simulation by running unentangled
+                qubit sets independently and merging those states at the end.
         """
         self.init = True
-        super().__init__(seed=seed)
+        super().__init__(
+            seed=seed,
+            split_untangled_states=split_untangled_states,
+        )
 
     @staticmethod
     def is_supported_operation(op: 'cirq.Operation') -> bool:
         """Checks whether given operation can be simulated by this simulator."""
         # TODO: support more general Pauli measurements
         return protocols.has_stabilizer_effect(op)
-
-    def _supports_join(self):
-        return True
 
     def _create_act_on_arg(
         self,

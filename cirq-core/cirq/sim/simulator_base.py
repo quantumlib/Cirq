@@ -89,22 +89,26 @@ class SimulatorBase(
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         ignore_measurement_results: bool = False,
+        split_untangled_states: bool = False,
     ):
         """Initializes the simulator.
 
         Args:
-           dtype: The `numpy.dtype` used by the simulation.
-           noise: A noise model to apply while simulating.
-           seed: The random seed to use for this simulator.
-           ignore_measurement_results: If True, then the simulation
-               will treat measurement as dephasing instead of collapsing
-               process. This is only applicable to simulators that can
-               model dephasing.
+            dtype: The `numpy.dtype` used by the simulation.
+            noise: A noise model to apply while simulating.
+            seed: The random seed to use for this simulator.
+            ignore_measurement_results: If True, then the simulation
+                will treat measurement as dephasing instead of collapsing
+                process. This is only applicable to simulators that can
+                model dephasing.
+            split_untangled_states: Optimizes simulation by running unentangled
+                qubit sets independently and merging those states at the end.
         """
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
         self.noise = devices.NoiseModel.from_noise_model_like(noise)
         self._ignore_measurement_results = ignore_measurement_results
+        self._split_untangled_states = split_untangled_states
 
     @abc.abstractmethod
     def _create_act_on_arg(
@@ -182,7 +186,7 @@ class SimulatorBase(
                 final_args = args if final_args is None else cast(TActOnArgs, final_args).join(args)
             if final_args is None:
                 return self._create_act_on_arg(initial_state=0, qubits=[], logs={})
-            return final_args.reorder(qubits) if self._supports_join() else final_args
+            return final_args.reorder(qubits) if self._split_untangled_states else final_args
 
         if len(circuit) == 0:
             step_state = merge_states(sim_state)
@@ -228,7 +232,7 @@ class SimulatorBase(
                     protocols.act_on(op, op_args)
 
                     # Decouple any measurements
-                    if isinstance(op, ops.MeasurementGate) and self._supports_join():
+                    if isinstance(op, ops.MeasurementGate) and self._split_untangled_states:
                         for q in op.qubits:
                             q_args, op_args = op_args.extract((q,))
                             sim_state[q] = q_args
@@ -306,7 +310,7 @@ class SimulatorBase(
             return initial_state
 
         args_map: Dict['cirq.Qid', TActOnArgs] = {}
-        if initial_state is 0 and self._supports_join():
+        if initial_state is 0 and self._split_untangled_states:
             log: Dict[str, Any] = {}
             for q in qubits:
                 args_map[q] = self._create_act_on_arg(
@@ -324,6 +328,3 @@ class SimulatorBase(
         for q in qubits:
             args_map[q] = args
         return args_map
-
-    def _supports_join(self):
-        return False
