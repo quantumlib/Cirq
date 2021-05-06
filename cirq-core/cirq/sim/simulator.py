@@ -535,14 +535,14 @@ class SimulatesIntermediateState(
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         act_on_args = self._create_act_on_args(initial_state, qubits)
-        return self._core_iterator(circuit, act_on_args)
+        return self._core_iterator(circuit, act_on_args, qubits)
 
     @abc.abstractmethod
     def _create_act_on_args(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-    ) -> TActOnArgs:
+    ) -> Dict['cirq.Qid', TActOnArgs]:
         """Creates the ActOnArgs state for a simulator.
 
         Custom simulators should implement this method.
@@ -558,13 +558,14 @@ class SimulatesIntermediateState(
         Returns:
             The ActOnArgs for this simulator.
         """
-        raise NotImplementedError()
 
     @abc.abstractmethod
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
-        sim_state: TActOnArgs,
+        sim_state: Dict['cirq.Qid', TActOnArgs],
+        qubits: Sequence['cirq.Qid'],
+        all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
 
@@ -579,7 +580,6 @@ class SimulatesIntermediateState(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
-        raise NotImplementedError()
 
     @abc.abstractmethod
     def _create_simulator_trial_result(

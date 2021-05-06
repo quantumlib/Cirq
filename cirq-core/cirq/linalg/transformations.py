@@ -500,3 +500,58 @@ def to_special(u: np.ndarray) -> np.ndarray:
         the special unitary matrix
     """
     return u * (np.linalg.det(u) ** (-1 / len(u)))
+
+
+def merge_state_vectors(
+    t1: np.ndarray,
+    t2: np.ndarray,
+) -> np.ndarray:
+    return np.outer(t1, t2).reshape(t1.shape + t2.shape)
+
+
+def split_state_vectors(
+    t: np.ndarray,
+    axes: Sequence[int],
+) -> Tuple[np.ndarray, np.ndarray]:
+    n_axes = len(axes)
+    t = np.moveaxis(t, axes, range(n_axes))
+    pivot = np.unravel_index(np.abs(t).argmax(), t.shape)
+    slices1 = (slice(None),) * n_axes + pivot[n_axes:]
+    slices2 = pivot[:n_axes] + (slice(None),) * (t.ndim - n_axes)
+    extracted = t[slices1]
+    extracted = extracted / np.sum(abs(extracted) ** 2) ** 0.5
+    remainder = t[slices2]
+    remainder = remainder / np.sum(abs(remainder) ** 2) ** 0.5
+    return extracted, remainder
+
+
+def merge_density_matrices(
+    t1: np.ndarray,
+    t2: np.ndarray,
+) -> np.ndarray:
+    t = np.outer(t1, t2).reshape(t1.shape + t2.shape)
+    t1_len = len(t1.shape)
+    t1_dim = int(t1_len / 2)
+    t2_len = len(t2.shape)
+    t2_dim = int(t2_len / 2)
+    shape = t1.shape[:t1_dim] + t2.shape[:t2_dim]
+    return np.moveaxis(t, range(t1_len, t1_len + t2_dim), range(t1_dim, t1_dim + t2_dim)).reshape(
+        shape * 2
+    )
+
+
+def split_density_matrices(
+    t: np.ndarray,
+    axes: Sequence[int],
+) -> Tuple[np.ndarray, np.ndarray]:
+    axes = list(axes) + [i + int(t.ndim / 2) for i in axes]
+    n_axes = len(axes)
+    t = np.moveaxis(t, axes, range(n_axes))
+    pivot = np.unravel_index(np.abs(t).argmax(), t.shape)
+    slices1 = (slice(None),) * n_axes + pivot[n_axes:]
+    slices2 = pivot[:n_axes] + (slice(None),) * (t.ndim - n_axes)
+    extracted = t[slices1]
+    extracted = extracted / np.sum(abs(extracted) ** 2) ** 0.5
+    remainder = t[slices2]
+    remainder = remainder / np.sum(abs(remainder) ** 2) ** 0.5
+    return extracted, remainder

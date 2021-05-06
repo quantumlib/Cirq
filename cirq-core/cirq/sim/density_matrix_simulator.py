@@ -31,6 +31,7 @@ class DensityMatrixSimulator(
         'DensityMatrixSimulatorState',
         act_on_density_matrix_args.ActOnDensityMatrixArgs,
     ],
+    simulator.SimulatesSamples,
 ):
     """A simulator for density matrices and noisy quantum circuits.
 
@@ -157,10 +158,14 @@ class DensityMatrixSimulator(
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
 
-    def _create_act_on_args(
+    def _supports_join(self):
+        return True
+
+    def _create_act_on_arg(
         self,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
         qubits: Sequence['cirq.Qid'],
+        logs: Dict[str, Any],
     ) -> 'cirq.ActOnDensityMatrixArgs':
         """Creates the ActOnDensityMatrixArgs for a circuit.
 
@@ -192,7 +197,7 @@ class DensityMatrixSimulator(
             axes=[],
             qid_shape=qid_shape,
             prng=self._prng,
-            log_of_measurement_results={},
+            log_of_measurement_results=logs,
         )
 
     def _can_be_in_run_prefix(self, val: Any):

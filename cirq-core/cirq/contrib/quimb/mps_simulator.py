@@ -19,7 +19,7 @@ https://arxiv.org/abs/2002.07730
 
 import dataclasses
 import math
-from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iterable, Union
+from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iterable, Union, Tuple
 
 import numpy as np
 import quimb.tensor as qtn
@@ -84,10 +84,11 @@ class MPSSimulator(
             seed=seed,
         )
 
-    def _create_act_on_args(
+    def _create_act_on_arg(
         self,
         initial_state: Union[int, 'MPSState'],
         qubits: Sequence['cirq.Qid'],
+        logs: Dict[str, Any],
     ) -> 'MPSState':
         """Creates MPSState args for simulating the Circuit.
 
@@ -110,6 +111,7 @@ class MPSSimulator(
             simulation_options=self.simulation_options,
             grouping=self.grouping,
             initial_state=initial_state,
+            log_of_measurement_results=logs,
         )
 
     def _create_step_result(
@@ -220,7 +222,6 @@ class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
         return np.array(measurements, dtype=int)
 
 
-@value.value_equality
 class MPSState(ActOnArgs):
     """A state of the MPS simulation."""
 
@@ -264,7 +265,7 @@ class MPSState(ActOnArgs):
         # we want write the string '003' which comes before '100' in lexicographic order. The code
         # below is just simple string formatting.
         max_num_digits = len(f'{max(qubit_map.values())}')
-        self.format_i = f'i_{{:0{max_num_digits}}}'
+        self.format_i = 'i_{}'
         self.format_mu = 'mu_{}_{}'
 
         # TODO(tonybruguier): Instead of relying on sortable indices could you keep a parallel
@@ -310,9 +311,38 @@ class MPSState(ActOnArgs):
             prng=self.prng,
             simulation_options=self.simulation_options,
             grouping=self.grouping,
+            log_of_measurement_results=self.log_of_measurement_results,
         )
         state.M = [x.copy() for x in self.M]
         state.estimated_gate_error_list = self.estimated_gate_error_list
+        return state
+
+    def join(self, other: 'MPSState') -> 'MPSState':
+        offset = len(self.M)
+        axes = self.axes + tuple(a + offset for a in other.axes)
+        grouping = {k: v + offset for k, v in other.grouping.items()}
+        grouping.update(self.grouping)
+        state = MPSState(
+            qubits=self.qubits + other.qubits,
+            axes=axes,
+            prng=self.prng,
+            simulation_options=self.simulation_options,
+            log_of_measurement_results=self.log_of_measurement_results,
+            grouping=grouping,
+        )
+        state.M = [x.copy() for x in (self.M + other.M)]
+        for i in range(offset, len(state.M)):
+            inds_map = {}
+            for inds in state.M[i].inds:
+                parts = str.split(inds, '_')
+                if parts[0] == 'mu':
+                    inds_map[inds] = self.mu_str(int(parts[1]) + offset, int(parts[2]) + offset)
+                else:
+                    inds_map[inds] = self.i_str(int(parts[1]) + offset)
+            state.M[i].reindex(inds_map, inplace=True)
+        state.estimated_gate_error_list = (
+            self.estimated_gate_error_list + other.estimated_gate_error_list
+        )
         return state
 
     def state_vector(self) -> np.ndarray:
@@ -395,8 +425,8 @@ class MPSState(ActOnArgs):
 
         if len(op.qubits) == 1:
             n = self.grouping[op.qubits[0]]
-
             self.M[n] = (U @ self.M[n]).reindex({new_inds[0]: old_inds[0]})
+
         elif len(op.qubits) == 2:
             n, p = [self.grouping[qubit] for qubit in op.qubits]
 

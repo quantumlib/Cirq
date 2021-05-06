@@ -26,6 +26,9 @@ from typing import (
     cast,
     Generic,
     Type,
+    Sequence,
+    Union,
+    Optional,
 )
 
 import numpy as np
@@ -104,6 +107,15 @@ class SimulatorBase(
         self._ignore_measurement_results = ignore_measurement_results
 
     @abc.abstractmethod
+    def _create_act_on_arg(
+        self,
+        initial_state: Any,
+        qubits: Sequence['cirq.Qid'],
+        logs: Dict[str, Any],
+    ) -> TActOnArgs:
+        """Creates an args"""
+
+    @abc.abstractmethod
     def _create_step_result(
         self,
         sim_state: TActOnArgs,
@@ -146,10 +158,13 @@ class SimulatorBase(
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
-        sim_state: TActOnArgs,
+        sim_state: Dict['cirq.Qid', TActOnArgs],
+        qubits: Sequence['cirq.Qid'],
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
-        """Standard iterator over StepResult from Moments of a Circuit.
+        """Iterator over StepResult from Moments of a Circuit.
+
+        Custom simulators should implement this method.
 
         Args:
             circuit: The circuit to simulate.
@@ -160,17 +175,29 @@ class SimulatorBase(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
+
+        def merge_states(sim_state: Dict['cirq.Qid', TActOnArgs]) -> TActOnArgs:
+            final_args = None
+            for args in set(sim_state.values()):
+                final_args = args if final_args is None else cast(TActOnArgs, final_args).join(args)
+            if final_args is None:
+                return self._create_act_on_arg(initial_state=0, qubits=[], logs={})
+            return final_args.reorder(qubits) if self._supports_join() else final_args
+
         if len(circuit) == 0:
-            yield self._create_step_result(sim_state, sim_state.qubit_map)
+            step_state = merge_states(sim_state)
+            yield self._create_step_result(step_state, step_state.qubit_map)
             return
 
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
-        measured: Dict[Tuple[cirq.Qid, ...], bool] = collections.defaultdict(bool)
+        measured: Dict[Tuple['cirq.Qid', ...], bool] = collections.defaultdict(bool)
         for moment in noisy_moments:
             for op in ops.flatten_to_ops(moment):
                 try:
                     # TODO: support more general measurements.
                     # Github issue: https://github.com/quantumlib/Cirq/issues/3566
+
+                    # Preprocess measurements
                     if all_measurements_are_terminal and measured[op.qubits]:
                         continue
                     if isinstance(op.gate, ops.MeasurementGate):
@@ -179,13 +206,43 @@ class SimulatorBase(
                             continue
                         if self._ignore_measurement_results:
                             op = ops.phase_damp(1).on(*op.qubits)
-                    sim_state.axes = tuple(sim_state.qubit_map[qubit] for qubit in op.qubits)
-                    protocols.act_on(op, sim_state)
+
+                    # Go through the op's qubits and join any disparate ActOnArgs states
+                    # into a new combined state.
+                    op_args: Optional[TActOnArgs] = None
+                    for q in op.qubits if len(op.qubits) != 0 else qubits:
+                        if op_args is None or q not in op_args.qubits:
+                            op_args = (
+                                sim_state[q]
+                                if op_args is None
+                                else cast(TActOnArgs, op_args).join(sim_state[q])
+                            )
+                    assert op_args is not None
+
+                    # (Backfill the args map with the new value)
+                    for q in op_args.qubits:
+                        sim_state[q] = op_args
+
+                    # Act on the args with the operation
+                    op_args.axes = tuple(op_args.qubit_map[q] for q in op.qubits)
+                    protocols.act_on(op, op_args)
+
+                    # Decouple any measurements
+                    if isinstance(op, ops.MeasurementGate) and self._supports_join():
+                        for q in op.qubits:
+                            q_args, op_args = op_args.extract((q,))
+                            sim_state[q] = q_args
+
+                        # (Backfill the args map with the new value)
+                        for q in op_args.qubits:
+                            sim_state[q] = op_args
+
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
 
-            yield self._create_step_result(sim_state, sim_state.qubit_map)
-            sim_state.log_of_measurement_results.clear()
+            step_state = merge_states(sim_state)
+            yield self._create_step_result(step_state, step_state.qubit_map)
+            step_state.log_of_measurement_results.clear()
 
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
@@ -209,6 +266,7 @@ class SimulatorBase(
         for step_result in self._core_iterator(
             circuit=prefix,
             sim_state=act_on_args,
+            qubits=qubits,
         ):
             pass
 
@@ -217,6 +275,7 @@ class SimulatorBase(
             for step_result in self._core_iterator(
                 circuit=general_suffix,
                 sim_state=act_on_args,
+                qubits=qubits,
                 all_measurements_are_terminal=True,
             ):
                 pass
@@ -228,7 +287,8 @@ class SimulatorBase(
         for _ in range(repetitions):
             all_step_results = self._core_iterator(
                 general_suffix,
-                sim_state=act_on_args.copy(),
+                sim_state={q: a.copy() for q, a in act_on_args.items()},
+                qubits=qubits,
             )
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
@@ -236,3 +296,34 @@ class SimulatorBase(
                         measurements[k] = []
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
+
+    def _create_act_on_args(
+        self,
+        initial_state: Any,
+        qubits: Sequence['cirq.Qid'],
+    ) -> Dict['cirq.Qid', TActOnArgs]:
+        if isinstance(initial_state, dict):
+            return initial_state
+
+        args_map: Dict['cirq.Qid', TActOnArgs] = {}
+        if initial_state is 0 and self._supports_join():
+            log: Dict[str, Any] = {}
+            for q in qubits:
+                args_map[q] = self._create_act_on_arg(
+                    initial_state=0,
+                    qubits=[q],
+                    logs=log,
+                )
+            return args_map
+
+        args = self._create_act_on_arg(
+            initial_state=initial_state,
+            qubits=qubits,
+            logs={},
+        )
+        for q in qubits:
+            args_map[q] = args
+        return args_map
+
+    def _supports_join(self):
+        return False

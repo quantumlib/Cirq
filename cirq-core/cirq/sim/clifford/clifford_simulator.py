@@ -64,10 +64,14 @@ class CliffordSimulator(
         # TODO: support more general Pauli measurements
         return protocols.has_stabilizer_effect(op)
 
-    def _create_act_on_args(
+    def _supports_join(self):
+        return True
+
+    def _create_act_on_arg(
         self,
         initial_state: Union[int, clifford.ActOnStabilizerCHFormArgs],
         qubits: Sequence['cirq.Qid'],
+        logs: Dict[str, Any],
     ) -> clifford.ActOnStabilizerCHFormArgs:
         """Creates the ActOnStabilizerChFormArgs for a circuit.
 
@@ -91,7 +95,7 @@ class CliffordSimulator(
             state=state.ch_form,
             axes=[],
             prng=self._prng,
-            log_of_measurement_results={},
+            log_of_measurement_results=logs,
             qubits=qubits,
         )
 

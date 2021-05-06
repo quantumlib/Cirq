@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
-from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING, Sequence
+from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING, Sequence, Tuple
 
 import numpy as np
 
@@ -84,6 +84,18 @@ class ActOnArgs:
     @abc.abstractmethod
     def copy(self: TSelf) -> TSelf:
         """Creates a copy of the object."""
+
+    def join(self: TSelf, other: TSelf) -> TSelf:
+        """Joins two state spaces together."""
+        raise NotImplementedError()
+
+    def extract(self: TSelf, qubits: Sequence['cirq.Qid']) -> Tuple[TSelf, TSelf]:
+        """Splits two state spaces after a measurement or reset."""
+        raise NotImplementedError()
+
+    def reorder(self: TSelf, qubits: Sequence['cirq.Qid']) -> TSelf:
+        """Physically reindexes the basis state."""
+        raise NotImplementedError()
 
 
 def strat_act_on_from_apply_decompose(

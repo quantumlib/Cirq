@@ -13,7 +13,6 @@
 # limitations under the License.
 
 """A simulator that uses numpy's einsum for sparse matrix operations."""
-
 from typing import (
     Any,
     Dict,
@@ -162,10 +161,14 @@ class Simulator(
             seed=seed,
         )
 
-    def _create_act_on_args(
+    def _supports_join(self):
+        return True
+
+    def _create_act_on_arg(
         self,
         initial_state: Union['cirq.STATE_VECTOR_LIKE', 'cirq.ActOnStateVectorArgs'],
         qubits: Sequence['cirq.Qid'],
+        logs: Dict[str, Any],
     ):
         """Creates the ActOnStateVectorArgs for a circuit.
 
@@ -182,19 +185,17 @@ class Simulator(
         if isinstance(initial_state, act_on_state_vector_args.ActOnStateVectorArgs):
             return initial_state
 
-        num_qubits = len(qubits)
         qid_shape = protocols.qid_shape(qubits)
         state = qis.to_valid_state_vector(
-            initial_state, num_qubits, qid_shape=qid_shape, dtype=self._dtype
+            initial_state, len(qubits), qid_shape=qid_shape, dtype=self._dtype
         )
-
         return act_on_state_vector_args.ActOnStateVectorArgs(
             target_tensor=np.reshape(state, qid_shape),
             available_buffer=np.empty(qid_shape, dtype=self._dtype),
             qubits=qubits,
             axes=[],
             prng=self._prng,
-            log_of_measurement_results={},
+            log_of_measurement_results=logs,
         )
 
     def _create_step_result(

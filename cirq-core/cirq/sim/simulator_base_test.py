@@ -77,12 +77,15 @@ class CountingSimulator(
         CountingStepResult, CountingTrialResult, CountingActOnArgs, CountingActOnArgs
     ]
 ):
-    def _create_act_on_args(
+    def _create_act_on_arg(
         self,
         initial_state: Any,
-        qubits: Sequence[cirq.Qid],
+        qubits: Sequence['cirq.Qid'],
+        logs: Dict[str, Any],
     ) -> CountingActOnArgs:
-        return CountingActOnArgs(cirq.value.parse_random_state(0), qubits)
+        return CountingActOnArgs(
+            cirq.value.parse_random_state(0), qubits, log_of_measurement_results=logs
+        )
 
     def _create_simulator_trial_result(
         self,
