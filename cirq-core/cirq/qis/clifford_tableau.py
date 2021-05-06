@@ -17,7 +17,6 @@ import numpy as np
 
 import cirq
 from cirq import protocols
-from cirq.ops.dense_pauli_string import DensePauliString
 from cirq.value import big_endian_int_to_digits
 
 
@@ -202,7 +201,7 @@ class CliffordTableau:
         self._xs[q1, :] ^= self._xs[q2, :]
         self._zs[q1, :] ^= self._zs[q2, :]
 
-    def _row_to_dense_pauli(self, i: int) -> DensePauliString:
+    def _row_to_dense_pauli(self, i: int) -> 'cirq.DensePauliString':
         """
         Args:
             i: index of the row in the tableau.
@@ -212,6 +211,8 @@ class CliffordTableau:
             represents the effective single Pauli operator on that qubit. The
             overall phase is captured in the coefficient.
         """
+        from cirq.ops.dense_pauli_string import DensePauliString
+
         coefficient = -1 if self.rs[i] else 1
         pauli_mask = ""
 
@@ -226,12 +227,12 @@ class CliffordTableau:
                 pauli_mask += "I"
         return cirq.DensePauliString(pauli_mask, coefficient=coefficient)
 
-    def stabilizers(self) -> List[DensePauliString]:
+    def stabilizers(self) -> List['cirq.DensePauliString']:
         """Returns the stabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi>"""
         return [self._row_to_dense_pauli(i) for i in range(self.n, 2 * self.n)]
 
-    def destabilizers(self) -> List[DensePauliString]:
+    def destabilizers(self) -> List['cirq.DensePauliString']:
         """Returns the destabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
         generators above generate the full Pauli group on n qubits."""
