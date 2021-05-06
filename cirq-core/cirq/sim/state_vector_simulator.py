@@ -15,12 +15,12 @@
 
 import abc
 
-from typing import Any, Dict, Sequence, TYPE_CHECKING, Tuple, Generic, TypeVar
+from typing import Any, Dict, Sequence, TYPE_CHECKING, Tuple, Generic, TypeVar, Type
 
 import numpy as np
 
 from cirq import ops, study, value
-from cirq.sim import simulator, state_vector
+from cirq.sim import simulator, state_vector, simulator_base
 from cirq.sim.act_on_state_vector_args import ActOnStateVectorArgs
 
 if TYPE_CHECKING:
@@ -32,19 +32,32 @@ TStateVectorStepResult = TypeVar('TStateVectorStepResult', bound='StateVectorSte
 
 class SimulatesIntermediateStateVector(
     Generic[TStateVectorStepResult],
-    simulator.SimulatesAmplitudes,
-    simulator.SimulatesIntermediateState[
+    simulator_base.SimulatorBase[
         TStateVectorStepResult,
         'StateVectorTrialResult',
         'StateVectorSimulatorState',
         ActOnStateVectorArgs,
     ],
+    simulator.SimulatesAmplitudes,
     metaclass=abc.ABCMeta,
 ):
     """A simulator that accesses its state vector as it does its simulation.
 
     Implementors of this interface should implement the _base_iterator
     method."""
+
+    def __init__(
+        self,
+        *,
+        dtype: Type[np.number] = np.complex64,
+        noise: 'cirq.NOISE_MODEL_LIKE' = None,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ):
+        super().__init__(
+            dtype=dtype,
+            noise=noise,
+            seed=seed,
+        )
 
     def _create_simulator_trial_result(
         self,
