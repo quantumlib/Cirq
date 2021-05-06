@@ -409,7 +409,7 @@ def test_non_clifford_circuit():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit()
     circuit.append(cirq.T(q0))
-    with pytest.raises(NotImplementedError, match="support cirq.T"):
+    with pytest.raises(TypeError, match="support cirq.T"):
         cirq.CliffordSimulator().simulate(circuit)
 
 
@@ -426,7 +426,7 @@ def test_swap():
     assert not r["a"][0]
     assert r["b"][0]
 
-    with pytest.raises(NotImplementedError, match="CliffordSimulator doesn't support"):
+    with pytest.raises(TypeError, match="CliffordSimulator doesn't support"):
         cirq.CliffordSimulator().simulate((cirq.Circuit(cirq.SWAP(a, b) ** 3.5)))
 
 
