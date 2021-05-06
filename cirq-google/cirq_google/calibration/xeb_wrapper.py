@@ -38,7 +38,7 @@ def _maybe_multiprocessing_pool(
         yield None
         return
 
-    with multiprocessing.Pool(processes=n_processes) as pool:
+    with multiprocessing.get_context('spawn').Pool(processes=n_processes) as pool:
         yield pool
 
 
