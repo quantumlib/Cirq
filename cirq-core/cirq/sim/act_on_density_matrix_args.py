@@ -35,7 +35,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         self,
         target_tensor: np.ndarray,
         available_buffer: List[np.ndarray],
-        axes: Iterable[int],
         qid_shape: Tuple[int, ...],
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
@@ -53,8 +52,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
             qid_shape: The shape of the target tensor.
             prng: The pseudo random number generator to use for probabilistic
                 effects.
@@ -62,12 +59,12 @@ class ActOnDensityMatrixArgs(ActOnArgs):
                 being recorded into. Edit it easily by calling
                 `ActOnStateVectorArgs.record_measurement_result`.
         """
-        super().__init__(prng, qubits, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results)
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
         self.qid_shape = qid_shape
 
-    def _act_on_fallback_(self, action: Any, allow_decompose: bool):
+    def _act_on_fallback_(self, action: Any, allow_decompose: bool, qubits: Sequence['cirq.Qid']):
         strats = [
             _strat_apply_channel_to_state,
         ]
@@ -76,7 +73,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
 
         # Try each strategy, stopping if one works.
         for strat in strats:
-            result = strat(action, self)
+            result = strat(action, self, qubits)
             if result is False:
                 break  # coverage: ignore
             if result is True:
@@ -88,11 +85,11 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             "SupportsMixture, SupportsChannel or is a measurement: {!r}".format(action)
         )
 
-    def _perform_measurement(self) -> List[int]:
+    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Delegates the call to measure the density matrix."""
         bits, _ = sim.measure_density_matrix(
             self.target_tensor,
-            self.axes,
+            self.get_axes(qubits),
             out=self.target_tensor,
             qid_shape=self.qid_shape,
             seed=self.prng,
@@ -104,7 +101,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             target_tensor=self.target_tensor.copy(),
             available_buffer=[b.copy() for b in self.available_buffer],
             qubits=self.qubits,
-            axes=self.axes,
             qid_shape=self.qid_shape,
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results.copy(),
@@ -112,10 +108,10 @@ class ActOnDensityMatrixArgs(ActOnArgs):
 
 
 def _strat_apply_channel_to_state(
-    action: Any,
-    args: ActOnDensityMatrixArgs,
+    action: Any, args: ActOnDensityMatrixArgs, qubits: Sequence['cirq.Qid']
 ) -> bool:
     """Apply channel to state."""
+    axes = args.get_axes(qubits)
     result = protocols.apply_channel(
         action,
         args=protocols.ApplyChannelArgs(
@@ -123,8 +119,8 @@ def _strat_apply_channel_to_state(
             out_buffer=args.available_buffer[0],
             auxiliary_buffer0=args.available_buffer[1],
             auxiliary_buffer1=args.available_buffer[2],
-            left_axes=args.axes,
-            right_axes=[e + len(args.qid_shape) for e in args.axes],
+            left_axes=axes,
+            right_axes=[e + len(args.qid_shape) for e in axes],
         ),
         default=None,
     )

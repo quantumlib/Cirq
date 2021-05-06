@@ -20,14 +20,14 @@ import cirq
 
 def test_act_on_checks():
     class Bad:
-        def _act_on_(self, args):
+        def _act_on_(self, args, qubits):
             return False
 
-        def _act_on_fallback_(self, action, allow_decompose):
+        def _act_on_fallback_(self, action, allow_decompose, qubits):
             return False
 
     with pytest.raises(ValueError, match="must return True or NotImplemented"):
-        _ = cirq.act_on(Bad(), object())
+        _ = cirq.act_on(Bad(), object(), qubits=[])
 
     with pytest.raises(ValueError, match="must return True or NotImplemented"):
-        _ = cirq.act_on(object(), Bad())
+        _ = cirq.act_on(object(), Bad(), qubits=[])

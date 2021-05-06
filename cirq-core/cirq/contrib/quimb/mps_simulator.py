@@ -249,7 +249,7 @@ class MPSState(ActOnArgs):
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
         """
-        super().__init__(prng, qubits, axes, log_of_measurement_results)
+        super().__init__(prng, qubits, log_of_measurement_results)
         qubit_map = self.qubit_map
         self.grouping = qubit_map if grouping is None else grouping
         if self.grouping.keys() != self.qubit_map.keys():
@@ -451,7 +451,7 @@ class MPSState(ActOnArgs):
             raise ValueError('Can only handle 1 and 2 qubit operations')
         return True
 
-    def _act_on_fallback_(self, op: Any, allow_decompose: bool):
+    def _act_on_fallback_(self, op: Any, allow_decompose: bool, qubits: Sequence['cirq.Qid']):
         """Delegates the action to self.apply_op"""
         return self.apply_op(op, self.prng)
 
@@ -524,7 +524,6 @@ class MPSState(ActOnArgs):
 
         return results
 
-    def _perform_measurement(self) -> List[int]:
+    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Measures the axes specified by the simulator."""
-        qubits = [self.qubits[key] for key in self.axes]
         return self.perform_measurement(qubits, self.prng)

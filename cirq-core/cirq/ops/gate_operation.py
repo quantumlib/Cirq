@@ -215,7 +215,7 @@ class GateOperation(raw_types.Operation):
     def _act_on_(self, args: Any):
         getter = getattr(self.gate, '_act_on_', None)
         if getter is not None:
-            return getter(args)
+            return getter(args, self.qubits)
         return NotImplemented
 
     def _is_parameterized_(self) -> bool:

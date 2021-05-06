@@ -13,15 +13,16 @@
 # limitations under the License.
 """A protocol that wouldn't exist if python had __rimul__."""
 
-from typing import Any, TYPE_CHECKING, Union
+from typing import Any, TYPE_CHECKING, Union, Sequence
 
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
 from cirq.type_workarounds import NotImplementedType
+from cirq import ops
 
 if TYPE_CHECKING:
-    pass
+    import cirq
 
 
 class SupportsActOn(Protocol):
@@ -63,6 +64,7 @@ def act_on(
     args: Any,
     *,
     allow_decompose: bool = True,
+    qubits: Sequence['cirq.Qid'] = None,
 ):
     """Applies an action to a state argument.
 
@@ -85,6 +87,9 @@ def act_on(
             `_act_on_fallback_` method of `args`. Determines if decomposition
             should be used or avoided when attempting to act `action` on `args`.
             Used by internal methods to avoid redundant decompositions.
+        qubits: The sequence of qubits to use when applying the action. These
+            are only considered when the action is not a `cirq.Operation`. In
+            the latter case, the operation's qubits are used instead.
 
     Returns:
         Nothing. Results are communicated by editing `args`.
@@ -92,10 +97,13 @@ def act_on(
     Raises:
         TypeError: Failed to act `action` on `args`.
     """
-
+    assert isinstance(action, ops.Operation) ^ (qubits is not None)
     action_act_on = getattr(action, '_act_on_', None)
     if action_act_on is not None:
-        result = action_act_on(args)
+        if isinstance(action, ops.Operation):
+            result = action_act_on(args)
+        else:
+            result = action_act_on(args, qubits)
         if result is True:
             return
         if result is not NotImplemented:
@@ -106,7 +114,9 @@ def act_on(
 
     arg_fallback = getattr(args, '_act_on_fallback_', None)
     if arg_fallback is not None:
-        result = arg_fallback(action, allow_decompose=allow_decompose)
+        if isinstance(action, ops.Operation):
+            qubits = action.qubits
+        result = arg_fallback(action, allow_decompose=allow_decompose, qubits=qubits)
         if result is True:
             return
         if result is not NotImplemented:

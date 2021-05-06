@@ -707,14 +707,14 @@ def test_tagged_act_on():
         def _num_qubits_(self) -> int:
             return 1
 
-        def _act_on_(self, args):
+        def _act_on_(self, args, qubits):
             return True
 
     class NoActOn(cirq.Gate):
         def _num_qubits_(self) -> int:
             return 1
 
-        def _act_on_(self, args):
+        def _act_on_(self, args, qubits):
             return NotImplemented
 
     class MissingActOn(cirq.Operation):

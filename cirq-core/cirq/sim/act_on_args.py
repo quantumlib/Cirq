@@ -33,7 +33,6 @@ class ActOnArgs:
         self,
         prng: np.random.RandomState,
         qubits: Sequence['cirq.Qid'] = None,
-        axes: Iterable[int] = None,
         log_of_measurement_results: Dict[str, Any] = None,
     ):
         """
@@ -43,41 +42,40 @@ class ActOnArgs:
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into. Edit it easily by calling
                 `ActOnStateVectorArgs.record_measurement_result`.
         """
         if qubits is None:
             qubits = ()
-        if axes is None:
-            axes = ()
         if log_of_measurement_results is None:
             log_of_measurement_results = {}
         self.qubits = tuple(qubits)
         self.qubit_map = {q: i for i, q in enumerate(self.qubits)}
-        self.axes = tuple(axes)
         self.prng = prng
         self.log_of_measurement_results = log_of_measurement_results
 
-    def measure(self, key, invert_mask):
+    def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
         """Adds a measurement result to the log.
 
         Args:
+            qubits: The qubits to measure.
             key: The key the measurement result should be logged under. Note
                 that operations should only store results under keys they have
                 declared in a `_measurement_keys_` method.
             invert_mask: The invert mask for the measurement.
         """
-        bits = self._perform_measurement()
+        bits = self._perform_measurement(qubits)
         corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
         if key in self.log_of_measurement_results:
             raise ValueError(f"Measurement already logged to key {key!r}")
         self.log_of_measurement_results[key] = corrected
 
+    def get_axes(self, qubits: Sequence['cirq.Qid']) -> List[int]:
+        return [self.qubit_map[q] for q in qubits]
+
     @abc.abstractmethod
-    def _perform_measurement(self) -> List[int]:
+    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Child classes that perform measurements should implement this with
         the implementation."""
 
@@ -89,18 +87,14 @@ class ActOnArgs:
 def strat_act_on_from_apply_decompose(
     val: Any,
     args: ActOnArgs,
+    qubits: Sequence['cirq.Qid'],
 ) -> bool:
-    operations, qubits, _ = _try_decompose_into_operations_and_qubits(val)
+    operations, qubits1, _ = _try_decompose_into_operations_and_qubits(val)
+    assert len(qubits1) == len(qubits)
+    qubit_map = {q: qubits[i] for i, q in enumerate(qubits1)}
     if operations is None:
         return NotImplemented
-    assert len(qubits) == len(args.axes)
-    qubit_map = {q: args.axes[i] for i, q in enumerate(qubits)}
-
-    old_axes = args.axes
-    try:
-        for operation in operations:
-            args.axes = tuple(qubit_map[q] for q in operation.qubits)
-            protocols.act_on(operation, args)
-    finally:
-        args.axes = old_axes
+    for operation in operations:
+        operation = operation.with_qubits(*[qubit_map[q] for q in operation.qubits])
+        protocols.act_on(operation, args)
     return True

@@ -38,28 +38,28 @@ def test_unitary_fallback():
     original_tableau = cirq.CliffordTableau(num_qubits=3)
     args = cirq.ActOnCliffordTableauArgs(
         tableau=original_tableau.copy(),
-        axes=[1],
+        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
 
-    cirq.act_on(UnitaryXGate(), args)
+    cirq.act_on(UnitaryXGate(), args, qubits=[cirq.LineQubit(1)])
     assert args.tableau == cirq.CliffordTableau(num_qubits=3, initial_state=2)
 
     args = cirq.ActOnCliffordTableauArgs(
         tableau=original_tableau.copy(),
-        axes=[1],
+        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on(UnitaryYGate(), args)
+    cirq.act_on(UnitaryYGate(), args, qubits=[cirq.LineQubit(1)])
     expected_args = cirq.ActOnCliffordTableauArgs(
         tableau=original_tableau.copy(),
-        axes=[1],
+        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on(cirq.Y, expected_args)
+    cirq.act_on(cirq.Y, expected_args, qubits=[cirq.LineQubit(1)])
     assert args.tableau == expected_args.tableau
 
 
@@ -72,22 +72,22 @@ def test_cannot_act():
 
     args = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=3),
-        axes=[1],
+        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
 
     with pytest.raises(TypeError, match="no _num_qubits_ or _qid_shape_"):
-        cirq.act_on(NoDetails(), args)
+        cirq.act_on(NoDetails(), args, qubits=[cirq.LineQubit(1)])
 
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(NoDetailsSingleQubitGate(), args)
+        cirq.act_on(NoDetailsSingleQubitGate(), args, qubits=[cirq.LineQubit(1)])
 
 
 def test_copy():
     args = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=3),
-        axes=[1],
+        qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
@@ -96,7 +96,8 @@ def test_copy():
     assert args is not args1
     assert args.tableau is not args1.tableau
     assert args.tableau == args1.tableau
-    assert args.axes == args1.axes
+    assert args.qubits is args1.qubits
+    assert args.qubit_map == args1.qubit_map
     assert args.prng is args1.prng
     assert args.log_of_measurement_results is not args1.log_of_measurement_results
     assert args.log_of_measurement_results == args.log_of_measurement_results
