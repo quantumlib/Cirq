@@ -28,6 +28,8 @@ from cirq_google.calibration.phased_fsim import (
     PhasedFSimCharacterization,
     XEBPhasedFSimCalibrationOptions,
     XEBPhasedFSimCalibrationRequest,
+    LocalXEBPhasedFSimCalibrationOptions,
+    LocalXEBPhasedFSimCalibrationRequest,
     SQRT_ISWAP_INV_PARAMETERS,
     THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
