@@ -75,6 +75,14 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         params: study.Sweepable,
         repetitions: int = 1,
     ) -> List[study.Result]:
+        return list(self.run_sweep_iter(program, params, repetitions))
+
+    def run_sweep_iter(
+        self,
+        program: 'cirq.Circuit',
+        params: study.Sweepable,
+        repetitions: int = 1,
+    ) -> Iterator[study.Result]:
         """Runs the supplied Circuit, mimicking quantum hardware.
 
         In contrast to run, this allows for sweeping over different parameter
@@ -94,7 +102,6 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
 
         _verify_unique_measurement_keys(program)
 
-        trial_results = []  # type: List[study.Result]
         for param_resolver in study.to_resolvers(params):
             measurements = {}
             if repetitions == 0:
@@ -104,12 +111,9 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
                 measurements = self._run(
                     circuit=program, param_resolver=param_resolver, repetitions=repetitions
                 )
-            trial_results.append(
-                study.Result.from_single_parameter_set(
-                    params=param_resolver, measurements=measurements
-                )
+            yield study.Result.from_single_parameter_set(
+                params=param_resolver, measurements=measurements
             )
-        return trial_results
 
     @abc.abstractmethod
     def _run(
@@ -133,13 +137,13 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
 
-class SimulatesAmplitudes(metaclass=abc.ABCMeta):
+class SimulatesAmplitudes(metaclass=value.ABCMetaImplementAnyOneOf):
     """Simulator that computes final amplitudes of given bitstrings.
 
     Given a circuit and a list of bitstrings, computes the amplitudes
     of the given bitstrings in the state obtained by applying the circuit
     to the all zeros state. Implementors of this interface should implement
-    the compute_amplitudes_sweep method.
+    the compute_amplitudes_sweep_iter method.
     """
 
     def compute_amplitudes(
@@ -171,7 +175,6 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
             program, bitstrings, study.ParamResolver(param_resolver), qubit_order
         )[0]
 
-    @abc.abstractmethod
     def compute_amplitudes_sweep(
         self,
         program: 'cirq.Circuit',
@@ -179,6 +182,35 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> Sequence[Sequence[complex]]:
+        """Wraps computed amplitudes in a list.
+
+        Prefer overriding `compute_amplitudes_sweep_iter`.
+        """
+        return list(self.compute_amplitudes_sweep_iter(program, bitstrings, params, qubit_order))
+
+    def _compute_amplitudes_sweep_to_iter(
+        self,
+        program: 'cirq.Circuit',
+        bitstrings: Sequence[int],
+        params: study.Sweepable,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+    ) -> Iterator[Sequence[complex]]:
+        if type(self).compute_amplitudes_sweep == SimulatesAmplitudes.compute_amplitudes_sweep:
+            raise RecursionError(
+                "Must define either compute_amplitudes_sweep or compute_amplitudes_sweep_iter."
+            )
+        yield from self.compute_amplitudes_sweep(program, bitstrings, params, qubit_order)
+
+    @value.alternative(
+        requires='compute_amplitudes_sweep', implementation=_compute_amplitudes_sweep_to_iter
+    )
+    def compute_amplitudes_sweep_iter(
+        self,
+        program: 'cirq.Circuit',
+        bitstrings: Sequence[int],
+        params: study.Sweepable,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+    ) -> Iterator[Sequence[complex]]:
         """Computes the desired amplitudes.
 
         The initial state is assumed to be the all zeros state.
@@ -195,20 +227,20 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
                 ordering of the computational basis states.
 
         Returns:
-            List of lists of amplitudes. The outer dimension indexes the
-            circuit parameters and the inner dimension indexes the bitstrings.
+            An Iterator over lists of amplitudes. The outer dimension indexes
+            the circuit parameters and the inner dimension indexes bitstrings.
         """
         raise NotImplementedError()
 
 
-class SimulatesExpectationValues(metaclass=abc.ABCMeta):
+class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
     """Simulator that computes exact expectation values of observables.
 
     Given a circuit and an observable map, computes exact (to float precision)
     expectation values for each observable at the end of the circuit.
 
     Implementors of this interface should implement the
-    simulate_expectation_values_sweep method.
+    simulate_expectation_values_sweep_iter method.
     """
 
     def simulate_expectation_values(
@@ -259,7 +291,6 @@ class SimulatesExpectationValues(metaclass=abc.ABCMeta):
             permit_terminal_measurements,
         )[0]
 
-    @abc.abstractmethod
     def simulate_expectation_values_sweep(
         self,
         program: 'cirq.Circuit',
@@ -269,6 +300,60 @@ class SimulatesExpectationValues(metaclass=abc.ABCMeta):
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
     ) -> List[List[float]]:
+        """Wraps computed expectation values in a list.
+
+        Prefer overriding `simulate_expectation_values_sweep_iter`.
+        """
+        return list(
+            self.simulate_expectation_values_sweep_iter(
+                program,
+                observables,
+                params,
+                qubit_order,
+                initial_state,
+                permit_terminal_measurements,
+            )
+        )
+
+    def _simulate_expectation_values_sweep_to_iter(
+        self,
+        program: 'cirq.Circuit',
+        observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
+        params: 'study.Sweepable',
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        initial_state: Any = None,
+        permit_terminal_measurements: bool = False,
+    ) -> Iterator[List[float]]:
+        if (
+            type(self).simulate_expectation_values_sweep
+            == SimulatesExpectationValues.simulate_expectation_values_sweep
+        ):
+            raise RecursionError(
+                "Must define either simulate_expectation_values_sweep or "
+                "simulate_expectation_values_sweep_iter."
+            )
+        yield from self.simulate_expectation_values_sweep(
+            program,
+            observables,
+            params,
+            qubit_order,
+            initial_state,
+            permit_terminal_measurements,
+        )
+
+    @value.alternative(
+        requires='simulate_expectation_values_sweep',
+        implementation=_simulate_expectation_values_sweep_to_iter,
+    )
+    def simulate_expectation_values_sweep_iter(
+        self,
+        program: 'cirq.Circuit',
+        observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
+        params: 'study.Sweepable',
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        initial_state: Any = None,
+        permit_terminal_measurements: bool = False,
+    ) -> Iterator[List[float]]:
         """Simulates the supplied circuit and calculates exact expectation
         values for the given observables on its final state, sweeping over the
         given params.
@@ -293,10 +378,10 @@ class SimulatesExpectationValues(metaclass=abc.ABCMeta):
                 ruining expectation value calculations.
 
         Returns:
-            A list of expectation-value lists. The outer index determines the
-            sweep, and the inner index determines the observable. For instance,
-            results[1][3] would select the fourth observable measured in the
-            second sweep.
+            An Iterator over expectation-value lists. The outer index determines
+            the sweep, and the inner index determines the observable. For
+            instance, results[1][3] would select the fourth observable measured
+            in the second sweep.
 
         Raises:
             ValueError if 'program' has terminal measurement(s) and
@@ -304,10 +389,12 @@ class SimulatesExpectationValues(metaclass=abc.ABCMeta):
         """
 
 
-class SimulatesFinalState(Generic[TSimulationTrialResult], metaclass=abc.ABCMeta):
+class SimulatesFinalState(
+    Generic[TSimulationTrialResult], metaclass=value.ABCMetaImplementAnyOneOf
+):
     """Simulator that allows access to the simulator's final state.
 
-    Implementors of this interface should implement the simulate_sweep
+    Implementors of this interface should implement the simulate_sweep_iter
     method. This simulator only returns the state of the quantum system
     for the final step of a simulation. This simulator state may be a state
     vector, the density matrix, or another representation, depending on the
@@ -344,7 +431,6 @@ class SimulatesFinalState(Generic[TSimulationTrialResult], metaclass=abc.ABCMeta
             program, study.ParamResolver(param_resolver), qubit_order, initial_state
         )[0]
 
-    @abc.abstractmethod
     def simulate_sweep(
         self,
         program: 'cirq.Circuit',
@@ -352,6 +438,31 @@ class SimulatesFinalState(Generic[TSimulationTrialResult], metaclass=abc.ABCMeta
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
     ) -> List[TSimulationTrialResult]:
+        """Wraps computed states in a list.
+
+        Prefer overriding `simulate_sweep_iter`.
+        """
+        return list(self.simulate_sweep_iter(program, params, qubit_order, initial_state))
+
+    def _simulate_sweep_to_iter(
+        self,
+        program: 'cirq.Circuit',
+        params: study.Sweepable,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        initial_state: Any = None,
+    ) -> Iterator[TSimulationTrialResult]:
+        if type(self).simulate_sweep == SimulatesFinalState.simulate_sweep:
+            raise RecursionError("Must define either simulate_sweep or simulate_sweep_iter.")
+        yield from self.simulate_sweep(program, params, qubit_order, initial_state)
+
+    @value.alternative(requires='simulate_sweep', implementation=_simulate_sweep_to_iter)
+    def simulate_sweep_iter(
+        self,
+        program: 'cirq.Circuit',
+        params: study.Sweepable,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        initial_state: Any = None,
+    ) -> Iterator[TSimulationTrialResult]:
         """Simulates the supplied Circuit.
 
         This method returns a result which allows access to the entire final
@@ -369,7 +480,7 @@ class SimulatesFinalState(Generic[TSimulationTrialResult], metaclass=abc.ABCMeta
                 documentation of the implementing class for details.
 
         Returns:
-            List of SimulationTrialResults for this run, one for each
+            Iterator over SimulationTrialResults for this run, one for each
             possible parameter resolver.
         """
         raise NotImplementedError()
@@ -393,13 +504,13 @@ class SimulatesIntermediateState(
     a state vector.
     """
 
-    def simulate_sweep(
+    def simulate_sweep_iter(
         self,
         program: 'cirq.Circuit',
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
-    ) -> List[TSimulationTrialResult]:
+    ) -> Iterator[TSimulationTrialResult]:
         """Simulates the supplied Circuit.
 
         This method returns a result which allows access to the entire
@@ -421,7 +532,6 @@ class SimulatesIntermediateState(
             List of SimulationTrialResults for this run, one for each
             possible parameter resolver.
         """
-        trial_results = []
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         for param_resolver in study.to_resolvers(params):
             all_step_results = self.simulate_moment_steps(
@@ -431,14 +541,11 @@ class SimulatesIntermediateState(
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
                     measurements[k] = np.array(v, dtype=np.uint8)
-            trial_results.append(
-                self._create_simulator_trial_result(
-                    params=param_resolver,
-                    measurements=measurements,
-                    final_simulator_state=step_result._simulator_state(),
-                )
+            yield self._create_simulator_trial_result(
+                params=param_resolver,
+                measurements=measurements,
+                final_simulator_state=step_result._simulator_state(),
             )
-        return trial_results
 
     def simulate_moment_steps(
         self,
