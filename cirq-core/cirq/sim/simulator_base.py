@@ -286,9 +286,10 @@ class SimulatorBase(
 
         measurements: Dict[str, List[np.ndarray]] = {}
         for _ in range(repetitions):
+            copies = {a: a.copy() for a in set(act_on_args.values())}
             all_step_results = self._core_iterator(
                 general_suffix,
-                sim_state={q: a.copy() for q, a in act_on_args.items()},
+                sim_state={q: copies[a] for q, a in act_on_args.items()},
                 qubits=qubits,
             )
             for step_result in all_step_results:
