@@ -687,7 +687,7 @@ def test_simulate_sweeps_param_resolver(dtype):
 def test_simulate_moment_steps(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q0), cirq.H(q1))
-    simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=False)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         assert cirq.qid_shape(step) == (2, 2)
         if i == 0:
@@ -735,7 +735,7 @@ def test_simulate_moment_steps_empty_circuit(dtype):
 def test_simulate_moment_steps_set_state(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q0), cirq.H(q1))
-    simulator = cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=False)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         np.testing.assert_almost_equal(step.density_matrix(), np.ones((4, 4)) * 0.25)
         if i == 0:

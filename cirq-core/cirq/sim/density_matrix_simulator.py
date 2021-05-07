@@ -31,7 +31,6 @@ class DensityMatrixSimulator(
         'DensityMatrixSimulatorState',
         act_on_density_matrix_args.ActOnDensityMatrixArgs,
     ],
-    simulator.SimulatesSamples,
 ):
     """A simulator for density matrices and noisy quantum circuits.
 
