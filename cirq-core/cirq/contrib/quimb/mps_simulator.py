@@ -425,8 +425,8 @@ class MPSState(ActOnArgs):
 
         if len(op.qubits) == 1:
             n = self.grouping[op.qubits[0]]
-            self.M[n] = (U @ self.M[n]).reindex({new_inds[0]: old_inds[0]})
 
+            self.M[n] = (U @ self.M[n]).reindex({new_inds[0]: old_inds[0]})
         elif len(op.qubits) == 2:
             n, p = [self.grouping[qubit] for qubit in op.qubits]
 
