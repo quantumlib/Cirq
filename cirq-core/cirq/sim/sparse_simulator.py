@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """A simulator that uses numpy's einsum for sparse matrix operations."""
+
 from typing import (
     Any,
     Dict,
