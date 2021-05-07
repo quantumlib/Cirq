@@ -485,7 +485,9 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         if self.xatol is not None:
             args['xatol'] = self.xatol
 
-        args.update(dataclasses.asdict(self.fsim_options))
+        fsim_options = dataclasses.asdict(self.fsim_options)
+        fsim_options = {k: v for k, v in fsim_options.items() if v is not None}
+        args.update(fsim_options)
         return args
 
     def create_phased_fsim_request(

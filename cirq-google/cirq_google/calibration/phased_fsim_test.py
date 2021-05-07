@@ -183,11 +183,6 @@ def test_xeb_to_calibration_layer():
             'characterize_chi': False,
             'characterize_gamma': False,
             'characterize_phi': True,
-            'theta_default': 0.0,
-            'zeta_default': 0.0,
-            'chi_default': 0.0,
-            'gamma_default': 0.0,
-            'phi_default': 0.0,
         },
     )
 
