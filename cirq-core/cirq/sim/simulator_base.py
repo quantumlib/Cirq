@@ -27,7 +27,6 @@ from typing import (
     Generic,
     Type,
     Sequence,
-    Union,
     Optional,
 )
 
