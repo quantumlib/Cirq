@@ -390,7 +390,7 @@ class SimulatesExpectationValues(metaclass=value.ABCMetaImplementAnyOneOf):
 
 
 class SimulatesFinalState(
-    Generic[TSimulationTrialResult], metaclass=value.ABCMetaImplementAnyOneOf
+    Generic[TSimulationTrialResult], metaclass=value.GenericMetaImplementAnyOneOf
 ):
     """Simulator that allows access to the simulator's final state.
 

@@ -430,6 +430,7 @@ from cirq.value import (
     chosen_angle_to_half_turns,
     Duration,
     DURATION_LIKE,
+    GenericMetaImplementAnyOneOf,
     LinearDict,
     MeasurementKey,
     PeriodicValue,

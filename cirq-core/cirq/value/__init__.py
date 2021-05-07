@@ -16,6 +16,7 @@
 from cirq.value.abc_alt import (
     ABCMetaImplementAnyOneOf,
     alternative,
+    GenericMetaImplementAnyOneOf,
 )
 
 from cirq.value.angle import (

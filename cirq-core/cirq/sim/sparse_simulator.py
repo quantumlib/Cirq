@@ -27,7 +27,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import ops, protocols, qis, study, devices
+from cirq import ops, protocols, qis, devices
 from cirq.sim import (
     simulator,
     state_vector,
