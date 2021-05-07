@@ -70,7 +70,7 @@ def main():
     print("Circuit:")
     print(circuit)
 
-    sim = cirq.Simulator()
+    sim = cirq.Simulator(split_untangled_states=False)
     results = sim.run(circuit, repetitions=20)
     print("\nResults:")
     print(results)
