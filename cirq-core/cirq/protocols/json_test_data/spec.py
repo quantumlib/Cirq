@@ -118,6 +118,9 @@ TestSpec = ModuleJsonTestSpec(
         'ThreeQubitGate',
         'TwoQubitGate',
         'ABCMetaImplementAnyOneOf',
+        'SimulatesAmplitudes',
+        'SimulatesExpectationValues',
+        'SimulatesFinalState',
         # protocols:
         'SupportsActOn',
         'SupportsApplyChannel',
