@@ -142,7 +142,7 @@ class Simulator(
         dtype: Type[np.number] = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-        split_untangled_states: bool = False,
+        split_untangled_states: bool = True,
     ):
         """A sparse matrix simulator.
 
