@@ -52,7 +52,7 @@ class CliffordSimulator(
     def __init__(
         self,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-        split_untangled_states: bool = True,
+        split_untangled_states: bool = False,
     ):
         """Creates instance of `CliffordSimulator`.
 

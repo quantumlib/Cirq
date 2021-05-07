@@ -221,7 +221,8 @@ class SimulatorBase(
                                 if op_args is None
                                 else cast(TActOnArgs, op_args).join(sim_state[q])
                             )
-                    assert op_args is not None
+                    if op_args is None:
+                        continue
 
                     # (Backfill the args map with the new value)
                     for q in op_args.qubits:
