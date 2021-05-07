@@ -79,7 +79,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
     __tracebackhide__ = True
     # pylint: enable=unused-variable
 
-    num_qubits_val = protocols.num_qubits(val)
+    num_qubits_val = protocols.num_qubits(val) or 1
 
     if (
         protocols.is_parameterized(val)
@@ -95,7 +95,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
             )
         return None
 
-    qubits = LineQubit.range(protocols.num_qubits(val) * 2)
+    qubits = LineQubit.range(num_qubits_val * 2)
     qubit_map = {qubit: i for i, qubit in enumerate(qubits)}
 
     circuit = Circuit()
