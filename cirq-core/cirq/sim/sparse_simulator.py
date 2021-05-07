@@ -191,6 +191,7 @@ class Simulator(
         state = qis.to_valid_state_vector(
             initial_state, len(qubits), qid_shape=qid_shape, dtype=self._dtype
         )
+
         return act_on_state_vector_args.ActOnStateVectorArgs(
             target_tensor=np.reshape(state, qid_shape),
             available_buffer=np.empty(qid_shape, dtype=self._dtype),

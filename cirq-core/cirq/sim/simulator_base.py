@@ -165,9 +165,7 @@ class SimulatorBase(
         qubits: Sequence['cirq.Qid'],
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
-        """Iterator over StepResult from Moments of a Circuit.
-
-        Custom simulators should implement this method.
+        """Standard iterator over StepResult from Moments of a Circuit.
 
         Args:
             circuit: The circuit to simulate.
