@@ -19,14 +19,14 @@ https://arxiv.org/abs/2002.07730
 
 import dataclasses
 import math
-from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iterable, Union, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iterable, Union
 
 import numpy as np
 import quimb.tensor as qtn
 
 from cirq import devices, study, ops, protocols, value
 from cirq.sim import simulator, simulator_base
-from cirq.sim.act_on_args import ActOnArgs
+from cirq.sim import act_on_args
 
 if TYPE_CHECKING:
     import cirq
@@ -119,8 +119,9 @@ class MPSSimulator(
         sim_state: Dict['cirq.Qid', 'MPSState'],
         qubits: Sequence['cirq.Qid'],
     ):
+        full_state = next(iter(sim_state.values()))
         return MPSSimulatorStepResult(
-            measurements=sim_state.log_of_measurement_results, state=sim_state
+            measurements=full_state.log_of_measurement_results, state=full_state
         )
 
     def _create_simulator_trial_result(
@@ -222,7 +223,7 @@ class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
         return np.array(measurements, dtype=int)
 
 
-class MPSState(ActOnArgs):
+class MPSState(act_on_args.ActOnArgs):
     """A state of the MPS simulation."""
 
     def __init__(
