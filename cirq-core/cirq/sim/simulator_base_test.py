@@ -17,6 +17,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq.sim import act_on_args
 
 
 class CountingActOnArgs(cirq.ActOnArgs):
@@ -98,7 +99,8 @@ class CountingSimulator(
         sim_state: Dict['cirq.Qid', CountingActOnArgs],
         qubits: Sequence['cirq.Qid'],
     ) -> CountingStepResult:
-        return CountingStepResult(sim_state)
+        state = act_on_args.merge_states(list(sim_state.values()))
+        return CountingStepResult(state)
 
 
 class TestOp(cirq.Operation):
