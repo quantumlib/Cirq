@@ -36,7 +36,7 @@ from cirq import study, ops, protocols, value
 from cirq._compat import deprecated
 from cirq.ops.dense_pauli_string import DensePauliString
 from cirq.protocols import act_on
-from cirq.sim import clifford, simulator, simulator_base
+from cirq.sim import clifford, simulator, simulator_base, act_on_args
 
 
 class CliffordSimulator(
@@ -108,12 +108,13 @@ class CliffordSimulator(
     def _create_step_result(
         self,
         sim_state: Dict['cirq.Qid', clifford.ActOnStabilizerCHFormArgs],
-        qubit_map: Dict['cirq.Qid', int],
+        qubits: Sequence['cirq.Qid'],
     ):
-        state = CliffordState(qubit_map)
-        state.ch_form = sim_state.state.copy()
+        full_state = act_on_args.merge_states(list(sim_state.values())).reorder(qubits)
+        state = CliffordState(full_state.qubit_map)
+        state.ch_form = full_state.state.copy()
         return CliffordSimulatorStepResult(
-            measurements=sim_state.log_of_measurement_results, state=state
+            measurements=full_state.log_of_measurement_results, state=state
         )
 
     def _create_simulator_trial_result(
