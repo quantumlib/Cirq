@@ -17,7 +17,13 @@ from typing import Any, Dict, List, TYPE_CHECKING, Tuple, Union, Sequence, Optio
 import numpy as np
 
 from cirq import ops, protocols, qis, study, value
-from cirq.sim import density_matrix_utils, simulator, act_on_density_matrix_args, simulator_base, act_on_args
+from cirq.sim import (
+    density_matrix_utils,
+    simulator,
+    act_on_density_matrix_args,
+    simulator_base,
+    act_on_args,
+)
 
 if TYPE_CHECKING:
     import cirq
@@ -255,7 +261,11 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
         self._qubits = qubits
         self._sim_state = sim_state
         self._sim_state_values = tuple(set(sim_state.values()))
-        measurements = self._sim_state_values[0].log_of_measurement_results.copy() if len(self._sim_state_values) != 0 else {}
+        measurements = (
+            self._sim_state_values[0].log_of_measurement_results.copy()
+            if len(self._sim_state_values) != 0
+            else {}
+        )
         self._qubit_map = {q: i for i, q in enumerate(qubits)}
         super().__init__(measurements)
         self._dtype = dtype

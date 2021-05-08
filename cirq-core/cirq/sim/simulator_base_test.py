@@ -49,7 +49,11 @@ class CountingStepResult(cirq.StepResult[CountingActOnArgs]):
         self,
         sim_state: CountingActOnArgs,
     ):
-        super().__init__(measurements=sim_state.log_of_measurement_results.copy())
+        super().__init__(
+            measurements=sim_state.log_of_measurement_results.copy()
+            if sim_state is not None
+            else {}
+        )
         self.sim_state = sim_state
 
     def sample(

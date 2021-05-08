@@ -272,7 +272,11 @@ class SparseSimulatorStep(
         self._qubits = qubits
         self._sim_state = sim_state
         self._sim_state_values = tuple(set(sim_state.values()))
-        measurements = self._sim_state_values[0].log_of_measurement_results.copy() if len(self._sim_state_values) != 0 else {}
+        measurements = (
+            self._sim_state_values[0].log_of_measurement_results.copy()
+            if len(self._sim_state_values) != 0
+            else {}
+        )
         qubit_map = {q: i for i, q in enumerate(qubits)}
         super().__init__(measurements=measurements, qubit_map=qubit_map)
         self._dtype = dtype
