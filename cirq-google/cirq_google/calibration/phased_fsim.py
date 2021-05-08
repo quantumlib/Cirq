@@ -845,6 +845,18 @@ class LocalXEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
     def to_calibration_layer(self) -> CalibrationLayer:
         raise NotImplementedError('Not applicable for local calibrations')
 
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        gate: Gate,
+        pairs: List[Tuple[Qid, Qid]],
+        options: LocalXEBPhasedFSimCalibrationOptions,
+        **kwargs,
+    ) -> 'LocalXEBPhasedFSimCalibrationRequest':
+        # List -> Tuple
+        instantiation_pairs = tuple((q_a, q_b) for q_a, q_b in pairs)
+        return cls(instantiation_pairs, gate, options)
+
 
 @json_serializable_dataclass(frozen=True)
 class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
