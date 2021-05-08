@@ -22,6 +22,7 @@ from typing import (
     TYPE_CHECKING,
     Union,
     Sequence,
+    Optional,
 )
 
 import numpy as np
@@ -32,6 +33,7 @@ from cirq.sim import (
     state_vector,
     state_vector_simulator,
     act_on_state_vector_args,
+    act_on_args,
 )
 
 if TYPE_CHECKING:
@@ -203,13 +205,12 @@ class Simulator(
 
     def _create_step_result(
         self,
-        sim_state: act_on_state_vector_args.ActOnStateVectorArgs,
-        qubit_map: Dict['cirq.Qid', int],
+        sim_state: Dict['cirq.Qid', act_on_state_vector_args.ActOnStateVectorArgs],
+        qubits: Sequence['cirq.Qid'],
     ):
         return SparseSimulatorStep(
-            state_vector=sim_state.target_tensor,
-            measurements=dict(sim_state.log_of_measurement_results),
-            qubit_map=qubit_map,
+            sim_state=sim_state,
+            qubits=qubits,
             dtype=self._dtype,
         )
 
@@ -252,7 +253,12 @@ class SparseSimulatorStep(
 ):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
-    def __init__(self, state_vector, measurements, qubit_map, dtype):
+    def __init__(
+        self,
+        sim_state: Dict['cirq.Qid', act_on_state_vector_args.ActOnStateVectorArgs],
+        qubits: Sequence['cirq.Qid'],
+        dtype: 'DTypeLike' = np.complex64,
+    ):
         """Results of a step of the simulator.
 
         Args:
@@ -263,14 +269,18 @@ class SparseSimulatorStep(
             measurements: A dictionary from measurement gate key to measurement
                 results, ordered by the qubits that the measurement operates on.
         """
+        self._qubits = qubits
+        self._sim_state = sim_state
+        self._sim_state_values = tuple(set(sim_state.values()))
+        measurements = self._sim_state_values[0].log_of_measurement_results.copy() if len(self._sim_state_values) != 0 else {}
+        qubit_map = {q: i for i, q in enumerate(qubits)}
         super().__init__(measurements=measurements, qubit_map=qubit_map)
         self._dtype = dtype
-        size = np.prod(protocols.qid_shape(self), dtype=int)
-        self._state_vector = np.reshape(state_vector, size)
+        self._state_vector: Optional[np.ndarray] = None
 
     def _simulator_state(self) -> state_vector_simulator.StateVectorSimulatorState:
         return state_vector_simulator.StateVectorSimulatorState(
-            qubit_map=self.qubit_map, state_vector=self._state_vector
+            qubit_map=self.qubit_map, state_vector=self.state_vector(copy=False)
         )
 
     def state_vector(self, copy: bool = True):
@@ -306,8 +316,12 @@ class SparseSimulatorStep(
                 parameters from the state vector and store then using False
                 can speed up simulation by eliminating a memory copy.
         """
-        vector = self._simulator_state().state_vector
-        return vector.copy() if copy else vector
+        if self._state_vector is None:
+            state = act_on_args.merge_states(self._sim_state_values).reorder(self._qubits)
+            vector = state.target_tensor
+            size = np.prod(vector.shape, dtype=int)
+            self._state_vector = np.reshape(vector, size)
+        return self._state_vector.copy() if copy else self._state_vector
 
     def set_state_vector(self, state: 'cirq.STATE_VECTOR_LIKE'):
         """Set the state vector.
@@ -333,11 +347,22 @@ class SparseSimulatorStep(
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
-        indices = [self.qubit_map[qubit] for qubit in qubits]
-        return state_vector.sample_state_vector(
-            self._state_vector,
-            indices,
-            qid_shape=protocols.qid_shape(self, None),
-            repetitions=repetitions,
-            seed=seed,
-        )
+        columns = []
+        selected_order: List[ops.Qid] = []
+        for v in self._sim_state_values:
+            qs = [q for q in v.qubits if q in qubits]
+            if any(qs):
+                indices = [v.qubit_map[q] for q in qs]
+                column = state_vector.sample_state_vector(
+                    v.target_tensor,
+                    indices,
+                    qid_shape=tuple(q.dimension for q in v.qubits),
+                    repetitions=repetitions,
+                    seed=seed,
+                )
+                columns.append(column)
+                selected_order += qs
+        stacked = np.column_stack(columns)
+        qubit_map = {q: i for i, q in enumerate(selected_order)}
+        index_order = [qubit_map[q] for q in qubits]
+        return stacked.transpose()[index_order].transpose()

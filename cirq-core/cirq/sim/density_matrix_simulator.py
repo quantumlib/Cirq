@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Simulator for density matrices that simulates noisy quantum circuits."""
-from typing import Any, Dict, List, TYPE_CHECKING, Tuple, Union, Sequence
+from typing import Any, Dict, List, TYPE_CHECKING, Tuple, Union, Sequence, Optional
 
 import numpy as np
 
 from cirq import ops, protocols, qis, study, value
-from cirq.sim import density_matrix_utils, simulator, act_on_density_matrix_args, simulator_base
+from cirq.sim import density_matrix_utils, simulator, act_on_density_matrix_args, simulator_base, act_on_args
 
 if TYPE_CHECKING:
     import cirq
@@ -205,13 +205,12 @@ class DensityMatrixSimulator(
 
     def _create_step_result(
         self,
-        sim_state: act_on_density_matrix_args.ActOnDensityMatrixArgs,
-        qubit_map: Dict['cirq.Qid', int],
+        sim_state: Dict['cirq.Qid', act_on_density_matrix_args.ActOnDensityMatrixArgs],
+        qubits: Sequence['cirq.Qid'],
     ):
         return DensityMatrixStepResult(
-            density_matrix=sim_state.target_tensor,
-            measurements=dict(sim_state.log_of_measurement_results),
-            qubit_map=qubit_map,
+            sim_state=sim_state,
+            qubits=qubits,
             dtype=self._dtype,
         )
 
@@ -240,9 +239,8 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
 
     def __init__(
         self,
-        density_matrix: np.ndarray,
-        measurements: Dict[str, np.ndarray],
-        qubit_map: Dict[ops.Qid, int],
+        sim_state: Dict['cirq.Qid', act_on_density_matrix_args.ActOnDensityMatrixArgs],
+        qubits: Sequence['cirq.Qid'],
         dtype: 'DTypeLike' = np.complex64,
     ):
         """DensityMatrixStepResult.
@@ -254,17 +252,21 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
                 ordering of the basis in density_matrix.
             dtype: The numpy dtype for the density matrix.
         """
+        self._qubits = qubits
+        self._sim_state = sim_state
+        self._sim_state_values = tuple(set(sim_state.values()))
+        measurements = self._sim_state_values[0].log_of_measurement_results.copy() if len(self._sim_state_values) != 0 else {}
+        self._qubit_map = {q: i for i, q in enumerate(qubits)}
         super().__init__(measurements)
-        self._density_matrix = density_matrix
-        self._qubit_map = qubit_map
         self._dtype = dtype
-        self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
+        self._qid_shape = tuple(q.dimension for q in qubits)
+        self._density_matrix: Optional[np.ndarray] = None
 
     def _qid_shape_(self):
         return self._qid_shape
 
     def _simulator_state(self) -> 'DensityMatrixSimulatorState':
-        return DensityMatrixSimulatorState(self._density_matrix, self._qubit_map)
+        return DensityMatrixSimulatorState(self.density_matrix(copy=False), self._qubit_map)
 
     def set_density_matrix(self, density_matrix_repr: Union[int, np.ndarray]):
         """Set the density matrix to a new density matrix.
@@ -280,7 +282,7 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
             with trace one.
         """
         density_matrix = qis.to_valid_density_matrix(
-            density_matrix_repr, len(self._qubit_map), qid_shape=self._qid_shape, dtype=self._dtype
+            density_matrix_repr, len(self._qid_shape), qid_shape=self._qid_shape, dtype=self._dtype
         )
         sim_state_matrix = self._simulator_state().density_matrix
         density_matrix = np.reshape(density_matrix, sim_state_matrix.shape)
@@ -321,9 +323,12 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
                 parameters from the density matrix and store then using False
                 can speed up simulation by eliminating a memory copy.
         """
-        size = np.prod(self._qid_shape, dtype=int)
-        matrix = self._density_matrix.copy() if copy else self._density_matrix
-        return np.reshape(matrix, (size, size))
+        if self._density_matrix is None:
+            state = act_on_args.merge_states(self._sim_state_values).reorder(self._qubits)
+            matrix = state.target_tensor
+            size = int(np.sqrt(np.prod(matrix.shape, dtype=int)))
+            self._density_matrix = np.reshape(matrix, (size, size))
+        return self._density_matrix.copy() if copy else self._density_matrix
 
     def sample(
         self,
@@ -331,14 +336,25 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
-        indices = [self._qubit_map[q] for q in qubits]
-        return density_matrix_utils.sample_density_matrix(
-            self._simulator_state().density_matrix,
-            indices,
-            qid_shape=self._qid_shape,
-            repetitions=repetitions,
-            seed=seed,
-        )
+        columns = []
+        selected_order: List[ops.Qid] = []
+        for v in self._sim_state_values:
+            qs = [q for q in v.qubits if q in qubits]
+            if any(qs):
+                indices = [v.qubit_map[q] for q in qs]
+                column = density_matrix_utils.sample_density_matrix(
+                    v.target_tensor,
+                    indices,
+                    qid_shape=tuple(q.dimension for q in v.qubits),
+                    repetitions=repetitions,
+                    seed=seed,
+                )
+                columns.append(column)
+                selected_order += qs
+        stacked = np.column_stack(columns)
+        qubit_map = {q: i for i, q in enumerate(selected_order)}
+        index_order = [qubit_map[q] for q in qubits]
+        return stacked.transpose()[index_order].transpose()
 
 
 @value.value_equality(unhashable=True)

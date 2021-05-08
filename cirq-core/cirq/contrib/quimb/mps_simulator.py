@@ -116,8 +116,8 @@ class MPSSimulator(
 
     def _create_step_result(
         self,
-        sim_state: 'MPSState',
-        qubit_map: Dict['cirq.Qid', int],
+        sim_state: Dict['cirq.Qid', 'MPSState'],
+        qubits: Sequence['cirq.Qid'],
     ):
         return MPSSimulatorStepResult(
             measurements=sim_state.log_of_measurement_results, state=sim_state

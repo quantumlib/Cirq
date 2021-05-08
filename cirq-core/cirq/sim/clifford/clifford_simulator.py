@@ -107,7 +107,7 @@ class CliffordSimulator(
 
     def _create_step_result(
         self,
-        sim_state: clifford.ActOnStabilizerCHFormArgs,
+        sim_state: Dict['cirq.Qid', clifford.ActOnStabilizerCHFormArgs],
         qubit_map: Dict['cirq.Qid', int],
     ):
         state = CliffordState(qubit_map)

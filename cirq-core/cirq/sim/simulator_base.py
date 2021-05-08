@@ -121,14 +121,14 @@ class SimulatorBase(
     @abc.abstractmethod
     def _create_step_result(
         self,
-        sim_state: TActOnArgs,
-        qubit_map: Dict['cirq.Qid', int],
+        sim_state: Dict['cirq.Qid', TActOnArgs],
+        qubits: Sequence['cirq.Qid'],
     ) -> TStepResult:
         """This method should be implemented to create a step result.
 
         Args:
             sim_state: The TActOnArgs for this trial.
-            qubit_map: Determines the canonical ordering of the qubits. This
+            qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
 
@@ -176,18 +176,8 @@ class SimulatorBase(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
-
-        def merge_states(sim_state: Dict['cirq.Qid', TActOnArgs]) -> TActOnArgs:
-            final_args = None
-            for args in set(sim_state.values()):
-                final_args = args if final_args is None else cast(TActOnArgs, final_args).join(args)
-            if final_args is None:
-                return self._create_act_on_arg(initial_state=0, qubits=[], logs={})
-            return final_args.reorder(qubits) if self._split_untangled_states else final_args
-
         if len(circuit) == 0:
-            step_state = merge_states(sim_state)
-            yield self._create_step_result(step_state, step_state.qubit_map)
+            yield self._create_step_result(sim_state, qubits)
             return
 
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
@@ -241,9 +231,8 @@ class SimulatorBase(
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
 
-            step_state = merge_states(sim_state)
-            yield self._create_step_result(step_state, step_state.qubit_map)
-            step_state.log_of_measurement_results.clear()
+            yield self._create_step_result(sim_state, qubits)
+            next(iter(sim_state.values())).log_of_measurement_results.clear()
 
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int

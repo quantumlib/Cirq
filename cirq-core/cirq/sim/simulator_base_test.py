@@ -47,11 +47,9 @@ class CountingStepResult(cirq.StepResult[CountingActOnArgs]):
     def __init__(
         self,
         sim_state: CountingActOnArgs,
-        qubit_map: Dict[cirq.Qid, int],
     ):
         super().__init__(measurements=sim_state.log_of_measurement_results.copy())
         self.sim_state = sim_state
-        self.qubit_map = qubit_map
 
     def sample(
         self,
@@ -97,10 +95,10 @@ class CountingSimulator(
 
     def _create_step_result(
         self,
-        sim_state: CountingActOnArgs,
-        qubit_map: Dict[cirq.Qid, int],
+        sim_state: Dict['cirq.Qid', CountingActOnArgs],
+        qubits: Sequence['cirq.Qid'],
     ) -> CountingStepResult:
-        return CountingStepResult(sim_state, qubit_map)
+        return CountingStepResult(sim_state)
 
 
 class TestOp(cirq.Operation):
