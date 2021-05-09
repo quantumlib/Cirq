@@ -321,10 +321,13 @@ class SparseSimulatorStep(
                 can speed up simulation by eliminating a memory copy.
         """
         if self._state_vector is None:
-            state = act_on_args.merge_states(self._sim_state_values).reorder(self._qubits)
-            vector = state.target_tensor
-            size = np.prod(vector.shape, dtype=int)
-            self._state_vector = np.reshape(vector, size)
+            self._state_vector = np.array([1])
+            state = act_on_args.merge_states(self._sim_state_values)
+            if state is not None:
+                state = state.reorder(self._qubits)
+                vector = state.target_tensor
+                size = np.prod(vector.shape, dtype=int)
+                self._state_vector = np.reshape(vector, size)
         return self._state_vector.copy() if copy else self._state_vector
 
     def set_state_vector(self, state: 'cirq.STATE_VECTOR_LIKE'):

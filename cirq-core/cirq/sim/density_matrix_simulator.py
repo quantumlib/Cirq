@@ -334,10 +334,12 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
                 can speed up simulation by eliminating a memory copy.
         """
         if self._density_matrix is None:
-            state = act_on_args.merge_states(self._sim_state_values).reorder(self._qubits)
-            matrix = state.target_tensor
-            size = int(np.sqrt(np.prod(matrix.shape, dtype=int)))
-            self._density_matrix = np.reshape(matrix, (size, size))
+            self._density_matrix = np.array(1)
+            if len(self._sim_state_values) != 0:
+                state = act_on_args.merge_states(self._sim_state_values).reorder(self._qubits)
+                matrix = state.target_tensor
+                size = int(np.sqrt(np.prod(matrix.shape, dtype=int)))
+                self._density_matrix = np.reshape(matrix, (size, size))
         return self._density_matrix.copy() if copy else self._density_matrix
 
     def sample(
