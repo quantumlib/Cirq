@@ -248,6 +248,8 @@ def prepare_characterization_for_moments(
     The circuit can only be composed of single qubit operations, wait operations, measurement
     operations and operations supported by gates_translator.
 
+    See also prepare_characterization_for_circuits_moments that operates on a list of circuits.
+
     Args:
         circuit: Circuit to characterize.
         options: Options that are applied to each characterized gate within a moment.
@@ -274,13 +276,11 @@ def prepare_characterization_for_moments(
         operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
     """
     if initial is None:
-        allocations: List[Optional[int]] = []
-        calibrations: List[RequestT] = []
-        pairs_map: Dict[Tuple[Tuple[Qid, Qid], ...], int] = {}
-    else:
-        allocations = []
-        calibrations = list(initial)
-        pairs_map = {calibration.pairs: index for index, calibration in enumerate(calibrations)}
+        initial = []
+
+    allocations: List[Optional[int]] = []
+    calibrations = list(initial)
+    pairs_map = {calibration.pairs: index for index, calibration in enumerate(calibrations)}
 
     for moment in circuit:
         calibration = prepare_characterization_for_moment(
@@ -301,6 +301,68 @@ def prepare_characterization_for_moments(
             allocations.append(None)
 
     return CircuitWithCalibration(circuit, allocations), calibrations
+
+
+def prepare_characterization_for_circuits_moments(
+    circuits: List[Circuit],
+    options: PhasedFSimCalibrationOptions[RequestT],
+    *,
+    gates_translator: Callable[
+        [Gate], Optional[PhaseCalibratedFSimGate]
+    ] = try_convert_sqrt_iswap_to_fsim,
+    merge_subsets: bool = True,
+    initial: Optional[Sequence[RequestT]] = None,
+) -> Tuple[List[CircuitWithCalibration], List[RequestT]]:
+    """Extracts a minimal set of characterization requests necessary to characterize given circuits.
+
+    This prepare method works on moments of the circuit and assumes that all the
+    two-qubit gates to calibrate are not mixed with other gates in a moment. The method groups
+    together moments of similar structure to minimize the number of characterizations requested.
+
+    The circuit can only be composed of single qubit operations, wait operations, measurement
+    operations and operations supported by gates_translator.
+
+    See also prepare_characterization_for_moments that operates on a single circuit.
+
+    Args:
+        circuits: Circuits list to characterize.
+        options: Options that are applied to each characterized gate within a moment.
+        gates_translator: Function that translates a gate to a supported FSimGate which will undergo
+            characterization. Defaults to sqrt_iswap_gates_translator.
+        merge_subsets: If `True` then this method tries to merge moments into the other moments
+            listed previously if they can be characterized together (they have no conflicting
+            operations). Otherwise, only moments of exactly the same structure are characterized
+            together.
+        initial: The characterization requests obtained by a previous scan of another circuit; i.e.,
+            the requests field of the return value of prepare_characterization_for_moments invoked
+            on another circuit. This might be used to find a minimal set of moments to characterize
+            across many circuits.
+
+    Returns:
+        circuits_with_calibration:
+            The circuit and its mapping from moments to indices into the list of calibration
+            requests (the second returned value). When list of circuits was passed on input, this
+            will be a list of CircuitWithCalibration objects corresponding to each circuit on the
+            input list.
+        calibrations:
+            A list of calibration requests for each characterized moment.
+
+    Raises:
+        IncompatibleMomentError when circuit contains a moment with operations other than the
+        operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
+    """
+    requests = list(initial) if initial is not None else []
+    circuits_with_calibration = []
+    for circuit in circuits:
+        circuit_with_calibration, requests = prepare_characterization_for_moments(
+            circuit,
+            options,
+            gates_translator=gates_translator,
+            merge_subsets=merge_subsets,
+            initial=requests,
+        )
+        circuits_with_calibration.append(circuit_with_calibration)
+    return circuits_with_calibration, requests
 
 
 def prepare_floquet_characterization_for_moments(
@@ -350,12 +412,15 @@ def prepare_floquet_characterization_for_moments(
         IncompatibleMomentError when circuit contains a moment with operations other than the
         operations matched by gates_translator, or it mixes a single qubit and two qubit gates.
     """
-    return prepare_characterization_for_moments(
-        circuit=circuit,
-        options=options,
-        gates_translator=gates_translator,
-        merge_subsets=merge_subsets,
-        initial=initial,
+    return cast(
+        Tuple[CircuitWithCalibration, List[FloquetPhasedFSimCalibrationRequest]],
+        prepare_characterization_for_moments(
+            circuit,
+            options,
+            gates_translator=gates_translator,
+            merge_subsets=merge_subsets,
+            initial=initial,
+        ),
     )
 
 

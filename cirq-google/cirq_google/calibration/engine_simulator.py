@@ -3,7 +3,6 @@ from typing import (
     Callable,
     Dict,
     Iterable,
-    Iterator,
     List,
     Optional,
     Sequence,
@@ -21,17 +20,19 @@ from cirq.ops import (
     Operation,
     PhasedFSimGate,
     Qid,
+    QubitOrder,
+    QubitOrderOrList,
     SingleQubitGate,
     WaitGate,
 )
 from cirq.sim import (
-    Simulator,
-    SimulatesSamples,
-    SimulatesIntermediateStateVector,
-    StateVectorStepResult,
     ActOnStateVectorArgs,
+    SimulatesIntermediateStateVector,
+    Simulator,
+    SparseSimulatorStep,
+    StateVectorTrialResult,
 )
-from cirq.study import ParamResolver
+from cirq.study import ParamResolverOrSimilarType, Result, Sweepable
 from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
 from cirq_google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationRequest,
@@ -50,7 +51,7 @@ PhasedFsimDictParameters = Dict[
 ]
 
 
-class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVector):
+class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector[SparseSimulatorStep]):
     """Wrapper on top of cirq.Simulator that allows to simulate calibration requests.
 
     This simulator introduces get_calibrations which allows to simulate
@@ -81,6 +82,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             gates_translator: Function that translates a gate to a supported FSimGate which will
                 undergo characterization.
         """
+        super().__init__()
         self._simulator = simulator
         self._drift_generator = drift_generator
         self._drifted_parameters: Dict[Tuple[Qid, Qid, FSimGate], PhasedFSimCharacterization] = {}
@@ -387,26 +389,40 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
         return gate_calibration.as_characterized_phased_fsim_gate(parameters)
 
-    def _run(
-        self, circuit: Circuit, param_resolver: ParamResolver, repetitions: int
-    ) -> Dict[str, np.ndarray]:
-        converted = _convert_to_circuit_with_drift(self, circuit)
-        return self._simulator._run(converted, param_resolver, repetitions)
-
-    def _core_iterator(
+    def run_sweep(
         self,
-        circuit: Circuit,
-        sim_state: Any,
-    ) -> Iterator[StateVectorStepResult]:
-        converted = _convert_to_circuit_with_drift(self, circuit)
-        return self._simulator._core_iterator(converted, sim_state)
+        program: Circuit,
+        params: Sweepable,
+        repetitions: int = 1,
+    ) -> List[Result]:
+        converted = _convert_to_circuit_with_drift(self, program)
+        return self._simulator.run_sweep(converted, params, repetitions)
+
+    def simulate(
+        self,
+        program: Circuit,
+        param_resolver: ParamResolverOrSimilarType = None,
+        qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+        initial_state: Any = None,
+    ) -> StateVectorTrialResult:
+        converted = _convert_to_circuit_with_drift(self, program)
+        return self._simulator.simulate(converted, param_resolver, qubit_order, initial_state)
 
     def _create_act_on_args(
         self,
         initial_state: Union[int, ActOnStateVectorArgs],
         qubits: Sequence[Qid],
     ) -> ActOnStateVectorArgs:
-        return self._simulator._create_act_on_args(initial_state, qubits)
+        # Needs an implementation since it's abstract but will never actually be called.
+        raise NotImplementedError()
+
+    def _create_step_result(
+        self,
+        sim_state: ActOnStateVectorArgs,
+        qubit_map: Dict[Qid, int],
+    ) -> SparseSimulatorStep:
+        # Needs an implementation since it's abstract but will never actually be called.
+        raise NotImplementedError()
 
 
 class _PhasedFSimConverter(PointOptimizer):
