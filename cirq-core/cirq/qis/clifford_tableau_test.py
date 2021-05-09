@@ -335,49 +335,48 @@ def test_merge_tableau():
     assert expected_t == t1.merged_with(t2)
 
     t1, t2, expected_t = three_identical_table(1)
-    [_H(t, 0) for t in (t1, expected_t)]
-    [_H(t, 0) for t in (t2, expected_t)]
+    _ = [_H(t, 0) for t in (t1, expected_t)]
+    _ = [_H(t, 0) for t in (t2, expected_t)]
     assert expected_t == t1.merged_with(t2)
 
     t1, t2, expected_t = three_identical_table(1)
-    [_X(t, 0) for t in (t1, expected_t)]
-    [_S(t, 0) for t in (t2, expected_t)]
+    _ = [_X(t, 0) for t in (t1, expected_t)]
+    _ = [_S(t, 0) for t in (t2, expected_t)]
     assert expected_t == t1.merged_with(t2)
 
     t1, t2, expected_t = three_identical_table(1)
-    [_X(t, 0) for t in (t1, expected_t)]
-    [_H(t, 0) for t in (t1, expected_t)]
-    [_Z(t, 0) for t in (t1, expected_t)]
-    [_S(t, 0) for t in (t2, expected_t)]
-    [_H(t, 0) for t in (t2, expected_t)]
+    _ = [_X(t, 0) for t in (t1, expected_t)]
+    _ = [_H(t, 0) for t in (t1, expected_t)]
+    _ = [_Z(t, 0) for t in (t1, expected_t)]
+    _ = [_S(t, 0) for t in (t2, expected_t)]
+    _ = [_H(t, 0) for t in (t2, expected_t)]
     assert expected_t == t1.merged_with(t2)
 
     t1, t2, expected_t = three_identical_table(2)
-    [_H(t, 0) for t in (t1, expected_t)]
-    [_H(t, 1) for t in (t1, expected_t)]
-    [_H(t, 0) for t in (t2, expected_t)]
-    [_H(t, 1) for t in (t2, expected_t)]
+    _ = [_H(t, 0) for t in (t1, expected_t)]
+    _ = [_H(t, 1) for t in (t1, expected_t)]
+    _ = [_H(t, 0) for t in (t2, expected_t)]
+    _ = [_H(t, 1) for t in (t2, expected_t)]
     assert expected_t == t1.merged_with(t2)
 
     t1, t2, expected_t = three_identical_table(2)
-    [_H(t, 0) for t in (t1, expected_t)]
-    [_CNOT(t, 0, 1) for t in (t1, expected_t)]
-    [_S(t, 0) for t in (t2, expected_t)]
-    [_X(t, 1) for t in (t2, expected_t)]
+    _ = [_H(t, 0) for t in (t1, expected_t)]
+    _ = [_CNOT(t, 0, 1) for t in (t1, expected_t)]
+    _ = [_S(t, 0) for t in (t2, expected_t)]
+    _ = [_X(t, 1) for t in (t2, expected_t)]
     assert expected_t == t1.merged_with(t2)
 
     t1, t2, expected_t = three_identical_table(2)
-    [_H(t, 0) for t in (t1, expected_t)]
-    [_CNOT(t, 0, 1) for t in (t1, expected_t)]
-    [_S(t, 1) for t in (t2, expected_t)]
-    [_CNOT(t, 1, 0) for t in (t2, expected_t)]
+    _ = [_H(t, 0) for t in (t1, expected_t)]
+    _ = [_CNOT(t, 0, 1) for t in (t1, expected_t)]
+    _ = [_S(t, 1) for t in (t2, expected_t)]
+    _ = [_CNOT(t, 1, 0) for t in (t2, expected_t)]
     assert expected_t == t1.merged_with(t2)
 
     def random_circuit(num_ops, num_qubits, seed=12345):
         prng = np.random.RandomState(seed)
-        if num_qubits == 1:
-            candidate_op = [_H, _S, _X, _Z]
-        else:
+        candidate_op = [_H, _S, _X, _Z]
+        if num_qubits > 1:
             candidate_op = [_H, _S, _X, _Z, _CNOT]
 
         seq_op = []
@@ -396,9 +395,9 @@ def test_merge_tableau():
         seq_op = random_circuit(num_ops=20, num_qubits=8)
         for i, (op, args) in enumerate(seq_op):
             if i < 7:
-                [op(t, *args) for t in (t1, expected_t)]
+                _ = [op(t, *args) for t in (t1, expected_t)]
             else:
-                [op(t, *args) for t in (t2, expected_t)]
+                _ = [op(t, *args) for t in (t2, expected_t)]
         assert expected_t == t1.merged_with(t2)
 
     # Since merging Clifford Tableau operation is O(n^3),
@@ -407,7 +406,7 @@ def test_merge_tableau():
     seq_op = random_circuit(num_ops=1000, num_qubits=100)
     for i, (op, args) in enumerate(seq_op):
         if i < 350:
-            [op(t, *args) for t in (t1, expected_t)]
+            _ = [op(t, *args) for t in (t1, expected_t)]
         else:
-            [op(t, *args) for t in (t2, expected_t)]
+            _ = [op(t, *args) for t in (t2, expected_t)]
     assert expected_t == t1.merged_with(t2)

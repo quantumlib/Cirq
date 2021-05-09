@@ -194,7 +194,7 @@ class CliffordTableau:
         merged_m = np.mod(m1.dot(m2), 2)
         phase = np.mod(p1 + m1.dot(p2), 2)
 
-        # we need more phase correction for expanding Y to XZ and swapping Z_iX_i order if necessary.
+        # we need more phase correction for expanding Y to XZ and swapping Z_iX_i order.
         for k in range(2 * self.n):
             swap_phase = 0  # value betwen 0 and 3 representing [1, i, -1, -i] respectively.
             prev_row_sum = np.zeros([2 * self.n])
@@ -251,8 +251,6 @@ class CliffordTableau:
             represents the effective single Pauli operator on that qubit. The
             overall phase is captured in the coefficient.
         """
-        from cirq.ops.dense_pauli_string import DensePauliString
-
         coefficient = -1 if self.rs[i] else 1
         pauli_mask = ""
 
