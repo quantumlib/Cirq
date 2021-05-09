@@ -322,3 +322,92 @@ def test_deprecated_clifford_location():
         from cirq.sim import CliffordTableau
 
         CliffordTableau(num_qubits=1)
+
+
+def test_merge_tableau():
+    def three_identical_table(num_qubits):
+        t1 = cirq.CliffordTableau(num_qubits)
+        t2 = cirq.CliffordTableau(num_qubits)
+        t3 = cirq.CliffordTableau(num_qubits)
+        return t1, t2, t3
+
+    t1, t2, expected_t = three_identical_table(1)
+    assert expected_t == t1.merged_with(t2)
+
+    t1, t2, expected_t = three_identical_table(1)
+    [_H(t, 0) for t in (t1, expected_t)]
+    [_H(t, 0) for t in (t2, expected_t)]
+    assert expected_t == t1.merged_with(t2)
+
+    t1, t2, expected_t = three_identical_table(1)
+    [_X(t, 0) for t in (t1, expected_t)]
+    [_S(t, 0) for t in (t2, expected_t)]
+    assert expected_t == t1.merged_with(t2)
+
+    t1, t2, expected_t = three_identical_table(1)
+    [_X(t, 0) for t in (t1, expected_t)]
+    [_H(t, 0) for t in (t1, expected_t)]
+    [_Z(t, 0) for t in (t1, expected_t)]
+    [_S(t, 0) for t in (t2, expected_t)]
+    [_H(t, 0) for t in (t2, expected_t)]
+    assert expected_t == t1.merged_with(t2)
+
+    t1, t2, expected_t = three_identical_table(2)
+    [_H(t, 0) for t in (t1, expected_t)]
+    [_H(t, 1) for t in (t1, expected_t)]
+    [_H(t, 0) for t in (t2, expected_t)]
+    [_H(t, 1) for t in (t2, expected_t)]
+    assert expected_t == t1.merged_with(t2)
+
+    t1, t2, expected_t = three_identical_table(2)
+    [_H(t, 0) for t in (t1, expected_t)]
+    [_CNOT(t, 0, 1) for t in (t1, expected_t)]
+    [_S(t, 0) for t in (t2, expected_t)]
+    [_X(t, 1) for t in (t2, expected_t)]
+    assert expected_t == t1.merged_with(t2)
+
+    t1, t2, expected_t = three_identical_table(2)
+    [_H(t, 0) for t in (t1, expected_t)]
+    [_CNOT(t, 0, 1) for t in (t1, expected_t)]
+    [_S(t, 1) for t in (t2, expected_t)]
+    [_CNOT(t, 1, 0) for t in (t2, expected_t)]
+    assert expected_t == t1.merged_with(t2)
+
+    def random_circuit(num_ops, num_qubits, seed=12345):
+        prng = np.random.RandomState(seed)
+        if num_qubits == 1:
+            candidate_op = [_H, _S, _X, _Z]
+        else:
+            candidate_op = [_H, _S, _X, _Z, _CNOT]
+
+        seq_op = []
+        for _ in range(num_ops):
+            op = prng.randint(len(candidate_op))
+            if op != 4:
+                args = (prng.randint(num_qubits),)
+            else:
+                args = prng.choice(num_qubits, 2, replace=False)
+            seq_op.append((candidate_op[op], args))
+        return seq_op
+
+    # Do small random circuits test 100 times.
+    for _ in range(100):
+        t1, t2, expected_t = three_identical_table(8)
+        seq_op = random_circuit(num_ops=20, num_qubits=8)
+        for i, (op, args) in enumerate(seq_op):
+            if i < 7:
+                [op(t, *args) for t in (t1, expected_t)]
+            else:
+                [op(t, *args) for t in (t2, expected_t)]
+        assert expected_t == t1.merged_with(t2)
+
+    # Since merging Clifford Tableau operation is O(n^3),
+    # running 100 qubits case is still fast.
+    t1, t2, expected_t = three_identical_table(100)
+    seq_op = random_circuit(num_ops=1000, num_qubits=100)
+    for i, (op, args) in enumerate(seq_op):
+        if i < 350:
+            [op(t, *args) for t in (t1, expected_t)]
+        else:
+            [op(t, *args) for t in (t2, expected_t)]
+    assert expected_t == t1.merged_with(t2)

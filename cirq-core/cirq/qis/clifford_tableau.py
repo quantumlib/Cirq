@@ -83,6 +83,9 @@ class CliffordTableau:
         assert np.shape(new_rs) == (2 * self.n,)
         self._rs[:-1] = np.array(new_rs).astype(bool)
 
+    def matrix(self) -> np.array:
+        return np.concatenate([self.xs, self.zs], axis=1)
+
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['n', 'rs', 'xs', 'zs'])
 
@@ -174,6 +177,43 @@ class CliffordTableau:
             string += '\n'
 
         return string
+
+    def merged_with(self, second: 'CliffordTableau') -> 'CliffordTableau':
+        """Returns a merged CliffordTableau of self tableau and second tableau.
+
+        The meaning of merge two clifford tableau is the corresponding unitary operation
+        of merged clifford tableau is equal to (up to global phase) the composed unitary
+        operation of self tableau and the one of second tableau.
+        """
+        m1 = self.matrix().astype(int)
+        m2 = second.matrix().astype(int)
+
+        p1 = self.rs.astype(int)
+        p2 = second.rs.astype(int)
+
+        merged_m = np.mod(m1.dot(m2), 2)
+        phase = np.mod(p1 + m1.dot(p2), 2)
+
+        # we need more phase correction for expanding Y to XZ and swapping Z_iX_i order if necessary.
+        for k in range(2 * self.n):
+            swap_phase = 0  # value betwen 0 and 3 representing [1, i, -1, -i] respectively.
+            prev_row_sum = np.zeros([2 * self.n])
+            swap_phase += np.sum(m1[k, : self.n] * m1[k, self.n :])  # Y gate => iXZ
+            for i, v in enumerate(m1[k]):
+                if v == 0:
+                    continue
+                swap_phase += np.sum(m2[i, : self.n] * m2[i, self.n :])  # Y gate => iXZ
+                swap_phase += 2 * np.sum(m2[i, : self.n] * prev_row_sum[self.n :])  # swap Z_i X_i
+                prev_row_sum += m2[i]
+            prev_row_sum = np.mod(prev_row_sum, 2)
+            swap_phase -= np.sum(prev_row_sum[: self.n] * prev_row_sum[self.n :])  # XZ => -iY
+            phase[k] = (phase[k] + (swap_phase % 4) / 2) % 2
+
+        merged_tableau = CliffordTableau(num_qubits=self.n)
+        merged_tableau.xs = merged_m[:, : self.n]
+        merged_tableau.zs = merged_m[:, self.n :]
+        merged_tableau.rs = phase
+        return merged_tableau
 
     def _rowsum(self, q1, q2):
         """Implements the "rowsum" routine defined by
