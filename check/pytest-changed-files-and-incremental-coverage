@@ -76,12 +76,14 @@ changed_python_tests=$(git diff --name-only "${rev}" -- \
 )
 if git diff --name-only "${rev}" -- | grep "__init__\.py$" > /dev/null; then
   # Include global API tests when an __init__ file is touched.
-  changed_python_tests+=('cirq/protocols/json_serialization_test.py')
+  changed_python_tests+=('cirq-core/cirq/protocols/json_serialization_test.py')
 fi
 if [ "${#changed_python_tests[@]}" -eq 0 ]; then
     echo -e "\033[33mNo changed files with associated python tests.\033[0m" >&2
     exit 0
 fi
+
+source dev_tools/pypath
 
 # Run tests while producing coverage files.
 check/pytest "${changed_python_tests[@]}" \
@@ -91,7 +93,7 @@ check/pytest "${changed_python_tests[@]}" \
 pytest_result=$?
 
 # Analyze coverage files.
-PYTHONPATH="$(pwd)" python dev_tools/check_incremental_coverage_annotations.py "${rev}"
+python dev_tools/check_incremental_coverage_annotations.py "${rev}"
 cover_result=$?
 
 # Clean up generated coverage files.

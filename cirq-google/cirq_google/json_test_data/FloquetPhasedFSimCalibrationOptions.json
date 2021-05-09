@@ -1,0 +1,9 @@
+{
+  "cirq_type": "FloquetPhasedFSimCalibrationOptions",
+  "characterize_theta": true,
+  "characterize_zeta": true,
+  "characterize_chi": false,
+  "characterize_gamma": true,
+  "characterize_phi": false,
+  "readout_error_tolerance": 0.4
+}
