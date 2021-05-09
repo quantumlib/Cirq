@@ -357,12 +357,11 @@ class SparseSimulatorStep(
         columns = []
         selected_order: List[ops.Qid] = []
         for v in self._sim_state_values:
-            qs = [q for q in v.qubits if q in qubits]
+            qs = [q for q in qubits if q in v.qubits]
             if any(qs):
-                indices = [v.qubit_map[q] for q in qs]
                 column = state_vector.sample_state_vector(
-                    v.target_tensor,
-                    indices,
+                    state_vector=v.target_tensor,
+                    indices=[v.qubit_map[q] for q in qs],
                     qid_shape=tuple(q.dimension for q in v.qubits),
                     repetitions=repetitions,
                     seed=seed,
@@ -372,4 +371,5 @@ class SparseSimulatorStep(
         stacked = np.column_stack(columns)
         qubit_map = {q: i for i, q in enumerate(selected_order)}
         index_order = [qubit_map[q] for q in qubits]
-        return stacked.transpose()[index_order].transpose()
+        result = stacked.transpose()[index_order].transpose()
+        return result

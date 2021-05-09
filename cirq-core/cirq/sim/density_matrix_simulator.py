@@ -351,7 +351,7 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
         columns = []
         selected_order: List[ops.Qid] = []
         for v in self._sim_state_values:
-            qs = [q for q in v.qubits if q in qubits]
+            qs = [q for q in qubits if q in v.qubits]
             if any(qs):
                 indices = [v.qubit_map[q] for q in qs]
                 column = density_matrix_utils.sample_density_matrix(
