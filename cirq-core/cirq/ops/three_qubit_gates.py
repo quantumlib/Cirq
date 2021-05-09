@@ -98,20 +98,20 @@ class CCZPowGate(
                 a, b = b, a
 
         p = common_gates.T ** self._exponent
-        sweep_abc = [common_gates.CNOT(a, b), common_gates.CNOT(b, c)]
+        cnot = common_gates.CNOT
 
         return [
             p(a),
             p(b),
             p(c),
-            sweep_abc,
+            [cnot(a,b), cnot(b,c)],
             p(b) ** -1,
             p(c),
-            sweep_abc,
+            [cnot(a,b), cnot(b,c)],
             p(c) ** -1,
-            sweep_abc,
+            [cnot(a,b), cnot(b,c)],
             p(c) ** -1,
-            sweep_abc,
+            [cnot(a,b), cnot(b,c)],
         ]
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
@@ -266,7 +266,6 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
                 b, c = c, b
             elif not b.is_adjacent(c):
                 a, b = b, a
-        sweep_abc = [common_gates.CNOT(a, b), common_gates.CNOT(b, c)]
         phase_matrix_inverse = 0.25 * np.array(
             [
                 [-1, -1, -1, 1, 1, 1, 1],
@@ -283,19 +282,19 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         ]
         phase_solutions = phase_matrix_inverse.dot(shifted_angles_tail)
         p_gates = [pauli_gates.Z ** (solution / np.pi) for solution in phase_solutions]
-
+        cnot = common_gates.CNOT
         return [
             p_gates[0](a),
             p_gates[1](b),
             p_gates[2](c),
-            sweep_abc,
+            [cnot(a,b), cnot(b,c)],
             p_gates[3](b),
             p_gates[4](c),
-            sweep_abc,
+            [cnot(a,b), cnot(b,c)],
             p_gates[5](c),
-            sweep_abc,
+            [cnot(a,b), cnot(b,c)],
             p_gates[6](c),
-            sweep_abc,
+            [cnot(a,b), cnot(b,c)],
         ]
 
     def _value_equality_values_(self):
@@ -521,19 +520,19 @@ class CSwapGate(gate_features.ThreeQubitGate, gate_features.InterchangeableQubit
         a, b, c = control, near_target, far_target
 
         t = common_gates.T
-        sweep_abc = [common_gates.CNOT(a, b), common_gates.CNOT(b, c)]
+        cnot = common_gates.CNOT
 
         yield common_gates.CNOT(c, b)
         yield pauli_gates.Y(c) ** -0.5
         yield t(a), t(b), t(c)
-        yield sweep_abc
+        yield [cnot(a,b), cnot(b,c)]
         yield t(b) ** -1, t(c)
-        yield sweep_abc
+        yield [cnot(a,b), cnot(b,c)]
         yield t(c) ** -1
-        yield sweep_abc
+        yield [cnot(a,b), cnot(b,c)]
         yield t(c) ** -1
         yield pauli_gates.X(b) ** 0.5
-        yield sweep_abc
+        yield [cnot(a,b), cnot(b,c)]
         yield common_gates.S(c)
         yield pauli_gates.X(b) ** 0.5
         yield pauli_gates.X(c) ** -0.5
