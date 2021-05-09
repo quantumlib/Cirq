@@ -1,0 +1,13 @@
+cirq_google.Calibration(
+    metrics={
+        'xeb': {
+            (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)): [0.9999],
+            (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)): [0.9998]
+            },
+        't1': {
+            (cirq.GridQubit(0, 0),): [321],
+            (cirq.GridQubit(0, 1),): [911],
+            (cirq.GridQubit(1, 0),): [505]},
+        'globalMetric': {(): ['abcd']}
+    }
+)

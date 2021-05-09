@@ -178,13 +178,13 @@ def verify_import_tree(depth: int = 1, track_others: bool = False, timeit: bool 
     project_dir = os.path.dirname(os.path.dirname(__file__))
     cirq_dir = os.path.join(project_dir, 'cirq')
     sys.path.append(cirq_dir)  # Put cirq/_import.py in the path.
-    from _import import wrap_module_executions  # type: ignore
+    from cirq._import import wrap_module_executions  # type: ignore
 
     sys.path[:] = orig_path  # Restore the path.
 
     sys.path.append(project_dir)  # Ensure the cirq package is in the path.
-
-    with wrap_module_executions('' if track_others else 'cirq', wrap_module, after_exec):
+    # note that with the cirq.google injection we do change the metapath
+    with wrap_module_executions('' if track_others else 'cirq', wrap_module, after_exec, False):
         # Import cirq with instrumentation
         import cirq  # pylint: disable=unused-import
 
