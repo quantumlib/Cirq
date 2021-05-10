@@ -145,6 +145,8 @@ upper_tabs:
         path: /cirq/tutorials/basics
       - title: "Heatmaps"
         path: /cirq/tutorials/heatmaps
+      - title: "State Histograms"
+        path: /cirq/tutorials/state_histograms
 
       ####  INTERMEDIATE  ####
       - heading: "Intermediate"
