@@ -48,6 +48,73 @@ THETA_SYMBOL, ZETA_SYMBOL, CHI_SYMBOL, GAMMA_SYMBOL, PHI_SYMBOL = sympy.symbols(
 SQRT_ISWAP = ops.ISWAP ** 0.5
 
 
+def _individual_instance_fidelities(
+    sampled_df: pd.DataFrame,
+    circuits: Sequence['cirq.Circuit'],
+    cycle_depths: Sequence[int],
+    param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+    pool: Optional['multiprocessing.pool.Pool'] = None,
+):
+    """Each circuit instantiation implies a fidelity. This computes the quantities used for
+    least-squares estimation of the fidelity at a given depth.
+
+    This will also append a column containing the "raw_fidelity" for each circuit instance.
+    This is the simple division of the experimental and theoretical (cross-)entropies.
+    """
+    simulated_df = simulate_2q_xeb_circuits(
+        circuits=circuits, cycle_depths=cycle_depths, param_resolver=param_resolver, pool=pool
+    )
+    df = sampled_df.join(simulated_df)
+
+    D = 4  # two qubits
+    pure_probs = np.array(df['pure_probs'].to_list())
+    sampled_probs = np.array(df['sampled_probs'].to_list())
+    df['e_u'] = np.sum(pure_probs ** 2, axis=1)
+    df['u_u'] = np.sum(pure_probs, axis=1) / D
+    df['m_u'] = np.sum(pure_probs * sampled_probs, axis=1)
+    df['y'] = df['m_u'] - df['u_u']
+    df['x'] = df['e_u'] - df['u_u']
+    df['raw_fidelity'] = df['y'] / df['x']
+    df['numerator'] = df['x'] * df['y']
+    df['denominator'] = df['x'] ** 2
+    return df
+
+
+def _agg_fidelities_per_cycle_depth(df):
+    """This function is applied per cycle_depth in a groupby aggregation."""
+    fid = df['numerator'].sum() / df['denominator'].sum()
+    residuals = df['y'] - fid * df['x']
+    # https://en.wikipedia.org/wiki/Proofs_involving_ordinary_least_squares
+    # "Unbiasedness and variance of Beta"
+    sigma2 = np.sum(residuals ** 2) / (len(residuals) - 1)
+    var_f = sigma2 / np.sum(df['x'] ** 2)
+    std_f = np.sqrt(var_f)
+
+    ret = {
+        'fidelity': fid,
+        'fidelity_std': std_f,
+        'naive_fidelity': np.mean(df['raw_fidelity']),
+        'naive_fidelity_std': np.std(df['raw_fidelity']),
+    }
+
+    def _try_keep(k):
+        """If all the values for a key `k` are the same in this group, we can keep it."""
+        if k not in df.columns:
+            return  # coverage: ignore
+        vals = df[k].unique()
+        if len(vals) == 1:
+            ret[k] = vals[0]
+        else:
+            # coverage: ignore
+            raise AssertionError(
+                f"When computing per-cycle-depth fidelity, multiple "
+                f"values for {k} were grouped together: {vals}"
+            )
+
+    _try_keep('pair')
+    return pd.Series(ret)
+
+
 def benchmark_2q_xeb_fidelities(
     sampled_df: pd.DataFrame,
     circuits: Sequence['cirq.Circuit'],
@@ -73,50 +140,22 @@ def benchmark_2q_xeb_fidelities(
     Returns:
         A DataFrame with columns 'cycle_depth' and 'fidelity'.
     """
-    simulated_df = simulate_2q_xeb_circuits(
-        circuits=circuits, cycle_depths=cycle_depths, param_resolver=param_resolver, pool=pool
+    df = _individual_instance_fidelities(
+        sampled_df=sampled_df,
+        circuits=circuits,
+        cycle_depths=cycle_depths,
+        param_resolver=param_resolver,
+        pool=pool,
     )
-    df = sampled_df.join(simulated_df)
-
-    D = 4  # two qubits
-    pure_probs = np.array(df['pure_probs'].to_list())
-    sampled_probs = np.array(df['sampled_probs'].to_list())
-    df['e_u'] = np.sum(pure_probs ** 2, axis=1)
-    df['u_u'] = np.sum(pure_probs, axis=1) / D
-    df['m_u'] = np.sum(pure_probs * sampled_probs, axis=1)
-    df['y'] = df['m_u'] - df['u_u']
-    df['x'] = df['e_u'] - df['u_u']
-    df['numerator'] = df['x'] * df['y']
-    df['denominator'] = df['x'] ** 2
-
-    def per_cycle_depth(df):
-        """This function is applied per cycle_depth in the following groupby aggregation."""
-        fid_lsq = df['numerator'].sum() / df['denominator'].sum()
-        ret = {'fidelity': fid_lsq}
-
-        def _try_keep(k):
-            """If all the values for a key `k` are the same in this group, we can keep it."""
-            if k not in df.columns:
-                return  # coverage: ignore
-            vals = df[k].unique()
-            if len(vals) == 1:
-                ret[k] = vals[0]
-            else:
-                # coverage: ignore
-                raise AssertionError(
-                    f"When computing per-cycle-depth fidelity, multiple "
-                    f"values for {k} were grouped together: {vals}"
-                )
-
-        _try_keep('pair')
-        return pd.Series(ret)
 
     if 'pair_i' in df.columns:
         groupby_names = ['layer_i', 'pair_i', 'cycle_depth']
     else:
         groupby_names = ['cycle_depth']
 
-    return df.reset_index().groupby(groupby_names).apply(per_cycle_depth).reset_index()
+    return (
+        df.reset_index().groupby(groupby_names).apply(_agg_fidelities_per_cycle_depth).reset_index()
+    )
 
 
 class XEBCharacterizationOptions(ABC):
