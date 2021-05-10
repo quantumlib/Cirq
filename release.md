@@ -35,6 +35,11 @@ to the next minor version.  This can always be found in the
 [version file](cirq/_version.py).
 
 
+## Before you release: flush the deprecation backlog
+
+Ensure that all the deprecations that were meant to be deprecated for the given release. 
+E.g. if you want to release `v0.11`, you can check with `git grep 'v0.11'` for all the lines containing this deadline.  
+
 ## Release Procedure
 
 This procedure can be followed by authorized cirq developers to perform a

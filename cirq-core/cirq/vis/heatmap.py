@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import copy
+from dataclasses import astuple, dataclass
 from typing import (
     Any,
     Dict,
@@ -23,28 +25,15 @@ from typing import (
     Tuple,
     Union,
 )
-from dataclasses import astuple, dataclass
 
-import copy
-import numpy as np
 import matplotlib as mpl
 import matplotlib.collections as mpl_collections
 import matplotlib.pyplot as plt
+import numpy as np
 from mpl_toolkits import axes_grid1
 
-from cirq._compat import deprecated
 from cirq.devices import grid_qubit
 from cirq.vis import vis_utils
-
-
-@deprecated(
-    deadline="v0.11",
-    fix="use cirq.vis.relative_luminance instead",
-    name="cirq.vis.heatmap.relative_luminance",
-)
-def relative_luminance(color: np.ndarray) -> float:
-    return vis_utils.relative_luminance(color)
-
 
 QubitTuple = Tuple[grid_qubit.GridQubit, ...]
 

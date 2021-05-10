@@ -532,21 +532,6 @@ def test_valid_apply_measurement():
     assert measurements == {'0': [1]}
 
 
-def test_deprecated():
-    q = cirq.LineQubit(0)
-    clifford_state = cirq.CliffordState({q: 0})
-
-    with cirq.testing.assert_deprecated(
-        'stabilizers', 'CliffordTableau', 'deprecated', deadline="v0.11"
-    ):
-        _ = clifford_state.stabilizers()
-
-    with cirq.testing.assert_deprecated(
-        'destabilizers', 'CliffordTableau', 'deprecated', deadline="v0.11"
-    ):
-        _ = clifford_state.destabilizers()
-
-
 def test_reset():
     q = cirq.LineQubit(0)
     c = cirq.Circuit(cirq.X(q), cirq.reset(q), cirq.measure(q, key="out"))
