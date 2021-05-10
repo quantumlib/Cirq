@@ -390,9 +390,9 @@ def test_merge_tableau():
         return seq_op
 
     # Do small random circuits test 100 times.
-    for _ in range(100):
+    for seed in range(100):
         t1, t2, expected_t = three_identical_table(8)
-        seq_op = random_circuit(num_ops=20, num_qubits=8)
+        seq_op = random_circuit(num_ops=20, num_qubits=8, seed=seed)
         for i, (op, args) in enumerate(seq_op):
             if i < 7:
                 _ = [op(t, *args) for t in (t1, expected_t)]
