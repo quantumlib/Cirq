@@ -30,21 +30,17 @@ The quantum state is specified in two forms:
 """
 
 from typing import Any, Dict, List, Sequence, Union
-
 import numpy as np
-
 import cirq
-from cirq import circuits, study, ops, protocols, value
+from cirq import study, ops, protocols, value
 from cirq._compat import deprecated
 from cirq.ops.dense_pauli_string import DensePauliString
 from cirq.protocols import act_on
-from cirq.sim import clifford, simulator
-from cirq.sim.simulator import check_all_resolved
+from cirq.sim import clifford, simulator, simulator_base
 
 
 class CliffordSimulator(
-    simulator.SimulatesSamples,
-    simulator.SimulatesIntermediateState[
+    simulator_base.SimulatorBase[
         'CliffordSimulatorStepResult',
         'CliffordTrialResult',
         'CliffordState',
@@ -60,7 +56,7 @@ class CliffordSimulator(
             seed: The random seed to use for this simulator.
         """
         self.init = True
-        self._prng = value.parse_random_state(seed)
+        super().__init__(seed=seed)
 
     @staticmethod
     def is_supported_operation(op: 'cirq.Operation') -> bool:
@@ -99,46 +95,16 @@ class CliffordSimulator(
             qubits=qubits,
         )
 
-    def _core_iterator(
+    def _create_step_result(
         self,
-        circuit: circuits.Circuit,
         sim_state: clifford.ActOnStabilizerCHFormArgs,
+        qubit_map: Dict['cirq.Qid', int],
     ):
-        """Iterator over CliffordSimulatorStepResult from Moments of a Circuit
-
-        Args:
-            circuit: The circuit to simulate.
-            sim_state: The initial state args for the simulation in the
-                computational basis.
-
-        Yields:
-            CliffordStepResult from simulating a Moment of the Circuit.
-        """
-
-        def create_state():
-            return CliffordState(sim_state.qubit_map, sim_state.state.copy())
-
-        if len(circuit) == 0:
-            yield CliffordSimulatorStepResult(
-                measurements=sim_state.log_of_measurement_results, state=create_state()
-            )
-            return
-
-        for moment in circuit:
-            sim_state.log_of_measurement_results = {}
-
-            for op in moment:
-                try:
-                    sim_state.axes = tuple(sim_state.qubit_map[i] for i in op.qubits)
-                    act_on(op, sim_state)
-                except TypeError:
-                    raise NotImplementedError(
-                        f"CliffordSimulator doesn't support {op!r}"
-                    )  # type: ignore
-
-            yield CliffordSimulatorStepResult(
-                measurements=sim_state.log_of_measurement_results, state=create_state()
-            )
+        state = CliffordState(qubit_map)
+        state.ch_form = sim_state.state.copy()
+        return CliffordSimulatorStepResult(
+            measurements=sim_state.log_of_measurement_results, state=state
+        )
 
     def _create_simulator_trial_result(
         self,
@@ -150,29 +116,6 @@ class CliffordSimulator(
         return CliffordTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
-
-    def _run(
-        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
-    ) -> Dict[str, List[np.ndarray]]:
-
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        check_all_resolved(resolved_circuit)
-
-        measurements = {}  # type: Dict[str, List[np.ndarray]]
-
-        for _ in range(repetitions):
-            all_step_results = self._base_iterator(
-                resolved_circuit, qubit_order=ops.QubitOrder.DEFAULT, initial_state=0
-            )
-
-            for step_result in all_step_results:
-                for k, v in step_result.measurements.items():
-                    if not k in measurements:
-                        measurements[k] = []
-                    measurements[k].append(np.array(v, dtype=bool))
-
-        return {k: np.array(v) for k, v in measurements.items()}
 
 
 class CliffordTrialResult(simulator.SimulationTrialResult):

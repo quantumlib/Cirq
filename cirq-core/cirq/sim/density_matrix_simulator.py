@@ -12,15 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Simulator for density matrices that simulates noisy quantum circuits."""
-import collections
 from typing import Any, Dict, List, TYPE_CHECKING, Tuple, Union, Sequence
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, qis, study, value, devices
-from cirq.ops import flatten_to_ops
-from cirq.sim import density_matrix_utils, simulator, act_on_density_matrix_args
-from cirq.sim.simulator import check_all_resolved, split_into_matching_protocol_then_general
+from cirq import ops, protocols, qis, study, value
+from cirq.sim import density_matrix_utils, simulator, act_on_density_matrix_args, simulator_base
 
 if TYPE_CHECKING:
     import cirq
@@ -28,8 +25,7 @@ if TYPE_CHECKING:
 
 
 class DensityMatrixSimulator(
-    simulator.SimulatesSamples,
-    simulator.SimulatesIntermediateState[
+    simulator_base.SimulatorBase[
         'DensityMatrixStepResult',
         'DensityMatrixTrialResult',
         'DensityMatrixSimulatorState',
@@ -152,80 +148,14 @@ class DensityMatrixSimulator(
                when `ignore_measurement_results` has been set to True
                (for more see https://github.com/quantumlib/Cirq/issues/2777).
         """
+        super().__init__(
+            dtype=dtype,
+            noise=noise,
+            seed=seed,
+            ignore_measurement_results=ignore_measurement_results,
+        )
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
-
-        self._dtype = dtype
-        self._prng = value.parse_random_state(seed)
-        self.noise = devices.NoiseModel.from_noise_model_like(noise)
-        self._ignore_measurement_results = ignore_measurement_results
-
-    def _run(
-        self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
-    ) -> Dict[str, np.ndarray]:
-        """See definition in `cirq.SimulatesSamples`."""
-        if self._ignore_measurement_results:
-            raise ValueError("run() is not supported when ignore_measurement_results = True")
-
-        param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        check_all_resolved(resolved_circuit)
-        qubits = tuple(sorted(resolved_circuit.all_qubits()))
-        act_on_args = self._create_act_on_args(0, qubits)
-
-        prefix, general_suffix = split_into_matching_protocol_then_general(
-            resolved_circuit, lambda op: not protocols.is_measurement(op)
-        )
-        step_result = None
-        for step_result in self._core_iterator(
-            circuit=prefix,
-            sim_state=act_on_args,
-        ):
-            pass
-        assert step_result is not None
-
-        if general_suffix.are_all_measurements_terminal() and not any(
-            general_suffix.findall_operations(lambda op: isinstance(op, circuits.CircuitOperation))
-        ):
-            return self._run_sweep_sample(general_suffix, repetitions, act_on_args)
-        return self._run_sweep_repeat(general_suffix, repetitions, act_on_args)
-
-    def _run_sweep_sample(
-        self,
-        circuit: circuits.Circuit,
-        repetitions: int,
-        act_on_args: act_on_density_matrix_args.ActOnDensityMatrixArgs,
-    ) -> Dict[str, np.ndarray]:
-        for step_result in self._core_iterator(
-            circuit=circuit,
-            sim_state=act_on_args,
-            all_measurements_are_terminal=True,
-        ):
-            pass
-        measurement_ops = [
-            op for _, op, _ in circuit.findall_operations_with_gate_type(ops.MeasurementGate)
-        ]
-        return step_result.sample_measurement_ops(measurement_ops, repetitions, seed=self._prng)
-
-    def _run_sweep_repeat(
-        self,
-        circuit: circuits.Circuit,
-        repetitions: int,
-        act_on_args: act_on_density_matrix_args.ActOnDensityMatrixArgs,
-    ) -> Dict[str, np.ndarray]:
-        measurements = {}  # type: Dict[str, List[np.ndarray]]
-
-        for _ in range(repetitions):
-            all_step_results = self._core_iterator(
-                circuit,
-                sim_state=act_on_args.copy(),
-            )
-            for step_result in all_step_results:
-                for k, v in step_result.measurements.items():
-                    if not k in measurements:
-                        measurements[k] = []
-                    measurements[k].append(np.array(v, dtype=np.uint8))
-        return {k: np.array(v) for k, v in measurements.items()}
 
     def _create_act_on_args(
         self,
@@ -265,57 +195,20 @@ class DensityMatrixSimulator(
             log_of_measurement_results={},
         )
 
-    def _core_iterator(
+    def _can_be_in_run_prefix(self, val: Any):
+        return not protocols.is_measurement(val)
+
+    def _create_step_result(
         self,
-        circuit: circuits.Circuit,
         sim_state: act_on_density_matrix_args.ActOnDensityMatrixArgs,
-        all_measurements_are_terminal: bool = False,
+        qubit_map: Dict['cirq.Qid', int],
     ):
-        """Iterator over DensityMatrixStepResult from Moments of a Circuit
-
-        Args:
-            circuit: The circuit to simulate.
-            sim_state: The initial state args for the simulation in the
-                computational basis.
-            all_measurements_are_terminal: Indicator that all measurements
-                are terminal, allowing optimization.
-
-        Yields:
-            DensityMatrixStepResult from simulating a Moment of the Circuit.
-        """
-        if len(circuit) == 0:
-            yield DensityMatrixStepResult(
-                density_matrix=sim_state.target_tensor,
-                measurements=dict(sim_state.log_of_measurement_results),
-                qubit_map=sim_state.qubit_map,
-                dtype=self._dtype,
-            )
-            return
-
-        noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
-        measured = collections.defaultdict(bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
-        for moment in noisy_moments:
-            for op in flatten_to_ops(moment):
-                # TODO: support more general measurements.
-                # Github issue: https://github.com/quantumlib/Cirq/issues/3566
-                if all_measurements_are_terminal and measured[op.qubits]:
-                    continue
-                if protocols.is_measurement(op):
-                    measured[op.qubits] = True
-                    if all_measurements_are_terminal:
-                        continue
-                    if self._ignore_measurement_results:
-                        op = ops.phase_damp(1).on(*op.qubits)
-                sim_state.axes = tuple(sim_state.qubit_map[qubit] for qubit in op.qubits)
-                protocols.act_on(op, sim_state)
-
-            yield DensityMatrixStepResult(
-                density_matrix=sim_state.target_tensor,
-                measurements=dict(sim_state.log_of_measurement_results),
-                qubit_map=sim_state.qubit_map,
-                dtype=self._dtype,
-            )
-            sim_state.log_of_measurement_results.clear()
+        return DensityMatrixStepResult(
+            density_matrix=sim_state.target_tensor,
+            measurements=dict(sim_state.log_of_measurement_results),
+            qubit_map=qubit_map,
+            dtype=self._dtype,
+        )
 
     def _create_simulator_trial_result(
         self,
