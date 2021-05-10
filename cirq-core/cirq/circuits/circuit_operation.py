@@ -285,8 +285,8 @@ class CircuitOperation(ops.Operation):
             'qubit_map': sorted(self.qubit_map.items()),
             'measurement_key_map': self.measurement_key_map,
             'param_resolver': self.param_resolver,
-            'parent_path': self.parent_path,
             'repetition_ids': self.repetition_ids,
+            'parent_path': self.parent_path,
         }
 
     @classmethod
@@ -297,8 +297,8 @@ class CircuitOperation(ops.Operation):
         qubit_map,
         measurement_key_map,
         param_resolver,
-        parent_path,
         repetition_ids,
+        parent_path=[],
         **kwargs,
     ):
         return (
