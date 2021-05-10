@@ -298,7 +298,7 @@ class CircuitOperation(ops.Operation):
         measurement_key_map,
         param_resolver,
         repetition_ids,
-        parent_path=[],
+        parent_path=(),
         **kwargs,
     ):
         return (
