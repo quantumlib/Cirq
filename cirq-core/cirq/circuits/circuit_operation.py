@@ -40,7 +40,7 @@ def default_repetition_ids(repetitions: int) -> Optional[List[str]]:
     return None
 
 
-def full_join_string_lists(list1: Optional[List[str]], list2: Optional[List[str]]):
+def _full_join_string_lists(list1: Optional[List[str]], list2: Optional[List[str]]):
     if list1 is None and list2 is None:
         return None  # coverage: ignore
     if list1 is None:
@@ -367,7 +367,7 @@ class CircuitOperation(ops.Operation):
             )
 
         # If `self.repetition_ids` is None, this will just return `repetition_ids`.
-        repetition_ids = full_join_string_lists(repetition_ids, self.repetition_ids)
+        repetition_ids = _full_join_string_lists(repetition_ids, self.repetition_ids)
 
         return self.replace(repetitions=final_repetitions, repetition_ids=repetition_ids)
 

@@ -17,7 +17,7 @@ from typing import List
 import pytest, sympy
 
 import cirq
-from cirq.circuits.circuit_operation import full_join_string_lists
+from cirq.circuits.circuit_operation import _full_join_string_lists
 
 
 def test_properties():
@@ -273,13 +273,13 @@ def test_repeat(add_measurements, use_default_ids_for_initial_rep):
 
     op_with_consecutive_reps = op_with_reps.repeat(2)
     assert op_with_consecutive_reps.repetitions == final_repetitions
-    assert op_with_consecutive_reps.repetition_ids == full_join_string_lists(['0', '1'], rep_ids)
+    assert op_with_consecutive_reps.repetition_ids == _full_join_string_lists(['0', '1'], rep_ids)
     assert op_base ** final_repetitions != op_with_consecutive_reps
 
     op_with_consecutive_reps = op_with_reps.repeat(2, ['a', 'b'])
     assert op_with_reps.repeat(repetition_ids=['a', 'b']) == op_with_consecutive_reps
     assert op_with_consecutive_reps.repetitions == final_repetitions
-    assert op_with_consecutive_reps.repetition_ids == full_join_string_lists(['a', 'b'], rep_ids)
+    assert op_with_consecutive_reps.repetition_ids == _full_join_string_lists(['a', 'b'], rep_ids)
 
     with pytest.raises(ValueError, match='length to be 2'):
         _ = op_with_reps.repeat(2, ['a', 'b', 'c'])
