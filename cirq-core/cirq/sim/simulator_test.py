@@ -440,8 +440,3 @@ def test_monte_carlo_on_unknown_channel():
         np.testing.assert_allclose(
             out.state_vector(), cirq.one_hot(index=k % 3, shape=4, dtype=np.complex64), atol=1e-8
         )
-
-
-def test_deprecation():
-    with cirq.testing.assert_deprecated("_base_iterator", deadline="v0.11"):
-        cirq.Simulator()._simulator_iterator(cirq.Circuit(), cirq.ParamResolver({}), [], 0)

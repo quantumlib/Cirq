@@ -30,11 +30,11 @@ The quantum state is specified in two forms:
 """
 
 from typing import Any, Dict, List, Sequence, Union
+
 import numpy as np
+
 import cirq
 from cirq import study, ops, protocols, value
-from cirq._compat import deprecated
-from cirq.ops.dense_pauli_string import DensePauliString
 from cirq.protocols import act_on
 from cirq.sim import clifford, simulator, simulator_base
 
@@ -245,19 +245,6 @@ class CliffordState:
     def to_numpy(self) -> np.ndarray:
         return self.ch_form.to_state_vector()
 
-    @deprecated(deadline='v0.11', fix='use CliffordTableau instead')
-    def stabilizers(self) -> List[DensePauliString]:
-        """Returns the stabilizer generators of the state. These
-        are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi>"""
-        return []
-
-    @deprecated(deadline='v0.11', fix='use CliffordTableau instead')
-    def destabilizers(self) -> List[DensePauliString]:
-        """Returns the destabilizer generators of the state. These
-        are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
-        generators above generate the full Pauli group on n qubits."""
-        return []
-
     def state_vector(self):
         return self.ch_form.state_vector()
 
@@ -295,20 +282,3 @@ class CliffordState:
 
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(state.ch_form, qids, prng, measurements)
         act_on(op, ch_form_args)
-
-    @deprecated(deadline='v0.11', fix='Use the apply_measurement instead')
-    def perform_measurement(
-        self, qubits: Sequence[ops.Qid], prng: np.random.RandomState, collapse_state_vector=True
-    ):
-        results = []
-
-        if collapse_state_vector:
-            state = self
-        else:
-            state = self.copy()
-
-        for qubit in qubits:
-            result = state.ch_form._measure(self.qubit_map[qubit], prng)
-            results.append(result)
-
-        return results
