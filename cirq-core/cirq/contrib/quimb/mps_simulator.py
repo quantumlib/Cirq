@@ -265,7 +265,7 @@ class MPSState(ActOnArgs):
         # we want write the string '003' which comes before '100' in lexicographic order. The code
         # below is just simple string formatting.
         max_num_digits = len(f'{max(qubit_map.values())}')
-        self.format_i = 'i_{}'
+        self.format_i = f'i_{{:0{max_num_digits}}}'
         self.format_mu = 'mu_{}_{}'
 
         # TODO(tonybruguier): Instead of relying on sortable indices could you keep a parallel
@@ -344,6 +344,20 @@ class MPSState(ActOnArgs):
             self.estimated_gate_error_list + other.estimated_gate_error_list
         )
         return state
+
+    def extract(self: 'MPSState', qubits: Sequence['cirq.Qid']) -> Tuple['MPSState', 'MPSState']:
+        # TODO MPS simulator currently does not enable split_untangled_states
+        # so this will never be called during simulation, and MPS gains nothing
+        # from running in split_untangled_states mode, so this is not necessary,
+        # however it may be useful if other use cases arise.
+        raise NotImplementedError()
+
+    def reorder(self: 'MPSState', qubits: Sequence['cirq.Qid']) -> 'MPSState':
+        # TODO MPS simulator currently does not enable split_untangled_states
+        # so this will never be called during simulation, and MPS gains nothing
+        # from running in split_untangled_states mode, so this is not necessary,
+        # however may be useful if other use cases arise.
+        raise NotImplementedError()
 
     def state_vector(self) -> np.ndarray:
         """Returns the full state vector.
