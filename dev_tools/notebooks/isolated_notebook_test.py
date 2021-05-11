@@ -74,8 +74,6 @@ PACKAGES = [
     # https://github.com/networkx/networkx/issues/4718 pinned networkx 2.5.1 to 4.4.2
     # however, jupyter brings in 5.0.6
     'decorator<5',
-    # for contrib notebooks
-    "quimb",
 ]
 
 
