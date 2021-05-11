@@ -95,14 +95,12 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         raise NotImplementedError()
 
     def extract(
-        self: 'ActOnCliffordTableauArgs', qubits: Sequence['cirq.Qid']
+        self, qubits: Sequence['cirq.Qid']
     ) -> Tuple['ActOnCliffordTableauArgs', 'ActOnCliffordTableauArgs']:
         # Unnecessary for now but can be added later if there is a use case.
         raise NotImplementedError()
 
-    def reorder(
-        self: 'ActOnCliffordTableauArgs', qubits: Sequence['cirq.Qid']
-    ) -> 'ActOnCliffordTableauArgs':
+    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'ActOnCliffordTableauArgs':
         # Unnecessary for now but can be added later if there is a use case.
         raise NotImplementedError()
 

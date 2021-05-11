@@ -46,11 +46,11 @@ class CountingActOnArgs(cirq.ActOnArgs):
         pass
 
     def extract(
-        self: 'CountingActOnArgs', qubits: Sequence['cirq.Qid']
+        self, qubits: Sequence['cirq.Qid']
     ) -> Tuple['CountingActOnArgs', 'CountingActOnArgs']:
         pass
 
-    def reorder(self: 'CountingActOnArgs', qubits: Sequence['cirq.Qid']) -> 'CountingActOnArgs':
+    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'CountingActOnArgs':
         pass
 
 
