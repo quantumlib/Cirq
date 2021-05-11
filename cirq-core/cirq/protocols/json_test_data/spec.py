@@ -102,6 +102,7 @@ TestSpec = ModuleJsonTestSpec(
         'EjectPhasedPaulis',
         'EjectZ',
         'ExpandComposite',
+        'MEASUREMENT_KEY_SEPARATOR',
         'MergeInteractions',
         'MergeSingleQubitGates',
         'PointOptimizer',
