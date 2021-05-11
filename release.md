@@ -133,8 +133,8 @@ that will go to pypi.
 
 ```bash
 git checkout "v${VER}-dev"
-python3 setup.py -q bdist_wheel
-ls dist  # should only contain ONE file
+./dev_tools/packaging/produce-package.sh dist
+ls dist  # should only contain 3 files, one versioned whl file for cirq, cirq_google and cirq_core 
 ```
 
 ### Push to test pypi
