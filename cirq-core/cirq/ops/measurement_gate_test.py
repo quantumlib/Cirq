@@ -23,6 +23,10 @@ def test_measure_init(num_qubits):
     assert cirq.MeasurementGate(num_qubits).num_qubits() == num_qubits
     assert cirq.MeasurementGate(num_qubits, key='a').key == 'a'
     assert cirq.MeasurementGate(num_qubits, key='a').mkey == cirq.MeasurementKey('a')
+    assert cirq.MeasurementGate(num_qubits, key=cirq.MeasurementKey('a')).key == 'a'
+    assert cirq.MeasurementGate(num_qubits, key=cirq.MeasurementKey('a')) == cirq.MeasurementGate(
+        num_qubits, key='a'
+    )
     assert cirq.MeasurementGate(num_qubits, invert_mask=(True,)).invert_mask == (True,)
     assert cirq.qid_shape(cirq.MeasurementGate(num_qubits)) == (2,) * num_qubits
     assert cirq.qid_shape(cirq.MeasurementGate(3, qid_shape=(1, 2, 3))) == (1, 2, 3)

@@ -290,6 +290,20 @@ def test_with_measurement_keys():
     assert new_moment.operations[1] == cirq.measure(b, key='p2')
 
 
+def test_with_key_path():
+    a, b = cirq.LineQubit.range(2)
+    m = cirq.Moment(cirq.measure(a, key='m1'), cirq.measure(b, key='m2'))
+
+    new_moment = cirq.with_key_path(m, ('a', 'b'))
+
+    assert new_moment.operations[0] == cirq.measure(
+        a, key=cirq.MeasurementKey.parse_serialized('a:b:m1')
+    )
+    assert new_moment.operations[1] == cirq.measure(
+        b, key=cirq.MeasurementKey.parse_serialized('a:b:m2')
+    )
+
+
 def test_copy():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
