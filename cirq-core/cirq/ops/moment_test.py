@@ -16,7 +16,6 @@ import pytest
 
 import cirq
 import cirq.testing
-from cirq.testing.deprecation import assert_deprecated
 
 
 def test_validation():
@@ -585,6 +584,3 @@ def test_transform_qubits():
     assert original.transform_qubits(lambda q: cirq.GridQubit(10 + q.x, 20)) == modified
     with pytest.raises(TypeError, match='must be a function or dict'):
         _ = original.transform_qubits('bad arg')
-    with assert_deprecated('Use qubit_map instead', deadline="v0.11"):
-        # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
-        assert original.transform_qubits(func=lambda q: cirq.GridQubit(10 + q.x, 20)) == modified
