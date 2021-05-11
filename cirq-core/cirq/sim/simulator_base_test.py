@@ -50,9 +50,7 @@ class CountingActOnArgs(cirq.ActOnArgs):
     ) -> Tuple['CountingActOnArgs', 'CountingActOnArgs']:
         pass
 
-    def reorder(
-        self: 'CountingActOnArgs', qubits: Sequence['cirq.Qid']
-    ) -> 'CountingActOnArgs':
+    def reorder(self: 'CountingActOnArgs', qubits: Sequence['cirq.Qid']) -> 'CountingActOnArgs':
         pass
 
 
