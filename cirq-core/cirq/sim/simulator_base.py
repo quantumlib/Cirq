@@ -40,6 +40,7 @@ from cirq.sim.simulator import (
     TActOnArgs,
     SimulatesIntermediateState,
     SimulatesSamples,
+    StepResult,
     check_all_resolved,
     split_into_matching_protocol_then_general,
 )
@@ -315,3 +316,44 @@ class SimulatorBase(
         for q in qubits:
             args_map[q] = args
         return args_map
+
+
+class MultiArgStepResult(Generic[TStepResult, TActOnArgs], StepResult[TStepResult], abc.ABC):
+    """A base class for step results."""
+
+    def __init__(
+        self,
+        sim_state: Dict['cirq.Qid', TActOnArgs],
+    ):
+        """Initializes the step result.
+
+        Args:
+            sim_state: The lookup of qubits to ActOnArg state.
+        """
+        self._sim_state = sim_state
+        self._sim_state_values = tuple(set(sim_state.values()))
+        measurements = (
+            self._sim_state_values[0].log_of_measurement_results.copy()
+            if len(self._sim_state_values) != 0
+            else {}
+        )
+        super().__init__(measurements)
+
+    def sample(
+        self,
+        qubits: List[ops.Qid],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        columns = []
+        selected_order: List[ops.Qid] = []
+        for v in self._sim_state_values:
+            qs = [q for q in qubits if q in v.qubits]
+            if any(qs):
+                column = v.sample(qs, repetitions, seed)
+                columns.append(column)
+                selected_order += qs
+        stacked = np.column_stack(columns)
+        qubit_map = {q: i for i, q in enumerate(selected_order)}
+        index_order = [qubit_map[q] for q in qubits]
+        return stacked.transpose()[index_order].transpose()

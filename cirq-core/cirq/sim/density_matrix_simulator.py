@@ -231,7 +231,11 @@ class DensityMatrixSimulator(
         )
 
 
-class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState']):
+class DensityMatrixStepResult(
+    simulator_base.MultiArgStepResult[
+        'DensityMatrixSimulatorState', act_on_density_matrix_args.ActOnDensityMatrixArgs
+    ]
+):
     """A single step in the simulation of the DensityMatrixSimulator.
 
     Attributes:
@@ -258,16 +262,9 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
                 ordering of the basis in density_matrix.
             dtype: The numpy dtype for the density matrix.
         """
+        super().__init__(sim_state)
         self._qubits = qubits
-        self._sim_state = sim_state
-        self._sim_state_values = tuple(set(sim_state.values()))
-        measurements = (
-            self._sim_state_values[0].log_of_measurement_results.copy()
-            if len(self._sim_state_values) != 0
-            else {}
-        )
         self._qubit_map = {q: i for i, q in enumerate(qubits)}
-        super().__init__(measurements)
         self._dtype = dtype
         self._qid_shape = tuple(q.dimension for q in qubits)
         self._density_matrix: Optional[np.ndarray] = None
@@ -341,32 +338,6 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
                 size = int(np.sqrt(np.prod(matrix.shape, dtype=int)))
                 self._density_matrix = np.reshape(matrix, (size, size))
         return self._density_matrix.copy() if copy else self._density_matrix
-
-    def sample(
-        self,
-        qubits: List[ops.Qid],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        columns = []
-        selected_order: List[ops.Qid] = []
-        for v in self._sim_state_values:
-            qs = [q for q in qubits if q in v.qubits]
-            if any(qs):
-                indices = [v.qubit_map[q] for q in qs]
-                column = density_matrix_utils.sample_density_matrix(
-                    v.target_tensor,
-                    indices,
-                    qid_shape=tuple(q.dimension for q in v.qubits),
-                    repetitions=repetitions,
-                    seed=seed,
-                )
-                columns.append(column)
-                selected_order += qs
-        stacked = np.column_stack(columns)
-        qubit_map = {q: i for i, q in enumerate(selected_order)}
-        index_order = [qubit_map[q] for q in qubits]
-        return stacked.transpose()[index_order].transpose()
 
 
 @value.value_equality(unhashable=True)

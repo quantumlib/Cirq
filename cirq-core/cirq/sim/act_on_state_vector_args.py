@@ -233,6 +233,21 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
         return new_args
 
+    def sample(
+        self,
+        qubits: List['cirq.Qid'],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        indices = [self.qubit_map[q] for q in qubits]
+        return sim.sample_state_vector(
+            self.target_tensor,
+            indices,
+            qid_shape=tuple(q.dimension for q in self.qubits),
+            repetitions=repetitions,
+            seed=seed,
+        )
+
 
 def _strat_act_on_state_vector_from_apply_unitary(
     unitary_value: Any,

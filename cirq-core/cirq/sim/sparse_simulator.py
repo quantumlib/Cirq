@@ -34,6 +34,7 @@ from cirq.sim import (
     state_vector_simulator,
     act_on_state_vector_args,
     act_on_args,
+    simulator_base,
 )
 
 if TYPE_CHECKING:
@@ -249,7 +250,11 @@ class Simulator(
 
 
 class SparseSimulatorStep(
-    state_vector.StateVectorMixin, state_vector_simulator.StateVectorStepResult
+    state_vector.StateVectorMixin,
+    state_vector_simulator.StateVectorStepResult,
+    simulator_base.MultiArgStepResult[
+        'DensityMatrixSimulatorState', act_on_state_vector_args.ActOnStateVectorArgs
+    ]
 ):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
@@ -270,15 +275,8 @@ class SparseSimulatorStep(
                 results, ordered by the qubits that the measurement operates on.
         """
         self._qubits = qubits
-        self._sim_state = sim_state
-        self._sim_state_values = tuple(set(sim_state.values()))
-        measurements = (
-            self._sim_state_values[0].log_of_measurement_results.copy()
-            if len(self._sim_state_values) != 0
-            else {}
-        )
         qubit_map = {q: i for i, q in enumerate(qubits)}
-        super().__init__(measurements=measurements, qubit_map=qubit_map)
+        super().__init__(sim_state=sim_state, qubit_map=qubit_map)
         self._dtype = dtype
         self._state_vector: Optional[np.ndarray] = None
 
@@ -347,29 +345,3 @@ class SparseSimulatorStep(
             state, len(self.qubit_map), qid_shape=protocols.qid_shape(self, None), dtype=self._dtype
         )
         np.copyto(self._state_vector, update_state)
-
-    def sample(
-        self,
-        qubits: List[ops.Qid],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-        columns = []
-        selected_order: List[ops.Qid] = []
-        for v in self._sim_state_values:
-            qs = [q for q in qubits if q in v.qubits]
-            if any(qs):
-                column = state_vector.sample_state_vector(
-                    state_vector=v.target_tensor,
-                    indices=[v.qubit_map[q] for q in qs],
-                    qid_shape=tuple(q.dimension for q in v.qubits),
-                    repetitions=repetitions,
-                    seed=seed,
-                )
-                columns.append(column)
-                selected_order += qs
-        stacked = np.column_stack(columns)
-        qubit_map = {q: i for i, q in enumerate(selected_order)}
-        index_order = [qubit_map[q] for q in qubits]
-        result = stacked.transpose()[index_order].transpose()
-        return result

@@ -108,6 +108,15 @@ class ActOnArgs:
         """Physically reindexes the basis state."""
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def sample(
+        self,
+        qubits: List['cirq.Qid'],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        """Samples the qubits."""
+
 
 def strat_act_on_from_apply_decompose(
     val: Any,
