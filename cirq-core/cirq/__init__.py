@@ -430,6 +430,7 @@ from cirq.value import (
     Duration,
     DURATION_LIKE,
     LinearDict,
+    MEASUREMENT_KEY_SEPARATOR,
     MeasurementKey,
     PeriodicValue,
     RANDOM_STATE_OR_SEED_LIKE,
@@ -531,6 +532,7 @@ from cirq.protocols import (
     trace_distance_from_angle_list,
     unitary,
     validate_mixture,
+    with_key_path,
     with_measurement_key_mapping,
 )
 
