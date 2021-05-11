@@ -110,11 +110,8 @@ class CliffordSimulator(
         sim_state: Dict['cirq.Qid', clifford.ActOnStabilizerCHFormArgs],
         qubits: Sequence['cirq.Qid'],
     ):
-        full_state = act_on_args.merge_states(list(sim_state.values())).reorder(qubits)
-        state = CliffordState(full_state.qubit_map)
-        state.ch_form = full_state.state.copy()
         return CliffordSimulatorStepResult(
-            measurements=full_state.log_of_measurement_results, state=state
+            sim_state=sim_state, qubits=qubits
         )
 
     def _create_simulator_trial_result(
@@ -148,10 +145,18 @@ class CliffordTrialResult(simulator.SimulationTrialResult):
         return f'measurements: {samples}\noutput state: {final}'
 
 
-class CliffordSimulatorStepResult(simulator.StepResult['CliffordState']):
+class CliffordSimulatorStepResult(
+    simulator_base.MultiArgStepResult[
+        'clifford.CliffordState', 'clifford.ActOnStabilizerCHFormArgs'
+    ]
+):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
-    def __init__(self, state: 'CliffordState', measurements):
+    def __init__(
+            self,
+        sim_state: Dict['cirq.Qid', clifford.ActOnStabilizerCHFormArgs],
+        qubits: Sequence['cirq.Qid'],
+    ):
         """Results of a step of the simulator.
         Attributes:
             state: A CliffordState
@@ -162,8 +167,11 @@ class CliffordSimulatorStepResult(simulator.StepResult['CliffordState']):
                 is used to define the state vector (see the state_vector()
                 method).
         """
-        self.measurements = measurements
-        self.state = state.copy()
+        super().__init__(sim_state)
+        self._qubits = qubits
+        self._qubit_map = {q: i for i, q in enumerate(qubits)}
+        self._state = None
+
 
     def __str__(self) -> str:
         def bitstring(vals):
@@ -180,8 +188,19 @@ class CliffordSimulatorStepResult(simulator.StepResult['CliffordState']):
 
         return f'{measurements}{final}'
 
+    @property
+    def state(self):
+        return self._simulator_state()
+
     def _simulator_state(self):
-        return self.state
+        if self._state is None:
+            state = act_on_args.merge_states(self._sim_state_values)
+            if state is not None:
+                state = state.reorder(self._qubits)
+                clifford_state = CliffordState(state.qubit_map)
+                clifford_state.ch_form = state.state.copy()
+                self._state = clifford_state
+        return self._state
 
     def sample(
         self,
@@ -193,7 +212,7 @@ class CliffordSimulatorStepResult(simulator.StepResult['CliffordState']):
         measurements = {}  # type: Dict[str, List[np.ndarray]]
 
         for i in range(repetitions):
-            self.state.apply_measurement(
+            self._simulator_state().apply_measurement(
                 cirq.measure(*qubits, key=str(i)),
                 measurements,
                 value.parse_random_state(seed),

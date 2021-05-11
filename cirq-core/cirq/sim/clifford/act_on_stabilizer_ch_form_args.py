@@ -16,6 +16,7 @@ from typing import Any, Dict, Iterable, TYPE_CHECKING, List, Sequence, Tuple
 
 import numpy as np
 
+from cirq import value, ops, protocols
 from cirq.ops import common_gates, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
@@ -128,6 +129,22 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             log_of_measurement_results=self.log_of_measurement_results,
         )
         return new_args
+
+    def sample(
+        self,
+        qubits: List['cirq.Qid'],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        measurements: Dict[str, List[np.ndarray]] = {}
+        prng = value.parse_random_state(seed)
+        for i in range(repetitions):
+            op = ops.measure(*qubits, key=str(i))
+            state = self.state.copy()
+            qids = [self.qubit_map[i] for i in op.qubits]
+            ch_form_args = ActOnStabilizerCHFormArgs(state.ch_form, qids, prng, measurements)
+            protocols.act_on(op, ch_form_args)
+        return np.array(list(measurements.values()), dtype=bool)
 
 
 def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
