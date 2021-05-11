@@ -37,8 +37,9 @@ to the next minor version.  This can always be found in the
 
 ## Before you release: flush the deprecation backlog
 
-Ensure that all the deprecations that were meant to be deprecated for the given release. 
-E.g. if you want to release `v0.11`, you can check with `git grep 'v0.11'` for all the lines containing this deadline.  
+Ensure that all the deprecations are removed that were meant to be deprecated for the given release. 
+E.g. if you want to release `v0.11`, you can check with `git grep 'v0.11'` for all the lines containing this deadline.
+Make sure none of those are released.  
 
 ## Release Procedure
 
@@ -133,8 +134,8 @@ that will go to pypi.
 
 ```bash
 git checkout "v${VER}-dev"
-python3 setup.py -q bdist_wheel
-ls dist  # should only contain ONE file
+./dev_tools/packaging/produce-package.sh dist
+ls dist  # should only contain 3 files, one versioned whl file for cirq, cirq_google and cirq_core 
 ```
 
 ### Push to test pypi
