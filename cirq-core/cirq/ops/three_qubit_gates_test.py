@@ -319,3 +319,55 @@ def test_resolve(resolve_fn):
     diagonal_gate = resolve_fn(diagonal_gate, {'b': 19})
     assert diagonal_gate == cirq.ThreeQubitDiagonalGate(diagonal_angles)
     assert not cirq.is_parameterized(diagonal_gate)
+
+def unique_ops(op_list):
+    """
+    Helper function for test_unique_gate_decomp.
+
+    Returns a list of unique ops from a list. Unique in the sense of op1 is op2.
+    The original list is used up by this function
+    """
+
+    unique = []
+    while op_list:
+        op = op_list.pop(0)
+        if not sum([op is ele for ele in unique]):
+            unique.append(op)
+
+    return unique
+
+def test_unique_gate_decomp():
+    """
+    Test to check that 3-qubit decompose methods return unique operations
+
+    The test is checking that no two gates in the decomposition
+    refer to the same object.
+    """
+    qubits = [cirq.GridQubit(i, 0) for i in range(3)]
+
+    ccz = cirq.CCZ.on(*qubits)
+    ccz_decomp = ccz._decompose_()
+    ccz_decomp_count = len(ccz_decomp)
+
+    ccx = cirq.CCX.on(*qubits)
+    ccx_decomp = ccx._decompose_()
+    ccx_decomp_count = len(ccx_decomp)
+
+    cs = cirq.CSWAP.on(*qubits)
+    cs_decomp = cs._decompose_()
+    cs_decomp_count = len(cs_decomp)
+
+    diagonal_angles = [2, 3, 5, 7, 11, 13, 17, 19]
+    tqd = cirq.ThreeQubitDiagonalGate(diagonal_angles)
+    tqd_decomp = tqd._decompose_(qubits)
+    tqd_decomp_count = len(tqd_decomp)
+
+    ccz_unique_count = len(unique_ops(ccz_decomp))
+    ccx_unique_count = len(unique_ops(ccx_decomp))
+    cs_unique_count = len(unique_ops(cs_decomp))
+    tqd_unique_count = len(unique_ops(tqd_decomp))
+
+    assert ccz_unique_count == ccz_decomp_count
+    assert ccx_unique_count == ccx_decomp_count
+    assert cs_unique_count == cs_decomp_count
+    assert tqd_unique_count == tqd_decomp_count
