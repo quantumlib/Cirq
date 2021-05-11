@@ -17,8 +17,8 @@ from typing import Optional, TYPE_CHECKING, Tuple
 
 import numpy as np
 import scipy
+
 from cirq import value
-from cirq._compat import deprecated_parameter
 from cirq.qis.states import (
     QuantumState,
     infer_qid_shape,
@@ -234,16 +234,6 @@ def _fidelity_state_vectors_or_density_matrices(state1: np.ndarray, state2: np.n
     )
 
 
-@deprecated_parameter(
-    deadline='v0.11',
-    fix='Use state instead.',
-    parameter_desc='density_matrix',
-    match=lambda args, kwargs: 'density_matrix' in kwargs,
-    rewrite=lambda args, kwargs: (
-        args,
-        {('state' if k == 'density_matrix' else k): v for k, v in kwargs.items()},
-    ),
-)
 def von_neumann_entropy(
     state: 'cirq.QUANTUM_STATE_LIKE',
     qid_shape: Optional[Tuple[int, ...]] = None,

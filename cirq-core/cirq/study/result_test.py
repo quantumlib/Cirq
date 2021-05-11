@@ -15,8 +15,8 @@
 import collections
 
 import numpy as np
-import pytest
 import pandas as pd
+import pytest
 
 import cirq
 from cirq.study.result import _pack_digits
@@ -325,40 +325,3 @@ def test_json_bit_packing_force():
     assert _pack_digits(2 * np.ones(10, dtype=int), pack_bits='force') == _pack_digits(
         np.ones(10), pack_bits='auto'
     )
-
-
-def test_deprecation_log():
-    with cirq.testing.assert_deprecated('TrialResult was used but is deprecated', deadline="v0.11"):
-        cirq.TrialResult(params=cirq.ParamResolver({}), measurements={})
-
-
-def test_deprecated_json():
-    with cirq.testing.assert_deprecated('TrialResult was used but is deprecated', deadline="v0.11"):
-        result = cirq.read_json(
-            json_text="""{
-          "cirq_type": "TrialResult",
-          "params": {
-            "cirq_type": "ParamResolver",
-            "param_dict": []
-          },
-          "measurements": {
-            "0,1": {
-              "packed_digits": "fcc0",
-              "binary": true,
-              "dtype": "uint8",
-              "shape": [
-                5,
-                2
-              ]
-            }
-          }
-        }
-        """
-        )
-
-        assert result == cirq.Result(
-            params=cirq.ParamResolver({}),
-            measurements={
-                '0,1': np.array([[1, 1], [1, 1], [1, 1], [0, 0], [1, 1]], dtype=np.uint8)
-            },
-        )

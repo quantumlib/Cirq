@@ -19,11 +19,12 @@ Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
 
-from collections import defaultdict
+import abc
 import enum
-from itertools import groupby
+import html
 import math
-
+from collections import defaultdict
+from itertools import groupby
 from typing import (
     AbstractSet,
     Any,
@@ -45,21 +46,18 @@ from typing import (
     Union,
 )
 
-import abc
-import html
 import networkx
 import numpy as np
 
+import cirq._version
 from cirq import devices, ops, protocols, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
-from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.quil_output import QuilOutput
+from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.type_workarounds import NotImplementedType
-from cirq._compat import deprecated_parameter
-import cirq._version
 
 if TYPE_CHECKING:
     import cirq
@@ -1789,16 +1787,6 @@ class Circuit(AbstractCircuit):
 
     zip.__doc__ = AbstractCircuit.zip.__doc__
 
-    @deprecated_parameter(
-        deadline='v0.11',
-        fix='Use qubit_map instead.',
-        parameter_desc='positional func',
-        match=lambda args, kwargs: 'func' in kwargs,
-        rewrite=lambda args, kwargs: (
-            args,
-            {('qubit_map' if k == 'func' else k): v for k, v in kwargs.items()},
-        ),
-    )
     def transform_qubits(
         self,
         qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],

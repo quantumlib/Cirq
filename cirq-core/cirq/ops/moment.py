@@ -28,8 +28,8 @@ from typing import (
     TypeVar,
     Union,
 )
+
 from cirq import protocols, ops
-from cirq._compat import deprecated_parameter
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
@@ -272,16 +272,6 @@ class Moment:
     def __str__(self) -> str:
         return self.to_text_diagram()
 
-    @deprecated_parameter(
-        deadline='v0.11',
-        fix='Use qubit_map instead.',
-        parameter_desc='positional func',
-        match=lambda args, kwargs: 'func' in kwargs,
-        rewrite=lambda args, kwargs: (
-            args,
-            {('qubit_map' if k == 'func' else k): v for k, v in kwargs.items()},
-        ),
-    )
     def transform_qubits(
         self: TSelf_Moment,
         qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
