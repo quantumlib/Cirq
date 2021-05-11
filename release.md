@@ -37,8 +37,9 @@ to the next minor version.  This can always be found in the
 
 ## Before you release: flush the deprecation backlog
 
-Ensure that all the deprecations that were meant to be deprecated for the given release. 
-E.g. if you want to release `v0.11`, you can check with `git grep 'v0.11'` for all the lines containing this deadline.  
+Ensure that all the deprecations are removed that were meant to be deprecated for the given release. 
+E.g. if you want to release `v0.11`, you can check with `git grep 'v0.11'` for all the lines containing this deadline.
+Make sure none of those are released.  
 
 ## Release Procedure
 
