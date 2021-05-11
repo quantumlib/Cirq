@@ -49,3 +49,6 @@ docs/api_docs
 
 # notebook test output
 out
+
+# Ignore node modules
+node_modules/
