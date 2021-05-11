@@ -96,17 +96,17 @@ class ActOnArgs:
     def copy(self: TSelf) -> TSelf:
         """Creates a copy of the object."""
 
+    @abc.abstractmethod
     def join(self: TSelf, other: TSelf) -> TSelf:
         """Joins two state spaces together."""
-        raise NotImplementedError()
 
+    @abc.abstractmethod
     def extract(self: TSelf, qubits: Sequence['cirq.Qid']) -> Tuple[TSelf, TSelf]:
         """Splits two state spaces after a measurement or reset."""
-        raise NotImplementedError()
 
+    @abc.abstractmethod
     def reorder(self: TSelf, qubits: Sequence['cirq.Qid']) -> TSelf:
-        """Physically reindexes the basis state."""
-        raise NotImplementedError()
+        """Physically reindexes the state by the new basis."""
 
 
 def strat_act_on_from_apply_decompose(
