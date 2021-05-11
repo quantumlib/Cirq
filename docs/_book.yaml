@@ -192,10 +192,13 @@ upper_tabs:
       - title: "Getting started with AQT hardware"
         path: /cirq/tutorials/aqt/getting_started
 
+
       ####  IONQ HARDWARE ####
       - heading: "IonQ hardware"
       - title: "Getting started with IonQ hardware"
         path: /cirq/tutorials/ionq/getting_started
+      - title: "Binary paintshop"
+        path: /cirq/tutorials/ionq/binary_paintshop
 
       ####  PASQAL HARDWARE  ####
       - heading: "Pasqal hardware"
