@@ -537,8 +537,3 @@ def test_missing_iter_definitions():
     with pytest.raises(RecursionError):
         state_iter = missing_iter_sim.simulate_sweep_iter(circuit, params)
         next(state_iter)
-
-
-def test_deprecation():
-    with cirq.testing.assert_deprecated("_base_iterator", deadline="v0.11"):
-        cirq.Simulator()._simulator_iterator(cirq.Circuit(), cirq.ParamResolver({}), [], 0)

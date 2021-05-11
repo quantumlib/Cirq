@@ -25,8 +25,6 @@
 #     dev_tools/packaging/produce-package.sh output_dir [version]
 ################################################################################
 
-PROJECT_NAME=cirq-core/cirq
-
 set -e
 trap "{ echo -e '\033[31mFAILED\033[0m'; }" ERR
 
@@ -54,7 +52,9 @@ git init --quiet
 git fetch "${repo_dir}" HEAD --quiet --depth=1
 git checkout FETCH_HEAD -b work --quiet
 if [ ! -z "${SPECIFIED_VERSION}" ]; then
-    echo '__version__ = "'"${SPECIFIED_VERSION}"'"' > "${tmp_git_dir}/${PROJECT_NAME}/_version.py"
+    for PROJECT_NAME in cirq-core/cirq cirq-google/cirq_google; do
+      echo '__version__ = "'"${SPECIFIED_VERSION}"'"' > "${tmp_git_dir}/${PROJECT_NAME}/_version.py"
+    done
 fi
 
 # Python 3 wheel.
