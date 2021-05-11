@@ -153,7 +153,7 @@ class CliffordSimulatorStepResult(
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
     def __init__(
-            self,
+        self,
         sim_state: Dict['cirq.Qid', clifford.ActOnStabilizerCHFormArgs],
         qubits: Sequence['cirq.Qid'],
     ):
