@@ -119,9 +119,8 @@ class MPSSimulator(
         sim_state: Dict['cirq.Qid', 'MPSState'],
         qubits: Sequence['cirq.Qid'],
     ):
-        full_state = next(iter(sim_state.values()))
         return MPSSimulatorStepResult(
-            measurements=full_state.log_of_measurement_results, state=full_state
+            sim_state, qubits
         )
 
     def _create_simulator_trial_result(
@@ -169,10 +168,18 @@ class MPSTrialResult(simulator.SimulationTrialResult):
         return f'measurements: {samples}\noutput state: {final}'
 
 
-class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
+class MPSSimulatorStepResult(
+    simulator_base.MultiArgStepResult[
+        'MPSState', 'MPSState'
+    ]
+):
     """A `StepResult` that can perform measurements."""
 
-    def __init__(self, state, measurements):
+    def __init__(
+        self,
+        sim_state: Dict['cirq.Qid', 'MPSState'],
+        qubits: Sequence['cirq.Qid'],
+    ):
         """Results of a step of the simulator.
         Attributes:
             state: A MPSState
@@ -183,8 +190,16 @@ class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
                 is used to define the state vector (see the state_vector()
                 method).
         """
-        self.measurements = measurements
-        self.state = state.copy()
+        super().__init__(sim_state)
+        self._qubits = qubits
+        self._qubit_map = {q: i for i, q in enumerate(qubits)}
+        self._state = None
+
+    @property
+    def state(self):
+        if self._state is None:
+            self._state = act_on_args.merge_states(self._sim_state_values)
+        return self._state
 
     def __str__(self) -> str:
         def bitstring(vals):
@@ -203,24 +218,6 @@ class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
 
     def _simulator_state(self):
         return self.state
-
-    def sample(
-        self,
-        qubits: List[ops.Qid],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-
-        measurements: List[int] = []
-
-        for _ in range(repetitions):
-            measurements.append(
-                self.state.perform_measurement(
-                    qubits, value.parse_random_state(seed), collapse_state_vector=False
-                )
-            )
-
-        return np.array(measurements, dtype=int)
 
 
 class MPSState(act_on_args.ActOnArgs):
@@ -559,3 +556,21 @@ class MPSState(act_on_args.ActOnArgs):
         """Measures the axes specified by the simulator."""
         qubits = [self.qubits[key] for key in self.axes]
         return self.perform_measurement(qubits, self.prng)
+
+    def sample(
+        self,
+        qubits: List[ops.Qid],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+
+        measurements: List[List[int]] = []
+
+        for _ in range(repetitions):
+            measurements.append(
+                self.perform_measurement(
+                    qubits, value.parse_random_state(seed), collapse_state_vector=False
+                )
+            )
+
+        return np.array(measurements, dtype=int)
