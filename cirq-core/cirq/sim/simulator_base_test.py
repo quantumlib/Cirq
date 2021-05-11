@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Dict, Any, Sequence
+from typing import List, Dict, Any, Sequence, Tuple
 
 import numpy as np
 import pytest
@@ -41,6 +41,19 @@ class CountingActOnArgs(cirq.ActOnArgs):
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
         self.gate_count += 1
         return True
+
+    def join(self, other: 'CountingActOnArgs') -> 'CountingActOnArgs':
+        pass
+
+    def extract(
+        self: 'CountingActOnArgs', qubits: Sequence['cirq.Qid']
+    ) -> Tuple['CountingActOnArgs', 'CountingActOnArgs']:
+        pass
+
+    def reorder(
+        self: 'CountingActOnArgs', qubits: Sequence['cirq.Qid']
+    ) -> 'CountingActOnArgs':
+        pass
 
 
 class CountingStepResult(cirq.StepResult[CountingActOnArgs]):
