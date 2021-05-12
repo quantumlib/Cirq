@@ -897,6 +897,11 @@ class AbstractCircuit(abc.ABC):
             [protocols.with_measurement_key_mapping(moment, key_map) for moment in self.moments]
         )
 
+    def _with_key_path_(self, path: Tuple[str, ...]):
+        return self._with_sliced_moments(
+            [protocols.with_key_path(moment, path) for moment in self.moments]
+        )
+
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self.qid_shape()
 

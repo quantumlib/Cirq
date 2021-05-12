@@ -17,7 +17,7 @@ from typing import List
 import pytest, sympy
 
 import cirq
-from cirq.circuits.circuit_operation import cartesian_product_of_string_lists
+from cirq.circuits.circuit_operation import _full_join_string_lists
 
 
 def test_properties():
@@ -86,17 +86,16 @@ def test_invalid_measurement_keys():
     circuit = cirq.FrozenCircuit(cirq.measure(a, key='m'))
     c_op = cirq.CircuitOperation(circuit)
     # Invalid key remapping
-    with pytest.raises(ValueError, match='invalid key: m:a'):
+    with pytest.raises(ValueError, match='Mapping to invalid key: m:a'):
         _ = c_op.with_measurement_key_mapping({'m': 'm:a'})
 
     # Invalid key remapping nested CircuitOperation
-    with pytest.raises(ValueError, match='invalid key: m:a'):
+    with pytest.raises(ValueError, match='Mapping to invalid key: m:a'):
         _ = cirq.CircuitOperation(cirq.FrozenCircuit(c_op), measurement_key_map={'m': 'm:a'})
 
     # Originally invalid key
-    circuit = cirq.FrozenCircuit(cirq.measure(a, key='m:a'))
-    with pytest.raises(ValueError, match='invalid key: m:a'):
-        _ = cirq.CircuitOperation(circuit)
+    with pytest.raises(ValueError, match='Invalid key name: m:a'):
+        _ = cirq.CircuitOperation(cirq.FrozenCircuit(cirq.measure(a, key='m:a')))
 
     # Remapped to valid key
     _ = cirq.CircuitOperation(circuit, measurement_key_map={'m:a': 'ma'})
@@ -274,17 +273,13 @@ def test_repeat(add_measurements, use_default_ids_for_initial_rep):
 
     op_with_consecutive_reps = op_with_reps.repeat(2)
     assert op_with_consecutive_reps.repetitions == final_repetitions
-    assert op_with_consecutive_reps.repetition_ids == cartesian_product_of_string_lists(
-        ['0', '1'], rep_ids
-    )
+    assert op_with_consecutive_reps.repetition_ids == _full_join_string_lists(['0', '1'], rep_ids)
     assert op_base ** final_repetitions != op_with_consecutive_reps
 
     op_with_consecutive_reps = op_with_reps.repeat(2, ['a', 'b'])
     assert op_with_reps.repeat(repetition_ids=['a', 'b']) == op_with_consecutive_reps
     assert op_with_consecutive_reps.repetitions == final_repetitions
-    assert op_with_consecutive_reps.repetition_ids == cartesian_product_of_string_lists(
-        ['a', 'b'], rep_ids
-    )
+    assert op_with_consecutive_reps.repetition_ids == _full_join_string_lists(['a', 'b'], rep_ids)
 
     with pytest.raises(ValueError, match='length to be 2'):
         _ = op_with_reps.repeat(2, ['a', 'b', 'c'])
@@ -375,7 +370,11 @@ cirq.CircuitOperation(
 
     fc2 = cirq.FrozenCircuit(cirq.X(x), cirq.H(y), cirq.CX(y, x))
     op2 = cirq.CircuitOperation(
-        circuit=fc2, qubit_map=({y: z}), repetitions=3, repetition_ids=['a', 'b', 'c']
+        circuit=fc2,
+        qubit_map=({y: z}),
+        repetitions=3,
+        parent_path=('outer', 'inner'),
+        repetition_ids=['a', 'b', 'c'],
     )
     assert (
         str(op2)
@@ -383,7 +382,8 @@ cirq.CircuitOperation(
 {op2.circuit.diagram_name()}:
 [ 0: ───X───X───          ]
 [           │             ]
-[ 1: ───H───@───          ](qubit_map={{1: 2}}, repetition_ids=['a', 'b', 'c'])"""
+[ 1: ───H───@───          ](qubit_map={{1: 2}}, parent_path=('outer', 'inner'),\
+ repetition_ids=['a', 'b', 'c'])"""
     )
     assert (
         repr(op2)
@@ -400,6 +400,7 @@ cirq.CircuitOperation(
     ]),
     repetitions=3,
     qubit_map={cirq.LineQubit(1): cirq.LineQubit(2)},
+    parent_path=('outer', 'inner'),
     repetition_ids=['a', 'b', 'c'],
 )"""
     )
@@ -471,6 +472,7 @@ def test_json_dict():
         qubit_map={c: b, b: c},
         measurement_key_map={'m': 'p'},
         param_resolver={'exp': 'theta'},
+        parent_path=('nested', 'path'),
     )
 
     assert op._json_dict_() == {
@@ -480,6 +482,7 @@ def test_json_dict():
         'qubit_map': sorted([(k, v) for k, v in op.qubit_map.items()]),
         'measurement_key_map': op.measurement_key_map,
         'param_resolver': op.param_resolver,
+        'parent_path': op.parent_path,
         'repetition_ids': None,
     }
 
@@ -618,13 +621,13 @@ def test_decompose_loops_with_measurements():
     expected_circuit = cirq.Circuit(
         cirq.H(b),
         cirq.CX(b, a),
-        cirq.measure(b, a, key='0:m'),
+        cirq.measure(b, a, key=cirq.MeasurementKey.parse_serialized('0:m')),
         cirq.H(b),
         cirq.CX(b, a),
-        cirq.measure(b, a, key='1:m'),
+        cirq.measure(b, a, key=cirq.MeasurementKey.parse_serialized('1:m')),
         cirq.H(b),
         cirq.CX(b, a),
-        cirq.measure(b, a, key='2:m'),
+        cirq.measure(b, a, key=cirq.MeasurementKey.parse_serialized('2:m')),
     )
     assert cirq.Circuit(cirq.decompose_once(op)) == expected_circuit
 
@@ -734,7 +737,7 @@ def test_decompose_repeated_nested_measurements():
 
     expected_circuit = cirq.Circuit()
     for key in expected_measurement_keys_in_order:
-        expected_circuit.append(cirq.measure(a, key=key))
+        expected_circuit.append(cirq.measure(a, key=cirq.MeasurementKey.parse_serialized(key)))
 
     assert cirq.Circuit(cirq.decompose(op3)) == expected_circuit
     assert cirq.measurement_keys(expected_circuit) == set(expected_measurement_keys_in_order)

@@ -13,7 +13,7 @@
 # limitations under the License.
 """Protocol for object that have measurement keys."""
 
-from typing import AbstractSet, Any, Dict, Iterable
+from typing import AbstractSet, Any, Dict, Iterable, Tuple
 
 from typing_extensions import Protocol
 
@@ -157,3 +157,14 @@ def with_measurement_key_mapping(val: Any, key_map: Dict[str, str]):
     """
     getter = getattr(val, '_with_measurement_key_mapping_', None)
     return NotImplemented if getter is None else getter(key_map)
+
+
+def with_key_path(val: Any, path: Tuple[str, ...]):
+    """Adds the path to the target's measurement keys.
+
+    The path usually refers to an identifier or a list of identifiers from a subcircuit that
+    used to contain the target. Since a subcircuit can be repeated and reused, these paths help
+    differentiate the actual measurement keys.
+    """
+    getter = getattr(val, '_with_key_path_', None)
+    return NotImplemented if getter is None else getter(path)
