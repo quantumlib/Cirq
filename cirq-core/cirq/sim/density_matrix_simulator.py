@@ -239,10 +239,6 @@ class DensityMatrixStepResult(
     """A single step in the simulation of the DensityMatrixSimulator.
 
     Attributes:
-        qubit_map: A map from the Qubits in the Circuit to the the index
-            of this qubit for a canonical ordering. This canonical ordering
-            is used to define the state vector (see the state_vector()
-            method).
         measurements: A dictionary from measurement gate key to measurement
             results, ordered by the qubits that the measurement operates on.
     """
@@ -256,17 +252,13 @@ class DensityMatrixStepResult(
         """DensityMatrixStepResult.
 
         Args:
-            density_matrix: The density matrix at this step. Can be mutated.
-            measurements: The measurements for this step of the simulation.
-            qubit_map: A map from qid to index used to define the
-                ordering of the basis in density_matrix.
-            dtype: The numpy dtype for the density matrix.
+            sim_state: The qubit:ActOnArgs lookup for this step.
+            qubits: The canonical ordering of the qubits.
+            dtype: The `numpy.dtype` used by the simulation. One of
+                `numpy.complex64` or `numpy.complex128`.
         """
-        super().__init__(sim_state)
-        self._qubits = qubits
-        self._qubit_map = {q: i for i, q in enumerate(qubits)}
+        super().__init__(sim_state, qubits)
         self._dtype = dtype
-        self._qid_shape = tuple(q.dimension for q in qubits)
         self._density_matrix: Optional[np.ndarray] = None
 
     def _qid_shape_(self):
@@ -289,7 +281,7 @@ class DensityMatrixStepResult(
             with trace one.
         """
         density_matrix = qis.to_valid_density_matrix(
-            density_matrix_repr, len(self._qid_shape), qid_shape=self._qid_shape, dtype=self._dtype
+            density_matrix_repr, len(self._qubit_map), qid_shape=self._qid_shape, dtype=self._dtype
         )
         sim_state_matrix = self._simulator_state().density_matrix
         density_matrix = np.reshape(density_matrix, sim_state_matrix.shape)

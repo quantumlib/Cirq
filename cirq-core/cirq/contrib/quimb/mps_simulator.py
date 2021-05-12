@@ -19,7 +19,7 @@ https://arxiv.org/abs/2002.07730
 
 import dataclasses
 import math
-from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iterable, Union
+from typing import Any, Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Iterable, Union, Tuple
 
 import numpy as np
 import quimb.tensor as qtn
@@ -182,17 +182,10 @@ class MPSSimulatorStepResult(
     ):
         """Results of a step of the simulator.
         Attributes:
-            state: A MPSState
-            measurements: A dictionary from measurement gate key to measurement
-                results, ordered by the qubits that the measurement operates on.
-            qubit_map: A map from the Qubits in the Circuit to the the index
-                of this qubit for a canonical ordering. This canonical ordering
-                is used to define the state vector (see the state_vector()
-                method).
+            sim_state: The qubit:ActOnArgs lookup for this step.
+            qubits: The canonical ordering of the qubits.
         """
-        super().__init__(sim_state)
-        self._qubits = qubits
-        self._qubit_map = {q: i for i, q in enumerate(qubits)}
+        super().__init__(sim_state, qubits)
         self._state = None
 
     @property

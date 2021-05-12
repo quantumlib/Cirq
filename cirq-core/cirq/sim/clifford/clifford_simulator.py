@@ -159,19 +159,11 @@ class CliffordSimulatorStepResult(
     ):
         """Results of a step of the simulator.
         Attributes:
-            state: A CliffordState
-            measurements: A dictionary from measurement gate key to measurement
-                results, ordered by the qubits that the measurement operates on.
-            qubit_map: A map from the Qubits in the Circuit to the the index
-                of this qubit for a canonical ordering. This canonical ordering
-                is used to define the state vector (see the state_vector()
-                method).
+            sim_state: The qubit:ActOnArgs lookup for this step.
+            qubits: The canonical ordering of the qubits.
         """
-        super().__init__(sim_state)
-        self._qubits = qubits
-        self._qubit_map = {q: i for i, q in enumerate(qubits)}
+        super().__init__(sim_state, qubits)
         self._state = None
-
 
     def __str__(self) -> str:
         def bitstring(vals):
@@ -190,9 +182,6 @@ class CliffordSimulatorStepResult(
 
     @property
     def state(self):
-        return self._simulator_state()
-
-    def _simulator_state(self):
         if self._state is None:
             state = act_on_args.merge_states(self._sim_state_values)
             if state is not None:
@@ -201,6 +190,9 @@ class CliffordSimulatorStepResult(
                 clifford_state.ch_form = state.state.copy()
                 self._state = clifford_state
         return self._state
+
+    def _simulator_state(self):
+        return self.state
 
     def sample(
         self,
@@ -212,7 +204,7 @@ class CliffordSimulatorStepResult(
         measurements = {}  # type: Dict[str, List[np.ndarray]]
 
         for i in range(repetitions):
-            self._simulator_state().apply_measurement(
+            self.state.apply_measurement(
                 cirq.measure(*qubits, key=str(i)),
                 measurements,
                 value.parse_random_state(seed),

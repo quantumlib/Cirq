@@ -324,20 +324,25 @@ class MultiArgStepResult(Generic[TStepResult, TActOnArgs], StepResult[TStepResul
     def __init__(
         self,
         sim_state: Dict['cirq.Qid', TActOnArgs],
+        qubits: Sequence['cirq.Qid'],
     ):
         """Initializes the step result.
 
         Args:
-            sim_state: The lookup of qubits to ActOnArg state.
+            sim_state: The qubit:ActOnArgs lookup for this step.
+            qubits: The canonical ordering of the qubits.
         """
         self._sim_state = sim_state
-        self._sim_state_values = tuple(set(sim_state.values()))
+        self._sim_state_values = tuple(sim_state.values())
         measurements = (
             self._sim_state_values[0].log_of_measurement_results.copy()
             if len(self._sim_state_values) != 0
             else {}
         )
         super().__init__(measurements)
+        self._qubits = qubits
+        self._qubit_map = {q: i for i, q in enumerate(qubits)}
+        self._qid_shape = tuple(q.dimension for q in qubits)
 
     def sample(
         self,

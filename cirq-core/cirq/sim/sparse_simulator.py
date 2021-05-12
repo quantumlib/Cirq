@@ -262,16 +262,13 @@ class SparseSimulatorStep(
         """Results of a step of the simulator.
 
         Args:
-            qubit_map: A map from the Qubits in the Circuit to the the index
-                of this qubit for a canonical ordering. This canonical ordering
-                is used to define the state vector (see the state_vector()
-                method).
-            measurements: A dictionary from measurement gate key to measurement
-                results, ordered by the qubits that the measurement operates on.
+            sim_state: The qubit:ActOnArgs lookup for this step.
+            qubits: The canonical ordering of the qubits.
+            dtype: The `numpy.dtype` used by the simulation. One of
+                `numpy.complex64` or `numpy.complex128`.
         """
-        self._qubits = qubits
         qubit_map = {q: i for i, q in enumerate(qubits)}
-        super().__init__(sim_state=sim_state, qubit_map=qubit_map)
+        super().__init__(sim_state=sim_state, qubits=qubits, qubit_map=qubit_map)
         self._dtype = dtype
         self._state_vector: Optional[np.ndarray] = None
 
