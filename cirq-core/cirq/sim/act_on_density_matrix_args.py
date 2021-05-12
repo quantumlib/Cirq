@@ -157,7 +157,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         axes = axes + [i + len(qubits) for i in axes]
         new_tensor = np.moveaxis(self.target_tensor, axes, range(len(qubits) * 2))
         buffer = [np.empty_like(new_tensor) for _ in self.available_buffer]
-        new_args = ActOnDensityMatrixArgs(
+        return ActOnDensityMatrixArgs(
             target_tensor=new_tensor,
             available_buffer=buffer,
             qubits=qubits,
@@ -166,7 +166,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results,
         )
-        return new_args
 
 
 def _strat_apply_channel_to_state(
