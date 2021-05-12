@@ -356,4 +356,4 @@ class MultiArgStepResult(Generic[TStepResult, TActOnArgs], StepResult[TStepResul
         stacked = np.column_stack(columns)
         qubit_map = {q: i for i, q in enumerate(selected_order)}
         index_order = [qubit_map[q] for q in qubits]
-        return stacked.transpose()[index_order].transpose()
+        return stacked[:, index_order]
