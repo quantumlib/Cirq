@@ -274,11 +274,11 @@ output state: TensorNetwork([
 
 def test_empty_step_result():
     q0 = cirq.LineQubit(0)
-    state = ccq.mps_simulator.MPSState(qubits=(q0,), prng=value.parse_random_state(0))
-    step_result = ccq.mps_simulator.MPSSimulatorStepResult(state, measurements={'0': [1]})
+    sim = ccq.mps_simulator.MPSSimulator()
+    step_result = next(sim.simulate_moment_steps(cirq.Circuit(cirq.measure(q0))))
     assert (
         str(step_result)
-        == """0=1
+        == """0=0
 TensorNetwork([
     Tensor(shape=(2,), inds=('i_0',), tags=set()),
 ])"""

@@ -110,9 +110,7 @@ class CliffordSimulator(
         sim_state: Dict['cirq.Qid', clifford.ActOnStabilizerCHFormArgs],
         qubits: Sequence['cirq.Qid'],
     ):
-        return CliffordSimulatorStepResult(
-            sim_state=sim_state, qubits=qubits
-        )
+        return CliffordSimulatorStepResult(sim_state=sim_state, qubits=qubits)
 
     def _create_simulator_trial_result(
         self,

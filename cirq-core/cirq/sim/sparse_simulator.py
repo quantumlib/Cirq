@@ -248,8 +248,9 @@ class SparseSimulatorStep(
     state_vector.StateVectorMixin,
     state_vector_simulator.StateVectorStepResult,
     simulator_base.MultiArgStepResult[
-        state_vector_simulator.StateVectorSimulatorState, act_on_state_vector_args.ActOnStateVectorArgs
-    ]
+        state_vector_simulator.StateVectorSimulatorState,
+        act_on_state_vector_args.ActOnStateVectorArgs,
+    ],
 ):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 

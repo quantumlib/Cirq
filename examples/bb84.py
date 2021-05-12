@@ -125,7 +125,9 @@ def main(num_qubits=8):
     # Run simulations.
     repetitions = 1
 
-    result = cirq.Simulator(split_untangled_states=False).run(program=circuit, repetitions=repetitions)
+    result = cirq.Simulator(split_untangled_states=False).run(
+        program=circuit, repetitions=repetitions
+    )
     result_bitstring = bitstring([int(result.measurements[str(i)]) for i in range(num_qubits)])
 
     # Take only qubits where bases match
@@ -155,14 +157,18 @@ def main(num_qubits=8):
 
     # Run simulations.
     repetitions = 1
-    result = cirq.Simulator(split_untangled_states=False).run(program=alice_eve_circuit, repetitions=repetitions)
+    result = cirq.Simulator(split_untangled_states=False).run(
+        program=alice_eve_circuit, repetitions=repetitions
+    )
     eve_state = [int(result.measurements[str(i)]) for i in range(num_qubits)]
 
     eve_bob_circuit = make_bb84_circ(num_qubits, eve_basis, bob_basis, eve_state)
 
     # Run simulations.
     repetitions = 1
-    result = cirq.Simulator(split_untangled_states=False).run(program=eve_bob_circuit, repetitions=repetitions)
+    result = cirq.Simulator(split_untangled_states=False).run(
+        program=eve_bob_circuit, repetitions=repetitions
+    )
     result_bitstring = bitstring([int(result.measurements[str(i)]) for i in range(num_qubits)])
 
     # Take only qubits where bases match
