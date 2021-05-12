@@ -333,7 +333,7 @@ class MultiArgStepResult(Generic[TStepResult, TActOnArgs], StepResult[TStepResul
             qubits: The canonical ordering of the qubits.
         """
         self._sim_state = sim_state
-        self._sim_state_values = tuple(sim_state.values())
+        self._sim_state_values = tuple(set(sim_state.values()))
         measurements = (
             self._sim_state_values[0].log_of_measurement_results.copy()
             if len(self._sim_state_values) != 0
