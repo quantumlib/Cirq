@@ -84,6 +84,7 @@ class CliffordTableau:
         self._rs[:-1] = np.array(new_rs).astype(bool)
 
     def matrix(self) -> np.array:
+        """Returns a 2n * 2n matrix of Clifford table."""
         return np.concatenate([self.xs, self.zs], axis=1)
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -178,12 +179,12 @@ class CliffordTableau:
 
         return string
 
-    def merged_with(self, second: 'CliffordTableau') -> 'CliffordTableau':
-        """Returns a merged CliffordTableau of self tableau and second tableau.
+    def then(self, second: 'CliffordTableau') -> 'CliffordTableau':
+        """Returns a composed CliffordTableau of this tableau and the second tableau.
 
-        The meaning of merge two clifford tableau is the corresponding unitary operation
-        of merged clifford tableau is equal to (up to global phase) the composed unitary
-        operation of self tableau and the one of second tableau.
+        Then composed tableau is equal to (up to global phase) the composed
+        unitary operation of the two tableaux, i.e. equivalent to applying the unitary operation
+        this CliffordTableau then applying the second one.
         """
         m1 = self.matrix().astype(int)
         m2 = second.matrix().astype(int)
@@ -214,6 +215,11 @@ class CliffordTableau:
         merged_tableau.zs = merged_m[:, self.n :]
         merged_tableau.rs = phase
         return merged_tableau
+
+    def __matmul__(self, second: 'CliffordTableau'):
+        if not isinstance(second, CliffordTableau):
+            return NotImplemented
+        return second.then(self)
 
     def _rowsum(self, q1, q2):
         """Implements the "rowsum" routine defined by
