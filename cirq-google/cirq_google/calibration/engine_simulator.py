@@ -3,6 +3,7 @@ from typing import (
     Callable,
     Dict,
     Iterable,
+    Iterator,
     List,
     Optional,
     Sequence,
@@ -389,14 +390,14 @@ class PhasedFSimEngineSimulator(SimulatesIntermediateStateVector[SparseSimulator
 
         return gate_calibration.as_characterized_phased_fsim_gate(parameters)
 
-    def run_sweep(
+    def run_sweep_iter(
         self,
         program: Circuit,
         params: Sweepable,
         repetitions: int = 1,
-    ) -> List[Result]:
+    ) -> Iterator[Result]:
         converted = _convert_to_circuit_with_drift(self, program)
-        return self._simulator.run_sweep(converted, params, repetitions)
+        yield from self._simulator.run_sweep_iter(converted, params, repetitions)
 
     def simulate(
         self,
