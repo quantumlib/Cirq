@@ -316,41 +316,20 @@ class MPSState(act_on_args.ActOnArgs):
         return state
 
     def join(self, other: 'MPSState') -> 'MPSState':
-        offset = len(self.M)
-        axes = self.axes + tuple(a + offset for a in other.axes)
-        grouping = {k: v + offset for k, v in other.grouping.items()}
-        grouping.update(self.grouping)
-        state = MPSState(
-            qubits=self.qubits + other.qubits,
-            axes=axes,
-            prng=self.prng,
-            simulation_options=self.simulation_options,
-            log_of_measurement_results=self.log_of_measurement_results,
-            grouping=grouping,
-        )
-        state.M = [x.copy() for x in (self.M + other.M)]
-        for i in range(offset, len(state.M)):
-            inds_map = {}
-            for inds in state.M[i].inds:
-                parts = str.split(inds, '_')
-                if parts[0] == 'mu':
-                    inds_map[inds] = self.mu_str(int(parts[1]) + offset, int(parts[2]) + offset)
-                else:
-                    inds_map[inds] = self.i_str(int(parts[1]) + offset)
-            state.M[i].reindex(inds_map, inplace=True)
-        state.estimated_gate_error_list = (
-            self.estimated_gate_error_list + other.estimated_gate_error_list
-        )
-        return state
-
-    def extract(self: 'MPSState', qubits: Sequence['cirq.Qid']) -> Tuple['MPSState', 'MPSState']:
         # TODO MPS simulator currently does not enable split_untangled_states
         # so this will never be called during simulation, and MPS gains nothing
         # from running in split_untangled_states mode, so this is not necessary,
         # however it may be useful if other use cases arise.
         raise NotImplementedError()
 
-    def reorder(self: 'MPSState', qubits: Sequence['cirq.Qid']) -> 'MPSState':
+    def extract(self, qubits: Sequence['cirq.Qid']) -> Tuple['MPSState', 'MPSState']:
+        # TODO MPS simulator currently does not enable split_untangled_states
+        # so this will never be called during simulation, and MPS gains nothing
+        # from running in split_untangled_states mode, so this is not necessary,
+        # however it may be useful if other use cases arise.
+        raise NotImplementedError()
+
+    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'MPSState':
         # TODO MPS simulator currently does not enable split_untangled_states
         # so this will never be called during simulation, and MPS gains nothing
         # from running in split_untangled_states mode, so this is not necessary,

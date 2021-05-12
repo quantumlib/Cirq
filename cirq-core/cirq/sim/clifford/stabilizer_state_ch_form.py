@@ -132,7 +132,7 @@ class StabilizerStateChForm:
         extracted.gamma = self.gamma[axes]
         extracted.v = self.v[axes]
         extracted.s = self.s[axes]
-        extracted.omega = self.omega * len(axes) / self.n
+        extracted.omega = self.omega ** (len(axes) / self.n)
         remainder = StabilizerStateChForm(len(remaining_axes))
         remainder.G = G[n:, n:]
         remainder.F = F[n:, n:]
@@ -140,7 +140,7 @@ class StabilizerStateChForm:
         remainder.gamma = self.gamma[remaining_axes]
         remainder.v = self.v[remaining_axes]
         remainder.s = self.s[remaining_axes]
-        remainder.omega = self.omega * len(remaining_axes) / self.n
+        remainder.omega = self.omega ** (len(remaining_axes) / self.n)
         return extracted, remainder
 
     def reindex(self, axes: Sequence[int]) -> 'cirq.StabilizerStateChForm':

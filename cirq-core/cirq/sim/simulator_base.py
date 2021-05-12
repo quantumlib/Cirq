@@ -220,7 +220,7 @@ class SimulatorBase(
                     protocols.act_on(op, op_args)
 
                     # Decouple any measurements
-                    if isinstance(op, ops.MeasurementGate) and self._split_untangled_states:
+                    if isinstance(op.gate, ops.MeasurementGate) and self._split_untangled_states:
                         for q in op.qubits:
                             q_args, op_args = op_args.extract((q,))
                             sim_state[q] = q_args

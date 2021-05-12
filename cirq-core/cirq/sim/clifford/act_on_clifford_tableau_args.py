@@ -14,7 +14,7 @@
 """A protocol for implementing high performance clifford tableau evolutions
  for Clifford Simulator."""
 
-from typing import Any, Dict, Iterable, TYPE_CHECKING, List, Sequence
+from typing import Any, Dict, Iterable, TYPE_CHECKING, List, Sequence, Tuple
 
 import numpy as np
 
@@ -89,6 +89,20 @@ class ActOnCliffordTableauArgs(ActOnArgs):
             prng=self.prng,
             log_of_measurement_results=self.log_of_measurement_results,
         )
+
+    def join(self, other: 'ActOnCliffordTableauArgs') -> 'ActOnCliffordTableauArgs':
+        # Unnecessary for now but can be added later if there is a use case.
+        raise NotImplementedError()
+
+    def extract(
+        self, qubits: Sequence['cirq.Qid']
+    ) -> Tuple['ActOnCliffordTableauArgs', 'ActOnCliffordTableauArgs']:
+        # Unnecessary for now but can be added later if there is a use case.
+        raise NotImplementedError()
+
+    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'ActOnCliffordTableauArgs':
+        # Unnecessary for now but can be added later if there is a use case.
+        raise NotImplementedError()
 
 
 def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
