@@ -141,8 +141,8 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         for i in range(repetitions):
             op = ops.measure(*qubits, key=str(i))
             state = self.state.copy()
-            qids = [self.qubit_map[i] for i in op.qubits]
-            ch_form_args = ActOnStabilizerCHFormArgs(state.ch_form, qids, prng, measurements)
+            axes = [self.qubit_map[i] for i in qubits]
+            ch_form_args = ActOnStabilizerCHFormArgs(state, axes, prng, measurements)
             protocols.act_on(op, ch_form_args)
         return np.array(list(measurements.values()), dtype=bool)
 

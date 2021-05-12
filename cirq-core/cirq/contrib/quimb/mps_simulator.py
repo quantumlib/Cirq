@@ -25,8 +25,7 @@ import numpy as np
 import quimb.tensor as qtn
 
 from cirq import devices, study, ops, protocols, value
-from cirq.sim import simulator, simulator_base
-from cirq.sim import act_on_args
+from cirq.sim import simulator, simulator_base, act_on_args, ActOnArgs
 
 if TYPE_CHECKING:
     import cirq
@@ -213,7 +212,7 @@ class MPSSimulatorStepResult(
         return self.state
 
 
-class MPSState(act_on_args.ActOnArgs):
+class MPSState(ActOnArgs):
     """A state of the MPS simulation."""
 
     def __init__(

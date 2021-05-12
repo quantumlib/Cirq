@@ -194,25 +194,6 @@ class CliffordSimulatorStepResult(
     def _simulator_state(self):
         return self.state
 
-    def sample(
-        self,
-        qubits: List[ops.Qid],
-        repetitions: int = 1,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> np.ndarray:
-
-        measurements = {}  # type: Dict[str, List[np.ndarray]]
-
-        for i in range(repetitions):
-            self.state.apply_measurement(
-                cirq.measure(*qubits, key=str(i)),
-                measurements,
-                value.parse_random_state(seed),
-                collapse_state_vector=False,
-            )
-
-        return np.array(list(measurements.values()), dtype=bool)
-
 
 @value.value_equality
 class CliffordState:
