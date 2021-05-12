@@ -320,6 +320,7 @@ def test_resolve(resolve_fn):
     assert diagonal_gate == cirq.ThreeQubitDiagonalGate(diagonal_angles)
     assert not cirq.is_parameterized(diagonal_gate)
 
+
 def unique_ops(op_list):
     """
     Helper function for test_unique_gate_decomp.
@@ -335,6 +336,7 @@ def unique_ops(op_list):
             unique.append(op)
 
     return unique
+
 
 def test_unique_gate_decomp():
     """
