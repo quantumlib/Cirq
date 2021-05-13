@@ -104,14 +104,14 @@ class CCZPowGate(
             p(a),
             p(b),
             p(c),
-            [cnot(a,b), cnot(b,c)],
+            [cnot(a, b), cnot(b, c)],
             p(b) ** -1,
             p(c),
-            [cnot(a,b), cnot(b,c)],
+            [cnot(a, b), cnot(b, c)],
             p(c) ** -1,
-            [cnot(a,b), cnot(b,c)],
+            [cnot(a, b), cnot(b, c)],
             p(c) ** -1,
-            [cnot(a,b), cnot(b,c)],
+            [cnot(a, b), cnot(b, c)],
         ]
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
@@ -287,14 +287,14 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
             p_gates[0](a),
             p_gates[1](b),
             p_gates[2](c),
-            [cnot(a,b), cnot(b,c)],
+            [cnot(a, b), cnot(b, c)],
             p_gates[3](b),
             p_gates[4](c),
-            [cnot(a,b), cnot(b,c)],
+            [cnot(a, b), cnot(b, c)],
             p_gates[5](c),
-            [cnot(a,b), cnot(b,c)],
+            [cnot(a, b), cnot(b, c)],
             p_gates[6](c),
-            [cnot(a,b), cnot(b,c)],
+            [cnot(a, b), cnot(b, c)],
         ]
 
     def _value_equality_values_(self):
@@ -525,14 +525,14 @@ class CSwapGate(gate_features.ThreeQubitGate, gate_features.InterchangeableQubit
         yield common_gates.CNOT(c, b)
         yield pauli_gates.Y(c) ** -0.5
         yield t(a), t(b), t(c)
-        yield [cnot(a,b), cnot(b,c)]
+        yield [cnot(a, b), cnot(b, c)]
         yield t(b) ** -1, t(c)
-        yield [cnot(a,b), cnot(b,c)]
+        yield [cnot(a, b), cnot(b, c)]
         yield t(c) ** -1
-        yield [cnot(a,b), cnot(b,c)]
+        yield [cnot(a, b), cnot(b, c)]
         yield t(c) ** -1
         yield pauli_gates.X(b) ** 0.5
-        yield [cnot(a,b), cnot(b,c)]
+        yield [cnot(a, b), cnot(b, c)]
         yield common_gates.S(c)
         yield pauli_gates.X(b) ** 0.5
         yield pauli_gates.X(c) ** -0.5
