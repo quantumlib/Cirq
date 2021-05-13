@@ -431,4 +431,6 @@ def test_tableau_matmul():
     assert expected_t != t1 @ t2
 
     with pytest.raises(TypeError):
+        # pylint: disable=pointless-statement
         t1 @ 21
+        # pylint: enable=pointless-statement
