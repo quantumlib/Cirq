@@ -330,9 +330,8 @@ def unique_ops(op_list):
     """
 
     unique = []
-    while op_list:
-        op = op_list.pop(0)
-        if not sum([op is ele for ele in unique]):
+    for op in op_list:
+        if all(op is not elem for elem in unique):
             unique.append(op)
 
     return unique
