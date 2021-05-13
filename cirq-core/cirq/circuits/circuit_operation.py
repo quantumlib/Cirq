@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING, AbstractSet, Callable, Dict, List, Optional, T
 import dataclasses
 import numpy as np
 
-from cirq import circuits, ops, protocols, study
+from cirq import circuits, ops, protocols, value, study
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 
 INT_TYPE = Union[int, np.integer]
-MEASUREMENT_KEY_SEPARATOR = ':'
+REPETITION_ID_SEPARATOR = '-'
 
 
 def default_repetition_ids(repetitions: int) -> Optional[List[str]]:
@@ -40,7 +40,7 @@ def default_repetition_ids(repetitions: int) -> Optional[List[str]]:
     return None
 
 
-def cartesian_product_of_string_lists(list1: Optional[List[str]], list2: Optional[List[str]]):
+def _full_join_string_lists(list1: Optional[List[str]], list2: Optional[List[str]]):
     if list1 is None and list2 is None:
         return None  # coverage: ignore
     if list1 is None:
@@ -48,30 +48,8 @@ def cartesian_product_of_string_lists(list1: Optional[List[str]], list2: Optiona
     if list2 is None:
         return list1
     return [
-        f'{MEASUREMENT_KEY_SEPARATOR.join([first, second])}' for first in list1 for second in list2
+        f'{REPETITION_ID_SEPARATOR.join([first, second])}' for first in list1 for second in list2
     ]
-
-
-def split_maybe_indexed_key(maybe_indexed_key: str) -> List[str]:
-    """Given a measurement_key, splits into index (series of repetition_ids) and unindexed key
-    parts. For a key without index, returns the unaltered key in a list. Assumes that the
-    unindexed measurement key does not contain the MEASUREMENT_KEY_SEPARATOR. This is validated by
-    the `CircuitOperation` constructor."""
-    return maybe_indexed_key.rsplit(MEASUREMENT_KEY_SEPARATOR, maxsplit=1)
-
-
-def get_unindexed_key(maybe_indexed_key: str) -> str:
-    """Given a measurement_key, returns the unindexed key part (without the series of prefixed
-    repetition_ids). For an already unindexed key, returns the unaltered key."""
-    return split_maybe_indexed_key(maybe_indexed_key)[-1]
-
-
-def remap_maybe_indexed_key(key_map: Dict[str, str], key: str) -> str:
-    """Given a key map and a measurement_key (indexed or unindexed), returns the remapped key in
-    the same format. Does not modify the index (series of repetition_ids) part, if it exists."""
-    split_key = split_maybe_indexed_key(key)
-    split_key[-1] = key_map.get(split_key[-1], split_key[-1])
-    return MEASUREMENT_KEY_SEPARATOR.join(split_key)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -90,6 +68,7 @@ class CircuitOperation(ops.Operation):
             The keys and values should be unindexed (i.e. without repetition_ids).
             The values cannot contain the `MEASUREMENT_KEY_SEPARATOR`.
         param_resolver: Resolved values for parameters in the circuit.
+        parent_path: A tuple of identifiers for any parent CircuitOperations containing this one.
         repetition_ids: List of identifiers for each repetition of the
             CircuitOperation. If populated, the length should be equal to the
             repetitions. If not populated and abs(`repetitions`) > 1, it is
@@ -104,6 +83,7 @@ class CircuitOperation(ops.Operation):
     measurement_key_map: Dict[str, str] = dataclasses.field(default_factory=dict)
     param_resolver: study.ParamResolver = study.ParamResolver()
     repetition_ids: Optional[List[str]] = dataclasses.field(default=None)
+    parent_path: Tuple[str, ...] = dataclasses.field(default_factory=tuple)
 
     def __post_init__(self):
         if not isinstance(self.circuit, circuits.FrozenCircuit):
@@ -128,26 +108,11 @@ class CircuitOperation(ops.Operation):
 
         # Disallow mapping to keys containing the `MEASUREMENT_KEY_SEPARATOR`
         for mapped_key in self.measurement_key_map.values():
-            if MEASUREMENT_KEY_SEPARATOR in mapped_key:
+            if value.MEASUREMENT_KEY_SEPARATOR in mapped_key:
                 raise ValueError(
-                    f'Mapping to invalid key: {mapped_key}. "{MEASUREMENT_KEY_SEPARATOR}" '
+                    f'Mapping to invalid key: {mapped_key}. "{value.MEASUREMENT_KEY_SEPARATOR}" '
                     'is not allowed for measurement keys in a CircuitOperation'
                 )
-
-        # Validate the keys for all direct child measurements. They are not allowed to contain
-        # `MEASUREMENT_KEY_SEPARATOR`
-        for _, op in self.circuit.findall_operations(
-            lambda op: not isinstance(op, CircuitOperation) and protocols.is_measurement(op)
-        ):
-            for key in protocols.measurement_keys(op):
-                key = self.measurement_key_map.get(key, key)
-                if MEASUREMENT_KEY_SEPARATOR in key:
-                    raise ValueError(
-                        f'Measurement {op} found to have invalid key: {key}. '
-                        f'"{MEASUREMENT_KEY_SEPARATOR}" is not allowed for measurement keys '
-                        'in a CircuitOperation. Consider remapping the key using '
-                        '`measurement_key_map` in the CircuitOperation constructor.'
-                    )
 
         # Disallow qid mapping dimension conflicts.
         for q, q_new in self.qubit_map.items():
@@ -178,6 +143,7 @@ class CircuitOperation(ops.Operation):
             and self.param_resolver == other.param_resolver
             and self.repetitions == other.repetitions
             and self.repetition_ids == other.repetition_ids
+            and self.parent_path == other.parent_path
         )
 
     # Methods for getting post-mapping properties of the contained circuit.
@@ -195,12 +161,20 @@ class CircuitOperation(ops.Operation):
         return tuple(q.dimension for q in self.qubits)
 
     def _measurement_keys_(self) -> AbstractSet[str]:
-        circuit_keys = self.circuit.all_measurement_keys()
+        circuit_keys = [
+            value.MeasurementKey.parse_serialized(key_str)
+            for key_str in self.circuit.all_measurement_keys()
+        ]
         if self.repetition_ids is not None:
-            circuit_keys = cartesian_product_of_string_lists(
-                self.repetition_ids, list(circuit_keys)
-            )
-        return {remap_maybe_indexed_key(self.measurement_key_map, key) for key in circuit_keys}
+            circuit_keys = [
+                key.with_key_path_prefix(repetition_id)
+                for repetition_id in self.repetition_ids
+                for key in circuit_keys
+            ]
+        return {
+            str(protocols.with_measurement_key_mapping(key, self.measurement_key_map))
+            for key in circuit_keys
+        }
 
     def _parameter_names_(self) -> AbstractSet[str]:
         return {
@@ -225,32 +199,9 @@ class CircuitOperation(ops.Operation):
         # If it's a measurement circuit with repetitions/repetition_ids, prefix the repetition_ids
         # to measurements. Details at https://tinyurl.com/measurement-repeated-circuitop.
         ops = []  # type: List[cirq.Operation]
-        for parent_id in self.repetition_ids:
-            for op in result.all_operations():
-                if isinstance(op, CircuitOperation):
-                    # For a CircuitOperation, prefix the current repetition_id to the children
-                    # repetition_ids.
-                    ops.append(
-                        op.with_repetition_ids(
-                            # If `op.repetition_ids` is None, this will return `[parent_id]`.
-                            cartesian_product_of_string_lists([parent_id], op.repetition_ids)
-                        )
-                    )
-                elif protocols.is_measurement(op):
-                    # For a non-CircuitOperation measurement, prefix the current repetition_id
-                    # to the children measurement keys. Implemented by creating a mapping and
-                    # using the with_measurement_key_mapping protocol.
-                    ops.append(
-                        protocols.with_measurement_key_mapping(
-                            op,
-                            key_map={
-                                key: f'{MEASUREMENT_KEY_SEPARATOR.join([parent_id, key])}'
-                                for key in protocols.measurement_keys(op)
-                            },
-                        )
-                    )
-                else:
-                    ops.append(op)
+        for repetition_id in self.repetition_ids:
+            path = self.parent_path + (repetition_id,)
+            ops += protocols.with_key_path(result, path).all_operations()
         return ops
 
     # Methods for string representation of the operation.
@@ -265,6 +216,8 @@ class CircuitOperation(ops.Operation):
             args += f'measurement_key_map={proper_repr(self.measurement_key_map)},\n'
         if self.param_resolver:
             args += f'param_resolver={proper_repr(self.param_resolver)},\n'
+        if self.parent_path:
+            args += f'parent_path={proper_repr(self.parent_path)},\n'
         if self.repetition_ids != self._default_repetition_ids():
             # Default repetition_ids need not be specified.
             args += f'repetition_ids={proper_repr(self.repetition_ids)},\n'
@@ -291,6 +244,8 @@ class CircuitOperation(ops.Operation):
             args.append(f'key_map={dict_str(self.measurement_key_map)}')
         if self.param_resolver:
             args.append(f'params={self.param_resolver.param_dict}')
+        if self.parent_path:
+            args.append(f'parent_path={self.parent_path}')
         if self.repetition_ids != self._default_repetition_ids():
             # Default repetition_ids need not be specified.
             args.append(f'repetition_ids={self.repetition_ids}')
@@ -313,6 +268,7 @@ class CircuitOperation(ops.Operation):
                         frozenset(self.qubit_map.items()),
                         frozenset(self.measurement_key_map.items()),
                         self.param_resolver,
+                        self.parent_path,
                         tuple([] if self.repetition_ids is None else self.repetition_ids),
                     )
                 ),
@@ -330,6 +286,7 @@ class CircuitOperation(ops.Operation):
             'measurement_key_map': self.measurement_key_map,
             'param_resolver': self.param_resolver,
             'repetition_ids': self.repetition_ids,
+            'parent_path': self.parent_path,
         }
 
     @classmethod
@@ -341,6 +298,7 @@ class CircuitOperation(ops.Operation):
         measurement_key_map,
         param_resolver,
         repetition_ids,
+        parent_path=(),
         **kwargs,
     ):
         return (
@@ -348,6 +306,7 @@ class CircuitOperation(ops.Operation):
             .with_qubit_mapping(dict(qubit_map))
             .with_measurement_key_mapping(measurement_key_map)
             .with_params(param_resolver)
+            .with_key_path(tuple(parent_path))
             .repeat(repetitions, repetition_ids)
         )
 
@@ -408,12 +367,18 @@ class CircuitOperation(ops.Operation):
             )
 
         # If `self.repetition_ids` is None, this will just return `repetition_ids`.
-        repetition_ids = cartesian_product_of_string_lists(repetition_ids, self.repetition_ids)
+        repetition_ids = _full_join_string_lists(repetition_ids, self.repetition_ids)
 
         return self.replace(repetitions=final_repetitions, repetition_ids=repetition_ids)
 
     def __pow__(self, power: int) -> 'CircuitOperation':
         return self.repeat(power)
+
+    def _with_key_path_(self, path: Tuple[str, ...]):
+        return dataclasses.replace(self, parent_path=path)
+
+    def with_key_path(self, path: Tuple[str, ...]):
+        return self._with_key_path_(path)
 
     def with_repetition_ids(self, repetition_ids: List[str]) -> 'CircuitOperation':
         return self.replace(repetition_ids=repetition_ids)
@@ -501,7 +466,7 @@ class CircuitOperation(ops.Operation):
         """
         new_map = {}
         for k in self.circuit.all_measurement_keys():
-            k = get_unindexed_key(k)
+            k = value.MeasurementKey.parse_serialized(k).name
             k_new = self.measurement_key_map.get(k, k)
             k_new = key_map.get(k_new, k_new)
             if k_new != k:

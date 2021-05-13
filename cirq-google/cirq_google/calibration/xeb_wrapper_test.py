@@ -16,6 +16,7 @@ import multiprocessing.pool
 
 import numpy as np
 import pandas as pd
+import pytest
 import scipy.optimize
 import scipy.optimize._minimize
 
@@ -48,8 +49,10 @@ def _minimize_patch(
     tol=None,
     callback=None,
     options=None,
+    x0_should_be=None,
 ):
     assert method == 'nelder-mead'
+    np.testing.assert_allclose(x0_should_be, x0)
 
     return scipy.optimize.OptimizeResult(
         fun=0,
@@ -67,8 +70,42 @@ def _benchmark_patch(*args, **kwargs):
     return pd.DataFrame()
 
 
-def test_run_calibration(monkeypatch):
-    monkeypatch.setattr('cirq.experiments.xeb_fitting.scipy.optimize.minimize', _minimize_patch)
+@pytest.mark.parametrize(
+    ['fsim_options', 'x0_should_be'],
+    [
+        (
+            XEBPhasedFSimCharacterizationOptions(
+                characterize_zeta=True,
+                characterize_gamma=True,
+                characterize_chi=True,
+                characterize_theta=False,
+                characterize_phi=False,
+            ),
+            [0.0, 0.0, 0.0],
+        ),
+        (XEBPhasedFSimCharacterizationOptions(), [np.pi / 4, 0.0, 0.0, 0.0, 0.0]),
+        (
+            XEBPhasedFSimCharacterizationOptions(
+                characterize_zeta=True,
+                characterize_chi=True,
+                characterize_gamma=True,
+                characterize_theta=False,
+                characterize_phi=False,
+                theta_default=99,
+                zeta_default=0.1,
+                chi_default=0.2,
+                gamma_default=0.3,
+                phi_default=99,
+            ),
+            [0.1, 0.2, 0.3],
+        ),
+    ],
+)
+def test_run_calibration(monkeypatch, fsim_options, x0_should_be):
+    def _minimize_patch_2(*args, **kwargs):
+        return _minimize_patch(*args, **kwargs, x0_should_be=x0_should_be)
+
+    monkeypatch.setattr('cirq.experiments.xeb_fitting.scipy.optimize.minimize', _minimize_patch_2)
     monkeypatch.setattr(
         'cirq_google.calibration.xeb_wrapper.xebf.benchmark_2q_xeb_fidelities', _benchmark_patch
     )
@@ -93,14 +130,7 @@ def test_run_calibration(monkeypatch):
     ]
 
     options = LocalXEBPhasedFSimCalibrationOptions(
-        fsim_options=XEBPhasedFSimCharacterizationOptions(
-            characterize_zeta=True,
-            characterize_gamma=True,
-            characterize_chi=True,
-            characterize_theta=False,
-            characterize_phi=False,
-            theta_default=np.pi / 4,
-        ),
+        fsim_options=fsim_options,
         n_processes=1,
     )
 

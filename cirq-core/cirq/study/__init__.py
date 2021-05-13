@@ -48,7 +48,6 @@ from cirq.study.sweeps import (
 
 from cirq.study.result import (
     Result,
-    TrialResult,
 )
 
 from cirq.study.visualize import (

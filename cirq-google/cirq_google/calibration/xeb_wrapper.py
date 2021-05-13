@@ -86,7 +86,12 @@ def run_local_xeb_calibration(
     # )
 
     # 5. Characterize by fitting angles.
-    pcircuits = [xebf.parameterize_circuit(circuit, options.fsim_options) for circuit in circuits]
+    if options.fsim_options.defaults_set():
+        fsim_options = options.fsim_options
+    else:
+        fsim_options = options.fsim_options.with_defaults_from_gate(calibration.gate)
+
+    pcircuits = [xebf.parameterize_circuit(circuit, fsim_options) for circuit in circuits]
     fatol = options.fatol if options.fatol is not None else 5e-3
     xatol = options.xatol if options.xatol is not None else 5e-3
     with _maybe_multiprocessing_pool(n_processes=options.n_processes) as pool:
@@ -94,7 +99,7 @@ def run_local_xeb_calibration(
             sampled_df=sampled_df,
             parameterized_circuits=pcircuits,
             cycle_depths=cycle_depths,
-            options=options.fsim_options,
+            options=fsim_options,
             pool=pool,
             fatol=fatol,
             xatol=xatol,

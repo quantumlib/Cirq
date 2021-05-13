@@ -1,10 +1,17 @@
 [
   {
     "cirq_type": "MeasurementKey",
-    "name": "key"
+    "name": "key",
+    "path": []
   },
   {
     "cirq_type": "MeasurementKey",
-    "name": "nested:key"
+    "name": "key",
+    "path": ["outer"]
+  },
+  {
+    "cirq_type": "MeasurementKey",
+    "name": "key",
+    "path": ["nested", "path"]
   }
 ]

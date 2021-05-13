@@ -37,7 +37,7 @@ To be informed of deprecations and breaking changes, subscribe to the
     Install dependencies of features in `cirq.contrib`.
 
     ```bash
-    python -m pip install cirq[contrib]
+    python -m pip install cirq-core[contrib]
     ```
 
     Install system dependencies that pip can't handle.
@@ -78,7 +78,7 @@ To be informed of deprecations and breaking changes, subscribe to the
 3. (Optional) install dependencies of features in `cirq.contrib`.
 
     ```bash
-    python -m pip install cirq[contrib]
+    python -m pip install cirq-core[contrib]
     ```
 
     Install system dependencies that pip can't handle.
@@ -119,7 +119,7 @@ To be informed of deprecations and breaking changes, subscribe to the
 3. (Optional) install dependencies of features in `cirq.contrib`.
 
     ```bash
-    python -m pip install cirq[contrib]
+    python -m pip install cirq-core[contrib]
     ```
 
 4. Check that it works!
