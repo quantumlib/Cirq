@@ -35,6 +35,12 @@ to the next minor version.  This can always be found in the
 [version file](cirq/_version.py).
 
 
+## Before you release: flush the deprecation backlog
+
+Ensure that all the deprecations are removed that were meant to be deprecated for the given release. 
+E.g. if you want to release `v0.11`, you can check with `git grep 'v0.11'` for all the lines containing this deadline.
+Make sure none of those are released.  
+
 ## Release Procedure
 
 This procedure can be followed by authorized cirq developers to perform a
@@ -99,8 +105,9 @@ git cherry-pick <commit>
 Bump the version on the release branch: 
 
 ```bash
-vi ./cirq/_version.py   # Remove .dev from version
-git add ./cirq/_version.py
+vi ./cirq-core/cirq/_version.py   # Remove .dev from version
+vi ./cirq-google/cirq_google/_version.py  # Remove .dev from version   
+git add ./cirq-core/cirq/_version.py ./cirq-google/cirq_google/_version.py
 git commit -m "Bump cirq version to ${NEXT_VER}"
 git push origin "v${VER}-dev"
 ```
@@ -127,8 +134,8 @@ that will go to pypi.
 
 ```bash
 git checkout "v${VER}-dev"
-python3 setup.py -q bdist_wheel
-ls dist  # should only contain ONE file
+./dev_tools/packaging/produce-package.sh dist
+ls dist  # should only contain 3 files, one versioned whl file for cirq, cirq_google and cirq_core 
 ```
 
 ### Push to test pypi
