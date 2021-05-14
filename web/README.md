@@ -13,9 +13,10 @@
 - do we want some examples?
 - do we want scripts to make it easier to run stuff? (ie. start-server.sh)
 - **Compiling ts to js?** [This article talks about it here, specifically in vscode](https://code.visualstudio.com/docs/typescript/typescript-compiling). How will this affect live reloading?
+- Formatting: [Prettier](prettier.io)
 
 ### Currently installed packages (see package-lock.json)
-- [three.js](https://threejs.org)
+- [three.js](https://threejs.org) -- note for production, we should probably use the minified version, however for development full version is better.
 
 ### Directions
 Install packages with `npm install`.
