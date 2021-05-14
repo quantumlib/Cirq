@@ -52,19 +52,15 @@ class CliffordSimulator(
     def __init__(
         self,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-        split_untangled_states: bool = True,
     ):
         """Creates instance of `CliffordSimulator`.
 
         Args:
             seed: The random seed to use for this simulator.
-            split_untangled_states: Optimizes simulation by running unentangled
-                qubit sets independently and merging those states at the end.
         """
         self.init = True
         super().__init__(
             seed=seed,
-            split_untangled_states=split_untangled_states,
         )
 
     @staticmethod
