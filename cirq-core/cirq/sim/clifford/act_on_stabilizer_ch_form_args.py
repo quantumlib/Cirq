@@ -87,48 +87,18 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         )
 
     def join(self, other: 'cirq.ActOnStabilizerCHFormArgs') -> 'cirq.ActOnStabilizerCHFormArgs':
-        offset = len(self.qubits)
-        return ActOnStabilizerCHFormArgs(
-            state=self.state.join(other.state),
-            qubits=self.qubits + other.qubits,
-            axes=self.axes + tuple(a + offset for a in other.axes),
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
+        # Unnecessary for now but can be added later if there is a use case.
+        raise NotImplementedError()
 
     def extract(
         self, qubits: Sequence['cirq.Qid']
     ) -> Tuple['cirq.ActOnStabilizerCHFormArgs', 'cirq.ActOnStabilizerCHFormArgs']:
-        axes = [self.qubit_map[q] for q in qubits]
-        extracted, remainder = self.state.extract(axes)
-        extracted_args = ActOnStabilizerCHFormArgs(
-            state=extracted,
-            qubits=qubits,
-            axes=(),
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
-        remainder_args = ActOnStabilizerCHFormArgs(
-            state=remainder,
-            qubits=tuple(q for q in self.qubits if q not in qubits),
-            axes=(),
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
-        return extracted_args, remainder_args
+        # Unnecessary for now but can be added later if there is a use case.
+        raise NotImplementedError()
 
     def reorder(self, qubits: Sequence['cirq.Qid']) -> 'cirq.ActOnStabilizerCHFormArgs':
-        assert len(qubits) == len(self.qubits)
-        axes = [self.qubit_map[q] for q in qubits]
-        state = self.state.reindex(axes)
-        new_args = ActOnStabilizerCHFormArgs(
-            state=state,
-            qubits=qubits,
-            axes=(),
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
-        return new_args
+        # Unnecessary for now but can be added later if there is a use case.
+        raise NotImplementedError()
 
     def sample(
         self,
