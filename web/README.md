@@ -17,8 +17,8 @@
 - Formatting: [Prettier](prettier.io)
 
 ### Currently installed packages (see package-lock.json)
-- [three.js](https://threejs.org) -- note for production, we should probably use the minified version, however for development full version is better.
- 
+- [typescript](https://www.npmjs.com/package/typescript)
+- [three.js](https://threejs.org) -- small note: minimized version for production, full for development
 
 ### Directions
 Install packages with `npm install`.
