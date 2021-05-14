@@ -13,6 +13,8 @@
 # limitations under the License.
 """Defines trial results."""
 
+import collections
+import io
 from typing import (
     Any,
     Callable,
@@ -27,13 +29,11 @@ from typing import (
     cast,
 )
 
-import collections
-import io
 import numpy as np
 import pandas as pd
 
 from cirq import value, ops
-from cirq._compat import proper_repr, deprecated_class
+from cirq._compat import proper_repr
 from cirq.study import resolver
 
 if TYPE_CHECKING:
@@ -329,11 +329,6 @@ class Result:
             params=params,
             measurements={key: _unpack_digits(**val) for key, val in measurements.items()},
         )
-
-
-@deprecated_class(deadline='v0.11', fix='Use cirq.Result instead.', name="cirq.TrialResult")
-class TrialResult(Result):
-    pass
 
 
 def _pack_digits(digits: np.ndarray, pack_bits: str = 'auto') -> Tuple[str, bool]:

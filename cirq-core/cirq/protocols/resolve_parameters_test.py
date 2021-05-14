@@ -143,22 +143,3 @@ def test_recursive_resolve():
     assert cirq.resolve_parameters_once(a, resolver) == b
     with pytest.raises(RecursionError):
         _ = cirq.resolve_parameters(a, resolver)
-
-
-# TODO: remove in Cirq v0.11
-def test_backwards_compatible():
-    a, b, c = [sympy.Symbol(l) for l in 'abc']
-    resolver = cirq.ParamResolver({a: b + 3, b: c + 2, c: 1})
-
-    class SymbolSum:
-        def __init__(self, *syms):
-            self.syms = [*syms]
-
-        def _resolve_parameters_(self, resolver):
-            return sum([cirq.resolve_parameters(s, resolver) for s in self.syms])
-
-    ssum = SymbolSum(a, b, c)
-    assert cirq.resolve_parameters(ssum, resolver) == 10
-    assert cirq.resolve_parameters(ssum, resolver, recursive=True) == 10
-    with pytest.raises(ValueError):
-        _ = cirq.resolve_parameters(ssum, resolver, recursive=False)

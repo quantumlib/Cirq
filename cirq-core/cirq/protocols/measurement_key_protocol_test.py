@@ -159,3 +159,26 @@ def test_measurement_key_mapping():
 
     mkg_cdx = cirq.with_measurement_key_mapping(mkg_ab, {'a': 'c', 'b': 'd', 'x': 'y'})
     assert cirq.measurement_keys(mkg_cdx) == {'c', 'd'}
+
+
+def test_measurement_key_path():
+    class MultiKeyGate:
+        def __init__(self, keys):
+            self._keys = set([cirq.MeasurementKey.parse_serialized(key) for key in keys])
+
+        def _measurement_keys_(self):
+            return {str(key) for key in self._keys}
+
+        def _with_key_path_(self, path):
+            return MultiKeyGate([str(key._with_key_path_(path)) for key in self._keys])
+
+    assert cirq.measurement_keys(MultiKeyGate([])) == set()
+    assert cirq.measurement_keys(MultiKeyGate(['a'])) == {'a'}
+
+    mkg_ab = MultiKeyGate(['a', 'b'])
+    assert cirq.measurement_keys(mkg_ab) == {'a', 'b'}
+
+    mkg_cd = cirq.with_key_path(mkg_ab, ('c', 'd'))
+    assert cirq.measurement_keys(mkg_cd) == {'c:d:a', 'c:d:b'}
+
+    assert cirq.with_key_path(cirq.X, ('c', 'd')) is NotImplemented

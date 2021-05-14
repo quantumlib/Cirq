@@ -413,7 +413,6 @@ from cirq.study import (
     to_sweep,
     to_sweeps,
     Result,
-    TrialResult,
     UnitSweep,
     Zip,
 )
@@ -430,7 +429,9 @@ from cirq.value import (
     chosen_angle_to_half_turns,
     Duration,
     DURATION_LIKE,
+    GenericMetaImplementAnyOneOf,
     LinearDict,
+    MEASUREMENT_KEY_SEPARATOR,
     MeasurementKey,
     PeriodicValue,
     RANDOM_STATE_OR_SEED_LIKE,
@@ -532,6 +533,7 @@ from cirq.protocols import (
     trace_distance_from_angle_list,
     unitary,
     validate_mixture,
+    with_key_path,
     with_measurement_key_mapping,
 )
 
