@@ -183,9 +183,10 @@ class CliffordTableau:
         """Returns a composed CliffordTableau of this tableau and the second tableau.
 
         Then composed tableau is equal to (up to global phase) the composed
-        unitary operation of the two tableaux, i.e. equivalent to applying the unitary operation
-        this CliffordTableau then applying the second one.
+        unitary operation of the two tableaux, i.e. equivalent to applying the unitary
+        operation of this CliffordTableau then applying the second one.
         """
+        # Convert the underlying data type from bool to int for easier numerical computation.
         m1 = self.matrix().astype(int)
         m2 = second.matrix().astype(int)
 
