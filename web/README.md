@@ -9,6 +9,7 @@
 - add a server for live reloading/development purposes
     - maybe would be good to have this in a separate directory so that ppl who want to develop can just go in there and do so.
     - [live-server](https://www.npmjs.com/package/live-server) via npm -- supports live reload
+        - If we do go this route, might be better to start it from node rather than using the cmd line. We can add this to a starter script if we choose to make one.
     - Server should be run using nodejs for consistency, not python
 - do we want some examples?
 - do we want scripts to make it easier to run stuff? (ie. start-server.sh)
@@ -17,6 +18,7 @@
 
 ### Currently installed packages (see package-lock.json)
 - [three.js](https://threejs.org) -- note for production, we should probably use the minified version, however for development full version is better.
+ 
 
 ### Directions
 Install packages with `npm install`.
