@@ -179,7 +179,6 @@ class CliffordSimulatorStepResult(
         if self._state is None:
             state = act_on_args.merge_states(self._sim_state_values)
             if state is not None:
-                state = state.reorder(self._qubits)
                 clifford_state = CliffordState(state.qubit_map)
                 clifford_state.ch_form = state.state.copy()
                 self._state = clifford_state
