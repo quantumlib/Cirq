@@ -15,7 +15,7 @@ import cirq
 
 
 class HamiltonianPolynomial:
-    """A container class of Boolean function as equation (2) or [1]
+    """A container class of Boolean function as equation (2) of [1]
 
     References:
     [1] On the representation of Boolean and real functions as Hamiltonians for quantum computing
