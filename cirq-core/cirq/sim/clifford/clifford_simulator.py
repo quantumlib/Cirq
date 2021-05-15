@@ -157,7 +157,7 @@ class CliffordSimulatorStepResult(
             qubits: The canonical ordering of the qubits.
         """
         super().__init__(sim_state, qubits)
-        self._state = None
+        self._clifford_state = None
 
     def __str__(self) -> str:
         def bitstring(vals):
@@ -176,13 +176,11 @@ class CliffordSimulatorStepResult(
 
     @property
     def state(self):
-        if self._state is None:
-            state = act_on_args.merge_states(self._sim_state_values)
-            if state is not None:
-                clifford_state = CliffordState(state.qubit_map)
-                clifford_state.ch_form = state.state.copy()
-                self._state = clifford_state
-        return self._state
+        if self._clifford_state is None:
+            clifford_state = CliffordState(self._qubit_map)
+            clifford_state.ch_form = self.merged_sim_state.state.copy()
+            self._clifford_state = clifford_state
+        return self._clifford_state
 
     def _simulator_state(self):
         return self.state

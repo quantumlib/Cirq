@@ -313,9 +313,8 @@ class SparseSimulatorStep(
         """
         if self._state_vector is None:
             self._state_vector = np.array([1])
-            state = act_on_args.merge_states(self._sim_state_values)
+            state = self.merged_sim_state
             if state is not None:
-                state = state.reorder(self._qubits)
                 vector = state.target_tensor
                 size = np.prod(vector.shape, dtype=int)
                 self._state_vector = np.reshape(vector, size)

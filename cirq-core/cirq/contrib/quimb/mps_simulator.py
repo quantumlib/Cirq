@@ -179,13 +179,10 @@ class MPSSimulatorStepResult(simulator_base.MultiArgStepResult['MPSState', 'MPSS
             qubits: The canonical ordering of the qubits.
         """
         super().__init__(sim_state, qubits)
-        self._state = None
 
     @property
     def state(self):
-        if self._state is None:
-            self._state = act_on_args.merge_states(self._sim_state_values)
-        return self._state
+        return self.merged_sim_state
 
     def __str__(self) -> str:
         def bitstring(vals):

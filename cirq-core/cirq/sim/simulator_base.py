@@ -33,6 +33,7 @@ from typing import (
 import numpy as np
 
 from cirq import circuits, ops, protocols, study, value, devices
+from cirq.sim import act_on_args
 from cirq.sim.simulator import (
     TStepResult,
     TSimulationTrialResult,
@@ -334,6 +335,7 @@ class MultiArgStepResult(Generic[TStepResult, TActOnArgs], StepResult[TStepResul
         """
         self._sim_state = sim_state
         self._sim_state_values = tuple(set(sim_state.values()))
+        self._merged_sim_state: Optional[TActOnArgs] = None
         measurements = (
             self._sim_state_values[0].log_of_measurement_results.copy()
             if len(self._sim_state_values) != 0
@@ -343,6 +345,19 @@ class MultiArgStepResult(Generic[TStepResult, TActOnArgs], StepResult[TStepResul
         self._qubits = qubits
         self._qubit_map = {q: i for i, q in enumerate(qubits)}
         self._qid_shape = tuple(q.dimension for q in qubits)
+
+    def _qid_shape_(self):
+        return self._qid_shape
+
+    @property
+    def merged_sim_state(self):
+        if self._merged_sim_state is None:
+            state = act_on_args.merge_states(self._sim_state_values)
+            if state is not None:
+                self._merged_sim_state = (
+                    state if state.qubits == self._qubits else state.reorder(self._qubits)
+                )
+        return self._merged_sim_state
 
     def sample(
         self,

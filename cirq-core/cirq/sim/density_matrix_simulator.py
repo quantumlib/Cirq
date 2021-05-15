@@ -261,9 +261,6 @@ class DensityMatrixStepResult(
         self._dtype = dtype
         self._density_matrix: Optional[np.ndarray] = None
 
-    def _qid_shape_(self):
-        return self._qid_shape
-
     def _simulator_state(self) -> 'DensityMatrixSimulatorState':
         return DensityMatrixSimulatorState(self.density_matrix(copy=False), self._qubit_map)
 
@@ -324,8 +321,8 @@ class DensityMatrixStepResult(
         """
         if self._density_matrix is None:
             self._density_matrix = np.array(1)
-            if len(self._sim_state_values) != 0:
-                state = act_on_args.merge_states(self._sim_state_values).reorder(self._qubits)
+            state = self.merged_sim_state
+            if state is not None:
                 matrix = state.target_tensor
                 size = int(np.sqrt(np.prod(matrix.shape, dtype=int)))
                 self._density_matrix = np.reshape(matrix, (size, size))
