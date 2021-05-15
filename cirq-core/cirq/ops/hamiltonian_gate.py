@@ -1,11 +1,12 @@
 from collections import defaultdict
 import functools
 import math
-from typing import DefaultDict, Dict, List, Sequence, Tuple
+from typing import Any, DefaultDict, Dict, List, Sequence, Tuple
 
 from sympy.logic.boolalg import And, Not, Or, Xor
 from sympy.core.expr import Expr
 from sympy.core.symbol import Symbol
+import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
 from cirq import value
@@ -142,7 +143,7 @@ def _gray_code_comparator(k1, k2, flip=False):
     return _gray_code_comparator(k1[0:-1], k2[0:-1], not flip)
 
 
-def get_gates_from_hamiltonians(
+def _get_gates_from_hamiltonians(
     hamiltonian_polynomial_list: List[HamiltonianPolynomial],
     qubits,
     theta: float,
@@ -291,27 +292,29 @@ def get_gates_from_hamiltonians(
 class HamiltonianGate(raw_types.Gate):
     """A gate that applies an Hamiltonian from a set of Boolean functions."""
 
-    def __init__(self, boolean_exprs: Sequence[Expr], theta: float, ladder_target: bool):
+    def __init__(self, boolean_strs: Sequence[str], theta: float, ladder_target: bool):
         """
         Builds an HamiltonianGate.
 
         Args:
-            boolean_exprs: The list of Sympy Boolean expressions.
+            boolean_strs: The list of Sympy-parsable Boolean expressions.
             theta: The list of thetas to scale the Hamiltonian.
             ladder_target: Whether to use convention of figure 7a or 7b.
         """
-        self._boolean_exprs: Sequence[Expr] = boolean_exprs
+        self._boolean_strs: Sequence[str] = boolean_strs
         self._theta: float = theta
         self._ladder_target: bool = ladder_target
 
-        self._name_to_id = HamiltonianGate.get_name_to_id(boolean_exprs)
+        boolean_exprs = [sympy_parser.parse_expr(boolean_str) for boolean_str in boolean_strs]
+        name_to_id = HamiltonianGate.get_name_to_id(boolean_exprs)
         self._hamiltonian_polynomial_list = [
-            _build_hamiltonian_from_boolean(boolean, self._name_to_id)
-            for boolean in self._boolean_exprs
+            _build_hamiltonian_from_boolean(boolean_expr, name_to_id)
+            for boolean_expr in boolean_exprs
         ]
+        self._num_qubits = len(name_to_id)
 
     def num_qubits(self) -> int:
-        return len(self._name_to_id)
+        return self._num_qubits
 
     @staticmethod
     def get_name_to_id(boolean_exprs: Sequence[Expr]) -> Dict[str, int]:
@@ -331,9 +334,21 @@ class HamiltonianGate(raw_types.Gate):
         return {symbol_name: i for i, symbol_name in enumerate(symbol_names)}
 
     def _value_equality_values_(self):
-        return self._boolean_exprs, self._theta, self._ladder_target
+        return self._boolean_strs, self._theta, self._ladder_target
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {
+            'cirq_type': self.__class__.__name__,
+            'boolean_strs': self._boolean_strs,
+            'theta': self._theta,
+            'ladder_target': self._ladder_target,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, boolean_strs, theta, ladder_target, **kwargs):
+        return cls(boolean_strs, theta, ladder_target)
 
     def _decompose_(self, qubits):
-        yield get_gates_from_hamiltonians(
+        yield _get_gates_from_hamiltonians(
             self._hamiltonian_polynomial_list, qubits, self._theta, self._ladder_target
         )

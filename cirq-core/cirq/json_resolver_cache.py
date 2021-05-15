@@ -84,6 +84,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'GridParallelXEBMetadata': GridParallelXEBMetadata,
         'GridQid': cirq.GridQid,
         'GridQubit': cirq.GridQubit,
+        'HamiltonianGate': cirq.HamiltonianGate,
         'HPowGate': cirq.HPowGate,
         'ISwapPowGate': cirq.ISwapPowGate,
         'IdentityGate': cirq.IdentityGate,

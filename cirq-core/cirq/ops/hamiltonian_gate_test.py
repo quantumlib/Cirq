@@ -84,7 +84,7 @@ def test_circuit(boolean_str, ladder_target):
     circuit = cirq.Circuit()
     circuit.append(cirq.H.on_each(*qubits))
 
-    hamiltonian_gate = cirq.HamiltonianGate([boolean_expr], 0.1 * math.pi, ladder_target)
+    hamiltonian_gate = cirq.HamiltonianGate([boolean_str], 0.1 * math.pi, ladder_target)
 
     assert hamiltonian_gate.num_qubits() == n
 
