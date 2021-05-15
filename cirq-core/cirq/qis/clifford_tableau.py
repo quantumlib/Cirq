@@ -84,7 +84,7 @@ class CliffordTableau:
         self._rs[:-1] = np.array(new_rs).astype(bool)
 
     def matrix(self) -> np.array:
-        """Returns a 2n * 2n matrix of Clifford table."""
+        """Returns the 2n * 2n matrix representation of the Clifford tableau."""
         return np.concatenate([self.xs, self.zs], axis=1)
 
     def _json_dict_(self) -> Dict[str, Any]:
