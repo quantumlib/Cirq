@@ -209,6 +209,7 @@ from cirq.ops import (
     givens,
     GlobalPhaseOperation,
     H,
+    HamiltonianGate,
     HPowGate,
     I,
     identity_each,

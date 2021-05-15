@@ -8,7 +8,7 @@ import pytest
 import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
-import examples.hamiltonian_representation as hr
+import cirq.ops.hamiltonian_gate as hg
 
 # These are some of the entries of table 1 of https://arxiv.org/pdf/1804.09130.pdf.
 @pytest.mark.parametrize(
@@ -24,20 +24,20 @@ import examples.hamiltonian_representation as hr
 )
 def test_build_hamiltonian_from_boolean(boolean_expr, expected_hamiltonian_polynomial):
     boolean = sympy_parser.parse_expr(boolean_expr)
-    name_to_id = hr.get_name_to_id([boolean])
-    actual = hr.build_hamiltonian_from_boolean(boolean, name_to_id)
+    name_to_id = cirq.HamiltonianGate.get_name_to_id([boolean])
+    actual = hg._build_hamiltonian_from_boolean(boolean, name_to_id)
     assert expected_hamiltonian_polynomial == str(actual)
 
 
 def test_unsupported_op():
     not_a_boolean = sympy_parser.parse_expr('x * x')
-    name_to_id = hr.get_name_to_id([not_a_boolean])
+    name_to_id = cirq.HamiltonianGate.get_name_to_id([not_a_boolean])
     with pytest.raises(ValueError, match='Unsupported type'):
-        hr.build_hamiltonian_from_boolean(not_a_boolean, name_to_id)
+        hg._build_hamiltonian_from_boolean(not_a_boolean, name_to_id)
 
 
 @pytest.mark.parametrize(
-    'boolean_expr, ladder_target',
+    'boolean_str, ladder_target',
     itertools.product(
         [
             'x',
@@ -64,29 +64,31 @@ def test_unsupported_op():
         [False, True],
     ),
 )
-def test_circuit(boolean_expr, ladder_target):
-    # We use Sympy to evaluate the expression:
-    parsed_expr = sympy_parser.parse_expr(boolean_expr)
-    var_names = hr.get_name_to_id([parsed_expr])
+def test_circuit(boolean_str, ladder_target):
+    boolean_expr = sympy_parser.parse_expr(boolean_str)
+    var_names = cirq.HamiltonianGate.get_name_to_id([boolean_expr])
 
+    qubits = [cirq.NamedQubit(name) for name in var_names]
+
+    # We use Sympy to evaluate the expression:
     n = len(var_names)
 
     expected = []
     for binary_inputs in itertools.product([0, 1], repeat=n):
-        subed_expr = parsed_expr
+        subed_expr = boolean_expr
         for var_name, binary_input in zip(var_names, binary_inputs):
             subed_expr = subed_expr.subs(var_name, binary_input)
         expected.append(bool(subed_expr))
 
     # We build a circuit and look at its output state vector:
-    circuit_hamiltonians, qubits = hr.build_circuit_from_boolean_expressions(
-        [boolean_expr], 0.1 * math.pi, ladder_target
-    )
+    circuit = cirq.Circuit()
+    circuit.append(cirq.H.on_each(*qubits))
 
-    circuit_hadamard = cirq.Circuit()
-    circuit_hadamard.append(cirq.H.on_each(*qubits))
+    hamiltonian_gate = cirq.HamiltonianGate([boolean_expr], 0.1 * math.pi, ladder_target)
 
-    circuit = circuit_hadamard + circuit_hamiltonians
+    assert hamiltonian_gate.num_qubits() == n
+
+    circuit.append(cirq.decompose(hamiltonian_gate(*qubits)))
 
     phi = cirq.Simulator().simulate(circuit, qubit_order=qubits, initial_state=0).state_vector()
     actual = np.arctan2(phi.real, phi.imag) - math.pi / 2.0 > 0.0
@@ -115,7 +117,7 @@ def test_gray_code_sorting(n_bits, expected_hs):
         hs.append(tuple(sorted(h)))
     random.shuffle(hs)
 
-    sorted_hs = sorted(list(hs), key=functools.cmp_to_key(hr._gray_code_comparator))
+    sorted_hs = sorted(list(hs), key=functools.cmp_to_key(hg._gray_code_comparator))
 
     np.testing.assert_array_equal(sorted_hs, expected_hs)
 
@@ -130,4 +132,4 @@ def test_gray_code_sorting(n_bits, expected_hs):
     ],
 )
 def test_gray_code_comparison(seq_a, seq_b, expected):
-    assert hr._gray_code_comparator(seq_a, seq_b) == expected
+    assert hg._gray_code_comparator(seq_a, seq_b) == expected

@@ -105,6 +105,10 @@ from cirq.ops.gate_operation import (
     GateOperation,
 )
 
+from cirq.ops.hamiltonian_gate import (
+    HamiltonianGate,
+)
+
 from cirq.ops.identity import (
     I,
     identity_each,

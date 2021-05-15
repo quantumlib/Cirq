@@ -6,12 +6,10 @@ from typing import DefaultDict, Dict, List, Sequence, Tuple
 from sympy.logic.boolalg import And, Not, Or, Xor
 from sympy.core.expr import Expr
 from sympy.core.symbol import Symbol
-import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
-
-
-# TODO(tonybruguier): Consider making a stand-alone gate given a Boolean expression.
+from cirq import value
+from cirq.ops import raw_types
 
 
 class HamiltonianPolynomial:
@@ -90,7 +88,7 @@ class HamiltonianPolynomial:
         return HamiltonianPolynomial(defaultdict(float, {(i,): 1.0}))
 
 
-def build_hamiltonian_from_boolean(
+def _build_hamiltonian_from_boolean(
     boolean_expr: Expr, name_to_id: Dict[str, int]
 ) -> HamiltonianPolynomial:
     """Builds the Hamiltonian representation of Boolean expression as per [1]:
@@ -110,7 +108,7 @@ def build_hamiltonian_from_boolean(
 
     if isinstance(boolean_expr, (And, Not, Or, Xor)):
         sub_hamiltonians = [
-            build_hamiltonian_from_boolean(sub_boolean_expr, name_to_id)
+            _build_hamiltonian_from_boolean(sub_boolean_expr, name_to_id)
             for sub_boolean_expr in boolean_expr.args
         ]
         # We apply the equalities of theorem 1 of [1].
@@ -134,23 +132,6 @@ def build_hamiltonian_from_boolean(
     raise ValueError(f'Unsupported type: {type(boolean_expr)}')
 
 
-def get_name_to_id(boolean_exprs: Sequence[Expr]) -> Dict[str, int]:
-    """Maps the variables to a unique integer.
-
-    Args:
-        boolean_expr: A Sympy expression containing symbols and Boolean operations
-
-    Return:
-        A dictionary of string (the variable name) to a unique integer.
-    """
-
-    # For run-to-run identicalness, we sort the symbol name lexicographically.
-    symbol_names = sorted(
-        {symbol.name for boolean_expr in boolean_exprs for symbol in boolean_expr.free_symbols}
-    )
-    return {symbol_name: i for i, symbol_name in enumerate(symbol_names)}
-
-
 def _gray_code_comparator(k1, k2, flip=False):
     max_1 = k1[-1] if k1 else -1
     max_2 = k2[-1] if k2 else -1
@@ -161,27 +142,25 @@ def _gray_code_comparator(k1, k2, flip=False):
     return _gray_code_comparator(k1[0:-1], k2[0:-1], not flip)
 
 
-def build_circuit_from_hamiltonians(
+def get_gates_from_hamiltonians(
     hamiltonian_polynomial_list: List[HamiltonianPolynomial],
-    qubits: List[cirq.NamedQubit],
+    qubits,
     theta: float,
     ladder_target: bool = False,
-) -> cirq.Circuit:
+):
     """Builds a circuit according to [1].
 
     Args:
         hamiltonian_polynomial_list: the list of Hamiltonians, typically built by calling
-            build_hamiltonian_from_boolean().
+            _build_hamiltonian_from_boolean().
         qubits: The list of qubits corresponding to the variables.
         theta: A single float scaling the rotations.
         ladder_target: Whether to use convention of figure 7a or 7b.
 
-    Return:
-        A dictionary of string (the variable name) to a unique integer.
+    Yield:
+        Gates that are the decomposition of the Hamiltonian.
     """
     combined = sum(hamiltonian_polynomial_list, HamiltonianPolynomial.O())
-
-    circuit = cirq.Circuit()
 
     # Here we follow improvements of [4] cancelling out the CNOTs. The first step is to order by
     # Gray code so that as few as possible gates are changed.
@@ -290,49 +269,71 @@ def build_circuit_from_hamiltonians(
 
         cnots = _simplify_cnots(cnots)
 
-        circuit.append(cirq.CNOT(qubits[c], qubits[t]) for c, t in cnots)
+        for gate in (cirq.CNOT(qubits[c], qubits[t]) for c, t in cnots):
+            yield gate
 
     previous_h: Tuple[int, ...] = ()
     for h in sorted_hs:
         w = combined.hamiltonians[h]
 
-        _apply_cnots(previous_h, h)
+        yield _apply_cnots(previous_h, h)
 
         if len(h) >= 1:
-            circuit.append(cirq.Rz(rads=(theta * w)).on(qubits[h[-1]]))
+            yield cirq.Rz(rads=(theta * w)).on(qubits[h[-1]])
 
         previous_h = h
 
     # Flush the last CNOTs.
-    _apply_cnots(previous_h, ())
-
-    return circuit
+    yield _apply_cnots(previous_h, ())
 
 
-def build_circuit_from_boolean_expressions(
-    boolean_exprs: Sequence[Expr], theta: float, ladder_target: bool = False
-):
-    """Wrappers of all the functions to go from Boolean expressions to circuit.
+@value.value_equality
+class HamiltonianGate(raw_types.Gate):
+    """A gate that applies an Hamiltonian from a set of Boolean functions."""
 
-    Args:
-        boolean_exprs: The list of Sympy Boolean expressions.
-        theta: The list of thetas to scale the Hamiltonian.
-        ladder_target: Whether to use convention of figure 7a or 7b.
+    def __init__(self, boolean_exprs: Sequence[Expr], theta: float, ladder_target: bool):
+        """
+        Builds an HamiltonianGate.
 
-    Return:
-        A dictionary of string (the variable name) to a unique integer.
-    """
-    booleans = [sympy_parser.parse_expr(boolean_expr) for boolean_expr in boolean_exprs]
-    name_to_id = get_name_to_id(booleans)
+        Args:
+            boolean_exprs: The list of Sympy Boolean expressions.
+            theta: The list of thetas to scale the Hamiltonian.
+            ladder_target: Whether to use convention of figure 7a or 7b.
+        """
+        self._boolean_exprs: Sequence[Expr] = boolean_exprs
+        self._theta: float = theta
+        self._ladder_target: bool = ladder_target
 
-    hamiltonian_polynomial_list = [
-        build_hamiltonian_from_boolean(boolean, name_to_id) for boolean in booleans
-    ]
+        self._name_to_id = HamiltonianGate.get_name_to_id(boolean_exprs)
+        self._hamiltonian_polynomial_list = [
+            _build_hamiltonian_from_boolean(boolean, self._name_to_id)
+            for boolean in self._boolean_exprs
+        ]
 
-    qubits = [cirq.NamedQubit(name) for name in name_to_id.keys()]
-    circuit = cirq.Circuit()
-    circuit += build_circuit_from_hamiltonians(
-        hamiltonian_polynomial_list, qubits, theta, ladder_target
-    )
+    def num_qubits(self) -> int:
+        return len(self._name_to_id)
 
-    return circuit, qubits
+    @staticmethod
+    def get_name_to_id(boolean_exprs: Sequence[Expr]) -> Dict[str, int]:
+        """Maps the variables to a unique integer.
+
+        Args:
+            boolean_expr: A Sympy expression containing symbols and Boolean operations
+
+        Return:
+            A dictionary of string (the variable name) to a unique integer.
+        """
+
+        # For run-to-run identicalness, we sort the symbol name lexicographically.
+        symbol_names = sorted(
+            {symbol.name for boolean_expr in boolean_exprs for symbol in boolean_expr.free_symbols}
+        )
+        return {symbol_name: i for i, symbol_name in enumerate(symbol_names)}
+
+    def _value_equality_values_(self):
+        return self._boolean_exprs, self._theta, self._ladder_target
+
+    def _decompose_(self, qubits):
+        yield get_gates_from_hamiltonians(
+            self._hamiltonian_polynomial_list, qubits, self._theta, self._ladder_target
+        )
