@@ -185,7 +185,25 @@ class CliffordTableau:
         Then composed tableau is equal to (up to global phase) the composed
         unitary operation of the two tableaux, i.e. equivalent to applying the unitary
         operation of this CliffordTableau then applying the second one.
+
+        Args:
+            second: The second CliffordTableau to compose with.
+
+        Returns:
+            The composed CliffordTableau.
+
+        Raises:
+            TypeError: If the type of second is not CliffordTableau.
+            ValueError: If the number of qubits in the second tableau mismatch with
+                this tableau.
         """
+        if not isinstance(second, CliffordTableau):
+            raise TypeError("The type for second tableau must be the CliffordTableau type")
+        if self.n != second.n:
+            raise ValueError(
+                f"Mismatched number of qubits of two tableaux: {self.n} vs {second.n}."
+            )
+
         # Convert the underlying data type from bool to int for easier numerical computation.
         m1 = self.matrix().astype(int)
         m2 = second.matrix().astype(int)
