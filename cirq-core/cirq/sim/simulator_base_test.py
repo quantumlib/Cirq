@@ -17,7 +17,6 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.sim import act_on_args
 
 
 class CountingActOnArgs(cirq.ActOnArgs):
@@ -54,32 +53,28 @@ class CountingActOnArgs(cirq.ActOnArgs):
     def reorder(self, qubits: Sequence['cirq.Qid']) -> 'CountingActOnArgs':
         pass
 
-
-class CountingStepResult(cirq.StepResult[CountingActOnArgs]):
-    def __init__(
-        self,
-        sim_state: CountingActOnArgs,
-    ):
-        super().__init__(
-            measurements=sim_state.log_of_measurement_results.copy()
-            if sim_state is not None
-            else {}
-        )
-        self.sim_state = sim_state
-
     def sample(
         self,
-        qubits: List[cirq.Qid],
+        qubits: Sequence[cirq.Qid],
         repetitions: int = 1,
         seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> np.ndarray:
         measurements: List[List[int]] = []
         for _ in range(repetitions):
-            measurements.append(self.sim_state._perform_measurement())
+            measurements.append(self._perform_measurement())
         return np.array(measurements, dtype=int)
 
+
+class CountingStepResult(cirq.MultiArgStepResult[CountingActOnArgs, CountingActOnArgs]):
+    def __init__(
+        self,
+        sim_state: Dict['cirq.Qid', CountingActOnArgs],
+        qubits: Sequence[cirq.Qid],
+    ):
+        super().__init__(sim_state, qubits)
+
     def _simulator_state(self) -> CountingActOnArgs:
-        return self.sim_state
+        return self.merged_sim_state
 
 
 class CountingTrialResult(cirq.SimulationTrialResult):
@@ -114,8 +109,7 @@ class CountingSimulator(
         sim_state: Dict['cirq.Qid', CountingActOnArgs],
         qubits: Sequence['cirq.Qid'],
     ) -> CountingStepResult:
-        state = act_on_args.merge_states(list(sim_state.values()))
-        return CountingStepResult(state)
+        return CountingStepResult(sim_state, qubits)
 
 
 class TestOp(cirq.Operation):

@@ -319,7 +319,7 @@ class SimulatorBase(
         return args_map
 
 
-class MultiArgStepResult(Generic[TStepResult, TActOnArgs], StepResult[TStepResult], abc.ABC):
+class MultiArgStepResult(Generic[TSimulatorState, TActOnArgs], StepResult[TSimulatorState], abc.ABC):
     """A base class for step results."""
 
     def __init__(

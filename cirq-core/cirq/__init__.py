@@ -368,6 +368,7 @@ from cirq.sim import (
     DensityMatrixTrialResult,
     measure_density_matrix,
     measure_state_vector,
+    MultiArgStepResult,
     final_density_matrix,
     final_state_vector,
     sample,

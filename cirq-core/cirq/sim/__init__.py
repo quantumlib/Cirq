@@ -58,6 +58,7 @@ from cirq.sim.simulator import (
 )
 
 from cirq.sim.simulator_base import (
+    MultiArgStepResult,
     SimulatorBase,
 )
 
