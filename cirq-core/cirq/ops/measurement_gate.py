@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, Optional, Tuple, Sequence, TYPE_CHECKING
+from typing import Any, Dict, Iterable, Optional, Tuple, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -34,7 +34,7 @@ class MeasurementGate(raw_types.Gate):
     def __init__(
         self,
         num_qubits: Optional[int] = None,
-        key: str = '',
+        key: Union[str, value.MeasurementKey] = '',
         invert_mask: Tuple[bool, ...] = (),
         qid_shape: Tuple[int, ...] = None,
     ) -> None:
@@ -64,7 +64,7 @@ class MeasurementGate(raw_types.Gate):
         self._qid_shape = qid_shape
         if len(self._qid_shape) != num_qubits:
             raise ValueError('len(qid_shape) != num_qubits')
-        self.key = key
+        self.key = key  # type: ignore
         self.invert_mask = invert_mask or ()
         if self.invert_mask is not None and len(self.invert_mask) > self.num_qubits():
             raise ValueError('len(invert_mask) > num_qubits')
@@ -74,22 +74,28 @@ class MeasurementGate(raw_types.Gate):
         return str(self.mkey)
 
     @key.setter
-    def key(self, key_str: str):
-        self.mkey = value.MeasurementKey(key_str)
+    def key(self, key: Union[str, value.MeasurementKey]):
+        if isinstance(key, value.MeasurementKey):
+            self.mkey = key
+        else:
+            self.mkey = value.MeasurementKey(name=key)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
-    def with_key(self, key: str) -> 'MeasurementGate':
+    def with_key(self, key: Union[str, value.MeasurementKey]) -> 'MeasurementGate':
         """Creates a measurement gate with a new key but otherwise identical."""
+        if key == self.key:
+            return self
         return MeasurementGate(
             self.num_qubits(), key=key, invert_mask=self.invert_mask, qid_shape=self._qid_shape
         )
 
+    def _with_key_path_(self, path: Tuple[str, ...]):
+        return self.with_key(self.mkey._with_key_path_(path))
+
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
-        if self.key not in key_map:
-            return self
-        return self.with_key(key_map[self.key])
+        return self.with_key(protocols.with_measurement_key_mapping(self.mkey, key_map))
 
     def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
         """Toggles whether or not the measurement inverts various outputs."""
@@ -220,7 +226,7 @@ class MeasurementGate(raw_types.Gate):
     def _from_json_dict_(cls, num_qubits, key, invert_mask, qid_shape=None, **kwargs):
         return cls(
             num_qubits=num_qubits,
-            key=key,
+            key=value.MeasurementKey.parse_serialized(key),
             invert_mask=tuple(invert_mask),
             qid_shape=None if qid_shape is None else tuple(qid_shape),
         )

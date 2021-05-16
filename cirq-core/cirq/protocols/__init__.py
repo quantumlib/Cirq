@@ -91,6 +91,7 @@ from cirq.protocols.measurement_key_protocol import (
     is_measurement,
     measurement_key,
     measurement_keys,
+    with_key_path,
     with_measurement_key_mapping,
     SupportsMeasurementKey,
 )

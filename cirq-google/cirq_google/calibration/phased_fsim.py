@@ -485,7 +485,9 @@ class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         if self.xatol is not None:
             args['xatol'] = self.xatol
 
-        args.update(dataclasses.asdict(self.fsim_options))
+        fsim_options = dataclasses.asdict(self.fsim_options)
+        fsim_options = {k: v for k, v in fsim_options.items() if v is not None}
+        args.update(fsim_options)
         return args
 
     def create_phased_fsim_request(
@@ -844,6 +846,18 @@ class LocalXEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
     def to_calibration_layer(self) -> CalibrationLayer:
         raise NotImplementedError('Not applicable for local calibrations')
+
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        gate: Gate,
+        pairs: List[Tuple[Qid, Qid]],
+        options: LocalXEBPhasedFSimCalibrationOptions,
+        **kwargs,
+    ) -> 'LocalXEBPhasedFSimCalibrationRequest':
+        # List -> Tuple
+        instantiation_pairs = tuple((q_a, q_b) for q_a, q_b in pairs)
+        return cls(instantiation_pairs, gate, options)
 
 
 @json_serializable_dataclass(frozen=True)
