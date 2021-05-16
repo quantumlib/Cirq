@@ -517,3 +517,25 @@ def test_from_unitary_not_clifford():
     # Not a Clifford gate.
     u = cirq.unitary(cirq.T)
     assert cirq.SingleQubitCliffordGate.from_unitary(u) is None
+
+
+def _extract_clifford_tableau_to_matrix(tableau):
+    matrix = np.zeros((tableau.n * 2, tableau.n * 2 + 1), dtype=np.int)
+    matrix[:, : tableau.n] = tableau.xs[: 2 * tableau.n]
+    matrix[:, tableau.n : 2 * tableau.n] = tableau.zs[: 2 * tableau.n]
+    matrix[:, tableau.n * 2] = tableau.rs[: 2 * tableau.n]
+    return matrix
+
+
+def test_clifford_tableau():
+    seen_tableau = []
+    for trans_x, trans_z in _all_rotation_pairs():
+        gate = cirq.SingleQubitCliffordGate.from_xz_map(trans_x, trans_z)
+        tableau_matrix = _extract_clifford_tableau_to_matrix(gate.clifford_tableau)
+        tableau_number = sum(2 ** i * t for i, t in enumerate(tableau_matrix.ravel()))
+        seen_tableau.append(tableau_number)
+        # Satify the symplectic property
+        assert sum(tableau_matrix[0, :2] * tableau_matrix[1, 1::-1]) % 2 == 1
+
+    # Should not have any duplication.
+    assert len(set(seen_tableau)) == 24

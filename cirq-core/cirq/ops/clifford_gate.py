@@ -16,7 +16,7 @@ from typing import Any, cast, Dict, NamedTuple, Optional, Sequence, Tuple, TYPE_
 
 import numpy as np
 
-from cirq import protocols, value, linalg
+from cirq import protocols, value, linalg, qis
 from cirq._doc import document
 from cirq.ops import common_gates, gate_features, named_qubit, pauli_gates
 from cirq.ops.pauli_gates import Pauli
@@ -41,6 +41,32 @@ def _to_pauli_transform(matrix: np.ndarray) -> Optional[PauliTransform]:
         if np.allclose(matrix, -p):
             return PauliTransform(pauli, True)
     return None
+
+
+def _to_cliiford_tableau(
+    rotation_map: Dict[Pauli, PauliTransform],
+    *,
+    x_to: PauliTransform = None,
+    z_to: PauliTransform = None,
+) -> qis.CliffordTableau:
+    """Transfer the rotation map to clifford tableau representation"""
+    if x_to is None and z_to is None:
+        x_to = rotation_map[pauli_gates.X]
+        z_to = rotation_map[pauli_gates.Z]
+    elif rotation_map is not None:
+        raise ValueError(
+            "The function either takes rotation_map or a combination "
+            ' of x_to and z_to but both were given.'
+        )
+    clifford_tableau = qis.CliffordTableau(num_qubits=1)
+    clifford_tableau.xs[0, 0] = x_to.to in (pauli_gates.X, pauli_gates.Y)
+    clifford_tableau.zs[0, 0] = x_to.to in (pauli_gates.Y, pauli_gates.Z)
+
+    clifford_tableau.xs[1, 0] = z_to.to in (pauli_gates.X, pauli_gates.Y)
+    clifford_tableau.zs[1, 0] = z_to.to in (pauli_gates.Y, pauli_gates.Z)
+
+    clifford_tableau.rs = (x_to.flip, z_to.flip)
+    return clifford_tableau
 
 
 def _pretend_initialized() -> 'SingleQubitCliffordGate':
@@ -68,11 +94,20 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
     def __init__(
         self,
         *,
-        _rotation_map: Dict[Pauli, PauliTransform],
-        _inverse_map: Dict[Pauli, PauliTransform],
+        _clifford_tableau: qis.CliffordTableau,
     ) -> None:
-        self._rotation_map = _rotation_map
-        self._inverse_map = _inverse_map
+        self._clifford_tableau = _clifford_tableau
+
+    @property
+    def clifford_tableau(self):
+        return self._clifford_tableau
+
+    @staticmethod
+    def from_cliiford_tableau(table: qis.CliffordTableau) -> 'SingleQubitCliffordGate':
+        assert isinstance(table, qis.CliffordTableau)
+        if not table._validate():
+            raise ValueError('It is not a valid Clifford Gate.')
+        return SingleQubitCliffordGate(_clifford_tableau=table)
 
     @staticmethod
     def from_xz_map(
@@ -85,7 +120,11 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             x_to: Which Pauli to transform X to and if it should negate.
             z_to: Which Pauli to transform Z to and if it should negate.
         """
-        return SingleQubitCliffordGate.from_double_map(x_to=x_to, z_to=z_to)
+        return SingleQubitCliffordGate.from_cliiford_tableau(
+            _to_cliiford_tableau(
+                rotation_map=None, x_to=PauliTransform(*x_to), z_to=PauliTransform(*z_to)
+            )
+        )
 
     @staticmethod
     def from_single_map(
@@ -152,8 +191,8 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         to3 = trans1.to.third(trans2.to)
         flip3 = trans1.flip ^ trans2.flip ^ ((from1 < from2) != (trans1.to < trans2.to))
         rotation_map[from3] = PauliTransform(to3, flip3)
-        inverse_map = {to: PauliTransform(frm, flip) for frm, (to, flip) in rotation_map.items()}
-        return SingleQubitCliffordGate(_rotation_map=rotation_map, _inverse_map=inverse_map)
+
+        return SingleQubitCliffordGate.from_cliiford_tableau(_to_cliiford_tableau(rotation_map))
 
     @staticmethod
     def from_pauli(pauli: Pauli, sqrt: bool = False) -> 'SingleQubitCliffordGate':
@@ -171,8 +210,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
                 pauli: PauliTransform(pauli, False),
                 next_pauli: PauliTransform(next_pauli, True),
             }
-        inverse_map = {to: PauliTransform(frm, flip) for frm, (to, flip) in rotation_map.items()}
-        return SingleQubitCliffordGate(_rotation_map=rotation_map, _inverse_map=inverse_map)
+        return SingleQubitCliffordGate.from_cliiford_tableau(_to_cliiford_tableau(rotation_map))
 
     @staticmethod
     def from_quarter_turns(pauli: Pauli, quarter_turns: int) -> 'SingleQubitCliffordGate':
@@ -237,10 +275,26 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         z_to = _to_pauli_transform(u @ z @ u.conj().T)
         if x_to is None or z_to is None:
             return None
-        return SingleQubitCliffordGate.from_double_map({pauli_gates.X: x_to, pauli_gates.Z: z_to})
+        return SingleQubitCliffordGate.from_cliiford_tableau(
+            _to_cliiford_tableau(x_to=x_to, z_to=z_to)
+        )
 
     def transform(self, pauli: Pauli) -> PauliTransform:
-        return self._rotation_map[pauli]
+        # from cirq.ops import dense_pauli_string
+        x_to = self._clifford_tableau.destabilizers()[0]
+        z_to = self._clifford_tableau.stabilizers()[0]
+        if pauli == pauli_gates.X:
+            to = x_to
+        elif pauli == pauli_gates.Z:
+            to = z_to
+        else:
+            to = x_to * z_to * 1j  # y = ixz
+        single_pauli_gates = ('I', pauli_gates.X, pauli_gates.Y, pauli_gates.Z)
+
+        to_gate = single_pauli_gates[to.pauli_mask[0]]
+        print(f"to.pauli_mask: {to.coefficient} {to_gate}")
+
+        return PauliTransform(to=to_gate, flip=bool(to.coefficient != 1.0))
 
     def _value_equality_values_(self):
         return (
@@ -421,49 +475,75 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         )
 
 
-SingleQubitCliffordGate.I = SingleQubitCliffordGate.from_xz_map(
-    (pauli_gates.X, False), (pauli_gates.Z, False)
-)
-SingleQubitCliffordGate.H = SingleQubitCliffordGate.from_xz_map(
-    (pauli_gates.Z, False), (pauli_gates.X, False)
-)
-SingleQubitCliffordGate.X = SingleQubitCliffordGate.from_xz_map(
-    (pauli_gates.X, False), (pauli_gates.Z, True)
-)
-SingleQubitCliffordGate.Y = SingleQubitCliffordGate.from_xz_map(
-    (pauli_gates.X, True), (pauli_gates.Z, True)
-)
-SingleQubitCliffordGate.Z = SingleQubitCliffordGate.from_xz_map(
-    (pauli_gates.X, True), (pauli_gates.Z, False)
-)
-SingleQubitCliffordGate.X_sqrt = SingleQubitCliffordGate.from_xz_map(
-    (pauli_gates.X, False), (pauli_gates.Y, True)
-)
-SingleQubitCliffordGate.X_nsqrt = SingleQubitCliffordGate.from_xz_map(
-    (pauli_gates.X, False), (pauli_gates.Y, False)
-)
-SingleQubitCliffordGate.Y_sqrt = SingleQubitCliffordGate.from_xz_map(
-    (pauli_gates.Z, True), (pauli_gates.X, False)
-)
-SingleQubitCliffordGate.Y_nsqrt = SingleQubitCliffordGate.from_xz_map(
-    (pauli_gates.Z, False), (pauli_gates.X, True)
-)
-SingleQubitCliffordGate.Z_sqrt = SingleQubitCliffordGate.from_xz_map(
-    (pauli_gates.Y, False), (pauli_gates.Z, False)
-)
-SingleQubitCliffordGate.Z_nsqrt = SingleQubitCliffordGate.from_xz_map(
-    (pauli_gates.Y, True), (pauli_gates.Z, False)
+_base_tableau = qis.CliffordTableau(num_qubits=1)
+SingleQubitCliffordGate.I = SingleQubitCliffordGate.from_cliiford_tableau(_base_tableau.copy())
+SingleQubitCliffordGate.H = SingleQubitCliffordGate.from_cliiford_tableau(
+    _base_tableau.copy()._H(0)
 )
 
-SQRT_EXP_MAP = {
-    0.5: {
-        SingleQubitCliffordGate.X: SingleQubitCliffordGate.X_sqrt,
-        SingleQubitCliffordGate.Y: SingleQubitCliffordGate.Y_sqrt,
-        SingleQubitCliffordGate.Z: SingleQubitCliffordGate.Z_sqrt,
-    },
-    -0.5: {
-        SingleQubitCliffordGate.X: SingleQubitCliffordGate.X_nsqrt,
-        SingleQubitCliffordGate.Y: SingleQubitCliffordGate.Y_nsqrt,
-        SingleQubitCliffordGate.Z: SingleQubitCliffordGate.Z_nsqrt,
-    },
-}
+SingleQubitCliffordGate.X = SingleQubitCliffordGate.from_cliiford_tableau(
+    _base_tableau.copy()._X(0)
+)
+
+SingleQubitCliffordGate.Y = SingleQubitCliffordGate.from_cliiford_tableau(
+    _base_tableau.copy()._Y(0)
+)
+
+SingleQubitCliffordGate.Z = SingleQubitCliffordGate.from_cliiford_tableau(
+    _base_tableau.copy()._Z(0)
+)
+
+SingleQubitCliffordGate.Z_sqrt = SingleQubitCliffordGate.from_cliiford_tableau(
+    _base_tableau.copy()._S(0)
+)
+
+SingleQubitCliffordGate.Z_nsqrt = SingleQubitCliffordGate.from_cliiford_tableau(
+    _base_tableau.copy()._S(0)._S(0)._S(0)
+)
+
+SingleQubitCliffordGate.X_sqrt = SingleQubitCliffordGate.from_cliiford_tableau(
+    _base_tableau.copy()._H(0)._S(0)._H(0)  # V gate
+)
+
+SingleQubitCliffordGate.X_nsqrt = SingleQubitCliffordGate.from_cliiford_tableau(
+    _base_tableau.copy()._H(0)._S(0)._S(0)._S(0)._H(0)  # inv V gate
+)
+
+SingleQubitCliffordGate.Y_sqrt = SingleQubitCliffordGate.from_cliiford_tableau(
+    #                      S  |           V     |      S_inv
+    _base_tableau.copy()
+    ._S(0)
+    ._H(0)
+    ._S(0)
+    ._H(0)
+    ._S(0)
+    ._S(0)
+    ._S(0)
+)
+
+SingleQubitCliffordGate.Y_sqrt = SingleQubitCliffordGate.from_cliiford_tableau(
+    #                       S  |              V_inv         |    S_inv
+    _base_tableau.copy()
+    ._S(0)
+    ._H(0)
+    ._S(0)
+    ._S(0)
+    ._S(0)
+    ._H(0)
+    ._S(0)
+    ._S(0)
+    ._S(0)
+)
+
+# SQRT_EXP_MAP = {
+#     0.5: {
+#         SingleQubitCliffordGate.X: SingleQubitCliffordGate.X_sqrt,
+#         SingleQubitCliffordGate.Y: SingleQubitCliffordGate.Y_sqrt,
+#         SingleQubitCliffordGate.Z: SingleQubitCliffordGate.Z_sqrt,
+#     },
+#     -0.5: {
+#         SingleQubitCliffordGate.X: SingleQubitCliffordGate.X_nsqrt,
+#         SingleQubitCliffordGate.Y: SingleQubitCliffordGate.Y_nsqrt,
+#         SingleQubitCliffordGate.Z: SingleQubitCliffordGate.Z_nsqrt,
+#     },
+# }
