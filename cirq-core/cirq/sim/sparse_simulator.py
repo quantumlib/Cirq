@@ -34,7 +34,6 @@ from cirq.sim import (
     state_vector,
     state_vector_simulator,
     act_on_state_vector_args,
-    act_on_args,
     simulator_base,
 )
 

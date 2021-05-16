@@ -25,7 +25,7 @@ import numpy as np
 import quimb.tensor as qtn
 
 from cirq import devices, study, ops, protocols, value
-from cirq.sim import simulator, simulator_base, act_on_args, ActOnArgs
+from cirq.sim import simulator, simulator_base, ActOnArgs
 
 if TYPE_CHECKING:
     import cirq

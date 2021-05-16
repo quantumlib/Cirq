@@ -34,9 +34,9 @@ from typing import Any, Dict, List, Sequence, Union
 import numpy as np
 
 import cirq
-from cirq import study, ops, protocols, value
+from cirq import study, protocols, value
 from cirq.protocols import act_on
-from cirq.sim import clifford, simulator, simulator_base, act_on_args
+from cirq.sim import clifford, simulator, simulator_base
 
 
 class CliffordSimulator(

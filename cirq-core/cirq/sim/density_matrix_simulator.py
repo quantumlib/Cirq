@@ -12,17 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Simulator for density matrices that simulates noisy quantum circuits."""
-from typing import Any, Dict, List, TYPE_CHECKING, Tuple, Union, Sequence, Optional
+from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional
 
 import numpy as np
 
 from cirq import ops, protocols, qis, study, value
 from cirq.sim import (
-    density_matrix_utils,
     simulator,
     act_on_density_matrix_args,
     simulator_base,
-    act_on_args,
 )
 
 if TYPE_CHECKING:
