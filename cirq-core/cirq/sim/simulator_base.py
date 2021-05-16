@@ -319,7 +319,9 @@ class SimulatorBase(
         return args_map
 
 
-class MultiArgStepResult(Generic[TSimulatorState, TActOnArgs], StepResult[TSimulatorState], abc.ABC):
+class MultiArgStepResult(
+    Generic[TSimulatorState, TActOnArgs], StepResult[TSimulatorState], abc.ABC
+):
     """A base class for step results."""
 
     def __init__(
@@ -343,11 +345,11 @@ class MultiArgStepResult(Generic[TSimulatorState, TActOnArgs], StepResult[TSimul
         )
         super().__init__(measurements)
         self._qubits = qubits
-        self._qubit_map = {q: i for i, q in enumerate(qubits)}
-        self._qid_shape = tuple(q.dimension for q in qubits)
+        self._qubit_mapping = {q: i for i, q in enumerate(qubits)}
+        self._qubit_shape = tuple(q.dimension for q in qubits)
 
     def _qid_shape_(self):
-        return self._qid_shape
+        return self._qubit_shape
 
     @property
     def merged_sim_state(self):

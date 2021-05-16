@@ -260,7 +260,7 @@ class DensityMatrixStepResult(
         self._density_matrix: Optional[np.ndarray] = None
 
     def _simulator_state(self) -> 'DensityMatrixSimulatorState':
-        return DensityMatrixSimulatorState(self.density_matrix(copy=False), self._qubit_map)
+        return DensityMatrixSimulatorState(self.density_matrix(copy=False), self._qubit_mapping)
 
     def set_density_matrix(self, density_matrix_repr: Union[int, np.ndarray]):
         """Set the density matrix to a new density matrix.
@@ -276,7 +276,10 @@ class DensityMatrixStepResult(
             with trace one.
         """
         density_matrix = qis.to_valid_density_matrix(
-            density_matrix_repr, len(self._qubit_map), qid_shape=self._qid_shape, dtype=self._dtype
+            density_matrix_repr,
+            len(self._qubit_mapping),
+            qid_shape=self._qubit_shape,
+            dtype=self._dtype,
         )
         sim_state_matrix = self._simulator_state().density_matrix
         density_matrix = np.reshape(density_matrix, sim_state_matrix.shape)
