@@ -104,6 +104,15 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         # Unnecessary for now but can be added later if there is a use case.
         raise NotImplementedError()
 
+    def sample(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        # Unnecessary for now but can be added later if there is a use case.
+        raise NotImplementedError()
+
 
 def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
     val: Any, args: 'cirq.ActOnCliffordTableauArgs'

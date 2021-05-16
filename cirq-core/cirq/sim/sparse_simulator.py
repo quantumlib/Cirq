@@ -39,6 +39,7 @@ from cirq.sim import (
 
 if TYPE_CHECKING:
     import cirq
+    from numpy.typing import DTypeLike
 
 
 class Simulator(

@@ -235,7 +235,7 @@ class ActOnStateVectorArgs(ActOnArgs):
 
     def sample(
         self,
-        qubits: List['cirq.Qid'],
+        qubits: Sequence['cirq.Qid'],
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
