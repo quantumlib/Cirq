@@ -31,7 +31,7 @@ def test_measure_qubits():
     assert cirq.measure(b, a) == cirq.MeasurementGate(num_qubits=2, key='b,a').on(b, a)
     assert cirq.measure(a, key='b') == cirq.MeasurementGate(num_qubits=1, key='b').on(a)
     assert cirq.measure(a, invert_mask=(True,)) == cirq.MeasurementGate(
-        num_qubits=1, key='a', invert_mask=(True,)
+        num_qubits=1, invert_mask=(True,)
     ).on(a)
     assert cirq.measure(*cirq.LineQid.for_qid_shape((1, 2, 3)), key='a') == cirq.MeasurementGate(
         num_qubits=3, key='a', qid_shape=(1, 2, 3)
