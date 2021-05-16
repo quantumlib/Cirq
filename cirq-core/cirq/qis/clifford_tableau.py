@@ -17,7 +17,6 @@ import numpy as np
 
 import cirq
 from cirq import protocols
-from cirq.ops.dense_pauli_string import DensePauliString
 from cirq.value import big_endian_int_to_digits
 
 
@@ -83,6 +82,10 @@ class CliffordTableau:
     def rs(self, new_rs: np.array) -> None:
         assert np.shape(new_rs) == (2 * self.n,)
         self._rs[:-1] = np.array(new_rs).astype(bool)
+
+    def matrix(self) -> np.array:
+        """Returns the 2n * 2n matrix representation of the Clifford tableau."""
+        return np.concatenate([self.xs, self.zs], axis=1)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['n', 'rs', 'xs', 'zs'])
@@ -176,6 +179,67 @@ class CliffordTableau:
 
         return string
 
+    def then(self, second: 'CliffordTableau') -> 'CliffordTableau':
+        """Returns a composed CliffordTableau of this tableau and the second tableau.
+
+        Then composed tableau is equal to (up to global phase) the composed
+        unitary operation of the two tableaux, i.e. equivalent to applying the unitary
+        operation of this CliffordTableau then applying the second one.
+
+        Args:
+            second: The second CliffordTableau to compose with.
+
+        Returns:
+            The composed CliffordTableau.
+
+        Raises:
+            TypeError: If the type of second is not CliffordTableau.
+            ValueError: If the number of qubits in the second tableau mismatch with
+                this tableau.
+        """
+        if not isinstance(second, CliffordTableau):
+            raise TypeError("The type for second tableau must be the CliffordTableau type")
+        if self.n != second.n:
+            raise ValueError(
+                f"Mismatched number of qubits of two tableaux: {self.n} vs {second.n}."
+            )
+
+        # Convert the underlying data type from bool to int for easier numerical computation.
+        m1 = self.matrix().astype(int)
+        m2 = second.matrix().astype(int)
+
+        p1 = self.rs.astype(int)
+        p2 = second.rs.astype(int)
+
+        merged_m = np.mod(m1.dot(m2), 2)
+        phase = np.mod(p1 + m1.dot(p2), 2)
+
+        # we need more phase correction for expanding Y to XZ and swapping Z_iX_i order.
+        for k in range(2 * self.n):
+            swap_phase = 0  # value betwen 0 and 3 representing [1, i, -1, -i] respectively.
+            prev_row_sum = np.zeros([2 * self.n])
+            swap_phase += np.sum(m1[k, : self.n] * m1[k, self.n :])  # Y gate => iXZ
+            for i, v in enumerate(m1[k]):
+                if v == 0:
+                    continue
+                swap_phase += np.sum(m2[i, : self.n] * m2[i, self.n :])  # Y gate => iXZ
+                swap_phase += 2 * np.sum(m2[i, : self.n] * prev_row_sum[self.n :])  # swap Z_i X_i
+                prev_row_sum += m2[i]
+            prev_row_sum = np.mod(prev_row_sum, 2)
+            swap_phase -= np.sum(prev_row_sum[: self.n] * prev_row_sum[self.n :])  # XZ => -iY
+            phase[k] = (phase[k] + (swap_phase % 4) / 2) % 2
+
+        merged_tableau = CliffordTableau(num_qubits=self.n)
+        merged_tableau.xs = merged_m[:, : self.n]
+        merged_tableau.zs = merged_m[:, self.n :]
+        merged_tableau.rs = phase
+        return merged_tableau
+
+    def __matmul__(self, second: 'CliffordTableau'):
+        if not isinstance(second, CliffordTableau):
+            return NotImplemented
+        return second.then(self)
+
     def _rowsum(self, q1, q2):
         """Implements the "rowsum" routine defined by
         Aaronson and Gottesman.
@@ -202,7 +266,7 @@ class CliffordTableau:
         self._xs[q1, :] ^= self._xs[q2, :]
         self._zs[q1, :] ^= self._zs[q2, :]
 
-    def _row_to_dense_pauli(self, i: int) -> DensePauliString:
+    def _row_to_dense_pauli(self, i: int) -> 'cirq.DensePauliString':
         """
         Args:
             i: index of the row in the tableau.
@@ -226,12 +290,12 @@ class CliffordTableau:
                 pauli_mask += "I"
         return cirq.DensePauliString(pauli_mask, coefficient=coefficient)
 
-    def stabilizers(self) -> List[DensePauliString]:
+    def stabilizers(self) -> List['cirq.DensePauliString']:
         """Returns the stabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi>"""
         return [self._row_to_dense_pauli(i) for i in range(self.n, 2 * self.n)]
 
-    def destabilizers(self) -> List[DensePauliString]:
+    def destabilizers(self) -> List['cirq.DensePauliString']:
         """Returns the destabilizer generators of the state. These
         are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
         generators above generate the full Pauli group on n qubits."""

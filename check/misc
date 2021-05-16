@@ -18,7 +18,7 @@ if [ $RESULT -eq 0 ]; then
   echo -e "\033[31m'cirq.contrib' mentioned in non-contrib files:\033[0m"
   echo "${results}"
   echo
-  echo -e "\033[31mSource files outside cirq.contrib must not reference cirq.contrib, as this can cause errors for users who 'pip install cirq' instead of 'pip install cirq[contrib]'.\033[0m"
+  echo -e "\033[31mSource files outside cirq.contrib must not reference cirq.contrib, as this can cause errors for users who 'pip install cirq' instead of 'pip install cirq-core[contrib]'.\033[0m"
   exit 1
 fi
 
