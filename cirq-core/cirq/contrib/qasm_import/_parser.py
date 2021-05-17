@@ -205,6 +205,8 @@ class QasmParser:
             cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])),
         ),
         'x': QasmGateStatement(qasm_gate='x', num_params=0, num_args=1, cirq_gate=ops.X),
+        'sx': QasmGateStatement(qasm_gate='sx', num_params=0, num_args=1, cirq_gate=ops.X),
+        'sxdg': QasmGateStatement(qasm_gate='sxdg', num_params=0, num_args=1, cirq_gate=ops.X),
         'y': QasmGateStatement(qasm_gate='y', num_params=0, num_args=1, cirq_gate=ops.Y),
         'z': QasmGateStatement(qasm_gate='z', num_params=0, num_args=1, cirq_gate=ops.Z),
         'h': QasmGateStatement(qasm_gate='h', num_params=0, num_args=1, cirq_gate=ops.H),
