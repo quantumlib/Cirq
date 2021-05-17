@@ -177,6 +177,10 @@ class QasmParser:
         'rx': QasmGateStatement(
             qasm_gate='rx', cirq_gate=(lambda params: ops.rx(params[0])), num_params=1, num_args=1
         ),
+        'sx': QasmGateStatement(qasm_gate='sx', num_params=0, num_args=1, cirq_gate=ops.rx(0.5)),
+        'sxdg': QasmGateStatement(
+            qasm_gate='sxdg', num_params=0, num_args=1, cirq_gate=ops.rx(-0.5)
+        ),
         'ry': QasmGateStatement(
             qasm_gate='ry', cirq_gate=(lambda params: ops.ry(params[0])), num_params=1, num_args=1
         ),
@@ -205,8 +209,6 @@ class QasmParser:
             cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])),
         ),
         'x': QasmGateStatement(qasm_gate='x', num_params=0, num_args=1, cirq_gate=ops.X),
-        'sx': QasmGateStatement(qasm_gate='sx', num_params=0, num_args=1, cirq_gate=ops.rx(0.5)),
-        'sxdg': QasmGateStatement(qasm_gate='sxdg', num_params=0, num_args=1, cirq_gate=ops.rx(-0.5)),
         'y': QasmGateStatement(qasm_gate='y', num_params=0, num_args=1, cirq_gate=ops.Y),
         'z': QasmGateStatement(qasm_gate='z', num_params=0, num_args=1, cirq_gate=ops.Z),
         'h': QasmGateStatement(qasm_gate='h', num_params=0, num_args=1, cirq_gate=ops.H),
