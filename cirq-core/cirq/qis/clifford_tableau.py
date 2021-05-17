@@ -216,7 +216,7 @@ class CliffordTableau:
 
         # we need more phase correction for expanding Y to XZ and swapping Z_iX_i order.
         for k in range(2 * self.n):
-            swap_phase = 0  # value betwen 0 and 3 representing [1, i, -1, -i] respectively.
+            swap_phase = 0  # value between 0 and 3 representing [1, i, -1, -i] respectively.
             prev_row_sum = np.zeros([2 * self.n])
             swap_phase += np.sum(m1[k, : self.n] * m1[k, self.n :])  # Y gate => iXZ
             for i, v in enumerate(m1[k]):
