@@ -223,7 +223,8 @@ class CliffordTableau:
                 if v == 0:
                     continue
                 swap_phase += np.sum(m2[i, : self.n] * m2[i, self.n :])  # Y gate => iXZ
-                swap_phase += 2 * np.sum(m2[i, : self.n] * prev_row_sum[self.n :])  # swap Z_i X_i
+                # swapping Z_i with X_i adds a -1 phase, which is 2j
+                swap_phase += 2 * np.sum(m2[i, : self.n] * prev_row_sum[self.n :])
                 prev_row_sum += m2[i]
             prev_row_sum = np.mod(prev_row_sum, 2)
             swap_phase -= np.sum(prev_row_sum[: self.n] * prev_row_sum[self.n :])  # XZ => -iY
