@@ -2,6 +2,8 @@
 
 ### Scratch pad/things to do
 
+
+
 - directory structure refactoring?
 - **Testing, which framework?-- important**
     - [Mocha](https://mochajs.org/)
@@ -15,6 +17,10 @@
 - do we want scripts to make it easier to run stuff? (ie. start-server.sh)
 - **Compiling ts to js?** [This article talks about it here, specifically in vscode](https://code.visualstudio.com/docs/typescript/typescript-compiling). How will this affect live reloading?
 - Formatting: [Prettier](prettier.io)
+- Jupyter notebook extensions? Need to find a way to get JS into colab notebooks. (colab and jupyter are different js environments). If we need to choose, go with Colab. Harder to test colab locally.
+    - Colab is the next step, did jupyter with Balint during hacking.
+- Bloch sphere prototype
+    - How am I going to handle communication with the Python API? How am I going to create the viz?
 
 ### Currently installed packages (see package-lock.json)
 - [typescript](https://www.npmjs.com/package/typescript)
