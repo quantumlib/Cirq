@@ -22,15 +22,6 @@ repetition_ids=['a', 'b'],
 qubit_map={cirq.LineQubit(0): cirq.LineQubit(1)}),
 cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
     cirq.Moment(
-        cirq.S(cirq.LineQubit(0)),
-    ),
-]),
-repetitions=-2,
-parent_path=('outer', 'inner'),
-repetition_ids=['a', 'b'],
-qubit_map={cirq.LineQubit(0): cirq.LineQubit(1)}),
-cirq.CircuitOperation(circuit=cirq.FrozenCircuit([
-    cirq.Moment(
         (cirq.X**sympy.Symbol('theta')).on(cirq.LineQubit(0)),
     ),
 ]),

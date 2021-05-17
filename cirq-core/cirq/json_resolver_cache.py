@@ -134,7 +134,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'Rx': cirq.Rx,
         'Ry': cirq.Ry,
         'Rz': cirq.Rz,
-        'TrialResult': cirq.TrialResult,
         'TwoDQubit': cirq.pasqal.TwoDQubit,
         'TwoQubitMatrixGate': two_qubit_matrix_gate,
         '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
