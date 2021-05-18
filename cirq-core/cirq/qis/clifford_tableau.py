@@ -214,9 +214,13 @@ class CliffordTableau:
         merged_m = np.mod(m1.dot(m2), 2)
         phase = np.mod(p1 + m1.dot(p2), 2)
 
-        # we need more phase correction for expanding Y to XZ and swapping Z_iX_i order.
+        # We need more phase correction for expanding Y to XZ and swapping Z_iX_i order.
+        # One key property is X_i is only anti-commute with Z_j i.f.f. i = j and X_i
+        # commute with all X_j. Hence, we can calculate the phase on X/Z_i independently from
+        # X/Z_j, which is corresponding to element wise computation in differnt columns.
+        # This is the basis for the vectorization.
         for k in range(2 * self.n):
-            swap_phase = 0  # value between 0 and 3 representing [1, i, -1, -i] respectively.
+            swap_phase = 0  # The value mod 4 represents number of i factors.
             prev_row_sum = np.zeros([2 * self.n])
             swap_phase += np.sum(m1[k, : self.n] * m1[k, self.n :])  # Y gate => iXZ
             for i, v in enumerate(m1[k]):
@@ -228,6 +232,10 @@ class CliffordTableau:
                 prev_row_sum += m2[i]
             prev_row_sum = np.mod(prev_row_sum, 2)
             swap_phase -= np.sum(prev_row_sum[: self.n] * prev_row_sum[self.n :])  # XZ => -iY
+
+            # Adding the correction phase. Note original phase is True/False for [+1, -1] phase.
+            # while the swap_phase mod 4 is for [1, i, -1, -i].
+            # At this stage, the swap_phase must be either +1 or -1 guaranteed by the symplectic property.
             phase[k] = (phase[k] + (swap_phase % 4) / 2) % 2
 
         merged_tableau = CliffordTableau(num_qubits=self.n)
