@@ -236,8 +236,8 @@ class CliffordTableau:
             swap_phase -= np.sum(prev_row_sum[: self.n] * prev_row_sum[self.n :])  # XZ => -iY
 
             # Adding the correction phase. Note original phase is True/False for [+1, -1] phase.
-            # while the swap_phase mod 4 is for [1, i, -1, -i].
-            # At this stage, the swap_phase must be either +1 or -1 guaranteed by the symplectic property.
+            # while the swap_phase mod 4 is for [1, i, -1, -i]. At this stage, 
+            # the swap_phase must be either +1 or -1 guaranteed by the symplectic property.
             phase[k] = (phase[k] + (swap_phase % 4) / 2) % 2
 
         merged_tableau = CliffordTableau(num_qubits=self.n)
