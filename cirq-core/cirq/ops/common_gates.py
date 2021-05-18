@@ -735,6 +735,10 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         args.validate_version('2.0')
         if self._exponent == 1 and self.global_shift != -0.5:
             return args.format('z {0};\n', qubits[0])
+        elif self._exponent == 0.5:
+            return args.format('s {0};\n', qubits[0])
+        elif self._exponent == -0.5:
+            return args.format('sdg {0};\n', qubits[0])
 
         return args.format('rz({0:half_turns}) {1};\n', self._exponent, qubits[0])
 
