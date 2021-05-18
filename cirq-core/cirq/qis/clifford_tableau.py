@@ -208,42 +208,40 @@ class CliffordTableau:
         m1 = self.matrix().astype(int)
         m2 = second.matrix().astype(int)
 
-        p1 = self.rs.astype(int)
-        p2 = second.rs.astype(int)
-
-        merged_m = np.mod(m1.dot(m2), 2)
-        phase = np.mod(p1 + m1.dot(p2), 2)
-
+        # The following computation is based on Theorem 36 in
+        # https://arxiv.org/pdf/2009.03218.pdf.
+        # Any pauli string in Clifford Tableau should be able to expressed as
+        #  (1i)^p (-1)^s X^(mx) Z^(mz) where p and s are binary scalar and
+        # mx and mz are binary vectors.
         num_ys1 = np.sum(m1[:, : self.n] * m1[:, self.n :], axis=1)
         num_ys2 = np.sum(m2[:, : self.n] * m2[:, self.n :], axis=1)
-        # We need more phase correction for expanding Y to XZ and swapping Z_iX_i order.
-        # One key property is X_i is only anti-commute with Z_j i.f.f. i = j and X_i
-        # commute with all X_j. Hence, we can calculate the phase on X/Z_i independently from
-        # X/Z_j, which is corresponding to element wise computation in differnt columns.
-        # This is the basis for the vectorization.
-        for k in range(2 * self.n):
-            swap_phase = 0  # The value mod 4 represents number of i factors.
-            prev_row_sum = np.zeros([2 * self.n])
-            swap_phase += num_ys1[k]  # Y gate => iXZ
-            for i, v in enumerate(m1[k]):
-                if v == 0:
-                    continue
-                swap_phase += num_ys2[i]  # Y gate => iXZ
-                # swapping Z_i with X_i adds a -1 phase, which is 2j
-                swap_phase += 2 * np.sum(m2[i, : self.n] * prev_row_sum[self.n :])
-                prev_row_sum += m2[i]
-            prev_row_sum = np.mod(prev_row_sum, 2)
-            swap_phase -= np.sum(prev_row_sum[: self.n] * prev_row_sum[self.n :])  # XZ => -iY
 
-            # Adding the correction phase. Note original phase is True/False for [+1, -1] phase.
-            # while the swap_phase mod 4 is for [1, i, -1, -i]. At this stage,
-            # the swap_phase must be either +1 or -1 guaranteed by the symplectic property.
-            phase[k] = (phase[k] + (swap_phase % 4) / 2) % 2
+        p1 = np.mod(num_ys1, 2)
+        p2 = np.mod(num_ys2, 2)
+
+        s1 = self.rs.astype(int) + np.mod(num_ys1, 4) // 2
+        s2 = second.rs.astype(int) + np.mod(num_ys2, 4) // 2
+
+        lmbda = np.zeros((2 * self.n, 2 * self.n))
+        lmbda[: self.n, self.n :] = np.eye(self.n)
+        m2Lm2T = m2 @ lmbda @ m2.T
+
+        m_12 = np.mod(m1.dot(m2), 2)
+        p_12 = np.mod(p1 + m1.dot(p2), 2)
+        s_12 = (
+            s1
+            + m1.dot(s2)
+            + p1 * m1.dot(p2)
+            + np.diag(m1 @ np.tril(np.outer(p2, p2.T) + m2Lm2T, -1) @ m1.T)
+        )
+        num_ys12 = np.sum(m_12[:, : self.n] * m_12[:, self.n :], axis=1)
+        merged_phase = np.mod(p_12 + 2 * s_12 - num_ys12, 4)
 
         merged_tableau = CliffordTableau(num_qubits=self.n)
-        merged_tableau.xs = merged_m[:, : self.n]
-        merged_tableau.zs = merged_m[:, self.n :]
-        merged_tableau.rs = phase
+        merged_tableau.xs = m_12[:, : self.n]
+        merged_tableau.zs = m_12[:, self.n :]
+        merged_tableau.rs = merged_phase
+
         return merged_tableau
 
     def __matmul__(self, second: 'CliffordTableau'):
