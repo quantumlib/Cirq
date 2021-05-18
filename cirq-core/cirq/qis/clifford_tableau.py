@@ -214,6 +214,8 @@ class CliffordTableau:
         merged_m = np.mod(m1.dot(m2), 2)
         phase = np.mod(p1 + m1.dot(p2), 2)
 
+        num_ys1 = np.sum(m1[:, : self.n] * m1[:, self.n :], axis=1)
+        num_ys2 = np.sum(m2[:, : self.n] * m2[:, self.n :], axis=1)
         # We need more phase correction for expanding Y to XZ and swapping Z_iX_i order.
         # One key property is X_i is only anti-commute with Z_j i.f.f. i = j and X_i
         # commute with all X_j. Hence, we can calculate the phase on X/Z_i independently from
@@ -222,11 +224,11 @@ class CliffordTableau:
         for k in range(2 * self.n):
             swap_phase = 0  # The value mod 4 represents number of i factors.
             prev_row_sum = np.zeros([2 * self.n])
-            swap_phase += np.sum(m1[k, : self.n] * m1[k, self.n :])  # Y gate => iXZ
+            swap_phase += num_ys1[k]  # Y gate => iXZ
             for i, v in enumerate(m1[k]):
                 if v == 0:
                     continue
-                swap_phase += np.sum(m2[i, : self.n] * m2[i, self.n :])  # Y gate => iXZ
+                swap_phase += num_ys2[i]  # Y gate => iXZ
                 # swapping Z_i with X_i adds a -1 phase, which is 2j
                 swap_phase += 2 * np.sum(m2[i, : self.n] * prev_row_sum[self.n :])
                 prev_row_sum += m2[i]
