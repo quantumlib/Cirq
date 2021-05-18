@@ -235,7 +235,7 @@ class CliffordTableau:
             + np.diag(m1 @ np.tril(np.outer(p2, p2.T) + m2Lm2T, -1) @ m1.T)
         )
         num_ys12 = np.sum(m_12[:, : self.n] * m_12[:, self.n :], axis=1)
-        merged_phase = np.mod(p_12 + 2 * s_12 - num_ys12, 4)
+        merged_phase = np.mod(p_12 + 2 * s_12 - num_ys12, 4) // 2
 
         merged_tableau = CliffordTableau(num_qubits=self.n)
         merged_tableau.xs = m_12[:, : self.n]
