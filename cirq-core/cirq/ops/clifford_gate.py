@@ -254,8 +254,8 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
 
         To associate with Clifford Tableau, it can also be grouped by 4:
             * {I,X,Y,Z} is [[1 0], [0, 1]]
-            * {+/- X_sqrt, 2 Hadamard-like gates acting on the XZ plane} is [[1, 0], [1, 1]]
-            * {+/- Z_sqrt, 2 Hadamard-like gates acting on the YZ plane} is [[1, 1], [0, 1]]
+            * {+/- X_sqrt, 2 Hadamard-like gates acting on the YZ plane} is [[1, 0], [1, 1]]
+            * {+/- Z_sqrt, 2 Hadamard-like gates acting on the XY plane} is [[1, 1], [0, 1]]
             * {+/- Y_sqrt, 2 Hadamard-like gates acting on the XZ plane} is [[0, 1], [1, 0]]
             * {middle point of xyz in 4 Quadrant} * 120 is [[0, 1], [1, 1]]
             * {middle point of xyz in 4 Quadrant} * 240 is [[1, 1], [1, 0]]
