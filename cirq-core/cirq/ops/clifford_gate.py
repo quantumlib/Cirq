@@ -284,7 +284,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             to_phased_xz = [(0.0, 0.0, 0.5), (0.0, 0.0, -0.5), (0.25, 1.0, 0.0), (-0.25, 1.0, 0.0)]
             a, x, z = to_phased_xz[flip_index]
         elif (x_to.to, z_to.to) == (pauli_gates.Z, pauli_gates.Y):
-            # face rotate 120 -- (312) permutation
+            # face rotation 120 -- (312) permutation
             a = 0.5
             x = 0.5 if x_to.flip else -0.5
             z = 0.5 if x_to.flip ^ z_to.flip else -0.5
