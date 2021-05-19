@@ -24,6 +24,9 @@ import cirq_google as cg
 from cirq_google.api import v2
 
 
+DEFAULT_TOKEN = 'test_tag'
+
+
 def op_proto(json_dict: Dict) -> v2.program_pb2.Operation:
     op = v2.program_pb2.Operation()
     json_format.ParseDict(json_dict, op)
@@ -59,7 +62,7 @@ def test_deprecated_fields():
         gate_constructor=GateWithAttribute,
         args=[],
     )
-    with assert_deprecated('Use serialized_id', deadline='v0.12'):
+    with assert_deprecated('Use serialized_id', deadline='v0.13'):
         assert deserializer.serialized_gate_id == deserializer.serialized_id
 
 
@@ -329,9 +332,6 @@ def test_token_with_references():
 
     with pytest.raises(ValueError, match='Proto has references to constants table'):
         deserializer.from_proto(serialized)
-
-
-DEFAULT_TOKEN = 'test_tag'
 
 
 def default_circuit_proto():

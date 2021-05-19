@@ -33,7 +33,12 @@ Gate = TypeVar('Gate', bound=ops.Gate)
 
 
 class OpSerializer(abc.ABC):
-    """Generic supertype for op serializers."""
+    """Generic supertype for operation serializers.
+
+    Each operation serializer describes how to serialize a specific type of
+    Cirq operation to its corresponding proto format. Multiple operation types
+    may serialize to the same format.
+    """
 
     @property
     @abc.abstractmethod
@@ -44,23 +49,15 @@ class OpSerializer(abc.ABC):
         For CircuitOperations, this is FrozenCircuit.
         """
 
-    @property  # type: ignore
-    @deprecated(deadline='v0.12', fix='Use internal_type instead.')
-    def gate_type(self) -> Type:
-        return self.internal_type
-
     @property
     @abc.abstractmethod
     def serialized_id(self) -> str:
         """Returns the string identifier for the resulting serialized object.
 
-        This ID denotes the serialization format this serializer produces.
+        This ID denotes the serialization format this serializer produces. For
+        example, one of the common serializers assigns the id 'xy' to XPowGates,
+        as they serialize into a format also used by YPowGates.
         """
-
-    @property  # type: ignore
-    @deprecated(deadline='v0.12', fix='Use serialized_id instead.')
-    def serialized_gate_id(self) -> str:
-        return self.serialized_id
 
     @abc.abstractmethod
     def to_proto(
@@ -172,9 +169,19 @@ class GateOpSerializer(OpSerializer):
     def internal_type(self):
         return self._gate_type
 
+    @property  # type: ignore
+    @deprecated(deadline='v0.13', fix='Use internal_type instead.')
+    def gate_type(self) -> Type:
+        return self.internal_type
+
     @property
     def serialized_id(self):
         return self._serialized_gate_id
+
+    @property  # type: ignore
+    @deprecated(deadline='v0.13', fix='Use serialized_id instead.')
+    def serialized_gate_id(self) -> str:
+        return self.serialized_id
 
     @property
     def args(self):

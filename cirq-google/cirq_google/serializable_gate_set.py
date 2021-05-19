@@ -91,7 +91,7 @@ class SerializableGateSet:
             deserializers=[*self.deserializers.values(), *deserializers],
         )
 
-    @deprecated(deadline='v0.12', fix='Use with_added_types instead.')
+    @deprecated(deadline='v0.13', fix='Use with_added_types instead.')
     def with_added_gates(
         self,
         *,
@@ -108,7 +108,7 @@ class SerializableGateSet:
     def supported_internal_types(self) -> Tuple:
         return tuple(self.serializers.keys())
 
-    @deprecated(deadline='v0.12', fix='Use supported_internal_types instead.')
+    @deprecated(deadline='v0.13', fix='Use supported_internal_types instead.')
     def supported_gate_types(self) -> Tuple:
         return self.supported_internal_types()
 
@@ -128,7 +128,7 @@ class SerializableGateSet:
         )
 
     @deprecated_parameter(
-        deadline='v0.12',
+        deadline='v0.13',
         fix='Use use_constants instead.',
         parameter_desc='keyword use_constants_table_for_tokens',
         match=lambda args, kwargs: 'use_constants_table_for_tokens' in kwargs,
@@ -214,22 +214,18 @@ class SerializableGateSet:
     ) -> v2.program_pb2.Operation:
         """Serialize an Operation to cirq_google.api.v2.Operation proto.
 
-                Args:
-                    op: The operation to serialize.
-                    msg: An optional proto object to populate with the serialization
-                        results.
-                    arg_function_language: The `arg_function_language` field from
-                        `Program.Language`.
-                    constants: The list of previously-serialized Constant protos.
-                    raw_constants: A map raw objects to their respective indices in
-                        `constants`.
+        Args:
+            op: The operation to serialize.
+            msg: An optional proto object to populate with the serialization
+                results.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+            constants: The list of previously-serialized Constant protos.
+            raw_constants: A map raw objects to their respective indices in
+                `constants`.
 
-                Returns:
-        <<<<<<< HEAD:cirq/google/serializable_gate_set.py
-                    The cirq.google.api.v2.Operation proto.
-        =======
-                    A dictionary corresponds to the cirq_google.api.v2.Operation proto.
-        >>>>>>> master:cirq-google/cirq_google/serializable_gate_set.py
+        Returns:
+            The cirq.google.api.v2.Operation proto.
         """
         gate_type = type(op.gate)
         for gate_type_mro in gate_type.mro():
@@ -383,21 +379,18 @@ class SerializableGateSet:
     ) -> 'cirq.Operation':
         """Deserialize an Operation from a cirq_google.api.v2.Operation.
 
-                Args:
-                    operation_proto: A dictionary representing a
-        <<<<<<< HEAD:cirq/google/serializable_gate_set.py
-                        cirq.google.api.v2.Operation proto.
-                    arg_function_language: The `arg_function_language` field from
-                        `Program.Language`.
-                    constants: The list of Constant protos referenced by constant
-                        table indices in `proto`.
-                    deserialized_constants: The deserialized contents of `constants`.
-        =======
-                        cirq_google.api.v2.Operation proto.
-        >>>>>>> master:cirq-google/cirq_google/serializable_gate_set.py
+        Args:
+            operation_proto: A dictionary representing a
+                cirq.google.api.v2.Operation proto.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+            constants: The list of Constant protos referenced by constant
+                table indices in `proto`.
+            deserialized_constants: The deserialized contents of `constants`.
+                cirq_google.api.v2.Operation proto.
 
-                Returns:
-                    The deserialized Operation.
+        Returns:
+            The deserialized Operation.
         """
         if not operation_proto.gate.id:
             raise ValueError('Operation proto does not have a gate.')

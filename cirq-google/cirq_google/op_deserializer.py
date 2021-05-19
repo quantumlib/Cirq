@@ -37,20 +37,21 @@ if TYPE_CHECKING:
 
 
 class OpDeserializer(abc.ABC):
-    """Generic supertype for op deserializers."""
+    """Generic supertype for operation deserializers.
+
+    Each operation deserializer describes how to deserialize operation protos
+    with a particular `serialized_id` to a specific type of Cirq operation.
+    """
 
     @property
     @abc.abstractmethod
     def serialized_id(self) -> str:
         """Returns the string identifier for the accepted serialized objects.
 
-        This ID denotes the serialization format this deserializer consumes.
+        This ID denotes the serialization format this deserializer consumes. For
+        example, one of the common deserializers converts objects with the id
+        'xy' into PhasedXPowGates.
         """
-
-    @property  # type: ignore
-    @deprecated(deadline='v0.12', fix='Use serialized_id instead.')
-    def serialized_gate_id(self) -> str:
-        return self.serialized_id
 
     @abc.abstractmethod
     def from_proto(
@@ -146,6 +147,11 @@ class GateOpDeserializer(OpDeserializer):
         self._op_wrapper = op_wrapper
         self._deserialize_tokens = deserialize_tokens
 
+    @property  # type: ignore
+    @deprecated(deadline='v0.13', fix='Use serialized_id instead.')
+    def serialized_gate_id(self) -> str:
+        return self.serialized_id
+
     @property
     def serialized_id(self):
         return self._serialized_gate_id
@@ -158,7 +164,19 @@ class GateOpDeserializer(OpDeserializer):
         constants: List[v2.program_pb2.Constant] = None,
         deserialized_constants: List[Any] = None,  # unused
     ) -> 'cirq.Operation':
-        """Turns a cirq_google.api.v2.Operation proto into a GateOperation."""
+        """Turns a cirq_google.api.v2.Operation proto into a GateOperation.
+
+        Args:
+            proto: The proto object to be deserialized.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+            constants: The list of Constant protos referenced by constant
+                table indices in `proto`.
+            deserialized_constants: Unused in this method.
+
+        Returns:
+            The deserialized GateOperation represented by `proto`.
+        """
         qubits = [v2.qubit_from_proto_id(q.id) for q in proto.qubits]
         args = self._args_from_proto(proto, arg_function_language=arg_function_language)
         if self._num_qubits_param is not None:
@@ -225,7 +243,20 @@ class CircuitOpDeserializer(OpDeserializer):
         constants: List[v2.program_pb2.Constant] = None,
         deserialized_constants: List[Any] = None,
     ) -> 'cirq.CircuitOperation':
-        """Turns a cirq.google.api.v2.CircuitOperation proto into a CircuitOperation."""
+        """Turns a cirq.google.api.v2.CircuitOperation proto into a CircuitOperation.
+
+        Args:
+            proto: The proto object to be deserialized.
+            arg_function_language: The `arg_function_language` field from
+                `Program.Language`.
+            constants: The list of Constant protos referenced by constant
+                table indices in `proto`. This list should already have been
+                parsed to produce 'deserialized_constants'.
+            deserialized_constants: The deserialized contents of `constants`.
+
+        Returns:
+            The deserialized CircuitOperation represented by `proto`.
+        """
         if constants is None or deserialized_constants is None:
             raise ValueError(
                 'CircuitOp deserialization requires a constants list and a corresponding list of '
