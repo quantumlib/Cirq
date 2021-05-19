@@ -246,7 +246,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         """Rotation of all 24 Clifford gates is isomorphic to Octahedral group.
 
         The rotation can be categorized by {axis} * {degree}:
-            * Identy: I
+            * Identity: I
             * {x, y, z} * {90, 180, 270}  --- {X, Y, Z} + 6 Quarter turn gates
             * {+/-xy, +/-yz, +/-zx} * 180  --- 6 Hadamard-like gates
             * {middle point of xyz in 4 Quadrant} * {120, 240} --- rotation in face
