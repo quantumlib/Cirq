@@ -29,4 +29,4 @@ if sys.version_info < (3, 6, 0):
         'of cirq (e.g. "python -m pip install cirq==0.5.*")'
     )
 
-__version__ = "0.11.0.dev"
+__version__ = "0.12.0.dev"
