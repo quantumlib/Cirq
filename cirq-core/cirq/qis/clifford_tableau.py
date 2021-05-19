@@ -219,28 +219,30 @@ class CliffordTableau:
         p1 = np.mod(num_ys1, 2)
         p2 = np.mod(num_ys2, 2)
 
+        # Note the `s` is not equal to `r`, which depends on the number of Y gates.
+        # For example, r * Y_1Y_2Y_3 can be expanded into i^3 * r * X_1Z_1 X_2Z_2 X_3Z_3.
+        # The global phase is i * (-1) * r ==> s = r + 1 and p = 1.
         s1 = self.rs.astype(int) + np.mod(num_ys1, 4) // 2
         s2 = second.rs.astype(int) + np.mod(num_ys2, 4) // 2
 
         lmbda = np.zeros((2 * self.n, 2 * self.n))
         lmbda[: self.n, self.n :] = np.eye(self.n)
-        m2Lm2T = m2 @ lmbda @ m2.T
 
-        m_12 = np.mod(m1.dot(m2), 2)
-        p_12 = np.mod(p1 + m1.dot(p2), 2)
+        m_12 = np.mod(m1 @ m2, 2)
+        p_12 = np.mod(p1 + m1 @ p2, 2)
         s_12 = (
             s1
-            + m1.dot(s2)
-            + p1 * m1.dot(p2)
-            + np.diag(m1 @ np.tril(np.outer(p2, p2.T) + m2Lm2T, -1) @ m1.T)
+            + m1 @ s2
+            + p1 * (m1 @ p2)
+            + np.diag(m1 @ np.tril(np.outer(p2, p2.T) + m2 @ lmbda @ m2.T, -1) @ m1.T)
         )
         num_ys12 = np.sum(m_12[:, : self.n] * m_12[:, self.n :], axis=1)
-        merged_phase = np.mod(p_12 + 2 * s_12 - num_ys12, 4) // 2
+        merged_sign = np.mod(p_12 + 2 * s_12 - num_ys12, 4) // 2
 
         merged_tableau = CliffordTableau(num_qubits=self.n)
         merged_tableau.xs = m_12[:, : self.n]
         merged_tableau.zs = m_12[:, self.n :]
-        merged_tableau.rs = merged_phase
+        merged_tableau.rs = merged_sign
 
         return merged_tableau
 
