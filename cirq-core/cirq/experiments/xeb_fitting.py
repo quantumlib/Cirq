@@ -21,6 +21,7 @@ from typing import (
     Tuple,
     TYPE_CHECKING,
     Dict,
+    Iterable,
 )
 
 import numpy as np
@@ -136,6 +137,38 @@ class XEBCharacterizationOptions(ABC):
         """Return an initial Nelder-Mead simplex and the names for each parameter."""
 
 
+def phased_fsim_angles_from_gate(gate: 'cirq.Gate') -> Dict[str, float]:
+    """For a given gate, return a dictionary mapping '{angle}_default' to its noiseless value
+    for the five PhasedFSim angles."""
+    defaults = {
+        'theta_default': 0.0,
+        'zeta_default': 0.0,
+        'chi_default': 0.0,
+        'gamma_default': 0.0,
+        'phi_default': 0.0,
+    }
+    if gate == SQRT_ISWAP:
+        defaults['theta_default'] = -np.pi / 4
+        return defaults
+    if gate == SQRT_ISWAP ** -1:
+        defaults['theta_default'] = np.pi / 4
+        return defaults
+    if isinstance(gate, ops.FSimGate):
+        defaults['theta_default'] = gate.theta
+        defaults['phi_default'] = gate.phi
+        return defaults
+    if isinstance(gate, ops.PhasedFSimGate):
+        return {
+            'theta_default': gate.theta,
+            'zeta_default': gate.zeta,
+            'chi_default': gate.chi,
+            'gamma_default': gate.gamma,
+            'phi_default': gate.phi,
+        }
+
+    raise ValueError(f"Unknown default angles for {gate}.")
+
+
 # mypy issue: https://github.com/python/mypy/issues/5374
 @json_serializable_dataclass(frozen=True)  # type: ignore
 class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
@@ -163,11 +196,27 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
     characterize_gamma: bool = True
     characterize_phi: bool = True
 
-    theta_default: float = 0.0
-    zeta_default: float = 0.0
-    chi_default: float = 0.0
-    gamma_default: float = 0.0
-    phi_default: float = 0.0
+    theta_default: Optional[float] = None
+    zeta_default: Optional[float] = None
+    chi_default: Optional[float] = None
+    gamma_default: Optional[float] = None
+    phi_default: Optional[float] = None
+
+    def _iter_angles(self) -> Iterable[Tuple[bool, Optional[float], 'sympy.Symbol']]:
+        yield from (
+            (self.characterize_theta, self.theta_default, THETA_SYMBOL),
+            (self.characterize_zeta, self.zeta_default, ZETA_SYMBOL),
+            (self.characterize_chi, self.chi_default, CHI_SYMBOL),
+            (self.characterize_gamma, self.gamma_default, GAMMA_SYMBOL),
+            (self.characterize_phi, self.phi_default, PHI_SYMBOL),
+        )
+
+    def _iter_angles_for_characterization(self) -> Iterable[Tuple[Optional[float], 'sympy.Symbol']]:
+        yield from (
+            (default, symbol)
+            for characterize, default, symbol in self._iter_angles()
+            if characterize
+        )
 
     def get_initial_simplex_and_names(
         self, initial_simplex_step_size: float = 0.1
@@ -185,21 +234,12 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
         """
         x0 = []
         names = []
-        if self.characterize_theta:
-            x0 += [self.theta_default]
-            names += [THETA_SYMBOL.name]
-        if self.characterize_zeta:
-            x0 += [self.zeta_default]
-            names += [ZETA_SYMBOL.name]
-        if self.characterize_chi:
-            x0 += [self.chi_default]
-            names += [CHI_SYMBOL.name]
-        if self.characterize_gamma:
-            x0 += [self.gamma_default]
-            names += [GAMMA_SYMBOL.name]
-        if self.characterize_phi:
-            x0 += [self.phi_default]
-            names += [PHI_SYMBOL.name]
+
+        for default, symbol in self._iter_angles_for_characterization():
+            if default is None:
+                raise ValueError(f'{symbol.name}_default was not set.')
+            x0.append(default)
+            names.append(symbol.name)
 
         x0 = np.asarray(x0)
         n_param = len(x0)
@@ -223,16 +263,45 @@ class XEBPhasedFSimCharacterizationOptions(XEBCharacterizationOptions):
     def should_parameterize(op: 'cirq.Operation') -> bool:
         return isinstance(op.gate, (ops.PhasedFSimGate, ops.ISwapPowGate, ops.FSimGate))
 
+    def defaults_set(self) -> bool:
+        """Whether the default angles are set.
 
-@dataclass(frozen=True)
-class SqrtISwapXEBOptions(XEBPhasedFSimCharacterizationOptions):
-    """Options for calibrating a sqrt(ISWAP) gate using XEB.
+        This only considers angles where characterize_{angle} is True. If all such angles have
+        {angle}_default set to a value, this returns True. If none of the defaults are set,
+        this returns False. If some defaults are set, we raise an exception.
+        """
+        defaults_set = [default is not None for _, default, _ in self._iter_angles()]
+        if any(defaults_set):
+            if all(defaults_set):
+                return True
 
-    As such, the default for theta is changed to -pi/4 and the parameterization
-    predicate seeks out sqrt(ISWAP) gates.
-    """
+            problems = [
+                symbol.name for _, default, symbol in self._iter_angles() if default is None
+            ]
+            raise ValueError(f"Some angles are set, but values for {problems} are not.")
+        return False
 
-    theta_default: float = -np.pi / 4
+    def with_defaults_from_gate(
+        self, gate: 'cirq.Gate', gate_to_angles_func=phased_fsim_angles_from_gate
+    ):
+        """A new Options class with {angle}_defaults inferred from `gate`.
+
+        This keeps the same settings for the characterize_{angle} booleans, but will disregard
+        any current {angle}_default values.
+        """
+        return XEBPhasedFSimCharacterizationOptions(
+            characterize_theta=self.characterize_theta,
+            characterize_zeta=self.characterize_zeta,
+            characterize_chi=self.characterize_chi,
+            characterize_gamma=self.characterize_gamma,
+            characterize_phi=self.characterize_phi,
+            **gate_to_angles_func(gate),
+        )
+
+
+def SqrtISwapXEBOptions(*args, **kwargs):
+    """Options for calibrating a sqrt(ISWAP) gate using XEB."""
+    return XEBPhasedFSimCharacterizationOptions(*args, **kwargs).with_defaults_from_gate(SQRT_ISWAP)
 
 
 def parameterize_circuit(
