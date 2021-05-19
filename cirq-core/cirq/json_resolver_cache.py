@@ -93,6 +93,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'LineQubit': cirq.LineQubit,
         'LineQid': cirq.LineQid,
         'MatrixGate': cirq.MatrixGate,
+        'MeasurementKey': cirq.MeasurementKey,
         'MeasurementGate': cirq.MeasurementGate,
         '_MeasurementSpec': cirq.work._MeasurementSpec,
         'Moment': cirq.Moment,
@@ -133,7 +134,6 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'Rx': cirq.Rx,
         'Ry': cirq.Ry,
         'Rz': cirq.Rz,
-        'TrialResult': cirq.TrialResult,
         'TwoDQubit': cirq.pasqal.TwoDQubit,
         'TwoQubitMatrixGate': two_qubit_matrix_gate,
         '_UnconstrainedDevice': cirq.devices.unconstrained_device._UnconstrainedDevice,
@@ -141,6 +141,10 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'VirtualTag': cirq.VirtualTag,
         'WaitGate': cirq.WaitGate,
         '_QubitAsQid': raw_types._QubitAsQid,
+        # The formatter keeps putting this back
+        # pylint: disable=line-too-long
+        'XEBPhasedFSimCharacterizationOptions': cirq.experiments.XEBPhasedFSimCharacterizationOptions,
+        # pylint: enable=line-too-long
         'XPowGate': cirq.XPowGate,
         'XXPowGate': cirq.XXPowGate,
         'YPowGate': cirq.YPowGate,

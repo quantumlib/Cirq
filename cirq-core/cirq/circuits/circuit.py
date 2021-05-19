@@ -19,11 +19,12 @@ Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
 
-from collections import defaultdict
+import abc
 import enum
-from itertools import groupby
+import html
 import math
-
+from collections import defaultdict
+from itertools import groupby
 from typing import (
     AbstractSet,
     Any,
@@ -45,20 +46,18 @@ from typing import (
     Union,
 )
 
-import abc
-import html
+import networkx
 import numpy as np
 
+import cirq._version
 from cirq import devices, ops, protocols, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
-from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.quil_output import QuilOutput
+from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.type_workarounds import NotImplementedType
-from cirq._compat import deprecated_parameter
-import cirq._version
 
 if TYPE_CHECKING:
     import cirq
@@ -69,8 +68,12 @@ INT_TYPE = Union[int, np.integer]
 
 
 class Alignment(enum.Enum):
+    # Stop when left ends are lined up.
     LEFT = 1
+    # Stop when right ends are lined up.
     RIGHT = 2
+    # Stop the first time left ends are lined up or right ends are lined up.
+    FIRST = 3
 
     def __repr__(self) -> str:
         return f'cirq.Alignment.{self.name}'
@@ -108,6 +111,7 @@ class AbstractCircuit(abc.ABC):
     *   to_quil
     *   to_qasm
     *   save_qasm
+    *   get_independent_qubit_sets
     """
 
     @property
@@ -893,6 +897,11 @@ class AbstractCircuit(abc.ABC):
             [protocols.with_measurement_key_mapping(moment, key_map) for moment in self.moments]
         )
 
+    def _with_key_path_(self, path: Tuple[str, ...]):
+        return self._with_sliced_moments(
+            [protocols.with_key_path(moment, path) for moment in self.moments]
+        )
+
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self.qid_shape()
 
@@ -1355,13 +1364,13 @@ class AbstractCircuit(abc.ABC):
 
         Args:
             circuits: The circuits to concatenate.
-            stop_at_first_alignment: Defaults to false. When true, the circuits
-                are never overlapped more than needed to align their starts (in
-                case the left circuit is smaller) or to align their ends (in
-                case the right circuit is smaller). When false, the smaller
-                circuit can be pushed deeper into the larger circuit, past the
-                first time their starts or ends align, until the second time
-                their starts or ends align.
+            align: When to stop when sliding the circuits together.
+                'left': Stop when the starts of the circuits align.
+                'right': Stop when the ends of the circuits align.
+                'first': Stop the first time either the starts or the ends align. Circuits
+                    are never overlapped more than needed to align their starts (in case
+                    the left circuit is smaller) or to align their ends (in case the right
+                    circuit is smaller)
 
         Returns:
             The concatenated and overlapped circuit.
@@ -1375,7 +1384,7 @@ class AbstractCircuit(abc.ABC):
 
         # Allocate a buffer large enough to append and prepend all the circuits.
         pad_len = sum(len(c) for c in circuits) - n_acc
-        buffer = np.zeros(shape=pad_len * 2 + n_acc, dtype=np.object)
+        buffer = np.zeros(shape=pad_len * 2 + n_acc, dtype=object)
 
         # Put the initial circuit in the center of the buffer.
         offset = pad_len
@@ -1387,6 +1396,87 @@ class AbstractCircuit(abc.ABC):
 
         return cirq.Circuit(buffer[offset : offset + n_acc])
 
+    def get_independent_qubit_sets(self) -> List[Set['cirq.Qid']]:
+        """Divide circuit's qubits into independent qubit sets.
+
+        Independent qubit sets are the qubit sets such that there are
+        no entangling gates between qubits belonging to different sets.
+        If this is not possible, a sequence with a single factor (the whole set of
+        circuit's qubits) is returned.
+
+        >>> q0, q1, q2 = cirq.LineQubit.range(3)
+        >>> circuit = cirq.Circuit()
+        >>> circuit.append(cirq.Moment(cirq.H(q2)))
+        >>> circuit.append(cirq.Moment(cirq.CZ(q0,q1)))
+        >>> circuit.append(cirq.H(q0))
+        >>> print(circuit)
+        0: ───────@───H───
+                  │
+        1: ───────@───────
+        <BLANKLINE>
+        2: ───H───────────
+        >>> [sorted(qs) for qs in circuit.get_independent_qubit_sets()]
+        [[cirq.LineQubit(0), cirq.LineQubit(1)], [cirq.LineQubit(2)]]
+
+        Returns:
+            The list of independent qubit sets.
+
+        """
+        uf = networkx.utils.UnionFind(self.all_qubits())
+        for op in self.all_operations():
+            if len(op.qubits) > 1:
+                uf.union(*op.qubits)
+        return sorted([qs for qs in uf.to_sets()], key=min)
+
+    def factorize(self: CIRCUIT_TYPE) -> Iterable[CIRCUIT_TYPE]:
+        """Factorize circuit into a sequence of independent circuits (factors).
+
+        Factorization is possible when the circuit's qubits can be divided
+        into two or more independent qubit sets. Preserves the moments from
+        the original circuit.
+        If this is not possible, returns the set consisting of the single
+        circuit (this one).
+
+        >>> q0, q1, q2 = cirq.LineQubit.range(3)
+        >>> circuit = cirq.Circuit()
+        >>> circuit.append(cirq.Moment(cirq.H(q2)))
+        >>> circuit.append(cirq.Moment(cirq.CZ(q0,q1)))
+        >>> circuit.append(cirq.H(q0))
+        >>> print(circuit)
+        0: ───────@───H───
+                  │
+        1: ───────@───────
+        <BLANKLINE>
+        2: ───H───────────
+        >>> for i, f in enumerate(circuit.factorize()):
+        ...     print("Factor {}".format(i))
+        ...     print(f)
+        ...
+        Factor 0
+        0: ───────@───H───
+                  │
+        1: ───────@───────
+        Factor 1
+        2: ───H───────────
+
+        Returns:
+            The sequence of circuits, each including only the qubits from one
+            independent qubit set.
+
+        """
+
+        qubit_factors = self.get_independent_qubit_sets()
+        if len(qubit_factors) == 1:
+            return (self,)
+        # Note: In general, Moment.__getitem__ returns all operations on which
+        # any of the qubits operate. However, in this case we know that all of
+        # the qubits from one factor belong to a specific independent qubit set.
+        # This makes it possible to create independent circuits based on these
+        # moments.
+        return (
+            self._with_sliced_moments([m[qubits] for m in self.moments]) for qubits in qubit_factors
+        )
+
 
 def _overlap_collision_time(
     c1: Sequence['cirq.Moment'], c2: Sequence['cirq.Moment'], align: 'cirq.Alignment'
@@ -1396,7 +1486,15 @@ def _overlap_collision_time(
     seen_times: Dict['cirq.Qid', int] = {}
 
     # Start scanning from end of first and start of second.
-    upper_bound = len(c1) if align == Alignment.LEFT else len(c2)
+    if align == Alignment.LEFT:
+        upper_bound = len(c1)
+    elif align == Alignment.RIGHT:
+        upper_bound = len(c2)
+    elif align == Alignment.FIRST:
+        upper_bound = min(len(c1), len(c2))
+    else:
+        raise NotImplementedError(f"Unrecognized alignment: {align}")
+
     t = 0
     while t < upper_bound:
         if t < len(c2):
@@ -1460,6 +1558,7 @@ class Circuit(AbstractCircuit):
     *   to_quil
     *   to_qasm
     *   save_qasm
+    *   get_independent_qubit_sets
 
     Methods for mutation:
 
@@ -1503,6 +1602,10 @@ class Circuit(AbstractCircuit):
 
     and mutated,
     *    `circuit[1:7] = [Moment(...)]`
+
+    and factorized,
+    *   `circuit.factorize()` returns a sequence of Circuits which represent
+            independent 'factors' of the original Circuit.
     """
 
     def __init__(
@@ -1689,16 +1792,6 @@ class Circuit(AbstractCircuit):
 
     zip.__doc__ = AbstractCircuit.zip.__doc__
 
-    @deprecated_parameter(
-        deadline='v0.11',
-        fix='Use qubit_map instead.',
-        parameter_desc='positional func',
-        match=lambda args, kwargs: 'func' in kwargs,
-        rewrite=lambda args, kwargs: (
-            args,
-            {('qubit_map' if k == 'func' else k): v for k, v in kwargs.items()},
-        ),
-    )
     def transform_qubits(
         self,
         qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],

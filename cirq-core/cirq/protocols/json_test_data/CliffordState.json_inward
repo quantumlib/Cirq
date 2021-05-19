@@ -14,15 +14,11 @@
     "n": 1,
     "rs": [
       false,
-      false,
       false
     ],
     "xs": [
       [
         true
-      ],
-      [
-        false
       ],
       [
         false
@@ -34,9 +30,6 @@
       ],
       [
         true
-      ],
-      [
-        false
       ]
     ]
   },

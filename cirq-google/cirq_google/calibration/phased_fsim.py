@@ -11,6 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import abc
+import collections
+import dataclasses
+import functools
+import re
 from typing import (
     Any,
     Callable,
@@ -22,17 +27,19 @@ from typing import (
     Tuple,
     TypeVar,
     TYPE_CHECKING,
+    Generic,
+    Union,
+    cast,
 )
 
-import abc
-import collections
-import dataclasses
-import functools
-import re
-
 import numpy as np
+import pandas as pd
 
 from cirq.circuits import Circuit
+from cirq.devices import GridQubit
+from cirq.experiments.xeb_fitting import (
+    XEBPhasedFSimCharacterizationOptions,
+)
 from cirq.ops import (
     FSimGate,
     Gate,
@@ -46,9 +53,12 @@ from cirq.ops import (
     rz,
 )
 from cirq_google.api import v2
-from cirq_google.engine import CalibrationLayer, CalibrationResult
+from cirq_google.engine import Calibration, CalibrationLayer, CalibrationResult, Engine, EngineJob
 
 if TYPE_CHECKING:
+    import cirq
+    import cirq_google
+
     # Workaround for mypy custom dataclasses (python/mypy#5406)
     from dataclasses import dataclass as json_serializable_dataclass
 else:
@@ -56,7 +66,12 @@ else:
 
 
 _FLOQUET_PHASED_FSIM_HANDLER_NAME = 'floquet_phased_fsim_characterization'
+_XEB_PHASED_FSIM_HANDLER_NAME = 'xeb_phased_fsim_characterization'
+_DEFAULT_XEB_CYCLE_DEPTHS = (5, 25, 50, 100, 200, 300)
+
 T = TypeVar('T')
+
+RequestT = TypeVar('RequestT', bound='PhasedFSimCalibrationRequest')
 
 
 # Workaround for: https://github.com/python/mypy/issues/5858
@@ -198,16 +213,32 @@ class PhasedFSimCharacterization:
         return other.merge_with(self)
 
 
-SQRT_ISWAP_PARAMETERS = PhasedFSimCharacterization(
+SQRT_ISWAP_INV_PARAMETERS = PhasedFSimCharacterization(
     theta=np.pi / 4, zeta=0.0, chi=0.0, gamma=0.0, phi=0.0
 )
 
 
-class PhasedFSimCalibrationOptions(abc.ABC):
+class PhasedFSimCalibrationOptions(abc.ABC, Generic[RequestT]):
     """Base class for calibration-specific options passed together with the requests."""
 
+    @abc.abstractmethod
+    def create_phased_fsim_request(
+        self,
+        pairs: Tuple[Tuple[Qid, Qid], ...],
+        gate: Gate,
+    ) -> RequestT:
+        """Create a PhasedFSimCalibrationRequest of the correct type for these options.
 
-@dataclasses.dataclass(frozen=True)
+        Args:
+            pairs: Set of qubit pairs to characterize. A single qubit can appear on at most one
+                pair in the set.
+            gate: Gate to characterize for each qubit pair from pairs. This must be a supported gate
+                which can be described cirq.PhasedFSim gate. This gate must be serialized by the
+                cirq_google.SerializableGateSet used
+        """
+
+
+@dataclasses.dataclass
 class PhasedFSimCalibrationResult:
     """The PhasedFSimGate characterization result.
 
@@ -216,11 +247,20 @@ class PhasedFSimCalibrationResult:
             quibts a and b either only (a, b) or only (b, a) is present.
         gate: Characterized gate for each qubit pair. This is copied from the matching
             PhasedFSimCalibrationRequest and is included to preserve execution context.
+        options: The options used to gather this result.
+        project_id: Google's job project id.
+        program_id: Google's job program id.
+        job_id: Google's job job id.
     """
 
     parameters: Dict[Tuple[Qid, Qid], PhasedFSimCharacterization]
     gate: Gate
     options: PhasedFSimCalibrationOptions
+    project_id: Optional[str] = None
+    program_id: Optional[str] = None
+    job_id: Optional[str] = None
+    _engine_job: Optional[EngineJob] = None
+    _calibration: Optional[Calibration] = None
 
     def override(self, parameters: PhasedFSimCharacterization) -> 'PhasedFSimCalibrationResult':
         """Creates the new results with certain parameters overridden for all characterizations.
@@ -253,6 +293,27 @@ class PhasedFSimCalibrationResult:
         else:
             return None
 
+    @property
+    def engine_job(self) -> Optional[EngineJob]:
+        """The cirq_google.EngineJob associated with this calibration request.
+
+        Available only when project_id, program_id and job_id attributes are present.
+        """
+        if self._engine_job is None and self.project_id and self.program_id and self.job_id:
+            engine = Engine(project_id=self.project_id)
+            self._engine_job = engine.get_program(self.program_id).get_job(self.job_id)
+        return self._engine_job
+
+    @property
+    def engine_calibration(self) -> Optional[Calibration]:
+        """The underlying device calibration that was used for this user-specific calibration.
+
+        This is a cached property that triggers a network call at the first use.
+        """
+        if self._calibration is None and self.engine_job is not None:
+            self._calibration = self.engine_job.get_calibration()
+        return self._calibration
+
     @classmethod
     def _create_parameters_dict(
         cls,
@@ -284,6 +345,9 @@ class PhasedFSimCalibrationResult:
             'gate': self.gate,
             'parameters': [(q_a, q_b, params) for (q_a, q_b), params in self.parameters.items()],
             'options': self.options,
+            'project_id': self.project_id,
+            'program_id': self.program_id,
+            'job_id': self.job_id,
         }
 
 
@@ -331,6 +395,10 @@ def merge_matching_results(
     return PhasedFSimCalibrationResult(all_parameters, common_gate, common_options)
 
 
+class PhasedFSimCalibrationError(Exception):
+    """Error that indicates the calibration failure."""
+
+
 # We have to relax a mypy constraint, see https://github.com/python/mypy/issues/5374
 @dataclasses.dataclass(frozen=True)  # type: ignore
 class PhasedFSimCalibrationRequest(abc.ABC):
@@ -346,6 +414,7 @@ class PhasedFSimCalibrationRequest(abc.ABC):
 
     pairs: Tuple[Tuple[Qid, Qid], ...]
     gate: Gate  # Any gate which can be described by cirq.PhasedFSim
+    options: PhasedFSimCalibrationOptions
 
     # Workaround for: https://github.com/python/mypy/issues/1362
     @property  # type: ignore
@@ -361,8 +430,124 @@ class PhasedFSimCalibrationRequest(abc.ABC):
         """Encodes this characterization request in a CalibrationLayer object."""
 
     @abc.abstractmethod
-    def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+    def parse_result(
+        self, result: CalibrationResult, job: Optional[EngineJob] = None
+    ) -> PhasedFSimCalibrationResult:
         """Decodes the characterization result issued for this request."""
+
+
+@json_serializable_dataclass(frozen=True)
+class XEBPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
+    """Options for configuring a PhasedFSim calibration using XEB.
+
+    XEB uses the fidelity of random circuits to characterize PhasedFSim gates. The parameters
+    of the gate are varied by a classical optimizer to maximize the observed fidelities.
+
+    Args:
+        n_library_circuits: The number of distinct, two-qubit random circuits to use in our
+            library of random circuits. This should be the same order of magnitude as
+            `n_combinations`.
+        n_combinations: We take each library circuit and randomly assign it to qubit pairs.
+            This parameter controls the number of random combinations of the two-qubit random
+            circuits we execute. Higher values increase the precision of estimates but linearly
+            increase experimental runtime.
+        cycle_depths: We run the random circuits at these cycle depths to fit an exponential
+            decay in the fidelity.
+        fatol: The absolute convergence tolerance for the objective function evaluation in
+            the Nelder-Mead optimization. This controls the runtime of the classical
+            characterization optimization loop.
+        xatol: The absolute convergence tolerance for the parameter estimates in
+            the Nelder-Mead optimization. This controls the runtime of the classical
+            characterization optimization loop.
+        fsim_options: An instance of `XEBPhasedFSimCharacterizationOptions` that controls aspects
+            of the PhasedFSim characterization like initial guesses and which angles to
+            characterize.
+    """
+
+    n_library_circuits: int = 20
+    n_combinations: int = 10
+    cycle_depths: Tuple[int, ...] = _DEFAULT_XEB_CYCLE_DEPTHS
+    fatol: Optional[float] = 5e-3
+    xatol: Optional[float] = 5e-3
+
+    fsim_options: XEBPhasedFSimCharacterizationOptions = XEBPhasedFSimCharacterizationOptions()
+
+    def to_args(self) -> Dict[str, Any]:
+        """Convert this dataclass to an `args` dictionary suitable for sending to the Quantum
+        Engine calibration API."""
+        args: Dict[str, Any] = {
+            'n_library_circuits': self.n_library_circuits,
+            'n_combinations': self.n_combinations,
+            'cycle_depths': '_'.join(f'{cd:d}' for cd in self.cycle_depths),
+        }
+        if self.fatol is not None:
+            args['fatol'] = self.fatol
+        if self.xatol is not None:
+            args['xatol'] = self.xatol
+
+        fsim_options = dataclasses.asdict(self.fsim_options)
+        fsim_options = {k: v for k, v in fsim_options.items() if v is not None}
+        args.update(fsim_options)
+        return args
+
+    def create_phased_fsim_request(
+        self,
+        pairs: Tuple[Tuple[Qid, Qid], ...],
+        gate: Gate,
+    ) -> 'XEBPhasedFSimCalibrationRequest':
+        return XEBPhasedFSimCalibrationRequest(pairs=pairs, gate=gate, options=self)
+
+    @classmethod
+    def _from_json_dict_(cls, **kwargs):
+        del kwargs['cirq_type']
+        kwargs['cycle_depths'] = tuple(kwargs['cycle_depths'])
+        return cls(**kwargs)
+
+
+@json_serializable_dataclass(frozen=True)
+class LocalXEBPhasedFSimCalibrationOptions(XEBPhasedFSimCalibrationOptions):
+    """Options for configuring a PhasedFSim calibration using a local version of XEB.
+
+    XEB uses the fidelity of random circuits to characterize PhasedFSim gates. The parameters
+    of the gate are varied by a classical optimizer to maximize the observed fidelities.
+
+    These "Local" options (corresponding to `LocalXEBPhasedFSimCalibrationRequest`) instruct
+    `cirq_google.run_calibrations` to execute XEB analysis locally (not via the quantum
+    engine). As such, `run_calibrations` can work with any `cirq.Sampler`, not just
+    `QuantumEngineSampler`.
+
+    Args:
+        n_library_circuits: The number of distinct, two-qubit random circuits to use in our
+            library of random circuits. This should be the same order of magnitude as
+            `n_combinations`.
+        n_combinations: We take each library circuit and randomly assign it to qubit pairs.
+            This parameter controls the number of random combinations of the two-qubit random
+            circuits we execute. Higher values increase the precision of estimates but linearly
+            increase experimental runtime.
+        cycle_depths: We run the random circuits at these cycle depths to fit an exponential
+            decay in the fidelity.
+        fatol: The absolute convergence tolerance for the objective function evaluation in
+            the Nelder-Mead optimization. This controls the runtime of the classical
+            characterization optimization loop.
+        xatol: The absolute convergence tolerance for the parameter estimates in
+            the Nelder-Mead optimization. This controls the runtime of the classical
+            characterization optimization loop.
+        fsim_options: An instance of `XEBPhasedFSimCharacterizationOptions` that controls aspects
+            of the PhasedFSim characterization like initial guesses and which angles to
+            characterize.
+        n_processes: The number of multiprocessing processes to analyze the XEB characterization
+            data. By default, we use a value equal to the number of CPU cores. If `1` is specified,
+            multiprocessing is not used.
+    """
+
+    n_processes: Optional[int] = None
+
+    def create_phased_fsim_request(
+        self,
+        pairs: Tuple[Tuple[Qid, Qid], ...],
+        gate: Gate,
+    ):
+        return LocalXEBPhasedFSimCalibrationRequest(pairs=pairs, gate=gate, options=self)
 
 
 @json_serializable_dataclass(frozen=True)
@@ -378,6 +563,12 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
         characterize_chi: Whether to characterize χ angle.
         characterize_gamma: Whether to characterize γ angle.
         characterize_phi: Whether to characterize φ angle.
+        readout_error_tolerance: Threshold for pairwise-correlated readout errors above which the
+            calibration will report to fail. Just before each calibration all pairwise two-qubit
+            readout errors are checked and when any of the pairs reports an error above the
+            threshold, the calibration will fail. This value is a sanity check to determine if
+            calibration is reasonable and allows for quick termination if it is not. Set to 1.0 to
+            disable readout error checks and None to use default, device-specific thresholds.
     """
 
     characterize_theta: bool
@@ -385,6 +576,7 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
     characterize_chi: bool
     characterize_gamma: bool
     characterize_phi: bool
+    readout_error_tolerance: Optional[float] = None
 
     def zeta_chi_gamma_correction_override(self) -> PhasedFSimCharacterization:
         """Gives a PhasedFSimCharacterization that can be used to override characterization after
@@ -396,14 +588,34 @@ class FloquetPhasedFSimCalibrationOptions(PhasedFSimCalibrationOptions):
             gamma=0.0 if self.characterize_gamma else None,
         )
 
+    def create_phased_fsim_request(
+        self,
+        pairs: Tuple[Tuple[Qid, Qid], ...],
+        gate: Gate,
+    ) -> 'FloquetPhasedFSimCalibrationRequest':
+        return FloquetPhasedFSimCalibrationRequest(pairs=pairs, gate=gate, options=self)
 
-"""PhasedFSimCalibrationOptions options with all angles characterization requests set to True."""
+
+"""Floquet PhasedFSimCalibrationOptions options with all angles characterization requests set to
+True."""
 ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION = FloquetPhasedFSimCalibrationOptions(
     characterize_theta=True,
     characterize_zeta=True,
     characterize_chi=True,
     characterize_gamma=True,
     characterize_phi=True,
+)
+
+"""XEB PhasedFSimCalibrationOptions options with all angles characterization requests set to
+True."""
+ALL_ANGLES_XEB_PHASED_FSIM_CHARACTERIZATION = XEBPhasedFSimCalibrationOptions(
+    fsim_options=XEBPhasedFSimCharacterizationOptions(
+        characterize_theta=True,
+        characterize_zeta=True,
+        characterize_chi=True,
+        characterize_gamma=True,
+        characterize_phi=True,
+    )
 )
 
 
@@ -459,21 +671,34 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
 
     def to_calibration_layer(self) -> CalibrationLayer:
         circuit = Circuit([self.gate.on(*pair) for pair in self.pairs])
+        args: Dict[str, Any] = {
+            'est_theta': self.options.characterize_theta,
+            'est_zeta': self.options.characterize_zeta,
+            'est_chi': self.options.characterize_chi,
+            'est_gamma': self.options.characterize_gamma,
+            'est_phi': self.options.characterize_phi,
+            # Experimental option that should always be set to True.
+            'readout_corrections': True,
+        }
+        if self.options.readout_error_tolerance is not None:
+            # Maximum error of the diagonal elements of the two-qubit readout confusion matrix.
+            args['readout_error_tolerance'] = self.options.readout_error_tolerance
+            # Maximum error of the off-diagonal elements of the two-qubit readout confusion matrix.
+            args['correlated_readout_error_tolerance'] = _correlated_from_readout_tolerance(
+                self.options.readout_error_tolerance
+            )
         return CalibrationLayer(
             calibration_type=_FLOQUET_PHASED_FSIM_HANDLER_NAME,
             program=circuit,
-            args={
-                'est_theta': self.options.characterize_theta,
-                'est_zeta': self.options.characterize_zeta,
-                'est_chi': self.options.characterize_chi,
-                'est_gamma': self.options.characterize_gamma,
-                'est_phi': self.options.characterize_phi,
-                # Experimental option that should always be set to True.
-                'readout_corrections': True,
-            },
+            args=args,
         )
 
-    def parse_result(self, result: CalibrationResult) -> PhasedFSimCalibrationResult:
+    def parse_result(
+        self, result: CalibrationResult, job: Optional[EngineJob] = None
+    ) -> PhasedFSimCalibrationResult:
+        if result.code != v2.calibration_pb2.SUCCESS:
+            raise PhasedFSimCalibrationError(result.error_message)
+
         decoded: Dict[int, Dict[str, Any]] = collections.defaultdict(lambda: {})
         for keys, values in result.metrics['angles'].items():
             for key, value in zip(keys, values):
@@ -496,7 +721,14 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
                 phi=data.get('phi_est', None),
             )
 
-        return PhasedFSimCalibrationResult(parameters=parsed, gate=self.gate, options=self.options)
+        return PhasedFSimCalibrationResult(
+            parameters=parsed,
+            gate=self.gate,
+            options=self.options,
+            project_id=None if job is None else job.project_id,
+            program_id=None if job is None else job.program_id,
+            job_id=None if job is None else job.job_id,
+        )
 
     @classmethod
     def _from_json_dict_(
@@ -505,7 +737,7 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
         pairs: List[Tuple[Qid, Qid]],
         options: FloquetPhasedFSimCalibrationOptions,
         **kwargs,
-    ) -> 'PhasedFSimCalibrationRequest':
+    ) -> 'FloquetPhasedFSimCalibrationRequest':
         """Magic method for the JSON serialization protocol.
 
         Converts serialized dictionary into a dict suitable for
@@ -521,6 +753,170 @@ class FloquetPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
             'gate': self.gate,
             'options': self.options,
         }
+
+
+def _correlated_from_readout_tolerance(readout_tolerance: float) -> float:
+    """Heuristic formula for the off-diagonal confusion matrix error thresholds.
+
+    This is chosen to return 0.3 for readout_tolerance = 0.4 and 1.0 for readout_tolerance = 1.0.
+    """
+    return max(0.0, min(1.0, 7 / 6 * readout_tolerance - 1 / 6))
+
+
+def _get_labeled_int(key: str, s: str):
+    ma = re.match(rf'{key}_(\d+)$', s)
+    if ma is None:
+        raise ValueError(f"Could not parse {key} value for {s}")
+    return int(ma.group(1))
+
+
+def _parse_xeb_fidelities_df(metrics: 'cirq_google.Calibration', super_name: str) -> pd.DataFrame:
+    """Parse a fidelities DataFrame from Metric protos.
+
+    Args:
+        metrics: The metrics from a CalibrationResult
+        super_name: The metric name prefix. We will extract information for metrics named like
+            "{super_name}_depth_{depth}", so you can have multiple independent DataFrames in
+            one CalibrationResult.
+    """
+    records: List[Dict[str, Union[int, float, Tuple['cirq.Qid', 'cirq.Qid']]]] = []
+    for metric_name in metrics.keys():
+        ma = re.match(fr'{super_name}_depth_(\d+)$', metric_name)
+        if ma is None:
+            continue
+
+        for (layer_str, pair_str, qa, qb), (value,) in metrics[metric_name].items():
+            records.append(
+                {
+                    'cycle_depth': int(ma.group(1)),
+                    'layer_i': _get_labeled_int('layer', cast(str, layer_str)),
+                    'pair_i': _get_labeled_int('pair', cast(str, pair_str)),
+                    'fidelity': float(value),
+                    'pair': (cast(GridQubit, qa), cast(GridQubit, qb)),
+                }
+            )
+    return pd.DataFrame(records)
+
+
+def _parse_characterized_angles(
+    metrics: 'cirq_google.Calibration',
+    super_name: str,
+) -> Dict[Tuple['cirq.Qid', 'cirq.Qid'], Dict[str, float]]:
+    """Parses characterized angles from Metric protos.
+
+    Args:
+        metrics: The metrics from a CalibrationResult
+        super_name: The metric name prefix. We extract angle names as "{super_name}_{angle_name}".
+    """
+
+    records: Dict[Tuple['cirq.Qid', 'cirq.Qid'], Dict[str, float]] = collections.defaultdict(dict)
+    for metric_name in metrics.keys():
+        ma = re.match(fr'{super_name}_(\w+)$', metric_name)
+        if ma is None:
+            continue
+
+        angle_name = ma.group(1)
+        for (qa, qb), (value,) in metrics[metric_name].items():
+            qa = cast(GridQubit, qa)
+            qb = cast(GridQubit, qb)
+            value = float(value)
+            records[qa, qb][angle_name] = value
+    return dict(records)
+
+
+@json_serializable_dataclass(frozen=True)
+class LocalXEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
+    """PhasedFSim characterization request for local cross entropy benchmarking (XEB) calibration.
+
+    A "Local" request (corresponding to `LocalXEBPhasedFSimCalibrationOptions`) instructs
+    `cirq_google.run_calibrations` to execute XEB analysis locally (not via the quantum
+    engine). As such, `run_calibrations` can work with any `cirq.Sampler`, not just
+    `QuantumEngineSampler`.
+
+    Attributes:
+        options: local-XEB-specific characterization options.
+    """
+
+    options: LocalXEBPhasedFSimCalibrationOptions
+
+    def parse_result(
+        self, result: CalibrationResult, job: Optional[EngineJob] = None
+    ) -> PhasedFSimCalibrationResult:
+        raise NotImplementedError('Not applicable for local calibrations')
+
+    def to_calibration_layer(self) -> CalibrationLayer:
+        raise NotImplementedError('Not applicable for local calibrations')
+
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        gate: Gate,
+        pairs: List[Tuple[Qid, Qid]],
+        options: LocalXEBPhasedFSimCalibrationOptions,
+        **kwargs,
+    ) -> 'LocalXEBPhasedFSimCalibrationRequest':
+        # List -> Tuple
+        instantiation_pairs = tuple((q_a, q_b) for q_a, q_b in pairs)
+        return cls(instantiation_pairs, gate, options)
+
+
+@json_serializable_dataclass(frozen=True)
+class XEBPhasedFSimCalibrationRequest(PhasedFSimCalibrationRequest):
+    """PhasedFSim characterization request for cross entropy benchmarking (XEB) calibration.
+
+    Attributes:
+        options: XEB-specific characterization options.
+    """
+
+    options: XEBPhasedFSimCalibrationOptions
+
+    def to_calibration_layer(self) -> CalibrationLayer:
+        circuit = Circuit([self.gate.on(*pair) for pair in self.pairs])
+        return CalibrationLayer(
+            calibration_type=_XEB_PHASED_FSIM_HANDLER_NAME,
+            program=circuit,
+            args=self.options.to_args(),
+        )
+
+    def parse_result(
+        self, result: CalibrationResult, job: Optional[EngineJob] = None
+    ) -> PhasedFSimCalibrationResult:
+        if result.code != v2.calibration_pb2.SUCCESS:
+            raise PhasedFSimCalibrationError(result.error_message)
+
+        # pylint: disable=unused-variable
+        initial_fids = _parse_xeb_fidelities_df(result.metrics, 'initial_fidelities')
+        final_fids = _parse_xeb_fidelities_df(result.metrics, 'final_fidelities')
+        # pylint: enable=unused-variable
+
+        final_params = {
+            pair: PhasedFSimCharacterization(**angles)
+            for pair, angles in _parse_characterized_angles(
+                result.metrics, 'characterized_angles'
+            ).items()
+        }
+
+        # TODO: Return initial_fids, final_fids somehow.
+        return PhasedFSimCalibrationResult(
+            parameters=final_params,
+            gate=self.gate,
+            options=self.options,
+            project_id=None if job is None else job.project_id,
+            program_id=None if job is None else job.program_id,
+            job_id=None if job is None else job.job_id,
+        )
+
+    @classmethod
+    def _from_json_dict_(
+        cls,
+        gate: Gate,
+        pairs: List[Tuple[Qid, Qid]],
+        options: XEBPhasedFSimCalibrationOptions,
+        **kwargs,
+    ) -> 'XEBPhasedFSimCalibrationRequest':
+        # List -> Tuple
+        instantiation_pairs = tuple((q_a, q_b) for q_a, q_b in pairs)
+        return cls(instantiation_pairs, gate, options)
 
 
 class IncompatibleMomentError(Exception):

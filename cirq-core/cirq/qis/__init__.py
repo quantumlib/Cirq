@@ -14,6 +14,8 @@
 
 """Tools and methods for quantum information science."""
 
+from cirq.qis.clifford_tableau import CliffordTableau
+
 from cirq.qis.measures import (
     fidelity,
     von_neumann_entropy,
@@ -25,6 +27,7 @@ from cirq.qis.states import (
     density_matrix_from_state_vector,
     dirac_notation,
     eye_tensor,
+    infer_qid_shape,
     one_hot,
     QUANTUM_STATE_LIKE,
     QuantumState,

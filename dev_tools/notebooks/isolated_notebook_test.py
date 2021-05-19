@@ -23,33 +23,20 @@ import os
 import subprocess
 import sys
 import warnings
-from typing import Set
+from typing import Set, List
 
 import pytest
 from filelock import FileLock
 
 from dev_tools import shell_tools
 from dev_tools.env_tools import create_virtual_env
-from dev_tools.notebooks import list_all_notebooks, filter_notebooks
+from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_notebook
 
 # these notebooks rely on features that are not released yet
 # after every release we should raise a PR and empty out this list
 # note that these notebooks are still tested in dev_tools/notebook_test.py
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES = [
-    # the notebook depends on new `cirq.R*` gates.
-    'docs/tutorials/educators/intro.ipynb',
-    # the notebook uses cirq.vis.integrated_histogram.
-    'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
-    # these notebooks now use cirq.contrib.calculate_quantum_volume(...device_qubits...)
-    # the device_or_qubits parameter is deprecated
-    'examples/advanced/quantum_volume_routing.ipynb',
-    'examples/advanced/quantum_volume_errors.ipynb',
-    # these notebooks use cirq_google and hence depend on cirq pre-releases
-    'docs/qcvv/xeb_coherent_noise.ipynb',
-    'docs/qcvv/xeb_theory.ipynb',
-    'docs/tutorials/google/floquet.ipynb',
-]
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = []
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
@@ -62,6 +49,10 @@ SKIP_NOTEBOOKS = [
     # skipping fidelity estimation due to
     # https://github.com/quantumlib/Cirq/issues/3502
     "examples/*fidelity*",
+    # Also skipping stabilizer code testing.
+    "examples/*stabilizer_code*",
+    # Until openfermion is upgraded, this version of Cirq throws an error
+    "docs/tutorials/educators/chemistry.ipynb",
 ] + NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES
 
 # As these notebooks run in an isolated env, we want to minimize dependencies that are
@@ -77,6 +68,8 @@ PACKAGES = [
     "seaborn~=0.11.1",
     # https://github.com/nteract/papermill/issues/519
     'ipykernel==5.3.4',
+    # https://github.com/ipython/ipython/issues/12941
+    'ipython==7.22',
     # to ensure networkx works nicely
     # https://github.com/networkx/networkx/issues/4718 pinned networkx 2.5.1 to 4.4.2
     # however, jupyter brings in 5.0.6
@@ -151,7 +144,17 @@ def _create_base_env(proto_dir):
     "notebook_path", filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)
 )
 def test_notebooks_against_released_cirq(notebook_path, base_env):
-    """Tests the notebooks in isolated virtual environments."""
+    """Tests the notebooks in isolated virtual environments.
+
+    In order to speed up the execution of these tests an auxiliary file may be supplied which
+    performs substitutions on the notebook to make it faster.
+
+    Specifically for a notebook file notebook.ipynb, one can supply a file notebook.tst which
+    contains the substitutes.  The substitutions are provide in the form `pattern->replacement`
+    where the pattern is what is matched and replaced. While the pattern is compiled as a
+    regular expression, it is considered best practice to not use complicated regular expressions.
+    Lines in this file that do not have `->` are ignored.
+    """
     notebook_file = os.path.basename(notebook_path)
     notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
@@ -161,12 +164,15 @@ def test_notebooks_against_released_cirq(notebook_path, base_env):
     dir_name = notebook_file.rstrip(".ipynb")
 
     notebook_env = os.path.join(tmpdir, f"{dir_name}")
+
+    rewritten_notebook_descriptor, rewritten_notebook_path = rewrite_notebook(notebook_path)
+
     cmd = f"""
 mkdir -p out/{notebook_rel_dir}
 {proto_dir}/bin/virtualenv-clone {proto_dir} {notebook_env}
 cd {notebook_env}
 . ./bin/activate
-papermill {notebook_path} {os.getcwd()}/{out_path}"""
+papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
     _, stderr, status = shell_tools.run_shell(
         cmd=cmd,
         log_run_to_stderr=False,
@@ -182,3 +188,6 @@ papermill {notebook_path} {os.getcwd()}/{out_path}"""
             f"notebook (in Github Actions, you can download it from the workflow artifact"
             f" 'notebook-outputs')"
         )
+
+    if rewritten_notebook_descriptor:
+        os.close(rewritten_notebook_descriptor)
