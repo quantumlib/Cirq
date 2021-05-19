@@ -249,16 +249,16 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             * Identity: I
             * {x, y, z} * {90, 180, 270}  --- {X, Y, Z} + 6 Quarter turn gates
             * {+/-xy, +/-yz, +/-zx} * 180  --- 6 Hadamard-like gates
-            * {middle point of xyz in 4 Quadrant} * {120, 240} --- rotation in face
+            * {middle point of xyz in 4 Quadrant} * {120, 240} --- swapping axis
         note 1 + 9 + 6 + 8 = 24 in total.
 
         To associate with Clifford Tableau, it can also be grouped by 4:
-            * {I,X,Y,Z} is [[1 0], [0, 1]] * 4 phases
-            * {+/- X_sqrt, 2 Hadamard-like gates  acting on the XZ plane} is [[1, 0], [1, 1]] * 4 phases
-            * {+/- Z_sqrt, 2 Hadamard-like gates acting on the YZ plane} is [[1, 1], [0, 1]] * 4 phases
-            * {+/- Y_sqrt, 2 Hadamard-like gates  acting on the XZ plane} is [[0, 1], [1, 0]] * 4 phases
-            * {middle point of xyz in 4 Quadrant} * 120 is [[0, 1], [1, 1]] * 4 phases
-            * {middle point of xyz in 4 Quadrant} * 240 is [[1, 1], [1, 0]] * 4 phases
+            * {I,X,Y,Z} is [[1 0], [0, 1]]
+            * {+/- X_sqrt, 2 Hadamard-like gates acting on the XZ plane} is [[1, 0], [1, 1]]
+            * {+/- Z_sqrt, 2 Hadamard-like gates acting on the YZ plane} is [[1, 1], [0, 1]]
+            * {+/- Y_sqrt, 2 Hadamard-like gates acting on the XZ plane} is [[0, 1], [1, 0]]
+            * {middle point of xyz in 4 Quadrant} * 120 is [[0, 1], [1, 1]]
+            * {middle point of xyz in 4 Quadrant} * 240 is [[1, 1], [1, 0]]
         """
         x_to = self._rotation_map[pauli_gates.X]
         z_to = self._rotation_map[pauli_gates.Z]
@@ -284,16 +284,17 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             to_phased_xz = [(0.0, 0.0, 0.5), (0.0, 0.0, -0.5), (0.25, 1.0, 0.0), (-0.25, 1.0, 0.0)]
             a, x, z = to_phased_xz[flip_index]
         elif (x_to.to, z_to.to) == (pauli_gates.Z, pauli_gates.Y):
-            # face rotation 120 -- (312) permutation
+            # axis swapping rotation -- (312) permutation
             a = 0.5
             x = 0.5 if x_to.flip else -0.5
             z = 0.5 if x_to.flip ^ z_to.flip else -0.5
-        elif (x_to.to, z_to.to) == (pauli_gates.Y, pauli_gates.X):
-            # face rotation 240 -- (231) permutation
+        else:
+            # axis swapping rotation -- (231) permutation.
+            # This should be the only cases left.
+            assert (x_to.to, z_to.to) == (pauli_gates.Y, pauli_gates.X)
             a = 0.0
             x = -0.5 if x_to.flip ^ z_to.flip else 0.5
             z = -0.5 if x_to.flip else 0.5
-        # It is impossible that there are other cases.
 
         return phased_x_z_gate.PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
