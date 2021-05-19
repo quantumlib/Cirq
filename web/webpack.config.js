@@ -11,8 +11,8 @@ module.exports = {
   //     circle: './src/circle.ts',
   // },
   entry: './src/circle.ts',
-  devServer : {
-    contentBase: './dist'
+  devServer: {
+    contentBase: './dist',
   },
   module: {
     rules: [
@@ -31,4 +31,7 @@ module.exports = {
     library: 'createSphere',
     path: path.resolve(__dirname, 'dist'),
   },
+  externals: {
+    three: 'three',
+  }
 };

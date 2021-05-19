@@ -16,7 +16,6 @@
 - do we want some examples?
 - do we want scripts to make it easier to run stuff? (ie. start-server.sh)
 - **Compiling ts to js?** [This article talks about it here, specifically in vscode](https://code.visualstudio.com/docs/typescript/typescript-compiling). How will this affect live reloading?
-- Formatting: [Prettier](prettier.io)
 - Jupyter notebook extensions? Need to find a way to get JS into colab notebooks. (colab and jupyter are different js environments). If we need to choose, go with Colab. Harder to test colab locally.
     - Colab is the next step, did jupyter with Balint during hacking.
 - Bloch sphere prototype
@@ -25,6 +24,7 @@
 ### Currently installed packages (see package-lock.json)
 - [typescript](https://www.npmjs.com/package/typescript)
 - [three.js](https://threejs.org) -- small note: minimized version for production, full for development
+- [gts](https://github.com/google/gts)
 
 ### Directions
 Install packages with `npm install`.
