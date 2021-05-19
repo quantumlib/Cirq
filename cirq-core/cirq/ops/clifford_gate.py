@@ -243,7 +243,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         return self._rotation_map[pauli]
 
     def to_phased_xz_gate(self) -> phased_x_z_gate.PhasedXZGate:
-        """Rotation of all 24 Clifford gates is isomorphic to Octahedral group.
+        """Convert this gate to a PhasedXZGate instance.
 
         The rotation can be categorized by {axis} * {degree}:
             * Identity: I
