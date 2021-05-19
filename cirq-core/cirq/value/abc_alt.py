@@ -17,6 +17,16 @@ import abc
 import functools
 from typing import cast, Callable, Set, TypeVar
 
+# Required due to PEP 560
+try:
+    # python 3.6 class for generic metaclasses
+    from typing import GenericMeta  # type: ignore
+except ImportError:
+    # In python 3.7, GenericMeta doesn't exist but we don't need it
+    class GenericMeta(type):  # type: ignore
+        pass
+
+
 T = TypeVar('T')
 
 
@@ -144,3 +154,14 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
         cls.__abstractmethods__ |= abstracts  # Add to the set made by ABCMeta
         cls._implemented_by_ = implemented_by
         return cls
+
+
+class GenericMetaImplementAnyOneOf(GenericMeta, ABCMetaImplementAnyOneOf):
+    """Generic version of ABCMetaImplementAnyOneOf.
+
+    Classes which inherit from Generic[T] must use this type instead of
+    ABCMetaImplementAnyOneOf due to https://github.com/python/typing/issues/449.
+
+    This issue is specific to python3.6; this class can be removed when Cirq
+    python3.6 support is turned down.
+    """

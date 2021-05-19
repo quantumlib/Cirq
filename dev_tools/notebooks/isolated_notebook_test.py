@@ -23,7 +23,7 @@ import os
 import subprocess
 import sys
 import warnings
-from typing import Set
+from typing import Set, List
 
 import pytest
 from filelock import FileLock
@@ -36,24 +36,7 @@ from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_no
 # after every release we should raise a PR and empty out this list
 # note that these notebooks are still tested in dev_tools/notebook_test.py
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES = [
-    # the notebook depends on new `cirq.R*` gates.
-    'docs/tutorials/educators/intro.ipynb',
-    # the notebook uses cirq.vis.integrated_histogram.
-    'docs/tutorials/google/visualizing_calibration_metrics.ipynb',
-    # the notebook uses cirq.vis.plot_state_histogram.
-    'docs/tutorials/state_histograms.ipynb',
-    # the notebook uses updated functionality in cirq.Heatmap()
-    'docs/tutorials/heatmaps.ipynb',
-    # these notebooks now use cirq.contrib.calculate_quantum_volume(...device_qubits...)
-    # the device_or_qubits parameter is deprecated
-    'examples/advanced/quantum_volume_routing.ipynb',
-    'examples/advanced/quantum_volume_errors.ipynb',
-    # these notebooks use cirq_google and hence depend on cirq pre-releases
-    'docs/qcvv/xeb_coherent_noise.ipynb',
-    'docs/qcvv/xeb_theory.ipynb',
-    'docs/tutorials/google/floquet.ipynb',
-]
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = []
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
@@ -68,6 +51,8 @@ SKIP_NOTEBOOKS = [
     "examples/*fidelity*",
     # Also skipping stabilizer code testing.
     "examples/*stabilizer_code*",
+    # Until openfermion is upgraded, this version of Cirq throws an error
+    "docs/tutorials/educators/chemistry.ipynb",
 ] + NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES
 
 # As these notebooks run in an isolated env, we want to minimize dependencies that are
