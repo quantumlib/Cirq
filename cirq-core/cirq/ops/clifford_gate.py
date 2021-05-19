@@ -280,7 +280,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             x = 0.5 if x_to.flip else -0.5
             z = 0.0 if x_to.flip ^ z_to.flip else 1.0
         elif (x_to.to, z_to.to) == (pauli_gates.Y, pauli_gates.Z):
-            # +/- Z_sqrt, 2 Hadmard-like gates at XY plane
+            # +/- Z_sqrt, 2 Hadamard-like gates at XY plane
             to_phased_xz = [(0.0, 0.0, 0.5), (0.0, 0.0, -0.5), (0.25, 1.0, 0.0), (-0.25, 1.0, 0.0)]
             a, x, z = to_phased_xz[flip_index]
         elif (x_to.to, z_to.to) == (pauli_gates.Z, pauli_gates.Y):
