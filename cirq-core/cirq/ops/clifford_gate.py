@@ -289,7 +289,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             x = 0.5 if x_to.flip else -0.5
             z = 0.5 if x_to.flip ^ z_to.flip else -0.5
         elif (x_to.to, z_to.to) == (pauli_gates.Y, pauli_gates.X):
-            # face rotate 240 -- (231) permutation
+            # face rotation 240 -- (231) permutation
             a = 0.0
             x = -0.5 if x_to.flip ^ z_to.flip else 0.5
             z = -0.5 if x_to.flip else 0.5
