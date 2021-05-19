@@ -256,7 +256,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             * {I,X,Y,Z} is [[1 0], [0, 1]] * 4 phases
             * {+/- X_sqrt, 2 Hadmard-like gates at XZ plane} is [[1, 0], [1, 1]] * 4 phases
             * {+/- Z_sqrt, 2 Hadamard-like gates acting on the YZ plane} is [[1, 1], [0, 1]] * 4 phases
-            * {+/- Y_sqrt, 2 Hadmard-like gates at XZ plane} is [[0, 1], [1, 0]] * 4 phases
+            * {+/- Y_sqrt, 2 Hadamard-like gates  acting on the XZ plane} is [[0, 1], [1, 0]] * 4 phases
             * {middle point of xyz in 4 Quadrant} * 120 is [[0, 1], [1, 1]] * 4 phases
             * {middle point of xyz in 4 Quadrant} * 240 is [[1, 1], [1, 0]] * 4 phases
         """
