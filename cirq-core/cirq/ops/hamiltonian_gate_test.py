@@ -14,12 +14,12 @@ import cirq.ops.hamiltonian_gate as hg
 @pytest.mark.parametrize(
     'boolean_expr,expected_hamiltonian_polynomial',
     [
-        ('x', '0.50.I; -0.50.Z_0'),
-        ('~x', '0.50.I; 0.50.Z_0'),
-        ('x0 ^ x1', '0.50.I; -0.50.Z_0.Z_1'),
-        ('x0 & x1', '0.25.I; -0.25.Z_0; 0.25.Z_0.Z_1; -0.25.Z_1'),
-        ('x0 | x1', '0.75.I; -0.25.Z_0; -0.25.Z_0.Z_1; -0.25.Z_1'),
-        ('x0 ^ x1 ^ x2', '0.50.I; -0.50.Z_0.Z_1.Z_2'),
+        ('x', '0.50*I; -0.50*Z_0'),
+        ('~x', '0.50*I; 0.50*Z_0'),
+        ('x0 ^ x1', '0.50*I; -0.50*Z_0*Z_1'),
+        ('x0 & x1', '0.25*I; -0.25*Z_0; 0.25*Z_0*Z_1; -0.25*Z_1'),
+        ('x0 | x1', '0.75*I; -0.25*Z_0; -0.25*Z_0*Z_1; -0.25*Z_1'),
+        ('x0 ^ x1 ^ x2', '0.50*I; -0.50*Z_0*Z_1*Z_2'),
     ],
 )
 def test_build_hamiltonian_from_boolean(boolean_expr, expected_hamiltonian_polynomial):

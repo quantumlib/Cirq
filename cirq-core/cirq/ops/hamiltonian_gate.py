@@ -1,7 +1,7 @@
 from collections import defaultdict
 import functools
 import math
-from typing import Any, DefaultDict, Dict, List, Sequence, Tuple
+from typing import Any, DefaultDict, Dict, Iterator, List, Sequence, Tuple
 
 from sympy.logic.boolalg import And, Not, Or, Xor
 from sympy.core.expr import Expr
@@ -15,6 +15,15 @@ from cirq.ops import raw_types
 
 class HamiltonianPolynomial:
     """A container class of Boolean function as equation (2) of [1]
+
+    It is essentially a polynomial of Pauli Zs on different qubits. For example, this object could
+    represent the polynomial 0.5*I - 0.5*Z_1*Z_2 and it would be stored inside this object as:
+    self._hamiltonians = {(): 0.5, (1, 2): 0.5}.
+
+    While this object can represent any polynomial of Pauli Zs, in this file, it will be used to
+    represent a Boolean operation which has a unique representation as a polynomial. This object
+    only handle basic operation on the polynomials (e.g. multiplication). The construction of a
+    polynomial from a Boolean is performed by _build_hamiltonian_from_boolean().
 
     References:
     [1] On the representation of Boolean and real functions as Hamiltonians for quantum computing
@@ -39,7 +48,7 @@ class HamiltonianPolynomial:
     def __repr__(self):
         # For run-to-run identicalness, we sort the keys lexicographically.
         formatted_terms = [
-            f"{self._hamiltonians[h]:.2f}.{'.'.join('Z_%d' % d for d in h) if h else 'I'}"
+            f"{self._hamiltonians[h]:.2f}*{'*'.join('Z_%d' % d for d in h) if h else 'I'}"
             for h in sorted(self._hamiltonians)
         ]
         return "; ".join(formatted_terms)
@@ -133,7 +142,19 @@ def _build_hamiltonian_from_boolean(
     raise ValueError(f'Unsupported type: {type(boolean_expr)}')
 
 
-def _gray_code_comparator(k1, k2, flip=False):
+def _gray_code_comparator(k1 : Tuple[int, ...], k2 : Tuple[int, ...], flip: bool = False) -> int:
+    """Compares two Gray-encoded binary numbers.
+
+    Args:
+        k1: A tuple of ints, representing the bits that are one. For example, 6 would be (1, 2).
+        k2: The second number, represented similarly as k1.
+        flip: Whether to flip the comparison.
+
+    Returns:
+        -1 if k1 < k2 (or +1 if flip is true)
+        0 if k1 == k2
+        +1 if k1 > k2 (or -1 if flip is true)
+    """
     max_1 = k1[-1] if k1 else -1
     max_2 = k2[-1] if k2 else -1
     if max_1 != max_2:
@@ -145,10 +166,10 @@ def _gray_code_comparator(k1, k2, flip=False):
 
 def _get_gates_from_hamiltonians(
     hamiltonian_polynomial_list: List[HamiltonianPolynomial],
-    qubits,
+    qubits: Sequence['cirq.Qid'],
     theta: float,
     ladder_target: bool = False,
-):
+) -> Iterator['cirq.ops.gate_operation.GateOperation']:
     """Builds a circuit according to [1].
 
     Args:
@@ -254,7 +275,7 @@ def _get_gates_from_hamiltonians(
 
         return cnots
 
-    def _apply_cnots(prevh: Tuple[int, ...], currh: Tuple[int, ...]):
+    def _apply_cnots(prevh: Tuple[int, ...], currh: Tuple[int, ...])  -> Iterator['cirq.ops.gate_operation.GateOperation']:
         # This function applies in sequence the CNOTs from prevh and then currh. However, given
         # that the h are sorted in Gray ordering and that some cancel each other, we can reduce
         # the number of gates. See [4] for more details.
@@ -290,11 +311,24 @@ def _get_gates_from_hamiltonians(
 
 @value.value_equality
 class HamiltonianGate(raw_types.Gate):
-    """A gate that applies an Hamiltonian from a set of Boolean functions."""
+    """A gate that applies a Hamiltonian from a set of Boolean functions."""
 
     def __init__(self, boolean_strs: Sequence[str], theta: float, ladder_target: bool):
         """
         Builds an HamiltonianGate.
+
+        For each element of a sequence of Boolean expressions, the code first transforms it into a
+        polynomial of Pauli Zs that represent that particular expression. Then, we sum all the
+        polynomials, thus making a function that goes from a series to Boolean inputs to an integer
+        that is the number of Boolean expressions that are true.
+
+        For example, if we were using this gate for the max-cut problem that is typically used to
+        demonstrate the QAOA algorithm, there would be one Boolean expression per edge. Each
+        Boolean expression would be true iff the verteces on that are in different cuts (i.e. it's)
+        an XOR.
+
+        Then, we compute exp(j * theta * polynomial), which is unitary because the polynomial is
+        Hermitian.
 
         Args:
             boolean_strs: The list of Sympy-parsable Boolean expressions.
@@ -304,6 +338,10 @@ class HamiltonianGate(raw_types.Gate):
         self._boolean_strs: Sequence[str] = boolean_strs
         self._theta: float = theta
         self._ladder_target: bool = ladder_target
+        # TODO(tonybruguier): Add the ability to control qubit ordering. Consider adding a list of
+        # symbol names (has to contain all the symbols exactly once, which we can validate) in case
+        # someone wants to remap the terms to different qubits. If it is None, we can revert to the
+        # lexicographical sorting.
 
         boolean_exprs = [sympy_parser.parse_expr(boolean_str) for boolean_str in boolean_strs]
         name_to_id = HamiltonianGate.get_name_to_id(boolean_exprs)
@@ -348,7 +386,7 @@ class HamiltonianGate(raw_types.Gate):
     def _from_json_dict_(cls, boolean_strs, theta, ladder_target, **kwargs):
         return cls(boolean_strs, theta, ladder_target)
 
-    def _decompose_(self, qubits):
+    def _decompose_(self, qubits: Sequence['cirq.Qid']):
         yield _get_gates_from_hamiltonians(
             self._hamiltonian_polynomial_list, qubits, self._theta, self._ladder_target
         )
