@@ -1,6 +1,6 @@
 [
   {
-    "cirq_type": "HamiltonianGate",
+    "cirq_type": "BooleanHamiltonianOperation",
     "boolean_strs": [
         "q0"
     ],

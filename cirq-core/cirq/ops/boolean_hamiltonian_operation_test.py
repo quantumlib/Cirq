@@ -8,7 +8,7 @@ import pytest
 import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
-import cirq.ops.hamiltonian_gate as hg
+import cirq.ops.boolean_hamiltonian_operation as bho
 
 # These are some of the entries of table 1 of https://arxiv.org/pdf/1804.09130.pdf.
 @pytest.mark.parametrize(
@@ -24,16 +24,16 @@ import cirq.ops.hamiltonian_gate as hg
 )
 def test_build_hamiltonian_from_boolean(boolean_expr, expected_hamiltonian_polynomial):
     boolean = sympy_parser.parse_expr(boolean_expr)
-    name_to_id = cirq.HamiltonianGate.get_name_to_id([boolean])
-    actual = hg._build_hamiltonian_from_boolean(boolean, name_to_id)
+    name_to_id = cirq.BooleanHamiltonianOperation.get_name_to_id([boolean])
+    actual = bho._build_hamiltonian_from_boolean(boolean, name_to_id)
     assert expected_hamiltonian_polynomial == str(actual)
 
 
 def test_unsupported_op():
     not_a_boolean = sympy_parser.parse_expr('x * x')
-    name_to_id = cirq.HamiltonianGate.get_name_to_id([not_a_boolean])
+    name_to_id = cirq.BooleanHamiltonianOperation.get_name_to_id([not_a_boolean])
     with pytest.raises(ValueError, match='Unsupported type'):
-        hg._build_hamiltonian_from_boolean(not_a_boolean, name_to_id)
+        bho._build_hamiltonian_from_boolean(not_a_boolean, name_to_id)
 
 
 @pytest.mark.parametrize(
@@ -66,7 +66,7 @@ def test_unsupported_op():
 )
 def test_circuit(boolean_str, ladder_target):
     boolean_expr = sympy_parser.parse_expr(boolean_str)
-    var_names = cirq.HamiltonianGate.get_name_to_id([boolean_expr])
+    var_names = cirq.BooleanHamiltonianOperation.get_name_to_id([boolean_expr])
 
     qubits = [cirq.NamedQubit(name) for name in var_names]
 
@@ -84,7 +84,7 @@ def test_circuit(boolean_str, ladder_target):
     circuit = cirq.Circuit()
     circuit.append(cirq.H.on_each(*qubits))
 
-    hamiltonian_gate = cirq.HamiltonianGate([boolean_str], 0.1 * math.pi, ladder_target)
+    hamiltonian_gate = cirq.BooleanHamiltonianOperation([boolean_str], 0.1 * math.pi, ladder_target)
 
     assert hamiltonian_gate.num_qubits() == n
 
@@ -117,7 +117,7 @@ def test_gray_code_sorting(n_bits, expected_hs):
         hs.append(tuple(sorted(h)))
     random.shuffle(hs)
 
-    sorted_hs = sorted(list(hs), key=functools.cmp_to_key(hg._gray_code_comparator))
+    sorted_hs = sorted(list(hs), key=functools.cmp_to_key(bho._gray_code_comparator))
 
     np.testing.assert_array_equal(sorted_hs, expected_hs)
 
@@ -132,4 +132,4 @@ def test_gray_code_sorting(n_bits, expected_hs):
     ],
 )
 def test_gray_code_comparison(seq_a, seq_b, expected):
-    assert hg._gray_code_comparator(seq_a, seq_b) == expected
+    assert bho._gray_code_comparator(seq_a, seq_b) == expected

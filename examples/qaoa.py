@@ -20,7 +20,7 @@ def brute_force(graph, n):
 
 def qaoa(booleans, repetitions, maxiter, p):
     boolean_exprs = [parse_expr(boolean) for boolean in booleans]
-    name_to_id = cirq.HamiltonianGate.get_name_to_id(boolean_exprs)
+    name_to_id = cirq.BooleanHamiltonianOperation.get_name_to_id(boolean_exprs)
     qubits = [cirq.NamedQubit(name) for name in name_to_id.keys()]
 
     def f(x):
@@ -29,7 +29,9 @@ def qaoa(booleans, repetitions, maxiter, p):
         circuit.append(cirq.H.on_each(*qubits))
 
         for i in range(p):
-            hamiltonian_gate = cirq.HamiltonianGate(booleans, 2.0 * x[p + i], ladder_target=True)
+            hamiltonian_gate = cirq.BooleanHamiltonianOperation(
+                booleans, 2.0 * x[p + i], ladder_target=True
+            )
             circuit.append(cirq.decompose(hamiltonian_gate(*qubits)))
             circuit.append(cirq.rx(2.0 * x[i]).on_each(*qubits))
 

@@ -18,6 +18,10 @@ from cirq.ops.arithmetic_operation import (
     ArithmeticOperation,
 )
 
+from cirq.ops.boolean_hamiltonian_operation import (
+    BooleanHamiltonianOperation,
+)
+
 from cirq.ops.clifford_gate import (
     PauliTransform,
     SingleQubitCliffordGate,
@@ -103,10 +107,6 @@ from cirq.ops.gate_features import (
 
 from cirq.ops.gate_operation import (
     GateOperation,
-)
-
-from cirq.ops.hamiltonian_gate import (
-    HamiltonianGate,
 )
 
 from cirq.ops.identity import (

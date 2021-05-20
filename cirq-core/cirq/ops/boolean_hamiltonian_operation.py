@@ -1,7 +1,7 @@
 from collections import defaultdict
 import functools
 import math
-from typing import Any, DefaultDict, Dict, Iterator, List, Sequence, Tuple
+from typing import Any, DefaultDict, Dict, List, Sequence, Tuple
 
 from sympy.logic.boolalg import And, Not, Or, Xor
 from sympy.core.expr import Expr
@@ -142,7 +142,7 @@ def _build_hamiltonian_from_boolean(
     raise ValueError(f'Unsupported type: {type(boolean_expr)}')
 
 
-def _gray_code_comparator(k1 : Tuple[int, ...], k2 : Tuple[int, ...], flip: bool = False) -> int:
+def _gray_code_comparator(k1: Tuple[int, ...], k2: Tuple[int, ...], flip: bool = False) -> int:
     """Compares two Gray-encoded binary numbers.
 
     Args:
@@ -169,7 +169,7 @@ def _get_gates_from_hamiltonians(
     qubits: Sequence['cirq.Qid'],
     theta: float,
     ladder_target: bool = False,
-) -> Iterator['cirq.ops.gate_operation.GateOperation']:
+):
     """Builds a circuit according to [1].
 
     Args:
@@ -275,7 +275,7 @@ def _get_gates_from_hamiltonians(
 
         return cnots
 
-    def _apply_cnots(prevh: Tuple[int, ...], currh: Tuple[int, ...])  -> Iterator['cirq.ops.gate_operation.GateOperation']:
+    def _apply_cnots(prevh: Tuple[int, ...], currh: Tuple[int, ...]):
         # This function applies in sequence the CNOTs from prevh and then currh. However, given
         # that the h are sorted in Gray ordering and that some cancel each other, we can reduce
         # the number of gates. See [4] for more details.
@@ -310,12 +310,12 @@ def _get_gates_from_hamiltonians(
 
 
 @value.value_equality
-class HamiltonianGate(raw_types.Gate):
+class BooleanHamiltonianOperation(raw_types.Gate):
     """A gate that applies a Hamiltonian from a set of Boolean functions."""
 
     def __init__(self, boolean_strs: Sequence[str], theta: float, ladder_target: bool):
         """
-        Builds an HamiltonianGate.
+        Builds an BooleanHamiltonianOperation.
 
         For each element of a sequence of Boolean expressions, the code first transforms it into a
         polynomial of Pauli Zs that represent that particular expression. Then, we sum all the
@@ -344,7 +344,7 @@ class HamiltonianGate(raw_types.Gate):
         # lexicographical sorting.
 
         boolean_exprs = [sympy_parser.parse_expr(boolean_str) for boolean_str in boolean_strs]
-        name_to_id = HamiltonianGate.get_name_to_id(boolean_exprs)
+        name_to_id = BooleanHamiltonianOperation.get_name_to_id(boolean_exprs)
         self._hamiltonian_polynomial_list = [
             _build_hamiltonian_from_boolean(boolean_expr, name_to_id)
             for boolean_expr in boolean_exprs
