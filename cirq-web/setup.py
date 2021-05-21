@@ -22,7 +22,7 @@ exec(open('cirq_web/_version.py').read())
 name = 'cirq-web'
 
 description = (
-    'Web based tools for Cirq.'
+    'Web-based tools for Cirq.'
 )
 
 # README file as long_description.
@@ -36,8 +36,8 @@ long_description = open('README.rst', encoding='utf-8').read()
 if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
     __version__ = os.environ['CIRQ_PRE_RELEASE_VERSION']
     long_description = (
-        "**This is a development version of Cirq-web and may be "
-        "unstable.**\n\n**For the latest stable release of Cirq-web "
+        "**This is a development version of cirq-web and may be "
+        "unstable.**\n\n**For the latest stable release of cirq-web "
         "see**\n`here <https://pypi.org/project/cirq-web>`__.\n\n" + long_description
     )
 
