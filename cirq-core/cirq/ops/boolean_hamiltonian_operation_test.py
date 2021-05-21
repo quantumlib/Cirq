@@ -37,7 +37,7 @@ def test_unsupported_op():
 
 
 @pytest.mark.parametrize(
-    'boolean_strs,symbol_names,expected',
+    'boolean_strs, symbol_names,expected',
     [
         (['x0'], None, {'x0': 0}),
         (['x0 & x1'], None, {'x0': 0, 'x1': 1}),
@@ -61,11 +61,11 @@ def test_get_name_to_id_missing_required_symbol():
 
 
 @pytest.mark.parametrize(
-    'boolean_str, ladder_target',
+    'boolean_str, ladder_target, symbol_names',
     itertools.product(
         [
-            'x',
-            '~x',
+            'x0',
+            '~x0',
             'x0 ^ x1',
             'x0 & x1',
             'x0 | x1',
@@ -86,11 +86,12 @@ def test_get_name_to_id_missing_required_symbol():
             '(x2 | x1) ^ x0',
         ],
         [False, True],
+        [None, ['x4', 'x0', 'x3', 'x2', 'x1']],
     ),
 )
-def test_circuit(boolean_str, ladder_target):
+def test_circuit(boolean_str, ladder_target, symbol_names):
     boolean_expr = sympy_parser.parse_expr(boolean_str)
-    var_names = cirq.BooleanHamiltonianOperation.get_name_to_id([boolean_expr])
+    var_names = cirq.BooleanHamiltonianOperation.get_name_to_id([boolean_expr], symbol_names)
 
     qubits = [cirq.NamedQubit(name) for name in var_names]
 
@@ -108,7 +109,9 @@ def test_circuit(boolean_str, ladder_target):
     circuit = cirq.Circuit()
     circuit.append(cirq.H.on_each(*qubits))
 
-    hamiltonian_gate = cirq.BooleanHamiltonianOperation([boolean_str], 0.1 * math.pi, ladder_target)
+    hamiltonian_gate = cirq.BooleanHamiltonianOperation(
+        [boolean_str], 0.1 * math.pi, ladder_target, symbol_names
+    )
 
     assert hamiltonian_gate.num_qubits() == n
 
