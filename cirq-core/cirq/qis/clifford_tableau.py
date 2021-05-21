@@ -258,7 +258,10 @@ class CliffordTableau:
         ret_table.xs[self.n :] = self.xs[self.n :].T
         ret_table.zs[self.n :] = self.xs[: self.n].T
 
-        # Update phase
+        # Update the sign -- rs.
+        # The idea is noting the sign of tabluea `a` contributes to the composed tableau
+        # `a.then(b)` directly. (While the sign in `b` need take very complicated transformation.)
+        # Refer above `then` function implementation for more details.
         ret_table.rs = ret_table.then(self).rs
         return ret_table
 
