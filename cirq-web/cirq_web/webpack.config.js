@@ -32,11 +32,11 @@ module.exports = {
   // },
   output: {
     filename: 'bundle.js',
-    library: 'createSphere',
     library: {
       name: 'createSphere',
-      type: 'var',
+      type: 'window',
     },
     path: path.resolve(__dirname, 'dist'),
+    publicPath: './dist',
   },
 };

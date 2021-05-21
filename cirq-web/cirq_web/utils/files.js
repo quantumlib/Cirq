@@ -27,7 +27,7 @@ const getSrcPaths = async function* (dir) {
 
 const generateEntryPoints = async function () {
   const res = {};
-  for await (const file of getSrcPaths('./src')) {
+  for await (const file of getSrcPaths('../src')) {
     const fileName = file.split('/').pop();
     const key = fileName.slice(0, -3); // Remove .ts extension
     res[key] = `${fileName}`;
