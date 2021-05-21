@@ -208,7 +208,6 @@ class CliffordTableau:
         m1 = self.matrix().astype(int)
         m2 = second.matrix().astype(int)
 
-
         # The following computation is based on Theorem 36 in
         # https://arxiv.org/pdf/2009.03218.pdf.
         # Any pauli string (one stabilizer) in Clifford Tableau should be able to be expressed as
