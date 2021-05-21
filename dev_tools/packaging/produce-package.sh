@@ -68,5 +68,7 @@ python3 setup.py -q bdist_wheel -d "${out_dir}"
 echo "cirq-google..."
 cd ../cirq-google
 python3 setup.py -q bdist_wheel -d "${out_dir}"
+echo "cirq-web..."
+python3 setup.py -q bdist_wheel -d "${out_dir}"
 
 ls "${out_dir}"
