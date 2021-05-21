@@ -5,6 +5,7 @@
         "q0"
     ],
     "theta": 0.20160913,
-    "ladder_target": false
+    "ladder_target": false,
+    "symbol_names": null
   }
 ]

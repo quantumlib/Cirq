@@ -37,6 +37,30 @@ def test_unsupported_op():
 
 
 @pytest.mark.parametrize(
+    'boolean_strs,symbol_names,expected',
+    [
+        (['x0'], None, {'x0': 0}),
+        (['x0 & x1'], None, {'x0': 0, 'x1': 1}),
+        (['x0', 'x1'], None, {'x0': 0, 'x1': 1}),
+        (['x1', 'x0'], None, {'x0': 0, 'x1': 1}),
+        (['x1', 'x0'], ['x2', 'x0', 'x1'], {'x0': 0, 'x1': 1, 'x2': 2}),
+    ],
+)
+def test_get_name_to_id(boolean_strs, symbol_names, expected):
+    assert (
+        cirq.BooleanHamiltonianOperation.get_name_to_id(
+            [sympy_parser.parse_expr(boolean_str) for boolean_str in boolean_strs], symbol_names
+        )
+        == expected
+    )
+
+
+def test_get_name_to_id_missing_required_symbol():
+    with pytest.raises(ValueError, match='Missing required symbol: x1'):
+        cirq.BooleanHamiltonianOperation.get_name_to_id([sympy_parser.parse_expr('x1')], ['x2'])
+
+
+@pytest.mark.parametrize(
     'boolean_str, ladder_target',
     itertools.product(
         [
