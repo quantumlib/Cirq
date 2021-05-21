@@ -430,6 +430,7 @@ from cirq.value import (
     default_measurement_key,
     Duration,
     DURATION_LIKE,
+    GenericMetaImplementAnyOneOf,
     LinearDict,
     MEASUREMENT_KEY_SEPARATOR,
     MeasurementKey,

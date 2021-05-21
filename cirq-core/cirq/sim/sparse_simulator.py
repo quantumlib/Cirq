@@ -17,6 +17,7 @@
 from typing import (
     Any,
     Dict,
+    Iterator,
     List,
     Type,
     TYPE_CHECKING,
@@ -26,7 +27,7 @@ from typing import (
 
 import numpy as np
 
-from cirq import ops, protocols, qis, study, devices
+from cirq import ops, protocols, qis, devices
 from cirq.sim import (
     simulator,
     state_vector,
@@ -209,38 +210,32 @@ class Simulator(
             dtype=self._dtype,
         )
 
-    def simulate_expectation_values_sweep(
+    def simulate_expectation_values_sweep_iter(
         self,
         program: 'cirq.Circuit',
         observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
-        params: 'study.Sweepable',
+        params: 'cirq.Sweepable',
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
         permit_terminal_measurements: bool = False,
-    ) -> List[List[float]]:
+    ) -> Iterator[List[float]]:
         if not permit_terminal_measurements and program.are_any_measurements_terminal():
             raise ValueError(
                 'Provided circuit has terminal measurements, which may '
                 'skew expectation values. If this is intentional, set '
                 'permit_terminal_measurements=True.'
             )
-        swept_evs = []
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qmap = {q: i for i, q in enumerate(qubit_order.order_for(program.all_qubits()))}
         if not isinstance(observables, List):
             observables = [observables]
         pslist = [ops.PauliSum.wrap(pslike) for pslike in observables]
-        for param_resolver in study.to_resolvers(params):
-            result = self.simulate(
-                program, param_resolver, qubit_order=qubit_order, initial_state=initial_state
+        yield from (
+            [obs.expectation_from_state_vector(result.final_state_vector, qmap) for obs in pslist]
+            for result in self.simulate_sweep_iter(
+                program, params, qubit_order=qubit_order, initial_state=initial_state
             )
-            swept_evs.append(
-                [
-                    obs.expectation_from_state_vector(result.final_state_vector, qmap)
-                    for obs in pslist
-                ]
-            )
-        return swept_evs
+        )
 
 
 class SparseSimulatorStep(

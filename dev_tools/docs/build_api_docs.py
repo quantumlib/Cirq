@@ -14,10 +14,15 @@
 # ==============================================================================
 """Tool to generate external api_docs for Cirq.
 
-This version is for the stable docs building that uses the v0.10 monolithic cirq
-module. This will be replaced with build_api_docs_multi_module.py after v0.11 is
-released.
+In order to publish to our site, devsite runs two jobs for us: stable and nightly.
+The stable one downloads the latest cirq release from pypi and uses that to generate the reference
+API docs.
+The nightly one downloads the latest cirq pre-release (pip install cirq --pre) and uses that to
+generate the "nightly diff".
+
+This script needs to cater for both of these cases.
 """
+
 import os
 import types
 
@@ -29,19 +34,21 @@ from tensorflow_docs.api_generator import generate_lib
 from tensorflow_docs.api_generator import public_api
 
 import cirq
+import cirq_google
+
 from cirq import _doc
 
-flags.DEFINE_string("output_dir", "/tmp/cirq_api", "Where to output the docs")
+flags.DEFINE_string("output_dir", "docs/api_docs", "Where to output the docs")
 
 flags.DEFINE_string(
     "code_url_prefix",
-    "https://github.com/quantumlib/cirq/tree/master/cirq",
+    "https://github.com/quantumlib/Cirq/blob/master",
     "The url prefix for links to code.",
 )
 
 flags.DEFINE_bool("search_hints", True, "Include metadata search hints in the generated files")
 
-flags.DEFINE_string("site_path", "quark/cirq/api_docs/python", "Path prefix in the _toc.yaml")
+flags.DEFINE_string("site_path", "reference/python", "Path prefix in the _toc.yaml")
 
 FLAGS = flags.FLAGS
 
@@ -64,24 +71,43 @@ def filter_unwanted_inherited_methods(path, parent, children):
 
 
 def main(unused_argv):
+    generate_cirq()
+    generate_cirq_google()
+
+
+def generate_cirq():
     doc_generator = generate_lib.DocGenerator(
         root_title="Cirq",
         py_modules=[("cirq", cirq)],
         base_dir=os.path.dirname(cirq.__file__),
-        code_url_prefix=FLAGS.code_url_prefix,
+        code_url_prefix=FLAGS.code_url_prefix + "/cirq-core/cirq",
+        search_hints=FLAGS.search_hints,
+        site_path=FLAGS.site_path,
+        callbacks=[public_api.local_definitions_filter, filter_unwanted_inherited_methods],
+        extra_docs=_doc.RECORDED_CONST_DOCS,
+    )
+    doc_controls.decorate_all_class_attributes(
+        doc_controls.do_not_doc_inheritable, networkx.DiGraph, skip=[]
+    )
+    doc_generator.build(output_dir=FLAGS.output_dir)
+
+
+def generate_cirq_google():
+    doc_generator = generate_lib.DocGenerator(
+        root_title="Cirq-google",
+        py_modules=[("cirq_google", cirq_google)],
+        base_dir=os.path.dirname(cirq_google.__file__),
+        code_url_prefix=FLAGS.code_url_prefix + "/cirq-google/cirq_google",
         search_hints=FLAGS.search_hints,
         site_path=FLAGS.site_path,
         callbacks=[public_api.local_definitions_filter, filter_unwanted_inherited_methods],
         private_map={
             # Opt to not build docs for these paths for now since they error.
-            "cirq.google.engine.client.quantum.QuantumEngineServiceClient": ["enums"],
-            "cirq.google.engine.client.quantum_v1alpha1.QuantumEngineServiceClient": ["enums"],
-            "cirq.google.api": ["v1"],
+            "cirq_google.engine.client.quantum.QuantumEngineServiceClient": ["enums"],
+            "cirq_google.engine.client.quantum_v1alpha1.QuantumEngineServiceClient": ["enums"],
+            "cirq_google.api": ["v1"],
         },
         extra_docs=_doc.RECORDED_CONST_DOCS,
-    )
-    doc_controls.decorate_all_class_attributes(
-        doc_controls.do_not_doc_inheritable, networkx.DiGraph, skip=[]
     )
     doc_generator.build(output_dir=FLAGS.output_dir)
 

@@ -15,7 +15,7 @@
 
 import abc
 
-from typing import Any, Dict, Sequence, TYPE_CHECKING, Tuple, Generic, TypeVar, Type
+from typing import Any, Dict, Iterator, Sequence, TYPE_CHECKING, Tuple, Generic, TypeVar, Type
 
 import numpy as np
 
@@ -69,13 +69,13 @@ class SimulatesIntermediateStateVector(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
-    def compute_amplitudes_sweep(
+    def compute_amplitudes_sweep_iter(
         self,
         program: 'cirq.Circuit',
         bitstrings: Sequence[int],
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-    ) -> Sequence[Sequence[complex]]:
+    ) -> Iterator[Sequence[complex]]:
         if isinstance(bitstrings, np.ndarray) and len(bitstrings.shape) > 1:
             raise ValueError(
                 'The list of bitstrings must be input as a '
@@ -83,19 +83,16 @@ class SimulatesIntermediateStateVector(
                 f'shape {bitstrings.shape}.'
             )
 
-        trial_results = self.simulate_sweep(program, params, qubit_order)
-
         # 1-dimensional tuples don't trigger advanced Numpy array indexing
         # https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
         if isinstance(bitstrings, tuple):
             bitstrings = list(bitstrings)
 
-        all_amplitudes = []
-        for trial_result in trial_results:
-            amplitudes = trial_result.final_state_vector[bitstrings]
-            all_amplitudes.append(amplitudes)
+        trial_result_iter = self.simulate_sweep_iter(program, params, qubit_order)
 
-        return all_amplitudes
+        yield from (
+            trial_result.final_state_vector[bitstrings] for trial_result in trial_result_iter
+        )
 
 
 class StateVectorStepResult(
