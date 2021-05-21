@@ -1,8 +1,8 @@
 import {Scene, PerspectiveCamera, WebGLRenderer, Camera, Object3D} from 'three';
 
 export class Cirq3DScene {
-  private static readonly VIZ_WIDTH: number = window.innerWidth / 2;
-  private static readonly VIZ_HEIGHT: number = window.innerHeight / 2;
+  private static readonly VIZ_WIDTH: number = 500;
+  private static readonly VIZ_HEIGHT: number = 500;
 
   private scene: Scene;
   public camera: Camera;
@@ -23,6 +23,7 @@ export class Cirq3DScene {
   }
 
   private init() {
+    console.log("we are here");
     this.camera.position.z = 5;
     this.addSceneToHTML();
     this.setRenderSize();
