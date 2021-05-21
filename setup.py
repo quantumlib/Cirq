@@ -47,7 +47,7 @@ if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
 assert __version__, 'Version string cannot be empty'
 
 # This is a pure metapackage that installs all our packages
-requirements = [f'{p}=={__version__}' for p in ['cirq-core', 'cirq-google']]
+requirements = [f'{p}=={__version__}' for p in ['cirq-core', 'cirq-google', 'cirq-web']]
 
 dev_requirements = open('dev_tools/conf/pip-list-dev-tools.txt').readlines()
 dev_requirements = [r.strip() for r in dev_requirements]

@@ -56,3 +56,4 @@ node_modules/
 # Extras
 exports.sh
 dist/
+build/

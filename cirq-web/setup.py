@@ -36,9 +36,9 @@ long_description = open('README.rst', encoding='utf-8').read()
 if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
     __version__ = os.environ['CIRQ_PRE_RELEASE_VERSION']
     long_description = (
-        "**This is a development version of Cirq-google and may be "
-        "unstable.**\n\n**For the latest stable release of Cirq-google "
-        "see**\n`here <https://pypi.org/project/cirq-google>`__.\n\n" + long_description
+        "**This is a development version of Cirq-web and may be "
+        "unstable.**\n\n**For the latest stable release of Cirq-web "
+        "see**\n`here <https://pypi.org/project/cirq-web>`__.\n\n" + long_description
     )
 
 # Read in requirements
