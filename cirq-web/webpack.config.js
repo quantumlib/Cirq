@@ -26,12 +26,17 @@ module.exports = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
   },
+  // externalsType: 'var',
+  // externals: {
+  //   three: 'three',
+  // },
   output: {
     filename: 'bundle.js',
     library: 'createSphere',
+    library: {
+      name: 'createSphere',
+      type: 'var',
+    },
     path: path.resolve(__dirname, 'dist'),
   },
-  externals: {
-    three: 'three',
-  }
 };
