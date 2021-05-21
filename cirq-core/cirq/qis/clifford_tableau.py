@@ -208,31 +208,43 @@ class CliffordTableau:
         m1 = self.matrix().astype(int)
         m2 = second.matrix().astype(int)
 
-        p1 = self.rs.astype(int)
-        p2 = second.rs.astype(int)
 
-        merged_m = np.mod(m1.dot(m2), 2)
-        phase = np.mod(p1 + m1.dot(p2), 2)
+        # The following computation is based on Theorem 36 in
+        # https://arxiv.org/pdf/2009.03218.pdf.
+        # Any pauli string (one stabilizer) in Clifford Tableau should be able to be expressed as
+        #    (1i)^p (-1)^s X^(mx) Z^(mz)
+        # where p and s are binary scalar and mx and mz are binary vectors.
+        num_ys1 = np.sum(m1[:, : self.n] * m1[:, self.n :], axis=1)
+        num_ys2 = np.sum(m2[:, : self.n] * m2[:, self.n :], axis=1)
 
-        # we need more phase correction for expanding Y to XZ and swapping Z_iX_i order.
-        for k in range(2 * self.n):
-            swap_phase = 0  # value betwen 0 and 3 representing [1, i, -1, -i] respectively.
-            prev_row_sum = np.zeros([2 * self.n])
-            swap_phase += np.sum(m1[k, : self.n] * m1[k, self.n :])  # Y gate => iXZ
-            for i, v in enumerate(m1[k]):
-                if v == 0:
-                    continue
-                swap_phase += np.sum(m2[i, : self.n] * m2[i, self.n :])  # Y gate => iXZ
-                swap_phase += 2 * np.sum(m2[i, : self.n] * prev_row_sum[self.n :])  # swap Z_i X_i
-                prev_row_sum += m2[i]
-            prev_row_sum = np.mod(prev_row_sum, 2)
-            swap_phase -= np.sum(prev_row_sum[: self.n] * prev_row_sum[self.n :])  # XZ => -iY
-            phase[k] = (phase[k] + (swap_phase % 4) / 2) % 2
+        p1 = np.mod(num_ys1, 2)
+        p2 = np.mod(num_ys2, 2)
+
+        # Note the `s` is not equal to `r`, which depends on the number of Y gates.
+        # For example, r * Y_1Y_2Y_3 can be expanded into i^3 * r * X_1Z_1 X_2Z_2 X_3Z_3.
+        # The global phase is i * (-1) * r ==> s = r + 1 and p = 1.
+        s1 = self.rs.astype(int) + np.mod(num_ys1, 4) // 2
+        s2 = second.rs.astype(int) + np.mod(num_ys2, 4) // 2
+
+        lmbda = np.zeros((2 * self.n, 2 * self.n))
+        lmbda[: self.n, self.n :] = np.eye(self.n)
+
+        m_12 = np.mod(m1 @ m2, 2)
+        p_12 = np.mod(p1 + m1 @ p2, 2)
+        s_12 = (
+            s1
+            + m1 @ s2
+            + p1 * (m1 @ p2)
+            + np.diag(m1 @ np.tril(np.outer(p2, p2.T) + m2 @ lmbda @ m2.T, -1) @ m1.T)
+        )
+        num_ys12 = np.sum(m_12[:, : self.n] * m_12[:, self.n :], axis=1)
+        merged_sign = np.mod(p_12 + 2 * s_12 - num_ys12, 4) // 2
 
         merged_tableau = CliffordTableau(num_qubits=self.n)
-        merged_tableau.xs = merged_m[:, : self.n]
-        merged_tableau.zs = merged_m[:, self.n :]
-        merged_tableau.rs = phase
+        merged_tableau.xs = m_12[:, : self.n]
+        merged_tableau.zs = m_12[:, self.n :]
+        merged_tableau.rs = merged_sign
+
         return merged_tableau
 
     def inverse(self) -> 'CliffordTableau':
