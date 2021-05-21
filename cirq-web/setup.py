@@ -51,7 +51,7 @@ assert __version__, 'Version string cannot be empty'
 # This is a pure metapackage that installs all our packages
 requirements += [f'cirq-core=={__version__}']
 
-packs = ['cirq-web/dist/*']
+packs = ['cirq_web/dist/*']
 
 setup(
     name=name,

@@ -53,4 +53,6 @@ out
 # Ignore node modules
 node_modules/
 
+# Extras
 exports.sh
+dist/
