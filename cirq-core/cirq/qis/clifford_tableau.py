@@ -246,6 +246,25 @@ class CliffordTableau:
 
         return merged_tableau
 
+    def inverse(self) -> 'CliffordTableau':
+        """Returns the inverse Clifford tableau of this tableau."""
+        ret_table = CliffordTableau(num_qubits=self.n)
+        # It relies on the symplectic property of Clifford tableau.
+        #  [A^T C^T  [0 I  [A B     [0 I
+        #   B^T D^T]  I 0]  C D]  =  I 0]
+        # So the inverse is [[D^T B^T], [C^T A^T]]
+        ret_table.xs[: self.n] = self.zs[self.n :].T
+        ret_table.zs[: self.n] = self.zs[: self.n].T
+        ret_table.xs[self.n :] = self.xs[self.n :].T
+        ret_table.zs[self.n :] = self.xs[: self.n].T
+
+        # Update the sign -- rs.
+        # The idea is noting the sign of tabluea `a` contributes to the composed tableau
+        # `a.then(b)` directly. (While the sign in `b` need take very complicated transformation.)
+        # Refer above `then` function implementation for more details.
+        ret_table.rs = ret_table.then(self).rs
+        return ret_table
+
     def __matmul__(self, second: 'CliffordTableau'):
         if not isinstance(second, CliffordTableau):
             return NotImplemented
