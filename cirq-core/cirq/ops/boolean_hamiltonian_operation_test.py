@@ -37,7 +37,7 @@ def test_unsupported_op():
 
 
 @pytest.mark.parametrize(
-    'boolean_strs, symbol_names,expected',
+    'boolean_strs,symbol_names,expected',
     [
         (['x0'], None, {'x0': 0}),
         (['x0 & x1'], None, {'x0': 0, 'x1': 1}),
@@ -61,7 +61,7 @@ def test_get_name_to_id_missing_required_symbol():
 
 
 @pytest.mark.parametrize(
-    'boolean_str, ladder_target, symbol_names',
+    'boolean_str,ladder_target,symbol_names',
     itertools.product(
         [
             'x0',
@@ -125,7 +125,7 @@ def test_circuit(boolean_str, ladder_target, symbol_names):
 
 
 @pytest.mark.parametrize(
-    'n_bits, expected_hs',
+    'n_bits,expected_hs',
     [
         (1, [(), (0,)]),
         (2, [(), (0,), (0, 1), (1,)]),
@@ -150,7 +150,7 @@ def test_gray_code_sorting(n_bits, expected_hs):
 
 
 @pytest.mark.parametrize(
-    'seq_a, seq_b, expected',
+    'seq_a,seq_b,expected',
     [
         ((), (), 0),
         ((), (0,), -1),
