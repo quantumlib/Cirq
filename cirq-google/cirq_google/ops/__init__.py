@@ -20,6 +20,10 @@ from cirq_google.ops.physical_z_tag import (
     PhysicalZTag,
 )
 
+from cirq_google.ops.coupler_pulse import (
+    CouplerPulse,
+)
+
 from cirq_google.ops.sycamore_gate import (
     SycamoreGate,
     SYC,
