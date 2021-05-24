@@ -61,14 +61,16 @@ class CouplerPulse(ops.gate_features.TwoQubitGate):
         """
         # Verification
         if hold_time > rise_time:
-          raise ValueError(f'Full rise time {rise_time} must be longer '
-                           'than hold_time {hold_time} for CouplerPulse')
+            raise ValueError(
+                f'Full rise time {rise_time} must be longer '
+                'than hold_time {hold_time} for CouplerPulse'
+            )
         if hold_time < _MIN_DURATION or hold_time > _MAX_DURATION:
-          raise ValueError(f'hold_time must be between {_MIN_DURATION} and {_MAX_DURATION}')
+            raise ValueError(f'hold_time must be between {_MIN_DURATION} and {_MAX_DURATION}')
         if padding_time < _MIN_DURATION or padding_time > _MAX_DURATION:
-          raise ValueError(f'padding_time must be between {_MIN_DURATION} and {_MAX_DURATION}')
+            raise ValueError(f'padding_time must be between {_MIN_DURATION} and {_MAX_DURATION}')
         if rise_time < _MIN_DURATION or rise_time > _MAX_DURATION:
-          raise ValueError(f'rise_time must be between {_MIN_DURATION} and {_MAX_DURATION}')
+            raise ValueError(f'rise_time must be between {_MIN_DURATION} and {_MAX_DURATION}')
 
         self.hold_time = hold_time
         self.coupling_mhz = coupling_mhz
@@ -114,3 +116,6 @@ class CouplerPulse(ops.gate_features.TwoQubitGate):
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
         s = f'/‾‾({self.hold_time}@{self.coupling_mhz}MHz)‾‾\\'
         return (s, s)
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['hold_time','coupling_mhz','rise_time','padding_time'])

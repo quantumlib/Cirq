@@ -29,52 +29,90 @@ def test_consistent_protocols():
     )
     assert gate.num_qubits() == 2
 
+
 def test_equality():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
         coupler_pulse.CouplerPulse(
-        hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=18),
-        padding_time=cirq.Duration(nanos=4)
-    ),
+            hold_time=cirq.Duration(nanos=10),
+            coupling_mhz=25.0,
+            rise_time=cirq.Duration(nanos=18),
+            padding_time=cirq.Duration(nanos=4),
+        ),
         coupler_pulse.CouplerPulse(
-        hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=18),
-        padding_time=cirq.Duration(nanos=4)
+            hold_time=cirq.Duration(nanos=10),
+            coupling_mhz=25.0,
+            rise_time=cirq.Duration(nanos=18),
+            padding_time=cirq.Duration(nanos=4),
+        ),
     )
-        )
     eq.add_equality_group(
         coupler_pulse.CouplerPulse(
-        hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=18),
-        padding_time=cirq.Duration(nanos=4)
+            hold_time=cirq.Duration(nanos=12),
+            coupling_mhz=25.0,
+            rise_time=cirq.Duration(nanos=18),
+            padding_time=cirq.Duration(nanos=4),
+        )
+    )
+    eq.add_equality_group(
+        coupler_pulse.CouplerPulse(
+           hold_time=cirq.Duration(nanos=10),
+            coupling_mhz=26.0,
+            rise_time=cirq.Duration(nanos=18),
+            padding_time=cirq.Duration(nanos=4)
+        ))
+    eq.add_equality_group(
+        coupler_pulse.CouplerPulse(
+           hold_time=cirq.Duration(nanos=10),
+            coupling_mhz=25.0,
+            rise_time=cirq.Duration(nanos=28),
+            padding_time=cirq.Duration(nanos=4)
+        ))
+    eq.add_equality_group(
+        coupler_pulse.CouplerPulse(
+           hold_time=cirq.Duration(nanos=10),
+            coupling_mhz=25.0,
+            rise_time=cirq.Duration(nanos=18),
+           padding_time=cirq.Duration(nanos=40)
         ))
 
 
 def test_coupler_pulse_validation():
-  with pytest.raises(ValueError, match='Full rise time'):
-    _ = coupler_pulse.CouplerPulse(
-        hold_time=cirq.Duration(nanos=20), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=10)
-    )
-  with pytest.raises(ValueError, match='hold_time must be between'):
-    _ = coupler_pulse.CouplerPulse(
-        hold_time=cirq.Duration(nanos=110), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=120)
-    )
-  with pytest.raises(ValueError, match='hold_time must be between'):
-    _ = coupler_pulse.CouplerPulse(
-        hold_time=cirq.Duration(nanos=-10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=20)
-    )
-  with pytest.raises(ValueError, match='padding_time must be between'):
-    _ = coupler_pulse.CouplerPulse(
-        hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=20),
-        padding_time=cirq.Duration(nanos=200)
-    )
-  with pytest.raises(ValueError, match='padding_time must be between'):
-    _ = coupler_pulse.CouplerPulse(
-        hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=20),
-        padding_time=cirq.Duration(nanos=-20)
-    )
-  with pytest.raises(ValueError, match='rise_time must be between'):
-    _ = coupler_pulse.CouplerPulse(
-        hold_time=cirq.Duration(nanos=10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=102),
-    )
+    with pytest.raises(ValueError, match='Full rise time'):
+        _ = coupler_pulse.CouplerPulse(
+            hold_time=cirq.Duration(nanos=20), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=10)
+        )
+    with pytest.raises(ValueError, match='hold_time must be between'):
+        _ = coupler_pulse.CouplerPulse(
+            hold_time=cirq.Duration(nanos=110),
+            coupling_mhz=25.0,
+            rise_time=cirq.Duration(nanos=120),
+        )
+    with pytest.raises(ValueError, match='hold_time must be between'):
+        _ = coupler_pulse.CouplerPulse(
+            hold_time=cirq.Duration(nanos=-10), coupling_mhz=25.0, rise_time=cirq.Duration(nanos=20)
+        )
+    with pytest.raises(ValueError, match='padding_time must be between'):
+        _ = coupler_pulse.CouplerPulse(
+            hold_time=cirq.Duration(nanos=10),
+            coupling_mhz=25.0,
+            rise_time=cirq.Duration(nanos=20),
+            padding_time=cirq.Duration(nanos=200),
+        )
+    with pytest.raises(ValueError, match='padding_time must be between'):
+        _ = coupler_pulse.CouplerPulse(
+            hold_time=cirq.Duration(nanos=10),
+            coupling_mhz=25.0,
+            rise_time=cirq.Duration(nanos=20),
+            padding_time=cirq.Duration(nanos=-20),
+        )
+    with pytest.raises(ValueError, match='rise_time must be between'):
+        _ = coupler_pulse.CouplerPulse(
+            hold_time=cirq.Duration(nanos=10),
+            coupling_mhz=25.0,
+            rise_time=cirq.Duration(nanos=102),
+        )
+
 
 def test_coupler_pulse_str_repr():
     gate = coupler_pulse.CouplerPulse(
