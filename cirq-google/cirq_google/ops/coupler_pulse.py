@@ -74,8 +74,8 @@ class CouplerPulse(ops.gate_features.TwoQubitGate):
 
         self.hold_time = hold_time
         self.coupling_mhz = coupling_mhz
-        self.rise_time = rise_time
-        self.padding_time = padding_time
+        self.rise_time = rise_time or value.Duration(nanos=8)
+        self.padding_time = padding_time or value.Duration(nanos=2.5)
 
     def num_qubits(self) -> int:
         return 2
@@ -118,4 +118,6 @@ class CouplerPulse(ops.gate_features.TwoQubitGate):
         return (s, s)
 
     def _json_dict_(self):
-        return protocols.obj_to_dict_helper(self, ['hold_time','coupling_mhz','rise_time','padding_time'])
+        return protocols.obj_to_dict_helper(
+            self, ['hold_time', 'coupling_mhz', 'rise_time', 'padding_time']
+        )

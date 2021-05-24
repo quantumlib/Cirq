@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
 import pytest
 
 import cirq
@@ -56,25 +55,28 @@ def test_equality():
     )
     eq.add_equality_group(
         coupler_pulse.CouplerPulse(
-           hold_time=cirq.Duration(nanos=10),
+            hold_time=cirq.Duration(nanos=10),
             coupling_mhz=26.0,
             rise_time=cirq.Duration(nanos=18),
-            padding_time=cirq.Duration(nanos=4)
-        ))
+            padding_time=cirq.Duration(nanos=4),
+        )
+    )
     eq.add_equality_group(
         coupler_pulse.CouplerPulse(
-           hold_time=cirq.Duration(nanos=10),
+            hold_time=cirq.Duration(nanos=10),
             coupling_mhz=25.0,
             rise_time=cirq.Duration(nanos=28),
-            padding_time=cirq.Duration(nanos=4)
-        ))
+            padding_time=cirq.Duration(nanos=4),
+        )
+    )
     eq.add_equality_group(
         coupler_pulse.CouplerPulse(
-           hold_time=cirq.Duration(nanos=10),
+            hold_time=cirq.Duration(nanos=10),
             coupling_mhz=25.0,
             rise_time=cirq.Duration(nanos=18),
-           padding_time=cirq.Duration(nanos=40)
-        ))
+            padding_time=cirq.Duration(nanos=40),
+        )
+    )
 
 
 def test_coupler_pulse_validation():
@@ -120,7 +122,8 @@ def test_coupler_pulse_str_repr():
     )
     assert (
         str(gate)
-        == 'CouplerPulse(hold_time=10 ns, coupling_mhz=25.0, rise_time=18 ns, padding_time=2500.0 ps)'
+        == 'CouplerPulse(hold_time=10 ns, coupling_mhz=25.0, '
+        + 'rise_time=18 ns, padding_time=2500.0 ps)'
     )
     assert (
         repr(gate)
@@ -141,8 +144,8 @@ def test_coupler_pulse_circuit_diagram():
     cirq.testing.assert_has_diagram(
         circuit,
         """
-0: ───/‾‾(10 ns@25.0MHz)‾‾\───
+0: ───/‾‾(10 ns@25.0MHz)‾‾\\───
       │
-1: ───/‾‾(10 ns@25.0MHz)‾‾\───
+1: ───/‾‾(10 ns@25.0MHz)‾‾\\───
 """,
     )
