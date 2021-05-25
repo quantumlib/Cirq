@@ -4,6 +4,7 @@
 -r pylint.in
 -r protos.in
 -r pip-tools.in
+-r notebook.in
 
 # For testing and analyzing code.
 asv
@@ -19,11 +20,6 @@ pyquil~=2.21.0
 
 # For verifying behavior of qasm output.
 qiskit-aer~=0.7.6
-
-# For generating notebooks in documentation
-ipython
-ipykernel
-notebook
 
 # For verifying rst
 rstcheck~=3.3.1
