@@ -46,7 +46,7 @@ click==8.0.1
     # via
     #   black
     #   pip-tools
-codeowners==0.3.0
+codeowners==0.1.2
     # via -r dev_tools/requirements/deps/pytest.in
 colorama==0.4.4
     # via twine
@@ -344,7 +344,6 @@ typed-ast==1.4.3
 typing-extensions==3.10.0.0
     # via
     #   black
-    #   codeowners
     #   mypy
 urllib3==1.26.4
     # via requests

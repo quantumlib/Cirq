@@ -12,4 +12,4 @@ freezegun~=0.3.15
 # for python 3.7 and below needs to be installed
 importlib-metadata; python_version < '3.8'
 
-codeowners
+codeowners; python_version >= '3.7'
