@@ -646,6 +646,12 @@ LIMITED_FSIM_DESERIALIZER = op_deserializer.GateOpDeserializer(
     op_wrapper=lambda op, proto: _add_phase_match(op, proto),
 )
 
+#############################################
+#
+# Miscellaneous serializers and deserializers
+#
+#############################################
+
 #
 # Coupler Pulse serializer and deserializer
 #
@@ -734,3 +740,9 @@ WAIT_GATE_DESERIALIZER = op_deserializer.GateOpDeserializer(
     ],
     num_qubits_param='num_qubits',
 )
+
+#
+# CircuitOperation serializer and deserializer
+#
+CIRCUIT_OP_SERIALIZER = op_serializer.CircuitOpSerializer()
+CIRCUIT_OP_DESERIALIZER = op_deserializer.CircuitOpDeserializer()

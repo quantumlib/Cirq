@@ -16,7 +16,7 @@ from typing import Any, Collection, Dict, Optional, Iterable, List, Set, Tuple, 
 
 from cirq._doc import document
 from cirq.devices import GridQubit
-from cirq_google import gate_sets, serializable_gate_set
+from cirq_google import gate_sets, op_serializer, serializable_gate_set
 from cirq_google.api import v2
 from cirq_google.api.v2 import device_pb2
 from cirq_google.devices.serializable_device import SerializableDevice
@@ -132,9 +132,9 @@ def create_device_proto_for_qubits(
         gs_proto = out.valid_gate_sets.add()
         gs_proto.name = gate_set.gate_set_name
         gate_ids: Set[str] = set()
-        for gate_type in gate_set.serializers:
-            for serializer in gate_set.serializers[gate_type]:
-                gate_id = serializer.serialized_gate_id
+        for internal_type in gate_set.serializers:
+            for serializer in gate_set.serializers[internal_type]:
+                gate_id = serializer.serialized_id
                 if gate_id in gate_ids:
                     # Only add each type once
                     continue
@@ -143,7 +143,13 @@ def create_device_proto_for_qubits(
                 gate = gs_proto.valid_gates.add()
                 gate.id = gate_id
 
+                if not isinstance(serializer, op_serializer.GateOpSerializer):
+                    # This implies that 'serializer' handles non-gate ops,
+                    # such as CircuitOperations. No other properties apply.
+                    continue
+
                 # Choose target set and number of qubits based on gate type.
+                gate_type = internal_type
 
                 # Note: if it is not a measurement gate and doesn't inherit
                 # from SingleQubitGate, it's assumed to be a two qubit gate.
