@@ -1,0 +1,29 @@
+-r mypy.in
+-r pytest.in
+-r format.in
+-r pylint.in
+-r protos.in
+-r pip-tools.in
+
+# For testing and analyzing code.
+asv
+virtualenv
+
+# For generating protobufs
+
+# For uploading packages to pypi.
+twine
+
+# For verifying behavior of Quil output.
+pyquil~=2.21.0
+
+# For verifying behavior of qasm output.
+qiskit-aer~=0.7.6
+
+# For generating notebooks in documentation
+ipython
+ipykernel
+notebook
+
+# For verifying rst
+rstcheck~=3.3.1

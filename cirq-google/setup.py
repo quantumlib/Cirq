@@ -42,7 +42,7 @@ if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
     )
 
 # Read in requirements
-requirements = open('requirements.txt').readlines()
+requirements = open('requirements.in').readlines()
 requirements = [r.strip() for r in requirements]
 
 # Sanity check
