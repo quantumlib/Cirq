@@ -319,14 +319,15 @@ class SimulatorBase(
             return initial_state
 
         args_map: Dict['cirq.Qid', TActOnArgs] = {}
-        if initial_state is 0 and self._split_untangled_states:
+        if isinstance(initial_state, int) and self._split_untangled_states:
             log: Dict[str, Any] = {}
-            for q in qubits:
+            for q in reversed(qubits):
                 args_map[q] = self._create_act_on_arg(
-                    initial_state=0,
+                    initial_state=initial_state % q.dimension,
                     qubits=[q],
                     logs=log,
                 )
+                initial_state = int(initial_state / q.dimension)
             return args_map
 
         args = self._create_act_on_arg(
