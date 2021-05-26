@@ -4,6 +4,9 @@ pytest
 pytest-asyncio
 pytest-cov
 
+# for parallel testing notebooks
+pytest-xdist~=2.2.0
+
 filelock~=3.0.12
 
 # For testing time specific logic
