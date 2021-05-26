@@ -79,10 +79,10 @@ def test_kraus_to_choi(kraus_operators, expected_choi):
         cirq.amplitude_damp(0.2),
     ),
 )
-def test_choi(channel):
+def test_operation_to_choi(channel):
     """Verifies that cirq.choi correctly computes the Choi matrix."""
     n_qubits = cirq.num_qubits(channel)
-    actual = cirq.choi(channel)
+    actual = cirq.operation_to_choi(channel)
     expected = expected_choi(channel)
     assert np.isclose(np.trace(actual), 2 ** n_qubits)
     assert np.all(actual == expected)
@@ -90,4 +90,4 @@ def test_choi(channel):
 
 def test_choi_on_completely_dephasing_channel():
     """Checks that cirq.choi returns the right matrix for the completely dephasing channel."""
-    assert np.all(cirq.choi(cirq.phase_damp(1)) == np.diag([1, 0, 0, 1]))
+    assert np.all(cirq.operation_to_choi(cirq.phase_damp(1)) == np.diag([1, 0, 0, 1]))

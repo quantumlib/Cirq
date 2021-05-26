@@ -330,7 +330,6 @@ from cirq.optimizers import (
 
 from cirq.qis import (
     bloch_vector_from_state_vector,
-    choi,
     CliffordTableau,
     density_matrix,
     density_matrix_from_state_vector,
@@ -339,6 +338,7 @@ from cirq.qis import (
     fidelity,
     kraus_to_choi,
     one_hot,
+    operation_to_choi,
     QUANTUM_STATE_LIKE,
     QuantumState,
     quantum_state,

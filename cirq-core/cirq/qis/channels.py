@@ -29,6 +29,6 @@ def kraus_to_choi(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
     return c
 
 
-def choi(operation: 'protocols.SupportsChannel') -> np.ndarray:
+def operation_to_choi(operation: 'protocols.SupportsChannel') -> np.ndarray:
     """Returns the unique Choi matrix associated with a superoperator."""
     return kraus_to_choi(protocols.channel(operation))
