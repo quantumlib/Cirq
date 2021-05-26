@@ -29,7 +29,7 @@ def test_channel_no_methods():
     class NoMethod:
         pass
 
-    with pytest.raises(TypeError, match='no _channel_ or _mixture_ or _unitary_ method'):
+    with pytest.raises(TypeError, match='no _kraus_ or _mixture_ or _unitary_ method'):
         _ = cirq.channel(NoMethod())
 
     assert cirq.channel(NoMethod(), None) is None
@@ -52,9 +52,9 @@ def assert_not_implemented(val):
     assert not cirq.has_channel(val)
 
 
-def test_channel_returns_not_implemented():
+def test_kraus_returns_not_implemented():
     class ReturnsNotImplemented:
-        def _channel_(self):
+        def _kraus_(self):
             return NotImplemented
 
     assert_not_implemented(ReturnsNotImplemented())
@@ -87,7 +87,7 @@ def test_channel():
     c = (a0, a1)
 
     class ReturnsChannel:
-        def _channel_(self) -> Sequence[np.ndarray]:
+        def _kraus_(self) -> Sequence[np.ndarray]:
             return c
 
     assert cirq.channel(ReturnsChannel()) is c
@@ -138,7 +138,7 @@ def test_channel_fallback_to_unitary():
 
 
 class HasChannel(cirq.SingleQubitGate):
-    def _has_channel_(self) -> bool:
+    def _has_kraus_(self) -> bool:
         return True
 
 

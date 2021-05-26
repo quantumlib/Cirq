@@ -36,7 +36,7 @@ class DensityMatrixSimulator(
 
     This simulator can be applied on circuits that are made up of operations
     that have:
-        * a `_channel_` method
+        * a `_kraus_` method
         * a `_mixture_` method for a probabilistic combination of unitary gates.
         * a `_unitary_` method
         * a `_has_unitary_` and `_apply_unitary_` method.
