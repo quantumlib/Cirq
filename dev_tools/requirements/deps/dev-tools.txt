@@ -3,14 +3,11 @@
 -r format.txt
 -r pylint.txt
 -r protos.txt
--r pip-tools.txt
 -r notebook.txt
 
 # For testing and analyzing code.
 asv
 virtualenv
-
-# For generating protobufs
 
 # For uploading packages to pypi.
 twine

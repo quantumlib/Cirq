@@ -1,4 +1,4 @@
-# minimal dependencies to run pytest
+# dependencies to run pytest
 
 pytest
 pytest-asyncio
@@ -6,7 +6,6 @@ pytest-cov
 
 # for parallel testing notebooks
 pytest-xdist~=2.2.0
-
 filelock~=3.0.12
 
 # For testing time specific logic
@@ -15,4 +14,5 @@ freezegun~=0.3.15
 # for python 3.7 and below needs to be installed
 importlib-metadata; python_version < '3.8'
 
+# codeowners test dependency
 codeowners; python_version >= '3.7'
