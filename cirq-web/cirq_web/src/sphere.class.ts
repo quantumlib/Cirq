@@ -5,8 +5,7 @@ export class CirqSphere {
 
   constructor(radius = 1, color = 0xff0000) {
     const geometry = new SphereGeometry(radius);
-    const material = new MeshNormalMaterial();
-    //const material = new MeshBasicMaterial({color: color});
+    const material = new MeshBasicMaterial({color: color});
     this.sphere = new Mesh(geometry, material);
   }
 
