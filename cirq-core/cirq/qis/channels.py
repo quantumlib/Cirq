@@ -12,18 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tools for analyzing and manipulating quantum channels."""
+from typing import Sequence
 
 import numpy as np
 
 from cirq import protocols
 
 
-def choi(operation: 'protocols.SupportsChannel') -> np.ndarray:
-    """Returns the unique Choi matrix associated with a superoperator."""
-    ks = protocols.channel(operation)
-    d = np.prod(ks[0].shape)
+def kraus_to_choi(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
+    """Returns the unique Choi matrix corresponding to a Kraus representation of a channel."""
+    d = np.prod(kraus_operators[0].shape)
     c = np.zeros((d, d), dtype=np.complex128)
-    for k in ks:
+    for k in kraus_operators:
         v = np.reshape(k, d)
         c += np.outer(v, v.conj())
     return c
+
+
+def choi(operation: 'protocols.SupportsChannel') -> np.ndarray:
+    """Returns the unique Choi matrix associated with a superoperator."""
+    return kraus_to_choi(protocols.channel(operation))
