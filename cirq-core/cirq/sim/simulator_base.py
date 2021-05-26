@@ -293,11 +293,16 @@ class SimulatorBase(
             return step_result.sample_measurement_ops(measurement_ops, repetitions, seed=self._prng)
 
         measurements: Dict[str, List[np.ndarray]] = {}
-        for _ in range(repetitions):
-            copies = {a: a.copy() for a in set(act_on_args.values())}
+        for i in range(repetitions):
+            if i < repetitions - 1:
+                copies = {a: a.copy() for a in set(act_on_args.values())}
+                sim_state = {q: copies[a] for q, a in act_on_args.items()}
+            else:
+                sim_state = act_on_args
+
             all_step_results = self._core_iterator(
                 general_suffix,
-                sim_state={q: copies[a] for q, a in act_on_args.items()},
+                sim_state=sim_state,
                 qubits=qubits,
             )
             for step_result in all_step_results:
