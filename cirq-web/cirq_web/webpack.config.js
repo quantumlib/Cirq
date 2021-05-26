@@ -5,14 +5,12 @@ const path = require('path');
 // Nbextension needed to work with Colab?
 
 module.exports = {
-  // entry: {
-  //     index: './src/index.ts',
-  //     scene: './src/blank_scene.ts',
-  //     circle: './src/circle.ts',
-  // },
-  entry: './src/circle.ts',
+  entry: './src/sphere.ts',
   devServer: {
-    contentBase: './dist',
+    publicPath: '/',
+    contentBase: './dist', // Serves static files from the /dist directory
+    //TODO: investigate dev-server version based on https://github.com/webpack/webpack-dev-server/issues/2484
+    injectClient: false,
   },
   module: {
     rules: [
@@ -26,15 +24,11 @@ module.exports = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
   },
-  // externalsType: 'var',
-  // externals: {
-  //   three: 'three',
-  // },
   output: {
     filename: 'bundle.js',
     library: {
       name: 'createSphere',
-      type: 'window',
+      type: 'var',
     },
     path: path.resolve(__dirname, 'dist'),
     publicPath: './dist',

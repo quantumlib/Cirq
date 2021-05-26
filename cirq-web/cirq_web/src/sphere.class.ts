@@ -1,11 +1,12 @@
-import {SphereGeometry, MeshBasicMaterial, Mesh} from 'three';
+import {SphereGeometry, MeshBasicMaterial, MeshNormalMaterial,  Mesh} from 'three';
 
 export class CirqSphere {
   sphere: Mesh;
 
-  constructor(radius = 1) {
+  constructor(radius = 1, color = 0xff0000) {
     const geometry = new SphereGeometry(radius);
-    const material = new MeshBasicMaterial({color: 0xff0000});
+    const material = new MeshNormalMaterial();
+    //const material = new MeshBasicMaterial({color: color});
     this.sphere = new Mesh(geometry, material);
   }
 

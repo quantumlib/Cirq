@@ -23,7 +23,6 @@ export class Cirq3DScene {
   }
 
   private init() {
-    console.log("we are here");
     this.camera.position.z = 5;
     this.addSceneToHTML();
     this.setRenderSize();
