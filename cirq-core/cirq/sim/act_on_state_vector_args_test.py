@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Dict, Iterable
 from unittest import mock
 
 import numpy as np
@@ -220,3 +221,56 @@ def test_random_channel_has_random_behavior():
     v = s['out'].value_counts()
     assert v[0] > 1
     assert v[1] > 1
+
+
+class MeasuredChannel(cirq.Gate):
+    """A generic channel that saves the index of its selected operator.
+    
+    This class exists for test / demonstration purposes only.
+    """
+    def __init__(self, ops: Iterable[np.ndarray], key: str):
+        self._ops = list(ops)
+        self._key = key
+
+    def num_qubits(self) -> int:
+        # Simplifying assumption for test purposes.
+        return 1
+
+    def _channel_(self):
+        return self._ops
+
+    def _measurement_key_(self):
+        return self._key
+
+    # Extra methods that may prove useful in a full implementation.
+    #
+    # @staticmethod
+    # def create(channel: 'cirq.SupportsChannel', key: str):
+    #     return MeasuredChannel(
+    #         ops = list(cirq.channel(channel)),
+    #         key = key,
+    #     )
+    #
+    # def _measurement_keys_(self):
+    #     return [self._key]
+    #
+    # def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    #     if self.key not in key_map:
+    #         return self
+    #     return MeasuredChannel(self._ops, key_map[self._key])
+
+
+def test_measured_channel():
+    # This behaves like an X-basis measurement.
+    mc = MeasuredChannel(
+        ops=(
+            np.array([[1, 1], [1, 1]]) * 0.5,
+            np.array([[1, -1], [-1, 1]]) * 0.5,
+        ),
+        key='m',
+    )
+    q0 = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.H(q0), mc.on(q0))
+    sim = cirq.Simulator()
+    results = sim.run(circuit, repetitions=100)
+    assert results.histogram(key='m') == {0: 100}
