@@ -30,7 +30,7 @@ import numpy as np
 from cirq import linalg, protocols, qis, value
 from cirq._doc import document
 from cirq.linalg import operator_spaces
-from cirq.ops import identity, raw_types, pauli_gates, pauli_string
+from cirq.ops import identity, raw_types, pauli_gates, pauli_string, gate_operation
 from cirq.ops.pauli_string import PauliString, _validate_qubit_mapping
 from cirq.value.linear_dict import _format_terms
 
@@ -570,6 +570,8 @@ class PauliSum:
         return self
 
     def __add__(self, other):
+        if isinstance(other, (gate_operation.GateOperation)):
+            other = PauliString(other)
         if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
             return NotImplemented
         result = self.copy()
