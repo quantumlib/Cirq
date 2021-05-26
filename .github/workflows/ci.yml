@@ -189,7 +189,7 @@ jobs:
           python-version: '3.7'
           architecture: 'x64'
       - name: Install requirements
-        run: pip install -r dev_tools/requirements/full.env.in
+        run: pip install -r dev_tools/requirements/full.env.txt
       - name: Coverage check
         run: check/pytest-and-incremental-coverage --actually-quiet
   windows:
@@ -205,7 +205,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
       - name: Install requirements
-        run: pip install -r dev_tools/requirements/no-contrib.env.in
+        run: pip install -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest Windows
         run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
         shell: bash
@@ -222,7 +222,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
       - name: Install requirements
-        run: pip install -r dev_tools/requirements/no-contrib.env.in
+        run: pip install -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
         run: check/pytest --ignore=cirq-core/cirq/contrib
   notebooks-stable:
