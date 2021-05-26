@@ -25,6 +25,8 @@ TestSpec = ModuleJsonTestSpec(
     ],
     should_not_be_serialized=[
         'AnnealSequenceSearchStrategy',
+        'CircuitOpDeserializer',
+        'CircuitOpSerializer',
         'CircuitWithCalibration',
         'ConvertToSqrtIswapGates',
         'ConvertToSycamoreGates',
