@@ -1,10 +1,10 @@
--r mypy.in
--r pytest.in
--r format.in
--r pylint.in
--r protos.in
--r pip-tools.in
--r notebook.in
+-r mypy.txt
+-r pytest.txt
+-r format.txt
+-r pylint.txt
+-r protos.txt
+-r pip-tools.txt
+-r notebook.txt
 
 # For testing and analyzing code.
 asv
