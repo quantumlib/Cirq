@@ -14,6 +14,8 @@
 
 """Tools and methods for quantum information science."""
 
+from cirq.qis.channels import choi
+
 from cirq.qis.clifford_tableau import CliffordTableau
 
 from cirq.qis.measures import (
