@@ -190,7 +190,7 @@ class SimulatorBase(
                 return default_arg
             final_args = default_arg
             for args in set(sim_state.values()):
-                final_args = cast(TActOnArgs, final_args).join(args)
+                final_args = final_args.join(args)
             return final_args.reorder(qubits)
 
         if len(circuit) == 0:
@@ -220,12 +220,10 @@ class SimulatorBase(
                     # into a new combined state.
                     op_args: Optional[TActOnArgs] = None
                     for q in op.qubits if len(op.qubits) != 0 else qubits:
-                        if op_args is None or q not in op_args.qubits:
-                            op_args = (
-                                sim_state[q]
-                                if op_args is None
-                                else cast(TActOnArgs, op_args).join(sim_state[q])
-                            )
+                        if op_args is None:
+                            op_args = sim_state[q]
+                        elif q not in op_args.qubits:
+                            op_args = op_args.join(sim_state[q])
                     op_args = op_args or default_arg
 
                     # (Backfill the args map with the new value)
