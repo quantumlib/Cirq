@@ -177,13 +177,21 @@ class SimulatorBase(
             StepResults from simulating a Moment of the Circuit.
         """
 
+        # Create a default target for when there's no qubits or for qubit-free ops like GlobalPhase
+        if self._split_untangled_states or len(qubits) == 0:
+            first_value = None if not any(sim_state) else next(iter(sim_state.values()))
+            logs = {} if first_value is None else first_value.log_of_measurement_results
+            default_arg = self._create_act_on_arg(0, (), logs)
+        else:
+            default_arg = next(iter(sim_state.values()))
+
         def merge_states(sim_state: Dict['cirq.Qid', TActOnArgs]) -> TActOnArgs:
-            final_args = None
+            if not self._split_untangled_states:
+                return default_arg
+            final_args = default_arg
             for args in set(sim_state.values()):
-                final_args = args if final_args is None else cast(TActOnArgs, final_args).join(args)
-            if final_args is None:
-                return self._create_act_on_arg(initial_state=0, qubits=[], logs={})
-            return final_args.reorder(qubits) if self._split_untangled_states else final_args
+                final_args = cast(TActOnArgs, final_args).join(args)
+            return final_args.reorder(qubits)
 
         if len(circuit) == 0:
             step_state = merge_states(sim_state)
@@ -218,7 +226,7 @@ class SimulatorBase(
                                 if op_args is None
                                 else cast(TActOnArgs, op_args).join(sim_state[q])
                             )
-                    assert op_args is not None
+                    op_args = op_args or default_arg
 
                     # (Backfill the args map with the new value)
                     for q in op_args.qubits:
