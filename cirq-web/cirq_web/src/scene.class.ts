@@ -1,4 +1,5 @@
-import {Scene, PerspectiveCamera, WebGLRenderer, Camera, Object3D} from 'three';
+import {Scene, PerspectiveCamera, WebGLRenderer, Camera, Object3D,} from 'three';
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 
 export class Cirq3DScene {
   private static readonly VIZ_WIDTH: number = 500;
@@ -7,6 +8,7 @@ export class Cirq3DScene {
   private scene: Scene;
   public camera: Camera;
   public renderer: WebGLRenderer;
+  public controls: OrbitControls;
 
   public constructor(
     fov = 75,
@@ -18,15 +20,27 @@ export class Cirq3DScene {
     this.camera = new PerspectiveCamera(fov, aspect, near, far);
     this.renderer = new WebGLRenderer();
     this.renderer.setSize(Cirq3DScene.VIZ_WIDTH, Cirq3DScene.VIZ_HEIGHT);
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
     this.init();
   }
 
   private init() {
     this.camera.position.z = 5;
+
+    this.setUpControls();
     this.addSceneToHTML();
     this.setRenderSize();
     this.animate();
+  }
+
+  private setUpControls() {
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.05;
+    this.controls.screenSpacePanning = false;
+    this.controls.minDistance = 10;
+    this.controls.maxDistance = 50;
+    this.controls.maxPolarAngle = Math.PI;
   }
 
   private addSceneToHTML() {
@@ -44,6 +58,7 @@ export class Cirq3DScene {
 
   public animate() {
     requestAnimationFrame(this.animate.bind(this));
+    this.controls.update();
     this.renderer.render(this.scene, this.camera);
   }
 
