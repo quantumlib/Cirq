@@ -46,7 +46,7 @@ class SupportsChannel(Protocol):
 
     @doc_private
     def _kraus_(self) -> Union[Sequence[np.ndarray], NotImplementedType]:
-        r"""A list of Kraus operators describing the quantum channel.
+        r"""A list of Kraus matrices describing the quantum channel.
 
         These matrices are the terms in the operator sum representation of a
         quantum channel. If the returned matrices are ${A_0,A_1,..., A_{r-1}}$,
