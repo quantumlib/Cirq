@@ -81,6 +81,17 @@ def test_repetitions_and_ids_length_mismatch():
         _ = cirq.CircuitOperation(circuit, repetitions=2, repetition_ids=['a', 'b', 'c'])
 
 
+def test_is_measurement_memoization():
+    a = cirq.LineQubit(0)
+    circuit = cirq.FrozenCircuit(cirq.measure(a, key='m'))
+    c_op = cirq.CircuitOperation(circuit)
+    assert cirq.is_measurement(c_op)
+    assert c_op._is_measurement_() is NotImplemented
+    # Memoize `has_measurements` in the circuit.
+    assert circuit.has_measurements()
+    assert c_op._is_measurement_() is True
+
+
 def test_invalid_measurement_keys():
     a = cirq.LineQubit(0)
     circuit = cirq.FrozenCircuit(cirq.measure(a, key='m'))
