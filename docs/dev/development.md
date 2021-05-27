@@ -321,6 +321,11 @@ For continuous integration:
 Each job might need different set of requirements and it would be inefficient to install a full blown dev env for every tiny job (e.g. mypy check). 
 Instead in dev_tools/requirements create a separate <job>.env.txt and include the necessary tools in there. Requirements files can include each other, which is heavily leveraged in our requirements files in order to remove duplication.   
 
+You can call the following utility to unroll the content of a file: 
+
+```
+python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt 
+```
 
 ## Producing a pypi package
 

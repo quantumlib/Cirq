@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import sys
 
 
 def explode(req: str):
@@ -43,4 +44,4 @@ def explode(req: str):
 
 
 if __name__ == '__main__':
-    print('\n'.join(explode("dev_tools/requirements/dev.env.txt")))
+    print('\n'.join(explode(sys.argv[1])))
