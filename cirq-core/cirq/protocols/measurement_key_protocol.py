@@ -168,36 +168,39 @@ def _is_any_measurement(
 
     If `allow_decompose` is True, decomposes the objects and runs the measurement checks on the
     constituent decomposed operations. But a decompose operation is only called if all cheaper
-    checks are done.
+    checks are done. A BFS for searching measurements, where "depth" is each level of decompose.
     """
-    if not vals:
-        if not vals_to_decompose:
-            # Nothing left to process, this is not a measurement.
-            return False
-        # If vals is iterated over, decompose one of the to-decompose objects and run it as vals.
-        operations, _, _ = _try_decompose_into_operations_and_qubits(vals_to_decompose.pop(0))
-        # Reverse the decomposed operations because measurements are typically at later moments.
-        return _is_any_measurement(
-            [] if operations is None else operations[::-1], vals_to_decompose, allow_decompose
-        )
+    while vals:
+        val = vals.pop(0)
+        result = _is_measurement_from_magic_method(val)
+        if result is not NotImplemented:
+            if result is True:
+                return True
+            if result is False:
+                # Do not try any other strategies if `val` was explicitly marked as
+                # "not measurement".
+                continue
 
-    val = vals.pop(0)
-    result = _is_measurement_from_magic_method(val)
-    if result is not NotImplemented:
-        if result is True:
+        keys = _measurement_keys_from_magic_methods(val)
+        if keys is not NotImplemented and bool(keys) is True:
             return True
-        if result is False:
-            # Do not try any other strategies if `val` was explicitly marked as "not measurement".
-            return _is_any_measurement(vals, vals_to_decompose, allow_decompose)
 
-    keys = _measurement_keys_from_magic_methods(val)
-    if keys is not NotImplemented and bool(keys) is True:
-        return True
+        if allow_decompose:
+            vals_to_decompose.append(val)
 
-    if allow_decompose:
-        vals_to_decompose.append(val)
+        # If vals has finished iterating over, keep decomposing from vals_to_decompose until vals
+        # is populated with something.
+        while not vals:
+            if not vals_to_decompose:
+                # Nothing left to process, this is not a measurement.
+                return False
+            operations, _, _ = _try_decompose_into_operations_and_qubits(vals_to_decompose.pop(0))
+            if operations:
+                # Reverse the decomposed operations because measurements are typically at later
+                # moments.
+                vals = operations[::-1]
 
-    return _is_any_measurement(vals, vals_to_decompose, allow_decompose)
+    return False
 
 
 def is_measurement(val: Any, allow_decompose: bool = True) -> bool:
