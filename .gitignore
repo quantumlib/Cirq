@@ -57,3 +57,4 @@ node_modules/
 exports.sh
 dist/
 build/
+webpack3.config.js

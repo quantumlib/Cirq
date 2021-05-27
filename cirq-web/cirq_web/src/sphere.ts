@@ -16,7 +16,7 @@ export function showSphere(circleData: string) {
   scene.add(object);
 
   // Add axes to the sphere
-  const axesHelper = new AxesHelper(3);
+  const axesHelper = new AxesHelper(4);
   scene.add(axesHelper);
 }
 
@@ -31,7 +31,7 @@ export function addVector(vectorData: string) {
   // Set base properties of the vector
   const origin = new Vector3(0, 0, 0);
   const length = inputData.v_length;
-  const hex = 0x00ff00;
+  const hex = '#800080';
   const headWidth = 1;
 
   // Create the arrow representation of the vector and add it to the scene

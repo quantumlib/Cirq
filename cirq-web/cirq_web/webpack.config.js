@@ -7,10 +7,8 @@ const path = require('path');
 module.exports = {
   entry: './src/sphere.ts',
   devServer: {
-    publicPath: '/',
-    contentBase: './dist', // Serves static files from the /dist directory
-    //TODO: investigate dev-server version based on https://github.com/webpack/webpack-dev-server/issues/2484
-    injectClient: false,
+    static: path.join(__dirname, 'dist'),
+    public: 'localhost:8080'
   },
   module: {
     rules: [
@@ -28,9 +26,9 @@ module.exports = {
     filename: 'bundle.js',
     library: {
       name: 'createSphere',
-      type: 'var',
+      type: 'var'
     },
     path: path.resolve(__dirname, 'dist'),
-    publicPath: './dist',
+    publicPath: "/"
   },
 };
