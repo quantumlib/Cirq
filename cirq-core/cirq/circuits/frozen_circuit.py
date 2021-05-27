@@ -136,6 +136,9 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
 
     # End of memoized methods.
 
+    def _is_measurement_(self) -> bool:
+        return self.has_measurements()
+
     def __add__(self, other) -> 'FrozenCircuit':
         return (self.unfreeze() + other).freeze()
 

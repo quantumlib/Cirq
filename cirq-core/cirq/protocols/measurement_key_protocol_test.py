@@ -22,11 +22,23 @@ def test_measurement_key():
         def _measurement_key_(self):
             return 'door locker'
 
+    assert cirq.is_measurement(ReturnsStr())
     assert cirq.measurement_key(ReturnsStr()) == 'door locker'
 
     assert cirq.measurement_key(ReturnsStr(), None) == 'door locker'
     assert cirq.measurement_key(ReturnsStr(), NotImplemented) == 'door locker'
     assert cirq.measurement_key(ReturnsStr(), 'a') == 'door locker'
+
+
+def test_measurement_without_key():
+    class MeasurementWithoutKey:
+        def _is_measurement_(self):
+            return True
+
+    with pytest.raises(TypeError, match='no measurement keys'):
+        _ = cirq.measurement_key(MeasurementWithoutKey())
+
+    assert cirq.is_measurement(MeasurementWithoutKey())
 
 
 def test_measurement_key_no_method():
@@ -102,8 +114,10 @@ def test_measurement_keys():
             return 1
 
     a, b = cirq.LineQubit.range(2)
+    assert cirq.is_measurement(Composite())
     assert cirq.measurement_keys(Composite()) == {'inner1', 'inner2'}
     assert cirq.measurement_keys(Composite().on(a, b)) == {'inner1', 'inner2'}
+    assert not cirq.is_measurement(Composite(), allow_decompose=False)
     assert cirq.measurement_keys(Composite(), allow_decompose=False) == set()
     assert cirq.measurement_keys(Composite().on(a, b), allow_decompose=False) == set()
 
