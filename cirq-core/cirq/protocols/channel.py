@@ -135,10 +135,10 @@ def channel(
             method returned NotImplemented) and also no default value was
             specified.
     """
-    channel_getter = getattr(val, '_kraus_', None)
-    channel_result = NotImplemented if channel_getter is None else channel_getter()
-    if channel_result is not NotImplemented:
-        return tuple(channel_result)
+    kraus_getter = getattr(val, '_kraus_', None)
+    kraus_result = NotImplemented if kraus_getter is None else kraus_getter()
+    if kraus_result is not NotImplemented:
+        return tuple(kraus_result)
 
     mixture_getter = getattr(val, '_mixture_', None)
     mixture_result = NotImplemented if mixture_getter is None else mixture_getter()
@@ -153,7 +153,7 @@ def channel(
     if default is not RaiseTypeErrorIfNotProvided:
         return default
 
-    if channel_getter is None and unitary_getter is None and mixture_getter is None:
+    if kraus_getter is None and unitary_getter is None and mixture_getter is None:
         raise TypeError(
             "object of type '{}' has no _kraus_ or _mixture_ or "
             "_unitary_ method.".format(type(val))
@@ -187,8 +187,8 @@ def has_channel(val: Any, *, allow_decompose: bool = True) -> bool:
         has a non-default value. Returns False if none of these functions
         exists.
     """
-    channel_getter = getattr(val, '_has_kraus_', None)
-    result = NotImplemented if channel_getter is None else channel_getter()
+    kraus_getter = getattr(val, '_has_kraus_', None)
+    result = NotImplemented if kraus_getter is None else kraus_getter()
 
     if result is not NotImplemented:
         return result
