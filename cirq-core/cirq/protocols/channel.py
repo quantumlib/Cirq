@@ -15,7 +15,7 @@
 """Protocol and methods for quantum channels."""
 
 from typing import Any, Sequence, Tuple, TypeVar, Union
-
+import warnings
 
 import numpy as np
 from typing_extensions import Protocol
@@ -135,6 +135,13 @@ def channel(
             method returned NotImplemented) and also no default value was
             specified.
     """
+    channel_getter = getattr(val, '_channel_', None)
+    if channel_getter is not None:
+        warnings.warn(
+            '_channel_ is deprecated and will be removed in cirq 0.13, rename to _kraus_',
+            DeprecationWarning,
+        )
+
     kraus_getter = getattr(val, '_kraus_', None)
     kraus_result = NotImplemented if kraus_getter is None else kraus_getter()
     if kraus_result is not NotImplemented:
@@ -150,6 +157,10 @@ def channel(
     if unitary_result is not NotImplemented and unitary_result is not None:
         return (unitary_result,)
 
+    channel_result = NotImplemented if channel_getter is None else channel_getter()
+    if channel_result is not NotImplemented:
+        return tuple(channel_result)
+
     if default is not RaiseTypeErrorIfNotProvided:
         return default
 
@@ -158,6 +169,7 @@ def channel(
             "object of type '{}' has no _kraus_ or _mixture_ or "
             "_unitary_ method.".format(type(val))
         )
+
     raise TypeError(
         "object of type '{}' does have a _kraus_, _mixture_ or "
         "_unitary_ method, but it returned NotImplemented.".format(type(val))
@@ -187,14 +199,24 @@ def has_channel(val: Any, *, allow_decompose: bool = True) -> bool:
         has a non-default value. Returns False if none of these functions
         exists.
     """
+    channel_getter = getattr(val, '_has_channel_', None)
+    if channel_getter is not None:
+        warnings.warn(
+            '_has_channel_ is deprecated and will be removed in cirq 0.13, rename to _has_kraus_',
+            DeprecationWarning,
+        )
+
     kraus_getter = getattr(val, '_has_kraus_', None)
     result = NotImplemented if kraus_getter is None else kraus_getter()
-
     if result is not NotImplemented:
         return result
 
     result = has_mixture(val, allow_decompose=False)
     if result is not NotImplemented and result:
+        return result
+
+    result = NotImplemented if channel_getter is None else channel_getter()
+    if result is not NotImplemented:
         return result
 
     if allow_decompose:
