@@ -26,9 +26,4 @@ REQS="-r dev_tools/requirements/pytest-minimal.env.txt"
 changed=$(git diff --name-only origin/master | grep "cirq/contrib" || true)
 [ "${changed}" = "" ] || REQS="$REQS -r cirq-core/cirq/contrib/requirements.txt"
 
-# Install cirq-google requirements only if needed.
-changed=$(git diff --name-only origin/master | grep "cirq-google/cirq_google" || true)
-[ "${changed}" = "" ] || REQS="$REQS -r cirq-google/requirements.txt"
-
-
 pip install $REQS
