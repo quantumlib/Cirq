@@ -30,6 +30,17 @@ def test_measurement_key():
     assert cirq.measurement_key(ReturnsStr(), 'a') == 'door locker'
 
 
+def test_measurement_without_key():
+    class MeasurementWithoutKey:
+        def _is_measurement_(self):
+            return True
+
+    with pytest.raises(TypeError, match='no measurement keys'):
+        _ = cirq.measurement_key(MeasurementWithoutKey())
+
+    assert cirq.is_measurement(MeasurementWithoutKey())
+
+
 def test_measurement_key_no_method():
     class NoMethod:
         pass
