@@ -1176,9 +1176,6 @@ class AbstractCircuit(abc.ABC):
 
         return diagram
 
-    def _is_measurement_(self) -> bool:
-        return self.has_measurements()
-
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(op) for op in self.all_operations())
 
