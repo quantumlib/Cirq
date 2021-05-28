@@ -25,10 +25,8 @@ jobs:
         with:
           python-version: '3.7'
           architecture: 'x64'
-      - name: Install flynt
-        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep flynt | xargs pip install
-      - name: Install black
-        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep black | xargs pip install
+      - name: Install dependencies
+        run: pip install -r dev_tools/requirements/deps/format.txt
       - name: Format
         run: check/format-incremental
   mypy:
@@ -41,9 +39,7 @@ jobs:
           python-version: '3.7'
           architecture: 'x64'
       - name: Install mypy
-        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
-      - name: Install dependencies
-        run: pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt
+        run: pip install -r dev_tools/requirements/mypy.env.txt
       - name: Type check
         run: check/mypy
   mypy-next:
@@ -56,9 +52,7 @@ jobs:
           python-version: '3.7'
           architecture: 'x64'
       - name: Install mypy
-        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
-      - name: Install dependencies
-        run: pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt
+        run: pip install -r dev_tools/requirements/mypy.env.txt
       - name: Type check (for logging only)
         run: check/mypy --next || true
   changed_files:
@@ -86,7 +80,7 @@ jobs:
           python-version: '3.7'
           architecture: 'x64'
       - name: Install pylint
-        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint" | grep -v "#" | xargs pip install
+        run: pip install -r dev_tools/requirements/deps/pylint.txt
       - name: Display version
         run: check/pylint --version
       - name: Lint
@@ -101,7 +95,7 @@ jobs:
           python-version: '3.7'
           architecture: 'x64'
       - name: Install requirements
-        run: pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt -r cirq-core/cirq/contrib/contrib-requirements.txt -r dev_tools/conf/pip-list-dev-tools.txt
+        run: pip install -r dev_tools/requirements/dev.env.txt
       - name: RST check
         run: find . -type f -name "*.rst" | xargs rstcheck --report warning --ignore-directives autoclass,automodule
       - name: Doc check
@@ -127,11 +121,7 @@ jobs:
           python-version: '3.8'
           architecture: 'x64'
       - name: Install requirements
-        run: |
-          pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt
-          pip install -r dev_tools/conf/pip-list-dev-tools.txt
-          # TODO: move to requirements.txt after #3704
-          pip install codeowners==0.1.2 # linux only package
+        run: pip install -r dev_tools/requirements/cirq-only.env.txt
       - name: Pytest check
         run: check/pytest --cirq-only --ignore=cirq-core/cirq/contrib --actually-quiet
   pytest:
@@ -152,10 +142,7 @@ jobs:
         run: pip install pip==20.2
       - name: Install requirements
         run: |
-          pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt
-          pip install -r dev_tools/conf/pip-list-dev-tools.txt
-          # TODO: move to requirements.txt after #3704
-          pip install codeowners==0.1.2 # linux only package
+          pip install -r dev_tools/requirements/dev.env.txt
       - name: Pytest check
         run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
   build_docs:
@@ -185,7 +172,7 @@ jobs:
           architecture: 'x64'
       - name: Install requirements
         run: |
-          python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
+          pip install -r dev_tools/requirements/deps/protos.txt
           wget https://github.com/bazelbuild/bazel/releases/download/0.26.0/bazel_0.26.0-linux-x86_64.deb
           sudo dpkg -i bazel_0.26.0-linux-x86_64.deb
       - name: Build protos
@@ -202,10 +189,7 @@ jobs:
           python-version: '3.7'
           architecture: 'x64'
       - name: Install requirements
-        run: |
-          pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt
-          pip install -r cirq-core/cirq/contrib/contrib-requirements.txt
-          pip install -r dev_tools/conf/pip-list-dev-tools.txt
+        run: pip install -r dev_tools/requirements/dev.env.txt
       - name: Coverage check
         run: check/pytest-and-incremental-coverage --actually-quiet
   windows:
@@ -221,9 +205,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
       - name: Install requirements
-        run: |
-          pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt
-          pip install -r dev_tools/conf/pip-list-dev-tools.txt
+        run: pip install -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest Windows
         run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
         shell: bash
@@ -240,9 +222,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
       - name: Install requirements
-        run: |
-          pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt
-          pip install -r dev_tools/conf/pip-list-dev-tools.txt
+        run: pip install -r dev_tools/requirements/no-contrib.env.txt
       - name: Pytest check
         run: check/pytest --ignore=cirq-core/cirq/contrib
   notebooks-stable:
@@ -257,7 +237,7 @@ jobs:
           python-version: '3.7'
           architecture: 'x64'
       - name: Install requirements
-        run: pip install -r dev_tools/notebooks/requirements-isolated-notebook-tests.txt
+        run: pip install -r dev_tools/requirements/isolated-notebooks.env.txt
       - name: Notebook tests
         run: check/pytest -n auto -m slow dev_tools/notebooks/isolated_notebook_test.py
       - uses: actions/upload-artifact@v2
@@ -275,7 +255,7 @@ jobs:
           python-version: '3.7'
           architecture: 'x64'
       - name: Install requirements
-        run: pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt -r cirq-core/cirq/contrib/contrib-requirements.txt -r dev_tools/notebooks/requirements-notebook-tests.txt
+        run: pip install -r dev_tools/requirements/notebooks.env.txt
       - name: Notebook tests
         run: check/pytest -n auto -m slow dev_tools/notebooks/notebook_test.py
       - uses: actions/upload-artifact@v2
