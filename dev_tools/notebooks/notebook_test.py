@@ -60,7 +60,7 @@ def test_notebooks_against_released_cirq(notebook_path):
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
     rewritten_notebook_descriptor, rewritten_notebook_path = rewrite_notebook(notebook_path)
     cmd = f"""mkdir -p out/{notebook_rel_dir}
-papermill {rewritten_notebook_path} {out_path}"""
+papermill {rewritten_notebook_path} {out_path} --no-request-save-on-cell-execute --autosave-cell-every 0"""
 
     _, stderr, status = shell_tools.run_shell(
         cmd=cmd,
