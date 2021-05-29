@@ -459,7 +459,7 @@ def test_commutes_pauli(gate, pauli, half_turns):
         gate(q0),
     ).unitary()
     commutes = cirq.commutes(gate, pauli_gate)
-    commutes_check = cirq.allclose_up_to_global_phase(mat, mat_swap)
+    commutes_check = np.allclose(mat, mat_swap)
     assert commutes == commutes_check
 
 
