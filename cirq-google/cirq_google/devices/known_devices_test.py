@@ -483,6 +483,40 @@ def test_sycamore_devices(device):
     assert device.duration_of(sqrt_iswap) == cirq.Duration(nanos=32)
 
 
+def test_sycamore_circuitop_device():
+    circuitop_gateset = cirq.google.serializable_gate_set.SerializableGateSet(
+        gate_set_name='circuitop_gateset',
+        serializers=[cgc.CIRCUIT_OP_SERIALIZER],
+        deserializers=[cgc.CIRCUIT_OP_DESERIALIZER],
+    )
+    gateset_list = [
+        cirq.google.gate_sets.SQRT_ISWAP_GATESET,
+        cirq.google.gate_sets.SYC_GATESET,
+        circuitop_gateset,
+    ]
+    circuitop_proto = cirq.google.devices.known_devices.create_device_proto_from_diagram(
+        known_devices._SYCAMORE23_GRID,
+        gateset_list,
+        known_devices._SYCAMORE_DURATIONS_PICOS,
+    )
+    device = cirq.google.SerializableDevice.from_proto(
+        proto=circuitop_proto,
+        gate_sets=gateset_list,
+    )
+    q0 = cirq.GridQubit(5, 3)
+    q1 = cirq.GridQubit(5, 4)
+    syc = cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6)(q0, q1)
+    sqrt_iswap = cirq.FSimGate(theta=np.pi / 4, phi=0)(q0, q1)
+    circuit_op = cirq.CircuitOperation(cirq.FrozenCircuit(syc, sqrt_iswap))
+    device.validate_operation(syc)
+    device.validate_operation(sqrt_iswap)
+    device.validate_operation(circuit_op)
+    assert device.duration_of(syc) == cirq.Duration(nanos=12)
+    assert device.duration_of(sqrt_iswap) == cirq.Duration(nanos=32)
+    # CircuitOperations don't have a set duration.
+    assert device.duration_of(circuit_op) == cirq.Duration(nanos=0)
+
+
 def test_sycamore_grid_layout():
     # Qubits on Sycamore but not on Sycamore23
     q0 = cirq.GridQubit(5, 5)
@@ -496,6 +530,58 @@ def test_sycamore_grid_layout():
         cirq_google.Sycamore23.validate_operation(syc)
     with pytest.raises(ValueError):
         cirq_google.Sycamore23.validate_operation(sqrt_iswap)
+
+
+def test_proto_with_circuitop():
+    circuitop_gateset = cirq.google.serializable_gate_set.SerializableGateSet(
+        gate_set_name='circuitop_gateset',
+        serializers=[cgc.CIRCUIT_OP_SERIALIZER],
+        deserializers=[cgc.CIRCUIT_OP_DESERIALIZER],
+    )
+    circuitop_proto = cirq.google.devices.known_devices.create_device_proto_from_diagram(
+        "aa\naa",
+        [circuitop_gateset],
+    )
+
+    assert (
+        str(circuitop_proto)
+        == """\
+valid_gate_sets {
+  name: "circuitop_gateset"
+  valid_gates {
+    id: "circuit"
+  }
+}
+valid_qubits: "0_0"
+valid_qubits: "0_1"
+valid_qubits: "1_0"
+valid_qubits: "1_1"
+valid_targets {
+  name: "meas_targets"
+  target_ordering: SUBSET_PERMUTATION
+}
+valid_targets {
+  name: "2_qubit_targets"
+  target_ordering: SYMMETRIC
+  targets {
+    ids: "0_0"
+    ids: "0_1"
+  }
+  targets {
+    ids: "0_0"
+    ids: "1_0"
+  }
+  targets {
+    ids: "0_1"
+    ids: "1_1"
+  }
+  targets {
+    ids: "1_0"
+    ids: "1_1"
+  }
+}
+"""
+    )
 
 
 def test_proto_with_waitgate():

@@ -18,6 +18,9 @@ from setuptools import find_packages, setup
 
 # This reads the __version__ variable from cirq/_version.py
 __version__ = ''
+
+from dev_tools.requirements import explode
+
 exec(open('cirq-core/cirq/_version.py').read())
 
 name = 'cirq'
@@ -49,7 +52,7 @@ assert __version__, 'Version string cannot be empty'
 # This is a pure metapackage that installs all our packages
 requirements = [f'{p}=={__version__}' for p in ['cirq-core', 'cirq-google']]
 
-dev_requirements = open('dev_tools/conf/pip-list-dev-tools.txt').readlines()
+dev_requirements = explode('dev_tools/requirements/deps/dev-tools.txt')
 dev_requirements = [r.strip() for r in dev_requirements]
 
 setup(
