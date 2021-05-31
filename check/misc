@@ -12,7 +12,7 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 cd "$(git rev-parse --show-toplevel)"
 
 # Check for non-contrib references to contrib.
-results=$(grep -Rl "\bcirq\.contrib\b" cirq | grep -v "cirq/contrib" | grep -v "__")
+results=$(grep -Rl "\bcirq\.contrib\b" cirq-core | grep -v "cirq/contrib" | grep -v "__")
 RESULT=$?
 if [ $RESULT -eq 0 ]; then
   echo -e "\033[31m'cirq.contrib' mentioned in non-contrib files:\033[0m"

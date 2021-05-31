@@ -169,20 +169,20 @@ class SerializableDevice(devices.Device):
         # Loop through serializers and map gate_definitions to type
         gates_by_type: Dict[Type['cirq.Gate'], List[_GateDefinition]] = {}
         for gate_set in gate_sets:
-            for gate_type in gate_set.supported_gate_types():
-                for serializer in gate_set.serializers[gate_type]:
-                    gate_id = serializer.serialized_gate_id
-                    if gate_id not in gate_definitions:
+            for internal_type in gate_set.supported_internal_types():
+                for serializer in gate_set.serializers[internal_type]:
+                    serialized_id = serializer.serialized_id
+                    if serialized_id not in gate_definitions:
                         raise ValueError(
-                            f'Serializer has {gate_id} which is not supported '
+                            f'Serializer has {serialized_id} which is not supported '
                             'by the device specification'
                         )
-                    if gate_type not in gates_by_type:
-                        gates_by_type[gate_type] = []
-                    gate_def = gate_definitions[gate_id].with_can_serialize_predicate(
+                    if internal_type not in gates_by_type:
+                        gates_by_type[internal_type] = []
+                    gate_def = gate_definitions[serialized_id].with_can_serialize_predicate(
                         serializer.can_serialize_predicate
                     )
-                    gates_by_type[gate_type].append(gate_def)
+                    gates_by_type[internal_type].append(gate_def)
 
         return SerializableDevice(
             qubits=[cls._qid_from_str(q) for q in proto.valid_qubits],
@@ -264,6 +264,12 @@ class SerializableDevice(devices.Device):
              the value corresponding to that key or None if no type matches
         """
         for type_key, gate_defs in self.gate_definitions.items():
+            if type_key == circuits.FrozenCircuit and isinstance(
+                op.untagged, circuits.CircuitOperation
+            ):
+                for gate_def in gate_defs:
+                    if gate_def.can_serialize_predicate(op):
+                        return gate_def
             if isinstance(op.gate, type_key):
                 for gate_def in gate_defs:
                     if gate_def.can_serialize_predicate(op):

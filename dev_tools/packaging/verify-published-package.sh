@@ -75,7 +75,7 @@ for PYTHON_VERSION in python3; do
     CORE_DEPS_FILE="${REPO_ROOT}/cirq-core/requirements.txt"
     GOOGLE_DEPS_FILE="${REPO_ROOT}/cirq-google/requirements.txt"
     CONTRIB_DEPS_FILE="${REPO_ROOT}/cirq-core/cirq/contrib/contrib-requirements.txt"
-    DEV_DEPS_FILE="${REPO_ROOT}/dev_tools/conf/pip-list-dev-tools.txt"
+    DEV_DEPS_FILE="${REPO_ROOT}/dev_tools/requirements/deps/dev-tools.txt"
 
     echo -e "\n\033[32m${PYTHON_VERSION}\033[0m"
     echo "Working in a fresh virtualenv at ${tmp_dir}/${PYTHON_VERSION}"
