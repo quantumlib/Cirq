@@ -1,0 +1,5 @@
+ a_dependency==0.2.3
+# this one has spaces in front and at the end accidentally
+ -r b.req.txt
+
+-r sub/c.req.txt

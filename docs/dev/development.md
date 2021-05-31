@@ -104,9 +104,8 @@ See the previous section for instructions.
     ```bash
     mkvirtualenv cirq-py3 --python=/usr/bin/python3
     workon cirq-py3
-    python -m pip install --upgrade pip
-    python -m pip install -e .[dev_env]
-    python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    python -m pip install --upgrade pip    
+    python -m pip install -r dev_tools/requirements/dev.env.txt
     ```
 
     (When you later open another terminal, you can activate the virtualenv with `workon cirq-py3`.)
@@ -303,6 +302,30 @@ dev_tools/docs/build-rtd-docs.sh
 
 The HTML output will go into the `dev_tools/rtd_docs/sphinx/_build` directory.
 
+## Dependencies 
+
+### Production dependencies 
+
+Cirq follows a modular design. Each module should specify their dependencies within their folder. See for example cirq-core/requirements.txt and cirq-google/requirements.txt.
+In general we should try to keep dependencies as minimal as possible and if we have to add them, keep them as relaxed as possible instead of pinning to exact versions. If exact versions or constraints are known, those should be documented in form of a comment. 
+
+### Development dependencies 
+
+For local development: 
+
+For a development environment there is a single file that installs all the module dependencies and all of the dev tools as well: dev_tools/requirements/dev.env.txt.
+If this is too heavy weight for you, you can instead use dev_tools/requirements/deps/dev-tools.txt and the given module dependencies. 
+
+For continuous integration: 
+
+Each job might need different set of requirements and it would be inefficient to install a full blown dev env for every tiny job (e.g. mypy check). 
+Instead in dev_tools/requirements create a separate <job>.env.txt and include the necessary tools in there. Requirements files can include each other, which is heavily leveraged in our requirements files in order to remove duplication.   
+
+You can call the following utility to unroll the content of a file: 
+
+```
+python dev_tools/requirements/reqs.py dev_tools/requirements/dev.env.txt 
+```
 
 ## Producing a pypi package
 

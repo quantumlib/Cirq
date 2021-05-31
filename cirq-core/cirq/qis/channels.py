@@ -30,5 +30,22 @@ def kraus_to_choi(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
 
 
 def operation_to_choi(operation: 'protocols.SupportsChannel') -> np.ndarray:
-    """Returns the unique Choi matrix associated with a superoperator."""
+    r"""Returns the unique Choi matrix associated with a superoperator.
+
+    Choi matrix J(E) of a linear map E: L(H1) -> L(H2) which takes linear operators
+    on Hilbert space H1 to linear operators on Hilbert space H2 is defined as
+
+        $$
+        J(E) = (E \otimes I)(|\phi\rangle\langle\phi|)
+        $$
+
+    where $|\phi\rangle = \sum_i|i\rangle|i\rangle$ is the unnormalized maximally
+    entangled state and I: L(H1) -> L(H1) is the identity map. Note that J(E) is
+    a square matrix with d1*d2 rows and columns where d1 = dim H1 and d2 = dim H2.
+
+    Args:
+        operation: Quantum channel.
+    Returns:
+        Choi matrix corresponding to operation.
+    """
     return kraus_to_choi(protocols.channel(operation))

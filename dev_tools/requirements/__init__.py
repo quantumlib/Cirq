@@ -1,6 +1,4 @@
-#!/usr/bin/env bash
-
-# Copyright 2018 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,16 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
-
-# Get the working directory to the repo root.
-cd "$( dirname "${BASH_SOURCE[0]}" )"
-cd "$(git rev-parse --show-toplevel)"
-
-REQS="-r dev_tools/requirements/pytest-minimal.env.txt"
-
-# Install contrib requirements only if needed.
-changed=$(git diff --name-only origin/master | grep "cirq/contrib" || true)
-[ "${changed}" = "" ] || REQS="$REQS -r cirq-core/cirq/contrib/requirements.txt"
-
-pip install $REQS
+from dev_tools.requirements.reqs import explode
