@@ -170,7 +170,7 @@ def _list_moment_pairs_to_characterize(
     canonicalize_pairs: bool,
     permit_mixed_moments: bool,
     sort_pairs: bool,
-) -> Optional[Tuple[Tuple[Tuple[Qid, Qid]], Gate]]:
+) -> Optional[Tuple[Tuple[Tuple[Qid, Qid], ...], Gate]]:
     """Helper function to describe a given moment in terms of a characterization request.
 
     Args:
