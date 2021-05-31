@@ -436,9 +436,11 @@ def test_tagged_operation():
 def test_tagged_measurement():
     a = cirq.LineQubit(0)
     op = cirq.measure(a, key='m').with_tags('tag')
+    assert cirq.is_measurement(op)
 
     remap_op = cirq.with_measurement_key_mapping(op, {'m': 'k'})
     assert remap_op.tags == ('tag',)
+    assert cirq.is_measurement(remap_op)
     assert cirq.measurement_keys(remap_op) == {'k'}
     assert cirq.with_measurement_key_mapping(op, {'x': 'k'}) == op
 
