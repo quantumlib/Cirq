@@ -239,6 +239,45 @@ def _list_moment_pairs_to_characterize(
     return pairs_tuple, gate
 
 
+def _match_circuit_moments_with_characterizations(
+    circuit: Union[Circuit, CircuitWithCalibration],
+    characterizations: List[PhasedFSimCalibrationResult],
+    gates_translator: Callable[[Gate], Optional[PhaseCalibratedFSimGate]],
+    merge_subsets: bool,
+):
+    characterized_gate_and_pairs = [
+        (characterization.gate, set(characterization.parameters.keys()))
+        for characterization in characterizations
+    ]
+
+    moment_to_calibration = []
+    for moment in circuit:
+        pairs_and_gate = _list_moment_pairs_to_characterize(
+            moment,
+            gates_translator,
+            canonicalize_pairs=True,
+            permit_mixed_moments=False,
+            sort_pairs=True,
+        )
+        if pairs_and_gate is None:
+            moment_to_calibration.append(None)
+
+        moment_pairs, moment_gate = pairs_and_gate
+        for index, (gate, pairs) in enumerate(characterized_gate_and_pairs):
+            if gate == moment_gate and (
+                pairs.issuperset(moment_pairs) if merge_subsets else pairs == set(moment_pairs)
+            ):
+                moment_to_calibration.append(index)
+                break
+        else:
+            raise ValueError(
+                f'Moment {repr(moment)} of a given circuit is not compatible with any of the '
+                f'characterizations'
+            )
+
+    return CircuitWithCalibration(circuit, moment_to_calibration)
+
+
 def prepare_characterization_for_moments(
     circuit: Circuit,
     options: PhasedFSimCalibrationOptions[RequestT],
@@ -834,10 +873,9 @@ def make_zeta_chi_gamma_compensation_for_moments(
     Args:
         circuit: Circuit to compensate or instance of CircuitWithCalibration (likely returned from
             prepare_characterization_for_moments) whose mapping argument corresponds to the results
-            in the characterizations argument. If circuit is passed the method will attempt to
-            match the circuit against a given characterizations. This step is not computationally
-            efficient and can be avoided by passing the pre-calculated instance of
-            CircuitWithCalibration.
+            in the characterizations argument. If circuit is passed then the method will attempt to
+            match the circuit against a given characterizations. This step is can be skipped by
+            passing the pre-calculated instance of CircuitWithCalibration.
         characterizations: List of characterization results (likely returned from run_calibrations).
             This should correspond to the circuit and mapping in the circuit_with_calibration
             argument.
@@ -855,37 +893,9 @@ def make_zeta_chi_gamma_compensation_for_moments(
     """
 
     if isinstance(circuit, Circuit):
-        characterized_gate_and_pairs = [
-            (characterization.gate, set(characterization.parameters.keys()))
-            for characterization in characterizations
-        ]
-
-        moment_to_calibration = []
-        for moment in circuit:
-            pairs_and_gate = _list_moment_pairs_to_characterize(
-                moment,
-                gates_translator,
-                canonicalize_pairs=True,
-                permit_mixed_moments=False,
-                sort_pairs=True,
-            )
-            if pairs_and_gate is None:
-                moment_to_calibration.append(None)
-
-            moment_pairs, moment_gate = pairs_and_gate
-            for index, (gate, pairs) in enumerate(characterized_gate_and_pairs):
-                if gate == moment_gate and (
-                    pairs.issuperset(moment_pairs) if merge_subsets else pairs == set(moment_pairs)
-                ):
-                    moment_to_calibration.append(index)
-                    break
-            else:
-                raise ValueError(
-                    f'Moment {repr(moment)} of a given circuit is not compatible with any of the '
-                    f'characterizations'
-                )
-
-        circuit_with_calibration = CircuitWithCalibration(circuit, moment_to_calibration)
+        circuit_with_calibration = _match_circuit_moments_with_characterizations(
+            circuit, characterizations, gates_translator, merge_subsets
+        )
     else:
         circuit_with_calibration = circuit
 
