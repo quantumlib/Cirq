@@ -240,7 +240,7 @@ def _list_moment_pairs_to_characterize(
 
 
 def _match_circuit_moments_with_characterizations(
-    circuit: Union[Circuit, CircuitWithCalibration],
+    circuit: Circuit,
     characterizations: List[PhasedFSimCalibrationResult],
     gates_translator: Callable[[Gate], Optional[PhaseCalibratedFSimGate]],
     merge_subsets: bool,
@@ -250,7 +250,7 @@ def _match_circuit_moments_with_characterizations(
         for characterization in characterizations
     ]
 
-    moment_to_calibration = []
+    moment_to_calibration: List[Optional[int]] = []
     for moment in circuit:
         pairs_and_gate = _list_moment_pairs_to_characterize(
             moment,
@@ -261,6 +261,7 @@ def _match_circuit_moments_with_characterizations(
         )
         if pairs_and_gate is None:
             moment_to_calibration.append(None)
+            continue
 
         moment_pairs, moment_gate = pairs_and_gate
         for index, (gate, pairs) in enumerate(characterized_gate_and_pairs):
@@ -610,7 +611,7 @@ def _extract_all_pairs_to_characterize(
         present the gate is None.
     """
 
-    all_pairs = set()
+    all_pairs: Set[Tuple[cirq.Qid, cirq.Qid]] = set()
     common_gate = None
     for circuit in circuits:
         for moment in circuit:
