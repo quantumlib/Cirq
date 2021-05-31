@@ -1263,15 +1263,18 @@ def test_make_zeta_chi_gamma_compensation_for_moments_circuit():
         )
     ]
 
-    for circuit in [
-        cirq.Circuit(cirq.FSimGate(theta=np.pi / 4, phi=0.0).on(a, b)),
-        cirq.Circuit(cirq.FSimGate(theta=-np.pi / 4, phi=0.0).on(a, b)),
+    for circuit, expected_moment_to_calibration in [
+        (cirq.Circuit(cirq.FSimGate(theta=np.pi / 4, phi=0.0).on(a, b)), [None, 0, None]),
+        (
+            cirq.Circuit([cirq.Z.on(a), cirq.FSimGate(theta=-np.pi / 4, phi=0.0).on(a, b)]),
+            [None, None, 0, None],
+        ),
     ]:
         calibrated_circuit = workflow.make_zeta_chi_gamma_compensation_for_moments(
             circuit, characterizations
         )
         assert np.allclose(cirq.unitary(circuit), cirq.unitary(calibrated_circuit.circuit))
-        assert calibrated_circuit.moment_to_calibration == [None, 0, None]
+        assert calibrated_circuit.moment_to_calibration == expected_moment_to_calibration
 
 
 def test_zmake_zeta_chi_gamma_compensation_for_moments_invalid_argument_fails() -> None:
