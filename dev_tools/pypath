@@ -12,10 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#####
+# The main file to use to setup your PYTHONPATH. It sets up all cirq modules on the path.
+# Usage:
+#   source dev_tools/pypath
+#####
+
+
 #!/usr/bin/bash
 
-PREFIX="$(pwd)"
-PREFIX="$PREFIX:$(pwd)/cirq-core"
-PREFIX="$PREFIX:$(pwd)/cirq-google"
+PREFIX=""
+CIRQ_MODULES=$(env PYTHONPATH=. python dev_tools/monorepo.py list --mode folder --include-cirq true)
+for m in modules; do
+    PREFIX="$PREFIX:$(pwd)/$m"
 
 [[ $PYTHONPATH == ${PREFIX}* ]] || export PYTHONPATH="$PREFIX:$PYTHONPATH"

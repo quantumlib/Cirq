@@ -107,6 +107,7 @@ Bump the version on the release branch:
 ```bash
 vi ./cirq-core/cirq/_version.py   # Remove .dev from version
 vi ./cirq-google/cirq_google/_version.py  # Remove .dev from version   
+vi ./cirq-aqt/cirq_aqt/_version.py  # Remove .dev from version   
 git add ./cirq-core/cirq/_version.py ./cirq-google/cirq_google/_version.py
 git commit -m "Bump cirq version to ${NEXT_VER}"
 git push origin "v${VER}-dev"

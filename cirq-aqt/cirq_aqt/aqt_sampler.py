@@ -31,7 +31,7 @@ import numpy as np
 from requests import put
 from cirq import circuits, Sampler, resolve_parameters, LineQubit
 from cirq.study.sweeps import Sweep
-from cirq.aqt.aqt_device import AQTSimulator, get_op_string
+from cirq_aqt.aqt_device import AQTSimulator, get_op_string
 from cirq import study, ops, IonDevice
 
 if TYPE_CHECKING:
