@@ -134,7 +134,7 @@ def main(argv: List[str]):
 
 
 def parse(args):
-    parser = argparse.ArgumentParser('Monorepo utility.')
+    parser = argparse.ArgumentParser('A utility for modules.')
     subparsers = parser.add_subparsers(
         title='subcommands', description='valid subcommands', help='additional help'
     )
