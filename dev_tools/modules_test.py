@@ -105,7 +105,9 @@ def chdir(*, target_dir: str = None):
 def test_main():
     with mock.patch('sys.stdout', new=StringIO()) as output:
         modules.main(["list", "--mode", "package-path"])
-        assert output.getvalue() == '\n'.join(["mod1/pack1", "mod2/pack2", ""])
+        assert output.getvalue() == '\n'.join([os.path.join("mod1","pack1"),
+                                               os.path.join("mod2","pack2"),
+                                               ""])
 
     with mock.patch('sys.stdout', new=StringIO()) as output:
         modules.main(["list", "--mode", "folder", "--include-parent"])
