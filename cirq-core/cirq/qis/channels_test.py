@@ -61,15 +61,7 @@ def compute_channel_matrix(channel: cirq.SupportsChannel) -> np.ndarray:
     'kraus_operators, expected_choi',
     (
         ([np.eye(2)], np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]])),
-        (
-            [
-                np.eye(2) / 2,
-                np.array([[0, 1], [1, 0]]) / 2,
-                np.array([[0, -1j], [1j, 0]]) / 2,
-                np.diag([1, -1]) / 2,
-            ],
-            np.eye(4) / 2,
-        ),
+        (cirq.channel(cirq.depolarize(0.75)), np.eye(4) / 2),
         (
             [
                 np.array([[1, 0, 0], [0, 0, 1]]) / np.sqrt(2),
@@ -114,14 +106,8 @@ def test_choi_for_completely_dephasing_channel():
     (
         ([np.eye(2)], np.eye(4)),
         (
-            [
-                np.eye(2) / 2,
-                np.array([[0, 1], [1, 0]]) / 2,
-                np.array([[0, -1j], [1j, 0]]) / 2,
-                np.diag([1, -1]) / 2,
-            ],
-            np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2,
-        ),
+            cirq.channel(cirq.depolarize(0.75)),
+            np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2),
         (
             [
                 np.array([[1, 0, 0], [0, 0, 1]]) / np.sqrt(2),
