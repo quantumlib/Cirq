@@ -30,7 +30,7 @@ def apply_channel(channel: cirq.SupportsChannel, rho: np.ndarray) -> np.ndarray:
     return out
 
 
-def standard_operator_basis(d_out: int, d_in: int) -> Iterable[np.ndarray]:
+def generate_standard_operator_basis(d_out: int, d_in: int) -> Iterable[np.ndarray]:
     for i in range(d_out):
         for j in range(d_in):
             e_ij = np.zeros((d_out, d_in))
@@ -38,21 +38,21 @@ def standard_operator_basis(d_out: int, d_in: int) -> Iterable[np.ndarray]:
             yield e_ij
 
 
-def expected_choi(channel: cirq.SupportsChannel) -> np.ndarray:
+def compute_choi(channel: cirq.SupportsChannel) -> np.ndarray:
     ks = cirq.channel(channel)
     d_out, d_in = ks[0].shape
     d = d_in * d_out
     c = np.zeros((d, d), dtype=np.complex128)
-    for e in standard_operator_basis(d_in, d_in):
+    for e in generate_standard_operator_basis(d_in, d_in):
         c += np.kron(apply_channel(channel, e), e)
     return c
 
 
-def expected_channel_matrix(channel: cirq.SupportsChannel) -> np.ndarray:
+def compute_channel_matrix(channel: cirq.SupportsChannel) -> np.ndarray:
     ks = cirq.channel(channel)
     d_out, d_in = ks[0].shape
     m = np.zeros((d_out * d_out, d_in * d_in), dtype=np.complex128)
-    for k, e_in in enumerate(standard_operator_basis(d_in, d_in)):
+    for k, e_in in enumerate(generate_standard_operator_basis(d_in, d_in)):
         m[:, k] = np.reshape(apply_channel(channel, e_in), d_out * d_out)
     return m
 
@@ -99,7 +99,7 @@ def test_operation_to_choi(channel):
     """Verifies that cirq.operation_to_choi correctly computes the Choi matrix."""
     n_qubits = cirq.num_qubits(channel)
     actual = cirq.operation_to_choi(channel)
-    expected = expected_choi(channel)
+    expected = compute_choi(channel)
     assert np.isclose(np.trace(actual), 2 ** n_qubits)
     assert np.all(actual == expected)
 
@@ -157,7 +157,7 @@ def test_kraus_to_channel_matrix(kraus_operators, expected_channel_matrix):
 def test_operation_to_channel_matrix(channel):
     """Verifies that cirq.channel_matrix correctly computes the channel matrix."""
     actual = cirq.operation_to_channel_matrix(channel)
-    expected = expected_channel_matrix(channel)
+    expected = compute_channel_matrix(channel)
     assert np.all(actual == expected)
 
 
