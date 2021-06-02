@@ -66,13 +66,16 @@ def test_modules():
 
 
 def test_cli():
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "../.."
     output = shell_tools.output_of(
         sys.executable,
         "../modules.py",
         "list",
         cwd="dev_tools/modules_test_data",
-        env={"PYTHONPATH": "../.."},
+        env=env,
     )
+    output = output.replace('\r', '')
     assert output == '\n'.join(["mod1", "mod2"])
 
 

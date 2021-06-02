@@ -213,6 +213,7 @@ def test_no_circular_imports():
     """Runs the test in a subprocess because cirq has already been imported
     before in an earlier test but this test needs to control the import process.
     """
+    print("PYTHONPATH: ", sys.path)
     status = subprocess.call([sys.executable, __file__])
     if status == FAIL_EXIT_CODE:
         # coverage: ignore

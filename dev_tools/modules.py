@@ -120,10 +120,10 @@ def _print_list_modules(mode: str, include_parent: bool = False):
     """
     for m in list_modules(".", include_parent):
         if mode == _FOLDER:
-            print(m.root)
+            print(m.root, end=" ")
         elif mode == _PACKAGE_PATH:
             for p in m.top_level_package_paths:
-                print(p)
+                print(p, end=" ")
 
 
 def main(argv: List[str]):

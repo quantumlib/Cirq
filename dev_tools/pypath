@@ -21,8 +21,8 @@
 
 #!/usr/bin/bash
 
-PREFIX=""
-CIRQ_MODULES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode folder --include-parent)
+PREFIX="$(pwd)"
+CIRQ_MODULES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode folder)
 for m in $CIRQ_MODULES; do
     PREFIX="$PREFIX:$(pwd)/$m"
 done
