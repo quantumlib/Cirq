@@ -112,6 +112,7 @@ jobs:
       - name: Doc check
         run: check/nbformat
   cirq-only:
+    needs: [ quick_test, format, mypy, changed_files, lint, doc_test, nbformat ]
     name: Pytest (cirq-only) Ubuntu
     runs-on: ubuntu-16.04
     steps:
@@ -125,6 +126,7 @@ jobs:
       - name: Pytest check
         run: check/pytest --cirq-only --ignore=cirq-core/cirq/contrib --actually-quiet
   pytest:
+    needs: [ quick_test, format, mypy, changed_files, lint, doc_test, nbformat ]
     name: Pytest Ubuntu
     strategy:
       matrix:
@@ -146,6 +148,7 @@ jobs:
       - name: Pytest check
         run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
   build_docs:
+    needs: [ quick_test, format, mypy, changed_files, lint, doc_test, nbformat ]
     name: Build docs
     runs-on: ubuntu-16.04
     steps:
@@ -160,6 +163,7 @@ jobs:
       - name: Build docs
         run: dev_tools/docs/build-rtd-docs.sh
   build_protos:
+    needs: [ quick_test, format, mypy, changed_files, lint, doc_test, nbformat ]
     name: Build protos
     runs-on: ubuntu-16.04
     steps:
@@ -178,6 +182,7 @@ jobs:
       - name: Build protos
         run: check/build-changed-protos
   coverage:
+    needs: [ quick_test, format, mypy, changed_files, lint, doc_test, nbformat ]
     name: Coverage check
     runs-on: ubuntu-16.04
     steps:
@@ -193,6 +198,7 @@ jobs:
       - name: Coverage check
         run: check/pytest-and-incremental-coverage --actually-quiet
   windows:
+    needs: [ quick_test, format, mypy, changed_files, lint, doc_test, nbformat ]
     name: Pytest Windows
     strategy:
       matrix:
@@ -210,6 +216,7 @@ jobs:
         run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
         shell: bash
   macos:
+    needs: [ quick_test, format, mypy, changed_files, lint, doc_test, nbformat ]
     name: Pytest MacOS
     strategy:
       matrix:
@@ -226,6 +233,7 @@ jobs:
       - name: Pytest check
         run: check/pytest --ignore=cirq-core/cirq/contrib
   notebooks-stable:
+    needs: [ quick_test, format, mypy, changed_files, lint, doc_test, nbformat ]
     name: Changed Notebooks Isolated Test against Cirq stable
     runs-on: ubuntu-16.04
     steps:
@@ -246,6 +254,7 @@ jobs:
           name: notebook-outputs
           path: out
   notebooks-branch:
+    needs: [ quick_test, format, mypy, changed_files, lint, doc_test, nbformat ]
     name: Notebook Tests against PR
     runs-on: ubuntu-16.04
     steps:
