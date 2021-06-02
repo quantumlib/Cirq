@@ -97,12 +97,13 @@ def generate_cirq_aqt():
     try:
         import cirq_aqt
     except ImportError:
-        # as cirq.aqt was not generated
+        # as cirq.aqt is currently not being generated
+        # we won't handle this case
         return
 
     doc_generator = generate_lib.DocGenerator(
         root_title="Cirq-aqt",
-        py_modules=[("cirq-aqt", cirq_aqt)],
+        py_modules=[("cirq_aqt", cirq_aqt)],
         base_dir=os.path.dirname(cirq_aqt.__file__),
         code_url_prefix=FLAGS.code_url_prefix + "/cirq-aqt/cirq_aqt",
         search_hints=FLAGS.search_hints,
@@ -113,6 +114,7 @@ def generate_cirq_aqt():
     doc_controls.decorate_all_class_attributes(
         doc_controls.do_not_doc_inheritable, networkx.DiGraph, skip=[]
     )
+
     doc_generator.build(output_dir=FLAGS.output_dir)
 
 
