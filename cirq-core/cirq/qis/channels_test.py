@@ -107,7 +107,8 @@ def test_choi_for_completely_dephasing_channel():
         ([np.eye(2)], np.eye(4)),
         (
             cirq.channel(cirq.depolarize(0.75)),
-            np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2),
+            np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2,
+        ),
         (
             [
                 np.array([[0, 1, 0], [0, 0, 1]]) / np.sqrt(2),
