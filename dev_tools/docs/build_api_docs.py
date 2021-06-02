@@ -73,6 +73,7 @@ def filter_unwanted_inherited_methods(path, parent, children):
 def main(unused_argv):
     generate_cirq()
     generate_cirq_google()
+    generate_cirq_aqt()
 
 
 def generate_cirq():
@@ -95,7 +96,8 @@ def generate_cirq():
 def generate_cirq_aqt():
     try:
         import cirq_aqt
-    except:
+    except ImportError:
+        # as cirq.aqt was not generated
         return
 
     doc_generator = generate_lib.DocGenerator(

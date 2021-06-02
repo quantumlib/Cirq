@@ -36,10 +36,11 @@ WORKDIR /cirq
 
 ADD cirq-core/requirements.txt cirq-core/requirements.txt
 ADD cirq-google/requirements.txt cirq-google/requirements.txt
-RUN pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt
+ADD cirq-aqt/requirements.txt cirq-aqt/requirements.txt
+RUN pip install -r cirq-core/requirements.txt -r cirq-google/requirements.txt  -r cirq-aqt/requirements.txt
 
 ADD . /cirq
-RUN PYTHONPATH=/cirq/cirq-core:/cirq/cirq-google python3 dev_tools/docs/build_api_docs.py --output_dir=docs/api_docs
+RUN PYTHONPATH=/cirq/cirq-core:/cirq/cirq-google:/cirq/cirq-aqt python3 dev_tools/docs/build_api_docs.py --output_dir=docs/api_docs
 
 WORKDIR /cirq/docs/api_docs
 CMD ["markserv", "-b=false", "-p=8080", "-a=0.0.0.0"]
