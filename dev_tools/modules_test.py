@@ -69,10 +69,8 @@ def test_modules():
 def test_cli():
     env = os.environ.copy()
     env["PYTHONPATH"] = "../.."
-    output = subprocess.check_output([
-        sys.executable,
-        "../modules.py",
-        "list"],
+    output = subprocess.check_output(
+        [sys.executable, "../modules.py", "list"],
         cwd="dev_tools/modules_test_data",
         env=env,
     )
