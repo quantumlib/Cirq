@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import os
+import shutil
+import tempfile
 from io import StringIO
 from unittest import mock
 
@@ -74,8 +75,33 @@ def test_cli():
     assert output == '\n'.join(["mod1", "mod2"])
 
 
+def chdir(*, target_dir: str = None):
+    """Changes for the duration of the test the working directory.
+
+    Args:
+        target_dir: the target directory. If None is specified, it will create a temporary
+            directory.
+    """
+
+    def inner(test_func):
+        def wrapper(*args, **kwargs):
+            cwd = os.getcwd()
+            tdir = tempfile.mkdtemp() if target_dir is None else target_dir
+            os.chdir(tdir)
+            try:
+                return test_func(*args, **kwargs)
+            finally:
+                os.chdir(cwd)
+                if target_dir is None:
+                    shutil.rmtree(tdir)
+
+        return wrapper
+
+    return inner
+
+
+@chdir(target_dir="dev_tools/modules_test_data")
 def test_main():
-    os.chdir("dev_tools/modules_test_data")
     with mock.patch('sys.stdout', new=StringIO()) as output:
         modules.main(["list", "--mode", "package-path"])
         assert output.getvalue() == '\n'.join(["mod1/pack1", "mod2/pack2", ""])
@@ -85,10 +111,8 @@ def test_main():
         assert output.getvalue() == '\n'.join(["mod1", "mod2", ".", ""])
 
 
-def test_error(tmpdir_factory):
-    cwd = tmpdir_factory.mktemp(basename="cirq_modules_test")
-    os.chdir(cwd)
-
+@chdir(target_dir=None)
+def test_error():
     f = open("setup.py", mode='w')
     f.write('name="test"')
     f.close()

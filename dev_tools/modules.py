@@ -16,10 +16,10 @@ import argparse
 import dataclasses
 import os
 import sys
-from typing import Union, List, Dict, Any
+from typing import List, Dict, Any, Literal
 
-_FOLDER = 'folder'
-_PACKAGE_PATH = 'package-path'
+_FOLDER: str = 'folder'
+_PACKAGE_PATH: str = 'package-path'
 
 
 @dataclasses.dataclass
@@ -105,7 +105,7 @@ def _parse_module(folder: str) -> Dict[str, Any]:
         os.chdir(cwd)
 
 
-def _print_list_modules(mode: Union[_FOLDER, _PACKAGE_PATH], include_parent: bool = False):
+def _print_list_modules(mode: Literal["folder", "package_path"], include_parent: bool = False):
     """Prints certain properties of cirq modules on separate lines.
 
     Module root folder and top level package paths are supported. The search dir is the current
