@@ -34,7 +34,6 @@ done
 
 if [ -z "${CIRQ_ONLY}" ]; then
   source dev_tools/pypath
-  echo $PYTHONPATH
 else
   export PYTHONPATH=cirq-core
   PYTEST_ARGS+=("./cirq-core")
