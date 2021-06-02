@@ -1,6 +1,6 @@
 .. image:: https://quantumai.google/site-assets/images/marketing/icons/ic-qcs.png
   :target: https://github.com/quantumlib/cirq/
-  :alt: cirq-google
+  :alt: cirq-aqt
   :width: 500px
 
 `Cirq <https://quantumai.google/cirq>`__ is a Python library for writing, manipulating, and optimizing quantum

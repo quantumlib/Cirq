@@ -22,8 +22,9 @@
 #!/usr/bin/bash
 
 PREFIX=""
-CIRQ_MODULES=$(env PYTHONPATH=. python dev_tools/monorepo.py list --mode folder --include-cirq true)
-for m in modules; do
+CIRQ_MODULES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode folder --include-parent)
+for m in $CIRQ_MODULES; do
     PREFIX="$PREFIX:$(pwd)/$m"
+done
 
 [[ $PYTHONPATH == ${PREFIX}* ]] || export PYTHONPATH="$PREFIX:$PYTHONPATH"
