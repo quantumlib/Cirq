@@ -75,8 +75,7 @@ def test_cli():
         cwd="dev_tools/modules_test_data",
         env=env,
     )
-    output = output.replace('\r', '')
-    assert output == '\n'.join(["mod1", "mod2"])
+    assert output == "mod1 mod2 "
 
 
 def chdir(*, target_dir: str = None):
@@ -108,13 +107,13 @@ def chdir(*, target_dir: str = None):
 def test_main():
     with mock.patch('sys.stdout', new=StringIO()) as output:
         modules.main(["list", "--mode", "package-path"])
-        assert output.getvalue() == '\n'.join(
+        assert output.getvalue() == ' '.join(
             [os.path.join("mod1", "pack1"), os.path.join("mod2", "pack2"), ""]
         )
 
     with mock.patch('sys.stdout', new=StringIO()) as output:
         modules.main(["list", "--mode", "folder", "--include-parent"])
-        assert output.getvalue() == '\n'.join(["mod1", "mod2", ".", ""])
+        assert output.getvalue() == ' '.join(["mod1", "mod2", ".", ""])
 
 
 @chdir(target_dir=None)
