@@ -94,11 +94,13 @@ def generate_cirq():
 
 
 def generate_cirq_aqt():
+    # This try-catch can go after v0.12 is released
     try:
+        # should be present in the nightly (pre-release) build
         import cirq_aqt
     except ImportError:
-        # as cirq.aqt is currently not being generated
-        # we won't handle this case
+        # as cirq.aqt is currently not being generated anyway
+        # we won't handle this case (the stable build)
         return
 
     doc_generator = generate_lib.DocGenerator(
