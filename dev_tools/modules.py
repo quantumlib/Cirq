@@ -18,8 +18,8 @@ import os
 import sys
 from typing import List, Dict, Any
 
-_FOLDER: str = 'folder'
-_PACKAGE_PATH: str = 'package-path'
+_FOLDER = 'folder'
+_PACKAGE_PATH = 'package-path'
 
 
 @dataclasses.dataclass
