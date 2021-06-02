@@ -13,6 +13,7 @@
 # limitations under the License.
 import os
 import shutil
+import sys
 import tempfile
 from io import StringIO
 from unittest import mock
@@ -66,7 +67,7 @@ def test_modules():
 
 def test_cli():
     output = shell_tools.output_of(
-        "python3",
+        sys.executable,
         "../modules.py",
         "list",
         cwd="dev_tools/modules_test_data",
