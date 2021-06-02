@@ -13,6 +13,7 @@
 # limitations under the License.
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 from io import StringIO
@@ -20,7 +21,7 @@ from unittest import mock
 
 import pytest
 
-from dev_tools import modules, shell_tools
+from dev_tools import modules
 from dev_tools.modules import Module
 
 
@@ -68,14 +69,14 @@ def test_modules():
 def test_cli():
     env = os.environ.copy()
     env["PYTHONPATH"] = "../.."
-    output = shell_tools.output_of(
+    output = subprocess.check_output([
         sys.executable,
         "../modules.py",
-        "list",
+        "list"],
         cwd="dev_tools/modules_test_data",
         env=env,
     )
-    assert output == "mod1 mod2 "
+    assert output.decode("utf-8") == "mod1 mod2 "
 
 
 def chdir(*, target_dir: str = None):
