@@ -231,7 +231,9 @@ def test_von_neumann_entropy():
         (cirq.X, 0),
         (cirq.Y, 0),
         (cirq.Z, 0),
-        (cirq.S, 0.5),
+        (cirq.S, 1 / 2),
+        (cirq.CNOT, 1 / 4),
+        (cirq.TOFFOLI, 9 / 16),
     ),
 )
 def test_entanglement_fidelity_of_unitary_channels(gate, expected_entanglement_fidelity):
@@ -245,6 +247,8 @@ def test_entanglement_fidelity_of_unitary_channels(gate, expected_entanglement_f
         # Each Pauli error turns the maximally entangled state into an orthogonal state, so only
         # the error-free term, whose pre-factor is 1 - p, contributes to entanglement fidelity.
         (cirq.depolarize, lambda p: 1 - p),
+        (lambda p: cirq.depolarize(p, n_qubits=2), lambda p: 1 - p),
+        (lambda p: cirq.depolarize(p, n_qubits=3), lambda p: 1 - p),
         # See e.g. https://quantumcomputing.stackexchange.com/questions/16074 for average fidelity,
         # then use Horodecki formula F_avg = (N F_e + 1) / (N + 1) to find entanglement fidelity.
         (cirq.amplitude_damp, lambda gamma: 1 / 2 - gamma / 4 + np.sqrt(1 - gamma) / 2),
