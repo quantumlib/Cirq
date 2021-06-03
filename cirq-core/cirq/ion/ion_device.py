@@ -52,14 +52,14 @@ class IonDevice(devices.Device):
     def qubit_set(self) -> FrozenSet['cirq.LineQubit']:
         return self.qubits
 
-    def edge_set(self) -> FrozenSet['cirq.QidPair']:
+    def qid_pairs(self) -> FrozenSet['cirq.SymmetricQidPair']:
         """Qubits have all-to-all connectivity, so returns all pairs.
 
         Returns:
             All qubit pairs on the device.
         """
         qs = self.qubits
-        return frozenset([devices.QidPair(q, q2) for q in qs for q2 in qs if q < q2])
+        return frozenset([devices.SymmetricQidPair(q, q2) for q in qs for q2 in qs if q < q2])
 
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
         return convert_to_ion_gates.ConvertToIonGates().convert_one(operation)

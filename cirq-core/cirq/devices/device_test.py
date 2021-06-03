@@ -33,25 +33,25 @@ def test_qubit_set():
     assert PrivateQubitMethodDevice().qubit_set() == frozenset(cirq.LineQubit.range(6))
 
 
-def test_edges():
+def test_qid_pairs():
     class RawDevice(cirq.Device):
         pass
 
-    assert RawDevice().edge_set() is None
+    assert RawDevice().qid_pairs() is None
 
     class QubitFieldDevice(cirq.Device):
         def __init__(self, qubits):
             self.qubits = qubits
 
-    assert len(QubitFieldDevice(cirq.LineQubit.range(10)).edge_set()) == 9
-    assert len(QubitFieldDevice(cirq.GridQubit.rect(10, 10)).edge_set()) == 180
-    assert len(QubitFieldDevice([cirq.NamedQubit(str(s)) for s in range(10)]).edge_set()) == 45
+    assert len(QubitFieldDevice(cirq.LineQubit.range(10)).qid_pairs()) == 9
+    assert len(QubitFieldDevice(cirq.GridQubit.rect(10, 10)).qid_pairs()) == 180
+    assert len(QubitFieldDevice([cirq.NamedQubit(str(s)) for s in range(10)]).qid_pairs()) == 45
 
 
-def test_edge():
-    e1 = cirq.QidPair(cirq.LineQubit(0), cirq.LineQubit(1))
-    e2 = cirq.QidPair(cirq.LineQubit(1), cirq.LineQubit(0))
-    e3 = cirq.QidPair(cirq.LineQubit(2), cirq.LineQubit(3))
+def test_qid_pair():
+    e1 = cirq.SymmetricQidPair(cirq.LineQubit(0), cirq.LineQubit(1))
+    e2 = cirq.SymmetricQidPair(cirq.LineQubit(1), cirq.LineQubit(0))
+    e3 = cirq.SymmetricQidPair(cirq.LineQubit(2), cirq.LineQubit(3))
     assert e1 == e2
     assert e2 != e3
     assert repr(e1) == "cirq.QidPair(cirq.LineQubit(0), cirq.LineQubit(1))"
@@ -62,4 +62,4 @@ def test_edge():
     assert len(set2) == 2
 
     with pytest.raises(ValueError, match='A QidPair cannot have identical qids.'):
-        cirq.QidPair(cirq.LineQubit(0), cirq.LineQubit(0))
+        cirq.SymmetricQidPair(cirq.LineQubit(0), cirq.LineQubit(0))

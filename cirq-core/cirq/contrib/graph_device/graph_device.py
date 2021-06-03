@@ -159,10 +159,10 @@ class UndirectedGraphDevice(devices.Device):
     def edges(self):
         return tuple(sorted(self.device_graph.edges))
 
-    def edge_set(self) -> FrozenSet['cirq.QidPair']:
+    def qid_pairs(self) -> FrozenSet['cirq.SymmetricQidPair']:
         return frozenset(
             [
-                devices.QidPair(*edge)  # type: ignore
+                devices.SymmetricQidPair(*edge)  # type: ignore
                 for edge in self.device_graph.edges
                 if len(edge) == 2 and all(isinstance(q, ops.Qid) for q in edge)
             ]

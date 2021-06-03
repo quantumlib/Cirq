@@ -280,7 +280,7 @@ def test_to_json():
     }
 
 
-def test_edges():
+def test_qid_pairs():
     dev = PasqalVirtualDevice(
         1,
         qubits=[
@@ -291,7 +291,7 @@ def test_edges():
             ThreeDQubit(1, 1, 1),
         ],
     )
-    assert len(dev.edge_set()) == 5
+    assert len(dev.qid_pairs()) == 5
     dev1 = PasqalVirtualDevice(
         5,
         qubits=[
@@ -301,4 +301,4 @@ def test_edges():
             TwoDQubit(3, 6),
         ],
     )
-    assert len(dev1.edge_set()) == 5
+    assert len(dev1.qid_pairs()) == 5

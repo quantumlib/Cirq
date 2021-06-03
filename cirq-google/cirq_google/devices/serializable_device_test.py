@@ -451,5 +451,5 @@ def test_sycamore23_str():
     )
 
 
-def test_sycamore23_edges():
-    assert len(cg.Sycamore23.edge_set()) == 32
+def test_sycamore23_qid_pairs():
+    assert len(cg.Sycamore23.qid_pairs()) == 32
