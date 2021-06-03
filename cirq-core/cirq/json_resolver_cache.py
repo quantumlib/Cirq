@@ -128,7 +128,7 @@ def _class_resolver_dictionary() -> Dict[str, ObjectFactory]:
         'SingleQubitReadoutCalibrationResult': cirq.experiments.SingleQubitReadoutCalibrationResult,
         'StabilizerStateChForm': cirq.StabilizerStateChForm,
         'SwapPowGate': cirq.SwapPowGate,
-        'SymmetricQidPair': cirq.SymmetricQidPair,
+        'SymmetricalQidPair': cirq.SymmetricalQidPair,
         'TaggedOperation': cirq.TaggedOperation,
         'ThreeDQubit': cirq.pasqal.ThreeDQubit,
         'Result': cirq.Result,

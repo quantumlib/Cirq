@@ -90,7 +90,7 @@ from cirq.devices import (
     NO_NOISE,
     NOISE_MODEL_LIKE,
     NoiseModel,
-    SymmetricQidPair,
+    SymmetricalQidPair,
     UNCONSTRAINED_DEVICE,
 )
 

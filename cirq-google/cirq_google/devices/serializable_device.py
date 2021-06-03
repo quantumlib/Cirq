@@ -246,7 +246,7 @@ class SerializableDevice(cirq.Device):
 
         return super().__str__()
 
-    def qid_pairs(self) -> FrozenSet['cirq.SymmetricQidPair']:
+    def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
         """Returns a list of qubit edges on the device, defined by the gate
         definitions.
 
@@ -255,7 +255,7 @@ class SerializableDevice(cirq.Device):
         """
         return frozenset(
             [
-                cirq.SymmetricQidPair(pair[0], pair[1])
+                cirq.SymmetricalQidPair(pair[0], pair[1])
                 for gate_defs in self.gate_definitions.values()
                 for gate_def in gate_defs
                 if gate_def.number_of_qubits == 2

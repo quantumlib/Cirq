@@ -50,7 +50,7 @@ class Device(metaclass=abc.ABCMeta):
         # Default to the qubits being unknown.
         return None
 
-    def qid_pairs(self) -> Optional[FrozenSet['cirq.SymmetricQidPair']]:
+    def qid_pairs(self) -> Optional[FrozenSet['cirq.SymmetricalQidPair']]:
         """Returns a set of qubit edges on the device, if possible.
 
         This property can be overridden in child classes for special handling.
@@ -71,7 +71,7 @@ class Device(metaclass=abc.ABCMeta):
         if all(isinstance(q, _BaseGridQid) for q in qs):
             return frozenset(
                 [
-                    SymmetricQidPair(q, q2)
+                    SymmetricalQidPair(q, q2)
                     for q in [cast(_BaseGridQid, q) for q in qs]
                     for q2 in [q + (0, 1), q + (1, 0)]
                     if q2 in qs
@@ -80,12 +80,12 @@ class Device(metaclass=abc.ABCMeta):
         if all(isinstance(q, _BaseLineQid) for q in qs):
             return frozenset(
                 [
-                    SymmetricQidPair(q, q + 1)
+                    SymmetricalQidPair(q, q + 1)
                     for q in [cast(_BaseLineQid, q) for q in qs]
                     if q + 1 in qs
                 ]
             )
-        return frozenset([SymmetricQidPair(q, q2) for q in qs for q2 in qs if q < q2])
+        return frozenset([SymmetricalQidPair(q, q2) for q in qs for q2 in qs if q < q2])
 
     def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         """Returns a device-valid decomposition for the given operation.
@@ -149,7 +149,7 @@ class Device(metaclass=abc.ABCMeta):
 
 
 @value.value_equality
-class SymmetricQidPair:
+class SymmetricalQidPair:
     def __init__(self, qid1: 'cirq.Qid', qid2: 'cirq.Qid'):
         if qid1 == qid2:
             raise ValueError('A QidPair cannot have identical qids.')

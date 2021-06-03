@@ -1,5 +1,5 @@
 {
-  "cirq_type": "SymmetricQidPair",
+  "cirq_type": "SymmetricalQidPair",
   "qids": [
     {
       "cirq_type": "LineQubit",
