@@ -1,7 +1,7 @@
-import {Scene, PerspectiveCamera, WebGLRenderer, Camera, Object3D,} from 'three';
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {Scene, PerspectiveCamera, WebGLRenderer, Camera, Object3D} from 'three';
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
-export class Cirq3DScene {
+export class BlochSphereScene {
   private static readonly VIZ_WIDTH: number = 500;
   private static readonly VIZ_HEIGHT: number = 500;
 
@@ -12,20 +12,25 @@ export class Cirq3DScene {
 
   public constructor(
     fov = 75,
-    aspect: number = Cirq3DScene.VIZ_HEIGHT / Cirq3DScene.VIZ_WIDTH,
+    aspect: number = BlochSphereScene.VIZ_HEIGHT / BlochSphereScene.VIZ_WIDTH,
     near = 0.1,
     far = 1000
   ) {
     this.scene = new Scene();
     this.camera = new PerspectiveCamera(fov, aspect, near, far);
     this.renderer = new WebGLRenderer();
-    this.renderer.setSize(Cirq3DScene.VIZ_WIDTH, Cirq3DScene.VIZ_HEIGHT);
+    this.renderer.setSize(
+      BlochSphereScene.VIZ_WIDTH,
+      BlochSphereScene.VIZ_HEIGHT
+    );
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
     this.init();
   }
 
   private init() {
+    this.camera.position.x = 1;
+    this.camera.position.y = 2;
     this.camera.position.z = 5;
 
     this.setUpControls();
@@ -50,8 +55,8 @@ export class Cirq3DScene {
   }
 
   public setRenderSize(
-    width: number = Cirq3DScene.VIZ_WIDTH,
-    height: number = Cirq3DScene.VIZ_HEIGHT
+    width: number = BlochSphereScene.VIZ_WIDTH,
+    height: number = BlochSphereScene.VIZ_HEIGHT
   ) {
     this.renderer.setSize(width, height);
   }
