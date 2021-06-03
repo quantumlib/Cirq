@@ -56,7 +56,7 @@ class RandomGateChannel(raw_types.Gate):
     def _has_mixture_(self):
         return not self._is_parameterized_() and protocols.has_mixture(self.sub_gate)
 
-    def _has_channel_(self):
+    def _has_kraus_(self):
         return not self._is_parameterized_() and protocols.has_channel(self.sub_gate)
 
     def _is_parameterized_(self) -> bool:
@@ -90,7 +90,7 @@ class RandomGateChannel(raw_types.Gate):
         result.append((1 - float(self.probability), do_nothing))
         return result
 
-    def _channel_(self):
+    def _kraus_(self):
         if self._is_parameterized_():
             return NotImplemented
 

@@ -13,12 +13,9 @@
 # limitations under the License.
 #
 import dataclasses
-from typing import Any, Dict, TYPE_CHECKING, Union
+from typing import Any, Dict, Union
 
-from cirq import protocols
-
-if TYPE_CHECKING:
-    import cirq
+import cirq
 
 
 @dataclasses.dataclass
@@ -28,8 +25,8 @@ class CalibrationLayer:
     in Engine calls."""
 
     calibration_type: str
-    program: 'cirq.Circuit'
+    program: cirq.Circuit
     args: Dict[str, Union[str, float]]
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(self, ['calibration_type', 'program', 'args'])
+        return cirq.obj_to_dict_helper(self, ['calibration_type', 'program', 'args'])
