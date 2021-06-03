@@ -234,8 +234,11 @@ class SimulatorBase(
                     op_args.axes = tuple(op_args.qubit_map[q] for q in op.qubits)
                     protocols.act_on(op, op_args)
 
-                    # Decouple any measurements
-                    if isinstance(op.gate, ops.MeasurementGate) and self._split_untangled_states:
+                    # Decouple any measurements or resets
+                    if self._split_untangled_states and (
+                        isinstance(op.gate, ops.MeasurementGate)
+                        or isinstance(op.gate, ops.ResetChannel)
+                    ):
                         for q in op.qubits:
                             q_args, op_args = op_args.extract((q,))
                             sim_state[q] = q_args
