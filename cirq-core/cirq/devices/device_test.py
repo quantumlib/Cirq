@@ -49,12 +49,23 @@ def test_qid_pairs():
 
 
 def test_qid_pair():
-    e1 = cirq.SymmetricalQidPair(cirq.LineQubit(0), cirq.LineQubit(1))
-    e2 = cirq.SymmetricalQidPair(cirq.LineQubit(1), cirq.LineQubit(0))
-    e3 = cirq.SymmetricalQidPair(cirq.LineQubit(2), cirq.LineQubit(3))
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    e1 = cirq.SymmetricalQidPair(q0, q1)
+    e2 = cirq.SymmetricalQidPair(q1, q0)
+    e3 = cirq.SymmetricalQidPair(q2, q3)
     assert e1 == e2
     assert e2 != e3
     assert repr(e1) == "cirq.QidPair(cirq.LineQubit(0), cirq.LineQubit(1))"
+
+    assert len(e1) == 2
+    a, b = e1
+    assert (a, b) == (q0, q1)
+    a, b = e2
+    assert (a, b) == (q0, q1)
+
+    assert q0 in e1
+    assert q1 in e1
+    assert q2 not in e1
 
     set1 = frozenset([e1, e2])
     set2 = frozenset([e2, e3])
@@ -62,4 +73,4 @@ def test_qid_pair():
     assert len(set2) == 2
 
     with pytest.raises(ValueError, match='A QidPair cannot have identical qids.'):
-        cirq.SymmetricalQidPair(cirq.LineQubit(0), cirq.LineQubit(0))
+        cirq.SymmetricalQidPair(q0, q0)

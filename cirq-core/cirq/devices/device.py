@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import abc
-from typing import TYPE_CHECKING, Optional, AbstractSet, cast, FrozenSet
+from typing import TYPE_CHECKING, Optional, AbstractSet, cast, FrozenSet, Iterable
 
 from cirq import value
 from cirq.devices.grid_qubit import _BaseGridQid
@@ -170,3 +170,12 @@ class SymmetricalQidPair:
     @classmethod
     def _from_json_dict_(cls, qids, **kwargs):
         return cls(qids[0], qids[1])
+
+    def __len__(self) -> int:
+        return 2
+
+    def __iter__(self) -> Iterable['cirq.Qid']:
+        yield from sorted(self.qids)
+
+    def __contains__(self, item: 'cirq.Qid') -> bool:
+        return item in self.qids
