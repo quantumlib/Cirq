@@ -246,6 +246,24 @@ class SerializableDevice(cirq.Device):
 
         return super().__str__()
 
+    def qid_pairs(self) -> FrozenSet['cirq.SymmetricalQidPair']:
+        """Returns a list of qubit edges on the device, defined by the gate
+        definitions.
+
+        Returns:
+            The list of qubit edges on the device.
+        """
+        return frozenset(
+            [
+                cirq.SymmetricalQidPair(pair[0], pair[1])
+                for gate_defs in self.gate_definitions.values()
+                for gate_def in gate_defs
+                if gate_def.number_of_qubits == 2
+                for pair in gate_def.target_set
+                if len(pair) == 2 and pair[0] < pair[1]
+            ]
+        )
+
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Creates ASCII diagram for Jupyter, IPython, etc."""
         # There should never be a cycle, but just in case use the default repr.

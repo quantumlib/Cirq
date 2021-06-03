@@ -13,7 +13,11 @@
 # limitations under the License.
 
 import abc
-from typing import TYPE_CHECKING, Optional, AbstractSet
+from typing import TYPE_CHECKING, Optional, AbstractSet, cast, FrozenSet, Iterator
+
+from cirq import value
+from cirq.devices.grid_qubit import _BaseGridQid
+from cirq.devices.line_qubit import _BaseLineQid
 
 if TYPE_CHECKING:
     import cirq
@@ -45,6 +49,43 @@ class Device(metaclass=abc.ABCMeta):
 
         # Default to the qubits being unknown.
         return None
+
+    def qid_pairs(self) -> Optional[FrozenSet['cirq.SymmetricalQidPair']]:
+        """Returns a set of qubit edges on the device, if possible.
+
+        This property can be overridden in child classes for special handling.
+        The default handling is: GridQids and LineQids will have neighbors as
+        edges, and others will be fully connected.
+
+        Returns:
+            If the device has a finite set of qubits, then a set of all edges
+            on the device is returned.
+
+            If the device has no well defined finite set of qubits (e.g.
+            `cirq.UnconstrainedDevice` has this property), then `None` is
+            returned.
+        """
+        qs = self.qubit_set()
+        if qs is None:
+            return None
+        if all(isinstance(q, _BaseGridQid) for q in qs):
+            return frozenset(
+                [
+                    SymmetricalQidPair(q, q2)
+                    for q in [cast(_BaseGridQid, q) for q in qs]
+                    for q2 in [q + (0, 1), q + (1, 0)]
+                    if q2 in qs
+                ]
+            )
+        if all(isinstance(q, _BaseLineQid) for q in qs):
+            return frozenset(
+                [
+                    SymmetricalQidPair(q, q + 1)
+                    for q in [cast(_BaseLineQid, q) for q in qs]
+                    if q + 1 in qs
+                ]
+            )
+        return frozenset([SymmetricalQidPair(q, q2) for q in qs for q2 in qs if q < q2])
 
     def decompose_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         """Returns a device-valid decomposition for the given operation.
@@ -105,3 +146,36 @@ class Device(metaclass=abc.ABCMeta):
             Whether or not the moment will validate after adding the operation.
         """
         return not moment.operates_on(operation.qubits)
+
+
+@value.value_equality
+class SymmetricalQidPair:
+    def __init__(self, qid1: 'cirq.Qid', qid2: 'cirq.Qid'):
+        if qid1 == qid2:
+            raise ValueError('A QidPair cannot have identical qids.')
+        self.qids = frozenset([qid1, qid2])
+
+    def _value_equality_values_(self):
+        return self.qids
+
+    def __repr__(self):
+        return f'cirq.QidPair({repr(sorted(self.qids))[1:-1]})'
+
+    def _json_dict_(self):
+        return {
+            'qids': sorted(self.qids),
+            'cirq_type': self.__class__.__name__,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, qids, **kwargs):
+        return cls(qids[0], qids[1])
+
+    def __len__(self) -> int:
+        return 2
+
+    def __iter__(self) -> Iterator['cirq.Qid']:
+        yield from sorted(self.qids)
+
+    def __contains__(self, item: 'cirq.Qid') -> bool:
+        return item in self.qids
