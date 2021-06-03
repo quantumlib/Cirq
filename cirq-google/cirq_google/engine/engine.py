@@ -31,9 +31,10 @@ import string
 from typing import Dict, Iterable, List, Optional, Sequence, Set, TypeVar, Union, TYPE_CHECKING
 
 from google.protobuf import any_pb2
+
+import cirq
 from cirq_google.engine.client import quantum
 from cirq_google.engine.result_type import ResultType
-from cirq import circuits, study, value
 from cirq_google import serializable_gate_set as sgs
 from cirq_google.api import v2
 from cirq_google.arg_func_langs import arg_to_proto
@@ -47,7 +48,6 @@ from cirq_google.engine import (
 
 if TYPE_CHECKING:
     import cirq_google
-    import cirq
     import google.protobuf
 
 TYPE_PREFIX = 'type.googleapis.com/'
@@ -70,7 +70,7 @@ def _make_random_id(prefix: str, length: int = 16):
     return f'{prefix}{suffix}'
 
 
-@value.value_equality
+@cirq.value_equality
 class EngineContext:
     """Context for running against the Quantum Engine API. Most users should
     simply create an Engine object instead of working with one of these
@@ -178,10 +178,10 @@ class Engine:
 
     def run(
         self,
-        program: 'cirq.Circuit',
+        program: cirq.Circuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        param_resolver: study.ParamResolver = study.ParamResolver({}),
+        param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
         repetitions: int = 1,
         processor_ids: Sequence[str] = ('xmonsim',),
         gate_set: Optional[sgs.SerializableGateSet] = None,
@@ -189,7 +189,7 @@ class Engine:
         program_labels: Optional[Dict[str, str]] = None,
         job_description: Optional[str] = None,
         job_labels: Optional[Dict[str, str]] = None,
-    ) -> study.Result:
+    ) -> cirq.Result:
         """Runs the supplied Circuit via Quantum Engine.
 
         Args:
@@ -239,10 +239,10 @@ class Engine:
 
     def run_sweep(
         self,
-        program: 'cirq.Circuit',
+        program: cirq.Circuit,
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        params: study.Sweepable = None,
+        params: cirq.Sweepable = None,
         repetitions: int = 1,
         processor_ids: Sequence[str] = ('xmonsim',),
         gate_set: Optional[sgs.SerializableGateSet] = None,
@@ -300,10 +300,10 @@ class Engine:
 
     def run_batch(
         self,
-        programs: List['cirq.Circuit'],
+        programs: List[cirq.Circuit],
         program_id: Optional[str] = None,
         job_id: Optional[str] = None,
-        params_list: List[study.Sweepable] = None,
+        params_list: List[cirq.Sweepable] = None,
         repetitions: int = 1,
         processor_ids: Sequence[str] = (),
         gate_set: Optional[sgs.SerializableGateSet] = None,
@@ -450,7 +450,7 @@ class Engine:
 
     def create_program(
         self,
-        program: 'cirq.Circuit',
+        program: cirq.Circuit,
         program_id: Optional[str] = None,
         gate_set: Optional[sgs.SerializableGateSet] = None,
         description: Optional[str] = None,
@@ -493,7 +493,7 @@ class Engine:
 
     def create_batch_program(
         self,
-        programs: List['cirq.Circuit'],
+        programs: List[cirq.Circuit],
         program_id: Optional[str] = None,
         gate_set: Optional[sgs.SerializableGateSet] = None,
         description: Optional[str] = None,
@@ -596,9 +596,9 @@ class Engine:
         )
 
     def _serialize_program(
-        self, program: 'cirq.Circuit', gate_set: sgs.SerializableGateSet
+        self, program: cirq.Circuit, gate_set: sgs.SerializableGateSet
     ) -> any_pb2.Any:
-        if not isinstance(program, circuits.Circuit):
+        if not isinstance(program, cirq.Circuit):
             raise TypeError(f'Unrecognized program type: {type(program)}')
         program.device.validate_circuit(program)
 
@@ -799,7 +799,7 @@ def get_engine_device(
     processor_id: str,
     project_id: Optional[str] = None,
     gatesets: Iterable[sgs.SerializableGateSet] = (),
-) -> 'cirq.Device':
+) -> cirq.Device:
     """Returns a `Device` object for a given processor.
 
     This is a short-cut for creating an engine object, getting the

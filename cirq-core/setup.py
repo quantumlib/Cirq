@@ -46,7 +46,7 @@ if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
 # Read in requirements
 requirements = open('requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
-contrib_requirements = open('cirq/contrib/contrib-requirements.txt').readlines()
+contrib_requirements = open('cirq/contrib/requirements.txt').readlines()
 contrib_requirements = [r.strip() for r in contrib_requirements]
 
 
