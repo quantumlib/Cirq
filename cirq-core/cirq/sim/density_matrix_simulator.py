@@ -130,7 +130,7 @@ class DensityMatrixSimulator(
             ignore_measurement_results: if True, then the simulation
                 will treat measurement as dephasing instead of collapsing
                 process.
-            split_untangled_states: If true, optimizes simulation by running
+            split_untangled_states: If True, optimizes simulation by running
                 unentangled qubit sets independently and merging those states
                 at the end.
 

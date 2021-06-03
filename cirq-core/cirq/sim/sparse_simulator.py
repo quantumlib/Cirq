@@ -152,7 +152,7 @@ class Simulator(
                 `numpy.complex64` or `numpy.complex128`.
             noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
-            split_untangled_states: If true, optimizes simulation by running
+            split_untangled_states: If True, optimizes simulation by running
                 unentangled qubit sets independently and merging those states
                 at the end.
         """
