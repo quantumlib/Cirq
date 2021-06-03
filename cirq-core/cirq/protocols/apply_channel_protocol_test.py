@@ -143,7 +143,7 @@ def test_apply_channel_channel_fallback_simple():
     x = np.array([[0, 1], [1, 0]], dtype=np.complex128)
 
     class HasChannel:
-        def _channel_(self):
+        def _kraus_(self):
             return (np.sqrt(0.5) * np.eye(2, dtype=np.complex128), np.sqrt(0.5) * x)
 
     rho = np.copy(x)
@@ -161,7 +161,7 @@ def test_apply_channel_channel_fallback_one_qubit_random_on_qubit():
         expected = 0.5 * rho + 0.5 * np.dot(np.dot(u, rho), np.conjugate(np.transpose(u)))
 
         class HasChannel:
-            def _channel_(self):
+            def _kraus_(self):
                 return (np.sqrt(0.5) * np.eye(2, dtype=np.complex128), np.sqrt(0.5) * u)
 
         result = apply_channel(HasChannel(), rho, [0], [1], assert_result_is_out_buf=True)
@@ -183,7 +183,7 @@ def test_apply_channel_channel_fallback_one_qubit_random_on_two_qubits():
         expected.shape = (2, 2, 2, 2)
 
         class HasChannel:
-            def _channel_(self):
+            def _kraus_(self):
                 return (np.sqrt(0.5) * np.eye(2, dtype=np.complex128), np.sqrt(0.5) * u)
 
         result = apply_channel(HasChannel(), rho, [0], [2], assert_result_is_out_buf=True)
@@ -204,7 +204,7 @@ def test_apply_channel_channel_fallback_two_qubit_random():
         expected.shape = (2, 2, 2, 2)
 
         class HasChannel:
-            def _channel_(self):
+            def _kraus_(self):
                 return (np.sqrt(0.5) * np.eye(4, dtype=np.complex128), np.sqrt(0.5) * u)
 
         result = apply_channel(HasChannel(), rho, [0, 1], [2, 3], assert_result_is_out_buf=True)

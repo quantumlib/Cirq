@@ -96,7 +96,8 @@ def _list_changed_notebooks() -> Set[str]:
         rev = _find_base_revision()
         output = subprocess.check_output(f'git diff --name-only {rev}'.split())
         lines = output.decode('utf-8').splitlines()
-        if any(l for l in lines if l.endswith("isolated_notebook_test.py")):
+        # run all tests if this file or any of the dependencies change
+        if any(l for l in lines if l.endswith("isolated_notebook_test.py") or l.endswith(".txt")):
             return list_all_notebooks()
         return set(l for l in lines if l.endswith(".ipynb"))
     except ValueError as e:

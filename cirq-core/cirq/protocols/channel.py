@@ -15,7 +15,7 @@
 """Protocol and methods for quantum channels."""
 
 from typing import Any, Sequence, Tuple, TypeVar, Union
-
+import warnings
 
 import numpy as np
 from typing_extensions import Protocol
@@ -45,8 +45,8 @@ class SupportsChannel(Protocol):
     """An object that may be describable as a quantum channel."""
 
     @doc_private
-    def _channel_(self) -> Union[Sequence[np.ndarray], NotImplementedType]:
-        r"""A list of matrices describing the quantum channel.
+    def _kraus_(self) -> Union[Sequence[np.ndarray], NotImplementedType]:
+        r"""A list of Kraus matrices describing the quantum channel.
 
         These matrices are the terms in the operator sum representation of a
         quantum channel. If the returned matrices are ${A_0,A_1,..., A_{r-1}}$,
@@ -81,8 +81,8 @@ class SupportsChannel(Protocol):
         """
 
     @doc_private
-    def _has_channel_(self) -> bool:
-        """Whether this value has a channel representation.
+    def _has_kraus_(self) -> bool:
+        """Whether this value has a Kraus representation.
 
         This method is used by the global `cirq.has_channel` method.  If this
         method is not present, or returns NotImplemented, it will fallback
@@ -121,7 +121,7 @@ def channel(
             default is set to a value, that value is returned.
 
     Returns:
-        If `val` has a `_channel_` method and its result is not NotImplemented,
+        If `val` has a `_kraus_` method and its result is not NotImplemented,
         that result is returned. Otherwise, if `val` has a `_mixture_` method
         and its results is not NotImplement a tuple made up of channel
         corresponding to that mixture being a probabilistic mixture of unitaries
@@ -131,14 +131,21 @@ def channel(
         value is returned.
 
     Raises:
-        TypeError: `val` doesn't have a _channel_ or _unitary_ method (or that
+        TypeError: `val` doesn't have a _kraus_ or _unitary_ method (or that
             method returned NotImplemented) and also no default value was
             specified.
     """
     channel_getter = getattr(val, '_channel_', None)
-    channel_result = NotImplemented if channel_getter is None else channel_getter()
-    if channel_result is not NotImplemented:
-        return tuple(channel_result)
+    if channel_getter is not None:
+        warnings.warn(
+            '_channel_ is deprecated and will be removed in cirq 0.13, rename to _kraus_',
+            DeprecationWarning,
+        )
+
+    kraus_getter = getattr(val, '_kraus_', None)
+    kraus_result = NotImplemented if kraus_getter is None else kraus_getter()
+    if kraus_result is not NotImplemented:
+        return tuple(kraus_result)
 
     mixture_getter = getattr(val, '_mixture_', None)
     mixture_result = NotImplemented if mixture_getter is None else mixture_getter()
@@ -150,16 +157,21 @@ def channel(
     if unitary_result is not NotImplemented and unitary_result is not None:
         return (unitary_result,)
 
+    channel_result = NotImplemented if channel_getter is None else channel_getter()
+    if channel_result is not NotImplemented:
+        return tuple(channel_result)
+
     if default is not RaiseTypeErrorIfNotProvided:
         return default
 
-    if channel_getter is None and unitary_getter is None and mixture_getter is None:
+    if kraus_getter is None and unitary_getter is None and mixture_getter is None:
         raise TypeError(
-            "object of type '{}' has no _channel_ or _mixture_ or "
+            "object of type '{}' has no _kraus_ or _mixture_ or "
             "_unitary_ method.".format(type(val))
         )
+
     raise TypeError(
-        "object of type '{}' does have a _channel_, _mixture_ or "
+        "object of type '{}' does have a _kraus_, _mixture_ or "
         "_unitary_ method, but it returned NotImplemented.".format(type(val))
     )
 
@@ -178,18 +190,24 @@ def has_channel(val: Any, *, allow_decompose: bool = True) -> bool:
             the result is skipped.
 
     Returns:
-        If `val` has a `_has_channel_` method and its result is not
+        If `val` has a `_has_kraus_` method and its result is not
         NotImplemented, that result is returned. Otherwise, if `val` has a
         `_has_mixture_` method and its result is not NotImplemented, that
         result is returned. Otherwise if `val` has a `_has_unitary_` method
         and its results is not NotImplemented, that result is returned.
-        Otherwise, if the value has a _channel_ method return if that
+        Otherwise, if the value has a _kraus_ method return if that
         has a non-default value. Returns False if none of these functions
         exists.
     """
     channel_getter = getattr(val, '_has_channel_', None)
-    result = NotImplemented if channel_getter is None else channel_getter()
+    if channel_getter is not None:
+        warnings.warn(
+            '_has_channel_ is deprecated and will be removed in cirq 0.13, rename to _has_kraus_',
+            DeprecationWarning,
+        )
 
+    kraus_getter = getattr(val, '_has_kraus_', None)
+    result = NotImplemented if kraus_getter is None else kraus_getter()
     if result is not NotImplemented:
         return result
 
@@ -197,10 +215,14 @@ def has_channel(val: Any, *, allow_decompose: bool = True) -> bool:
     if result is not NotImplemented and result:
         return result
 
+    result = NotImplemented if channel_getter is None else channel_getter()
+    if result is not NotImplemented:
+        return result
+
     if allow_decompose:
         operations, _, _ = _try_decompose_into_operations_and_qubits(val)
         if operations is not None:
             return all(has_channel(val) for val in operations)
 
-    # No has methods, use `_channel_` or delegates instead.
+    # No has methods, use `_kraus_` or delegates instead.
     return channel(val, None) is not None

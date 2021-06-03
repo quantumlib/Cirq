@@ -63,7 +63,7 @@ def test_act_using_probabilistic_single_qubit_channel():
         def num_qubits(self) -> int:
             return 1
 
-        def _channel_(self):
+        def _kraus_(self):
             return [
                 cirq.unitary(cirq.S) * np.sqrt(1 / 3),
                 cirq.unitary(cirq.X) * np.sqrt(2 / 3),
@@ -116,7 +116,7 @@ def test_act_using_adaptive_two_qubit_channel():
         def num_qubits(self) -> int:
             return 2
 
-        def _channel_(self):
+        def _kraus_(self):
             bottom_right = cirq.one_hot(index=(3, 3), shape=(4, 4), dtype=np.complex64)
             top_right = cirq.one_hot(index=(0, 3), shape=(4, 4), dtype=np.complex64)
             return [
@@ -182,7 +182,7 @@ def test_probability_comes_up_short_results_in_fallback():
         def num_qubits(self) -> int:
             return 1
 
-        def _channel_(self):
+        def _kraus_(self):
             return [
                 cirq.unitary(cirq.X) * np.sqrt(0.999),
                 np.eye(2) * 0,
