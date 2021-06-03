@@ -130,8 +130,9 @@ class DensityMatrixSimulator(
             ignore_measurement_results: if True, then the simulation
                 will treat measurement as dephasing instead of collapsing
                 process.
-            split_untangled_states: Optimizes simulation by running unentangled
-                qubit sets independently and merging those states at the end.
+            split_untangled_states: If true, optimizes simulation by running
+                unentangled qubit sets independently and merging those states
+                at the end.
 
                Example:
                >>> (q0,) = cirq.LineQubit.range(1)

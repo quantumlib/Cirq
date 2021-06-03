@@ -100,8 +100,9 @@ class SimulatorBase(
                 will treat measurement as dephasing instead of collapsing
                 process. This is only applicable to simulators that can
                 model dephasing.
-            split_untangled_states: Optimizes simulation by running unentangled
-                qubit sets independently and merging those states at the end.
+            split_untangled_states: If true, optimizes simulation by running
+                unentangled qubit sets independently and merging those states
+                at the end.
         """
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
