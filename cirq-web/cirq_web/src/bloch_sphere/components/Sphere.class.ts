@@ -1,9 +1,7 @@
 import {SphereGeometry, MeshNormalMaterial, Mesh} from 'three';
 
 export class Sphere {
-  sphere: Mesh;
-
-  constructor(radius: number) {
+  public static createSphere(radius: number) {
     const geometry = new SphereGeometry(radius, 32, 32);
     const properties = {
       opacity: 0.4,
@@ -12,15 +10,11 @@ export class Sphere {
 
     const material = new MeshNormalMaterial(properties);
 
-    this.sphere = new Mesh(geometry, material);
+    const sphere = new Mesh(geometry, material);
 
     // Smooth out the shape
-    this.sphere.geometry.computeVertexNormals();
+    sphere.geometry.computeVertexNormals();
 
-    this.returnSphere();
-  }
-
-  returnSphere() {
-    return this.sphere;
+    return sphere;
   }
 }

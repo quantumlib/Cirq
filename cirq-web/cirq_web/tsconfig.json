@@ -5,6 +5,9 @@
     "target": "es5",
     "module": "commonjs",
     "allowJs": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     //"rootDir": ".",
     //"outDir": "build"
   },
