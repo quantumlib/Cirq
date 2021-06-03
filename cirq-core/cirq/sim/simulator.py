@@ -495,7 +495,7 @@ class SimulatesIntermediateState(
     state at the end of a circuit, a SimulatesIntermediateState can
     simulate stepping through the moments of a circuit.
 
-    Implementors of this interface should implement the _base_iterator
+    Implementors of this interface should implement the _core_iterator
     method.
 
     Note that state here refers to simulator state, which is not necessarily

@@ -57,7 +57,7 @@ class SimulatorBase(
     """A base class for the built-in simulators.
 
     Most implementors of this interface should implement the
-    `_create_act_on_args` and `_create_step_result` methods. The first one
+    `_create_act_on_arg` and `_create_step_result` methods. The first one
     creates the simulator's quantum state representation at the beginning of
     the simulation. The second creates the step result emitted after each
     `Moment` in the simulation.
@@ -117,7 +117,18 @@ class SimulatorBase(
         qubits: Sequence['cirq.Qid'],
         logs: Dict[str, Any],
     ) -> TActOnArgs:
-        """Creates an args"""
+        """Creates an instance of the TActOnArgs class for the simulator.
+
+        It represents the supplied qubits initialized to the provided state.
+
+        Args:
+            initial_state: The initial state to represent. An integer state is
+                understood to be a pure state. Other state representations are
+                simulator-dependent.
+            qubits: The sequence of qubits to represent.
+            logs: The structure to hold measurement logs. A single instance
+                should be shared among all ActOnArgs within the simulation.
+        """
 
     @abc.abstractmethod
     def _create_step_result(
