@@ -19,9 +19,7 @@ from dev_tools import modules
 def test_versions_are_the_same():
     mods = modules.list_modules(include_parent=True)
     versions = {m.name: m.version for m in mods}
-    assert len(set(versions.values())) == 1, (
-        f"Versions should be the same, " f"instead: \n{versions}"
-    )
+    assert len(set(versions.values())) == 1, f"Versions should be the same, instead: \n{versions}"
 
 
 def _get_version(package: str):

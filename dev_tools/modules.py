@@ -16,6 +16,7 @@ import argparse
 import dataclasses
 import os
 import sys
+from pathlib import Path
 from typing import List, Dict, Any
 
 _FOLDER = 'folder'
@@ -24,7 +25,7 @@ _PACKAGE_PATH = 'package-path'
 
 @dataclasses.dataclass
 class Module:
-    root: str
+    root: Path
     raw_setup: Dict[str, Any]
 
     name: str = dataclasses.field(init=False)
@@ -42,7 +43,7 @@ class Module:
 
 
 def list_modules(
-    search_dir: str = os.path.join(os.path.dirname(__file__), '..'), include_parent: bool = False
+    search_dir: Path = Path(__file__).parents[1], include_parent: bool = False
 ) -> List[Module]:
     """Returns a list of python modules based defined by setup.py files.
 
@@ -57,29 +58,26 @@ def list_modules(
     """
 
     relative_folders = sorted(
-        [
-            f
-            for f in os.listdir(search_dir)
-            if os.path.isdir(os.path.join(search_dir, f))
-            and os.path.isfile(os.path.join(search_dir, f, "setup.py"))
-        ]
+        f.relative_to(search_dir)
+        for f in search_dir.glob("*")
+        if f.is_dir() and (f / "setup.py").is_file()
     )
     if include_parent:
-        parent_setup_py = os.path.join(search_dir, "setup.py")
-        assert os.path.isfile(
-            parent_setup_py
-        ), f"include_parent=True, but {parent_setup_py} does not exist."
-        relative_folders.append(".")
+        parent_setup_py = search_dir / "setup.py"
+        assert parent_setup_py.exists(), (
+            f"include_parent=True, but {parent_setup_py} " f"does not exist."
+        )
+        relative_folders.append(Path("."))
 
     result = [
-        Module(root=folder, raw_setup=_parse_module(os.path.join(search_dir, folder)))
+        Module(root=folder, raw_setup=_parse_module(search_dir / folder))
         for folder in relative_folders
     ]
 
     return result
 
 
-def _parse_module(folder: str) -> Dict[str, Any]:
+def _parse_module(folder: Path) -> Dict[str, Any]:
     setup_args = {}
     import setuptools
 
@@ -87,19 +85,18 @@ def _parse_module(folder: str) -> Dict[str, Any]:
     cwd = os.getcwd()
 
     def setup(**kwargs):
-        nonlocal setup_args
-        setup_args = kwargs
+        setup_args.update(kwargs)
 
     try:
         setuptools.setup = setup
-        os.chdir(folder)
+        os.chdir(str(folder))
         setup_py = open("setup.py").read()
         exec(setup_py, globals())
         assert setup_args, f"Invalid setup.py - setup() was not called in {folder}/setup.py!"
         return setup_args
-    except BaseException as ex:
+    except BaseException:
         print(f"Failed to run {folder}/setup.py:")
-        raise ex
+        raise
     finally:
         setuptools.setup = orig_setup
         os.chdir(cwd)
@@ -118,7 +115,7 @@ def _print_list_modules(mode: str, include_parent: bool = False):
     Returns:
           a list of strings
     """
-    for m in list_modules(".", include_parent):
+    for m in list_modules(Path("."), include_parent):
         if mode == _FOLDER:
             print(m.root, end=" ")
         elif mode == _PACKAGE_PATH:
@@ -128,7 +125,11 @@ def _print_list_modules(mode: str, include_parent: bool = False):
 
 def main(argv: List[str]):
     args = parse(argv)
+    # args.func is where we store the function to be called for a given subparser
+    # e.g. it is list_modules for the `list` subcommand
     f = args.func
+    # however the func is not going to be needed for the function itself, so
+    # we remove it here
     delattr(args, 'func')
     f(**vars(args))
 
@@ -138,6 +139,11 @@ def parse(args):
     subparsers = parser.add_subparsers(
         title='subcommands', description='valid subcommands', help='additional help'
     )
+    _add_list_modules_cmd(subparsers)
+    return parser.parse_args(args)
+
+
+def _add_list_modules_cmd(subparsers):
     list_modules_cmd = subparsers.add_parser("list", help="lists all the modules")
     list_modules_cmd.add_argument(
         "--mode",
@@ -154,7 +160,6 @@ def parse(args):
         action="store_true",
     )
     list_modules_cmd.set_defaults(func=_print_list_modules)
-    return parser.parse_args(args)
 
 
 if __name__ == '__main__':

@@ -11,12 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import contextlib
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
 from io import StringIO
+from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -27,7 +29,7 @@ from dev_tools.modules import Module
 
 def test_modules():
     mod1 = Module(
-        root='mod1',
+        root=Path('mod1'),
         raw_setup={
             'name': 'module1',
             'version': '0.12.0.dev',
@@ -46,20 +48,22 @@ def test_modules():
     assert mod1.top_level_package_paths == [os.path.join('mod1', 'pack1')]
 
     mod2 = Module(
-        root='mod2', raw_setup={'name': 'module2', 'version': '1.2.3', 'packages': ['pack2']}
+        root=Path('mod2'), raw_setup={'name': 'module2', 'version': '1.2.3', 'packages': ['pack2']}
     )
 
     assert mod2.name == 'module2'
     assert mod2.version == '1.2.3'
     assert mod2.top_level_packages == ['pack2']
     assert mod2.top_level_package_paths == [os.path.join('mod2', 'pack2')]
-    assert modules.list_modules(search_dir="dev_tools/modules_test_data") == [mod1, mod2]
+    assert modules.list_modules(search_dir=Path("dev_tools/modules_test_data")) == [mod1, mod2]
 
     parent = Module(
-        root='.', raw_setup={'name': 'parent-module', 'version': '1.2.3', 'requirements': []}
+        root=Path('.'), raw_setup={'name': 'parent-module', 'version': '1.2.3', 'requirements': []}
     )
     assert parent.top_level_packages == []
-    assert modules.list_modules(search_dir="dev_tools/modules_test_data", include_parent=True) == [
+    assert modules.list_modules(
+        search_dir=Path("dev_tools/modules_test_data"), include_parent=True
+    ) == [
         mod1,
         mod2,
         parent,
@@ -77,6 +81,7 @@ def test_cli():
     assert output.decode("utf-8") == "mod1 mod2 "
 
 
+@contextlib.contextmanager
 def chdir(*, target_dir: str = None):
     """Changes for the duration of the test the working directory.
 
@@ -85,21 +90,15 @@ def chdir(*, target_dir: str = None):
             directory.
     """
 
-    def inner(test_func):
-        def wrapper(*args, **kwargs):
-            cwd = os.getcwd()
-            tdir = tempfile.mkdtemp() if target_dir is None else target_dir
-            os.chdir(tdir)
-            try:
-                return test_func(*args, **kwargs)
-            finally:
-                os.chdir(cwd)
-                if target_dir is None:
-                    shutil.rmtree(tdir)
-
-        return wrapper
-
-    return inner
+    cwd = os.getcwd()
+    tdir = tempfile.mkdtemp() if target_dir is None else target_dir
+    os.chdir(tdir)
+    try:
+        yield
+    finally:
+        os.chdir(cwd)
+        if target_dir is None:
+            shutil.rmtree(tdir)
 
 
 @chdir(target_dir="dev_tools/modules_test_data")
@@ -121,5 +120,5 @@ def test_error():
     f.write('name="test"')
     f.close()
 
-    with pytest.raises(AssertionError, match="Invalid setup.py - setup\\(\\) was not called.*"):
+    with pytest.raises(AssertionError, match=r"Invalid setup.py - setup\(\) was not called.*"):
         modules.main(["list", "--mode", "folder", "--include-parent"])

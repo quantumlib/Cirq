@@ -11,8 +11,6 @@ This module is **cirq-aqt**, which provides everything you'll need to run Cirq q
 Documentation
 -------------
 
-Access to Google Hardware is currently restricted to those in an approved group. In order to do this, you will need to apply for access, typically in partnership with a Google sponsor.
-
 To get started with the Alpine Quantum Technologies, checkout the following guide and tutorial:
 
 - `Access and authentication <https://quantumai.google/cirq/aqt/access>`__
