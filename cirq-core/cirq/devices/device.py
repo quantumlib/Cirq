@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import abc
-from typing import TYPE_CHECKING, Optional, AbstractSet, cast, FrozenSet, Iterable
+from typing import TYPE_CHECKING, Optional, AbstractSet, cast, FrozenSet, Iterator
 
 from cirq import value
 from cirq.devices.grid_qubit import _BaseGridQid
@@ -174,7 +174,7 @@ class SymmetricalQidPair:
     def __len__(self) -> int:
         return 2
 
-    def __iter__(self) -> Iterable['cirq.Qid']:
+    def __iter__(self) -> Iterator['cirq.Qid']:
         yield from sorted(self.qids)
 
     def __contains__(self, item: 'cirq.Qid') -> bool:
