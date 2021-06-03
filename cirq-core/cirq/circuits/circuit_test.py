@@ -4153,10 +4153,6 @@ def test_transform_qubits():
     with pytest.raises(TypeError, match='must be a function or dict'):
         _ = original.transform_qubits('bad arg')
 
-    with cirq.testing.assert_deprecated('Use qubit_map instead', deadline="v0.11"):
-        # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
-        assert original.transform_qubits(func=lambda q: cirq.GridQubit(10 + q.x, 20)) == desired
-
     # Device
     original = cirq.Circuit(device=FOXY)
     assert original.transform_qubits(lambda q: q).device is FOXY
@@ -4610,6 +4606,47 @@ def test_tetris_concat():
     assert type(v) is cirq.Circuit and v == ha
     v = cirq.FrozenCircuit.tetris_concat(ha, empty)
     assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
+
+
+def test_tetris_concat_alignment():
+    a, b = cirq.LineQubit.range(2)
+
+    assert cirq.Circuit.tetris_concat(
+        cirq.Circuit(cirq.X(a)),
+        cirq.Circuit(cirq.Y(b)) * 4,
+        cirq.Circuit(cirq.Z(a)),
+        align='first',
+    ) == cirq.Circuit(
+        cirq.Moment(cirq.X(a), cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Z(a), cirq.Y(b)),
+    )
+
+    assert cirq.Circuit.tetris_concat(
+        cirq.Circuit(cirq.X(a)),
+        cirq.Circuit(cirq.Y(b)) * 4,
+        cirq.Circuit(cirq.Z(a)),
+        align='left',
+    ) == cirq.Circuit(
+        cirq.Moment(cirq.X(a), cirq.Y(b)),
+        cirq.Moment(cirq.Z(a), cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+    )
+
+    assert cirq.Circuit.tetris_concat(
+        cirq.Circuit(cirq.X(a)),
+        cirq.Circuit(cirq.Y(b)) * 4,
+        cirq.Circuit(cirq.Z(a)),
+        align='right',
+    ) == cirq.Circuit(
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.X(a), cirq.Y(b)),
+        cirq.Moment(cirq.Z(a)),
+    )
 
 
 def test_factorize_one_factor():

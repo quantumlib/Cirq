@@ -23,13 +23,3 @@ def test_relative_luminance():
     assert np.isclose(rl, 1.0728676632649454)
     rl = cirq.vis.relative_luminance(np.array([0, 1, 2]))
     assert np.isclose(rl, 1.0728676632649454)
-
-
-def test_relative_luminance_deprecation():
-    with cirq.testing.assert_deprecated(
-        'cirq.vis.heatmap.relative_luminance was used but is deprecated.\n'
-        'It will be removed in cirq v0.11.\n'
-        'use cirq.vis.relative_luminance instead',
-        deadline="v0.11",
-    ):
-        cirq.vis.heatmap.relative_luminance([0, 0, 0])

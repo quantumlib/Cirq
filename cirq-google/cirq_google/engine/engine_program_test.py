@@ -292,7 +292,7 @@ def test_run_delegation(create_job, get_results):
 
     assert results == cirq.Result(
         params=cirq.ParamResolver({'a': 1.0}),
-        measurements={'q': np.array([[False], [True], [True], [False]], dtype=np.bool)},
+        measurements={'q': np.array([[False], [True], [True], [False]], dtype=bool)},
     )
 
 

@@ -91,7 +91,7 @@ def proper_eq(a: Any, b: Any) -> bool:
 def _warn_or_error(msg):
     from cirq.testing.deprecation import ALLOW_DEPRECATION_IN_TEST
 
-    called_from_test = 'PYTEST_CURRENT_TEST' in os.environ
+    called_from_test = 'CIRQ_TESTING' in os.environ
     deprecation_allowed = ALLOW_DEPRECATION_IN_TEST in os.environ
     if called_from_test and not deprecation_allowed:
         raise ValueError(f"Cirq should not use deprecated functionality: {msg}")

@@ -390,6 +390,19 @@ def test_with_measurement_key_mapping():
     assert cirq.with_measurement_key_mapping(op, {'x': 'k'}) is op
 
 
+def test_with_key_path():
+    a = cirq.LineQubit(0)
+    op = cirq.measure(a, key='m')
+
+    remap_op = cirq.with_key_path(op, ('a', 'b'))
+    assert cirq.measurement_keys(remap_op) == {'a:b:m'}
+    assert cirq.with_key_path(remap_op, ('a', 'b')) is remap_op
+
+    assert cirq.with_key_path(op, tuple()) is op
+
+    assert cirq.with_key_path(cirq.X(a), ('a', 'b')) is NotImplemented
+
+
 def test_cannot_remap_non_measurement_gate():
     a = cirq.LineQubit(0)
     op = cirq.X(a)

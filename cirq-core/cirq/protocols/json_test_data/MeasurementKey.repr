@@ -1,0 +1,1 @@
+[cirq.MeasurementKey('key'), cirq.MeasurementKey('key', ('outer',)), cirq.MeasurementKey('key', ('nested','path'))]
