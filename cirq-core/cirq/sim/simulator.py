@@ -627,7 +627,7 @@ class SimulatesIntermediateState(
                 ordering of the computational basis states.
 
         Returns:
-            The ActOnArgs for this simulator.
+            The Qid-ActOnArgs dictionary for this simulator.
         """
 
     @abc.abstractmethod
