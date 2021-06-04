@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,11 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/bash
+import cirq_web
 
-PREFIX="$(pwd)"
-PREFIX="$PREFIX:$(pwd)/cirq-core"
-PREFIX="$PREFIX:$(pwd)/cirq-google"
-PREFIX="$PREFIX:$(pwd)/cirq-web"
 
-[[ $PYTHONPATH == ${PREFIX}* ]] || export PYTHONPATH="$PREFIX:$PYTHONPATH"
+def test_to_script_tag(tmp_path):
+    # setup test data
+    tempfile = tmp_path / "tempfile"
+    content = "console.log('hello')"
+    tempfile.write_text(content)
+
+    # call the tested method/class
+    result = cirq_web.to_script_tag(tempfile)    
+
+    # compare actual with expected
+    expected = f"<script>{content}</script>"
+    assert result == expected

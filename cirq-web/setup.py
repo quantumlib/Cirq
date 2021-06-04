@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import os
-from setuptools import find_packages, setup
+from setuptools import setup
 
 # This reads the __version__ variable from cirq/_version.py
 __version__ = ''
@@ -21,9 +21,7 @@ exec(open('cirq_web/_version.py').read())
 
 name = 'cirq-web'
 
-description = (
-    'Web-based tools for Cirq.'
-)
+description = 'Web-based tools for Cirq.'
 
 # README file as long_description.
 long_description = open('README.rst', encoding='utf-8').read()

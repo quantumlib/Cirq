@@ -7,9 +7,26 @@ class Env(Enum):
     COLAB = 2
     OTHER = 3
 
+def to_script_tag(path):
+        """Dumps the contents of a particular bundle file into a script tag.
+
+        Args:
+            path: the path to the bundle file
+        """
+        bundle_file_path = path
+        bundle_file = open(bundle_file_path, 'r')
+        bundle_file_contents = bundle_file.read()
+        bundle_file.close()
+        bundle_html = f'<script>{bundle_file_contents}</script>'
+    
+
+        return bundle_html
+
+
 class Widget:
-    """Parent class for all widgets, containing standard methods to help
-    print the output to a widget's respective shell.
+    """Parent class for all widgets.
+    
+    Widget contains standard methods to help print the output to a widget's respective shell.
     """
 
     def determine_env(self):
@@ -21,8 +38,7 @@ class Widget:
             return Env.OTHER
 
     def determine_repr_path(self):
-        """
-        Determines the correct path for each widget's 
+        """Determines the correct path for each widget's 
         _repr_html() method.
 
         If running from the command line, this function will 
@@ -40,23 +56,7 @@ class Widget:
             return None
 
 
-    def unpack_bundle_src(self, path):
-        """Dumps the contents of a particular bundle file into a script tag.
-
-        Args:
-            path: the path to the bundle file
-        """
-        try:
-            bundle_file_path = path
-            bundle_file = open(bundle_file_path, 'r')
-            bundle_file_contents = bundle_file.read()
-            bundle_file.close()
-            bundle_html = f'<script>{bundle_file_contents}</script>'
-        except:
-            print('Failed')
-
-        return bundle_html
-
+    
     def write_output_file(self, output_directory, file_name, contents):
         """Writes the output file and returns its absolute path.
 
@@ -68,12 +68,10 @@ class Widget:
 
             contents: the contents of the file
         """
-        try:
-            file_to_write_in = open(output_directory + file_name, 'w')
-            file_to_write_in.write(contents)
-            file_to_write_in.close()
-        except:
-            print('Failed')
+        file_to_write_in = open(output_directory + file_name, 'w')
+        file_to_write_in.write(contents)
+        file_to_write_in.close()
+    
 
         absolute_path = os.path.abspath(output_directory + file_name)
         print(f'File can be found at: {absolute_path}')

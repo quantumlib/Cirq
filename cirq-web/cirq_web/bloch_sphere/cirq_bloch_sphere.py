@@ -1,16 +1,15 @@
 
 import json
 import math
-import os
 import webbrowser
 
-from Widget import Widget, Env # Needs to be sorted out
+from cirq_web import widget
 
 from cirq.testing import random_superposition
 from cirq.qis import to_valid_state_vector
 from cirq.qis.states import bloch_vector_from_state_vector
 
-class CirqBlochSphere(Widget):
+class CirqBlochSphere(widget.Widget):
     def __init__(
         self,
         sphere_radius=5,
@@ -73,7 +72,7 @@ class CirqBlochSphere(Widget):
         """ 
         
         env = super().determine_env()
-        if env != Env.OTHER:
+        if env != widget.Env.OTHER:
             print('Unsupported in Jupyter Notebook')
             return
 
@@ -88,8 +87,8 @@ class CirqBlochSphere(Widget):
         """
        
         # Spit out the bundle.js into a script tag to then serve to the user
-        bundle_file_path = f'../../cirq_ts/dist/bloch_sphere.bundle.js' # hacky
-        bundle_script = super().unpack_bundle_src(bundle_file_path)
+        bundle_file_path = f'cirq-web/cirq_ts/dist/bloch_sphere.bundle.js'
+        bundle_script = widget.to_script_tag(bundle_file_path)
 
         contents = templateDiv + bundle_script + templateScript
         path_of_html_file = super().write_output_file(output_directory, file_name, contents)
