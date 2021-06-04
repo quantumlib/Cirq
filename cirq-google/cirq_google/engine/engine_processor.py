@@ -16,6 +16,7 @@ import datetime
 from typing import Iterable, List, Optional, TYPE_CHECKING, Union
 from pytz import utc
 
+import cirq
 from cirq_google.engine.client.quantum import types as qtypes
 from cirq_google.engine.client.quantum import enums as qenums
 from cirq_google import serializable_gate_set
@@ -26,7 +27,6 @@ from cirq_google.engine.engine_timeslot import EngineTimeSlot
 
 if TYPE_CHECKING:
     import cirq_google.engine.engine as engine_base
-    import cirq
 
 
 class EngineProcessor:
@@ -112,7 +112,7 @@ class EngineProcessor:
 
     def get_device(
         self, gate_sets: Iterable[serializable_gate_set.SerializableGateSet]
-    ) -> 'cirq.Device':
+    ) -> cirq.Device:
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,

@@ -655,10 +655,10 @@ class TaggedOperation(Operation):
     def _mixture_(self) -> Sequence[Tuple[float, Any]]:
         return protocols.mixture(self.sub_operation, NotImplemented)
 
-    def _has_channel_(self) -> bool:
+    def _has_kraus_(self) -> bool:
         return protocols.has_channel(self.sub_operation)
 
-    def _channel_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
+    def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
         return protocols.channel(self.sub_operation, NotImplemented)
 
     def _measurement_key_(self) -> str:
