@@ -40,13 +40,18 @@ QCVV_TEAM = {('USERNAME', "@mrwojtek")}
 QCVV_MAINTAINERS = BASE_MAINTAINERS.union(QCVV_TEAM)
 
 
+def _vendor_docs_testcases(mod_name, expected_group):
+    return [
+        (f"docs/{mod_name}/notebook.ipynb", expected_group),
+        (f"docs/tutorials/{mod_name}/bla.md", expected_group)
+    ]
+
+
 def _vendor_module_testcases(mod_name, expected_group):
     return [
         (f"cirq/{mod_name}/test.py", expected_group),
         (f"cirq/{mod_name}/in/any/dir/test.py", expected_group),
         (f"platforms/{mod_name}/protos_as_well.proto", expected_group),
-        (f"docs/{mod_name}/notebook.ipynb", expected_group),
-        (f"docs/tutorials/{mod_name}/bla.md", expected_group),
     ]
 
 
@@ -57,12 +62,16 @@ def _vendor_module_testcases(mod_name, expected_group):
         ("in/any/dir/any_file.py", BASE_MAINTAINERS),
         ("cirq/contrib/bla.py", BASE_MAINTAINERS),
         ("cirq/experiments/bla.py", QCVV_MAINTAINERS),
-        ("cirq/docs/qcvv/my_fancy_notebook.ipynb", QCVV_MAINTAINERS.union(DOCS_MAINTAINERS)),
-        ("cirq/docs/any/dir/any_notebook.ipynb", DOCS_MAINTAINERS),
+        ("docs/qcvv/my_fancy_notebook.ipynb", QCVV_MAINTAINERS.union(DOCS_MAINTAINERS)),
+        ("docs/any/dir/any_notebook.ipynb", DOCS_MAINTAINERS),
         *_vendor_module_testcases("aqt", AQT_MAINTAINERS),
         *_vendor_module_testcases("ionq", IONQ_MAINTAINERS),
         *_vendor_module_testcases("google", GOOGLE_MAINTAINERS),
         *_vendor_module_testcases("pasqal", PASQAL_MAINTAINERS),
+        *_vendor_docs_testcases("aqt", AQT_MAINTAINERS.union(DOCS_MAINTAINERS)),
+        *_vendor_docs_testcases("ionq", IONQ_MAINTAINERS.union(DOCS_MAINTAINERS)),
+        *_vendor_docs_testcases("google", GOOGLE_MAINTAINERS.union(DOCS_MAINTAINERS)),
+        *_vendor_docs_testcases("pasqal", PASQAL_MAINTAINERS.union(DOCS_MAINTAINERS)),
     ],
 )
 def test_codeowners(pattern, expected):
@@ -70,11 +79,8 @@ def test_codeowners(pattern, expected):
     # for Mac and Windows. Eventually we could write our own codeowners parser,
     # but for now it is good enough. If codeowners is not installed, this test
     # will be skipped
-    try:
-        from codeowners import CodeOwners
-    except:
-        pytest.skip("Skipping as codeowners not installed.")
+    codeowners = pytest.importorskip("codeowners")
 
     with open(".github/CODEOWNERS") as f:
-        owners = CodeOwners(f.read())
+        owners = codeowners.CodeOwners(f.read())
         assert set(owners.of(pattern)) == expected
