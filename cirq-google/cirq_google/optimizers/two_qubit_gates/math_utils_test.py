@@ -1,7 +1,8 @@
 import numpy as np
 import pytest
 
-from cirq import kak_canonicalize_vector, value
+import cirq
+from cirq import value
 from cirq_google.optimizers.two_qubit_gates.math_utils import (
     weyl_chamber_mesh,
     kak_vector_infidelity,
@@ -16,8 +17,8 @@ def test_weyl_chamber_mesh_spacing_too_small_throws_error():
 
 def test_kak_vector_infidelity_ignore_equivalent_nontrivial():
     x, y, z = np.pi / 4, 1, 0.5
-    kak_0 = kak_canonicalize_vector(x, y, z).interaction_coefficients
-    kak_1 = kak_canonicalize_vector(x - 1e-3, y, z).interaction_coefficients
+    kak_0 = cirq.kak_canonicalize_vector(x, y, z).interaction_coefficients
+    kak_1 = cirq.kak_canonicalize_vector(x - 1e-3, y, z).interaction_coefficients
 
     inf_check_equivalent = kak_vector_infidelity(kak_0, kak_1, False)
     inf_ignore_equivalent = kak_vector_infidelity(kak_0, kak_1, True)

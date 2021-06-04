@@ -11,19 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional
 
 import numpy as np
 import sympy
 
-from cirq import ops, circuits, protocols
+import cirq
 
-
-if TYPE_CHECKING:
-    import cirq
-
-SQRT_ISWAP = ops.ISWAP ** 0.5
-SQRT_ISWAP_INV = ops.ISWAP ** -0.5
+SQRT_ISWAP = cirq.ISWAP ** 0.5
+SQRT_ISWAP_INV = cirq.ISWAP ** -0.5
 
 
 # TODO: Combine this with the equivalent functions in google/gate_set.py
@@ -37,7 +33,7 @@ def _near_mod_2pi(e, t, atol=1e-8):
     return _near_mod_n(e, t, 2 * np.pi, atol=atol)
 
 
-class ConvertToSqrtIswapGates(circuits.PointOptimizer):
+class ConvertToSqrtIswapGates(cirq.PointOptimizer):
     """Attempts to convert gates into ISWAP**-0.5 gates.
 
     Since we have Z rotations and arbitrary XY rotations, we
@@ -58,12 +54,12 @@ class ConvertToSqrtIswapGates(circuits.PointOptimizer):
         super().__init__()
         self.ignore_failures = ignore_failures
 
-    def _convert_one(self, op: 'cirq.Operation') -> 'cirq.OP_TREE':
+    def _convert_one(self, op: cirq.Operation) -> cirq.OP_TREE:
         """
         Decomposer intercept:  Let cirq decompose one-qubit gates,
         intercept on 2-qubit gates if they are known gates.
         """
-        if isinstance(op, ops.GlobalPhaseOperation):
+        if isinstance(op, cirq.GlobalPhaseOperation):
             return []
 
         gate = op.gate
@@ -73,16 +69,16 @@ class ConvertToSqrtIswapGates(circuits.PointOptimizer):
 
         q0, q1 = op.qubits
 
-        if isinstance(gate, ops.CZPowGate):
+        if isinstance(gate, cirq.CZPowGate):
             if isinstance(gate.exponent, sympy.Basic):
                 return cphase_symbols_to_sqrt_iswap(q0, q1, gate.exponent)
             else:
                 return cphase_to_sqrt_iswap(q0, q1, gate.exponent)
-        if isinstance(gate, ops.SwapPowGate):
+        if isinstance(gate, cirq.SwapPowGate):
             return swap_to_sqrt_iswap(q0, q1, gate.exponent)
-        if isinstance(gate, ops.ISwapPowGate):
+        if isinstance(gate, cirq.ISwapPowGate):
             return iswap_to_sqrt_iswap(q0, q1, gate.exponent)
-        if isinstance(gate, ops.FSimGate):
+        if isinstance(gate, cirq.FSimGate):
             return fsim_gate(q0, q1, gate.theta, gate.phi)
 
         return NotImplemented
@@ -95,32 +91,30 @@ class ConvertToSqrtIswapGates(circuits.PointOptimizer):
             "or composite."
         )
 
-    def convert(self, op: 'cirq.Operation') -> List['cirq.Operation']:
-
-        a = protocols.decompose(
+    def convert(self, op: cirq.Operation) -> List[cirq.Operation]:
+        return cirq.decompose(
             op,
             keep=is_sqrt_iswap_compatible,
             intercepting_decomposer=self._convert_one,
             on_stuck_raise=(None if self.ignore_failures else self._on_stuck_raise),
         )
-        return a
 
     def optimization_at(
-        self, circuit: 'cirq.Circuit', index: int, op: 'cirq.Operation'
-    ) -> Optional['cirq.PointOptimizationSummary']:
-        if isinstance(op.gate, ops.MatrixGate) and len(op.qubits) == 1:
+        self, circuit: cirq.Circuit, index: int, op: cirq.Operation
+    ) -> Optional[cirq.PointOptimizationSummary]:
+        if isinstance(op.gate, cirq.MatrixGate) and len(op.qubits) == 1:
             return None
 
         converted = self.convert(op)
         if len(converted) == 1 and converted[0] is op:
             return None
 
-        return circuits.PointOptimizationSummary(
+        return cirq.PointOptimizationSummary(
             clear_span=1, new_operations=converted, clear_qubits=op.qubits
         )
 
 
-def is_sqrt_iswap_compatible(op: 'cirq.Operation') -> bool:
+def is_sqrt_iswap_compatible(op: cirq.Operation) -> bool:
     """Check if the given operation is compatible with the sqrt_iswap gateset
     gate set.
 
@@ -133,25 +127,25 @@ def is_sqrt_iswap_compatible(op: 'cirq.Operation') -> bool:
     return is_basic_gate(op.gate) or is_sqrt_iswap(op.gate)
 
 
-def is_sqrt_iswap(gate: Optional['cirq.Gate']) -> bool:
+def is_sqrt_iswap(gate: Optional[cirq.Gate]) -> bool:
     """Checks if this is a ± sqrt(iSWAP) gate specified using either
     ISwapPowGate or with the equivalent FSimGate.
     """
     if (
-        isinstance(gate, ops.FSimGate)
+        isinstance(gate, cirq.FSimGate)
         and not isinstance(gate.theta, sympy.Basic)
         and _near_mod_2pi(abs(gate.theta), np.pi / 4)
         and _near_mod_2pi(gate.phi, 0)
     ):
         return True
     return (
-        isinstance(gate, ops.ISwapPowGate)
+        isinstance(gate, cirq.ISwapPowGate)
         and not isinstance(gate.exponent, sympy.Basic)
         and _near_mod_n(abs(gate.exponent), 0.5, 4)
     )
 
 
-def is_basic_gate(gate: Optional['cirq.Gate']) -> bool:
+def is_basic_gate(gate: Optional[cirq.Gate]) -> bool:
     """Check if a gate is a basic supported one-qubit gate.
 
     Args:
@@ -163,12 +157,12 @@ def is_basic_gate(gate: Optional['cirq.Gate']) -> bool:
     return isinstance(
         gate,
         (
-            ops.MeasurementGate,
-            ops.PhasedXZGate,
-            ops.PhasedXPowGate,
-            ops.XPowGate,
-            ops.YPowGate,
-            ops.ZPowGate,
+            cirq.MeasurementGate,
+            cirq.PhasedXZGate,
+            cirq.PhasedXPowGate,
+            cirq.XPowGate,
+            cirq.YPowGate,
+            cirq.ZPowGate,
         ),
     )
 
@@ -205,18 +199,18 @@ def cphase_to_sqrt_iswap(a, b, turns):
         phi = np.arcsin(np.sqrt(2) * np.sin(theta_prime / 4))
         xi = np.arctan(np.tan(phi) / np.sqrt(2))
 
-    yield ops.rz(sign * 0.5 * theta_prime).on(a)
-    yield ops.rz(sign * 0.5 * theta_prime).on(b)
-    yield ops.rx(xi).on(a)
-    yield ops.X(b) ** (-sign * 0.5)
+    yield cirq.rz(sign * 0.5 * theta_prime).on(a)
+    yield cirq.rz(sign * 0.5 * theta_prime).on(b)
+    yield cirq.rx(xi).on(a)
+    yield cirq.X(b) ** (-sign * 0.5)
     yield SQRT_ISWAP_INV(a, b)
-    yield ops.rx(-2 * phi).on(a)
+    yield cirq.rx(-2 * phi).on(a)
     yield SQRT_ISWAP(a, b)
 
-    yield ops.rx(xi).on(a)
-    yield ops.X(b) ** (sign * 0.5)
+    yield cirq.rx(xi).on(a)
+    yield cirq.X(b) ** (sign * 0.5)
     # Corrects global phase
-    yield ops.GlobalPhaseOperation(np.exp(sign * theta_prime * 0.25j))
+    yield cirq.GlobalPhaseOperation(np.exp(sign * theta_prime * 0.25j))
 
 
 def cphase_symbols_to_sqrt_iswap(a, b, turns):
@@ -236,15 +230,15 @@ def cphase_symbols_to_sqrt_iswap(a, b, turns):
     phi = sympy.asin(np.sqrt(2) * sympy.sin(theta_prime / 4))
     xi = sympy.atan(sympy.tan(phi) / np.sqrt(2))
 
-    yield ops.rz(sign * 0.5 * theta_prime).on(a)
-    yield ops.rz(sign * 0.5 * theta_prime).on(b)
-    yield ops.rx(xi).on(a)
-    yield ops.X(b) ** (-sign * 0.5)
+    yield cirq.rz(sign * 0.5 * theta_prime).on(a)
+    yield cirq.rz(sign * 0.5 * theta_prime).on(b)
+    yield cirq.rx(xi).on(a)
+    yield cirq.X(b) ** (-sign * 0.5)
     yield SQRT_ISWAP_INV(a, b)
-    yield ops.rx(-2 * phi).on(a)
+    yield cirq.rx(-2 * phi).on(a)
     yield SQRT_ISWAP(a, b)
-    yield ops.rx(xi).on(a)
-    yield ops.X(b) ** (sign * 0.5)
+    yield cirq.rx(xi).on(a)
+    yield cirq.X(b) ** (sign * 0.5)
 
 
 def iswap_to_sqrt_iswap(a, b, turns):
@@ -261,14 +255,14 @@ def iswap_to_sqrt_iswap(a, b, turns):
         b: the second qubit
         t: Exponent that specifies the evolution time in number of rotations.
     """
-    yield ops.Z(a) ** 0.75
-    yield ops.Z(b) ** 0.25
+    yield cirq.Z(a) ** 0.75
+    yield cirq.Z(b) ** 0.25
     yield SQRT_ISWAP_INV(a, b)
-    yield ops.Z(a) ** (-turns / 2 + 1)
-    yield ops.Z(b) ** (turns / 2)
+    yield cirq.Z(a) ** (-turns / 2 + 1)
+    yield cirq.Z(b) ** (turns / 2)
     yield SQRT_ISWAP_INV(a, b)
-    yield ops.Z(a) ** 0.25
-    yield ops.Z(b) ** -0.25
+    yield cirq.Z(a) ** 0.25
+    yield cirq.Z(b) ** -0.25
 
 
 def swap_to_sqrt_iswap(a, b, turns):
@@ -287,28 +281,28 @@ def swap_to_sqrt_iswap(a, b, turns):
     """
     if not isinstance(turns, sympy.Basic) and _near_mod_n(turns, 1.0, 2):
         # Decomposition for cirq.SWAP
-        yield ops.Y(a) ** 0.5
-        yield ops.Y(b) ** 0.5
+        yield cirq.Y(a) ** 0.5
+        yield cirq.Y(b) ** 0.5
         yield SQRT_ISWAP(a, b)
-        yield ops.Y(a) ** -0.5
-        yield ops.Y(b) ** -0.5
+        yield cirq.Y(a) ** -0.5
+        yield cirq.Y(b) ** -0.5
         yield SQRT_ISWAP(a, b)
-        yield ops.X(a) ** -0.5
-        yield ops.X(b) ** -0.5
+        yield cirq.X(a) ** -0.5
+        yield cirq.X(b) ** -0.5
         yield SQRT_ISWAP(a, b)
-        yield ops.X(a) ** 0.5
-        yield ops.X(b) ** 0.5
+        yield cirq.X(a) ** 0.5
+        yield cirq.X(b) ** 0.5
         return
 
-    yield ops.Z(a) ** 1.25
-    yield ops.Z(b) ** -0.25
-    yield ops.ISWAP(a, b) ** -0.5
-    yield ops.Z(a) ** (-turns / 2 + 1)
-    yield ops.Z(b) ** (turns / 2)
-    yield ops.ISWAP(a, b) ** -0.5
-    yield ops.Z(a) ** (turns / 2 - 0.25)
-    yield ops.Z(b) ** (turns / 2 + 0.25)
-    yield ops.CZ.on(a, b) ** (-turns)
+    yield cirq.Z(a) ** 1.25
+    yield cirq.Z(b) ** -0.25
+    yield cirq.ISWAP(a, b) ** -0.5
+    yield cirq.Z(a) ** (-turns / 2 + 1)
+    yield cirq.Z(b) ** (turns / 2)
+    yield cirq.ISWAP(a, b) ** -0.5
+    yield cirq.Z(a) ** (turns / 2 - 0.25)
+    yield cirq.Z(b) ** (turns / 2 + 0.25)
+    yield cirq.CZ.on(a, b) ** (-turns)
 
 
 def fsim_gate(a, b, theta, phi):
@@ -316,6 +310,6 @@ def fsim_gate(a, b, theta, phi):
     which is an awkward decomposition for this gate set.
     Decompose into ISWAP and CZ instead."""
     if theta != 0.0:
-        yield ops.ISWAP(a, b) ** (-2 * theta / np.pi)
+        yield cirq.ISWAP(a, b) ** (-2 * theta / np.pi)
     if phi != 0.0:
-        yield ops.CZPowGate(exponent=-phi / np.pi)(a, b)
+        yield cirq.CZPowGate(exponent=-phi / np.pi)(a, b)
