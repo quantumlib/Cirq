@@ -104,3 +104,4 @@ def test_generate_HTML_file(tmpdir):
     actual = open(str(new_path), 'r').read()
 
     assert expected == actual
+
