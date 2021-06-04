@@ -75,6 +75,6 @@ def test_codeowners(filepath, expected):
     with open(".github/CODEOWNERS") as f:
         owners = codeowners.CodeOwners(f.read())
         assert os.path.exists(filepath), (
-            "To avoid creating/having meaningless rules " f"{filepath} should exist."
+            f"{filepath} should exist to avoid creating/maintaining meaningless codeowners rules."
         )
         assert set(owners.of(filepath)) == expected
