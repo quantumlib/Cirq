@@ -16,7 +16,6 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.protocols.act_on_protocol_test import DummyActOnArgs
 
 
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
