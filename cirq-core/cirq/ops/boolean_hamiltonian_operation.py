@@ -379,7 +379,9 @@ class BooleanHamiltonianOperation(raw_types.Gate):
         if symbol_names:
             for symb in required_symbol_names:
                 if symb not in symbol_names:
-                    raise ValueError(f'symbol_names was specified but it is not a superset of the symbols in boolean_exprs. Missing required symbol: {symb}')
+                    raise ValueError(
+                        f'symbol_names was specified but it is not a superset of the symbols in boolean_exprs. Missing required symbol: {symb}'
+                    )
             return {symb: i for i, symb in enumerate(sorted(symbol_names))}
         else:
             return {symb: i for i, symb in enumerate(sorted(required_symbol_names))}
