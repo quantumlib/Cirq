@@ -8,7 +8,7 @@ import pytest
 import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
-import cirq.ops.boolean_hamiltonian_operation as bho
+import cirq.ops.boolean_hamiltonian as bho
 
 # These are some of the entries of table 1 of https://arxiv.org/pdf/1804.09130.pdf.
 @pytest.mark.parametrize(
@@ -25,7 +25,7 @@ import cirq.ops.boolean_hamiltonian_operation as bho
 def test_build_hamiltonian_from_boolean(boolean_expr, expected_hamiltonian_polynomial):
     boolean = sympy_parser.parse_expr(boolean_expr)
     name_to_id = cirq.BooleanHamiltonian.get_name_to_id([boolean])
-    actual = bho._build_hamiltonian_from_boolean(boolean, name_to_id)
+    actual = bh._build_hamiltonian_from_boolean(boolean, name_to_id)
     assert expected_hamiltonian_polynomial == str(actual)
 
 
@@ -33,7 +33,7 @@ def test_unsupported_op():
     not_a_boolean = sympy_parser.parse_expr('x * x')
     name_to_id = cirq.BooleanHamiltonian.get_name_to_id([not_a_boolean])
     with pytest.raises(ValueError, match='Unsupported type'):
-        bho._build_hamiltonian_from_boolean(not_a_boolean, name_to_id)
+        bh._build_hamiltonian_from_boolean(not_a_boolean, name_to_id)
 
 
 @pytest.mark.parametrize(
@@ -144,7 +144,7 @@ def test_gray_code_sorting(n_bits, expected_hs):
         hs.append(tuple(sorted(h)))
     random.shuffle(hs)
 
-    sorted_hs = sorted(list(hs), key=functools.cmp_to_key(bho._gray_code_comparator))
+    sorted_hs = sorted(list(hs), key=functools.cmp_to_key(bh._gray_code_comparator))
 
     np.testing.assert_array_equal(sorted_hs, expected_hs)
 
@@ -159,4 +159,4 @@ def test_gray_code_sorting(n_bits, expected_hs):
     ],
 )
 def test_gray_code_comparison(seq_a, seq_b, expected):
-    assert bho._gray_code_comparator(seq_a, seq_b) == expected
+    assert bh._gray_code_comparator(seq_a, seq_b) == expected

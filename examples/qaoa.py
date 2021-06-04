@@ -29,9 +29,7 @@ def qaoa(booleans, repetitions, maxiter, p):
         circuit.append(cirq.H.on_each(*qubits))
 
         for i in range(p):
-            hamiltonian_gate = cirq.BooleanHamiltonian(
-                booleans, 2.0 * x[p + i], ladder_target=True
-            )
+            hamiltonian_gate = cirq.BooleanHamiltonian(booleans, 2.0 * x[p + i], ladder_target=True)
             circuit.append(cirq.decompose(hamiltonian_gate(*qubits)))
             circuit.append(cirq.rx(2.0 * x[i]).on_each(*qubits))
 
