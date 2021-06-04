@@ -34,7 +34,7 @@ class HamiltonianPolynomial:
         Greenbaum, Sarah Mostame, Alán Aspuru-Guzik, https://arxiv.org/abs/1306.3991
     """
 
-    def __init__(self, hamiltonians: DefaultDict[Tuple[int, ...], float]):
+    def __init__(self, hamiltonians: Dict[Tuple[int, ...], float]):
         # The representation is Tuple[int, ...] to weights. The tuple contains the integers of
         # where Z_i is present. For example, Z_0.Z_3 would be (0, 3), and I is the empty tuple.
         self._hamiltonians: DefaultDict[Tuple[int, ...], float] = defaultdict(
