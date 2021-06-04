@@ -83,6 +83,16 @@ class ActOnArgs:
     def copy(self: TSelf) -> TSelf:
         """Creates a copy of the object."""
 
+    def _act_on_fallback_(self, action: 'cirq.Operation', allow_decompose: bool):
+        """Handles the act_on protocol fallback implementation."""
+        return self._act_on_qubits_fallback_(action, action.qubits, allow_decompose)
+
+    @abc.abstractmethod
+    def _act_on_qubits_fallback_(
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool
+    ):
+        """Handles the act_on protocol fallback implementation."""
+
 
 def strat_act_on_from_apply_decompose(
     val: Any,

@@ -142,8 +142,7 @@ def act_on(
 
     arg_fallback = getattr(args, '_act_on_fallback_', None)
     if arg_fallback is not None:
-        qubits = action.qubits
-        result = arg_fallback(action, allow_decompose=allow_decompose, qubits=qubits)
+        result = arg_fallback(action, allow_decompose=allow_decompose)
         if result is True:
             return
         if result is not NotImplemented:
@@ -210,7 +209,7 @@ def act_on_qubits(
                 f'{result!r} from {action!r}._act_on_'
             )
 
-    arg_fallback = getattr(args, '_act_on_fallback_', None)
+    arg_fallback = getattr(args, '_act_on_qubits_fallback_', None)
     if arg_fallback is not None:
         result = arg_fallback(action, allow_decompose=allow_decompose, qubits=qubits)
         if result is True:

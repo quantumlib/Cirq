@@ -57,7 +57,9 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         super().__init__(prng, qubits, log_of_measurement_results)
         self.state = state
 
-    def _act_on_fallback_(self, action: Any, allow_decompose: bool, qubits: Sequence['cirq.Qid']):
+    def _act_on_qubits_fallback_(
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool
+    ):
         strats = []
         if allow_decompose:
             strats.append(_strat_act_on_stabilizer_ch_form_from_single_qubit_decompose)

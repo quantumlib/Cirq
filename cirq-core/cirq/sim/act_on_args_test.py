@@ -31,7 +31,7 @@ def test_measurements():
 
 def test_decompose():
     class DummyArgs(cirq.ActOnArgs):
-        def _act_on_fallback_(self, action, allow_decompose, qubits):
+        def _act_on_qubits_fallback_(self, action, qubits, allow_decompose):
             return True
 
     class Composite(cirq.Gate):

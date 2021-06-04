@@ -235,13 +235,8 @@ class MeasurementGate(raw_types.Gate):
         return True
 
     def _act_on_qubits_(self, qubits: Sequence['cirq.Qid'], args: 'cirq.ActOnArgs') -> bool:
-        from cirq import sim
-
-        if isinstance(args, sim.ActOnArgs):
-            args.measure(qubits, self.key, self.full_invert_mask())
-            return True
-
-        return NotImplemented
+        args.measure(qubits, self.key, self.full_invert_mask())
+        return True
 
 
 def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:

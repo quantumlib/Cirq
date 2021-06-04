@@ -29,7 +29,7 @@ class DummyActOnArgs(cirq.ActOnArgs):
     def copy(self):
         return DummyActOnArgs(self.implemented, self.measurements.copy())
 
-    def _act_on_fallback_(self, action, allow_decompose, qubits):
+    def _act_on_qubits_fallback_(self, action, qubits, allow_decompose):
         return True if self.implemented else NotImplemented
 
 

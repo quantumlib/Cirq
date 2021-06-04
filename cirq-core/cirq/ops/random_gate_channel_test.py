@@ -247,11 +247,14 @@ def test_stabilizer_supports_probability():
 
 def test_unsupported_stabilizer_safety():
     from cirq.protocols.act_on_protocol_test import DummyActOnArgs
+
     with pytest.raises(TypeError, match="act_on"):
         for _ in range(100):
             cirq.act_on_qubits(cirq.X.with_probability(0.5), qubits=(), args=DummyActOnArgs())
     with pytest.raises(TypeError, match="act_on"):
-        cirq.act_on_qubits(cirq.X.with_probability(sympy.Symbol('x')), qubits=(), args=DummyActOnArgs())
+        cirq.act_on_qubits(
+            cirq.X.with_probability(sympy.Symbol('x')), qubits=(), args=DummyActOnArgs()
+        )
 
     q = cirq.LineQubit(0)
     c = cirq.Circuit((cirq.X(q) ** 0.25).with_probability(0.5), cirq.measure(q, key='m'))

@@ -37,7 +37,9 @@ class CountingActOnArgs(cirq.ActOnArgs):
         args.measurement_count = self.measurement_count
         return args
 
-    def _act_on_fallback_(self, op: Any, allow_decompose: bool, qubits: Sequence['cirq.Qid']):
+    def _act_on_qubits_fallback_(
+        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool
+    ):
         self.gate_count += 1
         return True
 

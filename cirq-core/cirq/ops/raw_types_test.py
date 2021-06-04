@@ -727,6 +727,7 @@ def test_tagged_act_on():
 
     q = cirq.LineQubit(1)
     from cirq.protocols.act_on_protocol_test import DummyActOnArgs
+
     args = DummyActOnArgs()
     cirq.act_on(YesActOn()(q).with_tags("test"), args)
     with pytest.raises(TypeError, match="Failed to act"):
