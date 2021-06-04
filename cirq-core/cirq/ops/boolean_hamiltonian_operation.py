@@ -330,7 +330,7 @@ class BooleanHamiltonianOperation(raw_types.Gate):
 
         For example, if we were using this gate for the max-cut problem that is typically used to
         demonstrate the QAOA algorithm, there would be one Boolean expression per edge. Each
-        Boolean expression would be true iff the verteces on that are in different cuts (i.e. it's)
+        Boolean expression would be true iff the vertices on that are in different cuts (i.e. it's)
         an XOR.
 
         Then, we compute exp(j * theta * polynomial), which is unitary because the polynomial is
