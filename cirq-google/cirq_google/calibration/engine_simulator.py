@@ -399,8 +399,8 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
 
     def _create_act_on_arg(
         self,
-        initial_state: Union[int, ActOnStateVectorArgs],
-        qubits: Sequence[Qid],
+        initial_state: Union[int, cirq.ActOnStateVectorArgs],
+        qubits: Sequence[cirq.Qid],
         logs: Dict[str, Any],
     ) -> cirq.ActOnStateVectorArgs:
         # Needs an implementation since it's abstract but will never actually be called.
