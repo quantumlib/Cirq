@@ -45,7 +45,7 @@ class CirqBlochSphere(Widget):
         
         return f"""
         <div id="container"></div>
-        <script src="{path}/cirq_ts/dist/bundle.js"></script>
+        <script src="{path}/cirq_ts/dist/bloch_sphere.bundle.js"></script>
         <script>
         createSphere.showSphere('{self.sphere_json}', '{self.vector_json}');
         </script>
@@ -88,7 +88,7 @@ class CirqBlochSphere(Widget):
         """
        
         # Spit out the bundle.js into a script tag to then serve to the user
-        bundle_file_path = f'../../cirq_ts/dist/bundle.js' # hacky
+        bundle_file_path = f'../../cirq_ts/dist/bloch_sphere.bundle.js' # hacky
         bundle_script = super().unpack_bundle_src(bundle_file_path)
 
         contents = templateDiv + bundle_script + templateScript

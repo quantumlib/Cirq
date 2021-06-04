@@ -5,7 +5,9 @@ const path = require('path');
 // Nbextension needed to work with Colab?
 
 module.exports = {
-  entry: './src/bloch_sphere/main.ts',
+  entry: {
+    bloch_sphere: './src/bloch_sphere/main.ts',
+  },
   devServer: {
     static: path.join(__dirname, 'dist'),
     public: 'localhost:8080',
@@ -23,7 +25,7 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
-    filename: 'bundle.js',
+    filename: '[name].bundle.js',
     library: {
       name: 'createSphere',
       type: 'global',
