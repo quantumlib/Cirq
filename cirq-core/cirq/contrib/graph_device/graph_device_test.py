@@ -180,3 +180,10 @@ def test_qubit_set():
     device_graph = ccgd.UndirectedHypergraph(labelled_edges={(a, b): None, (c, d): None})
     device = ccgd.UndirectedGraphDevice(device_graph=device_graph)
     assert device.qubit_set() == {a, b, c, d}
+
+
+def test_qid_pairs():
+    a, b, c, d = cirq.LineQubit.range(4)
+    device_graph = ccgd.UndirectedHypergraph(labelled_edges={(a, b): None, (c, d): None})
+    device = ccgd.UndirectedGraphDevice(device_graph=device_graph)
+    assert len(device.qid_pairs()) == 2

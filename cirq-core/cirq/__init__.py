@@ -90,6 +90,7 @@ from cirq.devices import (
     NO_NOISE,
     NOISE_MODEL_LIKE,
     NoiseModel,
+    SymmetricalQidPair,
     UNCONSTRAINED_DEVICE,
 )
 
@@ -334,6 +335,7 @@ from cirq.qis import (
     density_matrix,
     density_matrix_from_state_vector,
     dirac_notation,
+    entanglement_fidelity,
     eye_tensor,
     fidelity,
     kraus_to_channel_matrix,
