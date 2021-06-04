@@ -191,9 +191,7 @@ class SimulatorBase(
 
         # Create a default target for when there's no qubits or for qubit-free ops like GlobalPhase
         if self._split_untangled_states or len(qubits) == 0:
-            first_value = None if not any(sim_state) else next(iter(sim_state.values()))
-            logs = {} if first_value is None else first_value.log_of_measurement_results
-            default_arg = self._create_act_on_arg(0, (), logs)
+            default_arg = self._create_default_arg(sim_state)
         else:
             default_arg = next(iter(sim_state.values()))
 
@@ -228,35 +226,8 @@ class SimulatorBase(
                         if self._ignore_measurement_results:
                             op = ops.phase_damp(1).on(*op.qubits)
 
-                    # Go through the op's qubits and join any disparate ActOnArgs states
-                    # into a new combined state.
-                    op_args: Optional[TActOnArgs] = None
-                    for q in op.qubits if len(op.qubits) != 0 else qubits:
-                        if op_args is None:
-                            op_args = sim_state[q]
-                        elif q not in op_args.qubits:
-                            op_args = op_args.join(sim_state[q])
-                    op_args = op_args or default_arg
-
-                    # (Backfill the args map with the new value)
-                    for q in op_args.qubits:
-                        sim_state[q] = op_args
-
-                    # Act on the args with the operation
-                    op_args.axes = tuple(op_args.qubit_map[q] for q in op.qubits)
-                    protocols.act_on(op, op_args)
-
-                    # Decouple any measurements or resets
-                    if self._split_untangled_states and isinstance(
-                        op.gate, (ops.MeasurementGate, ops.ResetChannel)
-                    ):
-                        for q in op.qubits:
-                            q_args, op_args = op_args.extract((q,))
-                            sim_state[q] = q_args
-
-                        # (Backfill the args map with the new value)
-                        for q in op_args.qubits:
-                            sim_state[q] = op_args
+                    # Simulate the operation
+                    self._simulate_operation(op, sim_state, default_arg, qubits)
 
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
@@ -264,6 +235,43 @@ class SimulatorBase(
             step_state = merge_states(sim_state)
             yield self._create_step_result(step_state, step_state.qubit_map)
             step_state.log_of_measurement_results.clear()
+
+    def _simulate_operation(
+        self,
+        op: 'cirq.Operation',
+        sim_state: Dict['cirq.Qid', TActOnArgs],
+        default_arg: TActOnArgs,
+        qubits: Sequence['cirq.Qid'],
+    ):
+        # Go through the op's qubits and join any disparate ActOnArgs states
+        # into a new combined state.
+        op_args: Optional[TActOnArgs] = None
+        for q in op.qubits if len(op.qubits) != 0 else qubits:
+            if op_args is None:
+                op_args = sim_state[q]
+            elif q not in op_args.qubits:
+                op_args = op_args.join(sim_state[q])
+        op_args = op_args or default_arg
+
+        # (Backfill the args map with the new value)
+        for q in op_args.qubits:
+            sim_state[q] = op_args
+
+        # Act on the args with the operation
+        op_args.axes = tuple(op_args.qubit_map[q] for q in op.qubits)
+        protocols.act_on(op, op_args)
+
+        # Decouple any measurements or resets
+        if self._split_untangled_states and isinstance(
+            op.gate, (ops.MeasurementGate, ops.ResetChannel)
+        ):
+            for q in op.qubits:
+                q_args, op_args = op_args.extract((q,))
+                sim_state[q] = q_args
+
+            # (Backfill the args map with the new value)
+            for q in op_args.qubits:
+                sim_state[q] = op_args
 
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
@@ -323,6 +331,11 @@ class SimulatorBase(
                         measurements[k] = []
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
+
+    def _create_default_arg(self, sim_state: Dict['cirq.Qid', TActOnArgs]):
+        first_value = None if not any(sim_state) else next(iter(sim_state.values()))
+        logs = {} if first_value is None else first_value.log_of_measurement_results
+        return self._create_act_on_arg(0, (), logs)
 
     def _create_act_on_args(
         self,

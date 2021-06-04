@@ -256,9 +256,94 @@ def test_run_non_terminal_measurement():
     assert np.allclose(r.measurements['0'], [[1], [1]])
 
 
-def test_integer_state_split():
+def test_integer_initial_state_is_split():
     sim = CountingSimulator()
     args = sim._create_act_on_args(2, (q0, q1))
-    assert len(set(args.items())) == 2
+    assert len(set(args.values())) == 2
     assert args[q0].state == 1
     assert args[q1].state == 0
+
+
+def test_integer_initial_state_is_not_split_if_not_enabled():
+    sim = CountingSimulator(split_entangled_states=False)
+    args = sim._create_act_on_args(2, (q0, q1))
+    assert len(set(args.values())) == 1
+    assert args[q0].state == 2
+    assert args[q1].state == 2
+
+
+def test_non_integer_initial_state_is_not_split():
+    sim = CountingSimulator()
+    args = sim._create_act_on_args('state', (q0, q1))
+    assert len(set(args.values())) == 1
+    assert args[q0].state == 'state'
+    assert args[q1].state == 'state'
+
+
+def test_entanglement_causes_join():
+    sim = CountingSimulator()
+    args = sim._create_act_on_args(0, (q0, q1))
+    assert len(set(args.values())) == 2
+    default_arg = sim._create_default_arg(args)
+    sim._simulate_operation(cirq.CNOT(q0, q1), args, default_arg, (q0, q1))
+    assert len(set(args.values())) == 1
+    assert args[q0] is args[q1]
+
+
+def test_measurement_causes_split():
+    sim = CountingSimulator()
+    args = sim._create_act_on_args('state', (q0, q1))
+    assert len(set(args.values())) == 1
+    default_arg = sim._create_default_arg(args)
+    sim._simulate_operation(cirq.measure(q0), args, default_arg, (q0, q1))
+    assert len(set(args.values())) == 2
+    assert args[q0] is not args[q1]
+
+
+def test_reset_causes_split():
+    sim = CountingSimulator()
+    args = sim._create_act_on_args('state', (q0, q1))
+    assert len(set(args.values())) == 1
+    default_arg = sim._create_default_arg(args)
+    sim._simulate_operation(cirq.reset(q0), args, default_arg, (q0, q1))
+    assert len(set(args.values())) == 2
+    assert args[q0] is not args[q1]
+
+
+def test_measurement_does_not_split_if_disabled():
+    sim = CountingSimulator(split_entangled_states=False)
+    args = sim._create_act_on_args('state', (q0, q1))
+    assert len(set(args.values())) == 1
+    default_arg = sim._create_default_arg(args)
+    sim._simulate_operation(cirq.measure(q0), args, default_arg, (q0, q1))
+    assert len(set(args.values())) == 1
+    assert args[q0] is args[q1]
+
+
+def test_reset_does_not_split_if_disabled():
+    sim = CountingSimulator(split_entangled_states=False)
+    args = sim._create_act_on_args('state', (q0, q1))
+    assert len(set(args.values())) == 1
+    default_arg = sim._create_default_arg(args)
+    sim._simulate_operation(cirq.reset(q0), args, default_arg, (q0, q1))
+    assert len(set(args.values())) == 1
+    assert args[q0] is args[q1]
+
+
+def test_measurement_of_all_qubits_causes_split():
+    sim = CountingSimulator()
+    args = sim._create_act_on_args('state', (q0, q1))
+    assert len(set(args.values())) == 1
+    default_arg = sim._create_default_arg(args)
+    sim._simulate_operation(cirq.measure(q0, q1), args, default_arg, (q0, q1))
+    assert len(set(args.values())) == 2
+    assert args[q0] is not args[q1]
+
+
+def test_measurement_in_single_qubit_circuit_passes():
+    sim = CountingSimulator()
+    args = sim._create_act_on_args('state', (q0,))
+    assert len(set(args.values())) == 1
+    default_arg = sim._create_default_arg(args)
+    sim._simulate_operation(cirq.measure(q0), args, default_arg, (q0,))
+    assert len(set(args.values())) == 1
