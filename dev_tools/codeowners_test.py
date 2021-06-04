@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 
 import pytest
 
@@ -40,41 +41,40 @@ QCVV_TEAM = {('USERNAME', "@mrwojtek")}
 QCVV_MAINTAINERS = BASE_MAINTAINERS.union(QCVV_TEAM)
 
 
-def _vendor_module_testcases(mod_name, expected_group):
-    return [
-        (f"cirq/{mod_name}/test.py", expected_group),
-        (f"cirq/{mod_name}/in/any/dir/test.py", expected_group),
-        (f"platforms/{mod_name}/protos_as_well.proto", expected_group),
-        (f"docs/{mod_name}/notebook.ipynb", expected_group),
-        (f"docs/tutorials/{mod_name}/bla.md", expected_group),
-    ]
-
-
 @pytest.mark.parametrize(
-    "pattern,expected",
+    "filepath,expected",
     [
-        ("any_file", BASE_MAINTAINERS),
-        ("in/any/dir/any_file.py", BASE_MAINTAINERS),
-        ("cirq/contrib/bla.py", BASE_MAINTAINERS),
-        ("cirq/experiments/bla.py", QCVV_MAINTAINERS),
-        ("cirq/docs/qcvv/my_fancy_notebook.ipynb", QCVV_MAINTAINERS.union(DOCS_MAINTAINERS)),
-        ("cirq/docs/any/dir/any_notebook.ipynb", DOCS_MAINTAINERS),
-        *_vendor_module_testcases("aqt", AQT_MAINTAINERS),
-        *_vendor_module_testcases("ionq", IONQ_MAINTAINERS),
-        *_vendor_module_testcases("google", GOOGLE_MAINTAINERS),
-        *_vendor_module_testcases("pasqal", PASQAL_MAINTAINERS),
+        ("setup.py", BASE_MAINTAINERS),
+        ("dev_tools/codeowners_test.py", BASE_MAINTAINERS),
+        ("cirq-core/setup.py", BASE_MAINTAINERS),
+        ("cirq-core/cirq/contrib/__init__.py", BASE_MAINTAINERS),
+        ("docs/_book.yaml", DOCS_MAINTAINERS),
+        ("cirq-core/cirq/experiments/__init__.py", QCVV_MAINTAINERS),
+        ("docs/qcvv/isolated_xeb.ipynb", QCVV_MAINTAINERS.union(DOCS_MAINTAINERS)),
+        ("cirq-core/cirq/aqt/__init__.py", AQT_MAINTAINERS),
+        ("docs/aqt/access.md", AQT_MAINTAINERS.union(DOCS_MAINTAINERS)),
+        ("docs/tutorials/aqt/getting_started.ipynb", AQT_MAINTAINERS.union(DOCS_MAINTAINERS)),
+        ("cirq-core/cirq/pasqal/__init__.py", PASQAL_MAINTAINERS),
+        ("docs/pasqal/access.md", PASQAL_MAINTAINERS.union(DOCS_MAINTAINERS)),
+        ("docs/tutorials/pasqal/getting_started.ipynb", PASQAL_MAINTAINERS.union(DOCS_MAINTAINERS)),
+        ("cirq-core/cirq/ionq/__init__.py", IONQ_MAINTAINERS),
+        ("docs/ionq/access.md", IONQ_MAINTAINERS.union(DOCS_MAINTAINERS)),
+        ("docs/tutorials/ionq/getting_started.ipynb", IONQ_MAINTAINERS.union(DOCS_MAINTAINERS)),
+        ("cirq-google/cirq_google/__init__.py", GOOGLE_MAINTAINERS),
+        ("docs/google/access.md", GOOGLE_MAINTAINERS.union(DOCS_MAINTAINERS)),
+        ("docs/tutorials/google/start.ipynb", GOOGLE_MAINTAINERS.union(DOCS_MAINTAINERS)),
     ],
 )
-def test_codeowners(pattern, expected):
+def test_codeowners(filepath, expected):
     # for some reason the codeowners library does not publish all the wheels
     # for Mac and Windows. Eventually we could write our own codeowners parser,
     # but for now it is good enough. If codeowners is not installed, this test
     # will be skipped
-    try:
-        from codeowners import CodeOwners
-    except:
-        pytest.skip("Skipping as codeowners not installed.")
+    codeowners = pytest.importorskip("codeowners")
 
     with open(".github/CODEOWNERS") as f:
-        owners = CodeOwners(f.read())
-        assert set(owners.of(pattern)) == expected
+        owners = codeowners.CodeOwners(f.read())
+        assert os.path.exists(
+            filepath
+        ), f"{filepath} should exist to avoid creating/maintaining meaningless codeowners rules."
+        assert set(owners.of(filepath)) == expected
