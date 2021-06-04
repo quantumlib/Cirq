@@ -310,7 +310,7 @@ def _get_gates_from_hamiltonians(
 
 
 @value.value_equality
-class BooleanHamiltonianOperation(raw_types.Gate):
+class BooleanHamiltonian(raw_types.Gate):
     """A gate that applies a Hamiltonian from a set of Boolean functions."""
 
     def __init__(
@@ -321,7 +321,7 @@ class BooleanHamiltonianOperation(raw_types.Gate):
         symbol_names: Optional[Sequence[str]] = None,
     ):
         """
-        Builds an BooleanHamiltonianOperation.
+        Builds an BooleanHamiltonian.
 
         For each element of a sequence of Boolean expressions, the code first transforms it into a
         polynomial of Pauli Zs that represent that particular expression. Then, we sum all the
@@ -348,7 +348,7 @@ class BooleanHamiltonianOperation(raw_types.Gate):
         self._symbol_names: Optional[Sequence[str]] = symbol_names
 
         boolean_exprs = [sympy_parser.parse_expr(boolean_str) for boolean_str in boolean_strs]
-        name_to_id = BooleanHamiltonianOperation.get_name_to_id(boolean_exprs, symbol_names)
+        name_to_id = BooleanHamiltonian.get_name_to_id(boolean_exprs, symbol_names)
         self._hamiltonian_polynomial_list = [
             _build_hamiltonian_from_boolean(boolean_expr, name_to_id)
             for boolean_expr in boolean_exprs

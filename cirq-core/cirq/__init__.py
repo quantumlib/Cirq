@@ -175,7 +175,7 @@ from cirq.ops import (
     BaseDensePauliString,
     bit_flip,
     BitFlipChannel,
-    BooleanHamiltonianOperation,
+    BooleanHamiltonian,
     CCX,
     CCXPowGate,
     CCZ,

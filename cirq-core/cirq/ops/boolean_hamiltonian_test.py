@@ -24,14 +24,14 @@ import cirq.ops.boolean_hamiltonian_operation as bho
 )
 def test_build_hamiltonian_from_boolean(boolean_expr, expected_hamiltonian_polynomial):
     boolean = sympy_parser.parse_expr(boolean_expr)
-    name_to_id = cirq.BooleanHamiltonianOperation.get_name_to_id([boolean])
+    name_to_id = cirq.BooleanHamiltonian.get_name_to_id([boolean])
     actual = bho._build_hamiltonian_from_boolean(boolean, name_to_id)
     assert expected_hamiltonian_polynomial == str(actual)
 
 
 def test_unsupported_op():
     not_a_boolean = sympy_parser.parse_expr('x * x')
-    name_to_id = cirq.BooleanHamiltonianOperation.get_name_to_id([not_a_boolean])
+    name_to_id = cirq.BooleanHamiltonian.get_name_to_id([not_a_boolean])
     with pytest.raises(ValueError, match='Unsupported type'):
         bho._build_hamiltonian_from_boolean(not_a_boolean, name_to_id)
 
@@ -48,7 +48,7 @@ def test_unsupported_op():
 )
 def test_get_name_to_id(boolean_strs, symbol_names, expected):
     assert (
-        cirq.BooleanHamiltonianOperation.get_name_to_id(
+        cirq.BooleanHamiltonian.get_name_to_id(
             [sympy_parser.parse_expr(boolean_str) for boolean_str in boolean_strs], symbol_names
         )
         == expected
@@ -57,7 +57,7 @@ def test_get_name_to_id(boolean_strs, symbol_names, expected):
 
 def test_get_name_to_id_missing_required_symbol():
     with pytest.raises(ValueError, match='Missing required symbol: x1'):
-        cirq.BooleanHamiltonianOperation.get_name_to_id([sympy_parser.parse_expr('x1')], ['x2'])
+        cirq.BooleanHamiltonian.get_name_to_id([sympy_parser.parse_expr('x1')], ['x2'])
 
 
 @pytest.mark.parametrize(
@@ -91,7 +91,7 @@ def test_get_name_to_id_missing_required_symbol():
 )
 def test_circuit(boolean_str, ladder_target, symbol_names):
     boolean_expr = sympy_parser.parse_expr(boolean_str)
-    var_names = cirq.BooleanHamiltonianOperation.get_name_to_id([boolean_expr], symbol_names)
+    var_names = cirq.BooleanHamiltonian.get_name_to_id([boolean_expr], symbol_names)
 
     qubits = [cirq.NamedQubit(name) for name in var_names]
 
@@ -109,7 +109,7 @@ def test_circuit(boolean_str, ladder_target, symbol_names):
     circuit = cirq.Circuit()
     circuit.append(cirq.H.on_each(*qubits))
 
-    hamiltonian_gate = cirq.BooleanHamiltonianOperation(
+    hamiltonian_gate = cirq.BooleanHamiltonian(
         [boolean_str], 0.1 * math.pi, ladder_target, symbol_names
     )
 
