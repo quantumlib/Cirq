@@ -321,7 +321,7 @@ class BooleanHamiltonianOperation(raw_types.Gate):
         symbol_names: Optional[Sequence[str]] = None,
     ):
         """
-        Builds an BooleanHamiltonianOperation.
+        Builds a BooleanHamiltonianOperation.
 
         For each element of a sequence of Boolean expressions, the code first transforms it into a
         polynomial of Pauli Zs that represent that particular expression. Then, we sum all the
