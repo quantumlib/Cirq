@@ -43,7 +43,7 @@ QCVV_MAINTAINERS = BASE_MAINTAINERS.union(QCVV_TEAM)
 def _vendor_docs_testcases(mod_name, expected_group):
     return [
         (f"docs/{mod_name}/notebook.ipynb", expected_group),
-        (f"docs/tutorials/{mod_name}/bla.md", expected_group)
+        (f"docs/tutorials/{mod_name}/bla.md", expected_group),
     ]
 
 
