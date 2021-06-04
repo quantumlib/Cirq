@@ -41,17 +41,6 @@ QCVV_TEAM = {('USERNAME', "@mrwojtek")}
 QCVV_MAINTAINERS = BASE_MAINTAINERS.union(QCVV_TEAM)
 
 
-def _vendor_docs_testcases(mod_name, expected_group):
-    return []
-
-
-def _vendor_module_testcases(mod_name, expected_group):
-    return [
-        (f"", expected_group),
-        (f"cirq-core/cirq/{mod_name}/", expected_group),
-    ]
-
-
 @pytest.mark.parametrize(
     "filepath,expected",
     [
