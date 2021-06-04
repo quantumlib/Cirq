@@ -247,9 +247,8 @@ class SimulatorBase(
                     protocols.act_on(op, op_args)
 
                     # Decouple any measurements or resets
-                    if self._split_untangled_states and (
-                        isinstance(op.gate, ops.MeasurementGate)
-                        or isinstance(op.gate, ops.ResetChannel)
+                    if self._split_untangled_states and isinstance(
+                        op.gate, (ops.MeasurementGate, ops.ResetChannel)
                     ):
                         for q in op.qubits:
                             q_args, op_args = op_args.extract((q,))
