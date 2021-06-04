@@ -8,7 +8,7 @@ import pytest
 import sympy.parsing.sympy_parser as sympy_parser
 
 import cirq
-import cirq.ops.boolean_hamiltonian as bho
+import cirq.ops.boolean_hamiltonian as bh
 
 # These are some of the entries of table 1 of https://arxiv.org/pdf/1804.09130.pdf.
 @pytest.mark.parametrize(
