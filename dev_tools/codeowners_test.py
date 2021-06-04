@@ -42,9 +42,7 @@ QCVV_MAINTAINERS = BASE_MAINTAINERS.union(QCVV_TEAM)
 
 
 def _vendor_docs_testcases(mod_name, expected_group):
-    return [
-
-    ]
+    return []
 
 
 def _vendor_module_testcases(mod_name, expected_group):
@@ -59,31 +57,23 @@ def _vendor_module_testcases(mod_name, expected_group):
     [
         ("setup.py", BASE_MAINTAINERS),
         ("dev_tools/codeowners_test.py", BASE_MAINTAINERS),
-
         ("cirq-core/setup.py", BASE_MAINTAINERS),
         ("cirq-core/cirq/contrib/__init__.py", BASE_MAINTAINERS),
-
         ("docs/_book.yaml", DOCS_MAINTAINERS),
-
         ("cirq-core/cirq/experiments/__init__.py", QCVV_MAINTAINERS),
         ("docs/qcvv/isolated_xeb.ipynb", QCVV_MAINTAINERS.union(DOCS_MAINTAINERS)),
-
         ("cirq-core/cirq/aqt/__init__.py", AQT_MAINTAINERS),
         ("docs/aqt/access.md", AQT_MAINTAINERS.union(DOCS_MAINTAINERS)),
         ("docs/tutorials/aqt/getting_started.ipynb", AQT_MAINTAINERS.union(DOCS_MAINTAINERS)),
-
         ("cirq-core/cirq/pasqal/__init__.py", PASQAL_MAINTAINERS),
         ("docs/pasqal/access.md", PASQAL_MAINTAINERS.union(DOCS_MAINTAINERS)),
         ("docs/tutorials/pasqal/getting_started.ipynb", PASQAL_MAINTAINERS.union(DOCS_MAINTAINERS)),
-
         ("cirq-core/cirq/ionq/__init__.py", IONQ_MAINTAINERS),
         ("docs/ionq/access.md", IONQ_MAINTAINERS.union(DOCS_MAINTAINERS)),
         ("docs/tutorials/ionq/getting_started.ipynb", IONQ_MAINTAINERS.union(DOCS_MAINTAINERS)),
-
         ("cirq-google/cirq_google/__init__.py", GOOGLE_MAINTAINERS),
         ("docs/google/access.md", GOOGLE_MAINTAINERS.union(DOCS_MAINTAINERS)),
         ("docs/tutorials/google/start.ipynb", GOOGLE_MAINTAINERS.union(DOCS_MAINTAINERS)),
-
     ],
 )
 def test_codeowners(filepath, expected):
@@ -95,6 +85,7 @@ def test_codeowners(filepath, expected):
 
     with open(".github/CODEOWNERS") as f:
         owners = codeowners.CodeOwners(f.read())
-        assert os.path.exists(filepath), "To avoid creating/having meaningless rules " \
-                                         f"{filepath} should exist."
+        assert os.path.exists(filepath), (
+            "To avoid creating/having meaningless rules " f"{filepath} should exist."
+        )
         assert set(owners.of(filepath)) == expected
