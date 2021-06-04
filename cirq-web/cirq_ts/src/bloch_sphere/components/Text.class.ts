@@ -9,6 +9,10 @@ import {
 import font_json from '../fonts/helvetiker_regular.typeface.json';
 
 export class Text {
+  /**
+   * Displays the state labels onto the bloch sphere.
+   * @returns A list of text Mesh objects to be rendered by the scene
+   */
   public static loadAndDisplayText(): Mesh[] {
     const textLoader = new FontLoader();
     const resultLabels: Mesh[] = [];

@@ -57,7 +57,7 @@ class CirqBlochSphere(Widget):
         file_name='bloch_sphere.html', 
         open_in_browser=False
     ):
-        """ Generates a portable HTML file of the bloch sphere that
+        """Generates a portable HTML file of the bloch sphere that
         can be run anywhere. Prints out the absolute path of the file to the console.
 
         Args:
@@ -104,10 +104,7 @@ class CirqBlochSphere(Widget):
         }
         return json.dumps(obj)
 
-    def _createVector(
-        self,
-        state_vector,
-    ):
+    def _createVector(self, state_vector):
         bloch_vector = bloch_vector_from_state_vector(state_vector, 0)
         return bloch_vector
 

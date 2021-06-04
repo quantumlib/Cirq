@@ -1,7 +1,12 @@
 import {ArrowHelper, CylinderGeometry, MeshBasicMaterial, Mesh, Vector3, BufferGeometry, Line, LineBasicMaterial, Matrix4} from 'three';
 
 export class Vector {
-    public static createVector(vectorData?: string) {
+    /**
+     * Adds a state vector to the bloch sphere.
+     * @param vectorData information representing the location of the vector
+     * @returns an ArrowHelper object to be rendered by the scene.
+     */
+    public static createVector(vectorData?: string) : ArrowHelper {
         let inputData;
         if (vectorData) {
             inputData = JSON.parse(vectorData);
