@@ -15,7 +15,7 @@
 import datetime
 from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 
-from cirq import study
+import cirq
 from cirq_google.engine.client import quantum
 from cirq_google.engine.client.quantum import types as qtypes
 from cirq_google.engine.result_type import ResultType
@@ -25,7 +25,6 @@ from cirq_google.engine import engine_job
 
 if TYPE_CHECKING:
     import cirq_google.engine.engine as engine_base
-    from cirq import Circuit
 
 
 class EngineProgram:
@@ -65,7 +64,7 @@ class EngineProgram:
     def run_sweep(
         self,
         job_id: Optional[str] = None,
-        params: study.Sweepable = None,
+        params: cirq.Sweepable = None,
         repetitions: int = 1,
         processor_ids: Sequence[str] = ('xmonsim',),
         description: Optional[str] = None,
@@ -99,7 +98,7 @@ class EngineProgram:
             raise ValueError('Please use run_batch() for batch mode.')
         if not job_id:
             job_id = engine_base._make_random_id('job-')
-        sweeps = study.to_sweeps(params or study.ParamResolver({}))
+        sweeps = cirq.to_sweeps(params or cirq.ParamResolver({}))
         run_context = self._serialize_run_context(sweeps, repetitions)
 
         created_job_id, job = self.context.client.create_job(
@@ -118,7 +117,7 @@ class EngineProgram:
     def run_batch(
         self,
         job_id: Optional[str] = None,
-        params_list: List[study.Sweepable] = None,
+        params_list: List[cirq.Sweepable] = None,
         repetitions: int = 1,
         processor_ids: Sequence[str] = (),
         description: Optional[str] = None,
@@ -174,7 +173,7 @@ class EngineProgram:
         # Pack the run contexts into batches
         batch = v2.batch_pb2.BatchRunContext()
         for param in params_list:
-            sweeps = study.to_sweeps(param)
+            sweeps = cirq.to_sweeps(param)
             current_context = batch.run_contexts.add()
             for sweep in sweeps:
                 sweep_proto = current_context.parameter_sweeps.add()
@@ -264,12 +263,12 @@ class EngineProgram:
     def run(
         self,
         job_id: Optional[str] = None,
-        param_resolver: study.ParamResolver = study.ParamResolver({}),
+        param_resolver: cirq.ParamResolver = cirq.ParamResolver({}),
         repetitions: int = 1,
         processor_ids: Sequence[str] = ('xmonsim',),
         description: Optional[str] = None,
         labels: Optional[Dict[str, str]] = None,
-    ) -> study.Result:
+    ) -> cirq.Result:
         """Runs the supplied Circuit via Quantum Engine.
 
         Args:
@@ -301,7 +300,7 @@ class EngineProgram:
 
     def _serialize_run_context(
         self,
-        sweeps: List[study.Sweep],
+        sweeps: List[cirq.Sweep],
         repetitions: int,
     ) -> qtypes.any_pb2.Any:
         import cirq_google.engine.engine as engine_base
@@ -469,7 +468,7 @@ class EngineProgram:
         )
         return self
 
-    def get_circuit(self, program_num: Optional[int] = None) -> 'Circuit':
+    def get_circuit(self, program_num: Optional[int] = None) -> cirq.Circuit:
         """Returns the cirq Circuit for the Quantum Engine program. This is only
         supported if the program was created with the V2 protos.
 
@@ -509,7 +508,7 @@ class EngineProgram:
     @staticmethod
     def _deserialize_program(
         code: qtypes.any_pb2.Any, program_num: Optional[int] = None
-    ) -> 'Circuit':
+    ) -> cirq.Circuit:
         import cirq_google.engine.engine as engine_base
 
         code_type = code.type_url[len(engine_base.TYPE_PREFIX) :]

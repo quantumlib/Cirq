@@ -1,6 +1,0 @@
-pytest>=6.0.0
-pytest-xdist~=2.2.0
-filelock~=3.0.12
-virtualenv
-# for shell_tools
-requests

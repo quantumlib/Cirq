@@ -278,3 +278,27 @@ def test_to_json():
         "control_radius": 2,
         "qubits": [cirq.pasqal.TwoDQubit(0, 0)],
     }
+
+
+def test_qid_pairs():
+    dev = PasqalVirtualDevice(
+        1,
+        qubits=[
+            ThreeDQubit(0, 0, 0),
+            ThreeDQubit(1, 0, 0),
+            ThreeDQubit(0, 1, 0),
+            ThreeDQubit(1, 1, 0),
+            ThreeDQubit(1, 1, 1),
+        ],
+    )
+    assert len(dev.qid_pairs()) == 5
+    dev1 = PasqalVirtualDevice(
+        5,
+        qubits=[
+            TwoDQubit(0, 0),
+            TwoDQubit(3, 2),
+            TwoDQubit(3, 4),
+            TwoDQubit(3, 6),
+        ],
+    )
+    assert len(dev1.qid_pairs()) == 5

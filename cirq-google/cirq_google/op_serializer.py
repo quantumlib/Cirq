@@ -13,23 +13,21 @@
 # limitations under the License.
 
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union, TYPE_CHECKING
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
 
 import abc
 import numpy as np
 
+import cirq
 from cirq._compat import deprecated
-from cirq import circuits, ops
+from cirq.circuits import circuit_operation
 from cirq_google.api import v2
 from cirq_google import arg_func_langs
 from cirq_google.arg_func_langs import arg_to_proto
 from cirq_google.ops.calibration_tag import CalibrationTag
 
-if TYPE_CHECKING:
-    import cirq
-
 # Type for variables that are subclasses of ops.Gate.
-Gate = TypeVar('Gate', bound=ops.Gate)
+Gate = TypeVar('Gate', bound=cirq.Gate)
 
 
 class OpSerializer(abc.ABC):
@@ -90,13 +88,13 @@ class OpSerializer(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def can_serialize_predicate(self) -> Callable[['cirq.Operation'], bool]:
+    def can_serialize_predicate(self) -> Callable[[cirq.Operation], bool]:
         """The method used to determine if this can serialize an operation.
 
         Depending on the serializer, additional checks may be required.
         """
 
-    def can_serialize_operation(self, op: 'cirq.Operation') -> bool:
+    def can_serialize_operation(self, op: cirq.Operation) -> bool:
         """Whether the given operation can be serialized by this serializer."""
         return self.can_serialize_predicate(op)
 
@@ -121,7 +119,7 @@ class SerializingArg:
 
     serialized_name: str
     serialized_type: Type[arg_func_langs.ARG_LIKE]
-    op_getter: Union[str, Callable[['cirq.Operation'], arg_func_langs.ARG_LIKE]]
+    op_getter: Union[str, Callable[[cirq.Operation], arg_func_langs.ARG_LIKE]]
     required: bool = True
     default: Any = None
 
@@ -142,7 +140,7 @@ class GateOpSerializer(OpSerializer):
         gate_type: Type[Gate],
         serialized_gate_id: str,
         args: List[SerializingArg],
-        can_serialize_predicate: Callable[['cirq.Operation'], bool] = lambda x: True,
+        can_serialize_predicate: Callable[[cirq.Operation], bool] = lambda x: True,
         serialize_tokens: Optional[bool] = True,
     ):
         """Construct the serializer.
@@ -191,7 +189,7 @@ class GateOpSerializer(OpSerializer):
     def can_serialize_predicate(self):
         return self._can_serialize_predicate
 
-    def can_serialize_operation(self, op: 'cirq.Operation') -> bool:
+    def can_serialize_operation(self, op: cirq.Operation) -> bool:
         """Whether the given operation can be serialized by this serializer.
 
         This checks that the gate is a subclass of the gate type for this
@@ -203,7 +201,7 @@ class GateOpSerializer(OpSerializer):
 
     def to_proto(
         self,
-        op: 'cirq.Operation',
+        op: cirq.Operation,
         msg: Optional[v2.program_pb2.Operation] = None,
         *,
         arg_function_language: Optional[str] = '',
@@ -258,7 +256,7 @@ class GateOpSerializer(OpSerializer):
         return msg
 
     def _value_from_gate(
-        self, op: 'cirq.Operation', arg: SerializingArg
+        self, op: cirq.Operation, arg: SerializingArg
     ) -> Optional[arg_func_langs.ARG_LIKE]:
         value = None
         op_getter = arg.op_getter
@@ -307,7 +305,7 @@ class CircuitOpSerializer(OpSerializer):
 
     @property
     def internal_type(self):
-        return circuits.FrozenCircuit
+        return cirq.FrozenCircuit
 
     @property
     def serialized_id(self):
@@ -315,11 +313,11 @@ class CircuitOpSerializer(OpSerializer):
 
     @property
     def can_serialize_predicate(self):
-        return lambda op: isinstance(op.untagged, circuits.CircuitOperation)
+        return lambda op: isinstance(op.untagged, cirq.CircuitOperation)
 
     def to_proto(
         self,
-        op: 'cirq.CircuitOperation',
+        op: cirq.CircuitOperation,
         msg: Optional[v2.program_pb2.CircuitOperation] = None,
         *,
         arg_function_language: Optional[str] = '',
@@ -337,7 +335,7 @@ class CircuitOpSerializer(OpSerializer):
                 'pre-serialization values (raw_constants).'
             )
 
-        if not isinstance(op, circuits.CircuitOperation):
+        if not isinstance(op, cirq.CircuitOperation):
             raise ValueError(f'Serializer expected CircuitOperation but got {type(op)}.')
 
         msg = msg or v2.program_pb2.CircuitOperation()
@@ -351,8 +349,7 @@ class CircuitOpSerializer(OpSerializer):
 
         if (
             op.repetition_ids is not None
-            and op.repetition_ids
-            != circuits.circuit_operation.default_repetition_ids(op.repetitions)
+            and op.repetition_ids != circuit_operation.default_repetition_ids(op.repetitions)
         ):
             for rep_id in op.repetition_ids:
                 msg.repetition_specification.repetition_ids.ids.append(rep_id)

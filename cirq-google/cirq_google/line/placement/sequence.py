@@ -14,11 +14,10 @@
 
 from typing import List, Iterable
 
-from cirq.circuits import TextDiagramDrawer
-from cirq.devices import GridQubit
+import cirq
 
 
-LineSequence = List[GridQubit]
+LineSequence = List[cirq.GridQubit]
 
 
 class NotFoundError(Exception):
@@ -37,7 +36,7 @@ class GridQubitLineTuple(tuple):
         return GridQubitLineTuple(longest[:length])
 
     def __str__(self) -> str:
-        diagram = TextDiagramDrawer()
+        diagram = cirq.TextDiagramDrawer()
         dx = min(q.col for q in self)
         dy = min(q.row for q in self)
 
