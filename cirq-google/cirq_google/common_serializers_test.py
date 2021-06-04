@@ -490,11 +490,11 @@ def test_coupler_pulse():
     )
     proto = op_proto(
         {
-            'gate': {'id': 'pulse'},
+            'gate': {'id': 'coupler_pulse'},
             'args': {
-                'hold_time': {'arg_value': {'float_value': 16.0}},
-                'padding_time': {'arg_value': {'float_value': 12.0}},
-                'rise_time': {'arg_value': {'float_value': 32.0}},
+                'hold_time_ns': {'arg_value': {'float_value': 16.0}},
+                'padding_time_ns': {'arg_value': {'float_value': 12.0}},
+                'rise_time_ns': {'arg_value': {'float_value': 32.0}},
                 'coupling_mhz': {'arg_value': {'float_value': 20.0}},
             },
             'qubits': [{'id': '1_2'}, {'id': '2_2'}],

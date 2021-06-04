@@ -658,30 +658,30 @@ LIMITED_FSIM_DESERIALIZER = op_deserializer.GateOpDeserializer(
 
 COUPLER_PULSE_SERIALIZER = op_serializer.GateOpSerializer(
     gate_type=CouplerPulse,
-    serialized_gate_id='pulse',
+    serialized_gate_id='coupler_pulse',
     args=[
         op_serializer.SerializingArg(
             serialized_name='coupling_mhz', serialized_type=float, op_getter='coupling_mhz'
         ),
         op_serializer.SerializingArg(
-            serialized_name='hold_time',
+            serialized_name='hold_time_ns',
             serialized_type=float,
             op_getter=lambda op: cast(CouplerPulse, op.gate).hold_time.total_nanos(),
         ),
         op_serializer.SerializingArg(
-            serialized_name='rise_time',
+            serialized_name='rise_time_ns',
             serialized_type=float,
             op_getter=lambda op: cast(CouplerPulse, op.gate).rise_time.total_nanos(),
         ),
         op_serializer.SerializingArg(
-            serialized_name='padding_time',
+            serialized_name='padding_time_ns',
             serialized_type=float,
             op_getter=lambda op: cast(CouplerPulse, op.gate).padding_time.total_nanos(),
         ),
     ],
 )
 COUPLER_PULSE_DESERIALIZER = op_deserializer.GateOpDeserializer(
-    serialized_gate_id='pulse',
+    serialized_gate_id='coupler_pulse',
     gate_constructor=CouplerPulse,
     args=[
         op_deserializer.DeserializingArg(
@@ -689,21 +689,21 @@ COUPLER_PULSE_DESERIALIZER = op_deserializer.GateOpDeserializer(
             constructor_arg_name='coupling_mhz',
         ),
         op_deserializer.DeserializingArg(
-            serialized_name='hold_time',
+            serialized_name='hold_time_ns',
             constructor_arg_name='hold_time',
             value_func=lambda nanos: value.Duration(
                 nanos=cast(Union[int, float, sympy.Basic], nanos)
             ),
         ),
         op_deserializer.DeserializingArg(
-            serialized_name='rise_time',
+            serialized_name='rise_time_ns',
             constructor_arg_name='rise_time',
             value_func=lambda nanos: value.Duration(
                 nanos=cast(Union[int, float, sympy.Basic], nanos)
             ),
         ),
         op_deserializer.DeserializingArg(
-            serialized_name='padding_time',
+            serialized_name='padding_time_ns',
             constructor_arg_name='padding_time',
             value_func=lambda nanos: value.Duration(
                 nanos=cast(Union[int, float, sympy.Basic], nanos)

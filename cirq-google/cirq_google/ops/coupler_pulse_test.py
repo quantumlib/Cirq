@@ -143,9 +143,9 @@ def test_coupler_pulse_circuit_diagram():
     circuit = cirq.Circuit(gate(a, b))
     cirq.testing.assert_has_diagram(
         circuit,
-        """
-0: ───/‾‾(10 ns@25.0MHz)‾‾\\───
+        r"""
+0: ───/‾‾(10 ns@25.0MHz)‾‾\───
       │
-1: ───/‾‾(10 ns@25.0MHz)‾‾\\───
+1: ───/‾‾(10 ns@25.0MHz)‾‾\───
 """,
     )

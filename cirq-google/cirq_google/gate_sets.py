@@ -109,7 +109,7 @@ EXPERIMENTAL_PULSE_GATESET = serializable_gate_set.SerializableGateSet(
 )
 document(
     EXPERIMENTAL_PULSE_GATESET,
-    "Experimental only.  " + "Includes CouplerPulseGate with other fsim gates." "",
+    "Experimental only.  Includes CouplerPulseGate with other fsim gates.",
 )
 
 

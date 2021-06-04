@@ -11,23 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""An instance of FSimGate that works naturally on Google's Sycamore chip"""
 
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import Any, Optional, Tuple
 
 import numpy as np
 
-from cirq import ops, protocols, value
-
-if TYPE_CHECKING:
-    import cirq
+import cirq
 
 
-_MIN_DURATION = value.Duration(nanos=0)
-_MAX_DURATION = value.Duration(nanos=100)
+_MIN_DURATION = cirq.Duration(nanos=0)
+_MAX_DURATION = cirq.Duration(nanos=100)
 
 
-class CouplerPulse(ops.gate_features.TwoQubitGate):
+@cirq.value_equality(approximate=True)
+class CouplerPulse(cirq.ops.gate_features.TwoQubitGate):
     """Tunable pulse for entangling adjacent qubits.
 
     For experimental usage only.
@@ -47,10 +44,10 @@ class CouplerPulse(ops.gate_features.TwoQubitGate):
 
     def __init__(
         self,
-        hold_time: value.Duration,
+        hold_time: cirq.Duration,
         coupling_mhz: float,
-        rise_time: Optional[value.Duration] = value.Duration(nanos=8),
-        padding_time: Optional[value.Duration] = value.Duration(nanos=2.5),
+        rise_time: Optional[cirq.Duration] = cirq.Duration(nanos=8),
+        padding_time: Optional[cirq.Duration] = cirq.Duration(nanos=2.5),
     ):
         """
         Args:
@@ -74,8 +71,8 @@ class CouplerPulse(ops.gate_features.TwoQubitGate):
 
         self.hold_time = hold_time
         self.coupling_mhz = coupling_mhz
-        self.rise_time = rise_time or value.Duration(nanos=8)
-        self.padding_time = padding_time or value.Duration(nanos=2.5)
+        self.rise_time = rise_time or cirq.Duration(nanos=8)
+        self.padding_time = padding_time or cirq.Duration(nanos=2.5)
 
     def num_qubits(self) -> int:
         return 2
@@ -100,24 +97,14 @@ class CouplerPulse(ops.gate_features.TwoQubitGate):
             + f'padding_time={self.padding_time})'
         )
 
-    def __eq__(self, other) -> bool:
-        if not isinstance(other, CouplerPulse):
-            return NotImplemented
-        return (
-            self.hold_time == other.hold_time
-            and self.coupling_mhz == other.coupling_mhz
-            and self.rise_time == other.rise_time
-            and self.padding_time == other.padding_time
-        )
+    def _value_equality_values_(self) -> Any:
+        return self.hold_time, self.coupling_mhz, self.rise_time, self.padding_time
 
-    def __hash__(self) -> int:
-        return hash((self.hold_time, self.coupling_mhz, self.rise_time, self.padding_time))
-
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
         s = f'/‾‾({self.hold_time}@{self.coupling_mhz}MHz)‾‾\\'
         return (s, s)
 
     def _json_dict_(self):
-        return protocols.obj_to_dict_helper(
+        return cirq.obj_to_dict_helper(
             self, ['hold_time', 'coupling_mhz', 'rise_time', 'padding_time']
         )
