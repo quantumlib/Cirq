@@ -23,6 +23,15 @@ class CountingActOnArgs(cirq.ActOnArgs):
     gate_count = 0
     measurement_count = 0
 
+    def __init__(self, state, qubits, logs, prng=cirq.value.parse_random_state(0), axes=()):
+        super().__init__(
+            prng=prng,
+            qubits=qubits,
+            log_of_measurement_results=logs,
+            axes=axes,
+        )
+        self.state = state
+
     def _perform_measurement(self) -> List[int]:
         self.measurement_count += 1
         return [self.gate_count]
@@ -32,7 +41,8 @@ class CountingActOnArgs(cirq.ActOnArgs):
             qubits=self.qubits,
             axes=self.axes,
             prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results.copy(),
+            logs=self.log_of_measurement_results.copy(),
+            state=self.state,
         )
         args.gate_count = self.gate_count
         args.measurement_count = self.measurement_count
@@ -43,15 +53,49 @@ class CountingActOnArgs(cirq.ActOnArgs):
         return True
 
     def join(self, other: 'CountingActOnArgs') -> 'CountingActOnArgs':
-        pass
+        args = CountingActOnArgs(
+            qubits=self.qubits + other.qubits,
+            axes=(),
+            prng=self.prng,
+            logs=self.log_of_measurement_results,
+            state=None,
+        )
+        args.gate_count = self.gate_count + other.gate_count
+        args.measurement_count = self.measurement_count + other.measurement_count
+        return args
 
     def extract(
         self, qubits: Sequence['cirq.Qid']
     ) -> Tuple['CountingActOnArgs', 'CountingActOnArgs']:
-        pass
+        extracted_args = CountingActOnArgs(
+            qubits=qubits,
+            axes=(),
+            prng=self.prng,
+            logs=self.log_of_measurement_results,
+            state=None,
+        )
+        extracted_args.gate_count = self.gate_count
+        extracted_args.measurement_count = self.measurement_count
+        remainder_args = CountingActOnArgs(
+            qubits=tuple(q for q in self.qubits if q not in qubits),
+            axes=(),
+            prng=self.prng,
+            logs=self.log_of_measurement_results,
+            state=None,
+        )
+        return extracted_args, remainder_args
 
     def reorder(self, qubits: Sequence['cirq.Qid']) -> 'CountingActOnArgs':
-        pass
+        args = CountingActOnArgs(
+            qubits=qubits,
+            axes=(),
+            prng=self.prng,
+            logs=self.log_of_measurement_results,
+            state=self.state,
+        )
+        args.gate_count = self.gate_count
+        args.measurement_count = self.measurement_count
+        return args
 
 
 class CountingStepResult(cirq.StepResult[CountingActOnArgs]):
@@ -88,6 +132,12 @@ class CountingSimulator(
         CountingStepResult, CountingTrialResult, CountingActOnArgs, CountingActOnArgs
     ]
 ):
+    def __init__(self, noise=None, split_entangled_states=True):
+        super().__init__(
+            noise=noise,
+            split_untangled_states=split_entangled_states,
+        )
+
     def _create_act_on_arg(
         self,
         initial_state: Any,
@@ -95,7 +145,7 @@ class CountingSimulator(
         logs: Dict[str, Any],
     ) -> CountingActOnArgs:
         return CountingActOnArgs(
-            cirq.value.parse_random_state(0), qubits, log_of_measurement_results=logs
+            qubits=qubits, state=initial_state, logs=logs
         )
 
     def _create_simulator_trial_result(
@@ -114,6 +164,9 @@ class CountingSimulator(
         return CountingStepResult(sim_state, qubit_map)
 
 
+q0, q1 = cirq.LineQubit.range(2)
+
+
 class TestOp(cirq.Operation):
     def with_qubits(self, *new_qubits):
         pass
@@ -121,9 +174,6 @@ class TestOp(cirq.Operation):
     @property
     def qubits(self):
         return [q0]
-
-
-q0 = cirq.LineQubit(0)
 
 
 def test_simulate_empty_circuit():
@@ -206,3 +256,11 @@ def test_run_non_terminal_measurement():
     sim = CountingSimulator()
     r = sim.run(cirq.Circuit(cirq.X(q0), cirq.measure(q0), cirq.X(q0)), repetitions=2)
     assert np.allclose(r.measurements['0'], [[1], [1]])
+
+
+def test_integer_state_split():
+    sim = CountingSimulator()
+    args = sim._create_act_on_args(2, (q0, q1))
+    assert len(set(args.items())) == 2
+    assert args[q0].state == 1
+    assert args[q1].state == 0
