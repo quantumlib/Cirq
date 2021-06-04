@@ -144,9 +144,7 @@ class CountingSimulator(
         qubits: Sequence['cirq.Qid'],
         logs: Dict[str, Any],
     ) -> CountingActOnArgs:
-        return CountingActOnArgs(
-            qubits=qubits, state=initial_state, logs=logs
-        )
+        return CountingActOnArgs(qubits=qubits, state=initial_state, logs=logs)
 
     def _create_simulator_trial_result(
         self,
