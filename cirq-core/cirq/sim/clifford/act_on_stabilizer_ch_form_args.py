@@ -98,14 +98,14 @@ def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
                 gate = None  # type: Optional[cirq.Gate]
                 if axis == pauli_gates.X:
                     gate = common_gates.XPowGate(exponent=quarter_turns / 2)
-                    assert gate._act_on_(args, qubits)
+                    assert gate._act_on_qubits_(qubits, args)
                 elif axis == pauli_gates.Y:
                     gate = common_gates.YPowGate(exponent=quarter_turns / 2)
-                    assert gate._act_on_(args, qubits)
+                    assert gate._act_on_qubits_(qubits, args)
                 else:
                     assert axis == pauli_gates.Z
                     gate = common_gates.ZPowGate(exponent=quarter_turns / 2)
-                    assert gate._act_on_(args, qubits)
+                    assert gate._act_on_qubits_(qubits, args)
 
                 final_unitary = np.matmul(unitary(gate), final_unitary)
 

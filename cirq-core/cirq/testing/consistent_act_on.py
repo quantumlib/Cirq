@@ -53,7 +53,7 @@ def state_vector_has_stabilizer(state_vector: np.ndarray, stabilizer: DensePauli
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    protocols.act_on(stabilizer, args, qubits=qubits)
+    protocols.act_on_qubits(stabilizer, qubits, args)
     return np.allclose(args.target_tensor, state_vector)
 
 

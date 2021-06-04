@@ -43,7 +43,7 @@ def test_unitary_fallback():
         log_of_measurement_results={},
     )
 
-    cirq.act_on(UnitaryXGate(), args, qubits=[cirq.LineQubit(1)])
+    cirq.act_on_qubits(UnitaryXGate(), [cirq.LineQubit(1)], args)
     assert args.tableau == cirq.CliffordTableau(num_qubits=3, initial_state=2)
 
     args = cirq.ActOnCliffordTableauArgs(
@@ -52,14 +52,14 @@ def test_unitary_fallback():
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on(UnitaryYGate(), args, qubits=[cirq.LineQubit(1)])
+    cirq.act_on_qubits(UnitaryYGate(), [cirq.LineQubit(1)], args)
     expected_args = cirq.ActOnCliffordTableauArgs(
         tableau=original_tableau.copy(),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on(cirq.Y, expected_args, qubits=[cirq.LineQubit(1)])
+    cirq.act_on_qubits(cirq.Y, [cirq.LineQubit(1)], expected_args)
     assert args.tableau == expected_args.tableau
 
 
@@ -78,10 +78,10 @@ def test_cannot_act():
     )
 
     with pytest.raises(TypeError, match="no _num_qubits_ or _qid_shape_"):
-        cirq.act_on(NoDetails(), args, qubits=[cirq.LineQubit(1)])
+        cirq.act_on_qubits(NoDetails(), [cirq.LineQubit(1)], args)
 
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(NoDetailsSingleQubitGate(), args, qubits=[cirq.LineQubit(1)])
+        cirq.act_on_qubits(NoDetailsSingleQubitGate(), [cirq.LineQubit(1)], args)
 
 
 def test_copy():

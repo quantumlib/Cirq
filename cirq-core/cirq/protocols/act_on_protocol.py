@@ -29,7 +29,7 @@ class SupportsActOn(Protocol):
     """An object that explicitly specifies how to act on simulator states."""
 
     @doc_private
-    def _act_on_(self, args: Any) -> Union[NotImplementedType, bool]:
+    def _act_on_(self, args: 'cirq.ActOnArgs') -> Union[NotImplementedType, bool]:
         """Applies an action to the given argument, if it is a supported type.
 
         For example, unitary operations can implement an `_act_on_` method that
@@ -59,12 +59,48 @@ class SupportsActOn(Protocol):
         """
 
 
+class SupportsActOnQubits(Protocol):
+    """An object that explicitly specifies how to act on simulator states."""
+
+    @doc_private
+    def _act_on_qubits_(
+        self, qubits: Sequence['cirq.Qid'], args: 'cirq.ActOnArgs'
+    ) -> Union[NotImplementedType, bool]:
+        """Applies an action to the given argument, if it is a supported type.
+
+        For example, unitary operations can implement an `_act_on_` method that
+        checks if `isinstance(args, cirq.ActOnStateVectorArgs)` and, if so,
+        apply their unitary effect to the state vector.
+
+        The global `cirq.act_on` method looks for whether or not the given
+        argument has this value, before attempting any fallback strategies
+        specified by the argument being acted on.
+
+        This method is analogous to python's `__imul__` in that it is expected
+        to perform an inline effect if it recognizes the type of an argument,
+        and return NotImplemented otherwise. It is also analogous to python's
+        `__rmul__` in that dispatch is being done on the right hand side value
+        instead of the left hand side value. If python had an `__rimul__`
+        method, then `_act_on_` would not exist because it would be redundant.
+
+        Args:
+            qubits: The sequence of qubits to use when applying the action.
+            args: An object of unspecified type. The method must check if this
+                object is of a recognized type and act on it if so.
+
+        Returns:
+            True: The receiving object (`self`) acted on the argument.
+            NotImplemented: The receiving object did not act on the argument.
+
+            All other return values are considered to be errors.
+        """
+
+
 def act_on(
-    action: Any,
-    args: Any,
+    action: 'cirq.Operation',
+    args: 'cirq.ActOnArgs',
     *,
     allow_decompose: bool = True,
-    qubits: Sequence['cirq.Qid'] = None,
 ):
     """Applies an action to a state argument.
 
@@ -78,8 +114,7 @@ def act_on(
     are attempted. If those also fail, the method fails with a `TypeError`.
 
     Args:
-        action: The action to apply to the state tensor. Typically a
-            `cirq.Operation`.
+        action: The operation to apply to the state tensor.
         args: A mutable state object that should be modified by the action. May
             specify an `_act_on_fallback_` method to use in case the action
             doesn't recognize it.
@@ -87,9 +122,6 @@ def act_on(
             `_act_on_fallback_` method of `args`. Determines if decomposition
             should be used or avoided when attempting to act `action` on `args`.
             Used by internal methods to avoid redundant decompositions.
-        qubits: The sequence of qubits to use when applying the action. These
-            are only considered when the action is not a `cirq.Operation`. In
-            the latter case, the operation's qubits are used instead.
 
     Returns:
         Nothing. Results are communicated by editing `args`.
@@ -97,13 +129,9 @@ def act_on(
     Raises:
         TypeError: Failed to act `action` on `args`.
     """
-    assert isinstance(action, ops.Operation) ^ (qubits is not None)
     action_act_on = getattr(action, '_act_on_', None)
     if action_act_on is not None:
-        if isinstance(action, ops.Operation):
-            result = action_act_on(args)
-        else:
-            result = action_act_on(args, qubits)
+        result = action_act_on(args)
         if result is True:
             return
         if result is not NotImplemented:
@@ -114,8 +142,76 @@ def act_on(
 
     arg_fallback = getattr(args, '_act_on_fallback_', None)
     if arg_fallback is not None:
-        if isinstance(action, ops.Operation):
-            qubits = action.qubits
+        qubits = action.qubits
+        result = arg_fallback(action, allow_decompose=allow_decompose, qubits=qubits)
+        if result is True:
+            return
+        if result is not NotImplemented:
+            raise ValueError(
+                f'_act_on_fallback_ must return True or NotImplemented but got '
+                f'{result!r} from {type(args)}._act_on_fallback_'
+            )
+
+    raise TypeError(
+        "Failed to act action on state argument.\n"
+        "Tried both action._act_on_ and args._act_on_fallback_.\n"
+        "\n"
+        f"State argument type: {type(args)}\n"
+        f"Action type: {type(action)}\n"
+        f"Action repr: {action!r}\n"
+    )
+
+
+def act_on_qubits(
+    action: Any,
+    qubits: Sequence['cirq.Qid'],
+    args: 'cirq.ActOnArgs',
+    *,
+    allow_decompose: bool = True,
+):
+    """Applies an action to qubits of a state argument.
+
+    For example, the action may be a `cirq.Gate` and the state argument may
+    represent the internal state of a state vector simulator (a
+    `cirq.ActOnStateVectorArgs`).
+
+    The action is applied by first checking if `action._act_on_qubits_` exists
+    and returns `True` (instead of `NotImplemented`) for the given object. Then
+    fallback strategies specified by the state argument via `_act_on_fallback_`
+    are attempted. If those also fail, the method fails with a `TypeError`.
+
+    Args:
+        action: The action to apply to the state tensor. Typically a
+            `cirq.Gate`.
+        qubits: The sequence of qubits to use when applying the action.
+        args: A mutable state object that should be modified by the action. May
+            specify an `_act_on_fallback_` method to use in case the action
+            doesn't recognize it.
+        allow_decompose: Defaults to True. Forwarded into the
+            `_act_on_fallback_` method of `args`. Determines if decomposition
+            should be used or avoided when attempting to act `action` on `args`.
+            Used by internal methods to avoid redundant decompositions.
+
+    Returns:
+        Nothing. Results are communicated by editing `args`.
+
+    Raises:
+        TypeError: Failed to act `action` on `args`.
+    """
+    assert not isinstance(action, ops.Operation), "Use `cirq.act_on` for action type `Operation`"
+    action_act_on = getattr(action, '_act_on_qubits_', None)
+    if action_act_on is not None:
+        result = action_act_on(qubits, args)
+        if result is True:
+            return
+        if result is not NotImplemented:
+            raise ValueError(
+                f'_act_on_ must return True or NotImplemented but got '
+                f'{result!r} from {action!r}._act_on_'
+            )
+
+    arg_fallback = getattr(args, '_act_on_fallback_', None)
+    if arg_fallback is not None:
         result = arg_fallback(action, allow_decompose=allow_decompose, qubits=qubits)
         if result is True:
             return

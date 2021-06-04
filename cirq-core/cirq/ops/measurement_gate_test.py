@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq.protocols.act_on_protocol_test import DummyActOnArgs
 
 
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
@@ -272,9 +273,6 @@ def test_act_on_state_vector():
     a, b = [cirq.LineQubit(3), cirq.LineQubit(1)]
     m = cirq.measure(a, b, key='out', invert_mask=(True,))
 
-    with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(m, object())
-
     args = cirq.ActOnStateVectorArgs(
         target_tensor=cirq.one_hot(shape=(2, 2, 2, 2, 2), dtype=np.complex64),
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
@@ -319,9 +317,6 @@ def test_act_on_clifford_tableau():
     # The below assertion does not fail since it ignores non-unitary operations
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(m)
 
-    with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(m, object())
-
     args = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=5, initial_state=0),
         qubits=cirq.LineQubit.range(5),
@@ -359,9 +354,6 @@ def test_act_on_stabilizer_ch_form():
     m = cirq.measure(a, b, key='out', invert_mask=(True,))
     # The below assertion does not fail since it ignores non-unitary operations
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(m)
-
-    with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(m, object())
 
     args = cirq.ActOnStabilizerCHFormArgs(
         state=cirq.StabilizerStateChForm(num_qubits=5, initial_state=0),

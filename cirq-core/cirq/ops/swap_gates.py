@@ -90,7 +90,7 @@ class SwapPowGate(
             return None
         return self.exponent % 1 == 0
 
-    def _act_on_(self, args, qubits: Sequence['cirq.Qid']):
+    def _act_on_qubits_(self, qubits: Sequence['cirq.Qid'], args: 'cirq.ActOnArgs'):
         from cirq import ops, sim, protocols
 
         if isinstance(args, (sim.ActOnStabilizerCHFormArgs, sim.ActOnCliffordTableauArgs)):
@@ -100,9 +100,9 @@ class SwapPowGate(
                 args.state.omega *= 1j ** (2 * self.global_shift * self._exponent)
 
             if self._exponent % 2 == 1:
-                protocols.act_on(ops.CNOT, args, qubits=qubits)
-                protocols.act_on(ops.CNOT, args, qubits=tuple(reversed(qubits)))
-                protocols.act_on(ops.CNOT, args, qubits=qubits)
+                protocols.act_on_qubits(ops.CNOT, qubits, args)
+                protocols.act_on_qubits(ops.CNOT, tuple(reversed(qubits)), args)
+                protocols.act_on_qubits(ops.CNOT, qubits, args)
 
             # An even exponent does not change anything except the global phase above.
             return True

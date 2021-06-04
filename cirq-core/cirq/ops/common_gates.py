@@ -62,10 +62,10 @@ imports.
 """
 
 
-def _act_with_gates(args, qubits, *gates: 'cirq.SupportsActOn') -> None:
+def _act_with_gates(args, qubits, *gates: 'cirq.SupportsActOnQubits') -> None:
     """Act on the given args with the given gates in order."""
     for gate in gates:
-        assert gate._act_on_(args, qubits)
+        assert gate._act_on_qubits_(qubits, args)
 
 
 def _pi(rads):
@@ -108,7 +108,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.available_buffer *= p
         return args.available_buffer
 
-    def _act_on_(self, args: Any, qubits: Sequence['cirq.Qid']):
+    def _act_on_qubits_(self, qubits: Sequence['cirq.Qid'], args: 'cirq.ActOnArgs'):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
@@ -360,7 +360,7 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.available_buffer *= p
         return args.available_buffer
 
-    def _act_on_(self, args: Any, qubits: Sequence['cirq.Qid']):
+    def _act_on_qubits_(self, qubits: Sequence['cirq.Qid'], args: 'cirq.ActOnArgs'):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
@@ -579,7 +579,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.target_tensor *= p
         return args.target_tensor
 
-    def _act_on_(self, args: Any, qubits: Sequence['cirq.Qid']):
+    def _act_on_qubits_(self, qubits: Sequence['cirq.Qid'], args: 'cirq.ActOnArgs'):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
@@ -896,7 +896,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         args.target_tensor *= np.sqrt(2) * p
         return args.target_tensor
 
-    def _act_on_(self, args: Any, qubits: Sequence['cirq.Qid']):
+    def _act_on_qubits_(self, qubits: Sequence['cirq.Qid'], args: 'cirq.ActOnArgs'):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
@@ -1059,7 +1059,7 @@ class CZPowGate(
             args.target_tensor *= p
         return args.target_tensor
 
-    def _act_on_(self, args: Any, qubits: Sequence['cirq.Qid']):
+    def _act_on_qubits_(self, qubits: Sequence['cirq.Qid'], args: 'cirq.ActOnArgs'):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
@@ -1282,7 +1282,7 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             args.target_tensor *= p
         return args.target_tensor
 
-    def _act_on_(self, args: Any, qubits: Sequence['cirq.Qid']):
+    def _act_on_qubits_(self, qubits: Sequence['cirq.Qid'], args: 'cirq.ActOnArgs'):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):

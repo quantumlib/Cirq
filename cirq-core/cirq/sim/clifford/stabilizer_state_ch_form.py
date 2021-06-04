@@ -62,10 +62,10 @@ class StabilizerStateChForm:
             big_endian_int_to_digits(initial_state, digit_count=num_qubits, base=2)
         ):
             if val:
-                protocols.act_on(
+                protocols.act_on_qubits(
                     pauli_gates.X,
+                    (qubits[i],),
                     args,
-                    qubits=[qubits[i]],
                 )
 
     def _json_dict_(self) -> Dict[str, Any]:

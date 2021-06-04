@@ -98,12 +98,12 @@ def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
         if clifford_gate is not None:
             for axis, quarter_turns in clifford_gate.decompose_rotation():
                 if axis == pauli_gates.X:
-                    common_gates.XPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits=qubits)
+                    common_gates.XPowGate(exponent=quarter_turns / 2)._act_on_qubits_(qubits, args)
                 elif axis == pauli_gates.Y:
-                    common_gates.YPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits=qubits)
+                    common_gates.YPowGate(exponent=quarter_turns / 2)._act_on_qubits_(qubits, args)
                 else:
                     assert axis == pauli_gates.Z
-                    common_gates.ZPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits=qubits)
+                    common_gates.ZPowGate(exponent=quarter_turns / 2)._act_on_qubits_(qubits, args)
             return True
 
     return NotImplemented

@@ -36,7 +36,7 @@ def test_decomposed_fallback():
         log_of_measurement_results={},
     )
 
-    cirq.act_on(Composite(), args, qubits=[cirq.LineQubit(1)])
+    cirq.act_on_qubits(Composite(), [cirq.LineQubit(1)], args)
     np.testing.assert_allclose(
         args.target_tensor, cirq.one_hot(index=(0, 1, 0), shape=(2, 2, 2), dtype=np.complex64)
     )
@@ -55,7 +55,7 @@ def test_cannot_act():
     )
 
     with pytest.raises(TypeError, match="Can't simulate operations"):
-        cirq.act_on(NoDetails(), args, qubits=[])
+        cirq.act_on_qubits(NoDetails(), qubits=(), args=args)
 
 
 def test_act_using_probabilistic_single_qubit_channel():
@@ -80,7 +80,7 @@ def test_act_using_probabilistic_single_qubit_channel():
         prng=mock_prng,
         log_of_measurement_results={},
     )
-    cirq.act_on(ProbabilisticSorX(), args, qubits=[cirq.LineQubit(2)])
+    cirq.act_on_qubits(ProbabilisticSorX(), [cirq.LineQubit(2)], args)
     np.testing.assert_allclose(
         args.target_tensor.reshape(16),
         cirq.final_state_vector(
@@ -99,7 +99,7 @@ def test_act_using_probabilistic_single_qubit_channel():
         prng=mock_prng,
         log_of_measurement_results={},
     )
-    cirq.act_on(ProbabilisticSorX(), args, qubits=[cirq.LineQubit(2)])
+    cirq.act_on_qubits(ProbabilisticSorX(), [cirq.LineQubit(2)], args)
     np.testing.assert_allclose(
         args.target_tensor.reshape(16),
         cirq.final_state_vector(
@@ -136,7 +136,7 @@ def test_act_using_adaptive_two_qubit_channel():
             prng=mock_prng,
             log_of_measurement_results={},
         )
-        cirq.act_on(Decay11(), args, qubits=[cirq.LineQubit(1), cirq.LineQubit(3)])
+        cirq.act_on_qubits(Decay11(), [cirq.LineQubit(1), cirq.LineQubit(3)], args)
         return args.target_tensor
 
     def assert_not_affected(state: np.ndarray, sample: float):
@@ -199,7 +199,7 @@ def test_probability_comes_up_short_results_in_fallback():
         log_of_measurement_results={},
     )
 
-    cirq.act_on(Short(), args, qubits=cirq.LineQubit.range(1))
+    cirq.act_on_qubits(Short(), cirq.LineQubit.range(1), args)
 
     np.testing.assert_allclose(
         args.target_tensor,
