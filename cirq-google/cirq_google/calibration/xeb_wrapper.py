@@ -38,13 +38,13 @@ def _maybe_multiprocessing_pool(
         yield None
         return
 
-    with multiprocessing.Pool(processes=n_processes) as pool:
+    with multiprocessing.get_context('spawn').Pool(processes=n_processes) as pool:
         yield pool
 
 
 def run_local_xeb_calibration(
     calibration: LocalXEBPhasedFSimCalibrationRequest,
-    sampler: 'cirq.Sampler',
+    sampler: cirq.Sampler,
 ) -> PhasedFSimCalibrationResult:
     """Run a calibration request using `cirq.experiments` XEB utilities and a sampler rather
     than `Engine.run_calibrations`.

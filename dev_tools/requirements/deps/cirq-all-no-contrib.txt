@@ -1,0 +1,3 @@
+# captures all the modules
+-r ../../../cirq-core/requirements.txt
+-r ../../../cirq-google/requirements.txt

@@ -18,8 +18,8 @@ import pytest
 import sympy
 
 import cirq
-from cirq_google.api import v2
 from cirq.study import sweeps
+from cirq_google.api import v2
 
 
 class UnknownSweep(sweeps.SingleSweep):
