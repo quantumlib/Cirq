@@ -1,7 +1,9 @@
 
 import json
+import os
 import math
 import webbrowser
+import inspect
 
 from cirq_web import widget
 
@@ -37,14 +39,14 @@ class CirqBlochSphere(widget.Widget):
 
         If display() is called from the command line, [INSERT HERE]
         """
-        path = super().determine_repr_path()
-        if not path:
-            print('Unsupported in this context')
-            return
-        
+
+        absolute_path_prefix = widget.resolve_path()
+        bundle_file_path = f'{absolute_path_prefix}/cirq_ts/dist/bloch_sphere.bundle.js'
+        bundle_script = widget.to_script_tag(bundle_file_path)
+
         return f"""
         <div id="container"></div>
-        <script src="{path}/cirq_ts/dist/bloch_sphere.bundle.js"></script>
+        {bundle_script}
         <script>
         createSphere.showSphere('{self.sphere_json}', '{self.vector_json}');
         </script>
@@ -66,45 +68,56 @@ class CirqBlochSphere(widget.Widget):
             file_name: the name of the output file. Default is 'bloch_sphere' 
 
             open: if True, opens the newly generated file automatically in the browser.
-        
+
+        Returns the path of the HTML file.
+
         For now, if ran in a notebook, this function just returns. Support for downloading
         the HTML file via the browser can be added later.
         """ 
         
-        env = super().determine_env()
-        if env != widget.Env.OTHER:
-            print('Unsupported in Jupyter Notebook')
-            return
+        # env = widget.determine_env()
+        # if env != widget.Env.OTHER:
+        #     print('Unsupported in Jupyter Notebook')
+        #     return
 
-        templateDiv = f"""
+        template_div = f"""
         <div id="container"></div>
         """
 
-        templateScript = f"""
+        template_script = f"""
         <script>
         createSphere.showSphere('{self.sphere_json}', '{self.vector_json}');
         </script>
         """
-       
+
+        absolute_path_prefix = widget.resolve_path()
         # Spit out the bundle.js into a script tag to then serve to the user
-        bundle_file_path = f'cirq-web/cirq_ts/dist/bloch_sphere.bundle.js'
+        bundle_file_path = f'{absolute_path_prefix}/cirq_ts/dist/bloch_sphere.bundle.js'
         bundle_script = widget.to_script_tag(bundle_file_path)
 
-        contents = templateDiv + bundle_script + templateScript
-        path_of_html_file = super().write_output_file(output_directory, file_name, contents)
+        contents = template_div + bundle_script + template_script
+        path_of_html_file = widget.write_output_file(output_directory, file_name, contents)
 
         if open_in_browser:
             webbrowser.open(path_of_html_file, new=2) # 2 opens in a new tab if possible
 
-    
+        return path_of_html_file
+        
     def _convertSphereInput(self, radius):
+        if radius <= 0:
+            raise(BaseException('You must input a positive radius for the sphere'))
+
         obj = {
             'radius': radius
         }
         return json.dumps(obj)
 
     def _createVector(self, state_vector):
-        bloch_vector = bloch_vector_from_state_vector(state_vector, 0)
+        try:
+            bloch_vector = bloch_vector_from_state_vector(state_vector, 0)
+        except (ValueError, IndexError):
+            raise (BaseException('Invalid state vector entered'))
+
         return bloch_vector
 
     def _createRandomVector(self):

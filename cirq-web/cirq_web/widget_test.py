@@ -18,7 +18,7 @@ import cirq_web
 def test_to_script_tag(tmp_path):
     # setup test data
     tempfile = tmp_path / "tempfile"
-    content = "console.log('hello')"
+    content = "console.log('test')"
     tempfile.write_text(content)
 
     # call the tested method/class
@@ -27,3 +27,16 @@ def test_to_script_tag(tmp_path):
     # compare actual with expected
     expected = f"<script>{content}</script>"
     assert result == expected
+
+def test_write_output_file(tmpdir):
+    path = tmpdir.mkdir('dir')
+
+    file_name = 'tempfile.txt'
+    content = "this is a test file"
+
+    cirq_web.write_output_file(str(path), file_name, content)
+
+    new_file = path.join(file_name)
+    new_file_content = new_file.read()
+
+    assert new_file_content == content

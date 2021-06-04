@@ -1,6 +1,8 @@
 import os
+from pathlib import Path
 import IPython
 from enum import Enum
+import cirq_web
 
 class Env(Enum):
     JUPYTER = 1
@@ -23,19 +25,47 @@ def to_script_tag(path):
         return bundle_html
 
 
+def determine_env():
+    """Determines if a Widget is being run in a Jupyter notebook"""
+    env = IPython.get_ipython().__class__.__name__
+    if env == 'ZMQInteractiveShell':
+        return Env.JUPYTER
+    else:
+        return Env.OTHER
+
+def write_output_file(output_directory, file_name, contents):
+    """Writes the output file and returns its absolute path.
+
+    Args:
+        output_directory: the directory in which the output file will be
+        generated.
+
+        file_name: the name of the output file. Default is 'bloch_sphere'
+
+        contents: the contents of the file
+    """
+    # Ensure that the user enters a trailing slash 
+    file_path = Path(output_directory).joinpath(file_name)
+
+    file_to_write_in = open(str(file_path), 'w')
+    file_to_write_in.write(contents)
+    file_to_write_in.close()
+
+
+    path_string = str(file_path)
+    print(f'File can be found at: {path_string}')
+    return file_path
+
+def resolve_path(): 
+    # Go go levels up from the __init__ file
+    cirq_path = Path(cirq_web.__file__).parents[1]
+    return cirq_path
+
 class Widget:
     """Parent class for all widgets.
     
     Widget contains standard methods to help print the output to a widget's respective shell.
     """
-
-    def determine_env(self):
-        """Determines if a Widget is being run in a Jupyter notebook"""
-        env = IPython.get_ipython().__class__.__name__
-        if env == 'ZMQInteractiveShell':
-            return Env.JUPYTER
-        else:
-            return Env.OTHER
 
     def determine_repr_path(self):
         """Determines the correct path for each widget's 
@@ -54,25 +84,3 @@ class Widget:
             return '../tree'
         elif env == Env.OTHER:
             return None
-
-
-    
-    def write_output_file(self, output_directory, file_name, contents):
-        """Writes the output file and returns its absolute path.
-
-        Args:
-            output_directory: the directory in which the output file will be
-            generated.
-
-            file_name: the name of the output file. Default is 'bloch_sphere'
-
-            contents: the contents of the file
-        """
-        file_to_write_in = open(output_directory + file_name, 'w')
-        file_to_write_in.write(contents)
-        file_to_write_in.close()
-    
-
-        absolute_path = os.path.abspath(output_directory + file_name)
-        print(f'File can be found at: {absolute_path}')
-        return absolute_path
