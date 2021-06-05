@@ -371,32 +371,3 @@ class CliffordTableau:
         self.rs[p] = bool(prng.randint(2))
 
         return int(self.rs[p])
-
-    def _X(self, q):
-        self.rs[:] ^= self.zs[:, q]
-        return self
-    
-    def _Y(self, q):
-        self.rs[:] ^= self.zs[:, q]
-        self.rs[:] ^= self.xs[:, q]
-        return self
-
-    def _Z(self, q):
-        self.rs[:] ^= self.xs[:, q]
-        return self
-
-    def _S(self, q):
-        self.rs[:] ^= self.xs[:, q] & self.zs[:, q]
-        self.zs[:, q] ^= self.xs[:, q]
-        return self
-
-    def _H(self, q):
-        (self.xs[:, q], self.zs[:, q]) = (self.zs[:, q].copy(), self.xs[:, q].copy())
-        self.rs[:] ^= self.xs[:, q] & self.zs[:, q]
-        return self
-
-    def _CNOT(self, q1, q2):
-        self.rs[:] ^= self.xs[:, q1] & self.zs[:, q2] & (~(self.xs[:, q2] ^ self.zs[:, q1]))
-        self.xs[:, q2] ^= self.xs[:, q1]
-        self.zs[:, q1] ^= self.zs[:, q2]
-        return self
