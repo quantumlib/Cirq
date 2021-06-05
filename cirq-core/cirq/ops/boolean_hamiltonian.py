@@ -310,11 +310,12 @@ def _get_gates_from_hamiltonians(
 
 
 @value.value_equality
-class BooleanHamiltonian(raw_types.Gate):
+class BooleanHamiltonian(raw_types.Operation):
     """A gate that applies a Hamiltonian from a set of Boolean functions."""
 
     def __init__(
         self,
+        qubits: Sequence['cirq.Qid'],
         boolean_strs: Sequence[str],
         theta: float,
         ladder_target: bool,
@@ -338,10 +339,12 @@ class BooleanHamiltonian(raw_types.Gate):
 
         Args:
             boolean_strs: The list of Sympy-parsable Boolean expressions.
+            qubits: DO NOT SUBMIT
             theta: The list of thetas to scale the Hamiltonian.
             ladder_target: Whether to use convention of figure 7a or 7b.
             symbol_names: A list of symbol names that should be a superset of all the symbols used.
         """
+        self._qubits: Sequence['cirq.Qid'] = qubits
         self._boolean_strs: Sequence[str] = boolean_strs
         self._theta: float = theta
         self._ladder_target: bool = ladder_target
@@ -354,6 +357,19 @@ class BooleanHamiltonian(raw_types.Gate):
             for boolean_expr in boolean_exprs
         ]
         self._num_qubits = len(name_to_id)
+
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'BooleanHamiltonian':
+        return BooleanHamiltonian(
+            list(new_qubits),
+            self._boolean_strs,
+            self._theta,
+            self._ladder_target,
+            self._symbol_names,
+        )
+
+    @property
+    def qubits(self) -> Tuple[raw_types.Qid, ...]:
+        return tuple(self._qubits)
 
     def num_qubits(self) -> int:
         return self._num_qubits
@@ -380,18 +396,20 @@ class BooleanHamiltonian(raw_types.Gate):
             for symb in required_symbol_names:
                 if symb not in symbol_names:
                     raise ValueError(
-                        f'symbol_names was specified but it is not a superset of the symbols in boolean_exprs. Missing required symbol: {symb}'
+                        'symbol_names was specified but it is not a superset of the symbols '
+                        + f'in boolean_exprs. Missing required symbol: {symb}'
                     )
             return {symb: i for i, symb in enumerate(sorted(symbol_names))}
         else:
             return {symb: i for i, symb in enumerate(sorted(required_symbol_names))}
 
     def _value_equality_values_(self):
-        return self._boolean_strs, self._theta, self._ladder_target
+        return self._qubits, self._boolean_strs, self._theta, self._ladder_target
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
+            'qubits': self._qubits,
             'boolean_strs': self._boolean_strs,
             'theta': self._theta,
             'ladder_target': self._ladder_target,
@@ -399,10 +417,10 @@ class BooleanHamiltonian(raw_types.Gate):
         }
 
     @classmethod
-    def _from_json_dict_(cls, boolean_strs, theta, ladder_target, symbol_names, **kwargs):
-        return cls(boolean_strs, theta, ladder_target, symbol_names)
+    def _from_json_dict_(cls, qubits, boolean_strs, theta, ladder_target, symbol_names, **kwargs):
+        return cls(qubits, boolean_strs, theta, ladder_target, symbol_names)
 
-    def _decompose_(self, qubits: Sequence['cirq.Qid']):
+    def _decompose_(self):
         yield _get_gates_from_hamiltonians(
-            self._hamiltonian_polynomial_list, qubits, self._theta, self._ladder_target
+            self._hamiltonian_polynomial_list, self._qubits, self._theta, self._ladder_target
         )

@@ -110,12 +110,12 @@ def test_circuit(boolean_str, ladder_target, symbol_names):
     circuit.append(cirq.H.on_each(*qubits))
 
     hamiltonian_gate = cirq.BooleanHamiltonian(
-        [boolean_str], 0.1 * math.pi, ladder_target, symbol_names
+        qubits, [boolean_str], 0.1 * math.pi, ladder_target, symbol_names
     )
 
     assert hamiltonian_gate.num_qubits() == n
 
-    circuit.append(cirq.decompose(hamiltonian_gate(*qubits)))
+    circuit.append(hamiltonian_gate)
 
     phi = cirq.Simulator().simulate(circuit, qubit_order=qubits, initial_state=0).state_vector()
     actual = np.arctan2(phi.real, phi.imag) - math.pi / 2.0 > 0.0
