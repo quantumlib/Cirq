@@ -173,7 +173,7 @@ class SimulatorBase(
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
-        sim_state: Dict['cirq.Qid', TActOnArgs],
+        sim_state: Dict[Optional['cirq.Qid'], TActOnArgs],
         qubits: Sequence['cirq.Qid'],
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
@@ -189,17 +189,11 @@ class SimulatorBase(
             StepResults from simulating a Moment of the Circuit.
         """
 
-        # Create a default target for when there's no qubits or for qubit-free ops like GlobalPhase
-        if self._split_untangled_states or len(qubits) == 0:
-            default_arg = self._create_default_arg(sim_state)
-        else:
-            default_arg = next(iter(sim_state.values()))
-
-        def merge_states(sim_state: Dict['cirq.Qid', TActOnArgs]) -> TActOnArgs:
+        def merge_states(sim_state: Dict[Optional['cirq.Qid'], TActOnArgs]) -> TActOnArgs:
             if not self._split_untangled_states:
-                return default_arg
-            final_args = default_arg
-            for args in set(sim_state.values()):
+                return sim_state[None]
+            final_args = sim_state[None]
+            for args in set([sim_state[k] for k in sim_state.keys() if k is not None]):
                 final_args = final_args.join(args)
             return final_args.reorder(qubits)
 
@@ -227,7 +221,7 @@ class SimulatorBase(
                             op = ops.phase_damp(1).on(*op.qubits)
 
                     # Simulate the operation
-                    self._simulate_operation(op, sim_state, default_arg)
+                    self._simulate_operation(op, sim_state)
 
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
@@ -239,8 +233,7 @@ class SimulatorBase(
     def _simulate_operation(
         self,
         op: 'cirq.Operation',
-        sim_state: Dict['cirq.Qid', TActOnArgs],
-        default_arg: TActOnArgs,
+        sim_state: Dict[Optional['cirq.Qid'], TActOnArgs],
     ):
         # Go through the op's qubits and join any disparate ActOnArgs states
         # into a new combined state.
@@ -250,7 +243,7 @@ class SimulatorBase(
                 op_args = sim_state[q]
             elif q not in op_args.qubits:
                 op_args = op_args.join(sim_state[q])
-        op_args = op_args or default_arg
+        op_args = op_args or sim_state[None]
 
         # (Backfill the args map with the new value)
         for q in op_args.qubits:
@@ -331,22 +324,17 @@ class SimulatorBase(
                     measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
 
-    def _create_default_arg(self, sim_state: Dict['cirq.Qid', TActOnArgs]):
-        first_value = None if not any(sim_state) else next(iter(sim_state.values()))
-        logs = {} if first_value is None else first_value.log_of_measurement_results
-        return self._create_act_on_arg(0, (), logs)
-
     def _create_act_on_args(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-    ) -> Dict['cirq.Qid', TActOnArgs]:
+    ) -> Dict[Optional['cirq.Qid'], TActOnArgs]:
         if isinstance(initial_state, dict):
             return initial_state
 
-        args_map: Dict['cirq.Qid', TActOnArgs] = {}
+        args_map: Dict[Optional['cirq.Qid'], TActOnArgs] = {}
+        log: Dict[str, Any] = {}
         if isinstance(initial_state, int) and self._split_untangled_states:
-            log: Dict[str, Any] = {}
             for q in reversed(qubits):
                 args_map[q] = self._create_act_on_arg(
                     initial_state=initial_state % q.dimension,
@@ -354,13 +342,16 @@ class SimulatorBase(
                     logs=log,
                 )
                 initial_state = int(initial_state / q.dimension)
-            return args_map
-
-        args = self._create_act_on_arg(
-            initial_state=initial_state,
-            qubits=qubits,
-            logs={},
-        )
-        for q in qubits:
-            args_map[q] = args
+            args_map[None] = self._create_act_on_arg(0, (), log)
+        else:
+            args = self._create_act_on_arg(
+                initial_state=initial_state,
+                qubits=qubits,
+                logs=log,
+            )
+            for q in qubits:
+                args_map[q] = args
+            args_map[None] = (
+                args if not self._split_untangled_states else self._create_act_on_arg(0, (), log)
+            )
         return args_map

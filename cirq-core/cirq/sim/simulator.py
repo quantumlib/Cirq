@@ -613,7 +613,7 @@ class SimulatesIntermediateState(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-    ) -> Dict['cirq.Qid', TActOnArgs]:
+    ) -> Dict[Optional['cirq.Qid'], TActOnArgs]:
         """Creates the ActOnArgs state for a simulator.
 
         Custom simulators should implement this method.
@@ -627,14 +627,15 @@ class SimulatesIntermediateState(
                 ordering of the computational basis states.
 
         Returns:
-            The Qid-ActOnArgs dictionary for this simulator.
+            The Qid-ActOnArgs dictionary for this simulator, plus a None-keyed
+            value for use in qubit-free operations like global phase shift.
         """
 
     @abc.abstractmethod
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
-        sim_state: Dict['cirq.Qid', TActOnArgs],
+        sim_state: Dict[Optional['cirq.Qid'], TActOnArgs],
         qubits: Sequence['cirq.Qid'],
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
