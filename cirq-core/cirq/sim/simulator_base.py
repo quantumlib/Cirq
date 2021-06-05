@@ -227,7 +227,7 @@ class SimulatorBase(
                             op = ops.phase_damp(1).on(*op.qubits)
 
                     # Simulate the operation
-                    self._simulate_operation(op, sim_state, default_arg, qubits)
+                    self._simulate_operation(op, sim_state, default_arg)
 
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
@@ -241,12 +241,11 @@ class SimulatorBase(
         op: 'cirq.Operation',
         sim_state: Dict['cirq.Qid', TActOnArgs],
         default_arg: TActOnArgs,
-        qubits: Sequence['cirq.Qid'],
     ):
         # Go through the op's qubits and join any disparate ActOnArgs states
         # into a new combined state.
         op_args: Optional[TActOnArgs] = None
-        for q in op.qubits if len(op.qubits) != 0 else qubits:
+        for q in op.qubits:
             if op_args is None:
                 op_args = sim_state[q]
             elif q not in op_args.qubits:

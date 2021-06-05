@@ -285,7 +285,7 @@ def test_entanglement_causes_join():
     args = sim._create_act_on_args(0, (q0, q1))
     assert len(set(args.values())) == 2
     default_arg = sim._create_default_arg(args)
-    sim._simulate_operation(cirq.CNOT(q0, q1), args, default_arg, (q0, q1))
+    sim._simulate_operation(cirq.CNOT(q0, q1), args, default_arg)
     assert len(set(args.values())) == 1
     assert args[q0] is args[q1]
 
@@ -295,7 +295,7 @@ def test_measurement_causes_split():
     args = sim._create_act_on_args('state', (q0, q1))
     assert len(set(args.values())) == 1
     default_arg = sim._create_default_arg(args)
-    sim._simulate_operation(cirq.measure(q0), args, default_arg, (q0, q1))
+    sim._simulate_operation(cirq.measure(q0), args, default_arg)
     assert len(set(args.values())) == 2
     assert args[q0] is not args[q1]
 
@@ -305,7 +305,7 @@ def test_reset_causes_split():
     args = sim._create_act_on_args('state', (q0, q1))
     assert len(set(args.values())) == 1
     default_arg = sim._create_default_arg(args)
-    sim._simulate_operation(cirq.reset(q0), args, default_arg, (q0, q1))
+    sim._simulate_operation(cirq.reset(q0), args, default_arg)
     assert len(set(args.values())) == 2
     assert args[q0] is not args[q1]
 
@@ -315,7 +315,7 @@ def test_measurement_does_not_split_if_disabled():
     args = sim._create_act_on_args('state', (q0, q1))
     assert len(set(args.values())) == 1
     default_arg = sim._create_default_arg(args)
-    sim._simulate_operation(cirq.measure(q0), args, default_arg, (q0, q1))
+    sim._simulate_operation(cirq.measure(q0), args, default_arg)
     assert len(set(args.values())) == 1
     assert args[q0] is args[q1]
 
@@ -325,7 +325,7 @@ def test_reset_does_not_split_if_disabled():
     args = sim._create_act_on_args('state', (q0, q1))
     assert len(set(args.values())) == 1
     default_arg = sim._create_default_arg(args)
-    sim._simulate_operation(cirq.reset(q0), args, default_arg, (q0, q1))
+    sim._simulate_operation(cirq.reset(q0), args, default_arg)
     assert len(set(args.values())) == 1
     assert args[q0] is args[q1]
 
@@ -335,7 +335,7 @@ def test_measurement_of_all_qubits_causes_split():
     args = sim._create_act_on_args('state', (q0, q1))
     assert len(set(args.values())) == 1
     default_arg = sim._create_default_arg(args)
-    sim._simulate_operation(cirq.measure(q0, q1), args, default_arg, (q0, q1))
+    sim._simulate_operation(cirq.measure(q0, q1), args, default_arg)
     assert len(set(args.values())) == 2
     assert args[q0] is not args[q1]
 
@@ -345,5 +345,5 @@ def test_measurement_in_single_qubit_circuit_passes():
     args = sim._create_act_on_args('state', (q0,))
     assert len(set(args.values())) == 1
     default_arg = sim._create_default_arg(args)
-    sim._simulate_operation(cirq.measure(q0), args, default_arg, (q0,))
+    sim._simulate_operation(cirq.measure(q0), args, default_arg)
     assert len(set(args.values())) == 1
