@@ -1419,7 +1419,7 @@ def test_make_zeta_chi_gamma_compensation_for_moments() -> None:
     def check_rz_gate(op: cirq.GateOperation, rads: float):
         assert isinstance(op.gate, cirq.Rz)
         assert np.allclose(op.gate._rads, rads)
-        
+
     check_rz_gate(result.circuit[1][a], -0.3)
     check_rz_gate(result.circuit[1][b], 0.6)
     check_rz_gate(result.circuit[1][c], -0.05)
