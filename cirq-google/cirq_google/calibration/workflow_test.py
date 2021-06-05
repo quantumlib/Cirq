@@ -1407,7 +1407,7 @@ def test_run_local(sampler_engine, monkeypatch):
 
     def myfunc(
         calibration: LocalXEBPhasedFSimCalibrationRequest,
-        sampler: 'cirq.Sampler',
+        sampler: cirq.Sampler,
     ):
         nonlocal called_times
         assert isinstance(calibration, LocalXEBPhasedFSimCalibrationRequest)

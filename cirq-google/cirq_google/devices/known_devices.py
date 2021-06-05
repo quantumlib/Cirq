@@ -12,26 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Collection, Dict, Optional, Iterable, List, Set, Tuple, TYPE_CHECKING
+from typing import Any, Collection, Dict, Optional, Iterable, List, Set, Tuple
 
+import cirq
 from cirq._doc import document
-from cirq.devices import GridQubit
 from cirq_google import gate_sets, op_serializer, serializable_gate_set
 from cirq_google.api import v2
 from cirq_google.api.v2 import device_pb2
 from cirq_google.devices.serializable_device import SerializableDevice
 from cirq_google.devices.xmon_device import XmonDevice
-from cirq.ops import MeasurementGate, SingleQubitGate, WaitGate
-from cirq.value import Duration
-
-if TYPE_CHECKING:
-    import cirq
 
 _2_QUBIT_TARGET_SET = "2_qubit_targets"
 _MEAS_TARGET_SET = "meas_targets"
 
 
-def _parse_device(s: str) -> Tuple[List[GridQubit], Dict[str, Set[GridQubit]]]:
+def _parse_device(s: str) -> Tuple[List[cirq.GridQubit], Dict[str, Set[cirq.GridQubit]]]:
     """Parse ASCIIart device layout into info about qubits and connectivity.
 
     Args:
@@ -47,12 +42,12 @@ def _parse_device(s: str) -> Tuple[List[GridQubit], Dict[str, Set[GridQubit]]]:
         on that measurement line.
     """
     lines = s.strip().split('\n')
-    qubits = []  # type: List[GridQubit]
-    measurement_lines = {}  # type: Dict[str, Set[GridQubit]]
+    qubits = []  # type: List[cirq.GridQubit]
+    measurement_lines = {}  # type: Dict[str, Set[cirq.GridQubit]]
     for row, line in enumerate(lines):
         for col, c in enumerate(line.strip()):
             if c != '-':
-                qubit = GridQubit(row, col)
+                qubit = cirq.GridQubit(row, col)
                 qubits.append(qubit)
                 measurement_line = measurement_lines.setdefault(c, set())
                 measurement_line.add(qubit)
@@ -81,7 +76,7 @@ def create_device_proto_from_diagram(
 
     # Create a list of all adjacent pairs on the grid for two-qubit gates.
     qubit_set = frozenset(qubits)
-    pairs: List[Tuple['cirq.Qid', 'cirq.Qid']] = []
+    pairs: List[Tuple[cirq.Qid, cirq.Qid]] = []
     for qubit in qubits:
         for neighbor in sorted(qubit.neighbors()):
             if neighbor > qubit and neighbor in qubit_set:
@@ -91,8 +86,8 @@ def create_device_proto_from_diagram(
 
 
 def create_device_proto_for_qubits(
-    qubits: Collection['cirq.Qid'],
-    pairs: Collection[Tuple['cirq.Qid', 'cirq.Qid']],
+    qubits: Collection[cirq.Qid],
+    pairs: Collection[Tuple[cirq.Qid, cirq.Qid]],
     gate_sets: Optional[Iterable[serializable_gate_set.SerializableGateSet]] = None,
     durations_picos: Optional[Dict[str, int]] = None,
     out: Optional[device_pb2.DeviceSpecification] = None,
@@ -153,15 +148,15 @@ def create_device_proto_for_qubits(
 
                 # Note: if it is not a measurement gate and doesn't inherit
                 # from SingleQubitGate, it's assumed to be a two qubit gate.
-                if gate_type == MeasurementGate:
+                if gate_type == cirq.MeasurementGate:
                     gate.valid_targets.append(_MEAS_TARGET_SET)
-                elif gate_type == WaitGate:
+                elif gate_type == cirq.WaitGate:
                     # TODO: Refactor gate-sets / device to eliminate the need
                     # to keep checking type here.
                     # Github issue:
                     # https://github.com/quantumlib/Cirq/issues/2537
                     gate.number_of_qubits = 1
-                elif issubclass(gate_type, SingleQubitGate):
+                elif issubclass(gate_type, cirq.SingleQubitGate):
                     gate.number_of_qubits = 1
                 else:
                     # This must be a two-qubit gate
@@ -218,9 +213,9 @@ class _NamedConstantXmonDevice(XmonDevice):
 
 Foxtail = _NamedConstantXmonDevice(
     'cirq_google.Foxtail',
-    measurement_duration=Duration(nanos=4000),
-    exp_w_duration=Duration(nanos=20),
-    exp_11_duration=Duration(nanos=50),
+    measurement_duration=cirq.Duration(nanos=4000),
+    exp_w_duration=cirq.Duration(nanos=20),
+    exp_11_duration=cirq.Duration(nanos=50),
     qubits=_parse_device(_FOXTAIL_GRID)[0],
 )
 document(
@@ -262,9 +257,9 @@ ABCDEFGHIJKL
 
 Bristlecone = _NamedConstantXmonDevice(
     'cirq_google.Bristlecone',
-    measurement_duration=Duration(nanos=4000),
-    exp_w_duration=Duration(nanos=20),
-    exp_11_duration=Duration(nanos=50),
+    measurement_duration=cirq.Duration(nanos=4000),
+    exp_w_duration=cirq.Duration(nanos=20),
+    exp_11_duration=cirq.Duration(nanos=50),
     qubits=_parse_device(_BRISTLECONE_GRID)[0],
 )
 document(
