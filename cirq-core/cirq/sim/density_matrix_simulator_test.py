@@ -20,6 +20,8 @@ import sympy
 
 import cirq
 
+q0, q1, q2 = cirq.LineQubit.range(3)
+
 
 class PlusGate(cirq.Gate):
     """A qudit gate that increments a qudit state mod its dimension."""
@@ -1373,3 +1375,19 @@ def test_final_density_matrix_is_not_last_object():
     assert result.final_density_matrix is not initial_state
     assert not np.shares_memory(result.final_density_matrix, initial_state)
     np.testing.assert_equal(result.final_density_matrix, initial_state)
+
+
+@pytest.mark.parametrize(
+    'circuit',
+    (
+        cirq.Circuit(cirq.X(q0)),
+        cirq.Circuit(cirq.X(q0), cirq.measure(q0)),
+    ),
+)
+@pytest.mark.parametrize('noise', (cirq.depolarize(0.1), cirq.amplitude_damp(0.1)))
+def test_noisy_sim_vs_noisy_circuit(circuit, noise):
+    rho1 = cirq.DensityMatrixSimulator(noise=noise).simulate(circuit).final_density_matrix
+    rho2 = cirq.DensityMatrixSimulator().simulate(circuit.with_noise(noise)).final_density_matrix
+    print(rho1)
+    print(rho2)
+    assert np.allclose(rho1, rho2)
