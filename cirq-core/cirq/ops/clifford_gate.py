@@ -51,6 +51,7 @@ def _to_cliiford_tableau(
 ) -> qis.CliffordTableau:
     """Transfer the rotation map to clifford tableau representation"""
     if x_to is None and z_to is None and rotation_map is None:
+        # coverage: ignore
         raise ValueError(
             "The function either takes rotation_map or a combination "
             ' of x_to and z_to but none were given.'
@@ -380,8 +381,8 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         return self_then_gate == gate_then_self
 
     def commutes_with_pauli(self, pauli: Pauli) -> bool:
-        stabilizer = self.clifford_tableau.stabilizers()[0]
-        return pauli * stabilizer == stabilizer * pauli
+        to, flip = self.transform(pauli)
+        return to == pauli and not flip
 
     def merged_with(self, second: 'SingleQubitCliffordGate') -> 'SingleQubitCliffordGate':
         """Returns a SingleQubitCliffordGate such that the circuits
