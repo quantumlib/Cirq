@@ -504,10 +504,12 @@ def test_simulate_qudits(dtype):
 def test_simulate_compare_to_state_vector_simulator(dtype, circuit):
     qubits = cirq.LineQubit.range(4)
     pure_result = (
-        cirq.Simulator(dtype=dtype).simulate(circuit, qubit_order=qubits).density_matrix_of()
+        cirq.Simulator(dtype=dtype, split_untangled_states=False)
+        .simulate(circuit, qubit_order=qubits)
+        .density_matrix_of()
     )
     mixed_result = (
-        cirq.DensityMatrixSimulator(dtype=dtype)
+        cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=False)
         .simulate(circuit, qubit_order=qubits)
         .final_density_matrix
     )
