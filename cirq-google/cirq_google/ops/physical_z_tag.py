@@ -14,7 +14,7 @@
 """A class that can be used to denote a physical Z gate."""
 from typing import Any, Dict
 
-from cirq import protocols
+import cirq
 
 
 class PhysicalZTag:
@@ -38,7 +38,7 @@ class PhysicalZTag:
         return 'cirq_google.PhysicalZTag()'
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(self, [])
+        return cirq.obj_to_dict_helper(self, [])
 
     def __eq__(self, other) -> bool:
         return isinstance(other, PhysicalZTag)

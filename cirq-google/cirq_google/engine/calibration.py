@@ -16,21 +16,18 @@
 from collections import abc, defaultdict
 import datetime
 from itertools import cycle
-
-from typing import Any, Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING, Union, Sequence
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Union, Sequence
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import google.protobuf.json_format as json_format
-from cirq import devices, vis
-from cirq_google.api import v2
 
-if TYPE_CHECKING:
-    import cirq
+import cirq
+from cirq_google.api import v2
 
 
 # Calibration Metric types
-METRIC_KEY = Tuple[Union[devices.GridQubit, str], ...]
+METRIC_KEY = Tuple[Union[cirq.GridQubit, str], ...]
 METRIC_VALUE = List[Union[str, int, float]]
 METRIC_DICT = Dict[METRIC_KEY, METRIC_VALUE]
 ALL_METRICS = Dict[str, METRIC_DICT]
@@ -174,7 +171,7 @@ class Calibration(abc.Mapping):
         dt += datetime.timedelta(microseconds=self.timestamp % 1000000)
         return dt.isoformat(sep=' ', timespec=timespec)
 
-    def str_to_key(self, target: str) -> Union[devices.GridQubit, str]:
+    def str_to_key(self, target: str) -> Union[cirq.GridQubit, str]:
         """Turns a string into a calibration key.
 
         Attempts to parse it as a GridQubit.  If this fails,
@@ -186,18 +183,18 @@ class Calibration(abc.Mapping):
             return target
 
     @staticmethod
-    def key_to_qubit(target: METRIC_KEY) -> devices.GridQubit:
+    def key_to_qubit(target: METRIC_KEY) -> cirq.GridQubit:
         """Returns a single qubit from a metric key.
 
         Raises:
            ValueError if the metric key is a tuple of strings.
         """
-        if target and isinstance(target, tuple) and isinstance(target[0], devices.GridQubit):
+        if target and isinstance(target, tuple) and isinstance(target[0], cirq.GridQubit):
             return target[0]
         raise ValueError(f'The metric target {target} was not a tuple of qubits')
 
     @staticmethod
-    def key_to_qubits(target: METRIC_KEY) -> Tuple[devices.GridQubit, ...]:
+    def key_to_qubits(target: METRIC_KEY) -> Tuple[cirq.GridQubit, ...]:
         """Returns a tuple of qubits from a metric key.
 
         Raises:
@@ -206,7 +203,7 @@ class Calibration(abc.Mapping):
         if (
             target
             and isinstance(target, tuple)
-            and all(isinstance(q, devices.GridQubit) for q in target)
+            and all(isinstance(q, cirq.GridQubit) for q in target)
         ):
             return target  # type: ignore
         raise ValueError(f'The metric target {target} was not a tuple of grid qubits.')
@@ -227,7 +224,7 @@ class Calibration(abc.Mapping):
             raise ValueError('Metric Value was empty')
         return float(value[0])
 
-    def heatmap(self, key: str) -> vis.Heatmap:
+    def heatmap(self, key: str) -> cirq.Heatmap:
         """Return a heatmap for metrics that target single qubits.
 
         Args:
@@ -248,9 +245,9 @@ class Calibration(abc.Mapping):
             )
         value_map = {self.key_to_qubits(k): self.value_to_float(v) for k, v in metrics.items()}
         if all(len(k) == 1 for k in value_map.keys()):
-            return vis.Heatmap(value_map, title=key.replace('_', ' ').title())
+            return cirq.Heatmap(value_map, title=key.replace('_', ' ').title())
         elif all(len(k) == 2 for k in value_map.keys()):
-            return vis.TwoQubitInteractionHeatmap(value_map, title=key.replace('_', ' ').title())
+            return cirq.TwoQubitInteractionHeatmap(value_map, title=key.replace('_', ' ').title())
         raise ValueError(
             'Heatmaps are only supported if all the targets in a metric are one or two qubits.'
             + f'{key} has target qubits {value_map.keys()}'
@@ -292,7 +289,7 @@ class Calibration(abc.Mapping):
                     + 'are single metric values.'
                     + f'{key} has metric values {metrics.values()}'
                 )
-            vis.integrated_histogram(
+            cirq.integrated_histogram(
                 [self.value_to_float(v) for v in metrics.values()],
                 ax,
                 label=label,
