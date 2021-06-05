@@ -1,7 +1,5 @@
-from collections import defaultdict
 import functools
-import math
-from typing import Any, DefaultDict, Dict, List, Optional, Sequence, Tuple
+from typing import cast, Any, Dict, List, Sequence, Tuple
 
 from sympy.logic.boolalg import And, Not, Or, Xor
 from sympy.core.expr import Expr
@@ -299,7 +297,7 @@ class BooleanHamiltonian(raw_types.Operation):
 
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'BooleanHamiltonian':
         return BooleanHamiltonian(
-            {q.name(): q for q in new_qubits},
+            {cast(cirq.NamedQubit, q).name: q for q in new_qubits},
             self._boolean_strs,
             self._theta,
             self._ladder_target,

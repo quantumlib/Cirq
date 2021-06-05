@@ -90,6 +90,7 @@ def test_circuit(boolean_str, ladder_target):
     hamiltonian_gate = cirq.BooleanHamiltonian(
         {q.name: q for q in qubits}, [boolean_str], 0.1 * math.pi, ladder_target
     )
+    assert hamiltonian_gate.with_qubits(*qubits) == hamiltonian_gate
 
     assert hamiltonian_gate.num_qubits() == n
 
