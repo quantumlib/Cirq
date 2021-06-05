@@ -876,6 +876,7 @@ def test_options_phase_corrected_override():
         == PhasedFSimCharacterization()
     )
 
+
 def test_try_convert_gate_to_fsim():
     fsim = cirq.FSimGate(theta=0.3, phi=0.5)
     assert try_convert_gate_to_fsim(fsim) == PhaseCalibratedFSimGate(fsim, 0.0)
@@ -884,11 +885,11 @@ def test_try_convert_gate_to_fsim():
     expected = PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.25 * np.pi, phi=0.0), 0.0)
     assert try_convert_gate_to_fsim(gate) == expected
 
-    gate = cirq.PhasedFSimGate(theta=0.2, phi=0.5, chi=1.5*np.pi)
+    gate = cirq.PhasedFSimGate(theta=0.2, phi=0.5, chi=1.5 * np.pi)
     expected = PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.2, phi=0.5), 0.25)
     assert try_convert_gate_to_fsim(gate) == expected
 
-    gate = cirq.PhasedFSimGate(theta=0.2, phi=0.5, zeta=1.5*np.pi)
+    gate = cirq.PhasedFSimGate(theta=0.2, phi=0.5, zeta=1.5 * np.pi)
     assert try_convert_gate_to_fsim(gate) == None
 
     gate = cirq.PhasedISwapPowGate(exponent=-0.5, phase_exponent=0.7)

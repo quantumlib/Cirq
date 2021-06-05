@@ -1250,7 +1250,7 @@ def test_zeta_chi_gamma_calibration_for_moments():
         cirq.Circuit(cirq.PhasedISwapPowGate(exponent=0.2).on(a, b)),
         cirq.Circuit(cirq.PhasedISwapPowGate(exponent=0.2, phase_exponent=0.4).on(a, b)),
         cirq.Circuit(cirq.CZ.on(a, b)),
-        cirq.Circuit(cirq.ops.CZPowGate(exponent=0.5).on(a,b)),
+        cirq.Circuit(cirq.ops.CZPowGate(exponent=0.5).on(a, b)),
         cirq.Circuit(cirq_google.ops.SycamoreGate().on(a, b)),
     ]:
         calibrated_circuit = workflow.make_zeta_chi_gamma_compensation_for_moments(

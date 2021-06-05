@@ -1057,10 +1057,7 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
         fsim = cirq.FSimGate(phi=0.0, theta=-gate.exponent * np.pi / 2)
         return PhaseCalibratedFSimGate(fsim, 0.0)
     elif isinstance(gate, cirq.PhasedFSimGate):
-        if (
-                not np.isclose(gate.zeta, 0.0)
-                or not np.isclose(gate.gamma, 0.0)
-        ):
+        if not np.isclose(gate.zeta, 0.0) or not np.isclose(gate.gamma, 0.0):
             return None
         fsim = cirq.FSimGate(theta=gate.theta, phi=gate.phi)
         return PhaseCalibratedFSimGate(fsim, -gate.chi / (2 * np.pi))
@@ -1070,7 +1067,7 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
     elif isinstance(gate, cirq.ops.CZPowGate):
         if not np.isclose(gate.global_shift % (2 * np.pi), 0.0):
             return None
-        fsim = cirq.FSimGate(theta=0.0, phi=(-np.pi * gate.exponent) % (2*np.pi))
+        fsim = cirq.FSimGate(theta=0.0, phi=(-np.pi * gate.exponent) % (2 * np.pi))
         return PhaseCalibratedFSimGate(fsim, 0.0)
     else:
         return None
