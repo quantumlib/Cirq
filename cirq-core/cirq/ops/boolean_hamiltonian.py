@@ -98,6 +98,23 @@ class HamiltonianPolynomial:
         return HamiltonianPolynomial(defaultdict(float, {(i,): 1.0}))
 
 
+def _get_name_to_id(boolean_exprs: Sequence[Expr]) -> Dict[str, int]:
+    """Maps the variables to a unique integer.
+
+    Args:
+        boolean_expr: A Sympy expression containing symbols and Boolean operations
+
+    Return:
+        A dictionary of string (the variable name) to a unique integer.
+    """
+
+    symbol_names = {
+        symbol.name for boolean_expr in boolean_exprs for symbol in boolean_expr.free_symbols
+    }
+    # For run-to-run identicalness, we sort the symbol name lexicographically.
+    return {symb: i for i, symb in enumerate(sorted(symbol_names))}
+
+
 def _build_hamiltonian_from_boolean(
     boolean_expr: Expr, name_to_id: Dict[str, int]
 ) -> HamiltonianPolynomial:
@@ -106,7 +123,7 @@ def _build_hamiltonian_from_boolean(
     Args:
         boolean_expr: A Sympy expression containing symbols and Boolean operations
         name_to_id: A dictionary from symbol name to an integer, typically built by calling
-            get_name_to_id().
+            _get_name_to_id().
 
     Return:
         The HamiltonianPolynomial that represents the Boolean expression.
@@ -315,11 +332,10 @@ class BooleanHamiltonian(raw_types.Operation):
 
     def __init__(
         self,
-        qubits: Sequence['cirq.Qid'],
+        qubit_map: Dict[str, 'cirq.Qid'],
         boolean_strs: Sequence[str],
         theta: float,
         ladder_target: bool,
-        symbol_names: Optional[Sequence[str]] = None,
     ):
         """
         Builds an BooleanHamiltonian.
@@ -339,88 +355,56 @@ class BooleanHamiltonian(raw_types.Operation):
 
         Args:
             boolean_strs: The list of Sympy-parsable Boolean expressions.
-            qubits: DO NOT SUBMIT
+            qubit_map: map of string (boolean variable name) to qubit.
             theta: The list of thetas to scale the Hamiltonian.
             ladder_target: Whether to use convention of figure 7a or 7b.
-            symbol_names: A list of symbol names that should be a superset of all the symbols used.
         """
-        self._qubits: Sequence['cirq.Qid'] = qubits
+        self._qubit_map: Dict[str, 'cirq.Qid'] = qubit_map
         self._boolean_strs: Sequence[str] = boolean_strs
         self._theta: float = theta
         self._ladder_target: bool = ladder_target
-        self._symbol_names: Optional[Sequence[str]] = symbol_names
-
-        boolean_exprs = [sympy_parser.parse_expr(boolean_str) for boolean_str in boolean_strs]
-        name_to_id = BooleanHamiltonian.get_name_to_id(boolean_exprs, symbol_names)
-        self._hamiltonian_polynomial_list = [
-            _build_hamiltonian_from_boolean(boolean_expr, name_to_id)
-            for boolean_expr in boolean_exprs
-        ]
-        self._num_qubits = len(name_to_id)
 
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'BooleanHamiltonian':
         return BooleanHamiltonian(
-            list(new_qubits),
+            {q.name(): q for q in new_qubits},
             self._boolean_strs,
             self._theta,
             self._ladder_target,
-            self._symbol_names,
         )
 
     @property
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
-        return tuple(self._qubits)
+        return tuple(self._qubit_map.values())
 
     def num_qubits(self) -> int:
-        return self._num_qubits
-
-    @staticmethod
-    def get_name_to_id(
-        boolean_exprs: Sequence[Expr], symbol_names: Optional[Sequence[str]] = None
-    ) -> Dict[str, int]:
-        """Maps the variables to a unique integer.
-
-        Args:
-            boolean_expr: A Sympy expression containing symbols and Boolean operations
-            symbol_names: A list of symbol names that should be a superset of all the symbols used.
-
-        Return:
-            A dictionary of string (the variable name) to a unique integer.
-        """
-
-        required_symbol_names = {
-            symbol.name for boolean_expr in boolean_exprs for symbol in boolean_expr.free_symbols
-        }
-        # For run-to-run identicalness, we sort the symbol name lexicographically.
-        if symbol_names:
-            for symb in required_symbol_names:
-                if symb not in symbol_names:
-                    raise ValueError(
-                        'symbol_names was specified but it is not a superset of the symbols '
-                        + f'in boolean_exprs. Missing required symbol: {symb}'
-                    )
-            return {symb: i for i, symb in enumerate(sorted(symbol_names))}
-        else:
-            return {symb: i for i, symb in enumerate(sorted(required_symbol_names))}
+        return len(self._qubit_map)
 
     def _value_equality_values_(self):
-        return self._qubits, self._boolean_strs, self._theta, self._ladder_target
+        return self._qubit_map, self._boolean_strs, self._theta, self._ladder_target
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
-            'qubits': self._qubits,
+            'qubit_map': self._qubit_map,
             'boolean_strs': self._boolean_strs,
             'theta': self._theta,
             'ladder_target': self._ladder_target,
-            'symbol_names': self._symbol_names,
         }
 
     @classmethod
-    def _from_json_dict_(cls, qubits, boolean_strs, theta, ladder_target, symbol_names, **kwargs):
-        return cls(qubits, boolean_strs, theta, ladder_target, symbol_names)
+    def _from_json_dict_(cls, qubit_map, boolean_strs, theta, ladder_target, **kwargs):
+        return cls(qubit_map, boolean_strs, theta, ladder_target)
 
     def _decompose_(self):
+        boolean_exprs = [sympy_parser.parse_expr(boolean_str) for boolean_str in self._boolean_strs]
+        name_to_id = _get_name_to_id(boolean_exprs)
+        hamiltonian_polynomial_list = [
+            _build_hamiltonian_from_boolean(boolean_expr, name_to_id)
+            for boolean_expr in boolean_exprs
+        ]
+
+        qubits = [self._qubit_map[name] for name in name_to_id.keys()]
+
         yield _get_gates_from_hamiltonians(
-            self._hamiltonian_polynomial_list, self._qubits, self._theta, self._ladder_target
+            hamiltonian_polynomial_list, qubits, self._theta, self._ladder_target
         )

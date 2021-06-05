@@ -24,44 +24,20 @@ import cirq.ops.boolean_hamiltonian as bh
 )
 def test_build_hamiltonian_from_boolean(boolean_expr, expected_hamiltonian_polynomial):
     boolean = sympy_parser.parse_expr(boolean_expr)
-    name_to_id = cirq.BooleanHamiltonian.get_name_to_id([boolean])
+    name_to_id = bh._get_name_to_id([boolean])
     actual = bh._build_hamiltonian_from_boolean(boolean, name_to_id)
     assert expected_hamiltonian_polynomial == str(actual)
 
 
 def test_unsupported_op():
     not_a_boolean = sympy_parser.parse_expr('x * x')
-    name_to_id = cirq.BooleanHamiltonian.get_name_to_id([not_a_boolean])
+    name_to_id = bh._get_name_to_id([not_a_boolean])
     with pytest.raises(ValueError, match='Unsupported type'):
         bh._build_hamiltonian_from_boolean(not_a_boolean, name_to_id)
 
 
 @pytest.mark.parametrize(
-    'boolean_strs,symbol_names,expected',
-    [
-        (['x0'], None, {'x0': 0}),
-        (['x0 & x1'], None, {'x0': 0, 'x1': 1}),
-        (['x0', 'x1'], None, {'x0': 0, 'x1': 1}),
-        (['x1', 'x0'], None, {'x0': 0, 'x1': 1}),
-        (['x1', 'x0'], ['x2', 'x0', 'x1'], {'x0': 0, 'x1': 1, 'x2': 2}),
-    ],
-)
-def test_get_name_to_id(boolean_strs, symbol_names, expected):
-    assert (
-        cirq.BooleanHamiltonian.get_name_to_id(
-            [sympy_parser.parse_expr(boolean_str) for boolean_str in boolean_strs], symbol_names
-        )
-        == expected
-    )
-
-
-def test_get_name_to_id_missing_required_symbol():
-    with pytest.raises(ValueError, match='Missing required symbol: x1'):
-        cirq.BooleanHamiltonian.get_name_to_id([sympy_parser.parse_expr('x1')], ['x2'])
-
-
-@pytest.mark.parametrize(
-    'boolean_str,ladder_target,symbol_names',
+    'boolean_str,ladder_target',
     itertools.product(
         [
             'x0',
@@ -83,15 +59,18 @@ def test_get_name_to_id_missing_required_symbol():
             '(x0 ^ x1 ^ x2) | (x2 ^ x3 ^ x4)',
             '(x0 ^ x2 ^ x4) | (x1 ^ x2 ^ x3)',
             'x0 & x1 & (x2 | x3)',
+            'x0 & ~x2',
+            '~x0 & x2',
+            'x2 & ~x0',
+            '~x2 & x0',
             '(x2 | x1) ^ x0',
         ],
         [False, True],
-        [None, ['x4', 'x0', 'x3', 'x2', 'x1']],
     ),
 )
-def test_circuit(boolean_str, ladder_target, symbol_names):
+def test_circuit(boolean_str, ladder_target):
     boolean_expr = sympy_parser.parse_expr(boolean_str)
-    var_names = cirq.BooleanHamiltonian.get_name_to_id([boolean_expr], symbol_names)
+    var_names = cirq.parameter_names(boolean_expr)
 
     qubits = [cirq.NamedQubit(name) for name in var_names]
 
@@ -110,7 +89,7 @@ def test_circuit(boolean_str, ladder_target, symbol_names):
     circuit.append(cirq.H.on_each(*qubits))
 
     hamiltonian_gate = cirq.BooleanHamiltonian(
-        qubits, [boolean_str], 0.1 * math.pi, ladder_target, symbol_names
+        {q.name: q for q in qubits}, [boolean_str], 0.1 * math.pi, ladder_target
     )
 
     assert hamiltonian_gate.num_qubits() == n

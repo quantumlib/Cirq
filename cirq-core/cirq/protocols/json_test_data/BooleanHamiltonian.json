@@ -1,17 +1,16 @@
 [
   {
     "cirq_type": "BooleanHamiltonian",
-    "qubits": [
-        {
-          "cirq_type": "NamedQubit",
-          "name": "q0"
-        }
-    ],
+    "qubit_map": {
+      "q0": {
+        "cirq_type": "NamedQubit",
+        "name": "q0"
+      }
+    },
     "boolean_strs": [
-        "q0"
+      "q0"
     ],
     "theta": 0.20160913,
-    "ladder_target": false,
-    "symbol_names": null
+    "ladder_target": false
   }
 ]

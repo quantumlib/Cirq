@@ -20,8 +20,8 @@ def brute_force(graph, n):
 
 def qaoa(booleans, repetitions, maxiter, p):
     boolean_exprs = [parse_expr(boolean) for boolean in booleans]
-    name_to_id = cirq.BooleanHamiltonian.get_name_to_id(boolean_exprs)
-    qubits = [cirq.NamedQubit(name) for name in name_to_id.keys()]
+    param_names = cirq.parameter_names(boolean_exprs)
+    qubits = [cirq.NamedQubit(name) for name in param_names]
 
     def f(x):
         # Build the circuit.
@@ -30,7 +30,7 @@ def qaoa(booleans, repetitions, maxiter, p):
 
         for i in range(p):
             hamiltonian_gate = cirq.BooleanHamiltonian(
-                qubits, booleans, 2.0 * x[p + i], ladder_target=True
+                {q.name: q for q in qubits}, booleans, 2.0 * x[p + i], ladder_target=True
             )
             circuit.append(hamiltonian_gate)
             circuit.append(cirq.rx(2.0 * x[i]).on_each(*qubits))
@@ -44,7 +44,7 @@ def qaoa(booleans, repetitions, maxiter, p):
         # Evaluate
         values = []
         for rep in range(repetitions):
-            subs = {name: val == 1 for name, val in zip(name_to_id.keys(), bitstrings[rep, :])}
+            subs = {name: val == 1 for name, val in zip(param_names, bitstrings[rep, :])}
             values.append(
                 sum(1 if boolean_expr.subs(subs) else 0 for boolean_expr in boolean_exprs)
             )
