@@ -75,4 +75,4 @@ fi
 
 source dev_tools/pypath
 
-pytest ${rest} ${changed[@]}
+pytest -s ${rest} ${changed[@]}

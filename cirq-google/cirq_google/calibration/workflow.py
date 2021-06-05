@@ -41,7 +41,6 @@ from cirq_google.calibration.phased_fsim import (
     THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     merge_matching_results,
     try_convert_gate_to_fsim,
-    try_convert_sqrt_iswap_to_fsim,
     PhasedFSimCalibrationOptions,
     RequestT,
     LocalXEBPhasedFSimCalibrationRequest,

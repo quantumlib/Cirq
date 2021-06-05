@@ -41,7 +41,6 @@ from cirq.experiments.xeb_fitting import (
 )
 from cirq_google.api import v2
 from cirq_google.engine import Calibration, CalibrationLayer, CalibrationResult, Engine, EngineJob
-from cirq_google.ops import SycamoreGate
 
 if TYPE_CHECKING:
     import cirq_google
