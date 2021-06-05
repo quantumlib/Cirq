@@ -19,6 +19,10 @@ from cirq.sim.act_on_args import (
     ActOnArgs,
 )
 
+from cirq.sim.act_on_args_container import (
+    ActOnArgsContainer,
+)
+
 from cirq.sim.act_on_density_matrix_args import (
     ActOnDensityMatrixArgs,
 )

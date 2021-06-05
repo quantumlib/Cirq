@@ -83,6 +83,7 @@ TestSpec = ModuleJsonTestSpec(
         'TwoQubitInteractionHeatmap',
         # Intermediate states with work buffers and unknown external prng guts.
         'ActOnArgs',
+        'ActOnArgsContainer',
         'ActOnCliffordTableauArgs',
         'ActOnDensityMatrixArgs',
         'ActOnStabilizerCHFormArgs',

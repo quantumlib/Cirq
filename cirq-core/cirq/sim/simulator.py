@@ -522,7 +522,7 @@ class SimulatesIntermediateState(
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             initial_state: The initial state for the simulation. This can be
-                either a raw state or a `TActOnArgs`. The form of the
+                either a raw state or an `ActOnArgsContainer`. The form of the
                 raw state depends on the simulation implementation. See
                 documentation of the implementing class for details.
 
@@ -606,14 +606,14 @@ class SimulatesIntermediateState(
         """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(circuit.all_qubits())
         act_on_args = self._create_act_on_args(initial_state, qubits)
-        return self._core_iterator(circuit, act_on_args, qubits)
+        return self._core_iterator(circuit, act_on_args)
 
     @abc.abstractmethod
     def _create_act_on_args(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-    ) -> Dict[Optional['cirq.Qid'], TActOnArgs]:
+    ) -> 'cirq.ActOnArgsContainer[TActOnArgs]':
         """Creates the ActOnArgs state for a simulator.
 
         Custom simulators should implement this method.
@@ -635,8 +635,7 @@ class SimulatesIntermediateState(
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
-        sim_state: Dict[Optional['cirq.Qid'], TActOnArgs],
-        qubits: Sequence['cirq.Qid'],
+        sim_state: 'cirq.ActOnArgsContainer[TActOnArgs]',
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
         """Iterator over StepResult from Moments of a Circuit.
