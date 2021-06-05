@@ -41,6 +41,7 @@ from cirq.experiments.xeb_fitting import (
 )
 from cirq_google.api import v2
 from cirq_google.engine import Calibration, CalibrationLayer, CalibrationResult, Engine, EngineJob
+from cirq_google.ops import SycamoreGate
 
 if TYPE_CHECKING:
     import cirq_google
@@ -1038,3 +1039,38 @@ def try_convert_sqrt_iswap_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedF
         return PhaseCalibratedFSimGate(cirq.FSimGate(theta=np.pi / 4, phi=0.0), 0.5)
 
     return None
+
+
+def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGate]:
+    """Converts a gate to equivalent PhaseCalibratedFSimGate if possible.
+
+    Args:
+        gate: Gate to convert.
+
+    Returns:
+        If provided gate is equivalent to some PhaseCalibratedFSimGate, returns that gate.
+        Otherwise returns None.
+    """
+    if isinstance(gate, cirq.FSimGate):
+        return PhaseCalibratedFSimGate(gate, 0.0)
+    elif isinstance(gate, cirq.ISwapPowGate):
+        fsim = cirq.FSimGate(phi=0.0, theta=-gate.exponent * np.pi / 2)
+        return PhaseCalibratedFSimGate(fsim, 0.0)
+    elif isinstance(gate, cirq.PhasedFSimGate):
+        if (
+                not np.isclose(gate.zeta, 0.0)
+                or not np.isclose(gate.gamma, 0.0)
+        ):
+            return None
+        fsim = cirq.FSimGate(theta=gate.theta, phi=gate.phi)
+        return PhaseCalibratedFSimGate(fsim, -gate.chi / (2 * np.pi))
+    elif isinstance(gate, cirq.PhasedISwapPowGate):
+        fsim = cirq.FSimGate(phi=0.0, theta=-gate.exponent * np.pi / 2)
+        return PhaseCalibratedFSimGate(fsim, -gate.phase_exponent)
+    elif isinstance(gate, cirq.ops.CZPowGate):
+        if not np.isclose(gate.global_shift % (2 * np.pi), 0.0):
+            return None
+        fsim = cirq.FSimGate(theta=0.0, phi=(-np.pi * gate.exponent) % (2*np.pi))
+        return PhaseCalibratedFSimGate(fsim, 0.0)
+    else:
+        return None

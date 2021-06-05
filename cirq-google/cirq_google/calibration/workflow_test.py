@@ -1244,6 +1244,14 @@ def test_zeta_chi_gamma_calibration_for_moments():
     for circuit in [
         cirq.Circuit(cirq.FSimGate(theta=np.pi / 4, phi=0.0).on(a, b)),
         cirq.Circuit(cirq.FSimGate(theta=-np.pi / 4, phi=0.0).on(a, b)),
+        cirq.Circuit(cirq.ISwapPowGate(exponent=0.2).on(a, b)),
+        cirq.Circuit(cirq.PhasedFSimGate(theta=0.1, phi=0.2).on(a, b)),
+        cirq.Circuit(cirq.PhasedFSimGate(theta=0.1, phi=0.2, chi=0.3).on(a, b)),
+        cirq.Circuit(cirq.PhasedISwapPowGate(exponent=0.2).on(a, b)),
+        cirq.Circuit(cirq.PhasedISwapPowGate(exponent=0.2, phase_exponent=0.4).on(a, b)),
+        cirq.Circuit(cirq.CZ.on(a, b)),
+        cirq.Circuit(cirq.ops.CZPowGate(exponent=0.5).on(a,b)),
+        cirq.Circuit(cirq_google.ops.SycamoreGate().on(a, b)),
     ]:
         calibrated_circuit = workflow.make_zeta_chi_gamma_compensation_for_moments(
             workflow.CircuitWithCalibration(circuit, moment_allocations), characterizations
@@ -1288,7 +1296,7 @@ def test_zeta_chi_gamma_calibration_for_moments_invalid_argument_fails() -> None
 
     with pytest.raises(workflow.IncompatibleMomentError):
         circuit_with_calibration = workflow.CircuitWithCalibration(
-            cirq.Circuit(cirq.CZ.on(a, b)), [None]
+            cirq.Circuit(cirq.CX.on(a, b)), [None]
         )
         workflow.make_zeta_chi_gamma_compensation_for_moments(circuit_with_calibration, [])
 

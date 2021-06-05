@@ -35,6 +35,7 @@ from cirq_google.calibration.phased_fsim import (
     PhasedFSimCalibrationResult,
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     merge_matching_results,
+    try_convert_gate_to_fsim,
     try_convert_sqrt_iswap_to_fsim,
     XEBPhasedFSimCalibrationRequest,
     XEBPhasedFSimCalibrationOptions,
@@ -874,3 +875,36 @@ def test_options_phase_corrected_override():
         ).zeta_chi_gamma_correction_override()
         == PhasedFSimCharacterization()
     )
+
+def test_try_convert_gate_to_fsim():
+    fsim = cirq.FSimGate(theta=0.3, phi=0.5)
+    assert try_convert_gate_to_fsim(fsim) == PhaseCalibratedFSimGate(fsim, 0.0)
+
+    gate = cirq.ISwapPowGate(exponent=-0.5)
+    expected = PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.25 * np.pi, phi=0.0), 0.0)
+    assert try_convert_gate_to_fsim(gate) == expected
+
+    gate = cirq.PhasedFSimGate(theta=0.2, phi=0.5, chi=1.5*np.pi)
+    expected = PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.2, phi=0.5), 0.25)
+    assert try_convert_gate_to_fsim(gate) == expected
+
+    gate = cirq.PhasedFSimGate(theta=0.2, phi=0.5, zeta=1.5*np.pi)
+    assert try_convert_gate_to_fsim(gate) == None
+
+    gate = cirq.PhasedISwapPowGate(exponent=-0.5, phase_exponent=0.7)
+    expected = PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.25 * np.pi, phi=0.0), -0.7)
+    assert try_convert_gate_to_fsim(gate) == expected
+
+    gate = cirq.CZ
+    expected = PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.0, phi=np.pi), 0.0)
+    assert try_convert_gate_to_fsim(gate) == expected
+
+    gate = cirq.ops.CZPowGate(exponent=0.3)
+    expected = PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.0, phi=-0.3 * np.pi), 0.0)
+    assert try_convert_gate_to_fsim(gate) == expected
+
+    gate = cirq_google.ops.SYC
+    expected = PhaseCalibratedFSimGate(cirq_google.ops.SYC, 0.0)
+    assert try_convert_gate_to_fsim(gate) == expected
+
+    assert try_convert_gate_to_fsim(cirq.CX) == None
