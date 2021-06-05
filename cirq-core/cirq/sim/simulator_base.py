@@ -174,7 +174,7 @@ class SimulatorBase(
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
-        sim_state: ActOnArgsContainer,
+        sim_state: ActOnArgsContainer[TActOnArgs],
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
         """Standard iterator over StepResult from Moments of a Circuit.
@@ -261,10 +261,9 @@ class SimulatorBase(
 
         measurements: Dict[str, List[np.ndarray]] = {}
         for i in range(repetitions):
-            sim_state = act_on_args.copy() if i < repetitions - 1 else act_on_args
             all_step_results = self._core_iterator(
                 general_suffix,
-                sim_state=sim_state,
+                sim_state=act_on_args.copy() if i < repetitions - 1 else act_on_args,
             )
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
