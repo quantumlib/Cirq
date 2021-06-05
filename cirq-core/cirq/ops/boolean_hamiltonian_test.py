@@ -14,26 +14,26 @@ import cirq.ops.boolean_hamiltonian as bh
 @pytest.mark.parametrize(
     'boolean_expr,expected_hamiltonian_polynomial',
     [
-        ('x', '0.50*I; -0.50*Z_0'),
-        ('~x', '0.50*I; 0.50*Z_0'),
-        ('x0 ^ x1', '0.50*I; -0.50*Z_0*Z_1'),
-        ('x0 & x1', '0.25*I; -0.25*Z_0; 0.25*Z_0*Z_1; -0.25*Z_1'),
-        ('x0 | x1', '0.75*I; -0.25*Z_0; -0.25*Z_0*Z_1; -0.25*Z_1'),
-        ('x0 ^ x1 ^ x2', '0.50*I; -0.50*Z_0*Z_1*Z_2'),
+        ('x', '0.500*I-0.500*Z(x)'),
+        ('~x', '0.500*I+0.500*Z(x)'),
+        ('x0 ^ x1', '0.500*I-0.500*Z(x0)*Z(x1)'),
+        ('x0 & x1', '0.250*I-0.250*Z(x1)-0.250*Z(x0)+0.250*Z(x0)*Z(x1)'),
+        ('x0 | x1', '0.750*I-0.250*Z(x0)-0.250*Z(x1)-0.250*Z(x0)*Z(x1)'),
+        ('x0 ^ x1 ^ x2', '0.500*I-0.500*Z(x0)*Z(x1)*Z(x2)'),
     ],
 )
 def test_build_hamiltonian_from_boolean(boolean_expr, expected_hamiltonian_polynomial):
     boolean = sympy_parser.parse_expr(boolean_expr)
-    name_to_id = bh._get_name_to_id([boolean])
-    actual = bh._build_hamiltonian_from_boolean(boolean, name_to_id)
+    qubit_map = {name: cirq.NamedQubit(name) for name in sorted(cirq.parameter_names(boolean))}
+    actual = bh._build_hamiltonian_from_boolean(boolean, qubit_map)
     assert expected_hamiltonian_polynomial == str(actual)
 
 
 def test_unsupported_op():
     not_a_boolean = sympy_parser.parse_expr('x * x')
-    name_to_id = bh._get_name_to_id([not_a_boolean])
+    qubit_map = {name: cirq.NamedQubit(name) for name in cirq.parameter_names(not_a_boolean)}
     with pytest.raises(ValueError, match='Unsupported type'):
-        bh._build_hamiltonian_from_boolean(not_a_boolean, name_to_id)
+        bh._build_hamiltonian_from_boolean(not_a_boolean, qubit_map)
 
 
 @pytest.mark.parametrize(
@@ -71,7 +71,6 @@ def test_unsupported_op():
 def test_circuit(boolean_str, ladder_target):
     boolean_expr = sympy_parser.parse_expr(boolean_str)
     var_names = cirq.parameter_names(boolean_expr)
-
     qubits = [cirq.NamedQubit(name) for name in var_names]
 
     # We use Sympy to evaluate the expression:

@@ -13,8 +13,22 @@ from cirq import value
 from cirq.ops import raw_types
 
 
-class HamiltonianPolynomial:
-    """A container class of Boolean function as equation (2) of [1]
+def _Hamiltonian_O():
+    return 0.0 * cirq.PauliString({})
+
+
+def _Hamiltonian_I():
+    return cirq.PauliString({})
+
+
+def _Hamiltonian_Z(qubit):
+    return cirq.PauliString({qubit: cirq.Z})
+
+
+def _build_hamiltonian_from_boolean(
+    boolean_expr: Expr, qubit_map: Dict[str, 'cirq.Qid']
+) -> 'cirq.PauliString':
+    """Builds the Hamiltonian representation of Boolean expression as per [1]:
 
     It is essentially a polynomial of Pauli Zs on different qubits. For example, this object could
     represent the polynomial 0.5*I - 0.5*Z_1*Z_2 and it would be stored inside this object as:
@@ -32,126 +46,37 @@ class HamiltonianPolynomial:
     [3] https://github.com/rsln-s/IEEE_QW_2020/blob/master/Slides.pdf
     [4] Efficient quantum circuits for diagonal unitaries without ancillas by Jonathan Welch, Daniel
         Greenbaum, Sarah Mostame, Alán Aspuru-Guzik, https://arxiv.org/abs/1306.3991
-    """
-
-    def __init__(self, hamiltonians: Dict[Tuple[int, ...], float]):
-        # The representation is Tuple[int, ...] to weights. The tuple contains the integers of
-        # where Z_i is present. For example, Z_0.Z_3 would be (0, 3), and I is the empty tuple.
-        self._hamiltonians: DefaultDict[Tuple[int, ...], float] = defaultdict(
-            float, {h: w for h, w in hamiltonians.items() if math.fabs(w) > 1e-12}
-        )
-
-    @property
-    def hamiltonians(self) -> DefaultDict[Tuple[int, ...], float]:
-        return self._hamiltonians
-
-    def __repr__(self):
-        # For run-to-run identicalness, we sort the keys lexicographically.
-        formatted_terms = [
-            f"{self._hamiltonians[h]:.2f}*{'*'.join('Z_%d' % d for d in h) if h else 'I'}"
-            for h in sorted(self._hamiltonians)
-        ]
-        return "; ".join(formatted_terms)
-
-    def __add__(self, other: 'HamiltonianPolynomial') -> 'HamiltonianPolynomial':
-        return self._signed_add(other, 1.0)
-
-    def __sub__(self, other: 'HamiltonianPolynomial') -> 'HamiltonianPolynomial':
-        return self._signed_add(other, -1.0)
-
-    def _signed_add(self, other: 'HamiltonianPolynomial', sign: float) -> 'HamiltonianPolynomial':
-        hamiltonians: DefaultDict[Tuple[int, ...], float] = self._hamiltonians.copy()
-        for h, w in other.hamiltonians.items():
-            hamiltonians[h] += sign * w
-        return HamiltonianPolynomial(hamiltonians)
-
-    def __rmul__(self, other: float) -> 'HamiltonianPolynomial':
-        return HamiltonianPolynomial(
-            defaultdict(float, {k: other * w for k, w in self._hamiltonians.items()})
-        )
-
-    def __mul__(self, other: 'HamiltonianPolynomial') -> 'HamiltonianPolynomial':
-        hamiltonians: DefaultDict[Tuple[int, ...], float] = defaultdict(float, {})
-        for h1, w1 in self._hamiltonians.items():
-            for h2, w2 in other.hamiltonians.items():
-                # Since we represent the Hamilonians using the indices of the Z_i, when we multiply
-                # two Hamiltionians, it's equivalent to doing an XOR of the two sets. For example,
-                # if h_A = Z_1 . Z_2 and h_B = Z_1 . Z_3 then the product is:
-                # h_A . h_B = Z_1 . Z_2 . Z_1 . Z_3 = Z_1 . Z_1 . Z_2 . Z_3 = Z_2 . Z_3
-                # and thus, it is represented by (2, 3). In sort, we do the XOR / symmetric
-                # difference of the two tuples.
-                h = tuple(sorted(set(h1).symmetric_difference(h2)))
-                w = w1 * w2
-                hamiltonians[h] += w
-        return HamiltonianPolynomial(hamiltonians)
-
-    @staticmethod
-    def O() -> 'HamiltonianPolynomial':
-        return HamiltonianPolynomial(defaultdict(float, {}))
-
-    @staticmethod
-    def I() -> 'HamiltonianPolynomial':
-        return HamiltonianPolynomial(defaultdict(float, {(): 1.0}))
-
-    @staticmethod
-    def Z(i: int) -> 'HamiltonianPolynomial':
-        return HamiltonianPolynomial(defaultdict(float, {(i,): 1.0}))
-
-
-def _get_name_to_id(boolean_exprs: Sequence[Expr]) -> Dict[str, int]:
-    """Maps the variables to a unique integer.
 
     Args:
         boolean_expr: A Sympy expression containing symbols and Boolean operations
-
-    Return:
-        A dictionary of string (the variable name) to a unique integer.
-    """
-
-    symbol_names = {
-        symbol.name for boolean_expr in boolean_exprs for symbol in boolean_expr.free_symbols
-    }
-    # For run-to-run identicalness, we sort the symbol name lexicographically.
-    return {symb: i for i, symb in enumerate(sorted(symbol_names))}
-
-
-def _build_hamiltonian_from_boolean(
-    boolean_expr: Expr, name_to_id: Dict[str, int]
-) -> HamiltonianPolynomial:
-    """Builds the Hamiltonian representation of Boolean expression as per [1]:
-
-    Args:
-        boolean_expr: A Sympy expression containing symbols and Boolean operations
-        name_to_id: A dictionary from symbol name to an integer, typically built by calling
-            _get_name_to_id().
+        qubit_map: map of string (boolean variable name) to qubit.
 
     Return:
         The HamiltonianPolynomial that represents the Boolean expression.
     """
     if isinstance(boolean_expr, Symbol):
         # Table 1 of [1], entry for 'x' is '1/2.I - 1/2.Z'
-        i = name_to_id[boolean_expr.name]
-        return 0.5 * HamiltonianPolynomial.I() - 0.5 * HamiltonianPolynomial.Z(i)
+        return 0.5 * _Hamiltonian_I() - 0.5 * _Hamiltonian_Z(qubit_map[boolean_expr.name])
 
     if isinstance(boolean_expr, (And, Not, Or, Xor)):
         sub_hamiltonians = [
-            _build_hamiltonian_from_boolean(sub_boolean_expr, name_to_id)
+            _build_hamiltonian_from_boolean(sub_boolean_expr, qubit_map)
             for sub_boolean_expr in boolean_expr.args
         ]
         # We apply the equalities of theorem 1 of [1].
         if isinstance(boolean_expr, And):
-            hamiltonian = HamiltonianPolynomial.I()
+            hamiltonian = _Hamiltonian_I()
             for sub_hamiltonian in sub_hamiltonians:
                 hamiltonian = hamiltonian * sub_hamiltonian
         elif isinstance(boolean_expr, Not):
             assert len(sub_hamiltonians) == 1
-            hamiltonian = HamiltonianPolynomial.I() - sub_hamiltonians[0]
+            hamiltonian = _Hamiltonian_I() - sub_hamiltonians[0]
         elif isinstance(boolean_expr, Or):
-            hamiltonian = HamiltonianPolynomial.O()
+            hamiltonian = _Hamiltonian_O()
             for sub_hamiltonian in sub_hamiltonians:
                 hamiltonian = hamiltonian + sub_hamiltonian - hamiltonian * sub_hamiltonian
         elif isinstance(boolean_expr, Xor):
-            hamiltonian = HamiltonianPolynomial.O()
+            hamiltonian = _Hamiltonian_O()
             for sub_hamiltonian in sub_hamiltonians:
                 hamiltonian = hamiltonian + sub_hamiltonian - 2.0 * hamiltonian * sub_hamiltonian
         return hamiltonian
@@ -182,8 +107,8 @@ def _gray_code_comparator(k1: Tuple[int, ...], k2: Tuple[int, ...], flip: bool =
 
 
 def _get_gates_from_hamiltonians(
-    hamiltonian_polynomial_list: List[HamiltonianPolynomial],
-    qubits: Sequence['cirq.Qid'],
+    hamiltonian_polynomial_list: List['cirq.PauliSum'],
+    qubit_map: Dict[str, 'cirq.Qid'],
     theta: float,
     ladder_target: bool = False,
 ):
@@ -192,20 +117,28 @@ def _get_gates_from_hamiltonians(
     Args:
         hamiltonian_polynomial_list: the list of Hamiltonians, typically built by calling
             _build_hamiltonian_from_boolean().
-        qubits: The list of qubits corresponding to the variables.
+        qubit_map: map of string (boolean variable name) to qubit.
         theta: A single float scaling the rotations.
         ladder_target: Whether to use convention of figure 7a or 7b.
 
     Yield:
         Gates that are the decomposition of the Hamiltonian.
     """
-    combined = sum(hamiltonian_polynomial_list, HamiltonianPolynomial.O())
+    combined: 'cirq.PauliSum' = sum(hamiltonian_polynomial_list, _Hamiltonian_O())
+
+    qubit_names = sorted(qubit_map.keys())
+    qubits = [qubit_map[name] for name in qubit_names]
+    qubit_indices = {qubit: i for i, qubit in enumerate(qubits)}
+
+    hamiltonians = {}
+    for pauli_string in combined:
+        w = pauli_string.coefficient.real
+        qubit_idx = tuple(sorted(qubit_indices[qubit] for qubit in pauli_string.qubits))
+        hamiltonians[qubit_idx] = w
 
     # Here we follow improvements of [4] cancelling out the CNOTs. The first step is to order by
     # Gray code so that as few as possible gates are changed.
-    sorted_hs = sorted(
-        list(combined.hamiltonians.keys()), key=functools.cmp_to_key(_gray_code_comparator)
-    )
+    sorted_hs = sorted(list(hamiltonians.keys()), key=functools.cmp_to_key(_gray_code_comparator))
 
     def _simplify_cnots(cnots):
         _control = 0
@@ -313,7 +246,7 @@ def _get_gates_from_hamiltonians(
 
     previous_h: Tuple[int, ...] = ()
     for h in sorted_hs:
-        w = combined.hamiltonians[h]
+        w = hamiltonians[h]
 
         yield _apply_cnots(previous_h, h)
 
@@ -397,14 +330,10 @@ class BooleanHamiltonian(raw_types.Operation):
 
     def _decompose_(self):
         boolean_exprs = [sympy_parser.parse_expr(boolean_str) for boolean_str in self._boolean_strs]
-        name_to_id = _get_name_to_id(boolean_exprs)
         hamiltonian_polynomial_list = [
-            _build_hamiltonian_from_boolean(boolean_expr, name_to_id)
+            _build_hamiltonian_from_boolean(boolean_expr, self._qubit_map)
             for boolean_expr in boolean_exprs
         ]
-
-        qubits = [self._qubit_map[name] for name in name_to_id.keys()]
-
         yield _get_gates_from_hamiltonians(
-            hamiltonian_polynomial_list, qubits, self._theta, self._ladder_target
+            hamiltonian_polynomial_list, self._qubit_map, self._theta, self._ladder_target
         )
