@@ -157,3 +157,9 @@ def test_copy_succeeds():
     args = create_container(qs2, False)
     copied = args[q0].copy()
     assert copied.qubits == (q0, q1)
+
+
+def test_merge_succeeds():
+    args = create_container(qs2, False)
+    merged = args[q0].create_merged_state()
+    assert merged.qubits == (q0, q1)

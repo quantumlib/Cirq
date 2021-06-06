@@ -23,7 +23,7 @@ from typing import (
     Iterator,
 )
 
-from cirq import ops, protocols
+from cirq import ops
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
     TActOnArgs,
