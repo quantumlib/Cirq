@@ -211,11 +211,9 @@ class DensityMatrixSimulator(
     def _create_step_result(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
-        qubits: Sequence['cirq.Qid'],
     ):
         return DensityMatrixStepResult(
             sim_state=sim_state,
-            qubits=qubits,
             dtype=self._dtype,
         )
 
@@ -245,18 +243,16 @@ class DensityMatrixStepResult(
     def __init__(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
-        qubits: Sequence['cirq.Qid'],
         dtype: 'DTypeLike' = np.complex64,
     ):
         """DensityMatrixStepResult.
 
         Args:
             sim_state: The qubit:ActOnArgs lookup for this step.
-            qubits: The canonical ordering of the qubits.
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`.
         """
-        super().__init__(sim_state, qubits)
+        super().__init__(sim_state)
         self._dtype = dtype
         self._density_matrix: Optional[np.ndarray] = None
 

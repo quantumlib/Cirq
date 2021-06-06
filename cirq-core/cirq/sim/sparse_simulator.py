@@ -209,11 +209,9 @@ class Simulator(
     def _create_step_result(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
-        qubits: Sequence['cirq.Qid'],
     ):
         return SparseSimulatorStep(
             sim_state=sim_state,
-            qubits=qubits,
             dtype=self._dtype,
         )
 
@@ -258,19 +256,17 @@ class SparseSimulatorStep(
     def __init__(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
-        qubits: Sequence['cirq.Qid'],
         dtype: 'DTypeLike' = np.complex64,
     ):
         """Results of a step of the simulator.
 
         Args:
             sim_state: The qubit:ActOnArgs lookup for this step.
-            qubits: The canonical ordering of the qubits.
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`.
         """
-        qubit_map = {q: i for i, q in enumerate(qubits)}
-        super().__init__(sim_state=sim_state, qubits=qubits, qubit_map=qubit_map)
+        qubit_map = {q: i for i, q in enumerate(sim_state.qubits)}
+        super().__init__(sim_state=sim_state, qubit_map=qubit_map)
         self._dtype = dtype
         self._state_vector: Optional[np.ndarray] = None
 

@@ -104,9 +104,8 @@ class CliffordSimulator(
     def _create_step_result(
         self,
         sim_state: 'cirq.OperationTarget[clifford.ActOnStabilizerCHFormArgs]',
-        qubits: Sequence['cirq.Qid'],
     ):
-        return CliffordSimulatorStepResult(sim_state=sim_state, qubits=qubits)
+        return CliffordSimulatorStepResult(sim_state=sim_state)
 
     def _create_simulator_trial_result(
         self,
@@ -149,14 +148,12 @@ class CliffordSimulatorStepResult(
     def __init__(
         self,
         sim_state: 'cirq.OperationTarget[clifford.ActOnStabilizerCHFormArgs]',
-        qubits: Sequence['cirq.Qid'],
     ):
         """Results of a step of the simulator.
         Attributes:
             sim_state: The qubit:ActOnArgs lookup for this step.
-            qubits: The canonical ordering of the qubits.
         """
-        super().__init__(sim_state, qubits)
+        super().__init__(sim_state)
         self._clifford_state = None
 
     def __str__(self) -> str:

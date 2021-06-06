@@ -13,7 +13,7 @@
 # limitations under the License.
 """An interface for quantum states as targets for operations."""
 import abc
-from typing import TypeVar, TYPE_CHECKING, Generic, Set, Dict, Any, Sequence
+from typing import TypeVar, TYPE_CHECKING, Generic, Set, Dict, Any, Tuple
 
 if TYPE_CHECKING:
     import cirq
@@ -44,7 +44,7 @@ class OperationTarget(Generic[TActOnArgs]):
 
     @property
     @abc.abstractmethod
-    def qubits(self) -> Sequence['cirq.Qid']:
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
         """Gets the qubit order maintained by this target."""
 
     @property

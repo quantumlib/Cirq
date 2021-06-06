@@ -22,6 +22,7 @@ from typing import (
     Set,
     Iterator,
     Any,
+    Tuple,
 )
 
 from cirq import ops
@@ -62,7 +63,7 @@ class ActOnArgsContainer(
                 `ActOnStateVectorArgs.record_measurement_result`.
         """
         self.args = args
-        self._qubits = qubits
+        self._qubits = tuple(qubits)
         self.split_untangled_states = split_untangled_states
         if log_of_measurement_results is None:
             log_of_measurement_results = {}
@@ -112,13 +113,15 @@ class ActOnArgsContainer(
     def copy(self) -> 'ActOnArgsContainer[TActOnArgs]':
         copies = {a: a.copy() for a in self.values_set()}
         args = {q: copies[a] for q, a in self.args.items()}
-        return ActOnArgsContainer(args, self.qubits, self.split_untangled_states)
+        return ActOnArgsContainer(
+            args, self.qubits, self.split_untangled_states, self.log_of_measurement_results
+        )
 
     def values_set(self) -> Set[TActOnArgs]:
         return set(self.args.values())
 
     @property
-    def qubits(self) -> Sequence['cirq.Qid']:
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
         return self._qubits
 
     @property

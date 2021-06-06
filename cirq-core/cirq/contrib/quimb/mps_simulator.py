@@ -116,9 +116,8 @@ class MPSSimulator(
     def _create_step_result(
         self,
         sim_state: 'cirq.OperationTarget[MPSState]',
-        qubits: Sequence['cirq.Qid'],
     ):
-        return MPSSimulatorStepResult(sim_state, qubits)
+        return MPSSimulatorStepResult(sim_state)
 
     def _create_simulator_trial_result(
         self,
@@ -171,14 +170,12 @@ class MPSSimulatorStepResult(simulator_base.MultiArgStepResult['MPSState', 'MPSS
     def __init__(
         self,
         sim_state: 'cirq.OperationTarget[MPSState]',
-        qubits: Sequence['cirq.Qid'],
     ):
         """Results of a step of the simulator.
         Attributes:
             sim_state: The qubit:ActOnArgs lookup for this step.
-            qubits: The canonical ordering of the qubits.
         """
-        super().__init__(sim_state, qubits)
+        super().__init__(sim_state)
 
     @property
     def state(self):

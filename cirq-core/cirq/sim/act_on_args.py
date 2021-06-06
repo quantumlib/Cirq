@@ -121,7 +121,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Physically reindexes the state by the new basis."""
         raise NotImplementedError()
 
-    def values_set(self) -> Set[TSelf]:
+    def values_set(self: TSelf) -> Set[TSelf]:
         return set(iter([self]))
 
     @property
@@ -129,7 +129,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         return self._log_of_measurement_results
 
     @property
-    def qubits(self) -> Sequence['cirq.Qid']:
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
         return self._qubits
 
     @abc.abstractmethod

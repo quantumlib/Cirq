@@ -102,9 +102,8 @@ class CountingStepResult(cirq.MultiArgStepResult[CountingActOnArgs, CountingActO
     def __init__(
         self,
         sim_state: cirq.OperationTarget[CountingActOnArgs],
-        qubits: Sequence[cirq.Qid],
     ):
-        super().__init__(sim_state, qubits)
+        super().__init__(sim_state)
 
     def _simulator_state(self) -> CountingActOnArgs:
         return self.merged_sim_state
@@ -144,9 +143,8 @@ class CountingSimulator(
     def _create_step_result(
         self,
         sim_state: cirq.OperationTarget[CountingActOnArgs],
-        qubits: Sequence['cirq.Qid'],
     ) -> CountingStepResult:
-        return CountingStepResult(sim_state, qubits)
+        return CountingStepResult(sim_state)
 
 
 class SplittableCountingSimulator(CountingSimulator):

@@ -137,15 +137,11 @@ class SimulatorBase(
     def _create_step_result(
         self,
         sim_state: OperationTarget[TActOnArgs],
-        qubits: Sequence['cirq.Qid'],
     ) -> TStepResult:
         """This method should be implemented to create a step result.
 
         Args:
             sim_state: The OperationTarget for this trial.
-            qubits: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
 
         Returns:
             The StepResult.
@@ -192,8 +188,7 @@ class SimulatorBase(
         """
 
         if len(circuit) == 0:
-            step_state = sim_state.create_merged_state()
-            yield self._create_step_result(step_state, step_state.qubit_map)
+            yield self._create_step_result(sim_state)
             return
 
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
@@ -221,8 +216,9 @@ class SimulatorBase(
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
 
             step_state = sim_state.create_merged_state()
-            yield self._create_step_result(step_state, step_state.qubit_map)
+            yield self._create_step_result(step_state)
             step_state.log_of_measurement_results.clear()
+            assert step_state.log_of_measurement_results is sim_state.log_of_measurement_results
 
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
@@ -302,7 +298,7 @@ class SimulatorBase(
                 for q in qubits:
                     args_map[q] = args
             args_map[None] = self._create_act_on_arg(0, (), log)
-            return ActOnArgsContainer(args_map, qubits, self._split_untangled_states)
+            return ActOnArgsContainer(args_map, qubits, self._split_untangled_states, log)
         else:
             return self._create_act_on_arg(
                 initial_state=initial_state,
@@ -319,17 +315,16 @@ class MultiArgStepResult(
     def __init__(
         self,
         sim_state: OperationTarget[TActOnArgs],
-        qubits: Sequence['cirq.Qid'],
     ):
         """Initializes the step result.
 
         Args:
             sim_state: The `OperationTarget` for this step.
-            qubits: The canonical ordering of the qubits.
         """
         self._sim_state = sim_state
         self._merged_sim_state: Optional[TActOnArgs] = None
         super().__init__(sim_state.log_of_measurement_results)
+        qubits = sim_state.qubits
         self._qubits = qubits
         self._qubit_mapping = {q: i for i, q in enumerate(qubits)}
         self._qubit_shape = tuple(q.dimension for q in qubits)
