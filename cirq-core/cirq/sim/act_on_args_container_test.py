@@ -161,5 +161,5 @@ def test_copy_succeeds():
 
 def test_merge_succeeds():
     args = create_container(qs2, False)
-    merged = args[q0].create_merged_state()
+    merged = args.create_merged_state()
     assert merged.qubits == (q0, q1)
