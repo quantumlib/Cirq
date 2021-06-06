@@ -17,12 +17,11 @@ import cirq
 
 
 class TestActOnArgs(cirq.ActOnArgs):
-    def __init__(self, state, qubits, logs):
+    def __init__(self, qubits, logs):
         super().__init__(
             qubits=qubits,
             log_of_measurement_results=logs,
         )
-        self.state = state
 
     def _perform_measurement(self) -> List[int]:
         return []
@@ -31,7 +30,6 @@ class TestActOnArgs(cirq.ActOnArgs):
         return TestActOnArgs(
             qubits=self.qubits,
             logs=self.log_of_measurement_results.copy(),
-            state=self.state,
         )
 
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
@@ -41,7 +39,6 @@ class TestActOnArgs(cirq.ActOnArgs):
         return TestActOnArgs(
             qubits=self.qubits + other.qubits,
             logs=self.log_of_measurement_results,
-            state=self.state + other.state,
         )
 
     def extract(
@@ -50,12 +47,10 @@ class TestActOnArgs(cirq.ActOnArgs):
         extracted_args = TestActOnArgs(
             qubits=qubits,
             logs=self.log_of_measurement_results,
-            state=self.state,
         )
         remainder_args = TestActOnArgs(
             qubits=tuple(q for q in self.qubits if q not in qubits),
             logs=self.log_of_measurement_results,
-            state=None,
         )
         return extracted_args, remainder_args
 
@@ -63,7 +58,6 @@ class TestActOnArgs(cirq.ActOnArgs):
         return TestActOnArgs(
             qubits=qubits,
             logs=self.log_of_measurement_results,
-            state=self.state,
         )
 
 
@@ -77,17 +71,15 @@ def create_container(
     args_map: Dict[Optional['cirq.Qid'], TestActOnArgs] = {}
     log: Dict[str, Any] = {}
     if split_untangled_states:
-        state = 1
         for q in reversed(qubits):
-            args_map[q] = TestActOnArgs(state, [q], log)
-            state *= 2
-        args_map[None] = TestActOnArgs(0, (), log)
+            args_map[q] = TestActOnArgs([q], log)
+        args_map[None] = TestActOnArgs((), log)
     else:
-        args = TestActOnArgs(2 ** len(qubits) - 1, qubits, log)
+        args = TestActOnArgs(qubits, log)
         for q in qubits:
             args_map[q] = args
         args_map[None] = (
-            args if not split_untangled_states else TestActOnArgs(0, (), log)
+            args if not split_untangled_states else TestActOnArgs((), log)
         )
     return cirq.ActOnArgsContainer(args_map, qubits, split_untangled_states)
 
