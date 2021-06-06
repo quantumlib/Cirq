@@ -16,7 +16,7 @@ from typing import Any, Dict, List
 import numpy as np
 
 # import cirq is needed for mypy
-import cirq # pylint: disable=unused-import
+import cirq  # pylint: disable=unused-import
 from cirq import protocols
 from cirq.value import big_endian_int_to_digits
 
