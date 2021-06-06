@@ -70,8 +70,8 @@ class ActOnArgs(OperationTarget[TSelf]):
             axes = ()
         if log_of_measurement_results is None:
             log_of_measurement_results = {}
-        self.qubits = tuple(qubits)
-        self.qubit_map = {q: i for i, q in enumerate(self.qubits)}
+        self._qubits = tuple(qubits)
+        self.qubit_map = {q: i for i, q in enumerate(qubits)}
         self.axes = tuple(axes)
         self.prng = prng
         self._log_of_measurement_results = log_of_measurement_results
@@ -127,6 +127,10 @@ class ActOnArgs(OperationTarget[TSelf]):
     @property
     def log_of_measurement_results(self) -> Dict[str, Any]:
         return self._log_of_measurement_results
+
+    @property
+    def qubits(self) -> Sequence['cirq.Qid']:
+        return self._qubits
 
     @abc.abstractmethod
     def sample(

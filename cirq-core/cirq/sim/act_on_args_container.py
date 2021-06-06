@@ -62,11 +62,11 @@ class ActOnArgsContainer(
                 `ActOnStateVectorArgs.record_measurement_result`.
         """
         self.args = args
-        self.qubits = qubits
+        self._qubits = qubits
         self.split_untangled_states = split_untangled_states
-        self._log_of_measurement_results: Dict[str, Any] = (
-            log_of_measurement_results if log_of_measurement_results is None else {}
-        )
+        if log_of_measurement_results is None:
+            log_of_measurement_results = {}
+        self._log_of_measurement_results: Dict[str, Any] = log_of_measurement_results
 
     def create_merged_state(self) -> TActOnArgs:
         if not self.split_untangled_states:
@@ -116,6 +116,10 @@ class ActOnArgsContainer(
 
     def values_set(self) -> Set[TActOnArgs]:
         return set(self.args.values())
+
+    @property
+    def qubits(self) -> Sequence['cirq.Qid']:
+        return self._qubits
 
     @property
     def log_of_measurement_results(self) -> Dict[str, Any]:
