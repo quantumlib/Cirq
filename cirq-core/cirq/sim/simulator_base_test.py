@@ -13,6 +13,7 @@
 # limitations under the License.
 from typing import List, Dict, Any, Sequence, Tuple
 
+import copy
 import numpy as np
 import pytest
 
@@ -23,12 +24,10 @@ class CountingActOnArgs(cirq.ActOnArgs):
     gate_count = 0
     measurement_count = 0
 
-    def __init__(self, state, qubits, logs, prng=cirq.value.parse_random_state(0), axes=()):
+    def __init__(self, state, qubits, logs):
         super().__init__(
-            prng=prng,
             qubits=qubits,
             log_of_measurement_results=logs,
-            axes=axes,
         )
         self.state = state
 
@@ -37,26 +36,19 @@ class CountingActOnArgs(cirq.ActOnArgs):
         return [self.gate_count]
 
     def copy(self) -> 'CountingActOnArgs':
-        args = CountingActOnArgs(
-            qubits=self.qubits,
-            axes=self.axes,
-            prng=self.prng,
-            logs=self.log_of_measurement_results.copy(),
-            state=self.state,
-        )
-        args.gate_count = self.gate_count
-        args.measurement_count = self.measurement_count
+        args = copy.copy(self)
+        args.log_of_measurement_results = self.log_of_measurement_results.copy()
         return args
 
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
         self.gate_count += 1
         return True
 
-    def join(self, other: 'CountingActOnArgs') -> 'CountingActOnArgs':
-        args = CountingActOnArgs(
+
+class SplittableCountingActOnArgs(CountingActOnArgs):
+    def join(self, other: 'SplittableCountingActOnArgs') -> 'SplittableCountingActOnArgs':
+        args = SplittableCountingActOnArgs(
             qubits=self.qubits + other.qubits,
-            axes=(),
-            prng=self.prng,
             logs=self.log_of_measurement_results,
             state=None,
         )
@@ -66,30 +58,24 @@ class CountingActOnArgs(cirq.ActOnArgs):
 
     def extract(
         self, qubits: Sequence['cirq.Qid']
-    ) -> Tuple['CountingActOnArgs', 'CountingActOnArgs']:
-        extracted_args = CountingActOnArgs(
+    ) -> Tuple['SplittableCountingActOnArgs', 'SplittableCountingActOnArgs']:
+        extracted_args = SplittableCountingActOnArgs(
             qubits=qubits,
-            axes=(),
-            prng=self.prng,
             logs=self.log_of_measurement_results,
             state=None,
         )
         extracted_args.gate_count = self.gate_count
         extracted_args.measurement_count = self.measurement_count
-        remainder_args = CountingActOnArgs(
+        remainder_args = SplittableCountingActOnArgs(
             qubits=tuple(q for q in self.qubits if q not in qubits),
-            axes=(),
-            prng=self.prng,
             logs=self.log_of_measurement_results,
             state=None,
         )
         return extracted_args, remainder_args
 
-    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'CountingActOnArgs':
-        args = CountingActOnArgs(
+    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'SplittableCountingActOnArgs':
+        args = SplittableCountingActOnArgs(
             qubits=qubits,
-            axes=(),
-            prng=self.prng,
             logs=self.log_of_measurement_results,
             state=self.state,
         )
@@ -132,10 +118,10 @@ class CountingSimulator(
         CountingStepResult, CountingTrialResult, CountingActOnArgs, CountingActOnArgs
     ]
 ):
-    def __init__(self, noise=None, split_entangled_states=True):
+    def __init__(self, noise=None, split_untangled_states=False):
         super().__init__(
             noise=noise,
-            split_untangled_states=split_entangled_states,
+            split_untangled_states=split_untangled_states,
         )
 
     def _create_act_on_arg(
@@ -160,6 +146,22 @@ class CountingSimulator(
         qubit_map: Dict[cirq.Qid, int],
     ) -> CountingStepResult:
         return CountingStepResult(sim_state, qubit_map)
+
+
+class SplittableCountingSimulator(CountingSimulator):
+    def __init__(self, noise=None, split_untangled_states=True):
+        super().__init__(
+            noise=noise,
+            split_untangled_states=split_untangled_states,
+        )
+
+    def _create_act_on_arg(
+        self,
+        initial_state: Any,
+        qubits: Sequence['cirq.Qid'],
+        logs: Dict[str, Any],
+    ) -> CountingActOnArgs:
+        return SplittableCountingActOnArgs(qubits=qubits, state=initial_state, logs=logs)
 
 
 q0, q1 = cirq.LineQubit.range(2)
@@ -257,7 +259,7 @@ def test_run_non_terminal_measurement():
 
 
 def test_integer_initial_state_is_split():
-    sim = CountingSimulator()
+    sim = SplittableCountingSimulator()
     args = sim._create_act_on_args(2, (q0, q1))
     assert len(set(args.values())) == 3
     assert args[q0].state == 1
@@ -265,8 +267,17 @@ def test_integer_initial_state_is_split():
     assert args[None].state == 0
 
 
-def test_integer_initial_state_is_not_split_if_not_enabled():
-    sim = CountingSimulator(split_entangled_states=False)
+def test_integer_initial_state_is_not_split_if_disabled():
+    sim = SplittableCountingSimulator(split_untangled_states=False)
+    args = sim._create_act_on_args(2, (q0, q1))
+    assert len(set(args.values())) == 1
+    assert args[q0].state == 2
+    assert args[q1] is args[q0]
+    assert args[None] is args[q0]
+
+
+def test_integer_initial_state_is_not_split_if_impossible():
+    sim = CountingSimulator()
     args = sim._create_act_on_args(2, (q0, q1))
     assert len(set(args.values())) == 1
     assert args[q0].state == 2
@@ -275,9 +286,49 @@ def test_integer_initial_state_is_not_split_if_not_enabled():
 
 
 def test_non_integer_initial_state_is_not_split():
-    sim = CountingSimulator()
+    sim = SplittableCountingSimulator()
     args = sim._create_act_on_args('state', (q0, q1))
     assert len(set(args.values())) == 2
     assert args[q0].state == 'state'
     assert args[q1] is args[q0]
     assert args[None].state == 0
+
+
+def test_entanglement_causes_join():
+    sim = SplittableCountingSimulator()
+    args = sim._create_act_on_args(2, (q0, q1))
+    assert len(set(args.values())) == 3
+    args.apply_operation(cirq.CNOT(q0, q1))
+    assert len(set(args.values())) == 2
+    assert args[q0] is args[q1]
+    assert args[None] is not args[q0]
+
+
+def test_measurement_causes_split():
+    sim = SplittableCountingSimulator()
+    args = sim._create_act_on_args('state', (q0, q1))
+    assert len(set(args.values())) == 2
+    args.apply_operation(cirq.measure(q0))
+    assert len(set(args.values())) == 3
+    assert args[q0] is not args[q1]
+    assert args[q0] is not args[None]
+
+
+def test_measurement_does_not_split_if_disabled():
+    sim = SplittableCountingSimulator(split_untangled_states=False)
+    args = sim._create_act_on_args(2, (q0, q1))
+    assert len(set(args.values())) == 1
+    args.apply_operation(cirq.measure(q0))
+    assert len(set(args.values())) == 1
+    assert args[q1] is args[q0]
+    assert args[None] is args[q0]
+
+
+def test_measurement_does_not_split_if_impossible():
+    sim = CountingSimulator()
+    args = sim._create_act_on_args(2, (q0, q1))
+    assert len(set(args.values())) == 1
+    args.apply_operation(cirq.measure(q0))
+    assert len(set(args.values())) == 1
+    assert args[q1] is args[q0]
+    assert args[None] is args[q0]
