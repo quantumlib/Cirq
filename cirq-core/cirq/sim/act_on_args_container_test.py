@@ -41,9 +41,7 @@ class TestActOnArgs(cirq.ActOnArgs):
             logs=self.log_of_measurement_results,
         )
 
-    def extract(
-        self, qubits: Sequence['cirq.Qid']
-    ) -> Tuple['TestActOnArgs', 'TestActOnArgs']:
+    def extract(self, qubits: Sequence['cirq.Qid']) -> Tuple['TestActOnArgs', 'TestActOnArgs']:
         extracted_args = TestActOnArgs(
             qubits=qubits,
             logs=self.log_of_measurement_results,
@@ -78,9 +76,7 @@ def create_container(
         args = TestActOnArgs(qubits, log)
         for q in qubits:
             args_map[q] = args
-        args_map[None] = (
-            args if not split_untangled_states else TestActOnArgs((), log)
-        )
+        args_map[None] = args if not split_untangled_states else TestActOnArgs((), log)
     return cirq.ActOnArgsContainer(args_map, qubits, split_untangled_states)
 
 
