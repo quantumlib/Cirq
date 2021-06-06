@@ -332,3 +332,10 @@ def test_measurement_does_not_split_if_impossible():
     assert len(set(args.values())) == 1
     assert args[q1] is args[q0]
     assert args[None] is args[q0]
+
+
+def test_reorder_succeeds():
+    sim = SplittableCountingSimulator()
+    args = sim._create_act_on_args('state', (q0, q1))
+    reordered = args[q0].reorder([q1, q0])
+    assert reordered.qubits == (q1, q0)

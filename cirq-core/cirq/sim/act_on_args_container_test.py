@@ -145,3 +145,15 @@ def test_measurement_in_single_qubit_circuit_passes():
     args.apply_operation(cirq.measure(q0))
     assert len(set(args.values())) == 2
     assert args[q0] is not args[None]
+
+
+def test_reorder_succeeds():
+    args = create_container(qs2, False)
+    reordered = args[q0].reorder([q1, q0])
+    assert reordered.qubits == (q1, q0)
+
+
+def test_copy_succeeds():
+    args = create_container(qs2, False)
+    copied = args[q0].copy()
+    assert copied.qubits == (q0, q1)
