@@ -744,8 +744,7 @@ def test_simulator_step_state_mixin():
         qubits=qubits,
     )
     result = cirq.SparseSimulatorStep(
-        sim_state={q: args for q in qubits},
-        qubits=qubits,
+        sim_state=args,
         dtype=np.complex64,
     )
     rho = np.array([[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
