@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
-from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING, Sequence, Tuple
+from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING, Sequence, Tuple, cast
 
 import numpy as np
 
@@ -31,7 +31,7 @@ class ActOnArgs:
 
     def __init__(
         self,
-        prng: np.random.RandomState,
+        prng: np.random.RandomState = None,
         qubits: Sequence['cirq.Qid'] = None,
         axes: Iterable[int] = None,
         log_of_measurement_results: Dict[str, Any] = None,
@@ -49,6 +49,8 @@ class ActOnArgs:
                 being recorded into. Edit it easily by calling
                 `ActOnStateVectorArgs.record_measurement_result`.
         """
+        if prng is None:
+            prng = cast(np.random.RandomState, np.random)
         if qubits is None:
             qubits = ()
         if axes is None:
@@ -85,17 +87,17 @@ class ActOnArgs:
     def copy(self: TSelf) -> TSelf:
         """Creates a copy of the object."""
 
-    @abc.abstractmethod
     def join(self: TSelf, other: TSelf) -> TSelf:
         """Joins two state spaces together."""
+        raise NotImplementedError()
 
-    @abc.abstractmethod
     def extract(self: TSelf, qubits: Sequence['cirq.Qid']) -> Tuple[TSelf, TSelf]:
         """Splits two state spaces after a measurement or reset."""
+        raise NotImplementedError()
 
-    @abc.abstractmethod
     def reorder(self: TSelf, qubits: Sequence['cirq.Qid']) -> TSelf:
         """Physically reindexes the state by the new basis."""
+        raise NotImplementedError()
 
 
 def strat_act_on_from_apply_decompose(

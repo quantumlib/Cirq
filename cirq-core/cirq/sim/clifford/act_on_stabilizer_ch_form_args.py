@@ -85,20 +85,6 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             log_of_measurement_results=self.log_of_measurement_results,
         )
 
-    def join(self, other: 'cirq.ActOnStabilizerCHFormArgs') -> 'cirq.ActOnStabilizerCHFormArgs':
-        # Unnecessary for now but can be added later if there is a use case.
-        raise NotImplementedError()
-
-    def extract(
-        self, qubits: Sequence['cirq.Qid']
-    ) -> Tuple['cirq.ActOnStabilizerCHFormArgs', 'cirq.ActOnStabilizerCHFormArgs']:
-        # Unnecessary for now but can be added later if there is a use case.
-        raise NotImplementedError()
-
-    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'cirq.ActOnStabilizerCHFormArgs':
-        # Unnecessary for now but can be added later if there is a use case.
-        raise NotImplementedError()
-
 
 def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
     val: Any, args: 'cirq.ActOnStabilizerCHFormArgs'
