@@ -19,6 +19,10 @@ from cirq.sim.act_on_args import (
     ActOnArgs,
 )
 
+from cirq.sim.act_on_args_container import (
+    ActOnArgsContainer,
+)
+
 from cirq.sim.act_on_density_matrix_args import (
     ActOnDensityMatrixArgs,
 )
@@ -38,6 +42,8 @@ from cirq.sim.density_matrix_simulator import (
     DensityMatrixStepResult,
     DensityMatrixTrialResult,
 )
+
+from cirq.sim.operation_target import OperationTarget
 
 from cirq.sim.mux import (
     CIRCUIT_LIKE,

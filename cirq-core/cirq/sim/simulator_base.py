@@ -34,6 +34,8 @@ import numpy as np
 
 from cirq import circuits, ops, protocols, study, value, devices
 from cirq.sim import act_on_args
+from cirq.sim import ActOnArgsContainer
+from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
     TStepResult,
     TSimulationTrialResult,
@@ -59,7 +61,7 @@ class SimulatorBase(
     """A base class for the built-in simulators.
 
     Most implementors of this interface should implement the
-    `_create_act_on_args` and `_create_step_result` methods. The first one
+    `_create_act_on_arg` and `_create_step_result` methods. The first one
     creates the simulator's quantum state representation at the beginning of
     the simulation. The second creates the step result emitted after each
     `Moment` in the simulation.
@@ -102,8 +104,9 @@ class SimulatorBase(
                 will treat measurement as dephasing instead of collapsing
                 process. This is only applicable to simulators that can
                 model dephasing.
-            split_untangled_states: Optimizes simulation by running unentangled
-                qubit sets independently and merging those states at the end.
+            split_untangled_states: If True, optimizes simulation by running
+                unentangled qubit sets independently and merging those states
+                at the end.
         """
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
@@ -118,18 +121,29 @@ class SimulatorBase(
         qubits: Sequence['cirq.Qid'],
         logs: Dict[str, Any],
     ) -> TActOnArgs:
-        """Creates an args"""
+        """Creates an instance of the TActOnArgs class for the simulator.
+
+        It represents the supplied qubits initialized to the provided state.
+
+        Args:
+            initial_state: The initial state to represent. An integer state is
+                understood to be a pure state. Other state representations are
+                simulator-dependent.
+            qubits: The sequence of qubits to represent.
+            logs: The structure to hold measurement logs. A single instance
+                should be shared among all ActOnArgs within the simulation.
+        """
 
     @abc.abstractmethod
     def _create_step_result(
         self,
-        sim_state: Dict['cirq.Qid', TActOnArgs],
+        sim_state: OperationTarget[TActOnArgs],
         qubits: Sequence['cirq.Qid'],
     ) -> TStepResult:
         """This method should be implemented to create a step result.
 
         Args:
-            sim_state: The TActOnArgs for this trial.
+            sim_state: The OperationTarget for this trial.
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
@@ -163,8 +177,7 @@ class SimulatorBase(
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
-        sim_state: Dict['cirq.Qid', TActOnArgs],
-        qubits: Sequence['cirq.Qid'],
+        sim_state: OperationTarget[TActOnArgs],
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
         """Standard iterator over StepResult from Moments of a Circuit.
@@ -178,8 +191,10 @@ class SimulatorBase(
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
+
         if len(circuit) == 0:
-            yield self._create_step_result(sim_state, qubits)
+            step_state = sim_state.create_merged_state()
+            yield self._create_step_result(step_state, step_state.qubit_map)
             return
 
         noisy_moments = self.noise.noisy_moments(circuit, sorted(circuit.all_qubits()))
@@ -200,41 +215,15 @@ class SimulatorBase(
                         if self._ignore_measurement_results:
                             op = ops.phase_damp(1).on(*op.qubits)
 
-                    # Go through the op's qubits and join any disparate ActOnArgs states
-                    # into a new combined state.
-                    op_args: Optional[TActOnArgs] = None
-                    for q in op.qubits if len(op.qubits) != 0 else qubits:
-                        if op_args is None or q not in op_args.qubits:
-                            op_args = (
-                                sim_state[q]
-                                if op_args is None
-                                else cast(TActOnArgs, op_args).join(sim_state[q])
-                            )
-                    assert op_args is not None
-
-                    # (Backfill the args map with the new value)
-                    for q in op_args.qubits:
-                        sim_state[q] = op_args
-
-                    # Act on the args with the operation
-                    op_args.axes = tuple(op_args.qubit_map[q] for q in op.qubits)
-                    protocols.act_on(op, op_args)
-
-                    # Decouple any measurements
-                    if isinstance(op.gate, ops.MeasurementGate) and self._split_untangled_states:
-                        for q in op.qubits:
-                            q_args, op_args = op_args.extract((q,))
-                            sim_state[q] = q_args
-
-                        # (Backfill the args map with the new value)
-                        for q in op_args.qubits:
-                            sim_state[q] = op_args
+                    # Simulate the operation
+                    sim_state.apply_operation(op)
 
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
 
-            yield self._create_step_result(sim_state, qubits)
-            next(iter(sim_state.values())).log_of_measurement_results.clear()
+            step_state = sim_state.create_merged_state()
+            yield self._create_step_result(step_state, step_state.qubit_map)
+            step_state.log_of_measurement_results.clear()
 
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
@@ -258,7 +247,6 @@ class SimulatorBase(
         for step_result in self._core_iterator(
             circuit=prefix,
             sim_state=act_on_args,
-            qubits=qubits,
         ):
             pass
 
@@ -267,7 +255,6 @@ class SimulatorBase(
             for step_result in self._core_iterator(
                 circuit=general_suffix,
                 sim_state=act_on_args,
-                qubits=qubits,
                 all_measurements_are_terminal=True,
             ):
                 pass
@@ -276,12 +263,10 @@ class SimulatorBase(
             return step_result.sample_measurement_ops(measurement_ops, repetitions, seed=self._prng)
 
         measurements: Dict[str, List[np.ndarray]] = {}
-        for _ in range(repetitions):
-            copies = {a: a.copy() for a in set(act_on_args.values())}
+        for i in range(repetitions):
             all_step_results = self._core_iterator(
                 general_suffix,
-                sim_state={q: copies[a] for q, a in act_on_args.items()},
-                qubits=qubits,
+                sim_state=act_on_args.copy() if i < repetitions - 1 else act_on_args,
             )
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
@@ -294,29 +279,37 @@ class SimulatorBase(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-    ) -> Dict['cirq.Qid', TActOnArgs]:
-        if isinstance(initial_state, dict):
+    ) -> OperationTarget[TActOnArgs]:
+        if isinstance(initial_state, OperationTarget):
             return initial_state
 
-        args_map: Dict['cirq.Qid', TActOnArgs] = {}
-        if initial_state is 0 and self._split_untangled_states:
-            log: Dict[str, Any] = {}
-            for q in qubits:
-                args_map[q] = self._create_act_on_arg(
-                    initial_state=0,
-                    qubits=[q],
+        log: Dict[str, Any] = {}
+        if self._split_untangled_states:
+            args_map: Dict[Optional['cirq.Qid'], TActOnArgs] = {}
+            if isinstance(initial_state, int):
+                for q in reversed(qubits):
+                    args_map[q] = self._create_act_on_arg(
+                        initial_state=initial_state % q.dimension,
+                        qubits=[q],
+                        logs=log,
+                    )
+                    initial_state = int(initial_state / q.dimension)
+            else:
+                args = self._create_act_on_arg(
+                    initial_state=initial_state,
+                    qubits=qubits,
                     logs=log,
                 )
-            return args_map
-
-        args = self._create_act_on_arg(
-            initial_state=initial_state,
-            qubits=qubits,
-            logs={},
-        )
-        for q in qubits:
-            args_map[q] = args
-        return args_map
+                for q in qubits:
+                    args_map[q] = args
+            args_map[None] = self._create_act_on_arg(0, (), log)
+            return ActOnArgsContainer(args_map, qubits, self._split_untangled_states)
+        else:
+            return self._create_act_on_arg(
+                initial_state=initial_state,
+                qubits=qubits,
+                logs=log,
+            )
 
 
 class MultiArgStepResult(
@@ -326,24 +319,18 @@ class MultiArgStepResult(
 
     def __init__(
         self,
-        sim_state: Dict['cirq.Qid', TActOnArgs],
+        sim_state: OperationTarget[TActOnArgs],
         qubits: Sequence['cirq.Qid'],
     ):
         """Initializes the step result.
 
         Args:
-            sim_state: The qubit:ActOnArgs lookup for this step.
+            sim_state: The `OperationTarget` for this step.
             qubits: The canonical ordering of the qubits.
         """
         self._sim_state = sim_state
-        self._sim_state_values = tuple(set(sim_state.values()))
         self._merged_sim_state: Optional[TActOnArgs] = None
-        measurements = (
-            self._sim_state_values[0].log_of_measurement_results.copy()
-            if len(self._sim_state_values) != 0
-            else {}
-        )
-        super().__init__(measurements)
+        super().__init__(sim_state.log_of_measurement_results)
         self._qubits = qubits
         self._qubit_mapping = {q: i for i, q in enumerate(qubits)}
         self._qubit_shape = tuple(q.dimension for q in qubits)
@@ -354,11 +341,7 @@ class MultiArgStepResult(
     @property
     def merged_sim_state(self):
         if self._merged_sim_state is None:
-            state = act_on_args.merge_states(self._sim_state_values)
-            if state is not None:
-                self._merged_sim_state = (
-                    state if state.qubits == self._qubits else state.reorder(self._qubits)
-                )
+            self._merged_sim_state = self._sim_state.create_merged_state()
         return self._merged_sim_state
 
     def sample(
@@ -369,7 +352,7 @@ class MultiArgStepResult(
     ) -> np.ndarray:
         columns = []
         selected_order: List[ops.Qid] = []
-        for v in self._sim_state_values:
+        for v in self._sim_state.values_set():
             qs = [q for q in qubits if q in v.qubits]
             if any(qs):
                 column = v.sample(qs, repetitions, seed)

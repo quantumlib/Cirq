@@ -240,7 +240,7 @@ def test_run_qudit_channel(dtype):
         def _qid_shape_(self):
             return (3,)
 
-        def _channel_(self):
+        def _kraus_(self):
             return [
                 np.array([[1, 0, 0], [0, 0.5 ** 0.5, 0], [0, 0, 0.5 ** 0.5]]),
                 np.array([[0, 0.5 ** 0.5, 0], [0, 0, 0], [0, 0, 0]]),
@@ -504,10 +504,12 @@ def test_simulate_qudits(dtype):
 def test_simulate_compare_to_state_vector_simulator(dtype, circuit):
     qubits = cirq.LineQubit.range(4)
     pure_result = (
-        cirq.Simulator(dtype=dtype).simulate(circuit, qubit_order=qubits).density_matrix_of()
+        cirq.Simulator(dtype=dtype, split_untangled_states=False)
+        .simulate(circuit, qubit_order=qubits)
+        .density_matrix_of()
     )
     mixed_result = (
-        cirq.DensityMatrixSimulator(dtype=dtype)
+        cirq.DensityMatrixSimulator(dtype=dtype, split_untangled_states=False)
         .simulate(circuit, qubit_order=qubits)
         .final_density_matrix
     )
@@ -952,7 +954,7 @@ class XAsOp(cirq.Operation):
         # coverage: ignore
         return XAsOp(new_qubits[0])
 
-    def _channel_(self):
+    def _kraus_(self):
         # coverage: ignore
         return cirq.channel(cirq.X)
 
@@ -971,7 +973,7 @@ def test_works_on_operation():
         def with_qubits(self, *new_qubits):
             raise NotImplementedError()
 
-        def _channel_(self):
+        def _kraus_(self):
             # coverage: ignore
             return cirq.channel(cirq.X)
 
@@ -992,7 +994,7 @@ def test_works_on_operation_dephased():
         def with_qubits(self, *new_qubits):
             raise NotImplementedError()
 
-        def _channel_(self):
+        def _kraus_(self):
             return cirq.channel(cirq.H)
 
     s = cirq.DensityMatrixSimulator(ignore_measurement_results=True)
@@ -1339,7 +1341,7 @@ def test_measuring_subcircuits_cause_sweep_repeat():
 
 
 def test_density_matrix_copy():
-    sim = cirq.DensityMatrixSimulator()
+    sim = cirq.DensityMatrixSimulator(split_untangled_states=False)
 
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q), cirq.H(q))

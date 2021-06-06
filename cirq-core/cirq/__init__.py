@@ -90,6 +90,7 @@ from cirq.devices import (
     NO_NOISE,
     NOISE_MODEL_LIKE,
     NoiseModel,
+    SymmetricalQidPair,
     UNCONSTRAINED_DEVICE,
 )
 
@@ -334,9 +335,14 @@ from cirq.qis import (
     density_matrix,
     density_matrix_from_state_vector,
     dirac_notation,
+    entanglement_fidelity,
     eye_tensor,
     fidelity,
+    kraus_to_channel_matrix,
+    kraus_to_choi,
     one_hot,
+    operation_to_channel_matrix,
+    operation_to_choi,
     QUANTUM_STATE_LIKE,
     QuantumState,
     quantum_state,
@@ -352,6 +358,7 @@ from cirq.qis import (
 
 from cirq.sim import (
     ActOnArgs,
+    ActOnArgsContainer,
     ActOnCliffordTableauArgs,
     ActOnDensityMatrixArgs,
     ActOnStabilizerCHFormArgs,
@@ -371,6 +378,7 @@ from cirq.sim import (
     MultiArgStepResult,
     final_density_matrix,
     final_state_vector,
+    OperationTarget,
     sample,
     sample_density_matrix,
     sample_state_vector,

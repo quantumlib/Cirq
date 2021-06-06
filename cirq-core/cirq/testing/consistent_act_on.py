@@ -79,7 +79,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
     __tracebackhide__ = True
     # pylint: enable=unused-variable
 
-    num_qubits_val = protocols.num_qubits(val) or 1
+    num_qubits_val = protocols.num_qubits(val)
 
     if (
         protocols.is_parameterized(val)

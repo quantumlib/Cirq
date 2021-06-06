@@ -155,8 +155,9 @@ class Simulator(
                 `numpy.complex64` or `numpy.complex128`.
             noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
-            split_untangled_states: Optimizes simulation by running unentangled
-                qubit sets independently and merging those states at the end.
+            split_untangled_states: If True, optimizes simulation by running
+                unentangled qubit sets independently and merging those states
+                at the end.
         """
         if np.dtype(dtype).kind != 'c':
             raise ValueError(f'dtype must be a complex type but was {dtype}')
@@ -207,7 +208,7 @@ class Simulator(
 
     def _create_step_result(
         self,
-        sim_state: Dict['cirq.Qid', act_on_state_vector_args.ActOnStateVectorArgs],
+        sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
         qubits: Sequence['cirq.Qid'],
     ):
         return SparseSimulatorStep(
@@ -256,7 +257,7 @@ class SparseSimulatorStep(
 
     def __init__(
         self,
-        sim_state: Dict['cirq.Qid', act_on_state_vector_args.ActOnStateVectorArgs],
+        sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
         qubits: Sequence['cirq.Qid'],
         dtype: 'DTypeLike' = np.complex64,
     ):

@@ -115,7 +115,7 @@ class MPSSimulator(
 
     def _create_step_result(
         self,
-        sim_state: Dict['cirq.Qid', 'MPSState'],
+        sim_state: 'cirq.OperationTarget[MPSState]',
         qubits: Sequence['cirq.Qid'],
     ):
         return MPSSimulatorStepResult(sim_state, qubits)
@@ -170,7 +170,7 @@ class MPSSimulatorStepResult(simulator_base.MultiArgStepResult['MPSState', 'MPSS
 
     def __init__(
         self,
-        sim_state: Dict['cirq.Qid', 'MPSState'],
+        sim_state: 'cirq.OperationTarget[MPSState]',
         qubits: Sequence['cirq.Qid'],
     ):
         """Results of a step of the simulator.
@@ -297,27 +297,6 @@ class MPSState(ActOnArgs):
         state.M = [x.copy() for x in self.M]
         state.estimated_gate_error_list = self.estimated_gate_error_list
         return state
-
-    def join(self, other: 'MPSState') -> 'MPSState':
-        # TODO MPS simulator currently does not enable split_untangled_states
-        # so this will never be called during simulation, and MPS gains nothing
-        # from running in split_untangled_states mode, so this is not necessary,
-        # however it may be useful if other use cases arise.
-        raise NotImplementedError()
-
-    def extract(self, qubits: Sequence['cirq.Qid']) -> Tuple['MPSState', 'MPSState']:
-        # TODO MPS simulator currently does not enable split_untangled_states
-        # so this will never be called during simulation, and MPS gains nothing
-        # from running in split_untangled_states mode, so this is not necessary,
-        # however it may be useful if other use cases arise.
-        raise NotImplementedError()
-
-    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'MPSState':
-        # TODO MPS simulator currently does not enable split_untangled_states
-        # so this will never be called during simulation, and MPS gains nothing
-        # from running in split_untangled_states mode, so this is not necessary,
-        # however may be useful if other use cases arise.
-        raise NotImplementedError()
 
     def state_vector(self) -> np.ndarray:
         """Returns the full state vector.

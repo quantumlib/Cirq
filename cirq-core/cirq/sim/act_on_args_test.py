@@ -21,7 +21,10 @@ from cirq.sim import act_on_args
 
 def test_measurements():
     class DummyArgs(cirq.ActOnArgs):
-        def _perform_measurement(self) -> List[int]:
+        def copy(self):
+            pass
+
+        def _perform_measurement(self):
             return [5, 3]
 
     args = DummyArgs(axes=[], prng=np.random.RandomState(), log_of_measurement_results={})
@@ -31,6 +34,12 @@ def test_measurements():
 
 def test_decompose():
     class DummyArgs(cirq.ActOnArgs):
+        def copy(self):
+            pass
+
+        def _perform_measurement(self):
+            pass
+
         def _act_on_fallback_(self, action, allow_decompose):
             return True
 

@@ -1206,7 +1206,7 @@ def test_separated_measurements():
 
 
 def test_state_vector_copy():
-    sim = cirq.Simulator()
+    sim = cirq.Simulator(split_untangled_states=False)
 
     class InplaceGate(cirq.SingleQubitGate):
         """A gate that modifies the target tensor in place, multiply by -1."""
@@ -1279,3 +1279,14 @@ def test_nondeterministic_mixture_noise():
 def test_unsupported_noise_fails():
     with pytest.raises(ValueError, match='noise'):
         cirq.Simulator(noise=cirq.amplitude_damp(0.5))
+
+
+def test_act_on_args_pure_state_creation():
+    sim = cirq.Simulator()
+    qids = cirq.LineQubit.range(3)
+    shape = cirq.qid_shape(qids)
+    args = sim._create_act_on_args(1, qids)
+    values = list(args.values())
+    arg = values[0].join(values[1]).join(values[2]).reorder(qids)
+    expected = cirq.to_valid_state_vector(1, len(qids), qid_shape=shape)
+    np.testing.assert_allclose(arg.target_tensor, expected.reshape(shape))

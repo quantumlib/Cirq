@@ -40,9 +40,9 @@ class DensityMatrixSimulator(
 
     This simulator can be applied on circuits that are made up of operations
     that have:
-        * a `_channel_` method
+        * a `_kraus_` method for a Kraus representation of a quantum channel.
         * a `_mixture_` method for a probabilistic combination of unitary gates.
-        * a `_unitary_` method
+        * a `_unitary_` method for a unitary gate.
         * a `_has_unitary_` and `_apply_unitary_` method.
         * measurements
         * a `_decompose_` that eventually yields one of the above
@@ -134,8 +134,9 @@ class DensityMatrixSimulator(
             ignore_measurement_results: if True, then the simulation
                 will treat measurement as dephasing instead of collapsing
                 process.
-            split_untangled_states: Optimizes simulation by running unentangled
-                qubit sets independently and merging those states at the end.
+            split_untangled_states: If True, optimizes simulation by running
+                unentangled qubit sets independently and merging those states
+                at the end.
 
                Example:
                >>> (q0,) = cirq.LineQubit.range(1)
@@ -209,7 +210,7 @@ class DensityMatrixSimulator(
 
     def _create_step_result(
         self,
-        sim_state: Dict['cirq.Qid', act_on_density_matrix_args.ActOnDensityMatrixArgs],
+        sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
         qubits: Sequence['cirq.Qid'],
     ):
         return DensityMatrixStepResult(
@@ -243,7 +244,7 @@ class DensityMatrixStepResult(
 
     def __init__(
         self,
-        sim_state: Dict['cirq.Qid', act_on_density_matrix_args.ActOnDensityMatrixArgs],
+        sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
         qubits: Sequence['cirq.Qid'],
         dtype: 'DTypeLike' = np.complex64,
     ):
