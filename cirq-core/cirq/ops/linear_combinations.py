@@ -662,7 +662,8 @@ class PauliSum:
 
     def __format__(self, format_spec: str) -> str:
         terms = [
-            (_pauli_string_from_unit(v), self._linear_dict[v]) for v in self._linear_dict.keys()
+            (_pauli_string_from_unit(v), self._linear_dict[v])
+            for v in sorted(self._linear_dict.keys())
         ]
         return _format_terms(terms=terms, format_spec=format_spec)
 

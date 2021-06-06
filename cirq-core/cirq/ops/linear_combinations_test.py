@@ -1178,7 +1178,7 @@ def test_pauli_sum_formatting():
     paulistr = cirq.X(q[0]) * cirq.X(q[1])
     assert str(paulistr) == 'X(0)*X(1)'
     paulisum1 = cirq.X(q[0]) * cirq.X(q[1]) + 4
-    assert str(paulisum1) == '1.000*X(0)*X(1)+4.000*I'
+    assert str(paulisum1) == '4.000*I+1.000*X(0)*X(1)'
     paulisum2 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0])
     assert str(paulisum2) == '1.000*X(0)*X(1)+1.000*Z(0)'
     paulisum3 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0]) * cirq.Z(q[1])
