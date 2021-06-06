@@ -723,7 +723,7 @@ def test_tagged_act_on():
 
         @property
         def qubits(self):
-            return cirq.LineQubit(1)
+            raise NotImplementedError()
 
     q = cirq.LineQubit(1)
     from cirq.protocols.act_on_protocol_test import DummyActOnArgs

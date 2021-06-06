@@ -11,10 +11,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
+
 import cirq
 from cirq.protocols.act_on_protocol_test import DummyActOnArgs
 
+qubits = cirq.LineQubit.range(1)
 
-def test_act_on_qubits_checks():
-    args = DummyActOnArgs(True)
-    cirq.act_on_qubits(cirq.X, [cirq.LineQubit(0)], args)
+
+def test_act_on_qubits_fallback_succeeds():
+    args = DummyActOnArgs(fallback_result=True)
+    cirq.act_on_qubits(cirq.X, qubits, args)
+
+
+def test_act_on_fallback_fails():
+    args = DummyActOnArgs(fallback_result=NotImplemented)
+    with pytest.raises(TypeError, match='Failed to act'):
+        cirq.act_on_qubits(cirq.X, qubits, args)
+
+
+def test_act_on_fallback_errors():
+    args = DummyActOnArgs(fallback_result=False)
+    with pytest.raises(
+        ValueError, match='_act_on_qubits_fallback_ must return True or NotImplemented'
+    ):
+        cirq.act_on_qubits(cirq.X, qubits, args)
