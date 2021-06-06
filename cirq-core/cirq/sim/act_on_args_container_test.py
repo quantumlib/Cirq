@@ -60,7 +60,7 @@ class TestActOnArgs(cirq.ActOnArgs):
             logs=self.log_of_measurement_results,
         )
 
-    def sample(self, qubits, repetitions=1, seed=None) -> np.ndarray:
+    def sample(self, qubits, repetitions=1, seed=None):
         pass
 
 

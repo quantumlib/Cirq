@@ -44,7 +44,7 @@ class CountingActOnArgs(cirq.ActOnArgs):
         self.gate_count += 1
         return True
 
-    def sample(self, qubits, repetitions=1, seed=None) -> np.ndarray:
+    def sample(self, qubits, repetitions=1, seed=None):
         pass
 
 
@@ -85,17 +85,6 @@ class SplittableCountingActOnArgs(CountingActOnArgs):
         args.gate_count = self.gate_count
         args.measurement_count = self.measurement_count
         return args
-
-    def sample(
-        self,
-        qubits: Sequence[cirq.Qid],
-        repetitions: int = 1,
-        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
-    ) -> np.ndarray:
-        measurements: List[List[int]] = []
-        for _ in range(repetitions):
-            measurements.append(self._perform_measurement())
-        return np.array(measurements, dtype=int)
 
 
 class CountingStepResult(cirq.MultiArgStepResult[CountingActOnArgs, CountingActOnArgs]):
