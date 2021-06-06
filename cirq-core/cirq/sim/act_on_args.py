@@ -160,14 +160,3 @@ def strat_act_on_from_apply_decompose(
     finally:
         args.axes = old_axes
     return True
-
-
-def merge_states(sim_state: Sequence[TSelf]) -> Optional[TSelf]:
-    if len(sim_state) == 0:
-        return None
-    if len(sim_state) == 1:
-        return sim_state[0]
-    final_args = None
-    for args in set(sim_state):
-        final_args = args if final_args is None else cast(TSelf, final_args).join(args)
-    return final_args
