@@ -11,12 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any
+from typing import Any, Tuple
 
 import numpy as np
 import pytest
 
 import cirq
+from cirq.ops.raw_types import TSelf
 
 
 class DummyActOnArgs(cirq.ActOnArgs):
@@ -58,3 +59,22 @@ def test_act_on_fallback_errors():
     args = DummyActOnArgs(fallback_result=False)
     with pytest.raises(ValueError, match='_act_on_fallback_ must return True or NotImplemented'):
         cirq.act_on(op, args)
+
+
+def test_act_on_errors():
+    class Op(cirq.Operation):
+        @property
+        def qubits(self) -> Tuple['cirq.Qid', ...]:
+            pass
+
+        def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
+            pass
+
+        def _act_on_(self, args):
+            return False
+
+    args = DummyActOnArgs(fallback_result=True)
+    with pytest.raises(
+        ValueError, match='_act_on_ must return True or NotImplemented'
+    ):
+        cirq.act_on(Op(), args)
