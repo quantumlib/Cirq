@@ -215,10 +215,8 @@ class SimulatorBase(
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
 
-            step_state = sim_state.create_merged_state()
-            yield self._create_step_result(step_state)
-            step_state.log_of_measurement_results.clear()
-            assert step_state.log_of_measurement_results is sim_state.log_of_measurement_results
+            yield self._create_step_result(sim_state)
+            sim_state.log_of_measurement_results.clear()
 
     def _run(
         self, circuit: circuits.Circuit, param_resolver: study.ParamResolver, repetitions: int
