@@ -91,6 +91,7 @@ TestSpec = ModuleJsonTestSpec(
         'ApplyChannelArgs',
         'ApplyMixtureArgs',
         'ApplyUnitaryArgs',
+        'OperationTarget',
         # Circuit optimizers are function-like. Only attributes
         # are ignore_failures, tolerance, and other feature flags
         'AlignLeft',

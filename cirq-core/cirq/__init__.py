@@ -377,6 +377,7 @@ from cirq.sim import (
     measure_state_vector,
     final_density_matrix,
     final_state_vector,
+    OperationTarget,
     sample,
     sample_density_matrix,
     sample_state_vector,

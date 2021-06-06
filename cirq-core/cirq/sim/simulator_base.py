@@ -34,6 +34,7 @@ import numpy as np
 
 from cirq import circuits, ops, protocols, study, value, devices
 from cirq.sim import ActOnArgsContainer
+from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
     TStepResult,
     TSimulationTrialResult,
@@ -174,7 +175,7 @@ class SimulatorBase(
     def _core_iterator(
         self,
         circuit: circuits.Circuit,
-        sim_state: ActOnArgsContainer[TActOnArgs],
+        sim_state: OperationTarget[TActOnArgs],
         all_measurements_are_terminal: bool = False,
     ) -> Iterator[TStepResult]:
         """Standard iterator over StepResult from Moments of a Circuit.
@@ -276,30 +277,34 @@ class SimulatorBase(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
-    ) -> ActOnArgsContainer[TActOnArgs]:
-        if isinstance(initial_state, ActOnArgsContainer):
+    ) -> OperationTarget[TActOnArgs]:
+        if isinstance(initial_state, OperationTarget):
             return initial_state
 
-        args_map: Dict[Optional['cirq.Qid'], TActOnArgs] = {}
         log: Dict[str, Any] = {}
-        if isinstance(initial_state, int) and self._split_untangled_states:
-            for q in reversed(qubits):
-                args_map[q] = self._create_act_on_arg(
-                    initial_state=initial_state % q.dimension,
-                    qubits=[q],
+        if self._split_untangled_states:
+            args_map: Dict[Optional['cirq.Qid'], TActOnArgs] = {}
+            if isinstance(initial_state, int):
+                for q in reversed(qubits):
+                    args_map[q] = self._create_act_on_arg(
+                        initial_state=initial_state % q.dimension,
+                        qubits=[q],
+                        logs=log,
+                    )
+                    initial_state = int(initial_state / q.dimension)
+            else:
+                args = self._create_act_on_arg(
+                    initial_state=initial_state,
+                    qubits=qubits,
                     logs=log,
                 )
-                initial_state = int(initial_state / q.dimension)
+                for q in qubits:
+                    args_map[q] = args
             args_map[None] = self._create_act_on_arg(0, (), log)
+            return ActOnArgsContainer(args_map, qubits, self._split_untangled_states)
         else:
-            args = self._create_act_on_arg(
+            return self._create_act_on_arg(
                 initial_state=initial_state,
                 qubits=qubits,
                 logs=log,
             )
-            for q in qubits:
-                args_map[q] = args
-            args_map[None] = (
-                args if not self._split_untangled_states else self._create_act_on_arg(0, (), log)
-            )
-        return ActOnArgsContainer(args_map, qubits, self._split_untangled_states)

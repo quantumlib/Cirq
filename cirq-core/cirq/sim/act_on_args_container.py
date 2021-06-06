@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import abc
 from typing import (
     Dict,
     TYPE_CHECKING,
@@ -22,8 +23,8 @@ from typing import (
     Iterator,
 )
 
-from collections import abc
 from cirq import ops, protocols
+from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (
     TActOnArgs,
 )
@@ -34,6 +35,7 @@ if TYPE_CHECKING:
 
 class ActOnArgsContainer(
     Generic[TActOnArgs],
+    OperationTarget[TActOnArgs],
     abc.Mapping,
 ):
     """A container for a `Qid`-to-`ActOnArgs` dictionary."""
@@ -72,21 +74,20 @@ class ActOnArgsContainer(
     ):
         # Go through the op's qubits and join any disparate ActOnArgs states
         # into a new combined state.
-        op_args: Optional[TActOnArgs] = None
+        op_args_opt: Optional[TActOnArgs] = None
         for q in op.qubits:
-            if op_args is None:
-                op_args = self.args[q]
-            elif q not in op_args.qubits:
-                op_args = op_args.join(self.args[q])
-        op_args = op_args or self.args[None]
+            if op_args_opt is None:
+                op_args_opt = self.args[q]
+            elif q not in op_args_opt.qubits:
+                op_args_opt = op_args_opt.join(self.args[q])
+        op_args = op_args_opt or self.args[None]
 
         # (Backfill the args map with the new value)
         for q in op_args.qubits:
             self.args[q] = op_args
 
         # Act on the args with the operation
-        op_args.axes = tuple(op_args.qubit_map[q] for q in op.qubits)
-        protocols.act_on(op, op_args)
+        op_args.apply_operation(op)
 
         # Decouple any measurements or resets
         if self.split_untangled_states and isinstance(

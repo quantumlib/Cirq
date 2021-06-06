@@ -43,6 +43,8 @@ from cirq.sim.density_matrix_simulator import (
     DensityMatrixTrialResult,
 )
 
+from cirq.sim.operation_target import OperationTarget
+
 from cirq.sim.mux import (
     CIRCUIT_LIKE,
     final_density_matrix,

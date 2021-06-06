@@ -18,6 +18,7 @@ from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING, Sequence, 
 import numpy as np
 
 from cirq import protocols
+from cirq.sim.operation_target import OperationTarget
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 
 TSelf = TypeVar('TSelf', bound='ActOnArgs')
@@ -26,7 +27,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-class ActOnArgs:
+class ActOnArgs(OperationTarget[TSelf]):
     """State and context for an operation acting on a state tensor."""
 
     def __init__(
@@ -86,6 +87,15 @@ class ActOnArgs:
     @abc.abstractmethod
     def copy(self: TSelf) -> TSelf:
         """Creates a copy of the object."""
+
+    def create_merged_state(self: TSelf) -> TSelf:
+        """Creates a final merged state."""
+        return self
+
+    def apply_operation(self, op: 'cirq.Operation'):
+        """Applies the operation to the state."""
+        self.axes = tuple(self.qubit_map[q] for q in op.qubits)
+        protocols.act_on(op, self)
 
     def join(self: TSelf, other: TSelf) -> TSelf:
         """Joins two state spaces together."""
