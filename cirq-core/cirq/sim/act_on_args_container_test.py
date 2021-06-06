@@ -13,6 +13,8 @@
 # limitations under the License.
 from typing import List, Dict, Any, Sequence, Tuple, Optional
 
+import numpy as np
+
 import cirq
 
 
@@ -57,6 +59,9 @@ class TestActOnArgs(cirq.ActOnArgs):
             qubits=qubits,
             logs=self.log_of_measurement_results,
         )
+
+    def sample(self, qubits, repetitions=1, seed=None) -> np.ndarray:
+        pass
 
 
 q0, q1 = qs2 = cirq.LineQubit.range(2)

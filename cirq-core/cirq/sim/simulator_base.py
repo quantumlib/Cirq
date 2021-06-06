@@ -33,7 +33,6 @@ from typing import (
 import numpy as np
 
 from cirq import circuits, ops, protocols, study, value, devices
-from cirq.sim import act_on_args
 from cirq.sim import ActOnArgsContainer
 from cirq.sim.operation_target import OperationTarget
 from cirq.sim.simulator import (

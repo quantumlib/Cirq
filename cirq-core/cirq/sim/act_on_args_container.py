@@ -64,7 +64,7 @@ class ActOnArgsContainer(
         self.args = args
         self.qubits = qubits
         self.split_untangled_states = split_untangled_states
-        self._log_of_measurement_results = (
+        self._log_of_measurement_results: Dict[str, Any] = (
             log_of_measurement_results if log_of_measurement_results is None else {}
         )
 
