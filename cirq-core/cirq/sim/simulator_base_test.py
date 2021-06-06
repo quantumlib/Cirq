@@ -270,19 +270,16 @@ def test_integer_initial_state_is_split():
 def test_integer_initial_state_is_not_split_if_disabled():
     sim = SplittableCountingSimulator(split_untangled_states=False)
     args = sim._create_act_on_args(2, (q0, q1))
-    assert len(set(args.values())) == 1
-    assert args[q0].state == 2
-    assert args[q1] is args[q0]
-    assert args[None] is args[q0]
+    assert isinstance(args, SplittableCountingActOnArgs)
+    assert args.state == 2
 
 
 def test_integer_initial_state_is_not_split_if_impossible():
     sim = CountingSimulator()
     args = sim._create_act_on_args(2, (q0, q1))
-    assert len(set(args.values())) == 1
-    assert args[q0].state == 2
-    assert args[q1] is args[q0]
-    assert args[None] is args[q0]
+    assert isinstance(args, CountingActOnArgs)
+    assert not isinstance(args, SplittableCountingActOnArgs)
+    assert args.state == 2
 
 
 def test_non_integer_initial_state_is_not_split():
@@ -317,21 +314,19 @@ def test_measurement_causes_split():
 def test_measurement_does_not_split_if_disabled():
     sim = SplittableCountingSimulator(split_untangled_states=False)
     args = sim._create_act_on_args(2, (q0, q1))
-    assert len(set(args.values())) == 1
+    assert isinstance(args, SplittableCountingActOnArgs)
     args.apply_operation(cirq.measure(q0))
-    assert len(set(args.values())) == 1
-    assert args[q1] is args[q0]
-    assert args[None] is args[q0]
+    assert isinstance(args, SplittableCountingActOnArgs)
 
 
 def test_measurement_does_not_split_if_impossible():
     sim = CountingSimulator()
     args = sim._create_act_on_args(2, (q0, q1))
-    assert len(set(args.values())) == 1
+    assert isinstance(args, CountingActOnArgs)
+    assert not isinstance(args, SplittableCountingActOnArgs)
     args.apply_operation(cirq.measure(q0))
-    assert len(set(args.values())) == 1
-    assert args[q1] is args[q0]
-    assert args[None] is args[q0]
+    assert isinstance(args, CountingActOnArgs)
+    assert not isinstance(args, SplittableCountingActOnArgs)
 
 
 def test_reorder_succeeds():
