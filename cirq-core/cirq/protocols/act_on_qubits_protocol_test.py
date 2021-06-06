@@ -44,7 +44,5 @@ def test_act_on_qubits_errors():
             return False
 
     args = DummyActOnArgs(fallback_result=True)
-    with pytest.raises(
-        ValueError, match='_act_on_qubits_ must return True or NotImplemented'
-    ):
+    with pytest.raises(ValueError, match='_act_on_qubits_ must return True or NotImplemented'):
         cirq.act_on_qubits(Op(), qubits, args)

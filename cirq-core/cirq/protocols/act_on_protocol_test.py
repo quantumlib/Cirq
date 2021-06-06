@@ -74,7 +74,5 @@ def test_act_on_errors():
             return False
 
     args = DummyActOnArgs(fallback_result=True)
-    with pytest.raises(
-        ValueError, match='_act_on_ must return True or NotImplemented'
-    ):
+    with pytest.raises(ValueError, match='_act_on_ must return True or NotImplemented'):
         cirq.act_on(Op(), args)
