@@ -44,6 +44,9 @@ class CountingActOnArgs(cirq.ActOnArgs):
         self.gate_count += 1
         return True
 
+    def sample(self, qubits, repetitions=1, seed=None) -> np.ndarray:
+        pass
+
 
 class SplittableCountingActOnArgs(CountingActOnArgs):
     def join(self, other: 'SplittableCountingActOnArgs') -> 'SplittableCountingActOnArgs':
