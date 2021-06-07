@@ -25,10 +25,10 @@ export class Text {
 
     const labels: Record<string, Vector3> = {
       // explicitly typing so we can access later
-      '|+>': new Vector3(0, 0, 5),
-      '|->': new Vector3(0, 0, -5 - labelHeight),
-      'i|+>': new Vector3(5, 0, -0.1), // z proportional to the height
-      'i|->': new Vector3(-5 - labelSize, 0, -0.1),
+      '|+>': new Vector3(5, 0, -0.1), // z proportional to the height
+      '|->': new Vector3(-5 - labelSize, 0, -0.1),
+      'i|->': new Vector3(0, 0, 5),
+      'i|+>': new Vector3(0, 0, -5 - labelHeight),
       '|0>': new Vector3(0, 5, 0),
       '|1>': new Vector3(0, -5 - labelSize, 0),
     };
@@ -47,6 +47,7 @@ export class Text {
 
       const textMesh = new Mesh(labelGeo, materials);
       textMesh.position.copy(labels[label]);
+      textMesh.rotateY(Math.PI / 2);
       resultLabels.push(textMesh);
     }
 

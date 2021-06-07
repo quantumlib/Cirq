@@ -26,10 +26,18 @@ def to_script_tag(path):
 
 
 def determine_env():
-    """Determines if a Widget is being run in a Jupyter notebook"""
+    """Determines if a Widget is being run in a Jupyter notebook
+    
+    The return types of IPython().get_ipython().__class__.__name__ 
+    we care about are only "ZMQInteractiveShell", and potentially,
+    "google.colab_shell", since those are the only environments that
+    we're supporting at this stage.
+    """
     env = IPython.get_ipython().__class__.__name__
     if env == 'ZMQInteractiveShell':
         return Env.JUPYTER
+    elif env == 'google.colab_shell':
+        return Env.COLAB
     else:
         return Env.OTHER
 
@@ -63,24 +71,5 @@ def resolve_path():
 
 class Widget:
     """Parent class for all widgets.
-    
-    Widget contains standard methods to help print the output to a widget's respective shell.
     """
-
-    def determine_repr_path(self):
-        """Determines the correct path for each widget's 
-        _repr_html() method.
-
-        If running from the command line, this function will 
-        return nothing, since HTML output isn't supported. Use
-        generate_HTML_file() instead. 
-
-        Access files in Jupyter notebook by currently
-        going through localhost:PORT/tree/[directory_path]
-        """
-        env = self.determine_env()
-        if env == Env.JUPYTER:
-            # Jupyter notebook starts out in localhost:PORT/examples directory
-            return '../tree'
-        elif env == Env.OTHER:
-            return None
+    pass

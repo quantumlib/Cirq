@@ -15,7 +15,7 @@ export class CirqBlochSphere {
     this._init();
   }
 
-  public  createSphere() {
+  public createSphere() {
     return this._group;
   }
 

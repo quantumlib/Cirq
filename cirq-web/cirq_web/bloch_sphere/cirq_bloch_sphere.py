@@ -30,8 +30,8 @@ class CirqBlochSphere(widget.Widget):
         """
 
         self.sphere_json = self._convertSphereInput(sphere_radius)
-        bloch_vector = self._createRandomVector() if random else self._createVector(state_vector)
-        self.vector_json = self._serializeVector(*bloch_vector, sphere_radius)
+        self.bloch_vector = self._createRandomVector() if random else self._createVector(state_vector)
+        self.vector_json = self._serializeVector(*self.bloch_vector, sphere_radius)
     
     def _repr_html_(self):
         """Allows the object's html to be easily displayed in a notebook
@@ -99,10 +99,10 @@ class CirqBlochSphere(widget.Widget):
         path_of_html_file = widget.write_output_file(output_directory, file_name, contents)
 
         if open_in_browser:
-            webbrowser.open(path_of_html_file, new=2) # 2 opens in a new tab if possible
+            webbrowser.open(str(path_of_html_file), new=2) # 2 opens in a new tab if possible
 
         return path_of_html_file
-        
+
     def _convertSphereInput(self, radius):
         if radius <= 0:
             raise(BaseException('You must input a positive radius for the sphere'))
@@ -113,10 +113,10 @@ class CirqBlochSphere(widget.Widget):
         return json.dumps(obj)
 
     def _createVector(self, state_vector):
-        try:
-            bloch_vector = bloch_vector_from_state_vector(state_vector, 0)
-        except (ValueError, IndexError):
-            raise (BaseException('Invalid state vector entered'))
+        """Any state_vector input will need to come from cirq.to_valid_state_vector,
+        so we can assume that a valid state_vector will be passed in.
+        """
+        bloch_vector = bloch_vector_from_state_vector(state_vector, 0)
 
         return bloch_vector
 

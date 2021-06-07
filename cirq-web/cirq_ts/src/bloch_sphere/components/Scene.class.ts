@@ -37,12 +37,12 @@ export class BlochSphereScene {
 
   /**
    * Initialization helper function. Also sets the starting
-   * position of the camera. 
+   * position of the camera.
    */
   private init() {
-    this.camera.position.x = 0;
-    this.camera.position.y = 0;
-    this.camera.position.z = 5;
+    this.camera.position.x = 5;
+    this.camera.position.y = 1;
+    this.camera.position.z = 1;
 
     this.setUpControls();
     this.addSceneToHTML();
@@ -63,7 +63,7 @@ export class BlochSphereScene {
   }
 
   /**
-   * Adds the 3D Scene to the HTML. Currently locked onto 
+   * Adds the 3D Scene to the HTML. Currently locked onto
    * the 'container' div.
    */
   private addSceneToHTML() {
@@ -96,7 +96,7 @@ export class BlochSphereScene {
   }
 
   /**
-   * Overloaded method. Adds an object to the 
+   * Overloaded method. Adds an object to the
    * scene.
    * @param object The object to be added to the scene.
    */

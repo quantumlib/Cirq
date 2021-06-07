@@ -22,6 +22,13 @@ import cirq_web
 from cirq.qis import to_valid_state_vector
 from cirq.qis.states import bloch_vector_from_state_vector
 
+def get_bundle_file_path():
+    # Need to call this from the root directory
+    bundle_file_path = f'cirq-web/cirq_ts/dist/bloch_sphere.bundle.js'
+    bundle_script = cirq_web.to_script_tag(bundle_file_path)
+    return bundle_script
+
+
 def test_init_bloch_sphere_type():
     bloch_sphere = cirq_web.CirqBlochSphere()
     assert isinstance(bloch_sphere, cirq_web.CirqBlochSphere)
@@ -55,19 +62,19 @@ def test_valid_bloch_sphere_vector_json(state_vector):
     expected = json.dumps(expected_object)
     assert expected == bloch_sphere.vector_json
 
-
-@pytest.mark.skip(reason="Find good parameters for this")
-def test_invalid_bloch_sphere_vector_json(state_vector):
-    with pytest.raises(ValueError):
-        cirq_web.CirqBlochSphere(state_vector=state_vector)
-
+def test_random_vector():
+    """Checks if we generated a random vector by checking the return type.
+    """
+    bloch_sphere = cirq_web.CirqBlochSphere(random=True)
+    vec = bloch_sphere.bloch_vector
+    did_create_random_vector = isinstance(vec, np.ndarray) and len(vec) == 3
+    assert did_create_random_vector
+    
 def test_repr_html():
     # This tests more of the path rather than the contents.
     # Add more contents later
     bloch_sphere = cirq_web.CirqBlochSphere()
-    # Need to call this from the root directory
-    bundle_file_path = f'cirq-web/cirq_ts/dist/bloch_sphere.bundle.js'
-    bundle_script = cirq_web.to_script_tag(bundle_file_path)
+    bundle_script = get_bundle_file_path()
     expected = f"""
         <div id="container"></div>
         {bundle_script}
@@ -78,16 +85,20 @@ def test_repr_html():
     assert expected == bloch_sphere._repr_html_()
 
 
-def test_generate_HTML_file(tmpdir):
+def test_generate_HTML_file_no_browser(tmpdir):
     path = tmpdir.mkdir('dir')
 
     bloch_sphere = cirq_web.CirqBlochSphere()
-    bundle_file_path = f'cirq-web/cirq_ts/dist/bloch_sphere.bundle.js'
-    bundle_script = cirq_web.to_script_tag(bundle_file_path)
-
+    test_path = bloch_sphere.generate_HTML_file(
+        output_directory=str(path), 
+        file_name='test.html',
+        open_in_browser=True
+    )
+    
     template_div = f"""
         <div id="container"></div>
         """
+    bundle_script = get_bundle_file_path() 
 
     template_script = f"""
         <script>
@@ -95,13 +106,7 @@ def test_generate_HTML_file(tmpdir):
         </script>
         """
 
-    file_name = 'test.html'
-    contents = template_div + bundle_script + template_script
-
-    new_path = cirq_web.write_output_file(str(path), file_name, contents)
-
     expected = template_div + bundle_script + template_script
-    actual = open(str(new_path), 'r').read()
+    actual = open(str(test_path), 'r').read()
 
     assert expected == actual
-

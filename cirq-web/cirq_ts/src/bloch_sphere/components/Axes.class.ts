@@ -8,14 +8,14 @@ export class Axes {
    * Line object to be rendered by the three.js scene.
    */
   public static createAxes(radius: number) {
-    const xAxis = [new Vector3(0, 0, -radius), new Vector3(0, 0, radius)];
-    const yAxis = [new Vector3(-radius, 0, 0), new Vector3(radius, 0, 0)];
+    const xAxis = [new Vector3(-radius, 0, 0), new Vector3(radius, 0, 0)];
+    const yAxis = [new Vector3(0, 0, -radius), new Vector3(0, 0, radius)];
     const zAxis = [new Vector3(0, -radius, 0), new Vector3(0, radius, 0)];
     const colors = {
       xAxis: '#1f51ff', // neon blue
       yAxis: '#ff3131', // neon red
-      zAxis: '#39ff14' // neon green
-    }
+      zAxis: '#39ff14', // neon green
+    };
     const lineWidth = 1.5;
 
     let geometry: BufferGeometry;

@@ -50,7 +50,7 @@ export class Meridians {
   }
 
   /**
-   * Creates equally sized horizontal meridian lines which rotate 
+   * Creates equally sized horizontal meridian lines which rotate
    * by varying degrees across the same axis.
    * @param radius The radius of the overall bloch sphere
    * @returns A list of circles (represented as Line objs) to draw on the scene
@@ -111,7 +111,7 @@ export class Meridians {
   }
 
   /**
-   * Helper function that generates the actual Line object which will be 
+   * Helper function that generates the actual Line object which will be
    * rendered by the three.js scene.
    * @param curve An EllipseCurve object that provides location/size info
    * @param rotationFactor The desired angle of rotation in radians

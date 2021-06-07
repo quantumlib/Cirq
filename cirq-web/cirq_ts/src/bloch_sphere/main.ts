@@ -1,6 +1,6 @@
 import {BlochSphereScene} from './components/Scene.class';
 import {CirqBlochSphere} from './CirqBlochSphere.class';
-import {Vector} from './components/Vector.class'
+import {Vector} from './components/Vector.class';
 
 export function showSphere(circleData: string, vectorData?: string) {
   const inputData = JSON.parse(circleData);
