@@ -23,7 +23,10 @@ from typing import (
     Any,
     Tuple,
     Set,
+    List,
 )
+
+import numpy as np
 
 from cirq import ops
 from cirq.sim.operation_target import OperationTarget
@@ -111,14 +114,11 @@ class ActOnArgsContainer(
 
     def copy(self) -> 'ActOnArgsContainer[TActOnArgs]':
         logs = self.log_of_measurement_results.copy()
-        copies = {a: a.copy() for a in self.values_set()}
+        copies = {a: a.copy() for a in set(self.args.values())}
         for copy in copies.values():
             copy._log_of_measurement_results = logs
         args = {q: copies[a] for q, a in self.args.items()}
         return ActOnArgsContainer(args, self.qubits, self.split_untangled_states, logs)
-
-    def values_set(self) -> Set[TActOnArgs]:
-        return set(self.args.values())
 
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
@@ -127,6 +127,25 @@ class ActOnArgsContainer(
     @property
     def log_of_measurement_results(self) -> Dict[str, Any]:
         return self._log_of_measurement_results
+
+    def sample(
+        self,
+        qubits: List[ops.Qid],
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+    ) -> np.ndarray:
+        columns = []
+        selected_order: List[ops.Qid] = []
+        for v in set(self.args.values()):
+            qs = [q for q in qubits if q in v.qubits]
+            if any(qs):
+                column = v.sample(qs, repetitions, seed)
+                columns.append(column)
+                selected_order += qs
+        stacked = np.column_stack(columns)
+        qubit_map = {q: i for i, q in enumerate(selected_order)}
+        index_order = [qubit_map[q] for q in qubits]
+        return stacked[:, index_order]
 
     def __getitem__(self, item: Optional['cirq.Qid']) -> TActOnArgs:
         return self.args[item]

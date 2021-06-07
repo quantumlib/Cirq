@@ -342,15 +342,4 @@ class MultiArgStepResult(
         repetitions: int = 1,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
     ) -> np.ndarray:
-        columns = []
-        selected_order: List[ops.Qid] = []
-        for v in self._sim_state.values_set():
-            qs = [q for q in qubits if q in v.qubits]
-            if any(qs):
-                column = v.sample(qs, repetitions, seed)
-                columns.append(column)
-                selected_order += qs
-        stacked = np.column_stack(columns)
-        qubit_map = {q: i for i, q in enumerate(selected_order)}
-        index_order = [qubit_map[q] for q in qubits]
-        return stacked[:, index_order]
+        return self._sim_state.sample(qubits, repetitions, seed)
