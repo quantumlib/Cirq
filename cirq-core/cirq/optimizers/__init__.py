@@ -22,6 +22,8 @@ from cirq.optimizers.align_right import (
     AlignRight,
 )
 
+from cirq.optimizers.clifford_decomposition import decompose_clifford_tableau_to_operations
+
 from cirq.optimizers.cphase_to_fsim import (
     compute_cphase_exponents_for_fsim_decomposition,
     decompose_cphase_into_two_fsim,
