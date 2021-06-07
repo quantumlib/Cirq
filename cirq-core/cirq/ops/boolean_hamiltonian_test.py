@@ -14,19 +14,29 @@ import cirq.ops.boolean_hamiltonian as bh
 @pytest.mark.parametrize(
     'boolean_expr,expected_hamiltonian_polynomial',
     [
-        ('x', '0.500*I-0.500*Z(x)'),
-        ('~x', '0.500*I+0.500*Z(x)'),
-        ('x0 ^ x1', '0.500*I-0.500*Z(x0)*Z(x1)'),
-        ('x0 & x1', '0.250*I-0.250*Z(x1)-0.250*Z(x0)+0.250*Z(x0)*Z(x1)'),
-        ('x0 | x1', '0.750*I-0.250*Z(x0)-0.250*Z(x1)-0.250*Z(x0)*Z(x1)'),
-        ('x0 ^ x1 ^ x2', '0.500*I-0.500*Z(x0)*Z(x1)*Z(x2)'),
+        ('x', ['(-0.5+0j)*Z(x)', '(0.5+0j)*I']),
+        ('~x', ['(0.5+0j)*I', '(0.5+0j)*Z(x)']),
+        ('x0 ^ x1', ['(-0.5+0j)*Z(x0)*Z(x1)', '(0.5+0j)*I']),
+        (
+            'x0 & x1',
+            ['(-0.25+0j)*Z(x0)', '(-0.25+0j)*Z(x1)', '(0.25+0j)*I', '(0.25+0j)*Z(x0)*Z(x1)'],
+        ),
+        (
+            'x0 | x1',
+            ['(-0.25+0j)*Z(x0)', '(-0.25+0j)*Z(x0)*Z(x1)', '(-0.25+0j)*Z(x1)', '(0.75+0j)*I'],
+        ),
+        ('x0 ^ x1 ^ x2', ['(-0.5+0j)*Z(x0)*Z(x1)*Z(x2)', '(0.5+0j)*I']),
     ],
 )
 def test_build_hamiltonian_from_boolean(boolean_expr, expected_hamiltonian_polynomial):
     boolean = sympy_parser.parse_expr(boolean_expr)
     qubit_map = {name: cirq.NamedQubit(name) for name in sorted(cirq.parameter_names(boolean))}
     actual = bh._build_hamiltonian_from_boolean(boolean, qubit_map)
-    assert expected_hamiltonian_polynomial == str(actual)
+    # Instead of calling str() directly, first make sure that the items are sorted. This is to make
+    # the unit test more robut in case Sympy would result in a different parsing order. By sorting
+    # the individual items, we would have a canonical representation.
+    actual_items = list(sorted(str(pauli_string) for pauli_string in actual))
+    assert expected_hamiltonian_polynomial == actual_items
 
 
 def test_unsupported_op():
