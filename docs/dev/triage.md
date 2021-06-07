@@ -24,19 +24,19 @@ Our deployed version is here (a static IP, domain request is in progress): [http
 
 The following are the kind of issues that Cirq uses: 
 
-* `kind/bug-report` - the user found a bug 
-* `kind/feature-request` - for new functionality 
-* `kind/question` - in case an issue turns out to be a question, please mark it with kind/question and close it after answering. Also point the user to Quantum Computing Stack Exchange for usage questions and to cirq-dev@googlegroups.com list instead for contribution related questions. 
-* `kind/health` - For CI/testing/release process/refactoring/technical debt items 
-* `kind/docs` - documentation problems, ideas, requests
-* `kind/roadmap-item` - for higher level roadmap items to capture conversations and feedback (not for project tracking)
-* `kind/task` - for tracking progress on larger efforts 
+* `kind/bug-report` the user found a bug 
+* `kind/feature-request` for new functionality 
+* `kind/question` in case an issue turns out to be a question, please mark it with kind/question and close it after answering. Also point the user to Quantum Computing Stack Exchange for usage questions and to cirq-dev@googlegroups.com list instead for contribution related questions. 
+* `kind/health` For CI/testing/release process/refactoring/technical debt items 
+* `kind/docs` documentation problems, ideas, requests
+* `kind/roadmap-item` for higher level roadmap items to capture conversations and feedback (not for project tracking)
+* `kind/task` for tracking progress on larger efforts 
 
 
 For most issues there are phases of 
 
-* **triage** - do we want to take on this task at all -,
-* **prioritization** - how urgent it is -,
+* **triage** do we want to take on this task at all,
+* **prioritization** how urgent it is,
 * identifying feature **area**,
 * signalling **difficulty**,
 * signalling **work**,
@@ -55,7 +55,7 @@ Triage states are
 * `triage/needs-reproduction` - for bugs only
 * `triage/needs-feasibility` - for feature requests (maybe bugs).
 * `triage/needs-more-evidence` - for feature requests - the feature request seems plausible but we need more understanding if it is valuable for enough users to warrant implementing and maintaining it. 
-* `triage/stale` - Github actions marks automatically some of the issues stale and then it closes them in case of 30 days of inactivity.
+* `triage/stale` - Github actions automatically marks some of the issues stale and then it closes them in case of 30 days of inactivity.
 * `triage/duplicate` - we mark duplicated issues with this label.
 
 While these are fairly straightforward and intuitive the workflows are depicted below. 
@@ -76,7 +76,7 @@ Figure 2. Feature request workflow (to edit, see [mermaid source](https://mermai
 
 For `kind/docs`, the label `triage/accepted` has to be added by at least one of the maintainers. 
 
-For `kind/health`, `kind/roadmap-item` and `kind/task` there is no particular in-take workflow, as we assume that only maintainers create them to track specific work items.
+For `kind/health`, `kind/roadmap-item` and `kind/task` there is no particular intake workflow, as we assume that only maintainers create them to track specific work items.
 
 ### Prioritization 
 
@@ -102,23 +102,23 @@ Difficulty is a function of
 
 **Complexity**
 
-* `complexity/low` - involves introducing/modifying less 1-2 concepts, should take 1-2 days max for an advanced contributor
+* `complexity/low` - involves introducing/modifying less than 1-2 concepts, should take 1-2 days max for an advanced contributor
 * `complexity/medium` - involves introducing/modifying 3-5 concepts, takes max up to a month for an advanced contributor
 * `complexity/high` - involves introducing/modifying 6+ concepts, can take more than a month for an advanced contributor to work through it, and/or modifies core concepts in Cirq 
 
 **Skill level required** (skill/<level>)
 
 * `none`: no special background knowledge required
-* `beginner`: little to no background knowledge is required in the given area/* labels
-* `advanced`: requires solid understanding at least one of the areas signalled by the area/* labels
-* `expert`: requires deep insight about one or more area/* labels to design the right abstractions
+* `beginner`: little to no background knowledge is required in the given `area/*` labels
+* `advanced`: requires solid understanding at least one of the areas signalled by the `area/*` labels
+* `expert`: requires deep insight about one or more `area/*` labels to design the right abstractions
 
 ### Signalling work for contributors
 
 * `good first issue`: (`level/beginner` in the areas needed and `complexity/low` to `complexity/medium`) - the issue is relatively small, self contained, doesn't require too much QC knowledge  
 * `good for learning`: (`level/advanced` in the areas needed and `complexity/low`) - the issue is relatively small, self contained, but requires digging into some areas and develop a solid understanding. Should be a bit harder than "good first issues". 
 * `good part time project` - (`level/advanced` and `complexity/medium`) - the issue might take up a couple of months, needs a design and multiple conversations, can require digging deep into a couple of papers. It is still self-contained, doesn't have too much dependencies on the rest of Cirq. 
-* `help wanted` - If a project lead wants help on a certain task or a high priority item needs to be done but there is no one to assign it yet, we should put the `help wanted` label on it.  
+* `help wanted` - If a project lead wants help on a certain task or a high priority item needs to be done but no one is assigned to it yet, we should put the `help wanted` label on it.  
 
 ### Implementation and design
 
@@ -132,10 +132,10 @@ However, when there is a need for design, we add the label `needs agreed design`
 
 Assignment should be a function of 
 
+* **willingness** - contributors should volunteer to take issues or maintainers should take them actively.
 * **priority** - critical issues shouldn't depend on part time work.
 * **complexity** - highly complex, large pieces are not feasible/rewarding part time necessarily.
 * **skills** - if someone does not have the skills for a given issue, they will have to factor in the learning that's required to do it.
-* **willingness** - contributors should volunteer to take issues or maintainers should take them actively.
 
 ### Closing
 
@@ -144,11 +144,9 @@ Issues should be automatically closed by PRs using the `Fixes #XYZD.` phrase in 
 ### Stale issues
 
 
-Bugs and Feature requests in states `triage/needs-reproduction` and `triage/needs-design-work`, i.e. where the author is required to provide more details get an automated comment "*This issue has not received any updates in 30 days*" and then is marked as `triage/stale` after 60 days and are closed. 
-
-Documentation (`kind/docs`) issues **without** `triage/accepted` or `triage/discuss` are subject to 60 days staleness policy as well. 
-
-Roadmap-items and Tasks, and issues in **triage/accepted** or triage/discuss state never get stale automatically, they are subject to review during daily / weekly triage and the twice a year **Bug Smash**.
+- Bugs and Feature requests in states `triage/needs-reproduction` and `triage/needs-design-work`, i.e. where the author is required to provide more details get an automated comment "*This issue has not received any updates in 30 days*" and then is marked as `triage/stale` after 60 days and are closed. 
+- Documentation (`kind/docs`) issues **without** `triage/accepted` or `triage/discuss` are subject to 60 days staleness policy as well. 
+- Roadmap-items and Tasks, and issues in **triage/accepted** or triage/discuss state never get stale automatically, they are subject to review during daily / weekly triage and the twice a year **Bug Smash**.
 
 To summarize, **all issues** are subject to staleness-check, **except** the following:
 
@@ -158,7 +156,7 @@ To summarize, **all issues** are subject to staleness-check, **except** the foll
 * `kind/roadmap-item`
 * `kind/task` 
 
-The staleness check automation is implemented via Github Actions, the latest definition of staleness is defined in https://github.com/quantumlib/Cirq/blob/master/.github/workflows/stale.yml.
+The staleness check automation is implemented via Github Actions, the latest definition of staleness is defined in [our staleness Github Action worklfow](https://github.com/quantumlib/Cirq/blob/master/.github/workflows/stale.yml).
 
 
 ## Processes
@@ -194,7 +192,7 @@ Issues: Daily triage should make sure that each issue has the following labels:
 
 Pull requests: 
 
-* As a triager it is your responsibility review as many PRs as possible during your triage week. 
+* As a triager it is your responsibility to review as many PRs as possible during your triage week. 
 
 ### Weekly discussions
 
