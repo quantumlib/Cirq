@@ -16,7 +16,7 @@ from typing import List, Dict, Any, Sequence, Tuple, Optional
 import cirq
 
 
-class TestActOnArgs(cirq.ActOnArgs):
+class EmptyActOnArgs(cirq.ActOnArgs):
     def __init__(self, qubits, logs):
         super().__init__(
             qubits=qubits,
@@ -26,8 +26,8 @@ class TestActOnArgs(cirq.ActOnArgs):
     def _perform_measurement(self) -> List[int]:
         return []
 
-    def copy(self) -> 'TestActOnArgs':
-        return TestActOnArgs(
+    def copy(self) -> 'EmptyActOnArgs':
+        return EmptyActOnArgs(
             qubits=self.qubits,
             logs=self.log_of_measurement_results.copy(),
         )
@@ -35,25 +35,25 @@ class TestActOnArgs(cirq.ActOnArgs):
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
         return True
 
-    def join(self, other: 'TestActOnArgs') -> 'TestActOnArgs':
-        return TestActOnArgs(
+    def join(self, other: 'EmptyActOnArgs') -> 'EmptyActOnArgs':
+        return EmptyActOnArgs(
             qubits=self.qubits + other.qubits,
             logs=self.log_of_measurement_results,
         )
 
-    def extract(self, qubits: Sequence['cirq.Qid']) -> Tuple['TestActOnArgs', 'TestActOnArgs']:
-        extracted_args = TestActOnArgs(
+    def extract(self, qubits: Sequence['cirq.Qid']) -> Tuple['EmptyActOnArgs', 'EmptyActOnArgs']:
+        extracted_args = EmptyActOnArgs(
             qubits=qubits,
             logs=self.log_of_measurement_results,
         )
-        remainder_args = TestActOnArgs(
+        remainder_args = EmptyActOnArgs(
             qubits=tuple(q for q in self.qubits if q not in qubits),
             logs=self.log_of_measurement_results,
         )
         return extracted_args, remainder_args
 
-    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'TestActOnArgs':
-        return TestActOnArgs(
+    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'EmptyActOnArgs':
+        return EmptyActOnArgs(
             qubits=qubits,
             logs=self.log_of_measurement_results,
         )
@@ -68,18 +68,18 @@ q0, q1 = qs2 = cirq.LineQubit.range(2)
 def create_container(
     qubits: Sequence['cirq.Qid'],
     split_untangled_states=True,
-) -> cirq.ActOnArgsContainer[TestActOnArgs]:
-    args_map: Dict[Optional['cirq.Qid'], TestActOnArgs] = {}
+) -> cirq.ActOnArgsContainer[EmptyActOnArgs]:
+    args_map: Dict[Optional['cirq.Qid'], EmptyActOnArgs] = {}
     log: Dict[str, Any] = {}
     if split_untangled_states:
         for q in reversed(qubits):
-            args_map[q] = TestActOnArgs([q], log)
-        args_map[None] = TestActOnArgs((), log)
+            args_map[q] = EmptyActOnArgs([q], log)
+        args_map[None] = EmptyActOnArgs((), log)
     else:
-        args = TestActOnArgs(qubits, log)
+        args = EmptyActOnArgs(qubits, log)
         for q in qubits:
             args_map[q] = args
-        args_map[None] = args if not split_untangled_states else TestActOnArgs((), log)
+        args_map[None] = args if not split_untangled_states else EmptyActOnArgs((), log)
     return cirq.ActOnArgsContainer(args_map, qubits, split_untangled_states, log)
 
 
