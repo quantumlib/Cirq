@@ -27,6 +27,9 @@ def test_measurements():
         def _perform_measurement(self):
             return [5, 3]
 
+        def sample(self, qubits, repetitions=1, seed=None) -> np.ndarray:
+            pass
+
     args = DummyArgs(axes=[], prng=np.random.RandomState(), log_of_measurement_results={})
     args.measure("test", [1])
     assert args.log_of_measurement_results["test"] == [5]
@@ -38,6 +41,9 @@ def test_decompose():
             pass
 
         def _perform_measurement(self):
+            pass
+
+        def sample(self, qubits, repetitions=1, seed=None) -> np.ndarray:
             pass
 
         def _act_on_fallback_(self, action, allow_decompose):

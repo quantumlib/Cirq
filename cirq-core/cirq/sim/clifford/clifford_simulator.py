@@ -139,9 +139,7 @@ class CliffordTrialResult(simulator.SimulationTrialResult):
 
 
 class CliffordSimulatorStepResult(
-    simulator_base.StepResultBase[
-        'clifford.CliffordState', 'clifford.ActOnStabilizerCHFormArgs'
-    ]
+    simulator_base.StepResultBase['clifford.CliffordState', 'clifford.ActOnStabilizerCHFormArgs']
 ):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 

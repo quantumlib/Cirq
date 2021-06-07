@@ -305,9 +305,7 @@ class SimulatorBase(
             )
 
 
-class StepResultBase(
-    Generic[TSimulatorState, TActOnArgs], StepResult[TSimulatorState], abc.ABC
-):
+class StepResultBase(Generic[TSimulatorState, TActOnArgs], StepResult[TSimulatorState], abc.ABC):
     """A base class for step results."""
 
     def __init__(
