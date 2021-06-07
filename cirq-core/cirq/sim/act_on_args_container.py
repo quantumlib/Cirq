@@ -78,6 +78,26 @@ class ActOnArgsContainer(
         self,
         op: 'cirq.Operation',
     ):
+        gate = op.gate
+        if isinstance(gate, ops.SwapPowGate) and gate.exponent % 2 == 1 and gate.global_shift == 0:
+            q0, q1 = op.qubits
+            args0 = self.args[q0]
+            args1 = self.args[q1]
+            if args0 is args1:
+                args0_new = args0.swap(q0, q1)
+                for q in self.qubits:
+                    if self.args[q] is args0:
+                        self.args[q] = args0_new
+            else:
+                self.args[q0] = args1.rename(q1, q0)
+                self.args[q1] = args0.rename(q0, q1)
+                for q in self.qubits:
+                    if self.args[q] is args0:
+                        self.args[q] = self.args[q1]
+                    if self.args[q] is args1:
+                        self.args[q] = self.args[q0]
+            return
+
         # Go through the op's qubits and join any disparate ActOnArgs states
         # into a new combined state.
         op_args_opt: Optional[TActOnArgs] = None
@@ -97,7 +117,7 @@ class ActOnArgsContainer(
 
         # Decouple any measurements or resets
         if self.split_untangled_states and isinstance(
-            op.gate, (ops.MeasurementGate, ops.ResetChannel)
+            gate, (ops.MeasurementGate, ops.ResetChannel)
         ):
             for q in op.qubits:
                 q_args, op_args = op_args.extract((q,))

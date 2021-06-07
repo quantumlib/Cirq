@@ -13,13 +13,14 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
-from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING, Sequence, Tuple, cast, Set
+import copy
+from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING, Sequence, Tuple, cast
 
 import numpy as np
 
 from cirq import protocols
-from cirq.sim.operation_target import OperationTarget
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
+from cirq.sim.operation_target import OperationTarget
 
 TSelf = TypeVar('TSelf', bound='ActOnArgs')
 
@@ -116,6 +117,34 @@ class ActOnArgs(OperationTarget[TSelf]):
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         return self._qubits
+
+    def swap(self, q1: 'cirq.Qid', q2: 'cirq.Qid'):
+        """Swaps two qubits.
+
+        This only affects the index, and does not modify the underlying
+        state."""
+        if q1.dimension != q2.dimension:
+            raise ValueError('q1 and q2 have different dimensions.')
+        args = copy.copy(self)
+        i1 = self.qubits.index(q1)
+        i2 = self.qubits.index(q2)
+        qubits = list(args.qubits)
+        qubits[i1], qubits[i2] = qubits[i2], qubits[i1]
+        args._qubits = tuple(qubits)
+        args.qubit_map = {q: i for i, q in enumerate(qubits)}
+        return args
+
+    def rename(self, q1: 'cirq.Qid', q2: 'cirq.Qid'):
+        """Renames `q1` to `q2`."""
+        if q1.dimension != q2.dimension:
+            raise ValueError('q1 and q2 have different dimensions.')
+        args = copy.copy(self)
+        i1 = self.qubits.index(q1)
+        qubits = list(args.qubits)
+        qubits[i1] = q2
+        args._qubits = tuple(qubits)
+        args.qubit_map = {q: i for i, q in enumerate(qubits)}
+        return args
 
 
 def strat_act_on_from_apply_decompose(
