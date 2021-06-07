@@ -39,7 +39,7 @@ def test_decomposed_fallback():
         qid_shape=qid_shape,
     )
 
-    cirq.act_on_qubits(Composite(), cirq.LineQubit.range(1), args)
+    cirq.act_on_qubits(Composite(), args, cirq.LineQubit.range(1))
     np.testing.assert_allclose(
         args.target_tensor, cirq.one_hot(index=(1, 1), shape=(2, 2), dtype=np.complex64)
     )
@@ -62,4 +62,4 @@ def test_cannot_act():
         qid_shape=qid_shape,
     )
     with pytest.raises(TypeError, match="Can't simulate operations"):
-        cirq.act_on_qubits(NoDetails(), (), args)
+        cirq.act_on_qubits(NoDetails(), args, qubits=())

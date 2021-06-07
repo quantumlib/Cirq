@@ -30,12 +30,12 @@ def test_cannot_act():
     )
 
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on_qubits(NoDetails(), qubits=(), args=args)
+        cirq.act_on_qubits(NoDetails(), args, qubits=())
 
 
 def test_gate_with_act_on():
     class CustomGate(cirq.SingleQubitGate):
-        def _act_on_qubits_(self, qubits, args):
+        def _act_on_qubits_(self, args, qubits):
             if isinstance(args, cirq.ActOnStabilizerCHFormArgs):
                 qubit = args.qubit_map[qubits[0]]
                 args.state.gamma[qubit] += 1
@@ -49,7 +49,7 @@ def test_gate_with_act_on():
         log_of_measurement_results={},
     )
 
-    cirq.act_on_qubits(CustomGate(), [cirq.LineQubit(1)], args)
+    cirq.act_on_qubits(CustomGate(), args, [cirq.LineQubit(1)])
 
     np.testing.assert_allclose(state.gamma, [0, 1, 0])
 
@@ -70,14 +70,14 @@ def test_unitary_fallback_y():
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on_qubits(UnitaryYGate(), [cirq.LineQubit(1)], args)
+    cirq.act_on_qubits(UnitaryYGate(), args, [cirq.LineQubit(1)])
     expected_args = cirq.ActOnStabilizerCHFormArgs(
         state=original_state.copy(),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on_qubits(cirq.Y, [cirq.LineQubit(1)], expected_args)
+    cirq.act_on_qubits(cirq.Y, expected_args, [cirq.LineQubit(1)])
     np.testing.assert_allclose(args.state.state_vector(), expected_args.state.state_vector())
 
 
@@ -97,14 +97,14 @@ def test_unitary_fallback_h():
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on_qubits(UnitaryHGate(), [cirq.LineQubit(1)], args)
+    cirq.act_on_qubits(UnitaryHGate(), args, [cirq.LineQubit(1)])
     expected_args = cirq.ActOnStabilizerCHFormArgs(
         state=original_state.copy(),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on_qubits(cirq.H, [cirq.LineQubit(1)], expected_args)
+    cirq.act_on_qubits(cirq.H, expected_args, [cirq.LineQubit(1)])
     np.testing.assert_allclose(args.state.state_vector(), expected_args.state.state_vector())
 
 

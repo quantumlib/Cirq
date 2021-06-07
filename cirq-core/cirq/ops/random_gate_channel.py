@@ -119,7 +119,7 @@ class RandomGateChannel(raw_types.Gate):
             result *= float(self.probability)
         return result
 
-    def _act_on_qubits_(self, qubits: Sequence['cirq.Qid'], args: 'cirq.ActOnArgs'):
+    def _act_on_qubits_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq.sim import clifford
 
         if self._is_parameterized_():
@@ -129,7 +129,7 @@ class RandomGateChannel(raw_types.Gate):
                 # Note: because we're doing this probabilistically, it's not
                 # safe to fallback to other strategies if act_on fails. Those
                 # strategies could double-count the probability.
-                protocols.act_on_qubits(self.sub_gate, qubits, args)
+                protocols.act_on_qubits(self.sub_gate, args, qubits)
             return True
         return NotImplemented
 

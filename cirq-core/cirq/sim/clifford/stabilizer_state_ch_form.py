@@ -64,8 +64,8 @@ class StabilizerStateChForm:
             if val:
                 protocols.act_on_qubits(
                     pauli_gates.X,
-                    (qubits[i],),
                     args,
+                    [qubits[i]],
                 )
 
     def _json_dict_(self) -> Dict[str, Any]:

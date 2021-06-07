@@ -21,13 +21,13 @@ qubits = cirq.LineQubit.range(1)
 
 def test_act_on_qubits_fallback_succeeds():
     args = DummyActOnArgs(fallback_result=True)
-    cirq.act_on_qubits(cirq.X, qubits, args)
+    cirq.act_on_qubits(cirq.X, args, qubits)
 
 
 def test_act_on_qubits_fallback_fails():
     args = DummyActOnArgs(fallback_result=NotImplemented)
     with pytest.raises(TypeError, match='Failed to act'):
-        cirq.act_on_qubits(cirq.X, qubits, args)
+        cirq.act_on_qubits(cirq.X, args, qubits)
 
 
 def test_act_on_qubits_fallback_errors():
@@ -35,14 +35,14 @@ def test_act_on_qubits_fallback_errors():
     with pytest.raises(
         ValueError, match='_act_on_qubits_fallback_ must return True or NotImplemented'
     ):
-        cirq.act_on_qubits(cirq.X, qubits, args)
+        cirq.act_on_qubits(cirq.X, args, qubits)
 
 
 def test_act_on_qubits_errors():
     class Op:
-        def _act_on_qubits_(self, qubits, args):
+        def _act_on_qubits_(self, args, qubits):
             return False
 
     args = DummyActOnArgs(fallback_result=True)
     with pytest.raises(ValueError, match='_act_on_qubits_ must return True or NotImplemented'):
-        cirq.act_on_qubits(Op(), qubits, args)
+        cirq.act_on_qubits(Op(), args, qubits)

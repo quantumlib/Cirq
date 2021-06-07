@@ -250,10 +250,10 @@ def test_unsupported_stabilizer_safety():
 
     with pytest.raises(TypeError, match="act_on"):
         for _ in range(100):
-            cirq.act_on_qubits(cirq.X.with_probability(0.5), qubits=(), args=DummyActOnArgs())
+            cirq.act_on_qubits(cirq.X.with_probability(0.5), DummyActOnArgs(), qubits=())
     with pytest.raises(TypeError, match="act_on"):
         cirq.act_on_qubits(
-            cirq.X.with_probability(sympy.Symbol('x')), qubits=(), args=DummyActOnArgs()
+            cirq.X.with_probability(sympy.Symbol('x')), DummyActOnArgs(), qubits=()
         )
 
     q = cirq.LineQubit(0)

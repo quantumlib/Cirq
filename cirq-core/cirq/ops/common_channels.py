@@ -316,13 +316,13 @@ class DepolarizingChannel(gate_features.SupportsOnEachGate, raw_types.Gate):
             return f"depolarize(p={self._p})"
         return f"depolarize(p={self._p},n_qubits={self._n_qubits})"
 
-    def _act_on_qubits_(self, qubits: Sequence['cirq.Qid'], args: 'cirq.ActOnArgs') -> bool:
+    def _act_on_qubits_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']) -> bool:
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
             if args.prng.random() < self._p:
                 gate = args.prng.choice([pauli_gates.X, pauli_gates.Y, pauli_gates.Z])
-                protocols.act_on_qubits(gate, qubits, args)
+                protocols.act_on_qubits(gate, args, qubits)
             return True
         return NotImplemented
 
@@ -720,13 +720,13 @@ class ResetChannel(gate_features.SingleQubitGate):
     def _qid_shape_(self):
         return (self._dimension,)
 
-    def _act_on_qubits_(self, qubits: Sequence['cirq.Qid'], args: 'cirq.ActOnArgs'):
+    def _act_on_qubits_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq import sim, ops
 
         if isinstance(args, sim.ActOnStabilizerCHFormArgs):
             axe = args.qubit_map[qubits[0]]
             if args.state._measure(axe, args.prng):
-                ops.X._act_on_qubits_(qubits, args)
+                ops.X._act_on_qubits_(args, qubits)
             return True
 
         if isinstance(args, sim.ActOnStateVectorArgs):

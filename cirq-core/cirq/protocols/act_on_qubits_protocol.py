@@ -30,7 +30,7 @@ class SupportsActOnQubits(Protocol):
 
     @doc_private
     def _act_on_qubits_(
-        self, qubits: Sequence['cirq.Qid'], args: 'cirq.ActOnArgs'
+        self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']
     ) -> Union[NotImplementedType, bool]:
         """Applies an action to qubits on the given argument, if supported.
 
@@ -43,9 +43,9 @@ class SupportsActOnQubits(Protocol):
         strategies specified by the argument being acted on.
 
         Args:
-            qubits: The sequence of qubits to use when applying the action.
-            args: An object of unspecified type. The method must check if this
+            args: An object of `ActOnArgs` type. The method must check if this
                 object is of a recognized type and act on it if so.
+            qubits: The sequence of qubits to use when applying the action.
 
         Returns:
             True: The receiving object (`self`) acted on the argument.
@@ -57,8 +57,8 @@ class SupportsActOnQubits(Protocol):
 
 def act_on_qubits(
     action: Any,
-    qubits: Sequence['cirq.Qid'],
     args: 'cirq.ActOnArgs',
+    qubits: Sequence['cirq.Qid'],
     *,
     allow_decompose: bool = True,
 ):
@@ -77,10 +77,10 @@ def act_on_qubits(
     Args:
         action: The action to apply to the state tensor. Typically a
             `cirq.Gate`.
-        qubits: The sequence of qubits to use when applying the action.
         args: A mutable state object that should be modified by the action. May
             specify an `_act_on_qubits_fallback_` method to use in case the
             action doesn't recognize it.
+        qubits: The sequence of qubits to use when applying the action.
         allow_decompose: Defaults to True. Forwarded into the
             `_act_on_qubits_fallback_` method of `args`. Determines if
             decomposition should be used or avoided when attempting to act
@@ -96,7 +96,7 @@ def act_on_qubits(
     assert not isinstance(action, ops.Operation), "Use `cirq.act_on` for action type `Operation`"
     action_act_on = getattr(action, '_act_on_qubits_', None)
     if action_act_on is not None:
-        result = action_act_on(qubits, args)
+        result = action_act_on(args, qubits)
         if result is True:
             return
         if result is not NotImplemented:
@@ -107,7 +107,7 @@ def act_on_qubits(
 
     arg_fallback = getattr(args, '_act_on_qubits_fallback_', None)
     if arg_fallback is not None:
-        result = arg_fallback(action, allow_decompose=allow_decompose, qubits=qubits)
+        result = arg_fallback(action, qubits, allow_decompose=allow_decompose)
         if result is True:
             return
         if result is not NotImplemented:
