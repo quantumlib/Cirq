@@ -311,7 +311,7 @@ class MPSState(ActOnArgs):
             prng=self.prng,
             simulation_options=self.simulation_options,
             grouping=self.grouping,
-            log_of_measurement_results=self.log_of_measurement_results,
+            log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
         state.M = [x.copy() for x in self.M]
         state.estimated_gate_error_list = self.estimated_gate_error_list

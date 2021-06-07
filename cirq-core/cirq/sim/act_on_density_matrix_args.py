@@ -108,7 +108,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             axes=self.axes,
             qid_shape=self.qid_shape,
             prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
+            log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
 
     def join(self, other: 'cirq.ActOnDensityMatrixArgs') -> 'cirq.ActOnDensityMatrixArgs':

@@ -108,11 +108,12 @@ class ActOnArgsContainer(
                 self.args[q] = op_args
 
     def copy(self) -> 'ActOnArgsContainer[TActOnArgs]':
+        logs = self.log_of_measurement_results.copy()
         copies = {a: a.copy() for a in self.values_set()}
+        for copy in copies.values():
+            copy._log_of_measurement_results = logs
         args = {q: copies[a] for q, a in self.args.items()}
-        return ActOnArgsContainer(
-            args, self.qubits, self.split_untangled_states, self.log_of_measurement_results
-        )
+        return ActOnArgsContainer(args, self.qubits, self.split_untangled_states, logs)
 
     def values_set(self) -> Set[TActOnArgs]:
         return set(self.args.values())

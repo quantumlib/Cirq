@@ -82,7 +82,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             qubits=self.qubits,
             axes=self.axes,
             prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
+            log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
 
 
