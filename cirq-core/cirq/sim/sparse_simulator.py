@@ -246,7 +246,7 @@ class Simulator(
 class SparseSimulatorStep(
     state_vector.StateVectorMixin,
     state_vector_simulator.StateVectorStepResult,
-    simulator_base.MultiArgStepResult[
+    simulator_base.StepResultBase[
         state_vector_simulator.StateVectorSimulatorState,
         act_on_state_vector_args.ActOnStateVectorArgs,
     ],

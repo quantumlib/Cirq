@@ -90,7 +90,7 @@ class SplittableCountingActOnArgs(CountingActOnArgs):
         return args
 
 
-class CountingStepResult(cirq.MultiArgStepResult[CountingActOnArgs, CountingActOnArgs]):
+class CountingStepResult(cirq.StepResultBase[CountingActOnArgs, CountingActOnArgs]):
     def __init__(
         self,
         sim_state: cirq.OperationTarget[CountingActOnArgs],

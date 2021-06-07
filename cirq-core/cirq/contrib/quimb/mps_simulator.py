@@ -164,7 +164,7 @@ class MPSTrialResult(simulator.SimulationTrialResult):
         return f'measurements: {samples}\noutput state: {final}'
 
 
-class MPSSimulatorStepResult(simulator_base.MultiArgStepResult['MPSState', 'MPSState']):
+class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState']):
     """A `StepResult` that can perform measurements."""
 
     def __init__(

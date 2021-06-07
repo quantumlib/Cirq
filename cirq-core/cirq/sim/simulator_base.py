@@ -305,7 +305,7 @@ class SimulatorBase(
             )
 
 
-class MultiArgStepResult(
+class StepResultBase(
     Generic[TSimulatorState, TActOnArgs], StepResult[TSimulatorState], abc.ABC
 ):
     """A base class for step results."""

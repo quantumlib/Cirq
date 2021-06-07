@@ -229,7 +229,7 @@ class DensityMatrixSimulator(
 
 
 class DensityMatrixStepResult(
-    simulator_base.MultiArgStepResult[
+    simulator_base.StepResultBase[
         'DensityMatrixSimulatorState', act_on_density_matrix_args.ActOnDensityMatrixArgs
     ]
 ):

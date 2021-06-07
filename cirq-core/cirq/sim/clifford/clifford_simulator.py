@@ -139,7 +139,7 @@ class CliffordTrialResult(simulator.SimulationTrialResult):
 
 
 class CliffordSimulatorStepResult(
-    simulator_base.MultiArgStepResult[
+    simulator_base.StepResultBase[
         'clifford.CliffordState', 'clifford.ActOnStabilizerCHFormArgs'
     ]
 ):
