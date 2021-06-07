@@ -90,20 +90,6 @@ class ActOnCliffordTableauArgs(ActOnArgs):
             log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
 
-    def join(self, other: 'ActOnCliffordTableauArgs') -> 'ActOnCliffordTableauArgs':
-        # Unnecessary for now but can be added later if there is a use case.
-        raise NotImplementedError()
-
-    def extract(
-        self, qubits: Sequence['cirq.Qid']
-    ) -> Tuple['ActOnCliffordTableauArgs', 'ActOnCliffordTableauArgs']:
-        # Unnecessary for now but can be added later if there is a use case.
-        raise NotImplementedError()
-
-    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'ActOnCliffordTableauArgs':
-        # Unnecessary for now but can be added later if there is a use case.
-        raise NotImplementedError()
-
     def sample(
         self,
         qubits: Sequence['cirq.Qid'],
