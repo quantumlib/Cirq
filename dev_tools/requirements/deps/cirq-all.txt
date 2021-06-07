@@ -1,0 +1,4 @@
+# captures all the modules, including contrib
+
+-r cirq-all-no-contrib.txt
+-r ../../../cirq-core/cirq/contrib/requirements.txt

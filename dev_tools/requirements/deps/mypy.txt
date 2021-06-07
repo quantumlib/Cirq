@@ -1,0 +1,2 @@
+# the mypy dependency file
+mypy~=0.782.0

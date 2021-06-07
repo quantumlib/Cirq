@@ -270,7 +270,7 @@ def simulate(circuit):
         # TODO: optimize using amplitude amplification algorithm.
         # Github issue: https://github.com/quantumlib/Cirq/issues/2216
         expectation = 1 - 2 * np.mean(result.measurements['m'][result.measurements['a'] == 1])
-        print('{} = {}'.format(label, expectation))
+        print(f'{label} = {expectation}')
 
 
 def main():

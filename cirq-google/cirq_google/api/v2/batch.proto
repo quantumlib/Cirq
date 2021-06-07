@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+import "cirq_google/api/v2/program.proto";
+import "cirq_google/api/v2/result.proto";
+import "cirq_google/api/v2/run_context.proto";
+
+package cirq.google.api.v2;
+
+option java_package = "com.google.cirq.google.api.v2";
+option java_outer_classname = "BatchProto";
+option java_multiple_files = true;
+
+// A Batch of multiple circuits that should be run together
+// as one QuantumProgram within Quantum Engine.
+//
+// Note: Batching is done on a best-effort basis.
+// Circuits will be be bundled together, but the size
+// of the total batch and different hardware constraints may
+// cause the programs to be executed seperately on the hardware.
+message BatchProgram {
+
+  // The circuits that should be bundled together as one program
+  repeated Program programs = 1;
+}
+
+// A batch of contexts for running a bundled batch of programs
+// To be used in conjunction with BatchProgram
+message BatchRunContext {
+
+  // Run contexts for each program in the BatchProgram
+  // Each RunContext should map directly to a Program in the corresponding
+  // BatchProgram.
+  //
+  // This message must have one RunContext for each Program in the
+  // BatchProgram, and the order of the RunContext messages should
+  // match the order of the Programs in the BatchProgram.
+  repeated RunContext run_contexts = 1;
+}
+
+
+// The result returned from running a BatchProgram/BatchRunContext
+message BatchResult {
+
+  // Results returned from executing a BatchProgram/BatchRunContext pair.
+  //
+  // After a BatchProgram and BatchRunContext is successfully run in
+  // Quantum Engine, the expected result if successful will be a BatchResult.
+  //
+  // Each Result in this message will directly correspond to a Program/
+  // RunContext pair in the request.  There will be one Result in this message
+  // for each corresponding pair in the request and the order of the Results
+  // will match the order of the Programs from the request.
+  //
+  // In case of partial results, an empty (default) Result object will be
+  // populated for programs that were not able to be run correctly.
+  repeated Result results = 1;
+}
+

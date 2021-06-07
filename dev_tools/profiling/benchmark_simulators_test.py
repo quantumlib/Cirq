@@ -13,7 +13,6 @@
 # limitations under the License.
 
 """Tests for the simulator benchmarker."""
-
 from dev_tools.profiling import benchmark_simulators
 
 
@@ -47,7 +46,7 @@ def test_main_loop():
 def test_parse_args():
     args = (
         '--sim_type unitary --min_num_qubits 5 --max_num_qubits 10 '
-        '--num_gates 5 --num_repetitions 2'
+        '--num_gates 5 --num_repetitions 2 --run_repetitions 10'
     ).split()
     kwargs = benchmark_simulators.parse_arguments(args)
     assert kwargs == {
@@ -56,4 +55,5 @@ def test_parse_args():
         'max_num_qubits': 10,
         'num_gates': 5,
         'num_repetitions': 2,
+        'run_repetitions': 10,
     }
