@@ -19,10 +19,10 @@ from typing import (
     Generic,
     Sequence,
     Optional,
-    Set,
     Iterator,
     Any,
     Tuple,
+    Set,
 )
 
 from cirq import ops
@@ -47,7 +47,7 @@ class ActOnArgsContainer(
         args: Dict[Optional['cirq.Qid'], TActOnArgs],
         qubits: Sequence['cirq.Qid'],
         split_untangled_states: bool,
-        log_of_measurement_results: Dict[str, Any] = None,
+        log_of_measurement_results: Dict[str, Any],
     ):
         """Initializes the class.
 
@@ -61,13 +61,12 @@ class ActOnArgsContainer(
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into. Edit it easily by calling
                 `ActOnStateVectorArgs.record_measurement_result`.
+                being recorded into.
         """
         self.args = args
         self._qubits = tuple(qubits)
         self.split_untangled_states = split_untangled_states
-        if log_of_measurement_results is None:
-            log_of_measurement_results = {}
-        self._log_of_measurement_results: Dict[str, Any] = log_of_measurement_results
+        self._log_of_measurement_results = log_of_measurement_results
 
     def create_merged_state(self) -> TActOnArgs:
         if not self.split_untangled_states:
@@ -111,11 +110,12 @@ class ActOnArgsContainer(
                 self.args[q] = op_args
 
     def copy(self) -> 'ActOnArgsContainer[TActOnArgs]':
+        logs = self.log_of_measurement_results.copy()
         copies = {a: a.copy() for a in self.values_set()}
+        for copy in copies.values():
+            copy._log_of_measurement_results = logs
         args = {q: copies[a] for q, a in self.args.items()}
-        return ActOnArgsContainer(
-            args, self.qubits, self.split_untangled_states, self.log_of_measurement_results
-        )
+        return ActOnArgsContainer(args, self.qubits, self.split_untangled_states, logs)
 
     def values_set(self) -> Set[TActOnArgs]:
         return set(self.args.values())

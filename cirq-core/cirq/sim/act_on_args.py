@@ -13,19 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
-from typing import (
-    Any,
-    Iterable,
-    Dict,
-    List,
-    TypeVar,
-    TYPE_CHECKING,
-    Sequence,
-    Tuple,
-    cast,
-    Optional,
-    Set,
-)
+from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING, Sequence, Tuple, cast, Set
 
 import numpy as np
 

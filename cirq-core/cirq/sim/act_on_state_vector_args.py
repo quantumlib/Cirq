@@ -179,7 +179,7 @@ class ActOnStateVectorArgs(ActOnArgs):
             qubits=self.qubits,
             axes=self.axes,
             prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
+            log_of_measurement_results=self.log_of_measurement_results.copy(),
         )
 
     def join(self, other: 'cirq.ActOnStateVectorArgs') -> 'cirq.ActOnStateVectorArgs':

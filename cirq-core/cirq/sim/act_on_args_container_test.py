@@ -82,7 +82,7 @@ def create_container(
         for q in qubits:
             args_map[q] = args
         args_map[None] = args if not split_untangled_states else TestActOnArgs((), log)
-    return cirq.ActOnArgsContainer(args_map, qubits, split_untangled_states)
+    return cirq.ActOnArgsContainer(args_map, qubits, split_untangled_states, log)
 
 
 def test_entanglement_causes_join():
