@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Union, Sequence, Tuple
+from typing import Any, Dict, Union
+
 import numpy as np
 
 import cirq
