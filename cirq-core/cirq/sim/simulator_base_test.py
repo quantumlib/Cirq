@@ -45,7 +45,10 @@ class CountingActOnArgs(cirq.ActOnArgs):
         return True
 
     def sample(self, qubits, repetitions=1, seed=None):
-        pass
+        measurements: List[List[int]] = []
+        for _ in range(repetitions):
+            measurements.append(self._perform_measurement())
+        return np.array(measurements, dtype=int)
 
 
 class SplittableCountingActOnArgs(CountingActOnArgs):
@@ -167,7 +170,8 @@ class TestOp(cirq.Operation):
 def test_simulate_empty_circuit():
     sim = CountingSimulator()
     r = sim.simulate(cirq.Circuit())
-    assert r._final_simulator_state is None
+    assert r._final_simulator_state.gate_count == 0
+    assert r._final_simulator_state.measurement_count == 0
 
 
 def test_simulate_one_gate_circuit():
