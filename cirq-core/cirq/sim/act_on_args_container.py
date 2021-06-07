@@ -21,6 +21,8 @@ from typing import (
     Optional,
     Set,
     Iterator,
+    Tuple,
+    Any,
 )
 
 from cirq import ops
@@ -45,6 +47,7 @@ class ActOnArgsContainer(
         args: Dict[Optional['cirq.Qid'], TActOnArgs],
         qubits: Sequence['cirq.Qid'],
         split_untangled_states: bool,
+        log_of_measurement_results: Dict[str, Any],
     ):
         """Initializes the class.
 
@@ -55,10 +58,13 @@ class ActOnArgsContainer(
             split_untangled_states: If True, optimizes operations by running
                 unentangled qubit sets independently and merging those states
                 at the end.
+            log_of_measurement_results: A mutable object that measurements are
+                being recorded into.
         """
         self.args = args
-        self.qubits = qubits
+        self._qubits = tuple(qubits)
         self.split_untangled_states = split_untangled_states
+        self._log_of_measurement_results = log_of_measurement_results
 
     def create_merged_state(self) -> TActOnArgs:
         if not self.split_untangled_states:
@@ -104,10 +110,20 @@ class ActOnArgsContainer(
     def copy(self) -> 'ActOnArgsContainer[TActOnArgs]':
         copies = {a: a.copy() for a in self.values_set()}
         args = {q: copies[a] for q, a in self.args.items()}
-        return ActOnArgsContainer(args, self.qubits, self.split_untangled_states)
+        return ActOnArgsContainer(
+            args, self.qubits, self.split_untangled_states, self.log_of_measurement_results
+        )
 
     def values_set(self) -> Set[TActOnArgs]:
         return set(self.args.values())
+
+    @property
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
+        return self._qubits
+
+    @property
+    def log_of_measurement_results(self) -> Dict[str, Any]:
+        return self._log_of_measurement_results
 
     def __getitem__(self, item: Optional['cirq.Qid']) -> TActOnArgs:
         return self.args[item]

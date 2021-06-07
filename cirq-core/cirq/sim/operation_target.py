@@ -13,7 +13,7 @@
 # limitations under the License.
 """An interface for quantum states as targets for operations."""
 import abc
-from typing import TypeVar, TYPE_CHECKING, Generic
+from typing import TypeVar, TYPE_CHECKING, Generic, Set, Dict, Any, Tuple
 
 if TYPE_CHECKING:
     import cirq
@@ -37,3 +37,17 @@ class OperationTarget(Generic[TActOnArgs]):
     @abc.abstractmethod
     def copy(self: TSelfTarget) -> TSelfTarget:
         """Copies the object."""
+
+    @abc.abstractmethod
+    def values_set(self) -> Set[TActOnArgs]:
+        """Gets the distinct set of values."""
+
+    @property
+    @abc.abstractmethod
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
+        """Gets the qubit order maintained by this target."""
+
+    @property
+    @abc.abstractmethod
+    def log_of_measurement_results(self) -> Dict[str, Any]:
+        """Gets the log of measurement results."""

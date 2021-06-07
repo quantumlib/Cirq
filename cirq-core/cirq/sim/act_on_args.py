@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
-from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING, Sequence, Tuple, cast
+from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING, Sequence, Tuple, cast, Set
 
 import numpy as np
 
@@ -58,11 +58,11 @@ class ActOnArgs(OperationTarget[TSelf]):
             axes = ()
         if log_of_measurement_results is None:
             log_of_measurement_results = {}
-        self.qubits = tuple(qubits)
+        self._qubits = tuple(qubits)
         self.qubit_map = {q: i for i, q in enumerate(self.qubits)}
         self.axes = tuple(axes)
         self.prng = prng
-        self.log_of_measurement_results = log_of_measurement_results
+        self._log_of_measurement_results = log_of_measurement_results
 
     def measure(self, key, invert_mask):
         """Adds a measurement result to the log.
@@ -108,6 +108,17 @@ class ActOnArgs(OperationTarget[TSelf]):
     def reorder(self: TSelf, qubits: Sequence['cirq.Qid']) -> TSelf:
         """Physically reindexes the state by the new basis."""
         raise NotImplementedError()
+
+    def values_set(self: TSelf) -> Set[TSelf]:
+        return set(iter([self]))
+
+    @property
+    def log_of_measurement_results(self) -> Dict[str, Any]:
+        return self._log_of_measurement_results
+
+    @property
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
+        return self._qubits
 
 
 def strat_act_on_from_apply_decompose(

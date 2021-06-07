@@ -37,7 +37,7 @@ class CountingActOnArgs(cirq.ActOnArgs):
 
     def copy(self) -> 'CountingActOnArgs':
         args = copy.copy(self)
-        args.log_of_measurement_results = self.log_of_measurement_results.copy()
+        args._log_of_measurement_results = self.log_of_measurement_results.copy()
         return args
 
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):

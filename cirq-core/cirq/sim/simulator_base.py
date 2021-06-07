@@ -301,7 +301,7 @@ class SimulatorBase(
                 for q in qubits:
                     args_map[q] = args
             args_map[None] = self._create_act_on_arg(0, (), log)
-            return ActOnArgsContainer(args_map, qubits, self._split_untangled_states)
+            return ActOnArgsContainer(args_map, qubits, self._split_untangled_states, log)
         else:
             return self._create_act_on_arg(
                 initial_state=initial_state,
