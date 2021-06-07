@@ -17,7 +17,7 @@ from typing import Callable, cast, List, Optional, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import circuits, devices, optimizers, protocols
+import cirq
 from cirq_google import ops as cg_ops
 from cirq_google.optimizers import (
     convert_to_xmon_gates,
@@ -29,65 +29,64 @@ from cirq_google.optimizers import (
 
 if TYPE_CHECKING:
     import cirq_google
-    import cirq
 
 
-def _get_common_cleanup_optimizers(tolerance: float) -> List[Callable[['cirq.Circuit'], None]]:
+def _get_common_cleanup_optimizers(tolerance: float) -> List[Callable[[cirq.Circuit], None]]:
     return [
-        optimizers.EjectPhasedPaulis(tolerance=tolerance).optimize_circuit,
-        optimizers.EjectZ(tolerance=tolerance).optimize_circuit,
-        optimizers.DropNegligible(tolerance=tolerance).optimize_circuit,
+        cirq.EjectPhasedPaulis(tolerance=tolerance).optimize_circuit,
+        cirq.EjectZ(tolerance=tolerance).optimize_circuit,
+        cirq.DropNegligible(tolerance=tolerance).optimize_circuit,
     ]
 
 
 def _get_xmon_optimizers(
     tolerance: float, tabulation: Optional[GateTabulation]
-) -> List[Callable[['cirq.Circuit'], None]]:
+) -> List[Callable[[cirq.Circuit], None]]:
     if tabulation is not None:
         # coverage: ignore
         raise ValueError("Gate tabulation not supported for xmon")
 
     return [
         convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
-        optimizers.MergeInteractions(tolerance=tolerance, allow_partial_czs=False).optimize_circuit,
-        lambda c: optimizers.merge_single_qubit_gates_into_phxz(c, tolerance),
+        cirq.MergeInteractions(tolerance=tolerance, allow_partial_czs=False).optimize_circuit,
+        lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
         *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
 
 def _get_xmon_optimizers_part_cz(
     tolerance: float, tabulation: Optional[GateTabulation]
-) -> List[Callable[['cirq.Circuit'], None]]:
+) -> List[Callable[[cirq.Circuit], None]]:
     if tabulation is not None:
         # coverage: ignore
         raise ValueError("Gate tabulation not supported for xmon")
     return [
         convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
-        optimizers.MergeInteractions(tolerance=tolerance, allow_partial_czs=True).optimize_circuit,
-        lambda c: optimizers.merge_single_qubit_gates_into_phxz(c, tolerance),
+        cirq.MergeInteractions(tolerance=tolerance, allow_partial_czs=True).optimize_circuit,
+        lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
         *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
 
 def _get_sycamore_optimizers(
     tolerance: float, tabulation: Optional[GateTabulation]
-) -> List[Callable[['cirq.Circuit'], None]]:
+) -> List[Callable[[cirq.Circuit], None]]:
     return [
         ConvertToSycamoreGates(tabulation=tabulation).optimize_circuit,
-        lambda c: optimizers.merge_single_qubit_gates_into_phxz(c, tolerance),
+        lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
         *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
 
 def _get_sqrt_iswap_optimizers(
     tolerance: float, tabulation: Optional[GateTabulation]
-) -> List[Callable[['cirq.Circuit'], None]]:
+) -> List[Callable[[cirq.Circuit], None]]:
     if tabulation is not None:
         # coverage: ignore
         raise ValueError("Gate tabulation not supported for sqrt_iswap")
     return [
         ConvertToSqrtIswapGates().optimize_circuit,
-        lambda c: optimizers.merge_single_qubit_gates_into_phxz(c, tolerance),
+        lambda c: cirq.merge_single_qubit_gates_into_phxz(c, tolerance),
         *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
@@ -107,21 +106,21 @@ def _gate_product_tabulation_cached(
     random_state = np.random.RandomState(51)
     if optimizer_type == 'sycamore':
         return gate_product_tabulation(
-            protocols.unitary(cg_ops.SYC), tabulation_resolution, random_state=random_state
+            cirq.unitary(cg_ops.SYC), tabulation_resolution, random_state=random_state
         )
     else:
         raise NotImplementedError(f"Gate tabulation not supported for {optimizer_type}")
 
 
 def optimized_for_sycamore(
-    circuit: 'cirq.Circuit',
+    circuit: cirq.Circuit,
     *,
     new_device: Optional['cirq_google.XmonDevice'] = None,
-    qubit_map: Callable[['cirq.Qid'], devices.GridQubit] = lambda e: cast(devices.GridQubit, e),
+    qubit_map: Callable[[cirq.Qid], cirq.GridQubit] = lambda e: cast(cirq.GridQubit, e),
     optimizer_type: str = 'sqrt_iswap',
     tolerance: float = 1e-5,
     tabulation_resolution: Optional[float] = None,
-) -> 'cirq.Circuit':
+) -> cirq.Circuit:
     """Optimizes a circuit for Google devices.
 
     Uses a set of optimizers that will compile to the proper gateset for the
@@ -161,8 +160,8 @@ def optimized_for_sycamore(
     for optimizer in opts:
         optimizer(copy)
 
-    return circuits.Circuit(
+    return cirq.Circuit(
         (op.transform_qubits(qubit_map) for op in copy.all_operations()),
-        strategy=circuits.InsertStrategy.EARLIEST,
+        strategy=cirq.InsertStrategy.EARLIEST,
         device=new_device or copy.device,
     )

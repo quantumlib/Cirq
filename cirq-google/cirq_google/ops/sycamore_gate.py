@@ -13,18 +13,13 @@
 # limitations under the License.
 """An instance of FSimGate that works naturally on Google's Sycamore chip"""
 
-from typing import TYPE_CHECKING
-
 import numpy as np
 
-from cirq import ops, protocols
+import cirq
 from cirq._doc import document
 
-if TYPE_CHECKING:
-    import cirq
 
-
-class SycamoreGate(ops.FSimGate):
+class SycamoreGate(cirq.FSimGate):
     """The Sycamore gate is a two-qubit gate equivalent to FSimGate(π/2, π/6).
 
     The unitary of this gate is
@@ -49,11 +44,11 @@ class SycamoreGate(ops.FSimGate):
     def __str__(self) -> str:
         return 'SYC'
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
+    def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs):
         return 'SYC', 'SYC'
 
     def _json_dict_(self):
-        return protocols.obj_to_dict_helper(self, [])
+        return cirq.obj_to_dict_helper(self, [])
 
 
 SYC = SycamoreGate()

@@ -22,17 +22,13 @@ from typing import (
     Optional,
     Tuple,
     Type,
-    TYPE_CHECKING,
     Union,
 )
 
-from cirq import circuits, ops
+import cirq
 from cirq._compat import deprecated, deprecated_parameter
 from cirq_google import op_deserializer, op_serializer, arg_func_langs
 from cirq_google.api import v2
-
-if TYPE_CHECKING:
-    import cirq
 
 
 class SerializableGateSet:
@@ -112,11 +108,11 @@ class SerializableGateSet:
     def supported_gate_types(self) -> Tuple:
         return self.supported_internal_types()
 
-    def is_supported(self, op_tree: 'cirq.OP_TREE') -> bool:
+    def is_supported(self, op_tree: cirq.OP_TREE) -> bool:
         """Whether the given object contains only supported operations."""
-        return all(self.is_supported_operation(op) for op in ops.flatten_to_ops(op_tree))
+        return all(self.is_supported_operation(op) for op in cirq.flatten_to_ops(op_tree))
 
-    def is_supported_operation(self, op: 'cirq.Operation') -> bool:
+    def is_supported_operation(self, op: cirq.Operation) -> bool:
         """Whether or not the given gate can be serialized by this gate set."""
         subcircuit = getattr(op.untagged, 'circuit', None)
         if subcircuit is not None:
@@ -142,7 +138,7 @@ class SerializableGateSet:
     )
     def serialize(
         self,
-        program: 'cirq.Circuit',
+        program: cirq.Circuit,
         msg: Optional[v2.program_pb2.Program] = None,
         *,
         arg_function_language: Optional[str] = None,
@@ -162,7 +158,7 @@ class SerializableGateSet:
         if msg is None:
             msg = v2.program_pb2.Program()
         msg.language.gate_set = self.gate_set_name
-        if isinstance(program, circuits.Circuit):
+        if isinstance(program, cirq.Circuit):
             constants: Optional[List[v2.program_pb2.Constant]] = [] if use_constants else None
             raw_constants: Optional[Dict[Any, int]] = {} if use_constants else None
             self._serialize_circuit(
@@ -185,7 +181,7 @@ class SerializableGateSet:
 
     def serialize_op(
         self,
-        op: 'cirq.Operation',
+        op: cirq.Operation,
         msg: Union[None, v2.program_pb2.Operation, v2.program_pb2.CircuitOperation] = None,
         **kwargs,
     ) -> Union[v2.program_pb2.Operation, v2.program_pb2.CircuitOperation]:
@@ -205,7 +201,7 @@ class SerializableGateSet:
 
     def serialize_gate_op(
         self,
-        op: 'cirq.Operation',
+        op: cirq.Operation,
         msg: Optional[v2.program_pb2.Operation] = None,
         *,
         arg_function_language: Optional[str] = '',
@@ -247,7 +243,7 @@ class SerializableGateSet:
 
     def serialize_circuit_op(
         self,
-        op: 'cirq.Operation',
+        op: cirq.Operation,
         msg: Optional[v2.program_pb2.CircuitOperation] = None,
         *,
         arg_function_language: Optional[str] = '',
@@ -275,8 +271,8 @@ class SerializableGateSet:
                 'CircuitOp serialization requires a constants list and a corresponding '
                 'map of pre-serialization values to indices (raw_constants).'
             )
-        if circuits.FrozenCircuit in self.serializers:
-            serializer = self.serializers[circuits.FrozenCircuit][0]
+        if cirq.FrozenCircuit in self.serializers:
+            serializer = self.serializers[cirq.FrozenCircuit][0]
             if circuit not in raw_constants:
                 subcircuit_msg = v2.program_pb2.Circuit()
                 self._serialize_circuit(
@@ -300,8 +296,8 @@ class SerializableGateSet:
         raise ValueError(f'Cannot serialize CircuitOperation {op!r}')
 
     def deserialize(
-        self, proto: v2.program_pb2.Program, device: Optional['cirq.Device'] = None
-    ) -> 'cirq.Circuit':
+        self, proto: v2.program_pb2.Program, device: Optional[cirq.Device] = None
+    ) -> cirq.Circuit:
         """Deserialize a Circuit from a cirq_google.api.v2.Program.
 
         Args:
@@ -359,7 +355,7 @@ class SerializableGateSet:
             v2.program_pb2.CircuitOperation,
         ],
         **kwargs,
-    ) -> 'cirq.Operation':
+    ) -> cirq.Operation:
         """Disambiguation for operation deserialization."""
         if isinstance(operation_proto, v2.program_pb2.Operation):
             return self.deserialize_gate_op(operation_proto, **kwargs)
@@ -376,7 +372,7 @@ class SerializableGateSet:
         arg_function_language: str = '',
         constants: Optional[List[v2.program_pb2.Constant]] = None,
         deserialized_constants: Optional[List[Any]] = None,
-    ) -> 'cirq.Operation':
+    ) -> cirq.Operation:
         """Deserialize an Operation from a cirq_google.api.v2.Operation.
 
         Args:
@@ -417,7 +413,7 @@ class SerializableGateSet:
         arg_function_language: str = '',
         constants: Optional[List[v2.program_pb2.Constant]] = None,
         deserialized_constants: Optional[List[Any]] = None,
-    ) -> 'cirq.CircuitOperation':
+    ) -> cirq.CircuitOperation:
         """Deserialize a CircuitOperation from a
             cirq.google.api.v2.CircuitOperation.
 
@@ -454,7 +450,7 @@ class SerializableGateSet:
 
     def _serialize_circuit(
         self,
-        circuit: 'cirq.AbstractCircuit',
+        circuit: cirq.AbstractCircuit,
         msg: v2.program_pb2.Circuit,
         *,
         arg_function_language: Optional[str],
@@ -465,7 +461,7 @@ class SerializableGateSet:
         for moment in circuit:
             moment_proto = msg.moments.add()
             for op in moment:
-                if isinstance(op.untagged, circuits.CircuitOperation):
+                if isinstance(op.untagged, cirq.CircuitOperation):
                     op_pb = moment_proto.circuit_operations.add()
                 else:
                     op_pb = moment_proto.operations.add()
@@ -484,7 +480,7 @@ class SerializableGateSet:
         arg_function_language: str,
         constants: List[v2.program_pb2.Constant],
         deserialized_constants: List[Any],
-    ) -> 'cirq.Circuit':
+    ) -> cirq.Circuit:
         moments = []
         for i, moment_proto in enumerate(circuit_proto.moments):
             moment_ops = []
@@ -505,16 +501,16 @@ class SerializableGateSet:
                         f'handling an operation with the '
                         f'following proto:\n{op}'
                     ) from ex
-            moments.append(ops.Moment(moment_ops))
-        return circuits.Circuit(moments)
+            moments.append(cirq.Moment(moment_ops))
+        return cirq.Circuit(moments)
 
     def _deserialize_schedule(
         self,
         schedule_proto: v2.program_pb2.Schedule,
-        device: 'cirq.Device',
+        device: cirq.Device,
         *,
         arg_function_language: str,
-    ) -> 'cirq.Circuit':
+    ) -> cirq.Circuit:
         result = []
         for scheduled_op_proto in schedule_proto.scheduled_operations:
             if not scheduled_op_proto.HasField('operation'):
@@ -524,4 +520,4 @@ class SerializableGateSet:
                     scheduled_op_proto.operation, arg_function_language=arg_function_language
                 )
             )
-        return circuits.Circuit(result, device=device)
+        return cirq.Circuit(result, device=device)

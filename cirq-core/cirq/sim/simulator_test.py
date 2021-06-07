@@ -429,7 +429,7 @@ def test_monte_carlo_on_unknown_channel():
         def num_qubits(self) -> int:
             return 2
 
-        def _channel_(self):
+        def _kraus_(self):
             return [
                 np.eye(4) - cirq.one_hot(index=(3, 3), shape=(4, 4), dtype=np.complex64),
                 cirq.one_hot(index=(0, 3), shape=(4, 4), dtype=np.complex64),

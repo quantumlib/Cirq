@@ -29,6 +29,15 @@ def kraus_to_choi(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
     return c
 
 
+def kraus_to_channel_matrix(kraus_operators: Sequence[np.ndarray]) -> np.ndarray:
+    """Returns the matrix representation of the linear map with given Kraus operators."""
+    d_out, d_in = kraus_operators[0].shape
+    m = np.zeros((d_out * d_out, d_in * d_in), dtype=np.complex128)
+    for k in kraus_operators:
+        m += np.kron(k, k.conj())
+    return m
+
+
 def operation_to_choi(operation: 'protocols.SupportsChannel') -> np.ndarray:
     r"""Returns the unique Choi matrix associated with a superoperator.
 
@@ -49,3 +58,20 @@ def operation_to_choi(operation: 'protocols.SupportsChannel') -> np.ndarray:
         Choi matrix corresponding to operation.
     """
     return kraus_to_choi(protocols.channel(operation))
+
+
+def operation_to_channel_matrix(operation: 'protocols.SupportsChannel') -> np.ndarray:
+    """Returns the matrix representation of a superoperator in standard basis.
+
+    Let E: L(H1) -> L(H2) denote a linear map which takes linear operators on Hilbert space H1
+    to linear operators on Hilbert space H2 and let d1 = dim H1 and d2 = dim H2. Also, let Fij
+    denote an operator whose matrix has one in ith row and jth column and zeros everywhere else.
+    Note that d1-by-d1 operators Fij form a basis of L(H1). Similarly, d2-by-d2 operators Fij
+    form a basis of L(H2). This function returns the matrix of E in these bases.
+
+    Args:
+        operation: Quantum channel.
+    Returns:
+        Matrix representation of operation.
+    """
+    return kraus_to_channel_matrix(protocols.channel(operation))
