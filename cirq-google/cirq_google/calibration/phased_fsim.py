@@ -41,6 +41,7 @@ from cirq.experiments.xeb_fitting import (
 )
 from cirq_google.api import v2
 from cirq_google.engine import Calibration, CalibrationLayer, CalibrationResult, Engine, EngineJob
+from cirq_google.ops import SycamoreGate
 
 if TYPE_CHECKING:
     import cirq_google
@@ -1050,6 +1051,8 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
         If provided gate is equivalent to some PhaseCalibratedFSimGate, returns that gate.
         Otherwise returns None.
     """
+    if isinstance(gate, SycamoreGate):
+        return PhaseCalibratedFSimGate(cirq.FSimGate(phi=np.pi / 6, theta=np.pi / 2), 0.0)
     if isinstance(gate, cirq.FSimGate):
         return PhaseCalibratedFSimGate(gate, 0.0)
     elif isinstance(gate, cirq.ISwapPowGate):

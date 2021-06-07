@@ -908,7 +908,7 @@ def test_try_convert_gate_to_fsim():
     assert try_convert_gate_to_fsim(gate) is None
 
     gate = cirq_google.ops.SYC
-    expected = PhaseCalibratedFSimGate(cirq_google.ops.SYC, 0.0)
+    expected = PhaseCalibratedFSimGate(cirq.FSimGate(phi=np.pi / 6, theta=np.pi / 2), 0.0)
     assert try_convert_gate_to_fsim(gate) == expected
 
     assert try_convert_gate_to_fsim(cirq.CX) is None
