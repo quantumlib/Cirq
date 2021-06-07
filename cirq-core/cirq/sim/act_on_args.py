@@ -109,9 +109,6 @@ class ActOnArgs(OperationTarget[TSelf]):
         """Physically reindexes the state by the new basis."""
         raise NotImplementedError()
 
-    def values_set(self: TSelf) -> Set[TSelf]:
-        return set(iter([self]))
-
     @property
     def log_of_measurement_results(self) -> Dict[str, Any]:
         return self._log_of_measurement_results

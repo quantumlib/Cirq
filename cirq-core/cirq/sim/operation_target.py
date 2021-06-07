@@ -38,10 +38,6 @@ class OperationTarget(Generic[TActOnArgs]):
     def copy(self: TSelfTarget) -> TSelfTarget:
         """Copies the object."""
 
-    @abc.abstractmethod
-    def values_set(self) -> Set[TActOnArgs]:
-        """Gets the distinct set of values."""
-
     @property
     @abc.abstractmethod
     def qubits(self) -> Tuple['cirq.Qid', ...]:
