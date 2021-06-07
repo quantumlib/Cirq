@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List
-
 import numpy as np
 
 import cirq
@@ -30,7 +28,7 @@ def test_measurements():
         def sample(self, qubits, repetitions=1, seed=None) -> np.ndarray:
             pass
 
-    args = DummyArgs(axes=[], prng=np.random.RandomState(), log_of_measurement_results={})
+    args = DummyArgs()
     args.measure("test", [1])
     assert args.log_of_measurement_results["test"] == [5]
 
@@ -56,5 +54,5 @@ def test_decompose():
         def _decompose_(self, qubits):
             yield cirq.X(*qubits)
 
-    args = DummyArgs(axes=[0], prng=np.random.RandomState(), log_of_measurement_results={})
+    args = DummyArgs(axes=[0])
     assert act_on_args.strat_act_on_from_apply_decompose(Composite(), args)
