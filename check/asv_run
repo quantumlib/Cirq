@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs performance benchmark tests using asv
+#
+# Usage:
+#     check/asv_run [--flags for asv run]
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$(git rev-parse --show-toplevel)"
+
+export ASV_PYTHONPATH="$(git rev-parse --show-toplevel)/examples"
+asv run $@

@@ -1,0 +1,300 @@
+syntax = "proto3";
+
+package cirq.google.api.v2;
+
+option java_package = "com.google.cirq.google.api.v2";
+option java_outer_classname = "ProgramProto";
+option java_multiple_files = true;
+
+// A quantum program.
+message Program {
+  // The language in which the program is written.
+  Language language = 1;
+
+  // Programs can be specified by a circuit or a schedule.
+  oneof program {
+    // A circuit is an abstract representation as a series of moments, each
+    // moment having a set of gates that act on disjoint qubits. Circuits don't
+    // have absolute times for their operations (gates acting on qubits).
+    Circuit circuit = 2;
+
+    // Schedules are a list of operations (gates acting on qubits) that specify
+    // absolute start times for the operations.
+    Schedule schedule = 3;
+  }
+
+  // List to store global constants, such as strings used in many places.
+  // constants are referred to their index in this list, starting at zero.
+  repeated Constant constants = 4;
+}
+
+// Constants, such as long strings, that are used throughout the circuit.
+// These constants can be stored here to save space.
+message Constant {
+  oneof const_value {
+    string string_value = 1;
+    Circuit circuit_value = 2;
+  }
+}
+
+
+// The quantum circuit, specified as a series of moments (abstract
+// slices of times with gates acting on disjoint sets of qubits).
+message Circuit {
+  // How the circuit is scheduled.
+  enum SchedulingStrategy {
+    // The scheduling strategy is unspecified.
+    SCHEDULING_STRATEGY_UNSPECIFIED = 0;
+
+    // Each operation in a moment starts at the same time. The start of the
+    // next moment is given by the duration of the longest operation in
+    // the current moment.
+    MOMENT_BY_MOMENT = 1;
+  }
+
+  SchedulingStrategy scheduling_strategy = 1;
+
+  // The moments of the circuit, with the first element corresponding to the
+  // first set of operations to apply, etc.
+  repeated Moment moments = 2;
+}
+
+// A moment is a collection of operations and circuit operations that operate
+// on a disjoint set of qubits. Conceptually, a moment represents operations
+// that all occur in the same finite period of time.
+message Moment {
+  // All of the gate operations in the moment. Each operation and circuit
+  // operation must act on different qubits.
+  repeated Operation operations = 1;
+
+  // All of the circuit operations in the moment. Each operation and circuit
+  // operation must act on different qubits.
+  repeated CircuitOperation circuit_operations = 2;
+}
+
+// The quantum circuit, specified as a series of operations at specific
+// start times.
+message Schedule {
+  // A list of all the operations and their absolute start times.
+  repeated ScheduledOperation scheduled_operations = 3;
+}
+
+// An operation occurring at a specific start time.
+message ScheduledOperation {
+  // Which operation is to be scheduled.
+  Operation operation = 1;
+
+  // The start time of the operation, with zero representing the absolute
+  // start of the circuit.
+  //
+  // This must be consistent with the moment structure and must be positive.
+  int64 start_time_picos = 2;
+}
+
+// The language in which the program is expressed.
+message Language {
+  // The name of the gate set being used.
+  //
+  // Valid names for the gate sets can be found in cirq/google/gate_sets.py.
+  string gate_set = 1;
+
+  // The language supported by ArgFunctions. These specifies what allowed
+  // ArgFunction types there are.
+  //
+  // Valid names for the arg function language can be found in
+  // cirq/google/arg_func_langs.py
+  string arg_function_language = 2;
+}
+
+// An operation acts on a set of qubits.
+message Operation {
+  // Which gate this operation corresponds to.
+  Gate gate = 1;
+
+  // Map from the argument name to the Argument needed to fully specify
+  // the gate.
+  map<string, Arg> args = 2;
+
+  // Which qubits the operation acts on.
+  repeated Qubit qubits = 3;
+
+  // Token that can be used to specify a version of a gate.
+  // For instance, a gate that has been calibrated for a circuit.
+  //
+  // The token can be specified as a string or as a reference to
+  // the constant table of the circuit.
+  oneof token {
+    string token_value = 4;
+    int32 token_constant_index = 5;
+  }
+}
+
+// The instruction identifying the action taken on the quantum computer.
+message Gate {
+  // Name for the Gate.
+  //
+  // These names must match those specified in the gate set.  This is found
+  // in cirq/google/gate_sets.py.
+  string id = 1;
+}
+
+// An identifier for a qubit.
+message Qubit {
+  // Id of the qubit. These depend on the device being scheduled upon.
+  //
+  // Typically ids for qubits on a line are simple string versions of integers,
+  // while for qubits on a square grid these are integers separated by a
+  // underscore, i.e. '0_1', '1_2', etc.
+  string id = 2;
+}
+
+// Arguments needed to specify a gate.
+message Arg {
+  // Arguments are either a number, a symbol, or an argument function
+  // (which recursively depends on Arg).
+  //
+  // ArgValue is used to specify an argument that does not vary
+  // depending on RunContext.
+  //
+  // Symbol is used when an argument will be resolved (supplied a value)
+  // by a Run Context.
+  //
+  // Functions are used to define a simple s-expression tree describing
+  // how to combine numbers and symbols mathematically.
+  //
+  // The argument can also be specified as a lookup in the Constant
+  // table of the Circuit.
+  oneof arg {
+    ArgValue arg_value = 1;
+    string symbol = 2;
+    ArgFunction func = 3;
+    int32 constant_index = 4;
+  }
+}
+
+// Value that can be passed as an argument to a gate.
+message ArgValue {
+  oneof arg_value {
+    float float_value = 1;
+    RepeatedBoolean bool_values = 2;
+    string string_value = 3;
+    double double_value = 4;
+  }
+}
+
+// A repeated boolean value.
+message RepeatedBoolean {
+  repeated bool values = 1;
+}
+
+// A function of arguments. This is an s-expression tree representing
+// mathematically the function being evaluated.
+//
+// What language is supported is specified by the arg_function_language
+// in the language message.
+message ArgFunction {
+  // The name of the function. I.e. if the function is the sum of two symbols,
+  // this could be '+', and the args would be two string symbol values.
+  //
+  // Valid values for the type are given in cirq/google/arg_func_langs.py
+  // and must be consistent with the arg_function_language specified in the
+  // language field of the program.
+  string type = 1;
+
+  // The arguments to the function.
+  repeated Arg args = 2;
+}
+
+// An operation that applies a modified version of a reference circuit. The
+// circuit is stored in the top-level Constants table; the mappings in this
+// object specify how that circuit should be modified for this operation.
+//
+// Multiple CircuitOperations may reference the same base circuit even if their
+// mappings of that circuit are different.
+message CircuitOperation {
+  // The index of the circuit in the top-level constant table.
+  int32 circuit_constant_index = 1;
+
+  // Specifier for repetitions of the circuit, which contains either a number
+  // of repetitions or a list of repetition IDs.
+  RepetitionSpecification repetition_specification = 2;
+
+  // Map from qubits in the "inner" circuit (referenced by
+  // circuit_constant_index) to qubits in the "outer" circuit (the one that
+  // contains this operation).
+  QubitMapping qubit_map = 3;
+
+  // Map of measurement keys in the "inner" circuit (referenced by
+  // circuit_constant_index) to measurement keys in the "outer" circuit (the
+  // one that contains this operation).
+  MeasurementKeyMapping measurement_key_map = 4;
+
+  // Map of args in the "inner" circuit (referenced by circuit_constant_index)
+  // to args in the "outer" circuit (the one that contains this operation).
+  ArgMapping arg_map = 5;
+}
+
+// A description of the repetitions of a subcircuit. IDs are used as suffixes
+// for measurements in the repeated subcircuit; if repetition_count is given
+// instead, the IDs will simply be the integers [0..N-1].
+message RepetitionSpecification {
+  // An ordered list of IDs for a sequence of repetitions.
+  message RepetitionIds {
+    repeated string ids = 1;
+  }
+
+  oneof repetition_value {
+    // A list of unique IDs, one per repetition of the subcircuit.
+    RepetitionIds repetition_ids = 1;
+
+    // An integer number of repetitions to perform.
+    int32 repetition_count = 2;
+  }
+}
+
+// A mapping of qubits from one value to another. All mappings are applied
+// simultaneously and independently; for example, [(a, b), (b, a)] will swap
+// qubits a and b.
+message QubitMapping {
+  // Indicates that qubit "key" should be replaced with "value".
+  message QubitEntry {
+    Qubit key = 1;
+    Qubit value = 2;
+  }
+
+  // A list of qubit mappings to apply.
+  repeated QubitEntry entries = 1;
+}
+
+// A key for matching a measurement event to its results.
+message MeasurementKey {
+  string string_key = 1;
+}
+
+// A mapping of measurement keys from one value to another. All mappings are
+// applied simultaneously and independently; for example, [(a, b), (b, a)] will
+// swap measurement keys a and b.
+message MeasurementKeyMapping {
+  // Indicates that measurement key "key" should be replaced with "value".
+  message MeasurementKeyEntry {
+    MeasurementKey key = 1;
+    MeasurementKey value = 2;
+  }
+
+  // A list of measurement key mappings to apply.
+  repeated MeasurementKeyEntry entries = 1;
+}
+
+// A mapping of args from one value to another. All mappings are applied
+// simultaneously and independently; for example, [(a, b), (b, a)] will swap
+// args a and b.
+message ArgMapping {
+  // Indicates that arg "key" should be replaced with "value".
+  message ArgEntry {
+    Arg key = 1;
+    Arg value = 2;
+  }
+
+  // A list of arg mappings to apply.
+  repeated ArgEntry entries = 1;
+}
