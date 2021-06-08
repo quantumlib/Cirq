@@ -15,7 +15,7 @@
 import os
 from setuptools import find_packages, setup
 
-# This reads the __version__ variable from cirq/_version.py
+# This reads the __version__ variable from cirq_google/_version.py
 __version__ = ''
 exec(open('cirq_google/_version.py').read())
 
