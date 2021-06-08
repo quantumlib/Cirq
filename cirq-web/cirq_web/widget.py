@@ -70,7 +70,7 @@ def write_output_file(output_directory, file_name, contents):
     # Ensure that the user enters a trailing slash
     file_path = Path(output_directory).joinpath(file_name)
 
-    file_to_write_in = open(str(file_path), 'w')
+    file_to_write_in = open(str(file_path), 'w', encoding='utf-8')
     file_to_write_in.write(contents)
     file_to_write_in.close()
 
