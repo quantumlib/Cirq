@@ -2,7 +2,6 @@
 node_modules/
 
 # Extras
-exports.sh
+utils/
 dist/
 build/
-webpack3.config.js
