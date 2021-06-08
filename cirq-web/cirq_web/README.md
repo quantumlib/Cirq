@@ -12,6 +12,16 @@ A good example for the build structure of a module is the Bloch sphere. Referenc
  - Contain a main class that contains the code for the visualization. All supporting files should be imported into this class, and the methods  In the case of the Bloch sphere, this is `cirq_bloch_sphere.py`.
  - Make sure that any additional modules and files are in separate subdirectories labeled accordingly.
 
-### Developing modules
+### Developing Python modules for visualization
+**TODO**
 
+### Calling Javascript from Python
+#### Viewing a visualization in a notebook setting
+**TODO**
+
+#### Generating a standalone HTML file from a visualization
+**TODO**
+
+### Packaging
+**TODO**
  
