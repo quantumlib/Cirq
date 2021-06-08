@@ -13,11 +13,13 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
-from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING, Sequence, Tuple, cast, Set
+import copy
+from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING, Sequence, Tuple, cast
 
 import numpy as np
 
 from cirq import protocols
+from cirq.linalg import transformations as tf
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 from cirq.sim.operation_target import OperationTarget
 
@@ -97,15 +99,48 @@ class ActOnArgs(OperationTarget[TSelf]):
         self.axes = tuple(self.qubit_map[q] for q in op.qubits)
         protocols.act_on(op, self)
 
-    def join(self: TSelf, other: TSelf) -> TSelf:
+    def join(self: TSelf, other: TSelf, *, inplace=False) -> TSelf:
+        args = self if inplace else copy.copy(self)
+        self._join(other, args)
+        args._qubits = self.qubits + other.qubits
+        args.axes = ()
+        return args
+
+    def extract(self, qubits: Sequence['cirq.Qid'], *, inplace=False) -> Tuple[TSelf, TSelf]:
+        extracted = copy.copy(self)
+        remainder = self if inplace else copy.copy(self)
+        self._extract(qubits, extracted, remainder)
+        extracted._qubits = qubits
+        extracted.axes = ()
+        remainder._qubits = tuple(q for q in self.qubits if q not in qubits)
+        remainder.axes = ()
+        return extracted, remainder
+
+    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'cirq.ActOnDensityMatrixArgs':
+        assert len(qubits) == len(self.qubits)
+        axes = [self.qubit_map[q] for q in qubits]
+        axes = axes + [i + len(qubits) for i in axes]
+        new_tensor = np.moveaxis(self.target_tensor, axes, range(len(qubits) * 2))
+        buffer = [np.empty_like(new_tensor) for _ in self.available_buffer]
+        return ActOnDensityMatrixArgs(
+            target_tensor=new_tensor,
+            available_buffer=buffer,
+            qubits=qubits,
+            qid_shape=new_tensor.shape[: int(new_tensor.ndim / 2)],
+            axes=(),
+            prng=self.prng,
+            log_of_measurement_results=self.log_of_measurement_results,
+        )
+
+    def _join(self: TSelf, other: TSelf, target: TSelf):
         """Joins two state spaces together."""
         raise NotImplementedError()
 
-    def extract(self: TSelf, qubits: Sequence['cirq.Qid']) -> Tuple[TSelf, TSelf]:
+    def _extract(self: TSelf, qubits: Sequence['cirq.Qid'], extracted: TSelf, remainder: TSelf):
         """Splits two state spaces after a measurement or reset."""
         raise NotImplementedError()
 
-    def reorder(self: TSelf, qubits: Sequence['cirq.Qid']) -> TSelf:
+    def _reorder(self: TSelf, qubits: Sequence['cirq.Qid']) -> TSelf:
         """Physically reindexes the state by the new basis."""
         raise NotImplementedError()
 
