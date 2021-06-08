@@ -52,7 +52,7 @@ export class Meridians {
   /**
    * Creates equally sized horizontal meridian lines which rotate
    * by varying degrees across the same axis.
-   * @param radius The radius of the overall bloch sphere
+   * @param radius The radius of the overall Bloch sphere
    * @returns A list of circles (represented as Line objs) to draw on the scene
    */
   public static createHorizontalCircleMeridians(radius: number): Line[] {
