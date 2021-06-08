@@ -22,7 +22,7 @@ from time import time
 import numpy as np
 from matplotlib import pyplot as plt
 
-from cirq import FSimGate, unitary
+import cirq
 from cirq_google.optimizers.two_qubit_gates.gate_compilation import gate_product_tabulation
 from cirq_google.optimizers.two_qubit_gates.math_utils import unitary_entanglement_fidelity
 from cirq.testing import random_special_unitary
@@ -40,7 +40,7 @@ def main(samples: int = 1000, max_infidelity: float = 0.01):
     # Define a base gate for compilation
     theta = np.pi / 4
     phi = np.pi / 24
-    base = unitary(FSimGate(theta, phi))
+    base = cirq.unitary(cirq.FSimGate(theta, phi))
 
     # The GateTabulation object is essentially a tabulation of many randomly
     # generated gate products (of the form A k A or A k A k A), along with their

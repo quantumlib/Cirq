@@ -1,13 +1,50 @@
+####################
+# cirq maintainers
+####################
+
 * @quantumlib/cirq-maintainers @vtomole @cduck
 
-**/google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @cduck
+####################
+# vendor maintainers
+####################
 
-**/ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @quantumlib/cirq-maintainers @vtomole @cduck
+cirq-google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @cduck
 
-**/aqt/**/*.* @ma5x @pschindler @alfrisch @quantumlib/cirq-maintainers @vtomole @cduck
+cirq-core/cirq/ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @quantumlib/cirq-maintainers @vtomole @cduck
 
-**/pasqal/**/*.* @HGSilveri @quantumlib/cirq-maintainers @vtomole @cduck
+cirq-core/cirq/aqt/**/*.* @ma5x @pschindler @alfrisch @quantumlib/cirq-maintainers @vtomole @cduck
 
-cirq/experiments/**/*.* @mrwojtek @quantumlib/cirq-maintainers @vtomole @cduck
-cirq/docs/**/*.* @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
-cirq/docs/qcvv/**/*.* @mrwojtek @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
+cirq-core/cirq/pasqal/**/*.* @HGSilveri @quantumlib/cirq-maintainers @vtomole @cduck
+
+################################################
+# qcvv maintainers @mrwojtek + cirq maintainers
+################################################
+
+cirq-core/cirq/experiments/**/*.* @mrwojtek @quantumlib/cirq-maintainers @vtomole @cduck
+
+###########################################
+# docs maintainers: maintainers + @rmlarose
+###########################################
+
+docs/**/*.* @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
+
+##########################################################
+# vendor docs maintainers: vendor maintainers + @rmlarose
+############################################################
+
+docs/google/**/*.* @wcourtney @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
+docs/tutorials/google/**/*.* @wcourtney @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
+
+docs/ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
+docs/tutorials/ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
+
+docs/aqt/**/*.* @ma5x @pschindler @alfrisch @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
+docs/tutorials/aqt/**/*.* @ma5x @pschindler @alfrisch @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
+
+docs/pasqal/**/*.* @HGSilveri @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
+docs/tutorials/pasqal/**/*.* @HGSilveri @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
+
+#####################################################
+# qcvv docs maintainers: docs maintainers + mrwojtek
+#####################################################
+docs/qcvv/**/*.* @mrwojtek @rmlarose @quantumlib/cirq-maintainers @vtomole @cduck
