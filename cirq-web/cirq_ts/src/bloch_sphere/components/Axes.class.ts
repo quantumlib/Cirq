@@ -17,30 +17,21 @@ export class Axes {
       zAxis: '#39ff14', // neon green
     };
     const lineWidth = 1.5;
-
-    let geometry: BufferGeometry;
-    geometry = new BufferGeometry().setFromPoints(xAxis);
-    const blueLine = new Line(
-      geometry,
-      new LineBasicMaterial({color: colors.xAxis, linewidth: lineWidth})
-    );
-
-    geometry = new BufferGeometry().setFromPoints(yAxis);
-    const redLine = new Line(
-      geometry,
-      new LineBasicMaterial({color: colors.yAxis, linewidth: lineWidth})
-    );
-
-    geometry = new BufferGeometry().setFromPoints(zAxis);
-    const greenLine = new Line(
-      geometry,
-      new LineBasicMaterial({color: colors.zAxis, linewidth: lineWidth})
-    );
-
+    const blueLine = Axes._createLine(xAxis, colors.xAxis, lineWidth);
+    const redLine = Axes._createLine(yAxis, colors.yAxis, lineWidth);
+    const greenLine = Axes._createLine(zAxis, colors.zAxis, lineWidth);
     return {
       x: blueLine,
       y: redLine,
       z: greenLine,
     };
+  }
+
+  private static _createLine(endpoints: Array<Vector3>, color: string, lineWidth: number) {
+    let geometry : BufferGeometry = new BufferGeometry().setFromPoints(endpoints);
+    return new Line(
+      geometry,
+      new LineBasicMaterial({color: color, linewidth: lineWidth})
+    );
   }
 }

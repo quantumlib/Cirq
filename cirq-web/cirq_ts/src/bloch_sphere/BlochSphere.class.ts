@@ -5,12 +5,17 @@ import {Text} from './components/Text.class';
 
 import {Group} from 'three';
 
-export class CirqBlochSphere {
-  RADIUS: number;
+/**
+ * Class bringinging together the individual components like the
+ * Sphere, Axes, Meridicans, and Text into the overall visualization
+ * of the Bloch sphere.
+ */
+export class BlochSphere {
+  private radius: number;
   private _group: Group;
 
   constructor(radius: number) {
-    this.RADIUS = radius;
+    this.radius = radius;
     this._group = new Group();
     this._add3dSphere();
     this._addHorizontalMeridians();
@@ -20,31 +25,37 @@ export class CirqBlochSphere {
     this._loadAndDisplayText();
   }
 
-  public createSphere() {
+  /**
+   * Returns the the group of three.js components that 
+   * make up the Bloch sphere. 
+   * @returns A Group object of all the added components of the
+   * sphere.
+   */
+  public createBlochSphere() : Group {
     return this._group;
   }
 
   private _add3dSphere() {
-    const sphere = Sphere.createSphere(this.RADIUS);
+    const sphere = Sphere.createSphere(this.radius);
     this._group.add(sphere);
   }
 
   private _addAxes() {
-    const axes = Axes.createAxes(this.RADIUS);
+    const axes = Axes.createAxes(this.radius);
     this._group.add(axes.x);
     this._group.add(axes.y);
     this._group.add(axes.z);
   }
 
   private _addHorizontalMeridians() {
-    const meridians = Meridians.createHorizontalChordMeridians(this.RADIUS);
+    const meridians = Meridians.createHorizontalChordMeridians(this.radius);
     for (const meridian of meridians) {
       this._group.add(meridian);
     }
   }
 
   private _addVerticalMeridians() {
-    const meridians = Meridians.createVerticalMeridians(this.RADIUS);
+    const meridians = Meridians.createVerticalMeridians(this.radius);
     for (const meridian of meridians) {
       this._group.add(meridian);
     }

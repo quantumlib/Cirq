@@ -30,7 +30,7 @@ class BlochSphere(widget.Widget):
         state_vector=to_valid_state_vector([math.sqrt(2) / 2, math.sqrt(2) / 2]),
         random=False,
     ):
-        """Initializes a CirqBlochSphere, gathering all the user information and
+        """Initializes a BlochSphere, gathering all the user information and
         converting to JSON for output
 
         Args:
