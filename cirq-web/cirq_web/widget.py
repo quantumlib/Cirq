@@ -31,7 +31,7 @@ def to_script_tag(path):
         path: the path to the bundle file
     """
     bundle_file_path = path
-    bundle_file = open(bundle_file_path, 'r')
+    bundle_file = open(bundle_file_path, 'r', encoding='utf-8')
     bundle_file_contents = bundle_file.read()
     bundle_file.close()
     bundle_html = f'<script>{bundle_file_contents}</script>'
