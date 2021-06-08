@@ -8,11 +8,15 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "noEmit": true,
     //"rootDir": ".",
     //"outDir": "build"
   },
   "include": [
     "src/**/*.ts",
     "test/**/*.ts"
-  ]
+  ],
+  "exclude": [
+    "./test",
+  ],
 }
