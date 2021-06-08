@@ -881,6 +881,10 @@ def test_try_convert_gate_to_fsim():
     fsim = cirq.FSimGate(theta=0.3, phi=0.5)
     assert try_convert_gate_to_fsim(fsim) == PhaseCalibratedFSimGate(fsim, 0.0)
 
+    gate = cirq.FSimGate(7 * np.pi / 4, 0.0)
+    expected = PhaseCalibratedFSimGate(cirq.FSimGate(np.pi / 4, 0.0), 0.5)
+    assert try_convert_gate_to_fsim(gate) == expected
+
     gate = cirq.ISwapPowGate(exponent=-0.5)
     expected = PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.25 * np.pi, phi=0.0), 0.0)
     assert try_convert_gate_to_fsim(gate) == expected

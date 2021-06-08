@@ -41,6 +41,7 @@ from cirq_google.calibration.phased_fsim import (
     THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     merge_matching_results,
     try_convert_gate_to_fsim,
+    try_convert_sqrt_iswap_to_fsim,
     PhasedFSimCalibrationOptions,
     RequestT,
     LocalXEBPhasedFSimCalibrationRequest,
@@ -72,7 +73,7 @@ def prepare_characterization_for_moment(
     *,
     gates_translator: Callable[
         [cirq.Gate], Optional[PhaseCalibratedFSimGate]
-    ] = try_convert_gate_to_fsim,
+    ] = try_convert_sqrt_iswap_to_fsim,
     canonicalize_pairs: bool = False,
     sort_pairs: bool = False,
 ) -> Optional[RequestT]:
@@ -113,7 +114,7 @@ def prepare_floquet_characterization_for_moment(
     options: FloquetPhasedFSimCalibrationOptions,
     gates_translator: Callable[
         [cirq.Gate], Optional[PhaseCalibratedFSimGate]
-    ] = try_convert_gate_to_fsim,
+    ] = try_convert_sqrt_iswap_to_fsim,
     canonicalize_pairs: bool = False,
     sort_pairs: bool = False,
 ) -> Optional[FloquetPhasedFSimCalibrationRequest]:
@@ -220,7 +221,7 @@ def prepare_characterization_for_moments(
     *,
     gates_translator: Callable[
         [cirq.Gate], Optional[PhaseCalibratedFSimGate]
-    ] = try_convert_gate_to_fsim,
+    ] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
     initial: Optional[Sequence[RequestT]] = None,
 ) -> Tuple[CircuitWithCalibration, List[RequestT]]:
@@ -294,7 +295,7 @@ def prepare_characterization_for_circuits_moments(
     *,
     gates_translator: Callable[
         [cirq.Gate], Optional[PhaseCalibratedFSimGate]
-    ] = try_convert_gate_to_fsim,
+    ] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
     initial: Optional[Sequence[RequestT]] = None,
 ) -> Tuple[List[CircuitWithCalibration], List[RequestT]]:
@@ -355,7 +356,7 @@ def prepare_floquet_characterization_for_moments(
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     gates_translator: Callable[
         [cirq.Gate], Optional[PhaseCalibratedFSimGate]
-    ] = try_convert_gate_to_fsim,
+    ] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
     initial: Optional[Sequence[FloquetPhasedFSimCalibrationRequest]] = None,
 ) -> Tuple[CircuitWithCalibration, List[FloquetPhasedFSimCalibrationRequest]]:
@@ -415,7 +416,7 @@ def prepare_characterization_for_operations(
     *,
     gates_translator: Callable[
         [cirq.Gate], Optional[PhaseCalibratedFSimGate]
-    ] = try_convert_gate_to_fsim,
+    ] = try_convert_sqrt_iswap_to_fsim,
     permit_mixed_moments: bool = False,
 ) -> List[RequestT]:
     """Extracts a minimal set of characterization requests necessary to characterize all the
@@ -480,7 +481,7 @@ def prepare_floquet_characterization_for_operations(
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     gates_translator: Callable[
         [cirq.Gate], Optional[PhaseCalibratedFSimGate]
-    ] = try_convert_gate_to_fsim,
+    ] = try_convert_sqrt_iswap_to_fsim,
     permit_mixed_moments: bool = False,
 ) -> List[FloquetPhasedFSimCalibrationRequest]:
     """Extracts a minimal set of Floquet characterization requests necessary to characterize all the
@@ -885,7 +886,6 @@ def _make_zeta_chi_gamma_compensation(
     gates_translator: Callable[[cirq.Gate], Optional[PhaseCalibratedFSimGate]],
     permit_mixed_moments: bool,
 ) -> CircuitWithCalibration:
-
     if permit_mixed_moments:
         raise NotImplementedError('Mixed moments compensation ist supported yet')
 
@@ -925,6 +925,14 @@ def _make_zeta_chi_gamma_compensation(
 
             if parameters is None:
                 raise ValueError(f'Missing characterization data for moment {moment}')
+
+            """
+            if translated.engine_gate != parameters.gate:
+                raise ValueError(
+                    f"Engine gate {translated.engine_gate} doesn't match characterized gate "
+                    f'{parameters.gate}'
+                )
+            """
 
             pair_parameters = parameters.get_parameters(a, b)
             if pair_parameters is None:
@@ -1009,7 +1017,7 @@ def run_floquet_characterization_for_moments(
     options: FloquetPhasedFSimCalibrationOptions = WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     gates_translator: Callable[
         [cirq.Gate], Optional[PhaseCalibratedFSimGate]
-    ] = try_convert_gate_to_fsim,
+    ] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,
@@ -1075,7 +1083,7 @@ def run_zeta_chi_gamma_compensation_for_moments(
     ),
     gates_translator: Callable[
         [cirq.Gate], Optional[PhaseCalibratedFSimGate]
-    ] = try_convert_gate_to_fsim,
+    ] = try_convert_sqrt_iswap_to_fsim,
     merge_subsets: bool = True,
     max_layers_per_request: int = 1,
     progress_func: Optional[Callable[[int, int], None]] = None,

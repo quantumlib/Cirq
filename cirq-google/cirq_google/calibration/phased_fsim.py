@@ -1051,25 +1051,36 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
         If provided gate is equivalent to some PhaseCalibratedFSimGate, returns that gate.
         Otherwise returns None.
     """
+    phi = 0.0
+    theta = 0.0
+    p = 0.0
     if isinstance(gate, SycamoreGate):
-        return PhaseCalibratedFSimGate(cirq.FSimGate(phi=np.pi / 6, theta=np.pi / 2), 0.0)
-    if isinstance(gate, cirq.FSimGate):
-        return PhaseCalibratedFSimGate(gate, 0.0)
+        phi = np.pi / 6
+        theta = np.pi / 2
+    elif isinstance(gate, cirq.FSimGate):
+        theta = gate.theta
+        phi = gate.phi
     elif isinstance(gate, cirq.ISwapPowGate):
-        fsim = cirq.FSimGate(phi=0.0, theta=-gate.exponent * np.pi / 2)
-        return PhaseCalibratedFSimGate(fsim, 0.0)
+        theta = -gate.exponent * np.pi / 2
     elif isinstance(gate, cirq.PhasedFSimGate):
         if not np.isclose(gate.zeta, 0.0) or not np.isclose(gate.gamma, 0.0):
             return None
-        fsim = cirq.FSimGate(theta=gate.theta, phi=gate.phi)
-        return PhaseCalibratedFSimGate(fsim, -gate.chi / (2 * np.pi))
+        theta = gate.theta
+        phi = gate.phi
+        p = -gate.chi / (2 * np.pi)
     elif isinstance(gate, cirq.PhasedISwapPowGate):
-        fsim = cirq.FSimGate(phi=0.0, theta=-gate.exponent * np.pi / 2)
-        return PhaseCalibratedFSimGate(fsim, -gate.phase_exponent)
+        theta = -gate.exponent * np.pi / 2
+        p = -gate.phase_exponent
     elif isinstance(gate, cirq.ops.CZPowGate):
         if not np.isclose(gate.global_shift % (2 * np.pi), 0.0):
             return None
-        fsim = cirq.FSimGate(theta=0.0, phi=(-np.pi * gate.exponent) % (2 * np.pi))
-        return PhaseCalibratedFSimGate(fsim, 0.0)
+        phi = (-np.pi * gate.exponent) % (2 * np.pi)
     else:
         return None
+
+    phi = phi % (2 * np.pi)
+    theta = theta % (2 * np.pi)
+    if theta >= np.pi:
+        theta = 2 * np.pi - theta
+        p = p + 0.5
+    return PhaseCalibratedFSimGate(cirq.FSimGate(theta=theta, phi=phi), p)

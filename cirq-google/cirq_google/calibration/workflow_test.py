@@ -1385,7 +1385,7 @@ def test_make_zeta_chi_gamma_compensation_for_moments() -> None:
     circuit = cirq.Circuit(
         [
             [cirq.X(a), cirq.Y(c)],
-            [cirq_google.SycamoreGate().on(a, b), cirq.CZ.on(c, d)],
+            [cirq_google.SYC.on(a, b), cirq_google.SYC.on(c, d)],
             [SQRT_ISWAP_INV_GATE.on(b, c)],
         ]
     )
@@ -1401,7 +1401,7 @@ def test_make_zeta_chi_gamma_compensation_for_moments() -> None:
     circuit_with_calibration = workflow.CircuitWithCalibration(circuit, [None, 0, 1])
     characterizations = [
         cirq_google.PhasedFSimCalibrationResult(
-            gate=SQRT_ISWAP_INV_GATE,
+            gate=cirq_google.SYC,
             parameters={(a, b): parameters_ab, (c, d): parameters_cd},
             options=options,
         ),
