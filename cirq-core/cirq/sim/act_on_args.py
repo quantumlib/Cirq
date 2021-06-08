@@ -18,8 +18,8 @@ from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING, Sequence, 
 import numpy as np
 
 from cirq import protocols
-from cirq.sim.operation_target import OperationTarget
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
+from cirq.sim.operation_target import OperationTarget
 
 TSelf = TypeVar('TSelf', bound='ActOnArgs')
 
