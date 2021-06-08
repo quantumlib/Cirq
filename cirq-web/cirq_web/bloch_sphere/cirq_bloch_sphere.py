@@ -23,7 +23,7 @@ from cirq.qis import to_valid_state_vector
 from cirq.qis.states import bloch_vector_from_state_vector
 
 
-class CirqBlochSphere(widget.Widget):
+class BlochSphere(widget.Widget):
     def __init__(
         self,
         sphere_radius=5,
