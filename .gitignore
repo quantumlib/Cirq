@@ -49,12 +49,3 @@ docs/api_docs
 
 # notebook test output
 out
-
-# Ignore node modules
-node_modules/
-
-# Extras
-exports.sh
-dist/
-build/
-webpack3.config.js
