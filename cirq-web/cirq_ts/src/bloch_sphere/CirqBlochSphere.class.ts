@@ -12,20 +12,16 @@ export class CirqBlochSphere {
   constructor(radius: number) {
     this.RADIUS = radius;
     this._group = new Group();
-    this._init();
-  }
-
-  public createSphere() {
-    return this._group;
-  }
-
-  private _init() {
     this._add3dSphere();
     this._addHorizontalMeridians();
     this._addVerticalMeridians();
     this._addAxes();
     this._addAxes();
     this._loadAndDisplayText();
+  }
+
+  public createSphere() {
+    return this._group;
   }
 
   private _add3dSphere() {
