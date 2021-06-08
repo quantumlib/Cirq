@@ -12,7 +12,7 @@ export class Meridians {
   };
 
   /**
-   * Creates the special horizontal meridian lines of the bloch
+   * Creates the special horizontal meridian lines of the Bloch
    * sphere, each with a different radius and location.
    * @param radius The radius of the overall bloch sphere
    * @returns A list of circles (reprsented as Line objs) to draw on the scene
