@@ -109,6 +109,6 @@ def test_generate_HTML_file_no_browser(tmpdir):
         """
 
     expected = template_div + bundle_script + template_script
-    actual = open(str(test_path), 'r').read()
+    actual = open(str(test_path), 'r', encoding='utf-8').read()
 
     assert expected == actual
