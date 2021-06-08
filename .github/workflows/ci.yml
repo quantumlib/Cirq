@@ -5,7 +5,7 @@ on: [ pull_request ]
 jobs:
   quick_test:
     name: Misc check
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
@@ -16,7 +16,7 @@ jobs:
         run: check/misc
   format:
     name: Format check
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
@@ -31,7 +31,7 @@ jobs:
         run: check/format-incremental
   mypy:
     name: Type check
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
@@ -44,7 +44,7 @@ jobs:
         run: check/mypy
   mypy-next:
     name: Type check (next)
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
@@ -57,7 +57,7 @@ jobs:
         run: check/mypy --next || true
   changed_files:
     name: Changed files test
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
@@ -72,7 +72,7 @@ jobs:
         run: check/pytest-changed-files
   lint:
     name: Lint check
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
@@ -87,7 +87,7 @@ jobs:
         run: check/pylint -v
   doc_test:
     name: Doc test
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
@@ -102,7 +102,7 @@ jobs:
         run: check/doctest -q
   nbformat:
     name: Notebook formatting
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
@@ -113,7 +113,7 @@ jobs:
         run: check/nbformat
   cirq-only:
     name: Pytest (cirq-only) Ubuntu
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
@@ -130,7 +130,7 @@ jobs:
       matrix:
         # TODO(#3800): remove 3.6 when Colab switches to 3.7
         python-version: [ '3.6', '3.7', '3.8' ]
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
@@ -147,7 +147,7 @@ jobs:
         run: check/pytest --ignore=cirq-core/cirq/contrib --actually-quiet
   build_docs:
     name: Build docs
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
@@ -161,7 +161,7 @@ jobs:
         run: dev_tools/docs/build-rtd-docs.sh
   build_protos:
     name: Build protos
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
@@ -173,13 +173,16 @@ jobs:
       - name: Install requirements
         run: |
           pip install -r dev_tools/requirements/deps/protos.txt
-          wget https://github.com/bazelbuild/bazel/releases/download/0.26.0/bazel_0.26.0-linux-x86_64.deb
-          sudo dpkg -i bazel_0.26.0-linux-x86_64.deb
+          sudo apt install curl gnupg
+          curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
+          sudo mv bazel.gpg /etc/apt/trusted.gpg.d/
+          echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+          sudo apt update && sudo apt install bazel
       - name: Build protos
         run: check/build-changed-protos
   coverage:
     name: Coverage check
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
@@ -197,7 +200,7 @@ jobs:
     strategy:
       matrix:
         python-version: [ '3.7', '3.8' ]
-    runs-on: windows-latest
+    runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
@@ -227,7 +230,7 @@ jobs:
         run: check/pytest --ignore=cirq-core/cirq/contrib
   notebooks-stable:
     name: Changed Notebooks Isolated Test against Cirq stable
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
@@ -247,7 +250,7 @@ jobs:
           path: out
   notebooks-branch:
     name: Notebook Tests against PR
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
