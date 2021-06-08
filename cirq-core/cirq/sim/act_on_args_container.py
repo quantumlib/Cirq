@@ -19,7 +19,6 @@ from typing import (
     Generic,
     Sequence,
     Optional,
-    Set,
     Iterator,
     Tuple,
     Any,
@@ -84,18 +83,10 @@ class ActOnArgsContainer(
             args0 = self.args[q0]
             args1 = self.args[q1]
             if args0 is args1:
-                args0_new = args0.swap(q0, q1)
-                for q in self.qubits:
-                    if self.args[q] is args0:
-                        self.args[q] = args0_new
+                args0.swap(q0, q1, inplace=True)
             else:
-                self.args[q0] = args1.rename(q1, q0)
-                self.args[q1] = args0.rename(q0, q1)
-                for q in self.qubits:
-                    if self.args[q] is args0:
-                        self.args[q] = self.args[q1]
-                    if self.args[q] is args1:
-                        self.args[q] = self.args[q0]
+                self.args[q0] = args1.rename(q1, q0, inplace=True)
+                self.args[q1] = args0.rename(q0, q1, inplace=True)
             return
 
         # Go through the op's qubits and join any disparate ActOnArgs states

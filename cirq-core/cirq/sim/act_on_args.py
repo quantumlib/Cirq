@@ -118,12 +118,12 @@ class ActOnArgs(OperationTarget[TSelf]):
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         return self._qubits
 
-    def swap(self, q1: 'cirq.Qid', q2: 'cirq.Qid'):
+    def swap(self, q1: 'cirq.Qid', q2: 'cirq.Qid', *, inplace=False):
         """Swaps two qubits.
 
         This only affects the index, and does not modify the underlying
         state."""
-        args = copy.copy(self)
+        args = self if inplace else copy.copy(self)
         i1 = self.qubits.index(q1)
         i2 = self.qubits.index(q2)
         qubits = list(args.qubits)
@@ -132,9 +132,9 @@ class ActOnArgs(OperationTarget[TSelf]):
         args.qubit_map = {q: i for i, q in enumerate(qubits)}
         return args
 
-    def rename(self, q1: 'cirq.Qid', q2: 'cirq.Qid'):
+    def rename(self, q1: 'cirq.Qid', q2: 'cirq.Qid', *, inplace=False):
         """Renames `q1` to `q2`."""
-        args = copy.copy(self)
+        args = self if inplace else copy.copy(self)
         i1 = self.qubits.index(q1)
         qubits = list(args.qubits)
         qubits[i1] = q2
