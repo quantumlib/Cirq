@@ -20,7 +20,6 @@ from typing_extensions import Protocol
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 
-
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
 RaiseTypeErrorIfNotProvided = ([],)  # type: Any

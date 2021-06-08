@@ -668,7 +668,7 @@ class TaggedOperation(Operation):
         sub = getattr(self.sub_operation, "_is_measurement_", None)
         if sub is not None:
             return sub()
-        return NotImplemented  # coverage: ignore
+        return NotImplemented
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation) or any(
