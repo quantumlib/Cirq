@@ -108,10 +108,10 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
 
     @staticmethod
     def from_clifford_tableau(tableau: qis.CliffordTableau) -> 'SingleQubitCliffordGate':
-        assert isinstance(table, qis.CliffordTableau)
-        if not table._validate():
+        assert isinstance(tableau, qis.CliffordTableau)
+        if not tableau._validate():
             raise ValueError('It is not a valid Clifford Gate.')
-        return SingleQubitCliffordGate(_clifford_tableau=table)
+        return SingleQubitCliffordGate(_clifford_tableau=tableau)
 
     @staticmethod
     def from_xz_map(
@@ -291,9 +291,8 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         else:
             to = x_to * z_to  # Y = iXZ
             to.coefficient *= 1j
-        single_pauli_gates = (pauli_gates.X, pauli_gates.Y, pauli_gates.Z)
         # pauli_mask returns a value between 0 and 4 for [I, X, Y, Z].
-        to_gate = single_pauli_gates[to.pauli_mask[0] - 1]
+        to_gate = Pauli._XYZ[to.pauli_mask[0] - 1]
         return PauliTransform(to=to_gate, flip=bool(to.coefficient != 1.0))
 
     def to_phased_xz_gate(self) -> phased_x_z_gate.PhasedXZGate:

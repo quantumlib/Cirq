@@ -532,23 +532,15 @@ def test_to_phased_xz_gate(trans_x, trans_z):
     )
 
 
-def _extract_clifford_tableau_to_matrix(tableau):
-    matrix = np.zeros((tableau.n * 2, tableau.n * 2 + 1), dtype=np.int)
-    matrix[:, : tableau.n] = tableau.xs[: 2 * tableau.n]
-    matrix[:, tableau.n : 2 * tableau.n] = tableau.zs[: 2 * tableau.n]
-    matrix[:, tableau.n * 2] = tableau.rs[: 2 * tableau.n]
-    return matrix
-
-
-def test_clifford_tableau():
+def test_from_xz_to_clifford_tableau():
     seen_tableau = []
     for trans_x, trans_z in _all_rotation_pairs():
-        gate = cirq.SingleQubitCliffordGate.from_xz_map(trans_x, trans_z)
-        tableau_matrix = _extract_clifford_tableau_to_matrix(gate.clifford_tableau)
-        tableau_number = sum(2 ** i * t for i, t in enumerate(tableau_matrix.ravel()))
+        tableau = cirq.SingleQubitCliffordGate.from_xz_map(trans_x, trans_z).clifford_tableau
+        tableau_number = sum(2 ** i * t for i, t in enumerate(tableau.matrix().ravel()))
+        tableau_number = tableau_number * 4 + 2 * tableau.rs[0] + tableau.rs[1]
         seen_tableau.append(tableau_number)
         # Satisfy the symplectic property
-        assert sum(tableau_matrix[0, :2] * tableau_matrix[1, 1::-1]) % 2 == 1
+        assert sum(tableau.matrix()[0, :2] * tableau.matrix()[1, 1::-1]) % 2 == 1
 
     # Should not have any duplication.
     assert len(set(seen_tableau)) == 24
