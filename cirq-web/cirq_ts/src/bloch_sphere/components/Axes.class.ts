@@ -2,7 +2,7 @@ import {Vector3, LineBasicMaterial, BufferGeometry, Line} from 'three';
 
 export class Axes {
   /**
-   * Creates the x, y, and z axis for the bloch_sphere.
+   * Creates the x, y, and z axis for the Bloch sphere.
    * @param radius The overall radius of the bloch sphere.
    * @returns An object mapping the name of the axis to its corresponding
    * Line object to be rendered by the three.js scene.

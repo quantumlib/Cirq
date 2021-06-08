@@ -23,7 +23,7 @@ from cirq.qis import to_valid_state_vector
 from cirq.qis.states import bloch_vector_from_state_vector
 
 
-class CirqBlochSphere(widget.Widget):
+class BlochSphere(widget.Widget):
     def __init__(
         self,
         sphere_radius=5,
@@ -38,7 +38,7 @@ class CirqBlochSphere(widget.Widget):
             The default value is 5.
 
             state_vector: a state vector to pass in to be represented. The default
-            vector is 1/sqrt(2)|0> + 1/sqrt(2)|1> (the plus state)
+            vector is 1/sqrt(2) (|0⟩ +|1⟩) (the plus state)
         """
 
         self.sphere_json = self._convertSphereInput(sphere_radius)

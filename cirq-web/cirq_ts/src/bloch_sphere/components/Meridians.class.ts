@@ -12,10 +12,10 @@ export class Meridians {
   };
 
   /**
-   * Creates the special horizontal meridian lines of the bloch
+   * Creates the special horizontal meridian lines of the Bloch
    * sphere, each with a different radius and location.
-   * @param radius The radius of the overall bloch sphere
-   * @returns A list of circles (reprsented as Line objs) to draw on the scene
+   * @param radius The radius of the overall Bloch sphere
+   * @returns A list of circles (represented as Line objects) to draw on the scene
    */
   public static createHorizontalChordMeridians(radius: number): Line[] {
     // Creates chords proportionally to radius 5 circle.
@@ -52,7 +52,7 @@ export class Meridians {
   /**
    * Creates equally sized horizontal meridian lines which rotate
    * by varying degrees across the same axis.
-   * @param radius The radius of the overall bloch sphere
+   * @param radius The radius of the overall Bloch sphere
    * @returns A list of circles (represented as Line objs) to draw on the scene
    */
   public static createHorizontalCircleMeridians(radius: number): Line[] {
