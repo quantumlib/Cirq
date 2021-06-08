@@ -757,7 +757,7 @@ class AbstractCircuit(abc.ABC):
             yield index, gate_op, cast(T_DESIRED_GATE_TYPE, gate_op.gate)
 
     def has_measurements(self):
-        return any(self.findall_operations(protocols.is_measurement))
+        return protocols.is_measurement(self)
 
     def are_all_measurements_terminal(self) -> bool:
         """Whether all measurement gates are at the end of the circuit."""
