@@ -926,13 +926,11 @@ def _make_zeta_chi_gamma_compensation(
             if parameters is None:
                 raise ValueError(f'Missing characterization data for moment {moment}')
 
-            """
             if translated.engine_gate != parameters.gate:
                 raise ValueError(
                     f"Engine gate {translated.engine_gate} doesn't match characterized gate "
                     f'{parameters.gate}'
                 )
-            """
 
             pair_parameters = parameters.get_parameters(a, b)
             if pair_parameters is None:

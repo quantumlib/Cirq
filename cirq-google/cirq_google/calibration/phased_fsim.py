@@ -1074,7 +1074,7 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
     elif isinstance(gate, cirq.ops.CZPowGate):
         if not np.isclose(gate.global_shift % (2 * np.pi), 0.0):
             return None
-        phi = (-np.pi * gate.exponent) % (2 * np.pi)
+        phi = -np.pi * gate.exponent
     else:
         return None
 
