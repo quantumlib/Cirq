@@ -256,7 +256,7 @@ def apply_channel(
     if result is not None:
         return result
 
-    # Fallback to using the object's `_channel_` matrices.
+    # Fallback to using the object's `_kraus_` matrices.
     kraus = channel(val, None)
     if kraus is not None:
         return _apply_kraus(kraus, args)
@@ -266,7 +266,7 @@ def apply_channel(
         return default
     raise TypeError(
         "object of type '{}' has no _apply_channel_, _apply_unitary_, "
-        "_unitary_, or _channel_ methods (or they returned None or "
+        "_unitary_, or _kraus_ methods (or they returned None or "
         "NotImplemented).".format(type(val))
     )
 

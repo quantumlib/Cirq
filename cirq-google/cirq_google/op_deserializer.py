@@ -19,21 +19,17 @@ from typing import (
     List,
     Optional,
     Sequence,
-    TYPE_CHECKING,
 )
 from dataclasses import dataclass
 
 import abc
 import sympy
 
-from cirq import circuits
+import cirq
 from cirq._compat import deprecated
 from cirq_google import arg_func_langs
 from cirq_google.api import v2
 from cirq_google.ops.calibration_tag import CalibrationTag
-
-if TYPE_CHECKING:
-    import cirq
 
 
 class OpDeserializer(abc.ABC):
@@ -61,7 +57,7 @@ class OpDeserializer(abc.ABC):
         arg_function_language: str = '',
         constants: List[v2.program_pb2.Constant] = None,
         deserialized_constants: List[Any] = None,
-    ) -> 'cirq.Operation':
+    ) -> cirq.Operation:
         """Converts a proto-formatted operation into a Cirq operation.
 
         Args:
@@ -117,7 +113,7 @@ class GateOpDeserializer(OpDeserializer):
         args: Sequence[DeserializingArg],
         num_qubits_param: Optional[str] = None,
         op_wrapper: Callable[
-            ['cirq.Operation', v2.program_pb2.Operation], 'cirq.Operation'
+            [cirq.Operation, v2.program_pb2.Operation], cirq.Operation
         ] = lambda x, y: x,
         deserialize_tokens: Optional[bool] = True,
     ):
@@ -163,7 +159,7 @@ class GateOpDeserializer(OpDeserializer):
         arg_function_language: str = '',
         constants: List[v2.program_pb2.Constant] = None,
         deserialized_constants: List[Any] = None,  # unused
-    ) -> 'cirq.Operation':
+    ) -> cirq.Operation:
         """Turns a cirq_google.api.v2.Operation proto into a GateOperation.
 
         Args:
@@ -242,7 +238,7 @@ class CircuitOpDeserializer(OpDeserializer):
         arg_function_language: str = '',
         constants: List[v2.program_pb2.Constant] = None,
         deserialized_constants: List[Any] = None,
-    ) -> 'cirq.CircuitOperation':
+    ) -> cirq.CircuitOperation:
         """Turns a cirq.google.api.v2.CircuitOperation proto into a CircuitOperation.
 
         Args:
@@ -269,7 +265,7 @@ class CircuitOpDeserializer(OpDeserializer):
                 f'(length {len(deserialized_constants)}).'
             )
         circuit = deserialized_constants[proto.circuit_constant_index]
-        if not isinstance(circuit, circuits.FrozenCircuit):
+        if not isinstance(circuit, cirq.FrozenCircuit):
             raise ValueError(
                 f'Constant at index {proto.circuit_constant_index} was expected to be a circuit, '
                 f'but it has type {type(circuit)} in the deserialized_constants list.'
@@ -319,7 +315,7 @@ class CircuitOpDeserializer(OpDeserializer):
                     f'\nFull arg: {arg}'
                 )
 
-        return circuits.CircuitOperation(
+        return cirq.CircuitOperation(
             circuit,
             repetitions,
             qubit_map,
