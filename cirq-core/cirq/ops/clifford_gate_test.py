@@ -547,7 +547,7 @@ def test_clifford_tableau():
         tableau_matrix = _extract_clifford_tableau_to_matrix(gate.clifford_tableau)
         tableau_number = sum(2 ** i * t for i, t in enumerate(tableau_matrix.ravel()))
         seen_tableau.append(tableau_number)
-        # Satify the symplectic property
+        # Satisfy the symplectic property
         assert sum(tableau_matrix[0, :2] * tableau_matrix[1, 1::-1]) % 2 == 1
 
     # Should not have any duplication.
