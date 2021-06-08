@@ -74,4 +74,5 @@ All Typescript files need to be formatted/linted according to [Google's public T
 
 - **Testing, which framework?-- important**
     - [Mocha](https://mochajs.org/)
-    - [Jasmine](https://jasmine.github.io/)
+      - Why? [Three.js uses it in their documentation](https://threejs.org/docs/#manual/en/buildTools/Testing-with-NPM)
+th
