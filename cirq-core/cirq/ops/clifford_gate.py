@@ -107,7 +107,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         return self._clifford_tableau
 
     @staticmethod
-    def from_cliiford_tableau(tableau: qis.CliffordTableau) -> 'SingleQubitCliffordGate':
+    def from_clifford_tableau(tableau: qis.CliffordTableau) -> 'SingleQubitCliffordGate':
         assert isinstance(table, qis.CliffordTableau)
         if not table._validate():
             raise ValueError('It is not a valid Clifford Gate.')
