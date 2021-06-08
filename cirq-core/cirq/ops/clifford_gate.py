@@ -43,7 +43,7 @@ def _to_pauli_transform(matrix: np.ndarray) -> Optional[PauliTransform]:
     return None
 
 
-def _to_cliiford_tableau(
+def _to_clifford_tableau(
     rotation_map: Optional[Dict[Pauli, PauliTransform]] = None,
     *,
     x_to: Optional[PauliTransform] = None,
@@ -107,7 +107,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         return self._clifford_tableau
 
     @staticmethod
-    def from_cliiford_tableau(table: qis.CliffordTableau) -> 'SingleQubitCliffordGate':
+    def from_clifford_tableau(table: qis.CliffordTableau) -> 'SingleQubitCliffordGate':
         assert isinstance(table, qis.CliffordTableau)
         if not table._validate():
             raise ValueError('It is not a valid Clifford Gate.')
@@ -124,8 +124,8 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             x_to: Which Pauli to transform X to and if it should negate.
             z_to: Which Pauli to transform Z to and if it should negate.
         """
-        return SingleQubitCliffordGate.from_cliiford_tableau(
-            _to_cliiford_tableau(x_to=PauliTransform(*x_to), z_to=PauliTransform(*z_to))
+        return SingleQubitCliffordGate.from_clifford_tableau(
+            _to_clifford_tableau(x_to=PauliTransform(*x_to), z_to=PauliTransform(*z_to))
         )
 
     @staticmethod
@@ -194,7 +194,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         flip3 = trans1.flip ^ trans2.flip ^ ((from1 < from2) != (trans1.to < trans2.to))
         rotation_map[from3] = PauliTransform(to3, flip3)
 
-        return SingleQubitCliffordGate.from_cliiford_tableau(_to_cliiford_tableau(rotation_map))
+        return SingleQubitCliffordGate.from_clifford_tableau(_to_clifford_tableau(rotation_map))
 
     @staticmethod
     def from_pauli(pauli: Pauli, sqrt: bool = False) -> 'SingleQubitCliffordGate':
@@ -212,7 +212,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
                 pauli: PauliTransform(pauli, False),
                 next_pauli: PauliTransform(next_pauli, True),
             }
-        return SingleQubitCliffordGate.from_cliiford_tableau(_to_cliiford_tableau(rotation_map))
+        return SingleQubitCliffordGate.from_clifford_tableau(_to_clifford_tableau(rotation_map))
 
     @staticmethod
     def from_quarter_turns(pauli: Pauli, quarter_turns: int) -> 'SingleQubitCliffordGate':
@@ -277,8 +277,8 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         z_to = _to_pauli_transform(u @ z @ u.conj().T)
         if x_to is None or z_to is None:
             return None
-        return SingleQubitCliffordGate.from_cliiford_tableau(
-            _to_cliiford_tableau(x_to=x_to, z_to=z_to)
+        return SingleQubitCliffordGate.from_clifford_tableau(
+            _to_clifford_tableau(x_to=x_to, z_to=z_to)
         )
 
     def transform(self, pauli: Pauli) -> PauliTransform:
@@ -364,7 +364,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         if exponent != -1:
             return NotImplemented
 
-        return SingleQubitCliffordGate.from_cliiford_tableau(self.clifford_tableau.inverse())
+        return SingleQubitCliffordGate.from_clifford_tableau(self.clifford_tableau.inverse())
 
     def _commutes_(self, other: Any, atol: float) -> Union[bool, NotImplementedType]:
         if isinstance(other, SingleQubitCliffordGate):
@@ -388,7 +388,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         """Returns a SingleQubitCliffordGate such that the circuits
             --output-- and --self--second--
         are equivalent up to global phase."""
-        return SingleQubitCliffordGate.from_cliiford_tableau(
+        return SingleQubitCliffordGate.from_clifford_tableau(
             self.clifford_tableau.then(second.clifford_tableau)
         )
 
