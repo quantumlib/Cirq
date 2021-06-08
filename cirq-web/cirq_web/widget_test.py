@@ -19,6 +19,7 @@ import cirq_web
 """A global mock IPython environment."""
 ip = get_ipython()
 
+
 def test_to_script_tag(tmp_path):
     # setup test data
     tempfile = tmp_path / "tempfile"
@@ -26,24 +27,30 @@ def test_to_script_tag(tmp_path):
     tempfile.write_text(content)
 
     # call the tested method/class
-    result = cirq_web.to_script_tag(tempfile)    
+    result = cirq_web.to_script_tag(tempfile)
 
     # compare actual with expected
     expected = f"<script>{content}</script>"
     assert result == expected
 
+
 def test_determine_non_notebook_env():
     assert cirq_web.determine_env() == cirq_web.widget.Env.OTHER
 
-@pytest.mark.parametrize('mock_env, result', [
-    ('ZMQInteractiveShell', cirq_web.widget.Env.JUPYTER),
-    ('google.colab_shell', cirq_web.widget.Env.COLAB),
-])
+
+@pytest.mark.parametrize(
+    'mock_env, result',
+    [
+        ('ZMQInteractiveShell', cirq_web.widget.Env.JUPYTER),
+        ('google.colab_shell', cirq_web.widget.Env.COLAB),
+    ],
+)
 def test_determine_notebook_env(mock_env, result):
     # Set the class name to a predetermined value.
     # Note that after this, the global state as a whole is altered
     ip.__class__.__name__ = mock_env
     assert cirq_web.determine_env() == result
+
 
 def test_write_output_file(tmpdir):
     path = tmpdir.mkdir('dir')

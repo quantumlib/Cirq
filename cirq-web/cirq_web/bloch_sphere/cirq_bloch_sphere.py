@@ -1,9 +1,20 @@
+# Copyright 2021 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import json
-import os
 import math
 import webbrowser
-import inspect
 
 from cirq_web import widget
 
@@ -11,11 +22,12 @@ from cirq.testing import random_superposition
 from cirq.qis import to_valid_state_vector
 from cirq.qis.states import bloch_vector_from_state_vector
 
+
 class CirqBlochSphere(widget.Widget):
     def __init__(
         self,
         sphere_radius=5,
-        state_vector=to_valid_state_vector([math.sqrt(2)/2, math.sqrt(2)/2]),
+        state_vector=to_valid_state_vector([math.sqrt(2) / 2, math.sqrt(2) / 2]),
         random=False,
     ):
         """Initializes a CirqBlochSphere, gathering all the user information and
@@ -30,9 +42,11 @@ class CirqBlochSphere(widget.Widget):
         """
 
         self.sphere_json = self._convertSphereInput(sphere_radius)
-        self.bloch_vector = self._createRandomVector() if random else self._createVector(state_vector)
+        self.bloch_vector = (
+            self._createRandomVector() if random else self._createVector(state_vector)
+        )
         self.vector_json = self._serializeVector(*self.bloch_vector, sphere_radius)
-    
+
     def _repr_html_(self):
         """Allows the object's html to be easily displayed in a notebook
         by using the display() method.
@@ -51,12 +65,9 @@ class CirqBlochSphere(widget.Widget):
         createSphere.showSphere('{self.sphere_json}', '{self.vector_json}');
         </script>
         """
-    
+
     def generate_HTML_file(
-        self, 
-        output_directory='./', 
-        file_name='bloch_sphere.html', 
-        open_in_browser=False
+        self, output_directory='./', file_name='bloch_sphere.html', open_in_browser=False
     ):
         """Generates a portable HTML file of the bloch sphere that
         can be run anywhere. Prints out the absolute path of the file to the console.
@@ -65,7 +76,7 @@ class CirqBlochSphere(widget.Widget):
             output_directory: the directory in which the output file will be
             generated. The default is the current directory ('./')
 
-            file_name: the name of the output file. Default is 'bloch_sphere' 
+            file_name: the name of the output file. Default is 'bloch_sphere'
 
             open: if True, opens the newly generated file automatically in the browser.
 
@@ -73,8 +84,8 @@ class CirqBlochSphere(widget.Widget):
 
         For now, if ran in a notebook, this function just returns. Support for downloading
         the HTML file via the browser can be added later.
-        """ 
-        
+        """
+
         # env = widget.determine_env()
         # if env != widget.Env.OTHER:
         #     print('Unsupported in Jupyter Notebook')
@@ -99,17 +110,15 @@ class CirqBlochSphere(widget.Widget):
         path_of_html_file = widget.write_output_file(output_directory, file_name, contents)
 
         if open_in_browser:
-            webbrowser.open(str(path_of_html_file), new=2) # 2 opens in a new tab if possible
+            webbrowser.open(str(path_of_html_file), new=2)  # 2 opens in a new tab if possible
 
         return path_of_html_file
 
     def _convertSphereInput(self, radius):
         if radius <= 0:
-            raise(BaseException('You must input a positive radius for the sphere'))
+            raise (BaseException('You must input a positive radius for the sphere'))
 
-        obj = {
-            'radius': radius
-        }
+        obj = {'radius': radius}
         return json.dumps(obj)
 
     def _createVector(self, state_vector):
@@ -133,5 +142,5 @@ class CirqBlochSphere(widget.Widget):
             'y': y.item(),
             'z': z.item(),
             'v_length': length,
-        } 
+        }
         return json.dumps(obj)

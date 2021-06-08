@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 import math
 import json
+
+import pytest
 import numpy as np
 
 import cirq_web
 
 from cirq.qis import to_valid_state_vector
 from cirq.qis.states import bloch_vector_from_state_vector
+
 
 def get_bundle_file_path():
     # Need to call this from the root directory
@@ -37,19 +39,20 @@ def test_init_bloch_sphere_type():
 @pytest.mark.parametrize('sphere_radius', [5, 0.2, 100])
 def test_valid_bloch_sphere_radius_json_info(sphere_radius):
     bloch_sphere = cirq_web.CirqBlochSphere(sphere_radius=sphere_radius)
-    expected_object = {
-        'radius': sphere_radius
-    } 
+    expected_object = {'radius': sphere_radius}
     expected = json.dumps(expected_object)
     assert expected == bloch_sphere.sphere_json
+
 
 @pytest.mark.parametrize('sphere_radius', [0, -1])
 def test_invalid_bloch_sphere_radius_json_info(sphere_radius):
     with pytest.raises(BaseException):
-        bloch_sphere = cirq_web.CirqBlochSphere(sphere_radius=sphere_radius)
+        cirq_web.CirqBlochSphere(sphere_radius=sphere_radius)
 
-@pytest.mark.parametrize('state_vector',
-    [to_valid_state_vector([math.sqrt(2)/2, math.sqrt(2)/2])])
+
+@pytest.mark.parametrize(
+    'state_vector', [to_valid_state_vector([math.sqrt(2) / 2, math.sqrt(2) / 2])]
+)
 def test_valid_bloch_sphere_vector_json(state_vector):
     bloch_sphere = cirq_web.CirqBlochSphere(state_vector=state_vector)
     bloch_vector = bloch_vector_from_state_vector(state_vector, 0)
@@ -57,19 +60,20 @@ def test_valid_bloch_sphere_vector_json(state_vector):
         'x': bloch_vector[0].item(),
         'y': bloch_vector[1].item(),
         'z': bloch_vector[2].item(),
-        'v_length': 5, # This is the default value
+        'v_length': 5,  # This is the default value
     }
     expected = json.dumps(expected_object)
     assert expected == bloch_sphere.vector_json
 
+
 def test_random_vector():
-    """Checks if we generated a random vector by checking the return type.
-    """
+    """Checks if we generated a random vector by checking the return type."""
     bloch_sphere = cirq_web.CirqBlochSphere(random=True)
     vec = bloch_sphere.bloch_vector
     did_create_random_vector = isinstance(vec, np.ndarray) and len(vec) == 3
     assert did_create_random_vector
-    
+
+
 def test_repr_html():
     # This tests more of the path rather than the contents.
     # Add more contents later
@@ -90,15 +94,13 @@ def test_generate_HTML_file_no_browser(tmpdir):
 
     bloch_sphere = cirq_web.CirqBlochSphere()
     test_path = bloch_sphere.generate_HTML_file(
-        output_directory=str(path), 
-        file_name='test.html',
-        open_in_browser=True
+        output_directory=str(path), file_name='test.html', open_in_browser=True
     )
-    
+
     template_div = f"""
         <div id="container"></div>
         """
-    bundle_script = get_bundle_file_path() 
+    bundle_script = get_bundle_file_path()
 
     template_script = f"""
         <script>
