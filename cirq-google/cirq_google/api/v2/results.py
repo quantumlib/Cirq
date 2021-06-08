@@ -20,21 +20,14 @@ from typing import (
     List,
     Optional,
     Set,
-    TYPE_CHECKING,
 )
 from collections import OrderedDict
 import dataclasses
 import numpy as np
 
+import cirq
 from cirq_google.api import v2
 from cirq_google.api.v2 import result_pb2
-from cirq import circuits
-from cirq import devices
-from cirq import ops
-from cirq import study
-
-if TYPE_CHECKING:
-    import cirq
 
 
 @dataclasses.dataclass
@@ -54,13 +47,13 @@ class MeasureInfo:
     """
 
     key: str
-    qubits: List['cirq.GridQubit']
+    qubits: List[cirq.GridQubit]
     slot: int
     invert_mask: List[bool]
     tags: List[Hashable]
 
 
-def find_measurements(program: 'cirq.Circuit') -> List[MeasureInfo]:
+def find_measurements(program: cirq.Circuit) -> List[MeasureInfo]:
     """Find measurements in the given program (circuit).
 
     Returns:
@@ -69,7 +62,7 @@ def find_measurements(program: 'cirq.Circuit') -> List[MeasureInfo]:
     measurements: List[MeasureInfo] = []
     keys: Set[str] = set()
 
-    if isinstance(program, circuits.Circuit):
+    if isinstance(program, cirq.Circuit):
         measure_iter = _circuit_measurements(program)
     else:
         raise NotImplementedError(f'Unrecognized program type: {type(program)}')
@@ -83,10 +76,10 @@ def find_measurements(program: 'cirq.Circuit') -> List[MeasureInfo]:
     return measurements
 
 
-def _circuit_measurements(circuit: 'cirq.Circuit') -> Iterator[MeasureInfo]:
+def _circuit_measurements(circuit: cirq.Circuit) -> Iterator[MeasureInfo]:
     for i, moment in enumerate(circuit):
         for op in moment:
-            if isinstance(op.gate, ops.MeasurementGate):
+            if isinstance(op.gate, cirq.MeasurementGate):
                 yield MeasureInfo(
                     key=op.gate.key,
                     qubits=_grid_qubits(op),
@@ -96,10 +89,10 @@ def _circuit_measurements(circuit: 'cirq.Circuit') -> Iterator[MeasureInfo]:
                 )
 
 
-def _grid_qubits(op: 'cirq.Operation') -> List['cirq.GridQubit']:
-    if not all(isinstance(q, devices.GridQubit) for q in op.qubits):
+def _grid_qubits(op: cirq.Operation) -> List[cirq.GridQubit]:
+    if not all(isinstance(q, cirq.GridQubit) for q in op.qubits):
         raise ValueError(f'Expected GridQubits: {op.qubits}')
-    return cast(List['cirq.GridQubit'], list(op.qubits))
+    return cast(List[cirq.GridQubit], list(op.qubits))
 
 
 def pack_bits(bits: np.ndarray) -> bytes:
@@ -124,7 +117,7 @@ def unpack_bits(data: bytes, repetitions: int) -> np.ndarray:
 
 
 def results_to_proto(
-    trial_sweeps: Iterable[Iterable[study.Result]],
+    trial_sweeps: Iterable[Iterable[cirq.Result]],
     measurements: List[MeasureInfo],
     *,
     out: Optional[result_pb2.Result] = None,
@@ -162,7 +155,7 @@ def results_to_proto(
 def results_from_proto(
     msg: result_pb2.Result,
     measurements: List[MeasureInfo] = None,
-) -> List[List[study.Result]]:
+) -> List[List[cirq.Result]]:
     """Converts a v2 result proto into List of list of trial results.
 
     Args:
@@ -185,7 +178,7 @@ def results_from_proto(
 def _trial_sweep_from_proto(
     msg: result_pb2.SweepResult,
     measure_map: Dict[str, MeasureInfo] = None,
-) -> List[study.Result]:
+) -> List[cirq.Result]:
     """Converts a SweepResult proto into List of list of trial results.
 
     Args:
@@ -199,11 +192,11 @@ def _trial_sweep_from_proto(
         A list containing a list of trial results for the sweep.
     """
 
-    trial_sweep: List[study.Result] = []
+    trial_sweep: List[cirq.Result] = []
     for pr in msg.parameterized_results:
         m_data: Dict[str, np.ndarray] = {}
         for mr in pr.measurement_results:
-            qubit_results: OrderedDict[devices.GridQubit, np.ndarray] = OrderedDict()
+            qubit_results: OrderedDict[cirq.GridQubit, np.ndarray] = OrderedDict()
             for qmr in mr.qubit_measurement_results:
                 qubit = v2.grid_qubit_from_proto_id(qmr.qubit.id)
                 if qubit in qubit_results:
@@ -215,8 +208,8 @@ def _trial_sweep_from_proto(
                 ordered_results = list(qubit_results.values())
             m_data[mr.key] = np.array(ordered_results).transpose()
         trial_sweep.append(
-            study.Result.from_single_parameter_set(
-                params=study.ParamResolver(dict(pr.params.assignments)),
+            cirq.Result.from_single_parameter_set(
+                params=cirq.ParamResolver(dict(pr.params.assignments)),
                 measurements=m_data,
             )
         )

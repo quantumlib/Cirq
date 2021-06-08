@@ -18,7 +18,7 @@ from typing import Optional, TYPE_CHECKING, Tuple
 import numpy as np
 import scipy
 
-from cirq import value
+from cirq import protocols, value
 from cirq.qis.states import (
     QuantumState,
     infer_qid_shape,
@@ -273,3 +273,28 @@ def von_neumann_entropy(
     if validate:
         _ = quantum_state(state, qid_shape=qid_shape, copy=False, validate=True, atol=atol)
     return 0.0
+
+
+def entanglement_fidelity(operation: 'cirq.SupportsChannel') -> float:
+    r"""Returns entanglement fidelity of a given quantum channel.
+
+    Entanglement fidelity $F_e$ of a quantum channel $E: L(H) \to L(H)$ is the overlap between
+    the maximally entangled state $|\phi\rangle = \frac{1}{\sqrt{dim H}} \sum_i|i\rangle|i\rangle$
+    and the state obtained by sending one half of $|\phi\rangle$ through the channel $E$, i.e.
+
+        $$
+        F_e = \langle\phi|(E \otimes I)(|\phi\rangle\langle\phi|)|\phi\rangle
+        $$
+
+    where $I: L(H) \to L(H)$ is the identity map.
+
+    Args:
+        operation: Quantum channel whose entanglement fidelity is to be computed.
+    Returns:
+        Entanglement fidelity of the channel represented by operation.
+    """
+    f = 0.0
+    for k in protocols.channel(operation):
+        f += np.abs(np.trace(k)) ** 2
+    n_qubits = protocols.num_qubits(operation)
+    return float(f / 4 ** n_qubits)

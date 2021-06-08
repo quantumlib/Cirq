@@ -198,3 +198,7 @@ def test_at():
 
 def test_qubit_set():
     assert ion_device(3).qubit_set() == frozenset(cirq.LineQubit.range(3))
+
+
+def test_qid_pairs():
+    assert len(ion_device(10).qid_pairs()) == 45

@@ -444,3 +444,84 @@ def test_tableau_then_with_bad_input():
 
     with pytest.raises(TypeError):
         t1.then(cirq.X)
+
+
+def test_inverse():
+    t = cirq.CliffordTableau(num_qubits=1)
+    assert t.inverse() == t
+
+    t = cirq.CliffordTableau(num_qubits=1)
+    _X(t, 0)
+    _S(t, 0)
+    expected_t = cirq.CliffordTableau(num_qubits=1)
+    _S(expected_t, 0)  # the inverse of S gate is S*S*S.
+    _S(expected_t, 0)
+    _S(expected_t, 0)
+    _X(expected_t, 0)
+    assert t.inverse() == expected_t
+    assert t.then(t.inverse()) == cirq.CliffordTableau(num_qubits=1)
+    assert t.inverse().then(t) == cirq.CliffordTableau(num_qubits=1)
+
+    t = cirq.CliffordTableau(num_qubits=2)
+    _H(t, 0)
+    _H(t, 1)
+    # Because the ops are the same in either forward or backward way,
+    # t is self-inverse operator.
+    assert t.inverse() == t
+    assert t.then(t.inverse()) == cirq.CliffordTableau(num_qubits=2)
+    assert t.inverse().then(t) == cirq.CliffordTableau(num_qubits=2)
+
+    t = cirq.CliffordTableau(num_qubits=2)
+    _X(t, 0)
+    _CNOT(t, 0, 1)
+    expected_t = cirq.CliffordTableau(num_qubits=2)
+    _CNOT(t, 0, 1)
+    _X(t, 0)
+    assert t.inverse() == expected_t
+    assert t.then(t.inverse()) == cirq.CliffordTableau(num_qubits=2)
+    assert t.inverse().then(t) == cirq.CliffordTableau(num_qubits=2)
+
+    def random_circuit_and_its_inverse(num_ops, num_qubits, seed=12345):
+        prng = np.random.RandomState(seed)
+        candidate_op = [_H, _S, _X, _Z]
+        if num_qubits > 1:
+            candidate_op = [_H, _S, _X, _Z, _CNOT]
+
+        seq_op = []
+        inv_seq_ops = []
+        for _ in range(num_ops):
+            op = prng.randint(len(candidate_op))
+            if op != 4:
+                args = (prng.randint(num_qubits),)
+            else:
+                args = prng.choice(num_qubits, 2, replace=False)
+            seq_op.append((candidate_op[op], args))
+            if op == 1:  # S gate
+                inv_seq_ops.extend([(_S, args), (_S, args), (_S, args)])
+            else:
+                inv_seq_ops.append((candidate_op[op], args))
+        return seq_op, inv_seq_ops[::-1]
+
+    # Do small random circuits test 100 times.
+    for seed in range(100):
+        t, expected_t, _ = _three_identical_table(7)
+        seq_op, inv_seq_ops = random_circuit_and_its_inverse(num_ops=50, num_qubits=7, seed=seed)
+        for op, args in seq_op:
+            op(t, *args)
+        for op, args in inv_seq_ops:
+            op(expected_t, *args)
+    assert t.inverse() == expected_t
+    assert t.then(t.inverse()) == cirq.CliffordTableau(num_qubits=7)
+    assert t.inverse().then(t) == cirq.CliffordTableau(num_qubits=7)
+
+    # Since inverse Clifford Tableau operation is O(n^3) (same order of composing two tableaux),
+    # running 100 qubits case is still fast.
+    t, expected_t, _ = _three_identical_table(100)
+    seq_op, inv_seq_ops = random_circuit_and_its_inverse(num_ops=1000, num_qubits=100)
+    for op, args in seq_op:
+        op(t, *args)
+    for op, args in inv_seq_ops:
+        op(expected_t, *args)
+    assert t.inverse() == expected_t
+    assert t.then(t.inverse()) == cirq.CliffordTableau(num_qubits=100)
+    assert t.inverse().then(t) == cirq.CliffordTableau(num_qubits=100)

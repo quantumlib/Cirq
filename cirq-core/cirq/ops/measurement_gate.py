@@ -134,7 +134,7 @@ class MeasurementGate(raw_types.Gate):
     def _measurement_key_(self):
         return self.key
 
-    def _channel_(self):
+    def _kraus_(self):
         size = np.prod(self._qid_shape, dtype=int)
 
         def delta(i):
@@ -144,7 +144,7 @@ class MeasurementGate(raw_types.Gate):
 
         return tuple(delta(i) for i in range(size))
 
-    def _has_channel_(self):
+    def _has_kraus_(self):
         return True
 
     def _circuit_diagram_info_(
