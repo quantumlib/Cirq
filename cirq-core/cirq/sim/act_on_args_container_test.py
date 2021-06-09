@@ -26,7 +26,7 @@ class EmptyActOnArgs(cirq.ActOnArgs):
     def _perform_measurement(self) -> List[int]:
         return []
 
-    def _on_copy(self, target: 'EmptyActOnArgs') -> 'EmptyActOnArgs':
+    def _on_copy(self, target: 'EmptyActOnArgs'):
         pass
 
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):

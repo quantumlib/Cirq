@@ -116,7 +116,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         args.axes = ()
         return args
 
-    def extract(self, qubits: Sequence['cirq.Qid'], *, inplace=False) -> Tuple[TSelf, TSelf]:
+    def extract(self: TSelf, qubits: Sequence['cirq.Qid'], *, inplace=False) -> Tuple[TSelf, TSelf]:
         """Splits two state spaces after a measurement or reset."""
         extracted = copy.copy(self)
         remainder = self if inplace else copy.copy(self)
@@ -127,7 +127,7 @@ class ActOnArgs(OperationTarget[TSelf]):
         remainder.axes = ()
         return extracted, remainder
 
-    def reorder(self, qubits: Sequence['cirq.Qid'], *, inplace=False) -> TSelf:
+    def reorder(self: TSelf, qubits: Sequence['cirq.Qid'], *, inplace=False) -> TSelf:
         """Physically reindexes the state by the new basis."""
         args = self if inplace else copy.copy(self)
         assert set(qubits) == set(self.qubits)

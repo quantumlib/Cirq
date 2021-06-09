@@ -125,14 +125,14 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         remainder.available_buffer = [np.empty_like(remainder_tensor) for _ in range(3)]
         remainder.qid_shape = remainder_tensor.shape[: int(remainder_tensor.ndim / 2)]
 
-    def _on_reorder(self, qubits: Sequence['cirq.Qid'], args: 'ActOnDensityMatrixArgs'):
+    def _on_reorder(self, qubits: Sequence['cirq.Qid'], target: 'ActOnDensityMatrixArgs'):
         axes = [self.qubit_map[q] for q in qubits]
         axes = axes + [i + len(qubits) for i in axes]
         new_tensor = np.moveaxis(self.target_tensor, axes, range(len(qubits) * 2))
         buffer = [np.empty_like(new_tensor) for _ in self.available_buffer]
-        args.target_tensor = new_tensor
-        args.available_buffer = buffer
-        args.qid_shape = new_tensor.shape[: int(new_tensor.ndim / 2)]
+        target.target_tensor = new_tensor
+        target.available_buffer = buffer
+        target.qid_shape = new_tensor.shape[: int(new_tensor.ndim / 2)]
 
 
 def _strat_apply_channel_to_state(

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, TYPE_CHECKING, List, Sequence, Tuple
+from typing import Any, Dict, Iterable, TYPE_CHECKING, List, Sequence
 
 import numpy as np
 
@@ -76,14 +76,8 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         """Returns the measurement from the stabilizer state form."""
         return [self.state._measure(q, self.prng) for q in self.axes]
 
-    def copy(self) -> 'cirq.ActOnStabilizerCHFormArgs':
-        return ActOnStabilizerCHFormArgs(
-            state=self.state.copy(),
-            qubits=self.qubits,
-            axes=self.axes,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results.copy(),
-        )
+    def _on_copy(self, target: 'ActOnStabilizerCHFormArgs'):
+        target.state = self.state.copy()
 
 
 def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
