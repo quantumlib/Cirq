@@ -154,7 +154,7 @@ def _list_moment_pairs_to_characterize(
     canonicalize_pairs: bool,
     permit_mixed_moments: bool,
     sort_pairs: bool,
-) -> Optional[Tuple[Tuple[Tuple[Qid, Qid], ...], Gate]]:
+) -> Optional[Tuple[Tuple[Tuple[cirq.Qid, cirq.Qid], ...], cirq.Gate]]:
     """Helper function to describe a given moment in terms of a characterization request.
 
     Args:
@@ -225,9 +225,9 @@ def _list_moment_pairs_to_characterize(
 
 
 def _match_circuit_moments_with_characterizations(
-    circuit: Circuit,
+    circuit: cirq.Circuit,
     characterizations: List[PhasedFSimCalibrationResult],
-    gates_translator: Callable[[Gate], Optional[PhaseCalibratedFSimGate]],
+    gates_translator: Callable[[cirq.Gate], Optional[PhaseCalibratedFSimGate]],
     merge_subsets: bool,
 ):
     characterized_gate_and_pairs = [
@@ -842,7 +842,7 @@ def run_calibrations(
 
 
 def make_zeta_chi_gamma_compensation_for_moments(
-    circuit: Union[Circuit, CircuitWithCalibration],
+    circuit: Union[cirq.Circuit, CircuitWithCalibration],
     characterizations: List[PhasedFSimCalibrationResult],
     *,
     gates_translator: Callable[
@@ -880,7 +880,7 @@ def make_zeta_chi_gamma_compensation_for_moments(
         calibrations could be applied.
     """
 
-    if isinstance(circuit, Circuit):
+    if isinstance(circuit, cirq.Circuit):
         circuit_with_calibration = _match_circuit_moments_with_characterizations(
             circuit, characterizations, gates_translator, merge_subsets
         )
