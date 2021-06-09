@@ -284,7 +284,7 @@ used as a first approximation.  There is no substitute for actually running
 on the device.
 *   Loschmidt echo:  Running a small circuit on a string of qubits and then
 applying the circuit's inverse can be used as a quick but effective way to
-judge qubit's effectiveness.  See
+judge qubit quality.  See
 [this tutorial](../tutorials/google/echoes.ipynb) for instructions.
 *   XEB:  Cross-entropy benchmarking is another way to gauge qubit performance
 on a set of random circuits.  See tutorials on
