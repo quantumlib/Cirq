@@ -1,6 +1,6 @@
-import {BlochSphereScene} from './components/Scene.class';
-import {BlochSphere} from './BlochSphere.class';
-import {Vector} from './components/Vector.class';
+import {BlochSphereScene} from './components/scene';
+import {BlochSphere} from './bloch_sphere';
+import {createVector} from './components/vector';
 
 /**
  * Adds a Bloch sphere element with relevant, configurable data for the
@@ -20,6 +20,6 @@ export function showSphere(circleData: string, vectorData?: string) {
   const object = new BlochSphere(inputData.radius).getBlochSphere();
   scene.add(object);
 
-  const vector = Vector.createVector(vectorData || undefined);
+  const vector = createVector(vectorData || undefined);
   scene.add(vector);
 }

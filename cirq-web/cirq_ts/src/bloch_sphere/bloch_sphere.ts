@@ -1,7 +1,7 @@
-import {createSphere} from './components/Sphere.class';
-import {generateAxis} from './components/Axes.class';
-import {createHorizontalChordMeridians, createVerticalMeridians} from './components/Meridians.class';
-import {loadAndDisplayText} from './components/Text.class';
+import {createSphere} from './components/sphere';
+import {generateAxis} from './components/axes';
+import {createHorizontalChordMeridians, createVerticalMeridians} from './components/meridians';
+import {loadAndDisplayText} from './components/text';
 
 import {Group} from 'three';
 

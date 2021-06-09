@@ -1,13 +1,6 @@
 import {
   ArrowHelper,
-  CylinderGeometry,
-  MeshBasicMaterial,
-  Mesh,
   Vector3,
-  BufferGeometry,
-  Line,
-  LineBasicMaterial,
-  Matrix4,
 } from 'three';
 
 /**
