@@ -311,7 +311,7 @@ standing for *Fermion simulation*.  The generalized version of this gate can
 be parameterized into 5 angles, or degrees of freedom.  Characterization will
 attempt to identify the values of these five angles.
 
-The second step is calibrating (or refitting) the gate.  For the five angles
+The second step is calibrating (or refitting) the gate.  Out of the five angles
 that comprise the generalized FSim gate, three can be corrected for by adding
 Z rotations before or after the gate.  Since these gates are propagated forward
 automatically, they add no duration or error to the circuit and can essentially
