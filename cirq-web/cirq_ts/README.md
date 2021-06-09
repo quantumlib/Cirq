@@ -75,4 +75,5 @@ All Typescript files need to be formatted/linted according to [Google's public T
 - **Testing, which framework?-- important**
     - [Mocha](https://mochajs.org/)
       - Why? [Three.js uses it in their documentation](https://threejs.org/docs/#manual/en/buildTools/Testing-with-NPM)
-th
+### CI - delete later
+  Add something that makes jobs fast when there are no changes made so it's not rerunning every time.

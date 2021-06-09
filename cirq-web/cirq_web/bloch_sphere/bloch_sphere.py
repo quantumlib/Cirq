@@ -85,7 +85,7 @@ class BlochSphere(widget.Widget):
         For now, if ran in a notebook, this function just returns. Support for downloading
         the HTML file via the browser can be added later.
         """
-        
+
         template_div = f"""
         <div id="container"></div>
         """

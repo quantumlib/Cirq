@@ -1,6 +1,6 @@
 import {Sphere} from './components/Sphere.class';
 import {Axes} from './components/Axes.class';
-import {Meridians} from './components/Meridians.class';
+import Meridians from './components/Meridians.class';
 import {Text} from './components/Text.class';
 
 import {Group} from 'three';
