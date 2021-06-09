@@ -286,7 +286,7 @@ on the device.
 applying the circuit's inverse can be used as a quick but effective way to
 judge qubit's effectiveness.  See
 [this tutorial](../tutorials/google/echoes.ipynb) for instructions.
-*   XEB:  Cross-entropy benchmarking is another way to gauge qubit's performance
+*   XEB:  Cross-entropy benchmarking is another way to gauge qubit performance
 on a set of random circuits.  See tutorials on
 [parallel XEB](../qcvv/parallel_xeb.ipynb)
 or [isolated XEB](../qcvv/parallel_xeb.ipynb) for instructions.
