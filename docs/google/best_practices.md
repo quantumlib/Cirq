@@ -268,7 +268,7 @@ into moments with similar gates.
 On current NISQ devices, qubits cannot be considered identical.  Different
 qubits can have vastly different performance and can vary greatly from day
 to day.  It is important for experiments to have a dynamic method to
-pick well-performing qubits that maximize fidelity of the experiment.
+pick well-performing qubits that maximize the fidelity of the experiment.
 There are several techniques that can assist with this.
 
 *   Analyze calibration metrics:  performance of readout, single-qubit, and
