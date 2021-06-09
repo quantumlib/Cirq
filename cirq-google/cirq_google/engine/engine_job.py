@@ -17,7 +17,7 @@ import time
 
 from typing import Dict, Iterator, List, Optional, overload, Tuple, TYPE_CHECKING
 
-from cirq import study
+import cirq
 from cirq_google.engine import calibration
 from cirq_google.engine.calibration_result import CalibrationResult
 from cirq_google.engine.client import quantum
@@ -79,9 +79,9 @@ class EngineJob:
         self.job_id = job_id
         self.context = context
         self._job = _job
-        self._results: Optional[List[study.Result]] = None
+        self._results: Optional[List[cirq.Result]] = None
         self._calibration_results: Optional[CalibrationResult] = None
-        self._batched_results: Optional[List[List[study.Result]]] = None
+        self._batched_results: Optional[List[List[cirq.Result]]] = None
         self.result_type = result_type
 
     def engine(self) -> 'engine_base.Engine':
@@ -207,7 +207,7 @@ class EngineJob:
             )
         return None
 
-    def get_repetitions_and_sweeps(self) -> Tuple[int, List[study.Sweep]]:
+    def get_repetitions_and_sweeps(self) -> Tuple[int, List[cirq.Sweep]]:
         """Returns the repetitions and sweeps for the Quantum Engine job.
 
         Returns:
@@ -223,7 +223,7 @@ class EngineJob:
     @staticmethod
     def _deserialize_run_context(
         run_context: quantum.types.any_pb2.Any,
-    ) -> Tuple[int, List[study.Sweep]]:
+    ) -> Tuple[int, List[cirq.Sweep]]:
         import cirq_google.engine.engine as engine_base
 
         run_context_type = run_context.type_url[len(engine_base.TYPE_PREFIX) :]
@@ -272,7 +272,7 @@ class EngineJob:
         """Deletes the job and result, if any."""
         self.context.client.delete_job(self.project_id, self.program_id, self.job_id)
 
-    def batched_results(self) -> List[List[study.Result]]:
+    def batched_results(self) -> List[List[cirq.Result]]:
         """Returns the job results, blocking until the job is complete.
 
         This method is intended for batched jobs.  Instead of flattening
@@ -302,7 +302,7 @@ class EngineJob:
         )
         return response.result
 
-    def results(self) -> List[study.Result]:
+    def results(self) -> List[cirq.Result]:
         """Returns the job results, blocking until the job is complete."""
         import cirq_google.engine.engine as engine_base
 
@@ -357,7 +357,7 @@ class EngineJob:
         return self._calibration_results
 
     @staticmethod
-    def _get_job_results_v1(result: v1.program_pb2.Result) -> List[study.Result]:
+    def _get_job_results_v1(result: v1.program_pb2.Result) -> List[cirq.Result]:
         trial_results = []
         for sweep_result in result.sweep_results:
             sweep_repetitions = sweep_result.repetitions
@@ -367,15 +367,15 @@ class EngineJob:
                 measurements = v1.unpack_results(data, sweep_repetitions, key_sizes)
 
                 trial_results.append(
-                    study.Result.from_single_parameter_set(
-                        params=study.ParamResolver(result.params.assignments),
+                    cirq.Result.from_single_parameter_set(
+                        params=cirq.ParamResolver(result.params.assignments),
                         measurements=measurements,
                     )
                 )
         return trial_results
 
     @classmethod
-    def _get_batch_results_v2(cls, results: v2.batch_pb2.BatchResult) -> List[List[study.Result]]:
+    def _get_batch_results_v2(cls, results: v2.batch_pb2.BatchResult) -> List[List[cirq.Result]]:
         trial_results = []
         for result in results.results:
             # Add a new list for the result
@@ -383,11 +383,11 @@ class EngineJob:
         return trial_results
 
     @classmethod
-    def _flatten(cls, result) -> List[study.Result]:
+    def _flatten(cls, result) -> List[cirq.Result]:
         return [res for result_list in result for res in result_list]
 
     @staticmethod
-    def _get_job_results_v2(result: v2.result_pb2.Result) -> List[study.Result]:
+    def _get_job_results_v2(result: v2.result_pb2.Result) -> List[cirq.Result]:
         sweep_results = v2.results_from_proto(result)
         # Flatten to single list to match to sampler api.
         return [trial_result for sweep_result in sweep_results for trial_result in sweep_result]
@@ -424,16 +424,16 @@ class EngineJob:
                     )
                 )
 
-    def __iter__(self) -> Iterator[study.Result]:
+    def __iter__(self) -> Iterator[cirq.Result]:
         return iter(self.results())
 
     # pylint: disable=function-redefined
     @overload
-    def __getitem__(self, item: int) -> study.Result:
+    def __getitem__(self, item: int) -> cirq.Result:
         pass
 
     @overload
-    def __getitem__(self, item: slice) -> List[study.Result]:
+    def __getitem__(self, item: slice) -> List[cirq.Result]:
         pass
 
     def __getitem__(self, item):

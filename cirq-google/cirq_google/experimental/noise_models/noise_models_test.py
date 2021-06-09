@@ -18,7 +18,6 @@ import pytest
 from google.protobuf.text_format import Merge
 
 import cirq
-from cirq import ops
 from cirq.testing import assert_equivalent_op_tree
 import cirq_google
 from cirq_google.api import v2
@@ -131,7 +130,7 @@ def test_per_qubit_depol_noise_from_data():
         cirq.Moment([cirq.H(qubits[0])]),
         cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
         cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
-        cirq.Moment([cirq.Z(qubits[1]).with_tags(ops.VirtualTag())]),
+        cirq.Moment([cirq.Z(qubits[1]).with_tags(cirq.VirtualTag())]),
         cirq.Moment(
             [
                 cirq.measure(qubits[0], key='q0'),
@@ -160,7 +159,7 @@ def test_per_qubit_depol_noise_from_data():
                 cirq.DepolarizingChannel(DEPOL_003).on(qubits[2]),
             ]
         ),
-        cirq.Moment([cirq.Z(qubits[1]).with_tags(ops.VirtualTag())]),
+        cirq.Moment([cirq.Z(qubits[1]).with_tags(cirq.VirtualTag())]),
         cirq.Moment(
             [
                 cirq.measure(qubits[0], key='q0'),

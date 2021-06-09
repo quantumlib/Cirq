@@ -449,3 +449,7 @@ def test_sycamore23_str():
                                     │
                                     (9, 4)"""
     )
+
+
+def test_sycamore23_qid_pairs():
+    assert len(cg.Sycamore23.qid_pairs()) == 32
