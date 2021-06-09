@@ -1,9 +1,10 @@
 import {Sphere} from './components/Sphere.class';
-import {Axes} from './components/Axes.class';
-import Meridians from './components/Meridians.class';
+import {generateAxis} from './components/Axes.class';
+import {createHorizontalChordMeridians, createVerticalMeridians} from './components/Meridians.class';
 import {Text} from './components/Text.class';
 
 import {Group} from 'three';
+import { createVerticalMeridians } from './components/Meridians.class';
 
 /**
  * Class bringinging together the individual components like the
@@ -41,21 +42,21 @@ export class BlochSphere {
   }
 
   private addAxes() {
-    const axes = Axes.createAxes(this.radius);
+    const axes = generateAxis(this.radius);
     this.group.add(axes.x);
     this.group.add(axes.y);
     this.group.add(axes.z);
   }
 
   private addHorizontalMeridians() {
-    const meridians = Meridians.createHorizontalChordMeridians(this.radius);
+    const meridians = createHorizontalChordMeridians(this.radius);
     for (const meridian of meridians) {
       this.group.add(meridian);
     }
   }
 
   private addVerticalMeridians() {
-    const meridians = Meridians.createVerticalMeridians(this.radius);
+    const meridians = createVerticalMeridians(this.radius);
     for (const meridian of meridians) {
       this.group.add(meridian);
     }
