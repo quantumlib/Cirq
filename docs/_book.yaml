@@ -188,6 +188,8 @@ upper_tabs:
         path: /cirq/tutorials/google/visualizing_calibration_metrics
       - title: "Selecting qubits and calibrating circuits"
         path: /cirq/tutorials/google/advanced_calibration
+      - title: "Compare to latest calibration"
+        path: /cirq/tutorials/google/compare_to_calibration
 
       ####  AQT HARDWARE  ####
       - heading: "AQT hardware"
