@@ -100,24 +100,22 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         )
         return bits
 
-    def copy(self) -> 'cirq.ActOnDensityMatrixArgs':
-        return ActOnDensityMatrixArgs(
-            target_tensor=self.target_tensor.copy(),
-            available_buffer=[b.copy() for b in self.available_buffer],
-            qubits=self.qubits,
-            axes=self.axes,
-            qid_shape=self.qid_shape,
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results.copy(),
-        )
+    def _on_copy(self, target: 'ActOnDensityMatrixArgs'):
+        target.target_tensor = self.target_tensor.copy()
+        target.available_buffer = [b.copy() for b in self.available_buffer]
 
-    def _join(self, other: 'cirq.ActOnDensityMatrixArgs', target: 'cirq.ActOnDensityMatrixArgs'):
+    def _on_join(self, other: 'ActOnDensityMatrixArgs', target: 'ActOnDensityMatrixArgs'):
         target_tensor = tf.merge_density_matrices(self.target_tensor, other.target_tensor)
         target.target_tensor = target_tensor
         target.available_buffer = [np.empty_like(target_tensor) for _ in range(3)]
         target.qid_shape = target_tensor.shape[: int(target_tensor.ndim / 2)]
 
-    def _extract(self, qubits: Sequence['cirq.Qid'], extracted: 'cirq.ActOnDensityMatrixArgs', remainder: 'cirq.ActOnDensityMatrixArgs'):
+    def _on_extract(
+        self,
+        qubits: Sequence['cirq.Qid'],
+        extracted: 'ActOnDensityMatrixArgs',
+        remainder: 'ActOnDensityMatrixArgs',
+    ):
         axes = [self.qubit_map[q] for q in qubits]
         extracted_tensor, remainder_tensor = tf.split_density_matrices(self.target_tensor, axes)
         extracted.target_tensor = extracted_tensor
@@ -127,21 +125,14 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         remainder.available_buffer = [np.empty_like(remainder_tensor) for _ in range(3)]
         remainder.qid_shape = remainder_tensor.shape[: int(remainder_tensor.ndim / 2)]
 
-    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'cirq.ActOnDensityMatrixArgs':
-        assert len(qubits) == len(self.qubits)
+    def _on_reorder(self, qubits: Sequence['cirq.Qid'], args: 'ActOnDensityMatrixArgs'):
         axes = [self.qubit_map[q] for q in qubits]
         axes = axes + [i + len(qubits) for i in axes]
         new_tensor = np.moveaxis(self.target_tensor, axes, range(len(qubits) * 2))
         buffer = [np.empty_like(new_tensor) for _ in self.available_buffer]
-        return ActOnDensityMatrixArgs(
-            target_tensor=new_tensor,
-            available_buffer=buffer,
-            qubits=qubits,
-            qid_shape=new_tensor.shape[: int(new_tensor.ndim / 2)],
-            axes=(),
-            prng=self.prng,
-            log_of_measurement_results=self.log_of_measurement_results,
-        )
+        args.target_tensor = new_tensor
+        args.available_buffer = buffer
+        args.qid_shape = new_tensor.shape[: int(new_tensor.ndim / 2)]
 
 
 def _strat_apply_channel_to_state(

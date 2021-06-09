@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Dict, Any, Sequence, Tuple, Optional
+from typing import List, Dict, Any, Sequence, Optional
 
 import cirq
 
@@ -26,37 +26,22 @@ class EmptyActOnArgs(cirq.ActOnArgs):
     def _perform_measurement(self) -> List[int]:
         return []
 
-    def copy(self) -> 'EmptyActOnArgs':
-        return EmptyActOnArgs(
-            qubits=self.qubits,
-            logs=self.log_of_measurement_results.copy(),
-        )
+    def _on_copy(self, target: 'EmptyActOnArgs') -> 'EmptyActOnArgs':
+        pass
 
     def _act_on_fallback_(self, action: Any, allow_decompose: bool):
         return True
 
-    def join(self, other: 'EmptyActOnArgs') -> 'EmptyActOnArgs':
-        return EmptyActOnArgs(
-            qubits=self.qubits + other.qubits,
-            logs=self.log_of_measurement_results,
-        )
+    def _on_join(self, other: 'EmptyActOnArgs', target: 'EmptyActOnArgs'):
+        pass
 
-    def extract(self, qubits: Sequence['cirq.Qid']) -> Tuple['EmptyActOnArgs', 'EmptyActOnArgs']:
-        extracted_args = EmptyActOnArgs(
-            qubits=qubits,
-            logs=self.log_of_measurement_results,
-        )
-        remainder_args = EmptyActOnArgs(
-            qubits=tuple(q for q in self.qubits if q not in qubits),
-            logs=self.log_of_measurement_results,
-        )
-        return extracted_args, remainder_args
+    def _on_extract(
+        self, qubits: Sequence['cirq.Qid'], extracted: 'EmptyActOnArgs', remainder: 'EmptyActOnArgs'
+    ):
+        pass
 
-    def reorder(self, qubits: Sequence['cirq.Qid']) -> 'EmptyActOnArgs':
-        return EmptyActOnArgs(
-            qubits=qubits,
-            logs=self.log_of_measurement_results,
-        )
+    def _on_reorder(self, qubits: Sequence['cirq.Qid'], target: 'EmptyActOnArgs'):
+        pass
 
 
 q0, q1 = qs2 = cirq.LineQubit.range(2)
