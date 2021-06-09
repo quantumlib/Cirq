@@ -17,7 +17,7 @@ export function showSphere(circleData: string, vectorData?: string) {
 
   const scene = new BlochSphereScene();
 
-  const object = new BlochSphere(inputData.radius).createBlochSphere();
+  const object = new BlochSphere(inputData.radius).getBlochSphere();
   scene.add(object);
 
   const vector = Vector.createVector(vectorData || undefined);

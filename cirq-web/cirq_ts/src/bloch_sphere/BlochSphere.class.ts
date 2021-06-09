@@ -12,17 +12,16 @@ import {Group} from 'three';
  */
 export class BlochSphere {
   private radius: number;
-  private _group: Group;
+  private group: Group;
 
   constructor(radius: number) {
     this.radius = radius;
-    this._group = new Group();
-    this._add3dSphere();
-    this._addHorizontalMeridians();
-    this._addVerticalMeridians();
-    this._addAxes();
-    this._addAxes();
-    this._loadAndDisplayText();
+    this.group = new Group();
+    this.add3dSphere();
+    this.addHorizontalMeridians();
+    this.addVerticalMeridians();
+    this.addAxes();
+    this.loadAndDisplayText();
   }
 
   /**
@@ -31,40 +30,41 @@ export class BlochSphere {
    * @returns A Group object of all the added components of the
    * sphere.
    */
-  public createBlochSphere() : Group {
-    return this._group;
+  getBlochSphere() : Group {
+    // Return a clone of the group to avoid mutation.
+    return this.group.clone();
   }
 
-  private _add3dSphere() {
+  private add3dSphere() {
     const sphere = Sphere.createSphere(this.radius);
-    this._group.add(sphere);
+    this.group.add(sphere);
   }
 
-  private _addAxes() {
+  private addAxes() {
     const axes = Axes.createAxes(this.radius);
-    this._group.add(axes.x);
-    this._group.add(axes.y);
-    this._group.add(axes.z);
+    this.group.add(axes.x);
+    this.group.add(axes.y);
+    this.group.add(axes.z);
   }
 
-  private _addHorizontalMeridians() {
+  private addHorizontalMeridians() {
     const meridians = Meridians.createHorizontalChordMeridians(this.radius);
     for (const meridian of meridians) {
-      this._group.add(meridian);
+      this.group.add(meridian);
     }
   }
 
-  private _addVerticalMeridians() {
+  private addVerticalMeridians() {
     const meridians = Meridians.createVerticalMeridians(this.radius);
     for (const meridian of meridians) {
-      this._group.add(meridian);
+      this.group.add(meridian);
     }
   }
 
-  private _loadAndDisplayText() {
+  private loadAndDisplayText() {
     const textLabels = Text.loadAndDisplayText();
     for (const label of textLabels) {
-      this._group.add(label);
+      this.group.add(label);
     }
   }
 }
