@@ -307,7 +307,7 @@ involves running many varied circuits involving the two qubit gate in a method
 (either periodic or random) to identify the parameters of the gate's behavior.
 
 Gates used in Google's architecture fall into a general category of FSim gates,
-standing for *Fermion simulation*.  The generalized version of this gate can
+standing for *Fermionic simulation*.  The generalized version of this gate can
 be parameterized into 5 angles, or degrees of freedom.  Characterization will
 attempt to identify the values of these five angles.
 
