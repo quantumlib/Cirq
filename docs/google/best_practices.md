@@ -280,7 +280,7 @@ visually by applying a `cirq.Heatmap` to that data or by using the built-in
 heatmaps in the Cloud console page for the processor.  Note that, since this
 data is only taken during calibration (e.g. at most daily), drifts and other
 concerns may affect the values significantly, so these metrics should only be
-used as a first approximation.  There is no substitute for actually running
+used as a first approximation.  There is no substitute for actually running characterizations
 on the device.
 *   Loschmidt echo:  Running a small circuit on a string of qubits and then
 applying the circuit's inverse can be used as a quick but effective way to
