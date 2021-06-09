@@ -6,7 +6,7 @@ import {
   Mesh,
 } from 'three';
 
-import font_json from '../fonts/helvetiker_regular.typeface.json';
+import font_json from '../assets/fonts/helvetiker_regular.typeface.json';
 
 export class Text {
   /**
