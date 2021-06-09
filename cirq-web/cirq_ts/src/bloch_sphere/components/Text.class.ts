@@ -17,36 +17,34 @@ export class Text {
     const textLoader = new FontLoader();
     const resultLabels: Mesh[] = [];
 
-    // Get the font
     const font = textLoader.parse(font_json);
 
     const labelSize = 0.5;
     const labelHeight = 0.1;
+    const labels : Map<string, Vector3> = new Map();
+    // explicitly typing so we can access later
+    labels.set('|+⟩', new Vector3(5, 0, -0.1)) // z proportional to the height
+    labels.set('|-⟩', new Vector3(-5 - labelSize, 0, -0.1))
+    labels.set('|-i⟩', new Vector3(0, 0, 5))
+    labels.set('|i⟩', new Vector3(0, 0, -5 - labelHeight))
+    labels.set('|0⟩', new Vector3(0, 5, 0))
+    labels.set('|1⟩', new Vector3(0, -5 - labelSize, 0))
 
-    const labels: Record<string, Vector3> = {
-      // explicitly typing so we can access later
-      '|+⟩': new Vector3(5, 0, -0.1), // z proportional to the height
-      '|-⟩': new Vector3(-5 - labelSize, 0, -0.1),
-      '|-i⟩': new Vector3(0, 0, 5),
-      '|i⟩': new Vector3(0, 0, -5 - labelHeight),
-      '|0⟩': new Vector3(0, 5, 0),
-      '|1⟩': new Vector3(0, -5 - labelSize, 0),
-    };
 
     const materials = [
       new MeshBasicMaterial({color: 0xff0000}), // front
       new MeshBasicMaterial({color: 0xffffff}), // side
     ];
 
-    for (const label in labels) {
-      const labelGeo = new TextGeometry(label, {
+    for (let [text, vector] of labels) {
+      const labelGeo = new TextGeometry(text, {
         font: font,
         size: labelSize,
         height: labelHeight,
       });
 
       const textMesh = new Mesh(labelGeo, materials);
-      textMesh.position.copy(labels[label]);
+      textMesh.position.copy(vector);
       textMesh.rotateY(Math.PI / 2);
       resultLabels.push(textMesh);
     }

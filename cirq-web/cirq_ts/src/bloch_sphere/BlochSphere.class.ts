@@ -1,10 +1,9 @@
-import {Sphere} from './components/Sphere.class';
+import {createSphere} from './components/Sphere.class';
 import {generateAxis} from './components/Axes.class';
 import {createHorizontalChordMeridians, createVerticalMeridians} from './components/Meridians.class';
 import {Text} from './components/Text.class';
 
 import {Group} from 'three';
-import { createVerticalMeridians } from './components/Meridians.class';
 
 /**
  * Class bringinging together the individual components like the
@@ -15,7 +14,7 @@ export class BlochSphere {
   private radius: number;
   private group: Group;
 
-  constructor(radius: number) {
+  constructor(radius: number = 5) {
     this.radius = radius;
     this.group = new Group();
     this.add3dSphere();
@@ -37,7 +36,7 @@ export class BlochSphere {
   }
 
   private add3dSphere() {
-    const sphere = Sphere.createSphere(this.radius);
+    const sphere = createSphere(this.radius);
     this.group.add(sphere);
   }
 
