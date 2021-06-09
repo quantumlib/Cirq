@@ -1,7 +1,7 @@
 import {createSphere} from './components/Sphere.class';
 import {generateAxis} from './components/Axes.class';
 import {createHorizontalChordMeridians, createVerticalMeridians} from './components/Meridians.class';
-import {Text} from './components/Text.class';
+import {loadAndDisplayText} from './components/Text.class';
 
 import {Group} from 'three';
 
@@ -62,7 +62,7 @@ export class BlochSphere {
   }
 
   private loadAndDisplayText() {
-    const textLabels = Text.loadAndDisplayText();
+    const textLabels = loadAndDisplayText();
     for (const label of textLabels) {
       this.group.add(label);
     }
