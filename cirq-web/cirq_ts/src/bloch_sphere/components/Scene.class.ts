@@ -6,9 +6,21 @@ export class BlochSphereScene {
   private static readonly VIZ_HEIGHT: number = 500;
 
   private scene: Scene;
-  public camera: Camera;
-  public renderer: WebGLRenderer;
-  public controls: OrbitControls;
+
+  /**
+   * The following declarations represent the Camera, Renderer,
+   * and Controls objects for the scene.
+   * camera - the Three.js camera object responsible for seeing the
+   *  visualization from different locations 
+   * renderer - the Three.js renderer object resposible for rendering
+   *  the visualization into the browser. We will be using the WebGL 
+   * renderer
+   * controls - the Three.js OrbitControls object reponsible for managing
+   *  mouse input and moving the camera, zooming in and out, etc. 
+   */
+  camera: Camera;
+  renderer: WebGLRenderer;
+  controls: OrbitControls;
 
   /**
    * Initializes a 3D Scene proportional to the bloch sphere visualzation.
