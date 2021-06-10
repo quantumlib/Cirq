@@ -52,7 +52,7 @@ def test_decompose():
     assert act_on_args.strat_act_on_from_apply_decompose(Composite(), args)
 
 
-def test_get_item():
+def test_mapping():
     class DummyArgs(cirq.ActOnArgs):
         def __init__(self):
             super().__init__(qubits=[cirq.LineQubit(0)])
@@ -64,6 +64,7 @@ def test_get_item():
             pass
 
     args = DummyArgs()
+    assert list(iter(args)) == [cirq.LineQubit(0)]
     r1 = args[cirq.LineQubit(0)]
     assert args is r1
     with pytest.raises(IndexError):
