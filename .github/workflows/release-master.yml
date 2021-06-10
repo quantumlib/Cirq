@@ -8,7 +8,7 @@ jobs:
   push_to_pypi:
     if: github.repository == 'quantumlib/Cirq'
     name: Push to PyPi
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     env:
       NAME: dev-release
     steps:
