@@ -287,5 +287,5 @@ jobs:
           node-version: '14.16.1'
       - name: Install npm
         run: npm --prefix 'cirq-web/cirq_ts' ci
-      - name: Lint
+      - name: Test
         run: check/ts-test 
