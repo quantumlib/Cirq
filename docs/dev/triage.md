@@ -146,7 +146,7 @@ Issues should be automatically closed by PRs using the `Fixes #XYZD.` phrase in 
 
 - Bugs and Feature requests in states `triage/needs-reproduction` and `triage/needs-design-work`, i.e. where the author is required to provide more details get an automated comment "*This issue has not received any updates in 30 days*" and then is marked as `triage/stale` after 60 days and are closed. 
 - Documentation (`kind/docs`) issues **without** `triage/accepted` or `triage/discuss` are subject to 60 days staleness policy as well. 
-- Roadmap-items and Tasks, and issues in **triage/accepted** or triage/discuss state never get stale automatically, they are subject to review during daily / weekly triage and the twice a year **Bug Smash**.
+- Roadmap-items and Tasks, and issues in `triage/accepted` or `triage/discuss` state never get stale automatically, they are subject to review during daily / weekly triage and the twice a year **Bug Smash**.
 
 To summarize, **all issues** are subject to staleness-check, **except** the following:
 
@@ -156,7 +156,7 @@ To summarize, **all issues** are subject to staleness-check, **except** the foll
 * `kind/roadmap-item`
 * `kind/task` 
 
-The staleness check automation is implemented via Github Actions, the latest definition of staleness is defined in [our staleness Github Action worklfow](https://github.com/quantumlib/Cirq/blob/master/.github/workflows/stale.yml).
+The staleness check automation is implemented via Github Actions, the latest definition of staleness is defined in [our staleness Github Action workflow](https://github.com/quantumlib/Cirq/blob/master/.github/workflows/stale.yml).
 
 
 ## Processes
