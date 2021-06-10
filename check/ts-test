@@ -6,7 +6,7 @@
 # Usage:
 #     check/ts-test
 #
-# "npm run test" runs unit tests as well as checks for lint errors
+# "npm run test" runs unit tests
 ################################################################################
 
 # Get the working directory to the repo root.

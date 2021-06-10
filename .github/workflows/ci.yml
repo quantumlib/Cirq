@@ -278,3 +278,14 @@ jobs:
         run: npm --prefix 'cirq-web/cirq_ts' ci
       - name: Lint
         run: check/ts-lint 
+  ts-test:
+    name: Typescript unit testing
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          node-version: '14.16.1'
+      - name: Install npm
+        run: npm --prefix 'cirq-web/cirq_ts' ci
+      - name: Lint
+        run: check/ts-test 
