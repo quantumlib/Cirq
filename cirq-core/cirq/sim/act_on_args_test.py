@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 
 import cirq
 from cirq.sim import act_on_args
@@ -49,3 +50,21 @@ def test_decompose():
 
     args = DummyArgs(axes=[0])
     assert act_on_args.strat_act_on_from_apply_decompose(Composite(), args)
+
+
+def test_get_item():
+    class DummyArgs(cirq.ActOnArgs):
+        def __init__(self):
+            super().__init__(qubits=[cirq.LineQubit(0)])
+
+        def copy(self):
+            pass
+
+        def _perform_measurement(self):
+            pass
+
+    args = DummyArgs()
+    r1 = args[cirq.LineQubit(0)]
+    assert args is r1
+    with pytest.raises(IndexError):
+        _ = args[cirq.LineQubit(1)]
