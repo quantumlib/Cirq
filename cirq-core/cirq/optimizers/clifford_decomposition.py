@@ -14,51 +14,50 @@
 
 """Utility methods related to decompose clifford gate into circuits."""
 
-from typing import Iterable, List, Tuple, Optional, cast, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
+import functools
 
 import numpy as np
-import functools
-from cirq import ops, linalg, protocols, circuits, qis
+from cirq import ops, protocols, qis, sim
 
 if TYPE_CHECKING:
     import cirq
 
 
-def _X(tableau, q, operations, qubits):
-    tableau.rs[:] ^= tableau.zs[:, q]
+def _X(q, args, operations, qubits):
+    args.axes = [q]
+    protocols.act_on(ops.X, args, allow_decompose=False)
     operations.append(ops.X(qubits[q]))
 
 
-def _Z(tableau, q, operations, qubits):
-    tableau.rs[:] ^= tableau.xs[:, q]
+def _Z(q, args, operations, qubits):
+    args.axes = [q]
+    protocols.act_on(ops.Z, args, allow_decompose=False)
     operations.append(ops.Z(qubits[q]))
 
 
-def _Sdg(tableau, q, operations, qubits):
+def _Sdg(q, args, operations, qubits):
     # Apply the tableau with S^+, so the inverse of operation is S
-    tableau.rs[:] ^= tableau.xs[:, q] & (~tableau.zs[:, q])
-    tableau.zs[:, q] ^= tableau.xs[:, q]
+    args.axes = [q]
+    protocols.act_on(ops.ZPowGate() ** 1.5, args, allow_decompose=False)
     operations.append(ops.S(qubits[q]))
 
 
-def _H(tableau, q, operations, qubits):
-    (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(), tableau.xs[:, q].copy())
-    tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
+def _H(q, args, operations, qubits):
+    args.axes = [q]
+    protocols.act_on(ops.H, args, allow_decompose=False)
     operations.append(ops.H(qubits[q]))
 
 
-def _CNOT(tableau, q1, q2, operations, qubits):
-    tableau.rs[:] ^= (
-        tableau.xs[:, q1] & tableau.zs[:, q2] & (~(tableau.xs[:, q2] ^ tableau.zs[:, q1]))
-    )
-    tableau.xs[:, q2] ^= tableau.xs[:, q1]
-    tableau.zs[:, q1] ^= tableau.zs[:, q2]
+def _CNOT(q1, q2, args, operations, qubits):
+    args.axes = [q1, q2]
+    protocols.act_on(ops.CNOT, args, allow_decompose=False)
     operations.append(ops.CNOT(qubits[q1], qubits[q2]))
 
 
-def _SWAP(tableau, q1, q2, operations, qubits):
-    tableau.xs[:, [q1, q2]] = tableau.xs[:, [q2, q1]]
-    tableau.zs[:, [q1, q2]] = tableau.zs[:, [q2, q1]]
+def _SWAP(q1, q2, args, operations, qubits):
+    args.axes = [q1, q2]
+    protocols.act_on(ops.SWAP, args, allow_decompose=False)
     operations.append(ops.SWAP(qubits[q1], qubits[q2]))
 
 
@@ -84,63 +83,69 @@ def decompose_clifford_tableau_to_operations(
 
     t: qis.CliffordTableau = clifford_tableau.copy()
     operations: List[ops.Operation] = []
-    _X_with_ops = functools.partial(_X, operations=operations, qubits=qubits)
-    _Z_with_ops = functools.partial(_Z, operations=operations, qubits=qubits)
-    _H_with_ops = functools.partial(_H, operations=operations, qubits=qubits)
-    _S_with_ops = functools.partial(_Sdg, operations=operations, qubits=qubits)
-    _CNOT_with_ops = functools.partial(_CNOT, operations=operations, qubits=qubits)
-    _SWAP_with_ops = functools.partial(_SWAP, operations=operations, qubits=qubits)
+    args = sim.ActOnCliffordTableauArgs(
+        tableau=t, axes=[], prng=np.random.RandomState(), log_of_measurement_results={}
+    )
+
+    _X_with_ops = functools.partial(_X, args=args, operations=operations, qubits=qubits)
+    _Z_with_ops = functools.partial(_Z, args=args, operations=operations, qubits=qubits)
+    _H_with_ops = functools.partial(_H, args=args, operations=operations, qubits=qubits)
+    _S_with_ops = functools.partial(_Sdg, args=args, operations=operations, qubits=qubits)
+    _CNOT_with_ops = functools.partial(_CNOT, args=args, operations=operations, qubits=qubits)
+    _SWAP_with_ops = functools.partial(_SWAP, args=args, operations=operations, qubits=qubits)
 
     # The procedure is based on theorem 8 in
     # [1] S. Aaronson, D. Gottesman, *Improved Simulation of Stabilizer Circuits*,
     #     Phys. Rev. A 70, 052328 (2004). https://arxiv.org/abs/quant-ph/0406196
-    # with some modification by doing it row-by-row instead.
+    # with modification by doing it row-by-row instead.
 
     # Suppose we have a Clifford Tableau
-    #                  Xs   Zs
+    #                   Xs  Zs
     # Destabilizers:  [ A | B ]
     # Stabilizers:    [ C | D ]
     for i in range(t.n):
-        # Step 1: Make sure the Diagonal Elements are 1 by swapping.
+        # Step 1a: Make the diagonal element of A as 1 by Hadamard gate if necessary.
+        if not t.xs[i, i] and t.zs[i, i]:
+            _H_with_ops(i)
+        # Step 1b: Make the diagonal element of A as 1 by swapping gate if necessary.
         if not t.xs[i, i]:
             for j in range(i + 1, t.n):
                 if t.xs[i, j]:
-                    _SWAP_with_ops(t, i, j)
+                    _SWAP_with_ops(i, j)
                     break
-        # We may still not be able to find non-zero element in whole Xs row. In this case,
+        # Step 1c: We may still not be able to find non-zero element in whole Xs row. Then,
         # apply swap + Hadamard from zs. It is guaranteed to find one by lemma 5 in [1].
         if not t.xs[i, i]:
-            for j in range(i, t.n):
+            for j in range(i + 1, t.n):
                 if t.zs[i, j]:
-                    _H_with_ops(t, j)
-                    if j != i:
-                        _SWAP_with_ops(t, i, j)
+                    _H_with_ops(j)
+                    _SWAP_with_ops(i, j)
                     break
 
-        # Step 2: Gaussian Elimination of A By CNOT and phase gate (row style).
+        # Step 2: Eliminate the elements in A By CNOT and phase gate (i-th row)
         # first i rows of destabilizers: [ I  0 | 0  0 ]
-        _ = [_CNOT_with_ops(t, i, j) for j in range(i + 1, t.n) if t.xs[i, j]]
+        _ = [_CNOT_with_ops(i, j) for j in range(i + 1, t.n) if t.xs[i, j]]
         if np.any(t.zs[i, i:]):
             if not t.zs[i, i]:
-                _S_with_ops(t, i)
-            _ = [_CNOT_with_ops(t, j, i) for j in range(i + 1, t.n) if t.zs[i, j]]
-            _S_with_ops(t, i)
+                _S_with_ops(i)
+            _ = [_CNOT_with_ops(j, i) for j in range(i + 1, t.n) if t.zs[i, j]]
+            _S_with_ops(i)
 
-        # Step 3: Gaussian Elimination of D By CNOT and phase gate (row style).
+        # Step 3: Eliminate the elements in D By CNOT and phase gate (i-th row)
         # first i rows of stabilizers: [ 0  0 | I  0 ]
-        _ = [_CNOT_with_ops(t, j, i) for j in range(i + 1, t.n) if t.zs[i + t.n, j]]
+        _ = [_CNOT_with_ops(j, i) for j in range(i + 1, t.n) if t.zs[i + t.n, j]]
         if np.any(t.xs[i + t.n, i:]):
             # Swap xs and zs
-            _H_with_ops(t, i)
-            _ = [_CNOT_with_ops(t, i, j) for j in range(i + 1, t.n) if t.xs[i + t.n, j]]
+            _H_with_ops(i)
+            _ = [_CNOT_with_ops(i, j) for j in range(i + 1, t.n) if t.xs[i + t.n, j]]
             if t.zs[i + t.n, i]:
-                _S_with_ops(t, i)
-            _H_with_ops(t, i)
+                _S_with_ops(i)
+            _H_with_ops(i)
 
     # Step 4: Correct the phase of tableau
-    _ = [_Z_with_ops(t, i) for i, p in enumerate(t.rs[: t.n]) if p]
-    _ = [_X_with_ops(t, i) for i, p in enumerate(t.rs[t.n :]) if p]
+    _ = [_Z_with_ops(i) for i, p in enumerate(t.rs[: t.n]) if p]
+    _ = [_X_with_ops(i) for i, p in enumerate(t.rs[t.n :]) if p]
 
-    # Step 5: invert the operations by reserver the orde: (AB)^{+} = B^{+} A^{+}.
+    # Step 5: invert the operations by reversing the orde: (AB)^{+} = B^{+} A^{+}.
     # Note only S gate is not self-adjoint.
     return operations[::-1]

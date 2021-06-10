@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 import numpy as np
 
 import cirq
@@ -112,7 +111,7 @@ def test_clifford_decompose_small_number_qubits_unitary():
     """
     n, num_ops = 5, 20
     gate_candidate = [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
-    for seed in range(150, 300):
+    for seed in range(100):
         prng = np.random.RandomState(seed)
         t = cirq.CliffordTableau(num_qubits=n)
         qubits = cirq.LineQubit.range(n)
@@ -134,12 +133,34 @@ def test_clifford_decompose_small_number_qubits_unitary():
 
 
 def test_clifford_decompose_large_number_qubits_tableau():
-    """Use tabeau inverse and then method to validate the decomposition of random Clifford Tableau.
+    """Use tabeau comparison to validate the decomposition of random Clifford Tableau.
 
-    This approach can validate very large number of qubits.
+    This approach can validate large number of qubits compared with unitary one.
     """
-    pass
+    n, num_ops = 100, 500
+    gate_candidate = [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
+    for seed in range(10):
+        prng = np.random.RandomState(seed)
+        t = cirq.CliffordTableau(num_qubits=n)
+        qubits = cirq.LineQubit.range(n)
+        expect_circ = cirq.Circuit()
+        args = cirq.ActOnCliffordTableauArgs(
+            tableau=t, axes=[], prng=prng, log_of_measurement_results={}
+        )
+        for _ in range(num_ops):
+            g = prng.randint(len(gate_candidate))
+            indices = (prng.randint(n),) if g < 5 else prng.choice(n, 2, replace=False)
+            args.axes = indices
+            cirq.act_on(gate_candidate[g], args, allow_decompose=False)
+            expect_circ.append(gate_candidate[g].on(*[qubits[i] for i in indices]))
+        ops = cirq.decompose_clifford_tableau_to_operations(qubits, args.tableau)
 
+        reconstruct_t = cirq.CliffordTableau(num_qubits=n)
+        reconstruct_args = cirq.ActOnCliffordTableauArgs(
+            tableau=reconstruct_t, axes=[], prng=prng, log_of_measurement_results={}
+        )
+        for op in ops:
+            reconstruct_args.axes = [q.x for q in op.qubits]
+            cirq.act_on(op.gate, reconstruct_args, allow_decompose=False)
 
-if __name__ == "__main__":
-    test_clifford_decompose_small_number_qubits_unitary()
+        assert t == reconstruct_t
