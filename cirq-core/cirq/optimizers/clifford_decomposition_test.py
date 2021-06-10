@@ -60,7 +60,7 @@ def test_clifford_decompose_one_qubit():
 
 
 def test_clifford_decompose_two_qubits():
-    """Two random instance for one qubit decomposition."""
+    """Two random instance for two qubits decomposition."""
     qubits = cirq.LineQubit.range(2)
     args = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=2),
@@ -104,10 +104,10 @@ def test_clifford_decompose_two_qubits():
     assert_allclose_up_to_global_phase(cirq.unitary(expect_circ), cirq.unitary(circ), atol=1e-7)
 
 
-def test_clifford_decompose_small_number_qubits_unitary():
-    """Use unitary matrix to validate the decomposition of random Clifford Tableau.
+def test_clifford_decompose_by_unitary():
+    """Validate the decomposition of random Clifford Tableau by unitary matrix.
 
-    Due to the exponential increasing in dimension, it cannot validate very large number of qubits.
+    Due to the exponential growth in dimension, it cannot validate very large number of qubits.
     """
     n, num_ops = 5, 20
     gate_candidate = [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
@@ -132,10 +132,10 @@ def test_clifford_decompose_small_number_qubits_unitary():
         assert_allclose_up_to_global_phase(cirq.unitary(expect_circ), cirq.unitary(circ), atol=1e-7)
 
 
-def test_clifford_decompose_large_number_qubits_tableau():
-    """Use tabeau comparison to validate the decomposition of random Clifford Tableau.
+def test_clifford_decompose_by_reconstruction():
+    """Validate the decomposition of random Clifford Tableau by reconstruction.
 
-    This approach can validate large number of qubits compared with unitary one.
+    This approach can validate large number of qubits compared with the unitary one.
     """
     n, num_ops = 100, 500
     gate_candidate = [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]

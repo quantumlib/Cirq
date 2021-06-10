@@ -64,14 +64,14 @@ def _SWAP(q1, q2, args, operations, qubits):
 def decompose_clifford_tableau_to_operations(
     qubits: List['cirq.Qid'], clifford_tableau: qis.CliffordTableau
 ) -> List[ops.Operation]:
-    """Decompose an n-qubit Clifford Tableau into one/two qubit operations.
+    """Decompose an n-qubit Clifford Tableau into a list of one/two qubit operations.
 
     Args:
         qubits: The list of qubits being operated on.
-        clifford_tableau: The Clifford Tableau used to decompose to the operations.
+        clifford_tableau: The Clifford Tableau for decomposition.
 
     Returns:
-        A list of operations implementing the Clifford tableau
+        A list of operations reconstructs the same Clifford tableau.
     """
     if len(qubits) != clifford_tableau.n:
         raise ValueError(
@@ -94,12 +94,12 @@ def decompose_clifford_tableau_to_operations(
     _CNOT_with_ops = functools.partial(_CNOT, args=args, operations=operations, qubits=qubits)
     _SWAP_with_ops = functools.partial(_SWAP, args=args, operations=operations, qubits=qubits)
 
-    # The procedure is based on theorem 8 in
+    # The procedure is based on Theorem 8 in
     # [1] S. Aaronson, D. Gottesman, *Improved Simulation of Stabilizer Circuits*,
     #     Phys. Rev. A 70, 052328 (2004). https://arxiv.org/abs/quant-ph/0406196
     # with modification by doing it row-by-row instead.
 
-    # Suppose we have a Clifford Tableau
+    # Suppose we have a Clifford Tableau:
     #                   Xs  Zs
     # Destabilizers:  [ A | B ]
     # Stabilizers:    [ C | D ]
