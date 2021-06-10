@@ -266,3 +266,15 @@ jobs:
         with:
           name: notebook-outputs
           path: out
+  ts-lint:
+    name: Typescript lint check
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # Do we want check multiple versions of Node.js?
+          node-version: '14.16.1'
+      - name: Install npm
+        run: npm --prefix 'cirq-web/cirq_ts' ci
+      - name: Lint
+        run: check/ts-lint 

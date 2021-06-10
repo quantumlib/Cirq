@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs gts on the Typescript files in the cirq-web package
+#
+# Usage:
+#     check/ts-lint-and-format
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$(git rev-parse --show-toplevel)"
+
+npm --prefix 'cirq-web/cirq_ts' run fix

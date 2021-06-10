@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs the test files 
+#
+# Usage:
+#     check/ts-test
+#
+# "npm run test" runs unit tests as well as checks for lint errors
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$(git rev-parse --show-toplevel)"
+
+npm --prefix 'cirq-web/cirq_ts' run test

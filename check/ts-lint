@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs the linter on the Typescript. Primarily used for CI.
+#
+# Usage:
+#     check/ts-lint
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$(git rev-parse --show-toplevel)"
+
+npm --prefix 'cirq-web/cirq_ts' run lint
