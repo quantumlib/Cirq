@@ -93,7 +93,7 @@ class Widget:
             then generating its absolute path.
 
         Args:
-            bundle_file_path: The relative path of the widget's bundle file starting from cirq_ts/       
+            bundle_file_path: The relative path of the widget's bundle file starting from cirq_ts/
         """
         absolute_path_prefix = resolve_path()
         self.bundle_file_path = f'{absolute_path_prefix}/{bundle_file_path}'

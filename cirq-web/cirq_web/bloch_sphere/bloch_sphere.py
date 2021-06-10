@@ -57,7 +57,7 @@ class BlochSphere(widget.Widget):
 
         If display() is called from the command line, [INSERT HERE]
         """
-        
+
         bundle_script = super().get_bundle_script()
         return f"""
         <div id="container"></div>
