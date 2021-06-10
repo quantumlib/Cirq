@@ -13,7 +13,7 @@
 # limitations under the License.
 """Protocol for object that have measurement keys."""
 
-from typing import AbstractSet, Any, Dict, Iterable, Tuple
+from typing import AbstractSet, Any, Dict, List, Iterable, Optional, Tuple
 
 from typing_extensions import Protocol
 
@@ -45,6 +45,10 @@ class SupportsMeasurementKey(Protocol):
         $$
     conditional on the measurement outcome being $k$.
     """
+
+    @doc_private
+    def _is_measurement_(self) -> str:
+        """Return if this object is (or contains) a measurement."""
 
     @doc_private
     def _measurement_key_(self) -> str:
@@ -106,6 +110,22 @@ def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
     raise TypeError(f"Object of type '{type(val)}' had no measurement keys.")
 
 
+def _measurement_keys_from_magic_methods(val: Any) -> Optional[AbstractSet[str]]:
+    """Uses the measurement key related magic methods to get the keys for this object."""
+
+    getter = getattr(val, '_measurement_keys_', None)
+    result = NotImplemented if getter is None else getter()
+    if result is not NotImplemented and result is not None:
+        return set(result)
+
+    getter = getattr(val, '_measurement_key_', None)
+    result = NotImplemented if getter is None else getter()
+    if result is not NotImplemented and result is not None:
+        return {result}
+
+    return result
+
+
 def measurement_keys(val: Any, *, allow_decompose: bool = True) -> AbstractSet[str]:
     """Gets the measurement keys of measurements within the given value.
 
@@ -122,15 +142,9 @@ def measurement_keys(val: Any, *, allow_decompose: bool = True) -> AbstractSet[s
         The measurement keys of the value. If the value has no measurement,
         the result is the empty tuple.
     """
-    getter = getattr(val, '_measurement_keys_', None)
-    result = NotImplemented if getter is None else getter()
+    result = _measurement_keys_from_magic_methods(val)
     if result is not NotImplemented and result is not None:
-        return set(result)
-
-    getter = getattr(val, '_measurement_key_', None)
-    result = NotImplemented if getter is None else getter()
-    if result is not NotImplemented and result is not None:
-        return {result}
+        return result
 
     if allow_decompose:
         operations, _, _ = _try_decompose_into_operations_and_qubits(val)
@@ -140,13 +154,66 @@ def measurement_keys(val: Any, *, allow_decompose: bool = True) -> AbstractSet[s
     return set()
 
 
-def is_measurement(val: Any) -> bool:
-    """Determines whether or not the given value is a measurement.
+def _is_measurement_from_magic_method(val: Any) -> Optional[bool]:
+    """Uses `is_measurement` magic method to determine if this object is a measurement."""
+    getter = getattr(val, '_is_measurement_', None)
+    return NotImplemented if getter is None else getter()
 
-    Measurements are identified by the fact that `cirq.measurement_keys` returns
-    a non-empty result for them.
+
+def _is_any_measurement(vals: List[Any], allow_decompose: bool) -> bool:
+    """Given a list of objects, returns True if any of them is a measurement.
+
+    If `allow_decompose` is True, decomposes the objects and runs the measurement checks on the
+    constituent decomposed operations. But a decompose operation is only called if all cheaper
+    checks are done. A BFS for searching measurements, where "depth" is each level of decompose.
     """
-    return bool(measurement_keys(val))
+    vals_to_decompose = []  # type: List[Any]
+    while vals:
+        val = vals.pop(0)
+        result = _is_measurement_from_magic_method(val)
+        if result is not NotImplemented:
+            if result is True:
+                return True
+            if result is False:
+                # Do not try any other strategies if `val` was explicitly marked as
+                # "not measurement".
+                continue
+
+        keys = _measurement_keys_from_magic_methods(val)
+        if keys is not NotImplemented and bool(keys) is True:
+            return True
+
+        if allow_decompose:
+            vals_to_decompose.append(val)
+
+        # If vals has finished iterating over, keep decomposing from vals_to_decompose until vals
+        # is populated with something.
+        while not vals:
+            if not vals_to_decompose:
+                # Nothing left to process, this is not a measurement.
+                return False
+            operations, _, _ = _try_decompose_into_operations_and_qubits(vals_to_decompose.pop(0))
+            if operations:
+                # Reverse the decomposed operations because measurements are typically at later
+                # moments.
+                vals = operations[::-1]
+
+    return False
+
+
+def is_measurement(val: Any, allow_decompose: bool = True) -> bool:
+    """Determines whether or not the given value is a measurement (or contains one).
+
+    Measurements are identified by the fact that any of them may have an `_is_measurement_` method
+    or `cirq.measurement_keys` returns a non-empty result for them.
+
+    Args:
+        val: The value which to evaluate.
+        allow_decompose: Defaults to True. When true, composite operations that
+            don't directly specify their `_is_measurement_` property will be decomposed in
+            order to find any measurements keys within the decomposed operations.
+    """
+    return _is_any_measurement([val], allow_decompose)
 
 
 def with_measurement_key_mapping(val: Any, key_map: Dict[str, str]):
