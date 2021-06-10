@@ -17,24 +17,29 @@ export class BlochSphereScene {
    * renderer
    * controls - the Three.js OrbitControls object reponsible for managing
    *  mouse input and moving the camera, zooming in and out, etc.
+   * divId - the id of the HTML div that will contain the scene output
    */
   camera: Camera;
   renderer: WebGLRenderer;
   controls: OrbitControls;
+  divId: string;
 
   /**
    * Initializes a 3D Scene proportional to the bloch sphere visualzation.
+   * @param divId The id of the HTML div that will contain the scene output
    * @param fov The vertical field of view for the Scene's Perspective Camera
    * @param aspect The aspect ratio for the Scene's Perspective Camera
    * @param near The near plane for the Scene's Perspective Camera
    * @param far The far plane for the Scene's Perspective Camera
    */
   public constructor(
+    divId: string = "container",
     fov = 75,
     aspect: number = BlochSphereScene.VIZ_HEIGHT / BlochSphereScene.VIZ_WIDTH,
     near = 0.1,
     far = 1000
   ) {
+    this.divId = divId;
     this.scene = new Scene();
     this.camera = new PerspectiveCamera(fov, aspect, near, far);
     this.renderer = new WebGLRenderer();
@@ -75,12 +80,11 @@ export class BlochSphereScene {
   }
 
   /**
-   * Adds the 3D Scene to the HTML. Currently locked onto
-   * the 'container' div.
+   * Adds the 3D Scene to the HTML according to the div id  
+   * provided in the constructor.
    */
   private addSceneToHTML() {
-    // We must assume that there is already a div element named 'container'
-    const container = document.getElementById('container')!;
+    const container = document.getElementById(this.divId)!;
     container.appendChild(this.renderer.domElement);
   }
 
