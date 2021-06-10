@@ -27,7 +27,7 @@ module.exports = {
   output: {
     filename: '[name].bundle.js',
     library: {
-      name: 'createSphere',
+      name: 'CirqTS',
       type: 'global',
     },
     path: path.resolve(__dirname, 'dist'),

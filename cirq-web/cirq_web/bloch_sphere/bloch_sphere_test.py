@@ -84,7 +84,7 @@ def test_repr_html():
         <div id="container"></div>
         {bundle_script}
         <script>
-        createSphere.showSphere('{bloch_sphere.sphere_json}', '{bloch_sphere.vector_json}');
+        CirqTS.showSphere('{bloch_sphere.sphere_json}', '{bloch_sphere.vector_json}');
         </script>
         """
     assert expected == bloch_sphere._repr_html_()
@@ -105,7 +105,7 @@ def test_generate_HTML_file_no_browser(tmpdir):
 
     template_script = f"""
         <script>
-        createSphere.showSphere('{bloch_sphere.sphere_json}', '{bloch_sphere.vector_json}');
+        CirqTS.showSphere('{bloch_sphere.sphere_json}', '{bloch_sphere.vector_json}');
         </script>
         """
 

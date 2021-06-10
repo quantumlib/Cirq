@@ -62,7 +62,7 @@ class BlochSphere(widget.Widget):
         <div id="container"></div>
         {bundle_script}
         <script>
-        createSphere.showSphere('{self.sphere_json}', '{self.vector_json}');
+        CirqTS.showSphere('{self.sphere_json}', '{self.vector_json}');
         </script>
         """
 
@@ -92,7 +92,7 @@ class BlochSphere(widget.Widget):
 
         template_script = f"""
         <script>
-        createSphere.showSphere('{self.sphere_json}', '{self.vector_json}');
+        CirqTS.showSphere('{self.sphere_json}', '{self.vector_json}');
         </script>
         """
 

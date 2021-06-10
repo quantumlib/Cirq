@@ -20,7 +20,7 @@ const browserContent = `
     <div id="container"></div>
     <script>${bundle_string}</script>
     <script>
-        createSphere.showSphere('{"radius": 5}');
+        CirqTS.showSphere('{"radius": 5}');
     </script>
     </body>
 </html>
