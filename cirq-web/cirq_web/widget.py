@@ -87,3 +87,17 @@ def resolve_path():
 
 class Widget:
     """Parent class for all widgets."""
+
+    def __init__(self, bundle_file_path):
+        """Initializes a Widget, gathering it's respective bundle file path and
+            then generating its absolute path.
+
+        Args:
+            bundle_file_path: The relative path of the widget's bundle file starting from cirq_ts/       
+        """
+        absolute_path_prefix = resolve_path()
+        self.bundle_file_path = f'{absolute_path_prefix}/{bundle_file_path}'
+
+    def get_bundle_script(self):
+        """Returns the bundle script of a widget"""
+        return to_script_tag(self.bundle_file_path)

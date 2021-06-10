@@ -31,7 +31,9 @@ class BlochSphere(widget.Widget):
         random=False,
     ):
         """Initializes a BlochSphere, gathering all the user information and
-        converting to JSON for output
+        converting to JSON for output.
+
+        Also initializes it's parent class Widget with the bundle file provided.
 
         Args:
             sphere_radius: the radius of the bloch sphere in the three.js diagram.
@@ -40,6 +42,8 @@ class BlochSphere(widget.Widget):
             state_vector: a state vector to pass in to be represented. The default
             vector is 1/sqrt(2) (|0⟩ +|1⟩) (the plus state)
         """
+
+        super().__init__('cirq_ts/dist/bloch_sphere.bundle.js')
 
         self.sphere_json = self._convertSphereInput(sphere_radius)
         self.bloch_vector = (
@@ -53,11 +57,8 @@ class BlochSphere(widget.Widget):
 
         If display() is called from the command line, [INSERT HERE]
         """
-
-        absolute_path_prefix = widget.resolve_path()
-        bundle_file_path = f'{absolute_path_prefix}/cirq_ts/dist/bloch_sphere.bundle.js'
-        bundle_script = widget.to_script_tag(bundle_file_path)
-
+        
+        bundle_script = super().get_bundle_script()
         return f"""
         <div id="container"></div>
         {bundle_script}
@@ -96,11 +97,7 @@ class BlochSphere(widget.Widget):
         </script>
         """
 
-        absolute_path_prefix = widget.resolve_path()
-        # Spit out the bundle.js into a script tag to then serve to the user
-        bundle_file_path = f'{absolute_path_prefix}/cirq_ts/dist/bloch_sphere.bundle.js'
-        bundle_script = widget.to_script_tag(bundle_file_path)
-
+        bundle_script = bundle_script = super().get_bundle_script()
         contents = template_div + bundle_script + template_script
         path_of_html_file = widget.write_output_file(output_directory, file_name, contents)
 
