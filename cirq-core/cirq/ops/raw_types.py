@@ -664,6 +664,12 @@ class TaggedOperation(Operation):
     def _measurement_key_(self) -> str:
         return protocols.measurement_key(self.sub_operation, NotImplemented)
 
+    def _is_measurement_(self) -> bool:
+        sub = getattr(self.sub_operation, "_is_measurement_", None)
+        if sub is not None:
+            return sub()
+        return NotImplemented
+
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation) or any(
             protocols.is_parameterized(tag) for tag in self.tags
