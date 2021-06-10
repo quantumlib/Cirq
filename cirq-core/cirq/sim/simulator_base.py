@@ -113,7 +113,7 @@ class SimulatorBase(
         self._split_untangled_states = split_untangled_states
 
     @abc.abstractmethod
-    def _create_act_on_arg(
+    def _create_partial_act_on_args(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
@@ -286,24 +286,24 @@ class SimulatorBase(
             args_map: Dict[Optional['cirq.Qid'], TActOnArgs] = {}
             if isinstance(initial_state, int):
                 for q in reversed(qubits):
-                    args_map[q] = self._create_act_on_arg(
+                    args_map[q] = self._create_partial_act_on_args(
                         initial_state=initial_state % q.dimension,
                         qubits=[q],
                         logs=log,
                     )
                     initial_state = int(initial_state / q.dimension)
             else:
-                args = self._create_act_on_arg(
+                args = self._create_partial_act_on_args(
                     initial_state=initial_state,
                     qubits=qubits,
                     logs=log,
                 )
                 for q in qubits:
                     args_map[q] = args
-            args_map[None] = self._create_act_on_arg(0, (), log)
+            args_map[None] = self._create_partial_act_on_args(0, (), log)
             return ActOnArgsContainer(args_map, qubits, self._split_untangled_states, log)
         else:
-            return self._create_act_on_arg(
+            return self._create_partial_act_on_args(
                 initial_state=initial_state,
                 qubits=qubits,
                 logs=log,

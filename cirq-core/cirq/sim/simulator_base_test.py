@@ -11,9 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import copy
+import math
 from typing import List, Dict, Any, Sequence, Tuple
 
-import copy
 import numpy as np
 import pytest
 
@@ -124,7 +125,7 @@ class CountingSimulator(
             split_untangled_states=split_untangled_states,
         )
 
-    def _create_act_on_arg(
+    def _create_partial_act_on_args(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
@@ -155,7 +156,7 @@ class SplittableCountingSimulator(CountingSimulator):
             split_untangled_states=split_untangled_states,
         )
 
-    def _create_act_on_arg(
+    def _create_partial_act_on_args(
         self,
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
@@ -165,7 +166,7 @@ class SplittableCountingSimulator(CountingSimulator):
 
 
 q0, q1 = cirq.LineQubit.range(2)
-entangled_state_repr = np.full((2, 2), .5)
+entangled_state_repr = np.array([[math.sqrt(0.5), 0], [0, math.sqrt(0.5)]])
 
 
 class TestOp(cirq.Operation):

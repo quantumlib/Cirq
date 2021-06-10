@@ -69,7 +69,7 @@ class CliffordSimulator(
         # TODO: support more general Pauli measurements
         return protocols.has_stabilizer_effect(op)
 
-    def _create_act_on_arg(
+    def _create_partial_act_on_args(
         self,
         initial_state: Union[int, clifford.ActOnStabilizerCHFormArgs],
         qubits: Sequence['cirq.Qid'],
