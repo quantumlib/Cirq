@@ -5,8 +5,15 @@ import {ArrowHelper, Vector3} from 'three';
  * @param vectorData information representing the location of the vector.
  * @returns an ArrowHelper object to be rendered by the scene.
  */
+interface Vector {
+  x: number;
+  y: number;
+  z: number;
+  v_length: number;
+}
+
 export function createVector(vectorData?: string): ArrowHelper {
-  let inputData;
+  let inputData: Vector;
   if (vectorData) {
     inputData = JSON.parse(vectorData);
   } else {

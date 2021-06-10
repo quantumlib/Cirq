@@ -33,7 +33,7 @@ export class BlochSphereScene {
    * @param far The far plane for the Scene's Perspective Camera
    */
   public constructor(
-    divId: string = "container",
+    divId = 'container',
     fov = 75,
     aspect: number = BlochSphereScene.VIZ_HEIGHT / BlochSphereScene.VIZ_WIDTH,
     near = 0.1,
@@ -80,7 +80,7 @@ export class BlochSphereScene {
   }
 
   /**
-   * Adds the 3D Scene to the HTML according to the div id  
+   * Adds the 3D Scene to the HTML according to the div id
    * provided in the constructor.
    */
   private addSceneToHTML() {

@@ -14,7 +14,11 @@ import {createVector} from './components/vector';
  * @param divId A string containing the div id that will contain the visualization
  * output.
  */
-export function showSphere(circleData: string, vectorData?: string, divId?: string) {
+export function showSphere(
+  circleData: string,
+  vectorData?: string,
+  divId?: string
+) {
   const inputData = JSON.parse(circleData);
   const scene = new BlochSphereScene(divId);
 
