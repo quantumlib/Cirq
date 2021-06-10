@@ -165,6 +165,7 @@ class SplittableCountingSimulator(CountingSimulator):
 
 
 q0, q1 = cirq.LineQubit.range(2)
+entangled_state_repr = np.full((2, 2), .5)
 
 
 class TestOp(cirq.Operation):
@@ -262,6 +263,7 @@ def test_integer_initial_state_is_split():
     sim = SplittableCountingSimulator()
     args = sim._create_act_on_args(2, (q0, q1))
     assert len(set(args.values())) == 3
+    assert args[q0] is not args[q1]
     assert args[q0].state == 1
     assert args[q1].state == 0
     assert args[None].state == 0
@@ -271,6 +273,7 @@ def test_integer_initial_state_is_not_split_if_disabled():
     sim = SplittableCountingSimulator(split_untangled_states=False)
     args = sim._create_act_on_args(2, (q0, q1))
     assert isinstance(args, SplittableCountingActOnArgs)
+    assert args[q0] is args[q1]
     assert args.state == 2
 
 
@@ -279,14 +282,15 @@ def test_integer_initial_state_is_not_split_if_impossible():
     args = sim._create_act_on_args(2, (q0, q1))
     assert isinstance(args, CountingActOnArgs)
     assert not isinstance(args, SplittableCountingActOnArgs)
+    assert args[q0] is args[q1]
     assert args.state == 2
 
 
 def test_non_integer_initial_state_is_not_split():
     sim = SplittableCountingSimulator()
-    args = sim._create_act_on_args('state', (q0, q1))
+    args = sim._create_act_on_args(entangled_state_repr, (q0, q1))
     assert len(set(args.values())) == 2
-    assert args[q0].state == 'state'
+    assert (args[q0].state == entangled_state_repr).all()
     assert args[q1] is args[q0]
     assert args[None].state == 0
 
@@ -303,7 +307,7 @@ def test_entanglement_causes_join():
 
 def test_measurement_causes_split():
     sim = SplittableCountingSimulator()
-    args = sim._create_act_on_args('state', (q0, q1))
+    args = sim._create_act_on_args(entangled_state_repr, (q0, q1))
     assert len(set(args.values())) == 2
     args.apply_operation(cirq.measure(q0))
     assert len(set(args.values())) == 3
@@ -317,6 +321,7 @@ def test_measurement_does_not_split_if_disabled():
     assert isinstance(args, SplittableCountingActOnArgs)
     args.apply_operation(cirq.measure(q0))
     assert isinstance(args, SplittableCountingActOnArgs)
+    assert args[q0] is args[q1]
 
 
 def test_measurement_does_not_split_if_impossible():
@@ -327,10 +332,11 @@ def test_measurement_does_not_split_if_impossible():
     args.apply_operation(cirq.measure(q0))
     assert isinstance(args, CountingActOnArgs)
     assert not isinstance(args, SplittableCountingActOnArgs)
+    assert args[q0] is args[q1]
 
 
 def test_reorder_succeeds():
     sim = SplittableCountingSimulator()
-    args = sim._create_act_on_args('state', (q0, q1))
+    args = sim._create_act_on_args(entangled_state_repr, (q0, q1))
     reordered = args[q0].reorder([q1, q0])
     assert reordered.qubits == (q1, q0)

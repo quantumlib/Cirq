@@ -13,7 +13,19 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
-from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING, Sequence, Tuple, cast, Set
+from typing import (
+    Any,
+    Iterable,
+    Dict,
+    List,
+    TypeVar,
+    TYPE_CHECKING,
+    Sequence,
+    Tuple,
+    cast,
+    Optional,
+    Iterator,
+)
 
 import numpy as np
 
@@ -116,6 +128,17 @@ class ActOnArgs(OperationTarget[TSelf]):
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         return self._qubits
+
+    def __getitem__(self: TSelf, item: Optional['cirq.Qid']) -> TSelf:
+        if item not in self.qubit_map:
+            raise IndexError(f'{item} not in {self.qubits}')
+        return self
+
+    def __len__(self) -> int:
+        return len(self.qubits)
+
+    def __iter__(self) -> Iterator[Optional['cirq.Qid']]:
+        return iter(self.qubits)
 
 
 def strat_act_on_from_apply_decompose(
