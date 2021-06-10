@@ -11,12 +11,12 @@ export class BlochSphereScene {
    * The following declarations represent the Camera, Renderer,
    * and Controls objects for the scene.
    * camera - the Three.js camera object responsible for seeing the
-   *  visualization from different locations 
+   *  visualization from different locations
    * renderer - the Three.js renderer object resposible for rendering
-   *  the visualization into the browser. We will be using the WebGL 
+   *  the visualization into the browser. We will be using the WebGL
    * renderer
    * controls - the Three.js OrbitControls object reponsible for managing
-   *  mouse input and moving the camera, zooming in and out, etc. 
+   *  mouse input and moving the camera, zooming in and out, etc.
    */
   camera: Camera;
   renderer: WebGLRenderer;

@@ -1,6 +1,9 @@
 import {createSphere} from './components/sphere';
 import {generateAxis} from './components/axes';
-import {createHorizontalChordMeridians, createVerticalMeridians} from './components/meridians';
+import {
+  createHorizontalChordMeridians,
+  createVerticalMeridians,
+} from './components/meridians';
 import {loadAndDisplayText} from './components/text';
 
 import {Group} from 'three';
@@ -14,7 +17,7 @@ export class BlochSphere {
   private radius: number;
   private group: Group;
 
-  constructor(radius: number = 5) {
+  constructor(radius = 5) {
     this.radius = radius;
     this.group = new Group();
     this.add3dSphere();
@@ -25,12 +28,12 @@ export class BlochSphere {
   }
 
   /**
-   * Returns the the group of three.js components that 
-   * make up the Bloch sphere. 
+   * Returns the the group of three.js components that
+   * make up the Bloch sphere.
    * @returns A Group object of all the added components of the
    * sphere.
    */
-  getBlochSphere() : Group {
+  getBlochSphere(): Group {
     // Return a clone of the group to avoid mutation.
     return this.group.clone();
   }

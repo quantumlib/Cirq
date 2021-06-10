@@ -6,19 +6,19 @@ enum Orientation {
 }
 
 interface CurveData {
-    anchorX: number,
-    anchor: number,
-    radius: number,
-    startAngle: number,
-    endAngle: number,
-    isClockwise: boolean,
-    rotation: number,
+  anchorX: number;
+  anchorY: number;
+  radius: number;
+  startAngle: number;
+  endAngle: number;
+  isClockwise: boolean;
+  rotation: number;
 }
 
 function curveDataWithRadius(radius: number): CurveData {
   return {
     anchorX: 0,
-    anchor: 0,
+    anchorY: 0,
     radius: radius,
     startAngle: 0,
     endAngle: 2 * Math.PI,
@@ -57,7 +57,7 @@ export function createHorizontalChordMeridians(radius: number): Line[] {
       curve,
       Math.PI / 2,
       Orientation.HORIZONTAL,
-      position,
+      position
     );
     meridians.push(meridianLine);
   }
@@ -69,7 +69,7 @@ export function createHorizontalChordMeridians(radius: number): Line[] {
  * by varying degrees across the same axis.
  * @param radius The radius of the overall Bloch sphere
  * @returns A list of circles (represented as Line objs) to draw on the scene
- */ 
+ */
 export function createHorizontalCircleMeridians(radius: number): Line[] {
   const curveData = curveDataWithRadius(radius);
   const curve = createMeridianCurve(curveData);
@@ -81,7 +81,7 @@ export function createHorizontalCircleMeridians(radius: number): Line[] {
   return meridians;
 }
 
-/** 
+/**
  * Creates equally sized vertical meridian lines which rotate
  * by varying degrees across the same axis
  * @param radius The radius of the overall bloch sphere
@@ -90,7 +90,7 @@ export function createHorizontalCircleMeridians(radius: number): Line[] {
 export function createVerticalMeridians(radius: number): Line[] {
   const curveData = {
     anchorX: 0,
-    anchor: 0,
+    anchorY: 0,
     radius: radius,
     startAngle: 0,
     endAngle: 2 * Math.PI,
@@ -121,12 +121,12 @@ function createMeridianLine(
   curve: EllipseCurve,
   rotationAngle: number,
   orientation: Orientation,
-  yPosition?: number,
+  yPosition?: number
 ): Line {
   const points = curve.getSpacedPoints(128);
   const meridianGeom = new BufferGeometry().setFromPoints(points);
 
-  orientation == Orientation.VERTICAL
+  orientation === Orientation.VERTICAL
     ? meridianGeom.rotateY(rotationAngle)
     : meridianGeom.rotateX(rotationAngle);
 
@@ -146,7 +146,7 @@ function createMeridianLine(
  * @param curveData An object that contains info about the curve
  * @returns An EllipseCurve object based off the curve information.
  */
- function createMeridianCurve(curveData: any): EllipseCurve {
+function createMeridianCurve(curveData: CurveData): EllipseCurve {
   return new EllipseCurve(
     curveData.anchorX,
     curveData.anchorY,
@@ -155,6 +155,6 @@ function createMeridianLine(
     curveData.startAngle,
     curveData.endAngle,
     curveData.isClockwise,
-    curveData.rotation,
+    curveData.rotation
   );
 }

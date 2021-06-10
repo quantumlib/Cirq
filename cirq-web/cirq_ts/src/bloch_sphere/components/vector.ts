@@ -1,7 +1,4 @@
-import {
-  ArrowHelper,
-  Vector3,
-} from 'three';
+import {ArrowHelper, Vector3} from 'three';
 
 /**
  * Adds a state vector to the bloch sphere.
@@ -38,9 +35,8 @@ export function createVector(vectorData?: string): ArrowHelper {
     length,
     hex,
     undefined,
-    headWidth,
+    headWidth
   );
 
   return arrowHelper;
 }
-

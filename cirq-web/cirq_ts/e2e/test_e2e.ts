@@ -1,6 +1,6 @@
-var fs = require('fs');
+const fs = require('fs');
 import * as puppeteer from 'puppeteer';
-import looksSame = require('looks-same')
+import looksSame = require('looks-same');
 import {expect} from 'chai';
 
 /**
@@ -9,7 +9,7 @@ import {expect} from 'chai';
  */
 
 // Due to the path, reading the file will only work by running "npm run start"
-let bundle_string = fs.readFileSync('dist/bloch_sphere.bundle.js')
+const bundle_string = fs.readFileSync('dist/bloch_sphere.bundle.js');
 const browserContent = `
 <!doctype html>
 <html lang="en">
@@ -30,22 +30,25 @@ const browserContent = `
  * Opens a headless browser with the generated HTML file
  * and takes a screenshot.
  */
-(async() => {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.setContent(browserContent);
-    await page.screenshot({path: 'actual/bloch_sphere_0.png'});
-    await browser.close();
+(async () => {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setContent(browserContent);
+  await page.screenshot({path: 'actual/bloch_sphere_0.png'});
+  await browser.close();
 })();
 
-
 /**
- * Testing to see if they look the same. 
+ * Testing to see if they look the same.
  */
 describe('Check Bloch Sphere looks correct', () => {
-    it('BS with |0⟩ statevector is correct', () => {
-        looksSame('actual/bloch_sphere_0.png', 'expected/bloch_sphere_0.png', function(error, {equal}){
-            expect(equal).to.equal(true);
-        })
-    })
-})
+  it('BS with |0⟩ statevector is correct', () => {
+    looksSame(
+      'actual/bloch_sphere_0.png',
+      'expected/bloch_sphere_0.png',
+      (error, {equal}) => {
+        expect(equal).to.equal(true);
+      }
+    );
+  });
+});
