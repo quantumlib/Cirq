@@ -24,38 +24,41 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _X(table, q, operations, qubits):
-    table.rs[:] ^= table.zs[:, q]
+def _X(tableau, q, operations, qubits):
+    tableau.rs[:] ^= tableau.zs[:, q]
     operations.append(ops.X(qubits[q]))
 
 
-def _Z(table, q, operations, qubits):
-    table.rs[:] ^= table.xs[:, q]
+def _Z(tableau, q, operations, qubits):
+    tableau.rs[:] ^= tableau.xs[:, q]
     operations.append(ops.Z(qubits[q]))
 
 
-def _S(table, q, operations, qubits):
-    table.rs[:] ^= table.xs[:, q] & table.zs[:, q]
-    table.zs[:, q] ^= table.xs[:, q]
-    operations.append(ops.S(qubits[q])**-1)
+def _Sdg(tableau, q, operations, qubits):
+    # Apply the tableau with S^+, so the inverse of operation is S
+    tableau.rs[:] ^= tableau.xs[:, q] & (~tableau.zs[:, q])
+    tableau.zs[:, q] ^= tableau.xs[:, q]
+    operations.append(ops.S(qubits[q]))
 
 
-def _H(table, q, operations, qubits):
-    (table.xs[:, q], table.zs[:, q]) = (table.zs[:, q].copy(), table.xs[:, q].copy())
-    table.rs[:] ^= table.xs[:, q] & table.zs[:, q]
+def _H(tableau, q, operations, qubits):
+    (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(), tableau.xs[:, q].copy())
+    tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
     operations.append(ops.H(qubits[q]))
 
 
-def _CNOT(table, q1, q2, operations, qubits):
-    table.rs[:] ^= table.xs[:, q1] & table.zs[:, q2] & (~(table.xs[:, q2] ^ table.zs[:, q1]))
-    table.xs[:, q2] ^= table.xs[:, q1]
-    table.zs[:, q1] ^= table.zs[:, q2]
+def _CNOT(tableau, q1, q2, operations, qubits):
+    tableau.rs[:] ^= (
+        tableau.xs[:, q1] & tableau.zs[:, q2] & (~(tableau.xs[:, q2] ^ tableau.zs[:, q1]))
+    )
+    tableau.xs[:, q2] ^= tableau.xs[:, q1]
+    tableau.zs[:, q1] ^= tableau.zs[:, q2]
     operations.append(ops.CNOT(qubits[q1], qubits[q2]))
 
 
-def _SWAP(table, q1, q2, operations, qubits):
-    table.xs[:, [q1, q2]] = table.xs[:, [q2, q1]]
-    table.zs[:, [q1, q2]] = table.xs[:, [q2, q1]]
+def _SWAP(tableau, q1, q2, operations, qubits):
+    tableau.xs[:, [q1, q2]] = tableau.xs[:, [q2, q1]]
+    tableau.zs[:, [q1, q2]] = tableau.zs[:, [q2, q1]]
     operations.append(ops.SWAP(qubits[q1], qubits[q2]))
 
 
@@ -84,7 +87,7 @@ def decompose_clifford_tableau_to_operations(
     _X_with_ops = functools.partial(_X, operations=operations, qubits=qubits)
     _Z_with_ops = functools.partial(_Z, operations=operations, qubits=qubits)
     _H_with_ops = functools.partial(_H, operations=operations, qubits=qubits)
-    _S_with_ops = functools.partial(_S, operations=operations, qubits=qubits)
+    _S_with_ops = functools.partial(_Sdg, operations=operations, qubits=qubits)
     _CNOT_with_ops = functools.partial(_CNOT, operations=operations, qubits=qubits)
     _SWAP_with_ops = functools.partial(_SWAP, operations=operations, qubits=qubits)
 
@@ -140,5 +143,4 @@ def decompose_clifford_tableau_to_operations(
 
     # Step 5: invert the operations by reserver the orde: (AB)^{+} = B^{+} A^{+}.
     # Note only S gate is not self-adjoint.
-    print(t.matrix(), t.rs)
     return operations[::-1]

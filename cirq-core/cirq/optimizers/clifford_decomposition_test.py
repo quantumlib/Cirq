@@ -19,35 +19,6 @@ import cirq
 from cirq.testing import assert_allclose_up_to_global_phase
 
 
-def _X(table, q, qubits, circ):
-    table.rs[:] ^= table.zs[:, q]
-    circ.append(cirq.X(qubits[q]))
-
-
-def _Z(table, q, qubits, circ):
-    table.rs[:] ^= table.xs[:, q]
-    circ.append(cirq.Z(qubits[q]))
-
-
-def _S(table, q, qubits, circ):
-    table.rs[:] ^= table.xs[:, q] & table.zs[:, q]
-    table.zs[:, q] ^= table.xs[:, q]
-    circ.append(cirq.S(qubits[q]))
-
-
-def _H(table, q, qubits, circ):
-    (table.xs[:, q], table.zs[:, q]) = (table.zs[:, q].copy(), table.xs[:, q].copy())
-    table.rs[:] ^= table.xs[:, q] & table.zs[:, q]
-    circ.append(cirq.H(qubits[q]))
-
-
-def _CNOT(table, q1, q2, qubits, circ):
-    table.rs[:] ^= table.xs[:, q1] & table.zs[:, q2] & (~(table.xs[:, q2] ^ table.zs[:, q1]))
-    table.xs[:, q2] ^= table.xs[:, q1]
-    table.zs[:, q1] ^= table.zs[:, q2]
-    circ.append(cirq.CNOT(qubits[q1], qubits[q2]))
-
-
 def test_clifford_decompose_one_qubit():
     """Two random instance for one qubit decomposition."""
     qubits = cirq.LineQubit.range(1)
@@ -139,9 +110,9 @@ def test_clifford_decompose_small_number_qubits_unitary():
 
     Due to the exponential increasing in dimension, it cannot validate very large number of qubits.
     """
-    n, num_ops = 2, 5
+    n, num_ops = 5, 20
     gate_candidate = [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
-    for seed in range(2, 3):
+    for seed in range(150, 300):
         prng = np.random.RandomState(seed)
         t = cirq.CliffordTableau(num_qubits=n)
         qubits = cirq.LineQubit.range(n)
@@ -156,11 +127,9 @@ def test_clifford_decompose_small_number_qubits_unitary():
             cirq.act_on(gate_candidate[g], args, allow_decompose=False)
             expect_circ.append(gate_candidate[g].on(*[qubits[i] for i in indices]))
         ops = cirq.decompose_clifford_tableau_to_operations(qubits, args.tableau)
-        print()
-        print(args.tableau.matrix().astype(int), '\n', args.tableau.rs.astype(int))
-        print(ops)
         circ = cirq.Circuit(ops)
-        print(expect_circ)
+        circ.append(cirq.I.on_each(qubits))
+        expect_circ.append(cirq.I.on_each(qubits))
         assert_allclose_up_to_global_phase(cirq.unitary(expect_circ), cirq.unitary(circ), atol=1e-7)
 
 
@@ -170,3 +139,7 @@ def test_clifford_decompose_large_number_qubits_tableau():
     This approach can validate very large number of qubits.
     """
     pass
+
+
+if __name__ == "__main__":
+    test_clifford_decompose_small_number_qubits_unitary()
