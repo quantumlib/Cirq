@@ -5,6 +5,7 @@
   "main": "index.js",
   "private": true,
   "dependencies": {
+    "@types/looks-same": "^4.1.0",
     "gts": "^3.1.0",
     "live-server": "^1.2.1",
     "tsc-watch": "^4.2.9",
@@ -20,6 +21,7 @@
     "concurrently": "^6.1.0",
     "gts": "^3.1.0",
     "install": "^0.13.0",
+    "looks-same": "^7.3.0",
     "mocha": "^9.0.0",
     "npm": "^7.16.0",
     "puppeteer": "^10.0.0",
@@ -35,7 +37,7 @@
   "scripts": {
     "start": "webpack serve --mode development",
     "build": "npm test && webpack --mode production",
-    "test": "mocha -r ts-node/register 'test/**/*.ts'",
+    "test": "webpack --mode production && mocha -r ts-node/register 'e2e/**/*.ts' && rm -rf actual",
     "lint": "gts lint",
     "clean": "gts clean",
     "compile": "tsc",

@@ -8,11 +8,11 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "noEmit": true,
     "downlevelIteration": true,
     "declaration": false,
+    "sourceMap": false,
     //"rootDir": ".",
-    //"outDir": "build"
+    "outDir": "build",
   },
   "include": [
     "src/**/*.ts",
