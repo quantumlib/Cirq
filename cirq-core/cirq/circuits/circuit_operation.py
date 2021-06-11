@@ -195,6 +195,7 @@ class CircuitOperation(ops.Operation):
             circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
         circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         if deep:
+
             def remap_op_fn(op: 'cirq.Operation'):
                 if isinstance(op, CircuitOperation):
                     return op.mapped_circuit(deep=True)
