@@ -145,7 +145,7 @@ def _create_base_env(proto_dir):
 
 
 def _partitioned_test_cases(notebooks):
-    n_partitions = 5
+    n_partitions = int(os.environ.get("NOTEBOOK_PARTITIONS","1"))
     return [(f"partition-{i%n_partitions}", notebook) for i, notebook in enumerate(notebooks)]
 
 
@@ -166,6 +166,7 @@ def test_notebooks_against_released_cirq(partition, notebook_path, base_env):
     regular expression, it is considered best practice to not use complicated regular expressions.
     Lines in this file that do not have `->` are ignored.
     """
+    pytest.skip()
     notebook_file = os.path.basename(notebook_path)
     notebook_rel_dir = os.path.dirname(os.path.relpath(notebook_path, "."))
     out_path = f"out/{notebook_rel_dir}/{notebook_file[:-6]}.out.ipynb"
