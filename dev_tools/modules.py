@@ -12,6 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+"""Utility tool for cirq modules.
+
+It can be used as a python library for python scripts as well as a CLI tool for
+bash scripts and interactive use.
+
+Features:
+
+listing modules:
+ - Python: see list_modules
+ - CLI: python3 dev_tools/modules.py list
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --mode {folder,package-path}
+                        'folder' to list root folder for module, 'package-path' for top level
+                        python package path
+  --include-parent      whether to include the parent package or not
+"""
+
 import argparse
 import dataclasses
 import os
@@ -31,7 +51,7 @@ class Module:
     name: str = dataclasses.field(init=False)
     version: str = dataclasses.field(init=False)
     top_level_packages: List[str] = dataclasses.field(init=False)
-    # top_level_package_paths: List[Path] = dataclasses.field(init=False)
+    top_level_package_paths: List[Path] = dataclasses.field(init=False)
 
     def __post_init__(self) -> None:
         self.name = self.raw_setup['name']

@@ -6,7 +6,7 @@
 `Cirq <https://quantumai.google/cirq>`__ is a Python library for writing, manipulating, and optimizing quantum
 circuits and running them against quantum computers and simulators.
 
-This module is **cirq-aqt**, which provides everything you'll need to run Cirq quantum algorithms on with Alpine Quantum quantum computers.
+This module is **cirq-aqt**, which provides everything you'll need to run Cirq quantum algorithms on AQT quantum computers.
 
 Documentation
 -------------
