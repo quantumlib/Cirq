@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: triage-party
+  namespace: triage-party
+spec:
+  selector:
+    matchLabels:
+      app: triage-party
+  template:
+    metadata:
+      labels:
+        app: triage-party
+    spec:
+      containers:
+      - name: triage-party
+        image: triageparty/triage-party
+        imagePullPolicy: Always
+        args: ["/app/main", "--min-refresh","5m", "--max-refresh", "5m"]
+        env:
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: triage-party-github-token
+              key: token
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+      volumes:
+      - name: config
+        configMap:
+          name: triage-party-config

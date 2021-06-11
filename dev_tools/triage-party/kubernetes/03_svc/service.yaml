@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: triage-party
+  namespace: triage-party
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 34.70.228.200
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    app: triage-party
