@@ -145,7 +145,7 @@ def _create_base_env(proto_dir):
 
 
 def _partitioned_test_cases(notebooks):
-    n_partitions = int(os.environ.get("NOTEBOOK_PARTITIONS","1"))
+    n_partitions = int(os.environ.get("NOTEBOOK_PARTITIONS", "1"))
     return [(f"partition-{i%n_partitions}", notebook) for i, notebook in enumerate(notebooks)]
 
 
