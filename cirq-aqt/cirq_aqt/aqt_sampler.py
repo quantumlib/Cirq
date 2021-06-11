@@ -25,17 +25,13 @@ https://gateway-portal.aqt.eu/
 import json
 import time
 import uuid
-from typing import Iterable, List, Union, Tuple, Dict, cast
+from typing import List, Union, Tuple, Dict, cast
 
 import numpy as np
 from requests import put
 
 import cirq
 from cirq_aqt.aqt_device import AQTSimulator, get_op_string
-
-Sweepable = Union[
-    cirq.ParamResolver, Iterable[cirq.ParamResolver], cirq.Sweep, Iterable[cirq.Sweep]
-]
 
 
 class AQTSampler(cirq.Sampler):
