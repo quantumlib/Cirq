@@ -1,0 +1,70 @@
+[
+  {
+    "cirq_type": "MatrixMixture",
+    "_mixture": [
+      [
+        0.5,
+        [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      ],
+      [
+        0.5,
+        [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            0
+          ]
+        ]
+      ]
+    ],
+    "_key": {
+      "cirq_type": "MeasurementKey",
+      "name": "flip",
+      "path": []
+    }
+  },
+  {
+    "cirq_type": "MatrixMixture",
+    "_mixture": [
+      [
+        0.5,
+        [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      ],
+      [
+        0.5,
+        [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            0
+          ]
+        ]
+      ]
+    ],
+    "_key": null
+  }
+]

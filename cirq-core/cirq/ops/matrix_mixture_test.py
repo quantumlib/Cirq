@@ -6,10 +6,10 @@ import pytest
 def test_matrix_mixture_from_mixture():
     q0 = cirq.LineQubit(0)
     dp = cirq.depolarize(0.1)
-    cc = cirq.MatrixMixture.from_mixture(dp, key='dp')
-    assert cirq.measurement_key(cc) == 'dp'
+    mm = cirq.MatrixMixture.from_mixture(dp, key='dp')
+    assert cirq.measurement_key(mm) == 'dp'
 
-    circuit = cirq.Circuit(cc.on(q0))
+    circuit = cirq.Circuit(mm.on(q0))
     sim = cirq.Simulator(seed=0)
 
     results = sim.simulate(circuit)
@@ -21,16 +21,16 @@ def test_matrix_mixture_from_mixture():
 def test_matrix_mixture_equality():
     dp_pt1 = cirq.depolarize(0.1)
     dp_pt2 = cirq.depolarize(0.2)
-    cc_a1 = cirq.MatrixMixture.from_mixture(dp_pt1, key='a')
-    cc_a2 = cirq.MatrixMixture.from_mixture(dp_pt2, key='a')
-    cc_b1 = cirq.MatrixMixture.from_mixture(dp_pt1, key='b')
+    mm_a1 = cirq.MatrixMixture.from_mixture(dp_pt1, key='a')
+    mm_a2 = cirq.MatrixMixture.from_mixture(dp_pt2, key='a')
+    mm_b1 = cirq.MatrixMixture.from_mixture(dp_pt1, key='b')
 
     # Even if their effect is the same, MatrixMixtures are not treated as equal
     # to other channels defined in Cirq.
-    assert cc_a1 != dp_pt1
-    assert cc_a1 != cc_a2
-    assert cc_a1 != cc_b1
-    assert cc_a2 != cc_b1
+    assert mm_a1 != dp_pt1
+    assert mm_a1 != mm_a2
+    assert mm_a1 != mm_b1
+    assert mm_a2 != mm_b1
 
     mix = [
         (0.5, np.array([[1, 0], [0, 1]])),
@@ -46,16 +46,19 @@ def test_matrix_mixture_equality():
 
 def test_matrix_mixture_remap_keys():
     dp = cirq.depolarize(0.1)
-    cc = cirq.MatrixMixture.from_mixture(dp)
-    assert cirq.with_measurement_key_mapping(cc, {'a': 'b'}) is NotImplemented
+    mm = cirq.MatrixMixture.from_mixture(dp)
+    with pytest.raises(TypeError):
+        _ = cirq.measurement_key(mm)
+    assert cirq.with_measurement_key_mapping(mm, {'a': 'b'}) is NotImplemented
 
-    cc_x = cirq.MatrixMixture.from_mixture(dp, key='x')
-    assert cirq.with_measurement_key_mapping(cc_x, {'a': 'b'}) is cc_x
+    mm_x = cirq.MatrixMixture.from_mixture(dp, key='x')
+    assert cirq.with_measurement_key_mapping(mm_x, {'a': 'b'}) is mm_x
+    assert cirq.measurement_key(cirq.with_key_path(mm_x, ('path',))) == 'path:x'
 
-    cc_a = cirq.MatrixMixture.from_mixture(dp, key='a')
-    cc_b = cirq.MatrixMixture.from_mixture(dp, key='b')
-    assert cc_a != cc_b
-    assert cirq.with_measurement_key_mapping(cc_a, {'a': 'b'}) == cc_b
+    mm_a = cirq.MatrixMixture.from_mixture(dp, key='a')
+    mm_b = cirq.MatrixMixture.from_mixture(dp, key='b')
+    assert mm_a != mm_b
+    assert cirq.with_measurement_key_mapping(mm_a, {'a': 'b'}) == mm_b
 
 
 def test_matrix_mixture_from_unitaries():
@@ -73,6 +76,55 @@ def test_matrix_mixture_from_unitaries():
     results = sim.simulate(circuit)
     assert 'flip' in results.measurements
     assert results.measurements['flip'] == results.measurements['m']
+
+
+def test_kraus_channel_str():
+    mix = [
+        (0.5, np.array([[1, 0], [0, 1]])),
+        (0.5, np.array([[0, 1], [1, 0]])),
+    ]
+    half_flip = cirq.MatrixMixture(mix)
+    assert (
+        str(half_flip)
+        == """MatrixMixture([(0.5, array([[1, 0],
+       [0, 1]])), (0.5, array([[0, 1],
+       [1, 0]]))])"""
+    )
+    half_flip_keyed = cirq.MatrixMixture(mix, key='flip')
+    assert (
+        str(half_flip_keyed)
+        == """MatrixMixture([(0.5, array([[1, 0],
+       [0, 1]])), (0.5, array([[0, 1],
+       [1, 0]]))], key=flip)"""
+    )
+
+
+def test_kraus_channel_repr():
+    mix = [
+        (0.5, np.array([[1, 0], [0, 1]])),
+        (0.5, np.array([[0, 1], [1, 0]])),
+    ]
+    half_flip = cirq.MatrixMixture(mix, key='flip')
+    assert (
+        repr(half_flip)
+        == """\
+cirq.MatrixMixture(mixture=[\
+(0.5, np.array([[1, 0], [0, 1]], dtype=np.int64)), \
+(0.5, np.array([[0, 1], [1, 0]], dtype=np.int64))], \
+key='flip')"""
+    )
+
+
+def test_mix_no_unitaries_fails():
+    with pytest.raises(ValueError, match='must have at least one unitary'):
+        _ = cirq.MatrixMixture(mixture=[], key='m')
+
+
+def test_mix_bad_prob_fails():
+    mix = [(0.5, np.array([[1, 0], [0, 0]]))]
+
+    with pytest.raises(ValueError, match='Unitary probabilities must sum to 1'):
+        _ = cirq.MatrixMixture(mixture=mix, key='m')
 
 
 def test_mix_mismatch_fails():

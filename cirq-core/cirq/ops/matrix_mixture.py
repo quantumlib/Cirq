@@ -1,8 +1,10 @@
-import numpy as np
 from typing import Any, Dict, Iterable, Optional, Tuple
+import numpy as np
 
 from cirq import protocols, value
+from cirq._compat import proper_repr
 from cirq.ops import raw_types
+
 
 class MatrixMixture(raw_types.Gate):
     """A generic mixture that can record the index of its selected operator.
@@ -13,6 +15,7 @@ class MatrixMixture(raw_types.Gate):
             which select a single unitary to apply will store the index
             of that unitary in the measurement result list with this key.
     """
+
     def __init__(self, mixture: Iterable[Tuple[float, np.ndarray]], key: Optional[str] = None):
         mixture = list(mixture)
         if not mixture:
@@ -32,7 +35,12 @@ class MatrixMixture(raw_types.Gate):
                     f'Inconsistent unitary sizes: op[0]: {m0.size}, op[{i}]: {op.size}'
                 )
         self._mixture = mixture
-        self._key = None if key is None else value.MeasurementKey(key)
+        if key is None:
+            self._key = None
+        elif isinstance(key, value.MeasurementKey):
+            self._key = key
+        else:
+            self._key = value.MeasurementKey(key)
 
     @staticmethod
     def from_mixture(mixture: 'protocols.SupportsMixture', key: Optional[str] = None):
@@ -73,13 +81,26 @@ class MatrixMixture(raw_types.Gate):
         return MatrixMixture(mixture=self._mixture, key=key_map[str(self._key)])
 
     def _with_key_path_(self, path: Tuple[str, ...]):
-        return MatrixMixture(mixture=self._mixture, key=protocols.with_key_path(path))
+        return MatrixMixture(mixture=self._mixture, key=protocols.with_key_path(self._key, path))
+
+    def __str__(self):
+        if self._key is not None:
+            return f'MatrixMixture({self._mixture}, key={self._key})'
+        return f'MatrixMixture({self._mixture})'
+
+    def __repr__(self):
+        unitary_tuples = [
+            '(' + repr(op[0]) + ', ' + proper_repr(op[1]) + ')' for op in self._mixture
+        ]
+        args = [f'mixture=[{", ".join(unitary_tuples)}]']
+        if self._key is not None:
+            args.append(f'key=\'{self._key}\'')
+        return f'cirq.MatrixMixture({", ".join(args)})'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['_mixture', '_key'])
 
     @classmethod
     def _from_json_dict_(cls, _mixture, _key, **kwargs):
-        return cls(mixture=_mixture, key=_key)
-
-
+        mix_pairs = [(m[0], np.asarray(m[1])) for m in _mixture]
+        return cls(mixture=mix_pairs, key=_key)
