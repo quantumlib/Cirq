@@ -195,40 +195,34 @@ class CircuitOperation(ops.Operation):
             circuit = protocols.with_measurement_key_mapping(circuit, self.measurement_key_map)
         circuit = protocols.resolve_parameters(circuit, self.param_resolver, recursive=False)
         if deep:
-            circuit = circuit.map_ops(
-                lambda op: op.mapped_circuit(deep=True) if isinstance(op, CircuitOperation) else op
-            )
+            def remap_op_fn(op: 'cirq.Operation'):
+                if isinstance(op, CircuitOperation):
+                    return op.mapped_circuit(deep=True)
+                return op
+
+            mapped_circuit = circuit.map_ops(remap_op_fn)
+            if self.repetition_ids is None:
+                return mapped_circuit
             if not has_measurements:
-                return circuit * abs(self.repetitions)
-            keys = protocols.measurement_keys(circuit)
-            return circuits.Circuit(
-                protocols.with_measurement_key_mapping(
-                    circuit, {key: f'{rep}-{key}' for key in keys}
-                )
+                return mapped_circuit * abs(self.repetitions)
+
+            # Path must be constructed from the top down.
+            rekeyed_circuit = circuits.Circuit(
+                protocols.with_key_path(circuit, self.parent_path + (rep,))
                 for rep in self.repetition_ids
             )
+            return rekeyed_circuit.map_ops(remap_op_fn)
 
+        if self.repetition_ids is None:
+            return circuit
         if not has_measurements:
             return circuit * abs(self.repetitions)
 
-        def func(op: ops.Operation, rep: str) -> ops.Operation:
-            if isinstance(op, CircuitOperation):
-                # For a CircuitOperation, prefix the current repetition_id to the children
-                # repetition_ids.
-                return op.with_repetition_ids(
-                    # If `op.repetition_ids` is None, this will return `[parent_id]`.
-                    cartesian_product_of_string_lists([rep], op.repetition_ids)
-                )
-            elif protocols.is_measurement(op):
-                # For a non-CircuitOperation measurement, prefix the current repetition_id
-                # to the children measurement keys. Implemented by creating a mapping and
-                # using the with_measurement_key_mapping protocol.
-                return protocols.with_measurement_key_mapping(
-                    op,
-                    key_map={key: f'{rep}-{key}' for key in protocols.measurement_keys(op)},
-                )
-            else:
+        def func(op: 'cirq.Operation', rep: str):
+            rekeyed_op = protocols.with_key_path(op, self.parent_path + (rep,))
+            if rekeyed_op is NotImplemented:
                 return op
+            return rekeyed_op
 
         return circuits.Circuit(
             circuit.map_ops(lambda op: func(op, rep)) for rep in self.repetition_ids
@@ -238,23 +232,7 @@ class CircuitOperation(ops.Operation):
         return CircuitOperation(circuit=self.mapped_circuit(deep=deep).freeze())
 
     def _decompose_(self) -> 'cirq.OP_TREE':
-        result = self.circuit.unfreeze()
-        result = result.transform_qubits(lambda q: self.qubit_map.get(q, q))
-        if self.repetitions < 0:
-            result = result ** -1
-        result = protocols.with_measurement_key_mapping(result, self.measurement_key_map)
-        result = protocols.resolve_parameters(result, self.param_resolver, recursive=False)
-        # repetition_ids don't need to be taken into account if the circuit has no measurements
-        # or if repetition_ids are unset.
-        if self.repetition_ids is None or not protocols.is_measurement(result):
-            return list(result.all_operations()) * abs(self.repetitions)
-        # If it's a measurement circuit with repetitions/repetition_ids, prefix the repetition_ids
-        # to measurements. Details at https://tinyurl.com/measurement-repeated-circuitop.
-        ops = []  # type: List[cirq.Operation]
-        for repetition_id in self.repetition_ids:
-            path = self.parent_path + (repetition_id,)
-            ops += protocols.with_key_path(result, path).all_operations()
-        return ops
+        return self.mapped_circuit(deep=False).all_operations()
 
     # Methods for string representation of the operation.
 
