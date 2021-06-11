@@ -209,6 +209,13 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
+    def _is_measurement_(self) -> Optional[bool]:
+        getter = getattr(self.gate, '_is_measurement_', None)
+        if getter is not None:
+            return getter()
+        # Let the protocol handle the fallback.
+        return NotImplemented
+
     def _measurement_key_(self) -> Optional[str]:
         getter = getattr(self.gate, '_measurement_key_', None)
         if getter is not None:
