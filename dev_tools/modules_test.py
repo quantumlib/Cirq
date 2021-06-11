@@ -45,7 +45,7 @@ def test_modules():
     assert mod1.name == 'module1'
     assert mod1.version == '0.12.0.dev'
     assert mod1.top_level_packages == ['pack1']
-    assert mod1.top_level_package_paths == [os.path.join('mod1', 'pack1')]
+    assert mod1.top_level_package_paths == [Path('mod1') / 'pack1']
 
     mod2 = Module(
         root=Path('mod2'), raw_setup={'name': 'module2', 'version': '1.2.3', 'packages': ['pack2']}
@@ -54,7 +54,7 @@ def test_modules():
     assert mod2.name == 'module2'
     assert mod2.version == '1.2.3'
     assert mod2.top_level_packages == ['pack2']
-    assert mod2.top_level_package_paths == [os.path.join('mod2', 'pack2')]
+    assert mod2.top_level_package_paths == [Path('mod2') / 'pack2']
     assert modules.list_modules(search_dir=Path("dev_tools/modules_test_data")) == [mod1, mod2]
 
     parent = Module(

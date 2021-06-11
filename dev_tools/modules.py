@@ -31,14 +31,15 @@ class Module:
     name: str = dataclasses.field(init=False)
     version: str = dataclasses.field(init=False)
     top_level_packages: List[str] = dataclasses.field(init=False)
+    # top_level_package_paths: List[Path] = dataclasses.field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.name = self.raw_setup['name']
         if 'packages' in self.raw_setup:
             self.top_level_packages = [p for p in self.raw_setup['packages'] if '.' not in p]
         else:
             self.top_level_packages = []
-        self.top_level_package_paths = [os.path.join(self.root, p) for p in self.top_level_packages]
+        self.top_level_package_paths = [self.root / p for p in self.top_level_packages]
         self.version = self.raw_setup['version']
 
 
@@ -130,7 +131,7 @@ def main(argv: List[str]):
     f = args.func
     # however the func is not going to be needed for the function itself, so
     # we remove it here
-    delattr(args, 'func')
+    del args.func
     f(**vars(args))
 
 
