@@ -144,11 +144,16 @@ def _create_base_env(proto_dir):
     shell_tools.run_cmd(pip_path, "install", *PACKAGES)
 
 
+def _partitioned_test_cases(notebooks):
+    n_partitions = 5
+    return [(f"partition-{i%n_partitions}", notebook) for i, notebook in enumerate(notebooks)]
+
 @pytest.mark.slow
 @pytest.mark.parametrize(
-    "notebook_path", filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)
+    "partition, notebook_path", _partitioned_test_cases(
+        filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS))
 )
-def test_notebooks_against_released_cirq(notebook_path, base_env):
+def test_notebooks_against_released_cirq(partition, notebook_path, base_env):
     """Tests the notebooks in isolated virtual environments.
 
     In order to speed up the execution of these tests an auxiliary file may be supplied which

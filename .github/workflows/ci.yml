@@ -230,6 +230,8 @@ jobs:
         run: check/pytest --ignore=cirq-core/cirq/contrib
   notebooks-stable:
     name: Changed Notebooks Isolated Test against Cirq stable
+    matrix:
+      partition: [partiton-0, partiton-1, partiton-2, partiton-3, partiton-4]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -242,7 +244,7 @@ jobs:
       - name: Install requirements
         run: pip install -r dev_tools/requirements/isolated-notebooks.env.txt
       - name: Notebook tests
-        run: check/pytest -n auto -m slow dev_tools/notebooks/isolated_notebook_test.py
+        run: check/pytest -n auto -m slow dev_tools/notebooks/isolated_notebook_test.py -k ${{matrix.partition}}
       - uses: actions/upload-artifact@v2
         if: failure()
         with:
