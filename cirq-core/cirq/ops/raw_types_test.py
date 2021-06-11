@@ -431,14 +431,19 @@ def test_tagged_operation():
     assert op.gate == cirq.X
     assert op.with_qubits(q2) == cirq.X(q2).with_tags('tag1')
     assert op.with_qubits(q2).qubits == (q2,)
+    assert not cirq.is_measurement(op)
 
 
 def test_tagged_measurement():
+    assert not cirq.is_measurement(cirq.GlobalPhaseOperation(coefficient=-1.0).with_tags('tag0'))
+
     a = cirq.LineQubit(0)
     op = cirq.measure(a, key='m').with_tags('tag')
+    assert cirq.is_measurement(op)
 
     remap_op = cirq.with_measurement_key_mapping(op, {'m': 'k'})
     assert remap_op.tags == ('tag',)
+    assert cirq.is_measurement(remap_op)
     assert cirq.measurement_keys(remap_op) == {'k'}
     assert cirq.with_measurement_key_mapping(op, {'x': 'k'}) == op
 
