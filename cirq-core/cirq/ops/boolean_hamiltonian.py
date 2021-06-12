@@ -12,7 +12,8 @@ References:
 """
 
 import functools
-from typing import cast, Any, Dict, List, Sequence, Tuple
+import itertools
+from typing import cast, Any, Callable, Dict, List, Sequence, Tuple
 
 from sympy.logic.boolalg import And, Not, Or, Xor
 from sympy.core.expr import Expr
@@ -23,17 +24,11 @@ import cirq
 from cirq import value
 from cirq.ops import raw_types
 
-
-def _Hamiltonian_O():
-    return 0.0 * cirq.PauliString({})
-
-
-def _Hamiltonian_I():
-    return cirq.PauliString({})
-
-
-def _Hamiltonian_Z(qubit):
-    return cirq.PauliString({qubit: cirq.Z})
+_hamiltonian_O: Callable[[], 'cirq.PauliString'] = lambda: 0.0 * cirq.PauliString({})
+_hamiltonian_I: Callable[[], 'cirq.PauliString'] = lambda: cirq.PauliString({})
+_hamiltonian_Z: Callable[['cirq.Qid'], 'cirq.PauliString'] = lambda qubit: cirq.PauliString(
+    {qubit: cirq.Z}
+)
 
 
 def _build_hamiltonian_from_boolean(
@@ -53,7 +48,7 @@ def _build_hamiltonian_from_boolean(
     """
     if isinstance(boolean_expr, Symbol):
         # Table 1 of [1], entry for 'x' is '1/2.I - 1/2.Z'
-        return 0.5 * _Hamiltonian_I() - 0.5 * _Hamiltonian_Z(qubit_map[boolean_expr.name])
+        return 0.5 * _hamiltonian_I() - 0.5 * _hamiltonian_Z(qubit_map[boolean_expr.name])
 
     if isinstance(boolean_expr, (And, Not, Or, Xor)):
         sub_hamiltonians = [
@@ -62,18 +57,18 @@ def _build_hamiltonian_from_boolean(
         ]
         # We apply the equalities of theorem 1 of [1].
         if isinstance(boolean_expr, And):
-            hamiltonian = _Hamiltonian_I()
+            hamiltonian = _hamiltonian_I()
             for sub_hamiltonian in sub_hamiltonians:
                 hamiltonian = hamiltonian * sub_hamiltonian
         elif isinstance(boolean_expr, Not):
             assert len(sub_hamiltonians) == 1
-            hamiltonian = _Hamiltonian_I() - sub_hamiltonians[0]
+            hamiltonian = _hamiltonian_I() - sub_hamiltonians[0]
         elif isinstance(boolean_expr, Or):
-            hamiltonian = _Hamiltonian_O()
+            hamiltonian = _hamiltonian_O()
             for sub_hamiltonian in sub_hamiltonians:
                 hamiltonian = hamiltonian + sub_hamiltonian - hamiltonian * sub_hamiltonian
         elif isinstance(boolean_expr, Xor):
-            hamiltonian = _Hamiltonian_O()
+            hamiltonian = _hamiltonian_O()
             for sub_hamiltonian in sub_hamiltonians:
                 hamiltonian = hamiltonian + sub_hamiltonian - 2.0 * hamiltonian * sub_hamiltonian
         return hamiltonian
@@ -103,6 +98,108 @@ def _gray_code_comparator(k1: Tuple[int, ...], k2: Tuple[int, ...], flip: bool =
     return _gray_code_comparator(k1[0:-1], k2[0:-1], not flip)
 
 
+def _simplify_cnots_pairs(
+    cnots: List[Tuple[int, int]], flip_control_and_target: bool
+) -> List[Tuple[int, int]]:
+    """Simplifies CNOT pairs according to equations 9 and 10 of [4].Simplifies
+
+    CNOT(i, j) @ CNOT(k, j) = CNOT(k, j) @ CNOT(i, j)
+    ───@───────       ───────@───
+       │                     │
+    ───X───X───   =   ───X───X───
+           │             │
+    ───────@───       ───@───────
+
+    Args:
+        cnots: A list of CNOTS, encoded as integer tuples (control, target).
+        flip_control_and_target: Whether to flip control and target.
+
+    Returns:
+        A Boolean that tells whether a simplification has been performed.
+        The CNOT list, potentially simplified.
+    """
+    x, y = (0, 1) if flip_control_and_target else (1, 0)
+
+    i = 0
+    qubit_to_index: Dict[int, int] = {}
+    for j in range(1, len(cnots)):
+        if cnots[i][x] != cnots[j][x]:
+            # The targets (resp. control) don't match, so we reset the search.
+            i = j
+            qubit_to_index = {cnots[j][y]: j}
+            continue
+
+        if cnots[j][y] in qubit_to_index:
+            k = qubit_to_index[cnots[j][y]]
+            # The controls (resp. targets) are the same, so we can simplify away.
+            cnots = [cnots[n] for n in range(len(cnots)) if n != j and n != k]
+            return True, cnots
+
+        qubit_to_index[cnots[j][y]] = j
+
+    return False, cnots
+
+
+def _simplify_cnots_tripplets(
+    cnots: List[Tuple[int, int]], flip_control_and_target: bool
+) -> List[Tuple[int, int]]:
+    """Simplifies CNOT pairs according to equations 11 of [4].
+
+    CNOT(i, j) @ CNOT(j, k) == CNOT(j, k) @ CNOT(i, k) @ CNOT(i, j)
+    ───@───────       ───────@───@───
+       │                     │   │
+    ───X───@───   =   ───@───┼───X───
+           │             │   │
+    ───────X───       ───X───X───────
+
+    Args:
+        cnots: A list of CNOTS, encoded as integer tuples (control, target).
+        flip_control_and_target: Whether to flip control and target.
+
+    Returns:
+        A Boolean that tells whether a simplification has been performed.
+        The CNOT list, potentially simplified.
+    """
+    x, y = (0, 1) if flip_control_and_target else (1, 0)
+
+    # We investigate potential pivots sequentially.
+    for j in range(1, len(cnots) - 1):
+        # First, we look back for as long as the targets (resp. controls) are the same.
+        # They all commute, so all are potential candidates for being simplified.
+        common_A: Dict[int, int] = {}
+        for i in range(j - 1, -1, -1):
+            if cnots[i][y] != cnots[j][y]:
+                break
+            # We take a note of the control (resp. target).
+            common_A[cnots[i][x]] = i
+
+        # Next, we look forward for as long as the controls (resp. targets) are the
+        # same. They all commute, so all are potential candidates for being simplified.
+        common_B: Dict[int, int] = {}
+        for k in range(j + 1, len(cnots)):
+            if cnots[j][x] != cnots[k][x]:
+                break
+            # We take a note of the target (resp. control).
+            common_B[cnots[k][y]] = k
+
+        # Among all the candidates, find if they have a match.
+        keys = common_A.keys() & common_B.keys()
+        for key in keys:
+            assert common_A[key] != common_B[key]
+            # We perform the swap which removes the pivot.
+            new_idx: List[int] = (
+                [idx for idx in range(0, j) if idx != common_A[key]]
+                + [common_B[key], common_A[key]]
+                + [idx for idx in range(j + 1, len(cnots)) if idx != common_B[key]]
+            )
+            # Since we removed the pivot, the length should be one fewer.
+            assert len(new_idx) == len(cnots) - 1
+            cnots = [cnots[idx] for idx in new_idx]
+            return True, cnots
+
+    return False, cnots
+
+
 def _simplify_cnots(cnots: List[Tuple[int, int]]):
     """
     Takes a series of CNOTs and tries to applies rule to cancel out gates.
@@ -114,73 +211,17 @@ def _simplify_cnots(cnots: List[Tuple[int, int]]):
         A Boolean saying whether a simplification has been found.
         The simplified list of CNOTs.
     """
-    _control = 0
-    _target = 1
 
-    # As per equations 9 and 10 of [4], if all the targets (resp. controls) are the same,
-    # the cnots commute. Further, if the control (resp. targets) are the same, the cnots
-    # can be simplified away:
-    # CNOT(i, j) @ CNOT(k, j) = CNOT(k, j) @ CNOT(i, j)
-    # CNOT(i, k) @ CNOT(i, j) = CNOT(i, j) @ CNOT(i, k)
-    for x, y in [(_control, _target), (_target, _control)]:
-        i = 0
-        qubit_to_index: Dict[int, int] = {}
-        for j in range(1, len(cnots)):
-            if cnots[i][x] != cnots[j][x]:
-                # The targets (resp. control) don't match, so we reset the search.
-                i = j
-                qubit_to_index = {cnots[j][y]: j}
-                continue
+    found_simplification = True
+    while found_simplification:
+        for simplify_fn, flip_control_and_target in itertools.product(
+            [_simplify_cnots_pairs, _simplify_cnots_tripplets], [False, True]
+        ):
+            found_simplification, cnots = simplify_fn(cnots, flip_control_and_target)
+            if found_simplification:
+                break
 
-            if cnots[j][y] in qubit_to_index:
-                k = qubit_to_index[cnots[j][y]]
-                # The controls (resp. targets) are the same, so we can simplify away.
-                cnots = [cnots[n] for n in range(len(cnots)) if n != j and n != k]
-                return True, cnots
-
-            qubit_to_index[cnots[j][y]] = j
-
-    # Here we apply the simplification of equation 11. Note that by flipping the control
-    # and target qubits, we have an equally valid identity:
-    # CNOT(i, j) @ CNOT(j, k) == CNOT(j, k) @ CNOT(i, k) @ CNOT(i, j)
-    # CNOT(j, i) @ CNOT(k, j) == CNOT(k, j) @ CNOT(k, i) @ CNOT(j, i)
-    for x, y in [(_control, _target), (_target, _control)]:
-        # We investigate potential pivots sequentially.
-        for j in range(1, len(cnots) - 1):
-            # First, we look back for as long as the targets (resp. triggers) are the same.
-            # They all commute, so all are potential candidates for being simplified.
-            common_A: Dict[int, int] = {}
-            for i in range(j - 1, -1, -1):
-                if cnots[i][y] != cnots[j][y]:
-                    break
-                # We take a note of the trigger (resp. target).
-                common_A[cnots[i][x]] = i
-
-            # Next, we look forward for as long as the triggers (resp. targets) are the
-            # same. They all commute, so all are potential candidates for being simplified.
-            common_B: Dict[int, int] = {}
-            for k in range(j + 1, len(cnots)):
-                if cnots[j][x] != cnots[k][x]:
-                    break
-                # We take a note of the target (resp. trigger).
-                common_B[cnots[k][y]] = k
-
-            # Among all the candidates, find if they have a match.
-            keys = common_A.keys() & common_B.keys()
-            for key in keys:
-                assert common_A[key] != common_B[key]
-                # We perform the swap which removes the pivot.
-                new_idx: List[int] = (
-                    [idx for idx in range(0, j) if idx != common_A[key]]
-                    + [common_B[key], common_A[key]]
-                    + [idx for idx in range(j + 1, len(cnots)) if idx != common_B[key]]
-                )
-                # Since we removed the pivot, the length should be one fewer.
-                assert len(new_idx) == len(cnots) - 1
-                cnots = [cnots[idx] for idx in new_idx]
-                return True, cnots
-
-    return False, cnots
+    return cnots
 
 
 def _get_gates_from_hamiltonians(
@@ -201,7 +242,7 @@ def _get_gates_from_hamiltonians(
     Yields:
         Gates that are the decomposition of the Hamiltonian.
     """
-    combined: 'cirq.PauliSum' = sum(hamiltonian_polynomial_list, _Hamiltonian_O())
+    combined: 'cirq.PauliSum' = sum(hamiltonian_polynomial_list, _hamiltonian_O())
 
     qubit_names = sorted(qubit_map.keys())
     qubits = [qubit_map[name] for name in qubit_names]
@@ -231,9 +272,7 @@ def _get_gates_from_hamiltonians(
             cnots.extend((prevh[i], prevh[-1]) for i in range(len(prevh) - 1))
             cnots.extend((currh[i], currh[-1]) for i in range(len(currh) - 1))
 
-        found_simplification = True
-        while found_simplification:
-            found_simplification, cnots = _simplify_cnots(cnots)
+        cnots = _simplify_cnots(cnots)
 
         for gate in (cirq.CNOT(qubits[c], qubits[t]) for c, t in cnots):
             yield gate
