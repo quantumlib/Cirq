@@ -593,6 +593,18 @@ except ImportError as ex:
     # coverage: ignore
     warning("Can't import cirq.google: ", ex)
 
+try:
+    _compat.deprecated_submodule(
+        new_module_name='cirq_aqt',
+        old_parent=__name__,
+        old_child='aqt',
+        deadline="v0.14",
+        create_attribute=True,
+    )
+except ImportError as ex:
+    # coverage: ignore
+    warning("Can't import cirq.aqt: ", ex)
+
 
 def _register_resolver() -> None:
     """Registers the cirq module's public classes for JSON serialization."""
