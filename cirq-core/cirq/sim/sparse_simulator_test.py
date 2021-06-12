@@ -1265,7 +1265,7 @@ def test_separated_measurements():
 
 
 def test_state_vector_copy():
-    sim = cirq.Simulator(split_untangled_states=False)
+    sim = cirq.Simulator()
 
     class InplaceGate(cirq.SingleQubitGate):
         """A gate that modifies the target tensor in place, multiply by -1."""
