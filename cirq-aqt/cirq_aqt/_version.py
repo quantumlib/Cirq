@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,19 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#####
-# The main file to use to setup your PYTHONPATH. It sets up all cirq modules on the path.
-# Usage:
-#   source dev_tools/pypath
-#####
+"""Define version number here, read it from setup.py automatically"""
 
-
-#!/usr/bin/bash
-
-PREFIX="$(pwd)"
-CIRQ_MODULES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode folder)
-for m in $CIRQ_MODULES; do
-    PREFIX="$PREFIX:$(pwd)/$m"
-done
-
-[[ $PYTHONPATH == ${PREFIX}* ]] || export PYTHONPATH="$PREFIX:$PYTHONPATH"
+__version__ = "0.12.0.dev"

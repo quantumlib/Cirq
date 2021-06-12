@@ -14,16 +14,13 @@
 
 import io
 import os
-from setuptools import setup
+from setuptools import find_packages, setup
 
 # This reads the __version__ variable from cirq/_version.py
 __version__ = ''
+exec(open('cirq_aqt/_version.py').read())
 
-from dev_tools.requirements import explode
-
-exec(open('cirq-core/cirq/_version.py').read())
-
-name = 'cirq'
+name = 'cirq-aqt'
 
 description = (
     'A framework for creating, editing, and invoking '
@@ -41,19 +38,21 @@ long_description = io.open('README.rst', encoding='utf-8').read()
 if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
     __version__ = os.environ['CIRQ_PRE_RELEASE_VERSION']
     long_description = (
-        "**This is a development version of Cirq and may be "
-        "unstable.**\n\n**For the latest stable release of Cirq "
-        "see**\n`here <https://pypi.org/project/cirq>`__.\n\n" + long_description
+        "**This is a development version of Cirq-AQT and may be "
+        "unstable.**\n\n**For the latest stable release of Cirq-AQT "
+        "see**\n`here <https://pypi.org/project/cirq-aqt>`__.\n\n" + long_description
     )
+
+# Read in requirements
+requirements = open('requirements.txt').readlines()
+requirements = [r.strip() for r in requirements]
+
+cirq_packages = ['cirq_aqt'] + [
+    'cirq_aqt.' + package for package in find_packages(where='cirq_aqt')
+]
 
 # Sanity check
 assert __version__, 'Version string cannot be empty'
-
-# This is a pure metapackage that installs all our packages
-requirements = [f'{p}=={__version__}' for p in ['cirq-core', 'cirq-google']]
-
-dev_requirements = explode('dev_tools/requirements/deps/dev-tools.txt')
-dev_requirements = [r.strip() for r in dev_requirements]
 
 setup(
     name=name,
@@ -63,10 +62,12 @@ setup(
     author_email='cirq-dev@googlegroups.com',
     python_requires=('>=3.6.0'),
     install_requires=requirements,
-    extras_require={
-        'dev_env': dev_requirements,
-    },
     license='Apache 2',
     description=description,
     long_description=long_description,
+    packages=cirq_packages,
+    package_data={
+        'cirq_aqt': ['py.typed'],
+        'cirq_aqt.json_test_data': ['*'],
+    },
 )

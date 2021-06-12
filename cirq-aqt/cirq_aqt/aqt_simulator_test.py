@@ -15,11 +15,10 @@
 import pytest
 
 import cirq
-from cirq import X, Y, Z, XX, Circuit
 
-from cirq.aqt import AQTSimulator
-from cirq.aqt.aqt_device import get_aqt_device
-from cirq.aqt.aqt_device import AQTNoiseModel
+from cirq_aqt import AQTSimulator
+from cirq_aqt.aqt_device import get_aqt_device
+from cirq_aqt.aqt_device import AQTNoiseModel
 
 
 def test_simulator_no_circ():
@@ -32,8 +31,8 @@ def test_ms_crosstalk_n_noise():
     num_qubits = 4
     noise_mod = AQTNoiseModel()
     device, qubits = get_aqt_device(num_qubits)
-    circuit = Circuit(device=device)
-    circuit.append(XX(qubits[1], qubits[2]) ** 0.5)
+    circuit = cirq.Circuit(device=device)
+    circuit.append(cirq.XX(qubits[1], qubits[2]) ** 0.5)
     for moment in circuit.moments:
         noisy_moment = noise_mod.noisy_moment(moment, qubits)
     assert noisy_moment == [
@@ -51,10 +50,10 @@ def test_x_crosstalk_n_noise():
     num_qubits = 4
     noise_mod = AQTNoiseModel()
     device, qubits = get_aqt_device(num_qubits)
-    circuit = Circuit(device=device)
-    circuit.append(Y(qubits[1]) ** 0.5)
-    circuit.append(Z(qubits[1]) ** 0.5)
-    circuit.append(X(qubits[1]) ** 0.5)
+    circuit = cirq.Circuit(device=device)
+    circuit.append(cirq.Y(qubits[1]) ** 0.5)
+    circuit.append(cirq.Z(qubits[1]) ** 0.5)
+    circuit.append(cirq.X(qubits[1]) ** 0.5)
     for moment in circuit.moments:
         noisy_moment = noise_mod.noisy_moment(moment, qubits)
     assert noisy_moment == [

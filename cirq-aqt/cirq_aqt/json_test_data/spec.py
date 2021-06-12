@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#####
-# The main file to use to setup your PYTHONPATH. It sets up all cirq modules on the path.
-# Usage:
-#   source dev_tools/pypath
-#####
+import pathlib
 
+import cirq_aqt
+from cirq_aqt.json_resolver_cache import _class_resolver_dictionary
 
-#!/usr/bin/bash
+from cirq.testing.json import ModuleJsonTestSpec
 
-PREFIX="$(pwd)"
-CIRQ_MODULES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode folder)
-for m in $CIRQ_MODULES; do
-    PREFIX="$PREFIX:$(pwd)/$m"
-done
-
-[[ $PYTHONPATH == ${PREFIX}* ]] || export PYTHONPATH="$PREFIX:$PYTHONPATH"
+TestSpec = ModuleJsonTestSpec(
+    name="cirq_aqt",
+    packages=[cirq_aqt],
+    test_data_path=pathlib.Path(__file__).parent,
+    not_yet_serializable=[],
+    should_not_be_serialized=['AQTSimulator', 'AQTSampler', 'AQTSamplerLocalSimulator'],
+    resolver_cache=_class_resolver_dictionary(),
+    deprecated={},
+)
