@@ -125,13 +125,13 @@ def test_diagram():
 def test_parameterized(resolve_fn):
     op = cirq.X.with_probability(sympy.Symbol('x'))
     assert cirq.is_parameterized(op)
-    assert not cirq.has_channel(op)
+    assert not cirq.has_kraus(op)
     assert not cirq.has_mixture(op)
 
     op2 = resolve_fn(op, {'x': 0.5})
     assert op2 == cirq.X.with_probability(0.5)
     assert not cirq.is_parameterized(op2)
-    assert cirq.has_channel(op2)
+    assert cirq.has_kraus(op2)
     assert cirq.has_mixture(op2)
 
 
@@ -158,7 +158,7 @@ def test_mixture():
 
 
 def assert_channel_sums_to_identity(val):
-    m = cirq.channel(val)
+    m = cirq.kraus(val)
     s = sum(np.conj(e.T) @ e for e in m)
     np.testing.assert_allclose(s, np.eye(np.product(cirq.qid_shape(val))), atol=1e-8)
 
@@ -168,14 +168,14 @@ def test_channel():
         def num_qubits(self) -> int:
             return 1
 
-    assert not cirq.has_channel(NoDetailsGate().with_probability(0.5))
-    assert cirq.channel(NoDetailsGate().with_probability(0.5), None) is None
-    assert cirq.channel(cirq.X.with_probability(sympy.Symbol('x')), None) is None
+    assert not cirq.has_kraus(NoDetailsGate().with_probability(0.5))
+    assert cirq.kraus(NoDetailsGate().with_probability(0.5), None) is None
+    assert cirq.kraus(cirq.X.with_probability(sympy.Symbol('x')), None) is None
     assert_channel_sums_to_identity(cirq.X.with_probability(0.25))
     assert_channel_sums_to_identity(cirq.bit_flip(0.75).with_probability(0.25))
     assert_channel_sums_to_identity(cirq.amplitude_damp(0.75).with_probability(0.25))
 
-    m = cirq.channel(cirq.X.with_probability(0.25))
+    m = cirq.kraus(cirq.X.with_probability(0.25))
     assert len(m) == 2
     np.testing.assert_allclose(
         m[0],
@@ -188,7 +188,7 @@ def test_channel():
         atol=1e-8,
     )
 
-    m = cirq.channel(cirq.bit_flip(0.75).with_probability(0.25))
+    m = cirq.kraus(cirq.bit_flip(0.75).with_probability(0.25))
     assert len(m) == 3
     np.testing.assert_allclose(
         m[0],
@@ -206,7 +206,7 @@ def test_channel():
         atol=1e-8,
     )
 
-    m = cirq.channel(cirq.amplitude_damp(0.75).with_probability(0.25))
+    m = cirq.kraus(cirq.amplitude_damp(0.75).with_probability(0.25))
     assert len(m) == 3
     np.testing.assert_allclose(
         m[0],

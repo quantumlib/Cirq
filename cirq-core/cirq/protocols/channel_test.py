@@ -30,26 +30,45 @@ def test_channel_no_methods():
         pass
 
     with pytest.raises(TypeError, match='no _kraus_ or _mixture_ or _unitary_ method'):
-        _ = cirq.channel(NoMethod())
+        _ = cirq.kraus(NoMethod())
 
-    assert cirq.channel(NoMethod(), None) is None
-    assert cirq.channel(NoMethod, NotImplemented) is NotImplemented
-    assert cirq.channel(NoMethod(), (1,)) == (1,)
-    assert cirq.channel(NoMethod(), LOCAL_DEFAULT) is LOCAL_DEFAULT
+    assert cirq.kraus(NoMethod(), None) is None
+    assert cirq.kraus(NoMethod, NotImplemented) is NotImplemented
+    assert cirq.kraus(NoMethod(), (1,)) == (1,)
+    assert cirq.kraus(NoMethod(), LOCAL_DEFAULT) is LOCAL_DEFAULT
 
-    assert not cirq.has_channel(NoMethod())
+    assert not cirq.has_kraus(NoMethod())
 
 
 def assert_not_implemented(val):
     with pytest.raises(TypeError, match='returned NotImplemented'):
-        _ = cirq.channel(val)
+        _ = cirq.kraus(val)
 
-    assert cirq.channel(val, None) is None
-    assert cirq.channel(val, NotImplemented) is NotImplemented
-    assert cirq.channel(val, (1,)) == (1,)
-    assert cirq.channel(val, LOCAL_DEFAULT) is LOCAL_DEFAULT
+    assert cirq.kraus(val, None) is None
+    assert cirq.kraus(val, NotImplemented) is NotImplemented
+    assert cirq.kraus(val, (1,)) == (1,)
+    assert cirq.kraus(val, LOCAL_DEFAULT) is LOCAL_DEFAULT
 
-    assert not cirq.has_channel(val)
+    assert not cirq.has_kraus(val)
+
+
+def test_supports_channel_class_is_deprecated():
+    with cirq.testing.assert_deprecated(deadline='v0.13'):
+
+        class SomeChannel(cirq.SupportsChannel):
+            pass
+
+        _ = SomeChannel()
+
+
+def test_channel_protocol_is_deprecated():
+    with cirq.testing.assert_deprecated(deadline='v0.13'):
+        assert np.allclose(cirq.channel(cirq.X), cirq.kraus(cirq.X))
+
+
+def test_has_channel_protocol_is_deprecated():
+    with cirq.testing.assert_deprecated(deadline='v0.13'):
+        assert cirq.has_channel(cirq.depolarize(0.1)) == cirq.has_kraus(cirq.depolarize(0.1))
 
 
 def test_kraus_returns_not_implemented():
@@ -70,9 +89,9 @@ def test_channel_generates_deprecation_warning():
 
     val = UsesDeprecatedChannelMethod()
     with pytest.warns(DeprecationWarning, match='_has_kraus_'):
-        assert cirq.has_channel(val)
+        assert cirq.has_kraus(val)
     with pytest.warns(DeprecationWarning, match='_kraus_'):
-        ks = cirq.channel(val)
+        ks = cirq.kraus(val)
         assert len(ks) == 1
         assert np.all(ks[0] == np.eye(2))
 
@@ -91,11 +110,11 @@ def test_unitary_returns_not_implemented():
             return NotImplemented
 
     with pytest.raises(TypeError, match='returned NotImplemented'):
-        _ = cirq.channel(ReturnsNotImplemented())
-    assert cirq.channel(ReturnsNotImplemented(), None) is None
-    assert cirq.channel(ReturnsNotImplemented(), NotImplemented) is NotImplemented
-    assert cirq.channel(ReturnsNotImplemented(), (1,)) == (1,)
-    assert cirq.channel(ReturnsNotImplemented(), LOCAL_DEFAULT) is LOCAL_DEFAULT
+        _ = cirq.kraus(ReturnsNotImplemented())
+    assert cirq.kraus(ReturnsNotImplemented(), None) is None
+    assert cirq.kraus(ReturnsNotImplemented(), NotImplemented) is NotImplemented
+    assert cirq.kraus(ReturnsNotImplemented(), (1,)) == (1,)
+    assert cirq.kraus(ReturnsNotImplemented(), LOCAL_DEFAULT) is LOCAL_DEFAULT
 
 
 def test_channel():
@@ -107,13 +126,13 @@ def test_channel():
         def _kraus_(self) -> Sequence[np.ndarray]:
             return c
 
-    assert cirq.channel(ReturnsChannel()) is c
-    assert cirq.channel(ReturnsChannel(), None) is c
-    assert cirq.channel(ReturnsChannel(), NotImplemented) is c
-    assert cirq.channel(ReturnsChannel(), (1,)) is c
-    assert cirq.channel(ReturnsChannel(), LOCAL_DEFAULT) is c
+    assert cirq.kraus(ReturnsChannel()) is c
+    assert cirq.kraus(ReturnsChannel(), None) is c
+    assert cirq.kraus(ReturnsChannel(), NotImplemented) is c
+    assert cirq.kraus(ReturnsChannel(), (1,)) is c
+    assert cirq.kraus(ReturnsChannel(), LOCAL_DEFAULT) is c
 
-    assert cirq.has_channel(ReturnsChannel())
+    assert cirq.has_kraus(ReturnsChannel())
 
 
 def test_channel_fallback_to_mixture():
@@ -129,13 +148,13 @@ def test_channel_fallback_to_mixture():
         np.sqrt(0.3) * cirq.unitary(cirq.Z),
     )
 
-    np.allclose(cirq.channel(ReturnsMixture()), c)
-    np.allclose(cirq.channel(ReturnsMixture(), None), c)
-    np.allclose(cirq.channel(ReturnsMixture(), NotImplemented), c)
-    np.allclose(cirq.channel(ReturnsMixture(), (1,)), c)
-    np.allclose(cirq.channel(ReturnsMixture(), LOCAL_DEFAULT), c)
+    np.allclose(cirq.kraus(ReturnsMixture()), c)
+    np.allclose(cirq.kraus(ReturnsMixture(), None), c)
+    np.allclose(cirq.kraus(ReturnsMixture(), NotImplemented), c)
+    np.allclose(cirq.kraus(ReturnsMixture(), (1,)), c)
+    np.allclose(cirq.kraus(ReturnsMixture(), LOCAL_DEFAULT), c)
 
-    assert cirq.has_channel(ReturnsMixture())
+    assert cirq.has_kraus(ReturnsMixture())
 
 
 def test_channel_fallback_to_unitary():
@@ -145,16 +164,16 @@ def test_channel_fallback_to_unitary():
         def _unitary_(self) -> np.ndarray:
             return u
 
-    np.testing.assert_equal(cirq.channel(ReturnsUnitary()), (u,))
-    np.testing.assert_equal(cirq.channel(ReturnsUnitary(), None), (u,))
-    np.testing.assert_equal(cirq.channel(ReturnsUnitary(), NotImplemented), (u,))
-    np.testing.assert_equal(cirq.channel(ReturnsUnitary(), (1,)), (u,))
-    np.testing.assert_equal(cirq.channel(ReturnsUnitary(), LOCAL_DEFAULT), (u,))
+    np.testing.assert_equal(cirq.kraus(ReturnsUnitary()), (u,))
+    np.testing.assert_equal(cirq.kraus(ReturnsUnitary(), None), (u,))
+    np.testing.assert_equal(cirq.kraus(ReturnsUnitary(), NotImplemented), (u,))
+    np.testing.assert_equal(cirq.kraus(ReturnsUnitary(), (1,)), (u,))
+    np.testing.assert_equal(cirq.kraus(ReturnsUnitary(), LOCAL_DEFAULT), (u,))
 
-    assert cirq.has_channel(ReturnsUnitary())
+    assert cirq.has_kraus(ReturnsUnitary())
 
 
-class HasChannel(cirq.SingleQubitGate):
+class HasKraus(cirq.SingleQubitGate):
     def _has_kraus_(self) -> bool:
         return True
 
@@ -169,7 +188,7 @@ class HasUnitary(cirq.SingleQubitGate):
         return True
 
 
-class HasChannelWhenDecomposed(cirq.SingleQubitGate):
+class HasKrausWhenDecomposed(cirq.SingleQubitGate):
     def __init__(self, decomposed_cls):
         self.decomposed_cls = decomposed_cls
 
@@ -177,13 +196,13 @@ class HasChannelWhenDecomposed(cirq.SingleQubitGate):
         return [self.decomposed_cls().on(q) for q in qubits]
 
 
-@pytest.mark.parametrize('cls', [HasChannel, HasMixture, HasUnitary])
-def test_has_channel(cls):
-    assert cirq.has_channel(cls())
+@pytest.mark.parametrize('cls', [HasKraus, HasMixture, HasUnitary])
+def test_has_kraus(cls):
+    assert cirq.has_kraus(cls())
 
 
-@pytest.mark.parametrize('decomposed_cls', [HasChannel, HasMixture, HasUnitary])
+@pytest.mark.parametrize('decomposed_cls', [HasKraus, HasMixture, HasUnitary])
 def test_has_channel_when_decomposed(decomposed_cls):
-    op = HasChannelWhenDecomposed(decomposed_cls).on(cirq.NamedQubit('test'))
-    assert cirq.has_channel(op)
-    assert not cirq.has_channel(op, allow_decompose=False)
+    op = HasKrausWhenDecomposed(decomposed_cls).on(cirq.NamedQubit('test'))
+    assert cirq.has_kraus(op)
+    assert not cirq.has_kraus(op, allow_decompose=False)
