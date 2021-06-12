@@ -100,7 +100,7 @@ def _gray_code_comparator(k1: Tuple[int, ...], k2: Tuple[int, ...], flip: bool =
 
 def _simplify_cnots_pairs(
     cnots: List[Tuple[int, int]], flip_control_and_target: bool
-) -> List[Tuple[int, int]]:
+) -> Tuple[bool, List[Tuple[int, int]]]:
     """Simplifies CNOT pairs according to equations 9 and 10 of [4].Simplifies
 
     CNOT(i, j) @ CNOT(k, j) = CNOT(k, j) @ CNOT(i, j)
@@ -142,7 +142,7 @@ def _simplify_cnots_pairs(
 
 def _simplify_cnots_tripplets(
     cnots: List[Tuple[int, int]], flip_control_and_target: bool
-) -> List[Tuple[int, int]]:
+) -> Tuple[bool, List[Tuple[int, int]]]:
     """Simplifies CNOT pairs according to equations 11 of [4].
 
     CNOT(i, j) @ CNOT(j, k) == CNOT(j, k) @ CNOT(i, k) @ CNOT(i, j)
@@ -242,7 +242,7 @@ def _get_gates_from_hamiltonians(
     Yields:
         Gates that are the decomposition of the Hamiltonian.
     """
-    combined: 'cirq.PauliSum' = sum(hamiltonian_polynomial_list, _hamiltonian_O())
+    combined = sum(hamiltonian_polynomial_list, _hamiltonian_O())
 
     qubit_names = sorted(qubit_map.keys())
     qubits = [qubit_map[name] for name in qubit_names]
