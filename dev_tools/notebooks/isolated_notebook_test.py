@@ -16,8 +16,13 @@
 #
 # In these tests are only changed notebooks are tested. It is assumed that notebooks install cirq
 # conditionally if they can't import cirq. This installation path is the main focus and it is
-# excercised in an isolated virtual environment for each notebook. This is also the path that is
+# exercised in an isolated virtual environment for each notebook. This is also the path that is
 # tested in the devsite workflows, these tests meant to provide earlier feedback.
+#
+# In case the dev environment changes or this particular file changes, all notebooks are executed!
+# This can take a long time and even lead to timeout on Github Actions, hence partitioning of the
+# tests is possible, via setting the NOTEBOOK_PARTITIONS env var to e.g. 5, and then passing to
+# pytest the `-k partition-0` or `-k partition-1`, etc. argument to limit to the given partition.
 
 import os
 import subprocess
