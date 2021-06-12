@@ -57,7 +57,7 @@ def operation_to_choi(operation: 'protocols.SupportsChannel') -> np.ndarray:
     Returns:
         Choi matrix corresponding to operation.
     """
-    return kraus_to_choi(protocols.channel(operation))
+    return kraus_to_choi(protocols.kraus(operation))
 
 
 def operation_to_channel_matrix(operation: 'protocols.SupportsChannel') -> np.ndarray:
@@ -74,4 +74,4 @@ def operation_to_channel_matrix(operation: 'protocols.SupportsChannel') -> np.nd
     Returns:
         Matrix representation of operation.
     """
-    return kraus_to_channel_matrix(protocols.channel(operation))
+    return kraus_to_channel_matrix(protocols.kraus(operation))
