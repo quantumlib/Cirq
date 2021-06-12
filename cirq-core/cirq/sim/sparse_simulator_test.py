@@ -263,7 +263,7 @@ def test_run_mixture(dtype: Type[np.number], split: bool):
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     circuit = cirq.Circuit(cirq.bit_flip(0.5)(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
-    assert 20 < sum(result.measurements['0'])[0] < 80
+    assert 20 < sum(result.measurements['0'])[0] < 80  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -274,8 +274,8 @@ def test_run_mixture_with_gates(dtype: Type[np.number], split: bool):
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     circuit = cirq.Circuit(cirq.H(q0), cirq.phase_flip(0.5)(q0), cirq.H(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
-    assert sum(result.measurements['0'])[0] < 80
-    assert sum(result.measurements['0'])[0] > 20
+    assert sum(result.measurements['0'])[0] < 80  # type: ignore
+    assert sum(result.measurements['0'])[0] > 20  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -533,11 +533,11 @@ def test_simulate_param_resolver(dtype: Type[np.number], split: bool):
                 (cirq.X ** sympy.Symbol('b0'))(q0), (cirq.X ** sympy.Symbol('b1'))(q1)
             )
             resolver = {'b0': b0, 'b1': b1}
-            result = simulator.simulate(circuit, param_resolver=resolver)
+            result = simulator.simulate(circuit, param_resolver=resolver)  # type: ignore
             expected_state = np.zeros(shape=(2, 2))
             expected_state[b0][b1] = 1.0
             np.testing.assert_equal(result.final_state_vector, np.reshape(expected_state, 4))
-            assert result.params == cirq.ParamResolver(resolver)
+            assert result.params == cirq.ParamResolver(resolver)  # type: ignore
             assert len(result.measurements) == 0
 
 
