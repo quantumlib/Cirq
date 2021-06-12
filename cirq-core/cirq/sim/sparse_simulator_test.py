@@ -27,7 +27,9 @@ def test_invalid_dtype():
         cirq.Simulator(dtype=np.int32)
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_run_no_measurements(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -37,7 +39,9 @@ def test_run_no_measurements(dtype: Type[np.number], split: bool):
         simulator.run(circuit)
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_run_no_results(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -47,14 +51,18 @@ def test_run_no_results(dtype: Type[np.number], split: bool):
         simulator.run(circuit)
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_run_empty_circuit(dtype: Type[np.number], split: bool):
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
     with pytest.raises(ValueError, match="no measurements"):
         simulator.run(cirq.Circuit())
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_run_reset(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -73,7 +81,9 @@ def test_run_reset(dtype: Type[np.number], split: bool):
     assert np.array_equal(meas['m1b'], np.zeros((100, 1)))
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_run_bit_flips(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -86,7 +96,9 @@ def test_run_bit_flips(dtype: Type[np.number], split: bool):
             np.testing.assert_equal(result.measurements, {'0': [[b0]], '1': [[b1]]})
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_run_measure_at_end_no_repetitions(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -111,7 +123,9 @@ def test_run_repetitions_terminal_measurement_stochastic():
     assert 1000 <= sum(v[0] for v in results.measurements['q']) < 9000
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_run_repetitions_measure_at_end(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -128,7 +142,9 @@ def test_run_repetitions_measure_at_end(dtype: Type[np.number], split: bool):
         assert mock_sim.call_count == 8
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_run_invert_mask_measure_not_terminal(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -148,7 +164,9 @@ def test_run_invert_mask_measure_not_terminal(dtype: Type[np.number], split: boo
         assert mock_sim.call_count > 4
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_run_partial_invert_mask_measure_not_terminal(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -168,7 +186,9 @@ def test_run_partial_invert_mask_measure_not_terminal(dtype: Type[np.number], sp
         assert mock_sim.call_count > 4
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_run_measurement_not_terminal_no_repetitions(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -191,7 +211,9 @@ def test_run_measurement_not_terminal_no_repetitions(dtype: Type[np.number], spl
         assert mock_sim.call_count == 0
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_run_repetitions_measurement_not_terminal(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -213,7 +235,9 @@ def test_run_repetitions_measurement_not_terminal(dtype: Type[np.number], split:
         assert mock_sim.call_count > 4
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_run_param_resolver(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -231,7 +255,9 @@ def test_run_param_resolver(dtype: Type[np.number], split: bool):
             np.testing.assert_equal(result.params, param_resolver)
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_run_mixture(dtype: Type[np.number], split: bool):
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -240,7 +266,9 @@ def test_run_mixture(dtype: Type[np.number], split: bool):
     assert 20 < sum(result.measurements['0'])[0] < 80
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_run_mixture_with_gates(dtype: Type[np.number], split: bool):
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -250,7 +278,9 @@ def test_run_mixture_with_gates(dtype: Type[np.number], split: bool):
     assert sum(result.measurements['0'])[0] > 20
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_run_correlations(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -261,7 +291,9 @@ def test_run_correlations(dtype: Type[np.number], split: bool):
         assert bits[0] == bits[1]
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_run_measure_multiple_qubits(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -272,7 +304,9 @@ def test_run_measure_multiple_qubits(dtype: Type[np.number], split: bool):
             np.testing.assert_equal(result.measurements, {'0,1': [[b0, b1]] * 3})
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_run_sweeps_param_resolvers(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -297,7 +331,9 @@ def test_run_sweeps_param_resolvers(dtype: Type[np.number], split: bool):
             assert results[1].params == params[1]
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_random_unitary(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -312,7 +348,9 @@ def test_simulate_random_unitary(dtype: Type[np.number], split: bool):
         )
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_no_circuit(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -322,7 +360,9 @@ def test_simulate_no_circuit(dtype: Type[np.number], split: bool):
     assert len(result.measurements) == 0
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -361,7 +401,9 @@ class _TestMixture(cirq.Gate):
         return [(1 / len(self.gate_options), cirq.unitary(g)) for g in self.gate_options]
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_qudits(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -376,7 +418,9 @@ def test_simulate_qudits(dtype: Type[np.number], split: bool):
     assert len(result.measurements) == 0
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_mixtures(dtype: Type[np.number], split: bool):
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -392,7 +436,9 @@ def test_simulate_mixtures(dtype: Type[np.number], split: bool):
     assert count < 80 and count > 20
 
 
-@pytest.mark.parametrize('dtype, split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype, split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_qudit_mixtures(dtype: Type[np.number], split: bool):
     q0 = cirq.LineQid(0, 3)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -411,7 +457,9 @@ def test_simulate_qudit_mixtures(dtype: Type[np.number], split: bool):
     assert counts[2] < 160 and counts[2] > 40
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_bit_flips(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -427,7 +475,9 @@ def test_simulate_bit_flips(dtype: Type[np.number], split: bool):
             np.testing.assert_equal(result.final_state_vector, np.reshape(expected_state, 4))
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_initial_state(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -440,7 +490,9 @@ def test_simulate_initial_state(dtype: Type[np.number], split: bool):
             np.testing.assert_equal(result.final_state_vector, np.reshape(expected_state, 4))
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_act_on_args(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -454,7 +506,9 @@ def test_simulate_act_on_args(dtype: Type[np.number], split: bool):
             np.testing.assert_equal(result.final_state_vector, np.reshape(expected_state, 4))
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_qubit_order(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -467,7 +521,9 @@ def test_simulate_qubit_order(dtype: Type[np.number], split: bool):
             np.testing.assert_equal(result.final_state_vector, np.reshape(expected_state, 4))
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_param_resolver(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -485,7 +541,9 @@ def test_simulate_param_resolver(dtype: Type[np.number], split: bool):
             assert len(result.measurements) == 0
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_measure_multiple_qubits(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -496,7 +554,9 @@ def test_simulate_measure_multiple_qubits(dtype: Type[np.number], split: bool):
             np.testing.assert_equal(result.measurements, {'0,1': [b0, b1]})
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_sweeps_param_resolver(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -522,7 +582,9 @@ def test_simulate_sweeps_param_resolver(dtype: Type[np.number], split: bool):
             assert results[1].params == params[1]
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_moment_steps(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q0), cirq.H(q1))
@@ -534,7 +596,9 @@ def test_simulate_moment_steps(dtype: Type[np.number], split: bool):
             np.testing.assert_almost_equal(step.state_vector(), np.array([1, 0, 0, 0]))
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_moment_steps_empty_circuit(dtype: Type[np.number], split: bool):
     circuit = cirq.Circuit()
     simulator = cirq.Simulator(dtype=dtype, split_untangled_states=split)
@@ -557,7 +621,9 @@ def test_simulate_moment_steps_set_state(dtype):
             step.set_state_vector(np.array([1, 0, 0, 0], dtype=dtype))
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_moment_steps_sample(dtype: Type[np.number], split: bool):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
@@ -577,7 +643,9 @@ def test_simulate_moment_steps_sample(dtype: Type[np.number], split: bool):
                 )
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_moment_steps_intermediate_measurement(dtype: Type[np.number], split: bool):
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0), cirq.H(q0))
@@ -593,7 +661,9 @@ def test_simulate_moment_steps_intermediate_measurement(dtype: Type[np.number], 
             np.testing.assert_almost_equal(step.state_vector(), expected)
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_expectation_values(dtype: Type[np.number], split: bool):
     # Compare with test_expectation_from_state_vector_two_qubit_states
     # in file: cirq/ops/linear_combinations_test.py
@@ -617,7 +687,9 @@ def test_simulate_expectation_values(dtype: Type[np.number], split: bool):
     assert cirq.approx_eq(result[0], 2, atol=1e-6)
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_expectation_values_terminal_measure(dtype: Type[np.number], split: bool):
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
@@ -654,7 +726,9 @@ def test_simulate_expectation_values_terminal_measure(dtype: Type[np.number], sp
     assert results[0] == 100
 
 
-@pytest.mark.parametrize('dtype,split', itertools.product([np.complex64, np.complex128], [True, False]))
+@pytest.mark.parametrize(
+    'dtype,split', itertools.product([np.complex64, np.complex128], [True, False])
+)
 def test_simulate_expectation_values_qubit_order(dtype: Type[np.number], split: bool):
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.X(q2))
