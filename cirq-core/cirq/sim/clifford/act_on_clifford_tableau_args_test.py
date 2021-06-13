@@ -101,3 +101,46 @@ def test_copy():
     assert args.prng is args1.prng
     assert args.log_of_measurement_results is not args1.log_of_measurement_results
     assert args.log_of_measurement_results == args.log_of_measurement_results
+
+
+def test_axes_deprecation():
+    state = cirq.CliffordTableau(num_qubits=3)
+    rng = np.random.RandomState()
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        args = cirq.ActOnCliffordTableauArgs(
+            state,
+            (1,),
+            qubits=cirq.LineQubit.range(3),
+            prng=rng,
+            log_of_measurement_results={},
+        )
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        assert args.axes == (1,)
+    assert args.prng is rng
+    assert args.tableau is state
+
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        args = cirq.ActOnCliffordTableauArgs(
+            state,
+            (1,),
+            rng,
+            qubits=cirq.LineQubit.range(3),
+            log_of_measurement_results={},
+        )
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        assert args.axes == (1,)
+    assert args.prng is rng
+    assert args.tableau is state
+
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        args = cirq.ActOnCliffordTableauArgs(
+            state,
+            axes=(1,),
+            qubits=cirq.LineQubit.range(3),
+            prng=rng,
+            log_of_measurement_results={},
+        )
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        assert args.axes == (1,)
+    assert args.prng is rng
+    assert args.tableau is state

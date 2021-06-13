@@ -26,7 +26,8 @@ if TYPE_CHECKING:
 
 
 def _rewrite_deprecated_args(args, kwargs):
-    kwargs['axes'] = args[3]
+    if len(args) > 3:
+        kwargs['axes'] = args[3]
     if len(args) > 4:
         kwargs['prng'] = args[4]
     if len(args) > 5:

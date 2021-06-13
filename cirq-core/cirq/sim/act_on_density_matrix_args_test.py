@@ -63,3 +63,52 @@ def test_cannot_act():
     )
     with pytest.raises(TypeError, match="Can't simulate operations"):
         cirq.act_on_qubits(NoDetails(), args, qubits=())
+
+
+def test_axes_deprecation():
+    qid_shape = (2,)
+    state = cirq.to_valid_density_matrix(0, len(qid_shape), qid_shape=qid_shape, dtype=np.complex64)
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        args = cirq.ActOnDensityMatrixArgs(
+            state,
+            [],
+            (1,),
+            qubits=cirq.LineQubit.range(1),
+            prng=np.random.RandomState(),
+            log_of_measurement_results={},
+            qid_shape=qid_shape,
+        )
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        assert args.axes == (1,)
+    assert args.qid_shape is qid_shape
+    assert args.target_tensor is state
+
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        args = cirq.ActOnDensityMatrixArgs(
+            state,
+            [],
+            (1,),
+            qid_shape,
+            qubits=cirq.LineQubit.range(1),
+            prng=np.random.RandomState(),
+            log_of_measurement_results={},
+        )
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        assert args.axes == (1,)
+    assert args.qid_shape is qid_shape
+    assert args.target_tensor is state
+
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        args = cirq.ActOnDensityMatrixArgs(
+            state,
+            [],
+            axes=(1,),
+            qubits=cirq.LineQubit.range(1),
+            prng=np.random.RandomState(),
+            log_of_measurement_results={},
+            qid_shape=qid_shape,
+        )
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        assert args.axes == (1,)
+    assert args.qid_shape is qid_shape
+    assert args.target_tensor is state

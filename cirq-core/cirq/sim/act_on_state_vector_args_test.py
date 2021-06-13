@@ -220,3 +220,49 @@ def test_random_channel_has_random_behavior():
     v = s['out'].value_counts()
     assert v[0] > 1
     assert v[1] > 1
+
+
+def test_axes_deprecation():
+    rng = np.random.RandomState()
+    state = np.array([1, 0], dtype=np.complex64)
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        args = cirq.ActOnStateVectorArgs(
+            state,
+            [],
+            (1,),
+            qubits=cirq.LineQubit.range(1),
+            prng=rng,
+            log_of_measurement_results={},
+        )
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        assert args.axes == (1,)
+    assert args.prng is rng
+    assert args.target_tensor is state
+
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        args = cirq.ActOnStateVectorArgs(
+            state,
+            [],
+            (1,),
+            rng,
+            qubits=cirq.LineQubit.range(1),
+            log_of_measurement_results={},
+        )
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        assert args.axes == (1,)
+    assert args.prng is rng
+    assert args.target_tensor is state
+
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        args = cirq.ActOnStateVectorArgs(
+            state,
+            [],
+            axes=(1,),
+            qubits=cirq.LineQubit.range(1),
+            prng=rng,
+            log_of_measurement_results={},
+        )
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        assert args.axes == (1,)
+    assert args.prng is rng
+    assert args.target_tensor is state
