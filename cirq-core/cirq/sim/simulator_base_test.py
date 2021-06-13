@@ -134,9 +134,9 @@ class CountingSimulator(
 
     def _create_step_result(
         self,
-        step_result: CountingStepResult,
+        sim_state: CountingActOnArgs,
     ) -> CountingStepResult:
-        return CountingStepResult(step_result)
+        return CountingStepResult(sim_state)
 
 
 class SplittableCountingSimulator(CountingSimulator):

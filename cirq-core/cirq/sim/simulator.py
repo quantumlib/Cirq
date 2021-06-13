@@ -830,7 +830,9 @@ class SimulationTrialResult:
 
     @property
     def _final_simulator_state(self):
-        if isinstance(self._step_result, StepResult) or hasattr(self._step_result, "_simulator_state"):
+        if isinstance(self._step_result, StepResult) or hasattr(
+            self._step_result, "_simulator_state"
+        ):
             return self._step_result._simulator_state()
         else:
             # Backwards compatibility: this field used to be the state itself.

@@ -161,7 +161,8 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
         qubit_map = (
             step_result._qubit_mapping
             if isinstance(step_result, StateVectorStepResult)
-            else step_result.qubit_map  # Backwards compatibility
+            # Backwards compatibility
+            else step_result.qubit_map  # type: ignore
         )
         super().__init__(
             params=params,
