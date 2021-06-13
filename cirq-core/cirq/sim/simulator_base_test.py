@@ -128,15 +128,15 @@ class CountingSimulator(
         self,
         params: cirq.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: CountingActOnArgs,
+        step_result: CountingStepResult,
     ) -> CountingTrialResult:
-        return CountingTrialResult(params, measurements, final_simulator_state)
+        return CountingTrialResult(params, measurements, step_result)
 
     def _create_step_result(
         self,
-        sim_state: cirq.OperationTarget[CountingActOnArgs],
+        step_result: CountingStepResult,
     ) -> CountingStepResult:
-        return CountingStepResult(sim_state)
+        return CountingStepResult(step_result)
 
 
 class SplittableCountingSimulator(CountingSimulator):

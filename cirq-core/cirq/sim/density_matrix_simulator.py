@@ -221,10 +221,10 @@ class DensityMatrixSimulator(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'DensityMatrixSimulatorState',
+        step_result: 'DensityMatrixStepResult',
     ) -> 'DensityMatrixTrialResult':
         return DensityMatrixTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, step_result=step_result
         )
 
 
@@ -391,7 +391,7 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
             results. Measurement results are a numpy ndarray of actual boolean
             measurement results (ordered by the qubits acted on by the
             measurement gate.)
-        final_simulator_state: The final simulator state of the system after the
+        step_result: The final simulator state of the system after the
             trial finishes.
         final_density_matrix: The final density matrix of the system.
     """
@@ -400,15 +400,21 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: DensityMatrixSimulatorState,
+        step_result: DensityMatrixStepResult,
     ) -> None:
         super().__init__(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, step_result=step_result
         )
-        size = np.prod(protocols.qid_shape(self), dtype=int)
-        self.final_density_matrix = np.reshape(
-            final_simulator_state.density_matrix.copy(), (size, size)
-        )
+        self._final_density_matrix: Optional[np.ndarray] = None
+
+    @property
+    def final_density_matrix(self):
+        if self._final_density_matrix is None:
+            size = np.prod(protocols.qid_shape(self), dtype=int)
+            self._final_density_matrix = np.reshape(
+                self._final_simulator_state.density_matrix.copy(), (size, size)
+            )
+        return self._final_density_matrix
 
     def _value_equality_values_(self) -> Any:
         measurements = {k: v.tolist() for k, v in sorted(self.measurements.items())}

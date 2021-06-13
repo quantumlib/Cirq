@@ -1372,3 +1372,19 @@ def test_final_density_matrix_is_not_last_object():
     assert result.final_density_matrix is not initial_state
     assert not np.shares_memory(result.final_density_matrix, initial_state)
     np.testing.assert_equal(result.final_density_matrix, initial_state)
+
+
+def test_large_untangled_okay():
+    circuit = cirq.Circuit()
+    for i in range(59):
+        circuit.append(cirq.X(cirq.LineQubit(i)))
+        circuit.append(cirq.measure(cirq.LineQubit(i)))
+    with pytest.raises(MemoryError, match='Unable to allocate'):
+        _ = cirq.DensityMatrixSimulator(split_untangled_states=False).simulate(circuit)
+    result = cirq.DensityMatrixSimulator(split_untangled_states=True).simulate(circuit)
+    assert set(result._step_result._qubits) == set(cirq.LineQubit.range(59))
+    # _ = result.final_density_matrix hangs (as expected)
+    result = cirq.DensityMatrixSimulator(split_untangled_states=True).run(circuit, repetitions=1000)
+    assert len(result.measurements) == 59
+    assert len(result.measurements['0']) == 1000
+    assert (result.measurements['0'] == np.full(1000, 1)).all()

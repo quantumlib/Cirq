@@ -43,21 +43,21 @@ class SimulatesIntermediateStateImpl(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: Any,
+        step_result: Any,
     ) -> 'SimulationTrialResult':
         """This method creates a default trial result.
 
         Args:
             params: The ParamResolver for this trial.
             measurements: The measurement results for this trial.
-            final_simulator_state: The final state of the simulator for the
+            step_result: The final state of the simulator for the
                 StepResult.
 
         Returns:
             The SimulationTrialResult.
         """
         return SimulationTrialResult(
-            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+            params=params, measurements=measurements, step_result=step_result
         )
 
 
