@@ -102,7 +102,7 @@ class ActOnArgs:
 
     @property  # type: ignore
     @deprecated(
-        deadline="v0.14",
+        deadline="v0.13",
         fix="Use `protocols.act_on_qubits` instead.",
     )
     def axes(self) -> Tuple[int, ...]:
@@ -110,7 +110,7 @@ class ActOnArgs:
 
     @axes.setter  # type: ignore
     @deprecated(
-        deadline="v0.14",
+        deadline="v0.13",
         fix="Use `protocols.act_on_qubits` instead.",
     )
     def axes(self, value: Iterable[int]):

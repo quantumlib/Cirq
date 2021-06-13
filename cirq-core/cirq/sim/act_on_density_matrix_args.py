@@ -52,7 +52,7 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         parameter_desc='axes',
         match=lambda args, kwargs: 'axes' in kwargs
         or ('qid_shape' in kwargs and len(args) == 4)
-        or (len(args) > 4 and isinstance(args[4], Tuple)),
+        or (len(args) > 4 and isinstance(args[4], tuple)),
         rewrite=_rewrite_deprecated_args,
     )
     def __init__(
