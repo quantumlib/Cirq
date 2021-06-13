@@ -830,7 +830,11 @@ class SimulationTrialResult:
 
     @property
     def _final_simulator_state(self):
-        return self._step_result._simulator_state()
+        if isinstance(self._step_result, StepResult):
+            return self._step_result._simulator_state()
+        else:
+            # Backwards compatibility: this field used to be the state itself.
+            return self._step_result
 
     def __str__(self) -> str:
         def bitstring(vals):

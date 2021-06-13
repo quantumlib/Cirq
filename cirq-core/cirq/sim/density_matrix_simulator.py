@@ -402,9 +402,7 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
         measurements: Dict[str, np.ndarray],
         step_result: DensityMatrixStepResult,
     ) -> None:
-        super().__init__(
-            params=params, measurements=measurements, step_result=step_result
-        )
+        super().__init__(params=params, measurements=measurements, step_result=step_result)
         self._final_density_matrix: Optional[np.ndarray] = None
 
     @property

@@ -137,9 +137,7 @@ class MPSSimulator(
         Returns:
             A single result.
         """
-        return MPSTrialResult(
-            params=params, measurements=measurements, step_result=step_result
-        )
+        return MPSTrialResult(params=params, measurements=measurements, step_result=step_result)
 
 
 class MPSTrialResult(simulator.SimulationTrialResult):
@@ -151,9 +149,7 @@ class MPSTrialResult(simulator.SimulationTrialResult):
         measurements: Dict[str, np.ndarray],
         step_result: 'MPSSimulatorStepResult',
     ) -> None:
-        super().__init__(
-            params=params, measurements=measurements, step_result=step_result
-        )
+        super().__init__(params=params, measurements=measurements, step_result=step_result)
 
     @property
     def final_state(self):

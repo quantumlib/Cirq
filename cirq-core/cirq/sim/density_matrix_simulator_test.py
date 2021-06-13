@@ -861,26 +861,26 @@ def test_density_matrix_trial_result_eq():
         cirq.DensityMatrixTrialResult(
             params=cirq.ParamResolver({}),
             measurements={},
-            final_simulator_state=final_simulator_state,
+            step_result=final_simulator_state,  # type: ignore
         ),
         cirq.DensityMatrixTrialResult(
             params=cirq.ParamResolver({}),
             measurements={},
-            final_simulator_state=final_simulator_state,
+            step_result=final_simulator_state,  # type: ignore
         ),
     )
     eq.add_equality_group(
         cirq.DensityMatrixTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={},
-            final_simulator_state=final_simulator_state,
+            step_result=final_simulator_state,  # type: ignore
         )
     )
     eq.add_equality_group(
         cirq.DensityMatrixTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={'m': np.array([[1]])},
-            final_simulator_state=final_simulator_state,
+            step_result=final_simulator_state,  # type: ignore
         )
     )
 
@@ -892,7 +892,7 @@ def test_density_matrix_trial_result_qid_shape():
             cirq.DensityMatrixTrialResult(
                 params=cirq.ParamResolver({}),
                 measurements={},
-                final_simulator_state=cirq.DensityMatrixSimulatorState(
+                step_result=cirq.DensityMatrixSimulatorState(  # type: ignore
                     density_matrix=np.ones((4, 4)) / 4, qubit_map={q0: 0, q1: 1}
                 ),
             ),
@@ -905,7 +905,7 @@ def test_density_matrix_trial_result_qid_shape():
             cirq.DensityMatrixTrialResult(
                 params=cirq.ParamResolver({}),
                 measurements={},
-                final_simulator_state=cirq.DensityMatrixSimulatorState(
+                step_result=cirq.DensityMatrixSimulatorState(  # type: ignore
                     density_matrix=np.ones((12, 12)) / 12, qubit_map={q0: 0, q1: 1}
                 ),
             ),
@@ -924,7 +924,7 @@ def test_density_matrix_trial_result_repr():
             cirq.DensityMatrixTrialResult(
                 params=cirq.ParamResolver({'s': 1}),
                 measurements={'m': np.array([[1]])},
-                final_simulator_state=final_simulator_state,
+                step_result=final_simulator_state,  # type: ignore
             )
         )
         == "cirq.DensityMatrixTrialResult("
@@ -1025,7 +1025,7 @@ def test_density_matrix_trial_result_str():
         density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
     )
     result = cirq.DensityMatrixTrialResult(
-        params=cirq.ParamResolver({}), measurements={}, final_simulator_state=final_simulator_state
+        params=cirq.ParamResolver({}), measurements={}, step_result=final_simulator_state  # type: ignore
     )
 
     # numpy varies whitespace in its representation for different versions

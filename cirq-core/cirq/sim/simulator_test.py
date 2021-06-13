@@ -165,12 +165,12 @@ def test_intermediate_sweeps():
         cirq.SimulationTrialResult(
             measurements={'a': np.array([True, True])},
             params=param_resolvers[0],
-            final_simulator_state=final_state,
+            step_result=final_state,  # type: ignore
         ),
         cirq.SimulationTrialResult(
             measurements={'a': np.array([True, True])},
             params=param_resolvers[1],
-            final_simulator_state=final_state,
+            step_result=final_state,  # type: ignore
         ),
     ]
     assert results == expected_results
@@ -250,29 +250,29 @@ def test_simulation_trial_result_equality():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(
         cirq.SimulationTrialResult(
-            params=cirq.ParamResolver({}), measurements={}, final_simulator_state=()
+            params=cirq.ParamResolver({}), measurements={}, step_result=()  # type: ignore
         ),
         cirq.SimulationTrialResult(
-            params=cirq.ParamResolver({}), measurements={}, final_simulator_state=()
+            params=cirq.ParamResolver({}), measurements={}, step_result=()  # type: ignore
         ),
     )
     eq.add_equality_group(
         cirq.SimulationTrialResult(
-            params=cirq.ParamResolver({'s': 1}), measurements={}, final_simulator_state=()
+            params=cirq.ParamResolver({'s': 1}), measurements={}, step_result=()  # type: ignore
         )
     )
     eq.add_equality_group(
         cirq.SimulationTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={'m': np.array([1])},
-            final_simulator_state=(),
+            step_result=(),  # type: ignore
         )
     )
     eq.add_equality_group(
         cirq.SimulationTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={'m': np.array([1])},
-            final_simulator_state=(0, 1),
+            step_result=(0, 1),  # type: ignore
         )
     )
 
@@ -282,7 +282,7 @@ def test_simulation_trial_result_repr():
         cirq.SimulationTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={'m': np.array([1])},
-            final_simulator_state=(0, 1),
+            step_result=(0, 1),  # type: ignore
         )
     ) == (
         "cirq.SimulationTrialResult("
@@ -296,7 +296,7 @@ def test_simulation_trial_result_str():
     assert (
         str(
             cirq.SimulationTrialResult(
-                params=cirq.ParamResolver({'s': 1}), measurements={}, final_simulator_state=(0, 1)
+                params=cirq.ParamResolver({'s': 1}), measurements={}, step_result=(0, 1)  # type: ignore
             )
         )
         == '(no measurements)'
@@ -307,7 +307,7 @@ def test_simulation_trial_result_str():
             cirq.SimulationTrialResult(
                 params=cirq.ParamResolver({'s': 1}),
                 measurements={'m': np.array([1])},
-                final_simulator_state=(0, 1),
+                step_result=(0, 1),  # type: ignore
             )
         )
         == 'm=1'
@@ -318,7 +318,7 @@ def test_simulation_trial_result_str():
             cirq.SimulationTrialResult(
                 params=cirq.ParamResolver({'s': 1}),
                 measurements={'m': np.array([1, 2, 3])},
-                final_simulator_state=(0, 1),
+                step_result=(0, 1),  # type: ignore
             )
         )
         == 'm=123'
@@ -329,7 +329,7 @@ def test_simulation_trial_result_str():
             cirq.SimulationTrialResult(
                 params=cirq.ParamResolver({'s': 1}),
                 measurements={'m': np.array([9, 10, 11])},
-                final_simulator_state=(0, 1),
+                step_result=(0, 1),  # type: ignore
             )
         )
         == 'm=9 10 11'
@@ -446,7 +446,7 @@ def test_monte_carlo_on_unknown_channel():
 
 
 def test_iter_definitions():
-    dummy_trial_result = SimulationTrialResult(params={}, measurements={}, final_simulator_state=[])
+    dummy_trial_result = SimulationTrialResult(params={}, measurements={}, step_result=[])  # type: ignore
 
     class FakeNonIterSimulatorImpl(
         SimulatesAmplitudes,

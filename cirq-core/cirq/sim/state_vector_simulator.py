@@ -15,7 +15,18 @@
 
 import abc
 
-from typing import Any, Dict, Iterator, Sequence, TYPE_CHECKING, Tuple, Generic, TypeVar, Type, Optional
+from typing import (
+    Any,
+    Dict,
+    Iterator,
+    Sequence,
+    TYPE_CHECKING,
+    Tuple,
+    Generic,
+    TypeVar,
+    Type,
+    Optional,
+)
 
 import numpy as np
 
@@ -98,9 +109,7 @@ class SimulatesIntermediateStateVector(
 
 
 class StateVectorStepResult(
-    simulator_base.StepResultBase[
-        'StateVectorSimulatorState', 'cirq.ActOnStateVectorArgs'
-    ],
+    simulator_base.StepResultBase['StateVectorSimulatorState', 'cirq.ActOnStateVectorArgs'],
     metaclass=abc.ABCMeta,
 ):
     @abc.abstractmethod
@@ -149,11 +158,16 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
         measurements: Dict[str, np.ndarray],
         step_result: StateVectorStepResult,
     ) -> None:
+        qubit_map = (
+            step_result._qubit_mapping
+            if isinstance(step_result, StateVectorStepResult)
+            else step_result.qubit_map  # Backwards compatibility
+        )
         super().__init__(
             params=params,
             measurements=measurements,
             step_result=step_result,
-            qubit_map=step_result._qubit_mapping,
+            qubit_map=qubit_map,
         )
         self._final_state_vector: Optional[np.ndarray] = None
 

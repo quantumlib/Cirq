@@ -126,9 +126,7 @@ class CliffordTrialResult(simulator.SimulationTrialResult):
         measurements: Dict[str, np.ndarray],
         step_result: 'cirq.CliffordSimulatorStepResult',
     ) -> None:
-        super().__init__(
-            params=params, measurements=measurements, step_result=step_result
-        )
+        super().__init__(params=params, measurements=measurements, step_result=step_result)
 
     @property
     def final_state(self):
