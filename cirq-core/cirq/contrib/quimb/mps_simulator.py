@@ -229,7 +229,7 @@ class MPSState(ActOnArgs):
         deadline='v0.13',
         fix='No longer needed. `protocols.act_on` infers axes.',
         parameter_desc='axes',
-        match=lambda args, kwargs: 'axes' in kwargs,
+        match=lambda args, kwargs: 'axes' in kwargs or len(args) >= 6,
     )
     def __init__(
         self,

@@ -25,6 +25,19 @@ if TYPE_CHECKING:
     import cirq
 
 
+def _rewrite_deprecated_args(args, kwargs):
+    kwargs['axes'] = args[2]
+    if len(args) > 3:
+        kwargs['qid_shape'] = args[3]
+    if len(args) > 4:
+        kwargs['prng'] = args[4]
+    if len(args) > 5:
+        kwargs['log_of_measurement_results'] = args[5]
+    if len(args) > 6:
+        kwargs['qubits'] = args[6]
+    return args[:2], kwargs
+
+
 class ActOnDensityMatrixArgs(ActOnArgs):
     """State and context for an operation acting on a density matrix.
 
@@ -36,7 +49,10 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         deadline='v0.13',
         fix='No longer needed. `protocols.act_on` infers axes.',
         parameter_desc='axes',
-        match=lambda args, kwargs: 'axes' in kwargs,
+        match=lambda args, kwargs: 'axes' in kwargs
+        or ('qid_shape' in kwargs and len(args) == 3)
+        or (len(args) > 3 and isinstance(args[3], Tuple)),
+        rewrite=_rewrite_deprecated_args,
     )
     def __init__(
         self,
@@ -46,7 +62,6 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
-        *,
         axes: Iterable[int] = None,
     ):
         """

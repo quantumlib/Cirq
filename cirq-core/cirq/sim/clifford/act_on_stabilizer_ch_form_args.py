@@ -28,6 +28,17 @@ if TYPE_CHECKING:
     from typing import Optional
 
 
+def _rewrite_deprecated_args(args, kwargs):
+    kwargs['axes'] = args[1]
+    if len(args) > 2:
+        kwargs['prng'] = args[2]
+    if len(args) > 3:
+        kwargs['log_of_measurement_results'] = args[3]
+    if len(args) > 4:
+        kwargs['qubits'] = args[4]
+    return args[:1], kwargs
+
+
 class ActOnStabilizerCHFormArgs(ActOnArgs):
     """Wrapper around a stabilizer state in CH form for the act_on protocol.
 
@@ -39,7 +50,10 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         deadline='v0.13',
         fix='No longer needed. `protocols.act_on` infers axes.',
         parameter_desc='axes',
-        match=lambda args, kwargs: 'axes' in kwargs,
+        match=lambda args, kwargs: 'axes' in kwargs
+        or ('prng' in kwargs and len(args) == 2)
+        or (len(args) > 2 and isinstance(args[2], np.random.RandomState)),
+        rewrite=_rewrite_deprecated_args,
     )
     def __init__(
         self,
@@ -47,7 +61,6 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
-        *,
         axes: Iterable[int] = None,
     ):
         """Initializes with the given state and the axes for the operation.

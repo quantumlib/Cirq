@@ -25,6 +25,17 @@ if TYPE_CHECKING:
     import cirq
 
 
+def _rewrite_deprecated_args(args, kwargs):
+    kwargs['axes'] = args[2]
+    if len(args) > 3:
+        kwargs['prng'] = args[3]
+    if len(args) > 4:
+        kwargs['log_of_measurement_results'] = args[4]
+    if len(args) > 5:
+        kwargs['qubits'] = args[5]
+    return args[:2], kwargs
+
+
 class ActOnStateVectorArgs(ActOnArgs):
     """State and context for an operation acting on a state vector.
 
@@ -41,7 +52,10 @@ class ActOnStateVectorArgs(ActOnArgs):
         deadline='v0.13',
         fix='No longer needed. `protocols.act_on` infers axes.',
         parameter_desc='axes',
-        match=lambda args, kwargs: 'axes' in kwargs,
+        match=lambda args, kwargs: 'axes' in kwargs
+        or ('prng' in kwargs and len(args) == 3)
+        or (len(args) > 3 and isinstance(args[3], np.random.RandomState)),
+        rewrite=_rewrite_deprecated_args,
     )
     def __init__(
         self,
@@ -50,7 +64,6 @@ class ActOnStateVectorArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
-        *,
         axes: Iterable[int] = None,
     ):
         """

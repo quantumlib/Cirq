@@ -30,12 +30,6 @@ if TYPE_CHECKING:
 class ActOnArgs:
     """State and context for an operation acting on a state tensor."""
 
-    @deprecated_parameter(
-        deadline='v0.13',
-        fix='No longer needed. `protocols.act_on` infers axes.',
-        parameter_desc='axes',
-        match=lambda args, kwargs: 'axes' in kwargs,
-    )
     def __init__(
         self,
         prng: np.random.RandomState,
