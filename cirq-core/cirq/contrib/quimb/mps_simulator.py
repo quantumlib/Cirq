@@ -25,6 +25,7 @@ import numpy as np
 import quimb.tensor as qtn
 
 from cirq import devices, study, ops, protocols, value
+from cirq._compat import deprecated_parameter
 from cirq.sim import simulator, simulator_base
 from cirq.sim.act_on_args import ActOnArgs
 
@@ -224,6 +225,12 @@ class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
 class MPSState(ActOnArgs):
     """A state of the MPS simulation."""
 
+    @deprecated_parameter(
+        deadline='v0.13',
+        fix='No longer needed. `protocols.act_on` infers axes.',
+        parameter_desc='axes',
+        match=lambda args, kwargs: 'axes' in kwargs,
+    )
     def __init__(
         self,
         qubits: Sequence['cirq.Qid'],
@@ -249,7 +256,7 @@ class MPSState(ActOnArgs):
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into.
         """
-        super().__init__(prng, qubits, log_of_measurement_results)
+        super().__init__(prng, qubits, axes, log_of_measurement_results)
         qubit_map = self.qubit_map
         self.grouping = qubit_map if grouping is None else grouping
         if self.grouping.keys() != self.qubit_map.keys():

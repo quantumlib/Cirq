@@ -14,10 +14,11 @@
 """A protocol for implementing high performance clifford tableau evolutions
  for Clifford Simulator."""
 
-from typing import Any, Dict, TYPE_CHECKING, List, Sequence
+from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable
 
 import numpy as np
 
+from cirq._compat import deprecated_parameter
 from cirq.ops import common_gates
 from cirq.ops import pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -37,12 +38,20 @@ class ActOnCliffordTableauArgs(ActOnArgs):
     2. Call `record_measurement_result(key, val)` to log a measurement result.
     """
 
+    @deprecated_parameter(
+        deadline='v0.13',
+        fix='No longer needed. `protocols.act_on` infers axes.',
+        parameter_desc='axes',
+        match=lambda args, kwargs: 'axes' in kwargs,
+    )
     def __init__(
         self,
         tableau: CliffordTableau,
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
+        *,
+        axes: Iterable[int] = None,
     ):
         """
         Args:
@@ -56,8 +65,10 @@ class ActOnCliffordTableauArgs(ActOnArgs):
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into. Edit it easily by calling
                 `ActOnCliffordTableauArgs.record_measurement_result`.
+            axes: The indices of axes corresponding to the qubits that the
+                operation is supposed to act upon.
         """
-        super().__init__(prng, qubits, log_of_measurement_results)
+        super().__init__(prng, qubits, axes, log_of_measurement_results)
         self.tableau = tableau
 
     def _act_on_qubits_fallback_(

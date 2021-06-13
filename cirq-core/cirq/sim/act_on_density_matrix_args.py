@@ -13,11 +13,12 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a density matrix."""
 
-from typing import Any, Dict, List, Tuple, TYPE_CHECKING, Sequence
+from typing import Any, Dict, List, Tuple, TYPE_CHECKING, Sequence, Iterable
 
 import numpy as np
 
 from cirq import protocols, sim
+from cirq._compat import deprecated_parameter
 from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
 
 if TYPE_CHECKING:
@@ -31,6 +32,12 @@ class ActOnDensityMatrixArgs(ActOnArgs):
     storing the density matrix of the quantum system with one axis per qubit.
     """
 
+    @deprecated_parameter(
+        deadline='v0.13',
+        fix='No longer needed. `protocols.act_on` infers axes.',
+        parameter_desc='axes',
+        match=lambda args, kwargs: 'axes' in kwargs,
+    )
     def __init__(
         self,
         target_tensor: np.ndarray,
@@ -39,6 +46,8 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
+        *,
+        axes: Iterable[int] = None,
     ):
         """
         Args:
@@ -58,8 +67,10 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into. Edit it easily by calling
                 `ActOnStateVectorArgs.record_measurement_result`.
+            axes: The indices of axes corresponding to the qubits that the
+                operation is supposed to act upon.
         """
-        super().__init__(prng, qubits, log_of_measurement_results)
+        super().__init__(prng, qubits, axes, log_of_measurement_results)
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
         self.qid_shape = qid_shape

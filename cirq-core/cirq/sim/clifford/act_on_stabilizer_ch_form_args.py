@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, TYPE_CHECKING, List, Sequence
+from typing import Any, Dict, TYPE_CHECKING, List, Sequence, Iterable
 
 import numpy as np
 
+from cirq._compat import deprecated_parameter
 from cirq.ops import common_gates, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
@@ -34,12 +35,20 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
     storing the stabilizer state of the quantum system with one axis per qubit.
     """
 
+    @deprecated_parameter(
+        deadline='v0.13',
+        fix='No longer needed. `protocols.act_on` infers axes.',
+        parameter_desc='axes',
+        match=lambda args, kwargs: 'axes' in kwargs,
+    )
     def __init__(
         self,
         state: StabilizerStateChForm,
         prng: np.random.RandomState,
         log_of_measurement_results: Dict[str, Any],
         qubits: Sequence['cirq.Qid'] = None,
+        *,
+        axes: Iterable[int] = None,
     ):
         """Initializes with the given state and the axes for the operation.
         Args:
@@ -53,8 +62,10 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into. Edit it easily by calling
                 `ActOnStabilizerCHFormArgs.record_measurement_result`.
+            axes: The indices of axes corresponding to the qubits that the
+                operation is supposed to act upon.
         """
-        super().__init__(prng, qubits, log_of_measurement_results)
+        super().__init__(prng, qubits, axes, log_of_measurement_results)
         self.state = state
 
     def _act_on_qubits_fallback_(

@@ -13,12 +13,12 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
-from typing import Any, Dict, List, TypeVar, TYPE_CHECKING, Sequence, Tuple
+from typing import Any, Dict, List, TypeVar, TYPE_CHECKING, Sequence, Tuple, Iterable
 
 import numpy as np
 
 from cirq import protocols
-from cirq._compat import deprecated
+from cirq._compat import deprecated, deprecated_parameter
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 
 TSelf = TypeVar('TSelf', bound='ActOnArgs')
@@ -30,10 +30,17 @@ if TYPE_CHECKING:
 class ActOnArgs:
     """State and context for an operation acting on a state tensor."""
 
+    @deprecated_parameter(
+        deadline='v0.13',
+        fix='No longer needed. `protocols.act_on` infers axes.',
+        parameter_desc='axes',
+        match=lambda args, kwargs: 'axes' in kwargs,
+    )
     def __init__(
         self,
         prng: np.random.RandomState,
         qubits: Sequence['cirq.Qid'] = None,
+        axes: Iterable[int] = None,
         log_of_measurement_results: Dict[str, Any] = None,
     ):
         """
@@ -43,19 +50,23 @@ class ActOnArgs:
             qubits: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
+            axes: The indices of axes corresponding to the qubits that the
+                operation is supposed to act upon.
             log_of_measurement_results: A mutable object that measurements are
                 being recorded into. Edit it easily by calling
                 `ActOnStateVectorArgs.record_measurement_result`.
         """
         if qubits is None:
             qubits = ()
+        if axes is None:
+            axes = ()
         if log_of_measurement_results is None:
             log_of_measurement_results = {}
         self.qubits = tuple(qubits)
         self.qubit_map = {q: i for i, q in enumerate(self.qubits)}
+        self._axes = tuple(axes)
         self.prng = prng
         self.log_of_measurement_results = log_of_measurement_results
-        self._axes: Tuple[int, ...] = ()
 
     def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
         """Adds a measurement result to the log.
@@ -98,7 +109,7 @@ class ActOnArgs:
     @property  # type: ignore
     @deprecated(
         deadline="v0.13",
-        fix="use protocols.act_on_qubits",
+        fix="Use `protocols.act_on_qubits` instead.",
     )
     def axes(self) -> Tuple[int, ...]:
         return self._axes
@@ -106,10 +117,10 @@ class ActOnArgs:
     @axes.setter  # type: ignore
     @deprecated(
         deadline="v0.13",
-        fix="use protocols.act_on_qubits",
+        fix="Use `protocols.act_on_qubits` instead.",
     )
-    def axes(self, value: Tuple[int, ...]):
-        self._axes = value
+    def axes(self, value: Iterable[int]):
+        self._axes = tuple(value)
 
 
 def strat_act_on_from_apply_decompose(
