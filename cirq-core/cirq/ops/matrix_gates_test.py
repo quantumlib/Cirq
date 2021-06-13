@@ -218,6 +218,66 @@ a[          ]+  b  c
     )
 
 
+def test_named_single_qubit_diagram():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    m = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
+    c = cirq.Circuit(cirq.MatrixGate(m, name='Foo').on(a), cirq.CZ(a, b))
+
+    assert re.match(
+        r"""
+a: ───Foo───@───
+            │
+b: ─────────@───
+    """.strip(),
+        c.to_text_diagram().strip(),
+    )
+
+    assert re.match(
+        r"""
+a   b
+│   │
+Foo │
+│   │
+@───@
+│   │
+    """.strip(),
+        c.to_text_diagram(transpose=True).strip(),
+    )
+
+
+def test_named_two_qubit_diagram():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+    c = cirq.Circuit(
+        cirq.MatrixGate(cirq.unitary(cirq.CZ), name='Foo').on(a, b),
+        cirq.MatrixGate(cirq.unitary(cirq.CZ), name='Bar').on(c, a),
+    )
+    assert re.match(
+        r"""
+a: ───Foo1───Bar2───
+      │      │
+b: ───Foo2───┼──────
+             │
+c: ──────────Bar1───
+    """.strip(),
+        c.to_text_diagram().strip(),
+    )
+
+    assert re.match(
+        r"""
+a    b    c
+│    │    │
+Foo1─Foo2 │
+│    │    │
+Bar2─┼────Bar1
+│    │    │
+    """.strip(),
+        c.to_text_diagram(transpose=True).strip(),
+    )
+
+
 def test_str_executes():
     assert '1' in str(cirq.MatrixGate(np.eye(2)))
     assert '0' in str(cirq.MatrixGate(np.eye(4)))
