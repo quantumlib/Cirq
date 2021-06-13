@@ -13,7 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a density matrix."""
 
-from typing import Any, Iterable, Dict, List, Tuple, TYPE_CHECKING, Sequence
+from typing import Any, Dict, List, Tuple, TYPE_CHECKING, Sequence
 
 import numpy as np
 

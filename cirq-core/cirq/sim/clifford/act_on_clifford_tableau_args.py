@@ -14,7 +14,7 @@
 """A protocol for implementing high performance clifford tableau evolutions
  for Clifford Simulator."""
 
-from typing import Any, Dict, Iterable, TYPE_CHECKING, List, Sequence
+from typing import Any, Dict, TYPE_CHECKING, List, Sequence
 
 import numpy as np
 
