@@ -18,7 +18,7 @@ from typing import Any, Dict, List, TypeVar, TYPE_CHECKING, Sequence, Tuple, Ite
 import numpy as np
 
 from cirq import protocols
-from cirq._compat import deprecated, deprecated_parameter
+from cirq._compat import deprecated
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 
 TSelf = TypeVar('TSelf', bound='ActOnArgs')
@@ -102,7 +102,7 @@ class ActOnArgs:
 
     @property  # type: ignore
     @deprecated(
-        deadline="v0.13",
+        deadline="v0.14",
         fix="Use `protocols.act_on_qubits` instead.",
     )
     def axes(self) -> Tuple[int, ...]:
@@ -110,7 +110,7 @@ class ActOnArgs:
 
     @axes.setter  # type: ignore
     @deprecated(
-        deadline="v0.13",
+        deadline="v0.14",
         fix="Use `protocols.act_on_qubits` instead.",
     )
     def axes(self, value: Iterable[int]):

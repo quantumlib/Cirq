@@ -87,11 +87,11 @@ def test_act_on_args_axes_deprecation():
     args = Args()
     args.qubits = tuple(cirq.LineQubit.range(3))
     with cirq.testing.assert_deprecated(
-        "ActOnArgs.axes", "Use `protocols.act_on_qubits` instead.", deadline="v0.13"
+        "ActOnArgs.axes", "Use `protocols.act_on_qubits` instead.", deadline="v0.14"
     ):
         args.axes = (1,)
     with cirq.testing.assert_deprecated(
-        "ActOnArgs.axes", "Use `protocols.act_on_qubits` instead.", deadline="v0.13"
+        "ActOnArgs.axes", "Use `protocols.act_on_qubits` instead.", deadline="v0.14"
     ):
         cirq.act_on(object(), args)  # type: ignore
     assert args.measurements == [[cirq.LineQubit(1)]]
