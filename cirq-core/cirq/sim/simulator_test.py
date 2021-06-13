@@ -337,7 +337,7 @@ def test_simulation_trial_result_str():
 
 
 def test_pretty_print():
-    result = cirq.SimulationTrialResult(cirq.ParamResolver(), {}, np.array([1]))  # type: ignore
+    result = cirq.SimulationTrialResult(cirq.ParamResolver(), {}, np.array([1]))
 
     # Test Jupyter console output from
     class FakePrinter:
