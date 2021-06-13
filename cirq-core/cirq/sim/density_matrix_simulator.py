@@ -221,10 +221,10 @@ class DensityMatrixSimulator(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        step_result: 'DensityMatrixStepResult',
+        final_simulator_state: 'DensityMatrixStepResult',
     ) -> 'DensityMatrixTrialResult':
         return DensityMatrixTrialResult(
-            params=params, measurements=measurements, step_result=step_result
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
 
@@ -391,7 +391,7 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
             results. Measurement results are a numpy ndarray of actual boolean
             measurement results (ordered by the qubits acted on by the
             measurement gate.)
-        step_result: The final simulator state of the system after the
+        final_simulator_state: The final simulator state of the system after the
             trial finishes.
         final_density_matrix: The final density matrix of the system.
     """
@@ -400,9 +400,11 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        step_result: DensityMatrixStepResult,
+        final_simulator_state: DensityMatrixStepResult,
     ) -> None:
-        super().__init__(params=params, measurements=measurements, step_result=step_result)
+        super().__init__(
+            params=params, measurements=measurements, final_simulator_state=final_simulator_state
+        )
         self._final_density_matrix: Optional[np.ndarray] = None
 
     @property

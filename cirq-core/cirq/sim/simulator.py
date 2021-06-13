@@ -542,7 +542,7 @@ class SimulatesIntermediateState(
             yield self._create_simulator_trial_result(
                 params=param_resolver,
                 measurements=measurements,
-                step_result=step_result,
+                final_simulator_state=step_result,
             )
 
     def simulate_moment_steps(
@@ -657,14 +657,14 @@ class SimulatesIntermediateState(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        step_result: TStepResult,
+        final_simulator_state: TStepResult,
     ) -> TSimulationTrialResult:
         """This method can be implemented to create a trial result.
 
         Args:
             params: The ParamResolver for this trial.
             measurements: The measurement results for this trial.
-            step_result: The final state of the simulator for the
+            final_simulator_state: The final state of the simulator for the
                 StepResult.
 
         Returns:
@@ -815,11 +815,11 @@ class SimulationTrialResult:
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        step_result: StepResult,
+        final_simulator_state: StepResult,
     ) -> None:
         self.params = params
         self.measurements = measurements
-        self._step_result = step_result
+        self._step_result = final_simulator_state
 
     def __repr__(self) -> str:
         return (
