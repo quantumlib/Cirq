@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Dict, Any, Sequence, Tuple
+from typing import List, Dict, Any, Sequence, Tuple, Union
 
 import copy
 import numpy as np
@@ -128,7 +128,7 @@ class CountingSimulator(
         self,
         params: cirq.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: CountingStepResult,
+        final_simulator_state: Union[CountingStepResult, CountingActOnArgs],
     ) -> CountingTrialResult:
         return CountingTrialResult(params, measurements, final_simulator_state)
 

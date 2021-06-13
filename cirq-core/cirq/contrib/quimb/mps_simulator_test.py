@@ -262,7 +262,7 @@ def test_trial_result_str():
             ccq.mps_simulator.MPSTrialResult(
                 params=cirq.ParamResolver({}),
                 measurements={'m': np.array([[1]])},
-                final_simulator_state=final_simulator_state,  # type: ignore
+                final_simulator_state=final_simulator_state,
             )
         )
         == """measurements: m=1

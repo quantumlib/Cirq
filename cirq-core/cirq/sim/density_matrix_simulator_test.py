@@ -861,26 +861,26 @@ def test_density_matrix_trial_result_eq():
         cirq.DensityMatrixTrialResult(
             params=cirq.ParamResolver({}),
             measurements={},
-            final_simulator_state=final_simulator_state,  # type: ignore
+            final_simulator_state=final_simulator_state,
         ),
         cirq.DensityMatrixTrialResult(
             params=cirq.ParamResolver({}),
             measurements={},
-            final_simulator_state=final_simulator_state,  # type: ignore
+            final_simulator_state=final_simulator_state,
         ),
     )
     eq.add_equality_group(
         cirq.DensityMatrixTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={},
-            final_simulator_state=final_simulator_state,  # type: ignore
+            final_simulator_state=final_simulator_state,
         )
     )
     eq.add_equality_group(
         cirq.DensityMatrixTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={'m': np.array([[1]])},
-            final_simulator_state=final_simulator_state,  # type: ignore
+            final_simulator_state=final_simulator_state,
         )
     )
 
@@ -892,7 +892,7 @@ def test_density_matrix_trial_result_qid_shape():
             cirq.DensityMatrixTrialResult(
                 params=cirq.ParamResolver({}),
                 measurements={},
-                final_simulator_state=cirq.DensityMatrixSimulatorState(  # type: ignore
+                final_simulator_state=cirq.DensityMatrixSimulatorState(
                     density_matrix=np.ones((4, 4)) / 4, qubit_map={q0: 0, q1: 1}
                 ),
             ),
@@ -905,7 +905,7 @@ def test_density_matrix_trial_result_qid_shape():
             cirq.DensityMatrixTrialResult(
                 params=cirq.ParamResolver({}),
                 measurements={},
-                final_simulator_state=cirq.DensityMatrixSimulatorState(  # type: ignore
+                final_simulator_state=cirq.DensityMatrixSimulatorState(
                     density_matrix=np.ones((12, 12)) / 12, qubit_map={q0: 0, q1: 1}
                 ),
             ),
@@ -924,7 +924,7 @@ def test_density_matrix_trial_result_repr():
             cirq.DensityMatrixTrialResult(
                 params=cirq.ParamResolver({'s': 1}),
                 measurements={'m': np.array([[1]])},
-                final_simulator_state=final_simulator_state,  # type: ignore
+                final_simulator_state=final_simulator_state,
             )
         )
         == "cirq.DensityMatrixTrialResult("
@@ -1025,8 +1025,7 @@ def test_density_matrix_trial_result_str():
         density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
     )
     result = cirq.DensityMatrixTrialResult(
-        # pylint: disable=line-too-long
-        params=cirq.ParamResolver({}), measurements={}, final_simulator_state=final_simulator_state  # type: ignore
+        params=cirq.ParamResolver({}), measurements={}, final_simulator_state=final_simulator_state
     )
 
     # numpy varies whitespace in its representation for different versions
@@ -1383,7 +1382,7 @@ def test_large_untangled_okay():
     with pytest.raises(MemoryError, match='Unable to allocate'):
         _ = cirq.DensityMatrixSimulator(split_untangled_states=False).simulate(circuit)
     result = cirq.DensityMatrixSimulator(split_untangled_states=True).simulate(circuit)
-    assert set(result._step_result._qubits) == set(cirq.LineQubit.range(59))
+    assert set(result._step_result_or_state._qubits) == set(cirq.LineQubit.range(59))
     # _ = result.final_density_matrix hangs (as expected)
     result = cirq.DensityMatrixSimulator(split_untangled_states=True).run(circuit, repetitions=1000)
     assert len(result.measurements) == 59

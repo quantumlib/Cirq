@@ -221,7 +221,7 @@ class DensityMatrixSimulator(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'DensityMatrixStepResult',
+        final_simulator_state: Union['DensityMatrixSimulatorState', 'DensityMatrixStepResult'],
     ) -> 'DensityMatrixTrialResult':
         return DensityMatrixTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
@@ -400,7 +400,7 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: DensityMatrixStepResult,
+        final_simulator_state: Union[DensityMatrixSimulatorState, DensityMatrixStepResult],
     ) -> None:
         super().__init__(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state

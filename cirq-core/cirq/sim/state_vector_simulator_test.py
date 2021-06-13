@@ -25,7 +25,7 @@ def test_state_vector_trial_result_repr():
     trial_result = cirq.StateVectorTrialResult(
         params=cirq.ParamResolver({'s': 1}),
         measurements={'m': np.array([[1]])},
-        final_simulator_state=final_simulator_state,  # type: ignore
+        final_simulator_state=final_simulator_state,
     )
     assert repr(trial_result) == (
         "cirq.StateVectorTrialResult("
@@ -50,33 +50,33 @@ def test_state_vector_trial_result_equality():
         cirq.StateVectorTrialResult(
             params=cirq.ParamResolver({}),
             measurements={},
-            final_simulator_state=cirq.StateVectorSimulatorState(np.array([]), {}),  # type: ignore
+            final_simulator_state=cirq.StateVectorSimulatorState(np.array([]), {}),
         ),
         cirq.StateVectorTrialResult(
             params=cirq.ParamResolver({}),
             measurements={},
-            final_simulator_state=cirq.StateVectorSimulatorState(np.array([]), {}),  # type: ignore
+            final_simulator_state=cirq.StateVectorSimulatorState(np.array([]), {}),
         ),
     )
     eq.add_equality_group(
         cirq.StateVectorTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={},
-            final_simulator_state=cirq.StateVectorSimulatorState(np.array([]), {}),  # type: ignore
+            final_simulator_state=cirq.StateVectorSimulatorState(np.array([]), {}),
         )
     )
     eq.add_equality_group(
         cirq.StateVectorTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={'m': np.array([[1]])},
-            final_simulator_state=cirq.StateVectorSimulatorState(np.array([]), {}),  # type: ignore
+            final_simulator_state=cirq.StateVectorSimulatorState(np.array([]), {}),
         )
     )
     eq.add_equality_group(
         cirq.StateVectorTrialResult(
             params=cirq.ParamResolver({'s': 1}),
             measurements={'m': np.array([[1]])},
-            final_simulator_state=cirq.StateVectorSimulatorState(np.array([1]), {}),  # type: ignore
+            final_simulator_state=cirq.StateVectorSimulatorState(np.array([1]), {}),
         )
     )
 
@@ -87,7 +87,7 @@ def test_state_vector_trial_result_state_mixin():
     result = cirq.StateVectorTrialResult(
         params=cirq.ParamResolver({'a': 2}),
         measurements={'m': np.array([1, 2])},
-        final_simulator_state=cirq.StateVectorSimulatorState(  # type: ignore
+        final_simulator_state=cirq.StateVectorSimulatorState(
             qubit_map=qubit_map, state_vector=np.array([0, 1, 0, 0])
         ),
     )
@@ -105,7 +105,7 @@ def test_state_vector_trial_result_qid_shape():
     trial_result = cirq.StateVectorTrialResult(
         params=cirq.ParamResolver({'s': 1}),
         measurements={'m': np.array([[1]])},
-        final_simulator_state=final_simulator_state,  # type: ignore
+        final_simulator_state=final_simulator_state,
     )
     assert cirq.qid_shape(final_simulator_state) == (2,)
     assert cirq.qid_shape(trial_result) == (2,)
@@ -117,7 +117,7 @@ def test_state_vector_trial_result_qid_shape():
     trial_result = cirq.StateVectorTrialResult(
         params=cirq.ParamResolver({'s': 1}),
         measurements={'m': np.array([[2, 0]])},
-        final_simulator_state=final_simulator_state,  # type: ignore
+        final_simulator_state=final_simulator_state,
     )
     assert cirq.qid_shape(final_simulator_state) == (3, 2)
     assert cirq.qid_shape(trial_result) == (3, 2)
@@ -129,8 +129,7 @@ def test_state_vector_trial_state_vector_is_copy():
         qubit_map={cirq.NamedQubit('a'): 0}, state_vector=final_state_vector
     )
     trial_result = cirq.StateVectorTrialResult(
-        # pylint: disable=line-too-long
-        params=cirq.ParamResolver({}), measurements={}, final_simulator_state=final_simulator_state  # type: ignore
+        params=cirq.ParamResolver({}), measurements={}, final_simulator_state=final_simulator_state
     )
     assert final_simulator_state.state_vector is final_state_vector
     assert not trial_result.state_vector() is final_state_vector
@@ -141,15 +140,14 @@ def test_str_big():
     result = cirq.StateVectorTrialResult(
         cirq.ParamResolver(),
         {},
-        # pylint: disable=line-too-long
-        cirq.StateVectorSimulatorState(np.array([1] * 2 ** 10), {q: q.x for q in qs}),  # type: ignore
+        cirq.StateVectorSimulatorState(np.array([1] * 2 ** 10), {q: q.x for q in qs}),
     )
     assert str(result).startswith('measurements: (no measurements)\noutput vector: [1 1 1 ..')
 
 
 def test_pretty_print():
     result = cirq.StateVectorTrialResult(
-        cirq.ParamResolver(), {}, cirq.StateVectorSimulatorState(np.array([1]), {})  # type: ignore
+        cirq.ParamResolver(), {}, cirq.StateVectorSimulatorState(np.array([1]), {})
     )
 
     # Test Jupyter console output from

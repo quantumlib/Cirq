@@ -214,7 +214,7 @@ def test_clifford_trial_result_repr():
             cirq.CliffordTrialResult(
                 params=cirq.ParamResolver({}),
                 measurements={'m': np.array([[1]])},
-                final_simulator_state=final_simulator_state,  # type: ignore
+                final_simulator_state=final_simulator_state,
             )
         )
         == "cirq.SimulationTrialResult(params=cirq.ParamResolver({}), "
@@ -231,7 +231,7 @@ def test_clifford_trial_result_str():
             cirq.CliffordTrialResult(
                 params=cirq.ParamResolver({}),
                 measurements={'m': np.array([[1]])},
-                final_simulator_state=final_simulator_state,  # type: ignore
+                final_simulator_state=final_simulator_state,
             )
         )
         == "measurements: m=1\n"

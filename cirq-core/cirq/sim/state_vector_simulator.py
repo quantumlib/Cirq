@@ -26,6 +26,7 @@ from typing import (
     TypeVar,
     Type,
     Optional,
+    Union,
 )
 
 import numpy as np
@@ -76,7 +77,7 @@ class SimulatesIntermediateStateVector(
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'StateVectorStepResult',
+        final_simulator_state: Union['StateVectorStepResult', 'StateVectorSimulatorState'],
     ) -> 'StateVectorTrialResult':
         return StateVectorTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
@@ -156,13 +157,12 @@ class StateVectorTrialResult(state_vector.StateVectorMixin, simulator.Simulation
         self,
         params: study.ParamResolver,
         measurements: Dict[str, np.ndarray],
-        final_simulator_state: StateVectorStepResult,
+        final_simulator_state: Union[StateVectorStepResult, StateVectorSimulatorState],
     ) -> None:
         qubit_map = (
             final_simulator_state._qubit_mapping
             if isinstance(final_simulator_state, StateVectorStepResult)
-            # Backwards compatibility
-            else final_simulator_state.qubit_map  # type: ignore
+            else final_simulator_state.qubit_map
         )
         super().__init__(
             params=params,
