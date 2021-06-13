@@ -129,6 +129,7 @@ def test_state_vector_trial_state_vector_is_copy():
         qubit_map={cirq.NamedQubit('a'): 0}, state_vector=final_state_vector
     )
     trial_result = cirq.StateVectorTrialResult(
+        # pylint: disable=line-too-long
         params=cirq.ParamResolver({}), measurements={}, final_simulator_state=final_simulator_state  # type: ignore
     )
     assert final_simulator_state.state_vector is final_state_vector
@@ -140,6 +141,7 @@ def test_str_big():
     result = cirq.StateVectorTrialResult(
         cirq.ParamResolver(),
         {},
+        # pylint: disable=line-too-long
         cirq.StateVectorSimulatorState(np.array([1] * 2 ** 10), {q: q.x for q in qs}),  # type: ignore
     )
     assert str(result).startswith('measurements: (no measurements)\noutput vector: [1 1 1 ..')

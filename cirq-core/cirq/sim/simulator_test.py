@@ -258,6 +258,7 @@ def test_simulation_trial_result_equality():
     )
     eq.add_equality_group(
         cirq.SimulationTrialResult(
+            # pylint: disable=line-too-long
             params=cirq.ParamResolver({'s': 1}), measurements={}, final_simulator_state=()  # type: ignore
         )
     )
@@ -296,6 +297,7 @@ def test_simulation_trial_result_str():
     assert (
         str(
             cirq.SimulationTrialResult(
+                # pylint: disable=line-too-long
                 params=cirq.ParamResolver({'s': 1}), measurements={}, final_simulator_state=(0, 1)  # type: ignore
             )
         )
@@ -446,6 +448,7 @@ def test_monte_carlo_on_unknown_channel():
 
 
 def test_iter_definitions():
+    # pylint: disable=line-too-long
     dummy_trial_result = SimulationTrialResult(params={}, measurements={}, final_simulator_state=[])  # type: ignore
 
     class FakeNonIterSimulatorImpl(

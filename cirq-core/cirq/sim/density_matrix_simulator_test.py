@@ -1025,6 +1025,7 @@ def test_density_matrix_trial_result_str():
         density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0}
     )
     result = cirq.DensityMatrixTrialResult(
+        # pylint: disable=line-too-long
         params=cirq.ParamResolver({}), measurements={}, final_simulator_state=final_simulator_state  # type: ignore
     )
 
