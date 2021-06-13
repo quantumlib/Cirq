@@ -31,14 +31,14 @@ if TYPE_CHECKING:
 
 
 def _rewrite_deprecated_args(args, kwargs):
-    kwargs['axes'] = args[1]
-    if len(args) > 2:
-        kwargs['prng'] = args[2]
+    kwargs['axes'] = args[2]
     if len(args) > 3:
-        kwargs['log_of_measurement_results'] = args[3]
+        kwargs['prng'] = args[3]
     if len(args) > 4:
-        kwargs['qubits'] = args[4]
-    return args[:1], kwargs
+        kwargs['log_of_measurement_results'] = args[4]
+    if len(args) > 5:
+        kwargs['qubits'] = args[5]
+    return args[:2], kwargs
 
 
 class ActOnCliffordTableauArgs(ActOnArgs):
@@ -54,8 +54,8 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         fix='No longer needed. `protocols.act_on` infers axes.',
         parameter_desc='axes',
         match=lambda args, kwargs: 'axes' in kwargs
-        or ('prng' in kwargs and len(args) == 2)
-        or (len(args) > 2 and isinstance(args[2], np.random.RandomState)),
+        or ('prng' in kwargs and len(args) == 3)
+        or (len(args) > 3 and isinstance(args[3], np.random.RandomState)),
         rewrite=_rewrite_deprecated_args,
     )
     def __init__(

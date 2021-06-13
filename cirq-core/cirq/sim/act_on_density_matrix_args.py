@@ -26,16 +26,16 @@ if TYPE_CHECKING:
 
 
 def _rewrite_deprecated_args(args, kwargs):
-    kwargs['axes'] = args[2]
-    if len(args) > 3:
-        kwargs['qid_shape'] = args[3]
+    kwargs['axes'] = args[3]
     if len(args) > 4:
-        kwargs['prng'] = args[4]
+        kwargs['qid_shape'] = args[4]
     if len(args) > 5:
-        kwargs['log_of_measurement_results'] = args[5]
+        kwargs['prng'] = args[5]
     if len(args) > 6:
-        kwargs['qubits'] = args[6]
-    return args[:2], kwargs
+        kwargs['log_of_measurement_results'] = args[6]
+    if len(args) > 7:
+        kwargs['qubits'] = args[7]
+    return args[:3], kwargs
 
 
 class ActOnDensityMatrixArgs(ActOnArgs):
@@ -50,8 +50,8 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         fix='No longer needed. `protocols.act_on` infers axes.',
         parameter_desc='axes',
         match=lambda args, kwargs: 'axes' in kwargs
-        or ('qid_shape' in kwargs and len(args) == 3)
-        or (len(args) > 3 and isinstance(args[3], Tuple)),
+        or ('qid_shape' in kwargs and len(args) == 4)
+        or (len(args) > 4 and isinstance(args[4], Tuple)),
         rewrite=_rewrite_deprecated_args,
     )
     def __init__(
