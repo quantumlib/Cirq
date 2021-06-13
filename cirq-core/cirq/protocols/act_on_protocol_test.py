@@ -76,3 +76,22 @@ def test_act_on_errors():
     args = DummyActOnArgs(fallback_result=True)
     with pytest.raises(ValueError, match='_act_on_ must return True or NotImplemented'):
         cirq.act_on(Op(), args)
+
+
+def test_act_on_args_axes_deprecation():
+    class Args(DummyActOnArgs):
+        def _act_on_qubits_fallback_(self, action, qubits, allow_decompose):
+            self.measurements.append(qubits)
+            return True
+
+    args = Args()
+    args.qubits = tuple(cirq.LineQubit.range(3))
+    with cirq.testing.assert_deprecated(
+        "ActOnArgs.axes", "use protocols.act_on_qubits", deadline="v0.13"
+    ):
+        args.axes = (1,)
+    with cirq.testing.assert_deprecated(
+        "ActOnArgs.axes", "use protocols.act_on_qubits", deadline="v0.13"
+    ):
+        cirq.act_on(object(), args)  # type: ignore
+    assert args.measurements == [[cirq.LineQubit(1)]]

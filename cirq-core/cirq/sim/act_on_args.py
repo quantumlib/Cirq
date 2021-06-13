@@ -13,11 +13,12 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
-from typing import Any, Dict, List, TypeVar, TYPE_CHECKING, Sequence
+from typing import Any, Dict, List, TypeVar, TYPE_CHECKING, Sequence, Tuple
 
 import numpy as np
 
 from cirq import protocols
+from cirq._compat import deprecated
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 
 TSelf = TypeVar('TSelf', bound='ActOnArgs')
@@ -54,6 +55,7 @@ class ActOnArgs:
         self.qubit_map = {q: i for i, q in enumerate(self.qubits)}
         self.prng = prng
         self.log_of_measurement_results = log_of_measurement_results
+        self._axes: Tuple[int, ...] = ()
 
     def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
         """Adds a measurement result to the log.
@@ -92,6 +94,22 @@ class ActOnArgs:
         self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool
     ):
         """Handles the act_on protocol fallback implementation."""
+
+    @property  # type: ignore
+    @deprecated(
+        deadline="v0.13",
+        fix="use protocols.act_on_qubits",
+    )
+    def axes(self) -> Tuple[int, ...]:
+        return self._axes
+
+    @axes.setter  # type: ignore
+    @deprecated(
+        deadline="v0.13",
+        fix="use protocols.act_on_qubits",
+    )
+    def axes(self, value: Tuple[int, ...]):
+        self._axes = value
 
 
 def strat_act_on_from_apply_decompose(

@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Union
 
 from typing_extensions import Protocol
 
+from cirq import protocols, ops
 from cirq._doc import doc_private
 from cirq.type_workarounds import NotImplementedType
 
@@ -83,6 +84,13 @@ def act_on(
     Raises:
         TypeError: Failed to act `action` on `args`.
     """
+
+    # todo: remove after `args.axes` is deprecated.
+    if not isinstance(action, ops.Operation):
+        qubits = [args.qubits[i] for i in args.axes]
+        protocols.act_on_qubits(action, args, qubits, allow_decompose=allow_decompose)
+        return
+
     action_act_on = getattr(action, '_act_on_', None)
     if action_act_on is not None:
         result = action_act_on(args)
