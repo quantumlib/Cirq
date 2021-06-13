@@ -294,7 +294,7 @@ def entanglement_fidelity(operation: 'cirq.SupportsChannel') -> float:
         Entanglement fidelity of the channel represented by operation.
     """
     f = 0.0
-    for k in protocols.channel(operation):
+    for k in protocols.kraus(operation):
         f += np.abs(np.trace(k)) ** 2
     n_qubits = protocols.num_qubits(operation)
     return float(f / 4 ** n_qubits)
