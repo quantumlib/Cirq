@@ -3,13 +3,8 @@ import {BlochSphere} from './bloch_sphere';
 
 describe('The BlochSphere class', function() {
   // Sanity check
-  it('initializes correctly', function() {
-    const bloch_sphere = new BlochSphere(5);
-    assert.typeOf(bloch_sphere, "object");
-  })
-
   it('has a default radius of 5', function() {
-    const bloch_sphere = new BlochSphere(5);
+    const bloch_sphere = new BlochSphere();
     const radius = bloch_sphere.getRadius();
     expect(radius).to.equal(5);
   })

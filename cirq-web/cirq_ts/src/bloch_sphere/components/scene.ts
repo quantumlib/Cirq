@@ -1,4 +1,4 @@
-import {Scene, PerspectiveCamera, WebGLRenderer, Camera, Object3D, Mesh} from 'three';
+import {Scene, PerspectiveCamera, WebGLRenderer, Camera, Object3D, Mesh, Color} from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
 export class BlochSphereScene {
@@ -62,6 +62,7 @@ export class BlochSphereScene {
     this.camera.position.x = 5;
     this.camera.position.y = 1;
     this.camera.position.z = 1;
+    this.scene.background = new Color("#ffffff");
 
     this.setUpControls();
     this.addSceneToHTML();
