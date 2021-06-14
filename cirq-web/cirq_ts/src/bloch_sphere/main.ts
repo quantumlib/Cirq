@@ -1,6 +1,7 @@
 import {BlochSphereScene} from './components/scene';
 import {BlochSphere} from './bloch_sphere';
 import {createVector} from './components/vector';
+import { loadAndDisplayText } from './components/text';
 
 /**
  * Adds a Bloch sphere element with relevant, configurable data for the
@@ -24,6 +25,9 @@ export function showSphere(
 
   const bloch_sphere = new BlochSphere(inputData.radius).getBlochSphere();
   scene.add(bloch_sphere);
+
+  const text = loadAndDisplayText();
+  scene.includeLabels(text);
 
   const vector = createVector(vectorData || undefined);
   scene.add(vector);

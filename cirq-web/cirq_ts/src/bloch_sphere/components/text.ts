@@ -26,12 +26,12 @@ export function loadAndDisplayText(): Mesh[] {
   const labelHeight = 0.1;
   const labels: Map<string, Vector3> = new Map();
   // State labels are tentative
-  labels.set('+', new Vector3(5, 0, -0.1)); // z proportional to the height
-  labels.set('-', new Vector3(-5 - labelSize, 0, -0.1));
-  labels.set('-i', new Vector3(0, 0, 5));
-  labels.set('i', new Vector3(0, 0, -5 - labelHeight));
-  labels.set('0', new Vector3(0, 5, 0));
-  labels.set('1', new Vector3(0, -5 - labelSize, 0));
+  labels.set('|+>', new Vector3(5, 0, -0.1)); // z proportional to the height
+  labels.set('|->', new Vector3(-5 - labelSize, 0, -0.1));
+  labels.set('|-i>', new Vector3(0, 0, 5));
+  labels.set('|i>', new Vector3(0, 0, -5 - labelHeight));
+  labels.set('|0>', new Vector3(0, 5, 0));
+  labels.set('|1>', new Vector3(0, -5 - labelSize, 0));
 
   for (const [text, vector] of labels) {
     const labelGeo = new TextGeometry(text, {

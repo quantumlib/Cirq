@@ -1,4 +1,4 @@
-import {Scene, PerspectiveCamera, WebGLRenderer, Camera, Object3D} from 'three';
+import {Scene, PerspectiveCamera, WebGLRenderer, Camera, Object3D, Mesh} from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
 export class BlochSphereScene {
@@ -23,6 +23,7 @@ export class BlochSphereScene {
   renderer: WebGLRenderer;
   controls: OrbitControls;
   divId: string;
+  textItems: Mesh[];
 
   /**
    * Initializes a 3D Scene proportional to the bloch sphere visualzation.
@@ -48,6 +49,7 @@ export class BlochSphereScene {
       BlochSphereScene.VIZ_HEIGHT
     );
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.textItems = [];
 
     this.init();
   }
@@ -102,12 +104,27 @@ export class BlochSphereScene {
     this.renderer.setSize(width, height);
   }
 
+  public includeLabels(textItems: Mesh[]){
+    this.textItems = textItems;
+    for (const item of textItems) {
+      this.setLabelPosition(this.textItems);
+      this.scene.add(item);
+    }
+  }
+  
+  private setLabelPosition(textItems: Mesh[]) {
+    for (const item of textItems) {
+      item.lookAt(this.camera.position);
+    }
+  }
+
   /**
    * Enables interactivity for the visualization.
    */
   public animate() {
     requestAnimationFrame(this.animate.bind(this));
     this.controls.update();
+    this.setLabelPosition(this.textItems);
     this.renderer.render(this.scene, this.camera);
   }
 
