@@ -7,7 +7,6 @@ matplotlib~=3.0
 networkx~=2.4
 numpy~=1.16
 pandas
-requests~=2.18
 sortedcontainers~=2.0
 scipy
 sympy

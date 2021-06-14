@@ -122,6 +122,9 @@ class MeasurementGate(raw_types.Gate):
         mask += (False,) * deficit
         return mask
 
+    def _is_measurement_(self) -> bool:
+        return True
+
     def _measurement_key_(self):
         return self.key
 

@@ -16,8 +16,13 @@
 #
 # In these tests are only changed notebooks are tested. It is assumed that notebooks install cirq
 # conditionally if they can't import cirq. This installation path is the main focus and it is
-# excercised in an isolated virtual environment for each notebook. This is also the path that is
+# exercised in an isolated virtual environment for each notebook. This is also the path that is
 # tested in the devsite workflows, these tests meant to provide earlier feedback.
+#
+# In case the dev environment changes or this particular file changes, all notebooks are executed!
+# This can take a long time and even lead to timeout on Github Actions, hence partitioning of the
+# tests is possible, via setting the NOTEBOOK_PARTITIONS env var to e.g. 5, and then passing to
+# pytest the `-k partition-0` or `-k partition-1`, etc. argument to limit to the given partition.
 
 import os
 import subprocess
@@ -96,8 +101,12 @@ def _list_changed_notebooks() -> Set[str]:
         rev = _find_base_revision()
         output = subprocess.check_output(f'git diff --name-only {rev}'.split())
         lines = output.decode('utf-8').splitlines()
-        # run all tests if this file or any of the dependencies change
-        if any(l for l in lines if l.endswith("isolated_notebook_test.py") or l.endswith(".txt")):
+        # run all tests if this file or any of the dev tool dependencies change
+        if any(
+            l
+            for l in lines
+            if l.endswith("isolated_notebook_test.py") or l.startswith("dev_tools/requirements")
+        ):
             return list_all_notebooks()
         return set(l for l in lines if l.endswith(".ipynb"))
     except ValueError as e:
@@ -140,11 +149,17 @@ def _create_base_env(proto_dir):
     shell_tools.run_cmd(pip_path, "install", *PACKAGES)
 
 
+def _partitioned_test_cases(notebooks):
+    n_partitions = int(os.environ.get("NOTEBOOK_PARTITIONS", "1"))
+    return [(f"partition-{i%n_partitions}", notebook) for i, notebook in enumerate(notebooks)]
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize(
-    "notebook_path", filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)
+    "partition, notebook_path",
+    _partitioned_test_cases(filter_notebooks(_list_changed_notebooks(), SKIP_NOTEBOOKS)),
 )
-def test_notebooks_against_released_cirq(notebook_path, base_env):
+def test_notebooks_against_released_cirq(partition, notebook_path, base_env):
     """Tests the notebooks in isolated virtual environments.
 
     In order to speed up the execution of these tests an auxiliary file may be supplied which
