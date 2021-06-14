@@ -997,6 +997,12 @@ class PhaseCalibratedFSimGate:
             (cirq.rz(0.5 * gamma - beta).on(a), cirq.rz(0.5 * gamma + beta).on(b)),
         )
 
+    def _unitary_(self) -> np.array:
+        p = np.exp(-np.pi * 1j * self.phase_exponent)
+        return (
+            np.diag([1, p, 1 / p, 1]) @ cirq.unitary(self.engine_gate) @ np.diag([1, 1 / p, p, 1])
+        )
+
 
 def try_convert_sqrt_iswap_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGate]:
     """Converts an equivalent gate to FSimGate(theta=π/4, phi=0) if possible.
