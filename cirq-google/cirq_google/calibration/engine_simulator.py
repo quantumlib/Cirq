@@ -308,7 +308,9 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
     @classmethod
     def create_from_gate_dict(
         cls,
-        gates_dict: Dict[Tuple[cirq.Qid, cirq.Qid], Dict[cirq.FSimGate, PhasedFSimCharacterization]],
+        gates_dict: Dict[
+            Tuple[cirq.Qid, cirq.Qid], Dict[cirq.FSimGate, PhasedFSimCharacterization]
+        ],
     ) -> 'PhasedFSimEngineSimulator':
         """Creates PhasedFSimEngineSimulator with fixed drifts.
 
@@ -326,9 +328,9 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
             params = None
             swapped = False
             if (a, b) in gates_dict:
-                params = gates_dict[(a, b)][gate]
+                params = gates_dict[(a, b)].get(gate)
             elif (b, a) in gates_dict:
-                params = gates_dict[(b, a)][gate]
+                params = gates_dict[(b, a)].get(gate)
                 swapped = True
             if params is None:
                 raise ValueError(f'Missing params for value for pair {(a, b)} and gate {gate}.')
