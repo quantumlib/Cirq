@@ -14,7 +14,7 @@
 
 import io
 import os
-from setuptools import find_packages, setup
+from setuptools import setup
 
 # This reads the __version__ variable from cirq/_version.py
 __version__ = ''

@@ -25,23 +25,17 @@ https://gateway-portal.aqt.eu/
 import json
 import time
 import uuid
-from typing import Iterable, List, Union, Tuple, Dict, cast, TYPE_CHECKING
+from typing import List, Union, Tuple, Dict, cast
 
 import numpy as np
 from requests import put
-from cirq import circuits, Sampler, resolve_parameters, LineQubit
-from cirq.study.sweeps import Sweep
-from cirq.aqt.aqt_device import AQTSimulator, get_op_string
-from cirq import study, ops, IonDevice
 
-if TYPE_CHECKING:
-    import cirq
-
-Sweepable = Union[study.ParamResolver, Iterable[study.ParamResolver], Sweep, Iterable[Sweep]]
+import cirq
+from cirq_aqt.aqt_device import AQTSimulator, get_op_string
 
 
-class AQTSampler(Sampler):
-    """Sampler for the AQT ion trap device
+class AQTSampler(cirq.Sampler):
+    """cirq.Sampler for the AQT ion trap device
     This sampler connects to the AQT machine and
     runs a single circuit or an entire sweep remotely
     """
@@ -57,8 +51,8 @@ class AQTSampler(Sampler):
 
     def _generate_json(
         self,
-        circuit: circuits.Circuit,
-        param_resolver: study.ParamResolverOrSimilarType,
+        circuit: cirq.Circuit,
+        param_resolver: cirq.ParamResolverOrSimilarType,
     ) -> str:
         """Generates the JSON string from a Circuit
 
@@ -84,20 +78,20 @@ class AQTSampler(Sampler):
         seq_list: List[
             Union[Tuple[str, float, List[int]], Tuple[str, float, float, List[int]]]
         ] = []
-        circuit = resolve_parameters(circuit, param_resolver)
+        circuit = cirq.resolve_parameters(circuit, param_resolver)
         for op in circuit.all_operations():
-            line_qubit = cast(Tuple[LineQubit], op.qubits)
-            op = cast(ops.GateOperation, op)
+            line_qubit = cast(Tuple[cirq.LineQubit], op.qubits)
+            op = cast(cirq.GateOperation, op)
             qubit_idx = [obj.x for obj in line_qubit]
             op_str = get_op_string(op)
-            gate: Union[ops.EigenGate, ops.PhasedXPowGate]
+            gate: Union[cirq.EigenGate, cirq.PhasedXPowGate]
             if op_str == 'R':
-                gate = cast(ops.PhasedXPowGate, op.gate)
+                gate = cast(cirq.PhasedXPowGate, op.gate)
                 seq_list.append(
                     (op_str, float(gate.exponent), float(gate.phase_exponent), qubit_idx)
                 )
             else:
-                gate = cast(ops.EigenGate, op.gate)
+                gate = cast(cirq.EigenGate, op.gate)
                 seq_list.append((op_str, float(gate.exponent), qubit_idx))
         if len(seq_list) == 0:
             raise RuntimeError('Cannot send an empty circuit')
@@ -177,8 +171,8 @@ class AQTSampler(Sampler):
         return measurements
 
     def run_sweep(
-        self, program: 'cirq.Circuit', params: study.Sweepable, repetitions: int = 1
-    ) -> List[study.Result]:
+        self, program: cirq.Circuit, params: cirq.Sweepable, repetitions: int = 1
+    ) -> List[cirq.Result]:
         """Samples from the given Circuit.
 
         In contrast to run, this allows for sweeping over different parameter
@@ -197,9 +191,9 @@ class AQTSampler(Sampler):
         # TODO: Use measurement name from circuit.
         # Github issue: https://github.com/quantumlib/Cirq/issues/2199
         meas_name = 'm'
-        assert isinstance(program.device, IonDevice)
-        trial_results = []  # type: List[study.Result]
-        for param_resolver in study.to_resolvers(params):
+        assert isinstance(program.device, cirq.IonDevice)
+        trial_results = []  # type: List[cirq.Result]
+        for param_resolver in cirq.to_resolvers(params):
             id_str = uuid.uuid1()
             num_qubits = len(program.device.qubits)
             json_str = self._generate_json(circuit=program, param_resolver=param_resolver)
@@ -208,12 +202,12 @@ class AQTSampler(Sampler):
             )
             results = results.astype(bool)
             res_dict = {meas_name: results}
-            trial_results.append(study.Result(params=param_resolver, measurements=res_dict))
+            trial_results.append(cirq.Result(params=param_resolver, measurements=res_dict))
         return trial_results
 
 
 class AQTSamplerLocalSimulator(AQTSampler):
-    """Sampler using the AQT simulator on the local machine.
+    """cirq.Sampler using the AQT simulator on the local machine.
 
     Can be used as a replacement for the AQTSampler
     When the attribute simulate_ideal is set to True,
