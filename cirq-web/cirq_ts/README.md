@@ -69,10 +69,18 @@ We currently do not support developing visualizations in Google Colaboratory not
 ### Formatting and linting
 All Typescript files need to be formatted/linted according to [Google's public Typescript style guide](https://google.github.io/styleguide/tsguide.html). We use (Google's open source tool GTS)[https://github.com/google/gts] to handle this for you. Run `npm run fix` to handle fixing changes automatically, or refer to the `package.json` file for more options.
 
-### TODO: Testing Visualizations
+### Testing
+We expect developed visualizations to be well tested. The Cirq typescript development environment requires two types of tests for any created visualization, unit testing and visualization testing. Unit testing ensures that the Typescript you wrote compiles correctly and generates the appropriate Three.js objects without breaking the rest of your code. Visualization testing actually compares the visualizations by building the visualization, taking a PNG screenshot, and comparing it to an expected PNG. 
 
-- **Testing, which framework?-- important**
-    - [Mocha](https://mochajs.org/)
-      - Why? [Three.js uses it in their documentation](https://threejs.org/docs/#manual/en/buildTools/Testing-with-NPM)
+We use [Mocha](https://mochajs.org) and [Chai](https://www.chaijs.com/) as our main testing tools. For comparing image diffs, we use [Pixelmatch](https://github.com/mapbox/pixelmatch) and [pngjs](https://github.com/lukeapage/pngjs).
+
+#### Unit testing
+Run unit tests using `npm run test`. We expect 100% code coverage for unit tests. You can check coverage by running `npm run coverage`.
+
+#### Visualization testing
+To summarize the visualization testing, we generate an generic HTML file with the specified visualization's current JS bundle, run it in a headless browser, take a screenshot, and then compare the result with a pre-generated PNG file.
+
+Our visualization tests live in the `e2e/` (end-to_end) directory. Each visualiztion should have at least one expected PNG screenshot.
+
 ### CI - delete later
   Add something that makes jobs fast when there are no changes made so it's not rerunning every time.

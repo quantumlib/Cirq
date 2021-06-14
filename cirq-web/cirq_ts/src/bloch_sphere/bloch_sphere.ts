@@ -38,6 +38,15 @@ export class BlochSphere {
     return this.group.clone();
   }
 
+  /**
+   * Returns the radius of the bloch_sphere.
+   * Used for testing purposes.
+   */
+  getRadius() : number {
+    const radius = this.radius;
+    return radius;
+  }
+
   private add3dSphere() {
     const sphere = createSphere(this.radius);
     this.group.add(sphere);

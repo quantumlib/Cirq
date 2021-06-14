@@ -57,23 +57,19 @@ import webbrowser
 from cirq_web import widget
 class MyWidget(widget.Widget):
     ...
-    def generate_HTML_file(
-        self, 
-        output_directory='./', \
-        file_name="YOUR_VIZ.html", 
-        open_in_browser=False):
-    bundle_script = super().get_bundle_script()
-    contents = f"""
-        <div id="container"></div>
-        {bundle_script}
-        <script>YOUR_BUNDLE_FUNCTION<script>
-    """
-    path_of_html_file = widget.write_output_file(output_directory, file_name, contents)
-    
-    if open_in_browser:
-        webbrowser.open(str(path_of_html_file), new=2)
-    
-    return path_of_html_file
+    def generate_HTML_file(self, output_directory='./', file_name="YOUR_VIZ.html", open_in_browser=False):
+        bundle_script = super().get_bundle_script()
+        contents = f"""
+            <div id="container"></div>
+            {bundle_script}
+            <script>YOUR_BUNDLE_FUNCTION<script>
+        """
+        path_of_html_file = widget.write_output_file(output_directory, file_name, contents)
+        
+        if open_in_browser:
+            webbrowser.open(str(path_of_html_file), new=2)
+        
+        return path_of_html_file
 ```
 This code above writes a file named `YOUR_VIZ.html` to the specified output directory, returning the path of the file as a `Path` object. To get the path as string, use `str()`. If the `open_in_browser` flag is used, Python will automatically open your visualization in a new tab using the default browser on your computer. 
 

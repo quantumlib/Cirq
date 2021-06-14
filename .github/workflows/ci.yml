@@ -272,7 +272,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          # Do we want check multiple versions of Node.js?
           node-version: '14.16.1'
       - name: Install npm
         run: npm --prefix 'cirq-web/cirq_ts' ci
@@ -289,3 +288,14 @@ jobs:
         run: npm --prefix 'cirq-web/cirq_ts' ci
       - name: Test
         run: check/ts-test 
+  ts-coverage:
+    name: Typescript unit testing coverage
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          node-version: '14.16.1'
+      - name: Install npm
+        run: npm --prefix 'cirq-web/cirq_ts' ci
+      - name: Test
+        run: check/ts-coverage

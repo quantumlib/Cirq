@@ -22,8 +22,8 @@ export function showSphere(
   const inputData = JSON.parse(circleData);
   const scene = new BlochSphereScene(divId);
 
-  const object = new BlochSphere(inputData.radius).getBlochSphere();
-  scene.add(object);
+  const bloch_sphere = new BlochSphere(inputData.radius).getBlochSphere();
+  scene.add(bloch_sphere);
 
   const vector = createVector(vectorData || undefined);
   scene.add(vector);
