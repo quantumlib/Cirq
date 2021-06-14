@@ -82,5 +82,6 @@ To summarize the visualization testing, we generate an generic HTML file with th
 
 Our visualization tests live in the `e2e/` (end-to_end) directory. Each visualiztion should have at least one expected PNG screenshot.
 
+
 ### CI - delete later
   Add something that makes jobs fast when there are no changes made so it's not rerunning every time.
