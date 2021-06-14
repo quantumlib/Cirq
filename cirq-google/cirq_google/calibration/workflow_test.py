@@ -1270,6 +1270,26 @@ def test_make_zeta_chi_gamma_compensation_for_moments():
         assert calibrated_circuit.moment_to_calibration == [None, 0, None]
 
 
+def test_make_zeta_chi_gamma_compensation_for_moments_wrong_engine_gate_error():
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.FSimGate(theta=np.pi / 4, phi=0.2).on(a, b))
+    characterizations = [
+        PhasedFSimCalibrationResult(
+            parameters={
+                (a, b): cirq_google.PhasedFSimCharacterization(
+                    theta=np.pi / 4, phi=0.2, zeta=0.0, chi=0.0, gamma=0.0
+                )
+            },
+            gate=SQRT_ISWAP_INV_GATE,
+            options=ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
+        )
+    ]
+    with pytest.raises(ValueError, match="Engine gate .+ doesn't match characterized gate .+"):
+        workflow.make_zeta_chi_gamma_compensation_for_moments(
+            workflow.CircuitWithCalibration(circuit, [0]), characterizations
+        )
+
+
 def test_make_zeta_chi_gamma_compensation_for_moments_circuit():
     a, b = cirq.LineQubit.range(2)
 
