@@ -23,7 +23,8 @@
 # This can take a long time and even lead to timeout on Github Actions, hence partitioning of the
 # tests is possible, via setting the NOTEBOOK_PARTITIONS env var to e.g. 5, and then passing to
 # pytest the `-k partition-0` or `-k partition-1`, etc. argument to limit to the given partition.
-
+import functools
+import glob
 import os
 import subprocess
 import sys
@@ -41,7 +42,10 @@ from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_no
 # after every release we should raise a PR and empty out this list
 # note that these notebooks are still tested in dev_tools/notebook_test.py
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = []
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
+    "docs/protocols.ipynb",
+    "docs/operators_and_observables.ipynb",
+]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
@@ -214,3 +218,26 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
 
     if rewritten_notebook_descriptor:
         os.close(rewritten_notebook_descriptor)
+
+
+def _unreleased_notebooks():
+    return functools.reduce(
+        lambda a, b: a.union(b),
+        list(set(glob.glob(g, recursive=True)) for g in NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES),
+    )
+
+
+@pytest.mark.parametrize("notebook_path", _unreleased_notebooks())
+def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
+    with open(notebook_path) as notebook:
+        content = notebook.readlines()
+        mandatory_lines = ["!pip install --quiet cirq --pre",
+                           "Note: this notebook relies on unreleased Cirq features. "
+                           "If you want to try these features, make sure you install cirq via "
+                           "`pip install cirq --pre`."]
+
+        for m in mandatory_lines:
+            assert any(m in l for l in content), (
+                f"{notebook_path} is marked as NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES, "
+                f"however it is missing the mandatory line:\n{m}"
+            )
