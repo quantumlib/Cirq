@@ -44,6 +44,7 @@ from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_no
 
 NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     "docs/protocols.ipynb",
+    "docs/noise.ipynb",
     "docs/operators_and_observables.ipynb",
 ]
 
