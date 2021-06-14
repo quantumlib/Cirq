@@ -440,6 +440,7 @@ def test_run_param_resolver(dtype: Type[np.number], split: bool):
             param_resolver = {'b0': b0, 'b1': b1}
             result = simulator.run(circuit, param_resolver=param_resolver)  # type: ignore
             np.testing.assert_equal(result.measurements, {'0': [[b0]], '1': [[b1]]})
+            # pylint: disable=line-too-long
             np.testing.assert_equal(result.params, cirq.ParamResolver(param_resolver))  # type: ignore
 
 
