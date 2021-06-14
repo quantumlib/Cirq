@@ -195,6 +195,9 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
         raise_on_fail=False,
         out=shell_tools.TeeCapture(),
         err=shell_tools.TeeCapture(),
+        # important to get rid of PYTHONPATH specifically, which contains
+        # the Cirq repo path due to check/pytest
+        env={},
     )
 
     if status != 0:
@@ -202,7 +205,11 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
         pytest.fail(
             f"Notebook failure: {notebook_file}, please see {out_path} for the output "
             f"notebook (in Github Actions, you can download it from the workflow artifact"
-            f" 'notebook-outputs')"
+            f" 'notebook-outputs'). \n"
+            f"If this is a new failure in this notebook due to a new change, "
+            f"that is only available in master for now, consider adding `pip install --pre cirq` "
+            f"instead of `pip install cirq` to this notebook, and exclude it from "
+            f"dev_tools/notebooks/isolated_notebook_test.py."
         )
 
     if rewritten_notebook_descriptor:
