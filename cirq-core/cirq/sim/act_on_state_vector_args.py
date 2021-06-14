@@ -217,7 +217,7 @@ def _strat_act_on_state_vector_from_mixture(action: Any, args: 'cirq.ActOnStateV
 
 
 def _strat_act_on_state_vector_from_channel(action: Any, args: 'cirq.ActOnStateVectorArgs') -> bool:
-    kraus_operators = protocols.channel(action, default=None)
+    kraus_operators = protocols.kraus(action, default=None)
     if kraus_operators is None:
         return NotImplemented
 
