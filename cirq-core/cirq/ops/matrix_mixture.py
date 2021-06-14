@@ -11,7 +11,7 @@ class MatrixMixture(raw_types.Gate):
 
     Args:
         mixture: a list of (probability, unitary) pairs
-        key: an optional measurement key string for this channel. Simulations
+        key: an optional measurement key string for this mixture. Simulations
             which select a single unitary to apply will store the index
             of that unitary in the measurement result list with this key.
     """

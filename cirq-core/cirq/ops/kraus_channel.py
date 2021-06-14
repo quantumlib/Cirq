@@ -45,7 +45,7 @@ class KrausChannel(raw_types.Gate):
     @staticmethod
     def from_channel(channel: 'protocols.SupportsChannel', key: Optional[str] = None):
         """Creates a copy of a channel with the given measurement key."""
-        return KrausChannel(kraus_ops=list(protocols.channel(channel)), key=key)
+        return KrausChannel(kraus_ops=list(protocols.kraus(channel)), key=key)
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, KrausChannel):
