@@ -224,7 +224,8 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
 
 @pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)
 def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
-    with open(notebook_path) as notebook:
+    # utf-8 is important for Windows testing, otherwise characters like ┌──┐ fail on cp1252
+    with open(notebook_path, encoding="utf-8") as notebook:
         content = notebook.read()
         mandatory_lines = [
             "!pip install --quiet cirq --pre",
