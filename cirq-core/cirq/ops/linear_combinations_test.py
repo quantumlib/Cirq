@@ -1035,6 +1035,7 @@ def test_non_pauli_sum_has_no_unitary(psum):
         (cirq.Z(q1), (q1,)),
         (cirq.X(q0) + cirq.Y(q0), (q0,)),
         (cirq.X(q0) + cirq.Y(q2), (q0, q2)),
+        (cirq.X(q2) + cirq.Y(q0), (q0, q2)),
         (cirq.X(q0) * cirq.Y(q1) + cirq.Y(q1) * cirq.Z(q3), (q0, q1, q3)),
     ),
 )
@@ -1184,11 +1185,41 @@ def test_pauli_sum_formatting():
     paulisum3 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0]) * cirq.Z(q[1])
     assert str(paulisum3) == '1.000*X(0)*X(1)+1.000*Z(0)*Z(1)'
     assert f"{paulisum3:.0f}" == '1*X(0)*X(1)+1*Z(0)*Z(1)'
-
+    
     empty = cirq.PauliSum.from_pauli_strings([])
     assert str(empty) == "0.000"
 
-
+def test_pauli_sum_matrix():
+    q = cirq.LineQubit.range(2)
+    paulisum1 = cirq.X(q[0]) * cirq.X(q[1]) + 4
+    H1 = np.array([[4.0,  0., 0., 1.0],
+                  [0., 4.0, 1.0, 0.],
+                  [0., 1.0, 4.0, 0.],
+                  [1.0, 0., 0., 4.0]])
+    assert np.allclose(H1, paulisum1.matrix())
+    assert np.allclose(H1, paulisum1.matrix([q[0], q[1]]))
+    assert np.allclose(H1, paulisum1.matrix([q[1], q[0]]))
+    paulisum2 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0])
+    H2 = np.array([[1.0,  0., 0., 1.0],
+                  [0., 1.0, 1.0, 0.],
+                  [0., 1.0, -1.0, 0.],
+                  [1.0, 0., 0., -1.0]])
+    assert np.allclose(H2, paulisum2.matrix())
+    assert np.allclose(H2, paulisum2.matrix([q[0], q[1]]))
+    H2_2 = np.array([[1.0,  0., 0., 1.0],
+                     [0., -1.0, 1.0, 0.],
+                     [0., 1.0, 1.0, 0.],
+                     [1.0, 0., 0., -1.0]])
+    assert np.allclose(H2_2, paulisum2.matrix([q[1], q[0]]))
+    paulisum3 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0]) * cirq.Z(q[1])
+    H3 = np.array([[1.0,  0., 0., 1.0],
+                  [0., -1.0, 1.0, 0.],
+                  [0., 1.0, -1.0, 0.],
+                  [1.0, 0., 0., 1.0]])
+    assert np.allclose(H3, paulisum3.matrix())
+    assert np.allclose(H3, paulisum3.matrix([q[0], q[1]]))
+    assert np.allclose(H3, paulisum3.matrix([q[1], q[0]]))
+    
 def test_pauli_sum_repr():
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
