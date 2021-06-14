@@ -1040,7 +1040,7 @@ class XAsOp(cirq.Operation):
 
     def _kraus_(self):
         # coverage: ignore
-        return cirq.channel(cirq.X)
+        return cirq.kraus(cirq.X)
 
 
 def test_works_on_operation():
@@ -1059,7 +1059,7 @@ def test_works_on_operation():
 
         def _kraus_(self):
             # coverage: ignore
-            return cirq.channel(cirq.X)
+            return cirq.kraus(cirq.X)
 
     s = cirq.DensityMatrixSimulator()
     c = cirq.Circuit(XAsOp(cirq.LineQubit(0)))
@@ -1079,7 +1079,7 @@ def test_works_on_operation_dephased():
             raise NotImplementedError()
 
         def _kraus_(self):
-            return cirq.channel(cirq.H)
+            return cirq.kraus(cirq.H)
 
     s = cirq.DensityMatrixSimulator(ignore_measurement_results=True)
     c = cirq.Circuit(HAsOp(cirq.LineQubit(0)))
