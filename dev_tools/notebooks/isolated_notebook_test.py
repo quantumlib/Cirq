@@ -231,10 +231,12 @@ def _unreleased_notebooks():
 def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
     with open(notebook_path) as notebook:
         content = notebook.readlines()
-        mandatory_lines = ["!pip install --quiet cirq --pre",
-                           "Note: this notebook relies on unreleased Cirq features. "
-                           "If you want to try these features, make sure you install cirq via "
-                           "`pip install cirq --pre`."]
+        mandatory_lines = [
+            "!pip install --quiet cirq --pre",
+            "Note: this notebook relies on unreleased Cirq features. "
+            "If you want to try these features, make sure you install cirq via "
+            "`pip install cirq --pre`.",
+        ]
 
         for m in mandatory_lines:
             assert any(m in l for l in content), (
