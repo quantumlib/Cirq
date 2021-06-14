@@ -444,6 +444,15 @@ def test_from_characterizations_sqrt_iswap_when_invalid_arguments_fails():
         )
 
 
+def test_create_from_gate_dict_missing_params_fails():
+    simulator = PhasedFSimEngineSimulator.create_from_gate_dict({})
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.CZ(a, b))
+
+    with pytest.raises(ValueError, match='Missing params'):
+        simulator.final_state_vector(circuit)
+
+
 def _create_sqrt_iswap_request(
     pairs: Iterable[Tuple[cirq.Qid, cirq.Qid]],
     options: FloquetPhasedFSimCalibrationOptions = ALL_ANGLES_FLOQUET_PHASED_FSIM_CHARACTERIZATION,

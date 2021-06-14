@@ -1413,7 +1413,7 @@ def test_make_zeta_chi_gamma_compensation_for_moments_imperfect_gates():
     circuit = cirq.Circuit(
         [
             [cirq.X(a), cirq.H(c)],
-            [cirq.CZ.on(a, b), cirq.CZ.on(c, d)],
+            [cirq.CZ.on(a, b), cirq.CZ.on(d, c)],
             [cirq_google.SYC.on(a, b)],
             [SQRT_ISWAP_GATE.on(a, c), SQRT_ISWAP_INV_GATE.on(b, d)],
         ]
