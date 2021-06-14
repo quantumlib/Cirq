@@ -225,44 +225,71 @@ def test_random_channel_has_random_behavior():
 def test_axes_deprecation():
     rng = np.random.RandomState()
     state = np.array([1, 0], dtype=np.complex64)
+    buf = np.array([1, 0], dtype=np.complex64)
+    qids = tuple(cirq.LineQubit.range(1))
+    log = {}
+
+    # No kwargs
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        args = cirq.ActOnStateVectorArgs(state, buf, (1,), rng, log, qids)  # type: ignore
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        assert args.axes == (1,)
+    assert args.prng is rng
+    assert args.target_tensor is state
+    assert args.available_buffer is buf
+    assert args.qubits is qids
+    assert args.log_of_measurement_results is log
+
+    # kwargs no axes
     with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
         args = cirq.ActOnStateVectorArgs(
             state,
-            [],
-            (1,),
-            qubits=cirq.LineQubit.range(1),
+            buf,
+            (1,),  # type: ignore
+            qubits=qids,
             prng=rng,
-            log_of_measurement_results={},
+            log_of_measurement_results=log,
         )
     with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
         assert args.axes == (1,)
     assert args.prng is rng
     assert args.target_tensor is state
+    assert args.available_buffer is buf
+    assert args.qubits is qids
+    assert args.log_of_measurement_results is log
 
+    # kwargs incl axes
     with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
         args = cirq.ActOnStateVectorArgs(
             state,
-            [],
-            (1,),
-            rng,
-            qubits=cirq.LineQubit.range(1),
-            log_of_measurement_results={},
-        )
-    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
-        assert args.axes == (1,)
-    assert args.prng is rng
-    assert args.target_tensor is state
-
-    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
-        args = cirq.ActOnStateVectorArgs(
-            state,
-            [],
+            buf,
             axes=(1,),
-            qubits=cirq.LineQubit.range(1),
+            qubits=qids,
             prng=rng,
-            log_of_measurement_results={},
+            log_of_measurement_results=log,
         )
     with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
         assert args.axes == (1,)
     assert args.prng is rng
     assert args.target_tensor is state
+    assert args.available_buffer is buf
+    assert args.qubits is qids
+    assert args.log_of_measurement_results is log
+
+    # all kwargs
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        args = cirq.ActOnStateVectorArgs(
+            target_tensor=state,
+            available_buffer=buf,
+            axes=(1,),
+            qubits=qids,
+            prng=rng,
+            log_of_measurement_results=log,
+        )
+    with cirq.testing.assert_deprecated("axes", deadline="v0.13"):
+        assert args.axes == (1,)
+    assert args.prng is rng
+    assert args.target_tensor is state
+    assert args.available_buffer is buf
+    assert args.qubits is qids
+    assert args.log_of_measurement_results is log
