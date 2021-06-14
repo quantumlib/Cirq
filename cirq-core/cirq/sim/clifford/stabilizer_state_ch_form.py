@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from typing import Any, Dict, Union
-
 import numpy as np
 
 import cirq

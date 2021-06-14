@@ -49,19 +49,14 @@ class CliffordSimulator(
 ):
     """An efficient simulator for Clifford circuits."""
 
-    def __init__(
-        self,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ):
+    def __init__(self, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
         """Creates instance of `CliffordSimulator`.
 
         Args:
             seed: The random seed to use for this simulator.
         """
         self.init = True
-        super().__init__(
-            seed=seed,
-        )
+        super().__init__(seed=seed)
 
     @staticmethod
     def is_supported_operation(op: 'cirq.Operation') -> bool:
