@@ -46,6 +46,7 @@ NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
     "docs/protocols.ipynb",
     "docs/noise.ipynb",
     "docs/operators_and_observables.ipynb",
+    "docs/tutorials/educators/intro.ipynb",
 ]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
