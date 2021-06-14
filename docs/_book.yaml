@@ -236,6 +236,10 @@ upper_tabs:
       - title: "All symbols"
         path: /reference/python/cirq/all_symbols
       - include: /reference/python/cirq/_toc.yaml
+      - heading: "cirq-aqt"
+      - title: "All symbols"
+        path: /reference/python/cirq_aqt/all_symbols
+      - include: /reference/python/cirq_aqt/_toc.yaml
       - heading: "cirq-google"
       - title: "All symbols"
         path: /reference/python/cirq_google/all_symbols
