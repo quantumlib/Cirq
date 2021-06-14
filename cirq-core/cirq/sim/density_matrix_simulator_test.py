@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import platform
 from unittest import mock
 import itertools
 import random
@@ -1377,13 +1378,21 @@ def test_final_density_matrix_is_not_last_object():
 def test_large_untangled_okay():
     circuit = cirq.Circuit()
     for i in range(59):
-        circuit.append(cirq.X(cirq.LineQubit(i)))
+        for _ in range(9):
+            circuit.append(cirq.X(cirq.LineQubit(i)))
         circuit.append(cirq.measure(cirq.LineQubit(i)))
-    with pytest.raises(MemoryError, match='Unable to allocate'):
-        _ = cirq.DensityMatrixSimulator(split_untangled_states=False).simulate(circuit)
+
+    # Validate this can't be allocated with entangled state
+    if platform.system() != "Windows":
+        with pytest.raises(MemoryError, match='Unable to allocate'):
+            _ = cirq.DensityMatrixSimulator(split_untangled_states=False).simulate(circuit)
+
+    # Validate a simulation run
     result = cirq.DensityMatrixSimulator(split_untangled_states=True).simulate(circuit)
     assert set(result._step_result_or_state._qubits) == set(cirq.LineQubit.range(59))
     # _ = result.final_density_matrix hangs (as expected)
+
+    # Validate a trial run and sampling
     result = cirq.DensityMatrixSimulator(split_untangled_states=True).run(circuit, repetitions=1000)
     assert len(result.measurements) == 59
     assert len(result.measurements['0']) == 1000

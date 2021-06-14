@@ -833,9 +833,8 @@ class SimulationTrialResult:
         if isinstance(self._step_result_or_state, StepResult) or hasattr(
             self._step_result_or_state, "_simulator_state"
         ):
-            return self._step_result_or_state._simulator_state()
-        else:
-            return self._step_result_or_state
+            self._step_result_or_state = self._step_result_or_state._simulator_state()
+        return self._step_result_or_state
 
     def __str__(self) -> str:
         def bitstring(vals):
