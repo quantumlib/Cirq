@@ -104,16 +104,16 @@ def test_kraus_channel_str():
 def test_kraus_channel_repr():
     # This is equivalent to an X-basis measurement.
     ops = [
-        np.array([[1, 1], [1, 1]]) * 0.5,
-        np.array([[1, -1], [-1, 1]]) * 0.5,
+        np.array([[1, 1], [1, 1]], dtype=np.complex64) * 0.5,
+        np.array([[1, -1], [-1, 1]], dtype=np.complex64) * 0.5,
     ]
     x_meas = cirq.KrausChannel(ops, key='x_meas')
     assert (
         repr(x_meas)
         == """\
 cirq.KrausChannel(kraus_ops=[\
-np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.float64), \
-np.array([[0.5, -0.5], [-0.5, 0.5]], dtype=np.float64)], \
+np.array([[(0.5+0j), (0.5+0j)], [(0.5+0j), (0.5+0j)]], dtype=np.complex64), \
+np.array([[(0.5+0j), (-0.5+0j)], [(-0.5+0j), (0.5+0j)]], dtype=np.complex64)], \
 key='x_meas')"""
     )
 

@@ -101,16 +101,16 @@ def test_kraus_channel_str():
 
 def test_kraus_channel_repr():
     mix = [
-        (0.5, np.array([[1, 0], [0, 1]])),
-        (0.5, np.array([[0, 1], [1, 0]])),
+        (0.5, np.array([[1, 0], [0, 1]], dtype=np.complex64)),
+        (0.5, np.array([[0, 1], [1, 0]], dtype=np.complex64)),
     ]
     half_flip = cirq.MatrixMixture(mix, key='flip')
     assert (
         repr(half_flip)
         == """\
 cirq.MatrixMixture(mixture=[\
-(0.5, np.array([[1, 0], [0, 1]], dtype=np.int64)), \
-(0.5, np.array([[0, 1], [1, 0]], dtype=np.int64))], \
+(0.5, np.array([[(1+0j), 0j], [0j, (1+0j)]], dtype=np.complex64)), \
+(0.5, np.array([[0j, (1+0j)], [(1+0j), 0j]], dtype=np.complex64))], \
 key='flip')"""
     )
 
