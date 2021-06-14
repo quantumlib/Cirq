@@ -222,6 +222,7 @@ class MPSSimulatorStepResult(simulator.StepResult['MPSState']):
         return np.array(measurements, dtype=int)
 
 
+@value.value_equality
 class MPSState(ActOnArgs):
     """A state of the MPS simulation."""
 

@@ -59,9 +59,9 @@ class SimulatorBase(
     """A base class for the built-in simulators.
 
     Most implementors of this interface should implement the
-    `_create_act_on_arg` and `_create_step_result` methods. The first one
-    creates the simulator's quantum state representation at the beginning of
-    the simulation. The second creates the step result emitted after each
+    `_create_partial_act_on_args` and `_create_step_result` methods. The first
+    one creates the simulator's quantum state representation at the beginning
+    of the simulation. The second creates the step result emitted after each
     `Moment` in the simulation.
 
     Iteration in the subclass is handled by the `_core_iterator` implementation
