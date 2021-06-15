@@ -1,10 +1,10 @@
-# Copyright 2020 The Cirq Authors. All Rights Reserved.
+# Copyright 2021 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -74,6 +74,7 @@ def main(unused_argv):
     generate_cirq()
     generate_cirq_google()
     generate_cirq_aqt()
+    generate_cirq_ionq()
 
 
 def generate_cirq():
@@ -99,8 +100,7 @@ def generate_cirq_aqt():
         # should be present in the nightly (pre-release) build
         import cirq_aqt
     except ImportError:
-        # as cirq.aqt is currently not being generated anyway
-        # we won't handle this case (the stable build)
+        # as cirq.aqt is under cirq, it should be generated correctly
         return
 
     doc_generator = generate_lib.DocGenerator(
@@ -126,8 +126,7 @@ def generate_cirq_ionq():
         # should be present in the nightly (pre-release) build
         import cirq_ionq
     except ImportError:
-        # TODO: somehow replace the prefix link in the generated cirq.ionq API docs to
-        #   cirq-ionq/cirq_ionq, so that links on the site don't break
+        # as cirq.ionq is under cirq, it should be generated correctly
         return
 
     doc_generator = generate_lib.DocGenerator(

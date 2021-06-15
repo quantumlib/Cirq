@@ -23,8 +23,7 @@ exec(open('cirq_ionq/_version.py').read())
 name = 'cirq-ionq'
 
 description = (
-    'A framework for creating, editing, and invoking '
-    'Noisy Intermediate Scale Quantum (NISQ) circuits.'
+    'A Cirq package to simulate and connect to IonQ quantum computers'
 )
 
 # README file as long_description.
