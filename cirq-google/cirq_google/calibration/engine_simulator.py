@@ -249,7 +249,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
     def create_from_dictionary(
         cls,
         parameters: Dict[
-            Tuple[cirq.Qid, cirq.Qid], Dict[cirq.FSimGate, PhasedFSimCharacterization]
+            Tuple[cirq.Qid, cirq.Qid], Dict[cirq.FSimGate, Union[PhasedFSimCharacterization, Dict]]
         ],
         simulator: Optional[cirq.Simulator] = None,
     ) -> 'PhasedFSimEngineSimulator':
@@ -275,19 +275,22 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
         def sample_gate(
             a: cirq.Qid, b: cirq.Qid, gate: cirq.FSimGate
         ) -> PhasedFSimCharacterization:
-            params = None
+            pair_parameters = None
             swapped = False
             if (a, b) in parameters:
-                params = parameters[(a, b)].get(gate)
+                pair_parameters = parameters[(a, b)].get(gate)
             elif (b, a) in parameters:
-                params = parameters[(b, a)].get(gate)
+                pair_parameters = parameters[(b, a)].get(gate)
                 swapped = True
-            if params is None:
+
+            if pair_parameters is None:
                 raise ValueError(f'Missing parameters for value for pair {(a, b)} and gate {gate}.')
-            assert isinstance(params, PhasedFSimCharacterization)
+            if not isinstance(pair_parameters, PhasedFSimCharacterization):
+                pair_parameters = PhasedFSimCharacterization(**pair_parameters)
             if swapped:
-                params = params.parameters_for_qubits_swapped()
-            return params
+                pair_parameters = pair_parameters.parameters_for_qubits_swapped()
+
+            return pair_parameters
 
         if simulator is None:
             simulator = cirq.Simulator()
