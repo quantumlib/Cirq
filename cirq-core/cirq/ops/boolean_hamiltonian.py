@@ -294,7 +294,7 @@ def _get_gates_from_hamiltonians(
 
 @value.value_equality
 class BooleanHamiltonian(raw_types.Operation):
-    """A gate that applies a Hamiltonian from a set of Boolean functions."""
+    """An operation that represents a Hamiltonian from a set of Boolean functions."""
 
     def __init__(
         self,
