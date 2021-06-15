@@ -108,7 +108,7 @@ export class BlochSphereScene {
    * provided in the constructor.
    */
   private addSceneToHTML() {
-    const container = document.getElementById(this.divId)!;
+    const container = document.getElementById(this.containerId)!;
     container.appendChild(this.renderer.domElement);
   }
 
