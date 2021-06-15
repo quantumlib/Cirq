@@ -102,6 +102,7 @@ TestSpec = ModuleJsonTestSpec(
         'EjectPhasedPaulis',
         'EjectZ',
         'ExpandComposite',
+        'MEASUREMENT_KEY_SEPARATOR',
         'MergeInteractions',
         'MergeSingleQubitGates',
         'PointOptimizer',
@@ -118,6 +119,10 @@ TestSpec = ModuleJsonTestSpec(
         'ThreeQubitGate',
         'TwoQubitGate',
         'ABCMetaImplementAnyOneOf',
+        'GenericMetaImplementAnyOneOf',
+        'SimulatesAmplitudes',
+        'SimulatesExpectationValues',
+        'SimulatesFinalState',
         # protocols:
         'SupportsActOn',
         'SupportsApplyChannel',
@@ -169,5 +174,5 @@ TestSpec = ModuleJsonTestSpec(
         'Unique',
         'DEFAULT_RESOLVERS',
     ],
-    deprecated={'TrialResult': "v0.11"},
+    deprecated={},
 )

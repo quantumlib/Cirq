@@ -4153,10 +4153,6 @@ def test_transform_qubits():
     with pytest.raises(TypeError, match='must be a function or dict'):
         _ = original.transform_qubits('bad arg')
 
-    with cirq.testing.assert_deprecated('Use qubit_map instead', deadline="v0.11"):
-        # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
-        assert original.transform_qubits(func=lambda q: cirq.GridQubit(10 + q.x, 20)) == desired
-
     # Device
     original = cirq.Circuit(device=FOXY)
     assert original.transform_qubits(lambda q: q).device is FOXY
@@ -4610,3 +4606,123 @@ def test_tetris_concat():
     assert type(v) is cirq.Circuit and v == ha
     v = cirq.FrozenCircuit.tetris_concat(ha, empty)
     assert type(v) is cirq.FrozenCircuit and v == ha.freeze()
+
+
+def test_tetris_concat_alignment():
+    a, b = cirq.LineQubit.range(2)
+
+    assert cirq.Circuit.tetris_concat(
+        cirq.Circuit(cirq.X(a)),
+        cirq.Circuit(cirq.Y(b)) * 4,
+        cirq.Circuit(cirq.Z(a)),
+        align='first',
+    ) == cirq.Circuit(
+        cirq.Moment(cirq.X(a), cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Z(a), cirq.Y(b)),
+    )
+
+    assert cirq.Circuit.tetris_concat(
+        cirq.Circuit(cirq.X(a)),
+        cirq.Circuit(cirq.Y(b)) * 4,
+        cirq.Circuit(cirq.Z(a)),
+        align='left',
+    ) == cirq.Circuit(
+        cirq.Moment(cirq.X(a), cirq.Y(b)),
+        cirq.Moment(cirq.Z(a), cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+    )
+
+    assert cirq.Circuit.tetris_concat(
+        cirq.Circuit(cirq.X(a)),
+        cirq.Circuit(cirq.Y(b)) * 4,
+        cirq.Circuit(cirq.Z(a)),
+        align='right',
+    ) == cirq.Circuit(
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.Y(b)),
+        cirq.Moment(cirq.X(a), cirq.Y(b)),
+        cirq.Moment(cirq.Z(a)),
+    )
+
+
+def test_factorize_one_factor():
+    circuit = cirq.Circuit()
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit.append(
+        [cirq.Moment([cirq.CZ(q0, q1), cirq.H(q2)]), cirq.Moment([cirq.H(q0), cirq.CZ(q1, q2)])]
+    )
+    factors = list(circuit.factorize())
+    assert len(factors) == 1
+    assert factors[0] == circuit
+    desired = """
+0: ───@───H───
+      │
+1: ───@───@───
+          │
+2: ───H───@───
+"""
+    cirq.testing.assert_has_diagram(factors[0], desired)
+
+
+def test_factorize_simple_circuit_two_factors():
+    circuit = cirq.Circuit()
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    circuit.append([cirq.H(q1), cirq.CZ(q0, q1), cirq.H(q2), cirq.H(q0), cirq.H(q0)])
+    factors = list(circuit.factorize())
+    assert len(factors) == 2
+    desired = [
+        """
+0: ───────@───H───H───
+          │
+1: ───H───@───────────
+""",
+        """
+2: ───H───────────────
+""",
+    ]
+    for f, d in zip(factors, desired):
+        cirq.testing.assert_has_diagram(f, d)
+
+
+def test_factorize_large_circuit():
+    circuit = cirq.Circuit()
+    qubits = cirq.GridQubit.rect(3, 3)
+    circuit.append(cirq.Moment(cirq.X(q) for q in qubits))
+    pairset = [[(0, 2), (4, 6)], [(1, 2), (4, 8)]]
+    for pairs in pairset:
+        circuit.append(cirq.Moment(cirq.CZ(qubits[a], qubits[b]) for (a, b) in pairs))
+    circuit.append(cirq.Moment(cirq.Y(q) for q in qubits))
+    # expect 5 factors
+    factors = list(circuit.factorize())
+    desired = [
+        """
+(0, 0): ───X───@───────Y───
+               │
+(0, 1): ───X───┼───@───Y───
+               │   │
+(0, 2): ───X───@───@───Y───
+""",
+        """
+(1, 0): ───X───────────Y───
+""",
+        """
+(1, 1): ───X───@───@───Y───
+               │   │
+(2, 0): ───X───@───┼───Y───
+                   │
+(2, 2): ───X───────@───Y───
+""",
+        """
+(1, 2): ───X───────────Y───
+""",
+        """
+(2, 1): ───X───────────Y───
+    """,
+    ]
+    assert len(factors) == 5
+    for f, d in zip(factors, desired):
+        cirq.testing.assert_has_diagram(f, d)

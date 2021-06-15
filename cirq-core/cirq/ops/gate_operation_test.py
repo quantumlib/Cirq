@@ -249,11 +249,11 @@ def test_unitary():
 def test_channel():
     a = cirq.NamedQubit('a')
     op = cirq.bit_flip(0.5).on(a)
-    np.testing.assert_allclose(cirq.channel(op), cirq.channel(op.gate))
-    assert cirq.has_channel(op)
+    np.testing.assert_allclose(cirq.kraus(op), cirq.kraus(op.gate))
+    assert cirq.has_kraus(op)
 
-    assert cirq.channel(cirq.SingleQubitGate()(a), None) is None
-    assert not cirq.has_channel(cirq.SingleQubitGate()(a))
+    assert cirq.kraus(cirq.SingleQubitGate()(a), None) is None
+    assert not cirq.has_kraus(cirq.SingleQubitGate()(a))
 
 
 def test_measurement_key():
@@ -388,6 +388,19 @@ def test_with_measurement_key_mapping():
     remap_op = cirq.with_measurement_key_mapping(op, {'m': 'k'})
     assert cirq.measurement_keys(remap_op) == {'k'}
     assert cirq.with_measurement_key_mapping(op, {'x': 'k'}) is op
+
+
+def test_with_key_path():
+    a = cirq.LineQubit(0)
+    op = cirq.measure(a, key='m')
+
+    remap_op = cirq.with_key_path(op, ('a', 'b'))
+    assert cirq.measurement_keys(remap_op) == {'a:b:m'}
+    assert cirq.with_key_path(remap_op, ('a', 'b')) is remap_op
+
+    assert cirq.with_key_path(op, tuple()) is op
+
+    assert cirq.with_key_path(cirq.X(a), ('a', 'b')) is NotImplemented
 
 
 def test_cannot_remap_non_measurement_gate():

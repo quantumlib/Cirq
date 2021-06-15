@@ -25,8 +25,6 @@
 #     dev_tools/packaging/produce-package.sh output_dir [version]
 ################################################################################
 
-PROJECT_NAME=cirq-core/cirq
-
 set -e
 trap "{ echo -e '\033[31mFAILED\033[0m'; }" ERR
 
@@ -54,19 +52,22 @@ git init --quiet
 git fetch "${repo_dir}" HEAD --quiet --depth=1
 git checkout FETCH_HEAD -b work --quiet
 if [ ! -z "${SPECIFIED_VERSION}" ]; then
-    echo '__version__ = "'"${SPECIFIED_VERSION}"'"' > "${tmp_git_dir}/${PROJECT_NAME}/_version.py"
+    CIRQ_PACKAGES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode package-path)
+    for PROJECT_NAME in $CIRQ_PACKAGES; do
+      echo '__version__ = "'"${SPECIFIED_VERSION}"'"' > "${tmp_git_dir}/${PROJECT_NAME}/_version.py"
+    done
 fi
 
 # Python 3 wheel.
 echo "Producing python 3 package files."
 
-echo "cirq metapackage..."
-python3 setup.py -q bdist_wheel -d "${out_dir}"
-echo "cirq-core..."
-cd cirq-core
-python3 setup.py -q bdist_wheel -d "${out_dir}"
-echo "cirq-google..."
-cd ../cirq-google
-python3 setup.py -q bdist_wheel -d "${out_dir}"
+CIRQ_MODULES=$(env PYTHONPATH=. python dev_tools/modules.py list --mode folder --include-parent)
+
+for m in $CIRQ_MODULES; do
+  echo "processing $m/setup.py..."
+  cd $m
+  python3 setup.py -q bdist_wheel -d "${out_dir}"
+  cd ..
+done
 
 ls "${out_dir}"

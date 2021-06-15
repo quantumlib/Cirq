@@ -240,7 +240,7 @@ def test_run_qudit_channel(dtype):
         def _qid_shape_(self):
             return (3,)
 
-        def _channel_(self):
+        def _kraus_(self):
             return [
                 np.array([[1, 0, 0], [0, 0.5 ** 0.5, 0], [0, 0, 0.5 ** 0.5]]),
                 np.array([[0, 0.5 ** 0.5, 0], [0, 0, 0], [0, 0, 0]]),
@@ -1052,9 +1052,9 @@ class XAsOp(cirq.Operation):
         # coverage: ignore
         return XAsOp(new_qubits[0])
 
-    def _channel_(self):
+    def _kraus_(self):
         # coverage: ignore
-        return cirq.channel(cirq.X)
+        return cirq.kraus(cirq.X)
 
 
 def test_works_on_operation():
@@ -1071,9 +1071,9 @@ def test_works_on_operation():
         def with_qubits(self, *new_qubits):
             raise NotImplementedError()
 
-        def _channel_(self):
+        def _kraus_(self):
             # coverage: ignore
-            return cirq.channel(cirq.X)
+            return cirq.kraus(cirq.X)
 
     s = cirq.DensityMatrixSimulator()
     c = cirq.Circuit(XAsOp(cirq.LineQubit(0)))
@@ -1092,8 +1092,8 @@ def test_works_on_operation_dephased():
         def with_qubits(self, *new_qubits):
             raise NotImplementedError()
 
-        def _channel_(self):
-            return cirq.channel(cirq.H)
+        def _kraus_(self):
+            return cirq.kraus(cirq.H)
 
     s = cirq.DensityMatrixSimulator(ignore_measurement_results=True)
     c = cirq.Circuit(HAsOp(cirq.LineQubit(0)))

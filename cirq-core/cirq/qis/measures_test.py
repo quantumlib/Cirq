@@ -14,7 +14,6 @@
 """Tests for measures."""
 import numpy as np
 import pytest
-import scipy.stats
 
 import cirq
 
@@ -27,30 +26,24 @@ U = cirq.testing.random_unitary(N)
 
 
 def test_fidelity_symmetric():
+    np.testing.assert_allclose(cirq.fidelity(VEC1, VEC2), cirq.fidelity(VEC2, VEC1))
+    np.testing.assert_allclose(cirq.fidelity(VEC1, MAT1), cirq.fidelity(MAT1, VEC1))
     np.testing.assert_allclose(
-        cirq.fidelity(VEC1, VEC2, qid_shape=(15,)), cirq.fidelity(VEC2, VEC1, qid_shape=(15,))
-    )
-    np.testing.assert_allclose(
-        cirq.fidelity(VEC1, MAT1, qid_shape=(15,)), cirq.fidelity(MAT1, VEC1, qid_shape=(15,))
-    )
-    np.testing.assert_allclose(
-        cirq.fidelity(cirq.density_matrix(MAT1), MAT2, qid_shape=(15,)),
-        cirq.fidelity(cirq.density_matrix(MAT2), MAT1, qid_shape=(15,)),
+        cirq.fidelity(cirq.density_matrix(MAT1), MAT2),
+        cirq.fidelity(cirq.density_matrix(MAT2), MAT1),
     )
 
 
 def test_fidelity_between_zero_and_one():
-    assert 0 <= cirq.fidelity(VEC1, VEC2, qid_shape=(15,)) <= 1
-    assert 0 <= cirq.fidelity(VEC1, MAT1, qid_shape=(15,)) <= 1
-    assert 0 <= cirq.fidelity(cirq.density_matrix(MAT1), MAT2, qid_shape=(15,)) <= 1
+    assert 0 <= cirq.fidelity(VEC1, VEC2) <= 1
+    assert 0 <= cirq.fidelity(VEC1, MAT1) <= 1
+    assert 0 <= cirq.fidelity(cirq.density_matrix(MAT1), MAT2) <= 1
 
 
 def test_fidelity_invariant_under_unitary_transformation():
     np.testing.assert_allclose(
-        cirq.fidelity(cirq.density_matrix(MAT1), MAT2, qid_shape=(15,)),
-        cirq.fidelity(
-            cirq.density_matrix(U @ MAT1 @ U.T.conj()), U @ MAT2 @ U.T.conj(), qid_shape=(15,)
-        ),
+        cirq.fidelity(cirq.density_matrix(MAT1), MAT2),
+        cirq.fidelity(cirq.density_matrix(U @ MAT1 @ U.T.conj()), U @ MAT2 @ U.T.conj()),
     )
 
 
@@ -76,22 +69,22 @@ def test_fidelity_known_values():
     mat2 = cirq.density_matrix(np.outer(vec2, vec2.conj()))
     mat3 = 0.3 * mat1.density_matrix() + 0.7 * mat2.density_matrix()
 
-    np.testing.assert_allclose(cirq.fidelity(vec1, vec1, qid_shape=(4,)), 1)
-    np.testing.assert_allclose(cirq.fidelity(vec2, vec2, qid_shape=(4,)), 1)
-    np.testing.assert_allclose(cirq.fidelity(vec1, vec3, qid_shape=(4,)), 0.25)
-    np.testing.assert_allclose(cirq.fidelity(vec1, tensor1, qid_shape=(4,)), 1)
-    np.testing.assert_allclose(cirq.fidelity(tensor1, vec1, qid_shape=(2, 2)), 1)
-    np.testing.assert_allclose(cirq.fidelity(mat1, mat1, qid_shape=(2, 2)), 1)
-    np.testing.assert_allclose(cirq.fidelity(mat2, mat2, qid_shape=(2, 2)), 1)
-    np.testing.assert_allclose(cirq.fidelity(vec1, mat1, qid_shape=(2, 2)), 1)
-    np.testing.assert_allclose(cirq.fidelity(mat2, vec2, qid_shape=(2, 2)), 1)
-    np.testing.assert_allclose(cirq.fidelity(vec1, vec2, qid_shape=(4,)), 0)
-    np.testing.assert_allclose(cirq.fidelity(vec1, mat2, qid_shape=(2, 2)), 0)
-    np.testing.assert_allclose(cirq.fidelity(mat1, vec2, qid_shape=(2, 2)), 0)
-    np.testing.assert_allclose(cirq.fidelity(vec1, mat3, qid_shape=(2, 2)), 0.3)
-    np.testing.assert_allclose(cirq.fidelity(tensor1, mat3, qid_shape=(2, 2)), 0.3)
-    np.testing.assert_allclose(cirq.fidelity(mat3, tensor1, qid_shape=(2, 2)), 0.3)
-    np.testing.assert_allclose(cirq.fidelity(mat3, vec2, qid_shape=(2, 2)), 0.7)
+    np.testing.assert_allclose(cirq.fidelity(vec1, vec1), 1)
+    np.testing.assert_allclose(cirq.fidelity(vec2, vec2), 1)
+    np.testing.assert_allclose(cirq.fidelity(vec1, vec3), 0.25)
+    np.testing.assert_allclose(cirq.fidelity(vec1, tensor1), 1)
+    np.testing.assert_allclose(cirq.fidelity(tensor1, vec1), 1)
+    np.testing.assert_allclose(cirq.fidelity(mat1, mat1), 1)
+    np.testing.assert_allclose(cirq.fidelity(mat2, mat2), 1)
+    np.testing.assert_allclose(cirq.fidelity(vec1, mat1), 1)
+    np.testing.assert_allclose(cirq.fidelity(mat2, vec2), 1)
+    np.testing.assert_allclose(cirq.fidelity(vec1, vec2), 0)
+    np.testing.assert_allclose(cirq.fidelity(vec1, mat2), 0)
+    np.testing.assert_allclose(cirq.fidelity(mat1, vec2), 0)
+    np.testing.assert_allclose(cirq.fidelity(vec1, mat3), 0.3)
+    np.testing.assert_allclose(cirq.fidelity(tensor1, mat3), 0.3)
+    np.testing.assert_allclose(cirq.fidelity(mat3, tensor1), 0.3)
+    np.testing.assert_allclose(cirq.fidelity(mat3, vec2), 0.7)
 
 
 def test_fidelity_numpy_arrays():
@@ -171,6 +164,13 @@ def test_fidelity_product_states():
         )
 
 
+def test_fidelity_fail_inference():
+    state_vector = cirq.one_hot(shape=(4,), dtype=np.complex128)
+    state_tensor = np.reshape(state_vector, (2, 2))
+    with pytest.raises(ValueError, match='Please specify'):
+        _ = cirq.fidelity(state_tensor, 4)
+
+
 def test_fidelity_bad_shape():
     with pytest.raises(ValueError, match='Invalid quantum state'):
         _ = cirq.fidelity(np.array([[[1.0]]]), np.array([[[1.0]]]), qid_shape=(1,))
@@ -207,7 +207,10 @@ def test_von_neumann_entropy():
     probs = np.random.exponential(size=N)
     probs /= np.sum(probs)
     mat = U @ (probs * U).T.conj()
-    np.testing.assert_allclose(cirq.von_neumann_entropy(mat), scipy.stats.entropy(probs, base=2))
+
+    np.testing.assert_allclose(
+        cirq.von_neumann_entropy(mat), -np.sum(probs * np.log(probs) / np.log(2))
+    )
     # QuantumState object
     assert (
         cirq.von_neumann_entropy(cirq.quantum_state(np.array([[0.5, 0], [0, 0.5]]), qid_shape=(2,)))
@@ -221,8 +224,38 @@ def test_von_neumann_entropy():
     )
 
 
-def test_deprecated():
-    density_matrix = np.array([[0.5, 0], [0, 0.5]])
-    with cirq.testing.assert_deprecated('density_matrix', 'state', deadline="v0.11"):
-        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
-        _ = cirq.von_neumann_entropy(density_matrix=density_matrix)
+@pytest.mark.parametrize(
+    'gate, expected_entanglement_fidelity',
+    (
+        (cirq.I, 1),
+        (cirq.X, 0),
+        (cirq.Y, 0),
+        (cirq.Z, 0),
+        (cirq.S, 1 / 2),
+        (cirq.CNOT, 1 / 4),
+        (cirq.TOFFOLI, 9 / 16),
+    ),
+)
+def test_entanglement_fidelity_of_unitary_channels(gate, expected_entanglement_fidelity):
+    assert np.isclose(cirq.entanglement_fidelity(gate), expected_entanglement_fidelity)
+
+
+@pytest.mark.parametrize('p', (0, 0.1, 0.2, 0.5, 0.8, 0.9, 1))
+@pytest.mark.parametrize(
+    'channel_factory, entanglement_fidelity_formula',
+    (
+        # Each Pauli error turns the maximally entangled state into an orthogonal state, so only
+        # the error-free term, whose pre-factor is 1 - p, contributes to entanglement fidelity.
+        (cirq.depolarize, lambda p: 1 - p),
+        (lambda p: cirq.depolarize(p, n_qubits=2), lambda p: 1 - p),
+        (lambda p: cirq.depolarize(p, n_qubits=3), lambda p: 1 - p),
+        # See e.g. https://quantumcomputing.stackexchange.com/questions/16074 for average fidelity,
+        # then use Horodecki formula F_avg = (N F_e + 1) / (N + 1) to find entanglement fidelity.
+        (cirq.amplitude_damp, lambda gamma: 1 / 2 - gamma / 4 + np.sqrt(1 - gamma) / 2),
+    ),
+)
+def test_entanglement_fidelity_of_noisy_channels(p, channel_factory, entanglement_fidelity_formula):
+    channel = channel_factory(p)
+    actual_entanglement_fidelity = cirq.entanglement_fidelity(channel)
+    expected_entanglement_fidelity = entanglement_fidelity_formula(p)
+    assert np.isclose(actual_entanglement_fidelity, expected_entanglement_fidelity)

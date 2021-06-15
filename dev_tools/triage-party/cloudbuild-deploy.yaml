@@ -1,0 +1,19 @@
+steps:
+
+# get credentials from the GKE cluster
+- name: "gcr.io/k8s-skaffold/skaffold"
+  args:
+  - gcloud
+  - container
+  - clusters
+  - get-credentials
+  - cirq-infra
+  - --zone=us-central1-a
+
+# deploy container image to GKE
+- name: "gcr.io/k8s-skaffold/skaffold"
+  args:
+  - skaffold
+  - run
+  - --force
+  - -f=dev_tools/triage-party/skaffold.yaml

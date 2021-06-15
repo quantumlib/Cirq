@@ -1,0 +1,211 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: triage-party-config
+  namespace: triage-party
+data:
+  # The contents of config/config.yaml
+  config.yaml: |
+    settings:
+      name: quantum
+      repos:
+        - https://github.com/quantumlib/cirq
+      min_similarity: 0.7
+
+      member-roles:
+        # Automatically add members from these roles (exclude default of "member")
+        # See https://developer.github.com/v4/enum/commentauthorassociation/
+        - collaborator
+        - owner
+      members:
+        - balopat
+        - dstrain115
+        - maffoo
+        - mpharrigan
+        - 95-martin-orion
+        - viathor
+        - Strilanc
+        - tanujkhattar
+
+    collections:
+      - id: daily
+        name: Daily Triage
+        rules:
+          - needs-review
+          - issue-needs-triage
+          - issue-needs-kind
+          - issue-needs-classification
+
+      - id: cynq
+        name: Cirq Cynque
+        rules:
+          - discuss
+          - important-not-milestoned
+
+      - id: milestone
+        name: In Milestone
+        description: >
+          A Kanban visualization of upcoming releases, showing the flow of issues through each stage.
+            * only assigned issues should be in the milestone
+            * Unassigned issues with priority/p1-release should be assigned
+            * >3 issues assigned to the same person within a stage signifies a bottleneck 🌊
+        display: kanban
+        overflow: 3
+        dedup: true
+        rules:
+          - milestone-not-started
+          - milestone-assignee-updated
+          - milestone-pr-needs-review
+          - milestone-pr-needs-work
+          - milestone-pr-needs-merge
+          - milestone-recently-closed
+      - id: quarterly
+        name: Quarterly scrub
+        description: >
+          Quarterly review of items that need our attention.
+        rules:
+          - bugs-recv
+          - features-recv
+          - design-issues-recv
+
+      - id: discovery
+        name: Signalling work
+        description: >
+          It is important to help contributors find work that matches their skills, time commitment and ambition.
+          Help them find work by marking issues with complexity level and skill levels required.
+        rules:
+          - issue-needs-discoverability
+
+    rules:
+      ## Daily triage
+      issue-needs-triage:
+        name: "Untriaged issues"
+        resolution: "Add a triage/* label"
+        type: issue
+        filters:
+          - label: "!triage/.*"
+          - label: "!(kind/roadmap-item)"
+          - label: "!(kind/health)"
+          - label: "!(kind/task)"
+          - label: "!(kind/design-issue)"
+
+      issue-needs-kind:
+        name: "Untyped (unkind) issues"
+        resolution: "Add a kind/* label"
+        type: issue
+        filters:
+          - label: "!kind/.*"
+
+      issue-needs-discoverability:
+        name: "Issues that are hard to discover"
+        resolution: Add complexity/* skill/* labels
+        type: issue
+        filters:
+          - label: "kind/.*"
+          - label: "triage/accepted"
+          - label: "!(area/google)"
+          - label: "!(complexity|skill)/.*"
+          - label: "!(good first issue|help wanted)"
+
+      issue-needs-classification:
+        name: "Issues that require classification"
+        resolution: Add area/* labels
+        type: issue
+        filters:
+          - label: "!(area)/.*"
+          - label: "!(kind/roadmap-item)"
+
+      needs-review:
+        name: "PRs that needs review"
+        type: pull_request
+        filters:
+          - title: "!.*(WIP|wip).*"
+          - tag: "!draft"
+          - tag: "(new-commits|unreviewed)"
+
+      ### Cirq Cynque
+
+      discuss:
+        name: "Issues / PRs that need discussion"
+        filters:
+          - label: "(triage/discuss|need decision)"
+
+
+      ### Milestone Kanban ###
+      milestone-not-started:
+        name: "Not started"
+        type: issue
+        filters:
+          - tag: open-milestone
+          - tag: "!assignee-updated"
+          - tag: "!(assignee-open-pr|assignee-closed-pr)"
+      milestone-assignee-updated:
+        name: "In Progress"
+        type: issue
+        filters:
+          - tag: open-milestone
+          - tag: "assignee-updated"
+          - tag: "!(pr-changes-requested|pr-reviewer-comment|pr-unreviewed|pr-new-commits|pr-approved|pr-changes-requested)"
+      milestone-pr-needs-work:
+        name: "PR needs work"
+        type: issue
+        filters:
+          - tag: open-milestone
+          - tag: "(pr-changes-requested|pr-reviewer-comment)"
+      milestone-pr-needs-review:
+        name: "PR needs Review"
+        type: issue
+        filters:
+          - tag: open-milestone
+          - tag: "(pr-unreviewed|pr-new-commits)"
+      milestone-pr-needs-merge:
+        name: "PR needs Merge"
+        type: issue
+        filters:
+          - tag: open-milestone
+          - tag: "(pr-approved|pr-approved-but-pushed)"
+      milestone-recently-closed:
+        name: "Finish Line"
+        type: issue
+        filters:
+          - tag: open-milestone
+          - state: closed
+          - updated: -30d
+
+      ### Important Kanban ###
+      important-not-milestoned:
+        name: "Not in milestone"
+        type: issue
+        filters:
+          - label: "priority/important-soon|priority/critical-urgent"
+          - tag: "!open-milestone"
+          - tag: "!assignee-updated"
+          - tag: "!(assignee-open-pr|assignee-closed-pr)"
+
+      ### Quarterly scrub ###
+      bugs-recv:
+        name: "Bugs that deserve a follow-up comment"
+        resolution: "Comment or close the issue"
+        type: issue
+        filters:
+          - tag: recv
+          - responded: +7d
+          - label: "kind/bug-report"
+
+      features-recv:
+        name: "Features that deserve a follow-up comment"
+        resolution: "Comment or close the issue"
+        type: issue
+        filters:
+          - tag: recv
+          - responded: +7d
+          - label: "kind/feature-request"
+
+      design-issues-recv:
+        name: "Design issues that are going stale"
+        resolution: "Comment or close the issue"
+        type: issue
+        filters:
+          - tag: recv
+          - responded: +7d
+          - label: "kind/design-issue"

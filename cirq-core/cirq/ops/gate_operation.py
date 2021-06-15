@@ -89,6 +89,15 @@ class GateOperation(raw_types.Operation):
             return self
         return new_gate.on(*self.qubits)
 
+    def _with_key_path_(self, path: Tuple[str, ...]):
+        new_gate = protocols.with_key_path(self.gate, path)
+        if new_gate is NotImplemented:
+            return NotImplemented
+        if new_gate is self.gate:
+            # As GateOperation is immutable, this can return the original.
+            return self
+        return new_gate.on(*self.qubits)
+
     def __repr__(self):
         if hasattr(self.gate, '_op_repr_'):
             result = self.gate._op_repr_(self.qubits)
@@ -188,16 +197,23 @@ class GateOperation(raw_types.Operation):
             return getter()
         return NotImplemented
 
-    def _has_channel_(self) -> bool:
-        getter = getattr(self.gate, '_has_channel_', None)
+    def _has_kraus_(self) -> bool:
+        getter = getattr(self.gate, '_has_kraus_', None)
         if getter is not None:
             return getter()
         return NotImplemented
 
-    def _channel_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
-        getter = getattr(self.gate, '_channel_', None)
+    def _kraus_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
+        getter = getattr(self.gate, '_kraus_', None)
         if getter is not None:
             return getter()
+        return NotImplemented
+
+    def _is_measurement_(self) -> Optional[bool]:
+        getter = getattr(self.gate, '_is_measurement_', None)
+        if getter is not None:
+            return getter()
+        # Let the protocol handle the fallback.
         return NotImplemented
 
     def _measurement_key_(self) -> Optional[str]:

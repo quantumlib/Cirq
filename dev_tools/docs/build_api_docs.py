@@ -12,10 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Tool to generate external api_docs for Cirq (Shameless copy from TFQ)."""
+"""Tool to generate external api_docs for Cirq.
+
+In order to publish to our site, devsite runs two jobs for us: stable and nightly.
+The stable one downloads the latest cirq release from pypi and uses that to generate the reference
+API docs.
+The nightly one downloads the latest cirq pre-release (pip install cirq --pre) and uses that to
+generate the "nightly diff".
+
+This script needs to cater for both of these cases.
+"""
 
 import os
-import sys
 import types
 
 import networkx
@@ -27,13 +35,14 @@ from tensorflow_docs.api_generator import public_api
 
 import cirq
 import cirq_google
+
 from cirq import _doc
 
-flags.DEFINE_string("output_dir", "/tmp/cirq_api", "Where to output the docs")
+flags.DEFINE_string("output_dir", "docs/api_docs", "Where to output the docs")
 
 flags.DEFINE_string(
     "code_url_prefix",
-    "https://github.com/quantumlib/cirq/tree/master/cirq",
+    "https://github.com/quantumlib/Cirq/blob/master",
     "The url prefix for links to code.",
 )
 
@@ -64,6 +73,7 @@ def filter_unwanted_inherited_methods(path, parent, children):
 def main(unused_argv):
     generate_cirq()
     generate_cirq_google()
+    generate_cirq_aqt()
 
 
 def generate_cirq():
@@ -71,7 +81,7 @@ def generate_cirq():
         root_title="Cirq",
         py_modules=[("cirq", cirq)],
         base_dir=os.path.dirname(cirq.__file__),
-        code_url_prefix=FLAGS.code_url_prefix,
+        code_url_prefix=FLAGS.code_url_prefix + "/cirq-core/cirq",
         search_hints=FLAGS.search_hints,
         site_path=FLAGS.site_path,
         callbacks=[public_api.local_definitions_filter, filter_unwanted_inherited_methods],
@@ -83,12 +93,39 @@ def generate_cirq():
     doc_generator.build(output_dir=FLAGS.output_dir)
 
 
+def generate_cirq_aqt():
+    # This try-catch can go after v0.12 is released
+    try:
+        # should be present in the nightly (pre-release) build
+        import cirq_aqt
+    except ImportError:
+        # as cirq.aqt is currently not being generated anyway
+        # we won't handle this case (the stable build)
+        return
+
+    doc_generator = generate_lib.DocGenerator(
+        root_title="Cirq-aqt",
+        py_modules=[("cirq_aqt", cirq_aqt)],
+        base_dir=os.path.dirname(cirq_aqt.__file__),
+        code_url_prefix=FLAGS.code_url_prefix + "/cirq-aqt/cirq_aqt",
+        search_hints=FLAGS.search_hints,
+        site_path=FLAGS.site_path,
+        callbacks=[public_api.local_definitions_filter, filter_unwanted_inherited_methods],
+        extra_docs=_doc.RECORDED_CONST_DOCS,
+    )
+    doc_controls.decorate_all_class_attributes(
+        doc_controls.do_not_doc_inheritable, networkx.DiGraph, skip=[]
+    )
+
+    doc_generator.build(output_dir=FLAGS.output_dir)
+
+
 def generate_cirq_google():
     doc_generator = generate_lib.DocGenerator(
         root_title="Cirq-google",
         py_modules=[("cirq_google", cirq_google)],
         base_dir=os.path.dirname(cirq_google.__file__),
-        code_url_prefix=FLAGS.code_url_prefix,
+        code_url_prefix=FLAGS.code_url_prefix + "/cirq-google/cirq_google",
         search_hints=FLAGS.search_hints,
         site_path=FLAGS.site_path,
         callbacks=[public_api.local_definitions_filter, filter_unwanted_inherited_methods],

@@ -13,28 +13,8 @@ from typing import (
 
 import numpy as np
 
-from cirq.circuits import Circuit, PointOptimizer, PointOptimizationSummary
-from cirq.ops import (
-    FSimGate,
-    Gate,
-    MeasurementGate,
-    Operation,
-    PhasedFSimGate,
-    Qid,
-    QubitOrderOrList,
-    SingleQubitGate,
-    WaitGate,
-)
-from cirq.sim import (
-    Simulator,
-    SimulatesSamples,
-    SimulatesIntermediateStateVector,
-    StateVectorStepResult,
-    ActOnStateVectorArgs,
-)
-from cirq.study import ParamResolver
-from cirq.value import RANDOM_STATE_OR_SEED_LIKE, parse_random_state
-
+import cirq
+from cirq import value
 from cirq_google.calibration.phased_fsim import (
     FloquetPhasedFSimCalibrationRequest,
     PhaseCalibratedFSimGate,
@@ -42,18 +22,17 @@ from cirq_google.calibration.phased_fsim import (
     PhasedFSimCalibrationRequest,
     PhasedFSimCalibrationResult,
     PhasedFSimCharacterization,
-    SQRT_ISWAP_PARAMETERS,
+    SQRT_ISWAP_INV_PARAMETERS,
     try_convert_sqrt_iswap_to_fsim,
 )
 
-
-ParametersDriftGenerator = Callable[[Qid, Qid, FSimGate], PhasedFSimCharacterization]
+ParametersDriftGenerator = Callable[[cirq.Qid, cirq.Qid, cirq.FSimGate], PhasedFSimCharacterization]
 PhasedFsimDictParameters = Dict[
-    Tuple[Qid, Qid], Union[Dict[str, float], PhasedFSimCharacterization]
+    Tuple[cirq.Qid, cirq.Qid], Union[Dict[str, float], PhasedFSimCharacterization]
 ]
 
 
-class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVector):
+class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.SparseSimulatorStep]):
     """Wrapper on top of cirq.Simulator that allows to simulate calibration requests.
 
     This simulator introduces get_calibrations which allows to simulate
@@ -68,11 +47,11 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
     def __init__(
         self,
-        simulator: Simulator,
+        simulator: cirq.Simulator,
         *,
         drift_generator: ParametersDriftGenerator,
         gates_translator: Callable[
-            [Gate], Optional[PhaseCalibratedFSimGate]
+            [cirq.Gate], Optional[PhaseCalibratedFSimGate]
         ] = try_convert_sqrt_iswap_to_fsim,
     ) -> None:
         """Initializes the PhasedFSimEngineSimulator.
@@ -84,16 +63,19 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             gates_translator: Function that translates a gate to a supported FSimGate which will
                 undergo characterization.
         """
+        super().__init__()
         self._simulator = simulator
         self._drift_generator = drift_generator
-        self._drifted_parameters: Dict[Tuple[Qid, Qid, FSimGate], PhasedFSimCharacterization] = {}
+        self._drifted_parameters: Dict[
+            Tuple[cirq.Qid, cirq.Qid, cirq.FSimGate], PhasedFSimCharacterization
+        ] = {}
         self.gates_translator = gates_translator
 
     @classmethod
     def create_with_ideal_sqrt_iswap(
         cls,
         *,
-        simulator: Optional[Simulator] = None,
+        simulator: Optional[cirq.Simulator] = None,
     ) -> 'PhasedFSimEngineSimulator':
         """Creates a PhasedFSimEngineSimulator that simulates ideal FSimGate(theta=π/4, phi=0).
 
@@ -105,8 +87,10 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             New PhasedFSimEngineSimulator instance.
         """
 
-        def sample_gate(_1: Qid, _2: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
-            assert isinstance(gate, FSimGate), f'Expected FSimGate, got {gate}'
+        def sample_gate(
+            _1: cirq.Qid, _2: cirq.Qid, gate: cirq.FSimGate
+        ) -> PhasedFSimCharacterization:
+            assert isinstance(gate, cirq.FSimGate), f'Expected FSimGate, got {gate}'
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
                 gate.phi, 0.0
             ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
@@ -115,7 +99,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             )
 
         if simulator is None:
-            simulator = Simulator()
+            simulator = cirq.Simulator()
 
         return cls(
             simulator, drift_generator=sample_gate, gates_translator=try_convert_sqrt_iswap_to_fsim
@@ -124,13 +108,13 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
     @classmethod
     def create_with_random_gaussian_sqrt_iswap(
         cls,
-        mean: PhasedFSimCharacterization = SQRT_ISWAP_PARAMETERS,
+        mean: PhasedFSimCharacterization = SQRT_ISWAP_INV_PARAMETERS,
         *,
-        simulator: Optional[Simulator] = None,
+        simulator: Optional[cirq.Simulator] = None,
         sigma: PhasedFSimCharacterization = PhasedFSimCharacterization(
             theta=0.02, zeta=0.05, chi=0.05, gamma=0.05, phi=0.02
         ),
-        random_or_seed: RANDOM_STATE_OR_SEED_LIKE = None,
+        random_or_seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ) -> 'PhasedFSimEngineSimulator':
         """Creates a PhasedFSimEngineSimulator that introduces a random deviation from the mean.
 
@@ -154,7 +138,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         if mean.any_none():
             raise ValueError(f'All mean values must be provided, got mean of {mean}')
 
-        rand = parse_random_state(random_or_seed)
+        rand = value.parse_random_state(random_or_seed)
 
         def sample_value(gaussian_mean: Optional[float], gaussian_sigma: Optional[float]) -> float:
             assert gaussian_mean is not None
@@ -162,8 +146,10 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                 return gaussian_mean
             return rand.normal(gaussian_mean, gaussian_sigma)
 
-        def sample_gate(_1: Qid, _2: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
-            assert isinstance(gate, FSimGate), f'Expected FSimGate, got {gate}'
+        def sample_gate(
+            _1: cirq.Qid, _2: cirq.Qid, gate: cirq.FSimGate
+        ) -> PhasedFSimCharacterization:
+            assert isinstance(gate, cirq.FSimGate), f'Expected FSimGate, got {gate}'
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
                 gate.phi, 0.0
             ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
@@ -177,7 +163,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             )
 
         if simulator is None:
-            simulator = Simulator()
+            simulator = cirq.Simulator()
 
         return cls(
             simulator, drift_generator=sample_gate, gates_translator=try_convert_sqrt_iswap_to_fsim
@@ -188,7 +174,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         cls,
         parameters: PhasedFsimDictParameters,
         *,
-        simulator: Optional[Simulator] = None,
+        simulator: Optional[cirq.Simulator] = None,
         ideal_when_missing_gate: bool = False,
         ideal_when_missing_parameter: bool = False,
     ) -> 'PhasedFSimEngineSimulator':
@@ -212,8 +198,10 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             New PhasedFSimEngineSimulator instance.
         """
 
-        def sample_gate(a: Qid, b: Qid, gate: FSimGate) -> PhasedFSimCharacterization:
-            assert isinstance(gate, FSimGate), f'Expected FSimGate, got {gate}'
+        def sample_gate(
+            a: cirq.Qid, b: cirq.Qid, gate: cirq.FSimGate
+        ) -> PhasedFSimCharacterization:
+            assert isinstance(gate, cirq.FSimGate), f'Expected FSimGate, got {gate}'
             assert np.isclose(gate.theta, np.pi / 4) and np.isclose(
                 gate.phi, 0.0
             ), f'Expected ISWAP ** -0.5 like gate, got {gate}'
@@ -228,7 +216,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                     pair_parameters = PhasedFSimCharacterization(**pair_parameters)
                 pair_parameters = pair_parameters.parameters_for_qubits_swapped()
             elif ideal_when_missing_gate:
-                pair_parameters = SQRT_ISWAP_PARAMETERS
+                pair_parameters = SQRT_ISWAP_INV_PARAMETERS
             else:
                 raise ValueError(f'Missing parameters for pair {(a, b)}')
 
@@ -238,7 +226,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                         f'Missing parameter value for pair {(a, b)}, '
                         f'parameters={pair_parameters}'
                     )
-                pair_parameters = pair_parameters.merge_with(SQRT_ISWAP_PARAMETERS)
+                pair_parameters = pair_parameters.merge_with(SQRT_ISWAP_INV_PARAMETERS)
 
             return pair_parameters
 
@@ -250,7 +238,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                 )
 
         if simulator is None:
-            simulator = Simulator()
+            simulator = cirq.Simulator()
 
         return cls(
             simulator, drift_generator=sample_gate, gates_translator=try_convert_sqrt_iswap_to_fsim
@@ -261,7 +249,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         cls,
         characterizations: Iterable[PhasedFSimCalibrationResult],
         *,
-        simulator: Optional[Simulator] = None,
+        simulator: Optional[cirq.Simulator] = None,
         ideal_when_missing_gate: bool = False,
         ideal_when_missing_parameter: bool = False,
     ) -> 'PhasedFSimEngineSimulator':
@@ -289,7 +277,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         for characterization in characterizations:
             gate = characterization.gate
             if (
-                not isinstance(gate, FSimGate)
+                not isinstance(gate, cirq.FSimGate)
                 or not np.isclose(gate.theta, np.pi / 4)
                 or not np.isclose(gate.phi, 0.0)
             ):
@@ -307,7 +295,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
                 parameters[(a, b)] = pair_parameters
 
         if simulator is None:
-            simulator = Simulator()
+            simulator = cirq.Simulator()
 
         return cls.create_from_dictionary_sqrt_iswap(
             parameters,
@@ -316,7 +304,7 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
             ideal_when_missing_parameter=ideal_when_missing_parameter,
         )
 
-    def final_state_vector(self, program: Circuit) -> np.array:
+    def final_state_vector(self, program: cirq.Circuit) -> np.array:
         result = self.simulate(program)
         return result.state_vector()
 
@@ -367,8 +355,8 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
         return results
 
     def create_gate_with_drift(
-        self, a: Qid, b: Qid, gate_calibration: PhaseCalibratedFSimGate
-    ) -> PhasedFSimGate:
+        self, a: cirq.Qid, b: cirq.Qid, gate_calibration: PhaseCalibratedFSimGate
+    ) -> cirq.PhasedFSimGate:
         """Generates a gate with drift for a given gate.
 
         Args:
@@ -390,38 +378,52 @@ class PhasedFSimEngineSimulator(SimulatesSamples, SimulatesIntermediateStateVect
 
         return gate_calibration.as_characterized_phased_fsim_gate(parameters)
 
-    def _run(
-        self, circuit: Circuit, param_resolver: ParamResolver, repetitions: int
-    ) -> Dict[str, np.ndarray]:
-        converted = _convert_to_circuit_with_drift(self, circuit)
-        return self._simulator._run(converted, param_resolver, repetitions)
-
-    def _core_iterator(
+    def run_sweep_iter(
         self,
-        circuit: Circuit,
-        sim_state: Any,
-    ) -> Iterator[StateVectorStepResult]:
-        converted = _convert_to_circuit_with_drift(self, circuit)
-        return self._simulator._core_iterator(converted, sim_state)
+        program: cirq.Circuit,
+        params: cirq.Sweepable,
+        repetitions: int = 1,
+    ) -> Iterator[cirq.Result]:
+        converted = _convert_to_circuit_with_drift(self, program)
+        yield from self._simulator.run_sweep_iter(converted, params, repetitions)
+
+    def simulate(
+        self,
+        program: cirq.Circuit,
+        param_resolver: cirq.ParamResolverOrSimilarType = None,
+        qubit_order: cirq.QubitOrderOrList = cirq.QubitOrder.DEFAULT,
+        initial_state: Any = None,
+    ) -> cirq.StateVectorTrialResult:
+        converted = _convert_to_circuit_with_drift(self, program)
+        return self._simulator.simulate(converted, param_resolver, qubit_order, initial_state)
 
     def _create_act_on_args(
         self,
-        initial_state: Union[int, ActOnStateVectorArgs],
-        qubits: Sequence[Qid],
-    ) -> ActOnStateVectorArgs:
-        return self._simulator._create_act_on_args(initial_state, qubits)
+        initial_state: Union[int, cirq.ActOnStateVectorArgs],
+        qubits: Sequence[cirq.Qid],
+    ) -> cirq.ActOnStateVectorArgs:
+        # Needs an implementation since it's abstract but will never actually be called.
+        raise NotImplementedError()
+
+    def _create_step_result(
+        self,
+        sim_state: cirq.ActOnStateVectorArgs,
+        qubit_map: Dict[cirq.Qid, int],
+    ) -> cirq.SparseSimulatorStep:
+        # Needs an implementation since it's abstract but will never actually be called.
+        raise NotImplementedError()
 
 
-class _PhasedFSimConverter(PointOptimizer):
+class _PhasedFSimConverter(cirq.PointOptimizer):
     def __init__(self, simulator: PhasedFSimEngineSimulator) -> None:
         super().__init__()
         self._simulator = simulator
 
     def optimization_at(
-        self, circuit: Circuit, index: int, op: Operation
-    ) -> Optional[PointOptimizationSummary]:
+        self, circuit: cirq.Circuit, index: int, op: cirq.Operation
+    ) -> Optional[cirq.PointOptimizationSummary]:
 
-        if isinstance(op.gate, (MeasurementGate, SingleQubitGate, WaitGate)):
+        if isinstance(op.gate, (cirq.MeasurementGate, cirq.SingleQubitGate, cirq.WaitGate)):
             new_op = op
         else:
             if op.gate is None:
@@ -435,13 +437,15 @@ class _PhasedFSimConverter(PointOptimizer):
             a, b = op.qubits
             new_op = self._simulator.create_gate_with_drift(a, b, translated).on(a, b)
 
-        return PointOptimizationSummary(clear_span=1, clear_qubits=op.qubits, new_operations=new_op)
+        return cirq.PointOptimizationSummary(
+            clear_span=1, clear_qubits=op.qubits, new_operations=new_op
+        )
 
 
 def _convert_to_circuit_with_drift(
-    simulator: PhasedFSimEngineSimulator, circuit: Circuit
-) -> Circuit:
-    circuit_with_drift = Circuit(circuit)
+    simulator: PhasedFSimEngineSimulator, circuit: cirq.Circuit
+) -> cirq.Circuit:
+    circuit_with_drift = cirq.Circuit(circuit)
     converter = _PhasedFSimConverter(simulator)
     converter.optimize_circuit(circuit_with_drift)
     return circuit_with_drift

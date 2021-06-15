@@ -409,7 +409,7 @@ def test_non_clifford_circuit():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit()
     circuit.append(cirq.T(q0))
-    with pytest.raises(NotImplementedError, match="support cirq.T"):
+    with pytest.raises(TypeError, match="support cirq.T"):
         cirq.CliffordSimulator().simulate(circuit)
 
 
@@ -426,7 +426,7 @@ def test_swap():
     assert not r["a"][0]
     assert r["b"][0]
 
-    with pytest.raises(NotImplementedError, match="CliffordSimulator doesn't support"):
+    with pytest.raises(TypeError, match="CliffordSimulator doesn't support"):
         cirq.CliffordSimulator().simulate((cirq.Circuit(cirq.SWAP(a, b) ** 3.5)))
 
 
@@ -530,21 +530,6 @@ def test_valid_apply_measurement():
     measurements = {}
     _ = state.apply_measurement(cirq.measure(q0), measurements, np.random.RandomState())
     assert measurements == {'0': [1]}
-
-
-def test_deprecated():
-    q = cirq.LineQubit(0)
-    clifford_state = cirq.CliffordState({q: 0})
-
-    with cirq.testing.assert_deprecated(
-        'stabilizers', 'CliffordTableau', 'deprecated', deadline="v0.11"
-    ):
-        _ = clifford_state.stabilizers()
-
-    with cirq.testing.assert_deprecated(
-        'destabilizers', 'CliffordTableau', 'deprecated', deadline="v0.11"
-    ):
-        _ = clifford_state.destabilizers()
 
 
 def test_reset():

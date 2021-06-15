@@ -43,7 +43,7 @@ def test_quantum_state():
     state_tensor_1 = np.reshape(state_vector_1, (2, 2))
     density_matrix_1 = np.outer(state_vector_1, np.conj(state_vector_1))
 
-    state = cirq.QuantumState(state_vector_1, qid_shape=(2, 2))
+    state = cirq.QuantumState(state_vector_1)
     assert state.data is state_vector_1
     assert state.qid_shape == (2, 2)
     assert state.dtype == np.complex128
@@ -73,7 +73,7 @@ def test_quantum_state():
 
 def test_quantum_state_quantum_state():
     state_vector_1 = cirq.one_hot(shape=(4,), dtype=np.complex128)
-    quantum_state = cirq.QuantumState(state_vector_1, qid_shape=(2, 2))
+    quantum_state = cirq.QuantumState(state_vector_1)
 
     state = cirq.quantum_state(quantum_state)
     assert state is quantum_state
@@ -107,8 +107,14 @@ def test_quantum_state_computational_basis_state():
     assert state.qid_shape == (1, 2, 3, 4)
     assert state.dtype == np.complex128
 
-    with pytest.raises(IndexError, match='out of bounds'):
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.quantum_state(7)
+
+    with pytest.raises(ValueError, match='out of range'):
         _ = cirq.quantum_state(7, qid_shape=(2, 2))
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.quantum_state((0, 1, 2, 3))
 
     with pytest.raises(ValueError, match='out of bounds'):
         _ = cirq.quantum_state((0, 1, 2, 3), qid_shape=(2, 2, 2, 2))
@@ -121,7 +127,7 @@ def test_quantum_state_state_vector_state_tensor():
     state_vector_1 = cirq.one_hot(shape=(4,), dtype=np.complex128)
     state_tensor_1 = np.reshape(state_vector_1, (2, 2))
 
-    state = cirq.quantum_state(state_vector_1, dtype=np.complex64, qid_shape=(2, 2))
+    state = cirq.quantum_state(state_vector_1, dtype=np.complex64)
     np.testing.assert_array_equal(state.data, state_vector_1)
     assert state.qid_shape == (2, 2)
     assert state.dtype == np.complex64
@@ -130,6 +136,12 @@ def test_quantum_state_state_vector_state_tensor():
     assert state.data is state_tensor_1
     assert state.qid_shape == (2, 2)
     assert state.dtype == np.complex128
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.quantum_state(state_tensor_1)
+
+    with pytest.raises(ValueError, match='not compatible'):
+        _ = cirq.quantum_state(state_tensor_1, qid_shape=(2, 3))
 
 
 def test_quantum_state_density_matrix():
@@ -169,6 +181,90 @@ def test_density_matrix():
 
     with pytest.raises(ValueError, match='square'):
         _ = cirq.density_matrix(state_vector_1)
+
+
+def test_infer_qid_shape():
+    computational_basis_state_1 = [0, 0, 0, 1]
+    computational_basis_state_2 = [0, 1, 2, 3]
+    computational_basis_state_3 = [0, 1, 2, 4]
+    computational_basis_state_4 = 9
+    computational_basis_state_5 = [0, 1, 2, 4, 5]
+    state_vector_1 = cirq.one_hot(shape=(4,), dtype=np.complex64)
+    state_vector_2 = cirq.one_hot(shape=(24,), dtype=np.complex64)
+    state_tensor_1 = np.reshape(state_vector_1, (2, 2))
+    state_tensor_2 = np.reshape(state_vector_2, (1, 2, 3, 4))
+    density_matrix_1 = np.eye(4, dtype=np.complex64) / 4
+    density_matrix_2 = np.eye(24, dtype=np.complex64) / 24
+    q0, q1 = cirq.LineQubit.range(2)
+    product_state_1 = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1)
+
+    assert (
+        cirq.qis.infer_qid_shape(
+            computational_basis_state_1,
+            state_vector_1,
+            state_tensor_1,
+            density_matrix_1,
+            product_state_1,
+        )
+        == (2, 2)
+    )
+
+    assert (
+        cirq.qis.infer_qid_shape(
+            product_state_1,
+            density_matrix_1,
+            state_tensor_1,
+            state_vector_1,
+            computational_basis_state_1,
+        )
+        == (2, 2)
+    )
+
+    assert (
+        cirq.qis.infer_qid_shape(
+            computational_basis_state_1,
+            computational_basis_state_2,
+            computational_basis_state_4,
+            state_tensor_2,
+        )
+        == (1, 2, 3, 4)
+    )
+
+    assert cirq.qis.infer_qid_shape(
+        state_vector_2, density_matrix_2, computational_basis_state_4
+    ) == (24,)
+
+    assert cirq.qis.infer_qid_shape(state_tensor_2, density_matrix_2) == (1, 2, 3, 4)
+
+    assert cirq.qis.infer_qid_shape(computational_basis_state_4) == (10,)
+    assert cirq.qis.infer_qid_shape(15, 7, 22, 4) == (23,)
+
+    with pytest.raises(ValueError, match='No states were specified'):
+        _ = cirq.qis.infer_qid_shape()
+
+    with pytest.raises(ValueError, match='Failed'):
+        _ = cirq.qis.infer_qid_shape(computational_basis_state_1, computational_basis_state_5)
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.qis.infer_qid_shape(computational_basis_state_1)
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.qis.infer_qid_shape(state_tensor_1)
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.qis.infer_qid_shape(density_matrix_1)
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.qis.infer_qid_shape(computational_basis_state_1, computational_basis_state_2)
+
+    with pytest.raises(ValueError, match='Failed'):
+        _ = cirq.qis.infer_qid_shape(state_vector_1, computational_basis_state_4)
+
+    with pytest.raises(ValueError, match='Failed to infer'):
+        _ = cirq.qis.infer_qid_shape(state_vector_1, state_vector_2)
+
+    with pytest.raises(ValueError, match='Failed to infer'):
+        _ = cirq.qis.infer_qid_shape(computational_basis_state_3, state_tensor_2)
 
 
 @pytest.mark.parametrize('global_phase', (1, 1j, np.exp(1j)))
@@ -426,7 +522,7 @@ def test_to_valid_state_vector_creates_new_copy():
 
 
 def test_invalid_to_valid_state_vector():
-    with pytest.raises(ValueError, match="Must specify"):
+    with pytest.raises(ValueError, match="Please specify"):
         _ = cirq.to_valid_state_vector(np.array([1]))
 
     with pytest.raises(ValueError):
@@ -435,9 +531,9 @@ def test_invalid_to_valid_state_vector():
         _ = cirq.to_valid_state_vector(-1, 2)
     with pytest.raises(ValueError):
         _ = cirq.to_valid_state_vector(5, 2)
-    with pytest.raises(TypeError, match='Unrecognized type of STATE_LIKE'):
+    with pytest.raises(ValueError, match='Invalid quantum state'):
         _ = cirq.to_valid_state_vector('0000', 2)
-    with pytest.raises(TypeError, match='Unrecognized type of STATE_LIKE'):
+    with pytest.raises(ValueError, match='Invalid quantum state'):
         _ = cirq.to_valid_state_vector('not an int', 2)
     with pytest.raises(ValueError, match=r'num_qubits != len\(qid_shape\)'):
         _ = cirq.to_valid_state_vector(0, 5, qid_shape=(1, 2, 3))
@@ -446,9 +542,9 @@ def test_invalid_to_valid_state_vector():
         _ = cirq.to_valid_state_vector([3], qid_shape=(3,))
     with pytest.raises(ValueError, match='out of bounds'):
         _ = cirq.to_valid_state_vector([-1], qid_shape=(3,))
-    with pytest.raises(ValueError, match='but its shape was neither'):
+    with pytest.raises(ValueError, match='Invalid quantum state'):
         _ = cirq.to_valid_state_vector([], qid_shape=(3,))
-    with pytest.raises(ValueError, match='but its shape was neither'):
+    with pytest.raises(ValueError, match='Invalid quantum state'):
         _ = cirq.to_valid_state_vector([0, 1], num_qubits=3)
     with pytest.raises(ValueError, match='ambiguous'):
         _ = cirq.to_valid_state_vector([1, 0], qid_shape=(2, 1))
@@ -604,7 +700,7 @@ def test_to_valid_density_matrix_from_state_vector():
 
 
 def test_to_valid_density_matrix_from_state_invalid_state():
-    with pytest.raises(ValueError, match="shape was neither"):
+    with pytest.raises(ValueError, match="Invalid quantum state"):
         cirq.to_valid_density_matrix(np.array([1, 0, 0]), num_qubits=2)
 
 
