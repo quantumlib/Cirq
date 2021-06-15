@@ -24,7 +24,7 @@ from cirq.protocols.apply_unitary_protocol import (
     apply_unitary,
     ApplyUnitaryArgs,
 )
-from cirq.protocols.channel import channel
+from cirq.protocols.kraus import kraus
 from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
 
@@ -257,9 +257,9 @@ def apply_channel(
         return result
 
     # Fallback to using the object's `_kraus_` matrices.
-    kraus = channel(val, None)
-    if kraus is not None:
-        return _apply_kraus(kraus, args)
+    ks = kraus(val, None)
+    if ks is not None:
+        return _apply_kraus(ks, args)
 
     # Don't know how to apply channel. Fallback to specified default behavior.
     if default is not RaiseTypeErrorIfNotProvided:

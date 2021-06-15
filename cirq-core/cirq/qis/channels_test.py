@@ -21,7 +21,7 @@ import cirq
 
 
 def apply_channel(channel: cirq.SupportsChannel, rho: np.ndarray) -> np.ndarray:
-    ks = cirq.channel(channel)
+    ks = cirq.kraus(channel)
     d_out, d_in = ks[0].shape
     assert rho.shape == (d_in, d_in)
     out = np.zeros((d_out, d_out), dtype=np.complex128)
@@ -39,7 +39,7 @@ def generate_standard_operator_basis(d_out: int, d_in: int) -> Iterable[np.ndarr
 
 
 def compute_choi(channel: cirq.SupportsChannel) -> np.ndarray:
-    ks = cirq.channel(channel)
+    ks = cirq.kraus(channel)
     d_out, d_in = ks[0].shape
     d = d_in * d_out
     c = np.zeros((d, d), dtype=np.complex128)
@@ -49,7 +49,7 @@ def compute_choi(channel: cirq.SupportsChannel) -> np.ndarray:
 
 
 def compute_channel_matrix(channel: cirq.SupportsChannel) -> np.ndarray:
-    ks = cirq.channel(channel)
+    ks = cirq.kraus(channel)
     d_out, d_in = ks[0].shape
     m = np.zeros((d_out * d_out, d_in * d_in), dtype=np.complex128)
     for k, e_in in enumerate(generate_standard_operator_basis(d_in, d_in)):
@@ -61,7 +61,7 @@ def compute_channel_matrix(channel: cirq.SupportsChannel) -> np.ndarray:
     'kraus_operators, expected_choi',
     (
         ([np.eye(2)], np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]])),
-        (cirq.channel(cirq.depolarize(0.75)), np.eye(4) / 2),
+        (cirq.kraus(cirq.depolarize(0.75)), np.eye(4) / 2),
         (
             [
                 np.array([[1, 0, 0], [0, 0, 1]]) / np.sqrt(2),
@@ -106,7 +106,7 @@ def test_choi_for_completely_dephasing_channel():
     (
         ([np.eye(2)], np.eye(4)),
         (
-            cirq.channel(cirq.depolarize(0.75)),
+            cirq.kraus(cirq.depolarize(0.75)),
             np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2,
         ),
         (

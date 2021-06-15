@@ -20,6 +20,10 @@ import warnings
 import numpy as np
 from typing_extensions import Protocol
 
+from cirq._compat import (
+    deprecated,
+    deprecated_class,
+)
 from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import (
     _try_decompose_into_operations_and_qubits,
@@ -41,7 +45,12 @@ RaiseTypeErrorIfNotProvided = (np.array([]),)
 TDefault = TypeVar('TDefault')
 
 
+@deprecated_class(deadline='v0.13', fix='use cirq.SupportsKraus instead')
 class SupportsChannel(Protocol):
+    pass
+
+
+class SupportsKraus(Protocol):
     """An object that may be describable as a quantum channel."""
 
     @doc_private
@@ -96,7 +105,14 @@ class SupportsChannel(Protocol):
         """
 
 
+@deprecated(deadline='v0.13', fix='use cirq.kraus instead')
 def channel(
+    val: Any, default: Any = RaiseTypeErrorIfNotProvided
+) -> Union[Tuple[np.ndarray, ...], TDefault]:
+    return kraus(val, default=default)
+
+
+def kraus(
     val: Any, default: Any = RaiseTypeErrorIfNotProvided
 ) -> Union[Tuple[np.ndarray, ...], TDefault]:
     r"""Returns a list of matrices describing the channel for the given value.
@@ -176,8 +192,13 @@ def channel(
     )
 
 
+@deprecated(deadline='v0.13', fix='use cirq.has_kraus instead')
 def has_channel(val: Any, *, allow_decompose: bool = True) -> bool:
-    """Returns whether the value has a channel representation.
+    return has_kraus(val, allow_decompose=allow_decompose)
+
+
+def has_kraus(val: Any, *, allow_decompose: bool = True) -> bool:
+    """Returns whether the value has a Kraus representation.
 
     Args:
         val: The value to check.
@@ -222,7 +243,7 @@ def has_channel(val: Any, *, allow_decompose: bool = True) -> bool:
     if allow_decompose:
         operations, _, _ = _try_decompose_into_operations_and_qubits(val)
         if operations is not None:
-            return all(has_channel(val) for val in operations)
+            return all(has_kraus(val) for val in operations)
 
     # No has methods, use `_kraus_` or delegates instead.
-    return channel(val, None) is not None
+    return kraus(val, None) is not None

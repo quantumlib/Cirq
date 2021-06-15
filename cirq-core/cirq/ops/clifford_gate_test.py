@@ -445,7 +445,7 @@ def test_commutes_single_qubit_gate(gate, other):
 
 @pytest.mark.parametrize(
     'gate,pauli,half_turns',
-    itertools.product(_all_clifford_gates(), _paulis, (0.1, 0.25, 0.5, -0.5)),
+    itertools.product(_all_clifford_gates(), _paulis, (1.0, 0.25, 0.5, -0.5)),
 )
 def test_commutes_pauli(gate, pauli, half_turns):
     pauli_gate = pauli ** half_turns
@@ -458,8 +458,8 @@ def test_commutes_pauli(gate, pauli, half_turns):
         pauli_gate(q0),
         gate(q0),
     ).unitary()
-    commutes = cirq.commutes(gate, pauli)
-    commutes_check = cirq.allclose_up_to_global_phase(mat, mat_swap)
+    commutes = cirq.commutes(gate, pauli_gate)
+    commutes_check = np.allclose(mat, mat_swap)
     assert commutes == commutes_check
 
 

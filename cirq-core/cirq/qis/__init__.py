@@ -24,6 +24,7 @@ from cirq.qis.channels import (
 from cirq.qis.clifford_tableau import CliffordTableau
 
 from cirq.qis.measures import (
+    entanglement_fidelity,
     fidelity,
     von_neumann_entropy,
 )

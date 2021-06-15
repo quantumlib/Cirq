@@ -41,9 +41,17 @@ fi
 
 if [ -z "${ACTUALLY_QUIET}" ]; then
     pytest "${PYTEST_ARGS[@]}"
+    RESULT=$?
 else
     # Filter out lines like "...F....x...      [ 42%]", with coloring.
     pytest -q --color=yes "${PYTEST_ARGS[@]}" |
         perl -nle'print if not m{^(.\[0m)?[\.FEsx]+(.\[36m)?\s+\[\s*\d+%\](.\[0m)?$}'
-    exit "${PIPESTATUS[0]}"
+    RESULT=${PIPESTATUS[0]}
 fi
+
+if [ "$RESULT" = 5 ]; then
+  echo "[exit 5] No tests collected, but ignored."
+  exit 0
+fi
+
+exit "$RESULT"
