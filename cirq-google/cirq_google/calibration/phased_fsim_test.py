@@ -878,26 +878,26 @@ def test_options_phase_corrected_override():
 
 
 def test_try_convert_gate_to_fsim():
-    def _check(gate: cirq.Gate, expected: PhaseCalibratedFSimGate):
+    def check(gate: cirq.Gate, expected: PhaseCalibratedFSimGate):
         assert np.allclose(cirq.unitary(gate), cirq.unitary(expected))
         assert try_convert_gate_to_fsim(gate) == expected
 
-    _check(
+    check(
         cirq.FSimGate(theta=0.3, phi=0.5),
         PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.3, phi=0.5), 0.0),
     )
 
-    _check(
+    check(
         cirq.FSimGate(7 * np.pi / 4, 0.0),
         PhaseCalibratedFSimGate(cirq.FSimGate(np.pi / 4, 0.0), 0.5),
     )
 
-    _check(
+    check(
         cirq.ISwapPowGate(exponent=-0.5),
         PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.25 * np.pi, phi=0.0), 0.0),
     )
 
-    _check(
+    check(
         cirq.PhasedFSimGate(theta=0.2, phi=0.5, chi=1.5 * np.pi),
         PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.2, phi=0.5), 0.25),
     )
@@ -905,14 +905,14 @@ def test_try_convert_gate_to_fsim():
     gate = cirq.PhasedFSimGate(theta=0.2, phi=0.5, zeta=1.5 * np.pi)
     assert try_convert_gate_to_fsim(gate) is None
 
-    _check(
+    check(
         cirq.PhasedISwapPowGate(exponent=-0.5, phase_exponent=0.7),
         PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.25 * np.pi, phi=0.0), -0.7),
     )
 
-    _check(cirq.CZ, PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.0, phi=np.pi), 0.0))
+    check(cirq.CZ, PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.0, phi=np.pi), 0.0))
 
-    _check(
+    check(
         cirq.ops.CZPowGate(exponent=0.3),
         PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.0, phi=-0.3 * np.pi), 0.0),
     )
@@ -920,7 +920,7 @@ def test_try_convert_gate_to_fsim():
     gate = cirq.ops.CZPowGate(exponent=0.3, global_shift=0.4)
     assert try_convert_gate_to_fsim(gate) is None
 
-    _check(
+    check(
         cirq_google.ops.SYC,
         PhaseCalibratedFSimGate(cirq.FSimGate(phi=np.pi / 6, theta=np.pi / 2), 0.0),
     )
