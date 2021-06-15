@@ -444,8 +444,8 @@ def test_from_characterizations_sqrt_iswap_when_invalid_arguments_fails():
         )
 
 
-def test_create_from_gate_dict_missing_params_fails():
-    simulator = PhasedFSimEngineSimulator.create_from_gate_dict({})
+def test_create_from_dictionary_missing_params_fails():
+    simulator = PhasedFSimEngineSimulator.create_from_dictionary({})
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.CZ(a, b))
 
