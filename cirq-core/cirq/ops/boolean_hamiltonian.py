@@ -160,7 +160,7 @@ def _simplify_cnots_tripplets(
         A Boolean that tells whether a simplification has been performed.
         The CNOT list, potentially simplified.
     """
-    x, y = (0, 1) if flip_control_and_target else (1, 0)
+    target, control = (0, 1) if flip_control_and_target else (1, 0)
 
     # We investigate potential pivots sequentially.
     for j in range(1, len(cnots) - 1):
