@@ -16,7 +16,8 @@
         "node_modules/**",
         "**/*_test.ts",
         "dist/**",
-        "build/**"
+        "build/**",
+        "utils/**"
     ],
     "all": true,
     "instrument": true
