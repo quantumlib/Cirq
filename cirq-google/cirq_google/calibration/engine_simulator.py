@@ -246,6 +246,45 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
         )
 
     @classmethod
+    def create_from_dictionary(
+        cls,
+        gates_dict: Dict[
+            Tuple[cirq.Qid, cirq.Qid], Dict[cirq.FSimGate, PhasedFSimCharacterization]
+        ],
+    ) -> 'PhasedFSimEngineSimulator':
+        """Creates PhasedFSimEngineSimulator with fixed drifts.
+
+        Args:
+            gates_dict: maps every pair of qubits and engine gate on that pair to a
+                characterization for that gate.
+
+        Returns:
+            New PhasedFSimEngineSimulator instance.
+        """
+
+        def sample_gate(
+            a: cirq.Qid, b: cirq.Qid, gate: cirq.FSimGate
+        ) -> PhasedFSimCharacterization:
+            params = None
+            swapped = False
+            if (a, b) in gates_dict:
+                params = gates_dict[(a, b)].get(gate)
+            elif (b, a) in gates_dict:
+                params = gates_dict[(b, a)].get(gate)
+                swapped = True
+            if params is None:
+                raise ValueError(f'Missing params for value for pair {(a, b)} and gate {gate}.')
+            assert isinstance(params, PhasedFSimCharacterization)
+            if swapped:
+                params = params.parameters_for_qubits_swapped()
+            return params
+
+        simulator = cirq.Simulator()
+        return cls(
+            simulator, drift_generator=sample_gate, gates_translator=try_convert_gate_to_fsim
+        )
+
+    @classmethod
     def create_from_characterizations_sqrt_iswap(
         cls,
         characterizations: Iterable[PhasedFSimCalibrationResult],
@@ -303,45 +342,6 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
             simulator=simulator,
             ideal_when_missing_gate=ideal_when_missing_gate,
             ideal_when_missing_parameter=ideal_when_missing_parameter,
-        )
-
-    @classmethod
-    def create_from_gate_dict(
-        cls,
-        gates_dict: Dict[
-            Tuple[cirq.Qid, cirq.Qid], Dict[cirq.FSimGate, PhasedFSimCharacterization]
-        ],
-    ) -> 'PhasedFSimEngineSimulator':
-        """Creates PhasedFSimEngineSimulator with fixed drifts.
-
-        Args:
-            gates_dict: maps every pair of qubits and engine gate on that pair to a
-                characterization for that gate.
-
-        Returns:
-            New PhasedFSimEngineSimulator instance.
-        """
-
-        def sample_gate(
-            a: cirq.Qid, b: cirq.Qid, gate: cirq.FSimGate
-        ) -> PhasedFSimCharacterization:
-            params = None
-            swapped = False
-            if (a, b) in gates_dict:
-                params = gates_dict[(a, b)].get(gate)
-            elif (b, a) in gates_dict:
-                params = gates_dict[(b, a)].get(gate)
-                swapped = True
-            if params is None:
-                raise ValueError(f'Missing params for value for pair {(a, b)} and gate {gate}.')
-            assert isinstance(params, PhasedFSimCharacterization)
-            if swapped:
-                params = params.parameters_for_qubits_swapped()
-            return params
-
-        simulator = cirq.Simulator()
-        return cls(
-            simulator, drift_generator=sample_gate, gates_translator=try_convert_gate_to_fsim
         )
 
     def final_state_vector(self, program: cirq.Circuit) -> np.array:
