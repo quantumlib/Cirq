@@ -117,7 +117,7 @@ def test_two_qubit_gate_validate_wrong_number():
 
 
 def test_three_qubit_gate_validate():
-    class Dummy(cirq.ThreeQubitGate):
+    class Dummy(cirq.ThreeQubitGateMixin, cirq.Gate):
         def matrix(self):
             pass
 

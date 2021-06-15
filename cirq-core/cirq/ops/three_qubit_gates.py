@@ -28,6 +28,7 @@ from cirq.ops import (
     eigen_gate,
     gate_features,
     pauli_gates,
+    raw_types,
     swap_gates,
 )
 
@@ -37,7 +38,7 @@ if TYPE_CHECKING:
 
 
 class CCZPowGate(
-    eigen_gate.EigenGate, gate_features.ThreeQubitGate, gate_features.InterchangeableQubitsGate
+    gate_features.ThreeQubitGateMixin, gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
 ):
     """A doubly-controlled-Z that can be raised to a power.
 
@@ -169,7 +170,7 @@ class CCZPowGate(
 
 
 @value.value_equality()
-class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
+class ThreeQubitDiagonalGate(gate_features.ThreeQubitGateMixin, raw_types.Gate):
     """A gate given by a diagonal 8x8 matrix."""
 
     def __init__(self, diag_angles_radians: List[value.TParamVal]) -> None:
@@ -325,7 +326,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
 
 
 class CCXPowGate(
-    eigen_gate.EigenGate, gate_features.ThreeQubitGate, gate_features.InterchangeableQubitsGate
+    gate_features.ThreeQubitGateMixin, gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate
 ):
     """A Toffoli (doubly-controlled-NOT) that can be raised to a power.
 
@@ -426,7 +427,9 @@ class CCXPowGate(
 
 
 @value.value_equality()
-class CSwapGate(gate_features.ThreeQubitGate, gate_features.InterchangeableQubitsGate):
+class CSwapGate(
+    gate_features.ThreeQubitGateMixin, gate_features.InterchangeableQubitsGate, raw_types.Gate
+):
     """A controlled swap gate. The Fredkin gate."""
 
     def qubit_index_to_equivalence_group_key(self, index):

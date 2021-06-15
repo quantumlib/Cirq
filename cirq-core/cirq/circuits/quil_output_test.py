@@ -373,7 +373,7 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
 
 
 def test_fails_on_big_unknowns():
-    class UnrecognizedGate(cirq.ThreeQubitGate):
+    class UnrecognizedGate(cirq.ThreeQubitGateMixin, cirq.Gate):
         pass
 
     c = cirq.Circuit(UnrecognizedGate().on(*cirq.LineQubit.range(3)))

@@ -120,7 +120,7 @@ def test_non_gate_operation():
 
 
 def test_three_qubit_gate():
-    class ThreeQubitGate(cirq.ThreeQubitGate):
+    class ThreeQubitGate(cirq.ThreeQubitGateMixin, cirq.Gate):
         pass
 
     q0 = cirq.LineQubit(0)

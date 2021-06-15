@@ -98,6 +98,7 @@ from cirq.ops.gate_features import (
     InterchangeableQubitsGate,
     SingleQubitGate,
     ThreeQubitGate,
+    ThreeQubitGateMixin,
     TwoQubitGate,
 )
 

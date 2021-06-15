@@ -117,6 +117,7 @@ TestSpec = ModuleJsonTestSpec(
         'Pauli',
         'SingleQubitGate',
         'ThreeQubitGate',
+        'ThreeQubitGateMixin',
         'TwoQubitGate',
         'ABCMetaImplementAnyOneOf',
         'GenericMetaImplementAnyOneOf',
