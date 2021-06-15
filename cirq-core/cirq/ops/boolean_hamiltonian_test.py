@@ -1,3 +1,16 @@
+# Copyright 2021 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import functools
 import itertools
 import math
@@ -171,10 +184,10 @@ def test_gray_code_comparison(seq_a, seq_b, expected):
         ([(0, 1), (2, 1), (0, 1)], True, False, [(0, 1), (2, 1), (0, 1)]),
     ],
 )
-def test_simplify_cnots_pairs(
+def test_simplify_commuting_cnots(
     input_cnots, input_flip_control_and_target, expected_simplified, expected_output_cnots
 ):
-    actual_simplified, actual_output_cnots = bh._simplify_cnots_pairs(
+    actual_simplified, actual_output_cnots = bh._simplify_commuting_cnots(
         input_cnots, input_flip_control_and_target
     )
     assert actual_simplified == expected_simplified
@@ -190,13 +203,15 @@ def test_simplify_cnots_pairs(
         # Single CNOTs don't get simplified.
         ([(0, 1)], False, False, [(0, 1)]),
         ([(0, 1)], True, False, [(0, 1)]),
-        # DO NOT SUBMIT add more tests!!!!!!!!!!!!!!
+        # Simplify according to equation 11 of [4].
+        ([(2, 1), (2, 0), (1, 0)], False, True, [(1, 0), (2, 1)]),
+        ([(1, 2), (0, 2), (0, 1)], True, True, [(0, 1), (1, 2)]),
     ],
 )
 def test_simplify_cnots_triplets(
     input_cnots, input_flip_control_and_target, expected_simplified, expected_output_cnots
 ):
-    actual_simplified, actual_output_cnots = bh._simplify_cnots_tripplets(
+    actual_simplified, actual_output_cnots = bh._simplify_cnots_triplets(
         input_cnots, input_flip_control_and_target
     )
     assert actual_simplified == expected_simplified

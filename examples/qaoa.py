@@ -1,5 +1,6 @@
 """Runs the Quantum Approximate Optimization Algorithm on Max-Cut."""
 import itertools
+from typing import List
 
 import numpy as np
 import networkx
@@ -18,7 +19,15 @@ def brute_force(graph, n):
     return max(np.round(vals))
 
 
-def qaoa(booleans, repetitions, maxiter, p):
+def qaoa(booleans: List[str], repetitions: int, maxiter: int, p: int):
+    """Run the QAOA optimization for a list of Boolean expressions.
+
+    Args:
+        booleans: A list of Boolean expressions (we want as many of them to be true).
+        repetitions: How many times to repeat the measurements.
+        maxiter: The number of iterations of the optimizer.
+        p: The number of times to repeat the Hamiltonian gate.
+    """
     boolean_exprs = [parse_expr(boolean) for boolean in booleans]
     param_names = cirq.parameter_names(boolean_exprs)
     qubits = [cirq.NamedQubit(name) for name in param_names]

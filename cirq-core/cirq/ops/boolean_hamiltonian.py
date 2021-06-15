@@ -1,3 +1,16 @@
+# Copyright 2021 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
 Represents Boolean functions as a series of CNOT and rotation gates. The Boolean functions are
 passed as Sympy expressions and then turned into an optimized set of gates.
@@ -13,7 +26,7 @@ References:
 
 import functools
 import itertools
-from typing import cast, Any, Callable, Dict, List, Sequence, Tuple
+from typing import cast, Any, Callable, Dict, Generator, List, Sequence, Tuple
 
 from sympy.logic.boolalg import And, Not, Or, Xor
 from sympy.core.expr import Expr
@@ -98,7 +111,7 @@ def _gray_code_comparator(k1: Tuple[int, ...], k2: Tuple[int, ...], flip: bool =
     return _gray_code_comparator(k1[0:-1], k2[0:-1], not flip)
 
 
-def _simplify_cnots_pairs(
+def _simplify_commuting_cnots(
     cnots: List[Tuple[int, int]], flip_control_and_target: bool
 ) -> Tuple[bool, List[Tuple[int, int]]]:
     """Simplifies CNOT pairs according to equations 9 and 10 of [4].
@@ -120,27 +133,24 @@ def _simplify_cnots_pairs(
     """
 
     # If input is empty, there is no simplification.
-    if not cnots:
-        return False, cnots
-
-    x, y = (0, 1) if flip_control_and_target else (1, 0)
+    target, control = (0, 1) if flip_control_and_target else (1, 0)
 
     i = 0
-    qubit_to_index: Dict[int, int] = {cnots[i][y]: i}
+    qubit_to_index: Dict[int, int] = {cnots[i][control]: i} if cnots else {}
     for j in range(1, len(cnots)):
-        if cnots[i][x] != cnots[j][x]:
+        if cnots[i][target] != cnots[j][target]:
             # The targets (resp. control) don't match, so we reset the search.
             i = j
-            qubit_to_index = {cnots[j][y]: j}
+            qubit_to_index = {cnots[j][control]: j}
             continue
 
-        if cnots[j][y] in qubit_to_index:
-            k = qubit_to_index[cnots[j][y]]
+        if cnots[j][control] in qubit_to_index:
+            k = qubit_to_index[cnots[j][control]]
             # The controls (resp. targets) are the same, so we can simplify away.
             cnots = [cnots[n] for n in range(len(cnots)) if n != j and n != k]
             return True, cnots
 
-        qubit_to_index[cnots[j][y]] = j
+        qubit_to_index[cnots[j][control]] = j
 
     return False, cnots
 
@@ -148,7 +158,7 @@ def _simplify_cnots_pairs(
 def _simplify_cnots_triplets(
     cnots: List[Tuple[int, int]], flip_control_and_target: bool
 ) -> Tuple[bool, List[Tuple[int, int]]]:
-    """Simplifies CNOT pairs according to equations 11 of [4].
+    """Simplifies CNOT pairs according to equation 11 of [4].
 
     CNOT(i, j) @ CNOT(j, k) == CNOT(j, k) @ CNOT(i, k) @ CNOT(i, j)
     ───@───────       ───────@───@───
@@ -171,31 +181,31 @@ def _simplify_cnots_triplets(
     for j in range(1, len(cnots) - 1):
         # First, we look back for as long as the targets (resp. controls) are the same.
         # They all commute, so all are potential candidates for being simplified.
-        common_A: Dict[int, int] = {}
+        common_a: Dict[int, int] = {}
         for i in range(j - 1, -1, -1):
-            if cnots[i][y] != cnots[j][y]:
+            if cnots[i][control] != cnots[j][control]:
                 break
             # We take a note of the control (resp. target).
-            common_A[cnots[i][x]] = i
+            common_a[cnots[i][target]] = i
 
         # Next, we look forward for as long as the controls (resp. targets) are the
         # same. They all commute, so all are potential candidates for being simplified.
-        common_B: Dict[int, int] = {}
+        common_b: Dict[int, int] = {}
         for k in range(j + 1, len(cnots)):
-            if cnots[j][x] != cnots[k][x]:
+            if cnots[j][target] != cnots[k][target]:
                 break
             # We take a note of the target (resp. control).
-            common_B[cnots[k][y]] = k
+            common_b[cnots[k][control]] = k
 
         # Among all the candidates, find if they have a match.
-        keys = common_A.keys() & common_B.keys()
+        keys = common_a.keys() & common_b.keys()
         for key in keys:
-            assert common_A[key] != common_B[key]
+            assert common_a[key] != common_b[key]
             # We perform the swap which removes the pivot.
             new_idx: List[int] = (
-                [idx for idx in range(0, j) if idx != common_A[key]]
-                + [common_B[key], common_A[key]]
-                + [idx for idx in range(j + 1, len(cnots)) if idx != common_B[key]]
+                [idx for idx in range(0, j) if idx != common_a[key]]
+                + [common_b[key], common_a[key]]
+                + [idx for idx in range(j + 1, len(cnots)) if idx != common_b[key]]
             )
             # Since we removed the pivot, the length should be one fewer.
             assert len(new_idx) == len(cnots) - 1
@@ -205,9 +215,8 @@ def _simplify_cnots_triplets(
     return False, cnots
 
 
-def _simplify_cnots(cnots: List[Tuple[int, int]]):
-    """
-    Takes a series of CNOTs and tries to applies rule to cancel out gates.
+def _simplify_cnots(cnots: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
+    """Takes a series of CNOTs and tries to applies rule to cancel out gates.
 
     Args:
         cnots: A list of CNOTs represented as tuples of integer (control, target).
@@ -220,7 +229,7 @@ def _simplify_cnots(cnots: List[Tuple[int, int]]):
     found_simplification = True
     while found_simplification:
         for simplify_fn, flip_control_and_target in itertools.product(
-            [_simplify_cnots_pairs, _simplify_cnots_tripplets], [False, True]
+            [_simplify_commuting_cnots, _simplify_cnots_triplets], [False, True]
         ):
             found_simplification, cnots = simplify_fn(cnots, flip_control_and_target)
             if found_simplification:
@@ -234,7 +243,7 @@ def _get_gates_from_hamiltonians(
     qubit_map: Dict[str, 'cirq.Qid'],
     theta: float,
     ladder_target: bool = False,
-):
+) -> Generator['cirq.Operation', None, None]:
     """Builds a circuit according to [1].
 
     Args:
@@ -242,7 +251,24 @@ def _get_gates_from_hamiltonians(
             _build_hamiltonian_from_boolean().
         qubit_map: map of string (boolean variable name) to qubit.
         theta: A single float scaling the rotations.
-        ladder_target: Whether to use convention of figure 7a or 7b.
+        ladder_target: Whether to use convention of figure 7a or 7b of [4]. The two formulations
+            yield the same output, but can be simplified differently.
+            For example for 3 qubits, the ladder target would be:
+            ───@───────────
+               │
+            ───┼───@───────
+               │   │
+            ───┼───┼───@───
+               │   │   │
+            ───X───X───X───
+            Otherwise, it would be:
+            ───@───────────
+               │
+            ───X───@───────
+                   │
+            ───────X───@───
+                       │
+            ───────────X───
 
     Yields:
         Gates that are the decomposition of the Hamiltonian.
