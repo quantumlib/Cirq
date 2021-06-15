@@ -221,6 +221,7 @@ class DensityMatrixSimulator(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
 
+    # TODO(#4209): Deduplicate with identical code in sparse_simulator.
     def simulate_expectation_values_sweep(
         self,
         program: 'cirq.Circuit',
