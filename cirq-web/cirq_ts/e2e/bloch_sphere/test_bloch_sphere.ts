@@ -17,6 +17,8 @@ import {expect} from 'chai';
 import {readFileSync} from 'fs';
 import pixelmatch from 'pixelmatch';
 import * as PNG from 'pngjs';
+import * as temp from 'temp';
+import * as path from 'path';
 
 /**
  * Generates an HTML script with the current repository bundle
@@ -43,41 +45,43 @@ const browserContent = `
 
 /**
  * Testing to see if they look the same.
- * WRITE ACTUAL TO A TEMP FOLDER
  */
+
+// Automatically track and cleanup files on exit
+temp.track();
+
 describe('Check Bloch Sphere looks correct', () => {
-  //Opens a headless browser with the generated HTML file and takes a screenshot.
-  let browser: Browser;
+  // Create the temporary directory first, then run everything.
+  temp.mkdir('tmp', (err, dirPath) => {
+    const output_path = path.join(dirPath, 'bloch_sphere.png');
+    let browser: Browser;
 
-  before(async () => {
-    browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.setContent(browserContent);
-    await page.screenshot({path: 'e2e/bloch_sphere/bloch_sphere.png'});
-  });
+    before(async () => {
+      //Opens a headless browser with the generated HTML file and takes a screenshot.
+      browser = await puppeteer.launch();
+      const page = await browser.newPage();
+      await page.setContent(browserContent);
+      await page.screenshot({path: output_path});
+      await browser.close();
+    });
 
-  after(async () => {
-    await browser.close();
-  });
+    it('Bloch sphere with |0⟩ statevector is correct', () => {
+      const expected = PNG.PNG.sync.read(
+        readFileSync('e2e/bloch_sphere/bloch_sphere_expected.png')
+      );
+      const actual = PNG.PNG.sync.read(readFileSync(output_path));
+      const {width, height} = expected;
+      const diff = new PNG.PNG({width, height});
 
-  it('Bloch sphere with |0⟩ statevector is correct', () => {
-    const expected = PNG.PNG.sync.read(
-      readFileSync('e2e/bloch_sphere/bloch_sphere_expected.png')
-    );
-    const actual = PNG.PNG.sync.read(
-      readFileSync('e2e/bloch_sphere/bloch_sphere.png')
-    );
-    const {width, height} = expected;
-    const diff = new PNG.PNG({width, height});
-
-    const pixels = pixelmatch(
-      expected.data,
-      actual.data,
-      diff.data,
-      width,
-      height,
-      {threshold: 0.1}
-    );
-    expect(pixels).to.equal(0);
+      const pixels = pixelmatch(
+        expected.data,
+        actual.data,
+        diff.data,
+        width,
+        height,
+        {threshold: 0.1}
+      );
+      expect(pixels).to.equal(0);
+    });
   });
 });
