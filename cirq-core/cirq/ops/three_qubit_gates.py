@@ -37,9 +37,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-class CCZPowGate(
-    eigen_gate.EigenGate, gate_features.InterchangeableQubitsGate
-):
+class CCZPowGate(eigen_gate.EigenGate, gate_features.InterchangeableQubitsGate):
     """A doubly-controlled-Z that can be raised to a power.
 
     The matrix of `CCZ**t` is `diag(1, 1, 1, 1, 1, 1, 1, exp(i pi t))`.
