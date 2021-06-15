@@ -22,9 +22,7 @@ exec(open('cirq_ionq/_version.py').read())
 
 name = 'cirq-ionq'
 
-description = (
-    'A Cirq package to simulate and connect to IonQ quantum computers'
-)
+description = 'A Cirq package to simulate and connect to IonQ quantum computers'
 
 # README file as long_description.
 long_description = io.open('README.rst', encoding='utf-8').read()

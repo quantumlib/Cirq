@@ -22,8 +22,9 @@ exec(open('cirq_aqt/_version.py').read())
 
 name = 'cirq-aqt'
 
-description = ('A Cirq package to simulate and connect to Alpine Quantum Technologies'
-               ' quantum computers')
+description = (
+    'A Cirq package to simulate and connect to Alpine Quantum Technologies' ' quantum computers'
+)
 
 # README file as long_description.
 long_description = io.open('README.rst', encoding='utf-8').read()
@@ -36,9 +37,9 @@ long_description = io.open('README.rst', encoding='utf-8').read()
 if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
     __version__ = os.environ['CIRQ_PRE_RELEASE_VERSION']
     long_description = (
-            "**This is a development version of Cirq-AQT and may be "
-            "unstable.**\n\n**For the latest stable release of Cirq-AQT "
-            "see**\n`here <https://pypi.org/project/cirq-aqt>`__.\n\n" + long_description
+        "**This is a development version of Cirq-AQT and may be "
+        "unstable.**\n\n**For the latest stable release of Cirq-AQT "
+        "see**\n`here <https://pypi.org/project/cirq-aqt>`__.\n\n" + long_description
     )
 
 # Read in requirements
