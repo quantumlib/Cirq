@@ -19,6 +19,7 @@ import pytest
 import sympy
 
 from google.protobuf.text_format import Merge
+import cirq_google
 from cirq_google.api import v2
 import cirq
 from cirq_google.experimental.noise_models import (
@@ -30,70 +31,22 @@ _CALIBRATION_DATA = Merge(
     """
     timestamp_ms: 1579214873,
     metrics: [{
-        name: 'xeb',
-        targets: ['0_0', '0_1'],
-        values: [{
-            double_val: .9999
-        }]
-    }, {
-        name: 'xeb',
-        targets: ['0_0', '1_0'],
-        values: [{
-            double_val: .9998
-        }]
-    }, {
         name: 'single_qubit_rb_pauli_error_per_gate',
         targets: ['0_0'],
         values: [{
-            double_val: .001
-        }]
-    }, {
-        name: 'single_qubit_rb_pauli_error_per_gate',
-        targets: ['0_1'],
-        values: [{
-            double_val: .002
-        }]
-    }, {
-        name: 'single_qubit_rb_pauli_error_per_gate',
-        targets: ['1_0'],
-        values: [{
-            double_val: .003
+            double_val: .01
         }]
     }, {
         name: 'single_qubit_readout_separation_error',
         targets: ['0_0'],
         values: [{
-            double_val: .004
-        }]
-    }, {
-        name: 'single_qubit_readout_separation_error',
-        targets: ['0_1'],
-        values: [{
-            double_val: .005
-        }]
-    }, {
-        name: 'single_qubit_readout_separation_error',
-        targets: ['1_0'],
-        values: [{
-            double_val: .006
+            double_val: .04
         }]
     }, {
         name: 'single_qubit_idle_t1_micros',
         targets: ['0_0'],
         values: [{
-            double_val: .007
-        }]
-    }, {
-        name: 'single_qubit_idle_t1_micros',
-        targets: ['0_1'],
-        values: [{
-            double_val: .008
-        }]
-    }, {
-        name: 'single_qubit_idle_t1_micros',
-        targets: ['1_0'],
-        values: [{
-            double_val: .009
+            double_val: .07
         }]
     }]
 """,
@@ -1350,20 +1303,20 @@ def test_nondeterministic_mixture_noise():
     assert result1 != result2
 
 def test_noise_model():
-    q = cirq.LineQubit(0)
+    q = cirq.GridQubit(0,0)
     circuit = cirq.Circuit(cirq.I(q), cirq.measure(q))
 
     calibration = cirq_google.Calibration(_CALIBRATION_DATA)
-    noise_model = simple_noise_from_calibration_metrics(calibration = calibration, readout_decay_noise = True)
-    simulator  = cirq.simulator(noise = noise_model)
-    
+    noise_model = simple_noise_from_calibration_metrics(
+        calibration = calibration,
+        depol_noise = True,
+        readout_decay_noise = True,
+        readout_error_noise = True
+    )
+    simulator  = cirq.Simulator(noise = noise_model)
+
     result1 = simulator.run(circuit, repetitions=50)
     result2 = simulator.run(circuit, repetitions=50)
 
     assert result1 != result2
 
-
-
-def test_unsupported_noise_fails():
-    with pytest.raises(ValueError, match='noise'):
-        cirq.Simulator(noise=cirq.amplitude_damp(0.5))
