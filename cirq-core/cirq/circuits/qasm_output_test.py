@@ -322,8 +322,9 @@ def test_output_unitary_same_as_qiskit():
 
 
 def test_fails_on_big_unknowns():
-    class UnrecognizedGate(cirq.ThreeQubitGate):
-        pass
+    class UnrecognizedGate(cirq.Gate):
+        def _num_qubits_(self):
+            return 3
 
     c = cirq.Circuit(UnrecognizedGate().on(*cirq.LineQubit.range(3)))
     with pytest.raises(ValueError, match='Cannot output operation as QASM'):

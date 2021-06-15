@@ -109,8 +109,9 @@ def test_givens_rotation():
 
 
 def test_three_qubit_gate():
-    class ThreeQubitGate(cirq.ThreeQubitGate):
-        pass
+    class ThreeQubitGate(cirq.Gate):
+        def _num_qubits_(self):
+            return 3
 
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)

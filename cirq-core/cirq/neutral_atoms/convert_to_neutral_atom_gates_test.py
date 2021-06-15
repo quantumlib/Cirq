@@ -17,11 +17,12 @@ import numpy as np
 
 import cirq
 from cirq import ops
+from cirq.ops.gate_features_test import ThreeQubitTestGate
 
 
 def test_coverage():
     q = cirq.LineQubit.range(3)
-    g = cirq.ThreeQubitGate()
+    g = ThreeQubitTestGate()
 
     class FakeOperation(ops.Operation):
         def __init__(self, gate, qubits):

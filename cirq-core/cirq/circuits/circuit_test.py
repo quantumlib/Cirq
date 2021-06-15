@@ -2226,9 +2226,12 @@ M('msg')─M──────M
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols(circuit_cls):
-    class BadGate(cirq.ThreeQubitGate):
+    class BadGate(cirq.Gate):
         def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, str]:
             return 'a', 'a'
+
+        def _num_qubits_(self):
+            return 3
 
     q1 = cirq.NamedQubit('(0, 0)')
     q2 = cirq.NamedQubit('(0, 1)')

@@ -11,13 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import abc
 from collections.abc import Iterator
 from typing import Any
 
 import pytest
 
 import cirq
+
+
+class ThreeQubitTestGate(cirq.Gate, metaclass=abc.ABCMeta):
+    def _num_qubits_(self):
+        return 3
 
 
 def test_single_qubit_gate_validate_args():
@@ -117,9 +122,12 @@ def test_two_qubit_gate_validate_wrong_number():
 
 
 def test_three_qubit_gate_validate():
-    class Dummy(cirq.ThreeQubitGate):
+    class Dummy(cirq.Gate):
         def matrix(self):
             pass
+
+        def _num_qubits_(self) -> int:
+            return 3
 
     g = Dummy()
     a, b, c, d = cirq.LineQubit.range(4)

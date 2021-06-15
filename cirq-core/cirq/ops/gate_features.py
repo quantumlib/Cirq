@@ -20,6 +20,7 @@ For example: some gates are reversible, some have known matrices, etc.
 import abc
 from typing import Union, Iterable, Any, List
 
+from cirq._compat import deprecated
 from cirq.ops import raw_types
 
 
@@ -76,6 +77,7 @@ class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         return 2
 
 
+@deprecated(deadline='v0.14', fix='Define _num_qubits_, or ThreeQubitTestGate for tests.')
 class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly three qubits."""
 

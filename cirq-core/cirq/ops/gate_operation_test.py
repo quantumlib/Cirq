@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 import sympy
 import cirq
+from cirq.ops.gate_features_test import ThreeQubitTestGate
 
 
 def test_gate_operation_init():
@@ -27,7 +28,7 @@ def test_gate_operation_init():
 
 
 def test_invalid_gate_operation():
-    three_qubit_gate = cirq.ThreeQubitGate()
+    three_qubit_gate = ThreeQubitTestGate()
     single_qubit = [cirq.GridQubit(0, 0)]
     with pytest.raises(ValueError, match="number of qubits"):
         cirq.GateOperation(three_qubit_gate, single_qubit)
@@ -142,7 +143,7 @@ def test_gate_operation_pow():
 
 
 def test_with_qubits_and_transform_qubits():
-    g = cirq.ThreeQubitGate()
+    g = ThreeQubitTestGate()
     op = cirq.GateOperation(g, cirq.LineQubit.range(3))
     assert op.with_qubits(*cirq.LineQubit.range(3, 0, -1)) == cirq.GateOperation(
         g, cirq.LineQubit.range(3, 0, -1)
