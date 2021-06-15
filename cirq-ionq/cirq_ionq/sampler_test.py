@@ -17,7 +17,7 @@ import pandas as pd
 import sympy as sp
 
 import cirq
-from cirq import ionq
+import cirq_ionq as ionq
 
 
 def test_sampler_qpu():

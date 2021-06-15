@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq.ionq as ionq
+import cirq_ionq as ionq
 
 
 def test_ionq_exception():
