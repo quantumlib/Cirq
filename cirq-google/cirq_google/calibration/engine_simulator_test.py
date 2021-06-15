@@ -449,7 +449,7 @@ def test_create_from_dictionary_missing_params_fails():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.CZ(a, b))
 
-    with pytest.raises(ValueError, match='Missing params'):
+    with pytest.raises(ValueError, match='Missing parameters'):
         simulator.final_state_vector(circuit)
 
 

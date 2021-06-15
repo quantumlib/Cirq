@@ -1399,7 +1399,7 @@ def test_make_zeta_chi_gamma_compensation_for_moments_imperfect_gates():
 
     a, b, c, d = cirq.LineQubit.range(4)
     engine_simulator = cirq_google.PhasedFSimEngineSimulator.create_from_dictionary(
-        gates_dict={
+        parameters={
             (a, b): {
                 cirq.FSimGate(theta=0, phi=np.pi): params_cz_ab,
                 cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6): params_syc_ab,

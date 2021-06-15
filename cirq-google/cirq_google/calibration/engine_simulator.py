@@ -248,15 +248,18 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
     @classmethod
     def create_from_dictionary(
         cls,
-        gates_dict: Dict[
+        parameters: Dict[
             Tuple[cirq.Qid, cirq.Qid], Dict[cirq.FSimGate, PhasedFSimCharacterization]
         ],
+        simulator: Optional[cirq.Simulator] = None,
     ) -> 'PhasedFSimEngineSimulator':
         """Creates PhasedFSimEngineSimulator with fixed drifts.
 
         Args:
-            gates_dict: maps every pair of qubits and engine gate on that pair to a
+            parameters: maps every pair of qubits and engine gate on that pair to a
                 characterization for that gate.
+            simulator: Simulator object to use. When None, a new instance of cirq.Simulator() will
+                be created.
 
         Returns:
             New PhasedFSimEngineSimulator instance.
@@ -267,19 +270,20 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
         ) -> PhasedFSimCharacterization:
             params = None
             swapped = False
-            if (a, b) in gates_dict:
-                params = gates_dict[(a, b)].get(gate)
-            elif (b, a) in gates_dict:
-                params = gates_dict[(b, a)].get(gate)
+            if (a, b) in parameters:
+                params = parameters[(a, b)].get(gate)
+            elif (b, a) in parameters:
+                params = parameters[(b, a)].get(gate)
                 swapped = True
             if params is None:
-                raise ValueError(f'Missing params for value for pair {(a, b)} and gate {gate}.')
+                raise ValueError(f'Missing parameters for value for pair {(a, b)} and gate {gate}.')
             assert isinstance(params, PhasedFSimCharacterization)
             if swapped:
                 params = params.parameters_for_qubits_swapped()
             return params
 
-        simulator = cirq.Simulator()
+        if simulator is None:
+            simulator = cirq.Simulator()
         return cls(
             simulator, drift_generator=sample_gate, gates_translator=try_convert_gate_to_fsim
         )
