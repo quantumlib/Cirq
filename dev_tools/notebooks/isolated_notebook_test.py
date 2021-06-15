@@ -23,7 +23,6 @@
 # This can take a long time and even lead to timeout on Github Actions, hence partitioning of the
 # tests is possible, via setting the NOTEBOOK_PARTITIONS env var to e.g. 5, and then passing to
 # pytest the `-k partition-0` or `-k partition-1`, etc. argument to limit to the given partition.
-
 import os
 import subprocess
 import sys
@@ -40,8 +39,15 @@ from dev_tools.notebooks import list_all_notebooks, filter_notebooks, rewrite_no
 # these notebooks rely on features that are not released yet
 # after every release we should raise a PR and empty out this list
 # note that these notebooks are still tested in dev_tools/notebook_test.py
+# Please, always indicate in comments the feature used for easier bookkeeping.
 
-NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = []
+NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES: List[str] = [
+    # these all depend on cirq.kraus
+    "docs/protocols.ipynb",
+    "docs/noise.ipynb",
+    "docs/operators_and_observables.ipynb",
+    "docs/tutorials/educators/intro.ipynb",
+]
 
 # By default all notebooks should be tested, however, this list contains exceptions to the rule
 # please always add a reason for skipping.
@@ -195,6 +201,9 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
         raise_on_fail=False,
         out=shell_tools.TeeCapture(),
         err=shell_tools.TeeCapture(),
+        # important to get rid of PYTHONPATH specifically, which contains
+        # the Cirq repo path due to check/pytest
+        env={},
     )
 
     if status != 0:
@@ -202,8 +211,31 @@ papermill {rewritten_notebook_path} {os.getcwd()}/{out_path}"""
         pytest.fail(
             f"Notebook failure: {notebook_file}, please see {out_path} for the output "
             f"notebook (in Github Actions, you can download it from the workflow artifact"
-            f" 'notebook-outputs')"
+            f" 'notebook-outputs'). \n"
+            f"If this is a new failure in this notebook due to a new change, "
+            f"that is only available in master for now, consider adding `pip install --pre cirq` "
+            f"instead of `pip install cirq` to this notebook, and exclude it from "
+            f"dev_tools/notebooks/isolated_notebook_test.py."
         )
 
     if rewritten_notebook_descriptor:
         os.close(rewritten_notebook_descriptor)
+
+
+@pytest.mark.parametrize("notebook_path", NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES)
+def test_ensure_unreleased_notebooks_install_cirq_pre(notebook_path):
+    # utf-8 is important for Windows testing, otherwise characters like ┌──┐ fail on cp1252
+    with open(notebook_path, encoding="utf-8") as notebook:
+        content = notebook.read()
+        mandatory_lines = [
+            "!pip install --quiet cirq --pre",
+            "Note: this notebook relies on unreleased Cirq features. "
+            "If you want to try these features, make sure you install cirq via "
+            "`pip install cirq --pre`.",
+        ]
+
+        for m in mandatory_lines:
+            assert m in content, (
+                f"{notebook_path} is marked as NOTEBOOKS_DEPENDING_ON_UNRELEASED_FEATURES, "
+                f"however it is missing the mandatory line:\n{m}"
+            )

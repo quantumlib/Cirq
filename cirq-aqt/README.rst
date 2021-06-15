@@ -1,7 +1,7 @@
-.. image:: https://quantumai.google/site-assets/images/marketing/icons/ic-qcs.png
+.. image:: https://www.aqt.eu/wp-content/uploads/2018/08/Logo-Alpine-Quantum-Technologies-AQT-1.png
   :target: https://github.com/quantumlib/cirq/
   :alt: cirq-aqt
-  :width: 500px
+  :width: 200px
 
 `Cirq <https://quantumai.google/cirq>`__ is a Python library for writing, manipulating, and optimizing quantum
 circuits and running them against quantum computers and simulators.
@@ -14,7 +14,7 @@ Documentation
 To get started with the Alpine Quantum Technologies, checkout the following guide and tutorial:
 
 - `Access and authentication <https://quantumai.google/cirq/aqt/access>`__
-- `Getting started guide <https://quantumai.google/cirq/tutorials/aqt/start>`__
+- `Getting started guide <https://quantumai.google/cirq/tutorials/aqt/getting_started>`__
 
 Installation
 ------------
