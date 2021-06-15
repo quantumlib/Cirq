@@ -265,6 +265,13 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
             New PhasedFSimEngineSimulator instance.
         """
 
+        for a, b in parameters.keys():
+            if a > b:
+                raise ValueError(
+                    f'All qubit pairs must be given in canonical order where the first qubit is '
+                    f'less than the second, got {a} > {b}'
+                )
+
         def sample_gate(
             a: cirq.Qid, b: cirq.Qid, gate: cirq.FSimGate
         ) -> PhasedFSimCharacterization:
