@@ -24,11 +24,11 @@ const browserContent = `
 </html>
 `;
 
-(async() => {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.setContent(browserContent);
-    await page.screenshot({path: 'e2e/bloch_sphere/bloch_sphere_expected.png'})
+(async () => {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setContent(browserContent);
+  await page.screenshot({path: 'e2e/bloch_sphere/bloch_sphere_expected.png'});
 
-    await browser.close();
+  await browser.close();
 })();

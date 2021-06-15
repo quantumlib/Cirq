@@ -1,4 +1,11 @@
-import {Scene, PerspectiveCamera, WebGLRenderer, Camera, Object3D, Mesh, Color} from 'three';
+import {
+  Scene,
+  PerspectiveCamera,
+  WebGLRenderer,
+  Camera,
+  Object3D,
+  Mesh,
+} from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
 export class BlochSphereScene {

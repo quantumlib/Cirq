@@ -1,17 +1,5 @@
-import {
-  Vector3,
-  MeshBasicMaterial,
-  Sprite,
-  Texture,
-  SpriteMaterial,
-} from 'three';
+import {Vector3, Sprite, Texture, SpriteMaterial} from 'three';
 
-import font_json from '../assets/fonts/helvetiker_regular.typeface.json';
-
-const materials = [
-  new MeshBasicMaterial({color: 0xff0000}), // front
-  new MeshBasicMaterial({color: 0xffffff}), // side
-];
 /**
  * Displays the state labels onto the bloch sphere.
  * @returns A list of text Mesh objects to be rendered by the scene

@@ -42,7 +42,7 @@ export class BlochSphere {
    * Returns the radius of the bloch_sphere.
    * Used for testing purposes.
    */
-  getRadius() : number {
+  getRadius(): number {
     const radius = this.radius;
     return radius;
   }
@@ -75,7 +75,7 @@ export class BlochSphere {
 
   private loadAndDisplayText() {
     const sprites = loadAndDisplayText();
-    for (const sprite of sprites){
+    for (const sprite of sprites) {
       this.group.add(sprite);
     }
   }
