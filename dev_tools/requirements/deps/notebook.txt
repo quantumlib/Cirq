@@ -1,4 +1,4 @@
--r ./ipython.txt 
+-r ipython.txt
 
 notebook~=6.2.0
 
