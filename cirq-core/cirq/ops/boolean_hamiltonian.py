@@ -140,7 +140,7 @@ def _simplify_cnots_pairs(
     return False, cnots
 
 
-def _simplify_cnots_tripplets(
+def _simplify_cnots_triplets(
     cnots: List[Tuple[int, int]], flip_control_and_target: bool
 ) -> Tuple[bool, List[Tuple[int, int]]]:
     """Simplifies CNOT pairs according to equations 11 of [4].
