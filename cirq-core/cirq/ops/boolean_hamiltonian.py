@@ -145,7 +145,7 @@ def _simplify_cnots_pairs(
     return False, cnots
 
 
-def _simplify_cnots_tripplets(
+def _simplify_cnots_triplets(
     cnots: List[Tuple[int, int]], flip_control_and_target: bool
 ) -> Tuple[bool, List[Tuple[int, int]]]:
     """Simplifies CNOT pairs according to equations 11 of [4].
@@ -165,7 +165,7 @@ def _simplify_cnots_tripplets(
         A Boolean that tells whether a simplification has been performed.
         The CNOT list, potentially simplified.
     """
-    x, y = (0, 1) if flip_control_and_target else (1, 0)
+    target, control = (0, 1) if flip_control_and_target else (1, 0)
 
     # We investigate potential pivots sequentially.
     for j in range(1, len(cnots) - 1):
@@ -299,7 +299,7 @@ def _get_gates_from_hamiltonians(
 
 @value.value_equality
 class BooleanHamiltonian(raw_types.Operation):
-    """A gate that applies a Hamiltonian from a set of Boolean functions."""
+    """An operation that represents a Hamiltonian from a set of Boolean functions."""
 
     def __init__(
         self,
