@@ -998,6 +998,7 @@ class PhaseCalibratedFSimGate:
         )
 
     def _unitary_(self) -> np.array:
+        """Implements Cirq's `unitary` protocol for this object."""
         p = np.exp(-np.pi * 1j * self.phase_exponent)
         return (
             np.diag([1, p, 1 / p, 1]) @ cirq.unitary(self.engine_gate) @ np.diag([1, 1 / p, p, 1])
@@ -1089,4 +1090,5 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
     if theta >= np.pi:
         theta = 2 * np.pi - theta
         phase_exponent = phase_exponent + 0.5
+    phase_exponent %= 1
     return PhaseCalibratedFSimGate(cirq.FSimGate(theta=theta, phi=phi), phase_exponent)

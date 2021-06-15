@@ -906,8 +906,8 @@ def test_try_convert_gate_to_fsim():
     assert try_convert_gate_to_fsim(gate) is None
 
     check(
-        cirq.PhasedISwapPowGate(exponent=-0.5, phase_exponent=0.7),
-        PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.25 * np.pi, phi=0.0), -0.7),
+        cirq.PhasedISwapPowGate(exponent=-0.5, phase_exponent=0.75),
+        PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.25 * np.pi, phi=0.0), 0.25),
     )
 
     check(cirq.CZ, PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.0, phi=np.pi), 0.0))
@@ -926,3 +926,24 @@ def test_try_convert_gate_to_fsim():
     )
 
     assert try_convert_gate_to_fsim(cirq.CX) is None
+
+
+# Test that try_convert_gate_to_fsim is extension of try_convert_sqrt_iswap_to_fsim.
+# In other words, that both function return the same result for all gates on which
+# try_convert_sqrt_iswap_to_fsim is defined.
+# TODO: instead of having multiple gate translators, we should have one, the most general, and
+# restrict it to different gate sets.
+def test_gate_translators_are_consistent():
+    def check(gate):
+        result1 = try_convert_gate_to_fsim(gate)
+        result2 = try_convert_sqrt_iswap_to_fsim(gate)
+        assert result1 == result2
+        assert result1 is not None
+
+    check(cirq.FSimGate(theta=np.pi / 4, phi=0))
+    check(cirq.FSimGate(theta=-np.pi / 4, phi=0))
+    check(cirq.FSimGate(theta=7*np.pi / 4, phi=0))
+    check(cirq.PhasedFSimGate(theta=np.pi / 4, phi=0))
+    check(cirq.ISwapPowGate(exponent=0.5))
+    check(cirq.ISwapPowGate(exponent=-0.5))
+    check(cirq.PhasedISwapPowGate(exponent=0.5, phase_exponent=-0.5))
