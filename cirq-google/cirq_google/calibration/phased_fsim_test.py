@@ -942,7 +942,7 @@ def test_gate_translators_are_consistent():
 
     check(cirq.FSimGate(theta=np.pi / 4, phi=0))
     check(cirq.FSimGate(theta=-np.pi / 4, phi=0))
-    check(cirq.FSimGate(theta=7*np.pi / 4, phi=0))
+    check(cirq.FSimGate(theta=7 * np.pi / 4, phi=0))
     check(cirq.PhasedFSimGate(theta=np.pi / 4, phi=0))
     check(cirq.ISwapPowGate(exponent=0.5))
     check(cirq.ISwapPowGate(exponent=-0.5))
