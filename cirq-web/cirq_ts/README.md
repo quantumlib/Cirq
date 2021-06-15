@@ -78,10 +78,12 @@ We use [Mocha](https://mochajs.org) and [Chai](https://www.chaijs.com/) as our m
 Run unit tests using `npm run test`. We expect 100% code coverage for unit tests. You can check coverage by running `npm run coverage`.
 
 #### Visualization testing
-To summarize the visualization testing, we generate an generic HTML file with the specified visualization's current JS bundle, run it in a headless browser, take a screenshot, and then compare the result with a pre-generated PNG file.
+We take the following steps for visualization testing in our development environment:
+  1. We generate an generic HTML file with the specified visualization's current JS bundle
+  2. We run the HTML file in a headless browser (Using [Puppeteer](https://github.com/puppeteer/puppeteer))
+  3. We take a screenshot of the HTML output in the "browser" (Using Puppeteer)
+  4. We compare the result of the screenshot with a pre-generated PNG file.
 
-Our visualization tests live in the `e2e/` (end-to_end) directory. Each visualiztion should have at least one expected PNG screenshot.
+  The screenshot of the HTML browser output must live in a temporary directory; we use the [temp](https://github.com/bruce/node-temp) package to handle that for us. Reference the test at `e2e/bloch_sphere/test_bloch_sphere.ts` to see how to easily generate the screenshot in a temporary directory.
 
-
-### CI - delete later
-  Add something that makes jobs fast when there are no changes made so it's not rerunning every time.
+  The pre-generated PNG file is a screenshot of the developer's choice that represents what the visualization should look like. Each visualization is required to have at least one expected PNG screenshot. For more complex visualizations, multiple screenshots may be needed. It also may be helpful to include a script that automatically generates this expected image for you, see `utils/ss_bloch_sphere.ts` as a reference. (To run the file, `npx ts-node utils/ss_bloch_sphere.ts from this directory.
