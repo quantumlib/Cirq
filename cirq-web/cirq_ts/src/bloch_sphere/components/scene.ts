@@ -43,7 +43,7 @@ export class BlochSphereScene {
     this.divId = divId;
     this.scene = new Scene();
     this.camera = new PerspectiveCamera(fov, aspect, near, far);
-    this.renderer = new WebGLRenderer();
+    this.renderer = new WebGLRenderer({alpha: true});
     this.renderer.setSize(
       BlochSphereScene.VIZ_WIDTH,
       BlochSphereScene.VIZ_HEIGHT
@@ -59,10 +59,9 @@ export class BlochSphereScene {
    * position of the camera.
    */
   private init() {
-    this.camera.position.x = 5;
-    this.camera.position.y = 1;
-    this.camera.position.z = 1;
-    this.scene.background = new Color("#ffffff");
+    this.camera.position.x = 6;
+    this.camera.position.y = 2;
+    this.camera.position.z = 2;
 
     this.setUpControls();
     this.addSceneToHTML();
@@ -105,27 +104,12 @@ export class BlochSphereScene {
     this.renderer.setSize(width, height);
   }
 
-  public includeLabels(textItems: Mesh[]){
-    this.textItems = textItems;
-    for (const item of textItems) {
-      this.setLabelPosition(this.textItems);
-      this.scene.add(item);
-    }
-  }
-  
-  private setLabelPosition(textItems: Mesh[]) {
-    for (const item of textItems) {
-      item.lookAt(this.camera.position);
-    }
-  }
-
   /**
    * Enables interactivity for the visualization.
    */
   public animate() {
     requestAnimationFrame(this.animate.bind(this));
     this.controls.update();
-    this.setLabelPosition(this.textItems);
     this.renderer.render(this.scene, this.camera);
   }
 

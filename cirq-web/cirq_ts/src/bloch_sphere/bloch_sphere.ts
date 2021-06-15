@@ -24,6 +24,7 @@ export class BlochSphere {
     this.addHorizontalMeridians();
     this.addVerticalMeridians();
     this.addAxes();
+    this.loadAndDisplayText();
   }
 
   /**
@@ -69,6 +70,13 @@ export class BlochSphere {
     const meridians = createVerticalMeridians(this.radius);
     for (const meridian of meridians) {
       this.group.add(meridian);
+    }
+  }
+
+  private loadAndDisplayText() {
+    const sprites = loadAndDisplayText();
+    for (const sprite of sprites){
+      this.group.add(sprite);
     }
   }
 }
