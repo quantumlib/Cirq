@@ -149,3 +149,55 @@ def test_gray_code_sorting(n_bits, expected_hs):
 )
 def test_gray_code_comparison(seq_a, seq_b, expected):
     assert bh._gray_code_comparator(seq_a, seq_b) == expected
+
+
+@pytest.mark.parametrize(
+    'input_cnots,input_flip_control_and_target,expected_simplified,expected_output_cnots',
+    [
+        # Empty inputs don't get simplified.
+        ([], False, False, []),
+        ([], True, False, []),
+        # Single CNOTs don't get simplified.
+        ([(0, 1)], False, False, [(0, 1)]),
+        ([(0, 1)], True, False, [(0, 1)]),
+        # Simplify away two CNOTs that are identical:
+        ([(0, 1), (0, 1)], False, True, []),
+        ([(0, 1), (0, 1)], True, True, []),
+        # Also simplify away if there's another CNOT in between.
+        ([(0, 1), (2, 1), (0, 1)], False, True, [(2, 1)]),
+        ([(0, 1), (0, 2), (0, 1)], True, True, [(0, 2)]),
+        # However, the in-between has to share the same target/control.
+        ([(0, 1), (0, 2), (0, 1)], False, False, [(0, 1), (0, 2), (0, 1)]),
+        ([(0, 1), (2, 1), (0, 1)], True, False, [(0, 1), (2, 1), (0, 1)]),
+    ],
+)
+def test_simplify_cnots_pairs(
+    input_cnots, input_flip_control_and_target, expected_simplified, expected_output_cnots
+):
+    actual_simplified, actual_output_cnots = bh._simplify_cnots_pairs(
+        input_cnots, input_flip_control_and_target
+    )
+    assert actual_simplified == expected_simplified
+    assert actual_output_cnots == expected_output_cnots
+
+
+@pytest.mark.parametrize(
+    'input_cnots,input_flip_control_and_target,expected_simplified,expected_output_cnots',
+    [
+        # Empty inputs don't get simplified.
+        ([], False, False, []),
+        ([], True, False, []),
+        # Single CNOTs don't get simplified.
+        ([(0, 1)], False, False, [(0, 1)]),
+        ([(0, 1)], True, False, [(0, 1)]),
+        # DO NOT SUBMIT add more tests!!!!!!!!!!!!!!
+    ],
+)
+def test_simplify_cnots_triplets(
+    input_cnots, input_flip_control_and_target, expected_simplified, expected_output_cnots
+):
+    actual_simplified, actual_output_cnots = bh._simplify_cnots_tripplets(
+        input_cnots, input_flip_control_and_target
+    )
+    assert actual_simplified == expected_simplified
+    assert actual_output_cnots == expected_output_cnots

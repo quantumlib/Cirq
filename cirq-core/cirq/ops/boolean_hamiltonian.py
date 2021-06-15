@@ -101,7 +101,7 @@ def _gray_code_comparator(k1: Tuple[int, ...], k2: Tuple[int, ...], flip: bool =
 def _simplify_cnots_pairs(
     cnots: List[Tuple[int, int]], flip_control_and_target: bool
 ) -> Tuple[bool, List[Tuple[int, int]]]:
-    """Simplifies CNOT pairs according to equations 9 and 10 of [4].Simplifies
+    """Simplifies CNOT pairs according to equations 9 and 10 of [4].
 
     CNOT(i, j) @ CNOT(k, j) = CNOT(k, j) @ CNOT(i, j)
     ───@───────       ───────@───
@@ -118,10 +118,15 @@ def _simplify_cnots_pairs(
         A Boolean that tells whether a simplification has been performed.
         The CNOT list, potentially simplified.
     """
+
+    # If input is empty, there is no simplification.
+    if not cnots:
+        return False, cnots
+
     x, y = (0, 1) if flip_control_and_target else (1, 0)
 
     i = 0
-    qubit_to_index: Dict[int, int] = {}
+    qubit_to_index: Dict[int, int] = {cnots[i][y]: i}
     for j in range(1, len(cnots)):
         if cnots[i][x] != cnots[j][x]:
             # The targets (resp. control) don't match, so we reset the search.
