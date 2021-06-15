@@ -17,7 +17,7 @@ device supports.  Using inactive qubits, non-adjacent qubits, or non-native
 gates will immediately cause a circuit to fail.
 
 Validating a circuit with a device, such as
-`cirq.google.Sycamore.validate_circuit(circuit)` will test a lot of these
+`cirq_google.Sycamore.validate_circuit(circuit)` will test a lot of these
 conditions.  Calling the `validate_circuit` function will work with any
 device, including those retrieved directly from the API using the
 [engine object](./specification.md#serializable-devices), which can help
@@ -35,7 +35,7 @@ that it has compiled without unintended consequences.
 
 ```python
 import cirq
-import cirq.google as cg
+import cirq_google as cg
 
 
 # Create your circuit here
@@ -45,14 +45,14 @@ my_circuit = cirq.Circuit()
 # Specifying a device will verify that the circuit satisfies constraints of the device
 # The optimizer type (e.g. 'sqrt_iswap' or 'sycamore') specifies which gate set
 # to convert into and which optimization routines are appropriate.
-# This can include combining successive one-qubit gates and ejecting virtual Z gates. 
+# This can include combining successive one-qubit gates and ejecting virtual Z gates.
 sycamore_circuit = cg.optimized_for_sycamore(my_circuit, new_device=cg.Sycamore, optimizer_type='sqrt_iswap')
 ```
 
 ## Running circuits faster
 
 The following sections give tips and tricks that allow you to improve your
-repetition rate (how many repetitions per second the device will run). 
+repetition rate (how many repetitions per second the device will run).
 
 This will allow you to make the most out of limited time on the
 device by getting results faster. The shorter experiment time may
@@ -152,7 +152,7 @@ on the device, and there will be no gain in efficiency.
 Symbols are extremely useful for constructing parameterized circuits (see above).  However,
 only some sympy formulas can be serialized for network transport to the engine.
 Currently, sums and products of symbols, including linear combinations, are supported.
-See `cirq.google.arg_func_langs` for details.
+See `cirq_google.arg_func_langs` for details.
 
 The sympy library is also infamous for being slow, so avoid using complicated formulas if you
 care about performance.  Avoid using parameter resolvers that have formulas in them.
@@ -237,6 +237,10 @@ qubits that have long idle periods, such as a pair
 of involutions, such as two successive Pauli Y gates, will generally increase
 performance of the circuit.
 
+Be aware that this should be done after calling
+`cirq_google.optimized_for_sycamore`, since this function will 'optimize'
+these operations out of the circuit.
+
 ### Delay initialization of qubits
 
 The |0⟩ state is more robust than the |1⟩ state. As a result, one should
@@ -263,12 +267,64 @@ commuting operators.
 See the function `cirq.stratified_circuit` for an automated way to organize gates
 into moments with similar gates.
 
+### Qubit picking
+
+On current NISQ devices, qubits cannot be considered identical.  Different
+qubits can have vastly different performance and can vary greatly from day
+to day.  It is important for experiments to have a dynamic method to
+pick well-performing qubits that maximize the fidelity of the experiment.
+There are several techniques that can assist with this.
+
+*   Analyze calibration metrics:  performance of readout, single-qubit, and
+two-qubit gates are measured as a side effect of running the device's
+calibration procedure.  These metrics can be used as a baseline to evaluate
+circuit performance or identify outliers to avoid.  This data can be inspected
+programmatically by retrieving metrics from the [API](calibration.md) or
+[visually by applying a cirq.Heatmap](../tutorials/google/visualizing_calibration_metrics.md)
+to that data or by using the built-in
+heatmaps in the Cloud console page for the processor.  Note that, since this
+data is only taken during calibration (e.g. at most daily), drifts and other
+concerns may affect the values significantly, so these metrics should only be
+used as a first approximation.  There is no substitute for actually running characterizations
+on the device.
+*   Loschmidt echo:  Running a small circuit on a string of qubits and then
+applying the circuit's inverse can be used as a quick but effective way to
+judge qubit quality.  See
+[this tutorial](../tutorials/google/echoes.ipynb) for instructions.
+*   XEB:  Cross-entropy benchmarking is another way to gauge qubit performance
+on a set of random circuits.  See tutorials on
+[parallel XEB](../qcvv/parallel_xeb.ipynb)
+or [isolated XEB](../qcvv/parallel_xeb.ipynb) for instructions.
+
+
 ### Refitting gates
 
 Virtual Z gates (or even single qubit gates) can be added to adjust for errors
 in two qubit gates.  Two qubit gates can have errors due to drift, coherent
-error, or other sources.  Refitting these gates and adjusting the circuit for
-the observed unitary of the two qubit gate compared to the ideal unitary can
-substantially improve results.  However, this approach can use a substantial
-amount of resources, and the methods to do this are currently under active
-research and change.  Talk to your Google sponsor for details.
+error, unintended cross-talk, or other sources.  Refitting these gates and
+adjusting the circuit for the observed unitary of the two qubit gate
+compared to the ideal unitary can substantially improve results.
+However, this approach can use a substantial amount of resources.
+
+This technique involves two distinct steps.  The first is *characterization*,
+which is to identify the true behavior of the two-qubit gate.  This typically
+involves running many varied circuits involving the two qubit gate in a method
+(either periodic or random) to identify the parameters of the gate's behavior.
+
+Entangling gates used in Google's architecture fall into a general category of FSim gates,
+standing for *Fermionic simulation*.  The generalized version of this gate can
+be parameterized into 5 angles, or degrees of freedom.  Characterization will
+attempt to identify the values of these five angles.
+
+The second step is calibrating (or refitting) the gate.  Out of the five angles
+that comprise the generalized FSim gate, three can be corrected for by adding
+Z rotations before or after the gate.  Since these gates are propagated forward
+automatically, they add no duration or error to the circuit and can essentially
+be added "for free".  See the [devices page](devices.md#virtual_z_gates) for more
+information on Virtual Z gates.  Note that it is important to keep the single-qubit and
+two-qubit gates aligned (see above) while performing this procedure so that
+the circuit stays the same duration.
+
+See tutorials on [floquet characterization](../tutorials/google/floquet.ipynb)
+and [XEB](..//qcvv/xeb_coherent_noise.ipynb) for detailed instructions on how
+to perform these procedures.
