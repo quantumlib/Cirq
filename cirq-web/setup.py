@@ -70,4 +70,5 @@ setup(
     package_data={
         'cirq_web': ['dist/*'],
     },
+    include_package_data=True,
 )
