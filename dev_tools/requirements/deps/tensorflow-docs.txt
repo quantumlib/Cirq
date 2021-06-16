@@ -1,1 +1,2 @@
-git+https://github.com/tensorflow/docs@3e08f1e1739dede8d9f6f283b4353bf330ca0506
+# don't upgrade this just yet, anything later will require protobuf>=3.14
+git+https://github.com/tensorflow/docs@a90bcd30eb550f8d4ee335ff3daf18de5ca84b70
