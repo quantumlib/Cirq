@@ -81,6 +81,7 @@ def test_repr_html():
     bloch_sphere = cirq_web.BlochSphere()
     bundle_script = get_bundle_file_path()
     expected = f"""
+        <meta charset="UTF-8">
         <div id="container"></div>
         {bundle_script}
         <script>
@@ -90,7 +91,7 @@ def test_repr_html():
     assert expected == bloch_sphere._repr_html_()
 
 
-def test_generate_HTML_file_no_browser(tmpdir):
+def test_generate_HTML_file_with_browser(tmpdir):
     path = tmpdir.mkdir('dir')
 
     bloch_sphere = cirq_web.BlochSphere()
@@ -99,6 +100,7 @@ def test_generate_HTML_file_no_browser(tmpdir):
     )
 
     template_div = f"""
+        <meta charset="UTF-8">
         <div id="container"></div>
         """
     bundle_script = get_bundle_file_path()

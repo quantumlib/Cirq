@@ -60,6 +60,7 @@ class BlochSphere(widget.Widget):
 
         bundle_script = super().get_bundle_script()
         return f"""
+        <meta charset="UTF-8">
         <div id="container"></div>
         {bundle_script}
         <script>

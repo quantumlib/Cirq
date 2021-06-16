@@ -12,13 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  Scene,
-  PerspectiveCamera,
-  WebGLRenderer,
-  Camera,
-  Object3D,
-} from 'three';
+import {Scene, PerspectiveCamera, WebGLRenderer, Camera, Object3D} from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
 export class BlochSphereScene {
