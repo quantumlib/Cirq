@@ -18,7 +18,6 @@ import {
   WebGLRenderer,
   Camera,
   Object3D,
-  Mesh,
 } from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
@@ -45,7 +44,6 @@ export class BlochSphereScene {
   renderer: WebGLRenderer;
   controls: OrbitControls;
   containerId: string;
-  textItems: Mesh[];
 
   /**
    * Initializes a 3D Scene proportional to the bloch sphere visualzation.
@@ -71,7 +69,6 @@ export class BlochSphereScene {
       BlochSphereScene.VIZ_HEIGHT
     );
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.textItems = [];
 
     this.init();
   }

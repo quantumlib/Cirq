@@ -39,10 +39,18 @@ export function createVector(vectorData?: string): ArrowHelper {
     };
   }
 
-  // Create and normalize the new vector
   const directionVector = new Vector3(inputData.x, inputData.y, inputData.z);
-  directionVector.normalize();
 
+  // Apply a -90 degree correction rotation across the x axis
+  // to match coords of Cirq with coords of three.js scene.
+  // This is necessary to make sure the vector points to the correct state
+  const axis = new Vector3(1, 0, 0);
+  const angle = -Math.PI/2;
+  directionVector.applyAxisAngle(axis, angle);
+
+  // Needed so that ArrowHelper can generate the length easily
+  directionVector.normalize();
+  
   // Set base properties of the vector
   const origin = new Vector3(0, 0, 0);
   const length = inputData.v_length;

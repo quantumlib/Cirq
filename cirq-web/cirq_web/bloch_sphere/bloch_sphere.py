@@ -88,6 +88,7 @@ class BlochSphere(widget.Widget):
         """
 
         template_div = f"""
+        <meta charset="UTF-8">
         <div id="container"></div>
         """
 

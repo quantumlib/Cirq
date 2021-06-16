@@ -24,13 +24,13 @@ export function loadAndDisplayText(): Sprite[] {
   const labelSize = 0.5;
   const labelHeight = 0.1;
   const labels: Map<string, Vector3> = new Map();
-  // State labels are tentative
-  labels.set('|+⟩', new Vector3(5.5, 0, -0.1)); // z proportional to the height
-  labels.set('|-⟩', new Vector3(-5.5 - labelSize, 0, -0.1));
-  labels.set('|-i⟩', new Vector3(0, 0, 5.5));
-  labels.set('|i⟩', new Vector3(0, 0, -5.5 - labelHeight));
-  labels.set('|0⟩', new Vector3(0, 5.5, 0));
-  labels.set('|1⟩', new Vector3(0, -5.5 - labelSize, 0));
+  
+  labels.set('|+\u3009', new Vector3(5.5, 0, -0.1)); // z proportional to the height
+  labels.set('|-\u3009', new Vector3(-5.5 - labelSize, 0, -0.1));
+  labels.set('|-i\u3009', new Vector3(0, 0, 5.5));
+  labels.set('|i\u3009', new Vector3(0, 0, -5.5 - labelHeight));
+  labels.set('|0\u3009', new Vector3(0, 5.5, 0));
+  labels.set('|1\u3009', new Vector3(0, -5.5 - labelSize, 0));
 
   for (const [text, vector] of labels) {
     const sprite = createSprite(text, vector);

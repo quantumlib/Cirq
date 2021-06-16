@@ -77,6 +77,8 @@ We use [Mocha](https://mochajs.org) and [Chai](https://www.chaijs.com/) as our m
 #### Unit testing
 Run unit tests using `npm run test`. We expect 100% code coverage for unit tests. You can check coverage by running `npm run coverage`.
 
+Unit tests must live adjacent to their source file with the `_test.ts` suffix. So for the file `dir/MyFile.ts`, the corresponding testfile will be `dir/MyFile_test.ts`.
+
 #### Visualization testing
 We take the following steps for visualization testing in our development environment:
   1. We generate an generic HTML file with the specified visualization's current JS bundle
