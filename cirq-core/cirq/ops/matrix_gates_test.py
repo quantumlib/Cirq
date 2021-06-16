@@ -224,26 +224,22 @@ def test_named_single_qubit_diagram():
     m = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
     c = cirq.Circuit(cirq.MatrixGate(m, name='Foo').on(a), cirq.CZ(a, b))
 
-    assert re.match(
-        r"""
+    expected_horizontal = """
 a: ───Foo───@───
             │
 b: ─────────@───
-    """.strip(),
-        c.to_text_diagram().strip(),
-    )
+    """.strip()
+    assert expected_horizontal == c.to_text_diagram().strip()
 
-    assert re.match(
-        r"""
+    expected_vertical = """
 a   b
 │   │
 Foo │
 │   │
 @───@
 │   │
-    """.strip(),
-        c.to_text_diagram(transpose=True).strip(),
-    )
+    """.strip()
+    assert expected_vertical == c.to_text_diagram(transpose=True).strip()
 
 
 def test_named_two_qubit_diagram():
@@ -254,28 +250,25 @@ def test_named_two_qubit_diagram():
         cirq.MatrixGate(cirq.unitary(cirq.CZ), name='Foo').on(a, b),
         cirq.MatrixGate(cirq.unitary(cirq.CZ), name='Bar').on(c, a),
     )
-    assert re.match(
-        r"""
-a: ───Foo1───Bar2───
-      │      │
-b: ───Foo2───┼──────
-             │
-c: ──────────Bar1───
-    """.strip(),
-        c.to_text_diagram().strip(),
-    )
 
-    assert re.match(
-        r"""
-a    b    c
-│    │    │
-Foo1─Foo2 │
-│    │    │
-Bar2─┼────Bar1
-│    │    │
-    """.strip(),
-        c.to_text_diagram(transpose=True).strip(),
-    )
+    expected_horizontal = """
+a: ───Foo[0]───Bar[1]───
+      │        │
+b: ───Foo[1]───┼────────
+               │
+c: ────────────Bar[0]───
+    """.strip()
+    assert expected_horizontal == c.to_text_diagram().strip()
+
+    expected_vertical = """
+a      b      c
+│      │      │
+Foo[0]─Foo[1] │
+│      │      │
+Bar[1]─┼──────Bar[0]
+│      │      │
+    """.strip()
+    assert expected_vertical == c.to_text_diagram(transpose=True).strip()
 
 
 def test_str_executes():
