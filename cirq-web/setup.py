@@ -21,7 +21,7 @@ exec(open('cirq_web/_version.py').read())
 
 name = 'cirq-web'
 
-description = 'Web-based tools for Cirq.'
+description = 'Web-based 3D visualization tools for Cirq.'
 
 # README file as long_description.
 long_description = open('README.rst', encoding='utf-8').read()
@@ -49,7 +49,7 @@ assert __version__, 'Version string cannot be empty'
 # This is a pure metapackage that installs all our packages
 requirements += [f'cirq-core=={__version__}']
 
-packs = ['cirq_web']
+packs = ['cirq_web', 'cirq_ts']
 
 setup(
     name=name,
