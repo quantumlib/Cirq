@@ -122,7 +122,7 @@ def _single_qubit_matrices_with_sqiswap(
             raise ValueError('the argument `required_sqiswap_count` must be 0, 1, 2, or 3.')
         if not [_in_0_region, _in_1sqiswap_region, _in_2sqiswap_region, _in_3sqiswap_region][
             required_sqiswap_count
-        ]:
+        ](kak.interaction_coefficients, weyl_tol=atol):
             raise ValueError(
                 f'the given gate cannot be decomposed into exactly {required_sqiswap_count} SQISWAP gates.'
             )
@@ -243,24 +243,27 @@ def _decomp_2sqiswap_matrices(
     def safe_arccos(v):
         return np.arccos(np.clip(v, -1, 1))
 
+    def nonzero_sign(v):
+        return -1 if v < 0 else 1
+
     _c = np.clip(
         np.sin(x + y - z) * np.sin(x - y + z) * np.sin(-x - y - z) * np.sin(-x + y + z), 0, 1
     )
-    alpha = safe_arccos(np.cos(2 * x) - np.cos(2 * y) + np.cos(2 * z) + 2 * np.sqrt(_c)) / 2
-    beta = safe_arccos(np.cos(2 * x) - np.cos(2 * y) + np.cos(2 * z) - 2 * np.sqrt(_c)) / 2
+    alpha = safe_arccos(np.cos(2 * x) - np.cos(2 * y) + np.cos(2 * z) + 2 * np.sqrt(_c))
+    beta = safe_arccos(np.cos(2 * x) - np.cos(2 * y) + np.cos(2 * z) - 2 * np.sqrt(_c))
     _4ccs = 4 * (np.cos(x) * np.cos(z) * np.sin(y)) ** 2  # Intermediate value
     gamma = safe_arccos(
-        np.sign(z)
+        nonzero_sign(z)
         * np.sqrt(_4ccs / (_4ccs + np.clip(np.cos(2 * x) * np.cos(2 * y) * np.cos(2 * z), 0, 1)))
     )
 
     # Inner single-qubit gates: Fig. 4 of the paper
     b0 = (
         protocols.unitary(ops.rz(-gamma))
-        @ protocols.unitary(ops.rx(-2 * alpha))
+        @ protocols.unitary(ops.rx(-alpha))
         @ protocols.unitary(ops.rz(-gamma))
     )
-    b1 = protocols.unitary(ops.rx(-2 * beta))
+    b1 = protocols.unitary(ops.rx(-beta))
 
     # Compute KAK on the decomposition to determine outer single-qubit gates
     # There is no known closed form solution for these gates
