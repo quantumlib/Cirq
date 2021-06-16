@@ -53,7 +53,7 @@ requirements += [f'cirq-core=={__version__}']
 # which contains all of the bundle files
 packs = ['cirq_web'] + [
     'cirq_web.' + package for package in find_packages(where='cirq_web')
-] + ['cirq_ts', 'cirq_ts/dist/*.js']
+] + ['cirq_ts', 'cirq_ts/dist/']
 
 setup(
     name=name,
