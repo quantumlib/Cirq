@@ -104,7 +104,7 @@ def decompose_clifford_tableau_to_operations(
     # Destabilizers:  [ A | B ]
     # Stabilizers:    [ C | D ]
     for i in range(t.n):
-        # Step 1a: Make the diagonal element of A as 1 by Hadamard gate if necessary.
+        # Step 1a: Make the diagonal element of A equal to 1 by Hadamard gate if necessary.
         if not t.xs[i, i] and t.zs[i, i]:
             _H_with_ops(i)
         # Step 1b: Make the diagonal element of A as 1 by swapping gate if necessary.
