@@ -121,8 +121,10 @@ def _single_qubit_matrices_with_sqiswap(
         if not [_in_0_region, _in_1sqiswap_region, _in_2sqiswap_region, _in_3sqiswap_region][
             required_sqiswap_count
         ](kak.interaction_coefficients, weyl_tol=atol):
-            raise ValueError(f'the given gate cannot be decomposed into exactly '
-                             f'{required_sqiswap_count} SQISWAP gates.')
+            raise ValueError(
+                f'the given gate cannot be decomposed into exactly '
+                f'{required_sqiswap_count} SQISWAP gates.'
+            )
         return [
             _decomp_0_matrices,
             _decomp_1sqiswap_matrices,
