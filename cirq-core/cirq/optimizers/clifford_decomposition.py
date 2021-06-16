@@ -24,39 +24,71 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _X(q, args, operations, qubits):
-    args.axes = [q]
+def _X(
+    q: int,
+    args: sim.ActOnCliffordTableauArgs,
+    operations: List[ops.Operation],
+    qubits: List['cirq.Qid'],
+):
+    args.axes = (q,)
     protocols.act_on(ops.X, args, allow_decompose=False)
     operations.append(ops.X(qubits[q]))
 
 
-def _Z(q, args, operations, qubits):
-    args.axes = [q]
+def _Z(
+    q: int,
+    args: sim.ActOnCliffordTableauArgs,
+    operations: List[ops.Operation],
+    qubits: List['cirq.Qid'],
+):
+    args.axes = (q,)
     protocols.act_on(ops.Z, args, allow_decompose=False)
     operations.append(ops.Z(qubits[q]))
 
 
-def _Sdg(q, args, operations, qubits):
+def _Sdg(
+    q: int,
+    args: sim.ActOnCliffordTableauArgs,
+    operations: List[ops.Operation],
+    qubits: List['cirq.Qid'],
+):
     # Apply the tableau with S^\{dagger}
-    args.axes = [q]
-    protocols.act_on(ops.ZPowGate() ** 1.5, args, allow_decompose=False)
+    args.axes = (q,)
+    protocols.act_on(ops.S ** -1, args, allow_decompose=False)
     operations.append(ops.S(qubits[q]))
 
 
-def _H(q, args, operations, qubits):
-    args.axes = [q]
+def _H(
+    q: int,
+    args: sim.ActOnCliffordTableauArgs,
+    operations: List[ops.Operation],
+    qubits: List['cirq.Qid'],
+):
+    args.axes = (q,)
     protocols.act_on(ops.H, args, allow_decompose=False)
     operations.append(ops.H(qubits[q]))
 
 
-def _CNOT(q1, q2, args, operations, qubits):
-    args.axes = [q1, q2]
+def _CNOT(
+    q1: int,
+    q2: int,
+    args: sim.ActOnCliffordTableauArgs,
+    operations: List[ops.Operation],
+    qubits: List['cirq.Qid'],
+):
+    args.axes = (q1, q2)
     protocols.act_on(ops.CNOT, args, allow_decompose=False)
     operations.append(ops.CNOT(qubits[q1], qubits[q2]))
 
 
-def _SWAP(q1, q2, args, operations, qubits):
-    args.axes = [q1, q2]
+def _SWAP(
+    q1: int,
+    q2: int,
+    args: sim.ActOnCliffordTableauArgs,
+    operations: List[ops.Operation],
+    qubits: List['cirq.Qid'],
+):
+    args.axes = (q1, q2)
     protocols.act_on(ops.SWAP, args, allow_decompose=False)
     operations.append(ops.SWAP(qubits[q1], qubits[q2]))
 
