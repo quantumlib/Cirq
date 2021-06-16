@@ -51,9 +51,11 @@ requirements += [f'cirq-core=={__version__}']
 
 # Gather all packages from cirq_web, and the dist/ folder from cirq_ts
 # which contains all of the bundle files
-packs = ['cirq_web'] + [
-    'cirq_web.' + package for package in find_packages(where='cirq_web')
-] + ['cirq_ts']
+packs = (
+    ['cirq_web']
+    + ['cirq_web.' + package for package in find_packages(where='cirq_web')]
+    + ['cirq_ts']
+)
 
 setup(
     name=name,
