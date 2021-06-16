@@ -6,7 +6,7 @@ References:
     https://arxiv.org/abs/2105.06074
 """
 
-from typing import List, Optional, Tuple, TYPE_CHECKING
+from typing import Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 
@@ -25,7 +25,7 @@ def two_qubit_matrix_to_sqiswap_operations(
     required_sqiswap_count: Optional[int] = None,
     atol: float = 1e-8,
     clean_operations: bool = True,
-) -> List['cirq.Operation']:
+) -> Sequence['cirq.Operation']:
     """Decomposes a two-qubit operation into Z/XY/SQISWAP gates.
 
     Args:
@@ -64,19 +64,17 @@ def _kak_decomposition_to_sqiswap_operations(
     required_sqiswap_count: Optional[int] = None,
     include_global_phase: bool = False,
     atol: float = 1e-8,
-) -> List['cirq.Operation']:
+) -> Sequence['cirq.Operation']:
     """Computes the list of operations in the SQISWAP decomposition."""
     single_qubit_operations, global_phase = _single_qubit_matrices_with_sqiswap(
         kak, required_sqiswap_count, atol=atol
     )
-    if not include_global_phase:
-        global_phase = None
     return _decomp_to_operations(
         q0,
         q1,
         ops.SQISWAP,
         single_qubit_operations,
-        global_phase,
+        global_phase if include_global_phase else None,
         atol=atol,
     )
 
@@ -85,10 +83,10 @@ def _decomp_to_operations(
     q0: 'cirq.Qid',
     q1: 'cirq.Qid',
     two_qubit_gate: 'cirq.Gate',
-    single_qubit_operations: List[Tuple[np.ndarray, np.ndarray]],
+    single_qubit_operations: Sequence[Tuple[np.ndarray, np.ndarray]],
     global_phase: Optional[complex] = None,
     atol: float = 1e-8,
-) -> List['cirq.Operation']:
+) -> Sequence['cirq.Operation']:
     """Converts a sequence of single-qubit unitary matrices on two qubits into a
     list of operations with interleaved two-qubit gates."""
     two_qubit_op = two_qubit_gate(q0, q1)
@@ -114,7 +112,7 @@ def _single_qubit_matrices_with_sqiswap(
     kak: 'cirq.KakDecomposition',
     required_sqiswap_count: Optional[int] = None,
     atol: float = 1e-8,
-) -> Tuple[List[Tuple[np.ndarray, np.ndarray]], complex]:
+) -> Tuple[Sequence[Tuple[np.ndarray, np.ndarray]], complex]:
     """Computes the sequence of interleaved single-qubit unitary matrices in the
     SQISWAP decomposition."""
     if required_sqiswap_count is not None:
@@ -193,7 +191,7 @@ def _in_3sqiswap_region(
 def _decomp_0_matrices(
     kak: 'cirq.KakDecomposition',
     atol: float = 1e-8,
-) -> Tuple[List[Tuple[np.ndarray, np.ndarray]], complex]:
+) -> Tuple[Sequence[Tuple[np.ndarray, np.ndarray]], complex]:
     """Returns the single-qubit matrices for the 0-SQISWAP decomposition.
 
     Assumes canonical x, y, z and (x, y, z) = (0, 0, 0) within tolerance.
@@ -209,7 +207,7 @@ def _decomp_0_matrices(
 def _decomp_1sqiswap_matrices(
     kak: 'cirq.KakDecomposition',
     atol: float = 1e-8,
-) -> Tuple[List[Tuple[np.ndarray, np.ndarray]], complex]:
+) -> Tuple[Sequence[Tuple[np.ndarray, np.ndarray]], complex]:
     """Returns the single-qubit matrices for the 1-SQISWAP decomposition.
 
     Assumes canonical x, y, z and (x, y, z) = (π/8, π/8, 0) within tolerance.
@@ -223,7 +221,7 @@ def _decomp_1sqiswap_matrices(
 def _decomp_2sqiswap_matrices(
     kak: 'cirq.KakDecomposition',
     atol: float = 1e-8,
-) -> Tuple[List[Tuple[np.ndarray, np.ndarray]], complex]:
+) -> Tuple[Sequence[Tuple[np.ndarray, np.ndarray]], complex]:
     """Returns the single-qubit matrices for the 2-SQISWAP decomposition.
 
     Assumes canonical x, y, z and x >= y + |z| within tolerance.  For x, y, z
@@ -283,7 +281,7 @@ def _decomp_2sqiswap_matrices(
 def _decomp_3sqiswap_matrices(
     kak: 'cirq.KakDecomposition',
     atol: float = 1e-8,
-) -> Tuple[List[Tuple[np.ndarray, np.ndarray]], complex]:
+) -> Tuple[Sequence[Tuple[np.ndarray, np.ndarray]], complex]:
     """Returns the single-qubit matrices for the 3-SQISWAP decomposition.
 
     Assumes any canonical x, y, z.  Three SQISWAP gates are only needed if
