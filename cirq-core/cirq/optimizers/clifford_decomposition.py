@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Utility methods related to decompose clifford gate into circuits."""
+"""Utility methods to decompose Clifford gates into circuits."""
 
 from typing import List, TYPE_CHECKING
 import functools
