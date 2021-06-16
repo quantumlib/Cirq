@@ -146,6 +146,6 @@ def decompose_clifford_tableau_to_operations(
     _ = [_Z_with_ops(i) for i, p in enumerate(t.rs[: t.n]) if p]
     _ = [_X_with_ops(i) for i, p in enumerate(t.rs[t.n :]) if p]
 
-    # Step 5: invert the operations by reversing the orde: (AB)^{+} = B^{+} A^{+}.
+    # Step 5: invert the operations by reversing the order: (AB)^{+} = B^{+} A^{+}.
     # Note only S gate is not self-adjoint.
     return operations[::-1]
