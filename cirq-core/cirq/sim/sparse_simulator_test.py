@@ -343,7 +343,9 @@ def test_simulate_random_unitary(dtype):
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_simulate_no_circuit(dtype,):
+def test_simulate_no_circuit(
+    dtype,
+):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
     circuit = cirq.Circuit()
@@ -353,7 +355,9 @@ def test_simulate_no_circuit(dtype,):
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_simulate(dtype,):
+def test_simulate(
+    dtype,
+):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
     circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1))
@@ -392,10 +396,15 @@ class _TestMixture(cirq.Gate):
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_simulate_qudits(dtype,):
+def test_simulate_qudits(
+    dtype,
+):
     q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
     simulator = cirq.Simulator(dtype=dtype)
-    circuit = cirq.Circuit(PlusGate(3)(q0), PlusGate(4, increment=3)(q1),)
+    circuit = cirq.Circuit(
+        PlusGate(3)(q0),
+        PlusGate(4, increment=3)(q1),
+    )
     result = simulator.simulate(circuit, qubit_order=[q0, q1])
     expected = np.zeros(12)
     expected[4 * 1 + 3] = 1
@@ -404,7 +413,9 @@ def test_simulate_qudits(dtype,):
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_simulate_mixtures(dtype,):
+def test_simulate_mixtures(
+    dtype,
+):
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator(dtype=dtype)
     circuit = cirq.Circuit(cirq.bit_flip(0.5)(q0), cirq.measure(q0))
@@ -420,7 +431,9 @@ def test_simulate_mixtures(dtype,):
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_simulate_qudit_mixtures(dtype,):
+def test_simulate_qudit_mixtures(
+    dtype,
+):
     q0 = cirq.LineQid(0, 3)
     simulator = cirq.Simulator(dtype=dtype)
     mixture = _TestMixture([PlusGate(3, 0), PlusGate(3, 1), PlusGate(3, 2)])
