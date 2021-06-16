@@ -1,15 +1,8 @@
-import numpy as np
 import itertools
+import numpy as np
 import pytest
 
 import cirq
-from cirq.optimizers.two_qubit_to_sqiswap import (
-    _decomp_0_matrices,
-    _decomp_1sqiswap_matrices,
-    _decomp_2sqiswap_matrices,
-    _decomp_3sqiswap_matrices,
-    _decomp_to_operations,
-)
 
 
 def perturb_unitary(u, amount=1e-10):
@@ -186,7 +179,7 @@ def test_decomp0_invalid(u):
     # Attempt to decompose other unitaries into zero SQISWAP gates
     q0, q1 = cirq.LineQubit.range(2)
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 0 SQISWAP gates'):
-        ops = cirq.two_qubit_matrix_to_sqiswap_operations(
+        cirq.two_qubit_matrix_to_sqiswap_operations(
             q0, q1, u, required_sqiswap_count=0, clean_operations=False
         )
 
@@ -205,7 +198,7 @@ def test_decomp1(u):
 def test_decomp1_invalid(u):
     q0, q1 = cirq.LineQubit.range(2)
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 1 SQISWAP gates'):
-        ops = cirq.two_qubit_matrix_to_sqiswap_operations(
+        cirq.two_qubit_matrix_to_sqiswap_operations(
             q0, q1, u, required_sqiswap_count=1, clean_operations=False
         )
 
@@ -224,7 +217,7 @@ def test_decomp2(u):
 def test_decomp2_invalid(u):
     q0, q1 = cirq.LineQubit.range(2)
     with pytest.raises(ValueError, match='cannot be decomposed into exactly 2 SQISWAP gates'):
-        ops = cirq.two_qubit_matrix_to_sqiswap_operations(
+        cirq.two_qubit_matrix_to_sqiswap_operations(
             q0, q1, u, required_sqiswap_count=2, clean_operations=False
         )
 

@@ -14,7 +14,7 @@
 
 """Utility methods related to optimizing quantum circuits."""
 
-from typing import Iterable, List, Tuple, Optional, cast, TYPE_CHECKING
+from typing import Iterable, List, Sequence, Tuple, Optional, cast, TYPE_CHECKING
 
 import numpy as np
 
