@@ -178,7 +178,6 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
             raise ValueError('num_qubits should be 1')
         return self._error_probabilities.get('Z', 0.0)
 
-    @property
     def num_qubits(self) -> int:
         """The number of qubits"""
         return self._num_qubits
