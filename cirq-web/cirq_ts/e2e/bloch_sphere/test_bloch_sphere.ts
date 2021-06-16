@@ -29,6 +29,7 @@ import * as path from 'path';
 const bundle_string = readFileSync('dist/bloch_sphere.bundle.js');
 const browserContent = `
 <!doctype html>
+<meta charset="UTF-8">
 <html lang="en">
     <head>
     <title>Cirq Web Development page</title>
