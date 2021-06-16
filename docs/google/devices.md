@@ -109,7 +109,10 @@ it may modify how the other gates are applied.
 
 What this means is that `cirq.Z` and `cirq.ZPowGate` gates will
 have zero duration on the device.  Any moments containing only
-these gates will silently disappear from the circuit.
+these gates will silently disappear from the circuit.  Even when
+this gate is absorbed by non-commuting gates, such as the square
+root of iSWAP, already have physical Z gates, so this absorption
+still does not add duration to the circuit.
 
 #### Physical Z gates
 
@@ -184,6 +187,12 @@ $$
 
 This gate has a duration of 32ns and can be used in
 `cirq.google.SQRT_ISWAP_GATESET` or in the `cirq.google.FSIM_GATESET`.
+
+This gate is implemented by using an entangling gate surrounding by
+Z gates.  The preceding Z gates are physical Z gates and will absorb
+any phases that have accumulated through the use of Virtual Z gates.
+Following the entangler are virtual Z gates to match phases back.  All
+of this is computed and handled for the user automatically.
 
 Users should note that this gate is approximate and calibrated for
 average performance across the entire processor.  In particular,
