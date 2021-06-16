@@ -898,7 +898,7 @@ def test_try_convert_gate_to_fsim():
     )
 
     check(
-        cirq.ops.ISwapPowGate(exponent=0.8, global_shift = 2.5),
+        cirq.ops.ISwapPowGate(exponent=0.8, global_shift=2.5),
         PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.4 * np.pi, phi=0.0), 0.5),
     )
 
@@ -923,7 +923,7 @@ def test_try_convert_gate_to_fsim():
     )
 
     check(
-        cirq.ops.CZPowGate(exponent=0.8, global_shift = 2.5),
+        cirq.ops.CZPowGate(exponent=0.8, global_shift=2.5),
         PhaseCalibratedFSimGate(cirq.FSimGate(theta=0.0, phi=-0.8 * np.pi), 0.0),
     )
 

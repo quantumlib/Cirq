@@ -490,13 +490,18 @@ def test_from_characterizations_sqrt_iswap_when_invalid_arguments_fails():
         )
 
 
-def test_create_from_dictionary_missing_params_fails():
-    simulator = PhasedFSimEngineSimulator.create_from_dictionary({})
+def test_create_from_dictionary_imvalid_parameters_fails():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.CZ(a, b))
 
+    simulator = PhasedFSimEngineSimulator.create_from_dictionary({})
     with pytest.raises(ValueError, match='Missing parameters'):
         simulator.final_state_vector(circuit)
+
+    with pytest.raises(ValueError, match='canonical order'):
+        PhasedFSimEngineSimulator.create_from_dictionary(
+            parameters={(b, a): {'theta': 0.6, 'phi': 0.2}}
+        )
 
 
 def _create_sqrt_iswap_request(
