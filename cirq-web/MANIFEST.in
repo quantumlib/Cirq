@@ -1,1 +1,1 @@
-include cirq_ts/dist/*.js
+include cirq_ts/dist/*.bundle.js
