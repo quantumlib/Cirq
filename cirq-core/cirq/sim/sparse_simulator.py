@@ -155,9 +155,7 @@ class Simulator(
         if np.dtype(dtype).kind != 'c':
             raise ValueError(f'dtype must be a complex type but was {dtype}')
         super().__init__(
-            dtype=dtype,
-            noise=noise,
-            seed=seed,
+            dtype=dtype, noise=noise, seed=seed,
         )
 
     def _create_act_on_args(
