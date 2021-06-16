@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import os
-from setuptools import setup
+from setuptools import find_packages, setup
 
 # This reads the __version__ variable from cirq/_version.py
 __version__ = ''
@@ -49,7 +49,9 @@ assert __version__, 'Version string cannot be empty'
 # This is a pure metapackage that installs all our packages
 requirements += [f'cirq-core=={__version__}']
 
-packs = ['cirq_web', 'cirq_ts']
+packs = ['cirq_web'] + [
+    'cirq_web.' + package for package in find_packages(where='cirq_web')
+] + ['cirq_ts']
 
 setup(
     name=name,
