@@ -327,6 +327,7 @@ from cirq.optimizers import (
     SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
     two_qubit_matrix_to_diagonal_and_operations,
+    two_qubit_matrix_to_sqiswap_operations,
     three_qubit_matrix_to_operations,
 )
 
