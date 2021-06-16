@@ -59,7 +59,7 @@ def test_proper_repr_data_frame():
     )
     df2 = eval(proper_repr(df))
     assert df2['a'].dtype == np.int64
-    assert df2['b'].dtype == np.float
+    assert df2['b'].dtype == float
     pd.testing.assert_frame_equal(df2, df)
 
     df = pd.DataFrame(

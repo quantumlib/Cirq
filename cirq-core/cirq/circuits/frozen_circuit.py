@@ -109,6 +109,11 @@ class FrozenCircuit(AbstractCircuit, protocols.SerializableByKey):
             self._unitary = super()._unitary_()
         return self._unitary
 
+    def _is_measurement_(self) -> bool:
+        if self._has_measurements is None:
+            self._has_measurements = protocols.is_measurement(self.unfreeze())
+        return self._has_measurements
+
     def all_qubits(self) -> FrozenSet['cirq.Qid']:
         if self._all_qubits is None:
             self._all_qubits = super().all_qubits()

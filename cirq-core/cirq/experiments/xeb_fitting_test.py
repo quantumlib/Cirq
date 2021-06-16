@@ -32,6 +32,7 @@ from cirq.experiments.xeb_fitting import (
     _fit_exponential_decay,
     fit_exponential_decays,
     before_and_after_characterization,
+    XEBPhasedFSimCharacterizationOptions,
 )
 from cirq.experiments.xeb_sampling import sample_2q_xeb_circuits
 
@@ -315,3 +316,66 @@ def test_fit_exponential_decays_negative_fids():
     assert layer_fid == 0
     assert a_std == np.inf
     assert layer_fid_std == np.inf
+
+
+def test_options_with_defaults_from_gate():
+    options = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.ISWAP ** 0.5)
+    np.testing.assert_allclose(options.theta_default, -np.pi / 4)
+    options = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.ISWAP ** -0.5)
+    np.testing.assert_allclose(options.theta_default, np.pi / 4)
+
+    options = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(
+        cirq.FSimGate(0.1, 0.2)
+    )
+    assert options.theta_default == 0.1
+    assert options.phi_default == 0.2
+
+    options = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(
+        cirq.PhasedFSimGate(0.1)
+    )
+    assert options.theta_default == 0.1
+    assert options.phi_default == 0.0
+    assert options.zeta_default == 0.0
+
+    with pytest.raises(ValueError):
+        _ = XEBPhasedFSimCharacterizationOptions().with_defaults_from_gate(cirq.CZ)
+
+
+def test_options_defaults_set():
+    o1 = XEBPhasedFSimCharacterizationOptions(
+        characterize_zeta=True,
+        characterize_chi=True,
+        characterize_gamma=True,
+        characterize_theta=False,
+        characterize_phi=False,
+    )
+    assert o1.defaults_set() is False
+    with pytest.raises(ValueError):
+        o1.get_initial_simplex_and_names()
+
+    o2 = XEBPhasedFSimCharacterizationOptions(
+        characterize_zeta=True,
+        characterize_chi=True,
+        characterize_gamma=True,
+        characterize_theta=False,
+        characterize_phi=False,
+        zeta_default=0.1,
+        chi_default=0.2,
+        gamma_default=0.3,
+    )
+    with pytest.raises(ValueError):
+        _ = o2.defaults_set()
+
+    o3 = XEBPhasedFSimCharacterizationOptions(
+        characterize_zeta=True,
+        characterize_chi=True,
+        characterize_gamma=True,
+        characterize_theta=False,
+        characterize_phi=False,
+        zeta_default=0.1,
+        chi_default=0.2,
+        gamma_default=0.3,
+        theta_default=0.0,
+        phi_default=0.0,
+    )
+    assert o3.defaults_set() is True

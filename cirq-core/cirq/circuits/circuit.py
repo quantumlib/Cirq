@@ -19,11 +19,12 @@ Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
 
-from collections import defaultdict
+import abc
 import enum
-from itertools import groupby
+import html
 import math
-
+from collections import defaultdict
+from itertools import groupby
 from typing import (
     AbstractSet,
     Any,
@@ -45,21 +46,18 @@ from typing import (
     Union,
 )
 
-import abc
-import html
 import networkx
 import numpy as np
 
+import cirq._version
 from cirq import devices, ops, protocols, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.circuit_operation import CircuitOperation
 from cirq.circuits.insert_strategy import InsertStrategy
-from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.quil_output import QuilOutput
+from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.type_workarounds import NotImplementedType
-from cirq._compat import deprecated_parameter
-import cirq._version
 
 if TYPE_CHECKING:
     import cirq
@@ -70,8 +68,12 @@ INT_TYPE = Union[int, np.integer]
 
 
 class Alignment(enum.Enum):
+    # Stop when left ends are lined up.
     LEFT = 1
+    # Stop when right ends are lined up.
     RIGHT = 2
+    # Stop the first time left ends are lined up or right ends are lined up.
+    FIRST = 3
 
     def __repr__(self) -> str:
         return f'cirq.Alignment.{self.name}'
@@ -755,7 +757,7 @@ class AbstractCircuit(abc.ABC):
             yield index, gate_op, cast(T_DESIRED_GATE_TYPE, gate_op.gate)
 
     def has_measurements(self):
-        return any(self.findall_operations(protocols.is_measurement))
+        return protocols.is_measurement(self)
 
     def are_all_measurements_terminal(self) -> bool:
         """Whether all measurement gates are at the end of the circuit."""
@@ -893,6 +895,11 @@ class AbstractCircuit(abc.ABC):
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         return self._with_sliced_moments(
             [protocols.with_measurement_key_mapping(moment, key_map) for moment in self.moments]
+        )
+
+    def _with_key_path_(self, path: Tuple[str, ...]):
+        return self._with_sliced_moments(
+            [protocols.with_key_path(moment, path) for moment in self.moments]
         )
 
     def _qid_shape_(self) -> Tuple[int, ...]:
@@ -1357,13 +1364,13 @@ class AbstractCircuit(abc.ABC):
 
         Args:
             circuits: The circuits to concatenate.
-            stop_at_first_alignment: Defaults to false. When true, the circuits
-                are never overlapped more than needed to align their starts (in
-                case the left circuit is smaller) or to align their ends (in
-                case the right circuit is smaller). When false, the smaller
-                circuit can be pushed deeper into the larger circuit, past the
-                first time their starts or ends align, until the second time
-                their starts or ends align.
+            align: When to stop when sliding the circuits together.
+                'left': Stop when the starts of the circuits align.
+                'right': Stop when the ends of the circuits align.
+                'first': Stop the first time either the starts or the ends align. Circuits
+                    are never overlapped more than needed to align their starts (in case
+                    the left circuit is smaller) or to align their ends (in case the right
+                    circuit is smaller)
 
         Returns:
             The concatenated and overlapped circuit.
@@ -1377,7 +1384,7 @@ class AbstractCircuit(abc.ABC):
 
         # Allocate a buffer large enough to append and prepend all the circuits.
         pad_len = sum(len(c) for c in circuits) - n_acc
-        buffer = np.zeros(shape=pad_len * 2 + n_acc, dtype=np.object)
+        buffer = np.zeros(shape=pad_len * 2 + n_acc, dtype=object)
 
         # Put the initial circuit in the center of the buffer.
         offset = pad_len
@@ -1479,7 +1486,15 @@ def _overlap_collision_time(
     seen_times: Dict['cirq.Qid', int] = {}
 
     # Start scanning from end of first and start of second.
-    upper_bound = len(c1) if align == Alignment.LEFT else len(c2)
+    if align == Alignment.LEFT:
+        upper_bound = len(c1)
+    elif align == Alignment.RIGHT:
+        upper_bound = len(c2)
+    elif align == Alignment.FIRST:
+        upper_bound = min(len(c1), len(c2))
+    else:
+        raise NotImplementedError(f"Unrecognized alignment: {align}")
+
     t = 0
     while t < upper_bound:
         if t < len(c2):
@@ -1777,16 +1792,6 @@ class Circuit(AbstractCircuit):
 
     zip.__doc__ = AbstractCircuit.zip.__doc__
 
-    @deprecated_parameter(
-        deadline='v0.11',
-        fix='Use qubit_map instead.',
-        parameter_desc='positional func',
-        match=lambda args, kwargs: 'func' in kwargs,
-        rewrite=lambda args, kwargs: (
-            args,
-            {('qubit_map' if k == 'func' else k): v for k, v in kwargs.items()},
-        ),
-    )
     def transform_qubits(
         self,
         qubit_map: Union[Dict['cirq.Qid', 'cirq.Qid'], Callable[['cirq.Qid'], 'cirq.Qid']],
