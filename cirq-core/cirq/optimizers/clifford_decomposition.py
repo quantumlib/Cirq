@@ -37,7 +37,7 @@ def _Z(q, args, operations, qubits):
 
 
 def _Sdg(q, args, operations, qubits):
-    # Apply the tableau with S^+, so the inverse of operation is S
+    # Apply the tableau with S^\{dagger}
     args.axes = [q]
     protocols.act_on(ops.ZPowGate() ** 1.5, args, allow_decompose=False)
     operations.append(ops.S(qubits[q]))
