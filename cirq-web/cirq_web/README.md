@@ -39,6 +39,7 @@ class MyWidget(widget.Widget):
     def _repr_html_(self):
         bundle_script = super().get_bundle_script()
         return f"""
+            <meta charset="UTF-8">
             <div id="container"></div>
             {bundle_script}
             <script>YOUR_BUNDLE_FUNCTION<script>
@@ -60,6 +61,7 @@ class MyWidget(widget.Widget):
     def generate_HTML_file(self, output_directory='./', file_name="YOUR_VIZ.html", open_in_browser=False):
         bundle_script = super().get_bundle_script()
         contents = f"""
+            <meta charset="UTF-8">
             <div id="container"></div>
             {bundle_script}
             <script>YOUR_BUNDLE_FUNCTION<script>
