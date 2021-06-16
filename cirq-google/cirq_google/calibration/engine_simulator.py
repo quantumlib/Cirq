@@ -251,6 +251,7 @@ class PhasedFSimEngineSimulator(cirq.SimulatesIntermediateStateVector[cirq.Spars
         parameters: Dict[
             Tuple[cirq.Qid, cirq.Qid], Dict[cirq.FSimGate, Union[PhasedFSimCharacterization, Dict]]
         ],
+        *,
         simulator: Optional[cirq.Simulator] = None,
     ) -> 'PhasedFSimEngineSimulator':
         """Creates PhasedFSimEngineSimulator with fixed drifts.

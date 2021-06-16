@@ -1402,7 +1402,7 @@ def test_make_zeta_chi_gamma_compensation_for_moments_imperfect_gates():
         parameters={
             (a, b): {
                 cirq.FSimGate(theta=0, phi=np.pi): params_cz_ab,
-                cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6): params_syc_ab,
+                cirq_google.SYC: params_syc_ab,
             },
             (c, d): {cirq.FSimGate(theta=0, phi=np.pi): params_cz_cd},
             (a, c): {SQRT_ISWAP_INV_GATE: params_sqrt_iswap_ac},
