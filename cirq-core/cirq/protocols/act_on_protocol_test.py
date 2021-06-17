@@ -104,5 +104,7 @@ def test_qubits_not_allowed_for_operations():
             pass
 
     args = DummyActOnArgs()
-    with pytest.raises(ValueError, match='Calls to act_on should not supply qubits if the action is an Operation'):
+    with pytest.raises(
+        ValueError, match='Calls to act_on should not supply qubits if the action is an Operation'
+    ):
         cirq.act_on(Op(), args, qubits=[])
