@@ -28,6 +28,8 @@ done
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$(git rev-parse --show-toplevel)"
 
+pip show tensorflow-docs > /dev/null || exit 1
+
 FORMAT_CMD="python3 -m tensorflow_docs.tools.nbfmt --indent=1"
 
 # Test the notebooks

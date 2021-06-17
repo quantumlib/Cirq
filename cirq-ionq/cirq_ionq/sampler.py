@@ -14,20 +14,20 @@
 
 from typing import List, Optional, TYPE_CHECKING
 
-from cirq import protocols, study, work
-from cirq.ionq import results
+from cirq_ionq import results
+import cirq
 
 if TYPE_CHECKING:
-    import cirq
+    import cirq_ionq
 
 
-class Sampler(work.Sampler):
+class Sampler(cirq.Sampler):
     """A sampler that works against the IonQ API.
 
-    Users should get a sampler from the `sampler` method on `cirq.ionq.Service`.
+    Users should get a sampler from the `sampler` method on `cirq_ionq.Service`.
 
     Example of using this sampler:
-            >> service = cirq.ionq.Service(...)
+            >> service = cirq_ionq.Service(...)
             >> a, b, c = cirq.LineQubit.range(3)
             >> sampler = service.sampler()
             >> circuit = cirq.Circuit(cirq.X(a), cirq.measure(a, key='out'))
@@ -41,13 +41,13 @@ class Sampler(work.Sampler):
 
     def __init__(
         self,
-        service: 'cirq.ionq.Service',
+        service: 'cirq_ionq.Service',
         target: Optional[str],
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
     ):
         """Construct the sampler.
 
-        Users should get a sampler from the `sampler` method on `cirq.ionq.Service`.
+        Users should get a sampler from the `sampler` method on `cirq_ionq.Service`.
 
         Args:
             service: The service used to create this sample.
@@ -63,8 +63,8 @@ class Sampler(work.Sampler):
 
     def run_sweep(
         self,
-        program: 'cirq.Circuit',
-        params: 'cirq.Sweepable',
+        program: cirq.Circuit,
+        params: cirq.Sweepable,
         repetitions: int = 1,
     ) -> List['cirq.Result']:
         """Runs a sweep for the given Circuit.
@@ -76,10 +76,10 @@ class Sampler(work.Sampler):
 
         For use of the `sample` method, see the documentation of `cirq.Sampler`.
         """
-        resolvers = [r for r in study.to_resolvers(params)]
+        resolvers = [r for r in cirq.to_resolvers(params)]
         jobs = [
             self._service.create_job(
-                circuit=protocols.resolve_parameters(program, resolver),
+                circuit=cirq.resolve_parameters(program, resolver),
                 repetitions=repetitions,
                 target=self._target,
             )

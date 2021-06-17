@@ -1,2 +1,0 @@
-# TODO: add latest commit retrieval to compile.py - pip-compile can't upgrade automatically
-git+https://github.com/tensorflow/docs@b3dc8a922d8bdc6e998a8ad4f4953359dc6e576a
