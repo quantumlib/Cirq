@@ -18,13 +18,11 @@ from setuptools import find_packages, setup
 
 # This reads the __version__ variable from cirq/_version.py
 __version__ = ''
-exec(open('cirq_aqt/_version.py').read())
+exec(open('cirq_ionq/_version.py').read())
 
-name = 'cirq-aqt'
+name = 'cirq-ionq'
 
-description = (
-    'A Cirq package to simulate and connect to Alpine Quantum Technologies quantum computers'
-)
+description = 'A Cirq package to simulate and connect to IonQ quantum computers'
 
 # README file as long_description.
 long_description = io.open('README.rst', encoding='utf-8').read()
@@ -37,17 +35,17 @@ long_description = io.open('README.rst', encoding='utf-8').read()
 if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
     __version__ = os.environ['CIRQ_PRE_RELEASE_VERSION']
     long_description = (
-        "**This is a development version of Cirq-AQT and may be "
-        "unstable.**\n\n**For the latest stable release of Cirq-AQT "
-        "see**\n`here <https://pypi.org/project/cirq-aqt>`__.\n\n" + long_description
+        "**This is a development version of Cirq-ionq and may be "
+        "unstable.**\n\n**For the latest stable release of Cirq-ionq "
+        "see**\n`here <https://pypi.org/project/cirq-ionq>`__.\n\n" + long_description
     )
 
 # Read in requirements
 requirements = open('requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
 
-cirq_packages = ['cirq_aqt'] + [
-    'cirq_aqt.' + package for package in find_packages(where='cirq_aqt')
+cirq_packages = ['cirq_ionq'] + [
+    'cirq_ionq.' + package for package in find_packages(where='cirq_ionq')
 ]
 
 # Sanity check
@@ -66,7 +64,7 @@ setup(
     long_description=long_description,
     packages=cirq_packages,
     package_data={
-        'cirq_aqt': ['py.typed'],
-        'cirq_aqt.json_test_data': ['*'],
+        'cirq_ionq': ['py.typed'],
+        'cirq_ionq.json_test_data': ['*'],
     },
 )
