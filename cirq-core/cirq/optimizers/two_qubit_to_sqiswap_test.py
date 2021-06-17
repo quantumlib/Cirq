@@ -194,7 +194,7 @@ def assert_valid_decomp(
     *,
     check_global_phase,
     single_qubit_gate_types=(cirq.MatrixGate),
-    atol=1e-5,
+    atol=1e-6,
     rtol=0,
     qubit_order=cirq.LineQubit.range(2),
 ):

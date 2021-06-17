@@ -24,6 +24,7 @@ def two_qubit_matrix_to_sqiswap_operations(
     *,
     required_sqiswap_count: Optional[int] = None,
     atol: float = 1e-8,
+    check_preconditions: bool = True,
     clean_operations: bool = True,
 ) -> Sequence['cirq.Operation']:
     """Decomposes a two-qubit operation into Z/XY/SQISWAP gates.
@@ -48,7 +49,9 @@ def two_qubit_matrix_to_sqiswap_operations(
         two-qubit gate
         https://arxiv.org/abs/2105.06074
     """
-    kak = linalg.kak_decomposition(mat, atol=atol, rtol=0)
+    kak = linalg.kak_decomposition(
+        mat, atol=atol / 10, rtol=0, check_preconditions=check_preconditions
+    )
     operations = _kak_decomposition_to_sqiswap_operations(
         q0, q1, kak, required_sqiswap_count, include_global_phase=not clean_operations, atol=atol
     )
@@ -120,7 +123,7 @@ def _single_qubit_matrices_with_sqiswap(
             raise ValueError('the argument `required_sqiswap_count` must be 0, 1, 2, or 3.')
         if not [_in_0_region, _in_1sqiswap_region, _in_2sqiswap_region, _in_3sqiswap_region][
             required_sqiswap_count
-        ](kak.interaction_coefficients, weyl_tol=atol):
+        ](kak.interaction_coefficients, weyl_tol=atol / 10):
             raise ValueError(
                 f'the given gate cannot be decomposed into exactly '
                 f'{required_sqiswap_count} SQISWAP gates.'
@@ -131,11 +134,11 @@ def _single_qubit_matrices_with_sqiswap(
             _decomp_2sqiswap_matrices,
             _decomp_3sqiswap_matrices,
         ][required_sqiswap_count](kak, atol=atol)
-    if _in_0_region(kak.interaction_coefficients, weyl_tol=atol):
+    if _in_0_region(kak.interaction_coefficients, weyl_tol=atol / 10):
         return _decomp_0_matrices(kak, atol)
-    elif _in_1sqiswap_region(kak.interaction_coefficients, weyl_tol=atol):
+    elif _in_1sqiswap_region(kak.interaction_coefficients, weyl_tol=atol / 10):
         return _decomp_1sqiswap_matrices(kak, atol)
-    elif _in_2sqiswap_region(kak.interaction_coefficients, weyl_tol=atol):
+    elif _in_2sqiswap_region(kak.interaction_coefficients, weyl_tol=atol / 10):
         return _decomp_2sqiswap_matrices(kak, atol)
     return _decomp_3sqiswap_matrices(kak, atol)
 
@@ -268,7 +271,7 @@ def _decomp_2sqiswap_matrices(
     # There is no known closed form solution for these gates
     u_sqiswap = protocols.unitary(ops.SQISWAP)
     u = u_sqiswap @ np.kron(b0, b1) @ u_sqiswap  # Unitary of decomposition
-    kak_fix = linalg.kak_decomposition(u, atol=atol, rtol=0)
+    kak_fix = linalg.kak_decomposition(u, atol=atol / 10, rtol=0, check_preconditions=False)
     d0, d1 = kak_fix.single_qubit_operations_before
     e0, e1 = kak_fix.single_qubit_operations_after
 
