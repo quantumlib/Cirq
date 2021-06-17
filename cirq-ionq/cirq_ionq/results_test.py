@@ -15,7 +15,7 @@ import pytest
 
 import numpy as np
 
-import cirq.ionq as ionq
+import cirq_ionq as ionq
 import cirq.testing
 
 
