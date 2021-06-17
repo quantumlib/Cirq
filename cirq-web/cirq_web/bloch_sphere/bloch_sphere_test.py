@@ -23,6 +23,7 @@ from cirq.qis import to_valid_state_vector
 from cirq.qis.states import bloch_vector_from_state_vector
 from cirq.protocols import to_json
 
+
 def _get_bundle_file_path():
     # Need to call this from the root directory
     absolute_path = cirq_web.resolve_path()
@@ -94,7 +95,7 @@ def test_generate_html_file_with_browser(tmpdir):
     path = tmpdir.mkdir('dir')
 
     bloch_sphere = cirq_web.BlochSphere()
-    test_path = bloch_sphere.generate_HTML_file(
+    test_path = bloch_sphere.generate_html_file(
         output_directory=str(path), file_name='test.html', open_in_browser=True
     )
 

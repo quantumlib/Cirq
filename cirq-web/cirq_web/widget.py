@@ -24,10 +24,15 @@ class Env(Enum):
     COLAB = 2
     OTHER = 3
 
-_ENV_MAP: DefaultDict[str, Env] =defaultdict(lambda: Env.OTHER, {
-    'ZMQInteractiveShell': Env.JUPYTER,
-    'google.colab_shell': Env.COLAB,
-})
+
+_ENV_MAP: DefaultDict[str, Env] = defaultdict(
+    lambda: Env.OTHER,
+    {
+        'ZMQInteractiveShell': Env.JUPYTER,
+        'google.colab_shell': Env.COLAB,
+    },
+)
+
 
 def to_script_tag(path: str) -> str:
     """Dumps the contents of a particular bundle file into a script tag.
@@ -36,7 +41,7 @@ def to_script_tag(path: str) -> str:
         path: the path to the bundle file
 
     Returns:
-        The bundle file as string (readable by browser) wrapped in HTML script tags. 
+        The bundle file as string (readable by browser) wrapped in HTML script tags.
     """
     bundle_file_path = path
     bundle_file = open(bundle_file_path, 'r', encoding='utf-8')
@@ -57,7 +62,10 @@ def determine_env():
     """
     return _ENV_MAP[IPython.get_ipython().__class__.__name__]
 
-def write_output_file(output_directory: str, file_name: str, contents: str) -> Union[PosixPath, WindowsPath]:
+
+def write_output_file(
+    output_directory: str, file_name: str, contents: str
+) -> Union[PosixPath, WindowsPath]:
     """Writes the output file and returns its absolute path.
 
     Args:

@@ -14,6 +14,8 @@
 
 import math
 import webbrowser
+from typing import Union
+from pathlib import PosixPath, WindowsPath
 
 from numpy import ndarray
 
@@ -23,6 +25,7 @@ from cirq.testing import random_superposition
 from cirq.qis import to_valid_state_vector
 from cirq.qis.states import bloch_vector_from_state_vector
 from cirq.protocols import to_json
+
 
 class BlochSphere(widget.Widget):
     def __init__(
@@ -70,8 +73,11 @@ class BlochSphere(widget.Widget):
         """
 
     def generate_html_file(
-        self, output_directory: str ='./', file_name: str ='bloch_sphere.html', open_in_browser: bool = False
-    ):
+        self,
+        output_directory: str = './',
+        file_name: str = 'bloch_sphere.html',
+        open_in_browser: bool = False,
+    ) -> Union[PosixPath, WindowsPath]:
         """Generates a portable HTML file of the bloch sphere that
         can be run anywhere. Prints out the absolute path of the file to the console.
 
@@ -83,7 +89,9 @@ class BlochSphere(widget.Widget):
 
             open: if True, opens the newly generated file automatically in the browser.
 
-        Returns the path of the HTML file.
+        Returns:
+            The path of the HTML file in either PosixPath or WindowsPath form, depending on the
+            operating system.
 
         For now, if ran in a notebook, this function just returns. Support for downloading
         the HTML file via the browser can be added later.
@@ -106,6 +114,8 @@ class BlochSphere(widget.Widget):
 
         if open_in_browser:
             webbrowser.open(str(path_of_html_file), new=2)  # 2 opens in a new tab if possible
+
+        return path_of_html_file
 
     def _convert_sphere_input(self, radius: int) -> str:
         if radius <= 0:
