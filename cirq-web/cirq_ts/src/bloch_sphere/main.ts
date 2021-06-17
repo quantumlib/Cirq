@@ -24,16 +24,16 @@ import {createVector} from './components/vector';
  * bloch sphere.
  * @param vectorData A JSON string containing information that configures the
  * state vector.
- * @param divId A string containing the div id that will contain the visualization
+ * @param containerId A string containing the container (div, span, etc.) id that will contain the visualization
  * output.
  */
-export function showSphere(
+export function blochSphere(
   circleData: string,
   vectorData?: string,
-  divId?: string
+  containerId?: string
 ) {
   const inputData = JSON.parse(circleData);
-  const scene = new BlochSphereScene(divId);
+  const scene = new BlochSphereScene(containerId);
 
   const bloch_sphere = new BlochSphere(inputData.radius).getBlochSphere();
   scene.add(bloch_sphere);
