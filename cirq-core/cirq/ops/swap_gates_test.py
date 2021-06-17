@@ -109,11 +109,11 @@ def test_iswap_unitary():
     # yapf: enable
 
 
-def test_sqiswap_unitary():
+def test_sqrt_iswap_unitary():
     # yapf: disable
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(cirq.SQISWAP),
-        # Reference for the sqiswap gate's matrix:
+        cirq.unitary(cirq.SQRT_ISWAP),
+        # Reference for the sqrt-iSWAP gate's matrix:
         # https://arxiv.org/abs/2105.06074
         np.array([[1, 0,         0,         0],
                   [0, 1/2**0.5,  1j/2**0.5, 0],
