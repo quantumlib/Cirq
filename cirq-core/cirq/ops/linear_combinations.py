@@ -672,4 +672,3 @@ class PauliSum:
 
     def __str__(self) -> str:
         return self.__format__('.3f')
-B
