@@ -100,7 +100,10 @@ def act_on(
     """
     is_op = isinstance(action, ops.Operation)
 
-    # todo: remove after `args.axes` is deprecated.
+    if is_op and qubits is not None:
+        raise ValueError('Calls to act_on should not supply qubits if the action is an Operation.')
+
+    # todo: change to an exception after `args.axes` is deprecated.
     if not is_op and qubits is None:
         qubits = [args.qubits[i] for i in args.axes]
 
