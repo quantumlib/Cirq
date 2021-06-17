@@ -4,6 +4,7 @@
 -r pylint.txt
 -r protos.txt
 -r notebook.txt
+-r tensorflow-docs.txt
 
 # For testing and analyzing code.
 asv

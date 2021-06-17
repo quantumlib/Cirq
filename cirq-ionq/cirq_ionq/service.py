@@ -14,15 +14,10 @@
 
 import datetime
 import os
+from typing import cast, Optional, Sequence
 
-from typing import cast, Optional, Sequence, TYPE_CHECKING
-
-from cirq import protocols, study
-
-from cirq.ionq import calibration, ionq_client, job, results, sampler, serializer
-
-if TYPE_CHECKING:
-    import cirq
+import cirq
+from cirq_ionq import calibration, ionq_client, job, results, sampler, serializer
 
 
 class Service:
@@ -86,13 +81,13 @@ class Service:
 
     def run(
         self,
-        circuit: 'cirq.Circuit',
+        circuit: cirq.Circuit,
         repetitions: int,
         name: Optional[str] = None,
         target: Optional[str] = None,
-        param_resolver: study.ParamResolverOrSimilarType = study.ParamResolver({}),
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ) -> study.Result:
+        param_resolver: cirq.ParamResolverOrSimilarType = cirq.ParamResolver({}),
+        seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None,
+    ) -> cirq.Result:
         """Run the given circuit on the IonQ API.
 
         Args:
@@ -108,15 +103,15 @@ class Service:
         Returns:
             A `cirq.Result` for running the circuit.
         """
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        resolved_circuit = cirq.resolve_parameters(circuit, param_resolver)
         result = self.create_job(resolved_circuit, repetitions, name, target).results()
         if isinstance(result, results.QPUResult):
-            return result.to_cirq_result(params=study.ParamResolver(param_resolver))
+            return result.to_cirq_result(params=cirq.ParamResolver(param_resolver))
         else:
             sim_result = cast(results.SimulatorResult, result)
-            return sim_result.to_cirq_result(params=study.ParamResolver(param_resolver), seed=seed)
+            return sim_result.to_cirq_result(params=cirq.ParamResolver(param_resolver), seed=seed)
 
-    def sampler(self, target: Optional[str] = None, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
+    def sampler(self, target: Optional[str] = None, seed: cirq.RANDOM_STATE_OR_SEED_LIKE = None):
         """Returns a `cirq.Sampler` object for accessing the sampler interface.
 
         Args:
@@ -133,7 +128,7 @@ class Service:
 
     def create_job(
         self,
-        circuit: 'cirq.Circuit',
+        circuit: cirq.Circuit,
         repetitions: int = 100,
         name: Optional[str] = None,
         target: Optional[str] = None,
@@ -147,7 +142,7 @@ class Service:
             target: Where to run the job. Can be 'qpu' or 'simulator'.
 
         Returns:
-            A `cirq.ionq.IonQJob` which can be queried for status or results.
+            A `cirq_ionq.IonQJob` which can be queried for status or results.
 
         Raises:
             IonQException: If there was an error accessing the API.
@@ -168,7 +163,7 @@ class Service:
             creation of the job.
 
         Returns:
-            A `cirq.ionq.IonQJob` which can be queried for status or results.
+            A `cirq_ionq.IonQJob` which can be queried for status or results.
 
         Raises:
             IonQNotFoundException: If there was no job with the given `job_id`.
@@ -206,7 +201,7 @@ class Service:
         as fidelities and timings of gates.
 
         Returns:
-            A `cirq.ionq.Calibration` containing the device specification and calibrations.
+            A `cirq_ionq.Calibration` containing the device specification and calibrations.
 
         Raises:
             IonQException: If there was an error accessing the API.

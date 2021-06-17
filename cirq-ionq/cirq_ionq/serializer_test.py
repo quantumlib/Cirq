@@ -17,7 +17,7 @@ import pytest
 import sympy
 
 import cirq
-import cirq.ionq as ionq
+import cirq_ionq as ionq
 
 
 def test_serialize_empty_circuit_invalid():

@@ -578,7 +578,6 @@ from cirq.work import (
 # Unflattened sub-modules.
 
 from cirq import (
-    ionq,
     pasqal,
     testing,
 )
@@ -593,7 +592,7 @@ try:
     )
 except ImportError as ex:
     # coverage: ignore
-    warning("Can't import cirq.google: ", ex)
+    warning("Can't import cirq_google: ", exc_info=ex)
 
 try:
     _compat.deprecated_submodule(
@@ -605,7 +604,20 @@ try:
     )
 except ImportError as ex:
     # coverage: ignore
-    warning("Can't import cirq.aqt: ", ex)
+    warning("Can't import cirq_aqt: ", exc_info=ex)
+
+
+try:
+    _compat.deprecated_submodule(
+        new_module_name='cirq_ionq',
+        old_parent=__name__,
+        old_child='ionq',
+        deadline="v0.14",
+        create_attribute=True,
+    )
+except ImportError as ex:
+    # coverage: ignore
+    warning("Can't import cirq_ionq: ", exc_info=ex)
 
 
 def _register_resolver() -> None:

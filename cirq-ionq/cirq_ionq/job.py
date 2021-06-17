@@ -14,19 +14,20 @@
 """Represents a job created via the IonQ API."""
 
 import time
-from typing import Dict, Sequence, TYPE_CHECKING, Union
+from typing import Dict, Sequence, Union, TYPE_CHECKING
 
-from cirq.ionq import ionq_exceptions, results
-from cirq.value import digits
+from cirq_ionq import ionq_exceptions, results
 from cirq._doc import document
 
+import cirq
+
 if TYPE_CHECKING:
-    import cirq
+    import cirq_ionq
 
 
 def _little_endian_to_big(value: int, bit_count: int) -> int:
-    return digits.big_endian_bits_to_int(
-        digits.big_endian_int_to_bits(value, bit_count=bit_count)[::-1]
+    return cirq.big_endian_bits_to_int(
+        cirq.big_endian_int_to_bits(value, bit_count=bit_count)[::-1]
     )
 
 
@@ -63,11 +64,11 @@ class Job:
         'data associated with it beyond an id and a status.',
     )
 
-    def __init__(self, client: 'cirq.ionq.ionq_client._IonQClient', job_dict: dict):
+    def __init__(self, client: 'cirq_ionq.ionq_client._IonQClient', job_dict: dict):
         """Construct an IonQJob.
 
         Users should not call this themselves. If you only know the `job_id`, use `get_job`
-        on `cirq.ionq.Service`.
+        on `cirq_ionq.Service`.
 
         Args:
             client: The client used for calling the API.
@@ -96,7 +97,7 @@ class Job:
         """Gets the current status of the job.
 
         This will get a new job if the status of the job previously was determined to not be in
-        a terminal state. A full list of states is given in `cirq.ionq.IonQJob.ALL_STATES`.
+        a terminal state. A full list of states is given in `cirq_ionq.IonQJob.ALL_STATES`.
 
         Raises:
             IonQException: If the API is not able to get the status of the job.
@@ -178,7 +179,7 @@ class Job:
             polling_seconds: The interval with which to poll.
 
         Returns:
-            Either a `cirq.ionq.QPUResults` or `cirq.ionq.SimulatorResults` depending on whether
+            Either a `cirq_ionq.QPUResults` or `cirq_ionq.SimulatorResults` depending on whether
             the job was running on an actual quantum processor or a simulator.
 
         Raises:
@@ -239,4 +240,4 @@ class Job:
         self._job = self._client.delete_job(job_id=self.job_id())
 
     def __str__(self) -> str:
-        return f'cirq.ionq.Job(job_id={self.job_id()})'
+        return f'cirq_ionq.Job(job_id={self.job_id()})'
