@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from pathlib import Path
+from typing import DefaultDict, Union
+from collections import defaultdict
+from pathlib import Path, PosixPath, WindowsPath
 from enum import Enum
 import IPython
 import cirq_web
@@ -23,12 +24,19 @@ class Env(Enum):
     COLAB = 2
     OTHER = 3
 
+_ENV_MAP: DefaultDict[str, Env] =defaultdict(lambda: Env.OTHER, {
+    'ZMQInteractiveShell': Env.JUPYTER,
+    'google.colab_shell': Env.COLAB,
+})
 
-def to_script_tag(path):
+def to_script_tag(path: str) -> str:
     """Dumps the contents of a particular bundle file into a script tag.
 
     Args:
         path: the path to the bundle file
+
+    Returns:
+        The bundle file as string (readable by browser) wrapped in HTML script tags. 
     """
     bundle_file_path = path
     bundle_file = open(bundle_file_path, 'r', encoding='utf-8')
@@ -40,23 +48,16 @@ def to_script_tag(path):
 
 
 def determine_env():
-    """Determines if a Widget is being run in a Jupyter notebook
+    """Determines if a Widget is being run in a Jupyter notebook.
 
     The return types of IPython().get_ipython().__class__.__name__
     we care about are only "ZMQInteractiveShell", and potentially,
     "google.colab_shell", since those are the only environments that
     we're supporting at this stage.
     """
-    env = IPython.get_ipython().__class__.__name__
-    if env == 'ZMQInteractiveShell':
-        return Env.JUPYTER
-    elif env == 'google.colab_shell':
-        return Env.COLAB
-    else:
-        return Env.OTHER
+    return _ENV_MAP[IPython.get_ipython().__class__.__name__]
 
-
-def write_output_file(output_directory, file_name, contents):
+def write_output_file(output_directory: str, file_name: str, contents: str) -> Union[PosixPath, WindowsPath]:
     """Writes the output file and returns its absolute path.
 
     Args:
@@ -66,6 +67,8 @@ def write_output_file(output_directory, file_name, contents):
         file_name: the name of the output file. Default is 'bloch_sphere'
 
         contents: the contents of the file
+    Returns:
+        The path of the file as type PosixPath or WindowsPath, depending on operating system
     """
     # Ensure that the user enters a trailing slash
     file_path = Path(output_directory).joinpath(file_name)
@@ -88,7 +91,7 @@ def resolve_path():
 class Widget:
     """Parent class for all widgets."""
 
-    def __init__(self, bundle_file_path):
+    def __init__(self, bundle_file_path: str):
         """Initializes a Widget, gathering it's respective bundle file path and
             then generating its absolute path.
 

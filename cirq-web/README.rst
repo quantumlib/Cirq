@@ -17,7 +17,7 @@ Below is a quick example of how to generate a portable 3d rendering of a bloch s
 
     from cirq_web import BlochSphere
     sphere = BlochSphere()
-    sphere.generate_HTML_file()
+    sphere.generate_html_file()
 
 This will create the file in the current working directory. There are additional options to specify the
 output directory, open the visualization in a browser, etc. 

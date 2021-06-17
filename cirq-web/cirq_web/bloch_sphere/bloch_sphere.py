@@ -12,23 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import math
 import webbrowser
+
+from numpy import ndarray
 
 from cirq_web import widget
 
 from cirq.testing import random_superposition
 from cirq.qis import to_valid_state_vector
 from cirq.qis.states import bloch_vector_from_state_vector
-
+from cirq.protocols import to_json
 
 class BlochSphere(widget.Widget):
     def __init__(
         self,
-        sphere_radius=5,
-        state_vector=to_valid_state_vector([math.sqrt(2) / 2, math.sqrt(2) / 2]),
-        random=False,
+        sphere_radius: int = 5,
+        state_vector: ndarray = to_valid_state_vector([math.sqrt(2) / 2, math.sqrt(2) / 2]),
+        random: bool = False,
     ):
         """Initializes a BlochSphere, gathering all the user information and
         converting to JSON for output.
@@ -45,11 +46,11 @@ class BlochSphere(widget.Widget):
 
         super().__init__('cirq_ts/dist/bloch_sphere.bundle.js')
 
-        self.sphere_json = self._convertSphereInput(sphere_radius)
+        self.sphere_json = self._convert_sphere_input(sphere_radius)
         self.bloch_vector = (
-            self._createRandomVector() if random else self._createVector(state_vector)
+            self._create_random_vector() if random else self._create_vector(state_vector)
         )
-        self.vector_json = self._serializeVector(*self.bloch_vector, sphere_radius)
+        self.vector_json = self._serialize_vector(*self.bloch_vector, sphere_radius)
 
     def _repr_html_(self):
         """Allows the object's html to be easily displayed in a notebook
@@ -64,12 +65,12 @@ class BlochSphere(widget.Widget):
         <div id="container"></div>
         {bundle_script}
         <script>
-        CirqTS.showSphere('{self.sphere_json}', '{self.vector_json}');
+        CirqTS.blochSphere('{self.sphere_json}', '{self.vector_json}');
         </script>
         """
 
-    def generate_HTML_file(
-        self, output_directory='./', file_name='bloch_sphere.html', open_in_browser=False
+    def generate_html_file(
+        self, output_directory: str ='./', file_name: str ='bloch_sphere.html', open_in_browser: bool = False
     ):
         """Generates a portable HTML file of the bloch sphere that
         can be run anywhere. Prints out the absolute path of the file to the console.
@@ -95,7 +96,7 @@ class BlochSphere(widget.Widget):
 
         template_script = f"""
         <script>
-        CirqTS.showSphere('{self.sphere_json}', '{self.vector_json}');
+        CirqTS.blochSphere('{self.sphere_json}', '{self.vector_json}');
         </script>
         """
 
@@ -106,16 +107,14 @@ class BlochSphere(widget.Widget):
         if open_in_browser:
             webbrowser.open(str(path_of_html_file), new=2)  # 2 opens in a new tab if possible
 
-        return path_of_html_file
-
-    def _convertSphereInput(self, radius):
+    def _convert_sphere_input(self, radius: int) -> str:
         if radius <= 0:
             raise (BaseException('You must input a positive radius for the sphere'))
 
         obj = {'radius': radius}
-        return json.dumps(obj)
+        return to_json(obj)
 
-    def _createVector(self, state_vector):
+    def _create_vector(self, state_vector: ndarray) -> ndarray:
         """Any state_vector input will need to come from cirq.to_valid_state_vector,
         so we can assume that a valid state_vector will be passed in.
         """
@@ -123,13 +122,13 @@ class BlochSphere(widget.Widget):
 
         return bloch_vector
 
-    def _createRandomVector(self):
+    def _create_random_vector(self) -> ndarray:
         random_vector = random_superposition(2)
         state_vector = to_valid_state_vector(random_vector)
         bloch_vector = bloch_vector_from_state_vector(state_vector, 0)
         return bloch_vector
 
-    def _serializeVector(self, x, y, z, length=5):
+    def _serialize_vector(self, x: float, y: float, z: float, length: float = 5) -> str:
         # .item() bc input is of type float32, need to convert to seralizable type
         obj = {
             'x': x.item(),
@@ -137,4 +136,4 @@ class BlochSphere(widget.Widget):
             'z': z.item(),
             'v_length': length,
         }
-        return json.dumps(obj)
+        return to_json(obj)

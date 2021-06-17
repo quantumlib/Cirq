@@ -31,7 +31,7 @@ The `widget.py` file also contains methods like `write_output_file()` that shoul
 
 ### Handling HTML output from Python
 #### Viewing a visualization in a notebook setting
-We capitalize on IPython's `_repr_html_` magic method to help display visualiztions in the notebook. In the main class of your visualization, include a method like so:
+We capitalize on IPython's `_repr_html_` magic method to help display visualizations in the notebook. In the main class of your visualization, include a method like so:
 ```python
 from cirq_web import widget
 class MyWidget(widget.Widget):
@@ -58,7 +58,7 @@ import webbrowser
 from cirq_web import widget
 class MyWidget(widget.Widget):
     ...
-    def generate_HTML_file(self, output_directory='./', file_name="YOUR_VIZ.html", open_in_browser=False):
+    def generate_html_file(self, output_directory='./', file_name="YOUR_VIZ.html", open_in_browser=False):
         bundle_script = super().get_bundle_script()
         contents = f"""
             <meta charset="UTF-8">

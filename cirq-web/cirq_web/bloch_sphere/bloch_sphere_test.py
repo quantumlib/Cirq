@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import math
-import json
 
 import pytest
 import numpy as np
@@ -22,9 +21,9 @@ import cirq_web
 
 from cirq.qis import to_valid_state_vector
 from cirq.qis.states import bloch_vector_from_state_vector
+from cirq.protocols import to_json
 
-
-def get_bundle_file_path():
+def _get_bundle_file_path():
     # Need to call this from the root directory
     absolute_path = cirq_web.resolve_path()
     bundle_file_path = f'{absolute_path}/cirq_ts/dist/bloch_sphere.bundle.js'
@@ -41,7 +40,7 @@ def test_init_bloch_sphere_type():
 def test_valid_bloch_sphere_radius_json_info(sphere_radius):
     bloch_sphere = cirq_web.BlochSphere(sphere_radius=sphere_radius)
     expected_object = {'radius': sphere_radius}
-    expected = json.dumps(expected_object)
+    expected = to_json(expected_object)
     assert expected == bloch_sphere.sphere_json
 
 
@@ -63,7 +62,7 @@ def test_valid_bloch_sphere_vector_json(state_vector):
         'z': bloch_vector[2].item(),
         'v_length': 5,  # This is the default value
     }
-    expected = json.dumps(expected_object)
+    expected = to_json(expected_object)
     assert expected == bloch_sphere.vector_json
 
 
@@ -79,19 +78,19 @@ def test_repr_html():
     # This tests more of the path rather than the contents.
     # Add more contents later
     bloch_sphere = cirq_web.BlochSphere()
-    bundle_script = get_bundle_file_path()
+    bundle_script = _get_bundle_file_path()
     expected = f"""
         <meta charset="UTF-8">
         <div id="container"></div>
         {bundle_script}
         <script>
-        CirqTS.showSphere('{bloch_sphere.sphere_json}', '{bloch_sphere.vector_json}');
+        CirqTS.blochSphere('{bloch_sphere.sphere_json}', '{bloch_sphere.vector_json}');
         </script>
         """
     assert expected == bloch_sphere._repr_html_()
 
 
-def test_generate_HTML_file_with_browser(tmpdir):
+def test_generate_html_file_with_browser(tmpdir):
     path = tmpdir.mkdir('dir')
 
     bloch_sphere = cirq_web.BlochSphere()
@@ -103,11 +102,11 @@ def test_generate_HTML_file_with_browser(tmpdir):
         <meta charset="UTF-8">
         <div id="container"></div>
         """
-    bundle_script = get_bundle_file_path()
+    bundle_script = _get_bundle_file_path()
 
     template_script = f"""
         <script>
-        CirqTS.showSphere('{bloch_sphere.sphere_json}', '{bloch_sphere.vector_json}');
+        CirqTS.blochSphere('{bloch_sphere.sphere_json}', '{bloch_sphere.vector_json}');
         </script>
         """
 
