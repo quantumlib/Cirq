@@ -24,7 +24,7 @@ from cirq.protocols.apply_unitary_protocol import (
     apply_unitary,
     ApplyUnitaryArgs,
 )
-from cirq.protocols.channel import kraus
+from cirq.protocols.kraus import kraus
 from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
 
