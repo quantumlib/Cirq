@@ -92,3 +92,17 @@ def test_act_on_args_axes_deprecation():
     ):
         cirq.act_on(object(), args)  # type: ignore
     assert args.measurements == [[cirq.LineQubit(1)]]
+
+
+def test_qubits_not_allowed_for_operations():
+    class Op(cirq.Operation):
+        @property
+        def qubits(self) -> Tuple['cirq.Qid', ...]:
+            pass
+
+        def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
+            pass
+
+    args = DummyActOnArgs()
+    with pytest.raises(ValueError, match='Calls to act_on should not supply qubits if the action is an Operation'):
+        cirq.act_on(Op(), args, qubits=[])
