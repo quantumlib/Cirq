@@ -85,9 +85,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         super().__init__(prng, qubits, axes, log_of_measurement_results)
         self.tableau = tableau
 
-    def _act_on_fallback_(
-        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool
-    ):
+    def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
         strats = []
         if allow_decompose:
             strats.append(_strat_act_on_clifford_tableau_from_single_qubit_decompose)

@@ -91,9 +91,7 @@ class ActOnArgs:
         """Creates a copy of the object."""
 
     @abc.abstractmethod
-    def _act_on_fallback_(
-        self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool
-    ):
+    def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
         """Handles the act_on protocol fallback implementation."""
 
     @property  # type: ignore

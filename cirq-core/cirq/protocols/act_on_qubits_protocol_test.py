@@ -32,9 +32,7 @@ def test_act_on_fallback_fails():
 
 def test_act_on_fallback_errors():
     args = DummyActOnArgs(fallback_result=False)
-    with pytest.raises(
-        ValueError, match='_act_on_fallback_ must return True or NotImplemented'
-    ):
+    with pytest.raises(ValueError, match='_act_on_fallback_ must return True or NotImplemented'):
         cirq.act_on_qubits(cirq.X, args, qubits)
 
 
