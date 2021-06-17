@@ -100,8 +100,7 @@ class Widget:
     """Parent class for all widgets."""
 
     def __init__(self, bundle_file_path: str):
-        """Initializes a Widget, gathering it's respective bundle file path and
-            then generating its absolute path.
+        """Initializes a Widget.
 
         Args:
             bundle_file_path: The relative path of the widget's bundle file starting from cirq_ts/

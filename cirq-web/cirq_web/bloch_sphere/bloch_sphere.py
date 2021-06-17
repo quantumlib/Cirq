@@ -139,7 +139,7 @@ class BlochSphere(widget.Widget):
         return bloch_vector
 
     def _serialize_vector(self, x: float, y: float, z: float, length: float = 5) -> str:
-        # .item() bc input is of type float32, need to convert to seralizable type
+        # .item() because input is of type float32, need to convert to serializable type
         obj = {
             'x': x.item(),
             'y': y.item(),
