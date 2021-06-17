@@ -23,7 +23,7 @@ exec(open('cirq_aqt/_version.py').read())
 name = 'cirq-aqt'
 
 description = (
-    'A Cirq package to simulate and connect to Alpine Quantum Technologies' ' quantum computers'
+    'A Cirq package to simulate and connect to Alpine Quantum Technologies quantum computers'
 )
 
 # README file as long_description.
