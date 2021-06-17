@@ -62,7 +62,7 @@ imports.
 """
 
 
-def _act_with_gates(args, qubits, *gates: 'cirq.SupportsActOn') -> None:
+def _act_with_gates(args, qubits, *gates: 'cirq.SupportsActOnQubits') -> None:
     """Act on the given args with the given gates in order."""
     for gate in gates:
         assert gate._act_on_(args, qubits)
