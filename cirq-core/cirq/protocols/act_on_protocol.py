@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Union, Sequence, Any
 
 from typing_extensions import Protocol
 
-from cirq import protocols, ops
+from cirq import ops
 from cirq._doc import doc_private
 from cirq.type_workarounds import NotImplementedType
 
@@ -43,10 +43,15 @@ class SupportsActOn(Protocol):
         argument has this value, before attempting any fallback strategies
         specified by the argument being acted on.
 
+        If implementing this on an `Operation`, the `qubits` parameter should
+        be excluded.
+
         Args:
             args: An object of unspecified type. The method must check if this
                 object is of a recognized type and act on it if so.
-            qubits: The sequence of qubits to use when applying the action.
+            qubits: The sequence of qubits to use when applying the action. If
+                implementing this on an `Operation`, the `qubits` parameter
+                should be excluded.
 
         Returns:
             True: The receiving object (`self`) acted on the argument.
@@ -62,7 +67,7 @@ def act_on(
     qubits: Sequence['cirq.Qid'] = None,
     *,
     allow_decompose: bool = True,
-) -> Union[NotImplementedType, bool]:
+):
     """Applies an action to a state argument.
 
     For example, the action may be a `cirq.Operation` and the state argument may
