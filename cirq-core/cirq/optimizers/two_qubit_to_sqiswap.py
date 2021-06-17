@@ -302,7 +302,7 @@ def _decomp_3sqiswap_matrices(
     # where x1, y1, z1 are implementable by one SQiSWAP gate
     # and x2, y2, z2 implementable by two SQiSWAP gates
     # No error tolerance needed
-    ieq1 = x > np.pi / 8  # Inequalities from figure 7a-b of the paper
+    ieq1 = y > np.pi / 8
     ieq2 = z < 0
     if ieq1:
         if ieq2:
