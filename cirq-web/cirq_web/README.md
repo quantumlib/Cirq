@@ -77,6 +77,4 @@ This code above writes a file named `YOUR_VIZ.html` to the specified output dire
 
 The important thing about generating standalone HTML files is that they can be sent and viewed anywhere, regardless of if the recipient has Cirq installed on their computer or not.
 
-### Packaging
-**TODO**
- 
+
