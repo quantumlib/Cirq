@@ -28,12 +28,12 @@ class SupportsActOnQubits(Protocol):
     """An object that explicitly specifies how to act on states and qubits."""
 
     @doc_private
-    def _act_on_qubits_(
+    def _act_on_(
         self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']
     ) -> Union[NotImplementedType, bool]:
         """Applies an action to qubits on the given argument, if supported.
 
-        For example, unitary operations can implement an `_act_on_qubits_`
+        For example, unitary operations can implement an `_act_on_`
         method that checks if `isinstance(args, cirq.ActOnStateVectorArgs)`
         and, if so, apply their unitary effect to the state vector.
 
@@ -67,21 +67,21 @@ def act_on_qubits(
     represent the internal state of a state vector simulator (a
     `cirq.ActOnStateVectorArgs`).
 
-    The action is applied by first checking if `action._act_on_qubits_` exists
+    The action is applied by first checking if `action._act_on_` exists
     and returns `True` (instead of `NotImplemented`) for the given object. Then
     fallback strategies specified by the state argument via
-    `_act_on_qubits_fallback_` are attempted. If those also fail, the method
+    `_act_on_fallback_` are attempted. If those also fail, the method
     fails with a `TypeError`.
 
     Args:
         action: The action to apply to the state tensor. Typically a
             `cirq.Gate`.
         args: A mutable state object that should be modified by the action. May
-            specify an `_act_on_qubits_fallback_` method to use in case the
+            specify an `_act_on_fallback_` method to use in case the
             action doesn't recognize it.
         qubits: The sequence of qubits to use when applying the action.
         allow_decompose: Defaults to True. Forwarded into the
-            `_act_on_qubits_fallback_` method of `args`. Determines if
+            `_act_on_fallback_` method of `args`. Determines if
             decomposition should be used or avoided when attempting to act
             `action` on `args`. Used by internal methods to avoid redundant
             decompositions.
@@ -93,31 +93,31 @@ def act_on_qubits(
         TypeError: Failed to act `action` on `args`.
     """
     assert not isinstance(action, ops.Operation), "Use `cirq.act_on` for action type `Operation`"
-    action_act_on = getattr(action, '_act_on_qubits_', None)
+    action_act_on = getattr(action, '_act_on_', None)
     if action_act_on is not None:
         result = action_act_on(args, qubits)
         if result is True:
             return
         if result is not NotImplemented:
             raise ValueError(
-                f'_act_on_qubits_ must return True or NotImplemented but got '
-                f'{result!r} from {action!r}._act_on_qubits_'
+                f'_act_on_ must return True or NotImplemented but got '
+                f'{result!r} from {action!r}._act_on_'
             )
 
-    arg_fallback = getattr(args, '_act_on_qubits_fallback_', None)
+    arg_fallback = getattr(args, '_act_on_fallback_', None)
     if arg_fallback is not None:
         result = arg_fallback(action, qubits, allow_decompose=allow_decompose)
         if result is True:
             return
         if result is not NotImplemented:
             raise ValueError(
-                f'_act_on_qubits_fallback_ must return True or NotImplemented but got '
-                f'{result!r} from {type(args)}._act_on_qubits_fallback_'
+                f'_act_on_fallback_ must return True or NotImplemented but got '
+                f'{result!r} from {type(args)}._act_on_fallback_'
             )
 
     raise TypeError(
         "Failed to act action on state argument.\n"
-        "Tried both action._act_on_qubits_ and args._act_on_qubits_fallback_.\n"
+        "Tried both action._act_on_ and args._act_on_fallback_.\n"
         "\n"
         f"State argument type: {type(args)}\n"
         f"Action type: {type(action)}\n"

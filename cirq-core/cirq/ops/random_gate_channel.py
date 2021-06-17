@@ -119,7 +119,7 @@ class RandomGateChannel(raw_types.Gate):
             result *= float(self.probability)
         return result
 
-    def _act_on_qubits_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq.sim import clifford
 
         if self._is_parameterized_():

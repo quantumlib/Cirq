@@ -25,7 +25,7 @@ class GoodGate(cirq.SingleQubitGate):
     def _unitary_(self):
         return np.array([[0, 1], [1, 0]])
 
-    def _act_on_qubits_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         if isinstance(args, cirq.ActOnCliffordTableauArgs):
             tableau = args.tableau
             q = args.qubit_map[qubits[0]]
@@ -38,7 +38,7 @@ class BadGate(cirq.SingleQubitGate):
     def _unitary_(self):
         return np.array([[0, 1j], [1, 0]])
 
-    def _act_on_qubits_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         if isinstance(args, cirq.ActOnCliffordTableauArgs):
             tableau = args.tableau
             q = args.qubit_map[qubits[0]]

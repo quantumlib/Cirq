@@ -19,30 +19,30 @@ from cirq.protocols.act_on_protocol_test import DummyActOnArgs
 qubits = cirq.LineQubit.range(1)
 
 
-def test_act_on_qubits_fallback_succeeds():
+def test_act_on_fallback_succeeds():
     args = DummyActOnArgs(fallback_result=True)
     cirq.act_on_qubits(cirq.X, args, qubits)
 
 
-def test_act_on_qubits_fallback_fails():
+def test_act_on_fallback_fails():
     args = DummyActOnArgs(fallback_result=NotImplemented)
     with pytest.raises(TypeError, match='Failed to act'):
         cirq.act_on_qubits(cirq.X, args, qubits)
 
 
-def test_act_on_qubits_fallback_errors():
+def test_act_on_fallback_errors():
     args = DummyActOnArgs(fallback_result=False)
     with pytest.raises(
-        ValueError, match='_act_on_qubits_fallback_ must return True or NotImplemented'
+        ValueError, match='_act_on_fallback_ must return True or NotImplemented'
     ):
         cirq.act_on_qubits(cirq.X, args, qubits)
 
 
-def test_act_on_qubits_errors():
+def test_act_on_errors():
     class Op:
-        def _act_on_qubits_(self, args, qubits):
+        def _act_on_(self, args, qubits):
             return False
 
     args = DummyActOnArgs(fallback_result=True)
-    with pytest.raises(ValueError, match='_act_on_qubits_ must return True or NotImplemented'):
+    with pytest.raises(ValueError, match='_act_on_ must return True or NotImplemented'):
         cirq.act_on_qubits(Op(), args, qubits)

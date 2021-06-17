@@ -90,7 +90,7 @@ class SwapPowGate(
             return None
         return self.exponent % 1 == 0
 
-    def _act_on_qubits_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq import ops, sim, protocols
 
         if isinstance(args, (sim.ActOnStabilizerCHFormArgs, sim.ActOnCliffordTableauArgs)):

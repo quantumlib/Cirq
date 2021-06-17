@@ -34,10 +34,7 @@ class DummyActOnArgs(cirq.ActOnArgs):
     def copy(self):
         return DummyActOnArgs(self.fallback_result, self.measurements.copy())  # coverage: ignore
 
-    def _act_on_fallback_(self, action, allow_decompose):
-        return self.fallback_result
-
-    def _act_on_qubits_fallback_(self, action, qubits, allow_decompose):
+    def _act_on_fallback_(self, action, qubits, allow_decompose):
         return self.fallback_result
 
 
@@ -80,7 +77,7 @@ def test_act_on_errors():
 
 def test_act_on_args_axes_deprecation():
     class Args(DummyActOnArgs):
-        def _act_on_qubits_fallback_(self, action, qubits, allow_decompose):
+        def _act_on_fallback_(self, action, qubits, allow_decompose):
             self.measurements.append(qubits)
             return True
 

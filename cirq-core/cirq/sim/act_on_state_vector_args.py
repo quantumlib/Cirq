@@ -159,7 +159,7 @@ class ActOnStateVectorArgs(ActOnArgs):
             qid_shape=self.target_tensor.shape,
         )
 
-    def _act_on_qubits_fallback_(
+    def _act_on_fallback_(
         self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool
     ):
         strats = [

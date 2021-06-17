@@ -458,7 +458,7 @@ class MPSState(ActOnArgs):
             raise ValueError('Can only handle 1 and 2 qubit operations')
         return True
 
-    def _act_on_qubits_fallback_(
+    def _act_on_fallback_(
         self, op: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool
     ):
         """Delegates the action to self.apply_op"""

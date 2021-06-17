@@ -85,7 +85,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         super().__init__(prng, qubits, axes, log_of_measurement_results)
         self.tableau = tableau
 
-    def _act_on_qubits_fallback_(
+    def _act_on_fallback_(
         self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool
     ):
         strats = []
@@ -125,12 +125,12 @@ def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
         if clifford_gate is not None:
             for axis, quarter_turns in clifford_gate.decompose_rotation():
                 if axis == pauli_gates.X:
-                    common_gates.XPowGate(exponent=quarter_turns / 2)._act_on_qubits_(args, qubits)
+                    common_gates.XPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits)
                 elif axis == pauli_gates.Y:
-                    common_gates.YPowGate(exponent=quarter_turns / 2)._act_on_qubits_(args, qubits)
+                    common_gates.YPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits)
                 else:
                     assert axis == pauli_gates.Z
-                    common_gates.ZPowGate(exponent=quarter_turns / 2)._act_on_qubits_(args, qubits)
+                    common_gates.ZPowGate(exponent=quarter_turns / 2)._act_on_(args, qubits)
             return True
 
     return NotImplemented

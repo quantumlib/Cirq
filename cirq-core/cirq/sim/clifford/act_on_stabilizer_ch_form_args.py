@@ -82,7 +82,7 @@ class ActOnStabilizerCHFormArgs(ActOnArgs):
         super().__init__(prng, qubits, axes, log_of_measurement_results)
         self.state = state
 
-    def _act_on_qubits_fallback_(
+    def _act_on_fallback_(
         self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool
     ):
         strats = []
@@ -125,14 +125,14 @@ def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
                 gate = None  # type: Optional[cirq.Gate]
                 if axis == pauli_gates.X:
                     gate = common_gates.XPowGate(exponent=quarter_turns / 2)
-                    assert gate._act_on_qubits_(args, qubits)
+                    assert gate._act_on_(args, qubits)
                 elif axis == pauli_gates.Y:
                     gate = common_gates.YPowGate(exponent=quarter_turns / 2)
-                    assert gate._act_on_qubits_(args, qubits)
+                    assert gate._act_on_(args, qubits)
                 else:
                     assert axis == pauli_gates.Z
                     gate = common_gates.ZPowGate(exponent=quarter_turns / 2)
-                    assert gate._act_on_qubits_(args, qubits)
+                    assert gate._act_on_(args, qubits)
 
                 final_unitary = np.matmul(unitary(gate), final_unitary)
 
