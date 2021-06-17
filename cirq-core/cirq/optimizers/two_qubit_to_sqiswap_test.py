@@ -5,20 +5,6 @@ import pytest
 import cirq
 
 
-def perturb_unitary(u, amount=1e-10):
-    kak = cirq.kak_decomposition(u)
-    xyz = np.array(kak.interaction_coefficients) + np.random.uniform(-amount, amount, size=3)
-
-    return cirq.unitary(
-        cirq.KakDecomposition(
-            global_phase=kak.global_phase,
-            single_qubit_operations_before=kak.single_qubit_operations_before,
-            single_qubit_operations_after=kak.single_qubit_operations_after,
-            interaction_coefficients=tuple(xyz),
-        )
-    )
-
-
 def random_unitary(seed):
     return cirq.testing.random_unitary(4, random_state=seed)
 
@@ -38,14 +24,76 @@ def random_locals(x, y, z, seed=None):
     )
 
 
+def perturbations_unitary(u, amount=1e-10):
+    """Returns several unitaries in the neighborhood of u to test for numerical
+    corner cases near critical values."""
+    kak = cirq.kak_decomposition(u)
+    yield u
+    for i in range(3):
+        for neg in (-1, 1):
+            perturb_xyz = list(kak.interaction_coefficients)
+            perturb_xyz[i] += neg * amount
+            yield cirq.unitary(
+                cirq.KakDecomposition(
+                    global_phase=kak.global_phase,
+                    single_qubit_operations_before=kak.single_qubit_operations_before,
+                    single_qubit_operations_after=kak.single_qubit_operations_after,
+                    interaction_coefficients=tuple(perturb_xyz),
+                )
+            )
+
+
+def perturbations_gate(gate, amount=1e-10):
+    return perturbations_unitary(cirq.unitary(gate), amount)
+
+
+def perturbations_weyl(x, y, z, amount=1e-10):
+    return perturbations_gate(
+        cirq.KakDecomposition(
+            interaction_coefficients=(x, y, z),
+        ),
+        amount,
+    )
+
+
 THREE_SQISWAP_UNITARIES = [
-    cirq.unitary(cirq.SWAP),
-    cirq.unitary(cirq.FSimGate(theta=np.pi / 6, phi=np.pi / 6)),
-    *[perturb_unitary(cirq.unitary(cirq.SWAP)) for _ in range(3)],
-    *[
-        perturb_unitary(cirq.unitary(cirq.FSimGate(theta=np.pi / 6, phi=np.pi / 6)))
-        for _ in range(3)
-    ],
+    # Typical gates and nearby Weyl coordinates to simulate numerical noise
+    *perturbations_gate(cirq.SWAP),
+    *perturbations_gate(cirq.FSimGate(theta=np.pi / 6, phi=np.pi / 6)),
+    # Critical points in the Weyl chamber and nearby coordinates to simulate numerical noise
+    *perturbations_weyl(np.pi / 4, np.pi / 4, np.pi / 4),
+    *perturbations_weyl(np.pi / 4, np.pi / 4, -np.pi / 4),
+    *perturbations_weyl(np.pi / 4, np.pi / 4, np.pi / 8),
+    *perturbations_weyl(np.pi / 4, np.pi / 4, -np.pi / 8),
+    *perturbations_weyl(np.pi / 4, np.pi * 3 / 16, np.pi * 3 / 16),
+    *perturbations_weyl(np.pi / 4, np.pi * 3 / 16, -np.pi * 3 / 16),
+    *perturbations_weyl(3 / 4 * np.pi / 4, 3 / 4 * np.pi / 4, 3 / 4 * np.pi / 4),
+    *perturbations_weyl(3 / 4 * np.pi / 4, 3 / 4 * np.pi / 4, 3 / 4 * -np.pi / 4),
+    *perturbations_weyl(3 / 4 * np.pi / 4, 3 / 4 * np.pi / 4, 3 / 4 * np.pi / 8),
+    *perturbations_weyl(3 / 4 * np.pi / 4, 3 / 4 * np.pi / 4, 3 / 4 * -np.pi / 8),
+    *perturbations_weyl(3 / 4 * np.pi / 4, 3 / 4 * np.pi * 3 / 16, 3 / 4 * np.pi * 3 / 16),
+    *perturbations_weyl(3 / 4 * np.pi / 4, 3 / 4 * np.pi * 3 / 16, 3 / 4 * -np.pi * 3 / 16),
+    *perturbations_weyl(1 / 2 * np.pi / 4, 1 / 2 * np.pi / 4, 1 / 2 * np.pi / 4),
+    *perturbations_weyl(1 / 2 * np.pi / 4, 1 / 2 * np.pi / 4, 1 / 2 * -np.pi / 4),
+    *perturbations_weyl(1 / 2 * np.pi / 4, 1 / 2 * np.pi / 4, 1 / 2 * np.pi / 8),
+    *perturbations_weyl(1 / 2 * np.pi / 4, 1 / 2 * np.pi / 4, 1 / 2 * -np.pi / 8),
+    *perturbations_weyl(1 / 2 * np.pi / 4, 1 / 2 * np.pi * 3 / 16, 1 / 2 * np.pi * 3 / 16),
+    *perturbations_weyl(1 / 2 * np.pi / 4, 1 / 2 * np.pi * 3 / 16, 1 / 2 * -np.pi * 3 / 16),
+    *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * np.pi / 4, 1 / 4 * np.pi / 4),
+    *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * np.pi / 4, 1 / 4 * -np.pi / 4),
+    *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * np.pi / 4, 1 / 4 * np.pi / 8),
+    *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * np.pi / 4, 1 / 4 * -np.pi / 8),
+    *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * np.pi * 3 / 16, 1 / 4 * np.pi * 3 / 16),
+    *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * np.pi * 3 / 16, 1 / 4 * -np.pi * 3 / 16),
+    *perturbations_weyl(np.pi * 3 / 16, np.pi / 8, np.pi / 8),
+    *perturbations_weyl(np.pi * 3 / 16, np.pi / 8, -np.pi / 8),
+    *perturbations_weyl(np.pi * 3 / 32, np.pi / 16, np.pi / 16),
+    *perturbations_weyl(np.pi * 3 / 32, np.pi / 16, -np.pi / 16),
+    *perturbations_weyl(np.pi * 3 / 16, np.pi * 3 / 16, np.pi / 16),
+    *perturbations_weyl(np.pi * 3 / 16, np.pi * 3 / 16, -np.pi / 16),
+    *perturbations_weyl(np.pi * 3 / 32, np.pi * 3 / 32, np.pi / 32),
+    *perturbations_weyl(np.pi * 3 / 32, np.pi * 3 / 32, -np.pi / 32),
+    # Some random points
     random_unitary(97154),
     random_unitary(45375),
     random_unitary(78061),
@@ -53,17 +101,50 @@ THREE_SQISWAP_UNITARIES = [
     random_unitary(22897),
 ]
 TWO_SQISWAP_UNITARIES = [
-    cirq.unitary(cirq.XX ** 0.25),
-    cirq.unitary(cirq.YY ** 0.7),
-    cirq.unitary(cirq.ZZ ** 0.15),
-    cirq.unitary(cirq.CNOT),
-    cirq.unitary(cirq.ISWAP),
-    cirq.unitary(cirq.ISWAP ** 0.1),
-    *[perturb_unitary(cirq.unitary(cirq.XX ** 0.25)) for _ in range(3)],
-    *[perturb_unitary(cirq.unitary(cirq.YY ** 0.7)) for _ in range(3)],
-    *[perturb_unitary(cirq.unitary(cirq.ZZ ** 0.15)) for _ in range(3)],
-    *[perturb_unitary(cirq.unitary(cirq.CNOT)) for _ in range(3)],
-    *[perturb_unitary(cirq.unitary(cirq.ISWAP)) for _ in range(3)],
+    # Typical gates and nearby Weyl coordinates to simulate numerical noise
+    *perturbations_gate(cirq.XX ** 0.25),
+    *perturbations_gate(cirq.YY ** 0.07),
+    *perturbations_gate(cirq.ZZ ** 0.15),
+    *perturbations_gate(cirq.CNOT),
+    *perturbations_gate(cirq.ISWAP),
+    *perturbations_gate(cirq.ISWAP ** 0.1),
+    # Critical points in the Weyl chamber and nearby coordinates to simulate numerical noise
+    *perturbations_weyl(np.pi / 4, 0, 0),
+    *perturbations_weyl(np.pi / 4, np.pi / 4, 0),
+    *perturbations_weyl(np.pi / 4, np.pi / 8, np.pi / 8),
+    *perturbations_weyl(np.pi / 4, np.pi / 8, -np.pi / 8),
+    *perturbations_weyl(np.pi / 4, np.pi * 1 / 16, np.pi / 16),
+    *perturbations_weyl(np.pi / 4, np.pi * 1 / 16, -np.pi / 16),
+    *perturbations_weyl(np.pi / 4, np.pi * 3 / 16, np.pi / 16),
+    *perturbations_weyl(np.pi / 4, np.pi * 3 / 16, -np.pi / 16),
+    *perturbations_weyl(np.pi / 4, np.pi / 8, 0),
+    *perturbations_weyl(3 / 4 * np.pi / 4, 3 / 4 * 0, 3 / 4 * 0),
+    *perturbations_weyl(3 / 4 * np.pi / 4, 3 / 4 * np.pi / 4, 3 / 4 * 0),
+    *perturbations_weyl(3 / 4 * np.pi / 4, 3 / 4 * np.pi / 8, 3 / 4 * np.pi / 8),
+    *perturbations_weyl(3 / 4 * np.pi / 4, 3 / 4 * np.pi / 8, 3 / 4 * -np.pi / 8),
+    *perturbations_weyl(3 / 4 * np.pi / 4, 3 / 4 * np.pi * 1 / 16, 3 / 4 * np.pi / 16),
+    *perturbations_weyl(3 / 4 * np.pi / 4, 3 / 4 * np.pi * 1 / 16, 3 / 4 * -np.pi / 16),
+    *perturbations_weyl(3 / 4 * np.pi / 4, 3 / 4 * np.pi * 3 / 16, 3 / 4 * np.pi / 16),
+    *perturbations_weyl(3 / 4 * np.pi / 4, 3 / 4 * np.pi * 3 / 16, 3 / 4 * -np.pi / 16),
+    *perturbations_weyl(3 / 4 * np.pi / 4, 3 / 4 * np.pi / 8, 3 / 4 * 0),
+    *perturbations_weyl(1 / 2 * np.pi / 4, 1 / 2 * 0, 1 / 2 * 0),
+    *perturbations_weyl(1 / 2 * np.pi / 4, 1 / 2 * np.pi / 8, 1 / 2 * np.pi / 8),
+    *perturbations_weyl(1 / 2 * np.pi / 4, 1 / 2 * np.pi / 8, 1 / 2 * -np.pi / 8),
+    *perturbations_weyl(1 / 2 * np.pi / 4, 1 / 2 * np.pi * 1 / 16, 1 / 2 * np.pi / 16),
+    *perturbations_weyl(1 / 2 * np.pi / 4, 1 / 2 * np.pi * 1 / 16, 1 / 2 * -np.pi / 16),
+    *perturbations_weyl(1 / 2 * np.pi / 4, 1 / 2 * np.pi * 3 / 16, 1 / 2 * np.pi / 16),
+    *perturbations_weyl(1 / 2 * np.pi / 4, 1 / 2 * np.pi * 3 / 16, 1 / 2 * -np.pi / 16),
+    *perturbations_weyl(1 / 2 * np.pi / 4, 1 / 2 * np.pi / 8, 1 / 2 * 0),
+    *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * 0, 1 / 4 * 0),
+    *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * np.pi / 4, 1 / 4 * 0),
+    *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * np.pi / 8, 1 / 4 * np.pi / 8),
+    *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * np.pi / 8, 1 / 4 * -np.pi / 8),
+    *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * np.pi * 1 / 16, 1 / 4 * np.pi / 16),
+    *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * np.pi * 1 / 16, 1 / 4 * -np.pi / 16),
+    *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * np.pi * 3 / 16, 1 / 4 * np.pi / 16),
+    *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * np.pi * 3 / 16, 1 / 4 * -np.pi / 16),
+    *perturbations_weyl(1 / 4 * np.pi / 4, 1 / 4 * np.pi / 8, 1 / 4 * 0),
+    # Some random points
     random_unitary(17323),
     random_unitary(99415),
     random_unitary(65832),
@@ -71,19 +152,17 @@ TWO_SQISWAP_UNITARIES = [
     random_unitary(27123),
 ]
 ONE_SQISWAP_UNITARIES = [
-    cirq.unitary(cirq.SQISWAP),
-    cirq.unitary(cirq.ISwapPowGate(exponent=-0.5, global_shift=1)),
-    random_locals(np.pi / 8, np.pi / 8, 0, seed=80342),
-    random_locals(np.pi / 8, np.pi / 8, 0, seed=83551),
-    random_locals(np.pi / 8, np.pi / 8, 0, seed=52450),
+    *perturbations_gate(cirq.SQISWAP),
+    *perturbations_gate(cirq.ISwapPowGate(exponent=-0.5, global_shift=1)),
+    *perturbations_unitary(random_locals(np.pi / 8, np.pi / 8, 0, seed=80342)),
+    *perturbations_unitary(random_locals(np.pi / 8, np.pi / 8, 0, seed=83551)),
+    *perturbations_unitary(random_locals(np.pi / 8, np.pi / 8, 0, seed=52450)),
 ]
-ONE_SQISWAP_UNITARIES += [perturb_unitary(u, 1e-10) for u in ONE_SQISWAP_UNITARIES]
 ZERO_UNITARIES = [
-    cirq.unitary(cirq.IdentityGate(2)),
-    random_locals(0, 0, 0, seed=62933),
-    random_locals(0, 0, 0, seed=50590),
+    *perturbations_gate(cirq.IdentityGate(2)),
+    *perturbations_unitary(random_locals(0, 0, 0, seed=62933)),
+    *perturbations_unitary(random_locals(0, 0, 0, seed=50590)),
 ]
-ZERO_UNITARIES += [perturb_unitary(u, 1e-10) for u in ZERO_UNITARIES]
 
 # Lists of seeds for cirq.testing.random_unitary(4, random_state=seed)
 # corresponding to different regions in the Weyl chamber and possible
@@ -114,9 +193,10 @@ def assert_valid_decomp(
     operations,
     *,
     check_global_phase,
-    single_qubit_gate_types=(cirq.MatrixGate,),
-    atol=1e-8,
-    qubit_order=cirq.QubitOrder.DEFAULT,
+    single_qubit_gate_types=(cirq.MatrixGate),
+    atol=1e-5,
+    rtol=0,
+    qubit_order=cirq.LineQubit.range(2),
 ):
     # Check expected gates
     saw_global_phase = False
@@ -137,13 +217,26 @@ def assert_valid_decomp(
     c = cirq.Circuit(operations)
     u_decomp = c.unitary(qubit_order)
     print(c)
-    print(u_target.round(4))
-    print(u_decomp.round(4))
-    assert cirq.equal_up_to_global_phase(
-        u_target, u_decomp
-    ), 'Invalid decomposition.  Unitaries do not match.'
+    print('Expected:')
+    print(repr(u_target))
+    print('Actual:')
+    print(repr(u_decomp))
+    if not cirq.allclose_up_to_global_phase(u_decomp, u_target, atol=atol, rtol=rtol):
+        # Check if they are even close
+        cirq.testing.assert_allclose_up_to_global_phase(
+            u_decomp,
+            u_target,
+            atol=1e-2,
+            rtol=1e-2,
+            err_msg='Invalid decomposition.  Unitaries are completely different.',
+        )
+        worst_diff = np.max(np.abs(u_decomp - u_target))
+        assert False, (
+            f'Unitaries do not match closely enough (atol={atol}, rtol={rtol}, '
+            f'worst element diff={worst_diff}).'
+        )
     if check_global_phase:
-        assert np.allclose(u_target, u_decomp, atol=atol, rtol=0), 'Bad global phase'
+        assert np.allclose(u_decomp, u_target, atol=atol, rtol=rtol), 'Bad global phase'
 
 
 def assert_specific_sqiswap_count(operations, count):
@@ -301,7 +394,7 @@ def test_not_clean_operations(u):
     assert_specific_sqiswap_count(ops, 3)
 
 
-@pytest.mark.parametrize('u', THREE_SQISWAP_UNITARIES)
+@pytest.mark.parametrize('u', THREE_SQISWAP_UNITARIES[:1])
 def test_clean_operations(u):
     q0, q1 = cirq.LineQubit.range(2)
     ops = cirq.two_qubit_matrix_to_sqiswap_operations(q0, q1, u, clean_operations=True)
