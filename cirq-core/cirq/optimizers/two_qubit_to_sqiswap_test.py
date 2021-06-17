@@ -222,7 +222,7 @@ def assert_valid_decomp(
     print('Actual:')
     print(repr(u_decomp))
     if not cirq.allclose_up_to_global_phase(u_decomp, u_target, atol=atol, rtol=rtol):
-        # Check if they are even close
+        # Check if they are close and output a helpful message
         cirq.testing.assert_allclose_up_to_global_phase(
             u_decomp,
             u_target,
@@ -337,7 +337,7 @@ def test_decomp3_invalid():
         )
 
 
-@pytest.mark.parametrize('u', TWO_SQISWAP_UNITARIES)
+@pytest.mark.parametrize('u', TWO_SQISWAP_UNITARIES[:1])
 def test_qubit_order(u):
     q0, q1 = cirq.LineQubit.range(2)
     ops = cirq.two_qubit_matrix_to_sqiswap_operations(
@@ -405,3 +405,40 @@ def test_clean_operations(u):
         single_qubit_gate_types=(cirq.PhasedXPowGate, cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate),
     )
     assert_specific_sqiswap_count(ops, 3)
+
+
+def test_valid_check_raises():
+    q0 = cirq.LineQubit(0)
+    with pytest.raises(AssertionError, match='Unitaries are completely different'):
+        assert_valid_decomp(
+            np.eye(4),
+            [cirq.X(q0)],
+            check_global_phase=False,
+            single_qubit_gate_types=(cirq.XPowGate,),
+        )
+    with pytest.raises(AssertionError, match='Unitaries do not match closely enough'):
+        assert_valid_decomp(
+            np.eye(4),
+            [cirq.rx(0.01)(q0)],
+            check_global_phase=False,
+            single_qubit_gate_types=(cirq.Rx,),
+        )
+    with pytest.raises(AssertionError, match='Bad global phase'):
+        assert_valid_decomp(
+            np.eye(4), [cirq.GlobalPhaseOperation(np.exp(1j * 0.01))], check_global_phase=True
+        )
+    with pytest.raises(
+        AssertionError, match='Global phase operation was output when it should not'
+    ):
+        assert_valid_decomp(
+            np.eye(4), [cirq.GlobalPhaseOperation(np.exp(1j * 0.01))], check_global_phase=False
+        )
+    with pytest.raises(AssertionError, match='Global phase operation should have been output'):
+        assert_valid_decomp(np.eye(4), [], check_global_phase=True)
+    with pytest.raises(AssertionError, match='Disallowed operation was output'):
+        assert_valid_decomp(
+            np.eye(4),
+            [cirq.X(q0)],
+            check_global_phase=False,
+            single_qubit_gate_types=(cirq.IdentityGate,),
+        )
