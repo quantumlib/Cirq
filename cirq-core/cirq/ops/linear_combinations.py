@@ -418,14 +418,14 @@ class PauliSum:
         return factory(self._linear_dict.copy())
 
     def matrix(self, qubits: Optional[Iterable[raw_types.Qid]] = None) -> np.ndarray:
-        """Reconstructs matrix of self from underlying Pauli operations in 
+        """Reconstructs matrix of self from underlying Pauli operations in
         computational basis of qubits.
 
         Raises:
             TypeError: if any of the gates in self does not provide a unitary.
         """
 
-        qubits = self.qubits if qubits is None else qubits
+        qubits = self.qubits if qubits is None else tuple(qubits)
         num_qubits = len(qubits)
         num_dim = 2 ** num_qubits
         result = np.zeros((num_dim, num_dim), dtype=np.complex128)
@@ -672,3 +672,4 @@ class PauliSum:
 
     def __str__(self) -> str:
         return self.__format__('.3f')
+B
