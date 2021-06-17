@@ -1,7 +1,5 @@
 from typing import Callable, List
 
-import pytest
-
 import cirq
 
 
@@ -108,7 +106,7 @@ def test_optimizes_single_iswap():
 
 def test_optimizes_single_inv_sqrt_iswap():
     a, b = cirq.LineQubit.range(2)
-    c = cirq.Circuit(cirq.SQRT_ISWAP(a, b)**-1)
+    c = cirq.Circuit(cirq.SQRT_ISWAP(a, b) ** -1)
     assert_optimization_not_broken(c)
     cirq.MergeInteractionsToSqrtIswap().optimize_circuit(c)
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 1
@@ -124,7 +122,7 @@ def test_optimizes_single_iswap_require3():
 
 def test_optimizes_single_inv_sqrt_iswap_require3():
     a, b = cirq.LineQubit.range(2)
-    c = cirq.Circuit(cirq.SQRT_ISWAP(a, b)**-1)
+    c = cirq.Circuit(cirq.SQRT_ISWAP(a, b) ** -1)
     assert_optimization_not_broken(c)
     cirq.MergeInteractionsToSqrtIswap(require_three_sqrt_iswap=True).optimize_circuit(c)
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 3

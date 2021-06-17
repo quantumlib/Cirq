@@ -14,6 +14,7 @@
 
 from typing import Callable, List
 
+import pytest
 import sympy
 
 import cirq

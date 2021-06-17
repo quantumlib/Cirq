@@ -90,7 +90,7 @@ class MergeInteractionsAbc(circuits.PointOptimizer, metaclass=abc.ABCMeta):
         q0: 'cirq.Qid',
         q1: 'cirq.Qid',
         mat: np.ndarray,
-    ) -> List['cirq.Operation']:
+    ) -> Sequence['cirq.Operation']:
         """Decomposes the merged two-qubit gate unitary into the minimum number
         of two-qubit gates.
 
@@ -144,7 +144,7 @@ class MergeInteractionsAbc(circuits.PointOptimizer, metaclass=abc.ABCMeta):
 
     def _scan_two_qubit_ops_into_matrix(
         self, circuit: circuits.Circuit, index: Optional[int], qubits: Tuple['cirq.Qid', ...]
-    ) -> Tuple[List[ops.Operation], List[int], np.ndarray]:
+    ) -> Tuple[Sequence[ops.Operation], List[int], np.ndarray]:
         """Accumulates operations affecting the given pair of qubits.
 
         The scan terminates when it hits the end of the circuit, finds an
@@ -222,7 +222,7 @@ class MergeInteractions(MergeInteractionsAbc):
         q0: 'cirq.Qid',
         q1: 'cirq.Qid',
         mat: np.ndarray,
-    ) -> List['cirq.Operation']:
+    ) -> Sequence['cirq.Operation']:
         """Decomposes the merged two-qubit gate unitary into the minimum number
         of CZ gates.
 
@@ -263,7 +263,7 @@ class MergeInteractionsToSqrtIswap(MergeInteractionsAbc):
         q0: 'cirq.Qid',
         q1: 'cirq.Qid',
         mat: np.ndarray,
-    ) -> List['cirq.Operation']:
+    ) -> Sequence['cirq.Operation']:
         """Decomposes the merged two-qubit gate unitary into the minimum number
         of SQRT_ISWAP gates.
 
