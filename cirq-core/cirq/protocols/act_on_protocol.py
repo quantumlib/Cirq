@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, Sequence, Any
 
 from typing_extensions import Protocol
 
@@ -28,7 +28,11 @@ class SupportsActOn(Protocol):
     """An object that explicitly specifies how to act on simulator states."""
 
     @doc_private
-    def _act_on_(self, args: 'cirq.ActOnArgs') -> Union[NotImplementedType, bool]:
+    def _act_on_(
+        self,
+        args: 'cirq.ActOnArgs',
+        qubits: Sequence['cirq.Qid'] = None,
+    ) -> Union[NotImplementedType, bool]:
         """Applies an action to the given argument, if it is a supported type.
 
         For example, unitary operations can implement an `_act_on_` method that
@@ -42,6 +46,7 @@ class SupportsActOn(Protocol):
         Args:
             args: An object of unspecified type. The method must check if this
                 object is of a recognized type and act on it if so.
+            qubits: The sequence of qubits to use when applying the action.
 
         Returns:
             True: The receiving object (`self`) acted on the argument.
@@ -52,16 +57,19 @@ class SupportsActOn(Protocol):
 
 
 def act_on(
-    action: 'cirq.Operation',
+    action: Union['cirq.Operation', Any],
     args: 'cirq.ActOnArgs',
+    qubits: Sequence['cirq.Qid'] = None,
     *,
     allow_decompose: bool = True,
-):
+) -> Union[NotImplementedType, bool]:
     """Applies an action to a state argument.
 
     For example, the action may be a `cirq.Operation` and the state argument may
     represent the internal state of a state vector simulator (a
     `cirq.ActOnStateVectorArgs`).
+
+    For non-operations, the `qubits` argument must be explicitly supplied.
 
     The action is applied by first checking if `action._act_on_` exists and
     returns `True` (instead of `NotImplemented`) for the given object. Then
@@ -69,10 +77,11 @@ def act_on(
     are attempted. If those also fail, the method fails with a `TypeError`.
 
     Args:
-        action: The operation to apply to the state tensor.
+        action: The operation, gate, or other to apply to the state tensor.
         args: A mutable state object that should be modified by the action. May
             specify an `_act_on_fallback_` method to use in case the action
             doesn't recognize it.
+        qubits: The sequence of qubits to use when applying the action.
         allow_decompose: Defaults to True. Forwarded into the
             `_act_on_fallback_` method of `args`. Determines if decomposition
             should be used or avoided when attempting to act `action` on `args`.
@@ -84,16 +93,15 @@ def act_on(
     Raises:
         TypeError: Failed to act `action` on `args`.
     """
+    is_op = isinstance(action, ops.Operation)
 
     # todo: remove after `args.axes` is deprecated.
-    if not isinstance(action, ops.Operation):
+    if not is_op and qubits is None:
         qubits = [args.qubits[i] for i in args.axes]
-        protocols.act_on_qubits(action, args, qubits, allow_decompose=allow_decompose)
-        return
 
     action_act_on = getattr(action, '_act_on_', None)
     if action_act_on is not None:
-        result = action_act_on(args)
+        result = action_act_on(args) if is_op else action_act_on(args, qubits)
         if result is True:
             return
         if result is not NotImplemented:
@@ -104,7 +112,8 @@ def act_on(
 
     arg_fallback = getattr(args, '_act_on_fallback_', None)
     if arg_fallback is not None:
-        result = arg_fallback(action, qubits=action.qubits, allow_decompose=allow_decompose)
+        qubits = action.qubits if is_op else qubits
+        result = arg_fallback(action, qubits=qubits, allow_decompose=allow_decompose)
         if result is True:
             return
         if result is not NotImplemented:

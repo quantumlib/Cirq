@@ -100,9 +100,9 @@ class SwapPowGate(
                 args.state.omega *= 1j ** (2 * self.global_shift * self._exponent)
 
             if self._exponent % 2 == 1:
-                protocols.act_on_qubits(ops.CNOT, args, qubits)
-                protocols.act_on_qubits(ops.CNOT, args, tuple(reversed(qubits)))
-                protocols.act_on_qubits(ops.CNOT, args, qubits)
+                protocols.act_on(ops.CNOT, args, qubits)
+                protocols.act_on(ops.CNOT, args, tuple(reversed(qubits)))
+                protocols.act_on(ops.CNOT, args, qubits)
 
             # An even exponent does not change anything except the global phase above.
             return True

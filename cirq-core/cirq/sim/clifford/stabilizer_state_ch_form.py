@@ -62,7 +62,7 @@ class StabilizerStateChForm:
             big_endian_int_to_digits(initial_state, digit_count=num_qubits, base=2)
         ):
             if val:
-                protocols.act_on_qubits(
+                protocols.act_on(
                     pauli_gates.X,
                     args,
                     [qubits[i]],

@@ -479,7 +479,7 @@ def test_reset_channel_text_diagram():
 
 def test_reset_act_on():
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on_qubits(cirq.ResetChannel(), DummyActOnArgs(), qubits=())
+        cirq.act_on(cirq.ResetChannel(), DummyActOnArgs(), qubits=())
 
     args = cirq.ActOnStateVectorArgs(
         target_tensor=cirq.one_hot(
@@ -491,14 +491,14 @@ def test_reset_act_on():
         log_of_measurement_results={},
     )
 
-    cirq.act_on_qubits(cirq.ResetChannel(), args, [cirq.LineQubit(1)])
+    cirq.act_on(cirq.ResetChannel(), args, [cirq.LineQubit(1)])
     assert args.log_of_measurement_results == {}
     np.testing.assert_allclose(
         args.target_tensor,
         cirq.one_hot(index=(1, 0, 1, 1, 1), shape=(2, 2, 2, 2, 2), dtype=np.complex64),
     )
 
-    cirq.act_on_qubits(cirq.ResetChannel(), args, [cirq.LineQubit(1)])
+    cirq.act_on(cirq.ResetChannel(), args, [cirq.LineQubit(1)])
     assert args.log_of_measurement_results == {}
     np.testing.assert_allclose(
         args.target_tensor,
@@ -694,7 +694,7 @@ def test_bit_flip_channel_text_diagram():
 def test_stabilizer_supports_depolarize():
     with pytest.raises(TypeError, match="act_on"):
         for _ in range(100):
-            cirq.act_on_qubits(cirq.depolarize(3 / 4), DummyActOnArgs(), qubits=())
+            cirq.act_on(cirq.depolarize(3 / 4), DummyActOnArgs(), qubits=())
 
     q = cirq.LineQubit(0)
     c = cirq.Circuit(cirq.depolarize(3 / 4).on(q), cirq.measure(q, key='m'))

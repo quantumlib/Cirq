@@ -30,7 +30,7 @@ def test_cannot_act():
     )
 
     with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on_qubits(NoDetails(), args, qubits=())
+        cirq.act_on(NoDetails(), args, qubits=())
 
 
 def test_gate_with_act_on():
@@ -49,7 +49,7 @@ def test_gate_with_act_on():
         log_of_measurement_results={},
     )
 
-    cirq.act_on_qubits(CustomGate(), args, [cirq.LineQubit(1)])
+    cirq.act_on(CustomGate(), args, [cirq.LineQubit(1)])
 
     np.testing.assert_allclose(state.gamma, [0, 1, 0])
 
@@ -70,14 +70,14 @@ def test_unitary_fallback_y():
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on_qubits(UnitaryYGate(), args, [cirq.LineQubit(1)])
+    cirq.act_on(UnitaryYGate(), args, [cirq.LineQubit(1)])
     expected_args = cirq.ActOnStabilizerCHFormArgs(
         state=original_state.copy(),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on_qubits(cirq.Y, expected_args, [cirq.LineQubit(1)])
+    cirq.act_on(cirq.Y, expected_args, [cirq.LineQubit(1)])
     np.testing.assert_allclose(args.state.state_vector(), expected_args.state.state_vector())
 
 
@@ -97,14 +97,14 @@ def test_unitary_fallback_h():
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on_qubits(UnitaryHGate(), args, [cirq.LineQubit(1)])
+    cirq.act_on(UnitaryHGate(), args, [cirq.LineQubit(1)])
     expected_args = cirq.ActOnStabilizerCHFormArgs(
         state=original_state.copy(),
         qubits=cirq.LineQubit.range(3),
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    cirq.act_on_qubits(cirq.H, expected_args, [cirq.LineQubit(1)])
+    cirq.act_on(cirq.H, expected_args, [cirq.LineQubit(1)])
     np.testing.assert_allclose(args.state.state_vector(), expected_args.state.state_vector())
 
 

@@ -322,7 +322,7 @@ class DepolarizingChannel(gate_features.SupportsOnEachGate, raw_types.Gate):
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
             if args.prng.random() < self._p:
                 gate = args.prng.choice([pauli_gates.X, pauli_gates.Y, pauli_gates.Z])
-                protocols.act_on_qubits(gate, args, qubits)
+                protocols.act_on(gate, args, qubits)
             return True
         return NotImplemented
 

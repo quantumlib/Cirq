@@ -459,7 +459,6 @@ from cirq.value import (
 # pylint: disable=redefined-builtin
 from cirq.protocols import (
     act_on,
-    act_on_qubits,
     apply_channel,
     apply_mixture,
     apply_unitaries,
@@ -511,7 +510,6 @@ from cirq.protocols import (
     resolve_parameters_once,
     SerializableByKey,
     SupportsActOn,
-    SupportsActOnQubits,
     SupportsApplyChannel,
     SupportsApplyMixture,
     SupportsApproximateEquality,

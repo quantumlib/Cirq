@@ -129,7 +129,7 @@ class RandomGateChannel(raw_types.Gate):
                 # Note: because we're doing this probabilistically, it's not
                 # safe to fallback to other strategies if act_on fails. Those
                 # strategies could double-count the probability.
-                protocols.act_on_qubits(self.sub_gate, args, qubits)
+                protocols.act_on(self.sub_gate, args, qubits)
             return True
         return NotImplemented
 

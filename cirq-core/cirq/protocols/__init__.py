@@ -18,10 +18,6 @@ from cirq.protocols.act_on_protocol import (
     act_on,
     SupportsActOn,
 )
-from cirq.protocols.act_on_qubits_protocol import (
-    act_on_qubits,
-    SupportsActOnQubits,
-)
 from cirq.protocols.apply_unitary_protocol import (
     apply_unitaries,
     apply_unitary,

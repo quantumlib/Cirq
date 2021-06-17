@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Sequence
-
-import pytest
+from typing import Sequence
 
 import numpy as np
+import pytest
 
 import cirq
 
