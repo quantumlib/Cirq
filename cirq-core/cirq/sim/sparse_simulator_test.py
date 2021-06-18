@@ -1272,12 +1272,10 @@ def test_nondeterministic_mixture_noise():
 
 def test_noise_model():
     q = cirq.LineQubit(0)
-    circuit = cirq.Circuit(cirq.I(q), cirq.measure(q))
+    circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
 
     noise_model = cirq.NoiseModel.from_noise_model_like(cirq.depolarize(p=0.01))
-
     simulator = cirq.Simulator(noise=noise_model)
-
     result = simulator.run(circuit, repetitions=100)
 
-    assert 0 <= sum(result.measurements['0'])[0] < 5
+    assert 40 <= sum(result.measurements['0'])[0] < 60
