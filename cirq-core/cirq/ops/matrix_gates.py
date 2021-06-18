@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 class MatrixGate(raw_types.Gate):
     """A unitary qubit or qudit gate defined entirely by its matrix."""
 
-    def __init__(self, matrix: np.ndarray, *, qid_shape: Optional[Iterable[int]] = None, unitary_check_rtol = 1e-5 , unitary_check_atol = 1e-8) -> None:
+    def __init__(self, matrix: np.ndarray, *, qid_shape: Optional[Iterable[int]] = None, unitary_check_rtol: float = 1e-5 , unitary_check_atol: float = 1e-8) -> None:
         """Initializes a matrix gate.
         Args:
             matrix: The matrix that defines the gate.
