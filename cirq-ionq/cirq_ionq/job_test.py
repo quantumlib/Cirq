@@ -16,7 +16,7 @@ from unittest import mock
 
 import pytest
 
-import cirq.ionq as ionq
+import cirq_ionq as ionq
 
 
 def test_job_fields():
@@ -53,7 +53,7 @@ def test_job_status_refresh():
 
 def test_job_str():
     job = ionq.Job(None, {'id': 'my_id'})
-    assert str(job) == 'cirq.ionq.Job(job_id=my_id)'
+    assert str(job) == 'cirq_ionq.Job(job_id=my_id)'
 
 
 def test_job_results_qpu():

@@ -19,6 +19,7 @@ from setuptools import setup
 # This reads the __version__ variable from cirq/_version.py
 __version__ = ''
 
+from dev_tools import modules
 from dev_tools.requirements import explode
 
 exec(open('cirq-core/cirq/_version.py').read())
@@ -50,7 +51,7 @@ if 'CIRQ_PRE_RELEASE_VERSION' in os.environ:
 assert __version__, 'Version string cannot be empty'
 
 # This is a pure metapackage that installs all our packages
-requirements = [f'{p}=={__version__}' for p in ['cirq-core', 'cirq-google']]
+requirements = [f'{p.name}=={p.version}' for p in modules.list_modules()]
 
 dev_requirements = explode('dev_tools/requirements/deps/dev-tools.txt')
 dev_requirements = [r.strip() for r in dev_requirements]

@@ -133,7 +133,7 @@ See the previous section for instructions.
 If you want to pip install cirq in an editable fashion, you'll have to install it per module, e.g.: 
 
 ```
-pip install -e ./cirq-core -e ./cirq-google
+pip install -e ./cirq-core -e ./cirq-google -e ./cirq-ionq -e ./cirq-aqt
 ```
 
 Note that `pip install -e .` will install the `cirq` metapackage only, and your code changes won't 
