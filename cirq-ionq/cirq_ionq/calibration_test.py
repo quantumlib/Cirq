@@ -14,7 +14,7 @@
 import datetime
 
 import cirq
-from cirq import ionq
+import cirq_ionq as ionq
 
 
 def test_calibration_fields():
