@@ -303,23 +303,21 @@ def test_protocols_and_repr():
 
 def test_matrixgate_unitary_tolerance():
     ## non-unitary matrix
-    with pytest.raises(ValueError): 
-        _ = cirq.MatrixGate(np.array([[1, 0], [0, -0.6]]),unitary_check_atol = .5)
-   
+    with pytest.raises(ValueError):
+        _ = cirq.MatrixGate(np.array([[1, 0], [0, -0.6]]), unitary_check_atol=0.5)
+
     # very high atol -> check converges quickly
-    _ = cirq.MatrixGate(np.array([[1, 0 ], [0, -0.6]]),unitary_check_atol = 1)
+    _ = cirq.MatrixGate(np.array([[1, 0], [0, 1]]), unitary_check_atol=1)
 
     # very high rtol -> check converges quickly
-    _ = cirq.MatrixGate(np.array([[1, 0], [0, -0.6]]),unitary_check_rtol = 1)
+    _ = cirq.MatrixGate(np.array([[1, 0], [0, -0.6]]), unitary_check_rtol=1)
 
+    ## unitary matrix
+    _ = cirq.MatrixGate(np.array([[0.707, 0.707], [-0.707, 0.707]]), unitary_check_atol=0.5)
 
-   ## unitary matrix 
-    _ = cirq.MatrixGate(np.array([[.707, .707], [-.707, .707]]),unitary_check_atol = .5)
+    # very low atol -> the check never converges
+    _ = cirq.MatrixGate(np.array([[0.707, 0.707], [-0.707, 0.707]]), unitary_check_atol=1e-10)
 
-    #very low atol -> the check never converges
+    # very low atol -> the check never converges
     with pytest.raises(ValueError):
-        _ = cirq.MatrixGate(np.array([[.707, .707], [-.707, .707]]),unitary_check_atol = 1e-10)
-
-    #very low atol -> the check never converges
-    with pytest.raises(ValueError):
-        _ = cirq.MatrixGate(np.array([[.707, .707], [-.707, .707]]),unitary_check_rtol = 1e-10)
+        _ = cirq.MatrixGate(np.array([[0.707, 0.707], [-0.707, 0.707]]), unitary_check_rtol=1e-10)
