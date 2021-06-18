@@ -10,9 +10,9 @@
 
 cirq-google/**/*.* @wcourtney @quantumlib/cirq-maintainers @vtomole @cduck
 
-cirq-core/cirq/ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @quantumlib/cirq-maintainers @vtomole @cduck
+cirq-ionq/**/*.* @dabacon @ColemanCollins @nakardo @gmauricio @quantumlib/cirq-maintainers @vtomole @cduck
 
-cirq-core/cirq/aqt/**/*.* @ma5x @pschindler @alfrisch @quantumlib/cirq-maintainers @vtomole @cduck
+cirq-aqt/**/*.* @ma5x @pschindler @alfrisch @quantumlib/cirq-maintainers @vtomole @cduck
 
 cirq-core/cirq/pasqal/**/*.* @HGSilveri @quantumlib/cirq-maintainers @vtomole @cduck
 
