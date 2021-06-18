@@ -252,20 +252,20 @@ def test_named_two_qubit_diagram():
     )
 
     expected_horizontal = """
-a: ───Foo[0]───Bar[1]───
+a: ───Foo[1]───Bar[2]───
       │        │
-b: ───Foo[1]───┼────────
+b: ───Foo[2]───┼────────
                │
-c: ────────────Bar[0]───
+c: ────────────Bar[1]───
     """.strip()
     assert expected_horizontal == c.to_text_diagram().strip()
 
     expected_vertical = """
 a      b      c
 │      │      │
-Foo[0]─Foo[1] │
+Foo[1]─Foo[2] │
 │      │      │
-Bar[1]─┼──────Bar[0]
+Bar[2]─┼──────Bar[1]
 │      │      │
     """.strip()
     assert expected_vertical == c.to_text_diagram(transpose=True).strip()
