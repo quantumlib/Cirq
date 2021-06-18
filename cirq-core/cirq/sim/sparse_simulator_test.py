@@ -23,6 +23,7 @@ import cirq_google
 from cirq_google.api import v2
 import cirq
 from cirq_google.experimental.noise_models import simple_noise_from_calibration_metrics
+from cirq.experiments import single_qubit_randomized_benchmarking
 
 # Fake calibration data object.
 _CALIBRATION_DATA = Merge(
@@ -38,13 +39,13 @@ _CALIBRATION_DATA = Merge(
         name: 'single_qubit_readout_separation_error',
         targets: ['0_0'],
         values: [{
-            double_val: .04
+            double_val: .01
         }]
     }, {
         name: 'single_qubit_idle_t1_micros',
         targets: ['0_0'],
         values: [{
-            double_val: .07
+            double_val: .01
         }]
     }]
 """,
@@ -1303,7 +1304,6 @@ def test_nondeterministic_mixture_noise():
 
 def test_noise_model():
     q = cirq.GridQubit(0, 0)
-    circuit = cirq.Circuit(cirq.I(q), cirq.measure(q))
 
     calibration = cirq_google.Calibration(_CALIBRATION_DATA)
     noise_model = simple_noise_from_calibration_metrics(
@@ -1314,7 +1314,9 @@ def test_noise_model():
     )
     simulator = cirq.Simulator(noise=noise_model)
 
-    result1 = simulator.run(circuit, repetitions=50)
-    result2 = simulator.run(circuit, repetitions=50)
-
-    assert result1 != result2
+    results = single_qubit_randomized_benchmarking(
+        sampler=simulator, qubit=q, num_clifford_range=range(5, 20, 5), repetitions=100
+    )
+    average = np.mean(np.asarray(results.data)[:, 1])
+    print(average)
+    assert average >= 0.01
