@@ -397,8 +397,8 @@ _warned: Set[str] = set()
 
 
 def _deduped_module_warn_or_error(old_module_name, new_module_name, deadline):
-    if old_module_name in _warned:
-        return
+    # if old_module_name in _warned:
+    #     return
 
     _warned.add(old_module_name)
 

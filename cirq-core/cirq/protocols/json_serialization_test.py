@@ -36,6 +36,7 @@ REPO_ROOT = pathlib.Path(__file__).parent.parent.parent.parent
 TESTED_MODULES = [
     'cirq_aqt',
     'cirq_ionq',
+    'cirq_pasqal',
     'cirq_google',
     'cirq.protocols',
     'non_existent_should_be_fine',
@@ -416,18 +417,27 @@ def test_internal_serializer_types():
 
 def _list_public_classes_for_tested_modules():
     cirq_google_on_path = importlib.util.find_spec("cirq_google") is not None
+    cirq_pasqal_on_path = importlib.util.find_spec("cirq_pasqal") is not None
 
-    ctx_manager = (
-        cirq.testing.assert_deprecated("cirq.google", deadline="v0.14")
-        if cirq_google_on_path
-        else contextlib.suppress()
-    )
-    with ctx_manager:
-        return [
-            (mod_spec, o, n)
-            for mod_spec in MODULE_TEST_SPECS
-            for (o, n) in mod_spec.find_classes_that_should_serialize()
-        ]
+    ctx_managers = (contextlib.suppress(),)
+
+    if cirq_google_on_path:
+        ctx_managers = (cirq.testing.assert_deprecated("cirq.google", deadline="v0.14"),)
+
+    if cirq_pasqal_on_path:
+        ctx_managers = (
+            *ctx_managers,
+            cirq.testing.assert_deprecated("cirq.pasqal", deadline="v0.14"),
+        )
+
+    with contextlib.ExitStack() as stack:
+        for mgr in ctx_managers:
+            stack.enter_context(mgr)
+            return [
+                (mod_spec, o, n)
+                for mod_spec in MODULE_TEST_SPECS
+                for (o, n) in mod_spec.find_classes_that_should_serialize()
+            ]
 
 
 @pytest.mark.parametrize(
@@ -558,11 +568,24 @@ def _eval_repr_data_file(path: pathlib.Path, deprecation_deadline: Optional[str]
             imports['cirq_google'] = cirq_google
         except ImportError:
             pass
+        try:
+            import cirq_pasqal
+
+            imports['cirq_pasqal'] = cirq_pasqal
+        except ImportError:
+            pass
+
+        text = path.read_text()
+
+        if "cirq.pasqal" in text:
+            print(path)
+
         obj = eval(
-            path.read_text(),
+            text,
             imports,
             {},
         )
+
     return obj
 
 
