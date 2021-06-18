@@ -18,39 +18,7 @@ import numpy as np
 import pytest
 import sympy
 
-from google.protobuf.text_format import Merge
-import cirq_google
-from cirq_google.api import v2
 import cirq
-from cirq_google.experimental.noise_models import simple_noise_from_calibration_metrics
-from cirq.experiments import single_qubit_randomized_benchmarking
-
-# Fake calibration data object.
-_CALIBRATION_DATA = Merge(
-    """
-    timestamp_ms: 1579214873,
-    metrics: [{
-        name: 'single_qubit_rb_pauli_error_per_gate',
-        targets: ['0_0'],
-        values: [{
-            double_val: .01
-        }]
-    }, {
-        name: 'single_qubit_readout_separation_error',
-        targets: ['0_0'],
-        values: [{
-            double_val: .01
-        }]
-    }, {
-        name: 'single_qubit_idle_t1_micros',
-        targets: ['0_0'],
-        values: [{
-            double_val: .01
-        }]
-    }]
-""",
-    v2.metrics_pb2.MetricsSnapshot(),
-)
 
 
 def test_invalid_dtype():
@@ -1303,20 +1271,13 @@ def test_nondeterministic_mixture_noise():
 
 
 def test_noise_model():
-    q = cirq.GridQubit(0, 0)
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.I(q), cirq.measure(q))
 
-    calibration = cirq_google.Calibration(_CALIBRATION_DATA)
-    noise_model = simple_noise_from_calibration_metrics(
-        calibration=calibration,
-        depol_noise=True,
-        readout_decay_noise=True,
-        readout_error_noise=True,
-    )
+    noise_model = cirq.NoiseModel.from_noise_model_like(cirq.depolarize(p=0.01))
+
     simulator = cirq.Simulator(noise=noise_model)
 
-    results = single_qubit_randomized_benchmarking(
-        sampler=simulator, qubit=q, num_clifford_range=range(5, 20, 5), repetitions=100
-    )
-    average = np.mean(np.asarray(results.data)[:, 1])
-    print(average)
-    assert average >= 0.01
+    result = simulator.run(circuit, repetitions=100)
+
+    assert 0 <= sum(result.measurements['0'])[0] < 5
