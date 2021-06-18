@@ -302,8 +302,7 @@ def test_protocols_and_repr():
 
 
 def test_matrixgate_unitary_tolerance():
-
-    #non unitary matrix
+    ## non-unitary matrix
     with pytest.raises(ValueError): 
         _ = cirq.MatrixGate(np.array([[1, 0], [0, -0.6]]),unitary_check_atol = .5)
    
@@ -314,13 +313,12 @@ def test_matrixgate_unitary_tolerance():
     _ = cirq.MatrixGate(np.array([[1, 0], [0, -0.6]]),unitary_check_rtol = 1)
 
 
-   #unitary matrix 
+   ## unitary matrix 
     _ = cirq.MatrixGate(np.array([[1, 0], [-0.5, 1]]),unitary_check_atol = .5)
 
     #very low atol -> the check never converges
     with pytest.raises(ValueError):
         _ = cirq.MatrixGate(np.array([[1, 0], [-0.5, 1]]),unitary_check_atol = 1e-10)
-
 
     #very low atol -> the check never converges
     with pytest.raises(ValueError):
