@@ -19,7 +19,7 @@ import numpy as np
 
 from cirq import linalg, protocols, sim
 from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
-from cirq.linalg import transformations as tf
+from cirq.linalg import transformations
 
 if TYPE_CHECKING:
     import cirq
@@ -183,7 +183,7 @@ class ActOnStateVectorArgs(ActOnArgs):
         )
 
     def join(self, other: 'cirq.ActOnStateVectorArgs') -> 'cirq.ActOnStateVectorArgs':
-        target_tensor = tf.merge_state_vectors(self.target_tensor, other.target_tensor)
+        target_tensor = transformations.merge_state_vectors(self.target_tensor, other.target_tensor)
         buffer = np.empty_like(target_tensor)
         offset = len(self.target_tensor.shape)
         axes = self.axes + tuple(a + offset for a in other.axes)
@@ -200,7 +200,9 @@ class ActOnStateVectorArgs(ActOnArgs):
         self, qubits: Sequence['cirq.Qid']
     ) -> Tuple['cirq.ActOnStateVectorArgs', 'cirq.ActOnStateVectorArgs']:
         axes = [self.qubit_map[q] for q in qubits]
-        extracted_tensor, remainder_tensor = tf.split_state_vectors(self.target_tensor, axes)
+        extracted_tensor, remainder_tensor = transformations.split_state_vectors(
+            self.target_tensor, axes
+        )
         extracted_args = ActOnStateVectorArgs(
             target_tensor=extracted_tensor,
             available_buffer=np.empty_like(extracted_tensor),

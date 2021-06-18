@@ -19,7 +19,7 @@ import numpy as np
 
 from cirq import protocols, sim
 from cirq.sim.act_on_args import ActOnArgs, strat_act_on_from_apply_decompose
-from cirq.linalg import transformations as tf
+from cirq.linalg import transformations
 
 if TYPE_CHECKING:
     import cirq
@@ -112,7 +112,9 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         )
 
     def join(self, other: 'cirq.ActOnDensityMatrixArgs') -> 'cirq.ActOnDensityMatrixArgs':
-        target_tensor = tf.merge_density_matrices(self.target_tensor, other.target_tensor)
+        target_tensor = transformations.merge_density_matrices(
+            self.target_tensor, other.target_tensor
+        )
         buffer = [np.empty_like(target_tensor) for _ in self.available_buffer]
         return ActOnDensityMatrixArgs(
             target_tensor=target_tensor,
@@ -128,7 +130,9 @@ class ActOnDensityMatrixArgs(ActOnArgs):
         self, qubits: Sequence['cirq.Qid']
     ) -> Tuple['cirq.ActOnDensityMatrixArgs', 'cirq.ActOnDensityMatrixArgs']:
         axes = [self.qubit_map[q] for q in qubits]
-        extracted_tensor, remainder_tensor = tf.split_density_matrices(self.target_tensor, axes)
+        extracted_tensor, remainder_tensor = transformations.split_density_matrices(
+            self.target_tensor, axes
+        )
         buffer = [np.empty_like(extracted_tensor) for _ in self.available_buffer]
         extracted_args = ActOnDensityMatrixArgs(
             target_tensor=extracted_tensor,
