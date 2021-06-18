@@ -62,10 +62,10 @@ imports.
 """
 
 
-def _act_with_gates(args, *gates: 'cirq.SupportsActOn') -> None:
+def _act_with_gates(args, qubits, *gates: 'cirq.SupportsActOnQubits') -> None:
     """Act on the given args with the given gates in order."""
     for gate in gates:
-        assert gate._act_on_(args)
+        assert gate._act_on_(args, qubits)
 
 
 def _pi(rads):
@@ -108,14 +108,14 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.available_buffer *= p
         return args.available_buffer
 
-    def _act_on_(self, args: Any):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
-            q = args.axes[0]
+            q = args.qubit_map[qubits[0]]
             effective_exponent = self._exponent % 2
             if effective_exponent == 0.5:
                 tableau.xs[:, q] ^= tableau.zs[:, q]
@@ -130,7 +130,7 @@ class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
-            _act_with_gates(args, H, ZPowGate(exponent=self._exponent), H)
+            _act_with_gates(args, qubits, H, ZPowGate(exponent=self._exponent), H)
             # Adjust the global phase based on the global_shift parameter.
             args.state.omega *= np.exp(1j * np.pi * self.global_shift * self.exponent)
             return True
@@ -360,14 +360,14 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.available_buffer *= p
         return args.available_buffer
 
-    def _act_on_(self, args: Any):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
-            q = args.axes[0]
+            q = args.qubit_map[qubits[0]]
             effective_exponent = self._exponent % 2
             if effective_exponent == 0.5:
                 tableau.rs[:] ^= tableau.xs[:, q] & (~tableau.zs[:, q])
@@ -392,13 +392,13 @@ class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             state = args.state
             Z = ZPowGate()
             if effective_exponent == 0.5:
-                _act_with_gates(args, Z, H)
+                _act_with_gates(args, qubits, Z, H)
                 state.omega *= (1 + 1j) / (2 ** 0.5)
             elif effective_exponent == 1:
-                _act_with_gates(args, Z, H, Z, H)
+                _act_with_gates(args, qubits, Z, H, Z, H)
                 state.omega *= 1j
             elif effective_exponent == 1.5:
-                _act_with_gates(args, H, Z)
+                _act_with_gates(args, qubits, H, Z)
                 state.omega *= (1 - 1j) / (2 ** 0.5)
             # Adjust the global phase based on the global_shift parameter.
             args.state.omega *= np.exp(1j * np.pi * self.global_shift * self.exponent)
@@ -579,14 +579,14 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             args.target_tensor *= p
         return args.target_tensor
 
-    def _act_on_(self, args: Any):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
-            q = args.axes[0]
+            q = args.qubit_map[qubits[0]]
             effective_exponent = self._exponent % 2
             if effective_exponent == 0.5:
                 tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
@@ -601,7 +601,7 @@ class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
-            q = args.axes[0]
+            q = args.qubit_map[qubits[0]]
             effective_exponent = self._exponent % 2
             state = args.state
             for _ in range(int(effective_exponent * 2)):
@@ -896,14 +896,14 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         args.target_tensor *= np.sqrt(2) * p
         return args.target_tensor
 
-    def _act_on_(self, args: Any):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
-            q = args.axes[0]
+            q = args.qubit_map[qubits[0]]
             if self._exponent % 2 == 1:
                 (tableau.xs[:, q], tableau.zs[:, q]) = (
                     tableau.zs[:, q].copy(),
@@ -915,7 +915,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
-            q = args.axes[0]
+            q = args.qubit_map[qubits[0]]
             state = args.state
             if self._exponent % 2 == 1:
                 # Prescription for H left multiplication
@@ -1059,15 +1059,15 @@ class CZPowGate(
             args.target_tensor *= p
         return args.target_tensor
 
-    def _act_on_(self, args: Any):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
-            q1 = args.axes[0]
-            q2 = args.axes[1]
+            q1 = args.qubit_map[qubits[0]]
+            q2 = args.qubit_map[qubits[1]]
             if self._exponent % 2 == 1:
                 (tableau.xs[:, q2], tableau.zs[:, q2]) = (
                     tableau.zs[:, q2].copy(),
@@ -1088,8 +1088,8 @@ class CZPowGate(
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
-            q1 = args.axes[0]
-            q2 = args.axes[1]
+            q1 = args.qubit_map[qubits[0]]
+            q2 = args.qubit_map[qubits[1]]
             state = args.state
             if self._exponent % 2 == 1:
                 # Prescription for CZ left multiplication.
@@ -1282,15 +1282,15 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             args.target_tensor *= p
         return args.target_tensor
 
-    def _act_on_(self, args: Any):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
             tableau = args.tableau
-            q1 = args.axes[0]
-            q2 = args.axes[1]
+            q1 = args.qubit_map[qubits[0]]
+            q2 = args.qubit_map[qubits[1]]
             if self._exponent % 2 == 1:
                 tableau.rs[:] ^= (
                     tableau.xs[:, q1]
@@ -1304,8 +1304,8 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
             if not protocols.has_stabilizer_effect(self):
                 return NotImplemented
-            q1 = args.axes[0]
-            q2 = args.axes[1]
+            q1 = args.qubit_map[qubits[0]]
+            q2 = args.qubit_map[qubits[1]]
             state = args.state
             if self._exponent % 2 == 1:
                 # Prescription for CX left multiplication.
