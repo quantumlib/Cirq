@@ -182,14 +182,20 @@ upper_tabs:
       - heading: "Google hardware"
       - title: "Getting started with QCS"
         path: /cirq/tutorials/google/start
-      - title: "Floquet calibration"
-        path: /cirq/tutorials/google/floquet
+      - title: "Visualizing calibration metrics"
+        path: /cirq/tutorials/google/visualizing_calibration_metrics
       - title: "Qubit picking with Loschmidt echoes"
         path: /cirq/tutorials/google/echoes
-      - title: "Visualizing Calibration Metrics"
-        path: /cirq/tutorials/google/visualizing_calibration_metrics
-      - title: "Selecting qubits and calibrating circuits"
-        path: /cirq/tutorials/google/advanced_calibration
+      - title: "Calibration"
+        style: accordion
+        section:
+        - title: "Calibration: Overview and API"
+          path: /cirq/tutorials/google/calibration_api
+        - title: "Floquet calibration: Example and benchmark"
+          path: /cirq/tutorials/google/floquet_calibration_example
+        - title: "XEB calibration: Example and benchmark"
+          path: /cirq/tutorials/google/xeb_calibration_example
+
 
       ####  AQT HARDWARE  ####
       - heading: "AQT hardware"
