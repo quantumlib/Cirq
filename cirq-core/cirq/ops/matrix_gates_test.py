@@ -314,12 +314,12 @@ def test_matrixgate_unitary_tolerance():
 
 
    ## unitary matrix 
-    _ = cirq.MatrixGate(np.array([[1, 0], [-0.5, 1]]),unitary_check_atol = .5)
+    _ = cirq.MatrixGate(np.array([[.707, .707], [-.707, .707]]),unitary_check_atol = .5)
 
     #very low atol -> the check never converges
     with pytest.raises(ValueError):
-        _ = cirq.MatrixGate(np.array([[1, 0], [-0.5, 1]]),unitary_check_atol = 1e-10)
+        _ = cirq.MatrixGate(np.array([[.707, .707], [-.707, .707]]),unitary_check_atol = 1e-10)
 
     #very low atol -> the check never converges
     with pytest.raises(ValueError):
-        _ = cirq.MatrixGate(np.array([[1, 0], [-0.5, 1]]),unitary_check_rtol = 1e-10)
+        _ = cirq.MatrixGate(np.array([[.707, .707], [-.707, .707]]),unitary_check_rtol = 1e-10)
