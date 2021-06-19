@@ -16,19 +16,18 @@ import datetime
 import sys
 import time
 import urllib
-from typing import Any, Callable, cast, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, Callable, cast, Dict, List, Optional
+
 import requests
 
-from cirq.ionq import ionq_exceptions
-
-if TYPE_CHECKING:
-    import cirq
+import cirq_ionq
+from cirq_ionq import ionq_exceptions
 
 
 class _IonQClient:
     """Handles calls to IonQ's API.
 
-    Users should not instantiate this themselves, but instead should use `cirq.ionq.Service`.
+    Users should not instantiate this themselves, but instead should use `cirq_ionq.Service`.
     """
 
     RETRIABLE_STATUS_CODES = {
@@ -51,7 +50,7 @@ class _IonQClient:
     ):
         """Creates the IonQClient.
 
-        Users should use `cirq.ionq.Service` instead of this class directly.
+        Users should use `cirq_ionq.Service` instead of this class directly.
 
         The IonQClient handles making requests to the IonQClient, returning dictionary results.
         It handles retry and authentication.
@@ -89,7 +88,7 @@ class _IonQClient:
 
     def create_job(
         self,
-        serialized_program: 'cirq.ionq.SerializedProgram',
+        serialized_program: cirq_ionq.SerializedProgram,
         repetitions: Optional[int] = None,
         target: Optional[str] = None,
         name: Optional[str] = None,
@@ -97,7 +96,7 @@ class _IonQClient:
         """Create a job.
 
         Args:
-            serialized_program: The `cirq.ionq.SerializedProgram` containing the serialized
+            serialized_program: The `cirq_ionq.SerializedProgram` containing the serialized
                 information about the circuit to run.
             repetitions: The number of times to repeat the circuit. For simulation the repeated
                 sampling is not done on the server, but is passed as metadata to be recovered
@@ -209,7 +208,7 @@ class _IonQClient:
         return self._make_request(request).json()
 
     def get_current_calibration(self) -> dict:
-        """Returns the current calibration as an `cirq.ionq.Calibration` object.
+        """Returns the current calibration as an `cirq_ionq.Calibration` object.
 
         Currently returns the current calibration for the only target `qpu`.
         """

@@ -69,4 +69,4 @@ generated-members=numpy.*
 [IMPORTS]
 
 # Force import order to recognize a module as part of a third party library.
-known-third-party=cirq,cirq_google
+known-third-party=cirq,cirq_google,cirq_aqt,cirq_ionq
