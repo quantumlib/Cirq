@@ -193,7 +193,6 @@ class Simulator(
             target_tensor=np.reshape(state, qid_shape),
             available_buffer=np.empty(qid_shape, dtype=self._dtype),
             qubits=qubits,
-            axes=[],
             prng=self._prng,
             log_of_measurement_results={},
         )
