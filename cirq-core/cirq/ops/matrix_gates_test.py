@@ -316,7 +316,8 @@ def test_matrixgate_unitary_tolerance():
     _ = cirq.MatrixGate(np.array([[0.707, 0.707], [-0.707, 0.707]]), unitary_check_atol=0.5)
 
     # very low atol -> the check never converges
-    _ = cirq.MatrixGate(np.array([[0.707, 0.707], [-0.707, 0.707]]), unitary_check_atol=1e-10)
+    with pytest.raises(ValueError):
+        _ = cirq.MatrixGate(np.array([[0.707, 0.707], [-0.707, 0.707]]), unitary_check_atol=1e-10)
 
     # very low atol -> the check never converges
     with pytest.raises(ValueError):
