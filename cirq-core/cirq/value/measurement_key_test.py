@@ -24,8 +24,15 @@ def test_empty_init():
     assert mkey2.name == ''
 
 
-def test_qubit_key():
-    qubits = (cirq.LineQubit(0), cirq.LineQubit(1))
+@pytest.mark.parametrize(
+    'qubits',
+    [
+        (cirq.LineQubit(0), cirq.LineQubit(1)),
+        (cirq.NamedQubit('a'), cirq.NamedQubit('b')),
+        (cirq.GridQubit(1, 2), cirq.GridQubit(2, 3)),
+    ],
+)
+def test_qubit_key(qubits):
     qubit_key = cirq.MeasurementKey(qubits=qubits)
 
     assert qubit_key.name == ''
@@ -65,8 +72,12 @@ def test_eq_and_hash():
     assert hash(nested_key) == hash('nested:key')
     qubits = (cirq.LineQubit(0), cirq.LineQubit(1))
     qubit_key = cirq.MeasurementKey(qubits=qubits)
-    assert qubit_key == cirq.default_measurement_key(qubits)
-    assert hash(qubit_key) == hash(cirq.default_measurement_key(qubits))
+    assert qubit_key == cirq.default_measurement_key_str(qubits)
+    assert hash(qubit_key) == hash(cirq.default_measurement_key_str(qubits))
+    assert qubit_key != cirq.MeasurementKey(name=cirq.default_measurement_key_str(qubits))
+    assert hash(qubit_key) == hash(
+        cirq.MeasurementKey(name=cirq.default_measurement_key_str(qubits))
+    )
     non_str_or_measurement_key = SomeRandomClass('key')
     assert mkey != non_str_or_measurement_key
 
@@ -141,16 +152,24 @@ def test_with_key_path(mkey):
     [
         (cirq.MeasurementKey('key'), 'key'),
         (cirq.MeasurementKey(qubits=(cirq.LineQubit(0), cirq.LineQubit(1))), '0,1'),
+        (cirq.MeasurementKey(qubits=(cirq.NamedQubit('a'), cirq.NamedQubit('b'))), 'a,b'),
+        (cirq.MeasurementKey(qubits=(cirq.GridQubit(1, 2), cirq.GridQubit(2, 3))),
+            '(1, 2),(2, 3)'),
     ],
 )
 def test_with_measurement_key_mapping(mkey, base_key_str):
+    print(mkey)
+    with pytest.raises(ValueError, match='Remapped key should be non-empty'):
+        _ = cirq.with_measurement_key_mapping(mkey, {base_key_str: ''})
     mkey2 = cirq.with_measurement_key_mapping(mkey, {base_key_str: 'new_key'})
     assert mkey2.name == 'new_key'
+    assert mkey2.qubits == mkey.qubits
 
     mkey3 = mkey2.with_key_path_prefix('a')
     mkey3 = cirq.with_measurement_key_mapping(mkey3, {'new_key': 'newer_key'})
     assert mkey3.name == 'newer_key'
     assert mkey3.path == ('a',)
+    assert mkey3.qubits == mkey.qubits
 
 
 def test_with_qubit_mapping():
@@ -160,8 +179,11 @@ def test_with_qubit_mapping():
 
     qubits2 = (cirq.LineQubit(2), cirq.LineQubit(3))
     assert mkey.with_qubits(qubits2) == '2,3'
+    assert mkey.with_qubits(qubits2) != mkey
+    assert mkey.with_qubits(qubits2) != mkey.replace(name='2,3')
 
     assert mkey.with_key_path_prefix('a').with_qubits(qubits2) == 'a:2,3'
 
     assert mkey.replace(name='key') == 'key'
     assert mkey.replace(name='key').with_qubits(qubits2) == 'key'
+    assert mkey.replace(name='key').with_qubits(qubits2) != mkey.replace(name='key')

@@ -159,7 +159,7 @@ class MeasurementGate(raw_types.Gate):
                     symbols[i] = '!M'
 
         # Mention the measurement key.
-        if not args.known_qubits or self.mkey != value.default_measurement_key(args.known_qubits):
+        if not args.known_qubits or not self.mkey.is_qubit_based_key():
             symbols[0] += f"('{self.key}')"
 
         return protocols.CircuitDiagramInfo(tuple(symbols))
@@ -197,7 +197,7 @@ class MeasurementGate(raw_types.Gate):
 
     def _op_repr_(self, qubits: Sequence['cirq.Qid']) -> str:
         args = list(repr(q) for q in qubits)
-        if self.mkey != value.default_measurement_key(qubits):
+        if not self.mkey.is_qubit_based_key():
             if self.mkey == self.mkey.name:
                 args.append(f'key={self.mkey.name!r}')
             else:
@@ -220,7 +220,7 @@ class MeasurementGate(raw_types.Gate):
         )
 
     def _value_equality_values_(self) -> Any:
-        return self.mkey, self.invert_mask, self._qid_shape
+        return str(self.mkey), self.invert_mask, self._qid_shape
 
     def _json_dict_(self) -> Dict[str, Any]:
         other = {}
