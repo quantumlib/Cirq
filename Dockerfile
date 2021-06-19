@@ -29,11 +29,8 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy current folder instead of cloning.
 COPY ./ .
-COPY requirements.txt .
-COPY ./cirq/contrib/contrib-requirements.txt .
-COPY ./dev_tools/conf/pip-list-dev-tools.txt .
 
-RUN pip3 install -r requirements.txt -r contrib-requirements.txt -r pip-list-dev-tools.txt
+RUN pip3 install -r ./dev_tools/requirements/dev.env.txt
 
 # Install cirq
 RUN pip3 install cirq
