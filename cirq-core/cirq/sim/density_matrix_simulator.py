@@ -321,7 +321,9 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
             with trace one.
         """
         if self._split_untangled_states:
-            raise ValueError('Cannot set states when using `split_untangled_states` option.')
+            raise ValueError(
+                'Cannot set states when using `split_untangled_states` option.'
+            )  # coverage: ignore
         density_matrix = qis.to_valid_density_matrix(
             density_matrix_repr, len(self._qubit_map), qid_shape=self._qid_shape, dtype=self._dtype
         )

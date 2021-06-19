@@ -331,7 +331,9 @@ class SparseSimulatorStep(
                 array this is the full state vector.
         """
         if self._split_untangled_states:
-            raise ValueError('Cannot set states when using `split_untangled_states` option.')
+            raise ValueError(
+                'Cannot set states when using `split_untangled_states` option.'
+            )  # coverage: ignore
         update_state = qis.to_valid_state_vector(
             state, len(self.qubit_map), qid_shape=protocols.qid_shape(self, None), dtype=self._dtype
         )
