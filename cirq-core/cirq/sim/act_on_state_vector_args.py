@@ -217,7 +217,7 @@ class ActOnStateVectorArgs(ActOnArgs):
     def extract(
         self, qubits: Sequence['cirq.Qid']
     ) -> Tuple['cirq.ActOnStateVectorArgs', 'cirq.ActOnStateVectorArgs']:
-        axes = [self.qubit_map[q] for q in qubits]
+        axes = self.get_axes(qubits)
         extracted_tensor, remainder_tensor = transformations.split_state_vectors(
             self.target_tensor, axes
         )
@@ -239,7 +239,7 @@ class ActOnStateVectorArgs(ActOnArgs):
 
     def reorder(self, qubits: Sequence['cirq.Qid']) -> 'cirq.ActOnStateVectorArgs':
         assert len(qubits) == len(self.qubits)
-        axes = [self.qubit_map[q] for q in qubits]
+        axes = self.get_axes(qubits)
         new_tensor = np.moveaxis(self.target_tensor, axes, range(len(qubits)))
         new_args = ActOnStateVectorArgs(
             target_tensor=new_tensor,

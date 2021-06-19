@@ -64,5 +64,3 @@ def test_mapping():
     assert args is r1
     with pytest.raises(IndexError):
         _ = args[cirq.LineQubit(2)]
-    args = DummyArgs()
-    assert act_on_args.strat_act_on_from_apply_decompose(Composite(), args, [cirq.LineQubit(0)])
