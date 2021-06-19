@@ -51,13 +51,6 @@ def test_decompose():
 
 
 def test_mapping():
-    class Composite(cirq.Gate):
-        def num_qubits(self) -> int:
-            return 1
-
-        def _decompose_(self, qubits):
-            yield cirq.X(*qubits)
-
     args = DummyArgs()
     assert list(iter(args)) == cirq.LineQubit.range(2)
     r1 = args[cirq.LineQubit(0)]
