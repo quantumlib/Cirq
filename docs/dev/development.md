@@ -26,9 +26,10 @@ Note that if you are using PyCharm, you might have to Restart & Invalidate Cache
 ## Docker
 
 To do your development in a Docker image, you can build one with our `Dockerfile`.
+
 ```bash
     docker build -t cirq .
-    docker run -it cirq python -c "import cirq; print(cirq.google.Foxtail)"
+    docker run -it cirq python -c "import cirq_google; print(cirq_google.Foxtail)"
 ```
 
 
