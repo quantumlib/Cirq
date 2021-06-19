@@ -31,6 +31,7 @@ from typing import (
 
 from cirq import protocols, ops
 from cirq.ops import raw_types
+from cirq.protocols.circuit_diagram_info_protocol import _op_info_with_fallback
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -424,7 +425,7 @@ class Moment:
                 precision=precision,
                 include_tags=include_tags,
             )
-            info = protocols.CircuitDiagramInfo._op_info_with_fallback(op, args=args)
+            info = _op_info_with_fallback(op, args=args)
             symbols = info._wire_symbols_including_formatted_exponent(args)
             for label, q in zip(symbols, op.qubits):
                 x, y = qubit_positions[q]

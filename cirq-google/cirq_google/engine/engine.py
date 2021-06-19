@@ -34,6 +34,11 @@ from google.protobuf import any_pb2
 
 import cirq
 from cirq_google.engine.client import quantum
+from cirq_google.engine.engine_client import (
+    _ids_from_job_name,
+    _ids_from_processor_name,
+    _ids_from_program_name,
+)
 from cirq_google.engine.result_type import ResultType
 from cirq_google import serializable_gate_set as sgs
 from cirq_google.api import v2
@@ -658,8 +663,8 @@ class Engine:
         )
         return [
             engine_program.EngineProgram(
-                project_id=client._ids_from_program_name(p.name)[0],
-                program_id=client._ids_from_program_name(p.name)[1],
+                project_id=_ids_from_program_name(p.name)[0],
+                program_id=_ids_from_program_name(p.name)[1],
                 _program=p,
                 context=self.context,
             )
@@ -709,9 +714,9 @@ class Engine:
         )
         return [
             engine_job.EngineJob(
-                project_id=client._ids_from_job_name(j.name)[0],
-                program_id=client._ids_from_job_name(j.name)[1],
-                job_id=client._ids_from_job_name(j.name)[2],
+                project_id=_ids_from_job_name(j.name)[0],
+                program_id=_ids_from_job_name(j.name)[1],
+                job_id=_ids_from_job_name(j.name)[2],
                 context=self.context,
                 _job=j,
             )
@@ -731,7 +736,7 @@ class Engine:
         return [
             engine_processor.EngineProcessor(
                 self.project_id,
-                self.context.client._ids_from_processor_name(p.name)[1],
+                _ids_from_processor_name(p.name)[1],
                 self.context,
                 p,
             )
