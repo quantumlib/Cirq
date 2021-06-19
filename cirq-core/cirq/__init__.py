@@ -511,6 +511,7 @@ from cirq.protocols import (
     resolve_parameters_once,
     SerializableByKey,
     SupportsActOn,
+    SupportsActOnQubits,
     SupportsApplyChannel,
     SupportsApplyMixture,
     SupportsApproximateEquality,

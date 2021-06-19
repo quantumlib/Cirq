@@ -13,7 +13,17 @@
 # limitations under the License.
 
 import numbers
-from typing import AbstractSet, Tuple, TYPE_CHECKING, Dict, Any, cast, SupportsFloat, Optional
+from typing import (
+    AbstractSet,
+    Tuple,
+    TYPE_CHECKING,
+    Dict,
+    Any,
+    cast,
+    SupportsFloat,
+    Optional,
+    Sequence,
+)
 
 import numpy as np
 
@@ -109,7 +119,7 @@ class RandomGateChannel(raw_types.Gate):
             result *= float(self.probability)
         return result
 
-    def _act_on_(self, args):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq.sim import clifford
 
         if self._is_parameterized_():
@@ -119,7 +129,7 @@ class RandomGateChannel(raw_types.Gate):
                 # Note: because we're doing this probabilistically, it's not
                 # safe to fallback to other strategies if act_on fails. Those
                 # strategies could double-count the probability.
-                protocols.act_on(self.sub_gate, args)
+                protocols.act_on(self.sub_gate, args, qubits)
             return True
         return NotImplemented
 

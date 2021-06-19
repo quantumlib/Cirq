@@ -13,11 +13,12 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state tensor."""
 import abc
-from typing import Any, Iterable, Dict, List, TypeVar, TYPE_CHECKING, Sequence
+from typing import Any, Dict, List, TypeVar, TYPE_CHECKING, Sequence, Tuple, Iterable
 
 import numpy as np
 
 from cirq import protocols
+from cirq._compat import deprecated
 from cirq.protocols.decompose_protocol import _try_decompose_into_operations_and_qubits
 
 TSelf = TypeVar('TSelf', bound='ActOnArgs')
@@ -57,27 +58,31 @@ class ActOnArgs:
             log_of_measurement_results = {}
         self.qubits = tuple(qubits)
         self.qubit_map = {q: i for i, q in enumerate(self.qubits)}
-        self.axes = tuple(axes)
+        self._axes = tuple(axes)
         self.prng = prng
         self.log_of_measurement_results = log_of_measurement_results
 
-    def measure(self, key, invert_mask):
+    def measure(self, qubits: Sequence['cirq.Qid'], key: str, invert_mask: Sequence[bool]):
         """Adds a measurement result to the log.
 
         Args:
+            qubits: The qubits to measure.
             key: The key the measurement result should be logged under. Note
                 that operations should only store results under keys they have
                 declared in a `_measurement_keys_` method.
             invert_mask: The invert mask for the measurement.
         """
-        bits = self._perform_measurement()
+        bits = self._perform_measurement(qubits)
         corrected = [bit ^ (bit < 2 and mask) for bit, mask in zip(bits, invert_mask)]
         if key in self.log_of_measurement_results:
             raise ValueError(f"Measurement already logged to key {key!r}")
         self.log_of_measurement_results[key] = corrected
 
+    def get_axes(self, qubits: Sequence['cirq.Qid']) -> List[int]:
+        return [self.qubit_map[q] for q in qubits]
+
     @abc.abstractmethod
-    def _perform_measurement(self) -> List[int]:
+    def _perform_measurement(self, qubits: Sequence['cirq.Qid']) -> List[int]:
         """Child classes that perform measurements should implement this with
         the implementation."""
 
@@ -85,22 +90,38 @@ class ActOnArgs:
     def copy(self: TSelf) -> TSelf:
         """Creates a copy of the object."""
 
+    @abc.abstractmethod
+    def _act_on_fallback_(self, action: Any, qubits: Sequence['cirq.Qid'], allow_decompose: bool):
+        """Handles the act_on protocol fallback implementation."""
+
+    @property  # type: ignore
+    @deprecated(
+        deadline="v0.13",
+        fix="Use `protocols.act_on` instead.",
+    )
+    def axes(self) -> Tuple[int, ...]:
+        return self._axes
+
+    @axes.setter  # type: ignore
+    @deprecated(
+        deadline="v0.13",
+        fix="Use `protocols.act_on` instead.",
+    )
+    def axes(self, value: Iterable[int]):
+        self._axes = tuple(value)
+
 
 def strat_act_on_from_apply_decompose(
     val: Any,
     args: ActOnArgs,
+    qubits: Sequence['cirq.Qid'],
 ) -> bool:
-    operations, qubits, _ = _try_decompose_into_operations_and_qubits(val)
+    operations, qubits1, _ = _try_decompose_into_operations_and_qubits(val)
+    assert len(qubits1) == len(qubits)
+    qubit_map = {q: qubits[i] for i, q in enumerate(qubits1)}
     if operations is None:
         return NotImplemented
-    assert len(qubits) == len(args.axes)
-    qubit_map = {q: args.axes[i] for i, q in enumerate(qubits)}
-
-    old_axes = args.axes
-    try:
-        for operation in operations:
-            args.axes = tuple(qubit_map[q] for q in operation.qubits)
-            protocols.act_on(operation, args)
-    finally:
-        args.axes = old_axes
+    for operation in operations:
+        operation = operation.with_qubits(*[qubit_map[q] for q in operation.qubits])
+        protocols.act_on(operation, args)
     return True
