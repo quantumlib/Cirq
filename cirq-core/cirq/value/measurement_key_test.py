@@ -153,8 +153,7 @@ def test_with_key_path(mkey):
         (cirq.MeasurementKey('key'), 'key'),
         (cirq.MeasurementKey(qubits=(cirq.LineQubit(0), cirq.LineQubit(1))), '0,1'),
         (cirq.MeasurementKey(qubits=(cirq.NamedQubit('a'), cirq.NamedQubit('b'))), 'a,b'),
-        (cirq.MeasurementKey(qubits=(cirq.GridQubit(1, 2), cirq.GridQubit(2, 3))),
-            '(1, 2),(2, 3)'),
+        (cirq.MeasurementKey(qubits=(cirq.GridQubit(1, 2), cirq.GridQubit(2, 3))), '(1, 2),(2, 3)'),
     ],
 )
 def test_with_measurement_key_mapping(mkey, base_key_str):

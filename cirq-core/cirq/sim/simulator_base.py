@@ -179,7 +179,6 @@ class SimulatorBase(
                             continue
                         if self._ignore_measurement_results:
                             op = ops.phase_damp(1).on(*op.qubits)
-                    sim_state.axes = tuple(sim_state.qubit_map[qubit] for qubit in op.qubits)
                     protocols.act_on(op, sim_state)
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
