@@ -214,6 +214,7 @@ class DensityMatrixSimulator(
             measurements=dict(sim_state.log_of_measurement_results),
             qubit_map=qubit_map,
             dtype=self._dtype,
+            split_untangled_states=self._split_untangled_states,
         )
 
     def _create_simulator_trial_result(
@@ -279,6 +280,7 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
         measurements: Dict[str, np.ndarray],
         qubit_map: Dict[ops.Qid, int],
         dtype: 'DTypeLike' = np.complex64,
+        split_untangled_states: bool = False,
     ):
         """DensityMatrixStepResult.
 
@@ -294,6 +296,7 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
         self._qubit_map = qubit_map
         self._dtype = dtype
         self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
+        self._split_untangled_states = split_untangled_states
 
     def _qid_shape_(self):
         return self._qid_shape
@@ -303,6 +306,9 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
 
     def set_density_matrix(self, density_matrix_repr: Union[int, np.ndarray]):
         """Set the density matrix to a new density matrix.
+
+        Note that this feature is incompatible with the simulation setting
+        `split_untangled_states=True`, and will throw an error if attempted.
 
         Args:
             density_matrix_repr: If this is an int, the density matrix is set to
@@ -314,6 +320,8 @@ class DensityMatrixStepResult(simulator.StepResult['DensityMatrixSimulatorState'
             mixed state it must be correctly sized and positive semidefinite
             with trace one.
         """
+        if self._split_untangled_states:
+            raise ValueError('Cannot set states when using `split_untangled_states` option.')
         density_matrix = qis.to_valid_density_matrix(
             density_matrix_repr, len(self._qubit_map), qid_shape=self._qid_shape, dtype=self._dtype
         )
