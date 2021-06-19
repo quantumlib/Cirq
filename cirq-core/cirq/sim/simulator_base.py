@@ -215,7 +215,6 @@ class SimulatorBase(
 
                     # Simulate the operation
                     sim_state.apply_operation(op)
-
                 except TypeError:
                     raise TypeError(f"{self.__class__.__name__} doesn't support {op!r}")
 

@@ -11,36 +11,34 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import pytest
 
 import cirq
 from cirq.sim import act_on_args
 
 
+class DummyArgs(cirq.ActOnArgs):
+    def __init__(self):
+        super().__init__(qubits=cirq.LineQubit.range(2))
+
+    def copy(self):
+        pass
+
+    def _perform_measurement(self, qubits):
+        return [5, 3]
+
+    def _act_on_fallback_(self, action, qubits, allow_decompose):
+        return True
+
+
 def test_measurements():
-    class DummyArgs(cirq.ActOnArgs):
-        def copy(self):
-            pass
-
-        def _perform_measurement(self):
-            return [5, 3]
-
     args = DummyArgs()
-    args.measure("test", [1])
+    args.measure([cirq.LineQubit(0)], "test", [False])
     assert args.log_of_measurement_results["test"] == [5]
 
 
 def test_decompose():
-    class DummyArgs(cirq.ActOnArgs):
-        def copy(self):
-            pass
-
-        def _perform_measurement(self):
-            pass
-
-        def _act_on_fallback_(self, action, allow_decompose):
-            return True
-
     class Composite(cirq.Gate):
         def num_qubits(self) -> int:
             return 1
@@ -48,24 +46,23 @@ def test_decompose():
         def _decompose_(self, qubits):
             yield cirq.X(*qubits)
 
-    args = DummyArgs(axes=[0])
-    assert act_on_args.strat_act_on_from_apply_decompose(Composite(), args)
+    args = DummyArgs()
+    assert act_on_args.strat_act_on_from_apply_decompose(Composite(), args, [cirq.LineQubit(0)])
 
 
 def test_mapping():
-    class DummyArgs(cirq.ActOnArgs):
-        def __init__(self):
-            super().__init__(qubits=[cirq.LineQubit(0)])
+    class Composite(cirq.Gate):
+        def num_qubits(self) -> int:
+            return 1
 
-        def copy(self):
-            pass
-
-        def _perform_measurement(self):
-            pass
+        def _decompose_(self, qubits):
+            yield cirq.X(*qubits)
 
     args = DummyArgs()
-    assert list(iter(args)) == [cirq.LineQubit(0)]
+    assert list(iter(args)) == cirq.LineQubit.range(2)
     r1 = args[cirq.LineQubit(0)]
     assert args is r1
     with pytest.raises(IndexError):
-        _ = args[cirq.LineQubit(1)]
+        _ = args[cirq.LineQubit(2)]
+    args = DummyArgs()
+    assert act_on_args.strat_act_on_from_apply_decompose(Composite(), args, [cirq.LineQubit(0)])

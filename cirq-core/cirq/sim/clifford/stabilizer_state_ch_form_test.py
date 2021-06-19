@@ -35,7 +35,6 @@ def test_initial_state():
 
 def test_run():
     (q0, q1, q2) = (cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2))
-    qubit_map = {q0: 0, q1: 1, q2: 2}
 
     """
     0: ───H───@───────────────X───M───────────
@@ -69,7 +68,7 @@ def test_run():
         for op in circuit.all_operations():
             args = cirq.ActOnStabilizerCHFormArgs(
                 state,
-                axes=[qubit_map[i] for i in op.qubits],
+                qubits=list(circuit.all_qubits()),
                 prng=np.random.RandomState(),
                 log_of_measurement_results=measurements,
             )
