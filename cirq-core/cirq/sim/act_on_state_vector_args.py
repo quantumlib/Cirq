@@ -206,7 +206,6 @@ class ActOnStateVectorArgs(ActOnArgs):
     def join(self, other: 'cirq.ActOnStateVectorArgs') -> 'cirq.ActOnStateVectorArgs':
         target_tensor = transformations.merge_state_vectors(self.target_tensor, other.target_tensor)
         buffer = np.empty_like(target_tensor)
-        offset = len(self.target_tensor.shape)
         return ActOnStateVectorArgs(
             target_tensor=target_tensor,
             available_buffer=buffer,
