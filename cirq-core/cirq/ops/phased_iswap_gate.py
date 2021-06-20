@@ -21,7 +21,7 @@ import sympy
 import cirq
 from cirq import linalg, protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import eigen_gate, gate_features, swap_gates
+from cirq.ops import eigen_gate, swap_gates
 
 
 @value.value_equality(manual_cls=True)
