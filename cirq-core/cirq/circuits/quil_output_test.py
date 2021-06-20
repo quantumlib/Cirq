@@ -373,9 +373,8 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
 
 
 def test_fails_on_big_unknowns():
-    class UnrecognizedGate(cirq.Gate):
-        def _num_qubits_(self):
-            return 3
+    class UnrecognizedGate(cirq.testing.ThreeQubitGate):
+        pass
 
     c = cirq.Circuit(UnrecognizedGate().on(*cirq.LineQubit.range(3)))
     with pytest.raises(ValueError, match='Cannot output operation as QUIL'):

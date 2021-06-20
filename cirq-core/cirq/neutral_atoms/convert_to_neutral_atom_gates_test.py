@@ -20,12 +20,8 @@ from cirq import ops
 
 
 def test_coverage():
-    class TestGate(cirq.Gate):
-        def _num_qubits_(self):
-            pass
-
     q = cirq.LineQubit.range(3)
-    g = TestGate()
+    g = cirq.testing.ThreeQubitGate()
 
     class FakeOperation(ops.Operation):
         def __init__(self, gate, qubits):

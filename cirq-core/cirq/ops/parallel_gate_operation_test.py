@@ -29,11 +29,7 @@ def test_parallel_gate_operation_init():
 
 
 def test_invalid_parallel_gate_operation():
-    class ThreeQubitTestGate(cirq.Gate):
-        def _num_qubits_(self):
-            return 3
-
-    three_qubit_gate = ThreeQubitTestGate()
+    three_qubit_gate = cirq.testing.ThreeQubitGate()
     single_qubit_gate = cirq.SingleQubitGate()
     repeated_qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0, 0)]
     with pytest.raises(ValueError) as wrong_gate:
