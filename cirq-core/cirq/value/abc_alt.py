@@ -15,7 +15,7 @@
 
 import abc
 import functools
-from typing import cast, Callable, Set, TypeVar
+from typing import cast, Set, TypeVar
 
 # Required due to PEP 560
 try:
@@ -30,7 +30,7 @@ except ImportError:
 T = TypeVar('T')
 
 
-def alternative(*, requires: str, implementation: T) -> Callable[[T], T]:
+def alternative(*, requires: str, implementation: T):
     """A decorator indicating an abstract method with an alternative default
     implementation.
 
