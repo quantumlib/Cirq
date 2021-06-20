@@ -11,15 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import abc
 
 import numpy as np
 import pytest
 import sympy
+
 import cirq
 
 
-class ThreeQubitTestGate(cirq.Gate, metaclass=abc.ABCMeta):
+class ThreeQubitTestGate(cirq.Gate):
     def _num_qubits_(self):
         return 3
 
