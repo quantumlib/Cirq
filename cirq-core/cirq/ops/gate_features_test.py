@@ -18,6 +18,7 @@ from typing import Any
 import pytest
 
 import cirq
+from cirq.testing import assert_deprecated
 
 
 def test_single_qubit_gate_validate_args():
@@ -75,19 +76,22 @@ def test_single_qubit_validates_on():
 
 
 def test_two_qubit_gate_is_abstract_can_implement():
-    class Included(cirq.testing.TwoQubitGate):
+    class Included(cirq.TwoQubitGate):
         def matrix(self):
             pass
 
-    assert isinstance(Included(), cirq.testing.TwoQubitGate)
+    with assert_deprecated(deadline="v0.14"):
+        assert isinstance(Included(), cirq.TwoQubitGate)
 
 
 def test_two_qubit_gate_validate_pass():
-    class Dummy(cirq.testing.TwoQubitGate):
+    class Dummy(cirq.TwoQubitGate):
         def matrix(self):
             pass
 
-    g = Dummy()
+    with assert_deprecated(deadline="v0.14"):
+        g = Dummy()
+
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     q3 = cirq.NamedQubit('q3')
@@ -99,11 +103,13 @@ def test_two_qubit_gate_validate_pass():
 
 
 def test_two_qubit_gate_validate_wrong_number():
-    class Dummy(cirq.testing.TwoQubitGate):
+    class Dummy(cirq.TwoQubitGate):
         def matrix(self):
             pass
 
-    g = Dummy()
+    with assert_deprecated(deadline="v0.14"):
+        g = Dummy()
+
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
     q3 = cirq.NamedQubit('q3')
@@ -117,11 +123,13 @@ def test_two_qubit_gate_validate_wrong_number():
 
 
 def test_three_qubit_gate_validate():
-    class Dummy(cirq.testing.ThreeQubitGate):
+    class Dummy(cirq.ThreeQubitGate):
         def matrix(self):
             pass
 
-    g = Dummy()
+    with assert_deprecated(deadline="v0.14"):
+        g = Dummy()
+
     a, b, c, d = cirq.LineQubit.range(4)
 
     assert g.num_qubits() == 3
