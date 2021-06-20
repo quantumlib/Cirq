@@ -29,8 +29,7 @@ def assert_url_to_circuit_returns(
     output_amplitudes_from_quirk: Optional[List[Dict[str, float]]] = None,
     maps: Optional[Dict[int, int]] = None,
 ):
-    """
-    Args:
+    """Args:
         json_text: The part of the quirk URL after "#circuit=".
         circuit: The optional expected circuit. If specified and not
             equal to the parsed circuit, an assertion fails.

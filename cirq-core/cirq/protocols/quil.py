@@ -23,8 +23,7 @@ class QuilFormatter(string.Formatter):
     def __init__(
         self, qubit_id_map: Dict['cirq.Qid', str], measurement_id_map: Dict[str, str]
     ) -> None:
-        """
-        Args:
+        """Args:
             qubit_id_map: A dictionary {qubit, quil_output_string} for
             the proper QUIL output for each qubit.
             measurement_id_map: A dictionary {measurement_key,

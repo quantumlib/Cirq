@@ -37,8 +37,7 @@ class ActOnArgs:
         axes: Iterable[int] = None,
         log_of_measurement_results: Dict[str, Any] = None,
     ):
-        """
-        Args:
+        """Args:
             prng: The pseudo random number generator to use for probabilistic
                 effects.
             qubits: Determines the canonical ordering of the qubits. This

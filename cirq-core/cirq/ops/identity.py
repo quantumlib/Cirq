@@ -39,8 +39,7 @@ class IdentityGate(gate_features.SupportsOnEachGate, raw_types.Gate):
     def __init__(
         self, num_qubits: Optional[int] = None, qid_shape: Optional[Tuple[int, ...]] = None
     ) -> None:
-        """
-        Args:
+        """Args:
             num_qubits:
             qid_shape: Specifies the dimension of each qid the measurement
                 applies to.  The default is 2 for every qubit.

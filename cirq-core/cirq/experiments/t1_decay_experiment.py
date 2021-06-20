@@ -89,8 +89,7 @@ class T1DecayResult:
     """Results from a Rabi oscillation experiment."""
 
     def __init__(self, data: pd.DataFrame):
-        """
-        Args:
+        """Args:
             data: A data frame with three columns:
                 delay_ns, false_count, true_count.
         """

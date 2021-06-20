@@ -55,8 +55,7 @@ class PauliInteractionGate(
         *,
         exponent: value.TParamVal = 1.0,
     ) -> None:
-        """
-        Args:
+        """Args:
             pauli0: The interaction axis for the first qubit.
             invert0: Whether to condition on the +1 or -1 eigenvector of the
                 first qubit's interaction axis.

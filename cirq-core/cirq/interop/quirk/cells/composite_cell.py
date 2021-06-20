@@ -45,9 +45,7 @@ class CompositeCell(Cell):
         *,
         gate_count: int,
     ):
-        """
-
-        Args:
+        """Args:
             height: The number of qubits spanned by this composite cell. Note
                 that the height may be larger than the number of affected
                 qubits (e.g. the custom gate X⊗I⊗X has a height of 3 despite

@@ -28,8 +28,7 @@ class QuirkOp:
     """
 
     def __init__(self, *keys: Any, can_merge: bool = True) -> None:
-        """
-        Args:
+        """Args:
             *keys: The JSON object(s) that each qubit is turned into when
                 explaining a gate to Quirk. For example, a CNOT is turned into
                 the keys ["•", "X"].

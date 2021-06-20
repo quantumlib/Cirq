@@ -30,8 +30,7 @@ if TYPE_CHECKING:
 def complete_acquaintance_strategy(
     qubit_order: Sequence['cirq.Qid'], acquaintance_size: int = 0, swap_gate: 'cirq.Gate' = ops.SWAP
 ) -> 'cirq.Circuit':
-    """
-    Returns an acquaintance strategy capable of executing a gate corresponding
+    """Returns an acquaintance strategy capable of executing a gate corresponding
     to any set of at most acquaintance_size qubits.
 
     Args:

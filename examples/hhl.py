@@ -1,5 +1,4 @@
-"""
-Demonstrates the algorithm for solving linear systems by Harrow, Hassidim,
+"""Demonstrates the algorithm for solving linear systems by Harrow, Hassidim,
 Lloyd (HHL).
 
 The HHL algorithm solves a system of linear equations, specifically equations
@@ -77,8 +76,7 @@ import cirq
 
 
 class PhaseEstimation(cirq.Gate):
-    """
-    A gate for Quantum Phase Estimation.
+    """A gate for Quantum Phase Estimation.
 
     unitary is the unitary gate whose phases will be estimated.
     The last qubit stores the eigenvector; all other qubits store the
@@ -100,8 +98,7 @@ class PhaseEstimation(cirq.Gate):
 
 
 class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
-    """
-    A gate that represents e^iAt.
+    """A gate that represents e^iAt.
 
     This EigenGate + np.linalg.eigh() implementation is used here
     purely for demonstrative purposes. If a large matrix is used,
@@ -129,8 +126,7 @@ class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
 
 
 class PhaseKickback(cirq.Gate):
-    """
-    A gate for the phase kickback stage of Quantum Phase Estimation.
+    """A gate for the phase kickback stage of Quantum Phase Estimation.
 
     It consists of a series of controlled e^iAt gates with the memory qubit as
     the target and each register qubit as the control, raised
@@ -154,8 +150,7 @@ class PhaseKickback(cirq.Gate):
 
 
 class EigenRotation(cirq.Gate):
-    """
-    EigenRotation performs the set of rotation on the ancilla qubit equivalent
+    """EigenRotation performs the set of rotation on the ancilla qubit equivalent
     to division on the memory register by each eigenvalue of the matrix. The
     last qubit is the ancilla qubit; all remaining qubits are the register,
     assumed to be big-endian.
@@ -202,8 +197,7 @@ class EigenRotation(cirq.Gate):
 
 
 def hhl_circuit(A, C, t, register_size, *input_prep_gates):
-    """
-    Constructs the HHL circuit.
+    """Constructs the HHL circuit.
 
     Args:
         A: The input Hermitian matrix.
@@ -274,8 +268,7 @@ def simulate(circuit):
 
 
 def main():
-    """
-    Simulates HHL with matrix input, and outputs Pauli observables of the
+    """Simulates HHL with matrix input, and outputs Pauli observables of the
     resulting qubit state |x>.
     Expected observables are calculated from the expected solution |x>.
     """

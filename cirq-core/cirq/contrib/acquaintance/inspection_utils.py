@@ -28,8 +28,7 @@ class LogicalAnnotator(ExecutionStrategy):
     """Realizes acquaintance opportunities."""
 
     def __init__(self, initial_mapping: LogicalMapping) -> None:
-        """
-        Args:
+        """Args:
             initial_mapping: The initial mapping of qubits to logical indices.
         """
         self._initial_mapping = initial_mapping.copy()

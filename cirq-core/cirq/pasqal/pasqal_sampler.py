@@ -21,8 +21,7 @@ import cirq
 
 class PasqalSampler(cirq.work.Sampler):
     def __init__(self, remote_host: str, access_token: str = '') -> None:
-        """
-        Args:
+        """Args:
             remote_host: Address of the remote device.
             access_token: Access token for the remote api.
         """

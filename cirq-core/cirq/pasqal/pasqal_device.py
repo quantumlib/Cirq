@@ -129,8 +129,7 @@ class PasqalDevice(cirq.devices.Device):
         return valid_op
 
     def validate_operation(self, operation: cirq.ops.Operation):
-        """
-        Raises an error if the given operation is invalid on this device.
+        """Raises an error if the given operation is invalid on this device.
 
         Args:
             operation: the operation to validate

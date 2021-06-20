@@ -46,8 +46,7 @@ class ConvertToSqrtIswapGates(cirq.PointOptimizer):
     """
 
     def __init__(self, ignore_failures=False) -> None:
-        """
-        Args:
+        """Args:
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
         """
@@ -55,8 +54,7 @@ class ConvertToSqrtIswapGates(cirq.PointOptimizer):
         self.ignore_failures = ignore_failures
 
     def _convert_one(self, op: cirq.Operation) -> cirq.OP_TREE:
-        """
-        Decomposer intercept:  Let cirq decompose one-qubit gates,
+        """Decomposer intercept:  Let cirq decompose one-qubit gates,
         intercept on 2-qubit gates if they are known gates.
         """
         if isinstance(op, cirq.GlobalPhaseOperation):

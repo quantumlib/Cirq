@@ -75,8 +75,7 @@ async def estimate_characteristic_function(
     sampler: cirq.Sampler,
     samples_per_term: int,
 ):
-    """
-    Estimates the characteristic function using a (noisy) circuit simulator by
+    """Estimates the characteristic function using a (noisy) circuit simulator by
     sampling the results.
 
     Args:
@@ -105,8 +104,7 @@ async def estimate_characteristic_function(
 def _randomly_sample_from_stabilizer_bases(
     stabilizer_basis: List[cirq.DensePauliString], n_measured_operators: int, n_qubits: int
 ):
-    """
-    Given a stabilizer basis, randomly creates Pauli states by including the
+    """Given a stabilizer basis, randomly creates Pauli states by including the
     basis vector or not.
 
     Args:
@@ -133,8 +131,7 @@ def _randomly_sample_from_stabilizer_bases(
 def _enumerate_all_from_stabilizer_bases(
     stabilizer_basis: List[cirq.DensePauliString], n_qubits: int
 ):
-    """
-    Given a stabilizer basis, creates the exhaustive list of Pauli states that
+    """Given a stabilizer basis, creates the exhaustive list of Pauli states that
     are spanned by the basis.
 
     Args:
@@ -157,8 +154,7 @@ def _enumerate_all_from_stabilizer_bases(
 
 @dataclass
 class PauliTrace:
-    """
-    A class that contains the Pauli states as described on page 2 of:
+    """A class that contains the Pauli states as described on page 2 of:
     https://arxiv.org/abs/1104.3835
     """
 
@@ -177,8 +173,7 @@ def _estimate_pauli_traces_clifford(
     stabilizer_basis: List[cirq.DensePauliString],
     n_measured_operators: Optional[int],
 ) -> List[PauliTrace]:
-    """
-    Estimates the Pauli traces in case the circuit is Clifford. When we have a
+    """Estimates the Pauli traces in case the circuit is Clifford. When we have a
     Clifford circuit, there are 2**n Pauli traces that have probability 1/2**n
     and all the other traces have probability 0. In addition, there is a fast
     way to compute find out what the traces are. See the documentation of
@@ -235,8 +230,7 @@ def _estimate_pauli_traces_clifford(
 def _estimate_pauli_traces_general(
     qubits: List[cirq.Qid], circuit: cirq.Circuit, n_measured_operators: Optional[int]
 ) -> List[PauliTrace]:
-    """
-    Estimates the Pauli traces in case the circuit is not Clifford. In this case
+    """Estimates the Pauli traces in case the circuit is not Clifford. In this case
     we cannot use the speedup implemented in the function
     _estimate_pauli_traces_clifford() above, and so do a slow, density matrix
     simulation.
@@ -275,8 +269,7 @@ def _estimate_pauli_traces_general(
 
 
 def _estimate_std_devs_clifford(fidelity: float, n: int) -> Tuple[Optional[float], float]:
-    """
-    Estimates the standard deviation of the measurement for Clifford circuits.
+    """Estimates the standard deviation of the measurement for Clifford circuits.
 
     Args:
         fidelity: The measured fidelity
@@ -307,8 +300,7 @@ def _estimate_std_devs_clifford(fidelity: float, n: int) -> Tuple[Optional[float
 
 @dataclass
 class Result:
-    """
-    Contains the results of a trial, either by simulator or actual run
+    """Contains the results of a trial, either by simulator or actual run
     """
 
     # The Pauli trace that was measured
@@ -321,8 +313,7 @@ class Result:
 
 @dataclass
 class DFEIntermediateResult:
-    """
-    A container for the various debug and run data from calling the function
+    """A container for the various debug and run data from calling the function
     direct_fidelity_estimation(). This is useful when running a long-computation
     on an actual computer, which is expensive. This way, runs can be more easily
     debugged offline.
@@ -347,8 +338,7 @@ def direct_fidelity_estimation(
     n_measured_operators: Optional[int],
     samples_per_term: int,
 ):
-    """
-    Implementation of direct fidelity estimation, as per 'Direct Fidelity
+    """Implementation of direct fidelity estimation, as per 'Direct Fidelity
     Estimation from Few Pauli Measurements' https://arxiv.org/abs/1104.4695 and
     'Practical characterization of quantum devices without tomography'
     https://arxiv.org/abs/1104.3835.

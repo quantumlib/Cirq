@@ -361,8 +361,7 @@ class Moment:
         precision: Optional[int] = None,
         include_tags: bool = True,
     ):
-        """
-        Args:
+        """Args:
             xy_breakdown_func: A function to split qubits/qudits into x and y
                 components. For example, the default breakdown turns
                 `cirq.GridQubit(row, col)` into the tuple `(col, row)` and

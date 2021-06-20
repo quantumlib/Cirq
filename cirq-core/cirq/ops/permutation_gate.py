@@ -26,8 +26,7 @@ class QubitPermutationGate(raw_types.Gate):
     """A qubit permutation gate specified by a permutation list."""
 
     def __init__(self, permutation: Sequence[int]):
-        """
-        Args:
+        """Args:
             permutation: A shuffled sequence of integers from 0 to
                 len(permutation) - 1. The entry at offset `i` is the result
                 of permuting `i`.

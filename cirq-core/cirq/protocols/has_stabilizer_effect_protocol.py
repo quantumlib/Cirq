@@ -23,8 +23,7 @@ from cirq import protocols
 
 
 def has_stabilizer_effect(val: Any) -> bool:
-    """
-    Returns whether the input has a stabilizer effect.
+    """Returns whether the input has a stabilizer effect.
     For 1-qubit gates always returns correct result. For other operations relies
     on the operation to define whether it has stabilizer effect.
     """
@@ -43,8 +42,7 @@ def has_stabilizer_effect(val: Any) -> bool:
 
 
 def _strat_has_stabilizer_effect_from_has_stabilizer_effect(val: Any) -> Optional[bool]:
-    """
-    Attempts to infer whether val has stabilizer effect via its
+    """Attempts to infer whether val has stabilizer effect via its
     _has_stabilizer_effect_ method.
     """
     if hasattr(val, '_has_stabilizer_effect_'):
@@ -55,8 +53,7 @@ def _strat_has_stabilizer_effect_from_has_stabilizer_effect(val: Any) -> Optiona
 
 
 def _strat_has_stabilizer_effect_from_gate(val: Any) -> Optional[bool]:
-    """
-    Attempts to infer whether val has stabilizer effect via the value of
+    """Attempts to infer whether val has stabilizer effect via the value of
     _has_stabilizer_effect_ method of its constituent gate.
     """
     if hasattr(val, 'gate'):

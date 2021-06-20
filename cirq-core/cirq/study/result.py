@@ -99,8 +99,7 @@ class Result:
         params: resolver.ParamResolver,
         measurements: Dict[str, np.ndarray],
     ) -> None:
-        """
-        Args:
+        """Args:
             params: A ParamResolver of settings used for this result.
             measurements: A dictionary from measurement gate key to measurement
                 results. The value for each key is a 2-D array of booleans,

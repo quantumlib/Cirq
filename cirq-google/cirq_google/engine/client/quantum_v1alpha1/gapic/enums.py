@@ -21,8 +21,7 @@ import enum
 
 class ExecutionStatus(object):
     class State(enum.IntEnum):
-        """
-        -
+        """-
 
         Attributes:
           STATE_UNSPECIFIED (int): -
@@ -44,8 +43,7 @@ class ExecutionStatus(object):
 
     class Failure(object):
         class Code(enum.IntEnum):
-            """
-            -
+            """-
 
             Attributes:
               CODE_UNSPECIFIED (int): -
@@ -80,8 +78,7 @@ class ExecutionStatus(object):
 
 class QuantumProcessor(object):
     class Health(enum.IntEnum):
-        """
-        -
+        """-
 
         Attributes:
           HEALTH_UNSPECIFIED (int): -
@@ -98,8 +95,7 @@ class QuantumProcessor(object):
 
 class QuantumTimeSlot(object):
     class TimeSlotType(enum.IntEnum):
-        """
-        -
+        """-
 
         Attributes:
           TIME_SLOT_TYPE_UNSPECIFIED (int): -
@@ -118,8 +114,7 @@ class QuantumTimeSlot(object):
 
 class StreamError(object):
     class Code(enum.IntEnum):
-        """
-        -
+        """-
 
         Attributes:
           CODE_UNSPECIFIED (int): -

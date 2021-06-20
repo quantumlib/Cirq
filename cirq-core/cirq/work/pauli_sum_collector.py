@@ -35,8 +35,7 @@ class PauliSumCollector(collector.Collector):
         samples_per_term: int,
         max_samples_per_job: int = 1000000,
     ):
-        """
-        Args:
+        """Args:
             circuit: Produces the state to be tested.
             observable: The pauli product observables to measure. Their sampled
                 expectations will be scaled by their coefficients and their

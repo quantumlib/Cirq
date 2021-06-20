@@ -67,8 +67,7 @@ class ActOnCliffordTableauArgs(ActOnArgs):
         qubits: Sequence['cirq.Qid'] = None,
         axes: Iterable[int] = None,
     ):
-        """
-        Args:
+        """Args:
             tableau: The CliffordTableau to act on. Operations are expected to
                 perform inplace edits of this object.
             qubits: Determines the canonical ordering of the qubits. This

@@ -42,8 +42,7 @@ class ConvertToNeutralAtomGates(PointOptimizer):
     """
 
     def __init__(self, ignore_failures=False) -> None:
-        """
-        Args:
+        """Args:
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
         """

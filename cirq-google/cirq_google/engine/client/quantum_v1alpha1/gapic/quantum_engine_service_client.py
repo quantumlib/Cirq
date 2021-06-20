@@ -206,8 +206,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -283,8 +282,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -356,8 +354,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -460,8 +457,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -530,8 +526,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -611,8 +606,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -688,8 +682,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -759,8 +752,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -862,8 +854,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -930,8 +921,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -1009,8 +999,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -1076,8 +1065,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -1177,8 +1165,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -1248,8 +1235,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -1351,8 +1337,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -1422,8 +1407,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -1525,8 +1509,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -1595,8 +1578,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -1669,8 +1651,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -1738,8 +1719,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -1804,8 +1784,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -1875,8 +1854,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -1980,8 +1958,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -2059,8 +2036,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -2120,8 +2096,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -2226,8 +2201,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -2306,8 +2280,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1
@@ -2411,8 +2384,7 @@ class QuantumEngineServiceClient(object):
         timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
         metadata: Optional[Sequence[Tuple[str, str]]] = None,
     ):
-        """
-        -
+        """-
 
         Example:
             >>> from cirq_google.engine.client import quantum_v1alpha1

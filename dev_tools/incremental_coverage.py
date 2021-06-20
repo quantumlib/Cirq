@@ -60,8 +60,7 @@ EXPLICIT_OPT_OUT_COMMENT = '#coverage:ignore'
 
 
 def diff_to_new_interesting_lines(unified_diff_lines: List[str]) -> Dict[int, str]:
-    """
-    Extracts a set of 'interesting' lines out of a GNU unified diff format.
+    """Extracts a set of 'interesting' lines out of a GNU unified diff format.
 
     Format:
       gnu.org/software/diffutils/manual/html_node/Detailed-Unified.html
@@ -128,8 +127,7 @@ def fix_line_from_coverage_file(line):
 def get_incremental_uncovered_lines(
     abs_path: str, base_commit: str, actual_commit: Optional[str]
 ) -> List[Tuple[int, str, str]]:
-    """
-    Uses git diff and the annotation files created by
+    """Uses git diff and the annotation files created by
     `pytest --cov-report annotate` to find touched but uncovered lines in the
     given file.
 
@@ -170,8 +168,7 @@ def get_incremental_uncovered_lines(
 
 
 def line_content_counts_as_uncovered_manual(content: str) -> bool:
-    """
-    Args:
+    """Args:
         content: A line with indentation and tail comments/space removed.
 
     Returns:
@@ -234,8 +231,7 @@ def naive_find_end_of_scope(lines: List[str], i: int) -> int:
 
 
 def line_counts_as_uncovered(line: str, is_from_cover_annotation_file: bool) -> bool:
-    """
-    Args:
+    """Args:
         line: The line of code (including coverage annotation).
         is_from_cover_annotation_file: Whether this line has been annotated.
     Returns:
@@ -269,8 +265,7 @@ def line_counts_as_uncovered(line: str, is_from_cover_annotation_file: bool) -> 
 
 
 def is_applicable_python_file(rel_path: str) -> bool:
-    """
-    Determines if a file should be included in incremental coverage analysis.
+    """Determines if a file should be included in incremental coverage analysis.
 
     Args:
         rel_path: The repo-relative file path being considered.

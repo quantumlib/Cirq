@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Utility methods related to optimizing quantum circuits
+"""Utility methods related to optimizing quantum circuits
 using native iontrap operations.
 
 Gate compilation methods implemented here are following the paper below:

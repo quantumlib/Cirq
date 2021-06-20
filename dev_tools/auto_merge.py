@@ -41,8 +41,7 @@ class PullRequestDetails:
 
     @staticmethod
     def from_github(repo: GithubRepository, pull_id: int) -> 'PullRequestDetails':
-        """
-        References:
+        """References:
             https://developer.github.com/v3/pulls/#get-a-single-pull-request
         """
         url = "https://api.github.com/repos/{}/{}/pulls/{}?access_token={}".format(
@@ -117,8 +116,7 @@ class PullRequestDetails:
 def check_collaborator_has_write(
     repo: GithubRepository, username: str
 ) -> Optional[CannotAutomergeError]:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/issues/events/#list-events-for-an-issue
     """
     url = (
@@ -166,8 +164,7 @@ def get_all(url_func: Callable[[int], str]) -> List[Any]:
 def check_auto_merge_labeler(
     repo: GithubRepository, pull_id: int
 ) -> Optional[CannotAutomergeError]:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/issues/events/#list-events-for-an-issue
     """
     events = get_all(
@@ -191,8 +188,7 @@ def check_auto_merge_labeler(
 
 
 def add_comment(repo: GithubRepository, pull_id: int, text: str) -> None:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/issues/comments/#create-a-comment
     """
     url = "https://api.github.com/repos/{}/{}/issues/{}/comments?access_token={}".format(
@@ -210,8 +206,7 @@ def add_comment(repo: GithubRepository, pull_id: int, text: str) -> None:
 
 
 def edit_comment(repo: GithubRepository, text: str, comment_id: int) -> None:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/issues/comments/#edit-a-comment
     """
     url = "https://api.github.com/repos/{}/{}/issues/comments/{}?access_token={}".format(
@@ -229,8 +224,7 @@ def edit_comment(repo: GithubRepository, text: str, comment_id: int) -> None:
 
 
 def get_branch_details(repo: GithubRepository, branch: str) -> Any:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/repos/branches/#get-branch
     """
     url = "https://api.github.com/repos/{}/{}/branches/{}?access_token={}".format(
@@ -249,8 +243,7 @@ def get_branch_details(repo: GithubRepository, branch: str) -> Any:
 
 
 def get_pr_statuses(pr: PullRequestDetails) -> List[Dict[str, Any]]:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref
     """
 
@@ -270,8 +263,7 @@ def get_pr_statuses(pr: PullRequestDetails) -> List[Dict[str, Any]]:
 
 
 def get_pr_check_status(pr: PullRequestDetails) -> Any:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/repos/statuses/#get-the-combined-status-for-a-specific-ref
     """
 
@@ -318,8 +310,7 @@ def classify_pr_status_check_state(pr: PullRequestDetails) -> Optional[bool]:
 
 
 def classify_pr_synced_state(pr: PullRequestDetails) -> Optional[bool]:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/pulls/#get-a-single-pull-request
         https://developer.github.com/v4/enum/mergestatestatus/
     """
@@ -332,8 +323,7 @@ def classify_pr_synced_state(pr: PullRequestDetails) -> Optional[bool]:
 
 
 def get_pr_review_status(pr: PullRequestDetails, per_page: int = 100) -> Any:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/pulls/reviews/#list-reviews-on-a-pull-request
     """
     url = (
@@ -354,8 +344,7 @@ def get_pr_review_status(pr: PullRequestDetails, per_page: int = 100) -> Any:
 
 
 def get_pr_checks(pr: PullRequestDetails) -> Dict[str, Any]:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/checks/runs/#list-check-runs-for-a-specific-ref
     """
     url = "https://api.github.com/repos/{}/{}/commits/{}/check-runs?access_token={}".format(
@@ -412,8 +401,7 @@ def absent_status_checks(pr: PullRequestDetails, master_data: Optional[Any] = No
 
 
 def get_repo_ref(repo: GithubRepository, ref: str) -> Dict[str, Any]:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/git/refs/#get-a-reference
     """
 
@@ -437,8 +425,7 @@ def get_master_sha(repo: GithubRepository) -> str:
 
 
 def list_pr_comments(repo: GithubRepository, pull_id: int) -> List[Dict[str, Any]]:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/issues/comments/#list-comments-on-an-issue
     """
     url = "https://api.github.com/repos/{}/{}/issues/{}/comments?access_token={}".format(
@@ -456,8 +443,7 @@ def list_pr_comments(repo: GithubRepository, pull_id: int) -> List[Dict[str, Any
 
 
 def delete_comment(repo: GithubRepository, comment_id: int) -> None:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/issues/comments/#delete-a-comment
     """
     url = "https://api.github.com/repos/{}/{}/issues/comments/{}?access_token={}".format(
@@ -511,8 +497,7 @@ def update_branch(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
 
 
 def attempt_sync_with_master(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/repos/merging/#perform-a-merge
     """
     master_sha = get_master_sha(pr.repo)
@@ -555,8 +540,7 @@ def attempt_sync_with_master(pr: PullRequestDetails) -> Union[bool, CannotAutome
 
 
 def attempt_squash_merge(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button
     """
     url = "https://api.github.com/repos/{}/{}/pulls/{}/merge?access_token={}".format(
@@ -588,8 +572,7 @@ def attempt_squash_merge(pr: PullRequestDetails) -> Union[bool, CannotAutomergeE
 
 
 def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/git/refs/#delete-a-reference
     """
 
@@ -631,8 +614,7 @@ def branch_data_modified_recently(payload: Any) -> bool:
 def add_labels_to_pr(
     repo: GithubRepository, pull_id: int, *labels: str, override_token: str = None
 ) -> None:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/issues/labels/#add-labels-to-an-issue
     """
     url = "https://api.github.com/repos/{}/{}/issues/{}/labels?access_token={}".format(
@@ -649,8 +631,7 @@ def add_labels_to_pr(
 
 
 def remove_label_from_pr(repo: GithubRepository, pull_id: int, label: str) -> bool:
-    """
-    References:
+    """References:
         https://developer.github.com/v3/issues/labels/#remove-a-label-from-an-issue
     """
     url = "https://api.github.com/repos/{}/{}/issues/{}/labels/{}?access_token={}".format(

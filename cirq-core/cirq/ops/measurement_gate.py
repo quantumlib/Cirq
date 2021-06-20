@@ -38,8 +38,7 @@ class MeasurementGate(raw_types.Gate):
         invert_mask: Tuple[bool, ...] = (),
         qid_shape: Tuple[int, ...] = None,
     ) -> None:
-        """
-        Args:
+        """Args:
             num_qubits: The number of qubits to act upon.
             key: The string key of the measurement.
             invert_mask: A list of values indicating whether the corresponding

@@ -143,8 +143,7 @@ def test_param_dict_iter():
 
 
 def test_formulas_in_param_dict():
-    """
-    Param dicts are allowed to have str or sympy.Symbol as keys and
+    """Param dicts are allowed to have str or sympy.Symbol as keys and
     floats or sympy.Symbol as values.  This should not be a common use case,
     but this tests makes sure something reasonable is returned when
     mixing these types and using formulas in ParamResolvers.
@@ -256,8 +255,7 @@ def test_custom_resolved_value():
 
 
 def test_compose():
-    """
-    Calling cirq.resolve_paramters on a ParamResolver composes that resolver
+    """Calling cirq.resolve_paramters on a ParamResolver composes that resolver
     with the provided resolver.
     """
     a = sympy.Symbol('a')

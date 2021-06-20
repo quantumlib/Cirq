@@ -505,8 +505,7 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
 
 
 def generalized_amplitude_damp(p: float, gamma: float) -> GeneralizedAmplitudeDampingChannel:
-    r"""
-    Returns a GeneralizedAmplitudeDampingChannel with the given
+    r"""Returns a GeneralizedAmplitudeDampingChannel with the given
     probabilities gamma and p.
 
     This channel evolves a density matrix via:
@@ -633,8 +632,7 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
 
 
 def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
-    r"""
-    Returns an AmplitudeDampingChannel with the given probability gamma.
+    r"""Returns an AmplitudeDampingChannel with the given probability gamma.
 
     This channel evolves a density matrix via:
 
@@ -869,8 +867,7 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
 
 
 def phase_damp(gamma: float) -> PhaseDampingChannel:
-    r"""
-    Creates a PhaseDampingChannel with damping constant gamma.
+    r"""Creates a PhaseDampingChannel with damping constant gamma.
 
     This channel evolves a density matrix via:
 
@@ -979,15 +976,13 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
 
 
 def _phase_flip_Z() -> common_gates.ZPowGate:
-    """
-    Returns a cirq.Z which corresponds to a guaranteed phase flip.
+    """Returns a cirq.Z which corresponds to a guaranteed phase flip.
     """
     return common_gates.ZPowGate()
 
 
 def _phase_flip(p: float) -> PhaseFlipChannel:
-    r"""
-    Returns a PhaseFlipChannel that flips a qubit's phase with probability p.
+    r"""Returns a PhaseFlipChannel that flips a qubit's phase with probability p.
 
     This channel evolves a density matrix via:
 
@@ -1021,8 +1016,7 @@ def _phase_flip(p: float) -> PhaseFlipChannel:
 
 
 def phase_flip(p: Optional[float] = None) -> Union[common_gates.ZPowGate, PhaseFlipChannel]:
-    r"""
-    Returns a PhaseFlipChannel that flips a qubit's phase with probability p
+    r"""Returns a PhaseFlipChannel that flips a qubit's phase with probability p
     if p is None, return a guaranteed phase flip in the form of a Z operation.
 
     This channel evolves a density matrix via:
@@ -1135,8 +1129,7 @@ class BitFlipChannel(gate_features.SingleQubitGate):
 
 
 def _bit_flip(p: float) -> BitFlipChannel:
-    r"""
-    Construct a BitFlipChannel that flips a qubit state
+    r"""Construct a BitFlipChannel that flips a qubit state
     with probability of a flip given by p.
 
     This channel evolves a density matrix via:
@@ -1171,8 +1164,7 @@ def _bit_flip(p: float) -> BitFlipChannel:
 
 
 def bit_flip(p: Optional[float] = None) -> Union[common_gates.XPowGate, BitFlipChannel]:
-    r"""
-    Construct a BitFlipChannel that flips a qubit state
+    r"""Construct a BitFlipChannel that flips a qubit state
     with probability of a flip given by p. If p is None, return
     a guaranteed flip in the form of an X operation.
 

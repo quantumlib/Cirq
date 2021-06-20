@@ -48,8 +48,7 @@ class EjectZ:
     """
 
     def __init__(self, tolerance: float = 0.0, eject_parameterized: bool = False) -> None:
-        """
-        Args:
+        """Args:
             tolerance: Maximum absolute error tolerance. The optimization is
                  permitted to simply drop negligible combinations of Z gates,
                  with a threshold determined by this tolerance.

@@ -118,9 +118,7 @@ class SerializableDevice(cirq.Device):
         proto: v2.device_pb2.DeviceSpecification,
         gate_sets: Iterable[serializable_gate_set.SerializableGateSet],
     ) -> 'SerializableDevice':
-        """
-
-        Args:
+        """Args:
             proto: A proto describing the qubits on the device, as well as the
                 supported gates and timing information.
             gate_set: A SerializableGateSet that can translate the gate_ids

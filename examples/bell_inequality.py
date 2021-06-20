@@ -1,5 +1,4 @@
-"""
-Bell's theorem or inequality proves that entanglement based
+"""Bell's theorem or inequality proves that entanglement based
 observations can't be reproduced with any local realist theory [1].
 
 This example shows Bell's inequality in form of CHSH game where two

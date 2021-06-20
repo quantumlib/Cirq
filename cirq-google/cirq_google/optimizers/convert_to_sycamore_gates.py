@@ -48,8 +48,7 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
     """
 
     def __init__(self, tabulation: Optional[GateTabulation] = None, ignore_failures=False) -> None:
-        """
-        Args:
+        """Args:
             tabulation: If set, a tabulation for the Sycamore gate to use for
                 decomposing Matrix gates. If unset, an analytic calculation is
                 used for Matrix gates. To get a GateTabulation, call the
@@ -99,8 +98,7 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
         return False
 
     def _convert_one(self, op: cirq.Operation) -> cirq.OP_TREE:
-        """
-        Decomposer intercept:  Upon cirq.protocols.decompose catch and
+        """Decomposer intercept:  Upon cirq.protocols.decompose catch and
         return new OP_Tree
 
         This should decompose based on number of qubits.
@@ -175,8 +173,7 @@ def known_two_q_operations_to_sycamore_operations(
     op: cirq.Operation,
     tabulation: Optional[GateTabulation] = None,
 ) -> cirq.OP_TREE:
-    """
-    Synthesize a known gate operation to a sycamore operation
+    """Synthesize a known gate operation to a sycamore operation
 
     This function dispatches based on gate type
 
@@ -408,8 +405,7 @@ def decompose_swap_into_syc(a: cirq.Qid, b: cirq.Qid):
 
 
 def find_local_equivalents(unitary1: np.ndarray, unitary2: np.ndarray):
-    """
-    Given two unitaries with the same interaction coefficients but different
+    """Given two unitaries with the same interaction coefficients but different
     local unitary rotations determine the local unitaries that turns
     one type of gate into another.
 
@@ -496,8 +492,7 @@ def rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
 
 
 def cphase(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
-    """
-    Implement a cphase using the Ising gate generated from 2 Sycamore gates
+    """Implement a cphase using the Ising gate generated from 2 Sycamore gates
 
     A CPHASE gate has the matrix diag([1, 1, 1, exp(1j * theta)]) and can
     be mapped to the Ising gate by prep and post rotations of Z-pi/4.
@@ -516,8 +511,7 @@ def cphase(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
 
 
 def swap_rzz(theta: float, q0: cirq.Qid, q1: cirq.Qid) -> cirq.OP_TREE:
-    """
-    An implementation of SWAP * EXP(1j theta ZZ) using three sycamore gates.
+    """An implementation of SWAP * EXP(1j theta ZZ) using three sycamore gates.
 
     This builds off of the zztheta method.  A sycamore gate following the
     zz-gate is a SWAP EXP(1j (THETA - pi/24) ZZ).

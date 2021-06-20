@@ -62,8 +62,7 @@ class MSGate(ops.XXPowGate):
 
 
 def ms(rads: float) -> MSGate:
-    """
-    Args:
+    """Args:
         rads: The rotation angle in radians.
 
     Returns:

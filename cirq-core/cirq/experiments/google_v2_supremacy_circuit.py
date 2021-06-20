@@ -22,8 +22,7 @@ from cirq import circuits, devices, ops
 def generate_boixo_2018_supremacy_circuits_v2(
     qubits: Iterable[devices.GridQubit], cz_depth: int, seed: int
 ) -> circuits.Circuit:
-    """
-    Generates Google Random Circuits v2 as in github.com/sboixo/GRCS cz_v2.
+    """Generates Google Random Circuits v2 as in github.com/sboixo/GRCS cz_v2.
     See also https://arxiv.org/abs/1807.10749
 
     Args:
@@ -84,8 +83,7 @@ def generate_boixo_2018_supremacy_circuits_v2(
 def generate_boixo_2018_supremacy_circuits_v2_grid(
     n_rows: int, n_cols: int, cz_depth: int, seed: int
 ) -> circuits.Circuit:
-    """
-    Generates Google Random Circuits v2 as in github.com/sboixo/GRCS cz_v2.
+    """Generates Google Random Circuits v2 as in github.com/sboixo/GRCS cz_v2.
     See also https://arxiv.org/abs/1807.10749
 
     Args:
@@ -108,8 +106,7 @@ def generate_boixo_2018_supremacy_circuits_v2_grid(
 def generate_boixo_2018_supremacy_circuits_v2_bristlecone(
     n_rows: int, cz_depth: int, seed: int
 ) -> circuits.Circuit:
-    """
-    Generates Google Random Circuits v2 in Bristlecone.
+    """Generates Google Random Circuits v2 in Bristlecone.
     See also https://arxiv.org/abs/1807.10749
 
     Args:
@@ -179,8 +176,7 @@ def _add_cz_layer(layer_index: int, circuit: circuits.Circuit) -> int:
 def _make_cz_layer(
     qubits: Iterable[devices.GridQubit], layer_index: int
 ) -> Iterable[ops.Operation]:
-    """
-    Each layer index corresponds to a shift/transpose of this CZ pattern:
+    """Each layer index corresponds to a shift/transpose of this CZ pattern:
 
         ●───●   ●   ●   ●───●   ●   ● . . .
 
