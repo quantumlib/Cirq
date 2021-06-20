@@ -53,7 +53,7 @@ def test_immutable():
 def test_gate_operation_eq():
     g1 = cirq.SingleQubitGate()
     g2 = cirq.SingleQubitGate()
-    g3 = cirq.TwoQubitGate()
+    g3 = cirq.testing.TwoQubitGate()
     r1 = [cirq.NamedQubit('r1')]
     r2 = [cirq.NamedQubit('r2')]
     r12 = r1 + r2

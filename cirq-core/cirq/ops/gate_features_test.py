@@ -75,15 +75,15 @@ def test_single_qubit_validates_on():
 
 
 def test_two_qubit_gate_is_abstract_can_implement():
-    class Included(cirq.TwoQubitGate):
+    class Included(cirq.testing.TwoQubitGate):
         def matrix(self):
             pass
 
-    assert isinstance(Included(), cirq.TwoQubitGate)
+    assert isinstance(Included(), cirq.testing.TwoQubitGate)
 
 
 def test_two_qubit_gate_validate_pass():
-    class Dummy(cirq.TwoQubitGate):
+    class Dummy(cirq.testing.TwoQubitGate):
         def matrix(self):
             pass
 
@@ -99,7 +99,7 @@ def test_two_qubit_gate_validate_pass():
 
 
 def test_two_qubit_gate_validate_wrong_number():
-    class Dummy(cirq.TwoQubitGate):
+    class Dummy(cirq.testing.TwoQubitGate):
         def matrix(self):
             pass
 

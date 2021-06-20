@@ -415,7 +415,7 @@ def cross_entropy_benchmarking(
 
 
 def build_entangling_layers(
-    qubits: Sequence[devices.GridQubit], two_qubit_gate: ops.TwoQubitGate
+    qubits: Sequence[devices.GridQubit], two_qubit_gate: ops.Gate
 ) -> List[ops.Moment]:
     """Builds a sequence of gates that entangle all pairs of qubits on a grid.
 

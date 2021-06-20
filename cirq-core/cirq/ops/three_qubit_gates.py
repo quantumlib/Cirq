@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-class CCZPowGate(eigen_gate.EigenGate, gate_features.InterchangeableQubitsGate):
+class CCZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     """A doubly-controlled-Z that can be raised to a power.
 
     The matrix of `CCZ**t` is `diag(1, 1, 1, 1, 1, 1, 1, exp(i pi t))`.
@@ -329,7 +329,7 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
         return 3
 
 
-class CCXPowGate(eigen_gate.EigenGate, gate_features.InterchangeableQubitsGate):
+class CCXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     """A Toffoli (doubly-controlled-NOT) that can be raised to a power.
 
     The matrix of `CCX**t` is an 8x8 identity except the bottom right 2x2 area

@@ -79,7 +79,7 @@ def test_single_qubit_gate_phased_xz():
 
 
 def test_unsupported_gate():
-    class UnknownGate(cirq.TwoQubitGate):
+    class UnknownGate(cirq.testing.TwoQubitGate):
         pass
 
     q0 = cirq.LineQubit(0)

@@ -25,7 +25,7 @@ from cirq.ops import eigen_gate, gate_features, swap_gates
 
 
 @value.value_equality(manual_cls=True)
-class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+class PhasedISwapPowGate(eigen_gate.EigenGate):
     """Fractional ISWAP conjugated by Z rotations.
 
     PhasedISwapPowGate with phase_exponent p and exponent t is equivalent to
@@ -69,6 +69,9 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     @property
     def phase_exponent(self) -> Union[float, sympy.Symbol]:
         return self._phase_exponent
+
+    def _num_qubits_(self) -> int:
+        return 2
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {

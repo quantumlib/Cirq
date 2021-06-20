@@ -70,6 +70,7 @@ class SingleQubitGate(SupportsOnEachGate, metaclass=abc.ABCMeta):
         return 1
 
 
+@deprecated_class(deadline='v0.14', fix='Define _num_qubits_ manually.')
 class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly two qubits."""
 

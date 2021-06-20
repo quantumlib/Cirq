@@ -67,11 +67,11 @@ def test_avoids_decompose_fallback_when_matrix_available_single_qubit():
 
 
 def test_avoids_decompose_fallback_when_matrix_available_two_qubit():
-    class OtherCZ(cirq.TwoQubitGate):
+    class OtherCZ(cirq.testing.TwoQubitGate):
         def _unitary_(self) -> np.ndarray:
             return np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])
 
-    class OtherOtherCZ(cirq.TwoQubitGate):
+    class OtherOtherCZ(cirq.testing.TwoQubitGate):
         def _decompose_(self, qubits):
             return OtherCZ().on(*qubits)
 

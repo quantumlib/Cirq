@@ -27,9 +27,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-class XXPowGate(
-    eigen_gate.EigenGate, gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGate
-):
+class XXPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     r"""The X-parity gate, possibly raised to a power.
 
     The XX**t gate implements the following unitary:
@@ -60,6 +58,9 @@ class XXPowGate(
     See also: `cirq.ion.ion_gates.MSGate` (the Mølmer–Sørensen gate), which is
     implemented via this class.
     """
+
+    def _num_qubits_(self) -> int:
+        return 2
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
@@ -139,9 +140,7 @@ class XXPowGate(
         )
 
 
-class YYPowGate(
-    eigen_gate.EigenGate, gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGate
-):
+class YYPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     r"""The Y-parity gate, possibly raised to a power.
 
     The YY**t gate implements the following unitary:
@@ -169,6 +168,9 @@ class YYPowGate(
         f = e^{\frac{i \pi t}{2}}.
         $$
     """
+
+    def _num_qubits_(self) -> int:
+        return 2
 
     def _eigen_components(self) -> List[Tuple[float, np.ndarray]]:
         return [
@@ -251,9 +253,7 @@ class YYPowGate(
         )
 
 
-class ZZPowGate(
-    eigen_gate.EigenGate, gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGate
-):
+class ZZPowGate(gate_features.InterchangeableQubitsGate, eigen_gate.EigenGate):
     r"""The Z-parity gate, possibly raised to a power.
 
     The ZZ**t gate implements the following unitary:
@@ -269,6 +269,9 @@ class ZZPowGate(
 
     where $w = e^{i \pi t}$ and '.' means '0'.
     """
+
+    def _num_qubits_(self) -> int:
+        return 2
 
     def _decompose_(self, qubits):
         yield common_gates.ZPowGate(exponent=self.exponent)(qubits[0])
