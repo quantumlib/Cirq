@@ -2312,7 +2312,6 @@ def _resolve_operations(
 def _get_moment_annotations(
     moment: 'cirq.Moment',
 ) -> Iterator['cirq.Operation']:
-    result = []
     for op in moment.operations:
         if op.qubits:
             continue
@@ -2324,7 +2323,6 @@ def _get_moment_annotations(
                 yield from _get_moment_annotations(m)
         else:
             yield op
-    return result
 
 
 def _draw_moment_annotations(
