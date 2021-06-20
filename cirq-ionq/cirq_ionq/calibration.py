@@ -15,7 +15,7 @@ import datetime
 
 from typing import Optional, Set, Tuple
 
-from cirq import devices
+import cirq
 
 
 class Calibration:
@@ -55,7 +55,7 @@ class Calibration:
         """Returns the gate, measurement, and reseting timings."""
         return self._calibration_dict['timing']
 
-    def connectivity(self) -> Set[Tuple[devices.LineQubit, devices.LineQubit]]:
+    def connectivity(self) -> Set[Tuple[cirq.LineQubit, cirq.LineQubit]]:
         """Returns which qubits and can interact with which.
 
         Returns:
@@ -64,7 +64,7 @@ class Calibration:
             `(cirq.LineQubit(y), cirq.LineQubit(x))` is in the set.
         """
         connections = self._calibration_dict['connectivity']
-        to_qubit = lambda x: devices.LineQubit(int(x))
+        to_qubit = lambda x: cirq.LineQubit(int(x))
         return set((to_qubit(x), to_qubit(y)) for x, y in connections).union(
             set((to_qubit(y), to_qubit(x)) for x, y in connections)
         )

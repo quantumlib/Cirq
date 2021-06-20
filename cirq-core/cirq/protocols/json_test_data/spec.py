@@ -125,6 +125,7 @@ TestSpec = ModuleJsonTestSpec(
         'SimulatesFinalState',
         # protocols:
         'SupportsActOn',
+        'SupportsActOnQubits',
         'SupportsApplyChannel',
         'SupportsApplyMixture',
         'SupportsApproximateEquality',

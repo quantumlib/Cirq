@@ -14,7 +14,7 @@
 import pytest
 
 import cirq
-import cirq.ionq as ionq
+import cirq_ionq as ionq
 
 
 VALID_GATES = (
