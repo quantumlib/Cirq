@@ -2333,8 +2333,8 @@ def _draw_moment_annotations(
     qubit_map: Dict['cirq.Qid', int],
     out_diagram: TextDiagramDrawer,
     precision: Optional[int],
-    get_circuit_diagram_info: Optional[
-        Callable[['cirq.Operation', 'cirq.CircuitDiagramInfoArgs'], 'cirq.CircuitDiagramInfo']
+    get_circuit_diagram_info: Callable[
+        ['cirq.Operation', 'cirq.CircuitDiagramInfoArgs'], 'cirq.CircuitDiagramInfo'
     ],
     include_tags: bool,
     first_annotation_row: int,
