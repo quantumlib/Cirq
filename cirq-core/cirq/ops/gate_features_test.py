@@ -21,11 +21,6 @@ import pytest
 import cirq
 
 
-class ThreeQubitTestGate(cirq.Gate, metaclass=abc.ABCMeta):
-    def _num_qubits_(self):
-        return 3
-
-
 def test_single_qubit_gate_validate_args():
     class Dummy(cirq.SingleQubitGate):
         def matrix(self):

@@ -11,16 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import abc
 
 import pytest
 import numpy as np
 
 import cirq
 from cirq import ops
-from cirq.ops.gate_features_test import ThreeQubitTestGate
 
 
 def test_coverage():
+    class ThreeQubitTestGate(cirq.Gate, metaclass=abc.ABCMeta):
+        def _num_qubits_(self):
+            return 3
+
     q = cirq.LineQubit.range(3)
     g = ThreeQubitTestGate()
 

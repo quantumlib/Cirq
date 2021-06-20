@@ -77,7 +77,7 @@ class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         return 2
 
 
-@deprecated_class(deadline='v0.14', fix='Define _num_qubits_, or ThreeQubitTestGate for tests.')
+@deprecated_class(deadline='v0.14', fix='Define _num_qubits_ manually.')
 class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly three qubits."""
 

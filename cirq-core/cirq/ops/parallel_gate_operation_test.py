@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import abc
 
 import pytest
 import numpy as np
 import sympy
 import cirq
-from cirq.ops.gate_features_test import ThreeQubitTestGate
 
 
 def test_parallel_gate_operation_init():
@@ -29,6 +29,10 @@ def test_parallel_gate_operation_init():
 
 
 def test_invalid_parallel_gate_operation():
+    class ThreeQubitTestGate(cirq.Gate, metaclass=abc.ABCMeta):
+        def _num_qubits_(self):
+            return 3
+
     three_qubit_gate = ThreeQubitTestGate()
     single_qubit_gate = cirq.SingleQubitGate()
     repeated_qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0, 0)]
