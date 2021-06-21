@@ -50,10 +50,7 @@ class CountingActOnArgs(cirq.ActOnArgs):
         return True
 
     def sample(self, qubits, repetitions=1, seed=None):
-        measurements: List[List[int]] = []
-        for _ in range(repetitions):
-            measurements.append(self._perform_measurement(qubits))
-        return np.array(measurements, dtype=int)
+        pass
 
 
 class SplittableCountingActOnArgs(CountingActOnArgs):
