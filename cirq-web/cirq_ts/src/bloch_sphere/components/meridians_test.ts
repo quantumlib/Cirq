@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {assert, expect} from 'chai';
-import {
-  createHorizontalChordMeridians,
-  createVerticalMeridians,
-  createHorizontalCircleMeridians,
-} from './meridians';
+import {expect} from 'chai';
+import {Meridians} from './meridians';
+import {Orientation} from './enums';
+import {Vector3} from 'three';
 
 describe('Meridians', () => {
   const DEFAULT_RADIUS = 5;
@@ -25,33 +23,52 @@ describe('Meridians', () => {
   const DEFAULT_V_MERIDIANS = 4;
 
   describe('defaults', () => {
-    it('createHorizontalChordMeridians() returns type Group from Meridians', () => {
-      const meridians = createHorizontalChordMeridians(DEFAULT_RADIUS, DEFAULT_H_MERIDIANS);
-      expect(meridians.type).to.equal('Group')
-      expect(meridians.constructor.name).to.equal('Meridians')
-    });
+    it('horizontalChordMeridians() generates lines at the correct positions with defaults', () => {
+      const meridians = new Meridians(
+        DEFAULT_RADIUS,
+        DEFAULT_H_MERIDIANS,
+        Orientation.HORIZONTAL_CHORD
+      );
 
-    it('createHorizontalCircleMeridians() returns type Group from Meridians', () => {
-      const meridians = createHorizontalCircleMeridians(DEFAULT_RADIUS, DEFAULT_H_MERIDIANS);
-      expect(meridians.type).to.equal('Group')
-      expect(meridians.constructor.name).to.equal('Meridians')
-    });
+      const positions = [
+        new Vector3(0, 0, 0),
+        new Vector3(0, 4.5, 0),
+        new Vector3(0, -4.5, 0),
+        new Vector3(0, 3, 0),
+        new Vector3(0, -3, 0),
+        new Vector3(0, 1.5, 0),
+        new Vector3(0, -1.5, 0),
+      ];
 
-    it('createVerticalMeridians() returns type Group from Meridians', () => {
-      const meridians = createVerticalMeridians(DEFAULT_RADIUS, DEFAULT_V_MERIDIANS);
-      expect(meridians.type).to.equal('Group')
-      expect(meridians.constructor.name).to.equal('Meridians')
+      meridians.children.forEach((el, index) => {
+        expect(el.position).to.eql(positions[index]);
+      });
     });
   });
 
   describe('configurables', () => {
-    it('change the number of horizontal meridians', () => {
-      const meridians = createHorizontalChordMeridians(DEFAULT_RADIUS, 51);
-      expect(meridians.children.length).to.equal(51);
+    it('changing the number of horizontal chord meridians changes the positions correctly with scale', () => {
+      const meridians = new Meridians(
+        DEFAULT_RADIUS,
+        9,
+        Orientation.HORIZONTAL_CHORD
+      );
+
+      const positions = [
+        new Vector3(0, 0, 0),
+        new Vector3(0, 4.5, 0),
+        new Vector3(0, -4.5, 0),
+        new Vector3(0, 3.375, 0),
+        new Vector3(0, -3.375, 0),
+        new Vector3(0, 2.25, 0),
+        new Vector3(0, -2.25, 0),
+        new Vector3(0, 1.125, 0),
+        new Vector3(0, -1.125, 0),
+      ];
+
+      meridians.children.forEach((el, index) => {
+        expect(el.position).to.eql(positions[index]);
+      });
     });
-    it('change the number of vertical meridians', () => {
-      const meridians = createVerticalMeridians(DEFAULT_RADIUS, 16);
-      expect(meridians.children.length).to.equal(16);
-    });
-  }); 
+  });
 });

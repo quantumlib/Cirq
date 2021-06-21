@@ -12,14 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {createSphere} from './components/sphere';
-import {generateAxis} from './components/axes';
-import {
-  createHorizontalChordMeridians,
-  createVerticalMeridians,
-} from './components/meridians';
-import {generateLabels} from './components/text';
-import {generateVector} from './components/vector';
+import {Orientation} from './components/enums';
+import {Sphere} from './components/sphere';
+import {Axes} from './components/axes';
+import {Meridians} from './components/meridians';
+import {Labels} from './components/text';
+import {Vector} from './components/vector';
 
 import {BlochSphereScene} from './components/scene';
 import {Group, Scene, Vector3} from 'three';
@@ -32,9 +30,8 @@ import {Group, Scene, Vector3} from 'three';
 
 export class BlochSphere extends Group {
   private radius: number;
-  private group: Group;
 
-  // Pull logic of where labels are into here, and not 
+  // Pull logic of where labels are into here, and not
   // into the bloch sphere
 
   // Class that contains the default config paramaters, which
@@ -47,7 +44,6 @@ export class BlochSphere extends Group {
     this.radius = radius;
     this.userData.radius = radius;
 
-    this.group = new Group();
     this.addSphere();
     this.addHorizontalMeridians();
     this.addVerticalMeridians();
@@ -66,43 +62,46 @@ export class BlochSphere extends Group {
   }
 
   public addVector(vectorData?: string) {
-    const vector = generateVector(vectorData);
+    const vector = new Vector(vectorData);
     this.add(vector);
   }
 
   private addSphere() {
-    const sphere = createSphere(this.radius);
+    const sphere = new Sphere(this.radius);
     this.add(sphere);
   }
 
   private addAxes() {
-    const axes = generateAxis(this.radius);
+    const axes = new Axes(this.radius);
     this.add(axes);
   }
 
   private addHorizontalMeridians() {
-    const meridians = createHorizontalChordMeridians(this.radius, 7);
+    const meridians = new Meridians(
+      this.radius,
+      7,
+      Orientation.HORIZONTAL_CHORD
+    );
     this.add(meridians);
   }
 
   private addVerticalMeridians() {
-    const meridians = createVerticalMeridians(this.radius, 4);
+    const meridians = new Meridians(this.radius, 4, Orientation.VERTICAL);
     this.add(meridians);
   }
 
   private addLabels() {
-    // Location of labels go's here
-    // label = new Label(text, direction)\
     const spacing = 0.5;
-    const labels = {
-      '|+⟩' : new Vector3(this.radius + spacing, 0, 0),
-      '|-⟩' : new Vector3(-this.radius - spacing, 0, 0),
-      '|i⟩' : new Vector3(0, 0, -this.radius - spacing),
-      '|-i⟩' : new Vector3(0, 0, this.radius + spacing),
-      '|0⟩' : new Vector3(0, this.radius + spacing, 0),
-      '|1⟩' : new Vector3(0, -this.radius - spacing, 0),
-    }
+    const labelData = {
+      '|+⟩': new Vector3(this.radius + spacing, 0, 0),
+      '|-⟩': new Vector3(-this.radius - spacing, 0, 0),
+      '|i⟩': new Vector3(0, 0, -this.radius - spacing),
+      '|-i⟩': new Vector3(0, 0, this.radius + spacing),
+      '|0⟩': new Vector3(0, this.radius + spacing, 0),
+      '|1⟩': new Vector3(0, -this.radius - spacing, 0),
+    };
 
-    this.add(generateLabels(labels));
+    const labels = new Labels(labelData);
+    this.add(labels);
   }
 }

@@ -12,17 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Vector3, LineBasicMaterial, BufferGeometry, Line, Group, AxesHelper} from 'three';
-
-class Axes extends Group {
-  constructor(x: Line, y: Line, z: Line){
-    super();
-    this.add(x);
-    this.add(y);
-    this.add(z);
-    return this;
-  }
-}
+import {Vector3, LineBasicMaterial, BufferGeometry, Line, Group} from 'three';
 
 interface Axis {
   points: [Vector3, Vector3];
@@ -30,44 +20,85 @@ interface Axis {
   readonly lineWidth: number;
 }
 
-/**
- * Creates the x, y, and z axis for the Bloch sphere.
- * @param radius The overall radius of the bloch sphere.
- * @returns An object mapping the name of the axis to its corresponding
- * Line object to be rendered by the three.js scene.
- */
-export function generateAxis(
-  radius: number,
-  xAxisColor = '#1f51ff',
-  yAxisColor = '#ff3131',
-  zAxisColor = '#39ff14'
-) {
-  const LINE_WIDTH = 1.5;
-  const xPoints: [Vector3, Vector3] = [
-    new Vector3(-radius, 0, 0),
-    new Vector3(radius, 0, 0),
-  ];
-  const yPoints: [Vector3, Vector3] = [
-    new Vector3(0, 0, -radius),
-    new Vector3(0, 0, radius),
-  ];
-  const zPoints: [Vector3, Vector3] = [
-    new Vector3(0, -radius, 0),
-    new Vector3(0, radius, 0),
-  ];
+export class Axes extends Group {
+  readonly radius: number;
+  readonly xAxisColor: string;
+  readonly yAxisColor: string;
+  readonly zAxisColor: string;
 
-  const axesMap = {
-    x: asLine({points: xPoints, hexColor: xAxisColor, lineWidth: LINE_WIDTH}),
-    y: asLine({points: yPoints, hexColor: yAxisColor, lineWidth: LINE_WIDTH}),
-    z: asLine({points: zPoints, hexColor: zAxisColor, lineWidth: LINE_WIDTH}),
-  };
+  constructor(
+    radius: number,
+    xAxisColor = '#1f51ff',
+    yAxisColor = '#ff3131',
+    zAxisColor = '#39ff14'
+  ) {
+    super();
+    this.radius = radius;
+    this.xAxisColor = xAxisColor;
+    this.yAxisColor = yAxisColor;
+    this.zAxisColor = zAxisColor;
 
-  return new Axes(axesMap.x, axesMap.y, axesMap.z);
-}
+    this.generateAxes(
+      this.radius,
+      this.xAxisColor,
+      this.yAxisColor,
+      this.zAxisColor
+    );
+    return this;
+  }
 
-function asLine(axis: Axis): Line {
-  return new Line(
-    new BufferGeometry().setFromPoints(axis.points),
-    new LineBasicMaterial({color: axis.hexColor, linewidth: axis.lineWidth})
-  );
+  /**
+   * Creates the x, y, and z axis for the Bloch sphere, adding
+   * them to the group.
+   * @param radius The overall radius of the bloch sphere.
+   */
+  private generateAxes(
+    radius: number,
+    xAxisColor: string,
+    yAxisColor: string,
+    zAxisColor: string
+  ) {
+    const LINE_WIDTH = 1.5;
+    const xPoints: [Vector3, Vector3] = [
+      new Vector3(-radius, 0, 0),
+      new Vector3(radius, 0, 0),
+    ];
+    const yPoints: [Vector3, Vector3] = [
+      new Vector3(0, 0, -radius),
+      new Vector3(0, 0, radius),
+    ];
+    const zPoints: [Vector3, Vector3] = [
+      new Vector3(0, -radius, 0),
+      new Vector3(0, radius, 0),
+    ];
+
+    const axesMap = {
+      x: this.asLine({
+        points: xPoints,
+        hexColor: xAxisColor,
+        lineWidth: LINE_WIDTH,
+      }),
+      y: this.asLine({
+        points: yPoints,
+        hexColor: yAxisColor,
+        lineWidth: LINE_WIDTH,
+      }),
+      z: this.asLine({
+        points: zPoints,
+        hexColor: zAxisColor,
+        lineWidth: LINE_WIDTH,
+      }),
+    };
+
+    this.add(axesMap.x);
+    this.add(axesMap.y);
+    this.add(axesMap.z);
+  }
+
+  private asLine(axis: Axis): Line {
+    return new Line(
+      new BufferGeometry().setFromPoints(axis.points),
+      new LineBasicMaterial({color: axis.hexColor, linewidth: axis.lineWidth})
+    );
+  }
 }

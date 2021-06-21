@@ -13,13 +13,20 @@
 // limitations under the License.
 
 import {expect} from 'chai';
-import {generateVector} from './vector';
+import {Vector} from './vector';
 
 describe('Vector methods', () => {
-  const vectors = generateVector(undefined);
+  const vector = new Vector(undefined);
 
-  it('returns type Group as Vectors', () => {
-    expect(vectors.type).to.equal('Group');
-    expect(vectors.constructor.name).to.equal('Vectors');
+  it('returns type Group as Vector', () => {
+    expect(vector.type).to.equal('Group');
+    expect(vector.constructor.name).to.equal('Vector');
+  });
+
+  it('Empty vector initializes to the correct values', () => {
+    expect(vector.x).to.equal(0);
+    expect(vector.y).to.equal(0);
+    expect(vector.z).to.equal(0);
+    expect(vector.length).to.equal(5);
   });
 });

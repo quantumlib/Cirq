@@ -13,18 +13,18 @@
 // limitations under the License.
 
 import {assert, expect} from 'chai';
-import {createSphere} from './sphere';
+import {Sphere} from './sphere';
 
 describe('Sphere methods', () => {
   const DEFAULT_RADIUS = 5;
-  const sphere = createSphere(DEFAULT_RADIUS);
+  const sphere = new Sphere(DEFAULT_RADIUS);
 
   it('returns a type Group as Sphere', () => {
     expect(sphere.type).to.equal('Group');
-    expect(sphere.constructor.name).to.equal('Sphere')
+    expect(sphere.constructor.name).to.equal('Sphere');
   });
 
   it('returns a transparent sphere', () => {
-    assert(false, 'Not implemented')
+    assert(false, 'Not implemented');
   });
 });

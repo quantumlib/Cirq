@@ -12,10 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {expect, assert} from 'chai';
+import {expect} from 'chai';
 import {BlochSphere} from './bloch_sphere';
-import {Scene} from 'three';
+import {Object3D, Scene} from 'three';
 import {JSDOM} from 'jsdom';
+import {Orientation} from './components/enums';
+import {Sphere} from './components/sphere';
+import {Meridians} from './components/meridians';
+import {Axes} from './components/axes';
 
 // class EnumerableScene extends Scene {
 //   public addedObjects : Object3D[] = [];
@@ -35,73 +39,101 @@ import {JSDOM} from 'jsdom';
  * Using JSDOM to create a global document which the canvas elements
  * generated in loadAndDisplayText can be created on.
  */
- const {window} = new JSDOM('<!doctype html><html><body></body></html>');
- global.document = window.document;
-
+const {window} = new JSDOM('<!doctype html><html><body></body></html>');
+global.document = window.document;
 
 describe('The BlochSphere class by default', () => {
   const scene = new Scene();
   const bloch_sphere = new BlochSphere();
   bloch_sphere.addToScene(scene);
-  
+
   it('has a radius of 5', () => {
-    expect(bloch_sphere.userData.radius).to.equal(5);
-  })
+    // Go to the sphere component of the visuzliation
+    // and make sure that its radius is 5;
+    const children = bloch_sphere.children;
+    const sphere = children.find(
+      child => child.constructor.name === 'Sphere'
+    ) as Sphere;
+    expect(sphere.radius).to.equal(5);
+  });
 
   it('adds a group object to a scene', () => {
     const children = scene.children;
     expect(children.length).to.equal(1);
     expect(children[0].type).to.equal('Group');
-   });
+  });
 
   describe('The groups contain the correct num of components', () => {
     const children = bloch_sphere.children;
     it('has a sphere', () => {
-      const sphereExists = children.some(child => child.constructor.name == 'Sphere');
+      const sphereExists = children.some(
+        child => child.constructor.name === 'Sphere'
+      );
       expect(sphereExists).to.equal(true);
     });
 
     it('has 2 sets of meridians', () => {
-      const numOfMeridians = children.filter(child => child.constructor.name === 'Meridians').length;
+      const numOfMeridians = children.filter(
+        child => child.constructor.name === 'Meridians'
+      ).length;
       expect(numOfMeridians).to.equal(2);
     });
 
     it('has axes', () => {
-      const axesExists = children.some(child => child.constructor.name === 'Axes');
+      const axesExists = children.some(
+        child => child.constructor.name === 'Axes'
+      );
       expect(axesExists).to.equal(true);
     });
 
     it('has labels', () => {
-      const labelsExists = children.some(child => child.constructor.name === 'Labels')
+      const labelsExists = children.some(
+        child => child.constructor.name === 'Labels'
+      );
       expect(labelsExists).to.equal(true);
     });
   });
 
   describe('The meridian group', () => {
     const children = bloch_sphere.children;
-    const meridians = children.filter(child => child.constructor.name === 'Meridians')
+    const meridians = children.filter(
+      child => child.constructor.name === 'Meridians'
+    ) as Meridians[];
 
-    it('contains 7 horizontal meridians by default', () => {
-      expect(meridians[0].children.length).to.equal(7)
-      // Class that inherits from group
-      // In meridians test, test individual circles that were added
-      // an object of a meridians class is added, which also is a group
-      // Type information and properties
-  
+    it('contains 7 horizontal chord meridians by default', () => {
+      const horizontalMeridians = meridians.find(
+        child => child.orientation === Orientation.HORIZONTAL_CHORD
+      ) as Object3D;
+      expect(horizontalMeridians.children.length).to.equal(7);
     });
-  
+
     it('contains 4 vert meridians by default', () => {
-      expect(meridians[1].children.length).to.equal(4)
+      const verticalMeridians = meridians.find(
+        child => child.orientation === Orientation.VERTICAL
+      ) as Object3D;
+      expect(verticalMeridians.children.length).to.equal(4);
     });
   });
 
   describe('The axes group', () => {
     const children = bloch_sphere.children;
-    const axes = children.filter(child => child.constructor.name === 'Axes');
+    const axes = children.find(child => child.constructor.name === 'Axes')!;
 
     it('contains the 3 axes by default', () => {
-      const numberOfLines = axes[0].children.length;
+      const numberOfLines = axes.children.length;
       expect(numberOfLines).to.equal(3);
+    });
+
+    it('The axes fit a circle of radius 5 by default', () => {
+      const tcAxes = axes as Axes;
+      expect(tcAxes.radius).to.equal(5);
+    });
+
+    it('The axes are the right colors by default', () => {
+      const tcAxes = axes as Axes;
+      expect(tcAxes.xAxisColor).to.equal('#1f51ff');
+      expect(tcAxes.yAxisColor).to.equal('#ff3131');
+      expect(tcAxes.zAxisColor).to.equal('#39ff14');
     });
   });
 
@@ -111,21 +143,16 @@ describe('The BlochSphere class by default', () => {
 });
 
 describe('The BlochSphere class is configurable', () => {
-  const bloch_sphere = new BlochSphere();
-
   describe('the radius is configurable', () => {
     it('accepts a radius of 3', () => {
+      // Go to the sphere component of the visuzliation
+      // and make sure that its radius is 5;
       const bloch_sphere = new BlochSphere(3);
-      const radius = bloch_sphere.userData.radius;
-      expect(radius).to.equal(3);
-    });
-  });
-
-  describe('the meridians are configurable', () => {
-    it('has horizontal meridians', () => {
-      assert(false, "Not implemented");
+      const children = bloch_sphere.children;
+      const sphere = children.find(
+        child => child.constructor.name === 'Sphere'
+      ) as Sphere;
+      expect(sphere.radius).to.equal(3);
     });
   });
 });
-
- 

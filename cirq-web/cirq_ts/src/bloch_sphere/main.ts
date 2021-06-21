@@ -32,7 +32,6 @@ export function blochSphere(
   vectorData?: string,
   containerId?: string
 ) {
-
   const sphereData = JSON.parse(circleData);
 
   const scene = new BlochSphereScene();
@@ -43,5 +42,4 @@ export function blochSphere(
   //bloch_sphere.addToScene(scene);
 
   bloch_sphere.addVector(vectorData || undefined);
-
 }

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {expect} from 'chai';
-import {generateLabels} from './text';
+import {Labels} from './text';
 import {JSDOM} from 'jsdom';
 import {Vector3} from 'three';
 
@@ -26,9 +26,9 @@ global.document = window.document;
 
 describe('Text methods', () => {
   const mock_label = {
-    'test': new Vector3(0, 0, 0),
-  }
-  const labels = generateLabels(mock_label);
+    test: new Vector3(0, 0, 0),
+  };
+  const labels = new Labels(mock_label);
 
   it('returns a type Group as Labels', () => {
     expect(labels.type).to.equal('Group');
@@ -36,7 +36,7 @@ describe('Text methods', () => {
   });
 
   it('has one child with one label', () => {
-    let children = labels.children;
+    const children = labels.children;
     expect(children.length).to.equal(1);
     expect(children[0].type).to.equal('Sprite');
     expect(children[0].constructor.name).to.equal('Label');

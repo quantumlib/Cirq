@@ -14,33 +14,37 @@
 
 import {SphereGeometry, MeshNormalMaterial, Mesh, Group} from 'three';
 
-class Sphere extends Group {
-  constructor() {
+export class Sphere extends Group {
+  readonly radius: number;
+
+  constructor(radius: number) {
     super();
+    this.radius = radius;
+
+    this.createSphere(this.radius);
+    return this;
   }
-}
-/**
- * Generates a sphere Mesh object, which serves as the foundation
- * of the bloch sphere visualization.
- * @param radius The desired radius of the overall bloch sphere.
- * @returns a sphere Mesh object to be rendered in the scene.
- */
-export function createSphere(radius: number) {
-  const geometry = new SphereGeometry(radius, 32, 32);
-  const properties = {
-    opacity: 0.6,
-    transparent: true,
-  };
 
-  const material = new MeshNormalMaterial(properties);
+  /**
+   * Generates a sphere Mesh object, which serves as the foundation
+   * of the bloch sphere visualization, adding the mesh object
+   * to the group.
+   * @param radius The desired radius of the overall bloch sphere.
+   */
+  private createSphere(radius: number) {
+    const geometry = new SphereGeometry(radius, 32, 32);
+    const properties = {
+      opacity: 0.6,
+      transparent: true,
+    };
 
-  const mesh = new Mesh(geometry, material);
+    const material = new MeshNormalMaterial(properties);
 
-  // Smooth out the shape
-  mesh.geometry.computeVertexNormals();
+    const mesh = new Mesh(geometry, material);
 
-  const sphere = new Sphere();
-  sphere.add(mesh);
-  
-  return sphere;
+    // Smooth out the shape
+    mesh.geometry.computeVertexNormals();
+
+    this.add(mesh);
+  }
 }

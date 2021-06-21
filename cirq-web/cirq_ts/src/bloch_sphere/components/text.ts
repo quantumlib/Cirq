@@ -14,16 +14,21 @@
 
 import {Vector3, Sprite, Texture, SpriteMaterial, Group} from 'three';
 
-/**
- * Displays the state labels onto the bloch sphere.
- * @returns A list of text Sprite objects to be rendered by the scene
- */
+export class Labels extends Group {
+  readonly labels: Object;
 
-
-
-class Labels extends Group {
-  constructor() {
+  constructor(labels: Object) {
     super();
+    this.labels = labels;
+
+    this.generateLabels(this.labels);
+    return this;
+  }
+
+  private generateLabels(labels: Object) {
+    for (const [text, location] of Object.entries(labels)) {
+      this.add(new Label(text, location));
+    }
   }
 }
 
@@ -34,16 +39,6 @@ class Label extends Sprite {
     this.position.copy(positionVector);
     return this;
   }
-}
-
-export function generateLabels(labels: Object) : Labels {
-  const labelGroup = new Labels();
-
-  for (const [text, location] of Object.entries(labels)) {
-    labelGroup.add(new Label(text, location))
-  }
-
-  return labelGroup;
 }
 
 function createSpriteMaterial(text: string) {
@@ -65,5 +60,5 @@ function createSpriteMaterial(text: string) {
   return new SpriteMaterial({
     map: map,
     transparent: true, // for a transparent canvas background
-  })
+  });
 }

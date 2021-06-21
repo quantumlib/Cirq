@@ -13,28 +13,26 @@
 // limitations under the License.
 
 import {assert, expect} from 'chai';
-import {generateAxis} from './axes';
+import {Axes} from './axes';
+import {Line, LineBasicMaterial, Color} from 'three';
 
 describe('Axes methods', () => {
-  // Sanity check
-  it('returns a type Group from Axes', () => {
-    const axes = generateAxis(5);
-    expect(axes.type).to.equal('Group')
-    expect(axes.constructor.name).to.equal('Axes')
-  });
-
   it('returns 3 Line objects', () => {
-    const axes = generateAxis(5);
+    const axes = new Axes(5);
     const children = axes.children;
-    for(const child of children){
+    for (const child of children) {
       expect(child.type).to.equal('Line');
     }
     expect(children.length).to.equal(3);
   });
 
   it('has configurable axis colors', () => {
-    const axes = generateAxis(5, '#fff', '#fff', '#fff');
-    const children = axes.children;
-    assert(false, "Not implemented");
+    const axes = new Axes(5, '#fff', '#fff', '#fff');
+    const children = axes.children as Line[];
+    for (const child of children) {
+      const material = child.material as LineBasicMaterial;
+      //.eql is deep equal, which can be used to compare objects
+      expect(material.color).to.eql(new Color(1, 1, 1));
+    }
   });
 });

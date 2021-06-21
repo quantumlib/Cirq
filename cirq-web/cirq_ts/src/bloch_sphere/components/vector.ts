@@ -14,64 +14,67 @@
 
 import {ArrowHelper, Vector3, Group} from 'three';
 
-/**
- * Adds a state vector to the bloch sphere.
- * @param vectorData information representing the location of the vector.
- * @returns an ArrowHelper object to be rendered by the scene.
- */
+export class Vector extends Group {
+  readonly length: number;
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
 
-class Vectors extends Group {
-  constructor(){
+  constructor(vectorData?: string) {
     super();
+
+    if (vectorData) {
+      const parsedObj = JSON.parse(vectorData);
+      this.x = parsedObj.x;
+      this.y = parsedObj.y;
+      this.z = parsedObj.z;
+      this.length = parsedObj.length;
+    } else {
+      this.x = 0;
+      this.y = 0;
+      this.z = 0;
+      this.length = 5;
+    }
+
+    this.generateVector(this.x, this.y, this.z, this.length);
+    return this;
   }
-}
 
-interface Vector {
-  x: number;
-  y: number;
-  z: number;
-  length: number;
-}
+  /**
+   * Generates a vector starting at (0, 0) and ending at the coordinates
+   * of the given parameters, and adds to group.
+   * Utilizes three.js ArrowHelper function generate the vector.
+   *
+   * @param vectorData information representing the location of the vector.
+   */
+  private generateVector(x: number, y: number, z: number, length: number) {
+    const directionVector = new Vector3(x, y, z);
 
+    // Apply a -90 degree correction rotation across the x axis
+    // to match coords of Cirq with coords of three.js scene.
+    // This is necessary to make sure the vector points to the correct state
+    const axis = new Vector3(1, 0, 0);
+    const angle = -Math.PI / 2;
+    directionVector.applyAxisAngle(axis, angle);
 
-export function generateVector(inputData?: string): Vectors {
-  let vectorData: Vector;
-  if (inputData) {
-    vectorData = JSON.parse(inputData);
-  } else {
-    vectorData = {x: 0, y: 0, z: 0, length: 5,};
+    // Needed so that ArrowHelper can generate the length easily
+    directionVector.normalize();
+
+    // Set base properties of the vector
+    const origin = new Vector3(0, 0, 0);
+    const hex = '#800080';
+    const headWidth = 1;
+
+    // Create the arrow representation of the vector and add it to the group
+    const arrowHelper = new ArrowHelper(
+      directionVector,
+      origin,
+      length,
+      hex,
+      undefined,
+      headWidth
+    );
+
+    this.add(arrowHelper);
   }
-
-  const directionVector = new Vector3(vectorData.x, vectorData.y, vectorData.z);
-
-  // Apply a -90 degree correction rotation across the x axis
-  // to match coords of Cirq with coords of three.js scene.
-  // This is necessary to make sure the vector points to the correct state
-  const axis = new Vector3(1, 0, 0);
-  const angle = -Math.PI / 2;
-  directionVector.applyAxisAngle(axis, angle);
-
-  // Needed so that ArrowHelper can generate the length easily
-  directionVector.normalize();
-
-  // Set base properties of the vector
-  const origin = new Vector3(0, 0, 0);
-  const length = vectorData.length;
-  const hex = '#800080';
-  const headWidth = 1;
-
-  // Create the arrow representation of the vector and add it to the scene
-  const arrowHelper = new ArrowHelper(
-    directionVector,
-    origin,
-    length,
-    hex,
-    undefined,
-    headWidth
-  );
-
-  const vectors = new Vectors();
-  vectors.add(arrowHelper);
-
-  return vectors;
 }

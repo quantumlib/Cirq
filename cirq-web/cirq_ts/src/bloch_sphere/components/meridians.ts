@@ -12,17 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {EllipseCurve, BufferGeometry, LineBasicMaterial, Line, Group} from 'three';
-enum Orientation {
-  HORIZONTAL,
-  VERTICAL,
-}
-
-class Meridians extends Group {
-  constructor(){
-    super();
-  }
-}
+import {
+  EllipseCurve,
+  BufferGeometry,
+  LineBasicMaterial,
+  Line,
+  Group,
+} from 'three';
+import {Orientation} from './enums';
 
 interface CurveData {
   anchorX: number;
@@ -34,172 +31,214 @@ interface CurveData {
   rotation: number;
 }
 
-function curveDataWithRadius(radius: number): CurveData {
-  return {
-    anchorX: 0,
-    anchorY: 0,
-    radius: radius,
-    startAngle: 0,
-    endAngle: 2 * Math.PI,
-    isClockwise: false,
-    rotation: 0,
-  };
-}
+export class Meridians extends Group {
+  readonly radius: number;
+  readonly numCircles: number;
+  readonly orientation: Orientation;
+  readonly color: string = 'gray';
 
-function sanitizeCircleInput(input: number, defaultValue: number){
-  // Don't fail if given an invalid number of circles, but print to the console
-  // that it's not allowed
-  if (input < 0) {
-    console.log("A negative number of meridians are not supported. Showing default.");
-    return defaultValue;
-  } else if (input > 300) {
-    console.log("Over 300 meridians are not supported. Showing default.");
-    return defaultValue;
+  constructor(radius: number, numCircles: number, orientation: Orientation) {
+    super();
+    this.radius = radius;
+    this.numCircles = numCircles;
+    this.orientation = orientation;
+
+    switch (orientation) {
+      case Orientation.HORIZONTAL_CHORD: {
+        this.createHorizontalChordMeridians(this.radius, this.numCircles);
+        return this;
+      }
+      case Orientation.HORIZONTAL: {
+        this.createHorizontalCircleMeridians(this.radius, this.numCircles);
+        return this;
+      }
+      case Orientation.VERTICAL: {
+        this.createVerticalMeridians(this.radius, this.numCircles);
+        return this;
+      }
+      default:
+        // Return nothing if given an invalid orientation.
+        return this;
+    }
   }
 
-  return input;
-}
+  /**
+   * Creates the special horizontal meridian lines of the Bloch
+   * sphere, each with a different radius and location, adding
+   * them to the group afterwards.
+   * @param radius The radius of the overall Bloch sphere
+   * @param numCircles The number of circles displayed. The number must be odd,
+   * if an even number is provided, the function will add one more meridian.
+   */
+  private createHorizontalChordMeridians(radius: number, numCircles: number) {
+    const circles = this.sanitizeCircleInput(numCircles, 7);
 
-/**
- * Creates the special horizontal meridian lines of the Bloch
- * sphere, each with a different radius and location.
- * @param radius The radius of the overall Bloch sphere
- * @param numCircles The number of circles displayed. The number must be odd,
- * if an even number is provided, the function will add one more meridian.
- * @returns A list of circles (represented as Line objects) to draw on the scene
- */
-export function createHorizontalChordMeridians(radius: number, numCircles: number): Meridians {
-  const circles = sanitizeCircleInput(numCircles, 7);
+    let nonEquatorCircles: number;
+    circles % 2 !== 0
+      ? (nonEquatorCircles = circles - 1)
+      : (nonEquatorCircles = circles);
+    const circlesPerHalf = nonEquatorCircles / 2;
 
-  let nonEquatorCircles: number;
-  circles % 2 !== 0 ? nonEquatorCircles = circles-1 : nonEquatorCircles = circles;
-  const circlesPerHalf = nonEquatorCircles / 2;
+    // Creates chords proportionally to radius 5 circle.
+    const initialFactor = (0.5 * radius) / 5;
 
-  // Creates chords proportionally to radius 5 circle.
-  const initialFactor = (0.5 * radius) / 5;
+    const chordYPositions = [0]; // equator
+    const topmostChordPos = radius - initialFactor;
+    for (
+      let i = topmostChordPos;
+      i > 0;
+      i -= topmostChordPos / circlesPerHalf
+    ) {
+      chordYPositions.push(i);
+      chordYPositions.push(-i);
+    }
 
-  const chordYPositions = [0]; // equator
-  const topmostChordPos = radius - initialFactor;
-  for (let i = topmostChordPos; i > 0; i -= topmostChordPos / circlesPerHalf) {
-    chordYPositions.push(i);
-    chordYPositions.push(-i);
+    // Calculate the lengths of the chords of the circle, and then add them
+    for (const position of chordYPositions) {
+      const hyp2 = Math.pow(radius, 2);
+      const distance2 = Math.pow(position, 2);
+      const newRadius = Math.sqrt(hyp2 - distance2); // radius^2 - b^2 = a^2
+
+      const curveData = this.curveDataWithRadius(newRadius);
+      const curve = this.createMeridianCurve(curveData);
+      const meridianLine = this.createMeridianLine(
+        curve,
+        Math.PI / 2,
+        Orientation.HORIZONTAL,
+        position
+      );
+      this.add(meridianLine);
+    }
   }
 
-  // Calculate the lengths of the chords of the circle, and then add them
-  const meridians = new Meridians();
-  for (const position of chordYPositions) {
-    const hyp2 = Math.pow(radius, 2);
-    const distance2 = Math.pow(position, 2);
-    const newRadius = Math.sqrt(hyp2 - distance2); //radius^2 - b^2 = a^2
+  /**
+   * Creates equally sized horizontal meridian lines which rotate
+   * by varying degrees across the same axis and adds them to the
+   * group.
+   * @param radius The radius of the overall Bloch sphere
+   */
+  private createHorizontalCircleMeridians(radius: number, numCircles: number) {
+    const circles = this.sanitizeCircleInput(numCircles, 4);
 
-    const curveData = curveDataWithRadius(newRadius);
-    const curve = createMeridianCurve(curveData);
-    const meridianLine = createMeridianLine(
-      curve,
-      Math.PI / 2,
-      Orientation.HORIZONTAL,
-      position
+    const curveData = this.curveDataWithRadius(radius);
+    const curve = this.createMeridianCurve(curveData);
+
+    for (let i = 0; i < Math.PI; i += Math.PI / circles) {
+      const meridianLine = this.createMeridianLine(
+        curve,
+        i,
+        Orientation.HORIZONTAL
+      );
+      this.add(meridianLine);
+    }
+  }
+
+  /**
+   * Creates equally sized vertical meridian lines which rotate
+   * by varying degrees across the same axis, adding them to the group.
+   * @param radius The radius of the overall bloch sphere
+   */
+  private createVerticalMeridians(radius: number, numCircles: number) {
+    const circles = this.sanitizeCircleInput(numCircles, 4);
+
+    const curveData = {
+      anchorX: 0,
+      anchorY: 0,
+      radius: radius,
+      startAngle: 0,
+      endAngle: 2 * Math.PI,
+      isClockwise: false,
+      rotation: 0,
+    };
+
+    for (let i = 0; i < Math.PI; i += Math.PI / circles) {
+      const curve = this.createMeridianCurve(curveData);
+      const meridianLine = this.createMeridianLine(
+        curve,
+        i,
+        Orientation.VERTICAL
+      );
+      this.add(meridianLine);
+    }
+  }
+
+  /**
+   * Helper function that generates the actual Line object which will be
+   * rendered by the three.js scene.
+   * @param curve An EllipseCurve object that provides location/size info
+   * @param rotationAngle The desired angle of rotation in radians
+   * @param orientation The orientation of the meridian (horizontal or vertical)
+   * @param yPosition (Optional) Allows the yPosition of the line to be updated to
+   * the provided value
+   * @returns A Line object that can be rendered by a three.js scene.
+   */
+  private createMeridianLine(
+    curve: EllipseCurve,
+    rotationAngle: number,
+    orientation: Orientation,
+    yPosition?: number
+  ): Line {
+    const points = curve.getSpacedPoints(128);
+    const meridianGeom = new BufferGeometry().setFromPoints(points);
+
+    orientation === Orientation.VERTICAL
+      ? meridianGeom.rotateY(rotationAngle)
+      : meridianGeom.rotateX(rotationAngle);
+
+    const meridianLine = new Line(
+      meridianGeom,
+      new LineBasicMaterial({color: 'gray'})
     );
-    meridians.add(meridianLine);
+    if (yPosition) {
+      meridianLine.position.y = yPosition;
+    }
+    return meridianLine;
   }
-  return meridians;
-}
 
-/**
- * Creates equally sized horizontal meridian lines which rotate
- * by varying degrees across the same axis.
- * @param radius The radius of the overall Bloch sphere
- * @returns A list of circles (represented as Line objs) to draw on the scene
- */
-export function createHorizontalCircleMeridians(radius: number, numCircles: number): Meridians {
-  const circles = sanitizeCircleInput(numCircles, 4)
-
-  const curveData = curveDataWithRadius(radius);
-  const curve = createMeridianCurve(curveData);
-  const meridians = new Meridians();
-  for (let i = 0; i < Math.PI; i += Math.PI / circles) {
-    const meridianLine = createMeridianLine(curve, i, Orientation.HORIZONTAL);
-    meridians.add(meridianLine);
+  /**
+   * Helper function that generates a necessary EllipseCurve
+   * given the required information.
+   * @param curveData An object that contains info about the curve
+   * @returns An EllipseCurve object based off the curve information.
+   */
+  private createMeridianCurve(curveData: CurveData): EllipseCurve {
+    return new EllipseCurve(
+      curveData.anchorX,
+      curveData.anchorY,
+      curveData.radius,
+      curveData.radius,
+      curveData.startAngle,
+      curveData.endAngle,
+      curveData.isClockwise,
+      curveData.rotation
+    );
   }
-  return meridians;
-}
 
-/**
- * Creates equally sized vertical meridian lines which rotate
- * by varying degrees across the same axis
- * @param radius The radius of the overall bloch sphere
- * @returns A list of circles (represented as Line objs) to draw on the scene
- */
-export function createVerticalMeridians(radius: number, numCircles: number): Meridians {
-  const circles = sanitizeCircleInput(numCircles, 4);
-
-  const curveData = {
-    anchorX: 0,
-    anchorY: 0,
-    radius: radius,
-    startAngle: 0,
-    endAngle: 2 * Math.PI,
-    isClockwise: false,
-    rotation: 0,
-  };
-
-  const meridians = new Meridians();
-  for (let i = 0; i < Math.PI; i += Math.PI / circles) {
-    const curve = createMeridianCurve(curveData);
-    const meridianLine = createMeridianLine(curve, i, Orientation.VERTICAL);
-    meridians.add(meridianLine);
+  private curveDataWithRadius(radius: number): CurveData {
+    return {
+      anchorX: 0,
+      anchorY: 0,
+      radius: radius,
+      startAngle: 0,
+      endAngle: 2 * Math.PI,
+      isClockwise: false,
+      rotation: 0,
+    };
   }
-  return meridians;
-}
 
-/**
- * Helper function that generates the actual Line object which will be
- * rendered by the three.js scene.
- * @param curve An EllipseCurve object that provides location/size info
- * @param rotationAngle The desired angle of rotation in radians
- * @param orientation The orientation of the meridian (horizontal or vertical)
- * @param yPosition (Optional) Allows the yPosition of the line to be updated to
- * the provided value
- * @returns A Line object that can be rendered by a three.js scene.
- */
-function createMeridianLine(
-  curve: EllipseCurve,
-  rotationAngle: number,
-  orientation: Orientation,
-  yPosition?: number
-): Line {
-  const points = curve.getSpacedPoints(128);
-  const meridianGeom = new BufferGeometry().setFromPoints(points);
+  private sanitizeCircleInput(input: number, defaultValue: number) {
+    // Don't fail if given an invalid number of circles, but print to the console
+    // that it's not allowed
+    if (input < 0) {
+      console.log(
+        'A negative number of meridians are not supported. Showing default.'
+      );
+      return defaultValue;
+    } else if (input > 300) {
+      console.log('Over 300 meridians are not supported. Showing default.');
+      return defaultValue;
+    }
 
-  orientation === Orientation.VERTICAL
-    ? meridianGeom.rotateY(rotationAngle)
-    : meridianGeom.rotateX(rotationAngle);
-
-  const meridianLine = new Line(
-    meridianGeom,
-    new LineBasicMaterial({color: 'gray'})
-  );
-  if (yPosition) {
-    meridianLine.position.y = yPosition;
+    return input;
   }
-  return meridianLine;
-}
-
-/**
- * Helper function that generates a necessary EllipseCurve
- * given the required information.
- * @param curveData An object that contains info about the curve
- * @returns An EllipseCurve object based off the curve information.
- */
-function createMeridianCurve(curveData: CurveData): EllipseCurve {
-  return new EllipseCurve(
-    curveData.anchorX,
-    curveData.anchorY,
-    curveData.radius,
-    curveData.radius,
-    curveData.startAngle,
-    curveData.endAngle,
-    curveData.isClockwise,
-    curveData.rotation
-  );
 }
