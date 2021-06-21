@@ -23,8 +23,6 @@
 # $TEST_TWINE_USERNAME and $TEST_TWINE_PASSWORD environment variables.
 ################################################################################
 
-set -e
-
 # Get the working directory to the repo root.
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$(git rev-parse --show-toplevel)"
@@ -56,9 +54,17 @@ fi
 
 # only run if setup.py or txt changes are observed, to avoid too frequent uploads to test pypi
 changed=$(git diff --name-only ${rev} -- \
-    | grep -E "^.*(setup.py|.txt)$"
+    | grep -E "^.*(setup.py|.txt|dev_tools.*)$"
 )
 
+num_changed=$(echo -e "${changed[@]}" | wc -w)
+
+echo "Found ${num_changed} changed files relevant to packaging." >&2
+if [ "${num_changed}" -eq 0 ]; then
+    exit 0
+fi
+
+set -e
 
 # Temporary workspace.
 tmp_dir=$(mktemp -d)
