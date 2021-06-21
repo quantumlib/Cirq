@@ -383,7 +383,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         Args:
             *targets: The qubits to apply this gate to. This can be provided as
             nested iterables, but each leaf level must contain an exact
-            multiple of `self.num_qubits` qubits.
+            multiple of `num_qubits` qubits.
 
         Returns:
             Operations applying this gate to the target qubits.
