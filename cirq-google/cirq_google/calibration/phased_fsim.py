@@ -1016,35 +1016,11 @@ def try_convert_sqrt_iswap_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedF
         either FSimGate, ISWapPowGate, PhasedFSimGate or PhasedISwapPowGate that is equivalent to
         FSimGate(theta=±π/4, phi=0). None otherwise.
     """
-    if isinstance(gate, cirq.FSimGate):
-        if not np.isclose(gate.phi, 0.0):
-            return None
-        angle = gate.theta
-    elif isinstance(gate, cirq.ISwapPowGate):
-        angle = -gate.exponent * np.pi / 2
-    elif isinstance(gate, cirq.PhasedFSimGate):
-        if (
-            not np.isclose(gate.zeta, 0.0)
-            or not np.isclose(gate.chi, 0.0)
-            or not np.isclose(gate.gamma, 0.0)
-            or not np.isclose(gate.phi, 0.0)
-        ):
-            return None
-        angle = gate.theta
-    elif isinstance(gate, cirq.PhasedISwapPowGate):
-        if not np.isclose(-gate.phase_exponent - 0.5, 0.0):
-            return None
-        angle = gate.exponent * np.pi / 2
-    else:
+    gate = try_convert_gate_to_fsim(gate)
+    if gate is None:
         return None
-
-    angle_canonical = angle % (2 * np.pi)
-
-    if np.isclose(angle_canonical, np.pi / 4):
-        return PhaseCalibratedFSimGate(cirq.FSimGate(theta=np.pi / 4, phi=0.0), 0.0)
-    elif np.isclose(angle_canonical, 7 * np.pi / 4):
-        return PhaseCalibratedFSimGate(cirq.FSimGate(theta=np.pi / 4, phi=0.0), 0.5)
-
+    if np.allclose(gate.engine_gate.theta, np.pi / 4) and np.allclose(gate.engine_gate.phi, 0.0):
+        return gate
     return None
 
 
@@ -1097,3 +1073,31 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
         phase_exponent = phase_exponent + 0.5
     phase_exponent %= 1
     return PhaseCalibratedFSimGate(cirq.FSimGate(theta=theta, phi=phi), phase_exponent)
+
+
+# Engine gates supported by hardware.
+# These are gates of type PhasedFSimGate given by parameters theta and phi.
+_HARDWARE_SUPPORTED_ENGINE_GATES_THETA_PHI = [
+    (np.pi/2, np.pi/6),  # Sycamore gate.
+    (0, np.pi),          # Controlled-Z gate.
+    (np.pi / 4, 0.0),    # Inverse sqrt(iSWAP) gate.
+]
+
+
+def try_convert_gate_to_fsim_hardware_supported(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGate]:
+    """Converts a gate to equivalent PhaseCalibratedFSimGate, if engine gate of resulting gate is supported by hardware.
+
+    Args:
+        gate: Gate to convert.
+
+    Returns:
+        If provided gate is equivalent to some PhaseCalibratedFSimGate which is supported by hardware, returns that
+        gate. Otherwise returns None.
+    """
+    gate = try_convert_gate_to_fsim(gate)
+    if gate is None:
+        return None
+    for theta, phi in _HARDWARE_SUPPORTED_ENGINE_GATES_THETA_PHI:
+        if np.allclose(phi, gate.engine_gate.phi) and np.allclose(theta, gate.engine_gate.theta):
+            return gate
+    return None
