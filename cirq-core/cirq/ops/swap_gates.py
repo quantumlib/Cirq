@@ -21,7 +21,7 @@ Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.ISWAP**0.5). See the definition in EigenGate.
 """
 
-from typing import Optional, Tuple, TYPE_CHECKING, List
+from typing import Optional, Tuple, TYPE_CHECKING, List, Sequence
 
 import numpy as np
 import sympy
@@ -90,7 +90,7 @@ class SwapPowGate(
             return None
         return self.exponent % 1 == 0
 
-    def _act_on_(self, args):
+    def _act_on_(self, args: 'cirq.ActOnArgs', qubits: Sequence['cirq.Qid']):
         from cirq import ops, sim, protocols
 
         if isinstance(args, (sim.ActOnStabilizerCHFormArgs, sim.ActOnCliffordTableauArgs)):
@@ -100,11 +100,9 @@ class SwapPowGate(
                 args.state.omega *= 1j ** (2 * self.global_shift * self._exponent)
 
             if self._exponent % 2 == 1:
-                protocols.act_on(ops.CNOT, args)
-                args.axes = args.axes[::-1]
-                protocols.act_on(ops.CNOT, args)
-                args.axes = args.axes[::-1]
-                protocols.act_on(ops.CNOT, args)
+                protocols.act_on(ops.CNOT, args, qubits)
+                protocols.act_on(ops.CNOT, args, tuple(reversed(qubits)))
+                protocols.act_on(ops.CNOT, args, qubits)
 
             # An even exponent does not change anything except the global phase above.
             return True
