@@ -395,19 +395,21 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         operations: List['Operation'] = []
         while any(targets):
             if isinstance(targets[0], Qid):
-                first_targets = targets[: self.num_qubits()]
+                first_targets = targets[: protocols.num_qubits(self)]
                 for q in first_targets:
                     if not isinstance(q, Qid):
                         raise ValueError(
-                            f'Expected {first_targets} to be a sequence of {self.num_qubits}'
-                            f' qubits, but it contained {q} of type: {type(q)}'
+                            f'Expected {first_targets} to be a sequence of '
+                            f'{protocols.num_qubits(self)} qubits, but it contained {q} of type: '
+                            f'{type(q)}'
                         )
-                if self.num_qubits() == len(first_targets):
+                if protocols.num_qubits(self) == len(first_targets):
                     operations.append(self.on(*first_targets))  # type: ignore
-                    targets = targets[self.num_qubits() :]
+                    targets = targets[self.protocols.num_qubits(self) :]
                 else:
                     raise ValueError(
-                        f'Called with {len(targets)} qubits in a {self.num_qubits()}-qubit gate.'
+                        f'Called with {len(targets)} qubits in a {protocols.num_qubits(self)}-qubit'
+                        f' gate.'
                     )
             elif isinstance(targets[0], Iterable) and not isinstance(targets[0], str):
                 operations.extend(self.on_each(*targets[0]))
