@@ -20,6 +20,7 @@
 # verificiations on each of the modules, ensuring that they can be imported.
 ################################################################################
 
+set -e
 
 # Temporary workspace.
 tmp_dir=$(mktemp -d)
