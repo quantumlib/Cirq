@@ -1483,7 +1483,7 @@ def test_measuring_subcircuits_cause_sweep_repeat():
 
 
 def test_density_matrix_copy():
-    sim = cirq.DensityMatrixSimulator()
+    sim = cirq.DensityMatrixSimulator(split_untangled_states=False)
 
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q), cirq.H(q))
