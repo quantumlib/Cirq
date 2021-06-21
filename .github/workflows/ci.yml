@@ -14,6 +14,19 @@ jobs:
           architecture: 'x64'
       - name: Misc
         run: check/misc
+  packaging_test:
+    name: Packaging test
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.7'
+          architecture: 'x64'
+      - name: Install dependencies
+        run: pip install -r dev_tools/requirements/deps/packaging.txt
+      - name: Run packaging test
+        run: ./dev_tools/packaging/packaging_test.sh
   format:
     name: Format check
     runs-on: ubuntu-20.04
