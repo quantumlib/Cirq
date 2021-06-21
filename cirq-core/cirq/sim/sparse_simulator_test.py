@@ -1309,7 +1309,7 @@ def test_act_on_args_pure_state_creation():
     expected = cirq.to_valid_state_vector(1, len(qids), qid_shape=shape)
     np.testing.assert_allclose(arg.target_tensor, expected.reshape(shape))
 
-    
+
 def test_noise_model():
     q = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
