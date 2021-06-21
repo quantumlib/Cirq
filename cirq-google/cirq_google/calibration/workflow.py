@@ -40,6 +40,7 @@ from cirq_google.calibration.phased_fsim import (
     WITHOUT_CHI_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     THETA_ZETA_GAMMA_FLOQUET_PHASED_FSIM_CHARACTERIZATION,
     merge_matching_results,
+    try_convert_gate_to_fsim,
     try_convert_sqrt_iswap_to_fsim,
     PhasedFSimCalibrationOptions,
     RequestT,
@@ -847,7 +848,7 @@ def make_zeta_chi_gamma_compensation_for_moments(
     *,
     gates_translator: Callable[
         [cirq.Gate], Optional[PhaseCalibratedFSimGate]
-    ] = try_convert_sqrt_iswap_to_fsim,
+    ] = try_convert_gate_to_fsim,
     merge_subsets: bool = True,
 ) -> CircuitWithCalibration:
     """Compensates circuit moments against errors in zeta, chi and gamma angles.
@@ -897,7 +898,7 @@ def make_zeta_chi_gamma_compensation_for_operations(
     characterizations: List[PhasedFSimCalibrationResult],
     gates_translator: Callable[
         [cirq.Gate], Optional[PhaseCalibratedFSimGate]
-    ] = try_convert_sqrt_iswap_to_fsim,
+    ] = try_convert_gate_to_fsim,
     permit_mixed_moments: bool = False,
 ) -> cirq.Circuit:
     """Compensates circuit operations against errors in zeta, chi and gamma angles.
@@ -951,7 +952,6 @@ def _make_zeta_chi_gamma_compensation(
     gates_translator: Callable[[cirq.Gate], Optional[PhaseCalibratedFSimGate]],
     permit_mixed_moments: bool,
 ) -> CircuitWithCalibration:
-
     if permit_mixed_moments:
         raise NotImplementedError('Mixed moments compensation ist supported yet')
 
@@ -991,6 +991,12 @@ def _make_zeta_chi_gamma_compensation(
 
             if parameters is None:
                 raise ValueError(f'Missing characterization data for moment {moment}')
+
+            if translated.engine_gate != parameters.gate:
+                raise ValueError(
+                    f"Engine gate {translated.engine_gate} doesn't match characterized gate "
+                    f'{parameters.gate}'
+                )
 
             pair_parameters = parameters.get_parameters(a, b)
             if pair_parameters is None:
