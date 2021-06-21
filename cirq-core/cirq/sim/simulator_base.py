@@ -317,7 +317,7 @@ class StepResultBase(Generic[TSimulatorState, TActOnArgs], StepResult[TSimulator
             sim_state: The `OperationTarget` for this step.
         """
         self._sim_state = sim_state
-        self._merged_sim_state: Optional[TActOnArgs] = None
+        self._merged_sim_state_cache: Optional[TActOnArgs] = None
         super().__init__(sim_state.log_of_measurement_results)
         qubits = sim_state.qubits
         self._qubits = qubits
@@ -328,10 +328,10 @@ class StepResultBase(Generic[TSimulatorState, TActOnArgs], StepResult[TSimulator
         return self._qubit_shape
 
     @property
-    def merged_sim_state(self):
-        if self._merged_sim_state is None:
-            self._merged_sim_state = self._sim_state.create_merged_state()
-        return self._merged_sim_state
+    def _merged_sim_state(self):
+        if self._merged_sim_state_cache is None:
+            self._merged_sim_state_cache = self._sim_state.create_merged_state()
+        return self._merged_sim_state_cache
 
     def sample(
         self,

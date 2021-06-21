@@ -364,7 +364,7 @@ class DensityMatrixStepResult(
         """
         if self._density_matrix is None:
             self._density_matrix = np.array(1)
-            state = self.merged_sim_state
+            state = self._merged_sim_state
             if state is not None:
                 matrix = state.target_tensor
                 size = int(np.sqrt(np.prod(matrix.shape, dtype=int)))

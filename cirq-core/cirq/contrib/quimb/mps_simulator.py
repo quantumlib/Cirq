@@ -181,7 +181,7 @@ class MPSSimulatorStepResult(simulator_base.StepResultBase['MPSState', 'MPSState
 
     @property
     def state(self):
-        return self.merged_sim_state
+        return self._merged_sim_state
 
     def __str__(self) -> str:
         def bitstring(vals):
