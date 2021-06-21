@@ -18,6 +18,7 @@ from unittest import mock
 import numpy as np
 import pandas as pd
 import pytest
+import sympy
 from google.protobuf import text_format
 
 import cirq
@@ -939,6 +940,13 @@ def test_try_convert_gate_to_fsim():
     )
 
     assert try_convert_gate_to_fsim(cirq.CX) is None
+
+    # Parameterized gates are not supported.
+    x = sympy.Symbol('x')
+    assert try_convert_gate_to_fsim(cirq.ops.ISwapPowGate(exponent=x)) is None
+    assert try_convert_gate_to_fsim(cirq.PhasedFSimGate(theta=x)) is None
+    assert try_convert_gate_to_fsim(cirq.PhasedISwapPowGate(exponent=x)) is None
+    assert try_convert_gate_to_fsim(cirq.CZPowGate(exponent=x)) is None
 
 
 # Test that try_convert_gate_to_fsim is extension of try_convert_sqrt_iswap_to_fsim.
