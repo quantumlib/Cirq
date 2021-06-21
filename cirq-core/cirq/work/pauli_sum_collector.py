@@ -36,14 +36,14 @@ class PauliSumCollector(collector.Collector):
         max_samples_per_job: int = 1000000,
     ):
         """Args:
-            circuit: Produces the state to be tested.
-            observable: The pauli product observables to measure. Their sampled
-                expectations will be scaled by their coefficients and their
-                dictionary weights, and then added up to produce the final
-                result.
-            samples_per_term: The number of samples to collect for each
-                PauliString term in order to estimate its expectation.
-            max_samples_per_job: How many samples to request at a time.
+        circuit: Produces the state to be tested.
+        observable: The pauli product observables to measure. Their sampled
+            expectations will be scaled by their coefficients and their
+            dictionary weights, and then added up to produce the final
+            result.
+        samples_per_term: The number of samples to collect for each
+            PauliString term in order to estimate its expectation.
+        max_samples_per_job: How many samples to request at a time.
         """
         observable = ops.PauliSum.wrap(observable)
 

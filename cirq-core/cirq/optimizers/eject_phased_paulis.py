@@ -47,12 +47,12 @@ class EjectPhasedPaulis:
 
     def __init__(self, tolerance: float = 1e-8, eject_parameterized: bool = False) -> None:
         """Args:
-            tolerance: Maximum absolute error tolerance. The optimization is
-                 permitted to simply drop negligible combinations gates with a
-                 threshold determined by this tolerance.
-            eject_parameterized: If True, the optimization will attempt to eject
-                parameterized gates as well.  This may result in other gates
-                parameterized by symbolic expressions.
+        tolerance: Maximum absolute error tolerance. The optimization is
+             permitted to simply drop negligible combinations gates with a
+             threshold determined by this tolerance.
+        eject_parameterized: If True, the optimization will attempt to eject
+            parameterized gates as well.  This may result in other gates
+            parameterized by symbolic expressions.
         """
         self.tolerance = tolerance
         self.eject_parameterized = eject_parameterized

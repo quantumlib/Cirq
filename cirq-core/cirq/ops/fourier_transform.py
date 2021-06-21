@@ -28,12 +28,12 @@ class QuantumFourierTransformGate(raw_types.Gate):
 
     def __init__(self, num_qubits: int, *, without_reverse: bool = False):
         """Args:
-            num_qubits: The number of qubits the gate applies to.
-            without_reverse: Whether or not to include the swaps at the end
-                of the circuit decomposition that reverse the order of the
-                qubits. These are technically necessary in order to perform the
-                correct effect, but can almost always be optimized away by just
-                performing later operations on different qubits.
+        num_qubits: The number of qubits the gate applies to.
+        without_reverse: Whether or not to include the swaps at the end
+            of the circuit decomposition that reverse the order of the
+            qubits. These are technically necessary in order to perform the
+            correct effect, but can almost always be optimized away by just
+            performing later operations on different qubits.
         """
         self._num_qubits = num_qubits
         self._without_reverse = without_reverse

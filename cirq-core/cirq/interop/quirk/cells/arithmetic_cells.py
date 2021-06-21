@@ -55,10 +55,10 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
         inputs: Sequence[Union[Sequence['cirq.Qid'], int]],
     ):
         """Args:
-            identifier: The quirk identifier string for this operation.
-            target: The target qubit register.
-            inputs: Qubit registers (or classical constants) that
-                determine what happens to the target.
+        identifier: The quirk identifier string for this operation.
+        target: The target qubit register.
+        inputs: Qubit registers (or classical constants) that
+            determine what happens to the target.
         """
         self.identifier = identifier
         self.target: Tuple['cirq.Qid', ...] = tuple(target)
@@ -155,7 +155,7 @@ class _QuirkArithmeticCallable:
 
     def __init__(self, func: _IntsToIntCallable):
         """Args:
-            func: Maps target int to its output value based on other input ints.
+        func: Maps target int to its output value based on other input ints.
         """
         self.func = func
 

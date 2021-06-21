@@ -30,11 +30,11 @@ class QuirkQubitPermutationGate(ops.QubitPermutationGate):
 
     def __init__(self, identifier: str, name: str, permutation: Sequence[int]):
         """Args:
-            identifier: Quirk identifier string.
-            name: Label to include in circuit diagram info.
-            permutation: A shuffled sequence of integers from 0 to
-                len(permutation) - 1. The entry at offset `i` is the result
-                of permuting `i`.
+        identifier: Quirk identifier string.
+        name: Label to include in circuit diagram info.
+        permutation: A shuffled sequence of integers from 0 to
+            len(permutation) - 1. The entry at offset `i` is the result
+            of permuting `i`.
         """
         self.identifier = identifier
         self.name = name

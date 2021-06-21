@@ -976,8 +976,7 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
 
 
 def _phase_flip_Z() -> common_gates.ZPowGate:
-    """Returns a cirq.Z which corresponds to a guaranteed phase flip.
-    """
+    """Returns a cirq.Z which corresponds to a guaranteed phase flip."""
     return common_gates.ZPowGate()
 
 

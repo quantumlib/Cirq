@@ -30,24 +30,24 @@ def assert_url_to_circuit_returns(
     maps: Optional[Dict[int, int]] = None,
 ):
     """Args:
-        json_text: The part of the quirk URL after "#circuit=".
-        circuit: The optional expected circuit. If specified and not
-            equal to the parsed circuit, an assertion fails.
-        unitary: The optional expected unitary of the circuit. If specified
-            and the parsed circuit has a different unitary, an assertion fails.
-        diagram: The optional expected circuit diagram. If specified and the
-            parsed circuit has a different diagram, an assertion fails.
-        output_amplitudes_from_quirk: Optional data copied from Quirk's "export
-            simulation data" function, for comparison to Cirq's simulator
-            results. If specified and the output from the simulation differs
-            from this data (after accounting for differences in endian-ness),
-            an assertion fails.
-        maps: Optional dictionary of test computational basis input states and
-            the output computational basis state that they should be mapped to.
-            If any state is mapped to the wrong thing, an assertion fails. Note
-            that the states are specified using Quirk's little endian
-            convention, meaning that the last bit of a binary literal will refer
-            to the last qubit's value instead of vice versa.
+    json_text: The part of the quirk URL after "#circuit=".
+    circuit: The optional expected circuit. If specified and not
+        equal to the parsed circuit, an assertion fails.
+    unitary: The optional expected unitary of the circuit. If specified
+        and the parsed circuit has a different unitary, an assertion fails.
+    diagram: The optional expected circuit diagram. If specified and the
+        parsed circuit has a different diagram, an assertion fails.
+    output_amplitudes_from_quirk: Optional data copied from Quirk's "export
+        simulation data" function, for comparison to Cirq's simulator
+        results. If specified and the output from the simulation differs
+        from this data (after accounting for differences in endian-ness),
+        an assertion fails.
+    maps: Optional dictionary of test computational basis input states and
+        the output computational basis state that they should be mapped to.
+        If any state is mapped to the wrong thing, an assertion fails. Note
+        that the states are specified using Quirk's little endian
+        convention, meaning that the last bit of a binary literal will refer
+        to the last qubit's value instead of vice versa.
     """
     parsed = quirk_url_to_circuit(f'https://algassert.com/quirk#circuit={json_text}')
 

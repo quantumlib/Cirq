@@ -28,8 +28,7 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class NeutralAtomDevice(devices.Device):
-    """A device with qubits placed on a grid.
-    """
+    """A device with qubits placed on a grid."""
 
     def __init__(
         self,

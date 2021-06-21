@@ -31,14 +31,14 @@ class CircuitSampleJob:
 
     def __init__(self, circuit: circuits.Circuit, *, repetitions: int, tag: Any = None):
         """Args:
-            circuit: The circuit to sample from.
-            repetitions: How many times to sample the circuit.
-            tag: An arbitrary value associated with the job. This value is used
-                so that when a job completes and is handed back, it is possible
-                to tell what the job was for. For example, the key could be a
-                string like "main_run" or "calibration_run", or it could be set
-                to the component of the Hamiltonian (e.g. a PauliString) that
-                the circuit is supposed to be helping to estimate.
+        circuit: The circuit to sample from.
+        repetitions: How many times to sample the circuit.
+        tag: An arbitrary value associated with the job. This value is used
+            so that when a job completes and is handed back, it is possible
+            to tell what the job was for. For example, the key could be a
+            string like "main_run" or "calibration_run", or it could be set
+            to the component of the Hamiltonian (e.g. a PauliString) that
+            the circuit is supposed to be helping to estimate.
         """
         self.circuit = circuit
         self.repetitions = repetitions

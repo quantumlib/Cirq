@@ -119,10 +119,10 @@ class SerializableDevice(cirq.Device):
         gate_sets: Iterable[serializable_gate_set.SerializableGateSet],
     ) -> 'SerializableDevice':
         """Args:
-            proto: A proto describing the qubits on the device, as well as the
-                supported gates and timing information.
-            gate_set: A SerializableGateSet that can translate the gate_ids
-                into cirq Gates.
+        proto: A proto describing the qubits on the device, as well as the
+            supported gates and timing information.
+        gate_set: A SerializableGateSet that can translate the gate_ids
+            into cirq Gates.
         """
 
         # Store target sets, since they are referred to by name later

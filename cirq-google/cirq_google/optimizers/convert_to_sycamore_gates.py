@@ -49,13 +49,13 @@ class ConvertToSycamoreGates(cirq.PointOptimizer):
 
     def __init__(self, tabulation: Optional[GateTabulation] = None, ignore_failures=False) -> None:
         """Args:
-            tabulation: If set, a tabulation for the Sycamore gate to use for
-                decomposing Matrix gates. If unset, an analytic calculation is
-                used for Matrix gates. To get a GateTabulation, call the
-                gate_product_tabulation method with a base gate (in this case,
-                usually cirq_google.SYC) and a maximum infidelity.
-            ignore_failures: If set, gates that fail to convert are forwarded
-                unchanged. If not set, conversion failures raise a TypeError.
+        tabulation: If set, a tabulation for the Sycamore gate to use for
+            decomposing Matrix gates. If unset, an analytic calculation is
+            used for Matrix gates. To get a GateTabulation, call the
+            gate_product_tabulation method with a base gate (in this case,
+            usually cirq_google.SYC) and a maximum infidelity.
+        ignore_failures: If set, gates that fail to convert are forwarded
+            unchanged. If not set, conversion failures raise a TypeError.
         """
         super().__init__()
         self.ignore_failures = ignore_failures

@@ -68,24 +68,24 @@ class ActOnStateVectorArgs(ActOnArgs):
         axes: Iterable[int] = None,
     ):
         """Args:
-            target_tensor: The state vector to act on, stored as a numpy array
-                with one dimension for each qubit in the system. Operations are
-                expected to perform inplace edits of this object.
-            available_buffer: A workspace with the same shape and dtype as
-                `target_tensor`. Used by operations that cannot be applied to
-                `target_tensor` inline, in order to avoid unnecessary
-                allocations. Passing `available_buffer` into
-                `swap_target_tensor_for` will swap it for `target_tensor`.
-            qubits: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
-            prng: The pseudo random number generator to use for probabilistic
-                effects.
-            log_of_measurement_results: A mutable object that measurements are
-                being recorded into. Edit it easily by calling
-                `ActOnStateVectorArgs.record_measurement_result`.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
+        target_tensor: The state vector to act on, stored as a numpy array
+            with one dimension for each qubit in the system. Operations are
+            expected to perform inplace edits of this object.
+        available_buffer: A workspace with the same shape and dtype as
+            `target_tensor`. Used by operations that cannot be applied to
+            `target_tensor` inline, in order to avoid unnecessary
+            allocations. Passing `available_buffer` into
+            `swap_target_tensor_for` will swap it for `target_tensor`.
+        qubits: Determines the canonical ordering of the qubits. This
+            is often used in specifying the initial state, i.e. the
+            ordering of the computational basis states.
+        prng: The pseudo random number generator to use for probabilistic
+            effects.
+        log_of_measurement_results: A mutable object that measurements are
+            being recorded into. Edit it easily by calling
+            `ActOnStateVectorArgs.record_measurement_result`.
+        axes: The indices of axes corresponding to the qubits that the
+            operation is supposed to act upon.
         """
         super().__init__(prng, qubits, axes, log_of_measurement_results)
         self.target_tensor = target_tensor

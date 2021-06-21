@@ -38,16 +38,16 @@ class ActOnArgs:
         log_of_measurement_results: Dict[str, Any] = None,
     ):
         """Args:
-            prng: The pseudo random number generator to use for probabilistic
-                effects.
-            qubits: Determines the canonical ordering of the qubits. This
-                is often used in specifying the initial state, i.e. the
-                ordering of the computational basis states.
-            axes: The indices of axes corresponding to the qubits that the
-                operation is supposed to act upon.
-            log_of_measurement_results: A mutable object that measurements are
-                being recorded into. Edit it easily by calling
-                `ActOnStateVectorArgs.record_measurement_result`.
+        prng: The pseudo random number generator to use for probabilistic
+            effects.
+        qubits: Determines the canonical ordering of the qubits. This
+            is often used in specifying the initial state, i.e. the
+            ordering of the computational basis states.
+        axes: The indices of axes corresponding to the qubits that the
+            operation is supposed to act upon.
+        log_of_measurement_results: A mutable object that measurements are
+            being recorded into. Edit it easily by calling
+            `ActOnStateVectorArgs.record_measurement_result`.
         """
         if qubits is None:
             qubits = ()

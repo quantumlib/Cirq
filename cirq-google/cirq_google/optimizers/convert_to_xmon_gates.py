@@ -33,8 +33,8 @@ class ConvertToXmonGates(cirq.PointOptimizer):
 
     def __init__(self, ignore_failures=False) -> None:
         """Args:
-            ignore_failures: If set, gates that fail to convert are forwarded
-                unchanged. If not set, conversion failures raise a TypeError.
+        ignore_failures: If set, gates that fail to convert are forwarded
+            unchanged. If not set, conversion failures raise a TypeError.
         """
         super().__init__()
         self.ignore_failures = ignore_failures

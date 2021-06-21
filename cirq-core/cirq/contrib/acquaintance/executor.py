@@ -135,8 +135,8 @@ class GreedyExecutionStrategy(ExecutionStrategy):
         self, gates: LogicalGates, initial_mapping: LogicalMapping, device: 'cirq.Device' = None
     ) -> None:
         """Args:
-            gates: The gates to insert.
-            initial_mapping: The initial mapping of qubits to logical indices.
+        gates: The gates to insert.
+        initial_mapping: The initial mapping of qubits to logical indices.
         """
 
         if len(set(len(indices) for indices in gates)) > 1:

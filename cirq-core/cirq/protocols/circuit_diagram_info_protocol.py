@@ -50,22 +50,22 @@ class CircuitDiagramInfo:
         auto_exponent_parens: bool = True,
     ) -> None:
         """Args:
-            wire_symbols: The symbols that should be shown on the qubits
-                affected by this operation. Must match the number of qubits that
-                the operation is applied to.
-            exponent: An optional convenience value that will be appended onto
-                an operation's final gate symbol with a caret in front
-                (unless it's equal to 1). For example, the square root of X gate
-                has a text diagram exponent of 0.5 and symbol of 'X' so it is
-                drawn as 'X^0.5'.
-            connected: Whether or not to draw a line connecting the qubits.
-            exponent_qubit_index: The qubit to put the exponent on. (The k'th
-                qubit is the k'th target of the gate.) Defaults to the bottom
-                qubit in the diagram.
-            auto_exponent_parens: When this is True, diagram making code will
-                add parentheses around exponents whose contents could look
-                ambiguous (e.g. if the exponent contains a dash character that
-                could be mistaken for an identity wire). Defaults to True.
+        wire_symbols: The symbols that should be shown on the qubits
+            affected by this operation. Must match the number of qubits that
+            the operation is applied to.
+        exponent: An optional convenience value that will be appended onto
+            an operation's final gate symbol with a caret in front
+            (unless it's equal to 1). For example, the square root of X gate
+            has a text diagram exponent of 0.5 and symbol of 'X' so it is
+            drawn as 'X^0.5'.
+        connected: Whether or not to draw a line connecting the qubits.
+        exponent_qubit_index: The qubit to put the exponent on. (The k'th
+            qubit is the k'th target of the gate.) Defaults to the bottom
+            qubit in the diagram.
+        auto_exponent_parens: When this is True, diagram making code will
+            add parentheses around exponents whose contents could look
+            ambiguous (e.g. if the exponent contains a dash character that
+            could be mistaken for an identity wire). Defaults to True.
         """
         if isinstance(wire_symbols, str):
             raise ValueError('Expected an Iterable[str] for wire_symbols but got a str.')

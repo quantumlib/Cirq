@@ -56,14 +56,14 @@ class PauliInteractionGate(
         exponent: value.TParamVal = 1.0,
     ) -> None:
         """Args:
-            pauli0: The interaction axis for the first qubit.
-            invert0: Whether to condition on the +1 or -1 eigenvector of the
-                first qubit's interaction axis.
-            pauli1: The interaction axis for the second qubit.
-            invert1: Whether to condition on the +1 or -1 eigenvector of the
-                second qubit's interaction axis.
-            exponent: Determines the amount of phasing to apply to the vector
-                equal to the tensor product of the two conditions.
+        pauli0: The interaction axis for the first qubit.
+        invert0: Whether to condition on the +1 or -1 eigenvector of the
+            first qubit's interaction axis.
+        pauli1: The interaction axis for the second qubit.
+        invert1: Whether to condition on the +1 or -1 eigenvector of the
+            second qubit's interaction axis.
+        exponent: Determines the amount of phasing to apply to the vector
+            equal to the tensor product of the two conditions.
         """
         super().__init__(exponent=exponent)
         self.pauli0 = pauli0

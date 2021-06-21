@@ -34,11 +34,11 @@ class QuantumEngineSampler(cirq.Sampler):
         gate_set: 'cirq_google.SerializableGateSet',
     ):
         """Args:
-            engine: Quantum engine instance to use.
-            processor_id: String identifier, or list of string identifiers,
-                determining which processors may be used when sampling.
-            gate_set: Determines how to serialize circuits when requesting
-                samples.
+        engine: Quantum engine instance to use.
+        processor_id: String identifier, or list of string identifiers,
+            determining which processors may be used when sampling.
+        gate_set: Determines how to serialize circuits when requesting
+            samples.
         """
         self._processor_ids = [processor_id] if isinstance(processor_id, str) else processor_id
         self._gate_set = gate_set

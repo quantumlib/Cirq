@@ -40,13 +40,13 @@ class ConvertToPauliStringPhasors(PointOptimizer):
         self, ignore_failures: bool = False, keep_clifford: bool = False, atol: float = 1e-14
     ) -> None:
         """Args:
-            ignore_failures: If set, gates that fail to convert are forwarded
-                unchanged. If not set, conversion failures raise a TypeError.
-            keep_clifford: If set, single qubit rotations in the Clifford group
-                are converted to SingleQubitCliffordGates.
-            atol: Maximum absolute error tolerance. The optimization is
-                permitted to round angles with a threshold determined by this
-                tolerance.
+        ignore_failures: If set, gates that fail to convert are forwarded
+            unchanged. If not set, conversion failures raise a TypeError.
+        keep_clifford: If set, single qubit rotations in the Clifford group
+            are converted to SingleQubitCliffordGates.
+        atol: Maximum absolute error tolerance. The optimization is
+            permitted to round angles with a threshold determined by this
+            tolerance.
         """
         super().__init__()
         self.ignore_failures = ignore_failures

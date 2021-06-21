@@ -41,11 +41,11 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
 
     def __init__(self, ignore_failures: bool = False, atol: float = 0) -> None:
         """Args:
-            ignore_failures: If set, gates that fail to convert are forwarded
-                unchanged. If not set, conversion failures raise a TypeError.
-            atol: Maximum absolute error tolerance. The optimization is
-                permitted to round angles with a threshold determined by this
-                tolerance.
+        ignore_failures: If set, gates that fail to convert are forwarded
+            unchanged. If not set, conversion failures raise a TypeError.
+        atol: Maximum absolute error tolerance. The optimization is
+            permitted to round angles with a threshold determined by this
+            tolerance.
         """
         super().__init__()
         self.ignore_failures = ignore_failures

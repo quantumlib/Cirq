@@ -90,8 +90,8 @@ class T1DecayResult:
 
     def __init__(self, data: pd.DataFrame):
         """Args:
-            data: A data frame with three columns:
-                delay_ns, false_count, true_count.
+        data: A data frame with three columns:
+            delay_ns, false_count, true_count.
         """
         assert list(data.columns) == ['delay_ns', 'false_count', 'true_count']
         self._data = data

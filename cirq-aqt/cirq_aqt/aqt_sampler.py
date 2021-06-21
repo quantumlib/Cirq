@@ -42,8 +42,8 @@ class AQTSampler(cirq.Sampler):
 
     def __init__(self, remote_host: str, access_token: str):
         """Args:
-            remote_host: Address of the remote device.
-            access_token: Access token for the remote api.
+        remote_host: Address of the remote device.
+        access_token: Access token for the remote api.
         """
         self.remote_host = remote_host
         self.access_token = access_token

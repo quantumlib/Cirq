@@ -35,9 +35,9 @@ class StateVectorMixin:
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5887
     def __init__(self, qubit_map: Optional[Dict[ops.Qid, int]] = None, *args, **kwargs):
         """Args:
-            qubit_map: A map from the Qubits in the Circuit to the the index
-                of this qubit for a canonical ordering. This canonical ordering
-                is used to define the state (see the state_vector() method).
+        qubit_map: A map from the Qubits in the Circuit to the the index
+            of this qubit for a canonical ordering. This canonical ordering
+            is used to define the state (see the state_vector() method).
         """
         super().__init__(*args, **kwargs)  # type: ignore
         self._qubit_map = qubit_map or {}

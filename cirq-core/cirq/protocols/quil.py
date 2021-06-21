@@ -24,11 +24,11 @@ class QuilFormatter(string.Formatter):
         self, qubit_id_map: Dict['cirq.Qid', str], measurement_id_map: Dict[str, str]
     ) -> None:
         """Args:
-            qubit_id_map: A dictionary {qubit, quil_output_string} for
-            the proper QUIL output for each qubit.
-            measurement_id_map: A dictionary {measurement_key,
-            quil_output_string} for the proper QUIL output for each
-            measurement key.
+        qubit_id_map: A dictionary {qubit, quil_output_string} for
+        the proper QUIL output for each qubit.
+        measurement_id_map: A dictionary {measurement_key,
+        quil_output_string} for the proper QUIL output for each
+        measurement key.
         """
         self.qubit_id_map = {} if qubit_id_map is None else qubit_id_map
         self.measurement_id_map = {} if measurement_id_map is None else measurement_id_map

@@ -80,13 +80,13 @@ class FSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQubitsGa
 
     def __init__(self, theta: float, phi: float) -> None:
         """Args:
-            theta: Swap angle on the ``|01⟩`` ``|10⟩`` subspace, in radians.
-                Determined by the strength and duration of the XX+YY
-                interaction. Note: uses opposite sign convention to the
-                iSWAP gate. Maximum strength (full iswap) is at pi/2.
-            phi: Controlled phase angle, in radians. Determines how much the
-                ``|11⟩`` state is phased. Note: uses opposite sign convention to
-                the CZPowGate. Maximum strength (full cz) is at pi/2.
+        theta: Swap angle on the ``|01⟩`` ``|10⟩`` subspace, in radians.
+            Determined by the strength and duration of the XX+YY
+            interaction. Note: uses opposite sign convention to the
+            iSWAP gate. Maximum strength (full iswap) is at pi/2.
+        phi: Controlled phase angle, in radians. Determines how much the
+            ``|11⟩`` state is phased. Note: uses opposite sign convention to
+            the CZPowGate. Maximum strength (full cz) is at pi/2.
         """
         self.theta = _canonicalize(theta)
         self.phi = _canonicalize(phi)
@@ -251,16 +251,16 @@ class PhasedFSimGate(gate_features.TwoQubitGate, gate_features.InterchangeableQu
         phi: Union[float, sympy.Basic] = 0.0,
     ) -> None:
         """Args:
-            theta: Swap angle on the ``|01⟩`` ``|10⟩`` subspace, in radians.
-                See class docstring above for details.
-            zeta: One of the phase angles, in radians. See class
-                docstring above for details.
-            chi: One of the phase angles, in radians.
-                See class docstring above for details.
-            gamma: One of the phase angles, in radians. See class
-                docstring above for details.
-            phi: Controlled phase angle, in radians. See class docstring
-                above for details.
+        theta: Swap angle on the ``|01⟩`` ``|10⟩`` subspace, in radians.
+            See class docstring above for details.
+        zeta: One of the phase angles, in radians. See class
+            docstring above for details.
+        chi: One of the phase angles, in radians.
+            See class docstring above for details.
+        gamma: One of the phase angles, in radians. See class
+            docstring above for details.
+        phi: Controlled phase angle, in radians. See class docstring
+            above for details.
         """
         self.theta = _canonicalize(theta)
         self.zeta = _canonicalize(zeta)

@@ -20,12 +20,12 @@ class GithubRepository:
 
     def __init__(self, organization: str, name: str, access_token: Optional[str]) -> None:
         """Args:
-            organization: The github organization the repository is under.
-            name: The name of the github repository.
-            access_token: If present, this token is used to authorize changes
-                to the repository when calling the github API (e.g. set build
-                status indicators). Avoid using access tokens with more
-                permissions than necessary.
+        organization: The github organization the repository is under.
+        name: The name of the github repository.
+        access_token: If present, this token is used to authorize changes
+            to the repository when calling the github API (e.g. set build
+            status indicators). Avoid using access tokens with more
+            permissions than necessary.
         """
         self.organization = organization
         self.name = name

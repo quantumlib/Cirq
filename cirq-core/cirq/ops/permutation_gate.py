@@ -27,9 +27,9 @@ class QubitPermutationGate(raw_types.Gate):
 
     def __init__(self, permutation: Sequence[int]):
         """Args:
-            permutation: A shuffled sequence of integers from 0 to
-                len(permutation) - 1. The entry at offset `i` is the result
-                of permuting `i`.
+        permutation: A shuffled sequence of integers from 0 to
+            len(permutation) - 1. The entry at offset `i` is the result
+            of permuting `i`.
         """
         if not permutation:
             raise ValueError(f"Invalid permutation (empty): {permutation}")

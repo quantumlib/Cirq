@@ -300,8 +300,7 @@ def _estimate_std_devs_clifford(fidelity: float, n: int) -> Tuple[Optional[float
 
 @dataclass
 class Result:
-    """Contains the results of a trial, either by simulator or actual run
-    """
+    """Contains the results of a trial, either by simulator or actual run"""
 
     # The Pauli trace that was measured
     pauli_trace: PauliTrace

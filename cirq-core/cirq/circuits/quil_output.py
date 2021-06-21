@@ -32,7 +32,7 @@ class QuilOneQubitGate(ops.SingleQubitGate):
 
     def __init__(self, matrix: np.ndarray) -> None:
         """Args:
-            matrix: The 2x2 unitary matrix for this gate.
+        matrix: The 2x2 unitary matrix for this gate.
         """
         self.matrix = matrix
 
@@ -61,7 +61,7 @@ class QuilTwoQubitGate(ops.TwoQubitGate):
 
     def __init__(self, matrix: np.ndarray) -> None:
         """Args:
-            matrix: The 4x4 unitary matrix for this gate.
+        matrix: The 4x4 unitary matrix for this gate.
         """
         self.matrix = matrix
 
@@ -102,8 +102,8 @@ class QuilOutput:
 
     def __init__(self, operations: 'cirq.OP_TREE', qubits: Tuple['cirq.Qid', ...]) -> None:
         """Args:
-            operations: A list or tuple of `cirq.OP_TREE` arguments.
-            qubits: The qubits used in the operations.
+        operations: A list or tuple of `cirq.OP_TREE` arguments.
+        qubits: The qubits used in the operations.
         """
         self.qubits = qubits
         self.operations = tuple(cirq.ops.flatten_to_ops(operations))
