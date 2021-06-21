@@ -146,8 +146,8 @@ def _print_list_modules(mode: str, include_parent: bool = False):
             for p in m.top_level_package_paths:
                 print(p, end=" ")
         elif mode == _PACKAGE:
-            for p in m.top_level_packages:
-                print(p, end=" ")
+            for package in m.top_level_packages:
+                print(package, end=" ")
 
 
 def main(argv: List[str]):
