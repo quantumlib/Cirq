@@ -614,7 +614,7 @@ class SimulatesIntermediateState(
         initial_state: Any,
         qubits: Sequence['cirq.Qid'],
     ) -> 'cirq.OperationTarget[TActOnArgs]':
-        """Creates the ActOnArgs state for a simulator.
+        """Creates the OperationTarget state for a simulator.
 
         Custom simulators should implement this method.
 
@@ -627,8 +627,7 @@ class SimulatesIntermediateState(
                 ordering of the computational basis states.
 
         Returns:
-            The Qid-ActOnArgs dictionary for this simulator, plus a None-keyed
-            value for use in qubit-free operations like global phase shift.
+            The `OperationTarget` for this simulator.
         """
 
     @abc.abstractmethod

@@ -88,6 +88,8 @@ upper_tabs:
         path: /cirq/dev/plotting
       - title: "Serialization guidelines"
         path: /cirq/dev/serialization
+      - title: "Triage process"
+        path: /cirq/dev/triage
 
       ####  GOOGLE HARDWARE  ####
       - heading: "Google hardware"
@@ -234,6 +236,13 @@ upper_tabs:
       - title: "All symbols"
         path: /reference/python/cirq/all_symbols
       - include: /reference/python/cirq/_toc.yaml
+
+# uncomment after v0.12 is released
+#      - heading: "cirq-aqt"
+#      - title: "All symbols"
+#        path: /reference/python/cirq_aqt/all_symbols
+#      - include: /reference/python/cirq_aqt/_toc.yaml
+
       - heading: "cirq-google"
       - title: "All symbols"
         path: /reference/python/cirq_google/all_symbols

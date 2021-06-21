@@ -45,14 +45,15 @@ def state_vector_has_stabilizer(state_vector: np.ndarray, stabilizer: DensePauli
         Whether the stabilizer stabilizes the supplied state.
     """
 
+    qubits = LineQubit.range(protocols.num_qubits(stabilizer))
     args = act_on_state_vector_args.ActOnStateVectorArgs(
         target_tensor=state_vector.copy(),
         available_buffer=np.empty_like(state_vector),
-        axes=range(protocols.num_qubits(stabilizer)),
+        qubits=qubits,
         prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
-    protocols.act_on(stabilizer, args)
+    protocols.act_on(stabilizer, args, qubits)
     return np.allclose(args.target_tensor, state_vector)
 
 
@@ -158,14 +159,14 @@ def _final_clifford_tableau(
         the tableau otherwise."""
 
     tableau = clifford_tableau.CliffordTableau(len(qubit_map))
+    args = act_on_clifford_tableau_args.ActOnCliffordTableauArgs(
+        tableau=tableau,
+        qubits=list(qubit_map.keys()),
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
     for op in circuit.all_operations():
         try:
-            args = act_on_clifford_tableau_args.ActOnCliffordTableauArgs(
-                tableau=tableau,
-                axes=[qubit_map[qid] for qid in op.qubits],  # type: ignore
-                prng=np.random.RandomState(),
-                log_of_measurement_results={},
-            )
             protocols.act_on(op, args, allow_decompose=True)
         except TypeError:
             return None
@@ -189,14 +190,14 @@ def _final_stabilizer_state_ch_form(
         returns the StabilizerStateChForm otherwise."""
 
     stabilizer_ch_form = stabilizer_state_ch_form.StabilizerStateChForm(len(qubit_map))
+    args = act_on_stabilizer_ch_form_args.ActOnStabilizerCHFormArgs(
+        state=stabilizer_ch_form,
+        qubits=list(qubit_map.keys()),
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
     for op in circuit.all_operations():
         try:
-            args = act_on_stabilizer_ch_form_args.ActOnStabilizerCHFormArgs(
-                state=stabilizer_ch_form,
-                axes=[qubit_map[qid] for qid in op.qubits],
-                prng=np.random.RandomState(),
-                log_of_measurement_results={},
-            )
             protocols.act_on(op, args, allow_decompose=True)
         except TypeError:
             return None

@@ -49,19 +49,14 @@ class CliffordSimulator(
 ):
     """An efficient simulator for Clifford circuits."""
 
-    def __init__(
-        self,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-    ):
+    def __init__(self, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
         """Creates instance of `CliffordSimulator`.
 
         Args:
             seed: The random seed to use for this simulator.
         """
         self.init = True
-        super().__init__(
-            seed=seed,
-        )
+        super().__init__(seed=seed)
 
     @staticmethod
     def is_supported_operation(op: 'cirq.Operation') -> bool:
@@ -69,7 +64,7 @@ class CliffordSimulator(
         # TODO: support more general Pauli measurements
         return protocols.has_stabilizer_effect(op)
 
-    def _create_act_on_arg(
+    def _create_partial_act_on_args(
         self,
         initial_state: Union[int, clifford.ActOnStabilizerCHFormArgs],
         qubits: Sequence['cirq.Qid'],
@@ -95,7 +90,6 @@ class CliffordSimulator(
         state = CliffordState(qubit_map, initial_state=initial_state)
         return clifford.ActOnStabilizerCHFormArgs(
             state=state.ch_form,
-            axes=[],
             prng=self._prng,
             log_of_measurement_results=logs,
             qubits=qubits,
@@ -241,7 +235,7 @@ class CliffordState:
 
     def apply_unitary(self, op: 'cirq.Operation'):
         ch_form_args = clifford.ActOnStabilizerCHFormArgs(
-            self.ch_form, [self.qubit_map[i] for i in op.qubits], np.random.RandomState(), {}
+            self.ch_form, np.random.RandomState(), {}, self.qubit_map.keys()
         )
         try:
             act_on(op, ch_form_args)
@@ -269,7 +263,7 @@ class CliffordState:
         else:
             state = self.copy()
 
-        qids = [self.qubit_map[i] for i in op.qubits]
-
-        ch_form_args = clifford.ActOnStabilizerCHFormArgs(state.ch_form, qids, prng, measurements)
+        ch_form_args = clifford.ActOnStabilizerCHFormArgs(
+            state.ch_form, prng, measurements, self.qubit_map.keys()
+        )
         act_on(op, ch_form_args)

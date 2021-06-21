@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Simulator for density matrices that simulates noisy quantum circuits."""
-from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional
+from typing import Any, Dict, TYPE_CHECKING, Tuple, Union, Sequence, Optional, List
 
 import numpy as np
 
@@ -35,6 +35,7 @@ class DensityMatrixSimulator(
         'DensityMatrixSimulatorState',
         act_on_density_matrix_args.ActOnDensityMatrixArgs,
     ],
+    simulator.SimulatesExpectationValues,
 ):
     """A simulator for density matrices and noisy quantum circuits.
 
@@ -122,7 +123,7 @@ class DensityMatrixSimulator(
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         ignore_measurement_results: bool = False,
-        split_untangled_states: bool = True,
+        split_untangled_states: bool = False,
     ):
         """Density matrix simulator.
 
@@ -166,7 +167,7 @@ class DensityMatrixSimulator(
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(f'dtype must be complex64 or complex128, was {dtype}')
 
-    def _create_act_on_arg(
+    def _create_partial_act_on_args(
         self,
         initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE', 'cirq.ActOnDensityMatrixArgs'],
         qubits: Sequence['cirq.Qid'],
@@ -199,7 +200,6 @@ class DensityMatrixSimulator(
             target_tensor=tensor,
             available_buffer=[np.empty_like(tensor) for _ in range(3)],
             qubits=qubits,
-            axes=[],
             qid_shape=qid_shape,
             prng=self._prng,
             log_of_measurement_results=logs,
@@ -215,6 +215,7 @@ class DensityMatrixSimulator(
         return DensityMatrixStepResult(
             sim_state=sim_state,
             dtype=self._dtype,
+            split_untangled_states=self._split_untangled_states,
         )
 
     def _create_simulator_trial_result(
@@ -226,6 +227,40 @@ class DensityMatrixSimulator(
         return DensityMatrixTrialResult(
             params=params, measurements=measurements, final_simulator_state=final_simulator_state
         )
+
+    # TODO(#4209): Deduplicate with identical code in sparse_simulator.
+    def simulate_expectation_values_sweep(
+        self,
+        program: 'cirq.Circuit',
+        observables: Union['cirq.PauliSumLike', List['cirq.PauliSumLike']],
+        params: 'study.Sweepable',
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        initial_state: Any = None,
+        permit_terminal_measurements: bool = False,
+    ) -> List[List[float]]:
+        if not permit_terminal_measurements and program.are_any_measurements_terminal():
+            raise ValueError(
+                'Provided circuit has terminal measurements, which may '
+                'skew expectation values. If this is intentional, set '
+                'permit_terminal_measurements=True.'
+            )
+        swept_evs = []
+        qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
+        qmap = {q: i for i, q in enumerate(qubit_order.order_for(program.all_qubits()))}
+        if not isinstance(observables, List):
+            observables = [observables]
+        pslist = [ops.PauliSum.wrap(pslike) for pslike in observables]
+        for param_resolver in study.to_resolvers(params):
+            result = self.simulate(
+                program, param_resolver, qubit_order=qubit_order, initial_state=initial_state
+            )
+            swept_evs.append(
+                [
+                    obs.expectation_from_density_matrix(result.final_density_matrix, qmap)
+                    for obs in pslist
+                ]
+            )
+        return swept_evs
 
 
 class DensityMatrixStepResult(
@@ -244,6 +279,7 @@ class DensityMatrixStepResult(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
         dtype: 'DTypeLike' = np.complex64,
+        split_untangled_states: bool = False,
     ):
         """DensityMatrixStepResult.
 
@@ -255,12 +291,16 @@ class DensityMatrixStepResult(
         super().__init__(sim_state)
         self._dtype = dtype
         self._density_matrix: Optional[np.ndarray] = None
+        self._split_untangled_states = split_untangled_states
 
     def _simulator_state(self) -> 'DensityMatrixSimulatorState':
         return DensityMatrixSimulatorState(self.density_matrix(copy=False), self._qubit_mapping)
 
     def set_density_matrix(self, density_matrix_repr: Union[int, np.ndarray]):
         """Set the density matrix to a new density matrix.
+
+        Note that this feature is incompatible with the simulation setting
+        `split_untangled_states=True`, and will throw an error if attempted.
 
         Args:
             density_matrix_repr: If this is an int, the density matrix is set to
@@ -272,6 +312,11 @@ class DensityMatrixStepResult(
             mixed state it must be correctly sized and positive semidefinite
             with trace one.
         """
+        if self._split_untangled_states:
+            # TODO: Fix in #4110
+            raise ValueError(  # coverage: ignore
+                'Cannot set states when using `split_untangled_states` option.'  # coverage: ignore
+            )  # coverage: ignore
         density_matrix = qis.to_valid_density_matrix(
             density_matrix_repr,
             len(self._qubit_mapping),
