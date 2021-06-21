@@ -109,7 +109,7 @@ import numpy as np
 import cirq
 
 
-def main(num_qubits=8):
+def main(num_qubits=59):
     # Setup non-eavesdropped protocol
     print('Simulating non-eavesdropped protocol')
     alice_basis = [np.random.randint(0, 2) for _ in range(num_qubits)]
@@ -125,7 +125,7 @@ def main(num_qubits=8):
     # Run simulations.
     repetitions = 1
 
-    result = cirq.Simulator(split_untangled_states=False).run(
+    result = cirq.Simulator(split_untangled_states=True).run(
         program=circuit, repetitions=repetitions
     )
     result_bitstring = bitstring([int(result.measurements[str(i)]) for i in range(num_qubits)])
@@ -157,7 +157,7 @@ def main(num_qubits=8):
 
     # Run simulations.
     repetitions = 1
-    result = cirq.Simulator(split_untangled_states=False).run(
+    result = cirq.Simulator(split_untangled_states=True).run(
         program=alice_eve_circuit, repetitions=repetitions
     )
     eve_state = [int(result.measurements[str(i)]) for i in range(num_qubits)]
@@ -166,7 +166,7 @@ def main(num_qubits=8):
 
     # Run simulations.
     repetitions = 1
-    result = cirq.Simulator(split_untangled_states=False).run(
+    result = cirq.Simulator(split_untangled_states=True).run(
         program=eve_bob_circuit, repetitions=repetitions
     )
     result_bitstring = bitstring([int(result.measurements[str(i)]) for i in range(num_qubits)])
