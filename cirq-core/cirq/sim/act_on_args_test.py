@@ -40,6 +40,7 @@ def test_measurements():
     args.measure([cirq.LineQubit(0)], "test", [False])
     assert args.log_of_measurement_results["test"] == [5]
 
+
 def test_decompose():
     class Composite(cirq.Gate):
         def num_qubits(self) -> int:

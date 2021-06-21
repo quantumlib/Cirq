@@ -52,7 +52,7 @@ class CountingActOnArgs(cirq.ActOnArgs):
     def sample(self, qubits, repetitions=1, seed=None):
         measurements: List[List[int]] = []
         for _ in range(repetitions):
-            measurements.append(self._perform_measurement())
+            measurements.append(self._perform_measurement(qubits))
         return np.array(measurements, dtype=int)
 
 
