@@ -133,7 +133,9 @@ class ActOnDensityMatrixArgs(ActOnArgs):
             self.target_tensor, other.target_tensor
         )
         target.target_tensor = target_tensor
-        target.available_buffer = [np.empty_like(target_tensor) for _ in range(3)]
+        target.available_buffer = [
+            np.empty_like(target_tensor) for _ in range(len(self.available_buffer))
+        ]
         target.qid_shape = target_tensor.shape[: int(target_tensor.ndim / 2)]
 
     def _on_extract(
