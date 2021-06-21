@@ -26,6 +26,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r dev_tools/requirements/deps/packaging.txt
       - name: Run packaging test
+        env:
+          TEST_TWINE_USERNAME: ${{ secrets.TEST_PYPI_USER }}
+          TEST_TWINE_PASSWORD: ${{ secrets.TEST_PYPI_PASS }}
         run: ./dev_tools/packaging/packaging_test.sh
   format:
     name: Format check
