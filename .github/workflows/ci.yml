@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
           python-version: '3.7'
@@ -253,7 +255,7 @@ jobs:
     strategy:
       matrix:
         # partitions should be named partition-0 to partition-(NOTEBOOK_PARTITIONS-1)
-        partition: [partition-0, partition-1, partition-2, partition-3]
+        partition: [ partition-0, partition-1, partition-2, partition-3 ]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
