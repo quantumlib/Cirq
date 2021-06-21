@@ -146,7 +146,7 @@ class Simulator(
         dtype: Type[np.number] = np.complex64,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
-        split_untangled_states: bool = False,
+        split_untangled_states: bool = True,
     ):
         """A sparse matrix simulator.
 
@@ -257,7 +257,7 @@ class SparseSimulatorStep(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnStateVectorArgs]',
         dtype: 'DTypeLike' = np.complex64,
-        split_untangled_states: bool = False,
+        split_untangled_states: bool = True,
     ):
         """Results of a step of the simulator.
 

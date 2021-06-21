@@ -123,7 +123,7 @@ class DensityMatrixSimulator(
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         ignore_measurement_results: bool = False,
-        split_untangled_states: bool = False,
+        split_untangled_states: bool = True,
     ):
         """Density matrix simulator.
 
@@ -279,7 +279,7 @@ class DensityMatrixStepResult(
         self,
         sim_state: 'cirq.OperationTarget[cirq.ActOnDensityMatrixArgs]',
         dtype: 'DTypeLike' = np.complex64,
-        split_untangled_states: bool = False,
+        split_untangled_states: bool = True,
     ):
         """DensityMatrixStepResult.
 
