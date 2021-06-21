@@ -21,17 +21,17 @@ from cirq.sim import act_on_args
 
 def test_measurements():
     class DummyArgs(cirq.ActOnArgs):
-        def _perform_measurement(self) -> List[int]:
+        def _perform_measurement(self, qubits) -> List[int]:
             return [5, 3]
 
-    args = DummyArgs(axes=[], prng=np.random.RandomState(), log_of_measurement_results={})
-    args.measure("test", [1])
+    args = DummyArgs(prng=np.random.RandomState(), log_of_measurement_results={})
+    args.measure([], "test", [1])
     assert args.log_of_measurement_results["test"] == [5]
 
 
 def test_decompose():
     class DummyArgs(cirq.ActOnArgs):
-        def _act_on_fallback_(self, action, allow_decompose):
+        def _act_on_fallback_(self, action, qubits, allow_decompose):
             return True
 
     class Composite(cirq.Gate):
@@ -41,5 +41,5 @@ def test_decompose():
         def _decompose_(self, qubits):
             yield cirq.X(*qubits)
 
-    args = DummyArgs(axes=[0], prng=np.random.RandomState(), log_of_measurement_results={})
-    assert act_on_args.strat_act_on_from_apply_decompose(Composite(), args)
+    args = DummyArgs(prng=np.random.RandomState(), log_of_measurement_results={})
+    assert act_on_args.strat_act_on_from_apply_decompose(Composite(), args, cirq.LineQubit.range(1))
