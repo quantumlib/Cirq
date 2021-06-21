@@ -130,7 +130,6 @@ jobs:
     name: Pytest Ubuntu
     strategy:
       matrix:
-        # TODO(#3800): remove 3.6 when Colab switches to 3.8
         python-version: [ '3.6', '3.7', '3.8' ]
     runs-on: ubuntu-20.04
     steps:
