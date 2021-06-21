@@ -959,19 +959,20 @@ def test_try_convert_gate_to_fsim_hardware_supported():
         assert try_convert_gate_to_fsim_hardware_supported(gate) is None
 
     check_converts(cirq_google.ops.SYC)
-    check_converts(cirq.FSimGate(np.pi/2, np.pi/6))
+    check_converts(cirq.FSimGate(np.pi / 2, np.pi / 6))
     check_converts(cirq.FSimGate(0, np.pi))
-    check_converts(cirq.FSimGate(np.pi/4, 0.0))
+    check_converts(cirq.FSimGate(np.pi / 4, 0.0))
     check_none(cirq.FSimGate(0.2, 0.3))
-    check_converts(cirq.ISwapPowGate(exponent = 0.5))
-    check_converts(cirq.ISwapPowGate(exponent = -0.5))
+    check_converts(cirq.ISwapPowGate(exponent=0.5))
+    check_converts(cirq.ISwapPowGate(exponent=-0.5))
     check_none(cirq.ISwapPowGate(exponent=0.3))
-    check_converts(cirq.PhasedFSimGate(theta=np.pi/4, phi=0.0, chi=0.7))
-    check_none(cirq.PhasedFSimGate(theta=0.3, phi = 0.4))
-    check_converts(cirq.PhasedISwapPowGate(exponent = 0.5, phase_exponent=0.75))
+    check_converts(cirq.PhasedFSimGate(theta=np.pi / 4, phi=0.0, chi=0.7))
+    check_none(cirq.PhasedFSimGate(theta=0.3, phi=0.4))
+    check_converts(cirq.PhasedISwapPowGate(exponent=0.5, phase_exponent=0.75))
     check_none(cirq.PhasedISwapPowGate(exponent=0.4, phase_exponent=0.75))
     check_converts(cirq.ops.CZPowGate(exponent=1.0))
     check_none(cirq.ops.CZPowGate(exponent=0.3))
+    check_none(cirq.CX)
 
 
 # Test that try_convert_gate_to_fsim is extension of try_convert_sqrt_iswap_to_fsim.

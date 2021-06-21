@@ -1078,13 +1078,15 @@ def try_convert_gate_to_fsim(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGat
 # Engine gates supported by hardware.
 # These are gates of type PhasedFSimGate given by parameters theta and phi.
 _HARDWARE_SUPPORTED_ENGINE_GATES_THETA_PHI = [
-    (np.pi/2, np.pi/6),  # Sycamore gate.
-    (0, np.pi),          # Controlled-Z gate.
-    (np.pi / 4, 0.0),    # Inverse sqrt(iSWAP) gate.
+    (np.pi / 2, np.pi / 6),  # Sycamore gate.
+    (0, np.pi),  # Controlled-Z gate.
+    (np.pi / 4, 0.0),  # Inverse sqrt(iSWAP) gate.
 ]
 
 
-def try_convert_gate_to_fsim_hardware_supported(gate: cirq.Gate) -> Optional[PhaseCalibratedFSimGate]:
+def try_convert_gate_to_fsim_hardware_supported(
+    gate: cirq.Gate,
+) -> Optional[PhaseCalibratedFSimGate]:
     """Converts a gate to equivalent PhaseCalibratedFSimGate, if engine gate of resulting gate is supported by hardware.
 
     Args:
