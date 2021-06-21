@@ -68,9 +68,14 @@ export class Meridians extends Group {
    * them to the group afterwards.
    * @param radius The radius of the overall Bloch sphere
    * @param numCircles The number of circles displayed. The number must be odd,
-   * if an even number is provided, the function will add one more meridian.
+   * if an even number is provided. it will round up to the next highest odd number.
+   * If 0 < numCircles < 3, 3 meridians will be displayed.
    */
   private createHorizontalChordMeridians(radius: number, numCircles: number) {
+    if (numCircles === 0) {
+      return;
+    }
+
     const circles = this.sanitizeCircleInput(numCircles, 7);
 
     let nonEquatorCircles: number;
@@ -116,8 +121,14 @@ export class Meridians extends Group {
    * by varying degrees across the same axis and adds them to the
    * group.
    * @param radius The radius of the overall Bloch sphere
+   * @param numCircles The number of circles to add. This number must be even,
+   * if an odd number is provided, one more circle will be generated to ensure it is even.
    */
   private createHorizontalCircleMeridians(radius: number, numCircles: number) {
+    if (numCircles === 0) {
+      return;
+    }
+
     const circles = this.sanitizeCircleInput(numCircles, 4);
 
     const curveData = this.curveDataWithRadius(radius);
@@ -137,8 +148,14 @@ export class Meridians extends Group {
    * Creates equally sized vertical meridian lines which rotate
    * by varying degrees across the same axis, adding them to the group.
    * @param radius The radius of the overall bloch sphere
+   * @param numCircles The number of circles to add. This number must be even,
+   * if an odd number is provided, one more circle will be generated to ensure it is even.
    */
   private createVerticalMeridians(radius: number, numCircles: number) {
+    if (numCircles === 0) {
+      return;
+    }
+
     const circles = this.sanitizeCircleInput(numCircles, 4);
 
     const curveData = {

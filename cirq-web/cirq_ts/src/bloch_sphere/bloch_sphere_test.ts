@@ -66,10 +66,10 @@ describe('The BlochSphere class by default', () => {
   describe('The groups contain the correct num of components', () => {
     const children = bloch_sphere.children;
     it('has a sphere', () => {
-      const sphereExists = children.some(
+      const sphereExists = children.find(
         child => child.constructor.name === 'Sphere'
       );
-      expect(sphereExists).to.equal(true);
+      expect(sphereExists).to.not.equal(undefined);
     });
 
     it('has 2 sets of meridians', () => {
@@ -103,15 +103,15 @@ describe('The BlochSphere class by default', () => {
     it('contains 7 horizontal chord meridians by default', () => {
       const horizontalMeridians = meridians.find(
         child => child.orientation === Orientation.HORIZONTAL_CHORD
-      ) as Object3D;
-      expect(horizontalMeridians.children.length).to.equal(7);
+      ) as Meridians;
+      expect(horizontalMeridians.numCircles).to.equal(7);
     });
 
     it('contains 4 vert meridians by default', () => {
       const verticalMeridians = meridians.find(
         child => child.orientation === Orientation.VERTICAL
-      ) as Object3D;
-      expect(verticalMeridians.children.length).to.equal(4);
+      ) as Meridians;
+      expect(verticalMeridians.numCircles).to.equal(4);
     });
   });
 

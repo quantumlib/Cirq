@@ -23,7 +23,34 @@ describe('Meridians', () => {
   const DEFAULT_V_MERIDIANS = 4;
 
   describe('defaults', () => {
-    it('horizontalChordMeridians() generates lines at the correct positions with defaults', () => {
+    it('createHorizontalChordMeridians() generates the correct number of lines given the default number (7)', () => {
+      const meridians = new Meridians(
+        DEFAULT_RADIUS,
+        DEFAULT_H_MERIDIANS,
+        Orientation.HORIZONTAL_CHORD
+      );
+      expect(meridians.children.length).to.equal(7);
+    });
+
+    it('createHorizontalCircleMeridians() generates the correct number of lines given the default number (7)', () => {
+      const meridians = new Meridians(
+        DEFAULT_RADIUS,
+        DEFAULT_H_MERIDIANS,
+        Orientation.HORIZONTAL
+      );
+      expect(meridians.children.length).to.equal(7);
+    });
+
+    it('createVerticalMeridians() generates the correct number of lines given the default number (4)', () => {
+      const meridians = new Meridians(
+        DEFAULT_RADIUS,
+        DEFAULT_V_MERIDIANS,
+        Orientation.VERTICAL
+      );
+      expect(meridians.children.length).to.equal(4);
+    });
+
+    it('createHorizontalChordMeridians() generates lines at the correct positions with defaults', () => {
       const meridians = new Meridians(
         DEFAULT_RADIUS,
         DEFAULT_H_MERIDIANS,
@@ -47,6 +74,45 @@ describe('Meridians', () => {
   });
 
   describe('configurables', () => {
+    it('createHorizontalChordMeridians() generates the correct number of lines given a valid numbers (4, 0, 17, 299)', () => {
+      const lineValues = [4, 0, 17, 299];
+      const expectedLineNumbers = [5, 0, 17, 299];
+      lineValues.forEach((el, index) => {
+        const meridians = new Meridians(
+          DEFAULT_RADIUS,
+          el,
+          Orientation.HORIZONTAL_CHORD
+        );
+        expect(meridians.children.length).to.equal(expectedLineNumbers[index]);
+      });
+    });
+
+    it('createHorizontalCircleMeridians() generates the correct number of lines given valid numbers (4, 0, 17, 299)', () => {
+      const lineValues = [4, 0, 17, 299];
+      const expectedLineNumbers = [4, 0, 18, 299];
+      lineValues.forEach((el, index) => {
+        const meridians = new Meridians(
+          DEFAULT_RADIUS,
+          el,
+          Orientation.HORIZONTAL
+        );
+        expect(meridians.children.length).to.equal(expectedLineNumbers[index]);
+      });
+    });
+
+    it('createVerticalMeridians() generates the correct number of lines given valid numbers (4, 0, 17, 299)', () => {
+      const lineValues = [4, 0, 17, 299];
+      const expectedLineNumbers = [4, 0, 18, 299];
+      lineValues.forEach((el, index) => {
+        const meridians = new Meridians(
+          DEFAULT_RADIUS,
+          el,
+          Orientation.VERTICAL
+        );
+        expect(meridians.children.length).to.equal(expectedLineNumbers[index]);
+      });
+    });
+
     it('changing the number of horizontal chord meridians changes the positions correctly with scale', () => {
       const meridians = new Meridians(
         DEFAULT_RADIUS,

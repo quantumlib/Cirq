@@ -18,13 +18,10 @@ import {Sphere} from './sphere';
 describe('Sphere methods', () => {
   const DEFAULT_RADIUS = 5;
   const sphere = new Sphere(DEFAULT_RADIUS);
+  describe('defaults', () => {
+    it('returns a transparent sphere', () => {
+      assert(false, 'Not implemented');
+    });
+  })
 
-  it('returns a type Group as Sphere', () => {
-    expect(sphere.type).to.equal('Group');
-    expect(sphere.constructor.name).to.equal('Sphere');
-  });
-
-  it('returns a transparent sphere', () => {
-    assert(false, 'Not implemented');
-  });
 });
