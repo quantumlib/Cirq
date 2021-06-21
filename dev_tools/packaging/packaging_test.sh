@@ -15,12 +15,50 @@
 # limitations under the License.
 
 ################################################################################
-# This script tests packaging. It creates the packages for all the cirq modules
-# `pip install`s them in a clean virtual environment and then runs some simple
-# verificiations on each of the modules, ensuring that they can be imported.
+# This script tests packaging. It only runs if setup.py or requirements (*.txt)
+# files are changed on the given branch. It creates the packages for all the
+# cirq modules `pip install`s them in a clean virtual environment and then runs
+# some simple verificiations on each of the modules, ensuring that they can be
+# imported. It then also attempts to push to test pypi, using the
+# $TEST_TWINE_USERNAME and $TEST_TWINE_PASSWORD environment variables.
 ################################################################################
 
 set -e
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$(git rev-parse --show-toplevel)"
+
+# Figure out which revision to compare against.
+if [ ! -z "$1" ] && [[ $1 != -* ]]; then
+    if [ "$(git cat-file -t $1 2> /dev/null)" != "commit" ]; then
+        echo -e "\033[31mNo revision '$1'.\033[0m" >&2
+        exit 1
+    fi
+    rev=$1
+elif [ "$(git cat-file -t upstream/master 2> /dev/null)" == "commit" ]; then
+    rev=upstream/master
+elif [ "$(git cat-file -t origin/master 2> /dev/null)" == "commit" ]; then
+    rev=origin/master
+elif [ "$(git cat-file -t master 2> /dev/null)" == "commit" ]; then
+    rev=master
+else
+    echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\033[0m" >&2
+    exit 1
+fi
+base="$(git merge-base ${rev} HEAD)"
+if [ "$(git rev-parse ${rev})" == "${base}" ]; then
+    echo -e "Comparing against revision '${rev}'." >&2
+else
+    echo -e "Comparing against revision '${rev}' (merge base ${base})." >&2
+    rev="${base}"
+fi
+
+# only run if setup.py or txt changes are observed, to avoid too frequent uploads to test pypi
+changed=$(git diff --name-only ${rev} -- \
+    | grep -E "^.*(setup.py|.txt)$"
+)
+
 
 # Temporary workspace.
 tmp_dir=$(mktemp -d)
@@ -55,3 +93,10 @@ for p in $CIRQ_PACKAGES; do
   python_test="import $p; print($p); assert '${tmp_dir}' in $p.__file__, 'Package path seems invalid.'"
   env PYTHONPATH='' "${tmp_dir}/env/bin/python" -c "$python_test" && echo -e "\033[32mPASS\033[0m"  || echo -e "\033[31mFAIL\033[0m"
 done
+
+
+echo ============================================
+echo Testing that modules can be uploaded to pypi
+echo ============================================
+
+twine upload --repository-url=https://test.pypi.org/legacy/ -u="$TEST_TWINE_USERNAME" -p="$TEST_TWINE_PASSWORD" "${out_dir}/*"
